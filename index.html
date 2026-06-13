@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light only">
+<title>KeeleSepp — eesti ja inglise keele kursused veebis | Tallinn</title>
+<meta name="description" content="KeeleSepp pakub eesti ja inglise keele kursusi veebis tasemetel A1–C1. Professionaalsed õpetajad, paindlik tunniplaan, eksami ettevalmistus.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1C2B3A;--ink-s:#42536A;--paper:#FBFAF8;--mist:#EFEDE7;
+  --amber:#C9882A;--amber-d:#A96E1A;--pine:#2F5D50;
+  --line:rgba(28,43,58,.13);--r:14px;--sh:0 10px 32px rgba(28,43,58,.08);
+  --max:1120px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+body{font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:17px;line-height:1.65;color:var(--ink);background:var(--paper);-webkit-font-smoothing:antialiased}
+img{max-width:100%;display:block}
+a{color:var(--pine);text-decoration:none}
+.w{max-width:var(--max);margin:0 auto;padding:0 24px}
+h1,h2,h3{font-family:"Fraunces",Georgia,serif;font-weight:600;line-height:1.15;letter-spacing:-.01em}
+h1{font-size:clamp(2rem,5vw,3.3rem)}
+h2{font-size:clamp(1.55rem,3.4vw,2.15rem)}
+h3{font-size:1.15rem}
+.eye{font-family:"IBM Plex Mono",monospace;font-size:.78rem;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--amber-d);display:inline-flex;align-items:center;gap:.6em;margin-bottom:14px}
+.eye::before{content:"";width:26px;height:2px;background:var(--amber)}
+.sec{padding:80px 0}.sec.alt{background:var(--mist)}
+.sec-h{max-width:620px;margin-bottom:44px}.sec-h p{color:var(--ink-s);margin-top:12px}
+
+/* Кнопки */
+.btn{display:inline-block;font-weight:600;font-size:.96rem;text-decoration:none;padding:13px 28px;border-radius:999px;border:1.5px solid transparent;transition:transform .15s,box-shadow .15s;cursor:pointer;font-family:inherit}
+.btn:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.btn-p{background:var(--ink);color:#fff}.btn-p:hover{transform:translateY(-2px);box-shadow:var(--sh)}
+.btn-g{border-color:var(--line);color:var(--ink)}.btn-g:hover{border-color:var(--ink)}
+.btn-a{background:var(--amber);color:#fff}.btn-a:hover{background:var(--amber-d)}
+.btn-pine{background:var(--pine);color:#fff}.btn-pine:hover{opacity:.9}
+.skip{position:absolute;left:-9999px;background:var(--ink);color:#fff;padding:10px 16px;z-index:200}.skip:focus{left:16px;top:16px}
+
+/* Шапка */
+header{position:sticky;top:0;z-index:50;background:rgba(251,250,248,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:72px}
+.logo{font-family:"Fraunces",serif;font-weight:600;font-size:1.4rem;color:var(--ink);letter-spacing:-.01em}
+.logo b{color:var(--amber-d)}
+.nav-l{display:flex;gap:28px;list-style:none;align-items:center}
+.nav-l a{color:var(--ink);font-size:.94rem;font-weight:500}.nav-l a:hover{color:var(--amber-d)}
+.nav-c{display:flex;gap:12px;align-items:center}
+.nav-t{display:none;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--ink)}
+@media(max-width:860px){.nav-l,.nav-c .btn-g{display:none}.nav-t{display:block}
+  .nav-l.open{display:flex;flex-direction:column;position:absolute;top:72px;left:0;right:0;background:var(--paper);border-bottom:1px solid var(--line);padding:20px 24px;gap:16px;align-items:flex-start}}
+
+/* Hero */
+.hero{padding:96px 0 76px;overflow:hidden;position:relative}
+.hero-g{display:grid;grid-template-columns:1.1fr .9fr;gap:52px;align-items:center}
+.hero p.lead{font-size:1.12rem;color:var(--ink-s);margin:18px 0 30px;max-width:480px}
+.hero-act{display:flex;gap:14px;flex-wrap:wrap}
+.hero-tr{margin-top:34px;display:flex;gap:26px;flex-wrap:wrap}
+.hero-tr div{font-size:.9rem;color:var(--ink-s)}
+.hero-tr strong{display:block;font-family:"Fraunces",serif;font-size:1.5rem;color:var(--ink)}
+.hero-img{position:relative}
+.hero-img img{border-radius:var(--r);box-shadow:var(--sh);aspect-ratio:4/3;object-fit:cover}
+.hero-ghost{position:absolute;right:-36px;bottom:-48px;z-index:-1;font-family:"Fraunces",serif;font-size:20rem;font-weight:600;color:transparent;-webkit-text-stroke:1.5px rgba(201,136,42,.2);user-select:none;pointer-events:none;line-height:1}
+@media(max-width:860px){.hero{padding:52px 0}.hero-g{grid-template-columns:1fr}.hero-ghost{font-size:10rem;right:-16px;bottom:-24px}}
+
+/* Летние курсы */
+.summer{background:var(--ink);color:#fff;padding:68px 0}
+.summer .eye{color:var(--amber)}
+.summer h2{color:#fff}
+.sum-g{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:38px}
+.sum-c{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.13);border-radius:var(--r);padding:30px}
+.sum-c h3{color:#fff;margin-bottom:6px}
+.sum-c .age{font-family:"IBM Plex Mono",monospace;font-size:.78rem;color:var(--amber);letter-spacing:.08em}
+.sum-c p{color:rgba(255,255,255,.78);font-size:.94rem;margin:12px 0}
+.sum-c ul{list-style:none;margin:12px 0 18px;font-size:.92rem;color:rgba(255,255,255,.85)}
+.sum-c li{padding:3px 0}
+.sum-p{font-family:"Fraunces",serif;font-size:1.55rem;margin-bottom:16px;color:#fff}
+.sum-p span{font-size:.83rem;font-family:"IBM Plex Sans",sans-serif;color:rgba(255,255,255,.55)}
+@media(max-width:700px){.sum-g{grid-template-columns:1fr}}
+
+/* Карточки курсов */
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+@media(max-width:960px){.grid3{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.grid3{grid-template-columns:1fr}}
+.ccard{position:relative;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:28px 26px 24px;display:flex;flex-direction:column;transition:transform .15s,box-shadow .15s;overflow:hidden}
+.ccard:hover{transform:translateY(-4px);box-shadow:var(--sh)}
+.ccard-ghost{position:absolute;top:-24px;right:-6px;font-family:"Fraunces",serif;font-size:7rem;font-weight:600;line-height:1;color:transparent;-webkit-text-stroke:1.2px rgba(28,43,58,.09);user-select:none;pointer-events:none}
+.ccard h3{margin-bottom:12px;padding-right:52px}
+.cefr{display:flex;gap:5px;align-items:center;margin-bottom:16px}
+.cefr i{width:20px;height:5px;border-radius:3px;background:var(--mist);font-style:normal}
+.cefr i.on{background:var(--pine)}.cefr i.cur{background:var(--amber)}
+.cefr span{font-family:"IBM Plex Mono",monospace;font-size:.68rem;color:var(--ink-s);margin-left:5px;letter-spacing:.06em}
+.ccard ul{list-style:none;margin-bottom:20px;flex:1}
+.ccard li{padding:4px 0 4px 22px;font-size:.92rem;color:var(--ink-s);position:relative}
+.ccard li::before{content:"";position:absolute;left:0;top:12px;width:11px;height:2px;background:var(--amber)}
+.ccard-f{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.ccard-p{font-family:"Fraunces",serif;font-size:1.4rem}
+.ccard-p small{font-size:.78rem;font-family:"IBM Plex Sans",sans-serif;color:var(--ink-s);font-weight:400}
+.ccard-f .btn{padding:9px 18px;font-size:.86rem}
+
+/* Качество */
+.q-g{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+@media(max-width:860px){.q-g{grid-template-columns:1fr}}
+.q-i{padding:26px;border-left:3px solid var(--amber);background:#fff;border-radius:0 var(--r) var(--r) 0}
+.q-i h3{margin-bottom:10px}.q-i p{font-size:.94rem;color:var(--ink-s)}
+
+/* Учителя */
+.t-g{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+@media(max-width:860px){.t-g{grid-template-columns:1fr}}
+.t-c{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:32px 28px;text-align:center;transition:transform .15s,box-shadow .15s}
+.t-c:hover{transform:translateY(-4px);box-shadow:var(--sh)}
+.t-av{width:100px;height:100px;border-radius:50%;margin:0 auto 18px;background:var(--pine);color:#fff;display:flex;align-items:center;justify-content:center;font-family:"Fraunces",serif;font-size:2rem;font-weight:600}
+.t-c h3{margin-bottom:5px}
+.t-role{font-family:"IBM Plex Mono",monospace;font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;color:var(--amber-d);display:block;margin-bottom:12px}
+.t-c p{font-size:.93rem;color:var(--ink-s)}
+
+/* Отзывы */
+.rv-badge{display:inline-flex;align-items:center;gap:8px;padding:7px 16px;background:#fff;border:1px solid var(--line);border-radius:999px;font-size:.88rem;color:var(--ink-s);margin-top:14px}
+.rv-badge strong{color:var(--pine)}.rv-badge a{color:var(--amber-d);font-weight:600}
+.rv-g{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+@media(max-width:860px){.rv-g{grid-template-columns:1fr}}
+.rv{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:26px;display:flex;flex-direction:column;gap:14px}
+.rv p{font-size:.95rem;color:var(--ink-s);flex:1}
+.rv p::before{content:"\201C";font-family:"Fraunces",serif;font-size:2rem;color:var(--amber);display:block;line-height:.6;margin-bottom:8px}
+.rv-auth{display:flex;align-items:center;gap:12px}
+.rv-av{width:42px;height:42px;border-radius:50%;background:var(--pine);color:#fff;display:flex;align-items:center;justify-content:center;font-family:"Fraunces",serif;font-weight:600;font-size:.9rem;flex-shrink:0}
+.rv-auth strong{display:block;font-size:.9rem}.rv-auth span{font-size:.8rem;color:var(--ink-s)}
+.rv-res{display:inline-block;margin-top:8px;padding:3px 10px;background:var(--mist);border-radius:999px;font-size:.78rem;font-weight:600;color:var(--pine)}
+
+/* Форма регистрации */
+.reg{background:var(--ink);color:#fff;padding:80px 0}
+.reg .eye{color:var(--amber)}.reg h2{color:#fff}
+.reg-g{display:grid;grid-template-columns:1fr 1.1fr;gap:52px;align-items:start}
+@media(max-width:860px){.reg-g{grid-template-columns:1fr}}
+.reg-info p{color:rgba(255,255,255,.78);margin:16px 0 26px}
+.reg-info ul{list-style:none}
+.reg-info li{padding:8px 0 8px 28px;position:relative;color:rgba(255,255,255,.9);font-size:.96rem}
+.reg-info li::before{content:"✓";position:absolute;left:0;color:var(--amber);font-weight:600}
+.reg-form{background:#fff;border-radius:var(--r);padding:32px;color:var(--ink);box-shadow:var(--sh)}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:.87rem;font-weight:600;margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:10px;font:inherit;font-size:.94rem;background:var(--paper);color:var(--ink);outline:none}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--amber)}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:520px){.field-row{grid-template-columns:1fr}}
+.reg-form button{width:100%;margin-top:4px}
+.form-note{font-size:.79rem;color:var(--ink-s);margin-top:12px;text-align:center}
+.form-ok{display:none;margin-top:12px;padding:12px;background:#dcfce7;border-radius:10px;text-align:center;color:#166534;font-weight:600;font-size:.9rem}
+
+/* Контакты */
+.ct-g{display:grid;grid-template-columns:1fr 1.2fr;gap:46px;align-items:start}
+@media(max-width:860px){.ct-g{grid-template-columns:1fr}}
+.ct-l{list-style:none}
+.ct-l li{padding:15px 0;border-bottom:1px solid var(--line);display:flex;gap:14px;align-items:baseline}
+.ct-l b{min-width:130px;font-size:.84rem;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-s);font-family:"IBM Plex Mono",monospace;font-weight:500}
+.ct-l a{color:var(--ink);font-weight:500}.ct-l a:hover{color:var(--amber-d)}
+.map-f{border:0;width:100%;height:360px;border-radius:var(--r);box-shadow:var(--sh)}
+
+/* Подвал */
+footer{background:var(--ink);color:rgba(255,255,255,.7);padding:52px 0 28px}
+.ft-g{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:38px;margin-bottom:38px}
+@media(max-width:700px){.ft-g{grid-template-columns:1fr}}
+.ft-g h3{color:#fff;font-size:.92rem;font-family:"IBM Plex Sans",sans-serif;margin-bottom:12px;text-transform:uppercase;letter-spacing:.07em}
+footer .logo{color:#fff;margin-bottom:12px;display:inline-block;font-size:1.3rem}
+footer p{font-size:.88rem;max-width:290px}
+footer ul{list-style:none}
+footer li{padding:4px 0}
+footer a{color:rgba(255,255,255,.7);font-size:.9rem}
+footer a:hover{color:var(--amber)}
+.ft-b{border-top:1px solid rgba(255,255,255,.12);padding-top:22px;display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;font-size:.82rem}
+.ft-b div{display:flex;gap:18px;flex-wrap:wrap}
+
+/* Баннер: Määra oma tase */
+.level-b{background:linear-gradient(135deg,var(--pine),#234a3f);color:#fff;border-radius:var(--r);padding:42px 38px;display:flex;align-items:center;justify-content:space-between;gap:26px;flex-wrap:wrap;box-shadow:var(--sh)}
+.level-b h2{color:#fff;font-size:clamp(1.35rem,2.5vw,1.85rem);margin-bottom:7px}
+.level-b p{color:rgba(255,255,255,.85);max-width:460px}
+</style>
+</head>
+<body>
+<a class="skip" href="#sisu">Liigu sisu juurde</a>
+
+<!-- ██ ШАПКА ██████████████████████████████████████████████ -->
+<header>
+  <div class="w nav">
+    <a class="logo" href="/">Keele<b>Sepp</b></a>
+    <nav aria-label="Peamenüü">
+      <ul class="nav-l" id="nav">
+        <li><a href="#kursused">Kursused</a></li>
+        <li><a href="#opetajad">Õpetajad</a></li>
+        <li><a href="#arvustused">Arvustused</a></li>
+        <li><a href="#kontakt">Kontakt</a></li>
+      </ul>
+    </nav>
+    <div class="nav-c">
+      <a class="btn btn-g" href="/haldus/">Logi sisse</a>
+      <a class="btn btn-p" href="#registreeru">Registreeru</a>
+      <button class="nav-t" aria-label="Ava menüü" aria-expanded="false" onclick="toggleNav(this)">☰</button>
+    </div>
+  </div>
+</header>
+
+<main id="sisu">
+
+<!-- ██ HERO ████████████████████████████████████████████████ -->
+<section class="hero">
+  <div class="w hero-g">
+    <div>
+      <p class="eye">KeeleSepp — õpi meiega · veebis · Tallinn</p>
+      <h1>Eesti ja inglise keel — selgelt, järjepidevalt, veebis</h1>
+      <p class="lead">Kursused tasemetel A1–C1 professionaalsete õpetajatega. Paindlik tunniplaan, eksami ettevalmistus ja õppematerjalid hinna sees.</p>
+      <div class="hero-act">
+        <a class="btn btn-p" href="#kursused">Tutvu kursustega</a>
+        <a class="btn btn-g" href="#registreeru">Registreeru kursusele</a>
+      </div>
+      <div class="hero-tr">
+        <div><strong>A1–C1</strong>kõik tasemed</div>
+        <div><strong>100%</strong>veebis</div>
+        <div><strong>98%</strong>soovitavad</div>
+        <div><strong>33+</strong>arvustust</div>
+      </div>
+    </div>
+    <div class="hero-img">
+      <img src="https://epkoolitus.ee/wp-content/uploads/2025/10/d8149d7f14fcc78f5c63860736a1ec12411b4559-1024x682.jpg"
+           alt="Õpilane osaleb veebipõhises keeletunnis" width="1024" height="682" loading="eager">
+      <div class="hero-ghost" aria-hidden="true">Õ</div>
+    </div>
+  </div>
+</section>
+
+<!-- ██ ЛЕТНИЕ КУРСЫ ████████████████████████████████████████ -->
+<section class="summer" id="suvekursused">
+  <div class="w">
+    <p class="eye">Suvekursused 2026 · kohtade arv piiratud</p>
+    <h2>Suvine registreerimine on avatud</h2>
+    <div class="sum-g">
+      <article class="sum-c">
+        <span class="age">Vanus 12–14</span>
+        <h3>Eesti keel noortele</h3>
+        <p>Suhtluskeel, sõnavara ja grammatika mängulises ja motiveerivas keskkonnas.</p>
+        <ul>
+          <li>📅 E / K / R — 10:00–11:00 või 18:00–19:00</li>
+          <li>🗓 Juuni · juuli · august</li>
+        </ul>
+        <div class="sum-p">8 € <span>/ tund</span></div>
+        <a class="btn btn-a" href="#registreeru">Registreeru →</a>
+      </article>
+      <article class="sum-c">
+        <span class="age">Vanus 6–7 · koolivalmidus</span>
+        <h3>Eesti keel — esimene klass</h3>
+        <p>Tähestik, hääldus ja esmane suhtluskeel. Laps alustab kooliteed enesekindlalt.</p>
+        <ul>
+          <li>📅 E / K / R — 10:00–11:00 või 18:00–19:00</li>
+          <li>🗓 Juuni · juuli · august</li>
+        </ul>
+        <div class="sum-p">8 € <span>/ tund</span></div>
+        <a class="btn btn-a" href="#registreeru">Registreeru →</a>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ██ EESTI KEEL ███████████████████████████████████████████ -->
+<section class="sec" id="kursused">
+  <div class="w">
+    <div class="sec-h">
+      <p class="eye">Eesti keel</p>
+      <h2>Eesti keele kursused</h2>
+      <p>Selge tee tasemelt tasemele — eksami ettevalmistus ja materjalid hinna sees.</p>
+    </div>
+    <div class="grid3">
+
+      <article class="ccard">
+        <span class="ccard-ghost" aria-hidden="true">A1</span>
+        <h3>Eesti keele A1-tase</h3>
+        <div class="cefr"><i class="cur"></i><i></i><i></i><i></i><i></i><span>A1</span></div>
+        <ul><li>Tähestik ja hääldus</li><li>Esmane igapäevane suhtlus</li><li>Sõbralik keskkond</li></ul>
+        <div class="ccard-f">
+          <div class="ccard-p">1060 €</div>
+          <a class="btn btn-g" href="#registreeru">Registreeru</a>
+        </div>
+      </article>
+
+      <article class="ccard">
+        <span class="ccard-ghost" aria-hidden="true">A2</span>
+        <h3>Eesti keele A2-tase</h3>
+        <div class="cefr"><i class="on"></i><i class="cur"></i><i></i><i></i><i></i><span>A2</span></div>
+        <ul><li>Igapäevane suhtlus ja praktika</li><li>Sõnavara laiendamine</li><li>Eksami tugi</li></ul>
+        <div class="ccard-f">
+          <div class="ccard-p">1660 €</div>
+          <a class="btn btn-g" href="#registreeru">Registreeru</a>
+        </div>
+      </article>
+
+      <article class="ccard">
+        <span class="ccard-ghost" aria-hidden="true">B1</span>
+        <h3>Eesti keele B1-tase</h3>
+        <div class="cefr"><i class="on"></i><i class="on"></i><i class="cur"></i><i></i><i></i><span>B1</span></div>
+        <ul><li>Suhtlemine tööl ja vabal ajal</li><li>Arvamuse avaldamine</li><li>B1 eksami ettevalmistus</li></ul>
+        <div class="ccard-f">
+          <div class="ccard-p">1900 €</div>
+          <a class="btn btn-g" href="#registreeru">Registreeru</a>
+        </div>
+      </article>
+
+      <article class="ccard">
+        <span class="ccard-ghost" aria-hidden="true">B2</span>
+        <h3>Eesti keele B2-tase</h3>
+        <div class="cefr"><i class="on"></i><i class="on"></i><i class="on"></i><i class="cur"></i><i></i><span>B2</span></div>
+        <ul><li>Spontaanne ja ladus suhtlus</li><li>Keerukate tekstide analüüs</li><li>B2 eksami ettevalmistus</li></ul>
+        <div class="ccard-f">
+          <div class="ccard-p">2500 €</div>
+          <a class="btn btn-g" href="#registreeru">Registreeru</a>
+        </div>
+      </article>
+
+      <article class="ccard">
+        <span class="ccard-ghost" aria-hidden="true">C1</span>
+        <h3>Eesti keele C1-tase</h3>
+        <div class="cefr"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="cur"></i><span>C1</span></div>
+        <ul><li>Akadeemiline ja professionaalne keel</li><li>Kõrgtaseme grammatika</li><li>C1 eksami ettevalmistus</li></ul>
+        <div class="ccard-f">
+          <div class="ccard-p">3100 €</div>
+          <a class="btn btn-g" href="#registreeru">Registreeru</a>
+        </div>
+      </article>
+
+      <article class="ccard">
+        <span class="ccard-ghost" aria-hidden="true">1:1</span>
+        <h3>Individuaalõpe</h3>
+        <div class="cefr"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><span>iga tase</span></div>
+        <ul><li>Paindlik tunniplaan ja tempo</li><li>Erialakeel: IT, meditsiin, äri</li><li>100% õpetaja tähelepanu</li></ul>
+        <div class="ccard-f">
+          <div class="ccard-p">al. 20 € <small>/ h</small></div>
+          <a class="btn btn-g" href="#registreeru">Registreeru</a>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ██ INGLISE KEEL ████████████████████████████████████████ -->
+<section class="sec alt" id="inglise">
+  <div class="w">
+    <div class="sec-h">
+      <p class="eye">English</p>
+      <h2>Inglise keele kursused</h2>
+      <p>Tasemed A1–C1 ja individuaalõpe. Registreeru — võtame ühendust ühe tööpäeva jooksul.</p>
+    </div>
+    <div class="grid3">
+
+      <article class="ccard">
+        <span class="ccard-ghost" aria-hidden="true">A1</span>
+        <h3>Inglise keele A1-tase</h3>
+        <div class="cefr"><i class="cur"></i><i></i><i></i><i></i><i></i><span>A1</span></div>
+        <ul><li>Algtaseme alused</li><li>Igapäevased fraasid</li><li>Sissejuhatus grammatikasse</li></ul>
+        <div class="ccard-f"><div class="ccard-p">960 €</div><a class="btn btn-g" href="#registreeru">Registreeru</a></div>
+      </article>
+
+      <article class="ccard">
+        <span class="ccard-ghost" aria-hidden="true">A2</span>
+        <h3>Inglise keele A2-tase</h3>
+        <div class="cefr"><i class="on"></i><i class="cur"></i><i></i><i></i><i></i><span>A2</span></div>
+        <ul><li>Baassuhtlus</li><li>Sõnavara laiendamine</li><li>Minevik ja tulevik</li></ul>
+        <div class="ccard-f"><div class="ccard-p">1560 €</div><a class="btn btn-g" href="#registreeru">Registreeru</a></div>
+      </article>
+
+      <article class="ccard">
+        <span class="ccard-ghost" aria-hidden="true">B1</span>
+        <h3>Inglise keele B1-tase</h3>
+        <div class="cefr"><i class="on"></i><i class="on"></i><i class="cur"></i><i></i><i></i><span>B1</span></div>
+        <ul><li>Reisimise sõnavara</li><li>Spontaansed vestlused</li><li>Arvamuse avaldamine</li></ul>
+        <div class="ccard-f"><div class="ccard-p">1800 €</div><a class="btn btn-g" href="#registreeru">Registreeru</a></div>
+      </article>
+
+      <article class="ccard">
+        <span class="ccard-ghost" aria-hidden="true">B2</span>
+        <h3>Inglise keele B2-tase</h3>
+        <div class="cefr"><i class="on"></i><i class="on"></i><i class="on"></i><i class="cur"></i><i></i><span>B2</span></div>
+        <ul><li>Kõrgem kesktase</li><li>Soravad arutelud</li><li>Keerulisemad tekstid</li></ul>
+        <div class="ccard-f"><div class="ccard-p">2100 €</div><a class="btn btn-g" href="#registreeru">Registreeru</a></div>
+      </article>
+
+      <article class="ccard">
+        <span class="ccard-ghost" aria-hidden="true">C1</span>
+        <h3>Inglise keele C1-tase</h3>
+        <div class="cefr"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="cur"></i><span>C1</span></div>
+        <ul><li>Akadeemiline kirjutamine</li><li>Professionaalne suhtlus</li><li>Kõrgtaseme grammatika</li></ul>
+        <div class="ccard-f"><div class="ccard-p">2500 €</div><a class="btn btn-g" href="#registreeru">Registreeru</a></div>
+      </article>
+
+      <article class="ccard">
+        <span class="ccard-ghost" aria-hidden="true">1:1</span>
+        <h3>Individuaalõpe</h3>
+        <div class="cefr"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><span>iga tase</span></div>
+        <ul><li>Personaalne programm</li><li>Paindlik graafik</li><li>100% tähelepanu</li></ul>
+        <div class="ccard-f"><div class="ccard-p">al. 20 € <small>/ h</small></div><a class="btn btn-g" href="#registreeru">Registreeru</a></div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ██ MIKS KEELESEPP ██████████████████████████████████████ -->
+<section class="sec">
+  <div class="w">
+    <div class="sec-h">
+      <p class="eye">Miks KeeleSepp</p>
+      <h2>Õppekorraldus ja kvaliteet</h2>
+    </div>
+    <div class="q-g">
+      <div class="q-i"><h3>Professionaalsed õpetajad</h3><p>Kogenud keeleõpetajad, kes valmistavad sind ette nii igapäevaeluks kui ka ametlikeks tasemeeksamiteks. Õpilased kiidavad neid isiklikult nimepidi.</p></div>
+      <div class="q-i"><h3>Paindlik tunniplaan</h3><p>Hommikused ja õhtused rühmad ning individuaaltunnid kokkuleppel. Õpe sobitub sinu töö ja pereelu kõrvale — täpselt nii nagu sina vajad.</p></div>
+      <div class="q-i"><h3>Tulemus on tõestatud</h3><p>Üle 33 soovituse Facebookis — 98% soovitavad. Õpilased on saavutanud B1 eksamil 77%, 84%, 88%, 91%. Tulemused räägivad enda eest.</p></div>
+    </div>
+
+    <!-- Баннер уровня -->
+    <div class="level-b" style="margin-top:44px">
+      <div>
+        <h2>Ei tea oma keeletaset?</h2>
+        <p>Tule tasuta konsultatsioonile — aitame sinu keeletaseme välja selgitada ja soovitame sobiva kursuse.</p>
+      </div>
+      <a class="btn btn-a" href="#registreeru">Broneeri konsultatsioon</a>
+    </div>
+  </div>
+</section>
+
+<!-- ██ ÕPETAJAD ████████████████████████████████████████████ -->
+<section class="sec alt" id="opetajad">
+  <div class="w">
+    <div class="sec-h">
+      <p class="eye">Meie meeskond</p>
+      <h2>Õpetajad, keda õpilased kiidavad</h2>
+      <p>Kogenud pedagoogid, keda meie õpilased oma arvustustes nimepidi tänavad.</p>
+    </div>
+    <div class="t-g">
+
+      <article class="t-c">
+        <div class="t-av" aria-hidden="true">J</div>
+        <h3>Jelena Zakutajlo</h3>
+        <span class="t-role">Eesti keele õpetaja · asutaja</span>
+        <p>Tähelepanelik ja toetav pedagoog, kes leiab lähenemise nii lastele kui täiskasvanutele. Selgitab keerulise lihtsalt. Õpilaste tulemused räägivad enda eest.</p>
+      </article>
+
+      <article class="t-c">
+        <div class="t-av" style="background:var(--amber-d)" aria-hidden="true">P</div>
+        <h3>Pavel Zakutajlo</h3>
+        <span class="t-role">Eesti keele õpetaja · asutaja</span>
+        <p>Autorimeetodika — ilma tuupimiseta, mängude ja dialoogide kaudu. Õpilased on saavutanud B1 eksamil kuni 91%. Suurepärane grammatika selgitaja.</p>
+      </article>
+
+      <article class="t-c">
+        <div class="t-av" style="background:#5b4e8a" aria-hidden="true">E</div>
+        <h3>Elizaveta</h3>
+        <span class="t-role">Õpetaja</span>
+        <p>Aitab õpilastel leida enesekindlust ja stabiilseid tulemusi. Lapsed käivad tema tundides huviga — edusammud on näha juba mõne nädala pärast.</p>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ██ ARVUSTUSED ██████████████████████████████████████████ -->
+<section class="sec" id="arvustused">
+  <div class="w">
+    <div class="sec-h">
+      <p class="eye">Õppijate kogemused</p>
+      <h2>Mida meie õppijad ütlevad</h2>
+      <div class="rv-badge">
+        ⭐ Soovitavad <strong>98%</strong> — 33 arvustust
+        <a href="https://www.facebook.com/share/1Cs1HMhoEg/" target="_blank" rel="noopener">Facebookis →</a>
+      </div>
+    </div>
+    <div class="rv-g">
+
+      <article class="rv">
+        <p>Дочь занималась с Павлом с января, и уже в сентябре сдала экзамен на уровень B1 с результатом 91%! Павел и Елена — отличные педагоги, которые умеют найти подход к каждому ученику.</p>
+        <div class="rv-auth">
+          <div class="rv-av" aria-hidden="true">KA</div>
+          <div><strong>Korotkaja Alina</strong><span>lapsevanem</span></div>
+        </div>
+        <span class="rv-res">B1 — 91% ✓</span>
+      </article>
+
+      <article class="rv">
+        <p>Дочь занималась с Еленой и практически с нулевого уровня сдала на категорию B1 за 6 месяцев! Я начал заниматься с Павлом со слабым A1 и сдал на B1 за 8 месяцев. Индивидуальный подход, гибкость — это всё о KeeleSepp.</p>
+        <div class="rv-auth">
+          <div class="rv-av" aria-hidden="true">IO</div>
+          <div><strong>Ivan Ostapenko</strong><span>lapsevanem ja õpilane</span></div>
+        </div>
+        <span class="rv-res">2× B1 peres ✓</span>
+      </article>
+
+      <article class="rv">
+        <p>Мой девятиклассник сдал экзамен по эстонскому на 88 баллов! За полтора года занятий с Павлом (1–2 раза в неделю) он с почти нуля получил B1. Занятия не были наказанием — наоборот, замотивировали его на изучение языка!</p>
+        <div class="rv-auth">
+          <div class="rv-av" aria-hidden="true">AF</div>
+          <div><strong>Aleksandra Filatova</strong><span>lapsevanem</span></div>
+        </div>
+        <span class="rv-res">B1 — 88 punkti ✓</span>
+      </article>
+
+      <article class="rv">
+        <p>Хочу выразить огромную благодарность Елене и Паше! Благодаря их поддержке, терпению и профессионализму я сдала экзамен на 85 из 100. Каждое занятие было живым и интересным — я реально начала думать на языке.</p>
+        <div class="rv-auth">
+          <div class="rv-av" aria-hidden="true">VD</div>
+          <div><strong>Veronika Drozdova</strong><span>täiskasvanud õpilane</span></div>
+        </div>
+        <span class="rv-res">eksam — 85/100 ✓</span>
+      </article>
+
+      <article class="rv">
+        <p>Хочу выразить благодарность за помощь в подготовке к экзамену B1, который удалось сдать с результатом 84%. Благодаря грамотному индивидуальному плану подготовка заняла всего три месяца.</p>
+        <div class="rv-auth">
+          <div class="rv-av" aria-hidden="true">MP</div>
+          <div><strong>Milena Petrenko</strong><span>täiskasvanud õpilane</span></div>
+        </div>
+        <span class="rv-res">B1 — 84% · 3 kuuga ✓</span>
+      </article>
+
+      <article class="rv">
+        <p>Наша жизнь перевернулась до и после того, как мы познакомились с Еленой. Более включённых и неравнодушных к ученикам педагогов я не встречала. Результаты были видны буквально сразу. От всей души рекомендую!</p>
+        <div class="rv-auth">
+          <div class="rv-av" aria-hidden="true">VB</div>
+          <div><strong>Viktoriya Braginskaya</strong><span>lapsevanem</span></div>
+        </div>
+        <span class="rv-res">soovitab ❤</span>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ██ REGISTREERUMINE ██████████████████████████████████████ -->
+<section class="reg sec" id="registreeru">
+  <div class="w reg-g">
+    <div class="reg-info">
+      <p class="eye">Alusta täna</p>
+      <h2>Registreeru kursusele</h2>
+      <p>Täida vorm ja võtame sinuga ühendust ühe tööpäeva jooksul. Esimene konsultatsioon on tasuta.</p>
+      <ul>
+        <li>Professionaalne õpetaja</li>
+        <li>Paindlik graafik — hommik või õhtu</li>
+        <li>Õppematerjalid hinna sees</li>
+        <li>Eksami ettevalmistus</li>
+        <li>Eesti keele suvekursused lastele</li>
+      </ul>
+    </div>
+
+    <div class="reg-form">
+      <div class="field">
+        <label for="f-name">Ees- ja perekonnanimi *</label>
+        <input type="text" id="f-name" name="name" required autocomplete="name" placeholder="Eesnimi Perekonnanimi">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="f-email">E-post *</label>
+          <input type="email" id="f-email" name="email" required autocomplete="email" placeholder="email@gmail.com">
+        </div>
+        <div class="field">
+          <label for="f-phone">Telefon</label>
+          <input type="tel" id="f-phone" name="phone" autocomplete="tel" placeholder="+372…">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="f-lang">Vali keel *</label>
+          <select id="f-lang" name="language" required>
+            <option value="" disabled selected>Vali…</option>
+            <option>Eesti keel</option>
+            <option>Inglise keel</option>
+            <option>Suvekursus lapsele</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="f-level">Vali tase</label>
+          <select id="f-level" name="level">
+            <option value="" disabled selected>Vali…</option>
+            <option>A1</option><option>A2</option><option>B1</option>
+            <option>B2</option><option>C1</option>
+            <option>Ei tea oma taset</option>
+            <option>Eratunnid</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label for="f-msg">Lisainfo / eesmärk</label>
+        <textarea id="f-msg" name="message" rows="3" placeholder="Mida soovid saavutada? Kas valmistud eksamiks?"></textarea>
+      </div>
+      <button class="btn btn-a" type="button" onclick="submitForm()">Saada registreerumine</button>
+      <div class="form-ok" id="formOk">✓ Saadetud! Võtame sinuga ühendust ühe tööpäeva jooksul.</div>
+      <p class="form-note">Saates nõustud <a href="#">privaatsuspoliitikaga</a>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ██ KONTAKT ██████████████████████████████████████████████ -->
+<section class="sec" id="kontakt">
+  <div class="w">
+    <div class="sec-h">
+      <p class="eye">Kontakt</p>
+      <h2>Kuidas meid leida?</h2>
+    </div>
+    <div class="ct-g">
+      <ul class="ct-l">
+        <li><b>Aadress</b><span>Mustamäe tee 33, 10616 Tallinn</span></li>
+        <li><b>Telefon</b><a href="tel:+37253740753">+372 5374 0753</a></li>
+        <li><b>E-post</b><a href="mailto:info@epkoolitus.ee">info@epkoolitus.ee</a></li>
+        <li><b>Lahtiolekuajad</b><span>E–R 09:00–18:00 · eratunnid kokkuleppel</span></li>
+        <li><b>Instagram</b><a href="https://www.instagram.com/keelesepp" target="_blank" rel="noopener">@keelesepp</a></li>
+        <li><b>Facebook</b><a href="https://www.facebook.com/share/1Cs1HMhoEg/" target="_blank" rel="noopener">KeeleSepp — õpi meiega</a></li>
+      </ul>
+      <iframe class="map-f" loading="lazy" title="KeeleSepp asukoht — Mustamäe tee 33, Tallinn"
+        referrerpolicy="no-referrer-when-downgrade"
+        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2029.14!2d24.70426!3d59.42238!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4692949942a2789f%3A0x63920977209930f9!2sMustam%C3%A4e%20tee%2033%2C%2010616%20Tallinn!5e0!3m2!1set!2see">
+      </iframe>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ██ ПОДВАЛ ███████████████████████████████████████████████ -->
+<footer>
+  <div class="w">
+    <div class="ft-g">
+      <div>
+        <a class="logo" href="/">Keele<b style="color:var(--amber-d)">Sepp</b></a>
+        <p>Kvaliteetne keeleõpe veebis — toetame õppijaid ja spetsialiste üle kogu Eesti. KeeleSepp — õpi meiega!</p>
+      </div>
+      <div>
+        <h3>Kiirviited</h3>
+        <ul>
+          <li><a href="#kursused">Kursused</a></li>
+          <li><a href="#opetajad">Õpetajad</a></li>
+          <li><a href="#arvustused">Arvustused</a></li>
+          <li><a href="#registreeru">Registreeru</a></li>
+          <li><a href="/haldus/">Õpilase konto</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Kontakt</h3>
+        <ul>
+          <li><a href="mailto:info@epkoolitus.ee">info@epkoolitus.ee</a></li>
+          <li><a href="tel:+37253740753">+372 5374 0753</a></li>
+          <li>Mustamäe tee 33, Tallinn</li>
+          <li style="margin-top:8px"><a href="https://www.instagram.com/keelesepp" target="_blank" rel="noopener">Instagram</a> · <a href="https://www.facebook.com/share/1Cs1HMhoEg/" target="_blank" rel="noopener">Facebook</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="ft-b">
+      <span>© 2026 KeeleSepp · E&amp;P Koolitus OÜ. Kõik õigused kaitstud.</span>
+      <div>
+        <a href="#">Privaatsuspoliitika</a>
+        <a href="#">Kasutustingimused</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* Mobiilmenüü */
+function toggleNav(btn){
+  var n=document.getElementById('nav');
+  var o=n.classList.toggle('open');
+  btn.setAttribute('aria-expanded',o);
+  btn.textContent=o?'✕':'☰';
+}
+
+/* Sujuv sulgemine menüü klikkimisel */
+document.querySelectorAll('.nav-l a').forEach(function(a){
+  a.addEventListener('click',function(){
+    var n=document.getElementById('nav');
+    n.classList.remove('open');
+    var btn=document.querySelector('.nav-t');
+    btn.setAttribute('aria-expanded','false');
+    btn.textContent='☰';
+  });
+});
+
+/* Registreerimisvorm */
+function submitForm(){
+  var name=document.getElementById('f-name').value.trim();
+  var email=document.getElementById('f-email').value.trim();
+  var lang=document.getElementById('f-lang').value;
+  if(!name||!email||!lang){
+    alert('Palun täida kohustuslikud väljad (*).');
+    return;
+  }
+  var phone=document.getElementById('f-phone').value;
+  var level=document.getElementById('f-level').value||'Määramata';
+  var msg=document.getElementById('f-msg').value||'—';
+  var subject=encodeURIComponent('Registreerumine: '+lang+' '+level);
+  var body=encodeURIComponent('Nimi: '+name+'\nE-post: '+email+'\nTelefon: '+(phone||'—')+'\nKeel: '+lang+'\nTase: '+level+'\nLisainfo: '+msg);
+  window.location.href='mailto:info@epkoolitus.ee?subject='+subject+'&body='+body;
+  document.getElementById('formOk').style.display='block';
+}
+
+/* Smooth scroll for Safari */
+document.querySelectorAll('a[href^="#"]').forEach(function(a){
+  a.addEventListener('click',function(e){
+    var t=document.querySelector(this.getAttribute('href'));
+    if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth'});}
+  });
+});
+
+/* Карточки курсов — автоподстановка языка/уровня в форму */
+document.querySelectorAll('.ccard-f .btn').forEach(function(btn){
+  btn.addEventListener('click',function(e){
+    var card=this.closest('.ccard');
+    var h3=card?card.querySelector('h3'):null;
+    if(!h3)return;
+    var t=h3.textContent;
+    var langEl=document.getElementById('f-lang');
+    var levEl=document.getElementById('f-level');
+    if(t.includes('inglise')||t.includes('English')||t.includes('Inglise')){
+      langEl.value='Inglise keel';
+    } else if(t.includes('eesti')||t.includes('Eesti')){
+      langEl.value='Eesti keel';
+    }
+    ['A1','A2','B1','B2','C1'].forEach(function(l){
+      if(t.includes(l)) levEl.value=l;
+    });
+    if(t.includes('Individuaal')||t.includes('1:1')) levEl.value='Eratunnid';
+  });
+});
+</script>
+</body>
+</html>

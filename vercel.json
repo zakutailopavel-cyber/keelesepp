@@ -1,0 +1,15 @@
+{
+  "rewrites": [
+    { "source": "/haldus", "destination": "/haldus.html" },
+    { "source": "/haldus/", "destination": "/haldus.html" },
+    { "source": "/", "destination": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex" }
+      ]
+    }
+  ]
+}
