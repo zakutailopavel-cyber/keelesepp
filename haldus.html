@@ -14,8 +14,6 @@
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
-
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -41,13 +39,6 @@
             color: var(--ink);
         }
         h1, h2, h3 { font-family: "Fraunces", Georgia, serif; font-weight: 600; }
-        
-        .fc { background: #fff; padding: 24px; border-radius: var(--r); border: 1px solid rgba(28,43,58,.13); box-shadow: var(--sh); }
-        .fc-theme-standard td, .fc-theme-standard th { border-color: rgba(28,43,58,.08) !important; }
-        .fc-col-header-cell { background: var(--mist); padding: 8px 0 !important; }
-        .fc-button-primary { background-color: var(--ink) !important; border-color: var(--ink) !important; border-radius: 999px !important; font-weight: 600 !important; }
-        .fc-button-primary:hover { background-color: var(--pine) !important; border-color: var(--pine) !important; }
-        .fc-button-active { background-color: var(--amber) !important; border-color: var(--amber) !important; }
         
         input, select, textarea { 
             font-size: 16px !important; 
@@ -90,17 +81,14 @@
         }
         const db = firebase.firestore();
 
-        // Кастомный хук для рендеринга Chart.js кривой развития
+        // Компонент прогресса
         function ProgressChart({ data }) {
             const chartRef = React.useRef(null);
             let chartInstance = null;
 
             React.useEffect(() => {
                 if (!chartRef.current || data.length === 0) return;
-                
                 const ctx = chartRef.current.getContext('2d');
-                
-                // Сортируем уроки по дате для графика
                 const sortedData = [...data].sort((a,b) => new Date(a.date) - new Date(b.date));
                 const labels = sortedData.map(item => item.date);
                 const scores = sortedData.map(item => item.grade);
@@ -110,7 +98,7 @@
                     data: {
                         labels: labels,
                         datasets: [{
-                            label: 'Hinnete kõver (Оценки)',
+                            label: 'Hinnete kõver (Оценки развития)',
                             data: scores,
                             borderColor: '#C9882A',
                             backgroundColor: 'rgba(201, 136, 42, 0.05)',
@@ -124,12 +112,9 @@
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        scales: {
-                            y: { min: 1, max: 5, ticks: { stepSize: 1 } }
-                        }
+                        scales: { y: { min: 1, max: 5, ticks: { stepSize: 1 } } }
                     }
                 });
-
                 return () => { if (chartInstance) chartInstance.destroy(); };
             }, [data]);
 
@@ -138,7 +123,7 @@
 
         function App() {
             const [user, setUser] = React.useState(null);
-            const [role, setRole] = React.useState(null); // 'teacher', 'student' (или 'parent')
+            const [role, setRole] = React.useState(null); 
             const [username, setUsername] = React.useState('');
             const [password, setPassword] = React.useState('');
             const [error, setError] = React.useState('');
@@ -149,7 +134,6 @@
             const [activeTab, setActiveTab] = React.useState('dashboard');
             const [selectedStudent, setSelectedStudent] = React.useState(null);
 
-            // Формы ввода
             const [newStudentName, setNewStudentName] = React.useState('');
             const [newStudentLevel, setNewStudentLevel] = React.useState('A1');
             const [targetLevel, setTargetLevel] = React.useState('B1');
@@ -157,7 +141,6 @@
             const [lessonTopic, setLessonTopic] = React.useState('');
             const [lessonGrade, setLessonGrade] = React.useState('5');
             const [lessonComment, setLessonComment] = React.useState('');
-            
             const [hwTask, setHwTask] = React.useState('');
 
             const handleLogin = (e) => {
@@ -169,48 +152,28 @@
                 if (teachers.includes(username) && password === '1234') {
                     setUser(username); setRole('teacher');
                 } else if (demoStudents.includes(username) && password === '1234') {
-                    setUser(username); setRole('student'); // Родители заходят под аккаунтом ребенка
+                    setUser(username); setRole('student');
                 } else {
                     setError('Vale kasutajatunnus või parool');
                 }
             };
 
-            // Синхронизация данных с Firebase Firestore
             React.useEffect(() => {
                 if (!user) return;
-
                 const unsubStudents = db.collection("students").onSnapshot(snap => {
                     let list = []; snap.forEach(doc => list.push({id: doc.id, ...doc.data()}));
                     setStudents(list);
                 });
-
                 const unsubLessons = db.collection("lessons").onSnapshot(snap => {
                     let list = []; snap.forEach(doc => list.push({id: doc.id, ...doc.data()}));
                     setLessons(list);
                 });
-
                 const unsubHw = db.collection("homework").onSnapshot(snap => {
                     let list = []; snap.forEach(doc => list.push({id: doc.id, ...doc.data()}));
                     setHomeworks(list);
                 });
-
                 return () => { unsubStudents(); unsubLessons(); unsubHw(); };
             }, [user]);
-
-            // Календарь
-            React.useEffect(() => {
-                if (activeTab === 'calendar') {
-                    const calendarEl = document.getElementById('calendar-render-area');
-                    if (!calendarEl) return;
-                    const calendar = new FullCalendar.Calendar(calendarEl, {
-                        initialView: window.innerWidth < 768 ? 'timeGridDay' : 'timeGridWeek',
-                        locale: 'et', firstDay: 1, slotMinTime: "08:00:00", slotMaxTime: "21:00:00",
-                        headerToolbar: { left: 'prev,next today', center: 'title', right: window.innerWidth < 768 ? '' : 'dayGridMonth,timeGridWeek,timeGridDay' },
-                        events: TEACHER_CALENDARS[user] ? { googleCalendarId: TEACHER_CALENDARS[user] } : []
-                    });
-                    calendar.render();
-                }
-            }, [activeTab, user]);
 
             const addStudent = async (e) => {
                 e.preventDefault();
@@ -229,20 +192,20 @@
                     topic: lessonTopic, grade: parseInt(lessonGrade), comment: lessonComment,
                     date: new Date().toISOString().split('T')[0], teacher: user
                 });
-                setLessonTopic(''); setLessonComment(''); alert('Hinne ja tagasiside salvestatud!');
+                setLessonTopic(''); setLessonComment(''); alert('Tagasiside salvestatud!');
             };
 
             const addHomework = async (e) => {
                 e.preventDefault();
                 if (!selectedStudent) return;
                 await db.collection("homework").add({
-                    studentId: selectedStudent.id, task: hwTask, status: "Ootel (Ожидает)", date: new Date().toISOString().split('T')[0]
+                    studentId: selectedStudent.id, task: hwTask, status: "Ootel", date: new Date().toISOString().split('T')[0]
                 });
                 setHwTask(''); alert('Kodutöö saadetud!');
             };
 
             const toggleHwStatus = async (id, currentStatus) => {
-                const next = currentStatus === "Tehtud" ? "Ootel (Ожидает)" : "Tehtud";
+                const next = currentStatus === "Tehtud" ? "Ootel" : "Tehtud";
                 await db.collection("homework").doc(id).update({ status: next });
             };
 
@@ -252,7 +215,7 @@
                         <div class="max-w-md w-full bg-white p-8 rounded-2xl shadow-xl border border-[rgba(28,43,58,0.1)]">
                             <div class="text-center">
                                 <h2 class="text-4xl font-semibold text-slate-900 tracking-tight">Keele<span class="text-[#C9882A]">Sepp</span></h2>
-                                <p class="mt-3 text-sm text-gray-500 font-medium">Õppesüsteem · Haldus & Päevik</p>
+                                <p class="mt-3 text-sm text-gray-500 font-medium">Õppesüsteemi sisselogimine</p>
                             </div>
                             <form class="mt-8 space-y-5" onSubmit={handleLogin}>
                                 {error && <div class="bg-red-50 text-red-600 p-3 rounded-xl text-sm text-center border border-red-100">{error}</div>}
@@ -296,7 +259,7 @@
                                 </button>
                             )}
                             <button onClick={() => setActiveTab('students')} class={`w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'students' ? 'bg-[#C9882A] text-white shadow-md' : 'text-gray-300 hover:bg-slate-800'}`}>
-                                <i class="fa-solid fa-graduation-cap mr-3 w-5"></i> {role === 'teacher' ? 'Õpilaspäevikud' : 'Minu päevik & progress'}
+                                <i class="fa-solid fa-graduation-cap mr-3 w-5"></i> {role === 'teacher' ? 'Õpilaspäevikud' : 'Minu progress & päevik'}
                             </button>
                         </nav>
                         <button onClick={() => { setUser(null); }} class="w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium text-red-400 hover:bg-slate-800 transition-colors">
@@ -314,7 +277,7 @@
                                         <p class="text-4xl font-bold text-slate-900 mt-2">{role === 'teacher' ? students.filter(s => s.teacher === user).length : 1}</p>
                                     </div>
                                     <div class="bg-white p-6 rounded-2xl border border-gray-200/60 shadow-sm">
-                                        <p class="text-xs font-semibold text-gray-400 uppercase">Teie keeletase</p>
+                                        <p class="text-xs font-semibold text-gray-400 uppercase">Keeletase</p>
                                         <p class="text-2xl font-bold text-[#2F5D50] mt-3">
                                             {role === 'teacher' ? "Kõik tasemed A1-C1" : `${myStudentProfile?.level || 'A1'} ➔ Siht: ${myStudentProfile?.targetLevel || 'B1'}`}
                                         </p>
@@ -343,8 +306,18 @@
 
                         {activeTab === 'calendar' && role === 'teacher' && (
                             <div class="space-y-6">
-                                <h1 class="text-3xl font-semibold text-slate-900">Teie isiklik tunniplaan</h1>
-                                <div id="calendar-render-area"></div>
+                                <div class="flex items-center justify-between flex-wrap gap-4">
+                                    <h1 class="text-3xl font-semibold text-slate-900">Teie isiklik tunniplaan</h1>
+                                    <span class="text-xs font-semibold text-[#2F5D50] bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-full"><i class="fa-solid fa-rotate mr-1"></i> Google Sync Aktiivne</span>
+                                </div>
+                                <div class="mt-4 bg-white p-4 rounded-2xl border border-gray-200/60 shadow-sm" style={{height: '680px'}}>
+                                    <iframe 
+                                        src={`https://calendar.google.com/calendar/embed?src=${encodeURIComponent(TEACHER_CALENDARS[user])}&ctz=Europe%2FTallinn&hl=et&mode=WEEK`} 
+                                        style={{border: '0', width: '100%', height: '100%', borderRadius: '12px'}} 
+                                        frameborder="0" 
+                                        scrolling="no">
+                                    </iframe>
+                                </div>
                             </div>
                         )}
 
@@ -357,7 +330,7 @@
                                             {students.filter(s => s.teacher === user).map(student => (
                                                 <div key={student.id} onClick={() => setSelectedStudent(student)} class="bg-white p-5 rounded-2xl border border-gray-200/60 shadow-sm hover:border-[#C9882A] cursor-pointer transition-all">
                                                     <h3 class="text-lg font-bold text-slate-900">{student.name}</h3>
-                                                    <p class="text-xs text-gray-400 mt-1">Tase: {student.level} ➔ Eesmärk: {student.targetLevel}</p>
+                                                    <p class="text-xs text-gray-400 mt-1">Tase: {student.level} ➔ Siht: {student.targetLevel}</p>
                                                     <span class="inline-block text-xs font-semibold text-[#C9882A] mt-3">Ava õpikaart ➔</span>
                                                 </div>
                                             ))}
@@ -376,7 +349,7 @@
                                         </div>
 
                                         <div class="bg-white p-6 rounded-2xl border border-gray-200/60 shadow-sm">
-                                            <h3 class="text-lg font-bold mb-4">Õppimise progressi kõver (Кривая развития)</h3>
+                                            <h3 class="text-lg font-bold mb-4">Õppimise progressi kõver (Кривая успеваемости)</h3>
                                             {studentLessons.length > 0 ? (
                                                 <ProgressChart data={studentLessons} />
                                             ) : (
@@ -386,10 +359,10 @@
 
                                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                             <div class="bg-white p-6 rounded-2xl border border-gray-200/60 shadow-sm space-y-4">
-                                                <h3 class="text-lg font-bold text-slate-900 border-b border-gray-100 pb-2"><i class="fa-solid fa-book mr-2 text-[#C9882A]"></i>Kodutööd (Домашние задания)</h3>
+                                                <h3 class="text-lg font-bold text-slate-900 border-b border-gray-100 pb-2"><i class="fa-solid fa-book mr-2 text-[#C9882A]"></i>Kodutööd</h3>
                                                 {role === 'teacher' && (
                                                     <form onSubmit={addHomework} class="flex gap-2">
-                                                        <input type="text" value={hwTask} onChange={(e) => setHwTask(e.target.value)} placeholder="Uus kodutöö ülesanne..." class="flex-1 px-4 py-2 text-sm" required />
+                                                        <input type="text" value={hwTask} onChange={(e) => setHwTask(e.target.value)} placeholder="Uus ülesanne..." class="flex-1 px-4 py-2 text-sm" required />
                                                         <button type="submit" class="bg-[#2F5D50] hover:bg-[#1C2B3A] text-white px-4 py-2 rounded-xl text-sm font-semibold">Saada</button>
                                                     </form>
                                                 )}
@@ -409,12 +382,12 @@
                                             </div>
 
                                             <div class="bg-white p-6 rounded-2xl border border-gray-200/60 shadow-sm space-y-4">
-                                                <h3 class="text-lg font-bold text-slate-900 border-b border-gray-100 pb-2"><i class="fa-solid fa-pen-to-square mr-2 text-[#2F5D50]"></i>Tundide ajalugu ja hinded (Журнал уроков)</h3>
+                                                <h3 class="text-lg font-bold text-slate-900 border-b border-gray-100 pb-2"><i class="fa-solid fa-pen-to-square mr-2 text-[#2F5D50]"></i>Журнал уроков и оценки</h3>
                                                 {role === 'teacher' && (
                                                     <form onSubmit={addLessonReport} class="space-y-3 bg-gray-50/50 p-4 rounded-xl border">
                                                         <input type="text" value={lessonTopic} onChange={(e) => setLessonTopic(e.target.value)} placeholder="Tunni teema" class="w-full px-3 py-2 text-sm" required />
                                                         <div class="flex gap-4 items-center">
-                                                            <label class="text-xs font-bold text-gray-500">Hinne за урок:</label>
+                                                            <label class="text-xs font-bold text-gray-500">Hinne:</label>
                                                             <select value={lessonGrade} onChange={(e) => setLessonGrade(e.target.value)} class="px-3 py-1.5 text-sm font-bold text-[#C9882A]">
                                                                 <option value="5">5 (Suurepärane)</option><option value="4">4 (Hea)</option><option value="3">3 (Rahuldav)</option>
                                                             </select>
