@@ -48,7 +48,6 @@
         }
         input:focus, select:focus, textarea:focus { border-color: var(--amber) !important; outline: none; }
 
-        /* Кастомный скроллбар для сетки */
         .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(28,43,58,0.15); border-radius: 99px; }
@@ -79,13 +78,9 @@
         const db = firebase.firestore();
 
         const WEEK_DAYS = [
-            { id: 'Mon', name: 'Esmaspäev' },
-            { id: 'Tue', name: 'Teisipäev' },
-            { id: 'Wed', name: 'Kolmapäev' },
-            { id: 'Thu', name: 'Neljapäev' },
-            { id: 'Fri', name: 'Reede' },
-            { id: 'Sat', name: 'Laupäev' },
-            { id: 'Sun', name: 'Pühapäev' }
+            { id: 'Mon', name: 'Esmaspäev' }, { id: 'Tue', name: 'Teisipäev' },
+            { id: 'Wed', name: 'Kolmapäev' }, { id: 'Thu', name: 'Neljapäev' },
+            { id: 'Fri', name: 'Reede' }, { id: 'Sat', name: 'Laupäev' }, { id: 'Sun', name: 'Pühapäev' }
         ];
 
         const TIME_SLOTS = [
@@ -140,24 +135,26 @@
             const [activeTab, setActiveTab] = React.useState('dashboard');
             const [selectedStudent, setSelectedStudent] = React.useState(null);
 
-            // Фильтр учителей для руководителя
             const [filterTeacher, setFilterTeacher] = React.useState('Pavel');
 
-            // Поля форм
+            // Поля создания ученика
             const [newStudentName, setNewStudentName] = React.useState('');
             const [newStudentLevel, setNewStudentLevel] = React.useState('A1');
             const [targetLevel, setTargetLevel] = React.useState('B1');
+            const [assignTeacher, setAssignTeacher] = React.useState('Pavel'); // Для руководителя Павла
 
+            // Поля отчета за урок
             const [lessonTopic, setLessonTopic] = React.useState('');
             const [lessonGrade, setLessonGrade] = React.useState('5');
+            const [lessonStatus, setLessonStatus] = React.useState('Toimunud'); // Наш 1 пункт!
             const [lessonComment, setLessonComment] = React.useState('');
             const [hwTask, setHwTask] = React.useState('');
 
-            // Поля добавления урока
+            // Поля расписания
             const [schStudent, setSchStudent] = React.useState('');
             const [schDay, setSchDay] = React.useState('Mon');
             const [schTime, setSchTime] = React.useState('09:00');
-            const [schTeacher, setSchTeacher] = React.useState('');
+            const [schTeacher, setSchTeacher] = React.useState('Pavel');
 
             const handleLogin = (e) => {
                 e.preventDefault();
@@ -167,8 +164,9 @@
 
                 if (teachers.includes(username) && password === '1234') {
                     setUser(username); setRole('teacher');
-                    setFilterTeacher(username); // По умолчанию учитель видит себя
+                    setFilterTeacher(username);
                     setSchTeacher(username);
+                    setAssignTeacher(username);
                 } else if (demoStudents.includes(username) && password === '1234') {
                     setUser(username); setRole('student');
                 } else {
@@ -199,11 +197,12 @@
 
             const addStudent = async (e) => {
                 e.preventDefault();
+                const targetTeacher = user === 'Pavel' ? assignTeacher : user;
                 await db.collection("students").add({
                     name: newStudentName, level: newStudentLevel, targetLevel: targetLevel,
-                    teacher: user, createdAt: new Date().toISOString()
+                    teacher: targetTeacher, createdAt: new Date().toISOString()
                 });
-                setNewStudentName(''); alert('Õpilane lisatud!');
+                setNewStudentName(''); alert('Õpilane edukalt lisatud!');
             };
 
             const addLessonReport = async (e) => {
@@ -211,8 +210,8 @@
                 if (!selectedStudent) return;
                 await db.collection("lessons").add({
                     studentId: selectedStudent.id, studentName: selectedStudent.name,
-                    topic: lessonTopic, grade: parseInt(lessonGrade), comment: lessonComment,
-                    date: new Date().toISOString().split('T')[0], teacher: user
+                    topic: lessonTopic, grade: parseInt(lessonGrade), status: lessonStatus,
+                    comment: lessonComment, date: new Date().toISOString().split('T')[0], teacher: user
                 });
                 setLessonTopic(''); setLessonComment(''); alert('Tagasiside salvestatud!');
             };
@@ -234,18 +233,12 @@
             const addScheduleEvent = async (e) => {
                 e.preventDefault();
                 if (!schStudent) return;
-                
-                // Для Павла (руководителя) берем выбранного в форме учителя, для остальных — текущего юзера
                 const teacherToAssign = user === 'Pavel' ? schTeacher : user;
 
                 await db.collection("schedule").add({
-                    teacher: teacherToAssign,
-                    studentName: schStudent,
-                    day: schDay,
-                    time: schTime
+                    teacher: teacherToAssign, studentName: schStudent, day: schDay, time: schTime
                 });
-                setSchStudent('');
-                alert('Tund edukalt lisatud KeeleSepp tunniplaani!');
+                setSchStudent(''); alert('Tund edukalt tunniplaanis märgitud!');
             };
 
             const deleteScheduleEvent = async (id) => {
@@ -286,10 +279,16 @@
             const studentLessons = currentStudentData ? lessons.filter(l => l.studentId === currentStudentData.id) : [];
             const studentHw = currentStudentData ? homeworks.filter(h => h.studentId === currentStudentData.id) : [];
             
-            // Логика фильтрации расписания по учителям или ученику
+            // Фильтрация расписания
             const filteredSchedule = role === 'teacher'
                 ? (filterTeacher === 'Kõik' ? schedule : schedule.filter(s => s.teacher === filterTeacher))
                 : schedule.filter(s => s.studentName.toLowerCase().includes(user.toLowerCase()));
+
+            // === КРИТИЧЕСКАЯ ФИЛЬТРАЦИЯ ДЛЯ ПУНКТА «MINU ÕPILASED» ===
+            // Павел (руководитель) видит ВСЕХ, остальные учителя — только СВОИХ учеников.
+            const filteredStudentsMenu = user === 'Pavel' 
+                ? students 
+                : students.filter(s => s.teacher === user);
 
             return (
                 <div class="min-h-screen flex flex-col md:flex-row">
@@ -307,7 +306,7 @@
                                 <i class="fa-solid fa-calendar-days mr-3 w-5"></i> Tunniplaan
                             </button>
                             <button onClick={() => setActiveTab('students')} class={`w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'students' ? 'bg-[#C9882A] text-white shadow-md' : 'text-gray-300 hover:bg-slate-800'}`}>
-                                <i class="fa-solid fa-graduation-cap mr-3 w-5"></i> {role === 'teacher' ? 'Õpilaspäevikud' : 'Minu progress & päevik'}
+                                <i class="fa-solid fa-graduation-cap mr-3 w-5"></i> {role === 'teacher' ? 'Minu õpilased' : 'Minu progress & päevik'}
                             </button>
                         </nav>
                         <button onClick={() => { setUser(null); }} class="w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium text-red-400 hover:bg-slate-800 transition-colors">
@@ -321,8 +320,8 @@
                                 <h1 class="text-3xl font-semibold text-slate-900">Tere tulemast, {user}!</h1>
                                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                                     <div class="bg-white p-6 rounded-2xl border border-gray-200/60 shadow-sm">
-                                        <p class="text-sm font-medium text-gray-400 uppercase">Õpilased süsteemis</p>
-                                        <p class="text-4xl font-bold text-slate-900 mt-2">{role === 'teacher' ? students.filter(s => s.teacher === user).length : 1}</p>
+                                        <p class="text-sm font-medium text-gray-400 uppercase">Aktiivsed õpilased teie nimekirjas</p>
+                                        <p class="text-4xl font-bold text-slate-900 mt-2">{filteredStudentsMenu.length}</p>
                                     </div>
                                     <div class="bg-white p-6 rounded-2xl border border-gray-200/60 shadow-sm">
                                         <p class="text-sm font-medium text-gray-400 uppercase">Keeletase</p>
@@ -334,8 +333,8 @@
 
                                 {role === 'teacher' && (
                                     <div class="bg-white p-6 rounded-2xl border border-gray-200/60 shadow-sm mt-6">
-                                        <h3 class="text-xl font-semibold text-slate-900 mb-4">Registreeri uus rühm / õpilane</h3>
-                                        <form onSubmit={addStudent} class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                        <h3 class="text-xl font-semibold text-slate-900 mb-4">Määra ja registreeri uus õpilane oma baasi</h3>
+                                        <form onSubmit={addStudent} class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                                             <input type="text" value={newStudentName} onChange={(e) => setNewStudentName(e.target.value)} placeholder="Õpilase nimi" class="px-4 py-2.5 text-sm" required />
                                             <select value={newStudentLevel} onChange={(e) => setNewStudentLevel(e.target.value)} class="px-4 py-2.5 text-sm">
                                                 <option value="A1">Hetketase: A1</option><option value="A2">A2</option><option value="B1">B1</option><option value="B2">B2</option>
@@ -343,8 +342,16 @@
                                             <select value={targetLevel} onChange={(e) => setTargetLevel(e.target.value)} class="px-4 py-2.5 text-sm">
                                                 <option value="B1">Eesmärk: B1</option><option value="B2">B2</option><option value="C1">C1</option>
                                             </select>
-                                            <button type="submit" class="sm:col-span-3 bg-[#2F5D50] hover:bg-[#1C2B3A] text-white py-3 rounded-full text-sm font-semibold transition-all">
-                                                + Lisa õpilane andmebaasi
+                                            {user === 'Pavel' && (
+                                                <select value={assignTeacher} onChange={(e) => setAssignTeacher(e.target.value)} class="px-4 py-2.5 text-sm font-semibold text-[#C9882A]">
+                                                    <option value="Pavel">Õpetaja: Pavel</option>
+                                                    <option value="Jelena">Õpetaja: Jelena</option>
+                                                    <option value="Elizaveta">Õpetaja: Elizaveta</option>
+                                                    <option value="Angelina">Õpetaja: Angelina</option>
+                                                </select>
+                                            )}
+                                            <button type="submit" class="sm:col-span-3 lg:col-span-4 bg-[#2F5D50] hover:bg-[#1C2B3A] text-white py-3 rounded-full text-sm font-semibold transition-all">
+                                                + Kinnita õpilane andmebaasi
                                             </button>
                                         </form>
                                     </div>
@@ -356,28 +363,26 @@
                             <div class="space-y-6">
                                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                     <h1 class="text-3xl font-semibold text-slate-900">KeeleSepp Tunniplaan</h1>
-                                    
-                                    {/* Переключатель расписания учителей (Доступен только руководителю Павелу) */}
                                     {user === 'Pavel' && (
                                         <div class="flex items-center gap-2 bg-white px-4 py-2 rounded-xl border shadow-sm">
-                                            <span class="text-xs font-bold text-gray-400 uppercase">Graafiku vaade:</span>
+                                            <span class="text-xs font-bold text-gray-400 uppercase">Vaade:</span>
                                             <select value={filterTeacher} onChange={(e) => setFilterTeacher(e.target.value)} class="border-none bg-transparent font-semibold text-sm text-[#C9882A] p-0 focus:ring-0">
-                                                <option value="Pavel">Pavel</option>
-                                                <option value="Jelena">Jelena</option>
-                                                <option value="Elizaveta">Elizaveta</option>
-                                                <option value="Angelina">Angelina</option>
+                                                <option value="Pavel">Pavel</option><option value="Jelena">Jelena</option>
+                                                <option value="Elizaveta">Elizaveta</option><option value="Angelina">Angelina</option>
                                                 <option value="Kõik">Kõik õpetajad</option>
                                             </select>
                                         </div>
                                     )}
                                 </div>
 
-                                {/* Инструмент быстрого добавления занятия для учителей */}
                                 {role === 'teacher' && (
                                     <div class="bg-white p-5 rounded-2xl border border-gray-200/60 shadow-sm">
-                                        <h3 class="text-sm font-bold text-gray-400 uppercase mb-3">Broneeri uus tund</h3>
+                                        <h3 class="text-sm font-bold text-gray-400 uppercase mb-3">Broneeri uus tund graafikusse</h3>
                                         <form onSubmit={addScheduleEvent} class="grid grid-cols-1 sm:grid-cols-4 lg:grid-cols-5 gap-3">
-                                            <input type="text" value={schStudent} onChange={(e) => setSchStudent(e.target.value)} placeholder="Õpilase / rühma nimi" class="px-4 py-2 text-sm" required />
+                                            <select value={schStudent} onChange={(e) => setSchStudent(e.target.value)} class="px-4 py-2 text-sm" required>
+                                                <option value="">Vali õpilane...</option>
+                                                {filteredStudentsMenu.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+                                            </select>
                                             <select value={schDay} onChange={(e) => setSchDay(e.target.value)} class="px-4 py-2 text-sm">
                                                 {WEEK_DAYS.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                                             </select>
@@ -386,10 +391,8 @@
                                             </select>
                                             {user === 'Pavel' && (
                                                 <select value={schTeacher} onChange={(e) => setSchTeacher(e.target.value)} class="px-4 py-2 text-sm">
-                                                    <option value="Pavel">Õp. Pavel</option>
-                                                    <option value="Jelena">Õp. Jelena</option>
-                                                    <option value="Elizaveta">Õp. Elizaveta</option>
-                                                    <option value="Angelina">Õp. Angelina</option>
+                                                    <option value="Pavel">Õp. Pavel</option><option value="Jelena">Õp. Jelena</option>
+                                                    <option value="Elizaveta">Õp. Elizaveta</option><option value="Angelina">Õp. Angelina</option>
                                                 </select>
                                             )}
                                             <button type="submit" class="bg-[#2F5D50] hover:bg-[#1C2B3A] text-white font-semibold rounded-xl text-sm py-2 transition-all cursor-pointer lg:col-span-1 sm:col-span-4">
@@ -399,7 +402,6 @@
                                     </div>
                                 )}
 
-                                {/* Фирменная интерактивная недельная сетка KeeleSepp */}
                                 <div class="bg-white rounded-2xl border border-gray-200/60 shadow-sm overflow-hidden">
                                     <div class="overflow-x-auto custom-scrollbar">
                                         <div class="min-w-[800px] grid grid-cols-8 border-b border-gray-100 bg-[#EFEDE7]">
@@ -414,12 +416,7 @@
                                         <div class="min-w-[800px] divide-y divide-gray-100/70">
                                             {TIME_SLOTS.map(slot => (
                                                 <div key={slot} class="grid grid-cols-8 h-20 bg-white">
-                                                    {/* Колонка времени */}
-                                                    <div class="flex items-center justify-center bg-gray-50/50 text-xs font-mono font-bold text-slate-400 border-r border-gray-100">
-                                                        {slot}
-                                                    </div>
-                                                    
-                                                    {/* Ячейки дней недели */}
+                                                    <div class="flex items-center justify-center bg-gray-50/50 text-xs font-mono font-bold text-slate-400 border-r border-gray-100">{slot}</div>
                                                     {WEEK_DAYS.map(day => {
                                                         const currentSlotEvents = filteredSchedule.filter(s => s.day === day.id && s.time === slot);
                                                         return (
@@ -432,7 +429,7 @@
                                                                                 <button onClick={() => deleteScheduleEvent(ev.id)} class="text-red-400 hover:text-red-600 font-bold ml-1 text-[10px] cursor-pointer">✕</button>
                                                                             )}
                                                                         </div>
-                                                                        {filterTeacher === 'Kõik' && (
+                                                                        {(filterTeacher === 'Kõik' || user === 'Pavel') && (
                                                                             <span class="text-[9px] font-semibold text-[#A96E1A] mt-0.5">Õp. {ev.teacher}</span>
                                                                         )}
                                                                     </div>
@@ -452,12 +449,13 @@
                             <div class="space-y-6">
                                 {role === 'teacher' && !selectedStudent ? (
                                     <div>
-                                        <h1 class="text-3xl font-semibold text-slate-900 mb-6">Vali õpilase päevik progressi vaatamiseks</h1>
+                                        <h1 class="text-3xl font-semibold text-slate-900 mb-6">Minu õpilased</h1>
                                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                            {students.filter(s => s.teacher === user || user === 'Pavel').map(student => (
+                                            {filteredStudentsMenu.map(student => (
                                                 <div key={student.id} onClick={() => setSelectedStudent(student)} class="bg-white p-5 rounded-2xl border border-gray-200/60 shadow-sm hover:border-[#C9882A] cursor-pointer transition-all">
                                                     <h3 class="text-lg font-bold text-slate-900">{student.name}</h3>
                                                     <p class="text-xs text-gray-400 mt-1">Tase: {student.level} ➔ Siht: {student.targetLevel}</p>
+                                                    {user === 'Pavel' && <p class="text-[11px] text-emerald-700 font-medium mt-1">Õpetaja: {student.teacher}</p>}
                                                     <span class="inline-block text-xs font-semibold text-[#C9882A] mt-3">Ava õpikaart ➔</span>
                                                 </div>
                                             ))}
@@ -468,7 +466,7 @@
                                         <div class="flex justify-between items-center bg-white p-6 rounded-2xl border border-gray-200/60 shadow-sm">
                                             <div>
                                                 <h2 class="text-2xl font-bold text-slate-900">{currentStudentData?.name} päevik</h2>
-                                                <p class="text-sm text-gray-500 mt-1">Kõver arengutasemest {currentStudentData?.level} kuni tasemeni {currentStudentData?.targetLevel}</p>
+                                                <p class="text-sm text-gray-500 mt-1">Õpetaja: {currentStudentData?.teacher} · {currentStudentData?.level} ➔ {currentStudentData?.targetLevel}</p>
                                             </div>
                                             {role === 'teacher' && (
                                                 <button onClick={() => setSelectedStudent(null)} class="text-sm bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-full font-medium cursor-pointer">Tagasi</button>
@@ -476,11 +474,11 @@
                                         </div>
 
                                         <div class="bg-white p-6 rounded-2xl border border-gray-200/60 shadow-sm">
-                                            <h3 class="text-lg font-bold mb-4">Õppimise progressi kõver (Кривая успеваемости)</h3>
-                                            {studentLessons.length > 0 ? (
-                                                <ProgressChart data={studentLessons} />
+                                            <h3 class="text-lg font-bold mb-4">Õppimise progressi kõver</h3>
+                                            {studentLessons.filter(l => l.status === 'Toimunud').length > 0 ? (
+                                                <ProgressChart data={studentLessons.filter(l => l.status === 'Toimunud')} />
                                             ) : (
-                                                <p class="text-sm text-gray-400 text-center py-8">Graafiku jaoks pole veel piisavalt hindeid.</p>
+                                                <p class="text-sm text-gray-400 text-center py-8">Graafiku jaoks pole veel piisavalt toimunud tundide hindeid.</p>
                                             )}
                                         </div>
 
@@ -509,31 +507,55 @@
                                             </div>
 
                                             <div class="bg-white p-6 rounded-2xl border border-gray-200/60 shadow-sm space-y-4">
-                                                <h3 class="text-lg font-bold text-slate-900 border-b border-gray-100 pb-2"><i class="fa-solid fa-pen-to-square mr-2 text-[#2F5D50]"></i>Журнал уроков и оценки</h3>
+                                                <h3 class="text-lg font-bold text-slate-900 border-b border-gray-100 pb-2"><i class="fa-solid fa-pen-to-square mr-2 text-[#2F5D50]"></i>Журнал уроков и посещаемости</h3>
                                                 {role === 'teacher' && (
                                                     <form onSubmit={addLessonReport} class="space-y-3 bg-gray-50/50 p-4 rounded-xl border">
                                                         <input type="text" value={lessonTopic} onChange={(e) => setLessonTopic(e.target.value)} placeholder="Tunni teema" class="w-full px-3 py-2 text-sm" required />
-                                                        <div class="flex gap-4 items-center">
-                                                            <label class="text-xs font-bold text-gray-500">Hinne:</label>
-                                                            <select value={lessonGrade} onChange={(e) => setLessonGrade(e.target.value)} class="px-3 py-1.5 text-sm font-bold text-[#C9882A]">
-                                                                <option value="5">5 (Suurepärane)</option><option value="4">4 (Hea)</option><option value="3">3 (Rahuldav)</option>
-                                                            </select>
+                                                        
+                                                        <div class="grid grid-cols-2 gap-3">
+                                                            <div>
+                                                                <label class="block text-[11px] font-bold text-gray-400 uppercase mb-1">Hinne за урок:</label>
+                                                                <select value={lessonGrade} onChange={(e) => setLessonGrade(e.target.value)} class="w-full px-3 py-2 text-sm font-bold text-[#C9882A]" disabled={lessonStatus !== 'Toimunud'}>
+                                                                    <option value="5">5 (Suurepärane)</option><option value="4">4 (Hea)</option><option value="3">3 (Rahuldav)</option>
+                                                                </select>
+                                                            </div>
+                                                            <div>
+                                                                <label class="block text-[11px] font-bold text-gray-400 uppercase mb-1">Tunni staatus:</label>
+                                                                <select value={lessonStatus} onChange={(e) => setLessonStatus(e.target.value)} class="w-full px-3 py-2 text-sm font-semibold">
+                                                                    <option value="Toimunud">Toimunud (Проведен)</option>
+                                                                    <option value="Puudus_p">Puudus põhjustega (Уважит.)</option>
+                                                                    <option value="Puudus_eta">Puudus põhjuseta (Прогул)</option>
+                                                                </select>
+                                                            </div>
                                                         </div>
+
                                                         <textarea value={lessonComment} onChange={(e) => setLessonComment(e.target.value)} placeholder="Õpetaja kommentaar..." rows="2" class="w-full px-3 py-2 text-sm"></textarea>
-                                                        <button type="submit" class="w-full bg-[#1C2B3A] text-white py-2 rounded-xl text-sm font-semibold hover:bg-[#2F5D50] cursor-pointer">Pane hinne</button>
+                                                        <button type="submit" class="w-full bg-[#1C2B3A] text-white py-2 rounded-xl text-sm font-semibold hover:bg-[#2F5D50] cursor-pointer">Salvesta aruanne</button>
                                                     </form>
                                                 )}
                                                 <div class="space-y-3 max-h-96 overflow-y-auto">
-                                                    {studentLessons.map(lesson => (
-                                                        <div key={lesson.id} class="border-b border-gray-100 pb-2 flex gap-4 items-start">
-                                                            <span class="w-10 h-10 flex items-center justify-center bg-amber-50 rounded-xl text-[#A96E1A] font-bold text-lg border border-amber-100">{lesson.grade}</span>
-                                                            <div class="flex-1">
-                                                                <h4 class="text-sm font-semibold text-slate-900">{lesson.topic}</h4>
-                                                                <p class="text-xs text-gray-500 mt-0.5">{lesson.comment}</p>
-                                                                <span class="text-[10px] text-gray-400 block mt-1">{lesson.date} · Õp. {lesson.teacher}</span>
+                                                    {studentLessons.map(lesson => {
+                                                        let statusBadge = "bg-emerald-50 text-emerald-800 border-emerald-100";
+                                                        let statusText = "Toimunud";
+                                                        if(lesson.status === 'Puudus_p') { statusBadge = "bg-blue-50 text-blue-800 border-blue-100"; statusText = "Puudus (põhjusega)"; }
+                                                        if(lesson.status === 'Puudus_eta') { statusBadge = "bg-red-50 text-red-800 border-red-100"; statusText = "Puudus (põhjuseta)"; }
+
+                                                        return (
+                                                            <div key={lesson.id} class="border-b border-gray-100 pb-2 flex gap-4 items-start">
+                                                                <span class="w-10 h-10 flex items-center justify-center bg-amber-50 rounded-xl text-[#A96E1A] font-bold text-lg border border-amber-100">
+                                                                    {lesson.status === 'Toimunud' ? lesson.grade : '—'}
+                                                                </span>
+                                                                <div class="flex-1">
+                                                                    <div class="flex items-center justify-between">
+                                                                        <h4 class="text-sm font-semibold text-slate-900">{lesson.topic}</h4>
+                                                                        <span class={"text-[9px] font-bold px-2 py-0.5 rounded border " + statusBadge}>{statusText}</span>
+                                                                    </div>
+                                                                    <p class="text-xs text-gray-500 mt-0.5">{lesson.comment}</p>
+                                                                    <span class="text-[10px] text-gray-400 block mt-1">{lesson.date} · Õp. {lesson.teacher}</span>
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                    ))}
+                                                        );
+                                                    })}
                                                 </div>
                                             </div>
                                         </div>
