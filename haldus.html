@@ -134,18 +134,18 @@
             const [activeTab, setActiveTab] = React.useState('dashboard');
             const [selectedStudent, setSelectedStudent] = React.useState(null);
 
-            // Состояние для быстрого окна отчета из календаря
+            // Окно отчета из календаря
             const [activeModalEvent, setActiveModalEvent] = React.useState(null);
 
             const [filterTeacher, setFilterTeacher] = React.useState('Pavel');
 
-            // Поля создания ученика
+            // Создание ученика
             const [newStudentName, setNewStudentName] = React.useState('');
             const [newStudentLevel, setNewStudentLevel] = React.useState('A1');
             const [targetLevel, setTargetLevel] = React.useState('B1');
             const [assignTeacher, setAssignTeacher] = React.useState('Pavel');
 
-            // Поля отчета за урок (как на скриншоте)
+            // Поля отчета за урок
             const [lessonTopic, setLessonTopic] = React.useState('');
             const [lessonGrade, setLessonGrade] = React.useState('5');
             const [lessonStatus, setLessonStatus] = React.useState('Toimunud'); 
@@ -203,12 +203,10 @@
                 setNewStudentName(''); alert('Õpilane lisatud!');
             };
 
-            // Сохранение быстрого отчета прямо из календаря
             const saveModalReport = async (e) => {
                 e.preventDefault();
                 if (!activeModalEvent) return;
 
-                // Находим ID студента в базе по его имени
                 const studentObj = students.find(s => s.name.toLowerCase() === activeModalEvent.studentName.toLowerCase());
                 const studentId = studentObj ? studentObj.id : "extern_user";
 
@@ -223,11 +221,10 @@
                     status: lessonStatus,
                     comment: lessonComment,
                     date: now.toISOString().split('T')[0],
-                    submittedAt: formattedTimestamp, // Точное время внесения записи!
+                    submittedAt: formattedTimestamp, 
                     teacher: user
                 });
 
-                // По желанию автоматически удаляем занятие из расписания будущих уроков
                 if(confirm('Kas soovite selle tunni tunniplaanist tulevaste seast eemaldada?')) {
                     await db.collection("schedule").doc(activeModalEvent.id).delete();
                 }
@@ -261,7 +258,7 @@
             };
 
             const deleteScheduleEvent = (id, e) => {
-                e.stopPropagation(); // Чтобы не открывалось модальное окно при удалении
+                e.stopPropagation(); 
                 if(confirm('Kas soovite selle tunni tunniplaanist kustutada?')) {
                     db.collection("schedule").doc(id).delete();
                 }
@@ -350,7 +347,7 @@
                                             <select value={filterTeacher} onChange={(e) => setFilterTeacher(e.target.value)} class="border-none bg-transparent font-semibold text-sm text-[#C9882A] p-0 focus:ring-0">
                                                 <option value="Pavel">Pavel</option><option value="Jelena">Jelena</option>
                                                 <option value="Elizaveta">Elizaveta</option><option value="Angelina">Angelina</option>
-                                                <option value="Kõik">Kõik õpetajad</option>
+                                                <option value="Kõik">Kõik õpetajдad</option>
                                             </select>
                                         </div>
                                     )}
@@ -401,9 +398,9 @@
                                                     {WEEK_DAYS.map(day => {
                                                         const currentSlotEvents = filteredSchedule.filter(s => s.day === day.id && s.time === slot);
                                                         return (
-                                                            <div key={day.id} class="p-1 border-r border-gray-100/60 last:border-0 relative group flex flex-col gap-1 overflow-y-auto custom-scrollbar bg-white/40">
+                                                            <div key={day.id} class="p-1 border-r border-gray-100/60 last:border-0 relative flex flex-col gap-1 overflow-y-auto custom-scrollbar bg-white/40">
                                                                 {currentSlotEvents.map(ev => (
-                                                                    <div key={ev.id} onClick={() => role === 'teacher' && setActiveModalEvent(ev)} class="text-xs p-1.5 rounded-lg border flex flex-col justify-between cursor-pointer hover:scale-[1.02] transition-transform shadow-xs" style={{ backgroundColor: 'rgba(47,93,80,0.06)', borderColor: 'rgba(47,93,80,0.18)', color: 'var(--ink)' }} title="Klõpsake tunni täitmiseks">
+                                                                    <div key={ev.id} onClick={() => role === 'teacher' && setActiveModalEvent(ev)} class="text-xs p-1.5 rounded-lg border flex flex-col justify-between cursor-pointer hover:scale-[1.02] transition-all shadow-xs" style={{ backgroundColor: 'rgba(47,93,80,0.06)', borderColor: 'rgba(47,93,80,0.18)', color: 'var(--ink)' }}>
                                                                         <div class="flex justify-between items-start">
                                                                             <span class="font-bold tracking-tight truncate max-w-[85%]">{ev.studentName}</span>
                                                                             {role === 'teacher' && (
@@ -426,7 +423,6 @@
                             </div>
                         )}
 
-                        {/* ВСПЛЫВАЮЩЕЕ ОКНО РЕПОРТА (КАК НА СКРИНШОТЕ) ПРИ КЛИКЕ ИЗ КАЛЕНДАРЯ */}
                         {activeModalEvent && (
                             <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
                                 <div class="bg-white p-6 sm:p-8 rounded-2xl border border-[rgba(28,43,58,0.1)] max-w-xl w-full shadow-2xl relative animate-in fade-in zoom-in-95 duration-150">
