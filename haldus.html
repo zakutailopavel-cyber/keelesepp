@@ -1,1061 +1,311 @@
 <!DOCTYPE html>
-<html lang="et">
+<html lang="et" style="color-scheme: light only;">
 <head>
-<!-- Firebase SDK (compat version, loads synchronously) -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>KeeleSepp — Haldussüsteem</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="robots" content="noindex,nofollow">
-<meta name="color-scheme" content="light only">
-<title>KeeleSepp — Haldussüsteem</title>
-<!-- React 18 + Babel + Tailwind via CDN (ei vaja ehitamist) -->
-<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-html,body{height:100%;margin:0;background:#f9fafb}
-body{font-family:'IBM Plex Sans',system-ui,sans-serif}
-#r{height:100vh;display:flex;flex-direction:column}
-</style>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script>
-(function() {
-  try {
-    firebase.initializeApp({
-      apiKey: "AIzaSyAp8emBOh1fIqv72k_O5hkLkXVkfBt1al4",
-      authDomain: "keelesepp-5136b.firebaseapp.com",
-      projectId: "keelesepp-5136b",
-      storageBucket: "keelesepp-5136b.firebasestorage.app",
-      messagingSenderId: "674098517935",
-      appId: "1:674098517935:web:e73d04a4ada67874da015a"
-    });
-    window._db = firebase.firestore();
-    console.log("✅ Firebase ühendatud");
-  } catch(e) {
-    console.warn("Firebase init error:", e.message);
-    window._db = null;
-  }
-})();
-</script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        input, select, textarea { font-size: 16px !important; }
+        .fc { background: white; padding: 16px; border-radius: 12px; border: 1px solid #f3f4f6; }
+        .fc-theme-standard td, .fc-theme-standard th { border-color: #f3f4f6 !important; }
+        .fc-button-primary { background-color: #f59e0b !important; border-color: #f59e0b !important; }
+        .fc-button-primary:hover { background-color: #d97706 !important; border-color: #d97706 !important; }
+        .fc-button-active { background-color: #b45309 !important; border-color: #b45309 !important; }
+    </style>
 </head>
-<body>
-<div id="r"></div>
+<body class="bg-gray-50 text-gray-900 antialiased">
 
-<script type="text/babel" data-presets="react">
-const {useState,useEffect,useCallback} = React;
-
-/* ═══════════════════════════════════════════
-   ANDMETE SALVESTAMINE (localStorage)
-   Asendab window.storage → töötab kõikjal
-═══════════════════════════════════════════ */
-// Firebase Firestore + localStorage fallback
-let db = null;
-// Firebase инициализируется в head, берём готовый объект
-if (typeof window !== 'undefined' && window._db) {
-  db = window._db;
-}
-
-const sg = async k => {
-  if (db) {
-    try {
-      const doc = await db.collection('ks_data').doc(k).get();
-      if (doc.exists) return doc.data().value;
-    } catch(e) { console.warn('Firestore read:', e.message); }
-  }
-  try { const v=localStorage.getItem('ks_'+k); return v?JSON.parse(v):null; } catch { return null; }
-};
-
-const ss = async (k,v) => {
-  if (db) {
-    try {
-      await db.collection('ks_data').doc(k).set({ value: v, updated: new Date().toISOString() });
-      return;
-    } catch(e) { console.warn('Firestore write:', e.message); }
-  }
-  try { localStorage.setItem('ks_'+k, JSON.stringify(v)); } catch(e) { console.error(e); }
-};
-
-/* ═══════════════════════════════════════════
-   IKOONID (inline SVG, ei vaja lucide-react)
-═══════════════════════════════════════════ */
-const Ic = ({n,s=16,c="currentColor"}) => {
-  const d = {
-    home:     "M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z",
-    users:    "M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2 M9 11a4 4 0 100-8 4 4 0 000 8 M23 21v-2a4 4 0 00-3-3.87 M16 3.13a4 4 0 010 7.75",
-    cal:      "M3 4h18v18H3z M16 2v4 M8 2v4 M3 10h18",
-    file:     "M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z M14 2v6h6 M16 13H8 M16 17H8 M10 9H8",
-    clip:     "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2 M9 5a2 2 0 002 2h2a2 2 0 002-2 9 5a2 2 0 00-2-2h-2a2 2 0 00-2 2",
-    plus:     "M12 5v14 M5 12h14",
-    x:        "M18 6L6 18 M6 6l12 12",
-    back:     "M19 12H5 M12 19l-7-7 7-7",
-    out:      "M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4 M16 17l5-5-5-5 M21 12H9",
-    chart:    "M18 20V10 M12 20V4 M6 20v-6",
-    trend:    "M23 6l-9.5 9.5-5-5L1 18",
-    check:    "M20 6L9 17l-5-5",
-    alert:    "M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z M12 9v4 M12 17h.01",
-    bell:     "M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9 M13.73 21a2 2 0 01-3.46 0",
-    user:     "M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2 M12 11a4 4 0 100-8 4 4 0 000 8",
-    euro:     "M4 10h12 M4 14h9 M19.5 5a9.5 9.5 0 010 14",
-    book:     "M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z",
-    award:    "M12 15a7 7 0 100-14 7 7 0 000 14z M8.21 13.89L7 23l5-3 5 3-1.21-9.12",
-  };
-  const paths = (d[n]||d.x).split(' M ').map((p,i)=>i===0?p:'M '+p);
-  return (
-    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      {paths.map((p,i)=><path key={i} d={p}/>)}
-    </svg>
-  );
-};
-
-/* ═══════════════════════════════════════════
-   KONSTANTID
-═══════════════════════════════════════════ */
-const LEVELS=["A1","A2","B1","B2","C1"];
-const LI={A1:0,A2:1,B1:2,B2:3,C1:4};
-const LC={A1:"bg-slate-100 text-slate-600",A2:"bg-blue-100 text-blue-700",B1:"bg-emerald-100 text-emerald-700",B2:"bg-violet-100 text-violet-700",C1:"bg-amber-100 text-amber-700"};
-const TEACHERS=["Pavel","Jelena","Elizaveta"];
-const TP={Pavel:"1234",Jelena:"1234",Elizaveta:"1234"};
-const TODAY=new Date().toISOString().slice(0,10);
-
-/* ═══════════════════════════════════════════
-   DEMO ANDMED (laetakse ainult esimest korda)
-═══════════════════════════════════════════ */
-const D0={
-  students:[
-    {id:"s1",name:"Marina Ivanova",  level:"B1",start:"A1",teacher:"Pavel",    email:"marina@mail.ee",  phone:"+372 5123 4567",pass:"1234",parent:"Anna Ivanova"},
-    {id:"s2",name:"Aleksei Petrov",  level:"A2",start:"A1",teacher:"Jelena",   email:"aleksei@mail.ee", phone:"+372 5234 5678",pass:"1234",parent:""},
-    {id:"s3",name:"Olga Smirnova",   level:"B2",start:"B1",teacher:"Pavel",    email:"olga@mail.ee",    phone:"+372 5345 6789",pass:"1234",parent:""},
-    {id:"s4",name:"Dmitri Kozlov",   level:"A1",start:"A1",teacher:"Elizaveta",email:"dmitri@mail.ee",  phone:"+372 5456 7890",pass:"1234",parent:""},
-    {id:"s5",name:"Natalia Sorokina",level:"B1",start:"A2",teacher:"Jelena",   email:"natalia@mail.ee", phone:"+372 5567 8901",pass:"1234",parent:""},
-  ],
-  lessons:[
-    {id:"l1",sId:"s1",date:"2026-05-05",dur:60,topic:"Tähestik ja hääldus",  grade:3,notes:"Algtase selge.",      teacher:"Pavel",   paid:true},
-    {id:"l2",sId:"s1",date:"2026-05-19",dur:60,topic:"Tegusõnade pööramine", grade:4,notes:"Hea tempo!",          teacher:"Pavel",   paid:true},
-    {id:"l3",sId:"s1",date:"2026-06-02",dur:60,topic:"Kuulamine — uudised",  grade:4,notes:"Hea kuulamine.",      teacher:"Pavel",   paid:true},
-    {id:"l4",sId:"s1",date:"2026-06-05",dur:60,topic:"B1 kirjalik eksam",    grade:5,notes:"Kirjutab väga hästi.",teacher:"Pavel",   paid:true},
-    {id:"l5",sId:"s1",date:"2026-06-08",dur:60,topic:"Käänded — omastav",    grade:5,notes:"Suurepärane!",        teacher:"Pavel",   paid:false},
-    {id:"l6",sId:"s2",date:"2026-06-09",dur:60,topic:"Enesetutvustus",        grade:4,notes:"Rääkimine paraneb.",  teacher:"Jelena",  paid:true},
-    {id:"l7",sId:"s2",date:"2026-06-11",dur:60,topic:"Arvsõnad",              grade:3,notes:"Vajab harjutamist.",  teacher:"Jelena",  paid:true},
-    {id:"l8",sId:"s3",date:"2026-06-10",dur:90,topic:"Suuline ettevalmistus", grade:5,notes:"Eksam varsti!",       teacher:"Pavel",   paid:false},
-    {id:"l9",sId:"s4",date:"2026-06-11",dur:45,topic:"Tähestik",              grade:3,notes:"Ö ja Ä rasked.",      teacher:"Elizaveta",paid:true},
-    {id:"l10",sId:"s5",date:"2026-06-10",dur:60,topic:"Käänded",              grade:4,notes:"Hea progress.",       teacher:"Jelena",  paid:false},
-  ],
-  invoices:[
-    {id:"i1",sId:"s1",num:"KS-2026-041",date:"2026-06-01",due:"2026-06-15",amount:200,status:"unpaid",desc:"Tunnid juuni 2026"},
-    {id:"i2",sId:"s3",num:"KS-2026-042",date:"2026-06-01",due:"2026-06-15",amount:360,status:"unpaid",desc:"Individuaalõpe mai–juuni"},
-    {id:"i3",sId:"s2",num:"KS-2026-040",date:"2026-05-01",due:"2026-05-15",amount:160,status:"paid",  desc:"Tunnid aprill 2026"},
-    {id:"i4",sId:"s5",num:"KS-2026-039",date:"2026-05-01",due:"2026-05-15",amount:80, status:"overdue",desc:"Tunnid mai 2026"},
-  ],
-  homework:[
-    {id:"hw1",sId:"s1",title:"Kordamine: käänded",  desc:"Tee harjutused 1–5 (lk 34).",          due:"2026-06-15",by:"Pavel",  status:"pending",  answer:"",date:TODAY},
-    {id:"hw2",sId:"s1",title:"Lugemisjupp",          desc:"Loe tekst 'Minu pere' läbi, vasta.",   due:"2026-06-17",by:"Pavel",  status:"done",     answer:"",date:TODAY},
-    {id:"hw3",sId:"s2",title:"Arvsõnad 1–100",       desc:"Kirjuta arvsõnad sõnadega.",            due:"2026-06-14",by:"Jelena",status:"submitted",answer:"Üks, kaks, kolm...",date:TODAY},
-    {id:"hw4",sId:"s3",title:"B2 kirjalik tekst",    desc:"150-sõnaline tekst 'Minu töö' teemal.",due:"2026-06-16",by:"Pavel",  status:"pending",  answer:"",date:TODAY},
-  ],
-  registrations:[
-    {id:"r1",name:"Anna Kovalenko",email:"anna@mail.ee",phone:"+372 5111 2222",level:"A2",teacher:"Jelena",msg:"Tahan õppida eesti keelt B1 eksamiks.",status:"pending",date:TODAY},
-    {id:"r2",name:"Sergei Morozov",email:"sergei@mail.ee",phone:"+372 5333 4444",level:"B1",teacher:"Pavel",msg:"Valmistumine B1 tasemeks. On A2 teadmised.",status:"pending",date:TODAY},
-  ]
-};
-const SCH=[
-  {day:0,time:"10:00",sId:"s1",t:"Pavel",    topic:"Rääkimine"},
-  {day:1,time:"09:00",sId:"s5",t:"Jelena",   topic:"Käänded"},
-  {day:1,time:"15:00",sId:"s3",t:"Pavel",    topic:"B2 kirjalik"},
-  {day:2,time:"11:00",sId:"s4",t:"Elizaveta",topic:"Tähestik"},
-  {day:3,time:"10:00",sId:"s2",t:"Jelena",   topic:"A2 eksam"},
-  {day:3,time:"17:00",sId:"s1",t:"Pavel",    topic:"Kuulamine"},
-  {day:4,time:"09:00",sId:"s2",t:"Jelena",   topic:"Kordamine"},
-  {day:4,time:"10:00",sId:"s1",t:"Pavel",    topic:"Rääkimine"},
-  {day:4,time:"15:00",sId:"s3",t:"Pavel",    topic:"Analüüs"},
-  {day:4,time:"17:30",sId:"s5",t:"Jelena",   topic:"Käänded"},
-];
-
-/* ═══════════════════════════════════════════
-   VÄIKSED KOMPONENDID
-═══════════════════════════════════════════ */
-const Badge=({level})=><span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${LC[level]||LC.A1}`}>{level}</span>;
-const Stars=({g})=><span className="text-amber-400 text-xs">{"★".repeat(g)}{"☆".repeat(5-g)}</span>;
-const inp="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-gray-400 bg-white focus:ring-2 focus:ring-amber-100";
-const Fld=({label,children})=><div><label className="text-xs font-semibold text-gray-400 block mb-1">{label}</label>{children}</div>;
-
-function LevelBar({start,current}){
-  const s=LI[start]??0, c=LI[current]??0;
-  return(
-    <div className="flex items-center gap-1">
-      {LEVELS.map((l,i)=>(
-        <div key={l} title={l} className={`h-2 flex-1 rounded-full transition-all ${i<s?"bg-gray-200":i<c?"bg-emerald-400":i===c?"bg-amber-400":"bg-gray-200"}`}/>
-      ))}
-      <span className="text-xs text-gray-400 ml-1">{current}</span>
-    </div>
-  );
-}
-
-function Ava({name,size="sm"}){
-  const ini=String(name||"?").split(" ").slice(0,2).map(n=>n[0]||"").join("").toUpperCase();
-  const sz=size==="lg"?"w-14 h-14 text-lg":"w-9 h-9 text-sm";
-  return <div className={`${sz} rounded-full bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center text-slate-600 font-bold flex-shrink-0 select-none`}>{ini}</div>;
-}
-
-/* Lihtsustatud progressigraafik (SVG, ei vaja recharts) */
-function ProgressChart({lessons}){
-  const data=[...lessons].reverse().slice(-10).map(l=>l.grade);
-  if(data.length<2) return <div className="py-8 text-center text-xs text-gray-300">Graafikuks vajatakse vähemalt 2 tundi</div>;
-  const W=300,H=100,P=20;
-  const xs=data.map((_,i)=>P+i*((W-2*P)/(data.length-1)));
-  const ys=data.map(v=>H-P-((v-1)/4)*(H-2*P));
-  const pts=data.map((_,i)=>`${xs[i]},${ys[i]}`).join(' ');
-  return(
-    <div className="overflow-hidden">
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
-        {[1,2,3,4,5].map(v=>{
-          const y=H-P-((v-1)/4)*(H-2*P);
-          return <line key={v} x1={P} y1={y} x2={W-P} y2={y} stroke="#f3f4f6" strokeWidth="1"/>;
-        })}
-        <text x={P-2} y={P+2} fontSize="8" fill="#9ca3af" textAnchor="end">5</text>
-        <text x={P-2} y={H-P+3} fontSize="8" fill="#9ca3af" textAnchor="end">1</text>
-        <polyline points={pts} fill="none" stroke="#f59e0b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-        {data.map((_,i)=><circle key={i} cx={xs[i]} cy={ys[i]} r="4" fill="#f59e0b"/>)}
-      </svg>
-    </div>
-  );
-}
-
-/* Oskuste tulpgraafik */
-function SkillBars({lessons}){
-  const skills=["Lugemine","Kirjutamine","Kuulamine","Rääkimine","Grammatika"];
-  const recent=lessons.slice(0,3);
-  if(!recent.length) return null;
-  const avg=sk=>Math.round(recent.reduce((a,l)=>a+(l.skills?.[sk]||l.grade||3),0)/recent.length);
-  return(
-    <div className="grid grid-cols-5 gap-2 mt-2">
-      {skills.map(sk=>{const v=avg(sk);return(
-        <div key={sk} className="text-center">
-          <div className="text-xs text-gray-400 mb-1 leading-tight" style={{fontSize:"10px"}}>{sk}</div>
-          <div className="h-16 bg-gray-100 rounded-lg overflow-hidden flex items-end">
-            <div className="w-full bg-amber-400 rounded-b-lg transition-all" style={{height:`${v/5*100}%`}}/>
-          </div>
-          <div className="text-xs font-bold text-gray-500 mt-1">{v}/5</div>
+    <div id="root">
+        <div class="flex items-center justify-center min-h-screen">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500"></div>
         </div>
-      );})}
     </div>
-  );
-}
 
-function Modal({title,onClose,onSave,saveLabel,children}){
-  return(
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4">
-      <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl max-h-[92vh] overflow-y-auto">
-        <div className="px-5 py-4 border-b flex items-center justify-between sticky top-0 bg-white z-10">
-          <span className="font-semibold text-gray-800 text-sm">{title}</span>
-          <button onClick={onClose} className="text-gray-300 hover:text-gray-500 p-1"><Ic n="x" s={18}/></button>
-        </div>
-        <div className="px-5 py-4 space-y-3">{children}</div>
-        <div className="px-5 pb-5 flex gap-2 sticky bottom-0 bg-white border-t pt-3">
-          <button onClick={onClose} className="flex-1 border border-gray-200 text-gray-500 py-2.5 rounded-xl text-sm hover:bg-gray-50">Tühista</button>
-          <button onClick={onSave} className="flex-1 bg-gray-900 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-700">{saveLabel}</button>
-        </div>
-      </div>
-    </div>
-  );
-}
+    <script type="text/babel">
+        // === 1. ВАШИ РЕАЛЬНЫЕ КЛЮЧИ FIREBASE (Уже подставлены!) ===
+        const firebaseConfig = {
+            apiKey: "AIzaSyAp8emB0h1fIqv72k_05hkLkXVkfBt1al4",
+            authDomain: "keelesepp-5136b.firebaseapp.com",
+            projectId: "keelesepp-5136b",
+            storageBucket: "keelesepp-5136b.appspot.com",
+            messagingSenderId: "674098517935",
+            appId: "1:674098517935:web:e73d04a4ada67874da015a"
+        };
 
-/* ═══════════════════════════════════════════════════════════════
-   PEAMINE RAKENDUS
-═══════════════════════════════════════════════════════════════ */
-function App(){
-  const [loaded, setLoaded] = useState(false);
-  const [screen, setScreen] = useState("login"); // login|register|app
-  const [user,   setUser]   = useState(null);
+        // === 2. НАСТРОЙКА УНИКАЛЬНЫХ КАЛЕНДАРЕЙ ДЛЯ КАЖДОГО УЧИТЕЛЯ ===
+        const TEACHER_CALENDARS = {
+            "Pavel": "3f08fbae1919c9265a778775dcde5ab6e357d75d3b7b82a4eb0de3bee7c92c27@group.calendar.google.com",
+            "Jelena": "95b9c475421fcf2cc0e4457073cb2849b18b9096520448d0e007f73867c9499b@group.calendar.google.com",
+            "Elizaveta": "423bbfdf10ba74ab137238e1fdef0460fd8a553e57965e8619bfd99fda3451ab@group.calendar.google.com",
+            "Angelina": "42823b2b40d5e1a07556fce2870789ffc55e534f677b97e3cda2a3f709769dfd@group.calendar.google.com"
+        };
 
-  const [students,   setSt] = useState([]);
-  const [lessons,    setLs] = useState([]);
-  const [invoices,   setIn] = useState([]);
-  const [homework,   setHw] = useState([]);
-  const [regs,       setRg] = useState([]);
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
 
-  const [tab,  setTab]  = useState("dashboard");
-  const [sel,  setSel]  = useState(null);
-  const [stab, setStab] = useState("progress");
+        function App() {
+            const [user, setUser] = React.useState(null);
+            const [role, setRole] = React.useState(null);
+            const [username, setUsername] = React.useState('');
+            const [password, setPassword] = React.useState('');
+            const [error, setError] = React.useState('');
+            const [loading, setLoading] = React.useState(false);
+            
+            const [students, setStudents] = React.useState([]);
+            const [activeTab, setActiveTab] = React.useState('dashboard');
 
-  // Modals
-  const [mL,setML]=useState(false);
-  const [mS,setMS]=useState(false);
-  const [mI,setMI]=useState(false);
-  const [mH,setMH]=useState(false);
-  const [mHR,setMHR]=useState(null); // homework reply
+            const [newStudentName, setNewStudentName] = React.useState('');
+            const [newStudentLevel, setNewStudentLevel] = React.useState('A1');
 
-  // Forms
-  const [nl,setNl]=useState({topic:"",grade:5,dur:60,notes:"",date:TODAY,teacher:"Pavel",paid:false});
-  const [ns,setNs]=useState({name:"",level:"A1",start:"A1",teacher:"Pavel",email:"",phone:"",pass:"1234",parent:""});
-  const [ni,setNi]=useState({sId:"",amount:"",desc:""});
-  const [nh,setNh]=useState({title:"",desc:"",due:"",by:"Pavel"});
-  const [hwAns,setHwAns]=useState("");
-  const [reg, setReg] = useState({name:"",email:"",phone:"",level:"A1",teacher:"Pavel",msg:""});
-  const [regOk,setRegOk]=useState(false);
-  const [regErr,setRegErr]=useState("");
-  const [lName,setLName]=useState("Pavel");
-  const [lRole,setLRole]=useState("teacher");
-  const [lPass,setLPass]=useState("");
-  const [lErr, setLErr] =useState("");
+            const handleLogin = (e) => {
+                e.preventDefault();
+                setError('');
+                if (!username || !password) {
+                    setError('Palun täitke kõik väljad');
+                    return;
+                }
 
-  /* ── Laadimine (localStorage) ── */
-  useEffect(()=>{
-    if (window._db) { db = window._db; }
-    (async()=>{
-      const [s,l,i,h,r,u] = await Promise.all([
-        sg("students"), sg("lessons"), sg("invoices"),
-        sg("homework"), sg("regs"), sg("user")
-      ]);
-      setSt(s||D0.students);
-      setLs(l||D0.lessons);
-      setIn(i||D0.invoices);
-      setHw(h||D0.homework);
-      setRg(r||D0.registrations);
-      if(u){setUser(u);setScreen("app");}
-      setLoaded(true);
-    })();
-  },[]);
+                const teachers = ['Pavel', 'Jelena', 'Elizaveta', 'Angelina'];
+                const demoStudents = ['Marina', 'Aleksei', 'Olga', 'Dmitri', 'Natalia'];
 
-  const save=(key,setter)=>d=>{setter(d);ss(key,d);};
-  const saveSt=useCallback(save("students",setSt),[]);
-  const saveLs=useCallback(save("lessons",setLs),[]);
-  const saveIn=useCallback(save("invoices",setIn),[]);
-  const saveHw=useCallback(save("homework",setHw),[]);
-  const saveRg=useCallback(save("regs",setRg),[]);
+                if (teachers.includes(username) && password === '1234') {
+                    setUser(username);
+                    setRole('teacher');
+                } else if (demoStudents.includes(username) && password === '1234') {
+                    setUser(username);
+                    setRole('student');
+                } else {
+                    setError('Vale kasutajatunnus või parool');
+                }
+            };
 
-  /* ── Abifunktsioonid ── */
-  const sLess=id=>lessons.filter(l=>l.sId===id).sort((a,b)=>b.date.localeCompare(a.date));
-  const sInv =id=>invoices.filter(i=>i.sId===id);
-  const sHW  =id=>homework.filter(h=>h.sId===id).sort((a,b)=>a.due.localeCompare(b.due));
+            React.useEffect(() => {
+                if (!user || role !== 'teacher') return;
 
-  /* ── Tegevused ── */
-  const doLogin=()=>{
-    setLErr("");
-    if(lRole==="teacher"){
-      if(TP[lName]===lPass){const u={role:"teacher",name:lName};setUser(u);ss("user",u);setScreen("app");}
-      else setLErr("Vale parool. Demo: 1234");
-    }else{
-      const st=students.find(s=>s.name.split(" ")[0].toLowerCase()===lName.toLowerCase()&&s.pass===lPass);
-      if(st){const u={role:"student",name:st.name,sId:st.id};setUser(u);ss("user",u);setScreen("app");}
-      else setLErr("Kasutaja ei leitud. Demo parool: 1234");
-    }
-  };
-  const doLogout=()=>{setUser(null);ss("user",null);setScreen("login");setSel(null);setTab("dashboard");setLPass("");};
+                setLoading(true);
+                const unsubscribe = db.collection("students").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
+                    const studentData = [];
+                    snapshot.forEach((doc) => studentData.push({ id: doc.id, ...doc.data() }));
+                    setStudents(studentData);
+                    setLoading(false);
+                }, (err) => {
+                    console.error("Firestore viga:", err);
+                    setLoading(false);
+                });
 
-  const doRegister=()=>{
-    if(!reg.name.trim()||!reg.email.trim()){setRegErr("Palun täida kohustuslikud väljad.");return;}
-    saveRg([{id:"r"+Date.now(),...reg,status:"pending",date:TODAY},...regs]);
-    setRegOk(true);
-  };
-  const approveReg=r=>{
-    saveSt([...students,{id:"s"+Date.now(),name:r.name,level:r.level,start:r.level,teacher:r.teacher,email:r.email,phone:r.phone||"",pass:"1234",parent:""}]);
-    saveRg(regs.map(x=>x.id===r.id?{...x,status:"approved"}:x));
-  };
-  const rejectReg=id=>saveRg(regs.map(r=>r.id===id?{...r,status:"rejected"}:r));
+                return () => unsubscribe();
+            }, [user, role]);
 
-  const doAddLesson=()=>{
-    if(!nl.topic.trim()||!sel)return;
-    saveLs([{...nl,id:"l"+Date.now(),sId:sel.id},...lessons]);
-    setML(false);setNl({topic:"",grade:5,dur:60,notes:"",date:TODAY,teacher:sel.teacher,paid:false});
-  };
-  const doAddStudent=()=>{
-    if(!ns.name.trim())return;
-    saveSt([...students,{...ns,id:"s"+Date.now()}]);
-    setMS(false);setNs({name:"",level:"A1",start:"A1",teacher:"Pavel",email:"",phone:"",pass:"1234",parent:""});
-  };
-  const doAddInv=()=>{
-    if(!ni.sId||!ni.amount)return;
-    saveIn([{id:"i"+Date.now(),sId:ni.sId,num:`KS-${new Date().getFullYear()}-${String(50+invoices.length).padStart(3,"0")}`,date:TODAY,due:new Date(Date.now()+14*864e5).toISOString().slice(0,10),amount:parseInt(ni.amount),status:"unpaid",desc:ni.desc||"Keeletunnid"},...invoices]);
-    setMI(false);setNi({sId:"",amount:"",desc:""});
-  };
-  const doAddHW=()=>{
-    if(!nh.title.trim()||!nh.due||!sel)return;
-    saveHw([{id:"hw"+Date.now(),sId:sel.id,...nh,status:"pending",answer:"",date:TODAY},...homework]);
-    setMH(false);setNh({title:"",desc:"",due:"",by:sel?.teacher||"Pavel"});
-  };
-  const submitHW=()=>{
-    if(!mHR)return;
-    saveHw(homework.map(h=>h.id===mHR.id?{...h,status:"submitted",answer:hwAns}:h));
-    setMHR(null);setHwAns("");
-  };
-  const markHWDone=id=>saveHw(homework.map(h=>h.id===id?{...h,status:"done"}:h));
-  const markPaid=id=>saveIn(invoices.map(i=>i.id===id?{...i,status:"paid"}:i));
-  const upgradeLevel=id=>{
-    const d=students.map(s=>{if(s.id!==id)return s;return{...s,level:LEVELS[Math.min(LI[s.level]+1,4)]};});
-    saveSt(d);setSel(d.find(s=>s.id===id));
-  };
-  const delStudent=id=>{
-    if(!confirm("Kustuta õpilane?"))return;
-    saveSt(students.filter(s=>s.id!==id));
-    saveLs(lessons.filter(l=>l.sId!==id));
-    saveIn(invoices.filter(i=>i.sId!==id));
-    saveHw(homework.filter(h=>h.sId!==id));
-    setSel(null);
-  };
+            React.useEffect(() => {
+                if (activeTab === 'calendar') {
+                    const calendarEl = document.getElementById('calendar-render-area');
+                    if (!calendarEl) return;
 
-  if(!loaded) return(
-    <div className="h-screen flex items-center justify-center">
-      <div className="text-center">
-        <div className="text-3xl font-bold" style={{fontFamily:"Georgia,serif"}}>Keele<span className="text-amber-500">Sepp</span></div>
-        <div className="text-gray-300 text-sm mt-2 animate-pulse">Laeb…</div>
-      </div>
-    </div>
-  );
+                    const currentTeacherCalendar = TEACHER_CALENDARS[user];
 
-  /* ══════════════════════════════════
-     REGISTREERIMINE
-  ══════════════════════════════════ */
-  if(screen==="register") return(
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-start justify-center p-4 pt-10">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8">
-        <button onClick={()=>{setScreen("login");setRegOk(false);setReg({name:"",email:"",phone:"",level:"A1",teacher:"Pavel",msg:""});}} className="flex items-center gap-1 text-gray-300 hover:text-gray-500 text-xs mb-6">
-          <Ic n="back" s={13}/> Tagasi sisselogimisele
-        </button>
-        {regOk?(
-          <div className="text-center py-8">
-            <div className="text-5xl mb-4">🎉</div>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Registreerimine õnnestus!</h2>
-            <p className="text-gray-400 text-sm mb-6">Võtame sinuga ühendust ühe tööpäeva jooksul.</p>
-            <button onClick={()=>{setScreen("login");setRegOk(false);}} className="bg-gray-900 text-white px-6 py-2.5 rounded-xl text-sm font-semibold">Tagasi</button>
-          </div>
-        ):(
-          <>
-            <div className="text-center mb-6">
-              <div className="text-2xl font-bold" style={{fontFamily:"Georgia,serif"}}>Keele<span className="text-amber-500">Sepp</span></div>
-              <h1 className="text-lg font-bold text-gray-900 mt-3">Registreeru kursusele</h1>
-              <p className="text-gray-400 text-xs mt-1">Täida vorm ja õpetaja võtab sinuga ühendust</p>
-            </div>
-            <div className="space-y-3">
-              <Fld label="TÄISNIMI *"><input value={reg.name} onChange={e=>setReg({...reg,name:e.target.value})} placeholder="Eesnimi Perekonnanimi" className={inp}/></Fld>
-              <Fld label="E-POST *"><input value={reg.email} onChange={e=>setReg({...reg,email:e.target.value})} type="email" placeholder="email@gmail.com" className={inp}/></Fld>
-              <Fld label="TELEFON"><input value={reg.phone} onChange={e=>setReg({...reg,phone:e.target.value})} placeholder="+372 5…" className={inp}/></Fld>
-              <div className="grid grid-cols-2 gap-3">
-                <Fld label="SOOVITUD TASE"><select value={reg.level} onChange={e=>setReg({...reg,level:e.target.value})} className={inp}>{LEVELS.map(l=><option key={l}>{l}</option>)}</select></Fld>
-                <Fld label="ÕPETAJA"><select value={reg.teacher} onChange={e=>setReg({...reg,teacher:e.target.value})} className={inp}>{TEACHERS.map(t=><option key={t}>{t}</option>)}</select></Fld>
-              </div>
-              <Fld label="EESMÄRK / LISAINFO"><textarea value={reg.msg} onChange={e=>setReg({...reg,msg:e.target.value})} placeholder="Mida soovid saavutada? Kas valmistud eksamiks?" className={`${inp} resize-none h-20`}/></Fld>
-              {regErr&&<div className="text-xs text-red-500 bg-red-50 rounded-xl p-2.5">{regErr}</div>}
-              <button onClick={doRegister} className="w-full bg-gray-900 text-white py-3 rounded-xl font-semibold hover:bg-gray-700 mt-2">Saada registreerumine</button>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
-  );
+                    const calendar = new FullCalendar.Calendar(calendarEl, {
+                        initialView: window.innerWidth < 768 ? 'timeGridDay' : 'timeGridWeek',
+                        locale: 'et',
+                        firstDay: 1, 
+                        slotMinTime: "08:00:00",
+                        slotMaxTime: "21:00:00",
+                        headerToolbar: {
+                            left: 'prev,next today',
+                            center: 'title',
+                            right: window.innerWidth < 768 ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
+                        },
+                        events: currentTeacherCalendar ? {
+                            googleCalendarId: currentTeacherCalendar,
+                            className: 'bg-amber-500 text-white border-none rounded p-1 text-xs font-medium'
+                        } : [],
+                        dateClick: function(info) {
+                            if (role === 'teacher') {
+                                const title = prompt('Lisa uue tunni kirjeldus (nt: Aleksei - Eesti keel B1):');
+                                if (title) {
+                                    alert('Tund "' + title + '" on märgitud kuupäevale: ' + info.dateStr);
+                                }
+                            }
+                        }
+                    });
+                    calendar.render();
+                }
+            }, [activeTab, user]);
 
-  /* ══════════════════════════════════
-     SISSELOGIMINE
-  ══════════════════════════════════ */
-  if(screen==="login") return(
-    <div className="h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-8">
-        <div className="text-center mb-7">
-          <div className="text-3xl font-bold" style={{fontFamily:"Georgia,serif"}}>Keele<span className="text-amber-500">Sepp</span></div>
-          <div className="text-xs text-gray-400 mt-1">Sisemine haldussüsteem</div>
-        </div>
-        <div className="flex rounded-xl overflow-hidden border border-gray-200 mb-5">
-          {[{id:"teacher",l:"Õpetaja"},{id:"student",l:"Õpilane"}].map(r=>(
-            <button key={r.id} onClick={()=>{setLRole(r.id);setLName(r.id==="teacher"?"Pavel":"");setLErr("");}}
-              className={`flex-1 py-2.5 text-sm font-semibold transition-colors ${lRole===r.id?"bg-gray-900 text-white":"text-gray-400 hover:bg-gray-50"}`}>
-              {r.l}
-            </button>
-          ))}
-        </div>
-        <div className="space-y-3 mb-4">
-          {lRole==="teacher"
-            ? <Fld label="ÕPETAJA"><select value={lName} onChange={e=>setLName(e.target.value)} className={inp}>{TEACHERS.map(t=><option key={t}>{t}</option>)}</select></Fld>
-            : <Fld label="SINU EESNIMI"><input value={lName} onChange={e=>setLName(e.target.value)} placeholder="nt. Marina" className={inp} onKeyDown={e=>e.key==="Enter"&&doLogin()}/></Fld>
-          }
-          <Fld label="PAROOL"><input type="password" value={lPass} onChange={e=>setLPass(e.target.value)} onKeyDown={e=>e.key==="Enter"&&doLogin()} placeholder="••••" className={inp}/></Fld>
-          {lErr&&<div className="text-xs text-red-500 bg-red-50 rounded-xl p-2.5">{lErr}</div>}
-        </div>
-        <button onClick={doLogin} className="w-full bg-gray-900 text-white py-3 rounded-xl font-semibold hover:bg-gray-700 mb-4">Sisene</button>
-        <div className="border-t pt-4 text-center">
-          <button onClick={()=>{setScreen("register");setRegOk(false);}} className="w-full border border-gray-200 text-gray-600 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50">
-            ✉ Registreeru kursusele
-          </button>
-        </div>
-        <div className="mt-4 text-xs text-center text-gray-300">Demo parool kõigile: <strong>1234</strong></div>
-      </div>
-    </div>
-  );
+            const addStudent = async (e) => {
+                e.preventDefault();
+                if (!newStudentName.trim()) return;
 
-  /* ══════════════════════════════════
-     ÕPILASE KABINET
-  ══════════════════════════════════ */
-  if(user?.role==="student"){
-    const st=students.find(s=>s.id===user.sId)||{};
-    const sl=sLess(user.sId), si=sInv(user.sId), sh=sHW(user.sId);
-    const avg=sl.length?(sl.reduce((a,l)=>a+l.grade,0)/sl.length).toFixed(1):"—";
-    const pendingHW=sh.filter(h=>h.status==="pending").length;
-    const mySchd=SCH.filter(e=>e.sId===user.sId);
-    const DAYS=["Esmaspäev","Teisipäev","Kolmapäev","Neljapäev","Reede","L","P"];
-    const STABS=[{id:"progress",l:"📈 Progress"},{id:"schedule",l:"📅 Tunnid"},{id:"homework",l:`📝 Kodutöö${pendingHW?` (${pendingHW})`:""}`},{id:"invoices",l:"📋 Arved"}];
+                try {
+                    await db.collection("students").add({
+                        name: newStudentName,
+                        level: newStudentLevel,
+                        teacher: user,
+                        progress: 0,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    setNewStudentName('');
+                    alert('Õpilane edukalt lisatud!');
+                } catch (err) {
+                    alert('Andmebaasi viga õpilase lisamisel.');
+                }
+            };
 
-    return(
-      <div className="min-h-screen bg-gray-50 text-sm" style={{fontFamily:"IBM Plex Sans,system-ui,sans-serif"}}>
-        <header className="bg-white border-b px-4 py-3 flex items-center justify-between sticky top-0 z-10 shadow-sm">
-          <div className="font-bold text-lg" style={{fontFamily:"Georgia,serif"}}>Keele<span className="text-amber-500">Sepp</span></div>
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-600 hidden sm:block">{user.name}</span>
-            <button onClick={doLogout} className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-red-500 border border-gray-100 rounded-xl px-3 py-1.5 transition-colors">
-              <Ic n="out" s={12}/> Välju
-            </button>
-          </div>
-        </header>
-        <div className="max-w-lg mx-auto p-4 space-y-3">
-          {/* Profiili kaart */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-            <div className="flex items-start gap-4">
-              <Ava name={st.name||user.name} size="lg"/>
-              <div className="flex-1">
-                <div className="font-bold text-gray-900 text-lg leading-tight">{st.name||user.name}</div>
-                <div className="flex items-center gap-2 mt-1 mb-3 flex-wrap">
-                  <Badge level={st.level||"A1"}/><span className="text-xs text-gray-400">{st.teacher} õpetab</span>
-                  {st.parent&&<span className="text-xs text-gray-300">· vanem: {st.parent}</span>}
-                </div>
-                <div className="grid grid-cols-3 gap-2 text-center mb-3">
-                  {[{v:sl.length,l:"Tunnid"},{v:`${avg}★`,l:"Ksk hinne"},{v:`${sh.filter(h=>h.status!=="pending").length}/${sh.length}`,l:"Kodutööd"}].map(x=>(
-                    <div key={x.l} className="bg-gray-50 rounded-xl p-2"><div className="font-bold text-gray-800">{x.v}</div><div className="text-xs text-gray-400">{x.l}</div></div>
-                  ))}
-                </div>
-                <div className="text-xs text-gray-400 mb-1.5">Progress: {st.start||"A1"} → {st.level||"A1"}</div>
-                <LevelBar start={st.start||"A1"} current={st.level||"A1"}/>
-              </div>
-            </div>
-          </div>
-          {/* Tabid */}
-          <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
-            {STABS.map(t=>(
-              <button key={t.id} onClick={()=>setStab(t.id)} className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-colors ${stab===t.id?"bg-white text-gray-900 shadow-sm":"text-gray-400"}`}>{t.l}</button>
-            ))}
-          </div>
-          {/* Progress */}
-          {stab==="progress"&&<div className="space-y-3 pb-6">
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-              <div className="font-semibold text-gray-800 text-sm mb-3 flex items-center gap-2"><Ic n="trend" s={15} c="#f59e0b"/> Hinnete kõver</div>
-              <ProgressChart lessons={sl}/>
-            </div>
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-              <div className="font-semibold text-gray-800 text-sm mb-3 flex items-center gap-2"><Ic n="chart" s={15} c="#3b82f6"/> Oskuste areng</div>
-              <SkillBars lessons={sl}/>
-            </div>
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-              <div className="font-semibold text-gray-800 text-sm mb-3 flex items-center gap-2"><Ic n="award" s={15} c="#f59e0b"/> Saavutused</div>
-              <div className="flex flex-wrap gap-2">
-                {sl.length>=1&&<span className="bg-amber-50 text-amber-700 rounded-xl px-3 py-1.5 text-xs font-semibold">🎓 Esimene tund</span>}
-                {sl.length>=5&&<span className="bg-blue-50 text-blue-700 rounded-xl px-3 py-1.5 text-xs font-semibold">📚 5 tundi</span>}
-                {sl.some(l=>l.grade===5)&&<span className="bg-emerald-50 text-emerald-700 rounded-xl px-3 py-1.5 text-xs font-semibold">⭐ Esimene viis</span>}
-                {(LI[st.level]||0)>(LI[st.start]||0)&&<span className="bg-violet-50 text-violet-700 rounded-xl px-3 py-1.5 text-xs font-semibold">🆙 Tase üles!</span>}
-                {sh.filter(h=>h.status!=="pending").length>=3&&<span className="bg-green-50 text-green-700 rounded-xl px-3 py-1.5 text-xs font-semibold">✅ Tubli tegija</span>}
-              </div>
-            </div>
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
-              <div className="px-4 py-3 border-b font-semibold text-sm text-gray-800">Viimased tunnid</div>
-              {sl.slice(0,5).map(l=>(
-                <div key={l.id} className="px-4 py-3 border-b last:border-0">
-                  <div className="flex items-center justify-between mb-0.5"><span className="font-medium text-gray-800">{l.topic}</span><Stars g={l.grade}/></div>
-                  <div className="text-xs text-gray-400">{l.date} · {l.dur} min</div>
-                  {l.notes&&<div className="text-xs text-gray-500 italic mt-0.5">„{l.notes}"</div>}
-                </div>
-              ))}
-            </div>
-          </div>}
-          {/* Tunniplaan */}
-          {stab==="schedule"&&<div className="pb-6">
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
-              {mySchd.length===0?<div className="py-10 text-center text-gray-300 text-sm">Tunniplaan puudub</div>:mySchd.map((e,i)=>(
-                <div key={i} className="px-4 py-3.5 border-b last:border-0">
-                  <div className="font-medium text-gray-800">{e.topic}</div>
-                  <div className="text-xs text-gray-400 mt-0.5">{DAYS[e.day]} kell {e.time} · {e.t}</div>
-                </div>
-              ))}
-            </div>
-          </div>}
-          {/* Kodutöö */}
-          {stab==="homework"&&<div className="space-y-2 pb-6">
-            {sh.length===0?<div className="py-10 text-center text-gray-300 bg-white rounded-2xl text-sm">Kodutöid pole</div>:sh.map(h=>{
-              const ov=h.due<TODAY&&h.status==="pending";
-              return(
-                <div key={h.id} className={`bg-white rounded-2xl border shadow-sm p-4 ${ov?"border-red-100":"border-gray-100"}`}>
-                  <div className="flex items-start justify-between gap-2 mb-1">
-                    <div className="font-semibold text-gray-800">{h.title}</div>
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold flex-shrink-0 ${h.status==="done"?"bg-green-100 text-green-700":h.status==="submitted"?"bg-blue-100 text-blue-700":ov?"bg-red-100 text-red-600":"bg-amber-100 text-amber-700"}`}>
-                      {h.status==="done"?"Tehtud":h.status==="submitted"?"Esitatud":ov?"Hilinenud":"Ootel"}
-                    </span>
-                  </div>
-                  <div className="text-xs text-gray-400 mb-2">Tähtaeg: {h.due} · {h.by}</div>
-                  {h.desc&&<p className="text-xs text-gray-600 bg-gray-50 rounded-xl p-2.5 mb-3">{h.desc}</p>}
-                  {h.answer&&<div className="text-xs text-blue-600 bg-blue-50 rounded-xl p-2.5 mb-2">Sinu vastus: „{h.answer}"</div>}
-                  {h.status==="pending"&&(
-                    <div className="flex gap-2">
-                      <button onClick={()=>markHWDone(h.id)} className="flex-1 bg-green-50 text-green-700 py-2 rounded-xl text-xs font-semibold hover:bg-green-100">✓ Tehtud</button>
-                      <button onClick={()=>{setMHR(h);setHwAns("");}} className="flex-1 bg-blue-50 text-blue-700 py-2 rounded-xl text-xs font-semibold hover:bg-blue-100">✍ Esita vastus</button>
+            if (!user) {
+                return (
+                    <div class="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-amber-50 to-orange-100">
+                        <div class="max-w-md w-full space-y-8 bg-white p-6 sm:p-8 rounded-2xl shadow-xl">
+                            <div class="text-center">
+                                <h2 class="text-3xl font-extrabold text-gray-900">KeeleSepp 🛠️</h2>
+                                <p class="mt-2 text-sm text-gray-600">Õppesüsteemi sisselogimine</p>
+                            </div>
+                            <form class="mt-8 space-y-4" onSubmit={handleLogin}>
+                                {error && <div class="bg-red-50 text-red-600 p-3 rounded-lg text-sm text-center font-medium">{error}</div>}
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Kasutajatunnus</label>
+                                    <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} class="rounded-lg relative block w-full px-3 py-2.5 border border-gray-300 text-gray-900 focus:ring-amber-500 focus:border-amber-500 sm:text-sm" placeholder="Teie nimi (nt Pavel)" />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Parool</label>
+                                    <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} class="rounded-lg relative block w-full px-3 py-2.5 border border-gray-300 text-gray-900 focus:ring-amber-500 focus:border-amber-500 sm:text-sm" placeholder="••••" />
+                                </div>
+                                <button type="submit" class="w-full flex justify-center py-3 px-4 text-sm font-medium rounded-lg text-white bg-amber-500 hover:bg-amber-600 transition-colors mt-6">
+                                    Logi sisse
+                                </button>
+                            </form>
+                        </div>
                     </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>}
-          {/* Arved */}
-          {stab==="invoices"&&<div className="pb-6">
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
-              {si.length===0?<div className="py-10 text-center text-gray-300 text-sm">Arved puuduvad</div>:si.map(inv=>(
-                <div key={inv.id} className="px-4 py-3.5 border-b last:border-0 flex items-center justify-between">
-                  <div><div className="font-medium text-gray-800">{inv.num}</div><div className="text-xs text-gray-400">{inv.desc} · tähtaeg {inv.due}</div></div>
-                  <div className="text-right">
-                    <div className="font-bold text-gray-800">{inv.amount}€</div>
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${inv.status==="paid"?"bg-green-100 text-green-700":inv.status==="overdue"?"bg-red-100 text-red-600":"bg-amber-100 text-amber-700"}`}>
-                      {inv.status==="paid"?"Makstud":inv.status==="overdue"?"Hilinenud":"Ootel"}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>}
-        </div>
-        {mHR&&(
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center p-4">
-            <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl">
-              <div className="px-5 py-4 border-b flex items-center justify-between">
-                <span className="font-semibold text-sm">{mHR.title}</span>
-                <button onClick={()=>setMHR(null)}><Ic n="x" s={18} c="#9ca3af"/></button>
-              </div>
-              <div className="px-5 py-4 space-y-3">
-                {mHR.desc&&<p className="text-xs text-gray-500 bg-gray-50 rounded-xl p-3">{mHR.desc}</p>}
-                <Fld label="SINU VASTUS"><textarea value={hwAns} onChange={e=>setHwAns(e.target.value)} placeholder="Kirjuta oma vastus siia…" className={`${inp} resize-none h-24`}/></Fld>
-              </div>
-              <div className="px-5 pb-5 flex gap-2">
-                <button onClick={()=>setMHR(null)} className="flex-1 border border-gray-200 text-gray-500 py-2.5 rounded-xl text-sm">Tühista</button>
-                <button onClick={submitHW} className="flex-1 bg-gray-900 text-white py-2.5 rounded-xl text-sm font-semibold">Esita</button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  }
+                );
+            }
 
-  /* ══════════════════════════════════
-     ÕPETAJA KABINET
-  ══════════════════════════════════ */
-  const pRegs=regs.filter(r=>r.status==="pending").length;
-  const pHW=homework.filter(h=>h.status==="submitted").length;
-  const unpaid=invoices.filter(i=>i.status!=="paid").reduce((a,i)=>a+i.amount,0);
-  const NAV=[
-    {id:"dashboard",l:"Töölaud",   icon:"home"},
-    {id:"students", l:"Õpilased",  icon:"users",  badge:pRegs},
-    {id:"calendar", l:"Kalender",  icon:"cal"},
-    {id:"homework", l:"Kodutöö",   icon:"clip",   badge:pHW},
-    {id:"invoices", l:"Arved",     icon:"file"},
-  ];
+            return (
+                <div class="min-h-screen flex flex-col md:flex-row bg-gray-50">
+                    <aside class="w-full md:w-64 bg-slate-900 text-white flex flex-col p-4 space-y-6">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xl font-bold tracking-wider text-amber-400">KeeleSepp</span>
+                            <span class="text-xs bg-slate-800 px-2 py-1 rounded text-slate-400">{role === 'teacher' ? 'Õpetaja' : 'Õpilane'}</span>
+                        </div>
+                        <div class="text-sm border-b border-slate-800 pb-4">
+                            <p class="text-slate-400">Kasutaja: <span class="font-semibold text-amber-100">{user}</span></p>
+                        </div>
+                        <nav class="flex-1 space-y-1">
+                            <button onClick={() => setActiveTab('dashboard')} class={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'dashboard' ? 'bg-amber-500 text-white' : 'text-slate-300 hover:bg-slate-800'}`}>
+                                <i class="fa-solid fa-chart-pie mr-2 w-5"></i> Töölaud
+                            </button>
+                            <button onClick={() => setActiveTab('calendar')} class={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'calendar' ? 'bg-amber-500 text-white' : 'text-slate-300 hover:bg-slate-800'}`}>
+                                <i class="fa-solid fa-calendar-days mr-2 w-5"></i> Tunniplaan / Kalender
+                            </button>
+                            <button onClick={() => setActiveTab('students')} class={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'students' ? 'bg-amber-500 text-white' : 'text-slate-300 hover:bg-slate-800'}`}>
+                                <i class="fa-solid fa-graduation-cap mr-2 w-5"></i> {role === 'teacher' ? 'Õpilased' : 'Minu progress'}
+                            </button>
+                        </nav>
+                        <button onClick={() => { setUser(null); setRole(null); }} class="w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-red-400 hover:bg-slate-800 transition-colors">
+                            <i class="fa-solid fa-right-from-bracket mr-2"></i> Logi välja
+                        </button>
+                    </aside>
 
-  /* — Dashboard — */
-  const Dashboard=()=>(
-    <div className="p-5 max-w-2xl mx-auto">
-      <div className="flex items-center justify-between mb-5">
-        <div>
-          <h1 className="text-xl font-bold text-gray-900">Tere, {user.name}! 👋</h1>
-          <p className="text-xs text-gray-400">{new Date().toLocaleDateString("et-EE",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}</p>
-        </div>
-        <Ava name={user.name}/>
-      </div>
-      <div className="grid grid-cols-2 gap-3 mb-4">
-        {[
-          {l:"Õpilased",    v:students.length,  icon:"users",  bg:"bg-blue-50",   ic:"text-blue-500",  click:()=>setTab("students")},
-          {l:"Tunnid täna", v:SCH.filter(e=>e.day===new Date().getDay()-1||e.day===4).length, icon:"cal", bg:"bg-amber-50", ic:"text-amber-500", click:null},
-          {l:"Maksmata €",  v:`${unpaid}€`,      icon:"euro",   bg:"bg-red-50",    ic:"text-red-500",   click:()=>setTab("invoices")},
-          {l:"Tunnid kokku",v:lessons.length,    icon:"book",   bg:"bg-green-50",  ic:"text-green-500", click:null},
-        ].map(x=>(
-          <div key={x.l} onClick={x.click||undefined} className={`bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-3 ${x.click?"cursor-pointer hover:shadow-md":""} transition-shadow`}>
-            <div className={`w-10 h-10 rounded-xl ${x.bg} flex items-center justify-center flex-shrink-0`}><Ic n={x.icon} s={17} c="" className={x.ic}/></div>
-            <div><div className="text-xl font-bold text-gray-800">{x.v}</div><div className="text-xs text-gray-400">{x.l}</div></div>
-          </div>
-        ))}
-      </div>
-      {pRegs>0&&<div onClick={()=>setTab("students")} className="bg-blue-50 border border-blue-100 rounded-xl p-3 mb-3 flex items-center gap-2 text-sm text-blue-700 cursor-pointer hover:bg-blue-100">
-        <Ic n="user" s={14}/><span><strong>{pRegs} uut registreerimist</strong> ootab kinnitamist</span>
-        <span className="ml-auto">›</span>
-      </div>}
-      {pHW>0&&<div onClick={()=>setTab("homework")} className="bg-violet-50 border border-violet-100 rounded-xl p-3 mb-3 flex items-center gap-2 text-sm text-violet-700 cursor-pointer hover:bg-violet-100">
-        <Ic n="clip" s={14}/><span><strong>{pHW} kodutöö</strong> ootab kontrollimist</span>
-        <span className="ml-auto">›</span>
-      </div>}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
-        <div className="px-4 py-3 border-b flex items-center justify-between">
-          <span className="font-semibold text-gray-800 text-sm">Tänane tunniplaan (reede)</span>
-          <span className="text-xs text-gray-400">{SCH.filter(e=>e.day===4).length} tundi</span>
-        </div>
-        {SCH.filter(e=>e.day===4).map((e,i)=>{
-          const st=students.find(s=>s.id===e.sId);
-          return(
-            <div key={i} className="px-4 py-3 flex items-center gap-3 border-b last:border-0">
-              <span className="font-mono text-xs text-gray-300 w-10 flex-shrink-0">{e.time}</span>
-              <div className="flex-1 min-w-0"><div className="text-sm font-medium text-gray-800 truncate">{st?.name||"—"}</div><div className="text-xs text-gray-400">{e.topic}</div></div>
-              {st&&<Badge level={st.level}/>}
-              <span className="text-xs text-gray-400 flex-shrink-0">{e.t}</span>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
+                    <main class="flex-1 p-4 md:p-8 overflow-y-auto">
+                        {activeTab === 'dashboard' && (
+                            <div class="space-y-6">
+                                <h1 class="text-2xl font-bold text-gray-900">Tere, {user}!</h1>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                                        <p class="text-sm font-medium text-gray-400 uppercase">Aktiivsed õpilased baasis</p>
+                                        <p class="text-3xl font-bold text-gray-900 mt-2">{students.length}</p>
+                                    </div>
+                                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                                        <p class="text-sm font-medium text-gray-400 uppercase">Sünkroonimine</p>
+                                        <p class="text-base text-emerald-600 mt-2 font-medium">Google Multi-Calendar moodul aktiivne</p>
+                                    </div>
+                                </div>
 
-  /* — Õpilaste nimekiri — */
-  const StudentsList=()=>(
-    <div className="p-5 max-w-2xl mx-auto">
-      <div className="flex items-center justify-between mb-5">
-        <h1 className="text-xl font-bold text-gray-900">Õpilased <span className="text-gray-400 font-normal text-base">({students.length})</span></h1>
-        <button onClick={()=>setMS(true)} className="flex items-center gap-1.5 bg-gray-900 text-white px-3 py-2 rounded-xl text-xs font-semibold hover:bg-gray-700">
-          <Ic n="plus" s={14} c="white"/> Lisa õpilane
-        </button>
-      </div>
-      {pRegs>0&&(
-        <div className="bg-blue-50 border border-blue-100 rounded-xl mb-4">
-          <div className="px-4 py-3 border-b border-blue-100 font-semibold text-blue-800 text-sm">✉ Uued registreerimised ({pRegs})</div>
-          {regs.filter(r=>r.status==="pending").map(r=>(
-            <div key={r.id} className="px-4 py-3 border-b border-blue-50 last:border-0">
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-gray-800 text-sm">{r.name}</div>
-                  <div className="text-xs text-gray-400 mt-0.5">{r.email} · {r.phone}</div>
-                  <div className="flex items-center gap-2 mt-1"><Badge level={r.level}/><span className="text-xs text-gray-400">{r.teacher}</span></div>
-                  {r.msg&&<div className="text-xs text-gray-500 italic mt-1 bg-white rounded-xl p-2">„{r.msg}"</div>}
-                </div>
-                <div className="flex gap-1.5 flex-shrink-0">
-                  <button onClick={()=>approveReg(r)} className="bg-green-100 text-green-700 text-xs font-semibold px-3 py-1.5 rounded-xl hover:bg-green-200">✓ Kinnita</button>
-                  <button onClick={()=>rejectReg(r.id)} className="bg-red-50 text-red-500 text-xs font-semibold px-3 py-1.5 rounded-xl hover:bg-red-100">✗</button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-      <div className="space-y-2">
-        {students.map(s=>{
-          const sl=sLess(s.id), avg=sl.length?(sl.reduce((a,l)=>a+l.grade,0)/sl.length).toFixed(1):null;
-          const hwP=homework.filter(h=>h.sId===s.id&&h.status==="submitted").length;
-          return(
-            <div key={s.id} onClick={()=>setSel(s)} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 cursor-pointer hover:border-gray-300 hover:shadow-md transition-all">
-              <div className="flex items-center gap-3 mb-3">
-                <Ava name={s.name}/>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                    <span className="font-semibold text-gray-800 text-sm">{s.name}</span><Badge level={s.level}/>
-                    {hwP>0&&<span className="bg-violet-100 text-violet-700 text-xs font-semibold px-1.5 py-0.5 rounded-full">{hwP} vastust</span>}
-                  </div>
-                  <div className="text-xs text-gray-400">{s.teacher} · {s.email}</div>
-                </div>
-                <div className="text-right flex-shrink-0">
-                  {avg&&<div className="text-sm font-bold text-amber-500">{avg}★</div>}
-                  <div className="text-xs text-gray-400">{sl.length} tundi</div>
-                </div>
-              </div>
-              <LevelBar start={s.start} current={s.level}/>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
+                                {role === 'teacher' && (
+                                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mt-6">
+                                        <h3 class="text-lg font-bold mb-4">Lisa uus õpilane reaalajas baasi</h3>
+                                        <form onSubmit={addStudent} class="flex flex-col sm:flex-row gap-4">
+                                            <input type="text" value={newStudentName} onChange={(e) => setNewStudentName(e.target.value)} placeholder="Õpilase täisnimi" class="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm" required />
+                                            <select value={newStudentLevel} onChange={(e) => setNewStudentLevel(e.target.value)} class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                                                <option>A1</option><option>A2</option><option>B1</option><option>B2</option><option>C1</option>
+                                            </select>
+                                            <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                                                + Lisa õpilane
+                                            </button>
+                                        </form>
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
-  /* — Õpilase detailvaade — */
-  const StudentDetail=()=>{
-    const s=students.find(x=>x.id===sel.id)||sel;
-    const sl=sLess(s.id), si=sInv(s.id), sh=sHW(s.id);
-    const avg=sl.length?(sl.reduce((a,l)=>a+l.grade,0)/sl.length).toFixed(1):"—";
-    const [dtab,setDtab]=useState("diary");
-    return(
-      <div className="p-5 max-w-2xl mx-auto">
-        <button onClick={()=>setSel(null)} className="flex items-center gap-1 text-gray-400 hover:text-gray-600 text-xs mb-4 transition-colors"><Ic n="back" s={14}/> Tagasi</button>
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 mb-3">
-          <div className="flex items-start gap-4">
-            <Ava name={s.name} size="lg"/>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap mb-0.5"><h2 className="text-lg font-bold text-gray-900">{s.name}</h2><Badge level={s.level}/></div>
-              <div className="text-xs text-gray-400 mb-3">{s.email} · {s.phone}{s.parent?` · vanem: ${s.parent}`:""}</div>
-              <div className="grid grid-cols-3 gap-2 mb-3">
-                {[{v:sl.length,l:"Tunnid",c:"bg-gray-50"},{v:`${avg}★`,l:"Ksk hinne",c:"bg-amber-50"},{v:s.teacher,l:"Õpetaja",c:"bg-blue-50"}].map(x=>(
-                  <div key={x.l} className={`rounded-xl p-2 text-center ${x.c}`}><div className="font-bold text-sm text-gray-800">{x.v}</div><div className="text-xs text-gray-400">{x.l}</div></div>
-                ))}
-              </div>
-              <div className="text-xs text-gray-400 mb-1.5">Progress: {s.start} → {s.level}</div>
-              <LevelBar start={s.start} current={s.level}/>
-            </div>
-          </div>
-        </div>
-        <div className="grid grid-cols-4 gap-2 mb-4">
-          <button onClick={()=>{setNl(p=>({...p,teacher:s.teacher}));setML(true);}} className="py-2.5 rounded-xl text-xs font-semibold bg-gray-900 text-white hover:bg-gray-700">+ Tund</button>
-          <button onClick={()=>{setNi({sId:s.id,amount:"",desc:""});setMI(true);}} className="py-2.5 rounded-xl text-xs font-semibold border border-gray-200 text-gray-600 hover:bg-gray-50">+ Arve</button>
-          <button onClick={()=>{setNh(p=>({...p,by:s.teacher}));setMH(true);}} className="py-2.5 rounded-xl text-xs font-semibold bg-violet-50 text-violet-700 hover:bg-violet-100">+ Kodutöö</button>
-          <button onClick={()=>upgradeLevel(s.id)} className="py-2.5 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100">Tase ↑</button>
-        </div>
-        <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-4">
-          {[{id:"diary",l:"Päevik"},{id:"progress",l:"Progress"},{id:"hw",l:`Kodutöö (${sh.length})`},{id:"inv",l:"Arved"}].map(t=>(
-            <button key={t.id} onClick={()=>setDtab(t.id)} className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-colors ${dtab===t.id?"bg-white text-gray-900 shadow-sm":"text-gray-400"}`}>{t.l}</button>
-          ))}
-        </div>
-        {dtab==="diary"&&<div className="bg-white rounded-xl border border-gray-100 shadow-sm">
-          {sl.length===0?<div className="py-8 text-center text-gray-300 text-sm">Tunnid puuduvad</div>:sl.map(l=>(
-            <div key={l.id} className="px-4 py-3 border-b last:border-0">
-              <div className="flex items-center justify-between gap-2 mb-0.5">
-                <span className="text-sm font-medium text-gray-800">{l.topic}</span>
-                <div className="flex items-center gap-1.5"><Stars g={l.grade}/>{l.paid?<Ic n="check" s={12} c="#4ade80"/>:<Ic n="alert" s={12} c="#fbbf24"/>}</div>
-              </div>
-              <div className="text-xs text-gray-400">{l.date} · {l.dur} min · {l.teacher}</div>
-              {l.notes&&<div className="text-xs text-gray-500 italic mt-0.5">„{l.notes}"</div>}
-            </div>
-          ))}
-        </div>}
-        {dtab==="progress"&&<div className="space-y-3">
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
-            <div className="text-xs font-semibold text-gray-400 mb-2">HINNETE KÕVER</div><ProgressChart lessons={sl}/>
-          </div>
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
-            <div className="text-xs font-semibold text-gray-400 mb-2">OSKUSED</div><SkillBars lessons={sl}/>
-          </div>
-        </div>}
-        {dtab==="hw"&&<div className="space-y-2">
-          {sh.length===0?<div className="py-8 text-center text-gray-300 bg-white rounded-xl text-sm">Kodutöid pole</div>:sh.map(h=>(
-            <div key={h.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
-              <div className="flex items-start justify-between gap-2 mb-1">
-                <div className="font-semibold text-gray-800 text-sm">{h.title}</div>
-                <span className={`px-2 py-0.5 rounded-full text-xs font-semibold flex-shrink-0 ${h.status==="done"?"bg-green-100 text-green-700":h.status==="submitted"?"bg-blue-100 text-blue-700":"bg-amber-100 text-amber-700"}`}>
-                  {h.status==="done"?"Tehtud":h.status==="submitted"?"Esitatud":"Ootel"}
-                </span>
-              </div>
-              <div className="text-xs text-gray-400 mb-1.5">Tähtaeg: {h.due}</div>
-              {h.desc&&<p className="text-xs text-gray-600 mb-2">{h.desc}</p>}
-              {h.answer&&<div className="text-xs text-blue-600 bg-blue-50 rounded-xl p-2.5 mb-2">Vastus: „{h.answer}"</div>}
-              {h.status==="submitted"&&<button onClick={()=>markHWDone(h.id)} className="text-xs text-green-600 font-semibold hover:text-green-700">✓ Märgi kontrollituks</button>}
-            </div>
-          ))}
-        </div>}
-        {dtab==="inv"&&<div className="bg-white rounded-xl border border-gray-100 shadow-sm">
-          {si.length===0?<div className="py-8 text-center text-gray-300 text-sm">Arved puuduvad</div>:si.map(inv=>(
-            <div key={inv.id} className="px-4 py-3 border-b last:border-0 flex items-center justify-between">
-              <div><div className="text-sm font-medium">{inv.num}</div><div className="text-xs text-gray-400">{inv.amount}€ · {inv.due}</div></div>
-              <div className="flex items-center gap-2">
-                <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${inv.status==="paid"?"bg-green-100 text-green-700":inv.status==="overdue"?"bg-red-100 text-red-600":"bg-amber-100 text-amber-700"}`}>
-                  {inv.status==="paid"?"Makstud":inv.status==="overdue"?"Hilinenud":"Ootel"}
-                </span>
-                {inv.status!=="paid"&&<button onClick={()=>markPaid(inv.id)} className="text-xs text-green-600 font-bold">✓</button>}
-              </div>
-            </div>
-          ))}
-        </div>}
-        <button onClick={()=>delStudent(s.id)} className="text-xs text-red-300 hover:text-red-500 mt-4 transition-colors">Kustuta õpilane</button>
-      </div>
-    );
-  };
+                        {activeTab === 'calendar' && (
+                            <div class="space-y-6">
+                                <div class="flex items-center justify-between flex-wrap gap-4">
+                                    <h1 class="text-2xl font-bold text-gray-900">Õpetaja {user} tunniplaan</h1>
+                                    <span class="text-xs text-gray-500 bg-white border px-3 py-1.5 rounded-lg">Google Sync: OK</span>
+                                </div>
+                                <div id="calendar-render-area"></div>
+                            </div>
+                        )}
 
-  /* — Kalender — */
-  const CalView=()=>{
-    const COLS=["E, 9.","T, 10.","K, 11.","N, 12.","R, 13."];
-    const HOURS=["09","10","11","12","13","14","15","16","17","18"];
-    const cc={Pavel:"bg-blue-100 text-blue-700",Jelena:"bg-emerald-100 text-emerald-700",Elizaveta:"bg-violet-100 text-violet-700"};
-    return(
-      <div className="p-5">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-bold text-gray-900">Nädala tunniplaan</h1>
-          <span className="text-xs text-gray-400 bg-white border rounded-xl px-3 py-1.5">9.–13. juuni 2026</span>
-        </div>
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-auto">
-          <div className="grid min-w-[520px]" style={{gridTemplateColumns:"44px repeat(5,1fr)"}}>
-            <div className="border-b border-r p-2"/>
-            {COLS.map((c,i)=><div key={c} className={`border-b border-r p-2 text-center text-xs font-semibold ${i===4?"bg-blue-50 text-blue-700":"text-gray-400"}`}>{c}</div>)}
-            {HOURS.map(h=>[0,1,2,3,4,5].map(col=>(
-              <div key={`${h}-${col}`} className={`border-b border-r min-h-11 ${col===5?"bg-blue-50/20":""}`}>
-                {col===0?<div className="p-1 text-xs text-gray-200 font-mono">{h}:00</div>:(()=>{
-                  const evs=SCH.filter(e=>e.day===col-1&&e.time.startsWith(h));
-                  return evs.map((e,i)=>{const st=students.find(s=>s.id===e.sId);return(
-                    <div key={i} className={`m-0.5 p-1 rounded text-xs font-medium leading-tight ${cc[e.t]||"bg-gray-100 text-gray-600"}`}>
-                      <div className="truncate">{st?.name?.split(" ")[0]||"?"}</div>
-                      <div className="opacity-60 truncate text-xs">{e.t}</div>
-                    </div>
-                  );});
-                })()}
-              </div>
-            )))}
-          </div>
-        </div>
-        <div className="mt-3 bg-amber-50 border border-amber-100 rounded-xl p-3 text-xs text-amber-700">
-          <strong>Google Calendar:</strong> täieliku sünkroniseerimiseks lisa Google Calendar API backend. Praegu kuvatakse demo andmed.
-        </div>
-      </div>
-    );
-  };
-
-  /* — Kodutöö ülevaade — */
-  const HWView=()=>{
-    const submitted=homework.filter(h=>h.status==="submitted");
-    const pending=homework.filter(h=>h.status==="pending");
-    const done=homework.filter(h=>h.status==="done");
-    return(
-      <div className="p-5 max-w-2xl mx-auto">
-        <h1 className="text-xl font-bold text-gray-900 mb-5">Kodutööd</h1>
-        <div className="grid grid-cols-3 gap-3 mb-5">
-          {[{l:"Ootel",v:pending.length,c:"bg-amber-50 text-amber-700"},{l:"Esitatud",v:submitted.length,c:"bg-blue-50 text-blue-700"},{l:"Tehtud",v:done.length,c:"bg-green-50 text-green-700"}].map(x=>(
-            <div key={x.l} className={`rounded-xl p-3 ${x.c}`}><div className="text-xl font-bold">{x.v}</div><div className="text-xs opacity-70">{x.l}</div></div>
-          ))}
-        </div>
-        {submitted.length>0&&(
-          <div className="bg-white rounded-xl border border-blue-100 shadow-sm mb-4">
-            <div className="px-4 py-3 border-b text-sm font-semibold text-blue-700">🔔 Esitatud — ootel kontrolli</div>
-            {submitted.map(h=>{const st=students.find(s=>s.id===h.sId);return(
-              <div key={h.id} className="px-4 py-3 border-b last:border-0">
-                <div className="flex items-start justify-between gap-2 mb-1">
-                  <div>
-                    <div className="text-sm font-semibold text-gray-800">{h.title}</div>
-                    <div className="text-xs text-gray-400">{st?.name} · tähtaeg {h.due}</div>
-                    {h.answer&&<div className="text-xs text-blue-600 bg-blue-50 rounded-xl p-2 mt-1.5">„{h.answer}"</div>}
-                  </div>
-                  <button onClick={()=>markHWDone(h.id)} className="bg-green-100 text-green-700 text-xs font-semibold px-3 py-1.5 rounded-xl hover:bg-green-200 flex-shrink-0">✓ OK</button>
+                        {activeTab === 'students' && (
+                            <div class="space-y-6">
+                                <h1 class="text-2xl font-bold text-gray-900">{role === 'teacher' ? 'Õpilaste nimekiri (Firebase)' : 'Minu progress'}</h1>
+                                <div class="bg-white shadow-sm rounded-xl border border-gray-100 overflow-hidden">
+                                    {role === 'teacher' ? (
+                                        <div class="overflow-x-auto">
+                                            <table class="w-full text-left border-collapse">
+                                                <thead>
+                                                    <tr class="bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase">
+                                                        <th class="p-4">Nimi</th>
+                                                        <th class="p-4">Tase</th>
+                                                        <th class="p-4">Õpetaja</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="divide-y divide-gray-100 text-sm">
+                                                    {students.length === 0 ? (
+                                                        <tr>
+                                                            <td colspan="3" class="p-4 text-center text-gray-400">Õpilasi pole ещё добавлены. Добавьте первого ученика со страницы «Тöölaud»!</td>
+                                                        </tr>
+                                                    ) : (
+                                                        students.map((student) => (
+                                                            <tr key={student.id}>
+                                                                <td class="p-4 font-medium text-gray-900">{student.name}</td>
+                                                                <td class="p-4"><span class="px-2 py-1 bg-amber-50 text-amber-700 text-xs font-bold rounded">{student.level}</span></td>
+                                                                <td class="p-4 text-gray-500">{student.teacher}</td>
+                                                            </tr>
+                                                        ))
+                                                    )}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    ) : (
+                                        <div class="p-6 text-gray-500 text-sm">Teie individuaalne õppekava.</div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </main>
                 </div>
-              </div>
-            );})}
-          </div>
-        )}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
-          <div className="px-4 py-3 border-b text-sm font-semibold text-gray-700">Kõik kodutööd</div>
-          {homework.length===0?<div className="py-8 text-center text-gray-300 text-sm">Kodutöid pole</div>:homework.map(h=>{
-            const st=students.find(s=>s.id===h.sId);
-            return(
-              <div key={h.id} className="px-4 py-3 border-b last:border-0 flex items-center justify-between">
-                <div><div className="text-sm font-medium text-gray-800">{h.title}</div><div className="text-xs text-gray-400">{st?.name} · {h.due} · {h.by}</div></div>
-                <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${h.status==="done"?"bg-green-100 text-green-700":h.status==="submitted"?"bg-blue-100 text-blue-700":"bg-amber-100 text-amber-700"}`}>
-                  {h.status==="done"?"Tehtud":h.status==="submitted"?"Esitatud":"Ootel"}
-                </span>
-              </div>
             );
-          })}
-        </div>
-      </div>
-    );
-  };
+        }
 
-  /* — Arved — */
-  const InvView=()=>{
-    const t={unpaid:invoices.filter(i=>i.status==="unpaid").reduce((a,i)=>a+i.amount,0),overdue:invoices.filter(i=>i.status==="overdue").reduce((a,i)=>a+i.amount,0),paid:invoices.filter(i=>i.status==="paid").reduce((a,i)=>a+i.amount,0)};
-    return(
-      <div className="p-5 max-w-2xl mx-auto">
-        <div className="flex items-center justify-between mb-5">
-          <h1 className="text-xl font-bold text-gray-900">Arved</h1>
-          <button onClick={()=>setMI(true)} className="flex items-center gap-1.5 bg-gray-900 text-white px-3 py-2 rounded-xl text-xs font-semibold hover:bg-gray-700"><Ic n="plus" s={14} c="white"/> Uus arve</button>
-        </div>
-        <div className="grid grid-cols-3 gap-3 mb-5">
-          {[{l:"Ootel",v:`${t.unpaid}€`,c:"bg-amber-50 text-amber-700"},{l:"Hilinenud",v:`${t.overdue}€`,c:"bg-red-50 text-red-600"},{l:"Makstud",v:`${t.paid}€`,c:"bg-green-50 text-green-700"}].map(x=>(
-            <div key={x.l} className={`rounded-xl p-3 ${x.c}`}><div className="text-xl font-bold">{x.v}</div><div className="text-xs opacity-70">{x.l}</div></div>
-          ))}
-        </div>
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
-          {invoices.length===0?<div className="py-10 text-center text-gray-300 text-sm">Arved puuduvad</div>:invoices.map(inv=>{
-            const st=students.find(s=>s.id===inv.sId);
-            return(
-              <div key={inv.id} className="px-4 py-3 border-b last:border-0 flex items-center gap-3">
-                {st&&<Ava name={st.name}/>}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap"><span className="text-sm font-semibold text-gray-800">{st?.name||"—"}</span><span className="text-xs text-gray-300">{inv.num}</span></div>
-                  <div className="text-xs text-gray-400">{inv.desc} · tähtaeg {inv.due}</div>
-                </div>
-                <div className="text-right flex-shrink-0">
-                  <div className="font-bold text-gray-800 text-sm">{inv.amount}€</div>
-                  <div className="flex items-center gap-1.5 mt-1 justify-end">
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${inv.status==="paid"?"bg-green-100 text-green-700":inv.status==="overdue"?"bg-red-100 text-red-600":"bg-amber-100 text-amber-700"}`}>
-                      {inv.status==="paid"?"Makstud":inv.status==="overdue"?"Hilinenud":"Ootel"}
-                    </span>
-                    {inv.status!=="paid"&&<button onClick={()=>markPaid(inv.id)} className="text-xs text-green-600 font-bold hover:text-green-700">✓</button>}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    );
-  };
-
-  /* ── Layout ── */
-  return(
-    <div className="flex h-screen bg-gray-50 overflow-hidden text-sm" style={{fontFamily:"IBM Plex Sans,system-ui,sans-serif"}}>
-      <aside className="w-48 bg-white border-r border-gray-100 flex flex-col flex-shrink-0 shadow-sm">
-        <div className="px-4 py-4 border-b">
-          <div className="font-bold text-base" style={{fontFamily:"Georgia,serif"}}>Keele<span className="text-amber-500">Sepp</span></div>
-          <div className="text-xs text-gray-400 mt-0.5">Haldussüsteem</div>
-        </div>
-        <nav className="flex-1 p-2.5 space-y-1">
-          {NAV.map(({id,l,icon,badge})=>(
-            <button key={id} onClick={()=>{setTab(id);setSel(null);}} className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${tab===id?"bg-gray-900 text-white":"text-gray-500 hover:bg-gray-100"}`}>
-              <Ic n={icon} s={16} c={tab===id?"white":"currentColor"}/>{l}
-              {badge>0&&<span className={`ml-auto text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center ${tab===id?"bg-white text-gray-900":"bg-red-500 text-white"}`}>{badge}</span>}
-            </button>
-          ))}
-        </nav>
-        <div className="px-4 py-3 border-t">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-7 h-7 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 font-bold text-xs">{user.name[0]}</div>
-            <div><div className="text-xs font-semibold text-gray-700">{user.name}</div><div className="text-xs text-gray-400">Õpetaja</div></div>
-          </div>
-          <button onClick={doLogout} className="w-full flex items-center justify-center gap-1.5 text-xs text-gray-400 hover:text-red-500 border border-gray-100 rounded-xl py-1.5 transition-colors">
-            <Ic n="out" s={12}/> Välju
-          </button>
-        </div>
-      </aside>
-      <main className="flex-1 overflow-auto">
-        {tab==="dashboard"&&<Dashboard/>}
-        {tab==="students"&&!sel&&<StudentsList/>}
-        {tab==="students"&&sel&&<StudentDetail/>}
-        {tab==="calendar"&&<CalView/>}
-        {tab==="homework"&&<HWView/>}
-        {tab==="invoices"&&<InvView/>}
-      </main>
-
-      {/* Modals */}
-      {mL&&<Modal title={`Lisa tund — ${sel?.name}`} onClose={()=>setML(false)} onSave={doAddLesson} saveLabel="Lisa tund">
-        <Fld label="TEEMA *"><input value={nl.topic} onChange={e=>setNl({...nl,topic:e.target.value})} placeholder="nt. Käänded — omastav" className={inp}/></Fld>
-        <div className="grid grid-cols-2 gap-3">
-          <Fld label="KESTUS (min)"><select value={nl.dur} onChange={e=>setNl({...nl,dur:parseInt(e.target.value)})} className={inp}>{[30,45,60,90].map(v=><option key={v}>{v}</option>)}</select></Fld>
-          <Fld label="KUUPÄEV"><input type="date" value={nl.date} onChange={e=>setNl({...nl,date:e.target.value})} className={inp}/></Fld>
-        </div>
-        <Fld label="HINNE">
-          <div className="flex gap-2">{[1,2,3,4,5].map(g=><button key={g} onClick={()=>setNl({...nl,grade:g})} className={`flex-1 py-2 rounded-xl text-sm font-bold ${nl.grade===g?"bg-amber-400 text-white":"bg-gray-100 text-gray-400 hover:bg-gray-200"}`}>{g}</button>)}</div>
-        </Fld>
-        <Fld label="MÄRKUSED"><textarea value={nl.notes} onChange={e=>setNl({...nl,notes:e.target.value})} placeholder="Kommentaar…" className={`${inp} resize-none h-16`}/></Fld>
-        <Fld label="MAKSTUD?"><select value={nl.paid?"yes":"no"} onChange={e=>setNl({...nl,paid:e.target.value==="yes"})} className={inp}><option value="no">Ei ole makstud</option><option value="yes">Makstud</option></select></Fld>
-      </Modal>}
-
-      {mS&&<Modal title="Lisa uus õpilane" onClose={()=>setMS(false)} onSave={doAddStudent} saveLabel="Lisa õpilane">
-        <Fld label="TÄISNIMI *"><input value={ns.name} onChange={e=>setNs({...ns,name:e.target.value})} placeholder="Eesnimi Perekonnanimi" className={inp}/></Fld>
-        <div className="grid grid-cols-2 gap-3">
-          <Fld label="ALGUSTASE"><select value={ns.start} onChange={e=>setNs({...ns,start:e.target.value,level:e.target.value})} className={inp}>{LEVELS.map(l=><option key={l}>{l}</option>)}</select></Fld>
-          <Fld label="ÕPETAJA"><select value={ns.teacher} onChange={e=>setNs({...ns,teacher:e.target.value})} className={inp}>{TEACHERS.map(t=><option key={t}>{t}</option>)}</select></Fld>
-        </div>
-        <Fld label="E-POST"><input value={ns.email} onChange={e=>setNs({...ns,email:e.target.value})} type="email" className={inp}/></Fld>
-        <Fld label="TELEFON"><input value={ns.phone} onChange={e=>setNs({...ns,phone:e.target.value})} className={inp}/></Fld>
-        <Fld label="VANEMA NIMI"><input value={ns.parent} onChange={e=>setNs({...ns,parent:e.target.value})} className={inp}/></Fld>
-        <Fld label="PAROOL"><input value={ns.pass} onChange={e=>setNs({...ns,pass:e.target.value})} placeholder="1234" className={inp}/></Fld>
-      </Modal>}
-
-      {mI&&<Modal title="Loo arve" onClose={()=>setMI(false)} onSave={doAddInv} saveLabel="Loo arve">
-        <Fld label="ÕPILANE *"><select value={ni.sId} onChange={e=>setNi({...ni,sId:e.target.value})} className={inp}><option value="">Vali õpilane…</option>{students.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</select></Fld>
-        <Fld label="SUMMA (€) *"><input value={ni.amount} onChange={e=>setNi({...ni,amount:e.target.value})} type="number" className={inp}/></Fld>
-        <Fld label="KIRJELDUS"><input value={ni.desc} onChange={e=>setNi({...ni,desc:e.target.value})} placeholder="Keeletunnid juuni 2026" className={inp}/></Fld>
-      </Modal>}
-
-      {mH&&<Modal title={`Lisa kodutöö — ${sel?.name}`} onClose={()=>setMH(false)} onSave={doAddHW} saveLabel="Määra kodutöö">
-        <Fld label="PEALKIRI *"><input value={nh.title} onChange={e=>setNh({...nh,title:e.target.value})} placeholder="nt. Käänded — kordamine" className={inp}/></Fld>
-        <Fld label="ÜLESANDE KIRJELDUS"><textarea value={nh.desc} onChange={e=>setNh({...nh,desc:e.target.value})} placeholder="Mida täpselt teha?" className={`${inp} resize-none h-20`}/></Fld>
-        <Fld label="TÄHTAEG *"><input type="date" value={nh.due} onChange={e=>setNh({...nh,due:e.target.value})} className={inp}/></Fld>
-      </Modal>}
-    </div>
-  );
-}
-
-const root=ReactDOM.createRoot(document.getElementById('r'));
-root.render(React.createElement(App,null));
-</script>
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
 </body>
 </html>
