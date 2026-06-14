@@ -47,6 +47,11 @@
             border-radius: 10px !important;
         }
         input:focus, select:focus, textarea:focus { border-color: var(--amber) !important; outline: none; }
+
+        /* Кастомный скроллбар для сетки */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(28,43,58,0.15); border-radius: 99px; }
     </style>
 </head>
 <body class="antialiased">
@@ -73,7 +78,21 @@
         }
         const db = firebase.firestore();
 
-        // Компонент прогресса (Кривая)
+        const WEEK_DAYS = [
+            { id: 'Mon', name: 'Esmaspäev' },
+            { id: 'Tue', name: 'Teisipäev' },
+            { id: 'Wed', name: 'Kolmapäev' },
+            { id: 'Thu', name: 'Neljapäev' },
+            { id: 'Fri', name: 'Reede' },
+            { id: 'Sat', name: 'Laupäev' },
+            { id: 'Sun', name: 'Pühapäev' }
+        ];
+
+        const TIME_SLOTS = [
+            "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", 
+            "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00"
+        ];
+
         function ProgressChart({ data }) {
             const chartRef = React.useRef(null);
             React.useEffect(() => {
@@ -99,11 +118,7 @@
                             pointRadius: 5
                         }]
                     },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: { y: { min: 1, max: 5, ticks: { stepSize: 1 } } }
-                    }
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 1, max: 5, ticks: { stepSize: 1 } } } }
                 });
                 return () => { chartInstance.destroy(); };
             }, [data]);
@@ -121,9 +136,12 @@
             const [students, setStudents] = React.useState([]);
             const [lessons, setLessons] = React.useState([]);
             const [homeworks, setHomeworks] = React.useState([]);
-            const [schedule, setSchedule] = React.useState([]); // Наше независимое расписание
+            const [schedule, setSchedule] = React.useState([]); 
             const [activeTab, setActiveTab] = React.useState('dashboard');
             const [selectedStudent, setSelectedStudent] = React.useState(null);
+
+            // Фильтр учителей для руководителя
+            const [filterTeacher, setFilterTeacher] = React.useState('Pavel');
 
             // Поля форм
             const [newStudentName, setNewStudentName] = React.useState('');
@@ -135,10 +153,11 @@
             const [lessonComment, setLessonComment] = React.useState('');
             const [hwTask, setHwTask] = React.useState('');
 
-            // Поля для создания нового события в расписании
+            // Поля добавления урока
             const [schStudent, setSchStudent] = React.useState('');
-            const [schDate, setSchDate] = React.useState('');
-            const [schTime, setSchTime] = React.useState('');
+            const [schDay, setSchDay] = React.useState('Mon');
+            const [schTime, setSchTime] = React.useState('09:00');
+            const [schTeacher, setSchTeacher] = React.useState('');
 
             const handleLogin = (e) => {
                 e.preventDefault();
@@ -148,6 +167,8 @@
 
                 if (teachers.includes(username) && password === '1234') {
                     setUser(username); setRole('teacher');
+                    setFilterTeacher(username); // По умолчанию учитель видит себя
+                    setSchTeacher(username);
                 } else if (demoStudents.includes(username) && password === '1234') {
                     setUser(username); setRole('student');
                 } else {
@@ -210,22 +231,25 @@
                 await db.collection("homework").doc(id).update({ status: next });
             };
 
-            // Добавление занятия в собственную базу расписания KeeleSepp
             const addScheduleEvent = async (e) => {
                 e.preventDefault();
-                if (!schStudent || !schDate || !schTime) return;
+                if (!schStudent) return;
+                
+                // Для Павла (руководителя) берем выбранного в форме учителя, для остальных — текущего юзера
+                const teacherToAssign = user === 'Pavel' ? schTeacher : user;
+
                 await db.collection("schedule").add({
-                    teacher: user,
+                    teacher: teacherToAssign,
                     studentName: schStudent,
-                    date: schDate,
+                    day: schDay,
                     time: schTime
                 });
-                setSchStudent(''); setSchDate(''); setSchTime('');
-                alert('Tund edukalt tunniplaani lisatud!');
+                setSchStudent('');
+                alert('Tund edukalt lisatud KeeleSepp tunniplaani!');
             };
 
             const deleteScheduleEvent = async (id) => {
-                if(confirm('Kas soovite tunni tühistada?')) {
+                if(confirm('Kas soovite selle tunni tunniplaanist kustutada?')) {
                     await db.collection("schedule").doc(id).delete();
                 }
             };
@@ -262,9 +286,9 @@
             const studentLessons = currentStudentData ? lessons.filter(l => l.studentId === currentStudentData.id) : [];
             const studentHw = currentStudentData ? homeworks.filter(h => h.studentId === currentStudentData.id) : [];
             
-            // Фильтрация расписания по конкретному пользователю
-            const currentSchedule = role === 'teacher' 
-                ? schedule.filter(s => s.teacher === user)
+            // Логика фильтрации расписания по учителям или ученику
+            const filteredSchedule = role === 'teacher'
+                ? (filterTeacher === 'Kõik' ? schedule : schedule.filter(s => s.teacher === filterTeacher))
                 : schedule.filter(s => s.studentName.toLowerCase().includes(user.toLowerCase()));
 
             return (
@@ -272,7 +296,7 @@
                     <aside class="w-full md:w-64 text-white flex flex-col p-5 space-y-6" style={{backgroundColor: 'var(--ink)'}}>
                         <div class="flex items-center justify-between border-b border-gray-800 pb-4">
                             <span class="text-2xl font-semibold tracking-tight">Keele<span class="text-amber-400">Sepp</span></span>
-                            <span class="text-[10px] uppercase font-bold tracking-widest bg-gray-800 px-2 py-1 rounded text-amber-400">{role === 'teacher' ? 'Õpetaja' : 'Õpilane / lapsevanem'}</span>
+                            <span class="text-[10px] uppercase font-bold tracking-widest bg-gray-800 px-2 py-1 rounded text-amber-400">{role === 'teacher' ? 'Õpetaja' : 'Õpilane'}</span>
                         </div>
                         <div class="text-xs text-gray-400">Aktiivne konto: <span class="font-semibold text-white text-sm block mt-0.5">{user}</span></div>
                         <nav class="flex-1 space-y-1">
@@ -330,45 +354,95 @@
 
                         {activeTab === 'calendar' && (
                             <div class="space-y-6">
-                                <h1 class="text-3xl font-semibold text-slate-900">KeeleSepp Tunniplaan (Внутреннее расписание)</h1>
-                                
+                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                    <h1 class="text-3xl font-semibold text-slate-900">KeeleSepp Tunniplaan</h1>
+                                    
+                                    {/* Переключатель расписания учителей (Доступен только руководителю Павелу) */}
+                                    {user === 'Pavel' && (
+                                        <div class="flex items-center gap-2 bg-white px-4 py-2 rounded-xl border shadow-sm">
+                                            <span class="text-xs font-bold text-gray-400 uppercase">Graafiku vaade:</span>
+                                            <select value={filterTeacher} onChange={(e) => setFilterTeacher(e.target.value)} class="border-none bg-transparent font-semibold text-sm text-[#C9882A] p-0 focus:ring-0">
+                                                <option value="Pavel">Pavel</option>
+                                                <option value="Jelena">Jelena</option>
+                                                <option value="Elizaveta">Elizaveta</option>
+                                                <option value="Angelina">Angelina</option>
+                                                <option value="Kõik">Kõik õpetajad</option>
+                                            </select>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Инструмент быстрого добавления занятия для учителей */}
                                 {role === 'teacher' && (
                                     <div class="bg-white p-5 rounded-2xl border border-gray-200/60 shadow-sm">
-                                        <h3 class="text-lg font-bold mb-3">Määra uus tund graafikusse</h3>
-                                        <form onSubmit={addScheduleEvent} class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                                        <h3 class="text-sm font-bold text-gray-400 uppercase mb-3">Broneeri uus tund</h3>
+                                        <form onSubmit={addScheduleEvent} class="grid grid-cols-1 sm:grid-cols-4 lg:grid-cols-5 gap-3">
                                             <input type="text" value={schStudent} onChange={(e) => setSchStudent(e.target.value)} placeholder="Õpilase / rühma nimi" class="px-4 py-2 text-sm" required />
-                                            <input type="date" value={schDate} onChange={(e) => setSchDate(e.target.value)} class="px-4 py-2 text-sm" required />
-                                            <input type="time" value={schTime} onChange={(e) => setSchTime(e.target.value)} class="px-4 py-2 text-sm" required />
-                                            <button type="submit" class="bg-[#2F5D50] hover:bg-[#1C2B3A] text-white font-semibold rounded-xl text-sm transition-all cursor-pointer">
-                                                + Lisa kalendrisse
+                                            <select value={schDay} onChange={(e) => setSchDay(e.target.value)} class="px-4 py-2 text-sm">
+                                                {WEEK_DAYS.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                                            </select>
+                                            <select value={schTime} onChange={(e) => setSchTime(e.target.value)} class="px-4 py-2 text-sm">
+                                                {TIME_SLOTS.map(t => <option key={t} value={t}>{t}</option>)}
+                                            </select>
+                                            {user === 'Pavel' && (
+                                                <select value={schTeacher} onChange={(e) => setSchTeacher(e.target.value)} class="px-4 py-2 text-sm">
+                                                    <option value="Pavel">Õp. Pavel</option>
+                                                    <option value="Jelena">Õp. Jelena</option>
+                                                    <option value="Elizaveta">Õp. Elizaveta</option>
+                                                    <option value="Angelina">Õp. Angelina</option>
+                                                </select>
+                                            )}
+                                            <button type="submit" class="bg-[#2F5D50] hover:bg-[#1C2B3A] text-white font-semibold rounded-xl text-sm py-2 transition-all cursor-pointer lg:col-span-1 sm:col-span-4">
+                                                + Kinnita lukku
                                             </button>
                                         </form>
                                     </div>
                                 )}
 
-                                <div class="bg-white p-6 rounded-2xl border border-gray-200/60 shadow-sm">
-                                    <h3 class="text-xl font-bold mb-4 text-slate-800"><i class="fa-regular fa-clock mr-2 text-[#C9882A]"></i>Tulevased tunnid</h3>
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                        {currentSchedule.length === 0 ? (
-                                            <p class="text-gray-400 text-sm col-span-full py-4">Sellesse tunniplaani pole veel tunde märgitud.</p>
-                                        ) : (
-                                            [...currentSchedule].sort((a,b) => new Date(a.date + 'T' + a.time) - new Date(b.date + 'T' + b.time)).map(event => (
-                                                <div key={event.id} class="p-4 bg-gray-50/70 border border-gray-200 rounded-xl flex justify-between items-start transition-all hover:shadow-sm">
-                                                    <div>
-                                                        <span class="block font-bold text-slate-900 text-base">{event.studentName}</span>
-                                                        <span class="inline-block text-xs font-semibold bg-amber-50 text-[#A96E1A] px-2 py-0.5 rounded-md mt-1.5">
-                                                            <i class="fa-regular fa-calendar-days mr-1"></i> {event.date} kell {event.time}
-                                                        </span>
-                                                        {role === 'student' && <span class="block text-[11px] text-gray-400 mt-1">Õpetaja: {event.teacher}</span>}
-                                                    </div>
-                                                    {role === 'teacher' && (
-                                                        <button onClick={() => deleteScheduleEvent(event.id)} class="text-red-400 hover:text-red-600 p-1 text-sm transition-colors cursor-pointer" title="Tühista tund">
-                                                            <i class="fa-solid fa-trash-can"></i>
-                                                        </button>
-                                                    )}
+                                {/* Фирменная интерактивная недельная сетка KeeleSepp */}
+                                <div class="bg-white rounded-2xl border border-gray-200/60 shadow-sm overflow-hidden">
+                                    <div class="overflow-x-auto custom-scrollbar">
+                                        <div class="min-w-[800px] grid grid-cols-8 border-b border-gray-100 bg-[#EFEDE7]">
+                                            <div class="p-3 text-xs font-bold text-center text-slate-500 uppercase border-r border-gray-200/50">Kell</div>
+                                            {WEEK_DAYS.map(day => (
+                                                <div key={day.id} class="p-3 text-xs font-bold text-center text-slate-800 uppercase border-r border-gray-200/50 last:border-0">
+                                                    {day.name}
                                                 </div>
-                                            ))
-                                        )}
+                                            ))}
+                                        </div>
+
+                                        <div class="min-w-[800px] divide-y divide-gray-100/70">
+                                            {TIME_SLOTS.map(slot => (
+                                                <div key={slot} class="grid grid-cols-8 h-20 bg-white">
+                                                    {/* Колонка времени */}
+                                                    <div class="flex items-center justify-center bg-gray-50/50 text-xs font-mono font-bold text-slate-400 border-r border-gray-100">
+                                                        {slot}
+                                                    </div>
+                                                    
+                                                    {/* Ячейки дней недели */}
+                                                    {WEEK_DAYS.map(day => {
+                                                        const currentSlotEvents = filteredSchedule.filter(s => s.day === day.id && s.time === slot);
+                                                        return (
+                                                            <div key={day.id} class="p-1 border-r border-gray-100/60 last:border-0 relative group flex flex-col gap-1 overflow-y-auto custom-scrollbar bg-white/40">
+                                                                {currentSlotEvents.map(ev => (
+                                                                    <div key={ev.id} class="text-xs p-1.5 rounded-lg border flex flex-col justify-between" style={{ backgroundColor: 'rgba(47,93,80,0.06)', borderColor: 'rgba(47,93,80,0.18)', color: 'var(--ink)' }}>
+                                                                        <div class="flex justify-between items-start">
+                                                                            <span class="font-bold tracking-tight truncate max-w-[85%]">{ev.studentName}</span>
+                                                                            {role === 'teacher' && (
+                                                                                <button onClick={() => deleteScheduleEvent(ev.id)} class="text-red-400 hover:text-red-600 font-bold ml-1 text-[10px] cursor-pointer">✕</button>
+                                                                            )}
+                                                                        </div>
+                                                                        {filterTeacher === 'Kõik' && (
+                                                                            <span class="text-[9px] font-semibold text-[#A96E1A] mt-0.5">Õp. {ev.teacher}</span>
+                                                                        )}
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -380,7 +454,7 @@
                                     <div>
                                         <h1 class="text-3xl font-semibold text-slate-900 mb-6">Vali õpilase päevik progressi vaatamiseks</h1>
                                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                            {students.filter(s => s.teacher === user).map(student => (
+                                            {students.filter(s => s.teacher === user || user === 'Pavel').map(student => (
                                                 <div key={student.id} onClick={() => setSelectedStudent(student)} class="bg-white p-5 rounded-2xl border border-gray-200/60 shadow-sm hover:border-[#C9882A] cursor-pointer transition-all">
                                                     <h3 class="text-lg font-bold text-slate-900">{student.name}</h3>
                                                     <p class="text-xs text-gray-400 mt-1">Tase: {student.level} ➔ Siht: {student.targetLevel}</p>
