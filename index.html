@@ -49,9 +49,14 @@ header{position:sticky;top:0;z-index:50;background:rgba(251,250,248,.92);backdro
 .nav-l{display:flex;gap:28px;list-style:none;align-items:center}
 .nav-l a{color:var(--ink);font-size:.94rem;font-weight:500}.nav-l a:hover{color:var(--amber-d)}
 .nav-c{display:flex;gap:12px;align-items:center}
-.nav-t{display:none;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--ink)}
-@media(max-width:860px){.nav-l,.nav-c .btn-g{display:none}.nav-t{display:block}
-  .nav-l.open{display:flex;flex-direction:column;position:absolute;top:72px;left:0;right:0;background:var(--paper);border-bottom:1px solid var(--line);padding:20px 24px;gap:16px;align-items:flex-start}}
+.nav-t{background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--ink);display:none}
+
+@media(max-width:860px){
+  .nav-l, .nav-c .btn-p {display:none}
+  .nav-t {display:block}
+  .nav-c .btn-g {display:inline-block; padding:8px 16px; font-size:.88rem}
+  .nav-l.open{display:flex;flex-direction:column;position:absolute;top:72px;left:0;right:0;background:var(--paper);border-bottom:1px solid var(--line);padding:20px 24px;gap:16px;align-items:flex-start}
+}
 
 /* Hero */
 .hero{padding:96px 0 76px;overflow:hidden;position:relative}
@@ -182,7 +187,6 @@ footer a:hover{color:var(--amber)}
 <body>
 <a class="skip" href="#sisu">Liigu sisu juurde</a>
 
-<!-- ██ ШАПКА ██████████████████████████████████████████████ -->
 <header>
   <div class="w nav">
     <a class="logo" href="/">Keele<b>Sepp</b></a>
@@ -204,13 +208,12 @@ footer a:hover{color:var(--amber)}
 
 <main id="sisu">
 
-<!-- ██ HERO ████████████████████████████████████████████████ -->
 <section class="hero">
   <div class="w hero-g">
     <div>
       <p class="eye">KeeleSepp — õpi meiega · veebis · Tallinn</p>
       <h1>Eesti ja inglise keel — selgelt, järjepidevalt, veebis</h1>
-      <p class="lead">Kursused tasemetel A1–C1 professionaalsete õpetajatega. Paindlik tunniplaan, eksami ettevalmistus ja õppematerjalid hinna sees.</p>
+      <p class="lead">Kursused tasemetel A1–C1 professionaalsete õpetajatega. Paindlik tunniplaan, eksami ettevalmistus und õppematerjalid hinna sees.</p>
       <div class="hero-act">
         <a class="btn btn-p" href="#kursused">Tutvu kursustega</a>
         <a class="btn btn-g" href="#registreeru">Registreeru kursusele</a>
@@ -230,7 +233,6 @@ footer a:hover{color:var(--amber)}
   </div>
 </section>
 
-<!-- ██ ЛЕТНИЕ КУРСЫ ████████████████████████████████████████ -->
 <section class="summer" id="suvekursused">
   <div class="w">
     <p class="eye">Suvekursused 2026 · kohtade arv piiratud</p>
@@ -252,7 +254,7 @@ footer a:hover{color:var(--amber)}
         <h3>Eesti keel — esimene klass</h3>
         <p>Tähestik, hääldus ja esmane suhtluskeel. Laps alustab kooliteed enesekindlalt.</p>
         <ul>
-          <li>📅 E / K / R — 10:00–11:00 või 18:00–19:00</li>
+          <li>📅 E / K / R — 10:00–11:00 или 18:00–19:00</li>
           <li>🗓 Juuni · juuli · august</li>
         </ul>
         <div class="sum-p">8 € <span>/ tund</span></div>
@@ -262,13 +264,12 @@ footer a:hover{color:var(--amber)}
   </div>
 </section>
 
-<!-- ██ EESTI KEEL ███████████████████████████████████████████ -->
 <section class="sec" id="kursused">
   <div class="w">
     <div class="sec-h">
       <p class="eye">Eesti keel</p>
       <h2>Eesti keele kursused</h2>
-      <p>Selge tee tasemelt tasemele — eksami ettevalmistus ja materjalid hinna sees.</p>
+      <p>Selge tee tasemelt tasemele — eksami ettevalmistus und materjalid hinna sees.</p>
     </div>
     <div class="grid3">
 
@@ -320,7 +321,7 @@ footer a:hover{color:var(--amber)}
         <span class="ccard-ghost" aria-hidden="true">C1</span>
         <h3>Eesti keele C1-tase</h3>
         <div class="cefr"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="cur"></i><span>C1</span></div>
-        <ul><li>Akadeemiline ja professionaalne keel</li><li>Kõrgtaseme grammatika</li><li>C1 eksami ettevalmistus</li></ul>
+        <ul><li>Akadeemiline kirjutamine</li><li>Professionaalne suhtlus</li><li>Kõrgtaseme grammatika</li></ul>
         <div class="ccard-f">
           <div class="ccard-p">3100 €</div>
           <a class="btn btn-g" href="#registreeru">Registreeru</a>
@@ -342,7 +343,6 @@ footer a:hover{color:var(--amber)}
   </div>
 </section>
 
-<!-- ██ INGLISE KEEL ████████████████████████████████████████ -->
 <section class="sec alt" id="inglise">
   <div class="w">
     <div class="sec-h">
@@ -404,7 +404,6 @@ footer a:hover{color:var(--amber)}
   </div>
 </section>
 
-<!-- ██ MIKS KEELESEPP ██████████████████████████████████████ -->
 <section class="sec">
   <div class="w">
     <div class="sec-h">
@@ -417,7 +416,6 @@ footer a:hover{color:var(--amber)}
       <div class="q-i"><h3>Tulemus on tõestatud</h3><p>Üle 33 soovituse Facebookis — 98% soovitavad. Õpilased on saavutanud B1 eksamil 77%, 84%, 88%, 91%. Tulemused räägivad enda eest.</p></div>
     </div>
 
-    <!-- Баннер уровня -->
     <div class="level-b" style="margin-top:44px">
       <div>
         <h2>Ei tea oma keeletaset?</h2>
@@ -428,7 +426,6 @@ footer a:hover{color:var(--amber)}
   </div>
 </section>
 
-<!-- ██ ÕPETAJAD ████████████████████████████████████████████ -->
 <section class="sec alt" id="opetajad">
   <div class="w">
     <div class="sec-h">
@@ -463,7 +460,6 @@ footer a:hover{color:var(--amber)}
   </div>
 </section>
 
-<!-- ██ ARVUSTUSED ██████████████████████████████████████████ -->
 <section class="sec" id="arvustused">
   <div class="w">
     <div class="sec-h">
@@ -534,7 +530,6 @@ footer a:hover{color:var(--amber)}
   </div>
 </section>
 
-<!-- ██ REGISTREERUMINE ██████████████████████████████████████ -->
 <section class="reg sec" id="registreeru">
   <div class="w reg-g">
     <div class="reg-info">
@@ -597,7 +592,6 @@ footer a:hover{color:var(--amber)}
   </div>
 </section>
 
-<!-- ██ KONTAKT ██████████████████████████████████████████████ -->
 <section class="sec" id="kontakt">
   <div class="w">
     <div class="sec-h">
@@ -623,7 +617,6 @@ footer a:hover{color:var(--amber)}
 
 </main>
 
-<!-- ██ ПОДВАЛ ███████████████████████████████████████████████ -->
 <footer>
   <div class="w">
     <div class="ft-g">
@@ -652,7 +645,7 @@ footer a:hover{color:var(--amber)}
       </div>
     </div>
     <div class="ft-b">
-      <span>© 2026 KeeleSepp · E&amp;P Koolitus OÜ. Kõik õigused kaitstud.</span>
+      <span>© 2026 KeeleSepp · E&P Koolitus OÜ. Kõik õigused kaitstud.</span>
       <div>
         <a href="#">Privaatsuspoliitika</a>
         <a href="#">Kasutustingimused</a>
