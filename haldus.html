@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="et">
 <head>
+<!-- Firebase SDK (compat version, loads synchronously) -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
@@ -17,6 +20,26 @@ html,body{height:100%;margin:0;background:#f9fafb}
 body{font-family:'IBM Plex Sans',system-ui,sans-serif}
 #r{height:100vh;display:flex;flex-direction:column}
 </style>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+(function() {
+  try {
+    firebase.initializeApp({
+      apiKey: "AIzaSyAp8emBOh1fIqv72k_O5hkLkXVkfBt1al4",
+      authDomain: "keelesepp-5136b.firebaseapp.com",
+      projectId: "keelesepp-5136b",
+      storageBucket: "keelesepp-5136b.firebasestorage.app",
+      messagingSenderId: "674098517935",
+      appId: "1:674098517935:web:e73d04a4ada67874da015a"
+    });
+    window._db = firebase.firestore();
+    console.log("✅ Firebase ühendatud");
+  } catch(e) {
+    console.warn("Firebase init error:", e.message);
+    window._db = null;
+  }
+})();
+</script>
 </head>
 <body>
 <div id="r"></div>
@@ -28,8 +51,32 @@ const {useState,useEffect,useCallback} = React;
    ANDMETE SALVESTAMINE (localStorage)
    Asendab window.storage → töötab kõikjal
 ═══════════════════════════════════════════ */
-const sg = k => { try{const v=localStorage.getItem('ks_'+k);return v?JSON.parse(v):null}catch{return null} };
-const ss = (k,v) => { try{localStorage.setItem('ks_'+k,JSON.stringify(v))}catch(e){console.error(e)} };
+// Firebase Firestore + localStorage fallback
+let db = null;
+// Firebase инициализируется в head, берём готовый объект
+if (typeof window !== 'undefined' && window._db) {
+  db = window._db;
+}
+
+const sg = async k => {
+  if (db) {
+    try {
+      const doc = await db.collection('ks_data').doc(k).get();
+      if (doc.exists) return doc.data().value;
+    } catch(e) { console.warn('Firestore read:', e.message); }
+  }
+  try { const v=localStorage.getItem('ks_'+k); return v?JSON.parse(v):null; } catch { return null; }
+};
+
+const ss = async (k,v) => {
+  if (db) {
+    try {
+      await db.collection('ks_data').doc(k).set({ value: v, updated: new Date().toISOString() });
+      return;
+    } catch(e) { console.warn('Firestore write:', e.message); }
+  }
+  try { localStorage.setItem('ks_'+k, JSON.stringify(v)); } catch(e) { console.error(e); }
+};
 
 /* ═══════════════════════════════════════════
    IKOONID (inline SVG, ei vaja lucide-react)
@@ -256,15 +303,20 @@ function App(){
 
   /* ── Laadimine (localStorage) ── */
   useEffect(()=>{
-    const s=sg("students")||D0.students;
-    const l=sg("lessons")||D0.lessons;
-    const i=sg("invoices")||D0.invoices;
-    const h=sg("homework")||D0.homework;
-    const r=sg("regs")||D0.registrations;
-    const u=sg("user");
-    setSt(s);setLs(l);setIn(i);setHw(h);setRg(r);
-    if(u){setUser(u);setScreen("app");}
-    setLoaded(true);
+    if (window._db) { db = window._db; }
+    (async()=>{
+      const [s,l,i,h,r,u] = await Promise.all([
+        sg("students"), sg("lessons"), sg("invoices"),
+        sg("homework"), sg("regs"), sg("user")
+      ]);
+      setSt(s||D0.students);
+      setLs(l||D0.lessons);
+      setIn(i||D0.invoices);
+      setHw(h||D0.homework);
+      setRg(r||D0.registrations);
+      if(u){setUser(u);setScreen("app");}
+      setLoaded(true);
+    })();
   },[]);
 
   const save=(key,setter)=>d=>{setter(d);ss(key,d);};
