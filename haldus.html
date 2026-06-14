@@ -61,7 +61,7 @@
     </div>
 
     <script type="text/babel">
-        // === ВАШИ РЕАЛЬНЫЕ КЛЮЧИ FIREBASE ===
+        // === ВАШИ КЛЮЧИ FIREBASE ===
         const firebaseConfig = {
             apiKey: "AIzaSyAp8emB0h1fIqv72k_05hkLkXVkfBt1al4",
             authDomain: "keelesepp-5136b.firebaseapp.com",
@@ -134,25 +134,20 @@
             const [activeTab, setActiveTab] = React.useState('dashboard');
             const [selectedStudent, setSelectedStudent] = React.useState(null);
 
-            // Окно отчета из календаря
             const [activeModalEvent, setActiveModalEvent] = React.useState(null);
-
             const [filterTeacher, setFilterTeacher] = React.useState('Pavel');
 
-            // Создание ученика
             const [newStudentName, setNewStudentName] = React.useState('');
             const [newStudentLevel, setNewStudentLevel] = React.useState('A1');
             const [targetLevel, setTargetLevel] = React.useState('B1');
             const [assignTeacher, setAssignTeacher] = React.useState('Pavel');
 
-            // Поля отчета за урок
             const [lessonTopic, setLessonTopic] = React.useState('');
             const [lessonGrade, setLessonGrade] = React.useState('5');
             const [lessonStatus, setLessonStatus] = React.useState('Toimunud'); 
             const [lessonComment, setLessonComment] = React.useState('');
             const [hwTask, setHwTask] = React.useState('');
 
-            // Поля расписания
             const [schStudent, setSchStudent] = React.useState('');
             const [schDay, setSchDay] = React.useState('Mon');
             const [schTime, setSchTime] = React.useState('09:00');
@@ -347,7 +342,7 @@
                                             <select value={filterTeacher} onChange={(e) => setFilterTeacher(e.target.value)} class="border-none bg-transparent font-semibold text-sm text-[#C9882A] p-0 focus:ring-0">
                                                 <option value="Pavel">Pavel</option><option value="Jelena">Jelena</option>
                                                 <option value="Elizaveta">Elizaveta</option><option value="Angelina">Angelina</option>
-                                                <option value="Kõik">Kõik õpetajдad</option>
+                                                <option value="Kõik">Kõik õpetajad</option>
                                             </select>
                                         </div>
                                     )}
@@ -400,7 +395,7 @@
                                                         return (
                                                             <div key={day.id} class="p-1 border-r border-gray-100/60 last:border-0 relative flex flex-col gap-1 overflow-y-auto custom-scrollbar bg-white/40">
                                                                 {currentSlotEvents.map(ev => (
-                                                                    <div key={ev.id} onClick={() => role === 'teacher' && setActiveModalEvent(ev)} class="text-xs p-1.5 rounded-lg border flex flex-col justify-between cursor-pointer hover:scale-[1.02] transition-all shadow-xs" style={{ backgroundColor: 'rgba(47,93,80,0.06)', borderColor: 'rgba(47,93,80,0.18)', color: 'var(--ink)' }}>
+                                                                    <div key={ev.id} onClick={() => { if(role === 'teacher') setActiveModalEvent(ev); }} class="text-xs p-1.5 rounded-lg border flex flex-col justify-between cursor-pointer hover:scale-[1.02] transition-all shadow-xs" style={{ backgroundColor: 'rgba(47,93,80,0.06)', borderColor: 'rgba(47,93,80,0.18)', color: 'var(--ink)' }}>
                                                                         <div class="flex justify-between items-start">
                                                                             <span class="font-bold tracking-tight truncate max-w-[85%]">{ev.studentName}</span>
                                                                             {role === 'teacher' && (
