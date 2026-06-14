@@ -58,7 +58,7 @@
     </div>
 
     <script type="text/babel">
-        // === 1. ВАШИ РЕАЛЬНЫЕ КЛЮЧИ FIREBASE ===
+        // === 1. ВАШИ КЛЮЧИ FIREBASE ===
         const firebaseConfig = {
             apiKey: "AIzaSyAp8emB0h1fIqv72k_05hkLkXVkfBt1al4",
             authDomain: "keelesepp-5136b.firebaseapp.com",
@@ -81,7 +81,7 @@
         }
         const db = firebase.firestore();
 
-        // Компонент прогресса
+        // Компонент прогресса (Кривая)
         function ProgressChart({ data }) {
             const chartRef = React.useRef(null);
             let chartInstance = null;
@@ -273,11 +273,11 @@
                                 <h1 class="text-3xl font-semibold text-slate-900">Tere tulemast, {user}!</h1>
                                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                                     <div class="bg-white p-6 rounded-2xl border border-gray-200/60 shadow-sm">
-                                        <p class="text-xs font-semibold text-gray-400 uppercase">Õpilased süsteemis</p>
+                                        <p class="text-sm font-medium text-gray-400 uppercase">Õpilased süстемис</p>
                                         <p class="text-4xl font-bold text-slate-900 mt-2">{role === 'teacher' ? students.filter(s => s.teacher === user).length : 1}</p>
                                     </div>
                                     <div class="bg-white p-6 rounded-2xl border border-gray-200/60 shadow-sm">
-                                        <p class="text-xs font-semibold text-gray-400 uppercase">Keeletase</p>
+                                        <p class="text-sm font-medium text-gray-400 uppercase">Keeletase</p>
                                         <p class="text-2xl font-bold text-[#2F5D50] mt-3">
                                             {role === 'teacher' ? "Kõik tasemed A1-C1" : `${myStudentProfile?.level || 'A1'} ➔ Siht: ${myStudentProfile?.targetLevel || 'B1'}`}
                                         </p>
@@ -296,7 +296,7 @@
                                                 <option value="B1">Eesmärk: B1</option><option value="B2">B2</option><option value="C1">C1</option>
                                             </select>
                                             <button type="submit" class="sm:col-span-3 bg-[#2F5D50] hover:bg-[#1C2B3A] text-white py-3 rounded-full text-sm font-semibold transition-all">
-                                                + Lisa õpilane andmebaasi
+                                                + Lisa õpilane andmeбааси
                                             </button>
                                         </form>
                                     </div>
