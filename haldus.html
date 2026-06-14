@@ -58,7 +58,7 @@
     </div>
 
     <script type="text/babel">
-        // === 1. FIREBASE CONFIG ===
+        // === 1. ВАШИ РЕАЛЬНЫЕ КЛЮЧИ FIREBASE ===
         const firebaseConfig = {
             apiKey: "AIzaSyAp8emB0h1fIqv72k_05hkLkXVkfBt1al4",
             authDomain: "keelesepp-5136b.firebaseapp.com",
@@ -68,19 +68,12 @@
             appId: "1:674098517935:web:e73d04a4ada67874da015a"
         };
 
-        // === 2. НАСТРОЙКА УНИКАЛЬНЫХ КАЛЕНДАРЕЙ ===
-        const TEACHER_CALENDARS = {
-            "Pavel": "3f08fbae1919c9265a778775dcde5ab6e357d75d3b7b82a4eb0de3bee7c92c27@group.calendar.google.com",
-            "Jelena": "95b9c475421fcf2cc0e4457073cb2849b18b9096520448d0e007f73867c9499b@group.calendar.google.com",
-            "Elizaveta": "423bbfdf10ba74ab137238e1fdef0460fd8a553e57965e8619bfd99fda3451ab@group.calendar.google.com",
-            "Angelina": "42823b2b40d5e1a07556fce2870789ffc55e534f677b97e3cda2a3f709769dfd@group.calendar.google.com"
-        };
-
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
         const db = firebase.firestore();
 
+        // Компонент прогресса (Кривая)
         function ProgressChart({ data }) {
             const chartRef = React.useRef(null);
             React.useEffect(() => {
@@ -112,7 +105,7 @@
                         scales: { y: { min: 1, max: 5, ticks: { stepSize: 1 } } }
                     }
                 });
-                return () => { if (chartInstance) chartInstance.destroy(); };
+                return () => { chartInstance.destroy(); };
             }, [data]);
 
             return <div class="h-64 w-full"><canvas ref={chartRef}></canvas></div>;
@@ -128,9 +121,11 @@
             const [students, setStudents] = React.useState([]);
             const [lessons, setLessons] = React.useState([]);
             const [homeworks, setHomeworks] = React.useState([]);
+            const [schedule, setSchedule] = React.useState([]); // Наше независимое расписание
             const [activeTab, setActiveTab] = React.useState('dashboard');
             const [selectedStudent, setSelectedStudent] = React.useState(null);
 
+            // Поля форм
             const [newStudentName, setNewStudentName] = React.useState('');
             const [newStudentLevel, setNewStudentLevel] = React.useState('A1');
             const [targetLevel, setTargetLevel] = React.useState('B1');
@@ -139,6 +134,11 @@
             const [lessonGrade, setLessonGrade] = React.useState('5');
             const [lessonComment, setLessonComment] = React.useState('');
             const [hwTask, setHwTask] = React.useState('');
+
+            // Поля для создания нового события в расписании
+            const [schStudent, setSchStudent] = React.useState('');
+            const [schDate, setSchDate] = React.useState('');
+            const [schTime, setSchTime] = React.useState('');
 
             const handleLogin = (e) => {
                 e.preventDefault();
@@ -169,7 +169,11 @@
                     let list = []; snap.forEach(doc => list.push({id: doc.id, ...doc.data()}));
                     setHomeworks(list);
                 });
-                return () => { unsubStudents(); unsubLessons(); unsubHw(); };
+                const unsubSch = db.collection("schedule").onSnapshot(snap => {
+                    let list = []; snap.forEach(doc => list.push({id: doc.id, ...doc.data()}));
+                    setSchedule(list);
+                });
+                return () => { unsubStudents(); unsubLessons(); unsubHw(); unsubSch(); };
             }, [user]);
 
             const addStudent = async (e) => {
@@ -206,6 +210,26 @@
                 await db.collection("homework").doc(id).update({ status: next });
             };
 
+            // Добавление занятия в собственную базу расписания KeeleSepp
+            const addScheduleEvent = async (e) => {
+                e.preventDefault();
+                if (!schStudent || !schDate || !schTime) return;
+                await db.collection("schedule").add({
+                    teacher: user,
+                    studentName: schStudent,
+                    date: schDate,
+                    time: schTime
+                });
+                setSchStudent(''); setSchDate(''); setSchTime('');
+                alert('Tund edukalt tunniplaani lisatud!');
+            };
+
+            const deleteScheduleEvent = async (id) => {
+                if(confirm('Kas soovite tunni tühistada?')) {
+                    await db.collection("schedule").doc(id).delete();
+                }
+            };
+
             if (!user) {
                 return (
                     <div class="min-h-screen flex items-center justify-center px-4" style={{background: 'linear-gradient(135deg, #FBFAF8, #EFEDE7)'}}>
@@ -237,6 +261,11 @@
             const currentStudentData = role === 'student' ? myStudentProfile : selectedStudent;
             const studentLessons = currentStudentData ? lessons.filter(l => l.studentId === currentStudentData.id) : [];
             const studentHw = currentStudentData ? homeworks.filter(h => h.studentId === currentStudentData.id) : [];
+            
+            // Фильтрация расписания по конкретному пользователю
+            const currentSchedule = role === 'teacher' 
+                ? schedule.filter(s => s.teacher === user)
+                : schedule.filter(s => s.studentName.toLowerCase().includes(user.toLowerCase()));
 
             return (
                 <div class="min-h-screen flex flex-col md:flex-row">
@@ -250,11 +279,9 @@
                             <button onClick={() => { setActiveTab('dashboard'); setSelectedStudent(null); }} class={`w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'dashboard' ? 'bg-[#C9882A] text-white shadow-md' : 'text-gray-300 hover:bg-slate-800'}`}>
                                 <i class="fa-solid fa-chart-pie mr-3 w-5"></i> Töölaud
                             </button>
-                            {role === 'teacher' && (
-                                <button onClick={() => setActiveTab('calendar')} class={`w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'calendar' ? 'bg-[#C9882A] text-white shadow-md' : 'text-gray-300 hover:bg-slate-800'}`}>
-                                    <i class="fa-solid fa-calendar-days mr-3 w-5"></i> Tunniplaan
-                                </button>
-                            )}
+                            <button onClick={() => setActiveTab('calendar')} class={`w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'calendar' ? 'bg-[#C9882A] text-white shadow-md' : 'text-gray-300 hover:bg-slate-800'}`}>
+                                <i class="fa-solid fa-calendar-days mr-3 w-5"></i> Tunniplaan
+                            </button>
                             <button onClick={() => setActiveTab('students')} class={`w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'students' ? 'bg-[#C9882A] text-white shadow-md' : 'text-gray-300 hover:bg-slate-800'}`}>
                                 <i class="fa-solid fa-graduation-cap mr-3 w-5"></i> {role === 'teacher' ? 'Õpilaspäevikud' : 'Minu progress & päevik'}
                             </button>
@@ -301,19 +328,48 @@
                             </div>
                         )}
 
-                        {activeTab === 'calendar' && role === 'teacher' && (
+                        {activeTab === 'calendar' && (
                             <div class="space-y-6">
-                                <div class="flex items-center justify-between flex-wrap gap-4">
-                                    <h1 class="text-3xl font-semibold text-slate-900">Teie isiklik tunniplaan</h1>
-                                    <span class="text-xs font-semibold text-[#2F5D50] bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-full"><i class="fa-solid fa-rotate mr-1"></i> Google Sync Aktiivne</span>
-                                </div>
-                                <div class="mt-4 bg-white p-4 rounded-2xl border border-gray-200/60 shadow-sm" style="height: 680px;">
-                                    <iframe 
-                                        src={"https://calendar.google.com/calendar/htmlembed?src=" + encodeURIComponent(TEACHER_CALENDARS[user]) + "&ctz=Europe%2FTallinn&hl=et&mode=WEEK&showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=0&showCalendars=0&showTz=0&wkst=2&bgcolor=%23FBFAF8"} 
-                                        style="border: 0; width: 100%; height: 100%; border-radius: 12px;" 
-                                        frameborder="0" 
-                                        scrolling="no">
-                                    </iframe>
+                                <h1 class="text-3xl font-semibold text-slate-900">KeeleSepp Tunniplaan (Внутреннее расписание)</h1>
+                                
+                                {role === 'teacher' && (
+                                    <div class="bg-white p-5 rounded-2xl border border-gray-200/60 shadow-sm">
+                                        <h3 class="text-lg font-bold mb-3">Määra uus tund graafikusse</h3>
+                                        <form onSubmit={addScheduleEvent} class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                                            <input type="text" value={schStudent} onChange={(e) => setSchStudent(e.target.value)} placeholder="Õpilase / rühma nimi" class="px-4 py-2 text-sm" required />
+                                            <input type="date" value={schDate} onChange={(e) => setSchDate(e.target.value)} class="px-4 py-2 text-sm" required />
+                                            <input type="time" value={schTime} onChange={(e) => setSchTime(e.target.value)} class="px-4 py-2 text-sm" required />
+                                            <button type="submit" class="bg-[#2F5D50] hover:bg-[#1C2B3A] text-white font-semibold rounded-xl text-sm transition-all cursor-pointer">
+                                                + Lisa kalendrisse
+                                            </button>
+                                        </form>
+                                    </div>
+                                )}
+
+                                <div class="bg-white p-6 rounded-2xl border border-gray-200/60 shadow-sm">
+                                    <h3 class="text-xl font-bold mb-4 text-slate-800"><i class="fa-regular fa-clock mr-2 text-[#C9882A]"></i>Tulevased tunnid</h3>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {currentSchedule.length === 0 ? (
+                                            <p class="text-gray-400 text-sm col-span-full py-4">Sellesse tunniplaani pole veel tunde märgitud.</p>
+                                        ) : (
+                                            [...currentSchedule].sort((a,b) => new Date(a.date + 'T' + a.time) - new Date(b.date + 'T' + b.time)).map(event => (
+                                                <div key={event.id} class="p-4 bg-gray-50/70 border border-gray-200 rounded-xl flex justify-between items-start transition-all hover:shadow-sm">
+                                                    <div>
+                                                        <span class="block font-bold text-slate-900 text-base">{event.studentName}</span>
+                                                        <span class="inline-block text-xs font-semibold bg-amber-50 text-[#A96E1A] px-2 py-0.5 rounded-md mt-1.5">
+                                                            <i class="fa-regular fa-calendar-days mr-1"></i> {event.date} kell {event.time}
+                                                        </span>
+                                                        {role === 'student' && <span class="block text-[11px] text-gray-400 mt-1">Õpetaja: {event.teacher}</span>}
+                                                    </div>
+                                                    {role === 'teacher' && (
+                                                        <button onClick={() => deleteScheduleEvent(event.id)} class="text-red-400 hover:text-red-600 p-1 text-sm transition-colors cursor-pointer" title="Tühista tund">
+                                                            <i class="fa-solid fa-trash-can"></i>
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -341,7 +397,7 @@
                                                 <p class="text-sm text-gray-500 mt-1">Kõver arengutasemest {currentStudentData?.level} kuni tasemeni {currentStudentData?.targetLevel}</p>
                                             </div>
                                             {role === 'teacher' && (
-                                                <button onClick={() => setSelectedStudent(null)} class="text-sm bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-full font-medium">Tagasi</button>
+                                                <button onClick={() => setSelectedStudent(null)} class="text-sm bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-full font-medium cursor-pointer">Tagasi</button>
                                             )}
                                         </div>
 
@@ -360,7 +416,7 @@
                                                 {role === 'teacher' && (
                                                     <form onSubmit={addHomework} class="flex gap-2">
                                                         <input type="text" value={hwTask} onChange={(e) => setHwTask(e.target.value)} placeholder="Uus ülesanne..." class="flex-1 px-4 py-2 text-sm" required />
-                                                        <button type="submit" class="bg-[#2F5D50] hover:bg-[#1C2B3A] text-white px-4 py-2 rounded-xl text-sm font-semibold">Saada</button>
+                                                        <button type="submit" class="bg-[#2F5D50] hover:bg-[#1C2B3A] text-white px-4 py-2 rounded-xl text-sm font-semibold cursor-pointer">Saada</button>
                                                     </form>
                                                 )}
                                                 <div class="space-y-2">
@@ -370,7 +426,7 @@
                                                                 <p class="text-sm font-medium text-slate-900">{hw.task}</p>
                                                                 <span class="text-[10px] text-gray-400">{hw.date}</span>
                                                             </div>
-                                                            <button onClick={() => toggleHwStatus(hw.id, hw.status)} class={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${hw.status === 'Tehtud' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-[#A96E1A]'}`}>
+                                                            <button onClick={() => toggleHwStatus(hw.id, hw.status)} class={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${hw.status === 'Tehtud' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-[#A96E1A]'}`}>
                                                                 {hw.status === 'Tehtud' ? '✓ Tehtud' : 'Ootel'}
                                                             </button>
                                                         </div>
@@ -386,11 +442,11 @@
                                                         <div class="flex gap-4 items-center">
                                                             <label class="text-xs font-bold text-gray-500">Hinne:</label>
                                                             <select value={lessonGrade} onChange={(e) => setLessonGrade(e.target.value)} class="px-3 py-1.5 text-sm font-bold text-[#C9882A]">
-                                                                <option value="5">5 (Suurepэрane)</option><option value="4">4 (Hea)</option><option value="3">3 (Rahuldav)</option>
+                                                                <option value="5">5 (Suurepärane)</option><option value="4">4 (Hea)</option><option value="3">3 (Rahuldav)</option>
                                                             </select>
                                                         </div>
                                                         <textarea value={lessonComment} onChange={(e) => setLessonComment(e.target.value)} placeholder="Õpetaja kommentaar..." rows="2" class="w-full px-3 py-2 text-sm"></textarea>
-                                                        <button type="submit" class="w-full bg-[#1C2B3A] text-white py-2 rounded-xl text-sm font-semibold hover:bg-[#2F5D50]">Pane hinne</button>
+                                                        <button type="submit" class="w-full bg-[#1C2B3A] text-white py-2 rounded-xl text-sm font-semibold hover:bg-[#2F5D50] cursor-pointer">Pane hinne</button>
                                                     </form>
                                                 )}
                                                 <div class="space-y-3 max-h-96 overflow-y-auto">
