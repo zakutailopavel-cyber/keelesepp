@@ -16,28 +16,58 @@
 
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-        input, select, textarea { font-size: 16px !important; }
-        .fc { background: white; padding: 16px; border-radius: 12px; border: 1px solid #f3f4f6; }
-        .fc-theme-standard td, .fc-theme-standard th { border-color: #f3f4f6 !important; }
-        .fc-button-primary { background-color: #f59e0b !important; border-color: #f59e0b !important; }
-        .fc-button-primary:hover { background-color: #d97706 !important; border-color: #d97706 !important; }
-        .fc-button-active { background-color: #b45309 !important; border-color: #b45309 !important; }
+        :root {
+            --ink: #1C2B3A;
+            --ink-s: #42536A;
+            --paper: #FBFAF8;
+            --mist: #EFEDE7;
+            --amber: #C9882A;
+            --amber-d: #A96E1A;
+            --pine: #2F5D50;
+            --sh: 0 10px 32px rgba(28,43,58,.08);
+            --r: 14px;
+        }
+        body { 
+            font-family: "IBM Plex Sans", system-ui, sans-serif; 
+            background-color: var(--paper);
+            color: var(--ink);
+        }
+        h1, h2, h3 { font-family: "Fraunces", Georgia, serif; font-weight: 600; }
+        
+        .fc { background: #fff; padding: 24px; border-radius: var(--r); border: 1px solid rgba(28,43,58,.13); box-shadow: var(--sh); }
+        .fc-theme-standard td, .fc-theme-standard th { border-color: rgba(28,43,58,.08) !important; }
+        .fc-col-header-cell { background: var(--mist); padding: 8px 0 !important; }
+        .fc-button-primary { background-color: var(--ink) !important; border-color: var(--ink) !important; border-radius: 999px !important; font-weight: 600 !important; }
+        .fc-button-primary:hover { background-color: var(--pine) !important; border-color: var(--pine) !important; }
+        .fc-button-active { background-color: var(--amber) !important; border-color: var(--amber) !important; }
+        
+        input, select, textarea { 
+            font-size: 16px !important; 
+            background-color: #fff !important;
+            border: 1.5px solid rgba(28,43,58,.13) !important;
+            border-radius: 10px !important;
+        }
+        input:focus, select:focus, textarea:focus { border-color: var(--amber) !important; outline: none; }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-900 antialiased">
+<body class="antialiased">
 
     <div id="root">
         <div class="flex items-center justify-center min-h-screen">
-            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500"></div>
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600"></div>
         </div>
     </div>
 
     <script type="text/babel">
-        // === 1. ВАШИ РЕАЛЬНЫЕ КЛЮЧИ FIREBASE (Уже подставлены!) ===
+        // === 1. ВАШИ РЕАЛЬНЫЕ КЛЮЧИ FIREBASE ===
         const firebaseConfig = {
             apiKey: "AIzaSyAp8emB0h1fIqv72k_05hkLkXVkfBt1al4",
             authDomain: "keelesepp-5136b.firebaseapp.com",
@@ -47,7 +77,7 @@
             appId: "1:674098517935:web:e73d04a4ada67874da015a"
         };
 
-        // === 2. НАСТРОЙКА УНИКАЛЬНЫХ КАЛЕНДАРЕЙ ДЛЯ КАЖДОГО УЧИТЕЛЯ ===
+        // === 2. НАСТРОЙКА УНИКАЛЬНЫХ КАЛЕНДАРЕЙ ===
         const TEACHER_CALENDARS = {
             "Pavel": "3f08fbae1919c9265a778775dcde5ab6e357d75d3b7b82a4eb0de3bee7c92c27@group.calendar.google.com",
             "Jelena": "95b9c475421fcf2cc0e4457073cb2849b18b9096520448d0e007f73867c9499b@group.calendar.google.com",
@@ -60,89 +90,123 @@
         }
         const db = firebase.firestore();
 
+        // Кастомный хук для рендеринга Chart.js кривой развития
+        function ProgressChart({ data }) {
+            const chartRef = React.useRef(null);
+            let chartInstance = null;
+
+            React.useEffect(() => {
+                if (!chartRef.current || data.length === 0) return;
+                
+                const ctx = chartRef.current.getContext('2d');
+                
+                // Сортируем уроки по дате для графика
+                const sortedData = [...data].sort((a,b) => new Date(a.date) - new Date(b.date));
+                const labels = sortedData.map(item => item.date);
+                const scores = sortedData.map(item => item.grade);
+
+                chartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Hinnete kõver (Оценки)',
+                            data: scores,
+                            borderColor: '#C9882A',
+                            backgroundColor: 'rgba(201, 136, 42, 0.05)',
+                            borderWidth: 3,
+                            tension: 0.3,
+                            fill: true,
+                            pointBackgroundColor: '#2F5D50',
+                            pointRadius: 5
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: { min: 1, max: 5, ticks: { stepSize: 1 } }
+                        }
+                    }
+                });
+
+                return () => { if (chartInstance) chartInstance.destroy(); };
+            }, [data]);
+
+            return <div class="h-64 w-full"><canvas ref={chartRef}></canvas></div>;
+        }
+
         function App() {
             const [user, setUser] = React.useState(null);
-            const [role, setRole] = React.useState(null);
+            const [role, setRole] = React.useState(null); // 'teacher', 'student' (или 'parent')
             const [username, setUsername] = React.useState('');
             const [password, setPassword] = React.useState('');
             const [error, setError] = React.useState('');
-            const [loading, setLoading] = React.useState(false);
             
             const [students, setStudents] = React.useState([]);
+            const [lessons, setLessons] = React.useState([]);
+            const [homeworks, setHomeworks] = React.useState([]);
             const [activeTab, setActiveTab] = React.useState('dashboard');
+            const [selectedStudent, setSelectedStudent] = React.useState(null);
 
+            // Формы ввода
             const [newStudentName, setNewStudentName] = React.useState('');
             const [newStudentLevel, setNewStudentLevel] = React.useState('A1');
+            const [targetLevel, setTargetLevel] = React.useState('B1');
+
+            const [lessonTopic, setLessonTopic] = React.useState('');
+            const [lessonGrade, setLessonGrade] = React.useState('5');
+            const [lessonComment, setLessonComment] = React.useState('');
+            
+            const [hwTask, setHwTask] = React.useState('');
 
             const handleLogin = (e) => {
                 e.preventDefault();
                 setError('');
-                if (!username || !password) {
-                    setError('Palun täitke kõik väljad');
-                    return;
-                }
-
                 const teachers = ['Pavel', 'Jelena', 'Elizaveta', 'Angelina'];
                 const demoStudents = ['Marina', 'Aleksei', 'Olga', 'Dmitri', 'Natalia'];
 
                 if (teachers.includes(username) && password === '1234') {
-                    setUser(username);
-                    setRole('teacher');
+                    setUser(username); setRole('teacher');
                 } else if (demoStudents.includes(username) && password === '1234') {
-                    setUser(username);
-                    setRole('student');
+                    setUser(username); setRole('student'); // Родители заходят под аккаунтом ребенка
                 } else {
                     setError('Vale kasutajatunnus või parool');
                 }
             };
 
+            // Синхронизация данных с Firebase Firestore
             React.useEffect(() => {
-                if (!user || role !== 'teacher') return;
+                if (!user) return;
 
-                setLoading(true);
-                const unsubscribe = db.collection("students").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
-                    const studentData = [];
-                    snapshot.forEach((doc) => studentData.push({ id: doc.id, ...doc.data() }));
-                    setStudents(studentData);
-                    setLoading(false);
-                }, (err) => {
-                    console.error("Firestore viga:", err);
-                    setLoading(false);
+                const unsubStudents = db.collection("students").onSnapshot(snap => {
+                    let list = []; snap.forEach(doc => list.push({id: doc.id, ...doc.data()}));
+                    setStudents(list);
                 });
 
-                return () => unsubscribe();
-            }, [user, role]);
+                const unsubLessons = db.collection("lessons").onSnapshot(snap => {
+                    let list = []; snap.forEach(doc => list.push({id: doc.id, ...doc.data()}));
+                    setLessons(list);
+                });
 
+                const unsubHw = db.collection("homework").onSnapshot(snap => {
+                    let list = []; snap.forEach(doc => list.push({id: doc.id, ...doc.data()}));
+                    setHomeworks(list);
+                });
+
+                return () => { unsubStudents(); unsubLessons(); unsubHw(); };
+            }, [user]);
+
+            // Календарь
             React.useEffect(() => {
                 if (activeTab === 'calendar') {
                     const calendarEl = document.getElementById('calendar-render-area');
                     if (!calendarEl) return;
-
-                    const currentTeacherCalendar = TEACHER_CALENDARS[user];
-
                     const calendar = new FullCalendar.Calendar(calendarEl, {
                         initialView: window.innerWidth < 768 ? 'timeGridDay' : 'timeGridWeek',
-                        locale: 'et',
-                        firstDay: 1, 
-                        slotMinTime: "08:00:00",
-                        slotMaxTime: "21:00:00",
-                        headerToolbar: {
-                            left: 'prev,next today',
-                            center: 'title',
-                            right: window.innerWidth < 768 ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
-                        },
-                        events: currentTeacherCalendar ? {
-                            googleCalendarId: currentTeacherCalendar,
-                            className: 'bg-amber-500 text-white border-none rounded p-1 text-xs font-medium'
-                        } : [],
-                        dateClick: function(info) {
-                            if (role === 'teacher') {
-                                const title = prompt('Lisa uue tunni kirjeldus (nt: Aleksei - Eesti keel B1):');
-                                if (title) {
-                                    alert('Tund "' + title + '" on märgitud kuupäevale: ' + info.dateStr);
-                                }
-                            }
-                        }
+                        locale: 'et', firstDay: 1, slotMinTime: "08:00:00", slotMaxTime: "21:00:00",
+                        headerToolbar: { left: 'prev,next today', center: 'title', right: window.innerWidth < 768 ? '' : 'dayGridMonth,timeGridWeek,timeGridDay' },
+                        events: TEACHER_CALENDARS[user] ? { googleCalendarId: TEACHER_CALENDARS[user] } : []
                     });
                     calendar.render();
                 }
@@ -150,42 +214,57 @@
 
             const addStudent = async (e) => {
                 e.preventDefault();
-                if (!newStudentName.trim()) return;
+                await db.collection("students").add({
+                    name: newStudentName, level: newStudentLevel, targetLevel: targetLevel,
+                    teacher: user, createdAt: new Date().toISOString()
+                });
+                setNewStudentName(''); alert('Õpilane lisatud!');
+            };
 
-                try {
-                    await db.collection("students").add({
-                        name: newStudentName,
-                        level: newStudentLevel,
-                        teacher: user,
-                        progress: 0,
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                    setNewStudentName('');
-                    alert('Õpilane edukalt lisatud!');
-                } catch (err) {
-                    alert('Andmebaasi viga õpilase lisamisel.');
-                }
+            const addLessonReport = async (e) => {
+                e.preventDefault();
+                if (!selectedStudent) return;
+                await db.collection("lessons").add({
+                    studentId: selectedStudent.id, studentName: selectedStudent.name,
+                    topic: lessonTopic, grade: parseInt(lessonGrade), comment: lessonComment,
+                    date: new Date().toISOString().split('T')[0], teacher: user
+                });
+                setLessonTopic(''); setLessonComment(''); alert('Hinne ja tagasiside salvestatud!');
+            };
+
+            const addHomework = async (e) => {
+                e.preventDefault();
+                if (!selectedStudent) return;
+                await db.collection("homework").add({
+                    studentId: selectedStudent.id, task: hwTask, status: "Ootel (Ожидает)", date: new Date().toISOString().split('T')[0]
+                });
+                setHwTask(''); alert('Kodutöö saadetud!');
+            };
+
+            const toggleHwStatus = async (id, currentStatus) => {
+                const next = currentStatus === "Tehtud" ? "Ootel (Ожидает)" : "Tehtud";
+                await db.collection("homework").doc(id).update({ status: next });
             };
 
             if (!user) {
                 return (
-                    <div class="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-amber-50 to-orange-100">
-                        <div class="max-w-md w-full space-y-8 bg-white p-6 sm:p-8 rounded-2xl shadow-xl">
+                    <div class="min-h-screen flex items-center justify-center px-4" style={{background: 'linear-gradient(135deg, #FBFAF8, #EFEDE7)'}}>
+                        <div class="max-w-md w-full bg-white p-8 rounded-2xl shadow-xl border border-[rgba(28,43,58,0.1)]">
                             <div class="text-center">
-                                <h2 class="text-3xl font-extrabold text-gray-900">KeeleSepp 🛠️</h2>
-                                <p class="mt-2 text-sm text-gray-600">Õppesüsteemi sisselogimine</p>
+                                <h2 class="text-4xl font-semibold text-slate-900 tracking-tight">Keele<span class="text-[#C9882A]">Sepp</span></h2>
+                                <p class="mt-3 text-sm text-gray-500 font-medium">Õppesüsteem · Haldus & Päevik</p>
                             </div>
-                            <form class="mt-8 space-y-4" onSubmit={handleLogin}>
-                                {error && <div class="bg-red-50 text-red-600 p-3 rounded-lg text-sm text-center font-medium">{error}</div>}
+                            <form class="mt-8 space-y-5" onSubmit={handleLogin}>
+                                {error && <div class="bg-red-50 text-red-600 p-3 rounded-xl text-sm text-center border border-red-100">{error}</div>}
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Kasutajatunnus</label>
-                                    <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} class="rounded-lg relative block w-full px-3 py-2.5 border border-gray-300 text-gray-900 focus:ring-amber-500 focus:border-amber-500 sm:text-sm" placeholder="Teie nimi (nt Pavel)" />
+                                    <label class="block text-xs font-semibold uppercase tracking-wider text-gray-600 mb-1.5">Kasutajatunnus</label>
+                                    <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} class="w-full px-4 py-3 text-gray-900" placeholder="Teie nimi" />
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Parool</label>
-                                    <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} class="rounded-lg relative block w-full px-3 py-2.5 border border-gray-300 text-gray-900 focus:ring-amber-500 focus:border-amber-500 sm:text-sm" placeholder="••••" />
+                                    <label class="block text-xs font-semibold uppercase tracking-wider text-gray-600 mb-1.5">Parool</label>
+                                    <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} class="w-full px-4 py-3 text-gray-900" placeholder="••••" />
                                 </div>
-                                <button type="submit" class="w-full flex justify-center py-3 px-4 text-sm font-medium rounded-lg text-white bg-amber-500 hover:bg-amber-600 transition-colors mt-6">
+                                <button type="submit" class="w-full py-3.5 text-sm font-semibold rounded-full text-white bg-[#1C2B3A] hover:bg-[#2F5D50] transition-all shadow-md cursor-pointer mt-6">
                                     Logi sisse
                                 </button>
                             </form>
@@ -194,57 +273,67 @@
                 );
             }
 
+            const myStudentProfile = role === 'student' ? students.find(s => s.name.toLowerCase().includes(user.toLowerCase())) : null;
+            const currentStudentData = role === 'student' ? myStudentProfile : selectedStudent;
+            const studentLessons = currentStudentData ? lessons.filter(l => l.studentId === currentStudentData.id) : [];
+            const studentHw = currentStudentData ? homeworks.filter(h => h.studentId === currentStudentData.id) : [];
+
             return (
-                <div class="min-h-screen flex flex-col md:flex-row bg-gray-50">
-                    <aside class="w-full md:w-64 bg-slate-900 text-white flex flex-col p-4 space-y-6">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xl font-bold tracking-wider text-amber-400">KeeleSepp</span>
-                            <span class="text-xs bg-slate-800 px-2 py-1 rounded text-slate-400">{role === 'teacher' ? 'Õpetaja' : 'Õpilane'}</span>
+                <div class="min-h-screen flex flex-col md:flex-row">
+                    <aside class="w-full md:w-64 text-white flex flex-col p-5 space-y-6" style={{backgroundColor: 'var(--ink)'}}>
+                        <div class="flex items-center justify-between border-b border-gray-800 pb-4">
+                            <span class="text-2xl font-semibold tracking-tight">Keele<span class="text-amber-400">Sepp</span></span>
+                            <span class="text-[10px] uppercase font-bold tracking-widest bg-gray-800 px-2 py-1 rounded text-amber-400">{role === 'teacher' ? 'Õpetaja' : 'Õpilane / lapsevanem'}</span>
                         </div>
-                        <div class="text-sm border-b border-slate-800 pb-4">
-                            <p class="text-slate-400">Kasutaja: <span class="font-semibold text-amber-100">{user}</span></p>
-                        </div>
+                        <div class="text-xs text-gray-400">Aktiivne konto: <span class="font-semibold text-white text-sm block mt-0.5">{user}</span></div>
                         <nav class="flex-1 space-y-1">
-                            <button onClick={() => setActiveTab('dashboard')} class={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'dashboard' ? 'bg-amber-500 text-white' : 'text-slate-300 hover:bg-slate-800'}`}>
-                                <i class="fa-solid fa-chart-pie mr-2 w-5"></i> Töölaud
+                            <button onClick={() => { setActiveTab('dashboard'); setSelectedStudent(null); }} class={`w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'dashboard' ? 'bg-[#C9882A] text-white shadow-md' : 'text-gray-300 hover:bg-slate-800'}`}>
+                                <i class="fa-solid fa-chart-pie mr-3 w-5"></i> Töölaud
                             </button>
-                            <button onClick={() => setActiveTab('calendar')} class={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'calendar' ? 'bg-amber-500 text-white' : 'text-slate-300 hover:bg-slate-800'}`}>
-                                <i class="fa-solid fa-calendar-days mr-2 w-5"></i> Tunniplaan / Kalender
-                            </button>
-                            <button onClick={() => setActiveTab('students')} class={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'students' ? 'bg-amber-500 text-white' : 'text-slate-300 hover:bg-slate-800'}`}>
-                                <i class="fa-solid fa-graduation-cap mr-2 w-5"></i> {role === 'teacher' ? 'Õpilased' : 'Minu progress'}
+                            {role === 'teacher' && (
+                                <button onClick={() => setActiveTab('calendar')} class={`w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'calendar' ? 'bg-[#C9882A] text-white shadow-md' : 'text-gray-300 hover:bg-slate-800'}`}>
+                                    <i class="fa-solid fa-calendar-days mr-3 w-5"></i> Tunniplaan
+                                </button>
+                            )}
+                            <button onClick={() => setActiveTab('students')} class={`w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'students' ? 'bg-[#C9882A] text-white shadow-md' : 'text-gray-300 hover:bg-slate-800'}`}>
+                                <i class="fa-solid fa-graduation-cap mr-3 w-5"></i> {role === 'teacher' ? 'Õpilaspäevikud' : 'Minu päevik & progress'}
                             </button>
                         </nav>
-                        <button onClick={() => { setUser(null); setRole(null); }} class="w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-red-400 hover:bg-slate-800 transition-colors">
-                            <i class="fa-solid fa-right-from-bracket mr-2"></i> Logi välja
+                        <button onClick={() => { setUser(null); }} class="w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium text-red-400 hover:bg-slate-800 transition-colors">
+                            <i class="fa-solid fa-right-from-bracket mr-3 w-5"></i> Logi välja
                         </button>
                     </aside>
 
-                    <main class="flex-1 p-4 md:p-8 overflow-y-auto">
-                        {activeTab === 'dashboard' && (
+                    <main class="flex-1 p-5 md:p-8 overflow-y-auto" style={{backgroundColor: 'var(--paper)'}}>
+                        {activeTab === 'dashboard' && !selectedStudent && (
                             <div class="space-y-6">
-                                <h1 class="text-2xl font-bold text-gray-900">Tere, {user}!</h1>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                                        <p class="text-sm font-medium text-gray-400 uppercase">Aktiivsed õpilased baasis</p>
-                                        <p class="text-3xl font-bold text-gray-900 mt-2">{students.length}</p>
+                                <h1 class="text-3xl font-semibold text-slate-900">Tere tulemast, {user}!</h1>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                                    <div class="bg-white p-6 rounded-2xl border border-gray-200/60 shadow-sm">
+                                        <p class="text-xs font-semibold text-gray-400 uppercase">Õpilased süsteemis</p>
+                                        <p class="text-4xl font-bold text-slate-900 mt-2">{role === 'teacher' ? students.filter(s => s.teacher === user).length : 1}</p>
                                     </div>
-                                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                                        <p class="text-sm font-medium text-gray-400 uppercase">Sünkroonimine</p>
-                                        <p class="text-base text-emerald-600 mt-2 font-medium">Google Multi-Calendar moodul aktiivne</p>
+                                    <div class="bg-white p-6 rounded-2xl border border-gray-200/60 shadow-sm">
+                                        <p class="text-xs font-semibold text-gray-400 uppercase">Teie keeletase</p>
+                                        <p class="text-2xl font-bold text-[#2F5D50] mt-3">
+                                            {role === 'teacher' ? "Kõik tasemed A1-C1" : `${myStudentProfile?.level || 'A1'} ➔ Siht: ${myStudentProfile?.targetLevel || 'B1'}`}
+                                        </p>
                                     </div>
                                 </div>
 
                                 {role === 'teacher' && (
-                                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mt-6">
-                                        <h3 class="text-lg font-bold mb-4">Lisa uus õpilane reaalajas baasi</h3>
-                                        <form onSubmit={addStudent} class="flex flex-col sm:flex-row gap-4">
-                                            <input type="text" value={newStudentName} onChange={(e) => setNewStudentName(e.target.value)} placeholder="Õpilase täisnimi" class="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm" required />
-                                            <select value={newStudentLevel} onChange={(e) => setNewStudentLevel(e.target.value)} class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
-                                                <option>A1</option><option>A2</option><option>B1</option><option>B2</option><option>C1</option>
+                                    <div class="bg-white p-6 rounded-2xl border border-gray-200/60 shadow-sm mt-6">
+                                        <h3 class="text-xl font-semibold text-slate-900 mb-4">Registreeri uus rühm / õpilane</h3>
+                                        <form onSubmit={addStudent} class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                            <input type="text" value={newStudentName} onChange={(e) => setNewStudentName(e.target.value)} placeholder="Õpilase nimi" class="px-4 py-2.5 text-sm" required />
+                                            <select value={newStudentLevel} onChange={(e) => setNewStudentLevel(e.target.value)} class="px-4 py-2.5 text-sm">
+                                                <option value="A1">Hetketase: A1</option><option value="A2">A2</option><option value="B1">B1</option><option value="B2">B2</option>
                                             </select>
-                                            <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                                                + Lisa õpilane
+                                            <select value={targetLevel} onChange={(e) => setTargetLevel(e.target.value)} class="px-4 py-2.5 text-sm">
+                                                <option value="B1">Eesmärk: B1</option><option value="B2">B2</option><option value="C1">C1</option>
+                                            </select>
+                                            <button type="submit" class="sm:col-span-3 bg-[#2F5D50] hover:bg-[#1C2B3A] text-white py-3 rounded-full text-sm font-semibold transition-all">
+                                                + Lisa õpilane andmebaasi
                                             </button>
                                         </form>
                                     </div>
@@ -252,51 +341,104 @@
                             </div>
                         )}
 
-                        {activeTab === 'calendar' && (
+                        {activeTab === 'calendar' && role === 'teacher' && (
                             <div class="space-y-6">
-                                <div class="flex items-center justify-between flex-wrap gap-4">
-                                    <h1 class="text-2xl font-bold text-gray-900">Õpetaja {user} tunniplaan</h1>
-                                    <span class="text-xs text-gray-500 bg-white border px-3 py-1.5 rounded-lg">Google Sync: OK</span>
-                                </div>
+                                <h1 class="text-3xl font-semibold text-slate-900">Teie isiklik tunniplaan</h1>
                                 <div id="calendar-render-area"></div>
                             </div>
                         )}
 
-                        {activeTab === 'students' && (
+                        {(activeTab === 'students' || selectedStudent) && (
                             <div class="space-y-6">
-                                <h1 class="text-2xl font-bold text-gray-900">{role === 'teacher' ? 'Õpilaste nimekiri (Firebase)' : 'Minu progress'}</h1>
-                                <div class="bg-white shadow-sm rounded-xl border border-gray-100 overflow-hidden">
-                                    {role === 'teacher' ? (
-                                        <div class="overflow-x-auto">
-                                            <table class="w-full text-left border-collapse">
-                                                <thead>
-                                                    <tr class="bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase">
-                                                        <th class="p-4">Nimi</th>
-                                                        <th class="p-4">Tase</th>
-                                                        <th class="p-4">Õpetaja</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody class="divide-y divide-gray-100 text-sm">
-                                                    {students.length === 0 ? (
-                                                        <tr>
-                                                            <td colspan="3" class="p-4 text-center text-gray-400">Õpilasi pole ещё добавлены. Добавьте первого ученика со страницы «Тöölaud»!</td>
-                                                        </tr>
-                                                    ) : (
-                                                        students.map((student) => (
-                                                            <tr key={student.id}>
-                                                                <td class="p-4 font-medium text-gray-900">{student.name}</td>
-                                                                <td class="p-4"><span class="px-2 py-1 bg-amber-50 text-amber-700 text-xs font-bold rounded">{student.level}</span></td>
-                                                                <td class="p-4 text-gray-500">{student.teacher}</td>
-                                                            </tr>
-                                                        ))
-                                                    )}
-                                                </tbody>
-                                            </table>
+                                {role === 'teacher' && !selectedStudent ? (
+                                    <div>
+                                        <h1 class="text-3xl font-semibold text-slate-900 mb-6">Vali õpilase päevik progressi vaatamiseks</h1>
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                            {students.filter(s => s.teacher === user).map(student => (
+                                                <div key={student.id} onClick={() => setSelectedStudent(student)} class="bg-white p-5 rounded-2xl border border-gray-200/60 shadow-sm hover:border-[#C9882A] cursor-pointer transition-all">
+                                                    <h3 class="text-lg font-bold text-slate-900">{student.name}</h3>
+                                                    <p class="text-xs text-gray-400 mt-1">Tase: {student.level} ➔ Eesmärk: {student.targetLevel}</p>
+                                                    <span class="inline-block text-xs font-semibold text-[#C9882A] mt-3">Ava õpikaart ➔</span>
+                                                </div>
+                                            ))}
                                         </div>
-                                    ) : (
-                                        <div class="p-6 text-gray-500 text-sm">Teie individuaalne õppekava.</div>
-                                    )}
-                                </div>
+                                    </div>
+                                ) : (
+                                    <div class="space-y-6">
+                                        <div class="flex justify-between items-center bg-white p-6 rounded-2xl border border-gray-200/60 shadow-sm">
+                                            <div>
+                                                <h2 class="text-2xl font-bold text-slate-900">{currentStudentData?.name} päevik</h2>
+                                                <p class="text-sm text-gray-500 mt-1">Kõver arengutasemest {currentStudentData?.level} kuni tasemeni {currentStudentData?.targetLevel}</p>
+                                            </div>
+                                            {role === 'teacher' && (
+                                                <button onClick={() => setSelectedStudent(null)} class="text-sm bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-full font-medium">Tagasi</button>
+                                            )}
+                                        </div>
+
+                                        <div class="bg-white p-6 rounded-2xl border border-gray-200/60 shadow-sm">
+                                            <h3 class="text-lg font-bold mb-4">Õppimise progressi kõver (Кривая развития)</h3>
+                                            {studentLessons.length > 0 ? (
+                                                <ProgressChart data={studentLessons} />
+                                            ) : (
+                                                <p class="text-sm text-gray-400 text-center py-8">Graafiku jaoks pole veel piisavalt hindeid.</p>
+                                            )}
+                                        </div>
+
+                                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                            <div class="bg-white p-6 rounded-2xl border border-gray-200/60 shadow-sm space-y-4">
+                                                <h3 class="text-lg font-bold text-slate-900 border-b border-gray-100 pb-2"><i class="fa-solid fa-book mr-2 text-[#C9882A]"></i>Kodutööd (Домашние задания)</h3>
+                                                {role === 'teacher' && (
+                                                    <form onSubmit={addHomework} class="flex gap-2">
+                                                        <input type="text" value={hwTask} onChange={(e) => setHwTask(e.target.value)} placeholder="Uus kodutöö ülesanne..." class="flex-1 px-4 py-2 text-sm" required />
+                                                        <button type="submit" class="bg-[#2F5D50] hover:bg-[#1C2B3A] text-white px-4 py-2 rounded-xl text-sm font-semibold">Saada</button>
+                                                    </form>
+                                                )}
+                                                <div class="space-y-2">
+                                                    {studentHw.map(hw => (
+                                                        <div key={hw.id} class="flex justify-between items-center bg-gray-50 p-3 rounded-xl border">
+                                                            <div>
+                                                                <p class="text-sm font-medium text-slate-900">{hw.task}</p>
+                                                                <span class="text-[10px] text-gray-400">{hw.date}</span>
+                                                            </div>
+                                                            <button onClick={() => toggleHwStatus(hw.id, hw.status)} class={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${hw.status === 'Tehtud' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-[#A96E1A]'}`}>
+                                                                {hw.status === 'Tehtud' ? '✓ Tehtud' : 'Ootel'}
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            <div class="bg-white p-6 rounded-2xl border border-gray-200/60 shadow-sm space-y-4">
+                                                <h3 class="text-lg font-bold text-slate-900 border-b border-gray-100 pb-2"><i class="fa-solid fa-pen-to-square mr-2 text-[#2F5D50]"></i>Tundide ajalugu ja hinded (Журнал уроков)</h3>
+                                                {role === 'teacher' && (
+                                                    <form onSubmit={addLessonReport} class="space-y-3 bg-gray-50/50 p-4 rounded-xl border">
+                                                        <input type="text" value={lessonTopic} onChange={(e) => setLessonTopic(e.target.value)} placeholder="Tunni teema" class="w-full px-3 py-2 text-sm" required />
+                                                        <div class="flex gap-4 items-center">
+                                                            <label class="text-xs font-bold text-gray-500">Hinne за урок:</label>
+                                                            <select value={lessonGrade} onChange={(e) => setLessonGrade(e.target.value)} class="px-3 py-1.5 text-sm font-bold text-[#C9882A]">
+                                                                <option value="5">5 (Suurepärane)</option><option value="4">4 (Hea)</option><option value="3">3 (Rahuldav)</option>
+                                                            </select>
+                                                        </div>
+                                                        <textarea value={lessonComment} onChange={(e) => setLessonComment(e.target.value)} placeholder="Õpetaja kommentaar..." rows="2" class="w-full px-3 py-2 text-sm"></textarea>
+                                                        <button type="submit" class="w-full bg-[#1C2B3A] text-white py-2 rounded-xl text-sm font-semibold hover:bg-[#2F5D50]">Pane hinne</button>
+                                                    </form>
+                                                )}
+                                                <div class="space-y-3 max-h-96 overflow-y-auto">
+                                                    {studentLessons.map(lesson => (
+                                                        <div key={lesson.id} class="border-b border-gray-100 pb-2 flex gap-4 items-start">
+                                                            <span class="w-10 h-10 flex items-center justify-center bg-amber-50 rounded-xl text-[#A96E1A] font-bold text-lg border border-amber-100">{lesson.grade}</span>
+                                                            <div class="flex-1">
+                                                                <h4 class="text-sm font-semibold text-slate-900">{lesson.topic}</h4>
+                                                                <p class="text-xs text-gray-500 mt-0.5">{lesson.comment}</p>
+                                                                <span class="text-[10px] text-gray-400 block mt-1">{lesson.date} · Õp. {lesson.teacher}</span>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </main>
