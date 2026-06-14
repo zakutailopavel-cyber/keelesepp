@@ -47,7 +47,6 @@
             border-radius: 10px !important;
         }
         input:focus, select:focus, textarea:focus { border-color: var(--amber) !important; outline: none; }
-
         .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(28,43,58,0.15); border-radius: 99px; }
@@ -62,7 +61,7 @@
     </div>
 
     <script type="text/babel">
-        // === 1. ВАШИ РЕАЛЬНЫЕ КЛЮЧИ FIREBASE ===
+        // === ВАШИ РЕАЛЬНЫЕ КЛЮЧИ FIREBASE ===
         const firebaseConfig = {
             apiKey: "AIzaSyAp8emB0h1fIqv72k_05hkLkXVkfBt1al4",
             authDomain: "keelesepp-5136b.firebaseapp.com",
@@ -102,7 +101,7 @@
                     data: {
                         labels: labels,
                         datasets: [{
-                            label: 'Hinnete kõver (Оценки развития)',
+                            label: 'Hinnete kõver (Progress)',
                             data: scores,
                             borderColor: '#C9882A',
                             backgroundColor: 'rgba(201, 136, 42, 0.05)',
@@ -135,18 +134,21 @@
             const [activeTab, setActiveTab] = React.useState('dashboard');
             const [selectedStudent, setSelectedStudent] = React.useState(null);
 
+            // Состояние для быстрого окна отчета из календаря
+            const [activeModalEvent, setActiveModalEvent] = React.useState(null);
+
             const [filterTeacher, setFilterTeacher] = React.useState('Pavel');
 
             // Поля создания ученика
             const [newStudentName, setNewStudentName] = React.useState('');
             const [newStudentLevel, setNewStudentLevel] = React.useState('A1');
             const [targetLevel, setTargetLevel] = React.useState('B1');
-            const [assignTeacher, setAssignTeacher] = React.useState('Pavel'); // Для руководителя Павла
+            const [assignTeacher, setAssignTeacher] = React.useState('Pavel');
 
-            // Поля отчета за урок
+            // Поля отчета за урок (как на скриншоте)
             const [lessonTopic, setLessonTopic] = React.useState('');
             const [lessonGrade, setLessonGrade] = React.useState('5');
-            const [lessonStatus, setLessonStatus] = React.useState('Toimunud'); // Наш 1 пункт!
+            const [lessonStatus, setLessonStatus] = React.useState('Toimunud'); 
             const [lessonComment, setLessonComment] = React.useState('');
             const [hwTask, setHwTask] = React.useState('');
 
@@ -164,14 +166,10 @@
 
                 if (teachers.includes(username) && password === '1234') {
                     setUser(username); setRole('teacher');
-                    setFilterTeacher(username);
-                    setSchTeacher(username);
-                    setAssignTeacher(username);
+                    setFilterTeacher(username); setSchTeacher(username); setAssignTeacher(username);
                 } else if (demoStudents.includes(username) && password === '1234') {
                     setUser(username); setRole('student');
-                } else {
-                    setError('Vale kasutajatunnus või parool');
-                }
+                } else { setError('Vale kasutajatunnus või parool'); }
             };
 
             React.useEffect(() => {
@@ -202,18 +200,40 @@
                     name: newStudentName, level: newStudentLevel, targetLevel: targetLevel,
                     teacher: targetTeacher, createdAt: new Date().toISOString()
                 });
-                setNewStudentName(''); alert('Õpilane edukalt lisatud!');
+                setNewStudentName(''); alert('Õpilane lisatud!');
             };
 
-            const addLessonReport = async (e) => {
+            // Сохранение быстрого отчета прямо из календаря
+            const saveModalReport = async (e) => {
                 e.preventDefault();
-                if (!selectedStudent) return;
+                if (!activeModalEvent) return;
+
+                // Находим ID студента в базе по его имени
+                const studentObj = students.find(s => s.name.toLowerCase() === activeModalEvent.studentName.toLowerCase());
+                const studentId = studentObj ? studentObj.id : "extern_user";
+
+                const now = new Date();
+                const formattedTimestamp = now.toLocaleString('et-EE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
                 await db.collection("lessons").add({
-                    studentId: selectedStudent.id, studentName: selectedStudent.name,
-                    topic: lessonTopic, grade: parseInt(lessonGrade), status: lessonStatus,
-                    comment: lessonComment, date: new Date().toISOString().split('T')[0], teacher: user
+                    studentId: studentId,
+                    studentName: activeModalEvent.studentName,
+                    topic: lessonTopic,
+                    grade: lessonStatus === 'Toimunud' ? parseInt(lessonGrade) : 0,
+                    status: lessonStatus,
+                    comment: lessonComment,
+                    date: now.toISOString().split('T')[0],
+                    submittedAt: formattedTimestamp, // Точное время внесения записи!
+                    teacher: user
                 });
-                setLessonTopic(''); setLessonComment(''); alert('Tagasiside salvestatud!');
+
+                // По желанию автоматически удаляем занятие из расписания будущих уроков
+                if(confirm('Kas soovite selle tunni tunniplaanist tulevaste seast eemaldada?')) {
+                    await db.collection("schedule").doc(activeModalEvent.id).delete();
+                }
+
+                setLessonTopic(''); setLessonComment(''); setActiveModalEvent(null);
+                alert('Aruanne edukalt päevikusse salvestatud!');
             };
 
             const addHomework = async (e) => {
@@ -234,61 +254,24 @@
                 e.preventDefault();
                 if (!schStudent) return;
                 const teacherToAssign = user === 'Pavel' ? schTeacher : user;
-
                 await db.collection("schedule").add({
                     teacher: teacherToAssign, studentName: schStudent, day: schDay, time: schTime
                 });
-                setSchStudent(''); alert('Tund edukalt tunniplaanis märgitud!');
+                setSchStudent(''); alert('Tund märgitud!');
             };
 
-            const deleteScheduleEvent = async (id) => {
+            const deleteScheduleEvent = (id, e) => {
+                e.stopPropagation(); // Чтобы не открывалось модальное окно при удалении
                 if(confirm('Kas soovite selle tunni tunniplaanist kustutada?')) {
-                    await db.collection("schedule").doc(id).delete();
+                    db.collection("schedule").doc(id).delete();
                 }
             };
 
-            if (!user) {
-                return (
-                    <div class="min-h-screen flex items-center justify-center px-4" style={{background: 'linear-gradient(135deg, #FBFAF8, #EFEDE7)'}}>
-                        <div class="max-w-md w-full bg-white p-8 rounded-2xl shadow-xl border border-[rgba(28,43,58,0.1)]">
-                            <div class="text-center">
-                                <h2 class="text-4xl font-semibold text-slate-900 tracking-tight">Keele<span class="text-[#C9882A]">Sepp</span></h2>
-                                <p class="mt-3 text-sm text-gray-500 font-medium">Õppesüsteemi sisselogimine</p>
-                            </div>
-                            <form class="mt-8 space-y-5" onSubmit={handleLogin}>
-                                {error && <div class="bg-red-50 text-red-600 p-3 rounded-xl text-sm text-center border border-red-100">{error}</div>}
-                                <div>
-                                    <label class="block text-xs font-semibold uppercase tracking-wider text-gray-600 mb-1.5">Kasutajatunnus</label>
-                                    <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} class="w-full px-4 py-3 text-gray-900" placeholder="Teie nimi" />
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold uppercase tracking-wider text-gray-600 mb-1.5">Parool</label>
-                                    <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} class="w-full px-4 py-3 text-gray-900" placeholder="••••" />
-                                </div>
-                                <button type="submit" class="w-full py-3.5 text-sm font-semibold rounded-full text-white bg-[#1C2B3A] hover:bg-[#2F5D50] transition-all shadow-md cursor-pointer mt-6">
-                                    Logi sisse
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                );
-            }
-
-            const myStudentProfile = role === 'student' ? students.find(s => s.name.toLowerCase().includes(user.toLowerCase())) : null;
-            const currentStudentData = role === 'student' ? myStudentProfile : selectedStudent;
-            const studentLessons = currentStudentData ? lessons.filter(l => l.studentId === currentStudentData.id) : [];
-            const studentHw = currentStudentData ? homeworks.filter(h => h.studentId === currentStudentData.id) : [];
-            
-            // Фильтрация расписания
             const filteredSchedule = role === 'teacher'
                 ? (filterTeacher === 'Kõik' ? schedule : schedule.filter(s => s.teacher === filterTeacher))
                 : schedule.filter(s => s.studentName.toLowerCase().includes(user.toLowerCase()));
 
-            // === КРИТИЧЕСКАЯ ФИЛЬТРАЦИЯ ДЛЯ ПУНКТА «MINU ÕPILASED» ===
-            // Павел (руководитель) видит ВСЕХ, остальные учителя — только СВОИХ учеников.
-            const filteredStudentsMenu = user === 'Pavel' 
-                ? students 
-                : students.filter(s => s.teacher === user);
+            const filteredStudentsMenu = user === 'Pavel' ? students : students.filter(s => s.teacher === user);
 
             return (
                 <div class="min-h-screen flex flex-col md:flex-row">
@@ -309,7 +292,7 @@
                                 <i class="fa-solid fa-graduation-cap mr-3 w-5"></i> {role === 'teacher' ? 'Minu õpilased' : 'Minu progress & päevik'}
                             </button>
                         </nav>
-                        <button onClick={() => { setUser(null); }} class="w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium text-red-400 hover:bg-slate-800 transition-colors">
+                        <button onClick={() => setUser(null)} class="w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium text-red-400 hover:bg-slate-800 transition-colors">
                             <i class="fa-solid fa-right-from-bracket mr-3 w-5"></i> Logi välja
                         </button>
                     </aside>
@@ -320,7 +303,7 @@
                                 <h1 class="text-3xl font-semibold text-slate-900">Tere tulemast, {user}!</h1>
                                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                                     <div class="bg-white p-6 rounded-2xl border border-gray-200/60 shadow-sm">
-                                        <p class="text-sm font-medium text-gray-400 uppercase">Aktiivsed õpilased teie nimekirjas</p>
+                                        <p class="text-sm font-medium text-gray-400 uppercase">Minu õpilased rühmas</p>
                                         <p class="text-4xl font-bold text-slate-900 mt-2">{filteredStudentsMenu.length}</p>
                                     </div>
                                     <div class="bg-white p-6 rounded-2xl border border-gray-200/60 shadow-sm">
@@ -333,7 +316,7 @@
 
                                 {role === 'teacher' && (
                                     <div class="bg-white p-6 rounded-2xl border border-gray-200/60 shadow-sm mt-6">
-                                        <h3 class="text-xl font-semibold text-slate-900 mb-4">Määra ja registreeri uus õpilane oma baasi</h3>
+                                        <h3 class="text-xl font-semibold text-slate-900 mb-4">Registreeri uus õpilane oma baasi</h3>
                                         <form onSubmit={addStudent} class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                                             <input type="text" value={newStudentName} onChange={(e) => setNewStudentName(e.target.value)} placeholder="Õpilase nimi" class="px-4 py-2.5 text-sm" required />
                                             <select value={newStudentLevel} onChange={(e) => setNewStudentLevel(e.target.value)} class="px-4 py-2.5 text-sm">
@@ -344,10 +327,8 @@
                                             </select>
                                             {user === 'Pavel' && (
                                                 <select value={assignTeacher} onChange={(e) => setAssignTeacher(e.target.value)} class="px-4 py-2.5 text-sm font-semibold text-[#C9882A]">
-                                                    <option value="Pavel">Õpetaja: Pavel</option>
-                                                    <option value="Jelena">Õpetaja: Jelena</option>
-                                                    <option value="Elizaveta">Õpetaja: Elizaveta</option>
-                                                    <option value="Angelina">Õpetaja: Angelina</option>
+                                                    <option value="Pavel">Pavel</option><option value="Jelena">Jelena</option>
+                                                    <option value="Elizaveta">Elizaveta</option><option value="Angelina">Angelina</option>
                                                 </select>
                                             )}
                                             <button type="submit" class="sm:col-span-3 lg:col-span-4 bg-[#2F5D50] hover:bg-[#1C2B3A] text-white py-3 rounded-full text-sm font-semibold transition-all">
@@ -422,11 +403,11 @@
                                                         return (
                                                             <div key={day.id} class="p-1 border-r border-gray-100/60 last:border-0 relative group flex flex-col gap-1 overflow-y-auto custom-scrollbar bg-white/40">
                                                                 {currentSlotEvents.map(ev => (
-                                                                    <div key={ev.id} class="text-xs p-1.5 rounded-lg border flex flex-col justify-between" style={{ backgroundColor: 'rgba(47,93,80,0.06)', borderColor: 'rgba(47,93,80,0.18)', color: 'var(--ink)' }}>
+                                                                    <div key={ev.id} onClick={() => role === 'teacher' && setActiveModalEvent(ev)} class="text-xs p-1.5 rounded-lg border flex flex-col justify-between cursor-pointer hover:scale-[1.02] transition-transform shadow-xs" style={{ backgroundColor: 'rgba(47,93,80,0.06)', borderColor: 'rgba(47,93,80,0.18)', color: 'var(--ink)' }} title="Klõpsake tunni täitmiseks">
                                                                         <div class="flex justify-between items-start">
                                                                             <span class="font-bold tracking-tight truncate max-w-[85%]">{ev.studentName}</span>
                                                                             {role === 'teacher' && (
-                                                                                <button onClick={() => deleteScheduleEvent(ev.id)} class="text-red-400 hover:text-red-600 font-bold ml-1 text-[10px] cursor-pointer">✕</button>
+                                                                                <button onClick={(e) => deleteScheduleEvent(ev.id, e)} class="text-gray-400 hover:text-red-500 font-bold ml-1 text-[10px] cursor-pointer">✕</button>
                                                                             )}
                                                                         </div>
                                                                         {(filterTeacher === 'Kõik' || user === 'Pavel') && (
@@ -441,6 +422,56 @@
                                             ))}
                                         </div>
                                     </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* ВСПЛЫВАЮЩЕЕ ОКНО РЕПОРТА (КАК НА СКРИНШОТЕ) ПРИ КЛИКЕ ИЗ КАЛЕНДАРЯ */}
+                        {activeModalEvent && (
+                            <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+                                <div class="bg-white p-6 sm:p-8 rounded-2xl border border-[rgba(28,43,58,0.1)] max-w-xl w-full shadow-2xl relative animate-in fade-in zoom-in-95 duration-150">
+                                    <button onClick={() => setActiveModalEvent(null)} class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-lg cursor-pointer">✕</button>
+                                    
+                                    <div class="flex items-center gap-3 border-b border-gray-100 pb-3 mb-5">
+                                        <i class="fa-solid fa-pen-to-square text-xl text-[#2F5D50]"></i>
+                                        <h2 class="text-2xl font-bold text-slate-900">Журнал уроков и посещаемости</h2>
+                                    </div>
+                                    <p class="text-sm font-medium text-gray-500 mb-4">Õpilane: <span class="font-bold text-slate-900">{activeModalEvent.studentName}</span> (Tund: {activeModalEvent.time})</p>
+
+                                    <form onSubmit={saveModalReport} class="space-y-4">
+                                        <div>
+                                            <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Tunni teema</label>
+                                            <input type="text" value={lessonTopic} onChange={(e) => setLessonTopic(e.target.value)} placeholder="Введите тему занятия..." class="w-full px-4 py-2.5 text-sm" required />
+                                        </div>
+
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Hinne za урок:</label>
+                                                <select value={lessonGrade} onChange={(e) => setLessonGrade(e.target.value)} class="w-full px-4 py-2.5 text-sm font-bold text-[#C9882A]" disabled={lessonStatus !== 'Toimunud'}>
+                                                    <option value="5">5 (Suurepärane)</option>
+                                                    <option value="4">4 (Hea)</option>
+                                                    <option value="3">3 (Rahuldav)</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Tunni staatus:</label>
+                                                <select value={lessonStatus} onChange={(e) => setLessonStatus(e.target.value)} class="w-full px-4 py-2.5 text-sm font-semibold">
+                                                    <option value="Toimunud">Toimunud (Проведен)</option>
+                                                    <option value="Puudus_p">Puudus põhjustega (Уважит.)</option>
+                                                    <option value="Puudus_eta">Puudus põhjuseta (Прогул)</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Õpetaja kommentaar</label>
+                                            <textarea value={lessonComment} onChange={(e) => setLessonComment(e.target.value)} placeholder="Õpetaja kommentaar..." rows="3" class="w-full px-4 py-2.5 text-sm custom-scrollbar"></textarea>
+                                        </div>
+
+                                        <button type="submit" class="w-full bg-[#1C2B3A] text-white py-3 rounded-xl text-sm font-semibold hover:bg-[#2F5D50] transition-colors cursor-pointer shadow-md mt-2">
+                                            Salvesta aruanne
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
                         )}
@@ -507,55 +538,37 @@
                                             </div>
 
                                             <div class="bg-white p-6 rounded-2xl border border-gray-200/60 shadow-sm space-y-4">
-                                                <h3 class="text-lg font-bold text-slate-900 border-b border-gray-100 pb-2"><i class="fa-solid fa-pen-to-square mr-2 text-[#2F5D50]"></i>Журнал уроков и посещаемости</h3>
-                                                {role === 'teacher' && (
-                                                    <form onSubmit={addLessonReport} class="space-y-3 bg-gray-50/50 p-4 rounded-xl border">
-                                                        <input type="text" value={lessonTopic} onChange={(e) => setLessonTopic(e.target.value)} placeholder="Tunni teema" class="w-full px-3 py-2 text-sm" required />
-                                                        
-                                                        <div class="grid grid-cols-2 gap-3">
-                                                            <div>
-                                                                <label class="block text-[11px] font-bold text-gray-400 uppercase mb-1">Hinne за урок:</label>
-                                                                <select value={lessonGrade} onChange={(e) => setLessonGrade(e.target.value)} class="w-full px-3 py-2 text-sm font-bold text-[#C9882A]" disabled={lessonStatus !== 'Toimunud'}>
-                                                                    <option value="5">5 (Suurepärane)</option><option value="4">4 (Hea)</option><option value="3">3 (Rahuldav)</option>
-                                                                </select>
-                                                            </div>
-                                                            <div>
-                                                                <label class="block text-[11px] font-bold text-gray-400 uppercase mb-1">Tunni staatus:</label>
-                                                                <select value={lessonStatus} onChange={(e) => setLessonStatus(e.target.value)} class="w-full px-3 py-2 text-sm font-semibold">
-                                                                    <option value="Toimunud">Toimunud (Проведен)</option>
-                                                                    <option value="Puudus_p">Puudus põhjustega (Уважит.)</option>
-                                                                    <option value="Puudus_eta">Puudus põhjuseta (Прогул)</option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
+                                                <h3 class="text-lg font-bold text-slate-900 border-b border-gray-100 pb-2"><i class="fa-solid fa-pen-to-square mr-2 text-[#2F5D50]"></i>Журнал уроков и хронология записей</h3>
+                                                <div class="space-y-3 max-h-96 overflow-y-auto custom-scrollbar">
+                                                    {studentLessons.length === 0 ? (
+                                                        <p class="text-xs text-gray-400 py-4 text-center">Päevikusse pole veel tunde kantud.</p>
+                                                    ) : (
+                                                        [...studentLessons].sort((a,b) => new Date(b.date) - new Date(a.date)).map(lesson => {
+                                                            let statusBadge = "bg-emerald-50 text-emerald-800 border-emerald-100";
+                                                            let statusText = "Toimunud";
+                                                            if(lesson.status === 'Puudus_p') { statusBadge = "bg-blue-50 text-blue-800 border-blue-100"; statusText = "Puudus (põhjusega)"; }
+                                                            if(lesson.status === 'Puudus_eta') { statusBadge = "bg-red-50 text-red-800 border-red-100"; statusText = "Puudus (põhjuseta)"; }
 
-                                                        <textarea value={lessonComment} onChange={(e) => setLessonComment(e.target.value)} placeholder="Õpetaja kommentaar..." rows="2" class="w-full px-3 py-2 text-sm"></textarea>
-                                                        <button type="submit" class="w-full bg-[#1C2B3A] text-white py-2 rounded-xl text-sm font-semibold hover:bg-[#2F5D50] cursor-pointer">Salvesta aruanne</button>
-                                                    </form>
-                                                )}
-                                                <div class="space-y-3 max-h-96 overflow-y-auto">
-                                                    {studentLessons.map(lesson => {
-                                                        let statusBadge = "bg-emerald-50 text-emerald-800 border-emerald-100";
-                                                        let statusText = "Toimunud";
-                                                        if(lesson.status === 'Puudus_p') { statusBadge = "bg-blue-50 text-blue-800 border-blue-100"; statusText = "Puudus (põhjusega)"; }
-                                                        if(lesson.status === 'Puudus_eta') { statusBadge = "bg-red-50 text-red-800 border-red-100"; statusText = "Puudus (põhjuseta)"; }
-
-                                                        return (
-                                                            <div key={lesson.id} class="border-b border-gray-100 pb-2 flex gap-4 items-start">
-                                                                <span class="w-10 h-10 flex items-center justify-center bg-amber-50 rounded-xl text-[#A96E1A] font-bold text-lg border border-amber-100">
-                                                                    {lesson.status === 'Toimunud' ? lesson.grade : '—'}
-                                                                </span>
-                                                                <div class="flex-1">
-                                                                    <div class="flex items-center justify-between">
-                                                                        <h4 class="text-sm font-semibold text-slate-900">{lesson.topic}</h4>
-                                                                        <span class={"text-[9px] font-bold px-2 py-0.5 rounded border " + statusBadge}>{statusText}</span>
+                                                            return (
+                                                                <div key={lesson.id} class="border-b border-gray-100 pb-3 flex gap-4 items-start last:border-none">
+                                                                    <span class="w-10 h-10 flex items-center justify-center bg-amber-50 rounded-xl text-[#A96E1A] font-bold text-lg border border-amber-100">
+                                                                        {lesson.status === 'Toimunud' ? lesson.grade : '—'}
+                                                                    </span>
+                                                                    <div class="flex-1">
+                                                                        <div class="flex items-center justify-between">
+                                                                            <h4 class="text-sm font-semibold text-slate-900">{lesson.topic}</h4>
+                                                                            <span class={"text-[9px] font-bold px-2 py-0.5 rounded border " + statusBadge}>{statusText}</span>
+                                                                        </div>
+                                                                        <p class="text-xs text-gray-500 mt-1">{lesson.comment}</p>
+                                                                        <div class="flex items-center justify-between text-[10px] text-gray-400 mt-2 bg-gray-50 p-1 px-2 rounded-md">
+                                                                            <span>Õp. {lesson.teacher}</span>
+                                                                            <span class="font-mono"><i class="fa-regular fa-clock mr-1"></i>Sisse kantud: {lesson.submittedAt || lesson.date}</span>
+                                                                        </div>
                                                                     </div>
-                                                                    <p class="text-xs text-gray-500 mt-0.5">{lesson.comment}</p>
-                                                                    <span class="text-[10px] text-gray-400 block mt-1">{lesson.date} · Õp. {lesson.teacher}</span>
                                                                 </div>
-                                                            </div>
-                                                        );
-                                                    })}
+                                                            );
+                                                        })
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
