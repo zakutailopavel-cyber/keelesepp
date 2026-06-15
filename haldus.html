@@ -1,616 +1,1101 @@
 <!DOCTYPE html>
-<html lang="et" style="color-scheme: light only;">
+<html lang="et" style="color-scheme:light only;">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>KeeleSepp — Haldussüsteem</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>KeeleSepp — Haldussüsteem</title>
 
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-    <script>
-    try {
-        firebase.initializeApp({
-            apiKey: "AIzaSyAp8emBOh1fIqv72k_O5hkLkXVkfBt1al4",
-            authDomain: "keelesepp-5136b.firebaseapp.com",
-            projectId: "keelesepp-5136b",
-            storageBucket: "keelesepp-5136b.firebasestorage.app",
-            messagingSenderId: "674098517935",
-            appId: "1:674098517935:web:e73d04a4ada67874da015a"
-        });
-        window._db = firebase.firestore();
-    } catch(e) { console.warn("Firebase:", e.message); }
-    </script>
+<!-- Firebase 9 compat -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyAp8emBOh1fIqv72k_O5hkLkXVkfBt1al4",
+  authDomain:"keelesepp-5136b.firebaseapp.com",
+  projectId:"keelesepp-5136b",
+  storageBucket:"keelesepp-5136b.firebasestorage.app",
+  messagingSenderId:"674098517935",
+  appId:"1:674098517935:web:e73d04a4ada67874da015a"
+});
+window._db   = firebase.firestore();
+window._auth = firebase.auth();
+</script>
 
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body { font-family: "IBM Plex Sans", system-ui, sans-serif; background:#FBFAF8; color:#1C2B3A; }
-        h1,h2,h3 { font-family: "Fraunces", Georgia, serif; font-weight:600; }
-        input,select,textarea { font-size:16px!important; background:#fff!important; border:1.5px solid rgba(28,43,58,.13)!important; border-radius:10px!important; padding:10px 14px; width:100%; }
-        input:focus,select:focus,textarea:focus { border-color:#C9882A!important; outline:none; }
-        .scroll::-webkit-scrollbar{width:5px;height:5px}
-        .scroll::-webkit-scrollbar-thumb{background:rgba(28,43,58,.15);border-radius:99px}
-    </style>
+<!-- React + Babel + Tailwind + Chart.js -->
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+*{box-sizing:border-box}
+body{font-family:"IBM Plex Sans",system-ui,sans-serif;background:#FBFAF8;color:#1C2B3A;margin:0}
+h1,h2,h3{font-family:"Fraunces",Georgia,serif;font-weight:600}
+input,select,textarea{font-size:16px!important;background:#fff!important;border:1.5px solid rgba(28,43,58,.15)!important;border-radius:10px!important;padding:10px 14px;width:100%;color:#1C2B3A;font-family:inherit}
+input:focus,select:focus,textarea:focus{border-color:#C9882A!important;outline:none;box-shadow:0 0 0 3px rgba(201,136,42,.1)}
+.scroll::-webkit-scrollbar{width:5px;height:5px}
+.scroll::-webkit-scrollbar-thumb{background:rgba(28,43,58,.15);border-radius:99px}
+.card{background:#fff;border-radius:16px;border:1px solid rgba(28,43,58,.08);box-shadow:0 2px 12px rgba(28,43,58,.06)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:600;font-size:.9rem;padding:11px 22px;border-radius:999px;border:none;cursor:pointer;transition:all .15s;font-family:inherit}
+.btn-dark{background:#1C2B3A;color:#fff}.btn-dark:hover{background:#2F5D50}
+.btn-pine{background:#2F5D50;color:#fff}.btn-pine:hover{opacity:.9}
+.btn-amber{background:#C9882A;color:#fff}.btn-amber:hover{background:#A96E1A}
+.btn-white{background:#fff;color:#1C2B3A;border:1.5px solid rgba(28,43,58,.15)!important}.btn-white:hover{border-color:#1C2B3A!important}
+.btn-red{background:#fee2e2;color:#991b1b}.btn-red:hover{background:#fecaca}
+.badge{display:inline-flex;align-items:center;padding:2px 10px;border-radius:999px;font-size:.75rem;font-weight:600}
+.sidebar-link{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:12px;font-size:.9rem;font-weight:500;cursor:pointer;transition:all .15s;color:rgba(255,255,255,.7);border:none;background:none;width:100%;text-align:left}
+.sidebar-link:hover{background:rgba(255,255,255,.08);color:#fff}
+.sidebar-link.active{background:#C9882A;color:#fff}
+.stat-card{background:#fff;border-radius:14px;border:1px solid rgba(28,43,58,.08);padding:20px 24px;box-shadow:0 2px 8px rgba(28,43,58,.05)}
+.level-bar{height:8px;border-radius:99px;background:#EFEDE7;overflow:hidden}
+.level-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#2F5D50,#C9882A);transition:width .6s ease}
+</style>
 </head>
-<body class="antialiased">
-<div id="root">
-    <div class="flex items-center justify-center min-h-screen">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600"></div>
-    </div>
-</div>
+<body>
+<div id="root"><div style="display:flex;align-items:center;justify-content:center;min-height:100vh"><div style="width:40px;height:40px;border:3px solid #C9882A;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite"></div></div></div>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
 
 <script type="text/babel" data-presets="react">
-const { useState, useEffect, useRef } = React;
-const db = window._db;
+const {useState,useEffect,useRef,useCallback} = React;
+const db   = window._db;
+const auth = window._auth;
 
-const DAYS = [
-    {id:'Mon',name:'Esmaspäev'},{id:'Tue',name:'Teisipäev'},{id:'Wed',name:'Kolmapäev'},
-    {id:'Thu',name:'Neljapäev'},{id:'Fri',name:'Reede'},{id:'Sat',name:'Laupäev'},{id:'Sun',name:'Pühapäev'}
-];
-const TIMES = ["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00"];
+// ─── KONSTANTID ───────────────────────────────────────────────
 const TEACHERS = ['Pavel','Jelena','Elizaveta','Angelina'];
-const STUDENTS_DEMO = ['Marina','Aleksei','Olga','Dmitri','Natalia'];
+const LEVELS   = ['A1','A2','B1','B2','C1'];
+const DAYS = [{id:'Mon',n:'Esmaspäev'},{id:'Tue',n:'Teisipäev'},{id:'Wed',n:'Kolmapäev'},
+              {id:'Thu',n:'Neljapäev'},{id:'Fri',n:'Reede'},{id:'Sat',n:'Laupäev'},{id:'Sun',n:'Pühapäev'}];
+const TIMES = ["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00"];
 
-// ── PROGRESSI GRAAFIK ────────────────────────────────────────
-function ProgressChart({ data }) {
-    const ref = useRef(null);
-    useEffect(() => {
-        if (!ref.current || !data.length) return;
-        const sorted = [...data].sort((a,b) => new Date(a.date)-new Date(b.date));
-        const ch = new Chart(ref.current.getContext('2d'), {
-            type: 'line',
-            data: {
-                labels: sorted.map(d => d.date),
-                datasets: [{
-                    label: 'Hinne', data: sorted.map(d => d.grade),
-                    borderColor:'#C9882A', backgroundColor:'rgba(201,136,42,0.05)',
-                    borderWidth:3, tension:0.3, fill:true,
-                    pointBackgroundColor:'#2F5D50', pointRadius:5
-                }]
-            },
-            options: { responsive:true, maintainAspectRatio:false, scales:{ y:{ min:1, max:5, ticks:{stepSize:1} } } }
-        });
-        return () => ch.destroy();
-    }, [data]);
-    return <div className="h-64 w-full"><canvas ref={ref}></canvas></div>;
+// ─── ABIFUNKTSIOONID ──────────────────────────────────────────
+const levelPct = (cur,tgt) => {
+  const ci=LEVELS.indexOf(cur), ti=LEVELS.indexOf(tgt);
+  if(ci<0||ti<=0||ci>=ti) return 100;
+  return Math.round((ci/ti)*100);
+};
+const avg = arr => arr.length ? (arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(1) : '—';
+const fmtDate = d => d ? new Date(d).toLocaleDateString('et-EE') : '—';
+
+// ─── PROGRESSI GRAAFIK ────────────────────────────────────────
+function ProgressChart({data}) {
+  const ref = useRef(null);
+  useEffect(()=>{
+    if(!ref.current||!data.length) return;
+    const sorted=[...data].sort((a,b)=>new Date(a.date)-new Date(b.date));
+    const ch=new Chart(ref.current.getContext('2d'),{
+      type:'line',
+      data:{
+        labels:sorted.map(d=>fmtDate(d.date)),
+        datasets:[{
+          label:'Hinne',data:sorted.map(d=>d.grade),
+          borderColor:'#C9882A',backgroundColor:'rgba(201,136,42,0.06)',
+          borderWidth:3,tension:0.4,fill:true,
+          pointBackgroundColor:'#2F5D50',pointRadius:5,pointHoverRadius:7
+        }]
+      },
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false}},
+        scales:{y:{min:1,max:5,ticks:{stepSize:1,callback:v=>['','★','★★','★★★','★★★★','★★★★★'][v]||v}}}
+      }
+    });
+    return ()=>ch.destroy();
+  },[data]);
+  return <div style={{height:220}}><canvas ref={ref}/></div>;
 }
 
-// ── PEAMINE APP ───────────────────────────────────────────────
-function App() {
-    const [user, setUser]       = useState(null);
-    const [role, setRole]       = useState(null);
-    const [uname, setUname]     = useState('');
-    const [pass, setPass]       = useState('');
-    const [err, setErr]         = useState('');
-    const [tab, setTab]         = useState('dashboard');
-    const [selStudent, setSelStudent] = useState(null);
-    const [filterT, setFilterT] = useState('Pavel');
-    const [modalEv, setModalEv] = useState(null);
+// ─── LOGIN / REGISTER ─────────────────────────────────────────
+function AuthScreen({onLogin}) {
+  const [mode,  setMode]  = useState('login'); // login | register | forgot
+  const [rtype, setRtype] = useState('email'); // email | google
+  const [role,  setRole]  = useState('teacher');
+  const [name,  setName]  = useState('');
+  const [email, setEmail] = useState('');
+  const [pass,  setPass]  = useState('');
+  const [pass2, setPass2] = useState('');
+  const [childName, setChildName] = useState('');
+  const [err,   setErr]   = useState('');
+  const [info,  setInfo]  = useState('');
+  const [loading,setLoading]=useState(false);
 
-    // Firestore data
-    const [students,  setStudents]  = useState([]);
-    const [lessons,   setLessons]   = useState([]);
-    const [homeworks, setHomeworks] = useState([]);
-    const [schedule,  setSchedule]  = useState([]);
-
-    // Forms
-    const [newName,  setNewName]  = useState('');
-    const [newLevel, setNewLevel] = useState('A1');
-    const [newTarget,setNewTarget]= useState('B1');
-    const [newTeach, setNewTeach] = useState('Pavel');
-    const [lTopic,   setLTopic]   = useState('');
-    const [lGrade,   setLGrade]   = useState('5');
-    const [lStatus,  setLStatus]  = useState('Toimunud');
-    const [lComment, setLComment] = useState('');
-    const [hwTask,   setHwTask]   = useState('');
-    const [schSt,    setSchSt]    = useState('');
-    const [schDay,   setSchDay]   = useState('Mon');
-    const [schTime,  setSchTime]  = useState('09:00');
-    const [schTeach, setSchTeach] = useState('Pavel');
-
-    // ── SISSELOGIMINE ────────────────────────────────────────
-    const login = () => {
-        setErr('');
-        if (TEACHERS.includes(uname) && pass === '1234') {
-            setUser(uname); setRole('teacher');
-            setFilterT(uname); setSchTeach(uname); setNewTeach(uname);
-        } else if (STUDENTS_DEMO.includes(uname) && pass === '1234') {
-            setUser(uname); setRole('student');
-        } else {
-            setErr('Vale kasutajatunnus või parool. Demo parool: 1234');
-        }
+  // Demo login (без Firebase Auth — по имени)
+  const demoLogin = () => {
+    setErr('');
+    const demos = {
+      Pavel:'teacher',Jelena:'teacher',Elizaveta:'teacher',Angelina:'teacher',
+      Marina:'student',Aleksei:'student',Olga:'student',Dmitri:'student',Natalia:'student'
     };
+    if(demos[name] && pass==='1234'){
+      onLogin({uid:'demo_'+name,displayName:name,email:name+'@demo.ks',role:demos[name],isDemo:true});
+    } else { setErr('Vale nimi/parool. Demo: nimi + parool 1234'); }
+  };
 
-    // ── FIRESTORE KUULAMINE ──────────────────────────────────
-    useEffect(() => {
-        if (!user || !db) return;
-        const u1 = db.collection('students').onSnapshot(s => {
-            setStudents(s.docs.map(d => ({id:d.id,...d.data()})));
-        });
-        const u2 = db.collection('lessons').onSnapshot(s => {
-            setLessons(s.docs.map(d => ({id:d.id,...d.data()})));
-        });
-        const u3 = db.collection('homework').onSnapshot(s => {
-            setHomeworks(s.docs.map(d => ({id:d.id,...d.data()})));
-        });
-        const u4 = db.collection('schedule').onSnapshot(s => {
-            setSchedule(s.docs.map(d => ({id:d.id,...d.data()})));
-        });
-        return () => { u1(); u2(); u3(); u4(); };
-    }, [user]);
+  // Google Sign-In
+  const googleLogin = async () => {
+    setErr(''); setLoading(true);
+    try {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      const res = await auth.signInWithPopup(provider);
+      const u = res.user;
+      // Контролируем роль из Firestore
+      const snap = await db.collection('users').doc(u.uid).get();
+      if(snap.exists){
+        const data = snap.data();
+        onLogin({uid:u.uid,displayName:u.displayName,email:u.email,...data});
+      } else {
+        // Новый пользователь через Google — создаём как родитель
+        const userData = {role:'parent',displayName:u.displayName,email:u.email,childName:'',createdAt:new Date().toISOString()};
+        await db.collection('users').doc(u.uid).set(userData);
+        onLogin({uid:u.uid,displayName:u.displayName,email:u.email,...userData});
+      }
+    } catch(e){ setErr('Google sisselogimine ebaõnnestus: '+e.message); }
+    setLoading(false);
+  };
 
-    // ── TEGEVUSED ────────────────────────────────────────────
-    const addStudent = async () => {
-        if (!newName.trim()) return;
-        const teacher = user === 'Pavel' ? newTeach : user;
-        await db.collection('students').add({
-            name:newName, level:newLevel, targetLevel:newTarget,
-            teacher, createdAt: new Date().toISOString()
-        });
-        setNewName('');
-        alert('Õpilane lisatud!');
-    };
+  // Email register
+  const register = async () => {
+    setErr('');
+    if(!name.trim()||!email.trim()||!pass.trim()){ setErr('Täida kõik väljad'); return; }
+    if(pass!==pass2){ setErr('Paroolid ei ühti'); return; }
+    if(pass.length<6){ setErr('Parool peab olema vähemalt 6 tähemärki'); return; }
+    setLoading(true);
+    try {
+      const res = await auth.createUserWithEmailAndPassword(email,pass);
+      await res.user.updateProfile({displayName:name});
+      const userData = {role,displayName:name,email,childName: role==='parent'?childName:'',createdAt:new Date().toISOString()};
+      await db.collection('users').doc(res.user.uid).set(userData);
+      onLogin({uid:res.user.uid,displayName:name,email,...userData});
+    } catch(e){
+      const msgs={'auth/email-already-in-use':'See e-post on juba registreeritud','auth/invalid-email':'Vigane e-posti aadress'};
+      setErr(msgs[e.code]||e.message);
+    }
+    setLoading(false);
+  };
 
-    const addSchedule = async () => {
-        if (!schSt) return;
-        const teacher = user === 'Pavel' ? schTeach : user;
-        await db.collection('schedule').add({ teacher, studentName:schSt, day:schDay, time:schTime });
-        setSchSt('');
-        alert('Tund märgitud!');
-    };
+  // Email login
+  const emailLogin = async () => {
+    setErr(''); setLoading(true);
+    try {
+      const res = await auth.signInWithEmailAndPassword(email,pass);
+      const snap = await db.collection('users').doc(res.user.uid).get();
+      if(snap.exists){
+        onLogin({uid:res.user.uid,displayName:res.user.displayName||email,...snap.data()});
+      } else {
+        onLogin({uid:res.user.uid,displayName:res.user.displayName||email,email,role:'parent'});
+      }
+    } catch(e){
+      const msgs={'auth/user-not-found':'Kasutaja ei leitud','auth/wrong-password':'Vale parool','auth/invalid-credential':'Vale e-post või parool'};
+      setErr(msgs[e.code]||e.message);
+    }
+    setLoading(false);
+  };
 
-    const saveLesson = async () => {
-        if (!modalEv || !lTopic.trim()) return;
-        const stu = students.find(s => s.name.toLowerCase() === modalEv.studentName.toLowerCase());
-        const now = new Date();
-        await db.collection('lessons').add({
-            studentId: stu ? stu.id : 'ext',
-            studentName: modalEv.studentName,
-            topic: lTopic,
-            grade: lStatus === 'Toimunud' ? parseInt(lGrade) : 0,
-            status: lStatus,
-            comment: lComment,
-            date: now.toISOString().split('T')[0],
-            submittedAt: now.toLocaleString('et-EE'),
-            teacher: user
-        });
-        if (window.confirm('Kustuta see tund tunniplaanist?')) {
-            await db.collection('schedule').doc(modalEv.id).delete();
-        }
-        setLTopic(''); setLComment(''); setModalEv(null);
-        alert('Salvestatud!');
-    };
+  // Forgot password
+  const forgot = async () => {
+    if(!email){ setErr('Sisesta e-posti aadress'); return; }
+    setLoading(true);
+    try {
+      await auth.sendPasswordResetEmail(email);
+      setInfo('Parooli taastamise link saadetud e-postile '+email);
+      setErr('');
+    } catch(e){ setErr(e.message); }
+    setLoading(false);
+  };
 
-    const addHw = async () => {
-        if (!selStudent || !hwTask.trim()) return;
-        await db.collection('homework').add({
-            studentId: selStudent.id, task:hwTask,
-            status:'Ootel', date: new Date().toISOString().split('T')[0]
-        });
-        setHwTask('');
-        alert('Kodutöö saadetud!');
-    };
-
-    const toggleHw = async (id, cur) => {
-        await db.collection('homework').doc(id).update({ status: cur === 'Tehtud' ? 'Ootel' : 'Tehtud' });
-    };
-
-    const delSchedule = async (id, e) => {
-        e.stopPropagation();
-        if (window.confirm('Kustuta tund?')) await db.collection('schedule').doc(id).delete();
-    };
-
-    // ── FILTRID ──────────────────────────────────────────────
-    const myStudents = user === 'Pavel' ? students : students.filter(s => s.teacher === user);
-    const filteredSch = role === 'teacher'
-        ? (filterT === 'Kõik' ? schedule : schedule.filter(s => s.teacher === filterT))
-        : schedule.filter(s => s.studentName.toLowerCase().includes(user?.toLowerCase() || ''));
-
-    const currentStu = selStudent
-        ? students.find(s => s.id === selStudent.id) || selStudent
-        : role === 'student' ? students.find(s => s.name.toLowerCase() === user?.toLowerCase()) : null;
-
-    const stuLessons  = currentStu ? lessons.filter(l => l.studentId === currentStu.id || l.studentName?.toLowerCase() === currentStu.name?.toLowerCase()) : [];
-    const stuHw       = currentStu ? homeworks.filter(h => h.studentId === currentStu.id) : [];
-
-    // ── LOGIN EKRAAN ─────────────────────────────────────────
-    if (!user) return (
-        <div className="min-h-screen flex items-center justify-center bg-[#FBFAF8] p-4">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-8">
-                <div className="text-center mb-7">
-                    <div className="text-3xl font-bold mb-1" style={{fontFamily:"Fraunces,Georgia,serif"}}>
-                        Keele<span style={{color:'#C9882A'}}>Sepp</span>
-                    </div>
-                    <div className="text-xs text-gray-400">Haldussüsteem</div>
-                </div>
-
-                <div className="space-y-3 mb-4">
-                    <div>
-                        <label className="text-xs font-semibold text-gray-400 block mb-1">KASUTAJANIMI</label>
-                        <input value={uname} onChange={e=>setUname(e.target.value)}
-                            onKeyDown={e=>e.key==='Enter'&&login()}
-                            placeholder="nt. Pavel või Marina" />
-                    </div>
-                    <div>
-                        <label className="text-xs font-semibold text-gray-400 block mb-1">PAROOL</label>
-                        <input type="password" value={pass} onChange={e=>setPass(e.target.value)}
-                            onKeyDown={e=>e.key==='Enter'&&login()}
-                            placeholder="••••" />
-                    </div>
-                    {err && <div className="text-xs text-red-500 bg-red-50 rounded-xl p-2.5">{err}</div>}
-                </div>
-
-                <button onClick={login}
-                    className="w-full py-3 rounded-xl font-semibold text-white text-sm"
-                    style={{background:'#1C2B3A'}}>
-                    Sisene
-                </button>
-                <div className="mt-4 text-xs text-center text-gray-300">
-                    Õpetajad: Pavel / Jelena / Elizaveta · Parool: <strong>1234</strong><br/>
-                    Õpilane: Marina / Aleksei · Parool: <strong>1234</strong>
-                </div>
-            </div>
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4" style={{background:'linear-gradient(135deg,#1C2B3A 0%,#2F5D50 100%)'}}>
+      <div style={{background:'#FBFAF8',borderRadius:24,padding:'40px 36px',width:'100%',maxWidth:420,boxShadow:'0 24px 60px rgba(0,0,0,0.25)'}}>
+        
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <div style={{fontSize:'2rem',fontFamily:'Fraunces,Georgia,serif',fontWeight:600,marginBottom:4}}>
+            Keele<span style={{color:'#C9882A'}}>Sepp</span>
+          </div>
+          <div style={{fontSize:'.8rem',color:'#42536A'}}>
+            {mode==='login'?'Sisselogimine':mode==='register'?'Uue konto loomine':'Parooli taastamine'}
+          </div>
         </div>
-    );
 
-    // ── SIDEBAR ──────────────────────────────────────────────
-    const Sidebar = () => (
-        <aside className="w-full md:w-64 flex flex-col p-5 space-y-4" style={{background:'#1C2B3A',color:'#fff'}}>
-            <div className="flex items-center justify-between border-b border-gray-700 pb-4">
-                <span className="text-2xl font-bold" style={{fontFamily:"Fraunces,Georgia,serif"}}>
-                    Keele<span style={{color:'#C9882A'}}>Sepp</span>
-                </span>
-                <span className="text-xs bg-gray-800 px-2 py-1 rounded text-amber-400 font-bold uppercase">
-                    {role === 'teacher' ? 'Õpetaja' : 'Õpilane'}
-                </span>
+        {/* Demo login box */}
+        {mode==='login' && (
+          <div style={{background:'#EFEDE7',borderRadius:14,padding:'14px 16px',marginBottom:20}}>
+            <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:8}}>⚡ Demo sisselogimine</div>
+            <div className="flex gap-2">
+              <input value={name} onChange={e=>setName(e.target.value)} placeholder="Nimi (nt. Pavel)"
+                onKeyDown={e=>e.key==='Enter'&&demoLogin()} style={{flex:1}}/>
+              <input type="password" value={pass} onChange={e=>setPass(e.target.value)} placeholder="1234"
+                onKeyDown={e=>e.key==='Enter'&&demoLogin()} style={{width:80}}/>
             </div>
-            <div className="text-xs text-gray-400">
-                Konto: <span className="font-semibold text-white block mt-0.5">{user}</span>
-            </div>
-            <nav className="flex-1 space-y-1">
-                {[
-                    {id:'dashboard', icon:'fa-chart-pie',     label:'Töölaud'},
-                    {id:'calendar',  icon:'fa-calendar-days', label:'Tunniplaan'},
-                    {id:'students',  icon:'fa-graduation-cap',label: role==='teacher' ? 'Õpilased' : 'Minu progress'},
-                ].map(item => (
-                    <button key={item.id}
-                        onClick={() => { setTab(item.id); setSelStudent(null); }}
-                        className={`w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all text-left ${tab===item.id ? 'text-white shadow-md' : 'text-gray-300 hover:bg-slate-800'}`}
-                        style={tab===item.id ? {background:'#C9882A'} : {}}>
-                        <i className={`fa-solid ${item.icon} mr-3 w-5`}></i> {item.label}
-                    </button>
-                ))}
-            </nav>
-            <button onClick={() => { setUser(null); setRole(null); setTab('dashboard'); }}
-                className="flex items-center px-4 py-3 rounded-xl text-sm text-red-400 hover:bg-slate-800 transition-colors">
-                <i className="fa-solid fa-right-from-bracket mr-3"></i> Logi välja
+            <button onClick={demoLogin} className="btn btn-dark" style={{width:'100%',marginTop:10,borderRadius:10}}>
+              Sisene demo kontoga
             </button>
-        </aside>
-    );
-
-    // ── TÖÖLAUD ──────────────────────────────────────────────
-    const Dashboard = () => (
-        <div className="space-y-6">
-            <h1 className="text-3xl font-semibold">Tere, {user}!</h1>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                    <p className="text-xs font-semibold text-gray-400 uppercase mb-2">
-                        {role==='teacher' ? 'Minu õpilased' : 'Minu tase'}
-                    </p>
-                    <p className="text-4xl font-bold" style={{color:'#1C2B3A'}}>
-                        {role==='teacher' ? myStudents.length : (currentStu?.level || '—')}
-                    </p>
-                </div>
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                    <p className="text-xs font-semibold text-gray-400 uppercase mb-2">Tunnid kokku</p>
-                    <p className="text-4xl font-bold" style={{color:'#1C2B3A'}}>{lessons.length}</p>
-                </div>
+            <div style={{fontSize:'.72rem',color:'#42536A',marginTop:8,textAlign:'center'}}>
+              Õpetajad: Pavel·Jelena·Elizaveta | Õpilased: Marina·Aleksei | Parool: 1234
             </div>
+          </div>
+        )}
 
-            {role === 'teacher' && (
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                    <h3 className="text-lg font-semibold mb-4">Lisa uus õpilane</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-                        <input value={newName} onChange={e=>setNewName(e.target.value)} placeholder="Õpilase täisnimi" />
-                        <select value={newLevel} onChange={e=>setNewLevel(e.target.value)}>
-                            {['A1','A2','B1','B2','C1'].map(l=><option key={l}>Hetketase: {l}</option>)}
-                        </select>
-                        <select value={newTarget} onChange={e=>setNewTarget(e.target.value)}>
-                            {['A2','B1','B2','C1'].map(l=><option key={l}>Eesmärk: {l}</option>)}
-                        </select>
-                        {user === 'Pavel' && (
-                            <select value={newTeach} onChange={e=>setNewTeach(e.target.value)}>
-                                {TEACHERS.map(t=><option key={t}>Õpetaja: {t}</option>)}
-                            </select>
-                        )}
-                    </div>
-                    <button onClick={addStudent}
-                        className="w-full py-3 rounded-xl text-white font-semibold text-sm"
-                        style={{background:'#2F5D50'}}>
-                        + Lisa õpilane andmebaasi
-                    </button>
-                </div>
+        {/* Divider */}
+        {mode==='login' && (
+          <div className="flex items-center gap-3 mb-5">
+            <div style={{flex:1,height:1,background:'rgba(28,43,58,.12)'}}/>
+            <span style={{fontSize:'.78rem',color:'#42536A'}}>või päris kontoga</span>
+            <div style={{flex:1,height:1,background:'rgba(28,43,58,.12)'}}/>
+          </div>
+        )}
+
+        {/* Register role selector */}
+        {mode==='register' && (
+          <div className="flex mb-5" style={{background:'#EFEDE7',borderRadius:12,padding:4}}>
+            {[{id:'parent',l:'Lapsevanem'},{id:'student',l:'Õpilane'}].map(r=>(
+              <button key={r.id} onClick={()=>setRole(r.id)}
+                style={{flex:1,padding:'9px 0',borderRadius:9,border:'none',cursor:'pointer',fontWeight:600,fontSize:'.88rem',transition:'all .15s',
+                  background:role===r.id?'#1C2B3A':'transparent',color:role===r.id?'#fff':'#42536A'}}>
+                {r.l}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Form fields */}
+        <div style={{display:'flex',flexDirection:'column',gap:12,marginBottom:16}}>
+          {mode==='register' && (
+            <input value={name} onChange={e=>setName(e.target.value)} placeholder={role==='parent'?'Teie täisnimi *':'Teie täisnimi *'}/>
+          )}
+          {mode!=='login' || rtype==='email' ? (
+            <input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="E-posti aadress *"/>
+          ):null}
+          {mode==='login' && rtype==='email' && (
+            <input type="password" value={pass} onChange={e=>setPass(e.target.value)}
+              onKeyDown={e=>e.key==='Enter'&&emailLogin()} placeholder="Parool *"/>
+          )}
+          {mode==='register' && <>
+            <input type="password" value={pass} onChange={e=>setPass(e.target.value)} placeholder="Parool (min 6 tähemärki) *"/>
+            <input type="password" value={pass2} onChange={e=>setPass2(e.target.value)} placeholder="Korda parooli *"/>
+            {role==='parent' && (
+              <input value={childName} onChange={e=>setChildName(e.target.value)} placeholder="Lapse nimi (õpilane KeeleSepis)"/>
             )}
+          </>}
+          {mode==='forgot' && (
+            <input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="E-posti aadress *"/>
+          )}
         </div>
-    );
 
-    // ── TUNNIPLAAN ───────────────────────────────────────────
-    const Calendar = () => (
-        <div className="space-y-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <h1 className="text-3xl font-semibold">Tunniplaan</h1>
-                {user === 'Pavel' && (
-                    <select value={filterT} onChange={e=>setFilterT(e.target.value)}
-                        className="w-auto">
-                        {TEACHERS.map(t=><option key={t}>{t}</option>)}
-                        <option value="Kõik">Kõik õpetajad</option>
-                    </select>
-                )}
-            </div>
+        {err  && <div style={{background:'#fee2e2',color:'#991b1b',borderRadius:10,padding:'10px 14px',fontSize:'.85rem',marginBottom:14}}>{err}</div>}
+        {info && <div style={{background:'#dcfce7',color:'#166534',borderRadius:10,padding:'10px 14px',fontSize:'.85rem',marginBottom:14}}>{info}</div>}
 
-            {role === 'teacher' && (
-                <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
-                    <p className="text-xs font-bold text-gray-400 uppercase mb-3">Broneeri uus tund</p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-                        <select value={schSt} onChange={e=>setSchSt(e.target.value)}>
-                            <option value="">Vali õpilane…</option>
-                            {myStudents.map(s=><option key={s.id} value={s.name}>{s.name}</option>)}
-                        </select>
-                        <select value={schDay} onChange={e=>setSchDay(e.target.value)}>
-                            {DAYS.map(d=><option key={d.id} value={d.id}>{d.name}</option>)}
-                        </select>
-                        <select value={schTime} onChange={e=>setSchTime(e.target.value)}>
-                            {TIMES.map(t=><option key={t} value={t}>{t}</option>)}
-                        </select>
-                        {user === 'Pavel' && (
-                            <select value={schTeach} onChange={e=>setSchTeach(e.target.value)}>
-                                {TEACHERS.map(t=><option key={t}>{t}</option>)}
-                            </select>
-                        )}
-                    </div>
-                    <button onClick={addSchedule}
-                        className="w-full py-2.5 rounded-xl text-white font-semibold text-sm"
-                        style={{background:'#2F5D50'}}>
-                        + Kinnita tund
-                    </button>
-                </div>
-            )}
+        {/* Main action */}
+        {mode==='login' && rtype==='email' && (
+          <button onClick={emailLogin} disabled={loading} className="btn btn-dark" style={{width:'100%',borderRadius:12}}>
+            {loading?'Laeb…':'Sisene e-postiga'}
+          </button>
+        )}
+        {mode==='register' && (
+          <button onClick={register} disabled={loading} className="btn btn-dark" style={{width:'100%',borderRadius:12}}>
+            {loading?'Laeb…':'Loo konto'}
+          </button>
+        )}
+        {mode==='forgot' && (
+          <button onClick={forgot} disabled={loading} className="btn btn-pine" style={{width:'100%',borderRadius:12}}>
+            {loading?'Laeb…':'Saada taastamislink'}
+          </button>
+        )}
 
-            {/* Kalender grid */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                <div className="overflow-x-auto scroll">
-                    <div className="min-w-[700px]">
-                        {/* Header */}
-                        <div className="grid border-b" style={{gridTemplateColumns:'70px repeat(7,1fr)',background:'#EFEDE7'}}>
-                            <div className="p-3 text-xs font-bold text-center text-gray-500">Kell</div>
-                            {DAYS.map(d=>(
-                                <div key={d.id} className="p-3 text-xs font-bold text-center border-l border-gray-200">{d.name.slice(0,4)}</div>
-                            ))}
-                        </div>
-                        {/* Rows */}
-                        {TIMES.map(slot => (
-                            <div key={slot} className="grid border-b border-gray-50" style={{gridTemplateColumns:'70px repeat(7,1fr)',minHeight:'60px'}}>
-                                <div className="flex items-center justify-center text-xs font-mono text-gray-400 border-r border-gray-100 bg-gray-50/50">{slot}</div>
-                                {DAYS.map(day => {
-                                    const evs = filteredSch.filter(s => s.day===day.id && s.time===slot);
-                                    return (
-                                        <div key={day.id} className="p-1 border-l border-gray-100 flex flex-col gap-1">
-                                            {evs.map(ev => (
-                                                <div key={ev.id}
-                                                    onClick={() => role==='teacher' && setModalEv(ev)}
-                                                    className="text-xs p-1.5 rounded-lg cursor-pointer hover:opacity-80 transition-all"
-                                                    style={{background:'rgba(47,93,80,0.08)',border:'1px solid rgba(47,93,80,0.2)'}}>
-                                                    <div className="flex justify-between items-start">
-                                                        <span className="font-semibold truncate">{ev.studentName}</span>
-                                                        {role==='teacher' && (
-                                                            <button onClick={e=>delSchedule(ev.id,e)}
-                                                                className="text-gray-400 hover:text-red-500 ml-1 text-xs">✕</button>
-                                                        )}
-                                                    </div>
-                                                    {filterT==='Kõik' && <span className="text-xs" style={{color:'#A96E1A'}}>{ev.teacher}</span>}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
+        {/* Google */}
+        {(mode==='login'||mode==='register') && (
+          <button onClick={googleLogin} disabled={loading}
+            style={{width:'100%',marginTop:10,padding:'11px',borderRadius:12,border:'1.5px solid rgba(28,43,58,.15)',background:'#fff',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:10,fontWeight:600,fontSize:'.9rem'}}>
+            <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18z"/><path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 0 1-7.18-2.54H1.83v2.07A8 8 0 0 0 8.98 17z"/><path fill="#FBBC05" d="M4.5 10.52a4.8 4.8 0 0 1 0-3.04V5.41H1.83a8 8 0 0 0 0 7.18l2.67-2.07z"/><path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 0 0 1.83 5.4L4.5 7.49a4.77 4.77 0 0 1 4.48-3.3z"/></svg>
+            {mode==='register'?'Registreeru Google\'iga':'Sisene Google\'iga'}
+          </button>
+        )}
+
+        {/* Footer links */}
+        <div style={{marginTop:20,textAlign:'center',fontSize:'.82rem',color:'#42536A'}}>
+          {mode==='login' && <>
+            <span>Pole kontot? </span>
+            <button onClick={()=>{setMode('register');setErr('');setInfo('');}} style={{color:'#C9882A',fontWeight:600,background:'none',border:'none',cursor:'pointer'}}>Registreeru</button>
+            <span> · </span>
+            <button onClick={()=>{setMode('forgot');setErr('');setInfo('');}} style={{color:'#42536A',background:'none',border:'none',cursor:'pointer'}}>Unustasid parooli?</button>
+          </>}
+          {mode!=='login' && (
+            <button onClick={()=>{setMode('login');setErr('');setInfo('');}} style={{color:'#C9882A',fontWeight:600,background:'none',border:'none',cursor:'pointer'}}>
+              ← Tagasi sisselogimisele
+            </button>
+          )}
         </div>
-    );
-
-    // ── ÕPILASTE NIMEKIRI ────────────────────────────────────
-    const StudentsList = () => (
-        <div>
-            <h1 className="text-3xl font-semibold mb-6">Minu õpilased</h1>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {myStudents.map(s => (
-                    <div key={s.id} onClick={() => setSelStudent(s)}
-                        className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm cursor-pointer hover:border-amber-400 transition-all">
-                        <h3 className="text-lg font-semibold">{s.name}</h3>
-                        <p className="text-xs text-gray-400 mt-1">{s.level} → {s.targetLevel}</p>
-                        {user==='Pavel' && <p className="text-xs mt-1" style={{color:'#2F5D50'}}>Õp. {s.teacher}</p>}
-                        <span className="text-xs font-semibold mt-3 inline-block" style={{color:'#C9882A'}}>Ava õpikaart →</span>
-                    </div>
-                ))}
-                {myStudents.length === 0 && (
-                    <div className="col-span-3 text-center py-12 text-gray-400 text-sm">
-                        Õpilasi pole veel lisatud. Lisa töölaualt.
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-
-    // ── ÕPILASE KAART ────────────────────────────────────────
-    const StudentCard = () => {
-        if (!currentStu) return <div className="text-gray-400 text-sm py-10 text-center">Õpilane ei leitud.</div>;
-        const doneLessons = stuLessons.filter(l => l.status==='Toimunud');
-
-        return (
-            <div className="space-y-6">
-                <div className="flex justify-between items-center bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                    <div>
-                        <h2 className="text-2xl font-semibold">{currentStu.name}</h2>
-                        <p className="text-sm text-gray-500 mt-1">
-                            Õp. {currentStu.teacher} · {currentStu.level} → {currentStu.targetLevel}
-                        </p>
-                    </div>
-                    {role==='teacher' && (
-                        <button onClick={() => setSelStudent(null)}
-                            className="text-sm bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-full font-medium">
-                            ← Tagasi
-                        </button>
-                    )}
-                </div>
-
-                {/* Graafik */}
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                    <h3 className="text-lg font-semibold mb-4">Progressi kõver</h3>
-                    {doneLessons.length > 0
-                        ? <ProgressChart data={doneLessons} />
-                        : <p className="text-sm text-gray-400 text-center py-8">Tunnid puuduvad veel.</p>
-                    }
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Kodutöö */}
-                    <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                        <h3 className="text-lg font-semibold mb-4">
-                            <i className="fa-solid fa-book mr-2" style={{color:'#C9882A'}}></i>Kodutööd
-                        </h3>
-                        {role==='teacher' && (
-                            <div className="flex gap-2 mb-4">
-                                <input value={hwTask} onChange={e=>setHwTask(e.target.value)} placeholder="Uus ülesanne…" className="flex-1" />
-                                <button onClick={addHw}
-                                    className="px-4 py-2 rounded-xl text-white text-sm font-semibold"
-                                    style={{background:'#2F5D50'}}>
-                                    Saada
-                                </button>
-                            </div>
-                        )}
-                        <div className="space-y-2">
-                            {stuHw.map(hw => (
-                                <div key={hw.id} className="flex justify-between items-center bg-gray-50 p-3 rounded-xl border">
-                                    <div>
-                                        <p className="text-sm font-medium">{hw.task}</p>
-                                        <span className="text-xs text-gray-400">{hw.date}</span>
-                                    </div>
-                                    <button onClick={() => toggleHw(hw.id, hw.status)}
-                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold ${hw.status==='Tehtud' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100'}`}
-                                        style={hw.status!=='Tehtud' ? {color:'#A96E1A'} : {}}>
-                                        {hw.status==='Tehtud' ? '✓ Tehtud' : 'Ootel'}
-                                    </button>
-                                </div>
-                            ))}
-                            {stuHw.length===0 && <p className="text-xs text-gray-400 text-center py-4">Kodutöid pole.</p>}
-                        </div>
-                    </div>
-
-                    {/* Tunni päevik */}
-                    <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                        <h3 className="text-lg font-semibold mb-4">
-                            <i className="fa-solid fa-pen-to-square mr-2" style={{color:'#2F5D50'}}></i>Tunni päevik
-                        </h3>
-                        <div className="space-y-3 max-h-96 overflow-y-auto scroll">
-                            {stuLessons.length===0
-                                ? <p className="text-xs text-gray-400 text-center py-4">Tunnid puuduvad.</p>
-                                : [...stuLessons].sort((a,b)=>new Date(b.date)-new Date(a.date)).map(l => {
-                                    const badgeMap = {
-                                        Toimunud:   {cls:'bg-emerald-50 text-emerald-800 border-emerald-100', txt:'Toimunud'},
-                                        Puudus_p:   {cls:'bg-blue-50 text-blue-800 border-blue-100',          txt:'Puudus (põhjusega)'},
-                                        Puudus_eta: {cls:'bg-red-50 text-red-800 border-red-100',             txt:'Puudus (põhjuseta)'},
-                                    };
-                                    const b = badgeMap[l.status] || badgeMap.Toimunud;
-                                    return (
-                                        <div key={l.id} className="border-b border-gray-100 pb-3 flex gap-3 last:border-0">
-                                            <span className="w-10 h-10 flex items-center justify-center rounded-xl font-bold text-lg border"
-                                                style={{background:'#FBFAF8',color:'#A96E1A',borderColor:'#f0e4cc'}}>
-                                                {l.status==='Toimunud' ? l.grade : '—'}
-                                            </span>
-                                            <div className="flex-1">
-                                                <div className="flex items-center justify-between gap-2">
-                                                    <span className="text-sm font-semibold">{l.topic}</span>
-                                                    <span className={`text-xs font-bold px-2 py-0.5 rounded border ${b.cls}`}>{b.txt}</span>
-                                                </div>
-                                                {l.comment && <p className="text-xs text-gray-500 mt-0.5">{l.comment}</p>}
-                                                <div className="flex justify-between text-xs text-gray-400 mt-1">
-                                                    <span>Õp. {l.teacher}</span>
-                                                    <span>{l.submittedAt || l.date}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    );
-                                })
-                            }
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    };
-
-    // ── TUNNI MODAL ──────────────────────────────────────────
-    const LessonModal = () => (
-        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white p-6 rounded-2xl border max-w-lg w-full shadow-2xl relative">
-                <button onClick={() => setModalEv(null)}
-                    className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-lg">✕</button>
-                <h2 className="text-xl font-semibold mb-1">Tunni aruanne</h2>
-                <p className="text-sm text-gray-500 mb-4">
-                    Õpilane: <strong>{modalEv.studentName}</strong> · {modalEv.time}
-                </p>
-                <div className="space-y-3">
-                    <input value={lTopic} onChange={e=>setLTopic(e.target.value)} placeholder="Tunni teema *" />
-                    <div className="grid grid-cols-2 gap-3">
-                        <select value={lGrade} onChange={e=>setLGrade(e.target.value)} disabled={lStatus!=='Toimunud'}>
-                            <option value="5">5 — Suurepärane</option>
-                            <option value="4">4 — Hea</option>
-                            <option value="3">3 — Rahuldav</option>
-                            <option value="2">2 — Puudulik</option>
-                        </select>
-                        <select value={lStatus} onChange={e=>setLStatus(e.target.value)}>
-                            <option value="Toimunud">Toimunud</option>
-                            <option value="Puudus_p">Puudus põhjusega</option>
-                            <option value="Puudus_eta">Puudus põhjuseta</option>
-                        </select>
-                    </div>
-                    <textarea value={lComment} onChange={e=>setLComment(e.target.value)}
-                        placeholder="Õpetaja kommentaar…" rows={3} />
-                    <button onClick={saveLesson}
-                        className="w-full py-3 rounded-xl text-white font-semibold"
-                        style={{background:'#1C2B3A'}}>
-                        Salvesta päevikusse
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-
-    // ── PEAMINE RENDER ───────────────────────────────────────
-    return (
-        <div className="min-h-screen flex flex-col md:flex-row">
-            <Sidebar />
-            <main className="flex-1 p-5 md:p-8 overflow-y-auto scroll" style={{background:'#FBFAF8'}}>
-                {tab==='dashboard' && <Dashboard />}
-                {tab==='calendar'  && <Calendar />}
-                {tab==='students'  && role==='teacher' && !selStudent && <StudentsList />}
-                {tab==='students'  && role==='teacher' && selStudent  && <StudentCard />}
-                {tab==='students'  && role==='student'               && <StudentCard />}
-            </main>
-            {modalEv && <LessonModal />}
-        </div>
-    );
+      </div>
+    </div>
+  );
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+// ─── PÕHIRAKENDUS ─────────────────────────────────────────────
+function App() {
+  const [user,    setUser]    = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [tab,     setTab]     = useState('dashboard');
+  const [selStu,  setSelStu]  = useState(null);
+  const [filterT, setFilterT] = useState('Pavel');
+  const [modalEv, setModalEv] = useState(null);
+  const [search,  setSearch]  = useState('');
+  const [notif,   setNotif]   = useState('');
+
+  // Firestore data
+  const [students,  setStu]  = useState([]);
+  const [lessons,   setLes]  = useState([]);
+  const [homework,  setHw]   = useState([]);
+  const [schedule,  setSch]  = useState([]);
+  const [invoices,  setInv]  = useState([]);
+
+  // Forms — uus õpilane
+  const [nName,  setNName]  = useState('');
+  const [nLevel, setNLevel] = useState('A1');
+  const [nTarget,setNTarget]= useState('B1');
+  const [nTeach, setNTeach] = useState('Pavel');
+  const [nPhone, setNPhone] = useState('');
+  const [nEmail, setNEmail] = useState('');
+
+  // Forms — tund
+  const [lTopic,   setLTopic]   = useState('');
+  const [lGrade,   setLGrade]   = useState('5');
+  const [lStatus,  setLStatus]  = useState('Toimunud');
+  const [lComment, setLComment] = useState('');
+  const [lDur,     setLDur]     = useState('60');
+
+  // Forms — kodutöö
+  const [hwTask, setHwTask] = useState('');
+  const [hwDue,  setHwDue]  = useState('');
+
+  // Forms — tunniplaan
+  const [schStu,   setSchStu]   = useState('');
+  const [schDay,   setSchDay]   = useState('Mon');
+  const [schTime,  setSchTime]  = useState('09:00');
+  const [schTeach, setSchTeach] = useState('Pavel');
+
+  // Forms — arve
+  const [invAmt,  setInvAmt]  = useState('');
+  const [invDesc, setInvDesc] = useState('');
+  const [invStu,  setInvStu]  = useState('');
+
+  // ── AUTH STATE ─────────────────────────────────────────────
+  useEffect(()=>{
+    const unsub = auth.onAuthStateChanged(async fbUser=>{
+      if(fbUser){
+        const snap = await db.collection('users').doc(fbUser.uid).get();
+        if(snap.exists){
+          setUser({uid:fbUser.uid,displayName:fbUser.displayName||fbUser.email,...snap.data()});
+        }
+      }
+      setLoading(false);
+    });
+    return unsub;
+  },[]);
+
+  // ── FIRESTORE KUULAMINE ────────────────────────────────────
+  useEffect(()=>{
+    if(!user) return;
+    const u1=db.collection('students').onSnapshot(s=>setStu(s.docs.map(d=>({id:d.id,...d.data()}))));
+    const u2=db.collection('lessons').onSnapshot(s=>setLes(s.docs.map(d=>({id:d.id,...d.data()}))));
+    const u3=db.collection('homework').onSnapshot(s=>setHw(s.docs.map(d=>({id:d.id,...d.data()}))));
+    const u4=db.collection('schedule').onSnapshot(s=>setSch(s.docs.map(d=>({id:d.id,...d.data()}))));
+    const u5=db.collection('invoices').onSnapshot(s=>setInv(s.docs.map(d=>({id:d.id,...d.data()}))));
+    return ()=>{u1();u2();u3();u4();u5();};
+  },[user]);
+
+  const notify = msg=>{ setNotif(msg); setTimeout(()=>setNotif(''),3000); };
+
+  // ── TEGEVUSED ──────────────────────────────────────────────
+  const addStudent = async()=>{
+    if(!nName.trim()) return;
+    const t = user.role==='teacher'&&user.displayName==='Pavel' ? nTeach : user.displayName;
+    await db.collection('students').add({
+      name:nName,level:nLevel,targetLevel:nTarget,teacher:t,
+      phone:nPhone,email:nEmail,active:true,createdAt:new Date().toISOString()
+    });
+    setNName('');setNPhone('');setNEmail('');
+    notify('✓ Õpilane '+nName+' lisatud!');
+  };
+
+  const addSchedule = async()=>{
+    if(!schStu) return;
+    const t = user.displayName==='Pavel' ? schTeach : user.displayName;
+    await db.collection('schedule').add({teacher:t,studentName:schStu,day:schDay,time:schTime});
+    setSchStu(''); notify('✓ Tund broneeritud!');
+  };
+
+  const saveLesson = async()=>{
+    if(!modalEv||!lTopic.trim()) return;
+    const stu=students.find(s=>s.name.toLowerCase()===modalEv.studentName.toLowerCase());
+    const now=new Date();
+    await db.collection('lessons').add({
+      studentId:stu?stu.id:'ext',studentName:modalEv.studentName,
+      topic:lTopic,grade:lStatus==='Toimunud'?parseInt(lGrade):0,
+      duration:parseInt(lDur),status:lStatus,comment:lComment,
+      date:now.toISOString().split('T')[0],
+      submittedAt:now.toLocaleString('et-EE'),teacher:user.displayName
+    });
+    if(window.confirm('Kustuta tund tunniplaanist?')){
+      await db.collection('schedule').doc(modalEv.id).delete();
+    }
+    setLTopic('');setLComment('');setModalEv(null);
+    notify('✓ Aruanne salvestatud!');
+  };
+
+  const addHw = async()=>{
+    if(!selStu||!hwTask.trim()) return;
+    await db.collection('homework').add({
+      studentId:selStu.id,studentName:selStu.name,task:hwTask,
+      due:hwDue,status:'Ootel',date:new Date().toISOString().split('T')[0]
+    });
+    setHwTask('');setHwDue(''); notify('✓ Kodutöö saadetud!');
+  };
+
+  const toggleHw = async(id,cur)=>{
+    await db.collection('homework').doc(id).update({status:cur==='Tehtud'?'Ootel':'Tehtud'});
+  };
+
+  const delSchedule = async(id,e)=>{
+    e.stopPropagation();
+    if(window.confirm('Kustuta tund?')) await db.collection('schedule').doc(id).delete();
+  };
+
+  const addInvoice = async()=>{
+    if(!invAmt||!invStu) return;
+    const due=new Date(Date.now()+14*864e5).toISOString().split('T')[0];
+    const num=`KS-${new Date().getFullYear()}-${String(invoices.length+1).padStart(3,'0')}`;
+    await db.collection('invoices').add({
+      studentId:invStu,studentName:students.find(s=>s.id===invStu)?.name||'—',
+      amount:parseInt(invAmt),desc:invDesc,num,status:'Ootel',
+      date:new Date().toISOString().split('T')[0],due
+    });
+    setInvAmt('');setInvDesc('');setInvStu('');
+    notify('✓ Arve loodud!');
+  };
+
+  const markInvPaid = async id=>{
+    await db.collection('invoices').doc(id).update({status:'Makstud'});
+    notify('✓ Märgitud makstud!');
+  };
+
+  const logout = async()=>{ await auth.signOut(); setUser(null); setTab('dashboard'); };
+
+  // ── FILTRID ────────────────────────────────────────────────
+  const myStudents = user?.role==='teacher'
+    ? (user.displayName==='Pavel' ? students : students.filter(s=>s.teacher===user.displayName))
+    : user?.role==='parent'
+      ? students.filter(s=>s.name.toLowerCase()===user.childName?.toLowerCase())
+      : students.filter(s=>s.name.toLowerCase()===user?.displayName?.toLowerCase());
+
+  const filteredSch = user?.role==='teacher'
+    ? (filterT==='Kõik' ? schedule : schedule.filter(s=>s.teacher===filterT))
+    : schedule.filter(s=>s.studentName?.toLowerCase().includes(user?.displayName?.toLowerCase()||''));
+
+  const searchedStudents = myStudents.filter(s=>
+    s.name.toLowerCase().includes(search.toLowerCase()) ||
+    (s.teacher||'').toLowerCase().includes(search.toLowerCase())
+  );
+
+  const currentStu = selStu
+    ? students.find(s=>s.id===selStu.id)||selStu
+    : user?.role!=='teacher' ? myStudents[0] : null;
+
+  const stuLessons = currentStu
+    ? lessons.filter(l=>l.studentId===currentStu.id||l.studentName?.toLowerCase()===currentStu.name?.toLowerCase())
+    : [];
+  const stuHw = currentStu
+    ? homework.filter(h=>h.studentId===currentStu.id)
+    : [];
+  const stuInv = currentStu
+    ? invoices.filter(i=>i.studentId===currentStu.id)
+    : [];
+
+  const doneLessons = stuLessons.filter(l=>l.status==='Toimunud');
+  const avgGrade    = avg(doneLessons.map(l=>l.grade));
+  const attendance  = stuLessons.length ? Math.round((doneLessons.length/stuLessons.length)*100) : 0;
+  const totalHours  = doneLessons.reduce((a,l)=>a+(l.duration||60),0);
+  const unpaidInv   = invoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+i.amount,0);
+
+  // ── LOADING ────────────────────────────────────────────────
+  if(loading) return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div style={{width:40,height:40,border:'3px solid #C9882A',borderTopColor:'transparent',borderRadius:'50%',animation:'spin 1s linear infinite'}}/>
+    </div>
+  );
+
+  if(!user) return <AuthScreen onLogin={u=>{setUser(u);if(u.displayName==='Pavel')setFilterT('Pavel');}}/>;
+
+  // ── SIDEBAR ────────────────────────────────────────────────
+  const navItems = [
+    {id:'dashboard',icon:'fa-chart-pie',     label:'Töölaud'},
+    {id:'calendar', icon:'fa-calendar-days', label:'Tunniplaan'},
+    {id:'students', icon:'fa-graduation-cap',label:user.role==='teacher'?'Õpilased':'Minu progress'},
+    ...(user.role==='teacher'?[
+      {id:'invoices',icon:'fa-file-invoice',label:'Arved'},
+    ]:[]),
+  ];
+
+  const Sidebar=()=>(
+    <aside style={{width:240,background:'#1C2B3A',display:'flex',flexDirection:'column',padding:'20px 14px',gap:6,minHeight:'100vh',flexShrink:0}}>
+      <div style={{borderBottom:'1px solid rgba(255,255,255,.1)',paddingBottom:16,marginBottom:8}}>
+        <div style={{fontFamily:'Fraunces,Georgia,serif',fontSize:'1.6rem',fontWeight:600,color:'#fff'}}>
+          Keele<span style={{color:'#C9882A'}}>Sepp</span>
+        </div>
+        <div style={{fontSize:'.72rem',color:'rgba(255,255,255,.4)',marginTop:2,fontWeight:600,letterSpacing:'.06em',textTransform:'uppercase'}}>
+          {user.role==='teacher'?'Õpetaja':user.role==='parent'?'Lapsevanem':'Õpilane'}
+        </div>
+      </div>
+      <div style={{fontSize:'.8rem',color:'rgba(255,255,255,.5)',padding:'0 14px 8px'}}>
+        {user.displayName}
+      </div>
+      {navItems.map(item=>(
+        <button key={item.id} onClick={()=>{setTab(item.id);setSelStu(null);}}
+          className={`sidebar-link ${tab===item.id?'active':''}`}>
+          <i className={`fa-solid ${item.icon} w-5`}/>
+          {item.label}
+          {item.id==='invoices'&&unpaidInv>0&&(
+            <span className="badge ml-auto" style={{background:'#C9882A',color:'#fff',fontSize:'.7rem'}}>
+              {unpaidInv}€
+            </span>
+          )}
+        </button>
+      ))}
+      <div style={{flex:1}}/>
+      <button onClick={logout} className="sidebar-link" style={{color:'#f87171'}}>
+        <i className="fa-solid fa-right-from-bracket w-5"/> Logi välja
+      </button>
+    </aside>
+  );
+
+  // ── TÖÖLAUD ────────────────────────────────────────────────
+  const Dashboard=()=>(
+    <div style={{display:'flex',flexDirection:'column',gap:24}}>
+      <div>
+        <h1>Tere, {user.displayName}! 👋</h1>
+        <div style={{color:'#42536A',fontSize:'.9rem',marginTop:4}}>
+          {new Date().toLocaleDateString('et-EE',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))',gap:14}}>
+        {user.role==='teacher' && <>
+          <div className="stat-card">
+            <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',textTransform:'uppercase',letterSpacing:'.06em'}}>Minu õpilased</div>
+            <div style={{fontSize:'2.4rem',fontWeight:700,color:'#1C2B3A',marginTop:6}}>{myStudents.length}</div>
+          </div>
+          <div className="stat-card">
+            <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',textTransform:'uppercase',letterSpacing:'.06em'}}>Tunnid kokku</div>
+            <div style={{fontSize:'2.4rem',fontWeight:700,color:'#1C2B3A',marginTop:6}}>{lessons.length}</div>
+          </div>
+          <div className="stat-card">
+            <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',textTransform:'uppercase',letterSpacing:'.06em'}}>Täna tunnis</div>
+            <div style={{fontSize:'2.4rem',fontWeight:700,color:'#2F5D50',marginTop:6}}>
+              {schedule.filter(s=>s.teacher===user.displayName).length}
+            </div>
+          </div>
+          <div className="stat-card" style={{borderColor:'#fcd34d'}}>
+            <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',textTransform:'uppercase',letterSpacing:'.06em'}}>Maksmata arved</div>
+            <div style={{fontSize:'2.4rem',fontWeight:700,color:'#C9882A',marginTop:6}}>{unpaidInv}€</div>
+          </div>
+        </>}
+        {user.role!=='teacher' && currentStu && <>
+          <div className="stat-card">
+            <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',textTransform:'uppercase',letterSpacing:'.06em'}}>Keeletase</div>
+            <div style={{fontSize:'2rem',fontWeight:700,color:'#1C2B3A',marginTop:6}}>{currentStu.level}</div>
+            <div style={{fontSize:'.8rem',color:'#42536A'}}>Siht: {currentStu.targetLevel}</div>
+          </div>
+          <div className="stat-card">
+            <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',textTransform:'uppercase',letterSpacing:'.06em'}}>Keskmine hinne</div>
+            <div style={{fontSize:'2.4rem',fontWeight:700,color:'#C9882A',marginTop:6}}>{avgGrade}★</div>
+          </div>
+          <div className="stat-card">
+            <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',textTransform:'uppercase',letterSpacing:'.06em'}}>Kohalolu</div>
+            <div style={{fontSize:'2.4rem',fontWeight:700,color:'#2F5D50',marginTop:6}}>{attendance}%</div>
+          </div>
+          <div className="stat-card">
+            <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',textTransform:'uppercase',letterSpacing:'.06em'}}>Õppetunde kokku</div>
+            <div style={{fontSize:'2.4rem',fontWeight:700,color:'#1C2B3A',marginTop:6}}>{doneLessons.length}</div>
+          </div>
+        </>}
+      </div>
+
+      {/* Lisa õpilane — ainult õpetajale */}
+      {user.role==='teacher' && (
+        <div className="card" style={{padding:24}}>
+          <h3 style={{marginBottom:16}}>➕ Lisa uus õpilane</h3>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))',gap:12,marginBottom:12}}>
+            <input value={nName} onChange={e=>setNName(e.target.value)} placeholder="Täisnimi *"/>
+            <input value={nEmail} onChange={e=>setNEmail(e.target.value)} type="email" placeholder="E-post"/>
+            <input value={nPhone} onChange={e=>setNPhone(e.target.value)} placeholder="Telefon +372…"/>
+            <select value={nLevel} onChange={e=>setNLevel(e.target.value)}>
+              {LEVELS.map(l=><option key={l} value={l}>Hetketase: {l}</option>)}
+            </select>
+            <select value={nTarget} onChange={e=>setNTarget(e.target.value)}>
+              {LEVELS.slice(1).map(l=><option key={l} value={l}>Eesmärk: {l}</option>)}
+            </select>
+            {user.displayName==='Pavel' && (
+              <select value={nTeach} onChange={e=>setNTeach(e.target.value)}>
+                {TEACHERS.map(t=><option key={t} value={t}>Õpetaja: {t}</option>)}
+              </select>
+            )}
+          </div>
+          <button onClick={addStudent} className="btn btn-pine" style={{width:'100%'}}>
+            <i className="fa-solid fa-user-plus"/> Lisa õpilane andmebaasi
+          </button>
+        </div>
+      )}
+
+      {/* Viimased tunnid */}
+      <div className="card" style={{padding:24}}>
+        <h3 style={{marginBottom:16}}>📋 Viimased tunnid</h3>
+        {lessons.length===0
+          ? <p style={{color:'#42536A',fontSize:'.9rem'}}>Tunnid puuduvad.</p>
+          : [...lessons].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,5).map(l=>(
+            <div key={l.id} style={{display:'flex',alignItems:'center',gap:14,padding:'12px 0',borderBottom:'1px solid rgba(28,43,58,.07)'}}>
+              <div style={{width:40,height:40,borderRadius:10,background:'rgba(201,136,42,.1)',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700,color:'#C9882A',flexShrink:0}}>
+                {l.status==='Toimunud'?l.grade:'—'}
+              </div>
+              <div style={{flex:1}}>
+                <div style={{fontWeight:600,fontSize:'.9rem'}}>{l.topic}</div>
+                <div style={{fontSize:'.78rem',color:'#42536A'}}>{l.studentName} · {fmtDate(l.date)}</div>
+              </div>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  );
+
+  // ── TUNNIPLAAN ─────────────────────────────────────────────
+  const Calendar=()=>(
+    <div style={{display:'flex',flexDirection:'column',gap:20}}>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:12}}>
+        <h1>Tunniplaan</h1>
+        {user.displayName==='Pavel' && (
+          <select value={filterT} onChange={e=>setFilterT(e.target.value)} style={{width:'auto'}}>
+            {TEACHERS.map(t=><option key={t}>{t}</option>)}
+            <option value="Kõik">Kõik õpetajad</option>
+          </select>
+        )}
+      </div>
+
+      {user.role==='teacher' && (
+        <div className="card" style={{padding:20}}>
+          <div style={{fontSize:'.8rem',fontWeight:600,color:'#42536A',textTransform:'uppercase',letterSpacing:'.06em',marginBottom:12}}>
+            Broneeri uus tund
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))',gap:10,marginBottom:12}}>
+            <select value={schStu} onChange={e=>setSchStu(e.target.value)}>
+              <option value="">Vali õpilane…</option>
+              {myStudents.map(s=><option key={s.id} value={s.name}>{s.name}</option>)}
+            </select>
+            <select value={schDay} onChange={e=>setSchDay(e.target.value)}>
+              {DAYS.map(d=><option key={d.id} value={d.id}>{d.n}</option>)}
+            </select>
+            <select value={schTime} onChange={e=>setSchTime(e.target.value)}>
+              {TIMES.map(t=><option key={t} value={t}>{t}</option>)}
+            </select>
+            {user.displayName==='Pavel' && (
+              <select value={schTeach} onChange={e=>setSchTeach(e.target.value)}>
+                {TEACHERS.map(t=><option key={t}>{t}</option>)}
+              </select>
+            )}
+          </div>
+          <button onClick={addSchedule} className="btn btn-pine" style={{width:'100%'}}>
+            <i className="fa-solid fa-calendar-plus"/> Kinnita tund
+          </button>
+        </div>
+      )}
+
+      <div className="card" style={{overflow:'hidden'}}>
+        <div className="scroll" style={{overflowX:'auto'}}>
+          <div style={{minWidth:700}}>
+            <div style={{display:'grid',gridTemplateColumns:'70px repeat(7,1fr)',background:'#EFEDE7',borderBottom:'1px solid rgba(28,43,58,.1)'}}>
+              <div style={{padding:'10px',textAlign:'center',fontSize:'.75rem',fontWeight:700,color:'#42536A'}}>Kell</div>
+              {DAYS.map(d=>(
+                <div key={d.id} style={{padding:'10px',textAlign:'center',fontSize:'.75rem',fontWeight:700,borderLeft:'1px solid rgba(28,43,58,.08)'}}>
+                  {d.n.slice(0,4)}
+                </div>
+              ))}
+            </div>
+            {TIMES.map(slot=>(
+              <div key={slot} style={{display:'grid',gridTemplateColumns:'70px repeat(7,1fr)',minHeight:64,borderBottom:'1px solid rgba(28,43,58,.05)'}}>
+                <div style={{display:'flex',alignItems:'center',justifyContent:'center',fontSize:'.75rem',fontFamily:'monospace',fontWeight:700,color:'#42536A',background:'rgba(239,237,231,.4)',borderRight:'1px solid rgba(28,43,58,.06)'}}>
+                  {slot}
+                </div>
+                {DAYS.map(day=>{
+                  const evs=filteredSch.filter(s=>s.day===day.id&&s.time===slot);
+                  return (
+                    <div key={day.id} style={{padding:4,borderLeft:'1px solid rgba(28,43,58,.06)',display:'flex',flexDirection:'column',gap:3}}>
+                      {evs.map(ev=>(
+                        <div key={ev.id}
+                          onClick={()=>user.role==='teacher'&&setModalEv(ev)}
+                          style={{fontSize:'.75rem',padding:'5px 8px',borderRadius:8,cursor:user.role==='teacher'?'pointer':'default',
+                            background:'rgba(47,93,80,.08)',border:'1px solid rgba(47,93,80,.2)',transition:'all .15s'}}
+                          onMouseEnter={e=>e.currentTarget.style.background='rgba(47,93,80,.15)'}
+                          onMouseLeave={e=>e.currentTarget.style.background='rgba(47,93,80,.08)'}>
+                          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                            <span style={{fontWeight:600}}>{ev.studentName}</span>
+                            {user.role==='teacher' && (
+                              <button onClick={e=>delSchedule(ev.id,e)}
+                                style={{background:'none',border:'none',cursor:'pointer',color:'#42536A',fontSize:'.8rem',padding:0}}
+                                onMouseEnter={e=>e.currentTarget.style.color='#ef4444'}
+                                onMouseLeave={e=>e.currentTarget.style.color='#42536A'}>✕</button>
+                            )}
+                          </div>
+                          {filterT==='Kõik'&&<div style={{fontSize:'.7rem',color:'#A96E1A'}}>{ev.teacher}</div>}
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // ── ÕPILASED ───────────────────────────────────────────────
+  const StudentsList=()=>(
+    <div style={{display:'flex',flexDirection:'column',gap:20}}>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:12,flexWrap:'wrap'}}>
+        <h1>Õpilased ({myStudents.length})</h1>
+        <input value={search} onChange={e=>setSearch(e.target.value)}
+          placeholder="🔍 Otsi nime järgi…" style={{width:'auto',maxWidth:260,padding:'9px 14px'}}/>
+      </div>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))',gap:14}}>
+        {searchedStudents.map(s=>{
+          const sLess=lessons.filter(l=>l.studentId===s.id||l.studentName?.toLowerCase()===s.name.toLowerCase());
+          const done=sLess.filter(l=>l.status==='Toimunud');
+          const pct=levelPct(s.level,s.targetLevel);
+          return(
+            <div key={s.id} onClick={()=>setSelStu(s)} className="card"
+              style={{padding:20,cursor:'pointer',transition:'all .15s'}}
+              onMouseEnter={e=>{e.currentTarget.style.borderColor='#C9882A';e.currentTarget.style.boxShadow='0 4px 20px rgba(201,136,42,.12)';}}
+              onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(28,43,58,.08)';e.currentTarget.style.boxShadow='0 2px 12px rgba(28,43,58,.06)';}}>
+              <div style={{display:'flex',justifyContent:'space-between',marginBottom:12}}>
+                <div>
+                  <div style={{fontWeight:600,fontSize:'1rem'}}>{s.name}</div>
+                  <div style={{fontSize:'.78rem',color:'#42536A',marginTop:2}}>
+                    {s.level} → {s.targetLevel}
+                    {user.displayName==='Pavel'&&<span style={{color:'#2F5D50',marginLeft:6}}>· {s.teacher}</span>}
+                  </div>
+                </div>
+                <div style={{textAlign:'right'}}>
+                  <div style={{fontSize:'1.4rem',fontWeight:700,color:'#C9882A'}}>
+                    {done.length?avg(done.map(l=>l.grade))+'★':'—'}
+                  </div>
+                  <div style={{fontSize:'.72rem',color:'#42536A'}}>{done.length} tundi</div>
+                </div>
+              </div>
+              <div className="level-bar">
+                <div className="level-fill" style={{width:pct+'%'}}/>
+              </div>
+              <div style={{fontSize:'.72rem',color:'#42536A',marginTop:5,display:'flex',justifyContent:'space-between'}}>
+                <span>{s.level}</span><span style={{color:'#2F5D50',fontWeight:600}}>{pct}%</span><span>{s.targetLevel}</span>
+              </div>
+            </div>
+          );
+        })}
+        {searchedStudents.length===0&&(
+          <div style={{gridColumn:'1/-1',textAlign:'center',padding:40,color:'#42536A'}}>
+            {search?'Õpilasi ei leitud.':'Õpilasi pole veel lisatud.'}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  // ── ÕPILASE KAART ──────────────────────────────────────────
+  const StudentCard=()=>{
+    if(!currentStu) return <div style={{color:'#42536A',textAlign:'center',padding:60}}>Õpilane ei leitud.</div>;
+    const done=stuLessons.filter(l=>l.status==='Toimunud');
+    const pct=levelPct(currentStu.level,currentStu.targetLevel);
+    return(
+      <div style={{display:'flex',flexDirection:'column',gap:20}}>
+        {/* Header */}
+        <div className="card" style={{padding:24}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:12}}>
+            <div>
+              <h2>{currentStu.name}</h2>
+              <div style={{fontSize:'.9rem',color:'#42536A',marginTop:4}}>
+                Õp. {currentStu.teacher} · {currentStu.email||''} {currentStu.phone?'· '+currentStu.phone:''}
+              </div>
+              <div style={{display:'flex',gap:10,marginTop:12,flexWrap:'wrap'}}>
+                {[
+                  {l:'Hinne',v:avg(done.map(l=>l.grade))+'★',c:'#C9882A'},
+                  {l:'Kohalolu',v:attendance+'%',c:'#2F5D50'},
+                  {l:'Tunnid',v:doneLessons.length+'h',c:'#1C2B3A'},
+                ].map(x=>(
+                  <div key={x.l} style={{background:'#EFEDE7',borderRadius:10,padding:'8px 14px',textAlign:'center'}}>
+                    <div style={{fontWeight:700,fontSize:'1.2rem',color:x.c}}>{x.v}</div>
+                    <div style={{fontSize:'.72rem',color:'#42536A'}}>{x.l}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            {user.role==='teacher'&&(
+              <button onClick={()=>setSelStu(null)} className="btn btn-white" style={{borderRadius:10}}>
+                ← Tagasi
+              </button>
+            )}
+          </div>
+          <div style={{marginTop:16}}>
+            <div style={{display:'flex',justifyContent:'space-between',fontSize:'.8rem',fontWeight:600,marginBottom:6}}>
+              <span>{currentStu.level}</span>
+              <span style={{color:'#2F5D50'}}>{pct}% eesmärgini</span>
+              <span>{currentStu.targetLevel}</span>
+            </div>
+            <div className="level-bar"><div className="level-fill" style={{width:pct+'%'}}/></div>
+          </div>
+        </div>
+
+        {/* Progress chart */}
+        {done.length>1&&(
+          <div className="card" style={{padding:24}}>
+            <h3 style={{marginBottom:16}}>📈 Progressi kõver</h3>
+            <ProgressChart data={done}/>
+          </div>
+        )}
+
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(320px,1fr))',gap:20}}>
+          {/* Kodutöö */}
+          <div className="card" style={{padding:24}}>
+            <h3 style={{marginBottom:16}}>📝 Kodutööd</h3>
+            {user.role==='teacher'&&(
+              <div style={{marginBottom:14,display:'flex',flexDirection:'column',gap:8}}>
+                <input value={hwTask} onChange={e=>setHwTask(e.target.value)} placeholder="Ülesanne *"/>
+                <div style={{display:'flex',gap:8}}>
+                  <input type="date" value={hwDue} onChange={e=>setHwDue(e.target.value)} style={{flex:1}}/>
+                  <button onClick={addHw} className="btn btn-pine">Saada</button>
+                </div>
+              </div>
+            )}
+            <div style={{display:'flex',flexDirection:'column',gap:8}}>
+              {stuHw.length===0&&<p style={{color:'#42536A',fontSize:'.88rem'}}>Kodutöid pole.</p>}
+              {stuHw.map(hw=>(
+                <div key={hw.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 14px',background:'#FBFAF8',borderRadius:10,border:'1px solid rgba(28,43,58,.08)'}}>
+                  <div>
+                    <div style={{fontWeight:500,fontSize:'.9rem'}}>{hw.task}</div>
+                    {hw.due&&<div style={{fontSize:'.75rem',color:'#42536A'}}>Tähtaeg: {fmtDate(hw.due)}</div>}
+                  </div>
+                  <button onClick={()=>toggleHw(hw.id,hw.status)}
+                    className="badge" style={{cursor:'pointer',border:'none',
+                      background:hw.status==='Tehtud'?'#dcfce7':'#fef3c7',
+                      color:hw.status==='Tehtud'?'#166534':'#92400e'}}>
+                    {hw.status==='Tehtud'?'✓ Tehtud':'Ootel'}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Tunni päevik */}
+          <div className="card" style={{padding:24}}>
+            <h3 style={{marginBottom:16}}>📚 Tunni päevik</h3>
+            <div className="scroll" style={{maxHeight:340,overflowY:'auto',display:'flex',flexDirection:'column',gap:12}}>
+              {stuLessons.length===0&&<p style={{color:'#42536A',fontSize:'.88rem'}}>Tunnid puuduvad.</p>}
+              {[...stuLessons].sort((a,b)=>new Date(b.date)-new Date(a.date)).map(l=>{
+                const bmap={
+                  Toimunud:{bg:'#dcfce7',c:'#166534',t:'Toimunud'},
+                  Puudus_p:{bg:'#dbeafe',c:'#1e40af',t:'Puudus (põhjusega)'},
+                  Puudus_eta:{bg:'#fee2e2',c:'#991b1b',t:'Puudus (põhjuseta)'},
+                };
+                const b=bmap[l.status]||bmap.Toimunud;
+                return(
+                  <div key={l.id} style={{display:'flex',gap:12,paddingBottom:12,borderBottom:'1px solid rgba(28,43,58,.07)'}}>
+                    <div style={{width:40,height:40,borderRadius:10,background:'rgba(201,136,42,.1)',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700,color:'#C9882A',flexShrink:0,fontSize:'1.1rem'}}>
+                      {l.status==='Toimunud'?l.grade:'—'}
+                    </div>
+                    <div style={{flex:1}}>
+                      <div style={{display:'flex',justifyContent:'space-between',gap:8,flexWrap:'wrap'}}>
+                        <div style={{fontWeight:600,fontSize:'.9rem'}}>{l.topic}</div>
+                        <span className="badge" style={{background:b.bg,color:b.c}}>{b.t}</span>
+                      </div>
+                      {l.comment&&<div style={{fontSize:'.8rem',color:'#42536A',marginTop:3}}>{l.comment}</div>}
+                      <div style={{fontSize:'.75rem',color:'#42536A',marginTop:4,display:'flex',gap:10}}>
+                        <span>Õp. {l.teacher}</span>
+                        <span>{fmtDate(l.date)}{l.duration?' · '+l.duration+' min':''}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Arved õpilasele */}
+        {(user.role==='teacher'||user.role==='parent')&&(
+          <div className="card" style={{padding:24}}>
+            <h3 style={{marginBottom:16}}>💳 Arved</h3>
+            {user.role==='teacher'&&(
+              <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))',gap:10,marginBottom:14}}>
+                <input type="number" value={invAmt} onChange={e=>setInvAmt(e.target.value)} placeholder="Summa (€) *"
+                  defaultValue="" style={{}} data-stuId={currentStu.id}/>
+                <input value={invDesc} onChange={e=>setInvDesc(e.target.value)} placeholder="Kirjeldus"/>
+                <button onClick={()=>{setInvStu(currentStu.id);addInvoice();}} className="btn btn-amber">
+                  <i className="fa-solid fa-file-invoice"/> Loo arve
+                </button>
+              </div>
+            )}
+            <div style={{display:'flex',flexDirection:'column',gap:8}}>
+              {stuInv.length===0&&<p style={{color:'#42536A',fontSize:'.88rem'}}>Arveid pole.</p>}
+              {stuInv.map(inv=>(
+                <div key={inv.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'12px 16px',background:'#FBFAF8',borderRadius:10,border:'1px solid rgba(28,43,58,.08)'}}>
+                  <div>
+                    <div style={{fontWeight:600}}>{inv.num}</div>
+                    <div style={{fontSize:'.8rem',color:'#42536A'}}>{inv.desc} · Tähtaeg: {fmtDate(inv.due)}</div>
+                  </div>
+                  <div style={{display:'flex',alignItems:'center',gap:10}}>
+                    <span style={{fontWeight:700,fontSize:'1.1rem'}}>{inv.amount}€</span>
+                    {inv.status==='Makstud'
+                      ? <span className="badge" style={{background:'#dcfce7',color:'#166534'}}>✓ Makstud</span>
+                      : <>{<span className="badge" style={{background:'#fef3c7',color:'#92400e'}}>Ootel</span>}
+                         {user.role==='teacher'&&<button onClick={()=>markInvPaid(inv.id)} className="btn btn-pine" style={{padding:'6px 14px',fontSize:'.8rem'}}>Märgi makstud</button>}
+                        </>
+                    }
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // ── ARVED (üldvaade) ───────────────────────────────────────
+  const Invoices=()=>{
+    const unpaid=invoices.filter(i=>i.status==='Ootel');
+    const paid=invoices.filter(i=>i.status==='Makstud');
+    return(
+      <div style={{display:'flex',flexDirection:'column',gap:20}}>
+        <h1>Arved</h1>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))',gap:14}}>
+          <div className="stat-card" style={{borderColor:'#fcd34d'}}>
+            <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',textTransform:'uppercase',letterSpacing:'.06em'}}>Maksmata kokku</div>
+            <div style={{fontSize:'2rem',fontWeight:700,color:'#C9882A',marginTop:6}}>{unpaidInv}€</div>
+            <div style={{fontSize:'.8rem',color:'#42536A'}}>{unpaid.length} arvet</div>
+          </div>
+          <div className="stat-card">
+            <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',textTransform:'uppercase',letterSpacing:'.06em'}}>Makstud kokku</div>
+            <div style={{fontSize:'2rem',fontWeight:700,color:'#2F5D50',marginTop:6}}>{paid.reduce((a,i)=>a+i.amount,0)}€</div>
+            <div style={{fontSize:'.8rem',color:'#42536A'}}>{paid.length} arvet</div>
+          </div>
+        </div>
+
+        {/* Loo arve */}
+        <div className="card" style={{padding:24}}>
+          <h3 style={{marginBottom:16}}>➕ Loo uus arve</h3>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))',gap:10,marginBottom:12}}>
+            <select value={invStu} onChange={e=>setInvStu(e.target.value)}>
+              <option value="">Vali õpilane *</option>
+              {myStudents.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
+            <input type="number" value={invAmt} onChange={e=>setInvAmt(e.target.value)} placeholder="Summa (€) *"/>
+            <input value={invDesc} onChange={e=>setInvDesc(e.target.value)} placeholder="Kirjeldus (nt. Tunnid juuni)"/>
+            <button onClick={addInvoice} className="btn btn-amber">
+              <i className="fa-solid fa-file-invoice"/> Loo arve
+            </button>
+          </div>
+        </div>
+
+        {/* Arvete nimekiri */}
+        <div className="card" style={{overflow:'hidden'}}>
+          <div style={{padding:'16px 20px',borderBottom:'1px solid rgba(28,43,58,.08)',fontWeight:600}}>Kõik arved ({invoices.length})</div>
+          {invoices.length===0
+            ? <div style={{padding:40,textAlign:'center',color:'#42536A'}}>Arveid pole.</div>
+            : [...invoices].sort((a,b)=>new Date(b.date)-new Date(a.date)).map(inv=>(
+              <div key={inv.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'14px 20px',borderBottom:'1px solid rgba(28,43,58,.05)',flexWrap:'wrap',gap:10}}>
+                <div>
+                  <div style={{fontWeight:600}}>{inv.num} · {inv.studentName}</div>
+                  <div style={{fontSize:'.8rem',color:'#42536A'}}>{inv.desc} · Tähtaeg: {fmtDate(inv.due)}</div>
+                </div>
+                <div style={{display:'flex',alignItems:'center',gap:10}}>
+                  <span style={{fontWeight:700,fontSize:'1.1rem'}}>{inv.amount}€</span>
+                  {inv.status==='Makstud'
+                    ? <span className="badge" style={{background:'#dcfce7',color:'#166534'}}>✓ Makstud</span>
+                    : <>{<span className="badge" style={{background:'#fef3c7',color:'#92400e'}}>Ootel</span>}
+                       <button onClick={()=>markInvPaid(inv.id)} className="btn btn-pine" style={{padding:'6px 14px',fontSize:'.8rem'}}>Märgi makstud</button>
+                      </>
+                  }
+                </div>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+    );
+  };
+
+  // ── TUNNI MODAL ────────────────────────────────────────────
+  const LessonModal=()=>(
+    <div style={{position:'fixed',inset:0,background:'rgba(28,43,58,.5)',display:'flex',alignItems:'center',justifyContent:'center',padding:16,zIndex:100}}>
+      <div className="card" style={{padding:28,maxWidth:500,width:'100%',position:'relative',maxHeight:'90vh',overflowY:'auto'}}>
+        <button onClick={()=>setModalEv(null)}
+          style={{position:'absolute',top:16,right:16,background:'none',border:'none',cursor:'pointer',fontSize:'1.1rem',color:'#42536A'}}>✕</button>
+        <h2 style={{marginBottom:4}}>Tunni aruanne</h2>
+        <p style={{color:'#42536A',fontSize:'.88rem',marginBottom:20}}>
+          <strong>{modalEv.studentName}</strong> · {modalEv.time}
+        </p>
+        <div style={{display:'flex',flexDirection:'column',gap:12}}>
+          <input value={lTopic} onChange={e=>setLTopic(e.target.value)} placeholder="Tunni teema *"/>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+            <select value={lStatus} onChange={e=>setLStatus(e.target.value)}>
+              <option value="Toimunud">✓ Toimunud</option>
+              <option value="Puudus_p">Puudus (põhjusega)</option>
+              <option value="Puudus_eta">Puudus (põhjuseta)</option>
+            </select>
+            <select value={lGrade} onChange={e=>setLGrade(e.target.value)} disabled={lStatus!=='Toimunud'}>
+              <option value="5">5 ★★★★★ Suurepärane</option>
+              <option value="4">4 ★★★★ Hea</option>
+              <option value="3">3 ★★★ Rahuldav</option>
+              <option value="2">2 ★★ Puudulik</option>
+            </select>
+          </div>
+          <select value={lDur} onChange={e=>setLDur(e.target.value)}>
+            {['30','45','60','90','120'].map(d=><option key={d} value={d}>{d} minutit</option>)}
+          </select>
+          <textarea value={lComment} onChange={e=>setLComment(e.target.value)}
+            placeholder="Õpetaja kommentaar…" rows={3}/>
+          <button onClick={saveLesson} className="btn btn-dark" style={{width:'100%',borderRadius:12}}>
+            <i className="fa-solid fa-floppy-disk"/> Salvesta päevikusse
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  // ── PEAMINE RENDER ─────────────────────────────────────────
+  return(
+    <div style={{display:'flex',minHeight:'100vh'}}>
+      <Sidebar/>
+      <main style={{flex:1,padding:'28px 32px',overflowY:'auto',background:'#FBFAF8'}} className="scroll">
+        {/* Teavitus */}
+        {notif&&(
+          <div style={{position:'fixed',top:20,right:20,background:'#1C2B3A',color:'#fff',padding:'12px 20px',borderRadius:12,zIndex:200,fontWeight:600,boxShadow:'0 8px 24px rgba(0,0,0,.2)'}}>
+            {notif}
+          </div>
+        )}
+        {tab==='dashboard'&&<Dashboard/>}
+        {tab==='calendar' &&<Calendar/>}
+        {tab==='students' &&user.role==='teacher'&&!selStu&&<StudentsList/>}
+        {tab==='students' &&user.role==='teacher'&&selStu &&<StudentCard/>}
+        {tab==='students' &&user.role!=='teacher'         &&<StudentCard/>}
+        {tab==='invoices' &&user.role==='teacher'         &&<Invoices/>}
+      </main>
+      {modalEv&&<LessonModal/>}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
 </script>
 </body>
 </html>
