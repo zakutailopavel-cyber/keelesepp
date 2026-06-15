@@ -4,576 +4,613 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>KeeleSepp — Haldussüsteem</title>
-    
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script>
+    try {
+        firebase.initializeApp({
+            apiKey: "AIzaSyAp8emBOh1fIqv72k_O5hkLkXVkfBt1al4",
+            authDomain: "keelesepp-5136b.firebaseapp.com",
+            projectId: "keelesepp-5136b",
+            storageBucket: "keelesepp-5136b.firebasestorage.app",
+            messagingSenderId: "674098517935",
+            appId: "1:674098517935:web:e73d04a4ada67874da015a"
+        });
+        window._db = firebase.firestore();
+    } catch(e) { console.warn("Firebase:", e.message); }
+    </script>
 
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
     <style>
-        :root {
-            --ink: #1C2B3A;
-            --ink-s: #42536A;
-            --paper: #FBFAF8;
-            --mist: #EFEDE7;
-            --amber: #C9882A;
-            --amber-d: #A96E1A;
-            --pine: #2F5D50;
-            --sh: 0 10px 32px rgba(28,43,58,.08);
-            --r: 14px;
-        }
-        body { 
-            font-family: "IBM Plex Sans", system-ui, sans-serif; 
-            background-color: var(--paper);
-            color: var(--ink);
-        }
-        h1, h2, h3 { font-family: "Fraunces", Georgia, serif; font-weight: 600; }
-        
-        input, select, textarea { 
-            font-size: 16px !important; 
-            background-color: #fff !important;
-            border: 1.5px solid rgba(28,43,58,.13) !important;
-            border-radius: 10px !important;
-        }
-        input:focus, select:focus, textarea:focus { border-color: var(--amber) !important; outline: none; }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(28,43,58,0.15); border-radius: 99px; }
+        body { font-family: "IBM Plex Sans", system-ui, sans-serif; background:#FBFAF8; color:#1C2B3A; }
+        h1,h2,h3 { font-family: "Fraunces", Georgia, serif; font-weight:600; }
+        input,select,textarea { font-size:16px!important; background:#fff!important; border:1.5px solid rgba(28,43,58,.13)!important; border-radius:10px!important; padding:10px 14px; width:100%; }
+        input:focus,select:focus,textarea:focus { border-color:#C9882A!important; outline:none; }
+        .scroll::-webkit-scrollbar{width:5px;height:5px}
+        .scroll::-webkit-scrollbar-thumb{background:rgba(28,43,58,.15);border-radius:99px}
     </style>
 </head>
 <body class="antialiased">
-
-    <div id="root">
-        <div class="flex items-center justify-center min-h-screen">
-            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600"></div>
-        </div>
+<div id="root">
+    <div class="flex items-center justify-center min-h-screen">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600"></div>
     </div>
+</div>
 
-    <script type="text/babel">
-        // === ВАШИ КЛЮЧИ FIREBASE ===
-        const firebaseConfig = {
-            apiKey: "AIzaSyAp8emB0h1fIqv72k_05hkLkXVkfBt1al4",
-            authDomain: "keelesepp-5136b.firebaseapp.com",
-            projectId: "keelesepp-5136b",
-            storageBucket: "keelesepp-5136b.appspot.com",
-            messagingSenderId: "674098517935",
-            appId: "1:674098517935:web:e73d04a4ada67874da015a"
-        };
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef } = React;
+const db = window._db;
 
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
+const DAYS = [
+    {id:'Mon',name:'Esmaspäev'},{id:'Tue',name:'Teisipäev'},{id:'Wed',name:'Kolmapäev'},
+    {id:'Thu',name:'Neljapäev'},{id:'Fri',name:'Reede'},{id:'Sat',name:'Laupäev'},{id:'Sun',name:'Pühapäev'}
+];
+const TIMES = ["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00"];
+const TEACHERS = ['Pavel','Jelena','Elizaveta','Angelina'];
+const STUDENTS_DEMO = ['Marina','Aleksei','Olga','Dmitri','Natalia'];
+
+// ── PROGRESSI GRAAFIK ────────────────────────────────────────
+function ProgressChart({ data }) {
+    const ref = useRef(null);
+    useEffect(() => {
+        if (!ref.current || !data.length) return;
+        const sorted = [...data].sort((a,b) => new Date(a.date)-new Date(b.date));
+        const ch = new Chart(ref.current.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: sorted.map(d => d.date),
+                datasets: [{
+                    label: 'Hinne', data: sorted.map(d => d.grade),
+                    borderColor:'#C9882A', backgroundColor:'rgba(201,136,42,0.05)',
+                    borderWidth:3, tension:0.3, fill:true,
+                    pointBackgroundColor:'#2F5D50', pointRadius:5
+                }]
+            },
+            options: { responsive:true, maintainAspectRatio:false, scales:{ y:{ min:1, max:5, ticks:{stepSize:1} } } }
+        });
+        return () => ch.destroy();
+    }, [data]);
+    return <div className="h-64 w-full"><canvas ref={ref}></canvas></div>;
+}
+
+// ── PEAMINE APP ───────────────────────────────────────────────
+function App() {
+    const [user, setUser]       = useState(null);
+    const [role, setRole]       = useState(null);
+    const [uname, setUname]     = useState('');
+    const [pass, setPass]       = useState('');
+    const [err, setErr]         = useState('');
+    const [tab, setTab]         = useState('dashboard');
+    const [selStudent, setSelStudent] = useState(null);
+    const [filterT, setFilterT] = useState('Pavel');
+    const [modalEv, setModalEv] = useState(null);
+
+    // Firestore data
+    const [students,  setStudents]  = useState([]);
+    const [lessons,   setLessons]   = useState([]);
+    const [homeworks, setHomeworks] = useState([]);
+    const [schedule,  setSchedule]  = useState([]);
+
+    // Forms
+    const [newName,  setNewName]  = useState('');
+    const [newLevel, setNewLevel] = useState('A1');
+    const [newTarget,setNewTarget]= useState('B1');
+    const [newTeach, setNewTeach] = useState('Pavel');
+    const [lTopic,   setLTopic]   = useState('');
+    const [lGrade,   setLGrade]   = useState('5');
+    const [lStatus,  setLStatus]  = useState('Toimunud');
+    const [lComment, setLComment] = useState('');
+    const [hwTask,   setHwTask]   = useState('');
+    const [schSt,    setSchSt]    = useState('');
+    const [schDay,   setSchDay]   = useState('Mon');
+    const [schTime,  setSchTime]  = useState('09:00');
+    const [schTeach, setSchTeach] = useState('Pavel');
+
+    // ── SISSELOGIMINE ────────────────────────────────────────
+    const login = () => {
+        setErr('');
+        if (TEACHERS.includes(uname) && pass === '1234') {
+            setUser(uname); setRole('teacher');
+            setFilterT(uname); setSchTeach(uname); setNewTeach(uname);
+        } else if (STUDENTS_DEMO.includes(uname) && pass === '1234') {
+            setUser(uname); setRole('student');
+        } else {
+            setErr('Vale kasutajatunnus või parool. Demo parool: 1234');
         }
-        const db = firebase.firestore();
+    };
 
-        const WEEK_DAYS = [
-            { id: 'Mon', name: 'Esmaspäev' }, { id: 'Tue', name: 'Teisipäev' },
-            { id: 'Wed', name: 'Kolmapäev' }, { id: 'Thu', name: 'Neljapäev' },
-            { id: 'Fri', name: 'Reede' }, { id: 'Sat', name: 'Laupäev' }, { id: 'Sun', name: 'Pühapäev' }
-        ];
+    // ── FIRESTORE KUULAMINE ──────────────────────────────────
+    useEffect(() => {
+        if (!user || !db) return;
+        const u1 = db.collection('students').onSnapshot(s => {
+            setStudents(s.docs.map(d => ({id:d.id,...d.data()})));
+        });
+        const u2 = db.collection('lessons').onSnapshot(s => {
+            setLessons(s.docs.map(d => ({id:d.id,...d.data()})));
+        });
+        const u3 = db.collection('homework').onSnapshot(s => {
+            setHomeworks(s.docs.map(d => ({id:d.id,...d.data()})));
+        });
+        const u4 = db.collection('schedule').onSnapshot(s => {
+            setSchedule(s.docs.map(d => ({id:d.id,...d.data()})));
+        });
+        return () => { u1(); u2(); u3(); u4(); };
+    }, [user]);
 
-        const TIME_SLOTS = [
-            "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", 
-            "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00"
-        ];
+    // ── TEGEVUSED ────────────────────────────────────────────
+    const addStudent = async () => {
+        if (!newName.trim()) return;
+        const teacher = user === 'Pavel' ? newTeach : user;
+        await db.collection('students').add({
+            name:newName, level:newLevel, targetLevel:newTarget,
+            teacher, createdAt: new Date().toISOString()
+        });
+        setNewName('');
+        alert('Õpilane lisatud!');
+    };
 
-        function ProgressChart({ data }) {
-            const chartRef = React.useRef(null);
-            React.useEffect(() => {
-                if (!chartRef.current || data.length === 0) return;
-                const ctx = chartRef.current.getContext('2d');
-                const sortedData = [...data].sort((a,b) => new Date(a.date) - new Date(b.date));
-                const labels = sortedData.map(item => item.date);
-                const scores = sortedData.map(item => item.grade);
+    const addSchedule = async () => {
+        if (!schSt) return;
+        const teacher = user === 'Pavel' ? schTeach : user;
+        await db.collection('schedule').add({ teacher, studentName:schSt, day:schDay, time:schTime });
+        setSchSt('');
+        alert('Tund märgitud!');
+    };
 
-                const chartInstance = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Hinnete kõver (Progress)',
-                            data: scores,
-                            borderColor: '#C9882A',
-                            backgroundColor: 'rgba(201, 136, 42, 0.05)',
-                            borderWidth: 3,
-                            tension: 0.3,
-                            fill: true,
-                            pointBackgroundColor: '#2F5D50',
-                            pointRadius: 5
-                        }]
-                    },
-                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 1, max: 5, ticks: { stepSize: 1 } } } }
-                });
-                return () => { chartInstance.destroy(); };
-            }, [data]);
-
-            return <div class="h-64 w-full"><canvas ref={chartRef}></canvas></div>;
+    const saveLesson = async () => {
+        if (!modalEv || !lTopic.trim()) return;
+        const stu = students.find(s => s.name.toLowerCase() === modalEv.studentName.toLowerCase());
+        const now = new Date();
+        await db.collection('lessons').add({
+            studentId: stu ? stu.id : 'ext',
+            studentName: modalEv.studentName,
+            topic: lTopic,
+            grade: lStatus === 'Toimunud' ? parseInt(lGrade) : 0,
+            status: lStatus,
+            comment: lComment,
+            date: now.toISOString().split('T')[0],
+            submittedAt: now.toLocaleString('et-EE'),
+            teacher: user
+        });
+        if (window.confirm('Kustuta see tund tunniplaanist?')) {
+            await db.collection('schedule').doc(modalEv.id).delete();
         }
+        setLTopic(''); setLComment(''); setModalEv(null);
+        alert('Salvestatud!');
+    };
 
-        function App() {
-            const [user, setUser] = React.useState(null);
-            const [role, setRole] = React.useState(null); 
-            const [username, setUsername] = React.useState('');
-            const [password, setPassword] = React.useState('');
-            const [error, setError] = React.useState('');
-            
-            const [students, setStudents] = React.useState([]);
-            const [lessons, setLessons] = React.useState([]);
-            const [homeworks, setHomeworks] = React.useState([]);
-            const [schedule, setSchedule] = React.useState([]); 
-            const [activeTab, setActiveTab] = React.useState('dashboard');
-            const [selectedStudent, setSelectedStudent] = React.useState(null);
+    const addHw = async () => {
+        if (!selStudent || !hwTask.trim()) return;
+        await db.collection('homework').add({
+            studentId: selStudent.id, task:hwTask,
+            status:'Ootel', date: new Date().toISOString().split('T')[0]
+        });
+        setHwTask('');
+        alert('Kodutöö saadetud!');
+    };
 
-            const [activeModalEvent, setActiveModalEvent] = React.useState(null);
-            const [filterTeacher, setFilterTeacher] = React.useState('Pavel');
+    const toggleHw = async (id, cur) => {
+        await db.collection('homework').doc(id).update({ status: cur === 'Tehtud' ? 'Ootel' : 'Tehtud' });
+    };
 
-            const [newStudentName, setNewStudentName] = React.useState('');
-            const [newStudentLevel, setNewStudentLevel] = React.useState('A1');
-            const [targetLevel, setTargetLevel] = React.useState('B1');
-            const [assignTeacher, setAssignTeacher] = React.useState('Pavel');
+    const delSchedule = async (id, e) => {
+        e.stopPropagation();
+        if (window.confirm('Kustuta tund?')) await db.collection('schedule').doc(id).delete();
+    };
 
-            const [lessonTopic, setLessonTopic] = React.useState('');
-            const [lessonGrade, setLessonGrade] = React.useState('5');
-            const [lessonStatus, setLessonStatus] = React.useState('Toimunud'); 
-            const [lessonComment, setLessonComment] = React.useState('');
-            const [hwTask, setHwTask] = React.useState('');
+    // ── FILTRID ──────────────────────────────────────────────
+    const myStudents = user === 'Pavel' ? students : students.filter(s => s.teacher === user);
+    const filteredSch = role === 'teacher'
+        ? (filterT === 'Kõik' ? schedule : schedule.filter(s => s.teacher === filterT))
+        : schedule.filter(s => s.studentName.toLowerCase().includes(user?.toLowerCase() || ''));
 
-            const [schStudent, setSchStudent] = React.useState('');
-            const [schDay, setSchDay] = React.useState('Mon');
-            const [schTime, setSchTime] = React.useState('09:00');
-            const [schTeacher, setSchTeacher] = React.useState('Pavel');
+    const currentStu = selStudent
+        ? students.find(s => s.id === selStudent.id) || selStudent
+        : role === 'student' ? students.find(s => s.name.toLowerCase() === user?.toLowerCase()) : null;
 
-            const handleLogin = (e) => {
-                e.preventDefault();
-                setError('');
-                const teachers = ['Pavel', 'Jelena', 'Elizaveta', 'Angelina'];
-                const demoStudents = ['Marina', 'Aleksei', 'Olga', 'Dmitri', 'Natalia'];
+    const stuLessons  = currentStu ? lessons.filter(l => l.studentId === currentStu.id || l.studentName?.toLowerCase() === currentStu.name?.toLowerCase()) : [];
+    const stuHw       = currentStu ? homeworks.filter(h => h.studentId === currentStu.id) : [];
 
-                if (teachers.includes(username) && password === '1234') {
-                    setUser(username); setRole('teacher');
-                    setFilterTeacher(username); setSchTeacher(username); setAssignTeacher(username);
-                } else if (demoStudents.includes(username) && password === '1234') {
-                    setUser(username); setRole('student');
-                } else { setError('Vale kasutajatunnus või parool'); }
-            };
-
-            React.useEffect(() => {
-                if (!user) return;
-                const unsubStudents = db.collection("students").onSnapshot(snap => {
-                    let list = []; snap.forEach(doc => list.push({id: doc.id, ...doc.data()}));
-                    setStudents(list);
-                });
-                const unsubLessons = db.collection("lessons").onSnapshot(snap => {
-                    let list = []; snap.forEach(doc => list.push({id: doc.id, ...doc.data()}));
-                    setLessons(list);
-                });
-                const unsubHw = db.collection("homework").onSnapshot(snap => {
-                    let list = []; snap.forEach(doc => list.push({id: doc.id, ...doc.data()}));
-                    setHomeworks(list);
-                });
-                const unsubSch = db.collection("schedule").onSnapshot(snap => {
-                    let list = []; snap.forEach(doc => list.push({id: doc.id, ...doc.data()}));
-                    setSchedule(list);
-                });
-                return () => { unsubStudents(); unsubLessons(); unsubHw(); unsubSch(); };
-            }, [user]);
-
-            const addStudent = async (e) => {
-                e.preventDefault();
-                const targetTeacher = user === 'Pavel' ? assignTeacher : user;
-                await db.collection("students").add({
-                    name: newStudentName, level: newStudentLevel, targetLevel: targetLevel,
-                    teacher: targetTeacher, createdAt: new Date().toISOString()
-                });
-                setNewStudentName(''); alert('Õpilane lisatud!');
-            };
-
-            const saveModalReport = async (e) => {
-                e.preventDefault();
-                if (!activeModalEvent) return;
-
-                const studentObj = students.find(s => s.name.toLowerCase() === activeModalEvent.studentName.toLowerCase());
-                const studentId = studentObj ? studentObj.id : "extern_user";
-
-                const now = new Date();
-                const formattedTimestamp = now.toLocaleString('et-EE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-
-                await db.collection("lessons").add({
-                    studentId: studentId,
-                    studentName: activeModalEvent.studentName,
-                    topic: lessonTopic,
-                    grade: lessonStatus === 'Toimunud' ? parseInt(lessonGrade) : 0,
-                    status: lessonStatus,
-                    comment: lessonComment,
-                    date: now.toISOString().split('T')[0],
-                    submittedAt: formattedTimestamp, 
-                    teacher: user
-                });
-
-                if(confirm('Kas soovite selle tunni tunniplaanist tulevaste seast eemaldada?')) {
-                    await db.collection("schedule").doc(activeModalEvent.id).delete();
-                }
-
-                setLessonTopic(''); setLessonComment(''); setActiveModalEvent(null);
-                alert('Aruanne edukalt päevikusse salvestatud!');
-            };
-
-            const addHomework = async (e) => {
-                e.preventDefault();
-                if (!selectedStudent) return;
-                await db.collection("homework").add({
-                    studentId: selectedStudent.id, task: hwTask, status: "Ootel", date: new Date().toISOString().split('T')[0]
-                });
-                setHwTask(''); alert('Kodutöö saadetud!');
-            };
-
-            const toggleHwStatus = async (id, currentStatus) => {
-                const next = currentStatus === "Tehtud" ? "Ootel" : "Tehtud";
-                await db.collection("homework").doc(id).update({ status: next });
-            };
-
-            const addScheduleEvent = async (e) => {
-                e.preventDefault();
-                if (!schStudent) return;
-                const teacherToAssign = user === 'Pavel' ? schTeacher : user;
-                await db.collection("schedule").add({
-                    teacher: teacherToAssign, studentName: schStudent, day: schDay, time: schTime
-                });
-                setSchStudent(''); alert('Tund märgitud!');
-            };
-
-            const deleteScheduleEvent = (id, e) => {
-                e.stopPropagation(); 
-                if(confirm('Kas soovite selle tunni tunniplaanist kustutada?')) {
-                    db.collection("schedule").doc(id).delete();
-                }
-            };
-
-            const filteredSchedule = role === 'teacher'
-                ? (filterTeacher === 'Kõik' ? schedule : schedule.filter(s => s.teacher === filterTeacher))
-                : schedule.filter(s => s.studentName.toLowerCase().includes(user.toLowerCase()));
-
-            const filteredStudentsMenu = user === 'Pavel' ? students : students.filter(s => s.teacher === user);
-
-            return (
-                <div class="min-h-screen flex flex-col md:flex-row">
-                    <aside class="w-full md:w-64 text-white flex flex-col p-5 space-y-6" style={{backgroundColor: 'var(--ink)'}}>
-                        <div class="flex items-center justify-between border-b border-gray-800 pb-4">
-                            <span class="text-2xl font-semibold tracking-tight">Keele<span class="text-amber-400">Sepp</span></span>
-                            <span class="text-[10px] uppercase font-bold tracking-widest bg-gray-800 px-2 py-1 rounded text-amber-400">{role === 'teacher' ? 'Õpetaja' : 'Õpilane'}</span>
-                        </div>
-                        <div class="text-xs text-gray-400">Aktiivne konto: <span class="font-semibold text-white text-sm block mt-0.5">{user}</span></div>
-                        <nav class="flex-1 space-y-1">
-                            <button onClick={() => { setActiveTab('dashboard'); setSelectedStudent(null); }} class={`w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'dashboard' ? 'bg-[#C9882A] text-white shadow-md' : 'text-gray-300 hover:bg-slate-800'}`}>
-                                <i class="fa-solid fa-chart-pie mr-3 w-5"></i> Töölaud
-                            </button>
-                            <button onClick={() => setActiveTab('calendar')} class={`w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'calendar' ? 'bg-[#C9882A] text-white shadow-md' : 'text-gray-300 hover:bg-slate-800'}`}>
-                                <i class="fa-solid fa-calendar-days mr-3 w-5"></i> Tunniplaan
-                            </button>
-                            <button onClick={() => setActiveTab('students')} class={`w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'students' ? 'bg-[#C9882A] text-white shadow-md' : 'text-gray-300 hover:bg-slate-800'}`}>
-                                <i class="fa-solid fa-graduation-cap mr-3 w-5"></i> {role === 'teacher' ? 'Minu õpilased' : 'Minu progress & päevik'}
-                            </button>
-                        </nav>
-                        <button onClick={() => setUser(null)} class="w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium text-red-400 hover:bg-slate-800 transition-colors">
-                            <i class="fa-solid fa-right-from-bracket mr-3 w-5"></i> Logi välja
-                        </button>
-                    </aside>
-
-                    <main class="flex-1 p-5 md:p-8 overflow-y-auto" style={{backgroundColor: 'var(--paper)'}}>
-                        {activeTab === 'dashboard' && !selectedStudent && (
-                            <div class="space-y-6">
-                                <h1 class="text-3xl font-semibold text-slate-900">Tere tulemast, {user}!</h1>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                                    <div class="bg-white p-6 rounded-2xl border border-gray-200/60 shadow-sm">
-                                        <p class="text-sm font-medium text-gray-400 uppercase">Minu õpilased rühmas</p>
-                                        <p class="text-4xl font-bold text-slate-900 mt-2">{filteredStudentsMenu.length}</p>
-                                    </div>
-                                    <div class="bg-white p-6 rounded-2xl border border-gray-200/60 shadow-sm">
-                                        <p class="text-sm font-medium text-gray-400 uppercase">Keeletase</p>
-                                        <p class="text-2xl font-bold text-[#2F5D50] mt-3">
-                                            {role === 'teacher' ? "Kõik tasemed A1-C1" : `${myStudentProfile?.level || 'A1'} ➔ Siht: ${myStudentProfile?.targetLevel || 'B1'}`}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                {role === 'teacher' && (
-                                    <div class="bg-white p-6 rounded-2xl border border-gray-200/60 shadow-sm mt-6">
-                                        <h3 class="text-xl font-semibold text-slate-900 mb-4">Registreeri uus õpilane oma baasi</h3>
-                                        <form onSubmit={addStudent} class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                                            <input type="text" value={newStudentName} onChange={(e) => setNewStudentName(e.target.value)} placeholder="Õpilase nimi" class="px-4 py-2.5 text-sm" required />
-                                            <select value={newStudentLevel} onChange={(e) => setNewStudentLevel(e.target.value)} class="px-4 py-2.5 text-sm">
-                                                <option value="A1">Hetketase: A1</option><option value="A2">A2</option><option value="B1">B1</option><option value="B2">B2</option>
-                                            </select>
-                                            <select value={targetLevel} onChange={(e) => setTargetLevel(e.target.value)} class="px-4 py-2.5 text-sm">
-                                                <option value="B1">Eesmärk: B1</option><option value="B2">B2</option><option value="C1">C1</option>
-                                            </select>
-                                            {user === 'Pavel' && (
-                                                <select value={assignTeacher} onChange={(e) => setAssignTeacher(e.target.value)} class="px-4 py-2.5 text-sm font-semibold text-[#C9882A]">
-                                                    <option value="Pavel">Pavel</option><option value="Jelena">Jelena</option>
-                                                    <option value="Elizaveta">Elizaveta</option><option value="Angelina">Angelina</option>
-                                                </select>
-                                            )}
-                                            <button type="submit" class="sm:col-span-3 lg:col-span-4 bg-[#2F5D50] hover:bg-[#1C2B3A] text-white py-3 rounded-full text-sm font-semibold transition-all">
-                                                + Kinnita õpilane andmebaasi
-                                            </button>
-                                        </form>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
-                        {activeTab === 'calendar' && (
-                            <div class="space-y-6">
-                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                    <h1 class="text-3xl font-semibold text-slate-900">KeeleSepp Tunniplaan</h1>
-                                    {user === 'Pavel' && (
-                                        <div class="flex items-center gap-2 bg-white px-4 py-2 rounded-xl border shadow-sm">
-                                            <span class="text-xs font-bold text-gray-400 uppercase">Vaade:</span>
-                                            <select value={filterTeacher} onChange={(e) => setFilterTeacher(e.target.value)} class="border-none bg-transparent font-semibold text-sm text-[#C9882A] p-0 focus:ring-0">
-                                                <option value="Pavel">Pavel</option><option value="Jelena">Jelena</option>
-                                                <option value="Elizaveta">Elizaveta</option><option value="Angelina">Angelina</option>
-                                                <option value="Kõik">Kõik õpetajad</option>
-                                            </select>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {role === 'teacher' && (
-                                    <div class="bg-white p-5 rounded-2xl border border-gray-200/60 shadow-sm">
-                                        <h3 class="text-sm font-bold text-gray-400 uppercase mb-3">Broneeri uus tund graafikusse</h3>
-                                        <form onSubmit={addScheduleEvent} class="grid grid-cols-1 sm:grid-cols-4 lg:grid-cols-5 gap-3">
-                                            <select value={schStudent} onChange={(e) => setSchStudent(e.target.value)} class="px-4 py-2 text-sm" required>
-                                                <option value="">Vali õpilane...</option>
-                                                {filteredStudentsMenu.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
-                                            </select>
-                                            <select value={schDay} onChange={(e) => setSchDay(e.target.value)} class="px-4 py-2 text-sm">
-                                                {WEEK_DAYS.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-                                            </select>
-                                            <select value={schTime} onChange={(e) => setSchTime(e.target.value)} class="px-4 py-2 text-sm">
-                                                {TIME_SLOTS.map(t => <option key={t} value={t}>{t}</option>)}
-                                            </select>
-                                            {user === 'Pavel' && (
-                                                <select value={schTeacher} onChange={(e) => setSchTeacher(e.target.value)} class="px-4 py-2 text-sm">
-                                                    <option value="Pavel">Õp. Pavel</option><option value="Jelena">Õp. Jelena</option>
-                                                    <option value="Elizaveta">Õp. Elizaveta</option><option value="Angelina">Õp. Angelina</option>
-                                                </select>
-                                            )}
-                                            <button type="submit" class="bg-[#2F5D50] hover:bg-[#1C2B3A] text-white font-semibold rounded-xl text-sm py-2 transition-all cursor-pointer lg:col-span-1 sm:col-span-4">
-                                                + Kinnita lukku
-                                            </button>
-                                        </form>
-                                    </div>
-                                )}
-
-                                <div class="bg-white rounded-2xl border border-gray-200/60 shadow-sm overflow-hidden">
-                                    <div class="overflow-x-auto custom-scrollbar">
-                                        <div class="min-w-[800px] grid grid-cols-8 border-b border-gray-100 bg-[#EFEDE7]">
-                                            <div class="p-3 text-xs font-bold text-center text-slate-500 uppercase border-r border-gray-200/50">Kell</div>
-                                            {WEEK_DAYS.map(day => (
-                                                <div key={day.id} class="p-3 text-xs font-bold text-center text-slate-800 uppercase border-r border-gray-200/50 last:border-0">
-                                                    {day.name}
-                                                </div>
-                                            ))}
-                                        </div>
-
-                                        <div class="min-w-[800px] divide-y divide-gray-100/70">
-                                            {TIME_SLOTS.map(slot => (
-                                                <div key={slot} class="grid grid-cols-8 h-20 bg-white">
-                                                    <div class="flex items-center justify-center bg-gray-50/50 text-xs font-mono font-bold text-slate-400 border-r border-gray-100">{slot}</div>
-                                                    {WEEK_DAYS.map(day => {
-                                                        const currentSlotEvents = filteredSchedule.filter(s => s.day === day.id && s.time === slot);
-                                                        return (
-                                                            <div key={day.id} class="p-1 border-r border-gray-100/60 last:border-0 relative flex flex-col gap-1 overflow-y-auto custom-scrollbar bg-white/40">
-                                                                {currentSlotEvents.map(ev => (
-                                                                    <div key={ev.id} onClick={() => { if(role === 'teacher') setActiveModalEvent(ev); }} class="text-xs p-1.5 rounded-lg border flex flex-col justify-between cursor-pointer hover:scale-[1.02] transition-all shadow-xs" style={{ backgroundColor: 'rgba(47,93,80,0.06)', borderColor: 'rgba(47,93,80,0.18)', color: 'var(--ink)' }}>
-                                                                        <div class="flex justify-between items-start">
-                                                                            <span class="font-bold tracking-tight truncate max-w-[85%]">{ev.studentName}</span>
-                                                                            {role === 'teacher' && (
-                                                                                <button onClick={(e) => deleteScheduleEvent(ev.id, e)} class="text-gray-400 hover:text-red-500 font-bold ml-1 text-[10px] cursor-pointer">✕</button>
-                                                                            )}
-                                                                        </div>
-                                                                        {(filterTeacher === 'Kõik' || user === 'Pavel') && (
-                                                                            <span class="text-[9px] font-semibold text-[#A96E1A] mt-0.5">Õp. {ev.teacher}</span>
-                                                                        )}
-                                                                    </div>
-                                                                ))}
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {activeModalEvent && (
-                            <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-                                <div class="bg-white p-6 sm:p-8 rounded-2xl border border-[rgba(28,43,58,0.1)] max-w-xl w-full shadow-2xl relative animate-in fade-in zoom-in-95 duration-150">
-                                    <button onClick={() => setActiveModalEvent(null)} class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-lg cursor-pointer">✕</button>
-                                    
-                                    <div class="flex items-center gap-3 border-b border-gray-100 pb-3 mb-5">
-                                        <i class="fa-solid fa-pen-to-square text-xl text-[#2F5D50]"></i>
-                                        <h2 class="text-2xl font-bold text-slate-900">Журнал уроков и посещаемости</h2>
-                                    </div>
-                                    <p class="text-sm font-medium text-gray-500 mb-4">Õpilane: <span class="font-bold text-slate-900">{activeModalEvent.studentName}</span> (Tund: {activeModalEvent.time})</p>
-
-                                    <form onSubmit={saveModalReport} class="space-y-4">
-                                        <div>
-                                            <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Tunni teema</label>
-                                            <input type="text" value={lessonTopic} onChange={(e) => setLessonTopic(e.target.value)} placeholder="Введите тему занятия..." class="w-full px-4 py-2.5 text-sm" required />
-                                        </div>
-
-                                        <div class="grid grid-cols-2 gap-4">
-                                            <div>
-                                                <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Hinne za урок:</label>
-                                                <select value={lessonGrade} onChange={(e) => setLessonGrade(e.target.value)} class="w-full px-4 py-2.5 text-sm font-bold text-[#C9882A]" disabled={lessonStatus !== 'Toimunud'}>
-                                                    <option value="5">5 (Suurepärane)</option>
-                                                    <option value="4">4 (Hea)</option>
-                                                    <option value="3">3 (Rahuldav)</option>
-                                                </select>
-                                            </div>
-                                            <div>
-                                                <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Tunni staatus:</label>
-                                                <select value={lessonStatus} onChange={(e) => setLessonStatus(e.target.value)} class="w-full px-4 py-2.5 text-sm font-semibold">
-                                                    <option value="Toimunud">Toimunud (Проведен)</option>
-                                                    <option value="Puudus_p">Puudus põhjustega (Уважит.)</option>
-                                                    <option value="Puudus_eta">Puudus põhjuseta (Прогул)</option>
-                                                </select>
-                                            </div>
-                                        </div>
-
-                                        <div>
-                                            <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Õpetaja kommentaar</label>
-                                            <textarea value={lessonComment} onChange={(e) => setLessonComment(e.target.value)} placeholder="Õpetaja kommentaar..." rows="3" class="w-full px-4 py-2.5 text-sm custom-scrollbar"></textarea>
-                                        </div>
-
-                                        <button type="submit" class="w-full bg-[#1C2B3A] text-white py-3 rounded-xl text-sm font-semibold hover:bg-[#2F5D50] transition-colors cursor-pointer shadow-md mt-2">
-                                            Salvesta aruanne
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                        )}
-
-                        {(activeTab === 'students' || selectedStudent) && (
-                            <div class="space-y-6">
-                                {role === 'teacher' && !selectedStudent ? (
-                                    <div>
-                                        <h1 class="text-3xl font-semibold text-slate-900 mb-6">Minu õpilased</h1>
-                                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                            {filteredStudentsMenu.map(student => (
-                                                <div key={student.id} onClick={() => setSelectedStudent(student)} class="bg-white p-5 rounded-2xl border border-gray-200/60 shadow-sm hover:border-[#C9882A] cursor-pointer transition-all">
-                                                    <h3 class="text-lg font-bold text-slate-900">{student.name}</h3>
-                                                    <p class="text-xs text-gray-400 mt-1">Tase: {student.level} ➔ Siht: {student.targetLevel}</p>
-                                                    {user === 'Pavel' && <p class="text-[11px] text-emerald-700 font-medium mt-1">Õpetaja: {student.teacher}</p>}
-                                                    <span class="inline-block text-xs font-semibold text-[#C9882A] mt-3">Ava õpikaart ➔</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div class="space-y-6">
-                                        <div class="flex justify-between items-center bg-white p-6 rounded-2xl border border-gray-200/60 shadow-sm">
-                                            <div>
-                                                <h2 class="text-2xl font-bold text-slate-900">{currentStudentData?.name} päevik</h2>
-                                                <p class="text-sm text-gray-500 mt-1">Õpetaja: {currentStudentData?.teacher} · {currentStudentData?.level} ➔ {currentStudentData?.targetLevel}</p>
-                                            </div>
-                                            {role === 'teacher' && (
-                                                <button onClick={() => setSelectedStudent(null)} class="text-sm bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-full font-medium cursor-pointer">Tagasi</button>
-                                            )}
-                                        </div>
-
-                                        <div class="bg-white p-6 rounded-2xl border border-gray-200/60 shadow-sm">
-                                            <h3 class="text-lg font-bold mb-4">Õppimise progressi kõver</h3>
-                                            {studentLessons.filter(l => l.status === 'Toimunud').length > 0 ? (
-                                                <ProgressChart data={studentLessons.filter(l => l.status === 'Toimunud')} />
-                                            ) : (
-                                                <p class="text-sm text-gray-400 text-center py-8">Graafiku jaoks pole veel piisavalt toimunud tundide hindeid.</p>
-                                            )}
-                                        </div>
-
-                                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                            <div class="bg-white p-6 rounded-2xl border border-gray-200/60 shadow-sm space-y-4">
-                                                <h3 class="text-lg font-bold text-slate-900 border-b border-gray-100 pb-2"><i class="fa-solid fa-book mr-2 text-[#C9882A]"></i>Kodutööd</h3>
-                                                {role === 'teacher' && (
-                                                    <form onSubmit={addHomework} class="flex gap-2">
-                                                        <input type="text" value={hwTask} onChange={(e) => setHwTask(e.target.value)} placeholder="Uus ülesanne..." class="flex-1 px-4 py-2 text-sm" required />
-                                                        <button type="submit" class="bg-[#2F5D50] hover:bg-[#1C2B3A] text-white px-4 py-2 rounded-xl text-sm font-semibold cursor-pointer">Saada</button>
-                                                    </form>
-                                                )}
-                                                <div class="space-y-2">
-                                                    {studentHw.map(hw => (
-                                                        <div key={hw.id} class="flex justify-between items-center bg-gray-50 p-3 rounded-xl border">
-                                                            <div>
-                                                                <p class="text-sm font-medium text-slate-900">{hw.task}</p>
-                                                                <span class="text-[10px] text-gray-400">{hw.date}</span>
-                                                            </div>
-                                                            <button onClick={() => toggleHwStatus(hw.id, hw.status)} class={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${hw.status === 'Tehtud' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-[#A96E1A]'}`}>
-                                                                {hw.status === 'Tehtud' ? '✓ Tehtud' : 'Ootel'}
-                                                            </button>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-
-                                            <div class="bg-white p-6 rounded-2xl border border-gray-200/60 shadow-sm space-y-4">
-                                                <h3 class="text-lg font-bold text-slate-900 border-b border-gray-100 pb-2"><i class="fa-solid fa-pen-to-square mr-2 text-[#2F5D50]"></i>Журнал уроков и хронология записей</h3>
-                                                <div class="space-y-3 max-h-96 overflow-y-auto custom-scrollbar">
-                                                    {studentLessons.length === 0 ? (
-                                                        <p class="text-xs text-gray-400 py-4 text-center">Päevikusse pole veel tunde kantud.</p>
-                                                    ) : (
-                                                        [...studentLessons].sort((a,b) => new Date(b.date) - new Date(a.date)).map(lesson => {
-                                                            let statusBadge = "bg-emerald-50 text-emerald-800 border-emerald-100";
-                                                            let statusText = "Toimunud";
-                                                            if(lesson.status === 'Puudus_p') { statusBadge = "bg-blue-50 text-blue-800 border-blue-100"; statusText = "Puudus (põhjusega)"; }
-                                                            if(lesson.status === 'Puudus_eta') { statusBadge = "bg-red-50 text-red-800 border-red-100"; statusText = "Puudus (põhjuseta)"; }
-
-                                                            return (
-                                                                <div key={lesson.id} class="border-b border-gray-100 pb-3 flex gap-4 items-start last:border-none">
-                                                                    <span class="w-10 h-10 flex items-center justify-center bg-amber-50 rounded-xl text-[#A96E1A] font-bold text-lg border border-amber-100">
-                                                                        {lesson.status === 'Toimunud' ? lesson.grade : '—'}
-                                                                    </span>
-                                                                    <div class="flex-1">
-                                                                        <div class="flex items-center justify-between">
-                                                                            <h4 class="text-sm font-semibold text-slate-900">{lesson.topic}</h4>
-                                                                            <span class={"text-[9px] font-bold px-2 py-0.5 rounded border " + statusBadge}>{statusText}</span>
-                                                                        </div>
-                                                                        <p class="text-xs text-gray-500 mt-1">{lesson.comment}</p>
-                                                                        <div class="flex items-center justify-between text-[10px] text-gray-400 mt-2 bg-gray-50 p-1 px-2 rounded-md">
-                                                                            <span>Õp. {lesson.teacher}</span>
-                                                                            <span class="font-mono"><i class="fa-regular fa-clock mr-1"></i>Sisse kantud: {lesson.submittedAt || lesson.date}</span>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            );
-                                                        })
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </main>
+    // ── LOGIN EKRAAN ─────────────────────────────────────────
+    if (!user) return (
+        <div className="min-h-screen flex items-center justify-center bg-[#FBFAF8] p-4">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-8">
+                <div className="text-center mb-7">
+                    <div className="text-3xl font-bold mb-1" style={{fontFamily:"Fraunces,Georgia,serif"}}>
+                        Keele<span style={{color:'#C9882A'}}>Sepp</span>
+                    </div>
+                    <div className="text-xs text-gray-400">Haldussüsteem</div>
                 </div>
-            );
-        }
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
+                <div className="space-y-3 mb-4">
+                    <div>
+                        <label className="text-xs font-semibold text-gray-400 block mb-1">KASUTAJANIMI</label>
+                        <input value={uname} onChange={e=>setUname(e.target.value)}
+                            onKeyDown={e=>e.key==='Enter'&&login()}
+                            placeholder="nt. Pavel või Marina" />
+                    </div>
+                    <div>
+                        <label className="text-xs font-semibold text-gray-400 block mb-1">PAROOL</label>
+                        <input type="password" value={pass} onChange={e=>setPass(e.target.value)}
+                            onKeyDown={e=>e.key==='Enter'&&login()}
+                            placeholder="••••" />
+                    </div>
+                    {err && <div className="text-xs text-red-500 bg-red-50 rounded-xl p-2.5">{err}</div>}
+                </div>
+
+                <button onClick={login}
+                    className="w-full py-3 rounded-xl font-semibold text-white text-sm"
+                    style={{background:'#1C2B3A'}}>
+                    Sisene
+                </button>
+                <div className="mt-4 text-xs text-center text-gray-300">
+                    Õpetajad: Pavel / Jelena / Elizaveta · Parool: <strong>1234</strong><br/>
+                    Õpilane: Marina / Aleksei · Parool: <strong>1234</strong>
+                </div>
+            </div>
+        </div>
+    );
+
+    // ── SIDEBAR ──────────────────────────────────────────────
+    const Sidebar = () => (
+        <aside className="w-full md:w-64 flex flex-col p-5 space-y-4" style={{background:'#1C2B3A',color:'#fff'}}>
+            <div className="flex items-center justify-between border-b border-gray-700 pb-4">
+                <span className="text-2xl font-bold" style={{fontFamily:"Fraunces,Georgia,serif"}}>
+                    Keele<span style={{color:'#C9882A'}}>Sepp</span>
+                </span>
+                <span className="text-xs bg-gray-800 px-2 py-1 rounded text-amber-400 font-bold uppercase">
+                    {role === 'teacher' ? 'Õpetaja' : 'Õpilane'}
+                </span>
+            </div>
+            <div className="text-xs text-gray-400">
+                Konto: <span className="font-semibold text-white block mt-0.5">{user}</span>
+            </div>
+            <nav className="flex-1 space-y-1">
+                {[
+                    {id:'dashboard', icon:'fa-chart-pie',     label:'Töölaud'},
+                    {id:'calendar',  icon:'fa-calendar-days', label:'Tunniplaan'},
+                    {id:'students',  icon:'fa-graduation-cap',label: role==='teacher' ? 'Õpilased' : 'Minu progress'},
+                ].map(item => (
+                    <button key={item.id}
+                        onClick={() => { setTab(item.id); setSelStudent(null); }}
+                        className={`w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all text-left ${tab===item.id ? 'text-white shadow-md' : 'text-gray-300 hover:bg-slate-800'}`}
+                        style={tab===item.id ? {background:'#C9882A'} : {}}>
+                        <i className={`fa-solid ${item.icon} mr-3 w-5`}></i> {item.label}
+                    </button>
+                ))}
+            </nav>
+            <button onClick={() => { setUser(null); setRole(null); setTab('dashboard'); }}
+                className="flex items-center px-4 py-3 rounded-xl text-sm text-red-400 hover:bg-slate-800 transition-colors">
+                <i className="fa-solid fa-right-from-bracket mr-3"></i> Logi välja
+            </button>
+        </aside>
+    );
+
+    // ── TÖÖLAUD ──────────────────────────────────────────────
+    const Dashboard = () => (
+        <div className="space-y-6">
+            <h1 className="text-3xl font-semibold">Tere, {user}!</h1>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                    <p className="text-xs font-semibold text-gray-400 uppercase mb-2">
+                        {role==='teacher' ? 'Minu õpilased' : 'Minu tase'}
+                    </p>
+                    <p className="text-4xl font-bold" style={{color:'#1C2B3A'}}>
+                        {role==='teacher' ? myStudents.length : (currentStu?.level || '—')}
+                    </p>
+                </div>
+                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                    <p className="text-xs font-semibold text-gray-400 uppercase mb-2">Tunnid kokku</p>
+                    <p className="text-4xl font-bold" style={{color:'#1C2B3A'}}>{lessons.length}</p>
+                </div>
+            </div>
+
+            {role === 'teacher' && (
+                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                    <h3 className="text-lg font-semibold mb-4">Lisa uus õpilane</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                        <input value={newName} onChange={e=>setNewName(e.target.value)} placeholder="Õpilase täisnimi" />
+                        <select value={newLevel} onChange={e=>setNewLevel(e.target.value)}>
+                            {['A1','A2','B1','B2','C1'].map(l=><option key={l}>Hetketase: {l}</option>)}
+                        </select>
+                        <select value={newTarget} onChange={e=>setNewTarget(e.target.value)}>
+                            {['A2','B1','B2','C1'].map(l=><option key={l}>Eesmärk: {l}</option>)}
+                        </select>
+                        {user === 'Pavel' && (
+                            <select value={newTeach} onChange={e=>setNewTeach(e.target.value)}>
+                                {TEACHERS.map(t=><option key={t}>Õpetaja: {t}</option>)}
+                            </select>
+                        )}
+                    </div>
+                    <button onClick={addStudent}
+                        className="w-full py-3 rounded-xl text-white font-semibold text-sm"
+                        style={{background:'#2F5D50'}}>
+                        + Lisa õpilane andmebaasi
+                    </button>
+                </div>
+            )}
+        </div>
+    );
+
+    // ── TUNNIPLAAN ───────────────────────────────────────────
+    const Calendar = () => (
+        <div className="space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <h1 className="text-3xl font-semibold">Tunniplaan</h1>
+                {user === 'Pavel' && (
+                    <select value={filterT} onChange={e=>setFilterT(e.target.value)}
+                        className="w-auto">
+                        {TEACHERS.map(t=><option key={t}>{t}</option>)}
+                        <option value="Kõik">Kõik õpetajad</option>
+                    </select>
+                )}
+            </div>
+
+            {role === 'teacher' && (
+                <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+                    <p className="text-xs font-bold text-gray-400 uppercase mb-3">Broneeri uus tund</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                        <select value={schSt} onChange={e=>setSchSt(e.target.value)}>
+                            <option value="">Vali õpilane…</option>
+                            {myStudents.map(s=><option key={s.id} value={s.name}>{s.name}</option>)}
+                        </select>
+                        <select value={schDay} onChange={e=>setSchDay(e.target.value)}>
+                            {DAYS.map(d=><option key={d.id} value={d.id}>{d.name}</option>)}
+                        </select>
+                        <select value={schTime} onChange={e=>setSchTime(e.target.value)}>
+                            {TIMES.map(t=><option key={t} value={t}>{t}</option>)}
+                        </select>
+                        {user === 'Pavel' && (
+                            <select value={schTeach} onChange={e=>setSchTeach(e.target.value)}>
+                                {TEACHERS.map(t=><option key={t}>{t}</option>)}
+                            </select>
+                        )}
+                    </div>
+                    <button onClick={addSchedule}
+                        className="w-full py-2.5 rounded-xl text-white font-semibold text-sm"
+                        style={{background:'#2F5D50'}}>
+                        + Kinnita tund
+                    </button>
+                </div>
+            )}
+
+            {/* Kalender grid */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto scroll">
+                    <div className="min-w-[700px]">
+                        {/* Header */}
+                        <div className="grid border-b" style={{gridTemplateColumns:'70px repeat(7,1fr)',background:'#EFEDE7'}}>
+                            <div className="p-3 text-xs font-bold text-center text-gray-500">Kell</div>
+                            {DAYS.map(d=>(
+                                <div key={d.id} className="p-3 text-xs font-bold text-center border-l border-gray-200">{d.name.slice(0,4)}</div>
+                            ))}
+                        </div>
+                        {/* Rows */}
+                        {TIMES.map(slot => (
+                            <div key={slot} className="grid border-b border-gray-50" style={{gridTemplateColumns:'70px repeat(7,1fr)',minHeight:'60px'}}>
+                                <div className="flex items-center justify-center text-xs font-mono text-gray-400 border-r border-gray-100 bg-gray-50/50">{slot}</div>
+                                {DAYS.map(day => {
+                                    const evs = filteredSch.filter(s => s.day===day.id && s.time===slot);
+                                    return (
+                                        <div key={day.id} className="p-1 border-l border-gray-100 flex flex-col gap-1">
+                                            {evs.map(ev => (
+                                                <div key={ev.id}
+                                                    onClick={() => role==='teacher' && setModalEv(ev)}
+                                                    className="text-xs p-1.5 rounded-lg cursor-pointer hover:opacity-80 transition-all"
+                                                    style={{background:'rgba(47,93,80,0.08)',border:'1px solid rgba(47,93,80,0.2)'}}>
+                                                    <div className="flex justify-between items-start">
+                                                        <span className="font-semibold truncate">{ev.studentName}</span>
+                                                        {role==='teacher' && (
+                                                            <button onClick={e=>delSchedule(ev.id,e)}
+                                                                className="text-gray-400 hover:text-red-500 ml-1 text-xs">✕</button>
+                                                        )}
+                                                    </div>
+                                                    {filterT==='Kõik' && <span className="text-xs" style={{color:'#A96E1A'}}>{ev.teacher}</span>}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+
+    // ── ÕPILASTE NIMEKIRI ────────────────────────────────────
+    const StudentsList = () => (
+        <div>
+            <h1 className="text-3xl font-semibold mb-6">Minu õpilased</h1>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {myStudents.map(s => (
+                    <div key={s.id} onClick={() => setSelStudent(s)}
+                        className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm cursor-pointer hover:border-amber-400 transition-all">
+                        <h3 className="text-lg font-semibold">{s.name}</h3>
+                        <p className="text-xs text-gray-400 mt-1">{s.level} → {s.targetLevel}</p>
+                        {user==='Pavel' && <p className="text-xs mt-1" style={{color:'#2F5D50'}}>Õp. {s.teacher}</p>}
+                        <span className="text-xs font-semibold mt-3 inline-block" style={{color:'#C9882A'}}>Ava õpikaart →</span>
+                    </div>
+                ))}
+                {myStudents.length === 0 && (
+                    <div className="col-span-3 text-center py-12 text-gray-400 text-sm">
+                        Õpilasi pole veel lisatud. Lisa töölaualt.
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+
+    // ── ÕPILASE KAART ────────────────────────────────────────
+    const StudentCard = () => {
+        if (!currentStu) return <div className="text-gray-400 text-sm py-10 text-center">Õpilane ei leitud.</div>;
+        const doneLessons = stuLessons.filter(l => l.status==='Toimunud');
+
+        return (
+            <div className="space-y-6">
+                <div className="flex justify-between items-center bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                    <div>
+                        <h2 className="text-2xl font-semibold">{currentStu.name}</h2>
+                        <p className="text-sm text-gray-500 mt-1">
+                            Õp. {currentStu.teacher} · {currentStu.level} → {currentStu.targetLevel}
+                        </p>
+                    </div>
+                    {role==='teacher' && (
+                        <button onClick={() => setSelStudent(null)}
+                            className="text-sm bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-full font-medium">
+                            ← Tagasi
+                        </button>
+                    )}
+                </div>
+
+                {/* Graafik */}
+                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                    <h3 className="text-lg font-semibold mb-4">Progressi kõver</h3>
+                    {doneLessons.length > 0
+                        ? <ProgressChart data={doneLessons} />
+                        : <p className="text-sm text-gray-400 text-center py-8">Tunnid puuduvad veel.</p>
+                    }
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Kodutöö */}
+                    <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                        <h3 className="text-lg font-semibold mb-4">
+                            <i className="fa-solid fa-book mr-2" style={{color:'#C9882A'}}></i>Kodutööd
+                        </h3>
+                        {role==='teacher' && (
+                            <div className="flex gap-2 mb-4">
+                                <input value={hwTask} onChange={e=>setHwTask(e.target.value)} placeholder="Uus ülesanne…" className="flex-1" />
+                                <button onClick={addHw}
+                                    className="px-4 py-2 rounded-xl text-white text-sm font-semibold"
+                                    style={{background:'#2F5D50'}}>
+                                    Saada
+                                </button>
+                            </div>
+                        )}
+                        <div className="space-y-2">
+                            {stuHw.map(hw => (
+                                <div key={hw.id} className="flex justify-between items-center bg-gray-50 p-3 rounded-xl border">
+                                    <div>
+                                        <p className="text-sm font-medium">{hw.task}</p>
+                                        <span className="text-xs text-gray-400">{hw.date}</span>
+                                    </div>
+                                    <button onClick={() => toggleHw(hw.id, hw.status)}
+                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold ${hw.status==='Tehtud' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100'}`}
+                                        style={hw.status!=='Tehtud' ? {color:'#A96E1A'} : {}}>
+                                        {hw.status==='Tehtud' ? '✓ Tehtud' : 'Ootel'}
+                                    </button>
+                                </div>
+                            ))}
+                            {stuHw.length===0 && <p className="text-xs text-gray-400 text-center py-4">Kodutöid pole.</p>}
+                        </div>
+                    </div>
+
+                    {/* Tunni päevik */}
+                    <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                        <h3 className="text-lg font-semibold mb-4">
+                            <i className="fa-solid fa-pen-to-square mr-2" style={{color:'#2F5D50'}}></i>Tunni päevik
+                        </h3>
+                        <div className="space-y-3 max-h-96 overflow-y-auto scroll">
+                            {stuLessons.length===0
+                                ? <p className="text-xs text-gray-400 text-center py-4">Tunnid puuduvad.</p>
+                                : [...stuLessons].sort((a,b)=>new Date(b.date)-new Date(a.date)).map(l => {
+                                    const badgeMap = {
+                                        Toimunud:   {cls:'bg-emerald-50 text-emerald-800 border-emerald-100', txt:'Toimunud'},
+                                        Puudus_p:   {cls:'bg-blue-50 text-blue-800 border-blue-100',          txt:'Puudus (põhjusega)'},
+                                        Puudus_eta: {cls:'bg-red-50 text-red-800 border-red-100',             txt:'Puudus (põhjuseta)'},
+                                    };
+                                    const b = badgeMap[l.status] || badgeMap.Toimunud;
+                                    return (
+                                        <div key={l.id} className="border-b border-gray-100 pb-3 flex gap-3 last:border-0">
+                                            <span className="w-10 h-10 flex items-center justify-center rounded-xl font-bold text-lg border"
+                                                style={{background:'#FBFAF8',color:'#A96E1A',borderColor:'#f0e4cc'}}>
+                                                {l.status==='Toimunud' ? l.grade : '—'}
+                                            </span>
+                                            <div className="flex-1">
+                                                <div className="flex items-center justify-between gap-2">
+                                                    <span className="text-sm font-semibold">{l.topic}</span>
+                                                    <span className={`text-xs font-bold px-2 py-0.5 rounded border ${b.cls}`}>{b.txt}</span>
+                                                </div>
+                                                {l.comment && <p className="text-xs text-gray-500 mt-0.5">{l.comment}</p>}
+                                                <div className="flex justify-between text-xs text-gray-400 mt-1">
+                                                    <span>Õp. {l.teacher}</span>
+                                                    <span>{l.submittedAt || l.date}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    // ── TUNNI MODAL ──────────────────────────────────────────
+    const LessonModal = () => (
+        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white p-6 rounded-2xl border max-w-lg w-full shadow-2xl relative">
+                <button onClick={() => setModalEv(null)}
+                    className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-lg">✕</button>
+                <h2 className="text-xl font-semibold mb-1">Tunni aruanne</h2>
+                <p className="text-sm text-gray-500 mb-4">
+                    Õpilane: <strong>{modalEv.studentName}</strong> · {modalEv.time}
+                </p>
+                <div className="space-y-3">
+                    <input value={lTopic} onChange={e=>setLTopic(e.target.value)} placeholder="Tunni teema *" />
+                    <div className="grid grid-cols-2 gap-3">
+                        <select value={lGrade} onChange={e=>setLGrade(e.target.value)} disabled={lStatus!=='Toimunud'}>
+                            <option value="5">5 — Suurepärane</option>
+                            <option value="4">4 — Hea</option>
+                            <option value="3">3 — Rahuldav</option>
+                            <option value="2">2 — Puudulik</option>
+                        </select>
+                        <select value={lStatus} onChange={e=>setLStatus(e.target.value)}>
+                            <option value="Toimunud">Toimunud</option>
+                            <option value="Puudus_p">Puudus põhjusega</option>
+                            <option value="Puudus_eta">Puudus põhjuseta</option>
+                        </select>
+                    </div>
+                    <textarea value={lComment} onChange={e=>setLComment(e.target.value)}
+                        placeholder="Õpetaja kommentaar…" rows={3} />
+                    <button onClick={saveLesson}
+                        className="w-full py-3 rounded-xl text-white font-semibold"
+                        style={{background:'#1C2B3A'}}>
+                        Salvesta päevikusse
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+
+    // ── PEAMINE RENDER ───────────────────────────────────────
+    return (
+        <div className="min-h-screen flex flex-col md:flex-row">
+            <Sidebar />
+            <main className="flex-1 p-5 md:p-8 overflow-y-auto scroll" style={{background:'#FBFAF8'}}>
+                {tab==='dashboard' && <Dashboard />}
+                {tab==='calendar'  && <Calendar />}
+                {tab==='students'  && role==='teacher' && !selStudent && <StudentsList />}
+                {tab==='students'  && role==='teacher' && selStudent  && <StudentCard />}
+                {tab==='students'  && role==='student'               && <StudentCard />}
+            </main>
+            {modalEv && <LessonModal />}
+        </div>
+    );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
 </body>
 </html>
