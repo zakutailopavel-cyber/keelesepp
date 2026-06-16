@@ -6,7 +6,7 @@
     { "source": "/privaatsus/", "destination": "/privaatsus.html" },
     { "source": "/tingimused", "destination": "/tingimused.html" },
     { "source": "/tingimused/", "destination": "/tingimused.html" },
-    { "source": "/kutse", "destination": "/kutse" },
+    { "source": "/kutse", "destination": "/kutse.html" },
     { "source": "/", "destination": "/index.html" }
   ],
   "headers": [
