@@ -284,163 +284,61 @@ const tests = {
   et: {
     label: "Eesti keel",
     studentTrackLabel: "Eesti suund",
-    questions: [
-      { level:"A1", skill:"grammar", skillLabel:"Grammatika", weight:2, prompt:"Vali õige variant: Mina ... Tallinnas.", help:"Vali grammatiliselt sobiv tegusõna vorm.", options:[
-        { text:"elan", correct:true },
-        { text:"elaksin", correct:false },
-        { text:"elasin", correct:false }
-      ]},
-      { level:"A1", skill:"vocabulary", skillLabel:"Sõnavara", weight:2, prompt:"Mis päev tuleb pärast esmaspäeva?", help:"Mõtle nädalapäevade tavapärasele järjekorrale.", options:[
-        { text:"teisipäev", correct:true },
-        { text:"kolmapäev", correct:false },
-        { text:"neljapäev", correct:false }
-      ]},
-      { level:"A2", skill:"reading", skillLabel:"Lugemine", weight:3, prompt:"Vali sobiv küsimus: 'Ma lähen homme arsti juurde.'", help:"Milline küsimus sobib sellele vastusele?", options:[
-        { text:"Kuhu sa homme lähed?", correct:true },
-        { text:"Miks sa arsti juurde läksid?", correct:false },
-        { text:"Kas sa käisid täna arsti juures?", correct:false }
-      ]},
-      { level:"A2", skill:"grammar", skillLabel:"Grammatika", weight:3, prompt:"Leia õige vorm: Kui mul on aega, ma ... sulle.", help:"Vali tingimusega lauses loomulik oleviku-tuleviku vorm.", options:[
-        { text:"helistan", correct:true },
-        { text:"helistaksin", correct:false },
-        { text:"olen helistanud", correct:false }
-      ]},
-      { level:"A2", skill:"vocabulary", skillLabel:"Sõnavara", weight:3, prompt:"Vali kõige sobivam sõna: 'Palun ... aken kinni, siin on külm.'", help:"Vali loomulik igapäevane väljend.", options:[
-        { text:"pane", correct:true },
-        { text:"aseta", correct:false },
-        { text:"sulgeks", correct:false }
-      ]},
-      { level:"B1", skill:"reading", skillLabel:"Lugemine", weight:5, prompt:"Milline lause kõlab kõige loomulikumalt?", help:"Vaata sõnajärge ja loogilist tervikut.", options:[
-        { text:"Kui vihma sajab, jään ma koju ja loen raamatut.", correct:true },
-        { text:"Kui vihma sajab, ma jään koju ja hakkan lugema raamatutega.", correct:false },
-        { text:"Kui vihma sajab, jään koju, sest loen pärast raamatut oli.", correct:false }
-      ]},
-      { level:"B1", skill:"grammar", skillLabel:"Grammatika", weight:5, prompt:"Vali õige sõna: Ta ei saanud koosolekule tulla, ... ta laps oli haige.", help:"Milline sidend sobib põhjuse väljendamiseks?", options:[
-        { text:"sest", correct:true },
-        { text:"seega", correct:false },
-        { text:"enne kui", correct:false }
-      ]},
-      { level:"B1", skill:"reading", skillLabel:"Lugemine", weight:5, prompt:"Loe mõtet ja vali parim jätk: 'Ta õppis regulaarselt mitu kuud ja ...'", help:"Otsi sisuliselt kõige loomulikumat tulemust.", options:[
-        { text:"tegi lõpuks eksami edukalt ära.", correct:true },
-        { text:"eksami edukus oli temaga lõpuks õppinud.", correct:false },
-        { text:"mitu kuud eksam lõpuks tegi teda edukalt.", correct:false }
-      ]},
-      { level:"B2", skill:"vocabulary", skillLabel:"Sõnavara", weight:7, prompt:"Mis on kõige täpsem tähendus sõnal 'kokkulepe' selles kontekstis: 'Sõlmisime kliendiga kokkuleppe'?", help:"Vali tähendus, mis sobib tööalasesse olukorda.", options:[
-        { text:"ühine otsus või leping", correct:true },
-        { text:"esialgne kahtlus projekti suhtes", correct:false },
-        { text:"kohustuslik aruande vorm", correct:false }
-      ]},
-      { level:"B2", skill:"reading", skillLabel:"Lugemine", weight:7, prompt:"Milline lause väljendab viisakat ametlikku soovi?", help:"Mõtle ametlikule tööalasele kirjale.", options:[
-        { text:"Palun andke mulle teada, kas see aeg sobib teile.", correct:true },
-        { text:"Anna ruttu teada, kas sa saad selle ajaga hakkama.", correct:false },
-        { text:"Ootan, et kinnitaksite kohe, kas see aeg teile sobib.", correct:false }
-      ]},
-      { level:"B2", skill:"grammar", skillLabel:"Grammatika", weight:7, prompt:"Vali sobiv jätk: 'Kuigi projekt algas keeruliselt, ...'", help:"Leia jätk, mis on nii grammatiliselt korrektne kui sisuliselt loomulik.", options:[
-        { text:"õnnestus meeskonnal tähtaeg siiski täita.", correct:true },
-        { text:"meeskonnal tähtaeg siiski täitmine õnnestusena.", correct:false },
-        { text:"tähtaeg sai meeskonnaga siiski õnnestuma täidetud.", correct:false }
-      ]},
-      { level:"C1", skill:"vocabulary", skillLabel:"Sõnavara", weight:9, prompt:"Milline sõna sobib kõige paremini: 'Ettekanne oli sisukas ja ... üles ehitatud.'", help:"Vali kõige täpsem kõrgema taseme määrsõna.", options:[
-        { text:"loogiliselt", correct:true },
-        { text:"ulatuslikult", correct:false },
-        { text:"tihedalt", correct:false }
-      ]},
-      { level:"C1", skill:"vocabulary", skillLabel:"Sõnavara", weight:9, prompt:"Vali täpseim variant: 'Tema seisukoht jäi kogu arutelu vältel ...'", help:"Milline sõna annab tähenduse 'muutumatu ja selge'?", options:[
-        { text:"järjekindlaks", correct:true },
-        { text:"vaheldusrikkaks", correct:false },
-        { text:"ettevaatlikuks", correct:false }
-      ]},
-      { level:"C1", skill:"reading", skillLabel:"Lugemine", weight:9, prompt:"Milline lause sobib kõige paremini ametlikku kokkuvõttesse?", help:"Vali stiililt kõige küpsem ja analüütilisem variant.", options:[
-        { text:"Analüüsi põhjal võib järeldada, et kavandatud muudatused toetavad eesmärgi saavutamist.", correct:true },
-        { text:"Esialgse mulje põhjal paistab, et muudatused on vist üsna head.", correct:false },
-        { text:"Tundub, et muudatused võivad töötada, kuigi seda on veel raske päriselt öelda.", correct:false }
-      ]},
-      { level:"C1", skill:"grammar", skillLabel:"Grammatika", weight:9, prompt:"Vali kõige täpsem ja küpsem variant.", help:"Otsi tugevat struktuuri, selget loogikat ja täpset sõnastust.", options:[
-        { text:"Olles alternatiive võrrelnud, otsustasime valida lahenduse, mis tagab pikemaajalise stabiilsuse.", correct:true },
-        { text:"Pärast variantide vaatamist valisime lahenduse, mis ilmselt töötab kaua ja üsna hästi.", correct:false },
-        { text:"Variante võrreldes sai valitud selline asi, mis võiks pikas plaanis töötav olla.", correct:false }
-      ]}
+    bank: [
+      { id:"et-a1-g1", level:"A1", skill:"grammar", skillLabel:"Grammatika", weight:2, stage:"starter", prompt:"Vali õige variant: Mina ... Tallinnas.", help:"Vali grammatiliselt sobiv tegusõna vorm.", options:[{ text:"elan", correct:true },{ text:"elaksin", correct:false },{ text:"elasin", correct:false }]},
+      { id:"et-a1-v1", level:"A1", skill:"vocabulary", skillLabel:"Sõnavara", weight:2, stage:"starter", prompt:"Mis päev tuleb pärast esmaspäeva?", help:"Mõtle nädalapäevade tavapärasele järjekorrale.", options:[{ text:"teisipäev", correct:true },{ text:"kolmapäev", correct:false },{ text:"neljapäev", correct:false }]},
+      { id:"et-a1-r1", level:"A1", skill:"reading", skillLabel:"Lugemine", weight:2, stage:"starter", prompt:"Loe lauset: 'Mul on kaks venda.' Mida see tähendab?", help:"Vali kõige täpsem arusaam lausest.", options:[{ text:"Tal on kaks venda.", correct:true },{ text:"Tal on kaks õde.", correct:false },{ text:"Ta elab kahe vennaga koos.", correct:false }]},
+      { id:"et-a2-g1", level:"A2", skill:"grammar", skillLabel:"Grammatika", weight:3, stage:"starter", prompt:"Leia õige vorm: Kui mul on aega, ma ... sulle.", help:"Vali tingimusega lauses loomulik oleviku-tuleviku vorm.", options:[{ text:"helistan", correct:true },{ text:"helistaksin", correct:false },{ text:"olen helistanud", correct:false }]},
+      { id:"et-a2-r1", level:"A2", skill:"reading", skillLabel:"Lugemine", weight:3, stage:"starter", prompt:"Vali sobiv küsimus: 'Ma lähen homme arsti juurde.'", help:"Milline küsimus sobib sellele vastusele?", options:[{ text:"Kuhu sa homme lähed?", correct:true },{ text:"Miks sa arsti juurde läksid?", correct:false },{ text:"Kas sa käisid täna arsti juures?", correct:false }]},
+      { id:"et-a2-v1", level:"A2", skill:"vocabulary", skillLabel:"Sõnavara", weight:3, stage:"starter", prompt:"Vali kõige sobivam sõna: 'Palun ... aken kinni, siin on külm.'", help:"Vali loomulik igapäevane väljend.", options:[{ text:"pane", correct:true },{ text:"aseta", correct:false },{ text:"sulgeks", correct:false }]},
+      { id:"et-a2-r2", level:"A2", skill:"reading", skillLabel:"Lugemine", weight:3, stage:"support", passage:"Teade: Kursus algab 5. juulil kell 18.00. Tunnid toimuvad veebis teisipäeviti ja neljapäeviti.", prompt:"Millal toimuvad tunnid?", help:"Loe lühikest teadet ja leia õige vastus.", options:[{ text:"Teisipäeviti ja neljapäeviti.", correct:true },{ text:"Esmaspäeviti ja kolmapäeviti.", correct:false },{ text:"Ainult laupäeviti.", correct:false }]},
+      { id:"et-a2-g2", level:"A2", skill:"grammar", skillLabel:"Grammatika", weight:3, stage:"support", prompt:"Vali õige variant: Eile ma ... poes.", help:"Otsi lihtmineviku sobivat vormi.", options:[{ text:"käisin", correct:true },{ text:"käin", correct:false },{ text:"käiksin", correct:false }]},
+      { id:"et-b1-g1", level:"B1", skill:"grammar", skillLabel:"Grammatika", weight:5, stage:"starter", prompt:"Vali õige sõna: Ta ei saanud koosolekule tulla, ... ta laps oli haige.", help:"Milline sidend sobib põhjuse väljendamiseks?", options:[{ text:"sest", correct:true },{ text:"seega", correct:false },{ text:"enne kui", correct:false }]},
+      { id:"et-b1-r1", level:"B1", skill:"reading", skillLabel:"Lugemine", weight:5, stage:"starter", prompt:"Milline lause kõlab kõige loomulikumalt?", help:"Vaata sõnajärge ja loogilist tervikut.", options:[{ text:"Kui vihma sajab, jään ma koju ja loen raamatut.", correct:true },{ text:"Kui vihma sajab, ma jään koju ja hakkan lugema raamatutega.", correct:false },{ text:"Kui vihma sajab, jään koju, sest loen pärast raamatut oli.", correct:false }]},
+      { id:"et-b1-v1", level:"B1", skill:"vocabulary", skillLabel:"Sõnavara", weight:5, stage:"middle", prompt:"Vali kõige sobivam sõna: 'Ta oli eksami eel üsna ... , kuid sai lõpuks hästi hakkama.'", help:"Vali sõna, mis sobib lause tähendusega.", options:[{ text:"närvis", correct:true },{ text:"ruumiline", correct:false },{ text:"pikaldane", correct:false }]},
+      { id:"et-b1-r2", level:"B1", skill:"reading", skillLabel:"Lugemine", weight:5, stage:"middle", prompt:"Loe mõtet ja vali parim jätk: 'Ta õppis regulaarselt mitu kuud ja ...'", help:"Otsi sisuliselt kõige loomulikumat tulemust.", options:[{ text:"tegi lõpuks eksami edukalt ära.", correct:true },{ text:"eksami edukus oli temaga lõpuks õppinud.", correct:false },{ text:"mitu kuud eksam lõpuks tegi teda edukalt.", correct:false }]},
+      { id:"et-b1-r3", level:"B1", skill:"reading", skillLabel:"Lugemine", weight:5, stage:"middle", passage:"Mari otsustas sel aastal töö kõrvalt õppima hakata. Ta valis veebikursuse, sest nii sai ta tundides osaleda ka reisil olles.", prompt:"Miks valis Mari veebikursuse?", help:"Loe mini-teksti ja vali peamine põhjus.", options:[{ text:"See sobis tema paindliku elukorraldusega.", correct:true },{ text:"Talle ei meeldinud õpetajaga rääkida.", correct:false },{ text:"Veebikursusel ei olnud kodutöid.", correct:false }]},
+      { id:"et-b2-v1", level:"B2", skill:"vocabulary", skillLabel:"Sõnavara", weight:7, stage:"upper", prompt:"Mis on kõige täpsem tähendus sõnal 'kokkulepe' selles kontekstis: 'Sõlmisime kliendiga kokkuleppe'?", help:"Vali tähendus, mis sobib tööalasesse olukorda.", options:[{ text:"ühine otsus või leping", correct:true },{ text:"esialgne kahtlus projekti suhtes", correct:false },{ text:"kohustuslik aruande vorm", correct:false }]},
+      { id:"et-b2-r1", level:"B2", skill:"reading", skillLabel:"Lugemine", weight:7, stage:"upper", prompt:"Milline lause väljendab viisakat ametlikku soovi?", help:"Mõtle ametlikule tööalasele kirjale.", options:[{ text:"Palun andke mulle teada, kas see aeg sobib teile.", correct:true },{ text:"Anna ruttu teada, kas sa saad selle ajaga hakkama.", correct:false },{ text:"Ootan, et kinnitaksite kohe, kas see aeg teile sobib.", correct:false }]},
+      { id:"et-b2-g1", level:"B2", skill:"grammar", skillLabel:"Grammatika", weight:7, stage:"upper", prompt:"Vali sobiv jätk: 'Kuigi projekt algas keeruliselt, ...'", help:"Leia jätk, mis on nii grammatiliselt korrektne kui sisuliselt loomulik.", options:[{ text:"õnnestus meeskonnal tähtaeg siiski täita.", correct:true },{ text:"meeskonnal tähtaeg siiski täitmine õnnestusena.", correct:false },{ text:"tähtaeg sai meeskonnaga siiski õnnestuma täidetud.", correct:false }]},
+      { id:"et-b2-r2", level:"B2", skill:"reading", skillLabel:"Lugemine", weight:7, stage:"upper", passage:"Ettevõte otsustas koolitusprogrammi muuta pärast seda, kui töötajate tagasiside näitas, et senine formaat oli liiga teoreetiline. Uues versioonis lisati rohkem praktilisi ülesandeid ja lühemaid õppesessioone.", prompt:"Miks muudeti koolitusprogrammi?", help:"Vali põhjus, mida tekst otseselt toetab.", options:[{ text:"Tagasiside järgi ei olnud varasem formaat piisavalt praktiline.", correct:true },{ text:"Koolitus muutus liiga kalliks.", correct:false },{ text:"Töötajad soovisid pikemaid loenguid.", correct:false }]},
+      { id:"et-b2-g2", level:"B2", skill:"grammar", skillLabel:"Grammatika", weight:7, stage:"upper", prompt:"Vali kõige sobivam variant: 'Kui me oleksime otsusest varem teadnud, ...'", help:"Otsi tingimuslauses loomulikku minevikulist jätku.", options:[{ text:"oleksime saanud paremini valmistuda.", correct:true },{ text:"saame paremini valmistuda.", correct:false },{ text:"oleksime parem valmistume.", correct:false }]},
+      { id:"et-c1-v1", level:"C1", skill:"vocabulary", skillLabel:"Sõnavara", weight:9, stage:"advanced", prompt:"Milline sõna sobib kõige paremini: 'Ettekanne oli sisukas ja ... üles ehitatud.'", help:"Vali kõige täpsem kõrgema taseme määrsõna.", options:[{ text:"loogiliselt", correct:true },{ text:"ulatuslikult", correct:false },{ text:"tihedalt", correct:false }]},
+      { id:"et-c1-v2", level:"C1", skill:"vocabulary", skillLabel:"Sõnavara", weight:9, stage:"advanced", prompt:"Vali täpseim variant: 'Tema seisukoht jäi kogu arutelu vältel ...'", help:"Milline sõna annab tähenduse 'muutumatu ja selge'?", options:[{ text:"järjekindlaks", correct:true },{ text:"vaheldusrikkaks", correct:false },{ text:"ettevaatlikuks", correct:false }]},
+      { id:"et-c1-r1", level:"C1", skill:"reading", skillLabel:"Lugemine", weight:9, stage:"advanced", prompt:"Milline lause sobib kõige paremini ametlikku kokkuvõttesse?", help:"Vali stiililt kõige küpsem ja analüütilisem variant.", options:[{ text:"Analüüsi põhjal võib järeldada, et kavandatud muudatused toetavad eesmärgi saavutamist.", correct:true },{ text:"Esialgse mulje põhjal paistab, et muudatused on vist üsna head.", correct:false },{ text:"Tundub, et muudatused võivad töötada, kuigi seda on veel raske päriselt öelda.", correct:false }]},
+      { id:"et-c1-g1", level:"C1", skill:"grammar", skillLabel:"Grammatika", weight:9, stage:"advanced", prompt:"Vali kõige täpsem ja küpsem variant.", help:"Otsi tugevat struktuuri, selget loogikat ja täpset sõnastust.", options:[{ text:"Olles alternatiive võrrelnud, otsustasime valida lahenduse, mis tagab pikemaajalise stabiilsuse.", correct:true },{ text:"Pärast variantide vaatamist valisime lahenduse, mis ilmselt töötab kaua ja üsna hästi.", correct:false },{ text:"Variante võrreldes sai valitud selline asi, mis võiks pikas plaanis töötav olla.", correct:false }]},
+      { id:"et-c1-r2", level:"C1", skill:"reading", skillLabel:"Lugemine", weight:9, stage:"advanced", passage:"Aruandes märgitakse, et müügitulemuste paranemine ei tulenenud ühestainsast kampaaniast, vaid mitme väiksema muudatuse koosmõjust: täpsemast sihtimisest, lühematest vastusaegadest ja selgemast kliendisuhtlusest.", prompt:"Milline järeldus on teksti põhjal kõige täpsem?", help:"Vali variant, mis säilitab teksti nüansi.", options:[{ text:"Paranemine tulenes mitme teguri koosmõjust, mitte ühest lahendusest.", correct:true },{ text:"Kõige olulisem mõju oli ainult reklaamikampaanial.", correct:false },{ text:"Müügitulemused paranesid peamiselt hindade langetamise tõttu.", correct:false }]},
+      { id:"et-c1-g2", level:"C1", skill:"grammar", skillLabel:"Grammatika", weight:9, stage:"advanced", prompt:"Vali vormilt ja stiililt tugevaim lause.", help:"Otsi lauset, mis sobiks ametlikku analüüsi või memo'sse.", options:[{ text:"Vaevalt et oleksime sama tulemuseni jõudnud ilma varasema ettevalmistuseta.", correct:true },{ text:"Ilma ettevalmistuseta me vist ei jõuaks sama tulemuseni nii hästi.", correct:false },{ text:"Sama tulemuseni jõudmine ilma ettevalmistuseta ei oleks võib-olla olnud.", correct:false }]}
     ]
   },
   en: {
     label: "English",
     studentTrackLabel: "English track",
-    questions: [
-      { level:"A1", skill:"grammar", skillLabel:"Grammar", weight:2, prompt:"Choose the correct sentence.", help:"Pick the grammatically correct present simple form.", options:[
-        { text:"She lives in Tallinn.", correct:true },
-        { text:"She lived in Tallinn.", correct:false },
-        { text:"She is live in Tallinn.", correct:false }
-      ]},
-      { level:"A1", skill:"vocabulary", skillLabel:"Vocabulary", weight:2, prompt:"What is the opposite of 'small'?", help:"Choose the basic vocabulary answer.", options:[
-        { text:"big", correct:true },
-        { text:"long", correct:false },
-        { text:"wide", correct:false }
-      ]},
-      { level:"A2", skill:"grammar", skillLabel:"Grammar", weight:3, prompt:"Choose the best option: 'I usually ___ coffee in the morning.'", help:"Think of daily routines.", options:[
-        { text:"drink", correct:true },
-        { text:"have drunk", correct:false },
-        { text:"am drink", correct:false }
-      ]},
-      { level:"A2", skill:"reading", skillLabel:"Reading", weight:3, prompt:"Which question matches the answer: 'Because I was tired.'", help:"Look for the correct question word.", options:[
-        { text:"Why did you go home early?", correct:true },
-        { text:"When were you tired?", correct:false },
-        { text:"Did you go home because of work?", correct:false }
-      ]},
-      { level:"A2", skill:"vocabulary", skillLabel:"Vocabulary", weight:3, prompt:"Choose the most natural phrase: 'Can you ___ the window, please?'", help:"Think of a common everyday request.", options:[
-        { text:"close", correct:true },
-        { text:"complete", correct:false },
-        { text:"shut down", correct:false }
-      ]},
-      { level:"B1", skill:"reading", skillLabel:"Reading", weight:5, prompt:"Choose the most natural sentence.", help:"Pay attention to word order, tense and overall naturalness.", options:[
-        { text:"If I have time tomorrow, I'll call you after work.", correct:true },
-        { text:"If I have time tomorrow, I will be call you after work.", correct:false },
-        { text:"If tomorrow I have enough time, I call you after my work is finished.", correct:false }
-      ]},
-      { level:"B1", skill:"grammar", skillLabel:"Grammar", weight:5, prompt:"Select the correct linker: 'I stayed home ___ it was raining heavily.'", help:"Choose the word that gives a reason.", options:[
-        { text:"because", correct:true },
-        { text:"therefore", correct:false },
-        { text:"despite", correct:false }
-      ]},
-      { level:"B1", skill:"reading", skillLabel:"Reading", weight:5, prompt:"Complete the idea: 'She prepared carefully for the interview and...'", help:"Choose the continuation that sounds coherent and natural.", options:[
-        { text:"felt much more confident on the day.", correct:true },
-        { text:"the interview confidence became more by the day.", correct:false },
-        { text:"was feeling confidence because the interview prepared.", correct:false }
-      ]},
-      { level:"B2", skill:"reading", skillLabel:"Reading", weight:7, prompt:"Which sentence sounds most appropriate in a professional email?", help:"Think of polite, concise workplace English.", options:[
-        { text:"Could you please confirm whether Friday would be convenient for you?", correct:true },
-        { text:"Please tell me quickly if Friday is okay on your side.", correct:false },
-        { text:"I expect you to confirm Friday as soon as possible.", correct:false }
-      ]},
-      { level:"B2", skill:"vocabulary", skillLabel:"Vocabulary", weight:7, prompt:"Choose the best word: 'The report provides a clear ___ of the current situation.'", help:"Pick the most suitable formal noun for a report.", options:[
-        { text:"overview", correct:true },
-        { text:"watch", correct:false },
-        { text:"pictureing", correct:false }
-      ]},
-      { level:"B2", skill:"grammar", skillLabel:"Grammar", weight:7, prompt:"Complete the sentence: 'Even though the launch was delayed, the team managed to...'", help:"Choose the continuation that stays grammatical and professional.", options:[
-        { text:"meet the client's main expectations.", correct:true },
-        { text:"manage the client expectations was mainly meeting.", correct:false },
-        { text:"meet on the main expectations what the client had.", correct:false }
-      ]},
-      { level:"C1", skill:"vocabulary", skillLabel:"Vocabulary", weight:9, prompt:"Choose the most precise word: 'Her explanation was concise yet highly ___.'", help:"Pick the adjective that adds analytical precision.", options:[
-        { text:"insightful", correct:true },
-        { text:"acceptable", correct:false },
-        { text:"simple", correct:false }
-      ]},
-      { level:"C1", skill:"reading", skillLabel:"Reading", weight:9, prompt:"Which option best fits an analytical summary?", help:"Look for formal, nuanced and evidence-based phrasing.", options:[
-        { text:"The data suggests a gradual but consistent improvement over the observed period.", correct:true },
-        { text:"The results seem better now, at least from a general point of view.", correct:false },
-        { text:"The chart appears to go upward, which is probably a good sign overall.", correct:false }
-      ]},
-      { level:"C1", skill:"grammar", skillLabel:"Grammar", weight:9, prompt:"Choose the strongest sentence.", help:"Aim for precision, control and mature structure.", options:[
-        { text:"Had the team clarified the scope earlier, several costly revisions might have been avoided.", correct:true },
-        { text:"If the team had clarified things before, maybe some revisions would not be so expensive.", correct:false },
-        { text:"Earlier clarification of scope possibly avoided several costly revisions in some way.", correct:false }
-      ]},
-      { level:"C1", skill:"grammar", skillLabel:"Grammar", weight:9, prompt:"Choose the most mature formulation.", help:"Look for control, precision and natural formal written style.", options:[
-        { text:"Having reviewed the alternatives, we opted for the approach most likely to remain sustainable in the long term.", correct:true },
-        { text:"After looking through the options, we chose one that should probably work for quite a long time.", correct:false },
-        { text:"Reviewing the alternatives, the option chosen was likely sustainable for the long term maybe.", correct:false }
-      ]}
+    bank: [
+      { id:"en-a1-g1", level:"A1", skill:"grammar", skillLabel:"Grammar", weight:2, stage:"starter", prompt:"Choose the correct sentence.", help:"Pick the grammatically correct present simple form.", options:[{ text:"She lives in Tallinn.", correct:true },{ text:"She lived in Tallinn.", correct:false },{ text:"She is live in Tallinn.", correct:false }]},
+      { id:"en-a1-v1", level:"A1", skill:"vocabulary", skillLabel:"Vocabulary", weight:2, stage:"starter", prompt:"What is the opposite of 'small'?", help:"Choose the basic vocabulary answer.", options:[{ text:"big", correct:true },{ text:"long", correct:false },{ text:"wide", correct:false }]},
+      { id:"en-a1-r1", level:"A1", skill:"reading", skillLabel:"Reading", weight:2, stage:"starter", prompt:"Read the sentence: 'Tom has two sisters.' What does it mean?", help:"Choose the most accurate interpretation.", options:[{ text:"Tom has two sisters.", correct:true },{ text:"Tom lives with two brothers.", correct:false },{ text:"Tom is the second child.", correct:false }]},
+      { id:"en-a2-g1", level:"A2", skill:"grammar", skillLabel:"Grammar", weight:3, stage:"starter", prompt:"Choose the best option: 'I usually ___ coffee in the morning.'", help:"Think of daily routines.", options:[{ text:"drink", correct:true },{ text:"have drunk", correct:false },{ text:"am drink", correct:false }]},
+      { id:"en-a2-r1", level:"A2", skill:"reading", skillLabel:"Reading", weight:3, stage:"starter", prompt:"Which question matches the answer: 'Because I was tired.'", help:"Look for the correct question word.", options:[{ text:"Why did you go home early?", correct:true },{ text:"When were you tired?", correct:false },{ text:"Did you go home because of work?", correct:false }]},
+      { id:"en-a2-v1", level:"A2", skill:"vocabulary", skillLabel:"Vocabulary", weight:3, stage:"starter", prompt:"Choose the most natural phrase: 'Can you ___ the window, please?'", help:"Think of a common everyday request.", options:[{ text:"close", correct:true },{ text:"complete", correct:false },{ text:"shut down", correct:false }]},
+      { id:"en-a2-r2", level:"A2", skill:"reading", skillLabel:"Reading", weight:3, stage:"support", passage:"Notice: The class starts on 5 July at 6 p.m. Lessons take place online on Tuesdays and Thursdays.", prompt:"When do the lessons take place?", help:"Read the short notice and choose the exact answer.", options:[{ text:"On Tuesdays and Thursdays.", correct:true },{ text:"Every weekday morning.", correct:false },{ text:"Only on Saturdays.", correct:false }]},
+      { id:"en-a2-g2", level:"A2", skill:"grammar", skillLabel:"Grammar", weight:3, stage:"support", prompt:"Choose the correct form: 'Yesterday we ___ to the library.'", help:"Pick the correct past simple form.", options:[{ text:"went", correct:true },{ text:"go", correct:false },{ text:"gone", correct:false }]},
+      { id:"en-b1-g1", level:"B1", skill:"grammar", skillLabel:"Grammar", weight:5, stage:"starter", prompt:"Select the correct linker: 'I stayed home ___ it was raining heavily.'", help:"Choose the word that gives a reason.", options:[{ text:"because", correct:true },{ text:"therefore", correct:false },{ text:"despite", correct:false }]},
+      { id:"en-b1-r1", level:"B1", skill:"reading", skillLabel:"Reading", weight:5, stage:"starter", prompt:"Choose the most natural sentence.", help:"Pay attention to word order, tense and overall naturalness.", options:[{ text:"If I have time tomorrow, I'll call you after work.", correct:true },{ text:"If I have time tomorrow, I will be call you after work.", correct:false },{ text:"If tomorrow I have enough time, I call you after my work is finished.", correct:false }]},
+      { id:"en-b1-v1", level:"B1", skill:"vocabulary", skillLabel:"Vocabulary", weight:5, stage:"middle", prompt:"Choose the best word: 'She felt quite ___ before the interview, but calmed down later.'", help:"Pick the word that fits the situation naturally.", options:[{ text:"nervous", correct:true },{ text:"wooden", correct:false },{ text:"distantly", correct:false }]},
+      { id:"en-b1-r2", level:"B1", skill:"reading", skillLabel:"Reading", weight:5, stage:"middle", prompt:"Complete the idea: 'She prepared carefully for the interview and...'", help:"Choose the continuation that sounds coherent and natural.", options:[{ text:"felt much more confident on the day.", correct:true },{ text:"the interview confidence became more by the day.", correct:false },{ text:"was feeling confidence because the interview prepared.", correct:false }]},
+      { id:"en-b1-r3", level:"B1", skill:"reading", skillLabel:"Reading", weight:5, stage:"middle", passage:"Anna chose an online course this year because she wanted to study while continuing her full-time job. The flexible schedule made it easier for her to attend regularly.", prompt:"Why did Anna choose an online course?", help:"Read the mini-text and identify the main reason.", options:[{ text:"It fit around her work schedule.", correct:true },{ text:"It was the only free course available.", correct:false },{ text:"She did not want to speak to a teacher.", correct:false }]},
+      { id:"en-b2-r1", level:"B2", skill:"reading", skillLabel:"Reading", weight:7, stage:"upper", prompt:"Which sentence sounds most appropriate in a professional email?", help:"Think of polite, concise workplace English.", options:[{ text:"Could you please confirm whether Friday would be convenient for you?", correct:true },{ text:"Please tell me quickly if Friday is okay on your side.", correct:false },{ text:"I expect you to confirm Friday as soon as possible.", correct:false }]},
+      { id:"en-b2-v1", level:"B2", skill:"vocabulary", skillLabel:"Vocabulary", weight:7, stage:"upper", prompt:"Choose the best word: 'The report provides a clear ___ of the current situation.'", help:"Pick the most suitable formal noun for a report.", options:[{ text:"overview", correct:true },{ text:"watch", correct:false },{ text:"pictureing", correct:false }]},
+      { id:"en-b2-g1", level:"B2", skill:"grammar", skillLabel:"Grammar", weight:7, stage:"upper", prompt:"Complete the sentence: 'Even though the launch was delayed, the team managed to...'", help:"Choose the continuation that stays grammatical and professional.", options:[{ text:"meet the client's main expectations.", correct:true },{ text:"manage the client expectations was mainly meeting.", correct:false },{ text:"meet on the main expectations what the client had.", correct:false }]},
+      { id:"en-b2-r2", level:"B2", skill:"reading", skillLabel:"Reading", weight:7, stage:"upper", passage:"The company revised its training programme after feedback showed that the previous format was too theoretical. The new version includes shorter sessions and more practical tasks.", prompt:"Why was the training programme revised?", help:"Choose the reason directly supported by the text.", options:[{ text:"The previous version was not practical enough.", correct:true },{ text:"The programme had become too expensive.", correct:false },{ text:"Employees wanted longer lectures.", correct:false }]},
+      { id:"en-b2-g2", level:"B2", skill:"grammar", skillLabel:"Grammar", weight:7, stage:"upper", prompt:"Choose the best option: 'If we had known earlier, we ... more effectively.'", help:"Look for the natural third conditional form.", options:[{ text:"could have prepared", correct:true },{ text:"can prepare", correct:false },{ text:"would prepare", correct:false }]},
+      { id:"en-c1-v1", level:"C1", skill:"vocabulary", skillLabel:"Vocabulary", weight:9, stage:"advanced", prompt:"Choose the most precise word: 'Her explanation was concise yet highly ___.'", help:"Pick the adjective that adds analytical precision.", options:[{ text:"insightful", correct:true },{ text:"acceptable", correct:false },{ text:"simple", correct:false }]},
+      { id:"en-c1-r1", level:"C1", skill:"reading", skillLabel:"Reading", weight:9, stage:"advanced", prompt:"Which option best fits an analytical summary?", help:"Look for formal, nuanced and evidence-based phrasing.", options:[{ text:"The data suggests a gradual but consistent improvement over the observed period.", correct:true },{ text:"The results seem better now, at least from a general point of view.", correct:false },{ text:"The chart appears to go upward, which is probably a good sign overall.", correct:false }]},
+      { id:"en-c1-g1", level:"C1", skill:"grammar", skillLabel:"Grammar", weight:9, stage:"advanced", prompt:"Choose the strongest sentence.", help:"Aim for precision, control and mature structure.", options:[{ text:"Had the team clarified the scope earlier, several costly revisions might have been avoided.", correct:true },{ text:"If the team had clarified things before, maybe some revisions would not be so expensive.", correct:false },{ text:"Earlier clarification of scope possibly avoided several costly revisions in some way.", correct:false }]},
+      { id:"en-c1-g2", level:"C1", skill:"grammar", skillLabel:"Grammar", weight:9, stage:"advanced", prompt:"Choose the most mature formulation.", help:"Look for control, precision and natural formal written style.", options:[{ text:"Having reviewed the alternatives, we opted for the approach most likely to remain sustainable in the long term.", correct:true },{ text:"After looking through the options, we chose one that should probably work for quite a long time.", correct:false },{ text:"Reviewing the alternatives, the option chosen was likely sustainable for the long term maybe.", correct:false }]},
+      { id:"en-c1-r2", level:"C1", skill:"reading", skillLabel:"Reading", weight:9, stage:"advanced", passage:"The report notes that the improvement in sales did not result from a single campaign but from the combined effect of several smaller changes: sharper targeting, faster response times and clearer client communication.", prompt:"Which conclusion is most accurate?", help:"Choose the option that preserves the nuance of the text.", options:[{ text:"The improvement came from several coordinated changes rather than one isolated action.", correct:true },{ text:"A single campaign was mainly responsible for the improvement.", correct:false },{ text:"Sales improved chiefly because prices were reduced.", correct:false }]},
+      { id:"en-c1-v2", level:"C1", skill:"vocabulary", skillLabel:"Vocabulary", weight:9, stage:"advanced", prompt:"Choose the most precise completion: 'Her position remained ___ throughout the discussion.'", help:"Look for a word that implies consistency and clarity.", options:[{ text:"consistent", correct:true },{ text:"changeable", correct:false },{ text:"occasional", correct:false }]}
     ]
   }
 };
@@ -487,6 +385,10 @@ let activeLanguage = "et";
 let currentQuestion = 0;
 let answers = [];
 let questionOrder = [];
+let sessionQuestions = [];
+let stageTwoAdded = false;
+let stageThreeAdded = false;
+let attemptId = "";
 
 const languageSwitch = document.getElementById("languageSwitch");
 const progressLabel = document.getElementById("progressLabel");
@@ -516,8 +418,12 @@ const leadForm = document.getElementById("leadForm");
 const leadLevel = document.getElementById("leadLevel");
 const leadLanguage = document.getElementById("leadLanguage");
 
+function currentBank() {
+  return tests[activeLanguage].bank;
+}
+
 function currentSet() {
-  return tests[activeLanguage].questions;
+  return sessionQuestions;
 }
 
 function getMaxScore() {
@@ -533,18 +439,176 @@ function shuffleArray(items) {
   return copy;
 }
 
-function buildQuestionOrder() {
-  questionOrder = currentSet().map(question => shuffleArray(question.options.map((option, index) => ({
+function buildOrderForQuestion(question) {
+  return shuffleArray(question.options.map((option, index) => ({
     ...option,
     originalIndex: index
-  }))));
+  })));
+}
+
+function buildQuestionOrderForSession() {
+  questionOrder = currentSet().map(question => buildOrderForQuestion(question));
+}
+
+function sampleQuestions(pool, count, usedIds = new Set()) {
+  const available = shuffleArray(pool.filter(item => !usedIds.has(item.id)));
+  return available.slice(0, count);
+}
+
+function buildAttemptId() {
+  const timePart = Date.now().toString(36).slice(-4).toUpperCase();
+  const randomPart = Math.random().toString(36).slice(2, 6).toUpperCase();
+  attemptId = `${timePart}-${randomPart}`;
+}
+
+function getLevelRank(level) {
+  return { A1:1, A2:2, B1:3, B2:4, C1:5 }[level] || 0;
+}
+
+function computeRangeMetrics(start, end) {
+  const questions = currentSet().slice(start, end);
+  const optionSlices = questionOrder.slice(start, end);
+  let weightedScore = 0;
+  let maxScore = 0;
+  let correctCount = 0;
+
+  questions.forEach((question, index) => {
+    maxScore += question.weight;
+    const answerIndex = answers[start + index];
+    const optionSet = optionSlices[index] || question.options;
+    if (answerIndex !== null && optionSet[answerIndex] && optionSet[answerIndex].correct) {
+      weightedScore += question.weight;
+      correctCount += 1;
+    }
+  });
+
+  return {
+    questionsAnswered: questions.length,
+    weightedScore,
+    maxScore,
+    percent: maxScore ? Math.round((weightedScore / maxScore) * 100) : 0,
+    correctCount
+  };
+}
+
+function assembleAdaptiveTest() {
+  const bank = currentBank();
+  const usedIds = new Set();
+  const starterPlan = [
+    { level:"A1", skill:"grammar" },
+    { level:"A1", skill:"reading" },
+    { level:"A2", skill:"grammar" },
+    { level:"A2", skill:"reading" },
+    { level:"B1", skill:"grammar" },
+    { level:"B1", skill:"reading" }
+  ];
+
+  const starter = starterPlan.map(target => {
+    const picked = sampleQuestions(bank.filter(item => item.level === target.level && item.skill === target.skill), 1, usedIds)[0];
+    usedIds.add(picked.id);
+    return picked;
+  });
+
+  sessionQuestions = starter;
+}
+
+function appendStage(stageName) {
+  const bank = currentBank();
+  const usedIds = new Set(sessionQuestions.map(item => item.id));
+  let targets = [];
+
+  if (stageName === "support") {
+    targets = [
+      { level:"A2", skill:"vocabulary" },
+      { level:"A2", skill:"reading" },
+      { level:"A2", skill:"grammar" },
+      { level:"B1", skill:"vocabulary" },
+      { level:"B1", skill:"reading" }
+    ];
+  } else if (stageName === "middle") {
+    targets = [
+      { level:"B1", skill:"vocabulary" },
+      { level:"B1", skill:"reading" },
+      { level:"B1", skill:"reading" },
+      { level:"B2", skill:"grammar" },
+      { level:"B2", skill:"reading" }
+    ];
+  } else if (stageName === "upper") {
+    targets = [
+      { level:"B2", skill:"vocabulary" },
+      { level:"B2", skill:"grammar" },
+      { level:"B2", skill:"reading" },
+      { level:"B2", skill:"reading" },
+      { level:"C1", skill:"reading" }
+    ];
+  } else if (stageName === "advanced") {
+    targets = [
+      { level:"C1", skill:"vocabulary" },
+      { level:"C1", skill:"grammar" },
+      { level:"C1", skill:"reading" },
+      { level:"C1", skill:"grammar" }
+    ];
+  } else if (stageName === "consolidation") {
+    targets = [
+      { level:"B2", skill:"vocabulary" },
+      { level:"B2", skill:"grammar" },
+      { level:"C1", skill:"vocabulary" },
+      { level:"C1", skill:"reading" }
+    ];
+  } else {
+    targets = [
+      { level:"B1", skill:"vocabulary" },
+      { level:"B1", skill:"reading" },
+      { level:"B2", skill:"reading" },
+      { level:"B2", skill:"grammar" }
+    ];
+  }
+
+  const additions = [];
+  targets.forEach(target => {
+    const picked = sampleQuestions(bank.filter(item => item.level === target.level && item.skill === target.skill), 1, usedIds)[0];
+    if (picked) {
+      usedIds.add(picked.id);
+      additions.push(picked);
+    }
+  });
+
+  sessionQuestions = [...sessionQuestions, ...additions];
+  questionOrder = [...questionOrder, ...additions.map(question => buildOrderForQuestion(question))];
+}
+
+function getTrackAfterStageOne() {
+  const metrics = computeRangeMetrics(0, 6);
+  if (metrics.percent >= 72) return "upper";
+  if (metrics.percent >= 46) return "middle";
+  return "support";
+}
+
+function getTrackAfterStageTwo() {
+  const metrics = computeRangeMetrics(6, currentSet().length);
+  const highestLevelReached = currentSet().reduce((highest, item, index) => {
+    const optionSet = questionOrder[index] || item.options;
+    const answerIndex = answers[index];
+    if (answerIndex !== null && optionSet[answerIndex] && optionSet[answerIndex].correct) {
+      return Math.max(highest, getLevelRank(item.level));
+    }
+    return highest;
+  }, 1);
+
+  if (highestLevelReached >= 4 && metrics.percent >= 65) return "advanced";
+  if (highestLevelReached >= 3 && metrics.percent >= 45) return "consolidation";
+  return "bridge";
 }
 
 function resetTest(language) {
   activeLanguage = language || activeLanguage;
+  buildAttemptId();
+  assembleAdaptiveTest();
   currentQuestion = 0;
   answers = new Array(currentSet().length).fill(null);
-  buildQuestionOrder();
+  stageTwoAdded = false;
+  stageThreeAdded = false;
+  buildQuestionOrderForSession();
   resultEl.classList.remove("show");
   questionCard.style.display = "";
   prevBtn.style.display = "";
@@ -569,8 +633,27 @@ function render() {
   questionHelp.textContent = question.help;
   difficultyLabel.textContent = question.level;
   skillLabel.textContent = question.skillLabel;
-  paceLabel.textContent = currentQuestion < 5 ? "Sissejuhatav plokk" : currentQuestion < 10 ? "Keskmine raskus" : "Tugev plokk";
+  paceLabel.textContent = currentQuestion < 6 ? `Diagnostika ${attemptId}` : currentQuestion < 11 ? "Adaptiivne plokk" : "Tapsustav finaal";
   answersEl.innerHTML = "";
+
+  let passageEl = document.getElementById("questionPassage");
+  if (!passageEl) {
+    passageEl = document.createElement("div");
+    passageEl.id = "questionPassage";
+    passageEl.className = "question-help";
+    passageEl.style.padding = "14px 16px";
+    passageEl.style.border = "1px solid var(--line)";
+    passageEl.style.borderRadius = "14px";
+    passageEl.style.background = "#fcfbf8";
+    passageEl.style.marginBottom = "16px";
+    questionCard.insertBefore(passageEl, questionText);
+  }
+  if (question.passage) {
+    passageEl.textContent = question.passage;
+    passageEl.style.display = "block";
+  } else {
+    passageEl.style.display = "none";
+  }
 
   const visibleOptions = questionOrder[currentQuestion] || question.options.map((option, index) => ({
     ...option,
@@ -612,7 +695,8 @@ function getSkillStats() {
       };
     }
     stats[question.skill].max += question.weight;
-    if (answers[index] !== null && question.options[answers[index]].correct) {
+    const optionSet = questionOrder[index] || question.options;
+    if (answers[index] !== null && optionSet[answers[index]] && optionSet[answers[index]].correct) {
       stats[question.skill].score += question.weight;
     }
   });
@@ -620,9 +704,9 @@ function getSkillStats() {
 }
 
 function getConfidence(correctCount) {
-  if (correctCount >= 12) return "Vaga kindel";
-  if (correctCount >= 9) return "Hea kindlus";
-  if (correctCount >= 6) return "Mootdukas kindlus";
+  if (correctCount >= 13) return "Vaga kindel";
+  if (correctCount >= 10) return "Hea kindlus";
+  if (correctCount >= 7) return "Mootdukas kindlus";
   return "Esialgne hinnang";
 }
 
@@ -686,7 +770,7 @@ function showResult() {
   scoreLabel.textContent = `${result.weightedScore} / 100`;
   recommendationLabel.textContent = result.recommendation;
   renderSkills(result.skills);
-  progressLabel.textContent = "Tulemus valmis";
+  progressLabel.textContent = `Tulemus valmis · ${attemptId}`;
   progressBar.style.width = "100%";
   leadLevel.value = result.level;
   leadLanguage.value = tests[activeLanguage].studentTrackLabel;
@@ -708,6 +792,25 @@ prevBtn.addEventListener("click", () => {
 nextBtn.addEventListener("click", () => {
   const questions = currentSet();
   if (answers[currentQuestion] === null) return;
+
+  if (!stageTwoAdded && currentQuestion === questions.length - 1) {
+    stageTwoAdded = true;
+    appendStage(getTrackAfterStageOne());
+    answers = [...answers, ...new Array(currentSet().length - answers.length).fill(null)];
+    currentQuestion += 1;
+    render();
+    return;
+  }
+
+  if (stageTwoAdded && !stageThreeAdded && currentQuestion === questions.length - 1) {
+    stageThreeAdded = true;
+    appendStage(getTrackAfterStageTwo());
+    answers = [...answers, ...new Array(currentSet().length - answers.length).fill(null)];
+    currentQuestion += 1;
+    render();
+    return;
+  }
+
   if (currentQuestion === questions.length - 1) {
     showResult();
     return;
