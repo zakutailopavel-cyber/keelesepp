@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light only">
+<title>Tasemetest — KeeleSepp</title>
+<meta name="description" content="KeeleSepp tasemetest aitab hinnata sinu eesti või inglise keele orienteeruvat taset ja valida sobiva kursuse.">
+<link rel="canonical" href="https://epkoolitus.ee/tasemetest/">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1C2B3A;--ink-s:#42536A;--paper:#FBFAF8;--mist:#EFEDE7;
+  --amber:#C9882A;--amber-d:#A96E1A;--pine:#2F5D50;
+  --line:rgba(28,43,58,.13);--r:14px;--sh:0 10px 32px rgba(28,43,58,.08);
+  --max:1120px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:17px;line-height:1.65;color:var(--ink);background:var(--paper);-webkit-font-smoothing:antialiased}
+a{color:var(--pine);text-decoration:none}
+button,input,select,textarea{font:inherit}
+.w{max-width:var(--max);margin:0 auto;padding:0 24px}
+h1,h2,h3{font-family:"Fraunces",Georgia,serif;font-weight:600;line-height:1.1;letter-spacing:0}
+h1{font-size:clamp(2.2rem,5vw,4rem)}
+h2{font-size:clamp(1.4rem,3vw,2.1rem)}
+.btn{display:inline-flex;align-items:center;justify-content:center;font-weight:600;font-size:.95rem;text-decoration:none;padding:13px 24px;border-radius:999px;border:1.5px solid transparent;cursor:pointer;transition:transform .15s,box-shadow .15s}
+.btn:hover{transform:translateY(-2px);box-shadow:var(--sh)}
+.btn-dark{background:var(--ink);color:#fff}
+.btn-ghost{background:#fff;color:var(--ink);border-color:var(--line)}
+.btn-amber{background:var(--amber);color:#fff}
+header{position:sticky;top:0;z-index:30;background:rgba(251,250,248,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:72px}
+.logo{font-family:"Fraunces",serif;font-weight:600;font-size:1.4rem;color:var(--ink)}
+.logo b{color:var(--amber-d)}
+.nav-c{display:flex;gap:12px;align-items:center}
+.hero{padding:78px 0 42px}
+.hero-g{display:grid;grid-template-columns:1.05fr .95fr;gap:34px;align-items:start}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:.78rem;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--amber-d);display:inline-flex;align-items:center;gap:.6em;margin-bottom:16px}
+.eyebrow::before{content:"";width:26px;height:2px;background:var(--amber)}
+.lead{font-size:1.08rem;color:var(--ink-s);max-width:560px;margin:18px 0 28px}
+.hero-actions{display:flex;gap:12px;flex-wrap:wrap}
+.hero-meta{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:28px}
+.hero-meta div{padding:16px 18px;background:#fff;border:1px solid var(--line);border-radius:16px}
+.hero-meta strong{display:block;font-family:"Fraunces",serif;font-size:1.45rem}
+.hero-meta span{display:block;font-size:.8rem;color:var(--ink-s);margin-top:4px}
+.panel{background:#fff;border:1px solid var(--line);border-radius:22px;box-shadow:var(--sh);overflow:hidden}
+.panel-top{padding:24px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:16px;align-items:center;flex-wrap:wrap}
+.panel-top h2{font-size:1.25rem}
+.panel-top p{color:var(--ink-s);font-size:.92rem}
+.segmented{display:inline-flex;background:var(--mist);padding:4px;border-radius:999px;gap:4px}
+.segmented button{padding:10px 16px;border-radius:999px;border:0;background:transparent;color:var(--ink-s);cursor:pointer;font-weight:600}
+.segmented button.active{background:#fff;color:var(--ink);box-shadow:0 4px 14px rgba(28,43,58,.08)}
+.test-body{padding:24px}
+.progress-row{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px}
+.progress{height:10px;border-radius:999px;background:var(--mist);overflow:hidden;flex:1}
+.progress span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--pine),var(--amber));width:0;transition:width .2s ease}
+.micro-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+.micro-stat{padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:#fcfbf8}
+.micro-stat strong{display:block;font-size:.9rem}
+.micro-stat span{display:block;font-size:.78rem;color:var(--ink-s);margin-top:2px}
+.question-card{padding:22px;border:1px solid var(--line);border-radius:18px;background:#fff}
+.question-kicker{font-family:"IBM Plex Mono",monospace;font-size:.76rem;letter-spacing:.08em;text-transform:uppercase;color:var(--amber-d);margin-bottom:8px}
+.question-card h3{font-size:1.3rem;margin-bottom:10px}
+.question-help{color:var(--ink-s);font-size:.92rem;margin-bottom:18px}
+.answers{display:grid;gap:10px}
+.answer{display:flex;gap:14px;align-items:flex-start;padding:15px 16px;border:1px solid var(--line);border-radius:16px;background:#fff;cursor:pointer;transition:border-color .15s,background .15s,transform .15s}
+.answer:hover{border-color:rgba(201,136,42,.42);background:#fffaf2;transform:translateY(-1px)}
+.answer.is-selected{border-color:rgba(47,93,80,.42);background:#f5fbf8}
+.answer input{margin-top:4px}
+.answer strong{display:block;font-size:.95rem}
+.answer span{display:block;color:var(--ink-s);font-size:.84rem;margin-top:2px}
+.test-nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:20px}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;padding:24px}
+.info-card{padding:22px;border:1px solid var(--line);border-radius:18px;background:#fff}
+.info-card h3{font-size:1.1rem;margin-bottom:10px}
+.info-card p,.info-card li{color:var(--ink-s);font-size:.9rem}
+.info-card ul{list-style:none;margin-top:10px}
+.info-card li{padding:5px 0 5px 18px;position:relative}
+.info-card li::before{content:"";position:absolute;left:0;top:14px;width:8px;height:2px;background:var(--amber)}
+.result{display:none;padding:24px}
+.result.show{display:block}
+.result-card{background:linear-gradient(155deg,#fff 0%,#fbf6ef 100%);border:1px solid rgba(201,136,42,.18);border-radius:22px;padding:28px}
+.result-top{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:start;margin-bottom:18px}
+.level-badge{display:inline-flex;align-items:center;justify-content:center;min-width:110px;height:110px;border-radius:50%;background:var(--ink);color:#fff;font-family:"Fraunces",serif;font-size:2rem}
+.result-card p{color:var(--ink-s)}
+.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
+.result-box{padding:18px;border-radius:16px;background:#fff;border:1px solid var(--line)}
+.result-box h3{font-size:1rem;margin-bottom:8px}
+.result-box ul{list-style:none}
+.result-box li{font-size:.88rem;color:var(--ink-s);padding:4px 0 4px 18px;position:relative}
+.result-box li::before{content:"";position:absolute;left:0;top:13px;width:8px;height:2px;background:var(--amber)}
+.skills-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}
+.skill-card{padding:16px;border-radius:16px;background:#fff;border:1px solid var(--line)}
+.skill-card h4{font-size:.9rem;margin-bottom:10px}
+.skill-track{height:8px;background:var(--mist);border-radius:999px;overflow:hidden;margin-bottom:8px}
+.skill-track span{display:block;height:100%;background:linear-gradient(90deg,var(--pine),var(--amber));width:0}
+.skill-card b{font-size:1rem}
+.skill-card small{display:block;color:var(--ink-s);margin-top:4px;font-size:.8rem}
+.summary-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}
+.summary-item{padding:16px;border:1px solid var(--line);border-radius:16px;background:#fff}
+.summary-item strong{display:block;font-size:1rem}
+.summary-item span{display:block;font-size:.82rem;color:var(--ink-s);margin-top:4px}
+.lead-box{margin-top:20px;padding:20px;border:1px solid var(--line);border-radius:18px;background:#fff}
+.lead-box h3{font-size:1rem;margin-bottom:10px}
+.lead-form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.lead-form .full{grid-column:1 / -1}
+.lead-form input,.lead-form textarea{width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;background:var(--paper);color:var(--ink);outline:none}
+.lead-form input:focus,.lead-form textarea:focus{border-color:var(--amber)}
+.lead-note{font-size:.8rem;color:var(--ink-s);margin-top:10px}
+.cta-band{padding:42px 0 82px}
+.cta-card{background:var(--ink);color:#fff;border-radius:22px;padding:32px;display:flex;justify-content:space-between;align-items:center;gap:22px;flex-wrap:wrap}
+.cta-card p{color:rgba(255,255,255,.78);max-width:560px}
+footer{background:var(--ink);color:rgba(255,255,255,.72);padding:24px 0;font-size:.85rem}
+@media(max-width:960px){.hero-g,.info-grid,.result-grid{grid-template-columns:1fr}.hero-meta,.micro-stats,.summary-strip,.skills-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:620px){.hero{padding-top:48px}.hero-meta,.micro-stats,.summary-strip,.skills-grid,.lead-form{grid-template-columns:1fr}.panel-top,.test-body,.info-grid,.result,.cta-card{padding:20px}.nav{height:auto;padding:14px 0;align-items:flex-start;flex-direction:column;gap:12px}.nav-c{width:100%}.nav-c .btn{flex:1}}
+</style>
+</head>
+<body>
+<header>
+  <div class="w nav">
+    <a class="logo" href="/">Keele<b>Sepp</b></a>
+    <div class="nav-c">
+      <a class="btn btn-ghost" href="/">Avaleht</a>
+      <a class="btn btn-dark" href="/haldus/">Logi sisse</a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="w hero-g">
+      <div>
+        <p class="eyebrow">KeeleSepp tasemetest</p>
+        <h1>Selgita välja, millisest tasemest on mõistlik alustada</h1>
+        <p class="lead">See põhjalikum test annab sulle orienteeruva hinnangu eesti või inglise keele tasemele, näitab tugevamaid ja nõrgemaid oskusi ning aitab valida sobiva kursuse.</p>
+        <div class="hero-actions">
+          <a class="btn btn-dark" href="#test">Alusta testiga</a>
+          <a class="btn btn-ghost" href="#kuidas">Kuidas hinnang toimib</a>
+        </div>
+        <div class="hero-meta">
+          <div><strong>15</strong><span>küsimust eri raskusastmetel</span></div>
+          <div><strong>6-8 min</strong><span>rahulikus tempos vastamiseks</span></div>
+          <div><strong>A1-C1</strong><span>tase, tugevused ja soovitus</span></div>
+        </div>
+      </div>
+      <div class="panel" id="test">
+        <div class="panel-top">
+          <div>
+            <h2>Vali testikeel</h2>
+            <p>Vasta ilma tõlkija ja kõrvalise abita, et tulemus oleks aus ja kasulik.</p>
+          </div>
+          <div class="segmented" id="languageSwitch">
+            <button class="active" data-language="et">Eesti keel</button>
+            <button data-language="en">English</button>
+          </div>
+        </div>
+        <div class="test-body">
+          <div class="progress-row">
+            <strong id="progressLabel">Küsimus 1 / 15</strong>
+            <div class="progress" aria-hidden="true"><span id="progressBar"></span></div>
+          </div>
+          <div class="micro-stats">
+            <div class="micro-stat"><strong id="difficultyLabel">A1</strong><span>praegune raskusaste</span></div>
+            <div class="micro-stat"><strong id="skillLabel">Grammatika</strong><span>kontrollitav oskus</span></div>
+            <div class="micro-stat"><strong id="paceLabel">Järjepidev test</strong><span>küsimused muutuvad keerulisemaks</span></div>
+          </div>
+          <div class="question-card" id="questionCard">
+            <div class="question-kicker" id="questionCategory"></div>
+            <h3 id="questionText"></h3>
+            <p class="question-help" id="questionHelp"></p>
+            <div class="answers" id="answers"></div>
+          </div>
+          <div class="test-nav">
+            <button class="btn btn-ghost" id="prevBtn" type="button">Eelmine</button>
+            <button class="btn btn-dark" id="nextBtn" type="button">Järgmine</button>
+          </div>
+        </div>
+        <div class="result" id="result">
+          <div class="result-card">
+            <div class="result-top">
+              <div>
+                <p class="eyebrow" style="margin-bottom:10px">Sinu tulemus</p>
+                <h2 id="resultTitle">Soovituslik tase</h2>
+                <p id="resultDescription"></p>
+              </div>
+              <div class="level-badge" id="levelBadge">B1</div>
+            </div>
+
+            <div class="summary-strip">
+              <div class="summary-item">
+                <strong id="confidenceLabel">Hea kindlus</strong>
+                <span>kui stabiilne tulemus paistab olevat</span>
+              </div>
+              <div class="summary-item">
+                <strong id="scoreLabel">0 / 100</strong>
+                <span>kaalutud tulemus raskusastmete järgi</span>
+              </div>
+              <div class="summary-item">
+                <strong id="recommendationLabel">B1 grupp</strong>
+                <span>kõige mõistlikum järgmine samm</span>
+              </div>
+            </div>
+
+            <div class="skills-grid" id="skillsGrid"></div>
+
+            <div class="result-grid">
+              <div class="result-box">
+                <h3>See tähendab tavaliselt</h3>
+                <ul id="resultTraits"></ul>
+              </div>
+              <div class="result-box">
+                <h3>Soovitame järgmiseks</h3>
+                <ul id="resultActions"></ul>
+              </div>
+            </div>
+
+            <div class="lead-box">
+              <h3>Soovid, et me soovitaksime sulle kohe sobiva kursuse?</h3>
+              <form class="lead-form" id="leadForm">
+                <input type="text" id="leadName" placeholder="Sinu nimi" required>
+                <input type="email" id="leadEmail" placeholder="E-post" required>
+                <input type="text" id="leadLevel" placeholder="Soovituslik tase" readonly>
+                <input type="text" id="leadLanguage" placeholder="Testi keel" readonly>
+                <textarea class="full" id="leadMessage" rows="4" placeholder="Soovi korral lisa oma eesmärk: töö, eksam, vestluspraktika, grammatika..."></textarea>
+                <button class="btn btn-amber full" type="submit">Saada tulemus KeeleSepale</button>
+              </form>
+              <p class="lead-note">Vorm avab sinu e-posti programmi valmis kirjaga. Nii saad selle ühe klikiga teele panna ka ilma eraldi serverita.</p>
+            </div>
+
+            <div class="hero-actions" style="margin-top:20px">
+              <a class="btn btn-amber" href="/#registreeru">Registreeru kursusele</a>
+              <button class="btn btn-ghost" type="button" id="restartBtn">Tee test uuesti</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="w" id="kuidas" style="padding-bottom:70px">
+    <div class="info-grid">
+      <article class="info-card">
+        <h3>Kuidas hinnang sünnib</h3>
+        <p>Test liigub A1 tasemest C1 suunas. Lihtsamad küsimused annavad baasi, raskemad küsimused mõjutavad tulemust rohkem. Lisaks vaatame, millistes oskustes oled stabiilsem.</p>
+        <ul>
+          <li>iga küsimus on seotud taseme ja oskusega</li>
+          <li>B- ja C-taseme õiged vastused kaaluvad rohkem</li>
+          <li>lõpus näed nii taset kui ka oskuste jaotust</li>
+        </ul>
+      </article>
+      <article class="info-card">
+        <h3>Milleks see hea on</h3>
+        <p>See ei asenda õpetaja vestlust, kuid on juba piisavalt tugev, et aidata eristada, kas sulle sobib A2, B1, B2 või individuaalne lähenemine.</p>
+        <ul>
+          <li>annab kiire orientiiri enne registreerumist</li>
+          <li>näitab, kas probleem on pigem grammatika, lugemine või sõnavara</li>
+          <li>aitab meil pakkuda täpsemat järgmist sammu</li>
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <section class="cta-band">
+    <div class="w">
+      <div class="cta-card">
+        <div>
+          <h2>Soovid pärast testi kohe õpetajaga edasi liikuda?</h2>
+          <p>Kui tulemus käes, saad tulla grupikursusele, võtta individuaaltunni või küsida kiiret soovitust oma eesmärgi järgi.</p>
+        </div>
+        <a class="btn btn-amber" href="/#registreeru">Võta ühendust</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="w">© 2026 KeeleSepp · E&amp;P Koolitus OÜ</div>
+</footer>
+
+<script>
+const tests = {
+  et: {
+    label: "Eesti keel",
+    studentTrackLabel: "Eesti suund",
+    questions: [
+      { level:"A1", skill:"grammar", skillLabel:"Grammatika", weight:2, prompt:"Vali õige variant: Mina ... Tallinnas.", help:"Vali grammatiliselt õige lause.", options:[
+        { text:"elan", correct:true },
+        { text:"elab", correct:false },
+        { text:"elame", correct:false }
+      ]},
+      { level:"A1", skill:"vocabulary", skillLabel:"Sõnavara", weight:2, prompt:"Mis päev tuleb pärast esmaspäeva?", help:"Mõtle nädalapäevade järjekorrale.", options:[
+        { text:"teisipäev", correct:true },
+        { text:"reede", correct:false },
+        { text:"pühapäev", correct:false }
+      ]},
+      { level:"A2", skill:"reading", skillLabel:"Lugemine", weight:3, prompt:"Vali sobiv küsimus: 'Ma lähen homme arsti juurde.'", help:"Milline küsimus sobib sellele vastusele?", options:[
+        { text:"Kuhu sa homme lähed?", correct:true },
+        { text:"Millal sa eile läksid?", correct:false },
+        { text:"Kellega sa kohtud?", correct:false }
+      ]},
+      { level:"A2", skill:"grammar", skillLabel:"Grammatika", weight:3, prompt:"Leia õige vorm: Kui mul on aega, ma ... sind.", help:"Vali loomulik tulevikuline vorm.", options:[
+        { text:"helistan", correct:true },
+        { text:"helistasin", correct:false },
+        { text:"helistada", correct:false }
+      ]},
+      { level:"A2", skill:"vocabulary", skillLabel:"Sõnavara", weight:3, prompt:"Vali kõige sobivam sõna: 'Palun ... aken kinni, siin on külm.'", help:"Vali loomulik igapäevane väljend.", options:[
+        { text:"pane", correct:true },
+        { text:"tee", correct:false },
+        { text:"anna", correct:false }
+      ]},
+      { level:"B1", skill:"reading", skillLabel:"Lugemine", weight:5, prompt:"Milline lause kõlab kõige loomulikumalt?", help:"Vaata sõnajärge ja loogikat.", options:[
+        { text:"Kui vihma sajab, jään ma koju ja loen raamatut.", correct:true },
+        { text:"Kui vihma sajab, ma jään koju ja loen raamatut oli.", correct:false },
+        { text:"Kui sajab vihm, koju jään raamatut loen.", correct:false }
+      ]},
+      { level:"B1", skill:"grammar", skillLabel:"Grammatika", weight:5, prompt:"Vali õige sõna: Ta ei saanud koosolekule tulla, ... ta laps oli haige.", help:"Milline sidend sobib põhjuse väljendamiseks?", options:[
+        { text:"sest", correct:true },
+        { text:"kuigi", correct:false },
+        { text:"kuni", correct:false }
+      ]},
+      { level:"B1", skill:"reading", skillLabel:"Lugemine", weight:5, prompt:"Loe mõtet ja vali parim jätk: 'Ta õppis regulaarselt mitu kuud ja ...'", help:"Otsi loogilist tulemust.", options:[
+        { text:"tegi lõpuks eksami edukalt ära.", correct:true },
+        { text:"eksam oli õppis mitu kuud edukalt.", correct:false },
+        { text:"õppis edukalt eksam lõpuks oli.", correct:false }
+      ]},
+      { level:"B2", skill:"vocabulary", skillLabel:"Sõnavara", weight:7, prompt:"Mis on kõige täpsem tähendus sõnal 'kokkulepe' selles kontekstis: 'Sõlmisime kliendiga kokkuleppe'?", help:"Vali sisuliselt kõige täpsem variant.", options:[
+        { text:"ühine otsus või leping", correct:true },
+        { text:"vaidlus kohtumise ajal", correct:false },
+        { text:"juhuslik vestlus", correct:false }
+      ]},
+      { level:"B2", skill:"reading", skillLabel:"Lugemine", weight:7, prompt:"Milline lause väljendab viisakat ametlikku soovi?", help:"Mõtle tööalasele kirjale.", options:[
+        { text:"Palun andke mulle teada, kas see aeg sobib teile.", correct:true },
+        { text:"Kirjuta kiiresti tagasi, kas sobib või ei.", correct:false },
+        { text:"Sa pead mulle ütlema, kas see aeg on hea.", correct:false }
+      ]},
+      { level:"B2", skill:"grammar", skillLabel:"Grammatika", weight:7, prompt:"Vali sobiv jätk: 'Kuigi projekt algas keeruliselt, ...'", help:"Milline mõte on loogiline ja grammatiline?", options:[
+        { text:"õnnestus meeskonnal tähtaeg siiski täita.", correct:true },
+        { text:"tähtaeg meeskonnal siiski oli õnnestus.", correct:false },
+        { text:"siiski meeskond täita tähtaeg õnnestus oli.", correct:false }
+      ]},
+      { level:"C1", skill:"vocabulary", skillLabel:"Sõnavara", weight:9, prompt:"Milline sõna sobib kõige paremini: 'Ettekanne oli sisukas ja ... üles ehitatud.'", help:"Vali loomulik kõrgema taseme sõnaühend.", options:[
+        { text:"loogiliselt", correct:true },
+        { text:"palju", correct:false },
+        { text:"enamasti", correct:false }
+      ]},
+      { level:"C1", skill:"vocabulary", skillLabel:"Sõnavara", weight:9, prompt:"Vali täpseim variant: 'Tema seisukoht jäi kogu arutelu vältel ...'", help:"Milline sõna annab tähenduse 'muutumatu ja selge'?", options:[
+        { text:"järjekindlaks", correct:true },
+        { text:"juhuslikuks", correct:false },
+        { text:"katkendlikuks", correct:false }
+      ]},
+      { level:"C1", skill:"reading", skillLabel:"Lugemine", weight:9, prompt:"Milline lause sobib kõige paremini ametlikku kokkuvõttesse?", help:"Vali stiililt kõige küpsem variant.", options:[
+        { text:"Analüüsi põhjal võib järeldada, et kavandatud muudatused toetavad eesmärgi saavutamist.", correct:true },
+        { text:"Me vaatasime asja ja tundub, et see võib isegi päris okei olla.", correct:false },
+        { text:"Muudatused vist töötavad, sest nii lihtsalt tundub.", correct:false }
+      ]},
+      { level:"C1", skill:"grammar", skillLabel:"Grammatika", weight:9, prompt:"Vali kõige täpsem ja küpsem variant.", help:"Otsi tugevat struktuuri ja täpset sõnastust.", options:[
+        { text:"Olles alternatiive võrrelnud, otsustasime valida lahenduse, mis tagab pikemaajalise stabiilsuse.", correct:true },
+        { text:"Me vaatasime variante ja siis valisime midagi, mis võib kaua töötada.", correct:false },
+        { text:"Variante võrreldes valiti asi, mis kaua töötada oleks.", correct:false }
+      ]}
+    ]
+  },
+  en: {
+    label: "English",
+    studentTrackLabel: "English track",
+    questions: [
+      { level:"A1", skill:"grammar", skillLabel:"Grammar", weight:2, prompt:"Choose the correct sentence.", help:"Pick the grammatically correct option.", options:[
+        { text:"She lives in Tallinn.", correct:true },
+        { text:"She live in Tallinn.", correct:false },
+        { text:"She living in Tallinn.", correct:false }
+      ]},
+      { level:"A1", skill:"vocabulary", skillLabel:"Vocabulary", weight:2, prompt:"What is the opposite of 'small'?", help:"Choose the basic vocabulary answer.", options:[
+        { text:"big", correct:true },
+        { text:"slow", correct:false },
+        { text:"late", correct:false }
+      ]},
+      { level:"A2", skill:"grammar", skillLabel:"Grammar", weight:3, prompt:"Choose the best option: 'I usually ___ coffee in the morning.'", help:"Think of daily routines.", options:[
+        { text:"drink", correct:true },
+        { text:"drank", correct:false },
+        { text:"drinking", correct:false }
+      ]},
+      { level:"A2", skill:"reading", skillLabel:"Reading", weight:3, prompt:"Which question matches the answer: 'Because I was tired.'", help:"Look for the correct question word.", options:[
+        { text:"Why did you go home early?", correct:true },
+        { text:"Where did you go home?", correct:false },
+        { text:"Who was tired?", correct:false }
+      ]},
+      { level:"A2", skill:"vocabulary", skillLabel:"Vocabulary", weight:3, prompt:"Choose the most natural phrase: 'Can you ___ the window, please?'", help:"Think of a common everyday request.", options:[
+        { text:"close", correct:true },
+        { text:"finish", correct:false },
+        { text:"build", correct:false }
+      ]},
+      { level:"B1", skill:"reading", skillLabel:"Reading", weight:5, prompt:"Choose the most natural sentence.", help:"Pay attention to word order and tense.", options:[
+        { text:"If I have time tomorrow, I'll call you after work.", correct:true },
+        { text:"If I will have time tomorrow, I call you after work.", correct:false },
+        { text:"If tomorrow have time, I'll calling you after work.", correct:false }
+      ]},
+      { level:"B1", skill:"grammar", skillLabel:"Grammar", weight:5, prompt:"Select the correct linker: 'I stayed home ___ it was raining heavily.'", help:"Choose the word that gives a reason.", options:[
+        { text:"because", correct:true },
+        { text:"although", correct:false },
+        { text:"unless", correct:false }
+      ]},
+      { level:"B1", skill:"reading", skillLabel:"Reading", weight:5, prompt:"Complete the idea: 'She prepared carefully for the interview and...'", help:"Choose the most coherent continuation.", options:[
+        { text:"felt much more confident on the day.", correct:true },
+        { text:"confidence was interview the day more.", correct:false },
+        { text:"the day prepared confidence interview was.", correct:false }
+      ]},
+      { level:"B2", skill:"reading", skillLabel:"Reading", weight:7, prompt:"Which sentence sounds most appropriate in a professional email?", help:"Think of polite workplace English.", options:[
+        { text:"Could you please confirm whether Friday would be convenient for you?", correct:true },
+        { text:"Tell me fast if Friday works for you.", correct:false },
+        { text:"You need to say if Friday is okay.", correct:false }
+      ]},
+      { level:"B2", skill:"vocabulary", skillLabel:"Vocabulary", weight:7, prompt:"Choose the best word: 'The report provides a clear ___ of the current situation.'", help:"Pick the most suitable formal noun.", options:[
+        { text:"overview", correct:true },
+        { text:"looking", correct:false },
+        { text:"telling", correct:false }
+      ]},
+      { level:"B2", skill:"grammar", skillLabel:"Grammar", weight:7, prompt:"Complete the sentence: 'Even though the launch was delayed, the team managed to...'", help:"Choose the most coherent continuation.", options:[
+        { text:"meet the client's main expectations.", correct:true },
+        { text:"meeting the client was expectations.", correct:false },
+        { text:"met because expectation the client.", correct:false }
+      ]},
+      { level:"C1", skill:"vocabulary", skillLabel:"Vocabulary", weight:9, prompt:"Choose the most precise word: 'Her explanation was concise yet highly ___.'", help:"Pick the strongest advanced adjective.", options:[
+        { text:"insightful", correct:true },
+        { text:"ordinary", correct:false },
+        { text:"average", correct:false }
+      ]},
+      { level:"C1", skill:"reading", skillLabel:"Reading", weight:9, prompt:"Which option best fits an analytical summary?", help:"Look for formal, nuanced phrasing.", options:[
+        { text:"The data suggests a gradual but consistent improvement over the observed period.", correct:true },
+        { text:"The numbers kind of look better now than before.", correct:false },
+        { text:"Things improved maybe because the chart goes up.", correct:false }
+      ]},
+      { level:"C1", skill:"grammar", skillLabel:"Grammar", weight:9, prompt:"Choose the strongest sentence.", help:"Aim for precision and mature structure.", options:[
+        { text:"Had the team clarified the scope earlier, several costly revisions might have been avoided.", correct:true },
+        { text:"If the team clarified earlier, revisions avoided maybe.", correct:false },
+        { text:"The scope earlier was clarified and costly maybe no.", correct:false }
+      ]},
+      { level:"C1", skill:"grammar", skillLabel:"Grammar", weight:9, prompt:"Choose the most mature formulation.", help:"Look for control, precision and natural formal structure.", options:[
+        { text:"Having reviewed the alternatives, we opted for the approach most likely to remain sustainable in the long term.", correct:true },
+        { text:"We looked at options and chose one that maybe works for a long time.", correct:false },
+        { text:"Options reviewed, we choose long term maybe sustainable.", correct:false }
+      ]}
+    ]
+  }
+};
+
+const levelResults = [
+  {
+    min:0, max:23, level:"A1", title:"Soovituslik algustase: A1",
+    description:"Sul on olemas esmane tunnetus keelest, kuid kõige kindlam on alustada baasstruktuuridest ja kõige sagedasemast sõnavarast.",
+    recommendation:"A1 algkursus",
+    traits:["mõistad üksikuid tuttavaid sõnu ja lihtsaid lauseid","vajad tuge põhigrammatikas ja küsimuste moodustamises","kõige paremini sobib rahulik, samm-sammuline õpe"],
+    actions:["vali A1 kursus või täiesti algtaseme individuaaltund","harjuta igapäevaseid olukordi: tutvustus, aeg, koht, pood","kui oled ebakindel, broneeri tasuta konsultatsioon"]
+  },
+  {
+    min:24, max:39, level:"A2", title:"Soovituslik algustase: A2",
+    description:"Saad juba lihtsates olukordades hakkama, kuid sujuvus ja kindlus vajavad rohkem kordust ja aktiivset kasutust.",
+    recommendation:"A2 grupp",
+    traits:["mõistad lihtsaid küsimusi ja suudad anda lühikesi vastuseid","oled tuttav oleviku ja mineviku põhivormidega","keerukamates olukordades kaob kindlus kiiresti"],
+    actions:["sobib A2 grupp või sihitud A2-B1 ettevalmistus","keskendu sõnavara laiendamisele ja suulisele praktikale","hea aeg alustada regulaarset veebitundi 2-3 korda nädalas"]
+  },
+  {
+    min:40, max:58, level:"B1", title:"Soovituslik algustase: B1",
+    description:"Saad enamikes tuttavates olukordades hakkama ja suudad oma mõtet edasi anda, kuid vajad veel kindlust keerukamas keeles.",
+    recommendation:"B1 grupp",
+    traits:["saad aru töö, õppimise ja igapäeva põhiteemadest","oskad kirjutada lihtsamaid tekste ja kirjeldada kogemusi","grammatikas ja väljendustes on veel ebatäpsust"],
+    actions:["vali B1 kursus või eksamiks ettevalmistav grupp","treeni pikemaid vastuseid ja argumenteerimist","hea hetk sihtida ametlikku B1 tulemust"]
+  },
+  {
+    min:59, max:77, level:"B2", title:"Soovituslik algustase: B2",
+    description:"Kasutad keelt üsna iseseisvalt ja paindlikult. Järgmine areng tuleb nüansi, täpsuse ja keerukama väljenduse lihvimisest.",
+    recommendation:"B2 grupp",
+    traits:["mõistad pikemaid tekste ja tavapärast tööalast suhtlust","oskad selgitada arvamust ja kaitsta seisukohta","vajad veel lihvi stiilis, täpsuses ja loomulikus kasutuses"],
+    actions:["sobib B2 grupp või individuaalõpe konkreetse eesmärgiga","harjuta keerukamaid kirjutamis- ja aruteluvorme","vajadusel sea sihiks eksam või professionaalne suhtlus"]
+  },
+  {
+    min:78, max:100, level:"C1", title:"Soovituslik algustase: C1",
+    description:"Sinu keel on juba tugev ja paindlik. Sul tasub keskenduda kõrgtaseme täpsusele, stiilile ja kindlale valdkondlikule kasutusele.",
+    recommendation:"C1 või individuaalõpe",
+    traits:["mõistad keerukamat teksti ja varjundeid","väljendad ennast suhteliselt ladusalt ja argumenteeritult","areng tuleb peenhäälestusest, mitte ainult baasoskuste kordusest"],
+    actions:["vali C1 tase või personaalne kõrgtaseme kursus","keskendu akadeemilisele, tööalasele või eksamikeelele","kasuta õpetajaga individuaalset tagasisidet, et jõuda järgmise kvaliteeditasemeni"]
+  }
+];
+
+let activeLanguage = "et";
+let currentQuestion = 0;
+let answers = [];
+
+const languageSwitch = document.getElementById("languageSwitch");
+const progressLabel = document.getElementById("progressLabel");
+const progressBar = document.getElementById("progressBar");
+const questionCategory = document.getElementById("questionCategory");
+const questionText = document.getElementById("questionText");
+const questionHelp = document.getElementById("questionHelp");
+const answersEl = document.getElementById("answers");
+const prevBtn = document.getElementById("prevBtn");
+const nextBtn = document.getElementById("nextBtn");
+const resultEl = document.getElementById("result");
+const resultTitle = document.getElementById("resultTitle");
+const resultDescription = document.getElementById("resultDescription");
+const levelBadge = document.getElementById("levelBadge");
+const resultTraits = document.getElementById("resultTraits");
+const resultActions = document.getElementById("resultActions");
+const restartBtn = document.getElementById("restartBtn");
+const questionCard = document.getElementById("questionCard");
+const difficultyLabel = document.getElementById("difficultyLabel");
+const skillLabel = document.getElementById("skillLabel");
+const paceLabel = document.getElementById("paceLabel");
+const confidenceLabel = document.getElementById("confidenceLabel");
+const scoreLabel = document.getElementById("scoreLabel");
+const recommendationLabel = document.getElementById("recommendationLabel");
+const skillsGrid = document.getElementById("skillsGrid");
+const leadForm = document.getElementById("leadForm");
+const leadLevel = document.getElementById("leadLevel");
+const leadLanguage = document.getElementById("leadLanguage");
+
+function currentSet() {
+  return tests[activeLanguage].questions;
+}
+
+function getMaxScore() {
+  return currentSet().reduce((sum, question) => sum + question.weight, 0);
+}
+
+function resetTest(language) {
+  activeLanguage = language || activeLanguage;
+  currentQuestion = 0;
+  answers = new Array(currentSet().length).fill(null);
+  resultEl.classList.remove("show");
+  questionCard.style.display = "";
+  prevBtn.style.display = "";
+  nextBtn.style.display = "";
+  render();
+}
+
+function renderLanguageSwitch() {
+  languageSwitch.querySelectorAll("button").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.language === activeLanguage);
+  });
+}
+
+function render() {
+  renderLanguageSwitch();
+  const questions = currentSet();
+  const question = questions[currentQuestion];
+  progressLabel.textContent = `Küsimus ${currentQuestion + 1} / ${questions.length}`;
+  progressBar.style.width = `${((currentQuestion + 1) / questions.length) * 100}%`;
+  questionCategory.textContent = `${tests[activeLanguage].label} · ${question.level} · ${question.skillLabel}`;
+  questionText.textContent = question.prompt;
+  questionHelp.textContent = question.help;
+  difficultyLabel.textContent = question.level;
+  skillLabel.textContent = question.skillLabel;
+  paceLabel.textContent = currentQuestion < 5 ? "Sissejuhatav plokk" : currentQuestion < 10 ? "Keskmine raskus" : "Tugev plokk";
+  answersEl.innerHTML = "";
+
+  question.options.forEach((option, index) => {
+    const label = document.createElement("label");
+    label.className = `answer ${answers[currentQuestion] === index ? "is-selected" : ""}`;
+    label.innerHTML = `<input type="radio" name="answer" value="${index}" ${answers[currentQuestion] === index ? "checked" : ""}><div><strong>${option.text}</strong><span>Vali see vastus, kui see tundub kõige õigem.</span></div>`;
+    label.querySelector("input").addEventListener("change", () => {
+      answers[currentQuestion] = index;
+      render();
+    });
+    answersEl.appendChild(label);
+  });
+
+  updateButtons();
+}
+
+function updateButtons() {
+  const questions = currentSet();
+  prevBtn.disabled = currentQuestion === 0;
+  prevBtn.style.opacity = currentQuestion === 0 ? ".55" : "1";
+  const hasAnswer = answers[currentQuestion] !== null;
+  nextBtn.textContent = currentQuestion === questions.length - 1 ? "Vaata tulemust" : "Järgmine";
+  nextBtn.disabled = !hasAnswer;
+  nextBtn.style.opacity = hasAnswer ? "1" : ".6";
+}
+
+function getSkillStats() {
+  const stats = {};
+  currentSet().forEach((question, index) => {
+    if (!stats[question.skill]) {
+      stats[question.skill] = {
+        label: question.skillLabel,
+        score: 0,
+        max: 0
+      };
+    }
+    stats[question.skill].max += question.weight;
+    if (answers[index] !== null && question.options[answers[index]].correct) {
+      stats[question.skill].score += question.weight;
+    }
+  });
+  return stats;
+}
+
+function getConfidence(correctCount) {
+  if (correctCount >= 12) return "Vaga kindel";
+  if (correctCount >= 9) return "Hea kindlus";
+  if (correctCount >= 6) return "Mootdukas kindlus";
+  return "Esialgne hinnang";
+}
+
+function calculateResult() {
+  const questions = currentSet();
+  let weightedScore = 0;
+  let correctCount = 0;
+
+  answers.forEach((answerIndex, idx) => {
+    if (answerIndex === null) return;
+    if (questions[idx].options[answerIndex].correct) {
+      weightedScore += questions[idx].weight;
+      correctCount += 1;
+    }
+  });
+
+  const normalizedScore = Math.round((weightedScore / getMaxScore()) * 100);
+  const levelData = levelResults.find(item => normalizedScore >= item.min && normalizedScore <= item.max) || levelResults[0];
+
+  return {
+    ...levelData,
+    weightedScore: normalizedScore,
+    correctCount,
+    confidence: getConfidence(correctCount),
+    skills: getSkillStats()
+  };
+}
+
+function renderSkills(skills) {
+  const skillOrder = ["grammar", "reading", "vocabulary"];
+  skillsGrid.innerHTML = "";
+  skillOrder.forEach(key => {
+    const item = skills[key];
+    if (!item) return;
+    const percent = item.max ? Math.round((item.score / item.max) * 100) : 0;
+    const card = document.createElement("div");
+    card.className = "skill-card";
+    card.innerHTML = `
+      <h4>${item.label}</h4>
+      <div class="skill-track"><span style="width:${percent}%"></span></div>
+      <b>${percent}%</b>
+      <small>${percent >= 75 ? "See paistab praegu sinu tugevam pool." : percent >= 45 ? "Siin on baas olemas, aga ruumi arenguks jagub." : "Siin tasub alustada kindlamast toest ja praktikast."}</small>
+    `;
+    skillsGrid.appendChild(card);
+  });
+}
+
+function showResult() {
+  const result = calculateResult();
+  questionCard.style.display = "none";
+  prevBtn.style.display = "none";
+  nextBtn.style.display = "none";
+  resultEl.classList.add("show");
+  resultTitle.textContent = result.title;
+  resultDescription.textContent = result.description;
+  levelBadge.textContent = result.level;
+  resultTraits.innerHTML = result.traits.map(item => `<li>${item}</li>`).join("");
+  resultActions.innerHTML = result.actions.map(item => `<li>${item}</li>`).join("");
+  confidenceLabel.textContent = result.confidence;
+  scoreLabel.textContent = `${result.weightedScore} / 100`;
+  recommendationLabel.textContent = result.recommendation;
+  renderSkills(result.skills);
+  progressLabel.textContent = "Tulemus valmis";
+  progressBar.style.width = "100%";
+  leadLevel.value = result.level;
+  leadLanguage.value = tests[activeLanguage].studentTrackLabel;
+}
+
+languageSwitch.addEventListener("click", event => {
+  const btn = event.target.closest("button[data-language]");
+  if (!btn || btn.dataset.language === activeLanguage) return;
+  resetTest(btn.dataset.language);
+});
+
+prevBtn.addEventListener("click", () => {
+  if (currentQuestion > 0) {
+    currentQuestion -= 1;
+    render();
+  }
+});
+
+nextBtn.addEventListener("click", () => {
+  const questions = currentSet();
+  if (answers[currentQuestion] === null) return;
+  if (currentQuestion === questions.length - 1) {
+    showResult();
+    return;
+  }
+  currentQuestion += 1;
+  render();
+});
+
+restartBtn.addEventListener("click", () => resetTest(activeLanguage));
+
+leadForm.addEventListener("submit", event => {
+  event.preventDefault();
+  const name = encodeURIComponent(document.getElementById("leadName").value.trim());
+  const email = encodeURIComponent(document.getElementById("leadEmail").value.trim());
+  const level = encodeURIComponent(document.getElementById("leadLevel").value.trim());
+  const language = encodeURIComponent(document.getElementById("leadLanguage").value.trim());
+  const message = encodeURIComponent(document.getElementById("leadMessage").value.trim());
+  const subject = `Tasemetesti tulemus: ${decodeURIComponent(level)} (${decodeURIComponent(language)})`;
+  const body = [
+    `Nimi: ${decodeURIComponent(name)}`,
+    `E-post: ${decodeURIComponent(email)}`,
+    `Testi keel: ${decodeURIComponent(language)}`,
+    `Soovituslik tase: ${decodeURIComponent(level)}`,
+    "",
+    "Eesmärk / kommentaar:",
+    decodeURIComponent(message) || "-"
+  ].join("\n");
+  window.location.href = `mailto:info@epkoolitus.ee?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+});
+
+resetTest("et");
+</script>
+</body>
+</html>
