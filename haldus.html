@@ -1347,6 +1347,13 @@ function App() {
     selStu ? students.find(s=>s.id===selStu.id)||selStu : user?.role!=='teacher'?myStudents[0]:null
   ,[selStu,students,user,myStudents]);
 
+  useEffect(()=>{
+    if(user?.role!=='teacher') return;
+    if(schStu) return;
+    const firstActiveStudent = myStudents.find(s=>s.active!==false);
+    if(firstActiveStudent) setSchStu(firstActiveStudent.name);
+  },[user,myStudents,schStu]);
+
   const stuLessons = useMemo(()=>currentStu?lessons.filter(l=>l.studentId===currentStu.id||l.studentName?.toLowerCase()===currentStu.name?.toLowerCase()):[]
   ,[currentStu,lessons]);
   const stuHw  = useMemo(()=>currentStu?homework.filter(h=>h.studentId===currentStu.id):[]  ,[currentStu,homework]);
@@ -1366,7 +1373,7 @@ function App() {
     const t=isAdmin?schTeach:user.displayName;
     const jsDay=new Date(schDate).getDay();
     await db.collection('schedule').add({teacher:t,studentName:schStu,date:schDate,day:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][jsDay],time:schTime,status:'Planeeritud',createdAt:today()});
-    setSchStu('');notify('✓ Tund broneeritud!');
+    notify('✓ Tund broneeritud!');
   },[schStu,schDate,schTime,schTeach,isAdmin,user]);
 
   const saveLesson=useCallback(async()=>{
