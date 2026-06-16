@@ -6,10 +6,46 @@
     { "source": "/privaatsus/", "destination": "/privaatsus.html" },
     { "source": "/tingimused", "destination": "/tingimused.html" },
     { "source": "/tingimused/", "destination": "/tingimused.html" },
-    { "source": "/kutse", "destination": "/kutse.html" },
+    { "source": "/kutse", "destination": "/kutse" },
     { "source": "/", "destination": "/index.html" }
   ],
   "headers": [
+    {
+      "source": "/privaatsus",
+      "headers": [
+        { "key": "Content-Type", "value": "text/html; charset=utf-8" }
+      ]
+    },
+    {
+      "source": "/privaatsus/",
+      "headers": [
+        { "key": "Content-Type", "value": "text/html; charset=utf-8" }
+      ]
+    },
+    {
+      "source": "/tingimused",
+      "headers": [
+        { "key": "Content-Type", "value": "text/html; charset=utf-8" }
+      ]
+    },
+    {
+      "source": "/tingimused/",
+      "headers": [
+        { "key": "Content-Type", "value": "text/html; charset=utf-8" }
+      ]
+    },
+    {
+      "source": "/robots.txt",
+      "headers": [
+        { "key": "Content-Type", "value": "text/plain; charset=utf-8" }
+      ]
+    },
+    {
+      "source": "/sitemap.xml",
+      "headers": [
+        { "key": "Content-Type", "value": "application/xml; charset=utf-8" }
+      ]
+    },
     {
       "source": "/(.*)",
       "headers": [

@@ -1217,15 +1217,22 @@ function App() {
   // AUTH
   useEffect(()=>{
     const unsub=auth.onAuthStateChanged(async fbUser=>{
-      if(fbUser){
-        const snap=await db.collection('users').doc(fbUser.uid).get();
-        if(snap.exists){
-          const d=snap.data();
-          setUser({uid:fbUser.uid,displayName:fbUser.displayName||fbUser.email,...d});
-          if(d.role==='teacher') setFilterT(fbUser.displayName||'');
+      try{
+        if(fbUser){
+          const snap=await db.collection('users').doc(fbUser.uid).get();
+          if(snap.exists){
+            const d=snap.data();
+            setUser({uid:fbUser.uid,displayName:fbUser.displayName||fbUser.email,...d});
+            if(d.role==='teacher') setFilterT(fbUser.displayName||'');
+          }else{
+            setUser({uid:fbUser.uid,displayName:fbUser.displayName||fbUser.email,email:fbUser.email,role:'parent'});
+          }
         }
+      }catch(err){
+        console.error('Auth bootstrap failed:', err);
+      }finally{
+        setLoading(false);
       }
-      setLoading(false);
     });
     return unsub;
   },[]);

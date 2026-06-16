@@ -1,0 +1,1444 @@
+<!DOCTYPE html>
+<html lang="et" style="color-scheme:light only;">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>KeeleSepp — Haldussüsteem</title>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyAp8emBOh1fIqv72k_O5hkLkXVkfBt1al4",
+  authDomain:"keelesepp-5136b.firebaseapp.com",
+  projectId:"keelesepp-5136b",
+  storageBucket:"keelesepp-5136b.firebasestorage.app",
+  messagingSenderId:"674098517935",
+  appId:"1:674098517935:web:e73d04a4ada67874da015a"
+});
+window._db   = firebase.firestore();
+window._auth = firebase.auth();
+</script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"IBM Plex Sans",system-ui,sans-serif;background:#F4F2EE;color:#1C2B3A;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:"Fraunces",Georgia,serif;font-weight:600;line-height:1.2}
+input,select,textarea{font-size:16px!important;background:#fff!important;border:1.5px solid rgba(28,43,58,.15)!important;border-radius:10px!important;padding:11px 14px;width:100%;color:#1C2B3A;font-family:inherit;transition:border-color .15s}
+input:focus,select:focus,textarea:focus{border-color:#C9882A!important;outline:none;box-shadow:0 0 0 3px rgba(201,136,42,.1)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:600;font-size:.9rem;padding:11px 22px;border-radius:12px;border:none;cursor:pointer;transition:all .15s;font-family:inherit;white-space:nowrap}
+.btn-dark{background:#1C2B3A;color:#fff}.btn-dark:hover{background:#2a3d52;transform:translateY(-1px)}
+.btn-pine{background:#2F5D50;color:#fff}.btn-pine:hover{background:#244a3f;transform:translateY(-1px)}
+.btn-amber{background:#C9882A;color:#fff}.btn-amber:hover{background:#b07624}
+.btn-ghost{background:#fff;color:#1C2B3A;border:1.5px solid rgba(28,43,58,.15)!important}.btn-ghost:hover{border-color:#1C2B3A!important}
+.btn-red{background:#fee2e2;color:#991b1b;border:none!important}.btn-red:hover{background:#fecaca}
+.btn-sm{padding:7px 14px;font-size:.82rem;border-radius:9px}
+.card{background:#fff;border-radius:16px;border:1px solid rgba(28,43,58,.07);box-shadow:0 2px 8px rgba(28,43,58,.05)}
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font-size:.75rem;font-weight:600;line-height:1.4}
+.sidebar-link{display:flex;align-items:center;gap:11px;padding:11px 14px;border-radius:11px;font-size:.88rem;font-weight:500;cursor:pointer;transition:all .15s;color:rgba(255,255,255,.65);border:none;background:none;width:100%;text-align:left}
+.sidebar-link:hover{background:rgba(255,255,255,.09);color:#fff}
+.sidebar-link.active{background:#C9882A;color:#fff;box-shadow:0 4px 12px rgba(201,136,42,.3)}
+.level-bar{height:7px;border-radius:99px;background:#EFEDE7;overflow:hidden}
+.level-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#2F5D50,#C9882A);transition:width .8s ease}
+.scroll::-webkit-scrollbar{width:5px;height:5px}
+.scroll::-webkit-scrollbar-thumb{background:rgba(28,43,58,.15);border-radius:99px}
+.fade-in{animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{width:36px;height:36px;border:3px solid #EFEDE7;border-top-color:#C9882A;border-radius:50%;animation:spin 1s linear infinite}
+@media print{
+  aside,.no-print{display:none!important}
+  main{padding:0!important;background:#fff!important}
+  .print-only{display:block!important}
+}
+.print-only{display:none}
+</style>
+</head>
+<body>
+<div id="root"><div style="display:flex;align-items:center;justify-content:center;min-height:100vh"><div class="spinner"></div></div></div>
+
+<script type="text/babel" data-presets="react">
+const {useState,useEffect,useRef,useCallback} = React;
+const db   = window._db;
+const auth = window._auth;
+
+const TEACHER_CODE = 'KS2026'; // Invite code for teacher registration
+const LEVELS   = ['A1','A2','B1','B2','C1'];
+const TEACHERS = ['Pavel','Jelena','Elizaveta','Angelina'];
+const DAYS = [{id:'Mon',n:'E'},{id:'Tue',n:'T'},{id:'Wed',n:'K'},{id:'Thu',n:'N'},{id:'Fri',n:'R'},{id:'Sat',n:'L'},{id:'Sun',n:'P'}];
+const DAYS_FULL = [{id:'Mon',n:'Esmaspäev'},{id:'Tue',n:'Teisipäev'},{id:'Wed',n:'Kolmapäev'},{id:'Thu',n:'Neljapäev'},{id:'Fri',n:'Reede'},{id:'Sat',n:'Laupäev'},{id:'Sun',n:'Pühapäev'}];
+const TIMES = ["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00"];
+
+const levelIdx = l => LEVELS.indexOf(l);
+const levelPct = (cur,tgt) => { const c=levelIdx(cur),t=levelIdx(tgt); return t>0&&c<t?Math.round((c/t)*100):c>=t?100:0; };
+const avg = arr => arr.length?(arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(1):'—';
+const fmtDate = d => d?new Date(d).toLocaleDateString('et-EE',{day:'2-digit',month:'2-digit',year:'numeric'}):'—';
+const today = () => new Date().toISOString().split('T')[0];
+const toISODate = d => {
+  const x = new Date(d);
+  x.setHours(0,0,0,0);
+  const y = x.getFullYear();
+  const m = String(x.getMonth()+1).padStart(2,'0');
+  const day = String(x.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+};
+const startOfWeek = (dateLike=new Date()) => {
+  const d = new Date(dateLike);
+  d.setHours(0,0,0,0);
+  const jsDay = d.getDay(); // 0=Sun
+  const diff = jsDay===0 ? -6 : 1-jsDay; // Monday start
+  d.setDate(d.getDate()+diff);
+  return d;
+};
+const addDays = (dateLike, days) => {
+  const d = new Date(dateLike);
+  d.setDate(d.getDate()+days);
+  return d;
+};
+const weekLabel = (weekStartIso) => {
+  const s = new Date(weekStartIso);
+  const e = addDays(s,6);
+  const sameMonth = s.getMonth()===e.getMonth();
+  const startPart = s.toLocaleDateString('et-EE',{day:'2-digit', month:'short'});
+  const endPart = e.toLocaleDateString('et-EE',{day:'2-digit', month:sameMonth?undefined:'short'});
+  const yearPart = e.getFullYear();
+  return `${startPart} – ${endPart} ${yearPart}`;
+};
+const dayIdFromDate = (iso) => {
+  const jsDay = new Date(iso).getDay();
+  return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][jsDay];
+};
+const scheduleStatusMeta = (status='Planeeritud') => ({
+  Planeeritud:{bg:'rgba(47,93,80,.09)',border:'rgba(47,93,80,.2)',hover:'rgba(47,93,80,.18)',label:'Planeeritud',pillBg:'rgba(47,93,80,.12)',pillColor:'#2F5D50'},
+  Nihutatud:{bg:'rgba(201,136,42,.09)',border:'rgba(201,136,42,.25)',hover:'rgba(201,136,42,.16)',label:'Nihutatud',pillBg:'rgba(201,136,42,.14)',pillColor:'#A96E1A'},
+  Tühistatud:{bg:'rgba(239,68,68,.08)',border:'rgba(239,68,68,.18)',hover:'rgba(239,68,68,.12)',label:'Tühistatud',pillBg:'rgba(239,68,68,.12)',pillColor:'#991B1B'},
+  Toimunud:{bg:'rgba(28,43,58,.07)',border:'rgba(28,43,58,.14)',hover:'rgba(28,43,58,.10)',label:'Toimunud',pillBg:'rgba(28,43,58,.10)',pillColor:'#1C2B3A'},
+}[status] || {
+  bg:'rgba(47,93,80,.09)',border:'rgba(47,93,80,.2)',hover:'rgba(47,93,80,.18)',label:status,pillBg:'rgba(47,93,80,.12)',pillColor:'#2F5D50'
+});
+const makeIcsDate = (isoDate,time='09:00',minutes=60) => {
+  const [y,m,d] = isoDate.split('-').map(Number);
+  const [hh,mm] = time.split(':').map(Number);
+  const start = new Date(y, m-1, d, hh, mm || 0, 0);
+  const end = new Date(start.getTime() + minutes*60000);
+  const fmt = dt => {
+    const p = n => String(n).padStart(2,'0');
+    return `${dt.getFullYear()}${p(dt.getMonth()+1)}${p(dt.getDate())}T${p(dt.getHours())}${p(dt.getMinutes())}00`;
+  };
+  return {start:fmt(start), end:fmt(end)};
+};
+
+// ── GRAAFIK ─────────────────────────────────────────────────
+function ProgressChart({data}) {
+  const ref = useRef(null);
+  useEffect(()=>{
+    if(!ref.current||data.length<2) return;
+    const sorted=[...data].sort((a,b)=>new Date(a.date)-new Date(b.date));
+    const ch=new Chart(ref.current.getContext('2d'),{
+      type:'line',
+      data:{
+        labels:sorted.map(d=>fmtDate(d.date)),
+        datasets:[{
+          data:sorted.map(d=>d.grade),
+          borderColor:'#C9882A',backgroundColor:'rgba(201,136,42,0.07)',
+          borderWidth:2.5,tension:0.4,fill:true,
+          pointBackgroundColor:'#2F5D50',pointBorderColor:'#fff',pointBorderWidth:2,pointRadius:5
+        }]
+      },
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+        scales:{y:{min:1,max:5,ticks:{stepSize:1,font:{size:11}},grid:{color:'rgba(0,0,0,.04)'}},
+                x:{ticks:{font:{size:10}},grid:{display:false}}}
+      }
+    });
+    return ()=>ch.destroy();
+  },[data]);
+  if(data.length<2) return <div style={{textAlign:'center',padding:'30px 0',color:'#42536A',fontSize:'.88rem'}}>Graafiku jaoks vajatakse vähemalt 2 tundi ✨</div>;
+  return <div style={{height:200}}><canvas ref={ref}/></div>;
+}
+
+// ── AUTH SCREEN ──────────────────────────────────────────────
+function AuthScreen({onLogin}) {
+  const [mode, setMode]   = useState('login');
+  const [role, setRole]   = useState('parent');
+  const [name, setName]   = useState('');
+  const [email,setEmail]  = useState('');
+  const [pass, setPass]   = useState('');
+  const [pass2,setPass2]  = useState('');
+  const [childName,setChildName] = useState('');
+  const [tCode,setTCode]  = useState('');
+  const [err,  setErr]    = useState('');
+  const [info, setInfo]   = useState('');
+  const [busy, setBusy]   = useState(false);
+
+  const reset = m => { setMode(m); setErr(''); setInfo(''); setPass(''); setPass2(''); };
+
+  const googleLogin = async () => {
+    setErr(''); setBusy(true);
+    try {
+      const res = await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+      const u = res.user;
+      const snap = await db.collection('users').doc(u.uid).get();
+      if(snap.exists){
+        onLogin({uid:u.uid,displayName:u.displayName,email:u.email,...snap.data()});
+      } else {
+        const ud={role:'parent',displayName:u.displayName,email:u.email,childName:'',createdAt:today()};
+        await db.collection('users').doc(u.uid).set(ud);
+        onLogin({uid:u.uid,...ud});
+      }
+    } catch(e){ setErr('Google sisselogimine ebaõnnestus. Proovi uuesti.'); }
+    setBusy(false);
+  };
+
+  const emailLogin = async () => {
+    if(!email||!pass){ setErr('Täida kõik väljad'); return; }
+    setErr(''); setBusy(true);
+    try {
+      const res = await auth.signInWithEmailAndPassword(email,pass);
+      const snap = await db.collection('users').doc(res.user.uid).get();
+      if(snap.exists){
+        onLogin({uid:res.user.uid,displayName:res.user.displayName||email,...snap.data()});
+      } else {
+        onLogin({uid:res.user.uid,displayName:res.user.displayName||email,email,role:'parent'});
+      }
+    } catch(e){
+      const m={'auth/user-not-found':'Kasutajat ei leitud','auth/wrong-password':'Vale parool','auth/invalid-credential':'Vale e-post või parool','auth/too-many-requests':'Liiga palju katseid. Proovi hiljem.'};
+      setErr(m[e.code]||e.message);
+    }
+    setBusy(false);
+  };
+
+  const register = async () => {
+    if(!name.trim()||!email.trim()||!pass) { setErr('Täida kõik kohustuslikud väljad'); return; }
+    if(pass!==pass2) { setErr('Paroolid ei ühti'); return; }
+    if(pass.length<6) { setErr('Parool peab olema vähemalt 6 tähemärki'); return; }
+    if(role==='teacher' && tCode!==TEACHER_CODE) { setErr('Vale õpetaja kutse-kood. Küsi kooli administraatorilt.'); return; }
+    setErr(''); setBusy(true);
+    try {
+      const res = await auth.createUserWithEmailAndPassword(email,pass);
+      await res.user.updateProfile({displayName:name});
+      const ud={role,displayName:name,email,childName:role==='parent'?childName:'',createdAt:today()};
+      await db.collection('users').doc(res.user.uid).set(ud);
+      onLogin({uid:res.user.uid,...ud});
+    } catch(e){
+      const m={'auth/email-already-in-use':'See e-post on juba registreeritud','auth/invalid-email':'Vigane e-posti aadress'};
+      setErr(m[e.code]||e.message);
+    }
+    setBusy(false);
+  };
+
+  const forgot = async () => {
+    if(!email){ setErr('Sisesta oma e-posti aadress'); return; }
+    setBusy(true);
+    try { await auth.sendPasswordResetEmail(email); setInfo('Parooli taastamise link saadetud aadressile '+email); setErr(''); }
+    catch(e){ setErr(e.message); }
+    setBusy(false);
+  };
+
+  const inp = {style:{marginBottom:0}};
+
+  return (
+    <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',padding:16,
+      background:'linear-gradient(135deg,#1C2B3A 0%,#2F5D50 100%)'}}>
+      <div style={{background:'#FBFAF8',borderRadius:24,padding:'40px 36px',width:'100%',maxWidth:420,
+        boxShadow:'0 32px 80px rgba(0,0,0,.3)'}}>
+
+        <div style={{textAlign:'center',marginBottom:32}}>
+          <div style={{fontFamily:'Fraunces,Georgia,serif',fontSize:'2rem',fontWeight:600,letterSpacing:'-.01em'}}>
+            Keele<span style={{color:'#C9882A'}}>Sepp</span>
+          </div>
+          <div style={{fontSize:'.82rem',color:'#42536A',marginTop:4}}>
+            {mode==='login'?'Sisselogimine':mode==='register'?'Uue konto loomine':'Parooli taastamine'}
+          </div>
+        </div>
+
+        {/* Role tabs on register */}
+        {mode==='register' && (
+          <div style={{display:'flex',background:'#EFEDE7',borderRadius:12,padding:4,marginBottom:20,gap:3}}>
+            {[{id:'parent',l:'👨‍👩‍👧 Lapsevanem'},{id:'student',l:'🎓 Õpilane'},{id:'teacher',l:'📚 Õpetaja'}].map(r=>(
+              <button key={r.id} onClick={()=>setRole(r.id)}
+                style={{flex:1,padding:'8px 4px',borderRadius:9,border:'none',cursor:'pointer',fontWeight:600,
+                  fontSize:'.8rem',transition:'all .15s',
+                  background:role===r.id?'#1C2B3A':'transparent',color:role===r.id?'#fff':'#42536A'}}>
+                {r.l}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <div style={{display:'flex',flexDirection:'column',gap:10,marginBottom:16}}>
+          {mode==='register' && <input value={name} onChange={e=>setName(e.target.value)} placeholder="Täisnimi *" {...inp}/>}
+          <input type="email" value={email} onChange={e=>setEmail(e.target.value)}
+            onKeyDown={e=>e.key==='Enter'&&(mode==='login'?emailLogin():null)}
+            placeholder="E-posti aadress *" {...inp}/>
+          {mode!=='forgot' && (
+            <input type="password" value={pass} onChange={e=>setPass(e.target.value)}
+              onKeyDown={e=>e.key==='Enter'&&(mode==='login'?emailLogin():null)}
+              placeholder="Parool *" {...inp}/>
+          )}
+          {mode==='register' && <>
+            <input type="password" value={pass2} onChange={e=>setPass2(e.target.value)} placeholder="Korda parooli *" {...inp}/>
+            {role==='parent' && <input value={childName} onChange={e=>setChildName(e.target.value)} placeholder="Lapse nimi KeeleSepis" {...inp}/>}
+            {role==='teacher' && (
+              <div>
+                <input value={tCode} onChange={e=>setTCode(e.target.value)} placeholder="Õpetaja kutse-kood *" {...inp}/>
+                <div style={{fontSize:'.72rem',color:'#42536A',marginTop:5,paddingLeft:2}}>
+                  🔑 Kutse-koodi saad kooli administraatorilt
+                </div>
+              </div>
+            )}
+          </>}
+        </div>
+
+        {err  && <div style={{background:'#fee2e2',color:'#991b1b',borderRadius:10,padding:'10px 14px',fontSize:'.84rem',marginBottom:14}}>{err}</div>}
+        {info && <div style={{background:'#dcfce7',color:'#166534',borderRadius:10,padding:'10px 14px',fontSize:'.84rem',marginBottom:14}}>{info}</div>}
+
+        {mode==='login' && (
+          <button onClick={emailLogin} disabled={busy} className="btn btn-dark" style={{width:'100%',marginBottom:10,borderRadius:12,padding:'13px'}}>
+            {busy?'Laeb…':'Sisene e-postiga'}
+          </button>
+        )}
+        {mode==='register' && (
+          <button onClick={register} disabled={busy} className="btn btn-dark" style={{width:'100%',marginBottom:10,borderRadius:12,padding:'13px'}}>
+            {busy?'Laeb…':'Loo konto'}
+          </button>
+        )}
+        {mode==='forgot' && (
+          <button onClick={forgot} disabled={busy} className="btn btn-pine" style={{width:'100%',marginBottom:10,borderRadius:12,padding:'13px'}}>
+            {busy?'Laeb…':'Saada taastamislink'}
+          </button>
+        )}
+
+        <button onClick={googleLogin} disabled={busy}
+          style={{width:'100%',padding:'12px',borderRadius:12,border:'1.5px solid rgba(28,43,58,.15)',
+            background:'#fff',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',
+            gap:10,fontWeight:600,fontSize:'.9rem',transition:'all .15s'}}
+          onMouseEnter={e=>e.currentTarget.style.borderColor='#1C2B3A'}
+          onMouseLeave={e=>e.currentTarget.style.borderColor='rgba(28,43,58,.15)'}>
+          <svg width="18" height="18" viewBox="0 0 18 18">
+            <path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18z"/>
+            <path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 0 1-7.18-2.54H1.83v2.07A8 8 0 0 0 8.98 17z"/>
+            <path fill="#FBBC05" d="M4.5 10.52a4.8 4.8 0 0 1 0-3.04V5.41H1.83a8 8 0 0 0 0 7.18l2.67-2.07z"/>
+            <path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 0 0 1.83 5.4L4.5 7.49a4.77 4.77 0 0 1 4.48-3.3z"/>
+          </svg>
+          {mode==='register'?'Registreeru Google\'iga':'Sisene Google\'iga'}
+        </button>
+
+        <div style={{marginTop:20,textAlign:'center',fontSize:'.82rem',color:'#42536A'}}>
+          {mode==='login' && <>
+            <span>Pole kontot? </span>
+            <button onClick={()=>reset('register')} style={{color:'#C9882A',fontWeight:700,background:'none',border:'none',cursor:'pointer'}}>Registreeru</button>
+            <span style={{color:'#d1d5db'}}> · </span>
+            <button onClick={()=>reset('forgot')} style={{color:'#42536A',background:'none',border:'none',cursor:'pointer',textDecoration:'underline'}}>Unustasid parooli?</button>
+          </>}
+          {mode!=='login' && (
+            <button onClick={()=>reset('login')} style={{color:'#C9882A',fontWeight:700,background:'none',border:'none',cursor:'pointer'}}>
+              ← Tagasi sisselogimisele
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── PÕHIRAKENDUS ─────────────────────────────────────────────
+function App() {
+  const [user,    setUser]    = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [tab,     setTab]     = useState('dashboard');
+  const [selStu,  setSelStu]  = useState(null);
+  const [filterT, setFilterT] = useState('');
+  const [modalEv, setModalEv] = useState(null);
+  const [search,  setSearch]  = useState('');
+  const [notif,   setNotif]   = useState('');
+  const [mobileNav,setMobileNav]=useState(false);
+  const [stuFilter,setStuFilter]=useState('active'); // active | all | inactive
+
+  // Firestore
+  const [students, setStu] = useState([]);
+  const [lessons,  setLes] = useState([]);
+  const [homework, setHw]  = useState([]);
+  const [schedule, setSch] = useState([]);
+  const [invoices, setInv] = useState([]);
+
+  // Add student form
+  const [nName,  setNName]  = useState('');
+  const [nLevel, setNLevel] = useState('A1');
+  const [nTarget,setNTarget]= useState('B1');
+  const [nTeach, setNTeach] = useState('Pavel');
+  const [nPhone, setNPhone] = useState('');
+  const [nEmail, setNEmail] = useState('');
+  const [nPkg,   setNPkg]   = useState('10');
+
+  // Lesson form
+  const [lTopic,  setLTopic]   = useState('');
+  const [lGrade,  setLGrade]   = useState('5');
+  const [lStatus, setLStatus]  = useState('Toimunud');
+  const [lComment,setLComment] = useState('');
+  const [lDur,    setLDur]     = useState('60');
+
+  // Homework
+  const [hwTask, setHwTask] = useState('');
+  const [hwDue,  setHwDue]  = useState('');
+
+  // Schedule
+  const [schStu,  setSchStu]  = useState('');
+  const [schDate, setSchDate] = useState(today());
+  const [schTime, setSchTime] = useState('09:00');
+  const [schTeach,setSchTeach]= useState('Pavel');
+  const [weekStart,setWeekStart]=useState(toISODate(startOfWeek(new Date())));
+  const [showCanceled,setShowCanceled]=useState(true);
+  const [moveDate,setMoveDate]=useState(today());
+  const [moveTime,setMoveTime]=useState('09:00');
+
+  // Invoice
+  const [invAmt,  setInvAmt]  = useState('');
+  const [invDesc, setInvDesc] = useState('');
+  const [invStu,  setInvStu]  = useState('');
+
+  // ── AUTH ──────────────────────────────────────────────────
+  useEffect(()=>{
+    const unsub=auth.onAuthStateChanged(async fbUser=>{
+      if(fbUser){
+        const snap=await db.collection('users').doc(fbUser.uid).get();
+        if(snap.exists){
+          const d=snap.data();
+          setUser({uid:fbUser.uid,displayName:fbUser.displayName||fbUser.email,...d});
+          if(d.role==='teacher') setFilterT(fbUser.displayName||'');
+        }
+      }
+      setLoading(false);
+    });
+    return unsub;
+  },[]);
+
+  // ── FIRESTORE ─────────────────────────────────────────────
+  useEffect(()=>{
+    if(!user) return;
+    const u1=db.collection('students').onSnapshot(s=>setStu(s.docs.map(d=>({id:d.id,...d.data()}))));
+    const u2=db.collection('lessons').onSnapshot(s=>setLes(s.docs.map(d=>({id:d.id,...d.data()}))));
+    const u3=db.collection('homework').onSnapshot(s=>setHw(s.docs.map(d=>({id:d.id,...d.data()}))));
+    const u4=db.collection('schedule').onSnapshot(s=>setSch(s.docs.map(d=>({id:d.id,...d.data()}))));
+    const u5=db.collection('invoices').onSnapshot(s=>setInv(s.docs.map(d=>({id:d.id,...d.data()}))));
+    return()=>{u1();u2();u3();u4();u5();};
+  },[user]);
+
+  const notify=msg=>{setNotif(msg);setTimeout(()=>setNotif(''),3500);};
+  const goTab=t=>{setTab(t);setSelStu(null);setMobileNav(false);};
+
+  useEffect(()=>{
+    if(modalEv){
+      setMoveDate(modalEv.occurrenceDate || modalEv.date || today());
+      setMoveTime(modalEv.time || '09:00');
+    }
+  },[modalEv]);
+
+  // ── TEGEVUSED ─────────────────────────────────────────────
+  const addStudent=async()=>{
+    if(!nName.trim()){notify('⚠ Sisesta õpilase nimi');return;}
+    const t=user.displayName==='Pavel'?nTeach:user.displayName;
+    await db.collection('students').add({
+      name:nName,level:nLevel,targetLevel:nTarget,teacher:t,
+      phone:nPhone,email:nEmail,active:true,
+      packageTotal:parseInt(nPkg)||0,packageUsed:0,
+      createdAt:today()
+    });
+    setNName('');setNPhone('');setNEmail('');setNPkg('10');
+    notify('✓ Õpilane '+nName+' lisatud!');
+  };
+
+  const addSchedule=async()=>{
+    if(!schStu || !schDate){notify('⚠ Vali õpilane ja kuupäev');return;}
+    const t=user.displayName==='Pavel'?schTeach:user.displayName;
+    await db.collection('schedule').add({
+      teacher:t,
+      studentName:schStu,
+      date:schDate,
+      day:dayIdFromDate(schDate),
+      time:schTime,
+      status:'Planeeritud',
+      createdAt: today(),
+      calendarSource:'manual',
+      googleSyncStatus:'not_connected'
+    });
+    setSchStu('');
+    notify('✓ Tund broneeritud kuupäevale ' + fmtDate(schDate) + '!');
+  };
+
+  const saveLesson=async()=>{
+    if(!modalEv||!lTopic.trim()){notify('⚠ Sisesta tunni teema');return;}
+    if(modalEv.status==='Tühistatud'){notify('⚠ Tühistatud tundi ei saa päevikusse salvestada. Taasta või tõsta see ümber.');return;}
+    const stu=students.find(s=>s.name.toLowerCase()===modalEv.studentName.toLowerCase());
+    const now=new Date();
+    const lessonDate = modalEv.occurrenceDate || modalEv.date || today();
+    const lessonData={
+      studentId:stu?stu.id:'ext',studentName:modalEv.studentName,
+      topic:lTopic,grade:lStatus==='Toimunud'?parseInt(lGrade):0,
+      duration:parseInt(lDur),status:lStatus,comment:lComment,
+      date:lessonDate,
+      submittedAt:now.toLocaleString('et-EE'),
+      teacher:user.displayName,
+      scheduleId: modalEv.id || null,
+      scheduledTime: modalEv.time || null
+    };
+    await db.collection('lessons').add(lessonData);
+    if(stu&&lStatus==='Toimunud'){
+      await db.collection('students').doc(stu.id).update({packageUsed:firebase.firestore.FieldValue.increment(1)});
+    }
+    if(modalEv.id && modalEv.date){
+      await db.collection('schedule').doc(modalEv.id).update({
+        status:lStatus==='Toimunud' ? 'Toimunud' : modalEv.status || 'Planeeritud',
+        lessonLoggedAt: today(),
+        lastLessonStatus: lStatus
+      });
+    }
+    setLTopic('');setLComment('');setModalEv(null);
+    notify('✓ Aruanne salvestatud!');
+  };
+
+  const cancelSchedule=async()=>{
+    if(!modalEv?.id) return;
+    await db.collection('schedule').doc(modalEv.id).update({status:'Tühistatud', canceledAt:today()});
+    setModalEv(prev=>prev?{...prev,status:'Tühistatud'}:prev);
+    notify('✓ Tund märgiti tühistatuks');
+  };
+
+  const restoreSchedule=async()=>{
+    if(!modalEv?.id) return;
+    await db.collection('schedule').doc(modalEv.id).update({
+      status:'Planeeritud',
+      canceledAt:firebase.firestore.FieldValue.delete()
+    });
+    setModalEv(prev=>prev?{...prev,status:'Planeeritud'}:prev);
+    notify('✓ Tund taastatud');
+  };
+
+  const rescheduleSchedule=async()=>{
+    if(!modalEv?.id || !moveDate || !moveTime){notify('⚠ Vali uus kuupäev ja kellaaeg');return;}
+    await db.collection('schedule').doc(modalEv.id).update({
+      date:moveDate,
+      day:dayIdFromDate(moveDate),
+      time:moveTime,
+      status:'Nihutatud',
+      rescheduledAt:today(),
+      originalDate: modalEv.originalDate || modalEv.date || modalEv.occurrenceDate || null,
+      originalTime: modalEv.originalTime || modalEv.time || null
+    });
+    setModalEv(prev=>prev?{...prev,date:moveDate,occurrenceDate:moveDate,time:moveTime,status:'Nihutatud'}:prev);
+    notify('✓ Tund tõsteti ümber');
+  };
+
+  const exportScheduleEvent=ev=>{
+    const isoDate = ev.occurrenceDate || ev.date;
+    if(!isoDate){
+      notify('⚠ Mallikirjet ei saa otse kalendrisse eksportida. Tõsta tund konkreetsele kuupäevale.');
+      return;
+    }
+    const span = makeIcsDate(isoDate, ev.time || '09:00', parseInt(lDur)||60);
+    const title = `KeeleSepp – ${ev.studentName}`;
+    const desc = `Õpetaja: ${ev.teacher || user.displayName}\nStaatus: ${ev.status || 'Planeeritud'}`;
+    const ics = `BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//KeeleSepp//Haldus//ET\nBEGIN:VEVENT\nUID:${ev.id || Date.now()}@keelesepp\nDTSTAMP:${span.start}\nDTSTART:${span.start}\nDTEND:${span.end}\nSUMMARY:${title}\nDESCRIPTION:${desc}\nEND:VEVENT\nEND:VCALENDAR`;
+    const blob = new Blob([ics], {type:'text/calendar;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `keelesepp-${(ev.studentName||'lesson').split(' ').join('-').toLowerCase()}.ics`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  };
+
+  const addHw=async()=>{
+    if(!selStu||!hwTask.trim()){notify('⚠ Sisesta ülesanne');return;}
+    await db.collection('homework').add({
+      studentId:selStu.id,studentName:selStu.name,task:hwTask,due:hwDue,
+      status:'Ootel',date:today()
+    });
+    setHwTask('');setHwDue('');notify('✓ Kodutöö saadetud!');
+  };
+
+  const toggleHw=async(id,cur)=>await db.collection('homework').doc(id).update({status:cur==='Tehtud'?'Ootel':'Tehtud'});
+
+  const delSchedule=async(id,e)=>{
+    e.stopPropagation();
+    if(window.confirm('Kustuta tund?')) await db.collection('schedule').doc(id).delete();
+  };
+
+  const toggleStudentActive=async(id,cur)=>{
+    await db.collection('students').doc(id).update({active:!cur});
+    notify(cur?'✓ Õpilane arhiveeritud':'✓ Õpilane aktiveeritud');
+  };
+
+  const addInvoice=async(stuId)=>{
+    const sid=stuId||invStu;
+    if(!invAmt||!sid){notify('⚠ Vali õpilane ja sisesta summa');return;}
+    const stu=students.find(s=>s.id===sid);
+    const num=`KS-${new Date().getFullYear()}-${String(invoices.length+1).padStart(3,'0')}`;
+    const due=new Date(Date.now()+14*864e5).toISOString().split('T')[0];
+    await db.collection('invoices').add({
+      studentId:sid,studentName:stu?.name||'—',amount:parseInt(invAmt),
+      desc:invDesc||'Keeletunnid',num,status:'Ootel',date:today(),due
+    });
+    setInvAmt('');setInvDesc('');setInvStu('');
+    notify('✓ Arve '+num+' loodud!');
+  };
+
+  const markPaid=async id=>{
+    await db.collection('invoices').doc(id).update({status:'Makstud',paidAt:today()});
+    notify('✓ Märgitud makstud!');
+  };
+
+  const printInvoice=inv=>{
+    const stu=students.find(s=>s.id===inv.studentId);
+    const w=window.open('','_blank');
+    w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+    <title>Arve ${inv.num}</title>
+    <style>body{font-family:Georgia,serif;padding:60px;color:#1C2B3A;max-width:700px;margin:0 auto}
+    .logo{font-size:2rem;font-weight:700;margin-bottom:4px}b{color:#C9882A}
+    h1{font-size:1.4rem;border-bottom:2px solid #C9882A;padding-bottom:12px;margin:30px 0 20px}
+    .row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eee}
+    .total{font-size:1.3rem;font-weight:700;color:#2F5D50}
+    .footer{margin-top:50px;font-size:.8rem;color:#666;text-align:center}
+    </style></head><body>
+    <div class="logo">Keele<b>Sepp</b></div>
+    <div style="font-size:.85rem;color:#666">E&P Koolitus OÜ · info@epkoolitus.ee · +372 5374 0753</div>
+    <h1>ARVE ${inv.num}</h1>
+    <div class="row"><span>Arve number:</span><span>${inv.num}</span></div>
+    <div class="row"><span>Kuupäev:</span><span>${fmtDate(inv.date)}</span></div>
+    <div class="row"><span>Tähtaeg:</span><span>${fmtDate(inv.due)}</span></div>
+    <div class="row"><span>Õpilane:</span><span>${inv.studentName}</span></div>
+    ${stu?.email?`<div class="row"><span>E-post:</span><span>${stu.email}</span></div>`:''}
+    <div class="row"><span>Kirjeldus:</span><span>${inv.desc}</span></div>
+    <div class="row total"><span>KOKKU:</span><span>${inv.amount} €</span></div>
+    <p style="margin-top:30px;font-size:.85rem;color:#666">Palun tasuda arve tähtajaks ${fmtDate(inv.due)}.</p>
+    <div class="footer">KeeleSepp · E&P Koolitus OÜ · Mustamäe tee 33, 10616 Tallinn · Reg nr: xxxxxxxx</div>
+    </body></html>`);
+    w.document.close();
+    setTimeout(()=>w.print(),500);
+  };
+
+  // ── FILTRID ────────────────────────────────────────────────
+  const isAdmin   = user?.displayName==='Pavel';
+  const myStudents = user?.role==='teacher'
+    ? (isAdmin?students:students.filter(s=>s.teacher===user.displayName))
+    : user?.role==='parent'
+      ? students.filter(s=>s.name?.toLowerCase()===user.childName?.toLowerCase())
+      : students.filter(s=>s.name?.toLowerCase()===user?.displayName?.toLowerCase());
+
+  const filteredStudents = myStudents
+    .filter(s=>stuFilter==='active'?s.active!==false:stuFilter==='inactive'?s.active===false:true)
+    .filter(s=>s.name?.toLowerCase().includes(search.toLowerCase())||(s.teacher||'').toLowerCase().includes(search.toLowerCase()));
+
+  const filteredSch = user?.role==='teacher'
+    ? (filterT==='Kõik'||!filterT?schedule:schedule.filter(s=>s.teacher===filterT))
+    : schedule.filter(s=>s.studentName?.toLowerCase()===user?.displayName?.toLowerCase());
+
+  const currentStu = selStu
+    ? students.find(s=>s.id===selStu.id)||selStu
+    : user?.role!=='teacher'?myStudents[0]:null;
+
+  const stuLessons = currentStu ? lessons.filter(l=>l.studentId===currentStu.id||l.studentName?.toLowerCase()===currentStu.name?.toLowerCase()) : [];
+  const stuHw      = currentStu ? homework.filter(h=>h.studentId===currentStu.id) : [];
+  const stuInv     = currentStu ? invoices.filter(i=>i.studentId===currentStu.id) : [];
+  const doneLess   = stuLessons.filter(l=>l.status==='Toimunud');
+  const attendance = stuLessons.length?Math.round(doneLess.length/stuLessons.length*100):0;
+  const unpaidAmt  = invoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+i.amount,0);
+  const pendingHw  = homework.filter(h=>h.status==='Ootel'&&myStudents.some(s=>s.id===h.studentId)).length;
+  const todaySch   = schedule.filter(s=>s.teacher===user?.displayName).length;
+
+  const pkgRemaining = s => (s.packageTotal||0)-(s.packageUsed||0);
+
+  // ── LOADING ────────────────────────────────────────────────
+  if(loading) return <div style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh'}}><div className="spinner"/></div>;
+  if(!user) return <AuthScreen onLogin={u=>{setUser(u);if(u.role==='teacher')setFilterT(u.displayName||'');}}/>;
+
+  // ── SIDEBAR ────────────────────────────────────────────────
+  const navItems=[
+    {id:'dashboard',icon:'fa-chart-pie',     label:'Töölaud'},
+    {id:'calendar', icon:'fa-calendar-days', label:'Tunniplaan'},
+    {id:'students', icon:'fa-graduation-cap',label:user.role==='teacher'?'Õpilased':'Minu progress',
+      badge:user.role==='teacher'&&pendingHw>0?pendingHw:0},
+    ...(user.role==='teacher'?[{id:'invoices',icon:'fa-file-invoice',label:'Arved',badge:unpaidAmt>0?unpaidAmt+'€':0}]:[]),
+  ];
+
+  const SidebarContent=()=>(
+    <>
+      <div style={{borderBottom:'1px solid rgba(255,255,255,.1)',paddingBottom:16,marginBottom:8}}>
+        <div style={{fontFamily:'Fraunces,Georgia,serif',fontSize:'1.55rem',fontWeight:600,color:'#fff',letterSpacing:'-.01em'}}>
+          Keele<span style={{color:'#C9882A'}}>Sepp</span>
+        </div>
+        <div style={{fontSize:'.7rem',color:'rgba(255,255,255,.35)',marginTop:2,fontWeight:600,letterSpacing:'.08em',textTransform:'uppercase'}}>
+          {user.role==='teacher'?'Õpetaja':user.role==='parent'?'Lapsevanem':'Õpilane'}
+        </div>
+      </div>
+      <div style={{fontSize:'.82rem',color:'rgba(255,255,255,.45)',padding:'0 14px 12px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
+        {user.displayName}
+      </div>
+      <nav style={{flex:1,display:'flex',flexDirection:'column',gap:2}}>
+        {navItems.map(item=>(
+          <button key={item.id} onClick={()=>goTab(item.id)} className={`sidebar-link ${tab===item.id?'active':''}`}>
+            <i className={`fa-solid ${item.icon}`} style={{width:18,textAlign:'center'}}/>
+            <span style={{flex:1}}>{item.label}</span>
+            {item.badge>0&&(
+              <span style={{background:tab===item.id?'rgba(255,255,255,.25)':'#C9882A',color:'#fff',borderRadius:999,
+                fontSize:'.7rem',fontWeight:700,padding:'1px 7px',minWidth:20,textAlign:'center'}}>
+                {item.badge}
+              </span>
+            )}
+          </button>
+        ))}
+      </nav>
+      <div style={{borderTop:'1px solid rgba(255,255,255,.08)',paddingTop:12,marginTop:8}}>
+        <button onClick={async()=>{await auth.signOut();setUser(null);}} className="sidebar-link" style={{color:'#fca5a5'}}>
+          <i className="fa-solid fa-right-from-bracket" style={{width:18,textAlign:'center'}}/>
+          Logi välja
+        </button>
+      </div>
+    </>
+  );
+
+  // ── TÖÖLAUD ────────────────────────────────────────────────
+  const Dashboard=()=>(
+    <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:24}}>
+      <div>
+        <h1 style={{fontSize:'1.7rem'}}>Tere, {user.displayName}! 👋</h1>
+        <div style={{color:'#42536A',fontSize:'.88rem',marginTop:4}}>
+          {new Date().toLocaleDateString('et-EE',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))',gap:12}}>
+        {user.role==='teacher'&&<>
+          {[
+            {l:'Õpilased',    v:myStudents.filter(s=>s.active!==false).length, icon:'fa-users',     c:'#2F5D50'},
+            {l:'Tunde täna',  v:todaySch,                                       icon:'fa-clock',     c:'#C9882A'},
+            {l:'Maksmata',    v:unpaidAmt+'€',                                  icon:'fa-euro-sign', c:'#dc2626'},
+            {l:'Ootel kodutööd',v:pendingHw,                                    icon:'fa-book-open', c:'#7c3aed'},
+          ].map(s=>(
+            <div key={s.l} className="card" style={{padding:'18px 20px'}}>
+              <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:8}}>
+                <div style={{width:34,height:34,borderRadius:10,background:s.c+'18',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                  <i className={`fa-solid ${s.icon}`} style={{color:s.c,fontSize:'.85rem'}}/>
+                </div>
+              </div>
+              <div style={{fontSize:'1.8rem',fontWeight:700,color:'#1C2B3A',lineHeight:1}}>{s.v}</div>
+              <div style={{fontSize:'.75rem',color:'#42536A',marginTop:4}}>{s.l}</div>
+            </div>
+          ))}
+        </>}
+        {user.role!=='teacher'&&currentStu&&<>
+          {[
+            {l:'Keeletase',    v:currentStu.level,           c:'#1C2B3A'},
+            {l:'Ksk hinne',    v:avg(doneLess.map(l=>l.grade))+'★', c:'#C9882A'},
+            {l:'Kohalolu',     v:attendance+'%',              c:'#2F5D50'},
+            {l:'Tunnid kokku', v:doneLess.length,             c:'#7c3aed'},
+          ].map(s=>(
+            <div key={s.l} className="card" style={{padding:'18px 20px'}}>
+              <div style={{fontSize:'1.8rem',fontWeight:700,color:s.c,lineHeight:1}}>{s.v}</div>
+              <div style={{fontSize:'.75rem',color:'#42536A',marginTop:4}}>{s.l}</div>
+            </div>
+          ))}
+        </>}
+      </div>
+
+      {/* Lisa õpilane */}
+      {user.role==='teacher'&&(
+        <div className="card" style={{padding:24}}>
+          <h3 style={{marginBottom:16,display:'flex',alignItems:'center',gap:8}}>
+            <i className="fa-solid fa-user-plus" style={{color:'#2F5D50',fontSize:'.9rem'}}/>
+            Lisa uus õpilane
+          </h3>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(190px,1fr))',gap:10,marginBottom:12}}>
+            <input value={nName}  onChange={e=>setNName(e.target.value)}  placeholder="Täisnimi *"/>
+            <input value={nEmail} onChange={e=>setNEmail(e.target.value)} type="email" placeholder="E-post"/>
+            <input value={nPhone} onChange={e=>setNPhone(e.target.value)} placeholder="Telefon +372…"/>
+            <select value={nLevel}  onChange={e=>setNLevel(e.target.value)}>
+              {LEVELS.map(l=><option key={l} value={l}>Hetketase: {l}</option>)}
+            </select>
+            <select value={nTarget} onChange={e=>setNTarget(e.target.value)}>
+              {LEVELS.slice(1).map(l=><option key={l} value={l}>Eesmärk: {l}</option>)}
+            </select>
+            <input value={nPkg} onChange={e=>setNPkg(e.target.value)} type="number" placeholder="Tunnipaketi maht (nt. 10)"/>
+            {isAdmin&&<select value={nTeach} onChange={e=>setNTeach(e.target.value)}>
+              {TEACHERS.map(t=><option key={t} value={t}>Õpetaja: {t}</option>)}
+            </select>}
+          </div>
+          <button onClick={addStudent} className="btn btn-pine" style={{width:'100%'}}>
+            <i className="fa-solid fa-user-plus"/> Lisa õpilane andmebaasi
+          </button>
+        </div>
+      )}
+
+      {/* Viimased tunnid */}
+      <div className="card" style={{padding:24}}>
+        <h3 style={{marginBottom:16,display:'flex',alignItems:'center',gap:8}}>
+          <i className="fa-solid fa-clock-rotate-left" style={{color:'#C9882A',fontSize:'.9rem'}}/>
+          Viimased tunnid
+        </h3>
+        {lessons.length===0
+          ? <div style={{textAlign:'center',padding:'24px 0',color:'#42536A',fontSize:'.88rem'}}>
+              Tunnid puuduvad. Lisa esimene tund tunniplaanist. 📚
+            </div>
+          : [...lessons].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,6).map(l=>(
+            <div key={l.id} style={{display:'flex',alignItems:'center',gap:12,padding:'11px 0',borderBottom:'1px solid rgba(28,43,58,.06)'}}>
+              <div style={{width:38,height:38,borderRadius:10,flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center',
+                fontWeight:700,fontSize:'1rem',
+                background:l.status==='Toimunud'?'rgba(201,136,42,.1)':'rgba(239,68,68,.08)',
+                color:l.status==='Toimunud'?'#C9882A':'#dc2626'}}>
+                {l.status==='Toimunud'?l.grade:'—'}
+              </div>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontWeight:600,fontSize:'.88rem',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{l.topic}</div>
+                <div style={{fontSize:'.75rem',color:'#42536A'}}>{l.studentName} · {fmtDate(l.date)}</div>
+              </div>
+              <div style={{fontSize:'.75rem',color:'#42536A',flexShrink:0}}>{l.teacher}</div>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  );
+
+  // ── TUNNIPLAAN ─────────────────────────────────────────────
+  const Calendar=()=>{
+    const weekStartDate = new Date(weekStart);
+    const weekDays = Array.from({length:7}, (_,i)=>{
+      const dateObj = addDays(weekStartDate,i);
+      const iso = toISODate(dateObj);
+      const dayMeta = DAYS[i];
+      return {
+        ...dayMeta,
+        full: DAYS_FULL[i].n,
+        iso,
+        dateObj,
+        label: dateObj.toLocaleDateString('et-EE',{day:'2-digit',month:'2-digit'})
+      };
+    });
+
+    const openOccurrence = (ev, isoDate) => {
+      if(user.role!=='teacher') return;
+      setModalEv({...ev, occurrenceDate: isoDate});
+    };
+
+    return(
+    <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:20}}>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:12}}>
+        <div>
+          <h1 style={{fontSize:'1.7rem'}}>Tunniplaan</h1>
+          <div style={{fontSize:'.85rem',color:'#42536A',marginTop:4}}>Nädal: {weekLabel(weekStart)}</div>
+        </div>
+        <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
+          {isAdmin&&(
+            <select value={filterT} onChange={e=>setFilterT(e.target.value)} style={{width:'auto',minWidth:160}}>
+              {TEACHERS.map(t=><option key={t}>{t}</option>)}
+              <option value="Kõik">Kõik õpetajad</option>
+            </select>
+          )}
+          <label className="badge" style={{background:'#fff',color:'#42536A',gap:8,padding:'8px 12px',border:'1px solid rgba(28,43,58,.12)'}}>
+            <input type="checkbox" checked={showCanceled} onChange={e=>setShowCanceled(e.target.checked)} style={{width:'auto'}}/>
+            Näita tühistatud
+          </label>
+          <button onClick={()=>setWeekStart(toISODate(addDays(weekStartDate,-7)))} className="btn btn-ghost btn-sm">← Eelmine</button>
+          <button onClick={()=>setWeekStart(toISODate(startOfWeek(new Date())))} className="btn btn-ghost btn-sm">See nädal</button>
+          <button onClick={()=>setWeekStart(toISODate(addDays(weekStartDate,7)))} className="btn btn-ghost btn-sm">Järgmine →</button>
+        </div>
+      </div>
+      <div style={{display:'flex',gap:8,flexWrap:'wrap',marginTop:-6}}>
+        {['Planeeritud','Nihutatud','Tühistatud','Toimunud'].map(k=>{ const m=scheduleStatusMeta(k); return (
+          <span key={k} className="badge" style={{background:m.pillBg,color:m.pillColor}}>{m.label}</span>
+        );})}
+        <span className="badge" style={{background:'rgba(201,136,42,.14)',color:'#A96E1A'}}>mall</span>
+        <span className="badge" style={{background:'rgba(28,43,58,.08)',color:'#42536A'}}>ICS eksport</span>
+      </div>
+
+      {user.role==='teacher'&&(
+        <div className="card" style={{padding:20}}>
+          <div style={{fontSize:'.78rem',fontWeight:700,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:12}}>
+            Broneeri uus tund kuupäevaga
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(170px,1fr))',gap:10,marginBottom:12}}>
+            <select value={schStu} onChange={e=>setSchStu(e.target.value)}>
+              <option value="">Vali õpilane…</option>
+              {myStudents.filter(s=>s.active!==false).map(s=><option key={s.id} value={s.name}>{s.name}</option>)}
+            </select>
+            <input type="date" value={schDate} onChange={e=>setSchDate(e.target.value)} />
+            <select value={schTime} onChange={e=>setSchTime(e.target.value)}>
+              {TIMES.map(t=><option key={t} value={t}>{t}</option>)}
+            </select>
+            {isAdmin&&<select value={schTeach} onChange={e=>setSchTeach(e.target.value)}>
+              {TEACHERS.map(t=><option key={t}>{t}</option>)}
+            </select>}
+          </div>
+          <button onClick={addSchedule} className="btn btn-pine" style={{width:'100%'}}>
+            <i className="fa-solid fa-calendar-plus"/> Kinnita tund
+          </button>
+          <div style={{fontSize:'.74rem',color:'#42536A',marginTop:10}}>
+            Nüüd salvestatakse tund konkreetse kuupäevaga. Vanad kirjed ilma kuupäevata kuvatakse jätkuvalt mallina.
+          </div>
+        </div>
+      )}
+
+      <div className="card" style={{overflow:'hidden'}}>
+        <div className="scroll" style={{overflowX:'auto'}}>
+          <div style={{minWidth:860}}>
+            <div style={{display:'grid',gridTemplateColumns:'64px repeat(7,1fr)',background:'#EFEDE7',borderBottom:'1px solid rgba(28,43,58,.1)'}}>
+              <div style={{padding:'10px 8px',textAlign:'center',fontSize:'.72rem',fontWeight:700,color:'#42536A'}}>Kell</div>
+              {weekDays.map(d=>(
+                <div key={d.id} style={{padding:'10px 4px',textAlign:'center',fontSize:'.78rem',fontWeight:700,borderLeft:'1px solid rgba(28,43,58,.08)',color:'#1C2B3A'}}>
+                  <div>{d.n}</div>
+                  <div style={{fontSize:'.7rem',fontWeight:600,color:'#42536A',marginTop:2}}>{d.label}</div>
+                </div>
+              ))}
+            </div>
+            {TIMES.map(slot=>(
+              <div key={slot} style={{display:'grid',gridTemplateColumns:'64px repeat(7,1fr)',minHeight:72,borderBottom:'1px solid rgba(28,43,58,.04)'}}>
+                <div style={{display:'flex',alignItems:'center',justifyContent:'center',fontSize:'.72rem',fontFamily:'monospace',fontWeight:700,color:'#9ca3af',background:'rgba(239,237,231,.3)',borderRight:'1px solid rgba(28,43,58,.06)'}}>
+                  {slot}
+                </div>
+                {weekDays.map(day=>{
+                  const evs = filteredSch.filter(s => {
+                    if(s.time !== slot) return false;
+                    if(!showCanceled && s.status==='Tühistatud') return false;
+                    if(s.date) return s.date === day.iso;
+                    return s.day === day.id;
+                  });
+                  return(
+                    <div key={day.iso} style={{padding:3,borderLeft:'1px solid rgba(28,43,58,.05)',display:'flex',flexDirection:'column',gap:3,background:day.iso===today()?'rgba(201,136,42,.03)':'transparent'}}>
+                      {evs.map(ev=>{
+                        const isLegacy = !ev.date;
+                        return(
+                        <div key={ev.id + '-' + day.iso}
+                          onClick={()=>openOccurrence(ev, day.iso)}
+                          style={{fontSize:'.73rem',padding:'6px 7px',borderRadius:7,cursor:user.role==='teacher'?'pointer':'default',
+                            background:isLegacy?'rgba(201,136,42,.09)':'rgba(47,93,80,.09)',
+                            border:`1px solid ${isLegacy?'rgba(201,136,42,.25)':'rgba(47,93,80,.2)'}`,transition:'all .12s'}}
+                          onMouseEnter={e=>{if(user.role==='teacher')e.currentTarget.style.background=isLegacy?'rgba(201,136,42,.16)':'rgba(47,93,80,.18)'}}
+                          onMouseLeave={e=>e.currentTarget.style.background=isLegacy?'rgba(201,136,42,.09)':'rgba(47,93,80,.09)'}>
+                          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:4}}>
+                            <span style={{fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{ev.studentName}</span>
+                            <div style={{display:'flex',alignItems:'center',gap:4}}>
+                              {isLegacy && <span className="badge" style={{background:'rgba(201,136,42,.14)',color:'#A96E1A',fontSize:'.62rem',padding:'1px 6px'}}>mall</span>}
+                              {user.role==='teacher'&&(
+                                <button onClick={e=>delSchedule(ev.id,e)}
+                                  style={{background:'none',border:'none',cursor:'pointer',color:'#9ca3af',fontSize:'.75rem',padding:0,flexShrink:0,lineHeight:1}}
+                                  onMouseEnter={e=>{e.currentTarget.style.color='#ef4444';e.stopPropagation();}}
+                                  onMouseLeave={e=>e.currentTarget.style.color='#9ca3af'}>✕</button>
+                              )}
+                            </div>
+                          </div>
+                          <div style={{fontSize:'.66rem',color:'#42536A',marginTop:1}}>
+                            {filterT==='Kõik' ? ev.teacher : (isLegacy ? 'korduv' : fmtDate(day.iso))}
+                          </div>
+                        </div>
+                      )})}
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )};
+
+  // ── ÕPILASTE NIMEKIRI ──────────────────────────────────────
+  const StudentsList=()=>(
+    <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:20}}>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:12}}>
+        <h1 style={{fontSize:'1.7rem'}}>Õpilased
+          <span style={{fontSize:'1rem',fontFamily:'IBM Plex Sans,sans-serif',fontWeight:400,color:'#42536A',marginLeft:8}}>
+            ({filteredStudents.length})
+          </span>
+        </h1>
+        <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+          <input value={search} onChange={e=>setSearch(e.target.value)}
+            placeholder="🔍 Otsi…" style={{width:200,padding:'9px 14px'}}/>
+          <select value={stuFilter} onChange={e=>setStuFilter(e.target.value)} style={{width:'auto'}}>
+            <option value="active">Aktiivsed</option>
+            <option value="all">Kõik</option>
+            <option value="inactive">Arhiveeritud</option>
+          </select>
+        </div>
+      </div>
+
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(290px,1fr))',gap:14}}>
+        {filteredStudents.map(s=>{
+          const sL=lessons.filter(l=>l.studentId===s.id||l.studentName?.toLowerCase()===s.name?.toLowerCase());
+          const done=sL.filter(l=>l.status==='Toimunud');
+          const pct=levelPct(s.level,s.targetLevel);
+          const rem=pkgRemaining(s);
+          return(
+            <div key={s.id} className="card" style={{padding:20,cursor:'pointer',transition:'all .18s',opacity:s.active===false?.6:1,
+              position:'relative',overflow:'hidden'}}
+              onClick={()=>setSelStu(s)}
+              onMouseEnter={e=>{e.currentTarget.style.borderColor='#C9882A';e.currentTarget.style.boxShadow='0 6px 24px rgba(201,136,42,.12)';e.currentTarget.style.transform='translateY(-2px)';}}
+              onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(28,43,58,.07)';e.currentTarget.style.boxShadow='0 2px 8px rgba(28,43,58,.05)';e.currentTarget.style.transform='translateY(0)';}}>
+              {s.active===false&&<div style={{position:'absolute',top:10,right:10}}><span className="badge" style={{background:'#f3f4f6',color:'#6b7280'}}>Arhiveeritud</span></div>}
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:14}}>
+                <div>
+                  <div style={{fontWeight:700,fontSize:'.98rem'}}>{s.name}</div>
+                  <div style={{fontSize:'.75rem',color:'#42536A',marginTop:2}}>
+                    {s.level} → {s.targetLevel}
+                    {isAdmin&&<span style={{color:'#2F5D50',marginLeft:6}}>· {s.teacher}</span>}
+                  </div>
+                </div>
+                <div style={{textAlign:'right'}}>
+                  <div style={{fontSize:'1.2rem',fontWeight:700,color:'#C9882A'}}>
+                    {done.length?avg(done.map(l=>l.grade))+'★':'—'}
+                  </div>
+                  <div style={{fontSize:'.72rem',color:'#42536A'}}>{done.length} tundi</div>
+                </div>
+              </div>
+              <div className="level-bar" style={{marginBottom:6}}>
+                <div className="level-fill" style={{width:pct+'%'}}/>
+              </div>
+              <div style={{display:'flex',justifyContent:'space-between',fontSize:'.72rem',color:'#42536A'}}>
+                <span>{s.level}</span>
+                <span style={{color:'#2F5D50',fontWeight:600}}>{pct}%</span>
+                <span>{s.targetLevel}</span>
+              </div>
+              {(s.packageTotal>0)&&(
+                <div style={{marginTop:12,padding:'8px 12px',borderRadius:9,background:rem<=2?'#fee2e2':rem<=5?'#fef3c7':'#f0fdf4',
+                  display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                  <span style={{fontSize:'.75rem',fontWeight:600,color:rem<=2?'#991b1b':rem<=5?'#92400e':'#166534'}}>
+                    📦 Tunnipaketi jääk
+                  </span>
+                  <span style={{fontSize:'.82rem',fontWeight:700,color:rem<=2?'#991b1b':rem<=5?'#92400e':'#166534'}}>
+                    {rem} / {s.packageTotal}
+                  </span>
+                </div>
+              )}
+            </div>
+          );
+        })}
+        {filteredStudents.length===0&&(
+          <div style={{gridColumn:'1/-1',textAlign:'center',padding:'48px 0',color:'#42536A'}}>
+            {search?`Otsingule "${search}" ei leitud ühtegi õpilast.`:'Õpilasi pole lisatud.'}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  // ── ÕPILASE KAART ──────────────────────────────────────────
+  const StudentCard=()=>{
+    if(!currentStu) return <div style={{textAlign:'center',padding:60,color:'#42536A'}}>Õpilane ei leitud.</div>;
+    const done=stuLessons.filter(l=>l.status==='Toimunud');
+    const pct=levelPct(currentStu.level,currentStu.targetLevel);
+    const rem=pkgRemaining(currentStu);
+
+    return(
+      <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:20}}>
+        {/* Header */}
+        <div className="card" style={{padding:24}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:14}}>
+            <div style={{flex:1}}>
+              <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:8}}>
+                <h2 style={{fontSize:'1.5rem'}}>{currentStu.name}</h2>
+                {currentStu.active===false&&<span className="badge" style={{background:'#f3f4f6',color:'#6b7280'}}>Arhiveeritud</span>}
+              </div>
+              <div style={{fontSize:'.85rem',color:'#42536A',marginBottom:12}}>
+                Õpetaja: <strong>{currentStu.teacher}</strong>
+                {currentStu.email&&<> · {currentStu.email}</>}
+                {currentStu.phone&&<> · {currentStu.phone}</>}
+              </div>
+              <div style={{display:'flex',gap:10,flexWrap:'wrap',marginBottom:16}}>
+                {[
+                  {l:'Hinne',v:avg(done.map(l=>l.grade))+'★',c:'#C9882A',bg:'rgba(201,136,42,.08)'},
+                  {l:'Kohalolu',v:attendance+'%',c:'#2F5D50',bg:'rgba(47,93,80,.08)'},
+                  {l:'Tunnid',v:doneLess.length,c:'#1C2B3A',bg:'rgba(28,43,58,.05)'},
+                ].map(x=>(
+                  <div key={x.l} style={{borderRadius:10,padding:'10px 16px',textAlign:'center',background:x.bg,minWidth:80}}>
+                    <div style={{fontWeight:700,fontSize:'1.2rem',color:x.c}}>{x.v}</div>
+                    <div style={{fontSize:'.72rem',color:'#42536A'}}>{x.l}</div>
+                  </div>
+                ))}
+                {currentStu.packageTotal>0&&(
+                  <div style={{borderRadius:10,padding:'10px 16px',textAlign:'center',minWidth:80,
+                    background:rem<=2?'#fee2e2':rem<=5?'#fef3c7':'rgba(47,93,80,.08)'}}>
+                    <div style={{fontWeight:700,fontSize:'1.2rem',color:rem<=2?'#dc2626':rem<=5?'#d97706':'#2F5D50'}}>{rem}</div>
+                    <div style={{fontSize:'.72rem',color:'#42536A'}}>Jäänud tunde</div>
+                  </div>
+                )}
+              </div>
+              <div style={{marginBottom:6,display:'flex',justifyContent:'space-between',fontSize:'.78rem',fontWeight:600}}>
+                <span>{currentStu.level}</span>
+                <span style={{color:'#2F5D50'}}>{pct}% eesmärgini</span>
+                <span>{currentStu.targetLevel}</span>
+              </div>
+              <div className="level-bar"><div className="level-fill" style={{width:pct+'%'}}/></div>
+            </div>
+            {user.role==='teacher'&&(
+              <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                <button onClick={()=>setSelStu(null)} className="btn btn-ghost btn-sm">← Tagasi</button>
+                <button onClick={()=>toggleStudentActive(currentStu.id,currentStu.active!==false)} 
+                  className={`btn btn-sm ${currentStu.active===false?'btn-pine':'btn-red'}`}>
+                  {currentStu.active===false?'Aktiveeri':'Arhiveeri'}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Graafik */}
+        {done.length>=2&&(
+          <div className="card" style={{padding:24}}>
+            <h3 style={{marginBottom:16,display:'flex',alignItems:'center',gap:8}}>
+              <i className="fa-solid fa-chart-line" style={{color:'#C9882A',fontSize:'.9rem'}}/>
+              Progressi kõver
+            </h3>
+            <ProgressChart data={done}/>
+          </div>
+        )}
+
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(320px,1fr))',gap:20}}>
+          {/* Kodutöö */}
+          <div className="card" style={{padding:24}}>
+            <h3 style={{marginBottom:16,display:'flex',alignItems:'center',gap:8}}>
+              <i className="fa-solid fa-book-open" style={{color:'#C9882A',fontSize:'.9rem'}}/>
+              Kodutööd ({stuHw.length})
+            </h3>
+            {user.role==='teacher'&&(
+              <div style={{marginBottom:14,display:'flex',flexDirection:'column',gap:8}}>
+                <input value={hwTask} onChange={e=>setHwTask(e.target.value)} placeholder="Ülesande kirjeldus *"/>
+                <div style={{display:'flex',gap:8}}>
+                  <input type="date" value={hwDue} onChange={e=>setHwDue(e.target.value)} style={{flex:1}}/>
+                  <button onClick={addHw} className="btn btn-pine btn-sm">Saada</button>
+                </div>
+              </div>
+            )}
+            <div style={{display:'flex',flexDirection:'column',gap:8,maxHeight:280,overflowY:'auto'}} className="scroll">
+              {stuHw.length===0&&<p style={{color:'#42536A',fontSize:'.85rem',textAlign:'center',padding:'16px 0'}}>Kodutöid pole veel. 📝</p>}
+              {stuHw.map(hw=>(
+                <div key={hw.id} style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',
+                  padding:'10px 12px',background:'#F9F8F6',borderRadius:10,border:'1px solid rgba(28,43,58,.07)'}}>
+                  <div style={{flex:1,marginRight:10}}>
+                    <div style={{fontWeight:500,fontSize:'.88rem'}}>{hw.task}</div>
+                    {hw.due&&<div style={{fontSize:'.72rem',color:'#42536A',marginTop:2}}>📅 Tähtaeg: {fmtDate(hw.due)}</div>}
+                  </div>
+                  <button onClick={()=>toggleHw(hw.id,hw.status)}
+                    className="badge" style={{cursor:'pointer',border:'none',flexShrink:0,
+                      background:hw.status==='Tehtud'?'#dcfce7':'#fef3c7',
+                      color:hw.status==='Tehtud'?'#166534':'#92400e'}}>
+                    {hw.status==='Tehtud'?'✓ Tehtud':'Ootel'}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Tunni päevik */}
+          <div className="card" style={{padding:24}}>
+            <h3 style={{marginBottom:16,display:'flex',alignItems:'center',gap:8}}>
+              <i className="fa-solid fa-pen-to-square" style={{color:'#2F5D50',fontSize:'.9rem'}}/>
+              Tunni päevik ({stuLessons.length})
+            </h3>
+            <div style={{maxHeight:320,overflowY:'auto',display:'flex',flexDirection:'column',gap:12}} className="scroll">
+              {stuLessons.length===0&&<p style={{color:'#42536A',fontSize:'.85rem',textAlign:'center',padding:'16px 0'}}>Tunnid puuduvad veel. 🎓</p>}
+              {[...stuLessons].sort((a,b)=>new Date(b.date)-new Date(a.date)).map(l=>{
+                const bmap={
+                  Toimunud:{bg:'#dcfce7',c:'#166534',t:'✓ Toimunud'},
+                  Puudus_p:{bg:'#dbeafe',c:'#1e40af',t:'Puudus (põhj.)'},
+                  Puudus_eta:{bg:'#fee2e2',c:'#991b1b',t:'Puudus'},
+                };
+                const b=bmap[l.status]||bmap.Toimunud;
+                return(
+                  <div key={l.id} style={{display:'flex',gap:12,paddingBottom:12,borderBottom:'1px solid rgba(28,43,58,.06)'}}>
+                    <div style={{width:38,height:38,borderRadius:10,flexShrink:0,display:'flex',alignItems:'center',
+                      justifyContent:'center',fontWeight:700,fontSize:'1rem',
+                      background:l.status==='Toimunud'?'rgba(201,136,42,.1)':'rgba(239,68,68,.08)',
+                      color:l.status==='Toimunud'?'#C9882A':'#dc2626'}}>
+                      {l.status==='Toimunud'?l.grade:'—'}
+                    </div>
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{display:'flex',justifyContent:'space-between',gap:6,alignItems:'flex-start',marginBottom:3}}>
+                        <div style={{fontWeight:600,fontSize:'.88rem',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{l.topic}</div>
+                        <span className="badge" style={{background:b.bg,color:b.c,flexShrink:0,fontSize:'.68rem'}}>{b.t}</span>
+                      </div>
+                      {l.comment&&<div style={{fontSize:'.78rem',color:'#42536A',marginBottom:3}}>{l.comment}</div>}
+                      <div style={{fontSize:'.72rem',color:'#9ca3af'}}>
+                        {fmtDate(l.date)}{l.duration?' · '+l.duration+' min':''} · Õp. {l.teacher}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Arved */}
+        {(user.role==='teacher'||user.role==='parent')&&(
+          <div className="card" style={{padding:24}}>
+            <h3 style={{marginBottom:16,display:'flex',alignItems:'center',gap:8}}>
+              <i className="fa-solid fa-file-invoice-dollar" style={{color:'#2F5D50',fontSize:'.9rem'}}/>
+              Arved ({stuInv.length})
+            </h3>
+            {user.role==='teacher'&&(
+              <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(170px,1fr))',gap:10,marginBottom:14}}>
+                <input type="number" value={invAmt} onChange={e=>setInvAmt(e.target.value)} placeholder="Summa (€) *"/>
+                <input value={invDesc} onChange={e=>setInvDesc(e.target.value)} placeholder="Kirjeldus (nt. 10 tundi)"/>
+                <button onClick={()=>addInvoice(currentStu.id)} className="btn btn-amber btn-sm">
+                  <i className="fa-solid fa-plus"/> Loo arve
+                </button>
+              </div>
+            )}
+            <div style={{display:'flex',flexDirection:'column',gap:8}}>
+              {stuInv.length===0&&<p style={{color:'#42536A',fontSize:'.85rem',textAlign:'center',padding:'12px 0'}}>Arveid pole veel.</p>}
+              {stuInv.map(inv=>(
+                <div key={inv.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',
+                  padding:'12px 16px',background:'#F9F8F6',borderRadius:10,border:'1px solid rgba(28,43,58,.07)',flexWrap:'wrap',gap:10}}>
+                  <div>
+                    <div style={{fontWeight:600,fontSize:'.9rem'}}>{inv.num}</div>
+                    <div style={{fontSize:'.78rem',color:'#42536A'}}>{inv.desc} · Tähtaeg: {fmtDate(inv.due)}</div>
+                  </div>
+                  <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
+                    <span style={{fontWeight:700,fontSize:'1.05rem'}}>{inv.amount}€</span>
+                    {inv.status==='Makstud'
+                      ? <span className="badge" style={{background:'#dcfce7',color:'#166534'}}>✓ Makstud</span>
+                      : <span className="badge" style={{background:'#fef3c7',color:'#92400e'}}>Ootel</span>
+                    }
+                    {user.role==='teacher'&&inv.status!=='Makstud'&&(
+                      <button onClick={()=>markPaid(inv.id)} className="btn btn-pine btn-sm">Märgi makstud</button>
+                    )}
+                    <button onClick={()=>printInvoice(inv)} className="btn btn-ghost btn-sm">
+                      <i className="fa-solid fa-print"/> Prindi
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // ── ARVED (üldvaade) ───────────────────────────────────────
+  const Invoices=()=>{
+    const unpaid=invoices.filter(i=>i.status==='Ootel');
+    const paid=invoices.filter(i=>i.status==='Makstud');
+    return(
+      <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:20}}>
+        <h1 style={{fontSize:'1.7rem'}}>Arved</h1>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))',gap:12}}>
+          {[
+            {l:'Maksmata kokku',v:unpaidAmt+'€',c:'#dc2626',bg:'#fee2e2',n:unpaid.length+' arvet'},
+            {l:'Makstud kokku',v:paid.reduce((a,i)=>a+i.amount,0)+'€',c:'#166534',bg:'#dcfce7',n:paid.length+' arvet'},
+          ].map(s=>(
+            <div key={s.l} className="card" style={{padding:'18px 20px',borderColor:'transparent',background:s.bg}}>
+              <div style={{fontSize:'1.8rem',fontWeight:700,color:s.c}}>{s.v}</div>
+              <div style={{fontSize:'.75rem',color:s.c+'99',marginTop:4}}>{s.l}</div>
+              <div style={{fontSize:'.72rem',color:s.c+'88',marginTop:2}}>{s.n}</div>
+            </div>
+          ))}
+        </div>
+
+        <div className="card" style={{padding:24}}>
+          <h3 style={{marginBottom:16}}>Loo uus arve</h3>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))',gap:10,marginBottom:12}}>
+            <select value={invStu} onChange={e=>setInvStu(e.target.value)}>
+              <option value="">Vali õpilane *</option>
+              {myStudents.filter(s=>s.active!==false).map(s=><option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
+            <input type="number" value={invAmt} onChange={e=>setInvAmt(e.target.value)} placeholder="Summa (€) *"/>
+            <input value={invDesc} onChange={e=>setInvDesc(e.target.value)} placeholder="Kirjeldus"/>
+            <button onClick={()=>addInvoice()} className="btn btn-amber">
+              <i className="fa-solid fa-plus"/> Loo arve
+            </button>
+          </div>
+        </div>
+
+        <div className="card" style={{overflow:'hidden'}}>
+          <div style={{padding:'16px 20px',borderBottom:'1px solid rgba(28,43,58,.07)',fontWeight:700,fontSize:'.9rem',
+            display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+            <span>Kõik arved ({invoices.length})</span>
+          </div>
+          {invoices.length===0
+            ? <div style={{padding:40,textAlign:'center',color:'#42536A',fontSize:'.88rem'}}>Arveid pole veel.</div>
+            : [...invoices].sort((a,b)=>new Date(b.date)-new Date(a.date)).map(inv=>(
+              <div key={inv.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',
+                padding:'14px 20px',borderBottom:'1px solid rgba(28,43,58,.05)',flexWrap:'wrap',gap:10}}>
+                <div>
+                  <div style={{fontWeight:600,fontSize:'.9rem'}}>{inv.num} · {inv.studentName}</div>
+                  <div style={{fontSize:'.78rem',color:'#42536A'}}>{inv.desc} · {fmtDate(inv.date)} · tähtaeg {fmtDate(inv.due)}</div>
+                </div>
+                <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
+                  <span style={{fontWeight:700,fontSize:'1.05rem'}}>{inv.amount}€</span>
+                  {inv.status==='Makstud'
+                    ? <span className="badge" style={{background:'#dcfce7',color:'#166534'}}>✓ Makstud</span>
+                    : <><span className="badge" style={{background:'#fef3c7',color:'#92400e'}}>Ootel</span>
+                       <button onClick={()=>markPaid(inv.id)} className="btn btn-pine btn-sm">Märgi makstud</button>
+                      </>
+                  }
+                  <button onClick={()=>printInvoice(inv)} className="btn btn-ghost btn-sm">
+                    <i className="fa-solid fa-print"/> Prindi
+                  </button>
+                </div>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+    );
+  };
+
+  // ── TUNNI MODAL ────────────────────────────────────────────
+  const LessonModal=()=>{
+    const meta = scheduleStatusMeta(modalEv.status || 'Planeeritud');
+    const hasConcreteDate = Boolean(modalEv.date || modalEv.occurrenceDate);
+    return(
+    <div style={{position:'fixed',inset:0,background:'rgba(28,43,58,.55)',display:'flex',alignItems:'center',
+      justifyContent:'center',padding:16,zIndex:200,backdropFilter:'blur(3px)'}}>
+      <div className="card fade-in scroll" style={{padding:28,maxWidth:560,width:'100%',position:'relative',maxHeight:'90vh',overflowY:'auto'}}>
+        <button onClick={()=>setModalEv(null)}
+          style={{position:'absolute',top:14,right:14,background:'rgba(28,43,58,.08)',border:'none',cursor:'pointer',
+            fontSize:'.9rem',color:'#42536A',borderRadius:8,width:30,height:30,display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button>
+        <h2 style={{marginBottom:4,fontSize:'1.3rem'}}>Tunni aruanne</h2>
+        <p style={{color:'#42536A',fontSize:'.85rem',marginBottom:10}}>
+          <strong>{modalEv.studentName}</strong> · {fmtDate(modalEv.occurrenceDate || modalEv.date)} · kell {modalEv.time}
+          {modalEv.date ? '' : ' · korduv mall'}
+        </p>
+        <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:18}}>
+          <span className="badge" style={{background:meta.pillBg,color:meta.pillColor}}>{meta.label}</span>
+          {modalEv.originalDate && <span className="badge" style={{background:'#fff',color:'#42536A',border:'1px solid rgba(28,43,58,.12)'}}>Algne: {fmtDate(modalEv.originalDate)} {modalEv.originalTime||''}</span>}
+          <span className="badge" style={{background:'#fff',color:'#42536A',border:'1px solid rgba(28,43,58,.12)'}}>Google sync: ettevalmistatud</span>
+        </div>
+
+        <div className="card" style={{padding:16,marginBottom:16,background:'#F9F8F6'}}>
+          <div style={{fontSize:'.78rem',fontWeight:700,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:10}}>Kalendri tegevused</div>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:10}}>
+            <button onClick={cancelSchedule} className="btn btn-red btn-sm" disabled={!modalEv.id || modalEv.status==='Tühistatud'}>Tühista tund</button>
+            <button onClick={restoreSchedule} className="btn btn-pine btn-sm" disabled={!modalEv.id || modalEv.status!=='Tühistatud'}>Taasta tund</button>
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:10}}>
+            <input type="date" value={moveDate} onChange={e=>setMoveDate(e.target.value)} disabled={!hasConcreteDate}/>
+            <select value={moveTime} onChange={e=>setMoveTime(e.target.value)} disabled={!hasConcreteDate}>
+              {TIMES.map(d=><option key={d} value={d}>{d}</option>)}
+            </select>
+          </div>
+          <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+            <button onClick={rescheduleSchedule} className="btn btn-amber btn-sm" disabled={!hasConcreteDate}>Salvesta uus aeg</button>
+            <button onClick={()=>exportScheduleEvent({...modalEv, occurrenceDate: moveDate || modalEv.occurrenceDate || modalEv.date, time: moveTime || modalEv.time})} className="btn btn-ghost btn-sm" disabled={!hasConcreteDate}>
+              <i className="fa-solid fa-calendar-plus"/> Ekspordi .ics
+            </button>
+          </div>
+          {!hasConcreteDate && <div style={{fontSize:'.73rem',color:'#42536A',marginTop:8}}>Mallikirje tuleb enne tõsta konkreetsele kuupäevale uue tunnina.</div>}
+        </div>
+
+        <div style={{display:'flex',flexDirection:'column',gap:10}}>
+          <input value={lTopic} onChange={e=>setLTopic(e.target.value)} placeholder="Tunni teema *"/>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+            <select value={lStatus} onChange={e=>setLStatus(e.target.value)}>
+              <option value="Toimunud">✓ Toimunud</option>
+              <option value="Puudus_p">Puudus (põhjusega)</option>
+              <option value="Puudus_eta">Puudus (põhjuseta)</option>
+            </select>
+            <select value={lGrade} onChange={e=>setLGrade(e.target.value)} disabled={lStatus!=='Toimunud'}>
+              <option value="5">5 ★★★★★ Suurepärane</option>
+              <option value="4">4 ★★★★ Hea</option>
+              <option value="3">3 ★★★ Rahuldav</option>
+              <option value="2">2 ★★ Puudulik</option>
+            </select>
+          </div>
+          <select value={lDur} onChange={e=>setLDur(e.target.value)}>
+            {['30','45','60','90','120'].map(d=><option key={d} value={d}>{d} minutit</option>)}
+          </select>
+          <textarea value={lComment} onChange={e=>setLComment(e.target.value)}
+            placeholder="Õpetaja kommentaar ja märkused…" rows={3}/>
+          <button onClick={saveLesson} className="btn btn-dark" style={{width:'100%',padding:13}}>
+            <i className="fa-solid fa-floppy-disk"/> Salvesta päevikusse
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+  };
+  // ── PEAMINE RENDER ─────────────────────────────────────────
+  return(
+    <div style={{display:'flex',minHeight:'100vh',position:'relative'}}>
+
+      {/* Mobile overlay */}
+      {mobileNav&&<div onClick={()=>setMobileNav(false)}
+        style={{position:'fixed',inset:0,background:'rgba(0,0,0,.5)',zIndex:40,display:'none'}}
+        className="mobile-overlay"/>}
+
+      {/* Desktop sidebar */}
+      {/* Desktop sidebar - always visible on wide screens */}
+      <aside id="desktop-sidebar" style={{width:234,background:'#1C2B3A',display:'flex',flexDirection:'column',
+        padding:'20px 12px',flexShrink:0,position:'sticky',top:0,height:'100vh',overflowY:'auto'}}>
+        <SidebarContent/>
+      </aside>
+
+      {/* Mobile sidebar - slides in on hamburger click */}
+      <aside style={{position:'fixed',left:mobileNav?0:-240,top:0,width:234,height:'100vh',
+        background:'#1C2B3A',display:'none',flexDirection:'column',padding:'20px 12px',
+        zIndex:50,transition:'left .25s ease',overflowY:'auto',
+        boxShadow:mobileNav?'4px 0 24px rgba(0,0,0,.3)':'none'}}
+        id="mobile-sidebar" className="scroll">
+        <SidebarContent/>
+      </aside>
+
+      {/* Main */}
+      <main style={{flex:1,overflowY:'auto',background:'#F4F2EE'}} className="scroll">
+        {/* Mobile header - hidden on desktop via CSS */}
+        <div id="mobile-header" style={{display:'none',alignItems:'center',justifyContent:'space-between',padding:'14px 20px',
+          background:'#fff',borderBottom:'1px solid rgba(28,43,58,.08)',position:'sticky',top:0,zIndex:30}}>
+          <div style={{fontFamily:'Fraunces,Georgia,serif',fontSize:'1.3rem',fontWeight:600}}>
+            Keele<span style={{color:'#C9882A'}}>Sepp</span>
+          </div>
+          <button onClick={()=>setMobileNav(!mobileNav)}
+            style={{background:'none',border:'none',cursor:'pointer',fontSize:'1.3rem',color:'#1C2B3A',padding:'4px 8px'}}>
+            {mobileNav?'✕':'☰'}
+          </button>
+        </div>
+
+        <div style={{padding:'28px 28px',maxWidth:1100,margin:'0 auto'}}>
+          {/* Toast notification */}
+          {notif&&(
+            <div style={{position:'fixed',top:20,right:20,background:'#1C2B3A',color:'#fff',
+              padding:'12px 20px',borderRadius:12,zIndex:300,fontWeight:600,fontSize:'.9rem',
+              boxShadow:'0 8px 28px rgba(0,0,0,.25)',animation:'fadeIn .2s ease'}}>
+              {notif}
+            </div>
+          )}
+
+          {tab==='dashboard'&&<Dashboard/>}
+          {tab==='calendar' &&<Calendar/>}
+          {tab==='students' &&user.role==='teacher'&&!selStu&&<StudentsList/>}
+          {tab==='students' &&user.role==='teacher'&&selStu &&<StudentCard/>}
+          {tab==='students' &&user.role!=='teacher'          &&<StudentCard/>}
+          {tab==='invoices' &&user.role==='teacher'          &&<Invoices/>}
+        </div>
+      </main>
+
+      {modalEv&&<LessonModal/>}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+<style>
+@media(min-width:768px){
+  #desktop-sidebar{display:flex!important}
+  #mobile-sidebar{display:none!important}
+  #mobile-header{display:none!important}
+}
+@media(max-width:767px){
+  #desktop-sidebar{display:none!important}
+  #mobile-sidebar{display:flex!important}
+  #mobile-header{display:flex!important}
+}
+</style>
+</body>
+</html>

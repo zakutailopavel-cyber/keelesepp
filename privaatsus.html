@@ -11,30 +11,79 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
-:root{--ink:#1C2B3A;--ink-s:#42536A;--paper:#FBFAF8;--amber-d:#A96E1A;--pine:#2F5D50;--line:rgba(28,43,58,.13);--r:14px;--max:880px}
-*{box-sizing:border-box;margin:0;padding:0} body{font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:17px;line-height:1.7;color:var(--ink);background:var(--paper);-webkit-font-smoothing:antialiased}
-a{color:var(--pine);text-decoration:none} a:hover{color:var(--amber-d)} .w{max-width:var(--max);margin:0 auto;padding:0 24px}
-header{border-bottom:1px solid var(--line);background:rgba(251,250,248,.92)} .nav{height:72px;display:flex;align-items:center;justify-content:space-between}
-.logo{font-family:"Fraunces",Georgia,serif;font-weight:600;font-size:1.4rem;color:var(--ink)} .logo b{color:var(--amber-d)} .btn{display:inline-flex;align-items:center;justify-content:center;font-weight:600;padding:10px 18px;border-radius:999px;border:1px solid var(--line);color:var(--ink)}
-main{padding:72px 0 86px} .eye{font-family:"IBM Plex Mono",monospace;font-size:.78rem;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--amber-d);margin-bottom:14px}
-h1,h2{font-family:"Fraunces",Georgia,serif;font-weight:600;line-height:1.15} h1{font-size:clamp(2rem,5vw,3.2rem);max-width:680px} .lead{font-size:1.08rem;color:var(--ink-s);margin:18px 0 40px;max-width:660px}
-section{padding:26px 0;border-top:1px solid var(--line)} h2{font-size:1.35rem;margin-bottom:10px} p,li{color:var(--ink-s)} ul{padding-left:22px;margin-top:8px}
-.note{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:20px;margin-top:28px} footer{border-top:1px solid var(--line);padding:28px 0;color:var(--ink-s);font-size:.9rem}
+:root{--ink:#1C2B3A;--ink-s:#42536A;--paper:#FBFAF8;--mist:#EFEDE7;--amber:#C9882A;--amber-d:#A96E1A;--pine:#2F5D50;--line:rgba(28,43,58,.13);--r:14px;--max:880px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:17px;line-height:1.7;color:var(--ink);background:var(--paper);-webkit-font-smoothing:antialiased}
+a{color:var(--pine);text-decoration:none}a:hover{color:var(--amber-d)}
+.w{max-width:var(--max);margin:0 auto;padding:0 24px}
+header{border-bottom:1px solid var(--line);background:rgba(251,250,248,.92);backdrop-filter:blur(8px)}
+.nav{height:72px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-family:"Fraunces",Georgia,serif;font-weight:600;font-size:1.4rem;color:var(--ink)}.logo b{color:var(--amber-d)}
+.btn{display:inline-flex;align-items:center;justify-content:center;font-weight:600;padding:10px 18px;border-radius:999px;border:1px solid var(--line);color:var(--ink)}
+main{padding:72px 0 86px}
+.eye{font-family:"IBM Plex Mono",monospace;font-size:.78rem;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--amber-d);margin-bottom:14px}
+h1,h2{font-family:"Fraunces",Georgia,serif;font-weight:600;line-height:1.15}
+h1{font-size:clamp(2rem,5vw,3.2rem);max-width:680px}
+.lead{font-size:1.08rem;color:var(--ink-s);margin:18px 0 40px;max-width:660px}
+section{padding:26px 0;border-top:1px solid var(--line)}
+h2{font-size:1.35rem;margin-bottom:10px}
+p,li{color:var(--ink-s)}ul{padding-left:22px;margin-top:8px}
+.note{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:20px;margin-top:28px}
+footer{border-top:1px solid var(--line);padding:28px 0;color:var(--ink-s);font-size:.9rem}
+@media(max-width:560px){.nav{height:64px}.btn{padding:9px 14px;font-size:.9rem}main{padding-top:46px}}
 </style>
 </head>
 <body>
-<header><div class="w nav"><a class="logo" href="/">Keele<b>Sepp</b></a><a class="btn" href="/">Tagasi avalehele</a></div></header>
-<main><div class="w">
-<p class="eye">KeeleSepp</p>
-<h1>Privaatsuspoliitika</h1>
-<p class="lead">Siin selgitame, kuidas KeeleSepp kogub ja kasutab isikuandmeid seoses kursustele registreerimise, õppetöö ja haldussüsteemi kasutamisega.</p>
-<section><h2>1. Vastutav tootleja</h2><p>Isikuandmete vastutav tootleja on E&amp;P Koolitus OU, Mustamae tee 33, 10616 Tallinn. Kusimuste korral kirjuta aadressile <a href="mailto:info@epkoolitus.ee">info@epkoolitus.ee</a>.</p></section>
-<section><h2>2. Milliseid andmeid kogume</h2><p>Kogume andmeid, mille edastad registreerimisel voi meiega suheldes: nimi, e-post, telefon, valitud keel voi kursus, keeletase, opieesmark ning muu sonumis toodud info. Haldussusteemis voivad lisanduda oppetooga seotud andmed, naiteks tunniplaan, kodutood, arved ja edenemise markmed.</p></section>
-<section><h2>3. Milleks andmeid kasutame</h2><ul><li>kursuse voi konsultatsiooni korraldamiseks;</li><li>opilase ja opetaja vahelise suhtluse toetamiseks;</li><li>oppetoo, kodutoode, tunniplaani ja arvete haldamiseks;</li><li>klienditoe ja oluliste teadete saatmiseks;</li><li>seadusest tulenevate kohustuste taitmiseks.</li></ul></section>
-<section><h2>4. Andmete sailitamine ja jagamine</h2><p>Sailitame andmeid nii kaua, kui see on vajalik oppetoo korraldamiseks, raamatupidamiseks voi oiguslike kohustuste taitmiseks. Me ei muu isikuandmeid. Andmeid voime jagada uksnes teenuse toimimiseks vajalike partneritega, naiteks veebimajutuse, e-posti, autentimise voi andmebaasi teenusepakkujatega.</p></section>
-<section><h2>5. Sinu oigused</h2><p>Sul on oigus kusida ligipaasu oma andmetele, paluda nende parandamist voi kustutamist, piirata tootlemist ning esitada vastuvaiteid. Selleks kirjuta meile aadressile <a href="mailto:info@epkoolitus.ee">info@epkoolitus.ee</a>.</p></section>
-<div class="note"><p><strong>Viimati uuendatud:</strong> 16.06.2026</p></div>
-</div></main>
-<footer><div class="w">© 2026 KeeleSepp · E&amp;P Koolitus OU</div></footer>
+<header>
+  <div class="w nav">
+    <a class="logo" href="/">Keele<b>Sepp</b></a>
+    <a class="btn" href="/">Tagasi avalehele</a>
+  </div>
+</header>
+<main>
+  <div class="w">
+    <p class="eye">KeeleSepp</p>
+    <h1>Privaatsuspoliitika</h1>
+    <p class="lead">Siin selgitame, kuidas KeeleSepp kogub ja kasutab isikuandmeid seoses kursustele registreerimise, õppetöö ja haldussüsteemi kasutamisega.</p>
+
+    <section>
+      <h2>1. Vastutav töötleja</h2>
+      <p>Isikuandmete vastutav töötleja on E&amp;P Koolitus OÜ, Mustamäe tee 33, 10616 Tallinn. Küsimuste korral kirjuta aadressile <a href="mailto:info@epkoolitus.ee">info@epkoolitus.ee</a>.</p>
+    </section>
+
+    <section>
+      <h2>2. Milliseid andmeid kogume</h2>
+      <p>Kogume andmeid, mille edastad registreerimisel või meiega suheldes: nimi, e-post, telefon, valitud keel või kursus, keeletase, õpieesmärk ning muu sõnumis toodud info. Haldussüsteemis võivad lisanduda õppetööga seotud andmed, näiteks tunniplaan, kodutööd, arved ja edenemise märkmed.</p>
+    </section>
+
+    <section>
+      <h2>3. Milleks andmeid kasutame</h2>
+      <ul>
+        <li>kursuse või konsultatsiooni korraldamiseks;</li>
+        <li>õpilase ja õpetaja vahelise suhtluse toetamiseks;</li>
+        <li>õppetöö, kodutööde, tunniplaani ja arvete haldamiseks;</li>
+        <li>klienditoe ja oluliste teadete saatmiseks;</li>
+        <li>seadusest tulenevate kohustuste täitmiseks.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>4. Andmete säilitamine ja jagamine</h2>
+      <p>Säilitame andmeid nii kaua, kui see on vajalik õppetöö korraldamiseks, raamatupidamiseks või õiguslike kohustuste täitmiseks. Me ei müü isikuandmeid. Andmeid võime jagada üksnes teenuse toimimiseks vajalike partneritega, näiteks veebimajutuse, e-posti, autentimise või andmebaasi teenusepakkujatega.</p>
+    </section>
+
+    <section>
+      <h2>5. Sinu õigused</h2>
+      <p>Sul on õigus küsida ligipääsu oma andmetele, paluda nende parandamist või kustutamist, piirata töötlemist ning esitada vastuväiteid. Selleks kirjuta meile aadressile <a href="mailto:info@epkoolitus.ee">info@epkoolitus.ee</a>.</p>
+    </section>
+
+    <div class="note">
+      <p><strong>Viimati uuendatud:</strong> 16.06.2026</p>
+    </div>
+  </div>
+</main>
+<footer>
+  <div class="w">© 2026 KeeleSepp · E&amp;P Koolitus OÜ</div>
+</footer>
 </body>
 </html>
