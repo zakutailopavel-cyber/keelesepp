@@ -65,6 +65,32 @@ input:focus,select:focus,textarea:focus{border-color:#C9882A!important;outline:n
 <div id="root"><div style="display:flex;align-items:center;justify-content:center;min-height:100vh"><div class="spinner"></div></div></div>
 <script>
 window.__haldusBooted = false;
+window.__haldusLastError = '';
+window.addEventListener('error', function(event){
+  var message = event && event.message ? event.message : 'Unknown error';
+  var source = event && event.filename ? event.filename : '';
+  window.__haldusLastError = source ? (message + ' @ ' + source) : message;
+});
+window.addEventListener('unhandledrejection', function(event){
+  var reason = event && event.reason;
+  if(!reason){
+    window.__haldusLastError = 'Unhandled promise rejection';
+    return;
+  }
+  if(typeof reason === 'string'){
+    window.__haldusLastError = reason;
+    return;
+  }
+  if(reason && reason.message){
+    window.__haldusLastError = reason.message;
+    return;
+  }
+  try{
+    window.__haldusLastError = JSON.stringify(reason);
+  }catch(e){
+    window.__haldusLastError = 'Unhandled promise rejection';
+  }
+});
 window.addEventListener('load', function(){
   window.setTimeout(function(){
     if(window.__haldusBooted) return;
@@ -85,6 +111,7 @@ window.addEventListener('load', function(){
           '<div style="font-weight:600;font-size:1.05rem;margin-bottom:10px;">Haldussusteem ei kaivitunud</div>' +
           '<p style="color:#42536A;margin-bottom:12px;">Leht jai alglaadimise ajal seisma. Tavaliselt tähendab see, et mõni vajalik skript või Firebase teenus ei laadinud.</p>' +
           '<p style="color:#42536A;margin-bottom:18px;">Puuduvad komponendid: <strong>' + (missing.length ? missing.join(', ') : 'tundmatu põhjus') + '</strong></p>' +
+          (window.__haldusLastError ? '<p style="color:#991B1B;margin-bottom:18px;font-size:.92rem;"><strong>Vea teade:</strong> ' + String(window.__haldusLastError).replace(/</g,'&lt;') + '</p>' : '') +
           '<button onclick="window.location.reload()" style="display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:600;font-size:.9rem;padding:11px 22px;border-radius:12px;border:none;cursor:pointer;background:#1C2B3A;color:#fff;">Proovi uuesti</button>' +
         '</div>' +
       '</div>';
