@@ -139,6 +139,13 @@ const auth = window._auth;
 const TEACHER_CODE = 'KS2026';
 const LEVELS   = ['A1','A2','B1','B2','C1'];
 const TEACHERS = ['Pavel','Jelena','Elizaveta','Angelina'];
+const canonicalTeacherName = value => {
+  const name = (value || '').trim();
+  if(!name) return '';
+  const lower = name.toLowerCase();
+  const matched = TEACHERS.find(t => lower === t.toLowerCase() || lower.startsWith(t.toLowerCase() + ' '));
+  return matched || name;
+};
 const DAYS_SHORT = ['E','T','K','N','R','L','P'];
 const DAYS_ID    = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 const DAYS_FULL  = ['Esmaspäev','Teisipäev','Kolmapäev','Neljapäev','Reede','Laupäev','Pühapäev'];
@@ -478,7 +485,7 @@ function CalendarView({user,myStudents,schedule,isAdmin,filterT,setFilterT,
 
   const filteredSch = React.useMemo(()=>{
     let list = user.role==="teacher"
-      ?(filterT==="Kõik"||!filterT?schedule:schedule.filter(s=>s.teacher===filterT))
+      ?(filterT==="Kõik"||!filterT?schedule:schedule.filter(s=>canonicalTeacherName(s.teacher)===canonicalTeacherName(filterT)))
       :schedule.filter(s=>s.studentName?.toLowerCase()===user.displayName?.toLowerCase());
     if(!showCanceled) list=list.filter(s=>s.status!=="Tühistatud");
     return list;
@@ -1304,7 +1311,7 @@ function App() {
           if(snap.exists){
             const d=snap.data();
             setUser({uid:fbUser.uid,displayName:fbUser.displayName||fbUser.email,...d});
-            if(d.role==='teacher') setFilterT(fbUser.displayName||'');
+            if(d.role==='teacher') setFilterT(canonicalTeacherName(fbUser.displayName||''));
           }else{
             setUser({uid:fbUser.uid,displayName:fbUser.displayName||fbUser.email,email:fbUser.email,role:'parent'});
           }
@@ -1471,7 +1478,7 @@ function App() {
       </div>
     </div>
   );
-  if(!user) return <AuthScreen onLogin={u=>{setUser(u);if(u.role==='teacher')setFilterT(u.displayName||'');}}/>;
+  if(!user) return <AuthScreen onLogin={u=>{setUser(u);if(u.role==='teacher')setFilterT(canonicalTeacherName(u.displayName||''));}}/>;
 
   const navItems=[
     {id:'dashboard',icon:'fa-chart-pie',label:'Töölaud'},
