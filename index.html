@@ -139,6 +139,17 @@ header{position:sticky;top:0;z-index:50;background:rgba(251,250,248,.92);backdro
 .q-i{padding:26px;border-left:3px solid var(--amber);background:#fff;border-radius:0 var(--r) var(--r) 0}
 .q-i h3{margin-bottom:10px}.q-i p{font-size:.94rem;color:var(--ink-s)}
 
+/* Kuidas see toimub */
+.steps-g{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+@media(max-width:860px){.steps-g{grid-template-columns:1fr}}
+.step-c{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:28px 24px;position:relative;min-height:220px}
+.step-no{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:50%;background:var(--mist);font-family:"Fraunces",serif;font-size:1.05rem;font-weight:600;color:var(--amber-d);margin-bottom:18px}
+.step-c h3{margin-bottom:10px}
+.step-c p{color:var(--ink-s);font-size:.93rem}
+.step-c ul{list-style:none;margin-top:14px}
+.step-c li{font-size:.84rem;color:var(--ink-s);padding:4px 0 4px 18px;position:relative}
+.step-c li::before{content:"";position:absolute;left:0;top:13px;width:8px;height:2px;background:var(--amber)}
+
 /* Учителя */
 .t-g{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
 @media(max-width:860px){.t-g{grid-template-columns:1fr}}
@@ -496,6 +507,46 @@ footer a:hover{color:var(--amber)}
   </div>
 </section>
 
+<!-- ██ KUIDAS SEE TOIMUB ███████████████████████████████████ -->
+<section class="sec alt">
+  <div class="w">
+    <div class="sec-h">
+      <p class="eye">Kuidas see toimub</p>
+      <h2>Lihtne tee esimesest kontaktist esimese tunnini</h2>
+      <p>Ei mingit keerulist registreerimist. Saadame sulle selge järgmise sammu ja leiame sobiva rütmi kiiresti.</p>
+    </div>
+    <div class="steps-g">
+      <article class="step-c">
+        <div class="step-no">1</div>
+        <h3>Saada päring</h3>
+        <p>Kirjuta meile, millist keelt soovid õppida, millal saad tundides osaleda ja kas valmistud eksamiks või vajad kindlat suhtluskeelt.</p>
+        <ul>
+          <li>vastame tavaliselt ühe tööpäeva jooksul</li>
+          <li>saad kohe esmase soovituse kursuse kohta</li>
+        </ul>
+      </article>
+      <article class="step-c">
+        <div class="step-no">2</div>
+        <h3>Selgitame taseme ja eesmärgi</h3>
+        <p>Kui keeletase ei ole veel selge, teeme tasuta konsultatsiooni ja suuname sind gruppi või individuaalõppesse, mis päriselt sobib.</p>
+        <ul>
+          <li>A1-C1 kursused ning eratunnid</li>
+          <li>lastele, noortele ja täiskasvanutele</li>
+        </ul>
+      </article>
+      <article class="step-c">
+        <div class="step-no">3</div>
+        <h3>Alustad tunniga</h3>
+        <p>Saad tunnigraafiku, õppematerjalid ja kindla õppeplaani. Õpe toimub veebis, nii et saad liituda mugavalt kodust või töölt.</p>
+        <ul>
+          <li>õppematerjalid on hinna sees</li>
+          <li>vajadusel valmistame sind eksamiks sihipäraselt ette</li>
+        </ul>
+      </article>
+    </div>
+  </div>
+</section>
+
 <!-- ██ ÕPETAJAD ████████████████████████████████████████████ -->
 <section class="sec alt" id="opetajad">
   <div class="w">
@@ -660,7 +711,7 @@ footer a:hover{color:var(--amber)}
       </div>
       <button class="btn btn-a" type="button" onclick="submitForm()">Saada registreerumine</button>
       <div class="form-ok" id="formOk">✓ Saadetud! Võtame sinuga ühendust ühe tööpäeva jooksul.</div>
-      <p class="form-note">Saates nõustud <a href="/privaatsus/">privaatsuspoliitikaga</a>.</p>
+      <p class="form-note">Saates nõustud <a href="/privaatsus/">privaatsuspoliitikaga</a> ja <a href="/tingimused/">kasutustingimustega</a>.</p>
     </div>
   </div>
 </section>
