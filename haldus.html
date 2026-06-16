@@ -349,80 +349,194 @@ function CalendarView({user,myStudents,schedule,isAdmin,filterT,setFilterT,
   schStu,setSchStu,schDate,setSchDate,schTime,setSchTime,schTeach,setSchTeach,
   addSchedule,setModalEv,delSchedule}) {
 
-  const filteredSch = user.role==='teacher'
-    ?(filterT==='Kõik'||!filterT?schedule:schedule.filter(s=>s.teacher===filterT))
-    :schedule.filter(s=>s.studentName?.toLowerCase()===user.displayName?.toLowerCase());
+  const [showCanceled,setShowCanceled] = React.useState(true);
+  const [weekOffset,setWeekOffset]     = React.useState(0);
+
+  // Вычисляем начало недели
+  const weekStart = React.useMemo(()=>{
+    const now = new Date();
+    const day = now.getDay();
+    const diff = day===0 ? -6 : 1-day;
+    const mon = new Date(now);
+    mon.setDate(now.getDate()+diff+(weekOffset*7));
+    mon.setHours(0,0,0,0);
+    return mon;
+  },[weekOffset]);
+
+  const weekDays = React.useMemo(()=>
+    Array.from({length:7},(_,i)=>{
+      const d = new Date(weekStart);
+      d.setDate(weekStart.getDate()+i);
+      const iso = d.toISOString().split("T")[0];
+      const jsDay = d.getDay();
+      const dayId = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][jsDay];
+      return {
+        short: ["P","E","T","K","N","R","L"][jsDay],
+        full:  ["Pühapäev","Esmaspäev","Teisipäev","Kolmapäev","Neljapäev","Reede","Laupäev"][jsDay],
+        iso, dayId,
+        label: d.toLocaleDateString("et-EE",{day:"2-digit",month:"2-digit"}),
+        isToday: iso===new Date().toISOString().split("T")[0]
+      };
+    })
+  ,[weekStart]);
+
+  const weekLabel = React.useMemo(()=>{
+    const e = new Date(weekStart); e.setDate(weekStart.getDate()+6);
+    return weekStart.toLocaleDateString("et-EE",{day:"2-digit",month:"short"})
+      +" – "+e.toLocaleDateString("et-EE",{day:"2-digit",month:"short",year:"numeric"});
+  },[weekStart]);
+
+  const STATUS_META = {
+    Planeeritud: {bg:"rgba(47,93,80,.09)",border:"rgba(47,93,80,.2)",hover:"rgba(47,93,80,.18)",pill:"rgba(47,93,80,.14)",pillC:"#2F5D50",dot:"#2F5D50"},
+    Nihutatud:   {bg:"rgba(201,136,42,.09)",border:"rgba(201,136,42,.25)",hover:"rgba(201,136,42,.18)",pill:"rgba(201,136,42,.14)",pillC:"#A96E1A",dot:"#C9882A"},
+    Tühistatud:  {bg:"rgba(239,68,68,.07)",border:"rgba(239,68,68,.18)",hover:"rgba(239,68,68,.12)",pill:"rgba(239,68,68,.1)",pillC:"#991b1b",dot:"#ef4444"},
+    Toimunud:    {bg:"rgba(28,43,58,.06)",border:"rgba(28,43,58,.14)",hover:"rgba(28,43,58,.1)",pill:"rgba(28,43,58,.08)",pillC:"#42536A",dot:"#1C2B3A"},
+  };
+
+  const filteredSch = React.useMemo(()=>{
+    let list = user.role==="teacher"
+      ?(filterT==="Kõik"||!filterT?schedule:schedule.filter(s=>s.teacher===filterT))
+      :schedule.filter(s=>s.studentName?.toLowerCase()===user.displayName?.toLowerCase());
+    if(!showCanceled) list=list.filter(s=>s.status!=="Tühistatud");
+    return list;
+  },[schedule,user,filterT,showCanceled]);
+
+  const getEventsForSlot = (slot, day) =>
+    filteredSch.filter(s=>{
+      if(s.time!==slot) return false;
+      if(s.date) return s.date===day.iso;
+      return s.day===day.dayId;
+    });
 
   return(
-    <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:20}}>
-      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:12}}>
-        <h1 style={{fontSize:'1.7rem'}}>Tunniplaan</h1>
-        {isAdmin&&(
-          <select value={filterT} onChange={e=>setFilterT(e.target.value)} style={{width:'auto',minWidth:160}}>
-            {TEACHERS.map(t=><option key={t}>{t}</option>)}
-            <option value="Kõik">Kõik õpetajad</option>
-          </select>
-        )}
+    <div className="fade-in" style={{display:"flex",flexDirection:"column",gap:20}}>
+      {/* Заголовок */}
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:12}}>
+        <div>
+          <h1 style={{fontSize:"1.7rem"}}>Tunniplaan</h1>
+          <div style={{fontSize:".85rem",color:"#42536A",marginTop:4}}>Nädal: {weekLabel}</div>
+        </div>
+        <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
+          {isAdmin&&(
+            <select value={filterT} onChange={e=>setFilterT(e.target.value)} style={{width:"auto",minWidth:160}}>
+              {["Pavel","Jelena","Elizaveta","Angelina"].map(t=><option key={t}>{t}</option>)}
+              <option value="Kõik">Kõik õpetajad</option>
+            </select>
+          )}
+          <label style={{display:"flex",alignItems:"center",gap:6,padding:"8px 12px",background:"#fff",borderRadius:10,border:"1px solid rgba(28,43,58,.12)",cursor:"pointer",fontSize:".82rem",fontWeight:500}}>
+            <input type="checkbox" checked={showCanceled} onChange={e=>setShowCanceled(e.target.checked)} style={{width:"auto",padding:0,border:"none!important",boxShadow:"none!important"}}/>
+            Näita tühistatud
+          </label>
+          <button onClick={()=>setWeekOffset(w=>w-1)} className="btn btn-ghost btn-sm">← Eelmine</button>
+          <button onClick={()=>setWeekOffset(0)} className="btn btn-ghost btn-sm">See nädal</button>
+          <button onClick={()=>setWeekOffset(w=>w+1)} className="btn btn-ghost btn-sm">Järgmine →</button>
+        </div>
       </div>
 
-      {user.role==='teacher'&&(
+      {/* Легенда статусов */}
+      <div style={{display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
+        <span style={{fontSize:".76rem",color:"#42536A",fontWeight:600}}>Staatus:</span>
+        {Object.entries(STATUS_META).map(([k,m])=>(
+          <span key={k} style={{display:"inline-flex",alignItems:"center",gap:5,padding:"4px 10px",borderRadius:999,
+            background:m.pill,color:m.pillC,fontSize:".76rem",fontWeight:600}}>
+            <span style={{width:6,height:6,borderRadius:"50%",background:m.dot,flexShrink:0}}/>
+            {k}
+          </span>
+        ))}
+        <span style={{display:"inline-flex",alignItems:"center",gap:5,padding:"4px 10px",borderRadius:999,
+          background:"rgba(201,136,42,.09)",color:"#A96E1A",fontSize:".76rem",fontWeight:600}}>
+          <span style={{width:6,height:6,borderRadius:"50%",background:"#C9882A",flexShrink:0}}/>
+          Korduv mall
+        </span>
+      </div>
+
+      {/* Форма бронирования */}
+      {user.role==="teacher"&&(
         <div className="card" style={{padding:20}}>
-          <div style={{fontSize:'.78rem',fontWeight:700,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:12}}>
+          <div style={{fontSize:".78rem",fontWeight:700,color:"#42536A",textTransform:"uppercase",letterSpacing:".08em",marginBottom:12}}>
             Broneeri uus tund
           </div>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(170px,1fr))',gap:10,marginBottom:12}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(170px,1fr))",gap:10,marginBottom:12}}>
             <select value={schStu} onChange={e=>setSchStu(e.target.value)}>
               <option value="">Vali õpilane…</option>
               {myStudents.filter(s=>s.active!==false).map(s=><option key={s.id} value={s.name}>{s.name}</option>)}
             </select>
             <input type="date" value={schDate} onChange={e=>setSchDate(e.target.value)}/>
-            <select value={schTime} onChange={e=>setSchTime(e.target.value)}>{TIMES.map(t=><option key={t}>{t}</option>)}</select>
-            {isAdmin&&<select value={schTeach} onChange={e=>setSchTeach(e.target.value)}>{TEACHERS.map(t=><option key={t}>{t}</option>)}</select>}
+            <select value={schTime} onChange={e=>setSchTime(e.target.value)}>
+              {["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00"].map(t=><option key={t}>{t}</option>)}
+            </select>
+            {isAdmin&&<select value={schTeach} onChange={e=>setSchTeach(e.target.value)}>
+              {["Pavel","Jelena","Elizaveta","Angelina"].map(t=><option key={t}>{t}</option>)}
+            </select>}
           </div>
-          <button onClick={addSchedule} className="btn btn-pine" style={{width:'100%'}}>
+          <button onClick={addSchedule} className="btn btn-pine" style={{width:"100%"}}>
             <i className="fa-solid fa-calendar-plus"/> Kinnita tund
           </button>
         </div>
       )}
 
-      <div className="card" style={{overflow:'hidden'}}>
-        <div className="scroll" style={{overflowX:'auto'}}>
-          <div style={{minWidth:680}}>
-            <div style={{display:'grid',gridTemplateColumns:'64px repeat(7,1fr)',background:'#EFEDE7',borderBottom:'1px solid rgba(28,43,58,.1)'}}>
-              <div style={{padding:'10px 8px',textAlign:'center',fontSize:'.72rem',fontWeight:700,color:'#42536A'}}>Kell</div>
-              {DAYS_SHORT.map((d,i)=>(
-                <div key={i} style={{padding:'10px 4px',textAlign:'center',fontSize:'.78rem',fontWeight:700,borderLeft:'1px solid rgba(28,43,58,.08)'}}>{d}</div>
+      {/* Сетка календаря */}
+      <div className="card" style={{overflow:"hidden"}}>
+        <div className="scroll" style={{overflowX:"auto"}}>
+          <div style={{minWidth:720}}>
+            {/* Заголовок дней */}
+            <div style={{display:"grid",gridTemplateColumns:"64px repeat(7,1fr)",background:"#EFEDE7",borderBottom:"1px solid rgba(28,43,58,.1)"}}>
+              <div style={{padding:"10px 8px",textAlign:"center",fontSize:".72rem",fontWeight:700,color:"#42536A"}}>Kell</div>
+              {weekDays.map(d=>(
+                <div key={d.iso} style={{padding:"10px 4px",textAlign:"center",borderLeft:"1px solid rgba(28,43,58,.08)",
+                  background:d.isToday?"rgba(201,136,42,.06)":"transparent"}}>
+                  <div style={{fontSize:".78rem",fontWeight:700,color:d.isToday?"#C9882A":"#1C2B3A"}}>{d.short}</div>
+                  <div style={{fontSize:".7rem",fontWeight:600,color:d.isToday?"#C9882A":"#42536A",marginTop:1}}>{d.label}</div>
+                </div>
               ))}
             </div>
-            {TIMES.map(slot=>(
-              <div key={slot} style={{display:'grid',gridTemplateColumns:'64px repeat(7,1fr)',minHeight:64,borderBottom:'1px solid rgba(28,43,58,.04)'}}>
-                <div style={{display:'flex',alignItems:'center',justifyContent:'center',fontSize:'.72rem',fontFamily:'monospace',fontWeight:700,color:'#9ca3af',background:'rgba(239,237,231,.3)',borderRight:'1px solid rgba(28,43,58,.06)'}}>
+            {/* Строки времени */}
+            {["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00"].map(slot=>(
+              <div key={slot} style={{display:"grid",gridTemplateColumns:"64px repeat(7,1fr)",minHeight:64,borderBottom:"1px solid rgba(28,43,58,.04)"}}>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"center",fontSize:".72rem",fontFamily:"monospace",fontWeight:700,color:"#9ca3af",background:"rgba(239,237,231,.3)",borderRight:"1px solid rgba(28,43,58,.06)"}}>
                   {slot}
                 </div>
-                {DAYS_ID.map(dayId=>{
-                  const evs=filteredSch.filter(s=>s.time===slot&&(s.day===dayId||(s.date&&['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date(s.date).getDay()]===dayId)));
+                {weekDays.map(day=>{
+                  const evs = getEventsForSlot(slot, day);
                   return(
-                    <div key={dayId} style={{padding:3,borderLeft:'1px solid rgba(28,43,58,.05)',display:'flex',flexDirection:'column',gap:2}}>
-                      {evs.map(ev=>(
-                        <div key={ev.id}
-                          onClick={()=>user.role==='teacher'&&setModalEv(ev)}
-                          style={{fontSize:'.73rem',padding:'5px 7px',borderRadius:7,cursor:user.role==='teacher'?'pointer':'default',
-                            background:'rgba(47,93,80,.09)',border:'1px solid rgba(47,93,80,.2)',transition:'background .12s'}}
-                          onMouseEnter={e=>{if(user.role==='teacher')e.currentTarget.style.background='rgba(47,93,80,.18)'}}
-                          onMouseLeave={e=>e.currentTarget.style.background='rgba(47,93,80,.09)'}>
-                          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:2}}>
-                            <span style={{fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{ev.studentName}</span>
-                            {user.role==='teacher'&&(
-                              <button onClick={e=>delSchedule(ev.id,e)}
-                                style={{background:'none',border:'none',cursor:'pointer',color:'#9ca3af',fontSize:'.75rem',padding:0,lineHeight:1}}
-                                onMouseEnter={e=>{e.currentTarget.style.color='#ef4444';e.stopPropagation();}}
-                                onMouseLeave={e=>e.currentTarget.style.color='#9ca3af'}>✕</button>
-                            )}
+                    <div key={day.iso} style={{padding:3,borderLeft:"1px solid rgba(28,43,58,.05)",display:"flex",flexDirection:"column",gap:2,
+                      background:day.isToday?"rgba(201,136,42,.02)":"transparent"}}>
+                      {evs.map(ev=>{
+                        const isLegacy = !ev.date;
+                        const st = ev.status||"Planeeritud";
+                        const m = isLegacy
+                          ? {bg:"rgba(201,136,42,.09)",border:"rgba(201,136,42,.25)",hover:"rgba(201,136,42,.18)"}
+                          : (STATUS_META[st]||STATUS_META.Planeeritud);
+                        return(
+                          <div key={ev.id+day.iso}
+                            onClick={()=>user.role==="teacher"&&setModalEv({...ev,occurrenceDate:day.iso})}
+                            style={{fontSize:".72rem",padding:"5px 7px",borderRadius:7,cursor:user.role==="teacher"?"pointer":"default",
+                              background:m.bg,border:`1px solid ${m.border}`,transition:"background .12s",
+                              opacity:st==="Tühistatud"?.55:1}}
+                            onMouseEnter={e=>{if(user.role==="teacher")e.currentTarget.style.background=m.hover}}
+                            onMouseLeave={e=>e.currentTarget.style.background=m.bg}>
+                            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:3}}>
+                              <span style={{fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",
+                                textDecoration:st==="Tühistatud"?"line-through":"none"}}>
+                                {ev.studentName}
+                              </span>
+                              <div style={{display:"flex",alignItems:"center",gap:3,flexShrink:0}}>
+                                {isLegacy&&<span style={{fontSize:".6rem",padding:"1px 5px",borderRadius:999,background:"rgba(201,136,42,.2)",color:"#A96E1A",fontWeight:700}}>mall</span>}
+                                {user.role==="teacher"&&(
+                                  <button onClick={e=>delSchedule(ev.id,e)}
+                                    style={{background:"none",border:"none",cursor:"pointer",color:"#9ca3af",fontSize:".72rem",padding:0,lineHeight:1}}
+                                    onMouseEnter={e=>{e.currentTarget.style.color="#ef4444";e.stopPropagation();}}
+                                    onMouseLeave={e=>e.currentTarget.style.color="#9ca3af"}>✕</button>
+                                )}
+                              </div>
+                            </div>
+                            <div style={{fontSize:".64rem",color:"#9ca3af",marginTop:1,display:"flex",gap:4}}>
+                              {filterT==="Kõik"&&<span>{ev.teacher}</span>}
+                              {!isLegacy&&st!=="Planeeritud"&&<span style={{color:STATUS_META[st]?.pillC}}>{st}</span>}
+                            </div>
                           </div>
-                          {filterT==='Kõik'&&<div style={{fontSize:'.66rem',color:'#A96E1A',marginTop:1}}>{ev.teacher}</div>}
-                          {ev.date&&<div style={{fontSize:'.64rem',color:'#9ca3af'}}>{fmtDate(ev.date)}</div>}
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   );
                 })}
@@ -707,39 +821,191 @@ function InvoicesView({invoices,myStudents,invStu,setInvStu,invAmt,setInvAmt,inv
 }
 
 // ── TUNNI MODAL ───────────────────────────────────────────────
-function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,lStatus,setLStatus,lComment,setLComment,lDur,setLDur,saveLesson}) {
+function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
+  lStatus,setLStatus,lComment,setLComment,lDur,setLDur,saveLesson,schedule,students,db,user,notify}) {
+
+  const [moveDate,setMoveDate] = React.useState(modalEv.occurrenceDate||modalEv.date||new Date().toISOString().split("T")[0]);
+  const [moveTime,setMoveTime] = React.useState(modalEv.time||"09:00");
+  const [saving,setSaving]     = React.useState(false);
+
+  const fmtDate = d => d?new Date(d).toLocaleDateString("et-EE",{day:"2-digit",month:"2-digit",year:"numeric"}):"—";
+  const hasDate = Boolean(modalEv.date||modalEv.occurrenceDate);
+  const st = modalEv.status||"Planeeritud";
+
+  const STATUS_COLOR = {
+    Planeeritud:"#2F5D50",Nihutatud:"#A96E1A",Tühistatud:"#991b1b",Toimunud:"#42536A"
+  };
+  const STATUS_BG = {
+    Planeeritud:"rgba(47,93,80,.1)",Nihutatud:"rgba(201,136,42,.1)",
+    Tühistatud:"rgba(239,68,68,.08)",Toimunud:"rgba(28,43,58,.07)"
+  };
+
+  const cancelLesson = async()=>{
+    if(!modalEv.id) return;
+    await db.collection("schedule").doc(modalEv.id).update({status:"Tühistatud",canceledAt:new Date().toISOString().split("T")[0]});
+    notify("✓ Tund tühistatud");
+    setModalEv(prev=>({...prev,status:"Tühistatud"}));
+  };
+
+  const restoreLesson = async()=>{
+    if(!modalEv.id) return;
+    await db.collection("schedule").doc(modalEv.id).update({status:"Planeeritud"});
+    notify("✓ Tund taastatud");
+    setModalEv(prev=>({...prev,status:"Planeeritud"}));
+  };
+
+  const rescheduleLesson = async()=>{
+    if(!modalEv.id||!moveDate){notify("⚠ Vali uus kuupäev");return;}
+    setSaving(true);
+    const jsDay = new Date(moveDate).getDay();
+    const dayId = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][jsDay];
+    await db.collection("schedule").doc(modalEv.id).update({
+      date:moveDate, day:dayId, time:moveTime,
+      status:"Nihutatud",
+      originalDate: modalEv.originalDate||modalEv.date||modalEv.occurrenceDate||null,
+      originalTime: modalEv.originalTime||modalEv.time||null,
+      rescheduledAt: new Date().toISOString().split("T")[0]
+    });
+    notify("✓ Tund tõsteti ümber: "+fmtDate(moveDate)+" "+moveTime);
+    setModalEv(prev=>({...prev,date:moveDate,time:moveTime,status:"Nihutatud"}));
+    setSaving(false);
+  };
+
+  const exportIcs = ()=>{
+    const isoDate = moveDate||modalEv.occurrenceDate||modalEv.date;
+    if(!isoDate){notify("⚠ Mallikirjet ei saa eksportida. Tõsta tund kuupäevale.");return;}
+    const [y,m,d] = isoDate.split("-").map(Number);
+    const [hh,mm] = (moveTime||modalEv.time||"09:00").split(":").map(Number);
+    const start = new Date(y,m-1,d,hh,mm,0);
+    const end   = new Date(start.getTime()+(parseInt(lDur)||60)*60000);
+    const fmt   = dt => dt.getFullYear()+String(dt.getMonth()+1).padStart(2,"0")+String(dt.getDate()).padStart(2,"0")
+                  +"T"+String(dt.getHours()).padStart(2,"0")+String(dt.getMinutes()).padStart(2,"0")+"00";
+    const ics = [
+      "BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//KeeleSepp//Haldus//ET",
+      "BEGIN:VEVENT",
+      "UID:"+(modalEv.id||Date.now())+"@keelesepp",
+      "DTSTART:"+fmt(start),"DTEND:"+fmt(end),
+      "SUMMARY:KeeleSepp – "+modalEv.studentName,
+      "DESCRIPTION:Õpetaja: "+(modalEv.teacher||user.displayName)+"\nStaatus: "+st,
+      "END:VEVENT","END:VCALENDAR"
+    ].join("\n");
+    const blob = new Blob([ics],{type:"text/calendar;charset=utf-8"});
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement("a");
+    a.href=url; a.download="keelesepp-"+modalEv.studentName.split(" ")[0].toLowerCase()+".ics";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+    notify("✓ .ics fail allalaaditud!");
+  };
+
   return(
-    <div style={{position:'fixed',inset:0,background:'rgba(28,43,58,.55)',display:'flex',alignItems:'center',justifyContent:'center',padding:16,zIndex:200,backdropFilter:'blur(3px)'}}>
-      <div className="card fade-in scroll" style={{padding:28,maxWidth:500,width:'100%',position:'relative',maxHeight:'90vh',overflowY:'auto'}}>
-        <button onClick={()=>setModalEv(null)}
-          style={{position:'absolute',top:14,right:14,background:'rgba(28,43,58,.08)',border:'none',cursor:'pointer',borderRadius:8,width:30,height:30,display:'flex',alignItems:'center',justifyContent:'center',color:'#42536A'}}>✕</button>
-        <h2 style={{marginBottom:4,fontSize:'1.3rem'}}>Tunni aruanne</h2>
-        <p style={{color:'#42536A',fontSize:'.85rem',marginBottom:20}}>
-          <strong>{modalEv.studentName}</strong> · kell {modalEv.time}
-          {modalEv.date&&<> · {fmtDate(modalEv.date)}</>}
-        </p>
-        <div style={{display:'flex',flexDirection:'column',gap:10}}>
-          <input value={lTopic} onChange={e=>setLTopic(e.target.value)} placeholder="Tunni teema *"/>
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
-            <select value={lStatus} onChange={e=>setLStatus(e.target.value)}>
-              <option value="Toimunud">✓ Toimunud</option>
-              <option value="Puudus_p">Puudus (põhjusega)</option>
-              <option value="Puudus_eta">Puudus (põhjuseta)</option>
-            </select>
-            <select value={lGrade} onChange={e=>setLGrade(e.target.value)} disabled={lStatus!=='Toimunud'}>
-              <option value="5">5 ★★★★★</option>
-              <option value="4">4 ★★★★</option>
-              <option value="3">3 ★★★</option>
-              <option value="2">2 ★★</option>
-            </select>
+    <div style={{position:"fixed",inset:0,background:"rgba(28,43,58,.6)",display:"flex",alignItems:"center",
+      justifyContent:"center",padding:16,zIndex:200,backdropFilter:"blur(4px)"}}>
+      <div className="card scroll" style={{padding:0,maxWidth:540,width:"100%",maxHeight:"92vh",overflowY:"auto",position:"relative"}}>
+
+        {/* Шапка модалки */}
+        <div style={{padding:"20px 24px 16px",borderBottom:"1px solid rgba(28,43,58,.08)",display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+          <div>
+            <h2 style={{fontSize:"1.2rem",marginBottom:4}}>📋 Tunni aruanne</h2>
+            <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
+              <span style={{fontSize:".88rem",color:"#42536A"}}>
+                <strong>{modalEv.studentName}</strong> · {fmtDate(modalEv.occurrenceDate||modalEv.date)} · {modalEv.time}
+              </span>
+              <span style={{display:"inline-flex",alignItems:"center",gap:4,padding:"2px 8px",borderRadius:999,
+                fontSize:".73rem",fontWeight:700,background:STATUS_BG[st]||"rgba(47,93,80,.1)",color:STATUS_COLOR[st]||"#2F5D50"}}>
+                <span style={{width:5,height:5,borderRadius:"50%",background:STATUS_COLOR[st]||"#2F5D50"}}/>
+                {st}
+              </span>
+              {!modalEv.date&&<span style={{fontSize:".7rem",padding:"2px 8px",borderRadius:999,background:"rgba(201,136,42,.1)",color:"#A96E1A",fontWeight:700}}>korduv mall</span>}
+            </div>
           </div>
-          <select value={lDur} onChange={e=>setLDur(e.target.value)}>
-            {['30','45','60','90','120'].map(d=><option key={d} value={d}>{d} minutit</option>)}
-          </select>
-          <textarea value={lComment} onChange={e=>setLComment(e.target.value)} placeholder="Õpetaja kommentaar…" rows={3}/>
-          <button onClick={saveLesson} className="btn btn-dark" style={{width:'100%',padding:13}}>
-            <i className="fa-solid fa-floppy-disk"/> Salvesta päevikusse
-          </button>
+          <button onClick={()=>setModalEv(null)}
+            style={{background:"rgba(28,43,58,.07)",border:"none",cursor:"pointer",borderRadius:9,
+              width:30,height:30,display:"flex",alignItems:"center",justifyContent:"center",color:"#42536A",flexShrink:0}}>✕</button>
+        </div>
+
+        <div style={{padding:"20px 24px",display:"flex",flexDirection:"column",gap:16}}>
+
+          {/* Блок управления календарём */}
+          <div style={{background:"#F9F8F6",borderRadius:12,padding:16,border:"1px solid rgba(28,43,58,.07)"}}>
+            <div style={{fontSize:".76rem",fontWeight:700,color:"#42536A",textTransform:"uppercase",letterSpacing:".08em",marginBottom:12}}>
+              📅 Kalendri haldus
+            </div>
+
+            {/* Кнопки отмены/восстановления */}
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
+              <button onClick={cancelLesson} className="btn btn-red btn-sm"
+                disabled={!modalEv.id||st==="Tühistatud"}
+                style={{opacity:st==="Tühistatud"?.4:1}}>
+                <i className="fa-solid fa-ban"/> Tühista tund
+              </button>
+              <button onClick={restoreLesson} className="btn btn-pine btn-sm"
+                disabled={!modalEv.id||st!=="Tühistatud"}
+                style={{opacity:st!=="Tühistatud"?.4:1}}>
+                <i className="fa-solid fa-rotate-left"/> Taasta tund
+              </button>
+            </div>
+
+            {/* Перенос */}
+            <div style={{fontSize:".78rem",fontWeight:600,color:"#42536A",marginBottom:6}}>Tõsta tund ümber:</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
+              <input type="date" value={moveDate} onChange={e=>setMoveDate(e.target.value)}
+                disabled={!hasDate} style={{opacity:!hasDate?.5:1}}/>
+              <select value={moveTime} onChange={e=>setMoveTime(e.target.value)} disabled={!hasDate} style={{opacity:!hasDate?.5:1}}>
+                {["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00"].map(t=><option key={t}>{t}</option>)}
+              </select>
+            </div>
+            <div style={{display:"flex",gap:8}}>
+              <button onClick={rescheduleLesson} className="btn btn-amber btn-sm" disabled={!hasDate||saving} style={{flex:1,opacity:!hasDate?.5:1}}>
+                <i className="fa-solid fa-calendar-days"/> {saving?"Salvestab…":"Salvesta uus aeg"}
+              </button>
+              <button onClick={exportIcs} className="btn btn-ghost btn-sm" disabled={!hasDate} style={{opacity:!hasDate?.5:1}} title="Ekspordi .ics faili (avab Google/Apple Calendar)">
+                <i className="fa-solid fa-calendar-arrow-up"/> .ics
+              </button>
+            </div>
+            {!hasDate&&<div style={{fontSize:".72rem",color:"#9ca3af",marginTop:8}}>Mallikirjet ei saa ümber tõsta. Loo uus konkreetse kuupäevaga tund.</div>}
+            {modalEv.originalDate&&(
+              <div style={{fontSize:".72rem",color:"#42536A",marginTop:8,display:"flex",gap:4}}>
+                <span>Algne aeg:</span>
+                <span style={{color:"#A96E1A",fontWeight:600}}>{fmtDate(modalEv.originalDate)} {modalEv.originalTime||""}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Блок записи урока */}
+          {st!=="Tühistatud"&&(
+            <div style={{display:"flex",flexDirection:"column",gap:10}}>
+              <div style={{fontSize:".76rem",fontWeight:700,color:"#42536A",textTransform:"uppercase",letterSpacing:".08em",marginBottom:2}}>
+                📝 Päeviku kanne
+              </div>
+              <input value={lTopic} onChange={e=>setLTopic(e.target.value)} placeholder="Tunni teema *"/>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+                <select value={lStatus} onChange={e=>setLStatus(e.target.value)}>
+                  <option value="Toimunud">✓ Toimunud</option>
+                  <option value="Puudus_p">Puudus (põhjusega)</option>
+                  <option value="Puudus_eta">Puudus (põhjuseta)</option>
+                </select>
+                <select value={lGrade} onChange={e=>setLGrade(e.target.value)} disabled={lStatus!=="Toimunud"}>
+                  <option value="5">5 ★★★★★</option>
+                  <option value="4">4 ★★★★</option>
+                  <option value="3">3 ★★★</option>
+                  <option value="2">2 ★★</option>
+                </select>
+              </div>
+              <select value={lDur} onChange={e=>setLDur(e.target.value)}>
+                {["30","45","60","90","120"].map(d=><option key={d} value={d}>{d} minutit</option>)}
+              </select>
+              <textarea value={lComment} onChange={e=>setLComment(e.target.value)} placeholder="Õpetaja kommentaar…" rows={3}/>
+              <button onClick={saveLesson} className="btn btn-dark" style={{width:"100%",padding:13}}>
+                <i className="fa-solid fa-floppy-disk"/> Salvesta päevikusse
+              </button>
+            </div>
+          )}
+          {st==="Tühistatud"&&(
+            <div style={{textAlign:"center",padding:"16px 0",color:"#42536A",fontSize:".88rem"}}>
+              Tühistatud tundi ei saa päevikusse kanda. Taasta tund enne.
+            </div>
+          )}
         </div>
       </div>
     </div>
