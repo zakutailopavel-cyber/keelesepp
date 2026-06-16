@@ -11,7 +11,7 @@
 <meta property="og:description" content="Eesti ja inglise keele kursused tasemetel A1–C1. Veebiõpe, eksamiks ettevalmistus ja paindlik tunniplaan.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://epkoolitus.ee/">
-<meta property="og:image" content="https://epkoolitus.ee/wp-content/uploads/2025/10/d8149d7f14fcc78f5c63860736a1ec12411b4559-1024x682.jpg">
+<meta property="og:image" content="https://epkoolitus.ee/hero-preview.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
@@ -68,9 +68,33 @@ header{position:sticky;top:0;z-index:50;background:rgba(251,250,248,.92);backdro
 .hero-tr div{font-size:.9rem;color:var(--ink-s)}
 .hero-tr strong{display:block;font-family:"Fraunces",serif;font-size:1.5rem;color:var(--ink)}
 .hero-img{position:relative}
-.hero-img img{border-radius:var(--r);box-shadow:var(--sh);aspect-ratio:4/3;object-fit:cover}
+.hero-stage{position:relative;min-height:460px;border-radius:var(--r);overflow:hidden;background:radial-gradient(circle at top left, rgba(201,136,42,.22), transparent 34%),linear-gradient(155deg,#fff 0%,#f7f3ec 45%,#f0ede7 100%);box-shadow:var(--sh);border:1px solid rgba(28,43,58,.08);padding:28px;display:flex;align-items:flex-end}
+.hero-card{width:min(100%,420px);background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border:1px solid rgba(28,43,58,.08);border-radius:18px;padding:22px;box-shadow:0 18px 42px rgba(28,43,58,.12)}
+.hero-topline{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+.hero-chip{display:inline-flex;align-items:center;gap:7px;padding:7px 12px;border-radius:999px;background:#fff;border:1px solid var(--line);font-size:.76rem;font-weight:600;color:var(--ink-s)}
+.hero-chip i{width:8px;height:8px;border-radius:50%;background:var(--pine);display:block}
+.hero-badge{font-family:"IBM Plex Mono",monospace;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--amber-d)}
+.hero-card h3{font-size:1.25rem;margin-bottom:14px}
+.hero-agenda{display:grid;gap:10px;margin-bottom:18px}
+.hero-row{display:grid;grid-template-columns:76px 1fr;gap:12px;align-items:start;padding:10px 0;border-top:1px solid rgba(28,43,58,.08)}
+.hero-row:first-child{border-top:0;padding-top:0}
+.hero-time{font-family:"IBM Plex Mono",monospace;font-size:.78rem;color:var(--amber-d);padding-top:2px}
+.hero-row strong{display:block;font-size:.94rem}
+.hero-row span{display:block;font-size:.82rem;color:var(--ink-s);margin-top:2px}
+.hero-note{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border-radius:14px;background:#fff7ea;border:1px solid rgba(201,136,42,.18)}
+.hero-note strong{display:block;font-size:.86rem;margin-bottom:2px}
+.hero-note p{font-size:.8rem;color:var(--ink-s)}
+.hero-floating{position:absolute;right:22px;top:22px;display:grid;gap:12px;width:min(46%,210px)}
+.hero-metric,.hero-review{background:rgba(28,43,58,.92);color:#fff;border-radius:16px;padding:16px;box-shadow:0 12px 30px rgba(28,43,58,.18)}
+.hero-metric strong{display:block;font-family:"Fraunces",serif;font-size:2rem;line-height:1}
+.hero-metric span{display:block;font-size:.78rem;color:rgba(255,255,255,.72);margin-top:6px}
+.hero-review{background:rgba(255,255,255,.92);color:var(--ink);border:1px solid rgba(28,43,58,.08)}
+.hero-review p{font-size:.84rem;color:var(--ink-s);margin-bottom:10px}
+.hero-review b{font-size:.78rem}
 .hero-ghost{position:absolute;right:-36px;bottom:-48px;z-index:-1;font-family:"Fraunces",serif;font-size:20rem;font-weight:600;color:transparent;-webkit-text-stroke:1.5px rgba(201,136,42,.2);user-select:none;pointer-events:none;line-height:1}
 @media(max-width:860px){.hero{padding:52px 0}.hero-g{grid-template-columns:1fr}.hero-ghost{font-size:10rem;right:-16px;bottom:-24px}}
+@media(max-width:860px){.hero-stage{min-height:380px;padding:20px}.hero-floating{position:static;width:100%;grid-template-columns:1fr 1fr;margin-bottom:16px}.hero-card{width:100%}}
+@media(max-width:560px){.hero-stage{min-height:auto}.hero-floating{grid-template-columns:1fr}.hero-row{grid-template-columns:64px 1fr}}
 
 /* Летние курсы */
 .summer{background:var(--ink);color:#fff;padding:68px 0}
@@ -229,8 +253,42 @@ footer a:hover{color:var(--amber)}
       </div>
     </div>
     <div class="hero-img">
-      <img src="https://epkoolitus.ee/wp-content/uploads/2025/10/d8149d7f14fcc78f5c63860736a1ec12411b4559-1024x682.jpg"
-           alt="Õpilane osaleb veebipõhises keeletunnis" width="1024" height="682" loading="eager">
+      <div class="hero-stage" aria-label="Näidistundide ja tulemuste ülevaade">
+        <div class="hero-floating">
+          <div class="hero-metric">
+            <strong>91%</strong>
+            <span>B1 eksamitulemus pärast sihipärast ettevalmistust</span>
+          </div>
+          <div class="hero-review">
+            <p>"Individuaalne lähenemine ja selged seletused andsid päriselt kindluse rääkida."</p>
+            <b>Õppija tagasiside</b>
+          </div>
+        </div>
+        <div class="hero-card">
+          <div class="hero-topline">
+            <span class="hero-chip"><i aria-hidden="true"></i> Veebitunnid toimuvad reaalajas</span>
+            <span class="hero-badge">A1-C1</span>
+          </div>
+          <h3>Nädala õpperütm</h3>
+          <div class="hero-agenda">
+            <div class="hero-row">
+              <div class="hero-time">E 10:00</div>
+              <div><strong>Eesti keel noortele</strong><span>Sõnavara, suhtlus ja enesekindel rääkimine</span></div>
+            </div>
+            <div class="hero-row">
+              <div class="hero-time">K 18:00</div>
+              <div><strong>B1 eksamigrupp</strong><span>Kirjutamine, kuulamine ja mudelülesanded</span></div>
+            </div>
+            <div class="hero-row">
+              <div class="hero-time">R 19:00</div>
+              <div><strong>Individuaaltund</strong><span>Paindlik tempo ja isiklik õpifookus</span></div>
+            </div>
+          </div>
+          <div class="hero-note">
+            <div><strong>Õppematerjalid hinna sees</strong><p>Tunnid, kodutöö suund ja eksamiks vajalik praktika on ühes voos koos.</p></div>
+          </div>
+        </div>
+      </div>
       <div class="hero-ghost" aria-hidden="true">Õ</div>
     </div>
   </div>
