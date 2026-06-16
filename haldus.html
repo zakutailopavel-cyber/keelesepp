@@ -28,6 +28,14 @@
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script>
+window.__haldusConfigureBabel = function(){
+  if(typeof Babel === 'undefined' || !Babel.availablePresets || !Babel.registerPreset) return;
+  Babel.registerPreset('haldus-react', {
+    presets: [[Babel.availablePresets.react, { runtime: 'classic' }]]
+  });
+};
+</script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -119,7 +127,10 @@ window.addEventListener('load', function(){
 });
 </script>
 
-<script type="text/babel" data-presets="react" data-type="module">
+<script>
+window.__haldusConfigureBabel();
+</script>
+<script type="text/babel" data-presets="haldus-react">
 const {useState,useEffect,useRef,useCallback,useMemo} = React;
 const db   = window._db;
 const auth = window._auth;
