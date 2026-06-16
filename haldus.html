@@ -256,8 +256,9 @@ function AuthScreen({onLogin}) {
 // TÄHTIS: kõik komponendid on App-ist VÄLJAS — see lahendab "iga täht uuendab lehte" probleemi
 function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
   nName,setNName,nEmail,setNEmail,nPhone,setNPhone,
-  nLevel,setNLevel,nTarget,setNTarget,nPkg,setNPkg,nTeach,setNTeach,
-  addStudent,isAdmin}) {
+  nLevel,setNLevel,nTarget,setNTarget,nPkg,setNPkg,
+  nSubject,setNSubject,nGrade,setNGrade,
+  nTeach,setNTeach,addStudent,isAdmin}) {
   const unpaidAmt = invoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+i.amount,0);
   const pendingHw = homework.filter(h=>h.status==='Ootel'&&myStudents.some(s=>s.id===h.studentId)).length;
   const todaySch  = schedule.filter(s=>s.teacher===user.displayName).length;
@@ -311,6 +312,15 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
             <input value={nPhone} onChange={e=>setNPhone(e.target.value)} placeholder="Telefon +372…"/>
             <select value={nLevel}  onChange={e=>setNLevel(e.target.value)}>{LEVELS.map(l=><option key={l} value={l}>Tase: {l}</option>)}</select>
             <select value={nTarget} onChange={e=>setNTarget(e.target.value)}>{LEVELS.slice(1).map(l=><option key={l} value={l}>Siht: {l}</option>)}</select>
+            <select value={nSubject} onChange={e=>setNSubject(e.target.value)}>
+              <option value="Eesti keel">Eesti keel</option>
+              <option value="Inglise keel">Inglise keel</option>
+              <option value="Muu">Muu</option>
+            </select>
+            <select value={nGrade} onChange={e=>setNGrade(e.target.value)}>
+              <option value="">Klass / vanus (valikuline)</option>
+              {["1. klass","2. klass","3. klass","4. klass","5. klass","6. klass","7. klass","8. klass","9. klass","10. klass","11. klass","12. klass","Täiskasvanu"].map(g=><option key={g} value={g}>{g}</option>)}
+            </select>
             <input value={nPkg} onChange={e=>setNPkg(e.target.value)} type="number" placeholder="Paketi maht (nt. 10)"/>
             {isAdmin&&<select value={nTeach} onChange={e=>setNTeach(e.target.value)}>{TEACHERS.map(t=><option key={t} value={t}>Õp: {t}</option>)}</select>}
           </div>
@@ -578,7 +588,7 @@ function StudentsList({filteredStudents,lessons,isAdmin,search,setSearch,stuFilt
               <div style={{display:'flex',justifyContent:'space-between',marginBottom:14}}>
                 <div>
                   <div style={{fontWeight:700,fontSize:'.98rem'}}>{s.name}</div>
-                  <div style={{fontSize:'.75rem',color:'#42536A',marginTop:2}}>{s.level} → {s.targetLevel}{isAdmin&&<span style={{color:'#2F5D50',marginLeft:6}}>· {s.teacher}</span>}</div>
+                  <div style={{fontSize:'.75rem',color:'#42536A',marginTop:2}}>{s.level} → {s.targetLevel}{isAdmin&&<span style={{color:'#2F5D50',marginLeft:6}}>· {s.teacher}</span>}{s.subject&&<span style={{color:'#42536A',marginLeft:6}}>· {s.subject}</span>}{s.grade&&<span style={{color:'#C9882A',marginLeft:6}}>· {s.grade}</span>}</div>
                 </div>
                 <div style={{textAlign:'right'}}>
                   <div style={{fontSize:'1.2rem',fontWeight:700,color:'#C9882A'}}>{done.length?avg(done.map(l=>l.grade))+'★':'—'}</div>
@@ -606,7 +616,7 @@ function StudentsList({filteredStudents,lessons,isAdmin,search,setSearch,stuFilt
 }
 
 // ── ÕPILASE KAART ─────────────────────────────────────────────
-function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,toggleStudentActive,
+function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,setEditStu,toggleStudentActive,
   hwTask,setHwTask,hwDue,setHwDue,addHw,toggleHw,
   invAmt,setInvAmt,invDesc,setInvDesc,addInvoice,markPaid,printInvoice}) {
   if(!currentStu) return <div style={{textAlign:'center',padding:60,color:'#42536A'}}>Õpilane ei leitud.</div>;
@@ -1012,12 +1022,156 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
   );
 }
 
+// ── РЕДАКТИРОВАНИЕ И УДАЛЕНИЕ УЧЕНИКА ────────────────────────
+function EditStudentModal({student,onClose,onSave,onDelete,db,notify}) {
+  const [name,    setName]    = React.useState(student.name||'');
+  const [email,   setEmail]   = React.useState(student.email||'');
+  const [phone,   setPhone]   = React.useState(student.phone||'');
+  const [level,   setLevel]   = React.useState(student.level||'A1');
+  const [target,  setTarget]  = React.useState(student.targetLevel||'B1');
+  const [subject, setSubject] = React.useState(student.subject||'Eesti keel');
+  const [grade,   setGrade]   = React.useState(student.grade||'');
+  const [teacher, setTeacher] = React.useState(student.teacher||'Pavel');
+  const [pkg,     setPkg]     = React.useState(String(student.packageTotal||0));
+  const [used,    setUsed]    = React.useState(String(student.packageUsed||0));
+  const [saving,  setSaving]  = React.useState(false);
+  const [confirm, setConfirm] = React.useState(false);
+
+  const save = async()=>{
+    if(!name.trim()){notify('⚠ Sisesta nimi');return;}
+    setSaving(true);
+    await db.collection('students').doc(student.id).update({
+      name,email,phone,level,targetLevel:target,
+      subject,grade,teacher,
+      packageTotal:parseInt(pkg)||0,
+      packageUsed:parseInt(used)||0,
+      updatedAt: new Date().toISOString().split('T')[0]
+    });
+    notify('✓ Muudatused salvestatud!');
+    onSave();
+    setSaving(false);
+  };
+
+  const deleteStudent = async()=>{
+    setSaving(true);
+    // Кудалем ученика и связанные данные
+    await db.collection('students').doc(student.id).delete();
+    // Удаляем уроки
+    const lessons = await db.collection('lessons').where('studentId','==',student.id).get();
+    for(const doc of lessons.docs) await doc.ref.delete();
+    // Удаляем домашние задания
+    const hw = await db.collection('homework').where('studentId','==',student.id).get();
+    for(const doc of hw.docs) await doc.ref.delete();
+    // Удаляем счета
+    const inv = await db.collection('invoices').where('studentId','==',student.id).get();
+    for(const doc of inv.docs) await doc.ref.delete();
+    notify('✓ Õpilane kustutatud');
+    onDelete();
+    setSaving(false);
+  };
+
+  return(
+    <div style={{position:'fixed',inset:0,background:'rgba(28,43,58,.6)',display:'flex',alignItems:'center',
+      justifyContent:'center',padding:16,zIndex:210,backdropFilter:'blur(4px)'}}>
+      <div className="card scroll" style={{padding:0,maxWidth:520,width:'100%',maxHeight:'92vh',overflowY:'auto'}}>
+        <div style={{padding:'20px 24px 16px',borderBottom:'1px solid rgba(28,43,58,.08)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+          <h2 style={{fontSize:'1.2rem'}}>✏️ Muuda õpilase andmeid</h2>
+          <button onClick={onClose} style={{background:'rgba(28,43,58,.07)',border:'none',cursor:'pointer',borderRadius:9,
+            width:30,height:30,display:'flex',alignItems:'center',justifyContent:'center',color:'#42536A'}}>✕</button>
+        </div>
+
+        <div style={{padding:'20px 24px',display:'flex',flexDirection:'column',gap:12}}>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+            <div style={{gridColumn:'1/-1'}}>
+              <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Täisnimi *</div>
+              <input value={name} onChange={e=>setName(e.target.value)} placeholder="Täisnimi *"/>
+            </div>
+            <div>
+              <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>E-post</div>
+              <input value={email} onChange={e=>setEmail(e.target.value)} type="email" placeholder="E-post"/>
+            </div>
+            <div>
+              <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Telefon</div>
+              <input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="+372…"/>
+            </div>
+            <div>
+              <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Õppeaine</div>
+              <select value={subject} onChange={e=>setSubject(e.target.value)}>
+                <option>Eesti keel</option>
+                <option>Inglise keel</option>
+                <option>Muu</option>
+              </select>
+            </div>
+            <div>
+              <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Klass / vanus</div>
+              <select value={grade} onChange={e=>setGrade(e.target.value)}>
+                <option value="">Määramata</option>
+                {["1. klass","2. klass","3. klass","4. klass","5. klass","6. klass","7. klass","8. klass","9. klass","10. klass","11. klass","12. klass","Täiskasvanu"].map(g=><option key={g}>{g}</option>)}
+              </select>
+            </div>
+            <div>
+              <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Hetketase</div>
+              <select value={level} onChange={e=>setLevel(e.target.value)}>
+                {['A1','A2','B1','B2','C1'].map(l=><option key={l}>{l}</option>)}
+              </select>
+            </div>
+            <div>
+              <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Eesmärk</div>
+              <select value={target} onChange={e=>setTarget(e.target.value)}>
+                {['A2','B1','B2','C1'].map(l=><option key={l}>{l}</option>)}
+              </select>
+            </div>
+            <div>
+              <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Õpetaja</div>
+              <select value={teacher} onChange={e=>setTeacher(e.target.value)}>
+                {['Pavel','Jelena','Elizaveta','Angelina'].map(t=><option key={t}>{t}</option>)}
+              </select>
+            </div>
+            <div>
+              <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Paketi maht</div>
+              <input value={pkg} onChange={e=>setPkg(e.target.value)} type="number" placeholder="10"/>
+            </div>
+            <div>
+              <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Kasutatud tunde</div>
+              <input value={used} onChange={e=>setUsed(e.target.value)} type="number" placeholder="0"/>
+            </div>
+          </div>
+
+          <button onClick={save} disabled={saving} className="btn btn-pine" style={{width:'100%',marginTop:4}}>
+            {saving?'Salvestab…':'✓ Salvesta muudatused'}
+          </button>
+
+          <div style={{borderTop:'1px solid rgba(239,68,68,.15)',paddingTop:14,marginTop:4}}>
+            {!confirm
+              ? <button onClick={()=>setConfirm(true)} className="btn btn-red" style={{width:'100%'}}>
+                  <i className="fa-solid fa-trash"/> Kustuta õpilane jäädavalt
+                </button>
+              : <div style={{background:'#fee2e2',borderRadius:12,padding:16}}>
+                  <div style={{fontWeight:600,color:'#991b1b',marginBottom:8,fontSize:'.9rem'}}>
+                    ⚠ Oled kindel? See kustutab ka kõik tunnid, kodutööd ja arved!
+                  </div>
+                  <div style={{display:'flex',gap:8}}>
+                    <button onClick={deleteStudent} disabled={saving} className="btn btn-red" style={{flex:1}}>
+                      {saving?'Kustutab…':'Jah, kustuta'}
+                    </button>
+                    <button onClick={()=>setConfirm(false)} className="btn btn-ghost" style={{flex:1}}>Tühista</button>
+                  </div>
+                </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── PEAMINE APP ───────────────────────────────────────────────
 function App() {
   const [user,setUser]         = useState(null);
   const [loading,setLoading]   = useState(true);
   const [tab,setTab]           = useState('dashboard');
   const [selStu,setSelStu]     = useState(null);
+  const [editStu,setEditStu]   = useState(null);
   const [filterT,setFilterT]   = useState('');
   const [modalEv,setModalEv]   = useState(null);
   const [search,setSearch]     = useState('');
@@ -1038,6 +1192,8 @@ function App() {
   const [nLevel,setNLevel] = useState('A1');
   const [nTarget,setNTarget]=useState('B1');
   const [nPkg,setNPkg]     = useState('10');
+  const [nSubject,setNSubject] = useState('Eesti keel');
+  const [nGrade,setNGrade] = useState('');
   const [nTeach,setNTeach] = useState('Pavel');
   // Lesson
   const [lTopic,setLTopic]   = useState('');
@@ -1116,7 +1272,7 @@ function App() {
   const addStudent=useCallback(async()=>{
     if(!nName.trim()){notify('⚠ Sisesta õpilase nimi');return;}
     const t=isAdmin?nTeach:user.displayName;
-    await db.collection('students').add({name:nName,level:nLevel,targetLevel:nTarget,teacher:t,phone:nPhone,email:nEmail,active:true,packageTotal:parseInt(nPkg)||0,packageUsed:0,createdAt:today()});
+    await db.collection('students').add({name:nName,level:nLevel,targetLevel:nTarget,teacher:t,phone:nPhone,email:nEmail,active:true,packageTotal:parseInt(nPkg)||0,packageUsed:0,subject:nSubject,grade:nGrade,createdAt:today()});
     setNName('');setNPhone('');setNEmail('');
     notify('✓ Õpilane '+nName+' lisatud!');
   },[nName,nLevel,nTarget,nTeach,nPhone,nEmail,nPkg,isAdmin,user]);
@@ -1271,7 +1427,7 @@ function App() {
           {tab==='dashboard'&&<Dashboard user={user} myStudents={myStudents} lessons={lessons} schedule={schedule} invoices={invoices} homework={homework}
             nName={nName} setNName={setNName} nEmail={nEmail} setNEmail={setNEmail} nPhone={nPhone} setNPhone={setNPhone}
             nLevel={nLevel} setNLevel={setNLevel} nTarget={nTarget} setNTarget={setNTarget}
-            nPkg={nPkg} setNPkg={setNPkg} nTeach={nTeach} setNTeach={setNTeach}
+            nPkg={nPkg} setNPkg={setNPkg} nSubject={nSubject} setNSubject={setNSubject} nGrade={nGrade} setNGrade={setNGrade} nTeach={nTeach} setNTeach={setNTeach}
             addStudent={addStudent} isAdmin={isAdmin}/>}
 
           {tab==='calendar'&&<CalendarView user={user} myStudents={myStudents} schedule={schedule} isAdmin={isAdmin}
@@ -1284,6 +1440,7 @@ function App() {
             search={search} setSearch={setSearch} stuFilter={stuFilter} setStuFilter={setStuFilter} setSelStu={setSelStu}/>}
 
           {tab==='students'&&(user.role!=='teacher'||(user.role==='teacher'&&selStu))&&<StudentCard
+            setEditStu={setEditStu}
             user={user} currentStu={currentStu} stuLessons={stuLessons} stuHw={stuHw} stuInv={stuInv}
             isAdmin={isAdmin} setSelStu={setSelStu} toggleStudentActive={toggleStudentActive}
             hwTask={hwTask} setHwTask={setHwTask} hwDue={hwDue} setHwDue={setHwDue} addHw={addHw} toggleHw={toggleHw}
@@ -1296,6 +1453,7 @@ function App() {
         </div>
       </main>
 
+      {editStu&&<EditStudentModal student={editStu} onClose={()=>setEditStu(null)} onSave={()=>{setEditStu(null);}} onDelete={()=>{setEditStu(null);setSelStu(null);}} db={db} notify={notify}/>}
       {modalEv&&<LessonModal modalEv={modalEv} setModalEv={setModalEv}
         lTopic={lTopic} setLTopic={setLTopic} lGrade={lGrade} setLGrade={setLGrade}
         lStatus={lStatus} setLStatus={setLStatus}        lComment={lComment} setLComment={setLComment}
