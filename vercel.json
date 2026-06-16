@@ -2,13 +2,18 @@
   "rewrites": [
     { "source": "/haldus", "destination": "/haldus.html" },
     { "source": "/haldus/", "destination": "/haldus.html" },
+    { "source": "/privaatsus", "destination": "/privaatsus.html" },
+    { "source": "/privaatsus/", "destination": "/privaatsus.html" },
+    { "source": "/tingimused", "destination": "/tingimused.html" },
+    { "source": "/tingimused/", "destination": "/tingimused.html" },
+    { "source": "/kutse", "destination": "/kutse" },
     { "source": "/", "destination": "/index.html" }
   ],
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex" }
+        { "key": "X-Content-Type-Options", "value": "nosniff" }
       ]
     }
   ]
