@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KeeleSepp — Kutse õpetajale</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"IBM Plex Sans",system-ui,sans-serif;background:#F4F2EE;color:#1C2B3A;line-height:1.65;padding:40px 16px}
+.wrap{max-width:600px;margin:0 auto}
+.card{background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 8px 40px rgba(28,43,58,.12)}
+.header{background:linear-gradient(135deg,#1C2B3A 0%,#2F5D50 100%);padding:44px 40px;text-align:center}
+.logo{font-family:"Fraunces",Georgia,serif;font-size:2.2rem;font-weight:600;color:#fff;letter-spacing:-.01em}
+.logo span{color:#C9882A}
+.tagline{color:rgba(255,255,255,.6);font-size:.9rem;margin-top:6px}
+.body{padding:40px}
+.greeting{font-family:"Fraunces",Georgia,serif;font-size:1.5rem;font-weight:600;margin-bottom:16px}
+p{color:#42536A;margin-bottom:14px;font-size:.96rem}
+.step{display:flex;gap:14px;margin-bottom:18px;align-items:flex-start}
+.num{width:32px;height:32px;border-radius:50%;background:#1C2B3A;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0;margin-top:1px}
+.step-text{flex:1}
+.step-text strong{display:block;font-weight:600;margin-bottom:3px}
+.step-text span{font-size:.88rem;color:#42536A}
+.code-box{background:#1C2B3A;border-radius:14px;padding:22px 28px;text-align:center;margin:24px 0}
+.code-label{color:rgba(255,255,255,.5);font-size:.78rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px}
+.code{font-family:monospace;font-size:2rem;font-weight:700;color:#C9882A;letter-spacing:.15em}
+.btn-box{text-align:center;margin:28px 0}
+.btn{display:inline-block;background:#C9882A;color:#fff;padding:15px 36px;border-radius:999px;font-weight:700;font-size:1rem;text-decoration:none;letter-spacing:.01em}
+.url{background:#F4F2EE;border-radius:10px;padding:12px 16px;font-family:monospace;font-size:.9rem;color:#2F5D50;text-align:center;margin:16px 0;word-break:break-all}
+.divider{height:1px;background:rgba(28,43,58,.08);margin:28px 0}
+.tip{background:#FEF3C7;border-left:3px solid #C9882A;padding:12px 16px;border-radius:0 10px 10px 0;font-size:.86rem;color:#92400e;margin:20px 0}
+.footer{padding:28px 40px;background:#F9F8F6;border-top:1px solid rgba(28,43,58,.07);text-align:center}
+.footer p{font-size:.82rem;color:#9ca3af;margin-bottom:4px}
+.footer a{color:#2F5D50}
+.roles-table{width:100%;border-collapse:collapse;font-size:.86rem;margin-top:16px}
+.roles-table th{text-align:left;padding:9px 12px;background:#EFEDE7;font-weight:700;font-size:.76rem;text-transform:uppercase;letter-spacing:.06em;color:#42536A}
+.roles-table td{padding:9px 12px;border-bottom:1px solid rgba(28,43,58,.06);color:#42536A}
+.roles-table tr:last-child td{border-bottom:none}
+@media(max-width:500px){.body,.footer{padding:28px 24px}.header{padding:32px 24px}.logo{font-size:1.8rem}}
+@media print{body{background:#fff;padding:0}.card{box-shadow:none;border-radius:0}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+
+    <!-- Шапка -->
+    <div class="header">
+      <div class="logo">Keele<span>Sepp</span></div>
+      <div class="tagline">epkoolitus.ee · Eesti ja inglise keele kursused</div>
+    </div>
+
+    <!-- Тело -->
+    <div class="body">
+      <div class="greeting">Tere, kallis kolleeg! 👋</div>
+      <p>Kutsume sind liituma <strong>KeeleSepp haldussüsteemiga</strong> — meie digitaalse töökeskkonnaga, kus saad hallata oma õpilaste tunnipäevikut, tunniplaani, kodutöid ja arveid.</p>
+
+      <div class="divider"></div>
+
+      <strong style="display:block;margin-bottom:16px;font-size:.9rem;text-transform:uppercase;letter-spacing:.06em;color:#42536A">3 sammu registreerumiseks</strong>
+
+      <div class="step">
+        <div class="num">1</div>
+        <div class="step-text">
+          <strong>Ava haldussüsteem</strong>
+          <span>Mine aadressile ja kliki nupul "Registreeru"</span>
+          <div class="url">https://epkoolitus.ee/haldus/</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">2</div>
+        <div class="step-text">
+          <strong>Vali roll "📚 Õpetaja"</strong>
+          <span>Registreerimisvormis vali kolme rolli seast "Õpetaja" ning sisesta oma kutse-kood:</span>
+        </div>
+      </div>
+
+      <div class="code-box">
+        <div class="code-label">Sinu kutse-kood</div>
+        <div class="code">KS2026</div>
+      </div>
+
+      <div class="step">
+        <div class="num">3</div>
+        <div class="step-text">
+          <strong>Täida vorm ja sisene</strong>
+          <span>Sisesta oma täisnimi, e-post ja parool — või kasuta Google kontoga sisselogimist. Valmis!</span>
+        </div>
+      </div>
+
+      <div class="btn-box">
+        <a href="https://epkoolitus.ee/haldus/" class="btn">Ava haldussüsteem →</a>
+      </div>
+
+      <div class="tip">
+        🔑 <strong>Hoia kutse-koodi ainult endale.</strong> Ära jaga seda koodiga kolmandate isikutega — kood kaitseb süsteemi volitamata kasutajate eest.
+      </div>
+
+      <div class="divider"></div>
+
+      <strong style="display:block;margin-bottom:14px">Mida sa haldussüsteemis teha saad?</strong>
+      <table class="roles-table">
+        <tr><th>Funktsioon</th><th>Kirjeldus</th></tr>
+        <tr><td>📅 Tunniplaan</td><td>Broneeri tunnid, vaata nädalavaate</td></tr>
+        <tr><td>🎓 Õpilaste haldus</td><td>Lisa, arhiveeri, vaata õpikaarte</td></tr>
+        <tr><td>📚 Tunni päevik</td><td>Salvesta tunni teema, hinne, kommentaar</td></tr>
+        <tr><td>📝 Kodutööd</td><td>Määra ülesandeid tähtajaga</td></tr>
+        <tr><td>💳 Arved</td><td>Loo ja halda makseid, prindi arveid</td></tr>
+        <tr><td>📈 Progress</td><td>Vaata iga õpilase edenemiskõverat</td></tr>
+      </table>
+
+      <div class="divider"></div>
+
+      <p style="font-size:.88rem">Kui sul tekib küsimusi, kirjuta mulle:</p>
+      <p style="font-size:.88rem"><strong>Pavel Zakutailo</strong><br>
+      ✉ <a href="mailto:zakutailo.pavel@gmail.com" style="color:#2F5D50">zakutailo.pavel@gmail.com</a><br>
+      📞 <a href="tel:+37253740753" style="color:#2F5D50">+372 5374 0753</a></p>
+    </div>
+
+    <!-- Подвал -->
+    <div class="footer">
+      <p>KeeleSepp · E&P Koolitus OÜ</p>
+      <p>Mustamäe tee 33, 10616 Tallinn</p>
+      <p><a href="https://epkoolitus.ee">epkoolitus.ee</a></p>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>
