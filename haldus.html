@@ -148,7 +148,14 @@ const TIMES = ["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","
 const levelPct = (cur,tgt) => { const c=LEVELS.indexOf(cur),t=LEVELS.indexOf(tgt); return t>0&&c<t?Math.round(c/t*100):c>=t?100:0; };
 const avg = arr => arr.length?(arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(1):'—';
 const fmtDate = d => d?new Date(d).toLocaleDateString('et-EE',{day:'2-digit',month:'2-digit',year:'numeric'}):'—';
-const today = () => new Date().toISOString().split('T')[0];
+const toLocalISODate = value => {
+  const d = value ? new Date(value) : new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${year}-${month}-${day}`;
+};
+const today = () => toLocalISODate();
 const pkgLeft = s => (s.packageTotal||0)-(s.packageUsed||0);
 
 // ── PROGRESSIGRAAFIK ─────────────────────────────────────────
@@ -443,7 +450,7 @@ function CalendarView({user,myStudents,schedule,isAdmin,filterT,setFilterT,
     Array.from({length:7},(_,i)=>{
       const d = new Date(weekStart);
       d.setDate(weekStart.getDate()+i);
-      const iso = d.toISOString().split("T")[0];
+      const iso = toLocalISODate(d);
       const jsDay = d.getDay();
       const dayId = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][jsDay];
       return {
@@ -451,7 +458,7 @@ function CalendarView({user,myStudents,schedule,isAdmin,filterT,setFilterT,
         full:  ["Pühapäev","Esmaspäev","Teisipäev","Kolmapäev","Neljapäev","Reede","Laupäev"][jsDay],
         iso, dayId,
         label: d.toLocaleDateString("et-EE",{day:"2-digit",month:"2-digit"}),
-        isToday: iso===new Date().toISOString().split("T")[0]
+        isToday: iso===today()
       };
     })
   ,[weekStart]);
