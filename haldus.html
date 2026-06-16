@@ -1169,6 +1169,7 @@ function EditStudentModal({student,onClose,onSave,onDelete,db,notify}) {
 function App() {
   const [user,setUser]         = useState(null);
   const [loading,setLoading]   = useState(true);
+  const [bootError,setBootError] = useState('');
   const [tab,setTab]           = useState('dashboard');
   const [selStu,setSelStu]     = useState(null);
   const [editStu,setEditStu]   = useState(null);
@@ -1216,6 +1217,13 @@ function App() {
 
   // AUTH
   useEffect(()=>{
+    if(!auth || !db){
+      console.error('Firebase init missing', { hasAuth: !!auth, hasDb: !!db });
+      setBootError('Firebase ei laaditud. Kontrolli internetiuhendust ja proovi lehte uuesti avada.');
+      setLoading(false);
+      return;
+    }
+
     const unsub=auth.onAuthStateChanged(async fbUser=>{
       try{
         if(fbUser){
@@ -1227,9 +1235,12 @@ function App() {
           }else{
             setUser({uid:fbUser.uid,displayName:fbUser.displayName||fbUser.email,email:fbUser.email,role:'parent'});
           }
+        }else{
+          setUser(null);
         }
       }catch(err){
         console.error('Auth bootstrap failed:', err);
+        setBootError('Sisselogimise andmeid ei olnud voimalik laadida. Proovi lehte uuendada.');
       }finally{
         setLoading(false);
       }
@@ -1370,6 +1381,16 @@ function App() {
   },[students]);
 
   if(loading) return <div style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh'}}><div className="spinner"/></div>;
+  if(bootError) return (
+    <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',padding:20,background:'#F4F2EE'}}>
+      <div className="card" style={{maxWidth:520,padding:28,textAlign:'center'}}>
+        <div style={{fontFamily:'Fraunces,Georgia,serif',fontSize:'1.8rem',marginBottom:12}}>Keele<span style={{color:'#C9882A'}}>Sepp</span></div>
+        <div style={{fontWeight:600,fontSize:'1.05rem',marginBottom:10}}>Haldussusteemi ei saanud kaivitada</div>
+        <p style={{color:'#42536A',marginBottom:18}}>{bootError}</p>
+        <button className="btn btn-dark" onClick={()=>window.location.reload()}>Proovi uuesti</button>
+      </div>
+    </div>
+  );
   if(!user) return <AuthScreen onLogin={u=>{setUser(u);if(u.role==='teacher')setFilterT(u.displayName||'');}}/>;
 
   const navItems=[
