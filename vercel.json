@@ -2,14 +2,28 @@
   "rewrites": [
     { "source": "/haldus", "destination": "/haldus.html" },
     { "source": "/haldus/", "destination": "/haldus.html" },
+    { "source": "/tasemetest", "destination": "/tasemetest.html" },
+    { "source": "/tasemetest/", "destination": "/tasemetest.html" },
     { "source": "/privaatsus", "destination": "/privaatsus.html" },
     { "source": "/privaatsus/", "destination": "/privaatsus.html" },
     { "source": "/tingimused", "destination": "/tingimused.html" },
     { "source": "/tingimused/", "destination": "/tingimused.html" },
-    { "source": "/kutse", "destination": "/kutse.html" },
+    { "source": "/kutse", "destination": "/kutse" },
     { "source": "/", "destination": "/index.html" }
   ],
   "headers": [
+    {
+      "source": "/tasemetest",
+      "headers": [
+        { "key": "Content-Type", "value": "text/html; charset=utf-8" }
+      ]
+    },
+    {
+      "source": "/tasemetest/",
+      "headers": [
+        { "key": "Content-Type", "value": "text/html; charset=utf-8" }
+      ]
+    },
     {
       "source": "/privaatsus",
       "headers": [
