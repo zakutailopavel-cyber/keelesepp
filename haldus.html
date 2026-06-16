@@ -1153,26 +1153,26 @@ function App() {
         className="mobile-overlay"/>}
 
       {/* Desktop sidebar */}
-      <aside style={{width:234,background:'#1C2B3A',display:'flex',flexDirection:'column',
-        padding:'20px 12px',flexShrink:0,position:'sticky',top:0,height:'100vh',overflowY:'auto'}}
-        className="hidden md:flex scroll">
+      {/* Desktop sidebar - always visible on wide screens */}
+      <aside id="desktop-sidebar" style={{width:234,background:'#1C2B3A',display:'flex',flexDirection:'column',
+        padding:'20px 12px',flexShrink:0,position:'sticky',top:0,height:'100vh',overflowY:'auto'}}>
         <SidebarContent/>
       </aside>
 
-      {/* Mobile sidebar */}
+      {/* Mobile sidebar - slides in on hamburger click */}
       <aside style={{position:'fixed',left:mobileNav?0:-240,top:0,width:234,height:'100vh',
-        background:'#1C2B3A',display:'flex',flexDirection:'column',padding:'20px 12px',
-        zIndex:50,transition:'left .25s ease',overflowY:'auto',boxShadow:mobileNav?'4px 0 24px rgba(0,0,0,.3)':'none'}}
-        className="md:hidden scroll">
+        background:'#1C2B3A',display:'none',flexDirection:'column',padding:'20px 12px',
+        zIndex:50,transition:'left .25s ease',overflowY:'auto',
+        boxShadow:mobileNav?'4px 0 24px rgba(0,0,0,.3)':'none'}}
+        id="mobile-sidebar" className="scroll">
         <SidebarContent/>
       </aside>
 
       {/* Main */}
       <main style={{flex:1,overflowY:'auto',background:'#F4F2EE'}} className="scroll">
-        {/* Mobile header */}
-        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'14px 20px',
-          background:'#fff',borderBottom:'1px solid rgba(28,43,58,.08)',position:'sticky',top:0,zIndex:30}}
-          className="md:hidden">
+        {/* Mobile header - hidden on desktop via CSS */}
+        <div id="mobile-header" style={{display:'none',alignItems:'center',justifyContent:'space-between',padding:'14px 20px',
+          background:'#fff',borderBottom:'1px solid rgba(28,43,58,.08)',position:'sticky',top:0,zIndex:30}}>
           <div style={{fontFamily:'Fraunces,Georgia,serif',fontSize:'1.3rem',fontWeight:600}}>
             Keele<span style={{color:'#C9882A'}}>Sepp</span>
           </div>
@@ -1209,8 +1209,16 @@ function App() {
 ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
 </script>
 <style>
-@media(min-width:768px){.hidden{display:none!important}.md\\:flex{display:flex!important}}
-@media(max-width:767px){.md\\:hidden{display:flex!important}.hidden{display:flex!important}.md\\:flex{display:none!important}}
+@media(min-width:768px){
+  #desktop-sidebar{display:flex!important}
+  #mobile-sidebar{display:none!important}
+  #mobile-header{display:none!important}
+}
+@media(max-width:767px){
+  #desktop-sidebar{display:none!important}
+  #mobile-sidebar{display:flex!important}
+  #mobile-header{display:flex!important}
+}
 </style>
 </body>
 </html>
