@@ -63,6 +63,34 @@ input:focus,select:focus,textarea:focus{border-color:#C9882A!important;outline:n
 </head>
 <body>
 <div id="root"><div style="display:flex;align-items:center;justify-content:center;min-height:100vh"><div class="spinner"></div></div></div>
+<script>
+window.__haldusBooted = false;
+window.addEventListener('load', function(){
+  window.setTimeout(function(){
+    if(window.__haldusBooted) return;
+    var missing = [];
+    if(typeof window.React === 'undefined') missing.push('React');
+    if(typeof window.ReactDOM === 'undefined') missing.push('ReactDOM');
+    if(typeof window.Babel === 'undefined') missing.push('Babel');
+    if(typeof window.firebase === 'undefined') missing.push('Firebase');
+    if(typeof window._auth === 'undefined') missing.push('Firebase Auth');
+    if(typeof window._db === 'undefined') missing.push('Firestore');
+
+    var root = document.getElementById('root');
+    if(!root) return;
+    root.innerHTML =
+      '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:#F4F2EE;">' +
+        '<div style="max-width:560px;background:#fff;border-radius:16px;border:1px solid rgba(28,43,58,.07);box-shadow:0 2px 8px rgba(28,43,58,.05);padding:28px;text-align:center;font-family:IBM Plex Sans,system-ui,sans-serif;color:#1C2B3A;">' +
+          '<div style="font-family:Fraunces,Georgia,serif;font-size:1.8rem;margin-bottom:12px;">Keele<span style="color:#C9882A;">Sepp</span></div>' +
+          '<div style="font-weight:600;font-size:1.05rem;margin-bottom:10px;">Haldussusteem ei kaivitunud</div>' +
+          '<p style="color:#42536A;margin-bottom:12px;">Leht jai alglaadimise ajal seisma. Tavaliselt tähendab see, et mõni vajalik skript või Firebase teenus ei laadinud.</p>' +
+          '<p style="color:#42536A;margin-bottom:18px;">Puuduvad komponendid: <strong>' + (missing.length ? missing.join(', ') : 'tundmatu põhjus') + '</strong></p>' +
+          '<button onclick="window.location.reload()" style="display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:600;font-size:.9rem;padding:11px 22px;border-radius:12px;border:none;cursor:pointer;background:#1C2B3A;color:#fff;">Proovi uuesti</button>' +
+        '</div>' +
+      '</div>';
+  }, 4000);
+});
+</script>
 
 <script type="text/babel" data-presets="react">
 const {useState,useEffect,useRef,useCallback,useMemo} = React;
@@ -1490,6 +1518,7 @@ function App() {
   );
 }
 
+window.__haldusBooted = true;
 ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
 </script>
 <style>
