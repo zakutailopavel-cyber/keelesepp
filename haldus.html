@@ -163,6 +163,12 @@ const CONTACT_STATUSES = [
   {id:'scheduled', label:'Tund kokku lepitud'},
   {id:'active', label:'Aktiivne õpilane'},
 ];
+const normalizeText = value => (value || '').trim().toLowerCase();
+const parseLinkedNames = value =>
+  String(value || '')
+    .split(/[,\n;|]+/)
+    .map(part => normalizeText(part))
+    .filter(Boolean);
 const canonicalTeacherName = value => {
   const name = (value || '').trim();
   if(!name) return '';
@@ -431,6 +437,13 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
   const currentStu= !isStaff?myStudents[0]:null;
   const doneLess  = currentStu?lessons.filter(l=>(l.studentId===currentStu.id||l.studentName?.toLowerCase()===currentStu.name?.toLowerCase())&&l.status==='Toimunud'):[];
   const stuLessons= currentStu?lessons.filter(l=>l.studentId===currentStu.id||l.studentName?.toLowerCase()===currentStu.name?.toLowerCase()):[];
+  const linkedStudentNames = myStudents.map(s=>normalizeText(s.name));
+  const visibleLessons = isStaff
+    ? lessons
+    : lessons.filter(l=>
+        myStudents.some(s=>s.id===l.studentId) ||
+        linkedStudentNames.includes(normalizeText(l.studentName))
+      );
   const attendance= stuLessons.length?Math.round(doneLess.length/stuLessons.length*100):0;
 
   return(
@@ -499,9 +512,9 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
 
       <div className="card" style={{padding:24}}>
         <h3 style={{marginBottom:16}}>🕐 Viimased tunnid</h3>
-        {lessons.length===0
+        {visibleLessons.length===0
           ?<div style={{textAlign:'center',padding:'24px 0',color:'#42536A',fontSize:'.88rem'}}>Tunnid puuduvad.</div>
-          :[...lessons].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,6).map(l=>(
+          :[...visibleLessons].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,6).map(l=>(
             <div key={l.id} style={{display:'flex',alignItems:'center',gap:12,padding:'11px 0',borderBottom:'1px solid rgba(28,43,58,.06)'}}>
               <div style={{width:38,height:38,borderRadius:10,flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center',
                 fontWeight:700,background:l.status==='Toimunud'?'rgba(201,136,42,.1)':'rgba(239,68,68,.08)',
@@ -572,12 +585,13 @@ function CalendarView({user,myStudents,schedule,isAdmin,filterT,setFilterT,
   };
 
   const filteredSch = React.useMemo(()=>{
+    const linkedStudentNames = myStudents.map(s=>normalizeText(s.name));
     let list = canManage
       ?(filterT==="Kõik"||!filterT?schedule:schedule.filter(s=>canonicalTeacherName(s.teacher)===canonicalTeacherName(filterT)))
-      :schedule.filter(s=>s.studentName?.toLowerCase()===user.displayName?.toLowerCase());
+      :schedule.filter(s=>linkedStudentNames.includes(normalizeText(s.studentName)));
     if(!showCanceled) list=list.filter(s=>s.status!=="Tühistatud");
     return list;
-  },[schedule,user,filterT,showCanceled,canManage]);
+  },[schedule,myStudents,filterT,showCanceled,canManage]);
 
   const getEventsForSlot = (slot, day) =>
     filteredSch.filter(s=>{
@@ -1819,7 +1833,16 @@ function App() {
     if(!user) return [];
     if(user.role==='teacher') return isAdmin?students:students.filter(s=>canonicalTeacherName(s.teacher)===canonicalTeacherName(user.displayName));
     if(user.role==='admin')   return students;
-    if(user.role==='parent')  return students.filter(s=>s.name?.toLowerCase()===user.childName?.toLowerCase());
+    if(user.role==='parent'){
+      const linkedNames = parseLinkedNames(user.childName);
+      const userEmail = normalizeText(user.email);
+      return students.filter(s=>{
+        const studentName = normalizeText(s.name);
+        const studentEmail = normalizeText(s.email);
+        const parentEmail = normalizeText(s.parentEmail || s.contactEmail || s.guardianEmail);
+        return linkedNames.includes(studentName) || (!!userEmail && (studentEmail===userEmail || parentEmail===userEmail));
+      });
+    }
     return students.filter(s=>s.name?.toLowerCase()===user.displayName?.toLowerCase());
   },[user,students,isAdmin]);
 
