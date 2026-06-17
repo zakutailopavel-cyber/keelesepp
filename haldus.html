@@ -256,6 +256,7 @@ async function ensureParentStudentRecords(authUser, profile){
   const existingNames = new Set(existingSnap.docs.map(doc => normalizeText(doc.data().name)));
   const parentDisplayName = profile.displayName || authUser.displayName || profile.email || authUser.email || 'Lapsevanem';
   const parentEmail = profile.email || authUser.email || '';
+  const preferredTeacher = canonicalTeacherName(profile.preferredTeacher || 'Pavel');
 
   for(const childName of linkedNames){
     if(existingNames.has(childName)) continue;
@@ -274,7 +275,7 @@ async function ensureParentStudentRecords(authUser, profile){
       phone:'',
       level:'A1',
       targetLevel:'A2',
-      teacher:'Pavel',
+      teacher:preferredTeacher,
       active:true,
       packageTotal:0,
       packageUsed:0,
@@ -284,7 +285,7 @@ async function ensureParentStudentRecords(authUser, profile){
       registrationSource:'parent-self-service',
       profileStatus:'new',
       contactStatus:'new',
-      contactOwner:'Pavel',
+      contactOwner:preferredTeacher,
       contactLastAt:'',
       contactNotes:'Loodud lapsevanema konto registreerimisel',
       createdAt:today()
@@ -322,6 +323,7 @@ function AuthScreen({onLogin}) {
   const [pass,setPass]   = useState('');
   const [pass2,setPass2] = useState('');
   const [child,setChild] = useState('');
+  const [parentTeacher,setParentTeacher] = useState('Pavel');
   const [code,setCode]   = useState('');
   const [err,setErr]     = useState('');
   const [info,setInfo]   = useState('');
@@ -341,7 +343,7 @@ function AuthScreen({onLogin}) {
         onLogin(profile);
       }
       else{
-        const ud={role:'parent',displayName:u.displayName,email:u.email,childName:'',createdAt:today()};
+        const ud={role:'parent',displayName:u.displayName,email:u.email,childName:'',preferredTeacher:'Pavel',createdAt:today()};
         await db.collection('users').doc(u.uid).set(ud);
         await ensureParentStudentRecords(u, {uid:u.uid,...ud});
         onLogin({uid:u.uid,...ud});
@@ -380,7 +382,7 @@ function AuthScreen({onLogin}) {
     try{
       const res=await auth.createUserWithEmailAndPassword(email,pass);
       await res.user.updateProfile({displayName:name});
-      const ud={role,displayName:name,email,childName:role==='parent'?child:'',createdAt:today()};
+      const ud={role,displayName:name,email,childName:role==='parent'?child:'',preferredTeacher:role==='parent'?parentTeacher:'',createdAt:today()};
       await db.collection('users').doc(res.user.uid).set(ud);
       await ensureStudentRecord(res.user, ud);
       await ensureParentStudentRecords(res.user, ud);
@@ -435,7 +437,12 @@ function AuthScreen({onLogin}) {
             placeholder="Parool *"/>}
           {mode==='register'&&<>
             <input type="password" value={pass2} onChange={e=>setPass2(e.target.value)} placeholder="Korda parooli *"/>
-            {role==='parent'&&<input value={child} onChange={e=>setChild(e.target.value)} placeholder="Lapse nimi"/>}
+            {role==='parent'&&<>
+              <input value={child} onChange={e=>setChild(e.target.value)} placeholder="Lapse nimi"/>
+              <select value={parentTeacher} onChange={e=>setParentTeacher(e.target.value)}>
+                {TEACHERS.map(t=><option key={t} value={t}>Õpetaja: {t}</option>)}
+              </select>
+            </>}
             {(role==='teacher'||role==='admin')&&<input value={code} onChange={e=>setCode(e.target.value)} placeholder={role==='admin'?'Administraatori kutse-kood *':'Õpetaja kutse-kood *'}/>}
           </>}
         </div>
