@@ -137,6 +137,7 @@ const auth = window._auth;
 
 // ── KONSTANTID ───────────────────────────────────────────────
 const TEACHER_CODE = 'KS2026';
+const ADMIN_CODE   = 'KSADMIN2026';
 const LEVELS   = ['A1','A2','B1','B2','C1'];
 const TEACHERS = ['Pavel','Jelena','Elizaveta','Angelina'];
 const canonicalTeacherName = value => {
@@ -237,6 +238,7 @@ function AuthScreen({onLogin}) {
     if(pass!==pass2){setErr('Paroolid ei ühti');return;}
     if(pass.length<6){setErr('Parool peab olema vähemalt 6 tähemärki');return;}
     if(role==='teacher'&&code!==TEACHER_CODE){setErr('Vale õpetaja kutse-kood.');return;}
+    if(role==='admin'&&code!==ADMIN_CODE){setErr('Vale administraatori kutse-kood.');return;}
     setErr('');setBusy(true);
     try{
       const res=await auth.createUserWithEmailAndPassword(email,pass);
@@ -274,7 +276,7 @@ function AuthScreen({onLogin}) {
 
         {mode==='register'&&(
           <div style={{display:'flex',background:'#EFEDE7',borderRadius:12,padding:4,marginBottom:20,gap:3}}>
-            {[{id:'parent',l:'👨‍👩‍👧 Lapsevanem'},{id:'student',l:'🎓 Õpilane'},{id:'teacher',l:'📚 Õpetaja'}].map(r=>(
+            {[{id:'parent',l:'👨‍👩‍👧 Lapsevanem'},{id:'student',l:'🎓 Õpilane'},{id:'teacher',l:'📚 Õpetaja'},{id:'admin',l:'🛠️ Admin'}].map(r=>(
               <button key={r.id} onClick={()=>setRole(r.id)}
                 style={{flex:1,padding:'8px 4px',borderRadius:9,border:'none',cursor:'pointer',fontWeight:600,fontSize:'.78rem',
                   background:role===r.id?'#1C2B3A':'transparent',color:role===r.id?'#fff':'#42536A'}}>
@@ -295,7 +297,7 @@ function AuthScreen({onLogin}) {
           {mode==='register'&&<>
             <input type="password" value={pass2} onChange={e=>setPass2(e.target.value)} placeholder="Korda parooli *"/>
             {role==='parent'&&<input value={child} onChange={e=>setChild(e.target.value)} placeholder="Lapse nimi KeeleSepis"/>}
-            {role==='teacher'&&<input value={code} onChange={e=>setCode(e.target.value)} placeholder="Õpetaja kutse-kood *"/>}
+            {(role==='teacher'||role==='admin')&&<input value={code} onChange={e=>setCode(e.target.value)} placeholder={role==='admin'?'Administraatori kutse-kood *':'Õpetaja kutse-kood *'}/>}
           </>}
         </div>
 
@@ -337,8 +339,8 @@ function AuthScreen({onLogin}) {
 function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
   nName,setNName,nEmail,setNEmail,nPhone,setNPhone,
   nLevel,setNLevel,nTarget,setNTarget,nPkg,setNPkg,
-  nSubject,setNSubject,nGrade,setNGrade,
-  nTeach,setNTeach,addStudent,isAdmin}) {
+  nSubject,setNSubject,nGrade,setNGrade,nGroup,setNGroup,
+  nTeach,setNTeach,addStudent,isAdmin,isStaff}) {
   const unpaidAmt = invoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+i.amount,0);
   const pendingHw = homework.filter(h=>h.status==='Ootel'&&myStudents.some(s=>s.id===h.studentId)).length;
   const todaySch  = schedule.filter(s=>s.teacher===user.displayName).length;
@@ -357,7 +359,7 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
       </div>
 
       <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(155px,1fr))',gap:12}}>
-        {user.role==='teacher'?
+        {isStaff?
           [{l:'Õpilased',v:myStudents.filter(s=>s.active!==false).length,icon:'fa-users',c:'#2F5D50'},
            {l:'Tunde täna',v:todaySch,icon:'fa-clock',c:'#C9882A'},
            {l:'Maksmata',v:unpaidAmt+'€',icon:'fa-euro-sign',c:'#dc2626'},
@@ -383,7 +385,7 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
         }
       </div>
 
-      {user.role==='teacher'&&(
+      {isStaff&&(
         <div className="card" style={{padding:24}}>
           <h3 style={{marginBottom:16}}>➕ Lisa uus õpilane</h3>
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(185px,1fr))',gap:10,marginBottom:12}}>
@@ -401,8 +403,9 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
               <option value="">Klass / vanus (valikuline)</option>
               {["1. klass","2. klass","3. klass","4. klass","5. klass","6. klass","7. klass","8. klass","9. klass","10. klass","11. klass","12. klass","Täiskasvanu"].map(g=><option key={g} value={g}>{g}</option>)}
             </select>
+            <input value={nGroup} onChange={e=>setNGroup(e.target.value)} placeholder="Grupp (nt. A2 õhtu / 7. klass)"/>
             <input value={nPkg} onChange={e=>setNPkg(e.target.value)} type="number" placeholder="Paketi maht (nt. 10)"/>
-            {isAdmin&&<select value={nTeach} onChange={e=>setNTeach(e.target.value)}>{TEACHERS.map(t=><option key={t} value={t}>Õp: {t}</option>)}</select>}
+            {(isAdmin||user.role==='admin')&&<select value={nTeach} onChange={e=>setNTeach(e.target.value)}>{TEACHERS.map(t=><option key={t} value={t}>Õp: {t}</option>)}</select>}
           </div>
           <button onClick={addStudent} className="btn btn-pine" style={{width:'100%'}}>
             <i className="fa-solid fa-user-plus"/> Lisa õpilane
@@ -441,6 +444,7 @@ function CalendarView({user,myStudents,schedule,isAdmin,filterT,setFilterT,
 
   const [showCanceled,setShowCanceled] = React.useState(true);
   const [weekOffset,setWeekOffset]     = React.useState(0);
+  const canManage = user.role==="teacher" || user.role==="admin";
 
   // Вычисляем начало недели
   const weekStart = React.useMemo(()=>{
@@ -484,12 +488,12 @@ function CalendarView({user,myStudents,schedule,isAdmin,filterT,setFilterT,
   };
 
   const filteredSch = React.useMemo(()=>{
-    let list = user.role==="teacher"
+    let list = canManage
       ?(filterT==="Kõik"||!filterT?schedule:schedule.filter(s=>canonicalTeacherName(s.teacher)===canonicalTeacherName(filterT)))
       :schedule.filter(s=>s.studentName?.toLowerCase()===user.displayName?.toLowerCase());
     if(!showCanceled) list=list.filter(s=>s.status!=="Tühistatud");
     return list;
-  },[schedule,user,filterT,showCanceled]);
+  },[schedule,user,filterT,showCanceled,canManage]);
 
   const getEventsForSlot = (slot, day) =>
     filteredSch.filter(s=>{
@@ -541,7 +545,7 @@ function CalendarView({user,myStudents,schedule,isAdmin,filterT,setFilterT,
       </div>
 
       {/* Форма бронирования */}
-      {user.role==="teacher"&&(
+      {canManage&&(
         <div className="card" style={{padding:20}}>
           <div style={{fontSize:".78rem",fontWeight:700,color:"#42536A",textTransform:"uppercase",letterSpacing:".08em",marginBottom:12}}>
             Broneeri uus tund
@@ -599,11 +603,11 @@ function CalendarView({user,myStudents,schedule,isAdmin,filterT,setFilterT,
                           : (STATUS_META[st]||STATUS_META.Planeeritud);
                         return(
                           <div key={ev.id+day.iso}
-                            onClick={()=>user.role==="teacher"&&setModalEv({...ev,occurrenceDate:day.iso})}
-                            style={{fontSize:".72rem",padding:"5px 7px",borderRadius:7,cursor:user.role==="teacher"?"pointer":"default",
+                            onClick={()=>canManage&&setModalEv({...ev,occurrenceDate:day.iso})}
+                            style={{fontSize:".72rem",padding:"5px 7px",borderRadius:7,cursor:canManage?"pointer":"default",
                               background:m.bg,border:`1px solid ${m.border}`,transition:"background .12s",
                               opacity:st==="Tühistatud"?.55:1}}
-                            onMouseEnter={e=>{if(user.role==="teacher")e.currentTarget.style.background=m.hover}}
+                            onMouseEnter={e=>{if(canManage)e.currentTarget.style.background=m.hover}}
                             onMouseLeave={e=>e.currentTarget.style.background=m.bg}>
                             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:3}}>
                               <span style={{fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",
@@ -612,7 +616,7 @@ function CalendarView({user,myStudents,schedule,isAdmin,filterT,setFilterT,
                               </span>
                               <div style={{display:"flex",alignItems:"center",gap:3,flexShrink:0}}>
                                 {isLegacy&&<span style={{fontSize:".6rem",padding:"1px 5px",borderRadius:999,background:"rgba(201,136,42,.2)",color:"#A96E1A",fontWeight:700}}>mall</span>}
-                                {user.role==="teacher"&&(
+                                {canManage&&(
                                   <button onClick={e=>delSchedule(ev.id,e)}
                                     style={{background:"none",border:"none",cursor:"pointer",color:"#9ca3af",fontSize:".72rem",padding:0,lineHeight:1}}
                                     onMouseEnter={e=>{e.currentTarget.style.color="#ef4444";e.stopPropagation();}}
@@ -696,7 +700,13 @@ function StudentsList({filteredStudents,lessons,isAdmin,search,setSearch,stuFilt
 }
 
 // ── ÕPILASTE ANDMEBAAS ───────────────────────────────────────
-function StudentsDatabaseView({filteredStudents,lessons,invoices,isAdmin,search,setSearch,stuFilter,setStuFilter,openStudent,setEditStu}) {
+function StudentsDatabaseView({
+  filteredStudents,lessons,invoices,isAdmin,search,setSearch,stuFilter,setStuFilter,
+  groupFilter,setGroupFilter,groupOptions,openStudent,setEditStu,user,
+  nName,setNName,nEmail,setNEmail,nPhone,setNPhone,nLevel,setNLevel,nTarget,setNTarget,
+  nSubject,setNSubject,nGrade,setNGrade,nGroup,setNGroup,nPkg,setNPkg,nTeach,setNTeach,addStudent
+}) {
+  const [showAddForm,setShowAddForm] = React.useState(false);
   return(
     <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:20}}>
       <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',flexWrap:'wrap',gap:12}}>
@@ -706,8 +716,15 @@ function StudentsDatabaseView({filteredStudents,lessons,invoices,isAdmin,search,
             Tabelivaade kiireks otsimiseks, filtreerimiseks ja profiili muutmiseks.
           </div>
         </div>
-        <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+        <div style={{display:'flex',gap:8,flexWrap:'wrap',justifyContent:'flex-end'}}>
+          <button onClick={()=>setShowAddForm(v=>!v)} className="btn btn-pine">
+            <i className="fa-solid fa-user-plus"/> Lisa õpilane
+          </button>
           <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍 Otsi nime, õpetajat, e-posti…" style={{width:280,padding:'9px 14px'}}/>
+          <select value={groupFilter} onChange={e=>setGroupFilter(e.target.value)} style={{width:'auto'}}>
+            <option value="all">Kõik grupid</option>
+            {groupOptions.map(group=><option key={group} value={group}>{group}</option>)}
+          </select>
           <select value={stuFilter} onChange={e=>setStuFilter(e.target.value)} style={{width:'auto'}}>
             <option value="active">Aktiivsed</option>
             <option value="all">Kõik</option>
@@ -715,6 +732,43 @@ function StudentsDatabaseView({filteredStudents,lessons,invoices,isAdmin,search,
           </select>
         </div>
       </div>
+
+      {showAddForm&&(
+        <div className="card" style={{padding:24}}>
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:12,marginBottom:16,flexWrap:'wrap'}}>
+            <h3>➕ Lisa uus õpilane</h3>
+            <div style={{fontSize:'.82rem',color:'#42536A'}}>Siin lisatud õpilane ilmub kohe valitud õpetaja nimekirja.</div>
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(185px,1fr))',gap:10,marginBottom:12}}>
+            <input value={nName} onChange={e=>setNName(e.target.value)} placeholder="Täisnimi *"/>
+            <input value={nEmail} onChange={e=>setNEmail(e.target.value)} type="email" placeholder="E-post"/>
+            <input value={nPhone} onChange={e=>setNPhone(e.target.value)} placeholder="Telefon +372…"/>
+            <select value={nLevel} onChange={e=>setNLevel(e.target.value)}>{LEVELS.map(l=><option key={l} value={l}>Tase: {l}</option>)}</select>
+            <select value={nTarget} onChange={e=>setNTarget(e.target.value)}>{LEVELS.slice(1).map(l=><option key={l} value={l}>Siht: {l}</option>)}</select>
+            <select value={nSubject} onChange={e=>setNSubject(e.target.value)}>
+              <option value="Eesti keel">Eesti keel</option>
+              <option value="Inglise keel">Inglise keel</option>
+              <option value="Muu">Muu</option>
+            </select>
+            <select value={nGrade} onChange={e=>setNGrade(e.target.value)}>
+              <option value="">Klass / vanus (valikuline)</option>
+              {["1. klass","2. klass","3. klass","4. klass","5. klass","6. klass","7. klass","8. klass","9. klass","10. klass","11. klass","12. klass","Täiskasvanu"].map(g=><option key={g} value={g}>{g}</option>)}
+            </select>
+            <input value={nGroup} onChange={e=>setNGroup(e.target.value)} placeholder="Grupp (nt. B1 hommik)"/>
+            <input value={nPkg} onChange={e=>setNPkg(e.target.value)} type="number" placeholder="Paketi maht (nt. 10)"/>
+            {(isAdmin||user?.role==='admin')
+              ? <select value={nTeach} onChange={e=>setNTeach(e.target.value)}>{TEACHERS.map(t=><option key={t} value={t}>Õp: {t}</option>)}</select>
+              : <input value={nTeach} readOnly style={{opacity:.7}}/>
+            }
+          </div>
+          <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
+            <button onClick={addStudent} className="btn btn-pine">
+              <i className="fa-solid fa-user-plus"/> Lisa õpilane
+            </button>
+            <button onClick={()=>setShowAddForm(false)} className="btn btn-ghost">Sulge</button>
+          </div>
+        </div>
+      )}
 
       <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))',gap:12}}>
         <div className="card" style={{padding:'16px 18px'}}>
@@ -740,7 +794,7 @@ function StudentsDatabaseView({filteredStudents,lessons,invoices,isAdmin,search,
           <table style={{width:'100%',borderCollapse:'collapse',minWidth:1180}}>
             <thead>
               <tr style={{background:'#F9F8F6',borderBottom:'1px solid rgba(28,43,58,.08)'}}>
-                {['Õpilane','Kontakt','Õpe','Õpetaja','Paketid','Tunnid','Arved','Staatus','Tegevused'].map(head=>(
+                {['Õpilane','Kontakt','Õpe','Grupp','Õpetaja','Paketid','Tunnid','Arved','Staatus','Tegevused'].map(head=>(
                   <th key={head} style={{textAlign:'left',padding:'14px 16px',fontSize:'.76rem',fontWeight:700,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em'}}>
                     {head}
                   </th>
@@ -772,10 +826,20 @@ function StudentsDatabaseView({filteredStudents,lessons,invoices,isAdmin,search,
                     <td style={{padding:'14px 16px',verticalAlign:'top',fontSize:'.84rem',color:'#42536A'}}>
                       <div>{student.email||'—'}</div>
                       <div style={{marginTop:4}}>{student.phone||'—'}</div>
+                      {(student.email||student.phone)&&(
+                        <div style={{display:'flex',gap:6,flexWrap:'wrap',marginTop:8}}>
+                          {student.phone&&<a href={`tel:${student.phone}`} className="btn btn-ghost btn-sm">Helista</a>}
+                          {student.email&&<a href={`mailto:${student.email}`} className="btn btn-ghost btn-sm">E-post</a>}
+                        </div>
+                      )}
                     </td>
                     <td style={{padding:'14px 16px',verticalAlign:'top'}}>
                       <div style={{fontWeight:600}}>{student.level} → {student.targetLevel}</div>
                       <div style={{fontSize:'.78rem',color:'#42536A',marginTop:4}}>{levelPct(student.level,student.targetLevel)}% eesmärgini</div>
+                    </td>
+                    <td style={{padding:'14px 16px',verticalAlign:'top'}}>
+                      <div style={{fontWeight:600}}>{student.group||'—'}</div>
+                      <div style={{fontSize:'.78rem',color:'#42536A',marginTop:4}}>{student.group?'Õppegrupp':'Määramata'}</div>
                     </td>
                     <td style={{padding:'14px 16px',verticalAlign:'top'}}>
                       <div style={{fontWeight:600}}>{student.teacher||'—'}</div>
@@ -816,7 +880,7 @@ function StudentsDatabaseView({filteredStudents,lessons,invoices,isAdmin,search,
               })}
               {filteredStudents.length===0&&(
                 <tr>
-                  <td colSpan="9" style={{textAlign:'center',padding:'40px 20px',color:'#42536A'}}>
+                  <td colSpan="10" style={{textAlign:'center',padding:'40px 20px',color:'#42536A'}}>
                     {search?`"${search}" ei leitud`:'Õpilasi pole veel lisatud.'}
                   </td>
                 </tr>
@@ -838,6 +902,7 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
   const pct=levelPct(currentStu.level,currentStu.targetLevel);
   const rem=pkgLeft(currentStu);
   const attendance=stuLessons.length?Math.round(done.length/stuLessons.length*100):0;
+  const canManage = user.role==='teacher' || user.role==='admin';
 
   return(
     <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:20}}>
@@ -875,7 +940,7 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
             </div>
             <div className="level-bar"><div className="level-fill" style={{width:pct+'%'}}/></div>
           </div>
-          {user.role==='teacher'&&(
+          {canManage&&(
             <div style={{display:'flex',flexDirection:'column',gap:8}}>
               <button onClick={()=>setSelStu(null)} className="btn btn-ghost btn-sm">← Tagasi</button>
               <button onClick={()=>setEditStu(currentStu)} className="btn btn-dark btn-sm">✏️ Muuda profiili</button>
@@ -898,7 +963,7 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
       <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(320px,1fr))',gap:20}}>
         <div className="card" style={{padding:24}}>
           <h3 style={{marginBottom:16}}>📝 Kodutööd ({stuHw.length})</h3>
-          {user.role==='teacher'&&(
+          {canManage&&(
             <div style={{marginBottom:14,display:'flex',flexDirection:'column',gap:8}}>
               <input value={hwTask} onChange={e=>setHwTask(e.target.value)} placeholder="Ülesande kirjeldus *"/>
               <div style={{display:'flex',gap:8}}>
@@ -952,10 +1017,10 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
         </div>
       </div>
 
-      {(user.role==='teacher'||user.role==='parent')&&(
+      {(canManage||user.role==='parent')&&(
         <div className="card" style={{padding:24}}>
           <h3 style={{marginBottom:16}}>💳 Arved ({stuInv.length})</h3>
-          {user.role==='teacher'&&(
+          {canManage&&(
             <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(170px,1fr))',gap:10,marginBottom:14}}>
               <input type="number" value={invAmt} onChange={e=>setInvAmt(e.target.value)} placeholder="Summa (€) *"/>
               <input value={invDesc} onChange={e=>setInvDesc(e.target.value)} placeholder="Kirjeldus"/>
@@ -977,7 +1042,7 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
                   {inv.status==='Makstud'
                     ?<span className="badge" style={{background:'#dcfce7',color:'#166534'}}>✓ Makstud</span>
                     :<span className="badge" style={{background:'#fef3c7',color:'#92400e'}}>Ootel</span>}
-                  {user.role==='teacher'&&inv.status!=='Makstud'&&<button onClick={()=>markPaid(inv.id)} className="btn btn-pine btn-sm">Märgi makstud</button>}
+                  {canManage&&inv.status!=='Makstud'&&<button onClick={()=>markPaid(inv.id)} className="btn btn-pine btn-sm">Märgi makstud</button>}
                   <button onClick={()=>printInvoice(inv)} className="btn btn-ghost btn-sm"><i className="fa-solid fa-print"/> Prindi</button>
                 </div>
               </div>
@@ -1246,6 +1311,7 @@ function EditStudentModal({student,onClose,onSave,onDelete,db,notify,isAdmin}) {
   const [target,  setTarget]  = React.useState(student.targetLevel||'B1');
   const [subject, setSubject] = React.useState(student.subject||'Eesti keel');
   const [grade,   setGrade]   = React.useState(student.grade||'');
+  const [group,   setGroup]   = React.useState(student.group||'');
   const [teacher, setTeacher] = React.useState(student.teacher||'Pavel');
   const [pkg,     setPkg]     = React.useState(String(student.packageTotal||0));
   const [used,    setUsed]    = React.useState(String(student.packageUsed||0));
@@ -1257,7 +1323,7 @@ function EditStudentModal({student,onClose,onSave,onDelete,db,notify,isAdmin}) {
     setSaving(true);
     await db.collection('students').doc(student.id).update({
       name,email,phone,level,targetLevel:target,
-      subject,grade,teacher,
+      subject,grade,group,teacher,
       packageTotal:parseInt(pkg)||0,
       packageUsed:parseInt(used)||0,
       updatedAt: new Date().toISOString().split('T')[0]
@@ -1323,6 +1389,10 @@ function EditStudentModal({student,onClose,onSave,onDelete,db,notify,isAdmin}) {
                 <option value="">Määramata</option>
                 {["1. klass","2. klass","3. klass","4. klass","5. klass","6. klass","7. klass","8. klass","9. klass","10. klass","11. klass","12. klass","Täiskasvanu"].map(g=><option key={g}>{g}</option>)}
               </select>
+            </div>
+            <div>
+              <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Grupp</div>
+              <input value={group} onChange={e=>setGroup(e.target.value)} placeholder="Nt. B1 õhtu"/>
             </div>
             <div>
               <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Hetketase</div>
@@ -1394,6 +1464,7 @@ function App() {
   const [modalEv,setModalEv]   = useState(null);
   const [search,setSearch]     = useState('');
   const [stuFilter,setStuFilter]= useState('active');
+  const [groupFilter,setGroupFilter]= useState('all');
   const [notif,setNotif]       = useState('');
   const [mobileNav,setMobileNav]=useState(false);
 
@@ -1412,6 +1483,7 @@ function App() {
   const [nPkg,setNPkg]     = useState('10');
   const [nSubject,setNSubject] = useState('Eesti keel');
   const [nGrade,setNGrade] = useState('');
+  const [nGroup,setNGroup] = useState('');
   const [nTeach,setNTeach] = useState('Pavel');
   // Lesson
   const [lTopic,setLTopic]   = useState('');
@@ -1449,6 +1521,7 @@ function App() {
             const d=snap.data();
             setUser({uid:fbUser.uid,displayName:fbUser.displayName||fbUser.email,...d});
             if(d.role==='teacher') setFilterT(canonicalTeacherName(fbUser.displayName||''));
+            if(d.role==='admin') setFilterT('Kõik');
           }else{
             setUser({uid:fbUser.uid,displayName:fbUser.displayName||fbUser.email,email:fbUser.email,role:'parent'});
           }
@@ -1480,17 +1553,29 @@ function App() {
   const goTab=t=>{setTab(t);setSelStu(null);setMobileNav(false);};
 
   const isAdmin = user?.email==='zakutailo.pavel@gmail.com'||user?.displayName==='Pavel'||user?.displayName?.startsWith('Pavel Z');
+  const isStaff = user?.role==='teacher' || user?.role==='admin';
+  const canAssignTeacher = isAdmin || user?.role==='admin';
+
+  useEffect(()=>{
+    if(user?.role==='teacher'&&!canAssignTeacher) setNTeach(user.displayName||'');
+  },[user,canAssignTeacher]);
 
   const myStudents = useMemo(()=>{
     if(!user) return [];
     if(user.role==='teacher') return isAdmin?students:students.filter(s=>s.teacher===user.displayName);
+    if(user.role==='admin')   return students;
     if(user.role==='parent')  return students.filter(s=>s.name?.toLowerCase()===user.childName?.toLowerCase());
     return students.filter(s=>s.name?.toLowerCase()===user.displayName?.toLowerCase());
   },[user,students,isAdmin]);
 
+  const groupOptions = useMemo(()=>
+    [...new Set(myStudents.map(s=>(s.group||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'et'))
+  ,[myStudents]);
+
   const filteredStudents = useMemo(()=>
     myStudents
       .filter(s=>stuFilter==='active'?s.active!==false:stuFilter==='inactive'?s.active===false:true)
+      .filter(s=>groupFilter==='all'?true:(s.group||'').trim()===groupFilter)
       .filter(s=>{
         const q=search.toLowerCase();
         return (s.name||'').toLowerCase().includes(q)
@@ -1498,20 +1583,21 @@ function App() {
           || (s.email||'').toLowerCase().includes(q)
           || (s.phone||'').toLowerCase().includes(q)
           || (s.subject||'').toLowerCase().includes(q)
-          || (s.grade||'').toLowerCase().includes(q);
+          || (s.grade||'').toLowerCase().includes(q)
+          || (s.group||'').toLowerCase().includes(q);
       })
-  ,[myStudents,stuFilter,search]);
+  ,[myStudents,stuFilter,groupFilter,search]);
 
   const currentStu = useMemo(()=>
     selStu ? students.find(s=>s.id===selStu.id)||selStu : user?.role!=='teacher'?myStudents[0]:null
   ,[selStu,students,user,myStudents]);
 
   useEffect(()=>{
-    if(user?.role!=='teacher') return;
+    if(!isStaff) return;
     if(schStu) return;
     const firstActiveStudent = myStudents.find(s=>s.active!==false);
     if(firstActiveStudent) setSchStu(firstActiveStudent.name);
-  },[user,myStudents,schStu]);
+  },[isStaff,myStudents,schStu]);
 
   const stuLessons = useMemo(()=>currentStu?lessons.filter(l=>l.studentId===currentStu.id||l.studentName?.toLowerCase()===currentStu.name?.toLowerCase()):[]
   ,[currentStu,lessons]);
@@ -1521,19 +1607,19 @@ function App() {
   // ACTIONS
   const addStudent=useCallback(async()=>{
     if(!nName.trim()){notify('⚠ Sisesta õpilase nimi');return;}
-    const t=isAdmin?nTeach:user.displayName;
-    await db.collection('students').add({name:nName,level:nLevel,targetLevel:nTarget,teacher:t,phone:nPhone,email:nEmail,active:true,packageTotal:parseInt(nPkg)||0,packageUsed:0,subject:nSubject,grade:nGrade,createdAt:today()});
-    setNName('');setNPhone('');setNEmail('');
+    const t=canAssignTeacher?nTeach:user.displayName;
+    await db.collection('students').add({name:nName,level:nLevel,targetLevel:nTarget,teacher:t,phone:nPhone,email:nEmail,active:true,packageTotal:parseInt(nPkg)||0,packageUsed:0,subject:nSubject,grade:nGrade,group:nGroup,createdAt:today()});
+    setNName('');setNPhone('');setNEmail('');setNGroup('');
     notify('✓ Õpilane '+nName+' lisatud!');
-  },[nName,nLevel,nTarget,nTeach,nPhone,nEmail,nPkg,isAdmin,user]);
+  },[nName,nLevel,nTarget,nTeach,nPhone,nEmail,nPkg,nSubject,nGrade,nGroup,canAssignTeacher,user]);
 
   const addSchedule=useCallback(async()=>{
     if(!schStu||!schDate){notify('⚠ Vali õpilane ja kuupäev');return;}
-    const t=isAdmin?schTeach:user.displayName;
+    const t=canAssignTeacher?schTeach:user.displayName;
     const jsDay=new Date(schDate).getDay();
     await db.collection('schedule').add({teacher:t,studentName:schStu,date:schDate,day:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][jsDay],time:schTime,status:'Planeeritud',createdAt:today()});
     notify('✓ Tund broneeritud!');
-  },[schStu,schDate,schTime,schTeach,isAdmin,user]);
+  },[schStu,schDate,schTime,schTeach,canAssignTeacher,user]);
 
   const saveLesson=useCallback(async()=>{
     if(!modalEv||!lTopic.trim()){notify('⚠ Sisesta tunni teema');return;}
@@ -1623,16 +1709,16 @@ function App() {
       </div>
     </div>
   );
-  if(!user) return <AuthScreen onLogin={u=>{setUser(u);if(u.role==='teacher')setFilterT(canonicalTeacherName(u.displayName||''));}}/>;
+  if(!user) return <AuthScreen onLogin={u=>{setUser(u);if(u.role==='teacher')setFilterT(canonicalTeacherName(u.displayName||''));if(u.role==='admin')setFilterT('Kõik');}}/>;
 
   const navItems=[
     {id:'dashboard',icon:'fa-chart-pie',label:'Töölaud'},
     {id:'calendar', icon:'fa-calendar-days',label:'Tunniplaan'},
-    {id:'students', icon:'fa-graduation-cap',label:user.role==='teacher'?'Õpilased':'Minu progress',
-      badge:user.role==='teacher'&&homework.filter(h=>h.status==='Ootel'&&myStudents.some(s=>s.id===h.studentId)).length>0?
+    {id:'students', icon:'fa-graduation-cap',label:isStaff?'Õpilased':'Minu progress',
+      badge:isStaff&&homework.filter(h=>h.status==='Ootel'&&myStudents.some(s=>s.id===h.studentId)).length>0?
         homework.filter(h=>h.status==='Ootel'&&myStudents.some(s=>s.id===h.studentId)).length:0},
-    ...(user.role==='teacher'?[{id:'database',icon:'fa-table',label:'Andmebaas'}]:[]),
-    ...(user.role==='teacher'?[{id:'invoices',icon:'fa-file-invoice',label:'Arved',
+    ...(isStaff?[{id:'database',icon:'fa-table',label:'Andmebaas'}]:[]),
+    ...(isStaff?[{id:'invoices',icon:'fa-file-invoice',label:'Arved',
       badge:invoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+i.amount,0)>0?invoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+i.amount,0)+'€':0}]:[]),
   ];
 
@@ -1643,7 +1729,7 @@ function App() {
           Keele<span style={{color:'#C9882A'}}>Sepp</span>
         </div>
         <div style={{fontSize:'.7rem',color:'rgba(255,255,255,.35)',marginTop:2,fontWeight:600,letterSpacing:'.08em',textTransform:'uppercase'}}>
-          {user.role==='teacher'?'Õpetaja':user.role==='parent'?'Lapsevanem':'Õpilane'}
+          {user.role==='teacher'?'Õpetaja':user.role==='admin'?'Administraator':user.role==='parent'?'Lapsevanem':'Õpilane'}
         </div>
       </div>
       <div style={{fontSize:'.82rem',color:'rgba(255,255,255,.45)',padding:'0 14px 12px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
@@ -1688,40 +1774,65 @@ function App() {
           {tab==='dashboard'&&<Dashboard user={user} myStudents={myStudents} lessons={lessons} schedule={schedule} invoices={invoices} homework={homework}
             nName={nName} setNName={setNName} nEmail={nEmail} setNEmail={setNEmail} nPhone={nPhone} setNPhone={setNPhone}
             nLevel={nLevel} setNLevel={setNLevel} nTarget={nTarget} setNTarget={setNTarget}
-            nPkg={nPkg} setNPkg={setNPkg} nSubject={nSubject} setNSubject={setNSubject} nGrade={nGrade} setNGrade={setNGrade} nTeach={nTeach} setNTeach={setNTeach}
-            addStudent={addStudent} isAdmin={isAdmin}/>}
+            nPkg={nPkg} setNPkg={setNPkg} nSubject={nSubject} setNSubject={setNSubject} nGrade={nGrade} setNGrade={setNGrade} nGroup={nGroup} setNGroup={setNGroup} nTeach={nTeach} setNTeach={setNTeach}
+            addStudent={addStudent} isAdmin={isAdmin} isStaff={isStaff}/>}
 
-          {tab==='calendar'&&<CalendarView user={user} myStudents={myStudents} schedule={schedule} isAdmin={isAdmin}
+          {tab==='calendar'&&<CalendarView user={user} myStudents={myStudents} schedule={schedule} isAdmin={canAssignTeacher}
             filterT={filterT} setFilterT={setFilterT}
             schStu={schStu} setSchStu={setSchStu} schDate={schDate} setSchDate={setSchDate}
             schTime={schTime} setSchTime={setSchTime} schTeach={schTeach} setSchTeach={setSchTeach}
             addSchedule={addSchedule} setModalEv={setModalEv} delSchedule={delSchedule}/>}
 
-          {tab==='students'&&user.role==='teacher'&&!selStu&&<StudentsList filteredStudents={filteredStudents} lessons={lessons} isAdmin={isAdmin}
+          {tab==='students'&&isStaff&&!selStu&&<StudentsList filteredStudents={filteredStudents} lessons={lessons} isAdmin={canAssignTeacher}
             search={search} setSearch={setSearch} stuFilter={stuFilter} setStuFilter={setStuFilter} setSelStu={setSelStu}/>}
 
-          {tab==='students'&&(user.role!=='teacher'||(user.role==='teacher'&&selStu))&&<StudentCard
+          {tab==='students'&&(!isStaff||(isStaff&&selStu))&&<StudentCard
             setEditStu={setEditStu}
             user={user} currentStu={currentStu} stuLessons={stuLessons} stuHw={stuHw} stuInv={stuInv}
-            isAdmin={isAdmin} setSelStu={setSelStu} toggleStudentActive={toggleStudentActive}
+            isAdmin={canAssignTeacher} setSelStu={setSelStu} toggleStudentActive={toggleStudentActive}
             hwTask={hwTask} setHwTask={setHwTask} hwDue={hwDue} setHwDue={setHwDue} addHw={addHw} toggleHw={toggleHw}
             invAmt={invAmt} setInvAmt={setInvAmt} invDesc={invDesc} setInvDesc={setInvDesc}
             addInvoice={addInvoice} markPaid={markPaid} printInvoice={printInvoice}/>}
 
-          {tab==='database'&&user.role==='teacher'&&<StudentsDatabaseView
+          {tab==='database'&&isStaff&&<StudentsDatabaseView
             filteredStudents={filteredStudents}
             lessons={lessons}
             invoices={invoices}
-            isAdmin={isAdmin}
+            isAdmin={canAssignTeacher}
             search={search}
             setSearch={setSearch}
             stuFilter={stuFilter}
             setStuFilter={setStuFilter}
+            groupFilter={groupFilter}
+            setGroupFilter={setGroupFilter}
+            groupOptions={groupOptions}
             openStudent={student=>{setSelStu(student);setTab('students');}}
             setEditStu={setEditStu}
+            user={user}
+            nName={nName}
+            setNName={setNName}
+            nEmail={nEmail}
+            setNEmail={setNEmail}
+            nPhone={nPhone}
+            setNPhone={setNPhone}
+            nLevel={nLevel}
+            setNLevel={setNLevel}
+            nTarget={nTarget}
+            setNTarget={setNTarget}
+            nSubject={nSubject}
+            setNSubject={setNSubject}
+            nGrade={nGrade}
+            setNGrade={setNGrade}
+            nGroup={nGroup}
+            setNGroup={setNGroup}
+            nPkg={nPkg}
+            setNPkg={setNPkg}
+            nTeach={nTeach}
+            setNTeach={setNTeach}
+            addStudent={addStudent}
           />}
 
-          {tab==='invoices'&&user.role==='teacher'&&<InvoicesView invoices={invoices} myStudents={myStudents}
+          {tab==='invoices'&&isStaff&&<InvoicesView invoices={invoices} myStudents={myStudents}
             invStu={invStu} setInvStu={setInvStu} invAmt={invAmt} setInvAmt={setInvAmt}
             invDesc={invDesc} setInvDesc={setInvDesc} addInvoice={addInvoice} markPaid={markPaid} printInvoice={printInvoice}/>}
         </div>
