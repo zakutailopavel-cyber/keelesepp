@@ -140,6 +140,22 @@ const TEACHER_CODE = 'KS2026';
 const ADMIN_CODE   = 'KSADMIN2026';
 const LEVELS   = ['A1','A2','B1','B2','C1'];
 const TEACHERS = ['Pavel','Jelena','Elizaveta','Angelina'];
+const PAYMENT_METHODS = [
+  {id:'bank', label:'Pangaülekanne'},
+  {id:'cash', label:'Sularaha'},
+  {id:'other', label:'Kokkuleppel'}
+];
+const PAYMENT_DETAILS = {
+  company:'E&P Kooitus OÜ',
+  regCode:'17270880',
+  address:'Harju maakond, Saue vald, Laagri alevik, Nõlvaku põik 3b, 76401',
+  iban:'EE917700771011885682',
+  bank:'LHV Pank AS',
+  swift:'LHVBEE22',
+  paymentTermDays:5,
+  lateFeePerDay:'0.0%',
+  issuer:'Pavel Zakutailo'
+};
 const CONTACT_STATUSES = [
   {id:'new', label:'Uus'},
   {id:'contacted', label:'Võetud ühendust'},
@@ -172,6 +188,28 @@ const toLocalISODate = value => {
 };
 const today = () => toLocalISODate();
 const pkgLeft = s => (s.packageTotal||0)-(s.packageUsed||0);
+const copyText = async text => {
+  try{
+    if(navigator.clipboard?.writeText){
+      await navigator.clipboard.writeText(String(text));
+      return true;
+    }
+  }catch(e){}
+  try{
+    const area = document.createElement('textarea');
+    area.value = String(text);
+    area.setAttribute('readonly','');
+    area.style.position = 'absolute';
+    area.style.left = '-9999px';
+    document.body.appendChild(area);
+    area.select();
+    document.execCommand('copy');
+    document.body.removeChild(area);
+    return true;
+  }catch(e){
+    return false;
+  }
+};
 
 async function ensureStudentRecord(authUser, profile){
   if(!authUser || profile?.role!=='student') return;
@@ -389,8 +427,8 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
   nTeach,setNTeach,addStudent,isAdmin,isStaff}) {
   const unpaidAmt = invoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+i.amount,0);
   const pendingHw = homework.filter(h=>h.status==='Ootel'&&myStudents.some(s=>s.id===h.studentId)).length;
-  const todaySch  = schedule.filter(s=>s.teacher===user.displayName).length;
-  const currentStu= user.role!=='teacher'?myStudents[0]:null;
+  const todaySch  = schedule.filter(s=>canonicalTeacherName(s.teacher)===canonicalTeacherName(user.displayName)).length;
+  const currentStu= !isStaff?myStudents[0]:null;
   const doneLess  = currentStu?lessons.filter(l=>(l.studentId===currentStu.id||l.studentName?.toLowerCase()===currentStu.name?.toLowerCase())&&l.status==='Toimunud'):[];
   const stuLessons= currentStu?lessons.filter(l=>l.studentId===currentStu.id||l.studentName?.toLowerCase()===currentStu.name?.toLowerCase()):[];
   const attendance= stuLessons.length?Math.round(doneLess.length/stuLessons.length*100):0;
@@ -965,13 +1003,22 @@ function StudentsDatabaseView({
 // ── ÕPILASE KAART ─────────────────────────────────────────────
 function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,setEditStu,toggleStudentActive,
   hwTask,setHwTask,hwDue,setHwDue,addHw,toggleHw,
-  invAmt,setInvAmt,invDesc,setInvDesc,addInvoice,markPaid,printInvoice}) {
+  invAmt,setInvAmt,invDesc,setInvDesc,addInvoice,markPaid,printInvoice,submitParentPayment,resetParentPayment}) {
   if(!currentStu) return <div style={{textAlign:'center',padding:60,color:'#42536A'}}>Õpilane ei leitud.</div>;
   const done=stuLessons.filter(l=>l.status==='Toimunud');
   const pct=levelPct(currentStu.level,currentStu.targetLevel);
   const rem=pkgLeft(currentStu);
   const attendance=stuLessons.length?Math.round(done.length/stuLessons.length*100):0;
   const canManage = user.role==='teacher' || user.role==='admin';
+  const [paymentChoices,setPaymentChoices] = React.useState({});
+  const [copiedPaymentKey,setCopiedPaymentKey] = React.useState('');
+
+  const copyPaymentValue = async(key,value)=>{
+    const ok = await copyText(value);
+    if(!ok) return;
+    setCopiedPaymentKey(key);
+    setTimeout(()=>setCopiedPaymentKey(''),1600);
+  };
 
   return(
     <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:20}}>
@@ -1105,13 +1152,53 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
                 <div>
                   <div style={{fontWeight:600,fontSize:'.9rem'}}>{inv.num}</div>
                   <div style={{fontSize:'.78rem',color:'#42536A'}}>{inv.desc} · Tähtaeg: {fmtDate(inv.due)}</div>
+                  {!canManage&&inv.status!=='Makstud'&&(
+                    <div style={{marginTop:10,padding:'14px 14px',borderRadius:12,background:'#fff',border:'1px solid rgba(28,43,58,.08)',display:'flex',flexDirection:'column',gap:10,maxWidth:460,boxShadow:'0 1px 4px rgba(28,43,58,.04)'}}>
+                      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,flexWrap:'wrap'}}>
+                        <div style={{fontSize:'.78rem',fontWeight:700,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em'}}>Maksmise info</div>
+                        <span className="badge" style={{background:'rgba(201,136,42,.1)',color:'#A96E1A'}}>Arve {inv.num}</span>
+                      </div>
+
+                      <div style={{display:'grid',gridTemplateColumns:'1fr auto',gap:'6px 10px',alignItems:'center'}}>
+                        <div style={{fontSize:'.78rem',color:'#42536A'}}>Saaja: <strong style={{color:'#1C2B3A'}}>{PAYMENT_DETAILS.company}</strong></div>
+                        <div />
+                        <div style={{fontSize:'.78rem',color:'#42536A'}}>Registrikood: <strong style={{color:'#1C2B3A'}}>{PAYMENT_DETAILS.regCode}</strong></div>
+                        <div />
+                        <div style={{fontSize:'.78rem',color:'#42536A'}}>IBAN: <strong style={{color:'#1C2B3A'}}>{PAYMENT_DETAILS.iban}</strong></div>
+                        <button onClick={()=>copyPaymentValue(`iban-${inv.id}`,PAYMENT_DETAILS.iban)} className="btn btn-ghost btn-sm">{copiedPaymentKey===`iban-${inv.id}`?'Kopeeritud':'Kopeeri'}</button>
+                        <div style={{fontSize:'.78rem',color:'#42536A'}}>Pank: <strong style={{color:'#1C2B3A'}}>{PAYMENT_DETAILS.bank}</strong></div>
+                        <div />
+                        <div style={{fontSize:'.78rem',color:'#42536A'}}>SWIFT: <strong style={{color:'#1C2B3A'}}>{PAYMENT_DETAILS.swift}</strong></div>
+                        <div />
+                        <div style={{fontSize:'.78rem',color:'#42536A'}}>Selgitus: <strong style={{color:'#1C2B3A'}}>{inv.paymentReference||inv.num}</strong></div>
+                        <button onClick={()=>copyPaymentValue(`ref-${inv.id}`,inv.paymentReference||inv.num)} className="btn btn-ghost btn-sm">{copiedPaymentKey===`ref-${inv.id}`?'Kopeeritud':'Kopeeri'}</button>
+                        <div style={{fontSize:'.78rem',color:'#42536A'}}>Summa: <strong style={{color:'#1C2B3A'}}>{inv.amount} €</strong></div>
+                        <button onClick={()=>copyPaymentValue(`sum-${inv.id}`,String(inv.amount))} className="btn btn-ghost btn-sm">{copiedPaymentKey===`sum-${inv.id}`?'Kopeeritud':'Kopeeri'}</button>
+                      </div>
+
+                      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))',gap:8,padding:'10px 12px',borderRadius:10,background:'#F9F8F6'}}>
+                        <div style={{fontSize:'.78rem',color:'#42536A'}}>Maksetähtaeg: <strong style={{color:'#1C2B3A'}}>{fmtDate(inv.due)}</strong></div>
+                        <div style={{fontSize:'.78rem',color:'#42536A'}}>Viivis: <strong style={{color:'#1C2B3A'}}>{PAYMENT_DETAILS.lateFeePerDay} päevas</strong></div>
+                      </div>
+
+                      <select value={paymentChoices[inv.id]||inv.parentPaymentMethod||'bank'} onChange={e=>setPaymentChoices(prev=>({...prev,[inv.id]:e.target.value}))}>
+                        {PAYMENT_METHODS.map(method=><option key={method.id} value={method.id}>{method.label}</option>)}
+                      </select>
+                      {inv.parentPaymentStatus==='submitted'
+                        ? <div style={{fontSize:'.78rem',color:'#166534',fontWeight:600}}>✓ Maksest on teavitatud {fmtDate(inv.parentPaymentSubmittedAt)}</div>
+                        : <button onClick={()=>submitParentPayment(inv.id,paymentChoices[inv.id]||inv.parentPaymentMethod||'bank')} className="btn btn-pine btn-sm">Teavita maksest</button>
+                      }
+                    </div>
+                  )}
                 </div>
                 <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
                   <span style={{fontWeight:700}}>{inv.amount}€</span>
                   {inv.status==='Makstud'
                     ?<span className="badge" style={{background:'#dcfce7',color:'#166534'}}>✓ Makstud</span>
                     :<span className="badge" style={{background:'#fef3c7',color:'#92400e'}}>Ootel</span>}
+                  {inv.parentPaymentStatus==='submitted'&&inv.status!=='Makstud'&&<span className="badge" style={{background:'#dbeafe',color:'#1d4ed8'}}>Maksest teavitatud</span>}
                   {canManage&&inv.status!=='Makstud'&&<button onClick={()=>markPaid(inv.id)} className="btn btn-pine btn-sm">Märgi makstud</button>}
+                  {canManage&&inv.parentPaymentStatus==='submitted'&&inv.status!=='Makstud'&&<button onClick={()=>resetParentPayment(inv.id)} className="btn btn-ghost btn-sm">Lähtesta teavitus</button>}
                   <button onClick={()=>printInvoice(inv)} className="btn btn-ghost btn-sm"><i className="fa-solid fa-print"/> Prindi</button>
                 </div>
               </div>
@@ -1169,6 +1256,7 @@ function InvoicesView({invoices,myStudents,invStu,setInvStu,invAmt,setInvAmt,inv
                   :<><span className="badge" style={{background:'#fef3c7',color:'#92400e'}}>Ootel</span>
                     <button onClick={()=>markPaid(inv.id)} className="btn btn-pine btn-sm">Märgi makstud</button>
                   </>}
+                {inv.parentPaymentStatus==='submitted'&&inv.status!=='Makstud'&&<span className="badge" style={{background:'#dbeafe',color:'#1d4ed8'}}>Vanem teavitas maksest</span>}
                 <button onClick={()=>printInvoice(inv)} className="btn btn-ghost btn-sm"><i className="fa-solid fa-print"/> Prindi</button>
               </div>
             </div>
@@ -1482,9 +1570,12 @@ function EditStudentModal({student,onClose,onSave,onDelete,db,notify,isAdmin}) {
             </div>
             <div>
               <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Õpetaja</div>
-              <select value={teacher} onChange={e=>setTeacher(e.target.value)} disabled={!isAdmin} style={{opacity:isAdmin?1:.65}}>
-                {['Pavel','Jelena','Elizaveta','Angelina'].map(t=><option key={t}>{t}</option>)}
-              </select>
+              {isAdmin
+                ? <select value={teacher} onChange={e=>setTeacher(e.target.value)}>
+                    {[...new Set([...TEACHERS, teacher].filter(Boolean))].map(t=><option key={t}>{t}</option>)}
+                  </select>
+                : <input value={teacher} readOnly style={{opacity:.7}}/>
+              }
             </div>
             <div>
               <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Kontaktistaatus</div>
@@ -1656,7 +1747,7 @@ function App() {
 
   const myStudents = useMemo(()=>{
     if(!user) return [];
-    if(user.role==='teacher') return isAdmin?students:students.filter(s=>s.teacher===user.displayName);
+    if(user.role==='teacher') return isAdmin?students:students.filter(s=>canonicalTeacherName(s.teacher)===canonicalTeacherName(user.displayName));
     if(user.role==='admin')   return students;
     if(user.role==='parent')  return students.filter(s=>s.name?.toLowerCase()===user.childName?.toLowerCase());
     return students.filter(s=>s.name?.toLowerCase()===user.displayName?.toLowerCase());
@@ -1704,7 +1795,7 @@ function App() {
   // ACTIONS
   const addStudent=useCallback(async()=>{
     if(!nName.trim()){notify('⚠ Sisesta õpilase nimi');return;}
-    const t=canAssignTeacher?nTeach:user.displayName;
+    const t=canAssignTeacher?nTeach:canonicalTeacherName(user.displayName);
     await db.collection('students').add({name:nName,level:nLevel,targetLevel:nTarget,teacher:t,phone:nPhone,email:nEmail,active:true,packageTotal:parseInt(nPkg)||0,packageUsed:0,subject:nSubject,grade:nGrade,group:nGroup,contactStatus:'new',contactOwner:user?.displayName||'',contactLastAt:'',contactNotes:'',createdAt:today()});
     setNName('');setNPhone('');setNEmail('');setNGroup('');
     notify('✓ Õpilane '+nName+' lisatud!');
@@ -1712,7 +1803,7 @@ function App() {
 
   const addSchedule=useCallback(async()=>{
     if(!schStu||!schDate){notify('⚠ Vali õpilane ja kuupäev');return;}
-    const t=canAssignTeacher?schTeach:user.displayName;
+    const t=canAssignTeacher?schTeach:canonicalTeacherName(user.displayName);
     const jsDay=new Date(schDate).getDay();
     await db.collection('schedule').add({teacher:t,studentName:schStu,date:schDate,day:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][jsDay],time:schTime,status:'Planeeritud',createdAt:today()});
     notify('✓ Tund broneeritud!');
@@ -1729,7 +1820,6 @@ function App() {
       date:modalEv.date||today(),submittedAt:now.toLocaleString('et-EE'),teacher:user.displayName
     });
     if(stu&&lStatus==='Toimunud') await db.collection('students').doc(stu.id).update({packageUsed:firebase.firestore.FieldValue.increment(1)});
-    if(modalEv.id&&window.confirm('Kustuta tund tunniplaanist?')) await db.collection('schedule').doc(modalEv.id).delete();
     setLTopic('');setLComment('');setModalEv(null);
     notify('✓ Aruanne salvestatud!');
   },[modalEv,lTopic,lGrade,lStatus,lComment,lDur,students,user]);
@@ -1757,15 +1847,46 @@ function App() {
     if(!invAmt||!sid){notify('⚠ Vali õpilane ja sisesta summa');return;}
     const stu=students.find(s=>s.id===sid);
     const num=`KS-${new Date().getFullYear()}-${String(invoices.length+1).padStart(3,'0')}`;
-    const due=new Date(Date.now()+14*864e5).toISOString().split('T')[0];
-    await db.collection('invoices').add({studentId:sid,studentName:stu?.name||'—',amount:parseInt(invAmt),desc:invDesc||'Keeletunnid',num,status:'Ootel',date:today(),due});
+    const due=new Date(Date.now()+PAYMENT_DETAILS.paymentTermDays*864e5).toISOString().split('T')[0];
+    await db.collection('invoices').add({
+      studentId:sid,
+      studentName:stu?.name||'—',
+      amount:parseInt(invAmt),
+      desc:invDesc||'Keeletunnid',
+      num,
+      status:'Ootel',
+      date:today(),
+      due,
+      parentPaymentStatus:'pending',
+      parentPaymentMethod:'',
+      parentPaymentSubmittedAt:'',
+      paymentReference:num
+    });
     setInvAmt('');setInvDesc('');setInvStu('');
     notify('✓ Arve '+num+' loodud!');
   },[invStu,invAmt,invDesc,invoices,students]);
 
   const markPaid=useCallback(async id=>{
-    await db.collection('invoices').doc(id).update({status:'Makstud',paidAt:today()});
+    await db.collection('invoices').doc(id).update({status:'Makstud',paidAt:today(),parentPaymentStatus:'confirmed'});
     notify('✓ Märgitud makstud!');
+  },[]);
+
+  const submitParentPayment=useCallback(async(id,method)=>{
+    await db.collection('invoices').doc(id).update({
+      parentPaymentStatus:'submitted',
+      parentPaymentMethod:method||'bank',
+      parentPaymentSubmittedAt:today()
+    });
+    notify('✓ Maksest teatatud!');
+  },[]);
+
+  const resetParentPayment=useCallback(async(id)=>{
+    await db.collection('invoices').doc(id).update({
+      parentPaymentStatus:'pending',
+      parentPaymentSubmittedAt:'',
+      parentPaymentMethod:''
+    });
+    notify('✓ Makseteavitus lähtestatud');
   },[]);
 
   const printInvoice=useCallback(inv=>{
@@ -1780,17 +1901,22 @@ function App() {
     .footer{margin-top:50px;font-size:.8rem;color:#666;text-align:center}
     </style></head><body>
     <div class="logo">Keele<b>Sepp</b></div>
-    <div style="font-size:.85rem;color:#666">E&P Koolitus OÜ · info@epkoolitus.ee · +372 5374 0753</div>
+    <div style="font-size:.85rem;color:#666">${PAYMENT_DETAILS.company} · Reg. kood ${PAYMENT_DETAILS.regCode}</div>
+    <div style="font-size:.85rem;color:#666">${PAYMENT_DETAILS.address}</div>
+    <div style="font-size:.85rem;color:#666">${PAYMENT_DETAILS.iban} · ${PAYMENT_DETAILS.bank} · SWIFT ${PAYMENT_DETAILS.swift}</div>
     <h1>ARVE ${inv.num}</h1>
     <div class="row"><span>Arve number:</span><span>${inv.num}</span></div>
     <div class="row"><span>Kuupäev:</span><span>${fmtDate(inv.date)}</span></div>
     <div class="row"><span>Tähtaeg:</span><span>${fmtDate(inv.due)}</span></div>
+    <div class="row"><span>Maksetingimus:</span><span>${PAYMENT_DETAILS.paymentTermDays} kalendripäeva</span></div>
+    <div class="row"><span>Viivis:</span><span>${PAYMENT_DETAILS.lateFeePerDay} päevas</span></div>
     <div class="row"><span>Õpilane:</span><span>${inv.studentName}</span></div>
     ${stu?.email?`<div class="row"><span>E-post:</span><span>${stu.email}</span></div>`:''}
     <div class="row"><span>Kirjeldus:</span><span>${inv.desc}</span></div>
+    <div class="row"><span>Selgitus:</span><span>${inv.paymentReference||inv.num}</span></div>
     <div class="row total"><span>KOKKU:</span><span>${inv.amount} €</span></div>
     <p style="margin-top:30px;font-size:.85rem;color:#666">Palun tasuda arve tähtajaks ${fmtDate(inv.due)}.</p>
-    <div class="footer">KeeleSepp · E&P Koolitus OÜ · Mustamäe tee 33, 10616 Tallinn</div>
+    <div class="footer">Koostaja: ${PAYMENT_DETAILS.issuer}</div>
     </body></html>`);
     w.document.close();setTimeout(()=>w.print(),500);
   },[students]);
@@ -1889,7 +2015,7 @@ function App() {
             isAdmin={canAssignTeacher} setSelStu={setSelStu} toggleStudentActive={toggleStudentActive}
             hwTask={hwTask} setHwTask={setHwTask} hwDue={hwDue} setHwDue={setHwDue} addHw={addHw} toggleHw={toggleHw}
             invAmt={invAmt} setInvAmt={setInvAmt} invDesc={invDesc} setInvDesc={setInvDesc}
-            addInvoice={addInvoice} markPaid={markPaid} printInvoice={printInvoice}/>}
+            addInvoice={addInvoice} markPaid={markPaid} printInvoice={printInvoice} submitParentPayment={submitParentPayment} resetParentPayment={resetParentPayment}/>}
 
           {tab==='database'&&isStaff&&<StudentsDatabaseView
             filteredStudents={filteredStudents}
