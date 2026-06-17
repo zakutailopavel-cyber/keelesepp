@@ -695,6 +695,140 @@ function StudentsList({filteredStudents,lessons,isAdmin,search,setSearch,stuFilt
   );
 }
 
+// ── ÕPILASTE ANDMEBAAS ───────────────────────────────────────
+function StudentsDatabaseView({filteredStudents,lessons,invoices,isAdmin,search,setSearch,stuFilter,setStuFilter,openStudent,setEditStu}) {
+  return(
+    <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:20}}>
+      <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',flexWrap:'wrap',gap:12}}>
+        <div>
+          <h1 style={{fontSize:'1.7rem'}}>Õpilaste andmebaas</h1>
+          <div style={{fontSize:'.9rem',color:'#42536A',marginTop:4}}>
+            Tabelivaade kiireks otsimiseks, filtreerimiseks ja profiili muutmiseks.
+          </div>
+        </div>
+        <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍 Otsi nime, õpetajat, e-posti…" style={{width:280,padding:'9px 14px'}}/>
+          <select value={stuFilter} onChange={e=>setStuFilter(e.target.value)} style={{width:'auto'}}>
+            <option value="active">Aktiivsed</option>
+            <option value="all">Kõik</option>
+            <option value="inactive">Arhiveeritud</option>
+          </select>
+        </div>
+      </div>
+
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))',gap:12}}>
+        <div className="card" style={{padding:'16px 18px'}}>
+          <div style={{fontSize:'.74rem',color:'#42536A',fontWeight:600,textTransform:'uppercase',letterSpacing:'.08em'}}>Õpilasi kokku</div>
+          <div style={{fontSize:'1.6rem',fontWeight:700,marginTop:8}}>{filteredStudents.length}</div>
+        </div>
+        <div className="card" style={{padding:'16px 18px'}}>
+          <div style={{fontSize:'.74rem',color:'#42536A',fontWeight:600,textTransform:'uppercase',letterSpacing:'.08em'}}>Aktiivsed</div>
+          <div style={{fontSize:'1.6rem',fontWeight:700,marginTop:8,color:'#2F5D50'}}>{filteredStudents.filter(s=>s.active!==false).length}</div>
+        </div>
+        <div className="card" style={{padding:'16px 18px'}}>
+          <div style={{fontSize:'.74rem',color:'#42536A',fontWeight:600,textTransform:'uppercase',letterSpacing:'.08em'}}>Paketid lõppemas</div>
+          <div style={{fontSize:'1.6rem',fontWeight:700,marginTop:8,color:'#C9882A'}}>{filteredStudents.filter(s=>(s.packageTotal||0)>0&&pkgLeft(s)<=3).length}</div>
+        </div>
+        <div className="card" style={{padding:'16px 18px'}}>
+          <div style={{fontSize:'.74rem',color:'#42536A',fontWeight:600,textTransform:'uppercase',letterSpacing:'.08em'}}>Tasumata arved</div>
+          <div style={{fontSize:'1.6rem',fontWeight:700,marginTop:8,color:'#991b1b'}}>{invoices.filter(i=>i.status==='Ootel').length}</div>
+        </div>
+      </div>
+
+      <div className="card scroll" style={{padding:0,overflow:'hidden'}}>
+        <div style={{overflowX:'auto'}} className="scroll">
+          <table style={{width:'100%',borderCollapse:'collapse',minWidth:1180}}>
+            <thead>
+              <tr style={{background:'#F9F8F6',borderBottom:'1px solid rgba(28,43,58,.08)'}}>
+                {['Õpilane','Kontakt','Õpe','Õpetaja','Paketid','Tunnid','Arved','Staatus','Tegevused'].map(head=>(
+                  <th key={head} style={{textAlign:'left',padding:'14px 16px',fontSize:'.76rem',fontWeight:700,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em'}}>
+                    {head}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filteredStudents.map(student=>{
+                const studentLessons = lessons.filter(l=>l.studentId===student.id||l.studentName?.toLowerCase()===student.name?.toLowerCase());
+                const completedLessons = studentLessons.filter(l=>l.status==='Toimunud');
+                const unpaidInvoices = invoices.filter(i=>i.studentId===student.id&&i.status==='Ootel');
+                const remaining = pkgLeft(student);
+                const avgGrade = completedLessons.length ? avg(completedLessons.map(l=>l.grade)) : '—';
+                const lastLesson = [...studentLessons].sort((a,b)=>new Date(b.date)-new Date(a.date))[0];
+                const statusBadge = student.active===false
+                  ? {bg:'#f3f4f6',c:'#6b7280',t:'Arhiveeritud'}
+                  : remaining<=2 && (student.packageTotal||0)>0
+                    ? {bg:'#fef3c7',c:'#92400e',t:'Jääk madal'}
+                    : {bg:'#dcfce7',c:'#166534',t:'Aktiivne'};
+
+                return(
+                  <tr key={student.id} style={{borderBottom:'1px solid rgba(28,43,58,.06)',background:student.active===false?'rgba(243,244,246,.45)':'#fff'}}>
+                    <td style={{padding:'14px 16px',verticalAlign:'top'}}>
+                      <div style={{fontWeight:700}}>{student.name}</div>
+                      <div style={{fontSize:'.78rem',color:'#42536A',marginTop:4}}>
+                        {student.grade||'Määramata'}{student.subject&&<span> · {student.subject}</span>}
+                      </div>
+                    </td>
+                    <td style={{padding:'14px 16px',verticalAlign:'top',fontSize:'.84rem',color:'#42536A'}}>
+                      <div>{student.email||'—'}</div>
+                      <div style={{marginTop:4}}>{student.phone||'—'}</div>
+                    </td>
+                    <td style={{padding:'14px 16px',verticalAlign:'top'}}>
+                      <div style={{fontWeight:600}}>{student.level} → {student.targetLevel}</div>
+                      <div style={{fontSize:'.78rem',color:'#42536A',marginTop:4}}>{levelPct(student.level,student.targetLevel)}% eesmärgini</div>
+                    </td>
+                    <td style={{padding:'14px 16px',verticalAlign:'top'}}>
+                      <div style={{fontWeight:600}}>{student.teacher||'—'}</div>
+                      {isAdmin&&lastLesson?.teacher&&<div style={{fontSize:'.78rem',color:'#42536A',marginTop:4}}>Viimane tund: {lastLesson.teacher}</div>}
+                    </td>
+                    <td style={{padding:'14px 16px',verticalAlign:'top'}}>
+                      <div style={{fontWeight:700,color:remaining<=2&&student.packageTotal>0?'#b45309':'#1C2B3A'}}>
+                        {remaining}/{student.packageTotal||0}
+                      </div>
+                      <div style={{fontSize:'.78rem',color:'#42536A',marginTop:4}}>Kasutatud: {student.packageUsed||0}</div>
+                    </td>
+                    <td style={{padding:'14px 16px',verticalAlign:'top'}}>
+                      <div style={{fontWeight:700}}>{completedLessons.length}</div>
+                      <div style={{fontSize:'.78rem',color:'#42536A',marginTop:4}}>Keskmine: {avgGrade==='—'?'—':avgGrade+'★'}</div>
+                      <div style={{fontSize:'.78rem',color:'#42536A',marginTop:4}}>
+                        {lastLesson?.date ? `Viimane: ${fmtDate(lastLesson.date)}` : 'Veel pole'}
+                      </div>
+                    </td>
+                    <td style={{padding:'14px 16px',verticalAlign:'top'}}>
+                      <div style={{fontWeight:700,color:unpaidInvoices.length?'#991b1b':'#1C2B3A'}}>{unpaidInvoices.length}</div>
+                      <div style={{fontSize:'.78rem',color:'#42536A',marginTop:4}}>
+                        {unpaidInvoices.length ? unpaidInvoices.reduce((sum,inv)=>sum+(inv.amount||0),0)+' € ootel' : 'Kõik makstud'}
+                      </div>
+                    </td>
+                    <td style={{padding:'14px 16px',verticalAlign:'top'}}>
+                      <span className="badge" style={{background:statusBadge.bg,color:statusBadge.c}}>
+                        {statusBadge.t}
+                      </span>
+                    </td>
+                    <td style={{padding:'14px 16px',verticalAlign:'top'}}>
+                      <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+                        <button onClick={()=>openStudent(student)} className="btn btn-ghost btn-sm">Ava</button>
+                        <button onClick={()=>setEditStu(student)} className="btn btn-dark btn-sm">Muuda</button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+              {filteredStudents.length===0&&(
+                <tr>
+                  <td colSpan="9" style={{textAlign:'center',padding:'40px 20px',color:'#42536A'}}>
+                    {search?`"${search}" ei leitud`:'Õpilasi pole veel lisatud.'}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── ÕPILASE KAART ─────────────────────────────────────────────
 function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,setEditStu,toggleStudentActive,
   hwTask,setHwTask,hwDue,setHwDue,addHw,toggleHw,
@@ -744,6 +878,7 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
           {user.role==='teacher'&&(
             <div style={{display:'flex',flexDirection:'column',gap:8}}>
               <button onClick={()=>setSelStu(null)} className="btn btn-ghost btn-sm">← Tagasi</button>
+              <button onClick={()=>setEditStu(currentStu)} className="btn btn-dark btn-sm">✏️ Muuda profiili</button>
               <button onClick={()=>toggleStudentActive(currentStu.id,currentStu.active!==false)}
                 className={`btn btn-sm ${currentStu.active===false?'btn-pine':'btn-red'}`}>
                 {currentStu.active===false?'Aktiveeri':'Arhiveeri'}
@@ -1103,7 +1238,7 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
 }
 
 // ── РЕДАКТИРОВАНИЕ И УДАЛЕНИЕ УЧЕНИКА ────────────────────────
-function EditStudentModal({student,onClose,onSave,onDelete,db,notify}) {
+function EditStudentModal({student,onClose,onSave,onDelete,db,notify,isAdmin}) {
   const [name,    setName]    = React.useState(student.name||'');
   const [email,   setEmail]   = React.useState(student.email||'');
   const [phone,   setPhone]   = React.useState(student.phone||'');
@@ -1203,7 +1338,7 @@ function EditStudentModal({student,onClose,onSave,onDelete,db,notify}) {
             </div>
             <div>
               <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Õpetaja</div>
-              <select value={teacher} onChange={e=>setTeacher(e.target.value)}>
+              <select value={teacher} onChange={e=>setTeacher(e.target.value)} disabled={!isAdmin} style={{opacity:isAdmin?1:.65}}>
                 {['Pavel','Jelena','Elizaveta','Angelina'].map(t=><option key={t}>{t}</option>)}
               </select>
             </div>
@@ -1221,24 +1356,26 @@ function EditStudentModal({student,onClose,onSave,onDelete,db,notify}) {
             {saving?'Salvestab…':'✓ Salvesta muudatused'}
           </button>
 
-          <div style={{borderTop:'1px solid rgba(239,68,68,.15)',paddingTop:14,marginTop:4}}>
-            {!confirm
-              ? <button onClick={()=>setConfirm(true)} className="btn btn-red" style={{width:'100%'}}>
-                  <i className="fa-solid fa-trash"/> Kustuta õpilane jäädavalt
-                </button>
-              : <div style={{background:'#fee2e2',borderRadius:12,padding:16}}>
-                  <div style={{fontWeight:600,color:'#991b1b',marginBottom:8,fontSize:'.9rem'}}>
-                    ⚠ Oled kindel? See kustutab ka kõik tunnid, kodutööd ja arved!
+          {isAdmin&&(
+            <div style={{borderTop:'1px solid rgba(239,68,68,.15)',paddingTop:14,marginTop:4}}>
+              {!confirm
+                ? <button onClick={()=>setConfirm(true)} className="btn btn-red" style={{width:'100%'}}>
+                    <i className="fa-solid fa-trash"/> Kustuta õpilane jäädavalt
+                  </button>
+                : <div style={{background:'#fee2e2',borderRadius:12,padding:16}}>
+                    <div style={{fontWeight:600,color:'#991b1b',marginBottom:8,fontSize:'.9rem'}}>
+                      ⚠ Oled kindel? See kustutab ka kõik tunnid, kodutööd ja arved!
+                    </div>
+                    <div style={{display:'flex',gap:8}}>
+                      <button onClick={deleteStudent} disabled={saving} className="btn btn-red" style={{flex:1}}>
+                        {saving?'Kustutab…':'Jah, kustuta'}
+                      </button>
+                      <button onClick={()=>setConfirm(false)} className="btn btn-ghost" style={{flex:1}}>Tühista</button>
+                    </div>
                   </div>
-                  <div style={{display:'flex',gap:8}}>
-                    <button onClick={deleteStudent} disabled={saving} className="btn btn-red" style={{flex:1}}>
-                      {saving?'Kustutab…':'Jah, kustuta'}
-                    </button>
-                    <button onClick={()=>setConfirm(false)} className="btn btn-ghost" style={{flex:1}}>Tühista</button>
-                  </div>
-                </div>
-            }
-          </div>
+              }
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -1354,7 +1491,15 @@ function App() {
   const filteredStudents = useMemo(()=>
     myStudents
       .filter(s=>stuFilter==='active'?s.active!==false:stuFilter==='inactive'?s.active===false:true)
-      .filter(s=>s.name?.toLowerCase().includes(search.toLowerCase())||(s.teacher||'').toLowerCase().includes(search.toLowerCase()))
+      .filter(s=>{
+        const q=search.toLowerCase();
+        return (s.name||'').toLowerCase().includes(q)
+          || (s.teacher||'').toLowerCase().includes(q)
+          || (s.email||'').toLowerCase().includes(q)
+          || (s.phone||'').toLowerCase().includes(q)
+          || (s.subject||'').toLowerCase().includes(q)
+          || (s.grade||'').toLowerCase().includes(q);
+      })
   ,[myStudents,stuFilter,search]);
 
   const currentStu = useMemo(()=>
@@ -1486,6 +1631,7 @@ function App() {
     {id:'students', icon:'fa-graduation-cap',label:user.role==='teacher'?'Õpilased':'Minu progress',
       badge:user.role==='teacher'&&homework.filter(h=>h.status==='Ootel'&&myStudents.some(s=>s.id===h.studentId)).length>0?
         homework.filter(h=>h.status==='Ootel'&&myStudents.some(s=>s.id===h.studentId)).length:0},
+    ...(user.role==='teacher'?[{id:'database',icon:'fa-table',label:'Andmebaas'}]:[]),
     ...(user.role==='teacher'?[{id:'invoices',icon:'fa-file-invoice',label:'Arved',
       badge:invoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+i.amount,0)>0?invoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+i.amount,0)+'€':0}]:[]),
   ];
@@ -1562,13 +1708,26 @@ function App() {
             invAmt={invAmt} setInvAmt={setInvAmt} invDesc={invDesc} setInvDesc={setInvDesc}
             addInvoice={addInvoice} markPaid={markPaid} printInvoice={printInvoice}/>}
 
+          {tab==='database'&&user.role==='teacher'&&<StudentsDatabaseView
+            filteredStudents={filteredStudents}
+            lessons={lessons}
+            invoices={invoices}
+            isAdmin={isAdmin}
+            search={search}
+            setSearch={setSearch}
+            stuFilter={stuFilter}
+            setStuFilter={setStuFilter}
+            openStudent={student=>{setSelStu(student);setTab('students');}}
+            setEditStu={setEditStu}
+          />}
+
           {tab==='invoices'&&user.role==='teacher'&&<InvoicesView invoices={invoices} myStudents={myStudents}
             invStu={invStu} setInvStu={setInvStu} invAmt={invAmt} setInvAmt={setInvAmt}
             invDesc={invDesc} setInvDesc={setInvDesc} addInvoice={addInvoice} markPaid={markPaid} printInvoice={printInvoice}/>}
         </div>
       </main>
 
-      {editStu&&<EditStudentModal student={editStu} onClose={()=>setEditStu(null)} onSave={()=>{setEditStu(null);}} onDelete={()=>{setEditStu(null);setSelStu(null);}} db={db} notify={notify}/>}
+      {editStu&&<EditStudentModal student={editStu} onClose={()=>setEditStu(null)} onSave={()=>{setEditStu(null);}} onDelete={()=>{setEditStu(null);setSelStu(null);}} db={db} notify={notify} isAdmin={isAdmin}/>}
       {modalEv&&<LessonModal modalEv={modalEv} setModalEv={setModalEv}
         lTopic={lTopic} setLTopic={setLTopic} lGrade={lGrade} setLGrade={setLGrade}
         lStatus={lStatus} setLStatus={setLStatus}        lComment={lComment} setLComment={setLComment}
