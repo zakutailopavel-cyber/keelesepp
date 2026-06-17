@@ -524,7 +524,7 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
 // ── TUNNIPLAAN ────────────────────────────────────────────────
 function CalendarView({user,myStudents,schedule,isAdmin,filterT,setFilterT,
   schStu,setSchStu,schDate,setSchDate,schTime,setSchTime,schTeach,setSchTeach,
-  addSchedule,setModalEv,delSchedule}) {
+  schRecurring,setSchRecurring,addSchedule,setModalEv,delSchedule}) {
 
   const [showCanceled,setShowCanceled] = React.useState(true);
   const [weekOffset,setWeekOffset]     = React.useState(0);
@@ -582,6 +582,7 @@ function CalendarView({user,myStudents,schedule,isAdmin,filterT,setFilterT,
   const getEventsForSlot = (slot, day) =>
     filteredSch.filter(s=>{
       if(s.time!==slot) return false;
+      if(s.recurring && s.startDate && day.iso < s.startDate) return false;
       if(s.date) return s.date===day.iso;
       return s.day===day.dayId;
     });
@@ -647,8 +648,12 @@ function CalendarView({user,myStudents,schedule,isAdmin,filterT,setFilterT,
               {["Pavel","Jelena","Elizaveta","Angelina"].map(t=><option key={t}>{t}</option>)}
             </select>}
           </div>
+          <label style={{display:"inline-flex",alignItems:"center",gap:8,padding:"8px 12px",background:"#F9F8F6",borderRadius:10,border:"1px solid rgba(28,43,58,.08)",cursor:"pointer",fontSize:".84rem",fontWeight:500,marginBottom:12,width:"fit-content"}}>
+            <input type="checkbox" checked={schRecurring} onChange={e=>setSchRecurring(e.target.checked)} style={{width:"auto",padding:0,border:"none!important",boxShadow:"none!important"}}/>
+            Korda igal nädalal automaatselt
+          </label>
           <button onClick={addSchedule} className="btn btn-pine" style={{width:"100%"}}>
-            <i className="fa-solid fa-calendar-plus"/> Kinnita tund
+            <i className="fa-solid fa-calendar-plus"/> {schRecurring?'Loo korduv tund':'Kinnita tund'}
           </button>
         </div>
       )}
@@ -1350,6 +1355,38 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
     notify("✓ .ics fail allalaaditud!");
   };
 
+  const makeRecurring = async()=>{
+    if(!modalEv.id) return;
+    const baseDate = modalEv.occurrenceDate||modalEv.date;
+    if(!baseDate){notify("⚠ Vali konkreetne kuupäev");return;}
+    const jsDay = new Date(baseDate).getDay();
+    const dayId = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][jsDay];
+    await db.collection("schedule").doc(modalEv.id).update({
+      recurring:true,
+      startDate:baseDate,
+      day:dayId,
+      date:firebase.firestore.FieldValue.delete()
+    });
+    notify("✓ Tund kordub nüüd igal nädalal");
+    setModalEv(prev=>({...prev,recurring:true,startDate:baseDate,day:dayId,date:null,occurrenceDate:baseDate}));
+  };
+
+  const makeSingle = async()=>{
+    if(!modalEv.id) return;
+    const baseDate = modalEv.occurrenceDate||modalEv.date||modalEv.startDate;
+    if(!baseDate){notify("⚠ Vali konkreetne kuupäev");return;}
+    const jsDay = new Date(baseDate).getDay();
+    const dayId = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][jsDay];
+    await db.collection("schedule").doc(modalEv.id).update({
+      recurring:false,
+      startDate:firebase.firestore.FieldValue.delete(),
+      day:dayId,
+      date:baseDate
+    });
+    notify("✓ Tund on nüüd ühekordne");
+    setModalEv(prev=>({...prev,recurring:false,startDate:null,day:dayId,date:baseDate,occurrenceDate:baseDate}));
+  };
+
   return(
     <div style={{position:"fixed",inset:0,background:"rgba(28,43,58,.6)",display:"flex",alignItems:"center",
       justifyContent:"center",padding:16,zIndex:200,backdropFilter:"blur(4px)"}}>
@@ -1383,6 +1420,28 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
             <div style={{fontSize:".76rem",fontWeight:700,color:"#42536A",textTransform:"uppercase",letterSpacing:".08em",marginBottom:12}}>
               📅 Kalendri haldus
             </div>
+
+            {modalEv.id&&hasDate&&(
+              <div style={{marginBottom:12}}>
+                <div style={{fontSize:".78rem",fontWeight:600,color:"#42536A",marginBottom:6}}>Tunni tüüp:</div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+                  <button
+                    onClick={makeSingle}
+                    className={`btn btn-sm ${modalEv.recurring?'btn-ghost':'btn-dark'}`}
+                    disabled={!modalEv.recurring}
+                    style={{opacity:modalEv.recurring?1:.9}}>
+                    <i className="fa-solid fa-calendar-day"/> Ühekordne
+                  </button>
+                  <button
+                    onClick={makeRecurring}
+                    className={`btn btn-sm ${modalEv.recurring?'btn-dark':'btn-ghost'}`}
+                    disabled={!!modalEv.recurring}
+                    style={{opacity:modalEv.recurring?.9:1}}>
+                    <i className="fa-solid fa-repeat"/> Korduv
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Кнопки отмены/восстановления */}
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
@@ -1420,6 +1479,11 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
               <div style={{fontSize:".72rem",color:"#42536A",marginTop:8,display:"flex",gap:4}}>
                 <span>Algne aeg:</span>
                 <span style={{color:"#A96E1A",fontWeight:600}}>{fmtDate(modalEv.originalDate)} {modalEv.originalTime||""}</span>
+              </div>
+            )}
+            {modalEv.recurring&&(
+              <div style={{fontSize:".72rem",color:"#2F5D50",marginTop:8,fontWeight:600}}>
+                See tund on korduv ja ilmub automaatselt ka järgmiste nädalate kalendrisse.
               </div>
             )}
           </div>}
@@ -1688,6 +1752,7 @@ function App() {
   const [schDate,setSchDate] = useState(today());
   const [schTime,setSchTime] = useState('09:00');
   const [schTeach,setSchTeach]=useState('Pavel');
+  const [schRecurring,setSchRecurring]=useState(false);
   // Invoice
   const [invAmt,setInvAmt]   = useState('');
   const [invDesc,setInvDesc] = useState('');
@@ -1810,9 +1875,13 @@ function App() {
     if(!schStu||!schDate){notify('⚠ Vali õpilane ja kuupäev');return;}
     const t=canAssignTeacher?schTeach:canonicalTeacherName(user.displayName);
     const jsDay=new Date(schDate).getDay();
-    await db.collection('schedule').add({teacher:t,studentName:schStu,date:schDate,day:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][jsDay],time:schTime,status:'Planeeritud',createdAt:today()});
-    notify('✓ Tund broneeritud!');
-  },[schStu,schDate,schTime,schTeach,canAssignTeacher,user]);
+    const dayId=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][jsDay];
+    const payload = schRecurring
+      ? {teacher:t,studentName:schStu,day:dayId,time:schTime,status:'Planeeritud',recurring:true,startDate:schDate,createdAt:today()}
+      : {teacher:t,studentName:schStu,date:schDate,day:dayId,time:schTime,status:'Planeeritud',createdAt:today()};
+    await db.collection('schedule').add(payload);
+    notify(schRecurring?'✓ Korduv tund lisatud!':'✓ Tund broneeritud!');
+  },[schStu,schDate,schTime,schTeach,schRecurring,canAssignTeacher,user]);
 
   const saveLesson=useCallback(async()=>{
     if(!modalEv||!lTopic.trim()){notify('⚠ Sisesta tunni teema');return;}
@@ -2080,6 +2149,7 @@ function App() {
             filterT={filterT} setFilterT={setFilterT}
             schStu={schStu} setSchStu={setSchStu} schDate={schDate} setSchDate={setSchDate}
             schTime={schTime} setSchTime={setSchTime} schTeach={schTeach} setSchTeach={setSchTeach}
+            schRecurring={schRecurring} setSchRecurring={setSchRecurring}
             addSchedule={addSchedule} setModalEv={setModalEv} delSchedule={delSchedule}/>}
 
           {tab==='students'&&isStaff&&!selStu&&<StudentsList filteredStudents={filteredStudents} lessons={lessons} isAdmin={canAssignTeacher}
