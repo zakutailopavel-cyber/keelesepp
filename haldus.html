@@ -245,6 +245,26 @@ function AuthScreen({onLogin}) {
       await res.user.updateProfile({displayName:name});
       const ud={role,displayName:name,email,childName:role==='parent'?child:'',createdAt:today()};
       await db.collection('users').doc(res.user.uid).set(ud);
+      if(role==='student'){
+        await db.collection('students').add({
+          linkedUserId: res.user.uid,
+          name,
+          email,
+          phone:'',
+          level:'A1',
+          targetLevel:'A2',
+          teacher:'',
+          active:true,
+          packageTotal:0,
+          packageUsed:0,
+          subject:'Eesti keel',
+          grade:'',
+          group:'',
+          registrationSource:'self-service',
+          profileStatus:'new',
+          createdAt:today()
+        });
+      }
       onLogin({uid:res.user.uid,...ud});
     }catch(e){
       const m={'auth/email-already-in-use':'See e-post on juba registreeritud','auth/invalid-email':'Vigane e-post'};
