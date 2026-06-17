@@ -247,6 +247,51 @@ async function ensureStudentRecord(authUser, profile){
   });
 }
 
+async function ensureParentStudentRecords(authUser, profile){
+  if(!authUser || profile?.role!=='parent') return;
+  const linkedNames = parseLinkedNames(profile.childName);
+  if(linkedNames.length===0) return;
+
+  const existingSnap = await db.collection('students').where('linkedParentId','==',authUser.uid).get();
+  const existingNames = new Set(existingSnap.docs.map(doc => normalizeText(doc.data().name)));
+  const parentDisplayName = profile.displayName || authUser.displayName || profile.email || authUser.email || 'Lapsevanem';
+  const parentEmail = profile.email || authUser.email || '';
+
+  for(const childName of linkedNames){
+    if(existingNames.has(childName)) continue;
+    const label = childName
+      .split(' ')
+      .filter(Boolean)
+      .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ');
+
+    await db.collection('students').add({
+      linkedParentId: authUser.uid,
+      parentName: parentDisplayName,
+      parentEmail,
+      name: label || 'Õpilane',
+      email:'',
+      phone:'',
+      level:'A1',
+      targetLevel:'A2',
+      teacher:'Pavel',
+      active:true,
+      packageTotal:0,
+      packageUsed:0,
+      subject:'Eesti keel',
+      grade:'',
+      group:'',
+      registrationSource:'parent-self-service',
+      profileStatus:'new',
+      contactStatus:'new',
+      contactOwner:'Pavel',
+      contactLastAt:'',
+      contactNotes:'Loodud lapsevanema konto registreerimisel',
+      createdAt:today()
+    });
+  }
+}
+
 // ── PROGRESSIGRAAFIK ─────────────────────────────────────────
 function ProgressChart({data}) {
   const ref = useRef(null);
@@ -292,11 +337,13 @@ function AuthScreen({onLogin}) {
       if(snap.exists){
         const profile = {uid:u.uid,displayName:u.displayName,email:u.email,...snap.data()};
         await ensureStudentRecord(u, profile);
+        await ensureParentStudentRecords(u, profile);
         onLogin(profile);
       }
       else{
         const ud={role:'parent',displayName:u.displayName,email:u.email,childName:'',createdAt:today()};
         await db.collection('users').doc(u.uid).set(ud);
+        await ensureParentStudentRecords(u, {uid:u.uid,...ud});
         onLogin({uid:u.uid,...ud});
       }
     }catch(e){setErr('Google sisselogimine ebaõnnestus.');}
@@ -312,6 +359,7 @@ function AuthScreen({onLogin}) {
       if(snap.exists){
         const profile = {uid:res.user.uid,displayName:res.user.displayName||email,...snap.data()};
         await ensureStudentRecord(res.user, profile);
+        await ensureParentStudentRecords(res.user, profile);
         onLogin(profile);
       }
       else onLogin({uid:res.user.uid,displayName:res.user.displayName||email,email,role:'parent'});
@@ -335,6 +383,7 @@ function AuthScreen({onLogin}) {
       const ud={role,displayName:name,email,childName:role==='parent'?child:'',createdAt:today()};
       await db.collection('users').doc(res.user.uid).set(ud);
       await ensureStudentRecord(res.user, ud);
+      await ensureParentStudentRecords(res.user, ud);
       onLogin({uid:res.user.uid,...ud});
     }catch(e){
       const m={'auth/email-already-in-use':'See e-post on juba registreeritud','auth/invalid-email':'Vigane e-post'};
@@ -386,7 +435,7 @@ function AuthScreen({onLogin}) {
             placeholder="Parool *"/>}
           {mode==='register'&&<>
             <input type="password" value={pass2} onChange={e=>setPass2(e.target.value)} placeholder="Korda parooli *"/>
-            {role==='parent'&&<input value={child} onChange={e=>setChild(e.target.value)} placeholder="Lapse nimi KeeleSepis"/>}
+            {role==='parent'&&<input value={child} onChange={e=>setChild(e.target.value)} placeholder="Lapse nimi"/>}
             {(role==='teacher'||role==='admin')&&<input value={code} onChange={e=>setCode(e.target.value)} placeholder={role==='admin'?'Administraatori kutse-kood *':'Õpetaja kutse-kood *'}/>}
           </>}
         </div>
@@ -1787,8 +1836,10 @@ function App() {
           const snap=await db.collection('users').doc(fbUser.uid).get();
           if(snap.exists){
             const d=snap.data();
-            await ensureStudentRecord(fbUser, {uid:fbUser.uid,displayName:fbUser.displayName||fbUser.email,...d});
-            setUser({uid:fbUser.uid,displayName:fbUser.displayName||fbUser.email,...d});
+            const profile = {uid:fbUser.uid,displayName:fbUser.displayName||fbUser.email,...d};
+            await ensureStudentRecord(fbUser, profile);
+            await ensureParentStudentRecords(fbUser, profile);
+            setUser(profile);
             if(d.role==='teacher') setFilterT(canonicalTeacherName(fbUser.displayName||''));
             if(d.role==='admin') setFilterT('Kõik');
           }else{
