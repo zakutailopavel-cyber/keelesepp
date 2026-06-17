@@ -435,7 +435,7 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
 // ── TUNNIPLAAN ────────────────────────────────────────────────
 function CalendarView({user,myStudents,schedule,isAdmin,filterT,setFilterT,
   schStu,setSchStu,schDate,setSchDate,schTime,setSchTime,schTeach,setSchTeach,
-  schRecurring,setSchRecurring,addSchedule,setModalEv,delSchedule}) {
+  schRecurring,setSchRecurring,addSchedule,setModalEv,delSchedule,markAttendance}) {
 
   const [showCanceled,setShowCanceled] = React.useState(true);
   const [weekOffset,setWeekOffset]     = React.useState(0);
@@ -484,13 +484,17 @@ function CalendarView({user,myStudents,schedule,isAdmin,filterT,setFilterT,
 
   const filteredSch = React.useMemo(()=>{
     const linkedStudentNames = myStudents.map(s=>normalizeText(s.name));
+    const linkedGroups = myStudents.map(s=>normalizeText(s.group)).filter(Boolean);
     let list = canManage
       ?(
           isAdmin
             ? (filterT==="Kõik"||!filterT?schedule:schedule.filter(s=>canonicalTeacherName(s.teacher)===canonicalTeacherName(filterT)))
             : schedule.filter(s=>canonicalTeacherName(s.teacher)===canonicalTeacherName(user.displayName))
         )
-      :schedule.filter(s=>linkedStudentNames.includes(normalizeText(s.studentName)));
+      :schedule.filter(s=>{
+        const target = normalizeText(s.studentName);
+        return linkedStudentNames.includes(target) || linkedGroups.includes(target);
+      });
     if(!showCanceled) list=list.filter(s=>s.status!=="Tühistatud");
     return list;
   },[schedule,myStudents,filterT,showCanceled,canManage,isAdmin,user]);
@@ -606,6 +610,14 @@ function CalendarView({user,myStudents,schedule,isAdmin,filterT,setFilterT,
                         const m = isLegacy
                           ? {bg:"rgba(201,136,42,.09)",border:"rgba(201,136,42,.25)",hover:"rgba(201,136,42,.18)"}
                           : (STATUS_META[st]||STATUS_META.Planeeritud);
+                        const linkedStu = !canManage
+                          ? myStudents.find(stu=>{
+                              const target = normalizeText(ev.studentName);
+                              return normalizeText(stu.name)===target || normalizeText(stu.group)===target;
+                            })
+                          : null;
+                        const attendanceKey = linkedStu ? `${linkedStu.id}_${day.iso}` : "";
+                        const attendanceStatus = attendanceKey ? ev.attendance?.[attendanceKey]?.status : "";
                         return(
                           <div key={ev.id+day.iso}
                             onClick={()=>canManage&&setModalEv({...ev,occurrenceDate:day.iso})}
@@ -633,6 +645,25 @@ function CalendarView({user,myStudents,schedule,isAdmin,filterT,setFilterT,
                               {filterT==="Kõik"&&<span>{ev.teacher}</span>}
                               {!isLegacy&&st!=="Planeeritud"&&<span style={{color:STATUS_META[st]?.pillC}}>{st}</span>}
                             </div>
+                            {!canManage&&linkedStu&&ev.id&&st!=="Tühistatud"&&(
+                              <div style={{display:"flex",gap:4,marginTop:5,flexWrap:"wrap"}}>
+                                <button onClick={e=>{e.stopPropagation();markAttendance(ev.id,attendanceKey,"coming");}}
+                                  className="btn btn-pine btn-sm"
+                                  style={{padding:"3px 7px",fontSize:".62rem",opacity:attendanceStatus==="coming"?1:.86}}>
+                                  Tuleb
+                                </button>
+                                <button onClick={e=>{e.stopPropagation();markAttendance(ev.id,attendanceKey,"absent");}}
+                                  className="btn btn-red btn-sm"
+                                  style={{padding:"3px 7px",fontSize:".62rem",opacity:attendanceStatus==="absent"?1:.86}}>
+                                  Ei tule
+                                </button>
+                                {attendanceStatus&&(
+                                  <span style={{fontSize:".62rem",fontWeight:700,color:attendanceStatus==="coming"?"#166534":"#991b1b",alignSelf:"center"}}>
+                                    {attendanceStatus==="coming"?"✓ märgitud":"puudumine märgitud"}
+                                  </span>
+                                )}
+                              </div>
+                            )}
                           </div>
                         );
                       })}
@@ -653,7 +684,7 @@ function StudentsList({filteredStudents,lessons,isAdmin,search,setSearch,stuFilt
   return(
     <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:20}}>
       <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:12}}>
-        <h1 style={{fontSize:'1.7rem'}}>Õpilased <span style={{fontSize:'1rem',fontFamily:'IBM Plex Sans',fontWeight:400,color:'#42536A'}}>({filteredStudents.length})</span></h1>
+        <h1 style={{fontSize:'1.7rem'}}>Minu õpilased <span style={{fontSize:'1rem',fontFamily:'IBM Plex Sans',fontWeight:400,color:'#42536A'}}>({filteredStudents.length})</span></h1>
         <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
           <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍 Otsi…" style={{width:200,padding:'9px 14px'}}/>
           <select value={stuFilter} onChange={e=>setStuFilter(e.target.value)} style={{width:'auto'}}>
@@ -930,10 +961,123 @@ function StudentsDatabaseView({
   );
 }
 
+// ── GRUPID ────────────────────────────────────────────────────
+function GroupsView({myStudents,schedule,setSelStu,setTab}) {
+  const groups = React.useMemo(()=>{
+    const map = {};
+    myStudents.forEach(student=>{
+      const name = (student.group||'Määramata').trim() || 'Määramata';
+      if(!map[name]) map[name] = {name,students:[],teachers:new Set(),events:[]};
+      map[name].students.push(student);
+      if(student.teacher) map[name].teachers.add(canonicalTeacherName(student.teacher));
+    });
+
+    Object.values(map).forEach(group=>{
+      const groupName = normalizeText(group.name);
+      const memberNames = new Set(group.students.map(student=>normalizeText(student.name)));
+      group.events = schedule
+        .filter(event=>{
+          const target = normalizeText(event.studentName);
+          return target===groupName || memberNames.has(target);
+        })
+        .sort((a,b)=>(a.day||a.date||'').localeCompare(b.day||b.date||'') || (a.time||'').localeCompare(b.time||''));
+    });
+
+    return Object.values(map).sort((a,b)=>a.name.localeCompare(b.name,'et'));
+  },[myStudents,schedule]);
+
+  const eventLabel = event=>{
+    if(event.date) return fmtDate(event.date);
+    const idx = DAYS_ID.indexOf(event.day);
+    return idx>=0 ? DAYS_FULL[idx] : (event.day||'—');
+  };
+
+  const openStudent = student=>{
+    setSelStu(student);
+    setTab('students');
+  };
+
+  return(
+    <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:20}}>
+      <div>
+        <h1 style={{fontSize:'1.7rem'}}>Grupid</h1>
+        <div style={{fontSize:'.9rem',color:'#42536A',marginTop:4}}>
+          Ülevaade sellest, kes millises grupis õpib ja millal grupi tunnid toimuvad.
+        </div>
+      </div>
+
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(320px,1fr))',gap:16}}>
+        {groups.map(group=>(
+          <div key={group.name} className="card" style={{padding:22,display:'flex',flexDirection:'column',gap:16}}>
+            <div style={{display:'flex',justifyContent:'space-between',gap:12,alignItems:'flex-start'}}>
+              <div>
+                <h2 style={{fontSize:'1.15rem'}}>{group.name}</h2>
+                <div style={{fontSize:'.78rem',color:'#42536A',marginTop:4}}>
+                  {group.students.length} õpilast
+                  {group.teachers.size>0&&<> · Õpetaja: {[...group.teachers].join(', ')}</>}
+                </div>
+              </div>
+              <span className="badge" style={{background:'rgba(47,93,80,.1)',color:'#2F5D50'}}>
+                {group.events.length} tundi
+              </span>
+            </div>
+
+            <div>
+              <div style={{fontSize:'.76rem',fontWeight:700,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8}}>
+                Õpilased
+              </div>
+              <div style={{display:'flex',flexDirection:'column',gap:6}}>
+                {group.students.map(student=>(
+                  <button key={student.id} onClick={()=>openStudent(student)}
+                    style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:8,padding:'9px 11px',borderRadius:10,border:'1px solid rgba(28,43,58,.08)',background:'#F9F8F6',cursor:'pointer',textAlign:'left'}}>
+                    <span style={{fontWeight:650,color:'#1C2B3A'}}>{student.name}</span>
+                    <span style={{fontSize:'.76rem',color:'#42536A'}}>{student.level} → {student.targetLevel}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <div style={{fontSize:'.76rem',fontWeight:700,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8}}>
+                Tunniplaan
+              </div>
+              <div style={{display:'flex',flexDirection:'column',gap:6}}>
+                {group.events.length===0&&(
+                  <div style={{fontSize:'.84rem',color:'#42536A',padding:'10px 0'}}>Tunde pole veel lisatud.</div>
+                )}
+                {group.events.slice(0,8).map(event=>(
+                  <div key={event.id} style={{display:'grid',gridTemplateColumns:'1fr auto',gap:8,padding:'9px 11px',borderRadius:10,background:'#fff',border:'1px solid rgba(28,43,58,.07)'}}>
+                    <div>
+                      <div style={{fontWeight:650,fontSize:'.86rem'}}>{eventLabel(event)} · {event.time}</div>
+                      <div style={{fontSize:'.74rem',color:'#42536A'}}>
+                        {event.studentName}{event.recurring&&' · kordub igal nädalal'}
+                      </div>
+                    </div>
+                    <span className="badge" style={{alignSelf:'start',background:event.status==='Tühistatud'?'#fee2e2':'rgba(47,93,80,.1)',color:event.status==='Tühistatud'?'#991b1b':'#2F5D50'}}>
+                      {event.status||'Planeeritud'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {groups.length===0&&(
+          <div className="card" style={{gridColumn:'1/-1',padding:42,textAlign:'center',color:'#42536A'}}>
+            Gruppe pole veel lisatud. Lisa grupi nimi õpilase profiilis või andmebaasi tabelis.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── ÕPILASE KAART ─────────────────────────────────────────────
 function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,setEditStu,toggleStudentActive,
   hwTask,setHwTask,hwDue,setHwDue,addHw,toggleHw,
-  invAmt,setInvAmt,invDesc,setInvDesc,addInvoice,markPaid,unmarkPaid,deleteInvoice,printInvoice,submitParentPayment,resetParentPayment,deleteLesson,openLessonEditor}) {
+  invAmt,setInvAmt,invDesc,setInvDesc,addInvoice,markPaid,unmarkPaid,deleteInvoice,printInvoice,submitParentPayment,resetParentPayment,deleteLesson,openLessonEditor,
+  stuMessages,teacherMessage,setTeacherMessage,sendTeacherMessage}) {
   if(!currentStu) return <div style={{textAlign:'center',padding:60,color:'#42536A'}}>Õpilane ei leitud.</div>;
   const done=stuLessons.filter(l=>l.status==='Toimunud');
   const pct=levelPct(currentStu.level,currentStu.targetLevel);
@@ -1003,6 +1147,38 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
         <div className="card" style={{padding:24}}>
           <h3 style={{marginBottom:16}}>📈 Progressi kõver</h3>
           <ProgressChart data={done}/>
+        </div>
+      )}
+
+      {!canManage&&(
+        <div className="card" style={{padding:24}}>
+          <h3 style={{marginBottom:14}}>✉️ Kirjuta õpetajale</h3>
+          <div style={{fontSize:'.84rem',color:'#42536A',marginBottom:10}}>
+            Sõnum läheb õpetajale: <strong>{currentStu.teacher||'määramata'}</strong>
+          </div>
+          <textarea value={teacherMessage||''} onChange={e=>setTeacherMessage(e.target.value)}
+            placeholder="Kirjuta küsimus, puudumisinfo või muu oluline teade..."
+            style={{minHeight:92,resize:'vertical',marginBottom:10}}/>
+          <button onClick={()=>sendTeacherMessage(currentStu,teacherMessage)} className="btn btn-pine">
+            <i className="fa-solid fa-paper-plane"/> Saada sõnum
+          </button>
+        </div>
+      )}
+
+      {canManage&&stuMessages?.length>0&&(
+        <div className="card" style={{padding:24}}>
+          <h3 style={{marginBottom:14}}>✉️ Sõnumid pere või õpilase poolt</h3>
+          <div style={{display:'flex',flexDirection:'column',gap:8}}>
+            {[...stuMessages].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).slice(0,6).map(msg=>(
+              <div key={msg.id} style={{padding:'12px 14px',borderRadius:12,background:'#F9F8F6',border:'1px solid rgba(28,43,58,.07)'}}>
+                <div style={{display:'flex',justifyContent:'space-between',gap:10,flexWrap:'wrap',marginBottom:5}}>
+                  <strong style={{fontSize:'.86rem'}}>{msg.fromName||'Kasutaja'}</strong>
+                  <span style={{fontSize:'.72rem',color:'#42536A'}}>{msg.createdAt?new Date(msg.createdAt).toLocaleString('et-EE'):'—'}</span>
+                </div>
+                <div style={{fontSize:'.86rem',color:'#1C2B3A',whiteSpace:'pre-wrap'}}>{msg.text}</div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
@@ -1734,6 +1910,7 @@ function App() {
   const [homework,setHw]  = useState([]);
   const [schedule,setSch] = useState([]);
   const [invoices,setInv] = useState([]);
+  const [messages,setMessages] = useState([]);
 
   // Add student
   const [nName,setNName]   = useState('');
@@ -1755,6 +1932,7 @@ function App() {
   // Homework
   const [hwTask,setHwTask] = useState('');
   const [hwDue,setHwDue]   = useState('');
+  const [teacherMessage,setTeacherMessage] = useState('');
   // Schedule
   const [schStu,setSchStu]   = useState('');
   const [schDate,setSchDate] = useState(today());
@@ -1815,7 +1993,8 @@ function App() {
     const u3=db.collection('homework').onSnapshot(s=>setHw(s.docs.map(d=>({id:d.id,...d.data()}))));
     const u4=db.collection('schedule').onSnapshot(s=>setSch(s.docs.map(d=>({id:d.id,...d.data()}))));
     const u5=db.collection('invoices').onSnapshot(s=>setInv(s.docs.map(d=>({id:d.id,...d.data()}))));
-    return()=>{u1();u2();u3();u4();u5();};
+    const u6=db.collection('messages').onSnapshot(s=>setMessages(s.docs.map(d=>({id:d.id,...d.data()}))));
+    return()=>{u1();u2();u3();u4();u5();u6();};
   },[user]);
 
   const notify=msg=>{setNotif(msg);setTimeout(()=>setNotif(''),3500);};
@@ -1896,6 +2075,9 @@ function App() {
   ,[currentStu,lessons,user]);
   const stuHw  = useMemo(()=>currentStu?homework.filter(h=>h.studentId===currentStu.id):[]  ,[currentStu,homework]);
   const stuInv = useMemo(()=>currentStu?invoices.filter(i=>i.studentId===currentStu.id):[] ,[currentStu,invoices]);
+  const stuMessages = useMemo(()=>currentStu?messages.filter(m=>
+    m.studentId===currentStu.id || normalizeText(m.studentName)===normalizeText(currentStu.name)
+  ):[],[currentStu,messages]);
   const scopedInvoices = useMemo(()=>{
     if(user?.role==='admin') return invoices;
     const myStudentIds = new Set(myStudents.map(s=>s.id));
@@ -1923,6 +2105,39 @@ function App() {
     await db.collection('schedule').add(payload);
     notify(schRecurring?'✓ Korduv tund lisatud!':'✓ Tund broneeritud!');
   },[schStu,schDate,schTime,schTeach,schRecurring,canAssignTeacher,user]);
+
+  const markAttendance=useCallback(async(scheduleId,attendanceKey,status)=>{
+    if(!scheduleId||!attendanceKey){notify('⚠ Tundi ei leitud');return;}
+    await db.collection('schedule').doc(scheduleId).update({
+      [`attendance.${attendanceKey}`]: {
+        status,
+        by:user.uid||'',
+        byName:user.displayName||user.email||'',
+        byRole:user.role||'',
+        updatedAt:new Date().toISOString()
+      }
+    });
+    notify(status==='coming'?'✓ Osalemine märgitud':'✓ Puudumine märgitud');
+  },[user]);
+
+  const sendTeacherMessage=useCallback(async(student,text)=>{
+    if(!student){notify('⚠ Õpilast ei leitud');return;}
+    if(!text?.trim()){notify('⚠ Kirjuta sõnum');return;}
+    await db.collection('messages').add({
+      studentId:student.id,
+      studentName:student.name,
+      teacher:canonicalTeacherName(student.teacher||''),
+      fromUid:user.uid||'',
+      fromName:user.displayName||user.email||'',
+      fromRole:user.role||'',
+      text:text.trim(),
+      createdAt:new Date().toISOString(),
+      date:today(),
+      read:false
+    });
+    setTeacherMessage('');
+    notify('✓ Sõnum saadetud õpetajale');
+  },[user]);
 
   const saveLesson=useCallback(async()=>{
     if(!modalEv||!lTopic.trim()){notify('⚠ Sisesta tunni teema');return;}
@@ -2150,9 +2365,10 @@ function App() {
   const navItems=[
     {id:'dashboard',icon:'fa-chart-pie',label:'Töölaud'},
     {id:'calendar', icon:'fa-calendar-days',label:'Tunniplaan'},
-    {id:'students', icon:'fa-graduation-cap',label:isStaff?'Õpilased':'Minu progress',
+    {id:'students', icon:'fa-graduation-cap',label:isStaff?'Minu õpilased':'Minu progress',
       badge:isStaff&&homework.filter(h=>h.status==='Ootel'&&myStudents.some(s=>s.id===h.studentId)).length>0?
         homework.filter(h=>h.status==='Ootel'&&myStudents.some(s=>s.id===h.studentId)).length:0},
+    ...(isStaff?[{id:'groups',icon:'fa-layer-group',label:'Grupid'}]:[]),
     ...(isStaff?[{id:'database',icon:'fa-table',label:'Andmebaas'}]:[]),
     ...(isStaff?[{id:'invoices',icon:'fa-file-invoice',label:'Arved',
       badge:scopedInvoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+i.amount,0)>0?scopedInvoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+i.amount,0)+'€':0}]:[]),
@@ -2228,7 +2444,7 @@ function App() {
             schStu={schStu} setSchStu={setSchStu} schDate={schDate} setSchDate={setSchDate}
             schTime={schTime} setSchTime={setSchTime} schTeach={schTeach} setSchTeach={setSchTeach}
             schRecurring={schRecurring} setSchRecurring={setSchRecurring}
-            addSchedule={addSchedule} setModalEv={setModalEv} delSchedule={delSchedule}/>}
+            addSchedule={addSchedule} setModalEv={setModalEv} delSchedule={delSchedule} markAttendance={markAttendance}/>}
 
           {tab==='students'&&isStaff&&!selStu&&<StudentsList filteredStudents={filteredStudents} lessons={lessons} isAdmin={canAssignTeacher}
             search={search} setSearch={setSearch} stuFilter={stuFilter} setStuFilter={setStuFilter} setSelStu={setSelStu}/>}
@@ -2239,7 +2455,10 @@ function App() {
             isAdmin={canAssignTeacher} setSelStu={setSelStu} toggleStudentActive={toggleStudentActive}
             hwTask={hwTask} setHwTask={setHwTask} hwDue={hwDue} setHwDue={setHwDue} addHw={addHw} toggleHw={toggleHw}
             invAmt={invAmt} setInvAmt={setInvAmt} invDesc={invDesc} setInvDesc={setInvDesc}
-            addInvoice={addInvoice} markPaid={markPaid} unmarkPaid={unmarkPaid} deleteInvoice={deleteInvoice} printInvoice={printInvoice} submitParentPayment={submitParentPayment} resetParentPayment={resetParentPayment} deleteLesson={deleteLesson} openLessonEditor={openLessonEditor}/>}
+            addInvoice={addInvoice} markPaid={markPaid} unmarkPaid={unmarkPaid} deleteInvoice={deleteInvoice} printInvoice={printInvoice} submitParentPayment={submitParentPayment} resetParentPayment={resetParentPayment} deleteLesson={deleteLesson} openLessonEditor={openLessonEditor}
+            stuMessages={stuMessages} teacherMessage={teacherMessage} setTeacherMessage={setTeacherMessage} sendTeacherMessage={sendTeacherMessage}/>}
+
+          {tab==='groups'&&isStaff&&<GroupsView myStudents={myStudents} schedule={schedule} setSelStu={setSelStu} setTab={setTab}/>}
 
           {tab==='database'&&isStaff&&<StudentsDatabaseView
             filteredStudents={filteredStudents}
