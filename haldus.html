@@ -130,168 +130,19 @@ window.addEventListener('load', function(){
 <script>
 window.__haldusConfigureBabel();
 </script>
+<script src="/haldus-shared.js"></script>
 <script type="text/babel" data-presets="haldus-react">
 const {useState,useEffect,useRef,useCallback,useMemo} = React;
 const db   = window._db;
 const auth = window._auth;
-
-// ── KONSTANTID ───────────────────────────────────────────────
-const TEACHER_CODE = 'KS2026';
-const ADMIN_CODE   = 'KSADMIN2026';
-const LEVELS   = ['A1','A2','B1','B2','C1'];
-const TEACHERS = ['Pavel','Jelena','Elizaveta','Angelina'];
-const PAYMENT_METHODS = [
-  {id:'bank', label:'Pangaülekanne'},
-  {id:'cash', label:'Sularaha'},
-  {id:'other', label:'Kokkuleppel'}
-];
-const PAYMENT_DETAILS = {
-  company:'E&P Kooitus OÜ',
-  regCode:'17270880',
-  address:'Harju maakond, Saue vald, Laagri alevik, Nõlvaku põik 3b, 76401',
-  iban:'EE917700771011885682',
-  bank:'LHV Pank AS',
-  swift:'LHVBEE22',
-  paymentTermDays:5,
-  lateFeePerDay:'0.0%',
-  issuer:'Pavel Zakutailo'
-};
-const CONTACT_STATUSES = [
-  {id:'new', label:'Uus'},
-  {id:'contacted', label:'Võetud ühendust'},
-  {id:'waiting', label:'Ootab vastust'},
-  {id:'scheduled', label:'Tund kokku lepitud'},
-  {id:'active', label:'Aktiivne õpilane'},
-];
-const normalizeText = value => (value || '').trim().toLowerCase();
-const parseLinkedNames = value =>
-  String(value || '')
-    .split(/[,\n;|]+/)
-    .map(part => normalizeText(part))
-    .filter(Boolean);
-const canonicalTeacherName = value => {
-  const name = (value || '').trim();
-  if(!name) return '';
-  const lower = name.toLowerCase();
-  const matched = TEACHERS.find(t => lower === t.toLowerCase() || lower.startsWith(t.toLowerCase() + ' '));
-  return matched || name;
-};
-const DAYS_SHORT = ['E','T','K','N','R','L','P'];
-const DAYS_ID    = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-const DAYS_FULL  = ['Esmaspäev','Teisipäev','Kolmapäev','Neljapäev','Reede','Laupäev','Pühapäev'];
-const TIMES = ["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00"];
-
-// ── UTIL ─────────────────────────────────────────────────────
-const levelPct = (cur,tgt) => { const c=LEVELS.indexOf(cur),t=LEVELS.indexOf(tgt); return t>0&&c<t?Math.round(c/t*100):c>=t?100:0; };
-const avg = arr => arr.length?(arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(1):'—';
-const fmtDate = d => d?new Date(d).toLocaleDateString('et-EE',{day:'2-digit',month:'2-digit',year:'numeric'}):'—';
-const toLocalISODate = value => {
-  const d = value ? new Date(value) : new Date();
-  const year = d.getFullYear();
-  const month = String(d.getMonth()+1).padStart(2,'0');
-  const day = String(d.getDate()).padStart(2,'0');
-  return `${year}-${month}-${day}`;
-};
-const today = () => toLocalISODate();
-const pkgLeft = s => (s.packageTotal||0)-(s.packageUsed||0);
-const copyText = async text => {
-  try{
-    if(navigator.clipboard?.writeText){
-      await navigator.clipboard.writeText(String(text));
-      return true;
-    }
-  }catch(e){}
-  try{
-    const area = document.createElement('textarea');
-    area.value = String(text);
-    area.setAttribute('readonly','');
-    area.style.position = 'absolute';
-    area.style.left = '-9999px';
-    document.body.appendChild(area);
-    area.select();
-    document.execCommand('copy');
-    document.body.removeChild(area);
-    return true;
-  }catch(e){
-    return false;
-  }
-};
-
-async function ensureStudentRecord(authUser, profile){
-  if(!authUser || profile?.role!=='student') return;
-  const name = profile.displayName || authUser.displayName || authUser.email || 'Õpilane';
-  const email = profile.email || authUser.email || '';
-  const existing = await db.collection('students').where('linkedUserId','==',authUser.uid).limit(1).get();
-  if(!existing.empty) return;
-  await db.collection('students').add({
-    linkedUserId: authUser.uid,
-    name,
-    email,
-    phone:'',
-    level:'A1',
-    targetLevel:'A2',
-    teacher:'',
-    active:true,
-    packageTotal:0,
-    packageUsed:0,
-    subject:'Eesti keel',
-    grade:'',
-    group:'',
-    registrationSource:'self-service',
-    profileStatus:'new',
-    contactStatus:'new',
-    contactOwner:'',
-    contactLastAt:'',
-    contactNotes:'',
-    createdAt:today()
-  });
-}
-
-async function ensureParentStudentRecords(authUser, profile){
-  if(!authUser || profile?.role!=='parent') return;
-  const linkedNames = parseLinkedNames(profile.childName);
-  if(linkedNames.length===0) return;
-
-  const existingSnap = await db.collection('students').where('linkedParentId','==',authUser.uid).get();
-  const existingNames = new Set(existingSnap.docs.map(doc => normalizeText(doc.data().name)));
-  const parentDisplayName = profile.displayName || authUser.displayName || profile.email || authUser.email || 'Lapsevanem';
-  const parentEmail = profile.email || authUser.email || '';
-  const preferredTeacher = canonicalTeacherName(profile.preferredTeacher || 'Pavel');
-
-  for(const childName of linkedNames){
-    if(existingNames.has(childName)) continue;
-    const label = childName
-      .split(' ')
-      .filter(Boolean)
-      .map(part => part.charAt(0).toUpperCase() + part.slice(1))
-      .join(' ');
-
-    await db.collection('students').add({
-      linkedParentId: authUser.uid,
-      parentName: parentDisplayName,
-      parentEmail,
-      name: label || 'Õpilane',
-      email:'',
-      phone:'',
-      level:'A1',
-      targetLevel:'A2',
-      teacher:preferredTeacher,
-      active:true,
-      packageTotal:0,
-      packageUsed:0,
-      subject:'Eesti keel',
-      grade:'',
-      group:'',
-      registrationSource:'parent-self-service',
-      profileStatus:'new',
-      contactStatus:'new',
-      contactOwner:preferredTeacher,
-      contactLastAt:'',
-      contactNotes:'Loodud lapsevanema konto registreerimisel',
-      createdAt:today()
-    });
-  }
-}
+const {
+  TEACHER_CODE, ADMIN_CODE, APP_VERSION, LEVELS, TEACHERS,
+  PAYMENT_METHODS, PAYMENT_DETAILS, CONTACT_STATUSES,
+  DAYS_SHORT, DAYS_ID, DAYS_FULL, TIMES,
+  normalizeText, parseLinkedNames, canonicalTeacherName,
+  levelPct, avg, fmtDate, toLocalISODate, today, pkgLeft, copyText,
+  ensureStudentRecord, ensureParentStudentRecords
+} = window.HaldusShared;
 
 // ── PROGRESSIGRAAFIK ─────────────────────────────────────────
 function ProgressChart({data}) {
@@ -338,14 +189,22 @@ function AuthScreen({onLogin}) {
       const snap=await db.collection('users').doc(u.uid).get();
       if(snap.exists){
         const profile = {uid:u.uid,displayName:u.displayName,email:u.email,...snap.data()};
-        await ensureStudentRecord(u, profile);
-        await ensureParentStudentRecords(u, profile);
+        try{
+          await ensureStudentRecord(u, profile);
+          await ensureParentStudentRecords(u, profile);
+        }catch(syncErr){
+          console.warn('Profile sync after Google login failed:', syncErr);
+        }
         onLogin(profile);
       }
       else{
         const ud={role:'parent',displayName:u.displayName,email:u.email,childName:'',preferredTeacher:'Pavel',createdAt:today()};
         await db.collection('users').doc(u.uid).set(ud);
-        await ensureParentStudentRecords(u, {uid:u.uid,...ud});
+        try{
+          await ensureParentStudentRecords(u, {uid:u.uid,...ud});
+        }catch(syncErr){
+          console.warn('Parent student bootstrap after Google signup failed:', syncErr);
+        }
         onLogin({uid:u.uid,...ud});
       }
     }catch(e){setErr('Google sisselogimine ebaõnnestus.');}
@@ -360,8 +219,12 @@ function AuthScreen({onLogin}) {
       const snap=await db.collection('users').doc(res.user.uid).get();
       if(snap.exists){
         const profile = {uid:res.user.uid,displayName:res.user.displayName||email,...snap.data()};
-        await ensureStudentRecord(res.user, profile);
-        await ensureParentStudentRecords(res.user, profile);
+        try{
+          await ensureStudentRecord(res.user, profile);
+          await ensureParentStudentRecords(res.user, profile);
+        }catch(syncErr){
+          console.warn('Profile sync after email login failed:', syncErr);
+        }
         onLogin(profile);
       }
       else onLogin({uid:res.user.uid,displayName:res.user.displayName||email,email,role:'parent'});
@@ -384,8 +247,12 @@ function AuthScreen({onLogin}) {
       await res.user.updateProfile({displayName:name});
       const ud={role,displayName:name,email,childName:role==='parent'?child:'',preferredTeacher:role==='parent'?parentTeacher:'',createdAt:today()};
       await db.collection('users').doc(res.user.uid).set(ud);
-      await ensureStudentRecord(res.user, ud);
-      await ensureParentStudentRecords(res.user, ud);
+      try{
+        await ensureStudentRecord(res.user, ud);
+        await ensureParentStudentRecords(res.user, ud);
+      }catch(syncErr){
+        console.warn('Profile sync after registration failed:', syncErr);
+      }
       onLogin({uid:res.user.uid,...ud});
     }catch(e){
       const m={'auth/email-already-in-use':'See e-post on juba registreeritud','auth/invalid-email':'Vigane e-post'};
@@ -489,13 +356,16 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
   nTeach,setNTeach,addStudent,isAdmin,isStaff}) {
   const unpaidAmt = invoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+i.amount,0);
   const pendingHw = homework.filter(h=>h.status==='Ootel'&&myStudents.some(s=>s.id===h.studentId)).length;
-  const todaySch  = schedule.filter(s=>canonicalTeacherName(s.teacher)===canonicalTeacherName(user.displayName)).length;
+  const teacherScope = canonicalTeacherName(user.displayName);
+  const todaySch  = isAdmin
+    ? schedule.length
+    : schedule.filter(s=>canonicalTeacherName(s.teacher)===teacherScope).length;
   const currentStu= !isStaff?myStudents[0]:null;
   const doneLess  = currentStu?lessons.filter(l=>(l.studentId===currentStu.id||l.studentName?.toLowerCase()===currentStu.name?.toLowerCase())&&l.status==='Toimunud'):[];
   const stuLessons= currentStu?lessons.filter(l=>l.studentId===currentStu.id||l.studentName?.toLowerCase()===currentStu.name?.toLowerCase()):[];
   const linkedStudentNames = myStudents.map(s=>normalizeText(s.name));
   const visibleLessons = isStaff
-    ? lessons
+    ? (isAdmin ? lessons : lessons.filter(l=>canonicalTeacherName(l.teacher)===teacherScope))
     : lessons.filter(l=>
         myStudents.some(s=>s.id===l.studentId) ||
         linkedStudentNames.includes(normalizeText(l.studentName))
@@ -643,11 +513,15 @@ function CalendarView({user,myStudents,schedule,isAdmin,filterT,setFilterT,
   const filteredSch = React.useMemo(()=>{
     const linkedStudentNames = myStudents.map(s=>normalizeText(s.name));
     let list = canManage
-      ?(filterT==="Kõik"||!filterT?schedule:schedule.filter(s=>canonicalTeacherName(s.teacher)===canonicalTeacherName(filterT)))
+      ?(
+          isAdmin
+            ? (filterT==="Kõik"||!filterT?schedule:schedule.filter(s=>canonicalTeacherName(s.teacher)===canonicalTeacherName(filterT)))
+            : schedule.filter(s=>canonicalTeacherName(s.teacher)===canonicalTeacherName(user.displayName))
+        )
       :schedule.filter(s=>linkedStudentNames.includes(normalizeText(s.studentName)));
     if(!showCanceled) list=list.filter(s=>s.status!=="Tühistatud");
     return list;
-  },[schedule,myStudents,filterT,showCanceled,canManage]);
+  },[schedule,myStudents,filterT,showCanceled,canManage,isAdmin,user]);
 
   const getEventsForSlot = (slot, day) =>
     filteredSch.filter(s=>{
@@ -819,7 +693,12 @@ function StudentsList({filteredStudents,lessons,isAdmin,search,setSearch,stuFilt
       </div>
       <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(290px,1fr))',gap:14}}>
         {filteredStudents.map(s=>{
-          const done=lessons.filter(l=>(l.studentId===s.id||l.studentName?.toLowerCase()===s.name?.toLowerCase())&&l.status==='Toimunud');
+          const done=lessons.filter(l=>{
+            const matchesStudent = (l.studentId===s.id||l.studentName?.toLowerCase()===s.name?.toLowerCase())&&l.status==='Toimunud';
+            if(!matchesStudent) return false;
+            if(isAdmin) return true;
+            return canonicalTeacherName(l.teacher)===canonicalTeacherName(s.teacher);
+          });
           const pct=levelPct(s.level,s.targetLevel);
           const rem=pkgLeft(s);
           return(
@@ -866,6 +745,7 @@ function StudentsDatabaseView({
   nSubject,setNSubject,nGrade,setNGrade,nGroup,setNGroup,nPkg,setNPkg,nTeach,setNTeach,addStudent
 }) {
   const [showAddForm,setShowAddForm] = React.useState(false);
+  const teacherScope = canonicalTeacherName(user?.displayName);
   const contactMeta = {
     new:{bg:'#dbeafe',c:'#1d4ed8',t:'Uus'},
     contacted:{bg:'#fef3c7',c:'#92400e',t:'Võetud ühendust'},
@@ -973,7 +853,12 @@ function StudentsDatabaseView({
             </thead>
             <tbody>
               {filteredStudents.map(student=>{
-                const studentLessons = lessons.filter(l=>l.studentId===student.id||l.studentName?.toLowerCase()===student.name?.toLowerCase());
+                const studentLessons = lessons.filter(l=>{
+                  const matchesStudent = l.studentId===student.id || normalizeText(l.studentName)===normalizeText(student.name);
+                  if(!matchesStudent) return false;
+                  if(isAdmin) return true;
+                  return canonicalTeacherName(l.teacher)===teacherScope;
+                });
                 const completedLessons = studentLessons.filter(l=>l.status==='Toimunud');
                 const unpaidInvoices = invoices.filter(i=>i.studentId===student.id&&i.status==='Ootel');
                 const remaining = pkgLeft(student);
@@ -1078,7 +963,7 @@ function StudentsDatabaseView({
 // ── ÕPILASE KAART ─────────────────────────────────────────────
 function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,setEditStu,toggleStudentActive,
   hwTask,setHwTask,hwDue,setHwDue,addHw,toggleHw,
-  invAmt,setInvAmt,invDesc,setInvDesc,addInvoice,markPaid,unmarkPaid,printInvoice,submitParentPayment,resetParentPayment,deleteLesson,openLessonEditor}) {
+  invAmt,setInvAmt,invDesc,setInvDesc,addInvoice,markPaid,unmarkPaid,deleteInvoice,printInvoice,submitParentPayment,resetParentPayment,deleteLesson,openLessonEditor}) {
   if(!currentStu) return <div style={{textAlign:'center',padding:60,color:'#42536A'}}>Õpilane ei leitud.</div>;
   const done=stuLessons.filter(l=>l.status==='Toimunud');
   const pct=levelPct(currentStu.level,currentStu.targetLevel);
@@ -1276,9 +1161,15 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
                     ?<span className="badge" style={{background:'#dcfce7',color:'#166534'}}>✓ Makstud</span>
                     :<span className="badge" style={{background:'#fef3c7',color:'#92400e'}}>Ootel</span>}
                   {inv.parentPaymentStatus==='submitted'&&inv.status!=='Makstud'&&<span className="badge" style={{background:'#dbeafe',color:'#1d4ed8'}}>Maksest teavitatud</span>}
+                  {canManage&&inv.parentPaymentStatus==='submitted'&&(
+                    <span className="badge" style={{background:'#eef2ff',color:'#4338ca'}}>
+                      {PAYMENT_METHODS.find(method=>method.id===(inv.parentPaymentMethod||'bank'))?.label || 'Pangaülekanne'}
+                    </span>
+                  )}
                   {canManage&&inv.status!=='Makstud'&&<button onClick={()=>markPaid(inv.id)} className="btn btn-pine btn-sm">Märgi makstud</button>}
                   {canManage&&inv.status==='Makstud'&&<button onClick={()=>unmarkPaid(inv.id)} className="btn btn-red btn-sm">Tühista makse</button>}
                   {canManage&&inv.parentPaymentStatus==='submitted'&&inv.status!=='Makstud'&&<button onClick={()=>resetParentPayment(inv.id)} className="btn btn-ghost btn-sm">Lähtesta teavitus</button>}
+                  {canManage&&<button onClick={()=>deleteInvoice(inv)} className="btn btn-red btn-sm">Kustuta arve</button>}
                   <button onClick={()=>printInvoice(inv)} className="btn btn-ghost btn-sm"><i className="fa-solid fa-print"/> Prindi</button>
                 </div>
               </div>
@@ -1291,9 +1182,16 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
 }
 
 // ── ARVED ÜLDVAADE ────────────────────────────────────────────
-function InvoicesView({invoices,myStudents,invStu,setInvStu,invAmt,setInvAmt,invDesc,setInvDesc,addInvoice,markPaid,unmarkPaid,printInvoice}) {
+function InvoicesView({invoices,myStudents,invStu,setInvStu,invAmt,setInvAmt,invDesc,setInvDesc,addInvoice,markPaid,unmarkPaid,deleteInvoice,printInvoice}) {
   const unpaidAmt=invoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+i.amount,0);
   const paid=invoices.filter(i=>i.status==='Makstud');
+  const [invoiceFilter,setInvoiceFilter] = React.useState('all');
+  const visibleInvoices = React.useMemo(()=>{
+    if(invoiceFilter==='pending') return invoices.filter(i=>i.status==='Ootel');
+    if(invoiceFilter==='paid') return invoices.filter(i=>i.status==='Makstud');
+    if(invoiceFilter==='reported') return invoices.filter(i=>i.parentPaymentStatus==='submitted'&&i.status!=='Makstud');
+    return invoices;
+  },[invoiceFilter,invoices]);
   return(
     <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:20}}>
       <h1 style={{fontSize:'1.7rem'}}>Arved</h1>
@@ -1320,14 +1218,42 @@ function InvoicesView({invoices,myStudents,invStu,setInvStu,invAmt,setInvAmt,inv
         </div>
       </div>
       <div className="card" style={{overflow:'hidden'}}>
-        <div style={{padding:'16px 20px',borderBottom:'1px solid rgba(28,43,58,.07)',fontWeight:700,fontSize:'.9rem'}}>Kõik arved ({invoices.length})</div>
-        {invoices.length===0
+        <div style={{padding:'16px 20px',borderBottom:'1px solid rgba(28,43,58,.07)',display:'flex',alignItems:'center',justifyContent:'space-between',gap:12,flexWrap:'wrap'}}>
+          <div style={{fontWeight:700,fontSize:'.9rem'}}>Kõik arved ({visibleInvoices.length}/{invoices.length})</div>
+          <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+            {[
+              {id:'all',label:'Kõik'},
+              {id:'pending',label:'Maksmata'},
+              {id:'reported',label:'Teavitatud'},
+              {id:'paid',label:'Makstud'}
+            ].map(item=>(
+              <button
+                key={item.id}
+                onClick={()=>setInvoiceFilter(item.id)}
+                className="btn btn-ghost btn-sm"
+                style={{
+                  background:invoiceFilter===item.id?'#1C2B3A':'#fff',
+                  color:invoiceFilter===item.id?'#fff':'#42536A',
+                  borderColor:invoiceFilter===item.id?'#1C2B3A':'rgba(28,43,58,.12)'
+                }}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        {visibleInvoices.length===0
           ?<div style={{padding:40,textAlign:'center',color:'#42536A'}}>Arveid pole.</div>
-          :[...invoices].sort((a,b)=>new Date(b.date)-new Date(a.date)).map(inv=>(
+          :[...visibleInvoices].sort((a,b)=>new Date(b.date)-new Date(a.date)).map(inv=>(
             <div key={inv.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'14px 20px',borderBottom:'1px solid rgba(28,43,58,.05)',flexWrap:'wrap',gap:10}}>
               <div>
                 <div style={{fontWeight:600,fontSize:'.9rem'}}>{inv.num} · {inv.studentName}</div>
                 <div style={{fontSize:'.78rem',color:'#42536A'}}>{inv.desc} · {fmtDate(inv.date)} · tähtaeg {fmtDate(inv.due)}</div>
+                {inv.parentPaymentStatus==='submitted'&&inv.status!=='Makstud'&&(
+                  <div style={{fontSize:'.78rem',color:'#1d4ed8',marginTop:4}}>
+                    Vanem teavitas maksest {fmtDate(inv.parentPaymentSubmittedAt)} · {PAYMENT_METHODS.find(method=>method.id===(inv.parentPaymentMethod||'bank'))?.label || 'Pangaülekanne'}
+                  </div>
+                )}
               </div>
               <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
                 <span style={{fontWeight:700}}>{inv.amount}€</span>
@@ -1340,6 +1266,7 @@ function InvoicesView({invoices,myStudents,invStu,setInvStu,invAmt,setInvAmt,inv
                     <button onClick={()=>markPaid(inv.id)} className="btn btn-pine btn-sm">Märgi makstud</button>
                   </>}
                 {inv.parentPaymentStatus==='submitted'&&inv.status!=='Makstud'&&<span className="badge" style={{background:'#dbeafe',color:'#1d4ed8'}}>Vanem teavitas maksest</span>}
+                <button onClick={()=>deleteInvoice(inv)} className="btn btn-red btn-sm">Kustuta</button>
                 <button onClick={()=>printInvoice(inv)} className="btn btn-ghost btn-sm"><i className="fa-solid fa-print"/> Prindi</button>
               </div>
             </div>
@@ -1352,7 +1279,7 @@ function InvoicesView({invoices,myStudents,invStu,setInvStu,invAmt,setInvAmt,inv
 
 // ── TUNNI MODAL ───────────────────────────────────────────────
 function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
-  lStatus,setLStatus,lComment,setLComment,lDur,setLDur,saveLesson,schedule,students,db,user,notify}) {
+  lStatus,setLStatus,lComment,setLComment,lDur,setLDur,saveLesson,deleteLesson,db,user,notify}) {
 
   const [moveDate,setMoveDate] = React.useState(modalEv.occurrenceDate||modalEv.date||new Date().toISOString().split("T")[0]);
   const [moveTime,setMoveTime] = React.useState(modalEv.time||"09:00");
@@ -1383,6 +1310,34 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
     await db.collection("schedule").doc(modalEv.id).update({status:"Planeeritud"});
     notify("✓ Tund taastatud");
     setModalEv(prev=>({...prev,status:"Planeeritud"}));
+  };
+
+  const hardDeleteSchedule = async()=>{
+    if(!modalEv.id) return;
+    if(!window.confirm("Kustuta tund kalendrist täielikult?")) return;
+    const linkedLessonSnap = await db.collection("lessons").where("scheduleId","==",modalEv.id).limit(1).get();
+    if(!linkedLessonSnap.empty){
+      const linkedLessonDoc = linkedLessonSnap.docs[0];
+      const linkedLessonData = linkedLessonDoc.data();
+      await linkedLessonDoc.ref.delete();
+      if(linkedLessonData.studentId && linkedLessonData.studentId!=="ext" && linkedLessonData.status==="Toimunud"){
+        await db.collection("students").doc(linkedLessonData.studentId).update({packageUsed:firebase.firestore.FieldValue.increment(-1)});
+      }
+    }
+    await db.collection("schedule").doc(modalEv.id).delete();
+    notify("✓ Tund kustutatud kalendrist");
+    setModalEv(null);
+  };
+
+  const hardDeleteJournalEntry = async()=>{
+    if(!modalEv.lessonEntryId) return;
+    await deleteLesson({
+      id: modalEv.lessonEntryId,
+      studentId: modalEv.studentId||'',
+      status: modalEv.status||lStatus,
+      scheduleId: modalEv.scheduleId||modalEv.id||''
+    });
+    setModalEv(null);
   };
 
   const rescheduleLesson = async()=>{
@@ -1531,6 +1486,12 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
               </button>
             </div>
 
+            {modalEv.id&&(
+              <button onClick={hardDeleteSchedule} className="btn btn-ghost btn-sm" style={{width:"100%",marginBottom:12,color:"#991b1b",borderColor:"rgba(239,68,68,.25)"}}>
+                <i className="fa-solid fa-trash"/> Kustuta tund täielikult
+              </button>
+            )}
+
             {/* Перенос */}
             <div style={{fontSize:".78rem",fontWeight:600,color:"#42536A",marginBottom:6}}>Tõsta tund ümber:</div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
@@ -1589,6 +1550,11 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
               <button onClick={saveLesson} className="btn btn-dark" style={{width:"100%",padding:13}}>
                 <i className="fa-solid fa-floppy-disk"/> Salvesta päevikusse
               </button>
+              {isJournalEdit&&(
+                <button onClick={hardDeleteJournalEntry} className="btn btn-ghost" style={{width:"100%",padding:13,color:"#991b1b",borderColor:"rgba(239,68,68,.25)"}}>
+                  <i className="fa-solid fa-trash"/> Kustuta päeviku kanne
+                </button>
+              )}
             </div>
           )}
           {st==="Tühistatud"&&(
@@ -1848,8 +1814,12 @@ function App() {
           if(snap.exists){
             const d=snap.data();
             const profile = {uid:fbUser.uid,displayName:fbUser.displayName||fbUser.email,...d};
-            await ensureStudentRecord(fbUser, profile);
-            await ensureParentStudentRecords(fbUser, profile);
+            try{
+              await ensureStudentRecord(fbUser, profile);
+              await ensureParentStudentRecords(fbUser, profile);
+            }catch(syncErr){
+              console.warn('Profile sync during auth bootstrap failed:', syncErr);
+            }
             setUser(profile);
             if(d.role==='teacher') setFilterT(canonicalTeacherName(fbUser.displayName||''));
             if(d.role==='admin') setFilterT('Kõik');
@@ -1883,9 +1853,9 @@ function App() {
   const notify=msg=>{setNotif(msg);setTimeout(()=>setNotif(''),3500);};
   const goTab=t=>{setTab(t);setSelStu(null);setMobileNav(false);};
 
-  const isAdmin = user?.email==='zakutailo.pavel@gmail.com'||user?.displayName==='Pavel'||user?.displayName?.startsWith('Pavel Z');
+  const isAdmin = user?.role==='admin' || normalizeText(user?.email)==='zakutailo.pavel@gmail.com';
   const isStaff = user?.role==='teacher' || user?.role==='admin';
-  const canAssignTeacher = isAdmin || user?.role==='admin';
+  const canAssignTeacher = isAdmin;
 
   useEffect(()=>{
     if(user?.role==='teacher'&&!canAssignTeacher) setNTeach(user.displayName||'');
@@ -1931,9 +1901,16 @@ function App() {
       })
   ,[myStudents,stuFilter,groupFilter,contactFilter,search]);
 
-  const currentStu = useMemo(()=>
-    selStu ? students.find(s=>s.id===selStu.id)||selStu : user?.role!=='teacher'?myStudents[0]:null
-  ,[selStu,students,user,myStudents]);
+  const currentStu = useMemo(()=>{
+    if(selStu){
+      const resolved = students.find(s=>s.id===selStu.id)||selStu;
+      if(user?.role==='teacher' && !isAdmin){
+        return myStudents.find(s=>s.id===resolved.id) || null;
+      }
+      return resolved;
+    }
+    return user?.role!=='teacher' ? myStudents[0] : null;
+  },[selStu,students,user,myStudents,isAdmin]);
 
   useEffect(()=>{
     if(!isStaff) return;
@@ -1942,10 +1919,21 @@ function App() {
     if(firstActiveStudent) setSchStu(firstActiveStudent.name);
   },[isStaff,myStudents,schStu]);
 
-  const stuLessons = useMemo(()=>currentStu?lessons.filter(l=>l.studentId===currentStu.id||l.studentName?.toLowerCase()===currentStu.name?.toLowerCase()):[]
-  ,[currentStu,lessons]);
+  const stuLessons = useMemo(()=>currentStu?lessons.filter(l=>{
+    const matchesStudent = l.studentId===currentStu.id || normalizeText(l.studentName)===normalizeText(currentStu.name);
+    if(!matchesStudent) return false;
+    if(user?.role==='admin' || user?.role==='parent' || user?.role==='student') return true;
+    return canonicalTeacherName(l.teacher)===canonicalTeacherName(user.displayName);
+  }):[]
+  ,[currentStu,lessons,user]);
   const stuHw  = useMemo(()=>currentStu?homework.filter(h=>h.studentId===currentStu.id):[]  ,[currentStu,homework]);
   const stuInv = useMemo(()=>currentStu?invoices.filter(i=>i.studentId===currentStu.id):[] ,[currentStu,invoices]);
+  const scopedInvoices = useMemo(()=>{
+    if(user?.role==='admin') return invoices;
+    const myStudentIds = new Set(myStudents.map(s=>s.id));
+    const myStudentNames = new Set(myStudents.map(s=>normalizeText(s.name)));
+    return invoices.filter(inv=>myStudentIds.has(inv.studentId) || myStudentNames.has(normalizeText(inv.studentName)));
+  },[invoices,myStudents,user]);
 
   // ACTIONS
   const addStudent=useCallback(async()=>{
@@ -2008,6 +1996,11 @@ function App() {
       });
     }
 
+    if(modalEv.id){
+      const scheduleStatus = lStatus==='Toimunud' ? 'Toimunud' : 'Planeeritud';
+      await db.collection('schedule').doc(modalEv.id).update({status:scheduleStatus});
+    }
+
     if(stu){
       const wasCounted = existingLessonData?.status==='Toimunud';
       const isCounted = lStatus==='Toimunud';
@@ -2049,6 +2042,9 @@ function App() {
     if(lesson.studentId && lesson.studentId!=='ext' && lesson.status==='Toimunud'){
       await db.collection('students').doc(lesson.studentId).update({packageUsed:firebase.firestore.FieldValue.increment(-1)});
     }
+    if(lesson.scheduleId){
+      await db.collection('schedule').doc(lesson.scheduleId).update({status:'Planeeritud'});
+    }
     notify('✓ Tunni sissekanne kustutatud');
   },[]);
 
@@ -2063,6 +2059,7 @@ function App() {
       lessonEntryId: lesson.id,
       id: lesson.scheduleId||'',
       scheduleId: lesson.scheduleId||'',
+      studentId: lesson.studentId||'',
       studentName: lesson.studentName,
       teacher: lesson.teacher||user.displayName,
       date: lesson.date||today(),
@@ -2110,6 +2107,13 @@ function App() {
       parentPaymentMethod:''
     });
     notify('✓ Makse tühistatud');
+  },[]);
+
+  const deleteInvoice=useCallback(async(inv)=>{
+    if(!inv?.id) return;
+    if(!window.confirm(`Kustuta arve ${inv.num}?`)) return;
+    await db.collection('invoices').doc(inv.id).delete();
+    notify(`✓ Arve ${inv.num} kustutatud`);
   },[]);
 
   const submitParentPayment=useCallback(async(id,method)=>{
@@ -2183,7 +2187,7 @@ function App() {
         homework.filter(h=>h.status==='Ootel'&&myStudents.some(s=>s.id===h.studentId)).length:0},
     ...(isStaff?[{id:'database',icon:'fa-table',label:'Andmebaas'}]:[]),
     ...(isStaff?[{id:'invoices',icon:'fa-file-invoice',label:'Arved',
-      badge:invoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+i.amount,0)>0?invoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+i.amount,0)+'€':0}]:[]),
+      badge:scopedInvoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+i.amount,0)>0?scopedInvoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+i.amount,0)+'€':0}]:[]),
   ];
 
   const Sidebar=()=>(
@@ -2232,10 +2236,20 @@ function App() {
           <button onClick={()=>setMobileNav(!mobileNav)} style={{background:'none',border:'none',cursor:'pointer',fontSize:'1.3rem',color:'#1C2B3A',padding:'4px 8px'}}>{mobileNav?'✕':'☰'}</button>
         </div>
 
+        <div style={{position:'sticky',top:0,zIndex:40,display:'flex',justifyContent:'center',padding:'10px 16px 0',pointerEvents:'none'}}>
+          <div style={{background:'#C9882A',color:'#fff',padding:'8px 14px',borderRadius:999,fontSize:'.78rem',fontWeight:800,letterSpacing:'.04em',boxShadow:'0 10px 24px rgba(201,136,42,.28)'}}>
+            {APP_VERSION}
+          </div>
+        </div>
+
+        <div style={{position:'fixed',right:18,bottom:18,zIndex:120,background:'rgba(28,43,58,.92)',color:'#fff',padding:'8px 12px',borderRadius:999,fontSize:'.72rem',fontWeight:700,letterSpacing:'.04em',boxShadow:'0 10px 24px rgba(0,0,0,.18)'}}>
+          {APP_VERSION}
+        </div>
+
         <div style={{padding:'28px',maxWidth:1100,margin:'0 auto'}}>
           {notif&&<div style={{position:'fixed',top:20,right:20,background:'#1C2B3A',color:'#fff',padding:'12px 20px',borderRadius:12,zIndex:300,fontWeight:600,fontSize:'.9rem',boxShadow:'0 8px 28px rgba(0,0,0,.25)'}}>{notif}</div>}
 
-          {tab==='dashboard'&&<Dashboard user={user} myStudents={myStudents} lessons={lessons} schedule={schedule} invoices={invoices} homework={homework}
+          {tab==='dashboard'&&<Dashboard user={user} myStudents={myStudents} lessons={lessons} schedule={schedule} invoices={scopedInvoices} homework={homework}
             nName={nName} setNName={setNName} nEmail={nEmail} setNEmail={setNEmail} nPhone={nPhone} setNPhone={setNPhone}
             nLevel={nLevel} setNLevel={setNLevel} nTarget={nTarget} setNTarget={setNTarget}
             nPkg={nPkg} setNPkg={setNPkg} nSubject={nSubject} setNSubject={setNSubject} nGrade={nGrade} setNGrade={setNGrade} nGroup={nGroup} setNGroup={setNGroup} nTeach={nTeach} setNTeach={setNTeach}
@@ -2257,12 +2271,12 @@ function App() {
             isAdmin={canAssignTeacher} setSelStu={setSelStu} toggleStudentActive={toggleStudentActive}
             hwTask={hwTask} setHwTask={setHwTask} hwDue={hwDue} setHwDue={setHwDue} addHw={addHw} toggleHw={toggleHw}
             invAmt={invAmt} setInvAmt={setInvAmt} invDesc={invDesc} setInvDesc={setInvDesc}
-            addInvoice={addInvoice} markPaid={markPaid} unmarkPaid={unmarkPaid} printInvoice={printInvoice} submitParentPayment={submitParentPayment} resetParentPayment={resetParentPayment} deleteLesson={deleteLesson} openLessonEditor={openLessonEditor}/>}
+            addInvoice={addInvoice} markPaid={markPaid} unmarkPaid={unmarkPaid} deleteInvoice={deleteInvoice} printInvoice={printInvoice} submitParentPayment={submitParentPayment} resetParentPayment={resetParentPayment} deleteLesson={deleteLesson} openLessonEditor={openLessonEditor}/>}
 
           {tab==='database'&&isStaff&&<StudentsDatabaseView
             filteredStudents={filteredStudents}
             lessons={lessons}
-            invoices={invoices}
+            invoices={scopedInvoices}
             isAdmin={canAssignTeacher}
             search={search}
             setSearch={setSearch}
@@ -2299,9 +2313,9 @@ function App() {
             addStudent={addStudent}
           />}
 
-          {tab==='invoices'&&isStaff&&<InvoicesView invoices={invoices} myStudents={myStudents}
+          {tab==='invoices'&&isStaff&&<InvoicesView invoices={scopedInvoices} myStudents={myStudents}
             invStu={invStu} setInvStu={setInvStu} invAmt={invAmt} setInvAmt={setInvAmt}
-            invDesc={invDesc} setInvDesc={setInvDesc} addInvoice={addInvoice} markPaid={markPaid} unmarkPaid={unmarkPaid} printInvoice={printInvoice}/>}
+            invDesc={invDesc} setInvDesc={setInvDesc} addInvoice={addInvoice} markPaid={markPaid} unmarkPaid={unmarkPaid} deleteInvoice={deleteInvoice} printInvoice={printInvoice}/>}
         </div>
       </main>
 
@@ -2309,7 +2323,7 @@ function App() {
       {modalEv&&<LessonModal modalEv={modalEv} setModalEv={setModalEv}
         lTopic={lTopic} setLTopic={setLTopic} lGrade={lGrade} setLGrade={setLGrade}
         lStatus={lStatus} setLStatus={setLStatus}        lComment={lComment} setLComment={setLComment}
-        lDur={lDur} setLDur={setLDur} saveLesson={saveLesson}/>}
+        lDur={lDur} setLDur={setLDur} saveLesson={saveLesson} deleteLesson={deleteLesson} db={db} user={user} notify={notify}/>}
     </div>
   );
 }
