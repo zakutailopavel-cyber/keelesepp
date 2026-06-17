@@ -433,7 +433,7 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
 }
 
 // ── TUNNIPLAAN ────────────────────────────────────────────────
-function CalendarView({user,myStudents,schedule,isAdmin,filterT,setFilterT,
+function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilterT,
   schStu,setSchStu,schDate,setSchDate,schTime,setSchTime,schTeach,setSchTeach,
   schRecurring,setSchRecurring,addSchedule,setModalEv,delSchedule,markAttendance}) {
 
@@ -485,19 +485,43 @@ function CalendarView({user,myStudents,schedule,isAdmin,filterT,setFilterT,
   const filteredSch = React.useMemo(()=>{
     const linkedStudentNames = myStudents.map(s=>normalizeText(s.name));
     const linkedGroups = myStudents.map(s=>normalizeText(s.group)).filter(Boolean);
+    const myStudentIds = new Set(myStudents.map(s=>s.id));
+    const groupEvents = (groups||[]).flatMap(group=>
+      (group.lessons||[]).map(lesson=>({
+        id:`group-${group.id}-${lesson.id}`,
+        groupId:group.id,
+        groupLessonId:lesson.id,
+        isGroup:true,
+        teacher:group.teacher||'Kõik',
+        studentName:group.name,
+        date:lesson.date||'',
+        day:lesson.day||'Mon',
+        time:lesson.time||'09:00',
+        status:lesson.status||'Planeeritud',
+        recurring:lesson.recurring!==false,
+        startDate:lesson.startDate||today(),
+        attendance:lesson.attendance||{},
+        students:group.students||[]
+      }))
+    );
     let list = canManage
       ?(
           isAdmin
-            ? (filterT==="Kõik"||!filterT?schedule:schedule.filter(s=>canonicalTeacherName(s.teacher)===canonicalTeacherName(filterT)))
-            : schedule.filter(s=>canonicalTeacherName(s.teacher)===canonicalTeacherName(user.displayName))
+            ? (filterT==="Kõik"||!filterT?[...schedule,...groupEvents]:[
+                ...schedule.filter(s=>canonicalTeacherName(s.teacher)===canonicalTeacherName(filterT)),
+                ...groupEvents.filter(s=>canonicalTeacherName(s.teacher)===canonicalTeacherName(filterT) || s.teacher==='Kõik')
+              ])
+            : [...schedule.filter(s=>canonicalTeacherName(s.teacher)===canonicalTeacherName(user.displayName)),...groupEvents]
         )
       :schedule.filter(s=>{
         const target = normalizeText(s.studentName);
         return linkedStudentNames.includes(target) || linkedGroups.includes(target);
-      });
+      }).concat(groupEvents.filter(event=>
+        (event.students||[]).some(studentId=>myStudentIds.has(studentId)) || linkedGroups.includes(normalizeText(event.studentName))
+      ));
     if(!showCanceled) list=list.filter(s=>s.status!=="Tühistatud");
     return list;
-  },[schedule,myStudents,filterT,showCanceled,canManage,isAdmin,user]);
+  },[schedule,groups,myStudents,filterT,showCanceled,canManage,isAdmin,user]);
 
   const getEventsForSlot = (slot, day) =>
     filteredSch.filter(s=>{
@@ -613,7 +637,7 @@ function CalendarView({user,myStudents,schedule,isAdmin,filterT,setFilterT,
                         const linkedStu = !canManage
                           ? myStudents.find(stu=>{
                               const target = normalizeText(ev.studentName);
-                              return normalizeText(stu.name)===target || normalizeText(stu.group)===target;
+                              return normalizeText(stu.name)===target || normalizeText(stu.group)===target || (ev.students||[]).includes(stu.id);
                             })
                           : null;
                         const attendanceKey = linkedStu ? `${linkedStu.id}_${day.iso}` : "";
@@ -647,12 +671,12 @@ function CalendarView({user,myStudents,schedule,isAdmin,filterT,setFilterT,
                             </div>
                             {!canManage&&linkedStu&&ev.id&&st!=="Tühistatud"&&(
                               <div style={{display:"flex",gap:4,marginTop:5,flexWrap:"wrap"}}>
-                                <button onClick={e=>{e.stopPropagation();markAttendance(ev.id,attendanceKey,"coming");}}
+                                <button onClick={e=>{e.stopPropagation();markAttendance(ev,attendanceKey,"coming");}}
                                   className="btn btn-pine btn-sm"
                                   style={{padding:"3px 7px",fontSize:".62rem",opacity:attendanceStatus==="coming"?1:.86}}>
                                   Tuleb
                                 </button>
-                                <button onClick={e=>{e.stopPropagation();markAttendance(ev.id,attendanceKey,"absent");}}
+                                <button onClick={e=>{e.stopPropagation();markAttendance(ev,attendanceKey,"absent");}}
                                   className="btn btn-red btn-sm"
                                   style={{padding:"3px 7px",fontSize:".62rem",opacity:attendanceStatus==="absent"?1:.86}}>
                                   Ei tule
@@ -962,34 +986,58 @@ function StudentsDatabaseView({
 }
 
 // ── GRUPID ────────────────────────────────────────────────────
-function GroupsView({myStudents,schedule,setSelStu,setTab}) {
-  const groups = React.useMemo(()=>{
-    const map = {};
-    myStudents.forEach(student=>{
-      const name = (student.group||'Määramata').trim() || 'Määramata';
-      if(!map[name]) map[name] = {name,students:[],teachers:new Set(),events:[]};
-      map[name].students.push(student);
-      if(student.teacher) map[name].teachers.add(canonicalTeacherName(student.teacher));
+function GroupsView({groups,students,isAdmin,setSelStu,setTab,addGroup,deleteGroup,addGroupLesson,deleteGroupLesson,toggleGroupStudent}) {
+  const [showForm,setShowForm] = React.useState(false);
+  const [groupName,setGroupName] = React.useState('');
+  const [groupTeacher,setGroupTeacher] = React.useState('Pavel');
+  const [groupSubject,setGroupSubject] = React.useState('Eesti keel');
+  const [groupLevel,setGroupLevel] = React.useState('A1');
+  const [lessonDrafts,setLessonDrafts] = React.useState({});
+  const [studentSearch,setStudentSearch] = React.useState('');
+
+  const activeStudents = React.useMemo(()=>students.filter(s=>s.active!==false),[students]);
+  const visibleGroups = React.useMemo(()=>
+    [...(groups||[])].sort((a,b)=>(a.name||'').localeCompare(b.name||'','et'))
+  ,[groups]);
+
+  const createGroup = async()=>{
+    const ok = await addGroup({
+      name:groupName,
+      teacher:groupTeacher,
+      subject:groupSubject,
+      level:groupLevel
     });
+    if(ok){
+      setGroupName('');
+      setGroupTeacher('Pavel');
+      setGroupSubject('Eesti keel');
+      setGroupLevel('A1');
+      setShowForm(false);
+    }
+  };
 
-    Object.values(map).forEach(group=>{
-      const groupName = normalizeText(group.name);
-      const memberNames = new Set(group.students.map(student=>normalizeText(student.name)));
-      group.events = schedule
-        .filter(event=>{
-          const target = normalizeText(event.studentName);
-          return target===groupName || memberNames.has(target);
-        })
-        .sort((a,b)=>(a.day||a.date||'').localeCompare(b.day||b.date||'') || (a.time||'').localeCompare(b.time||''));
-    });
+  const setDraft = (groupId, patch)=>{
+    setLessonDrafts(prev=>({
+      ...prev,
+      [groupId]: {
+        day: 'Mon',
+        time: '16:00',
+        startDate: today(),
+        ...(prev[groupId]||{}),
+        ...patch
+      }
+    }));
+  };
 
-    return Object.values(map).sort((a,b)=>a.name.localeCompare(b.name,'et'));
-  },[myStudents,schedule]);
+  const submitGroupLesson = async(group)=>{
+    const draft = {day:'Mon',time:'16:00',startDate:today(),...(lessonDrafts[group.id]||{})};
+    await addGroupLesson(group,draft);
+    setLessonDrafts(prev=>({...prev,[group.id]:{day:'Mon',time:'16:00',startDate:today()}}));
+  };
 
-  const eventLabel = event=>{
-    if(event.date) return fmtDate(event.date);
-    const idx = DAYS_ID.indexOf(event.day);
-    return idx>=0 ? DAYS_FULL[idx] : (event.day||'—');
+  const dayLabel = day=>{
+    const idx = DAYS_ID.indexOf(day);
+    return idx>=0 ? DAYS_FULL[idx] : day;
   };
 
   const openStudent = student=>{
@@ -999,73 +1047,143 @@ function GroupsView({myStudents,schedule,setSelStu,setTab}) {
 
   return(
     <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:20}}>
-      <div>
-        <h1 style={{fontSize:'1.7rem'}}>Grupid</h1>
-        <div style={{fontSize:'.9rem',color:'#42536A',marginTop:4}}>
-          Ülevaade sellest, kes millises grupis õpib ja millal grupi tunnid toimuvad.
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:12,flexWrap:'wrap'}}>
+        <div>
+          <h1 style={{fontSize:'1.7rem'}}>Grupid</h1>
+          <div style={{fontSize:'.9rem',color:'#42536A',marginTop:4}}>
+            Eraldi grupid: koosseis, õpetaja ja iganädalane tunniplaan.
+          </div>
         </div>
+        {isAdmin&&(
+          <button onClick={()=>setShowForm(v=>!v)} className="btn btn-pine">
+            <i className="fa-solid fa-plus"/> Lisa grupp
+          </button>
+        )}
       </div>
 
-      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(320px,1fr))',gap:16}}>
-        {groups.map(group=>(
-          <div key={group.name} className="card" style={{padding:22,display:'flex',flexDirection:'column',gap:16}}>
-            <div style={{display:'flex',justifyContent:'space-between',gap:12,alignItems:'flex-start'}}>
-              <div>
-                <h2 style={{fontSize:'1.15rem'}}>{group.name}</h2>
-                <div style={{fontSize:'.78rem',color:'#42536A',marginTop:4}}>
-                  {group.students.length} õpilast
-                  {group.teachers.size>0&&<> · Õpetaja: {[...group.teachers].join(', ')}</>}
+      {showForm&&isAdmin&&(
+        <div className="card" style={{padding:22}}>
+          <div style={{fontSize:'.78rem',fontWeight:700,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:12}}>
+            Uus grupp
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))',gap:10}}>
+            <input value={groupName} onChange={e=>setGroupName(e.target.value)} placeholder="Grupi nimi *"/>
+            <select value={groupTeacher} onChange={e=>setGroupTeacher(e.target.value)}>
+              {TEACHERS.map(t=><option key={t}>{t}</option>)}
+            </select>
+            <select value={groupSubject} onChange={e=>setGroupSubject(e.target.value)}>
+              {SUBJECTS.map(s=><option key={s}>{s}</option>)}
+            </select>
+            <select value={groupLevel} onChange={e=>setGroupLevel(e.target.value)}>
+              {LEVELS.map(l=><option key={l}>{l}</option>)}
+            </select>
+          </div>
+          <button onClick={createGroup} className="btn btn-pine" style={{width:'100%',marginTop:12}}>
+            Salvesta grupp
+          </button>
+        </div>
+      )}
+
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(360px,1fr))',gap:16}}>
+        {visibleGroups.map(group=>{
+          const memberIds = new Set(group.students||[]);
+          const members = activeStudents.filter(student=>memberIds.has(student.id));
+          const available = activeStudents
+            .filter(student=>!memberIds.has(student.id))
+            .filter(student=>{
+              const q = normalizeText(studentSearch);
+              if(!q) return true;
+              return normalizeText(student.name).includes(q) || normalizeText(student.email).includes(q) || normalizeText(student.group).includes(q);
+            })
+            .slice(0,12);
+          const draft = {day:'Mon',time:'16:00',startDate:today(),...(lessonDrafts[group.id]||{})};
+          return(
+            <div key={group.id} className="card" style={{padding:22,display:'flex',flexDirection:'column',gap:16}}>
+              <div style={{display:'flex',justifyContent:'space-between',gap:12,alignItems:'flex-start'}}>
+                <div>
+                  <h2 style={{fontSize:'1.16rem'}}>{group.name}</h2>
+                  <div style={{fontSize:'.78rem',color:'#42536A',marginTop:4}}>
+                    {members.length} õpilast · {group.teacher||'Õpetaja määramata'} · {group.subject||'Õppeaine määramata'} · {group.level||'Tase määramata'}
+                  </div>
                 </div>
+                {isAdmin&&<button onClick={()=>deleteGroup(group)} className="btn btn-red btn-sm">Kustuta</button>}
               </div>
-              <span className="badge" style={{background:'rgba(47,93,80,.1)',color:'#2F5D50'}}>
-                {group.events.length} tundi
-              </span>
-            </div>
 
-            <div>
-              <div style={{fontSize:'.76rem',fontWeight:700,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8}}>
-                Õpilased
-              </div>
-              <div style={{display:'flex',flexDirection:'column',gap:6}}>
-                {group.students.map(student=>(
-                  <button key={student.id} onClick={()=>openStudent(student)}
-                    style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:8,padding:'9px 11px',borderRadius:10,border:'1px solid rgba(28,43,58,.08)',background:'#F9F8F6',cursor:'pointer',textAlign:'left'}}>
-                    <span style={{fontWeight:650,color:'#1C2B3A'}}>{student.name}</span>
-                    <span style={{fontSize:'.76rem',color:'#42536A'}}>{student.level} → {student.targetLevel}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <div style={{fontSize:'.76rem',fontWeight:700,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8}}>
-                Tunniplaan
-              </div>
-              <div style={{display:'flex',flexDirection:'column',gap:6}}>
-                {group.events.length===0&&(
-                  <div style={{fontSize:'.84rem',color:'#42536A',padding:'10px 0'}}>Tunde pole veel lisatud.</div>
+              <div>
+                <div style={{fontSize:'.76rem',fontWeight:700,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8}}>
+                  Tunniajad
+                </div>
+                <div style={{display:'flex',flexDirection:'column',gap:7}}>
+                  {(group.lessons||[]).length===0&&<div style={{fontSize:'.84rem',color:'#42536A'}}>Tunde pole veel lisatud.</div>}
+                  {(group.lessons||[]).map(lesson=>(
+                    <div key={lesson.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:8,padding:'9px 11px',borderRadius:10,background:'#F9F8F6',border:'1px solid rgba(28,43,58,.08)'}}>
+                      <div>
+                        <div style={{fontWeight:650,fontSize:'.86rem'}}>{dayLabel(lesson.day)} · {lesson.time}</div>
+                        <div style={{fontSize:'.72rem',color:'#42536A'}}>alates {fmtDate(lesson.startDate)} · kordub igal nädalal</div>
+                      </div>
+                      {isAdmin&&<button onClick={()=>deleteGroupLesson(group,lesson.id)} className="btn btn-ghost btn-sm">Eemalda</button>}
+                    </div>
+                  ))}
+                </div>
+                {isAdmin&&(
+                  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr auto',gap:8,marginTop:10}}>
+                    <select value={draft.day} onChange={e=>setDraft(group.id,{day:e.target.value})}>
+                      {DAYS_ID.map((day,i)=><option key={day} value={day}>{DAYS_FULL[i]}</option>)}
+                    </select>
+                    <select value={draft.time} onChange={e=>setDraft(group.id,{time:e.target.value})}>
+                      {TIMES.map(t=><option key={t}>{t}</option>)}
+                    </select>
+                    <input type="date" value={draft.startDate} onChange={e=>setDraft(group.id,{startDate:e.target.value})}/>
+                    <button onClick={()=>submitGroupLesson(group)} className="btn btn-amber btn-sm">Lisa aeg</button>
+                  </div>
                 )}
-                {group.events.slice(0,8).map(event=>(
-                  <div key={event.id} style={{display:'grid',gridTemplateColumns:'1fr auto',gap:8,padding:'9px 11px',borderRadius:10,background:'#fff',border:'1px solid rgba(28,43,58,.07)'}}>
-                    <div>
-                      <div style={{fontWeight:650,fontSize:'.86rem'}}>{eventLabel(event)} · {event.time}</div>
-                      <div style={{fontSize:'.74rem',color:'#42536A'}}>
-                        {event.studentName}{event.recurring&&' · kordub igal nädalal'}
+              </div>
+
+              <div>
+                <div style={{fontSize:'.76rem',fontWeight:700,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8}}>
+                  Grupi õpilased
+                </div>
+                <div style={{display:'flex',flexDirection:'column',gap:6}}>
+                  {members.length===0&&<div style={{fontSize:'.84rem',color:'#42536A'}}>Õpilasi pole veel lisatud.</div>}
+                  {members.map(student=>(
+                    <div key={student.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:8,padding:'9px 11px',borderRadius:10,border:'1px solid rgba(28,43,58,.08)',background:'#fff'}}>
+                      <button onClick={()=>openStudent(student)} style={{border:'none',background:'transparent',padding:0,cursor:'pointer',textAlign:'left',fontWeight:650,color:'#1C2B3A'}}>
+                        {student.name}
+                      </button>
+                      <div style={{display:'flex',alignItems:'center',gap:8}}>
+                        <span style={{fontSize:'.76rem',color:'#42536A'}}>{student.level} → {student.targetLevel}</span>
+                        {isAdmin&&<button onClick={()=>toggleGroupStudent(group,student,false)} className="btn btn-ghost btn-sm">Eemalda</button>}
                       </div>
                     </div>
-                    <span className="badge" style={{alignSelf:'start',background:event.status==='Tühistatud'?'#fee2e2':'rgba(47,93,80,.1)',color:event.status==='Tühistatud'?'#991b1b':'#2F5D50'}}>
-                      {event.status||'Planeeritud'}
-                    </span>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
-          </div>
-        ))}
 
-        {groups.length===0&&(
+              {isAdmin&&(
+                <div>
+                  <div style={{fontSize:'.76rem',fontWeight:700,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8}}>
+                    Lisa õpilane gruppi
+                  </div>
+                  <input value={studentSearch} onChange={e=>setStudentSearch(e.target.value)} placeholder="Otsi õpilast..." style={{marginBottom:8}}/>
+                  <div style={{display:'flex',flexDirection:'column',gap:6,maxHeight:220,overflowY:'auto'}} className="scroll">
+                    {available.map(student=>(
+                      <button key={student.id} onClick={()=>toggleGroupStudent(group,student,true)}
+                        style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:8,padding:'9px 11px',borderRadius:10,border:'1px solid rgba(28,43,58,.08)',background:'#F9F8F6',cursor:'pointer',textAlign:'left'}}>
+                        <span style={{fontWeight:650,color:'#1C2B3A'}}>{student.name}</span>
+                        <span style={{fontSize:'.76rem',color:'#42536A'}}>Lisa</span>
+                      </button>
+                    ))}
+                    {available.length===0&&<div style={{fontSize:'.84rem',color:'#42536A',padding:'8px 0'}}>Sobivaid õpilasi ei leitud.</div>}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+
+        {visibleGroups.length===0&&(
           <div className="card" style={{gridColumn:'1/-1',padding:42,textAlign:'center',color:'#42536A'}}>
-            Gruppe pole veel lisatud. Lisa grupi nimi õpilase profiilis või andmebaasi tabelis.
+            Gruppe pole veel lisatud. Vajuta “Lisa grupp”, määra tunniajad ja lisa õpilased.
           </div>
         )}
       </div>
@@ -1911,6 +2029,7 @@ function App() {
   const [schedule,setSch] = useState([]);
   const [invoices,setInv] = useState([]);
   const [messages,setMessages] = useState([]);
+  const [groups,setGroups] = useState([]);
 
   // Add student
   const [nName,setNName]   = useState('');
@@ -1994,7 +2113,11 @@ function App() {
     const u4=db.collection('schedule').onSnapshot(s=>setSch(s.docs.map(d=>({id:d.id,...d.data()}))));
     const u5=db.collection('invoices').onSnapshot(s=>setInv(s.docs.map(d=>({id:d.id,...d.data()}))));
     const u6=db.collection('messages').onSnapshot(s=>setMessages(s.docs.map(d=>({id:d.id,...d.data()}))));
-    return()=>{u1();u2();u3();u4();u5();u6();};
+    const u7=db.collection('groups').onSnapshot(
+      s=>setGroups(s.docs.map(d=>({id:d.id,...d.data()}))),
+      err=>{console.warn('Groups listener failed:',err);setGroups([]);}
+    );
+    return()=>{u1();u2();u3();u4();u5();u6();u7();};
   },[user]);
 
   const notify=msg=>{setNotif(msg);setTimeout(()=>setNotif(''),3500);};
@@ -2026,8 +2149,11 @@ function App() {
   },[user,students,isAdmin]);
 
   const groupOptions = useMemo(()=>
-    [...new Set(myStudents.map(s=>(s.group||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'et'))
-  ,[myStudents]);
+    [...new Set([
+      ...myStudents.map(s=>(s.group||'').trim()).filter(Boolean),
+      ...groups.map(g=>(g.name||'').trim()).filter(Boolean)
+    ])].sort((a,b)=>a.localeCompare(b,'et'))
+  ,[myStudents,groups]);
 
   const filteredStudents = useMemo(()=>
     myStudents
@@ -2106,19 +2232,31 @@ function App() {
     notify(schRecurring?'✓ Korduv tund lisatud!':'✓ Tund broneeritud!');
   },[schStu,schDate,schTime,schTeach,schRecurring,canAssignTeacher,user]);
 
-  const markAttendance=useCallback(async(scheduleId,attendanceKey,status)=>{
-    if(!scheduleId||!attendanceKey){notify('⚠ Tundi ei leitud');return;}
-    await db.collection('schedule').doc(scheduleId).update({
-      [`attendance.${attendanceKey}`]: {
+  const markAttendance=useCallback(async(event,attendanceKey,status)=>{
+    if(!event||!attendanceKey){notify('⚠ Tundi ei leitud');return;}
+    const attendance = {
         status,
         by:user.uid||'',
         byName:user.displayName||user.email||'',
         byRole:user.role||'',
         updatedAt:new Date().toISOString()
-      }
-    });
+      };
+    if(event.isGroup){
+      const group = groups.find(g=>g.id===event.groupId);
+      if(!group){notify('⚠ Gruppi ei leitud');return;}
+      const lessons = (group.lessons||[]).map(lesson=>
+        lesson.id===event.groupLessonId
+          ? {...lesson,attendance:{...(lesson.attendance||{}),[attendanceKey]:attendance}}
+          : lesson
+      );
+      await db.collection('groups').doc(group.id).update({lessons,updatedAt:new Date().toISOString()});
+    }else{
+      await db.collection('schedule').doc(event.id).update({
+        [`attendance.${attendanceKey}`]: attendance
+      });
+    }
     notify(status==='coming'?'✓ Osalemine märgitud':'✓ Puudumine märgitud');
-  },[user]);
+  },[user,groups]);
 
   const sendTeacherMessage=useCallback(async(student,text)=>{
     if(!student){notify('⚠ Õpilast ei leitud');return;}
@@ -2138,6 +2276,75 @@ function App() {
     setTeacherMessage('');
     notify('✓ Sõnum saadetud õpetajale');
   },[user]);
+
+  const addGroup=useCallback(async(group)=>{
+    if(!isAdmin){notify('⚠ Ainult admin saab gruppe lisada');return false;}
+    if(!group.name?.trim()){notify('⚠ Sisesta grupi nimi');return false;}
+    await db.collection('groups').add({
+      name:group.name.trim(),
+      teacher:group.teacher||'Pavel',
+      subject:group.subject||'Eesti keel',
+      level:group.level||'A1',
+      students:[],
+      lessons:[],
+      active:true,
+      createdAt:today(),
+      createdBy:user.displayName||user.email||''
+    });
+    notify('✓ Grupp lisatud');
+    return true;
+  },[isAdmin,user]);
+
+  const deleteGroup=useCallback(async(group)=>{
+    if(!isAdmin||!group?.id) return;
+    if(!window.confirm(`Kustuta grupp "${group.name}"? Õpilasi ei kustutata.`)) return;
+    const memberIds = group.students||[];
+    await Promise.all(memberIds.map(studentId=>db.collection('students').doc(studentId).update({group:''}).catch(()=>null)));
+    await db.collection('groups').doc(group.id).delete();
+    notify('✓ Grupp kustutatud');
+  },[isAdmin]);
+
+  const addGroupLesson=useCallback(async(group,draft)=>{
+    if(!isAdmin||!group?.id) return;
+    const lesson = {
+      id:`gl-${Date.now()}`,
+      day:draft.day||'Mon',
+      time:draft.time||'16:00',
+      startDate:draft.startDate||today(),
+      recurring:true,
+      status:'Planeeritud',
+      attendance:{}
+    };
+    await db.collection('groups').doc(group.id).update({
+      lessons:[...(group.lessons||[]),lesson],
+      updatedAt:new Date().toISOString()
+    });
+    notify('✓ Grupi aeg lisatud');
+  },[isAdmin]);
+
+  const deleteGroupLesson=useCallback(async(group,lessonId)=>{
+    if(!isAdmin||!group?.id||!lessonId) return;
+    await db.collection('groups').doc(group.id).update({
+      lessons:(group.lessons||[]).filter(lesson=>lesson.id!==lessonId),
+      updatedAt:new Date().toISOString()
+    });
+    notify('✓ Grupi aeg eemaldatud');
+  },[isAdmin]);
+
+  const toggleGroupStudent=useCallback(async(group,student,shouldAdd)=>{
+    if(!isAdmin||!group?.id||!student?.id) return;
+    const current = new Set(group.students||[]);
+    if(shouldAdd) current.add(student.id);
+    else current.delete(student.id);
+    await db.collection('groups').doc(group.id).update({
+      students:[...current],
+      updatedAt:new Date().toISOString()
+    });
+    await db.collection('students').doc(student.id).update({
+      group:shouldAdd ? group.name : ''
+    });
+    notify(shouldAdd?'✓ Õpilane lisatud gruppi':'✓ Õpilane eemaldatud grupist');
+  },[isAdmin]);
 
   const saveLesson=useCallback(async()=>{
     if(!modalEv||!lTopic.trim()){notify('⚠ Sisesta tunni teema');return;}
@@ -2439,7 +2646,7 @@ function App() {
             nPkg={nPkg} setNPkg={setNPkg} nSubject={nSubject} setNSubject={setNSubject} nGrade={nGrade} setNGrade={setNGrade} nGroup={nGroup} setNGroup={setNGroup} nTeach={nTeach} setNTeach={setNTeach}
             addStudent={addStudent} isAdmin={isAdmin} isStaff={isStaff}/>}
 
-          {tab==='calendar'&&<CalendarView user={user} myStudents={myStudents} schedule={schedule} isAdmin={canAssignTeacher}
+          {tab==='calendar'&&<CalendarView user={user} myStudents={myStudents} schedule={schedule} groups={groups} isAdmin={canAssignTeacher}
             filterT={filterT} setFilterT={setFilterT}
             schStu={schStu} setSchStu={setSchStu} schDate={schDate} setSchDate={setSchDate}
             schTime={schTime} setSchTime={setSchTime} schTeach={schTeach} setSchTeach={setSchTeach}
@@ -2458,7 +2665,10 @@ function App() {
             addInvoice={addInvoice} markPaid={markPaid} unmarkPaid={unmarkPaid} deleteInvoice={deleteInvoice} printInvoice={printInvoice} submitParentPayment={submitParentPayment} resetParentPayment={resetParentPayment} deleteLesson={deleteLesson} openLessonEditor={openLessonEditor}
             stuMessages={stuMessages} teacherMessage={teacherMessage} setTeacherMessage={setTeacherMessage} sendTeacherMessage={sendTeacherMessage}/>}
 
-          {tab==='groups'&&isStaff&&<GroupsView myStudents={myStudents} schedule={schedule} setSelStu={setSelStu} setTab={setTab}/>}
+          {tab==='groups'&&isStaff&&<GroupsView groups={groups} students={canAssignTeacher?students:myStudents} isAdmin={canAssignTeacher}
+            setSelStu={setSelStu} setTab={setTab}
+            addGroup={addGroup} deleteGroup={deleteGroup} addGroupLesson={addGroupLesson}
+            deleteGroupLesson={deleteGroupLesson} toggleGroupStudent={toggleGroupStudent}/>}
 
           {tab==='database'&&isStaff&&<StudentsDatabaseView
             filteredStudents={filteredStudents}
