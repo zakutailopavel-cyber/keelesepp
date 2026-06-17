@@ -4,6 +4,9 @@
   const APP_VERSION  = 'CRM 2026-06-17 17:22';
   const LEVELS   = ['A1','A2','B1','B2','C1'];
   const TEACHERS = ['Pavel','Jelena','Elizaveta','Angelina'];
+  const SUBJECTS = ['Eesti keel','Inglise keel','Muu'];
+  const GRADES = ['1. klass','2. klass','3. klass','4. klass','5. klass','6. klass','7. klass','8. klass','9. klass','10. klass','11. klass','12. klass','Täiskasvanu'];
+  const LESSON_DURATIONS = ['30','45','60','90','120'];
   const PAYMENT_METHODS = [
     {id:'bank', label:'Pangaülekanne'},
     {id:'cash', label:'Sularaha'},
@@ -165,6 +168,9 @@
     APP_VERSION,
     LEVELS,
     TEACHERS,
+    SUBJECTS,
+    GRADES,
+    LESSON_DURATIONS,
     PAYMENT_METHODS,
     PAYMENT_DETAILS,
     CONTACT_STATUSES,
