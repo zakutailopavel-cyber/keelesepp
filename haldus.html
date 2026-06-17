@@ -1078,7 +1078,7 @@ function StudentsDatabaseView({
 // ── ÕPILASE KAART ─────────────────────────────────────────────
 function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,setEditStu,toggleStudentActive,
   hwTask,setHwTask,hwDue,setHwDue,addHw,toggleHw,
-  invAmt,setInvAmt,invDesc,setInvDesc,addInvoice,markPaid,printInvoice,submitParentPayment,resetParentPayment,deleteLesson,openLessonEditor}) {
+  invAmt,setInvAmt,invDesc,setInvDesc,addInvoice,markPaid,unmarkPaid,printInvoice,submitParentPayment,resetParentPayment,deleteLesson,openLessonEditor}) {
   if(!currentStu) return <div style={{textAlign:'center',padding:60,color:'#42536A'}}>Õpilane ei leitud.</div>;
   const done=stuLessons.filter(l=>l.status==='Toimunud');
   const pct=levelPct(currentStu.level,currentStu.targetLevel);
@@ -1277,6 +1277,7 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
                     :<span className="badge" style={{background:'#fef3c7',color:'#92400e'}}>Ootel</span>}
                   {inv.parentPaymentStatus==='submitted'&&inv.status!=='Makstud'&&<span className="badge" style={{background:'#dbeafe',color:'#1d4ed8'}}>Maksest teavitatud</span>}
                   {canManage&&inv.status!=='Makstud'&&<button onClick={()=>markPaid(inv.id)} className="btn btn-pine btn-sm">Märgi makstud</button>}
+                  {canManage&&inv.status==='Makstud'&&<button onClick={()=>unmarkPaid(inv.id)} className="btn btn-red btn-sm">Tühista makse</button>}
                   {canManage&&inv.parentPaymentStatus==='submitted'&&inv.status!=='Makstud'&&<button onClick={()=>resetParentPayment(inv.id)} className="btn btn-ghost btn-sm">Lähtesta teavitus</button>}
                   <button onClick={()=>printInvoice(inv)} className="btn btn-ghost btn-sm"><i className="fa-solid fa-print"/> Prindi</button>
                 </div>
@@ -1290,7 +1291,7 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
 }
 
 // ── ARVED ÜLDVAADE ────────────────────────────────────────────
-function InvoicesView({invoices,myStudents,invStu,setInvStu,invAmt,setInvAmt,invDesc,setInvDesc,addInvoice,markPaid,printInvoice}) {
+function InvoicesView({invoices,myStudents,invStu,setInvStu,invAmt,setInvAmt,invDesc,setInvDesc,addInvoice,markPaid,unmarkPaid,printInvoice}) {
   const unpaidAmt=invoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+i.amount,0);
   const paid=invoices.filter(i=>i.status==='Makstud');
   return(
@@ -1331,7 +1332,10 @@ function InvoicesView({invoices,myStudents,invStu,setInvStu,invAmt,setInvAmt,inv
               <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
                 <span style={{fontWeight:700}}>{inv.amount}€</span>
                 {inv.status==='Makstud'
-                  ?<span className="badge" style={{background:'#dcfce7',color:'#166534'}}>✓ Makstud</span>
+                  ?<>
+                    <span className="badge" style={{background:'#dcfce7',color:'#166534'}}>✓ Makstud</span>
+                    <button onClick={()=>unmarkPaid(inv.id)} className="btn btn-red btn-sm">Tühista makse</button>
+                  </>
                   :<><span className="badge" style={{background:'#fef3c7',color:'#92400e'}}>Ootel</span>
                     <button onClick={()=>markPaid(inv.id)} className="btn btn-pine btn-sm">Märgi makstud</button>
                   </>}
@@ -2097,6 +2101,17 @@ function App() {
     notify('✓ Märgitud makstud!');
   },[]);
 
+  const unmarkPaid=useCallback(async id=>{
+    await db.collection('invoices').doc(id).update({
+      status:'Ootel',
+      paidAt:firebase.firestore.FieldValue.delete(),
+      parentPaymentStatus:'pending',
+      parentPaymentSubmittedAt:'',
+      parentPaymentMethod:''
+    });
+    notify('✓ Makse tühistatud');
+  },[]);
+
   const submitParentPayment=useCallback(async(id,method)=>{
     await db.collection('invoices').doc(id).update({
       parentPaymentStatus:'submitted',
@@ -2242,7 +2257,7 @@ function App() {
             isAdmin={canAssignTeacher} setSelStu={setSelStu} toggleStudentActive={toggleStudentActive}
             hwTask={hwTask} setHwTask={setHwTask} hwDue={hwDue} setHwDue={setHwDue} addHw={addHw} toggleHw={toggleHw}
             invAmt={invAmt} setInvAmt={setInvAmt} invDesc={invDesc} setInvDesc={setInvDesc}
-            addInvoice={addInvoice} markPaid={markPaid} printInvoice={printInvoice} submitParentPayment={submitParentPayment} resetParentPayment={resetParentPayment} deleteLesson={deleteLesson} openLessonEditor={openLessonEditor}/>}
+            addInvoice={addInvoice} markPaid={markPaid} unmarkPaid={unmarkPaid} printInvoice={printInvoice} submitParentPayment={submitParentPayment} resetParentPayment={resetParentPayment} deleteLesson={deleteLesson} openLessonEditor={openLessonEditor}/>}
 
           {tab==='database'&&isStaff&&<StudentsDatabaseView
             filteredStudents={filteredStudents}
@@ -2286,7 +2301,7 @@ function App() {
 
           {tab==='invoices'&&isStaff&&<InvoicesView invoices={invoices} myStudents={myStudents}
             invStu={invStu} setInvStu={setInvStu} invAmt={invAmt} setInvAmt={setInvAmt}
-            invDesc={invDesc} setInvDesc={setInvDesc} addInvoice={addInvoice} markPaid={markPaid} printInvoice={printInvoice}/>}
+            invDesc={invDesc} setInvDesc={setInvDesc} addInvoice={addInvoice} markPaid={markPaid} unmarkPaid={unmarkPaid} printInvoice={printInvoice}/>}
         </div>
       </main>
 
