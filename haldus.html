@@ -140,6 +140,13 @@ const TEACHER_CODE = 'KS2026';
 const ADMIN_CODE   = 'KSADMIN2026';
 const LEVELS   = ['A1','A2','B1','B2','C1'];
 const TEACHERS = ['Pavel','Jelena','Elizaveta','Angelina'];
+const CONTACT_STATUSES = [
+  {id:'new', label:'Uus'},
+  {id:'contacted', label:'Võetud ühendust'},
+  {id:'waiting', label:'Ootab vastust'},
+  {id:'scheduled', label:'Tund kokku lepitud'},
+  {id:'active', label:'Aktiivne õpilane'},
+];
 const canonicalTeacherName = value => {
   const name = (value || '').trim();
   if(!name) return '';
@@ -188,6 +195,10 @@ async function ensureStudentRecord(authUser, profile){
     group:'',
     registrationSource:'self-service',
     profileStatus:'new',
+    contactStatus:'new',
+    contactOwner:'',
+    contactLastAt:'',
+    contactNotes:'',
     createdAt:today()
   });
 }
@@ -737,11 +748,18 @@ function StudentsList({filteredStudents,lessons,isAdmin,search,setSearch,stuFilt
 // ── ÕPILASTE ANDMEBAAS ───────────────────────────────────────
 function StudentsDatabaseView({
   filteredStudents,lessons,invoices,isAdmin,search,setSearch,stuFilter,setStuFilter,
-  groupFilter,setGroupFilter,groupOptions,openStudent,setEditStu,user,
+  groupFilter,setGroupFilter,groupOptions,contactFilter,setContactFilter,openStudent,setEditStu,user,
   nName,setNName,nEmail,setNEmail,nPhone,setNPhone,nLevel,setNLevel,nTarget,setNTarget,
   nSubject,setNSubject,nGrade,setNGrade,nGroup,setNGroup,nPkg,setNPkg,nTeach,setNTeach,addStudent
 }) {
   const [showAddForm,setShowAddForm] = React.useState(false);
+  const contactMeta = {
+    new:{bg:'#dbeafe',c:'#1d4ed8',t:'Uus'},
+    contacted:{bg:'#fef3c7',c:'#92400e',t:'Võetud ühendust'},
+    waiting:{bg:'#fee2e2',c:'#991b1b',t:'Ootab vastust'},
+    scheduled:{bg:'#ede9fe',c:'#6d28d9',t:'Tund kokku lepitud'},
+    active:{bg:'#dcfce7',c:'#166534',t:'Aktiivne õpilane'}
+  };
   return(
     <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:20}}>
       <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',flexWrap:'wrap',gap:12}}>
@@ -759,6 +777,10 @@ function StudentsDatabaseView({
           <select value={groupFilter} onChange={e=>setGroupFilter(e.target.value)} style={{width:'auto'}}>
             <option value="all">Kõik grupid</option>
             {groupOptions.map(group=><option key={group} value={group}>{group}</option>)}
+          </select>
+          <select value={contactFilter} onChange={e=>setContactFilter(e.target.value)} style={{width:'auto'}}>
+            <option value="all">Kõik kontaktid</option>
+            {CONTACT_STATUSES.map(status=><option key={status.id} value={status.id}>{status.label}</option>)}
           </select>
           <select value={stuFilter} onChange={e=>setStuFilter(e.target.value)} style={{width:'auto'}}>
             <option value="active">Aktiivsed</option>
@@ -829,7 +851,7 @@ function StudentsDatabaseView({
           <table style={{width:'100%',borderCollapse:'collapse',minWidth:1180}}>
             <thead>
               <tr style={{background:'#F9F8F6',borderBottom:'1px solid rgba(28,43,58,.08)'}}>
-                {['Õpilane','Kontakt','Õpe','Grupp','Õpetaja','Paketid','Tunnid','Arved','Staatus','Tegevused'].map(head=>(
+                {['Õpilane','Kontakt','Kontaktistaatus','Õpe','Grupp','Õpetaja','Paketid','Tunnid','Arved','Staatus','Tegevused'].map(head=>(
                   <th key={head} style={{textAlign:'left',padding:'14px 16px',fontSize:'.76rem',fontWeight:700,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em'}}>
                     {head}
                   </th>
@@ -844,6 +866,7 @@ function StudentsDatabaseView({
                 const remaining = pkgLeft(student);
                 const avgGrade = completedLessons.length ? avg(completedLessons.map(l=>l.grade)) : '—';
                 const lastLesson = [...studentLessons].sort((a,b)=>new Date(b.date)-new Date(a.date))[0];
+                const contact = contactMeta[student.contactStatus||'new'] || contactMeta.new;
                 const statusBadge = student.active===false
                   ? {bg:'#f3f4f6',c:'#6b7280',t:'Arhiveeritud'}
                   : remaining<=2 && (student.packageTotal||0)>0
@@ -867,6 +890,17 @@ function StudentsDatabaseView({
                           {student.email&&<a href={`mailto:${student.email}`} className="btn btn-ghost btn-sm">E-post</a>}
                         </div>
                       )}
+                    </td>
+                    <td style={{padding:'14px 16px',verticalAlign:'top'}}>
+                      <span className="badge" style={{background:contact.bg,color:contact.c}}>
+                        {contact.t}
+                      </span>
+                      <div style={{fontSize:'.78rem',color:'#42536A',marginTop:8}}>
+                        {student.contactOwner?`Vastutaja: ${student.contactOwner}`:'Vastutaja puudub'}
+                      </div>
+                      <div style={{fontSize:'.78rem',color:'#42536A',marginTop:4}}>
+                        {student.contactLastAt?`Viimane kontakt: ${fmtDate(student.contactLastAt)}`:'Kontakti veel pole'}
+                      </div>
                     </td>
                     <td style={{padding:'14px 16px',verticalAlign:'top'}}>
                       <div style={{fontWeight:600}}>{student.level} → {student.targetLevel}</div>
@@ -915,7 +949,7 @@ function StudentsDatabaseView({
               })}
               {filteredStudents.length===0&&(
                 <tr>
-                  <td colSpan="10" style={{textAlign:'center',padding:'40px 20px',color:'#42536A'}}>
+                  <td colSpan="11" style={{textAlign:'center',padding:'40px 20px',color:'#42536A'}}>
                     {search?`"${search}" ei leitud`:'Õpilasi pole veel lisatud.'}
                   </td>
                 </tr>
@@ -1348,6 +1382,10 @@ function EditStudentModal({student,onClose,onSave,onDelete,db,notify,isAdmin}) {
   const [grade,   setGrade]   = React.useState(student.grade||'');
   const [group,   setGroup]   = React.useState(student.group||'');
   const [teacher, setTeacher] = React.useState(student.teacher||'Pavel');
+  const [contactStatus,setContactStatus] = React.useState(student.contactStatus||'new');
+  const [contactOwner,setContactOwner] = React.useState(student.contactOwner||'');
+  const [contactLastAt,setContactLastAt] = React.useState(student.contactLastAt||'');
+  const [contactNotes,setContactNotes] = React.useState(student.contactNotes||'');
   const [pkg,     setPkg]     = React.useState(String(student.packageTotal||0));
   const [used,    setUsed]    = React.useState(String(student.packageUsed||0));
   const [saving,  setSaving]  = React.useState(false);
@@ -1359,6 +1397,7 @@ function EditStudentModal({student,onClose,onSave,onDelete,db,notify,isAdmin}) {
     await db.collection('students').doc(student.id).update({
       name,email,phone,level,targetLevel:target,
       subject,grade,group,teacher,
+      contactStatus,contactOwner,contactLastAt,contactNotes,
       packageTotal:parseInt(pkg)||0,
       packageUsed:parseInt(used)||0,
       updatedAt: new Date().toISOString().split('T')[0]
@@ -1448,12 +1487,30 @@ function EditStudentModal({student,onClose,onSave,onDelete,db,notify,isAdmin}) {
               </select>
             </div>
             <div>
+              <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Kontaktistaatus</div>
+              <select value={contactStatus} onChange={e=>setContactStatus(e.target.value)}>
+                {CONTACT_STATUSES.map(status=><option key={status.id} value={status.id}>{status.label}</option>)}
+              </select>
+            </div>
+            <div>
+              <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Kes suhtleb</div>
+              <input value={contactOwner} onChange={e=>setContactOwner(e.target.value)} placeholder="Nt. Pavel / Admin"/>
+            </div>
+            <div>
+              <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Viimane kontakt</div>
+              <input value={contactLastAt} onChange={e=>setContactLastAt(e.target.value)} type="date"/>
+            </div>
+            <div>
               <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Paketi maht</div>
               <input value={pkg} onChange={e=>setPkg(e.target.value)} type="number" placeholder="10"/>
             </div>
             <div>
               <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Kasutatud tunde</div>
               <input value={used} onChange={e=>setUsed(e.target.value)} type="number" placeholder="0"/>
+            </div>
+            <div style={{gridColumn:'1/-1'}}>
+              <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Kontaktimärkmed</div>
+              <textarea value={contactNotes} onChange={e=>setContactNotes(e.target.value)} placeholder="Mida lapsevanem ütles, millal tagasi helistada, mis huvi tundis…" rows={4}/>
             </div>
           </div>
 
@@ -1500,6 +1557,7 @@ function App() {
   const [search,setSearch]     = useState('');
   const [stuFilter,setStuFilter]= useState('active');
   const [groupFilter,setGroupFilter]= useState('all');
+  const [contactFilter,setContactFilter]= useState('all');
   const [notif,setNotif]       = useState('');
   const [mobileNav,setMobileNav]=useState(false);
 
@@ -1612,6 +1670,7 @@ function App() {
     myStudents
       .filter(s=>stuFilter==='active'?s.active!==false:stuFilter==='inactive'?s.active===false:true)
       .filter(s=>groupFilter==='all'?true:(s.group||'').trim()===groupFilter)
+      .filter(s=>contactFilter==='all'?true:((s.contactStatus||'new')===contactFilter))
       .filter(s=>{
         const q=search.toLowerCase();
         return (s.name||'').toLowerCase().includes(q)
@@ -1620,9 +1679,11 @@ function App() {
           || (s.phone||'').toLowerCase().includes(q)
           || (s.subject||'').toLowerCase().includes(q)
           || (s.grade||'').toLowerCase().includes(q)
-          || (s.group||'').toLowerCase().includes(q);
+          || (s.group||'').toLowerCase().includes(q)
+          || (s.contactOwner||'').toLowerCase().includes(q)
+          || (s.contactNotes||'').toLowerCase().includes(q);
       })
-  ,[myStudents,stuFilter,groupFilter,search]);
+  ,[myStudents,stuFilter,groupFilter,contactFilter,search]);
 
   const currentStu = useMemo(()=>
     selStu ? students.find(s=>s.id===selStu.id)||selStu : user?.role!=='teacher'?myStudents[0]:null
@@ -1644,7 +1705,7 @@ function App() {
   const addStudent=useCallback(async()=>{
     if(!nName.trim()){notify('⚠ Sisesta õpilase nimi');return;}
     const t=canAssignTeacher?nTeach:user.displayName;
-    await db.collection('students').add({name:nName,level:nLevel,targetLevel:nTarget,teacher:t,phone:nPhone,email:nEmail,active:true,packageTotal:parseInt(nPkg)||0,packageUsed:0,subject:nSubject,grade:nGrade,group:nGroup,createdAt:today()});
+    await db.collection('students').add({name:nName,level:nLevel,targetLevel:nTarget,teacher:t,phone:nPhone,email:nEmail,active:true,packageTotal:parseInt(nPkg)||0,packageUsed:0,subject:nSubject,grade:nGrade,group:nGroup,contactStatus:'new',contactOwner:user?.displayName||'',contactLastAt:'',contactNotes:'',createdAt:today()});
     setNName('');setNPhone('');setNEmail('');setNGroup('');
     notify('✓ Õpilane '+nName+' lisatud!');
   },[nName,nLevel,nTarget,nTeach,nPhone,nEmail,nPkg,nSubject,nGrade,nGroup,canAssignTeacher,user]);
@@ -1842,6 +1903,8 @@ function App() {
             groupFilter={groupFilter}
             setGroupFilter={setGroupFilter}
             groupOptions={groupOptions}
+            contactFilter={contactFilter}
+            setContactFilter={setContactFilter}
             openStudent={student=>{setSelStu(student);setTab('students');}}
             setEditStu={setEditStu}
             user={user}
