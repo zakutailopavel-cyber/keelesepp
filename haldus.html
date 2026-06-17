@@ -110,6 +110,7 @@ const db   = window._db;
 const auth = window._auth;
 const {
   TEACHER_CODE, ADMIN_CODE, APP_VERSION, LEVELS, TEACHERS,
+  SUBJECTS, GRADES, LESSON_DURATIONS,
   PAYMENT_METHODS, PAYMENT_DETAILS, CONTACT_STATUSES,
   DAYS_SHORT, DAYS_ID, DAYS_FULL, TIMES,
   normalizeText, parseLinkedNames, canonicalTeacherName,
@@ -391,13 +392,11 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
             <select value={nLevel}  onChange={e=>setNLevel(e.target.value)}>{LEVELS.map(l=><option key={l} value={l}>Tase: {l}</option>)}</select>
             <select value={nTarget} onChange={e=>setNTarget(e.target.value)}>{LEVELS.slice(1).map(l=><option key={l} value={l}>Siht: {l}</option>)}</select>
             <select value={nSubject} onChange={e=>setNSubject(e.target.value)}>
-              <option value="Eesti keel">Eesti keel</option>
-              <option value="Inglise keel">Inglise keel</option>
-              <option value="Muu">Muu</option>
+              {SUBJECTS.map(subject=><option key={subject} value={subject}>{subject}</option>)}
             </select>
             <select value={nGrade} onChange={e=>setNGrade(e.target.value)}>
               <option value="">Klass / vanus (valikuline)</option>
-              {["1. klass","2. klass","3. klass","4. klass","5. klass","6. klass","7. klass","8. klass","9. klass","10. klass","11. klass","12. klass","Täiskasvanu"].map(g=><option key={g} value={g}>{g}</option>)}
+              {GRADES.map(g=><option key={g} value={g}>{g}</option>)}
             </select>
             <input value={nGroup} onChange={e=>setNGroup(e.target.value)} placeholder="Grupp (nt. A2 õhtu / 7. klass)"/>
             <input value={nPkg} onChange={e=>setNPkg(e.target.value)} type="number" placeholder="Paketi maht (nt. 10)"/>
@@ -515,7 +514,7 @@ function CalendarView({user,myStudents,schedule,isAdmin,filterT,setFilterT,
         <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
           {isAdmin&&(
             <select value={filterT} onChange={e=>setFilterT(e.target.value)} style={{width:"auto",minWidth:160}}>
-              {["Pavel","Jelena","Elizaveta","Angelina"].map(t=><option key={t}>{t}</option>)}
+              {TEACHERS.map(t=><option key={t}>{t}</option>)}
               <option value="Kõik">Kõik õpetajad</option>
             </select>
           )}
@@ -559,10 +558,10 @@ function CalendarView({user,myStudents,schedule,isAdmin,filterT,setFilterT,
             </select>
             <input type="date" value={schDate} onChange={e=>setSchDate(e.target.value)}/>
             <select value={schTime} onChange={e=>setSchTime(e.target.value)}>
-              {["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00"].map(t=><option key={t}>{t}</option>)}
+              {TIMES.map(t=><option key={t}>{t}</option>)}
             </select>
             {isAdmin&&<select value={schTeach} onChange={e=>setSchTeach(e.target.value)}>
-              {["Pavel","Jelena","Elizaveta","Angelina"].map(t=><option key={t}>{t}</option>)}
+              {TEACHERS.map(t=><option key={t}>{t}</option>)}
             </select>}
           </div>
           <label style={{display:"inline-flex",alignItems:"center",gap:8,padding:"8px 12px",background:"#F9F8F6",borderRadius:10,border:"1px solid rgba(28,43,58,.08)",cursor:"pointer",fontSize:".84rem",fontWeight:500,marginBottom:12,width:"fit-content"}}>
@@ -591,7 +590,7 @@ function CalendarView({user,myStudents,schedule,isAdmin,filterT,setFilterT,
               ))}
             </div>
             {/* Строки времени */}
-            {["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00"].map(slot=>(
+            {TIMES.map(slot=>(
               <div key={slot} style={{display:"grid",gridTemplateColumns:"64px repeat(7,1fr)",minHeight:64,borderBottom:"1px solid rgba(28,43,58,.04)"}}>
                 <div style={{display:"flex",alignItems:"center",justifyContent:"center",fontSize:".72rem",fontFamily:"monospace",fontWeight:700,color:"#9ca3af",background:"rgba(239,237,231,.3)",borderRight:"1px solid rgba(28,43,58,.06)"}}>
                   {slot}
@@ -769,13 +768,11 @@ function StudentsDatabaseView({
             <select value={nLevel} onChange={e=>setNLevel(e.target.value)}>{LEVELS.map(l=><option key={l} value={l}>Tase: {l}</option>)}</select>
             <select value={nTarget} onChange={e=>setNTarget(e.target.value)}>{LEVELS.slice(1).map(l=><option key={l} value={l}>Siht: {l}</option>)}</select>
             <select value={nSubject} onChange={e=>setNSubject(e.target.value)}>
-              <option value="Eesti keel">Eesti keel</option>
-              <option value="Inglise keel">Inglise keel</option>
-              <option value="Muu">Muu</option>
+              {SUBJECTS.map(subject=><option key={subject} value={subject}>{subject}</option>)}
             </select>
             <select value={nGrade} onChange={e=>setNGrade(e.target.value)}>
               <option value="">Klass / vanus (valikuline)</option>
-              {["1. klass","2. klass","3. klass","4. klass","5. klass","6. klass","7. klass","8. klass","9. klass","10. klass","11. klass","12. klass","Täiskasvanu"].map(g=><option key={g} value={g}>{g}</option>)}
+              {GRADES.map(g=><option key={g} value={g}>{g}</option>)}
             </select>
             <input value={nGroup} onChange={e=>setNGroup(e.target.value)} placeholder="Grupp (nt. B1 hommik)"/>
             <input value={nPkg} onChange={e=>setNPkg(e.target.value)} type="number" placeholder="Paketi maht (nt. 10)"/>
@@ -1471,7 +1468,7 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
               <input type="date" value={moveDate} onChange={e=>setMoveDate(e.target.value)}
                 disabled={!hasDate} style={{opacity:!hasDate?.5:1}}/>
               <select value={moveTime} onChange={e=>setMoveTime(e.target.value)} disabled={!hasDate} style={{opacity:!hasDate?.5:1}}>
-                {["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00"].map(t=><option key={t}>{t}</option>)}
+                {TIMES.map(t=><option key={t}>{t}</option>)}
               </select>
             </div>
             <div style={{display:"flex",gap:8}}>
@@ -1517,7 +1514,7 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
                 </select>
               </div>
               <select value={lDur} onChange={e=>setLDur(e.target.value)}>
-                {["30","45","60","90","120"].map(d=><option key={d} value={d}>{d} minutit</option>)}
+                {LESSON_DURATIONS.map(d=><option key={d} value={d}>{d} minutit</option>)}
               </select>
               <textarea value={lComment} onChange={e=>setLComment(e.target.value)} placeholder="Õpetaja kommentaar…" rows={3}/>
               <button onClick={saveLesson} className="btn btn-dark" style={{width:"100%",padding:13}}>
@@ -1622,16 +1619,14 @@ function EditStudentModal({student,onClose,onSave,onDelete,db,notify,isAdmin}) {
             <div>
               <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Õppeaine</div>
               <select value={subject} onChange={e=>setSubject(e.target.value)}>
-                <option>Eesti keel</option>
-                <option>Inglise keel</option>
-                <option>Muu</option>
+                {SUBJECTS.map(subject=><option key={subject}>{subject}</option>)}
               </select>
             </div>
             <div>
               <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Klass / vanus</div>
               <select value={grade} onChange={e=>setGrade(e.target.value)}>
                 <option value="">Määramata</option>
-                {["1. klass","2. klass","3. klass","4. klass","5. klass","6. klass","7. klass","8. klass","9. klass","10. klass","11. klass","12. klass","Täiskasvanu"].map(g=><option key={g}>{g}</option>)}
+                {GRADES.map(g=><option key={g}>{g}</option>)}
               </select>
             </div>
             <div>
@@ -1641,13 +1636,13 @@ function EditStudentModal({student,onClose,onSave,onDelete,db,notify,isAdmin}) {
             <div>
               <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Hetketase</div>
               <select value={level} onChange={e=>setLevel(e.target.value)}>
-                {['A1','A2','B1','B2','C1'].map(l=><option key={l}>{l}</option>)}
+                {LEVELS.map(l=><option key={l}>{l}</option>)}
               </select>
             </div>
             <div>
               <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Eesmärk</div>
               <select value={target} onChange={e=>setTarget(e.target.value)}>
-                {['A2','B1','B2','C1'].map(l=><option key={l}>{l}</option>)}
+                {LEVELS.slice(1).map(l=><option key={l}>{l}</option>)}
               </select>
             </div>
             <div>
