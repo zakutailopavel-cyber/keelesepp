@@ -166,6 +166,32 @@ const toLocalISODate = value => {
 const today = () => toLocalISODate();
 const pkgLeft = s => (s.packageTotal||0)-(s.packageUsed||0);
 
+async function ensureStudentRecord(authUser, profile){
+  if(!authUser || profile?.role!=='student') return;
+  const name = profile.displayName || authUser.displayName || authUser.email || 'Õpilane';
+  const email = profile.email || authUser.email || '';
+  const existing = await db.collection('students').where('linkedUserId','==',authUser.uid).limit(1).get();
+  if(!existing.empty) return;
+  await db.collection('students').add({
+    linkedUserId: authUser.uid,
+    name,
+    email,
+    phone:'',
+    level:'A1',
+    targetLevel:'A2',
+    teacher:'',
+    active:true,
+    packageTotal:0,
+    packageUsed:0,
+    subject:'Eesti keel',
+    grade:'',
+    group:'',
+    registrationSource:'self-service',
+    profileStatus:'new',
+    createdAt:today()
+  });
+}
+
 // ── PROGRESSIGRAAFIK ─────────────────────────────────────────
 function ProgressChart({data}) {
   const ref = useRef(null);
@@ -208,7 +234,11 @@ function AuthScreen({onLogin}) {
       const res=await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
       const u=res.user;
       const snap=await db.collection('users').doc(u.uid).get();
-      if(snap.exists) onLogin({uid:u.uid,displayName:u.displayName,email:u.email,...snap.data()});
+      if(snap.exists){
+        const profile = {uid:u.uid,displayName:u.displayName,email:u.email,...snap.data()};
+        await ensureStudentRecord(u, profile);
+        onLogin(profile);
+      }
       else{
         const ud={role:'parent',displayName:u.displayName,email:u.email,childName:'',createdAt:today()};
         await db.collection('users').doc(u.uid).set(ud);
@@ -224,7 +254,11 @@ function AuthScreen({onLogin}) {
     try{
       const res=await auth.signInWithEmailAndPassword(email,pass);
       const snap=await db.collection('users').doc(res.user.uid).get();
-      if(snap.exists) onLogin({uid:res.user.uid,displayName:res.user.displayName||email,...snap.data()});
+      if(snap.exists){
+        const profile = {uid:res.user.uid,displayName:res.user.displayName||email,...snap.data()};
+        await ensureStudentRecord(res.user, profile);
+        onLogin(profile);
+      }
       else onLogin({uid:res.user.uid,displayName:res.user.displayName||email,email,role:'parent'});
     }catch(e){
       const m={'auth/user-not-found':'Kasutajat ei leitud','auth/wrong-password':'Vale parool','auth/invalid-credential':'Vale e-post või parool'};
@@ -245,26 +279,7 @@ function AuthScreen({onLogin}) {
       await res.user.updateProfile({displayName:name});
       const ud={role,displayName:name,email,childName:role==='parent'?child:'',createdAt:today()};
       await db.collection('users').doc(res.user.uid).set(ud);
-      if(role==='student'){
-        await db.collection('students').add({
-          linkedUserId: res.user.uid,
-          name,
-          email,
-          phone:'',
-          level:'A1',
-          targetLevel:'A2',
-          teacher:'',
-          active:true,
-          packageTotal:0,
-          packageUsed:0,
-          subject:'Eesti keel',
-          grade:'',
-          group:'',
-          registrationSource:'self-service',
-          profileStatus:'new',
-          createdAt:today()
-        });
-      }
+      await ensureStudentRecord(res.user, ud);
       onLogin({uid:res.user.uid,...ud});
     }catch(e){
       const m={'auth/email-already-in-use':'See e-post on juba registreeritud','auth/invalid-email':'Vigane e-post'};
@@ -1539,6 +1554,7 @@ function App() {
           const snap=await db.collection('users').doc(fbUser.uid).get();
           if(snap.exists){
             const d=snap.data();
+            await ensureStudentRecord(fbUser, {uid:fbUser.uid,displayName:fbUser.displayName||fbUser.email,...d});
             setUser({uid:fbUser.uid,displayName:fbUser.displayName||fbUser.email,...d});
             if(d.role==='teacher') setFilterT(canonicalTeacherName(fbUser.displayName||''));
             if(d.role==='admin') setFilterT('Kõik');
