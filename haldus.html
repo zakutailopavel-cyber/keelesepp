@@ -2425,9 +2425,17 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
                 <input type="file" onChange={e=>setLessonFile(e.target.files?.[0]||null)} style={{display:'none'}}/>
               </label>
               {(modalEv.fileUrl||modalEv.attachmentUrl)&&(
-                <a href={modalEv.fileUrl||modalEv.attachmentUrl} target="_blank" rel="noreferrer" style={{display:'inline-flex',alignItems:'center',gap:7,fontSize:'.8rem',fontWeight:700,color:'#2F5D50',textDecoration:'none'}}>
-                  <i className="fa-solid fa-paperclip"/> Ava olemasolev fail
-                </a>
+                <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
+                  <a href={modalEv.fileUrl||modalEv.attachmentUrl} target="_blank" rel="noreferrer" style={{display:'inline-flex',alignItems:'center',gap:7,fontSize:'.8rem',fontWeight:700,color:'#2F5D50',textDecoration:'none'}}>
+                    <i className="fa-solid fa-paperclip"/> Ava olemasolev fail
+                  </a>
+                  <button type="button" onClick={()=>{
+                    setLessonFile(null);
+                    setModalEv({...modalEv,fileUrl:'',fileName:'',attachmentUrl:'',attachmentName:'',attachmentType:'',attachmentSize:0,attachment:null,attachmentRemoved:true});
+                  }} className="btn btn-ghost" style={{padding:'7px 10px',fontSize:'.76rem',color:'#991b1b',borderColor:'rgba(239,68,68,.25)'}}>
+                    <i className="fa-solid fa-trash"/> Eemalda fail
+                  </button>
+                </div>
               )}
               <button onClick={saveLesson} className="btn btn-dark" style={{width:"100%",padding:13}}>
                 <i className="fa-solid fa-floppy-disk"/> Salvesta päevikusse
@@ -3093,8 +3101,8 @@ function App() {
     if(!modalEv||!lTopic.trim()){notify('⚠ Sisesta tunni teema');return;}
     const stu=students.find(s=>s.name.toLowerCase()===modalEv.studentName.toLowerCase());
     const now=new Date();
-    let fileUrl = modalEv.fileUrl || modalEv.attachmentUrl || modalEv.attachment?.url || '';
-    let fileName = modalEv.fileName || modalEv.attachmentName || modalEv.attachment?.name || '';
+    let fileUrl = modalEv.attachmentRemoved ? '' : (modalEv.fileUrl || modalEv.attachmentUrl || modalEv.attachment?.url || '');
+    let fileName = modalEv.attachmentRemoved ? '' : (modalEv.fileName || modalEv.attachmentName || modalEv.attachment?.name || '');
     if(lessonFile){
       const saveInlineFile = () => new Promise((resolve,reject)=>{
         const reader = new FileReader();
@@ -3169,7 +3177,7 @@ function App() {
       }
     }
 
-    if(existingLessonData && !lessonFile && !fileUrl){
+    if(existingLessonData && !lessonFile && !fileUrl && !modalEv.attachmentRemoved){
       const existingFileUrl = existingLessonData.fileUrl || existingLessonData.attachmentUrl || existingLessonData.attachment?.url || '';
       const existingFileName = existingLessonData.fileName || existingLessonData.attachmentName || existingLessonData.attachment?.name || '';
       lessonPayload.fileUrl = existingFileUrl;
@@ -3314,7 +3322,8 @@ function App() {
       attachmentName: lessonFileName,
       attachmentType: freshLesson.attachmentType || freshLesson.attachment?.type || '',
       attachmentSize: freshLesson.attachmentSize || freshLesson.attachment?.size || 0,
-      attachment: freshLesson.attachment || null
+      attachment: freshLesson.attachment || null,
+      attachmentRemoved:false
     });
   },[user]);
 
