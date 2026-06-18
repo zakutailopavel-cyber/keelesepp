@@ -7,6 +7,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
 <script>
 (function(){
   try{
@@ -22,6 +23,7 @@
     }
     window._db=firebase.firestore();
     window._auth=firebase.auth();
+    window._storage=firebase.storage();
   }catch(e){console.error('Firebase:',e);}
 })();
 </script>
@@ -82,6 +84,7 @@ window.addEventListener('load', function(){
     if(typeof window.firebase === 'undefined') missing.push('Firebase');
     if(typeof window._auth === 'undefined') missing.push('Firebase Auth');
     if(typeof window._db === 'undefined') missing.push('Firestore');
+    if(typeof window._storage === 'undefined') missing.push('Firebase Storage');
 
     var root = document.getElementById('root');
     if(!root) return;
@@ -104,10 +107,12 @@ window.addEventListener('load', function(){
 window.__haldusConfigureBabel();
 </script>
 <script src="/haldus-shared.js"></script>
+<script src="/haldus-programs.js"></script>
 <script type="text/babel" data-presets="haldus-react">
 const {useState,useEffect,useRef,useCallback,useMemo} = React;
 const db   = window._db;
 const auth = window._auth;
+const storage = window._storage;
 const {
   TEACHER_CODE, ADMIN_CODE, APP_VERSION, LEVELS, TEACHERS,
   SUBJECTS, GRADES, LESSON_DURATIONS,
@@ -645,6 +650,158 @@ function TasksView({user,tasks,staffMembers,taskTitle,setTaskTitle,taskAssignee,
             );
           })}
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ── ÕPPEKAVAD ────────────────────────────────────────────────
+function ProgramsView() {
+  const programs = window.HaldusPrograms || [];
+  const [levelFilter,setLevelFilter] = React.useState('all');
+  const [subjectFilter,setSubjectFilter] = React.useState('all');
+  const visiblePrograms = programs.filter(program=>
+    (levelFilter==='all' || program.level===levelFilter) &&
+    (subjectFilter==='all' || (program.subjects||[]).includes(subjectFilter))
+  );
+
+  return(
+    <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:22}}>
+      <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:14,flexWrap:'wrap'}}>
+        <div>
+          <h1 style={{fontSize:'1.7rem'}}>Õppekavad</h1>
+          <div style={{color:'#42536A',fontSize:'.88rem',marginTop:4}}>
+            Programmid tasemete ja õppeainete kaupa. Nähtav kõigile töötajatele.
+          </div>
+        </div>
+        <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+          <select value={levelFilter} onChange={e=>setLevelFilter(e.target.value)} style={{width:'auto'}}>
+            <option value="all">Kõik tasemed</option>
+            {LEVELS.map(level=><option key={level} value={level}>{level}</option>)}
+          </select>
+          <select value={subjectFilter} onChange={e=>setSubjectFilter(e.target.value)} style={{width:'auto'}}>
+            <option value="all">Kõik ained</option>
+            {SUBJECTS.map(subject=><option key={subject} value={subject}>{subject}</option>)}
+          </select>
+        </div>
+      </div>
+
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))',gap:16}}>
+        {visiblePrograms.map(program=>(
+          <div key={program.level} className="card" style={{padding:22,display:'flex',flexDirection:'column',gap:16}}>
+            <div style={{display:'flex',justifyContent:'space-between',gap:12,alignItems:'flex-start'}}>
+              <div>
+                <span className="badge" style={{background:'rgba(201,136,42,.12)',color:'#A96E1A',marginBottom:10}}>
+                  {program.level}
+                </span>
+                <h2 style={{fontSize:'1.25rem',marginTop:8}}>{program.title}</h2>
+                <div style={{fontSize:'.82rem',color:'#42536A',marginTop:5}}>{program.audience}</div>
+              </div>
+              <span className="badge" style={{background:'rgba(47,93,80,.12)',color:'#2F5D50'}}>
+                {(program.subjects||[]).join(' · ')}
+              </span>
+            </div>
+
+            <div style={{fontSize:'.88rem',color:'#42536A',lineHeight:1.55}}>{program.goal}</div>
+
+            <div>
+              <div style={{fontSize:'.74rem',fontWeight:800,color:'#42536A',letterSpacing:'.08em',textTransform:'uppercase',marginBottom:8}}>Moodulid</div>
+              <div style={{display:'flex',flexDirection:'column',gap:7}}>
+                {(program.modules||[]).map(module=>(
+                  <div key={module} style={{display:'flex',gap:8,alignItems:'flex-start',fontSize:'.84rem',color:'#1C2B3A'}}>
+                    <i className="fa-solid fa-check" style={{color:'#2F5D50',marginTop:3,fontSize:'.72rem'}}/>
+                    <span>{module}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <div style={{fontSize:'.74rem',fontWeight:800,color:'#42536A',letterSpacing:'.08em',textTransform:'uppercase',marginBottom:8}}>Tulemus</div>
+              <div style={{display:'flex',flexWrap:'wrap',gap:7}}>
+                {(program.outcomes||[]).map(outcome=>(
+                  <span key={outcome} className="badge" style={{background:'#F9F8F6',color:'#42536A',border:'1px solid rgba(28,43,58,.08)'}}>
+                    {outcome}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        ))}
+        {visiblePrograms.length===0&&(
+          <div className="card" style={{gridColumn:'1/-1',padding:34,textAlign:'center',color:'#42536A'}}>
+            Õppekava ei leitud.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── TEGEVUSTE AJALUGU ───────────────────────────────────────
+function ActivityLogView({logs,isAdmin}) {
+  const [query,setQuery] = React.useState('');
+  const [typeFilter,setTypeFilter] = React.useState('all');
+  const typeLabels = {
+    student:'Õpilased',
+    homework:'Kodutööd',
+    invoice:'Arved',
+    task:'Ülesanded',
+    lesson:'Tunnid',
+    group:'Grupid'
+  };
+  const visibleLogs = logs.filter(item=>{
+    const baseType = String(item.type||'').split('.')[0] || 'other';
+    if(typeFilter!=='all' && baseType!==typeFilter) return false;
+    const q=normalizeText(query);
+    if(!q) return true;
+    return normalizeText(item.label).includes(q)
+      || normalizeText(item.byName).includes(q)
+      || normalizeText(item.studentName).includes(q)
+      || normalizeText(baseType).includes(q);
+  });
+
+  return(
+    <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:20}}>
+      <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:14,flexWrap:'wrap'}}>
+        <div>
+          <h1 style={{fontSize:'1.7rem'}}>Tegevused</h1>
+          <div style={{fontSize:'.88rem',color:'#42536A',marginTop:4}}>
+            {isAdmin?'Administraator näeb kõiki süsteemi tegevusi.':'Õpetaja näeb enda tegevusi ja oma õpilastega seotud muudatusi.'}
+          </div>
+        </div>
+        <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+          <input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Otsi tegevust..." style={{width:260}}/>
+          <select value={typeFilter} onChange={e=>setTypeFilter(e.target.value)} style={{width:'auto'}}>
+            <option value="all">Kõik tüübid</option>
+            {Object.entries(typeLabels).map(([id,label])=><option key={id} value={id}>{label}</option>)}
+          </select>
+        </div>
+      </div>
+
+      <div className="card" style={{padding:0,overflow:'hidden'}}>
+        {[...visibleLogs].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).slice(0,120).map(item=>{
+          const baseType = String(item.type||'').split('.')[0] || 'other';
+          const when = item.createdAt ? new Date(item.createdAt).toLocaleString('et-EE') : fmtDate(item.date);
+          return(
+            <div key={item.id} style={{display:'grid',gridTemplateColumns:'auto 1fr auto',gap:12,alignItems:'center',padding:'14px 16px',borderBottom:'1px solid rgba(28,43,58,.06)'}}>
+              <span className="badge" style={{background:'rgba(47,93,80,.1)',color:'#2F5D50'}}>
+                {typeLabels[baseType]||baseType}
+              </span>
+              <div style={{minWidth:0}}>
+                <div style={{fontWeight:800,color:'#1C2B3A'}}>{item.label}</div>
+                <div style={{fontSize:'.78rem',color:'#42536A',marginTop:3}}>
+                  {item.studentName&&<span>{item.studentName} · </span>}
+                  {item.byName||'—'}
+                </div>
+              </div>
+              <div style={{fontSize:'.74rem',color:'#42536A',whiteSpace:'nowrap'}}>{when}</div>
+            </div>
+          );
+        })}
+        {visibleLogs.length===0&&(
+          <div style={{textAlign:'center',padding:'34px 12px',color:'#42536A'}}>Tegevusi ei leitud.</div>
+        )}
       </div>
     </div>
   );
@@ -1524,7 +1681,7 @@ function GroupsView({groups,students,isAdmin,setSelStu,setTab,addGroup,deleteGro
 
 // ── ÕPILASE KAART ─────────────────────────────────────────────
 function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,setEditStu,toggleStudentActive,
-  hwTask,setHwTask,hwDue,setHwDue,addHw,toggleHw,
+  hwTask,setHwTask,hwDue,setHwDue,hwFile,setHwFile,addHw,toggleHw,
   invAmt,setInvAmt,invDesc,setInvDesc,addInvoice,markPaid,unmarkPaid,deleteInvoice,printInvoice,submitParentPayment,resetParentPayment,deleteLesson,openLessonEditor,
   stuMessages,teacherMessage,setTeacherMessage,sendTeacherMessage}) {
   if(!currentStu) return <div style={{textAlign:'center',padding:60,color:'#42536A'}}>Õpilane ei leitud.</div>;
@@ -1637,6 +1794,13 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
           {canManage&&(
             <div style={{marginBottom:14,display:'flex',flexDirection:'column',gap:8}}>
               <input value={hwTask} onChange={e=>setHwTask(e.target.value)} placeholder="Ülesande kirjeldus *"/>
+              <label style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,padding:'9px 12px',borderRadius:10,border:'1px solid rgba(28,43,58,.12)',background:'#fff',cursor:'pointer',fontSize:'.82rem',color:'#42536A'}}>
+                <span style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
+                  <i className="fa-solid fa-paperclip" style={{marginRight:6}}/>
+                  {hwFile ? hwFile.name : 'Lisa fail kodutööle'}
+                </span>
+                <input type="file" onChange={e=>setHwFile(e.target.files?.[0]||null)} style={{display:'none'}}/>
+              </label>
               <div style={{display:'flex',gap:8}}>
                 <input type="date" value={hwDue} onChange={e=>setHwDue(e.target.value)} style={{flex:1}}/>
                 <button onClick={addHw} className="btn btn-pine btn-sm">Saada</button>
@@ -1650,6 +1814,11 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
                 <div style={{flex:1,marginRight:10}}>
                   <div style={{fontWeight:500,fontSize:'.88rem'}}>{hw.task}</div>
                   {hw.due&&<div style={{fontSize:'.72rem',color:'#42536A',marginTop:2}}>📅 {fmtDate(hw.due)}</div>}
+                  {hw.fileUrl&&(
+                    <a href={hw.fileUrl} target="_blank" rel="noreferrer" style={{display:'inline-flex',alignItems:'center',gap:6,marginTop:6,fontSize:'.74rem',fontWeight:700,color:'#2F5D50',textDecoration:'none'}}>
+                      <i className="fa-solid fa-paperclip"/> {hw.fileName||'Fail'}
+                    </a>
+                  )}
                 </div>
                 <button onClick={()=>toggleHw(hw.id,hw.status)} className="badge" style={{cursor:'pointer',border:'none',flexShrink:0,
                   background:hw.status==='Tehtud'?'#dcfce7':'#fef3c7',color:hw.status==='Tehtud'?'#166534':'#92400e'}}>
@@ -2468,6 +2637,7 @@ function App() {
   const [groups,setGroups] = useState([]);
   const [tasks,setTasks] = useState([]);
   const [staffMembers,setStaffMembers] = useState([]);
+  const [activityLog,setActivityLog] = useState([]);
 
   // Add student
   const [nName,setNName]   = useState('');
@@ -2490,6 +2660,7 @@ function App() {
   // Homework
   const [hwTask,setHwTask] = useState('');
   const [hwDue,setHwDue]   = useState('');
+  const [hwFile,setHwFile] = useState(null);
   const [teacherMessage,setTeacherMessage] = useState('');
   // Staff tasks
   const [taskTitle,setTaskTitle] = useState('');
@@ -2571,7 +2742,11 @@ function App() {
       s=>setStaffMembers(s.docs.map(d=>({id:d.id,...d.data()})).filter(member=>member.role==='teacher'||member.role==='admin')),
       err=>{console.warn('Staff listener failed:',err);setStaffMembers([]);}
     );
-    return()=>{u1();u2();u3();u4();u5();u6();u7();u8();u9();};
+    const u10=db.collection('activityLog').onSnapshot(
+      s=>setActivityLog(s.docs.map(d=>({id:d.id,...d.data()}))),
+      err=>{console.warn('Activity log listener failed:',err);setActivityLog([]);}
+    );
+    return()=>{u1();u2();u3();u4();u5();u6();u7();u8();u9();u10();};
   },[user]);
 
   const notify=msg=>{setNotif(msg);setTimeout(()=>setNotif(''),3500);};
@@ -2686,19 +2861,50 @@ function App() {
       task.createdByUid===user?.uid
     );
   },[tasks,user,isAdmin]);
+  const scopedActivityLog = useMemo(()=>{
+    if(user?.role==='admin' || isAdmin) return activityLog;
+    const myStudentIds = new Set(myStudents.map(s=>s.id));
+    const myStudentNames = new Set(myStudents.map(s=>normalizeText(s.name)));
+    return activityLog.filter(item=>
+      item.byUid===user?.uid ||
+      myStudentIds.has(item.studentId) ||
+      myStudentNames.has(normalizeText(item.studentName))
+    );
+  },[activityLog,user,isAdmin,myStudents]);
+
+  const logActivity=useCallback(async(type,label,meta={})=>{
+    if(!user) return;
+    try{
+      await db.collection('activityLog').add({
+        type,
+        label,
+        meta,
+        studentId:meta.studentId||'',
+        studentName:meta.studentName||'',
+        byUid:user.uid||'',
+        byName:user.displayName||user.email||'',
+        byRole:user.role||'',
+        createdAt:new Date().toISOString(),
+        date:today()
+      });
+    }catch(err){
+      console.warn('Activity log failed:',err);
+    }
+  },[user]);
 
   // ACTIONS
   const addStudent=useCallback(async()=>{
     if(!nName.trim()){notify('⚠ Sisesta õpilase nimi');return;}
     const t=canAssignTeacher?nTeach:canonicalTeacherName(user.displayName);
-    await db.collection('students').add({name:nName,parentName:nParentName,level:nLevel,targetLevel:nTarget,teacher:t,phone:nPhone,email:nEmail,active:true,packageTotal:parseInt(nPkg)||0,packageUsed:0,subject:nSubject,grade:nGrade,group:nGroup,contactStatus:'new',contactOwner:user?.displayName||'',contactLastAt:'',contactNotes:'',createdAt:today()});
+    const ref = await db.collection('students').add({name:nName,parentName:nParentName,level:nLevel,targetLevel:nTarget,teacher:t,phone:nPhone,email:nEmail,active:true,packageTotal:parseInt(nPkg)||0,packageUsed:0,subject:nSubject,grade:nGrade,group:nGroup,contactStatus:'new',contactOwner:user?.displayName||'',contactLastAt:'',contactNotes:'',createdAt:today()});
+    await logActivity('student.created','Lisati õpilane',{studentId:ref.id,studentName:nName,teacher:t});
     setNName('');setNParentName('');setNPhone('');setNEmail('');setNGroup('');
     notify('✓ Õpilane '+nName+' lisatud!');
-  },[nName,nParentName,nLevel,nTarget,nTeach,nPhone,nEmail,nPkg,nSubject,nGrade,nGroup,canAssignTeacher,user]);
+  },[nName,nParentName,nLevel,nTarget,nTeach,nPhone,nEmail,nPkg,nSubject,nGrade,nGroup,canAssignTeacher,user,logActivity]);
 
   const addTask=useCallback(async()=>{
     if(!taskTitle.trim()){notify('⚠ Sisesta ülesande pealkiri');return;}
-    await db.collection('tasks').add({
+    const ref = await db.collection('tasks').add({
       title:taskTitle.trim(),
       assignedTo:canonicalTeacherName(taskAssignee||user.displayName),
       dueDate:taskDue||'',
@@ -2710,11 +2916,12 @@ function App() {
       createdByRole:user.role||'',
       createdAt:today()
     });
+    await logActivity('task.created','Lisati ülesanne',{taskId:ref.id,taskTitle:taskTitle.trim(),assignedTo:canonicalTeacherName(taskAssignee||user.displayName)});
     setTaskTitle('');
     setTaskPriority('normal');
     setTaskCategory('general');
     notify('✓ Ülesanne lisatud!');
-  },[taskTitle,taskAssignee,taskDue,taskPriority,taskCategory,user]);
+  },[taskTitle,taskAssignee,taskDue,taskPriority,taskCategory,user,logActivity]);
 
   const toggleTask=useCallback(async(task)=>{
     if(!task?.id) return;
@@ -2725,15 +2932,17 @@ function App() {
       doneByUid:done?'':(user.uid||''),
       doneByName:done?'':(user.displayName||user.email||'')
     });
+    await logActivity(done?'task.reopened':'task.done',done?'Ülesanne avati uuesti':'Ülesanne märgiti tehtuks',{taskId:task.id,taskTitle:task.title||''});
     notify(done?'✓ Ülesanne avatud':'✓ Ülesanne tehtud');
-  },[user]);
+  },[user,logActivity]);
 
   const deleteTask=useCallback(async(task)=>{
     if(!task?.id) return;
     if(!window.confirm('Kustuta see ülesanne?')) return;
     await db.collection('tasks').doc(task.id).delete();
+    await logActivity('task.deleted','Kustutati ülesanne',{taskId:task.id,taskTitle:task.title||''});
     notify('✓ Ülesanne kustutatud');
-  },[]);
+  },[logActivity]);
 
   const addSchedule=useCallback(async()=>{
     if(!schStu||!schDate){notify('⚠ Vali õpilane ja kuupäev');return;}
@@ -2924,9 +3133,29 @@ function App() {
 
   const addHw=useCallback(async()=>{
     if(!selStu||!hwTask.trim()){notify('⚠ Sisesta ülesanne');return;}
-    await db.collection('homework').add({studentId:selStu.id,studentName:selStu.name,task:hwTask,due:hwDue,status:'Ootel',date:today()});
-    setHwTask('');setHwDue('');notify('✓ Kodutöö saadetud!');
-  },[selStu,hwTask,hwDue]);
+    let fileUrl = '';
+    let fileName = '';
+    if(hwFile){
+      if(!storage){notify('⚠ Failide üleslaadimine pole saadaval');return;}
+      const safeName = hwFile.name.replace(/[^\w.\-]+/g,'_');
+      const fileRef = storage.ref().child(`homework/${selStu.id}/${Date.now()}_${safeName}`);
+      await fileRef.put(hwFile);
+      fileUrl = await fileRef.getDownloadURL();
+      fileName = hwFile.name;
+    }
+    const ref = await db.collection('homework').add({
+      studentId:selStu.id,
+      studentName:selStu.name,
+      task:hwTask,
+      due:hwDue,
+      status:'Ootel',
+      date:today(),
+      fileUrl,
+      fileName
+    });
+    await logActivity('homework.created','Lisati kodutöö',{studentId:selStu.id,studentName:selStu.name,homeworkId:ref.id,hasFile:!!fileUrl});
+    setHwTask('');setHwDue('');setHwFile(null);notify('✓ Kodutöö saadetud!');
+  },[selStu,hwTask,hwDue,hwFile,logActivity]);
 
   const toggleHw=useCallback(async(id,cur)=>await db.collection('homework').doc(id).update({status:cur==='Tehtud'?'Ootel':'Tehtud'}),[]);
 
@@ -2980,7 +3209,7 @@ function App() {
     const stu=students.find(s=>s.id===sid);
     const num=`KS-${new Date().getFullYear()}-${String(invoices.length+1).padStart(3,'0')}`;
     const due=new Date(Date.now()+PAYMENT_DETAILS.paymentTermDays*864e5).toISOString().split('T')[0];
-    await db.collection('invoices').add({
+    const ref = await db.collection('invoices').add({
       studentId:sid,
       studentName:stu?.name||'—',
       amount:parseInt(invAmt),
@@ -2994,14 +3223,16 @@ function App() {
       parentPaymentSubmittedAt:'',
       paymentReference:num
     });
+    await logActivity('invoice.created','Loodi arve',{invoiceId:ref.id,studentId:sid,studentName:stu?.name||'—',amount:parseInt(invAmt),num});
     setInvAmt('');setInvDesc('');setInvStu('');
     notify('✓ Arve '+num+' loodud!');
-  },[invStu,invAmt,invDesc,invoices,students]);
+  },[invStu,invAmt,invDesc,invoices,students,logActivity]);
 
   const markPaid=useCallback(async id=>{
     await db.collection('invoices').doc(id).update({status:'Makstud',paidAt:today(),parentPaymentStatus:'confirmed'});
+    await logActivity('invoice.paid','Arve märgiti makstuks',{invoiceId:id});
     notify('✓ Märgitud makstud!');
-  },[]);
+  },[logActivity]);
 
   const unmarkPaid=useCallback(async id=>{
     await db.collection('invoices').doc(id).update({
@@ -3011,15 +3242,17 @@ function App() {
       parentPaymentSubmittedAt:'',
       parentPaymentMethod:''
     });
+    await logActivity('invoice.unpaid','Arve makse tühistati',{invoiceId:id});
     notify('✓ Makse tühistatud');
-  },[]);
+  },[logActivity]);
 
   const deleteInvoice=useCallback(async(inv)=>{
     if(!inv?.id) return;
     if(!window.confirm(`Kustuta arve ${inv.num}?`)) return;
     await db.collection('invoices').doc(inv.id).delete();
+    await logActivity('invoice.deleted','Arve kustutati',{invoiceId:inv.id,studentId:inv.studentId||'',studentName:inv.studentName||'',num:inv.num||''});
     notify(`✓ Arve ${inv.num} kustutatud`);
-  },[]);
+  },[logActivity]);
 
   const submitParentPayment=useCallback(async(id,method)=>{
     await db.collection('invoices').doc(id).update({
@@ -3089,6 +3322,7 @@ function App() {
     {id:'calendar', icon:'fa-calendar-days',label:'Tunniplaan'},
     ...(isStaff?[{id:'tasks',icon:'fa-list-check',label:'Ülesanded',
       badge:scopedTasks.filter(t=>t.status!=='done').length}]:[]),
+    ...(isStaff?[{id:'programs',icon:'fa-book-open-reader',label:'Õppekavad'}]:[]),
     {id:'students', icon:'fa-graduation-cap',label:isStaff?'Minu õpilased':'Minu progress',
       badge:isStaff&&homework.filter(h=>h.status==='Ootel'&&myStudents.some(s=>s.id===h.studentId)).length>0?
         homework.filter(h=>h.status==='Ootel'&&myStudents.some(s=>s.id===h.studentId)).length:0},
@@ -3096,6 +3330,7 @@ function App() {
     ...(isStaff?[{id:'database',icon:'fa-table',label:'Andmebaas'}]:[]),
     ...(isStaff?[{id:'invoices',icon:'fa-file-invoice',label:'Arved',
       badge:scopedInvoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+i.amount,0)>0?scopedInvoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+i.amount,0)+'€':0}]:[]),
+    ...(isStaff?[{id:'activity',icon:'fa-clock-rotate-left',label:'Tegevused'}]:[]),
     ...(!isStaff?[{id:'invoices',icon:'fa-file-invoice',label:'Arved',
       badge:scopedInvoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+i.amount,0)>0?scopedInvoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+i.amount,0)+'€':0}]:[]),
   ];
@@ -3181,6 +3416,8 @@ function App() {
             taskCategory={taskCategory} setTaskCategory={setTaskCategory}
             addTask={addTask} toggleTask={toggleTask} deleteTask={deleteTask} isAdmin={isAdmin}/>}
 
+          {tab==='programs'&&isStaff&&<ProgramsView/>}
+
           {tab==='students'&&isStaff&&!selStu&&<StudentsList filteredStudents={filteredStudents} lessons={lessons} isAdmin={canAssignTeacher}
             search={search} setSearch={setSearch} stuFilter={stuFilter} setStuFilter={setStuFilter} setSelStu={setSelStu}/>}
 
@@ -3188,7 +3425,7 @@ function App() {
             setEditStu={setEditStu}
             user={user} currentStu={currentStu} stuLessons={stuLessons} stuHw={stuHw} stuInv={stuInv}
             isAdmin={canAssignTeacher} setSelStu={setSelStu} toggleStudentActive={toggleStudentActive}
-            hwTask={hwTask} setHwTask={setHwTask} hwDue={hwDue} setHwDue={setHwDue} addHw={addHw} toggleHw={toggleHw}
+            hwTask={hwTask} setHwTask={setHwTask} hwDue={hwDue} setHwDue={setHwDue} hwFile={hwFile} setHwFile={setHwFile} addHw={addHw} toggleHw={toggleHw}
             invAmt={invAmt} setInvAmt={setInvAmt} invDesc={invDesc} setInvDesc={setInvDesc}
             addInvoice={addInvoice} markPaid={markPaid} unmarkPaid={unmarkPaid} deleteInvoice={deleteInvoice} printInvoice={printInvoice} submitParentPayment={submitParentPayment} resetParentPayment={resetParentPayment} deleteLesson={deleteLesson} openLessonEditor={openLessonEditor}
             stuMessages={stuMessages} teacherMessage={teacherMessage} setTeacherMessage={setTeacherMessage} sendTeacherMessage={sendTeacherMessage}/>}
@@ -3247,6 +3484,8 @@ function App() {
           {tab==='invoices'&&isStaff&&<InvoicesView invoices={scopedInvoices} myStudents={myStudents}
             invStu={invStu} setInvStu={setInvStu} invAmt={invAmt} setInvAmt={setInvAmt}
             invDesc={invDesc} setInvDesc={setInvDesc} addInvoice={addInvoice} markPaid={markPaid} unmarkPaid={unmarkPaid} deleteInvoice={deleteInvoice} printInvoice={printInvoice}/>}
+
+          {tab==='activity'&&isStaff&&<ActivityLogView logs={scopedActivityLog} isAdmin={isAdmin}/>}
         </div>
       </main>
 
