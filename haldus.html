@@ -3096,12 +3096,29 @@ function App() {
     let fileUrl = modalEv.fileUrl || '';
     let fileName = modalEv.fileName || '';
     if(lessonFile){
-      if(!storage){notify('⚠ Failide üleslaadimine pole saadaval');return;}
-      const safeName = lessonFile.name.replace(/[^\w.\-]+/g,'_');
-      const fileRef = storage.ref().child(`lessons/${stu?.id||'external'}/${Date.now()}_${safeName}`);
-      await fileRef.put(lessonFile);
-      fileUrl = await fileRef.getDownloadURL();
-      fileName = lessonFile.name;
+      const saveInlineFile = () => new Promise((resolve,reject)=>{
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(lessonFile);
+      });
+      try{
+        if(!storage) throw new Error('Firebase Storage pole saadaval');
+        const safeName = lessonFile.name.replace(/[^\w.\-]+/g,'_');
+        const fileRef = storage.ref().child(`lessons/${stu?.id||'external'}/${Date.now()}_${safeName}`);
+        await fileRef.put(lessonFile);
+        fileUrl = await fileRef.getDownloadURL();
+        fileName = lessonFile.name;
+      }catch(uploadErr){
+        console.warn('Lesson file upload failed:',uploadErr);
+        if(lessonFile.size <= 650*1024){
+          fileUrl = await saveInlineFile();
+          fileName = lessonFile.name;
+        }else{
+          notify('⚠ Faili üleslaadimine ei õnnestunud. Kontrolli Firebase Storage õiguseid või vali väiksem fail.');
+          return;
+        }
+      }
     }
     const lessonPayload = {
       studentId:stu?stu.id:'ext',studentName:modalEv.studentName,
