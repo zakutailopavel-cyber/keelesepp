@@ -324,17 +324,21 @@ function AuthScreen({onLogin}) {
 // ── DASHBOARD ────────────────────────────────────────────────
 // TÄHTIS: kõik komponendid on App-ist VÄLJAS — see lahendab "iga täht uuendab lehte" probleemi
 function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
-  tasks,
+  tasks,staffMembers,
   nName,setNName,nParentName,setNParentName,nEmail,setNEmail,nPhone,setNPhone,
   nLevel,setNLevel,nTarget,setNTarget,nPkg,setNPkg,
   nSubject,setNSubject,nGrade,setNGrade,nGroup,setNGroup,
   nTeach,setNTeach,addStudent,
-  taskTitle,setTaskTitle,taskAssignee,setTaskAssignee,taskDue,setTaskDue,taskPriority,setTaskPriority,
+  taskTitle,setTaskTitle,taskAssignee,setTaskAssignee,taskDue,setTaskDue,taskPriority,setTaskPriority,taskCategory,setTaskCategory,
   addTask,toggleTask,deleteTask,isAdmin,isStaff}) {
   const unpaidAmt = invoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+i.amount,0);
   const pendingHw = homework.filter(h=>h.status==='Ootel'&&myStudents.some(s=>s.id===h.studentId)).length;
   const openTasks = tasks.filter(t=>t.status!=='done');
-  const taskTeacherOptions = [...new Set([...TEACHERS, user.displayName].filter(Boolean).map(canonicalTeacherName))];
+  const taskStaffOptions = [...new Set([
+    ...TEACHERS,
+    ...(staffMembers||[]).map(member=>member.displayName||member.email),
+    user.displayName
+  ].filter(Boolean).map(canonicalTeacherName))];
   const teacherScope = canonicalTeacherName(user.displayName);
   const todaySch  = isAdmin
     ? schedule.length
@@ -402,16 +406,23 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
             </span>
           </div>
 
-          <div style={{display:'grid',gridTemplateColumns:'minmax(220px,1fr) 170px 150px 140px',gap:10,marginBottom:14}}>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))',gap:10,marginBottom:14}}>
             <input value={taskTitle} onChange={e=>setTaskTitle(e.target.value)} placeholder="Mida on vaja teha?"/>
             <select value={taskAssignee} onChange={e=>setTaskAssignee(e.target.value)}>
-              {taskTeacherOptions.map(t=><option key={t} value={t}>{t}</option>)}
+              {taskStaffOptions.map(t=><option key={t} value={t}>{t}</option>)}
             </select>
             <input value={taskDue} onChange={e=>setTaskDue(e.target.value)} type="date"/>
             <select value={taskPriority} onChange={e=>setTaskPriority(e.target.value)}>
               <option value="normal">Tavaline</option>
               <option value="high">Kiire</option>
               <option value="low">Madal</option>
+            </select>
+            <select value={taskCategory} onChange={e=>setTaskCategory(e.target.value)}>
+              <option value="general">Üldine</option>
+              <option value="parent">Lapsevanem</option>
+              <option value="payment">Arved</option>
+              <option value="lesson">Tunnid</option>
+              <option value="technical">Tehniline</option>
             </select>
           </div>
           <button onClick={addTask} className="btn btn-pine" style={{width:'100%',marginBottom:14}}>
@@ -432,6 +443,7 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
               const overdue = task.dueDate && task.dueDate<today() && !done;
               const priorityColor = task.priority==='high' ? '#991b1b' : task.priority==='low' ? '#42536A' : '#1d4ed8';
               const priorityBg = task.priority==='high' ? '#fee2e2' : task.priority==='low' ? '#f3f4f6' : '#dbeafe';
+              const categoryLabels = {general:'Üldine',parent:'Lapsevanem',payment:'Arved',lesson:'Tunnid',technical:'Tehniline'};
               return(
                 <div key={task.id} style={{
                   display:'grid',gridTemplateColumns:'auto 1fr auto',gap:12,alignItems:'center',
@@ -449,7 +461,7 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
                       {task.title}
                     </div>
                     <div style={{fontSize:'.76rem',color:'#42536A',marginTop:4}}>
-                      {task.assignedTo||'Määramata'} · tähtaeg: {task.dueDate?fmtDate(task.dueDate):'puudub'} · lisas {task.createdByName||'—'}
+                      {task.assignedTo||'Määramata'} · {categoryLabels[task.category]||'Üldine'} · tähtaeg: {task.dueDate?fmtDate(task.dueDate):'puudub'} · lisas {task.createdByName||'—'}
                     </div>
                   </div>
                   <div style={{display:'flex',gap:8,alignItems:'center',justifyContent:'flex-end',flexWrap:'wrap'}}>
@@ -2238,6 +2250,7 @@ function App() {
   const [messages,setMessages] = useState([]);
   const [groups,setGroups] = useState([]);
   const [tasks,setTasks] = useState([]);
+  const [staffMembers,setStaffMembers] = useState([]);
 
   // Add student
   const [nName,setNName]   = useState('');
@@ -2266,6 +2279,7 @@ function App() {
   const [taskAssignee,setTaskAssignee] = useState('Pavel');
   const [taskDue,setTaskDue] = useState(today());
   const [taskPriority,setTaskPriority] = useState('normal');
+  const [taskCategory,setTaskCategory] = useState('general');
   // Schedule
   const [schStu,setSchStu]   = useState('');
   const [schDate,setSchDate] = useState(today());
@@ -2336,7 +2350,11 @@ function App() {
       s=>setTasks(s.docs.map(d=>({id:d.id,...d.data()}))),
       err=>{console.warn('Tasks listener failed:',err);setTasks([]);}
     );
-    return()=>{u1();u2();u3();u4();u5();u6();u7();u8();};
+    const u9=db.collection('users').onSnapshot(
+      s=>setStaffMembers(s.docs.map(d=>({id:d.id,...d.data()})).filter(member=>member.role==='teacher'||member.role==='admin')),
+      err=>{console.warn('Staff listener failed:',err);setStaffMembers([]);}
+    );
+    return()=>{u1();u2();u3();u4();u5();u6();u7();u8();u9();};
   },[user]);
 
   const notify=msg=>{setNotif(msg);setTimeout(()=>setNotif(''),3500);};
@@ -2468,15 +2486,18 @@ function App() {
       assignedTo:canonicalTeacherName(taskAssignee||user.displayName),
       dueDate:taskDue||'',
       priority:taskPriority||'normal',
+      category:taskCategory||'general',
       status:'open',
       createdByUid:user.uid||'',
       createdByName:user.displayName||user.email||'',
+      createdByRole:user.role||'',
       createdAt:today()
     });
     setTaskTitle('');
     setTaskPriority('normal');
+    setTaskCategory('general');
     notify('✓ Ülesanne lisatud!');
-  },[taskTitle,taskAssignee,taskDue,taskPriority,user]);
+  },[taskTitle,taskAssignee,taskDue,taskPriority,taskCategory,user]);
 
   const toggleTask=useCallback(async(task)=>{
     if(!task?.id) return;
@@ -2917,12 +2938,12 @@ function App() {
         <div style={{padding:'28px',maxWidth:1100,margin:'0 auto'}}>
           {notif&&<div style={{position:'fixed',top:20,right:20,background:'#1C2B3A',color:'#fff',padding:'12px 20px',borderRadius:12,zIndex:300,fontWeight:600,fontSize:'.9rem',boxShadow:'0 8px 28px rgba(0,0,0,.25)'}}>{notif}</div>}
 
-          {tab==='dashboard'&&<Dashboard user={user} myStudents={myStudents} lessons={lessons} schedule={schedule} invoices={scopedInvoices} homework={homework} tasks={scopedTasks}
+          {tab==='dashboard'&&<Dashboard user={user} myStudents={myStudents} lessons={lessons} schedule={schedule} invoices={scopedInvoices} homework={homework} tasks={scopedTasks} staffMembers={staffMembers}
             nName={nName} setNName={setNName} nParentName={nParentName} setNParentName={setNParentName} nEmail={nEmail} setNEmail={setNEmail} nPhone={nPhone} setNPhone={setNPhone}
             nLevel={nLevel} setNLevel={setNLevel} nTarget={nTarget} setNTarget={setNTarget}
             nPkg={nPkg} setNPkg={setNPkg} nSubject={nSubject} setNSubject={setNSubject} nGrade={nGrade} setNGrade={setNGrade} nGroup={nGroup} setNGroup={setNGroup} nTeach={nTeach} setNTeach={setNTeach}
             taskTitle={taskTitle} setTaskTitle={setTaskTitle} taskAssignee={taskAssignee} setTaskAssignee={setTaskAssignee}
-            taskDue={taskDue} setTaskDue={setTaskDue} taskPriority={taskPriority} setTaskPriority={setTaskPriority}
+            taskDue={taskDue} setTaskDue={setTaskDue} taskPriority={taskPriority} setTaskPriority={setTaskPriority} taskCategory={taskCategory} setTaskCategory={setTaskCategory}
             addTask={addTask} toggleTask={toggleTask} deleteTask={deleteTask}
             addStudent={addStudent} isAdmin={isAdmin} isStaff={isStaff}/>}
 
