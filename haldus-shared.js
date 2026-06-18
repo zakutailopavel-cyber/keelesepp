@@ -1,7 +1,7 @@
 (function(){
   const TEACHER_CODE = 'KS2026';
   const ADMIN_CODE   = 'KSADMIN2026';
-  const APP_VERSION  = 'CRM 2026-06-18 09:08';
+  const APP_VERSION  = 'CRM 2026-06-18 09:24';
   const LEVELS   = ['A1','A2','B1','B2','C1'];
   const TEACHERS = ['Pavel','Jelena','Elizaveta','Angelina'];
   const SUBJECTS = ['Eesti keel','Inglise keel','Matemaatika','Muu'];
