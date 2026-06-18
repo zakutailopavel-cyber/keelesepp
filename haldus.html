@@ -1852,6 +1852,11 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
                       </div>
                     </div>
                     {l.comment&&<div style={{fontSize:'.78rem',color:'#42536A',marginBottom:3}}>{l.comment}</div>}
+                    {l.fileUrl&&(
+                      <a href={l.fileUrl} target="_blank" rel="noreferrer" style={{display:'inline-flex',alignItems:'center',gap:6,marginBottom:3,fontSize:'.74rem',fontWeight:700,color:'#2F5D50',textDecoration:'none'}}>
+                        <i className="fa-solid fa-paperclip"/> {l.fileName||'Tunni fail'}
+                      </a>
+                    )}
                     <div style={{fontSize:'.72rem',color:'#9ca3af'}}>{fmtDate(l.date)}{l.duration?' · '+l.duration+' min':''} · Õp. {l.teacher}</div>
                   </div>
                 </div>
@@ -2143,7 +2148,7 @@ function InvoicesView({invoices,myStudents,invStu,setInvStu,invAmt,setInvAmt,inv
 
 // ── TUNNI MODAL ───────────────────────────────────────────────
 function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
-  lStatus,setLStatus,lComment,setLComment,lDur,setLDur,saveLesson,deleteLesson,db,user,notify}) {
+  lStatus,setLStatus,lComment,setLComment,lDur,setLDur,lessonFile,setLessonFile,saveLesson,deleteLesson,db,user,notify}) {
 
   const [moveDate,setMoveDate] = React.useState(modalEv.occurrenceDate||modalEv.date||new Date().toISOString().split("T")[0]);
   const [moveTime,setMoveTime] = React.useState(modalEv.time||"09:00");
@@ -2301,7 +2306,7 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
               {!modalEv.date&&<span style={{fontSize:".7rem",padding:"2px 8px",borderRadius:999,background:"rgba(201,136,42,.1)",color:"#A96E1A",fontWeight:700}}>korduv mall</span>}
             </div>
           </div>
-          <button onClick={()=>setModalEv(null)}
+          <button onClick={()=>{setLessonFile(null);setModalEv(null);}}
             style={{background:"rgba(28,43,58,.07)",border:"none",cursor:"pointer",borderRadius:9,
               width:30,height:30,display:"flex",alignItems:"center",justifyContent:"center",color:"#42536A",flexShrink:0}}>✕</button>
         </div>
@@ -2411,6 +2416,18 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
                 {LESSON_DURATIONS.map(d=><option key={d} value={d}>{d} minutit</option>)}
               </select>
               <textarea value={lComment} onChange={e=>setLComment(e.target.value)} placeholder="Õpetaja kommentaar…" rows={3}/>
+              <label style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,padding:'10px 12px',borderRadius:10,border:'1.5px solid rgba(28,43,58,.15)',background:'#fff',cursor:'pointer',fontSize:'.86rem',color:'#42536A'}}>
+                <span style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
+                  <i className="fa-solid fa-paperclip" style={{marginRight:7}}/>
+                  {lessonFile ? lessonFile.name : modalEv.fileName ? `Olemas: ${modalEv.fileName}` : 'Lisa fail tunni juurde'}
+                </span>
+                <input type="file" onChange={e=>setLessonFile(e.target.files?.[0]||null)} style={{display:'none'}}/>
+              </label>
+              {modalEv.fileUrl&&(
+                <a href={modalEv.fileUrl} target="_blank" rel="noreferrer" style={{display:'inline-flex',alignItems:'center',gap:7,fontSize:'.8rem',fontWeight:700,color:'#2F5D50',textDecoration:'none'}}>
+                  <i className="fa-solid fa-paperclip"/> Ava olemasolev fail
+                </a>
+              )}
               <button onClick={saveLesson} className="btn btn-dark" style={{width:"100%",padding:13}}>
                 <i className="fa-solid fa-floppy-disk"/> Salvesta päevikusse
               </button>
@@ -2657,6 +2674,7 @@ function App() {
   const [lStatus,setLStatus] = useState('Toimunud');
   const [lComment,setLComment]=useState('');
   const [lDur,setLDur]       = useState('60');
+  const [lessonFile,setLessonFile] = useState(null);
   // Homework
   const [hwTask,setHwTask] = useState('');
   const [hwDue,setHwDue]   = useState('');
@@ -3074,6 +3092,16 @@ function App() {
     if(!modalEv||!lTopic.trim()){notify('⚠ Sisesta tunni teema');return;}
     const stu=students.find(s=>s.name.toLowerCase()===modalEv.studentName.toLowerCase());
     const now=new Date();
+    let fileUrl = modalEv.fileUrl || '';
+    let fileName = modalEv.fileName || '';
+    if(lessonFile){
+      if(!storage){notify('⚠ Failide üleslaadimine pole saadaval');return;}
+      const safeName = lessonFile.name.replace(/[^\w.\-]+/g,'_');
+      const fileRef = storage.ref().child(`lessons/${stu?.id||'external'}/${Date.now()}_${safeName}`);
+      await fileRef.put(lessonFile);
+      fileUrl = await fileRef.getDownloadURL();
+      fileName = lessonFile.name;
+    }
     const lessonPayload = {
       studentId:stu?stu.id:'ext',studentName:modalEv.studentName,
       scheduleId: modalEv.id||'',
@@ -3081,7 +3109,9 @@ function App() {
       topic:lTopic,grade:lStatus==='Toimunud'?parseInt(lGrade):0,
       duration:parseInt(lDur),status:lStatus,comment:lComment,
       date:modalEv.date||today(),submittedAt:now.toLocaleString('et-EE'),teacher:user.displayName,
-      updatedAt: now.toISOString()
+      updatedAt: now.toISOString(),
+      fileUrl,
+      fileName
     };
 
     let existingLessonDoc = null;
@@ -3101,14 +3131,27 @@ function App() {
       }
     }
 
+    if(existingLessonData && !lessonFile && !fileUrl){
+      lessonPayload.fileUrl = existingLessonData.fileUrl || '';
+      lessonPayload.fileName = existingLessonData.fileName || '';
+    }
+    const wasExistingLesson = !!existingLessonRef;
+    let savedLessonId = existingLessonRef?.id || '';
     if(existingLessonRef){
       await existingLessonRef.update(lessonPayload);
     }else{
-      await db.collection('lessons').add({
+      const createdLessonRef = await db.collection('lessons').add({
         ...lessonPayload,
         createdAt: today()
       });
+      savedLessonId = createdLessonRef.id;
     }
+    await logActivity(wasExistingLesson?'lesson.updated':'lesson.created', wasExistingLesson?'Tunni kanne uuendati':'Tunni kanne lisati', {
+      studentId:stu?.id||'',
+      studentName:modalEv.studentName,
+      lessonId:savedLessonId,
+      hasFile:!!(lessonPayload.fileUrl||fileUrl)
+    });
 
     if(modalEv.id){
       const scheduleStatus = lStatus==='Toimunud' ? 'Toimunud' : 'Planeeritud';
@@ -3127,9 +3170,9 @@ function App() {
       }
     }
 
-    setLTopic('');setLComment('');setModalEv(null);
+    setLTopic('');setLComment('');setLessonFile(null);setModalEv(null);
     notify(existingLessonRef?'✓ Aruanne uuendatud!':'✓ Aruanne salvestatud!');
-  },[modalEv,lTopic,lGrade,lStatus,lComment,lDur,students,user]);
+  },[modalEv,lTopic,lGrade,lStatus,lComment,lDur,lessonFile,students,user,logActivity]);
 
   const addHw=useCallback(async()=>{
     if(!selStu||!hwTask.trim()){notify('⚠ Sisesta ülesanne');return;}
@@ -3189,6 +3232,7 @@ function App() {
     setLStatus(lesson.status||'Toimunud');
     setLComment(lesson.comment||'');
     setLDur(String(lesson.duration||'60'));
+    setLessonFile(null);
     setModalEv({
       lessonEntryId: lesson.id,
       id: lesson.scheduleId||'',
@@ -3199,7 +3243,9 @@ function App() {
       date: lesson.date||today(),
       occurrenceDate: lesson.date||today(),
       time: lesson.scheduleTime||'09:00',
-      status: lesson.status||'Toimunud'
+      status: lesson.status||'Toimunud',
+      fileUrl: lesson.fileUrl||'',
+      fileName: lesson.fileName||''
     });
   },[user]);
 
@@ -3493,7 +3539,8 @@ function App() {
       {modalEv&&<LessonModal modalEv={modalEv} setModalEv={setModalEv}
         lTopic={lTopic} setLTopic={setLTopic} lGrade={lGrade} setLGrade={setLGrade}
         lStatus={lStatus} setLStatus={setLStatus}        lComment={lComment} setLComment={setLComment}
-        lDur={lDur} setLDur={setLDur} saveLesson={saveLesson} deleteLesson={deleteLesson} db={db} user={user} notify={notify}/>}
+        lDur={lDur} setLDur={setLDur} lessonFile={lessonFile} setLessonFile={setLessonFile}
+        saveLesson={saveLesson} deleteLesson={deleteLesson} db={db} user={user} notify={notify}/>}
     </div>
   );
 }
