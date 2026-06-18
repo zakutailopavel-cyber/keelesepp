@@ -2420,12 +2420,12 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
               <label style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,padding:'10px 12px',borderRadius:10,border:'1.5px solid rgba(28,43,58,.15)',background:'#fff',cursor:'pointer',fontSize:'.86rem',color:'#42536A'}}>
                 <span style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
                   <i className="fa-solid fa-paperclip" style={{marginRight:7}}/>
-                  {lessonFile ? lessonFile.name : modalEv.fileName ? `Olemas: ${modalEv.fileName}` : 'Lisa fail tunni juurde'}
+                  {lessonFile ? lessonFile.name : (modalEv.fileName||modalEv.attachmentName) ? `Olemas: ${modalEv.fileName||modalEv.attachmentName}` : 'Lisa fail tunni juurde'}
                 </span>
                 <input type="file" onChange={e=>setLessonFile(e.target.files?.[0]||null)} style={{display:'none'}}/>
               </label>
-              {modalEv.fileUrl&&(
-                <a href={modalEv.fileUrl} target="_blank" rel="noreferrer" style={{display:'inline-flex',alignItems:'center',gap:7,fontSize:'.8rem',fontWeight:700,color:'#2F5D50',textDecoration:'none'}}>
+              {(modalEv.fileUrl||modalEv.attachmentUrl)&&(
+                <a href={modalEv.fileUrl||modalEv.attachmentUrl} target="_blank" rel="noreferrer" style={{display:'inline-flex',alignItems:'center',gap:7,fontSize:'.8rem',fontWeight:700,color:'#2F5D50',textDecoration:'none'}}>
                   <i className="fa-solid fa-paperclip"/> Ava olemasolev fail
                 </a>
               )}
@@ -3093,8 +3093,8 @@ function App() {
     if(!modalEv||!lTopic.trim()){notify('⚠ Sisesta tunni teema');return;}
     const stu=students.find(s=>s.name.toLowerCase()===modalEv.studentName.toLowerCase());
     const now=new Date();
-    let fileUrl = modalEv.fileUrl || '';
-    let fileName = modalEv.fileName || '';
+    let fileUrl = modalEv.fileUrl || modalEv.attachmentUrl || modalEv.attachment?.url || '';
+    let fileName = modalEv.fileName || modalEv.attachmentName || modalEv.attachment?.name || '';
     if(lessonFile){
       const saveInlineFile = () => new Promise((resolve,reject)=>{
         const reader = new FileReader();
@@ -3129,7 +3129,18 @@ function App() {
       date:modalEv.occurrenceDate||modalEv.date||today(),submittedAt:now.toLocaleString('et-EE'),teacher:user.displayName,
       updatedAt: now.toISOString(),
       fileUrl,
-      fileName
+      fileName,
+      attachmentUrl:fileUrl,
+      attachmentName:fileName,
+      attachmentType:lessonFile?.type || modalEv.attachmentType || modalEv.attachment?.type || '',
+      attachmentSize:lessonFile?.size || modalEv.attachmentSize || modalEv.attachment?.size || 0,
+      attachment:fileUrl ? {
+        url:fileUrl,
+        name:fileName,
+        type:lessonFile?.type || modalEv.attachmentType || modalEv.attachment?.type || '',
+        size:lessonFile?.size || modalEv.attachmentSize || modalEv.attachment?.size || 0,
+        uploadedAt:lessonFile ? now.toISOString() : (modalEv.attachment?.uploadedAt || '')
+      } : null
     };
 
     let existingLessonDoc = null;
@@ -3159,8 +3170,21 @@ function App() {
     }
 
     if(existingLessonData && !lessonFile && !fileUrl){
-      lessonPayload.fileUrl = existingLessonData.fileUrl || '';
-      lessonPayload.fileName = existingLessonData.fileName || '';
+      const existingFileUrl = existingLessonData.fileUrl || existingLessonData.attachmentUrl || existingLessonData.attachment?.url || '';
+      const existingFileName = existingLessonData.fileName || existingLessonData.attachmentName || existingLessonData.attachment?.name || '';
+      lessonPayload.fileUrl = existingFileUrl;
+      lessonPayload.fileName = existingFileName;
+      lessonPayload.attachmentUrl = existingFileUrl;
+      lessonPayload.attachmentName = existingFileName;
+      lessonPayload.attachmentType = existingLessonData.attachmentType || existingLessonData.attachment?.type || '';
+      lessonPayload.attachmentSize = existingLessonData.attachmentSize || existingLessonData.attachment?.size || 0;
+      lessonPayload.attachment = existingFileUrl ? {
+        url:existingFileUrl,
+        name:existingFileName,
+        type:lessonPayload.attachmentType,
+        size:lessonPayload.attachmentSize,
+        uploadedAt:existingLessonData.attachment?.uploadedAt || ''
+      } : null;
     }
     const wasExistingLesson = !!existingLessonRef;
     let savedLessonId = existingLessonRef?.id || '';
@@ -3173,6 +3197,8 @@ function App() {
       });
       savedLessonId = createdLessonRef.id;
     }
+    const savedLesson = {id:savedLessonId,...lessonPayload};
+    setLes(prev=>[savedLesson,...prev.filter(l=>l.id!==savedLessonId)]);
     await logActivity(wasExistingLesson?'lesson.updated':'lesson.created', wasExistingLesson?'Tunni kanne uuendati':'Tunni kanne lisati', {
       studentId:stu?.id||'',
       studentName:modalEv.studentName,
@@ -3252,27 +3278,43 @@ function App() {
     notify('✓ Tunni sissekanne kustutatud');
   },[]);
 
-  const openLessonEditor=useCallback((lesson)=>{
+  const openLessonEditor=useCallback(async(lesson)=>{
     if(!lesson) return;
-    setLTopic(lesson.topic||'');
-    setLGrade(String(lesson.grade||'5'));
-    setLStatus(lesson.status||'Toimunud');
-    setLComment(lesson.comment||'');
-    setLDur(String(lesson.duration||'60'));
+    let freshLesson = lesson;
+    if(lesson.id){
+      try{
+        const freshSnap = await db.collection('lessons').doc(lesson.id).get();
+        if(freshSnap.exists) freshLesson = {id:freshSnap.id,...freshSnap.data()};
+      }catch(err){
+        console.warn('Fresh lesson load failed:',err);
+      }
+    }
+    const lessonFileUrl = freshLesson.fileUrl || freshLesson.attachmentUrl || freshLesson.attachment?.url || '';
+    const lessonFileName = freshLesson.fileName || freshLesson.attachmentName || freshLesson.attachment?.name || '';
+    setLTopic(freshLesson.topic||'');
+    setLGrade(String(freshLesson.grade||'5'));
+    setLStatus(freshLesson.status||'Toimunud');
+    setLComment(freshLesson.comment||'');
+    setLDur(String(freshLesson.duration||'60'));
     setLessonFile(null);
     setModalEv({
-      lessonEntryId: lesson.id,
-      id: lesson.scheduleId||'',
-      scheduleId: lesson.scheduleId||'',
-      studentId: lesson.studentId||'',
-      studentName: lesson.studentName,
-      teacher: lesson.teacher||user.displayName,
-      date: lesson.date||today(),
-      occurrenceDate: lesson.date||today(),
-      time: lesson.scheduleTime||'09:00',
-      status: lesson.status||'Toimunud',
-      fileUrl: lesson.fileUrl||'',
-      fileName: lesson.fileName||''
+      lessonEntryId: freshLesson.id,
+      id: freshLesson.scheduleId||'',
+      scheduleId: freshLesson.scheduleId||'',
+      studentId: freshLesson.studentId||'',
+      studentName: freshLesson.studentName,
+      teacher: freshLesson.teacher||user.displayName,
+      date: freshLesson.date||today(),
+      occurrenceDate: freshLesson.date||today(),
+      time: freshLesson.scheduleTime||'09:00',
+      status: freshLesson.status||'Toimunud',
+      fileUrl: lessonFileUrl,
+      fileName: lessonFileName,
+      attachmentUrl: lessonFileUrl,
+      attachmentName: lessonFileName,
+      attachmentType: freshLesson.attachmentType || freshLesson.attachment?.type || '',
+      attachmentSize: freshLesson.attachmentSize || freshLesson.attachment?.size || 0,
+      attachment: freshLesson.attachment || null
     });
   },[user]);
 
@@ -3301,7 +3343,7 @@ function App() {
     setLComment('');
     setLDur('60');
     setLessonFile(null);
-    setModalEv({...event,occurrenceDate:lessonDate,date:event.date||lessonDate,fileUrl:'',fileName:''});
+    setModalEv({...event,occurrenceDate:lessonDate,date:event.date||lessonDate,fileUrl:'',fileName:'',attachmentUrl:'',attachmentName:''});
   },[lessons,openLessonEditor]);
 
   const addInvoice=useCallback(async(stuId)=>{
