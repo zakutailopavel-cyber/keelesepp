@@ -335,7 +335,7 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
   nSubject,setNSubject,nGrade,setNGrade,nGroup,setNGroup,
   nTeach,setNTeach,addStudent,
   taskTitle,setTaskTitle,taskAssignee,setTaskAssignee,taskDue,setTaskDue,taskPriority,setTaskPriority,taskCategory,setTaskCategory,
-  addTask,toggleTask,deleteTask,isAdmin,isStaff}) {
+  addTask,toggleTask,deleteTask,openLessonEditor,isAdmin,isStaff}) {
   const unpaidAmt = invoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+i.amount,0);
   const pendingHw = homework.filter(h=>h.status==='Ootel'&&myStudents.some(s=>s.id===h.studentId)).length;
   const openTasks = tasks.filter(t=>t.status!=='done');
@@ -519,7 +519,8 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
         {visibleLessons.length===0
           ?<div style={{textAlign:'center',padding:'24px 0',color:'#42536A',fontSize:'.88rem'}}>Tunnid puuduvad.</div>
           :[...visibleLessons].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,6).map(l=>(
-            <div key={l.id} style={{display:'flex',alignItems:'center',gap:12,padding:'11px 0',borderBottom:'1px solid rgba(28,43,58,.06)'}}>
+            <button key={l.id} onClick={()=>isStaff&&openLessonEditor&&openLessonEditor(l)}
+              style={{width:'100%',display:'flex',alignItems:'center',gap:12,padding:'11px 0',border:'none',borderBottom:'1px solid rgba(28,43,58,.06)',background:'transparent',textAlign:'left',cursor:isStaff?'pointer':'default'}}>
               <div style={{width:38,height:38,borderRadius:10,flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center',
                 fontWeight:700,background:l.status==='Toimunud'?'rgba(201,136,42,.1)':'rgba(239,68,68,.08)',
                 color:l.status==='Toimunud'?'#C9882A':'#dc2626'}}>
@@ -530,7 +531,7 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
                 <div style={{fontSize:'.75rem',color:'#42536A'}}>{l.studentName} · {fmtDate(l.date)}</div>
               </div>
               <div style={{fontSize:'.75rem',color:'#42536A',flexShrink:0}}>{l.teacher}</div>
-            </div>
+            </button>
           ))
         }
       </div>
@@ -810,7 +811,7 @@ function ActivityLogView({logs,isAdmin}) {
 // ── TUNNIPLAAN ────────────────────────────────────────────────
 function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilterT,
   schStu,setSchStu,schDate,setSchDate,schTime,setSchTime,schTeach,setSchTeach,
-  schRecurring,setSchRecurring,addSchedule,setModalEv,delSchedule,markAttendance}) {
+  schRecurring,setSchRecurring,addSchedule,openScheduleEditor,delSchedule,markAttendance}) {
 
   const [showCanceled,setShowCanceled] = React.useState(true);
   const [weekOffset,setWeekOffset]     = React.useState(0);
@@ -1019,7 +1020,7 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
                         const attendanceStatus = attendanceKey ? ev.attendance?.[attendanceKey]?.status : "";
                         return(
                           <div key={ev.id+day.iso}
-                            onClick={()=>canManage&&setModalEv({...ev,occurrenceDate:day.iso})}
+                            onClick={()=>canManage&&openScheduleEditor({...ev,occurrenceDate:day.iso})}
                             style={{fontSize:".72rem",padding:"5px 7px",borderRadius:7,cursor:canManage?"pointer":"default",
                               background:m.bg,border:`1px solid ${m.border}`,transition:"background .12s",
                               opacity:st==="Tühistatud"?.55:1}}
@@ -3108,7 +3109,7 @@ function App() {
       scheduleTime: modalEv.time||'',
       topic:lTopic,grade:lStatus==='Toimunud'?parseInt(lGrade):0,
       duration:parseInt(lDur),status:lStatus,comment:lComment,
-      date:modalEv.date||today(),submittedAt:now.toLocaleString('et-EE'),teacher:user.displayName,
+      date:modalEv.occurrenceDate||modalEv.date||today(),submittedAt:now.toLocaleString('et-EE'),teacher:user.displayName,
       updatedAt: now.toISOString(),
       fileUrl,
       fileName
@@ -3122,12 +3123,21 @@ function App() {
       const existingSnap = await existingLessonRef.get();
       if(existingSnap.exists) existingLessonData = existingSnap.data();
       if(existingSnap.exists) existingLessonDoc = existingSnap;
-    }else if(modalEv.id){
-      const existingSnap = await db.collection('lessons').where('scheduleId','==',modalEv.id).limit(1).get();
-      if(!existingSnap.empty){
-        existingLessonDoc = existingSnap.docs[0];
-        existingLessonRef = existingLessonDoc.ref;
-        existingLessonData = existingLessonDoc.data();
+    }else{
+      const lessonDate = modalEv.occurrenceDate||modalEv.date||today();
+      const existingLocal = lessons.find(l=>
+        (
+          (modalEv.id && l.scheduleId===modalEv.id && String(l.date||'')===String(lessonDate)) ||
+          (
+            normalizeText(l.studentName)===normalizeText(modalEv.studentName) &&
+            String(l.date||'')===String(lessonDate) &&
+            (!modalEv.time || !l.scheduleTime || String(l.scheduleTime)===String(modalEv.time))
+          )
+        )
+      );
+      if(existingLocal?.id){
+        existingLessonRef = db.collection('lessons').doc(existingLocal.id);
+        existingLessonData = existingLocal;
       }
     }
 
@@ -3172,7 +3182,7 @@ function App() {
 
     setLTopic('');setLComment('');setLessonFile(null);setModalEv(null);
     notify(existingLessonRef?'✓ Aruanne uuendatud!':'✓ Aruanne salvestatud!');
-  },[modalEv,lTopic,lGrade,lStatus,lComment,lDur,lessonFile,students,user,logActivity]);
+  },[modalEv,lTopic,lGrade,lStatus,lComment,lDur,lessonFile,students,lessons,user,logActivity]);
 
   const addHw=useCallback(async()=>{
     if(!selStu||!hwTask.trim()){notify('⚠ Sisesta ülesanne');return;}
@@ -3248,6 +3258,34 @@ function App() {
       fileName: lesson.fileName||''
     });
   },[user]);
+
+  const openScheduleEditor=useCallback((event)=>{
+    if(!event) return;
+    const lessonDate = event.occurrenceDate||event.date||today();
+    const existingLesson = lessons.find(l=>{
+      const sameDate = String(l.date||'')===String(lessonDate);
+      const sameSchedule = event.id && l.scheduleId===event.id && sameDate;
+      const sameStudent = normalizeText(l.studentName)===normalizeText(event.studentName);
+      const sameTime = !event.time || !l.scheduleTime || String(l.scheduleTime)===String(event.time);
+      return sameSchedule || (sameStudent && sameDate && sameTime);
+    });
+    if(existingLesson){
+      openLessonEditor({
+        ...existingLesson,
+        scheduleId:existingLesson.scheduleId||event.id||'',
+        scheduleTime:existingLesson.scheduleTime||event.time||'',
+        date:existingLesson.date||lessonDate
+      });
+      return;
+    }
+    setLTopic('');
+    setLGrade('5');
+    setLStatus(event.status==='Tühistatud'?'Puudus_eta':'Toimunud');
+    setLComment('');
+    setLDur('60');
+    setLessonFile(null);
+    setModalEv({...event,occurrenceDate:lessonDate,date:event.date||lessonDate,fileUrl:'',fileName:''});
+  },[lessons,openLessonEditor]);
 
   const addInvoice=useCallback(async(stuId)=>{
     const sid=stuId||invStu;
@@ -3447,14 +3485,14 @@ function App() {
             taskTitle={taskTitle} setTaskTitle={setTaskTitle} taskAssignee={taskAssignee} setTaskAssignee={setTaskAssignee}
             taskDue={taskDue} setTaskDue={setTaskDue} taskPriority={taskPriority} setTaskPriority={setTaskPriority} taskCategory={taskCategory} setTaskCategory={setTaskCategory}
             addTask={addTask} toggleTask={toggleTask} deleteTask={deleteTask}
-            addStudent={addStudent} isAdmin={isAdmin} isStaff={isStaff}/>}
+            addStudent={addStudent} openLessonEditor={openLessonEditor} isAdmin={isAdmin} isStaff={isStaff}/>}
 
           {tab==='calendar'&&<CalendarView user={user} myStudents={myStudents} schedule={schedule} groups={groups} isAdmin={canAssignTeacher}
             filterT={filterT} setFilterT={setFilterT}
             schStu={schStu} setSchStu={setSchStu} schDate={schDate} setSchDate={setSchDate}
             schTime={schTime} setSchTime={setSchTime} schTeach={schTeach} setSchTeach={setSchTeach}
             schRecurring={schRecurring} setSchRecurring={setSchRecurring}
-            addSchedule={addSchedule} setModalEv={setModalEv} delSchedule={delSchedule} markAttendance={markAttendance}/>}
+            addSchedule={addSchedule} openScheduleEditor={openScheduleEditor} delSchedule={delSchedule} markAttendance={markAttendance}/>}
 
           {tab==='tasks'&&isStaff&&<TasksView user={user} tasks={scopedTasks} staffMembers={staffMembers}
             taskTitle={taskTitle} setTaskTitle={setTaskTitle} taskAssignee={taskAssignee} setTaskAssignee={setTaskAssignee}
