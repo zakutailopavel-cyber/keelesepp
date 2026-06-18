@@ -533,6 +533,123 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
   );
 }
 
+// ── ÜLESANDED ────────────────────────────────────────────────
+function TasksView({user,tasks,staffMembers,taskTitle,setTaskTitle,taskAssignee,setTaskAssignee,
+  taskDue,setTaskDue,taskPriority,setTaskPriority,taskCategory,setTaskCategory,addTask,toggleTask,deleteTask,isAdmin}) {
+  const [taskFilter,setTaskFilter] = React.useState('open');
+  const [taskSearch,setTaskSearch] = React.useState('');
+  const taskStaffOptions = [...new Set([
+    ...TEACHERS,
+    ...(staffMembers||[]).map(member=>member.displayName||member.email),
+    user.displayName
+  ].filter(Boolean).map(canonicalTeacherName))];
+  const categoryLabels = {general:'Üldine',parent:'Lapsevanem',payment:'Arved',lesson:'Tunnid',technical:'Tehniline'};
+  const openTasks = tasks.filter(t=>t.status!=='done');
+  const overdueTasks = tasks.filter(t=>t.status!=='done' && t.dueDate && t.dueDate<today());
+  const filteredTasks = tasks.filter(task=>{
+    if(taskFilter==='open' && task.status==='done') return false;
+    if(taskFilter==='overdue' && !(task.status!=='done' && task.dueDate && task.dueDate<today())) return false;
+    if(taskFilter==='done' && task.status!=='done') return false;
+    if(taskFilter==='created' && task.createdByUid!==user.uid) return false;
+    if(taskFilter.startsWith('cat:') && (task.category||'general')!==taskFilter.slice(4)) return false;
+    const q = normalizeText(taskSearch);
+    if(!q) return true;
+    return normalizeText(task.title).includes(q)
+      || normalizeText(task.assignedTo).includes(q)
+      || normalizeText(task.createdByName).includes(q)
+      || normalizeText(categoryLabels[task.category]||'').includes(q);
+  });
+
+  return(
+    <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:24}}>
+      <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:14,flexWrap:'wrap'}}>
+        <div>
+          <h1 style={{fontSize:'1.7rem'}}>Ülesanded</h1>
+          <div style={{color:'#42536A',fontSize:'.88rem',marginTop:4}}>Tööde nimekiri õpetajatele ja administraatoritele.</div>
+        </div>
+        <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+          <span className="badge" style={{background:'#dbeafe',color:'#1d4ed8'}}>{openTasks.length} aktiivset</span>
+          <span className="badge" style={{background:overdueTasks.length?'#fee2e2':'#dcfce7',color:overdueTasks.length?'#991b1b':'#166534'}}>{overdueTasks.length} hilinenud</span>
+        </div>
+      </div>
+
+      <div className="card" style={{padding:24}}>
+        <h3 style={{marginBottom:14}}>Lisa ülesanne</h3>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))',gap:10,marginBottom:14}}>
+          <input value={taskTitle} onChange={e=>setTaskTitle(e.target.value)} placeholder="Mida on vaja teha?"/>
+          <select value={taskAssignee} onChange={e=>setTaskAssignee(e.target.value)}>
+            {taskStaffOptions.map(t=><option key={t} value={t}>{t}</option>)}
+          </select>
+          <input value={taskDue} onChange={e=>setTaskDue(e.target.value)} type="date"/>
+          <select value={taskPriority} onChange={e=>setTaskPriority(e.target.value)}>
+            <option value="normal">Tavaline</option>
+            <option value="high">Kiire</option>
+            <option value="low">Madal</option>
+          </select>
+          <select value={taskCategory} onChange={e=>setTaskCategory(e.target.value)}>
+            <option value="general">Üldine</option>
+            <option value="parent">Lapsevanem</option>
+            <option value="payment">Arved</option>
+            <option value="lesson">Tunnid</option>
+            <option value="technical">Tehniline</option>
+          </select>
+        </div>
+        <button onClick={addTask} className="btn btn-pine" style={{width:'100%'}}><i className="fa-solid fa-plus"/> Lisa ülesanne</button>
+      </div>
+
+      <div className="card" style={{padding:24}}>
+        <div style={{display:'flex',gap:10,alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',marginBottom:16}}>
+          <input value={taskSearch} onChange={e=>setTaskSearch(e.target.value)} placeholder="Otsi ülesannet, inimest või kategooriat..." style={{maxWidth:360}}/>
+          <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+            {[['open','Aktiivsed'],['overdue','Hilinenud'],['done','Tehtud'],['created','Minu loodud'],['all','Kõik']].map(([id,label])=>(
+              <button key={id} onClick={()=>setTaskFilter(id)} className={`btn btn-sm ${taskFilter===id?'btn-dark':'btn-ghost'}`}>{label}</button>
+            ))}
+          </div>
+        </div>
+        <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:16}}>
+          {Object.entries(categoryLabels).map(([id,label])=>(
+            <button key={id} onClick={()=>setTaskFilter('cat:'+id)} className={`btn btn-sm ${taskFilter==='cat:'+id?'btn-amber':'btn-ghost'}`}>{label}</button>
+          ))}
+        </div>
+
+        <div style={{display:'flex',flexDirection:'column',gap:10}}>
+          {filteredTasks.length===0&&<div style={{textAlign:'center',padding:'28px 10px',color:'#42536A'}}>Ülesandeid ei leitud.</div>}
+          {[...filteredTasks].sort((a,b)=>{
+            if((a.status==='done') !== (b.status==='done')) return a.status==='done'?1:-1;
+            return String(a.dueDate||'9999-12-31').localeCompare(String(b.dueDate||'9999-12-31'));
+          }).map(task=>{
+            const done = task.status==='done';
+            const overdue = task.dueDate && task.dueDate<today() && !done;
+            const priorityColor = task.priority==='high' ? '#991b1b' : task.priority==='low' ? '#42536A' : '#1d4ed8';
+            const priorityBg = task.priority==='high' ? '#fee2e2' : task.priority==='low' ? '#f3f4f6' : '#dbeafe';
+            return(
+              <div key={task.id} style={{display:'grid',gridTemplateColumns:'auto 1fr auto',gap:12,alignItems:'center',padding:'13px 14px',borderRadius:12,border:'1px solid rgba(28,43,58,.08)',background:done?'rgba(243,244,246,.55)':overdue?'#fff7ed':'#fff'}}>
+                <button onClick={()=>toggleTask(task)} title={done?'Märgi aktiivseks':'Märgi tehtuks'} style={{width:32,height:32,borderRadius:999,border:'1.5px solid rgba(28,43,58,.16)',background:done?'#2F5D50':'#fff',color:done?'#fff':'#42536A',cursor:'pointer'}}>
+                  <i className={`fa-solid ${done?'fa-check':'fa-circle'}`} style={{fontSize:done?'.8rem':'.55rem'}}/>
+                </button>
+                <div style={{minWidth:0}}>
+                  <div style={{fontWeight:800,textDecoration:done?'line-through':'none',opacity:done ? .65 : 1}}>{task.title}</div>
+                  <div style={{fontSize:'.78rem',color:'#42536A',marginTop:4}}>
+                    {task.assignedTo||'Määramata'} · {categoryLabels[task.category]||'Üldine'} · tähtaeg: {task.dueDate?fmtDate(task.dueDate):'puudub'} · lisas {task.createdByName||'—'}
+                  </div>
+                </div>
+                <div style={{display:'flex',gap:8,alignItems:'center',justifyContent:'flex-end',flexWrap:'wrap'}}>
+                  <span className="badge" style={{background:priorityBg,color:priorityColor}}>{task.priority==='high'?'Kiire':task.priority==='low'?'Madal':'Tavaline'}</span>
+                  {overdue&&<span className="badge" style={{background:'#fee2e2',color:'#991b1b'}}>Hilinenud</span>}
+                  {done&&<span className="badge" style={{background:'#dcfce7',color:'#166534'}}>Tehtud</span>}
+                  {(isAdmin||task.createdByUid===user.uid)&&(
+                    <button onClick={()=>deleteTask(task)} className="btn btn-ghost btn-sm" title="Kustuta"><i className="fa-solid fa-trash"/></button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── TUNNIPLAAN ────────────────────────────────────────────────
 function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilterT,
   schStu,setSchStu,schDate,setSchDate,schTime,setSchTime,schTeach,setSchTeach,
@@ -2970,6 +3087,8 @@ function App() {
   const navItems=[
     {id:'dashboard',icon:'fa-chart-pie',label:'Töölaud'},
     {id:'calendar', icon:'fa-calendar-days',label:'Tunniplaan'},
+    ...(isStaff?[{id:'tasks',icon:'fa-list-check',label:'Ülesanded',
+      badge:scopedTasks.filter(t=>t.status!=='done').length}]:[]),
     {id:'students', icon:'fa-graduation-cap',label:isStaff?'Minu õpilased':'Minu progress',
       badge:isStaff&&homework.filter(h=>h.status==='Ootel'&&myStudents.some(s=>s.id===h.studentId)).length>0?
         homework.filter(h=>h.status==='Ootel'&&myStudents.some(s=>s.id===h.studentId)).length:0},
@@ -3055,6 +3174,12 @@ function App() {
             schTime={schTime} setSchTime={setSchTime} schTeach={schTeach} setSchTeach={setSchTeach}
             schRecurring={schRecurring} setSchRecurring={setSchRecurring}
             addSchedule={addSchedule} setModalEv={setModalEv} delSchedule={delSchedule} markAttendance={markAttendance}/>}
+
+          {tab==='tasks'&&isStaff&&<TasksView user={user} tasks={scopedTasks} staffMembers={staffMembers}
+            taskTitle={taskTitle} setTaskTitle={setTaskTitle} taskAssignee={taskAssignee} setTaskAssignee={setTaskAssignee}
+            taskDue={taskDue} setTaskDue={setTaskDue} taskPriority={taskPriority} setTaskPriority={setTaskPriority}
+            taskCategory={taskCategory} setTaskCategory={setTaskCategory}
+            addTask={addTask} toggleTask={toggleTask} deleteTask={deleteTask} isAdmin={isAdmin}/>}
 
           {tab==='students'&&isStaff&&!selStu&&<StudentsList filteredStudents={filteredStudents} lessons={lessons} isAdmin={canAssignTeacher}
             search={search} setSearch={setSearch} stuFilter={stuFilter} setStuFilter={setStuFilter} setSelStu={setSelStu}/>}
