@@ -1698,7 +1698,7 @@ function GroupsView({groups,students,isAdmin,setSelStu,setTab,addGroup,deleteGro
 
 // ── ÕPILASE KAART ─────────────────────────────────────────────
 function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,setEditStu,toggleStudentActive,
-  hwTask,setHwTask,hwDue,setHwDue,hwFile,setHwFile,addHw,toggleHw,
+  hwTask,setHwTask,hwDue,setHwDue,hwFile,setHwFile,addHw,toggleHw,deleteHw,removeHwFile,
   invAmt,setInvAmt,invDesc,setInvDesc,addInvoice,markPaid,unmarkPaid,deleteInvoice,printInvoice,submitParentPayment,resetParentPayment,deleteLesson,openLessonEditor,
   stuMessages,teacherMessage,setTeacherMessage,sendTeacherMessage}) {
   if(!currentStu) return <div style={{textAlign:'center',padding:60,color:'#42536A'}}>Õpilane ei leitud.</div>;
@@ -1832,15 +1832,29 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
                   <div style={{fontWeight:500,fontSize:'.88rem'}}>{hw.task}</div>
                   {hw.due&&<div style={{fontSize:'.72rem',color:'#42536A',marginTop:2}}>📅 {fmtDate(hw.due)}</div>}
                   {hw.fileUrl&&(
-                    <a href={hw.fileUrl} target="_blank" rel="noreferrer" style={{display:'inline-flex',alignItems:'center',gap:6,marginTop:6,fontSize:'.74rem',fontWeight:700,color:'#2F5D50',textDecoration:'none'}}>
-                      <i className="fa-solid fa-paperclip"/> {hw.fileName||'Fail'}
-                    </a>
+                    <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap',marginTop:6}}>
+                      <a href={hw.fileUrl} target="_blank" rel="noreferrer" className="btn btn-ghost btn-sm" style={{padding:'5px 9px',fontSize:'.72rem'}}>
+                        <i className="fa-solid fa-paperclip"/> {hw.fileName||'Ava fail'}
+                      </a>
+                      {canManage&&(
+                        <button onClick={()=>removeHwFile(hw)} className="btn btn-ghost btn-sm" style={{padding:'5px 9px',fontSize:'.72rem',color:'#991b1b'}}>
+                          <i className="fa-solid fa-xmark"/> Eemalda fail
+                        </button>
+                      )}
+                    </div>
                   )}
                 </div>
-                <button onClick={()=>toggleHw(hw.id,hw.status)} className="badge" style={{cursor:'pointer',border:'none',flexShrink:0,
-                  background:hw.status==='Tehtud'?'#dcfce7':'#fef3c7',color:hw.status==='Tehtud'?'#166534':'#92400e'}}>
-                  {hw.status==='Tehtud'?'✓ Tehtud':'Ootel'}
-                </button>
+                <div style={{display:'flex',alignItems:'center',gap:6,flexWrap:'wrap',justifyContent:'flex-end'}}>
+                  <button onClick={()=>toggleHw(hw.id,hw.status)} className="badge" style={{cursor:'pointer',border:'none',flexShrink:0,
+                    background:hw.status==='Tehtud'?'#dcfce7':'#fef3c7',color:hw.status==='Tehtud'?'#166534':'#92400e'}}>
+                    {hw.status==='Tehtud'?'✓ Tehtud':'Ootel'}
+                  </button>
+                  {canManage&&(
+                    <button onClick={()=>deleteHw(hw)} className="btn btn-ghost btn-sm" style={{padding:'5px 9px',fontSize:'.72rem',color:'#991b1b'}}>
+                      <i className="fa-solid fa-trash"/> Kustuta
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -3286,6 +3300,32 @@ function App() {
 
   const toggleHw=useCallback(async(id,cur)=>await db.collection('homework').doc(id).update({status:cur==='Tehtud'?'Ootel':'Tehtud'}),[]);
 
+  const removeHwFile=useCallback(async(hw)=>{
+    if(!hw?.id) return;
+    if(hw.fileUrl&&storage){
+      try{ await storage.refFromURL(hw.fileUrl).delete(); }catch(e){ console.warn('Homework file delete skipped:', e); }
+    }
+    await db.collection('homework').doc(hw.id).update({
+      fileUrl:'',
+      fileName:'',
+      fileRemovedAt:new Date().toISOString(),
+      fileRemovedBy:user.displayName||user.email||''
+    });
+    await logActivity('homework.file_removed','Eemaldati kodutöö fail',{homeworkId:hw.id,studentId:hw.studentId,studentName:hw.studentName});
+    notify('✓ Fail eemaldatud');
+  },[user,logActivity]);
+
+  const deleteHw=useCallback(async(hw)=>{
+    if(!hw?.id) return;
+    if(!window.confirm('Kustuta kodutöö?')) return;
+    if(hw.fileUrl&&storage){
+      try{ await storage.refFromURL(hw.fileUrl).delete(); }catch(e){ console.warn('Homework file delete skipped:', e); }
+    }
+    await db.collection('homework').doc(hw.id).delete();
+    await logActivity('homework.deleted','Kustutati kodutöö',{homeworkId:hw.id,studentId:hw.studentId,studentName:hw.studentName});
+    notify('✓ Kodutöö kustutatud');
+  },[logActivity]);
+
   const delSchedule=useCallback(async(id,e)=>{
     e.stopPropagation();
     if(window.confirm('Kustuta tund?')) await db.collection('schedule').doc(id).delete();
@@ -3601,7 +3641,7 @@ function App() {
             setEditStu={setEditStu}
             user={user} currentStu={currentStu} stuLessons={stuLessons} stuHw={stuHw} stuInv={stuInv}
             isAdmin={canAssignTeacher} setSelStu={setSelStu} toggleStudentActive={toggleStudentActive}
-            hwTask={hwTask} setHwTask={setHwTask} hwDue={hwDue} setHwDue={setHwDue} hwFile={hwFile} setHwFile={setHwFile} addHw={addHw} toggleHw={toggleHw}
+            hwTask={hwTask} setHwTask={setHwTask} hwDue={hwDue} setHwDue={setHwDue} hwFile={hwFile} setHwFile={setHwFile} addHw={addHw} toggleHw={toggleHw} deleteHw={deleteHw} removeHwFile={removeHwFile}
             invAmt={invAmt} setInvAmt={setInvAmt} invDesc={invDesc} setInvDesc={setInvDesc}
             addInvoice={addInvoice} markPaid={markPaid} unmarkPaid={unmarkPaid} deleteInvoice={deleteInvoice} printInvoice={printInvoice} submitParentPayment={submitParentPayment} resetParentPayment={resetParentPayment} deleteLesson={deleteLesson} openLessonEditor={openLessonEditor}
             stuMessages={stuMessages} teacherMessage={teacherMessage} setTeacherMessage={setTeacherMessage} sendTeacherMessage={sendTeacherMessage}/>}
