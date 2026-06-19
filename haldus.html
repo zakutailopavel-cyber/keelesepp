@@ -114,7 +114,7 @@ const db   = window._db;
 const auth = window._auth;
 const storage = window._storage;
 const {
-  TEACHER_CODE, ADMIN_CODE, APP_VERSION, LEVELS, TEACHERS,
+  TEACHER_CODE, ADMIN_CODE, APP_VERSION, LEVELS:SHARED_LEVELS, TEACHERS,
   SUBJECTS, GRADES, LESSON_DURATIONS,
   PAYMENT_METHODS, PAYMENT_DETAILS, CONTACT_STATUSES,
   DAYS_SHORT, DAYS_ID, DAYS_FULL, TIMES,
@@ -122,6 +122,7 @@ const {
   levelPct, avg, fmtDate, toLocalISODate, today, pkgLeft, copyText,
   ensureStudentRecord, ensureParentStudentRecords
 } = window.HaldusShared;
+const LEVELS = SHARED_LEVELS.includes('Eelkool') ? SHARED_LEVELS : ['Eelkool',...SHARED_LEVELS];
 
 // ── PROGRESSIGRAAFIK ─────────────────────────────────────────
 function ProgressChart({data}) {
@@ -334,6 +335,7 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
   nLevel,setNLevel,nTarget,setNTarget,nPkg,setNPkg,
   nSubject,setNSubject,nGrade,setNGrade,nGroup,setNGroup,
   nTeach,setNTeach,addStudent,
+  groupOptions,
   taskTitle,setTaskTitle,taskAssignee,setTaskAssignee,taskDue,setTaskDue,taskPriority,setTaskPriority,taskCategory,setTaskCategory,
   addTask,toggleTask,deleteTask,openLessonEditor,isAdmin,isStaff}) {
   const unpaidAmt = invoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+i.amount,0);
@@ -504,7 +506,10 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
               <option value="">Klass / vanus (valikuline)</option>
               {GRADES.map(g=><option key={g} value={g}>{g}</option>)}
             </select>
-            <input value={nGroup} onChange={e=>setNGroup(e.target.value)} placeholder="Grupp (nt. A2 õhtu / 7. klass)"/>
+            <select value={nGroup} onChange={e=>setNGroup(e.target.value)}>
+              <option value="">Grupp: määramata</option>
+              {groupOptions.map(group=><option key={group} value={group}>{group}</option>)}
+            </select>
             <input value={nPkg} onChange={e=>setNPkg(e.target.value)} type="number" placeholder="Paketi maht (nt. 10)"/>
             {(isAdmin||user.role==='admin')&&<select value={nTeach} onChange={e=>setNTeach(e.target.value)}>{TEACHERS.map(t=><option key={t} value={t}>Õp: {t}</option>)}</select>}
           </div>
@@ -1251,7 +1256,10 @@ function StudentsDatabaseView({
               <option value="">Klass / vanus (valikuline)</option>
               {GRADES.map(g=><option key={g} value={g}>{g}</option>)}
             </select>
-            <input value={nGroup} onChange={e=>setNGroup(e.target.value)} placeholder="Grupp (nt. B1 hommik)"/>
+            <select value={nGroup} onChange={e=>setNGroup(e.target.value)}>
+              <option value="">Grupp: määramata</option>
+              {groupOptions.map(group=><option key={group} value={group}>{group}</option>)}
+            </select>
             <input value={nPkg} onChange={e=>setNPkg(e.target.value)} type="number" placeholder="Paketi maht (nt. 10)"/>
             {(isAdmin||user?.role==='admin')
               ? <select value={nTeach} onChange={e=>setNTeach(e.target.value)}>{TEACHERS.map(t=><option key={t} value={t}>Õp: {t}</option>)}</select>
@@ -3550,6 +3558,7 @@ function App() {
             nName={nName} setNName={setNName} nParentName={nParentName} setNParentName={setNParentName} nEmail={nEmail} setNEmail={setNEmail} nPhone={nPhone} setNPhone={setNPhone}
             nLevel={nLevel} setNLevel={setNLevel} nTarget={nTarget} setNTarget={setNTarget}
             nPkg={nPkg} setNPkg={setNPkg} nSubject={nSubject} setNSubject={setNSubject} nGrade={nGrade} setNGrade={setNGrade} nGroup={nGroup} setNGroup={setNGroup} nTeach={nTeach} setNTeach={setNTeach}
+            groupOptions={groupOptions}
             taskTitle={taskTitle} setTaskTitle={setTaskTitle} taskAssignee={taskAssignee} setTaskAssignee={setTaskAssignee}
             taskDue={taskDue} setTaskDue={setTaskDue} taskPriority={taskPriority} setTaskPriority={setTaskPriority} taskCategory={taskCategory} setTaskCategory={setTaskCategory}
             addTask={addTask} toggleTask={toggleTask} deleteTask={deleteTask}
