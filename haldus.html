@@ -345,7 +345,7 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
   nTeach,setNTeach,addStudent,
   groupOptions,
   taskTitle,setTaskTitle,taskAssignee,setTaskAssignee,taskDue,setTaskDue,taskPriority,setTaskPriority,taskCategory,setTaskCategory,
-  addTask,toggleTask,deleteTask,openLessonEditor,isAdmin,isStaff,parentAlerts,createMissingParentStudents}) {
+  addTask,toggleTask,deleteTask,openLessonEditor,isAdmin,isStaff,parentAlerts,createMissingParentStudents,setTab,setSelStu}) {
   const unpaidAmt = invoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+i.amount,0);
   const pendingHw = homework.filter(h=>h.status==='Ootel'&&myStudents.some(s=>s.id===h.studentId)).length;
   const openTasks = tasks.filter(t=>t.status!=='done');
@@ -369,6 +369,84 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
         linkedStudentNames.includes(normalizeText(l.studentName))
       );
   const attendance= stuLessons.length?Math.round(doneLess.length/stuLessons.length*100):0;
+  const unassignedStudents = isAdmin ? myStudents.filter(student=>student.active!==false && !canonicalTeacherName(student.teacher||'')) : [];
+  const newContactStudents = isAdmin ? myStudents.filter(student=>student.active!==false && (student.contactStatus||'new')==='new') : [];
+  const missingParentStudents = isAdmin ? myStudents.filter(student=>{
+    if(student.linkedParentId||student.parentUid||student.guardianUid) return false;
+    if((student.parentName||'').trim()) return false;
+    if((student.parentEmail||student.contactEmail||student.guardianEmail||'').trim()) return false;
+    return student.active!==false;
+  }) : [];
+  const overdueTasks = isAdmin ? openTasks.filter(task=>task.dueDate && task.dueDate<today()) : [];
+  const unpaidInvoices = isAdmin ? invoices.filter(inv=>inv.status==='Ootel') : [];
+  const adminAttention = [
+    {
+      id:'parents',
+      title:'Uued lapsevanemad',
+      count:parentAlerts?.length||0,
+      text:'Lapsevanem sisestas lapse andmed, aga õpilase kaart vajab kontrolli.',
+      tone:'#991b1b',
+      bg:'#fff7f7',
+      icon:'fa-people-roof',
+      action:'Ava lapsevanemad',
+      onClick:()=>setTab&&setTab('parents')
+    },
+    {
+      id:'teacher',
+      title:'Õpetajata õpilased',
+      count:unassignedStudents.length,
+      text:'Aktiivsed õpilased, kellele pole õpetajat määratud.',
+      tone:'#92400e',
+      bg:'#fffbeb',
+      icon:'fa-user-check',
+      action:'Ava andmebaas',
+      onClick:()=>setTab&&setTab('database')
+    },
+    {
+      id:'new-students',
+      title:'Uued kontaktid',
+      count:newContactStudents.length,
+      text:'Õpilased staatusega “Uus”, kellega peab keegi ühendust võtma.',
+      tone:'#1d4ed8',
+      bg:'#eff6ff',
+      icon:'fa-phone',
+      action:'Ava andmebaas',
+      onClick:()=>setTab&&setTab('database')
+    },
+    {
+      id:'missing-parent',
+      title:'Puuduv vanema info',
+      count:missingParentStudents.length,
+      text:'Õpilase kaardil puudub vanema nimi, e-post või seos kontoga.',
+      tone:'#991b1b',
+      bg:'#fff7f7',
+      icon:'fa-triangle-exclamation',
+      action:'Ava andmebaas',
+      onClick:()=>setTab&&setTab('database')
+    },
+    {
+      id:'invoices',
+      title:'Ootel arved',
+      count:unpaidInvoices.length,
+      text:`Maksmata summa: ${unpaidInvoices.reduce((sum,inv)=>sum+(parseFloat(inv.amount)||0),0)}€`,
+      tone:'#991b1b',
+      bg:'#fff7f7',
+      icon:'fa-file-invoice-dollar',
+      action:'Ava arved',
+      onClick:()=>setTab&&setTab('invoices')
+    },
+    {
+      id:'tasks',
+      title:'Hilinenud ülesanded',
+      count:overdueTasks.length,
+      text:'Tähtaeg on möödas ja ülesanne pole tehtud.',
+      tone:'#92400e',
+      bg:'#fffbeb',
+      icon:'fa-list-check',
+      action:'Ava ülesanded',
+      onClick:()=>setTab&&setTab('tasks')
+    }
+  ].filter(item=>item.count>0);
 
   return(
     <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:24}}>
@@ -406,6 +484,47 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
           )):null
         }
       </div>
+
+      {isAdmin&&(
+        <div className="card" style={{padding:24,border:adminAttention.length?'1px solid rgba(153,27,27,.18)':'1px solid rgba(47,93,80,.18)',background:adminAttention.length?'#fff':'#f7fffb'}}>
+          <div style={{display:'flex',justifyContent:'space-between',gap:12,alignItems:'flex-start',flexWrap:'wrap',marginBottom:adminAttention.length?16:0}}>
+            <div>
+              <h3>🧭 Admini tähelepanu</h3>
+              <div style={{fontSize:'.84rem',color:'#42536A',marginTop:4}}>
+                Kõige olulisemad asjad, mis vajavad täna kontrolli.
+              </div>
+            </div>
+            <span className="badge" style={{background:adminAttention.length?'#fee2e2':'#dcfce7',color:adminAttention.length?'#991b1b':'#166534'}}>
+              {adminAttention.length?`${adminAttention.reduce((sum,item)=>sum+item.count,0)} tähelepanu`:'Kõik korras'}
+            </span>
+          </div>
+          {adminAttention.length===0?(
+            <div style={{fontSize:'.9rem',color:'#2F5D50',fontWeight:700}}>Hetkel kriitilisi teavitusi pole.</div>
+          ):(
+            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(240px,1fr))',gap:12}}>
+              {adminAttention.map(item=>(
+                <div key={item.id} style={{padding:14,borderRadius:14,background:item.bg,border:'1px solid rgba(28,43,58,.08)',display:'flex',flexDirection:'column',gap:10}}>
+                  <div style={{display:'flex',gap:10,alignItems:'flex-start'}}>
+                    <div style={{width:34,height:34,borderRadius:10,background:'#fff',display:'flex',alignItems:'center',justifyContent:'center',color:item.tone,flexShrink:0}}>
+                      <i className={`fa-solid ${item.icon}`}/>
+                    </div>
+                    <div style={{minWidth:0}}>
+                      <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
+                        <strong>{item.title}</strong>
+                        <span className="badge" style={{background:'#fff',color:item.tone}}>{item.count}</span>
+                      </div>
+                      <div style={{fontSize:'.8rem',color:'#42536A',marginTop:4}}>{item.text}</div>
+                    </div>
+                  </div>
+                  <button onClick={item.onClick} className="btn btn-ghost btn-sm" style={{alignSelf:'flex-start'}}>
+                    {item.action}
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {isAdmin&&parentAlerts?.length>0&&(
         <div className="card" style={{padding:24,border:'1px solid #fecaca',background:'#fff7f7'}}>
@@ -4131,7 +4250,7 @@ function App() {
             taskDue={taskDue} setTaskDue={setTaskDue} taskPriority={taskPriority} setTaskPriority={setTaskPriority} taskCategory={taskCategory} setTaskCategory={setTaskCategory}
             addTask={addTask} toggleTask={toggleTask} deleteTask={deleteTask}
             addStudent={addStudent} openLessonEditor={openLessonEditor} isAdmin={isAdmin} isStaff={isStaff}
-            parentAlerts={parentAlerts} createMissingParentStudents={createMissingParentStudents}/>}
+            parentAlerts={parentAlerts} createMissingParentStudents={createMissingParentStudents} setTab={setTab} setSelStu={setSelStu}/>}
 
           {tab==='calendar'&&<CalendarView user={user} myStudents={myStudents} schedule={schedule} groups={groups} isAdmin={canAssignTeacher}
             filterT={filterT} setFilterT={setFilterT}
