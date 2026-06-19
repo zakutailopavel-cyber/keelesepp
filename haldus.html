@@ -2467,7 +2467,7 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
 }
 
 // ── РЕДАКТИРОВАНИЕ И УДАЛЕНИЕ УЧЕНИКА ────────────────────────
-function EditStudentModal({student,onClose,onSave,onDelete,db,notify,isAdmin}) {
+function EditStudentModal({student,onClose,onSave,onDelete,db,notify,isAdmin,groupOptions=[]}) {
   const [name,    setName]    = React.useState(student.name||'');
   const [parentName,setParentName] = React.useState(student.parentName||'');
   const [email,   setEmail]   = React.useState(student.email||'');
@@ -2486,6 +2486,10 @@ function EditStudentModal({student,onClose,onSave,onDelete,db,notify,isAdmin}) {
   const [used,    setUsed]    = React.useState(String(student.packageUsed||0));
   const [saving,  setSaving]  = React.useState(false);
   const [confirm, setConfirm] = React.useState(false);
+  const modalGroupOptions = React.useMemo(()=>
+    [...new Set([...(groupOptions||[]),group].map(g=>(g||'').trim()).filter(Boolean))]
+      .sort((a,b)=>a.localeCompare(b,'et'))
+  ,[groupOptions,group]);
 
   const save = async()=>{
     if(!name.trim()){notify('⚠ Sisesta nimi');return;}
@@ -2564,7 +2568,10 @@ function EditStudentModal({student,onClose,onSave,onDelete,db,notify,isAdmin}) {
             </div>
             <div>
               <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Grupp</div>
-              <input value={group} onChange={e=>setGroup(e.target.value)} placeholder="Nt. B1 õhtu"/>
+              <select value={group} onChange={e=>setGroup(e.target.value)}>
+                <option value="">Grupp: määramata</option>
+                {modalGroupOptions.map(groupName=><option key={groupName} value={groupName}>{groupName}</option>)}
+              </select>
             </div>
             <div>
               <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Hetketase</div>
@@ -3650,7 +3657,7 @@ function App() {
         </div>
       </main>
 
-      {editStu&&<EditStudentModal student={editStu} onClose={()=>setEditStu(null)} onSave={()=>{setEditStu(null);}} onDelete={()=>{setEditStu(null);setSelStu(null);}} db={db} notify={notify} isAdmin={isAdmin}/>}
+      {editStu&&<EditStudentModal student={editStu} onClose={()=>setEditStu(null)} onSave={()=>{setEditStu(null);}} onDelete={()=>{setEditStu(null);setSelStu(null);}} db={db} notify={notify} isAdmin={isAdmin} groupOptions={groupOptions}/>}
       {modalEv&&<LessonModal modalEv={modalEv} setModalEv={setModalEv}
         lTopic={lTopic} setLTopic={setLTopic} lGrade={lGrade} setLGrade={setLGrade}
         lStatus={lStatus} setLStatus={setLStatus}        lComment={lComment} setLComment={setLComment}
