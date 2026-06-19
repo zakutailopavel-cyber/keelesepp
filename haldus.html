@@ -2500,7 +2500,7 @@ function InvoicesView({invoices,myStudents,invStu,setInvStu,invAmt,setInvAmt,inv
 
 // ── TUNNI MODAL ───────────────────────────────────────────────
 function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
-  lStatus,setLStatus,lComment,setLComment,lDur,setLDur,lessonFile,setLessonFile,saveLesson,deleteLesson,db,user,notify}) {
+  lStatus,setLStatus,lComment,setLComment,lDur,setLDur,lessonFile,setLessonFile,saveLesson,deleteLesson,db,user,notify,students,markAttendance}) {
 
   const [moveDate,setMoveDate] = React.useState(modalEv.occurrenceDate||modalEv.date||new Date().toISOString().split("T")[0]);
   const [moveTime,setMoveTime] = React.useState(modalEv.time||"09:00");
@@ -2510,6 +2510,30 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
   const hasDate = Boolean(modalEv.date||modalEv.occurrenceDate);
   const st = modalEv.status||"Planeeritud";
   const isJournalEdit = Boolean(modalEv.lessonEntryId);
+  const lessonDate = modalEv.occurrenceDate||modalEv.date||today();
+  const assignedGroupStudents = React.useMemo(()=>{
+    if(!modalEv.isGroup) return [];
+    const ids = new Set([...(modalEv.students||[]),...(modalEv.groupMembers||[])]);
+    return (students||[]).filter(student=>ids.has(student.id));
+  },[modalEv,students]);
+  const attendanceText = status => status==='coming'?'Tuli':status==='absent'?'Puudus':status==='warned'?'Hoiatas':'Märkimata';
+  const setGroupAttendance = async(student,status)=>{
+    if(!student?.id||!markAttendance) return;
+    const key = `${student.id}_${lessonDate}`;
+    await markAttendance(modalEv,key,status);
+    setModalEv(prev=>{
+      const nextAttendance = {...(prev.attendance||{})};
+      if(status==='clear') delete nextAttendance[key];
+      else nextAttendance[key] = {
+        status,
+        by:user.uid||'',
+        byName:user.displayName||user.email||'',
+        byRole:user.role||'',
+        updatedAt:new Date().toISOString()
+      };
+      return {...prev,attendance:nextAttendance};
+    });
+  };
 
   const STATUS_COLOR = {
     Planeeritud:"#2F5D50",Nihutatud:"#A96E1A",Tühistatud:"#991b1b",Toimunud:"#42536A"
@@ -2743,6 +2767,46 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
               </div>
             )}
           </div>}
+
+          {modalEv.isGroup&&assignedGroupStudents.length>0&&st!=="Tühistatud"&&(
+            <div style={{background:"#F9F8F6",borderRadius:12,padding:16,border:"1px solid rgba(28,43,58,.07)"}}>
+              <div style={{fontSize:".76rem",fontWeight:700,color:"#42536A",textTransform:"uppercase",letterSpacing:".08em",marginBottom:12}}>
+                👥 Grupi kohalolu
+              </div>
+              <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                {assignedGroupStudents.map(student=>{
+                  const key = `${student.id}_${lessonDate}`;
+                  const saved = modalEv.attendance?.[key]?.status || '';
+                  return (
+                    <div key={student.id} style={{display:"grid",gridTemplateColumns:"1fr auto",gap:10,alignItems:"center",padding:"10px 12px",borderRadius:10,background:"#fff",border:"1px solid rgba(28,43,58,.08)"}}>
+                      <div>
+                        <div style={{fontWeight:800,color:"#1C2B3A",fontSize:".9rem"}}>{student.name}</div>
+                        <div style={{fontSize:".74rem",color:saved?"#2F5D50":"#991b1b",fontWeight:700}}>
+                          {attendanceText(saved)}
+                        </div>
+                      </div>
+                      <div style={{display:"flex",gap:6,flexWrap:"wrap",justifyContent:"flex-end"}}>
+                        <button type="button" onClick={()=>setGroupAttendance(student,'coming')} className={`btn btn-sm ${saved==='coming'?'btn-pine':'btn-ghost'}`} style={{padding:"7px 9px"}}>
+                          Tuli
+                        </button>
+                        <button type="button" onClick={()=>setGroupAttendance(student,'absent')} className={`btn btn-sm ${saved==='absent'?'btn-red':'btn-ghost'}`} style={{padding:"7px 9px"}}>
+                          Puudus
+                        </button>
+                        <button type="button" onClick={()=>setGroupAttendance(student,'warned')} className={`btn btn-sm ${saved==='warned'?'btn-amber':'btn-ghost'}`} style={{padding:"7px 9px"}}>
+                          Hoiatas
+                        </button>
+                        {saved&&(
+                          <button type="button" onClick={()=>setGroupAttendance(student,'clear')} className="btn btn-ghost btn-sm" style={{padding:"7px 9px",color:"#42536A"}}>
+                            Tühjenda
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Блок записи урока */}
           {st!=="Tühistatud"&&(
@@ -3428,6 +3492,7 @@ function App() {
 
   const markAttendance=useCallback(async(event,attendanceKey,status)=>{
     if(!event||!attendanceKey){notify('⚠ Tundi ei leitud');return;}
+    const shouldClear = status==='clear';
     const attendance = {
         status,
         by:user.uid||'',
@@ -3438,18 +3503,26 @@ function App() {
     if(event.isGroup){
       const group = groups.find(g=>g.id===event.groupId);
       if(!group){notify('⚠ Gruppi ei leitud');return;}
-      const lessons = (group.lessons||[]).map(lesson=>
-        lesson.id===event.groupLessonId
-          ? {...lesson,attendance:{...(lesson.attendance||{}),[attendanceKey]:attendance}}
-          : lesson
-      );
+      const lessons = (group.lessons||[]).map(lesson=>{
+        if(lesson.id!==event.groupLessonId) return lesson;
+        const nextAttendance = {...(lesson.attendance||{})};
+        if(shouldClear) delete nextAttendance[attendanceKey];
+        else nextAttendance[attendanceKey] = attendance;
+        return {...lesson,attendance:nextAttendance};
+      });
       await db.collection('groups').doc(group.id).update({lessons,updatedAt:new Date().toISOString()});
     }else{
-      await db.collection('schedule').doc(event.id).update({
-        [`attendance.${attendanceKey}`]: attendance
-      });
+      if(shouldClear){
+        await db.collection('schedule').doc(event.id).update({
+          [`attendance.${attendanceKey}`]: firebase.firestore.FieldValue.delete()
+        });
+      }else{
+        await db.collection('schedule').doc(event.id).update({
+          [`attendance.${attendanceKey}`]: attendance
+        });
+      }
     }
-    notify(status==='coming'?'✓ Osalemine märgitud':'✓ Puudumine märgitud');
+    notify(shouldClear?'✓ Kohalolu märge eemaldatud':status==='coming'?'✓ Osalemine märgitud':status==='warned'?'✓ Hoiatus märgitud':'✓ Puudumine märgitud');
   },[user,groups]);
 
   const sendTeacherMessage=useCallback(async(student,text)=>{
@@ -4165,7 +4238,8 @@ function App() {
         lTopic={lTopic} setLTopic={setLTopic} lGrade={lGrade} setLGrade={setLGrade}
         lStatus={lStatus} setLStatus={setLStatus}        lComment={lComment} setLComment={setLComment}
         lDur={lDur} setLDur={setLDur} lessonFile={lessonFile} setLessonFile={setLessonFile}
-        saveLesson={saveLesson} deleteLesson={deleteLesson} db={db} user={user} notify={notify}/>}
+        saveLesson={saveLesson} deleteLesson={deleteLesson} db={db} user={user} notify={notify}
+        students={students} markAttendance={markAttendance}/>}
     </div>
   );
 }
