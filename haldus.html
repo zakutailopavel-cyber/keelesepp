@@ -346,7 +346,7 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
   nTeach,setNTeach,addStudent,
   groupOptions,
   taskTitle,setTaskTitle,taskAssignee,setTaskAssignee,taskDue,setTaskDue,taskPriority,setTaskPriority,taskCategory,setTaskCategory,
-  addTask,toggleTask,deleteTask,openLessonEditor,isAdmin,isStaff,parentAlerts,createMissingParentStudents,markParentChecked,setTab,setSelStu}) {
+  addTask,toggleTask,deleteTask,replyTask,markTaskRepliesSeen,openLessonEditor,isAdmin,isStaff,parentAlerts,createMissingParentStudents,markParentChecked,setTab,setSelStu}) {
   const unpaidAmt = invoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+i.amount,0);
   const pendingHw = homework.filter(h=>h.status==='Ootel'&&myStudents.some(s=>s.id===h.studentId)).length;
   const openTasks = tasks.filter(t=>t.status!=='done');
@@ -379,6 +379,11 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
     return student.active!==false;
   }) : [];
   const overdueTasks = isAdmin ? openTasks.filter(task=>task.dueDate && task.dueDate<today()) : [];
+  const unreadTaskReplies = isStaff ? tasks.filter(task=>
+    task.lastReplyAt &&
+    task.lastReplyByUid!==user.uid &&
+    !(task.lastReplySeenBy||[]).includes(user.uid)
+  ) : [];
   const unpaidInvoices = isAdmin ? invoices.filter(inv=>inv.status==='Ootel') : [];
   const adminAttention = [
     {
@@ -598,6 +603,35 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
             <i className="fa-solid fa-plus"/> Lisa ülesanne
           </button>
 
+          {unreadTaskReplies.length>0&&(
+            <div style={{padding:14,borderRadius:14,background:'#eff6ff',border:'1px solid #bfdbfe',marginBottom:14}}>
+              <div style={{display:'flex',justifyContent:'space-between',gap:10,alignItems:'center',flexWrap:'wrap',marginBottom:8}}>
+                <strong style={{color:'#1d4ed8'}}>💬 Uued vastused ülesannetele</strong>
+                <span className="badge" style={{background:'#dbeafe',color:'#1d4ed8'}}>{unreadTaskReplies.length} uut</span>
+              </div>
+              <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                {unreadTaskReplies.slice(0,3).map(task=>(
+                  <div key={task.id} style={{display:'grid',gridTemplateColumns:'1fr auto',gap:10,alignItems:'center',padding:'10px 12px',borderRadius:12,background:'#fff'}}>
+                    <div style={{minWidth:0}}>
+                      <div style={{fontWeight:800,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{task.title}</div>
+                      <div style={{fontSize:'.78rem',color:'#42536A',marginTop:3,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
+                        {task.lastReplyBy||'—'}: {task.lastReplyText||''}
+                      </div>
+                    </div>
+                    <button onClick={()=>markTaskRepliesSeen(task)} className="btn btn-ghost btn-sm">
+                      Loetud
+                    </button>
+                  </div>
+                ))}
+              </div>
+              {unreadTaskReplies.length>3&&(
+                <button onClick={()=>setTab&&setTab('tasks')} className="btn btn-ghost btn-sm" style={{marginTop:10}}>
+                  Ava kõik vastused
+                </button>
+              )}
+            </div>
+          )}
+
           <div style={{display:'flex',flexDirection:'column',gap:8}}>
             {tasks.length===0&&(
               <div style={{textAlign:'center',padding:'18px 0',color:'#42536A',fontSize:'.88rem'}}>
@@ -632,6 +666,11 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
                     <div style={{fontSize:'.76rem',color:'#42536A',marginTop:4}}>
                       {task.assignedTo||'Määramata'} · {categoryLabels[task.category]||'Üldine'} · tähtaeg: {task.dueDate?fmtDate(task.dueDate):'puudub'} · lisas {task.createdByName||'—'}
                     </div>
+                    {(task.replies||[]).length>0&&(
+                      <div style={{fontSize:'.74rem',color:'#1d4ed8',marginTop:4}}>
+                        💬 {task.replies.length} vastust · viimane: {task.lastReplyBy||'—'}
+                      </div>
+                    )}
                   </div>
                   <div style={{display:'flex',gap:8,alignItems:'center',justifyContent:'flex-end',flexWrap:'wrap'}}>
                     <span className="badge" style={{background:priorityBg,color:priorityColor}}>
@@ -708,9 +747,10 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
 
 // ── ÜLESANDED ────────────────────────────────────────────────
 function TasksView({user,tasks,staffMembers,taskTitle,setTaskTitle,taskAssignee,setTaskAssignee,
-  taskDue,setTaskDue,taskPriority,setTaskPriority,taskCategory,setTaskCategory,addTask,toggleTask,deleteTask,isAdmin}) {
+  taskDue,setTaskDue,taskPriority,setTaskPriority,taskCategory,setTaskCategory,addTask,toggleTask,deleteTask,replyTask,markTaskRepliesSeen,isAdmin}) {
   const [taskFilter,setTaskFilter] = React.useState('open');
   const [taskSearch,setTaskSearch] = React.useState('');
+  const [taskReplies,setTaskReplies] = React.useState({});
   const taskStaffOptions = [...new Set([
     ...TEACHERS,
     ...(staffMembers||[]).map(member=>member.displayName||member.email),
@@ -793,26 +833,60 @@ function TasksView({user,tasks,staffMembers,taskTitle,setTaskTitle,taskAssignee,
           }).map(task=>{
             const done = task.status==='done';
             const overdue = task.dueDate && task.dueDate<today() && !done;
+            const replies = task.replies||[];
+            const unread = task.lastReplyAt && task.lastReplyByUid!==user.uid && !(task.lastReplySeenBy||[]).includes(user.uid);
             const priorityColor = task.priority==='high' ? '#991b1b' : task.priority==='low' ? '#42536A' : '#1d4ed8';
             const priorityBg = task.priority==='high' ? '#fee2e2' : task.priority==='low' ? '#f3f4f6' : '#dbeafe';
             return(
-              <div key={task.id} style={{display:'grid',gridTemplateColumns:'auto 1fr auto',gap:12,alignItems:'center',padding:'13px 14px',borderRadius:12,border:'1px solid rgba(28,43,58,.08)',background:done?'rgba(243,244,246,.55)':overdue?'#fff7ed':'#fff'}}>
-                <button onClick={()=>toggleTask(task)} title={done?'Märgi aktiivseks':'Märgi tehtuks'} style={{width:32,height:32,borderRadius:999,border:'1.5px solid rgba(28,43,58,.16)',background:done?'#2F5D50':'#fff',color:done?'#fff':'#42536A',cursor:'pointer'}}>
-                  <i className={`fa-solid ${done?'fa-check':'fa-circle'}`} style={{fontSize:done?'.8rem':'.55rem'}}/>
-                </button>
-                <div style={{minWidth:0}}>
-                  <div style={{fontWeight:800,textDecoration:done?'line-through':'none',opacity:done ? .65 : 1}}>{task.title}</div>
-                  <div style={{fontSize:'.78rem',color:'#42536A',marginTop:4}}>
-                    {task.assignedTo||'Määramata'} · {categoryLabels[task.category]||'Üldine'} · tähtaeg: {task.dueDate?fmtDate(task.dueDate):'puudub'} · lisas {task.createdByName||'—'}
+              <div key={task.id} style={{padding:'13px 14px',borderRadius:12,border:unread?'1px solid #bfdbfe':'1px solid rgba(28,43,58,.08)',background:done?'rgba(243,244,246,.55)':unread?'#eff6ff':overdue?'#fff7ed':'#fff'}}>
+                <div style={{display:'grid',gridTemplateColumns:'auto 1fr auto',gap:12,alignItems:'center'}}>
+                  <button onClick={()=>toggleTask(task)} title={done?'Märgi aktiivseks':'Märgi tehtuks'} style={{width:32,height:32,borderRadius:999,border:'1.5px solid rgba(28,43,58,.16)',background:done?'#2F5D50':'#fff',color:done?'#fff':'#42536A',cursor:'pointer'}}>
+                    <i className={`fa-solid ${done?'fa-check':'fa-circle'}`} style={{fontSize:done?'.8rem':'.55rem'}}/>
+                  </button>
+                  <div style={{minWidth:0}}>
+                    <div style={{fontWeight:800,textDecoration:done?'line-through':'none',opacity:done ? .65 : 1}}>{task.title}</div>
+                    <div style={{fontSize:'.78rem',color:'#42536A',marginTop:4}}>
+                      {task.assignedTo||'Määramata'} · {categoryLabels[task.category]||'Üldine'} · tähtaeg: {task.dueDate?fmtDate(task.dueDate):'puudub'} · lisas {task.createdByName||'—'}
+                    </div>
+                  </div>
+                  <div style={{display:'flex',gap:8,alignItems:'center',justifyContent:'flex-end',flexWrap:'wrap'}}>
+                    {unread&&<span className="badge" style={{background:'#dbeafe',color:'#1d4ed8'}}>Uus vastus</span>}
+                    <span className="badge" style={{background:priorityBg,color:priorityColor}}>{task.priority==='high'?'Kiire':task.priority==='low'?'Madal':'Tavaline'}</span>
+                    {overdue&&<span className="badge" style={{background:'#fee2e2',color:'#991b1b'}}>Hilinenud</span>}
+                    {done&&<span className="badge" style={{background:'#dcfce7',color:'#166534'}}>Tehtud</span>}
+                    {(isAdmin||task.createdByUid===user.uid)&&(
+                      <button onClick={()=>deleteTask(task)} className="btn btn-ghost btn-sm" title="Kustuta"><i className="fa-solid fa-trash"/></button>
+                    )}
                   </div>
                 </div>
-                <div style={{display:'flex',gap:8,alignItems:'center',justifyContent:'flex-end',flexWrap:'wrap'}}>
-                  <span className="badge" style={{background:priorityBg,color:priorityColor}}>{task.priority==='high'?'Kiire':task.priority==='low'?'Madal':'Tavaline'}</span>
-                  {overdue&&<span className="badge" style={{background:'#fee2e2',color:'#991b1b'}}>Hilinenud</span>}
-                  {done&&<span className="badge" style={{background:'#dcfce7',color:'#166534'}}>Tehtud</span>}
-                  {(isAdmin||task.createdByUid===user.uid)&&(
-                    <button onClick={()=>deleteTask(task)} className="btn btn-ghost btn-sm" title="Kustuta"><i className="fa-solid fa-trash"/></button>
-                  )}
+
+                {replies.length>0&&(
+                  <div style={{marginLeft:44,marginTop:10,display:'flex',flexDirection:'column',gap:6}}>
+                    {replies.slice(-3).map(reply=>(
+                      <div key={reply.id||reply.createdAt} style={{padding:'8px 10px',borderRadius:10,background:'#fff',border:'1px solid rgba(28,43,58,.08)'}}>
+                        <div style={{fontSize:'.74rem',fontWeight:800,color:'#42536A',marginBottom:3}}>
+                          {reply.byName||'—'} · {reply.createdAt?new Date(reply.createdAt).toLocaleString('et-EE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):''}
+                        </div>
+                        <div style={{fontSize:'.84rem',color:'#1C2B3A',whiteSpace:'pre-wrap'}}>{reply.text}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div style={{display:'grid',gridTemplateColumns:'1fr auto',gap:8,marginLeft:44,marginTop:10}}>
+                  <input
+                    value={taskReplies[task.id]||''}
+                    onFocus={()=>markTaskRepliesSeen(task)}
+                    onChange={e=>setTaskReplies(prev=>({...prev,[task.id]:e.target.value}))}
+                    placeholder="Vasta ülesandele..."
+                  />
+                  <button onClick={async()=>{
+                    const text = taskReplies[task.id]||'';
+                    await replyTask(task,text);
+                    setTaskReplies(prev=>({...prev,[task.id]:''}));
+                  }} className="btn btn-pine btn-sm">
+                    Vasta
+                  </button>
                 </div>
               </div>
             );
@@ -3619,6 +3693,43 @@ function App() {
     notify(done?'✓ Ülesanne avatud':'✓ Ülesanne tehtud');
   },[user,logActivity]);
 
+  const replyTask=useCallback(async(task,text)=>{
+    if(!task?.id) return;
+    const cleanText = String(text||'').trim();
+    if(!cleanText){notify('⚠ Kirjuta vastus');return;}
+    const reply = {
+      id:`${Date.now()}_${Math.random().toString(36).slice(2,8)}`,
+      text:cleanText,
+      byUid:user.uid||'',
+      byName:user.displayName||user.email||'',
+      createdAt:new Date().toISOString(),
+      seenBy:[user.uid||''].filter(Boolean)
+    };
+    const replies = [...(task.replies||[]),reply].slice(-30);
+    await db.collection('tasks').doc(task.id).set({
+      replies,
+      lastReplyAt:reply.createdAt,
+      lastReplyBy:reply.byName,
+      lastReplyByUid:reply.byUid,
+      lastReplyText:reply.text,
+      lastReplySeenBy:[reply.byUid].filter(Boolean)
+    },{merge:true});
+    await logActivity('task.reply','Ülesandele vastati',{taskId:task.id,taskTitle:task.title||'',reply:cleanText});
+    notify('✓ Vastus lisatud');
+  },[user,logActivity]);
+
+  const markTaskRepliesSeen=useCallback(async(task)=>{
+    if(!task?.id || !user?.uid || !task.lastReplyAt) return;
+    const seen = new Set(task.lastReplySeenBy||[]);
+    if(seen.has(user.uid)) return;
+    seen.add(user.uid);
+    try{
+      await db.collection('tasks').doc(task.id).set({lastReplySeenBy:[...seen]},{merge:true});
+    }catch(err){
+      console.warn('Task reply seen update failed:',err);
+    }
+  },[user]);
+
   const deleteTask=useCallback(async(task)=>{
     if(!task?.id) return;
     if(!window.confirm('Kustuta see ülesanne?')) return;
@@ -4292,7 +4403,7 @@ function App() {
             groupOptions={groupOptions}
             taskTitle={taskTitle} setTaskTitle={setTaskTitle} taskAssignee={taskAssignee} setTaskAssignee={setTaskAssignee}
             taskDue={taskDue} setTaskDue={setTaskDue} taskPriority={taskPriority} setTaskPriority={setTaskPriority} taskCategory={taskCategory} setTaskCategory={setTaskCategory}
-            addTask={addTask} toggleTask={toggleTask} deleteTask={deleteTask}
+            addTask={addTask} toggleTask={toggleTask} deleteTask={deleteTask} replyTask={replyTask} markTaskRepliesSeen={markTaskRepliesSeen}
             addStudent={addStudent} openLessonEditor={openLessonEditor} isAdmin={isAdmin} isStaff={isStaff}
             parentAlerts={parentAlerts} createMissingParentStudents={createMissingParentStudents} markParentChecked={markParentChecked} setTab={setTab} setSelStu={setSelStu}/>}
 
@@ -4307,7 +4418,7 @@ function App() {
             taskTitle={taskTitle} setTaskTitle={setTaskTitle} taskAssignee={taskAssignee} setTaskAssignee={setTaskAssignee}
             taskDue={taskDue} setTaskDue={setTaskDue} taskPriority={taskPriority} setTaskPriority={setTaskPriority}
             taskCategory={taskCategory} setTaskCategory={setTaskCategory}
-            addTask={addTask} toggleTask={toggleTask} deleteTask={deleteTask} isAdmin={isAdmin}/>}
+            addTask={addTask} toggleTask={toggleTask} deleteTask={deleteTask} replyTask={replyTask} markTaskRepliesSeen={markTaskRepliesSeen} isAdmin={isAdmin}/>}
 
           {tab==='programs'&&isStaff&&<ProgramsView/>}
 
