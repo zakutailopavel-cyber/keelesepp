@@ -1729,6 +1729,7 @@ function GroupsView({groups,students,isAdmin,setSelStu,setTab,addGroup,deleteGro
 function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,setEditStu,toggleStudentActive,
   hwTask,setHwTask,hwDue,setHwDue,hwFile,setHwFile,addHw,toggleHw,deleteHw,removeHwFile,
   invAmt,setInvAmt,invDesc,setInvDesc,addInvoice,markPaid,unmarkPaid,deleteInvoice,printInvoice,submitParentPayment,resetParentPayment,deleteLesson,openLessonEditor,
+  schDate,setSchDate,schTime,setSchTime,schTeach,setSchTeach,schRecurring,setSchRecurring,addStudentSchedule,canAssignTeacher,
   stuMessages,teacherMessage,setTeacherMessage,sendTeacherMessage}) {
   if(!currentStu) return <div style={{textAlign:'center',padding:60,color:'#42536A'}}>Õpilane ei leitud.</div>;
   const done=stuLessons.filter(l=>l.status==='Toimunud');
@@ -1894,6 +1895,31 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
 
         <div className="card" style={{padding:24}}>
           <h3 style={{marginBottom:16}}>📚 Tunni päevik ({stuLessons.length})</h3>
+          {canManage&&(
+            <div style={{padding:'14px 14px',borderRadius:14,background:'#F9F8F6',border:'1px solid rgba(28,43,58,.08)',marginBottom:16}}>
+              <div style={{fontSize:'.78rem',fontWeight:800,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:10}}>
+                Lisa tund õpilasele
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(130px,1fr))',gap:8}}>
+                <input type="date" value={schDate} onChange={e=>setSchDate(e.target.value)}/>
+                <select value={schTime} onChange={e=>setSchTime(e.target.value)}>
+                  {TIMES.map(t=><option key={t}>{t}</option>)}
+                </select>
+                {canAssignTeacher&&(
+                  <select value={schTeach} onChange={e=>setSchTeach(e.target.value)}>
+                    {TEACHERS.map(t=><option key={t}>{t}</option>)}
+                  </select>
+                )}
+              </div>
+              <label style={{display:'flex',alignItems:'center',gap:8,fontSize:'.82rem',color:'#42536A',marginTop:10}}>
+                <input type="checkbox" checked={schRecurring} onChange={e=>setSchRecurring(e.target.checked)}/>
+                Kordub igal nädalal
+              </label>
+              <button onClick={()=>addStudentSchedule(currentStu)} className="btn btn-amber btn-sm" style={{width:'100%',marginTop:10}}>
+                <i className="fa-solid fa-calendar-plus"/> Lisa tund kalendrisse
+              </button>
+            </div>
+          )}
           <div style={{maxHeight:320,overflowY:'auto',display:'flex',flexDirection:'column',gap:12}} className="scroll">
             {stuLessons.length===0&&<p style={{color:'#42536A',fontSize:'.85rem',textAlign:'center',padding:'16px 0'}}>Tunnid puuduvad. 🎓</p>}
             {[...stuLessons].sort((a,b)=>new Date(b.date)-new Date(a.date)).map(l=>{
@@ -3108,6 +3134,20 @@ function App() {
     notify(schRecurring?'✓ Korduv tund lisatud!':'✓ Tund broneeritud!');
   },[schStu,schDate,schTime,schTeach,schRecurring,canAssignTeacher,user]);
 
+  const addStudentSchedule=useCallback(async(student)=>{
+    if(!student?.id){notify('⚠ Õpilast ei leitud');return;}
+    if(!schDate){notify('⚠ Vali kuupäev');return;}
+    const t=canAssignTeacher?schTeach:canonicalTeacherName(user.displayName);
+    const jsDay=new Date(schDate).getDay();
+    const dayId=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][jsDay];
+    const payload = schRecurring
+      ? {teacher:t,studentId:student.id,studentName:student.name,day:dayId,time:schTime,status:'Planeeritud',recurring:true,startDate:schDate,createdAt:today()}
+      : {teacher:t,studentId:student.id,studentName:student.name,date:schDate,day:dayId,time:schTime,status:'Planeeritud',createdAt:today()};
+    await db.collection('schedule').add(payload);
+    await logActivity('schedule.created','Lisati tund õpilase kaardilt',{studentId:student.id,studentName:student.name,teacher:t,date:schDate,time:schTime});
+    notify(schRecurring?'✓ Korduv tund lisatud!':'✓ Tund lisatud kalendrisse!');
+  },[schDate,schTime,schTeach,schRecurring,canAssignTeacher,user,logActivity]);
+
   const markAttendance=useCallback(async(event,attendanceKey,status)=>{
     if(!event||!attendanceKey){notify('⚠ Tundi ei leitud');return;}
     const attendance = {
@@ -3733,6 +3773,8 @@ function App() {
             hwTask={hwTask} setHwTask={setHwTask} hwDue={hwDue} setHwDue={setHwDue} hwFile={hwFile} setHwFile={setHwFile} addHw={addHw} toggleHw={toggleHw} deleteHw={deleteHw} removeHwFile={removeHwFile}
             invAmt={invAmt} setInvAmt={setInvAmt} invDesc={invDesc} setInvDesc={setInvDesc}
             addInvoice={addInvoice} markPaid={markPaid} unmarkPaid={unmarkPaid} deleteInvoice={deleteInvoice} printInvoice={printInvoice} submitParentPayment={submitParentPayment} resetParentPayment={resetParentPayment} deleteLesson={deleteLesson} openLessonEditor={openLessonEditor}
+            schDate={schDate} setSchDate={setSchDate} schTime={schTime} setSchTime={setSchTime} schTeach={schTeach} setSchTeach={setSchTeach}
+            schRecurring={schRecurring} setSchRecurring={setSchRecurring} addStudentSchedule={addStudentSchedule} canAssignTeacher={canAssignTeacher}
             stuMessages={stuMessages} teacherMessage={teacherMessage} setTeacherMessage={setTeacherMessage} sendTeacherMessage={sendTeacherMessage}/>}
 
           {tab==='groups'&&isStaff&&<GroupsView groups={groups} students={canAssignTeacher?students:myStudents} isAdmin={canAssignTeacher}
