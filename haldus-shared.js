@@ -1,8 +1,8 @@
 (function(){
   const TEACHER_CODE = 'KS2026';
   const ADMIN_CODE   = 'KSADMIN2026';
-  const APP_VERSION  = 'CRM 2026-06-18 10:07';
-  const LEVELS   = ['A1','A2','B1','B2','C1'];
+  const APP_VERSION  = 'CRM 2026-06-18 11:20';
+  const LEVELS   = ['Eelkool','A1','A2','B1','B2','C1'];
   const TEACHERS = ['Pavel','Jelena','Elizaveta','Angelina'];
   const STAFF_ALIASES = {
     pavel:'Pavel Zakutailo',
@@ -14,7 +14,7 @@
     anhelina:'Anhelina Korotka'
   };
   const SUBJECTS = ['Eesti keel','Inglise keel','Matemaatika','Muu'];
-  const GRADES = ['1. klass','2. klass','3. klass','4. klass','5. klass','6. klass','7. klass','8. klass','9. klass','10. klass','11. klass','12. klass','Täiskasvanu'];
+  const GRADES = ['Eelkool','1. klass','2. klass','3. klass','4. klass','5. klass','6. klass','7. klass','8. klass','9. klass','10. klass','11. klass','12. klass','Täiskasvanu'];
   const LESSON_DURATIONS = ['30','45','60','90','120'];
   const PAYMENT_METHODS = [
     {id:'bank', label:'Pangaülekanne'},
