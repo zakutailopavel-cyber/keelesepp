@@ -905,22 +905,29 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
     const linkedGroups = myStudents.map(s=>normalizeText(s.group)).filter(Boolean);
     const myStudentIds = new Set(myStudents.map(s=>s.id));
     const groupEvents = (groups||[]).flatMap(group=>
-      (group.lessons||[]).map(lesson=>({
-        id:`group-${group.id}-${lesson.id}`,
-        groupId:group.id,
-        groupLessonId:lesson.id,
-        isGroup:true,
-        teacher:group.teacher||'Kõik',
-        studentName:group.name,
-        date:lesson.date||'',
-        day:lesson.day||'Mon',
-        time:lesson.time||'09:00',
-        status:lesson.status||'Planeeritud',
-        recurring:lesson.recurring!==false,
-        startDate:lesson.startDate||today(),
-        attendance:lesson.attendance||{},
-        students:group.students||[]
-      }))
+      (group.lessons||[]).map(lesson=>{
+        const assignedStudents = (group.students||[]).filter(studentId=>{
+          const saved = group.studentLessonMap?.[studentId];
+          return Array.isArray(saved) ? saved.includes(lesson.id) : true;
+        });
+        return {
+          id:`group-${group.id}-${lesson.id}`,
+          groupId:group.id,
+          groupLessonId:lesson.id,
+          isGroup:true,
+          teacher:group.teacher||'Kõik',
+          studentName:group.name,
+          date:lesson.date||'',
+          day:lesson.day||'Mon',
+          time:lesson.time||'09:00',
+          status:lesson.status||'Planeeritud',
+          recurring:lesson.recurring!==false,
+          startDate:lesson.startDate||today(),
+          attendance:lesson.attendance||{},
+          students:assignedStudents,
+          groupMembers:assignedStudents
+        };
+      })
     );
     let list = canManage
       ?(
@@ -935,7 +942,8 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
         const target = normalizeText(s.studentName);
         return linkedStudentNames.includes(target) || linkedGroups.includes(target);
       }).concat(groupEvents.filter(event=>
-        (event.students||[]).some(studentId=>myStudentIds.has(studentId)) || linkedGroups.includes(normalizeText(event.studentName))
+        (event.students||[]).some(studentId=>myStudentIds.has(studentId)) ||
+        (!(event.students||[]).length && linkedGroups.includes(normalizeText(event.studentName)))
       ));
     if(!showCanceled) list=list.filter(s=>s.status!=="Tühistatud");
     return list;
@@ -1750,7 +1758,7 @@ function StudentsDatabaseView({
 }
 
 // ── GRUPID ────────────────────────────────────────────────────
-function GroupsView({groups,students,isAdmin,setSelStu,setTab,addGroup,deleteGroup,addGroupLesson,deleteGroupLesson,toggleGroupStudent}) {
+function GroupsView({groups,students,isAdmin,setSelStu,setTab,addGroup,deleteGroup,addGroupLesson,deleteGroupLesson,toggleGroupStudent,toggleGroupStudentLesson}) {
   const [showForm,setShowForm] = React.useState(false);
   const [groupName,setGroupName] = React.useState('');
   const [groupTeacher,setGroupTeacher] = React.useState('Pavel');
@@ -1803,6 +1811,16 @@ function GroupsView({groups,students,isAdmin,setSelStu,setTab,addGroup,deleteGro
     const idx = DAYS_ID.indexOf(day);
     return idx>=0 ? DAYS_FULL[idx] : day;
   };
+  const shortDayLabel = day=>{
+    const idx = DAYS_ID.indexOf(day);
+    return idx>=0 ? DAYS_SHORT[idx] : day;
+  };
+  const groupLessonIds = group=>(group.lessons||[]).map(lesson=>lesson.id);
+  const assignedLessonIds = (group,studentId)=>{
+    const saved = group.studentLessonMap?.[studentId];
+    return Array.isArray(saved) ? saved : groupLessonIds(group);
+  };
+  const attendsGroupLesson = (group,studentId,lessonId)=>assignedLessonIds(group,studentId).includes(lessonId);
 
   const openStudent = student=>{
     setSelStu(student);
@@ -1910,14 +1928,29 @@ function GroupsView({groups,students,isAdmin,setSelStu,setTab,addGroup,deleteGro
                 <div style={{display:'flex',flexDirection:'column',gap:6}}>
                   {members.length===0&&<div style={{fontSize:'.84rem',color:'#42536A'}}>Õpilasi pole veel lisatud.</div>}
                   {members.map(student=>(
-                    <div key={student.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:8,padding:'9px 11px',borderRadius:10,border:'1px solid rgba(28,43,58,.08)',background:'#fff'}}>
-                      <button onClick={()=>openStudent(student)} style={{border:'none',background:'transparent',padding:0,cursor:'pointer',textAlign:'left',fontWeight:650,color:'#1C2B3A'}}>
-                        {student.name}
-                      </button>
-                      <div style={{display:'flex',alignItems:'center',gap:8}}>
-                        <span style={{fontSize:'.76rem',color:'#42536A'}}>{student.level} → {student.targetLevel}</span>
-                        {isAdmin&&<button onClick={()=>toggleGroupStudent(group,student,false)} className="btn btn-ghost btn-sm">Eemalda</button>}
+                    <div key={student.id} style={{display:'flex',flexDirection:'column',gap:8,padding:'9px 11px',borderRadius:10,border:'1px solid rgba(28,43,58,.08)',background:'#fff'}}>
+                      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:8}}>
+                        <button onClick={()=>openStudent(student)} style={{border:'none',background:'transparent',padding:0,cursor:'pointer',textAlign:'left',fontWeight:650,color:'#1C2B3A'}}>
+                          {student.name}
+                        </button>
+                        <div style={{display:'flex',alignItems:'center',gap:8}}>
+                          <span style={{fontSize:'.76rem',color:'#42536A'}}>{student.level} → {student.targetLevel}</span>
+                          {isAdmin&&<button onClick={()=>toggleGroupStudent(group,student,false)} className="btn btn-ghost btn-sm">Eemalda</button>}
+                        </div>
                       </div>
+                      {isAdmin&&(group.lessons||[]).length>0&&(
+                        <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
+                          {(group.lessons||[]).map(lesson=>{
+                            const checked = attendsGroupLesson(group,student.id,lesson.id);
+                            return(
+                              <label key={lesson.id} style={{display:'inline-flex',alignItems:'center',gap:5,padding:'5px 8px',borderRadius:999,border:`1px solid ${checked?'rgba(47,93,80,.28)':'rgba(28,43,58,.12)'}`,background:checked?'rgba(47,93,80,.08)':'#F9F8F6',fontSize:'.72rem',fontWeight:700,color:checked?'#2F5D50':'#42536A',cursor:'pointer'}}>
+                                <input type="checkbox" checked={checked} onChange={e=>toggleGroupStudentLesson(group,student,lesson,e.target.checked)} style={{width:14,height:14}}/>
+                                {shortDayLabel(lesson.day)} {lesson.time}
+                              </label>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -3476,8 +3509,15 @@ function App() {
       status:'Planeeritud',
       attendance:{}
     };
+    const studentLessonMap = {...(group.studentLessonMap||{})};
+    const existingLessonIds = (group.lessons||[]).map(item=>item.id);
+    (group.students||[]).forEach(studentId=>{
+      const current = Array.isArray(studentLessonMap[studentId]) ? studentLessonMap[studentId] : existingLessonIds;
+      studentLessonMap[studentId] = [...new Set([...current,lesson.id])];
+    });
     await db.collection('groups').doc(group.id).update({
       lessons:[...(group.lessons||[]),lesson],
+      studentLessonMap,
       updatedAt:new Date().toISOString()
     });
     notify('✓ Grupi aeg lisatud');
@@ -3485,8 +3525,13 @@ function App() {
 
   const deleteGroupLesson=useCallback(async(group,lessonId)=>{
     if(!isAdmin||!group?.id||!lessonId) return;
+    const studentLessonMap = {...(group.studentLessonMap||{})};
+    Object.keys(studentLessonMap).forEach(studentId=>{
+      studentLessonMap[studentId] = (studentLessonMap[studentId]||[]).filter(id=>id!==lessonId);
+    });
     await db.collection('groups').doc(group.id).update({
       lessons:(group.lessons||[]).filter(lesson=>lesson.id!==lessonId),
+      studentLessonMap,
       updatedAt:new Date().toISOString()
     });
     notify('✓ Grupi aeg eemaldatud');
@@ -3495,16 +3540,37 @@ function App() {
   const toggleGroupStudent=useCallback(async(group,student,shouldAdd)=>{
     if(!isAdmin||!group?.id||!student?.id) return;
     const current = new Set(group.students||[]);
+    const studentLessonMap = {...(group.studentLessonMap||{})};
+    const lessonIds = (group.lessons||[]).map(lesson=>lesson.id);
     if(shouldAdd) current.add(student.id);
     else current.delete(student.id);
+    if(shouldAdd) studentLessonMap[student.id] = Array.isArray(studentLessonMap[student.id]) ? studentLessonMap[student.id] : lessonIds;
+    else delete studentLessonMap[student.id];
     await db.collection('groups').doc(group.id).update({
       students:[...current],
+      studentLessonMap,
       updatedAt:new Date().toISOString()
     });
     await db.collection('students').doc(student.id).update({
       group:shouldAdd ? group.name : ''
     });
     notify(shouldAdd?'✓ Õpilane lisatud gruppi':'✓ Õpilane eemaldatud grupist');
+  },[isAdmin]);
+
+  const toggleGroupStudentLesson=useCallback(async(group,student,lesson,shouldAttend)=>{
+    if(!isAdmin||!group?.id||!student?.id||!lesson?.id) return;
+    const allLessonIds = (group.lessons||[]).map(item=>item.id);
+    const studentLessonMap = {...(group.studentLessonMap||{})};
+    const currentIds = Array.isArray(studentLessonMap[student.id]) ? studentLessonMap[student.id] : allLessonIds;
+    const next = new Set(currentIds);
+    if(shouldAttend) next.add(lesson.id);
+    else next.delete(lesson.id);
+    studentLessonMap[student.id] = [...next].filter(id=>allLessonIds.includes(id));
+    await db.collection('groups').doc(group.id).update({
+      studentLessonMap,
+      updatedAt:new Date().toISOString()
+    });
+    notify(shouldAttend?'✓ Õpilane lisatud sellele grupitunnile':'✓ Õpilane eemaldatud sellest grupitunnist');
   },[isAdmin]);
 
   const saveLesson=useCallback(async()=>{
@@ -4026,7 +4092,8 @@ function App() {
           {tab==='groups'&&isStaff&&<GroupsView groups={groups} students={canAssignTeacher?students:myStudents} isAdmin={canAssignTeacher}
             setSelStu={setSelStu} setTab={setTab}
             addGroup={addGroup} deleteGroup={deleteGroup} addGroupLesson={addGroupLesson}
-            deleteGroupLesson={deleteGroupLesson} toggleGroupStudent={toggleGroupStudent}/>}
+            deleteGroupLesson={deleteGroupLesson} toggleGroupStudent={toggleGroupStudent}
+            toggleGroupStudentLesson={toggleGroupStudentLesson}/>}
 
           {tab==='parents'&&isStaff&&<ParentsView
             parents={scopedParents}
