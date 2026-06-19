@@ -1182,6 +1182,157 @@ function StudentsList({filteredStudents,lessons,isAdmin,search,setSearch,stuFilt
   );
 }
 
+// ── LAPSEVANEMAD ─────────────────────────────────────────────
+function ParentsView({parents,students,invoices,isAdmin,parentAlerts,setSelStu,setTab,createMissingParentStudents}) {
+  const [search,setSearch] = React.useState('');
+  const noData = (
+    <span style={{display:'inline-flex',alignItems:'center',justifyContent:'center',padding:'3px 8px',borderRadius:999,background:'#fee2e2',border:'1px solid #fecaca',color:'#991b1b',fontWeight:800,fontSize:'.72rem'}}>
+      Нет данных
+    </span>
+  );
+  const parentRows = React.useMemo(()=>{
+    const q = normalizeText(search);
+    return parents.map(parent=>{
+      const rawNames = String(parent.childName||'')
+        .split(/[,\n;|]+/)
+        .map(name=>name.trim())
+        .filter(Boolean);
+      const childNameKeys = new Set((rawNames.length?rawNames:parseLinkedNames(parent.childName)).map(name=>normalizeText(name)));
+      const parentEmail = normalizeText(parent.email);
+      const parentName = normalizeText(parent.displayName);
+      const linkedChildren = students.filter(student=>{
+        const linkedParentId = student.linkedParentId || student.parentUid || student.guardianUid || '';
+        const studentName = normalizeText(student.name);
+        const studentParentEmail = normalizeText(student.parentEmail || student.contactEmail || student.guardianEmail || student.email);
+        const studentParentName = normalizeText(student.parentName || student.guardianName);
+        return linkedParentId===parent.id ||
+          (!!parentEmail && studentParentEmail===parentEmail) ||
+          (!!parentName && studentParentName===parentName) ||
+          childNameKeys.has(studentName);
+      });
+      const childGroups = Object.values(linkedChildren.reduce((acc,student)=>{
+        const key = normalizeText(student.name) || student.id;
+        if(!acc[key]) acc[key] = {name:student.name||'',items:[]};
+        acc[key].items.push(student);
+        return acc;
+      },{}));
+      const unpaid = invoices.filter(inv=>
+        inv.status==='Ootel' && linkedChildren.some(student=>student.id===inv.studentId || normalizeText(student.name)===normalizeText(inv.studentName))
+      );
+      return {parent,rawNames,linkedChildren,childGroups,unpaid};
+    }).filter(row=>{
+      if(!q) return true;
+      return normalizeText(row.parent.displayName).includes(q) ||
+        normalizeText(row.parent.email).includes(q) ||
+        row.rawNames.some(name=>normalizeText(name).includes(q)) ||
+        row.linkedChildren.some(student=>
+          normalizeText(student.name).includes(q) ||
+          normalizeText(student.teacher).includes(q) ||
+          normalizeText(student.subject).includes(q) ||
+          normalizeText(student.group).includes(q)
+        );
+    }).sort((a,b)=>(a.parent.displayName||a.parent.email||'').localeCompare(b.parent.displayName||b.parent.email||'','et'));
+  },[parents,students,invoices,search]);
+  const linkedCount = parentRows.filter(row=>row.linkedChildren.length>0).length;
+  const missingCount = parentRows.filter(row=>row.rawNames.length>0&&row.linkedChildren.length===0).length;
+  const unpaidTotal = parentRows.reduce((sum,row)=>sum+row.unpaid.reduce((a,inv)=>a+(parseFloat(inv.amount)||0),0),0);
+  const openStudent = student => {
+    setSelStu(student);
+    setTab('students');
+  };
+  return(
+    <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:20}}>
+      <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',flexWrap:'wrap',gap:12}}>
+        <div>
+          <h1 style={{fontSize:'1.7rem'}}>Lapsevanemad</h1>
+          <div style={{fontSize:'.9rem',color:'#42536A',marginTop:4}}>
+            Eraldi vanemate baas: seotud lapsed, õppeained, õpetajad ja maksed.
+          </div>
+        </div>
+        <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍 Otsi vanemat, last, õpetajat…" style={{width:310,padding:'9px 14px'}}/>
+      </div>
+
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))',gap:12}}>
+        <div className="stat-card"><div className="stat-label">Lapsevanemaid</div><div className="stat-value">{parents.length}</div></div>
+        <div className="stat-card"><div className="stat-label">Seotud lastega</div><div className="stat-value" style={{color:'#2F5D50'}}>{linkedCount}</div></div>
+        <div className="stat-card"><div className="stat-label">Vajab sidumist</div><div className="stat-value" style={{color:missingCount?'#991b1b':'#2F5D50'}}>{missingCount}</div></div>
+        <div className="stat-card"><div className="stat-label">Ootel arved</div><div className="stat-value" style={{color:unpaidTotal?'#991b1b':'#2F5D50'}}>{unpaidTotal}€</div></div>
+      </div>
+
+      {isAdmin&&parentAlerts?.length>0&&(
+        <div className="card" style={{padding:18,border:'1px solid #fecaca',background:'#fff7f7'}}>
+          <div style={{fontWeight:800,color:'#991b1b',marginBottom:8}}>Uued lapsevanema registreeringud vajavad kontrolli</div>
+          <div style={{display:'flex',flexDirection:'column',gap:8}}>
+            {parentAlerts.map(alert=>(
+              <div key={alert.parent.id} style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:12,flexWrap:'wrap',borderTop:'1px solid #fecaca',paddingTop:8}}>
+                <div>
+                  <strong>{alert.parent.displayName||alert.parent.email}</strong>
+                  <span style={{color:'#42536A'}}> · {alert.childNames.join(', ')}</span>
+                </div>
+                <button onClick={()=>createMissingParentStudents(alert.parent)} className="btn btn-red btn-sm">
+                  Loo / seo õpilane
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(360px,1fr))',gap:16}}>
+        {parentRows.map(row=>(
+          <div key={row.parent.id} className="card" style={{padding:20,display:'flex',flexDirection:'column',gap:14}}>
+            <div style={{display:'flex',justifyContent:'space-between',gap:10,alignItems:'flex-start'}}>
+              <div>
+                <h2 style={{fontSize:'1.15rem',marginBottom:4}}>{row.parent.displayName||noData}</h2>
+                <div style={{fontSize:'.82rem',color:'#42536A'}}>{row.parent.email||noData}</div>
+                <div style={{fontSize:'.78rem',color:'#42536A',marginTop:4}}>Lisatud: {row.parent.createdAt||noData}</div>
+              </div>
+              <span className="badge" style={{background:row.linkedChildren.length?'#dcfce7':'#fee2e2',color:row.linkedChildren.length?'#166534':'#991b1b'}}>
+                {row.linkedChildren.length?`${row.linkedChildren.length} kirjet`:'sidumata'}
+              </span>
+            </div>
+
+            <div>
+              <div style={{fontSize:'.72rem',fontWeight:800,letterSpacing:'.08em',textTransform:'uppercase',color:'#42536A',marginBottom:8}}>Lapsed</div>
+              {row.childGroups.length===0&&(
+                <div style={{padding:12,borderRadius:12,background:'#fff7f7',border:'1px solid #fecaca',color:'#991b1b',fontWeight:800}}>
+                  Нет данных
+                  {row.rawNames.length>0&&<div style={{fontSize:'.78rem',fontWeight:600,marginTop:4}}>Registreerimisel sisestatud: {row.rawNames.join(', ')}</div>}
+                </div>
+              )}
+              {row.childGroups.map(child=>(
+                <div key={normalizeText(child.name)||child.items[0]?.id} style={{border:'1px solid #e5e7eb',borderRadius:12,padding:10,marginBottom:8}}>
+                  <div style={{fontWeight:800,marginBottom:7}}>{child.name||noData}</div>
+                  <div style={{display:'flex',flexDirection:'column',gap:6}}>
+                    {child.items.map(student=>(
+                      <div key={student.id} style={{display:'grid',gridTemplateColumns:'1.1fr .8fr .9fr auto',gap:8,alignItems:'center',fontSize:'.8rem',color:'#42536A'}}>
+                        <span>{student.subject||noData}</span>
+                        <span>{student.level||'—'} → {student.targetLevel||'—'}</span>
+                        <span>{student.teacher||noData}</span>
+                        <button onClick={()=>openStudent(student)} className="btn btn-ghost btn-sm">Ava</button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,fontSize:'.82rem',color:'#42536A'}}>
+              <div><strong>Telefon:</strong><br/>{row.parent.phone||row.parent.parentPhone||noData}</div>
+              <div><strong>Ootel arved:</strong><br/>{row.unpaid.length?`${row.unpaid.reduce((a,inv)=>a+(parseFloat(inv.amount)||0),0)} €`:'0 €'}</div>
+            </div>
+          </div>
+        ))}
+        {parentRows.length===0&&(
+          <div className="card" style={{gridColumn:'1/-1',padding:32,textAlign:'center',color:'#42536A'}}>
+            Lapsevanemaid ei leitud.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── ÕPILASTE ANDMEBAAS ───────────────────────────────────────
 function StudentsDatabaseView({
   filteredStudents,lessons,invoices,isAdmin,search,setSearch,stuFilter,setStuFilter,
@@ -3010,6 +3161,21 @@ function App() {
     const myStudentNames = new Set(myStudents.map(s=>normalizeText(s.name)));
     return invoices.filter(inv=>myStudentIds.has(inv.studentId) || myStudentNames.has(normalizeText(inv.studentName)));
   },[invoices,myStudents,user]);
+  const scopedParents = useMemo(()=>{
+    const parentUsers = allUsers.filter(member=>member.role==='parent');
+    if(isAdmin) return parentUsers;
+    const myStudentIds = new Set(myStudents.map(s=>s.linkedParentId || s.parentUid || s.guardianUid).filter(Boolean));
+    const myStudentNames = new Set(myStudents.map(s=>normalizeText(s.name)).filter(Boolean));
+    const myParentEmails = new Set(myStudents.map(s=>normalizeText(s.parentEmail || s.contactEmail || s.guardianEmail || s.email)).filter(Boolean));
+    const myParentNames = new Set(myStudents.map(s=>normalizeText(s.parentName || s.guardianName)).filter(Boolean));
+    return parentUsers.filter(parent=>{
+      const parentChildNames = parseLinkedNames(parent.childName);
+      return myStudentIds.has(parent.id) ||
+        myParentEmails.has(normalizeText(parent.email)) ||
+        myParentNames.has(normalizeText(parent.displayName)) ||
+        parentChildNames.some(childName=>myStudentNames.has(childName));
+    });
+  },[allUsers,myStudents,isAdmin]);
   const scopedTasks = useMemo(()=>{
     if(user?.role==='admin' || isAdmin) return tasks;
     const teacherName = canonicalTeacherName(user?.displayName||'');
@@ -3670,6 +3836,7 @@ function App() {
       badge:isStaff&&homework.filter(h=>h.status==='Ootel'&&myStudents.some(s=>s.id===h.studentId)).length>0?
         homework.filter(h=>h.status==='Ootel'&&myStudents.some(s=>s.id===h.studentId)).length:0},
     ...(isStaff?[{id:'groups',icon:'fa-layer-group',label:'Grupid'}]:[]),
+    ...(isStaff?[{id:'parents',icon:'fa-people-roof',label:'Lapsevanemad',badge:isAdmin?parentAlerts.length:0}]:[]),
     ...(isStaff?[{id:'database',icon:'fa-table',label:'Andmebaas'}]:[]),
     ...(isStaff?[{id:'invoices',icon:'fa-file-invoice',label:'Arved',
       badge:scopedInvoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+i.amount,0)>0?scopedInvoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+i.amount,0)+'€':0}]:[]),
@@ -3781,6 +3948,16 @@ function App() {
             setSelStu={setSelStu} setTab={setTab}
             addGroup={addGroup} deleteGroup={deleteGroup} addGroupLesson={addGroupLesson}
             deleteGroupLesson={deleteGroupLesson} toggleGroupStudent={toggleGroupStudent}/>}
+
+          {tab==='parents'&&isStaff&&<ParentsView
+            parents={scopedParents}
+            students={canAssignTeacher?students:myStudents}
+            invoices={scopedInvoices}
+            isAdmin={isAdmin}
+            parentAlerts={parentAlerts}
+            setSelStu={setSelStu}
+            setTab={setTab}
+            createMissingParentStudents={createMissingParentStudents}/>}
 
           {tab==='database'&&isStaff&&<StudentsDatabaseView
             filteredStudents={filteredStudents}
