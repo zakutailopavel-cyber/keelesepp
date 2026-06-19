@@ -345,7 +345,7 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
   nTeach,setNTeach,addStudent,
   groupOptions,
   taskTitle,setTaskTitle,taskAssignee,setTaskAssignee,taskDue,setTaskDue,taskPriority,setTaskPriority,taskCategory,setTaskCategory,
-  addTask,toggleTask,deleteTask,openLessonEditor,isAdmin,isStaff}) {
+  addTask,toggleTask,deleteTask,openLessonEditor,isAdmin,isStaff,parentAlerts,createMissingParentStudents}) {
   const unpaidAmt = invoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+i.amount,0);
   const pendingHw = homework.filter(h=>h.status==='Ootel'&&myStudents.some(s=>s.id===h.studentId)).length;
   const openTasks = tasks.filter(t=>t.status!=='done');
@@ -406,6 +406,35 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
           )):null
         }
       </div>
+
+      {isAdmin&&parentAlerts?.length>0&&(
+        <div className="card" style={{padding:24,border:'1px solid #fecaca',background:'#fff7f7'}}>
+          <div style={{display:'flex',justifyContent:'space-between',gap:12,alignItems:'flex-start',flexWrap:'wrap',marginBottom:14}}>
+            <div>
+              <h3 style={{color:'#991b1b'}}>⚠️ Uued lapsevanema registreeringud</h3>
+              <div style={{fontSize:'.84rem',color:'#7f1d1d',marginTop:4}}>
+                Need kontod vajavad kontrolli: lapse andmed on sisestatud, aga õpilase kaart puudub või ei ole kindlalt seotud.
+              </div>
+            </div>
+            <span className="badge" style={{background:'#fee2e2',color:'#991b1b'}}>{parentAlerts.length} kontrollida</span>
+          </div>
+          <div style={{display:'flex',flexDirection:'column',gap:10}}>
+            {parentAlerts.slice(0,6).map(alert=>(
+              <div key={alert.parent.id} style={{display:'grid',gridTemplateColumns:'1fr auto',gap:12,alignItems:'center',padding:'12px 14px',borderRadius:12,background:'#fff',border:'1px solid rgba(153,27,27,.18)'}}>
+                <div>
+                  <div style={{fontWeight:800}}>{alert.parent.displayName||'Lapsevanem'} <span style={{fontWeight:500,color:'#42536A'}}>· {alert.parent.email||'e-post puudub'}</span></div>
+                  <div style={{fontSize:'.82rem',color:'#42536A',marginTop:3}}>
+                    Laps: <strong>{alert.childNames.join(', ')||'nimi puudub'}</strong> · loodud: {fmtDate(alert.parent.createdAt)}
+                  </div>
+                </div>
+                <button onClick={()=>createMissingParentStudents(alert.parent)} className="btn btn-red btn-sm">
+                  Loo / seo õpilane
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {isStaff&&(
         <div className="card" style={{padding:24}}>
@@ -2702,6 +2731,7 @@ function App() {
   const [messages,setMessages] = useState([]);
   const [groups,setGroups] = useState([]);
   const [tasks,setTasks] = useState([]);
+  const [allUsers,setAllUsers] = useState([]);
   const [staffMembers,setStaffMembers] = useState([]);
   const [activityLog,setActivityLog] = useState([]);
 
@@ -2806,8 +2836,12 @@ function App() {
       err=>{console.warn('Tasks listener failed:',err);setTasks([]);}
     );
     const u9=db.collection('users').onSnapshot(
-      s=>setStaffMembers(s.docs.map(d=>({id:d.id,...d.data()})).filter(member=>member.role==='teacher'||member.role==='admin')),
-      err=>{console.warn('Staff listener failed:',err);setStaffMembers([]);}
+      s=>{
+        const usersList = s.docs.map(d=>({id:d.id,...d.data()}));
+        setAllUsers(usersList);
+        setStaffMembers(usersList.filter(member=>member.role==='teacher'||member.role==='admin'));
+      },
+      err=>{console.warn('Users listener failed:',err);setAllUsers([]);setStaffMembers([]);}
     );
     const u10=db.collection('activityLog').onSnapshot(
       s=>setActivityLog(s.docs.map(d=>({id:d.id,...d.data()}))),
@@ -2839,11 +2873,42 @@ function App() {
         const studentName = normalizeText(s.name);
         const studentEmail = normalizeText(s.email);
         const parentEmail = normalizeText(s.parentEmail || s.contactEmail || s.guardianEmail);
-        return linkedNames.includes(studentName) || (!!userEmail && (studentEmail===userEmail || parentEmail===userEmail));
+        const linkedParentId = s.linkedParentId || s.parentUid || s.guardianUid || '';
+        return linkedParentId===user.uid || linkedNames.includes(studentName) || (!!userEmail && (studentEmail===userEmail || parentEmail===userEmail));
       });
     }
     return students.filter(s=>s.name?.toLowerCase()===user.displayName?.toLowerCase());
   },[user,students,isAdmin]);
+
+  const parentAlerts = useMemo(()=>{
+    if(!isAdmin) return [];
+    return allUsers
+      .filter(parent=>parent.role==='parent' && parseLinkedNames(parent.childName).length>0)
+      .map(parent=>{
+        const rawChildNames = String(parent.childName||'')
+          .split(/[,\n;|]+/)
+          .map(name=>name.trim())
+          .filter(Boolean);
+        const childNames = rawChildNames.length ? rawChildNames : parseLinkedNames(parent.childName);
+        const parentEmail = normalizeText(parent.email);
+        const parentName = normalizeText(parent.displayName);
+        const missingNames = childNames.filter(childName=>{
+          const childKey = normalizeText(childName);
+          return !students.some(student=>{
+            const studentName = normalizeText(student.name);
+            const studentParentEmail = normalizeText(student.parentEmail || student.contactEmail || student.guardianEmail);
+            const studentParentName = normalizeText(student.parentName || student.guardianName);
+            const linkedParentId = student.linkedParentId || student.parentUid || student.guardianUid || '';
+            return linkedParentId===parent.id ||
+              (studentName===childKey && !!parentEmail && studentParentEmail===parentEmail) ||
+              (studentName===childKey && !!parentName && studentParentName===parentName);
+          });
+        });
+        if(missingNames.length===0) return null;
+        return {parent,childNames:missingNames};
+      })
+      .filter(Boolean);
+  },[allUsers,students,isAdmin]);
 
   const groupOptions = useMemo(()=>
     [...new Set([
@@ -2958,6 +3023,26 @@ function App() {
       console.warn('Activity log failed:',err);
     }
   },[user]);
+
+  const createMissingParentStudents=useCallback(async(parent)=>{
+    if(!parent?.id){notify('⚠ Lapsevanema konto puudub');return;}
+    try{
+      await ensureParentStudentRecords(
+        {uid:parent.id,displayName:parent.displayName,email:parent.email},
+        {...parent,uid:parent.id,role:'parent'}
+      );
+      await logActivity('parent.student_sync','Lapsevanema õpilase kaart kontrolliti',{
+        parentUid:parent.id,
+        parentName:parent.displayName||'',
+        parentEmail:parent.email||'',
+        childName:parent.childName||''
+      });
+      notify('✓ Õpilase kaart kontrollitud / loodud');
+    }catch(err){
+      console.error('Parent student sync failed:',err);
+      notify('⚠ Õpilast ei saanud luua');
+    }
+  },[logActivity]);
 
   // ACTIONS
   const addStudent=useCallback(async()=>{
@@ -3620,7 +3705,8 @@ function App() {
             taskTitle={taskTitle} setTaskTitle={setTaskTitle} taskAssignee={taskAssignee} setTaskAssignee={setTaskAssignee}
             taskDue={taskDue} setTaskDue={setTaskDue} taskPriority={taskPriority} setTaskPriority={setTaskPriority} taskCategory={taskCategory} setTaskCategory={setTaskCategory}
             addTask={addTask} toggleTask={toggleTask} deleteTask={deleteTask}
-            addStudent={addStudent} openLessonEditor={openLessonEditor} isAdmin={isAdmin} isStaff={isStaff}/>}
+            addStudent={addStudent} openLessonEditor={openLessonEditor} isAdmin={isAdmin} isStaff={isStaff}
+            parentAlerts={parentAlerts} createMissingParentStudents={createMissingParentStudents}/>}
 
           {tab==='calendar'&&<CalendarView user={user} myStudents={myStudents} schedule={schedule} groups={groups} isAdmin={canAssignTeacher}
             filterT={filterT} setFilterT={setFilterT}
