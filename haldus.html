@@ -115,7 +115,7 @@ const auth = window._auth;
 const storage = window._storage;
 const {
   TEACHER_CODE, ADMIN_CODE, APP_VERSION, LEVELS:SHARED_LEVELS, TEACHERS,
-  SUBJECTS, GRADES, LESSON_DURATIONS,
+  SUBJECTS, GRADES:SHARED_GRADES, LESSON_DURATIONS,
   PAYMENT_METHODS, PAYMENT_DETAILS, CONTACT_STATUSES,
   DAYS_SHORT, DAYS_ID, DAYS_FULL, TIMES,
   normalizeText, parseLinkedNames, canonicalTeacherName,
@@ -123,6 +123,7 @@ const {
   ensureStudentRecord, ensureParentStudentRecords
 } = window.HaldusShared;
 const LEVELS = SHARED_LEVELS.includes('Eelkool') ? SHARED_LEVELS : ['Eelkool',...SHARED_LEVELS];
+const GRADES = SHARED_GRADES.includes('Eelkool') ? SHARED_GRADES : ['Eelkool',...SHARED_GRADES];
 
 // ── PROGRESSIGRAAFIK ─────────────────────────────────────────
 function ProgressChart({data}) {
@@ -345,7 +346,7 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
   nTeach,setNTeach,addStudent,
   groupOptions,
   taskTitle,setTaskTitle,taskAssignee,setTaskAssignee,taskDue,setTaskDue,taskPriority,setTaskPriority,taskCategory,setTaskCategory,
-  addTask,toggleTask,deleteTask,openLessonEditor,isAdmin,isStaff,parentAlerts,createMissingParentStudents,setTab,setSelStu}) {
+  addTask,toggleTask,deleteTask,openLessonEditor,isAdmin,isStaff,parentAlerts,createMissingParentStudents,markParentChecked,setTab,setSelStu}) {
   const unpaidAmt = invoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+i.amount,0);
   const pendingHw = homework.filter(h=>h.status==='Ootel'&&myStudents.some(s=>s.id===h.studentId)).length;
   const openTasks = tasks.filter(t=>t.status!=='done');
@@ -546,9 +547,14 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
                     Laps: <strong>{alert.childNames.join(', ')||'nimi puudub'}</strong> · loodud: {fmtDate(alert.parent.createdAt)}
                   </div>
                 </div>
-                <button onClick={()=>createMissingParentStudents(alert.parent)} className="btn btn-red btn-sm">
-                  Loo / seo õpilane
-                </button>
+                <div style={{display:'flex',gap:8,justifyContent:'flex-end',flexWrap:'wrap'}}>
+                  <button onClick={()=>markParentChecked(alert.parent)} className="btn btn-ghost btn-sm">
+                    Kontrollitud
+                  </button>
+                  <button onClick={()=>createMissingParentStudents(alert.parent)} className="btn btn-red btn-sm">
+                    Loo / seo õpilane
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -1310,7 +1316,7 @@ function StudentsList({filteredStudents,lessons,isAdmin,search,setSearch,stuFilt
 }
 
 // ── LAPSEVANEMAD ─────────────────────────────────────────────
-function ParentsView({parents,students,invoices,isAdmin,parentAlerts,setSelStu,setTab,createMissingParentStudents,notify}) {
+function ParentsView({parents,students,invoices,isAdmin,parentAlerts,setSelStu,setTab,createMissingParentStudents,markParentChecked,notify}) {
   const [search,setSearch] = React.useState('');
   const [statusFilter,setStatusFilter] = React.useState('all');
   const parentStatusMeta = {
@@ -1430,9 +1436,14 @@ function ParentsView({parents,students,invoices,isAdmin,parentAlerts,setSelStu,s
                   <strong>{alert.parent.displayName||alert.parent.email}</strong>
                   <span style={{color:'#42536A'}}> · {alert.childNames.join(', ')}</span>
                 </div>
-                <button onClick={()=>createMissingParentStudents(alert.parent)} className="btn btn-red btn-sm">
-                  Loo / seo õpilane
-                </button>
+                <div style={{display:'flex',gap:8,flexWrap:'wrap',justifyContent:'flex-end'}}>
+                  <button onClick={()=>markParentChecked(alert.parent)} className="btn btn-ghost btn-sm">
+                    Kontrollitud
+                  </button>
+                  <button onClick={()=>createMissingParentStudents(alert.parent)} className="btn btn-red btn-sm">
+                    Loo / seo õpilane
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -3355,7 +3366,12 @@ function App() {
   const parentAlerts = useMemo(()=>{
     if(!isAdmin) return [];
     return allUsers
-      .filter(parent=>parent.role==='parent' && parseLinkedNames(parent.childName).length>0)
+      .filter(parent=>{
+        if(parent.role!=='parent') return false;
+        const childKey = parseLinkedNames(parent.childName).join('|');
+        if(!childKey) return false;
+        return !(parent.parentReviewStatus==='checked' && parent.parentReviewKey===childKey);
+      })
       .map(parent=>{
         const rawChildNames = String(parent.childName||'')
           .split(/[,\n;|]+/)
@@ -3524,12 +3540,40 @@ function App() {
         parentEmail:parent.email||'',
         childName:parent.childName||''
       });
+      await db.collection('users').doc(parent.id).set({
+        parentReviewStatus:'checked',
+        parentReviewKey:parseLinkedNames(parent.childName).join('|'),
+        parentReviewedAt:new Date().toISOString(),
+        parentReviewedBy:user?.displayName||user?.email||''
+      },{merge:true});
       notify('✓ Õpilase kaart kontrollitud / loodud');
     }catch(err){
       console.error('Parent student sync failed:',err);
       notify('⚠ Õpilast ei saanud luua');
     }
-  },[logActivity]);
+  },[logActivity,user]);
+
+  const markParentChecked=useCallback(async(parent)=>{
+    if(!parent?.id){notify('⚠ Lapsevanema konto puudub');return;}
+    try{
+      await db.collection('users').doc(parent.id).set({
+        parentReviewStatus:'checked',
+        parentReviewKey:parseLinkedNames(parent.childName).join('|'),
+        parentReviewedAt:new Date().toISOString(),
+        parentReviewedBy:user?.displayName||user?.email||''
+      },{merge:true});
+      await logActivity('parent.review_checked','Lapsevanema registreering märgiti kontrollituks',{
+        parentUid:parent.id,
+        parentName:parent.displayName||'',
+        parentEmail:parent.email||'',
+        childName:parent.childName||''
+      });
+      notify('✓ Lapsevanem märgitud kontrollituks');
+    }catch(err){
+      console.error('Parent review failed:',err);
+      notify('⚠ Kontrolli märget ei saanud salvestada');
+    }
+  },[logActivity,user]);
 
   // ACTIONS
   const addStudent=useCallback(async()=>{
@@ -4250,7 +4294,7 @@ function App() {
             taskDue={taskDue} setTaskDue={setTaskDue} taskPriority={taskPriority} setTaskPriority={setTaskPriority} taskCategory={taskCategory} setTaskCategory={setTaskCategory}
             addTask={addTask} toggleTask={toggleTask} deleteTask={deleteTask}
             addStudent={addStudent} openLessonEditor={openLessonEditor} isAdmin={isAdmin} isStaff={isStaff}
-            parentAlerts={parentAlerts} createMissingParentStudents={createMissingParentStudents} setTab={setTab} setSelStu={setSelStu}/>}
+            parentAlerts={parentAlerts} createMissingParentStudents={createMissingParentStudents} markParentChecked={markParentChecked} setTab={setTab} setSelStu={setSelStu}/>}
 
           {tab==='calendar'&&<CalendarView user={user} myStudents={myStudents} schedule={schedule} groups={groups} isAdmin={canAssignTeacher}
             filterT={filterT} setFilterT={setFilterT}
@@ -4296,6 +4340,7 @@ function App() {
             setSelStu={setSelStu}
             setTab={setTab}
             createMissingParentStudents={createMissingParentStudents}
+            markParentChecked={markParentChecked}
             notify={notify}/>}
 
           {tab==='database'&&isStaff&&<StudentsDatabaseView
