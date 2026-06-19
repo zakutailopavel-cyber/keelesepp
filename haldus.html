@@ -1183,13 +1183,36 @@ function StudentsList({filteredStudents,lessons,isAdmin,search,setSearch,stuFilt
 }
 
 // ── LAPSEVANEMAD ─────────────────────────────────────────────
-function ParentsView({parents,students,invoices,isAdmin,parentAlerts,setSelStu,setTab,createMissingParentStudents}) {
+function ParentsView({parents,students,invoices,isAdmin,parentAlerts,setSelStu,setTab,createMissingParentStudents,notify}) {
   const [search,setSearch] = React.useState('');
+  const [statusFilter,setStatusFilter] = React.useState('all');
+  const parentStatusMeta = {
+    new:{t:'Uus',bg:'#dbeafe',c:'#1d4ed8'},
+    written:{t:'Kirjutatud',bg:'#ede9fe',c:'#6d28d9'},
+    called:{t:'Helistatud',bg:'#fef3c7',c:'#92400e'},
+    waiting:{t:'Ootab vastust',bg:'#fee2e2',c:'#991b1b'},
+    agreed:{t:'Kokkulepitud',bg:'#dcfce7',c:'#166534'},
+    problem:{t:'Probleem',bg:'#fee2e2',c:'#991b1b'},
+    active:{t:'Aktiivne',bg:'#dcfce7',c:'#166534'}
+  };
   const noData = (
     <span style={{display:'inline-flex',alignItems:'center',justifyContent:'center',padding:'3px 8px',borderRadius:999,background:'#fee2e2',border:'1px solid #fecaca',color:'#991b1b',fontWeight:800,fontSize:'.72rem'}}>
       Нет данных
     </span>
   );
+  const updateParent = async(parent,patch)=>{
+    if(!parent?.id) return;
+    try{
+      await db.collection('users').doc(parent.id).update({
+        ...patch,
+        parentCrmUpdatedAt:new Date().toISOString()
+      });
+      notify?.('✓ Lapsevanema info salvestatud');
+    }catch(err){
+      console.error('Parent update failed:',err);
+      notify?.('⚠ Lapsevanema infot ei saanud salvestada');
+    }
+  };
   const parentRows = React.useMemo(()=>{
     const q = normalizeText(search);
     return parents.map(parent=>{
@@ -1221,9 +1244,12 @@ function ParentsView({parents,students,invoices,isAdmin,parentAlerts,setSelStu,s
       );
       return {parent,rawNames,linkedChildren,childGroups,unpaid};
     }).filter(row=>{
+      if(statusFilter!=='all' && (row.parent.parentContactStatus||'new')!==statusFilter) return false;
       if(!q) return true;
       return normalizeText(row.parent.displayName).includes(q) ||
         normalizeText(row.parent.email).includes(q) ||
+        normalizeText(row.parent.parentContactNotes).includes(q) ||
+        normalizeText(row.parent.parentContactOwner).includes(q) ||
         row.rawNames.some(name=>normalizeText(name).includes(q)) ||
         row.linkedChildren.some(student=>
           normalizeText(student.name).includes(q) ||
@@ -1232,10 +1258,11 @@ function ParentsView({parents,students,invoices,isAdmin,parentAlerts,setSelStu,s
           normalizeText(student.group).includes(q)
         );
     }).sort((a,b)=>(a.parent.displayName||a.parent.email||'').localeCompare(b.parent.displayName||b.parent.email||'','et'));
-  },[parents,students,invoices,search]);
+  },[parents,students,invoices,search,statusFilter]);
   const linkedCount = parentRows.filter(row=>row.linkedChildren.length>0).length;
   const missingCount = parentRows.filter(row=>row.rawNames.length>0&&row.linkedChildren.length===0).length;
   const unpaidTotal = parentRows.reduce((sum,row)=>sum+row.unpaid.reduce((a,inv)=>a+(parseFloat(inv.amount)||0),0),0);
+  const todayCalls = parentRows.filter(row=>row.parent.parentNextContactAt===today()).length;
   const openStudent = student => {
     setSelStu(student);
     setTab('students');
@@ -1249,7 +1276,13 @@ function ParentsView({parents,students,invoices,isAdmin,parentAlerts,setSelStu,s
             Eraldi vanemate baas: seotud lapsed, õppeained, õpetajad ja maksed.
           </div>
         </div>
-        <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍 Otsi vanemat, last, õpetajat…" style={{width:310,padding:'9px 14px'}}/>
+        <div style={{display:'flex',gap:8,flexWrap:'wrap',justifyContent:'flex-end'}}>
+          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍 Otsi vanemat, last, õpetajat…" style={{width:310,padding:'9px 14px'}}/>
+          <select value={statusFilter} onChange={e=>setStatusFilter(e.target.value)} style={{width:'auto'}}>
+            <option value="all">Kõik staatused</option>
+            {Object.entries(parentStatusMeta).map(([key,meta])=><option key={key} value={key}>{meta.t}</option>)}
+          </select>
+        </div>
       </div>
 
       <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))',gap:12}}>
@@ -1257,6 +1290,7 @@ function ParentsView({parents,students,invoices,isAdmin,parentAlerts,setSelStu,s
         <div className="stat-card"><div className="stat-label">Seotud lastega</div><div className="stat-value" style={{color:'#2F5D50'}}>{linkedCount}</div></div>
         <div className="stat-card"><div className="stat-label">Vajab sidumist</div><div className="stat-value" style={{color:missingCount?'#991b1b':'#2F5D50'}}>{missingCount}</div></div>
         <div className="stat-card"><div className="stat-label">Ootel arved</div><div className="stat-value" style={{color:unpaidTotal?'#991b1b':'#2F5D50'}}>{unpaidTotal}€</div></div>
+        <div className="stat-card"><div className="stat-label">Täna ühendust</div><div className="stat-value" style={{color:todayCalls?'#C9882A':'#2F5D50'}}>{todayCalls}</div></div>
       </div>
 
       {isAdmin&&parentAlerts?.length>0&&(
@@ -1280,16 +1314,51 @@ function ParentsView({parents,students,invoices,isAdmin,parentAlerts,setSelStu,s
 
       <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(360px,1fr))',gap:16}}>
         {parentRows.map(row=>(
-          <div key={row.parent.id} className="card" style={{padding:20,display:'flex',flexDirection:'column',gap:14}}>
+          <div key={row.parent.id} className="card" style={{padding:20,display:'flex',flexDirection:'column',gap:14,border:row.parent.parentNextContactAt===today()?'1px solid #C9882A':'1px solid rgba(28,43,58,.07)'}}>
             <div style={{display:'flex',justifyContent:'space-between',gap:10,alignItems:'flex-start'}}>
               <div>
                 <h2 style={{fontSize:'1.15rem',marginBottom:4}}>{row.parent.displayName||noData}</h2>
                 <div style={{fontSize:'.82rem',color:'#42536A'}}>{row.parent.email||noData}</div>
                 <div style={{fontSize:'.78rem',color:'#42536A',marginTop:4}}>Lisatud: {row.parent.createdAt||noData}</div>
               </div>
-              <span className="badge" style={{background:row.linkedChildren.length?'#dcfce7':'#fee2e2',color:row.linkedChildren.length?'#166534':'#991b1b'}}>
-                {row.linkedChildren.length?`${row.linkedChildren.length} kirjet`:'sidumata'}
-              </span>
+              <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:6}}>
+                <span className="badge" style={{background:row.linkedChildren.length?'#dcfce7':'#fee2e2',color:row.linkedChildren.length?'#166534':'#991b1b'}}>
+                  {row.linkedChildren.length?`${row.linkedChildren.length} kirjet`:'sidumata'}
+                </span>
+                <span className="badge" style={{
+                  background:(parentStatusMeta[row.parent.parentContactStatus||'new']||parentStatusMeta.new).bg,
+                  color:(parentStatusMeta[row.parent.parentContactStatus||'new']||parentStatusMeta.new).c
+                }}>
+                  {(parentStatusMeta[row.parent.parentContactStatus||'new']||parentStatusMeta.new).t}
+                </span>
+              </div>
+            </div>
+
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+              <label style={{fontSize:'.76rem',fontWeight:800,color:'#42536A'}}>
+                Kontakti staatus
+                <select defaultValue={row.parent.parentContactStatus||'new'} onChange={e=>updateParent(row.parent,{parentContactStatus:e.target.value})}>
+                  {Object.entries(parentStatusMeta).map(([key,meta])=><option key={key} value={key}>{meta.t}</option>)}
+                </select>
+              </label>
+              <label style={{fontSize:'.76rem',fontWeight:800,color:'#42536A'}}>
+                Suhtluskanal
+                <select defaultValue={row.parent.parentContactChannel||'phone'} onChange={e=>updateParent(row.parent,{parentContactChannel:e.target.value})}>
+                  <option value="phone">Telefon</option>
+                  <option value="email">E-post</option>
+                  <option value="whatsapp">WhatsApp</option>
+                  <option value="telegram">Telegram</option>
+                  <option value="other">Muu</option>
+                </select>
+              </label>
+              <label style={{fontSize:'.76rem',fontWeight:800,color:'#42536A'}}>
+                Järgmine kontakt
+                <input type="date" defaultValue={row.parent.parentNextContactAt||''} onBlur={e=>updateParent(row.parent,{parentNextContactAt:e.target.value})}/>
+              </label>
+              <label style={{fontSize:'.76rem',fontWeight:800,color:'#42536A'}}>
+                Vastutaja
+                <input defaultValue={row.parent.parentContactOwner||''} placeholder="Kes suhtleb?" onBlur={e=>updateParent(row.parent,{parentContactOwner:e.target.value})}/>
+              </label>
             </div>
 
             <div>
@@ -1320,6 +1389,16 @@ function ParentsView({parents,students,invoices,isAdmin,parentAlerts,setSelStu,s
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,fontSize:'.82rem',color:'#42536A'}}>
               <div><strong>Telefon:</strong><br/>{row.parent.phone||row.parent.parentPhone||noData}</div>
               <div><strong>Ootel arved:</strong><br/>{row.unpaid.length?`${row.unpaid.reduce((a,inv)=>a+(parseFloat(inv.amount)||0),0)} €`:'0 €'}</div>
+            </div>
+            <textarea defaultValue={row.parent.parentContactNotes||''} placeholder="Mida lapsevanem ütles, millal tagasi helistada, kokkulepped..." onBlur={e=>updateParent(row.parent,{parentContactNotes:e.target.value})} style={{minHeight:74}}/>
+            <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+              {(row.parent.phone||row.parent.parentPhone)&&<a className="btn btn-ghost btn-sm" href={`tel:${row.parent.phone||row.parent.parentPhone}`}><i className="fa-solid fa-phone"/> Helista</a>}
+              {row.parent.email&&<a className="btn btn-ghost btn-sm" href={`mailto:${row.parent.email}`}><i className="fa-solid fa-envelope"/> E-post</a>}
+              {isAdmin&&row.rawNames.length>0&&row.linkedChildren.length===0&&(
+                <button onClick={()=>createMissingParentStudents(row.parent)} className="btn btn-red btn-sm">
+                  Loo / seo õpilane
+                </button>
+              )}
             </div>
           </div>
         ))}
@@ -3957,7 +4036,8 @@ function App() {
             parentAlerts={parentAlerts}
             setSelStu={setSelStu}
             setTab={setTab}
-            createMissingParentStudents={createMissingParentStudents}/>}
+            createMissingParentStudents={createMissingParentStudents}
+            notify={notify}/>}
 
           {tab==='database'&&isStaff&&<StudentsDatabaseView
             filteredStudents={filteredStudents}
