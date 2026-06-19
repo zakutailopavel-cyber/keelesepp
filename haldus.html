@@ -1773,37 +1773,40 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
         </div>
       )}
 
-      {!canManage&&(
-        <div className="card" style={{padding:24}}>
-          <h3 style={{marginBottom:14}}>✉️ Kirjuta õpetajale</h3>
-          <div style={{fontSize:'.84rem',color:'#42536A',marginBottom:10}}>
-            Sõnum läheb õpetajale: <strong>{currentStu.teacher||'määramata'}</strong>
-          </div>
-          <textarea value={teacherMessage||''} onChange={e=>setTeacherMessage(e.target.value)}
-            placeholder="Kirjuta küsimus, puudumisinfo või muu oluline teade..."
-            style={{minHeight:92,resize:'vertical',marginBottom:10}}/>
-          <button onClick={()=>sendTeacherMessage(currentStu,teacherMessage)} className="btn btn-pine">
-            <i className="fa-solid fa-paper-plane"/> Saada sõnum
-          </button>
+      <div className="card" style={{padding:24}}>
+        <h3 style={{marginBottom:14}}>✉️ Vestlus</h3>
+        <div style={{fontSize:'.84rem',color:'#42536A',marginBottom:12}}>
+          {!canManage
+            ? <>Sõnum läheb õpetajale: <strong>{currentStu.teacher||'määramata'}</strong></>
+            : <>Vastus läheb perele/õpilasele: <strong>{currentStu.name}</strong></>}
         </div>
-      )}
-
-      {canManage&&stuMessages?.length>0&&(
-        <div className="card" style={{padding:24}}>
-          <h3 style={{marginBottom:14}}>✉️ Sõnumid pere või õpilase poolt</h3>
-          <div style={{display:'flex',flexDirection:'column',gap:8}}>
-            {[...stuMessages].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).slice(0,6).map(msg=>(
-              <div key={msg.id} style={{padding:'12px 14px',borderRadius:12,background:'#F9F8F6',border:'1px solid rgba(28,43,58,.07)'}}>
+        <div style={{display:'flex',flexDirection:'column',gap:8,maxHeight:260,overflowY:'auto',marginBottom:12}} className="scroll">
+          {(!stuMessages||stuMessages.length===0)&&(
+            <div style={{padding:'18px 14px',borderRadius:12,background:'#fff7f7',border:'1px solid #fecaca',color:'#991b1b',fontWeight:700,textAlign:'center'}}>
+              Sõnumeid veel pole
+            </div>
+          )}
+          {[...(stuMessages||[])].sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt)).map(msg=>{
+            const mine = msg.fromUid===user.uid;
+            return(
+              <div key={msg.id} style={{alignSelf:mine?'flex-end':'flex-start',maxWidth:'86%',padding:'12px 14px',borderRadius:14,
+                background:mine?'#2F5D50':'#F9F8F6',color:mine?'#fff':'#1C2B3A',border:mine?'none':'1px solid rgba(28,43,58,.07)'}}>
                 <div style={{display:'flex',justifyContent:'space-between',gap:10,flexWrap:'wrap',marginBottom:5}}>
-                  <strong style={{fontSize:'.86rem'}}>{msg.fromName||'Kasutaja'}</strong>
-                  <span style={{fontSize:'.72rem',color:'#42536A'}}>{msg.createdAt?new Date(msg.createdAt).toLocaleString('et-EE'):'—'}</span>
+                  <strong style={{fontSize:'.82rem'}}>{msg.fromName||'Kasutaja'}</strong>
+                  <span style={{fontSize:'.7rem',color:mine?'rgba(255,255,255,.7)':'#42536A'}}>{msg.createdAt?new Date(msg.createdAt).toLocaleString('et-EE'):'—'}</span>
                 </div>
-                <div style={{fontSize:'.86rem',color:'#1C2B3A',whiteSpace:'pre-wrap'}}>{msg.text}</div>
+                <div style={{fontSize:'.86rem',whiteSpace:'pre-wrap',lineHeight:1.45}}>{msg.text}</div>
               </div>
-            ))}
-          </div>
+            );
+          })}
         </div>
-      )}
+        <textarea value={teacherMessage||''} onChange={e=>setTeacherMessage(e.target.value)}
+          placeholder={canManage?'Kirjuta vastus perele või õpilasele...':'Kirjuta küsimus, puudumisinfo või muu oluline teade...'}
+          style={{minHeight:92,resize:'vertical',marginBottom:10}}/>
+        <button onClick={()=>sendTeacherMessage(currentStu,teacherMessage)} className="btn btn-pine">
+          <i className="fa-solid fa-paper-plane"/> Saada sõnum
+        </button>
+      </div>
 
       <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(320px,1fr))',gap:20}}>
         <div className="card" style={{padding:24}}>
@@ -3062,7 +3065,7 @@ function App() {
       read:false
     });
     setTeacherMessage('');
-    notify('✓ Sõnum saadetud õpetajale');
+    notify('✓ Sõnum saadetud');
   },[user]);
 
   const addGroup=useCallback(async(group)=>{
