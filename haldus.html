@@ -147,7 +147,15 @@ function ProgressChart({data}) {
 
 // ── AUTH SCREEN ───────────────────────────────────────────────
 function AuthScreen({onLogin}) {
-  const [mode,setMode]   = useState('login');
+  const [mode,setMode]   = useState(()=>{
+    try{
+      const params = new URLSearchParams(window.location.search);
+      const route = (params.get('mode') || window.location.hash.replace('#','')).toLowerCase();
+      return ['register','registreeru','signup','loo-konto'].includes(route) ? 'register' : 'login';
+    }catch(e){
+      return 'login';
+    }
+  });
   const [role,setRole]   = useState('parent');
   const [name,setName]   = useState('');
   const [email,setEmail] = useState('');
