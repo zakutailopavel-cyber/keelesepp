@@ -2193,7 +2193,7 @@ function GroupsView({groups,students,isAdmin,setSelStu,setTab,addGroup,deleteGro
 }
 
 // ── ÕPILASE KAART ─────────────────────────────────────────────
-function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,setEditStu,toggleStudentActive,
+function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,setEditStu,toggleStudentActive,convertStudentToParent,
   hwTask,setHwTask,hwDue,setHwDue,hwFile,setHwFile,addHw,toggleHw,deleteHw,removeHwFile,
   invAmt,setInvAmt,invDesc,setInvDesc,addInvoice,markPaid,unmarkPaid,deleteInvoice,printInvoice,submitParentPayment,resetParentPayment,deleteLesson,openLessonEditor,
   schDate,setSchDate,schTime,setSchTime,schTeach,setSchTeach,schRecurring,setSchRecurring,addStudentSchedule,canAssignTeacher,
@@ -2254,6 +2254,11 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
             <div style={{display:'flex',flexDirection:'column',gap:8}}>
               <button onClick={()=>setSelStu(null)} className="btn btn-ghost btn-sm">← Tagasi</button>
               <button onClick={()=>setEditStu(currentStu)} className="btn btn-dark btn-sm">✏️ Muuda profiili</button>
+              {isAdmin&&currentStu.email&&(
+                <button onClick={()=>convertStudentToParent(currentStu)} className="btn btn-amber btn-sm">
+                  <i className="fa-solid fa-user-shield"/> Tee lapsevanemaks
+                </button>
+              )}
               <button onClick={()=>toggleStudentActive(currentStu.id,currentStu.active!==false)}
                 className={`btn btn-sm ${currentStu.active===false?'btn-pine':'btn-red'}`}>
                 {currentStu.active===false?'Aktiveeri':'Arhiveeri'}
@@ -4122,6 +4127,59 @@ function App() {
     notify(cur?'✓ Õpilane arhiveeritud':'✓ Õpilane aktiveeritud');
   },[]);
 
+  const convertStudentToParent=useCallback(async(student)=>{
+    if(!student?.id){notify('⚠ Õpilase kaart puudub');return;}
+    const emailKey = normalizeText(student.email);
+    if(!emailKey){notify('⚠ Sellel kirjel puudub e-post, kontot ei saa leida');return;}
+    const childName = window.prompt('Sisesta lapse nimi, mis peab ilmuma lapsevanema konto juurde:', student.childName || student.parentName || '');
+    if(childName===null) return;
+    const cleanChildName = String(childName||'').trim();
+    if(!cleanChildName){notify('⚠ Sisesta lapse nimi');return;}
+    const parentUser = allUsers.find(member=>normalizeText(member.email)===emailKey);
+    if(!parentUser?.id){
+      notify('⚠ Kasutajakontot selle e-postiga ei leitud');
+      return;
+    }
+    if(!window.confirm(`Muudan konto "${student.name}" rolliks lapsevanem ja arhiveerin selle õpilase kaardi. Jätkan?`)) return;
+    try{
+      const parentPatch = {
+        role:'parent',
+        displayName:student.name || parentUser.displayName || '',
+        childName:cleanChildName,
+        parentPhone:student.phone || parentUser.parentPhone || parentUser.phone || '',
+        phone:student.phone || parentUser.phone || parentUser.parentPhone || '',
+        parentReviewStatus:'new',
+        parentReviewKey:'',
+        convertedFromStudentId:student.id,
+        convertedFromStudentAt:new Date().toISOString(),
+        convertedBy:user?.displayName||user?.email||''
+      };
+      await db.collection('users').doc(parentUser.id).set(parentPatch,{merge:true});
+      await db.collection('students').doc(student.id).set({
+        active:false,
+        convertedToParent:true,
+        convertedParentUid:parentUser.id,
+        convertedParentEmail:parentUser.email||student.email||'',
+        convertedChildName:cleanChildName,
+        convertedAt:new Date().toISOString(),
+        convertedBy:user?.displayName||user?.email||''
+      },{merge:true});
+      await logActivity('student.converted_to_parent','Õpilase kaart muudeti lapsevanemaks',{
+        studentId:student.id,
+        studentName:student.name||'',
+        parentUid:parentUser.id,
+        parentEmail:parentUser.email||student.email||'',
+        childName:cleanChildName
+      });
+      setSelStu(null);
+      setTab('parents');
+      notify('✓ Konto muudeti lapsevanemaks ja õpilase kaart arhiveeriti');
+    }catch(err){
+      console.error('Student to parent conversion failed:',err);
+      notify('⚠ Lapsevanemaks muutmine ebaõnnestus');
+    }
+  },[allUsers,user,logActivity,notify,setSelStu,setTab]);
+
   const deleteLesson=useCallback(async(lesson)=>{
     if(!lesson?.id) return;
     if(!window.confirm('Kustuta see päeviku sissekanne?')) return;
@@ -4429,6 +4487,7 @@ function App() {
             setEditStu={setEditStu}
             user={user} currentStu={currentStu} stuLessons={stuLessons} stuHw={stuHw} stuInv={stuInv}
             isAdmin={canAssignTeacher} setSelStu={setSelStu} toggleStudentActive={toggleStudentActive}
+            convertStudentToParent={convertStudentToParent}
             hwTask={hwTask} setHwTask={setHwTask} hwDue={hwDue} setHwDue={setHwDue} hwFile={hwFile} setHwFile={setHwFile} addHw={addHw} toggleHw={toggleHw} deleteHw={deleteHw} removeHwFile={removeHwFile}
             invAmt={invAmt} setInvAmt={setInvAmt} invDesc={invDesc} setInvDesc={setInvDesc}
             addInvoice={addInvoice} markPaid={markPaid} unmarkPaid={unmarkPaid} deleteInvoice={deleteInvoice} printInvoice={printInvoice} submitParentPayment={submitParentPayment} resetParentPayment={resetParentPayment} deleteLesson={deleteLesson} openLessonEditor={openLessonEditor}
