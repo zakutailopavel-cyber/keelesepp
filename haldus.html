@@ -4378,14 +4378,18 @@ function App() {
         reader.onerror = () => reject(reader.error);
         reader.readAsDataURL(file);
     });
+    const withUploadTimeout = (promise,fileName,timeoutMs=30000) => Promise.race([
+      promise,
+      new Promise((_,reject)=>setTimeout(()=>reject(new Error(`Faili laadimine võttis liiga kaua: ${fileName}`)),timeoutMs))
+    ]);
     const uploadLessonFile = async file=>{
       const fileType = inferFileType(file);
       const safeName = (file.name||'fail').replace(/[^\w.\-]+/g,'_') || 'fail';
       try{
         if(!storage) throw new Error('Firebase Storage pole saadaval');
         const fileRef = storage.ref().child(`lessons/${stu?.id||'external'}/${Date.now()}_${safeName}`);
-        await fileRef.put(file,{contentType:fileType});
-        const url = await fileRef.getDownloadURL();
+        await withUploadTimeout(fileRef.put(file,{contentType:fileType}),safeName);
+        const url = await withUploadTimeout(fileRef.getDownloadURL(),safeName,15000);
         return {url,name:file.name||safeName,type:fileType,size:file.size||0,uploadedAt:now.toISOString()};
       }catch(uploadErr){
         console.warn('Lesson file upload failed:',uploadErr);
@@ -4398,17 +4402,20 @@ function App() {
     };
     let attachments = collectAttachments(modalEv);
     if(selectedLessonFiles.length){
-      try{
-        if(!storage && selectedLessonFiles.some(file=>(file.size||0)>650*1024)){
-          notify('⚠ Suurte failide jaoks peab Firebase Storage olema sisse lülitatud.');
-          return;
+      if(!storage && selectedLessonFiles.some(file=>(file.size||0)>650*1024)){
+        notify('⚠ Suured failid jäid lisamata: Firebase Storage pole sisse lülitatud. Päevik salvestatakse ilma nendeta.');
+      }else{
+        const uploadedResults = await Promise.allSettled(selectedLessonFiles.map(file=>uploadLessonFile(file)));
+        const uploadedAttachments = uploadedResults.filter(result=>result.status==='fulfilled').map(result=>result.value);
+        const failedUploads = uploadedResults.filter(result=>result.status==='rejected');
+        if(failedUploads.length){
+          console.error('Lesson attachments upload failed:',failedUploads.map(result=>result.reason));
+          notify(`⚠ ${failedUploads.length} faili ei õnnestunud lisada. Päevik salvestatakse ülejäänud andmetega.`);
         }
-        const uploadedAttachments = await Promise.all(selectedLessonFiles.map(file=>uploadLessonFile(file)));
-        attachments = [...attachments,...uploadedAttachments];
-      }catch(err){
-        console.error('Lesson attachments upload failed:',err);
-        notify('⚠ Failide üleslaadimine ei õnnestunud. Kontrolli Firebase Storage õiguseid või proovi väiksemate failidega.');
-        return;
+        if(uploadedAttachments.length){
+          notify(`✓ Lisatud ${uploadedAttachments.length} faili`);
+          attachments = [...attachments,...uploadedAttachments];
+        }
       }
     }
     let primaryAttachment = attachments[0] || null;
