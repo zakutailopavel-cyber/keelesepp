@@ -336,80 +336,7 @@ function AuthScreen({onLogin}) {
   );
 }
 
-// ── WIZARD ДЛЯ НОВОГО РОДИТЕЛЯ (заполнение имени ребёнка) ─────
-function NewParentWizard({user,db,onComplete}) {
-  const [childName,setChildName] = React.useState('');
-  const [preferredTeacher,setPreferredTeacher] = React.useState('Pavel');
-  const [saving,setSaving] = React.useState(false);
-  const [err,setErr] = React.useState('');
-
-  const save = async()=>{
-    const trimmed = childName.trim();
-    if(!trimmed){setErr('Sisesta lapse nimi');return;}
-    setSaving(true);
-    try{
-      await db.collection('users').doc(user.uid).set({
-        childName:trimmed,
-        preferredTeacher,
-        parentWizardCompleted:true,
-        parentWizardCompletedAt:new Date().toISOString()
-      },{merge:true});
-      // Создаём карточку студента
-      const {ensureParentStudentRecords} = window.HaldusShared;
-      await ensureParentStudentRecords(
-        {uid:user.uid,displayName:user.displayName,email:user.email},
-        {...user,childName:trimmed,preferredTeacher,role:'parent'}
-      );
-      onComplete({...user,childName:trimmed,preferredTeacher});
-    }catch(e){
-      setErr('Viga salvestamisel: '+e.message);
-      setSaving(false);
-    }
-  };
-
-  return(
-    <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',padding:16,
-      background:'linear-gradient(135deg,#1C2B3A 0%,#2F5D50 100%)'}}>
-      <div style={{background:'#FBFAF8',borderRadius:24,padding:'40px 36px',width:'100%',maxWidth:420,boxShadow:'0 32px 80px rgba(0,0,0,.3)'}}>
-        <div style={{textAlign:'center',marginBottom:28}}>
-          <div style={{fontFamily:'Fraunces,Georgia,serif',fontSize:'2rem',fontWeight:600}}>
-            Keele<span style={{color:'#C9882A'}}>Sepp</span>
-          </div>
-          <div style={{fontSize:'.9rem',color:'#42536A',marginTop:6,lineHeight:1.5}}>
-            Tere tulemast! Palun täpsusta oma lapse andmed, et saaksime kohe alustada.
-          </div>
-        </div>
-
-        <div style={{display:'flex',flexDirection:'column',gap:10,marginBottom:16}}>
-          <div style={{fontSize:'.82rem',fontWeight:600,color:'#42536A'}}>Lapse nimi *</div>
-          <input
-            value={childName}
-            onChange={e=>{setChildName(e.target.value);setErr('');}}
-            onKeyDown={e=>e.key==='Enter'&&save()}
-            placeholder="Näiteks: Anna Ivanova"
-            autoFocus
-          />
-          <div style={{fontSize:'.82rem',fontWeight:600,color:'#42536A',marginTop:4}}>Eelistatud õpetaja</div>
-          <select value={preferredTeacher} onChange={e=>setPreferredTeacher(e.target.value)}>
-            {TEACHERS.map(t=><option key={t} value={t}>{t}</option>)}
-          </select>
-        </div>
-
-        {err&&<div style={{background:'#fee2e2',color:'#991b1b',borderRadius:10,padding:'10px 14px',fontSize:'.84rem',marginBottom:14}}>{err}</div>}
-
-        <button onClick={save} disabled={saving} className="btn btn-dark" style={{width:'100%',padding:13,borderRadius:12,marginBottom:12}}>
-          {saving?'Salvestab…':'Jätka →'}
-        </button>
-
-        <div style={{textAlign:'center',fontSize:'.78rem',color:'#42536A'}}>
-          Saad andmeid hiljem oma kabinetis muuta.
-        </div>
-      </div>
-    </div>
-  );
-}
-
-
+// ── DASHBOARD ────────────────────────────────────────────────
 // TÄHTIS: kõik komponendid on App-ist VÄLJAS — see lahendab "iga täht uuendab lehte" probleemi
 function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
   tasks,staffMembers,
@@ -1610,28 +1537,6 @@ function StudentsList({filteredStudents,lessons,isAdmin,search,setSearch,stuFilt
 function ParentsView({parents,students,invoices,isAdmin,parentAlerts,setSelStu,setTab,createMissingParentStudents,markParentChecked,mergeParentDuplicates,notify}) {
   const [search,setSearch] = React.useState('');
   const [statusFilter,setStatusFilter] = React.useState('all');
-  const [editingUser,setEditingUser] = React.useState(null); // {id,displayName,email,childName,preferredTeacher}
-  const [editUserSaving,setEditUserSaving] = React.useState(false);
-
-  const saveEditUser = async()=>{
-    if(!editingUser?.id){notify('⚠ Kasutaja ID puudub');return;}
-    setEditUserSaving(true);
-    try{
-      await db.collection('users').doc(editingUser.id).set({
-        displayName:editingUser.displayName||'',
-        email:editingUser.email||'',
-        childName:editingUser.childName||'',
-        preferredTeacher:editingUser.preferredTeacher||'Pavel',
-        updatedAt:new Date().toISOString()
-      },{merge:true});
-      notify('✓ Lapsevanema konto andmed uuendatud!');
-      setEditingUser(null);
-    }catch(err){
-      console.error('User update failed:',err);
-      notify('⚠ Viga salvestamisel');
-    }
-    setEditUserSaving(false);
-  };
   const parentStatusMeta = {
     new:{t:'Uus',bg:'#dbeafe',c:'#1d4ed8'},
     written:{t:'Kirjutatud',bg:'#ede9fe',c:'#6d28d9'},
@@ -1695,13 +1600,12 @@ function ParentsView({parents,students,invoices,isAdmin,parentAlerts,setSelStu,s
       const linkedChildren = students.filter(student=>{
         if(student.active===false || student.convertedToParent) return false;
         const linkedParentId = student.linkedParentId || student.parentUid || student.guardianUid || '';
-        const studentName = normalizeText(student.name);
-        const studentParentEmail = normalizeText(student.parentEmail || student.contactEmail || student.guardianEmail || student.email);
-        const studentParentName = normalizeText(student.parentName || student.guardianName);
+        const studentParentEmail = normalizeText(student.parentEmail || student.contactEmail || student.guardianEmail);
+        // STRICT: match only by linkedParentId or email — NOT by parent name
+        // This prevents children from appearing under two parents with the same name
         const parentMatched = linkedParentId===parent.id ||
-          (!!parentEmail && studentParentEmail===parentEmail) ||
-          (!!parentName && studentParentName===parentName);
-        return parentMatched || (childNameKeys.has(studentName) && parentMatched);
+          (!!parentEmail && !!studentParentEmail && studentParentEmail===parentEmail);
+        return parentMatched;
       });
       const uniqueChildren = uniqBy(linkedChildren,student=>studentProfileKey(student)||student.id);
       const childGroups = buildChildGroups(uniqueChildren);
@@ -1920,11 +1824,6 @@ function ParentsView({parents,students,invoices,isAdmin,parentAlerts,setSelStu,s
             <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
               {row.phone&&<a className="btn btn-ghost btn-sm" href={`tel:${row.phone}`}><i className="fa-solid fa-phone"/> Helista</a>}
               {row.email&&<a className="btn btn-ghost btn-sm" href={`mailto:${row.email}`}><i className="fa-solid fa-envelope"/> E-post</a>}
-              {isAdmin&&(
-                <button onClick={()=>setEditingUser({...row.parent})} className="btn btn-ghost btn-sm">
-                  <i className="fa-solid fa-pen"/> Muuda konto andmeid
-                </button>
-              )}
               {isAdmin&&row.rawNames.length>0&&row.linkedChildren.length===0&&(
                 <button onClick={()=>createMissingParentStudents(row.parent)} className="btn btn-red btn-sm">
                   Loo / seo õpilane
@@ -1944,48 +1843,6 @@ function ParentsView({parents,students,invoices,isAdmin,parentAlerts,setSelStu,s
           </div>
         )}
       </div>
-
-      {/* Modal редактирования users-документа */}
-      {editingUser&&(
-        <div style={{position:'fixed',inset:0,background:'rgba(28,43,58,.6)',display:'flex',alignItems:'center',justifyContent:'center',padding:16,zIndex:210,backdropFilter:'blur(4px)'}}>
-          <div className="card" style={{padding:0,maxWidth:440,width:'100%',boxShadow:'0 32px 80px rgba(0,0,0,.25)'}}>
-            <div style={{padding:'18px 24px 14px',borderBottom:'1px solid rgba(28,43,58,.08)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-              <h2 style={{fontSize:'1.1rem'}}>✏️ Muuda lapsevanema konto andmeid</h2>
-              <button onClick={()=>setEditingUser(null)} style={{background:'rgba(28,43,58,.07)',border:'none',cursor:'pointer',borderRadius:9,width:30,height:30,display:'flex',alignItems:'center',justifyContent:'center',color:'#42536A'}}>✕</button>
-            </div>
-            <div style={{padding:'20px 24px',display:'flex',flexDirection:'column',gap:12}}>
-              <div style={{background:'#fffbeb',borderRadius:10,padding:'10px 14px',fontSize:'.82rem',color:'#92400e'}}>
-                Muudad <strong>konto</strong> andmeid (Firebase Auth profiil). Õpilase kaardi andmed uuenda eraldi.
-              </div>
-              <div>
-                <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Täisnimi</div>
-                <input value={editingUser.displayName||''} onChange={e=>setEditingUser(p=>({...p,displayName:e.target.value}))} placeholder="Lapsevanema täisnimi"/>
-              </div>
-              <div>
-                <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>E-post</div>
-                <input value={editingUser.email||''} onChange={e=>setEditingUser(p=>({...p,email:e.target.value}))} placeholder="E-post" type="email"/>
-              </div>
-              <div>
-                <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Lapse nimi (registreerimisel sisestatud)</div>
-                <input value={editingUser.childName||''} onChange={e=>setEditingUser(p=>({...p,childName:e.target.value}))} placeholder="Nt. Anna, Maks"/>
-                <div style={{fontSize:'.72rem',color:'#42536A',marginTop:3}}>Mitu last: eralda komaga (nt. Anna, Maks)</div>
-              </div>
-              <div>
-                <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Eelistatud õpetaja</div>
-                <select value={editingUser.preferredTeacher||'Pavel'} onChange={e=>setEditingUser(p=>({...p,preferredTeacher:e.target.value}))}>
-                  {TEACHERS.map(t=><option key={t}>{t}</option>)}
-                </select>
-              </div>
-              <div style={{display:'flex',gap:8}}>
-                <button onClick={saveEditUser} disabled={editUserSaving} className="btn btn-pine" style={{flex:1}}>
-                  {editUserSaving?'Salvestan…':'✓ Salvesta'}
-                </button>
-                <button onClick={()=>setEditingUser(null)} className="btn btn-ghost" style={{flex:1}}>Tühista</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -2155,48 +2012,25 @@ function StudentsDatabaseView({
         <div className="card" style={{padding:18,border:'1px solid #fbbf24',background:'#fffbeb'}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:12,flexWrap:'wrap'}}>
             <div>
-              <div style={{fontWeight:900,color:'#92400e'}}>⚠️ Võimalikud õpilaste duplikaadid</div>
+              <div style={{fontWeight:900,color:'#92400e'}}>Võimalikud õpilaste duplikaadid</div>
               <div style={{fontSize:'.82rem',color:'#42536A',marginTop:4}}>
                 Ühenda sama lapse korduvad kaardid, et tunnid, kodutööd ja arved oleksid ühes kohas.
               </div>
             </div>
             <span className="badge" style={{background:'#fef3c7',color:'#92400e'}}>{duplicateGroups.length} gruppi</span>
           </div>
-          <div style={{display:'flex',flexDirection:'column',gap:10,marginTop:12}}>
-            {duplicateGroups.slice(0,10).map(group=>(
-              <div key={group[0]?.id||studentProfileKey(group[0])} style={{background:'#fff',border:'1px solid rgba(146,64,14,.16)',borderRadius:12,padding:14}}>
-                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:10,flexWrap:'wrap',marginBottom:8}}>
-                  <strong style={{fontSize:'.9rem'}}>{group[0].name||'Nimi puudub'} <span style={{fontWeight:500,color:'#42536A'}}>· {group.length} kirjet</span></strong>
-                  <button onClick={()=>mergeStudentDuplicates(group)} className="btn btn-amber btn-sm">
-                    <i className="fa-solid fa-code-merge"/> Ühenda automaatselt
-                  </button>
+          <div style={{display:'flex',flexDirection:'column',gap:8,marginTop:12}}>
+            {duplicateGroups.slice(0,8).map(group=>(
+              <div key={studentProfileKey(group[0])} style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:10,flexWrap:'wrap',background:'#fff',border:'1px solid rgba(146,64,14,.16)',borderRadius:12,padding:12}}>
+                <div>
+                  <strong>{group[0].name||'Nimi puudub'}</strong>
+                  <span style={{color:'#42536A'}}> · {group[0].subject||'Õppeaine puudub'} · {group[0].teacher||'Õpetaja puudub'} · {group.length} kirjet</span>
                 </div>
-                <div style={{display:'flex',flexDirection:'column',gap:4}}>
-                  {group.map((s,i)=>(
-                    <div key={s.id} style={{display:'flex',alignItems:'center',gap:8,fontSize:'.78rem',color:'#42536A',padding:'6px 10px',borderRadius:8,background:i===0?'rgba(47,93,80,.06)':'rgba(28,43,58,.03)',border:'1px solid rgba(28,43,58,.06)'}}>
-                      {i===0&&<span className="badge" style={{background:'#dcfce7',color:'#166534',fontSize:'.65rem'}}>Peamine</span>}
-                      {i>0&&<span className="badge" style={{background:'#fee2e2',color:'#991b1b',fontSize:'.65rem'}}>Duplikaat</span>}
-                      <span style={{fontWeight:600,color:'#1C2B3A'}}>{s.name||'—'}</span>
-                      <span>·</span>
-                      <span>{s.subject||'—'}</span>
-                      <span>·</span>
-                      <span>{s.teacher||'—'}</span>
-                      <span>·</span>
-                      <span>Tunde: {lessons.filter(l=>l.studentId===s.id).length}</span>
-                      <span>·</span>
-                      <span>Pkg: {s.packageTotal||0}/{s.packageUsed||0}</span>
-                      {s.parentName&&<><span>·</span><span>Vanem: {s.parentName}</span></>}
-                      <button onClick={()=>openStudent(s)} className="btn btn-ghost btn-sm" style={{marginLeft:'auto',padding:'3px 8px',fontSize:'.7rem'}}>Ava</button>
-                    </div>
-                  ))}
-                </div>
+                <button onClick={()=>mergeStudentDuplicates(group)} className="btn btn-amber btn-sm">
+                  Ühenda
+                </button>
               </div>
             ))}
-            {duplicateGroups.length>10&&(
-              <div style={{textAlign:'center',fontSize:'.82rem',color:'#92400e',padding:'8px 0'}}>
-                + {duplicateGroups.length-10} gruppi veel. Kõigi nägemiseks filtreeri nime järgi.
-              </div>
-            )}
           </div>
         </div>
       )}
@@ -3592,11 +3426,9 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
 }
 
 // ── РЕДАКТИРОВАНИЕ И УДАЛЕНИЕ УЧЕНИКА ────────────────────────
-function EditStudentModal({student,onClose,onSave,onDelete,db,notify,isAdmin,groupOptions=[],allUsers=[]}) {
+function EditStudentModal({student,onClose,onSave,onDelete,db,notify,isAdmin,groupOptions=[]}) {
   const [name,    setName]    = React.useState(student.name||'');
   const [parentName,setParentName] = React.useState(student.parentName||'');
-  const [parentEmail,setParentEmail] = React.useState(student.parentEmail||student.contactEmail||student.guardianEmail||'');
-  const [linkedParentId,setLinkedParentId] = React.useState(student.linkedParentId||student.parentUid||student.guardianUid||'');
   const [email,   setEmail]   = React.useState(student.email||'');
   const [phone,   setPhone]   = React.useState(student.phone||'');
   const [level,   setLevel]   = React.useState(student.level||'A1');
@@ -3613,71 +3445,22 @@ function EditStudentModal({student,onClose,onSave,onDelete,db,notify,isAdmin,gro
   const [used,    setUsed]    = React.useState(String(student.packageUsed||0));
   const [saving,  setSaving]  = React.useState(false);
   const [confirm, setConfirm] = React.useState(false);
-  const [parentSearch,setParentSearch] = React.useState('');
-  const [showParentPicker,setShowParentPicker] = React.useState(false);
-  const [editUserData,setEditUserData] = React.useState(null); // редактирование users документа родителя
-
   const modalGroupOptions = React.useMemo(()=>
     [...new Set([...(groupOptions||[]),group].map(g=>(g||'').trim()).filter(Boolean))]
       .sort((a,b)=>a.localeCompare(b,'et'))
   ,[groupOptions,group]);
 
-  // Список родителей для привязки
-  const parentUsers = React.useMemo(()=>
-    (allUsers||[]).filter(u=>u.role==='parent' && !u.mergedIntoParentId && u.active!==false)
-      .sort((a,b)=>(a.displayName||'').localeCompare(b.displayName||'','et'))
-  ,[allUsers]);
-
-  const filteredParents = React.useMemo(()=>{
-    const q = (parentSearch||'').toLowerCase();
-    if(!q) return parentUsers.slice(0,30);
-    return parentUsers.filter(p=>
-      (p.displayName||'').toLowerCase().includes(q) ||
-      (p.email||'').toLowerCase().includes(q) ||
-      (p.childName||'').toLowerCase().includes(q)
-    ).slice(0,20);
-  },[parentUsers,parentSearch]);
-
-  const selectedParent = React.useMemo(()=>
-    linkedParentId ? parentUsers.find(p=>p.id===linkedParentId) : null
-  ,[parentUsers,linkedParentId]);
-
-  const selectParent = (parent)=>{
-    setLinkedParentId(parent.id);
-    setParentName(parent.displayName||parentName);
-    setParentEmail(parent.email||parentEmail);
-    setShowParentPicker(false);
-    setParentSearch('');
-  };
-
-  const clearParent = ()=>{
-    setLinkedParentId('');
-    setShowParentPicker(false);
-  };
-
   const save = async()=>{
     if(!name.trim()){notify('⚠ Sisesta nimi');return;}
     setSaving(true);
-    const patch = {
-      name:name.trim(),parentName,parentEmail,email,phone,level,targetLevel:target,
+    await db.collection('students').doc(student.id).update({
+      name,parentName,email,phone,level,targetLevel:target,
       subject,grade,group,teacher,
       contactStatus,contactOwner,contactLastAt,contactNotes,
       packageTotal:parseInt(pkg)||0,
       packageUsed:parseInt(used)||0,
       updatedAt: new Date().toISOString().split('T')[0]
-    };
-    // Обновляем linkedParentId только если изменился
-    if(linkedParentId && linkedParentId !== (student.linkedParentId||student.parentUid||student.guardianUid||'')) {
-      patch.linkedParentId = linkedParentId;
-      patch.parentUid = linkedParentId;
-    } else if(!linkedParentId && (student.linkedParentId||student.parentUid||student.guardianUid)) {
-      patch.linkedParentId = '';
-      patch.parentUid = '';
-    } else if(linkedParentId) {
-      patch.linkedParentId = linkedParentId;
-      patch.parentUid = linkedParentId;
-    }
-    await db.collection('students').doc(student.id).update(patch);
+    });
     notify('✓ Muudatused salvestatud!');
     onSave();
     setSaving(false);
@@ -3711,50 +3494,6 @@ function EditStudentModal({student,onClose,onSave,onDelete,db,notify,isAdmin,gro
             width:30,height:30,display:'flex',alignItems:'center',justifyContent:'center',color:'#42536A'}}>✕</button>
         </div>
 
-        {/* Редактирование данных users-документа родителя */}
-        {editUserData && (
-          <div style={{padding:'16px 24px',borderBottom:'1px solid rgba(28,43,58,.08)',background:'#fffbeb'}}>
-            <div style={{fontWeight:700,fontSize:'.88rem',marginBottom:10,color:'#92400e'}}>
-              ✏️ Muuda lapsevanema registreerimisandmeid
-            </div>
-            <div style={{display:'flex',flexDirection:'column',gap:8}}>
-              <div style={{fontSize:'.74rem',color:'#42536A',fontWeight:600}}>Täisnimi</div>
-              <input value={editUserData.displayName||''} onChange={e=>setEditUserData(p=>({...p,displayName:e.target.value}))} placeholder="Lapsevanema täisnimi"/>
-              <div style={{fontSize:'.74rem',color:'#42536A',fontWeight:600}}>E-post</div>
-              <input value={editUserData.email||''} onChange={e=>setEditUserData(p=>({...p,email:e.target.value}))} placeholder="E-post" type="email"/>
-              <div style={{fontSize:'.74rem',color:'#42536A',fontWeight:600}}>Lapse nimi (registreerimisel sisestatud)</div>
-              <input value={editUserData.childName||''} onChange={e=>setEditUserData(p=>({...p,childName:e.target.value}))} placeholder="Lapse nimi"/>
-              <div style={{fontSize:'.74rem',color:'#42536A',fontWeight:600}}>Eelistatud õpetaja</div>
-              <select value={editUserData.preferredTeacher||'Pavel'} onChange={e=>setEditUserData(p=>({...p,preferredTeacher:e.target.value}))}>
-                {TEACHERS.map(t=><option key={t}>{t}</option>)}
-              </select>
-              <div style={{display:'flex',gap:8,marginTop:4}}>
-                <button onClick={async()=>{
-                  if(!editUserData.id){notify('⚠ Kasutaja ID puudub');return;}
-                  await db.collection('users').doc(editUserData.id).set({
-                    displayName:editUserData.displayName||'',
-                    email:editUserData.email||'',
-                    childName:editUserData.childName||'',
-                    preferredTeacher:editUserData.preferredTeacher||'Pavel',
-                    updatedAt:new Date().toISOString()
-                  },{merge:true});
-                  // Sync parentName/parentEmail back to student
-                  await db.collection('students').doc(student.id).update({
-                    parentName:editUserData.displayName||parentName,
-                    parentEmail:editUserData.email||parentEmail,
-                    updatedAt:new Date().toISOString().split('T')[0]
-                  });
-                  setParentName(editUserData.displayName||parentName);
-                  setParentEmail(editUserData.email||parentEmail);
-                  notify('✓ Lapsevanema andmed uuendatud!');
-                  setEditUserData(null);
-                }} className="btn btn-amber btn-sm" style={{flex:1}}>Salvesta konto andmed</button>
-                <button onClick={()=>setEditUserData(null)} className="btn btn-ghost btn-sm" style={{flex:1}}>Tühista</button>
-              </div>
-            </div>
-          </div>
-        )}
-
         <div style={{padding:'20px 24px',display:'flex',flexDirection:'column',gap:12}}>
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
             <div style={{gridColumn:'1/-1'}}>
@@ -3765,57 +3504,9 @@ function EditStudentModal({student,onClose,onSave,onDelete,db,notify,isAdmin,gro
               <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Vanema nimi</div>
               <input value={parentName} onChange={e=>setParentName(e.target.value)} placeholder="Vanema nimi"/>
             </div>
-            <div style={{gridColumn:'1/-1'}}>
-              <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Vanema e-post</div>
-              <input value={parentEmail} onChange={e=>setParentEmail(e.target.value)} type="email" placeholder="Vanema e-post"/>
-            </div>
-
-            {/* Блок привязки к аккаунту родителя */}
-            {isAdmin&&(
-              <div style={{gridColumn:'1/-1',background:'#F9F8F6',borderRadius:12,padding:14,border:'1px solid rgba(28,43,58,.08)'}}>
-                <div style={{fontSize:'.78rem',fontWeight:700,color:'#42536A',marginBottom:8}}>
-                  🔗 Seotud lapsevanema konto
-                </div>
-                {selectedParent ? (
-                  <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
-                    <div style={{flex:1,minWidth:0}}>
-                      <div style={{fontWeight:600,fontSize:'.86rem',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{selectedParent.displayName||'—'}</div>
-                      <div style={{fontSize:'.74rem',color:'#42536A'}}>{selectedParent.email||'e-post puudub'} · laps: {selectedParent.childName||'—'}</div>
-                    </div>
-                    <button onClick={()=>setEditUserData({...selectedParent})} className="btn btn-ghost btn-sm">Muuda konto andmeid</button>
-                    <button onClick={clearParent} className="btn btn-red btn-sm">Eemalda seos</button>
-                  </div>
-                ) : (
-                  <div>
-                    {linkedParentId && !selectedParent && (
-                      <div style={{fontSize:'.78rem',color:'#991b1b',marginBottom:6}}>⚠ Seotud konto ID on olemas, kuid kasutajat ei leitud ({linkedParentId.slice(0,12)}…)</div>
-                    )}
-                    <button onClick={()=>setShowParentPicker(v=>!v)} className="btn btn-ghost btn-sm">
-                      {showParentPicker ? 'Sulge otsing' : '🔍 Otsi ja seo lapsevanemaga'}
-                    </button>
-                    {showParentPicker&&(
-                      <div style={{marginTop:8}}>
-                        <input value={parentSearch} onChange={e=>setParentSearch(e.target.value)} placeholder="Otsi nime, e-posti või lapse nime järgi…" style={{marginBottom:6}}/>
-                        <div style={{maxHeight:160,overflowY:'auto',display:'flex',flexDirection:'column',gap:4}} className="scroll">
-                          {filteredParents.length===0&&<div style={{fontSize:'.8rem',color:'#42536A',padding:'8px 0'}}>Lapsevanemaid ei leitud</div>}
-                          {filteredParents.map(p=>(
-                            <button key={p.id} onClick={()=>selectParent(p)}
-                              style={{display:'flex',flexDirection:'column',alignItems:'flex-start',padding:'8px 10px',borderRadius:9,border:'1px solid rgba(28,43,58,.1)',background:'#fff',cursor:'pointer',textAlign:'left'}}>
-                              <span style={{fontWeight:600,fontSize:'.84rem'}}>{p.displayName||'—'}</span>
-                              <span style={{fontSize:'.72rem',color:'#42536A'}}>{p.email||'e-post puudub'} · laps: {p.childName||'—'}</span>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-
             <div>
-              <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Õpilase e-post</div>
-              <input value={email} onChange={e=>setEmail(e.target.value)} type="email" placeholder="Õpilase e-post"/>
+              <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>E-post</div>
+              <input value={email} onChange={e=>setEmail(e.target.value)} type="email" placeholder="E-post"/>
             </div>
             <div>
               <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Telefon</div>
@@ -4082,19 +3773,14 @@ function App() {
     if(user.role==='teacher') return isAdmin?visibleStudents:visibleStudents.filter(s=>canonicalTeacherName(s.teacher)===canonicalTeacherName(user.displayName));
     if(user.role==='admin')   return visibleStudents;
     if(user.role==='parent'){
-      const linkedNames = parseLinkedNames(user.childName);
       const userEmail = normalizeText(user.email);
-      const parentName = normalizeText(user.displayName);
       return visibleStudents.filter(s=>{
-        const studentName = normalizeText(s.name);
         const studentEmail = normalizeText(s.email);
         const parentEmail = normalizeText(s.parentEmail || s.contactEmail || s.guardianEmail);
-        const studentParentName = normalizeText(s.parentName || s.guardianName);
         const linkedParentId = s.linkedParentId || s.parentUid || s.guardianUid || '';
-        const parentMatched = linkedParentId===user.uid ||
-          (!!userEmail && (studentEmail===userEmail || parentEmail===userEmail)) ||
-          (!!parentName && studentParentName===parentName);
-        return parentMatched || (linkedNames.includes(studentName) && parentMatched);
+        // STRICT: match only by linkedParentId or email — NOT by parent display name
+        return linkedParentId===user.uid ||
+          (!!userEmail && (studentEmail===userEmail || parentEmail===userEmail));
       });
     }
     return visibleStudents.filter(s=>s.name?.toLowerCase()===user.displayName?.toLowerCase());
@@ -4125,8 +3811,7 @@ function App() {
             const studentParentName = normalizeText(student.parentName || student.guardianName);
             const linkedParentId = student.linkedParentId || student.parentUid || student.guardianUid || '';
             return linkedParentId===parent.id ||
-              (studentName===childKey && !!parentEmail && studentParentEmail===parentEmail) ||
-              (studentName===childKey && !!parentName && studentParentName===parentName);
+              (studentName===childKey && !!parentEmail && studentParentEmail===parentEmail);
           });
         });
         if(missingNames.length===0) return null;
@@ -4521,19 +4206,6 @@ function App() {
       notify(`⚠ Selline õpilase profiil on juba olemas: ${duplicate.name} · ${duplicate.subject||'Eesti keel'} · ${duplicate.teacher||'õpetaja puudub'}`);
       return;
     }
-    // Предупреждение о похожих именах (fuzzy)
-    const nameNorm = normalizeText(nName);
-    const similar = students.filter(s=>s.active!==false && (() => {
-      const sn = normalizeText(s.name);
-      if(sn === nameNorm) return true;
-      // Совпадение первого слова (имя)
-      const firstName = nameNorm.split(' ')[0];
-      const sFirst = sn.split(' ')[0];
-      return firstName.length>=3 && sFirst===firstName;
-    })());
-    if(similar.length>0 && !window.confirm(
-      `Leitud sarnased õpilased:\n${similar.map(s=>`• ${s.name} (${s.subject||'—'}, ${s.teacher||'—'})`).join('\n')}\n\nLua siiski uus kaart?`
-    )) return;
     const ref = await db.collection('students').add({name:nName,parentName:nParentName,level:nLevel,targetLevel:nTarget,teacher:t,phone:nPhone,email:nEmail,active:true,packageTotal:parseInt(nPkg)||0,packageUsed:0,subject:nSubject,grade:nGrade,group:nGroup,contactStatus:'new',contactOwner:user?.displayName||'',contactLastAt:'',contactNotes:'',createdAt:today()});
     await logActivity('student.created','Lisati õpilane',{studentId:ref.id,studentName:nName,teacher:t});
     setNName('');setNParentName('');setNPhone('');setNEmail('');setNGroup('');
@@ -5361,10 +5033,6 @@ function App() {
   );
   if(!user) return <AuthScreen onLogin={u=>{setUser(u);if(u.role==='teacher')setFilterT(canonicalTeacherName(u.displayName||''));if(u.role==='admin')setFilterT('Kõik');}}/>;
 
-  // Wizard для нового родителя без имени ребёнка
-  if(user.role==='parent' && !user.parentWizardCompleted && !(user.childName||'').trim()) {
-    return <NewParentWizard user={user} db={db} onComplete={updatedUser=>{setUser(updatedUser);}}/>;
-  }
   const navItems=[
     {id:'dashboard',icon:'fa-chart-pie',label:'Töölaud'},
     {id:'calendar', icon:'fa-calendar-days',label:'Tunniplaan'},
@@ -5559,7 +5227,7 @@ function App() {
         </div>
       </main>
 
-      {editStu&&<EditStudentModal student={editStu} onClose={()=>setEditStu(null)} onSave={()=>{setEditStu(null);}} onDelete={()=>{setEditStu(null);setSelStu(null);}} db={db} notify={notify} isAdmin={isAdmin} groupOptions={groupOptions} allUsers={allUsers}/>}
+      {editStu&&<EditStudentModal student={editStu} onClose={()=>setEditStu(null)} onSave={()=>{setEditStu(null);}} onDelete={()=>{setEditStu(null);setSelStu(null);}} db={db} notify={notify} isAdmin={isAdmin} groupOptions={groupOptions}/>}
       {modalEv&&<LessonModal modalEv={modalEv} setModalEv={setModalEv}
         lTopic={lTopic} setLTopic={setLTopic} lGrade={lGrade} setLGrade={setLGrade}
         lStatus={lStatus} setLStatus={setLStatus}        lComment={lComment} setLComment={setLComment}
