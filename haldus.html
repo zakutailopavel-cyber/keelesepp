@@ -1390,7 +1390,7 @@ function StudentsList({filteredStudents,lessons,isAdmin,search,setSearch,stuFilt
 }
 
 // ── LAPSEVANEMAD ─────────────────────────────────────────────
-function ParentsView({parents,students,invoices,isAdmin,parentAlerts,setSelStu,setTab,createMissingParentStudents,markParentChecked,notify}) {
+function ParentsView({parents,students,invoices,isAdmin,parentAlerts,setSelStu,setTab,createMissingParentStudents,markParentChecked,mergeParentDuplicates,notify}) {
   const [search,setSearch] = React.useState('');
   const [statusFilter,setStatusFilter] = React.useState('all');
   const parentStatusMeta = {
@@ -1686,6 +1686,11 @@ function ParentsView({parents,students,invoices,isAdmin,parentAlerts,setSelStu,s
                   Loo / seo õpilane
                 </button>
               )}
+              {isAdmin&&(row.duplicateCount>0||row.hiddenStudentCount>0)&&(
+                <button onClick={()=>mergeParentDuplicates(row)} className="btn btn-amber btn-sm">
+                  Ühenda duplikaadid
+                </button>
+              )}
             </div>
           </div>
         ))}
@@ -1704,7 +1709,7 @@ function StudentsDatabaseView({
   filteredStudents,lessons,invoices,isAdmin,search,setSearch,stuFilter,setStuFilter,
   groupFilter,setGroupFilter,groupOptions,contactFilter,setContactFilter,studentSort,setStudentSort,openStudent,setEditStu,user,
   nName,setNName,nParentName,setNParentName,nEmail,setNEmail,nPhone,setNPhone,nLevel,setNLevel,nTarget,setNTarget,
-  nSubject,setNSubject,nGrade,setNGrade,nGroup,setNGroup,nPkg,setNPkg,nTeach,setNTeach,addStudent
+  nSubject,setNSubject,nGrade,setNGrade,nGroup,setNGroup,nPkg,setNPkg,nTeach,setNTeach,addStudent,mergeStudentDuplicates
 }) {
   const [showAddForm,setShowAddForm] = React.useState(false);
   const [groupMode,setGroupMode] = React.useState('table');
@@ -1744,6 +1749,18 @@ function StudentsDatabaseView({
     scheduled:{bg:'#ede9fe',c:'#6d28d9',t:'Tund kokku lepitud'},
     active:{bg:'#dcfce7',c:'#166534',t:'Aktiivne õpilane'}
   };
+  const duplicateGroups = React.useMemo(()=>{
+    const grouped = filteredStudents.reduce((acc,student)=>{
+      if(student.active===false || student.convertedToParent) return acc;
+      if(!normalizeText(student.name)) return acc;
+      const key = studentProfileKey(student);
+      if(!key) return acc;
+      if(!acc[key]) acc[key]=[];
+      acc[key].push(student);
+      return acc;
+    },{});
+    return Object.values(grouped).filter(group=>group.length>1);
+  },[filteredStudents]);
   return(
     <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:20}}>
       <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',flexWrap:'wrap',gap:12}}>
@@ -1847,6 +1864,33 @@ function StudentsDatabaseView({
           <div style={{fontSize:'1.6rem',fontWeight:700,marginTop:8,color:'#991b1b'}}>{invoices.filter(i=>i.status==='Ootel').length}</div>
         </div>
       </div>
+
+      {isAdmin&&duplicateGroups.length>0&&(
+        <div className="card" style={{padding:18,border:'1px solid #fbbf24',background:'#fffbeb'}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:12,flexWrap:'wrap'}}>
+            <div>
+              <div style={{fontWeight:900,color:'#92400e'}}>Võimalikud õpilaste duplikaadid</div>
+              <div style={{fontSize:'.82rem',color:'#42536A',marginTop:4}}>
+                Ühenda sama lapse korduvad kaardid, et tunnid, kodutööd ja arved oleksid ühes kohas.
+              </div>
+            </div>
+            <span className="badge" style={{background:'#fef3c7',color:'#92400e'}}>{duplicateGroups.length} gruppi</span>
+          </div>
+          <div style={{display:'flex',flexDirection:'column',gap:8,marginTop:12}}>
+            {duplicateGroups.slice(0,8).map(group=>(
+              <div key={studentProfileKey(group[0])} style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:10,flexWrap:'wrap',background:'#fff',border:'1px solid rgba(146,64,14,.16)',borderRadius:12,padding:12}}>
+                <div>
+                  <strong>{group[0].name||'Nimi puudub'}</strong>
+                  <span style={{color:'#42536A'}}> · {group[0].subject||'Õppeaine puudub'} · {group[0].teacher||'Õpetaja puudub'} · {group.length} kirjet</span>
+                </div>
+                <button onClick={()=>mergeStudentDuplicates(group)} className="btn btn-amber btn-sm">
+                  Ühenda
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {teacherFocus&&(
         <div className="card" style={{padding:20,border:'1px solid rgba(47,93,80,.2)'}}>
@@ -2488,11 +2532,21 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
                       </div>
                     </div>
                     {l.comment&&<div style={{fontSize:'.78rem',color:'#42536A',marginBottom:3}}>{l.comment}</div>}
-                    {l.fileUrl&&(
-                      <a href={l.fileUrl} target="_blank" rel="noreferrer" style={{display:'inline-flex',alignItems:'center',gap:6,marginBottom:3,fontSize:'.74rem',fontWeight:700,color:'#2F5D50',textDecoration:'none'}}>
-                        <i className="fa-solid fa-paperclip"/> {l.fileName||'Tunni fail'}
-                      </a>
-                    )}
+                    {(()=>{
+                      const lessonAttachments = Array.isArray(l.attachments)&&l.attachments.length
+                        ? l.attachments
+                        : (l.fileUrl?[{url:l.fileUrl,name:l.fileName||l.attachmentName||'Tunni fail'}]:[]);
+                      if(!lessonAttachments.length) return null;
+                      return (
+                        <div style={{display:'flex',flexWrap:'wrap',gap:6,marginBottom:3}}>
+                          {lessonAttachments.map((att,idx)=>(
+                            <a key={`${att.url||att.name}-${idx}`} href={att.url||'#'} target="_blank" rel="noreferrer" style={{display:'inline-flex',alignItems:'center',gap:6,fontSize:'.74rem',fontWeight:700,color:'#2F5D50',textDecoration:'none'}}>
+                              <i className="fa-solid fa-paperclip"/> {att.name||'Tunni fail'}
+                            </a>
+                          ))}
+                        </div>
+                      );
+                    })()}
                     <div style={{fontSize:'.72rem',color:'#9ca3af'}}>{fmtDate(l.date)}{l.duration?' · '+l.duration+' min':''} · Õp. {l.teacher}</div>
                   </div>
                 </div>
@@ -2818,6 +2872,42 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
       return {...prev,attendance:nextAttendance};
     });
   };
+  const selectedLessonFiles = Array.isArray(lessonFile) ? lessonFile : (lessonFile ? [lessonFile] : []);
+  const existingLessonAttachments = React.useMemo(()=>{
+    if(modalEv.attachmentRemoved) return [];
+    const list = Array.isArray(modalEv.attachments) ? modalEv.attachments.filter(att=>att&&(att.url||att.name)) : [];
+    const legacyUrl = modalEv.fileUrl || modalEv.attachmentUrl || modalEv.attachment?.url || '';
+    const legacyName = modalEv.fileName || modalEv.attachmentName || modalEv.attachment?.name || '';
+    const legacy = legacyUrl ? [{
+      url:legacyUrl,
+      name:legacyName||'Tunni fail',
+      type:modalEv.attachmentType || modalEv.attachment?.type || '',
+      size:modalEv.attachmentSize || modalEv.attachment?.size || 0,
+      uploadedAt:modalEv.attachment?.uploadedAt || ''
+    }] : [];
+    const urls = new Set(list.map(att=>att.url).filter(Boolean));
+    return [...list,...legacy.filter(att=>!urls.has(att.url))];
+  },[modalEv]);
+  const removeExistingAttachment = index=>{
+    const nextAttachments = existingLessonAttachments.filter((_,idx)=>idx!==index);
+    const primary = nextAttachments[0] || null;
+    setModalEv({
+      ...modalEv,
+      attachments:nextAttachments,
+      fileUrl:primary?.url||'',
+      fileName:primary?.name||'',
+      attachmentUrl:primary?.url||'',
+      attachmentName:primary?.name||'',
+      attachmentType:primary?.type||'',
+      attachmentSize:primary?.size||0,
+      attachment:primary,
+      attachmentRemoved:nextAttachments.length===0
+    });
+  };
+  const removeSelectedAttachment = index=>{
+    const nextFiles = selectedLessonFiles.filter((_,idx)=>idx!==index);
+    setLessonFile(nextFiles);
+  };
 
   const STATUS_COLOR = {
     Planeeritud:"#2F5D50",Nihutatud:"#A96E1A",Tühistatud:"#991b1b",Toimunud:"#42536A"
@@ -2966,7 +3056,7 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
               {!modalEv.date&&<span style={{fontSize:".7rem",padding:"2px 8px",borderRadius:999,background:"rgba(201,136,42,.1)",color:"#A96E1A",fontWeight:700}}>korduv mall</span>}
             </div>
           </div>
-          <button onClick={()=>{setLessonFile(null);setModalEv(null);}}
+          <button onClick={()=>{setLessonFile([]);setModalEv(null);}}
             style={{background:"rgba(28,43,58,.07)",border:"none",cursor:"pointer",borderRadius:9,
               width:30,height:30,display:"flex",alignItems:"center",justifyContent:"center",color:"#42536A",flexShrink:0}}>✕</button>
         </div>
@@ -3119,21 +3209,42 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
               <label style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,padding:'10px 12px',borderRadius:10,border:'1.5px solid rgba(28,43,58,.15)',background:'#fff',cursor:'pointer',fontSize:'.86rem',color:'#42536A'}}>
                 <span style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
                   <i className="fa-solid fa-paperclip" style={{marginRight:7}}/>
-                  {lessonFile ? lessonFile.name : (modalEv.fileName||modalEv.attachmentName) ? `Olemas: ${modalEv.fileName||modalEv.attachmentName}` : 'Lisa fail tunni juurde'}
+                  {selectedLessonFiles.length ? `${selectedLessonFiles.length} faili valitud` : existingLessonAttachments.length ? `Olemas: ${existingLessonAttachments.length} faili` : 'Lisa failid tunni juurde'}
                 </span>
-                <input type="file" onChange={e=>setLessonFile(e.target.files?.[0]||null)} style={{display:'none'}}/>
+                <input type="file" multiple accept="image/*,.heic,.heif,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv" onChange={e=>setLessonFile(Array.from(e.target.files||[]))} style={{display:'none'}}/>
               </label>
-              {(modalEv.fileUrl||modalEv.attachmentUrl)&&(
-                <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
-                  <a href={modalEv.fileUrl||modalEv.attachmentUrl} target="_blank" rel="noreferrer" style={{display:'inline-flex',alignItems:'center',gap:7,fontSize:'.8rem',fontWeight:700,color:'#2F5D50',textDecoration:'none'}}>
-                    <i className="fa-solid fa-paperclip"/> Ava olemasolev fail
-                  </a>
-                  <button type="button" onClick={()=>{
-                    setLessonFile(null);
-                    setModalEv({...modalEv,fileUrl:'',fileName:'',attachmentUrl:'',attachmentName:'',attachmentType:'',attachmentSize:0,attachment:null,attachmentRemoved:true});
-                  }} className="btn btn-ghost" style={{padding:'7px 10px',fontSize:'.76rem',color:'#991b1b',borderColor:'rgba(239,68,68,.25)'}}>
-                    <i className="fa-solid fa-trash"/> Eemalda fail
-                  </button>
+              {selectedLessonFiles.length>0&&(
+                <div style={{display:'flex',flexDirection:'column',gap:6}}>
+                  {selectedLessonFiles.map((file,idx)=>(
+                    <div key={`${file.name}-${idx}`} style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:8,padding:'8px 10px',borderRadius:9,background:'#F9F8F6',border:'1px solid rgba(28,43,58,.07)'}}>
+                      <span style={{fontSize:'.78rem',fontWeight:700,color:'#42536A',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
+                        <i className="fa-solid fa-paperclip" style={{marginRight:7}}/>{file.name}
+                      </span>
+                      <button type="button" onClick={()=>removeSelectedAttachment(idx)} className="btn btn-ghost" style={{padding:'5px 8px',fontSize:'.72rem',color:'#991b1b',borderColor:'rgba(239,68,68,.25)'}}>
+                        <i className="fa-solid fa-xmark"/> Eemalda
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {existingLessonAttachments.length>0&&(
+                <div style={{display:'flex',flexDirection:'column',gap:6}}>
+                  {existingLessonAttachments.map((att,idx)=>(
+                    <div key={`${att.url||att.name}-${idx}`} style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:8,padding:'8px 10px',borderRadius:9,background:'#F9F8F6',border:'1px solid rgba(28,43,58,.07)'}}>
+                      {att.url?(
+                        <a href={att.url} target="_blank" rel="noreferrer" style={{display:'inline-flex',alignItems:'center',gap:7,minWidth:0,fontSize:'.78rem',fontWeight:700,color:'#2F5D50',textDecoration:'none',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
+                          <i className="fa-solid fa-paperclip"/> {att.name||'Tunni fail'}
+                        </a>
+                      ):(
+                        <span style={{fontSize:'.78rem',fontWeight:700,color:'#42536A',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
+                          <i className="fa-solid fa-paperclip" style={{marginRight:7}}/>{att.name||'Tunni fail'}
+                        </span>
+                      )}
+                      <button type="button" onClick={()=>removeExistingAttachment(idx)} className="btn btn-ghost" style={{padding:'5px 8px',fontSize:'.72rem',color:'#991b1b',borderColor:'rgba(239,68,68,.25)'}}>
+                        <i className="fa-solid fa-trash"/> Eemalda
+                      </button>
+                    </div>
+                  ))}
                 </div>
               )}
               <button onClick={saveLesson} className="btn btn-dark" style={{width:"100%",padding:13}}>
@@ -3390,7 +3501,7 @@ function App() {
   const [lStatus,setLStatus] = useState('Toimunud');
   const [lComment,setLComment]=useState('');
   const [lDur,setLDur]       = useState('60');
-  const [lessonFile,setLessonFile] = useState(null);
+  const [lessonFile,setLessonFile] = useState([]);
   // Homework
   const [hwTask,setHwTask] = useState('');
   const [hwDue,setHwDue]   = useState('');
@@ -3735,6 +3846,198 @@ function App() {
     }
   },[logActivity,user]);
 
+  const mergeParentDuplicates=useCallback(async(row)=>{
+    if(!isAdmin){notify('⚠ Ainult administraator saab duplikaate ühendada');return;}
+    const primary = row?.parent;
+    if(!primary?.id){notify('⚠ Põhikonto puudub');return;}
+    const duplicateParents = (row.duplicateParents||[]).filter(parent=>parent?.id&&parent.id!==primary.id);
+    const allParents = [primary,...duplicateParents];
+    const parentIds = new Set(allParents.map(parent=>parent.id).filter(Boolean));
+    const parentEmails = new Set(allParents.map(parent=>normalizeText(parent.email)).filter(Boolean));
+    const parentNames = new Set(allParents.map(parent=>normalizeText(parent.displayName)).filter(Boolean));
+    const childNames = new Set([
+      ...allParents.flatMap(parent=>parseLinkedNames(parent.childName)),
+      ...(row.rawNames||[]).map(name=>normalizeText(name)),
+      ...(row.linkedChildren||[]).map(student=>normalizeText(student.name))
+    ].filter(Boolean));
+    const hiddenParentCards = students.filter(student=>{
+      if(student.active===false || student.convertedToParent) return false;
+      const studentName = normalizeText(student.name);
+      const studentEmail = normalizeText(student.email);
+      const studentParentEmail = normalizeText(student.parentEmail || student.contactEmail || student.guardianEmail);
+      const studentParentName = normalizeText(student.parentName || student.guardianName);
+      return parentNames.has(studentName) || parentEmails.has(studentEmail) ||
+        (!!studentParentEmail && parentEmails.has(studentParentEmail)) ||
+        (!!studentParentName && parentNames.has(studentParentName));
+    });
+    if(!duplicateParents.length && !hiddenParentCards.length){
+      notify('Duplikaate pole ühendada');
+      return;
+    }
+    if(!window.confirm(`Ühendada ${duplicateParents.length} lapsevanema duplikaati ja ${hiddenParentCards.length} vale õpilase kaarti profiiliga ${primary.displayName||primary.email}?`)) return;
+    try{
+      const best = field => allParents.map(parent=>parent?.[field]).filter(Boolean).sort((a,b)=>String(b).length-String(a).length)[0] || '';
+      const bestName = best('displayName') || primary.displayName || '';
+      const bestEmail = best('email') || primary.email || '';
+      const bestPhone = best('phone') || best('parentPhone') || primary.phone || primary.parentPhone || '';
+      const batch = db.batch();
+      batch.set(db.collection('users').doc(primary.id),{
+        displayName:bestName,
+        email:bestEmail,
+        phone:bestPhone,
+        parentPhone:bestPhone,
+        childName:[...childNames].join(', '),
+        parentReviewStatus:'checked',
+        parentReviewKey:[...childNames].join('|'),
+        mergedDuplicateParentIds:duplicateParents.map(parent=>parent.id),
+        parentMergedAt:new Date().toISOString(),
+        parentMergedBy:user?.displayName||user?.email||''
+      },{merge:true});
+      duplicateParents.forEach(parent=>{
+        batch.set(db.collection('users').doc(parent.id),{
+          active:false,
+          mergedIntoParentId:primary.id,
+          mergedIntoParentName:bestName,
+          parentReviewStatus:'merged',
+          parentMergedAt:new Date().toISOString(),
+          parentMergedBy:user?.displayName||user?.email||''
+        },{merge:true});
+      });
+      students.forEach(student=>{
+        if(!student?.id || student.active===false) return;
+        const linkedParentId = student.linkedParentId || student.parentUid || student.guardianUid || '';
+        const studentName = normalizeText(student.name);
+        const studentEmail = normalizeText(student.email);
+        const studentParentEmail = normalizeText(student.parentEmail || student.contactEmail || student.guardianEmail);
+        const studentParentName = normalizeText(student.parentName || student.guardianName);
+        const looksLikeParentCard = parentNames.has(studentName) || parentEmails.has(studentEmail);
+        const belongsToParent = parentIds.has(linkedParentId) ||
+          (!!studentParentEmail && parentEmails.has(studentParentEmail)) ||
+          (!!studentParentName && parentNames.has(studentParentName)) ||
+          childNames.has(studentName);
+        if(looksLikeParentCard){
+          batch.set(db.collection('students').doc(student.id),{
+            active:false,
+            convertedToParent:true,
+            mergedIntoParentId:primary.id,
+            archivedAt:new Date().toISOString()
+          },{merge:true});
+          return;
+        }
+        if(belongsToParent){
+          batch.set(db.collection('students').doc(student.id),{
+            linkedParentId:primary.id,
+            parentUid:primary.id,
+            parentName:bestName,
+            parentEmail:bestEmail,
+            phone:student.phone || bestPhone,
+            updatedAt:new Date().toISOString()
+          },{merge:true});
+        }
+      });
+      await batch.commit();
+      await logActivity('parent.duplicates_merged','Lapsevanema duplikaadid ühendati',{
+        parentUid:primary.id,
+        parentName:bestName,
+        duplicateCount:duplicateParents.length,
+        hiddenStudentCount:hiddenParentCards.length
+      });
+      notify('✓ Lapsevanema duplikaadid ühendatud');
+    }catch(err){
+      console.error('Parent merge failed:',err);
+      notify('⚠ Duplikaate ei saanud ühendada');
+    }
+  },[isAdmin,students,user,logActivity,notify]);
+
+  const mergeStudentDuplicates=useCallback(async(group)=>{
+    if(!isAdmin){notify('⚠ Ainult administraator saab duplikaate ühendada');return;}
+    const candidates = (group||[]).filter(student=>student?.id);
+    if(candidates.length<2){notify('Duplikaate pole ühendada');return;}
+    const lessonCount = student => lessons.filter(lesson=>lesson.studentId===student.id || normalizeText(lesson.studentName)===normalizeText(student.name)).length;
+    const invoiceCount = student => invoices.filter(inv=>inv.studentId===student.id || normalizeText(inv.studentName)===normalizeText(student.name)).length;
+    const score = student =>
+      lessonCount(student)*4 + invoiceCount(student)*3 +
+      ['parentName','parentEmail','phone','group','grade','contactNotes'].reduce((sum,field)=>sum+(student[field]?1:0),0) +
+      (parseInt(student.packageTotal)||0) + (parseInt(student.packageUsed)||0);
+    const primary = [...candidates].sort((a,b)=>score(b)-score(a))[0];
+    const duplicates = candidates.filter(student=>student.id!==primary.id);
+    if(!window.confirm(`Ühendada ${duplicates.length} duplikaati õpilasega ${primary.name}?`)) return;
+    try{
+      const best = field => candidates.map(student=>student?.[field]).filter(Boolean).sort((a,b)=>String(b).length-String(a).length)[0] || '';
+      const duplicateIds = new Set(duplicates.map(student=>student.id));
+      const duplicateNames = new Set(duplicates.map(student=>normalizeText(student.name)).filter(Boolean));
+      const primaryName = best('name') || primary.name || '';
+      const batch = db.batch();
+      batch.set(db.collection('students').doc(primary.id),{
+        name:primaryName,
+        parentName:best('parentName') || best('guardianName') || primary.parentName || '',
+        parentEmail:best('parentEmail') || best('contactEmail') || best('guardianEmail') || primary.parentEmail || '',
+        phone:best('phone') || primary.phone || '',
+        group:best('group') || primary.group || '',
+        grade:best('grade') || primary.grade || '',
+        subject:best('subject') || primary.subject || 'Eesti keel',
+        teacher:best('teacher') || primary.teacher || '',
+        level:best('level') || primary.level || 'A1',
+        targetLevel:best('targetLevel') || primary.targetLevel || 'B1',
+        packageTotal:Math.max(...candidates.map(student=>parseInt(student.packageTotal)||0),0),
+        packageUsed:Math.max(...candidates.map(student=>parseInt(student.packageUsed)||0),0),
+        mergedDuplicateIds:[...new Set([...(primary.mergedDuplicateIds||[]),...duplicates.map(student=>student.id)])],
+        mergedAt:new Date().toISOString(),
+        mergedBy:user?.displayName||user?.email||'',
+        active:true
+      },{merge:true});
+      lessons.forEach(lesson=>{
+        if(!lesson?.id) return;
+        if(duplicateIds.has(lesson.studentId) || duplicateNames.has(normalizeText(lesson.studentName))){
+          batch.set(db.collection('lessons').doc(lesson.id),{
+            studentId:primary.id,
+            studentName:primaryName,
+            mergedStudentAt:new Date().toISOString()
+          },{merge:true});
+        }
+      });
+      homework.forEach(item=>{
+        if(!item?.id) return;
+        if(duplicateIds.has(item.studentId) || duplicateNames.has(normalizeText(item.studentName))){
+          batch.set(db.collection('homework').doc(item.id),{
+            studentId:primary.id,
+            studentName:primaryName,
+            mergedStudentAt:new Date().toISOString()
+          },{merge:true});
+        }
+      });
+      invoices.forEach(inv=>{
+        if(!inv?.id) return;
+        if(duplicateIds.has(inv.studentId) || duplicateNames.has(normalizeText(inv.studentName))){
+          batch.set(db.collection('invoices').doc(inv.id),{
+            studentId:primary.id,
+            studentName:primaryName,
+            mergedStudentAt:new Date().toISOString()
+          },{merge:true});
+        }
+      });
+      duplicates.forEach(student=>{
+        batch.set(db.collection('students').doc(student.id),{
+          active:false,
+          mergedIntoStudentId:primary.id,
+          mergedIntoStudentName:primaryName,
+          mergedAt:new Date().toISOString(),
+          mergedBy:user?.displayName||user?.email||''
+        },{merge:true});
+      });
+      await batch.commit();
+      await logActivity('student.duplicates_merged','Õpilase duplikaadid ühendati',{
+        studentId:primary.id,
+        studentName:primaryName,
+        duplicateCount:duplicates.length
+      });
+      notify('✓ Õpilase duplikaadid ühendatud');
+    }catch(err){
+      console.error('Student merge failed:',err);
+      notify('⚠ Õpilaste duplikaate ei saanud ühendada');
+    }
+  },[isAdmin,lessons,homework,invoices,user,logActivity,notify]);
+
   // ACTIONS
   const addStudent=useCallback(async()=>{
     if(!nName.trim()){notify('⚠ Sisesta õpilase nimi');return;}
@@ -4023,33 +4326,76 @@ function App() {
     if(!modalEv||!lTopic.trim()){notify('⚠ Sisesta tunni teema');return;}
     const stu=students.find(s=>s.name.toLowerCase()===modalEv.studentName.toLowerCase());
     const now=new Date();
-    let fileUrl = modalEv.attachmentRemoved ? '' : (modalEv.fileUrl || modalEv.attachmentUrl || modalEv.attachment?.url || '');
-    let fileName = modalEv.attachmentRemoved ? '' : (modalEv.fileName || modalEv.attachmentName || modalEv.attachment?.name || '');
-    if(lessonFile){
-      const saveInlineFile = () => new Promise((resolve,reject)=>{
+    const selectedLessonFiles = Array.isArray(lessonFile) ? lessonFile : (lessonFile ? [lessonFile] : []);
+    const inferFileType = file=>{
+      if(file?.type) return file.type;
+      const name = String(file?.name||'').toLowerCase();
+      if(name.endsWith('.heic')) return 'image/heic';
+      if(name.endsWith('.heif')) return 'image/heif';
+      if(name.endsWith('.pdf')) return 'application/pdf';
+      if(name.endsWith('.doc')) return 'application/msword';
+      if(name.endsWith('.docx')) return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+      if(name.endsWith('.xls')) return 'application/vnd.ms-excel';
+      if(name.endsWith('.xlsx')) return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+      if(name.endsWith('.ppt')) return 'application/vnd.ms-powerpoint';
+      if(name.endsWith('.pptx')) return 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
+      if(name.endsWith('.txt')) return 'text/plain';
+      if(name.endsWith('.csv')) return 'text/csv';
+      return 'application/octet-stream';
+    };
+    const collectAttachments = source=>{
+      if(!source || source.attachmentRemoved) return [];
+      const list = Array.isArray(source.attachments) ? source.attachments.filter(att=>att&&(att.url||att.name)) : [];
+      const legacyUrl = source.fileUrl || source.attachmentUrl || source.attachment?.url || '';
+      const legacyName = source.fileName || source.attachmentName || source.attachment?.name || '';
+      const legacy = legacyUrl ? [{
+        url:legacyUrl,
+        name:legacyName||'Tunni fail',
+        type:source.attachmentType || source.attachment?.type || '',
+        size:source.attachmentSize || source.attachment?.size || 0,
+        uploadedAt:source.attachment?.uploadedAt || ''
+      }] : [];
+      const urls = new Set(list.map(att=>att.url).filter(Boolean));
+      return [...list,...legacy.filter(att=>!urls.has(att.url))];
+    };
+    const saveInlineFile = file => new Promise((resolve,reject)=>{
         const reader = new FileReader();
         reader.onload = () => resolve(reader.result);
         reader.onerror = () => reject(reader.error);
-        reader.readAsDataURL(lessonFile);
-      });
+        reader.readAsDataURL(file);
+    });
+    const uploadLessonFile = async file=>{
+      const fileType = inferFileType(file);
+      const safeName = (file.name||'fail').replace(/[^\w.\-]+/g,'_') || 'fail';
       try{
         if(!storage) throw new Error('Firebase Storage pole saadaval');
-        const safeName = lessonFile.name.replace(/[^\w.\-]+/g,'_');
         const fileRef = storage.ref().child(`lessons/${stu?.id||'external'}/${Date.now()}_${safeName}`);
-        await fileRef.put(lessonFile);
-        fileUrl = await fileRef.getDownloadURL();
-        fileName = lessonFile.name;
+        await fileRef.put(file,{contentType:fileType});
+        const url = await fileRef.getDownloadURL();
+        return {url,name:file.name||safeName,type:fileType,size:file.size||0,uploadedAt:now.toISOString()};
       }catch(uploadErr){
         console.warn('Lesson file upload failed:',uploadErr);
-        if(lessonFile.size <= 650*1024){
-          fileUrl = await saveInlineFile();
-          fileName = lessonFile.name;
-        }else{
-          notify('⚠ Faili üleslaadimine ei õnnestunud. Kontrolli Firebase Storage õiguseid või vali väiksem fail.');
-          return;
+        if((file.size||0) <= 650*1024){
+          const url = await saveInlineFile(file);
+          return {url,name:file.name||safeName,type:fileType,size:file.size||0,uploadedAt:now.toISOString(),inline:true};
         }
+        throw uploadErr;
+      }
+    };
+    let attachments = collectAttachments(modalEv);
+    if(selectedLessonFiles.length){
+      try{
+        const uploadedAttachments = [];
+        for(const file of selectedLessonFiles){
+          uploadedAttachments.push(await uploadLessonFile(file));
+        }
+        attachments = [...attachments,...uploadedAttachments];
+      }catch(err){
+        notify('⚠ Faili üleslaadimine ei õnnestunud. Kontrolli Firebase Storage õiguseid või vali väiksem fail.');
+        return;
       }
     }
+    let primaryAttachment = attachments[0] || null;
     const lessonPayload = {
       studentId:stu?stu.id:'ext',studentName:modalEv.studentName,
       scheduleId: modalEv.id||'',
@@ -4058,19 +4404,14 @@ function App() {
       duration:parseInt(lDur),status:lStatus,comment:lComment,
       date:modalEv.occurrenceDate||modalEv.date||today(),submittedAt:now.toLocaleString('et-EE'),teacher:user.displayName,
       updatedAt: now.toISOString(),
-      fileUrl,
-      fileName,
-      attachmentUrl:fileUrl,
-      attachmentName:fileName,
-      attachmentType:lessonFile?.type || modalEv.attachmentType || modalEv.attachment?.type || '',
-      attachmentSize:lessonFile?.size || modalEv.attachmentSize || modalEv.attachment?.size || 0,
-      attachment:fileUrl ? {
-        url:fileUrl,
-        name:fileName,
-        type:lessonFile?.type || modalEv.attachmentType || modalEv.attachment?.type || '',
-        size:lessonFile?.size || modalEv.attachmentSize || modalEv.attachment?.size || 0,
-        uploadedAt:lessonFile ? now.toISOString() : (modalEv.attachment?.uploadedAt || '')
-      } : null
+      fileUrl:primaryAttachment?.url||'',
+      fileName:primaryAttachment?.name||'',
+      attachmentUrl:primaryAttachment?.url||'',
+      attachmentName:primaryAttachment?.name||'',
+      attachmentType:primaryAttachment?.type||'',
+      attachmentSize:primaryAttachment?.size||0,
+      attachment:primaryAttachment,
+      attachments
     };
 
     let existingLessonDoc = null;
@@ -4099,22 +4440,17 @@ function App() {
       }
     }
 
-    if(existingLessonData && !lessonFile && !fileUrl && !modalEv.attachmentRemoved){
-      const existingFileUrl = existingLessonData.fileUrl || existingLessonData.attachmentUrl || existingLessonData.attachment?.url || '';
-      const existingFileName = existingLessonData.fileName || existingLessonData.attachmentName || existingLessonData.attachment?.name || '';
-      lessonPayload.fileUrl = existingFileUrl;
-      lessonPayload.fileName = existingFileName;
-      lessonPayload.attachmentUrl = existingFileUrl;
-      lessonPayload.attachmentName = existingFileName;
-      lessonPayload.attachmentType = existingLessonData.attachmentType || existingLessonData.attachment?.type || '';
-      lessonPayload.attachmentSize = existingLessonData.attachmentSize || existingLessonData.attachment?.size || 0;
-      lessonPayload.attachment = existingFileUrl ? {
-        url:existingFileUrl,
-        name:existingFileName,
-        type:lessonPayload.attachmentType,
-        size:lessonPayload.attachmentSize,
-        uploadedAt:existingLessonData.attachment?.uploadedAt || ''
-      } : null;
+    if(existingLessonData && selectedLessonFiles.length===0 && attachments.length===0 && !modalEv.attachmentRemoved){
+      const preservedAttachments = collectAttachments(existingLessonData);
+      const preservedPrimary = preservedAttachments[0] || null;
+      lessonPayload.fileUrl = preservedPrimary?.url || '';
+      lessonPayload.fileName = preservedPrimary?.name || '';
+      lessonPayload.attachmentUrl = preservedPrimary?.url || '';
+      lessonPayload.attachmentName = preservedPrimary?.name || '';
+      lessonPayload.attachmentType = preservedPrimary?.type || '';
+      lessonPayload.attachmentSize = preservedPrimary?.size || 0;
+      lessonPayload.attachment = preservedPrimary;
+      lessonPayload.attachments = preservedAttachments;
     }
     const wasExistingLesson = !!existingLessonRef;
     let savedLessonId = existingLessonRef?.id || '';
@@ -4133,7 +4469,7 @@ function App() {
       studentId:stu?.id||'',
       studentName:modalEv.studentName,
       lessonId:savedLessonId,
-      hasFile:!!(lessonPayload.fileUrl||fileUrl)
+      hasFile:Array.isArray(lessonPayload.attachments)&&lessonPayload.attachments.length>0
     });
 
     if(modalEv.id){
@@ -4153,9 +4489,9 @@ function App() {
       }
     }
 
-    setLTopic('');setLComment('');setLessonFile(null);setModalEv(null);
+    setLTopic('');setLComment('');setLessonFile([]);setModalEv(null);
     notify(existingLessonRef?'✓ Aruanne uuendatud!':'✓ Aruanne salvestatud!');
-  },[modalEv,lTopic,lGrade,lStatus,lComment,lDur,lessonFile,students,lessons,user,logActivity]);
+  },[modalEv,lTopic,lGrade,lStatus,lComment,lDur,lessonFile,students,lessons,user,logActivity,notify]);
 
   const addHw=useCallback(async()=>{
     if(!selStu||!hwTask.trim()){notify('⚠ Sisesta ülesanne');return;}
@@ -4343,14 +4679,15 @@ function App() {
         console.warn('Fresh lesson load failed:',err);
       }
     }
-    const lessonFileUrl = freshLesson.fileUrl || freshLesson.attachmentUrl || freshLesson.attachment?.url || '';
-    const lessonFileName = freshLesson.fileName || freshLesson.attachmentName || freshLesson.attachment?.name || '';
+    const lessonAttachments = Array.isArray(freshLesson.attachments) ? freshLesson.attachments.filter(att=>att&&(att.url||att.name)) : [];
+    const lessonFileUrl = freshLesson.fileUrl || freshLesson.attachmentUrl || freshLesson.attachment?.url || lessonAttachments[0]?.url || '';
+    const lessonFileName = freshLesson.fileName || freshLesson.attachmentName || freshLesson.attachment?.name || lessonAttachments[0]?.name || '';
     setLTopic(freshLesson.topic||'');
     setLGrade(String(freshLesson.grade||'5'));
     setLStatus(freshLesson.status||'Toimunud');
     setLComment(freshLesson.comment||'');
     setLDur(String(freshLesson.duration||'60'));
-    setLessonFile(null);
+    setLessonFile([]);
     setModalEv({
       lessonEntryId: freshLesson.id,
       id: freshLesson.scheduleId||'',
@@ -4369,6 +4706,7 @@ function App() {
       attachmentType: freshLesson.attachmentType || freshLesson.attachment?.type || '',
       attachmentSize: freshLesson.attachmentSize || freshLesson.attachment?.size || 0,
       attachment: freshLesson.attachment || null,
+      attachments: lessonAttachments,
       attachmentRemoved:false
     });
   },[user]);
@@ -4397,8 +4735,8 @@ function App() {
     setLStatus(event.status==='Tühistatud'?'Puudus_eta':'Toimunud');
     setLComment('');
     setLDur('60');
-    setLessonFile(null);
-    setModalEv({...event,occurrenceDate:lessonDate,date:event.date||lessonDate,fileUrl:'',fileName:'',attachmentUrl:'',attachmentName:''});
+    setLessonFile([]);
+    setModalEv({...event,occurrenceDate:lessonDate,date:event.date||lessonDate,fileUrl:'',fileName:'',attachmentUrl:'',attachmentName:'',attachment:null,attachments:[],attachmentType:'',attachmentSize:0,attachmentRemoved:false});
   },[lessons,openLessonEditor]);
 
   const addInvoice=useCallback(async(stuId)=>{
@@ -4650,6 +4988,7 @@ function App() {
             setTab={setTab}
             createMissingParentStudents={createMissingParentStudents}
             markParentChecked={markParentChecked}
+            mergeParentDuplicates={mergeParentDuplicates}
             notify={notify}/>}
 
           {tab==='database'&&isStaff&&<StudentsDatabaseView
@@ -4694,6 +5033,7 @@ function App() {
             nTeach={nTeach}
             setNTeach={setNTeach}
             addStudent={addStudent}
+            mergeStudentDuplicates={mergeStudentDuplicates}
           />}
 
           {tab==='invoices'&&!isStaff&&<ParentInvoicesView invoices={scopedInvoices} printInvoice={printInvoice} submitParentPayment={submitParentPayment}/>}
