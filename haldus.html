@@ -118,7 +118,7 @@ const {
   SUBJECTS, GRADES:SHARED_GRADES, LESSON_DURATIONS,
   PAYMENT_METHODS, PAYMENT_DETAILS, CONTACT_STATUSES,
   DAYS_SHORT, DAYS_ID, DAYS_FULL, TIMES,
-  normalizeText, parseLinkedNames, canonicalTeacherName,
+  normalizeText, studentIdentityKey, studentProfileKey, parseLinkedNames, canonicalTeacherName,
   levelPct, avg, fmtDate, toLocalISODate, today, pkgLeft, copyText,
   ensureStudentRecord, ensureParentStudentRecords
 } = window.HaldusShared;
@@ -1435,10 +1435,10 @@ function ParentsView({parents,students,invoices,isAdmin,parentAlerts,setSelStu,s
         const studentName = normalizeText(student.name);
         const studentParentEmail = normalizeText(student.parentEmail || student.contactEmail || student.guardianEmail || student.email);
         const studentParentName = normalizeText(student.parentName || student.guardianName);
-        return linkedParentId===parent.id ||
+        const parentMatched = linkedParentId===parent.id ||
           (!!parentEmail && studentParentEmail===parentEmail) ||
-          (!!parentName && studentParentName===parentName) ||
-          childNameKeys.has(studentName);
+          (!!parentName && studentParentName===parentName);
+        return parentMatched || (childNameKeys.has(studentName) && parentMatched);
       });
       const childGroups = Object.values(linkedChildren.reduce((acc,student)=>{
         const key = normalizeText(student.name) || student.id;
@@ -3431,12 +3431,17 @@ function App() {
     if(user.role==='parent'){
       const linkedNames = parseLinkedNames(user.childName);
       const userEmail = normalizeText(user.email);
+      const parentName = normalizeText(user.displayName);
       return students.filter(s=>{
         const studentName = normalizeText(s.name);
         const studentEmail = normalizeText(s.email);
         const parentEmail = normalizeText(s.parentEmail || s.contactEmail || s.guardianEmail);
+        const studentParentName = normalizeText(s.parentName || s.guardianName);
         const linkedParentId = s.linkedParentId || s.parentUid || s.guardianUid || '';
-        return linkedParentId===user.uid || linkedNames.includes(studentName) || (!!userEmail && (studentEmail===userEmail || parentEmail===userEmail));
+        const parentMatched = linkedParentId===user.uid ||
+          (!!userEmail && (studentEmail===userEmail || parentEmail===userEmail)) ||
+          (!!parentName && studentParentName===parentName);
+        return parentMatched || (linkedNames.includes(studentName) && parentMatched);
       });
     }
     return students.filter(s=>s.name?.toLowerCase()===user.displayName?.toLowerCase());
@@ -3658,11 +3663,24 @@ function App() {
   const addStudent=useCallback(async()=>{
     if(!nName.trim()){notify('⚠ Sisesta õpilase nimi');return;}
     const t=canAssignTeacher?nTeach:canonicalTeacherName(user.displayName);
+    const candidate = {
+      name:nName,
+      parentName:nParentName,
+      parentEmail:nEmail,
+      email:'',
+      subject:nSubject,
+      teacher:t
+    };
+    const duplicate = students.find(student=>student.active!==false && studentProfileKey(student)===studentProfileKey(candidate));
+    if(duplicate){
+      notify(`⚠ Selline õpilase profiil on juba olemas: ${duplicate.name} · ${duplicate.subject||'Eesti keel'} · ${duplicate.teacher||'õpetaja puudub'}`);
+      return;
+    }
     const ref = await db.collection('students').add({name:nName,parentName:nParentName,level:nLevel,targetLevel:nTarget,teacher:t,phone:nPhone,email:nEmail,active:true,packageTotal:parseInt(nPkg)||0,packageUsed:0,subject:nSubject,grade:nGrade,group:nGroup,contactStatus:'new',contactOwner:user?.displayName||'',contactLastAt:'',contactNotes:'',createdAt:today()});
     await logActivity('student.created','Lisati õpilane',{studentId:ref.id,studentName:nName,teacher:t});
     setNName('');setNParentName('');setNPhone('');setNEmail('');setNGroup('');
     notify('✓ Õpilane '+nName+' lisatud!');
-  },[nName,nParentName,nLevel,nTarget,nTeach,nPhone,nEmail,nPkg,nSubject,nGrade,nGroup,canAssignTeacher,user,logActivity]);
+  },[nName,nParentName,nLevel,nTarget,nTeach,nPhone,nEmail,nPkg,nSubject,nGrade,nGroup,canAssignTeacher,user,students,logActivity]);
 
   const addTask=useCallback(async()=>{
     if(!taskTitle.trim()){notify('⚠ Sisesta ülesande pealkiri');return;}
@@ -4154,8 +4172,14 @@ function App() {
       };
       await db.collection('users').doc(parentDocId).set(parentPatch,{merge:true});
 
-      const existingChildSnap = await db.collection('students').where('linkedParentId','==',parentDocId).get();
-      const existingChild = existingChildSnap.docs.some(doc=>normalizeText(doc.data().name)===normalizeText(cleanChildName));
+      const childCandidate = {
+        name:cleanChildName,
+        parentName:student.name||'',
+        parentEmail:student.email||'',
+        subject:student.subject||'Eesti keel',
+        teacher:canonicalTeacherName(student.teacher||'Pavel')
+      };
+      const existingChild = students.find(item=>item.active!==false && studentProfileKey(item)===studentProfileKey(childCandidate));
       let childRefId = '';
       if(!existingChild){
         const childRef = await db.collection('students').add({
@@ -4183,6 +4207,14 @@ function App() {
           createdFromConvertedStudentId:student.id
         });
         childRefId = childRef.id;
+      }else{
+        childRefId = existingChild.id;
+        await db.collection('students').doc(existingChild.id).set({
+          linkedParentId:parentDocId,
+          parentUid:parentDocId,
+          parentName:student.name||existingChild.parentName||'',
+          parentEmail:student.email||existingChild.parentEmail||''
+        },{merge:true});
       }
 
       await db.collection('students').doc(student.id).set({
@@ -4209,7 +4241,7 @@ function App() {
       console.error('Student to parent conversion failed:',err);
       notify('⚠ Lapsevanemaks muutmine ebaõnnestus');
     }
-  },[allUsers,user,logActivity,notify,setSelStu,setTab]);
+  },[allUsers,students,user,logActivity,notify,setSelStu,setTab]);
 
   const deleteLesson=useCallback(async(lesson)=>{
     if(!lesson?.id) return;
