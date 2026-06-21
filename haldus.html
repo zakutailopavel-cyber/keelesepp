@@ -1052,10 +1052,12 @@ function ActivityLogView({logs,isAdmin}) {
 // ── TUNNIPLAAN ────────────────────────────────────────────────
 function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilterT,
   schStu,setSchStu,schDate,setSchDate,schTime,setSchTime,schTeach,setSchTeach,
-  schRecurring,setSchRecurring,addSchedule,openScheduleEditor,delSchedule,markAttendance}) {
+  schRecurring,setSchRecurring,addSchedule,openScheduleEditor,delSchedule,markAttendance,openStudent}) {
 
   const [showCanceled,setShowCanceled] = React.useState(true);
   const [weekOffset,setWeekOffset]     = React.useState(0);
+  const [plannerSearch,setPlannerSearch] = React.useState('');
+  const [plannerFilter,setPlannerFilter] = React.useState('all');
   const canManage = user.role==="teacher" || user.role==="admin";
 
   // Вычисляем начало недели
@@ -1155,6 +1157,66 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
       if(s.date) return s.date===day.iso;
       return s.day===day.dayId;
     });
+
+  const plannerTeacher = React.useMemo(()=>{
+    if(isAdmin && filterT && filterT!=="Kõik") return canonicalTeacherName(filterT);
+    return canonicalTeacherName(user.displayName||'');
+  },[isAdmin,filterT,user]);
+
+  const plannerTeacherSelectValue = React.useMemo(()=>
+    TEACHERS.find(t=>canonicalTeacherName(t)===plannerTeacher) || (isAdmin && filterT && filterT!=="Kõik" ? filterT : schTeach)
+  ,[plannerTeacher,isAdmin,filterT,schTeach]);
+
+  const weekEventList = React.useMemo(()=>filteredSch.filter(ev=>
+    weekDays.some(day=>{
+      if(ev.recurring && ev.startDate && day.iso < ev.startDate) return false;
+      if(ev.date) return ev.date===day.iso;
+      return ev.day===day.dayId;
+    })
+  ),[filteredSch,weekDays]);
+
+  const plannerRows = React.useMemo(()=>{
+    const eventMatchesStudent = (ev,student)=>{
+      const evName = normalizeText(ev.studentName);
+      const studentName = normalizeText(student.name);
+      const studentGroup = normalizeText(student.group);
+      return ev.studentId===student.id ||
+        (ev.students||[]).includes(student.id) ||
+        evName===studentName ||
+        (!!studentGroup && evName===studentGroup);
+    };
+    const q = normalizeText(plannerSearch);
+    return myStudents
+      .filter(student=>student.active!==false)
+      .filter(student=>!plannerTeacher || canonicalTeacherName(student.teacher)===plannerTeacher)
+      .map(student=>{
+        const lessonsThisWeek = weekEventList.filter(ev=>eventMatchesStudent(ev,student) && ev.status!=="Tühistatud");
+        const canceledThisWeek = weekEventList.filter(ev=>eventMatchesStudent(ev,student) && ev.status==="Tühistatud").length;
+        const targetRaw = student.weeklyLessons || student.lessonsPerWeek || student.weeklyTarget || student.lessonGoal || '';
+        const target = parseInt(targetRaw,10) || 0;
+        const left = target ? Math.max(target-lessonsThisWeek.length,0) : null;
+        return {student,lessonsThisWeek,canceledThisWeek,target,left};
+      })
+      .filter(row=>{
+        if(q && ![row.student.name,row.student.parentName,row.student.subject,row.student.level,row.student.targetLevel,row.student.group,row.student.grade]
+          .some(value=>normalizeText(value).includes(q))) return false;
+        if(plannerFilter==="empty") return row.lessonsThisWeek.length===0;
+        if(plannerFilter==="under") return row.target>0 && row.lessonsThisWeek.length<row.target;
+        if(plannerFilter==="group") return !!row.student.group;
+        return true;
+      })
+      .sort((a,b)=>{
+        const aMissing = a.target>0 ? a.left : (a.lessonsThisWeek.length===0 ? 1 : 0);
+        const bMissing = b.target>0 ? b.left : (b.lessonsThisWeek.length===0 ? 1 : 0);
+        return bMissing-aMissing || normalizeText(a.student.name).localeCompare(normalizeText(b.student.name),'et');
+      });
+  },[myStudents,plannerTeacher,weekEventList,plannerSearch,plannerFilter]);
+
+  const setBookingFromStudent = student=>{
+    setSchStu(student.name||'');
+    if(isAdmin && plannerTeacherSelectValue) setSchTeach(plannerTeacherSelectValue);
+    if(!schDate) setSchDate(today());
+  };
 
   return(
     <div className="fade-in" style={{display:"flex",flexDirection:"column",gap:20}}>
@@ -1324,6 +1386,88 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
           </div>
         </div>
       </div>
+
+      {canManage&&(
+        <div className="card" style={{padding:20}}>
+          <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:14,flexWrap:"wrap",marginBottom:14}}>
+            <div>
+              <h2 style={{fontSize:"1.15rem",marginBottom:4}}>Õpilaste spikker</h2>
+              <div style={{fontSize:".82rem",color:"#42536A"}}>
+                Õpetaja: <b>{plannerTeacher||'määramata'}</b> · nädalas nähtaval {plannerRows.length} õpilast
+              </div>
+            </div>
+            <div style={{display:"flex",gap:8,flexWrap:"wrap",justifyContent:"flex-end"}}>
+              <input value={plannerSearch} onChange={e=>setPlannerSearch(e.target.value)}
+                placeholder="Otsi õpilast, gruppi, taset..." style={{width:240,padding:"9px 12px"}}/>
+              <select value={plannerFilter} onChange={e=>setPlannerFilter(e.target.value)} style={{width:"auto"}}>
+                <option value="all">Kõik</option>
+                <option value="empty">0 tundi sel nädalal</option>
+                <option value="under">Alla normi</option>
+                <option value="group">Grupiga</option>
+              </select>
+            </div>
+          </div>
+          {plannerRows.length===0 ? (
+            <div style={{padding:18,borderRadius:12,border:"1px solid rgba(239,68,68,.25)",background:"rgba(239,68,68,.06)",color:"#991b1b",fontWeight:700,textAlign:"center"}}>
+              Selle õpetaja õpilasi ei leitud.
+            </div>
+          ) : (
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))",gap:12}}>
+              {plannerRows.map(row=>{
+                const student = row.student;
+                const hasTarget = row.target>0;
+                const isMissing = row.lessonsThisWeek.length===0 || (hasTarget && row.lessonsThisWeek.length<row.target);
+                const statusBg = isMissing ? "rgba(239,68,68,.08)" : "rgba(47,93,80,.08)";
+                const statusColor = isMissing ? "#991b1b" : "#166534";
+                const weekText = hasTarget
+                  ? `${row.lessonsThisWeek.length}/${row.target} tundi`
+                  : `${row.lessonsThisWeek.length} tundi`;
+                return(
+                  <div key={student.id} style={{border:"1px solid rgba(28,43,58,.09)",borderRadius:12,padding:14,background:"#fff"}}>
+                    <div style={{display:"flex",justifyContent:"space-between",gap:10,alignItems:"flex-start"}}>
+                      <div>
+                        <div style={{fontWeight:800,color:"#1C2B3A"}}>{student.name||'Nimetu'}</div>
+                        <div style={{fontSize:".75rem",color:"#42536A",marginTop:3}}>
+                          {student.subject||'Aine määramata'} · {student.level||'—'} → {student.targetLevel||'—'}
+                        </div>
+                        <div style={{fontSize:".72rem",color:"#64748b",marginTop:3}}>
+                          {student.group ? `Grupp: ${student.group}` : 'Individuaal / grupp puudub'}
+                        </div>
+                      </div>
+                      <span style={{padding:"5px 9px",borderRadius:999,background:statusBg,color:statusColor,fontSize:".72rem",fontWeight:800,whiteSpace:"nowrap"}}>
+                        {weekText}
+                      </span>
+                    </div>
+                    <div style={{display:"flex",gap:6,flexWrap:"wrap",marginTop:10}}>
+                      {row.lessonsThisWeek.map(ev=>(
+                        <span key={`${ev.id}-${ev.date||ev.day}-${ev.time}`} style={{fontSize:".68rem",padding:"4px 7px",borderRadius:999,background:"rgba(28,43,58,.06)",color:"#42536A",fontWeight:700}}>
+                          {ev.date ? fmtDate(ev.date) : (DAYS_SHORT[DAYS_ID.indexOf(ev.day)]||ev.day)} · {ev.time}
+                        </span>
+                      ))}
+                      {row.lessonsThisWeek.length===0&&(
+                        <span style={{fontSize:".72rem",color:"#991b1b",fontWeight:700}}>Tunde pole lisatud</span>
+                      )}
+                      {row.canceledThisWeek>0&&(
+                        <span style={{fontSize:".68rem",padding:"4px 7px",borderRadius:999,background:"rgba(239,68,68,.08)",color:"#991b1b",fontWeight:700}}>
+                          {row.canceledThisWeek} tühistatud
+                        </span>
+                      )}
+                    </div>
+                    <div style={{display:"flex",gap:8,marginTop:12}}>
+                      <button className="btn btn-pine btn-sm" onClick={()=>setBookingFromStudent(student)} style={{flex:1}}>
+                        <i className="fa-solid fa-calendar-plus"/> Lisa tund
+                      </button>
+                      <button className="btn btn-ghost btn-sm" onClick={()=>openStudent&&openStudent(student)} style={{flex:1}}>
+                        Ava kaart
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -4990,7 +5134,8 @@ function App() {
             schStu={schStu} setSchStu={setSchStu} schDate={schDate} setSchDate={setSchDate}
             schTime={schTime} setSchTime={setSchTime} schTeach={schTeach} setSchTeach={setSchTeach}
             schRecurring={schRecurring} setSchRecurring={setSchRecurring}
-            addSchedule={addSchedule} openScheduleEditor={openScheduleEditor} delSchedule={delSchedule} markAttendance={markAttendance}/>}
+            addSchedule={addSchedule} openScheduleEditor={openScheduleEditor} delSchedule={delSchedule} markAttendance={markAttendance}
+            openStudent={(student)=>{setSelStu(student);setTab('students');}}/>}
 
           {tab==='tasks'&&isStaff&&<TasksView user={user} tasks={scopedTasks} staffMembers={staffMembers}
             taskTitle={taskTitle} setTaskTitle={setTaskTitle} taskAssignee={taskAssignee} setTaskAssignee={setTaskAssignee}
