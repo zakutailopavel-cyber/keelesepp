@@ -2843,6 +2843,7 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
   const [moveDate,setMoveDate] = React.useState(modalEv.occurrenceDate||modalEv.date||new Date().toISOString().split("T")[0]);
   const [moveTime,setMoveTime] = React.useState(modalEv.time||"09:00");
   const [saving,setSaving]     = React.useState(false);
+  const [savingDiary,setSavingDiary] = React.useState(false);
 
   const fmtDate = d => d?new Date(d).toLocaleDateString("et-EE",{day:"2-digit",month:"2-digit",year:"numeric"}):"—";
   const hasDate = Boolean(modalEv.date||modalEv.occurrenceDate);
@@ -2907,6 +2908,19 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
   const removeSelectedAttachment = index=>{
     const nextFiles = selectedLessonFiles.filter((_,idx)=>idx!==index);
     setLessonFile(nextFiles);
+  };
+  const handleSaveLesson = async()=>{
+    if(savingDiary) return;
+    setSavingDiary(true);
+    if(selectedLessonFiles.length) notify(`⏳ Laen üles ${selectedLessonFiles.length} faili...`);
+    try{
+      await saveLesson();
+    }catch(err){
+      console.error('Lesson save failed:',err);
+      notify('⚠ Päeviku salvestamine ei õnnestunud. Proovi uuesti või eemalda failid.');
+    }finally{
+      setSavingDiary(false);
+    }
   };
 
   const STATUS_COLOR = {
@@ -3220,7 +3234,7 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
                       <span style={{fontSize:'.78rem',fontWeight:700,color:'#42536A',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
                         <i className="fa-solid fa-paperclip" style={{marginRight:7}}/>{file.name}
                       </span>
-                      <button type="button" onClick={()=>removeSelectedAttachment(idx)} className="btn btn-ghost" style={{padding:'5px 8px',fontSize:'.72rem',color:'#991b1b',borderColor:'rgba(239,68,68,.25)'}}>
+                      <button type="button" onClick={()=>removeSelectedAttachment(idx)} disabled={savingDiary} className="btn btn-ghost" style={{padding:'5px 8px',fontSize:'.72rem',color:'#991b1b',borderColor:'rgba(239,68,68,.25)',opacity:savingDiary?.45:1}}>
                         <i className="fa-solid fa-xmark"/> Eemalda
                       </button>
                     </div>
@@ -3240,18 +3254,18 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
                           <i className="fa-solid fa-paperclip" style={{marginRight:7}}/>{att.name||'Tunni fail'}
                         </span>
                       )}
-                      <button type="button" onClick={()=>removeExistingAttachment(idx)} className="btn btn-ghost" style={{padding:'5px 8px',fontSize:'.72rem',color:'#991b1b',borderColor:'rgba(239,68,68,.25)'}}>
+                      <button type="button" onClick={()=>removeExistingAttachment(idx)} disabled={savingDiary} className="btn btn-ghost" style={{padding:'5px 8px',fontSize:'.72rem',color:'#991b1b',borderColor:'rgba(239,68,68,.25)',opacity:savingDiary?.45:1}}>
                         <i className="fa-solid fa-trash"/> Eemalda
                       </button>
                     </div>
                   ))}
                 </div>
               )}
-              <button onClick={saveLesson} className="btn btn-dark" style={{width:"100%",padding:13}}>
-                <i className="fa-solid fa-floppy-disk"/> Salvesta päevikusse
+              <button onClick={handleSaveLesson} disabled={savingDiary} className="btn btn-dark" style={{width:"100%",padding:13,opacity:savingDiary?.75:1}}>
+                <i className={`fa-solid ${savingDiary?'fa-spinner fa-spin':'fa-floppy-disk'}`}/> {savingDiary?'Salvestan...':'Salvesta päevikusse'}
               </button>
               {isJournalEdit&&(
-                <button onClick={hardDeleteJournalEntry} className="btn btn-ghost" style={{width:"100%",padding:13,color:"#991b1b",borderColor:"rgba(239,68,68,.25)"}}>
+                <button onClick={hardDeleteJournalEntry} disabled={savingDiary} className="btn btn-ghost" style={{width:"100%",padding:13,color:"#991b1b",borderColor:"rgba(239,68,68,.25)",opacity:savingDiary?.45:1}}>
                   <i className="fa-solid fa-trash"/> Kustuta päeviku kanne
                 </button>
               )}
@@ -4385,13 +4399,15 @@ function App() {
     let attachments = collectAttachments(modalEv);
     if(selectedLessonFiles.length){
       try{
-        const uploadedAttachments = [];
-        for(const file of selectedLessonFiles){
-          uploadedAttachments.push(await uploadLessonFile(file));
+        if(!storage && selectedLessonFiles.some(file=>(file.size||0)>650*1024)){
+          notify('⚠ Suurte failide jaoks peab Firebase Storage olema sisse lülitatud.');
+          return;
         }
+        const uploadedAttachments = await Promise.all(selectedLessonFiles.map(file=>uploadLessonFile(file)));
         attachments = [...attachments,...uploadedAttachments];
       }catch(err){
-        notify('⚠ Faili üleslaadimine ei õnnestunud. Kontrolli Firebase Storage õiguseid või vali väiksem fail.');
+        console.error('Lesson attachments upload failed:',err);
+        notify('⚠ Failide üleslaadimine ei õnnestunud. Kontrolli Firebase Storage õiguseid või proovi väiksemate failidega.');
         return;
       }
     }
