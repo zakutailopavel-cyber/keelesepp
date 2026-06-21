@@ -1,7 +1,7 @@
 (function(){
   const TEACHER_CODE = 'KS2026';
   const ADMIN_CODE   = 'KSADMIN2026';
-  const APP_VERSION  = 'CRM 2026-06-18 11:20';
+  const APP_VERSION  = 'CRM 2026-06-21 09:40';
   const LEVELS   = ['Eelkool','A1','A2','B1','B2','C1'];
   const TEACHERS = ['Pavel','Jelena','Elizaveta','Angelina'];
   const STAFF_ALIASES = {
@@ -45,6 +45,16 @@
   const TIMES = ["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00"];
 
   const normalizeText = value => (value || '').trim().toLowerCase();
+  const studentIdentityKey = student => [
+    normalizeText(student?.name),
+    normalizeText(student?.parentEmail || student?.contactEmail || student?.guardianEmail || student?.email),
+    normalizeText(student?.parentName || student?.guardianName)
+  ].join('|');
+  const studentProfileKey = student => [
+    studentIdentityKey(student),
+    normalizeText(student?.subject || 'Eesti keel'),
+    normalizeText(canonicalTeacherName(student?.teacher || ''))
+  ].join('|');
   const parseLinkedNames = value =>
     String(value || '')
       .split(/[,\n;|]+/)
@@ -132,19 +142,31 @@
     const linkedNames = parseLinkedNames(profile.childName);
     if(linkedNames.length===0) return;
 
-    const existingSnap = await db.collection('students').where('linkedParentId','==',authUser.uid).get();
-    const existingNames = new Set(existingSnap.docs.map(doc => normalizeText(doc.data().name)));
     const parentDisplayName = profile.displayName || authUser.displayName || profile.email || authUser.email || 'Lapsevanem';
     const parentEmail = profile.email || authUser.email || '';
     const preferredTeacher = canonicalTeacherName(profile.preferredTeacher || 'Pavel');
+    const existingSnap = await db.collection('students').where('linkedParentId','==',authUser.uid).get();
+    const existingProfiles = new Set(existingSnap.docs.map(doc => studentProfileKey({
+      ...doc.data(),
+      parentEmail,
+      parentName:parentDisplayName,
+      teacher:doc.data().teacher || preferredTeacher
+    })));
 
     for(const childName of linkedNames){
-      if(existingNames.has(childName)) continue;
       const label = childName
         .split(' ')
         .filter(Boolean)
         .map(part => part.charAt(0).toUpperCase() + part.slice(1))
         .join(' ');
+      const candidateProfile = studentProfileKey({
+        name:label || 'Õpilane',
+        parentName:parentDisplayName,
+        parentEmail,
+        subject:'Eesti keel',
+        teacher:preferredTeacher
+      });
+      if(existingProfiles.has(candidateProfile)) continue;
 
       await db.collection('students').add({
         linkedParentId: authUser.uid,
@@ -190,6 +212,8 @@
     DAYS_FULL,
     TIMES,
     normalizeText,
+    studentIdentityKey,
+    studentProfileKey,
     parseLinkedNames,
     canonicalTeacherName,
     levelPct,
