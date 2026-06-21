@@ -1,7 +1,7 @@
 (function(){
   const TEACHER_CODE = 'KS2026';
   const ADMIN_CODE   = 'KSADMIN2026';
-  const APP_VERSION  = 'CRM 2026-06-21 18:05';
+  const APP_VERSION  = 'CRM 2026-06-21 18:25';
   const LEVELS   = ['Eelkool','A1','A2','B1','B2','C1'];
   const TEACHERS = ['Pavel','Jelena','Elizaveta','Angelina'];
   const STAFF_ALIASES = {
