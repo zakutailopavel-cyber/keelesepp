@@ -4401,23 +4401,6 @@ function App() {
       }
     };
     let attachments = collectAttachments(modalEv);
-    if(selectedLessonFiles.length){
-      if(!storage && selectedLessonFiles.some(file=>(file.size||0)>650*1024)){
-        notify('⚠ Suured failid jäid lisamata: Firebase Storage pole sisse lülitatud. Päevik salvestatakse ilma nendeta.');
-      }else{
-        const uploadedResults = await Promise.allSettled(selectedLessonFiles.map(file=>uploadLessonFile(file)));
-        const uploadedAttachments = uploadedResults.filter(result=>result.status==='fulfilled').map(result=>result.value);
-        const failedUploads = uploadedResults.filter(result=>result.status==='rejected');
-        if(failedUploads.length){
-          console.error('Lesson attachments upload failed:',failedUploads.map(result=>result.reason));
-          notify(`⚠ ${failedUploads.length} faili ei õnnestunud lisada. Päevik salvestatakse ülejäänud andmetega.`);
-        }
-        if(uploadedAttachments.length){
-          notify(`✓ Lisatud ${uploadedAttachments.length} faili`);
-          attachments = [...attachments,...uploadedAttachments];
-        }
-      }
-    }
     let primaryAttachment = attachments[0] || null;
     const lessonPayload = {
       studentId:stu?stu.id:'ext',studentName:modalEv.studentName,
@@ -4514,6 +4497,43 @@ function App() {
 
     setLTopic('');setLComment('');setLessonFile([]);setModalEv(null);
     notify(existingLessonRef?'✓ Aruanne uuendatud!':'✓ Aruanne salvestatud!');
+    if(selectedLessonFiles.length){
+      const filesToUpload = [...selectedLessonFiles];
+      const baseAttachments = [...(lessonPayload.attachments||[])];
+      const targetLessonId = savedLessonId;
+      notify(`⏳ ${filesToUpload.length} faili laetakse taustal...`);
+      setTimeout(async()=>{
+        const uploadedResults = await Promise.allSettled(filesToUpload.map(file=>uploadLessonFile(file)));
+        const uploadedAttachments = uploadedResults.filter(result=>result.status==='fulfilled').map(result=>result.value);
+        const failedUploads = uploadedResults.filter(result=>result.status==='rejected');
+        if(failedUploads.length){
+          console.error('Lesson attachments upload failed:',failedUploads.map(result=>result.reason));
+          notify(`⚠ ${failedUploads.length} faili ei õnnestunud lisada. Päevik ise on salvestatud.`);
+        }
+        if(!uploadedAttachments.length) return;
+        const nextAttachments = [...baseAttachments,...uploadedAttachments];
+        const nextPrimary = nextAttachments[0] || null;
+        const attachmentUpdate = {
+          fileUrl:nextPrimary?.url||'',
+          fileName:nextPrimary?.name||'',
+          attachmentUrl:nextPrimary?.url||'',
+          attachmentName:nextPrimary?.name||'',
+          attachmentType:nextPrimary?.type||'',
+          attachmentSize:nextPrimary?.size||0,
+          attachment:nextPrimary,
+          attachments:nextAttachments,
+          updatedAt:new Date().toISOString()
+        };
+        try{
+          await db.collection('lessons').doc(targetLessonId).update(attachmentUpdate);
+          setLes(prev=>prev.map(lesson=>lesson.id===targetLessonId?{...lesson,...attachmentUpdate}:lesson));
+          notify(`✓ ${uploadedAttachments.length} faili lisatud päevikusse`);
+        }catch(err){
+          console.error('Lesson attachment save failed:',err);
+          notify('⚠ Failid laeti üles, aga neid ei õnnestunud päevikuga siduda.');
+        }
+      },0);
+    }
   },[modalEv,lTopic,lGrade,lStatus,lComment,lDur,lessonFile,students,lessons,user,logActivity,notify]);
 
   const addHw=useCallback(async()=>{
