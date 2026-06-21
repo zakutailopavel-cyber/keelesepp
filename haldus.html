@@ -1422,7 +1422,30 @@ function ParentsView({parents,students,invoices,isAdmin,parentAlerts,setSelStu,s
   };
   const parentRows = React.useMemo(()=>{
     const q = normalizeText(search);
-    return parents.map(parent=>{
+    const uniqBy = (items,keyFn)=>{
+      const seen = new Set();
+      return items.filter(item=>{
+        const key = keyFn(item);
+        if(!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    };
+    const parentMergeKey = parent => {
+      const email = normalizeText(parent.email);
+      if(email) return `email:${email}`;
+      const phone = normalizeText(parent.phone || parent.parentPhone).replace(/[^0-9]/g,'');
+      if(phone) return `phone:${phone}`;
+      const childKey = parseLinkedNames(parent.childName).join('|');
+      return `name:${normalizeText(parent.displayName)}|children:${childKey}`;
+    };
+    const buildChildGroups = linkedChildren => Object.values(linkedChildren.reduce((acc,student)=>{
+      const key = studentIdentityKey(student) || normalizeText(student.name) || student.id;
+      if(!acc[key]) acc[key] = {name:student.name||'',items:[]};
+      acc[key].items.push(student);
+      return acc;
+    },{}));
+    const buildParentRow = parent => {
       const rawNames = String(parent.childName||'')
         .split(/[,\n;|]+/)
         .map(name=>name.trim())
@@ -1431,6 +1454,7 @@ function ParentsView({parents,students,invoices,isAdmin,parentAlerts,setSelStu,s
       const parentEmail = normalizeText(parent.email);
       const parentName = normalizeText(parent.displayName);
       const linkedChildren = students.filter(student=>{
+        if(student.active===false || student.convertedToParent) return false;
         const linkedParentId = student.linkedParentId || student.parentUid || student.guardianUid || '';
         const studentName = normalizeText(student.name);
         const studentParentEmail = normalizeText(student.parentEmail || student.contactEmail || student.guardianEmail || student.email);
@@ -1440,23 +1464,64 @@ function ParentsView({parents,students,invoices,isAdmin,parentAlerts,setSelStu,s
           (!!parentName && studentParentName===parentName);
         return parentMatched || (childNameKeys.has(studentName) && parentMatched);
       });
-      const childGroups = Object.values(linkedChildren.reduce((acc,student)=>{
-        const key = normalizeText(student.name) || student.id;
-        if(!acc[key]) acc[key] = {name:student.name||'',items:[]};
-        acc[key].items.push(student);
-        return acc;
-      },{}));
+      const uniqueChildren = uniqBy(linkedChildren,student=>studentProfileKey(student)||student.id);
+      const childGroups = buildChildGroups(uniqueChildren);
       const unpaid = invoices.filter(inv=>
-        inv.status==='Ootel' && linkedChildren.some(student=>student.id===inv.studentId || normalizeText(student.name)===normalizeText(inv.studentName))
+        inv.status==='Ootel' && uniqueChildren.some(student=>student.id===inv.studentId || normalizeText(student.name)===normalizeText(inv.studentName))
       );
-      return {parent,rawNames,linkedChildren,childGroups,unpaid};
-    }).filter(row=>{
-      if(statusFilter!=='all' && (row.parent.parentContactStatus||'new')!==statusFilter) return false;
+      return {key:parentMergeKey(parent),parent,parents:[parent],duplicateParents:[],rawNames,linkedChildren:uniqueChildren,childGroups,unpaid};
+    };
+    const rowsByKey = parents.reduce((acc,parent)=>{
+      const row = buildParentRow(parent);
+      if(!acc[row.key]){
+        acc[row.key]=row;
+        return acc;
+      }
+      const target = acc[row.key];
+      target.parents.push(parent);
+      target.duplicateParents.push(parent);
+      target.rawNames = uniqBy([...target.rawNames,...row.rawNames],name=>normalizeText(name));
+      target.linkedChildren = uniqBy([...target.linkedChildren,...row.linkedChildren],student=>studentProfileKey(student)||student.id);
+      target.childGroups = buildChildGroups(target.linkedChildren);
+      target.unpaid = uniqBy([...target.unpaid,...row.unpaid],inv=>inv.id || `${inv.studentId}|${inv.studentName}|${inv.amount}|${inv.createdAt}`);
+      return acc;
+    },{});
+    const mergedRows = Object.values(rowsByKey).map(row=>{
+      const allParents = row.parents || [row.parent];
+      const pick = field => allParents.map(parent=>parent?.[field]).find(Boolean) || '';
+      const bestName = allParents
+        .map(parent=>parent?.displayName)
+        .filter(Boolean)
+        .sort((a,b)=>String(b).length-String(a).length)[0] || '';
+      const bestStatusParent = allParents.find(parent=>parent?.parentContactStatus && parent.parentContactStatus!=='new') || row.parent;
+      const parentNameKeys = new Set(allParents.map(parent=>normalizeText(parent?.displayName)).filter(Boolean));
+      const hasRealChild = row.linkedChildren.some(student=>!parentNameKeys.has(normalizeText(student.name)));
+      const cleanChildren = hasRealChild
+        ? row.linkedChildren.filter(student=>!parentNameKeys.has(normalizeText(student.name)))
+        : row.linkedChildren;
+      const childGroups = buildChildGroups(cleanChildren);
+      return {
+        ...row,
+        displayName:bestName,
+        email:pick('email'),
+        phone:pick('phone') || pick('parentPhone'),
+        createdAt:pick('createdAt'),
+        linkedChildren:cleanChildren,
+        childGroups,
+        statusValue:bestStatusParent?.parentContactStatus || row.parent.parentContactStatus || 'new',
+        duplicateCount:Math.max(0,allParents.length-1),
+        hiddenStudentCount:Math.max(0,row.linkedChildren.length-cleanChildren.length)
+      };
+    });
+    return mergedRows.filter(row=>{
+      if(statusFilter!=='all' && row.statusValue!==statusFilter) return false;
       if(!q) return true;
-      return normalizeText(row.parent.displayName).includes(q) ||
-        normalizeText(row.parent.email).includes(q) ||
-        normalizeText(row.parent.parentContactNotes).includes(q) ||
-        normalizeText(row.parent.parentContactOwner).includes(q) ||
+      return row.parents.some(parent=>
+          normalizeText(parent.displayName).includes(q) ||
+          normalizeText(parent.email).includes(q) ||
+          normalizeText(parent.parentContactNotes).includes(q) ||
+          normalizeText(parent.parentContactOwner).includes(q)
+        ) ||
         row.rawNames.some(name=>normalizeText(name).includes(q)) ||
         row.linkedChildren.some(student=>
           normalizeText(student.name).includes(q) ||
@@ -1464,7 +1529,7 @@ function ParentsView({parents,students,invoices,isAdmin,parentAlerts,setSelStu,s
           normalizeText(student.subject).includes(q) ||
           normalizeText(student.group).includes(q)
         );
-    }).sort((a,b)=>(a.parent.displayName||a.parent.email||'').localeCompare(b.parent.displayName||b.parent.email||'','et'));
+    }).sort((a,b)=>(a.displayName||a.email||'').localeCompare(b.displayName||b.email||'','et'));
   },[parents,students,invoices,search,statusFilter]);
   const linkedCount = parentRows.filter(row=>row.linkedChildren.length>0).length;
   const missingCount = parentRows.filter(row=>row.rawNames.length>0&&row.linkedChildren.length===0).length;
@@ -1493,7 +1558,7 @@ function ParentsView({parents,students,invoices,isAdmin,parentAlerts,setSelStu,s
       </div>
 
       <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))',gap:12}}>
-        <div className="stat-card"><div className="stat-label">Lapsevanemaid</div><div className="stat-value">{parents.length}</div></div>
+        <div className="stat-card"><div className="stat-label">Lapsevanemaid</div><div className="stat-value">{parentRows.length}</div></div>
         <div className="stat-card"><div className="stat-label">Seotud lastega</div><div className="stat-value" style={{color:'#2F5D50'}}>{linkedCount}</div></div>
         <div className="stat-card"><div className="stat-label">Vajab sidumist</div><div className="stat-value" style={{color:missingCount?'#991b1b':'#2F5D50'}}>{missingCount}</div></div>
         <div className="stat-card"><div className="stat-label">Ootel arved</div><div className="stat-value" style={{color:unpaidTotal?'#991b1b':'#2F5D50'}}>{unpaidTotal}€</div></div>
@@ -1526,22 +1591,32 @@ function ParentsView({parents,students,invoices,isAdmin,parentAlerts,setSelStu,s
 
       <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(360px,1fr))',gap:16}}>
         {parentRows.map(row=>(
-          <div key={row.parent.id} className="card" style={{padding:20,display:'flex',flexDirection:'column',gap:14,border:row.parent.parentNextContactAt===today()?'1px solid #C9882A':'1px solid rgba(28,43,58,.07)'}}>
+          <div key={row.key||row.parent.id} className="card" style={{padding:20,display:'flex',flexDirection:'column',gap:14,border:row.parent.parentNextContactAt===today()?'1px solid #C9882A':'1px solid rgba(28,43,58,.07)'}}>
             <div style={{display:'flex',justifyContent:'space-between',gap:10,alignItems:'flex-start'}}>
               <div>
-                <h2 style={{fontSize:'1.15rem',marginBottom:4}}>{row.parent.displayName||noData}</h2>
-                <div style={{fontSize:'.82rem',color:'#42536A'}}>{row.parent.email||noData}</div>
-                <div style={{fontSize:'.78rem',color:'#42536A',marginTop:4}}>Lisatud: {row.parent.createdAt||noData}</div>
+                <h2 style={{fontSize:'1.15rem',marginBottom:4}}>{row.displayName||noData}</h2>
+                <div style={{fontSize:'.82rem',color:'#42536A'}}>{row.email||noData}</div>
+                <div style={{fontSize:'.78rem',color:'#42536A',marginTop:4}}>Lisatud: {row.createdAt||noData}</div>
               </div>
               <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:6}}>
                 <span className="badge" style={{background:row.linkedChildren.length?'#dcfce7':'#fee2e2',color:row.linkedChildren.length?'#166534':'#991b1b'}}>
                   {row.linkedChildren.length?`${row.linkedChildren.length} kirjet`:'sidumata'}
                 </span>
+                {row.duplicateCount>0&&(
+                  <span className="badge" style={{background:'#fef3c7',color:'#92400e'}}>
+                    {row.duplicateCount} duplikaat peidetud
+                  </span>
+                )}
+                {row.hiddenStudentCount>0&&(
+                  <span className="badge" style={{background:'#fee2e2',color:'#991b1b'}}>
+                    {row.hiddenStudentCount} vale kaart peidetud
+                  </span>
+                )}
                 <span className="badge" style={{
-                  background:(parentStatusMeta[row.parent.parentContactStatus||'new']||parentStatusMeta.new).bg,
-                  color:(parentStatusMeta[row.parent.parentContactStatus||'new']||parentStatusMeta.new).c
+                  background:(parentStatusMeta[row.statusValue||'new']||parentStatusMeta.new).bg,
+                  color:(parentStatusMeta[row.statusValue||'new']||parentStatusMeta.new).c
                 }}>
-                  {(parentStatusMeta[row.parent.parentContactStatus||'new']||parentStatusMeta.new).t}
+                  {(parentStatusMeta[row.statusValue||'new']||parentStatusMeta.new).t}
                 </span>
               </div>
             </div>
@@ -1599,13 +1674,13 @@ function ParentsView({parents,students,invoices,isAdmin,parentAlerts,setSelStu,s
             </div>
 
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,fontSize:'.82rem',color:'#42536A'}}>
-              <div><strong>Telefon:</strong><br/>{row.parent.phone||row.parent.parentPhone||noData}</div>
+              <div><strong>Telefon:</strong><br/>{row.phone||noData}</div>
               <div><strong>Ootel arved:</strong><br/>{row.unpaid.length?`${row.unpaid.reduce((a,inv)=>a+(parseFloat(inv.amount)||0),0)} €`:'0 €'}</div>
             </div>
             <textarea defaultValue={row.parent.parentContactNotes||''} placeholder="Mida lapsevanem ütles, millal tagasi helistada, kokkulepped..." onBlur={e=>updateParent(row.parent,{parentContactNotes:e.target.value})} style={{minHeight:74}}/>
             <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-              {(row.parent.phone||row.parent.parentPhone)&&<a className="btn btn-ghost btn-sm" href={`tel:${row.parent.phone||row.parent.parentPhone}`}><i className="fa-solid fa-phone"/> Helista</a>}
-              {row.parent.email&&<a className="btn btn-ghost btn-sm" href={`mailto:${row.parent.email}`}><i className="fa-solid fa-envelope"/> E-post</a>}
+              {row.phone&&<a className="btn btn-ghost btn-sm" href={`tel:${row.phone}`}><i className="fa-solid fa-phone"/> Helista</a>}
+              {row.email&&<a className="btn btn-ghost btn-sm" href={`mailto:${row.email}`}><i className="fa-solid fa-envelope"/> E-post</a>}
               {isAdmin&&row.rawNames.length>0&&row.linkedChildren.length===0&&(
                 <button onClick={()=>createMissingParentStudents(row.parent)} className="btn btn-red btn-sm">
                   Loo / seo õpilane
@@ -3426,13 +3501,14 @@ function App() {
 
   const myStudents = useMemo(()=>{
     if(!user) return [];
-    if(user.role==='teacher') return isAdmin?students:students.filter(s=>canonicalTeacherName(s.teacher)===canonicalTeacherName(user.displayName));
-    if(user.role==='admin')   return students;
+    const visibleStudents = students.filter(s=>s.active!==false && !s.convertedToParent);
+    if(user.role==='teacher') return isAdmin?visibleStudents:visibleStudents.filter(s=>canonicalTeacherName(s.teacher)===canonicalTeacherName(user.displayName));
+    if(user.role==='admin')   return visibleStudents;
     if(user.role==='parent'){
       const linkedNames = parseLinkedNames(user.childName);
       const userEmail = normalizeText(user.email);
       const parentName = normalizeText(user.displayName);
-      return students.filter(s=>{
+      return visibleStudents.filter(s=>{
         const studentName = normalizeText(s.name);
         const studentEmail = normalizeText(s.email);
         const parentEmail = normalizeText(s.parentEmail || s.contactEmail || s.guardianEmail);
@@ -3444,7 +3520,7 @@ function App() {
         return parentMatched || (linkedNames.includes(studentName) && parentMatched);
       });
     }
-    return students.filter(s=>s.name?.toLowerCase()===user.displayName?.toLowerCase());
+    return visibleStudents.filter(s=>s.name?.toLowerCase()===user.displayName?.toLowerCase());
   },[user,students,isAdmin]);
 
   const parentAlerts = useMemo(()=>{
