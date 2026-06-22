@@ -1181,7 +1181,7 @@ function StuSearch({value, onChange, students, placeholder}) {
 
   // Закрываем с задержкой — чтобы клик по крестику или пункту успел сработать
   const handleBlur = () => {
-    blurTimer.current = setTimeout(()=>setOpen(false), 150);
+    blurTimer.current = setTimeout(()=>setOpen(false), 300);
   };
 
   const handleClear = () => {
@@ -1205,14 +1205,14 @@ function StuSearch({value, onChange, students, placeholder}) {
         />
         {query&&(
           <button
-            onClick={handleClear}
+            onMouseDown={e=>{e.preventDefault();handleClear();}}
             style={{position:'absolute',right:8,top:'50%',transform:'translateY(-50%)',
               background:'none',border:'none',cursor:'pointer',color:'#9ca3af',
               fontSize:'.8rem',padding:2,lineHeight:1}}>✕</button>
         )}
       </div>
       {open && matches.length>0 && (
-        <div style={{
+        <div onMouseDown={e=>e.preventDefault()} style={{
           position:'absolute',top:'100%',left:0,right:0,zIndex:90,
           background:'#fff',border:'1px solid rgba(28,43,58,.12)',borderRadius:10,
           boxShadow:'0 8px 24px rgba(28,43,58,.12)',marginTop:3,
