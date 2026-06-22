@@ -1,7 +1,7 @@
 (function(){
   const TEACHER_CODE = 'KS2026';
   const ADMIN_CODE   = 'KSADMIN2026';
-  const APP_VERSION  = 'CRM 2026-06-21 18:25';
+  const APP_VERSION  = 'CRM 2026-06-22 11:40';
   const LEVELS   = ['Eelkool','A1','A2','B1','B2','C1'];
   const TEACHERS = ['Pavel','Jelena','Elizaveta','Angelina'];
   const STAFF_ALIASES = {
@@ -22,7 +22,7 @@
     {id:'other', label:'Kokkuleppel'}
   ];
   const PAYMENT_DETAILS = {
-    company:'E&P Koolitus OÜ',
+    company:'E&P Kooitus OÜ',
     regCode:'17270880',
     address:'Harju maakond, Saue vald, Laagri alevik, Nõlvaku põik 3b, 76401',
     iban:'EE917700771011885682',
