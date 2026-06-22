@@ -1149,12 +1149,16 @@ function StuSearch({value, onChange, students, placeholder}) {
   const [open, setOpen] = React.useState(false);
   const [selected, setSelected] = React.useState(!!value);
   const ref = React.useRef(null);
+  const lastExternalValueRef = React.useRef(value||'');
 
   // Синхронизируем query когда value меняется снаружи (напр. из setBookingFromStudent)
   React.useEffect(()=>{
-    setQuery(value||'');
-    setSelected(!!value);
-    if(!value) setOpen(false);
+    const nextValue = value||'';
+    if(nextValue === lastExternalValueRef.current) return;
+    lastExternalValueRef.current = nextValue;
+    setQuery(nextValue);
+    setSelected(!!nextValue);
+    if(!nextValue) setOpen(false);
   },[value]);
 
   const matches = React.useMemo(()=>{
@@ -1175,6 +1179,7 @@ function StuSearch({value, onChange, students, placeholder}) {
   },[]);
 
   const select = student => {
+    lastExternalValueRef.current = student.name||'';
     setQuery(student.name);
     onChange(student.name);
     setSelected(true);
@@ -1183,22 +1188,24 @@ function StuSearch({value, onChange, students, placeholder}) {
 
   const handleInput = e => {
     const val = e.target.value;
+    lastExternalValueRef.current = val;
     setQuery(val);
     onChange(val);
     setSelected(false); // сбрасываем «выбрано» когда пользователь печатает
-    setOpen(true);
+    setOpen(!!val);
   };
 
   const handleFocus = () => {
     // Открываем только если ничего не выбрано или поле пустое
-    if(!selected || !query) setOpen(true);
+    if(!selected && query) setOpen(true);
   };
 
   const handleClear = () => {
+    lastExternalValueRef.current = '';
     setQuery('');
     onChange('');
     setSelected(false);
-    setOpen(true);
+    setOpen(false);
   };
 
   return(
