@@ -1213,7 +1213,9 @@ function StuSearch({value, onChange, students, placeholder}) {
           autoComplete="off"
         />
         {query&&(
-          <button onMouseDown={handleClear}
+          <button
+            onClick={e=>{e.preventDefault();handleClear();}}
+            onMouseDown={e=>e.preventDefault()}
             style={{position:'absolute',right:8,top:'50%',transform:'translateY(-50%)',
               background:'none',border:'none',cursor:'pointer',color:'#9ca3af',
               fontSize:'.8rem',padding:2,lineHeight:1}}>✕</button>
