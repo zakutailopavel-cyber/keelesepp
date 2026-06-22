@@ -1154,13 +1154,14 @@ function StuSearch({value, onChange, students, placeholder}) {
   React.useEffect(()=>{ setQuery(value||''); },[value]);
 
   const matches = React.useMemo(()=>{
+    const sorted = [...students].sort((a,b)=>normalizeText(a.name).localeCompare(normalizeText(b.name),'et'));
     const q = normalizeText(query);
-    if(!q) return students.slice(0,10);
-    return students.filter(s=>
+    if(!q) return sorted;
+    return sorted.filter(s=>
       normalizeText(s.name).includes(q) ||
       normalizeText(s.group||'').includes(q) ||
       normalizeText(s.subject||'').includes(q)
-    ).slice(0,10);
+    );
   },[query,students]);
 
   const pick = student => {
