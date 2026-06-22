@@ -194,6 +194,7 @@ function AuthScreen({onLogin}) {
         }catch(syncErr){
           console.warn('Parent student bootstrap after Google signup failed:', syncErr);
         }
+        tgSend(`👤 <b>Новый родитель (Google)</b>\n<b>Имя:</b> ${u.displayName||'—'}\n<b>Email:</b> ${u.email||'—'}`);
         onLogin({uid:u.uid,...ud});
       }
     }catch(e){setErr('Google sisselogimine ebaõnnestus.');}
@@ -242,6 +243,7 @@ function AuthScreen({onLogin}) {
       }catch(syncErr){
         console.warn('Profile sync after registration failed:', syncErr);
       }
+      tgSend(`👤 <b>Новый пользователь (Email)</b>\n<b>Имя:</b> ${name}\n<b>Email:</b> ${email}\n<b>Роль:</b> ${role}`);
       onLogin({uid:res.user.uid,...ud});
     }catch(e){
       const m={'auth/email-already-in-use':'See e-post on juba registreeritud','auth/invalid-email':'Vigane e-post'};
@@ -332,6 +334,136 @@ function AuthScreen({onLogin}) {
           {mode!=='login'&&<button onClick={()=>reset('login')} style={{color:'#C9882A',fontWeight:700,background:'none',border:'none',cursor:'pointer'}}>← Tagasi sisselogimisele</button>}
         </div>
       </div>
+    </div>
+  );
+}
+
+
+// ── TELEGRAM CONFIG ───────────────────────────────────────────
+const TG_TOKEN = '8638920185:AAFy8EHQabtksmQqv8iOM9gtgg4FqWh1B3c';
+const TG_CHAT  = '5679631910';
+async function tgSend(text) {
+  try {
+    await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({chat_id:TG_CHAT, text, parse_mode:'HTML'})
+    });
+  } catch(e) { console.warn('TG failed:', e); }
+}
+
+// ── TULUD JA STATISTIKA (ainult admin) ──────────────────────
+function RevenueStats({invoices,students}) {
+  const ref = React.useRef(null);
+  const chartRef = React.useRef(null);
+  const monthlyData = React.useMemo(()=>{
+    const map={};
+    invoices.filter(inv=>inv.status==='Makstud'&&inv.paidAt).forEach(inv=>{
+      const d=new Date(inv.paidAt);
+      const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+      map[key]=(map[key]||0)+(inv.amount||0);
+    });
+    const keys=Object.keys(map).sort();
+    return {labels:keys.map(k=>{const[y,m]=k.split('-');return new Date(+y,+m-1).toLocaleDateString('et-EE',{month:'short',year:'2-digit'});}),values:keys.map(k=>map[k])};
+  },[invoices]);
+  const teacherStats=React.useMemo(()=>{
+    const map={};
+    invoices.filter(inv=>inv.status==='Makstud').forEach(inv=>{
+      const stu=students.find(s=>s.id===inv.studentId);
+      const t=stu?.teacher||'—';
+      map[t]=(map[t]||0)+(inv.amount||0);
+    });
+    return Object.entries(map).sort((a,b)=>b[1]-a[1]);
+  },[invoices,students]);
+  const debtors=React.useMemo(()=>{
+    const now=new Date();
+    return invoices.filter(inv=>inv.status==='Ootel'&&inv.due)
+      .map(inv=>({...inv,daysOverdue:Math.floor((now-new Date(inv.due))/(864e5))}))
+      .filter(inv=>inv.daysOverdue>0).sort((a,b)=>b.daysOverdue-a.daysOverdue);
+  },[invoices]);
+  const vals=monthlyData.values;
+  const thisMonth=vals.length?vals[vals.length-1]:0;
+  const lastMonth=vals.length>=2?vals[vals.length-2]:0;
+  const totalPaid=invoices.filter(i=>i.status==='Makstud').reduce((a,i)=>a+(i.amount||0),0);
+  const totalPending=invoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+(i.amount||0),0);
+  const diff=thisMonth-lastMonth;
+  React.useEffect(()=>{
+    if(!ref.current||monthlyData.labels.length<2) return;
+    if(chartRef.current) chartRef.current.destroy();
+    chartRef.current=new Chart(ref.current.getContext('2d'),{
+      type:'bar',
+      data:{labels:monthlyData.labels,datasets:[{data:vals,backgroundColor:'rgba(201,136,42,.75)',borderColor:'#C9882A',borderWidth:1.5,borderRadius:6}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.raw} €`}}},
+        scales:{y:{ticks:{callback:v=>`${v} €`},grid:{color:'rgba(28,43,58,.06)'}},x:{grid:{display:false}}}}
+    });
+    return()=>{if(chartRef.current)chartRef.current.destroy();};
+  },[monthlyData]);
+  return(
+    <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:16}}>
+      <div style={{display:'flex',alignItems:'center',gap:10}}>
+        <h2 style={{fontSize:'1.3rem'}}>💰 Tulud ja statistika</h2>
+        <span className="badge" style={{background:'rgba(28,43,58,.07)',color:'#42536A',fontSize:'.72rem'}}>ainult admin</span>
+      </div>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(150px,1fr))',gap:12}}>
+        {[{l:'Sel kuul',v:`${thisMonth} €`,sub:diff?`${diff>0?'+':''}${diff} €`:'—',c:'#C9882A',bg:'rgba(201,136,42,.08)'},
+          {l:'Eelmine kuu',v:`${lastMonth} €`,sub:'Makstud',c:'#2F5D50',bg:'rgba(47,93,80,.08)'},
+          {l:'Kokku makstud',v:`${totalPaid} €`,sub:`${invoices.filter(i=>i.status==='Makstud').length} arvet`,c:'#1C2B3A',bg:'rgba(28,43,58,.05)'},
+          {l:'Maksmata',v:`${totalPending} €`,sub:`${invoices.filter(i=>i.status==='Ootel').length} arvet`,c:totalPending?'#dc2626':'#2F5D50',bg:totalPending?'#fee2e2':'rgba(47,93,80,.08)'},
+          {l:'Hilinenud',v:debtors.length,sub:debtors.length?`Max ${debtors[0]?.daysOverdue} päeva`:'Kõik korras',c:debtors.length?'#991b1b':'#2F5D50',bg:debtors.length?'#fff7f7':'rgba(47,93,80,.08)'}
+        ].map(s=>(
+          <div key={s.l} className="card" style={{padding:'14px 16px',background:s.bg,borderColor:'transparent'}}>
+            <div style={{fontSize:'1.45rem',fontWeight:700,color:s.c,lineHeight:1}}>{s.v}</div>
+            <div style={{fontSize:'.7rem',color:'#42536A',marginTop:4,fontWeight:600,textTransform:'uppercase',letterSpacing:'.06em'}}>{s.l}</div>
+            <div style={{fontSize:'.7rem',color:s.c,marginTop:3,opacity:.8}}>{s.sub}</div>
+          </div>
+        ))}
+      </div>
+      {monthlyData.labels.length>=2?(
+        <div className="card" style={{padding:18}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12,flexWrap:'wrap',gap:8}}>
+            <div style={{fontWeight:700,fontSize:'.9rem'}}>Tulud kuude kaupa</div>
+            <span style={{padding:'3px 10px',borderRadius:999,background:diff>=0?'#dcfce7':'#fee2e2',color:diff>=0?'#166534':'#991b1b',fontWeight:700,fontSize:'.78rem'}}>
+              {diff>=0?'↑':'↓'} {Math.abs(diff)} €
+            </span>
+          </div>
+          <div style={{height:170}}><canvas ref={ref}/></div>
+        </div>
+      ):(
+        <div className="card" style={{padding:16,textAlign:'center',color:'#42536A',fontSize:'.86rem'}}>Graafiku jaoks vajatakse vähemalt 2 kuu andmeid.</div>
+      )}
+      {teacherStats.length>0&&(
+        <div className="card" style={{padding:18}}>
+          <div style={{fontWeight:700,fontSize:'.9rem',marginBottom:12}}>Tulud õpetajate kaupa</div>
+          {teacherStats.map(([t,amt])=>{
+            const pct=teacherStats[0][1]>0?Math.round(amt/teacherStats[0][1]*100):0;
+            return(
+              <div key={t} style={{marginBottom:10}}>
+                <div style={{display:'flex',justifyContent:'space-between',marginBottom:4,fontSize:'.86rem'}}>
+                  <span style={{fontWeight:600}}>{t}</span>
+                  <span style={{fontWeight:700,color:'#C9882A'}}>{amt} €</span>
+                </div>
+                <div className="level-bar"><div className="level-fill" style={{width:pct+'%'}}/></div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+      {debtors.length>0&&(
+        <div className="card" style={{padding:16,border:'1px solid #fecaca',background:'#fff7f7'}}>
+          <div style={{fontWeight:700,fontSize:'.9rem',color:'#991b1b',marginBottom:10}}>⚠️ Hilinenud maksed ({debtors.length})</div>
+          {debtors.slice(0,6).map(inv=>(
+            <div key={inv.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 10px',borderRadius:8,background:'#fff',border:'1px solid rgba(239,68,68,.15)',marginBottom:6,flexWrap:'wrap',gap:6}}>
+              <div>
+                <div style={{fontWeight:700,fontSize:'.84rem'}}>{inv.studentName}</div>
+                <div style={{fontSize:'.72rem',color:'#42536A'}}>{inv.num} · {fmtDate(inv.due)}</div>
+              </div>
+              <div style={{display:'flex',gap:6,alignItems:'center'}}>
+                <span style={{fontWeight:700,color:'#991b1b'}}>{inv.amount} €</span>
+                <span className="badge" style={{background:'#fee2e2',color:'#991b1b'}}>{inv.daysOverdue} päeva</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -490,6 +622,8 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
           )):null
         }
       </div>
+
+      {isAdmin&&<RevenueStats invoices={invoices} students={myStudents}/>}
 
       {isAdmin&&(
         <div className="card" style={{padding:24,border:adminAttention.length?'1px solid rgba(153,27,27,.18)':'1px solid rgba(47,93,80,.18)',background:adminAttention.length?'#fff':'#f7fffb'}}>
@@ -1395,7 +1529,7 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
               <div style={{fontSize:".82rem",color:"#42536A"}}>
                 Õpetaja: <b>{plannerTeacher||'määramata'}</b> · nädalas nähtaval {plannerRows.length} õpilast
                 {plannerRows.filter(r=>r.target>0&&r.lessonsThisWeek.length<r.target).length>0&&(
-                  <span style={{marginLeft:8,padding:"2px 8px",borderRadius:999,background:"#fee2e2",color:"#991b1b",fontWeight:700,fontSize:".76rem"}}>
+                  <span style={{marginLeft:8,padding:"2px 8px",borderRadius:999,background:"#fee2e2",color:"#991b1b",fontWeight:700,fontSize:".74rem"}}>
                     ⚠ {plannerRows.filter(r=>r.target>0&&r.lessonsThisWeek.length<r.target).length} alla normi
                   </span>
                 )}
@@ -1442,7 +1576,7 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
                       <span style={{padding:"5px 9px",borderRadius:999,background:statusBg,color:statusColor,fontSize:".72rem",fontWeight:800,whiteSpace:"nowrap"}}>
                         {weekText}
                       </span>
-                      {!hasTarget&&<span style={{padding:"3px 7px",borderRadius:999,background:"rgba(28,43,58,.06)",color:"#9ca3af",fontSize:".65rem",fontWeight:600}}>norm määramata</span>}
+                      {!hasTarget&&<span style={{padding:"3px 6px",borderRadius:999,background:"rgba(28,43,58,.06)",color:"#9ca3af",fontSize:".63rem",fontWeight:600}}>norm määramata</span>}
                     </div>
                     <div style={{display:"flex",gap:6,flexWrap:"wrap",marginTop:10}}>
                       {row.lessonsThisWeek.map(ev=>(
@@ -1540,7 +1674,7 @@ function StudentsList({filteredStudents,lessons,isAdmin,search,setSearch,stuFilt
 }
 
 // ── LAPSEVANEMAD ─────────────────────────────────────────────
-function ParentsView({parents,students,invoices,isAdmin,parentAlerts,setSelStu,setTab,createMissingParentStudents,markParentChecked,mergeParentDuplicates,notify}) {
+function ParentsView({parents,students,invoices,isAdmin,parentAlerts,setSelStu,setTab,createMissingParentStudents,markParentChecked,mergeParentDuplicates,convertParentToStudent,notify}) {
   const [search,setSearch] = React.useState('');
   const [statusFilter,setStatusFilter] = React.useState('all');
   const parentStatusMeta = {
@@ -1839,6 +1973,11 @@ function ParentsView({parents,students,invoices,isAdmin,parentAlerts,setSelStu,s
               {isAdmin&&(row.duplicateCount>0||row.hiddenStudentCount>0)&&(
                 <button onClick={()=>mergeParentDuplicates(row)} className="btn btn-amber btn-sm">
                   Ühenda duplikaadid
+                </button>
+              )}
+              {isAdmin&&(
+                <button onClick={()=>convertParentToStudent&&convertParentToStudent(row.parent)} className="btn btn-ghost btn-sm" style={{color:'#6d28d9',borderColor:'rgba(109,40,217,.25)'}}>
+                  <i className="fa-solid fa-graduation-cap"/> Muuda õpilaseks
                 </button>
               )}
             </div>
@@ -3590,7 +3729,7 @@ function EditStudentModal({student,onClose,onSave,onDelete,db,notify,isAdmin,gro
                 <option value="">Määramata</option>
                 {[1,2,3,4,5].map(n=><option key={n} value={n}>{n} tund{n>1?'i':''} nädalas</option>)}
               </select>
-              <div style={{fontSize:'.72rem',color:'#42536A',marginTop:4}}>Kasutatakse tunniplaani spikris normi kontrollimiseks</div>
+              <div style={{fontSize:'.72rem',color:'#9ca3af',marginTop:3}}>Kasutatakse tunniplaani spikris normi kontrollimiseks</div>
             </div>
             <div style={{gridColumn:'1/-1'}}>
               <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Kontaktimärkmed</div>
@@ -4229,7 +4368,7 @@ function App() {
       notify(`⚠ Selline õpilase profiil on juba olemas: ${duplicate.name} · ${duplicate.subject||'Eesti keel'} · ${duplicate.teacher||'õpetaja puudub'}`);
       return;
     }
-    const ref = await db.collection('students').add({name:nName,parentName:nParentName,level:nLevel,targetLevel:nTarget,teacher:t,phone:nPhone,email:nEmail,active:true,packageTotal:parseInt(nPkg)||0,packageUsed:0,weeklyLessons:0,subject:nSubject,grade:nGrade,group:nGroup,contactStatus:'new',contactOwner:user?.displayName||'',contactLastAt:'',contactNotes:'',createdAt:today()});
+    const ref = await db.collection('students').add({name:nName,parentName:nParentName,level:nLevel,targetLevel:nTarget,teacher:t,phone:nPhone,email:nEmail,active:true,packageTotal:parseInt(nPkg)||0,packageUsed:0,subject:nSubject,grade:nGrade,group:nGroup,contactStatus:'new',contactOwner:user?.displayName||'',contactLastAt:'',contactNotes:'',createdAt:today()});
     await logActivity('student.created','Lisati õpilane',{studentId:ref.id,studentName:nName,teacher:t});
     setNName('');setNParentName('');setNPhone('');setNEmail('');setNGroup('');
     notify('✓ Õpilane '+nName+' lisatud!');
@@ -4390,6 +4529,9 @@ function App() {
       date:today(),
       read:false
     });
+    if(user.role==='parent'||user.role==='student'){
+      tgSend(`${user.role==='parent'?'👨‍👩‍👧':'🎓'} <b>Uus sõnum CRM-is</b>\n<b>Kellelt:</b> ${user.displayName||user.email||'—'} (${user.role==='parent'?'lapsevanem':'õpilane'})\n<b>Õpilane:</b> ${student.name}\n<b>Õpetaja:</b> ${student.teacher||'—'}\n\n${text.trim()}`);
+    }
     setTeacherMessage('');
     notify('✓ Sõnum saadetud');
   },[user]);
@@ -4759,6 +4901,59 @@ function App() {
     await db.collection('students').doc(id).update({active:!cur});
     notify(cur?'✓ Õpilane arhiveeritud':'✓ Õpilane aktiveeritud');
   },[]);
+
+
+  const convertParentToStudent=useCallback(async(parent)=>{
+    if(!isAdmin){notify('⚠ Ainult administraator saab rolli muuta');return;}
+    if(!parent?.id){notify('⚠ Lapsevanema konto puudub');return;}
+    if(!window.confirm(`Muudan "${parent.displayName||parent.email}" rolli: Lapsevanem → Õpilane. Jätkan?`)) return;
+    try{
+      // 1. Muuda roll users dokumendis
+      await db.collection('users').doc(parent.id).update({
+        role:'student',
+        convertedFromParentAt:new Date().toISOString(),
+        convertedFromParentBy:user?.displayName||user?.email||'',
+        previousRole:'parent'
+      });
+      // 2. Loo/leia õpilase kaart selle inimese jaoks
+      const existingStu = students.find(s=>
+        s.active!==false &&
+        !s.convertedToParent &&
+        (normalizeText(s.email)===normalizeText(parent.email) ||
+         normalizeText(s.name)===normalizeText(parent.displayName))
+      );
+      if(!existingStu){
+        await db.collection('students').add({
+          name:parent.displayName||parent.email||'',
+          email:parent.email||'',
+          phone:parent.phone||parent.parentPhone||'',
+          teacher:canonicalTeacherName(parent.preferredTeacher||'Pavel'),
+          level:'A1',
+          targetLevel:'B1',
+          subject:'Eesti keel',
+          active:true,
+          packageTotal:0,
+          packageUsed:0,
+          weeklyLessons:0,
+          contactStatus:'active',
+          contactOwner:user?.displayName||'',
+          contactLastAt:'',
+          contactNotes:'Konverteeritud lapsevanemast',
+          createdAt:today(),
+          convertedFromParentId:parent.id
+        });
+      }
+      await logActivity('parent.converted_to_student','Lapsevanema konto konverteeriti õpilaseks',{
+        parentUid:parent.id,
+        parentName:parent.displayName||'',
+        parentEmail:parent.email||''
+      });
+      notify('✓ Roll muudetud: nüüd on õpilane');
+    }catch(err){
+      console.error('Parent to student conversion failed:',err);
+      notify('⚠ Rolli muutmine ebaõnnestus');
+    }
+  },[isAdmin,students,user,logActivity,notify]);
 
   const convertStudentToParent=useCallback(async(student)=>{
     if(!student?.id){notify('⚠ Õpilase kaart puudub');return;}
@@ -5193,6 +5388,7 @@ function App() {
             createMissingParentStudents={createMissingParentStudents}
             markParentChecked={markParentChecked}
             mergeParentDuplicates={mergeParentDuplicates}
+            convertParentToStudent={convertParentToStudent}
             notify={notify}/>}
 
           {tab==='database'&&isStaff&&<StudentsDatabaseView
