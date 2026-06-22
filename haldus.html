@@ -1147,14 +1147,19 @@ function PlannerCard({row,student,hasTarget,isMissing,statusBg,statusColor,weekT
 function StuSearch({value, onChange, students, placeholder}) {
   const [query, setQuery] = React.useState(value||'');
   const [open, setOpen] = React.useState(false);
+  const [selected, setSelected] = React.useState(!!value);
   const ref = React.useRef(null);
 
-  // Синхронизируем query когда value меняется снаружи
-  React.useEffect(()=>{ setQuery(value||''); },[value]);
+  // Синхронизируем query когда value меняется снаружи (напр. из setBookingFromStudent)
+  React.useEffect(()=>{
+    setQuery(value||'');
+    setSelected(!!value);
+    if(!value) setOpen(false);
+  },[value]);
 
   const matches = React.useMemo(()=>{
-    if(!query.trim()) return students.slice(0,8);
     const q = normalizeText(query);
+    if(!q) return students.slice(0,8);
     return students.filter(s=>
       normalizeText(s.name).includes(q) ||
       normalizeText(s.group||'').includes(q) ||
@@ -1172,25 +1177,48 @@ function StuSearch({value, onChange, students, placeholder}) {
   const select = student => {
     setQuery(student.name);
     onChange(student.name);
+    setSelected(true);
     setOpen(false);
   };
 
   const handleInput = e => {
-    setQuery(e.target.value);
-    onChange(e.target.value);
+    const val = e.target.value;
+    setQuery(val);
+    onChange(val);
+    setSelected(false); // сбрасываем «выбрано» когда пользователь печатает
+    setOpen(true);
+  };
+
+  const handleFocus = () => {
+    // Открываем только если ничего не выбрано или поле пустое
+    if(!selected || !query) setOpen(true);
+  };
+
+  const handleClear = () => {
+    setQuery('');
+    onChange('');
+    setSelected(false);
     setOpen(true);
   };
 
   return(
     <div ref={ref} style={{position:'relative'}}>
-      <input
-        value={query}
-        onChange={handleInput}
-        onFocus={()=>setOpen(true)}
-        placeholder={placeholder||'Otsi õpilast…'}
-        style={{width:'100%'}}
-        autoComplete="off"
-      />
+      <div style={{position:'relative'}}>
+        <input
+          value={query}
+          onChange={handleInput}
+          onFocus={handleFocus}
+          placeholder={placeholder||'Otsi õpilast…'}
+          style={{width:'100%', paddingRight: query ? 28 : undefined}}
+          autoComplete="off"
+        />
+        {query&&(
+          <button onMouseDown={handleClear}
+            style={{position:'absolute',right:8,top:'50%',transform:'translateY(-50%)',
+              background:'none',border:'none',cursor:'pointer',color:'#9ca3af',
+              fontSize:'.8rem',padding:2,lineHeight:1}}>✕</button>
+        )}
+      </div>
       {open && matches.length>0 && (
         <div style={{
           position:'absolute',top:'100%',left:0,right:0,zIndex:90,
