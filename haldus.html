@@ -1147,18 +1147,11 @@ function PlannerCard({row,student,hasTarget,isMissing,statusBg,statusColor,weekT
 function StuSearch({value, onChange, students, placeholder}) {
   const [query, setQuery] = React.useState(value||'');
   const [open, setOpen] = React.useState(false);
-  const [selected, setSelected] = React.useState(!!value);
-  const ref = React.useRef(null);
-  const lastExternalValueRef = React.useRef(value||'');
+  const blurTimer = React.useRef(null);
 
-  // Синхронизируем query когда value меняется снаружи (напр. из setBookingFromStudent)
   React.useEffect(()=>{
-    const nextValue = value||'';
-    if(nextValue === lastExternalValueRef.current) return;
-    lastExternalValueRef.current = nextValue;
-    setQuery(nextValue);
-    setSelected(!!nextValue);
-    if(!nextValue) setOpen(false);
+    setQuery(value||'');
+    if(!value) setOpen(false);
   },[value]);
 
   const matches = React.useMemo(()=>{
@@ -1171,58 +1164,48 @@ function StuSearch({value, onChange, students, placeholder}) {
     ).slice(0,8);
   },[query,students]);
 
-  // Закрываем при клике вне
-  React.useEffect(()=>{
-    const handler = e=>{ if(ref.current && !ref.current.contains(e.target)) setOpen(false); };
-    document.addEventListener('mousedown', handler);
-    return ()=>document.removeEventListener('mousedown', handler);
-  },[]);
-
   const select = student => {
-    lastExternalValueRef.current = student.name||'';
+    clearTimeout(blurTimer.current);
     setQuery(student.name);
     onChange(student.name);
-    setSelected(true);
     setOpen(false);
   };
 
   const handleInput = e => {
-    const val = e.target.value;
-    lastExternalValueRef.current = val;
-    setQuery(val);
-    onChange(val);
-    setSelected(false); // сбрасываем «выбрано» когда пользователь печатает
-    setOpen(!!val);
+    setQuery(e.target.value);
+    onChange(e.target.value);
+    setOpen(true);
   };
 
-  const handleFocus = () => {
-    // Открываем только если ничего не выбрано или поле пустое
-    if(!selected && query) setOpen(true);
+  const handleFocus = () => setOpen(true);
+
+  // Закрываем с задержкой — чтобы клик по крестику или пункту успел сработать
+  const handleBlur = () => {
+    blurTimer.current = setTimeout(()=>setOpen(false), 150);
   };
 
   const handleClear = () => {
-    lastExternalValueRef.current = '';
+    clearTimeout(blurTimer.current);
     setQuery('');
     onChange('');
-    setSelected(false);
-    setOpen(false);
+    setOpen(true);
   };
 
   return(
-    <div ref={ref} style={{position:'relative'}}>
+    <div style={{position:'relative'}}>
       <div style={{position:'relative'}}>
         <input
           value={query}
           onChange={handleInput}
           onFocus={handleFocus}
+          onBlur={handleBlur}
           placeholder={placeholder||'Otsi õpilast…'}
           style={{width:'100%', paddingRight: query ? 28 : undefined}}
           autoComplete="off"
         />
         {query&&(
           <button
-            onClick={e=>{e.preventDefault();handleClear();}}
-            onMouseDown={e=>e.preventDefault()}
+            onClick={handleClear}
             style={{position:'absolute',right:8,top:'50%',transform:'translateY(-50%)',
               background:'none',border:'none',cursor:'pointer',color:'#9ca3af',
               fontSize:'.8rem',padding:2,lineHeight:1}}>✕</button>
