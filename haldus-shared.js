@@ -22,7 +22,7 @@
     {id:'other', label:'Kokkuleppel'}
   ];
   const PAYMENT_DETAILS = {
-    company:'E&P Kooitus OÜ',
+    company:'E&P Koolitus OÜ',
     regCode:'17270880',
     address:'Harju maakond, Saue vald, Laagri alevik, Nõlvaku põik 3b, 76401',
     iban:'EE917700771011885682',
