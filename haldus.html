@@ -2119,7 +2119,11 @@ function StudentsDatabaseView({
   };
   const duplicateGroups = React.useMemo(()=>{
     const grouped = filteredStudents.reduce((acc,student)=>{
-      if(student.active===false || student.convertedToParent) return acc;
+      // Пропускаем архивированных, конвертированных и уже смерженных
+      if(student.active===false) return acc;
+      if(student.convertedToParent) return acc;
+      if(student.mergedIntoStudentId) return acc;
+      if(student.mergedAt && student.mergedIntoStudentName) return acc;
       if(!normalizeText(student.name)) return acc;
       const key = studentProfileKey(student);
       if(!key) return acc;
