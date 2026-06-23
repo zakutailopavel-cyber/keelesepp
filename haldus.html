@@ -5243,6 +5243,7 @@ function App() {
     ...(isStaff?[{id:'tasks',icon:'fa-list-check',label:'Ülesanded',
       badge:scopedTasks.filter(t=>t.status!=='done').length}]:[]),
     ...(isStaff?[{id:'programs',icon:'fa-book-open-reader',label:'Õppekavad'}]:[]),
+    ...(isStaff?[{id:'exercises_link',icon:'fa-pen-line',label:'Harjutused',isExternal:true,href:'/haldus-exercises/'}]:[]),
     {id:'students', icon:'fa-graduation-cap',label:isStaff?'Minu õpilased':'Minu progress',
       badge:isStaff&&homework.filter(h=>h.status==='Ootel'&&myStudents.some(s=>s.id===h.studentId)).length>0?
         homework.filter(h=>h.status==='Ootel'&&myStudents.some(s=>s.id===h.studentId)).length:0},
@@ -5271,11 +5272,19 @@ function App() {
       </div>
       <nav style={{flex:1,display:'flex',flexDirection:'column',gap:2}}>
         {navItems.map(item=>(
-          <button key={item.id} onClick={()=>goTab(item.id)} className={`sidebar-link ${tab===item.id?'active':''}`}>
-            <i className={`fa-solid ${item.icon}`} style={{width:18,textAlign:'center'}}/>
-            <span style={{flex:1}}>{item.label}</span>
-            {item.badge>0&&<span style={{background:tab===item.id?'rgba(255,255,255,.25)':'#C9882A',color:'#fff',borderRadius:999,fontSize:'.7rem',fontWeight:700,padding:'1px 7px'}}>{item.badge}</span>}
-          </button>
+          item.isExternal
+            ? <a key={item.id} href={item.href} target="_blank" rel="noreferrer"
+                className="sidebar-link"
+                style={{textDecoration:'none',display:'flex',alignItems:'center',gap:10}}>
+                <i className={`fa-solid ${item.icon}`} style={{width:18,textAlign:'center'}}/>
+                <span style={{flex:1}}>{item.label}</span>
+                <i className="fa-solid fa-arrow-up-right-from-square" style={{fontSize:'.6rem',opacity:.5}}/>
+              </a>
+            : <button key={item.id} onClick={()=>goTab(item.id)} className={`sidebar-link ${tab===item.id?'active':''}`}>
+                <i className={`fa-solid ${item.icon}`} style={{width:18,textAlign:'center'}}/>
+                <span style={{flex:1}}>{item.label}</span>
+                {item.badge>0&&<span style={{background:tab===item.id?'rgba(255,255,255,.25)':'#C9882A',color:'#fff',borderRadius:999,fontSize:'.7rem',fontWeight:700,padding:'1px 7px'}}>{item.badge}</span>}
+              </button>
         ))}
       </nav>
       <div style={{borderTop:'1px solid rgba(255,255,255,.08)',paddingTop:12,marginTop:8}}>
