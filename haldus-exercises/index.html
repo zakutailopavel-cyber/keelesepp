@@ -3916,7 +3916,11 @@ function App() {
   },[user]);
 
   const notify=msg=>{setNotif(msg);setTimeout(()=>setNotif(''),3500);};
-  const goTab=t=>{setTab(t);setSelStu(null);setMobileNav(false);};
+  const goTab=t=>{
+    const extItem = navItems && navItems.find(i=>i.id===t&&i.isExternal);
+    if(extItem){ window.location.assign(extItem.href); return; }
+    setTab(t);setSelStu(null);setMobileNav(false);
+  };
 
   const isAdmin = user?.role==='admin' || normalizeText(user?.email)==='zakutailo.pavel@gmail.com';
   const isStaff = user?.role==='teacher' || user?.role==='admin';
@@ -5273,11 +5277,12 @@ function App() {
       <nav style={{flex:1,display:'flex',flexDirection:'column',gap:2}}>
         {navItems.map(item=>(
           item.isExternal
-            ? <button key={item.id} onClick={()=>window.location.href=item.href}
+            ? <button key={item.id} onClick={()=>{ window.location.assign(item.href); }}
                 className="sidebar-link"
                 style={{width:'100%'}}>
                 <i className={`fa-solid ${item.icon}`} style={{width:18,textAlign:'center'}}/>
                 <span style={{flex:1}}>{item.label}</span>
+                <i className="fa-solid fa-arrow-up-right-from-square" style={{fontSize:'.6rem',opacity:.4}}/>
               </button>
             : <button key={item.id} onClick={()=>goTab(item.id)} className={`sidebar-link ${tab===item.id?'active':''}`}>
                 <i className={`fa-solid ${item.icon}`} style={{width:18,textAlign:'center'}}/>
