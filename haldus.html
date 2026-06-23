@@ -3141,7 +3141,9 @@ function InvoicesView({invoices,myStudents,invStu,setInvStu,invAmt,setInvAmt,inv
 
 // ── TUNNI MODAL ───────────────────────────────────────────────
 function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
-  lStatus,setLStatus,lComment,setLComment,lDur,setLDur,lessonFile,setLessonFile,saveLesson,deleteLesson,db,user,notify,students,markAttendance}) {
+  lStatus,setLStatus,lComment,setLComment,
+  lNewWords,setLNewWords,lGrammar,setLGrammar,lCovered,setLCovered,lNextNotes,setLNextNotes,
+  lDur,setLDur,lessonFile,setLessonFile,saveLesson,deleteLesson,db,user,notify,students,markAttendance}) {
 
   const [moveDate,setMoveDate] = React.useState(modalEv.occurrenceDate||modalEv.date||new Date().toISOString().split("T")[0]);
   const [moveTime,setMoveTime] = React.useState(modalEv.time||"09:00");
@@ -3522,7 +3524,27 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
               <select value={lDur} onChange={e=>setLDur(e.target.value)}>
                 {LESSON_DURATIONS.map(d=><option key={d} value={d}>{d} minutit</option>)}
               </select>
-              <textarea value={lComment} onChange={e=>setLComment(e.target.value)} placeholder="Õpetaja kommentaar…" rows={3}/>
+              <textarea value={lComment} onChange={e=>setLComment(e.target.value)} placeholder="Õpetaja kommentaar…" rows={2} style={{resize:"vertical"}}/>
+              <label style={{fontSize:".76rem",fontWeight:700,color:"#42536A",display:"flex",flexDirection:"column",gap:4}}>
+                <span>📖 Uued sõnad ja väljendid <span style={{fontWeight:400,color:"#9ca3af"}}>(õpilane näeb)</span></span>
+                <textarea value={lNewWords} onChange={e=>setLNewWords(e.target.value)}
+                  placeholder="nt. sisse elama, kohalik kogukond…" rows={2} style={{resize:"vertical"}}/>
+              </label>
+              <label style={{fontSize:".76rem",fontWeight:700,color:"#42536A",display:"flex",flexDirection:"column",gap:4}}>
+                <span>📐 Grammatika teema <span style={{fontWeight:400,color:"#9ca3af"}}>(õpilane näeb)</span></span>
+                <textarea value={lGrammar} onChange={e=>setLGrammar(e.target.value)}
+                  placeholder="nt. kuhu? vs kus? – suunaverbid…" rows={2} style={{resize:"vertical"}}/>
+              </label>
+              <label style={{fontSize:".76rem",fontWeight:700,color:"#42536A",display:"flex",flexDirection:"column",gap:4}}>
+                <span>✅ Mida tegime tunnis <span style={{fontWeight:400,color:"#9ca3af"}}>(õpilane näeb)</span></span>
+                <textarea value={lCovered} onChange={e=>setLCovered(e.target.value)}
+                  placeholder="nt. Lugusime teksti, arutasime kultuuri teemal…" rows={2} style={{resize:"vertical"}}/>
+              </label>
+              <label style={{fontSize:".76rem",fontWeight:700,color:"#42536A",display:"flex",flexDirection:"column",gap:4}}>
+                <span>🎯 Järgmiseks korraks <span style={{fontWeight:400,color:"#9ca3af"}}>(õpilane näeb)</span></span>
+                <textarea value={lNextNotes} onChange={e=>setLNextNotes(e.target.value)}
+                  placeholder="nt. Kordame sõnavara, lahendame harjutuse 3…" rows={2} style={{resize:"vertical"}}/>
+              </label>
               <label style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,padding:'10px 12px',borderRadius:10,border:'1.5px solid rgba(28,43,58,.15)',background:'#fff',cursor:'pointer',fontSize:'.86rem',color:'#42536A'}}>
                 <span style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
                   <i className="fa-solid fa-paperclip" style={{marginRight:7}}/>
@@ -3817,6 +3839,10 @@ function App() {
   const [lGrade,setLGrade]   = useState('5');
   const [lStatus,setLStatus] = useState('Toimunud');
   const [lComment,setLComment]=useState('');
+  const [lNewWords,setLNewWords] = useState('');
+  const [lGrammar,setLGrammar] = useState('');
+  const [lCovered,setLCovered] = useState('');
+  const [lNextNotes,setLNextNotes] = useState('');
   const [lDur,setLDur]       = useState('60');
   const [lessonFile,setLessonFile] = useState([]);
   // Homework
@@ -4747,6 +4773,7 @@ function App() {
       scheduleTime: modalEv.time||'',
       topic:lTopic,grade:lStatus==='Toimunud'?parseInt(lGrade):0,
       duration:parseInt(lDur),status:lStatus,comment:lComment,
+      newWords:lNewWords||'',grammar:lGrammar||'',covered:lCovered||'',nextNotes:lNextNotes||'',
       date:modalEv.occurrenceDate||modalEv.date||today(),submittedAt:now.toLocaleString('et-EE'),teacher:user.displayName,
       updatedAt: now.toISOString(),
       fileUrl:primaryAttachment?.url||'',
@@ -4834,7 +4861,7 @@ function App() {
       }
     }
 
-    setLTopic('');setLComment('');setLessonFile([]);setModalEv(null);
+    setLTopic('');setLComment('');setLNewWords('');setLGrammar('');setLCovered('');setLNextNotes('');setLessonFile([]);setModalEv(null);
     notify(existingLessonRef?'✓ Aruanne uuendatud!':'✓ Aruanne salvestatud!');
     if(selectedLessonFiles.length){
       const filesToUpload = [...selectedLessonFiles];
@@ -5074,6 +5101,10 @@ function App() {
     setLGrade(String(freshLesson.grade||'5'));
     setLStatus(freshLesson.status||'Toimunud');
     setLComment(freshLesson.comment||'');
+    setLNewWords(freshLesson.newWords||'');
+    setLGrammar(freshLesson.grammar||'');
+    setLCovered(freshLesson.covered||'');
+    setLNextNotes(freshLesson.nextNotes||'');
     setLDur(String(freshLesson.duration||'60'));
     setLessonFile([]);
     setModalEv({
@@ -5449,7 +5480,11 @@ function App() {
       {editStu&&<EditStudentModal student={editStu} onClose={()=>setEditStu(null)} onSave={()=>{setEditStu(null);}} onDelete={()=>{setEditStu(null);setSelStu(null);}} db={db} notify={notify} isAdmin={isAdmin} groupOptions={groupOptions}/>}
       {modalEv&&<LessonModal modalEv={modalEv} setModalEv={setModalEv}
         lTopic={lTopic} setLTopic={setLTopic} lGrade={lGrade} setLGrade={setLGrade}
-        lStatus={lStatus} setLStatus={setLStatus}        lComment={lComment} setLComment={setLComment}
+        lStatus={lStatus} setLStatus={setLStatus} lComment={lComment} setLComment={setLComment}
+        lNewWords={lNewWords} setLNewWords={setLNewWords}
+        lGrammar={lGrammar} setLGrammar={setLGrammar}
+        lCovered={lCovered} setLCovered={setLCovered}
+        lNextNotes={lNextNotes} setLNextNotes={setLNextNotes}
         lDur={lDur} setLDur={setLDur} lessonFile={lessonFile} setLessonFile={setLessonFile}
         saveLesson={saveLesson} deleteLesson={deleteLesson} db={db} user={user} notify={notify}
         students={students} markAttendance={markAttendance}/>}
