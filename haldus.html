@@ -4070,10 +4070,8 @@ function App() {
 
   const currentStu = useMemo(()=>{
     if(selStu){
+      // Берём актуальные данные из Firestore по id
       const resolved = students.find(s=>s.id===selStu.id)||selStu;
-      if(user?.role==='teacher' && !isAdmin){
-        return myStudents.find(s=>s.id===resolved.id) || null;
-      }
       return resolved;
     }
     return user?.role!=='teacher' ? myStudents[0] : null;
