@@ -5273,12 +5273,12 @@ function App() {
       <nav style={{flex:1,display:'flex',flexDirection:'column',gap:2}}>
         {navItems.map(item=>(
           item.isExternal
-            ? <a key={item.id} href={item.href}
+            ? <button key={item.id} onClick={()=>window.location.href=item.href}
                 className="sidebar-link"
-                style={{textDecoration:'none',display:'flex',alignItems:'center',gap:10}}>
+                style={{width:'100%'}}>
                 <i className={`fa-solid ${item.icon}`} style={{width:18,textAlign:'center'}}/>
                 <span style={{flex:1}}>{item.label}</span>
-              </a>
+              </button>
             : <button key={item.id} onClick={()=>goTab(item.id)} className={`sidebar-link ${tab===item.id?'active':''}`}>
                 <i className={`fa-solid ${item.icon}`} style={{width:18,textAlign:'center'}}/>
                 <span style={{flex:1}}>{item.label}</span>
