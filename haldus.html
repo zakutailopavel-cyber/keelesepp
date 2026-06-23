@@ -4163,10 +4163,8 @@ function App() {
     const matches = activeStudents.filter(s=>normalizeText(s.name).includes(query));
     if(!matches.length){notify('⚠ Õpilast ei leitud');return;}
     const chosen = matches.length===1 ? matches[0] : (() => {
-      const list = matches.slice(0,8).map((s,i)=>`${i+1}. ${s.name} (${s.subject||'—'}, ${s.teacher||'—'})`).join('
-');
-      const idx = parseInt(window.prompt(`Leitud ${matches.length} õpilast. Vali number:
-${list}`)||'0') - 1;
+      const list = matches.slice(0,8).map((s,i)=>(i+1)+'. '+s.name+' ('+( s.subject||'—')+', '+(s.teacher||'—')+')').join(', ');
+      const idx = parseInt(window.prompt('Leitud '+matches.length+' õpilast. Vali number ('+list+'):') || '0') - 1;
       return matches[idx] || null;
     })();
     if(!chosen){notify('⚠ Õpilast ei valitud');return;}
