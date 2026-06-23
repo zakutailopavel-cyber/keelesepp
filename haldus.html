@@ -336,6 +336,176 @@ function AuthScreen({onLogin}) {
   );
 }
 
+// ── TUNNI VAATAMISE MODAL (õpilasele/lapsevanemale) ──────────
+function LessonViewModal({lesson, onClose}) {
+  if(!lesson) return null;
+  const bmap = {
+    Toimunud:{bg:'#dcfce7',c:'#166534',t:'✓ Toimunud'},
+    Puudus_p:{bg:'#dbeafe',c:'#1e40af',t:'Puudus (põhjusega)'},
+    Puudus_eta:{bg:'#fee2e2',c:'#991b1b',t:'Puudus'}
+  };
+  const b = bmap[lesson.status] || bmap.Toimunud;
+  const lessonAttachments = Array.isArray(lesson.attachments) && lesson.attachments.length
+    ? lesson.attachments
+    : (lesson.fileUrl ? [{url:lesson.fileUrl, name:lesson.fileName||'Tunni fail'}] : []);
+
+  return(
+    <div style={{position:'fixed',inset:0,background:'rgba(28,43,58,.6)',display:'flex',alignItems:'center',
+      justifyContent:'center',padding:16,zIndex:250,backdropFilter:'blur(4px)'}}
+      onClick={onClose}>
+      <div className="card scroll" onClick={e=>e.stopPropagation()}
+        style={{padding:0,maxWidth:560,width:'100%',maxHeight:'90vh',overflowY:'auto',position:'relative'}}>
+
+        {/* Заголовок */}
+        <div style={{padding:'20px 24px 16px',borderBottom:'1px solid rgba(28,43,58,.08)',
+          display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:12}}>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap',marginBottom:6}}>
+              <span className="badge" style={{background:b.bg,color:b.c}}>{b.t}</span>
+              {lesson.grade>0&&<span className="badge" style={{background:'rgba(201,136,42,.1)',color:'#A96E1A'}}>
+                {'★'.repeat(lesson.grade)}{'☆'.repeat(5-lesson.grade)} {lesson.grade}/5
+              </span>}
+            </div>
+            <h2 style={{fontSize:'1.18rem',marginBottom:4,lineHeight:1.3}}>{lesson.topic||'—'}</h2>
+            <div style={{fontSize:'.82rem',color:'#42536A'}}>
+              {fmtDate(lesson.date)}
+              {lesson.duration&&<> · {lesson.duration} min</>}
+              {lesson.teacher&&<> · Õp. <strong>{lesson.teacher}</strong></>}
+            </div>
+          </div>
+          <button onClick={onClose}
+            style={{background:'rgba(28,43,58,.07)',border:'none',cursor:'pointer',borderRadius:9,
+              width:30,height:30,display:'flex',alignItems:'center',justifyContent:'center',
+              color:'#42536A',flexShrink:0}}>✕</button>
+        </div>
+
+        <div style={{padding:'20px 24px',display:'flex',flexDirection:'column',gap:16}}>
+
+          {/* Kommentaar õpetajalt */}
+          {lesson.comment&&(
+            <div style={{padding:'14px 16px',borderRadius:12,background:'#F9F8F6',border:'1px solid rgba(28,43,58,.08)'}}>
+              <div style={{fontSize:'.72rem',fontWeight:800,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8}}>
+                💬 Õpetaja kommentaar
+              </div>
+              <div style={{fontSize:'.9rem',color:'#1C2B3A',lineHeight:1.55,whiteSpace:'pre-wrap'}}>{lesson.comment}</div>
+            </div>
+          )}
+
+          {/* Новые слова */}
+          {lesson.newWords&&(
+            <div style={{padding:'14px 16px',borderRadius:12,background:'rgba(47,93,80,.05)',border:'1px solid rgba(47,93,80,.15)'}}>
+              <div style={{fontSize:'.72rem',fontWeight:800,color:'#2F5D50',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8}}>
+                📖 Uued sõnad ja väljendid
+              </div>
+              <div style={{fontSize:'.9rem',color:'#1C2B3A',lineHeight:1.6,whiteSpace:'pre-wrap'}}>{lesson.newWords}</div>
+            </div>
+          )}
+
+          {/* Грамматика */}
+          {lesson.grammar&&(
+            <div style={{padding:'14px 16px',borderRadius:12,background:'rgba(201,136,42,.05)',border:'1px solid rgba(201,136,42,.18)'}}>
+              <div style={{fontSize:'.72rem',fontWeight:800,color:'#A96E1A',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8}}>
+                📐 Grammatika
+              </div>
+              <div style={{fontSize:'.9rem',color:'#1C2B3A',lineHeight:1.55,whiteSpace:'pre-wrap'}}>{lesson.grammar}</div>
+            </div>
+          )}
+
+          {/* Что прошли */}
+          {lesson.covered&&(
+            <div style={{padding:'14px 16px',borderRadius:12,background:'rgba(28,43,58,.04)',border:'1px solid rgba(28,43,58,.1)'}}>
+              <div style={{fontSize:'.72rem',fontWeight:800,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8}}>
+                ✅ Mida tegime tunnis
+              </div>
+              <div style={{fontSize:'.9rem',color:'#1C2B3A',lineHeight:1.55,whiteSpace:'pre-wrap'}}>{lesson.covered}</div>
+            </div>
+          )}
+
+          {/* Заметки на следующий раз */}
+          {lesson.nextNotes&&(
+            <div style={{padding:'14px 16px',borderRadius:12,background:'rgba(37,99,235,.05)',border:'1px solid rgba(37,99,235,.15)'}}>
+              <div style={{fontSize:'.72rem',fontWeight:800,color:'#1d4ed8',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8}}>
+                🎯 Järgmiseks korraks
+              </div>
+              <div style={{fontSize:'.9rem',color:'#1C2B3A',lineHeight:1.55,whiteSpace:'pre-wrap'}}>{lesson.nextNotes}</div>
+            </div>
+          )}
+
+          {/* Файлы */}
+          {lessonAttachments.length>0&&(
+            <div>
+              <div style={{fontSize:'.72rem',fontWeight:800,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8}}>
+                📎 Failid
+              </div>
+              <div style={{display:'flex',flexWrap:'wrap',gap:8}}>
+                {lessonAttachments.map((att,idx)=>(
+                  <a key={idx} href={att.url||'#'} target="_blank" rel="noreferrer"
+                    style={{display:'inline-flex',alignItems:'center',gap:7,padding:'8px 12px',borderRadius:10,
+                      background:'#F9F8F6',border:'1px solid rgba(28,43,58,.1)',fontSize:'.82rem',
+                      fontWeight:700,color:'#2F5D50',textDecoration:'none'}}>
+                    <i className="fa-solid fa-paperclip"/> {att.name||'Tunni fail'}
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Пусто */}
+          {!lesson.comment&&!lesson.newWords&&!lesson.grammar&&!lesson.covered&&!lesson.nextNotes&&lessonAttachments.length===0&&(
+            <div style={{textAlign:'center',padding:'20px 0',color:'#42536A',fontSize:'.88rem'}}>
+              Õpetaja pole veel tunni sisu lisanud.
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── VIIMASED TUNNID (klikitav õpilasele, muudetav õpetajale) ─
+function DashboardLessons({visibleLessons, isStaff, openLessonEditor}) {
+  const [viewLesson, setViewLesson] = React.useState(null);
+  return(
+    <>
+      <div className="card" style={{padding:24}}>
+        <h3 style={{marginBottom:16}}>🕐 Viimased tunnid</h3>
+        {visibleLessons.length===0
+          ? <div style={{textAlign:'center',padding:'24px 0',color:'#42536A',fontSize:'.88rem'}}>Tunnid puuduvad.</div>
+          : [...visibleLessons].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,6).map(l=>(
+            <button key={l.id}
+              onClick={()=>isStaff ? (openLessonEditor&&openLessonEditor(l)) : setViewLesson(l)}
+              style={{width:'100%',display:'flex',alignItems:'center',gap:12,padding:'11px 0',
+                border:'none',borderBottom:'1px solid rgba(28,43,58,.06)',background:'transparent',
+                textAlign:'left',cursor:'pointer'}}>
+              <div style={{width:38,height:38,borderRadius:10,flexShrink:0,display:'flex',
+                alignItems:'center',justifyContent:'center',fontWeight:700,
+                background:l.status==='Toimunud'?'rgba(201,136,42,.1)':'rgba(239,68,68,.08)',
+                color:l.status==='Toimunud'?'#C9882A':'#dc2626'}}>
+                {l.status==='Toimunud'?l.grade:'—'}
+              </div>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontWeight:600,fontSize:'.88rem',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{l.topic}</div>
+                <div style={{fontSize:'.75rem',color:'#42536A'}}>{l.studentName} · {fmtDate(l.date)}</div>
+                {/* Подсказка для ученика что есть контент */}
+                {!isStaff&&(l.comment||l.newWords||l.grammar||l.covered)&&(
+                  <div style={{fontSize:'.68rem',color:'#2F5D50',fontWeight:700,marginTop:2}}>
+                    {[l.newWords&&'📖 sõnad',l.grammar&&'📐 grammatika',l.comment&&'💬 kommentaar'].filter(Boolean).join(' · ')}
+                  </div>
+                )}
+              </div>
+              <div style={{display:'flex',alignItems:'center',gap:6,flexShrink:0}}>
+                <div style={{fontSize:'.75rem',color:'#42536A'}}>{l.teacher}</div>
+                {!isStaff&&<i className="fa-solid fa-chevron-right" style={{fontSize:'.6rem',color:'#9ca3af'}}/>}
+              </div>
+            </button>
+          ))
+        }
+      </div>
+      {viewLesson&&<LessonViewModal lesson={viewLesson} onClose={()=>setViewLesson(null)}/>}
+    </>
+  );
+}
+
 // ── DASHBOARD ────────────────────────────────────────────────
 // TÄHTIS: kõik komponendid on App-ist VÄLJAS — see lahendab "iga täht uuendab lehte" probleemi
 function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
@@ -720,27 +890,11 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
         </div>
       )}
 
-      <div className="card" style={{padding:24}}>
-        <h3 style={{marginBottom:16}}>🕐 Viimased tunnid</h3>
-        {visibleLessons.length===0
-          ?<div style={{textAlign:'center',padding:'24px 0',color:'#42536A',fontSize:'.88rem'}}>Tunnid puuduvad.</div>
-          :[...visibleLessons].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,6).map(l=>(
-            <button key={l.id} onClick={()=>isStaff&&openLessonEditor&&openLessonEditor(l)}
-              style={{width:'100%',display:'flex',alignItems:'center',gap:12,padding:'11px 0',border:'none',borderBottom:'1px solid rgba(28,43,58,.06)',background:'transparent',textAlign:'left',cursor:isStaff?'pointer':'default'}}>
-              <div style={{width:38,height:38,borderRadius:10,flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center',
-                fontWeight:700,background:l.status==='Toimunud'?'rgba(201,136,42,.1)':'rgba(239,68,68,.08)',
-                color:l.status==='Toimunud'?'#C9882A':'#dc2626'}}>
-                {l.status==='Toimunud'?l.grade:'—'}
-              </div>
-              <div style={{flex:1,minWidth:0}}>
-                <div style={{fontWeight:600,fontSize:'.88rem',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{l.topic}</div>
-                <div style={{fontSize:'.75rem',color:'#42536A'}}>{l.studentName} · {fmtDate(l.date)}</div>
-              </div>
-              <div style={{fontSize:'.75rem',color:'#42536A',flexShrink:0}}>{l.teacher}</div>
-            </button>
-          ))
-        }
-      </div>
+      <DashboardLessons
+        visibleLessons={visibleLessons}
+        isStaff={isStaff}
+        openLessonEditor={openLessonEditor}
+      />
     </div>
   );
 }
@@ -1049,167 +1203,6 @@ function ActivityLogView({logs,isAdmin}) {
   );
 }
 
-// ── PLANNER CARD (inline norm edit) ─────────────────────────
-function PlannerCard({row,student,hasTarget,isMissing,statusBg,statusColor,weekText,setBookingFromStudent,openStudent,db,notify}) {
-  const [editingNorm, setEditingNorm] = React.useState(false);
-  const [normVal, setNormVal] = React.useState(String(row.target||''));
-  const [saving, setSaving] = React.useState(false);
-
-  const saveNorm = async() => {
-    if(!student?.id) return;
-    setSaving(true);
-    try {
-      await db.collection('students').doc(student.id).update({
-        weeklyLessons: parseInt(normVal)||0
-      });
-      notify && notify('✓ Norm salvestatud');
-    } catch(e) {
-      console.warn('Norm save failed:', e);
-    }
-    setSaving(false);
-    setEditingNorm(false);
-  };
-
-  return(
-    <div style={{border:"1px solid rgba(28,43,58,.09)",borderRadius:12,padding:14,background:"#fff"}}>
-      <div style={{display:"flex",justifyContent:"space-between",gap:10,alignItems:"flex-start"}}>
-        <div>
-          <div style={{fontWeight:800,color:"#1C2B3A"}}>{student.name||'Nimetu'}</div>
-          <div style={{fontSize:".75rem",color:"#42536A",marginTop:3}}>
-            {student.subject||'Aine määramata'} · {student.level||'—'} → {student.targetLevel||'—'}
-          </div>
-          <div style={{fontSize:".72rem",color:"#64748b",marginTop:3}}>
-            {student.group ? `Grupp: ${student.group}` : 'Individuaal / grupp puudub'}
-          </div>
-        </div>
-        <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:4}}>
-          <span style={{padding:"5px 9px",borderRadius:999,background:statusBg,color:statusColor,fontSize:".72rem",fontWeight:800,whiteSpace:"nowrap"}}>
-            {weekText}
-          </span>
-          {/* Inline norm редактор */}
-          {!editingNorm ? (
-            <button
-              onClick={()=>{setNormVal(String(row.target||''));setEditingNorm(true);}}
-              style={{fontSize:".64rem",padding:"2px 7px",borderRadius:999,border:"1px dashed rgba(28,43,58,.2)",background:"transparent",cursor:"pointer",color:"#42536A",whiteSpace:"nowrap"}}
-              title="Muuda nädalanormi">
-              {row.target>0 ? `norm: ${row.target}/näd` : 'sea norm'} ✎
-            </button>
-          ) : (
-            <div style={{display:"flex",gap:4,alignItems:"center"}}>
-              <select
-                value={normVal}
-                onChange={e=>setNormVal(e.target.value)}
-                style={{padding:"3px 6px",borderRadius:7,border:"1px solid rgba(28,43,58,.2)",fontSize:".76rem",width:80}}
-                autoFocus>
-                <option value="0">määramata</option>
-                {[1,2,3,4,5].map(n=><option key={n} value={n}>{n}×/näd</option>)}
-              </select>
-              <button onClick={saveNorm} disabled={saving}
-                style={{padding:"3px 8px",borderRadius:7,border:"none",background:"#2F5D50",color:"#fff",cursor:"pointer",fontSize:".72rem"}}>
-                {saving?'…':'✓'}
-              </button>
-              <button onClick={()=>setEditingNorm(false)}
-                style={{padding:"3px 7px",borderRadius:7,border:"1px solid rgba(28,43,58,.12)",background:"transparent",cursor:"pointer",fontSize:".72rem",color:"#42536A"}}>
-                ✕
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-      <div style={{display:"flex",gap:6,flexWrap:"wrap",marginTop:10}}>
-        {row.lessonsThisWeek.map(ev=>(
-          <span key={`${ev.id}-${ev.date||ev.day}-${ev.time}`} style={{fontSize:".68rem",padding:"4px 7px",borderRadius:999,background:"rgba(28,43,58,.06)",color:"#42536A",fontWeight:700}}>
-            {ev.date ? fmtDate(ev.date) : (DAYS_SHORT[DAYS_ID.indexOf(ev.day)]||ev.day)} · {ev.time}
-          </span>
-        ))}
-        {row.lessonsThisWeek.length===0&&(
-          <span style={{fontSize:".72rem",color:"#991b1b",fontWeight:700}}>Tunde pole lisatud</span>
-        )}
-        {row.canceledThisWeek>0&&(
-          <span style={{fontSize:".68rem",padding:"4px 7px",borderRadius:999,background:"rgba(239,68,68,.08)",color:"#991b1b",fontWeight:700}}>
-            {row.canceledThisWeek} tühistatud
-          </span>
-        )}
-      </div>
-      <div style={{display:"flex",gap:8,marginTop:12}}>
-        <button className="btn btn-pine btn-sm" onClick={()=>setBookingFromStudent(student)} style={{flex:1}}>
-          <i className="fa-solid fa-calendar-plus"/> Lisa tund
-        </button>
-        <button className="btn btn-ghost btn-sm" onClick={()=>openStudent&&openStudent(student)} style={{flex:1}}>
-          Ava kaart
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// ── ÕPILASE OTSING (autocomplete) ────────────────────────────
-function StuSearch({value, onChange, students, placeholder}) {
-  const [query, setQuery] = React.useState('');
-  const [open, setOpen] = React.useState(false);
-  const inputRef = React.useRef(null);
-  const dropRef = React.useRef(null);
-
-  // При изменении value снаружи (setBookingFromStudent) — обновляем query
-  React.useEffect(()=>{ setQuery(value||''); },[value]);
-
-  const matches = React.useMemo(()=>{
-    const sorted = [...students].sort((a,b)=>normalizeText(a.name).localeCompare(normalizeText(b.name),'et'));
-    const q = normalizeText(query);
-    if(!q) return sorted;
-    return sorted.filter(s=>
-      normalizeText(s.name).includes(q) ||
-      normalizeText(s.group||'').includes(q) ||
-      normalizeText(s.subject||'').includes(q)
-    );
-  },[query,students]);
-
-  const pick = student => {
-    setQuery(student.name);
-    onChange(student.name);
-    setOpen(false);
-    inputRef.current && inputRef.current.blur();
-  };
-
-  return(
-    <div style={{position:'relative'}}>
-      <input
-        ref={inputRef}
-        value={query}
-        onChange={e=>{ setQuery(e.target.value); onChange(e.target.value); setOpen(true); }}
-        onFocus={()=>setOpen(true)}
-        onBlur={e=>{
-          // Если клик был внутри дропдауна — не закрываем
-          if(dropRef.current && dropRef.current.contains(e.relatedTarget)) return;
-          setTimeout(()=>setOpen(false), 100);
-        }}
-        placeholder={placeholder||'Otsi õpilast…'}
-        style={{width:'100%'}}
-        autoComplete="off"
-      />
-      {open && matches.length>0 && (
-        <div ref={dropRef} style={{
-          position:'absolute',top:'calc(100% + 4px)',left:0,right:0,zIndex:200,
-          background:'#fff',border:'1px solid rgba(28,43,58,.12)',borderRadius:10,
-          boxShadow:'0 8px 24px rgba(28,43,58,.14)',maxHeight:240,overflowY:'auto'
-        }} className="scroll">
-          {matches.map(s=>(
-            <button key={s.id} tabIndex={0}
-              onMouseDown={e=>{ e.preventDefault(); pick(s); }}
-              style={{width:'100%',textAlign:'left',padding:'10px 14px',border:'none',
-                borderBottom:'1px solid rgba(28,43,58,.05)',background:'transparent',cursor:'pointer'}}>
-              <div style={{fontWeight:700,fontSize:'.86rem',color:'#1C2B3A'}}>{s.name}</div>
-              <div style={{fontSize:'.72rem',color:'#42536A',marginTop:1}}>
-                {[s.subject,s.level&&s.targetLevel?`${s.level} → ${s.targetLevel}`:null,s.group].filter(Boolean).join(' · ')}
-              </div>
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
 // ── TUNNIPLAAN ────────────────────────────────────────────────
 function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilterT,
   schStu,setSchStu,schDate,setSchDate,schTime,setSchTime,schTeach,setSchTeach,
@@ -1220,8 +1213,6 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
   const [plannerSearch,setPlannerSearch] = React.useState('');
   const [plannerFilter,setPlannerFilter] = React.useState('all');
   const canManage = user.role==="teacher" || user.role==="admin";
-  const [plannerNotifMsg,setPlannerNotifMsg] = React.useState('');
-  const plannerNotify = msg => { setPlannerNotifMsg(msg); setTimeout(()=>setPlannerNotifMsg(''),2500); };
 
   // Вычисляем начало недели
   const weekStart = React.useMemo(()=>{
@@ -1430,12 +1421,10 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
             Broneeri uus tund
           </div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(170px,1fr))",gap:10,marginBottom:12}}>
-            <StuSearch
-              value={schStu}
-              onChange={setSchStu}
-              students={myStudents.filter(s=>s.active!==false)}
-              placeholder="Otsi õpilast…"
-            />
+            <select value={schStu} onChange={e=>setSchStu(e.target.value)}>
+              <option value="">Vali õpilane…</option>
+              {myStudents.filter(s=>s.active!==false).map(s=><option key={s.id} value={s.name}>{s.name}</option>)}
+            </select>
             <input type="date" value={schDate} onChange={e=>setSchDate(e.target.value)}/>
             <select value={schTime} onChange={e=>setSchTime(e.target.value)}>
               {TIMES.map(t=><option key={t}>{t}</option>)}
@@ -1552,11 +1541,6 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
         </div>
       </div>
 
-      {plannerNotifMsg&&(
-        <div style={{position:"fixed",bottom:70,left:"50%",transform:"translateX(-50%)",background:"#1C2B3A",color:"#fff",padding:"8px 16px",borderRadius:999,zIndex:200,fontWeight:600,fontSize:".82rem",pointerEvents:"none"}}>
-          {plannerNotifMsg}
-        </div>
-      )}
       {canManage&&(
         <div className="card" style={{padding:20}}>
           <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:14,flexWrap:"wrap",marginBottom:14}}>
@@ -1593,20 +1577,45 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
                   ? `${row.lessonsThisWeek.length}/${row.target} tundi`
                   : `${row.lessonsThisWeek.length} tundi`;
                 return(
-                  <PlannerCard
-                    key={student.id}
-                    row={row}
-                    student={student}
-                    hasTarget={hasTarget}
-                    isMissing={isMissing}
-                    statusBg={statusBg}
-                    statusColor={statusColor}
-                    weekText={weekText}
-                    setBookingFromStudent={setBookingFromStudent}
-                    openStudent={openStudent}
-                    db={db}
-                    notify={plannerNotify}
-                  />
+                  <div key={student.id} style={{border:"1px solid rgba(28,43,58,.09)",borderRadius:12,padding:14,background:"#fff"}}>
+                    <div style={{display:"flex",justifyContent:"space-between",gap:10,alignItems:"flex-start"}}>
+                      <div>
+                        <div style={{fontWeight:800,color:"#1C2B3A"}}>{student.name||'Nimetu'}</div>
+                        <div style={{fontSize:".75rem",color:"#42536A",marginTop:3}}>
+                          {student.subject||'Aine määramata'} · {student.level||'—'} → {student.targetLevel||'—'}
+                        </div>
+                        <div style={{fontSize:".72rem",color:"#64748b",marginTop:3}}>
+                          {student.group ? `Grupp: ${student.group}` : 'Individuaal / grupp puudub'}
+                        </div>
+                      </div>
+                      <span style={{padding:"5px 9px",borderRadius:999,background:statusBg,color:statusColor,fontSize:".72rem",fontWeight:800,whiteSpace:"nowrap"}}>
+                        {weekText}
+                      </span>
+                    </div>
+                    <div style={{display:"flex",gap:6,flexWrap:"wrap",marginTop:10}}>
+                      {row.lessonsThisWeek.map(ev=>(
+                        <span key={`${ev.id}-${ev.date||ev.day}-${ev.time}`} style={{fontSize:".68rem",padding:"4px 7px",borderRadius:999,background:"rgba(28,43,58,.06)",color:"#42536A",fontWeight:700}}>
+                          {ev.date ? fmtDate(ev.date) : (DAYS_SHORT[DAYS_ID.indexOf(ev.day)]||ev.day)} · {ev.time}
+                        </span>
+                      ))}
+                      {row.lessonsThisWeek.length===0&&(
+                        <span style={{fontSize:".72rem",color:"#991b1b",fontWeight:700}}>Tunde pole lisatud</span>
+                      )}
+                      {row.canceledThisWeek>0&&(
+                        <span style={{fontSize:".68rem",padding:"4px 7px",borderRadius:999,background:"rgba(239,68,68,.08)",color:"#991b1b",fontWeight:700}}>
+                          {row.canceledThisWeek} tühistatud
+                        </span>
+                      )}
+                    </div>
+                    <div style={{display:"flex",gap:8,marginTop:12}}>
+                      <button className="btn btn-pine btn-sm" onClick={()=>setBookingFromStudent(student)} style={{flex:1}}>
+                        <i className="fa-solid fa-calendar-plus"/> Lisa tund
+                      </button>
+                      <button className="btn btn-ghost btn-sm" onClick={()=>openStudent&&openStudent(student)} style={{flex:1}}>
+                        Ava kaart
+                      </button>
+                    </div>
+                  </div>
                 );
               })}
             </div>
@@ -2820,7 +2829,11 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
                         {canManage&&<button onClick={()=>deleteLesson(l)} className="btn btn-ghost btn-sm" style={{padding:'4px 8px'}}>Kustuta</button>}
                       </div>
                     </div>
+                    {l.newWords&&<div style={{fontSize:'.76rem',color:'#2F5D50',marginBottom:3,fontWeight:600}}>📖 {l.newWords}</div>}
+                    {l.grammar&&<div style={{fontSize:'.76rem',color:'#A96E1A',marginBottom:3,fontWeight:600}}>📐 {l.grammar}</div>}
+                    {l.covered&&<div style={{fontSize:'.76rem',color:'#42536A',marginBottom:3}}>{l.covered}</div>}
                     {l.comment&&<div style={{fontSize:'.78rem',color:'#42536A',marginBottom:3}}>{l.comment}</div>}
+                    {l.nextNotes&&<div style={{fontSize:'.76rem',color:'#1d4ed8',marginBottom:3,fontWeight:600}}>🎯 {l.nextNotes}</div>}
                     {(()=>{
                       const lessonAttachments = Array.isArray(l.attachments)&&l.attachments.length
                         ? l.attachments
@@ -3127,7 +3140,9 @@ function InvoicesView({invoices,myStudents,invStu,setInvStu,invAmt,setInvAmt,inv
 
 // ── TUNNI MODAL ───────────────────────────────────────────────
 function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
-  lStatus,setLStatus,lComment,setLComment,lDur,setLDur,lessonFile,setLessonFile,saveLesson,deleteLesson,db,user,notify,students,markAttendance}) {
+  lStatus,setLStatus,lComment,setLComment,
+  lNewWords,setLNewWords,lGrammar,setLGrammar,lCovered,setLCovered,lNextNotes,setLNextNotes,
+  lDur,setLDur,lessonFile,setLessonFile,saveLesson,deleteLesson,db,user,notify,students,markAttendance}) {
 
   const [moveDate,setMoveDate] = React.useState(modalEv.occurrenceDate||modalEv.date||new Date().toISOString().split("T")[0]);
   const [moveTime,setMoveTime] = React.useState(modalEv.time||"09:00");
@@ -3508,7 +3523,38 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
               <select value={lDur} onChange={e=>setLDur(e.target.value)}>
                 {LESSON_DURATIONS.map(d=><option key={d} value={d}>{d} minutit</option>)}
               </select>
-              <textarea value={lComment} onChange={e=>setLComment(e.target.value)} placeholder="Õpetaja kommentaar…" rows={3}/>
+              <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                <label style={{fontSize:".76rem",fontWeight:700,color:"#42536A",display:"flex",flexDirection:"column",gap:4}}>
+                  <span>📖 Uued sõnad ja väljendid <span style={{fontWeight:400,color:"#9ca3af"}}>(õpilane näeb)</span></span>
+                  <textarea value={lNewWords} onChange={e=>setLNewWords(e.target.value)}
+                    placeholder="nt. sisse elama, kohaliku kogukond, eelarvamus…" rows={2}
+                    style={{resize:"vertical"}}/>
+                </label>
+                <label style={{fontSize:".76rem",fontWeight:700,color:"#42536A",display:"flex",flexDirection:"column",gap:4}}>
+                  <span>📐 Grammatika teema <span style={{fontWeight:400,color:"#9ca3af"}}>(õpilane näeb)</span></span>
+                  <textarea value={lGrammar} onChange={e=>setLGrammar(e.target.value)}
+                    placeholder="nt. kuhu? vs kus? – suunaverbid, kohalikud käänded…" rows={2}
+                    style={{resize:"vertical"}}/>
+                </label>
+                <label style={{fontSize:".76rem",fontWeight:700,color:"#42536A",display:"flex",flexDirection:"column",gap:4}}>
+                  <span>✅ Mida tegime tunnis <span style={{fontWeight:400,color:"#9ca3af"}}>(õpilane näeb)</span></span>
+                  <textarea value={lCovered} onChange={e=>setLCovered(e.target.value)}
+                    placeholder="nt. Lugusime teksti, arutasime kultuuri teemal, harjutasime dialoogi…" rows={2}
+                    style={{resize:"vertical"}}/>
+                </label>
+                <label style={{fontSize:".76rem",fontWeight:700,color:"#42536A",display:"flex",flexDirection:"column",gap:4}}>
+                  <span>💬 Õpetaja kommentaar <span style={{fontWeight:400,color:"#9ca3af"}}>(õpilane näeb)</span></span>
+                  <textarea value={lComment} onChange={e=>setLComment(e.target.value)}
+                    placeholder="Üldine hinnang tunnile, õpilase progress, märkused…" rows={2}
+                    style={{resize:"vertical"}}/>
+                </label>
+                <label style={{fontSize:".76rem",fontWeight:700,color:"#42536A",display:"flex",flexDirection:"column",gap:4}}>
+                  <span>🎯 Järgmiseks korraks <span style={{fontWeight:400,color:"#9ca3af"}}>(õpilane näeb)</span></span>
+                  <textarea value={lNextNotes} onChange={e=>setLNextNotes(e.target.value)}
+                    placeholder="nt. Kordame sõnavara, lahendame harjutuse 3, vaatame videot…" rows={2}
+                    style={{resize:"vertical"}}/>
+                </label>
+              </div>
               <label style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,padding:'10px 12px',borderRadius:10,border:'1.5px solid rgba(28,43,58,.15)',background:'#fff',cursor:'pointer',fontSize:'.86rem',color:'#42536A'}}>
                 <span style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
                   <i className="fa-solid fa-paperclip" style={{marginRight:7}}/>
@@ -3803,6 +3849,10 @@ function App() {
   const [lGrade,setLGrade]   = useState('5');
   const [lStatus,setLStatus] = useState('Toimunud');
   const [lComment,setLComment]=useState('');
+  const [lNewWords,setLNewWords] = useState('');
+  const [lGrammar,setLGrammar] = useState('');
+  const [lCovered,setLCovered] = useState('');
+  const [lNextNotes,setLNextNotes] = useState('');
   const [lDur,setLDur]       = useState('60');
   const [lessonFile,setLessonFile] = useState([]);
   // Homework
@@ -4021,7 +4071,12 @@ function App() {
     return user?.role!=='teacher' ? myStudents[0] : null;
   },[selStu,students,user,myStudents,isAdmin]);
 
-  // schStu starts empty — user picks via StuSearch
+  useEffect(()=>{
+    if(!isStaff) return;
+    if(schStu) return;
+    const firstActiveStudent = myStudents.find(s=>s.active!==false);
+    if(firstActiveStudent) setSchStu(firstActiveStudent.name);
+  },[isStaff,myStudents,schStu]);
 
   const stuLessons = useMemo(()=>currentStu?lessons.filter(l=>{
     const matchesStudent = l.studentId===currentStu.id || normalizeText(l.studentName)===normalizeText(currentStu.name);
@@ -4692,6 +4747,7 @@ function App() {
       scheduleTime: modalEv.time||'',
       topic:lTopic,grade:lStatus==='Toimunud'?parseInt(lGrade):0,
       duration:parseInt(lDur),status:lStatus,comment:lComment,
+      newWords:lNewWords||'',grammar:lGrammar||'',covered:lCovered||'',nextNotes:lNextNotes||'',
       date:modalEv.occurrenceDate||modalEv.date||today(),submittedAt:now.toLocaleString('et-EE'),teacher:user.displayName,
       updatedAt: now.toISOString(),
       fileUrl:primaryAttachment?.url||'',
@@ -4779,7 +4835,7 @@ function App() {
       }
     }
 
-    setLTopic('');setLComment('');setLessonFile([]);setModalEv(null);
+    setLTopic('');setLComment('');setLNewWords('');setLGrammar('');setLCovered('');setLNextNotes('');setLessonFile([]);setModalEv(null);
     notify(existingLessonRef?'✓ Aruanne uuendatud!':'✓ Aruanne salvestatud!');
     if(selectedLessonFiles.length){
       const filesToUpload = [...selectedLessonFiles];
@@ -5013,6 +5069,10 @@ function App() {
     setLGrade(String(freshLesson.grade||'5'));
     setLStatus(freshLesson.status||'Toimunud');
     setLComment(freshLesson.comment||'');
+    setLNewWords(freshLesson.newWords||'');
+    setLGrammar(freshLesson.grammar||'');
+    setLCovered(freshLesson.covered||'');
+    setLNextNotes(freshLesson.nextNotes||'');
     setLDur(String(freshLesson.duration||'60'));
     setLessonFile([]);
     setModalEv({
@@ -5377,7 +5437,11 @@ function App() {
       {editStu&&<EditStudentModal student={editStu} onClose={()=>setEditStu(null)} onSave={()=>{setEditStu(null);}} onDelete={()=>{setEditStu(null);setSelStu(null);}} db={db} notify={notify} isAdmin={isAdmin} groupOptions={groupOptions}/>}
       {modalEv&&<LessonModal modalEv={modalEv} setModalEv={setModalEv}
         lTopic={lTopic} setLTopic={setLTopic} lGrade={lGrade} setLGrade={setLGrade}
-        lStatus={lStatus} setLStatus={setLStatus}        lComment={lComment} setLComment={setLComment}
+        lStatus={lStatus} setLStatus={setLStatus} lComment={lComment} setLComment={setLComment}
+        lNewWords={lNewWords} setLNewWords={setLNewWords}
+        lGrammar={lGrammar} setLGrammar={setLGrammar}
+        lCovered={lCovered} setLCovered={setLCovered}
+        lNextNotes={lNextNotes} setLNextNotes={setLNextNotes}
         lDur={lDur} setLDur={setLDur} lessonFile={lessonFile} setLessonFile={setLessonFile}
         saveLesson={saveLesson} deleteLesson={deleteLesson} db={db} user={user} notify={notify}
         students={students} markAttendance={markAttendance}/>}
