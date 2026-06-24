@@ -65,7 +65,8 @@ window.__exercisesConfigureBabel = function(){
   .type-badge-order  { background:rgba(47,93,80,.1);  color:#2F5D50; }
   .type-badge-tf     { background:rgba(8,145,178,.1);  color:#0e7490; }
   .type-badge-match  { background:rgba(124,58,237,.1); color:#6d28d9; }
-  .type-badge-insert { background:rgba(180,83,9,.1);   color:#92400e; }
+  .type-badge-insert  { background:rgba(180,83,9,.1);   color:#92400e; }
+  .type-badge-writing { background:rgba(190,24,93,.1);  color:#9d174d; }
   /* Tree nav */
   .tree-nav { width:240px;flex-shrink:0; }
   .tree-item { display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:9px;cursor:pointer;font-size:.84rem;transition:all .14s;user-select:none; }
@@ -102,6 +103,7 @@ const EX_TYPES = {
   truefalse: { label:'Õige/Vale',          icon:'fa-circle-half-stroke', badge:'type-badge-tf',   color:'#0891b2' },
   match:     { label:'Sobita',             icon:'fa-code-compare',  badge:'type-badge-match',     color:'#7c3aed' },
   insert:    { label:'Lisa lause',         icon:'fa-arrow-right-to-bracket', badge:'type-badge-insert', color:'#b45309' },
+  writing:   { label:'Kirjutamine',          icon:'fa-feather',               badge:'type-badge-writing',  color:'#be185d' },
 };
 
 // ── УТИЛИТЫ СОЗДАНИЯ ─────────────────────────────────────────
@@ -543,6 +545,182 @@ function InsertPlayer({exercise, onDone}) {
   );
 }
 
+
+// ── ПЛЕЕР: WRITING ───────────────────────────────────────────
+function WritingPlayer({exercise, onDone}) {
+  const [text, setText]       = useState('');
+  const [feedback, setFeedback] = useState('');
+  const [wordCount, setWordCount] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError]     = useState('');
+  const [done, setDone]       = useState(false);
+
+  const targetWords = exercise.targetWords || 140;
+  const liveCount   = text.trim().split(/\s+/).filter(Boolean).length;
+  const pct         = Math.min(100, Math.round(liveCount / targetWords * 100));
+  const barColor    = pct < 60 ? '#991b1b' : pct < 85 ? '#C9882A' : '#166534';
+
+  const check = async () => {
+    if (liveCount < 20) { setError('Kirjuta vähemalt 20 sõna enne kontrollimist.'); return; }
+    setLoading(true); setError(''); setFeedback('');
+    try {
+      const res = await fetch('/api/check-writing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          studentText: text,
+          task: exercise.task || exercise.title || '',
+          level: exercise.level || 'B2',
+          criteria: exercise.criteria || '',
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Viga');
+      setFeedback(data.feedback);
+      setWordCount(data.wordCount || liveCount);
+      setDone(true);
+      onDone && onDone({ correct: 1, total: 1, wordCount: data.wordCount || liveCount });
+    } catch (e) {
+      setError('Kontrollimine ebaõnnestus: ' + e.message);
+    }
+    setLoading(false);
+  };
+
+  const reset = () => { setText(''); setFeedback(''); setDone(false); setError(''); setWordCount(0); };
+
+  // Render markdown-like feedback (bold, newlines)
+  const renderFeedback = (text) => {
+    return text.split('
+').map((line, i) => {
+      const parts = line.split(/\*\*([^*]+)\*\*/g);
+      return (
+        <div key={i} style={{ marginBottom: line === '' ? 8 : 3 }}>
+          {parts.map((p, j) => j % 2 === 1
+            ? <strong key={j} style={{ color: '#1C2B3A' }}>{p}</strong>
+            : <span key={j}>{p}</span>
+          )}
+        </div>
+      );
+    });
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      {/* Задание */}
+      <div style={{ padding: '12px 14px', borderRadius: 10, background: 'rgba(190,24,93,.05)', border: '1px solid rgba(190,24,93,.15)' }}>
+        <div style={{ fontSize: '.72rem', fontWeight: 700, color: '#9d174d', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 6 }}>Ülesanne</div>
+        <div style={{ fontSize: '.88rem', color: '#1C2B3A', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{exercise.task || exercise.title}</div>
+        {exercise.criteria && (
+          <div style={{ marginTop: 8, fontSize: '.8rem', color: '#42536A', borderTop: '1px solid rgba(190,24,93,.1)', paddingTop: 8 }}>
+            <strong>Kriteeriumid:</strong> {exercise.criteria}
+          </div>
+        )}
+        <div style={{ marginTop: 6, fontSize: '.78rem', color: '#9d174d', fontWeight: 600 }}>
+          Nõutav pikkus: umbes {targetWords} sõna
+        </div>
+      </div>
+
+      {/* Текстовое поле */}
+      {!done && (
+        <>
+          <textarea
+            value={text}
+            onChange={e => setText(e.target.value)}
+            placeholder="Kirjuta oma vastus siia..."
+            rows={10}
+            style={{ fontFamily: 'IBM Plex Sans, sans-serif', fontSize: '.92rem', lineHeight: 1.7, resize: 'vertical' }}
+          />
+          {/* Счётчик слов */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ flex: 1, height: 6, borderRadius: 4, background: 'rgba(28,43,58,.1)', overflow: 'hidden' }}>
+              <div style={{ width: pct + '%', height: '100%', background: barColor, borderRadius: 4, transition: 'width .3s' }} />
+            </div>
+            <span style={{ fontSize: '.8rem', fontWeight: 700, color: barColor, minWidth: 70 }}>
+              {liveCount} / {targetWords} sõna
+            </span>
+          </div>
+          {error && <div style={{ background: '#fee2e2', color: '#991b1b', borderRadius: 9, padding: '9px 12px', fontSize: '.84rem' }}>{error}</div>}
+          <button onClick={check} disabled={loading || liveCount < 20} className="btn btn-pine" style={{ width: '100%', padding: 13 }}>
+            {loading
+              ? <span><i className="fa-solid fa-spinner fa-spin" style={{ marginRight: 8 }} />Claude kontrollib...</span>
+              : <span><i className="fa-solid fa-robot" style={{ marginRight: 8 }} />Kontrolli Claude'iga</span>}
+          </button>
+        </>
+      )}
+
+      {/* Фидбек */}
+      {done && feedback && (
+        <>
+          <div style={{ padding: '14px 16px', borderRadius: 12, background: 'rgba(47,93,80,.05)', border: '1px solid rgba(47,93,80,.2)' }}>
+            <div style={{ fontSize: '.72rem', fontWeight: 700, color: '#2F5D50', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <i className="fa-solid fa-robot" /> Claude'i tagasiside · {wordCount} sõna
+            </div>
+            <div style={{ fontSize: '.88rem', color: '#42536A', lineHeight: 1.7 }}>
+              {renderFeedback(feedback)}
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={reset} className="btn btn-ghost" style={{ flex: 1 }}>Kirjuta uuesti</button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ── РЕДАКТОР: WRITING ─────────────────────────────────────────
+function WritingEditor({value, onChange}) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ fontSize: '.78rem', color: '#42536A', padding: '10px 12px', borderRadius: 9, background: 'rgba(190,24,93,.06)', border: '1px solid rgba(190,24,93,.15)' }}>
+        Õpilane näeb ülesannet, kirjutab teksti ja saab <strong>Claude'ilt automaatse tagasiside</strong> keele, struktuuri ja sisu kohta.
+      </div>
+      <div style={{ fontSize: '.76rem', fontWeight: 700, color: '#42536A', textTransform: 'uppercase', letterSpacing: '.08em' }}>Ülesande tekst *</div>
+      <textarea
+        value={value.task || ''}
+        onChange={e => onChange({ ...value, task: e.target.value })}
+        placeholder={"Kujutage ette, et te ei saanud mingi probleemi tõttu oma tööülesannet täies mahus täita...
+
+Kirjutage seletuskiri, milles:
+• teatage, mis oli teie ülesanne;
+• selgitage, miks..."}
+        rows={6}
+        style={{ resize: 'vertical' }}
+      />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <div>
+          <div style={{ fontSize: '.76rem', fontWeight: 700, color: '#42536A', marginBottom: 6 }}>Nõutav sõnade arv</div>
+          <input
+            type="number"
+            value={value.targetWords || 140}
+            onChange={e => onChange({ ...value, targetWords: Number(e.target.value) })}
+            min={50} max={500} step={10}
+          />
+        </div>
+        <div>
+          <div style={{ fontSize: '.76rem', fontWeight: 700, color: '#42536A', marginBottom: 6 }}>Tekstiliik</div>
+          <select value={value.textType || 'seletuskiri'} onChange={e => onChange({ ...value, textType: e.target.value })}>
+            <option value="seletuskiri">Seletuskiri</option>
+            <option value="meil">Meil / kiri</option>
+            <option value="arutlus">Arutlus</option>
+            <option value="kokkuvõte">Kokkuvõte</option>
+            <option value="arvamus">Arvamusartikkel</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <div style={{ fontSize: '.76rem', fontWeight: 700, color: '#42536A', marginBottom: 6 }}>Lisanduvad hindamiskriteeriumid (valikuline)</div>
+        <textarea
+          value={value.criteria || ''}
+          onChange={e => onChange({ ...value, criteria: e.target.value })}
+          placeholder="nt. Kasuta vähemalt 3 erinevat sidesõna. Tekst peab olema ametlikus stiilis."
+          rows={2}
+        />
+      </div>
+    </div>
+  );
+}
+
 // ── КАРТОЧКА УПРАЖНЕНИЯ (превью + плеер) ──────────────────────
 function ExerciseCard({ex, isTeacher, onEdit, onDelete, onAssign, students}) {
   const [open, setOpen]     = useState(false);
@@ -600,6 +778,7 @@ function ExerciseCard({ex, isTeacher, onEdit, onDelete, onAssign, students}) {
           {ex.type==='truefalse' &&<TrueFalsePlayer exercise={ex} onDone={r=>setResult(r)}/>}
           {ex.type==='match'     &&<MatchPlayer     exercise={ex} onDone={r=>setResult(r)}/>}
           {ex.type==='insert'    &&<InsertPlayer    exercise={ex} onDone={r=>setResult(r)}/>}
+          {ex.type==='writing'   &&<WritingPlayer   exercise={ex} onDone={r=>setResult(r)}/>}
         </div>
       )}
     </div>
@@ -923,6 +1102,7 @@ function ExerciseModal({exercise, onClose, onSave, levels, subjects}) {
             {type==='truefalse' &&<TrueFalseEditor value={data} onChange={setData}/>}
             {type==='match'     &&<MatchEditor     value={data} onChange={setData}/>}
             {type==='insert'    &&<InsertEditor    value={data} onChange={setData}/>}
+            {type==='writing'   &&<WritingEditor   value={data} onChange={setData}/>}
           </div>
           <button onClick={save} disabled={saving} className="btn btn-pine" style={{width:'100%',padding:13,marginTop:4}}>
             {saving?'Salvestab…':'✓ '+(isEdit?'Salvesta muudatused':'Lisa harjutus raamatukogusse')}
