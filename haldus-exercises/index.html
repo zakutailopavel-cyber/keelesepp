@@ -672,11 +672,7 @@ function WritingEditor({value, onChange}) {
       <textarea
         value={value.task || ''}
         onChange={e => onChange({ ...value, task: e.target.value })}
-        placeholder={"Kujutage ette, et te ei saanud mingi probleemi tõttu oma tööülesannet täies mahus täita...
-
-Kirjutage seletuskiri, milles:
-• teatage, mis oli teie ülesanne;
-• selgitage, miks..."}
+        placeholder={"Kujutage ette, et te ei saanud mingi probleemi tõttu oma tööülesannet täies mahus täita...\n\nKirjutage seletuskiri, milles:\n• teatage, mis oli teie ülesanne;\n• selgitage, miks..."}
         rows={6}
         style={{ resize: 'vertical' }}
       />
