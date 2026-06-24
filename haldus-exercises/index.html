@@ -62,7 +62,10 @@ window.__exercisesConfigureBabel = function(){
   .result-wrong { background:#fee2e2; color:#991b1b; border-radius:10px; padding:14px 18px; font-weight:700; }
   .type-badge-fill { background:rgba(37,99,235,.1); color:#1d4ed8; }
   .type-badge-choice { background:rgba(124,58,237,.1); color:#6d28d9; }
-  .type-badge-order { background:rgba(47,93,80,.1); color:#2F5D50; }
+  .type-badge-order  { background:rgba(47,93,80,.1);  color:#2F5D50; }
+  .type-badge-tf     { background:rgba(8,145,178,.1);  color:#0e7490; }
+  .type-badge-match  { background:rgba(124,58,237,.1); color:#6d28d9; }
+  .type-badge-insert { background:rgba(180,83,9,.1);   color:#92400e; }
   /* Tree nav */
   .tree-nav { width:240px;flex-shrink:0; }
   .tree-item { display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:9px;cursor:pointer;font-size:.84rem;transition:all .14s;user-select:none; }
@@ -93,9 +96,12 @@ const normalizeText = t => String(t||'').toLowerCase().trim()
 
 // ── ТИПЫ УПРАЖНЕНИЙ ───────────────────────────────────────────
 const EX_TYPES = {
-  fill:   { label:'Täida lünk',        icon:'fa-pen-line',      badge:'type-badge-fill',   color:'#1d4ed8' },
-  choice: { label:'Vali vastus',        icon:'fa-list-check',    badge:'type-badge-choice', color:'#6d28d9' },
-  order:  { label:'Koosta lause/sõna',  icon:'fa-shuffle',       badge:'type-badge-order',  color:'#2F5D50' },
+  fill:      { label:'Täida lünk',        icon:'fa-pen-line',      badge:'type-badge-fill',      color:'#1d4ed8' },
+  choice:    { label:'Vali vastus',        icon:'fa-list-check',    badge:'type-badge-choice',    color:'#6d28d9' },
+  order:     { label:'Koosta lause/sõna',  icon:'fa-shuffle',       badge:'type-badge-order',     color:'#2F5D50' },
+  truefalse: { label:'Õige/Vale',          icon:'fa-circle-half-stroke', badge:'type-badge-tf',   color:'#0891b2' },
+  match:     { label:'Sobita',             icon:'fa-code-compare',  badge:'type-badge-match',     color:'#7c3aed' },
+  insert:    { label:'Lisa lause',         icon:'fa-arrow-right-to-bracket', badge:'type-badge-insert', color:'#b45309' },
 };
 
 // ── УТИЛИТЫ СОЗДАНИЯ ─────────────────────────────────────────
@@ -332,6 +338,211 @@ function OrderPlayer({exercise, onDone}) {
   );
 }
 
+
+// ── ПЛЕЕР: TRUE/FALSE ─────────────────────────────────────────
+function TrueFalsePlayer({exercise, onDone}) {
+  const statements = exercise.statements||[];
+  const [answers, setAnswers] = useState({});
+  const [checked, setChecked] = useState(false);
+  const [score, setScore] = useState(null);
+
+  const pick = (i, val) => { if(checked) return; setAnswers(prev=>({...prev,[i]:val})); };
+
+  const check = () => {
+    let correct = 0;
+    statements.forEach((s,i)=>{ if(answers[i]===s.correct) correct++; });
+    setScore({correct, total:statements.length});
+    setChecked(true);
+    onDone&&onDone({correct, total:statements.length});
+  };
+
+  const reset = () => { setAnswers({}); setChecked(false); setScore(null); };
+
+  return(
+    <div style={{display:'flex',flexDirection:'column',gap:10}}>
+      {statements.map((s,i)=>{
+        const ans = answers[i];
+        const isRight = checked && ans===s.correct;
+        const isWrong = checked && ans!==undefined && ans!==s.correct;
+        const unanswered = checked && ans===undefined;
+        return(
+          <div key={i} style={{padding:'12px 14px',borderRadius:11,border:'1.5px solid '+(isRight?'#166534':isWrong||unanswered?'#991b1b':'rgba(28,43,58,.1)'),background:isRight?'rgba(22,101,52,.05)':isWrong||unanswered?'rgba(153,27,27,.04)':'#fff'}}>
+            <div style={{fontWeight:500,marginBottom:10,fontSize:'.92rem'}}>{i+1}. {s.text}</div>
+            <div style={{display:'flex',gap:8}}>
+              {[true,false].map(val=>{
+                const isSelected = ans===val;
+                const isCorrectOption = checked && s.correct===val;
+                const isWrongOption   = checked && isSelected && s.correct!==val;
+                return(
+                  <button key={String(val)} onClick={()=>pick(i,val)}
+                    style={{flex:1,padding:'8px',borderRadius:9,border:'1.5px solid '+(isCorrectOption?'#166534':isWrongOption?'#991b1b':isSelected?'#0891b2':'rgba(28,43,58,.12)'),
+                      background:isCorrectOption?'rgba(22,101,52,.1)':isWrongOption?'rgba(153,27,27,.08)':isSelected?'rgba(8,145,178,.1)':'#fff',
+                      cursor:checked?'default':'pointer',fontWeight:isSelected||isCorrectOption?700:500,fontSize:'.84rem',
+                      color:isCorrectOption?'#166534':isWrongOption?'#991b1b':isSelected?'#0e7490':'#42536A'}}>
+                    {val?'✓ Õige':'✗ Vale'}
+                  </button>
+                );
+              })}
+            </div>
+            {checked&&unanswered&&<div style={{fontSize:'.76rem',color:'#991b1b',marginTop:6}}>Vastamata · Õige: {s.correct?'Õige':'Vale'}</div>}
+          </div>
+        );
+      })}
+      {exercise.hint&&!checked&&<div style={{fontSize:'.82rem',color:'#42536A',padding:'8px 12px',background:'rgba(201,136,42,.07)',borderRadius:9}}>💡 {exercise.hint}</div>}
+      {score&&<div className={score.correct===score.total?'result-correct':'result-wrong'}>
+        {score.correct===score.total?'✓ Suurepärane! Kõik '+score.total+' väidet õiged!':score.correct+'/'+score.total+' väidet õiged'}
+      </div>}
+      <div style={{display:'flex',gap:8}}>
+        {!checked
+          ? <button onClick={check} className="btn btn-pine" style={{flex:1}} disabled={Object.keys(answers).length===0}>Kontrolli vastuseid</button>
+          : <button onClick={reset} className="btn btn-ghost" style={{flex:1}}>Proovi uuesti</button>}
+      </div>
+    </div>
+  );
+}
+
+// ── ПЛЕЕР: MATCH ──────────────────────────────────────────────
+function MatchPlayer({exercise, onDone}) {
+  // statements: [{text, target}], targets: [{id, label, content}]
+  const statements = exercise.statements||[];
+  const targets    = exercise.targets||[];
+  const [answers, setAnswers] = useState({});
+  const [checked, setChecked] = useState(false);
+  const [score, setScore]     = useState(null);
+
+  const check = () => {
+    let correct = 0;
+    statements.forEach((s,i)=>{ if(answers[i]===s.target) correct++; });
+    setScore({correct, total:statements.length});
+    setChecked(true);
+    onDone&&onDone({correct, total:statements.length});
+  };
+  const reset = () => { setAnswers({}); setChecked(false); setScore(null); };
+
+  return(
+    <div style={{display:'flex',flexDirection:'column',gap:10}}>
+      {exercise.text&&<div style={{fontSize:'.86rem',color:'#42536A',padding:'12px',borderRadius:10,background:'rgba(28,43,58,.04)',lineHeight:1.6,whiteSpace:'pre-wrap',maxHeight:220,overflowY:'auto'}}>{exercise.text}</div>}
+      <div style={{fontSize:'.74rem',fontWeight:700,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em'}}>Sobita väited tekstilõikudega</div>
+      {statements.map((s,i)=>{
+        const ans = answers[i];
+        const isRight = checked && ans===s.target;
+        const isWrong = checked && ans!==undefined && ans!==s.target;
+        return(
+          <div key={i} style={{display:'flex',gap:10,alignItems:'center',padding:'10px 12px',borderRadius:10,border:'1.5px solid '+(isRight?'#166534':isWrong?'#991b1b':'rgba(28,43,58,.1)'),background:isRight?'rgba(22,101,52,.04)':isWrong?'rgba(153,27,27,.04)':'#fff'}}>
+            <div style={{flex:1,fontSize:'.88rem'}}>{i+1}. {s.text}</div>
+            <div style={{display:'flex',alignItems:'center',gap:6}}>
+              <select value={ans||''} onChange={e=>{ if(!checked) setAnswers(p=>({...p,[i]:e.target.value})); }}
+                style={{padding:'6px 10px',borderRadius:8,border:'1.5px solid '+(isRight?'#166534':isWrong?'#991b1b':'rgba(28,43,58,.15)'),fontSize:'.84rem',background:'#fff',cursor:checked?'default':'pointer'}}>
+                <option value="">—</option>
+                {targets.map(t=><option key={t.id} value={t.id}>{t.id}</option>)}
+              </select>
+              {checked&&isWrong&&<span style={{fontSize:'.76rem',color:'#166534',fontWeight:700}}>→{s.target}</span>}
+            </div>
+          </div>
+        );
+      })}
+      {score&&<div className={score.correct===score.total?'result-correct':'result-wrong'}>
+        {score.correct===score.total?'✓ Suurepärane! Kõik sobitused õiged!':score.correct+'/'+score.total+' sobitust õiged'}
+      </div>}
+      <div style={{display:'flex',gap:8}}>
+        {!checked
+          ? <button onClick={check} className="btn btn-pine" style={{flex:1}} disabled={Object.keys(answers).length===0}>Kontrolli vastuseid</button>
+          : <button onClick={reset} className="btn btn-ghost" style={{flex:1}}>Proovi uuesti</button>}
+      </div>
+    </div>
+  );
+}
+
+// ── ПЛЕЕР: INSERT ─────────────────────────────────────────────
+// Текст с [N] — места для вставки. options = [{id:'A',text:'...'}, ...]  one extra
+function InsertPlayer({exercise, onDone}) {
+  const options    = exercise.options||[];
+  const answers_correct = exercise.answers||{}; // {1:'A', 2:'C', ...}
+  const slots      = Object.keys(answers_correct).map(Number).sort((a,b)=>a-b);
+  const [answers, setAnswers] = useState({});
+  const [checked, setChecked] = useState(false);
+  const [score, setScore]     = useState(null);
+
+  // Parse text: replace [N] with slot markers
+  const textParts = useMemo(()=>{
+    const raw = exercise.text||'';
+    const parts = [];
+    let last = 0;
+    const re = /\[(\d+)\]/g;
+    let m;
+    while((m=re.exec(raw))!==null){
+      if(m.index>last) parts.push({type:'text',value:raw.slice(last,m.index)});
+      parts.push({type:'slot',num:Number(m[1])});
+      last = m.index+m[0].length;
+    }
+    if(last<raw.length) parts.push({type:'text',value:raw.slice(last)});
+    return parts;
+  },[exercise.text]);
+
+  const usedOptions = Object.values(answers);
+
+  const check = () => {
+    let correct = 0;
+    slots.forEach(n=>{ if(answers[n]===answers_correct[n]) correct++; });
+    setScore({correct, total:slots.length});
+    setChecked(true);
+    onDone&&onDone({correct, total:slots.length});
+  };
+  const reset = () => { setAnswers({}); setChecked(false); setScore(null); };
+
+  return(
+    <div style={{display:'flex',flexDirection:'column',gap:14}}>
+      {/* Text with inline slot dropdowns */}
+      <div style={{fontSize:'1rem',lineHeight:2,fontFamily:'IBM Plex Sans,sans-serif'}}>
+        {textParts.map((p,i)=>{
+          if(p.type==='text') return <span key={i}>{p.value}</span>;
+          const n = p.num;
+          const ans = answers[n];
+          const isRight = checked && ans===answers_correct[n];
+          const isWrong = checked && ans!==answers_correct[n];
+          return(
+            <span key={i} style={{display:'inline-flex',alignItems:'center',gap:4,verticalAlign:'middle'}}>
+              <span style={{fontSize:'.72rem',fontWeight:700,color:'#9ca3af',marginRight:2}}>{n}.</span>
+              <select value={ans||''} onChange={e=>{ if(!checked) setAnswers(p=>({...p,[n]:e.target.value})); }}
+                style={{padding:'3px 8px',borderRadius:8,border:'2px solid '+(isRight?'#166534':isWrong?'#991b1b':'#C9882A'),
+                  fontSize:'.84rem',background:isRight?'rgba(22,101,52,.08)':isWrong?'rgba(153,27,27,.06)':'#fff',cursor:checked?'default':'pointer',fontWeight:600}}>
+                <option value="">—</option>
+                {options.map(o=><option key={o.id} value={o.id} disabled={checked?false:usedOptions.includes(o.id)&&answers[n]!==o.id}>{o.id}</option>)}
+              </select>
+              {isWrong&&checked&&<span style={{fontSize:'.72rem',color:'#166534',fontWeight:700}}>→{answers_correct[n]}</span>}
+            </span>
+          );
+        })}
+      </div>
+      {/* Options panel */}
+      <div style={{background:'rgba(28,43,58,.03)',borderRadius:12,padding:'12px 14px'}}>
+        <div style={{fontSize:'.72rem',fontWeight:700,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:10}}>Laused (üks jääb üle)</div>
+        <div style={{display:'flex',flexDirection:'column',gap:8}}>
+          {options.map(o=>{
+            const used = usedOptions.includes(o.id);
+            const isCorrectAns = checked && Object.values(answers_correct).includes(o.id);
+            return(
+              <div key={o.id} style={{display:'flex',gap:8,padding:'8px 10px',borderRadius:9,border:'1px solid rgba(28,43,58,.08)',background:used&&!checked?'rgba(201,136,42,.06)':'#fff',opacity:used&&!checked?.7:1}}>
+                <span style={{fontWeight:800,color:'#C9882A',minWidth:20,fontSize:'.84rem'}}>{o.id}</span>
+                <span style={{fontSize:'.86rem',color:'#1C2B3A'}}>{o.text}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      {exercise.hint&&!checked&&<div style={{fontSize:'.82rem',color:'#42536A',padding:'8px 12px',background:'rgba(201,136,42,.07)',borderRadius:9}}>💡 {exercise.hint}</div>}
+      {score&&<div className={score.correct===score.total?'result-correct':'result-wrong'}>
+        {score.correct===score.total?'✓ Suurepärane! Kõik laused õigetes kohtades!':score.correct+'/'+score.total+' lauset õigesti paigutatud'}
+      </div>}
+      <div style={{display:'flex',gap:8}}>
+        {!checked
+          ? <button onClick={check} className="btn btn-pine" style={{flex:1}} disabled={Object.keys(answers).length===0}>Kontrolli vastuseid</button>
+          : <button onClick={reset} className="btn btn-ghost" style={{flex:1}}>Proovi uuesti</button>}
+      </div>
+    </div>
+  );
+}
+
 // ── КАРТОЧКА УПРАЖНЕНИЯ (превью + плеер) ──────────────────────
 function ExerciseCard({ex, isTeacher, onEdit, onDelete, onAssign, students}) {
   const [open, setOpen]     = useState(false);
@@ -383,9 +594,12 @@ function ExerciseCard({ex, isTeacher, onEdit, onDelete, onAssign, students}) {
           {result&&<div style={{marginBottom:12,padding:'8px 12px',borderRadius:9,background:'rgba(47,93,80,.07)',fontSize:'.82rem',color:'#2F5D50',fontWeight:600}}>
             Viimane tulemus: {result.correct}/{result.total}
           </div>}
-          {ex.type==='fill'  &&<FillPlayer   exercise={ex} onDone={r=>setResult(r)}/>}
-          {ex.type==='choice'&&<ChoicePlayer exercise={ex} onDone={r=>setResult(r)}/>}
-          {ex.type==='order' &&<OrderPlayer  exercise={ex} onDone={r=>setResult(r)}/>}
+          {ex.type==='fill'      &&<FillPlayer      exercise={ex} onDone={r=>setResult(r)}/>}
+          {ex.type==='choice'    &&<ChoicePlayer    exercise={ex} onDone={r=>setResult(r)}/>}
+          {ex.type==='order'     &&<OrderPlayer     exercise={ex} onDone={r=>setResult(r)}/>}
+          {ex.type==='truefalse' &&<TrueFalsePlayer exercise={ex} onDone={r=>setResult(r)}/>}
+          {ex.type==='match'     &&<MatchPlayer     exercise={ex} onDone={r=>setResult(r)}/>}
+          {ex.type==='insert'    &&<InsertPlayer    exercise={ex} onDone={r=>setResult(r)}/>}
         </div>
       )}
     </div>
@@ -485,6 +699,161 @@ function OrderEditor({value, onChange}) {
   );
 }
 
+
+// ── РЕДАКТОР: TRUE/FALSE ──────────────────────────────────────
+function TrueFalseEditor({value, onChange}) {
+  const statements = value.statements||[{text:'',correct:true}];
+  const update = (i, patch) => onChange({...value, statements: statements.map((s,si)=>si===i?{...s,...patch}:s)});
+  const addS   = () => onChange({...value, statements:[...statements,{text:'',correct:true}]});
+  const delS   = (i) => onChange({...value, statements:statements.filter((_,si)=>si!==i)});
+
+  return(
+    <div style={{display:'flex',flexDirection:'column',gap:10}}>
+      <div style={{fontSize:'.78rem',color:'#42536A',padding:'10px 12px',borderRadius:9,background:'rgba(8,145,178,.06)',border:'1px solid rgba(8,145,178,.15)'}}>
+        Kirjuta väited ja märgi, kas need on <strong>õige</strong> (✓) või <strong>vale</strong> (✗).
+      </div>
+      {statements.map((s,i)=>(
+        <div key={i} style={{display:'flex',gap:8,alignItems:'center',padding:'10px 12px',borderRadius:10,border:'1px solid rgba(28,43,58,.1)',background:'#F9F8F6'}}>
+          <span style={{fontSize:'.78rem',fontWeight:700,color:'#42536A',minWidth:18}}>{i+1}.</span>
+          <input value={s.text} onChange={e=>update(i,{text:e.target.value})} placeholder={'Väide '+(i+1)} style={{flex:1,margin:0}}/>
+          <div style={{display:'flex',gap:4,flexShrink:0}}>
+            <button onClick={()=>update(i,{correct:true})}
+              style={{padding:'5px 12px',borderRadius:8,border:'1.5px solid '+(s.correct?'#166534':'rgba(28,43,58,.12)'),background:s.correct?'rgba(22,101,52,.1)':'#fff',cursor:'pointer',fontWeight:s.correct?700:400,fontSize:'.8rem',color:s.correct?'#166534':'#42536A'}}>
+              ✓ Õige
+            </button>
+            <button onClick={()=>update(i,{correct:false})}
+              style={{padding:'5px 12px',borderRadius:8,border:'1.5px solid '+(!s.correct?'#991b1b':'rgba(28,43,58,.12)'),background:!s.correct?'rgba(153,27,27,.08)':'#fff',cursor:'pointer',fontWeight:!s.correct?700:400,fontSize:'.8rem',color:!s.correct?'#991b1b':'#42536A'}}>
+              ✗ Vale
+            </button>
+          </div>
+          {statements.length>1&&<button onClick={()=>delS(i)} className="btn btn-ghost btn-sm" style={{color:'#991b1b',padding:'4px 8px'}}>✕</button>}
+        </div>
+      ))}
+      <input value={value.hint||''} onChange={e=>onChange({...value,hint:e.target.value})} placeholder="Vihje õpilasele (valikuline)"/>
+      <button onClick={addS} className="btn btn-ghost btn-sm" style={{alignSelf:'flex-start'}}>
+        <i className="fa-solid fa-plus"/> Lisa väide
+      </button>
+    </div>
+  );
+}
+
+// ── РЕДАКТОР: MATCH ───────────────────────────────────────────
+function MatchEditor({value, onChange}) {
+  // statements: [{text, target}], targets: [{id, label, content}]
+  const statements = value.statements||[{text:'',target:'A'}];
+  const targets    = value.targets||[{id:'A',content:''},{id:'B',content:''},{id:'C',content:''}];
+
+  const updateStmt = (i,patch) => onChange({...value, statements:statements.map((s,si)=>si===i?{...s,...patch}:s)});
+  const updateTgt  = (i,patch) => onChange({...value, targets:targets.map((t,ti)=>ti===i?{...t,...patch}:t)});
+  const addStmt    = () => onChange({...value, statements:[...statements,{text:'',target:targets[0]?.id||'A'}]});
+  const delStmt    = (i) => onChange({...value, statements:statements.filter((_,si)=>si!==i)});
+  const addTgt     = () => {
+    const ids='ABCDEFGHIJK';
+    const next = ids[targets.length]||String(targets.length+1);
+    onChange({...value, targets:[...targets,{id:next,content:''}]});
+  };
+  const delTgt = (i) => onChange({...value, targets:targets.filter((_,ti)=>ti!==i)});
+
+  return(
+    <div style={{display:'flex',flexDirection:'column',gap:14}}>
+      <div style={{fontSize:'.78rem',color:'#42536A',padding:'10px 12px',borderRadius:9,background:'rgba(124,58,237,.06)',border:'1px solid rgba(124,58,237,.15)'}}>
+        <strong>Tekstilõigud (A, B, C...):</strong> lisa lõigud, millega väited sobitada. <br/>
+        <strong>Väited:</strong> kirjuta väide ja vali õige tekstilõik.
+      </div>
+
+      <div>
+        <div style={{fontSize:'.76rem',fontWeight:700,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8}}>Tekstilõigud</div>
+        {targets.map((t,i)=>(
+          <div key={i} style={{display:'flex',gap:8,alignItems:'flex-start',marginBottom:8}}>
+            <span style={{fontWeight:800,color:'#7c3aed',minWidth:22,paddingTop:10,fontSize:'.86rem'}}>{t.id}</span>
+            <textarea value={t.content} onChange={e=>updateTgt(i,{content:e.target.value})} placeholder={'Tekstilõik '+t.id} rows={2} style={{flex:1,resize:'vertical'}}/>
+            {targets.length>2&&<button onClick={()=>delTgt(i)} className="btn btn-ghost btn-sm" style={{color:'#991b1b',marginTop:4}}>✕</button>}
+          </div>
+        ))}
+        <button onClick={addTgt} className="btn btn-ghost btn-sm" style={{alignSelf:'flex-start'}}>
+          <i className="fa-solid fa-plus"/> Lisa tekstilõik
+        </button>
+      </div>
+
+      <div>
+        <div style={{fontSize:'.76rem',fontWeight:700,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8}}>Väited</div>
+        {statements.map((s,i)=>(
+          <div key={i} style={{display:'flex',gap:8,alignItems:'center',marginBottom:8}}>
+            <span style={{fontSize:'.78rem',fontWeight:700,color:'#42536A',minWidth:18}}>{i+1}.</span>
+            <input value={s.text} onChange={e=>updateStmt(i,{text:e.target.value})} placeholder={'Väide '+(i+1)} style={{flex:1,margin:0}}/>
+            <select value={s.target} onChange={e=>updateStmt(i,{target:e.target.value})} style={{width:70,margin:0}}>
+              {targets.map(t=><option key={t.id} value={t.id}>{t.id}</option>)}
+            </select>
+            {statements.length>1&&<button onClick={()=>delStmt(i)} className="btn btn-ghost btn-sm" style={{color:'#991b1b',padding:'4px 8px'}}>✕</button>}
+          </div>
+        ))}
+        <button onClick={addStmt} className="btn btn-ghost btn-sm">
+          <i className="fa-solid fa-plus"/> Lisa väide
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── РЕДАКТОР: INSERT ──────────────────────────────────────────
+// text contains [1] [2] ... as slot markers; options are A,B,C... (one extra); answers = {1:'C',2:'A',...}
+function InsertEditor({value, onChange}) {
+  const options = value.options||[{id:'A',text:''},{id:'B',text:''},{id:'C',text:''}];
+  const answers = value.answers||{};
+
+  const updateOpt   = (i,patch) => onChange({...value, options:options.map((o,oi)=>oi===i?{...o,...patch}:o)});
+  const addOpt      = () => {
+    const ids='ABCDEFGHIJK';
+    const next=ids[options.length]||String(options.length+1);
+    onChange({...value, options:[...options,{id:next,text:''}]});
+  };
+  const delOpt      = (i) => onChange({...value, options:options.filter((_,oi)=>oi!==i)});
+  const updateAns   = (slot,val) => onChange({...value, answers:{...answers,[slot]:val}});
+
+  // Detect slots in text
+  const rawText = value.text||'';
+  const slots = [...new Set([...rawText.matchAll(/\[(\d+)\]/g)].map(m=>Number(m[1])))].sort((a,b)=>a-b);
+
+  return(
+    <div style={{display:'flex',flexDirection:'column',gap:14}}>
+      <div style={{fontSize:'.78rem',color:'#42536A',padding:'10px 12px',borderRadius:9,background:'rgba(180,83,9,.06)',border:'1px solid rgba(180,83,9,.15)'}}>
+        Kirjuta tekst lünkadega <code>[1]</code>, <code>[2]</code>... Seejärel lisa lausevalikud (A, B, C...) ja märgi õige vastus igale lüngale. <strong>Üks lause jääb üle.</strong>
+      </div>
+      <textarea value={rawText} onChange={e=>onChange({...value,text:e.target.value})}
+        placeholder={"Tekst lünkadega: ...esimene lause. (0) X Järgmine lõik. [1] Niisiis..."}
+        rows={5} style={{fontFamily:'monospace',fontSize:'.86rem'}}/>
+
+      <div>
+        <div style={{fontSize:'.76rem',fontWeight:700,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8}}>Lausevalikud (üks jääb üle)</div>
+        {options.map((o,i)=>(
+          <div key={i} style={{display:'flex',gap:8,alignItems:'center',marginBottom:8}}>
+            <span style={{fontWeight:800,color:'#b45309',minWidth:22,fontSize:'.86rem'}}>{o.id}</span>
+            <input value={o.text} onChange={e=>updateOpt(i,{text:e.target.value})} placeholder={'Lause '+o.id} style={{flex:1,margin:0}}/>
+            {options.length>2&&<button onClick={()=>delOpt(i)} className="btn btn-ghost btn-sm" style={{color:'#991b1b',padding:'4px 8px'}}>✕</button>}
+          </div>
+        ))}
+        <button onClick={addOpt} className="btn btn-ghost btn-sm"><i className="fa-solid fa-plus"/> Lisa valik</button>
+      </div>
+
+      {slots.length>0&&(
+        <div>
+          <div style={{fontSize:'.76rem',fontWeight:700,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8}}>Õiged vastused lünkadele</div>
+          {slots.map(n=>(
+            <div key={n} style={{display:'flex',gap:10,alignItems:'center',marginBottom:8}}>
+              <span style={{fontSize:'.84rem',fontWeight:700,color:'#b45309',minWidth:32}}>Lünk {n}:</span>
+              <select value={answers[n]||''} onChange={e=>updateAns(n,e.target.value)} style={{width:90,margin:0}}>
+                <option value="">—</option>
+                {options.map(o=><option key={o.id} value={o.id}>{o.id}</option>)}
+              </select>
+            </div>
+          ))}
+        </div>
+      )}
+      <input value={value.hint||''} onChange={e=>onChange({...value,hint:e.target.value})} placeholder="Vihje (valikuline)"/>
+    </div>
+  );
+}
+
 // ── МОДАЛКА СОЗДАНИЯ/РЕДАКТИРОВАНИЯ ──────────────────────────
 function ExerciseModal({exercise, onClose, onSave, levels, subjects}) {
   const isEdit = !!exercise?.id;
@@ -548,9 +917,12 @@ function ExerciseModal({exercise, onClose, onSave, levels, subjects}) {
           {/* Редактор по типу */}
           <div style={{borderTop:'1px solid rgba(28,43,58,.07)',paddingTop:14}}>
             <div style={{fontSize:'.76rem',fontWeight:700,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:12}}>Harjutuse sisu</div>
-            {type==='fill'  &&<FillEditor   value={data} onChange={setData}/>}
-            {type==='choice'&&<ChoiceEditor value={data} onChange={setData}/>}
-            {type==='order' &&<OrderEditor  value={data} onChange={setData}/>}
+            {type==='fill'      &&<FillEditor      value={data} onChange={setData}/>}
+            {type==='choice'    &&<ChoiceEditor    value={data} onChange={setData}/>}
+            {type==='order'     &&<OrderEditor     value={data} onChange={setData}/>}
+            {type==='truefalse' &&<TrueFalseEditor value={data} onChange={setData}/>}
+            {type==='match'     &&<MatchEditor     value={data} onChange={setData}/>}
+            {type==='insert'    &&<InsertEditor    value={data} onChange={setData}/>}
           </div>
           <button onClick={save} disabled={saving} className="btn btn-pine" style={{width:'100%',padding:13,marginTop:4}}>
             {saving?'Salvestab…':'✓ '+(isEdit?'Salvesta muudatused':'Lisa harjutus raamatukogusse')}
