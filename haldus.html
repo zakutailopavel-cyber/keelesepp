@@ -2772,6 +2772,13 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
                   })()}
                 </div>
                 <div style={{display:'flex',alignItems:'center',gap:6,flexWrap:'wrap',justifyContent:'flex-end'}}>
+                  {hw.isExercise&&hw.exerciseId&&(
+  <a href={'/haldus-exercises?exercise='+hw.exerciseId}
+    className="btn btn-pine btn-sm"
+    style={{textDecoration:'none',display:'inline-flex',alignItems:'center',gap:5}}>
+    <i className="fa-solid fa-play" style={{fontSize:'.7rem'}}/> Ava ülesanne
+  </a>
+)}
                   <button onClick={()=>toggleHw(hw.id,hw.status)} className="badge" style={{cursor:'pointer',border:'none',flexShrink:0,
                     background:hw.status==='Tehtud'?'#dcfce7':'#fef3c7',color:hw.status==='Tehtud'?'#166534':'#92400e'}}>
                     {hw.status==='Tehtud'?'✓ Tehtud':'Ootel'}
