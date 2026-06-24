@@ -63,6 +63,16 @@ window.__exercisesConfigureBabel = function(){
   .type-badge-fill { background:rgba(37,99,235,.1); color:#1d4ed8; }
   .type-badge-choice { background:rgba(124,58,237,.1); color:#6d28d9; }
   .type-badge-order { background:rgba(47,93,80,.1); color:#2F5D50; }
+  /* Tree nav */
+  .tree-nav { width:240px;flex-shrink:0; }
+  .tree-item { display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:9px;cursor:pointer;font-size:.84rem;transition:all .14s;user-select:none; }
+  .tree-item:hover { background:rgba(28,43,58,.06); }
+  .tree-item.active { background:rgba(201,136,42,.12);color:#A96E1A;font-weight:700; }
+  .tree-item.subject { font-weight:700;font-size:.88rem;color:#1C2B3A; }
+  .tree-item.level { padding-left:22px;color:#42536A; }
+  .tree-item.topic { padding-left:38px;color:#42536A; }
+  .tree-count { margin-left:auto;background:rgba(28,43,58,.08);color:#42536A;border-radius:20px;padding:1px 7px;font-size:.72rem;font-weight:600; }
+  @media(max-width:860px){ .tree-nav{width:100%;border-right:none!important;border-bottom:1px solid rgba(28,43,58,.08);} .library-layout{flex-direction:column!important;} }
 </style>
 </head>
 <body>
@@ -338,6 +348,7 @@ function ExerciseCard({ex, isTeacher, onEdit, onDelete, onAssign, students}) {
             </span>
             {ex.level&&<span className="badge" style={{background:'rgba(201,136,42,.1)',color:'#A96E1A'}}>{ex.level}</span>}
             {ex.subject&&<span className="badge" style={{background:'rgba(28,43,58,.06)',color:'#42536A'}}>{ex.subject}</span>}
+            {ex.topic&&<span className="badge" style={{background:'rgba(47,93,80,.08)',color:'#2F5D50'}}><i className="fa-solid fa-folder" style={{fontSize:'.65rem',marginRight:3}}/>{ex.topic}</span>}
           </div>
           <h3 style={{fontSize:'1rem',marginBottom:4}}>{ex.title||'Pealkirjata harjutus'}</h3>
           <div style={{fontSize:'.78rem',color:'#42536A'}}>
@@ -481,6 +492,7 @@ function ExerciseModal({exercise, onClose, onSave, levels, subjects}) {
   const [title, setTitle]     = useState(exercise?.title||'');
   const [level, setLevel]     = useState(exercise?.level||'');
   const [subject, setSubject] = useState(exercise?.subject||'Eesti keel');
+  const [topic, setTopic]     = useState(exercise?.topic||'');
   const [tags, setTags]       = useState((exercise?.tags||[]).join(', '));
   const [data, setData]       = useState(exercise||{});
   const [saving, setSaving]   = useState(false);
@@ -489,7 +501,7 @@ function ExerciseModal({exercise, onClose, onSave, levels, subjects}) {
     if(!title.trim()){alert('Sisesta pealkiri');return;}
     setSaving(true);
     await onSave({
-      type, title: title.trim(), level, subject,
+      type, title: title.trim(), level, subject, topic: topic.trim(),
       tags: tags.split(',').map(t=>t.trim()).filter(Boolean),
       ...data,
       updatedAt: new Date().toISOString()
@@ -531,6 +543,7 @@ function ExerciseModal({exercise, onClose, onSave, levels, subjects}) {
               {(subjects||['Eesti keel','Vene keel','Inglise keel','Matemaatika']).map(s=><option key={s}>{s}</option>)}
             </select>
           </div>
+          <input value={topic} onChange={e=>setTopic(e.target.value)} placeholder="Teema: Tutvumine, Numbrid, Verbid... (valikuline)"/>
           <input value={tags} onChange={e=>setTags(e.target.value)} placeholder="Sildid: verbid, olevik, A2 (komaga eraldatud)"/>
           {/* Редактор по типу */}
           <div style={{borderTop:'1px solid rgba(28,43,58,.07)',paddingTop:14}}>
@@ -659,6 +672,88 @@ function LoginScreen({onLogin}) {
   );
 }
 
+// ── ДЕРЕВО НАВИГАЦИИ ─────────────────────────────────────────
+function TreeNav({exercises, selection, onSelect}) {
+  const [openSubjects, setOpenSubjects] = React.useState({});
+  const [openLevels, setOpenLevels]     = React.useState({});
+
+  const tree = React.useMemo(() => {
+    const t = {};
+    exercises.forEach(e => {
+      const subj  = e.subject || 'Muu';
+      const level = e.level   || 'Muu';
+      const topic = e.topic   || 'Muu';
+      if(!t[subj]) t[subj] = {};
+      if(!t[subj][level]) t[subj][level] = {};
+      if(!t[subj][level][topic]) t[subj][level][topic] = 0;
+      t[subj][level][topic]++;
+    });
+    return t;
+  }, [exercises]);
+
+  const subjectCount = (s) => exercises.filter(e=>(e.subject||'Muu')===s).length;
+  const levelCount   = (s,l) => exercises.filter(e=>(e.subject||'Muu')===s&&(e.level||'Muu')===l).length;
+
+  const isSubjOpen  = (s) => openSubjects[s] !== undefined ? openSubjects[s] : selection.subject===s;
+  const isLevelOpen = (s,l) => openLevels[s+'|'+l] !== undefined ? openLevels[s+'|'+l] : (selection.subject===s&&selection.level===l);
+
+  const selectAll   = () => onSelect({subject:null,level:null,topic:null});
+  const selectSubj  = (s) => { onSelect({subject:s,level:null,topic:null}); setOpenSubjects(p=>({...p,[s]:true})); };
+  const selectLevel = (s,l) => { onSelect({subject:s,level:l,topic:null}); setOpenLevels(p=>({...p,[s+'|'+l]:true})); };
+  const selectTopic = (s,l,t) => onSelect({subject:s,level:l,topic:t});
+
+  const allActive = !selection.subject;
+
+  return(
+    <div className="tree-nav" style={{background:'#fff',borderRight:'1px solid rgba(28,43,58,.08)',padding:'16px 10px',borderRadius:'14px 0 0 14px',minHeight:300}}>
+      <div style={{fontSize:'.7rem',fontWeight:700,color:'#42536A',textTransform:'uppercase',letterSpacing:'.1em',padding:'0 8px',marginBottom:10}}>Struktuur</div>
+      <div className={'tree-item'+(allActive?' active':'')} onClick={selectAll}>
+        <i className="fa-solid fa-layer-group" style={{fontSize:'.78rem',width:14}}/>
+        Kõik harjutused
+        <span className="tree-count">{exercises.length}</span>
+      </div>
+      {Object.keys(tree).sort().map(subj=>{
+        const isOpen   = isSubjOpen(subj);
+        const isActive = selection.subject===subj && !selection.level;
+        return(
+          <div key={subj}>
+            <div className={'tree-item subject'+(isActive?' active':'')} onClick={()=>{selectSubj(subj);setOpenSubjects(p=>({...p,[subj]:!isOpen}));}}>
+              <i className={'fa-solid '+(isOpen?'fa-chevron-down':'fa-chevron-right')} style={{fontSize:'.65rem',width:10,color:'#9ca3af'}}/>
+              <i className="fa-solid fa-book-open" style={{fontSize:'.75rem',color:'#C9882A',width:14}}/>
+              <span style={{flex:1}}>{subj}</span>
+              <span className="tree-count">{subjectCount(subj)}</span>
+            </div>
+            {isOpen && Object.keys(tree[subj]).sort().map(lvl=>{
+              const isLvlOpen   = isLevelOpen(subj,lvl);
+              const isLvlActive = selection.subject===subj && selection.level===lvl && !selection.topic;
+              const lvlKey      = subj+'|'+lvl;
+              return(
+                <div key={lvl}>
+                  <div className={'tree-item level'+(isLvlActive?' active':'')} onClick={()=>{selectLevel(subj,lvl);setOpenLevels(p=>({...p,[lvlKey]:!isLvlOpen}));}}>
+                    <i className={'fa-solid '+(isLvlOpen?'fa-chevron-down':'fa-chevron-right')} style={{fontSize:'.6rem',width:10,color:'#d1d5db'}}/>
+                    <span style={{flex:1}}>{lvl==='Muu'?'Tase määramata':lvl}</span>
+                    <span className="tree-count">{levelCount(subj,lvl)}</span>
+                  </div>
+                  {isLvlOpen && Object.keys(tree[subj][lvl]).sort().map(top=>{
+                    const isTopActive = selection.subject===subj && selection.level===lvl && selection.topic===top;
+                    return(
+                      <div key={top} className={'tree-item topic'+(isTopActive?' active':'')} onClick={()=>selectTopic(subj,lvl,top)}>
+                        <i className="fa-solid fa-file-lines" style={{fontSize:'.65rem',width:14,color:'#9ca3af'}}/>
+                        <span style={{flex:1}}>{top==='Muu'?'Teema määramata':top}</span>
+                        <span className="tree-count">{tree[subj][lvl][top]}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 // ── ГЛАВНОЕ ПРИЛОЖЕНИЕ ────────────────────────────────────────
 function App() {
   const [user, setUser]         = useState(null);
@@ -670,6 +765,7 @@ function App() {
   const [search, setSearch]       = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [levelFilter, setLevelFilter] = useState('all');
+  const [treeSelection, setTreeSelection] = useState({subject:null,level:null,topic:null});
 
   const notify = msg => { setNotif(msg); setTimeout(()=>setNotif(''),3000); };
 
@@ -710,12 +806,23 @@ function App() {
     return exercises.filter(e=>{
       if(typeFilter!=='all'&&e.type!==typeFilter) return false;
       if(levelFilter!=='all'&&e.level!==levelFilter) return false;
+      // tree selection filter
+      if(treeSelection.subject){
+        if((e.subject||'Muu')!==treeSelection.subject) return false;
+      }
+      if(treeSelection.level){
+        if((e.level||'Muu')!==treeSelection.level) return false;
+      }
+      if(treeSelection.topic){
+        if((e.topic||'Muu')!==treeSelection.topic) return false;
+      }
       if(!q) return true;
       return (e.title||'').toLowerCase().includes(q)
         || (e.tags||[]).some(t=>t.toLowerCase().includes(q))
-        || (e.subject||'').toLowerCase().includes(q);
+        || (e.subject||'').toLowerCase().includes(q)
+        || (e.topic||'').toLowerCase().includes(q);
     });
-  },[exercises,typeFilter,levelFilter,search]);
+  },[exercises,typeFilter,levelFilter,treeSelection,search]);
 
   const saveExercise = useCallback(async(data) => {
     if(data.id){
@@ -821,45 +928,60 @@ function App() {
           </div>
         </div>
 
-        {/* Фильтры */}
-        <div style={{display:'flex',gap:10,flexWrap:'wrap',marginBottom:20,alignItems:'center'}}>
-          <input value={search} onChange={e=>setSearch(e.target.value)}
-            placeholder="🔍 Otsi harjutust, silti..."
-            style={{width:260,padding:'9px 14px'}}/>
-          <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
-            <button onClick={()=>setTypeFilter('all')} className={'btn btn-sm '+(typeFilter==='all'?'btn-dark':'btn-ghost')}>Kõik</button>
-            {Object.entries(EX_TYPES).map(([k,v])=>(
-              <button key={k} onClick={()=>setTypeFilter(k)} className={'btn btn-sm '+(typeFilter===k?'btn-dark':'btn-ghost')}>
-                <i className={'fa-solid '+v.icon}/> {v.label}
-              </button>
-            ))}
-          </div>
-          {levels.length>0&&(
-            <select value={levelFilter} onChange={e=>setLevelFilter(e.target.value)} style={{width:'auto'}}>
-              <option value="all">Kõik tasemed</option>
-              {levels.map(l=><option key={l}>{l}</option>)}
-            </select>
-          )}
-        </div>
+        {/* Основной layout: дерево + контент */}
+        <div className="library-layout" style={{display:'flex',gap:0,background:'#fff',borderRadius:14,border:'1px solid rgba(28,43,58,.08)',overflow:'hidden'}}>
 
-        {/* Список упражнений */}
-        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(480px,1fr))',gap:16}}>
-          {filtered.map(ex=>(
-            <ExerciseCard
-              key={ex.id} ex={ex}
-              isTeacher={isTeacher}
-              students={students}
-              onEdit={isTeacher?e=>setModal({type:'edit',data:e}):null}
-              onDelete={isTeacher?deleteExercise:null}
-              onAssign={isTeacher?e=>setModal({type:'assign',data:e}):null}
-            />
-          ))}
-          {filtered.length===0&&(
-            <div style={{gridColumn:'1/-1',textAlign:'center',padding:'48px 0',color:'#42536A'}}>
-              {search||typeFilter!=='all'?'Harjutusi ei leitud.':
-                isTeacher?'Harjutusi pole veel lisatud. Vajuta "Uus harjutus"!':'Harjutusi pole veel saadaval.'}
+          {/* Дерево навигации */}
+          <TreeNav exercises={exercises} selection={treeSelection} onSelect={setTreeSelection}/>
+
+          {/* Правая панель */}
+          <div style={{flex:1,minWidth:0,padding:'20px 20px'}}>
+
+            {/* Breadcrumb */}
+            {treeSelection.subject&&(
+              <div style={{display:'flex',alignItems:'center',gap:6,fontSize:'.8rem',color:'#42536A',marginBottom:14,flexWrap:'wrap'}}>
+                <span style={{cursor:'pointer',textDecoration:'underline'}} onClick={()=>setTreeSelection({subject:null,level:null,topic:null})}>Kõik</span>
+                {treeSelection.subject&&<><span style={{color:'#d1d5db'}}>/</span><span style={{cursor:'pointer',textDecoration:'underline'}} onClick={()=>setTreeSelection({subject:treeSelection.subject,level:null,topic:null})}>{treeSelection.subject}</span></>}
+                {treeSelection.level&&<><span style={{color:'#d1d5db'}}>/</span><span style={{cursor:'pointer',textDecoration:'underline'}} onClick={()=>setTreeSelection({subject:treeSelection.subject,level:treeSelection.level,topic:null})}>{treeSelection.level}</span></>}
+                {treeSelection.topic&&<><span style={{color:'#d1d5db'}}>/</span><span style={{fontWeight:700,color:'#1C2B3A'}}>{treeSelection.topic}</span></>}
+              </div>
+            )}
+
+            {/* Фильтры */}
+            <div style={{display:'flex',gap:10,flexWrap:'wrap',marginBottom:16,alignItems:'center'}}>
+              <input value={search} onChange={e=>setSearch(e.target.value)}
+                placeholder="🔍 Otsi harjutust, silti..."
+                style={{width:220,padding:'8px 12px'}}/>
+              <div style={{display:'flex',gap:5,flexWrap:'wrap'}}>
+                <button onClick={()=>setTypeFilter('all')} className={'btn btn-sm '+(typeFilter==='all'?'btn-dark':'btn-ghost')}>Kõik</button>
+                {Object.entries(EX_TYPES).map(([k,v])=>(
+                  <button key={k} onClick={()=>setTypeFilter(k)} className={'btn btn-sm '+(typeFilter===k?'btn-dark':'btn-ghost')}>
+                    <i className={'fa-solid '+v.icon}/> {v.label}
+                  </button>
+                ))}
+              </div>
             </div>
-          )}
+
+            {/* Список упражнений */}
+            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(420px,1fr))',gap:14}}>
+              {filtered.map(ex=>(
+                <ExerciseCard
+                  key={ex.id} ex={ex}
+                  isTeacher={isTeacher}
+                  students={students}
+                  onEdit={isTeacher?e=>setModal({type:'edit',data:e}):null}
+                  onDelete={isTeacher?deleteExercise:null}
+                  onAssign={isTeacher?e=>setModal({type:'assign',data:e}):null}
+                />
+              ))}
+              {filtered.length===0&&(
+                <div style={{gridColumn:'1/-1',textAlign:'center',padding:'48px 0',color:'#42536A'}}>
+                  {search||typeFilter!=='all'||treeSelection.subject?'Harjutusi ei leitud.':
+                    isTeacher?'Harjutusi pole veel lisatud. Vajuta "Uus harjutus"!':'Harjutusi pole veel saadaval.'}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
