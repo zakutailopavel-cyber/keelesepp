@@ -636,7 +636,7 @@ function WritingPlayer({exercise, onDone}) {
           <button onClick={check} disabled={loading || liveCount < 20} className="btn btn-pine" style={{ width: '100%', padding: 13 }}>
             {loading
               ? <span><i className="fa-solid fa-spinner fa-spin" style={{ marginRight: 8 }} />Claude kontrollib...</span>
-              : <span><i className="fa-solid fa-robot" style={{ marginRight: 8 }} />Kontrolli Claude'iga</span>}
+              : <span><i className="fa-solid fa-check" style={{ marginRight: 8 }} />Kontrolli</span>}
           </button>
         </>
       )}
@@ -646,7 +646,7 @@ function WritingPlayer({exercise, onDone}) {
         <>
           <div style={{ padding: '14px 16px', borderRadius: 12, background: 'rgba(47,93,80,.05)', border: '1px solid rgba(47,93,80,.2)' }}>
             <div style={{ fontSize: '.72rem', fontWeight: 700, color: '#2F5D50', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <i className="fa-solid fa-robot" /> Claude'i tagasiside · {wordCount} sõna
+              <i className="fa-solid fa-check" /> Claude'i tagasiside · {wordCount} sõna
             </div>
             <div style={{ fontSize: '.88rem', color: '#42536A', lineHeight: 1.7 }}>
               {renderFeedback(feedback)}
