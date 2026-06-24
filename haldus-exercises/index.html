@@ -822,13 +822,23 @@ function WritingEditor({value, onChange}) {
 }
 
 // ── КАРТОЧКА УПРАЖНЕНИЯ (превью + плеер) ──────────────────────
-function ExerciseCard({ex, isTeacher, onEdit, onDelete, onAssign, students}) {
+function ExerciseCard({ex, isTeacher, onEdit, onDelete, onAssign, students, autoOpen}) {
   const [open, setOpen]     = useState(false);
   const [result, setResult] = useState(null);
   const type = EX_TYPES[ex.type]||EX_TYPES.fill;
+  const cardRef = React.useRef(null);
+  const didScroll = React.useRef(false);
+
+  React.useEffect(()=>{
+    if(autoOpen && !didScroll.current){
+      didScroll.current = true;
+      setOpen(true);
+      setTimeout(()=>cardRef.current?.scrollIntoView({behavior:'smooth',block:'center'}),200);
+    }
+  },[autoOpen]);
 
   return(
-    <div className="ex-card" style={{display:'flex',flexDirection:'column',gap:12}}>
+    <div ref={cardRef} className="ex-card" style={{display:'flex',flexDirection:'column',gap:12,outline:autoOpen?'2px solid #C9882A':'none',outlineOffset:2}}>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:10}}>
         <div style={{flex:1,minWidth:0}}>
           <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap',marginBottom:6}}>
@@ -1418,6 +1428,21 @@ function App() {
   const [typeFilter, setTypeFilter] = useState('all');
   const [levelFilter, setLevelFilter] = useState('all');
   const [treeSelection, setTreeSelection] = useState({subject:null,level:null,topic:null});
+  const [focusedExId, setFocusedExId]     = useState(()=>{
+    try{ return new URLSearchParams(window.location.search).get('exercise')||null; }catch(e){ return null; }
+  });
+  const focusedScrolled = React.useRef(false);
+
+  // When exercises load from Firebase, if we have a target exercise, clear all filters
+  useEffect(()=>{
+    if(!focusedExId || exercises.length===0 || focusedScrolled.current) return;
+    const target = exercises.find(e=>e.id===focusedExId);
+    if(!target) return;
+    focusedScrolled.current = true;
+    setTreeSelection({subject:null,level:null,topic:null});
+    setTypeFilter('all');
+    setSearch('');
+  },[exercises, focusedExId]);
 
   const notify = msg => { setNotif(msg); setTimeout(()=>setNotif(''),3000); };
 
@@ -1621,6 +1646,7 @@ function App() {
                   key={ex.id} ex={ex}
                   isTeacher={isTeacher}
                   students={students}
+                  autoOpen={focusedExId===ex.id}
                   onEdit={isTeacher?e=>setModal({type:'edit',data:e}):null}
                   onDelete={isTeacher?deleteExercise:null}
                   onAssign={isTeacher?e=>setModal({type:'assign',data:e}):null}
