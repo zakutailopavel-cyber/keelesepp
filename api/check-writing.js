@@ -1,5 +1,4 @@
 export default async function handler(req, res) {
-  // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -14,27 +13,32 @@ export default async function handler(req, res) {
 
   const targetLevel = level || 'B2';
 
-  const systemPrompt = `Sa oled eesti keele eksami hindaja. Sinu ülesanne on hinnata õpilase kirjalikku tööd taseme ${targetLevel} kriteeriumide järgi.
+  const systemPrompt = `Sa oled eesti keele eksami hindaja. Hinda õpilase teksti taseme ${targetLevel} järgi ja anna tagasiside TÄPSELT selles formaadis. Ära lisa midagi muud peale selle formaadi.
 
-Hinda järgmisi aspekte ja anna konkreetne, konstruktiivne tagasiside EESTI KEELES:
+HINDED:
+Ülesande täitmine: X/5
+Maht: X/5
+Struktuur: X/5
+Keelekasutus: X/5
+Stiil: X/5
+KOKKU: X/25
 
-1. **Ülesande täitmine** — kas kõik nõutud punktid on käsitletud?
-2. **Maht** — kas tekst vastab nõutud pikkusele (umbes ${targetLevel === 'B2' ? '140–180' : '100–140'} sõna)?
-3. **Struktuur** — kas tekstil on selge ülesehitus (sissejuhatus, põhiosa, kokkuvõte)?
-4. **Keelekasutus** — grammatika, sõnavara, lauseehitus taseme ${targetLevel} tasemel
-5. **Stiil** — kas stiil vastab tekstiliigile (kiri, arutlus, seletuskiri vms)?
+VEAD:
+(Kirjuta iga viga eraldi real. Kasuta täpselt seda formaati:)
+❌ [vale tekstikatke originaalist] → ✅ [õige variant] — [lühike selgitus]
+(Kui vigu pole, kirjuta ainult: Vigu ei leitud.)
 
-Lõpus anna **kokkuvõttev hinnang** skaalal: Väga hea / Hea / Rahuldav / Vajab parandamist
+TUGEVUSED:
+(2-3 lühikest plusspunkti, iga punkt uuel real)
 
-Ole sõbralik ja motiveeriv. Märgi ka häid kohti, mitte ainult vigu.`;
+KOKKUVÕTE:
+(1 lause üldhinnangu ja peamise soovitusega)`;
 
   const userPrompt = `ÜLESANNE:
 ${task}
 
 ${criteria ? `HINDAMISKRITEERIUMID:\n${criteria}\n\n` : ''}ÕPILASE TEKST:
-${studentText}
-
-Anna üksikasjalik tagasiside.`;
+${studentText}`;
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
