@@ -109,6 +109,42 @@ const cleanExerciseData = data => {
   return cleaned;
 };
 
+const validateExerciseContent = (type, data) => {
+  const cleaned = cleanExerciseData(data);
+  const validChoiceQuestions = (data.questions||[]).filter(q=>{
+    const options = q.options||[];
+    const correctText = String(options[q.correct]||'').trim();
+    const filledOptions = options.map(o=>String(o||'').trim()).filter(Boolean);
+    return String(q.question||'').trim() && correctText && filledOptions.length>=2;
+  });
+  if(type==='writing'){
+    if(!String(cleaned.task||cleaned.prompt||'').trim()) return 'Kirjuta kirjutamisülesande juhis.';
+    return '';
+  }
+  if(type==='fill'){
+    if(!parseFillText(cleaned.text||'').blanks.length) return 'Täida lünk vajab vastuseid nurksulgudes, näiteks: Ma [käin] koolis.';
+  }
+  if(type==='choice'){
+    if(!validChoiceQuestions.length) return 'Vali vastus vajab vähemalt ühte küsimust ja õige vastuse valikut.';
+    if(validChoiceQuestions.length!==(data.questions||[]).length) return 'Igal valikvastuse küsimusel peab olema küsimus, vähemalt kaks varianti ja märgitud õige vastus.';
+  }
+  if(type==='reading'){
+    if(!String(cleaned.passage||cleaned.text||'').trim()) return 'Lugemine vajab lugemisteksti.';
+    if(!validChoiceQuestions.length) return 'Lugemine vajab vähemalt ühte küsimust koos õige vastusega.';
+  }
+  if(type==='match'){
+    if((cleaned.pairs||[]).length<2) return 'Sobita paarid vajab vähemalt kahte valmis vastusepaari.';
+  }
+  if(type==='translate'){
+    if(!String(cleaned.sourceText||cleaned.prompt||cleaned.text||'').trim()) return 'Tõlkimine vajab teksti, mida tõlkida.';
+    if(!String(cleaned.targetText||cleaned.answer||'').trim()) return 'Tõlkimine vajab ette kirjutatud õiget vastust.';
+  }
+  if(type==='order'){
+    if((cleaned.sentence||'').split(' ').filter(Boolean).length<2) return 'Koosta lause/sõna vajab ette kirjutatud õiget lauset või sõnajärge.';
+  }
+  return '';
+};
+
 // ── ТИПЫ УПРАЖНЕНИЙ ───────────────────────────────────────────
 const EX_TYPES = {
   fill:   { label:'Täida lünk',        icon:'fa-pen-line',      badge:'type-badge-fill',   color:'#1d4ed8' },
@@ -792,7 +828,7 @@ function TranslateEditor({value, onChange}) {
       <textarea
         value={value.targetText||value.answer||''}
         onChange={e=>onChange({...value,targetText:e.target.value,answer:e.target.value})}
-        placeholder="Õige tõlge / vastus (valikuline)"
+        placeholder="Õige tõlge / vastus *"
         rows={4}
       />
       <input
@@ -852,6 +888,10 @@ function ExerciseModal({exercise, onClose, onSave, topicsBySubjectLevel}) {
   const nextStep = () => {
     if(step===0 && (!subject || !level || !topic.trim())){alert('Vali õppeaine, tase/klass ja teema');return;}
     if(step===1 && !title.trim()){alert('Sisesta pealkiri');return;}
+    if(step===2){
+      const contentError = validateExerciseContent(type, data);
+      if(contentError){alert(contentError);return;}
+    }
     setStep(s=>Math.min(steps.length-1,s+1));
   };
 
@@ -860,6 +900,8 @@ function ExerciseModal({exercise, onClose, onSave, topicsBySubjectLevel}) {
     if(!subject){alert('Vali õppeaine');return;}
     if(!level){alert('Vali '+getLevelLabel(subject).toLowerCase());return;}
     if(!topic.trim()){alert('Vali või sisesta teema');return;}
+    const contentError = validateExerciseContent(type, data);
+    if(contentError){alert(contentError);return;}
     setSaving(true);
     await onSave({
       ...cleanExerciseData(data),
