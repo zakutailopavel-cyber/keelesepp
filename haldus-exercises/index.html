@@ -63,6 +63,11 @@ if(typeof Babel !== 'undefined' && Babel.availablePresets && Babel.registerPrese
   .type-badge-choice { background:rgba(124,58,237,.1); color:#6d28d9; }
   .type-badge-order { background:rgba(47,93,80,.1); color:#2F5D50; }
   .type-badge-writing { background:rgba(201,136,42,.12); color:#A96E1A; }
+  .library-shell { display:grid; grid-template-columns:280px minmax(0,1fr); gap:18px; align-items:start; }
+  @media (max-width: 900px) {
+    .library-shell { grid-template-columns:1fr; }
+    .library-shell aside { position:static !important; }
+  }
 </style>
 </head>
 <body>
@@ -597,9 +602,23 @@ function WritingEditor({value, onChange}) {
   );
 }
 
+function StepBadge({active, done, label, number}) {
+  return(
+    <div style={{display:'flex',alignItems:'center',gap:8,color:active?'#1C2B3A':'#42536A',fontWeight:active?800:700,fontSize:'.78rem'}}>
+      <span style={{width:24,height:24,borderRadius:'50%',display:'inline-flex',alignItems:'center',justifyContent:'center',
+        background:active?'#2F5D50':done?'rgba(47,93,80,.14)':'rgba(28,43,58,.08)',
+        color:active?'#fff':done?'#2F5D50':'#42536A'}}>
+        {done?<i className="fa-solid fa-check" style={{fontSize:'.65rem'}}/>:number}
+      </span>
+      {label}
+    </div>
+  );
+}
+
 // ── МОДАЛКА СОЗДАНИЯ/РЕДАКТИРОВАНИЯ ──────────────────────────
 function ExerciseModal({exercise, onClose, onSave, topicsBySubjectLevel}) {
   const isEdit = !!exercise?.id;
+  const [step, setStep]       = useState(0);
   const [type, setType]       = useState(exercise?.type||'fill');
   const [title, setTitle]     = useState(exercise?.title||'');
   const [subject, setSubject] = useState(exercise?.subject||SUBJECTS[0]);
@@ -613,6 +632,7 @@ function ExerciseModal({exercise, onClose, onSave, topicsBySubjectLevel}) {
   const [tags, setTags]       = useState((exercise?.tags||[]).join(', '));
   const [data, setData]       = useState(exercise||{});
   const [saving, setSaving]   = useState(false);
+  const steps = ['Kategooria','Tüüp ja pealkiri','Sisu'];
 
   useEffect(()=>{
     const nextConfig = getSubjectConfig(subject);
@@ -626,6 +646,12 @@ function ExerciseModal({exercise, onClose, onSave, topicsBySubjectLevel}) {
       setTopic(topicOptions[0]);
     }
   },[topicOptions]);
+
+  const nextStep = () => {
+    if(step===0 && (!subject || !level || !topic.trim())){alert('Vali õppeaine, tase/klass ja teema');return;}
+    if(step===1 && !title.trim()){alert('Sisesta pealkiri');return;}
+    setStep(s=>Math.min(steps.length-1,s+1));
+  };
 
   const save = async() => {
     if(!title.trim()){alert('Sisesta pealkiri');return;}
@@ -651,51 +677,71 @@ function ExerciseModal({exercise, onClose, onSave, topicsBySubjectLevel}) {
           <button onClick={onClose} style={{background:'rgba(28,43,58,.07)',border:'none',cursor:'pointer',borderRadius:9,width:30,height:30,display:'flex',alignItems:'center',justifyContent:'center',color:'#42536A'}}>✕</button>
         </div>
         <div style={{padding:'20px 24px',display:'flex',flexDirection:'column',gap:14}}>
-          {/* Тип */}
-          <div>
-            <div style={{fontSize:'.76rem',fontWeight:700,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8}}>Harjutuse tüüp</div>
-            <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-              {Object.entries(EX_TYPES).map(([k,v])=>(
-                <button key={k} onClick={()=>setType(k)}
-                  style={{padding:'9px 14px',borderRadius:10,border:'1.5px solid '+(type===k?v.color:'rgba(28,43,58,.12)'),
-                    background:type===k?v.color+'15':'#fff',cursor:'pointer',fontWeight:type===k?700:500,
-                    fontSize:'.84rem',color:type===k?v.color:'#42536A',display:'flex',alignItems:'center',gap:6}}>
-                  <i className={'fa-solid '+v.icon}/> {v.label}
-                </button>
-              ))}
+          <div style={{display:'flex',gap:16,flexWrap:'wrap',padding:'4px 0 10px',borderBottom:'1px solid rgba(28,43,58,.07)'}}>
+            {steps.map((label,i)=><StepBadge key={label} label={label} number={i+1} active={step===i} done={step>i}/>)}
+          </div>
+
+          {step===0&&(
+            <div style={{display:'flex',flexDirection:'column',gap:14}}>
+              <div style={{fontSize:'.76rem',fontWeight:700,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em'}}>Kuhu harjutus kuulub</div>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(3,minmax(0,1fr))',gap:10}}>
+                <select value={subject} onChange={e=>setSubject(e.target.value)}>
+                  {SUBJECTS.map(s=><option key={s}>{s}</option>)}
+                </select>
+                <select value={level} onChange={e=>setLevel(e.target.value)}>
+                  {subjectConfig.levels.map(l=><option key={l}>{l}</option>)}
+                </select>
+                <input value={topic} onChange={e=>setTopic(e.target.value)} list="exercise-topic-options" placeholder="Teema *"/>
+                <datalist id="exercise-topic-options">
+                  {topicOptions.map(t=><option key={t} value={t}/>)}
+                </datalist>
+              </div>
+              <div style={{fontSize:'.82rem',color:'#42536A',padding:'10px 12px',borderRadius:9,background:'#F9F8F6'}}>
+                Valitud: <strong>{subject}</strong> · <strong>{level}</strong> · <strong>{topic||'teema puudub'}</strong>
+              </div>
             </div>
+          )}
+
+          {step===1&&(
+            <div style={{display:'flex',flexDirection:'column',gap:14}}>
+              <input value={title} onChange={e=>setTitle(e.target.value)} placeholder="Harjutuse pealkiri *"/>
+              <div>
+                <div style={{fontSize:'.76rem',fontWeight:700,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8}}>Harjutuse tüüp</div>
+                <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))',gap:8}}>
+                  {Object.entries(EX_TYPES).map(([k,v])=>(
+                    <button key={k} onClick={()=>setType(k)}
+                      style={{padding:'12px 14px',borderRadius:10,border:'1.5px solid '+(type===k?v.color:'rgba(28,43,58,.12)'),
+                        background:type===k?v.color+'15':'#fff',cursor:'pointer',fontWeight:type===k?800:600,
+                        fontSize:'.84rem',color:type===k?v.color:'#42536A',display:'flex',alignItems:'center',gap:8}}>
+                      <i className={'fa-solid '+v.icon}/> {v.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <input value={tags} onChange={e=>setTags(e.target.value)} placeholder="Sildid: verbid, olevik, A2 (komaga eraldatud)"/>
+            </div>
+          )}
+
+          {step===2&&(
+            <div style={{borderTop:'1px solid rgba(28,43,58,.07)',paddingTop:14}}>
+              <div style={{fontSize:'.76rem',fontWeight:700,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:12}}>Harjutuse sisu</div>
+              {type==='fill'  &&<FillEditor   value={data} onChange={setData}/>}
+              {type==='choice'&&<ChoiceEditor value={data} onChange={setData}/>}
+              {type==='order' &&<OrderEditor  value={data} onChange={setData}/>}
+              {type==='writing'&&<WritingEditor value={data} onChange={setData}/>}
+            </div>
+          )}
+
+          <div style={{display:'flex',gap:10,justifyContent:'space-between',alignItems:'center',borderTop:'1px solid rgba(28,43,58,.07)',paddingTop:14}}>
+            <button onClick={()=>step===0?onClose():setStep(s=>s-1)} className="btn btn-ghost">
+              {step===0?'Tühista':'Tagasi'}
+            </button>
+            {step<steps.length-1
+              ? <button onClick={nextStep} className="btn btn-pine">Järgmine</button>
+              : <button onClick={save} disabled={saving} className="btn btn-pine" style={{padding:'10px 18px'}}>
+                  {saving?'Salvestab…':'✓ '+(isEdit?'Salvesta muudatused':'Lisa harjutus raamatukogusse')}
+                </button>}
           </div>
-          {/* Мета */}
-          <input value={title} onChange={e=>setTitle(e.target.value)} placeholder="Harjutuse pealkiri *"/>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(3,minmax(0,1fr))',gap:10}}>
-            <select value={subject} onChange={e=>setSubject(e.target.value)}>
-              {SUBJECTS.map(s=><option key={s}>{s}</option>)}
-            </select>
-            <select value={level} onChange={e=>setLevel(e.target.value)}>
-              {subjectConfig.levels.map(l=><option key={l}>{l}</option>)}
-            </select>
-            <input
-              value={topic}
-              onChange={e=>setTopic(e.target.value)}
-              list="exercise-topic-options"
-              placeholder="Teema *"
-            />
-            <datalist id="exercise-topic-options">
-              {topicOptions.map(t=><option key={t} value={t}/>)}
-            </datalist>
-          </div>
-          <input value={tags} onChange={e=>setTags(e.target.value)} placeholder="Sildid: verbid, olevik, A2 (komaga eraldatud)"/>
-          {/* Редактор по типу */}
-          <div style={{borderTop:'1px solid rgba(28,43,58,.07)',paddingTop:14}}>
-            <div style={{fontSize:'.76rem',fontWeight:700,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:12}}>Harjutuse sisu</div>
-            {type==='fill'  &&<FillEditor   value={data} onChange={setData}/>}
-            {type==='choice'&&<ChoiceEditor value={data} onChange={setData}/>}
-            {type==='order' &&<OrderEditor  value={data} onChange={setData}/>}
-            {type==='writing'&&<WritingEditor value={data} onChange={setData}/>}
-          </div>
-          <button onClick={save} disabled={saving} className="btn btn-pine" style={{width:'100%',padding:13,marginTop:4}}>
-            {saving?'Salvestab…':'✓ '+(isEdit?'Salvesta muudatused':'Lisa harjutus raamatukogusse')}
-          </button>
         </div>
       </div>
     </div>
@@ -741,6 +787,68 @@ function AssignModal({exercise, students, onClose, onAssign}) {
         </div>
       </div>
     </div>
+  );
+}
+
+function LibraryTree({exercises, selection, onSelect}) {
+  const count = (subject='', level='', topic='') => exercises.filter(ex=>{
+    if(subject && (ex.subject||'Eesti keel')!==subject) return false;
+    if(level && (ex.level||'')!==level) return false;
+    if(topic && getExerciseTopic(ex)!==topic) return false;
+    return true;
+  }).length;
+
+  const topicsFor = (subject, level) => {
+    const saved = exercises
+      .filter(ex=>(ex.subject||'Eesti keel')===subject && (ex.level||'')===level)
+      .map(getExerciseTopic)
+      .filter(Boolean);
+    return [...new Set([...(getSubjectConfig(subject).topics||[]), ...saved])];
+  };
+
+  const treeButton = (active, onClick, label, amount, depth=0) => (
+    <button
+      onClick={onClick}
+      style={{width:'100%',display:'flex',alignItems:'center',justifyContent:'space-between',gap:8,
+        border:'1px solid '+(active?'rgba(47,93,80,.35)':'rgba(28,43,58,.08)'),
+        background:active?'rgba(47,93,80,.1)':'#fff',color:active?'#2F5D50':'#1C2B3A',
+        borderRadius:8,padding:`8px 10px 8px ${10+depth*14}px`,cursor:'pointer',fontWeight:active?800:600,fontSize:'.84rem',textAlign:'left'}}>
+      <span style={{minWidth:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{label}</span>
+      <span style={{fontSize:'.72rem',color:active?'#2F5D50':'#718096',fontWeight:800}}>{amount}</span>
+    </button>
+  );
+
+  return(
+    <aside style={{background:'#fff',border:'1px solid rgba(28,43,58,.08)',borderRadius:14,padding:14,alignSelf:'start',position:'sticky',top:74}}>
+      <div style={{fontSize:'.78rem',fontWeight:800,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:10}}>
+        Kataloog
+      </div>
+      <div style={{display:'flex',flexDirection:'column',gap:8}}>
+        {treeButton(!selection.subject,()=>onSelect({subject:'',level:'',topic:''}),'Kõik ained',count())}
+        {SUBJECTS.map(subject=>{
+          const subjectActive = selection.subject===subject;
+          const cfg = getSubjectConfig(subject);
+          return(
+            <div key={subject} style={{display:'flex',flexDirection:'column',gap:6}}>
+              {treeButton(subjectActive && !selection.level,()=>onSelect({subject,level:'',topic:''}),`${cfg.short} · ${subject}`,count(subject))}
+              {subjectActive&&cfg.levels.map(level=>{
+                const levelActive = selection.level===level;
+                return(
+                  <div key={level} style={{display:'flex',flexDirection:'column',gap:5}}>
+                    {treeButton(levelActive && !selection.topic,()=>onSelect({subject,level,topic:''}),level,count(subject,level),1)}
+                    {levelActive&&topicsFor(subject,level).map(topic=>
+                      <React.Fragment key={topic}>
+                        {treeButton(selection.topic===topic,()=>onSelect({subject,level,topic}),topic,count(subject,level,topic),2)}
+                      </React.Fragment>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })}
+      </div>
+    </aside>
   );
 }
 
@@ -860,7 +968,6 @@ function App() {
     return ()=>{u1();u2();};
   },[user]);
 
-  const selectedSubjectConfig = treeSelection.subject ? getSubjectConfig(treeSelection.subject) : null;
   const topicsBySubjectLevel = useMemo(()=>{
     const map = {};
     exercises.forEach(ex=>{
@@ -873,12 +980,6 @@ function App() {
     });
     return map;
   },[exercises]);
-  const selectedTopics = useMemo(()=>{
-    if(!treeSelection.subject || !treeSelection.level) return [];
-    const defaults = getSubjectConfig(treeSelection.subject).topics || [];
-    const saved = topicsBySubjectLevel[treeSelection.subject]?.[treeSelection.level] || [];
-    return [...new Set([...defaults, ...saved])];
-  },[topicsBySubjectLevel, treeSelection.subject, treeSelection.level]);
 
   const filtered = useMemo(()=>{
     const q = search.toLowerCase();
@@ -999,92 +1100,50 @@ function App() {
           </div>
         </div>
 
-        {/* Фильтры */}
-        <div style={{display:'flex',flexDirection:'column',gap:14,marginBottom:20}}>
-          <div style={{display:'flex',gap:10,flexWrap:'wrap',alignItems:'center'}}>
-            <input value={search} onChange={e=>setSearch(e.target.value)}
-              placeholder="🔍 Otsi harjutust, silti..."
-              style={{width:260,padding:'9px 14px'}}/>
-            <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
-              <button onClick={()=>setTypeFilter('all')} className={'btn btn-sm '+(typeFilter==='all'?'btn-dark':'btn-ghost')}>Kõik</button>
-              {Object.entries(EX_TYPES).map(([k,v])=>(
-                <button key={k} onClick={()=>setTypeFilter(k)} className={'btn btn-sm '+(typeFilter===k?'btn-dark':'btn-ghost')}>
-                  <i className={'fa-solid '+v.icon}/> {v.label}
-                </button>
+        <div className="library-shell">
+          <LibraryTree exercises={exercises} selection={treeSelection} onSelect={setTreeSelection}/>
+
+          <main style={{minWidth:0}}>
+            <div style={{background:'#fff',border:'1px solid rgba(28,43,58,.08)',borderRadius:14,padding:14,marginBottom:16}}>
+              <div style={{display:'flex',gap:10,flexWrap:'wrap',alignItems:'center',justifyContent:'space-between'}}>
+                <input value={search} onChange={e=>setSearch(e.target.value)}
+                  placeholder="🔍 Otsi harjutust, silti..."
+                  style={{width:260,padding:'9px 14px'}}/>
+                <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+                  <button onClick={()=>setTypeFilter('all')} className={'btn btn-sm '+(typeFilter==='all'?'btn-dark':'btn-ghost')}>Kõik</button>
+                  {Object.entries(EX_TYPES).map(([k,v])=>(
+                    <button key={k} onClick={()=>setTypeFilter(k)} className={'btn btn-sm '+(typeFilter===k?'btn-dark':'btn-ghost')}>
+                      <i className={'fa-solid '+v.icon}/> {v.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div style={{marginTop:10,fontSize:'.82rem',color:'#42536A'}}>
+                {treeSelection.subject
+                  ? [treeSelection.subject,treeSelection.level,treeSelection.topic].filter(Boolean).join(' / ')
+                  : 'Kõik ained'} · {filtered.length} harjutust
+              </div>
+            </div>
+
+            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(430px,1fr))',gap:16}}>
+              {filtered.map(ex=>(
+                <ExerciseCard
+                  key={ex.id} ex={ex}
+                  isTeacher={isTeacher}
+                  students={students}
+                  onEdit={isTeacher?e=>setModal({type:'edit',data:e}):null}
+                  onDelete={isTeacher?deleteExercise:null}
+                  onAssign={isTeacher?e=>setModal({type:'assign',data:e}):null}
+                />
               ))}
+              {filtered.length===0&&(
+                <div style={{gridColumn:'1/-1',textAlign:'center',padding:'48px 0',color:'#42536A'}}>
+                  {search||typeFilter!=='all'||treeSelection.subject?'Harjutusi ei leitud.':
+                    isTeacher?'Harjutusi pole veel lisatud. Vajuta "Uus harjutus"!':'Harjutusi pole veel saadaval.'}
+                </div>
+              )}
             </div>
-          </div>
-
-          <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-            <button
-              onClick={()=>setTreeSelection({subject:'', level:'', topic:''})}
-              className={'btn btn-sm '+(!treeSelection.subject?'btn-dark':'btn-ghost')}>
-              Kõik ained
-            </button>
-            {SUBJECTS.map(subject=>(
-              <button
-                key={subject}
-                onClick={()=>setTreeSelection({subject, level:'', topic:''})}
-                className={'btn btn-sm '+(treeSelection.subject===subject?'btn-dark':'btn-ghost')}>
-                {getSubjectConfig(subject).short} · {subject}
-              </button>
-            ))}
-          </div>
-
-          {selectedSubjectConfig&&(
-            <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-              <span style={{fontSize:'.78rem',fontWeight:700,color:'#42536A',padding:'8px 2px'}}>
-                {getLevelLabel(treeSelection.subject)}:
-              </span>
-              {selectedSubjectConfig.levels.map(level=>(
-                <button
-                  key={level}
-                  onClick={()=>setTreeSelection(prev=>({subject:prev.subject, level, topic:''}))}
-                  className={'btn btn-sm '+(treeSelection.level===level?'btn-pine':'btn-ghost')}>
-                  {level}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {treeSelection.subject&&treeSelection.level&&(
-            <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-              <span style={{fontSize:'.78rem',fontWeight:700,color:'#42536A',padding:'8px 2px'}}>Teemad:</span>
-              <button
-                onClick={()=>setTreeSelection(prev=>({...prev, topic:''}))}
-                className={'btn btn-sm '+(!treeSelection.topic?'btn-pine':'btn-ghost')}>
-                Kõik teemad
-              </button>
-              {selectedTopics.map(topic=>(
-                <button
-                  key={topic}
-                  onClick={()=>setTreeSelection(prev=>({...prev, topic}))}
-                  className={'btn btn-sm '+(treeSelection.topic===topic?'btn-pine':'btn-ghost')}>
-                  {topic}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Список упражнений */}
-        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(480px,1fr))',gap:16}}>
-          {filtered.map(ex=>(
-            <ExerciseCard
-              key={ex.id} ex={ex}
-              isTeacher={isTeacher}
-              students={students}
-              onEdit={isTeacher?e=>setModal({type:'edit',data:e}):null}
-              onDelete={isTeacher?deleteExercise:null}
-              onAssign={isTeacher?e=>setModal({type:'assign',data:e}):null}
-            />
-          ))}
-          {filtered.length===0&&(
-            <div style={{gridColumn:'1/-1',textAlign:'center',padding:'48px 0',color:'#42536A'}}>
-              {search||typeFilter!=='all'?'Harjutusi ei leitud.':
-                isTeacher?'Harjutusi pole veel lisatud. Vajuta "Uus harjutus"!':'Harjutusi pole veel saadaval.'}
-            </div>
-          )}
+          </main>
         </div>
       </div>
 
