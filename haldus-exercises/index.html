@@ -28,14 +28,6 @@
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<script>
-window.__exercisesConfigureBabel = function(){
-  if(typeof Babel === 'undefined' || !Babel.availablePresets || !Babel.registerPreset) return;
-  Babel.registerPreset('exercises-react', {
-    presets: [[Babel.availablePresets.react, { runtime: 'classic' }]]
-  });
-};
-</script>
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -66,11 +58,8 @@ window.__exercisesConfigureBabel = function(){
 </style>
 </head>
 <body>
-<script>
-if(typeof window.__exercisesConfigureBabel === 'function') window.__exercisesConfigureBabel();
-</script>
 <div id="root"><div style="display:flex;align-items:center;justify-content:center;min-height:100vh"><div class="spinner"></div></div></div>
-<script type="text/babel" data-presets="exercises-react">
+<script type="text/babel">
 const {useState,useEffect,useCallback,useMemo,useRef} = React;
 const db   = window._db;
 const auth = window._auth;
@@ -323,60 +312,13 @@ function OrderPlayer({exercise, onDone}) {
 }
 
 // ── КАРТОЧКА УПРАЖНЕНИЯ (превью + плеер) ──────────────────────
-function ExerciseCard({ex, isTeacher, onEdit, onDelete, onAssign, students, autoOpen, user, homeworkId}) {
+function ExerciseCard({ex, isTeacher, onEdit, onDelete, onAssign, students}) {
   const [open, setOpen]     = useState(false);
   const [result, setResult] = useState(null);
-  const [savedResult, setSavedResult] = useState(null);
   const type = EX_TYPES[ex.type]||EX_TYPES.fill;
-  const cardRef = React.useRef(null);
-  const didScroll = React.useRef(false);
-
-  React.useEffect(()=>{
-    if(autoOpen && !didScroll.current){
-      didScroll.current = true;
-      setOpen(true);
-      setTimeout(()=>cardRef.current?.scrollIntoView({behavior:'smooth',block:'center'}),200);
-    }
-  },[autoOpen]);
-
-  React.useEffect(()=>{
-    if(!user?.uid || !ex?.id) return;
-    db.collection('exerciseResults')
-      .where('exerciseId','==',ex.id)
-      .where('studentUid','==',user.uid)
-      .orderBy('completedAt','desc')
-      .limit(1)
-      .get()
-      .then(snap=>{ if(!snap.empty) setSavedResult(snap.docs[0].data()); })
-      .catch(()=>{});
-  },[user, ex.id]);
-
-  const saveResult = async(r, extra={}) => {
-    if(!user?.uid) return;
-    const pct = r.total>0 ? Math.round(r.correct/r.total*100) : 100;
-    const payload = {
-      exerciseId: ex.id,
-      exerciseTitle: ex.title||'',
-      exerciseType: ex.type||'',
-      studentUid: user.uid,
-      studentName: user.displayName||user.email||'',
-      homeworkId: homeworkId||null,
-      score: { correct: r.correct||0, total: r.total||1 },
-      pct,
-      completedAt: new Date().toISOString(),
-      ...extra
-    };
-    try {
-      await db.collection('exerciseResults').add(payload);
-      setSavedResult(payload);
-      if(homeworkId && pct >= 60) {
-        await db.collection('homework').doc(homeworkId).update({status:'Tehtud', doneAt: new Date().toISOString().split('T')[0]});
-      }
-    } catch(e) { console.warn('saveResult failed:', e); }
-  };
 
   return(
-    <div ref={cardRef} className="ex-card" style={{display:'flex',flexDirection:'column',gap:12,outline:autoOpen?'2px solid #C9882A':'none',outlineOffset:2}}>
+    <div className="ex-card" style={{display:'flex',flexDirection:'column',gap:12}}>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:10}}>
         <div style={{flex:1,minWidth:0}}>
           <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap',marginBottom:6}}>
@@ -391,18 +333,6 @@ function ExerciseCard({ex, isTeacher, onEdit, onDelete, onAssign, students, auto
             Autor: {ex.authorName||'—'} · {fmtDate(ex.createdAt)}
             {ex.assignCount>0&&<span style={{marginLeft:8,color:'#2F5D50',fontWeight:600}}>· {ex.assignCount}× määratud</span>}
           </div>
-          {savedResult&&(
-            <div style={{marginTop:6,display:'inline-flex',alignItems:'center',gap:6,padding:'3px 10px',borderRadius:999,
-              background:savedResult.pct>=60?'rgba(22,101,52,.1)':'rgba(153,27,27,.08)',
-              border:'1px solid '+(savedResult.pct>=60?'rgba(22,101,52,.2)':'rgba(153,27,27,.2)')}}>
-              <i className="fa-solid fa-circle-check" style={{fontSize:'.65rem',color:savedResult.pct>=60?'#166534':'#991b1b'}}/>
-              <span style={{fontSize:'.72rem',fontWeight:700,color:savedResult.pct>=60?'#166534':'#991b1b'}}>
-                {savedResult.exerciseType==='writing'
-                  ? 'Kirjutatud · '+new Date(savedResult.completedAt).toLocaleDateString('et-EE')
-                  : savedResult.score.correct+'/'+savedResult.score.total+' ('+savedResult.pct+'%) · '+new Date(savedResult.completedAt).toLocaleDateString('et-EE')}
-              </span>
-            </div>
-          )}
         </div>
         <div style={{display:'flex',gap:6,flexShrink:0,flexWrap:'wrap',justifyContent:'flex-end'}}>
           <button onClick={()=>setOpen(o=>!o)} className="btn btn-ghost btn-sm">
@@ -769,16 +699,12 @@ function App() {
     return exercises.filter(e=>{
       if(typeFilter!=='all'&&e.type!==typeFilter) return false;
       if(levelFilter!=='all'&&e.level!==levelFilter) return false;
-      if(treeSelection.subject && (e.subject||'Muu')!==treeSelection.subject) return false;
-      if(treeSelection.level  && (e.level||'Muu')!==treeSelection.level)   return false;
-      if(treeSelection.topic  && (e.topic||'Muu')!==treeSelection.topic)   return false;
       if(!q) return true;
       return (e.title||'').toLowerCase().includes(q)
         || (e.tags||[]).some(t=>t.toLowerCase().includes(q))
-        || (e.subject||'').toLowerCase().includes(q)
-        || (e.topic||'').toLowerCase().includes(q);
+        || (e.subject||'').toLowerCase().includes(q);
     });
-  },[exercises,typeFilter,levelFilter,treeSelection,search]);
+  },[exercises,typeFilter,levelFilter,search]);
 
   const saveExercise = useCallback(async(data) => {
     if(data.id){
@@ -912,9 +838,6 @@ function App() {
               key={ex.id} ex={ex}
               isTeacher={isTeacher}
               students={students}
-              autoOpen={focusedExId===ex.id}
-              user={user}
-              homeworkId={focusedExId===ex.id ? (new URLSearchParams(window.location.search).get('hw')||null) : null}
               onEdit={isTeacher?e=>setModal({type:'edit',data:e}):null}
               onDelete={isTeacher?deleteExercise:null}
               onAssign={isTeacher?e=>setModal({type:'assign',data:e}):null}
