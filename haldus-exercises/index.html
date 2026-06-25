@@ -659,6 +659,11 @@ function App() {
   const [search, setSearch]       = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [levelFilter, setLevelFilter] = useState('all');
+  const [treeSelection] = useState({subject:'', level:'', topic:''});
+const focusedExId = useMemo(() => {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('ex') || params.get('exercise') || params.get('exerciseId') || null;
+}, []);
 
   const notify = msg => { setNotif(msg); setTimeout(()=>setNotif(''),3000); };
 
