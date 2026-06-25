@@ -572,8 +572,8 @@ function WritingPlayer({exercise, onDone}) {
 }
 
 // ── КАРТОЧКА УПРАЖНЕНИЯ (превью + плеер) ──────────────────────
-function ExerciseCard({ex, isTeacher, onEdit, onDelete, onAssign, students}) {
-  const [open, setOpen]     = useState(false);
+function ExerciseCard({ex, isTeacher, onEdit, onDelete, onAssign, students, defaultOpen=false}) {
+  const [open, setOpen]     = useState(defaultOpen);
   const [result, setResult] = useState(null);
   const type = EX_TYPES[ex.type]||EX_TYPES.fill;
 
@@ -1230,6 +1230,7 @@ function App() {
 
   const filtered = useMemo(()=>{
     const q = search.toLowerCase();
+    if(focusedExId) return exercises.filter(e=>e.id===focusedExId);
     return exercises.filter(e=>{
       if(typeFilter!=='all'&&e.type!==typeFilter) return false;
       if(treeSelection.subject && (e.subject||'Eesti keel')!==treeSelection.subject) return false;
@@ -1241,7 +1242,9 @@ function App() {
         || (e.subject||'').toLowerCase().includes(q)
         || (e.topic||'').toLowerCase().includes(q);
     });
-  },[exercises,typeFilter,treeSelection,search]);
+  },[exercises,typeFilter,treeSelection,search,focusedExId]);
+
+  const focusedExercise = focusedExId ? exercises.find(e=>e.id===focusedExId) : null;
 
   const saveExercise = useCallback(async(data) => {
     if(data.id){
@@ -1316,12 +1319,19 @@ function App() {
         {/* Заголовок + создать */}
         <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:14,flexWrap:'wrap',marginBottom:24}}>
           <div>
-            <h1 style={{fontSize:'1.7rem'}}>📚 Harjutuste raamatukogu</h1>
+            <h1 style={{fontSize:'1.7rem'}}>{focusedExId?'📝 Määratud harjutus':'📚 Harjutuste raamatukogu'}</h1>
             <div style={{color:'#42536A',fontSize:'.88rem',marginTop:4}}>
-              {exercises.length} harjutust · {isTeacher?'Loo, muuda ja määra õpilastele':'Proovi harjutusi'}
+              {focusedExId
+                ? (focusedExercise ? focusedExercise.title : 'Laen harjutust...')
+                : exercises.length+' harjutust · '+(isTeacher?'Loo, muuda ja määra õpilastele':'Proovi harjutusi')}
             </div>
           </div>
-          {isTeacher&&(
+          {focusedExId&&(
+            <a href="/haldus-exercises.html" className="btn btn-ghost" style={{flexShrink:0,textDecoration:'none'}}>
+              <i className="fa-solid fa-arrow-left"/> Kõik harjutused
+            </a>
+          )}
+          {!focusedExId&&isTeacher&&(
             <button onClick={()=>setModal({type:'create'})} className="btn btn-pine" style={{flexShrink:0}}>
               <i className="fa-solid fa-plus"/> Uus harjutus
             </button>
@@ -1329,7 +1339,7 @@ function App() {
         </div>
 
         {/* Статистика */}
-        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))',gap:12,marginBottom:24}}>
+        {!focusedExId&&<div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))',gap:12,marginBottom:24}}>
           {Object.entries(EX_TYPES).map(([k,v])=>(
             <div key={k} className="card" style={{padding:'16px 18px'}}>
               <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
@@ -1345,13 +1355,13 @@ function App() {
             <div style={{fontSize:'.74rem',fontWeight:700,color:'#42536A',textTransform:'uppercase',letterSpacing:'.06em',marginBottom:6}}>Kokku määratud</div>
             <div style={{fontSize:'1.6rem',fontWeight:700,color:'#2F5D50'}}>{exercises.reduce((a,e)=>a+(e.assignCount||0),0)}</div>
           </div>
-        </div>
+        </div>}
 
-        <div className="library-shell">
-          <LibraryTree exercises={exercises} selection={treeSelection} onSelect={setTreeSelection}/>
+        <div className={focusedExId?'':'library-shell'}>
+          {!focusedExId&&<LibraryTree exercises={exercises} selection={treeSelection} onSelect={setTreeSelection}/>}
 
           <main style={{minWidth:0}}>
-            <div style={{background:'#fff',border:'1px solid rgba(28,43,58,.08)',borderRadius:14,padding:14,marginBottom:16}}>
+            {!focusedExId&&<div style={{background:'#fff',border:'1px solid rgba(28,43,58,.08)',borderRadius:14,padding:14,marginBottom:16}}>
               <div style={{display:'flex',gap:10,flexWrap:'wrap',alignItems:'center',justifyContent:'space-between'}}>
                 <input value={search} onChange={e=>setSearch(e.target.value)}
                   placeholder="🔍 Otsi harjutust, silti..."
@@ -1370,14 +1380,15 @@ function App() {
                   ? [treeSelection.subject,treeSelection.level,treeSelection.topic].filter(Boolean).join(' / ')
                   : 'Kõik ained'} · {filtered.length} harjutust
               </div>
-            </div>
+            </div>}
 
-            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(430px,1fr))',gap:16}}>
+            <div style={{display:'grid',gridTemplateColumns:focusedExId?'minmax(0,760px)':'repeat(auto-fill,minmax(430px,1fr))',gap:16,justifyContent:focusedExId?'center':'stretch'}}>
               {filtered.map(ex=>(
                 <ExerciseCard
                   key={ex.id} ex={ex}
                   isTeacher={isTeacher}
                   students={students}
+                  defaultOpen={focusedExId===ex.id}
                   onEdit={isTeacher?e=>setModal({type:'edit',data:e}):null}
                   onDelete={isTeacher?deleteExercise:null}
                   onAssign={isTeacher?e=>setModal({type:'assign',data:e}):null}
@@ -1385,7 +1396,8 @@ function App() {
               ))}
               {filtered.length===0&&(
                 <div style={{gridColumn:'1/-1',textAlign:'center',padding:'48px 0',color:'#42536A'}}>
-                  {search||typeFilter!=='all'||treeSelection.subject?'Harjutusi ei leitud.':
+                  {focusedExId?'Määratud harjutust ei leitud.':
+                    search||typeFilter!=='all'||treeSelection.subject?'Harjutusi ei leitud.':
                     isTeacher?'Harjutusi pole veel lisatud. Vajuta "Uus harjutus"!':'Harjutusi pole veel saadaval.'}
                 </div>
               )}
