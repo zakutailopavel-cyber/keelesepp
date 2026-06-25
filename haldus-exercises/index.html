@@ -63,6 +63,9 @@ if(typeof Babel !== 'undefined' && Babel.availablePresets && Babel.registerPrese
   .type-badge-choice { background:rgba(124,58,237,.1); color:#6d28d9; }
   .type-badge-order { background:rgba(47,93,80,.1); color:#2F5D50; }
   .type-badge-writing { background:rgba(201,136,42,.12); color:#A96E1A; }
+  .type-badge-reading { background:rgba(14,116,144,.1); color:#0e7490; }
+  .type-badge-match { background:rgba(5,150,105,.1); color:#047857; }
+  .type-badge-translate { background:rgba(219,39,119,.1); color:#be185d; }
   .library-shell { display:grid; grid-template-columns:280px minmax(0,1fr); gap:18px; align-items:start; }
   @media (max-width: 900px) {
     .library-shell { grid-template-columns:1fr; }
@@ -83,12 +86,38 @@ const normalizeText = t => String(t||'').toLowerCase().trim()
   .replace(/[àáâãäå]/g,'a').replace(/[èéêë]/g,'e').replace(/[ìíîï]/g,'i')
   .replace(/[òóôõö]/g,'o').replace(/[ùúûü]/g,'u').replace(/[ñ]/g,'n');
 
+const cleanExerciseData = data => {
+  const cleaned = {...data};
+  if(Array.isArray(cleaned.pairs)){
+    cleaned.pairs = cleaned.pairs.filter(pair=>(pair.left||'').trim() && (pair.right||'').trim());
+  }
+  if(Array.isArray(cleaned.questions)){
+    cleaned.questions = cleaned.questions
+      .map(q=>{
+        const originalOptions = q.options||[];
+        const correctText = String(originalOptions[q.correct]||'').trim();
+        const options = originalOptions.map(o=>String(o||'').trim()).filter(Boolean);
+        return {
+          ...q,
+          options,
+          correct:Math.max(0, options.indexOf(correctText)),
+          question:String(q.question||'').trim()
+        };
+      })
+      .filter(q=>q.question && q.options.length);
+  }
+  return cleaned;
+};
+
 // ── ТИПЫ УПРАЖНЕНИЙ ───────────────────────────────────────────
 const EX_TYPES = {
   fill:   { label:'Täida lünk',        icon:'fa-pen-line',      badge:'type-badge-fill',   color:'#1d4ed8' },
   choice: { label:'Vali vastus',        icon:'fa-list-check',    badge:'type-badge-choice', color:'#6d28d9' },
   order:  { label:'Koosta lause/sõna',  icon:'fa-shuffle',       badge:'type-badge-order',  color:'#2F5D50' },
   writing:{ label:'Kirjutamine',        icon:'fa-wand-magic-sparkles', badge:'type-badge-writing', color:'#A96E1A' },
+  reading:{ label:'Lugemine',           icon:'fa-book-open-reader', badge:'type-badge-reading', color:'#0e7490' },
+  match:  { label:'Sobita paarid',       icon:'fa-link',          badge:'type-badge-match', color:'#047857' },
+  translate:{ label:'Tõlkimine',        icon:'fa-language',      badge:'type-badge-translate', color:'#be185d' },
 };
 
 const SUBJECT_TREE = {
@@ -271,6 +300,92 @@ function ChoicePlayer({exercise, onDone}) {
       {!isChecked
         ? <button onClick={checkCurrent} className="btn btn-pine" disabled={sel===undefined}>Kontrolli</button>
         : <button onClick={next} className="btn btn-pine">{current<questions.length-1?'Järgmine →':'Lõpeta'}</button>}
+    </div>
+  );
+}
+
+// ── ПЛЕЕР: READING ────────────────────────────────────────────
+function ReadingPlayer({exercise, onDone}) {
+  const readingExercise = {...exercise, questions:exercise.questions||[]};
+  return(
+    <div style={{display:'flex',flexDirection:'column',gap:14}}>
+      <div style={{padding:'14px 16px',borderRadius:12,background:'#F9F8F6',border:'1px solid rgba(28,43,58,.08)',whiteSpace:'pre-wrap',lineHeight:1.65}}>
+        {exercise.passage||exercise.text||'Lugemistekst puudub.'}
+      </div>
+      <ChoicePlayer exercise={readingExercise} onDone={onDone}/>
+    </div>
+  );
+}
+
+// ── ПЛЕЕР: MATCHING ───────────────────────────────────────────
+function MatchPlayer({exercise, onDone}) {
+  const pairs = exercise.pairs||[];
+  const rightOptions = useMemo(()=>[...pairs.map(p=>p.right||'')].filter(Boolean).sort(()=>Math.random()-.5),[exercise.id, pairs.length]);
+  const [answers, setAnswers] = useState({});
+  const [checked, setChecked] = useState(false);
+  const correct = pairs.filter((p,i)=>answers[i]===p.right).length;
+
+  const check = () => {
+    setChecked(true);
+    onDone&&onDone({correct,total:pairs.length,answers});
+  };
+  const reset = () => { setAnswers({}); setChecked(false); };
+
+  if(!pairs.length) return <div style={{color:'#42536A'}}>Paarid puuduvad.</div>;
+
+  return(
+    <div style={{display:'flex',flexDirection:'column',gap:12}}>
+      {pairs.map((pair,i)=>(
+        <div key={i} style={{display:'grid',gridTemplateColumns:'minmax(0,1fr) minmax(0,1fr)',gap:10,alignItems:'center'}}>
+          <div style={{padding:'10px 12px',borderRadius:9,background:'#F9F8F6',fontWeight:700}}>{pair.left}</div>
+          <select
+            value={answers[i]||''}
+            disabled={checked}
+            onChange={e=>setAnswers(prev=>({...prev,[i]:e.target.value}))}
+            style={{borderColor:checked?(answers[i]===pair.right?'#166534':'#991b1b'):undefined}}>
+            <option value="">Vali paar...</option>
+            {rightOptions.map(opt=><option key={opt} value={opt}>{opt}</option>)}
+          </select>
+          {checked&&answers[i]!==pair.right&&(
+            <div style={{gridColumn:'2',fontSize:'.78rem',color:'#166534',fontWeight:700}}>Õige: {pair.right}</div>
+          )}
+        </div>
+      ))}
+      {checked&&<div className={correct===pairs.length?'result-correct':'result-wrong'}>{correct}/{pairs.length} paari õiged</div>}
+      {!checked
+        ? <button onClick={check} className="btn btn-pine" disabled={Object.keys(answers).length<pairs.length}>Kontrolli</button>
+        : <button onClick={reset} className="btn btn-ghost">Proovi uuesti</button>}
+    </div>
+  );
+}
+
+// ── ПЛЕЕР: TRANSLATE ──────────────────────────────────────────
+function TranslatePlayer({exercise, onDone}) {
+  const [answer, setAnswer] = useState('');
+  const [checked, setChecked] = useState(false);
+  const expected = exercise.answer || exercise.targetText || '';
+  const ok = expected ? normalizeText(answer)===normalizeText(expected) : answer.trim().length>0;
+
+  const check = () => {
+    setChecked(true);
+    onDone&&onDone({correct:ok?1:0,total:1,answer});
+  };
+
+  return(
+    <div style={{display:'flex',flexDirection:'column',gap:12}}>
+      <div style={{padding:'12px 14px',borderRadius:10,background:'#F9F8F6',border:'1px solid rgba(28,43,58,.08)'}}>
+        <div style={{fontSize:'.74rem',fontWeight:800,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:6}}>Tõlgi</div>
+        <div style={{fontSize:'1rem',lineHeight:1.55}}>{exercise.sourceText||exercise.prompt||exercise.text||'Tekst puudub.'}</div>
+      </div>
+      <textarea value={answer} onChange={e=>setAnswer(e.target.value)} disabled={checked} rows={4} placeholder="Kirjuta tõlge siia..."/>
+      {checked&&(
+        <div className={ok?'result-correct':'result-wrong'}>
+          {ok?'✓ Sobib!': expected ? 'Õige vastus: '+expected : 'Vastus salvestatud õpetaja kontrolliks.'}
+        </div>
+      )}
+      {!checked
+        ? <button onClick={check} className="btn btn-pine" disabled={!answer.trim()}>Kontrolli</button>
+        : <button onClick={()=>{setAnswer('');setChecked(false);}} className="btn btn-ghost">Proovi uuesti</button>}
     </div>
   );
 }
@@ -473,6 +588,9 @@ function ExerciseCard({ex, isTeacher, onEdit, onDelete, onAssign, students}) {
           </div>}
           {ex.type==='fill'  &&<FillPlayer   exercise={ex} onDone={r=>setResult(r)}/>}
           {ex.type==='choice'&&<ChoicePlayer exercise={ex} onDone={r=>setResult(r)}/>}
+          {ex.type==='reading'&&<ReadingPlayer exercise={ex} onDone={r=>setResult(r)}/>}
+          {ex.type==='match'&&<MatchPlayer exercise={ex} onDone={r=>setResult(r)}/>}
+          {ex.type==='translate'&&<TranslatePlayer exercise={ex} onDone={r=>setResult(r)}/>}
           {ex.type==='order' &&<OrderPlayer  exercise={ex} onDone={r=>setResult(r)}/>}
           {ex.type==='writing'&&<WritingPlayer exercise={ex} onDone={r=>setResult(r)}/>}
         </div>
@@ -602,6 +720,90 @@ function WritingEditor({value, onChange}) {
   );
 }
 
+// ── РЕДАКТОР: READING ────────────────────────────────────────
+function ReadingEditor({value, onChange}) {
+  const questions = value.questions||[{question:'',options:['','','',''],correct:0,hint:''}];
+  return(
+    <div style={{display:'flex',flexDirection:'column',gap:12}}>
+      <div style={{fontSize:'.78rem',color:'#42536A',padding:'10px 12px',borderRadius:9,background:'rgba(14,116,144,.07)',border:'1px solid rgba(14,116,144,.18)'}}>
+        Lisa lugemistekst ja küsimused. Õpilane loeb teksti ning vastab valikvastustega küsimustele.
+      </div>
+      <textarea
+        value={value.passage||value.text||''}
+        onChange={e=>onChange({...value,passage:e.target.value,text:e.target.value,questions})}
+        placeholder="Lugemistekst *"
+        rows={6}
+      />
+      <ChoiceEditor value={{...value,questions}} onChange={next=>onChange({...value,...next,questions:next.questions})}/>
+    </div>
+  );
+}
+
+// ── РЕДАКТОР: MATCHING ───────────────────────────────────────
+function MatchEditor({value, onChange}) {
+  const pairs = value.pairs||[{left:'',right:''},{left:'',right:''},{left:'',right:''}];
+  const update = (idx, patch) => onChange({...value,pairs:pairs.map((pair,i)=>i===idx?{...pair,...patch}:pair)});
+  const addPair = () => onChange({...value,pairs:[...pairs,{left:'',right:''}]});
+  const delPair = idx => onChange({...value,pairs:pairs.filter((_,i)=>i!==idx)});
+
+  return(
+    <div style={{display:'flex',flexDirection:'column',gap:10}}>
+      <div style={{fontSize:'.78rem',color:'#42536A',padding:'10px 12px',borderRadius:9,background:'rgba(5,150,105,.07)',border:'1px solid rgba(5,150,105,.18)'}}>
+        Sisesta paarid. Õpilane peab vasaku ja parema poole kokku sobitama.
+      </div>
+      {pairs.map((pair,i)=>(
+        <div key={i} style={{display:'grid',gridTemplateColumns:'minmax(0,1fr) minmax(0,1fr) auto',gap:8,alignItems:'center'}}>
+          <input value={pair.left||''} onChange={e=>update(i,{left:e.target.value})} placeholder={'Vasak pool '+(i+1)}/>
+          <input value={pair.right||''} onChange={e=>update(i,{right:e.target.value})} placeholder={'Parem pool '+(i+1)}/>
+          <button
+            onClick={()=>delPair(i)}
+            className="btn btn-ghost btn-sm"
+            disabled={pairs.length<=2}
+            style={{color:'#991b1b',minWidth:42}}>
+            <i className="fa-solid fa-trash"/>
+          </button>
+        </div>
+      ))}
+      <button onClick={addPair} className="btn btn-ghost btn-sm" style={{alignSelf:'flex-start'}}>
+        <i className="fa-solid fa-plus"/> Lisa paar
+      </button>
+      <input
+        value={value.instruction||''}
+        onChange={e=>onChange({...value,instruction:e.target.value,pairs})}
+        placeholder="Juhis õpilasele (valikuline)"
+      />
+    </div>
+  );
+}
+
+// ── РЕДАКТОР: TRANSLATE ──────────────────────────────────────
+function TranslateEditor({value, onChange}) {
+  return(
+    <div style={{display:'flex',flexDirection:'column',gap:8}}>
+      <div style={{fontSize:'.78rem',color:'#42536A',padding:'10px 12px',borderRadius:9,background:'rgba(219,39,119,.07)',border:'1px solid rgba(219,39,119,.18)'}}>
+        Lisa tekst, mida õpilane tõlgib. Õige vastuse väljal saad määrata automaatse kontrolli.
+      </div>
+      <textarea
+        value={value.sourceText||value.prompt||value.text||''}
+        onChange={e=>onChange({...value,sourceText:e.target.value,prompt:e.target.value,text:e.target.value})}
+        placeholder="Tekst tõlkimiseks *"
+        rows={4}
+      />
+      <textarea
+        value={value.targetText||value.answer||''}
+        onChange={e=>onChange({...value,targetText:e.target.value,answer:e.target.value})}
+        placeholder="Õige tõlge / vastus (valikuline)"
+        rows={4}
+      />
+      <input
+        value={value.instruction||''}
+        onChange={e=>onChange({...value,instruction:e.target.value})}
+        placeholder="Juhis õpilasele (valikuline)"
+      />
+    </div>
+  );
+}
+
 function StepBadge({active, done, label, number}) {
   return(
     <div style={{display:'flex',alignItems:'center',gap:8,color:active?'#1C2B3A':'#42536A',fontWeight:active?800:700,fontSize:'.78rem'}}>
@@ -660,7 +862,7 @@ function ExerciseModal({exercise, onClose, onSave, topicsBySubjectLevel}) {
     if(!topic.trim()){alert('Vali või sisesta teema');return;}
     setSaving(true);
     await onSave({
-      ...data,
+      ...cleanExerciseData(data),
       type, title: title.trim(), level, subject, topic: topic.trim(),
       tags: tags.split(',').map(t=>t.trim()).filter(Boolean),
       updatedAt: new Date().toISOString()
@@ -727,6 +929,9 @@ function ExerciseModal({exercise, onClose, onSave, topicsBySubjectLevel}) {
               <div style={{fontSize:'.76rem',fontWeight:700,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:12}}>Harjutuse sisu</div>
               {type==='fill'  &&<FillEditor   value={data} onChange={setData}/>}
               {type==='choice'&&<ChoiceEditor value={data} onChange={setData}/>}
+              {type==='reading'&&<ReadingEditor value={data} onChange={setData}/>}
+              {type==='match'&&<MatchEditor value={data} onChange={setData}/>}
+              {type==='translate'&&<TranslateEditor value={data} onChange={setData}/>}
               {type==='order' &&<OrderEditor  value={data} onChange={setData}/>}
               {type==='writing'&&<WritingEditor value={data} onChange={setData}/>}
             </div>
