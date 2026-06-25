@@ -84,6 +84,31 @@ const EX_TYPES = {
   order:  { label:'Koosta lause/sõna',  icon:'fa-shuffle',       badge:'type-badge-order',  color:'#2F5D50' },
 };
 
+const SUBJECT_TREE = {
+  'Eesti keel': {
+    label:'Eesti keel',
+    short:'EST',
+    levels:['A1','A2','B1','B2','C1'],
+    topics:['Grammatika','Sõnavara','Lugemine','Kirjutamine','Kuulamine','Rääkimine']
+  },
+  'Inglise keel': {
+    label:'Inglise keel',
+    short:'ENG',
+    levels:['A1','A2','B1','B2','C1'],
+    topics:['Grammar','Vocabulary','Reading','Writing','Listening','Speaking']
+  },
+  'Matemaatika': {
+    label:'Matemaatika',
+    short:'MAT',
+    levels:Array.from({length:12},(_,i)=>`${i+1}. klass`),
+    topics:['Arvud','Algebra','Geomeetria','Võrrandid','Funktsioonid','Tekstülesanded']
+  }
+};
+const SUBJECTS = Object.keys(SUBJECT_TREE);
+const getSubjectConfig = subject => SUBJECT_TREE[subject] || SUBJECT_TREE['Eesti keel'];
+const getLevelLabel = subject => subject==='Matemaatika' ? 'Klass' : 'Tase';
+const getExerciseTopic = ex => ex.topic || (Array.isArray(ex.tags) ? ex.tags[0] : '') || 'Muu';
+
 // ── УТИЛИТЫ СОЗДАНИЯ ─────────────────────────────────────────
 // Парсинг fill: "Ma ___ koolis [käin]" → {text, blanks:[{pos,answer}]}
 function parseFillText(raw) {
@@ -334,6 +359,7 @@ function ExerciseCard({ex, isTeacher, onEdit, onDelete, onAssign, students}) {
             </span>
             {ex.level&&<span className="badge" style={{background:'rgba(201,136,42,.1)',color:'#A96E1A'}}>{ex.level}</span>}
             {ex.subject&&<span className="badge" style={{background:'rgba(28,43,58,.06)',color:'#42536A'}}>{ex.subject}</span>}
+            {ex.topic&&<span className="badge" style={{background:'rgba(47,93,80,.09)',color:'#2F5D50'}}>{ex.topic}</span>}
           </div>
           <h3 style={{fontSize:'1rem',marginBottom:4}}>{ex.title||'Pealkirjata harjutus'}</h3>
           <div style={{fontSize:'.78rem',color:'#42536A'}}>
@@ -471,23 +497,45 @@ function OrderEditor({value, onChange}) {
 }
 
 // ── МОДАЛКА СОЗДАНИЯ/РЕДАКТИРОВАНИЯ ──────────────────────────
-function ExerciseModal({exercise, onClose, onSave, levels, subjects}) {
+function ExerciseModal({exercise, onClose, onSave, topicsBySubjectLevel}) {
   const isEdit = !!exercise?.id;
   const [type, setType]       = useState(exercise?.type||'fill');
   const [title, setTitle]     = useState(exercise?.title||'');
-  const [level, setLevel]     = useState(exercise?.level||'');
-  const [subject, setSubject] = useState(exercise?.subject||'Eesti keel');
+  const [subject, setSubject] = useState(exercise?.subject||SUBJECTS[0]);
+  const subjectConfig = getSubjectConfig(subject);
+  const [level, setLevel]     = useState(exercise?.level||subjectConfig.levels[0]||'');
+  const topicOptions = useMemo(()=>{
+    const saved = topicsBySubjectLevel?.[subject]?.[level] || [];
+    return [...new Set([...(subjectConfig.topics||[]), ...saved])];
+  },[topicsBySubjectLevel, subject, level, subjectConfig]);
+  const [topic, setTopic]     = useState(exercise?.topic||topicOptions[0]||'');
   const [tags, setTags]       = useState((exercise?.tags||[]).join(', '));
   const [data, setData]       = useState(exercise||{});
   const [saving, setSaving]   = useState(false);
 
+  useEffect(()=>{
+    const nextConfig = getSubjectConfig(subject);
+    if(!nextConfig.levels.includes(level)){
+      setLevel(nextConfig.levels[0]||'');
+    }
+  },[subject]);
+
+  useEffect(()=>{
+    if(topicOptions.length && !topicOptions.includes(topic)){
+      setTopic(topicOptions[0]);
+    }
+  },[topicOptions]);
+
   const save = async() => {
     if(!title.trim()){alert('Sisesta pealkiri');return;}
+    if(!subject){alert('Vali õppeaine');return;}
+    if(!level){alert('Vali '+getLevelLabel(subject).toLowerCase());return;}
+    if(!topic.trim()){alert('Vali või sisesta teema');return;}
     setSaving(true);
     await onSave({
-      type, title: title.trim(), level, subject,
-      tags: tags.split(',').map(t=>t.trim()).filter(Boolean),
       ...data,
+      type, title: title.trim(), level, subject, topic: topic.trim(),
+      tags: tags.split(',').map(t=>t.trim()).filter(Boolean),
       updatedAt: new Date().toISOString()
     });
     setSaving(false);
@@ -518,14 +566,22 @@ function ExerciseModal({exercise, onClose, onSave, levels, subjects}) {
           </div>
           {/* Мета */}
           <input value={title} onChange={e=>setTitle(e.target.value)} placeholder="Harjutuse pealkiri *"/>
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
-            <select value={level} onChange={e=>setLevel(e.target.value)}>
-              <option value="">Tase (valikuline)</option>
-              {(levels||['A1','A2','B1','B2','C1']).map(l=><option key={l}>{l}</option>)}
-            </select>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(3,minmax(0,1fr))',gap:10}}>
             <select value={subject} onChange={e=>setSubject(e.target.value)}>
-              {(subjects||['Eesti keel','Vene keel','Inglise keel','Matemaatika']).map(s=><option key={s}>{s}</option>)}
+              {SUBJECTS.map(s=><option key={s}>{s}</option>)}
             </select>
+            <select value={level} onChange={e=>setLevel(e.target.value)}>
+              {subjectConfig.levels.map(l=><option key={l}>{l}</option>)}
+            </select>
+            <input
+              value={topic}
+              onChange={e=>setTopic(e.target.value)}
+              list="exercise-topic-options"
+              placeholder="Teema *"
+            />
+            <datalist id="exercise-topic-options">
+              {topicOptions.map(t=><option key={t} value={t}/>)}
+            </datalist>
           </div>
           <input value={tags} onChange={e=>setTags(e.target.value)} placeholder="Sildid: verbid, olevik, A2 (komaga eraldatud)"/>
           {/* Редактор по типу */}
@@ -665,8 +721,7 @@ function App() {
   const [modal, setModal]         = useState(null); // null | {type:'create'|'edit'|'assign', data}
   const [search, setSearch]       = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
-  const [levelFilter, setLevelFilter] = useState('all');
-  const [treeSelection] = useState({subject:'', level:'', topic:''});
+  const [treeSelection, setTreeSelection] = useState({subject:'', level:'', topic:''});
   const focusedExId = useMemo(() => {
     const params = new URLSearchParams(window.location.search);
     return params.get('ex') || params.get('exercise') || params.get('exerciseId') || null;
@@ -703,20 +758,40 @@ function App() {
     return ()=>{u1();u2();};
   },[user]);
 
-  const levels  = useMemo(()=>[...new Set(exercises.map(e=>e.level).filter(Boolean))]  ,[exercises]);
-  const subjects = ['Eesti keel','Vene keel','Inglise keel','Matemaatika'];
+  const selectedSubjectConfig = treeSelection.subject ? getSubjectConfig(treeSelection.subject) : null;
+  const topicsBySubjectLevel = useMemo(()=>{
+    const map = {};
+    exercises.forEach(ex=>{
+      const subject = ex.subject || 'Eesti keel';
+      const level = ex.level || '';
+      const topic = getExerciseTopic(ex);
+      if(!map[subject]) map[subject] = {};
+      if(!map[subject][level]) map[subject][level] = [];
+      if(topic && !map[subject][level].includes(topic)) map[subject][level].push(topic);
+    });
+    return map;
+  },[exercises]);
+  const selectedTopics = useMemo(()=>{
+    if(!treeSelection.subject || !treeSelection.level) return [];
+    const defaults = getSubjectConfig(treeSelection.subject).topics || [];
+    const saved = topicsBySubjectLevel[treeSelection.subject]?.[treeSelection.level] || [];
+    return [...new Set([...defaults, ...saved])];
+  },[topicsBySubjectLevel, treeSelection.subject, treeSelection.level]);
 
   const filtered = useMemo(()=>{
     const q = search.toLowerCase();
     return exercises.filter(e=>{
       if(typeFilter!=='all'&&e.type!==typeFilter) return false;
-      if(levelFilter!=='all'&&e.level!==levelFilter) return false;
+      if(treeSelection.subject && (e.subject||'Eesti keel')!==treeSelection.subject) return false;
+      if(treeSelection.level && (e.level||'')!==treeSelection.level) return false;
+      if(treeSelection.topic && getExerciseTopic(e)!==treeSelection.topic) return false;
       if(!q) return true;
       return (e.title||'').toLowerCase().includes(q)
         || (e.tags||[]).some(t=>t.toLowerCase().includes(q))
-        || (e.subject||'').toLowerCase().includes(q);
+        || (e.subject||'').toLowerCase().includes(q)
+        || (e.topic||'').toLowerCase().includes(q);
     });
-  },[exercises,typeFilter,levelFilter,search]);
+  },[exercises,typeFilter,treeSelection,search]);
 
   const saveExercise = useCallback(async(data) => {
     if(data.id){
@@ -823,23 +898,70 @@ function App() {
         </div>
 
         {/* Фильтры */}
-        <div style={{display:'flex',gap:10,flexWrap:'wrap',marginBottom:20,alignItems:'center'}}>
-          <input value={search} onChange={e=>setSearch(e.target.value)}
-            placeholder="🔍 Otsi harjutust, silti..."
-            style={{width:260,padding:'9px 14px'}}/>
-          <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
-            <button onClick={()=>setTypeFilter('all')} className={'btn btn-sm '+(typeFilter==='all'?'btn-dark':'btn-ghost')}>Kõik</button>
-            {Object.entries(EX_TYPES).map(([k,v])=>(
-              <button key={k} onClick={()=>setTypeFilter(k)} className={'btn btn-sm '+(typeFilter===k?'btn-dark':'btn-ghost')}>
-                <i className={'fa-solid '+v.icon}/> {v.label}
+        <div style={{display:'flex',flexDirection:'column',gap:14,marginBottom:20}}>
+          <div style={{display:'flex',gap:10,flexWrap:'wrap',alignItems:'center'}}>
+            <input value={search} onChange={e=>setSearch(e.target.value)}
+              placeholder="🔍 Otsi harjutust, silti..."
+              style={{width:260,padding:'9px 14px'}}/>
+            <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+              <button onClick={()=>setTypeFilter('all')} className={'btn btn-sm '+(typeFilter==='all'?'btn-dark':'btn-ghost')}>Kõik</button>
+              {Object.entries(EX_TYPES).map(([k,v])=>(
+                <button key={k} onClick={()=>setTypeFilter(k)} className={'btn btn-sm '+(typeFilter===k?'btn-dark':'btn-ghost')}>
+                  <i className={'fa-solid '+v.icon}/> {v.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+            <button
+              onClick={()=>setTreeSelection({subject:'', level:'', topic:''})}
+              className={'btn btn-sm '+(!treeSelection.subject?'btn-dark':'btn-ghost')}>
+              Kõik ained
+            </button>
+            {SUBJECTS.map(subject=>(
+              <button
+                key={subject}
+                onClick={()=>setTreeSelection({subject, level:'', topic:''})}
+                className={'btn btn-sm '+(treeSelection.subject===subject?'btn-dark':'btn-ghost')}>
+                {getSubjectConfig(subject).short} · {subject}
               </button>
             ))}
           </div>
-          {levels.length>0&&(
-            <select value={levelFilter} onChange={e=>setLevelFilter(e.target.value)} style={{width:'auto'}}>
-              <option value="all">Kõik tasemed</option>
-              {levels.map(l=><option key={l}>{l}</option>)}
-            </select>
+
+          {selectedSubjectConfig&&(
+            <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+              <span style={{fontSize:'.78rem',fontWeight:700,color:'#42536A',padding:'8px 2px'}}>
+                {getLevelLabel(treeSelection.subject)}:
+              </span>
+              {selectedSubjectConfig.levels.map(level=>(
+                <button
+                  key={level}
+                  onClick={()=>setTreeSelection(prev=>({subject:prev.subject, level, topic:''}))}
+                  className={'btn btn-sm '+(treeSelection.level===level?'btn-pine':'btn-ghost')}>
+                  {level}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {treeSelection.subject&&treeSelection.level&&(
+            <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+              <span style={{fontSize:'.78rem',fontWeight:700,color:'#42536A',padding:'8px 2px'}}>Teemad:</span>
+              <button
+                onClick={()=>setTreeSelection(prev=>({...prev, topic:''}))}
+                className={'btn btn-sm '+(!treeSelection.topic?'btn-pine':'btn-ghost')}>
+                Kõik teemad
+              </button>
+              {selectedTopics.map(topic=>(
+                <button
+                  key={topic}
+                  onClick={()=>setTreeSelection(prev=>({...prev, topic}))}
+                  className={'btn btn-sm '+(treeSelection.topic===topic?'btn-pine':'btn-ghost')}>
+                  {topic}
+                </button>
+              ))}
+            </div>
           )}
         </div>
 
@@ -866,11 +988,11 @@ function App() {
 
       {/* Модалки */}
       {modal?.type==='create'&&(
-        <ExerciseModal exercise={null} levels={['A1','A2','B1','B2','C1']} subjects={subjects}
+        <ExerciseModal exercise={null} topicsBySubjectLevel={topicsBySubjectLevel}
           onClose={()=>setModal(null)} onSave={saveExercise}/>
       )}
       {modal?.type==='edit'&&(
-        <ExerciseModal exercise={modal.data} levels={['A1','A2','B1','B2','C1']} subjects={subjects}
+        <ExerciseModal exercise={modal.data} topicsBySubjectLevel={topicsBySubjectLevel}
           onClose={()=>setModal(null)} onSave={saveExercise}/>
       )}
       {modal?.type==='assign'&&(
