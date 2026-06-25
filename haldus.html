@@ -5360,6 +5360,7 @@ function App() {
     ...(isStaff?[{id:'tasks',icon:'fa-list-check',label:'Ülesanded',
       badge:scopedTasks.filter(t=>t.status!=='done').length}]:[]),
     ...(isStaff?[{id:'programs',icon:'fa-book-open-reader',label:'Õppekavad'}]:[]),
+    ...(isStaff?[{id:'exercises_link',icon:'fa-pen-line',label:'Harjutused',isExternal:true,href:'/haldus-exercises'}]:[]),
     {id:'students', icon:'fa-graduation-cap',label:isStaff?'Minu õpilased':'Minu progress',
       badge:isStaff&&homework.filter(h=>h.status==='Ootel'&&myStudents.some(s=>s.id===h.studentId)).length>0?
         homework.filter(h=>h.status==='Ootel'&&myStudents.some(s=>s.id===h.studentId)).length:0},
