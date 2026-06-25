@@ -572,13 +572,62 @@ function WritingPlayer({exercise, onDone}) {
 }
 
 // ── КАРТОЧКА УПРАЖНЕНИЯ (превью + плеер) ──────────────────────
-function ExerciseCard({ex, isTeacher, onEdit, onDelete, onAssign, students, defaultOpen=false}) {
-  const [open, setOpen]     = useState(defaultOpen);
-  const [result, setResult] = useState(null);
-  const type = EX_TYPES[ex.type]||EX_TYPES.fill;
+function ExerciseCard({ex, isTeacher, onEdit, onDelete, onAssign, students, defaultOpen=false, user}) {
+  const [open, setOpen]             = useState(defaultOpen);
+  const [result, setResult]         = useState(null);
+  const [savedResult, setSavedResult] = useState(null);
+  const type    = EX_TYPES[ex.type]||EX_TYPES.fill;
+  const cardRef = useRef(null);
+
+  useEffect(()=>{
+    if(defaultOpen && cardRef.current){
+      setTimeout(()=>cardRef.current?.scrollIntoView({behavior:'smooth',block:'center'}),300);
+    }
+  },[]);
+
+  useEffect(()=>{
+    if(!user?.uid||!ex?.id) return;
+    db.collection('exerciseResults')
+      .where('exerciseId','==',ex.id)
+      .where('studentUid','==',user.uid)
+      .orderBy('completedAt','desc')
+      .limit(1)
+      .get()
+      .then(snap=>{ if(!snap.empty) setSavedResult(snap.docs[0].data()); })
+      .catch(()=>{});
+  },[user?.uid, ex.id]);
+
+  const saveResult = async(r, extra={}) => {
+    if(!user?.uid) return;
+    const pct = r.total>0 ? Math.round(r.correct/r.total*100) : 100;
+    const params = new URLSearchParams(window.location.search);
+    const homeworkId = params.get('hw')||null;
+    const payload = {
+      exerciseId: ex.id,
+      exerciseTitle: ex.title||'',
+      exerciseType: ex.type||'',
+      studentUid: user.uid,
+      studentName: user.displayName||user.email||'',
+      homeworkId,
+      score: {correct:r.correct||0, total:r.total||1},
+      pct,
+      completedAt: new Date().toISOString(),
+      ...extra
+    };
+    try{
+      await db.collection('exerciseResults').add(payload);
+      setSavedResult(payload);
+      if(homeworkId && pct>=60){
+        await db.collection('homework').doc(homeworkId).update({
+          status:'Tehtud',
+          doneAt: new Date().toISOString().split('T')[0]
+        });
+      }
+    }catch(e){ console.warn('saveResult:', e); }
+  };
 
   return(
-    <div className="ex-card" style={{display:'flex',flexDirection:'column',gap:12}}>
+    <div ref={cardRef} className="ex-card" style={{display:'flex',flexDirection:'column',gap:12,outline:defaultOpen?'2px solid #C9882A':'none',outlineOffset:2}}>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:10}}>
         <div style={{flex:1,minWidth:0}}>
           <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap',marginBottom:6}}>
@@ -594,6 +643,20 @@ function ExerciseCard({ex, isTeacher, onEdit, onDelete, onAssign, students, defa
             Autor: {ex.authorName||'—'} · {fmtDate(ex.createdAt)}
             {ex.assignCount>0&&<span style={{marginLeft:8,color:'#2F5D50',fontWeight:600}}>· {ex.assignCount}× määratud</span>}
           </div>
+          {savedResult&&(
+            <div style={{marginTop:6,display:'inline-flex',alignItems:'center',gap:6,padding:'3px 10px',borderRadius:999,
+              background:savedResult.pct>=60?'rgba(22,101,52,.1)':'rgba(153,27,27,.08)',
+              border:'1px solid '+(savedResult.pct>=60?'rgba(22,101,52,.2)':'rgba(153,27,27,.2)')}}>
+              <i className="fa-solid fa-circle-check" style={{fontSize:'.65rem',color:savedResult.pct>=60?'#166534':'#991b1b'}}/>
+              <span style={{fontSize:'.72rem',fontWeight:700,color:savedResult.pct>=60?'#166534':'#991b1b'}}>
+                {savedResult.exerciseType==='writing'
+                  ? 'Kirjutatud · '+new Date(savedResult.completedAt).toLocaleDateString('et-EE')
+                  : savedResult.score.correct+'/'+savedResult.score.total
+                    +' ('+savedResult.pct+'%) · '
+                    +new Date(savedResult.completedAt).toLocaleDateString('et-EE')}
+              </span>
+            </div>
+          )}
         </div>
         <div style={{display:'flex',gap:6,flexShrink:0,flexWrap:'wrap',justifyContent:'flex-end'}}>
           <button onClick={()=>setOpen(o=>!o)} className="btn btn-ghost btn-sm">
@@ -622,13 +685,13 @@ function ExerciseCard({ex, isTeacher, onEdit, onDelete, onAssign, students, defa
           {result&&<div style={{marginBottom:12,padding:'8px 12px',borderRadius:9,background:'rgba(47,93,80,.07)',fontSize:'.82rem',color:'#2F5D50',fontWeight:600}}>
             Viimane tulemus: {result.correct}/{result.total}
           </div>}
-          {ex.type==='fill'  &&<FillPlayer   exercise={ex} onDone={r=>setResult(r)}/>}
-          {ex.type==='choice'&&<ChoicePlayer exercise={ex} onDone={r=>setResult(r)}/>}
-          {ex.type==='reading'&&<ReadingPlayer exercise={ex} onDone={r=>setResult(r)}/>}
-          {ex.type==='match'&&<MatchPlayer exercise={ex} onDone={r=>setResult(r)}/>}
-          {ex.type==='translate'&&<TranslatePlayer exercise={ex} onDone={r=>setResult(r)}/>}
-          {ex.type==='order' &&<OrderPlayer  exercise={ex} onDone={r=>setResult(r)}/>}
-          {ex.type==='writing'&&<WritingPlayer exercise={ex} onDone={r=>setResult(r)}/>}
+          {ex.type==='fill'     &&<FillPlayer      exercise={ex} onDone={r=>{setResult(r);saveResult(r);}}/>}
+          {ex.type==='choice'   &&<ChoicePlayer    exercise={ex} onDone={r=>{setResult(r);saveResult(r);}}/>}
+          {ex.type==='reading'  &&<ReadingPlayer   exercise={ex} onDone={r=>{setResult(r);saveResult(r);}}/>}
+          {ex.type==='match'    &&<MatchPlayer     exercise={ex} onDone={r=>{setResult(r);saveResult(r);}}/>}
+          {ex.type==='translate'&&<TranslatePlayer exercise={ex} onDone={r=>{setResult(r);saveResult(r);}}/>}
+          {ex.type==='order'    &&<OrderPlayer     exercise={ex} onDone={r=>{setResult(r);saveResult(r);}}/>}
+          {ex.type==='writing'  &&<WritingPlayer   exercise={ex} onDone={r=>{setResult(r);saveResult(r,{writingWordCount:r.wordCount||0});}}/>}
         </div>
       )}
     </div>
@@ -1327,7 +1390,7 @@ function App() {
             </div>
           </div>
           {focusedExId&&(
-            <a href="/haldus-exercises.html" className="btn btn-ghost" style={{flexShrink:0,textDecoration:'none'}}>
+            <a href="/haldus-exercises" className="btn btn-ghost" style={{flexShrink:0,textDecoration:'none'}}>
               <i className="fa-solid fa-arrow-left"/> Kõik harjutused
             </a>
           )}
@@ -1388,6 +1451,7 @@ function App() {
                   key={ex.id} ex={ex}
                   isTeacher={isTeacher}
                   students={students}
+                  user={user}
                   defaultOpen={focusedExId===ex.id}
                   onEdit={isTeacher?e=>setModal({type:'edit',data:e}):null}
                   onDelete={isTeacher?deleteExercise:null}
