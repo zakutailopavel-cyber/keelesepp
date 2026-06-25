@@ -62,6 +62,7 @@ if(typeof Babel !== 'undefined' && Babel.availablePresets && Babel.registerPrese
   .type-badge-fill { background:rgba(37,99,235,.1); color:#1d4ed8; }
   .type-badge-choice { background:rgba(124,58,237,.1); color:#6d28d9; }
   .type-badge-order { background:rgba(47,93,80,.1); color:#2F5D50; }
+  .type-badge-writing { background:rgba(201,136,42,.12); color:#A96E1A; }
 </style>
 </head>
 <body>
@@ -82,6 +83,7 @@ const EX_TYPES = {
   fill:   { label:'Täida lünk',        icon:'fa-pen-line',      badge:'type-badge-fill',   color:'#1d4ed8' },
   choice: { label:'Vali vastus',        icon:'fa-list-check',    badge:'type-badge-choice', color:'#6d28d9' },
   order:  { label:'Koosta lause/sõna',  icon:'fa-shuffle',       badge:'type-badge-order',  color:'#2F5D50' },
+  writing:{ label:'Kirjutamine',        icon:'fa-wand-magic-sparkles', badge:'type-badge-writing', color:'#A96E1A' },
 };
 
 const SUBJECT_TREE = {
@@ -343,6 +345,76 @@ function OrderPlayer({exercise, onDone}) {
   );
 }
 
+// ── ПЛЕЕР: WRITING / CLAUDE CHECK ─────────────────────────────
+function WritingPlayer({exercise, onDone}) {
+  const [studentText, setStudentText] = useState('');
+  const [feedback, setFeedback] = useState('');
+  const [wordCount, setWordCount] = useState(0);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+
+  const checkWriting = async() => {
+    if(!studentText.trim()){setErr('Kirjuta tekst enne kontrollimist');return;}
+    setBusy(true);
+    setErr('');
+    setFeedback('');
+    try{
+      const res = await fetch('/api/check-writing', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          studentText,
+          task: exercise.task || exercise.prompt || exercise.instruction || exercise.title || '',
+          level: exercise.level || 'B2',
+          criteria: exercise.criteria || ''
+        })
+      });
+      const data = await res.json();
+      if(!res.ok) throw new Error(data.error || 'Kontroll ebaõnnestus');
+      setFeedback(data.feedback || '');
+      setWordCount(data.wordCount || 0);
+      onDone&&onDone({correct:1,total:1,feedback:data.feedback,wordCount:data.wordCount});
+    }catch(e){
+      setErr(e.message || 'Kontroll ebaõnnestus');
+    }
+    setBusy(false);
+  };
+
+  return(
+    <div style={{display:'flex',flexDirection:'column',gap:12}}>
+      {(exercise.task||exercise.prompt||exercise.instruction)&&(
+        <div style={{padding:'12px 14px',borderRadius:10,background:'rgba(201,136,42,.07)',fontSize:'.9rem',lineHeight:1.5}}>
+          {exercise.task||exercise.prompt||exercise.instruction}
+        </div>
+      )}
+      {exercise.criteria&&(
+        <div style={{fontSize:'.8rem',color:'#42536A',whiteSpace:'pre-wrap',padding:'10px 12px',borderRadius:9,background:'#F9F8F6'}}>
+          {exercise.criteria}
+        </div>
+      )}
+      <textarea
+        value={studentText}
+        onChange={e=>setStudentText(e.target.value)}
+        rows={8}
+        placeholder="Kirjuta vastus siia..."
+        style={{resize:'vertical',lineHeight:1.55}}
+      />
+      {err&&<div style={{background:'#fee2e2',color:'#991b1b',borderRadius:9,padding:'9px 12px',fontSize:'.84rem'}}>{err}</div>}
+      <button onClick={checkWriting} disabled={busy} className="btn btn-pine">
+        <i className="fa-solid fa-wand-magic-sparkles"/> {busy?'Kontrollib Claude...':'Kontrolli Claude abil'}
+      </button>
+      {feedback&&(
+        <div style={{border:'1px solid rgba(47,93,80,.18)',borderRadius:12,padding:14,background:'rgba(47,93,80,.05)'}}>
+          <div style={{fontSize:'.78rem',fontWeight:700,color:'#2F5D50',textTransform:'uppercase',letterSpacing:'.06em',marginBottom:8}}>
+            Claude tagasiside · {wordCount} sõna
+          </div>
+          <div style={{whiteSpace:'pre-wrap',fontSize:'.88rem',lineHeight:1.55,color:'#1C2B3A'}}>{feedback}</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── КАРТОЧКА УПРАЖНЕНИЯ (превью + плеер) ──────────────────────
 function ExerciseCard({ex, isTeacher, onEdit, onDelete, onAssign, students}) {
   const [open, setOpen]     = useState(false);
@@ -397,6 +469,7 @@ function ExerciseCard({ex, isTeacher, onEdit, onDelete, onAssign, students}) {
           {ex.type==='fill'  &&<FillPlayer   exercise={ex} onDone={r=>setResult(r)}/>}
           {ex.type==='choice'&&<ChoicePlayer exercise={ex} onDone={r=>setResult(r)}/>}
           {ex.type==='order' &&<OrderPlayer  exercise={ex} onDone={r=>setResult(r)}/>}
+          {ex.type==='writing'&&<WritingPlayer exercise={ex} onDone={r=>setResult(r)}/>}
         </div>
       )}
     </div>
@@ -496,6 +569,34 @@ function OrderEditor({value, onChange}) {
   );
 }
 
+// ── РЕДАКТОР: WRITING / CLAUDE ────────────────────────────────
+function WritingEditor({value, onChange}) {
+  return(
+    <div style={{display:'flex',flexDirection:'column',gap:8}}>
+      <div style={{fontSize:'.78rem',color:'#42536A',padding:'10px 12px',borderRadius:9,background:'rgba(201,136,42,.07)',border:'1px solid rgba(201,136,42,.18)'}}>
+        Õpilane kirjutab teksti ja Claude kontrollib seda Anthropic API kaudu.
+      </div>
+      <textarea
+        value={value.task||value.prompt||''}
+        onChange={e=>onChange({...value,task:e.target.value,prompt:e.target.value})}
+        placeholder="Kirjutamisülesanne *"
+        rows={4}
+      />
+      <textarea
+        value={value.criteria||''}
+        onChange={e=>onChange({...value,criteria:e.target.value})}
+        placeholder="Hindamiskriteeriumid (valikuline)"
+        rows={4}
+      />
+      <input
+        value={value.instruction||''}
+        onChange={e=>onChange({...value,instruction:e.target.value})}
+        placeholder="Lühike juhis kaardile (valikuline)"
+      />
+    </div>
+  );
+}
+
 // ── МОДАЛКА СОЗДАНИЯ/РЕДАКТИРОВАНИЯ ──────────────────────────
 function ExerciseModal({exercise, onClose, onSave, topicsBySubjectLevel}) {
   const isEdit = !!exercise?.id;
@@ -590,6 +691,7 @@ function ExerciseModal({exercise, onClose, onSave, topicsBySubjectLevel}) {
             {type==='fill'  &&<FillEditor   value={data} onChange={setData}/>}
             {type==='choice'&&<ChoiceEditor value={data} onChange={setData}/>}
             {type==='order' &&<OrderEditor  value={data} onChange={setData}/>}
+            {type==='writing'&&<WritingEditor value={data} onChange={setData}/>}
           </div>
           <button onClick={save} disabled={saving} className="btn btn-pine" style={{width:'100%',padding:13,marginTop:4}}>
             {saving?'Salvestab…':'✓ '+(isEdit?'Salvesta muudatused':'Lisa harjutus raamatukogusse')}
