@@ -2259,11 +2259,48 @@ function StudentsDatabaseView({
   filteredStudents,lessons,invoices,isAdmin,search,setSearch,stuFilter,setStuFilter,
   groupFilter,setGroupFilter,groupOptions,contactFilter,setContactFilter,studentSort,setStudentSort,openStudent,setEditStu,user,
   nName,setNName,nParentName,setNParentName,nEmail,setNEmail,nPhone,setNPhone,nLevel,setNLevel,nTarget,setNTarget,
-  nSubject,setNSubject,nGrade,setNGrade,nGroup,setNGroup,nPkg,setNPkg,nTeach,setNTeach,addStudent,mergeStudentDuplicates
+  nSubject,setNSubject,nGrade,setNGrade,nGroup,setNGroup,nPkg,setNPkg,nTeach,setNTeach,addStudent,mergeStudentDuplicates,groupStudents,ungroupStudent
 }) {
   const [showAddForm,setShowAddForm] = React.useState(false);
   const [groupMode,setGroupMode] = React.useState('table');
   const [teacherFocus,setTeacherFocus] = React.useState('');
+  const [groupingMode,setGroupingMode] = React.useState(false);
+  const [selectedForGroup,setSelectedForGroup] = React.useState([]);
+
+  const toggleSelectForGroup = (student) => {
+    setSelectedForGroup(prev=>
+      prev.find(s=>s.id===student.id)
+        ? prev.filter(s=>s.id!==student.id)
+        : [...prev, student]
+    );
+  };
+
+  // Build grouped view: students with same groupId shown together
+  const studentGroups = React.useMemo(()=>{
+    const groups = {};
+    const ungrouped = [];
+    filteredStudents.forEach(s=>{
+      if(s.groupId){
+        if(!groups[s.groupId]) groups[s.groupId]=[];
+        groups[s.groupId].push(s);
+      } else {
+        ungrouped.push(s);
+      }
+    });
+    // Return flat list but mark group members
+    const result = [];
+    const seenGroups = new Set();
+    filteredStudents.forEach(s=>{
+      if(!s.groupId){
+        result.push({...s,_isGroup:false});
+      } else if(!seenGroups.has(s.groupId)){
+        seenGroups.add(s.groupId);
+        const members = groups[s.groupId];
+        result.push({...members[0],_isGroup:true,_groupMembers:members});
+      }
+    });
+    return result;
+  },[filteredStudents]);
   const teacherScope = canonicalTeacherName(user?.displayName);
   const NoData = ({inline=false}) => (
     <span style={{
@@ -2305,6 +2342,7 @@ function StudentsDatabaseView({
       if(student.convertedToParent) return acc;
       if(student.mergedIntoStudentId) return acc;
       if(student.mergedAt && student.mergedIntoStudentName) return acc;
+      if(student.groupId) return acc; // already grouped with other subjects — not a duplicate
       if(!normalizeText(student.name)) return acc;
       const key = studentProfileKey(student);
       if(!key) return acc;
@@ -2327,6 +2365,22 @@ function StudentsDatabaseView({
           <button onClick={()=>setShowAddForm(v=>!v)} className="btn btn-pine">
             <i className="fa-solid fa-user-plus"/> Lisa õpilane
           </button>
+          {isAdmin&&(
+            groupingMode
+              ? <div style={{display:'flex',gap:8,alignItems:'center'}}>
+                  <span style={{fontSize:'.8rem',color:'#42536A',fontWeight:600}}>Valitud: {selectedForGroup.length}</span>
+                  <button
+                    disabled={selectedForGroup.length<2}
+                    onClick={async()=>{await groupStudents(selectedForGroup);setGroupingMode(false);setSelectedForGroup([]);}}
+                    className="btn btn-pine">
+                    ✓ Grupeeri ({selectedForGroup.length})
+                  </button>
+                  <button onClick={()=>{setGroupingMode(false);setSelectedForGroup([]);}} className="btn btn-ghost">Tühista</button>
+                </div>
+              : <button onClick={()=>setGroupingMode(true)} className="btn btn-ghost">
+                  <i className="fa-solid fa-layer-group"/> Grupeeri
+                </button>
+          )}
           <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍 Otsi nime, õpetajat, e-posti…" style={{width:280,padding:'9px 14px'}}/>
           <select value={studentSort} onChange={e=>setStudentSort(e.target.value)} style={{width:'auto'}}>
             <option value="name_asc">Sort: nimi A-Z</option>
@@ -2508,6 +2562,7 @@ function StudentsDatabaseView({
           <table style={{width:'100%',borderCollapse:'collapse',minWidth:1180}}>
             <thead>
               <tr style={{background:'#F9F8F6',borderBottom:'1px solid rgba(28,43,58,.08)'}}>
+                {groupingMode&&<th style={{padding:'10px 8px',width:36}}/>}
                 {['Õpilane','Kontakt','Kontaktistaatus','Õpe','Grupp','Õpetaja','Paketid','Tunnid','Arved','Staatus','Tegevused'].map(head=>(
                   <th key={head} style={{textAlign:'left',padding:'14px 16px',fontSize:'.76rem',fontWeight:700,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em'}}>
                     {head}
@@ -2516,7 +2571,8 @@ function StudentsDatabaseView({
               </tr>
             </thead>
             <tbody>
-              {filteredStudents.map(student=>{
+              {studentGroups.map(item=>{
+                const student = item;
                 const studentLessons = lessons.filter(l=>{
                   const matchesStudent = l.studentId===student.id || normalizeText(l.studentName)===normalizeText(student.name);
                   if(!matchesStudent) return false;
@@ -2535,8 +2591,47 @@ function StudentsDatabaseView({
                     ? {bg:'#fef3c7',c:'#92400e',t:'Jääk madal'}
                     : {bg:'#dcfce7',c:'#166534',t:'Aktiivne'};
 
+                const isSelected = selectedForGroup.find(s=>s.id===student.id);
+                if(item._isGroup){
+                  // Render grouped row with all subjects
+                  return(
+                    <tr key={student.id} style={{background:'rgba(47,93,80,.04)',borderLeft:'3px solid #2F5D50'}}>
+                      {groupingMode&&<td style={{padding:'8px 10px',verticalAlign:'middle'}}>
+                        <input type="checkbox" checked={!!isSelected} onChange={()=>toggleSelectForGroup(student)}/>
+                      </td>}
+                      <td style={{padding:'14px 16px',verticalAlign:'top'}}>
+                        <div style={{fontWeight:700}}>{student.name}</div>
+                        <div style={{fontSize:'.75rem',color:'#42536A',marginTop:4}}>
+                          <i className="fa-solid fa-layer-group" style={{color:'#2F5D50',marginRight:4}}/>
+                          {item._groupMembers.map((m,i)=>(
+                            <span key={m.id}>
+                              <button onClick={()=>openStudent(m)} style={{background:'none',border:'none',padding:0,cursor:'pointer',color:'#2F5D50',fontWeight:600,fontSize:'.75rem'}}>
+                                {m.subject||'—'}
+                              </button>
+                              {isAdmin&&<button onClick={()=>ungroupStudent(m)} title="Eemalda grupist" style={{background:'none',border:'none',padding:'0 2px',cursor:'pointer',color:'#9ca3af',fontSize:'.65rem'}}>✕</button>}
+                              {i<item._groupMembers.length-1&&' · '}
+                            </span>
+                          ))}
+                        </div>
+                      </td>
+                      <td colSpan={7} style={{padding:'14px 16px',verticalAlign:'middle',color:'#42536A',fontSize:'.84rem'}}>
+                        {item._groupMembers.map(m=>(
+                          <div key={m.id} style={{display:'flex',gap:12,alignItems:'center',marginBottom:4}}>
+                            <span style={{minWidth:100,fontWeight:600,color:'#2F5D50'}}>{m.subject||'—'}</span>
+                            <span>{m.teacher||'—'}</span>
+                            <span className="badge" style={{background:'rgba(201,136,42,.1)',color:'#A96E1A'}}>{m.level}→{m.targetLevel}</span>
+                          </div>
+                        ))}
+                      </td>
+                    </tr>
+                  );
+                }
                 return(
-                  <tr key={student.id} style={{borderBottom:'1px solid rgba(28,43,58,.06)',background:student.active===false?'rgba(243,244,246,.45)':'#fff'}}>
+                  <tr key={student.id} style={{borderBottom:'1px solid rgba(28,43,58,.06)',
+                    background:isSelected?'rgba(47,93,80,.07)':student.active===false?'rgba(243,244,246,.45)':'#fff'}}>
+                    {groupingMode&&<td style={{padding:'8px 10px',verticalAlign:'middle'}} onClick={e=>{e.stopPropagation();toggleSelectForGroup(student);}}>
+                      <input type="checkbox" checked={!!isSelected} onChange={()=>toggleSelectForGroup(student)} style={{cursor:'pointer'}}/>
+                    </td>}
                     <td style={{padding:'14px 16px',verticalAlign:'top'}}>
                       <div style={{fontWeight:700}}>{student.name||<NoData inline/>}</div>
                       <div style={{fontSize:'.78rem',color:'#42536A',marginTop:4}}>
@@ -5062,6 +5157,26 @@ function App() {
     }
   },[isAdmin,students,user,logActivity,notify]);
 
+  const groupStudents=useCallback(async(students)=>{
+    if(!isAdmin){notify('⚠ Ainult admin saab grupeerida');return;}
+    if(!students||students.length<2) return;
+    // Use first student's id as groupId
+    const gid = students[0].id;
+    const batch = db.batch();
+    students.forEach(s=>{
+      batch.update(db.collection('students').doc(s.id),{groupId:gid,groupName:s.name});
+    });
+    await batch.commit();
+    notify('✓ Õpilased grupeeritud!');
+    await logActivity('students.grouped','Grupeeritud',{groupId:gid,names:students.map(s=>s.name+' ('+s.subject+')').join(', ')});
+  },[isAdmin,logActivity]);
+
+  const ungroupStudent=useCallback(async(student)=>{
+    if(!isAdmin) return;
+    await db.collection('students').doc(student.id).update({groupId:firebase.firestore.FieldValue.delete(),groupName:firebase.firestore.FieldValue.delete()});
+    notify('✓ Eemaldatud grupist');
+  },[isAdmin]);
+
   const mergeStudentDuplicates=useCallback(async(group)=>{
     if(!isAdmin){notify('⚠ Ainult administraator saab duplikaate ühendada');return;}
     const candidates = (group||[]).filter(student=>student?.id);
@@ -6236,6 +6351,8 @@ function App() {
             setNTeach={setNTeach}
             addStudent={addStudent}
             mergeStudentDuplicates={mergeStudentDuplicates}
+            groupStudents={groupStudents}
+            ungroupStudent={ungroupStudent}
           />}
 
           {tab==='invoices'&&!isStaff&&<ParentInvoicesView invoices={scopedInvoices} printInvoice={printInvoice} submitParentPayment={submitParentPayment}/>}
