@@ -339,7 +339,7 @@ function AuthScreen({onLogin}) {
 // ── DASHBOARD ────────────────────────────────────────────────
 // TÄHTIS: kõik komponendid on App-ist VÄLJAS — see lahendab "iga täht uuendab lehte" probleemi
 function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
-  tasks,staffMembers,
+  tasks,staffMembers,unreadMessages,markMessagesRead,
   nName,setNName,nParentName,setNParentName,nEmail,setNEmail,nPhone,setNPhone,
   nLevel,setNLevel,nTarget,setNTarget,nPkg,setNPkg,
   nSubject,setNSubject,nGrade,setNGrade,nGroup,setNGroup,
@@ -462,6 +462,32 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
           {new Date().toLocaleDateString('et-EE',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
         </div>
       </div>
+
+      {(unreadMessages||[]).length>0&&(
+        <div className="card" style={{padding:20,border:'1px solid rgba(47,93,80,.25)',background:'#f0fdf9'}}>
+          <div style={{display:'flex',justifyContent:'space-between',gap:10,alignItems:'center',flexWrap:'wrap',marginBottom:12}}>
+            <div style={{display:'flex',alignItems:'center',gap:8}}>
+              <i className="fa-solid fa-envelope" style={{color:'#2F5D50'}}/>
+              <strong style={{color:'#2F5D50'}}>Uued sõnumid</strong>
+              <span className="badge" style={{background:'#2F5D50',color:'#fff'}}>{(unreadMessages||[]).length}</span>
+            </div>
+          </div>
+          <div style={{display:'flex',flexDirection:'column',gap:8}}>
+            {[...(unreadMessages||[])].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).slice(0,5).map(msg=>(
+              <div key={msg.id} style={{display:'grid',gridTemplateColumns:'1fr auto',gap:10,alignItems:'center',padding:'10px 12px',borderRadius:10,background:'#fff',border:'1px solid rgba(47,93,80,.12)'}}>
+                <div style={{minWidth:0}}>
+                  <div style={{fontWeight:700,fontSize:'.86rem'}}>{msg.fromName||'—'} <span style={{fontWeight:400,color:'#42536A'}}>· {msg.studentName}</span></div>
+                  <div style={{fontSize:'.78rem',color:'#42536A',marginTop:3,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{msg.text}</div>
+                  <div style={{fontSize:'.7rem',color:'#9ca3af',marginTop:2}}>{msg.createdAt?new Date(msg.createdAt).toLocaleString('et-EE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):''}</div>
+                </div>
+                <button onClick={()=>markMessagesRead&&markMessagesRead(msg.studentId)} className="btn btn-ghost btn-sm" style={{fontSize:'.72rem'}}>
+                  Loetud
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(155px,1fr))',gap:12}}>
         {isStaff?
@@ -2622,6 +2648,22 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
   const [copiedPaymentKey,setCopiedPaymentKey] = React.useState('');
   const [exerciseResults,setExerciseResults] = React.useState([]);
   React.useEffect(()=>{
+    if(!currentStu?.id||!user?.uid) return;
+    // Mark messages as read when opening student card
+    db.collection('messages')
+      .where('studentId','==',currentStu.id)
+      .where('read','==',false)
+      .get()
+      .then(snap=>{
+        const batch = db.batch();
+        snap.docs.forEach(doc=>{
+          if(doc.data().fromUid!==user.uid) batch.update(doc.ref,{read:true});
+        });
+        batch.commit().catch(()=>{});
+      }).catch(()=>{});
+  },[currentStu?.id,user?.uid]);
+
+  React.useEffect(()=>{
     if(!currentStu?.id) return;
     const unsub = db.collection('exerciseResults')
       .where('studentUid','==',currentStu.id)
@@ -4286,6 +4328,22 @@ function App() {
     );
   },[activityLog,user,isAdmin,myStudents]);
 
+  const unreadMessages = useMemo(()=>{
+    if(!user) return [];
+    // Messages sent by someone else (not me)
+    return messages.filter(m=>{
+      if(m.fromUid===user.uid) return false; // my own messages
+      if(m.read) return false;
+      if(isStaff){
+        // teacher/admin sees unread from parents/students
+        return myStudents.some(s=>s.id===m.studentId);
+      }else{
+        // parent sees unread from teacher
+        return myStudents.some(s=>s.id===m.studentId);
+      }
+    });
+  },[messages,user,myStudents,isStaff]);
+
   const logActivity=useCallback(async(type,label,meta={})=>{
     if(!user) return;
     try{
@@ -4811,6 +4869,23 @@ function App() {
     });
     setTeacherMessage('');
     notify('✓ Sõnum saadetud');
+  },[user]);
+
+  const markMessagesRead=useCallback(async(studentId)=>{
+    if(!studentId||!user?.uid) return;
+    // Mark all unread messages for this student where fromRole != user.role as read
+    const snap = await db.collection('messages')
+      .where('studentId','==',studentId)
+      .where('read','==',false)
+      .get();
+    const batch = db.batch();
+    snap.docs.forEach(doc=>{
+      const d = doc.data();
+      if(d.fromUid!==user.uid){
+        batch.update(doc.ref,{read:true});
+      }
+    });
+    await batch.commit();
   },[user]);
 
   const addGroup=useCallback(async(group)=>{
@@ -5487,7 +5562,7 @@ function App() {
   if(!user) return <AuthScreen onLogin={u=>{setUser(u);if(u.role==='teacher')setFilterT(canonicalTeacherName(u.displayName||''));if(u.role==='admin')setFilterT('Kõik');}}/>;
 
   const navItems=[
-    {id:'dashboard',icon:'fa-chart-pie',label:'Töölaud'},
+    {id:'dashboard',icon:'fa-chart-pie',label:'Töölaud',badge:unreadMessages.length},
     {id:'calendar', icon:'fa-calendar-days',label:'Tunniplaan'},
     ...(isStaff?[{id:'tasks',icon:'fa-list-check',label:'Ülesanded',
       badge:scopedTasks.filter(t=>t.status!=='done').length}]:[]),
@@ -5574,6 +5649,7 @@ function App() {
           {notif&&<div style={{position:'fixed',top:20,right:20,background:'#1C2B3A',color:'#fff',padding:'12px 20px',borderRadius:12,zIndex:300,fontWeight:600,fontSize:'.9rem',boxShadow:'0 8px 28px rgba(0,0,0,.25)'}}>{notif}</div>}
 
           {tab==='dashboard'&&<Dashboard user={user} myStudents={myStudents} lessons={lessons} schedule={schedule} invoices={scopedInvoices} homework={homework} tasks={scopedTasks} staffMembers={staffMembers}
+            unreadMessages={unreadMessages} markMessagesRead={markMessagesRead}
             nName={nName} setNName={setNName} nParentName={nParentName} setNParentName={setNParentName} nEmail={nEmail} setNEmail={setNEmail} nPhone={nPhone} setNPhone={setNPhone}
             nLevel={nLevel} setNLevel={setNLevel} nTarget={nTarget} setNTarget={setNTarget}
             nPkg={nPkg} setNPkg={setNPkg} nSubject={nSubject} setNSubject={setNSubject} nGrade={nGrade} setNGrade={setNGrade} nGroup={nGroup} setNGroup={setNGroup} nTeach={nTeach} setNTeach={setNTeach}
