@@ -3179,9 +3179,103 @@ function ParentInvoicesView({invoices,printInvoice,submitParentPayment}) {
 }
 
 // ── ARVED ÜLDVAADE ────────────────────────────────────────────
-function InvoicesView({invoices,myStudents,invStu,setInvStu,invAmt,setInvAmt,invDesc,setInvDesc,addInvoice,markPaid,unmarkPaid,deleteInvoice,printInvoice}) {
+function InvoicesView({invoices,myStudents,schedule,students,isAdmin,invStu,setInvStu,invAmt,setInvAmt,invDesc,setInvDesc,addInvoice,markPaid,unmarkPaid,deleteInvoice,printInvoice}) {
   const unpaidAmt=invoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+i.amount,0);
   const paid=invoices.filter(i=>i.status==='Makstud');
+  const [statsPeriod,setStatsPeriod] = React.useState('current');
+
+  // Period boundaries
+  const now = new Date();
+  const periodStart = React.useMemo(()=>{
+    if(statsPeriod==='current'){
+      return new Date(now.getFullYear(),now.getMonth(),1).toISOString().split('T')[0];
+    }else if(statsPeriod==='next'){
+      return new Date(now.getFullYear(),now.getMonth()+1,1).toISOString().split('T')[0];
+    }else{ // both
+      return new Date(now.getFullYear(),now.getMonth(),1).toISOString().split('T')[0];
+    }
+  },[statsPeriod]);
+  const periodEnd = React.useMemo(()=>{
+    if(statsPeriod==='current'){
+      return new Date(now.getFullYear(),now.getMonth()+1,0).toISOString().split('T')[0];
+    }else if(statsPeriod==='next'){
+      return new Date(now.getFullYear(),now.getMonth()+2,0).toISOString().split('T')[0];
+    }else{
+      return new Date(now.getFullYear(),now.getMonth()+2,0).toISOString().split('T')[0];
+    }
+  },[statsPeriod]);
+
+  // Helper: get all dates for a schedule event in period
+  const getEventDatesInPeriod = React.useCallback((ev)=>{
+    const dates = [];
+    if(ev.date){
+      if(ev.date>=periodStart && ev.date<=periodEnd) dates.push(ev.date);
+    } else if(ev.recurring && ev.startDate && ev.day){
+      // Weekly recurring — enumerate weeks in period
+      const dayMap = {Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6};
+      const targetDay = dayMap[ev.day];
+      const start = new Date(Math.max(new Date(ev.startDate),new Date(periodStart)));
+      const end = new Date(periodEnd);
+      const d = new Date(start);
+      // Advance to first occurrence of targetDay
+      while(d.getDay()!==targetDay && d<=end) d.setDate(d.getDate()+1);
+      while(d<=end){
+        dates.push(d.toISOString().split('T')[0]);
+        d.setDate(d.getDate()+7);
+      }
+    }
+    return dates;
+  },[periodStart,periodEnd]);
+
+  // Expected income: scheduled lessons × lessonPrice per student
+  const expectedIncome = React.useMemo(()=>{
+    if(!isAdmin) return null;
+    let total = 0;
+    const byStudent = {};
+    (schedule||[]).forEach(ev=>{
+      if(ev.status==='Tühistatud') return;
+      const stu = (students||[]).find(s=>
+        s.id===ev.studentId ||
+        (s.name||'').toLowerCase()===(ev.studentName||'').toLowerCase()
+      );
+      if(!stu || !stu.lessonPrice) return;
+      const dates = getEventDatesInPeriod(ev);
+      const price = (stu.lessonPrice||0)*dates.length;
+      total += price;
+      if(!byStudent[stu.id]) byStudent[stu.id]={name:stu.name,count:0,price:stu.lessonPrice,teacher:stu.teacher||'—',total:0};
+      byStudent[stu.id].count += dates.length;
+      byStudent[stu.id].total += price;
+    });
+    return {total, byStudent:Object.values(byStudent).sort((a,b)=>b.total-a.total)};
+  },[schedule,students,isAdmin,getEventDatesInPeriod]);
+
+  // Teacher stats
+  const teacherStats = React.useMemo(()=>{
+    if(!isAdmin) return null;
+    const byTeacher = {};
+    (schedule||[]).forEach(ev=>{
+      if(ev.status==='Tühistatud') return;
+      const teacher = ev.teacher||'Määramata';
+      if(!byTeacher[teacher]) byTeacher[teacher]={teacher,planned:0,done:0,revenue:0};
+      const dates = getEventDatesInPeriod(ev);
+      if(ev.status==='Toimunud') byTeacher[teacher].done += dates.length;
+      else byTeacher[teacher].planned += dates.length;
+      // revenue
+      const stu = (students||[]).find(s=>
+        s.id===ev.studentId ||
+        (s.name||'').toLowerCase()===(ev.studentName||'').toLowerCase()
+      );
+      if(stu?.lessonPrice) byTeacher[teacher].revenue += (stu.lessonPrice||0)*dates.length;
+    });
+    return Object.values(byTeacher).sort((a,b)=>b.planned+b.done-(a.planned+a.done));
+  },[schedule,students,isAdmin,getEventDatesInPeriod]);
+
+  const periodLabel = statsPeriod==='current'
+    ? now.toLocaleDateString('et-EE',{month:'long',year:'numeric'})
+    : statsPeriod==='next'
+      ? new Date(now.getFullYear(),now.getMonth()+1,1).toLocaleDateString('et-EE',{month:'long',year:'numeric'})
+      : now.toLocaleDateString('et-EE',{month:'long',year:'numeric'})+' + '+new Date(now.getFullYear(),now.getMonth()+1,1).toLocaleDateString('et-EE',{month:'long',year:'numeric'});
+
   const [invoiceFilter,setInvoiceFilter] = React.useState('all');
   const visibleInvoices = React.useMemo(()=>{
     if(invoiceFilter==='pending') return invoices.filter(i=>i.status==='Ootel');
@@ -3192,9 +3286,13 @@ function InvoicesView({invoices,myStudents,invStu,setInvStu,invAmt,setInvAmt,inv
   return(
     <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:20}}>
       <h1 style={{fontSize:'1.7rem'}}>Arved</h1>
+
+      {/* Main invoice stats */}
       <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))',gap:12}}>
         {[{l:'Maksmata',v:unpaidAmt+'€',c:'#dc2626',bg:'#fee2e2',n:invoices.filter(i=>i.status==='Ootel').length+' arvet'},
-          {l:'Makstud',v:paid.reduce((a,i)=>a+i.amount,0)+'€',c:'#166534',bg:'#dcfce7',n:paid.length+' arvet'}].map(s=>(
+          {l:'Makstud',v:paid.reduce((a,i)=>a+i.amount,0)+'€',c:'#166534',bg:'#dcfce7',n:paid.length+' arvet'},
+          ...(isAdmin&&expectedIncome?[{l:'Oodatav tulu',v:expectedIncome.total+'€',c:'#1d4ed8',bg:'#dbeafe',n:periodLabel}]:[])
+        ].map(s=>(
           <div key={s.l} className="card" style={{padding:'18px 20px',background:s.bg,borderColor:'transparent'}}>
             <div style={{fontSize:'1.8rem',fontWeight:700,color:s.c}}>{s.v}</div>
             <div style={{fontSize:'.75rem',color:s.c+'99',marginTop:4}}>{s.l}</div>
@@ -3202,6 +3300,83 @@ function InvoicesView({invoices,myStudents,invStu,setInvStu,invAmt,setInvAmt,inv
           </div>
         ))}
       </div>
+
+      {/* Period stats for admin */}
+      {isAdmin&&(
+        <div className="card" style={{padding:22}}>
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:12,flexWrap:'wrap',marginBottom:18}}>
+            <div>
+              <h3>📊 Statistika: {periodLabel}</h3>
+              <div style={{fontSize:'.82rem',color:'#42536A',marginTop:4}}>Planeeritud tunnid ja oodatav tulu kalendri põhjal.</div>
+            </div>
+            <div style={{display:'flex',gap:8}}>
+              {[['current','See kuu'],['next','Järgmine kuu'],['both','Mõlemad']].map(([id,label])=>(
+                <button key={id} onClick={()=>setStatsPeriod(id)}
+                  className={`btn btn-sm ${statsPeriod===id?'btn-dark':'btn-ghost'}`}>
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
+            {/* Expected income by student */}
+            <div>
+              <div style={{fontSize:'.74rem',fontWeight:800,color:'#42536A',letterSpacing:'.08em',textTransform:'uppercase',marginBottom:10}}>
+                Oodatav tulu õpilase kaupa
+              </div>
+              {(expectedIncome?.byStudent||[]).length===0&&(
+                <div style={{color:'#42536A',fontSize:'.84rem'}}>Tunni hindu pole määratud.</div>
+              )}
+              <div style={{display:'flex',flexDirection:'column',gap:6,maxHeight:280,overflowY:'auto'}} className="scroll">
+                {(expectedIncome?.byStudent||[]).map(s=>(
+                  <div key={s.name} style={{display:'grid',gridTemplateColumns:'1fr auto auto',gap:10,alignItems:'center',padding:'8px 12px',borderRadius:10,background:'#F9F8F6',border:'1px solid rgba(28,43,58,.07)'}}>
+                    <div>
+                      <div style={{fontWeight:700,fontSize:'.84rem'}}>{s.name}</div>
+                      <div style={{fontSize:'.72rem',color:'#42536A'}}>{s.teacher} · {s.price}€/tund</div>
+                    </div>
+                    <span className="badge" style={{background:'#dbeafe',color:'#1d4ed8'}}>{s.count} tk</span>
+                    <span style={{fontWeight:700,color:'#1d4ed8',minWidth:45,textAlign:'right'}}>{s.total}€</span>
+                  </div>
+                ))}
+              </div>
+              {(expectedIncome?.byStudent||[]).length>0&&(
+                <div style={{display:'flex',justifyContent:'flex-end',marginTop:10,paddingTop:10,borderTop:'1px solid rgba(28,43,58,.08)'}}>
+                  <span style={{fontWeight:800,color:'#1d4ed8',fontSize:'1rem'}}>{expectedIncome?.total||0}€ kokku</span>
+                </div>
+              )}
+            </div>
+
+            {/* Teacher stats */}
+            <div>
+              <div style={{fontSize:'.74rem',fontWeight:800,color:'#42536A',letterSpacing:'.08em',textTransform:'uppercase',marginBottom:10}}>
+                Tunnid õpetaja kaupa
+              </div>
+              {(teacherStats||[]).length===0&&(
+                <div style={{color:'#42536A',fontSize:'.84rem'}}>Andmed puuduvad.</div>
+              )}
+              <div style={{display:'flex',flexDirection:'column',gap:6}}>
+                {(teacherStats||[]).map(t=>(
+                  <div key={t.teacher} style={{padding:'10px 14px',borderRadius:10,background:'#F9F8F6',border:'1px solid rgba(28,43,58,.07)'}}>
+                    <div style={{display:'flex',justifyContent:'space-between',gap:10,marginBottom:6}}>
+                      <div style={{fontWeight:700,fontSize:'.86rem'}}>{t.teacher}</div>
+                      {t.revenue>0&&<span style={{fontWeight:700,color:'#2F5D50'}}>{t.revenue}€</span>}
+                    </div>
+                    <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+                      <span className="badge" style={{background:'rgba(47,93,80,.1)',color:'#2F5D50'}}>
+                        {t.planned} planeeritud
+                      </span>
+                      {t.done>0&&<span className="badge" style={{background:'rgba(28,43,58,.08)',color:'#42536A'}}>
+                        {t.done} toimunud
+                      </span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="card" style={{padding:24}}>
         <h3 style={{marginBottom:16}}>Loo uus arve</h3>
         <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))',gap:10,marginBottom:12}}>
@@ -5836,6 +6011,7 @@ function App() {
           {tab==='invoices'&&!isStaff&&<ParentInvoicesView invoices={scopedInvoices} printInvoice={printInvoice} submitParentPayment={submitParentPayment}/>}
 
           {tab==='invoices'&&isStaff&&<InvoicesView invoices={scopedInvoices} myStudents={myStudents}
+            schedule={schedule} students={students} isAdmin={isAdmin}
             invStu={invStu} setInvStu={setInvStu} invAmt={invAmt} setInvAmt={setInvAmt}
             invDesc={invDesc} setInvDesc={setInvDesc} addInvoice={addInvoice} markPaid={markPaid} unmarkPaid={unmarkPaid} deleteInvoice={deleteInvoice} printInvoice={printInvoice}/>}
 
