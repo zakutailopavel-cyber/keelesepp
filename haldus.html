@@ -558,6 +558,45 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
         </div>
       )}
 
+      {isAdmin&&(()=>{
+        const billable = myStudents.filter(s=>s.active!==false&&(s.lessonsSinceInvoice||0)>0);
+        const totalLessons = billable.reduce((sum,s)=>sum+(s.lessonsSinceInvoice||0),0);
+        const totalRevenue = billable.reduce((sum,s)=>sum+((s.lessonsSinceInvoice||0)*(s.lessonPrice||0)),0);
+        if(!billable.length) return null;
+        return(
+          <div className="card" style={{padding:24,border:'1px solid rgba(37,99,235,.18)',background:'#eff6ff'}}>
+            <div style={{display:'flex',justifyContent:'space-between',gap:12,alignItems:'flex-start',flexWrap:'wrap',marginBottom:16}}>
+              <div>
+                <h3 style={{color:'#1d4ed8'}}>💰 Arveldamata tunnid</h3>
+                <div style={{fontSize:'.84rem',color:'#1d4ed8',marginTop:4}}>
+                  Õpilased, kellele pole veel arvet väljastatud.
+                </div>
+              </div>
+              <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
+                <span className="badge" style={{background:'#dbeafe',color:'#1d4ed8'}}>{totalLessons} tundi</span>
+                <span className="badge" style={{background:'#1d4ed8',color:'#fff'}}>{totalRevenue}€ kokku</span>
+              </div>
+            </div>
+            <div style={{display:'flex',flexDirection:'column',gap:8}}>
+              {billable.sort((a,b)=>(b.lessonsSinceInvoice||0)-(a.lessonsSinceInvoice||0)).map(s=>(
+                <div key={s.id} style={{display:'grid',gridTemplateColumns:'1fr auto auto',gap:12,alignItems:'center',padding:'10px 14px',borderRadius:12,background:'#fff',border:'1px solid rgba(37,99,235,.1)'}}>
+                  <div>
+                    <div style={{fontWeight:700}}>{s.name}</div>
+                    <div style={{fontSize:'.76rem',color:'#42536A',marginTop:2}}>
+                      {s.teacher||'—'} · Tunni hind: {s.lessonPrice?s.lessonPrice+'€':'määramata'}
+                    </div>
+                  </div>
+                  <span className="badge" style={{background:'#dbeafe',color:'#1d4ed8'}}>{s.lessonsSinceInvoice} tundi</span>
+                  <span style={{fontWeight:700,color:'#1d4ed8',minWidth:50,textAlign:'right'}}>
+                    {s.lessonPrice?((s.lessonsSinceInvoice||0)*s.lessonPrice)+'€':'—'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
+
       {isAdmin&&parentAlerts?.length>0&&(
         <div className="card" style={{padding:24,border:'1px solid #fecaca',background:'#fff7f7'}}>
           <div style={{display:'flex',justifyContent:'space-between',gap:12,alignItems:'flex-start',flexWrap:'wrap',marginBottom:14}}>
@@ -2698,6 +2737,7 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
               Õpetaja: <strong>{currentStu.teacher}</strong>
               {currentStu.email&&<> · {currentStu.email}</>}
               {currentStu.phone&&<> · {currentStu.phone}</>}
+              {canManage&&currentStu.lessonPrice>0&&<> · Tunni hind: <strong>{currentStu.lessonPrice}€</strong></>}
             </div>
             <div style={{display:'flex',gap:10,flexWrap:'wrap',marginBottom:16}}>
               {[{l:'Hinne',v:avg(done.map(l=>l.grade))+'★',c:'#C9882A',bg:'rgba(201,136,42,.08)'},
@@ -2713,6 +2753,18 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
                   background:rem<=2?'#fee2e2':rem<=5?'#fef3c7':'rgba(47,93,80,.08)'}}>
                   <div style={{fontWeight:700,fontSize:'1.2rem',color:rem<=2?'#dc2626':rem<=5?'#d97706':'#2F5D50'}}>{rem}</div>
                   <div style={{fontSize:'.72rem',color:'#42536A'}}>Jäänud tunde</div>
+                </div>
+              )}
+              {canManage&&(
+                <div style={{borderRadius:10,padding:'10px 16px',textAlign:'center',minWidth:80,background:'rgba(37,99,235,.08)'}}>
+                  <div style={{fontWeight:700,fontSize:'1.2rem',color:'#2563eb'}}>{currentStu.lessonsSinceInvoice||0}</div>
+                  <div style={{fontSize:'.72rem',color:'#42536A'}}>Arveldamata</div>
+                </div>
+              )}
+              {canManage&&currentStu.lessonPrice>0&&(
+                <div style={{borderRadius:10,padding:'10px 16px',textAlign:'center',minWidth:80,background:'rgba(47,93,80,.08)'}}>
+                  <div style={{fontWeight:700,fontSize:'1.2rem',color:'#2F5D50'}}>{((currentStu.lessonsSinceInvoice||0)*(currentStu.lessonPrice||0))}€</div>
+                  <div style={{fontSize:'.72rem',color:'#42536A'}}>Võlgnevus</div>
                 </div>
               )}
             </div>
@@ -3708,6 +3760,7 @@ function EditStudentModal({student,onClose,onSave,onDelete,db,notify,isAdmin,gro
   const [contactNotes,setContactNotes] = React.useState(student.contactNotes||'');
   const [pkg,     setPkg]     = React.useState(String(student.packageTotal||0));
   const [used,    setUsed]    = React.useState(String(student.packageUsed||0));
+  const [lessonPrice,setLessonPrice] = React.useState(String(student.lessonPrice||''));
   const [saving,  setSaving]  = React.useState(false);
   const [confirm, setConfirm] = React.useState(false);
   const modalGroupOptions = React.useMemo(()=>
@@ -3724,6 +3777,7 @@ function EditStudentModal({student,onClose,onSave,onDelete,db,notify,isAdmin,gro
       contactStatus,contactOwner,contactLastAt,contactNotes,
       packageTotal:parseInt(pkg)||0,
       packageUsed:parseInt(used)||0,
+      lessonPrice:parseFloat(lessonPrice)||0,
       updatedAt: new Date().toISOString().split('T')[0]
     });
     notify('✓ Muudatused salvestatud!');
@@ -3835,6 +3889,10 @@ function EditStudentModal({student,onClose,onSave,onDelete,db,notify,isAdmin,gro
             <div>
               <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Paketi maht</div>
               <input value={pkg} onChange={e=>setPkg(e.target.value)} type="number" placeholder="10"/>
+            </div>
+            <div>
+              <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Tunni hind (€)</div>
+              <input value={lessonPrice} onChange={e=>setLessonPrice(e.target.value)} type="number" placeholder="nt. 25"/>
             </div>
             <div>
               <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Kasutatud tunde</div>
@@ -5142,11 +5200,20 @@ function App() {
       const wasCounted = existingLessonData?.status==='Toimunud';
       const isCounted = lStatus==='Toimunud';
       if(!existingLessonRef && isCounted){
-        await db.collection('students').doc(stu.id).update({packageUsed:firebase.firestore.FieldValue.increment(1)});
+        await db.collection('students').doc(stu.id).update({
+          packageUsed:firebase.firestore.FieldValue.increment(1),
+          lessonsSinceInvoice:firebase.firestore.FieldValue.increment(1)
+        });
       }else if(existingLessonRef && !wasCounted && isCounted){
-        await db.collection('students').doc(stu.id).update({packageUsed:firebase.firestore.FieldValue.increment(1)});
+        await db.collection('students').doc(stu.id).update({
+          packageUsed:firebase.firestore.FieldValue.increment(1),
+          lessonsSinceInvoice:firebase.firestore.FieldValue.increment(1)
+        });
       }else if(existingLessonRef && wasCounted && !isCounted){
-        await db.collection('students').doc(stu.id).update({packageUsed:firebase.firestore.FieldValue.increment(-1)});
+        await db.collection('students').doc(stu.id).update({
+          packageUsed:firebase.firestore.FieldValue.increment(-1),
+          lessonsSinceInvoice:firebase.firestore.FieldValue.increment(-1)
+        });
       }
     }
 
@@ -5468,6 +5535,8 @@ function App() {
       paymentReference:num
     });
     await logActivity('invoice.created','Loodi arve',{invoiceId:ref.id,studentId:sid,studentName:stu?.name||'—',amount:parseInt(invAmt),num});
+    // Reset lesson counter for this student
+    await db.collection('students').doc(sid).update({lessonsSinceInvoice:0,lastInvoiceAt:today()});
     setInvAmt('');setInvDesc('');setInvStu('');
     notify('✓ Arve '+num+' loodud!');
   },[invStu,invAmt,invDesc,invoices,students,logActivity]);
