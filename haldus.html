@@ -1935,7 +1935,7 @@ function StudentsList({filteredStudents,lessons,isAdmin,search,setSearch,stuFilt
 }
 
 // ── LAPSEVANEMAD ─────────────────────────────────────────────
-function ParentsView({parents,students,invoices,isAdmin,parentAlerts,setSelStu,setTab,createMissingParentStudents,markParentChecked,mergeParentDuplicates,assignStudentToParent,notify}) {
+function ParentsView({parents,students,invoices,isAdmin,parentAlerts,setSelStu,setTab,createMissingParentStudents,markParentChecked,mergeParentDuplicates,assignStudentToParent,changeParentToStudent,notify}) {
   const [search,setSearch] = React.useState('');
   const [statusFilter,setStatusFilter] = React.useState('all');
   const parentStatusMeta = {
@@ -2232,11 +2232,7 @@ function ParentsView({parents,students,invoices,isAdmin,parentAlerts,setSelStu,s
                 </button>
               )}
               {isAdmin&&(
-                <button onClick={async()=>{
-                  if(!window.confirm('Muuta '+row.parent.displayName+' õpilaseks? See muudab tema rolli.')) return;
-                  await db.collection('users').doc(row.parent.uid).update({role:'student'});
-                  notify('✓ Roll muudetud õpilaseks');
-                }} className="btn btn-ghost btn-sm" style={{color:'#2563eb'}}>
+                <button onClick={()=>changeParentToStudent(row.parent)} className="btn btn-ghost btn-sm" style={{color:'#2563eb'}}>
                   <i className="fa-solid fa-user-graduate"/> Tee õpilaseks
                 </button>
               )}
@@ -5063,6 +5059,15 @@ function App() {
     }
   },[user,logActivity,notify]);
 
+  const changeParentToStudent=useCallback(async(parent)=>{
+    if(!isAdmin){notify('⚠ Ainult admin');return;}
+    if(!parent?.uid){notify('⚠ Kasutaja UID puudub');return;}
+    if(!window.confirm('Muuta '+parent.displayName+' õpilaseks? See muudab tema rolli.')) return;
+    await db.collection('users').doc(parent.uid).update({role:'student'});
+    await logActivity('user.roleChanged','Roll muudetud õpilaseks',{uid:parent.uid,name:parent.displayName});
+    notify('✓ Roll muudetud õpilaseks');
+  },[isAdmin,logActivity,notify]);
+
   const mergeParentDuplicates=useCallback(async(row)=>{
     if(!isAdmin){notify('⚠ Ainult administraator saab duplikaate ühendada');return;}
     const primary = row?.parent;
@@ -6315,6 +6320,7 @@ function App() {
             markParentChecked={markParentChecked}
             mergeParentDuplicates={mergeParentDuplicates}
             assignStudentToParent={assignStudentToParent}
+            changeParentToStudent={changeParentToStudent}
             notify={notify}/>}
 
           {tab==='database'&&isStaff&&<StudentsDatabaseView
