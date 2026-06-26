@@ -2231,6 +2231,15 @@ function ParentsView({parents,students,invoices,isAdmin,parentAlerts,setSelStu,s
                   <i className="fa-solid fa-link"/> Määra õpilane
                 </button>
               )}
+              {isAdmin&&(
+                <button onClick={async()=>{
+                  if(!window.confirm('Muuta '+row.parent.displayName+' õpilaseks? See muudab tema rolli.')) return;
+                  await db.collection('users').doc(row.parent.uid).update({role:'student'});
+                  notify('✓ Roll muudetud õpilaseks');
+                }} className="btn btn-ghost btn-sm" style={{color:'#2563eb'}}>
+                  <i className="fa-solid fa-user-graduate"/> Tee õpilaseks
+                </button>
+              )}
               {isAdmin&&row.rawNames.length>0&&row.linkedChildren.length===0&&(
                 <button onClick={()=>createMissingParentStudents(row.parent)} className="btn btn-red btn-sm">
                   Loo / seo õpilane
