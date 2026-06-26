@@ -2679,7 +2679,7 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
             </div>
             <div className="level-bar"><div className="level-fill" style={{width:pct+'%'}}/></div>
           </div>
-          {canManage&&(
+          {(canManage||user.role==='parent')&&(
             <div style={{display:'flex',flexDirection:'column',gap:8}}>
               <button onClick={()=>setSelStu(null)} className="btn btn-ghost btn-sm">← Tagasi</button>
               <button onClick={()=>setEditStu(currentStu)} className="btn btn-dark btn-sm">✏️ Muuda profiili</button>
@@ -3834,6 +3834,135 @@ function EditStudentModal({student,onClose,onSave,onDelete,db,notify,isAdmin,gro
   );
 }
 
+
+// ── LAPSEVANEMA LASTE VAADE ───────────────────────────────────
+function ParentChildrenView({user,myStudents,isAdmin,lessons,homework,setSelStu,db,notify,groupOptions,addStudentForParent,deleteStudentForParent}) {
+  const [showForm,setShowForm] = React.useState(false);
+  const [nName,setNName] = React.useState('');
+  const [nLevel,setNLevel] = React.useState('A1');
+  const [nTarget,setNTarget] = React.useState('B1');
+  const [nSubject,setNSubject] = React.useState('Eesti keel');
+  const [nTeach,setNTeach] = React.useState('Pavel');
+  const [nGrade,setNGrade] = React.useState('');
+  const [busy,setBusy] = React.useState(false);
+  const [confirmDelete,setConfirmDelete] = React.useState(null);
+
+  const addChild = async()=>{
+    if(!nName.trim()){notify('⚠ Sisesta lapse nimi');return;}
+    setBusy(true);
+    await addStudentForParent({name:nName,level:nLevel,targetLevel:nTarget,subject:nSubject,teacher:nTeach,grade:nGrade});
+    setNName('');setNGrade('');setShowForm(false);
+    setBusy(false);
+  };
+
+  return(
+    <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:20}}>
+      <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:12,flexWrap:'wrap'}}>
+        <div>
+          <h1 style={{fontSize:'1.7rem'}}>Minu lapsed</h1>
+          <div style={{fontSize:'.88rem',color:'#42536A',marginTop:4}}>Sinu laste õppeprofiilid ja progress.</div>
+        </div>
+        <button onClick={()=>setShowForm(v=>!v)} className="btn btn-pine">
+          <i className="fa-solid fa-plus"/> Lisa laps
+        </button>
+      </div>
+
+      {showForm&&(
+        <div className="card" style={{padding:22}}>
+          <h3 style={{marginBottom:14}}>➕ Lisa uus laps</h3>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(170px,1fr))',gap:10,marginBottom:12}}>
+            <input value={nName} onChange={e=>setNName(e.target.value)} placeholder="Lapse nimi *"/>
+            <select value={nSubject} onChange={e=>setNSubject(e.target.value)}>
+              {SUBJECTS.map(s=><option key={s}>{s}</option>)}
+            </select>
+            <select value={nLevel} onChange={e=>setNLevel(e.target.value)}>
+              {LEVELS.map(l=><option key={l}>{l}</option>)}
+            </select>
+            <select value={nTarget} onChange={e=>setNTarget(e.target.value)}>
+              {LEVELS.slice(1).map(l=><option key={l}>{l}</option>)}
+            </select>
+            <select value={nTeach} onChange={e=>setNTeach(e.target.value)}>
+              {TEACHERS.map(t=><option key={t}>{t}</option>)}
+            </select>
+            <select value={nGrade} onChange={e=>setNGrade(e.target.value)}>
+              <option value="">Klass / vanus</option>
+              {GRADES.map(g=><option key={g}>{g}</option>)}
+            </select>
+          </div>
+          <div style={{display:'flex',gap:8}}>
+            <button onClick={addChild} disabled={busy} className="btn btn-pine">
+              {busy?'Lisab…':'✓ Lisa laps'}
+            </button>
+            <button onClick={()=>setShowForm(false)} className="btn btn-ghost">Tühista</button>
+          </div>
+        </div>
+      )}
+
+      {myStudents.length===0&&!showForm&&(
+        <div className="card" style={{padding:32,textAlign:'center',color:'#42536A'}}>
+          <div style={{fontSize:'1.5rem',marginBottom:8}}>👶</div>
+          Lapsi pole veel lisatud. Vajuta "Lisa laps".
+        </div>
+      )}
+
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))',gap:16}}>
+        {myStudents.map(s=>{
+          const done = lessons.filter(l=>(l.studentId===s.id||normalizeText(l.studentName)===normalizeText(s.name))&&l.status==='Toimunud');
+          const pendingHw = homework.filter(h=>h.studentId===s.id&&h.status==='Ootel').length;
+          const pct = levelPct(s.level,s.targetLevel);
+          return(
+            <div key={s.id} className="card" style={{padding:22,display:'flex',flexDirection:'column',gap:14}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:10}}>
+                <div>
+                  <div style={{fontWeight:700,fontSize:'1.1rem'}}>{s.name}</div>
+                  <div style={{fontSize:'.78rem',color:'#42536A',marginTop:3}}>
+                    {s.subject||'—'} · Õpetaja: {s.teacher||'—'}
+                    {s.grade&&<span> · {s.grade}</span>}
+                  </div>
+                </div>
+                {isAdmin&&(
+                  confirmDelete===s.id
+                    ? <div style={{display:'flex',gap:6}}>
+                        <button onClick={()=>{deleteStudentForParent(s);setConfirmDelete(null);}} className="btn btn-red btn-sm">Kustuta</button>
+                        <button onClick={()=>setConfirmDelete(null)} className="btn btn-ghost btn-sm">Ei</button>
+                      </div>
+                    : <button onClick={()=>setConfirmDelete(s.id)} className="btn btn-ghost btn-sm" style={{color:'#991b1b'}}>
+                        <i className="fa-solid fa-trash"/>
+                      </button>
+                )}
+              </div>
+
+              <div>
+                <div style={{display:'flex',justifyContent:'space-between',fontSize:'.74rem',fontWeight:600,marginBottom:5}}>
+                  <span>{s.level}</span>
+                  <span style={{color:'#2F5D50'}}>{pct}% eesmärgini</span>
+                  <span>{s.targetLevel}</span>
+                </div>
+                <div className="level-bar"><div className="level-fill" style={{width:pct+'%'}}/></div>
+              </div>
+
+              <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
+                <div style={{flex:1,padding:'10px 14px',borderRadius:10,background:'rgba(201,136,42,.08)',textAlign:'center'}}>
+                  <div style={{fontWeight:700,fontSize:'1.1rem',color:'#C9882A'}}>{done.length}</div>
+                  <div style={{fontSize:'.72rem',color:'#42536A'}}>Tundi</div>
+                </div>
+                <div style={{flex:1,padding:'10px 14px',borderRadius:10,background:pendingHw?'rgba(124,58,237,.08)':'rgba(47,93,80,.08)',textAlign:'center'}}>
+                  <div style={{fontWeight:700,fontSize:'1.1rem',color:pendingHw?'#7c3aed':'#2F5D50'}}>{pendingHw}</div>
+                  <div style={{fontSize:'.72rem',color:'#42536A'}}>Kodutööd</div>
+                </div>
+              </div>
+
+              <button onClick={()=>setSelStu(s)} className="btn btn-pine" style={{width:'100%'}}>
+                Ava kaart
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ── PEAMINE APP ───────────────────────────────────────────────
 function App() {
   const [user,setUser]         = useState(null);
@@ -4176,6 +4305,50 @@ function App() {
       console.warn('Activity log failed:',err);
     }
   },[user]);
+
+  const addStudentForParent=useCallback(async(data)=>{
+    if(!user?.uid) return;
+    const ref = await db.collection('students').add({
+      name:data.name,
+      parentName:user.displayName||'',
+      parentEmail:user.email||'',
+      linkedParentId:user.uid,
+      parentUid:user.uid,
+      teacher:data.teacher||'Pavel',
+      level:data.level||'A1',
+      targetLevel:data.targetLevel||'B1',
+      subject:data.subject||'Eesti keel',
+      grade:data.grade||'',
+      group:'',
+      phone:'',
+      email:'',
+      active:true,
+      packageTotal:0,
+      packageUsed:0,
+      contactStatus:'new',
+      contactOwner:'',
+      contactLastAt:'',
+      contactNotes:'',
+      createdAt:today()
+    });
+    // Update parent's childName
+    const existing = user.childName ? user.childName+', '+data.name : data.name;
+    await db.collection('users').doc(user.uid).update({childName:existing});
+    await logActivity('student.created','Lapsevanem lisas lapse',{studentId:ref.id,studentName:data.name});
+    notify('✓ Laps '+data.name+' lisatud!');
+  },[user,logActivity]);
+
+  const deleteStudentForParent=useCallback(async(student)=>{
+    if(!isAdmin){notify('⚠ Ainult admin saab kustutada');return;}
+    if(!student?.id) return;
+    await db.collection('students').doc(student.id).delete();
+    const lessons2 = await db.collection('lessons').where('studentId','==',student.id).get();
+    for(const doc of lessons2.docs) await doc.ref.delete();
+    const hw2 = await db.collection('homework').where('studentId','==',student.id).get();
+    for(const doc of hw2.docs) await doc.ref.delete();
+    await logActivity('student.deleted','Laps kustutati',{studentId:student.id,studentName:student.name});
+    notify('✓ Laps kustutatud');
+  },[isAdmin,logActivity]);
 
   const createMissingParentStudents=useCallback(async(parent)=>{
     if(!parent?.id){notify('⚠ Lapsevanema konto puudub');return;}
@@ -5320,7 +5493,7 @@ function App() {
       badge:scopedTasks.filter(t=>t.status!=='done').length}]:[]),
     ...(isStaff?[{id:'programs',icon:'fa-book-open-reader',label:'Õppekavad'}]:[]),
     ...(isStaff?[{id:'exercises_link',icon:'fa-pen-line',label:'Harjutused',isExternal:true,href:'/haldus-exercises'}]:[]),
-    {id:'students', icon:'fa-graduation-cap',label:isStaff?'Minu õpilased':'Minu progress',
+    {id:'students', icon:'fa-graduation-cap',label:isStaff?'Minu õpilased':user?.role==='parent'?'Minu lapsed':'Minu progress',
       badge:isStaff&&homework.filter(h=>h.status==='Ootel'&&myStudents.some(s=>s.id===h.studentId)).length>0?
         homework.filter(h=>h.status==='Ootel'&&myStudents.some(s=>s.id===h.studentId)).length:0},
     ...(isStaff?[{id:'groups',icon:'fa-layer-group',label:'Grupid'}]:[]),
@@ -5431,7 +5604,14 @@ function App() {
           {tab==='students'&&isStaff&&!selStu&&<StudentsList filteredStudents={filteredStudents} lessons={lessons} isAdmin={canAssignTeacher}
             search={search} setSearch={setSearch} stuFilter={stuFilter} setStuFilter={setStuFilter} setSelStu={setSelStu}/>}
 
-          {tab==='students'&&(!isStaff||(isStaff&&selStu))&&<StudentCard
+          {tab==='students'&&user?.role==='parent'&&!selStu&&<ParentChildrenView
+            user={user} myStudents={myStudents} isAdmin={isAdmin}
+            lessons={lessons} homework={homework}
+            setSelStu={setSelStu} db={db} notify={notify}
+            groupOptions={groupOptions}
+            addStudentForParent={addStudentForParent}
+            deleteStudentForParent={deleteStudentForParent}/>}
+          {tab==='students'&&(!isStaff||(isStaff&&selStu)||selStu)&&!(user?.role==='parent'&&!selStu)&&<StudentCard
             setEditStu={setEditStu}
             user={user} currentStu={currentStu} stuLessons={stuLessons} stuHw={stuHw} stuInv={stuInv}
             isAdmin={canAssignTeacher} setSelStu={setSelStu} toggleStudentActive={toggleStudentActive}
