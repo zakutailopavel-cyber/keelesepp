@@ -339,7 +339,7 @@ function AuthScreen({onLogin}) {
 // ── DASHBOARD ────────────────────────────────────────────────
 // TÄHTIS: kõik komponendid on App-ist VÄLJAS — see lahendab "iga täht uuendab lehte" probleemi
 function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
-  tasks,staffMembers,unreadMessages,markMessagesRead,
+  tasks,staffMembers,unreadMessages,markMessagesRead,setSelStu,setTab,submitParentPayment,
   nName,setNName,nParentName,setNParentName,nEmail,setNEmail,nPhone,setNPhone,
   nLevel,setNLevel,nTarget,setNTarget,nPkg,setNPkg,
   nSubject,setNSubject,nGrade,setNGrade,nGroup,setNGroup,
@@ -370,9 +370,10 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
         linkedStudentNames.includes(normalizeText(l.studentName))
       );
   const attendance= stuLessons.length?Math.round(doneLess.length/stuLessons.length*100):0;
-  const unassignedStudents = isAdmin ? myStudents.filter(student=>student.active!==false && !canonicalTeacherName(student.teacher||'')) : [];
-  const newContactStudents = isAdmin ? myStudents.filter(student=>student.active!==false && (student.contactStatus||'new')==='new') : [];
+  const unassignedStudents = isAdmin ? myStudents.filter(student=>student.active!==false && !canonicalTeacherName(student.teacher||'') && !student.hiddenFields?.teacher) : [];
+  const newContactStudents = isAdmin ? myStudents.filter(student=>student.active!==false && (student.contactStatus||'new')==='new' && !student.hiddenFields?.contactStatus) : [];
   const missingParentStudents = isAdmin ? myStudents.filter(student=>{
+    if(student.hiddenFields?.parentName) return false;
     if(student.linkedParentId||student.parentUid||student.guardianUid) return false;
     if((student.parentName||'').trim()) return false;
     if((student.parentEmail||student.contactEmail||student.guardianEmail||'').trim()) return false;
@@ -503,19 +504,211 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
               <div style={{fontSize:'1.8rem',fontWeight:700,color:'#1C2B3A',lineHeight:1}}>{s.v}</div>
               <div style={{fontSize:'.75rem',color:'#42536A',marginTop:4}}>{s.l}</div>
             </div>
-          )):
-          currentStu?
-          [{l:'Keeletase',v:currentStu.level,c:'#1C2B3A'},
-           {l:'Ksk hinne',v:avg(doneLess.map(l=>l.grade))+'★',c:'#C9882A'},
-           {l:'Kohalolu',v:attendance+'%',c:'#2F5D50'},
-           {l:'Tunnid kokku',v:doneLess.length,c:'#7c3aed'}].map(s=>(
-            <div key={s.l} className="card" style={{padding:'18px 20px'}}>
-              <div style={{fontSize:'1.8rem',fontWeight:700,color:s.c,lineHeight:1}}>{s.v}</div>
-              <div style={{fontSize:'.75rem',color:'#42536A',marginTop:4}}>{s.l}</div>
-            </div>
           )):null
         }
       </div>
+
+      {/* ── PARENT DASHBOARD ─────────────────────────────────── */}
+      {user.role==='parent'&&(()=>{
+        const todayIso = today();
+        const nextTwoWeeks = new Date(); nextTwoWeeks.setDate(nextTwoWeeks.getDate()+14);
+        const nextTwoWeeksIso = nextTwoWeeks.toISOString().split('T')[0];
+
+        // Upcoming lessons for all children
+        const childIds = new Set(myStudents.map(s=>s.id));
+        const childNames = new Set(myStudents.map(s=>normalizeText(s.name)));
+        const upcomingLessons = [];
+        (schedule||[]).forEach(ev=>{
+          if(ev.status==='Tühistatud') return;
+          const isChild = childIds.has(ev.studentId) || childNames.has(normalizeText(ev.studentName));
+          if(!isChild) return;
+          if(ev.date && ev.date>=todayIso && ev.date<=nextTwoWeeksIso){
+            upcomingLessons.push({...ev,_date:ev.date});
+          } else if(ev.recurring && ev.startDate && ev.day){
+            const dayMap={Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6};
+            const target=dayMap[ev.day];
+            const d=new Date(Math.max(new Date(ev.startDate),new Date(todayIso)));
+            while(d.getDay()!==target) d.setDate(d.getDate()+1);
+            const dIso=d.toISOString().split('T')[0];
+            if(dIso<=nextTwoWeeksIso) upcomingLessons.push({...ev,_date:dIso});
+          }
+        });
+        upcomingLessons.sort((a,b)=>a._date.localeCompare(b._date)||(a.time||'').localeCompare(b.time||''));
+
+        // Feed: unread messages + pending homework merged and sorted
+        const feed = [
+          ...(unreadMessages||[]).map(m=>({...m,_type:'message',_ts:m.createdAt})),
+          ...homework.filter(h=>myStudents.some(s=>s.id===h.studentId)&&h.status==='Ootel').map(h=>({...h,_type:'homework',_ts:h.date}))
+        ].sort((a,b)=>new Date(b._ts)-new Date(a._ts)).slice(0,8);
+
+        // Unpaid invoices
+        const unpaid = invoices.filter(i=>i.status==='Ootel'&&myStudents.some(s=>s.id===i.studentId));
+
+        return(
+          <div style={{display:'flex',flexDirection:'column',gap:20}}>
+            {/* Children cards */}
+            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))',gap:14}}>
+              {myStudents.map(s=>{
+                const done=lessons.filter(l=>(l.studentId===s.id||normalizeText(l.studentName)===normalizeText(s.name))&&l.status==='Toimunud');
+                const pct=levelPct(s.level,s.targetLevel);
+                const avgGrade=done.length?avg(done.map(l=>l.grade)):null;
+                const att=lessons.filter(l=>l.studentId===s.id||normalizeText(l.studentName)===normalizeText(s.name));
+                const attPct=att.length?Math.round(done.length/att.length*100):0;
+                const pendHw=homework.filter(h=>h.studentId===s.id&&h.status==='Ootel').length;
+                return(
+                  <div key={s.id} className="card" style={{padding:20,display:'flex',flexDirection:'column',gap:14}}>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:10}}>
+                      <div>
+                        <div style={{fontWeight:800,fontSize:'1.1rem'}}>{s.name}</div>
+                        <div style={{fontSize:'.78rem',color:'#42536A',marginTop:3}}>
+                          {s.subject||'—'} · Õpetaja: <strong>{s.teacher||'—'}</strong>
+                        </div>
+                      </div>
+                      <span className="badge" style={{background:'rgba(201,136,42,.12)',color:'#A96E1A',fontWeight:700}}>{s.level}</span>
+                    </div>
+                    <div>
+                      <div style={{display:'flex',justifyContent:'space-between',fontSize:'.72rem',color:'#42536A',marginBottom:5}}>
+                        <span>{s.level}</span><span style={{color:'#2F5D50',fontWeight:600}}>{pct}% eesmärgini</span><span>{s.targetLevel}</span>
+                      </div>
+                      <div className="level-bar"><div className="level-fill" style={{width:pct+'%'}}/></div>
+                    </div>
+                    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:8}}>
+                      <div style={{textAlign:'center',padding:'8px 4px',borderRadius:9,background:'rgba(201,136,42,.07)'}}>
+                        <div style={{fontWeight:700,color:'#C9882A'}}>{avgGrade?avgGrade+'★':'—'}</div>
+                        <div style={{fontSize:'.68rem',color:'#42536A'}}>Hinne</div>
+                      </div>
+                      <div style={{textAlign:'center',padding:'8px 4px',borderRadius:9,background:'rgba(47,93,80,.07)'}}>
+                        <div style={{fontWeight:700,color:'#2F5D50'}}>{attPct}%</div>
+                        <div style={{fontSize:'.68rem',color:'#42536A'}}>Kohalolu</div>
+                      </div>
+                      <div style={{textAlign:'center',padding:'8px 4px',borderRadius:9,background:pendHw?'rgba(124,58,237,.07)':'rgba(28,43,58,.04)'}}>
+                        <div style={{fontWeight:700,color:pendHw?'#7c3aed':'#42536A'}}>{pendHw}</div>
+                        <div style={{fontSize:'.68rem',color:'#42536A'}}>Kodutööd</div>
+                      </div>
+                    </div>
+                    <button onClick={()=>{setSelStu&&setSelStu(s);setTab&&setTab('students');}} className="btn btn-pine" style={{width:'100%'}}>
+                      Ava kaart
+                    </button>
+                  </div>
+                );
+              })}
+              {myStudents.length===0&&(
+                <div className="card" style={{padding:28,textAlign:'center',color:'#42536A',gridColumn:'1/-1'}}>
+                  <div style={{fontSize:'1.4rem',marginBottom:8}}>👶</div>
+                  Lapsi pole lisatud. Mine "Minu lapsed" ja lisa laps.
+                </div>
+              )}
+            </div>
+
+            {/* Feed + upcoming lessons */}
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
+
+              {/* Activity feed */}
+              <div className="card" style={{padding:22}}>
+                <h3 style={{marginBottom:14}}>🔔 Uued teated</h3>
+                {feed.length===0&&(
+                  <div style={{textAlign:'center',padding:'20px 0',color:'#42536A',fontSize:'.88rem'}}>
+                    Uusi teateid pole.
+                  </div>
+                )}
+                <div style={{display:'flex',flexDirection:'column',gap:10}}>
+                  {feed.map((item,idx)=>(
+                    <div key={item.id||idx} style={{display:'flex',gap:10,alignItems:'flex-start',padding:'10px 12px',borderRadius:12,
+                      background:item._type==='message'?'rgba(47,93,80,.06)':'rgba(124,58,237,.06)',
+                      border:`1px solid ${item._type==='message'?'rgba(47,93,80,.15)':'rgba(124,58,237,.15)'}`}}>
+                      <div style={{width:32,height:32,borderRadius:999,background:item._type==='message'?'#2F5D50':'#7c3aed',
+                        display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                        <i className={`fa-solid ${item._type==='message'?'fa-envelope':'fa-book-open'}`} style={{color:'#fff',fontSize:'.75rem'}}/>
+                      </div>
+                      <div style={{flex:1,minWidth:0}}>
+                        {item._type==='message'&&(
+                          <>
+                            <div style={{fontWeight:700,fontSize:'.84rem'}}>{item.fromName||'Õpetaja'}</div>
+                            <div style={{fontSize:'.8rem',color:'#42536A',marginTop:2,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{item.text}</div>
+                            <div style={{fontSize:'.7rem',color:'#9ca3af',marginTop:3}}>{item.studentName} · {item.createdAt?new Date(item.createdAt).toLocaleDateString('et-EE'):''}</div>
+                          </>
+                        )}
+                        {item._type==='homework'&&(
+                          <>
+                            <div style={{fontWeight:700,fontSize:'.84rem'}}>Uus kodutöö</div>
+                            <div style={{fontSize:'.8rem',color:'#42536A',marginTop:2,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{item.task}</div>
+                            <div style={{fontSize:'.7rem',color:'#9ca3af',marginTop:3}}>{item.studentName}{item.due&&` · tähtaeg ${fmtDate(item.due)}`}</div>
+                          </>
+                        )}
+                      </div>
+                      {item._type==='message'&&(
+                        <button onClick={()=>{setSelStu&&setSelStu(myStudents.find(s=>s.id===item.studentId));setTab&&setTab('students');}}
+                          className="btn btn-ghost btn-sm" style={{flexShrink:0,fontSize:'.72rem'}}>Ava</button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Upcoming lessons */}
+              <div className="card" style={{padding:22}}>
+                <h3 style={{marginBottom:14}}>📅 Lähiajal tunnid</h3>
+                {upcomingLessons.length===0&&(
+                  <div style={{textAlign:'center',padding:'20px 0',color:'#42536A',fontSize:'.88rem'}}>
+                    Lähiajal tunde pole.
+                  </div>
+                )}
+                <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                  {upcomingLessons.slice(0,8).map((ev,idx)=>{
+                    const isToday = ev._date===todayIso;
+                    return(
+                      <div key={ev.id+(ev._date||idx)} style={{display:'flex',gap:10,alignItems:'center',padding:'10px 12px',borderRadius:12,
+                        background:isToday?'rgba(201,136,42,.08)':'#F9F8F6',
+                        border:`1px solid ${isToday?'rgba(201,136,42,.25)':'rgba(28,43,58,.07)'}`}}>
+                        <div style={{textAlign:'center',minWidth:38}}>
+                          <div style={{fontWeight:800,fontSize:'.9rem',color:isToday?'#C9882A':'#1C2B3A'}}>
+                            {new Date(ev._date).toLocaleDateString('et-EE',{day:'2-digit',month:'2-digit'})}
+                          </div>
+                          <div style={{fontSize:'.68rem',color:'#42536A'}}>{ev.time}</div>
+                        </div>
+                        <div style={{flex:1,minWidth:0}}>
+                          <div style={{fontWeight:700,fontSize:'.84rem',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{ev.studentName}</div>
+                          <div style={{fontSize:'.72rem',color:'#42536A'}}>Õp. {ev.teacher||'—'}</div>
+                        </div>
+                        {isToday&&<span className="badge" style={{background:'#C9882A',color:'#fff',flexShrink:0}}>Täna</span>}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Unpaid invoices */}
+            {unpaid.length>0&&(
+              <div className="card" style={{padding:22,border:'1px solid rgba(220,38,38,.15)',background:'#fff'}}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14,flexWrap:'wrap',gap:10}}>
+                  <h3 style={{color:'#dc2626'}}>💳 Tasumata arved ({unpaid.length})</h3>
+                  <span className="badge" style={{background:'#fee2e2',color:'#991b1b'}}>
+                    {unpaid.reduce((a,i)=>a+(i.amount||0),0)}€ ootel
+                  </span>
+                </div>
+                <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                  {unpaid.map(inv=>(
+                    <div key={inv.id} style={{display:'grid',gridTemplateColumns:'1fr auto auto',gap:12,alignItems:'center',padding:'10px 14px',borderRadius:12,background:'#F9F8F6',border:'1px solid rgba(28,43,58,.07)'}}>
+                      <div>
+                        <div style={{fontWeight:700,fontSize:'.86rem'}}>{inv.num} · {inv.studentName}</div>
+                        <div style={{fontSize:'.74rem',color:'#42536A',marginTop:2}}>{inv.desc} · tähtaeg {fmtDate(inv.due)}</div>
+                      </div>
+                      <span style={{fontWeight:800,color:'#dc2626'}}>{inv.amount}€</span>
+                      {inv.parentPaymentStatus==='submitted'
+                        ? <span className="badge" style={{background:'#dbeafe',color:'#1d4ed8',fontSize:'.72rem'}}>Teavitatud</span>
+                        : <button onClick={()=>submitParentPayment&&submitParentPayment(inv.id,'bank')} className="btn btn-pine btn-sm">
+                            Teavita maksest
+                          </button>
+                      }
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {isAdmin&&(
         <div className="card" style={{padding:24,border:adminAttention.length?'1px solid rgba(153,27,27,.18)':'1px solid rgba(47,93,80,.18)',background:adminAttention.length?'#fff':'#f7fffb'}}>
@@ -2347,15 +2540,21 @@ function StudentsDatabaseView({
                     <td style={{padding:'14px 16px',verticalAlign:'top'}}>
                       <div style={{fontWeight:700}}>{student.name||<NoData inline/>}</div>
                       <div style={{fontSize:'.78rem',color:'#42536A',marginTop:4}}>
-                        Vanem: {student.parentName||<NoData inline/>}
+                        Vanem: {student.hiddenFields?.parentName
+                          ? <span style={{color:'#9ca3af',fontStyle:'italic',fontSize:'.72rem'}}>peidetud</span>
+                          : (student.parentName||<NoData inline/>)}
                       </div>
                       <div style={{fontSize:'.78rem',color:'#42536A',marginTop:4}}>
                         {student.grade||<NoData inline/>}{student.subject&&<span> · {student.subject}</span>}
                       </div>
                     </td>
                     <td style={{padding:'14px 16px',verticalAlign:'top',fontSize:'.84rem',color:'#42536A'}}>
-                      <div>{student.email||<NoData inline/>}</div>
-                      <div style={{marginTop:4}}>{student.phone||<NoData inline/>}</div>
+                      <div>{student.hiddenFields?.email
+                        ? <span style={{color:'#9ca3af',fontStyle:'italic',fontSize:'.72rem'}}>peidetud</span>
+                        : (student.email||<NoData inline/>)}</div>
+                      <div style={{marginTop:4}}>{student.hiddenFields?.phone
+                        ? <span style={{color:'#9ca3af',fontStyle:'italic',fontSize:'.72rem'}}>peidetud</span>
+                        : (student.phone||<NoData inline/>)}</div>
                       {(student.email||student.phone)&&(
                         <div style={{display:'flex',gap:6,flexWrap:'wrap',marginTop:8}}>
                           {student.phone&&<a href={`tel:${student.phone}`} className="btn btn-ghost btn-sm">Helista</a>}
@@ -2383,11 +2582,13 @@ function StudentsDatabaseView({
                       <div style={{fontSize:'.78rem',color:'#42536A',marginTop:4}}>{student.group?'Õppegrupp':'Määramata'}</div>
                     </td>
                     <td style={{padding:'14px 16px',verticalAlign:'top'}}>
-                      {student.teacher
-                        ? <button onClick={()=>setTeacherFocus(canonicalTeacherName(student.teacher))} style={{background:'none',border:'none',padding:0,cursor:'pointer',fontWeight:700,color:'#2F5D50',textAlign:'left'}}>
-                            {student.teacher}
-                          </button>
-                        : <NoData inline/>
+                      {student.hiddenFields?.teacher
+                        ? <span style={{color:'#9ca3af',fontStyle:'italic',fontSize:'.78rem'}}>peidetud</span>
+                        : student.teacher
+                          ? <button onClick={()=>setTeacherFocus(canonicalTeacherName(student.teacher))} style={{background:'none',border:'none',padding:0,cursor:'pointer',fontWeight:700,color:'#2F5D50',textAlign:'left'}}>
+                              {student.teacher}
+                            </button>
+                          : <NoData inline/>
                       }
                       {isAdmin&&lastLesson?.teacher&&<div style={{fontSize:'.78rem',color:'#42536A',marginTop:4}}>Viimane tund: {lastLesson.teacher}</div>}
                     </td>
@@ -3936,6 +4137,15 @@ function EditStudentModal({student,onClose,onSave,onDelete,db,notify,isAdmin,gro
   const [pkg,     setPkg]     = React.useState(String(student.packageTotal||0));
   const [used,    setUsed]    = React.useState(String(student.packageUsed||0));
   const [lessonPrice,setLessonPrice] = React.useState(String(student.lessonPrice||''));
+  const [hiddenFields,setHiddenFields] = React.useState(student.hiddenFields||{});
+  const toggleHide = field => setHiddenFields(prev=>({...prev,[field]:!prev[field]}));
+  const HideToggle = ({field,label='Ei ole vaja'}) => (
+    <label style={{display:'inline-flex',alignItems:'center',gap:5,fontSize:'.7rem',color:hiddenFields[field]?'#991b1b':'#9ca3af',cursor:'pointer',marginTop:4,userSelect:'none'}}>
+      <input type="checkbox" checked={!!hiddenFields[field]} onChange={()=>toggleHide(field)}
+        style={{width:12,height:12,accentColor:'#dc2626'}}/>
+      {hiddenFields[field]?'Peidetud':'Peida'}
+    </label>
+  );
   const [saving,  setSaving]  = React.useState(false);
   const [confirm, setConfirm] = React.useState(false);
   const modalGroupOptions = React.useMemo(()=>
@@ -3953,6 +4163,7 @@ function EditStudentModal({student,onClose,onSave,onDelete,db,notify,isAdmin,gro
       packageTotal:parseInt(pkg)||0,
       packageUsed:parseInt(used)||0,
       lessonPrice:parseFloat(lessonPrice)||0,
+      hiddenFields,
       updatedAt: new Date().toISOString().split('T')[0]
     });
     notify('✓ Muudatused salvestatud!');
@@ -3995,16 +4206,28 @@ function EditStudentModal({student,onClose,onSave,onDelete,db,notify,isAdmin,gro
               <input value={name} onChange={e=>setName(e.target.value)} placeholder="Lapse nimi *"/>
             </div>
             <div style={{gridColumn:'1/-1'}}>
-              <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Vanema nimi</div>
-              <input value={parentName} onChange={e=>setParentName(e.target.value)} placeholder="Vanema nimi"/>
+              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Vanema nimi</div>
+                <HideToggle field="parentName"/>
+              </div>
+              <input value={parentName} onChange={e=>setParentName(e.target.value)} placeholder="Vanema nimi"
+                style={{opacity:hiddenFields.parentName?.6:1}}/>
             </div>
             <div>
-              <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>E-post</div>
-              <input value={email} onChange={e=>setEmail(e.target.value)} type="email" placeholder="E-post"/>
+              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>E-post</div>
+                <HideToggle field="email"/>
+              </div>
+              <input value={email} onChange={e=>setEmail(e.target.value)} type="email" placeholder="E-post"
+                style={{opacity:hiddenFields.email?.6:1}}/>
             </div>
             <div>
-              <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Telefon</div>
-              <input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="+372…"/>
+              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Telefon</div>
+                <HideToggle field="phone"/>
+              </div>
+              <input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="+372…"
+                style={{opacity:hiddenFields.phone?.6:1}}/>
             </div>
             <div>
               <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Õppeaine</div>
@@ -4039,7 +4262,10 @@ function EditStudentModal({student,onClose,onSave,onDelete,db,notify,isAdmin,gro
               </select>
             </div>
             <div>
-              <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Õpetaja</div>
+              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Õpetaja</div>
+                <HideToggle field="teacher"/>
+              </div>
               {isAdmin
                 ? <select value={teacher} onChange={e=>setTeacher(e.target.value)}>
                     {[...new Set([...TEACHERS, teacher].filter(Boolean))].map(t=><option key={t}>{t}</option>)}
@@ -4048,7 +4274,10 @@ function EditStudentModal({student,onClose,onSave,onDelete,db,notify,isAdmin,gro
               }
             </div>
             <div>
-              <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Kontaktistaatus</div>
+              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Kontaktistaatus</div>
+                <HideToggle field="contactStatus"/>
+              </div>
               <select value={contactStatus} onChange={e=>setContactStatus(e.target.value)}>
                 {CONTACT_STATUSES.map(status=><option key={status.id} value={status.id}>{status.label}</option>)}
               </select>
@@ -5894,6 +6123,7 @@ function App() {
 
           {tab==='dashboard'&&<Dashboard user={user} myStudents={myStudents} lessons={lessons} schedule={schedule} invoices={scopedInvoices} homework={homework} tasks={scopedTasks} staffMembers={staffMembers}
             unreadMessages={unreadMessages} markMessagesRead={markMessagesRead}
+            setSelStu={setSelStu} setTab={setTab} submitParentPayment={submitParentPayment}
             nName={nName} setNName={setNName} nParentName={nParentName} setNParentName={setNParentName} nEmail={nEmail} setNEmail={setNEmail} nPhone={nPhone} setNPhone={setNPhone}
             nLevel={nLevel} setNLevel={setNLevel} nTarget={nTarget} setNTarget={setNTarget}
             nPkg={nPkg} setNPkg={setNPkg} nSubject={nSubject} setNSubject={setNSubject} nGrade={nGrade} setNGrade={setNGrade} nGroup={nGroup} setNGroup={setNGroup} nTeach={nTeach} setNTeach={setNTeach}
