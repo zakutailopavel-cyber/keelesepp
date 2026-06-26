@@ -5061,10 +5061,12 @@ function App() {
 
   const changeParentToStudent=useCallback(async(parent)=>{
     if(!isAdmin){notify('⚠ Ainult admin');return;}
-    if(!parent?.uid){notify('⚠ Kasutaja UID puudub');return;}
-    if(!window.confirm('Muuta '+parent.displayName+' õpilaseks? See muudab tema rolli.')) return;
-    await db.collection('users').doc(parent.uid).update({role:'student'});
-    await logActivity('user.roleChanged','Roll muudetud õpilaseks',{uid:parent.uid,name:parent.displayName});
+    const docId = parent?.uid || parent?.id;
+    if(!docId){notify('⚠ Kasutaja UID puudub');return;}
+    const name = parent?.displayName || parent?.name || parent?.email || docId;
+    if(!window.confirm('Muuta '+name+' õpilaseks? See muudab tema rolli.')) return;
+    await db.collection('users').doc(docId).update({role:'student'});
+    await logActivity('user.roleChanged','Roll muudetud õpilaseks',{uid:docId,name});
     notify('✓ Roll muudetud õpilaseks');
   },[isAdmin,logActivity,notify]);
 
