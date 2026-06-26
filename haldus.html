@@ -339,7 +339,7 @@ function AuthScreen({onLogin}) {
 // ── DASHBOARD ────────────────────────────────────────────────
 // TÄHTIS: kõik komponendid on App-ist VÄLJAS — see lahendab "iga täht uuendab lehte" probleemi
 function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
-  tasks,staffMembers,unreadMessages,markMessagesRead,setSelStu,setTab,submitParentPayment,
+  tasks,staffMembers,unreadMessages,markMessagesRead,setSelStu:_setSelStu,setTab:_setTab,submitParentPayment,
   nName,setNName,nParentName,setNParentName,nEmail,setNEmail,nPhone,setNPhone,
   nLevel,setNLevel,nTarget,setNTarget,nPkg,setNPkg,
   nSubject,setNSubject,nGrade,setNGrade,nGroup,setNGroup,
@@ -586,7 +586,7 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
                         <div style={{fontSize:'.68rem',color:'#42536A'}}>Kodutööd</div>
                       </div>
                     </div>
-                    <button onClick={()=>{setSelStu&&setSelStu(s);setTab&&setTab('students');}} className="btn btn-pine" style={{width:'100%'}}>
+                    <button onClick={()=>{_setSelStu&&_setSelStu(s);_setTab&&_setTab('students');}} className="btn btn-pine" style={{width:'100%'}}>
                       Ava kaart
                     </button>
                   </div>
@@ -637,7 +637,7 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
                         )}
                       </div>
                       {item._type==='message'&&(
-                        <button onClick={()=>{setSelStu&&setSelStu(myStudents.find(s=>s.id===item.studentId));setTab&&setTab('students');}}
+                        <button onClick={()=>{_setSelStu&&_setSelStu(myStudents.find(s=>s.id===item.studentId));_setTab&&_setTab('students');}}
                           className="btn btn-ghost btn-sm" style={{flexShrink:0,fontSize:'.72rem'}}>Ava</button>
                       )}
                     </div>
