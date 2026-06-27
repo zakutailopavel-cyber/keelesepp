@@ -233,6 +233,25 @@ textarea{resize:vertical;line-height:1.5;}
 /* ── LESSON BUILDER ──────────────────────────────────────────── */
 .lb-ov{position:fixed;inset:0;background:rgba(28,43,58,.55);display:flex;align-items:center;justify-content:center;padding:12px;z-index:200;backdrop-filter:blur(5px);}
 .lb-box{background:#FBFAF8;border-radius:20px;max-width:720px;width:100%;max-height:95vh;overflow:hidden;display:flex;flex-direction:column;}
+.lb-box.wide{max-width:1100px;}
+.lb-split{display:grid;grid-template-columns:1fr 380px;overflow:hidden;flex:1;}
+.lb-split-left{overflow-y:auto;padding-bottom:8px;}
+.lb-split-right{background:#F4F2EE;border-left:1px solid rgba(28,43,58,.08);overflow-y:auto;display:flex;flex-direction:column;}
+.lp-head{padding:14px 18px 10px;border-bottom:1px solid rgba(28,43,58,.08);display:flex;align-items:center;gap:7px;}
+.lp-head-lbl{font-size:.68rem;font-weight:700;color:#B0A898;text-transform:uppercase;letter-spacing:.09em;}
+.lp-body{padding:16px 18px;flex:1;overflow-y:auto;}
+.lp-phase-card{background:#fff;border-radius:10px;padding:12px 14px;margin-bottom:10px;border:0.5px solid rgba(28,43,58,.08);}
+.lp-phase-card.current{border-color:rgba(28,43,58,.2);box-shadow:0 2px 8px rgba(28,43,58,.07);}
+.lp-pc-badge{font-size:.62rem;font-weight:700;padding:2px 7px;border-radius:5px;text-transform:uppercase;letter-spacing:.07em;display:inline-flex;margin-bottom:7px;}
+.lp-pc-name{font-size:.88rem;font-weight:700;color:#1C2B3A;margin-bottom:6px;font-family:'Fraunces',serif;}
+.lp-pc-time{font-size:.68rem;color:#B0A898;margin-bottom:8px;}
+.lp-pc-field{margin-bottom:6px;}
+.lp-pc-field-lbl{font-size:.62rem;font-weight:700;color:#B0A898;text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px;}
+.lp-pc-field-val{font-size:.82rem;color:#1C2B3A;line-height:1.5;white-space:pre-wrap;}
+.lp-pc-empty{font-size:.78rem;color:#D0C8BC;font-style:italic;}
+.lp-timer-mock{font-size:1.6rem;font-weight:300;color:#1C2B3A;font-variant-numeric:tabular-nums;letter-spacing:-.02em;margin-bottom:2px;}
+.lp-timer-bar-mock{height:2px;background:rgba(28,43,58,.08);border-radius:1px;margin-bottom:10px;overflow:hidden;}
+.lp-timer-fill-mock{height:100%;border-radius:1px;transition:width .3s;}
 .lb-head{padding:18px 24px 14px;border-bottom:1px solid rgba(28,43,58,.08);display:flex;justify-content:space-between;align-items:center;background:#FBFAF8;}
 .lb-body{flex:1;overflow-y:auto;padding:0;}
 .lb-foot{padding:14px 24px;border-top:1px solid rgba(28,43,58,.08);display:flex;justify-content:space-between;align-items:center;background:#FBFAF8;}
@@ -742,7 +761,7 @@ function LessonModal({lesson,subject,level,topic,examPart,onClose,onSave}){
   // ── BUILDER MODAL ────────────────────────────────────────
   return(
     <div className="lb-ov">
-      <div className="lb-box">
+      <div className={'lb-box'+(step===2?' wide':'')}>
         {/* Head */}
         <div className="lb-head">
           <div>
@@ -770,7 +789,7 @@ function LessonModal({lesson,subject,level,topic,examPart,onClose,onSave}){
         </div>
 
         {/* Body */}
-        <div className="lb-body">
+        <div className={step===2&&lessonTypeDef?'':'lb-body'}>
 
           {/* STEP 0: Lesson type */}
           {step===0&&(
@@ -823,9 +842,12 @@ function LessonModal({lesson,subject,level,topic,examPart,onClose,onSave}){
             </div>
           )}
 
-          {/* STEP 2: Phases — with per-phase file upload */}
+          {/* STEP 2: Phases — split with live preview */}
           {step===2&&lessonTypeDef&&(
-            <div style={{paddingTop:8,paddingBottom:8}}>
+            <div className="lb-split">
+              {/* LEFT: editor */}
+              <div className="lb-split-left">
+              <div style={{paddingTop:8,paddingBottom:8}}>
               {lessonTypeDef.phases.map((ph,pi)=>{
                 const phFiles=(phaseData[ph.key]||{}).files||[];
                 const phUploading=(phaseData[ph.key]||{}).uploading||false;
@@ -897,6 +919,63 @@ function LessonModal({lesson,subject,level,topic,examPart,onClose,onSave}){
                 );
               })}
             </div>
+              </div>{/* end lb-split-left */}
+
+              {/* RIGHT: live conduct preview */}
+              <div className="lb-split-right">
+                <div className="lp-head">
+                  <i className="fa-solid fa-eye" style={{fontSize:'.72rem',color:'#B0A898'}}/>
+                  <span className="lp-head-lbl">Tunni käigu eelvaade</span>
+                </div>
+                <div className="lp-body">
+                  {/* Title */}
+                  {builderTitle&&(
+                    <div style={{marginBottom:14}}>
+                      <div style={{fontFamily:'Fraunces,serif',fontSize:'1rem',fontWeight:700,color:'#1C2B3A',marginBottom:2}}>{builderTitle}</div>
+                      {builderObjectives&&<div style={{fontSize:'.74rem',color:'#2F5D50',lineHeight:1.4}}>{builderObjectives.slice(0,80)}{builderObjectives.length>80?'...':''}</div>}
+                    </div>
+                  )}
+                  {/* Phase cards */}
+                  {lessonTypeDef.phases.map((ph,pi)=>{
+                    const data=phaseData[ph.key]||{};
+                    const phFiles=data.files||[];
+                    const hasContent=ph.fields.some((_,fi)=>data[fi])||phFiles.length>0;
+                    return(
+                      <div key={ph.key} className={'lp-phase-card'+(hasContent?' current':'')}>
+                        <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:4}}>
+                          <div className="lp-timer-mock" style={{color:ph.color}}>{String(ph.time).padStart(2,'0')}:00</div>
+                          <div style={{flex:1}}>
+                            <div className="lp-timer-bar-mock">
+                              <div className="lp-timer-fill-mock" style={{width:'0%',background:ph.color}}/>
+                            </div>
+                          </div>
+                        </div>
+                        <span className="lp-pc-badge" style={{background:ph.color+'15',color:ph.color}}>{pi+1}/{lessonTypeDef.phases.length}</span>
+                        <div className="lp-pc-name">{ph.name}</div>
+                        {hasContent
+                          ?<>
+                            {ph.fields.map((fieldName,fi)=>{
+                              const val=data[fi]||'';
+                              if(!val) return null;
+                              return(
+                                <div key={fi} className="lp-pc-field">
+                                  <div className="lp-pc-field-lbl">{fieldName}</div>
+                                  <div className="lp-pc-field-val">{val.slice(0,80)}{val.length>80?'...':''}</div>
+                                </div>
+                              );
+                            })}
+                            {phFiles.length>0&&<div style={{fontSize:'.72rem',color:'#2F5D50',marginTop:4}}>
+                              <i className="fa-solid fa-paperclip" style={{marginRight:4,fontSize:'.65rem'}}/>{phFiles.length} fail{phFiles.length>1?'i':''}
+                            </div>}
+                          </>
+                          :<div className="lp-pc-empty">Täitmata</div>
+                        }
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>{/* end lb-split */}
           )}
           {step===2&&!lessonTypeDef&&(
             <div className="modal-body" style={{padding:'16px 24px'}}>
