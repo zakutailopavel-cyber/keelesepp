@@ -268,61 +268,61 @@ textarea{resize:vertical;line-height:1.5;}
 .ph-wrap{padding:14px 24px 4px;}
 
 /* ── LESSON CONDUCT MODE ───────────────────────────────────── */
-.lc-ov{position:fixed;inset:0;background:#F4F2EE;z-index:400;display:flex;flex-direction:column;overflow:hidden;}
-.lc-top{background:#1C2B3A;padding:0 24px;height:54px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
-.lc-title{color:#fff;font-weight:700;font-size:.95rem;}
-.lc-meta{color:rgba(255,255,255,.45);font-size:.74rem;margin-top:1px;}
-.lc-body{flex:1;display:grid;grid-template-columns:260px minmax(0,1fr);overflow:hidden;}
-.lc-sidebar{background:#fff;border-right:1px solid rgba(28,43,58,.1);overflow-y:auto;padding:16px 12px;}
-.lc-main{overflow-y:auto;padding:28px 36px;background:#F4F2EE;}
+.lc-ov{position:fixed;inset:0;background:#FAFAF8;z-index:400;display:flex;flex-direction:column;overflow:hidden;}
+.lc-top{background:#FAFAF8;padding:0 28px;height:52px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;border-bottom:1px solid rgba(28,43,58,.08);}
+.lc-title{color:#1C2B3A;font-weight:700;font-size:.92rem;}
+.lc-meta{color:#B0A898;font-size:.72rem;margin-top:1px;}
+.lc-body{flex:1;display:grid;grid-template-columns:220px minmax(0,1fr);overflow:hidden;}
+.lc-sidebar{background:#F4F2EE;border-right:1px solid rgba(28,43,58,.08);overflow-y:auto;padding:20px 14px;}
+.lc-main{overflow-y:auto;padding:40px 56px;background:#FAFAF8;}
 
-/* Phase nav items */
-.lc-phase-item{padding:10px 12px;border-radius:10px;cursor:pointer;margin-bottom:4px;transition:all .14s;border:1px solid transparent;}
+/* Phase nav — minimal */
+.lc-phase-item{padding:8px 10px;border-radius:8px;cursor:pointer;margin-bottom:2px;transition:all .12s;display:flex;align-items:center;gap:9px;}
 .lc-phase-item:hover{background:rgba(28,43,58,.05);}
-.lc-phase-item.active{background:rgba(47,93,80,.08);border-color:rgba(47,93,80,.2);}
-.lc-phase-item.done{opacity:.5;}
-.lc-ph-name{font-size:.82rem;font-weight:700;color:#1C2B3A;margin-bottom:2px;}
-.lc-ph-time{font-size:.7rem;color:#B0A898;}
-.lc-ph-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+.lc-phase-item.active{background:#fff;box-shadow:0 1px 4px rgba(28,43,58,.08);}
+.lc-phase-item.done{opacity:.45;}
+.lc-ph-name{font-size:.8rem;font-weight:600;color:#1C2B3A;line-height:1.3;}
+.lc-ph-time{font-size:.68rem;color:#B0A898;}
+.lc-ph-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
 
-/* Timer */
-.lc-timer{font-size:3.5rem;font-weight:800;color:#1C2B3A;font-variant-numeric:tabular-nums;letter-spacing:-.02em;line-height:1;}
+/* Timer — large and clean */
+.lc-timer{font-size:5rem;font-weight:300;color:#1C2B3A;font-variant-numeric:tabular-nums;letter-spacing:-.04em;line-height:1;}
 .lc-timer.warning{color:#D97706;}
 .lc-timer.done-t{color:#DC2626;}
-.lc-timer-label{font-size:.76rem;color:#B0A898;margin-top:4px;}
-.lc-timer-bar{height:5px;border-radius:3px;background:rgba(28,43,58,.08);margin-top:12px;overflow:hidden;}
-.lc-timer-fill{height:100%;border-radius:3px;transition:width .5s linear;}
+.lc-timer-label{font-size:.72rem;color:#B0A898;margin-top:2px;text-transform:uppercase;letter-spacing:.08em;}
+.lc-timer-bar{height:2px;border-radius:1px;background:rgba(28,43,58,.06);margin-top:16px;margin-bottom:32px;overflow:hidden;max-width:320px;}
+.lc-timer-fill{height:100%;border-radius:1px;transition:width .5s linear;}
 
-/* Phase content */
-.lc-phase-name{font-size:1.5rem;font-weight:700;color:#1C2B3A;margin-bottom:6px;font-family:'Fraunces',serif;}
-.lc-phase-badge{font-size:.7rem;font-weight:700;padding:3px 9px;border-radius:6px;text-transform:uppercase;letter-spacing:.07em;display:inline-flex;margin-bottom:14px;}
-.lc-hint-box{background:#EFF7F4;border-radius:12px;padding:14px 16px;margin-bottom:18px;border-left:3px solid #2F5D50;}
-.lc-hint-lbl{font-size:.66rem;font-weight:700;color:#2F5D50;text-transform:uppercase;letter-spacing:.09em;margin-bottom:6px;}
-.lc-hint-text{font-size:.86rem;color:#42536A;line-height:1.55;}
-.lc-fields{display:flex;flex-direction:column;gap:12px;}
-.lc-field-card{background:#fff;border-radius:12px;padding:14px 18px;border:0.5px solid rgba(28,43,58,.1);box-shadow:0 1px 4px rgba(28,43,58,.06);}
-.lc-field-lbl{font-size:.68rem;font-weight:700;color:#B0A898;text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px;}
-.lc-field-val{font-size:.92rem;color:#1C2B3A;line-height:1.6;white-space:pre-wrap;}
-.lc-field-empty{font-size:.84rem;color:#D0C8BC;font-style:italic;}
+/* Phase content — clean */
+.lc-phase-name{font-size:1.8rem;font-weight:700;color:#1C2B3A;margin-bottom:4px;font-family:'Fraunces',serif;line-height:1.2;}
+.lc-phase-badge{font-size:.68rem;font-weight:600;color:#B0A898;text-transform:uppercase;letter-spacing:.09em;margin-bottom:20px;display:block;}
+.lc-hint-box{background:#F4F2EE;border-radius:10px;padding:12px 16px;margin-bottom:20px;border-left:2px solid #B0A898;}
+.lc-hint-lbl{font-size:.64rem;font-weight:700;color:#B0A898;text-transform:uppercase;letter-spacing:.09em;margin-bottom:5px;}
+.lc-hint-text{font-size:.84rem;color:#7A7167;line-height:1.55;}
+.lc-fields{display:flex;flex-direction:column;gap:16px;}
+.lc-field-card{padding:0;}
+.lc-field-lbl{font-size:.68rem;font-weight:700;color:#B0A898;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;}
+.lc-field-val{font-size:1rem;color:#1C2B3A;line-height:1.65;white-space:pre-wrap;}
+.lc-field-empty{display:none;}
 
-/* Worksheet in conduct mode */
-.lc-ws-card{background:#fff;border-radius:12px;padding:14px 18px;border:0.5px solid rgba(47,93,80,.2);margin-top:8px;cursor:pointer;transition:all .14s;}
-.lc-ws-card:hover{border-color:#2F5D50;box-shadow:0 3px 12px rgba(47,93,80,.1);}
+/* Worksheet */
+.lc-ws-card{background:#F4F2EE;border-radius:10px;padding:12px 16px;margin-top:6px;cursor:pointer;transition:all .14s;border:1px solid transparent;display:inline-flex;align-items:center;gap:8px;}
+.lc-ws-card:hover{border-color:rgba(28,43,58,.15);background:#EDEAE4;}
 
-/* Nav buttons */
-.lc-nav{display:flex;gap:10px;margin-top:24px;}
-.lc-btn-prev{padding:10px 20px;border-radius:10px;border:1px solid rgba(28,43,58,.15);background:#fff;color:#42536A;cursor:pointer;font-family:inherit;font-size:.84rem;font-weight:700;}
+/* Nav — bottom floating */
+.lc-nav{display:flex;gap:10px;margin-top:40px;align-items:center;}
+.lc-btn-prev{padding:9px 16px;border-radius:9px;border:1px solid rgba(28,43,58,.12);background:transparent;color:#7A7167;cursor:pointer;font-family:inherit;font-size:.82rem;font-weight:600;}
 .lc-btn-prev:hover{background:#F4F2EE;}
-.lc-btn-next{padding:10px 24px;border-radius:10px;border:none;background:#2F5D50;color:#fff;cursor:pointer;font-family:inherit;font-size:.84rem;font-weight:700;display:flex;align-items:center;gap:7px;}
-.lc-btn-next:hover{background:#265048;}
-.lc-btn-finish{background:#C9882A;}
-.lc-btn-finish:hover{background:#b37624;}
+.lc-btn-next{padding:10px 22px;border-radius:9px;border:none;background:#1C2B3A;color:#fff;cursor:pointer;font-family:inherit;font-size:.84rem;font-weight:700;display:flex;align-items:center;gap:7px;}
+.lc-btn-next:hover{background:#2a3d50;}
+.lc-btn-finish{background:#2F5D50;}
+.lc-btn-finish:hover{background:#265048;}
 
-/* Progress */
-.lc-progress{display:flex;gap:4px;margin-top:16px;}
-.lc-prog-dot{height:3px;border-radius:2px;flex:1;background:rgba(28,43,58,.1);transition:background .3s;}
+/* Progress — thin at top */
+.lc-progress{display:flex;gap:3px;margin-top:12px;}
+.lc-prog-dot{height:2px;border-radius:1px;flex:1;background:rgba(28,43,58,.08);transition:background .3s;}
 .lc-prog-dot.done{background:#2F5D50;}
-.lc-prog-dot.active{background:#C9882A;}
+.lc-prog-dot.active{background:#1C2B3A;}
 
 /* ── SEARCH ─────────────────────────────────────────────────── */
 .search-bar{display:flex;gap:10px;align-items:center;padding:14px 28px;background:#fff;border-bottom:1px solid rgba(28,43,58,.08);}
@@ -1752,11 +1752,11 @@ function LessonConductModal({lesson, onClose}) {
         </div>
         <div style={{display:'flex',gap:8,alignItems:'center'}}>
           {lesson.builderObjectives&&(
-            <div style={{maxWidth:340,fontSize:'.74rem',color:'rgba(255,255,255,.45)',lineHeight:1.4,textAlign:'right'}}>
+            <div style={{maxWidth:340,fontSize:'.74rem',color:'#B0A898',lineHeight:1.4,textAlign:'right'}}>
               {lesson.builderObjectives.slice(0,80)}{lesson.builderObjectives.length>80?'...':''}
             </div>
           )}
-          <button onClick={onClose} style={{background:'rgba(255,255,255,.12)',border:'none',color:'rgba(255,255,255,.8)',cursor:'pointer',borderRadius:8,padding:'7px 14px',fontSize:'.78rem',fontWeight:700}}>
+          <button onClick={onClose} style={{background:'rgba(28,43,58,.07)',border:'none',color:'#42536A',cursor:'pointer',borderRadius:8,padding:'7px 14px',fontSize:'.78rem',fontWeight:700}}>
             ✕ Lõpeta
           </button>
         </div>
@@ -1765,15 +1765,15 @@ function LessonConductModal({lesson, onClose}) {
       {finished?(
         <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:16}}>
           <div style={{fontSize:'3rem'}}>🎉</div>
-          <div style={{color:'#1C2B3A',fontSize:'1.4rem',fontWeight:800,fontFamily:'Fraunces,serif'}}>Tund on läbi!</div>
-          <div style={{color:'#7A7167',fontSize:'.86rem'}}>Kõik {phases.length} faasi läbitud · {totalMin} minutit</div>
+          <div style={{color:'#1C2B3A',fontSize:'1.6rem',fontWeight:700,fontFamily:'Fraunces,serif',marginTop:8}}>Tund on läbi!</div>
+          <div style={{color:'#B0A898',fontSize:'.84rem',marginTop:4}}>Kõik {phases.length} faasi läbitud · {totalMin} minutit</div>
           <button onClick={onClose} className="lc-btn-next" style={{marginTop:8}}>Sulge</button>
         </div>
       ):(
         <div className="lc-body">
           {/* Sidebar — phases */}
           <div className="lc-sidebar">
-            <div style={{fontSize:'.66rem',fontWeight:700,color:'#B0A898',textTransform:'uppercase',letterSpacing:'.09em',marginBottom:10}}>
+            <div style={{fontSize:'.64rem',fontWeight:700,color:'#C0B8B0',textTransform:'uppercase',letterSpacing:'.1em',marginBottom:14}}>
               Tunni käik
             </div>
             {phases.map((p,i)=>(
@@ -1792,7 +1792,7 @@ function LessonConductModal({lesson, onClose}) {
 
             {/* Overall progress */}
             <div style={{marginTop:16,padding:'10px 0 0',borderTop:'1px solid rgba(255,255,255,.07)'}}>
-              <div style={{fontSize:'.66rem',color:'#B0A898',marginBottom:6}}>{curPhase+1} / {phases.length} faasi</div>
+              <div style={{fontSize:'.64rem',color:'#C0B8B0',marginBottom:6}}>{curPhase+1} / {phases.length} faasi</div>
               <div className="lc-progress">
                 {phases.map((_,i)=>(
                   <div key={i} className={'lc-prog-dot'+(i<curPhase?' done':i===curPhase?' active':'')}/>
@@ -1816,7 +1816,7 @@ function LessonConductModal({lesson, onClose}) {
               <div>
                 <div style={{display:'flex',alignItems:'baseline',gap:10}}>
                   <div className={'lc-timer'+(isWarning?' warning':isDone?' done-t':'')}>{fmt(timerSec)}</div>
-                  <div style={{color:'#B0A898',fontSize:'.82rem'}}>/ {ph?.time} min</div>
+                  <div style={{color:'#D0C8BC',fontSize:'.78rem',marginLeft:4}}>/ {ph?.time} min</div>
                 </div>
                 <div className="lc-timer-label">{running?'Kulgeb...':isDone?'Aeg on läbi!':'Paus'}</div>
                 <div className="lc-timer-bar" style={{width:240}}>
@@ -1825,11 +1825,11 @@ function LessonConductModal({lesson, onClose}) {
               </div>
               <div style={{display:'flex',gap:7}}>
                 <button onClick={()=>setRunning(r=>!r)}
-                  style={{padding:'9px 18px',borderRadius:9,border:'none',background:running?'rgba(28,43,58,.12)':'#2F5D50',color:running?'#42536A':'#fff',cursor:'pointer',fontFamily:'inherit',fontSize:'.84rem',fontWeight:700,display:'flex',alignItems:'center',gap:6}}>
+                  style={{padding:'9px 18px',borderRadius:9,border:'none',background:running?'rgba(28,43,58,.1)':'#1C2B3A',color:running?'#42536A':'#fff',cursor:'pointer',fontFamily:'inherit',fontSize:'.84rem',fontWeight:700,display:'flex',alignItems:'center',gap:6}}>
                   {running?<><i className="fa-solid fa-pause"/> Peata</>:<><i className="fa-solid fa-play"/> Käivita</>}
                 </button>
                 <button onClick={()=>setTimerSec(ph?.time*60||0)}
-                  style={{padding:'9px 14px',borderRadius:9,border:'1px solid rgba(28,43,58,.12)',background:'#fff',color:'#42536A',cursor:'pointer',fontFamily:'inherit',fontSize:'.82rem'}}>
+                  style={{padding:'9px 14px',borderRadius:9,border:'1px solid rgba(28,43,58,.1)',background:'transparent',color:'#B0A898',cursor:'pointer',fontFamily:'inherit',fontSize:'.82rem'}}>
                   <i className="fa-solid fa-rotate-left"/>
                 </button>
               </div>
