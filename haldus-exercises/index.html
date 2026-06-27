@@ -199,6 +199,36 @@ textarea{resize:vertical;line-height:1.5;}
 .btn-dark{background:#1C2B3A;color:#fff;}
 .btn-sm{padding:6px 12px;font-size:.77rem;}
 .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:6px;font-size:.71rem;font-weight:700;}
+
+/* WORKSHEET PREVIEW MODAL */
+.ws-prev-ov{position:fixed;inset:0;background:rgba(28,43,58,.6);display:flex;align-items:center;justify-content:center;padding:16px;z-index:300;backdrop-filter:blur(5px);}
+.ws-prev-box{background:#E8E6E1;border-radius:20px;max-width:900px;width:100%;max-height:94vh;overflow-y:auto;display:flex;flex-direction:column;}
+.ws-prev-head{padding:16px 22px;background:#1C2B3A;border-radius:20px 20px 0 0;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:2;}
+.ws-prev-body{padding:24px;display:flex;justify-content:center;}
+.ws-a4{width:100%;max-width:720px;background:#fff;border-radius:12px;box-shadow:0 4px 32px rgba(0,0,0,.12);padding:48px 56px 56px;font-family:'IBM Plex Sans',sans-serif;color:#1C2B3A;}
+.ws-sheet-hdr{margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid #1C2B3A;display:flex;justify-content:space-between;align-items:flex-start;}
+.ws-sheet-title{font-size:1.4rem;font-weight:700;margin-bottom:4px;}
+.ws-sheet-meta{font-size:.75rem;color:#718096;display:flex;gap:12px;flex-wrap:wrap;}
+.ws-score-box{border:1px solid #1C2B3A;border-radius:5px;padding:4px 11px;font-size:.76rem;font-weight:600;white-space:nowrap;}
+.ws-pb{margin-bottom:20px;}
+.ws-pb-num{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#1C2B3A;color:#fff;font-size:.58rem;font-weight:800;margin-right:6px;}
+.ws-pb-lbl{font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#718096;}
+.ws-fill-line{font-size:.9rem;line-height:2.3;}
+.ws-blank{display:inline-block;min-width:70px;border-bottom:1.5px solid #1C2B3A;margin:0 3px;vertical-align:bottom;}
+.ws-choice-q{font-size:.88rem;font-weight:600;margin-bottom:4px;}
+.ws-choice-opt{display:flex;align-items:center;gap:7px;font-size:.84rem;margin:2px 0 2px 10px;}
+.ws-circle{width:12px;height:12px;border-radius:50%;border:1.5px solid #1C2B3A;flex-shrink:0;}
+.ws-wr-task{font-size:.86rem;margin-bottom:8px;line-height:1.5;}
+.ws-wr-line{height:24px;border-bottom:1px solid rgba(28,43,58,.15);}
+.ws-match-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.ws-match-item{padding:5px 9px;border:1px solid rgba(28,43,58,.15);border-radius:5px;font-size:.83rem;margin-bottom:4px;}
+.ws-chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;}
+.ws-chip{padding:4px 10px;border:1.5px solid rgba(28,43,58,.18);border-radius:6px;font-size:.84rem;}
+.ws-table{width:100%;border-collapse:collapse;font-size:.83rem;}
+.ws-table th{background:#F0EEE9;padding:6px 8px;border:1px solid rgba(28,43,58,.15);text-align:left;font-weight:700;}
+.ws-table td{padding:6px 8px;border:1px solid rgba(28,43,58,.15);height:26px;}
+.ws-passage{background:#F9F8F6;border:1px solid rgba(28,43,58,.1);border-radius:6px;padding:10px 12px;margin-bottom:10px;font-size:.85rem;line-height:1.65;white-space:pre-wrap;}
+.ws-divider{border:none;border-top:1px dashed rgba(28,43,58,.12);margin:16px 0;}
 </style>
 </head>
 <body>
@@ -457,7 +487,7 @@ function ExamView({subject,level,lessons,isTeacher,onAdd,onEdit,onDelete}){
 }
 
 // ── TOPIC VIEW ────────────────────────────────────────────────
-function TopicView({subject,level,activeTopic,topics,allLessons,isTeacher,onSelectTopic,onAdd,onEdit,onDelete,onRenameTopic,onDeleteTopic,onAddTopic}){
+function TopicView({subject,level,activeTopic,topics,allLessons,isTeacher,onSelectTopic,onAdd,onEdit,onDelete,onRenameTopic,onDeleteTopic,onAddTopic,onPreviewWorksheet}){
   const topicLessons=allLessons
     .filter(l=>l.subject===subject.key&&l.level===level&&l.topic===activeTopic&&!l.examPart)
     .sort((a,b)=>(a.order||0)-(b.order||0));
@@ -586,10 +616,15 @@ function TopicView({subject,level,activeTopic,topics,allLessons,isTeacher,onSele
                        {lesson.description&&<div className="lesson-desc">{lesson.description}</div>}
                        {lesson.files?.length>0&&<div className="file-row">{lesson.files.map((f,i)=><FileChip key={i} file={f}/>)}</div>}
                      </div>
-                     {isTeacher&&<div className="lesson-actions">
-                       <button onClick={()=>onEdit(lesson)} className="btn btn-ghost btn-sm"><i className="fa-solid fa-pen"/></button>
-                       <button onClick={()=>onDelete(lesson)} className="btn btn-ghost btn-sm" style={{color:'#dc2626'}}><i className="fa-solid fa-trash"/></button>
-                     </div>}
+                     <div className="lesson-actions">
+                       {onPreviewWorksheet&&(
+                         <button onClick={()=>onPreviewWorksheet(lesson)} className="btn btn-ghost btn-sm" style={{color:'#2F5D50',borderColor:'rgba(47,93,80,.25)',fontWeight:700}}>
+                           <i className="fa-solid fa-eye"/> Ava
+                         </button>
+                       )}
+                       {isTeacher&&<button onClick={()=>onEdit(lesson)} className="btn btn-ghost btn-sm"><i className="fa-solid fa-pen"/></button>}
+                       {isTeacher&&<button onClick={()=>onDelete(lesson)} className="btn btn-ghost btn-sm" style={{color:'#dc2626'}}><i className="fa-solid fa-trash"/></button>}
+                     </div>
                    </div>
                  );
                })}
@@ -601,7 +636,7 @@ function TopicView({subject,level,activeTopic,topics,allLessons,isTeacher,onSele
 }
 
 // ── CURRICULUM ────────────────────────────────────────────────
-function CurriculumView({isTeacher,user,notify}){
+function CurriculumView({isTeacher,user,notify,onPreviewWorksheet}){
   const[lessons,setLessons]=useState([]);
   const[loading,setLoading]=useState(true);
   const[nav,setNav]=useState(null); // null | {subject} | {subject,level,topic}
@@ -761,6 +796,7 @@ function CurriculumView({isTeacher,user,notify}){
             setNav({subject:subject.key,level,topic:remaining[0]||''});
             notify('✓ Teema kustutatud');
           }}
+          onPreviewWorksheet={onPreviewWorksheet}
         />
       )}
 
@@ -921,11 +957,224 @@ function LoginScreen({onLogin}){
   );
 }
 
+
+// ── WORKSHEET PREVIEW MODAL ───────────────────────────────────
+function parseFillWs(text){
+  const parts=[];
+  text.split(/\[([^\]]+)\]/g).forEach((c,i)=>parts.push(i%2===0?{t:'text',v:c}:{t:'blank'}));
+  return parts;
+}
+
+function WorksheetPreviewModal({lesson,onClose}) {
+  const ws=lesson.worksheetData;
+  if(!ws) {
+    // No worksheetData — show files + description preview
+    const buildAndDownload=()=>{
+      const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${lesson.title}</title>
+      <style>body{font-family:Arial,sans-serif;max-width:700px;margin:40px auto;padding:0 40px;color:#1a1a1a;}
+      h1{font-size:1.4rem;margin-bottom:6px;}
+      .meta{color:#666;font-size:.8rem;margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid #1a1a1a;}
+      .desc{font-size:.9rem;line-height:1.6;margin-bottom:20px;}
+      .file-link{display:block;padding:8px 12px;background:#f5f5f5;border-radius:6px;margin-bottom:6px;text-decoration:none;color:#1a1a1a;font-size:.88rem;}
+      </style></head><body>
+      <h1>${lesson.title}</h1>
+      <div class="meta">${lesson.subject||''} · ${lesson.level||''} · ${lesson.topic||''}</div>
+      ${lesson.description?`<div class="desc">${lesson.description}</div>`:''}
+      ${(lesson.files||[]).map(f=>`<a href="${f.url}" class="file-link" target="_blank">📎 ${f.name}</a>`).join('')}
+      </body></html>`;
+      const b=new Blob([html],{type:'text/html'});
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(b);a.download=lesson.title+'.html';a.click();
+    };
+    return(
+      <div className="ws-prev-ov" onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
+        <div className="ws-prev-box">
+          <div className="ws-prev-head">
+            <div>
+              <div style={{color:'#fff',fontWeight:700,fontSize:'.95rem'}}>{lesson.title}</div>
+              <div style={{color:'rgba(255,255,255,.45)',fontSize:'.75rem'}}>{lesson.subject} · {lesson.level} · {lesson.topic}</div>
+            </div>
+            <div style={{display:'flex',gap:8}}>
+              {(lesson.files||[]).length>0&&<button onClick={buildAndDownload} className="btn btn-gold btn-sm"><i className="fa-solid fa-download"/> Laadi alla</button>}
+              <button onClick={onClose} className="btn btn-ghost btn-sm" style={{color:'#fff',borderColor:'rgba(255,255,255,.2)'}}>✕ Sulge</button>
+            </div>
+          </div>
+          <div className="ws-prev-body">
+            <div className="ws-a4" id="ws-prev-content">
+              <div className="ws-sheet-hdr">
+                <div>
+                  <div className="ws-sheet-title">{lesson.title}</div>
+                  <div className="ws-sheet-meta">
+                    {lesson.subject&&<span>📚 {lesson.subject}</span>}
+                    {lesson.level&&<span>📊 {lesson.level}</span>}
+                    {lesson.topic&&<span>💬 {lesson.topic}</span>}
+                  </div>
+                </div>
+              </div>
+              {lesson.description&&<p style={{fontSize:'.9rem',lineHeight:1.6,marginBottom:16,color:'#42536A'}}>{lesson.description}</p>}
+              {(lesson.files||[]).length>0
+                ?<div>{lesson.files.map((f,i)=>{
+                  const ext=(f.name||'').split('.').pop().toLowerCase();
+                  const isImg=['jpg','jpeg','png','gif','webp'].includes(ext);
+                  return(
+                    <div key={i} style={{marginBottom:12}}>
+                      {isImg&&<img src={f.url} alt={f.name} style={{maxWidth:'100%',maxHeight:300,objectFit:'contain',borderRadius:8,border:'1px solid rgba(28,43,58,.08)',marginBottom:6}}/>}
+                      <a href={f.url} target="_blank" rel="noreferrer"
+                        style={{display:'inline-flex',alignItems:'center',gap:7,padding:'7px 13px',background:'#F0EEE9',borderRadius:8,textDecoration:'none',color:'#1C2B3A',fontSize:'.84rem',fontWeight:600,border:'1px solid rgba(28,43,58,.1)'}}>
+                        <i className="fa-solid fa-paperclip" style={{fontSize:'.72rem'}}/> {f.name}
+                      </a>
+                    </div>
+                  );
+                })}</div>
+                :<div style={{textAlign:'center',padding:'32px 0',color:'#B0A898',fontSize:'.84rem'}}>
+                  <i className="fa-solid fa-folder-open" style={{fontSize:'1.6rem',marginBottom:8,display:'block',opacity:.3}}/>
+                  Failid puuduvad
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const{meta={},blocks=[]}=ws;
+
+  const renderBlock=(block,idx)=>{
+    const BTLABELS={fill:'Täida lünk',choice:'Vali vastus',writing:'Kirjutamine',match:'Sobita paarid',order:'Järjesta sõnad',table:'Tabel',text:'Tekst',reading:'Lugemistekst',image:'Pilt'};
+    const label=block.label||BTLABELS[block.type]||block.type;
+
+    const renderContent=()=>{
+      if(block.type==='text') return <p style={{fontSize:'.88rem',lineHeight:1.6,fontWeight:block.bold?700:400}}>{block.content}</p>;
+      if(block.type==='image') return block.imageUrl
+        ?<div><img src={block.imageUrl} alt="" style={{maxWidth:'100%',maxHeight:220,objectFit:'contain',borderRadius:6,border:'1px solid rgba(28,43,58,.08)'}}/>{block.caption&&<div style={{fontSize:'.72rem',color:'#718096',marginTop:3,fontStyle:'italic',textAlign:'center'}}>{block.caption}</div>}</div>
+        :<div style={{background:'#F0EEE9',borderRadius:6,height:80,display:'flex',alignItems:'center',justifyContent:'center',color:'#B0A898',fontSize:'.8rem'}}>Pilt puudub</div>;
+      if(block.type==='fill') return(
+        <div className="ws-fill-line">
+          {parseFillWs(block.text||'').map((p,i)=>p.t==='text'?<span key={i}>{p.v}</span>:<span key={i} className="ws-blank">&nbsp;</span>)}
+        </div>
+      );
+      if(block.type==='choice'||block.type==='reading') return(
+        <div>
+          {block.type==='reading'&&<div className="ws-passage">{block.passage}</div>}
+          {(block.questions||[]).map((q,qi)=>(
+            <div key={qi} style={{marginBottom:9}}>
+              <div className="ws-choice-q">{qi+1}. {q.q}</div>
+              {q.opts.filter(Boolean).map((o,oi)=><div key={oi} className="ws-choice-opt"><div className="ws-circle"/><span>{o}</span></div>)}
+            </div>
+          ))}
+        </div>
+      );
+      if(block.type==='writing') return(
+        <div>
+          <div className="ws-wr-task">{block.task}</div>
+          {Array.from({length:block.lines||6}).map((_,i)=><div key={i} className="ws-wr-line"/>)}
+        </div>
+      );
+      if(block.type==='match') return(
+        <div>
+          <div className="ws-match-cols">
+            <div>{(block.pairs||[]).map((p,i)=><div key={i} className="ws-match-item">{i+1}. {p.l}</div>)}</div>
+            <div>{[...(block.pairs||[])].sort(()=>Math.random()-.5).map((p,i)=><div key={i} className="ws-match-item">{String.fromCharCode(65+i)}. {p.r}</div>)}</div>
+          </div>
+          <div style={{display:'flex',flexWrap:'wrap',gap:6,marginTop:7}}>
+            {(block.pairs||[]).map((_,i)=><span key={i} style={{fontSize:'.8rem',padding:'2px 7px',border:'1px solid rgba(28,43,58,.15)',borderRadius:4}}>{i+1} — ___</span>)}
+          </div>
+        </div>
+      );
+      if(block.type==='order') return(
+        <div>
+          <div className="ws-chips">{(block.sentence||'').split(' ').filter(Boolean).sort(()=>Math.random()-.5).map((w,i)=><span key={i} className="ws-chip">{w}</span>)}</div>
+          <div style={{borderBottom:'1px solid rgba(28,43,58,.2)',marginTop:4,fontSize:'.78rem',color:'#B0A898'}}>Kirjuta: _______________________________________________</div>
+        </div>
+      );
+      if(block.type==='table') return(
+        <table className="ws-table">
+          <thead><tr>{(block.headers||[]).map((h,i)=><th key={i}>{h}</th>)}</tr></thead>
+          <tbody>{Array.from({length:block.rows||4}).map((_,ri)=>(
+            <tr key={ri}>{(block.headers||[]).filter(Boolean).map((_,ci)=><td key={ci}>{(block.cellData||{})[ri+','+ci]||''}</td>)}</tr>
+          ))}</tbody>
+        </table>
+      );
+      return null;
+    };
+
+    return(
+      <div key={block.id||idx} className="ws-pb">
+        <div style={{marginBottom:6}}>
+          <span className="ws-pb-num">{idx+1}</span>
+          <span className="ws-pb-lbl">{label}</span>
+          {block.instruction&&<span style={{fontSize:'.72rem',color:'#718096',fontStyle:'italic',marginLeft:6}}>— {block.instruction}</span>}
+        </div>
+        {block.imageUrl&&block.type!=='image'&&(block.imagePos||'top')==='top'&&(
+          <img src={block.imageUrl} alt="" style={{maxWidth:'100%',maxHeight:160,objectFit:'contain',borderRadius:6,marginBottom:8,border:'1px solid rgba(28,43,58,.08)'}}/>
+        )}
+        {renderContent()}
+        {block.imageUrl&&block.type!=='image'&&block.imagePos==='bottom'&&(
+          <img src={block.imageUrl} alt="" style={{maxWidth:'100%',maxHeight:160,objectFit:'contain',borderRadius:6,marginTop:8,border:'1px solid rgba(28,43,58,.08)'}}/>
+        )}
+        {idx<blocks.length-1&&<hr className="ws-divider"/>}
+      </div>
+    );
+  };
+
+  return(
+    <div className="ws-prev-ov" onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
+      <div className="ws-prev-box">
+        <div className="ws-prev-head">
+          <div>
+            <div style={{color:'#fff',fontWeight:700,fontSize:'.95rem'}}>{lesson.title}</div>
+            <div style={{color:'rgba(255,255,255,.45)',fontSize:'.75rem'}}>{lesson.subject} · {lesson.level} · {lesson.topic}</div>
+          </div>
+          <div style={{display:'flex',gap:8,alignItems:'center'}}>
+            <a href="/haldus-worksheet" style={{color:'rgba(255,255,255,.6)',fontSize:'.76rem',textDecoration:'none',padding:'5px 10px',border:'1px solid rgba(255,255,255,.15)',borderRadius:7}}>
+              <i className="fa-solid fa-pen"/> Muuda
+            </a>
+            <button onClick={()=>{
+              const{meta={},blocks=[]}=ws;
+              // build HTML inline (same logic as worksheet page)
+              const b=new Blob([document.getElementById('ws-prev-content')?.innerHTML||''],{type:'text/html'});
+              // simpler: open print dialog
+              const w=window.open('','_blank');
+              const printHtml=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${lesson.title}</title><style>body{font-family:Arial,sans-serif;margin:40px;}</style></head><body>${document.getElementById('ws-prev-content')?.innerHTML||''}</body></html>`;
+              w.document.write(printHtml);w.document.close();setTimeout(()=>w.print(),300);
+            }} className="btn btn-gold btn-sm">
+              <i className="fa-solid fa-print"/> Prindi / PDF
+            </button>
+            <button onClick={onClose} className="btn btn-ghost btn-sm" style={{color:'#fff',borderColor:'rgba(255,255,255,.2)'}}>✕ Sulge</button>
+          </div>
+        </div>
+        <div className="ws-prev-body">
+          <div className="ws-a4" id="ws-prev-content">
+            <div className="ws-sheet-hdr">
+              <div>
+                <div className="ws-sheet-title">{meta.title||lesson.title}</div>
+                <div className="ws-sheet-meta">
+                  {meta.subject&&<span>📚 {meta.subject}</span>}
+                  {meta.level&&<span>📊 {meta.level}</span>}
+                  {meta.date&&<span>📅 Kuupäev: ____________</span>}
+                  {meta.name&&<span>Nimi: _________________________</span>}
+                </div>
+              </div>
+              {meta.score&&<div className="ws-score-box">Punkte: ___ / ___</div>}
+            </div>
+            {blocks.length===0
+              ?<div style={{textAlign:'center',padding:'40px 0',color:'#B0A898',fontSize:'.86rem'}}>Tööleht on tühi</div>
+              :blocks.map((block,idx)=>renderBlock(block,idx))
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── APP ───────────────────────────────────────────────────────
 function App(){
   const[user,setUser]=useState(null);
   const[loading,setLoading]=useState(true);
   const[tab,setTab]=useState('curriculum');
+  const[wsPreview,setWsPreview]=useState(null);
   const[notif,setNotif]=useState('');
   const[exCount,setExCount]=useState(0);
 
@@ -952,6 +1201,7 @@ function App(){
   return(
     <div style={{minHeight:'100vh',background:'#F0EEE9'}}>
       {notif&&<div className="notif">{notif}</div>}
+      {wsPreview&&<WorksheetPreviewModal lesson={wsPreview} onClose={()=>setWsPreview(null)}/>}
 
       <header className="top-header">
         <div className="logo">Keele<span>Sepp</span></div>
@@ -978,7 +1228,7 @@ function App(){
         )}
       </div>
 
-      {tab==='curriculum'&&<CurriculumView isTeacher={isTeacher} user={user} notify={notify}/>}
+      {tab==='curriculum'&&<CurriculumView isTeacher={isTeacher} user={user} notify={notify} onPreviewWorksheet={setWsPreview}/>}
       {tab==='exercises'&&<ExercisesView isTeacher={isTeacher} user={user} notify={notify}/>}
     </div>
   );
