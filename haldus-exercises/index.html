@@ -645,9 +645,13 @@ const LESSON_TYPE_DEFS = [
 function LessonModal({lesson,subject,level,topic,examPart,onClose,onSave}){
   const isEdit=!!lesson?.id;
   // If editing existing simple lesson — show simple form
-  const[builderMode,setBuilderMode]=useState(!isEdit&&!examPart);
+  const[builderMode,setBuilderMode]=useState(!examPart&&(!isEdit||!!(lesson?.phaseData)));
   const[step,setStep]=useState(0); // 0=type, 1=meta, 2=phases, 3=files
-  const[lessonTypeDef,setLessonTypeDef]=useState(null);
+  const[lessonTypeDef,setLessonTypeDef]=useState(
+    lesson?.lessonTypeDef
+      ? LESSON_TYPE_DEFS.find(t=>t.key===lesson.lessonTypeDef)||null
+      : null
+  );
 
   // Simple form state
   const[title,setTitle]=useState(lesson?.title||'');
@@ -659,11 +663,11 @@ function LessonModal({lesson,subject,level,topic,examPart,onClose,onSave}){
   const[saving,setSaving]=useState(false);
 
   // Builder state — phase content keyed by phase.key → field index → value
-  const[phaseData,setPhaseData]=useState({});
-  const[builderTitle,setBuilderTitle]=useState('');
-  const[builderObjectives,setBuilderObjectives]=useState('');
-  const[builderDuration,setBuilderDuration]=useState(60);
-  const[builderNotes,setBuilderNotes]=useState('');
+  const[phaseData,setPhaseData]=useState(lesson?.phaseData||{});
+  const[builderTitle,setBuilderTitle]=useState(lesson?.title||'');
+  const[builderObjectives,setBuilderObjectives]=useState(lesson?.builderObjectives||'');
+  const[builderDuration,setBuilderDuration]=useState(lesson?.builderDuration||60);
+  const[builderNotes,setBuilderNotes]=useState(lesson?.builderNotes||'');
 
   const setPhaseField=(phaseKey,fieldIdx,val)=>setPhaseData(p=>({...p,[phaseKey]:{...(p[phaseKey]||{}),[fieldIdx]:val}}));
 
@@ -693,6 +697,7 @@ function LessonModal({lesson,subject,level,topic,examPart,onClose,onSave}){
     if(!builderTitle.trim()){alert('Sisesta tunni pealkiri');return;}
     setSaving(true);
     await onSave({
+      ...(lesson||{}),
       title:builderTitle.trim(),
       type:'lesson',
       description:buildDescription(),
@@ -712,7 +717,7 @@ function LessonModal({lesson,subject,level,topic,examPart,onClose,onSave}){
   };
 
   // ── SIMPLE MODAL (edit/exam) ───────────────────────────────
-  if(!builderMode||isEdit||examPart) return(
+  if(!builderMode||examPart) return(
     <div className="modal-ov">
       <div className="modal-box">
         <div className="modal-head">
