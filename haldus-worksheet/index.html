@@ -222,6 +222,13 @@ textarea{resize:vertical;line-height:1.45;}
 .sav-foot{padding:12px 22px;border-top:1px solid rgba(28,43,58,.08);display:flex;gap:8px;justify-content:flex-end;}
 .btn-green{background:#16a34a;color:#fff;}
 .btn-green:hover{background:#15803d;}
+
+/* RESIZABLE IMAGE */
+.img-resizable-wrap{position:relative;display:inline-block;max-width:100%;}
+.img-resizable{display:block;max-width:100%;border-radius:6px;border:1px solid rgba(28,43,58,.08);}
+.img-resize-handle{position:absolute;right:-5px;bottom:-5px;width:16px;height:16px;background:#2F5D50;border-radius:3px;cursor:se-resize;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s;}
+.img-resizable-wrap:hover .img-resize-handle{opacity:1;}
+.img-resize-handle::after{content:'';width:8px;height:8px;border-right:2px solid #fff;border-bottom:2px solid #fff;}
 </style>
 </head>
 <body>
@@ -527,6 +534,46 @@ function parseFill(text) {
   return parts;
 }
 
+// ── RESIZABLE IMAGE ───────────────────────────────────────────
+function ResizableImage({src,caption,initWidth,onResize}) {
+  const[width,setWidth]=useState(initWidth||null);
+  const startRef=useRef(null);
+  const wrapRef=useRef(null);
+
+  const onMouseDown=e=>{
+    e.preventDefault();
+    const startX=e.clientX;
+    const startW=wrapRef.current?.offsetWidth||300;
+    const onMove=ev=>{
+      const newW=Math.max(60,Math.min(700,startW+(ev.clientX-startX)));
+      setWidth(newW);
+    };
+    const onUp=ev=>{
+      const newW=Math.max(60,Math.min(700,startW+(ev.clientX-startX)));
+      setWidth(newW);
+      onResize&&onResize(newW);
+      document.removeEventListener('mousemove',onMove);
+      document.removeEventListener('mouseup',onUp);
+    };
+    document.addEventListener('mousemove',onMove);
+    document.addEventListener('mouseup',onUp);
+  };
+
+  if(!src) return(
+    <div style={{background:'#F0EEE9',borderRadius:6,height:120,display:'flex',alignItems:'center',justifyContent:'center',color:'#B0A898',fontSize:'.82rem'}}>Pilt puudub</div>
+  );
+
+  return(
+    <div>
+      <div ref={wrapRef} className="img-resizable-wrap" style={{width:width?width+'px':'100%'}}>
+        <img src={src} alt={caption||''} className="img-resizable" style={{width:'100%',height:'auto',objectFit:'contain'}}/>
+        <div className="img-resize-handle" onMouseDown={onMouseDown} title="Lohista suuruse muutmiseks"/>
+      </div>
+      {caption&&<div style={{fontSize:'.72rem',color:'#718096',marginTop:4,fontStyle:'italic',textAlign:'center'}}>{caption}</div>}
+    </div>
+  );
+}
+
 // ── PREVIEW BLOCK ─────────────────────────────────────────────
 function PreviewBlock({block,index}) {
   const bt=BT[block.type]; if(!bt) return null;
@@ -535,24 +582,38 @@ function PreviewBlock({block,index}) {
     if(!block.imageUrl||(block.imagePos||'top')!==pos) return null;
     return(
       <div style={{marginBottom:pos==='bottom'?0:10,marginTop:pos==='bottom'?10:0}}>
-        <img src={block.imageUrl} alt={block.caption||''} style={{maxWidth:'100%',maxHeight:200,objectFit:'contain',borderRadius:6,border:'1px solid rgba(28,43,58,.08)'}}/>
-        {block.caption&&<div style={{fontSize:'.72rem',color:'#718096',marginTop:3,fontStyle:'italic'}}>{block.caption}</div>}
+        <ResizableImage
+          src={block.imageUrl}
+          caption={block.caption}
+          initWidth={block.imgWidth||null}
+          onResize={w=>onChange({...block,imgWidth:w})}
+        />
       </div>
     );
   };
 
   const renderRightImg=()=>{
     if(!block.imageUrl||(block.imagePos||'top')!=='right') return null;
-    return <img src={block.imageUrl} alt="" style={{width:120,flexShrink:0,objectFit:'contain',borderRadius:6,marginLeft:12,border:'1px solid rgba(28,43,58,.08)'}}/>;
+    return(
+      <div style={{flexShrink:0,marginLeft:12}}>
+        <ResizableImage
+          src={block.imageUrl}
+          caption={null}
+          initWidth={block.imgWidth||120}
+          onResize={w=>onChange({...block,imgWidth:w})}
+        />
+      </div>
+    );
   };
 
   const content=()=>{
     if(block.type==='image') return(
-      <div>
-        {block.imageUrl?<img src={block.imageUrl} alt={block.caption||''} style={{maxWidth:'100%',maxHeight:240,objectFit:'contain',borderRadius:6,border:'1px solid rgba(28,43,58,.08)'}}/>
-          :<div style={{background:'#F0EEE9',borderRadius:6,height:120,display:'flex',alignItems:'center',justifyContent:'center',color:'#B0A898',fontSize:'.82rem'}}>Pilt puudub</div>}
-        {block.caption&&<div style={{fontSize:'.74rem',color:'#718096',marginTop:4,fontStyle:'italic',textAlign:'center'}}>{block.caption}</div>}
-      </div>
+      <ResizableImage
+        src={block.imageUrl}
+        caption={block.caption}
+        initWidth={block.imgWidth||null}
+        onResize={w=>onChange({...block,imgWidth:w})}
+      />
     );
     if(block.type==='text') return(
       <p className="pb-text" style={{fontWeight:block.bold?700:400,fontSize:block.bold?'1rem':'.9rem'}}>{block.content||<span style={{color:'#C0B8B0',fontStyle:'italic'}}>Tekst puudub</span>}</p>
