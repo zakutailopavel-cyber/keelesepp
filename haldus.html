@@ -4643,7 +4643,7 @@ function GCalSettings({user,notify}) {
   const [status,setStatus] = React.useState(null); // null | 'connected' | 'disconnected'
   const [lastSync,setLastSync] = React.useState(null);
   const [syncing,setSyncing] = React.useState(false);
-  const FUNCTIONS_BASE = 'https://us-central1-keelesepp-5136b.cloudfunctions.net/api';
+  const FUNCTIONS_BASE = 'https://us-central1-keelesepp-5136b.cloudfunctions.net/gcalApi';
 
   React.useEffect(()=>{
     if(!user?.uid) return;
