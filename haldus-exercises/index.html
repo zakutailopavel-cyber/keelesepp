@@ -3,10 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>KeeleSepp — Harjutused</title>
+<title>KeeleSepp — Õppekava & Harjutused</title>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
 <script>
 (function(){
   try{
@@ -20,1079 +21,449 @@
         appId:"1:674098517935:web:e73d04a4ada67874da015a"
       });
     }
-    window._db=firebase.firestore();
-    window._auth=firebase.auth();
+    window._db      = firebase.firestore();
+    window._auth    = firebase.auth();
+    window._storage = firebase.storage();
   }catch(e){console.error('Firebase:',e);}
 })();
 </script>
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<script>
-if(typeof Babel !== 'undefined' && Babel.availablePresets && Babel.registerPreset){
-  Babel.registerPreset('exercises-react', {
-    presets: [[Babel.availablePresets.react, { runtime: 'classic' }]]
-  });
-}
-</script>
-<script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="/haldus.css">
 <style>
-  .ex-card { background:#fff; border:1px solid rgba(28,43,58,.08); border-radius:14px; padding:20px; transition:all .18s; }
-  .ex-card:hover { border-color:#C9882A; transform:translateY(-1px); box-shadow:0 4px 16px rgba(28,43,58,.08); }
-  .blank-input { border:none; border-bottom:2px solid #C9882A; background:transparent; padding:2px 6px; font-size:1rem; font-family:inherit; min-width:80px; outline:none; text-align:center; }
-  .blank-input:focus { border-bottom-color:#2F5D50; }
-  .blank-input.correct { border-bottom-color:#166534; background:rgba(22,101,52,.07); }
-  .blank-input.wrong { border-bottom-color:#991b1b; background:rgba(153,27,27,.07); }
-  .choice-btn { width:100%; text-align:left; padding:12px 16px; border-radius:10px; border:1.5px solid rgba(28,43,58,.12); background:#fff; cursor:pointer; font-size:.9rem; font-family:inherit; transition:all .15s; margin-bottom:8px; }
-  .choice-btn:hover { border-color:#C9882A; background:rgba(201,136,42,.05); }
-  .choice-btn.selected { border-color:#C9882A; background:rgba(201,136,42,.1); font-weight:600; }
-  .choice-btn.correct { border-color:#166534; background:rgba(22,101,52,.08); color:#166534; font-weight:700; }
-  .choice-btn.wrong { border-color:#991b1b; background:rgba(153,27,27,.07); color:#991b1b; }
-  .word-chip { display:inline-flex; align-items:center; padding:6px 12px; border-radius:8px; border:1.5px solid rgba(28,43,58,.15); background:#fff; cursor:grab; font-size:.88rem; font-family:inherit; margin:4px; user-select:none; transition:all .15s; }
-  .word-chip:hover { border-color:#C9882A; background:rgba(201,136,42,.06); }
-  .word-chip.used { opacity:.35; cursor:not-allowed; }
-  .word-chip.placed { background:rgba(47,93,80,.1); border-color:#2F5D50; cursor:pointer; }
-  .drop-zone { min-height:42px; border:2px dashed rgba(28,43,58,.18); border-radius:10px; padding:6px 10px; display:flex; flex-wrap:wrap; gap:6px; align-items:center; background:rgba(28,43,58,.02); }
-  .drop-zone.active { border-color:#C9882A; background:rgba(201,136,42,.05); }
-  .result-correct { background:#dcfce7; color:#166534; border-radius:10px; padding:14px 18px; font-weight:700; }
-  .result-wrong { background:#fee2e2; color:#991b1b; border-radius:10px; padding:14px 18px; font-weight:700; }
-  .type-badge-fill { background:rgba(37,99,235,.1); color:#1d4ed8; }
-  .type-badge-choice { background:rgba(124,58,237,.1); color:#6d28d9; }
-  .type-badge-order { background:rgba(47,93,80,.1); color:#2F5D50; }
-  .type-badge-writing { background:rgba(201,136,42,.12); color:#A96E1A; }
-  .type-badge-reading { background:rgba(14,116,144,.1); color:#0e7490; }
-  .type-badge-match { background:rgba(5,150,105,.1); color:#047857; }
-  .type-badge-translate { background:rgba(219,39,119,.1); color:#be185d; }
-  .library-shell { display:grid; grid-template-columns:280px minmax(0,1fr); gap:18px; align-items:start; }
-  @media (max-width: 900px) {
-    .library-shell { grid-template-columns:1fr; }
-    .library-shell aside { position:static !important; }
-  }
+/* ── BASE ─────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'IBM Plex Sans',sans-serif;background:#F4F2EE;color:#1C2B3A;min-height:100vh;}
+
+/* ── HEADER ───────────────────────────────────────────── */
+.top-header{
+  background:#1C2B3A;height:58px;display:flex;align-items:center;
+  justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:100;
+}
+.logo{font-family:'Fraunces',Georgia,serif;font-size:1.4rem;font-weight:600;color:#fff;}
+.logo span{color:#C9882A;}
+
+/* ── MODE TABS ────────────────────────────────────────── */
+.mode-bar{
+  background:#fff;border-bottom:1px solid rgba(28,43,58,.1);
+  display:flex;align-items:center;gap:4;padding:0 28px;
+}
+.mode-tab{
+  padding:16px 22px;font-size:.88rem;font-weight:700;cursor:pointer;
+  border:none;background:none;color:#42536A;
+  border-bottom:3px solid transparent;transition:all .15s;
+}
+.mode-tab:hover{color:#1C2B3A;}
+.mode-tab.active{color:#2F5D50;border-bottom-color:#2F5D50;}
+
+/* ── CURRICULUM ───────────────────────────────────────── */
+.curr-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:20px;padding:32px 28px;max-width:1200px;margin:0 auto;
+}
+@media(max-width:900px){.curr-grid{grid-template-columns:1fr;padding:20px 16px;}}
+
+.subject-card{
+  background:#fff;border:1px solid rgba(28,43,58,.08);border-radius:18px;
+  overflow:hidden;cursor:pointer;transition:all .2s;
+}
+.subject-card:hover{transform:translateY(-3px);box-shadow:0 12px 40px rgba(28,43,58,.12);border-color:rgba(28,43,58,.16);}
+.subject-card-head{padding:28px 24px 22px;position:relative;}
+.subject-card-emoji{font-size:2.2rem;margin-bottom:12px;display:block;}
+.subject-card-title{font-size:1.25rem;font-weight:700;color:#1C2B3A;margin-bottom:4px;}
+.subject-card-sub{font-size:.82rem;color:#42536A;}
+.subject-card-bar{height:4px;width:100%;}
+.subject-card-footer{padding:14px 24px;background:rgba(28,43,58,.03);font-size:.78rem;color:#42536A;display:flex;align-items:center;gap:6;}
+
+/* ── BREADCRUMB ───────────────────────────────────────── */
+.breadcrumb{
+  max-width:1200px;margin:0 auto;padding:20px 28px 0;
+  display:flex;align-items:center;gap:8;flex-wrap:wrap;
+}
+.bc-item{font-size:.82rem;color:#42536A;cursor:pointer;font-weight:600;}
+.bc-item:hover{color:#2F5D50;}
+.bc-sep{color:rgba(28,43,58,.25);font-size:.75rem;}
+.bc-current{font-size:.82rem;color:#1C2B3A;font-weight:700;}
+
+/* ── LEVEL GRID ───────────────────────────────────────── */
+.level-grid{
+  display:flex;flex-wrap:wrap;gap:12px;
+  max-width:1200px;margin:0 auto;padding:20px 28px 32px;
+}
+.level-chip{
+  padding:14px 22px;border-radius:12px;border:1.5px solid rgba(28,43,58,.12);
+  background:#fff;cursor:pointer;font-weight:700;font-size:.92rem;
+  color:#1C2B3A;transition:all .15s;display:flex;align-items:center;gap:10;
+}
+.level-chip:hover{border-color:#2F5D50;background:rgba(47,93,80,.05);color:#2F5D50;}
+.level-chip.active{border-color:#2F5D50;background:#2F5D50;color:#fff;}
+.level-chip .lc-count{
+  background:rgba(255,255,255,.25);color:inherit;
+  font-size:.72rem;padding:2px 7px;border-radius:6;font-weight:700;
+}
+.level-chip:not(.active) .lc-count{background:rgba(28,43,58,.07);color:#42536A;}
+
+/* ── TOPIC LIST ───────────────────────────────────────── */
+.topic-shell{
+  max-width:1200px;margin:0 auto;padding:0 28px 40px;
+  display:grid;grid-template-columns:260px minmax(0,1fr);gap:20px;align-items:start;
+}
+@media(max-width:900px){.topic-shell{grid-template-columns:1fr;}}
+
+.topic-sidebar{
+  background:#fff;border:1px solid rgba(28,43,58,.08);border-radius:14px;
+  padding:14px;position:sticky;top:74px;
+}
+.topic-sidebar-title{font-size:.72rem;font-weight:800;color:#42536A;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;}
+.topic-btn{
+  width:100%;text-align:left;padding:10px 12px;border-radius:9px;
+  border:1px solid transparent;background:none;cursor:pointer;
+  font-size:.84rem;font-weight:600;color:#1C2B3A;
+  display:flex;align-items:center;justify-content:space-between;
+  transition:all .12s;margin-bottom:4px;
+}
+.topic-btn:hover{background:rgba(47,93,80,.06);border-color:rgba(47,93,80,.2);}
+.topic-btn.active{background:rgba(47,93,80,.1);border-color:rgba(47,93,80,.3);color:#2F5D50;font-weight:800;}
+.topic-count{font-size:.72rem;color:#718096;font-weight:700;}
+.topic-btn.active .topic-count{color:#2F5D50;}
+
+/* ── LESSON CARDS ─────────────────────────────────────── */
+.lesson-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:16px;flex-wrap:wrap;gap:10;
+}
+.lesson-header h2{font-size:1.2rem;font-weight:700;}
+
+.lesson-card{
+  background:#fff;border:1px solid rgba(28,43,58,.08);border-radius:14px;
+  padding:18px 20px;margin-bottom:12px;transition:all .15s;
+  display:flex;align-items:flex-start;gap:14;
+}
+.lesson-card:hover{border-color:rgba(28,43,58,.2);box-shadow:0 4px 16px rgba(28,43,58,.07);}
+.lesson-icon{
+  width:42px;height:42px;border-radius:10px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:1.1rem;
+}
+.lesson-body{flex:1;min-width:0;}
+.lesson-title{font-size:.97rem;font-weight:700;margin-bottom:4px;}
+.lesson-meta{font-size:.78rem;color:#42536A;margin-bottom:8px;}
+.lesson-tags{display:flex;gap:5;flex-wrap:wrap;}
+.lesson-tag{
+  font-size:.72rem;padding:3px 9px;border-radius:6px;font-weight:600;
+  background:rgba(47,93,80,.08);color:#2F5D50;
+}
+.lesson-actions{display:flex;gap:6;align-items:center;flex-shrink:0;flex-wrap:wrap;}
+
+/* FILE PREVIEW */
+.file-preview-row{
+  display:flex;gap:8;flex-wrap:wrap;margin-top:10;
+}
+.file-chip{
+  display:flex;align-items:center;gap:6;padding:6px 12px;
+  border-radius:8px;border:1px solid rgba(28,43,58,.12);background:#F9F8F6;
+  font-size:.78rem;font-weight:600;color:#42536A;cursor:pointer;transition:all .12s;
+  text-decoration:none;
+}
+.file-chip:hover{border-color:#C9882A;color:#A96E1A;background:rgba(201,136,42,.06);}
+.file-chip .fi-ext{
+  width:22px;height:22px;border-radius:5px;display:flex;align-items:center;
+  justify-content:center;font-size:.62rem;font-weight:800;color:#fff;flex-shrink:0;
+}
+
+/* ── LESSON MODAL ─────────────────────────────────────── */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(28,43,58,.55);
+  display:flex;align-items:center;justify-content:center;
+  padding:16px;z-index:200;backdrop-filter:blur(4px);
+}
+.modal-box{
+  background:#FBFAF8;border-radius:20px;
+  max-width:600px;width:100%;max-height:92vh;
+  overflow-y:auto;display:flex;flex-direction:column;
+}
+.modal-head{
+  padding:20px 24px 16px;border-bottom:1px solid rgba(28,43,58,.08);
+  display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#FBFAF8;z-index:2;
+}
+.modal-body{padding:20px 24px;display:flex;flex-direction:column;gap:14;}
+.modal-foot{
+  padding:14px 24px;border-top:1px solid rgba(28,43,58,.08);
+  display:flex;gap:10;justify-content:flex-end;position:sticky;bottom:0;background:#FBFAF8;
+}
+
+/* ── UPLOAD ZONE ──────────────────────────────────────── */
+.upload-zone{
+  border:2px dashed rgba(28,43,58,.18);border-radius:12px;
+  padding:24px;text-align:center;cursor:pointer;transition:all .15s;
+  background:rgba(28,43,58,.02);
+}
+.upload-zone:hover,.upload-zone.drag{border-color:#C9882A;background:rgba(201,136,42,.04);}
+.upload-zone input{display:none;}
+
+/* ── SECTION LABEL ────────────────────────────────────── */
+.sec-label{font-size:.72rem;font-weight:800;color:#42536A;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;}
+
+/* ── EMPTY STATE ──────────────────────────────────────── */
+.empty-state{text-align:center;padding:60px 20px;color:#42536A;}
+.empty-state i{font-size:2.5rem;margin-bottom:14px;opacity:.3;display:block;}
+.empty-state p{font-size:.88rem;max-width:280px;margin:0 auto 16px;line-height:1.5;}
+
+/* ── HARJUTUSED tab (reuse existing styles) ───────────── */
+.ex-card{background:#fff;border:1px solid rgba(28,43,58,.08);border-radius:14px;padding:20px;transition:all .18s;}
+.ex-card:hover{border-color:#C9882A;transform:translateY(-1px);box-shadow:0 4px 16px rgba(28,43,58,.08);}
+.blank-input{border:none;border-bottom:2px solid #C9882A;background:transparent;padding:2px 6px;font-size:1rem;font-family:inherit;min-width:80px;outline:none;text-align:center;}
+.blank-input.correct{border-bottom-color:#166534;background:rgba(22,101,52,.07);}
+.blank-input.wrong{border-bottom-color:#991b1b;background:rgba(153,27,27,.07);}
+.choice-btn{width:100%;text-align:left;padding:12px 16px;border-radius:10px;border:1.5px solid rgba(28,43,58,.12);background:#fff;cursor:pointer;font-size:.9rem;font-family:inherit;transition:all .15s;margin-bottom:8px;}
+.choice-btn:hover{border-color:#C9882A;background:rgba(201,136,42,.05);}
+.choice-btn.selected{border-color:#C9882A;background:rgba(201,136,42,.1);font-weight:600;}
+.choice-btn.correct{border-color:#166534;background:rgba(22,101,52,.08);color:#166534;font-weight:700;}
+.choice-btn.wrong{border-color:#991b1b;background:rgba(153,27,27,.07);color:#991b1b;}
+.result-correct{background:#dcfce7;color:#166534;border-radius:10px;padding:14px 18px;font-weight:700;}
+.result-wrong{background:#fee2e2;color:#991b1b;border-radius:10px;padding:14px 18px;font-weight:700;}
+.word-chip{display:inline-flex;align-items:center;padding:6px 12px;border-radius:8px;border:1.5px solid rgba(28,43,58,.15);background:#fff;cursor:grab;font-size:.88rem;font-family:inherit;margin:4px;user-select:none;transition:all .15s;}
+.word-chip:hover{border-color:#C9882A;background:rgba(201,136,42,.06);}
+.word-chip.used{opacity:.35;cursor:not-allowed;}
+.word-chip.placed{background:rgba(47,93,80,.1);border-color:#2F5D50;cursor:pointer;}
+.drop-zone{min-height:42px;border:2px dashed rgba(28,43,58,.18);border-radius:10px;padding:6px 10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:rgba(28,43,58,.02);}
+.type-badge-fill{background:rgba(37,99,235,.1);color:#1d4ed8;}
+.type-badge-choice{background:rgba(124,58,237,.1);color:#6d28d9;}
+.type-badge-order{background:rgba(47,93,80,.1);color:#2F5D50;}
+.type-badge-writing{background:rgba(201,136,42,.12);color:#A96E1A;}
+.type-badge-reading{background:rgba(14,116,144,.1);color:#0e7490;}
+.type-badge-match{background:rgba(5,150,105,.1);color:#047857;}
+.type-badge-translate{background:rgba(219,39,119,.1);color:#be185d;}
+.library-shell{display:grid;grid-template-columns:280px minmax(0,1fr);gap:18px;align-items:start;}
+@media(max-width:900px){.library-shell{grid-template-columns:1fr;}}
+
+/* NOTIF */
+.notif-toast{position:fixed;top:20px;right:20px;background:#1C2B3A;color:#fff;padding:11px 18px;border-radius:12px;z-index:400;font-weight:600;font-size:.88rem;box-shadow:0 8px 28px rgba(0,0,0,.25);}
+
+/* SPINNER */
+.spinner{width:32px;height:32px;border:3px solid rgba(28,43,58,.12);border-top-color:#2F5D50;border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+select,input,textarea{
+  width:100%;padding:10px 13px;border-radius:10px;border:1.5px solid rgba(28,43,58,.12);
+  background:#fff;font-family:inherit;font-size:.9rem;color:#1C2B3A;outline:none;
+}
+select:focus,input:focus,textarea:focus{border-color:#2F5D50;box-shadow:0 0 0 3px rgba(47,93,80,.1);}
+textarea{resize:vertical;line-height:1.5;}
+
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:10px;font-family:inherit;font-weight:700;font-size:.84rem;cursor:pointer;border:none;transition:all .15s;}
+.btn-pine{background:#2F5D50;color:#fff;}
+.btn-pine:hover{background:#265048;}
+.btn-pine:disabled{opacity:.5;cursor:not-allowed;}
+.btn-ghost{background:rgba(28,43,58,.07);color:#42536A;border:1px solid rgba(28,43,58,.1);}
+.btn-ghost:hover{background:rgba(28,43,58,.12);}
+.btn-dark{background:#1C2B3A;color:#fff;}
+.btn-gold{background:#C9882A;color:#fff;}
+.btn-gold:hover{background:#b5771f;}
+.btn-sm{padding:6px 12px;font-size:.78rem;}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:6px;font-size:.73rem;font-weight:700;}
 </style>
 </head>
 <body>
 <div id="root"><div style="display:flex;align-items:center;justify-content:center;min-height:100vh"><div class="spinner"></div></div></div>
-<script type="text/babel" data-presets="exercises-react">
-const {useState,useEffect,useCallback,useMemo,useRef} = React;
-const db   = window._db;
-const auth = window._auth;
 
+<script type="text/babel">
+const {useState,useEffect,useCallback,useMemo,useRef} = React;
+const db      = window._db;
+const auth    = window._auth;
+const storage = window._storage;
+
+// ── CONSTANTS ──────────────────────────────────────────────────
 const today = () => new Date().toISOString().split('T')[0];
 const fmtDate = d => d ? new Date(d).toLocaleDateString('et-EE',{day:'2-digit',month:'2-digit',year:'numeric'}) : '—';
 const normalizeText = t => String(t||'').toLowerCase().trim()
   .replace(/[àáâãäå]/g,'a').replace(/[èéêë]/g,'e').replace(/[ìíîï]/g,'i')
-  .replace(/[òóôõö]/g,'o').replace(/[ùúûü]/g,'u').replace(/[ñ]/g,'n');
+  .replace(/[òóôõö]/g,'o').replace(/[ùúûü]/g,'u');
 
-const cleanExerciseData = data => {
-  const cleaned = {...data};
-  if(Array.isArray(cleaned.pairs)){
-    cleaned.pairs = cleaned.pairs.filter(pair=>(pair.left||'').trim() && (pair.right||'').trim());
-  }
-  if(Array.isArray(cleaned.questions)){
-    cleaned.questions = cleaned.questions
-      .map(q=>{
-        const originalOptions = q.options||[];
-        const correctText = String(originalOptions[q.correct]||'').trim();
-        const options = originalOptions.map(o=>String(o||'').trim()).filter(Boolean);
-        return {
-          ...q,
-          options,
-          correct:Math.max(0, options.indexOf(correctText)),
-          question:String(q.question||'').trim()
-        };
-      })
-      .filter(q=>q.question && q.options.length);
-  }
-  return cleaned;
-};
-
-const validateExerciseContent = (type, data) => {
-  const cleaned = cleanExerciseData(data);
-  const validChoiceQuestions = (data.questions||[]).filter(q=>{
-    const options = q.options||[];
-    const correctText = String(options[q.correct]||'').trim();
-    const filledOptions = options.map(o=>String(o||'').trim()).filter(Boolean);
-    return String(q.question||'').trim() && correctText && filledOptions.length>=2;
-  });
-  if(type==='writing'){
-    if(!String(cleaned.task||cleaned.prompt||'').trim()) return 'Kirjuta kirjutamisülesande juhis.';
-    return '';
-  }
-  if(type==='fill'){
-    if(!parseFillText(cleaned.text||'').blanks.length) return 'Täida lünk vajab vastuseid nurksulgudes, näiteks: Ma [käin] koolis.';
-  }
-  if(type==='choice'){
-    if(!validChoiceQuestions.length) return 'Vali vastus vajab vähemalt ühte küsimust ja õige vastuse valikut.';
-    if(validChoiceQuestions.length!==(data.questions||[]).length) return 'Igal valikvastuse küsimusel peab olema küsimus, vähemalt kaks varianti ja märgitud õige vastus.';
-  }
-  if(type==='reading'){
-    if(!String(cleaned.passage||cleaned.text||'').trim()) return 'Lugemine vajab lugemisteksti.';
-    if(!validChoiceQuestions.length) return 'Lugemine vajab vähemalt ühte küsimust koos õige vastusega.';
-  }
-  if(type==='match'){
-    if((cleaned.pairs||[]).length<2) return 'Sobita paarid vajab vähemalt kahte valmis vastusepaari.';
-  }
-  if(type==='translate'){
-    if(!String(cleaned.sourceText||cleaned.prompt||cleaned.text||'').trim()) return 'Tõlkimine vajab teksti, mida tõlkida.';
-    if(!String(cleaned.targetText||cleaned.answer||'').trim()) return 'Tõlkimine vajab ette kirjutatud õiget vastust.';
-  }
-  if(type==='order'){
-    if((cleaned.sentence||'').split(' ').filter(Boolean).length<2) return 'Koosta lause/sõna vajab ette kirjutatud õiget lauset või sõnajärge.';
-  }
-  return '';
-};
-
-// ── ТИПЫ УПРАЖНЕНИЙ ───────────────────────────────────────────
-const EX_TYPES = {
-  fill:   { label:'Täida lünk',        icon:'fa-pen-line',      badge:'type-badge-fill',   color:'#1d4ed8' },
-  choice: { label:'Vali vastus',        icon:'fa-list-check',    badge:'type-badge-choice', color:'#6d28d9' },
-  order:  { label:'Koosta lause/sõna',  icon:'fa-shuffle',       badge:'type-badge-order',  color:'#2F5D50' },
-  writing:{ label:'Kirjutamine',        icon:'fa-wand-magic-sparkles', badge:'type-badge-writing', color:'#A96E1A' },
-  reading:{ label:'Lugemine',           icon:'fa-book-open-reader', badge:'type-badge-reading', color:'#0e7490' },
-  match:  { label:'Sobita paarid',       icon:'fa-link',          badge:'type-badge-match', color:'#047857' },
-  translate:{ label:'Tõlkimine',        icon:'fa-language',      badge:'type-badge-translate', color:'#be185d' },
-};
-
-const SUBJECT_TREE = {
-  'Eesti keel': {
-    label:'Eesti keel',
-    short:'EST',
+const SUBJECTS = [
+  { key:'Eesti keel',   emoji:'🇪🇪', color:'#2F5D50', bar:'linear-gradient(90deg,#2F5D50,#4a8c7a)',
     levels:['A1','A2','B1','B2','C1'],
-    topics:['Grammatika','Sõnavara','Lugemine','Kirjutamine','Kuulamine','Rääkimine']
-  },
-  'Inglise keel': {
-    label:'Inglise keel',
-    short:'ENG',
-    levels:['A1','A2','B1','B2','C1'],
-    topics:['Grammar','Vocabulary','Reading','Writing','Listening','Speaking']
-  },
-  'Matemaatika': {
-    label:'Matemaatika',
-    short:'MAT',
+    topics:['Minu pere','Igapäevaelu','Töö ja amet','Hobid ja vaba aeg','Toit ja tervis','Loodus ja ilm','Eesti kultuur','Reisimine','Grammatika'] },
+  { key:'Inglise keel', emoji:'🇬🇧', color:'#1d4ed8', bar:'linear-gradient(90deg,#1d4ed8,#3b82f6)',
+    levels:['A1','A2','B1','B2','C1','C2'],
+    topics:['My family','Daily life','Work & jobs','Hobbies','Food & health','Travel','British culture','Grammar'] },
+  { key:'Matemaatika',  emoji:'📐', color:'#A96E1A', bar:'linear-gradient(90deg,#A96E1A,#C9882A)',
     levels:Array.from({length:12},(_,i)=>`${i+1}. klass`),
-    topics:['Arvud','Algebra','Geomeetria','Võrrandid','Funktsioonid','Tekstülesanded']
-  }
+    topics:['Arvud','Algebra','Geomeetria','Võrrandid','Funktsioonid','Tekstülesanded','Statistika'] },
+];
+
+const LESSON_TYPES = {
+  lesson:  { label:'Tund',        icon:'fa-book',           color:'#2F5D50', bg:'rgba(47,93,80,.1)'  },
+  test:    { label:'Test',        icon:'fa-clipboard-check', color:'#1d4ed8', bg:'rgba(37,99,235,.1)' },
+  hw:      { label:'Kodutöö',     icon:'fa-house',           color:'#A96E1A', bg:'rgba(169,110,26,.1)'},
+  material:{ label:'Materjal',    icon:'fa-file-lines',      color:'#6d28d9', bg:'rgba(109,40,217,.1)'},
 };
-const SUBJECTS = Object.keys(SUBJECT_TREE);
-const getSubjectConfig = subject => SUBJECT_TREE[subject] || SUBJECT_TREE['Eesti keel'];
-const getLevelLabel = subject => subject==='Matemaatika' ? 'Klass' : 'Tase';
-const getExerciseTopic = ex => ex.topic || (Array.isArray(ex.tags) ? ex.tags[0] : '') || 'Muu';
 
-// ── УТИЛИТЫ СОЗДАНИЯ ─────────────────────────────────────────
-// Парсинг fill: "Ma ___ koolis [käin]" → {text, blanks:[{pos,answer}]}
-function parseFillText(raw) {
-  const blanks = [];
-  let idx = 0;
-  const parts = raw.split(/\[([^\]]+)\]/g);
-  // parts: ["Ma ___ koolis ", "käin", ""]
-  let result = [];
-  for(let i=0;i<parts.length;i++){
-    if(i%2===0){ result.push({type:'text',value:parts[i]}); }
-    else { result.push({type:'blank',answer:parts[i],index:idx++}); blanks.push({answer:parts[i],index:idx-1}); }
-  }
-  return {parts:result, blanks};
-}
+const EXT_COLORS = {
+  pdf:'#dc2626',docx:'#1d4ed8',doc:'#1d4ed8',xlsx:'#166534',
+  xls:'#166534',pptx:'#ea580c',ppt:'#ea580c',jpg:'#0e7490',
+  jpeg:'#0e7490',png:'#0e7490',mp3:'#7c3aed',mp4:'#7c3aed',
+};
 
-// ── ПЛЕЕР: FILL ───────────────────────────────────────────────
-function FillPlayer({exercise, onDone}) {
-  const parsed = useMemo(()=>parseFillText(exercise.text||''),[exercise.text]);
-  const [answers, setAnswers] = useState({});
-  const [checked, setChecked] = useState(false);
-  const [score, setScore] = useState(null);
+// ── EXERCISE CONSTANTS (same as before) ───────────────────────
+const EX_TYPES = {
+  fill:   { label:'Täida lünk',       icon:'fa-pen-line',           badge:'type-badge-fill',   color:'#1d4ed8' },
+  choice: { label:'Vali vastus',       icon:'fa-list-check',         badge:'type-badge-choice', color:'#6d28d9' },
+  order:  { label:'Koosta lause/sõna', icon:'fa-shuffle',            badge:'type-badge-order',  color:'#2F5D50' },
+  writing:{ label:'Kirjutamine',       icon:'fa-wand-magic-sparkles',badge:'type-badge-writing',color:'#A96E1A' },
+  reading:{ label:'Lugemine',          icon:'fa-book-open-reader',   badge:'type-badge-reading',color:'#0e7490' },
+  match:  { label:'Sobita paarid',     icon:'fa-link',               badge:'type-badge-match',  color:'#047857' },
+  translate:{ label:'Tõlkimine',       icon:'fa-language',           badge:'type-badge-translate',color:'#be185d'},
+};
 
-  const check = () => {
-    let correct = 0;
-    parsed.blanks.forEach(b=>{
-      if(normalizeText(answers[b.index]||'')===normalizeText(b.answer)) correct++;
-    });
-    setScore({correct, total:parsed.blanks.length});
-    setChecked(true);
-    onDone&&onDone({correct, total:parsed.blanks.length, answers});
-  };
-
-  const reset = () => { setAnswers({}); setChecked(false); setScore(null); };
-
-  return(
-    <div style={{display:'flex',flexDirection:'column',gap:16}}>
-      <div style={{fontSize:'1rem',lineHeight:2,fontFamily:'IBM Plex Sans,sans-serif'}}>
-        {parsed.parts.map((p,i)=>{
-          if(p.type==='text') return <span key={i}>{p.value}</span>;
-          const val = answers[p.index]||'';
-          const isCorrect = checked && normalizeText(val)===normalizeText(p.answer);
-          const isWrong   = checked && normalizeText(val)!==normalizeText(p.answer);
-          return(
-            <span key={i} style={{display:'inline-flex',alignItems:'center',gap:4}}>
-              <input
-                className={'blank-input'+(isCorrect?' correct':isWrong?' wrong':'')}
-                value={val}
-                disabled={checked}
-                onChange={e=>setAnswers(prev=>({...prev,[p.index]:e.target.value}))}
-                style={{width:Math.max(80,(p.answer.length+2)*12)+'px'}}
-              />
-              {isWrong&&checked&&<span style={{fontSize:'.75rem',color:'#166534',fontWeight:700}}>({p.answer})</span>}
-            </span>
-          );
-        })}
-      </div>
-      {exercise.hint&&!checked&&<div style={{fontSize:'.82rem',color:'#42536A',padding:'8px 12px',background:'rgba(201,136,42,.07)',borderRadius:9}}>💡 {exercise.hint}</div>}
-      {score&&(
-        <div className={score.correct===score.total?'result-correct':'result-wrong'}>
-          {score.correct===score.total
-            ? '✓ Suurepärane! Kõik '+score.total+' vastust õiged!'
-            : score.correct+'/'+score.total+' vastust õiged. Proovi uuesti!'}
-        </div>
-      )}
-      <div style={{display:'flex',gap:8}}>
-        {!checked
-          ? <button onClick={check} className="btn btn-pine" style={{flex:1}}>Kontrolli vastuseid</button>
-          : <button onClick={reset} className="btn btn-ghost" style={{flex:1}}>Proovi uuesti</button>}
-      </div>
-    </div>
+// ── HELPERS ───────────────────────────────────────────────────
+function FileChip({file}) {
+  const ext = (file.name||'').split('.').pop().toLowerCase();
+  const bg  = EXT_COLORS[ext]||'#42536A';
+  return (
+    <a href={file.url} target="_blank" rel="noreferrer" className="file-chip">
+      <span className="fi-ext" style={{background:bg}}>{ext.slice(0,3).toUpperCase()}</span>
+      <span style={{maxWidth:140,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{file.name}</span>
+      <i className="fa-solid fa-arrow-up-right-from-square" style={{fontSize:'.65rem',opacity:.5}}/>
+    </a>
   );
 }
 
-// ── ПЛЕЕР: CHOICE ─────────────────────────────────────────────
-function ChoicePlayer({exercise, onDone}) {
-  const questions = exercise.questions||[];
-  const [current, setCurrent] = useState(0);
-  const [selected, setSelected] = useState({});
-  const [checked, setChecked] = useState({});
-  const [done, setDone] = useState(false);
+// ── UPLOAD ────────────────────────────────────────────────────
+function FileUploader({onUpload, uploading, setUploading}) {
+  const inputRef = useRef();
+  const [progress, setProgress] = useState(0);
 
-  const q = questions[current];
-
-  const pick = (qi, ci) => {
-    if(checked[qi]) return;
-    setSelected(prev=>({...prev,[qi]:ci}));
-  };
-
-  const checkCurrent = () => {
-    setChecked(prev=>({...prev,[current]:true}));
-  };
-
-  const next = () => {
-    if(current<questions.length-1){ setCurrent(c=>c+1); }
-    else {
-      const correct = questions.filter((q,i)=>selected[i]===q.correct).length;
-      setDone(true);
-      onDone&&onDone({correct, total:questions.length, selected});
-    }
-  };
-
-  const reset = () => { setCurrent(0); setSelected({}); setChecked({}); setDone(false); };
-
-  if(done){
-    const correct = questions.filter((q,i)=>selected[i]===q.correct).length;
-    return(
-      <div style={{display:'flex',flexDirection:'column',gap:12}}>
-        <div className={correct===questions.length?'result-correct':'result-wrong'}>
-          {correct===questions.length
-            ? '✓ Suurepärane! '+correct+'/'+questions.length+' — kõik õiged!'
-            : correct+'/'+questions.length+' vastust õiged'}
-        </div>
-        <div style={{display:'flex',flexDirection:'column',gap:10}}>
-          {questions.map((q,qi)=>(
-            <div key={qi} style={{padding:'10px 14px',borderRadius:10,background:selected[qi]===q.correct?'rgba(22,101,52,.06)':'rgba(153,27,27,.05)',border:'1px solid '+(selected[qi]===q.correct?'rgba(22,101,52,.2)':'rgba(153,27,27,.2)')}}>
-              <div style={{fontWeight:700,marginBottom:6}}>{qi+1}. {q.question}</div>
-              <div style={{fontSize:'.84rem',color:selected[qi]===q.correct?'#166534':'#991b1b'}}>
-                {selected[qi]===q.correct?'✓ ':' ✗ '}{q.options[selected[qi]||0]}
-              </div>
-              {selected[qi]!==q.correct&&<div style={{fontSize:'.82rem',color:'#166534',marginTop:4}}>→ {q.options[q.correct]}</div>}
-            </div>
-          ))}
-        </div>
-        <button onClick={reset} className="btn btn-ghost">Alusta uuesti</button>
-      </div>
-    );
-  }
-
-  if(!q) return null;
-  const isChecked = checked[current];
-  const sel = selected[current];
-
-  return(
-    <div style={{display:'flex',flexDirection:'column',gap:12}}>
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:4}}>
-        <span style={{fontSize:'.78rem',color:'#42536A',fontWeight:600}}>Küsimus {current+1} / {questions.length}</span>
-        <div style={{display:'flex',gap:4}}>
-          {questions.map((_,i)=>(
-            <div key={i} style={{width:8,height:8,borderRadius:'50%',background:i<current?'#2F5D50':i===current?'#C9882A':'rgba(28,43,58,.15)'}}/>
-          ))}
-        </div>
-      </div>
-      <div style={{fontWeight:700,fontSize:'1rem',marginBottom:8}}>{q.question}</div>
-      {(q.options||[]).map((opt,ci)=>{
-        let cls = 'choice-btn';
-        if(isChecked){
-          if(ci===q.correct) cls+=' correct';
-          else if(ci===sel) cls+=' wrong';
-        } else if(ci===sel) cls+=' selected';
-        return <button key={ci} className={cls} onClick={()=>pick(current,ci)}>{opt}</button>;
-      })}
-      {exercise.hint&&!isChecked&&<div style={{fontSize:'.82rem',color:'#42536A',padding:'8px 12px',background:'rgba(201,136,42,.07)',borderRadius:9}}>💡 {q.hint||exercise.hint}</div>}
-      {!isChecked
-        ? <button onClick={checkCurrent} className="btn btn-pine" disabled={sel===undefined}>Kontrolli</button>
-        : <button onClick={next} className="btn btn-pine">{current<questions.length-1?'Järgmine →':'Lõpeta'}</button>}
-    </div>
-  );
-}
-
-// ── ПЛЕЕР: READING ────────────────────────────────────────────
-function ReadingPlayer({exercise, onDone}) {
-  const readingExercise = {...exercise, questions:exercise.questions||[]};
-  return(
-    <div style={{display:'flex',flexDirection:'column',gap:14}}>
-      <div style={{padding:'14px 16px',borderRadius:12,background:'#F9F8F6',border:'1px solid rgba(28,43,58,.08)',whiteSpace:'pre-wrap',lineHeight:1.65}}>
-        {exercise.passage||exercise.text||'Lugemistekst puudub.'}
-      </div>
-      <ChoicePlayer exercise={readingExercise} onDone={onDone}/>
-    </div>
-  );
-}
-
-// ── ПЛЕЕР: MATCHING ───────────────────────────────────────────
-function MatchPlayer({exercise, onDone}) {
-  const pairs = exercise.pairs||[];
-  const rightOptions = useMemo(()=>[...pairs.map(p=>p.right||'')].filter(Boolean).sort(()=>Math.random()-.5),[exercise.id, pairs.length]);
-  const [answers, setAnswers] = useState({});
-  const [checked, setChecked] = useState(false);
-  const correct = pairs.filter((p,i)=>answers[i]===p.right).length;
-
-  const check = () => {
-    setChecked(true);
-    onDone&&onDone({correct,total:pairs.length,answers});
-  };
-  const reset = () => { setAnswers({}); setChecked(false); };
-
-  if(!pairs.length) return <div style={{color:'#42536A'}}>Paarid puuduvad.</div>;
-
-  return(
-    <div style={{display:'flex',flexDirection:'column',gap:12}}>
-      {pairs.map((pair,i)=>(
-        <div key={i} style={{display:'grid',gridTemplateColumns:'minmax(0,1fr) minmax(0,1fr)',gap:10,alignItems:'center'}}>
-          <div style={{padding:'10px 12px',borderRadius:9,background:'#F9F8F6',fontWeight:700}}>{pair.left}</div>
-          <select
-            value={answers[i]||''}
-            disabled={checked}
-            onChange={e=>setAnswers(prev=>({...prev,[i]:e.target.value}))}
-            style={{borderColor:checked?(answers[i]===pair.right?'#166534':'#991b1b'):undefined}}>
-            <option value="">Vali paar...</option>
-            {rightOptions.map(opt=><option key={opt} value={opt}>{opt}</option>)}
-          </select>
-          {checked&&answers[i]!==pair.right&&(
-            <div style={{gridColumn:'2',fontSize:'.78rem',color:'#166534',fontWeight:700}}>Õige: {pair.right}</div>
-          )}
-        </div>
-      ))}
-      {checked&&<div className={correct===pairs.length?'result-correct':'result-wrong'}>{correct}/{pairs.length} paari õiged</div>}
-      {!checked
-        ? <button onClick={check} className="btn btn-pine" disabled={Object.keys(answers).length<pairs.length}>Kontrolli</button>
-        : <button onClick={reset} className="btn btn-ghost">Proovi uuesti</button>}
-    </div>
-  );
-}
-
-// ── ПЛЕЕР: TRANSLATE ──────────────────────────────────────────
-function TranslatePlayer({exercise, onDone}) {
-  const [answer, setAnswer] = useState('');
-  const [checked, setChecked] = useState(false);
-  const expected = exercise.answer || exercise.targetText || '';
-  const ok = expected ? normalizeText(answer)===normalizeText(expected) : answer.trim().length>0;
-
-  const check = () => {
-    setChecked(true);
-    onDone&&onDone({correct:ok?1:0,total:1,answer});
-  };
-
-  return(
-    <div style={{display:'flex',flexDirection:'column',gap:12}}>
-      <div style={{padding:'12px 14px',borderRadius:10,background:'#F9F8F6',border:'1px solid rgba(28,43,58,.08)'}}>
-        <div style={{fontSize:'.74rem',fontWeight:800,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:6}}>Tõlgi</div>
-        <div style={{fontSize:'1rem',lineHeight:1.55}}>{exercise.sourceText||exercise.prompt||exercise.text||'Tekst puudub.'}</div>
-      </div>
-      <textarea value={answer} onChange={e=>setAnswer(e.target.value)} disabled={checked} rows={4} placeholder="Kirjuta tõlge siia..."/>
-      {checked&&(
-        <div className={ok?'result-correct':'result-wrong'}>
-          {ok?'✓ Sobib!': expected ? 'Õige vastus: '+expected : 'Vastus salvestatud õpetaja kontrolliks.'}
-        </div>
-      )}
-      {!checked
-        ? <button onClick={check} className="btn btn-pine" disabled={!answer.trim()}>Kontrolli</button>
-        : <button onClick={()=>{setAnswer('');setChecked(false);}} className="btn btn-ghost">Proovi uuesti</button>}
-    </div>
-  );
-}
-
-// ── ПЛЕЕР: ORDER ──────────────────────────────────────────────
-function OrderPlayer({exercise, onDone}) {
-  const correct = useMemo(()=>(exercise.sentence||'').split(' ').filter(Boolean),[exercise.sentence]);
-  const shuffled = useMemo(()=>[...correct].sort(()=>Math.random()-.5),[correct]);
-  const [placed, setPlaced]   = useState([]);
-  const [avail, setAvail]     = useState(()=>shuffled.map((w,i)=>({w,i,used:false})));
-  const [checked, setChecked] = useState(false);
-  const [result, setResult]   = useState(null);
-
-  const addWord = (item) => {
-    if(item.used || checked) return;
-    setPlaced(prev=>[...prev,item]);
-    setAvail(prev=>prev.map(a=>a.i===item.i?{...a,used:true}:a));
-  };
-
-  const removeWord = (item) => {
-    if(checked) return;
-    setPlaced(prev=>prev.filter(p=>p.i!==item.i));
-    setAvail(prev=>prev.map(a=>a.i===item.i?{...a,used:false}:a));
-  };
-
-  const check = () => {
-    const placedWords = placed.map(p=>p.w);
-    const isCorrect = placedWords.join(' ')===correct.join(' ');
-    setResult({isCorrect, correct:correct.join(' ')});
-    setChecked(true);
-    onDone&&onDone({correct:isCorrect?1:0, total:1, answer:placedWords.join(' ')});
-  };
-
-  const reset = () => {
-    setPlaced([]);
-    setAvail(shuffled.map((w,i)=>({w,i,used:false})));
-    setChecked(false);
-    setResult(null);
-  };
-
-  return(
-    <div style={{display:'flex',flexDirection:'column',gap:14}}>
-      {exercise.instruction&&<div style={{fontSize:'.88rem',color:'#42536A',fontStyle:'italic'}}>{exercise.instruction}</div>}
-      <div>
-        <div style={{fontSize:'.74rem',fontWeight:700,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8}}>Sinu vastus:</div>
-        <div className={'drop-zone'+(placed.length===0?' active':'')}>
-          {placed.length===0&&<span style={{fontSize:'.82rem',color:'#9ca3af'}}>Klõpsa sõnadel allpool...</span>}
-          {placed.map((item,i)=>(
-            <span key={i} className="word-chip placed" onClick={()=>removeWord(item)}>
-              {item.w} <span style={{marginLeft:4,opacity:.5,fontSize:'.72rem'}}>✕</span>
-            </span>
-          ))}
-        </div>
-      </div>
-      <div>
-        <div style={{fontSize:'.74rem',fontWeight:700,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8}}>Sõnad:</div>
-        <div style={{display:'flex',flexWrap:'wrap',gap:4}}>
-          {avail.map((item,i)=>(
-            <span key={i} className={'word-chip'+(item.used?' used':'')} onClick={()=>addWord(item)}>
-              {item.w}
-            </span>
-          ))}
-        </div>
-      </div>
-      {exercise.hint&&!checked&&<div style={{fontSize:'.82rem',color:'#42536A',padding:'8px 12px',background:'rgba(201,136,42,.07)',borderRadius:9}}>💡 {exercise.hint}</div>}
-      {result&&(
-        <div className={result.isCorrect?'result-correct':'result-wrong'}>
-          {result.isCorrect?'✓ Suurepärane! Täpselt õige!':'✗ Ei ole päris õige. Õige vastus: "'+result.correct+'"'}
-        </div>
-      )}
-      <div style={{display:'flex',gap:8}}>
-        {!checked
-          ? <button onClick={check} className="btn btn-pine" style={{flex:1}} disabled={placed.length===0}>Kontrolli</button>
-          : <button onClick={reset} className="btn btn-ghost" style={{flex:1}}>Proovi uuesti</button>}
-      </div>
-    </div>
-  );
-}
-
-// ── ПЛЕЕР: WRITING / CLAUDE CHECK ─────────────────────────────
-function WritingPlayer({exercise, onDone}) {
-  const [studentText, setStudentText] = useState('');
-  const [feedback, setFeedback] = useState('');
-  const [wordCount, setWordCount] = useState(0);
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState('');
-
-  const checkWriting = async() => {
-    if(!studentText.trim()){setErr('Kirjuta tekst enne kontrollimist');return;}
-    setBusy(true);
-    setErr('');
-    setFeedback('');
-    try{
-      const res = await fetch('/api/check-writing', {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({
-          studentText,
-          task: exercise.task || exercise.prompt || exercise.instruction || exercise.title || '',
-          level: exercise.level || 'B2',
-          criteria: exercise.criteria || ''
-        })
+  const handleFiles = async(files) => {
+    if(!files || !files.length) return;
+    setUploading(true);
+    const results = [];
+    for(const file of files) {
+      const ref = storage.ref(`curriculum/${Date.now()}_${file.name}`);
+      const task = ref.put(file);
+      await new Promise((res,rej) => {
+        task.on('state_changed',
+          snap => setProgress(Math.round(snap.bytesTransferred/snap.totalBytes*100)),
+          rej,
+          async () => {
+            const url = await ref.getDownloadURL();
+            results.push({name:file.name, url, size:file.size, type:file.type});
+            res();
+          }
+        );
       });
-      const data = await res.json();
-      if(!res.ok) throw new Error(data.error || 'Kontroll ebaõnnestus');
-      setFeedback(data.feedback || '');
-      setWordCount(data.wordCount || 0);
-      onDone&&onDone({correct:1,total:1,feedback:data.feedback,wordCount:data.wordCount});
-    }catch(e){
-      setErr(e.message || 'Kontroll ebaõnnestus');
     }
-    setBusy(false);
+    setUploading(false);
+    setProgress(0);
+    onUpload(results);
   };
 
-  return(
-    <div style={{display:'flex',flexDirection:'column',gap:12}}>
-      {(exercise.task||exercise.prompt||exercise.instruction)&&(
-        <div style={{padding:'12px 14px',borderRadius:10,background:'rgba(201,136,42,.07)',fontSize:'.9rem',lineHeight:1.5}}>
-          {exercise.task||exercise.prompt||exercise.instruction}
-        </div>
-      )}
-      {exercise.criteria&&(
-        <div style={{fontSize:'.8rem',color:'#42536A',whiteSpace:'pre-wrap',padding:'10px 12px',borderRadius:9,background:'#F9F8F6'}}>
-          {exercise.criteria}
-        </div>
-      )}
-      <textarea
-        value={studentText}
-        onChange={e=>setStudentText(e.target.value)}
-        rows={8}
-        placeholder="Kirjuta vastus siia..."
-        style={{resize:'vertical',lineHeight:1.55}}
-      />
-      {err&&<div style={{background:'#fee2e2',color:'#991b1b',borderRadius:9,padding:'9px 12px',fontSize:'.84rem'}}>{err}</div>}
-      <button onClick={checkWriting} disabled={busy} className="btn btn-pine">
-        <i className="fa-solid fa-wand-magic-sparkles"/> {busy?'Kontrollib Claude...':'Kontrolli Claude abil'}
-      </button>
-      {feedback&&(
-        <div style={{border:'1px solid rgba(47,93,80,.18)',borderRadius:12,padding:14,background:'rgba(47,93,80,.05)'}}>
-          <div style={{fontSize:'.78rem',fontWeight:700,color:'#2F5D50',textTransform:'uppercase',letterSpacing:'.06em',marginBottom:8}}>
-            Claude tagasiside · {wordCount} sõna
+  const onDrop = e => { e.preventDefault(); handleFiles(e.dataTransfer.files); };
+  const onDragOver = e => e.preventDefault();
+
+  return (
+    <div className="upload-zone" onDrop={onDrop} onDragOver={onDragOver} onClick={()=>inputRef.current?.click()}>
+      <input ref={inputRef} type="file" multiple onChange={e=>handleFiles(e.target.files)}/>
+      {uploading
+        ? <div>
+            <div className="spinner" style={{margin:'0 auto 10px'}}/>
+            <div style={{fontSize:'.82rem',color:'#42536A'}}>Laadimine... {progress}%</div>
           </div>
-          <div style={{whiteSpace:'pre-wrap',fontSize:'.88rem',lineHeight:1.55,color:'#1C2B3A'}}>{feedback}</div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ── КАРТОЧКА УПРАЖНЕНИЯ (превью + плеер) ──────────────────────
-function ExerciseCard({ex, isTeacher, onEdit, onDelete, onAssign, students, defaultOpen=false, user}) {
-  const [open, setOpen]             = useState(defaultOpen);
-  const [result, setResult]         = useState(null);
-  const [savedResult, setSavedResult] = useState(null);
-  const type    = EX_TYPES[ex.type]||EX_TYPES.fill;
-  const cardRef = useRef(null);
-
-  useEffect(()=>{
-    if(defaultOpen && cardRef.current){
-      setTimeout(()=>cardRef.current?.scrollIntoView({behavior:'smooth',block:'center'}),300);
-    }
-  },[]);
-
-  useEffect(()=>{
-    if(!user?.uid||!ex?.id) return;
-    db.collection('exerciseResults')
-      .where('exerciseId','==',ex.id)
-      .where('studentUid','==',user.uid)
-      .orderBy('completedAt','desc')
-      .limit(1)
-      .get()
-      .then(snap=>{ if(!snap.empty) setSavedResult(snap.docs[0].data()); })
-      .catch(()=>{});
-  },[user?.uid, ex.id]);
-
-  const saveResult = async(r, extra={}) => {
-    if(!user?.uid) return;
-    const pct = r.total>0 ? Math.round(r.correct/r.total*100) : 100;
-    const params = new URLSearchParams(window.location.search);
-    const homeworkId = params.get('hw')||null;
-    const payload = {
-      exerciseId: ex.id,
-      exerciseTitle: ex.title||'',
-      exerciseType: ex.type||'',
-      studentUid: user.uid,
-      studentName: user.displayName||user.email||'',
-      homeworkId,
-      score: {correct:r.correct||0, total:r.total||1},
-      pct,
-      completedAt: new Date().toISOString(),
-      ...extra
-    };
-    try{
-      await db.collection('exerciseResults').add(payload);
-      setSavedResult(payload);
-      if(homeworkId && pct>=60){
-        await db.collection('homework').doc(homeworkId).update({
-          status:'Tehtud',
-          doneAt: new Date().toISOString().split('T')[0]
-        });
+        : <div>
+            <i className="fa-solid fa-cloud-arrow-up" style={{fontSize:'1.6rem',color:'#42536A',marginBottom:8,display:'block'}}/>
+            <div style={{fontWeight:700,color:'#1C2B3A',marginBottom:4}}>Lohista failid siia</div>
+            <div style={{fontSize:'.78rem',color:'#42536A'}}>PDF, Word, PowerPoint, pildid — kõik sobib</div>
+          </div>
       }
-    }catch(e){ console.warn('saveResult:', e); }
-  };
-
-  return(
-    <div ref={cardRef} className="ex-card" style={{display:'flex',flexDirection:'column',gap:12,outline:defaultOpen?'2px solid #C9882A':'none',outlineOffset:2}}>
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:10}}>
-        <div style={{flex:1,minWidth:0}}>
-          <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap',marginBottom:6}}>
-            <span className={'badge '+type.badge} style={{display:'inline-flex',alignItems:'center',gap:5}}>
-              <i className={'fa-solid '+type.icon} style={{fontSize:'.7rem'}}/> {type.label}
-            </span>
-            {ex.level&&<span className="badge" style={{background:'rgba(201,136,42,.1)',color:'#A96E1A'}}>{ex.level}</span>}
-            {ex.subject&&<span className="badge" style={{background:'rgba(28,43,58,.06)',color:'#42536A'}}>{ex.subject}</span>}
-            {ex.topic&&<span className="badge" style={{background:'rgba(47,93,80,.09)',color:'#2F5D50'}}>{ex.topic}</span>}
-          </div>
-          <h3 style={{fontSize:'1rem',marginBottom:4}}>{ex.title||'Pealkirjata harjutus'}</h3>
-          <div style={{fontSize:'.78rem',color:'#42536A'}}>
-            Autor: {ex.authorName||'—'} · {fmtDate(ex.createdAt)}
-            {ex.assignCount>0&&<span style={{marginLeft:8,color:'#2F5D50',fontWeight:600}}>· {ex.assignCount}× määratud</span>}
-          </div>
-          {savedResult&&(
-            <div style={{marginTop:6,display:'inline-flex',alignItems:'center',gap:6,padding:'3px 10px',borderRadius:999,
-              background:savedResult.pct>=60?'rgba(22,101,52,.1)':'rgba(153,27,27,.08)',
-              border:'1px solid '+(savedResult.pct>=60?'rgba(22,101,52,.2)':'rgba(153,27,27,.2)')}}>
-              <i className="fa-solid fa-circle-check" style={{fontSize:'.65rem',color:savedResult.pct>=60?'#166534':'#991b1b'}}/>
-              <span style={{fontSize:'.72rem',fontWeight:700,color:savedResult.pct>=60?'#166534':'#991b1b'}}>
-                {savedResult.exerciseType==='writing'
-                  ? 'Kirjutatud · '+new Date(savedResult.completedAt).toLocaleDateString('et-EE')
-                  : savedResult.score.correct+'/'+savedResult.score.total
-                    +' ('+savedResult.pct+'%) · '
-                    +new Date(savedResult.completedAt).toLocaleDateString('et-EE')}
-              </span>
-            </div>
-          )}
-        </div>
-        <div style={{display:'flex',gap:6,flexShrink:0,flexWrap:'wrap',justifyContent:'flex-end'}}>
-          <button onClick={()=>setOpen(o=>!o)} className="btn btn-ghost btn-sm">
-            {open?'Peida':'Proovi'}
-          </button>
-          {isTeacher&&onAssign&&(
-            <button onClick={()=>onAssign(ex)} className="btn btn-pine btn-sm">
-              <i className="fa-solid fa-paper-plane"/> Määra
-            </button>
-          )}
-          {isTeacher&&onEdit&&(
-            <button onClick={()=>onEdit(ex)} className="btn btn-ghost btn-sm">
-              <i className="fa-solid fa-pen"/>
-            </button>
-          )}
-          {isTeacher&&onDelete&&(
-            <button onClick={()=>onDelete(ex)} className="btn btn-ghost btn-sm" style={{color:'#991b1b'}}>
-              <i className="fa-solid fa-trash"/>
-            </button>
-          )}
-        </div>
-      </div>
-
-      {open&&(
-        <div style={{borderTop:'1px solid rgba(28,43,58,.07)',paddingTop:14}}>
-          {result&&<div style={{marginBottom:12,padding:'8px 12px',borderRadius:9,background:'rgba(47,93,80,.07)',fontSize:'.82rem',color:'#2F5D50',fontWeight:600}}>
-            Viimane tulemus: {result.correct}/{result.total}
-          </div>}
-          {ex.type==='fill'     &&<FillPlayer      exercise={ex} onDone={r=>{setResult(r);saveResult(r);}}/>}
-          {ex.type==='choice'   &&<ChoicePlayer    exercise={ex} onDone={r=>{setResult(r);saveResult(r);}}/>}
-          {ex.type==='reading'  &&<ReadingPlayer   exercise={ex} onDone={r=>{setResult(r);saveResult(r);}}/>}
-          {ex.type==='match'    &&<MatchPlayer     exercise={ex} onDone={r=>{setResult(r);saveResult(r);}}/>}
-          {ex.type==='translate'&&<TranslatePlayer exercise={ex} onDone={r=>{setResult(r);saveResult(r);}}/>}
-          {ex.type==='order'    &&<OrderPlayer     exercise={ex} onDone={r=>{setResult(r);saveResult(r);}}/>}
-          {ex.type==='writing'  &&<WritingPlayer   exercise={ex} onDone={r=>{setResult(r);saveResult(r,{writingWordCount:r.wordCount||0});}}/>}
-        </div>
-      )}
     </div>
   );
 }
 
-// ── РЕДАКТОР: FILL ────────────────────────────────────────────
-function FillEditor({value, onChange}) {
-  return(
-    <div style={{display:'flex',flexDirection:'column',gap:8}}>
-      <div style={{fontSize:'.78rem',color:'#42536A',padding:'10px 12px',borderRadius:9,background:'rgba(37,99,235,.06)',border:'1px solid rgba(37,99,235,.15)'}}>
-        <strong>Süntaks:</strong> Kirjuta tekst ja märgi õiged vastused nurksulgudesse.<br/>
-        Näide: <code>Ma [käin] koolis iga [päev].</code>
-      </div>
-      <textarea
-        value={value.text||''}
-        onChange={e=>onChange({...value,text:e.target.value})}
-        placeholder="Ma [käin] koolis iga [päev]."
-        rows={4}
-        style={{fontFamily:'monospace'}}
-      />
-      <input
-        value={value.hint||''}
-        onChange={e=>onChange({...value,hint:e.target.value})}
-        placeholder="Vihje õpilasele (valikuline)"
-      />
-      {value.text&&(
-        <div style={{padding:'10px 12px',borderRadius:9,background:'#F9F8F6',fontSize:'.82rem'}}>
-          <strong>Eelvaade:</strong> {value.text.replace(/\[([^\]]+)\]/g,'___')}
-          <br/><span style={{color:'#2F5D50'}}>Vastused: {(value.text.match(/\[([^\]]+)\]/g)||[]).map(m=>m.slice(1,-1)).join(', ')}</span>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ── РЕДАКТОР: CHOICE ──────────────────────────────────────────
-function ChoiceEditor({value, onChange}) {
-  const questions = value.questions||[{question:'',options:['','','',''],correct:0,hint:''}];
-  const update = (qi, patch) => onChange({...value, questions:questions.map((q,i)=>i===qi?{...q,...patch}:q)});
-  const addQ = () => onChange({...value, questions:[...questions,{question:'',options:['','','',''],correct:0,hint:''}]});
-  const delQ = (qi) => onChange({...value, questions:questions.filter((_,i)=>i!==qi)});
-
-  return(
-    <div style={{display:'flex',flexDirection:'column',gap:14}}>
-      {questions.map((q,qi)=>(
-        <div key={qi} style={{padding:'14px',borderRadius:12,border:'1px solid rgba(28,43,58,.1)',background:'#F9F8F6'}}>
-          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
-            <span style={{fontWeight:700,fontSize:'.84rem',color:'#42536A'}}>Küsimus {qi+1}</span>
-            {questions.length>1&&<button onClick={()=>delQ(qi)} className="btn btn-ghost btn-sm" style={{color:'#991b1b'}}>✕</button>}
-          </div>
-          <input value={q.question} onChange={e=>update(qi,{question:e.target.value})} placeholder="Küsimus *" style={{marginBottom:8}}/>
-          {(q.options||[]).map((opt,ci)=>(
-            <div key={ci} style={{display:'flex',gap:8,alignItems:'center',marginBottom:6}}>
-              <input type="radio" name={'correct-'+qi} checked={q.correct===ci} onChange={()=>update(qi,{correct:ci})} style={{width:16,height:16,cursor:'pointer',flexShrink:0}}/>
-              <input value={opt} onChange={e=>update(qi,{options:q.options.map((o,oi)=>oi===ci?e.target.value:o)})} placeholder={'Variant '+(ci+1)+(ci===q.correct?' (õige)':'')} style={{flex:1,borderColor:ci===q.correct?'#2F5D50':'rgba(28,43,58,.12)'}}/>
-            </div>
-          ))}
-          <input value={q.hint||''} onChange={e=>update(qi,{hint:e.target.value})} placeholder="Vihje selle küsimuse jaoks (valikuline)" style={{marginTop:4}}/>
-        </div>
-      ))}
-      <button onClick={addQ} className="btn btn-ghost btn-sm" style={{alignSelf:'flex-start'}}>
-        <i className="fa-solid fa-plus"/> Lisa küsimus
-      </button>
-    </div>
-  );
-}
-
-// ── РЕДАКТОР: ORDER ───────────────────────────────────────────
-function OrderEditor({value, onChange}) {
-  return(
-    <div style={{display:'flex',flexDirection:'column',gap:8}}>
-      <div style={{fontSize:'.78rem',color:'#42536A',padding:'10px 12px',borderRadius:9,background:'rgba(47,93,80,.06)',border:'1px solid rgba(47,93,80,.15)'}}>
-        Kirjuta lause/fraas õiges järjestuses. Õpilane peab sõnad õigesse järjekorda panema.
-      </div>
-      <input
-        value={value.sentence||''}
-        onChange={e=>onChange({...value,sentence:e.target.value})}
-        placeholder="Ma armastan eesti keelt väga"
-      />
-      <input
-        value={value.instruction||''}
-        onChange={e=>onChange({...value,instruction:e.target.value})}
-        placeholder="Juhis õpilasele (nt. 'Pane sõnad õigesse järjekorda')"
-      />
-      <input
-        value={value.hint||''}
-        onChange={e=>onChange({...value,hint:e.target.value})}
-        placeholder="Vihje (valikuline)"
-      />
-      {value.sentence&&(
-        <div style={{padding:'10px 12px',borderRadius:9,background:'#F9F8F6',fontSize:'.82rem'}}>
-          <strong>Sõnad (segamini):</strong> {[...(value.sentence.split(' ').filter(Boolean))].sort(()=>Math.random()-.5).join(' · ')}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ── РЕДАКТОР: WRITING / CLAUDE ────────────────────────────────
-function WritingEditor({value, onChange}) {
-  return(
-    <div style={{display:'flex',flexDirection:'column',gap:8}}>
-      <div style={{fontSize:'.78rem',color:'#42536A',padding:'10px 12px',borderRadius:9,background:'rgba(201,136,42,.07)',border:'1px solid rgba(201,136,42,.18)'}}>
-        Õpilane kirjutab teksti ja Claude kontrollib seda Anthropic API kaudu.
-      </div>
-      <textarea
-        value={value.task||value.prompt||''}
-        onChange={e=>onChange({...value,task:e.target.value,prompt:e.target.value})}
-        placeholder="Kirjutamisülesanne *"
-        rows={4}
-      />
-      <textarea
-        value={value.criteria||''}
-        onChange={e=>onChange({...value,criteria:e.target.value})}
-        placeholder="Hindamiskriteeriumid (valikuline)"
-        rows={4}
-      />
-      <input
-        value={value.instruction||''}
-        onChange={e=>onChange({...value,instruction:e.target.value})}
-        placeholder="Lühike juhis kaardile (valikuline)"
-      />
-    </div>
-  );
-}
-
-// ── РЕДАКТОР: READING ────────────────────────────────────────
-function ReadingEditor({value, onChange}) {
-  const questions = value.questions||[{question:'',options:['','','',''],correct:0,hint:''}];
-  return(
-    <div style={{display:'flex',flexDirection:'column',gap:12}}>
-      <div style={{fontSize:'.78rem',color:'#42536A',padding:'10px 12px',borderRadius:9,background:'rgba(14,116,144,.07)',border:'1px solid rgba(14,116,144,.18)'}}>
-        Lisa lugemistekst ja küsimused. Õpilane loeb teksti ning vastab valikvastustega küsimustele.
-      </div>
-      <textarea
-        value={value.passage||value.text||''}
-        onChange={e=>onChange({...value,passage:e.target.value,text:e.target.value,questions})}
-        placeholder="Lugemistekst *"
-        rows={6}
-      />
-      <ChoiceEditor value={{...value,questions}} onChange={next=>onChange({...value,...next,questions:next.questions})}/>
-    </div>
-  );
-}
-
-// ── РЕДАКТОР: MATCHING ───────────────────────────────────────
-function MatchEditor({value, onChange}) {
-  const pairs = value.pairs||[{left:'',right:''},{left:'',right:''},{left:'',right:''}];
-  const update = (idx, patch) => onChange({...value,pairs:pairs.map((pair,i)=>i===idx?{...pair,...patch}:pair)});
-  const addPair = () => onChange({...value,pairs:[...pairs,{left:'',right:''}]});
-  const delPair = idx => onChange({...value,pairs:pairs.filter((_,i)=>i!==idx)});
-
-  return(
-    <div style={{display:'flex',flexDirection:'column',gap:10}}>
-      <div style={{fontSize:'.78rem',color:'#42536A',padding:'10px 12px',borderRadius:9,background:'rgba(5,150,105,.07)',border:'1px solid rgba(5,150,105,.18)'}}>
-        Sisesta paarid. Õpilane peab vasaku ja parema poole kokku sobitama.
-      </div>
-      {pairs.map((pair,i)=>(
-        <div key={i} style={{display:'grid',gridTemplateColumns:'minmax(0,1fr) minmax(0,1fr) auto',gap:8,alignItems:'center'}}>
-          <input value={pair.left||''} onChange={e=>update(i,{left:e.target.value})} placeholder={'Vasak pool '+(i+1)}/>
-          <input value={pair.right||''} onChange={e=>update(i,{right:e.target.value})} placeholder={'Parem pool '+(i+1)}/>
-          <button
-            onClick={()=>delPair(i)}
-            className="btn btn-ghost btn-sm"
-            disabled={pairs.length<=2}
-            style={{color:'#991b1b',minWidth:42}}>
-            <i className="fa-solid fa-trash"/>
-          </button>
-        </div>
-      ))}
-      <button onClick={addPair} className="btn btn-ghost btn-sm" style={{alignSelf:'flex-start'}}>
-        <i className="fa-solid fa-plus"/> Lisa paar
-      </button>
-      <input
-        value={value.instruction||''}
-        onChange={e=>onChange({...value,instruction:e.target.value,pairs})}
-        placeholder="Juhis õpilasele (valikuline)"
-      />
-    </div>
-  );
-}
-
-// ── РЕДАКТОР: TRANSLATE ──────────────────────────────────────
-function TranslateEditor({value, onChange}) {
-  return(
-    <div style={{display:'flex',flexDirection:'column',gap:8}}>
-      <div style={{fontSize:'.78rem',color:'#42536A',padding:'10px 12px',borderRadius:9,background:'rgba(219,39,119,.07)',border:'1px solid rgba(219,39,119,.18)'}}>
-        Lisa tekst, mida õpilane tõlgib. Õige vastuse väljal saad määrata automaatse kontrolli.
-      </div>
-      <textarea
-        value={value.sourceText||value.prompt||value.text||''}
-        onChange={e=>onChange({...value,sourceText:e.target.value,prompt:e.target.value,text:e.target.value})}
-        placeholder="Tekst tõlkimiseks *"
-        rows={4}
-      />
-      <textarea
-        value={value.targetText||value.answer||''}
-        onChange={e=>onChange({...value,targetText:e.target.value,answer:e.target.value})}
-        placeholder="Õige tõlge / vastus *"
-        rows={4}
-      />
-      <input
-        value={value.instruction||''}
-        onChange={e=>onChange({...value,instruction:e.target.value})}
-        placeholder="Juhis õpilasele (valikuline)"
-      />
-    </div>
-  );
-}
-
-function StepBadge({active, done, label, number}) {
-  return(
-    <div style={{display:'flex',alignItems:'center',gap:8,color:active?'#1C2B3A':'#42536A',fontWeight:active?800:700,fontSize:'.78rem'}}>
-      <span style={{width:24,height:24,borderRadius:'50%',display:'inline-flex',alignItems:'center',justifyContent:'center',
-        background:active?'#2F5D50':done?'rgba(47,93,80,.14)':'rgba(28,43,58,.08)',
-        color:active?'#fff':done?'#2F5D50':'#42536A'}}>
-        {done?<i className="fa-solid fa-check" style={{fontSize:'.65rem'}}/>:number}
-      </span>
-      {label}
-    </div>
-  );
-}
-
-// ── МОДАЛКА СОЗДАНИЯ/РЕДАКТИРОВАНИЯ ──────────────────────────
-function ExerciseModal({exercise, onClose, onSave, topicsBySubjectLevel}) {
-  const isEdit = !!exercise?.id;
-  const [step, setStep]       = useState(0);
-  const [type, setType]       = useState(exercise?.type||'fill');
-  const [title, setTitle]     = useState(exercise?.title||'');
-  const [subject, setSubject] = useState(exercise?.subject||SUBJECTS[0]);
-  const subjectConfig = getSubjectConfig(subject);
-  const [level, setLevel]     = useState(exercise?.level||subjectConfig.levels[0]||'');
-  const topicOptions = useMemo(()=>{
-    const saved = topicsBySubjectLevel?.[subject]?.[level] || [];
-    return [...new Set([...(subjectConfig.topics||[]), ...saved])];
-  },[topicsBySubjectLevel, subject, level, subjectConfig]);
-  const [topic, setTopic]     = useState(exercise?.topic||topicOptions[0]||'');
-  const [tags, setTags]       = useState((exercise?.tags||[]).join(', '));
-  const [data, setData]       = useState(exercise||{});
+// ── LESSON MODAL ──────────────────────────────────────────────
+function LessonModal({lesson, subject, level, topic, onClose, onSave}) {
+  const isEdit = !!lesson?.id;
+  const [title, setTitle]     = useState(lesson?.title||'');
+  const [type, setType]       = useState(lesson?.type||'lesson');
+  const [desc, setDesc]       = useState(lesson?.description||'');
+  const [files, setFiles]     = useState(lesson?.files||[]);
+  const [order, setOrder]     = useState(lesson?.order||0);
+  const [uploading, setUploading] = useState(false);
   const [saving, setSaving]   = useState(false);
-  const steps = ['Kategooria','Tüüp ja pealkiri','Sisu'];
 
-  useEffect(()=>{
-    const nextConfig = getSubjectConfig(subject);
-    if(!nextConfig.levels.includes(level)){
-      setLevel(nextConfig.levels[0]||'');
-    }
-  },[subject]);
-
-  useEffect(()=>{
-    if(topicOptions.length && !topicOptions.includes(topic)){
-      setTopic(topicOptions[0]);
-    }
-  },[topicOptions]);
-
-  const nextStep = () => {
-    if(step===0 && (!subject || !level || !topic.trim())){alert('Vali õppeaine, tase/klass ja teema');return;}
-    if(step===1 && !title.trim()){alert('Sisesta pealkiri');return;}
-    if(step===2){
-      const contentError = validateExerciseContent(type, data);
-      if(contentError){alert(contentError);return;}
-    }
-    setStep(s=>Math.min(steps.length-1,s+1));
-  };
+  const addFiles = (newFiles) => setFiles(prev=>[...prev,...newFiles]);
+  const removeFile = idx => setFiles(prev=>prev.filter((_,i)=>i!==idx));
 
   const save = async() => {
     if(!title.trim()){alert('Sisesta pealkiri');return;}
-    if(!subject){alert('Vali õppeaine');return;}
-    if(!level){alert('Vali '+getLevelLabel(subject).toLowerCase());return;}
-    if(!topic.trim()){alert('Vali või sisesta teema');return;}
-    const contentError = validateExerciseContent(type, data);
-    if(contentError){alert(contentError);return;}
     setSaving(true);
     await onSave({
-      ...cleanExerciseData(data),
-      type, title: title.trim(), level, subject, topic: topic.trim(),
-      tags: tags.split(',').map(t=>t.trim()).filter(Boolean),
-      updatedAt: new Date().toISOString()
+      ...(lesson||{}),
+      title:title.trim(), type, description:desc.trim(),
+      files, order:Number(order)||0,
+      subject, level, topic,
+      updatedAt: new Date().toISOString(),
     });
-    setSaving(false);
-  };
-
-  return(
-    <div style={{position:'fixed',inset:0,background:'rgba(28,43,58,.6)',display:'flex',alignItems:'center',
-      justifyContent:'center',padding:16,zIndex:200,backdropFilter:'blur(4px)'}}>
-      <div className="card scroll" style={{padding:0,maxWidth:620,width:'100%',maxHeight:'92vh',overflowY:'auto'}}>
-        <div style={{padding:'20px 24px 16px',borderBottom:'1px solid rgba(28,43,58,.08)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-          <h2 style={{fontSize:'1.15rem'}}>{isEdit?'✏️ Muuda harjutust':'➕ Uus harjutus'}</h2>
-          <button onClick={onClose} style={{background:'rgba(28,43,58,.07)',border:'none',cursor:'pointer',borderRadius:9,width:30,height:30,display:'flex',alignItems:'center',justifyContent:'center',color:'#42536A'}}>✕</button>
-        </div>
-        <div style={{padding:'20px 24px',display:'flex',flexDirection:'column',gap:14}}>
-          <div style={{display:'flex',gap:16,flexWrap:'wrap',padding:'4px 0 10px',borderBottom:'1px solid rgba(28,43,58,.07)'}}>
-            {steps.map((label,i)=><StepBadge key={label} label={label} number={i+1} active={step===i} done={step>i}/>)}
-          </div>
-
-          {step===0&&(
-            <div style={{display:'flex',flexDirection:'column',gap:14}}>
-              <div style={{fontSize:'.76rem',fontWeight:700,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em'}}>Kuhu harjutus kuulub</div>
-              <div style={{display:'grid',gridTemplateColumns:'repeat(3,minmax(0,1fr))',gap:10}}>
-                <select value={subject} onChange={e=>setSubject(e.target.value)}>
-                  {SUBJECTS.map(s=><option key={s}>{s}</option>)}
-                </select>
-                <select value={level} onChange={e=>setLevel(e.target.value)}>
-                  {subjectConfig.levels.map(l=><option key={l}>{l}</option>)}
-                </select>
-                <input value={topic} onChange={e=>setTopic(e.target.value)} list="exercise-topic-options" placeholder="Teema *"/>
-                <datalist id="exercise-topic-options">
-                  {topicOptions.map(t=><option key={t} value={t}/>)}
-                </datalist>
-              </div>
-              <div style={{fontSize:'.82rem',color:'#42536A',padding:'10px 12px',borderRadius:9,background:'#F9F8F6'}}>
-                Valitud: <strong>{subject}</strong> · <strong>{level}</strong> · <strong>{topic||'teema puudub'}</strong>
-              </div>
-            </div>
-          )}
-
-          {step===1&&(
-            <div style={{display:'flex',flexDirection:'column',gap:14}}>
-              <input value={title} onChange={e=>setTitle(e.target.value)} placeholder="Harjutuse pealkiri *"/>
-              <div>
-                <div style={{fontSize:'.76rem',fontWeight:700,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8}}>Harjutuse tüüp</div>
-                <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))',gap:8}}>
-                  {Object.entries(EX_TYPES).map(([k,v])=>(
-                    <button key={k} onClick={()=>setType(k)}
-                      style={{padding:'12px 14px',borderRadius:10,border:'1.5px solid '+(type===k?v.color:'rgba(28,43,58,.12)'),
-                        background:type===k?v.color+'15':'#fff',cursor:'pointer',fontWeight:type===k?800:600,
-                        fontSize:'.84rem',color:type===k?v.color:'#42536A',display:'flex',alignItems:'center',gap:8}}>
-                      <i className={'fa-solid '+v.icon}/> {v.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <input value={tags} onChange={e=>setTags(e.target.value)} placeholder="Sildid: verbid, olevik, A2 (komaga eraldatud)"/>
-            </div>
-          )}
-
-          {step===2&&(
-            <div style={{borderTop:'1px solid rgba(28,43,58,.07)',paddingTop:14}}>
-              <div style={{fontSize:'.76rem',fontWeight:700,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:12}}>Harjutuse sisu</div>
-              {type==='fill'  &&<FillEditor   value={data} onChange={setData}/>}
-              {type==='choice'&&<ChoiceEditor value={data} onChange={setData}/>}
-              {type==='reading'&&<ReadingEditor value={data} onChange={setData}/>}
-              {type==='match'&&<MatchEditor value={data} onChange={setData}/>}
-              {type==='translate'&&<TranslateEditor value={data} onChange={setData}/>}
-              {type==='order' &&<OrderEditor  value={data} onChange={setData}/>}
-              {type==='writing'&&<WritingEditor value={data} onChange={setData}/>}
-            </div>
-          )}
-
-          <div style={{display:'flex',gap:10,justifyContent:'space-between',alignItems:'center',borderTop:'1px solid rgba(28,43,58,.07)',paddingTop:14}}>
-            <button onClick={()=>step===0?onClose():setStep(s=>s-1)} className="btn btn-ghost">
-              {step===0?'Tühista':'Tagasi'}
-            </button>
-            {step<steps.length-1
-              ? <button onClick={nextStep} className="btn btn-pine">Järgmine</button>
-              : <button onClick={save} disabled={saving} className="btn btn-pine" style={{padding:'10px 18px'}}>
-                  {saving?'Salvestab…':'✓ '+(isEdit?'Salvesta muudatused':'Lisa harjutus raamatukogusse')}
-                </button>}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── МОДАЛКА НАЗНАЧЕНИЯ УЧЕНИКУ ────────────────────────────────
-function AssignModal({exercise, students, onClose, onAssign}) {
-  const [stuId, setStuId]   = useState('');
-  const [due, setDue]       = useState('');
-  const [note, setNote]     = useState('');
-  const [saving, setSaving] = useState(false);
-
-  const go = async() => {
-    if(!stuId){alert('Vali õpilane');return;}
-    setSaving(true);
-    await onAssign({exerciseId:exercise.id, exerciseTitle:exercise.title, exerciseType:exercise.type, studentId:stuId, due, note});
     setSaving(false);
     onClose();
   };
 
-  return(
-    <div style={{position:'fixed',inset:0,background:'rgba(28,43,58,.6)',display:'flex',alignItems:'center',
-      justifyContent:'center',padding:16,zIndex:210,backdropFilter:'blur(4px)'}}>
-      <div className="card" style={{padding:0,maxWidth:420,width:'100%'}}>
-        <div style={{padding:'18px 22px 14px',borderBottom:'1px solid rgba(28,43,58,.08)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-          <h3 style={{fontSize:'1rem'}}>📤 Määra harjutus õpilasele</h3>
-          <button onClick={onClose} style={{background:'rgba(28,43,58,.07)',border:'none',cursor:'pointer',borderRadius:9,width:28,height:28,display:'flex',alignItems:'center',justifyContent:'center',color:'#42536A'}}>✕</button>
+  return (
+    <div className="modal-overlay">
+      <div className="modal-box">
+        <div className="modal-head">
+          <h2 style={{fontSize:'1.05rem'}}>{isEdit?'✏️ Muuda tunni kirjet':'➕ Lisa uus kirje'}</h2>
+          <button onClick={onClose} className="btn btn-ghost btn-sm">✕</button>
         </div>
-        <div style={{padding:'18px 22px',display:'flex',flexDirection:'column',gap:10}}>
-          <div style={{padding:'10px 12px',borderRadius:9,background:'rgba(201,136,42,.08)',fontSize:'.84rem',fontWeight:600,color:'#A96E1A'}}>
-            {EX_TYPES[exercise.type]?.label}: {exercise.title}
+        <div className="modal-body">
+          <div>
+            <div className="sec-label">Pealkiri *</div>
+            <input value={title} onChange={e=>setTitle(e.target.value)} placeholder="nt. Minu pere — sissejuhatus"/>
           </div>
-          <select value={stuId} onChange={e=>setStuId(e.target.value)}>
-            <option value="">Vali õpilane *</option>
-            {(students||[]).filter(s=>s.active!==false).map(s=><option key={s.id} value={s.id}>{s.name}</option>)}
-          </select>
-          <input type="date" value={due} onChange={e=>setDue(e.target.value)} placeholder="Tähtaeg (valikuline)"/>
-          <input value={note} onChange={e=>setNote(e.target.value)} placeholder="Märkus õpilasele (valikuline)"/>
-          <button onClick={go} disabled={saving} className="btn btn-pine" style={{width:'100%',marginTop:4}}>
-            {saving?'Saadan…':'Määra kodutööks'}
+          <div>
+            <div className="sec-label">Tüüp</div>
+            <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+              {Object.entries(LESSON_TYPES).map(([k,v])=>(
+                <button key={k} onClick={()=>setType(k)} className="btn btn-sm"
+                  style={{border:'1.5px solid '+(type===k?v.color:'rgba(28,43,58,.12)'),
+                    background:type===k?v.color+'18':'#fff',color:type===k?v.color:'#42536A',fontWeight:type===k?800:600}}>
+                  <i className={'fa-solid '+v.icon}/> {v.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <div className="sec-label">Kirjeldus (valikuline)</div>
+            <textarea value={desc} onChange={e=>setDesc(e.target.value)} rows={3}
+              placeholder="Lühike kirjeldus — millest on tund, mis meetodeid kasutada..."/>
+          </div>
+          <div>
+            <div className="sec-label">Järjekord</div>
+            <input type="number" value={order} onChange={e=>setOrder(e.target.value)}
+              style={{width:120}} placeholder="0"/>
+          </div>
+          <div>
+            <div className="sec-label">Failid</div>
+            <FileUploader onUpload={addFiles} uploading={uploading} setUploading={setUploading}/>
+            {files.length>0&&(
+              <div style={{display:'flex',flexWrap:'wrap',gap:8,marginTop:10}}>
+                {files.map((f,i)=>(
+                  <div key={i} style={{display:'flex',alignItems:'center',gap:4}}>
+                    <FileChip file={f}/>
+                    <button onClick={()=>removeFile(i)}
+                      style={{background:'none',border:'none',color:'#991b1b',cursor:'pointer',fontSize:'.75rem',padding:'0 4px'}}>✕</button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="modal-foot">
+          <button onClick={onClose} className="btn btn-ghost">Tühista</button>
+          <button onClick={save} disabled={saving||uploading} className="btn btn-pine">
+            {saving?'Salvestab…':'✓ Salvesta'}
           </button>
         </div>
       </div>
@@ -1100,269 +471,480 @@ function AssignModal({exercise, students, onClose, onAssign}) {
   );
 }
 
-function LibraryTree({exercises, selection, onSelect}) {
-  const count = (subject='', level='', topic='') => exercises.filter(ex=>{
-    if(subject && (ex.subject||'Eesti keel')!==subject) return false;
-    if(level && (ex.level||'')!==level) return false;
-    if(topic && getExerciseTopic(ex)!==topic) return false;
-    return true;
-  }).length;
+// ── TOPIC VIEW ────────────────────────────────────────────────
+function TopicView({subject, level, topic, topics, onSelectTopic, lessons, isTeacher, onAddLesson, onEditLesson, onDeleteLesson}) {
+  const filtered = lessons
+    .filter(l=>l.subject===subject.key && l.level===level && l.topic===topic)
+    .sort((a,b)=>(a.order||0)-(b.order||0)||(a.title||'').localeCompare(b.title||''));
 
-  const topicsFor = (subject, level) => {
-    const saved = exercises
-      .filter(ex=>(ex.subject||'Eesti keel')===subject && (ex.level||'')===level)
-      .map(getExerciseTopic)
-      .filter(Boolean);
-    return [...new Set([...(getSubjectConfig(subject).topics||[]), ...saved])];
-  };
+  const topicCounts = {};
+  topics.forEach(t => {
+    topicCounts[t] = lessons.filter(l=>l.subject===subject.key&&l.level===level&&l.topic===t).length;
+  });
 
-  const treeButton = (active, onClick, label, amount, depth=0) => (
-    <button
-      onClick={onClick}
-      style={{width:'100%',display:'flex',alignItems:'center',justifyContent:'space-between',gap:8,
-        border:'1px solid '+(active?'rgba(47,93,80,.35)':'rgba(28,43,58,.08)'),
-        background:active?'rgba(47,93,80,.1)':'#fff',color:active?'#2F5D50':'#1C2B3A',
-        borderRadius:8,padding:`8px 10px 8px ${10+depth*14}px`,cursor:'pointer',fontWeight:active?800:600,fontSize:'.84rem',textAlign:'left'}}>
-      <span style={{minWidth:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{label}</span>
-      <span style={{fontSize:'.72rem',color:active?'#2F5D50':'#718096',fontWeight:800}}>{amount}</span>
-    </button>
-  );
+  return (
+    <div className="topic-shell">
+      {/* Sidebar */}
+      <aside className="topic-sidebar">
+        <div className="topic-sidebar-title">Teemad — {level}</div>
+        {topics.map(t=>(
+          <button key={t} onClick={()=>onSelectTopic(t)}
+            className={'topic-btn'+(topic===t?' active':'')}>
+            <span style={{minWidth:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{t}</span>
+            <span className="topic-count">{topicCounts[t]||0}</span>
+          </button>
+        ))}
+      </aside>
 
-  return(
-    <aside style={{background:'#fff',border:'1px solid rgba(28,43,58,.08)',borderRadius:14,padding:14,alignSelf:'start',position:'sticky',top:74}}>
-      <div style={{fontSize:'.78rem',fontWeight:800,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:10}}>
-        Kataloog
-      </div>
-      <div style={{display:'flex',flexDirection:'column',gap:8}}>
-        {treeButton(!selection.subject,()=>onSelect({subject:'',level:'',topic:''}),'Kõik ained',count())}
-        {SUBJECTS.map(subject=>{
-          const subjectActive = selection.subject===subject;
-          const cfg = getSubjectConfig(subject);
-          return(
-            <div key={subject} style={{display:'flex',flexDirection:'column',gap:6}}>
-              {treeButton(subjectActive && !selection.level,()=>onSelect({subject,level:'',topic:''}),`${cfg.short} · ${subject}`,count(subject))}
-              {subjectActive&&cfg.levels.map(level=>{
-                const levelActive = selection.level===level;
-                return(
-                  <div key={level} style={{display:'flex',flexDirection:'column',gap:5}}>
-                    {treeButton(levelActive && !selection.topic,()=>onSelect({subject,level,topic:''}),level,count(subject,level),1)}
-                    {levelActive&&topicsFor(subject,level).map(topic=>
-                      <React.Fragment key={topic}>
-                        {treeButton(selection.topic===topic,()=>onSelect({subject,level,topic}),topic,count(subject,level,topic),2)}
-                      </React.Fragment>
+      {/* Main */}
+      <main>
+        <div className="lesson-header">
+          <div>
+            <h2>{topic}</h2>
+            <div style={{fontSize:'.82rem',color:'#42536A',marginTop:3}}>
+              {subject.key} · {level} · {filtered.length} kirjet
+            </div>
+          </div>
+          {isTeacher&&(
+            <button onClick={()=>onAddLesson(topic)} className="btn btn-pine btn-sm">
+              <i className="fa-solid fa-plus"/> Lisa kirje
+            </button>
+          )}
+        </div>
+
+        {filtered.length===0
+          ? <div className="empty-state">
+              <i className="fa-solid fa-folder-open"/>
+              <p>See teema on veel tühi. Lisa esimene tunnikirje!</p>
+              {isTeacher&&<button onClick={()=>onAddLesson(topic)} className="btn btn-pine btn-sm">
+                <i className="fa-solid fa-plus"/> Lisa kirje
+              </button>}
+            </div>
+          : filtered.map(lesson=>{
+              const lt = LESSON_TYPES[lesson.type]||LESSON_TYPES.lesson;
+              return (
+                <div key={lesson.id} className="lesson-card">
+                  <div className="lesson-icon" style={{background:lt.bg}}>
+                    <i className={'fa-solid '+lt.icon} style={{color:lt.color}}/>
+                  </div>
+                  <div className="lesson-body">
+                    <div className="lesson-title">{lesson.title}</div>
+                    <div className="lesson-meta">
+                      {lt.label}
+                      {lesson.authorName&&' · '+lesson.authorName}
+                      {lesson.updatedAt&&' · '+fmtDate(lesson.updatedAt)}
+                    </div>
+                    {lesson.description&&(
+                      <div style={{fontSize:'.82rem',color:'#42536A',lineHeight:1.45,marginBottom:8}}>
+                        {lesson.description}
+                      </div>
+                    )}
+                    {lesson.files?.length>0&&(
+                      <div className="file-preview-row">
+                        {lesson.files.map((f,i)=><FileChip key={i} file={f}/>)}
+                      </div>
                     )}
                   </div>
-                );
-              })}
-            </div>
-          );
-        })}
-      </div>
-    </aside>
+                  {isTeacher&&(
+                    <div className="lesson-actions">
+                      <button onClick={()=>onEditLesson(lesson)} className="btn btn-ghost btn-sm">
+                        <i className="fa-solid fa-pen"/>
+                      </button>
+                      <button onClick={()=>onDeleteLesson(lesson)} className="btn btn-ghost btn-sm" style={{color:'#991b1b'}}>
+                        <i className="fa-solid fa-trash"/>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })
+        }
+      </main>
+    </div>
   );
 }
 
-// ── ПРОСТОЙ ЛОГИН ─────────────────────────────────────────────
-function LoginScreen({onLogin}) {
-  const [email, setEmail] = useState('');
-  const [pass, setPass]   = useState('');
-  const [err, setErr]     = useState('');
-  const [busy, setBusy]   = useState(false);
+// ── CURRICULUM VIEW ───────────────────────────────────────────
+function CurriculumView({isTeacher, user, notify}) {
+  const [lessons, setLessons]   = useState([]);
+  const [loading, setLoading]   = useState(true);
+  // nav: null | {subject} | {subject,level} | {subject,level,topic}
+  const [nav, setNav]           = useState(null);
+  const [modal, setModal]       = useState(null);
 
-  const go = async() => {
-    if(!email||!pass){setErr('Täida kõik väljad');return;}
-    setBusy(true);setErr('');
-    try{
-      const res = await auth.signInWithEmailAndPassword(email,pass);
-      const snap = await db.collection('users').doc(res.user.uid).get();
-      if(snap.exists) onLogin({uid:res.user.uid,...snap.data()});
-      else onLogin({uid:res.user.uid,email,role:'teacher'});
-    }catch(e){
-      setErr('Vale e-post või parool');
+  useEffect(()=>{
+    const unsub = db.collection('curriculumLessons')
+      .orderBy('order','asc')
+      .onSnapshot(s=>{setLessons(s.docs.map(d=>({id:d.id,...d.data()})));setLoading(false);},
+        ()=>{setLoading(false);});
+    return unsub;
+  },[]);
+
+  const subject = nav?.subject ? SUBJECTS.find(s=>s.key===nav.subject) : null;
+  const level   = nav?.level||null;
+  const topic   = nav?.topic||null;
+
+  const topics = subject
+    ? [...new Set([
+        ...(subject.topics||[]),
+        ...lessons.filter(l=>l.subject===subject.key&&l.level===nav.level).map(l=>l.topic).filter(Boolean)
+      ])]
+    : [];
+
+  const saveLesson = async(data) => {
+    if(data.id){
+      await db.collection('curriculumLessons').doc(data.id).update({...data});
+    } else {
+      await db.collection('curriculumLessons').add({
+        ...data, authorUid:user.uid, authorName:user.displayName||user.email||'', createdAt:today()
+      });
     }
-    setBusy(false);
+    notify('✓ Salvestatud');
+    setModal(null);
   };
 
-  const googleLogin = async() => {
-    setBusy(true);setErr('');
-    try{
-      const res = await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
-      const snap = await db.collection('users').doc(res.user.uid).get();
-      if(snap.exists) onLogin({uid:res.user.uid,displayName:res.user.displayName,...snap.data()});
-      else onLogin({uid:res.user.uid,displayName:res.user.displayName,email:res.user.email,role:'teacher'});
-    }catch(e){setErr('Google sisselogimine ebaõnnestus');}
-    setBusy(false);
+  const deleteLesson = async(lesson) => {
+    if(!window.confirm('Kustuta "'+lesson.title+'"?')) return;
+    await db.collection('curriculumLessons').doc(lesson.id).delete();
+    notify('✓ Kustutatud');
   };
+
+  if(loading) return <div style={{display:'flex',justifyContent:'center',padding:60}}><div className="spinner"/></div>;
+
+  return (
+    <>
+      {/* Breadcrumb */}
+      <div className="breadcrumb">
+        <span className="bc-item" onClick={()=>setNav(null)}>Kõik ained</span>
+        {subject&&<><span className="bc-sep">›</span>
+          <span className={nav.level?'bc-item':'bc-current'} onClick={()=>setNav({subject:subject.key})}>
+            {subject.emoji} {subject.key}
+          </span></>}
+        {level&&<><span className="bc-sep">›</span>
+          <span className={topic?'bc-item':'bc-current'} onClick={()=>setNav({subject:subject.key,level})}>
+            {level}
+          </span></>}
+        {topic&&<><span className="bc-sep">›</span>
+          <span className="bc-current">{topic}</span></>}
+      </div>
+
+      {/* LEVEL 0: subject cards */}
+      {!subject&&(
+        <div className="curr-grid">
+          {SUBJECTS.map(s=>{
+            const count = lessons.filter(l=>l.subject===s.key).length;
+            return (
+              <div key={s.key} className="subject-card" onClick={()=>setNav({subject:s.key})}>
+                <div className="subject-card-head">
+                  <span className="subject-card-emoji">{s.emoji}</span>
+                  <div className="subject-card-title">{s.key}</div>
+                  <div className="subject-card-sub">
+                    {s.levels.length} taset · {s.topics.length} eeldefineeritud teemat
+                  </div>
+                </div>
+                <div className="subject-card-bar" style={{background:s.bar}}/>
+                <div className="subject-card-footer">
+                  <i className="fa-solid fa-book-open" style={{color:s.color}}/>
+                  {count} kirjet raamatukogus
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* LEVEL 1: level chips */}
+      {subject&&!level&&(
+        <div style={{maxWidth:1200,margin:'0 auto',padding:'24px 28px 40px'}}>
+          <h2 style={{fontSize:'1.2rem',marginBottom:16}}>{subject.emoji} {subject.key} — vali tase</h2>
+          <div className="level-grid" style={{padding:0}}>
+            {subject.levels.map(lv=>{
+              const cnt = lessons.filter(l=>l.subject===subject.key&&l.level===lv).length;
+              return (
+                <button key={lv} className="level-chip" onClick={()=>setNav({subject:subject.key,level:lv})}>
+                  {lv}
+                  <span className="lc-count">{cnt}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* LEVEL 2+3: topics + lessons */}
+      {subject&&level&&(
+        <TopicView
+          subject={subject} level={level}
+          topic={topic||topics[0]||''}
+          topics={topics}
+          lessons={lessons}
+          isTeacher={isTeacher}
+          onSelectTopic={t=>setNav({subject:subject.key,level,topic:t})}
+          onAddLesson={t=>{
+            const navTopic = t||topic||topics[0]||'';
+            setNav({subject:subject.key,level,topic:navTopic});
+            setModal({topic:navTopic});
+          }}
+          onEditLesson={lesson=>setModal({lesson})}
+          onDeleteLesson={deleteLesson}
+        />
+      )}
+
+      {/* Lesson modal */}
+      {modal&&(
+        <LessonModal
+          lesson={modal.lesson||null}
+          subject={subject?.key||''}
+          level={level||''}
+          topic={modal.topic||topic||''}
+          onClose={()=>setModal(null)}
+          onSave={saveLesson}
+        />
+      )}
+    </>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// EXERCISES TAB (все компоненты из оригинала, сохранены без изменений)
+// ═══════════════════════════════════════════════════════════════
+
+function parseFillText(raw) {
+  const blanks=[];let idx=0;
+  const parts=raw.split(/\[([^\]]+)\]/g);
+  let result=[];
+  for(let i=0;i<parts.length;i++){
+    if(i%2===0){result.push({type:'text',value:parts[i]});}
+    else{result.push({type:'blank',answer:parts[i],index:idx++});blanks.push({answer:parts[i],index:idx-1});}
+  }
+  return{parts:result,blanks};
+}
+
+function FillPlayer({exercise,onDone}){
+  const parsed=useMemo(()=>parseFillText(exercise.text||''),[exercise.text]);
+  const[answers,setAnswers]=useState({});const[checked,setChecked]=useState(false);const[score,setScore]=useState(null);
+  const check=()=>{let correct=0;parsed.blanks.forEach(b=>{if(normalizeText(answers[b.index]||'')===normalizeText(b.answer))correct++;});setScore({correct,total:parsed.blanks.length});setChecked(true);onDone&&onDone({correct,total:parsed.blanks.length});};
+  const reset=()=>{setAnswers({});setChecked(false);setScore(null);};
+  return(<div style={{display:'flex',flexDirection:'column',gap:16}}><div style={{fontSize:'1rem',lineHeight:2}}>{parsed.parts.map((p,i)=>{if(p.type==='text')return<span key={i}>{p.value}</span>;const val=answers[p.index]||'';const isCorrect=checked&&normalizeText(val)===normalizeText(p.answer);const isWrong=checked&&!isCorrect;return(<span key={i} style={{display:'inline-flex',alignItems:'center',gap:4}}><input className={'blank-input'+(isCorrect?' correct':isWrong?' wrong':'')} value={val} disabled={checked} onChange={e=>setAnswers(prev=>({...prev,[p.index]:e.target.value}))} style={{width:Math.max(80,(p.answer.length+2)*12)+'px'}}/>{isWrong&&checked&&<span style={{fontSize:'.75rem',color:'#166534',fontWeight:700}}>({p.answer})</span>}</span>);})}</div>{score&&<div className={score.correct===score.total?'result-correct':'result-wrong'}>{score.correct===score.total?'✓ Suurepärane! Kõik '+score.total+' vastust õiged!':score.correct+'/'+score.total+' vastust õiged. Proovi uuesti!'}</div>}{!checked?<button onClick={check} className="btn btn-pine">Kontrolli vastuseid</button>:<button onClick={reset} className="btn btn-ghost">Proovi uuesti</button>}</div>);
+}
+
+function ChoicePlayer({exercise,onDone}){
+  const questions=exercise.questions||[];
+  const[current,setCurrent]=useState(0);const[selected,setSelected]=useState({});const[checked,setChecked]=useState({});const[done,setDone]=useState(false);
+  const q=questions[current];
+  const pick=(qi,ci)=>{if(checked[qi])return;setSelected(prev=>({...prev,[qi]:ci}));};
+  const checkCurrent=()=>setChecked(prev=>({...prev,[current]:true}));
+  const next=()=>{if(current<questions.length-1){setCurrent(c=>c+1);}else{const correct=questions.filter((q,i)=>selected[i]===q.correct).length;setDone(true);onDone&&onDone({correct,total:questions.length});}};
+  const reset=()=>{setCurrent(0);setSelected({});setChecked({});setDone(false);};
+  if(done){const correct=questions.filter((q,i)=>selected[i]===q.correct).length;return(<div style={{display:'flex',flexDirection:'column',gap:12}}><div className={correct===questions.length?'result-correct':'result-wrong'}>{correct===questions.length?'✓ Suurepärane! '+correct+'/'+questions.length:correct+'/'+questions.length+' vastust õiged'}</div><button onClick={reset} className="btn btn-ghost">Alusta uuesti</button></div>);}
+  if(!q)return null;
+  const isChecked=checked[current];const sel=selected[current];
+  return(<div style={{display:'flex',flexDirection:'column',gap:12}}><div style={{fontWeight:700,fontSize:'1rem',marginBottom:8}}>{q.question}</div>{(q.options||[]).map((opt,ci)=>{let cls='choice-btn';if(isChecked){if(ci===q.correct)cls+=' correct';else if(ci===sel)cls+=' wrong';}else if(ci===sel)cls+=' selected';return<button key={ci} className={cls} onClick={()=>pick(current,ci)}>{opt}</button>;})} {!isChecked?<button onClick={checkCurrent} className="btn btn-pine" disabled={sel===undefined}>Kontrolli</button>:<button onClick={next} className="btn btn-pine">{current<questions.length-1?'Järgmine →':'Lõpeta'}</button>}</div>);
+}
+
+function OrderPlayer({exercise,onDone}){
+  const correct=useMemo(()=>(exercise.sentence||'').split(' ').filter(Boolean),[exercise.sentence]);
+  const shuffled=useMemo(()=>[...correct].sort(()=>Math.random()-.5),[correct]);
+  const[placed,setPlaced]=useState([]);const[avail,setAvail]=useState(()=>shuffled.map((w,i)=>({w,i,used:false})));const[checked,setChecked]=useState(false);const[result,setResult]=useState(null);
+  const addWord=item=>{if(item.used||checked)return;setPlaced(prev=>[...prev,item]);setAvail(prev=>prev.map(a=>a.i===item.i?{...a,used:true}:a));};
+  const removeWord=item=>{if(checked)return;setPlaced(prev=>prev.filter(p=>p.i!==item.i));setAvail(prev=>prev.map(a=>a.i===item.i?{...a,used:false}:a));};
+  const check=()=>{const pw=placed.map(p=>p.w);const ok=pw.join(' ')===correct.join(' ');setResult({isCorrect:ok,correct:correct.join(' ')});setChecked(true);onDone&&onDone({correct:ok?1:0,total:1});};
+  const reset=()=>{setPlaced([]);setAvail(shuffled.map((w,i)=>({w,i,used:false})));setChecked(false);setResult(null);};
+  return(<div style={{display:'flex',flexDirection:'column',gap:14}}><div><div style={{fontSize:'.74rem',fontWeight:700,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8}}>Sinu vastus:</div><div className={'drop-zone'}>{placed.length===0&&<span style={{fontSize:'.82rem',color:'#9ca3af'}}>Klõpsa sõnadel allpool...</span>}{placed.map((item,i)=><span key={i} className="word-chip placed" onClick={()=>removeWord(item)}>{item.w} <span style={{marginLeft:4,opacity:.5,fontSize:'.72rem'}}>✕</span></span>)}</div></div><div><div style={{fontSize:'.74rem',fontWeight:700,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8}}>Sõnad:</div><div style={{display:'flex',flexWrap:'wrap',gap:4}}>{avail.map((item,i)=><span key={i} className={'word-chip'+(item.used?' used':'')} onClick={()=>addWord(item)}>{item.w}</span>)}</div></div>{result&&<div className={result.isCorrect?'result-correct':'result-wrong'}>{result.isCorrect?'✓ Suurepärane!':'✗ Õige vastus: "'+result.correct+'"'}</div>}{!checked?<button onClick={check} className="btn btn-pine" disabled={placed.length===0}>Kontrolli</button>:<button onClick={reset} className="btn btn-ghost">Proovi uuesti</button>}</div>);
+}
+
+function ExerciseCard({ex,isTeacher,onEdit,onDelete,onAssign,students,user}){
+  const[open,setOpen]=useState(false);const[result,setResult]=useState(null);
+  const type=EX_TYPES[ex.type]||EX_TYPES.fill;
+  return(<div className="ex-card" style={{display:'flex',flexDirection:'column',gap:12}}>
+    <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:10}}>
+      <div style={{flex:1,minWidth:0}}>
+        <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap',marginBottom:6}}>
+          <span className={'badge '+type.badge}><i className={'fa-solid '+type.icon} style={{fontSize:'.7rem'}}/> {type.label}</span>
+          {ex.level&&<span className="badge" style={{background:'rgba(201,136,42,.1)',color:'#A96E1A'}}>{ex.level}</span>}
+          {ex.subject&&<span className="badge" style={{background:'rgba(28,43,58,.06)',color:'#42536A'}}>{ex.subject}</span>}
+          {ex.topic&&<span className="badge" style={{background:'rgba(47,93,80,.09)',color:'#2F5D50'}}>{ex.topic}</span>}
+        </div>
+        <h3 style={{fontSize:'1rem',marginBottom:4}}>{ex.title||'Pealkirjata harjutus'}</h3>
+        <div style={{fontSize:'.78rem',color:'#42536A'}}>Autor: {ex.authorName||'—'} · {fmtDate(ex.createdAt)}{ex.assignCount>0&&<span style={{marginLeft:8,color:'#2F5D50',fontWeight:600}}>· {ex.assignCount}× määratud</span>}</div>
+      </div>
+      <div style={{display:'flex',gap:6,flexShrink:0,flexWrap:'wrap',justifyContent:'flex-end'}}>
+        <button onClick={()=>setOpen(o=>!o)} className="btn btn-ghost btn-sm">{open?'Peida':'Proovi'}</button>
+        {isTeacher&&onAssign&&<button onClick={()=>onAssign(ex)} className="btn btn-pine btn-sm"><i className="fa-solid fa-paper-plane"/> Määra</button>}
+        {isTeacher&&onEdit&&<button onClick={()=>onEdit(ex)} className="btn btn-ghost btn-sm"><i className="fa-solid fa-pen"/></button>}
+        {isTeacher&&onDelete&&<button onClick={()=>onDelete(ex)} className="btn btn-ghost btn-sm" style={{color:'#991b1b'}}><i className="fa-solid fa-trash"/></button>}
+      </div>
+    </div>
+    {open&&<div style={{borderTop:'1px solid rgba(28,43,58,.07)',paddingTop:14}}>
+      {ex.type==='fill'&&<FillPlayer exercise={ex} onDone={setResult}/>}
+      {ex.type==='choice'&&<ChoicePlayer exercise={ex} onDone={setResult}/>}
+      {ex.type==='order'&&<OrderPlayer exercise={ex} onDone={setResult}/>}
+      {!['fill','choice','order'].includes(ex.type)&&<div style={{color:'#42536A',fontSize:'.88rem',padding:'14px 0'}}>Ava täisvaates harjutuse sooritamiseks.</div>}
+    </div>}
+  </div>);
+}
+
+function ExercisesView({isTeacher, user, notify}) {
+  const[exercises,setExercises]=useState([]);
+  const[students,setStudents]=useState([]);
+  const[loading,setLoading]=useState(true);
+  const[search,setSearch]=useState('');
+  const[typeFilter,setTypeFilter]=useState('all');
+  const[subjectFilter,setSubjectFilter]=useState('all');
+
+  useEffect(()=>{
+    if(!user)return;
+    const u1=db.collection('exercises').orderBy('createdAt','desc').onSnapshot(s=>{setExercises(s.docs.map(d=>({id:d.id,...d.data()})));setLoading(false);},(err)=>{console.warn(err);setLoading(false);});
+    const u2=db.collection('students').onSnapshot(s=>setStudents(s.docs.map(d=>({id:d.id,...d.data()})).filter(s=>s.active!==false)),()=>{});
+    return()=>{u1();u2();};
+  },[user]);
+
+  const filtered=useMemo(()=>{
+    const q=search.toLowerCase();
+    return exercises.filter(e=>{
+      if(typeFilter!=='all'&&e.type!==typeFilter)return false;
+      if(subjectFilter!=='all'&&(e.subject||'Eesti keel')!==subjectFilter)return false;
+      if(!q)return true;
+      return(e.title||'').toLowerCase().includes(q)||(e.tags||[]).some(t=>t.toLowerCase().includes(q));
+    });
+  },[exercises,typeFilter,subjectFilter,search]);
+
+  if(loading)return<div style={{display:'flex',justifyContent:'center',padding:60}}><div className="spinner"/></div>;
 
   return(
-    <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',padding:16,
-      background:'linear-gradient(135deg,#1C2B3A 0%,#2F5D50 100%)'}}>
-      <div style={{background:'#FBFAF8',borderRadius:24,padding:'36px',width:'100%',maxWidth:380,boxShadow:'0 32px 80px rgba(0,0,0,.3)'}}>
-        <div style={{textAlign:'center',marginBottom:28}}>
-          <div style={{fontFamily:'Fraunces,Georgia,serif',fontSize:'1.9rem',fontWeight:600}}>
-            Keele<span style={{color:'#C9882A'}}>Sepp</span>
+    <div style={{maxWidth:1100,margin:'0 auto',padding:'28px'}}>
+      {/* Stats */}
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))',gap:10,marginBottom:24}}>
+        {Object.entries(EX_TYPES).map(([k,v])=>(
+          <div key={k} style={{background:'#fff',border:'1px solid rgba(28,43,58,.08)',borderRadius:12,padding:'14px 16px'}}>
+            <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:5}}>
+              <div style={{width:28,height:28,borderRadius:8,background:v.color+'18',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                <i className={'fa-solid '+v.icon} style={{color:v.color,fontSize:'.75rem'}}/>
+              </div>
+              <span style={{fontSize:'.72rem',fontWeight:700,color:'#42536A',textTransform:'uppercase',letterSpacing:'.05em'}}>{v.label}</span>
+            </div>
+            <div style={{fontSize:'1.5rem',fontWeight:700,color:'#1C2B3A'}}>{exercises.filter(e=>e.type===k).length}</div>
           </div>
-          <div style={{fontSize:'.82rem',color:'#42536A',marginTop:4}}>Harjutuste raamatukogu</div>
+        ))}
+        <div style={{background:'#fff',border:'1px solid rgba(28,43,58,.08)',borderRadius:12,padding:'14px 16px'}}>
+          <div style={{fontSize:'.72rem',fontWeight:700,color:'#42536A',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:5}}>Kokku määratud</div>
+          <div style={{fontSize:'1.5rem',fontWeight:700,color:'#2F5D50'}}>{exercises.reduce((a,e)=>a+(e.assignCount||0),0)}</div>
         </div>
-        <div style={{display:'flex',flexDirection:'column',gap:10,marginBottom:14}}>
-          <input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="E-post"
-            onKeyDown={e=>e.key==='Enter'&&go()}/>
-          <input type="password" value={pass} onChange={e=>setPass(e.target.value)} placeholder="Parool"
-            onKeyDown={e=>e.key==='Enter'&&go()}/>
+      </div>
+
+      {/* Filters */}
+      <div style={{background:'#fff',border:'1px solid rgba(28,43,58,.08)',borderRadius:14,padding:14,marginBottom:16}}>
+        <div style={{display:'flex',gap:10,flexWrap:'wrap',alignItems:'center',justifyContent:'space-between'}}>
+          <input value={search} onChange={e=>setSearch(e.target.value)}
+            placeholder="🔍 Otsi harjutust..."
+            style={{width:240,padding:'9px 14px'}}/>
+          <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+            {SUBJECTS.map(s=>(
+              <button key={s.key} onClick={()=>setSubjectFilter(subjectFilter===s.key?'all':s.key)}
+                className={'btn btn-sm '+(subjectFilter===s.key?'btn-dark':'btn-ghost')}>
+                {s.emoji}
+              </button>
+            ))}
+            <div style={{width:1,background:'rgba(28,43,58,.12)',margin:'0 4px'}}/>
+            <button onClick={()=>setTypeFilter('all')} className={'btn btn-sm '+(typeFilter==='all'?'btn-dark':'btn-ghost')}>Kõik</button>
+            {Object.entries(EX_TYPES).map(([k,v])=>(
+              <button key={k} onClick={()=>setTypeFilter(k)} className={'btn btn-sm '+(typeFilter===k?'btn-dark':'btn-ghost')}>
+                <i className={'fa-solid '+v.icon}/> {v.label}
+              </button>
+            ))}
+          </div>
         </div>
-        {err&&<div style={{background:'#fee2e2',color:'#991b1b',borderRadius:9,padding:'9px 12px',fontSize:'.84rem',marginBottom:12}}>{err}</div>}
-        <button onClick={go} disabled={busy} className="btn btn-dark" style={{width:'100%',marginBottom:10,borderRadius:12,padding:12}}>
-          {busy?'Laeb…':'Sisene'}
-        </button>
-        <button onClick={googleLogin} disabled={busy} style={{width:'100%',padding:'11px',borderRadius:12,border:'1.5px solid rgba(28,43,58,.15)',background:'#fff',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:10,fontWeight:600,fontSize:'.88rem'}}>
-          <svg width="17" height="17" viewBox="0 0 18 18">
-            <path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18z"/>
-            <path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 0 1-7.18-2.54H1.83v2.07A8 8 0 0 0 8.98 17z"/>
-            <path fill="#FBBC05" d="M4.5 10.52a4.8 4.8 0 0 1 0-3.04V5.41H1.83a8 8 0 0 0 0 7.18l2.67-2.07z"/>
-            <path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 0 0 1.83 5.4L4.5 7.49a4.77 4.77 0 0 1 4.48-3.3z"/>
-          </svg>
-          Sisene Google'iga
-        </button>
-        <div style={{textAlign:'center',marginTop:14}}>
-          <a href="/haldus/" style={{fontSize:'.8rem',color:'#42536A',textDecoration:'none'}}>← Tagasi haldussüsteemi</a>
-        </div>
+        <div style={{marginTop:10,fontSize:'.82rem',color:'#42536A'}}>{filtered.length} harjutust</div>
+      </div>
+
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(430px,1fr))',gap:14}}>
+        {filtered.map(ex=>(
+          <ExerciseCard key={ex.id} ex={ex} isTeacher={isTeacher} students={students} user={user}
+            onEdit={isTeacher?e=>window.location.href='/haldus-exercises-edit?id='+e.id:null}
+            onDelete={isTeacher?async(e)=>{if(!window.confirm('Kustuta?'))return;await db.collection('exercises').doc(e.id).delete();notify('✓ Kustutatud');}:null}
+            onAssign={null}
+          />
+        ))}
+        {filtered.length===0&&<div className="empty-state" style={{gridColumn:'1/-1'}}>
+          <i className="fa-solid fa-magnifying-glass"/><p>Harjutusi ei leitud.</p>
+        </div>}
       </div>
     </div>
   );
 }
 
-// ── ГЛАВНОЕ ПРИЛОЖЕНИЕ ────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// LOGIN
+// ═══════════════════════════════════════════════════════════════
+function LoginScreen({onLogin}) {
+  const[email,setEmail]=useState('');const[pass,setPass]=useState('');const[err,setErr]=useState('');const[busy,setBusy]=useState(false);
+  const go=async()=>{if(!email||!pass){setErr('Täida kõik väljad');return;}setBusy(true);setErr('');
+    try{const res=await auth.signInWithEmailAndPassword(email,pass);const snap=await db.collection('users').doc(res.user.uid).get();
+      if(snap.exists)onLogin({uid:res.user.uid,...snap.data()});else onLogin({uid:res.user.uid,email,role:'teacher'});
+    }catch(e){setErr('Vale e-post või parool');}setBusy(false);};
+  const googleLogin=async()=>{setBusy(true);setErr('');
+    try{const res=await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());const snap=await db.collection('users').doc(res.user.uid).get();
+      if(snap.exists)onLogin({uid:res.user.uid,displayName:res.user.displayName,...snap.data()});
+      else onLogin({uid:res.user.uid,displayName:res.user.displayName,email:res.user.email,role:'teacher'});
+    }catch(e){setErr('Google sisselogimine ebaõnnestus');}setBusy(false);};
+  return(
+    <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',padding:16,background:'linear-gradient(135deg,#1C2B3A 0%,#2F5D50 100%)'}}>
+      <div style={{background:'#FBFAF8',borderRadius:24,padding:36,width:'100%',maxWidth:380,boxShadow:'0 32px 80px rgba(0,0,0,.3)'}}>
+        <div style={{textAlign:'center',marginBottom:28}}>
+          <div style={{fontFamily:'Fraunces,Georgia,serif',fontSize:'1.9rem',fontWeight:600}}>Keele<span style={{color:'#C9882A'}}>Sepp</span></div>
+          <div style={{fontSize:'.82rem',color:'#42536A',marginTop:4}}>Õppekava & Harjutused</div>
+        </div>
+        <div style={{display:'flex',flexDirection:'column',gap:10,marginBottom:14}}>
+          <input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="E-post" onKeyDown={e=>e.key==='Enter'&&go()}/>
+          <input type="password" value={pass} onChange={e=>setPass(e.target.value)} placeholder="Parool" onKeyDown={e=>e.key==='Enter'&&go()}/>
+        </div>
+        {err&&<div style={{background:'#fee2e2',color:'#991b1b',borderRadius:9,padding:'9px 12px',fontSize:'.84rem',marginBottom:12}}>{err}</div>}
+        <button onClick={go} disabled={busy} className="btn btn-dark" style={{width:'100%',marginBottom:10,borderRadius:12,padding:12}}>{busy?'Laeb…':'Sisene'}</button>
+        <button onClick={googleLogin} disabled={busy} style={{width:'100%',padding:11,borderRadius:12,border:'1.5px solid rgba(28,43,58,.15)',background:'#fff',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:10,fontWeight:600,fontSize:'.88rem'}}>
+          <svg width="17" height="17" viewBox="0 0 18 18"><path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18z"/><path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 0 1-7.18-2.54H1.83v2.07A8 8 0 0 0 8.98 17z"/><path fill="#FBBC05" d="M4.5 10.52a4.8 4.8 0 0 1 0-3.04V5.41H1.83a8 8 0 0 0 0 7.18l2.67-2.07z"/><path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 0 0 1.83 5.4L4.5 7.49a4.77 4.77 0 0 1 4.48-3.3z"/></svg>
+          Sisene Google'iga
+        </button>
+        <div style={{textAlign:'center',marginTop:14}}><a href="/haldus/" style={{fontSize:'.8rem',color:'#42536A',textDecoration:'none'}}>← Tagasi haldussüsteemi</a></div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// APP
+// ═══════════════════════════════════════════════════════════════
 function App() {
-  const [user, setUser]         = useState(null);
-  const [loading, setLoading]   = useState(true);
-  const [exercises, setExercises] = useState([]);
-  const [students, setStudents]   = useState([]);
-  const [notif, setNotif]         = useState('');
-  const [modal, setModal]         = useState(null); // null | {type:'create'|'edit'|'assign', data}
-  const [search, setSearch]       = useState('');
-  const [typeFilter, setTypeFilter] = useState('all');
-  const [treeSelection, setTreeSelection] = useState({subject:'', level:'', topic:''});
-  const focusedExId = useMemo(() => {
-    const params = new URLSearchParams(window.location.search);
-    return params.get('ex') || params.get('exercise') || params.get('exerciseId') || null;
-  }, []);
+  const[user,setUser]=useState(null);
+  const[loading,setLoading]=useState(true);
+  const[tab,setTab]=useState('curriculum'); // 'curriculum' | 'exercises'
+  const[notif,setNotif]=useState('');
 
-  const notify = msg => { setNotif(msg); setTimeout(()=>setNotif(''),3000); };
+  const notify=msg=>{setNotif(msg);setTimeout(()=>setNotif(''),3000);};
+  const isTeacher=user?.role==='teacher'||user?.role==='admin'||user?.email==='zakutailo.pavel@gmail.com';
 
-  const isTeacher = user?.role==='teacher'||user?.role==='admin'||user?.email==='zakutailo.pavel@gmail.com';
-
-  // AUTH
   useEffect(()=>{
-    const unsub = auth.onAuthStateChanged(async fbUser => {
+    const unsub=auth.onAuthStateChanged(async fbUser=>{
       if(fbUser){
-        const snap = await db.collection('users').doc(fbUser.uid).get();
-        if(snap.exists) setUser({uid:fbUser.uid,displayName:fbUser.displayName||fbUser.email,...snap.data()});
+        const snap=await db.collection('users').doc(fbUser.uid).get();
+        if(snap.exists)setUser({uid:fbUser.uid,displayName:fbUser.displayName||fbUser.email,...snap.data()});
         else setUser({uid:fbUser.uid,displayName:fbUser.displayName||fbUser.email,email:fbUser.email,role:'student'});
-      } else { setUser(null); }
+      }else{setUser(null);}
       setLoading(false);
     });
     return unsub;
   },[]);
 
-  // DATA
-  useEffect(()=>{
-    if(!user) return;
-    const u1 = db.collection('exercises').orderBy('createdAt','desc').onSnapshot(s=>
-      setExercises(s.docs.map(d=>({id:d.id,...d.data()}))),
-      err=>{console.warn('exercises listener failed:',err); setExercises([]);}
-    );
-    const u2 = db.collection('students').onSnapshot(s=>
-      setStudents(s.docs.map(d=>({id:d.id,...d.data()})).filter(s=>s.active!==false)),
-      err=>{console.warn('students listener failed:',err); setStudents([]);}
-    );
-    return ()=>{u1();u2();};
-  },[user]);
-
-  const topicsBySubjectLevel = useMemo(()=>{
-    const map = {};
-    exercises.forEach(ex=>{
-      const subject = ex.subject || 'Eesti keel';
-      const level = ex.level || '';
-      const topic = getExerciseTopic(ex);
-      if(!map[subject]) map[subject] = {};
-      if(!map[subject][level]) map[subject][level] = [];
-      if(topic && !map[subject][level].includes(topic)) map[subject][level].push(topic);
-    });
-    return map;
-  },[exercises]);
-
-  const filtered = useMemo(()=>{
-    const q = search.toLowerCase();
-    if(focusedExId) return exercises.filter(e=>e.id===focusedExId);
-    return exercises.filter(e=>{
-      if(typeFilter!=='all'&&e.type!==typeFilter) return false;
-      if(treeSelection.subject && (e.subject||'Eesti keel')!==treeSelection.subject) return false;
-      if(treeSelection.level && (e.level||'')!==treeSelection.level) return false;
-      if(treeSelection.topic && getExerciseTopic(e)!==treeSelection.topic) return false;
-      if(!q) return true;
-      return (e.title||'').toLowerCase().includes(q)
-        || (e.tags||[]).some(t=>t.toLowerCase().includes(q))
-        || (e.subject||'').toLowerCase().includes(q)
-        || (e.topic||'').toLowerCase().includes(q);
-    });
-  },[exercises,typeFilter,treeSelection,search,focusedExId]);
-
-  const focusedExercise = focusedExId ? exercises.find(e=>e.id===focusedExId) : null;
-
-  const saveExercise = useCallback(async(data) => {
-    if(data.id){
-      await db.collection('exercises').doc(data.id).update({...data, updatedAt:new Date().toISOString()});
-      notify('✓ Harjutus uuendatud');
-    } else {
-      await db.collection('exercises').add({
-        ...data,
-        authorUid: user.uid,
-        authorName: user.displayName||user.email||'',
-        createdAt: today(),
-        assignCount: 0
-      });
-      notify('✓ Harjutus lisatud raamatukogusse!');
-    }
-    setModal(null);
-  },[user]);
-
-  const deleteExercise = useCallback(async(ex) => {
-    if(!window.confirm('Kustuta harjutus "'+ex.title+'"?')) return;
-    await db.collection('exercises').doc(ex.id).delete();
-    notify('✓ Harjutus kustutatud');
-  },[]);
-
-  const assignExercise = useCallback(async({exerciseId,exerciseTitle,exerciseType,studentId,due,note}) => {
-    const stu = students.find(s=>s.id===studentId);
-    await db.collection('homework').add({
-      studentId, studentName:stu?.name||'',
-      task: exerciseTitle,
-      exerciseId, exerciseType,
-      due: due||'',
-      note: note||'',
-      status: 'Ootel',
-      date: today(),
-      fileUrl:'', fileName:'', attachments:[],
-      isExercise: true
-    });
-    await db.collection('exercises').doc(exerciseId).update({
-      assignCount: firebase.firestore.FieldValue.increment(1)
-    });
-    notify('✓ Harjutus määratud: '+stu?.name);
-  },[students]);
-
-  if(loading) return <div style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh'}}><div className="spinner"/></div>;
-  if(!user)   return <LoginScreen onLogin={setUser}/>;
+  if(loading)return<div style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh'}}><div className="spinner"/></div>;
+  if(!user)return<LoginScreen onLogin={setUser}/>;
 
   return(
     <div style={{minHeight:'100vh',background:'#F4F2EE'}}>
-      {/* Шапка */}
-      <header style={{background:'#1C2B3A',padding:'0 28px',height:58,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+      {notif&&<div className="notif-toast">{notif}</div>}
+
+      {/* Header */}
+      <header className="top-header">
         <div style={{display:'flex',alignItems:'center',gap:20}}>
-          <div style={{fontFamily:'Fraunces,Georgia,serif',fontSize:'1.4rem',fontWeight:600,color:'#fff'}}>
-            Keele<span style={{color:'#C9882A'}}>Sepp</span>
-          </div>
-          <span style={{color:'rgba(255,255,255,.35)',fontSize:'.8rem'}}>Harjutuste raamatukogu</span>
+          <div className="logo">Keele<span>Sepp</span></div>
         </div>
         <div style={{display:'flex',alignItems:'center',gap:12}}>
           <span style={{color:'rgba(255,255,255,.5)',fontSize:'.82rem'}}>{user.displayName||user.email}</span>
@@ -1376,113 +958,19 @@ function App() {
         </div>
       </header>
 
-      <div style={{maxWidth:1100,margin:'0 auto',padding:'28px'}}>
-        {notif&&<div style={{position:'fixed',top:20,right:20,background:'#1C2B3A',color:'#fff',padding:'11px 18px',borderRadius:12,zIndex:300,fontWeight:600,fontSize:'.88rem',boxShadow:'0 8px 28px rgba(0,0,0,.25)'}}>{notif}</div>}
-
-        {/* Заголовок + создать */}
-        <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:14,flexWrap:'wrap',marginBottom:24}}>
-          <div>
-            <h1 style={{fontSize:'1.7rem'}}>{focusedExId?'📝 Määratud harjutus':'📚 Harjutuste raamatukogu'}</h1>
-            <div style={{color:'#42536A',fontSize:'.88rem',marginTop:4}}>
-              {focusedExId
-                ? (focusedExercise ? focusedExercise.title : 'Laen harjutust...')
-                : exercises.length+' harjutust · '+(isTeacher?'Loo, muuda ja määra õpilastele':'Proovi harjutusi')}
-            </div>
-          </div>
-          {focusedExId&&(
-            <a href="/haldus-exercises" className="btn btn-ghost" style={{flexShrink:0,textDecoration:'none'}}>
-              <i className="fa-solid fa-arrow-left"/> Kõik harjutused
-            </a>
-          )}
-          {!focusedExId&&isTeacher&&(
-            <button onClick={()=>setModal({type:'create'})} className="btn btn-pine" style={{flexShrink:0}}>
-              <i className="fa-solid fa-plus"/> Uus harjutus
-            </button>
-          )}
-        </div>
-
-        {/* Статистика */}
-        {!focusedExId&&<div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))',gap:12,marginBottom:24}}>
-          {Object.entries(EX_TYPES).map(([k,v])=>(
-            <div key={k} className="card" style={{padding:'16px 18px'}}>
-              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
-                <div style={{width:30,height:30,borderRadius:9,background:v.color+'18',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                  <i className={'fa-solid '+v.icon} style={{color:v.color,fontSize:'.8rem'}}/>
-                </div>
-                <span style={{fontSize:'.74rem',fontWeight:700,color:'#42536A',textTransform:'uppercase',letterSpacing:'.06em'}}>{v.label}</span>
-              </div>
-              <div style={{fontSize:'1.6rem',fontWeight:700,color:'#1C2B3A'}}>{exercises.filter(e=>e.type===k).length}</div>
-            </div>
-          ))}
-          <div className="card" style={{padding:'16px 18px'}}>
-            <div style={{fontSize:'.74rem',fontWeight:700,color:'#42536A',textTransform:'uppercase',letterSpacing:'.06em',marginBottom:6}}>Kokku määratud</div>
-            <div style={{fontSize:'1.6rem',fontWeight:700,color:'#2F5D50'}}>{exercises.reduce((a,e)=>a+(e.assignCount||0),0)}</div>
-          </div>
-        </div>}
-
-        <div className={focusedExId?'':'library-shell'}>
-          {!focusedExId&&<LibraryTree exercises={exercises} selection={treeSelection} onSelect={setTreeSelection}/>}
-
-          <main style={{minWidth:0}}>
-            {!focusedExId&&<div style={{background:'#fff',border:'1px solid rgba(28,43,58,.08)',borderRadius:14,padding:14,marginBottom:16}}>
-              <div style={{display:'flex',gap:10,flexWrap:'wrap',alignItems:'center',justifyContent:'space-between'}}>
-                <input value={search} onChange={e=>setSearch(e.target.value)}
-                  placeholder="🔍 Otsi harjutust, silti..."
-                  style={{width:260,padding:'9px 14px'}}/>
-                <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
-                  <button onClick={()=>setTypeFilter('all')} className={'btn btn-sm '+(typeFilter==='all'?'btn-dark':'btn-ghost')}>Kõik</button>
-                  {Object.entries(EX_TYPES).map(([k,v])=>(
-                    <button key={k} onClick={()=>setTypeFilter(k)} className={'btn btn-sm '+(typeFilter===k?'btn-dark':'btn-ghost')}>
-                      <i className={'fa-solid '+v.icon}/> {v.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div style={{marginTop:10,fontSize:'.82rem',color:'#42536A'}}>
-                {treeSelection.subject
-                  ? [treeSelection.subject,treeSelection.level,treeSelection.topic].filter(Boolean).join(' / ')
-                  : 'Kõik ained'} · {filtered.length} harjutust
-              </div>
-            </div>}
-
-            <div style={{display:'grid',gridTemplateColumns:focusedExId?'minmax(0,760px)':'repeat(auto-fill,minmax(430px,1fr))',gap:16,justifyContent:focusedExId?'center':'stretch'}}>
-              {filtered.map(ex=>(
-                <ExerciseCard
-                  key={ex.id} ex={ex}
-                  isTeacher={isTeacher}
-                  students={students}
-                  user={user}
-                  defaultOpen={focusedExId===ex.id}
-                  onEdit={isTeacher?e=>setModal({type:'edit',data:e}):null}
-                  onDelete={isTeacher?deleteExercise:null}
-                  onAssign={isTeacher?e=>setModal({type:'assign',data:e}):null}
-                />
-              ))}
-              {filtered.length===0&&(
-                <div style={{gridColumn:'1/-1',textAlign:'center',padding:'48px 0',color:'#42536A'}}>
-                  {focusedExId?'Määratud harjutust ei leitud.':
-                    search||typeFilter!=='all'||treeSelection.subject?'Harjutusi ei leitud.':
-                    isTeacher?'Harjutusi pole veel lisatud. Vajuta "Uus harjutus"!':'Harjutusi pole veel saadaval.'}
-                </div>
-              )}
-            </div>
-          </main>
-        </div>
+      {/* Mode tabs */}
+      <div className="mode-bar">
+        <button className={'mode-tab'+(tab==='curriculum'?' active':'')} onClick={()=>setTab('curriculum')}>
+          <i className="fa-solid fa-layer-group" style={{marginRight:7}}/>Õppekava
+        </button>
+        <button className={'mode-tab'+(tab==='exercises'?' active':'')} onClick={()=>setTab('exercises')}>
+          <i className="fa-solid fa-dumbbell" style={{marginRight:7}}/>Harjutused
+        </button>
       </div>
 
-      {/* Модалки */}
-      {modal?.type==='create'&&(
-        <ExerciseModal exercise={null} topicsBySubjectLevel={topicsBySubjectLevel}
-          onClose={()=>setModal(null)} onSave={saveExercise}/>
-      )}
-      {modal?.type==='edit'&&(
-        <ExerciseModal exercise={modal.data} topicsBySubjectLevel={topicsBySubjectLevel}
-          onClose={()=>setModal(null)} onSave={saveExercise}/>
-      )}
-      {modal?.type==='assign'&&(
-        <AssignModal exercise={modal.data} students={students}
-          onClose={()=>setModal(null)} onAssign={assignExercise}/>
-      )}
+      {/* Content */}
+      {tab==='curriculum'&&<CurriculumView isTeacher={isTeacher} user={user} notify={notify}/>}
+      {tab==='exercises'&&<ExercisesView isTeacher={isTeacher} user={user} notify={notify}/>}
     </div>
   );
 }
