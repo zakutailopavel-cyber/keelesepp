@@ -547,36 +547,46 @@ function parseFill(text) {
 // ── RESIZABLE IMAGE ───────────────────────────────────────────
 function ResizableImage({src,caption,initWidth,onResize,overlayText,onTextChange}) {
   const[width,setWidth]=useState(initWidth||null);
-  const[resizing,setResizing]=useState(false);
   const wrapRef=useRef(null);
-  const startDataRef=useRef(null); // store startX and startW at mousedown
+  // All resize state in a single ref — never causes re-render mid-drag
+  const drag=useRef({active:false,startX:0,startW:0});
 
-  const onMouseDown=e=>{
-    e.preventDefault();
-    e.stopPropagation();
-    const startX=e.clientX;
-    const startW=wrapRef.current?.offsetWidth||300;
-    startDataRef.current={startX,startW};
-    setResizing(true);
-
-    const onMove=ev=>{
-      ev.preventDefault();
-      const{startX,startW}=startDataRef.current;
-      const newW=Math.max(60,Math.min(700,startW+(ev.clientX-startX)));
-      setWidth(newW);
+  useEffect(()=>{
+    const onMove=e=>{
+      if(!drag.current.active) return;
+      const delta=e.clientX-drag.current.startX;
+      const newW=Math.max(60,Math.min(740,drag.current.startW+delta));
+      // Directly set DOM width for smooth dragging — no React re-render
+      if(wrapRef.current) wrapRef.current.style.width=newW+'px';
     };
-    const onUp=ev=>{
-      const{startX,startW}=startDataRef.current;
-      const newW=Math.max(60,Math.min(700,startW+(ev.clientX-startX)));
+    const onUp=e=>{
+      if(!drag.current.active) return;
+      drag.current.active=false;
+      const delta=e.clientX-drag.current.startX;
+      const newW=Math.max(60,Math.min(740,drag.current.startW+delta));
       setWidth(newW);
       onResize&&onResize(newW);
-      setResizing(false);
-      startDataRef.current=null;
-      document.removeEventListener('mousemove',onMove);
-      document.removeEventListener('mouseup',onUp);
+      document.body.style.cursor='';
+      document.body.style.userSelect='';
     };
-    document.addEventListener('mousemove',onMove);
-    document.addEventListener('mouseup',onUp);
+    window.addEventListener('mousemove',onMove);
+    window.addEventListener('mouseup',onUp);
+    return()=>{
+      window.removeEventListener('mousemove',onMove);
+      window.removeEventListener('mouseup',onUp);
+    };
+  },[onResize]);
+
+  const handleMouseDown=e=>{
+    e.preventDefault();
+    e.stopPropagation();
+    drag.current={
+      active:true,
+      startX:e.clientX,
+      startW:wrapRef.current?.offsetWidth||width||300
+    };
+    document.body.style.cursor='se-resize';
+    document.body.style.userSelect='none';
   };
 
   if(!src) return(
@@ -586,32 +596,34 @@ function ResizableImage({src,caption,initWidth,onResize,overlayText,onTextChange
   return(
     <div>
       <div ref={wrapRef} className="img-resizable-wrap"
-        style={{width:width?width+'px':'100%',userSelect:resizing?'none':'auto'}}>
-        <img src={src} alt={caption||''} className="img-resizable"
-          style={{width:'100%',height:'auto',objectFit:'contain',display:'block'}}/>
-        {/* Overlay text on image */}
-        {overlayText&&<div style={{
-          position:'absolute',bottom:8,left:8,right:8,
-          background:'rgba(0,0,0,.55)',color:'#fff',
-          padding:'4px 8px',borderRadius:5,fontSize:'.8rem',lineHeight:1.4,
-          pointerEvents:'none'
-        }}>{overlayText}</div>}
-        {/* Resize handle — fixed position, does not move with cursor */}
+        style={{width:width?width+'px':'100%'}}>
+        <img
+          src={src} alt={caption||''}
+          className="img-resizable"
+          style={{width:'100%',height:'auto',objectFit:'contain',display:'block'}}
+          draggable={false}
+        />
+        {overlayText&&(
+          <div style={{
+            position:'absolute',bottom:8,left:8,right:8,
+            background:'rgba(0,0,0,.55)',color:'#fff',
+            padding:'4px 8px',borderRadius:5,fontSize:'.8rem',lineHeight:1.4,
+            pointerEvents:'none'
+          }}>{overlayText}</div>
+        )}
         <div
           className="img-resize-handle"
-          onMouseDown={onMouseDown}
+          onMouseDown={handleMouseDown}
           title="Lohista suuruse muutmiseks"
-          style={{cursor:resizing?'se-resize':'se-resize',background:resizing?'#C9882A':'#2F5D50'}}
         />
       </div>
-      {/* Below-image text */}
       {caption&&<div style={{fontSize:'.72rem',color:'#718096',marginTop:4,fontStyle:'italic',textAlign:'center'}}>{caption}</div>}
       {onTextChange!==undefined&&(
         <div style={{marginTop:8}}>
           <textarea
             value={overlayText||''}
             onChange={e=>onTextChange(e.target.value)}
-            placeholder="Lisa tekst pildi alla või peale (valikuline)..."
+            placeholder="Lisa tekst pildi alla (valikuline)..."
             rows={2}
             style={{width:'100%',fontSize:'.8rem',padding:'6px 8px',borderRadius:7,border:'1px solid rgba(28,43,58,.12)',resize:'vertical',fontFamily:'inherit'}}
           />
