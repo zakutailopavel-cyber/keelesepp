@@ -74,12 +74,12 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#EEECE7;color:#1C2B3A;min
 .subj-foot-link{font-weight:600;display:flex;align-items:center;gap:4px;}
 
 /* LEVEL CHIPS */
-.level-wrap{max-width:1300px;margin:0 auto;padding:20px 28px 36px;}
-.level-title{font-size:1.15rem;font-weight:600;margin-bottom:20px;display:flex;align-items:center;gap:10px;color:#1C2B3A;}
-.level-row{display:flex;flex-wrap:wrap;gap:10px;}
-.level-chip{padding:14px 24px;border-radius:12px;border:1px solid rgba(28,43,58,.12);background:#fff;cursor:pointer;font-weight:600;font-size:.88rem;color:#1C2B3A;transition:all .15s;display:flex;align-items:center;gap:9px;}
-.level-chip:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(28,43,58,.09);}
-.lc-cnt{font-size:.7rem;font-weight:700;padding:2px 7px;border-radius:6px;background:rgba(28,43,58,.07);color:#718096;}
+.level-wrap{max-width:1000px;margin:0 auto;padding:32px 28px 60px;}
+.level-title{font-size:1.1rem;font-weight:600;margin-bottom:22px;display:flex;align-items:center;gap:10px;color:#7A7167;}
+.level-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;}
+.level-chip{padding:28px 24px 24px;border-radius:18px;border:0.5px solid rgba(28,43,58,.1);background:#fff;cursor:pointer;font-weight:600;font-size:1.1rem;color:#1C2B3A;transition:all .2s;display:flex;flex-direction:column;align-items:flex-start;gap:10px;}
+.level-chip:hover{transform:translateY(-3px);box-shadow:0 12px 36px rgba(28,43,58,.11);}
+.lc-cnt{font-size:.72rem;font-weight:600;padding:3px 9px;border-radius:8px;}
 
 /* CONTENT SHELL */
 .content-shell{max-width:1300px;margin:0 auto;padding:0 28px 60px;display:grid;grid-template-columns:250px minmax(0,1fr);gap:22px;align-items:start;}
@@ -625,16 +625,35 @@ function CurriculumView({isTeacher,user,notify}){
       {/* Level 1: levels */}
       {subject&&!level&&(
         <div className="level-wrap">
-          <div className="level-title">{subject.emoji} {subject.key}</div>
+          <div className="level-title">{subject.emoji} {subject.key} — vali tase</div>
           <div className="level-row">
             {subject.levels.map(lv=>{
               const cnt=lessons.filter(l=>l.subject===subject.key&&l.level===lv).length;
+              const topicCnt=[...new Set(lessons.filter(l=>l.subject===subject.key&&l.level===lv).map(l=>l.topic).filter(Boolean))].length;
+              const examCnt=lessons.filter(l=>l.subject===subject.key&&l.level===lv&&l.examPart).length;
+              const hasMat=cnt>0;
               return(
                 <button key={lv} className="level-chip"
-                  style={{borderColor:cnt>0?subject.cardBorder:'rgba(28,43,58,.1)',background:cnt>0?subject.cardBg:'#fff'}}
+                  style={{
+                    borderColor:hasMat?subject.cardBorder:'rgba(28,43,58,.09)',
+                    background:hasMat?subject.cardBg:'#FAFAF8',
+                  }}
                   onClick={()=>{const t=topics[0]||subject.topics[0]||'';setNav({subject:subject.key,level:lv,topic:t});}}>
-                  <span style={{color:cnt>0?subject.color:'#1C2B3A'}}>{lv}</span>
-                  <span className="lc-cnt" style={{background:cnt>0?subject.pillBg:'rgba(28,43,58,.07)',color:cnt>0?subject.pillColor:'#718096'}}>{cnt}</span>
+                  <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',width:'100%'}}>
+                    <span style={{fontSize:'1.4rem',fontWeight:700,color:hasMat?subject.color:'#B0A898'}}>{lv}</span>
+                    <span className="lc-cnt" style={{background:hasMat?subject.pillBg:'rgba(28,43,58,.06)',color:hasMat?subject.pillColor:'#AAA098',fontSize:'.68rem'}}>
+                      {cnt}
+                    </span>
+                  </div>
+                  <div style={{fontSize:'.74rem',color:hasMat?'#7A7167':'#B0A898',lineHeight:1.5,marginTop:2}}>
+                    {hasMat
+                      ?<>{topicCnt>0&&<span>{topicCnt} teemat</span>}{examCnt>0&&<span style={{marginLeft:6}}>· {examCnt} eksamit</span>}</>
+                      :<span>Tühi</span>
+                    }
+                  </div>
+                  <div style={{fontSize:'.76rem',fontWeight:600,color:hasMat?subject.color:'#C0B8B0',marginTop:6,display:'flex',alignItems:'center',gap:4}}>
+                    Ava <i className="fa-solid fa-arrow-right" style={{fontSize:'.62rem'}}/>
+                  </div>
                 </button>
               );
             })}
