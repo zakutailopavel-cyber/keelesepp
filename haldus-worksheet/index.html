@@ -224,11 +224,21 @@ textarea{resize:vertical;line-height:1.45;}
 .btn-green:hover{background:#15803d;}
 
 /* RESIZABLE IMAGE */
-.img-resizable-wrap{position:relative;display:inline-block;max-width:100%;}
+.img-resizable-wrap{position:relative;display:inline-block;max-width:100%;line-height:0;}
 .img-resizable{display:block;max-width:100%;border-radius:6px;border:1px solid rgba(28,43,58,.08);}
-.img-resize-handle{position:absolute;right:-5px;bottom:-5px;width:16px;height:16px;background:#2F5D50;border-radius:3px;cursor:se-resize;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s;}
-.img-resizable-wrap:hover .img-resize-handle{opacity:1;}
-.img-resize-handle::after{content:'';width:8px;height:8px;border-right:2px solid #fff;border-bottom:2px solid #fff;}
+.img-resize-handle{
+  position:absolute;right:4px;bottom:4px;
+  width:18px;height:18px;
+  background:#2F5D50;border-radius:4px;
+  cursor:se-resize;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;transition:opacity .15s;
+  z-index:10;
+  /* Prevent handle from being dragged with the image */
+  touch-action:none;
+}
+.img-resizable-wrap:hover .img-resize-handle{opacity:.9;}
+.img-resize-handle::after{content:'⤡';color:#fff;font-size:.7rem;line-height:1;}
 </style>
 </head>
 <body>
@@ -535,23 +545,33 @@ function parseFill(text) {
 }
 
 // ── RESIZABLE IMAGE ───────────────────────────────────────────
-function ResizableImage({src,caption,initWidth,onResize}) {
+function ResizableImage({src,caption,initWidth,onResize,overlayText,onTextChange}) {
   const[width,setWidth]=useState(initWidth||null);
-  const startRef=useRef(null);
+  const[resizing,setResizing]=useState(false);
   const wrapRef=useRef(null);
+  const startDataRef=useRef(null); // store startX and startW at mousedown
 
   const onMouseDown=e=>{
     e.preventDefault();
+    e.stopPropagation();
     const startX=e.clientX;
     const startW=wrapRef.current?.offsetWidth||300;
+    startDataRef.current={startX,startW};
+    setResizing(true);
+
     const onMove=ev=>{
+      ev.preventDefault();
+      const{startX,startW}=startDataRef.current;
       const newW=Math.max(60,Math.min(700,startW+(ev.clientX-startX)));
       setWidth(newW);
     };
     const onUp=ev=>{
+      const{startX,startW}=startDataRef.current;
       const newW=Math.max(60,Math.min(700,startW+(ev.clientX-startX)));
       setWidth(newW);
       onResize&&onResize(newW);
+      setResizing(false);
+      startDataRef.current=null;
       document.removeEventListener('mousemove',onMove);
       document.removeEventListener('mouseup',onUp);
     };
@@ -565,11 +585,38 @@ function ResizableImage({src,caption,initWidth,onResize}) {
 
   return(
     <div>
-      <div ref={wrapRef} className="img-resizable-wrap" style={{width:width?width+'px':'100%'}}>
-        <img src={src} alt={caption||''} className="img-resizable" style={{width:'100%',height:'auto',objectFit:'contain'}}/>
-        <div className="img-resize-handle" onMouseDown={onMouseDown} title="Lohista suuruse muutmiseks"/>
+      <div ref={wrapRef} className="img-resizable-wrap"
+        style={{width:width?width+'px':'100%',userSelect:resizing?'none':'auto'}}>
+        <img src={src} alt={caption||''} className="img-resizable"
+          style={{width:'100%',height:'auto',objectFit:'contain',display:'block'}}/>
+        {/* Overlay text on image */}
+        {overlayText&&<div style={{
+          position:'absolute',bottom:8,left:8,right:8,
+          background:'rgba(0,0,0,.55)',color:'#fff',
+          padding:'4px 8px',borderRadius:5,fontSize:'.8rem',lineHeight:1.4,
+          pointerEvents:'none'
+        }}>{overlayText}</div>}
+        {/* Resize handle — fixed position, does not move with cursor */}
+        <div
+          className="img-resize-handle"
+          onMouseDown={onMouseDown}
+          title="Lohista suuruse muutmiseks"
+          style={{cursor:resizing?'se-resize':'se-resize',background:resizing?'#C9882A':'#2F5D50'}}
+        />
       </div>
+      {/* Below-image text */}
       {caption&&<div style={{fontSize:'.72rem',color:'#718096',marginTop:4,fontStyle:'italic',textAlign:'center'}}>{caption}</div>}
+      {onTextChange!==undefined&&(
+        <div style={{marginTop:8}}>
+          <textarea
+            value={overlayText||''}
+            onChange={e=>onTextChange(e.target.value)}
+            placeholder="Lisa tekst pildi alla või peale (valikuline)..."
+            rows={2}
+            style={{width:'100%',fontSize:'.8rem',padding:'6px 8px',borderRadius:7,border:'1px solid rgba(28,43,58,.12)',resize:'vertical',fontFamily:'inherit'}}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -613,6 +660,8 @@ function PreviewBlock({block,index}) {
         caption={block.caption}
         initWidth={block.imgWidth||null}
         onResize={w=>onChange({...block,imgWidth:w})}
+        overlayText={block.overlayText||''}
+        onTextChange={t=>onChange({...block,overlayText:t})}
       />
     );
     if(block.type==='text') return(
