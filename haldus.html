@@ -165,6 +165,7 @@ function AuthScreen({onLogin}) {
   const [child,setChild] = useState('');
   const [parentTeacher,setParentTeacher] = useState('Pavel');
   const [code,setCode]   = useState('');
+  const [studentCardId,setStudentCardId] = useState('');
   const [err,setErr]     = useState('');
   const [info,setInfo]   = useState('');
   const [busy,setBusy]   = useState(false);
@@ -237,8 +238,45 @@ function AuthScreen({onLogin}) {
       const ud={role,displayName:name,email,childName:role==='parent'?child:'',preferredTeacher:role==='parent'?parentTeacher:'',createdAt:today()};
       await db.collection('users').doc(res.user.uid).set(ud);
       try{
-        await ensureStudentRecord(res.user, ud);
-        await ensureParentStudentRecords(res.user, ud);
+        if(ud.role==='student'){
+          // 1. If student provided their card ID — link directly
+          if(studentCardId){
+            const cardSnap = await db.collection('students').doc(studentCardId).get();
+            if(cardSnap.exists){
+              await db.collection('students').doc(studentCardId).update({
+                studentUid: res.user.uid,
+                linkedUserId: res.user.uid,
+                email: email||cardSnap.data().email||'',
+                updatedAt: today()
+              });
+              console.log('Linked by ID to card:', studentCardId);
+            } else {
+              // ID not found — create new
+              await ensureStudentRecord(res.user, ud);
+            }
+          } else {
+            // 2. Try to find existing card by email or name
+            const existingByEmail = email ? await db.collection('students').where('email','==',email).limit(1).get() : {empty:true};
+            const existingByName = name ? await db.collection('students').where('name','==',name.trim()).limit(1).get() : {empty:true};
+            const existingDoc = (!existingByEmail.empty && existingByEmail.docs[0])
+              || (!existingByName.empty && existingByName.docs[0])
+              || null;
+            if(existingDoc){
+              await db.collection('students').doc(existingDoc.id).update({
+                studentUid: res.user.uid,
+                linkedUserId: res.user.uid,
+                email: email||existingDoc.data().email||'',
+                updatedAt: today()
+              });
+              console.log('Auto-linked to existing card:', existingDoc.id);
+            } else {
+              await ensureStudentRecord(res.user, ud);
+            }
+          }
+        } else {
+          await ensureStudentRecord(res.user, ud);
+          await ensureParentStudentRecords(res.user, ud);
+        }
       }catch(syncErr){
         console.warn('Profile sync after registration failed:', syncErr);
       }
@@ -298,6 +336,14 @@ function AuthScreen({onLogin}) {
               <select value={parentTeacher} onChange={e=>setParentTeacher(e.target.value)}>
                 {TEACHERS.map(t=><option key={t} value={t}>Õpetaja: {t}</option>)}
               </select>
+            </>}
+            {role==='student'&&<>
+              <input value={studentCardId} onChange={e=>setStudentCardId(e.target.value.trim())}
+                placeholder="Õpilase ID (valikuline — kui sul on olemas)"
+                style={{fontFamily:'monospace',fontSize:'.85rem'}}/>
+              {studentCardId&&<div style={{fontSize:'.75rem',color:'#2F5D50',padding:'4px 8px',background:'rgba(47,93,80,.08)',borderRadius:8}}>
+                ✓ Konto seotakse olemasoleva õpilase kaardiga
+              </div>}
             </>}
             {(role==='teacher'||role==='admin')&&<input value={code} onChange={e=>setCode(e.target.value)} placeholder={role==='admin'?'Administraatori kutse-kood *':'Õpetaja kutse-kood *'}/>}
           </>}
