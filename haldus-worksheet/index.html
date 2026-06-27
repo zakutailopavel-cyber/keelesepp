@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>KeeleSepp — Tööleht</title>
+<title>KeeleSepp — Õppekava & Harjutused</title>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
@@ -21,1311 +21,1148 @@
         appId:"1:674098517935:web:e73d04a4ada67874da015a"
       });
     }
-    window._auth=firebase.auth();
     window._db=firebase.firestore();
+    window._auth=firebase.auth();
     window._storage=firebase.storage();
-  }catch(e){console.error(e);}
+  }catch(e){console.error('Firebase:',e);}
 })();
 </script>
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="/haldus.css">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'IBM Plex Sans',sans-serif;background:#EEECE7;color:#1C2B3A;min-height:100vh;overflow-x:hidden;}
+body{font-family:'IBM Plex Sans',sans-serif;background:#EEECE7;color:#1C2B3A;min-height:100vh;}
 
 /* HEADER */
-.hdr{background:#1C2B3A;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(0,0,0,.2);}
-.logo{font-family:'Fraunces',serif;font-size:1.3rem;font-weight:700;color:#fff;}
+.top-header{background:#1C2B3A;height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.18);}
+.logo{font-family:'Fraunces',Georgia,serif;font-size:1.45rem;font-weight:700;color:#fff;letter-spacing:-.01em;}
 .logo span{color:#C9882A;}
 
-/* LAYOUT */
-.workspace{display:grid;grid-template-columns:320px minmax(0,1fr);height:calc(100vh - 56px);overflow:hidden;}
+/* TOP NAV TABS */
+.top-tabs{background:#fff;border-bottom:1px solid rgba(28,43,58,.1);display:flex;padding:0 28px;gap:2px;}
+.top-tab{padding:0 24px;height:52px;font-size:.88rem;font-weight:700;cursor:pointer;border:none;background:none;color:#718096;border-bottom:3px solid transparent;transition:all .15s;display:flex;align-items:center;gap:8px;}
+.top-tab:hover{color:#1C2B3A;}
+.top-tab.active{color:#1C2B3A;border-bottom-color:#C9882A;}
+.top-tab .tab-count{background:rgba(28,43,58,.08);color:#42536A;font-size:.68rem;padding:2px 7px;border-radius:20px;font-weight:800;}
+.top-tab.active .tab-count{background:#C9882A;color:#fff;}
 
-/* LEFT PANEL */
-.left-panel{background:#F5F4F0;border-right:1px solid rgba(28,43,58,.1);display:flex;flex-direction:column;overflow:hidden;}
-.left-tabs{display:flex;border-bottom:1px solid rgba(28,43,58,.1);background:#fff;}
-.ltab{flex:1;padding:11px 6px;font-size:.76rem;font-weight:700;cursor:pointer;border:none;background:none;color:#718096;border-bottom:2px solid transparent;transition:all .12s;display:flex;align-items:center;justify-content:center;gap:5px;}
-.ltab.active{color:#1C2B3A;border-bottom-color:#C9882A;}
-.left-scroll{flex:1;overflow-y:auto;padding:12px;}
+/* BREADCRUMB */
+.bc{max-width:1300px;margin:0 auto;padding:18px 28px 0;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.bc-link{font-size:.8rem;color:#718096;cursor:pointer;font-weight:600;transition:color .12s;}
+.bc-link:hover{color:#2F5D50;}
+.bc-sep{color:rgba(28,43,58,.2);font-size:.72rem;}
+.bc-cur{font-size:.8rem;color:#1C2B3A;font-weight:700;}
 
-/* BLOCK TYPE GRID */
-.btype-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px;}
-.btype-btn{padding:9px 8px;border-radius:9px;border:0.5px solid rgba(28,43,58,.12);background:#fff;cursor:pointer;font-size:.75rem;font-weight:600;color:#1C2B3A;display:flex;align-items:center;gap:6px;transition:all .13s;}
-.btype-btn:hover{border-color:#2F5D50;background:rgba(47,93,80,.05);color:#2F5D50;}
-.btype-icon{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.68rem;flex-shrink:0;}
+/* SUBJECT CARDS */
+.subject-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;max-width:1000px;margin:0 auto;padding:40px 28px 60px;}
+@media(max-width:900px){.subject-grid{grid-template-columns:1fr;}}
+.subj-card{border:0.5px solid transparent;border-radius:20px;overflow:hidden;cursor:pointer;transition:all .22s;display:flex;flex-direction:column;}
+.subj-card:hover{transform:translateY(-4px);box-shadow:0 14px 44px rgba(28,43,58,.11);}
+.subj-head{padding:36px 30px 26px;flex:1;}
+.subj-icon-wrap{width:54px;height:54px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:22px;}
+.subj-name{font-size:1.35rem;font-weight:600;margin-bottom:8px;color:#1C2B3A;}
+.subj-sub{font-size:.81rem;color:#7A7167;line-height:1.6;margin-bottom:20px;}
+.subj-pills{display:flex;gap:6px;flex-wrap:wrap;}
+.subj-pill{font-size:.7rem;font-weight:600;padding:3px 10px;border-radius:20px;}
+.subj-bar{height:4px;}
+.subj-foot{padding:16px 30px;display:flex;align-items:center;justify-content:space-between;font-size:.78rem;}
+.subj-foot-count{color:#7A7167;}
+.subj-foot-link{font-weight:600;display:flex;align-items:center;gap:4px;}
 
-/* BLOCK LIST ITEMS */
-.block-item{background:#fff;border:0.5px solid rgba(28,43,58,.1);border-radius:10px;margin-bottom:6px;cursor:pointer;transition:all .13s;user-select:none;}
-.block-item:hover{border-color:rgba(28,43,58,.2);}
-.block-item.active{border-color:#2F5D50;box-shadow:0 0 0 2px rgba(47,93,80,.1);}
-.block-item.dragging{opacity:.4;border-style:dashed;}
-.block-item.drag-over{border-color:#C9882A;background:rgba(201,136,42,.05);}
-.bi-head{display:flex;align-items:center;gap:6px;padding:9px 10px 8px;}
-.bi-drag{color:rgba(28,43,58,.2);font-size:.6rem;cursor:grab;padding:0 2px;flex-shrink:0;}
-.bi-drag:hover{color:#718096;}
-.bi-tag{font-size:.67rem;font-weight:700;padding:2px 7px;border-radius:5px;display:flex;align-items:center;gap:3px;}
-.bi-preview{font-size:.72rem;color:#7A7167;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;}
-.bi-actions{display:flex;gap:2px;flex-shrink:0;}
-.bi-btn{background:none;border:none;cursor:pointer;color:#B0A898;font-size:.68rem;padding:3px 4px;border-radius:5px;}
-.bi-btn:hover{color:#2F5D50;background:rgba(47,93,80,.1);}
-.bi-btn.del:hover{color:#dc2626;background:rgba(220,38,38,.07);}
+/* LEVEL CHIPS */
+.level-wrap{max-width:1000px;margin:0 auto;padding:32px 28px 60px;}
+.level-title{font-size:1.1rem;font-weight:600;margin-bottom:22px;display:flex;align-items:center;gap:10px;color:#7A7167;}
+.level-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;}
+.level-chip{padding:28px 24px 24px;border-radius:18px;border:0.5px solid rgba(28,43,58,.1);background:#fff;cursor:pointer;font-weight:600;font-size:1.1rem;color:#1C2B3A;transition:all .2s;display:flex;flex-direction:column;align-items:flex-start;gap:10px;}
+.level-chip:hover{transform:translateY(-3px);box-shadow:0 12px 36px rgba(28,43,58,.11);}
+.lc-cnt{font-size:.72rem;font-weight:600;padding:3px 9px;border-radius:8px;}
 
-/* BLOCK EDITOR */
-.block-editor{padding:8px 10px 10px;border-top:0.5px solid rgba(28,43,58,.07);}
-.field-lbl{font-size:.66rem;font-weight:700;color:#7A7167;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;margin-top:8px;}
-.field-lbl:first-child{margin-top:0;}
-input[type=text],input[type=number],textarea,select{width:100%;padding:7px 9px;border-radius:8px;border:1px solid rgba(28,43,58,.12);background:#FAFAF8;font-family:inherit;font-size:.82rem;color:#1C2B3A;outline:none;}
-input:focus,textarea:focus,select:focus{border-color:#2F5D50;background:#fff;}
-textarea{resize:vertical;line-height:1.45;}
+/* CONTENT SHELL */
+.content-shell{max-width:1300px;margin:0 auto;padding:0 28px 60px;display:grid;grid-template-columns:250px minmax(0,1fr);gap:22px;align-items:start;}
+@media(max-width:960px){.content-shell{grid-template-columns:1fr;}}
 
-/* SIZE SELECTOR */
-.size-btns{display:flex;gap:5px;margin-bottom:2px;}
-.size-btn{padding:4px 10px;border-radius:7px;border:1px solid rgba(28,43,58,.12);background:#fff;cursor:pointer;font-size:.72rem;font-weight:600;color:#718096;transition:all .12s;}
-.size-btn.active{background:#2F5D50;border-color:#2F5D50;color:#fff;}
+/* SIDEBAR */
+.sidebar{background:#FAFAF8;border:0.5px solid rgba(28,43,58,.1);border-radius:16px;overflow:hidden;position:sticky;top:74px;}
+.sidebar-section{padding:14px 14px 10px;}
+.sidebar-label{font-size:.68rem;font-weight:800;color:#718096;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;padding:0 4px;}
+.sidebar-btn{width:100%;text-align:left;padding:9px 12px;border-radius:10px;border:none;background:none;cursor:pointer;font-size:.84rem;font-weight:600;color:#1C2B3A;display:flex;align-items:center;justify-content:space-between;transition:all .12s;margin-bottom:2px;}
+.sidebar-btn:hover{background:rgba(47,93,80,.07);}
+.sidebar-btn.active{background:rgba(47,93,80,.12);color:#2F5D50;font-weight:800;}
+.sidebar-btn .sb-count{font-size:.7rem;font-weight:700;color:#718096;background:rgba(28,43,58,.06);padding:2px 7px;border-radius:6px;}
+.sidebar-btn.active .sb-count{color:#2F5D50;background:rgba(47,93,80,.15);}
+.sidebar-divider{height:1px;background:rgba(28,43,58,.07);margin:6px 0;}
+.sidebar-btn:hover+.topic-actions,.topic-actions:hover,.sidebar-btn:focus-within+.topic-actions{opacity:1!important;}
+div:hover>.topic-actions{opacity:1!important;}
 
-/* COLUMN TOGGLE */
-.col-btns{display:flex;gap:5px;margin-bottom:2px;}
-.col-btn{padding:4px 10px;border-radius:7px;border:1px solid rgba(28,43,58,.12);background:#fff;cursor:pointer;font-size:.72rem;font-weight:600;color:#718096;transition:all .12s;display:flex;align-items:center;gap:4px;}
-.col-btn.active{background:#1d4ed8;border-color:#1d4ed8;color:#fff;}
+/* EXAM SECTION IN SIDEBAR */
+.exam-sidebar-btn{width:100%;text-align:left;padding:9px 12px;border-radius:10px;border:none;cursor:pointer;font-size:.84rem;font-weight:700;display:flex;align-items:center;gap:9px;transition:all .12s;margin-bottom:2px;}
+.exam-sidebar-btn:hover{filter:brightness(.95);}
+.exam-sidebar-btn.active{filter:brightness(.9);}
 
-/* IMAGE UPLOAD in editor */
-.img-upload{border:1.5px dashed rgba(28,43,58,.18);border-radius:8px;padding:12px;text-align:center;cursor:pointer;transition:all .12s;background:rgba(28,43,58,.01);}
-.img-upload:hover{border-color:#C9882A;background:rgba(201,136,42,.04);}
-.img-upload input{display:none;}
-.img-thumb{width:100%;max-height:80px;object-fit:cover;border-radius:6px;margin-top:6px;}
+/* MAIN CONTENT */
+.main-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:20px;flex-wrap:wrap;}
+.main-title{font-size:1.25rem;font-weight:800;font-family:'Fraunces',serif;}
+.main-sub{font-size:.8rem;color:#718096;margin-top:3px;}
 
-/* RIGHT PANEL */
-.right-panel{overflow-y:auto;padding:24px 24px 40px;display:flex;flex-direction:column;align-items:center;background:#E8E6E1;}
+/* LESSON CARD */
+.lesson-card{background:#fff;border:0.5px solid rgba(28,43,58,.09);border-radius:14px;padding:18px 20px;margin-bottom:10px;display:flex;align-items:flex-start;gap:14px;transition:all .15s;}
+.lesson-card:hover{border-color:rgba(28,43,58,.18);box-shadow:0 4px 18px rgba(28,43,58,.07);}
+.lesson-icon{width:42px;height:42px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.lesson-body{flex:1;min-width:0;}
+.lesson-title{font-size:.96rem;font-weight:700;margin-bottom:3px;}
+.lesson-desc{font-size:.8rem;color:#718096;line-height:1.45;margin-bottom:8px;}
+.lesson-actions{display:flex;gap:6px;flex-shrink:0;align-items:flex-start;}
 
-/* A4 */
-.a4-sheet{width:794px;min-height:1123px;background:#fff;box-shadow:0 4px 40px rgba(0,0,0,.14);padding:64px 72px 72px;font-family:'IBM Plex Sans',sans-serif;color:#1C2B3A;flex-shrink:0;}
-@media(max-width:1150px){.a4-sheet{width:100%;padding:40px 32px;}}
+/* FILE CHIPS */
+.file-row{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px;}
+.file-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:8px;border:1px solid rgba(28,43,58,.1);background:#F9F8F6;font-size:.76rem;font-weight:600;color:#42536A;cursor:pointer;text-decoration:none;transition:all .12s;}
+.file-chip:hover{border-color:#C9882A;color:#A96E1A;background:rgba(201,136,42,.06);}
+.fi-ext{width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:.58rem;font-weight:800;color:#fff;flex-shrink:0;}
 
-.sheet-hdr{margin-bottom:24px;padding-bottom:14px;border-bottom:2px solid #1C2B3A;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;}
-.sheet-title{font-family:'Fraunces',serif;font-size:1.5rem;font-weight:700;margin-bottom:4px;}
-.sheet-meta-row{font-size:.77rem;color:#718096;display:flex;gap:14px;flex-wrap:wrap;}
-.score-box{border:1px solid #1C2B3A;border-radius:5px;padding:5px 12px;font-size:.78rem;font-weight:600;text-align:center;white-space:nowrap;}
+/* EXAM CARDS */
+.exam-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:16px;}
+@media(max-width:700px){.exam-grid{grid-template-columns:1fr;}}
+.exam-part-card{border-radius:16px;overflow:hidden;border:0.5px solid rgba(28,43,58,.1);cursor:pointer;transition:all .18s;background:#FAFAF8;}
+.exam-part-card:hover{transform:translateY(-3px);box-shadow:0 10px 32px rgba(28,43,58,.1);}
+.exam-part-head{padding:22px 22px 14px;}
+.exam-part-icon{width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin-bottom:14px;}
+.exam-part-title{font-size:1rem;font-weight:600;margin-bottom:4px;color:#1C2B3A;}
+.exam-part-sub{font-size:.76rem;color:#7A7167;line-height:1.4;}
+.exam-part-body{padding:0 22px 20px;display:flex;flex-direction:column;gap:8px;}
+.exam-item{background:#fff;border-radius:10px;padding:10px 14px;border:0.5px solid rgba(28,43,58,.09);cursor:pointer;transition:all .12s;}
+.exam-item:hover{border-color:rgba(28,43,58,.18);box-shadow:0 2px 8px rgba(28,43,58,.06);}
+.exam-item-name{font-size:.84rem;font-weight:700;color:#1C2B3A;margin-bottom:2px;}
+.exam-item-meta{font-size:.73rem;color:#718096;}
+.exam-item-files{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;}
 
-/* PREVIEW BLOCKS */
-.pb-wrap{margin-bottom:22px;}
-.pb-wrap.half{width:calc(50% - 8px);display:inline-block;vertical-align:top;margin-right:16px;}
-.pb-wrap.half:nth-child(2n){margin-right:0;}
-.pb-num-row{display:flex;align-items:center;gap:7px;margin-bottom:6px;}
-.pb-num{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#1C2B3A;color:#fff;font-size:.62rem;font-weight:800;flex-shrink:0;}
-.pb-type-lbl{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#718096;}
-.pb-instruction{font-size:.78rem;font-style:italic;color:#718096;margin-bottom:6px;}
+/* EMPTY */
+.empty{text-align:center;padding:56px 20px;color:#718096;}
+.empty i{font-size:2.2rem;margin-bottom:12px;opacity:.25;display:block;}
+.empty p{font-size:.86rem;max-width:260px;margin:0 auto 14px;line-height:1.5;}
 
-/* fill */
-.fill-line{font-size:.92rem;line-height:2.4;}
-.fill-blank{display:inline-block;min-width:80px;border-bottom:1.5px solid #1C2B3A;margin:0 3px;vertical-align:bottom;}
+/* UPLOAD ZONE */
+.upload-zone{border:2px dashed rgba(28,43,58,.16);border-radius:12px;padding:22px;text-align:center;cursor:pointer;transition:all .15s;background:rgba(28,43,58,.015);}
+.upload-zone:hover{border-color:#C9882A;background:rgba(201,136,42,.04);}
+.upload-zone input{display:none;}
 
-/* choice */
-.ch-q{font-size:.9rem;font-weight:600;margin-bottom:5px;}
-.ch-opts{padding-left:12px;margin-bottom:10px;}
-.ch-opt{font-size:.86rem;display:flex;align-items:center;gap:7px;margin-bottom:3px;}
-.ch-circle{width:13px;height:13px;border-radius:50%;border:1.5px solid #1C2B3A;flex-shrink:0;}
+/* MODAL */
+.modal-ov{position:fixed;inset:0;background:rgba(28,43,58,.5);display:flex;align-items:center;justify-content:center;padding:16px;z-index:200;backdrop-filter:blur(5px);}
+.modal-box{background:#FBFAF8;border-radius:20px;max-width:600px;width:100%;max-height:92vh;overflow-y:auto;display:flex;flex-direction:column;}
+.modal-head{padding:20px 24px 16px;border-bottom:1px solid rgba(28,43,58,.08);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#FBFAF8;z-index:2;}
+.modal-body{padding:20px 24px;display:flex;flex-direction:column;gap:14px;}
+.modal-foot{padding:14px 24px;border-top:1px solid rgba(28,43,58,.08);display:flex;gap:10px;justify-content:flex-end;position:sticky;bottom:0;background:#FBFAF8;}
 
-/* writing */
-.wr-task{font-size:.88rem;margin-bottom:9px;line-height:1.5;}
-.wr-line{height:26px;border-bottom:1px solid rgba(28,43,58,.15);}
+/* EXERCISE STYLES */
+.ex-card{background:#fff;border:1px solid rgba(28,43,58,.08);border-radius:14px;padding:18px 20px;transition:all .18s;}
+.ex-card:hover{border-color:#C9882A;transform:translateY(-1px);box-shadow:0 4px 16px rgba(28,43,58,.08);}
+.blank-input{border:none;border-bottom:2px solid #C9882A;background:transparent;padding:2px 6px;font-size:1rem;font-family:inherit;min-width:80px;outline:none;text-align:center;}
+.blank-input.correct{border-bottom-color:#166534;background:rgba(22,101,52,.07);}
+.blank-input.wrong{border-bottom-color:#991b1b;background:rgba(153,27,27,.07);}
+.choice-btn{width:100%;text-align:left;padding:11px 15px;border-radius:10px;border:1.5px solid rgba(28,43,58,.12);background:#fff;cursor:pointer;font-size:.88rem;font-family:inherit;transition:all .15s;margin-bottom:7px;}
+.choice-btn:hover{border-color:#C9882A;background:rgba(201,136,42,.05);}
+.choice-btn.selected{border-color:#C9882A;background:rgba(201,136,42,.1);font-weight:600;}
+.choice-btn.correct{border-color:#166534;background:rgba(22,101,52,.08);color:#166534;font-weight:700;}
+.choice-btn.wrong{border-color:#991b1b;background:rgba(153,27,27,.07);color:#991b1b;}
+.result-ok{background:#dcfce7;color:#166534;border-radius:10px;padding:13px 17px;font-weight:700;}
+.result-fail{background:#fee2e2;color:#991b1b;border-radius:10px;padding:13px 17px;font-weight:700;}
+.word-chip{display:inline-flex;align-items:center;padding:6px 11px;border-radius:8px;border:1.5px solid rgba(28,43,58,.14);background:#fff;cursor:grab;font-size:.86rem;font-family:inherit;margin:3px;user-select:none;transition:all .12s;}
+.word-chip:hover{border-color:#C9882A;}
+.word-chip.used{opacity:.32;cursor:not-allowed;}
+.word-chip.placed{background:rgba(47,93,80,.1);border-color:#2F5D50;cursor:pointer;}
+.drop-zone{min-height:42px;border:2px dashed rgba(28,43,58,.16);border-radius:10px;padding:6px 10px;display:flex;flex-wrap:wrap;gap:5px;align-items:center;background:rgba(28,43,58,.02);}
+.type-badge-fill{background:rgba(37,99,235,.1);color:#1d4ed8;}
+.type-badge-choice{background:rgba(124,58,237,.1);color:#6d28d9;}
+.type-badge-order{background:rgba(47,93,80,.1);color:#2F5D50;}
+.type-badge-writing{background:rgba(201,136,42,.12);color:#A96E1A;}
+.type-badge-reading{background:rgba(14,116,144,.1);color:#0e7490;}
+.type-badge-match{background:rgba(5,150,105,.1);color:#047857;}
+.type-badge-translate{background:rgba(219,39,119,.1);color:#be185d;}
 
-/* match */
-.match-cols{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
-.match-item{padding:6px 10px;border:1px solid rgba(28,43,58,.15);border-radius:5px;font-size:.85rem;margin-bottom:4px;}
-.match-answer-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
-.match-ans{font-size:.82rem;padding:3px 8px;border:1px solid rgba(28,43,58,.15);border-radius:4px;}
-
-/* order */
-.order-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
-.order-chip{padding:5px 12px;border:1.5px solid rgba(28,43,58,.18);border-radius:7px;font-size:.86rem;background:#FAFAF8;}
-.order-ans{border-bottom:1px solid rgba(28,43,58,.2);padding-bottom:2px;font-size:.8rem;color:#B0A898;margin-top:4px;}
-
-/* table */
-.ws-tbl{width:100%;border-collapse:collapse;font-size:.85rem;}
-.ws-tbl th{background:#F0EEE9;padding:6px 9px;border:1px solid rgba(28,43,58,.15);text-align:left;font-weight:700;}
-.ws-tbl td{padding:6px 9px;border:1px solid rgba(28,43,58,.15);height:28px;}
-
-/* text */
-.pb-text{font-size:.9rem;line-height:1.65;}
-
-/* image */
-.pb-img{width:100%;max-height:220px;object-fit:contain;border-radius:6px;margin-bottom:8px;border:1px solid rgba(28,43,58,.08);}
-
-/* reading */
-.pb-passage{background:#F9F8F6;border:1px solid rgba(28,43,58,.1);border-radius:6px;padding:11px 13px;margin-bottom:12px;font-size:.87rem;line-height:1.65;white-space:pre-wrap;}
-
-/* 2-COL LAYOUT WRAPPER */
-.two-col-preview{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
-
-/* DIVIDER */
-.pb-divider{border:none;border-top:1px dashed rgba(28,43,58,.12);margin:18px 0;}
-
-/* BUTTONS */
-.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:8px;font-family:inherit;font-weight:700;font-size:.8rem;cursor:pointer;border:none;transition:all .13s;}
+/* UTILITIES */
+.spinner{width:30px;height:30px;border:3px solid rgba(28,43,58,.1);border-top-color:#2F5D50;border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.notif{position:fixed;top:18px;right:18px;background:#1C2B3A;color:#fff;padding:11px 18px;border-radius:12px;z-index:500;font-weight:600;font-size:.86rem;box-shadow:0 8px 28px rgba(0,0,0,.22);}
+.sec-lbl{font-size:.7rem;font-weight:800;color:#718096;text-transform:uppercase;letter-spacing:.09em;margin-bottom:7px;}
+select,input:not([type=radio]):not([type=checkbox]),textarea{width:100%;padding:9px 12px;border-radius:10px;border:1.5px solid rgba(28,43,58,.12);background:#fff;font-family:inherit;font-size:.88rem;color:#1C2B3A;outline:none;}
+select:focus,input:focus,textarea:focus{border-color:#2F5D50;box-shadow:0 0 0 3px rgba(47,93,80,.1);}
+textarea{resize:vertical;line-height:1.5;}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 15px;border-radius:10px;font-family:inherit;font-weight:700;font-size:.83rem;cursor:pointer;border:none;transition:all .14s;}
 .btn-pine{background:#2F5D50;color:#fff;}
 .btn-pine:hover{background:#265048;}
 .btn-pine:disabled{opacity:.5;cursor:not-allowed;}
 .btn-ghost{background:rgba(28,43,58,.07);color:#42536A;border:1px solid rgba(28,43,58,.1);}
 .btn-ghost:hover{background:rgba(28,43,58,.12);}
-.btn-gold{background:#C9882A;color:#fff;}
-.btn-gold:hover{background:#b37624;}
-.btn-sm{padding:5px 10px;font-size:.75rem;}
+.btn-dark{background:#1C2B3A;color:#fff;}
+.btn-sm{padding:6px 12px;font-size:.77rem;}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:6px;font-size:.71rem;font-weight:700;}
 
-/* AI PANEL */
-.ai-panel{background:linear-gradient(135deg,#1C2B3A,#2F5D50);border-radius:11px;padding:14px;margin-bottom:12px;color:#fff;}
-.ai-title{font-size:.82rem;font-weight:700;margin-bottom:9px;display:flex;align-items:center;gap:6px;}
-.ai-textarea{width:100%;padding:8px 10px;border-radius:8px;border:none;background:rgba(255,255,255,.12);color:#fff;font-family:inherit;font-size:.8rem;outline:none;resize:vertical;min-height:60px;}
-.ai-textarea::placeholder{color:rgba(255,255,255,.4);}
-.ai-textarea:focus{background:rgba(255,255,255,.18);}
-.ai-lvl-btns{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;}
-.ai-lvl{padding:3px 9px;border-radius:6px;border:1px solid rgba(255,255,255,.22);background:transparent;color:rgba(255,255,255,.7);cursor:pointer;font-size:.72rem;font-weight:700;}
-.ai-lvl.active{background:rgba(255,255,255,.2);color:#fff;}
-
-/* META BOX */
-.meta-box{background:#fff;border:0.5px solid rgba(28,43,58,.1);border-radius:10px;padding:12px;margin-bottom:10px;}
-.meta-lbl{font-size:.66rem;font-weight:700;color:#7A7167;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;}
-
-/* SPINNER */
-.sp{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;display:inline-block;}
-.sp-dark{width:28px;height:28px;border:2.5px solid rgba(28,43,58,.1);border-top-color:#2F5D50;border-radius:50%;animation:spin .6s linear infinite;}
-@keyframes spin{to{transform:rotate(360deg);}}
-.toast{position:fixed;top:14px;right:14px;background:#1C2B3A;color:#fff;padding:9px 15px;border-radius:10px;z-index:500;font-weight:600;font-size:.82rem;box-shadow:0 8px 24px rgba(0,0,0,.22);}
-
-/* NUM BADGE */
-.nbadge{display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;border-radius:50%;background:#2F5D50;color:#fff;font-size:.6rem;font-weight:800;}
-
-/* EMPTY */
-.empty-bld{text-align:center;padding:32px 12px;color:#B0A898;}
-.empty-bld i{font-size:1.8rem;margin-bottom:8px;opacity:.25;display:block;}
-
-/* TOOLBAR ROW above A4 */
-.toolbar-row{display:flex;justify-content:flex-end;width:794px;margin-bottom:10px;gap:7px;align-items:center;}
-@media(max-width:1150px){.toolbar-row{width:100%;}}
-
-/* SAVE MODAL */
-.sav-ov{position:fixed;inset:0;background:rgba(28,43,58,.5);display:flex;align-items:center;justify-content:center;padding:16px;z-index:300;backdrop-filter:blur(4px);}
-.sav-box{background:#FBFAF8;border-radius:18px;max-width:480px;width:100%;padding:0;overflow:hidden;}
-.sav-head{padding:18px 22px 14px;border-bottom:1px solid rgba(28,43,58,.08);display:flex;justify-content:space-between;align-items:center;}
-.sav-body{padding:18px 22px;display:flex;flex-direction:column;gap:12px;}
-.sav-foot{padding:12px 22px;border-top:1px solid rgba(28,43,58,.08);display:flex;gap:8px;justify-content:flex-end;}
-.btn-green{background:#16a34a;color:#fff;}
-.btn-green:hover{background:#15803d;}
-
-/* SAVE MODAL */
-.sav-ov{position:fixed;inset:0;background:rgba(28,43,58,.5);display:flex;align-items:center;justify-content:center;padding:16px;z-index:300;backdrop-filter:blur(4px);}
-.sav-box{background:#FBFAF8;border-radius:18px;max-width:480px;width:100%;overflow:hidden;}
-.sav-head{padding:18px 22px 14px;border-bottom:1px solid rgba(28,43,58,.08);display:flex;justify-content:space-between;align-items:center;}
-.sav-body{padding:18px 22px;display:flex;flex-direction:column;gap:12px;}
-.sav-foot{padding:12px 22px;border-top:1px solid rgba(28,43,58,.08);display:flex;gap:8px;justify-content:flex-end;}
-.btn-green{background:#16a34a;color:#fff;}
-.btn-green:hover{background:#15803d;}
-
-/* RESIZABLE IMAGE */
-.img-resizable-wrap{position:relative;display:inline-block;max-width:100%;line-height:0;}
-.img-resizable{display:block;max-width:100%;border-radius:6px;border:1px solid rgba(28,43,58,.08);}
-.img-resize-handle{
-  position:absolute;right:4px;bottom:4px;
-  width:18px;height:18px;
-  background:#2F5D50;border-radius:4px;
-  cursor:se-resize;
-  display:flex;align-items:center;justify-content:center;
-  opacity:0;transition:opacity .15s;
-  z-index:10;
-  /* Prevent handle from being dragged with the image */
-  touch-action:none;
-}
-.img-resizable-wrap:hover .img-resize-handle{opacity:.9;}
-.img-resize-handle::after{content:'⤡';color:#fff;font-size:.7rem;line-height:1;}
+/* WORKSHEET PREVIEW MODAL */
+.ws-prev-ov{position:fixed;inset:0;background:rgba(28,43,58,.6);display:flex;align-items:center;justify-content:center;padding:16px;z-index:300;backdrop-filter:blur(5px);}
+.ws-prev-box{background:#E8E6E1;border-radius:20px;max-width:900px;width:100%;max-height:94vh;overflow-y:auto;display:flex;flex-direction:column;}
+.ws-prev-head{padding:16px 22px;background:#1C2B3A;border-radius:20px 20px 0 0;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:2;}
+.ws-prev-body{padding:24px;display:flex;justify-content:center;}
+.ws-a4{width:100%;max-width:720px;background:#fff;border-radius:12px;box-shadow:0 4px 32px rgba(0,0,0,.12);padding:48px 56px 56px;font-family:'IBM Plex Sans',sans-serif;color:#1C2B3A;}
+.ws-sheet-hdr{margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid #1C2B3A;display:flex;justify-content:space-between;align-items:flex-start;}
+.ws-sheet-title{font-size:1.4rem;font-weight:700;margin-bottom:4px;}
+.ws-sheet-meta{font-size:.75rem;color:#718096;display:flex;gap:12px;flex-wrap:wrap;}
+.ws-score-box{border:1px solid #1C2B3A;border-radius:5px;padding:4px 11px;font-size:.76rem;font-weight:600;white-space:nowrap;}
+.ws-pb{margin-bottom:20px;}
+.ws-pb-num{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#1C2B3A;color:#fff;font-size:.58rem;font-weight:800;margin-right:6px;}
+.ws-pb-lbl{font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#718096;}
+.ws-fill-line{font-size:.9rem;line-height:2.3;}
+.ws-blank{display:inline-block;min-width:70px;border-bottom:1.5px solid #1C2B3A;margin:0 3px;vertical-align:bottom;}
+.ws-choice-q{font-size:.88rem;font-weight:600;margin-bottom:4px;}
+.ws-choice-opt{display:flex;align-items:center;gap:7px;font-size:.84rem;margin:2px 0 2px 10px;}
+.ws-circle{width:12px;height:12px;border-radius:50%;border:1.5px solid #1C2B3A;flex-shrink:0;}
+.ws-wr-task{font-size:.86rem;margin-bottom:8px;line-height:1.5;}
+.ws-wr-line{height:24px;border-bottom:1px solid rgba(28,43,58,.15);}
+.ws-match-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.ws-match-item{padding:5px 9px;border:1px solid rgba(28,43,58,.15);border-radius:5px;font-size:.83rem;margin-bottom:4px;}
+.ws-chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;}
+.ws-chip{padding:4px 10px;border:1.5px solid rgba(28,43,58,.18);border-radius:6px;font-size:.84rem;}
+.ws-table{width:100%;border-collapse:collapse;font-size:.83rem;}
+.ws-table th{background:#F0EEE9;padding:6px 8px;border:1px solid rgba(28,43,58,.15);text-align:left;font-weight:700;}
+.ws-table td{padding:6px 8px;border:1px solid rgba(28,43,58,.15);height:26px;}
+.ws-passage{background:#F9F8F6;border:1px solid rgba(28,43,58,.1);border-radius:6px;padding:10px 12px;margin-bottom:10px;font-size:.85rem;line-height:1.65;white-space:pre-wrap;}
+.ws-divider{border:none;border-top:1px dashed rgba(28,43,58,.12);margin:16px 0;}
 </style>
 </head>
 <body>
-<div id="root"><div style="display:flex;align-items:center;justify-content:center;min-height:100vh"><div class="sp-dark"></div></div></div>
-
+<div id="root"><div style="display:flex;align-items:center;justify-content:center;min-height:100vh"><div class="spinner"></div></div></div>
 <script type="text/babel">
-const {useState,useEffect,useRef,useMemo,useCallback} = React;
-const auth=window._auth, db=window._db, storage=window._storage;
+const {useState,useEffect,useCallback,useMemo,useRef} = React;
+const db=window._db, auth=window._auth, storage=window._storage;
 
-const uid=()=>Math.random().toString(36).slice(2,9);
+const today=()=>new Date().toISOString().split('T')[0];
+const fmtDate=d=>d?new Date(d).toLocaleDateString('et-EE',{day:'2-digit',month:'2-digit',year:'numeric'}):'—';
+const normalizeText=t=>String(t||'').toLowerCase().trim().replace(/[àáâãäå]/g,'a').replace(/[èéêë]/g,'e').replace(/[ìíîï]/g,'i').replace(/[òóôõö]/g,'o').replace(/[ùúûü]/g,'u');
 
 // ── CONSTANTS ─────────────────────────────────────────────────
-const BTYPES=[
-  {key:'fill',    label:'Täida lünk',    icon:'fa-pen-line',          color:'#1d4ed8',bg:'rgba(29,78,216,.1)'},
-  {key:'choice',  label:'Vali vastus',   icon:'fa-list-check',        color:'#6d28d9',bg:'rgba(109,40,217,.1)'},
-  {key:'writing', label:'Kirjutamine',   icon:'fa-pen-nib',           color:'#A96E1A',bg:'rgba(169,110,26,.1)'},
-  {key:'match',   label:'Sobita paarid', icon:'fa-link',              color:'#047857',bg:'rgba(4,120,87,.1)'},
-  {key:'order',   label:'Järjesta sõnad',icon:'fa-shuffle',           color:'#2F5D50',bg:'rgba(47,93,80,.1)'},
-  {key:'table',   label:'Tabel',         icon:'fa-table',             color:'#0e7490',bg:'rgba(14,116,144,.1)'},
-  {key:'text',    label:'Tekst / juhis', icon:'fa-align-left',        color:'#718096',bg:'rgba(113,128,150,.1)'},
-  {key:'reading', label:'Lugemistekst',  icon:'fa-book-open-reader',  color:'#be185d',bg:'rgba(190,24,93,.1)'},
-  {key:'image',   label:'Pilt',          icon:'fa-image',             color:'#0f766e',bg:'rgba(15,118,110,.1)'},
+const SUBJECTS=[
+  {key:'Eesti keel',emoji:'🇪🇪',color:'#2F5D50',grad:'linear-gradient(90deg,#2F5D50,#5a9688)',
+   cardBg:'#F2F0EB',cardBorder:'#D9D4C8',iconBg:'rgba(47,93,80,.12)',pillBg:'rgba(47,93,80,.1)',pillColor:'#2F5D50',
+   levels:['A1','A2','B1','B2','C1'],
+   topics:['Minu pere','Igapäevaelu','Töö ja amet','Hobid ja vaba aeg','Toit ja tervis','Loodus ja ilm','Eesti kultuur','Reisimine','Grammatika']},
+  {key:'Inglise keel',emoji:'🇬🇧',color:'#1d4ed8',grad:'linear-gradient(90deg,#1d4ed8,#5b82e8)',
+   cardBg:'#EEF0F4',cardBorder:'#CDD2DC',iconBg:'rgba(29,78,216,.1)',pillBg:'rgba(29,78,216,.1)',pillColor:'#1d4ed8',
+   levels:['A1','A2','B1','B2','C1','C2'],
+   topics:['My family','Daily life','Work & jobs','Hobbies','Food & health','Travel','British culture','Grammar']},
+  {key:'Matemaatika',emoji:'📐',color:'#A96E1A',grad:'linear-gradient(90deg,#A96E1A,#C9882A)',
+   cardBg:'#F4F0E8',cardBorder:'#DDD5C0',iconBg:'rgba(169,110,26,.12)',pillBg:'rgba(169,110,26,.1)',pillColor:'#A96E1A',
+   levels:Array.from({length:12},(_,i)=>`${i+1}. klass`),
+   topics:['Arvud','Algebra','Geomeetria','Võrrandid','Funktsioonid','Tekstülesanded','Statistika']},
 ];
-const BT=Object.fromEntries(BTYPES.map(b=>[b.key,b]));
 
-const mkBlock=type=>{
-  const base={id:uid(),type,instruction:'',size:'full',cols:1,imageUrl:'',imagePos:'top',label:''};
-  if(type==='fill')    return{...base,text:'Mina [elan] Tallinnas ja [töötan] koolis.'};
-  if(type==='choice')  return{...base,questions:[{q:'Mis on Eesti pealinn?',opts:['Tallinn','Tartu','Pärnu','Narva'],correct:0}]};
-  if(type==='writing') return{...base,task:'Kirjuta lühike tekst teemal "Minu pere" (50–80 sõna).',lines:8};
-  if(type==='match')   return{...base,pairs:[{l:'koer',r:'dog'},{l:'kass',r:'cat'},{l:'lind',r:'bird'},{l:'kala',r:'fish'}]};
-  if(type==='order')   return{...base,sentence:'Ma armastan õppida eesti keelt'};
-  if(type==='table')   return{...base,headers:['Sõna','Tõlge','Näide'],rows:4};
-  if(type==='text')    return{...base,content:'',bold:false};
-  if(type==='reading') return{...base,passage:'Sisesta lugemistekst...',questions:[{q:'',opts:['','','',''],correct:0}]};
-  if(type==='image')   return{...base,caption:'',imageUrl:''};
-  return base;
+const LESSON_TYPES={
+  lesson:{label:'Tund',icon:'fa-book',color:'#2F5D50',bg:'rgba(47,93,80,.1)'},
+  test:{label:'Test',icon:'fa-clipboard-check',color:'#1d4ed8',bg:'rgba(37,99,235,.1)'},
+  hw:{label:'Kodutöö',icon:'fa-house',color:'#A96E1A',bg:'rgba(169,110,26,.1)'},
+  material:{label:'Materjal',icon:'fa-file-lines',color:'#6d28d9',bg:'rgba(109,40,217,.1)'},
 };
 
-// ── IMAGE UPLOADER ────────────────────────────────────────────
-function ImgUploader({value,onChange}) {
+const EXAM_PARTS=[
+  {key:'kirjutamine',label:'Kirjutamine',icon:'✍️',color:'#A96E1A',
+   nudeBg:'rgba(169,110,26,.1)',bg:'#F4F0E8',border:'#DDD5C0',
+   desc:'Kirjalikud ülesanded ja esseed'},
+  {key:'kuulamine',label:'Kuulamine',icon:'🎧',color:'#0e7490',
+   nudeBg:'rgba(14,116,144,.1)',bg:'#EDF4F6',border:'#C0D8DF',
+   desc:'Kuulamisülesanded ja testid'},
+  {key:'lugemine',label:'Lugemine',icon:'📖',color:'#2F5D50',
+   nudeBg:'rgba(47,93,80,.1)',bg:'#EFF4F2',border:'#C4D9D3',
+   desc:'Lugemistekstid ja -harjutused'},
+  {key:'rääkimine',label:'Rääkimine',icon:'🗣️',color:'#6d28d9',
+   nudeBg:'rgba(109,40,217,.08)',bg:'#F2EFF9',border:'#D5CAEF',
+   desc:'Kõneülesanded ja dialoogid'},
+];
+
+const EX_TYPES={
+  fill:{label:'Täida lünk',icon:'fa-pen-line',badge:'type-badge-fill',color:'#1d4ed8'},
+  choice:{label:'Vali vastus',icon:'fa-list-check',badge:'type-badge-choice',color:'#6d28d9'},
+  order:{label:'Koosta lause',icon:'fa-shuffle',badge:'type-badge-order',color:'#2F5D50'},
+  writing:{label:'Kirjutamine',icon:'fa-wand-magic-sparkles',badge:'type-badge-writing',color:'#A96E1A'},
+  reading:{label:'Lugemine',icon:'fa-book-open-reader',badge:'type-badge-reading',color:'#0e7490'},
+  match:{label:'Sobita paarid',icon:'fa-link',badge:'type-badge-match',color:'#047857'},
+  translate:{label:'Tõlkimine',icon:'fa-language',badge:'type-badge-translate',color:'#be185d'},
+};
+
+const EXT_COLORS={pdf:'#dc2626',docx:'#1d4ed8',doc:'#1d4ed8',xlsx:'#166534',xls:'#166534',pptx:'#ea580c',ppt:'#ea580c',jpg:'#0e7490',jpeg:'#0e7490',png:'#0e7490',mp3:'#7c3aed',mp4:'#7c3aed'};
+
+// ── UTILS ─────────────────────────────────────────────────────
+function FileChip({file}){
+  const ext=(file.name||'').split('.').pop().toLowerCase();
+  return(
+    <a href={file.url} target="_blank" rel="noreferrer" className="file-chip">
+      <span className="fi-ext" style={{background:EXT_COLORS[ext]||'#42536A'}}>{ext.slice(0,3).toUpperCase()}</span>
+      <span style={{maxWidth:130,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{file.name}</span>
+      <i className="fa-solid fa-arrow-up-right-from-square" style={{fontSize:'.6rem',opacity:.45,marginLeft:2}}/>
+    </a>
+  );
+}
+
+function FileUploader({onUpload,uploading,setUploading}){
   const ref=useRef();
-  const[busy,setBusy]=useState(false);
-  const[err,setErr]=useState('');
-
-  const handle=async file=>{
-    if(!file)return;
-    if(file.size>8*1024*1024){setErr('Pilt on liiga suur (max 8MB)');return;}
-    setBusy(true);setErr('');
-    try{
-      const r=storage.ref(`worksheet/${Date.now()}_${file.name}`);
-      await r.put(file);
-      const url=await r.getDownloadURL();
-      onChange(url);
-    }catch(e){
-      console.warn('Storage failed, using base64:', e.message);
-      const reader=new FileReader();
-      reader.onload=ev=>{onChange(ev.target.result);};
-      reader.onerror=()=>setErr('Pildi laadimine ebaõnnestus');
-      reader.readAsDataURL(file);
+  const[progress,setProgress]=useState(0);
+  const handle=async files=>{
+    if(!files||!files.length)return;
+    setUploading(true);
+    const results=[];
+    for(const file of files){
+      const r=storage.ref(`curriculum/${Date.now()}_${file.name}`);
+      const task=r.put(file);
+      await new Promise((res,rej)=>task.on('state_changed',
+        s=>setProgress(Math.round(s.bytesTransferred/s.totalBytes*100)),rej,
+        async()=>{const url=await r.getDownloadURL();results.push({name:file.name,url,size:file.size,type:file.type});res();}
+      ));
     }
-    setBusy(false);
+    setUploading(false);setProgress(0);onUpload(results);
   };
-
   return(
-    <div>
-      <div className="img-upload" onClick={()=>ref.current?.click()}>
-        <input ref={ref} type="file" accept="image/*" onChange={e=>handle(e.target.files[0])}/>
-        {busy
-          ?<div style={{padding:'14px 0',textAlign:'center'}}>
-             <div className="sp-dark" style={{margin:'0 auto 6px'}}/>
-             <div style={{fontSize:'.72rem',color:'#7A7167'}}>Laeb pilti...</div>
-           </div>
-          :value
-            ?<img src={value} className="img-thumb" alt=""/>
-            :<div>
-               <i className="fa-solid fa-image" style={{fontSize:'1.4rem',color:'#B0A898',marginBottom:4,display:'block'}}/>
-               <div style={{fontSize:'.75rem',color:'#1C2B3A',fontWeight:600}}>Klõpsa pildi lisamiseks</div>
-               <div style={{fontSize:'.68rem',color:'#7A7167',marginTop:2}}>JPG, PNG, GIF — kuni 5MB</div>
-             </div>}
-      </div>
-      {err&&<div style={{fontSize:'.72rem',color:'#dc2626',marginTop:4,padding:'4px 7px',background:'rgba(220,38,38,.07)',borderRadius:5}}>{err}</div>}
-      {value&&<button onClick={()=>{onChange('');setErr('');}} style={{background:'none',border:'none',color:'#dc2626',cursor:'pointer',fontSize:'.72rem',marginTop:4,display:'flex',alignItems:'center',gap:4}}>
-        <i className="fa-solid fa-trash" style={{fontSize:'.65rem'}}/> Eemalda pilt
-      </button>}
+    <div className="upload-zone" onDrop={e=>{e.preventDefault();handle(e.dataTransfer.files);}} onDragOver={e=>e.preventDefault()} onClick={()=>ref.current?.click()}>
+      <input ref={ref} type="file" multiple onChange={e=>handle(e.target.files)}/>
+      {uploading
+        ?<div><div className="spinner" style={{margin:'0 auto 8px'}}/><div style={{fontSize:'.8rem',color:'#718096'}}>Laadimine... {progress}%</div></div>
+        :<div><i className="fa-solid fa-cloud-arrow-up" style={{fontSize:'1.5rem',color:'#718096',marginBottom:7,display:'block'}}/><div style={{fontWeight:700,color:'#1C2B3A',marginBottom:3}}>Lohista failid siia</div><div style={{fontSize:'.76rem',color:'#718096'}}>PDF, Word, PPT, pildid, helifailid</div></div>}
     </div>
   );
 }
 
-// ── BLOCK EDITORS ─────────────────────────────────────────────
-function FillEd({b,upd}) {
-  return(<>
-    <div className="field-lbl">Tekst (vastused nurksulgudes [vastus])</div>
-    <textarea value={b.text} onChange={e=>upd({text:e.target.value})} rows={4} placeholder="Ma [elan] Tallinnas."/>
-    <div style={{fontSize:'.7rem',color:'#718096',marginTop:4,padding:'5px 7px',background:'rgba(29,78,216,.06)',borderRadius:6}}>
-      Süntaks: <code>Ma [elan] koolis.</code>
-    </div>
-  </>);
-}
-
-function ChoiceEd({b,upd}) {
-  const qs=b.questions||[];
-  const uQ=(i,p)=>upd({questions:qs.map((q,j)=>j===i?{...q,...p}:q)});
-  return(<>
-    {qs.map((q,i)=>(
-      <div key={i} style={{marginBottom:8,padding:9,borderRadius:8,background:'#F9F8F6',border:'0.5px solid rgba(28,43,58,.1)'}}>
-        <div style={{display:'flex',justifyContent:'space-between',marginBottom:6}}>
-          <span style={{fontSize:'.7rem',fontWeight:700,color:'#718096'}}>Küsimus {i+1}</span>
-          {qs.length>1&&<button onClick={()=>upd({questions:qs.filter((_,j)=>j!==i)})} style={{background:'none',border:'none',color:'#dc2626',cursor:'pointer',fontSize:'.7rem'}}>✕</button>}
-        </div>
-        <input value={q.q} onChange={e=>uQ(i,{q:e.target.value})} placeholder="Küsimus..." style={{marginBottom:5}}/>
-        {q.opts.map((o,oi)=>(
-          <div key={oi} style={{display:'flex',gap:5,alignItems:'center',marginBottom:4}}>
-            <input type="radio" checked={q.correct===oi} onChange={()=>uQ(i,{correct:oi})} style={{width:13,height:13,cursor:'pointer',flexShrink:0}}/>
-            <input value={o} onChange={e=>uQ(i,{opts:q.opts.map((x,k)=>k===oi?e.target.value:x)})}
-              placeholder={`Variant ${oi+1}`} style={{borderColor:q.correct===oi?'#2F5D50':'rgba(28,43,58,.12)'}}/>
-          </div>
-        ))}
-      </div>
-    ))}
-    <button onClick={()=>upd({questions:[...qs,{q:'',opts:['','','',''],correct:0}]})}
-      className="btn btn-ghost btn-sm" style={{width:'100%'}}>
-      <i className="fa-solid fa-plus"/> Lisa küsimus
-    </button>
-  </>);
-}
-
-function WritingEd({b,upd}) {
-  return(<>
-    <div className="field-lbl">Ülesande kirjeldus</div>
-    <textarea value={b.task} onChange={e=>upd({task:e.target.value})} rows={3}/>
-    <div className="field-lbl">Ridade arv: {b.lines||6}</div>
-    <input type="range" min={2} max={20} value={b.lines||6} onChange={e=>upd({lines:+e.target.value})} style={{width:'100%'}}/>
-  </>);
-}
-
-function MatchEd({b,upd}) {
-  const p=b.pairs||[];
-  return(<>
-    {p.map((pair,i)=>(
-      <div key={i} style={{display:'grid',gridTemplateColumns:'1fr 1fr auto',gap:5,marginBottom:5,alignItems:'center'}}>
-        <input value={pair.l} onChange={e=>upd({pairs:p.map((x,j)=>j===i?{...x,l:e.target.value}:x)})} placeholder="Vasak"/>
-        <input value={pair.r} onChange={e=>upd({pairs:p.map((x,j)=>j===i?{...x,r:e.target.value}:x)})} placeholder="Parem"/>
-        <button onClick={()=>upd({pairs:p.filter((_,j)=>j!==i)})} disabled={p.length<=2}
-          style={{background:'none',border:'none',cursor:'pointer',color:'#dc2626',fontSize:'.72rem',padding:'0 3px'}}>✕</button>
-      </div>
-    ))}
-    <button onClick={()=>upd({pairs:[...p,{l:'',r:''}]})} className="btn btn-ghost btn-sm" style={{width:'100%',marginTop:3}}>
-      <i className="fa-solid fa-plus"/> Lisa paar
-    </button>
-  </>);
-}
-
-function OrderEd({b,upd}) {
-  return(<>
-    <div className="field-lbl">Lause õiges järjekorras</div>
-    <input value={b.sentence} onChange={e=>upd({sentence:e.target.value})} placeholder="Ma armastan eesti keelt"/>
-    <div style={{fontSize:'.7rem',color:'#718096',marginTop:4}}>Sõnad kuvatakse segamini</div>
-  </>);
-}
-
-function TableEd({b,upd}) {
-  const hdrs=(b.headers||['','','']).map(h=>h.trim()).filter(Boolean);
-  const cellData=b.cellData||{};
-  const setCell=(r,c,v)=>{
-    const key=r+','+c;
-    upd({cellData:{...cellData,[key]:v}});
-  };
-  return(<>
-    <div className="field-lbl">Veeru päised (komaga)</div>
-    <input value={(b.headers||[]).join(',')} onChange={e=>upd({headers:e.target.value.split(',')})} placeholder="Sõna,Tõlge,Näide" style={{marginBottom:8}}/>
-    <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:6}}>
-      <div className="field-lbl" style={{margin:0}}>Ridade arv: {b.rows||4}</div>
-      <input type="range" min={2} max={15} value={b.rows||4} onChange={e=>upd({rows:+e.target.value})} style={{flex:1}}/>
-    </div>
-    <div className="field-lbl">Eeltäida lahtrid (valikuline)</div>
-    <div style={{overflowX:'auto'}}>
-      <table style={{width:'100%',borderCollapse:'collapse',fontSize:'.78rem'}}>
-        <thead>
-          <tr>{hdrs.map((h,ci)=><th key={ci} style={{padding:'4px 6px',border:'1px solid rgba(28,43,58,.15)',background:'#F0EEE9',fontWeight:700,textAlign:'left'}}>{h}</th>)}</tr>
-        </thead>
-        <tbody>
-          {Array.from({length:b.rows||4}).map((_,ri)=>(
-            <tr key={ri}>{hdrs.map((_,ci)=>(
-              <td key={ci} style={{padding:2,border:'1px solid rgba(28,43,58,.12)'}}>
-                <input value={cellData[ri+','+ci]||''} onChange={e=>setCell(ri,ci,e.target.value)}
-                  style={{width:'100%',padding:'3px 5px',border:'none',background:'transparent',fontSize:'.78rem',borderRadius:0}}/>
-              </td>
-            ))}</tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  </>);
-}
-
-function TextEd({b,upd}) {
-  return(<>
-    <div className="field-lbl">Sisu</div>
-    <textarea value={b.content} onChange={e=>upd({content:e.target.value})} rows={3} placeholder="Juhis või tekst..."/>
-    <label style={{display:'flex',alignItems:'center',gap:7,fontSize:'.78rem',marginTop:6,cursor:'pointer'}}>
-      <input type="checkbox" checked={b.bold||false} onChange={e=>upd({bold:e.target.checked})}/> Rasvane (pealkiri)
-    </label>
-  </>);
-}
-
-function ReadingEd({b,upd}) {
-  const qs=b.questions||[];
-  return(<>
-    <div className="field-lbl">Lugemistekst</div>
-    <textarea value={b.passage} onChange={e=>upd({passage:e.target.value})} rows={5}/>
-    {qs.map((q,i)=>(
-      <div key={i} style={{marginBottom:7,padding:8,borderRadius:7,background:'#F9F8F6',border:'0.5px solid rgba(28,43,58,.1)'}}>
-        <input value={q.q} onChange={e=>upd({questions:qs.map((x,j)=>j===i?{...x,q:e.target.value}:x)})}
-          placeholder={`Küsimus ${i+1}...`} style={{marginBottom:4}}/>
-        {q.opts.map((o,oi)=>(
-          <div key={oi} style={{display:'flex',gap:5,alignItems:'center',marginBottom:3}}>
-            <input type="radio" checked={q.correct===oi} onChange={()=>upd({questions:qs.map((x,j)=>j===i?{...x,correct:oi}:x)})} style={{width:12,height:12,cursor:'pointer',flexShrink:0}}/>
-            <input value={o} onChange={e=>upd({questions:qs.map((x,j)=>j===i?{...x,opts:x.opts.map((v,k)=>k===oi?e.target.value:v)}:x)})} placeholder={`Variant ${oi+1}`}/>
-          </div>
-        ))}
-      </div>
-    ))}
-    <button onClick={()=>upd({questions:[...qs,{q:'',opts:['','','',''],correct:0}]})}
-      className="btn btn-ghost btn-sm" style={{width:'100%'}}>
-      <i className="fa-solid fa-plus"/> Lisa küsimus
-    </button>
-  </>);
-}
-
-function ImageEd({b,upd}) {
-  return(<>
-    <div className="field-lbl">Pilt</div>
-    <ImgUploader value={b.imageUrl||''} onChange={url=>upd({imageUrl:url})}/>
-    <div className="field-lbl">Pildi asukoht</div>
-    <select value={b.imagePos||'top'} onChange={e=>upd({imagePos:e.target.value})}>
-      <option value="top">Üleval</option>
-      <option value="right">Paremal</option>
-      <option value="bottom">Allpool</option>
-    </select>
-    <div className="field-lbl">Pildi allkiri (valikuline)</div>
-    <input value={b.caption||''} onChange={e=>upd({caption:e.target.value})} placeholder="Pildi kirjeldus..."/>
-  </>);
-}
-
-function BlockEditor({block,onChange}) {
-  const upd=p=>onChange({...block,...p});
-  return(
-    <div className="block-editor">
-      {/* Label */}
-      <div className="field-lbl">Ülesande nimetus (asendab tüübi nime)</div>
-      <input value={block.label||''} onChange={e=>upd({label:e.target.value})} placeholder={BT[block.type]?.label||'Nimetus...'}  style={{marginBottom:6}}/>
-      {/* Instruction */}
-      <div className="field-lbl">Juhis õpilasele</div>
-      <input value={block.instruction||''} onChange={e=>upd({instruction:e.target.value})} placeholder="nt. Täida lüngad õigete sõnadega..."/>
-
-      {/* Image for any block */}
-      {block.type!=='image'&&(
-        <>
-          <div className="field-lbl">Lisa pilt (valikuline)</div>
-          <ImgUploader value={block.imageUrl||''} onChange={url=>upd({imageUrl:url})}/>
-          {block.imageUrl&&(
-            <>
-              <div className="field-lbl">Pildi asukoht</div>
-              <select value={block.imagePos||'top'} onChange={e=>upd({imagePos:e.target.value})}>
-                <option value="top">Üleval</option>
-                <option value="right">Paremal (tekst kõrval)</option>
-                <option value="bottom">Allpool</option>
-              </select>
-            </>
-          )}
-        </>
-      )}
-
-      {/* Size */}
-      <div className="field-lbl">Laius leheküljel</div>
-      <div className="size-btns">
-        {[['full','Täislaius'],['half','Pool'],['third','Kolmandik']].map(([s,l])=>(
-          <button key={s} className={'size-btn'+(block.size===s?' active':'')} onClick={()=>upd({size:s})}>{l}</button>
-        ))}
-      </div>
-
-      {/* Type-specific */}
-      <div style={{marginTop:8,paddingTop:8,borderTop:'0.5px solid rgba(28,43,58,.07)'}}>
-        {block.type==='fill'    &&<FillEd    b={block} upd={upd}/>}
-        {block.type==='choice'  &&<ChoiceEd  b={block} upd={upd}/>}
-        {block.type==='writing' &&<WritingEd b={block} upd={upd}/>}
-        {block.type==='match'   &&<MatchEd   b={block} upd={upd}/>}
-        {block.type==='order'   &&<OrderEd   b={block} upd={upd}/>}
-        {block.type==='table'   &&<TableEd   b={block} upd={upd}/>}
-        {block.type==='text'    &&<TextEd    b={block} upd={upd}/>}
-        {block.type==='reading' &&<ReadingEd b={block} upd={upd}/>}
-        {block.type==='image'   &&<ImageEd   b={block} upd={upd}/>}
-      </div>
-    </div>
-  );
-}
-
-// ── PARSE FILL ────────────────────────────────────────────────
-function parseFill(text) {
-  const parts=[];
-  text.split(/\[([^\]]+)\]/g).forEach((c,i)=>parts.push(i%2===0?{t:'text',v:c}:{t:'blank',a:c}));
-  return parts;
-}
-
-// ── RESIZABLE IMAGE ───────────────────────────────────────────
-function ResizableImage({src,caption,initWidth,onResize,overlayText,onTextChange}) {
-  const[width,setWidth]=useState(initWidth||null);
-  const wrapRef=useRef(null);
-  // All resize state in a single ref — never causes re-render mid-drag
-  const drag=useRef({active:false,startX:0,startW:0});
-
-  useEffect(()=>{
-    const onMove=e=>{
-      if(!drag.current.active) return;
-      const delta=e.clientX-drag.current.startX;
-      const newW=Math.max(60,Math.min(740,drag.current.startW+delta));
-      // Directly set DOM width for smooth dragging — no React re-render
-      if(wrapRef.current) wrapRef.current.style.width=newW+'px';
-    };
-    const onUp=e=>{
-      if(!drag.current.active) return;
-      drag.current.active=false;
-      const delta=e.clientX-drag.current.startX;
-      const newW=Math.max(60,Math.min(740,drag.current.startW+delta));
-      setWidth(newW);
-      onResize&&onResize(newW);
-      document.body.style.cursor='';
-      document.body.style.userSelect='';
-    };
-    window.addEventListener('mousemove',onMove);
-    window.addEventListener('mouseup',onUp);
-    return()=>{
-      window.removeEventListener('mousemove',onMove);
-      window.removeEventListener('mouseup',onUp);
-    };
-  },[onResize]);
-
-  const handleMouseDown=e=>{
-    e.preventDefault();
-    e.stopPropagation();
-    drag.current={
-      active:true,
-      startX:e.clientX,
-      startW:wrapRef.current?.offsetWidth||width||300
-    };
-    document.body.style.cursor='se-resize';
-    document.body.style.userSelect='none';
-  };
-
-  if(!src) return(
-    <div style={{background:'#F0EEE9',borderRadius:6,height:120,display:'flex',alignItems:'center',justifyContent:'center',color:'#B0A898',fontSize:'.82rem'}}>Pilt puudub</div>
-  );
-
-  return(
-    <div>
-      <div ref={wrapRef} className="img-resizable-wrap"
-        style={{width:width?width+'px':'100%'}}>
-        <img
-          src={src} alt={caption||''}
-          className="img-resizable"
-          style={{width:'100%',height:'auto',objectFit:'contain',display:'block'}}
-          draggable={false}
-        />
-        {overlayText&&(
-          <div style={{
-            position:'absolute',bottom:8,left:8,right:8,
-            background:'rgba(0,0,0,.55)',color:'#fff',
-            padding:'4px 8px',borderRadius:5,fontSize:'.8rem',lineHeight:1.4,
-            pointerEvents:'none'
-          }}>{overlayText}</div>
-        )}
-        <div
-          className="img-resize-handle"
-          onMouseDown={handleMouseDown}
-          title="Lohista suuruse muutmiseks"
-        />
-      </div>
-      {caption&&<div style={{fontSize:'.72rem',color:'#718096',marginTop:4,fontStyle:'italic',textAlign:'center'}}>{caption}</div>}
-      {onTextChange!==undefined&&(
-        <div style={{marginTop:8}}>
-          <textarea
-            value={overlayText||''}
-            onChange={e=>onTextChange(e.target.value)}
-            placeholder="Lisa tekst pildi alla (valikuline)..."
-            rows={2}
-            style={{width:'100%',fontSize:'.8rem',padding:'6px 8px',borderRadius:7,border:'1px solid rgba(28,43,58,.12)',resize:'vertical',fontFamily:'inherit'}}
-          />
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ── PREVIEW BLOCK ─────────────────────────────────────────────
-function PreviewBlock({block,index}) {
-  const bt=BT[block.type]; if(!bt) return null;
-
-  const renderImg=pos=>{
-    if(!block.imageUrl||(block.imagePos||'top')!==pos) return null;
-    return(
-      <div style={{marginBottom:pos==='bottom'?0:10,marginTop:pos==='bottom'?10:0}}>
-        <ResizableImage
-          src={block.imageUrl}
-          caption={block.caption}
-          initWidth={block.imgWidth||null}
-          onResize={w=>onChange({...block,imgWidth:w})}
-        />
-      </div>
-    );
-  };
-
-  const renderRightImg=()=>{
-    if(!block.imageUrl||(block.imagePos||'top')!=='right') return null;
-    return(
-      <div style={{flexShrink:0,marginLeft:12}}>
-        <ResizableImage
-          src={block.imageUrl}
-          caption={null}
-          initWidth={block.imgWidth||120}
-          onResize={w=>onChange({...block,imgWidth:w})}
-        />
-      </div>
-    );
-  };
-
-  const content=()=>{
-    if(block.type==='image') return(
-      <ResizableImage
-        src={block.imageUrl}
-        caption={block.caption}
-        initWidth={block.imgWidth||null}
-        onResize={w=>onChange({...block,imgWidth:w})}
-        overlayText={block.overlayText||''}
-        onTextChange={t=>onChange({...block,overlayText:t})}
-      />
-    );
-    if(block.type==='text') return(
-      <p className="pb-text" style={{fontWeight:block.bold?700:400,fontSize:block.bold?'1rem':'.9rem'}}>{block.content||<span style={{color:'#C0B8B0',fontStyle:'italic'}}>Tekst puudub</span>}</p>
-    );
-    if(block.type==='fill') return(
-      <div className="fill-line">{parseFill(block.text||'').map((p,i)=>p.t==='text'?<span key={i}>{p.v}</span>:<span key={i} className="fill-blank">&nbsp;</span>)}</div>
-    );
-    if(block.type==='choice') return(block.questions||[]).map((q,qi)=>(
-      <div key={qi} style={{marginBottom:10}}>
-        <div className="ch-q">{qi+1}. {q.q||'Küsimus...'}</div>
-        <div className="ch-opts">{q.opts.filter(Boolean).map((o,oi)=>(<div key={oi} className="ch-opt"><div className="ch-circle"/><span>{o}</span></div>))}</div>
-      </div>
-    ));
-    if(block.type==='writing') return(
-      <div>
-        <div className="wr-task">{block.task}</div>
-        {Array.from({length:block.lines||6}).map((_,i)=><div key={i} className="wr-line"/>)}
-      </div>
-    );
-    if(block.type==='match') return(
-      <div>
-        <div className="match-cols">
-          <div>{(block.pairs||[]).map((p,i)=><div key={i} className="match-item">{i+1}. {p.l}</div>)}</div>
-          <div>{[...(block.pairs||[])].sort(()=>Math.random()-.5).map((p,i)=><div key={i} className="match-item">{String.fromCharCode(65+i)}. {p.r}</div>)}</div>
-        </div>
-        <div className="match-answer-row">{(block.pairs||[]).map((_,i)=><span key={i} className="match-ans">{i+1} — ___</span>)}</div>
-      </div>
-    );
-    if(block.type==='order') {
-      const words=(block.sentence||'').split(' ').filter(Boolean).sort(()=>Math.random()-.5);
-      return(<div><div className="order-chips">{words.map((w,i)=><span key={i} className="order-chip">{w}</span>)}</div><div className="order-ans">Kirjuta õige järjestus: ___________________________________________________</div></div>);
-    }
-    if(block.type==='table') {
-      const cd=block.cellData||{};
-      return(
-        <table className="ws-tbl">
-          <thead><tr>{(block.headers||[]).map((h,i)=><th key={i}>{h||`Veerg ${i+1}`}</th>)}</tr></thead>
-          <tbody>{Array.from({length:block.rows||4}).map((_,ri)=>(<tr key={ri}>{(block.headers||[]).filter(Boolean).map((_,ci)=><td key={ci}>{cd[ri+','+ci]||''}</td>)}</tr>))}</tbody>
-        </table>
-      );
-    }
-    if(block.type==='reading') return(
-      <div>
-        <div className="pb-passage">{block.passage}</div>
-        {(block.questions||[]).map((q,qi)=>(
-          <div key={qi} style={{marginBottom:10}}>
-            <div className="ch-q">{qi+1}. {q.q||'Küsimus...'}</div>
-            <div className="ch-opts">{q.opts.filter(Boolean).map((o,oi)=>(<div key={oi} className="ch-opt"><div className="ch-circle"/><span>{o}</span></div>))}</div>
-          </div>
-        ))}
-      </div>
-    );
-    return null;
-  };
-
-  // For 'image' type — just render content(), no extra renderImg
-  const withImg=(
-    block.type==='image'
-      ?<div>{content()}</div>
-      :block.imageUrl&&(block.imagePos||'top')==='right'
-        ?<div style={{display:'flex',alignItems:'flex-start'}}><div style={{flex:1}}>{content()}</div>{renderRightImg()}</div>
-        :<div>{renderImg('top')}{content()}{renderImg('bottom')}</div>
-  );
-
-  const colStyle=block.size==='half'?{width:'calc(50% - 10px)',display:'inline-block',verticalAlign:'top',marginRight:20}
-    :block.size==='third'?{width:'calc(33.33% - 12px)',display:'inline-block',verticalAlign:'top',marginRight:18}
-    :{};
-
-  return(
-    <div style={colStyle}>
-      <div className="pb-wrap">
-        <div className="pb-num-row">
-          <span className="pb-num">{index}</span>
-          <span className="pb-type-lbl" style={{color:bt.color}}>{block.label||bt.label}</span>
-          {block.instruction&&<span style={{fontSize:'.73rem',color:'#718096',fontStyle:'italic'}}>— {block.instruction}</span>}
-        </div>
-        {withImg}
-      </div>
-      {block.size==='full'&&<hr className="pb-divider"/>}
-    </div>
-  );
-}
-
-// ── AI GENERATE ────────────────────────────────────────────────
-async function genAI(prompt,subject,level) {
-  const sys=`Sa oled eesti keele õpetaja abiassistent. Genereeri tööleht JSON-ina.
-Tagasta AINULT JSON, ilma markdown koodiplokita.
-{"title":"...","blocks":[
-  {"type":"fill","instruction":"...","text":"tekst [vastus] tekst"},
-  {"type":"choice","instruction":"...","questions":[{"q":"?","opts":["a","b","c","d"],"correct":0}]},
-  {"type":"writing","instruction":"...","task":"ülesanne","lines":8},
-  {"type":"match","instruction":"...","pairs":[{"l":"est","r":"eng"}]},
-  {"type":"order","instruction":"...","sentence":"õige lause siin"},
-  {"type":"text","content":"tekst","bold":false},
-  {"type":"table","instruction":"...","headers":["col1","col2"],"rows":4}
-]}
-Tase: ${level||'B1'}. Genereeri 4-6 sisukat blokki. Kõik eestikeelne.`;
-  const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2000,system:sys,
-      messages:[{role:'user',content:`Genereeri tööleht: ${prompt}\nÕppeaine: ${subject||'Eesti keel'}, Tase: ${level||'B1'}`}]})});
-  const data=await res.json();
-  return JSON.parse((data.content?.[0]?.text||'').replace(/```json|```/g,'').trim());
-}
-
-// ── EXPORT HTML ───────────────────────────────────────────────
-function buildHTML(meta,blocks) {
-  const css=`<style>
-    body{font-family:Arial,sans-serif;max-width:800px;margin:36px auto;padding:0 56px;color:#1a1a1a;font-size:13px;}
-    h1{font-size:1.4rem;margin-bottom:3px;}
-    .meta{color:#666;font-size:.78rem;margin-bottom:20px;padding-bottom:10px;border-bottom:2px solid #1a1a1a;display:flex;justify-content:space-between;}
-    .score{border:1px solid #1a1a1a;border-radius:4px;padding:4px 10px;font-size:.75rem;font-weight:600;}
-    .num{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#1a1a1a;color:#fff;font-size:.58rem;font-weight:700;margin-right:6px;}
-    .lbl{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#555;}
-    .block{margin-bottom:24px;} .block.half{width:47%;display:inline-block;vertical-align:top;margin-right:4%;}
-    .block.third{width:30%;display:inline-block;vertical-align:top;margin-right:3%;}
-    .instr{font-size:.78rem;font-style:italic;color:#666;margin-bottom:5px;}
-    .fill{font-size:.9rem;line-height:2.4;} .blank{display:inline-block;min-width:75px;border-bottom:1.5px solid #1a1a1a;margin:0 2px;}
-    .q{font-weight:700;font-size:.88rem;margin:5px 0 3px;} .opt{display:flex;align-items:center;gap:6px;font-size:.84rem;margin:2px 0 2px 12px;}
-    .circle{width:12px;height:12px;border-radius:50%;border:1.5px solid #1a1a1a;display:inline-block;flex-shrink:0;}
-    .wr-task{font-size:.88rem;margin-bottom:8px;line-height:1.5;} .wr-line{height:24px;border-bottom:1px solid #ccc;}
-    .match-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;} .match-item{padding:5px 9px;border:1px solid #ccc;border-radius:4px;font-size:.84rem;margin-bottom:4px;}
-    .ans-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;} .ans{padding:2px 7px;border:1px solid #ccc;border-radius:3px;font-size:.8rem;}
-    .chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;} .chip{padding:4px 10px;border:1.5px solid #999;border-radius:6px;font-size:.84rem;}
-    .order-ans{border-bottom:1px solid #ccc;margin-top:6px;font-size:.78rem;color:#aaa;}
-    table{width:100%;border-collapse:collapse;font-size:.84rem;} th{background:#f0f0f0;padding:6px 8px;border:1px solid #ccc;text-align:left;font-weight:700;}
-    td{padding:6px 8px;border:1px solid #ccc;height:26px;}
-    .passage{background:#f7f7f5;border:1px solid #ddd;border-radius:5px;padding:10px 12px;margin-bottom:10px;font-size:.86rem;line-height:1.6;white-space:pre-wrap;}
-    .pb-text{font-size:.9rem;line-height:1.6;} .pb-img{max-width:100%;max-height:200px;object-fit:contain;border-radius:5px;margin-bottom:6px;}
-    .img-caption{font-size:.72rem;color:#666;font-style:italic;text-align:center;}
-    .img-right{display:flex;gap:12px;align-items:flex-start;} .img-right img{width:110px;flex-shrink:0;object-fit:contain;border-radius:4px;}
-    .divider{border:none;border-top:1px dashed #ddd;margin:16px 0;}
-  </style>`;
-
-  let html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${meta.title||'Tööleht'}</title>${css}</head><body>`;
-  html+=`<h1>${meta.title||'Tööleht'}</h1>`;
-  html+=`<div class="meta"><div>`;
-  if(meta.subject) html+=`<span>📚 ${meta.subject}&nbsp;&nbsp;</span>`;
-  if(meta.level)   html+=`<span>📊 ${meta.level}&nbsp;&nbsp;</span>`;
-  if(meta.topic)   html+=`<span>💬 ${meta.topic}&nbsp;&nbsp;</span>`;
-  if(meta.date)    html+=`<span>📅 Kuupäev: ____________&nbsp;&nbsp;</span>`;
-  if(meta.name)    html+=`<span>Nimi: ________________________&nbsp;&nbsp;</span>`;
-  html+=`</div>`;
-  if(meta.score)   html+=`<div class="score">Punkte: ___ / ___</div>`;
-  html+=`</div>`;
-
-  let num=0;
-  blocks.forEach(b=>{
-    const bt=BT[b.type]; if(!bt) return;
-    num++;
-    const cls='block'+(b.size==='half'?' half':b.size==='third'?' third':'');
-    html+=`<div class="${cls}">`;
-    html+=`<div style="margin-bottom:6px"><span class="num">${num}</span><span class="lbl">${bt.label}</span>`;
-    if(b.instruction) html+=` <span class="instr">— ${b.instruction}</span>`;
-    html+=`</div>`;
-
-    const imgTop=b.imageUrl&&(b.imagePos||'top')==='top';
-    const imgBot=b.imageUrl&&b.imagePos==='bottom';
-    const imgRight=b.imageUrl&&b.imagePos==='right';
-
-    if(imgTop) html+=`<div><img src="${b.imageUrl}" class="pb-img" alt=""/>${b.caption?`<div class="img-caption">${b.caption}</div>`:''}</div>`;
-    if(imgRight) html+=`<div class="img-right"><div style="flex:1">`;
-
-    if(b.type==='text')    html+=`<div class="pb-text" style="font-weight:${b.bold?700:400}">${b.content||''}</div>`;
-    else if(b.type==='image') {
-      if(b.imageUrl) html+=`<div><img src="${b.imageUrl}" class="pb-img" alt=""/>${b.caption?`<div class="img-caption">${b.caption}</div>`:''}</div>`;
-    }
-    else if(b.type==='fill') {
-      html+=`<div class="fill">`;
-      parseFill(b.text||'').forEach(p=>{ html+=p.t==='text'?p.v:`<span class="blank">&nbsp;</span>`; });
-      html+=`</div>`;
-    }
-    else if(b.type==='choice'||b.type==='reading') {
-      if(b.type==='reading') html+=`<div class="passage">${b.passage||''}</div>`;
-      (b.questions||[]).forEach((q,qi)=>{
-        html+=`<div class="q">${qi+1}. ${q.q||''}</div>`;
-        q.opts.filter(Boolean).forEach(o=>{ html+=`<div class="opt"><span class="circle"></span><span>${o}</span></div>`; });
-      });
-    }
-    else if(b.type==='writing') {
-      html+=`<div class="wr-task">${b.task||''}</div>`;
-      Array.from({length:b.lines||6}).forEach(()=>{ html+=`<div class="wr-line"></div>`; });
-    }
-    else if(b.type==='match') {
-      const sh=[...(b.pairs||[])].sort(()=>Math.random()-.5);
-      html+=`<div class="match-cols"><div>`;
-      (b.pairs||[]).forEach((p,i)=>{ html+=`<div class="match-item">${i+1}. ${p.l}</div>`; });
-      html+=`</div><div>`;
-      sh.forEach((p,i)=>{ html+=`<div class="match-item">${String.fromCharCode(65+i)}. ${p.r}</div>`; });
-      html+=`</div></div><div class="ans-row">`;
-      (b.pairs||[]).forEach((_,i)=>{ html+=`<span class="ans">${i+1} — ___</span>`; });
-      html+=`</div>`;
-    }
-    else if(b.type==='order') {
-      const w=(b.sentence||'').split(' ').filter(Boolean).sort(()=>Math.random()-.5);
-      html+=`<div class="chips">`;
-      w.forEach(x=>{ html+=`<span class="chip">${x}</span>`; });
-      html+=`</div><div class="order-ans">Kirjuta: ___________________________________________________</div>`;
-    }
-    else if(b.type==='table') {
-      html+=`<table><thead><tr>`;
-      (b.headers||[]).forEach(h=>{ html+=`<th>${h}</th>`; });
-      html+=`</tr></thead><tbody>`;
-      Array.from({length:b.rows||4}).forEach(()=>{
-        html+=`<tr>`; (b.headers||[]).forEach(()=>{ html+=`<td></td>`; }); html+=`</tr>`;
-      });
-      html+=`</tbody></table>`;
-    }
-
-    if(imgRight) html+=`</div><img src="${b.imageUrl}" style="width:110px;flex-shrink:0;object-fit:contain;border-radius:4px;" alt=""/></div>`;
-    if(imgBot)   html+=`<div style="margin-top:8px"><img src="${b.imageUrl}" class="pb-img" alt=""/>${b.caption?`<div class="img-caption">${b.caption}</div>`:''}</div>`;
-    if(b.size==='full') html+=`<hr class="divider"/>`;
-    html+=`</div>`;
-  });
-
-  html+=`</body></html>`;
-  return html;
-}
-
-// ── SAVE MODAL ────────────────────────────────────────────────
-function SaveModal({meta,blocks,user,onClose,notify}) {
-  const SUBJECTS=['Eesti keel','Inglise keel','Matemaatika'];
-  const LEVELS_BY_SUBJECT={
-    'Eesti keel':['A1','A2','B1','B2','C1'],
-    'Inglise keel':['A1','A2','B1','B2','C1','C2'],
-    'Matemaatika':Array.from({length:12},(_,i)=>i+1+'. klass'),
-  };
-  const[subject,setSubject]=useState(meta.subject||'Eesti keel');
-  const[level,setLevel]=useState(meta.level||'B1');
-  const[topic,setTopic]=useState('');
-  const[newTopic,setNewTopic]=useState('');
-  const[description,setDescription]=useState('');
+// ── LESSON MODAL ──────────────────────────────────────────────
+function LessonModal({lesson,subject,level,topic,examPart,onClose,onSave}){
+  const isEdit=!!lesson?.id;
+  const[title,setTitle]=useState(lesson?.title||'');
+  const[type,setType]=useState(lesson?.type||'lesson');
+  const[desc,setDesc]=useState(lesson?.description||'');
+  const[files,setFiles]=useState(lesson?.files||[]);
+  const[order,setOrder]=useState(lesson?.order||0);
+  const[uploading,setUploading]=useState(false);
   const[saving,setSaving]=useState(false);
-  const[existingTopics,setExistingTopics]=useState([]);
-  const[loadingTopics,setLoadingTopics]=useState(false);
-  const[mode,setMode]=useState('existing'); // 'existing' | 'new'
-
-  const levels=LEVELS_BY_SUBJECT[subject]||[];
-
-  // Load existing topics when subject/level changes
-  useEffect(()=>{
-    if(!subject||!level) return;
-    setLoadingTopics(true);
-    setTopic('');
-    db.collection('curriculumLessons')
-      .where('subject','==',subject)
-      .where('level','==',level)
-      .get()
-      .then(snap=>{
-        const topics=[...new Set(snap.docs.map(d=>d.data().topic).filter(Boolean))].sort();
-        setExistingTopics(topics);
-        if(topics.length>0){setTopic(topics[0]);setMode('existing');}
-        else setMode('new');
-        setLoadingTopics(false);
-      })
-      .catch(()=>setLoadingTopics(false));
-  },[subject,level]);
-
-  const finalTopic=mode==='new'?newTopic.trim():topic;
 
   const save=async()=>{
-    if(!finalTopic){alert('Vali teema või sisesta uus teema nimi');return;}
+    if(!title.trim()){alert('Sisesta pealkiri');return;}
     setSaving(true);
-    try{
-      await db.collection('curriculumLessons').add({
-        title: meta.title||'Tööleht',
-        type: 'material',
-        description: description||'',
-        subject, level,
-        topic: finalTopic,
-        examPart: null,
-        worksheetData: {meta, blocks},
-        files: [],
-        order: 0,
-        authorUid: user?.uid||'',
-        authorName: user?.displayName||user?.email||'',
-        createdAt: new Date().toISOString().split('T')[0],
-        updatedAt: new Date().toISOString(),
-      });
-      notify('✓ Tööleht salvestatud: '+finalTopic);
-      onClose();
-    }catch(e){
-      notify('Viga: '+(e.message||'Salvestamine ebaõnnestus'));
-    }
-    setSaving(false);
+    await onSave({...(lesson||{}),title:title.trim(),type,description:desc.trim(),files,order:Number(order)||0,subject,level,topic,examPart:examPart||null,updatedAt:new Date().toISOString()});
+    setSaving(false);onClose();
   };
-
   return(
-    <div className="sav-ov">
-      <div className="sav-box">
-        <div className="sav-head">
-          <h2 style={{fontSize:'1rem',fontWeight:800}}>💾 Salvesta õppekavasse</h2>
+    <div className="modal-ov">
+      <div className="modal-box">
+        <div className="modal-head">
+          <h2 style={{fontSize:'1rem',fontWeight:800}}>{isEdit?'✏️ Muuda kirjet':'➕ Lisa uus kirje'}</h2>
           <button onClick={onClose} className="btn btn-ghost btn-sm">✕</button>
         </div>
-        <div className="sav-body">
-          {/* Worksheet info */}
-          <div style={{padding:'10px 13px',borderRadius:10,background:'rgba(47,93,80,.08)',border:'0.5px solid rgba(47,93,80,.2)',fontSize:'.84rem',fontWeight:600,color:'#2F5D50'}}>
-            📄 {meta.title||'Tööleht'} · {blocks.length} plokki
-          </div>
-
-          {/* Subject + Level */}
+        <div className="modal-body">
+          {examPart&&<div style={{padding:'9px 13px',borderRadius:10,background:EXAM_PARTS.find(p=>p.key===examPart)?.bg||'#f5f5f5',fontSize:'.82rem',fontWeight:600}}>
+            Eksami osa: {EXAM_PARTS.find(p=>p.key===examPart)?.label}
+          </div>}
+          <div><div className="sec-lbl">Pealkiri *</div><input value={title} onChange={e=>setTitle(e.target.value)} placeholder="nt. Eksami kirjutamisosa — variant 1"/></div>
           <div>
-            <div className="field-lbl">Õppeaine</div>
-            <select value={subject} onChange={e=>{setSubject(e.target.value);setLevel(LEVELS_BY_SUBJECT[e.target.value]?.[0]||'');}}>
-              {SUBJECTS.map(s=><option key={s}>{s}</option>)}
-            </select>
+            <div className="sec-lbl">Tüüp</div>
+            <div style={{display:'flex',gap:7,flexWrap:'wrap'}}>
+              {Object.entries(LESSON_TYPES).map(([k,v])=>(
+                <button key={k} onClick={()=>setType(k)} className="btn btn-sm"
+                  style={{border:'1.5px solid '+(type===k?v.color:'rgba(28,43,58,.12)'),background:type===k?v.color+'18':'#fff',color:type===k?v.color:'#42536A'}}>
+                  <i className={'fa-solid '+v.icon}/> {v.label}
+                </button>
+              ))}
+            </div>
           </div>
+          <div><div className="sec-lbl">Kirjeldus</div><textarea value={desc} onChange={e=>setDesc(e.target.value)} rows={3} placeholder="Lühike kirjeldus..."/></div>
+          <div><div className="sec-lbl">Järjekord</div><input type="number" value={order} onChange={e=>setOrder(e.target.value)} style={{width:100}}/></div>
           <div>
-            <div className="field-lbl">Tase</div>
-            <select value={level} onChange={e=>setLevel(e.target.value)}>
-              {levels.map(l=><option key={l}>{l}</option>)}
-            </select>
-          </div>
-
-          {/* Topic picker */}
-          <div>
-            <div className="field-lbl">Teema *</div>
-            {loadingTopics
-              ?<div style={{fontSize:'.8rem',color:'#7A7167',padding:'8px 0'}}>Laen teemasid...</div>
-              :<>
-                {/* Mode toggle */}
-                <div style={{display:'flex',gap:6,marginBottom:10}}>
-                  {existingTopics.length>0&&(
-                    <button onClick={()=>setMode('existing')}
-                      className={'btn btn-sm '+(mode==='existing'?'btn-pine':'btn-ghost')}>
-                      Olemasolev teema
-                    </button>
-                  )}
-                  <button onClick={()=>setMode('new')}
-                    className={'btn btn-sm '+(mode==='new'?'btn-pine':'btn-ghost')}>
-                    <i className="fa-solid fa-plus"/> Uus teema
-                  </button>
-                </div>
-
-                {mode==='existing'&&existingTopics.length>0&&(
-                  <div style={{display:'flex',flexDirection:'column',gap:5,maxHeight:160,overflowY:'auto',padding:'2px 0'}}>
-                    {existingTopics.map(t=>(
-                      <label key={t} style={{display:'flex',alignItems:'center',gap:9,padding:'8px 11px',borderRadius:9,border:'1px solid '+(topic===t?'#2F5D50':'rgba(28,43,58,.1)'),background:topic===t?'rgba(47,93,80,.07)':'#fff',cursor:'pointer',fontSize:'.85rem',fontWeight:topic===t?700:500}}>
-                        <input type="radio" name="topic" value={t} checked={topic===t} onChange={()=>setTopic(t)} style={{width:14,height:14,flexShrink:0}}/>
-                        <span>{t}</span>
-                      </label>
-                    ))}
-                  </div>
-                )}
-
-                {mode==='new'&&(
-                  <input value={newTopic} onChange={e=>setNewTopic(e.target.value)}
-                    placeholder="Uue teema nimi..." autoFocus/>
-                )}
-              </>
-            }
-          </div>
-
-          <div>
-            <div className="field-lbl">Lühike kirjeldus (valikuline)</div>
-            <textarea value={description} onChange={e=>setDescription(e.target.value)} rows={2} placeholder="Mida see tööleht harjutab..."/>
+            <div className="sec-lbl">Failid</div>
+            <FileUploader onUpload={f=>setFiles(p=>[...p,...f])} uploading={uploading} setUploading={setUploading}/>
+            {files.length>0&&<div className="file-row" style={{marginTop:10}}>
+              {files.map((f,i)=><span key={i} style={{display:'flex',alignItems:'center',gap:3}}>
+                <FileChip file={f}/><button onClick={()=>setFiles(p=>p.filter((_,j)=>j!==i))} style={{background:'none',border:'none',color:'#dc2626',cursor:'pointer',fontSize:'.7rem',padding:'0 3px'}}>✕</button>
+              </span>)}
+            </div>}
           </div>
         </div>
-        <div className="sav-foot">
+        <div className="modal-foot">
           <button onClick={onClose} className="btn btn-ghost">Tühista</button>
-          <button onClick={save} disabled={saving} className="btn btn-green">
-            {saving?'Salvestab…':'✓ Salvesta õppekavasse'}
-          </button>
+          <button onClick={save} disabled={saving||uploading} className="btn btn-pine">{saving?'Salvestab…':'✓ Salvesta'}</button>
         </div>
       </div>
     </div>
   );
 }
 
-// ── MAIN APP ───────────────────────────────────────────────────
-function App() {
-  const[user,setUser]=useState(null);
-  const[authDone,setAuthDone]=useState(false);
-  const[meta,setMeta]=useState({title:'Uus tööleht',subject:'Eesti keel',level:'B1',topic:'',name:true,score:true,date:true});
-  const[blocks,setBlocks]=useState([]);
-  const[activeId,setActiveId]=useState(null);
-  const[tab,setTab]=useState('build');
-  const[aiPrompt,setAiPrompt]=useState('');
-  const[aiLoading,setAiLoading]=useState(false);
-  const[toast,setToast]=useState('');
-  const[dragId,setDragId]=useState(null);
-  const[dragOver,setDragOver]=useState(null);
-  const[showSave,setShowSave]=useState(false);
+// ── EXAM VIEW ─────────────────────────────────────────────────
+function ExamView({subject,level,lessons,isTeacher,onAdd,onEdit,onDelete}){
+  const[activeExamPart,setActiveExamPart]=useState(null);
+  const examLessons=lessons.filter(l=>l.subject===subject.key&&l.level===level&&l.examPart);
 
-  const notify=msg=>{setToast(msg);setTimeout(()=>setToast(''),3000);};
+  if(activeExamPart){
+    const part=EXAM_PARTS.find(p=>p.key===activeExamPart);
+    const partLessons=examLessons.filter(l=>l.examPart===activeExamPart).sort((a,b)=>(a.order||0)-(b.order||0));
+    return(
+      <div>
+        <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:18,flexWrap:'wrap'}}>
+          <button onClick={()=>setActiveExamPart(null)} className="btn btn-ghost btn-sm">
+            <i className="fa-solid fa-arrow-left"/> Tagasi eksamite juurde
+          </button>
+          <div style={{padding:'6px 14px',borderRadius:10,background:part.bg,border:'1px solid '+part.border,fontSize:'.84rem',fontWeight:700,color:part.color}}>
+            {part.icon} {part.label}
+          </div>
+        </div>
+        <div className="main-head">
+          <div>
+            <div className="main-title">{part.label} — {level}</div>
+            <div className="main-sub">{subject.key} · {partLessons.length} kirjet</div>
+          </div>
+          {isTeacher&&<button onClick={()=>onAdd(activeExamPart)} className="btn btn-pine btn-sm"><i className="fa-solid fa-plus"/> Lisa kirje</button>}
+        </div>
+        {partLessons.length===0
+          ?<div className="empty"><i className="fa-solid fa-folder-open"/><p>Lisa {part.label.toLowerCase()} ülesandeid ja variante.</p>
+             {isTeacher&&<button onClick={()=>onAdd(activeExamPart)} className="btn btn-pine btn-sm"><i className="fa-solid fa-plus"/> Lisa kirje</button>}
+           </div>
+          :partLessons.map(lesson=>{
+            const lt=LESSON_TYPES[lesson.type]||LESSON_TYPES.lesson;
+            return(
+              <div key={lesson.id} className="lesson-card">
+                <div className="lesson-icon" style={{background:lt.bg}}><i className={'fa-solid '+lt.icon} style={{color:lt.color}}/></div>
+                <div className="lesson-body">
+                  <div className="lesson-title">{lesson.title}</div>
+                  {lesson.description&&<div className="lesson-desc">{lesson.description}</div>}
+                  {lesson.files?.length>0&&<div className="file-row">{lesson.files.map((f,i)=><FileChip key={i} file={f}/>)}</div>}
+                </div>
+                {isTeacher&&<div className="lesson-actions">
+                  <button onClick={()=>onEdit(lesson)} className="btn btn-ghost btn-sm"><i className="fa-solid fa-pen"/></button>
+                  <button onClick={()=>onDelete(lesson)} className="btn btn-ghost btn-sm" style={{color:'#dc2626'}}><i className="fa-solid fa-trash"/></button>
+                </div>}
+              </div>
+            );
+          })}
+      </div>
+    );
+  }
+
+  return(
+    <div>
+      <div className="main-head">
+        <div>
+          <div className="main-title">Eksamid — {level}</div>
+          <div className="main-sub">{subject.key} · eksamimaterjalid osade kaupa</div>
+        </div>
+      </div>
+      <div className="exam-grid">
+        {EXAM_PARTS.map(part=>{
+          const cnt=examLessons.filter(l=>l.examPart===part.key).length;
+          const items=examLessons.filter(l=>l.examPart===part.key).sort((a,b)=>(a.order||0)-(b.order||0)).slice(0,2);
+          return(
+            <div key={part.key} className="exam-part-card" onClick={()=>setActiveExamPart(part.key)}>
+              <div className="exam-part-head">
+                <div className="exam-part-icon" style={{background:part.nudeBg}}>{part.icon}</div>
+                <div className="exam-part-title">{part.label}</div>
+                <div className="exam-part-sub">{part.desc}</div>
+              </div>
+              <div className="exam-part-body">
+                {items.length===0
+                  ?<div className="exam-item" style={{textAlign:'center'}}>
+                     <div style={{fontSize:'.78rem',color:'#718096'}}>Materjale pole veel lisatud</div>
+                     {isTeacher&&<div style={{fontSize:'.74rem',color:part.color,fontWeight:700,marginTop:4}}>+ Lisa kirje</div>}
+                   </div>
+                  :items.map(item=>(
+                    <div key={item.id} className="exam-item">
+                      <div className="exam-item-name">{item.title}</div>
+                      {item.description&&<div className="exam-item-meta">{item.description}</div>}
+                      {item.files?.length>0&&<div className="exam-item-files">{item.files.slice(0,2).map((f,i)=><FileChip key={i} file={f}/>)}</div>}
+                    </div>
+                  ))}
+                {cnt>2&&<div style={{fontSize:'.76rem',color:part.color,fontWeight:700,padding:'4px 8px'}}>+{cnt-2} rohkem...</div>}
+                <div style={{textAlign:'right',marginTop:4}}>
+                  <span style={{fontSize:'.74rem',color:part.color,fontWeight:800,opacity:.7}}>{cnt} kirjet  →</span>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── TOPIC VIEW ────────────────────────────────────────────────
+function TopicView({subject,level,activeTopic,topics,allLessons,isTeacher,onSelectTopic,onAdd,onEdit,onDelete,onRenameTopic,onDeleteTopic,onAddTopic,onPreviewWorksheet}){
+  const topicLessons=allLessons
+    .filter(l=>l.subject===subject.key&&l.level===level&&l.topic===activeTopic&&!l.examPart)
+    .sort((a,b)=>(a.order||0)-(b.order||0));
+  const counts={};
+  topics.forEach(t=>{counts[t]=allLessons.filter(l=>l.subject===subject.key&&l.level===level&&l.topic===t&&!l.examPart).length;});
+
+  // Inline rename state
+  const[renamingTopic,setRenamingTopic]=useState(null);
+  const[renameVal,setRenameVal]=useState('');
+  const[addingTopic,setAddingTopic]=useState(false);
+  const[newTopicVal,setNewTopicVal]=useState('');
+  const renameInputRef=useRef();
+  const newTopicRef=useRef();
+
+  const startRename=t=>{setRenamingTopic(t);setRenameVal(t);setTimeout(()=>renameInputRef.current?.select(),50);};
+  const commitRename=()=>{if(renameVal.trim()&&renameVal.trim()!==renamingTopic){onRenameTopic(renamingTopic,renameVal.trim());}setRenamingTopic(null);};
+  const commitAdd=()=>{if(newTopicVal.trim()){onAddTopic(newTopicVal.trim());}setAddingTopic(false);setNewTopicVal('');};
+
+  return(
+    <div className="content-shell">
+      {/* Sidebar */}
+      <aside className="sidebar">
+        <div className="sidebar-section">
+          <div className="sidebar-label">Teemad — {level}</div>
+          {topics.map(t=>(
+            <div key={t} style={{position:'relative',marginBottom:2}}>
+              {renamingTopic===t
+                ?<div style={{display:'flex',gap:5,alignItems:'center',padding:'3px 4px'}}>
+                   <input ref={renameInputRef} value={renameVal} onChange={e=>setRenameVal(e.target.value)}
+                     onKeyDown={e=>{if(e.key==='Enter')commitRename();if(e.key==='Escape')setRenamingTopic(null);}}
+                     style={{flex:1,padding:'6px 9px',fontSize:'.82rem',borderRadius:8,border:'1.5px solid #2F5D50'}}/>
+                   <button onClick={commitRename} className="btn btn-pine btn-sm" style={{padding:'5px 9px'}}>✓</button>
+                 </div>
+                :<div style={{display:'flex',alignItems:'center',gap:2}}>
+                   <button onClick={()=>onSelectTopic(t)} className={'sidebar-btn'+(activeTopic===t?' active':'')} style={{flex:1}}>
+                     <span style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',flex:1,textAlign:'left'}}>{t}</span>
+                     <span className="sb-count">{counts[t]||0}</span>
+                   </button>
+                   {isTeacher&&<div style={{display:'flex',gap:2,opacity:0,transition:'opacity .15s'}} className="topic-actions">
+                     <button onClick={()=>startRename(t)} title="Nimeta ümber"
+                       style={{background:'none',border:'none',cursor:'pointer',color:'#718096',padding:'4px 5px',borderRadius:6,fontSize:'.72rem'}}>
+                       <i className="fa-solid fa-pen"/>
+                     </button>
+                     <button onClick={()=>onDeleteTopic(t)} title="Kustuta teema"
+                       style={{background:'none',border:'none',cursor:'pointer',color:'#dc2626',padding:'4px 5px',borderRadius:6,fontSize:'.72rem'}}>
+                       <i className="fa-solid fa-trash"/>
+                     </button>
+                   </div>}
+                 </div>}
+            </div>
+          ))}
+          {isTeacher&&(
+            addingTopic
+              ?<div style={{display:'flex',gap:5,alignItems:'center',padding:'3px 4px',marginTop:4}}>
+                 <input ref={newTopicRef} value={newTopicVal} onChange={e=>setNewTopicVal(e.target.value)}
+                   placeholder="Uue teema nimi..."
+                   onKeyDown={e=>{if(e.key==='Enter')commitAdd();if(e.key==='Escape'){setAddingTopic(false);setNewTopicVal('');}}}
+                   style={{flex:1,padding:'6px 9px',fontSize:'.82rem',borderRadius:8,border:'1.5px solid #2F5D50'}}
+                   autoFocus/>
+                 <button onClick={commitAdd} className="btn btn-pine btn-sm" style={{padding:'5px 9px'}}>✓</button>
+               </div>
+              :<button onClick={()=>setAddingTopic(true)}
+                 style={{width:'100%',textAlign:'left',padding:'8px 12px',border:'1px dashed rgba(47,93,80,.3)',borderRadius:9,background:'none',cursor:'pointer',color:'#2F5D50',fontSize:'.82rem',fontWeight:600,marginTop:4,display:'flex',alignItems:'center',gap:6}}>
+                 <i className="fa-solid fa-plus" style={{fontSize:'.7rem'}}/> Uus teema
+               </button>
+          )}
+          <div className="sidebar-divider" style={{margin:'10px 0'}}/>
+          <div className="sidebar-label">Eksamid</div>
+          {EXAM_PARTS.map(p=>{
+            const cnt=allLessons.filter(l=>l.subject===subject.key&&l.level===level&&l.examPart===p.key).length;
+            return(
+              <button key={p.key} onClick={()=>onSelectTopic('__exam__'+p.key)}
+                className={'sidebar-btn'+(activeTopic==='__exam__'+p.key?' active':'')}
+                style={{color:activeTopic==='__exam__'+p.key?p.color:'#1C2B3A',background:activeTopic==='__exam__'+p.key?p.nudeBg:'none'}}>
+                <span style={{display:'flex',alignItems:'center',gap:7,flex:1}}>
+                  <span>{p.icon}</span>
+                  <span style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{p.label}</span>
+                </span>
+                <span className="sb-count">{cnt}</span>
+              </button>
+            );
+          })}
+        </div>
+      </aside>
+
+      {/* Main */}
+      <main>
+        {activeTopic&&activeTopic.startsWith('__exam__')
+          ?<ExamView
+              subject={subject} level={level}
+              lessons={allLessons}
+              isTeacher={isTeacher}
+              onAdd={part=>onAdd(activeTopic.replace('__exam__',''),true,part)}
+              onEdit={onEdit}
+              onDelete={onDelete}
+            />
+          :<>
+            <div className="main-head">
+              <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
+                <div>
+                  <div className="main-title" style={{display:'flex',alignItems:'center',gap:8}}>
+                    {activeTopic}
+                    {isTeacher&&<button onClick={()=>startRename(activeTopic)} title="Nimeta ümber"
+                      style={{background:'none',border:'none',cursor:'pointer',color:'#B0A898',padding:'2px 5px',borderRadius:6,fontSize:'.75rem'}}>
+                      <i className="fa-solid fa-pen"/>
+                    </button>}
+                  </div>
+                  <div className="main-sub">{subject.key} · {level} · {topicLessons.length} kirjet</div>
+                </div>
+              </div>
+              {isTeacher&&<button onClick={()=>onAdd(activeTopic,false,null)} className="btn btn-pine btn-sm"><i className="fa-solid fa-plus"/> Lisa kirje</button>}
+            </div>
+            {topicLessons.length===0
+              ?<div className="empty">
+                 <i className="fa-solid fa-folder-open"/>
+                 <p>See teema on veel tühi. Lisa esimene tunnikirje!</p>
+                 {isTeacher&&<button onClick={()=>onAdd(activeTopic,false,null)} className="btn btn-pine btn-sm"><i className="fa-solid fa-plus"/> Lisa kirje</button>}
+               </div>
+              :topicLessons.map(lesson=>{
+                 const lt=LESSON_TYPES[lesson.type]||LESSON_TYPES.lesson;
+                 return(
+                   <div key={lesson.id} className="lesson-card">
+                     <div className="lesson-icon" style={{background:lt.bg}}><i className={'fa-solid '+lt.icon} style={{color:lt.color}}/></div>
+                     <div className="lesson-body">
+                       <div className="lesson-title">{lesson.title}</div>
+                       {lesson.description&&<div className="lesson-desc">{lesson.description}</div>}
+                       {lesson.files?.length>0&&<div className="file-row">{lesson.files.map((f,i)=><FileChip key={i} file={f}/>)}</div>}
+                     </div>
+                     <div className="lesson-actions">
+                       {lesson.worksheetData&&onPreviewWorksheet&&(
+                         <button onClick={()=>onPreviewWorksheet(lesson)} className="btn btn-ghost btn-sm" style={{color:'#2F5D50',borderColor:'rgba(47,93,80,.3)'}}>
+                           <i className="fa-solid fa-eye"/> Ava
+                         </button>
+                       )}
+                       {isTeacher&&<button onClick={()=>onEdit(lesson)} className="btn btn-ghost btn-sm"><i className="fa-solid fa-pen"/></button>}
+                       {isTeacher&&<button onClick={()=>onDelete(lesson)} className="btn btn-ghost btn-sm" style={{color:'#dc2626'}}><i className="fa-solid fa-trash"/></button>}
+                     </div>
+                   </div>
+                 );
+               })}
+          </>
+        }
+      </main>
+    </div>
+  );
+}
+
+// ── CURRICULUM ────────────────────────────────────────────────
+function CurriculumView({isTeacher,user,notify,onPreviewWorksheet}){
+  const[lessons,setLessons]=useState([]);
+  const[loading,setLoading]=useState(true);
+  const[nav,setNav]=useState(null); // null | {subject} | {subject,level,topic}
+  const[modal,setModal]=useState(null);
 
   useEffect(()=>{
-    const u=auth.onAuthStateChanged(fbUser=>{setUser(fbUser);setAuthDone(true);});
+    const u=db.collection('curriculumLessons').onSnapshot(
+      s=>{setLessons(s.docs.map(d=>({id:d.id,...d.data()})));setLoading(false);},
+      ()=>setLoading(false)
+    );
     return u;
   },[]);
 
-  const addBlock=type=>{const b=mkBlock(type);setBlocks(p=>[...p,b]);setActiveId(b.id);setTab('build');};
-  const updBlock=(id,data)=>setBlocks(p=>p.map(b=>b.id===id?data:b));
-  const delBlock=id=>{setBlocks(p=>p.filter(b=>b.id!==id));if(activeId===id)setActiveId(null);};
-  const moveBlock=(id,dir)=>setBlocks(p=>{
-    const i=p.findIndex(b=>b.id===id);
-    if(dir===-1&&i===0||dir===1&&i===p.length-1) return p;
-    const a=[...p];[a[i],a[i+dir]]=[a[i+dir],a[i]];return a;
-  });
+  const subject=nav?.subject?SUBJECTS.find(s=>s.key===nav.subject):null;
+  const level=nav?.level||null;
+  const activeTopic=nav?.topic||null;
 
-  // Drag & drop
-  const onDragStart=(e,id)=>{setDragId(id);e.dataTransfer.effectAllowed='move';};
-  const onDragOver=(e,id)=>{e.preventDefault();setDragOver(id);};
-  const onDrop=(e,targetId)=>{
-    e.preventDefault();
-    if(!dragId||dragId===targetId)return;
-    setBlocks(p=>{
-      const from=p.findIndex(b=>b.id===dragId);
-      const to=p.findIndex(b=>b.id===targetId);
-      const a=[...p];const[item]=a.splice(from,1);a.splice(to,0,item);return a;
-    });
-    setDragId(null);setDragOver(null);
+  const topics=subject?[...new Set([...(subject.topics||[]),...lessons.filter(l=>l.subject===subject.key&&l.level===nav.level&&!l.examPart).map(l=>l.topic).filter(Boolean)])]:[];
+
+  const saveLesson=async data=>{
+    if(data.id){await db.collection('curriculumLessons').doc(data.id).update({...data});}
+    else{await db.collection('curriculumLessons').add({...data,authorUid:user.uid,authorName:user.displayName||user.email||'',createdAt:today()});}
+    notify('✓ Salvestatud');setModal(null);
   };
-  const onDragEnd=()=>{setDragId(null);setDragOver(null);};
-
-  const runAI=async()=>{
-    if(!aiPrompt.trim()){notify('Kirjuta juhis');return;}
-    setAiLoading(true);
-    try{
-      const r=await genAI(aiPrompt,meta.subject,meta.level);
-      if(r.title) setMeta(m=>({...m,title:r.title}));
-      const nb=(r.blocks||[]).map(b=>({...mkBlock(b.type),...b,id:uid()}));
-      setBlocks(nb);
-      if(nb.length) setActiveId(nb[0].id);
-      setTab('build');
-      notify('✓ Tööleht genereeritud!');
-    }catch(e){notify('Viga: '+(e.message||'Genereerimine ebaõnnestus'));}
-    setAiLoading(false);
+  const deleteLesson=async lesson=>{
+    if(!window.confirm('Kustuta "'+lesson.title+'"?'))return;
+    await db.collection('curriculumLessons').doc(lesson.id).delete();
+    notify('✓ Kustutatud');
   };
 
-  const exportPrint=()=>{
-    const w=window.open('','_blank');
-    w.document.write(buildHTML(meta,blocks));
-    w.document.close();
-    setTimeout(()=>w.print(),400);
-  };
-  const exportDL=()=>{
-    const b=new Blob([buildHTML(meta,blocks)],{type:'text/html'});
-    const a=document.createElement('a');
-    a.href=URL.createObjectURL(b);a.download=(meta.title||'tööleht')+'.html';a.click();
-    notify('✓ Allalaaditud!');
-  };
-
-  if(!authDone) return <div style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh'}}><div className="sp-dark"/></div>;
-
-  const activeBlock=blocks.find(b=>b.id===activeId);
+  if(loading)return<div style={{display:'flex',justifyContent:'center',padding:60}}><div className="spinner"/></div>;
 
   return(
-    <div>
-      {toast&&<div className="toast">{toast}</div>}
+    <>
+      {/* Breadcrumb */}
+      <div className="bc">
+        <span className="bc-link" onClick={()=>setNav(null)}>Kõik ained</span>
+        {subject&&<><span className="bc-sep">›</span>
+          <span className={level?'bc-link':'bc-cur'} onClick={()=>setNav({subject:subject.key})}>{subject.emoji} {subject.key}</span></>}
+        {level&&<><span className="bc-sep">›</span>
+          <span className={activeTopic?'bc-link':'bc-cur'} onClick={()=>setNav({subject:subject.key,level,topic:topics[0]||''})}>
+            {level}
+          </span></>}
+        {activeTopic&&<><span className="bc-sep">›</span>
+          <span className="bc-cur">{activeTopic.startsWith('__exam__')?'Eksamid — '+EXAM_PARTS.find(p=>p.key===activeTopic.replace('__exam__',''))?.label:activeTopic}</span></>}
+      </div>
 
-      <header className="hdr">
-        <div style={{display:'flex',alignItems:'center',gap:14}}>
-          <div className="logo">Keele<span>Sepp</span></div>
-          <span style={{color:'rgba(255,255,255,.3)',fontSize:'.76rem'}}>Töölehtede koostaja</span>
+      {/* Level 0: subject cards */}
+      {!subject&&(
+        <div className="subject-grid">
+          {SUBJECTS.map(s=>{
+            const cnt=lessons.filter(l=>l.subject===s.key).length;
+            return(
+              <div key={s.key} className="subj-card"
+                style={{background:s.cardBg,borderColor:s.cardBorder}}
+                onClick={()=>setNav({subject:s.key})}>
+                <div className="subj-head">
+                  <div className="subj-icon-wrap" style={{background:s.iconBg}}>{s.emoji}</div>
+                  <div className="subj-name">{s.key}</div>
+                  <div className="subj-sub">{s.levels.length} taset · {s.topics.length} teemat · {EXAM_PARTS.length} eksami osa</div>
+                  <div className="subj-pills">
+                    {s.levels.slice(0,s.levels.length<=6?s.levels.length:4).map(lv=>(
+                      <span key={lv} className="subj-pill" style={{background:s.pillBg,color:s.pillColor}}>{lv}</span>
+                    ))}
+                    {s.levels.length>6&&<span className="subj-pill" style={{background:s.pillBg,color:s.pillColor}}>+{s.levels.length-4}</span>}
+                  </div>
+                </div>
+                <div className="subj-bar" style={{background:s.grad}}/>
+                <div className="subj-foot">
+                  <span className="subj-foot-count">{cnt} kirjet raamatukogus</span>
+                  <span className="subj-foot-link" style={{color:s.color}}>Ava <i className="fa-solid fa-arrow-right" style={{fontSize:'.7rem'}}/></span>
+                </div>
+              </div>
+            );
+          })}
         </div>
-        <div style={{display:'flex',gap:8,alignItems:'center'}}>
-          <a href="/haldus-exercises" style={{color:'rgba(255,255,255,.45)',fontSize:'.76rem',textDecoration:'none',padding:'5px 10px',border:'1px solid rgba(255,255,255,.12)',borderRadius:7}}>← Õppekava</a>
-          <button onClick={exportPrint} className="btn btn-ghost btn-sm" style={{color:'#fff',borderColor:'rgba(255,255,255,.18)'}}>
-            <i className="fa-solid fa-print"/> Prindi / PDF
-          </button>
-          <button onClick={()=>setShowSave(true)} className="btn btn-green btn-sm">
-            <i className="fa-solid fa-floppy-disk"/> Salvesta
-          </button>
-          <button onClick={exportDL} className="btn btn-gold btn-sm">
-            <i className="fa-solid fa-download"/> Laadi alla
-          </button>
+      )}
+
+      {/* Level 1: levels */}
+      {subject&&!level&&(
+        <div className="level-wrap">
+          <div className="level-title">{subject.emoji} {subject.key} — vali tase</div>
+          <div className="level-row">
+            {subject.levels.map(lv=>{
+              const cnt=lessons.filter(l=>l.subject===subject.key&&l.level===lv).length;
+              const topicCnt=[...new Set(lessons.filter(l=>l.subject===subject.key&&l.level===lv).map(l=>l.topic).filter(Boolean))].length;
+              const examCnt=lessons.filter(l=>l.subject===subject.key&&l.level===lv&&l.examPart).length;
+              const hasMat=cnt>0;
+              return(
+                <button key={lv} className="level-chip"
+                  style={{
+                    borderColor:hasMat?subject.cardBorder:'rgba(28,43,58,.09)',
+                    background:hasMat?subject.cardBg:'#FAFAF8',
+                  }}
+                  onClick={()=>{const t=topics[0]||subject.topics[0]||'';setNav({subject:subject.key,level:lv,topic:t});}}>
+                  <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',width:'100%'}}>
+                    <span style={{fontSize:'1.4rem',fontWeight:700,color:hasMat?subject.color:'#B0A898'}}>{lv}</span>
+                    <span className="lc-cnt" style={{background:hasMat?subject.pillBg:'rgba(28,43,58,.06)',color:hasMat?subject.pillColor:'#AAA098',fontSize:'.68rem'}}>
+                      {cnt}
+                    </span>
+                  </div>
+                  <div style={{fontSize:'.74rem',color:hasMat?'#7A7167':'#B0A898',lineHeight:1.5,marginTop:2}}>
+                    {hasMat
+                      ?<>{topicCnt>0&&<span>{topicCnt} teemat</span>}{examCnt>0&&<span style={{marginLeft:6}}>· {examCnt} eksamit</span>}</>
+                      :<span>Tühi</span>
+                    }
+                  </div>
+                  <div style={{fontSize:'.76rem',fontWeight:600,color:hasMat?subject.color:'#C0B8B0',marginTop:6,display:'flex',alignItems:'center',gap:4}}>
+                    Ava <i className="fa-solid fa-arrow-right" style={{fontSize:'.62rem'}}/>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Level 2: topics + lessons/exams */}
+      {subject&&level&&(
+        <TopicView
+          subject={subject} level={level}
+          activeTopic={activeTopic||topics[0]||''}
+          topics={topics}
+          allLessons={lessons}
+          isTeacher={isTeacher}
+          onSelectTopic={t=>setNav({subject:subject.key,level,topic:t})}
+          onAdd={(topicOrExamKey,isExam,examPart)=>{
+            const t=isExam?topicOrExamKey:topicOrExamKey;
+            setModal({topic:isExam?null:t,examPart:examPart||null});
+          }}
+          onEdit={lesson=>setModal({lesson,topic:lesson.topic,examPart:lesson.examPart||null})}
+          onDelete={deleteLesson}
+          onAddTopic={async newName=>{
+            const exists=topics.includes(newName);
+            if(exists){notify('See teema on juba olemas');return;}
+            await db.collection('curriculumLessons').add({
+              subject:subject.key,level,topic:newName,title:'—',type:'material',
+              description:'',files:[],order:0,examPart:null,
+              authorUid:user.uid,authorName:user.displayName||user.email||'',
+              createdAt:today(),updatedAt:new Date().toISOString(),
+              __placeholder:true
+            });
+            setNav({subject:subject.key,level,topic:newName});
+            notify('✓ Uus teema lisatud');
+          }}
+          onRenameTopic={async(oldName,newName)=>{
+            const toUpdate=lessons.filter(l=>l.subject===subject.key&&l.level===level&&l.topic===oldName);
+            await Promise.all(toUpdate.map(l=>db.collection('curriculumLessons').doc(l.id).update({topic:newName})));
+            if(activeTopic===oldName)setNav({subject:subject.key,level,topic:newName});
+            notify('✓ Teema ümber nimetatud');
+          }}
+          onDeleteTopic={async topicName=>{
+            const toDelete=lessons.filter(l=>l.subject===subject.key&&l.level===level&&l.topic===topicName);
+            if(toDelete.length>0&&!window.confirm('Kustuta teema "'+topicName+'" koos kõigi '+toDelete.length+' kirjega?'))return;
+            await Promise.all(toDelete.map(l=>db.collection('curriculumLessons').doc(l.id).delete()));
+            const remaining=topics.filter(t=>t!==topicName);
+            setNav({subject:subject.key,level,topic:remaining[0]||''});
+            notify('✓ Teema kustutatud');
+          }}
+          onPreviewWorksheet={onPreviewWorksheet}
+        />
+      )}
+
+      {modal&&(
+        <LessonModal
+          lesson={modal.lesson||null}
+          subject={subject?.key||''}
+          level={level||''}
+          topic={modal.topic||activeTopic||''}
+          examPart={modal.examPart||null}
+          onClose={()=>setModal(null)}
+          onSave={saveLesson}
+        />
+      )}
+    </>
+  );
+}
+
+// ── EXERCISE PLAYERS ──────────────────────────────────────────
+function parseFillText(raw){const blanks=[];let idx=0;const parts=raw.split(/\[([^\]]+)\]/g);let result=[];for(let i=0;i<parts.length;i++){if(i%2===0){result.push({type:'text',value:parts[i]});}else{result.push({type:'blank',answer:parts[i],index:idx++});blanks.push({answer:parts[i],index:idx-1});}}return{parts:result,blanks};}
+
+function FillPlayer({exercise,onDone}){const parsed=useMemo(()=>parseFillText(exercise.text||''),[exercise.text]);const[answers,setAnswers]=useState({});const[checked,setChecked]=useState(false);const[score,setScore]=useState(null);const check=()=>{let c=0;parsed.blanks.forEach(b=>{if(normalizeText(answers[b.index]||'')===normalizeText(b.answer))c++;});setScore({correct:c,total:parsed.blanks.length});setChecked(true);onDone&&onDone({correct:c,total:parsed.blanks.length});};const reset=()=>{setAnswers({});setChecked(false);setScore(null);};return(<div style={{display:'flex',flexDirection:'column',gap:16}}><div style={{fontSize:'1rem',lineHeight:2}}>{parsed.parts.map((p,i)=>{if(p.type==='text')return<span key={i}>{p.value}</span>;const val=answers[p.index]||'';const isC=checked&&normalizeText(val)===normalizeText(p.answer);const isW=checked&&!isC;return(<span key={i} style={{display:'inline-flex',alignItems:'center',gap:4}}><input className={'blank-input'+(isC?' correct':isW?' wrong':'')} value={val} disabled={checked} onChange={e=>setAnswers(p2=>({...p2,[p.index]:e.target.value}))} style={{width:Math.max(80,(p.answer.length+2)*12)+'px'}}/>{isW&&checked&&<span style={{fontSize:'.72rem',color:'#166534',fontWeight:700}}>({p.answer})</span>}</span>);})}</div>{score&&<div className={score.correct===score.total?'result-ok':'result-fail'}>{score.correct===score.total?'✓ Suurepärane! Kõik '+score.total+' vastust õiged!':score.correct+'/'+score.total+' vastust õiged.'}</div>}{!checked?<button onClick={check} className="btn btn-pine">Kontrolli</button>:<button onClick={reset} className="btn btn-ghost">Proovi uuesti</button>}</div>);}
+
+function ChoicePlayer({exercise,onDone}){const qs=exercise.questions||[];const[cur,setCur]=useState(0);const[sel,setSel]=useState({});const[chk,setChk]=useState({});const[done,setDone]=useState(false);const q=qs[cur];const pick=(qi,ci)=>{if(chk[qi])return;setSel(p=>({...p,[qi]:ci}));};const checkC=()=>setChk(p=>({...p,[cur]:true}));const next=()=>{if(cur<qs.length-1){setCur(c=>c+1);}else{const c=qs.filter((q,i)=>sel[i]===q.correct).length;setDone(true);onDone&&onDone({correct:c,total:qs.length});}};const reset=()=>{setCur(0);setSel({});setChk({});setDone(false);};if(done){const c=qs.filter((q,i)=>sel[i]===q.correct).length;return(<div style={{display:'flex',flexDirection:'column',gap:10}}><div className={c===qs.length?'result-ok':'result-fail'}>{c===qs.length?'✓ '+c+'/'+qs.length:c+'/'+qs.length+' vastust õiged'}</div><button onClick={reset} className="btn btn-ghost">Alusta uuesti</button></div>);}if(!q)return null;const isChk=chk[cur];const s=sel[cur];return(<div style={{display:'flex',flexDirection:'column',gap:10}}><div style={{fontWeight:700,fontSize:'.96rem',marginBottom:6}}>{q.question}</div>{(q.options||[]).map((opt,ci)=>{let cls='choice-btn';if(isChk){if(ci===q.correct)cls+=' correct';else if(ci===s)cls+=' wrong';}else if(ci===s)cls+=' selected';return<button key={ci} className={cls} onClick={()=>pick(cur,ci)}>{opt}</button>;})} {!isChk?<button onClick={checkC} className="btn btn-pine" disabled={s===undefined}>Kontrolli</button>:<button onClick={next} className="btn btn-pine">{cur<qs.length-1?'Järgmine →':'Lõpeta'}</button>}</div>);}
+
+function ExerciseCard({ex,isTeacher,onDelete,students,user}){
+  const[open,setOpen]=useState(false);const[result,setResult]=useState(null);
+  const type=EX_TYPES[ex.type]||EX_TYPES.fill;
+  return(<div className="ex-card" style={{display:'flex',flexDirection:'column',gap:12}}>
+    <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:10}}>
+      <div style={{flex:1,minWidth:0}}>
+        <div style={{display:'flex',gap:7,alignItems:'center',flexWrap:'wrap',marginBottom:6}}>
+          <span className={'badge '+type.badge}><i className={'fa-solid '+type.icon} style={{fontSize:'.68rem'}}/> {type.label}</span>
+          {ex.level&&<span className="badge" style={{background:'rgba(201,136,42,.1)',color:'#A96E1A'}}>{ex.level}</span>}
+          {ex.subject&&<span className="badge" style={{background:'rgba(28,43,58,.06)',color:'#42536A'}}>{ex.subject}</span>}
+          {ex.topic&&<span className="badge" style={{background:'rgba(47,93,80,.09)',color:'#2F5D50'}}>{ex.topic}</span>}
+        </div>
+        <h3 style={{fontSize:'.95rem',marginBottom:3}}>{ex.title||'Pealkirjata harjutus'}</h3>
+        <div style={{fontSize:'.76rem',color:'#718096'}}>Autor: {ex.authorName||'—'} · {fmtDate(ex.createdAt)}</div>
+      </div>
+      <div style={{display:'flex',gap:5,flexShrink:0}}>
+        <button onClick={()=>setOpen(o=>!o)} className="btn btn-ghost btn-sm">{open?'Peida':'Proovi'}</button>
+        {isTeacher&&onDelete&&<button onClick={()=>onDelete(ex)} className="btn btn-ghost btn-sm" style={{color:'#dc2626'}}><i className="fa-solid fa-trash"/></button>}
+      </div>
+    </div>
+    {open&&<div style={{borderTop:'1px solid rgba(28,43,58,.07)',paddingTop:13}}>
+      {ex.type==='fill'&&<FillPlayer exercise={ex} onDone={setResult}/>}
+      {ex.type==='choice'&&<ChoicePlayer exercise={ex} onDone={setResult}/>}
+      {!['fill','choice'].includes(ex.type)&&<div style={{color:'#718096',fontSize:'.86rem',padding:'10px 0'}}>Ava täisvaates harjutuse sooritamiseks.</div>}
+    </div>}
+  </div>);}
+
+// ── EXERCISES TAB ─────────────────────────────────────────────
+function ExercisesView({isTeacher,user,notify}){
+  const[exercises,setExercises]=useState([]);
+  const[loading,setLoading]=useState(true);
+  const[search,setSearch]=useState('');
+  const[typeFilter,setTypeFilter]=useState('all');
+  const[subjectFilter,setSubjectFilter]=useState('all');
+
+  useEffect(()=>{
+    const u=db.collection('exercises').orderBy('createdAt','desc').onSnapshot(
+      s=>{setExercises(s.docs.map(d=>({id:d.id,...d.data()})));setLoading(false);},
+      ()=>setLoading(false)
+    );
+    return u;
+  },[user]);
+
+  const filtered=useMemo(()=>{
+    const q=search.toLowerCase();
+    return exercises.filter(e=>{
+      if(typeFilter!=='all'&&e.type!==typeFilter)return false;
+      if(subjectFilter!=='all'&&(e.subject||'Eesti keel')!==subjectFilter)return false;
+      if(!q)return true;
+      return(e.title||'').toLowerCase().includes(q)||(e.tags||[]).some(t=>t.toLowerCase().includes(q));
+    });
+  },[exercises,typeFilter,subjectFilter,search]);
+
+  if(loading)return<div style={{display:'flex',justifyContent:'center',padding:60}}><div className="spinner"/></div>;
+
+  return(
+    <div style={{maxWidth:1100,margin:'0 auto',padding:'22px 28px 60px'}}>
+      {/* Stats row */}
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(130px,1fr))',gap:10,marginBottom:22}}>
+        {Object.entries(EX_TYPES).map(([k,v])=>(
+          <div key={k} style={{background:'#fff',border:'1px solid rgba(28,43,58,.08)',borderRadius:12,padding:'13px 16px',cursor:'pointer',borderBottomWidth:3,borderBottomColor:typeFilter===k?v.color:'transparent',transition:'all .15s'}}
+               onClick={()=>setTypeFilter(typeFilter===k?'all':k)}>
+            <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:5}}>
+              <div style={{width:26,height:26,borderRadius:7,background:v.color+'18',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                <i className={'fa-solid '+v.icon} style={{color:v.color,fontSize:'.72rem'}}/>
+              </div>
+              <span style={{fontSize:'.68rem',fontWeight:700,color:'#718096',textTransform:'uppercase',letterSpacing:'.05em'}}>{v.label}</span>
+            </div>
+            <div style={{fontSize:'1.45rem',fontWeight:700,color:'#1C2B3A'}}>{exercises.filter(e=>e.type===k).length}</div>
+          </div>
+        ))}
+        <div style={{background:'#fff',border:'1px solid rgba(28,43,58,.08)',borderRadius:12,padding:'13px 16px'}}>
+          <div style={{fontSize:'.68rem',fontWeight:700,color:'#718096',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:5}}>Kokku määratud</div>
+          <div style={{fontSize:'1.45rem',fontWeight:700,color:'#2F5D50'}}>{exercises.reduce((a,e)=>a+(e.assignCount||0),0)}</div>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div style={{background:'#fff',border:'1px solid rgba(28,43,58,.08)',borderRadius:14,padding:'13px 16px',marginBottom:16}}>
+        <div style={{display:'flex',gap:10,flexWrap:'wrap',alignItems:'center',justifyContent:'space-between'}}>
+          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍 Otsi harjutust..." style={{width:230,padding:'8px 13px'}}/>
+          <div style={{display:'flex',gap:5,flexWrap:'wrap',alignItems:'center'}}>
+            {SUBJECTS.map(s=>(
+              <button key={s.key} onClick={()=>setSubjectFilter(subjectFilter===s.key?'all':s.key)}
+                className={'btn btn-sm '+(subjectFilter===s.key?'btn-dark':'btn-ghost')}
+                title={s.key}>{s.emoji}</button>
+            ))}
+            <div style={{width:1,height:22,background:'rgba(28,43,58,.12)',margin:'0 3px'}}/>
+            {Object.entries(EX_TYPES).map(([k,v])=>(
+              <button key={k} onClick={()=>setTypeFilter(typeFilter===k?'all':k)}
+                className={'btn btn-sm '+(typeFilter===k?'btn-dark':'btn-ghost')}>
+                <i className={'fa-solid '+v.icon}/> {v.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div style={{marginTop:9,fontSize:'.78rem',color:'#718096'}}>{filtered.length} harjutust</div>
+      </div>
+
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(420px,1fr))',gap:13}}>
+        {filtered.map(ex=>(
+          <ExerciseCard key={ex.id} ex={ex} isTeacher={isTeacher} user={user}
+            onDelete={isTeacher?async e=>{if(!window.confirm('Kustuta?'))return;await db.collection('exercises').doc(e.id).delete();notify('✓ Kustutatud');}:null}
+          />
+        ))}
+        {filtered.length===0&&<div className="empty" style={{gridColumn:'1/-1'}}>
+          <i className="fa-solid fa-magnifying-glass"/><p>Harjutusi ei leitud.</p>
+        </div>}
+      </div>
+    </div>
+  );
+}
+
+// ── LOGIN ─────────────────────────────────────────────────────
+function LoginScreen({onLogin}){
+  const[email,setEmail]=useState('');const[pass,setPass]=useState('');const[err,setErr]=useState('');const[busy,setBusy]=useState(false);
+  const go=async()=>{if(!email||!pass){setErr('Täida kõik väljad');return;}setBusy(true);setErr('');try{const r=await auth.signInWithEmailAndPassword(email,pass);const s=await db.collection('users').doc(r.user.uid).get();if(s.exists)onLogin({uid:r.user.uid,...s.data()});else onLogin({uid:r.user.uid,email,role:'teacher'});}catch(e){setErr('Vale e-post või parool');}setBusy(false);};
+  const gLogin=async()=>{setBusy(true);setErr('');try{const r=await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());const s=await db.collection('users').doc(r.user.uid).get();if(s.exists)onLogin({uid:r.user.uid,displayName:r.user.displayName,...s.data()});else onLogin({uid:r.user.uid,displayName:r.user.displayName,email:r.user.email,role:'teacher'});}catch(e){setErr('Google sisselogimine ebaõnnestus');}setBusy(false);};
+  return(
+    <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',padding:16,background:'linear-gradient(135deg,#1C2B3A 0%,#2F5D50 100%)'}}>
+      <div style={{background:'#FBFAF8',borderRadius:24,padding:36,width:'100%',maxWidth:380,boxShadow:'0 32px 80px rgba(0,0,0,.3)'}}>
+        <div style={{textAlign:'center',marginBottom:28}}><div style={{fontFamily:'Fraunces,Georgia,serif',fontSize:'1.9rem',fontWeight:700}}>Keele<span style={{color:'#C9882A'}}>Sepp</span></div><div style={{fontSize:'.8rem',color:'#718096',marginTop:4}}>Õppekava & Harjutused</div></div>
+        <div style={{display:'flex',flexDirection:'column',gap:10,marginBottom:14}}><input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="E-post" onKeyDown={e=>e.key==='Enter'&&go()}/><input type="password" value={pass} onChange={e=>setPass(e.target.value)} placeholder="Parool" onKeyDown={e=>e.key==='Enter'&&go()}/></div>
+        {err&&<div style={{background:'#fee2e2',color:'#991b1b',borderRadius:9,padding:'9px 12px',fontSize:'.82rem',marginBottom:12}}>{err}</div>}
+        <button onClick={go} disabled={busy} className="btn btn-dark" style={{width:'100%',marginBottom:10,borderRadius:12,padding:12,justifyContent:'center'}}>{busy?'Laeb…':'Sisene'}</button>
+        <button onClick={gLogin} disabled={busy} style={{width:'100%',padding:11,borderRadius:12,border:'1.5px solid rgba(28,43,58,.15)',background:'#fff',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:10,fontWeight:600,fontSize:'.86rem'}}>
+          <svg width="17" height="17" viewBox="0 0 18 18"><path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18z"/><path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 0 1-7.18-2.54H1.83v2.07A8 8 0 0 0 8.98 17z"/><path fill="#FBBC05" d="M4.5 10.52a4.8 4.8 0 0 1 0-3.04V5.41H1.83a8 8 0 0 0 0 7.18l2.67-2.07z"/><path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 0 0 1.83 5.4L4.5 7.49a4.77 4.77 0 0 1 4.48-3.3z"/></svg>
+          Sisene Google'iga
+        </button>
+        <div style={{textAlign:'center',marginTop:14}}><a href="/haldus/" style={{fontSize:'.78rem',color:'#718096',textDecoration:'none'}}>← Tagasi haldussüsteemi</a></div>
+      </div>
+    </div>
+  );
+}
+
+
+// ── WORKSHEET PREVIEW MODAL ───────────────────────────────────
+function parseFillWs(text){
+  const parts=[];
+  text.split(/\[([^\]]+)\]/g).forEach((c,i)=>parts.push(i%2===0?{t:'text',v:c}:{t:'blank'}));
+  return parts;
+}
+
+function WorksheetPreviewModal({lesson,onClose}) {
+  const ws=lesson.worksheetData;
+  if(!ws) return(
+    <div className="ws-prev-ov">
+      <div className="ws-prev-box">
+        <div className="ws-prev-head">
+          <span style={{color:'#fff',fontWeight:700}}>Eelvaade</span>
+          <button onClick={onClose} className="btn btn-ghost btn-sm" style={{color:'#fff',borderColor:'rgba(255,255,255,.2)'}}>✕ Sulge</button>
+        </div>
+        <div style={{padding:40,textAlign:'center',color:'#7A7167'}}>
+          <i className="fa-solid fa-file-circle-xmark" style={{fontSize:'2rem',marginBottom:10,display:'block',opacity:.3}}/>
+          Töölehe andmed puuduvad
+        </div>
+      </div>
+    </div>
+  );
+
+  const{meta={},blocks=[]}=ws;
+
+  const renderBlock=(block,idx)=>{
+    const BTLABELS={fill:'Täida lünk',choice:'Vali vastus',writing:'Kirjutamine',match:'Sobita paarid',order:'Järjesta sõnad',table:'Tabel',text:'Tekst',reading:'Lugemistekst',image:'Pilt'};
+    const label=block.label||BTLABELS[block.type]||block.type;
+
+    const renderContent=()=>{
+      if(block.type==='text') return <p style={{fontSize:'.88rem',lineHeight:1.6,fontWeight:block.bold?700:400}}>{block.content}</p>;
+      if(block.type==='image') return block.imageUrl
+        ?<div><img src={block.imageUrl} alt="" style={{maxWidth:'100%',maxHeight:220,objectFit:'contain',borderRadius:6,border:'1px solid rgba(28,43,58,.08)'}}/>{block.caption&&<div style={{fontSize:'.72rem',color:'#718096',marginTop:3,fontStyle:'italic',textAlign:'center'}}>{block.caption}</div>}</div>
+        :<div style={{background:'#F0EEE9',borderRadius:6,height:80,display:'flex',alignItems:'center',justifyContent:'center',color:'#B0A898',fontSize:'.8rem'}}>Pilt puudub</div>;
+      if(block.type==='fill') return(
+        <div className="ws-fill-line">
+          {parseFillWs(block.text||'').map((p,i)=>p.t==='text'?<span key={i}>{p.v}</span>:<span key={i} className="ws-blank">&nbsp;</span>)}
+        </div>
+      );
+      if(block.type==='choice'||block.type==='reading') return(
+        <div>
+          {block.type==='reading'&&<div className="ws-passage">{block.passage}</div>}
+          {(block.questions||[]).map((q,qi)=>(
+            <div key={qi} style={{marginBottom:9}}>
+              <div className="ws-choice-q">{qi+1}. {q.q}</div>
+              {q.opts.filter(Boolean).map((o,oi)=><div key={oi} className="ws-choice-opt"><div className="ws-circle"/><span>{o}</span></div>)}
+            </div>
+          ))}
+        </div>
+      );
+      if(block.type==='writing') return(
+        <div>
+          <div className="ws-wr-task">{block.task}</div>
+          {Array.from({length:block.lines||6}).map((_,i)=><div key={i} className="ws-wr-line"/>)}
+        </div>
+      );
+      if(block.type==='match') return(
+        <div>
+          <div className="ws-match-cols">
+            <div>{(block.pairs||[]).map((p,i)=><div key={i} className="ws-match-item">{i+1}. {p.l}</div>)}</div>
+            <div>{[...(block.pairs||[])].sort(()=>Math.random()-.5).map((p,i)=><div key={i} className="ws-match-item">{String.fromCharCode(65+i)}. {p.r}</div>)}</div>
+          </div>
+          <div style={{display:'flex',flexWrap:'wrap',gap:6,marginTop:7}}>
+            {(block.pairs||[]).map((_,i)=><span key={i} style={{fontSize:'.8rem',padding:'2px 7px',border:'1px solid rgba(28,43,58,.15)',borderRadius:4}}>{i+1} — ___</span>)}
+          </div>
+        </div>
+      );
+      if(block.type==='order') return(
+        <div>
+          <div className="ws-chips">{(block.sentence||'').split(' ').filter(Boolean).sort(()=>Math.random()-.5).map((w,i)=><span key={i} className="ws-chip">{w}</span>)}</div>
+          <div style={{borderBottom:'1px solid rgba(28,43,58,.2)',marginTop:4,fontSize:'.78rem',color:'#B0A898'}}>Kirjuta: _______________________________________________</div>
+        </div>
+      );
+      if(block.type==='table') return(
+        <table className="ws-table">
+          <thead><tr>{(block.headers||[]).map((h,i)=><th key={i}>{h}</th>)}</tr></thead>
+          <tbody>{Array.from({length:block.rows||4}).map((_,ri)=>(
+            <tr key={ri}>{(block.headers||[]).filter(Boolean).map((_,ci)=><td key={ci}>{(block.cellData||{})[ri+','+ci]||''}</td>)}</tr>
+          ))}</tbody>
+        </table>
+      );
+      return null;
+    };
+
+    return(
+      <div key={block.id||idx} className="ws-pb">
+        <div style={{marginBottom:6}}>
+          <span className="ws-pb-num">{idx+1}</span>
+          <span className="ws-pb-lbl">{label}</span>
+          {block.instruction&&<span style={{fontSize:'.72rem',color:'#718096',fontStyle:'italic',marginLeft:6}}>— {block.instruction}</span>}
+        </div>
+        {block.imageUrl&&block.type!=='image'&&(block.imagePos||'top')==='top'&&(
+          <img src={block.imageUrl} alt="" style={{maxWidth:'100%',maxHeight:160,objectFit:'contain',borderRadius:6,marginBottom:8,border:'1px solid rgba(28,43,58,.08)'}}/>
+        )}
+        {renderContent()}
+        {block.imageUrl&&block.type!=='image'&&block.imagePos==='bottom'&&(
+          <img src={block.imageUrl} alt="" style={{maxWidth:'100%',maxHeight:160,objectFit:'contain',borderRadius:6,marginTop:8,border:'1px solid rgba(28,43,58,.08)'}}/>
+        )}
+        {idx<blocks.length-1&&<hr className="ws-divider"/>}
+      </div>
+    );
+  };
+
+  return(
+    <div className="ws-prev-ov" onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
+      <div className="ws-prev-box">
+        <div className="ws-prev-head">
+          <div>
+            <div style={{color:'#fff',fontWeight:700,fontSize:'.95rem'}}>{lesson.title}</div>
+            <div style={{color:'rgba(255,255,255,.45)',fontSize:'.75rem'}}>{lesson.subject} · {lesson.level} · {lesson.topic}</div>
+          </div>
+          <div style={{display:'flex',gap:8,alignItems:'center'}}>
+            <a href="/haldus-worksheet" style={{color:'rgba(255,255,255,.6)',fontSize:'.76rem',textDecoration:'none',padding:'5px 10px',border:'1px solid rgba(255,255,255,.15)',borderRadius:7}}>
+              <i className="fa-solid fa-pen"/> Muuda
+            </a>
+            <button onClick={onClose} className="btn btn-ghost btn-sm" style={{color:'#fff',borderColor:'rgba(255,255,255,.2)'}}>✕ Sulge</button>
+          </div>
+        </div>
+        <div className="ws-prev-body">
+          <div className="ws-a4">
+            <div className="ws-sheet-hdr">
+              <div>
+                <div className="ws-sheet-title">{meta.title||lesson.title}</div>
+                <div className="ws-sheet-meta">
+                  {meta.subject&&<span>📚 {meta.subject}</span>}
+                  {meta.level&&<span>📊 {meta.level}</span>}
+                  {meta.date&&<span>📅 Kuupäev: ____________</span>}
+                  {meta.name&&<span>Nimi: _________________________</span>}
+                </div>
+              </div>
+              {meta.score&&<div className="ws-score-box">Punkte: ___ / ___</div>}
+            </div>
+            {blocks.length===0
+              ?<div style={{textAlign:'center',padding:'40px 0',color:'#B0A898',fontSize:'.86rem'}}>Tööleht on tühi</div>
+              :blocks.map((block,idx)=>renderBlock(block,idx))
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── APP ───────────────────────────────────────────────────────
+function App(){
+  const[user,setUser]=useState(null);
+  const[loading,setLoading]=useState(true);
+  const[tab,setTab]=useState('curriculum');
+  const[wsPreview,setWsPreview]=useState(null);
+  const[notif,setNotif]=useState('');
+  const[exCount,setExCount]=useState(0);
+
+  const notify=msg=>{setNotif(msg);setTimeout(()=>setNotif(''),3000);};
+  const isTeacher=user?.role==='teacher'||user?.role==='admin'||user?.email==='zakutailo.pavel@gmail.com';
+
+  useEffect(()=>{
+    const u=auth.onAuthStateChanged(async fbUser=>{
+      if(fbUser){const s=await db.collection('users').doc(fbUser.uid).get();if(s.exists)setUser({uid:fbUser.uid,displayName:fbUser.displayName||fbUser.email,...s.data()});else setUser({uid:fbUser.uid,displayName:fbUser.displayName||fbUser.email,email:fbUser.email,role:'student'});}
+      else setUser(null);
+      setLoading(false);
+    });
+    return u;
+  },[]);
+
+  useEffect(()=>{
+    const u=db.collection('exercises').onSnapshot(s=>setExCount(s.docs.length),()=>{});
+    return u;
+  },[]);
+
+  if(loading)return<div style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh'}}><div className="spinner"/></div>;
+  if(!user)return<LoginScreen onLogin={setUser}/>;
+
+  return(
+    <div style={{minHeight:'100vh',background:'#F0EEE9'}}>
+      {notif&&<div className="notif">{notif}</div>}
+      {wsPreview&&<WorksheetPreviewModal lesson={wsPreview} onClose={()=>setWsPreview(null)}/>}
+
+      <header className="top-header">
+        <div className="logo">Keele<span>Sepp</span></div>
+        <div style={{display:'flex',alignItems:'center',gap:12}}>
+          <span style={{color:'rgba(255,255,255,.45)',fontSize:'.8rem'}}>{user.displayName||user.email}</span>
+          <a href="/haldus/" style={{color:'rgba(255,255,255,.55)',fontSize:'.78rem',textDecoration:'none',padding:'6px 12px',border:'1px solid rgba(255,255,255,.14)',borderRadius:8}}>← Haldus</a>
+          <button onClick={()=>auth.signOut().then(()=>setUser(null))} style={{background:'none',border:'1px solid rgba(255,255,255,.14)',color:'rgba(255,255,255,.55)',cursor:'pointer',borderRadius:8,padding:'6px 12px',fontSize:'.78rem'}}>Logi välja</button>
         </div>
       </header>
 
-      <div className="workspace">
-        {/* LEFT */}
-        <div className="left-panel">
-          <div className="left-tabs">
-            <button className={'ltab'+(tab==='build'?' active':'')} onClick={()=>setTab('build')}>
-              <i className="fa-solid fa-layer-group"/> Koosta
-            </button>
-            <button className={'ltab'+(tab==='ai'?' active':'')} onClick={()=>setTab('ai')}>
-              <i className="fa-solid fa-wand-magic-sparkles"/> AI
-            </button>
-            <button className={'ltab'+(tab==='meta'?' active':'')} onClick={()=>setTab('meta')}>
-              <i className="fa-solid fa-sliders"/> Seaded
-            </button>
-          </div>
-
-          <div className="left-scroll">
-
-            {/* AI TAB */}
-            {tab==='ai'&&(
-              <div>
-                <div className="ai-panel">
-                  <div className="ai-title"><i className="fa-solid fa-wand-magic-sparkles"/> Genereeri AI-ga</div>
-                  <textarea className="ai-textarea" value={aiPrompt} onChange={e=>setAiPrompt(e.target.value)} rows={5}
-                    placeholder={"Näiteks:\n\"Tegusõnade pööramine olevikus A2\"\n\"Lugemisharjutus toidust B1\""}/>
-                  <div className="ai-lvl-btns">
-                    {['A1','A2','B1','B2','C1'].map(l=>(
-                      <button key={l} className={'ai-lvl'+(meta.level===l?' active':'')} onClick={()=>setMeta(m=>({...m,level:l}))}>{l}</button>
-                    ))}
-                  </div>
-                  <button onClick={runAI} disabled={aiLoading} className="btn btn-pine" style={{width:'100%',marginTop:10,justifyContent:'center',background:'#C9882A',color:'#fff'}}>
-                    {aiLoading?<><div className="sp" style={{marginRight:6}}/> Genereerib...</>:<><i className="fa-solid fa-bolt"/> Genereeri</>}
-                  </button>
-                </div>
-                <button onClick={()=>setTab('build')} className="btn btn-ghost" style={{width:'100%',justifyContent:'center'}}>
-                  <i className="fa-solid fa-layer-group"/> Koosta käsitsi
-                </button>
-              </div>
-            )}
-
-            {/* META TAB */}
-            {tab==='meta'&&(
-              <div>
-                <div className="meta-box">
-                  <div className="meta-lbl">Tööleht</div>
-                  <div className="field-lbl">Pealkiri</div>
-                  <input value={meta.title} onChange={e=>setMeta(m=>({...m,title:e.target.value}))} style={{marginBottom:6}}/>
-                  <div className="field-lbl">Õppeaine</div>
-                  <select value={meta.subject} onChange={e=>setMeta(m=>({...m,subject:e.target.value}))} style={{marginBottom:6}}>
-                    <option>Eesti keel</option><option>Inglise keel</option><option>Matemaatika</option>
-                  </select>
-                  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:7}}>
-                    <div>
-                      <div className="field-lbl">Tase</div>
-                      <select value={meta.level} onChange={e=>setMeta(m=>({...m,level:e.target.value}))}>
-                        {['A1','A2','B1','B2','C1','C2'].map(l=><option key={l}>{l}</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <div className="field-lbl">Teema</div>
-                      <input value={meta.topic} onChange={e=>setMeta(m=>({...m,topic:e.target.value}))} placeholder="nt. Pere"/>
-                    </div>
-                  </div>
-                </div>
-                <div className="meta-box">
-                  <div className="meta-lbl">Päise väljad</div>
-                  {[['name','Nimi'],['score','Punkte'],['date','Kuupäev']].map(([k,l])=>(
-                    <label key={k} style={{display:'flex',alignItems:'center',gap:7,marginBottom:7,fontSize:'.8rem',cursor:'pointer'}}>
-                      <input type="checkbox" checked={meta[k]||false} onChange={e=>setMeta(m=>({...m,[k]:e.target.checked}))}/> {l}
-                    </label>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* BUILD TAB */}
-            {tab==='build'&&(
-              <div>
-                <div style={{fontSize:'.66rem',fontWeight:700,color:'#7A7167',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:7}}>Lisa plokk</div>
-                <div className="btype-grid">
-                  {BTYPES.map(bt=>(
-                    <button key={bt.key} className="btype-btn" onClick={()=>addBlock(bt.key)}>
-                      <div className="btype-icon" style={{background:bt.bg}}><i className={'fa-solid '+bt.icon} style={{color:bt.color}}/></div>
-                      {bt.label}
-                    </button>
-                  ))}
-                </div>
-
-                {blocks.length===0
-                  ?<div className="empty-bld"><i className="fa-solid fa-layer-group"/><p style={{fontSize:'.78rem'}}>Lisa plokke ülal</p></div>
-                  :<div>
-                    <div style={{fontSize:'.66rem',fontWeight:700,color:'#7A7167',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:6}}>
-                      Plokid ({blocks.length}) — lohista järjekorra muutmiseks
-                    </div>
-                    {blocks.map((block,idx)=>{
-                      const bt=BT[block.type];
-                      const isActive=activeId===block.id;
-                      return(
-                        <div key={block.id}
-                          className={'block-item'+(isActive?' active':'')+(dragId===block.id?' dragging':'')+(dragOver===block.id?' drag-over':'')}
-                          draggable
-                          onDragStart={e=>onDragStart(e,block.id)}
-                          onDragOver={e=>onDragOver(e,block.id)}
-                          onDrop={e=>onDrop(e,block.id)}
-                          onDragEnd={onDragEnd}>
-                          <div className="bi-head" onClick={()=>setActiveId(isActive?null:block.id)}>
-                            <span className="bi-drag"><i className="fa-solid fa-grip-vertical"/></span>
-                            <span className="nbadge" style={{background:bt.color}}>{idx+1}</span>
-                            <span className="bi-tag" style={{background:bt.bg,color:bt.color}}>
-                              <i className={'fa-solid '+bt.icon} style={{fontSize:'.6rem'}}/>
-                              {bt.label}
-                            </span>
-                            <span className="bi-preview">
-                              {block.type==='fill'&&(block.text||'').replace(/\[([^\]]+)\]/g,'___')}
-                              {block.type==='writing'&&block.task}
-                              {block.type==='text'&&block.content}
-                              {block.type==='order'&&block.sentence}
-                              {block.type==='choice'&&(block.questions?.[0]?.q||'Valikvastus')}
-                              {block.type==='match'&&`${block.pairs?.length||0} paari`}
-                              {block.type==='table'&&(block.headers||[]).join(', ')}
-                              {block.type==='reading'&&(block.passage||'').slice(0,35)+'...'}
-                              {block.type==='image'&&(block.caption||'Pilt')}
-                            </span>
-                            <div className="bi-actions" onClick={e=>e.stopPropagation()}>
-                              <button className="bi-btn" onClick={()=>moveBlock(block.id,-1)} title="Üles"><i className="fa-solid fa-chevron-up"/></button>
-                              <button className="bi-btn" onClick={()=>moveBlock(block.id,1)} title="Alla"><i className="fa-solid fa-chevron-down"/></button>
-                              <button className="bi-btn del" onClick={()=>delBlock(block.id)} title="Kustuta"><i className="fa-solid fa-trash"/></button>
-                            </div>
-                          </div>
-                          {isActive&&(
-                            <div onClick={e=>e.stopPropagation()}>
-                              <BlockEditor block={block} onChange={data=>updBlock(block.id,data)}/>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                }
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* RIGHT — A4 PREVIEW */}
-        <div className="right-panel">
-          <div className="toolbar-row">
-            <span style={{fontSize:'.74rem',color:'#7A7167',marginRight:'auto'}}>{blocks.length} plokki</span>
-            <button onClick={exportPrint} className="btn btn-ghost btn-sm"><i className="fa-solid fa-print"/> Prindi / PDF</button>
-            <button onClick={exportDL} className="btn btn-pine btn-sm"><i className="fa-solid fa-download"/> Laadi alla (.html)</button>
-          </div>
-
-          <div className="a4-sheet">
-            <div className="sheet-hdr">
-              <div>
-                <div className="sheet-title">{meta.title||'Pealkiri puudub'}</div>
-                <div className="sheet-meta-row">
-                  {meta.subject&&<span>📚 {meta.subject}</span>}
-                  {meta.level&&<span>📊 {meta.level}</span>}
-                  {meta.topic&&<span>💬 {meta.topic}</span>}
-                  {meta.date&&<span>📅 Kuupäev: ____________</span>}
-                  {meta.name&&<span>Nimi: ___________________________</span>}
-                </div>
-              </div>
-              {meta.score&&<div className="score-box">Punkte: ___ / ___</div>}
-            </div>
-
-            {blocks.length===0
-              ?<div style={{textAlign:'center',padding:'56px 0',color:'#C0B8B0'}}>
-                 <i className="fa-solid fa-layer-group" style={{fontSize:'2rem',opacity:.2,display:'block',marginBottom:10}}/>
-                 <div style={{fontSize:'.86rem'}}>Lisa plokke vasakult paneelilt</div>
-               </div>
-              :<div>
-                {blocks.map((block,idx)=>(
-                  <PreviewBlock key={block.id} block={block} index={idx+1}/>
-                ))}
-              </div>
-            }
-          </div>
-          <div style={{height:40}}/>
-        </div>
+      <div className="top-tabs">
+        <button className={'top-tab'+(tab==='curriculum'?' active':'')} onClick={()=>setTab('curriculum')}>
+          <i className="fa-solid fa-layer-group"/> Õppekava
+        </button>
+        <button className={'top-tab'+(tab==='exercises'?' active':'')} onClick={()=>setTab('exercises')}>
+          <i className="fa-solid fa-dumbbell"/> Harjutused
+          <span className="tab-count">{exCount}</span>
+        </button>
+        {tab==='curriculum'&&isTeacher&&(
+          <a href="/haldus-worksheet" className="top-tab"
+            style={{marginLeft:'auto',color:'#A96E1A',borderBottomColor:'transparent',textDecoration:'none'}}>
+            <i className="fa-solid fa-file-pen"/> Koosta tööleht
+          </a>
+        )}
       </div>
-      {showSave&&<SaveModal meta={meta} blocks={blocks} user={user} onClose={()=>setShowSave(false)} notify={notify}/>}
+
+      {tab==='curriculum'&&<CurriculumView isTeacher={isTeacher} user={user} notify={notify} onPreviewWorksheet={setWsPreview}/>}
+      {tab==='exercises'&&<ExercisesView isTeacher={isTeacher} user={user} notify={notify}/>}
     </div>
   );
 }
