@@ -126,7 +126,6 @@ const LEVELS = SHARED_LEVELS.includes('Eelkool') ? SHARED_LEVELS : ['Eelkool',..
 const GRADES = SHARED_GRADES.includes('Eelkool') ? SHARED_GRADES : ['Eelkool',...SHARED_GRADES];
 
 // ── TEACHER MATCH HELPER ──────────────────────────────────────
-// Поддерживает "Pavel Zakutailo" (gcal) === "Pavel" (CRM)
 const teacherMatches = (a, b) => {
   if(!a || !b) return false;
   return canonicalTeacherName(a) === canonicalTeacherName(b);
@@ -1688,6 +1687,9 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
         ))}
       </div>
 
+      {/* Google Calendar — прямо в Tunniplaan, перед бронированием */}
+      {canManage&&<GCalSettings user={user} notify={notify}/>}
+
       {/* Форма бронирования */}
       {canManage&&(
         <div className="card" style={{padding:20}}>
@@ -1924,9 +1926,6 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
           )}
         </div>
       )}
-
-      {/* Google Calendar — прямо в Tunniplaan */}
-      {canManage&&<GCalSettings user={user} notify={notify}/>}
     </div>
   );
 }
