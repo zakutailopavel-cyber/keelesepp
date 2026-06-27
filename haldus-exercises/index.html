@@ -95,6 +95,8 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#EEECE7;color:#1C2B3A;min
 .sidebar-btn .sb-count{font-size:.7rem;font-weight:700;color:#718096;background:rgba(28,43,58,.06);padding:2px 7px;border-radius:6px;}
 .sidebar-btn.active .sb-count{color:#2F5D50;background:rgba(47,93,80,.15);}
 .sidebar-divider{height:1px;background:rgba(28,43,58,.07);margin:6px 0;}
+.sidebar-btn:hover+.topic-actions,.topic-actions:hover,.sidebar-btn:focus-within+.topic-actions{opacity:1!important;}
+div:hover>.topic-actions{opacity:1!important;}
 
 /* EXAM SECTION IN SIDEBAR */
 .exam-sidebar-btn{width:100%;text-align:left;padding:9px 12px;border-radius:10px;border:none;cursor:pointer;font-size:.84rem;font-weight:700;display:flex;align-items:center;gap:9px;transition:all .12s;margin-bottom:2px;}
@@ -455,12 +457,24 @@ function ExamView({subject,level,lessons,isTeacher,onAdd,onEdit,onDelete}){
 }
 
 // ── TOPIC VIEW ────────────────────────────────────────────────
-function TopicView({subject,level,activeTopic,topics,allLessons,isTeacher,onSelectTopic,onAdd,onEdit,onDelete}){
+function TopicView({subject,level,activeTopic,topics,allLessons,isTeacher,onSelectTopic,onAdd,onEdit,onDelete,onRenameTopic,onDeleteTopic,onAddTopic}){
   const topicLessons=allLessons
     .filter(l=>l.subject===subject.key&&l.level===level&&l.topic===activeTopic&&!l.examPart)
     .sort((a,b)=>(a.order||0)-(b.order||0));
   const counts={};
   topics.forEach(t=>{counts[t]=allLessons.filter(l=>l.subject===subject.key&&l.level===level&&l.topic===t&&!l.examPart).length;});
+
+  // Inline rename state
+  const[renamingTopic,setRenamingTopic]=useState(null);
+  const[renameVal,setRenameVal]=useState('');
+  const[addingTopic,setAddingTopic]=useState(false);
+  const[newTopicVal,setNewTopicVal]=useState('');
+  const renameInputRef=useRef();
+  const newTopicRef=useRef();
+
+  const startRename=t=>{setRenamingTopic(t);setRenameVal(t);setTimeout(()=>renameInputRef.current?.select(),50);};
+  const commitRename=()=>{if(renameVal.trim()&&renameVal.trim()!==renamingTopic){onRenameTopic(renamingTopic,renameVal.trim());}setRenamingTopic(null);};
+  const commitAdd=()=>{if(newTopicVal.trim()){onAddTopic(newTopicVal.trim());}setAddingTopic(false);setNewTopicVal('');};
 
   return(
     <div className="content-shell">
@@ -469,12 +483,48 @@ function TopicView({subject,level,activeTopic,topics,allLessons,isTeacher,onSele
         <div className="sidebar-section">
           <div className="sidebar-label">Teemad — {level}</div>
           {topics.map(t=>(
-            <button key={t} onClick={()=>onSelectTopic(t)} className={'sidebar-btn'+(activeTopic===t?' active':'')}>
-              <span style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',flex:1,textAlign:'left'}}>{t}</span>
-              <span className="sb-count">{counts[t]||0}</span>
-            </button>
+            <div key={t} style={{position:'relative',marginBottom:2}}>
+              {renamingTopic===t
+                ?<div style={{display:'flex',gap:5,alignItems:'center',padding:'3px 4px'}}>
+                   <input ref={renameInputRef} value={renameVal} onChange={e=>setRenameVal(e.target.value)}
+                     onKeyDown={e=>{if(e.key==='Enter')commitRename();if(e.key==='Escape')setRenamingTopic(null);}}
+                     style={{flex:1,padding:'6px 9px',fontSize:'.82rem',borderRadius:8,border:'1.5px solid #2F5D50'}}/>
+                   <button onClick={commitRename} className="btn btn-pine btn-sm" style={{padding:'5px 9px'}}>✓</button>
+                 </div>
+                :<div style={{display:'flex',alignItems:'center',gap:2}}>
+                   <button onClick={()=>onSelectTopic(t)} className={'sidebar-btn'+(activeTopic===t?' active':'')} style={{flex:1}}>
+                     <span style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',flex:1,textAlign:'left'}}>{t}</span>
+                     <span className="sb-count">{counts[t]||0}</span>
+                   </button>
+                   {isTeacher&&<div style={{display:'flex',gap:2,opacity:0,transition:'opacity .15s'}} className="topic-actions">
+                     <button onClick={()=>startRename(t)} title="Nimeta ümber"
+                       style={{background:'none',border:'none',cursor:'pointer',color:'#718096',padding:'4px 5px',borderRadius:6,fontSize:'.72rem'}}>
+                       <i className="fa-solid fa-pen"/>
+                     </button>
+                     <button onClick={()=>onDeleteTopic(t)} title="Kustuta teema"
+                       style={{background:'none',border:'none',cursor:'pointer',color:'#dc2626',padding:'4px 5px',borderRadius:6,fontSize:'.72rem'}}>
+                       <i className="fa-solid fa-trash"/>
+                     </button>
+                   </div>}
+                 </div>}
+            </div>
           ))}
-          <div className="sidebar-divider"/>
+          {isTeacher&&(
+            addingTopic
+              ?<div style={{display:'flex',gap:5,alignItems:'center',padding:'3px 4px',marginTop:4}}>
+                 <input ref={newTopicRef} value={newTopicVal} onChange={e=>setNewTopicVal(e.target.value)}
+                   placeholder="Uue teema nimi..."
+                   onKeyDown={e=>{if(e.key==='Enter')commitAdd();if(e.key==='Escape'){setAddingTopic(false);setNewTopicVal('');}}}
+                   style={{flex:1,padding:'6px 9px',fontSize:'.82rem',borderRadius:8,border:'1.5px solid #2F5D50'}}
+                   autoFocus/>
+                 <button onClick={commitAdd} className="btn btn-pine btn-sm" style={{padding:'5px 9px'}}>✓</button>
+               </div>
+              :<button onClick={()=>setAddingTopic(true)}
+                 style={{width:'100%',textAlign:'left',padding:'8px 12px',border:'1px dashed rgba(47,93,80,.3)',borderRadius:9,background:'none',cursor:'pointer',color:'#2F5D50',fontSize:'.82rem',fontWeight:600,marginTop:4,display:'flex',alignItems:'center',gap:6}}>
+                 <i className="fa-solid fa-plus" style={{fontSize:'.7rem'}}/> Uus teema
+               </button>
+          )}
+          <div className="sidebar-divider" style={{margin:'10px 0'}}/>
           <div className="sidebar-label">Eksamid</div>
           {EXAM_PARTS.map(p=>{
             const cnt=allLessons.filter(l=>l.subject===subject.key&&l.level===level&&l.examPart===p.key).length;
@@ -506,9 +556,17 @@ function TopicView({subject,level,activeTopic,topics,allLessons,isTeacher,onSele
             />
           :<>
             <div className="main-head">
-              <div>
-                <div className="main-title">{activeTopic}</div>
-                <div className="main-sub">{subject.key} · {level} · {topicLessons.length} kirjet</div>
+              <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
+                <div>
+                  <div className="main-title" style={{display:'flex',alignItems:'center',gap:8}}>
+                    {activeTopic}
+                    {isTeacher&&<button onClick={()=>startRename(activeTopic)} title="Nimeta ümber"
+                      style={{background:'none',border:'none',cursor:'pointer',color:'#B0A898',padding:'2px 5px',borderRadius:6,fontSize:'.75rem'}}>
+                      <i className="fa-solid fa-pen"/>
+                    </button>}
+                  </div>
+                  <div className="main-sub">{subject.key} · {level} · {topicLessons.length} kirjet</div>
+                </div>
               </div>
               {isTeacher&&<button onClick={()=>onAdd(activeTopic,false,null)} className="btn btn-pine btn-sm"><i className="fa-solid fa-plus"/> Lisa kirje</button>}
             </div>
@@ -676,6 +734,33 @@ function CurriculumView({isTeacher,user,notify}){
           }}
           onEdit={lesson=>setModal({lesson,topic:lesson.topic,examPart:lesson.examPart||null})}
           onDelete={deleteLesson}
+          onAddTopic={async newName=>{
+            const exists=topics.includes(newName);
+            if(exists){notify('See teema on juba olemas');return;}
+            await db.collection('curriculumLessons').add({
+              subject:subject.key,level,topic:newName,title:'—',type:'material',
+              description:'',files:[],order:0,examPart:null,
+              authorUid:user.uid,authorName:user.displayName||user.email||'',
+              createdAt:today(),updatedAt:new Date().toISOString(),
+              __placeholder:true
+            });
+            setNav({subject:subject.key,level,topic:newName});
+            notify('✓ Uus teema lisatud');
+          }}
+          onRenameTopic={async(oldName,newName)=>{
+            const toUpdate=lessons.filter(l=>l.subject===subject.key&&l.level===level&&l.topic===oldName);
+            await Promise.all(toUpdate.map(l=>db.collection('curriculumLessons').doc(l.id).update({topic:newName})));
+            if(activeTopic===oldName)setNav({subject:subject.key,level,topic:newName});
+            notify('✓ Teema ümber nimetatud');
+          }}
+          onDeleteTopic={async topicName=>{
+            const toDelete=lessons.filter(l=>l.subject===subject.key&&l.level===level&&l.topic===topicName);
+            if(toDelete.length>0&&!window.confirm('Kustuta teema "'+topicName+'" koos kõigi '+toDelete.length+' kirjega?'))return;
+            await Promise.all(toDelete.map(l=>db.collection('curriculumLessons').doc(l.id).delete()));
+            const remaining=topics.filter(t=>t!==topicName);
+            setNav({subject:subject.key,level,topic:remaining[0]||''});
+            notify('✓ Teema kustutatud');
+          }}
         />
       )}
 
