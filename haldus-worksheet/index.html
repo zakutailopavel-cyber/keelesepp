@@ -6,6 +6,7 @@
 <title>KeeleSepp — Tööleht</title>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
 <script>
 (function(){
@@ -22,6 +23,7 @@
     }
     window._auth=firebase.auth();
     window._storage=firebase.storage();
+    window._db=firebase.firestore();
   }catch(e){console.error(e);}
 })();
 </script>
@@ -202,6 +204,24 @@ textarea{resize:vertical;line-height:1.45;}
 /* TOOLBAR ROW above A4 */
 .toolbar-row{display:flex;justify-content:flex-end;width:794px;margin-bottom:10px;gap:7px;align-items:center;}
 @media(max-width:1150px){.toolbar-row{width:100%;}}
+
+/* SAVE MODAL */
+.sav-ov{position:fixed;inset:0;background:rgba(28,43,58,.5);display:flex;align-items:center;justify-content:center;padding:16px;z-index:300;backdrop-filter:blur(4px);}
+.sav-box{background:#FBFAF8;border-radius:18px;max-width:480px;width:100%;padding:0;overflow:hidden;}
+.sav-head{padding:18px 22px 14px;border-bottom:1px solid rgba(28,43,58,.08);display:flex;justify-content:space-between;align-items:center;}
+.sav-body{padding:18px 22px;display:flex;flex-direction:column;gap:12px;}
+.sav-foot{padding:12px 22px;border-top:1px solid rgba(28,43,58,.08);display:flex;gap:8px;justify-content:flex-end;}
+.btn-green{background:#16a34a;color:#fff;}
+.btn-green:hover{background:#15803d;}
+
+/* SAVE MODAL */
+.sav-ov{position:fixed;inset:0;background:rgba(28,43,58,.5);display:flex;align-items:center;justify-content:center;padding:16px;z-index:300;backdrop-filter:blur(4px);}
+.sav-box{background:#FBFAF8;border-radius:18px;max-width:480px;width:100%;overflow:hidden;}
+.sav-head{padding:18px 22px 14px;border-bottom:1px solid rgba(28,43,58,.08);display:flex;justify-content:space-between;align-items:center;}
+.sav-body{padding:18px 22px;display:flex;flex-direction:column;gap:12px;}
+.sav-foot{padding:12px 22px;border-top:1px solid rgba(28,43,58,.08);display:flex;gap:8px;justify-content:flex-end;}
+.btn-green{background:#16a34a;color:#fff;}
+.btn-green:hover{background:#15803d;}
 </style>
 </head>
 <body>
@@ -209,7 +229,7 @@ textarea{resize:vertical;line-height:1.45;}
 
 <script type="text/babel">
 const {useState,useEffect,useRef,useMemo,useCallback} = React;
-const auth=window._auth, storage=window._storage;
+const auth=window._auth, storage=window._storage, db=window._db;
 
 const uid=()=>Math.random().toString(36).slice(2,9);
 
@@ -228,7 +248,7 @@ const BTYPES=[
 const BT=Object.fromEntries(BTYPES.map(b=>[b.key,b]));
 
 const mkBlock=type=>{
-  const base={id:uid(),type,instruction:'',size:'full',cols:1,imageUrl:'',imagePos:'top'};
+  const base={id:uid(),type,instruction:'',size:'full',cols:1,imageUrl:'',imagePos:'top',label:''};
   if(type==='fill')    return{...base,text:'Mina [elan] Tallinnas ja [töötan] koolis.'};
   if(type==='choice')  return{...base,questions:[{q:'Mis on Eesti pealinn?',opts:['Tallinn','Tartu','Pärnu','Narva'],correct:0}]};
   if(type==='writing') return{...base,task:'Kirjuta lühike tekst teemal "Minu pere" (50–80 sõna).',lines:8};
@@ -347,11 +367,37 @@ function OrderEd({b,upd}) {
 }
 
 function TableEd({b,upd}) {
+  const hdrs=(b.headers||['','','']).map(h=>h.trim()).filter(Boolean);
+  const cellData=b.cellData||{};
+  const setCell=(r,c,v)=>{
+    const key=r+','+c;
+    upd({cellData:{...cellData,[key]:v}});
+  };
   return(<>
     <div className="field-lbl">Veeru päised (komaga)</div>
-    <input value={(b.headers||[]).join(',')} onChange={e=>upd({headers:e.target.value.split(',')})} placeholder="Sõna,Tõlge,Näide"/>
-    <div className="field-lbl">Ridade arv: {b.rows||4}</div>
-    <input type="range" min={2} max={15} value={b.rows||4} onChange={e=>upd({rows:+e.target.value})} style={{width:'100%'}}/>
+    <input value={(b.headers||[]).join(',')} onChange={e=>upd({headers:e.target.value.split(',')})} placeholder="Sõna,Tõlge,Näide" style={{marginBottom:8}}/>
+    <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:6}}>
+      <div className="field-lbl" style={{margin:0}}>Ridade arv: {b.rows||4}</div>
+      <input type="range" min={2} max={15} value={b.rows||4} onChange={e=>upd({rows:+e.target.value})} style={{flex:1}}/>
+    </div>
+    <div className="field-lbl">Eeltäida lahtrid (valikuline)</div>
+    <div style={{overflowX:'auto'}}>
+      <table style={{width:'100%',borderCollapse:'collapse',fontSize:'.78rem'}}>
+        <thead>
+          <tr>{hdrs.map((h,ci)=><th key={ci} style={{padding:'4px 6px',border:'1px solid rgba(28,43,58,.15)',background:'#F0EEE9',fontWeight:700,textAlign:'left'}}>{h}</th>)}</tr>
+        </thead>
+        <tbody>
+          {Array.from({length:b.rows||4}).map((_,ri)=>(
+            <tr key={ri}>{hdrs.map((_,ci)=>(
+              <td key={ci} style={{padding:2,border:'1px solid rgba(28,43,58,.12)'}}>
+                <input value={cellData[ri+','+ci]||''} onChange={e=>setCell(ri,ci,e.target.value)}
+                  style={{width:'100%',padding:'3px 5px',border:'none',background:'transparent',fontSize:'.78rem',borderRadius:0}}/>
+              </td>
+            ))}</tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   </>);
 }
 
@@ -408,6 +454,9 @@ function BlockEditor({block,onChange}) {
   const upd=p=>onChange({...block,...p});
   return(
     <div className="block-editor">
+      {/* Label */}
+      <div className="field-lbl">Ülesande nimetus (asendab tüübi nime)</div>
+      <input value={block.label||''} onChange={e=>upd({label:e.target.value})} placeholder={BT[block.type]?.label||'Nimetus...'}  style={{marginBottom:6}}/>
       {/* Instruction */}
       <div className="field-lbl">Juhis õpilasele</div>
       <input value={block.instruction||''} onChange={e=>upd({instruction:e.target.value})} placeholder="nt. Täida lüngad õigete sõnadega..."/>
@@ -519,12 +568,15 @@ function PreviewBlock({block,index}) {
       const words=(block.sentence||'').split(' ').filter(Boolean).sort(()=>Math.random()-.5);
       return(<div><div className="order-chips">{words.map((w,i)=><span key={i} className="order-chip">{w}</span>)}</div><div className="order-ans">Kirjuta õige järjestus: ___________________________________________________</div></div>);
     }
-    if(block.type==='table') return(
-      <table className="ws-tbl">
-        <thead><tr>{(block.headers||[]).map((h,i)=><th key={i}>{h||`Veerg ${i+1}`}</th>)}</tr></thead>
-        <tbody>{Array.from({length:block.rows||4}).map((_,ri)=>(<tr key={ri}>{(block.headers||[]).map((_,ci)=><td key={ci}></td>)}</tr>))}</tbody>
-      </table>
-    );
+    if(block.type==='table') {
+      const cd=block.cellData||{};
+      return(
+        <table className="ws-tbl">
+          <thead><tr>{(block.headers||[]).map((h,i)=><th key={i}>{h||`Veerg ${i+1}`}</th>)}</tr></thead>
+          <tbody>{Array.from({length:block.rows||4}).map((_,ri)=>(<tr key={ri}>{(block.headers||[]).filter(Boolean).map((_,ci)=><td key={ci}>{cd[ri+','+ci]||''}</td>)}</tr>))}</tbody>
+        </table>
+      );
+    }
     if(block.type==='reading') return(
       <div>
         <div className="pb-passage">{block.passage}</div>
@@ -554,7 +606,7 @@ function PreviewBlock({block,index}) {
       <div className="pb-wrap">
         <div className="pb-num-row">
           <span className="pb-num">{index}</span>
-          <span className="pb-type-lbl" style={{color:bt.color}}>{bt.label}</span>
+          <span className="pb-type-lbl" style={{color:bt.color}}>{block.label||bt.label}</span>
           {block.instruction&&<span style={{fontSize:'.73rem',color:'#718096',fontStyle:'italic'}}>— {block.instruction}</span>}
         </div>
         {withImg}
@@ -699,6 +751,94 @@ function buildHTML(meta,blocks) {
   return html;
 }
 
+// ── SAVE MODAL ────────────────────────────────────────────────
+function SaveModal({meta,blocks,user,onClose,notify}) {
+  const SUBJECTS=['Eesti keel','Inglise keel','Matemaatika'];
+  const LEVELS_BY_SUBJECT={
+    'Eesti keel':['A1','A2','B1','B2','C1'],
+    'Inglise keel':['A1','A2','B1','B2','C1','C2'],
+    'Matemaatika':Array.from({length:12},(_,i)=>i+1+'. klass'),
+  };
+  const [subject,setSubject]=useState(meta.subject||'Eesti keel');
+  const [level,setLevel]=useState(meta.level||'B1');
+  const [topic,setTopic]=useState(meta.topic||'');
+  const [description,setDescription]=useState('');
+  const [saving,setSaving]=useState(false);
+
+  const levels=LEVELS_BY_SUBJECT[subject]||[];
+
+  const save=async()=>{
+    if(!topic.trim()){alert('Vali või sisesta teema');return;}
+    setSaving(true);
+    try{
+      await db.collection('curriculumLessons').add({
+        title: meta.title||'Tööleht',
+        type: 'material',
+        description: description||meta.title||'',
+        subject, level, topic: topic.trim(),
+        examPart: null,
+        worksheetData: {meta, blocks},
+        worksheetHtml: '',
+        files: [],
+        order: 0,
+        authorUid: user?.uid||'',
+        authorName: user?.displayName||user?.email||'',
+        createdAt: new Date().toISOString().split('T')[0],
+        updatedAt: new Date().toISOString(),
+      });
+      notify('✓ Tööleht salvestatud õppekavasse!');
+      onClose();
+    }catch(e){
+      notify('Viga: '+(e.message||'Salvestamine ebaõnnestus'));
+    }
+    setSaving(false);
+  };
+
+  return(
+    <div className="sav-ov">
+      <div className="sav-box">
+        <div className="sav-head">
+          <h2 style={{fontSize:'1rem',fontWeight:800}}>💾 Salvesta õppekavasse</h2>
+          <button onClick={onClose} className="btn btn-ghost btn-sm">✕</button>
+        </div>
+        <div className="sav-body">
+          <div style={{padding:'10px 13px',borderRadius:10,background:'rgba(47,93,80,.08)',border:'0.5px solid rgba(47,93,80,.2)',fontSize:'.84rem',fontWeight:600,color:'#2F5D50'}}>
+            📄 {meta.title||'Tööleht'} · {blocks.length} plokki
+          </div>
+          <div>
+            <div className="field-lbl">Õppeaine</div>
+            <select value={subject} onChange={e=>{setSubject(e.target.value);setLevel(LEVELS_BY_SUBJECT[e.target.value]?.[0]||'');}} style={{marginBottom:8}}>
+              {SUBJECTS.map(s=><option key={s}>{s}</option>)}
+            </select>
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+            <div>
+              <div className="field-lbl">Tase</div>
+              <select value={level} onChange={e=>setLevel(e.target.value)}>
+                {levels.map(l=><option key={l}>{l}</option>)}
+              </select>
+            </div>
+            <div>
+              <div className="field-lbl">Teema *</div>
+              <input value={topic} onChange={e=>setTopic(e.target.value)} placeholder="nt. Minu pere"/>
+            </div>
+          </div>
+          <div>
+            <div className="field-lbl">Lühike kirjeldus (valikuline)</div>
+            <textarea value={description} onChange={e=>setDescription(e.target.value)} rows={2} placeholder="Mida see tööleht harjutab..."/>
+          </div>
+        </div>
+        <div className="sav-foot">
+          <button onClick={onClose} className="btn btn-ghost">Tühista</button>
+          <button onClick={save} disabled={saving} className="btn btn-green">
+            {saving?'Salvestab…':'✓ Salvesta õppekavasse'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── MAIN APP ───────────────────────────────────────────────────
 function App() {
   const[user,setUser]=useState(null);
@@ -712,6 +852,7 @@ function App() {
   const[toast,setToast]=useState('');
   const[dragId,setDragId]=useState(null);
   const[dragOver,setDragOver]=useState(null);
+  const[showSave,setShowSave]=useState(false);
 
   const notify=msg=>{setToast(msg);setTimeout(()=>setToast(''),3000);};
 
@@ -789,6 +930,9 @@ function App() {
           <a href="/haldus-exercises" style={{color:'rgba(255,255,255,.45)',fontSize:'.76rem',textDecoration:'none',padding:'5px 10px',border:'1px solid rgba(255,255,255,.12)',borderRadius:7}}>← Õppekava</a>
           <button onClick={exportPrint} className="btn btn-ghost btn-sm" style={{color:'#fff',borderColor:'rgba(255,255,255,.18)'}}>
             <i className="fa-solid fa-print"/> Prindi / PDF
+          </button>
+          <button onClick={()=>setShowSave(true)} className="btn btn-green btn-sm">
+            <i className="fa-solid fa-floppy-disk"/> Salvesta
           </button>
           <button onClick={exportDL} className="btn btn-gold btn-sm">
             <i className="fa-solid fa-download"/> Laadi alla
@@ -977,6 +1121,7 @@ function App() {
           <div style={{height:40}}/>
         </div>
       </div>
+      {showSave&&<SaveModal meta={meta} blocks={blocks} user={user} onClose={()=>setShowSave(false)} notify={notify}/>}
     </div>
   );
 }
