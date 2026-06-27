@@ -565,16 +565,11 @@ function LessonModal({lesson,subject,level,topic,examPart,onClose,onSave}){
     const parts=[builderObjectives&&('Eesmärgid: '+builderObjectives)];
     lessonTypeDef.phases.forEach(ph=>{
       const data=phaseData[ph.key]||{};
-      const filled=ph.fields.map((f,i)=>data[i]?`${f}: ${data[i]}`:'').filter(Boolean);
-      if(filled.length) parts.push(`
-${ph.name} (${ph.time}):
-`+filled.map(f=>'• '+f).join('
-'));
+      const filled=ph.fields.map((f,i)=>data[i]?(f+': '+data[i]):'').filter(Boolean);
+      if(filled.length) parts.push('\n'+ph.name+' ('+ph.time+'):\n'+filled.map(f=>'• '+f).join('\n'));
     });
-    if(builderNotes) parts.push('
-Märkused: '+builderNotes);
-    return parts.filter(Boolean).join('
-');
+    if(builderNotes) parts.push('\nMärkused: '+builderNotes);
+    return parts.filter(Boolean).join('\n');
   };
 
   const saveSimple=async()=>{
