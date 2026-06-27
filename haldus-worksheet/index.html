@@ -7,7 +7,6 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
 <script>
 (function(){
   try{
@@ -22,7 +21,6 @@
       });
     }
     window._auth=firebase.auth();
-    window._storage=firebase.storage();
     window._db=firebase.firestore();
   }catch(e){console.error(e);}
 })();
@@ -229,7 +227,7 @@ textarea{resize:vertical;line-height:1.45;}
 
 <script type="text/babel">
 const {useState,useEffect,useRef,useMemo,useCallback} = React;
-const auth=window._auth, storage=window._storage, db=window._db;
+const auth=window._auth, db=window._db;
 
 const uid=()=>Math.random().toString(36).slice(2,9);
 
@@ -267,32 +265,14 @@ function ImgUploader({value,onChange}) {
   const[busy,setBusy]=useState(false);
   const[err,setErr]=useState('');
 
-  const toBase64=file=>new Promise((res,rej)=>{
-    const reader=new FileReader();
-    reader.onload=e=>res(e.target.result);
-    reader.onerror=rej;
-    reader.readAsDataURL(file);
-  });
-
   const handle=async file=>{
     if(!file)return;
+    if(file.size>8*1024*1024){setErr('Pilt on liiga suur (max 8MB)');return;}
     setBusy(true);setErr('');
-    // Try Firebase Storage first, fall back to base64
-    try{
-      const r=storage.ref(`worksheet/${Date.now()}_${file.name}`);
-      await r.put(file);
-      const url=await r.getDownloadURL();
-      onChange(url);
-    }catch(storageErr){
-      console.warn('Storage failed, using base64:', storageErr.message);
-      try{
-        const b64=await toBase64(file);
-        onChange(b64);
-      }catch(e){
-        setErr('Pildi lisamine ebaõnnestus: '+e.message);
-      }
-    }
-    setBusy(false);
+    const reader=new FileReader();
+    reader.onload=e=>{onChange(e.target.result);setBusy(false);};
+    reader.onerror=()=>{setErr('Pildi laadimine ebaõnnestus');setBusy(false);};
+    reader.readAsDataURL(file);
   };
 
   return(
