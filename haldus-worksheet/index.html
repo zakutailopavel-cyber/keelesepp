@@ -608,10 +608,13 @@ function PreviewBlock({block,index}) {
     return null;
   };
 
+  // For 'image' type — just render content(), no extra renderImg
   const withImg=(
-    block.imageUrl&&(block.imagePos||'top')==='right'
-      ?<div style={{display:'flex',alignItems:'flex-start'}}><div style={{flex:1}}>{content()}</div>{renderRightImg()}</div>
-      :<div>{renderImg('top')}{content()}{renderImg('bottom')}</div>
+    block.type==='image'
+      ?<div>{content()}</div>
+      :block.imageUrl&&(block.imagePos||'top')==='right'
+        ?<div style={{display:'flex',alignItems:'flex-start'}}><div style={{flex:1}}>{content()}</div>{renderRightImg()}</div>
+        :<div>{renderImg('top')}{content()}{renderImg('bottom')}</div>
   );
 
   const colStyle=block.size==='half'?{width:'calc(50% - 10px)',display:'inline-block',verticalAlign:'top',marginRight:20}
