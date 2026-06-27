@@ -229,6 +229,43 @@ textarea{resize:vertical;line-height:1.5;}
 .ws-table td{padding:6px 8px;border:1px solid rgba(28,43,58,.15);height:26px;}
 .ws-passage{background:#F9F8F6;border:1px solid rgba(28,43,58,.1);border-radius:6px;padding:10px 12px;margin-bottom:10px;font-size:.85rem;line-height:1.65;white-space:pre-wrap;}
 .ws-divider{border:none;border-top:1px dashed rgba(28,43,58,.12);margin:16px 0;}
+
+/* ── LESSON BUILDER ──────────────────────────────────────────── */
+.lb-ov{position:fixed;inset:0;background:rgba(28,43,58,.55);display:flex;align-items:center;justify-content:center;padding:12px;z-index:200;backdrop-filter:blur(5px);}
+.lb-box{background:#FBFAF8;border-radius:20px;max-width:720px;width:100%;max-height:95vh;overflow:hidden;display:flex;flex-direction:column;}
+.lb-head{padding:18px 24px 14px;border-bottom:1px solid rgba(28,43,58,.08);display:flex;justify-content:space-between;align-items:center;background:#FBFAF8;}
+.lb-body{flex:1;overflow-y:auto;padding:0;}
+.lb-foot{padding:14px 24px;border-top:1px solid rgba(28,43,58,.08);display:flex;justify-content:space-between;align-items:center;background:#FBFAF8;}
+
+/* Step indicator */
+.lb-steps{display:flex;padding:0 24px 14px;gap:6px;overflow-x:auto;}
+.lb-step{display:flex;align-items:center;gap:6px;white-space:nowrap;font-size:.72rem;font-weight:700;color:#B0A898;}
+.lb-step.done{color:#2F5D50;}
+.lb-step.active{color:#1C2B3A;}
+.lb-step-num{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:800;background:rgba(28,43,58,.08);color:#B0A898;flex-shrink:0;}
+.lb-step.done .lb-step-num{background:#2F5D50;color:#fff;}
+.lb-step.active .lb-step-num{background:#1C2B3A;color:#fff;}
+.lb-step-sep{color:rgba(28,43,58,.2);font-size:.6rem;}
+
+/* Lesson type cards */
+.lt-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:20px 24px;}
+.lt-card{border:1.5px solid rgba(28,43,58,.1);border-radius:14px;padding:16px;cursor:pointer;transition:all .15s;background:#fff;text-align:left;}
+.lt-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(28,43,58,.1);}
+.lt-card.selected{border-width:2px;}
+.lt-icon{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;margin-bottom:10px;}
+.lt-name{font-size:.9rem;font-weight:700;margin-bottom:3px;}
+.lt-desc{font-size:.74rem;color:#7A7167;line-height:1.4;}
+
+/* Phase sections */
+.ph-section{border-left:3px solid transparent;padding:16px 20px 16px 18px;margin:0 24px 14px;border-radius:0 10px 10px 0;background:#fff;border:0.5px solid rgba(28,43,58,.09);border-left-width:3px;}
+.ph-head{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.ph-badge{font-size:.62rem;font-weight:800;padding:3px 8px;border-radius:6px;text-transform:uppercase;letter-spacing:.07em;}
+.ph-title{font-size:.9rem;font-weight:700;}
+.ph-time{font-size:.72rem;color:#7A7167;margin-left:auto;}
+.ph-hint{font-size:.75rem;color:#7A7167;font-style:italic;margin-bottom:10px;line-height:1.4;padding:7px 10px;background:rgba(28,43,58,.04);border-radius:7px;}
+
+/* Phase padding wrapper */
+.ph-wrap{padding:14px 24px 4px;}
 </style>
 </head>
 <body>
@@ -331,8 +368,178 @@ function FileUploader({onUpload,uploading,setUploading}){
 }
 
 // ── LESSON MODAL ──────────────────────────────────────────────
+// ── LESSON TYPE DEFINITIONS ───────────────────────────────────
+const LESSON_TYPE_DEFS = [
+  {
+    key:'uus_teema',
+    name:'Uus teema',
+    emoji:'🌱',
+    color:'#2F5D50',bg:'rgba(47,93,80,.08)',
+    desc:'Uue grammatika või sõnavara tutvustamine. PPP mudel: esitlus → harjutamine → tootmine.',
+    duration:60,
+    phases:[
+      {key:'org',name:'Organisatsiooniline osa',color:'#718096',time:'2–3 min',
+       hint:'Tervitus, tunni teema ja eesmärkide tutvustamine. Mida õpilane tunni lõpuks oskab?',
+       fields:['Tunni teema ja eesmärgid','Motivatsioon (miks see vajalik on?)']},
+      {key:'soojendus',name:'Soojendus / aktualiseerimine',color:'#0e7490',time:'5–7 min',
+       hint:'Aktiveerige eelnev teadmine. Küsimused, piltide vaatamine, lühike vestlus teemal. Ärge selgitage veel uut materjali!',
+       fields:['Soojendusülesanne või -küsimused','Eelteadmiste aktiveerimine']},
+      {key:'esitlus',name:'Uue materjali esitlus',color:'#1d4ed8',time:'10–15 min',
+       hint:'Esitage uus grammatika või sõnavara kontekstis (mitte eraldiseisvate reeglitena). Kasutage näiteid, pilte, lauseid.',
+       fields:['Grammatika/sõnavara selgitus','Näitelaused ja kontekst','Visuaalne materjal / tahvlile kirjutada']},
+      {key:'harjutamine',name:'Kontrollitud harjutamine',color:'#6d28d9',time:'10–15 min',
+       hint:'Struktureeritud harjutused kus vigade tegemise risk on madal. Lüngad, valikvastused, paaristöö fraasidega.',
+       fields:['Harjutused (lüngad, valikvastused)','Paaristöö ülesanne','Vigade parandamise strateegia']},
+      {key:'tootmine',name:'Vaba kasutamine / tootmine',color:'#047857',time:'10–15 min',
+       hint:'Õpilased kasutavad uut materjali iseseisvalt — rollimängud, diskussioon, kirjutamine. Õpetaja jälgib, ei sega pidevalt.',
+       fields:['Kommunikatiivne ülesanne','Rollimäng / diskussioon / kirjutamine','Grupi- või paaristöö formaat']},
+      {key:'kokkuvote',name:'Kokkuvõte ja tagasiside',color:'#A96E1A',time:'3–5 min',
+       hint:'Kinnitage, mida õpiti. Exit ticket: õpilane kirjutab ühe lause uue teadmisega. Ülesanne järgmiseks korraks.',
+       fields:['Kokkuvõte (mida õppisime?)','Exit ticket / enesehindamine','Kodune ülesanne (kui on)']},
+    ]
+  },
+  {
+    key:'kinnistamine',
+    name:'Kinnistamine',
+    emoji:'🔁',
+    color:'#1d4ed8',bg:'rgba(29,78,216,.08)',
+    desc:'Varem õpitud materjali süvendamine praktika kaudu. Fookus kommunikatiivsel kasutamisel.',
+    duration:60,
+    phases:[
+      {key:'org',name:'Organisatsiooniline osa',color:'#718096',time:'2 min',
+       hint:'Tervitus ja tunni fookuse meeldetuletus.',
+       fields:['Mida kordame ja miks']},
+      {key:'soojendus',name:'Kordamine / aktualiseerimine',color:'#0e7490',time:'7–10 min',
+       hint:'Kiire kordamine eelmisest tunnist. Küsimused, mäng, kiire test.',
+       fields:['Kordamisülesanne (suuline/kirjalik)','Mäng või võistlus sõnavaraga']},
+      {key:'harjutamine',name:'Suunatud harjutamine',color:'#6d28d9',time:'15 min',
+       hint:'Struktureeritud harjutused mis käsitlevad levinumaid vigu.',
+       fields:['Peamised vead millega töötada','Harjutused vigade parandamiseks','Paaristöö ülesanne']},
+      {key:'kommunik',name:'Kommunikatiivne harjutamine',color:'#047857',time:'20 min',
+       hint:'Autentsed suhtlussituatsioonid: rollimängud, probleemilahendus, projektid.',
+       fields:['Rollimäng või situatsioon','Rühmatöö ülesanne','Loov ülesanne (kirjutamine/rääkimine)']},
+      {key:'kokkuvote',name:'Kokkuvõte',color:'#A96E1A',time:'3 min',
+       hint:'Mis läks hästi? Mis vajab veel tööd?',
+       fields:['Enesehindamine','Kodune ülesanne']},
+    ]
+  },
+  {
+    key:'suuline',
+    name:'Suuline keel',
+    emoji:'🗣️',
+    color:'#047857',bg:'rgba(4,120,87,.08)',
+    desc:'Fookus rääkimisel ja kuulamisel. Kommunikatiivne lähenemine, autentsed situatsioonid.',
+    duration:60,
+    phases:[
+      {key:'org',name:'Organisatsiooniline osa',color:'#718096',time:'2 min',
+       hint:'Tervitus, häälestamine rääkimisele.',
+       fields:['Tunni fookus ja eesmärk']},
+      {key:'soojendus',name:'Kõnesoojendus',color:'#0e7490',time:'5 min',
+       hint:'Lühike arutelufraas, "small talk" harjutus, piltide kirjeldamine.',
+       fields:['Soojendusküsimused paarides','Fraasid/väljendid täna kasutamiseks']},
+      {key:'kuulamine',name:'Kuulamine / sisend',color:'#1d4ed8',time:'10 min',
+       hint:'Autentne sisend: dialoog, video, lühijutt. Enne kuulamist ennusta, pärast kontrolli.',
+       fields:['Kuulamistekst / video','Enne kuulamist: ennustamine','Pärast kuulamist: kontroll']},
+      {key:'harjutamine',name:'Juhendatud rääkimine',color:'#6d28d9',time:'15 min',
+       hint:'Struktureeritud dialoogid, fraasipõhised harjutused, küsimuste-vastuste ahel.',
+       fields:['Mudeldialoogi harjutamine','Fraasimallid ja väljendid','Paaristöö struktuuriga']},
+      {key:'vaba',name:'Vaba rääkimine',color:'#047857',time:'20 min',
+       hint:'Autentne suhtlus minimaalselt struktureerituna: rollimäng, debatt, probleemilahendus.',
+       fields:['Rollimäng / situatsioon','Diskussiooni teema','Rühmatöö ülesanne']},
+      {key:'kokkuvote',name:'Tagasiside ja kokkuvõte',color:'#A96E1A',time:'5 min',
+       hint:'Positiivne tagasiside, levinumad vead (üldistusena, mitte isiklikult).',
+       fields:['Tagasiside rääkimisele','Uued fraasid mida kasutada']},
+    ]
+  },
+  {
+    key:'kirjalik',
+    name:'Kirjalik keel',
+    emoji:'✍️',
+    color:'#A96E1A',bg:'rgba(169,110,26,.08)',
+    desc:'Kirjutamisoskuse arendamine protsessikeskse lähenemisega: ideed → kavand → kirjutamine → tagasiside.',
+    duration:60,
+    phases:[
+      {key:'org',name:'Organisatsiooniline osa',color:'#718096',time:'2 min',
+       hint:'Tunni eesmärk ja kirjatüübi tutvustus.',
+       fields:['Kirjatüüp ja eesmärk (email, essee, jutt...)']},
+      {key:'soojendus',name:'Ideekorje',color:'#0e7490',time:'7 min',
+       hint:'Brainstorming, mindmap, küsimused. Ärge kirjutage veel — ainult ideed!',
+       fields:['Brainstorming meetod','Sõnavara ja fraasid teemaks']},
+      {key:'mudel',name:'Tekstimudeli analüüs',color:'#1d4ed8',time:'10 min',
+       hint:'Vaadake head näidisteksti. Mis on selle struktuur? Millised fraasid on kasulikud?',
+       fields:['Näidistekst analüüsimiseks','Struktuuri elemendid','Kasulikud fraasid ja väljendid']},
+      {key:'kirjutamine',name:'Kirjutamine',color:'#6d28d9',time:'20 min',
+       hint:'Õpilased kirjutavad iseseisvalt. Õpetaja ringleb ja aitab. Fookus sisusel, mitte vigadel.',
+       fields:['Kirjutamisülesanne täpselt','Maht / aeg','Abivahendid mida kasutada võib']},
+      {key:'tagasiside',name:'Eakaaslaste tagasiside',color:'#047857',time:'10 min',
+       hint:'Paarid vahetavad tekste ja annavad konstruktiivset tagasisidet etteantud küsimuste järgi.',
+       fields:['Tagasiside küsimused','Parandamise fookus']},
+      {key:'kokkuvote',name:'Kokkuvõte',color:'#A96E1A',time:'3 min',
+       hint:'Mida õppisime? Milliseid vigu vältida?',
+       fields:['Levinumad vead','Järgmine samm']},
+    ]
+  },
+  {
+    key:'kordamine',
+    name:'Kordamine / eksam',
+    emoji:'📋',
+    color:'#6d28d9',bg:'rgba(109,40,217,.08)',
+    desc:'Süsteemne kordamine eksami või kontrolltöö eel. Lünkade tuvastamine ja kinnistamine.',
+    duration:60,
+    phases:[
+      {key:'org',name:'Organisatsiooniline osa',color:'#718096',time:'2 min',
+       hint:'Mis teemasid kordame? Mis on eksami formaat?',
+       fields:['Kordamise teemad','Eksami formaat ja hindamine']},
+      {key:'enesehindamine',name:'Enesehindamine',color:'#0e7490',time:'8 min',
+       hint:'Õpilane hindab ise — mis läheb hästi, mis ei lähe. Annab suuna tunni fookusele.',
+       fields:['Enesehindamise küsimused','Lünkade kaart (mis ei tea veel)']},
+      {key:'kordamine',name:'Kordamine teemade kaupa',color:'#1d4ed8',time:'25 min',
+       hint:'Minge läbi peamised teemad. Kasutage mänge, viktoriine, paaristöö harjutusi.',
+       fields:['Teema 1 + harjutus','Teema 2 + harjutus','Mäng / viktoriin','Levinumad vead']},
+      {key:'eksami_harj',name:'Eksami tüüpi ülesanded',color:'#6d28d9',time:'15 min',
+       hint:'Harjutage päris eksami formaadis — sama aeg, sama struktuur.',
+       fields:['Eksami näidisülesanded','Ajapiirang','Strateegiad']},
+      {key:'kokkuvote',name:'Kokkuvõte ja nõuanded',color:'#A96E1A',time:'5 min',
+       hint:'Eksamisoovitused, stress-management, mida oodata.',
+       fields:['Eksamipäeva nõuanded','Viimased soovitused']},
+    ]
+  },
+  {
+    key:'projekt',
+    name:'Projekt / loovtöö',
+    emoji:'🎨',
+    color:'#be185d',bg:'rgba(190,24,93,.08)',
+    desc:'Pikaajaline ülesanne mis arendab iseseisvust ja loovust. Rühmatöö, uurimine, esitlemine.',
+    duration:60,
+    phases:[
+      {key:'org',name:'Projekti tutvustus',color:'#718096',time:'5 min',
+       hint:'Selgitage projekti eesmärk, tulemused ja hindamiskriteeriumid täpselt.',
+       fields:['Projekti teema ja eesmärk','Lõpptulemus (esitlus/plakat/video...)','Hindamiskriteeriumid']},
+      {key:'planeerimine',name:'Planeerimine',color:'#0e7490',time:'10 min',
+       hint:'Rühmad moodustatakse, rollid jagatakse, ajakava koostatakse.',
+       fields:['Rühmade moodustamine','Rollid rühmas','Ajakava ja vahe-eesmärgid']},
+      {key:'too',name:'Töö / uurimine',color:'#1d4ed8',time:'25 min',
+       hint:'Õpilased töötavad iseseisvalt. Õpetaja juhendab, ei tee nende eest.',
+       fields:['Töövahendid ja allikad','Õpetaja toetuse viis','Vahetulemuste kontroll']},
+      {key:'esitlus',name:'Esitlemine / jagamine',color:'#047857',time:'15 min',
+       hint:'Iga rühm jagab tulemust. Klassikaaslased annavad tagasisidet.',
+       fields:['Esitlemise formaat','Tagasiside struktuur','Eakaaslaste hindamine']},
+      {key:'reflektsioon',name:'Refleksioon',color:'#A96E1A',time:'5 min',
+       hint:'Mis läks hästi? Mida teeksin teisiti? Mida õppisin?',
+       fields:['Refleksiooniküsimused','Õpitu kokkuvõte']},
+    ]
+  },
+];
+
+// ── LESSON MODAL (SMART BUILDER) ──────────────────────────────
 function LessonModal({lesson,subject,level,topic,examPart,onClose,onSave}){
   const isEdit=!!lesson?.id;
+  // If editing existing simple lesson — show simple form
+  const[builderMode,setBuilderMode]=useState(!isEdit&&!examPart);
+  const[step,setStep]=useState(0); // 0=type, 1=meta, 2=phases, 3=files
+  const[lessonTypeDef,setLessonTypeDef]=useState(null);
+
+  // Simple form state
   const[title,setTitle]=useState(lesson?.title||'');
   const[type,setType]=useState(lesson?.type||'lesson');
   const[desc,setDesc]=useState(lesson?.description||'');
@@ -341,20 +548,76 @@ function LessonModal({lesson,subject,level,topic,examPart,onClose,onSave}){
   const[uploading,setUploading]=useState(false);
   const[saving,setSaving]=useState(false);
 
-  const save=async()=>{
+  // Builder state — phase content keyed by phase.key → field index → value
+  const[phaseData,setPhaseData]=useState({});
+  const[builderTitle,setBuilderTitle]=useState('');
+  const[builderObjectives,setBuilderObjectives]=useState('');
+  const[builderDuration,setBuilderDuration]=useState(60);
+  const[builderNotes,setBuilderNotes]=useState('');
+
+  const setPhaseField=(phaseKey,fieldIdx,val)=>setPhaseData(p=>({...p,[phaseKey]:{...(p[phaseKey]||{}),[fieldIdx]:val}}));
+
+  const STEPS=['Tunni tüüp','Üldinfo','Tunni käik','Failid'];
+
+  // Build description from phases
+  const buildDescription=()=>{
+    if(!lessonTypeDef) return builderObjectives;
+    const parts=[builderObjectives&&('Eesmärgid: '+builderObjectives)];
+    lessonTypeDef.phases.forEach(ph=>{
+      const data=phaseData[ph.key]||{};
+      const filled=ph.fields.map((f,i)=>data[i]?`${f}: ${data[i]}`:'').filter(Boolean);
+      if(filled.length) parts.push(`
+${ph.name} (${ph.time}):
+`+filled.map(f=>'• '+f).join('
+'));
+    });
+    if(builderNotes) parts.push('
+Märkused: '+builderNotes);
+    return parts.filter(Boolean).join('
+');
+  };
+
+  const saveSimple=async()=>{
     if(!title.trim()){alert('Sisesta pealkiri');return;}
     setSaving(true);
     await onSave({...(lesson||{}),title:title.trim(),type,description:desc.trim(),files,order:Number(order)||0,subject,level,topic,examPart:examPart||null,updatedAt:new Date().toISOString()});
     setSaving(false);onClose();
   };
-  return(
+
+  const saveBuilder=async()=>{
+    if(!builderTitle.trim()){alert('Sisesta tunni pealkiri');return;}
+    setSaving(true);
+    await onSave({
+      title:builderTitle.trim(),
+      type:'lesson',
+      description:buildDescription(),
+      lessonTypeDef:lessonTypeDef?.key||'',
+      lessonTypeLabel:lessonTypeDef?.name||'',
+      phaseData,
+      builderObjectives,
+      builderDuration,
+      builderNotes,
+      files,
+      order:Number(order)||0,
+      subject,level,topic,
+      examPart:examPart||null,
+      updatedAt:new Date().toISOString()
+    });
+    setSaving(false);onClose();
+  };
+
+  // ── SIMPLE MODAL (edit/exam) ───────────────────────────────
+  if(!builderMode||isEdit||examPart) return(
     <div className="modal-ov">
       <div className="modal-box">
         <div className="modal-head">
-          <h2 style={{fontSize:'1rem',fontWeight:800}}>{isEdit?'✏️ Muuda kirjet':'➕ Lisa uus kirje'}</h2>
+          <h2 style={{fontSize:'1rem',fontWeight:800}}>{isEdit?'✏️ Muuda kirjet':'➕ Lisa kirje'}</h2>
           <button onClick={onClose} className="btn btn-ghost btn-sm">✕</button>
         </div>
         <div className="modal-body">
+          {!isEdit&&!examPart&&<button onClick={()=>setBuilderMode(true)} className="btn btn-pine btn-sm" style={{marginBottom:4}}>
+            <i className="fa-solid fa-wand-magic-sparkles"/> Kasuta tunni koostajat
+          </button>}
           {examPart&&<div style={{padding:'9px 13px',borderRadius:10,background:EXAM_PARTS.find(p=>p.key===examPart)?.bg||'#f5f5f5',fontSize:'.82rem',fontWeight:600}}>
             Eksami osa: {EXAM_PARTS.find(p=>p.key===examPart)?.label}
           </div>}
@@ -384,7 +647,165 @@ function LessonModal({lesson,subject,level,topic,examPart,onClose,onSave}){
         </div>
         <div className="modal-foot">
           <button onClick={onClose} className="btn btn-ghost">Tühista</button>
-          <button onClick={save} disabled={saving||uploading} className="btn btn-pine">{saving?'Salvestab…':'✓ Salvesta'}</button>
+          <button onClick={saveSimple} disabled={saving||uploading} className="btn btn-pine">{saving?'Salvestab…':'✓ Salvesta'}</button>
+        </div>
+      </div>
+    </div>
+  );
+
+  // ── BUILDER MODAL ────────────────────────────────────────
+  return(
+    <div className="lb-ov">
+      <div className="lb-box">
+        {/* Head */}
+        <div className="lb-head">
+          <div>
+            <div style={{fontWeight:800,fontSize:'1rem'}}>
+              {step===0?'Vali tunni tüüp':step===1?'Üldinfo':step===2?'Tunni käik':'Materjalid'}
+            </div>
+            <div style={{fontSize:'.74rem',color:'#7A7167',marginTop:1}}>
+              {lessonTypeDef?lessonTypeDef.emoji+' '+lessonTypeDef.name:'Uue tunni koostaja'}
+            </div>
+          </div>
+          <button onClick={onClose} className="btn btn-ghost btn-sm">✕</button>
+        </div>
+
+        {/* Step indicator */}
+        <div className="lb-steps">
+          {STEPS.map((s,i)=>(
+            <React.Fragment key={i}>
+              <div className={'lb-step'+(i===step?' active':i<step?' done':'')}>
+                <div className="lb-step-num">{i<step?'✓':i+1}</div>
+                {s}
+              </div>
+              {i<STEPS.length-1&&<div className="lb-step-sep">›</div>}
+            </React.Fragment>
+          ))}
+        </div>
+
+        {/* Body */}
+        <div className="lb-body">
+
+          {/* STEP 0: Lesson type */}
+          {step===0&&(
+            <div className="lt-grid">
+              {LESSON_TYPE_DEFS.map(ltd=>(
+                <div key={ltd.key} className={'lt-card'+(lessonTypeDef?.key===ltd.key?' selected':'')}
+                  style={{borderColor:lessonTypeDef?.key===ltd.key?ltd.color:'rgba(28,43,58,.1)',background:lessonTypeDef?.key===ltd.key?ltd.bg:'#fff'}}
+                  onClick={()=>setLessonTypeDef(ltd)}>
+                  <div className="lt-icon" style={{background:ltd.bg}}>{ltd.emoji}</div>
+                  <div className="lt-name" style={{color:lessonTypeDef?.key===ltd.key?ltd.color:'#1C2B3A'}}>{ltd.name}</div>
+                  <div className="lt-desc">{ltd.desc}</div>
+                </div>
+              ))}
+              <div className={'lt-card'+(lessonTypeDef===null&&step>0?' selected':'')}
+                style={{borderColor:'rgba(28,43,58,.1)',borderStyle:'dashed'}}
+                onClick={()=>{setLessonTypeDef(null);setStep(1);}}>
+                <div className="lt-icon" style={{background:'rgba(28,43,58,.06)',fontSize:'1.4rem'}}>📝</div>
+                <div className="lt-name">Vaba vorm</div>
+                <div className="lt-desc">Loo kirje ilma struktureeritud mallita — lihtsalt pealkiri, kirjeldus ja failid.</div>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 1: General info */}
+          {step===1&&(
+            <div className="modal-body" style={{padding:'16px 24px'}}>
+              {lessonTypeDef&&<div style={{padding:'10px 14px',borderRadius:10,background:lessonTypeDef.bg,border:'1px solid '+lessonTypeDef.color+'33',marginBottom:14,fontSize:'.84rem'}}>
+                <span style={{fontSize:'1.1rem',marginRight:7}}>{lessonTypeDef.emoji}</span>
+                <strong>{lessonTypeDef.name}</strong> — {lessonTypeDef.desc}
+              </div>}
+              <div><div className="sec-lbl">Tunni pealkiri *</div>
+                <input value={builderTitle} onChange={e=>setBuilderTitle(e.target.value)} placeholder={`nt. ${topic||'Minu pere'} — ${lessonTypeDef?.name||'tund'}`}/>
+              </div>
+              <div><div className="sec-lbl">Õpieesmärgid — "Tunni lõpuks õpilane oskab..."</div>
+                <textarea value={builderObjectives} onChange={e=>setBuilderObjectives(e.target.value)} rows={3}
+                  placeholder="nt. kasutada oleviku pööramisvormi, rääkida oma perekonnast 5–7 lauses, mõista kuulamisteksti põhiideed"/>
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+                <div><div className="sec-lbl">Tunni kestus (min)</div>
+                  <input type="number" value={builderDuration} onChange={e=>setBuilderDuration(+e.target.value)} min={20} max={180}/>
+                </div>
+                <div><div className="sec-lbl">Järjekord</div>
+                  <input type="number" value={order} onChange={e=>setOrder(e.target.value)} min={0}/>
+                </div>
+              </div>
+              <div><div className="sec-lbl">Üldmärkused õpetajale (valikuline)</div>
+                <textarea value={builderNotes} onChange={e=>setBuilderNotes(e.target.value)} rows={2}
+                  placeholder="Rühma tase, eripärad, mida arvestada..."/>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 2: Phases */}
+          {step===2&&lessonTypeDef&&(
+            <div style={{paddingTop:8,paddingBottom:8}}>
+              {lessonTypeDef.phases.map((ph,pi)=>(
+                <div key={ph.key} className="ph-section" style={{borderLeftColor:ph.color,marginBottom:12}}>
+                  <div className="ph-head">
+                    <span className="ph-badge" style={{background:ph.color+'18',color:ph.color}}>{pi+1}</span>
+                    <span className="ph-title">{ph.name}</span>
+                    <span className="ph-time">{ph.time}</span>
+                  </div>
+                  <div className="ph-hint">{ph.hint}</div>
+                  {ph.fields.map((field,fi)=>(
+                    <div key={fi} style={{marginBottom:8}}>
+                      <div className="sec-lbl">{field}</div>
+                      <textarea
+                        value={(phaseData[ph.key]||{})[fi]||''}
+                        onChange={e=>setPhaseField(ph.key,fi,e.target.value)}
+                        rows={2}
+                        placeholder="Kirjuta oma plaan siia..."/>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          )}
+          {step===2&&!lessonTypeDef&&(
+            <div className="modal-body" style={{padding:'16px 24px'}}>
+              <div><div className="sec-lbl">Kirjeldus</div>
+                <textarea value={desc} onChange={e=>setDesc(e.target.value)} rows={6} placeholder="Tunni kirjeldus..."/>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 3: Files */}
+          {step===3&&(
+            <div className="modal-body" style={{padding:'16px 24px'}}>
+              <div style={{fontSize:'.82rem',color:'#7A7167',marginBottom:12,lineHeight:1.5}}>
+                Lisa materjalid: töölehed, pildid, helifailid, esitlused...
+              </div>
+              <FileUploader onUpload={f=>setFiles(p=>[...p,...f])} uploading={uploading} setUploading={setUploading}/>
+              {files.length>0&&<div className="file-row" style={{marginTop:10}}>
+                {files.map((f,i)=><span key={i} style={{display:'flex',alignItems:'center',gap:3}}>
+                  <FileChip file={f}/><button onClick={()=>setFiles(p=>p.filter((_,j)=>j!==i))} style={{background:'none',border:'none',color:'#dc2626',cursor:'pointer',fontSize:'.7rem',padding:'0 3px'}}>✕</button>
+                </span>)}
+              </div>}
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="lb-foot">
+          <button onClick={()=>{if(step===0)onClose();else setStep(s=>s-1);}} className="btn btn-ghost">
+            {step===0?'Tühista':'← Tagasi'}
+          </button>
+          <div style={{display:'flex',gap:8}}>
+            {step===2&&<button onClick={()=>setStep(3)} className="btn btn-ghost btn-sm">
+              Jäta failid vahele
+            </button>}
+            {step<3
+              ?<button onClick={()=>{
+                  if(step===0&&!lessonTypeDef&&lessonTypeDef!==null){alert('Vali tunni tüüp');return;}
+                  setStep(s=>s+1);
+                }} className="btn btn-pine" disabled={step===0&&lessonTypeDef===undefined}>
+                Järgmine →
+              </button>
+              :<button onClick={lessonTypeDef?saveBuilder:saveSimple} disabled={saving||uploading} className="btn btn-pine">
+                {saving?'Salvestab…':'✓ Salvesta tund'}
+              </button>}
+          </div>
         </div>
       </div>
     </div>
