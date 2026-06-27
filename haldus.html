@@ -804,7 +804,7 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
         </div>
       )}
 
-      {isStaff&&<GCalSettings user={user} notify={notify}/>}
+      
 
       {isAdmin&&(()=>{
         const billable = myStudents.filter(s=>s.active!==false&&(s.lessonsSinceInvoice||0)>0);
@@ -1924,6 +1924,9 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
           )}
         </div>
       )}
+
+      {/* Google Calendar — прямо в Tunniplaan */}
+      {canManage&&<GCalSettings user={user} notify={notify}/>}
     </div>
   );
 }
