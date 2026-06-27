@@ -112,9 +112,11 @@ function gcalEventToSchedule(event, teacher, studentId, studentName) {
     studentId:    studentId || "",
     studentName:  studentName || extractStudentName(event.summary) || "",
     teacher:      teacher || "",
+    teacherFull:  teacher || "",
     date,
     time,
     duration,
+    notes:        event.description || "",
     status:       "Planeeritud",
     source:       "gcal",
     updatedAt:    new Date().toISOString(),
@@ -254,7 +256,9 @@ async function syncTeacherCalendar(uid, tokens) {
 
   // Get teacher name from Firestore
   const userDoc = await db.collection("users").doc(uid).get();
-  const teacherName = userDoc.data()?.displayName || "";
+  const fullName = userDoc.data()?.displayName || "";
+  // Use first name only to match KeeleSepp teacher format (e.g. "Pavel" not "Pavel Zakutailo")
+  const teacherName = fullName.split(" ")[0] || fullName;
 
   // Fetch events: now → 60 days ahead
   const timeMin = new Date().toISOString();
