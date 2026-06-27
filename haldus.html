@@ -2568,7 +2568,7 @@ function StudentsDatabaseView({
             <thead>
               <tr style={{background:'#F9F8F6',borderBottom:'1px solid rgba(28,43,58,.08)'}}>
                 {groupingMode&&<th style={{padding:'10px 8px',width:36}}/>}
-                {['Õpilane','Kontakt','Kontaktistaatus','Õpe','Grupp','Õpetaja','Paketid','Tunnid','Arved','Staatus','Tegevused'].map(head=>(
+                {['Õpilane','Kontakt','Kontaktistaatus','Õpe','Grupp','Õpetaja','Paketid','Tunnid','Arved','Staatus','ID','Tegevused'].map(head=>(
                   <th key={head} style={{textAlign:'left',padding:'14px 16px',fontSize:'.76rem',fontWeight:700,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em'}}>
                     {head}
                   </th>
@@ -2721,6 +2721,16 @@ function StudentsDatabaseView({
                         <button onClick={()=>openStudent(student)} className="btn btn-ghost btn-sm">Ava</button>
                         <button onClick={()=>setEditStu(student)} className="btn btn-dark btn-sm">Muuda</button>
                       </div>
+                      {isAdmin&&(
+                        <div style={{marginTop:6}}>
+                          <span onClick={()=>{navigator.clipboard.writeText(student.id);notify('✓ ID kopeeritud');}}
+                            title="Kliki kopeerimiseks"
+                            style={{fontSize:'.65rem',color:'#9ca3af',fontFamily:'monospace',background:'#F3F4F6',
+                              padding:'2px 6px',borderRadius:5,cursor:'pointer',userSelect:'all'}}>
+                            {student.id.slice(0,10)}…
+                          </span>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 );
@@ -3040,6 +3050,18 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
               {currentStu.phone&&<> · {currentStu.phone}</>}
               {canManage&&currentStu.lessonPrice>0&&<> · Tunni hind: <strong>{currentStu.lessonPrice}€</strong></>}
             </div>
+            {isAdmin&&(
+              <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:10}}>
+                <span style={{fontSize:'.7rem',color:'#9ca3af',fontFamily:'monospace',background:'#F3F4F6',padding:'2px 8px',borderRadius:6,letterSpacing:'.04em'}}>
+                  ID: {currentStu.id}
+                </span>
+                <button onClick={()=>{navigator.clipboard.writeText(currentStu.id);notify('✓ ID kopeeritud');}}
+                  style={{background:'none',border:'none',cursor:'pointer',color:'#9ca3af',fontSize:'.75rem',padding:'2px 4px'}}
+                  title="Kopeeri ID">
+                  <i className="fa-solid fa-copy"/>
+                </button>
+              </div>
+            )}
             <div style={{display:'flex',gap:10,flexWrap:'wrap',marginBottom:16}}>
               {[{l:'Hinne',v:avg(done.map(l=>l.grade))+'★',c:'#C9882A',bg:'rgba(201,136,42,.08)'},
                 {l:'Kohalolu',v:attendance+'%',c:'#2F5D50',bg:'rgba(47,93,80,.08)'},
