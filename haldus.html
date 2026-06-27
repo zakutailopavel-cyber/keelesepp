@@ -385,7 +385,7 @@ function AuthScreen({onLogin}) {
 // ── DASHBOARD ────────────────────────────────────────────────
 // TÄHTIS: kõik komponendid on App-ist VÄLJAS — see lahendab "iga täht uuendab lehte" probleemi
 function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
-  tasks,staffMembers,unreadMessages,markMessagesRead,setSelStu:_setSelStu,setTab:_setTab,submitParentPayment,
+  tasks,staffMembers,unreadMessages,markMessagesRead,setSelStu:_setSelStu,setTab:_setTab,submitParentPayment,notify,
   nName,setNName,nParentName,setNParentName,nEmail,setNEmail,nPhone,setNPhone,
   nLevel,setNLevel,nTarget,setNTarget,nPkg,setNPkg,
   nSubject,setNSubject,nGrade,setNGrade,nGroup,setNGroup,
@@ -796,6 +796,8 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
           )}
         </div>
       )}
+
+      {isStaff&&<GCalSettings user={user} notify={notify}/>}
 
       {isAdmin&&(()=>{
         const billable = myStudents.filter(s=>s.active!==false&&(s.lessonsSinceInvoice||0)>0);
@@ -4635,9 +4637,125 @@ function ParentChildrenView({user,myStudents,isAdmin,lessons,homework,setSelStu,
   );
 }
 
+
+// ── GOOGLE CALENDAR SETTINGS ──────────────────────────────────
+function GCalSettings({user,notify}) {
+  const [status,setStatus] = React.useState(null); // null | 'connected' | 'disconnected'
+  const [lastSync,setLastSync] = React.useState(null);
+  const [syncing,setSyncing] = React.useState(false);
+  const FUNCTIONS_BASE = 'https://us-central1-keelesepp-5136b.cloudfunctions.net/api';
+
+  React.useEffect(()=>{
+    if(!user?.uid) return;
+    fetch(`${FUNCTIONS_BASE}/gcal/status?uid=${user.uid}`)
+      .then(r=>r.json())
+      .then(d=>{
+        setStatus(d.connected?'connected':'disconnected');
+        setLastSync(d.connectedAt||null);
+      })
+      .catch(()=>setStatus('disconnected'));
+  },[user?.uid]);
+
+  const connect = async()=>{
+    const r = await fetch(`${FUNCTIONS_BASE}/gcal/auth-url?uid=${user.uid}`);
+    const d = await r.json();
+    window.location.href = d.url;
+  };
+
+  const sync = async()=>{
+    setSyncing(true);
+    try{
+      const r = await fetch(`${FUNCTIONS_BASE}/gcal/sync`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({uid:user.uid})
+      });
+      const d = await r.json();
+      notify(`✓ Sünkroonitud: ${d.synced} sündmust`);
+      setLastSync(new Date().toISOString());
+    }catch(e){
+      notify('⚠ Sünkroonimine ebaõnnestus');
+    }
+    setSyncing(false);
+  };
+
+  const disconnect = async()=>{
+    if(!window.confirm('Eemalda Google Calendar ühendus?')) return;
+    await fetch(`${FUNCTIONS_BASE}/gcal/disconnect`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({uid:user.uid})
+    });
+    setStatus('disconnected');
+    notify('✓ Google Calendar ühendus eemaldatud');
+  };
+
+  return(
+    <div className="card" style={{padding:22,marginTop:16}}>
+      <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:14}}>
+        <div style={{width:32,height:32,borderRadius:8,background:'rgba(66,133,244,.12)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <rect x="3" y="4" width="18" height="17" rx="2" stroke="#4285f4" strokeWidth="2"/>
+            <path d="M3 9h18" stroke="#4285f4" strokeWidth="2"/>
+            <path d="M8 2v4M16 2v4" stroke="#4285f4" strokeWidth="2" strokeLinecap="round"/>
+          </svg>
+        </div>
+        <div>
+          <div style={{fontWeight:700}}>Google Calendar</div>
+          <div style={{fontSize:'.76rem',color:'#42536A'}}>
+            {status==='connected'
+              ? <span style={{color:'#166534'}}>✓ Ühendatud{lastSync&&` · Viimane sync: ${new Date(lastSync).toLocaleDateString('et-EE')}`}</span>
+              : 'Ühenda oma Google Calendar tunniplaan'}
+          </div>
+        </div>
+      </div>
+
+      {status===null&&<div style={{color:'#9ca3af',fontSize:'.84rem'}}>Kontrollin staatust…</div>}
+
+      {status==='disconnected'&&(
+        <button onClick={connect} className="btn btn-pine" style={{gap:8}}>
+          <svg width="16" height="16" viewBox="0 0 24 24"><path d="M12.545 10.239v3.821h5.445c-.712 2.315-2.647 3.972-5.445 3.972a6.033 6.033 0 110-12.064 5.95 5.95 0 014.131 1.619l2.921-2.921A10 10 0 1022 12c0-.637-.057-1.266-.166-1.878H12.545z" fill="#fff"/></svg>
+          Ühenda Google Calendar
+        </button>
+      )}
+
+      {status==='connected'&&(
+        <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+          <button onClick={sync} disabled={syncing} className="btn btn-pine">
+            {syncing?'Sünkroonimine…':'🔄 Sünkrooni kohe'}
+          </button>
+          <button onClick={disconnect} className="btn btn-ghost" style={{color:'#dc2626'}}>
+            Eemalda ühendus
+          </button>
+        </div>
+      )}
+
+      {status==='connected'&&(
+        <div style={{marginTop:14,padding:'10px 14px',background:'#F9F8F6',borderRadius:10,fontSize:'.78rem',color:'#42536A'}}>
+          <strong>Kuidas toimib:</strong> Sündmused sünkroonitakse automaatselt iga tund.
+          Õpilase nimi peab olema sündmuse pealkirjas, nt: <em>"Занятие — Hanna Skoryk"</em> või <em>"Tund - Maria Mägi"</em>.
+          Sündmused kuvatakse tunniplaanis ja õpilase isiklikul lehel.
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── PEAMINE APP ───────────────────────────────────────────────
 function App() {
   const [user,setUser]         = useState(null);
+  const [gcalNotice,setGcalNotice] = React.useState(()=>{
+    const p = new URLSearchParams(window.location.search);
+    if(p.get('gcal')==='connected') return 'success';
+    if(p.get('gcal')==='error') return 'error';
+    return null;
+  });
+  React.useEffect(()=>{
+    if(gcalNotice){
+      setTimeout(()=>setGcalNotice(null),5000);
+      window.history.replaceState({},'',window.location.pathname);
+    }
+  },[gcalNotice]);
   const [loading,setLoading]   = useState(true);
   const [bootError,setBootError] = useState('');
   const [tab,setTab]           = useState('dashboard');
@@ -6294,6 +6412,20 @@ function App() {
 
   return(
     <div style={{display:'flex',minHeight:'100vh'}}>
+      {gcalNotice==='success'&&(
+        <div style={{position:'fixed',top:20,left:'50%',transform:'translateX(-50%)',zIndex:9999,
+          background:'#dcfce7',color:'#166534',padding:'12px 24px',borderRadius:12,
+          border:'1px solid #86efac',fontWeight:600,boxShadow:'0 4px 20px rgba(0,0,0,.15)'}}>
+          ✓ Google Calendar ühendatud!
+        </div>
+      )}
+      {gcalNotice==='error'&&(
+        <div style={{position:'fixed',top:20,left:'50%',transform:'translateX(-50%)',zIndex:9999,
+          background:'#fee2e2',color:'#991b1b',padding:'12px 24px',borderRadius:12,
+          border:'1px solid #fca5a5',fontWeight:600,boxShadow:'0 4px 20px rgba(0,0,0,.15)'}}>
+          ⚠ Google Calendar ühendamine ebaõnnestus
+        </div>
+      )}
       <aside id="desktop-sidebar" style={{width:234,background:'#1C2B3A',display:'flex',flexDirection:'column',padding:'20px 12px',flexShrink:0,position:'sticky',top:0,height:'100vh',overflowY:'auto'}}>
         <Sidebar/>
       </aside>
@@ -6323,6 +6455,7 @@ function App() {
           {tab==='dashboard'&&<Dashboard user={user} myStudents={myStudents} lessons={lessons} schedule={schedule} invoices={scopedInvoices} homework={homework} tasks={scopedTasks} staffMembers={staffMembers}
             unreadMessages={unreadMessages} markMessagesRead={markMessagesRead}
             setSelStu={setSelStu} setTab={setTab} submitParentPayment={submitParentPayment}
+            notify={notify}
             nName={nName} setNName={setNName} nParentName={nParentName} setNParentName={setNParentName} nEmail={nEmail} setNEmail={setNEmail} nPhone={nPhone} setNPhone={setNPhone}
             nLevel={nLevel} setNLevel={setNLevel} nTarget={nTarget} setNTarget={setNTarget}
             nPkg={nPkg} setNPkg={setNPkg} nSubject={nSubject} setNSubject={setNSubject} nGrade={nGrade} setNGrade={setNGrade} nGroup={nGroup} setNGroup={setNGroup} nTeach={nTeach} setNTeach={setNTeach}
