@@ -265,31 +265,57 @@ const mkBlock=type=>{
 function ImgUploader({value,onChange}) {
   const ref=useRef();
   const[busy,setBusy]=useState(false);
+  const[err,setErr]=useState('');
+
+  const toBase64=file=>new Promise((res,rej)=>{
+    const reader=new FileReader();
+    reader.onload=e=>res(e.target.result);
+    reader.onerror=rej;
+    reader.readAsDataURL(file);
+  });
+
   const handle=async file=>{
     if(!file)return;
-    setBusy(true);
+    setBusy(true);setErr('');
+    // Try Firebase Storage first, fall back to base64
     try{
       const r=storage.ref(`worksheet/${Date.now()}_${file.name}`);
       await r.put(file);
       const url=await r.getDownloadURL();
       onChange(url);
-    }catch(e){console.error(e);}
+    }catch(storageErr){
+      console.warn('Storage failed, using base64:', storageErr.message);
+      try{
+        const b64=await toBase64(file);
+        onChange(b64);
+      }catch(e){
+        setErr('Pildi lisamine ebaõnnestus: '+e.message);
+      }
+    }
     setBusy(false);
   };
+
   return(
     <div>
       <div className="img-upload" onClick={()=>ref.current?.click()}>
         <input ref={ref} type="file" accept="image/*" onChange={e=>handle(e.target.files[0])}/>
         {busy
-          ?<div className="sp-dark" style={{margin:'6px auto'}}/>
+          ?<div style={{padding:'14px 0',textAlign:'center'}}>
+             <div className="sp-dark" style={{margin:'0 auto 6px'}}/>
+             <div style={{fontSize:'.72rem',color:'#7A7167'}}>Laeb pilti...</div>
+           </div>
           :value
             ?<img src={value} className="img-thumb" alt=""/>
             :<div>
                <i className="fa-solid fa-image" style={{fontSize:'1.4rem',color:'#B0A898',marginBottom:4,display:'block'}}/>
-               <div style={{fontSize:'.75rem',color:'#7A7167'}}>Klõpsa pildi lisamiseks</div>
+               <div style={{fontSize:'.75rem',color:'#1C2B3A',fontWeight:600}}>Klõpsa pildi lisamiseks</div>
+               <div style={{fontSize:'.68rem',color:'#7A7167',marginTop:2}}>JPG, PNG, GIF — kuni 5MB</div>
              </div>}
       </div>
-      {value&&<button onClick={()=>onChange('')} style={{background:'none',border:'none',color:'#dc2626',cursor:'pointer',fontSize:'.72rem',marginTop:4}}>✕ Eemalda pilt</button>}
+      {err&&<div style={{fontSize:'.72rem',color:'#dc2626',marginTop:4,padding:'4px 7px',background:'rgba(220,38,38,.07)',borderRadius:5}}>{err}</div>}
+      {value&&<button onClick={()=>{onChange('');setErr('');}} style={{background:'none',border:'none',color:'#dc2626',cursor:'pointer',fontSize:'.72rem',marginTop:4,display:'flex',alignItems:'center',gap:4}}>
+        <i className="fa-solid fa-trash" style={{fontSize:'.65rem'}}/> Eemalda pilt
+      </button>}
     </div>
   );
 }
