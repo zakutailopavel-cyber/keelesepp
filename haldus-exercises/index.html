@@ -35,7 +35,7 @@
 <link rel="stylesheet" href="/haldus.css">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'IBM Plex Sans',sans-serif;background:#F0EEE9;color:#1C2B3A;min-height:100vh;}
+body{font-family:'IBM Plex Sans',sans-serif;background:#EEECE7;color:#1C2B3A;min-height:100vh;}
 
 /* HEADER */
 .top-header{background:#1C2B3A;height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.18);}
@@ -60,33 +60,33 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#F0EEE9;color:#1C2B3A;min
 /* SUBJECT CARDS */
 .subject-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;max-width:1300px;margin:0 auto;padding:24px 28px 40px;}
 @media(max-width:900px){.subject-grid{grid-template-columns:1fr;}}
-
-.subj-card{background:#fff;border:1px solid rgba(28,43,58,.08);border-radius:20px;overflow:hidden;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;}
-.subj-card:hover{transform:translateY(-4px);box-shadow:0 16px 48px rgba(28,43,58,.13);border-color:rgba(28,43,58,.15);}
+.subj-card{border:0.5px solid transparent;border-radius:20px;overflow:hidden;cursor:pointer;transition:all .22s;display:flex;flex-direction:column;}
+.subj-card:hover{transform:translateY(-4px);box-shadow:0 14px 44px rgba(28,43,58,.11);}
 .subj-head{padding:30px 26px 22px;flex:1;}
-.subj-emoji{font-size:2.4rem;margin-bottom:14px;display:block;line-height:1;}
-.subj-name{font-size:1.3rem;font-weight:800;margin-bottom:5px;font-family:'Fraunces',serif;}
-.subj-sub{font-size:.8rem;color:#718096;line-height:1.4;}
-.subj-bar{height:5px;}
-.subj-foot{padding:14px 26px;display:flex;align-items:center;justify-content:space-between;font-size:.78rem;color:#718096;}
-.subj-foot-count{font-weight:700;color:#1C2B3A;}
+.subj-icon-wrap{width:48px;height:48px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:18px;}
+.subj-name{font-size:1.2rem;font-weight:600;margin-bottom:6px;color:#1C2B3A;}
+.subj-sub{font-size:.79rem;color:#7A7167;line-height:1.55;margin-bottom:16px;}
+.subj-pills{display:flex;gap:6px;flex-wrap:wrap;}
+.subj-pill{font-size:.7rem;font-weight:600;padding:3px 10px;border-radius:20px;}
+.subj-bar{height:3px;}
+.subj-foot{padding:13px 26px;display:flex;align-items:center;justify-content:space-between;font-size:.76rem;}
+.subj-foot-count{color:#7A7167;}
+.subj-foot-link{font-weight:600;display:flex;align-items:center;gap:4px;}
 
 /* LEVEL CHIPS */
 .level-wrap{max-width:1300px;margin:0 auto;padding:20px 28px 36px;}
-.level-title{font-size:1.3rem;font-weight:800;font-family:'Fraunces',serif;margin-bottom:18px;display:flex;align-items:center;gap:10px;}
+.level-title{font-size:1.15rem;font-weight:600;margin-bottom:20px;display:flex;align-items:center;gap:10px;color:#1C2B3A;}
 .level-row{display:flex;flex-wrap:wrap;gap:10px;}
-.level-chip{padding:13px 22px;border-radius:12px;border:1.5px solid rgba(28,43,58,.12);background:#fff;cursor:pointer;font-weight:700;font-size:.9rem;color:#1C2B3A;transition:all .15s;display:flex;align-items:center;gap:9px;}
-.level-chip:hover{border-color:#2F5D50;background:rgba(47,93,80,.04);color:#2F5D50;}
-.level-chip.active{background:#2F5D50;border-color:#2F5D50;color:#fff;}
-.lc-cnt{font-size:.7rem;font-weight:800;padding:2px 7px;border-radius:6px;background:rgba(28,43,58,.07);color:#718096;}
-.level-chip.active .lc-cnt{background:rgba(255,255,255,.22);color:#fff;}
+.level-chip{padding:14px 24px;border-radius:12px;border:1px solid rgba(28,43,58,.12);background:#fff;cursor:pointer;font-weight:600;font-size:.88rem;color:#1C2B3A;transition:all .15s;display:flex;align-items:center;gap:9px;}
+.level-chip:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(28,43,58,.09);}
+.lc-cnt{font-size:.7rem;font-weight:700;padding:2px 7px;border-radius:6px;background:rgba(28,43,58,.07);color:#718096;}
 
 /* CONTENT SHELL */
 .content-shell{max-width:1300px;margin:0 auto;padding:0 28px 60px;display:grid;grid-template-columns:250px minmax(0,1fr);gap:22px;align-items:start;}
 @media(max-width:960px){.content-shell{grid-template-columns:1fr;}}
 
 /* SIDEBAR */
-.sidebar{background:#fff;border:1px solid rgba(28,43,58,.08);border-radius:16px;overflow:hidden;position:sticky;top:74px;}
+.sidebar{background:#FAFAF8;border:0.5px solid rgba(28,43,58,.1);border-radius:16px;overflow:hidden;position:sticky;top:74px;}
 .sidebar-section{padding:14px 14px 10px;}
 .sidebar-label{font-size:.68rem;font-weight:800;color:#718096;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;padding:0 4px;}
 .sidebar-btn{width:100%;text-align:left;padding:9px 12px;border-radius:10px;border:none;background:none;cursor:pointer;font-size:.84rem;font-weight:600;color:#1C2B3A;display:flex;align-items:center;justify-content:space-between;transition:all .12s;margin-bottom:2px;}
@@ -107,7 +107,7 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#F0EEE9;color:#1C2B3A;min
 .main-sub{font-size:.8rem;color:#718096;margin-top:3px;}
 
 /* LESSON CARD */
-.lesson-card{background:#fff;border:1px solid rgba(28,43,58,.08);border-radius:14px;padding:18px 20px;margin-bottom:10px;display:flex;align-items:flex-start;gap:14px;transition:all .15s;}
+.lesson-card{background:#fff;border:0.5px solid rgba(28,43,58,.09);border-radius:14px;padding:18px 20px;margin-bottom:10px;display:flex;align-items:flex-start;gap:14px;transition:all .15s;}
 .lesson-card:hover{border-color:rgba(28,43,58,.18);box-shadow:0 4px 18px rgba(28,43,58,.07);}
 .lesson-icon{width:42px;height:42px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
 .lesson-body{flex:1;min-width:0;}
@@ -124,15 +124,15 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#F0EEE9;color:#1C2B3A;min
 /* EXAM CARDS */
 .exam-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:16px;}
 @media(max-width:700px){.exam-grid{grid-template-columns:1fr;}}
-.exam-part-card{border-radius:16px;overflow:hidden;border:1.5px solid transparent;cursor:pointer;transition:all .18s;}
-.exam-part-card:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,.1);}
-.exam-part-head{padding:20px 20px 14px;position:relative;}
-.exam-part-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;margin-bottom:12px;background:rgba(255,255,255,.3);}
-.exam-part-title{font-size:1rem;font-weight:800;font-family:'Fraunces',serif;margin-bottom:3px;}
-.exam-part-sub{font-size:.76rem;opacity:.75;}
-.exam-part-body{padding:0 20px 18px;display:flex;flex-direction:column;gap:8px;}
-.exam-item{background:rgba(255,255,255,.6);border-radius:9px;padding:10px 13px;border:1px solid rgba(255,255,255,.8);cursor:pointer;transition:all .12s;}
-.exam-item:hover{background:rgba(255,255,255,.85);}
+.exam-part-card{border-radius:16px;overflow:hidden;border:0.5px solid rgba(28,43,58,.1);cursor:pointer;transition:all .18s;background:#FAFAF8;}
+.exam-part-card:hover{transform:translateY(-3px);box-shadow:0 10px 32px rgba(28,43,58,.1);}
+.exam-part-head{padding:22px 22px 14px;}
+.exam-part-icon{width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin-bottom:14px;}
+.exam-part-title{font-size:1rem;font-weight:600;margin-bottom:4px;color:#1C2B3A;}
+.exam-part-sub{font-size:.76rem;color:#7A7167;line-height:1.4;}
+.exam-part-body{padding:0 22px 20px;display:flex;flex-direction:column;gap:8px;}
+.exam-item{background:#fff;border-radius:10px;padding:10px 14px;border:0.5px solid rgba(28,43,58,.09);cursor:pointer;transition:all .12s;}
+.exam-item:hover{border-color:rgba(28,43,58,.18);box-shadow:0 2px 8px rgba(28,43,58,.06);}
 .exam-item-name{font-size:.84rem;font-weight:700;color:#1C2B3A;margin-bottom:2px;}
 .exam-item-meta{font-size:.73rem;color:#718096;}
 .exam-item-files{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;}
@@ -211,13 +211,16 @@ const normalizeText=t=>String(t||'').toLowerCase().trim().replace(/[àáâãäå
 
 // ── CONSTANTS ─────────────────────────────────────────────────
 const SUBJECTS=[
-  {key:'Eesti keel',emoji:'🇪🇪',color:'#2F5D50',grad:'linear-gradient(135deg,#2F5D50 0%,#4a8c7a 100%)',
+  {key:'Eesti keel',emoji:'🇪🇪',color:'#2F5D50',grad:'linear-gradient(90deg,#2F5D50,#5a9688)',
+   cardBg:'#F2F0EB',cardBorder:'#D9D4C8',iconBg:'rgba(47,93,80,.12)',pillBg:'rgba(47,93,80,.1)',pillColor:'#2F5D50',
    levels:['A1','A2','B1','B2','C1'],
    topics:['Minu pere','Igapäevaelu','Töö ja amet','Hobid ja vaba aeg','Toit ja tervis','Loodus ja ilm','Eesti kultuur','Reisimine','Grammatika']},
-  {key:'Inglise keel',emoji:'🇬🇧',color:'#1d4ed8',grad:'linear-gradient(135deg,#1d4ed8 0%,#3b82f6 100%)',
+  {key:'Inglise keel',emoji:'🇬🇧',color:'#1d4ed8',grad:'linear-gradient(90deg,#1d4ed8,#5b82e8)',
+   cardBg:'#EEF0F4',cardBorder:'#CDD2DC',iconBg:'rgba(29,78,216,.1)',pillBg:'rgba(29,78,216,.1)',pillColor:'#1d4ed8',
    levels:['A1','A2','B1','B2','C1','C2'],
    topics:['My family','Daily life','Work & jobs','Hobbies','Food & health','Travel','British culture','Grammar']},
-  {key:'Matemaatika',emoji:'📐',color:'#A96E1A',grad:'linear-gradient(135deg,#A96E1A 0%,#C9882A 100%)',
+  {key:'Matemaatika',emoji:'📐',color:'#A96E1A',grad:'linear-gradient(90deg,#A96E1A,#C9882A)',
+   cardBg:'#F4F0E8',cardBorder:'#DDD5C0',iconBg:'rgba(169,110,26,.12)',pillBg:'rgba(169,110,26,.1)',pillColor:'#A96E1A',
    levels:Array.from({length:12},(_,i)=>`${i+1}. klass`),
    topics:['Arvud','Algebra','Geomeetria','Võrrandid','Funktsioonid','Tekstülesanded','Statistika']},
 ];
@@ -231,16 +234,16 @@ const LESSON_TYPES={
 
 const EXAM_PARTS=[
   {key:'kirjutamine',label:'Kirjutamine',icon:'✍️',color:'#A96E1A',
-   bg:'linear-gradient(135deg,#FFF8EE 0%,#FDF0D8 100%)',border:'#F0C87A',
+   nudeBg:'rgba(169,110,26,.1)',bg:'#F4F0E8',border:'#DDD5C0',
    desc:'Kirjalikud ülesanded ja esseed'},
   {key:'kuulamine',label:'Kuulamine',icon:'🎧',color:'#0e7490',
-   bg:'linear-gradient(135deg,#EFF8FB 0%,#CFEAF2 100%)',border:'#7DD3E8',
+   nudeBg:'rgba(14,116,144,.1)',bg:'#EDF4F6',border:'#C0D8DF',
    desc:'Kuulamisülesanded ja testid'},
   {key:'lugemine',label:'Lugemine',icon:'📖',color:'#2F5D50',
-   bg:'linear-gradient(135deg,#EFF7F4 0%,#CDE8DF 100%)',border:'#7BC4AD',
+   nudeBg:'rgba(47,93,80,.1)',bg:'#EFF4F2',border:'#C4D9D3',
    desc:'Lugemistekstid ja -harjutused'},
   {key:'rääkimine',label:'Rääkimine',icon:'🗣️',color:'#6d28d9',
-   bg:'linear-gradient(135deg,#F5F0FE 0%,#E4D8FB 100%)',border:'#C4A8F4',
+   nudeBg:'rgba(109,40,217,.08)',bg:'#F2EFF9',border:'#D5CAEF',
    desc:'Kõneülesanded ja dialoogid'},
 ];
 
@@ -419,11 +422,11 @@ function ExamView({subject,level,lessons,isTeacher,onAdd,onEdit,onDelete}){
           const cnt=examLessons.filter(l=>l.examPart===part.key).length;
           const items=examLessons.filter(l=>l.examPart===part.key).sort((a,b)=>(a.order||0)-(b.order||0)).slice(0,2);
           return(
-            <div key={part.key} className="exam-part-card" style={{background:part.bg,borderColor:part.border}} onClick={()=>setActiveExamPart(part.key)}>
+            <div key={part.key} className="exam-part-card" onClick={()=>setActiveExamPart(part.key)}>
               <div className="exam-part-head">
-                <div className="exam-part-icon" style={{background:'rgba(255,255,255,.4)'}}>{part.icon}</div>
-                <div className="exam-part-title" style={{color:part.color}}>{part.label}</div>
-                <div className="exam-part-sub" style={{color:part.color}}>{part.desc}</div>
+                <div className="exam-part-icon" style={{background:part.nudeBg}}>{part.icon}</div>
+                <div className="exam-part-title">{part.label}</div>
+                <div className="exam-part-sub">{part.desc}</div>
               </div>
               <div className="exam-part-body">
                 {items.length===0
@@ -478,7 +481,7 @@ function TopicView({subject,level,activeTopic,topics,allLessons,isTeacher,onSele
             return(
               <button key={p.key} onClick={()=>onSelectTopic('__exam__'+p.key)}
                 className={'sidebar-btn'+(activeTopic==='__exam__'+p.key?' active':'')}
-                style={{color:activeTopic==='__exam__'+p.key?p.color:undefined}}>
+                style={{color:activeTopic==='__exam__'+p.key?p.color:'#1C2B3A',background:activeTopic==='__exam__'+p.key?p.nudeBg:'none'}}>
                 <span style={{display:'flex',alignItems:'center',gap:7,flex:1}}>
                   <span>{p.icon}</span>
                   <span style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{p.label}</span>
@@ -594,16 +597,24 @@ function CurriculumView({isTeacher,user,notify}){
           {SUBJECTS.map(s=>{
             const cnt=lessons.filter(l=>l.subject===s.key).length;
             return(
-              <div key={s.key} className="subj-card" onClick={()=>setNav({subject:s.key})}>
+              <div key={s.key} className="subj-card"
+                style={{background:s.cardBg,borderColor:s.cardBorder}}
+                onClick={()=>setNav({subject:s.key})}>
                 <div className="subj-head">
-                  <span className="subj-emoji">{s.emoji}</span>
+                  <div className="subj-icon-wrap" style={{background:s.iconBg}}>{s.emoji}</div>
                   <div className="subj-name">{s.key}</div>
                   <div className="subj-sub">{s.levels.length} taset · {s.topics.length} teemat · {EXAM_PARTS.length} eksami osa</div>
+                  <div className="subj-pills">
+                    {s.levels.slice(0,s.levels.length<=6?s.levels.length:4).map(lv=>(
+                      <span key={lv} className="subj-pill" style={{background:s.pillBg,color:s.pillColor}}>{lv}</span>
+                    ))}
+                    {s.levels.length>6&&<span className="subj-pill" style={{background:s.pillBg,color:s.pillColor}}>+{s.levels.length-4}</span>}
+                  </div>
                 </div>
                 <div className="subj-bar" style={{background:s.grad}}/>
                 <div className="subj-foot">
-                  <span><i className="fa-solid fa-book-open" style={{color:s.color,marginRight:5}}/>{cnt} kirjet</span>
-                  <span style={{color:s.color,fontWeight:700,fontSize:'.76rem'}}>Ava →</span>
+                  <span className="subj-foot-count">{cnt} kirjet raamatukogus</span>
+                  <span className="subj-foot-link" style={{color:s.color}}>Ava <i className="fa-solid fa-arrow-right" style={{fontSize:'.7rem'}}/></span>
                 </div>
               </div>
             );
@@ -619,8 +630,11 @@ function CurriculumView({isTeacher,user,notify}){
             {subject.levels.map(lv=>{
               const cnt=lessons.filter(l=>l.subject===subject.key&&l.level===lv).length;
               return(
-                <button key={lv} className="level-chip" onClick={()=>{const t=topics[0]||subject.topics[0]||'';setNav({subject:subject.key,level:lv,topic:t});}}>
-                  {lv}<span className="lc-cnt">{cnt}</span>
+                <button key={lv} className="level-chip"
+                  style={{borderColor:cnt>0?subject.cardBorder:'rgba(28,43,58,.1)',background:cnt>0?subject.cardBg:'#fff'}}
+                  onClick={()=>{const t=topics[0]||subject.topics[0]||'';setNav({subject:subject.key,level:lv,topic:t});}}>
+                  <span style={{color:cnt>0?subject.color:'#1C2B3A'}}>{lv}</span>
+                  <span className="lc-cnt" style={{background:cnt>0?subject.pillBg:'rgba(28,43,58,.07)',color:cnt>0?subject.pillColor:'#718096'}}>{cnt}</span>
                 </button>
               );
             })}
