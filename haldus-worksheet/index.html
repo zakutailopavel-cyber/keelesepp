@@ -758,6 +758,39 @@ function PreviewBlock({block,index}) {
   );
 }
 
+// ── VOCABULARY HELPER ────────────────────────────────────────
+function getVocabForLevel(level, types=['nimisõna','tegusõna','omadussõna'], count=30) {
+  const vocab = window._vocab;
+  if(!vocab||!vocab[level]) return [];
+  const words = [];
+  types.forEach(t=>{
+    const list = vocab[level][t]||[];
+    // random sample
+    const shuffled=[...list].sort(()=>Math.random()-.5).slice(0,Math.floor(count/types.length));
+    shuffled.forEach(w=>words.push({word:w,type:t}));
+  });
+  return words.sort(()=>Math.random()-.5);
+}
+
+function getVocabByTopic(level, topic) {
+  // Filter words that might relate to topic keywords
+  const vocab = window._vocab;
+  if(!vocab||!vocab[level]) return [];
+  const topicWords = topic.toLowerCase().split(/\s+/);
+  const all = [];
+  Object.entries(vocab[level]||{}).forEach(([type,words])=>{
+    words.forEach(w=>{
+      const wl=w.toLowerCase();
+      const relevant=topicWords.some(tw=>wl.includes(tw)||tw.includes(wl.slice(0,4)));
+      all.push({word:w,type,relevant});
+    });
+  });
+  // Prioritize relevant, then random fill
+  const relevant=all.filter(w=>w.relevant).slice(0,15);
+  const random=all.filter(w=>!w.relevant).sort(()=>Math.random()-.5).slice(0,20);
+  return [...relevant,...random];
+}
+
 // ── AI GENERATE ────────────────────────────────────────────────
 async function genAI(prompt,subject,level) {
   const sys=`Sa oled eesti keele õpetaja abiassistent. Genereeri tööleht JSON-ina.
@@ -1089,6 +1122,39 @@ function App() {
   };
   const onDragEnd=()=>{setDragId(null);setDragOver(null);};
 
+  const runVocabAI=async()=>{
+    if(!aiPrompt.trim()){notify('Kirjuta tunni teema');return;}
+    if(!window._vocab){notify('Sõnavara pole veel laetud, oota hetk...');return;}
+    setAiLoading(true);
+    try{
+      const words=getVocabForLevel(meta.level);
+      const wordList=words.slice(0,40).map(w=>w.word+' ('+w.type+')').join(', ');
+      const sys=`Sa oled eesti keele õpetaja. Genereeri tööleht JSON-ina kasutades AINULT neid sõnu: ${wordList}
+Tagasta AINULT JSON, ilma markdown koodiplokita.
+{"title":"...","blocks":[
+  {"type":"fill","instruction":"...","text":"tekst [vastus] tekst"},
+  {"type":"choice","instruction":"...","questions":[{"q":"?","opts":["a","b","c","d"],"correct":0}]},
+  {"type":"match","instruction":"...","pairs":[{"l":"eesti sõna","r":"selgitus/kontekst"}]},
+  {"type":"order","instruction":"...","sentence":"õige lause nendest sõnadest"},
+  {"type":"table","instruction":"...","headers":["Sõna","Tüüp","Näide"],"rows":6}
+]}
+Tase: ${meta.level}. Kasuta kõiki pakutud sõnatüüpe. Genereeri 4-5 blokki.`;
+      const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2000,system:sys,
+          messages:[{role:'user',content:`Teema: ${aiPrompt}, Tase: ${meta.level}`}]})});
+      const data=await res.json();
+      const r=JSON.parse((data.content?.[0]?.text||'').replace(/```json|```/g,'').trim());
+      if(r.title) setMeta(m=>({...m,title:r.title}));
+      const nb=(r.blocks||[]).map(b=>({...mkBlock(b.type),...b,id:uid()}));
+      setBlocks(nb);
+      if(nb.length) setActiveId(nb[0].id);
+      setTab('build');
+      notify('✓ Tööleht EKI sõnavaraga genereeritud!');
+    }catch(e){notify('Viga: '+(e.message||'Genereerimine ebaõnnestus'));}
+    setAiLoading(false);
+  };
+
   const runAI=async()=>{
     if(!aiPrompt.trim()){notify('Kirjuta juhis');return;}
     setAiLoading(true);
@@ -1173,9 +1239,17 @@ function App() {
                       <button key={l} className={'ai-lvl'+(meta.level===l?' active':'')} onClick={()=>setMeta(m=>({...m,level:l}))}>{l}</button>
                     ))}
                   </div>
-                  <button onClick={runAI} disabled={aiLoading} className="btn btn-pine" style={{width:'100%',marginTop:10,justifyContent:'center',background:'#C9882A',color:'#fff'}}>
-                    {aiLoading?<><div className="sp" style={{marginRight:6}}/> Genereerib...</>:<><i className="fa-solid fa-bolt"/> Genereeri</>}
-                  </button>
+                  <div style={{display:'flex',gap:7,marginTop:10}}>
+                    <button onClick={runAI} disabled={aiLoading} className="btn btn-pine" style={{flex:1,justifyContent:'center',background:'#C9882A',color:'#fff'}}>
+                      {aiLoading?<><div className="sp" style={{marginRight:6}}/> Genereerib...</>:<><i className="fa-solid fa-bolt"/> Genereeri AI-ga</>}
+                    </button>
+                    <button onClick={runVocabAI} disabled={aiLoading} className="btn btn-pine" style={{flex:1,justifyContent:'center',background:'#2F5D50',color:'#fff'}} title="Kasuta EKI sõnavara">
+                      {aiLoading?<><div className="sp" style={{marginRight:6}}/> Genereerib...</>:<><i className="fa-solid fa-book"/> + Sõnavara</>}
+                    </button>
+                  </div>
+                  <div style={{fontSize:'.68rem',color:'rgba(255,255,255,.35)',marginTop:6,textAlign:'center'}}>
+                    {window._vocab?'✓ EKI sõnavara laetud (10 564 sõna)':'⏳ Sõnavara laeb...'}
+                  </div>
                 </div>
                 <button onClick={()=>setTab('build')} className="btn btn-ghost" style={{width:'100%',justifyContent:'center'}}>
                   <i className="fa-solid fa-layer-group"/> Koosta käsitsi
