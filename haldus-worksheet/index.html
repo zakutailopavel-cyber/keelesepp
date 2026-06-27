@@ -617,8 +617,8 @@ function TopicView({subject,level,activeTopic,topics,allLessons,isTeacher,onSele
                        {lesson.files?.length>0&&<div className="file-row">{lesson.files.map((f,i)=><FileChip key={i} file={f}/>)}</div>}
                      </div>
                      <div className="lesson-actions">
-                       {lesson.worksheetData&&onPreviewWorksheet&&(
-                         <button onClick={()=>onPreviewWorksheet(lesson)} className="btn btn-ghost btn-sm" style={{color:'#2F5D50',borderColor:'rgba(47,93,80,.3)'}}>
+                       {onPreviewWorksheet&&(
+                         <button onClick={()=>onPreviewWorksheet(lesson)} className="btn btn-ghost btn-sm" style={{color:'#2F5D50',borderColor:'rgba(47,93,80,.25)',fontWeight:700}}>
                            <i className="fa-solid fa-eye"/> Ava
                          </button>
                        )}
@@ -967,20 +967,76 @@ function parseFillWs(text){
 
 function WorksheetPreviewModal({lesson,onClose}) {
   const ws=lesson.worksheetData;
-  if(!ws) return(
-    <div className="ws-prev-ov">
-      <div className="ws-prev-box">
-        <div className="ws-prev-head">
-          <span style={{color:'#fff',fontWeight:700}}>Eelvaade</span>
-          <button onClick={onClose} className="btn btn-ghost btn-sm" style={{color:'#fff',borderColor:'rgba(255,255,255,.2)'}}>✕ Sulge</button>
-        </div>
-        <div style={{padding:40,textAlign:'center',color:'#7A7167'}}>
-          <i className="fa-solid fa-file-circle-xmark" style={{fontSize:'2rem',marginBottom:10,display:'block',opacity:.3}}/>
-          Töölehe andmed puuduvad
+  if(!ws) {
+    // No worksheetData — show files + description preview
+    const buildAndDownload=()=>{
+      const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${lesson.title}</title>
+      <style>body{font-family:Arial,sans-serif;max-width:700px;margin:40px auto;padding:0 40px;color:#1a1a1a;}
+      h1{font-size:1.4rem;margin-bottom:6px;}
+      .meta{color:#666;font-size:.8rem;margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid #1a1a1a;}
+      .desc{font-size:.9rem;line-height:1.6;margin-bottom:20px;}
+      .file-link{display:block;padding:8px 12px;background:#f5f5f5;border-radius:6px;margin-bottom:6px;text-decoration:none;color:#1a1a1a;font-size:.88rem;}
+      </style></head><body>
+      <h1>${lesson.title}</h1>
+      <div class="meta">${lesson.subject||''} · ${lesson.level||''} · ${lesson.topic||''}</div>
+      ${lesson.description?`<div class="desc">${lesson.description}</div>`:''}
+      ${(lesson.files||[]).map(f=>`<a href="${f.url}" class="file-link" target="_blank">📎 ${f.name}</a>`).join('')}
+      </body></html>`;
+      const b=new Blob([html],{type:'text/html'});
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(b);a.download=lesson.title+'.html';a.click();
+    };
+    return(
+      <div className="ws-prev-ov" onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
+        <div className="ws-prev-box">
+          <div className="ws-prev-head">
+            <div>
+              <div style={{color:'#fff',fontWeight:700,fontSize:'.95rem'}}>{lesson.title}</div>
+              <div style={{color:'rgba(255,255,255,.45)',fontSize:'.75rem'}}>{lesson.subject} · {lesson.level} · {lesson.topic}</div>
+            </div>
+            <div style={{display:'flex',gap:8}}>
+              {(lesson.files||[]).length>0&&<button onClick={buildAndDownload} className="btn btn-gold btn-sm"><i className="fa-solid fa-download"/> Laadi alla</button>}
+              <button onClick={onClose} className="btn btn-ghost btn-sm" style={{color:'#fff',borderColor:'rgba(255,255,255,.2)'}}>✕ Sulge</button>
+            </div>
+          </div>
+          <div className="ws-prev-body">
+            <div className="ws-a4" id="ws-prev-content">
+              <div className="ws-sheet-hdr">
+                <div>
+                  <div className="ws-sheet-title">{lesson.title}</div>
+                  <div className="ws-sheet-meta">
+                    {lesson.subject&&<span>📚 {lesson.subject}</span>}
+                    {lesson.level&&<span>📊 {lesson.level}</span>}
+                    {lesson.topic&&<span>💬 {lesson.topic}</span>}
+                  </div>
+                </div>
+              </div>
+              {lesson.description&&<p style={{fontSize:'.9rem',lineHeight:1.6,marginBottom:16,color:'#42536A'}}>{lesson.description}</p>}
+              {(lesson.files||[]).length>0
+                ?<div>{lesson.files.map((f,i)=>{
+                  const ext=(f.name||'').split('.').pop().toLowerCase();
+                  const isImg=['jpg','jpeg','png','gif','webp'].includes(ext);
+                  return(
+                    <div key={i} style={{marginBottom:12}}>
+                      {isImg&&<img src={f.url} alt={f.name} style={{maxWidth:'100%',maxHeight:300,objectFit:'contain',borderRadius:8,border:'1px solid rgba(28,43,58,.08)',marginBottom:6}}/>}
+                      <a href={f.url} target="_blank" rel="noreferrer"
+                        style={{display:'inline-flex',alignItems:'center',gap:7,padding:'7px 13px',background:'#F0EEE9',borderRadius:8,textDecoration:'none',color:'#1C2B3A',fontSize:'.84rem',fontWeight:600,border:'1px solid rgba(28,43,58,.1)'}}>
+                        <i className="fa-solid fa-paperclip" style={{fontSize:'.72rem'}}/> {f.name}
+                      </a>
+                    </div>
+                  );
+                })}</div>
+                :<div style={{textAlign:'center',padding:'32px 0',color:'#B0A898',fontSize:'.84rem'}}>
+                  <i className="fa-solid fa-folder-open" style={{fontSize:'1.6rem',marginBottom:8,display:'block',opacity:.3}}/>
+                  Failid puuduvad
+                </div>
+              }
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  }
 
   const{meta={},blocks=[]}=ws;
 
@@ -1074,11 +1130,22 @@ function WorksheetPreviewModal({lesson,onClose}) {
             <a href="/haldus-worksheet" style={{color:'rgba(255,255,255,.6)',fontSize:'.76rem',textDecoration:'none',padding:'5px 10px',border:'1px solid rgba(255,255,255,.15)',borderRadius:7}}>
               <i className="fa-solid fa-pen"/> Muuda
             </a>
+            <button onClick={()=>{
+              const{meta={},blocks=[]}=ws;
+              // build HTML inline (same logic as worksheet page)
+              const b=new Blob([document.getElementById('ws-prev-content')?.innerHTML||''],{type:'text/html'});
+              // simpler: open print dialog
+              const w=window.open('','_blank');
+              const printHtml=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${lesson.title}</title><style>body{font-family:Arial,sans-serif;margin:40px;}</style></head><body>${document.getElementById('ws-prev-content')?.innerHTML||''}</body></html>`;
+              w.document.write(printHtml);w.document.close();setTimeout(()=>w.print(),300);
+            }} className="btn btn-gold btn-sm">
+              <i className="fa-solid fa-print"/> Prindi / PDF
+            </button>
             <button onClick={onClose} className="btn btn-ghost btn-sm" style={{color:'#fff',borderColor:'rgba(255,255,255,.2)'}}>✕ Sulge</button>
           </div>
         </div>
         <div className="ws-prev-body">
-          <div className="ws-a4">
+          <div className="ws-a4" id="ws-prev-content">
             <div className="ws-sheet-hdr">
               <div>
                 <div className="ws-sheet-title">{meta.title||lesson.title}</div>
