@@ -266,6 +266,73 @@ textarea{resize:vertical;line-height:1.5;}
 
 /* Phase padding wrapper */
 .ph-wrap{padding:14px 24px 4px;}
+
+/* ── LESSON CONDUCT MODE ───────────────────────────────────── */
+.lc-ov{position:fixed;inset:0;background:#1C2B3A;z-index:400;display:flex;flex-direction:column;overflow:hidden;}
+.lc-top{background:#16212E;padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.08);}
+.lc-title{color:#fff;font-weight:700;font-size:.95rem;}
+.lc-meta{color:rgba(255,255,255,.4);font-size:.76rem;margin-top:1px;}
+.lc-body{flex:1;display:grid;grid-template-columns:260px minmax(0,1fr);overflow:hidden;}
+.lc-sidebar{background:#16212E;border-right:1px solid rgba(255,255,255,.07);overflow-y:auto;padding:16px 12px;}
+.lc-main{overflow-y:auto;padding:28px 32px;}
+
+/* Phase nav items */
+.lc-phase-item{padding:10px 12px;border-radius:10px;cursor:pointer;margin-bottom:4px;transition:all .14s;border:1px solid transparent;}
+.lc-phase-item:hover{background:rgba(255,255,255,.06);}
+.lc-phase-item.active{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.15);}
+.lc-phase-item.done{opacity:.55;}
+.lc-ph-name{font-size:.82rem;font-weight:700;color:#fff;margin-bottom:2px;}
+.lc-ph-time{font-size:.7rem;color:rgba(255,255,255,.4);}
+.lc-ph-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+
+/* Timer */
+.lc-timer{font-size:3.5rem;font-weight:800;color:#fff;font-variant-numeric:tabular-nums;letter-spacing:-.02em;line-height:1;}
+.lc-timer.warning{color:#F59E0B;}
+.lc-timer.done-t{color:#EF4444;}
+.lc-timer-label{font-size:.76rem;color:rgba(255,255,255,.4);margin-top:4px;}
+.lc-timer-bar{height:4px;border-radius:2px;background:rgba(255,255,255,.1);margin-top:12px;overflow:hidden;}
+.lc-timer-fill{height:100%;border-radius:2px;transition:width .5s linear;}
+
+/* Phase content */
+.lc-phase-name{font-size:1.4rem;font-weight:800;color:#fff;margin-bottom:6px;font-family:'Fraunces',serif;}
+.lc-phase-badge{font-size:.7rem;font-weight:700;padding:3px 9px;border-radius:6px;text-transform:uppercase;letter-spacing:.07em;display:inline-flex;margin-bottom:16px;}
+.lc-hint-box{background:rgba(255,255,255,.07);border-radius:12px;padding:14px 16px;margin-bottom:18px;border-left:3px solid rgba(255,255,255,.2);}
+.lc-hint-lbl{font-size:.66rem;font-weight:700;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.09em;margin-bottom:6px;}
+.lc-hint-text{font-size:.86rem;color:rgba(255,255,255,.7);line-height:1.55;}
+.lc-fields{display:flex;flex-direction:column;gap:14px;}
+.lc-field-card{background:rgba(255,255,255,.06);border-radius:12px;padding:14px 16px;border:1px solid rgba(255,255,255,.08);}
+.lc-field-lbl{font-size:.68rem;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px;}
+.lc-field-val{font-size:.92rem;color:#fff;line-height:1.55;white-space:pre-wrap;}
+.lc-field-empty{font-size:.84rem;color:rgba(255,255,255,.2);font-style:italic;}
+
+/* Nav buttons */
+.lc-nav{display:flex;gap:10px;margin-top:24px;}
+.lc-btn-prev{padding:10px 20px;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:transparent;color:rgba(255,255,255,.6);cursor:pointer;font-family:inherit;font-size:.84rem;font-weight:700;}
+.lc-btn-next{padding:10px 24px;border-radius:10px;border:none;background:#2F5D50;color:#fff;cursor:pointer;font-family:inherit;font-size:.84rem;font-weight:700;display:flex;align-items:center;gap:7px;}
+.lc-btn-next:hover{background:#265048;}
+.lc-btn-finish{background:#C9882A;}
+.lc-btn-finish:hover{background:#b37624;}
+
+/* Progress */
+.lc-progress{display:flex;gap:4px;margin-top:16px;}
+.lc-prog-dot{height:3px;border-radius:2px;flex:1;background:rgba(255,255,255,.15);transition:background .3s;}
+.lc-prog-dot.done{background:#2F5D50;}
+.lc-prog-dot.active{background:#C9882A;}
+
+/* ── SEARCH ─────────────────────────────────────────────────── */
+.search-bar{display:flex;gap:10px;align-items:center;padding:14px 28px;background:#fff;border-bottom:1px solid rgba(28,43,58,.08);}
+.search-input-wrap{flex:1;position:relative;}
+.search-input-wrap i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#B0A898;font-size:.82rem;}
+.search-inp{width:100%;padding:9px 12px 9px 35px;border-radius:10px;border:1.5px solid rgba(28,43,58,.12);background:#F9F8F6;font-family:inherit;font-size:.86rem;outline:none;}
+.search-inp:focus{border-color:#2F5D50;background:#fff;}
+.search-results{max-width:1300px;margin:0 auto;padding:20px 28px;}
+.search-hit{background:#fff;border:0.5px solid rgba(28,43,58,.09);border-radius:12px;padding:14px 18px;margin-bottom:8px;cursor:pointer;transition:all .13s;display:flex;align-items:flex-start;gap:12px;}
+.search-hit:hover{border-color:rgba(28,43,58,.2);box-shadow:0 3px 12px rgba(28,43,58,.07);}
+.search-hit-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;}
+.search-hit-title{font-size:.9rem;font-weight:700;margin-bottom:2px;}
+.search-hit-path{font-size:.72rem;color:#7A7167;}
+.search-hit-desc{font-size:.78rem;color:#42536A;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:500px;}
+mark{background:rgba(201,136,42,.2);color:#A96E1A;border-radius:3px;padding:0 2px;}
 </style>
 </head>
 <body>
@@ -903,7 +970,7 @@ function ExamView({subject,level,lessons,isTeacher,onAdd,onEdit,onDelete}){
 }
 
 // ── TOPIC VIEW ────────────────────────────────────────────────
-function TopicView({subject,level,activeTopic,topics,allLessons,isTeacher,onSelectTopic,onAdd,onEdit,onDelete,onRenameTopic,onDeleteTopic,onAddTopic,onPreviewWorksheet}){
+function TopicView({subject,level,activeTopic,topics,allLessons,isTeacher,onSelectTopic,onAdd,onEdit,onDelete,onRenameTopic,onDeleteTopic,onAddTopic,onPreviewWorksheet,onConductLesson}){
   const topicLessons=allLessons
     .filter(l=>l.subject===subject.key&&l.level===level&&l.topic===activeTopic&&!l.examPart)
     .sort((a,b)=>(a.order||0)-(b.order||0));
@@ -1038,6 +1105,11 @@ function TopicView({subject,level,activeTopic,topics,allLessons,isTeacher,onSele
                            <i className="fa-solid fa-eye"/> Ava
                          </button>
                        )}
+                       {lesson.phaseData&&onConductLesson&&(
+                         <button onClick={()=>onConductLesson(lesson)} className="btn btn-pine btn-sm">
+                           <i className="fa-solid fa-play"/> Vii läbi
+                         </button>
+                       )}
                        {isTeacher&&<button onClick={()=>onEdit(lesson)} className="btn btn-ghost btn-sm"><i className="fa-solid fa-pen"/></button>}
                        {isTeacher&&<button onClick={()=>onDelete(lesson)} className="btn btn-ghost btn-sm" style={{color:'#dc2626'}}><i className="fa-solid fa-trash"/></button>}
                      </div>
@@ -1052,7 +1124,7 @@ function TopicView({subject,level,activeTopic,topics,allLessons,isTeacher,onSele
 }
 
 // ── CURRICULUM ────────────────────────────────────────────────
-function CurriculumView({isTeacher,user,notify,onPreviewWorksheet}){
+function CurriculumView({isTeacher,user,notify,onPreviewWorksheet,onConductLesson}){
   const[lessons,setLessons]=useState([]);
   const[loading,setLoading]=useState(true);
   const[nav,setNav]=useState(null); // null | {subject} | {subject,level,topic}
@@ -1213,6 +1285,7 @@ function CurriculumView({isTeacher,user,notify,onPreviewWorksheet}){
             notify('✓ Teema kustutatud');
           }}
           onPreviewWorksheet={onPreviewWorksheet}
+          onConductLesson={onConductLesson}
         />
       )}
 
@@ -1381,7 +1454,367 @@ function parseFillWs(text){
   return parts;
 }
 
-function WorksheetPreviewModal({lesson,onClose}) {
+// ── LESSON CONDUCT MODE ───────────────────────────────────────
+function LessonConductModal({lesson, onClose}) {
+  const typeDef = lesson.lessonTypeDef
+    ? [{key:'uus_teema',name:'Uus teema',emoji:'🌱',color:'#2F5D50'},
+       {key:'kinnistamine',name:'Kinnistamine',emoji:'🔁',color:'#1d4ed8'},
+       {key:'suuline',name:'Suuline keel',emoji:'🗣️',color:'#047857'},
+       {key:'kirjalik',name:'Kirjalik keel',emoji:'✍️',color:'#A96E1A'},
+       {key:'kordamine',name:'Kordamine / eksam',emoji:'📋',color:'#6d28d9'},
+       {key:'projekt',name:'Projekt / loovtöö',emoji:'🎨',color:'#be185d'},
+      ].find(t=>t.key===lesson.lessonTypeDef)
+    : null;
+
+  // Build phases from LESSON_TYPE_DEFS or fallback to description
+  const PHASE_DEFS = {
+    uus_teema:[
+      {key:'org',name:'Organisatsiooniline osa',color:'#718096',time:3,hint:'Tervitus, tunni teema ja eesmärkide tutvustamine.',fields:['Tunni teema ja eesmärgid','Motivatsioon']},
+      {key:'soojendus',name:'Soojendus',color:'#0e7490',time:7,hint:'Aktiveerige eelnev teadmine. Küsimused, pildid, lühike vestlus.',fields:['Soojendusülesanne','Eelteadmiste aktiveerimine']},
+      {key:'esitlus',name:'Uue materjali esitlus',color:'#1d4ed8',time:12,hint:'Esitage uus materjal kontekstis. Näited, pildid, laused.',fields:['Grammatika/sõnavara selgitus','Näitelaused','Visuaalne materjal']},
+      {key:'harjutamine',name:'Kontrollitud harjutamine',color:'#6d28d9',time:12,hint:'Struktureeritud harjutused. Lüngad, valikvastused, paaristöö.',fields:['Harjutused','Paaristöö ülesanne','Vigade parandamine']},
+      {key:'tootmine',name:'Vaba kasutamine',color:'#047857',time:12,hint:'Kommunikatiivne ülesanne. Rollimäng, diskussioon, kirjutamine.',fields:['Kommunikatiivne ülesanne','Rollimäng/diskussioon','Grupi/paaristöö']},
+      {key:'kokkuvote',name:'Kokkuvõte',color:'#A96E1A',time:4,hint:'Kinnitage õpitut. Exit ticket.',fields:['Kokkuvõte','Exit ticket','Kodutöö']},
+    ],
+    kinnistamine:[
+      {key:'org',name:'Organisatsiooniline osa',color:'#718096',time:2,hint:'Tervitus.',fields:['Mida kordame']},
+      {key:'soojendus',name:'Kordamine',color:'#0e7490',time:8,hint:'Kiire kordamine.',fields:['Kordamisülesanne','Mäng sõnavaraga']},
+      {key:'harjutamine',name:'Suunatud harjutamine',color:'#6d28d9',time:15,hint:'Struktureeritud harjutused.',fields:['Peamised vead','Harjutused','Paaristöö']},
+      {key:'kommunik',name:'Kommunikatiivne harjutamine',color:'#047857',time:20,hint:'Autentsed situatsioonid.',fields:['Rollimäng','Rühmatöö','Loovülesanne']},
+      {key:'kokkuvote',name:'Kokkuvõte',color:'#A96E1A',time:3,hint:'Mis läks hästi?',fields:['Enesehindamine','Kodutöö']},
+    ],
+    suuline:[
+      {key:'org',name:'Organisatsiooniline osa',color:'#718096',time:2,hint:'Häälestamine rääkimisele.',fields:['Tunni fookus']},
+      {key:'soojendus',name:'Kõnesoojendus',color:'#0e7490',time:5,hint:'Soojendusküsimused, fraasid.',fields:['Soojendusküsimused','Kasulikud fraasid']},
+      {key:'kuulamine',name:'Kuulamine',color:'#1d4ed8',time:10,hint:'Autentne sisend: dialoog, video.',fields:['Kuulamistekst/video','Ennustamine','Kontroll']},
+      {key:'harjutamine',name:'Juhendatud rääkimine',color:'#6d28d9',time:15,hint:'Struktureeritud dialoogid.',fields:['Mudeldialoogi harjutamine','Fraasimallid','Paaristöö']},
+      {key:'vaba',name:'Vaba rääkimine',color:'#047857',time:20,hint:'Autentne suhtlus.',fields:['Rollimäng','Diskussiooni teema','Rühmatöö']},
+      {key:'kokkuvote',name:'Tagasiside',color:'#A96E1A',time:5,hint:'Positiivne tagasiside.',fields:['Tagasiside','Uued fraasid']},
+    ],
+    kirjalik:[
+      {key:'org',name:'Organisatsiooniline osa',color:'#718096',time:2,hint:'Kirjatüübi tutvustus.',fields:['Kirjatüüp ja eesmärk']},
+      {key:'soojendus',name:'Ideekorje',color:'#0e7490',time:7,hint:'Brainstorming, mindmap.',fields:['Brainstorming','Sõnavara']},
+      {key:'mudel',name:'Tekstimudeli analüüs',color:'#1d4ed8',time:10,hint:'Hea näidistekst.',fields:['Näidistekst','Struktuur','Kasulikud fraasid']},
+      {key:'kirjutamine',name:'Kirjutamine',color:'#6d28d9',time:20,hint:'Iseseisvalt kirjutamine.',fields:['Ülesanne','Maht','Abivahendid']},
+      {key:'tagasiside',name:'Eakaaslaste tagasiside',color:'#047857',time:10,hint:'Paarid vahetavad tekste.',fields:['Tagasiside küsimused','Parandamise fookus']},
+      {key:'kokkuvote',name:'Kokkuvõte',color:'#A96E1A',time:3,hint:'Mida õppisime?',fields:['Levinumad vead','Järgmine samm']},
+    ],
+    kordamine:[
+      {key:'org',name:'Organisatsiooniline osa',color:'#718096',time:2,hint:'Eksami formaat.',fields:['Kordamise teemad','Eksami formaat']},
+      {key:'enesehindamine',name:'Enesehindamine',color:'#0e7490',time:8,hint:'Mis läheb hästi, mis ei lähe.',fields:['Enesehindamise küsimused','Lünkade kaart']},
+      {key:'kordamine',name:'Kordamine',color:'#1d4ed8',time:25,hint:'Mängud, viktoriin, paaristöö.',fields:['Teema 1','Teema 2','Mäng/viktoriin','Levinumad vead']},
+      {key:'eksami_harj',name:'Eksami ülesanded',color:'#6d28d9',time:15,hint:'Päris eksami formaadis.',fields:['Eksami näidisülesanded','Ajapiirang','Strateegiad']},
+      {key:'kokkuvote',name:'Nõuanded',color:'#A96E1A',time:5,hint:'Eksamisoovitused.',fields:['Eksamipäeva nõuanded','Viimased soovitused']},
+    ],
+    projekt:[
+      {key:'org',name:'Projekti tutvustus',color:'#718096',time:5,hint:'Eesmärk, tulemused, hindamine.',fields:['Projekti teema','Lõpptulemus','Hindamiskriteeriumid']},
+      {key:'planeerimine',name:'Planeerimine',color:'#0e7490',time:10,hint:'Rühmad, rollid, ajakava.',fields:['Rühmade moodustamine','Rollid','Ajakava']},
+      {key:'too',name:'Töö',color:'#1d4ed8',time:25,hint:'Iseseisvalt töötamine.',fields:['Töövahendid','Õpetaja tugi','Vahetulemused']},
+      {key:'esitlus',name:'Esitlemine',color:'#047857',time:15,hint:'Rühm jagab tulemust.',fields:['Esitlemise formaat','Tagasiside struktuur','Eakaaslaste hindamine']},
+      {key:'reflektsioon',name:'Refleksioon',color:'#A96E1A',time:5,hint:'Mis läks hästi?',fields:['Refleksiooniküsimused','Õpitu kokkuvõte']},
+    ],
+  };
+
+  const phases = lesson.lessonTypeDef && PHASE_DEFS[lesson.lessonTypeDef]
+    ? PHASE_DEFS[lesson.lessonTypeDef]
+    : [{key:'main',name:'Tunni sisu',color:'#2F5D50',time:lesson.builderDuration||60,hint:'',fields:['Tunni sisu']}];
+
+  const phaseData = lesson.phaseData || {};
+  const totalMin = phases.reduce((a,p)=>a+p.time,0);
+
+  const[curPhase,setCurPhase] = useState(0);
+  const[timerSec,setTimerSec] = useState(phases[0]?.time*60||0);
+  const[running,setRunning] = useState(false);
+  const[finished,setFinished] = useState(false);
+  const timerRef = useRef(null);
+
+  const ph = phases[curPhase];
+  const phTime = ph?.time*60||0;
+  const elapsed = phTime - timerSec;
+  const pct = phTime>0 ? Math.min(100,(elapsed/phTime)*100) : 0;
+  const isWarning = timerSec > 0 && timerSec <= 60;
+  const isDone = timerSec <= 0;
+
+  useEffect(()=>{
+    setTimerSec(phases[curPhase]?.time*60||0);
+    setRunning(false);
+    if(timerRef.current) clearInterval(timerRef.current);
+  },[curPhase]);
+
+  useEffect(()=>{
+    if(running){
+      timerRef.current=setInterval(()=>{
+        setTimerSec(s=>{
+          if(s<=0){clearInterval(timerRef.current);setRunning(false);return 0;}
+          return s-1;
+        });
+      },1000);
+    } else {
+      clearInterval(timerRef.current);
+    }
+    return()=>clearInterval(timerRef.current);
+  },[running]);
+
+  const fmt=s=>{
+    const m=Math.floor(Math.abs(s)/60);
+    const sec=Math.abs(s)%60;
+    return (s<0?'-':'')+String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');
+  };
+
+  const goNext=()=>{
+    if(curPhase<phases.length-1){setCurPhase(c=>c+1);}
+    else{setFinished(true);}
+  };
+  const goPrev=()=>{if(curPhase>0)setCurPhase(c=>c-1);};
+
+  const barColor = isDone?'#EF4444':isWarning?'#F59E0B':'#2F5D50';
+
+  return(
+    <div className="lc-ov">
+      {/* Top bar */}
+      <div className="lc-top">
+        <div>
+          <div className="lc-title">{lesson.title}</div>
+          <div className="lc-meta">
+            {lesson.subject} · {lesson.level} · {lesson.topic}
+            {typeDef&&<span style={{marginLeft:8}}>{typeDef.emoji} {typeDef.name}</span>}
+            {lesson.builderDuration&&<span style={{marginLeft:8}}>⏱ {lesson.builderDuration} min</span>}
+          </div>
+        </div>
+        <div style={{display:'flex',gap:8,alignItems:'center'}}>
+          {lesson.builderObjectives&&(
+            <div style={{maxWidth:340,fontSize:'.74rem',color:'rgba(255,255,255,.4)',lineHeight:1.4,textAlign:'right'}}>
+              {lesson.builderObjectives.slice(0,80)}{lesson.builderObjectives.length>80?'...':''}
+            </div>
+          )}
+          <button onClick={onClose} style={{background:'rgba(255,255,255,.1)',border:'none',color:'rgba(255,255,255,.7)',cursor:'pointer',borderRadius:8,padding:'7px 14px',fontSize:'.78rem',fontWeight:700}}>
+            ✕ Lõpeta
+          </button>
+        </div>
+      </div>
+
+      {finished?(
+        <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:16}}>
+          <div style={{fontSize:'3rem'}}>🎉</div>
+          <div style={{color:'#fff',fontSize:'1.4rem',fontWeight:800,fontFamily:'Fraunces,serif'}}>Tund on läbi!</div>
+          <div style={{color:'rgba(255,255,255,.5)',fontSize:'.86rem'}}>Kõik {phases.length} faasi läbitud · {totalMin} minutit</div>
+          <button onClick={onClose} className="lc-btn-next" style={{marginTop:8}}>Sulge</button>
+        </div>
+      ):(
+        <div className="lc-body">
+          {/* Sidebar — phases */}
+          <div className="lc-sidebar">
+            <div style={{fontSize:'.66rem',fontWeight:700,color:'rgba(255,255,255,.3)',textTransform:'uppercase',letterSpacing:'.09em',marginBottom:10}}>
+              Tunni käik
+            </div>
+            {phases.map((p,i)=>(
+              <div key={p.key} className={'lc-phase-item'+(i===curPhase?' active':i<curPhase?' done':'')}
+                onClick={()=>setCurPhase(i)}>
+                <div style={{display:'flex',alignItems:'flex-start',gap:8}}>
+                  <div className="lc-ph-dot" style={{background:i<curPhase?'#2F5D50':i===curPhase?p.color:'rgba(255,255,255,.2)',marginTop:4}}/>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div className="lc-ph-name" style={{color:i<curPhase?'rgba(255,255,255,.4)':i===curPhase?p.color:'rgba(255,255,255,.6)'}}>{p.name}</div>
+                    <div className="lc-ph-time">{p.time} min</div>
+                  </div>
+                  {i<curPhase&&<span style={{color:'#2F5D50',fontSize:'.7rem'}}>✓</span>}
+                </div>
+              </div>
+            ))}
+
+            {/* Overall progress */}
+            <div style={{marginTop:16,padding:'10px 0 0',borderTop:'1px solid rgba(255,255,255,.07)'}}>
+              <div style={{fontSize:'.66rem',color:'rgba(255,255,255,.3)',marginBottom:6}}>{curPhase+1} / {phases.length} faasi</div>
+              <div className="lc-progress">
+                {phases.map((_,i)=>(
+                  <div key={i} className={'lc-prog-dot'+(i<curPhase?' done':i===curPhase?' active':'')}/>
+                ))}
+              </div>
+            </div>
+
+            {/* Notes */}
+            {lesson.builderNotes&&(
+              <div style={{marginTop:14,padding:10,borderRadius:8,background:'rgba(255,255,255,.05)',border:'1px solid rgba(255,255,255,.07)'}}>
+                <div style={{fontSize:'.64rem',fontWeight:700,color:'rgba(255,255,255,.3)',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:5}}>Märkused</div>
+                <div style={{fontSize:'.78rem',color:'rgba(255,255,255,.55)',lineHeight:1.45}}>{lesson.builderNotes}</div>
+              </div>
+            )}
+          </div>
+
+          {/* Main content */}
+          <div className="lc-main">
+            {/* Timer */}
+            <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:24,flexWrap:'wrap',gap:12}}>
+              <div>
+                <div style={{display:'flex',alignItems:'baseline',gap:10}}>
+                  <div className={'lc-timer'+(isWarning?' warning':isDone?' done-t':'')}>{fmt(timerSec)}</div>
+                  <div style={{color:'rgba(255,255,255,.3)',fontSize:'.82rem'}}>/ {ph?.time} min</div>
+                </div>
+                <div className="lc-timer-label">{running?'Kulgeb...':isDone?'Aeg on läbi!':'Paus'}</div>
+                <div className="lc-timer-bar" style={{width:240}}>
+                  <div className="lc-timer-fill" style={{width:pct+'%',background:barColor}}/>
+                </div>
+              </div>
+              <div style={{display:'flex',gap:7}}>
+                <button onClick={()=>setRunning(r=>!r)}
+                  style={{padding:'9px 18px',borderRadius:9,border:'none',background:running?'rgba(255,255,255,.15)':'#2F5D50',color:'#fff',cursor:'pointer',fontFamily:'inherit',fontSize:'.84rem',fontWeight:700,display:'flex',alignItems:'center',gap:6}}>
+                  {running?<><i className="fa-solid fa-pause"/> Peata</>:<><i className="fa-solid fa-play"/> Käivita</>}
+                </button>
+                <button onClick={()=>setTimerSec(ph?.time*60||0)}
+                  style={{padding:'9px 14px',borderRadius:9,border:'1px solid rgba(255,255,255,.15)',background:'transparent',color:'rgba(255,255,255,.5)',cursor:'pointer',fontFamily:'inherit',fontSize:'.82rem'}}>
+                  <i className="fa-solid fa-rotate-left"/>
+                </button>
+              </div>
+            </div>
+
+            {/* Phase name */}
+            <div>
+              <span className="lc-phase-badge" style={{background:ph?.color+'25',color:ph?.color}}>
+                {curPhase+1}/{phases.length} · {ph?.time} min
+              </span>
+              <div className="lc-phase-name">{ph?.name}</div>
+            </div>
+
+            {/* Hint */}
+            {ph?.hint&&(
+              <div className="lc-hint-box">
+                <div className="lc-hint-lbl">💡 Didaktiline nõuanne</div>
+                <div className="lc-hint-text">{ph.hint}</div>
+              </div>
+            )}
+
+            {/* Fields content */}
+            <div className="lc-fields">
+              {ph?.fields.map((fieldName,fi)=>{
+                const val=(phaseData[ph.key]||{})[fi]||'';
+                return(
+                  <div key={fi} className="lc-field-card">
+                    <div className="lc-field-lbl">{fieldName}</div>
+                    {val
+                      ?<div className="lc-field-val">{val}</div>
+                      :<div className="lc-field-empty">Pole täidetud</div>
+                    }
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Nav */}
+            <div className="lc-nav">
+              {curPhase>0&&(
+                <button onClick={goPrev} className="lc-btn-prev">
+                  ← {phases[curPhase-1]?.name}
+                </button>
+              )}
+              <button onClick={goNext} className={'lc-btn-next'+(curPhase===phases.length-1?' lc-btn-finish':'')}>
+                {curPhase===phases.length-1
+                  ?<><i className="fa-solid fa-flag-checkered"/> Lõpeta tund</>
+                  :<>{phases[curPhase+1]?.name} →</>
+                }
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── SEARCH VIEW ────────────────────────────────────────────────
+function SearchView({lessons,subjects,onSelectLesson,onClose}) {
+  const[q,setQ]=useState('');
+  const inpRef=useRef();
+  useEffect(()=>{inpRef.current?.focus();},[]);
+
+  const results=useMemo(()=>{
+    if(!q.trim()) return [];
+    const lq=q.toLowerCase();
+    return lessons.filter(l=>{
+      return (l.title||'').toLowerCase().includes(lq)
+        ||(l.description||'').toLowerCase().includes(lq)
+        ||(l.topic||'').toLowerCase().includes(lq)
+        ||(l.subject||'').toLowerCase().includes(lq)
+        ||(l.builderObjectives||'').toLowerCase().includes(lq);
+    }).slice(0,30);
+  },[lessons,q]);
+
+  const highlight=(text,query)=>{
+    if(!query||!text) return text;
+    const idx=text.toLowerCase().indexOf(query.toLowerCase());
+    if(idx===-1) return text.slice(0,60);
+    const start=Math.max(0,idx-20);
+    const end=Math.min(text.length,idx+query.length+40);
+    const pre=text.slice(start,idx);
+    const match=text.slice(idx,idx+query.length);
+    const post=text.slice(idx+query.length,end);
+    return <span>{start>0?'...':''}{pre}<mark>{match}</mark>{post}{end<text.length?'...':''}</span>;
+  };
+
+  const SUBJECT_COLORS={'Eesti keel':'#2F5D50','Inglise keel':'#1d4ed8','Matemaatika':'#A96E1A'};
+  const LESSON_TYPE_ICONS={lesson:'fa-book',test:'fa-clipboard-check',hw:'fa-house',material:'fa-file-lines'};
+
+  return(
+    <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
+      <div className="search-bar">
+        <button onClick={onClose} className="btn btn-ghost btn-sm">
+          <i className="fa-solid fa-arrow-left"/>
+        </button>
+        <div className="search-input-wrap">
+          <i className="fa-solid fa-magnifying-glass"/>
+          <input ref={inpRef} className="search-inp" value={q} onChange={e=>setQ(e.target.value)}
+            placeholder="Otsi tundide, teemade, kirjelduste järgi..."/>
+        </div>
+        {q&&<button onClick={()=>setQ('')} style={{background:'none',border:'none',color:'#B0A898',cursor:'pointer',fontSize:'.82rem'}}>✕</button>}
+      </div>
+
+      <div style={{flex:1,overflowY:'auto'}}>
+        {!q&&(
+          <div style={{textAlign:'center',padding:'60px 0',color:'#B0A898'}}>
+            <i className="fa-solid fa-magnifying-glass" style={{fontSize:'2rem',marginBottom:12,display:'block',opacity:.25}}/>
+            <div style={{fontSize:'.88rem'}}>Alusta trükkimist et otsida kõigi tundide hulgast</div>
+            <div style={{fontSize:'.78rem',marginTop:6,color:'#C0B8B0'}}>{lessons.length} kirjet kokku</div>
+          </div>
+        )}
+        {q&&results.length===0&&(
+          <div style={{textAlign:'center',padding:'60px 0',color:'#B0A898'}}>
+            <div style={{fontSize:'.88rem'}}>Tulemusi ei leitud: "{q}"</div>
+          </div>
+        )}
+        {results.length>0&&(
+          <div className="search-results">
+            <div style={{fontSize:'.76rem',color:'#7A7167',marginBottom:12}}>{results.length} tulemust</div>
+            {results.map(lesson=>{
+              const sc=SUBJECT_COLORS[lesson.subject]||'#718096';
+              const icon=LESSON_TYPE_ICONS[lesson.type]||'fa-book';
+              return(
+                <div key={lesson.id} className="search-hit" onClick={()=>onSelectLesson(lesson)}>
+                  <div className="search-hit-icon" style={{background:sc+'15'}}>
+                    <i className={'fa-solid '+icon} style={{color:sc}}/>
+                  </div>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div className="search-hit-title">{highlight(lesson.title||'',q)}</div>
+                    <div className="search-hit-path">
+                      {lesson.subject} › {lesson.level} › {lesson.topic}
+                    </div>
+                    {lesson.description&&(
+                      <div className="search-hit-desc">{highlight(lesson.description||'',q)}</div>
+                    )}
+                  </div>
+                  <div style={{flexShrink:0,display:'flex',gap:5,alignItems:'center'}}>
+                    {lesson.phaseData&&<span style={{fontSize:'.68rem',padding:'2px 7px',borderRadius:5,background:'rgba(47,93,80,.1)',color:'#2F5D50',fontWeight:700}}>Tund</span>}
+                    {lesson.files?.length>0&&<span style={{fontSize:'.68rem',color:'#B0A898'}}><i className="fa-solid fa-paperclip"/> {lesson.files.length}</span>}
+                    <i className="fa-solid fa-chevron-right" style={{fontSize:'.65rem',color:'#B0A898'}}/>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function WorksheetPreviewModal({lesson,onClose,onConduct}) {
   const ws=lesson.worksheetData;
   if(!ws) {
     // No worksheetData — show files + description preview
@@ -1591,6 +2024,9 @@ function App(){
   const[loading,setLoading]=useState(true);
   const[tab,setTab]=useState('curriculum');
   const[wsPreview,setWsPreview]=useState(null);
+  const[conductLesson,setConductLesson]=useState(null);
+  const[showSearch,setShowSearch]=useState(false);
+  const[allLessons,setAllLessons]=useState([]);
   const[notif,setNotif]=useState('');
   const[exCount,setExCount]=useState(0);
 
@@ -1608,7 +2044,8 @@ function App(){
 
   useEffect(()=>{
     const u=db.collection('exercises').onSnapshot(s=>setExCount(s.docs.length),()=>{});
-    return u;
+    const u2=db.collection('curriculumLessons').onSnapshot(s=>setAllLessons(s.docs.map(d=>({id:d.id,...d.data()}))),()=>{});
+    return()=>{u();u2();};
   },[]);
 
   if(loading)return<div style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh'}}><div className="spinner"/></div>;
@@ -1617,7 +2054,10 @@ function App(){
   return(
     <div style={{minHeight:'100vh',background:'#F0EEE9'}}>
       {notif&&<div className="notif">{notif}</div>}
-      {wsPreview&&<WorksheetPreviewModal lesson={wsPreview} onClose={()=>setWsPreview(null)}/>}
+      {showSearch&&<SearchView lessons={allLessons} onClose={()=>setShowSearch(false)}
+        onSelectLesson={l=>{setShowSearch(false);setWsPreview(l);}}/>}
+      {conductLesson&&<LessonConductModal lesson={conductLesson} onClose={()=>setConductLesson(null)}/>}
+      {wsPreview&&<WorksheetPreviewModal lesson={wsPreview} onClose={()=>setWsPreview(null)} onConduct={l=>{setWsPreview(null);setConductLesson(l);}}/>}
 
       <header className="top-header">
         <div className="logo">Keele<span>Sepp</span></div>
@@ -1636,6 +2076,9 @@ function App(){
           <i className="fa-solid fa-dumbbell"/> Harjutused
           <span className="tab-count">{exCount}</span>
         </button>
+        <button className="top-tab" onClick={()=>setShowSearch(true)} style={{color:'#718096'}}>
+          <i className="fa-solid fa-magnifying-glass"/> Otsi
+        </button>
         {tab==='curriculum'&&isTeacher&&(
           <a href="/haldus-worksheet" className="top-tab"
             style={{marginLeft:'auto',color:'#A96E1A',borderBottomColor:'transparent',textDecoration:'none'}}>
@@ -1644,8 +2087,8 @@ function App(){
         )}
       </div>
 
-      {tab==='curriculum'&&<CurriculumView isTeacher={isTeacher} user={user} notify={notify} onPreviewWorksheet={setWsPreview}/>}
-      {tab==='exercises'&&<ExercisesView isTeacher={isTeacher} user={user} notify={notify}/>}
+      {!showSearch&&tab==='curriculum'&&<CurriculumView isTeacher={isTeacher} user={user} notify={notify} onPreviewWorksheet={setWsPreview} onConductLesson={setConductLesson}/>}
+      {!showSearch&&tab==='exercises'&&<ExercisesView isTeacher={isTeacher} user={user} notify={notify}/>}
     </div>
   );
 }
