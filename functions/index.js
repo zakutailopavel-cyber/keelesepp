@@ -27,7 +27,7 @@ const getConfig = () => ({
   clientId:     functions.config().gcal?.client_id     || process.env.GCAL_CLIENT_ID,
   clientSecret: functions.config().gcal?.client_secret || process.env.GCAL_CLIENT_SECRET,
   redirectUri:  functions.config().gcal?.redirect_uri  || process.env.GCAL_REDIRECT_URI ||
-                "https://keelesepp-5136b.web.app/api/gcal/callback",
+                "https://us-central1-keelesepp-5136b.cloudfunctions.net/gcalApi/gcal/callback",
 });
 
 // ── OAUTH CLIENT ──────────────────────────────────────────────
@@ -124,7 +124,7 @@ function gcalEventToSchedule(event, teacher, studentId, studentName) {
 }
 
 // ── API: GET /api/gcal/auth-url ───────────────────────────────
-exports.api = functions.https.onRequest(async (req, res) => {
+exports.gcalApi = functions.https.onRequest(async (req, res) => {
   // CORS
   res.set("Access-Control-Allow-Origin", "*");
   res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
@@ -168,10 +168,10 @@ exports.api = functions.https.onRequest(async (req, res) => {
       // Trigger initial sync
       await syncTeacherCalendar(uid, tokens);
       // Redirect back to app
-      res.redirect("https://keelesepp-5136b.web.app/haldus.html?gcal=connected");
+      res.redirect("https://keelesepp.vercel.app/haldus.html?gcal=connected");
     } catch (e) {
       console.error("OAuth callback error:", e);
-      res.redirect("https://keelesepp-5136b.web.app/haldus.html?gcal=error");
+      res.redirect("https://keelesepp.vercel.app/haldus.html?gcal=error");
     }
     return;
   }
