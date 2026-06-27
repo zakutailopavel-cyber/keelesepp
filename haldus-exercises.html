@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="et" style="color-scheme:light only;">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>KeeleSepp — Tööleht</title>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script>
+(function(){
+  try{
+    if(!firebase.apps.length){
+      firebase.initializeApp({
+        apiKey:"AIzaSyAp8emBOh1fIqv72k_O5hkLkXVkfBt1al4",
+        authDomain:"keelesepp-5136b.firebaseapp.com",
+        projectId:"keelesepp-5136b",
+        storageBucket:"keelesepp-5136b.firebasestorage.app",
+        messagingSenderId:"674098517935",
+        appId:"1:674098517935:web:e73d04a4ada67874da015a"
+      });
+    }
+    window._auth=firebase.auth();
+  }catch(e){console.error(e);}
+})();
+</script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'IBM Plex Sans',sans-serif;background:#EEECE7;color:#1C2B3A;min-height:100vh;overflow-x:hidden;}
+
+/* HEADER */
+.hdr{background:#1C2B3A;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:100;}
+.logo{font-family:'Fraunces',serif;font-size:1.35rem;font-weight:700;color:#fff;}
+.logo span{color:#C9882A;}
+.hdr-actions{display:flex;align-items:center;gap:10px;}
+
+/* LAYOUT */
+.workspace{display:grid;grid-template-columns:340px minmax(0,1fr);height:calc(100vh - 56px);overflow:hidden;}
+
+/* LEFT PANEL */
+.left-panel{background:#F9F8F5;border-right:1px solid rgba(28,43,58,.1);display:flex;flex-direction:column;overflow:hidden;}
+.left-top{padding:16px;border-bottom:1px solid rgba(28,43,58,.08);}
+.left-scroll{flex:1;overflow-y:auto;padding:14px;}
+
+/* META FIELDS */
+.meta-box{background:#fff;border:0.5px solid rgba(28,43,58,.1);border-radius:12px;padding:14px;margin-bottom:12px;}
+.meta-label{font-size:.68rem;font-weight:700;color:#7A7167;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;}
+
+/* BLOCK TYPES */
+.block-types{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:4px;}
+.btype-btn{padding:10px 10px;border-radius:10px;border:0.5px solid rgba(28,43,58,.12);background:#fff;cursor:pointer;font-size:.78rem;font-weight:600;color:#1C2B3A;display:flex;align-items:center;gap:7px;transition:all .14s;}
+.btype-btn:hover{border-color:#2F5D50;background:rgba(47,93,80,.05);color:#2F5D50;}
+.btype-icon{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.75rem;flex-shrink:0;}
+
+/* BLOCKS LIST */
+.block-item{background:#fff;border:0.5px solid rgba(28,43,58,.1);border-radius:11px;padding:12px;margin-bottom:8px;position:relative;transition:all .14s;}
+.block-item:hover{border-color:rgba(28,43,58,.2);}
+.block-item.active{border-color:#2F5D50;box-shadow:0 0 0 2px rgba(47,93,80,.12);}
+.block-handle{position:absolute;left:0;top:0;bottom:0;width:14px;display:flex;align-items:center;justify-content:center;color:rgba(28,43,58,.2);cursor:grab;font-size:.6rem;border-radius:11px 0 0 11px;}
+.block-handle:hover{color:#718096;background:rgba(28,43,58,.04);}
+.block-inner{padding-left:10px;}
+.block-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.block-type-tag{font-size:.68rem;font-weight:700;padding:2px 8px;border-radius:6px;display:inline-flex;align-items:center;gap:4px;}
+.block-del{background:none;border:none;cursor:pointer;color:#B0A898;font-size:.75rem;padding:3px 5px;border-radius:5px;}
+.block-del:hover{color:#dc2626;background:rgba(220,38,38,.07);}
+
+/* EDITOR FIELDS */
+.field-row{margin-bottom:8px;}
+.field-lbl{font-size:.68rem;font-weight:700;color:#7A7167;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;}
+input[type=text],input[type=number],textarea,select{width:100%;padding:8px 10px;border-radius:8px;border:1px solid rgba(28,43,58,.12);background:#FAFAF8;font-family:inherit;font-size:.84rem;color:#1C2B3A;outline:none;}
+input:focus,textarea:focus,select:focus{border-color:#2F5D50;background:#fff;}
+textarea{resize:vertical;min-height:70px;line-height:1.45;}
+
+/* RIGHT PANEL — PREVIEW */
+.right-panel{overflow-y:auto;padding:28px;display:flex;flex-direction:column;align-items:center;gap:0;}
+
+/* A4 SHEET */
+.a4-sheet{width:794px;min-height:1123px;background:#fff;box-shadow:0 4px 32px rgba(0,0,0,.12);padding:72px 80px 80px;font-family:'IBM Plex Sans',sans-serif;color:#1C2B3A;flex-shrink:0;}
+@media(max-width:1100px){.a4-sheet{width:100%;padding:40px 36px;}}
+
+.sheet-header{margin-bottom:28px;padding-bottom:16px;border-bottom:2px solid #1C2B3A;}
+.sheet-title{font-family:'Fraunces',serif;font-size:1.6rem;font-weight:700;margin-bottom:4px;}
+.sheet-meta{font-size:.8rem;color:#718096;display:flex;gap:18px;flex-wrap:wrap;}
+.sheet-meta span{display:flex;align-items:center;gap:4px;}
+
+/* PREVIEW BLOCKS */
+.preview-block{margin-bottom:24px;}
+.pb-instruction{font-size:.82rem;font-style:italic;color:#718096;margin-bottom:8px;}
+.pb-title{font-size:.96rem;font-weight:700;margin-bottom:6px;color:#1C2B3A;}
+
+/* Fill blanks */
+.fill-text{font-size:.95rem;line-height:2.2;}
+.fill-blank{display:inline-block;width:90px;border-bottom:1.5px solid #1C2B3A;margin:0 4px;vertical-align:bottom;}
+
+/* Choice */
+.choice-q{font-size:.92rem;font-weight:600;margin-bottom:6px;}
+.choice-opts{display:flex;flex-direction:column;gap:4px;margin-bottom:12px;padding-left:14px;}
+.choice-opt{font-size:.88rem;display:flex;align-items:center;gap:8px;}
+.choice-circle{width:14px;height:14px;border-radius:50%;border:1.5px solid #1C2B3A;flex-shrink:0;}
+
+/* Writing */
+.writing-box{border:1px solid rgba(28,43,58,.15);border-radius:6px;padding:10px 12px;min-height:100px;background:#FAFAF8;}
+.writing-lines{display:flex;flex-direction:column;gap:0;}
+.writing-line{height:28px;border-bottom:1px solid rgba(28,43,58,.12);}
+
+/* Match */
+.match-grid{display:grid;grid-template-columns:1fr 40px 1fr;gap:6px;align-items:center;}
+.match-left,.match-right{padding:7px 11px;border:1px solid rgba(28,43,58,.15);border-radius:6px;font-size:.86rem;}
+.match-arrow{text-align:center;color:#B0A898;font-size:.9rem;}
+
+/* Order words */
+.order-chips{display:flex;flex-wrap:wrap;gap:8px;}
+.order-chip{padding:6px 14px;border:1.5px solid rgba(28,43,58,.2);border-radius:8px;font-size:.88rem;background:#FAFAF8;}
+
+/* Table */
+.ws-table{width:100%;border-collapse:collapse;font-size:.87rem;}
+.ws-table th{background:#F0EEE9;padding:7px 10px;text-align:left;border:1px solid rgba(28,43,58,.15);font-weight:700;}
+.ws-table td{padding:7px 10px;border:1px solid rgba(28,43,58,.15);height:32px;}
+
+/* Text block */
+.text-block{font-size:.92rem;line-height:1.65;color:#1C2B3A;}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:9px;font-family:inherit;font-weight:700;font-size:.82rem;cursor:pointer;border:none;transition:all .14s;}
+.btn-pine{background:#2F5D50;color:#fff;}
+.btn-pine:hover{background:#265048;}
+.btn-pine:disabled{opacity:.5;cursor:not-allowed;}
+.btn-ghost{background:rgba(28,43,58,.07);color:#42536A;border:1px solid rgba(28,43,58,.1);}
+.btn-ghost:hover{background:rgba(28,43,58,.12);}
+.btn-gold{background:#C9882A;color:#fff;}
+.btn-gold:hover{background:#b37624;}
+.btn-dark{background:#1C2B3A;color:#fff;}
+.btn-sm{padding:5px 10px;font-size:.76rem;}
+.btn-xs{padding:3px 8px;font-size:.72rem;}
+
+/* SECTION DIVIDER in preview */
+.section-divider{border:none;border-top:1px dashed rgba(28,43,58,.12);margin:20px 0;}
+
+/* SCORE BOX */
+.score-box{float:right;border:1px solid #1C2B3A;border-radius:6px;padding:6px 14px;font-size:.82rem;font-weight:600;min-width:80px;text-align:center;}
+
+/* AI GENERATE PANEL */
+.ai-panel{background:linear-gradient(135deg,#1C2B3A,#2F5D50);border-radius:12px;padding:16px;margin-bottom:12px;color:#fff;}
+.ai-panel-title{font-size:.84rem;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:7px;}
+.ai-prompt{width:100%;padding:8px 10px;border-radius:8px;border:none;background:rgba(255,255,255,.12);color:#fff;font-family:inherit;font-size:.82rem;outline:none;resize:vertical;min-height:60px;}
+.ai-prompt::placeholder{color:rgba(255,255,255,.45);}
+.ai-prompt:focus{background:rgba(255,255,255,.18);}
+
+/* SPINNER */
+.spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;display:inline-block;}
+.spinner-dark{width:20px;height:20px;border:2px solid rgba(28,43,58,.15);border-top-color:#2F5D50;border-radius:50%;animation:spin .6s linear infinite;display:inline-block;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* TOAST */
+.toast{position:fixed;top:16px;right:16px;background:#1C2B3A;color:#fff;padding:10px 16px;border-radius:11px;z-index:500;font-weight:600;font-size:.84rem;box-shadow:0 8px 28px rgba(0,0,0,.22);}
+
+/* TABS in left panel */
+.left-tabs{display:flex;border-bottom:1px solid rgba(28,43,58,.1);padding:0 16px;}
+.ltab{padding:10px 14px;font-size:.8rem;font-weight:700;cursor:pointer;border:none;background:none;color:#718096;border-bottom:2px solid transparent;transition:all .12s;}
+.ltab.active{color:#1C2B3A;border-bottom-color:#C9882A;}
+
+/* NUMBER BADGE */
+.num-badge{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#2F5D50;color:#fff;font-size:.62rem;font-weight:800;}
+
+/* MOVE BTNS */
+.move-btns{display:flex;flex-direction:column;gap:2px;position:absolute;right:8px;top:8px;}
+.move-btn{background:none;border:none;cursor:pointer;color:#B0A898;font-size:.6rem;padding:2px 4px;border-radius:4px;}
+.move-btn:hover{color:#2F5D50;background:rgba(47,93,80,.1);}
+
+/* EMPTY STATE */
+.empty-builder{text-align:center;padding:40px 20px;color:#B0A898;}
+.empty-builder i{font-size:2rem;margin-bottom:10px;opacity:.3;display:block;}
+</style>
+</head>
+<body>
+<div id="root"><div style="display:flex;align-items:center;justify-content:center;min-height:100vh"><div class="spinner-dark" style="width:32px;height:32px;border-width:3px;"></div></div></div>
+
+<script type="text/babel">
+const {useState,useEffect,useCallback,useRef,useMemo} = React;
+const auth = window._auth;
+
+// ── BLOCK TYPES ───────────────────────────────────────────────
+const BLOCK_TYPES = [
+  {key:'fill',    label:'Täida lünk',    icon:'fa-pen-line',          color:'#1d4ed8', bg:'rgba(29,78,216,.1)'},
+  {key:'choice',  label:'Vali vastus',   icon:'fa-list-check',        color:'#6d28d9', bg:'rgba(109,40,217,.1)'},
+  {key:'writing', label:'Kirjutamine',   icon:'fa-pen-nib',           color:'#A96E1A', bg:'rgba(169,110,26,.1)'},
+  {key:'match',   label:'Sobita paarid', icon:'fa-link',              color:'#047857', bg:'rgba(4,120,87,.1)'},
+  {key:'order',   label:'Järjesta sõnad',icon:'fa-shuffle',           color:'#2F5D50', bg:'rgba(47,93,80,.1)'},
+  {key:'table',   label:'Tabel',         icon:'fa-table',             color:'#0e7490', bg:'rgba(14,116,144,.1)'},
+  {key:'text',    label:'Tekst / juhis', icon:'fa-align-left',        color:'#718096', bg:'rgba(113,128,150,.1)'},
+  {key:'reading', label:'Lugemistekst',  icon:'fa-book-open-reader',  color:'#be185d', bg:'rgba(190,24,93,.1)'},
+];
+
+const BT = Object.fromEntries(BLOCK_TYPES.map(b=>[b.key,b]));
+const uid = () => Math.random().toString(36).slice(2,9);
+
+// ── DEFAULT BLOCK DATA ─────────────────────────────────────────
+const defaultBlock = type => {
+  const base = {id:uid(), type, instruction:''};
+  if(type==='fill')    return {...base, text:'Mina [elan] Tallinnas ja [töötan] koolis.'};
+  if(type==='choice')  return {...base, questions:[{q:'Mis on pealinn?',opts:['Tallinn','Tartu','Pärnu','Narva'],correct:0}]};
+  if(type==='writing') return {...base, task:'Kirjuta lühike tekst teemal "Minu pere" (50–80 sõna).', lines:8};
+  if(type==='match')   return {...base, pairs:[{l:'koer',r:'dog'},{l:'kass',r:'cat'},{l:'lind',r:'bird'},{l:'kala',r:'fish'}]};
+  if(type==='order')   return {...base, sentence:'Ma armastan õppida eesti keelt'};
+  if(type==='table')   return {...base, headers:['Sõna','Tõlge','Näide'], rows:4};
+  if(type==='text')    return {...base, content:'', bold:false};
+  if(type==='reading') return {...base, passage:'Sisesta lugemistekst siia...', questions:[{q:'',opts:['','','',''],correct:0}]};
+  return base;
+};
+
+// ── BLOCK EDITORS ─────────────────────────────────────────────
+function FillEditor({block, onChange}) {
+  return(
+    <div>
+      <div className="field-row">
+        <div className="field-lbl">Tekst (õiged vastused nurksulgudes)</div>
+        <textarea value={block.text} onChange={e=>onChange({...block,text:e.target.value})} rows={4}
+          placeholder="Ma [elan] Tallinnas ja [töötan] koolis."/>
+      </div>
+      <div style={{fontSize:'.73rem',color:'#718096',padding:'6px 8px',background:'rgba(29,78,216,.07)',borderRadius:7}}>
+        Süntaks: <code>Ma [elan] koolis.</code> → lünk "elan"
+      </div>
+    </div>
+  );
+}
+
+function ChoiceEditor({block, onChange}) {
+  const qs = block.questions||[];
+  const updQ = (i,patch) => onChange({...block,questions:qs.map((q,j)=>j===i?{...q,...patch}:q)});
+  const addQ = () => onChange({...block,questions:[...qs,{q:'',opts:['','','',''],correct:0}]});
+  const delQ = i => onChange({...block,questions:qs.filter((_,j)=>j!==i)});
+  return(
+    <div>
+      {qs.map((q,i)=>(
+        <div key={i} style={{marginBottom:10,padding:10,borderRadius:9,background:'#F9F8F6',border:'0.5px solid rgba(28,43,58,.1)'}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:7}}>
+            <span style={{fontSize:'.72rem',fontWeight:700,color:'#718096'}}>Küsimus {i+1}</span>
+            {qs.length>1&&<button onClick={()=>delQ(i)} className="btn-del" style={{background:'none',border:'none',color:'#dc2626',cursor:'pointer',fontSize:'.72rem'}}>✕</button>}
+          </div>
+          <input value={q.q} onChange={e=>updQ(i,{q:e.target.value})} placeholder="Küsimus..." style={{marginBottom:6}}/>
+          {q.opts.map((opt,oi)=>(
+            <div key={oi} style={{display:'flex',gap:6,alignItems:'center',marginBottom:4}}>
+              <input type="radio" checked={q.correct===oi} onChange={()=>updQ(i,{correct:oi})} style={{width:14,height:14,cursor:'pointer',flexShrink:0}}/>
+              <input value={opt} onChange={e=>updQ(i,{opts:q.opts.map((o,k)=>k===oi?e.target.value:o)})}
+                placeholder={`Variant ${oi+1}`} style={{borderColor:q.correct===oi?'#2F5D50':'rgba(28,43,58,.12)'}}/>
+            </div>
+          ))}
+        </div>
+      ))}
+      <button onClick={addQ} className="btn btn-ghost btn-sm" style={{width:'100%'}}>
+        <i className="fa-solid fa-plus"/> Lisa küsimus
+      </button>
+    </div>
+  );
+}
+
+function WritingEditor({block, onChange}) {
+  return(
+    <div>
+      <div className="field-row">
+        <div className="field-lbl">Ülesande kirjeldus</div>
+        <textarea value={block.task} onChange={e=>onChange({...block,task:e.target.value})} rows={3}/>
+      </div>
+      <div className="field-row">
+        <div className="field-lbl">Vastuse ridade arv: {block.lines||6}</div>
+        <input type="range" min={3} max={20} value={block.lines||6}
+          onChange={e=>onChange({...block,lines:Number(e.target.value)})}
+          style={{width:'100%',marginTop:4}}/>
+      </div>
+    </div>
+  );
+}
+
+function MatchEditor({block, onChange}) {
+  const pairs = block.pairs||[];
+  const upd = (i,side,val) => onChange({...block,pairs:pairs.map((p,j)=>j===i?{...p,[side]:val}:p)});
+  const add = () => onChange({...block,pairs:[...pairs,{l:'',r:''}]});
+  const del = i => onChange({...block,pairs:pairs.filter((_,j)=>j!==i)});
+  return(
+    <div>
+      {pairs.map((p,i)=>(
+        <div key={i} style={{display:'grid',gridTemplateColumns:'1fr 1fr auto',gap:5,marginBottom:5,alignItems:'center'}}>
+          <input value={p.l} onChange={e=>upd(i,'l',e.target.value)} placeholder="Vasak"/>
+          <input value={p.r} onChange={e=>upd(i,'r',e.target.value)} placeholder="Parem"/>
+          <button onClick={()=>del(i)} style={{background:'none',border:'none',cursor:'pointer',color:'#dc2626',fontSize:'.75rem',padding:'0 4px'}} disabled={pairs.length<=2}>✕</button>
+        </div>
+      ))}
+      <button onClick={add} className="btn btn-ghost btn-sm" style={{width:'100%',marginTop:4}}>
+        <i className="fa-solid fa-plus"/> Lisa paar
+      </button>
+    </div>
+  );
+}
+
+function OrderEditor({block, onChange}) {
+  return(
+    <div className="field-row">
+      <div className="field-lbl">Lause õiges järjekorras</div>
+      <input value={block.sentence} onChange={e=>onChange({...block,sentence:e.target.value})}
+        placeholder="Ma armastan eesti keelt väga"/>
+      <div style={{fontSize:'.72rem',color:'#718096',marginTop:4}}>Sõnad kuvatakse segamini</div>
+    </div>
+  );
+}
+
+function TableEditor({block, onChange}) {
+  const hdrs = block.headers||['','',''];
+  return(
+    <div>
+      <div className="field-row">
+        <div className="field-lbl">Veeru päised (komaga)</div>
+        <input value={hdrs.join(',')} onChange={e=>onChange({...block,headers:e.target.value.split(',')})}
+          placeholder="Sõna, Tõlge, Näide"/>
+      </div>
+      <div className="field-row">
+        <div className="field-lbl">Ridade arv: {block.rows||4}</div>
+        <input type="range" min={2} max={15} value={block.rows||4}
+          onChange={e=>onChange({...block,rows:Number(e.target.value)})} style={{width:'100%',marginTop:4}}/>
+      </div>
+    </div>
+  );
+}
+
+function TextEditor({block, onChange}) {
+  return(
+    <div>
+      <div className="field-row">
+        <div className="field-lbl">Sisu</div>
+        <textarea value={block.content} onChange={e=>onChange({...block,content:e.target.value})} rows={3}
+          placeholder="Juhis või lisatekst..."/>
+      </div>
+      <label style={{display:'flex',alignItems:'center',gap:7,fontSize:'.8rem',cursor:'pointer'}}>
+        <input type="checkbox" checked={block.bold||false} onChange={e=>onChange({...block,bold:e.target.checked})}/>
+        Rasvane tekst (pealkiri)
+      </label>
+    </div>
+  );
+}
+
+function ReadingEditor({block, onChange}) {
+  const qs = block.questions||[];
+  const updQ = (i,patch) => onChange({...block,questions:qs.map((q,j)=>j===i?{...q,...patch}:q)});
+  return(
+    <div>
+      <div className="field-row">
+        <div className="field-lbl">Lugemistekst</div>
+        <textarea value={block.passage} onChange={e=>onChange({...block,passage:e.target.value})} rows={5}/>
+      </div>
+      {qs.map((q,i)=>(
+        <div key={i} style={{marginBottom:8,padding:8,borderRadius:8,background:'#F9F8F6',border:'0.5px solid rgba(28,43,58,.1)'}}>
+          <input value={q.q} onChange={e=>updQ(i,{q:e.target.value})} placeholder={`Küsimus ${i+1}...`} style={{marginBottom:5}}/>
+          {q.opts.map((opt,oi)=>(
+            <div key={oi} style={{display:'flex',gap:5,alignItems:'center',marginBottom:3}}>
+              <input type="radio" checked={q.correct===oi} onChange={()=>updQ(i,{correct:oi})} style={{width:13,height:13,cursor:'pointer',flexShrink:0}}/>
+              <input value={opt} onChange={e=>updQ(i,{opts:q.opts.map((o,k)=>k===oi?e.target.value:o)})} placeholder={`Variant ${oi+1}`}/>
+            </div>
+          ))}
+        </div>
+      ))}
+      <button onClick={()=>onChange({...block,questions:[...qs,{q:'',opts:['','','',''],correct:0}]})}
+        className="btn btn-ghost btn-sm" style={{width:'100%'}}>
+        <i className="fa-solid fa-plus"/> Lisa küsimus
+      </button>
+    </div>
+  );
+}
+
+function BlockEditor({block, onChange}) {
+  if(block.type==='fill')    return <FillEditor block={block} onChange={onChange}/>;
+  if(block.type==='choice')  return <ChoiceEditor block={block} onChange={onChange}/>;
+  if(block.type==='writing') return <WritingEditor block={block} onChange={onChange}/>;
+  if(block.type==='match')   return <MatchEditor block={block} onChange={onChange}/>;
+  if(block.type==='order')   return <OrderEditor block={block} onChange={onChange}/>;
+  if(block.type==='table')   return <TableEditor block={block} onChange={onChange}/>;
+  if(block.type==='text')    return <TextEditor block={block} onChange={onChange}/>;
+  if(block.type==='reading') return <ReadingEditor block={block} onChange={onChange}/>;
+  return null;
+}
+
+// ── PREVIEW BLOCKS ─────────────────────────────────────────────
+function parseFill(text) {
+  const parts=[];
+  const chunks=text.split(/\[([^\]]+)\]/g);
+  chunks.forEach((c,i)=>parts.push(i%2===0?{type:'text',val:c}:{type:'blank',ans:c}));
+  return parts;
+}
+
+function PreviewBlock({block, index}) {
+  const bt = BT[block.type];
+  if(!bt) return null;
+
+  const renderContent = () => {
+    if(block.type==='text') return(
+      <p className="text-block" style={{fontWeight:block.bold?700:400,fontSize:block.bold?'1rem':'.92rem'}}>
+        {block.content||<span style={{color:'#B0A898',fontStyle:'italic'}}>Tekst puudub</span>}
+      </p>
+    );
+
+    if(block.type==='reading') return(
+      <div>
+        <div style={{background:'#F9F8F6',border:'1px solid rgba(28,43,58,.1)',borderRadius:7,padding:'12px 14px',marginBottom:14,fontSize:'.88rem',lineHeight:1.65,whiteSpace:'pre-wrap'}}>
+          {block.passage}
+        </div>
+        {(block.questions||[]).map((q,qi)=>(
+          <div key={qi} style={{marginBottom:12}}>
+            <div className="choice-q">{qi+1}. {q.q||'Küsimus...'}</div>
+            <div className="choice-opts">
+              {q.opts.filter(Boolean).map((opt,oi)=>(
+                <div key={oi} className="choice-opt">
+                  <span style={{fontSize:'.82rem',fontWeight:600,color:'#718096',width:16}}>{String.fromCharCode(65+oi)}.</span>
+                  <span>{opt}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+
+    if(block.type==='fill') return(
+      <div className="fill-text">
+        {parseFill(block.text||'').map((p,i)=>
+          p.type==='text'
+            ?<span key={i}>{p.val}</span>
+            :<span key={i} className="fill-blank">&nbsp;</span>
+        )}
+      </div>
+    );
+
+    if(block.type==='choice') return(
+      <div>
+        {(block.questions||[]).map((q,qi)=>(
+          <div key={qi} style={{marginBottom:12}}>
+            <div className="choice-q">{qi+1}. {q.q||'Küsimus...'}</div>
+            <div className="choice-opts">
+              {q.opts.filter(Boolean).map((opt,oi)=>(
+                <div key={oi} className="choice-opt">
+                  <div className="choice-circle"/>
+                  <span>{opt}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+
+    if(block.type==='writing') return(
+      <div>
+        <div style={{fontSize:'.9rem',marginBottom:10,lineHeight:1.5}}>{block.task}</div>
+        <div className="writing-lines">
+          {Array.from({length:block.lines||6}).map((_,i)=>(
+            <div key={i} className="writing-line"/>
+          ))}
+        </div>
+      </div>
+    );
+
+    if(block.type==='match') return(
+      <div>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:24}}>
+          <div>
+            <div style={{fontSize:'.72rem',fontWeight:700,color:'#718096',textTransform:'uppercase',letterSpacing:'.07em',marginBottom:6}}>A</div>
+            {(block.pairs||[]).map((p,i)=>(
+              <div key={i} style={{padding:'7px 11px',border:'1px solid rgba(28,43,58,.15)',borderRadius:6,fontSize:'.88rem',marginBottom:5}}>
+                {i+1}. {p.l}
+              </div>
+            ))}
+          </div>
+          <div>
+            <div style={{fontSize:'.72rem',fontWeight:700,color:'#718096',textTransform:'uppercase',letterSpacing:'.07em',marginBottom:6}}>B</div>
+            {[...(block.pairs||[])].sort(()=>Math.random()-.5).map((p,i)=>(
+              <div key={i} style={{padding:'7px 11px',border:'1px solid rgba(28,43,58,.15)',borderRadius:6,fontSize:'.88rem',marginBottom:5}}>
+                {String.fromCharCode(65+i)}. {p.r}
+              </div>
+            ))}
+          </div>
+        </div>
+        <div style={{display:'flex',gap:6,flexWrap:'wrap',marginTop:10}}>
+          {(block.pairs||[]).map((_,i)=>(
+            <span key={i} style={{fontSize:'.82rem',padding:'3px 8px',border:'1px solid rgba(28,43,58,.15)',borderRadius:5}}>
+              {i+1} — ___
+            </span>
+          ))}
+        </div>
+      </div>
+    );
+
+    if(block.type==='order') {
+      const words=(block.sentence||'').split(' ').filter(Boolean);
+      const shuffled=[...words].sort(()=>Math.random()-.5);
+      return(
+        <div>
+          <div className="order-chips">
+            {shuffled.map((w,i)=><span key={i} className="order-chip">{w}</span>)}
+          </div>
+          <div style={{marginTop:12,borderBottom:'1px solid rgba(28,43,58,.2)',paddingBottom:4,fontSize:'.85rem',color:'#B0A898'}}>
+            Kirjuta õige järjestus: _______________________________________________
+          </div>
+        </div>
+      );
+    }
+
+    if(block.type==='table') {
+      const hdrs=block.headers||[];
+      return(
+        <table className="ws-table">
+          <thead>
+            <tr>{hdrs.map((h,i)=><th key={i}>{h||`Veerg ${i+1}`}</th>)}</tr>
+          </thead>
+          <tbody>
+            {Array.from({length:block.rows||4}).map((_,ri)=>(
+              <tr key={ri}>{hdrs.map((_,ci)=><td key={ci}></td>)}</tr>
+            ))}
+          </tbody>
+        </table>
+      );
+    }
+    return null;
+  };
+
+  return(
+    <div className="preview-block">
+      <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
+        <span className="num-badge">{index}</span>
+        <span style={{fontSize:'.72rem',fontWeight:700,color:bt.color,textTransform:'uppercase',letterSpacing:'.06em'}}>{bt.label}</span>
+        {block.instruction&&<span style={{fontSize:'.75rem',color:'#718096',fontStyle:'italic'}}>— {block.instruction}</span>}
+      </div>
+      {renderContent()}
+    </div>
+  );
+}
+
+// ── AI GENERATOR ───────────────────────────────────────────────
+async function generateWithAI(prompt, subject, level, topic) {
+  const systemPrompt = `Sa oled eesti keele õpetaja abiassistent. Genereeri tööleht JSON formaadis.
+Tagasta AINULT JSON, ilma markdown koodiplokita.
+
+JSON struktuur:
+{
+  "title": "Tööleht pealkiri",
+  "blocks": [
+    // fill: {"type":"fill","instruction":"...","text":"tekst [vastus] tekst"}
+    // choice: {"type":"choice","instruction":"...","questions":[{"q":"?","opts":["a","b","c","d"],"correct":0}]}
+    // writing: {"type":"writing","instruction":"...","task":"ülesanne","lines":8}
+    // match: {"type":"match","instruction":"...","pairs":[{"l":"est","r":"eng"}]}
+    // order: {"type":"order","instruction":"...","sentence":"õige järjestus siin"}
+    // text: {"type":"text","content":"tekst","bold":false}
+    // table: {"type":"table","instruction":"...","headers":["col1","col2"],"rows":4}
+  ]
+}
+
+Kasuta ainult neid tüüpe. Iga blokk peab olema sisukas ja eestikeelne.
+Genereeri 4-6 blokki. Tase: ${level||'B1'}, teema: ${topic||prompt}.`;
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      model:'claude-sonnet-4-6',
+      max_tokens:2000,
+      system: systemPrompt,
+      messages:[{role:'user',content:`Genereeri tööleht: ${prompt}\nÕppeaine: ${subject||'Eesti keel'}, Tase: ${level||'B1'}`}]
+    })
+  });
+  const data = await res.json();
+  const text = data.content?.[0]?.text||'';
+  const clean = text.replace(/```json|```/g,'').trim();
+  return JSON.parse(clean);
+}
+
+// ── EXPORT TO DOCX (via Node server or download HTML) ─────────
+function exportAsHTML(meta, blocks) {
+  const style = `
+    <style>
+      body{font-family:Arial,sans-serif;max-width:794px;margin:40px auto;padding:0 60px;color:#1a1a1a;}
+      h1{font-size:1.5rem;margin-bottom:4px;}
+      .meta{color:#666;font-size:.85rem;margin-bottom:24px;padding-bottom:12px;border-bottom:2px solid #1a1a1a;}
+      .block{margin-bottom:28px;}
+      .block-num{display:inline-block;width:22px;height:22px;border-radius:50%;background:#2F5D50;color:#fff;text-align:center;line-height:22px;font-size:.72rem;font-weight:700;margin-right:7px;}
+      .block-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#555;}
+      .fill-text{font-size:1rem;line-height:2.5;}
+      .blank{display:inline-block;width:90px;border-bottom:1.5px solid #1a1a1a;margin:0 3px;}
+      .choice-q{font-weight:700;margin:6px 0;}
+      .choice-opt{margin:3px 0 3px 14px;display:flex;align-items:center;gap:8px;}
+      .circle{width:14px;height:14px;border-radius:50%;border:1.5px solid #1a1a1a;display:inline-block;flex-shrink:0;}
+      .write-line{border-bottom:1px solid #ccc;height:28px;margin-bottom:2px;}
+      .match-col{display:inline-block;vertical-align:top;width:45%;}
+      .match-item{padding:6px 10px;border:1px solid #ccc;border-radius:5px;margin-bottom:5px;font-size:.9rem;}
+      table{width:100%;border-collapse:collapse;}
+      th{background:#f0f0f0;padding:7px 10px;border:1px solid #ccc;text-align:left;font-size:.9rem;}
+      td{padding:7px 10px;border:1px solid #ccc;height:30px;}
+      .passage{background:#f9f9f9;border:1px solid #ddd;border-radius:5px;padding:12px;margin-bottom:12px;font-size:.9rem;line-height:1.6;}
+      .order-chip{display:inline-block;padding:5px 12px;border:1.5px solid #aaa;border-radius:7px;margin:3px;font-size:.9rem;}
+    </style>`;
+
+  let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${meta.title||'Tööleht'}</title>${style}</head><body>`;
+  html += `<h1>${meta.title||'Tööleht'}</h1>`;
+  html += `<div class="meta">`;
+  if(meta.subject) html+=`<span>📚 ${meta.subject}</span>&nbsp;&nbsp;`;
+  if(meta.level)   html+=`<span>📊 ${meta.level}</span>&nbsp;&nbsp;`;
+  if(meta.topic)   html+=`<span>💬 ${meta.topic}</span>&nbsp;&nbsp;`;
+  if(meta.name)    html+=`<span style="float:right">Nimi: ___________________________</span>`;
+  html += `</div>`;
+
+  let bNum = 0;
+  blocks.forEach(block=>{
+    const bt = BT[block.type];
+    if(!bt) return;
+    bNum++;
+    html += `<div class="block">`;
+    html += `<div style="margin-bottom:8px"><span class="block-num">${bNum}</span><span class="block-label">${bt.label}</span>`;
+    if(block.instruction) html+=` <span style="font-size:.8rem;color:#666;font-style:italic">— ${block.instruction}</span>`;
+    html += `</div>`;
+
+    if(block.type==='text'){
+      html+=`<p style="font-size:${block.bold?'1rem':'.92rem'};font-weight:${block.bold?700:400};line-height:1.6;">${block.content||''}</p>`;
+    } else if(block.type==='fill'){
+      html+=`<div class="fill-text">`;
+      parseFill(block.text||'').forEach(p=>{
+        if(p.type==='text') html+=p.val;
+        else html+=`<span class="blank">&nbsp;</span>`;
+      });
+      html+=`</div>`;
+    } else if(block.type==='choice'||block.type==='reading'){
+      if(block.type==='reading'){
+        html+=`<div class="passage">${block.passage||''}</div>`;
+      }
+      (block.questions||[]).forEach((q,qi)=>{
+        html+=`<div class="choice-q">${qi+1}. ${q.q||''}</div>`;
+        q.opts.filter(Boolean).forEach((opt,oi)=>{
+          html+=`<div class="choice-opt"><span class="circle"></span><span>${opt}</span></div>`;
+        });
+      });
+    } else if(block.type==='writing'){
+      html+=`<div style="font-size:.9rem;margin-bottom:10px;line-height:1.5;">${block.task||''}</div>`;
+      Array.from({length:block.lines||6}).forEach(()=>{ html+=`<div class="write-line"></div>`; });
+    } else if(block.type==='match'){
+      const pairs=block.pairs||[];
+      const shuffled=[...pairs].sort(()=>Math.random()-.5);
+      html+=`<div><div class="match-col">`;
+      pairs.forEach((p,i)=>{ html+=`<div class="match-item">${i+1}. ${p.l}</div>`; });
+      html+=`</div>&nbsp;&nbsp;<div class="match-col">`;
+      shuffled.forEach((p,i)=>{ html+=`<div class="match-item">${String.fromCharCode(65+i)}. ${p.r}</div>`; });
+      html+=`</div></div>`;
+      html+=`<div style="margin-top:10px">`;
+      pairs.forEach((_,i)=>{ html+=`<span style="margin-right:16px;font-size:.9rem;">${i+1} — ___</span>`; });
+      html+=`</div>`;
+    } else if(block.type==='order'){
+      const words=(block.sentence||'').split(' ').filter(Boolean).sort(()=>Math.random()-.5);
+      words.forEach(w=>{ html+=`<span class="order-chip">${w}</span>`; });
+      html+=`<div style="margin-top:10px;border-bottom:1px solid #ccc;font-size:.85rem;color:#999;">Kirjuta: _______________________________________________</div>`;
+    } else if(block.type==='table'){
+      const hdrs=block.headers||[];
+      html+=`<table><thead><tr>`;
+      hdrs.forEach(h=>{ html+=`<th>${h}</th>`; });
+      html+=`</tr></thead><tbody>`;
+      Array.from({length:block.rows||4}).forEach(()=>{
+        html+=`<tr>`; hdrs.forEach(()=>{ html+=`<td></td>`; }); html+=`</tr>`;
+      });
+      html+=`</tbody></table>`;
+    }
+    html+=`</div>`;
+  });
+
+  html+=`</body></html>`;
+  return html;
+}
+
+// ── MAIN APP ───────────────────────────────────────────────────
+function App() {
+  const[user,setUser]       = useState(null);
+  const[loading,setLoading] = useState(true);
+  const[meta,setMeta]       = useState({title:'Uus tööleht',subject:'Eesti keel',level:'B1',topic:'',name:true,score:true,date:true});
+  const[blocks,setBlocks]   = useState([]);
+  const[activeId,setActiveId] = useState(null);
+  const[leftTab,setLeftTab] = useState('build'); // build | ai
+  const[aiPrompt,setAiPrompt] = useState('');
+  const[aiLoading,setAiLoading] = useState(false);
+  const[toast,setToast]     = useState('');
+
+  const notify = msg => { setToast(msg); setTimeout(()=>setToast(''),3000); };
+
+  useEffect(()=>{
+    const u=auth.onAuthStateChanged(fbUser=>{setUser(fbUser);setLoading(false);});
+    return u;
+  },[]);
+
+  const addBlock = type => {
+    const b = defaultBlock(type);
+    setBlocks(prev=>[...prev,b]);
+    setActiveId(b.id);
+    setLeftTab('build');
+  };
+
+  const updateBlock = (id, data) => setBlocks(prev=>prev.map(b=>b.id===id?data:b));
+  const deleteBlock = id => { setBlocks(prev=>prev.filter(b=>b.id!==id)); if(activeId===id) setActiveId(null); };
+  const moveBlock = (id, dir) => {
+    setBlocks(prev=>{
+      const idx=prev.findIndex(b=>b.id===id);
+      if(dir===-1&&idx===0) return prev;
+      if(dir===1&&idx===prev.length-1) return prev;
+      const arr=[...prev];
+      [arr[idx],arr[idx+dir]]=[arr[idx+dir],arr[idx]];
+      return arr;
+    });
+  };
+
+  const generateAI = async () => {
+    if(!aiPrompt.trim()){notify('Kirjuta genereerimise juhis');return;}
+    setAiLoading(true);
+    try {
+      const result = await generateWithAI(aiPrompt, meta.subject, meta.level, meta.topic);
+      if(result.title) setMeta(m=>({...m,title:result.title}));
+      const newBlocks = (result.blocks||[]).map(b=>({...defaultBlock(b.type),...b,id:uid()}));
+      setBlocks(newBlocks);
+      if(newBlocks.length) setActiveId(newBlocks[0].id);
+      setLeftTab('build');
+      notify('✓ Tööleht genereeritud! Kontrolli ja muuda.');
+    } catch(e) {
+      notify('Viga: ' + (e.message||'Genereerimine ebaõnnestus'));
+    }
+    setAiLoading(false);
+  };
+
+  const exportPreview = () => {
+    const html = exportAsHTML(meta, blocks);
+    const w = window.open('', '_blank');
+    w.document.write(html);
+    w.document.close();
+    w.print();
+  };
+
+  const downloadHTML = () => {
+    const html = exportAsHTML(meta, blocks);
+    const blob = new Blob([html], {type:'text/html'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href=url; a.download=(meta.title||'tööleht')+'.html';
+    a.click();
+    URL.revokeObjectURL(url);
+    notify('✓ Tööleht allalaaditud!');
+  };
+
+  const activeBlock = blocks.find(b=>b.id===activeId);
+
+  if(loading) return <div style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh'}}><div className="spinner-dark" style={{width:32,height:32,borderWidth:3}}/></div>;
+
+  return(
+    <div>
+      {toast&&<div className="toast">{toast}</div>}
+
+      {/* Header */}
+      <header className="hdr">
+        <div style={{display:'flex',alignItems:'center',gap:16}}>
+          <div className="logo">Keele<span>Sepp</span></div>
+          <span style={{color:'rgba(255,255,255,.35)',fontSize:'.78rem'}}>Töölehtede koostaja</span>
+        </div>
+        <div className="hdr-actions">
+          <a href="/haldus-exercises" style={{color:'rgba(255,255,255,.5)',fontSize:'.78rem',textDecoration:'none',padding:'6px 12px',border:'1px solid rgba(255,255,255,.12)',borderRadius:8}}>← Õppekava</a>
+          <button onClick={exportPreview} className="btn btn-ghost btn-sm" style={{color:'#fff',borderColor:'rgba(255,255,255,.2)'}}>
+            <i className="fa-solid fa-print"/> Prindi
+          </button>
+          <button onClick={downloadHTML} className="btn btn-gold btn-sm">
+            <i className="fa-solid fa-download"/> Laadi alla
+          </button>
+        </div>
+      </header>
+
+      <div className="workspace">
+        {/* ── LEFT PANEL ── */}
+        <div className="left-panel">
+          {/* Tabs */}
+          <div className="left-tabs">
+            <button className={'ltab'+(leftTab==='build'?' active':'')} onClick={()=>setLeftTab('build')}>
+              <i className="fa-solid fa-layer-group" style={{marginRight:5}}/>Koosta
+            </button>
+            <button className={'ltab'+(leftTab==='ai'?' active':'')} onClick={()=>setLeftTab('ai')}>
+              <i className="fa-solid fa-wand-magic-sparkles" style={{marginRight:5}}/>AI abi
+            </button>
+            <button className={'ltab'+(leftTab==='meta'?' active':'')} onClick={()=>setLeftTab('meta')}>
+              <i className="fa-solid fa-sliders" style={{marginRight:5}}/>Seaded
+            </button>
+          </div>
+
+          <div className="left-scroll">
+
+            {/* AI TAB */}
+            {leftTab==='ai'&&(
+              <div>
+                <div className="ai-panel">
+                  <div className="ai-panel-title">
+                    <i className="fa-solid fa-wand-magic-sparkles"/> Genereeri tööleht AI-ga
+                  </div>
+                  <textarea className="ai-prompt" value={aiPrompt} onChange={e=>setAiPrompt(e.target.value)}
+                    placeholder={`Kirjuta mida soovid, näiteks:\n"Tegusõnade pööramine olevikus A2 tasemel"\n"Lugemisharjutus toidust B1 tasemele"`}
+                    rows={5}/>
+                  <div style={{display:'flex',gap:7,marginTop:10,flexWrap:'wrap'}}>
+                    {['A1','A2','B1','B2','C1'].map(l=>(
+                      <button key={l} onClick={()=>setMeta(m=>({...m,level:l}))}
+                        style={{padding:'4px 10px',borderRadius:7,border:'1px solid rgba(255,255,255,.25)',background:meta.level===l?'rgba(255,255,255,.2)':'transparent',color:'#fff',cursor:'pointer',fontSize:'.76rem',fontWeight:700}}>
+                        {l}
+                      </button>
+                    ))}
+                  </div>
+                  <button onClick={generateAI} disabled={aiLoading} className="btn btn-pine" style={{width:'100%',marginTop:10,justifyContent:'center',background:aiLoading?'rgba(255,255,255,.15)':'#C9882A',color:'#fff'}}>
+                    {aiLoading?<><div className="spinner" style={{marginRight:7}}/> Genereerib...</>:<><i className="fa-solid fa-bolt"/> Genereeri tööleht</>}
+                  </button>
+                </div>
+                <div style={{fontSize:'.76rem',color:'#7A7167',textAlign:'center',padding:'8px 0'}}>
+                  või lisa plokke käsitsi →
+                </div>
+                <button onClick={()=>setLeftTab('build')} className="btn btn-ghost" style={{width:'100%',justifyContent:'center'}}>
+                  <i className="fa-solid fa-layer-group"/> Koosta käsitsi
+                </button>
+              </div>
+            )}
+
+            {/* META TAB */}
+            {leftTab==='meta'&&(
+              <div>
+                <div className="meta-box">
+                  <div className="meta-label">Tööleht</div>
+                  <div className="field-row"><div className="field-lbl">Pealkiri</div>
+                    <input value={meta.title} onChange={e=>setMeta(m=>({...m,title:e.target.value}))}/>
+                  </div>
+                  <div className="field-row"><div className="field-lbl">Õppeaine</div>
+                    <select value={meta.subject} onChange={e=>setMeta(m=>({...m,subject:e.target.value}))}>
+                      <option>Eesti keel</option><option>Inglise keel</option><option>Matemaatika</option>
+                    </select>
+                  </div>
+                  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+                    <div className="field-row"><div className="field-lbl">Tase</div>
+                      <select value={meta.level} onChange={e=>setMeta(m=>({...m,level:e.target.value}))}>
+                        {['A1','A2','B1','B2','C1','C2'].map(l=><option key={l}>{l}</option>)}
+                      </select>
+                    </div>
+                    <div className="field-row"><div className="field-lbl">Teema</div>
+                      <input value={meta.topic} onChange={e=>setMeta(m=>({...m,topic:e.target.value}))} placeholder="nt. Minu pere"/>
+                    </div>
+                  </div>
+                </div>
+                <div className="meta-box">
+                  <div className="meta-label">Päise valikud</div>
+                  {[['name','Nime väli'],['score','Punkte väli'],['date','Kuupäeva väli']].map(([k,l])=>(
+                    <label key={k} style={{display:'flex',alignItems:'center',gap:8,marginBottom:8,fontSize:'.84rem',cursor:'pointer'}}>
+                      <input type="checkbox" checked={meta[k]||false} onChange={e=>setMeta(m=>({...m,[k]:e.target.checked}))}/>
+                      {l}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* BUILD TAB */}
+            {leftTab==='build'&&(
+              <div>
+                {/* Add block buttons */}
+                <div style={{marginBottom:12}}>
+                  <div style={{fontSize:'.68rem',fontWeight:700,color:'#7A7167',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8}}>Lisa plokk</div>
+                  <div className="block-types">
+                    {BLOCK_TYPES.map(bt=>(
+                      <button key={bt.key} className="btype-btn" onClick={()=>addBlock(bt.key)}>
+                        <div className="btype-icon" style={{background:bt.bg}}>
+                          <i className={'fa-solid '+bt.icon} style={{color:bt.color}}/>
+                        </div>
+                        {bt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Blocks list */}
+                {blocks.length===0
+                  ?<div className="empty-builder">
+                     <i className="fa-solid fa-layer-group"/>
+                     <p style={{fontSize:'.8rem'}}>Lisa plokke ülal või kasuta AI abi</p>
+                   </div>
+                  :<div>
+                    <div style={{fontSize:'.68rem',fontWeight:700,color:'#7A7167',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8}}>
+                      Plokid ({blocks.length})
+                    </div>
+                    {blocks.map((block,idx)=>{
+                      const bt=BT[block.type];
+                      const isActive=activeId===block.id;
+                      return(
+                        <div key={block.id} className={'block-item'+(isActive?' active':'')} onClick={()=>setActiveId(isActive?null:block.id)}>
+                          <div className="block-handle"><i className="fa-solid fa-grip-vertical"/></div>
+                          <div className="block-inner">
+                            <div className="block-head">
+                              <div style={{display:'flex',alignItems:'center',gap:7}}>
+                                <span className="num-badge">{idx+1}</span>
+                                <span className="block-type-tag" style={{background:bt.bg,color:bt.color}}>
+                                  <i className={'fa-solid '+bt.icon} style={{fontSize:'.65rem'}}/>
+                                  {bt.label}
+                                </span>
+                              </div>
+                              <button className="block-del" onClick={e=>{e.stopPropagation();deleteBlock(block.id);}}>
+                                <i className="fa-solid fa-trash"/>
+                              </button>
+                            </div>
+
+                            {/* Preview text */}
+                            <div style={{fontSize:'.76rem',color:'#7A7167',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:230}}>
+                              {block.type==='fill'&&(block.text||'').replace(/\[([^\]]+)\]/g,'___')}
+                              {block.type==='writing'&&block.task}
+                              {block.type==='text'&&block.content}
+                              {block.type==='order'&&block.sentence}
+                              {block.type==='choice'&&(block.questions?.[0]?.q||'Valikvastus')}
+                              {block.type==='match'&&`${block.pairs?.length||0} paari`}
+                              {block.type==='table'&&`${block.headers?.join(', ')}`}
+                              {block.type==='reading'&&((block.passage||'').slice(0,40)+'...')}
+                            </div>
+
+                            {/* Inline editor when active */}
+                            {isActive&&(
+                              <div style={{marginTop:10,paddingTop:10,borderTop:'1px solid rgba(28,43,58,.07)'}} onClick={e=>e.stopPropagation()}>
+                                <div className="field-row">
+                                  <div className="field-lbl">Juhis õpilasele (valikuline)</div>
+                                  <input value={block.instruction||''} onChange={e=>updateBlock(block.id,{...block,instruction:e.target.value})} placeholder="nt. Täida lüngad..."/>
+                                </div>
+                                <BlockEditor block={block} onChange={data=>updateBlock(block.id,data)}/>
+                              </div>
+                            )}
+
+                            {/* Move buttons */}
+                            <div className="move-btns">
+                              <button className="move-btn" onClick={e=>{e.stopPropagation();moveBlock(block.id,-1);}} title="Üles">
+                                <i className="fa-solid fa-chevron-up"/>
+                              </button>
+                              <button className="move-btn" onClick={e=>{e.stopPropagation();moveBlock(block.id,1);}} title="Alla">
+                                <i className="fa-solid fa-chevron-down"/>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                }
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ── RIGHT PANEL — A4 PREVIEW ── */}
+        <div className="right-panel">
+          <div style={{display:'flex',justifyContent:'flex-end',width:794,marginBottom:12,gap:8}}>
+            <span style={{fontSize:'.76rem',color:'#7A7167',alignSelf:'center'}}>{blocks.length} plokki</span>
+            <button onClick={exportPreview} className="btn btn-ghost btn-sm"><i className="fa-solid fa-print"/> Prindi / PDF</button>
+            <button onClick={downloadHTML} className="btn btn-pine btn-sm"><i className="fa-solid fa-download"/> Laadi alla (.html)</button>
+          </div>
+
+          <div className="a4-sheet">
+            {/* Sheet header */}
+            <div className="sheet-header">
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+                <div style={{flex:1}}>
+                  <div className="sheet-title">{meta.title||'Pealkiri puudub'}</div>
+                  <div className="sheet-meta">
+                    {meta.subject&&<span>📚 {meta.subject}</span>}
+                    {meta.level&&<span>📊 {meta.level}</span>}
+                    {meta.topic&&<span>💬 {meta.topic}</span>}
+                    {meta.date&&<span>📅 Kuupäev: ____________</span>}
+                  </div>
+                </div>
+                <div style={{flexShrink:0,marginLeft:16}}>
+                  {meta.name&&<div style={{fontSize:'.82rem',marginBottom:6}}>Nimi: ___________________________</div>}
+                  {meta.score&&<div style={{border:'1px solid #1C2B3A',borderRadius:6,padding:'5px 14px',fontSize:'.8rem',fontWeight:600,textAlign:'center',minWidth:80}}>
+                    Punkte: ___ / ___
+                  </div>}
+                </div>
+              </div>
+            </div>
+
+            {/* Blocks */}
+            {blocks.length===0
+              ?<div style={{textAlign:'center',padding:'60px 0',color:'#B0A898'}}>
+                 <i className="fa-solid fa-layer-group" style={{fontSize:'2rem',opacity:.2,display:'block',marginBottom:12}}/>
+                 <div style={{fontSize:'.88rem'}}>Lisa plokke vasakult paneelilt</div>
+               </div>
+              :blocks.map((block,idx)=>(
+                <React.Fragment key={block.id}>
+                  <PreviewBlock block={block} index={idx+1}/>
+                  {idx<blocks.length-1&&<hr className="section-divider"/>}
+                </React.Fragment>
+              ))
+            }
+          </div>
+          <div style={{height:40}}/>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
