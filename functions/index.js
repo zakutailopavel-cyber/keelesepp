@@ -276,18 +276,38 @@ async function syncTeacherCalendar(uid, tokens) {
   const batch = db.batch();
 
   for (const event of events) {
-    // Skip all-day events without a title pattern we recognize
-    const studentName = extractStudentName(event.summary || "");
-    if (!studentName) { skipped++; continue; }
+    // Try to find student ID in event description
+    // Format: student:STUDENT_ID anywhere in description
+    const description = event.description || "";
+    const idMatch = description.match(/student[:\s]+([a-zA-Z0-9]+)/i);
+    const studentIdFromDesc = idMatch ? idMatch[1].trim() : null;
 
-    // Find matching student
-    const student = await findStudentByName(studentName, teacherName);
+    let student = null;
+
+    if (studentIdFromDesc) {
+      // Primary: look up by ID from description
+      const studentDoc = await db.collection("students").doc(studentIdFromDesc).get();
+      if (studentDoc.exists) {
+        student = { id: studentDoc.id, ...studentDoc.data() };
+      }
+    }
+
+    // Fallback: try to extract name from title (legacy support)
+    if (!student) {
+      const studentName = extractStudentName(event.summary || "");
+      if (studentName) {
+        student = await findStudentByName(studentName, teacherName);
+      }
+    }
+
+    // Skip if no student found
+    if (!student) { skipped++; continue; }
 
     const scheduleData = gcalEventToSchedule(
       { ...event, calendarId: "primary" },
       teacherName,
-      student?.id || "",
-      student?.name || studentName,
+      student.id,
+      student.name,
     );
     if (!scheduleData) { skipped++; continue; }
 
