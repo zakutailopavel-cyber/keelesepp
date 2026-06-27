@@ -125,6 +125,13 @@ const {
 const LEVELS = SHARED_LEVELS.includes('Eelkool') ? SHARED_LEVELS : ['Eelkool',...SHARED_LEVELS];
 const GRADES = SHARED_GRADES.includes('Eelkool') ? SHARED_GRADES : ['Eelkool',...SHARED_GRADES];
 
+// ── TEACHER MATCH HELPER ──────────────────────────────────────
+// Поддерживает "Pavel Zakutailo" (gcal) === "Pavel" (CRM)
+const teacherMatches = (a, b) => {
+  if(!a || !b) return false;
+  return canonicalTeacherName(a) === canonicalTeacherName(b);
+};
+
 // ── PROGRESSIGRAAFIK ─────────────────────────────────────────
 function ProgressChart({data}) {
   const ref = useRef(null);
@@ -404,7 +411,7 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
   const teacherScope = canonicalTeacherName(user.displayName);
   const todaySch  = isAdmin
     ? schedule.length
-    : schedule.filter(s=>canonicalTeacherName(s.teacher)===teacherScope).length;
+    : schedule.filter(s=>teacherMatches(s.teacher,user.displayName)).length;
   const currentStu= !isStaff?myStudents[0]:null;
   const doneLess  = currentStu?lessons.filter(l=>(l.studentId===currentStu.id||l.studentName?.toLowerCase()===currentStu.name?.toLowerCase())&&l.status==='Toimunud'):[];
   const stuLessons= currentStu?lessons.filter(l=>l.studentId===currentStu.id||l.studentName?.toLowerCase()===currentStu.name?.toLowerCase()):[];
@@ -1517,7 +1524,7 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
                 ...schedule.filter(s=>canonicalTeacherName(s.teacher)===canonicalTeacherName(filterT)),
                 ...groupEvents.filter(s=>canonicalTeacherName(s.teacher)===canonicalTeacherName(filterT) || s.teacher==='Kõik')
               ])
-            : [...schedule.filter(s=>canonicalTeacherName(s.teacher)===canonicalTeacherName(user.displayName)),...groupEvents]
+            : [...schedule.filter(s=>teacherMatches(s.teacher,user.displayName)),...groupEvents]
         )
       :schedule.filter(s=>{
         const target = normalizeText(s.studentName);
@@ -1605,7 +1612,7 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
     const q = normalizeText(plannerSearch);
     return myStudents
       .filter(student=>student.active!==false)
-      .filter(student=>!plannerTeacher || canonicalTeacherName(student.teacher)===plannerTeacher)
+      .filter(student=>!plannerTeacher || teacherMatches(student.teacher,plannerTeacher))
       .map(student=>{
         const lessonsThisWeek = weekEventList.filter(ev=>eventMatchesStudent(ev,student) && ev.status!=="Tühistatud");
         const canceledThisWeek = weekEventList.filter(ev=>eventMatchesStudent(ev,student) && ev.status==="Tühistatud").length;
