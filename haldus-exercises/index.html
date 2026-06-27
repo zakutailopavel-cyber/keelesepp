@@ -970,6 +970,12 @@ function App(){
           <i className="fa-solid fa-dumbbell"/> Harjutused
           <span className="tab-count">{exCount}</span>
         </button>
+        {tab==='exercises'&&isTeacher&&(
+          <a href="/haldus-worksheet" className="top-tab"
+            style={{marginLeft:'auto',color:'#A96E1A',borderBottomColor:'transparent',textDecoration:'none'}}>
+            <i className="fa-solid fa-file-pen"/> Koosta tööleht
+          </a>
+        )}
       </div>
 
       {tab==='curriculum'&&<CurriculumView isTeacher={isTeacher} user={user} notify={notify}/>}
