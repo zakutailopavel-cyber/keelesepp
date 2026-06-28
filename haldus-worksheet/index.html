@@ -758,6 +758,49 @@ function PreviewBlock({block,index}) {
   );
 }
 
+// ── DIDACTIC TEMPLATES ────────────────────────────────────────
+const DIDACTIC_TEMPLATES = {
+  uus_teema:{
+    soojendus:{label:'Soojendus',blockTypes:['match','choice'],instruction:'Aktiveeri eelteadmised. Lihtsad äratundmisülesanded.',complexity:'low',focus:'recognition'},
+    esitlus:{label:'Esitlus',blockTypes:['table','text','fill'],instruction:'Tutvusta uut materjali kontekstis. Näited, täida tabel.',complexity:'low',focus:'input'},
+    harjutamine:{label:'Harjutamine',blockTypes:['fill','choice','order'],instruction:'Kontrollitud harjutamine. Struktureeritud ülesanded, madal vearisk.',complexity:'medium',focus:'controlled_practice'},
+    tootmine:{label:'Tootmine',blockTypes:['writing','order'],instruction:'Vaba kasutamine. Õpilane loob ise lauseid uue materjali põhjal.',complexity:'high',focus:'free_production'},
+    kokkuvote:{label:'Kokkuvõte',blockTypes:['fill','match'],instruction:'Kinnita õpitut. Lühike exit ticket.',complexity:'medium',focus:'consolidation'}
+  },
+  kinnistamine:{
+    harjutamine:{label:'Harjutamine',blockTypes:['choice','fill','order'],instruction:'Süvendatud harjutamine. Tähelepanu levinumatele vigadele.',complexity:'medium',focus:'accuracy'},
+    kommunik:{label:'Kommunikatiivne',blockTypes:['writing','reading'],instruction:'Autentne kasutus. Rohkem vabadust, fookus suhtlusel.',complexity:'high',focus:'fluency'}
+  },
+  kordamine:{
+    kordamine:{label:'Kordamine',blockTypes:['choice','fill','match','order'],instruction:'Süsteemne kordamine. Kõik oskused, eksami formaadile sarnane.',complexity:'high',focus:'exam_prep'}
+  },
+  suuline:{
+    harjutamine:{label:'Ettevalmistus',blockTypes:['match','order','text'],instruction:'Valmista ette suulist ülesannet. Fraasid, struktuur, abimaterjal.',complexity:'medium',focus:'speaking_prep'}
+  },
+  kirjalik:{
+    mudel:{label:'Tekstimudel',blockTypes:['reading','fill','table'],instruction:'Analüüsi näidisteksti. Struktuur, fraasid, täida tabel.',complexity:'medium',focus:'writing_model'},
+    kirjutamine:{label:'Kirjutamine',blockTypes:['writing'],instruction:'Kirjutamisülesanne koos selge juhise ja kriteeriumidega.',complexity:'high',focus:'writing_production'}
+  }
+};
+const COMPLEXITY_INSTRUCTIONS = {
+  low:'Ülesanded peavad olema lihtsad — äratundmine, valik, sobitamine. EI nõua loomingulisust.',
+  medium:'Ülesanded nõuavad mõningast iseseisvat tööd — lüngad, järjestamine. Struktuur on antud.',
+  high:'Ülesanded nõuavad iseseisvat loomingut — kirjutamine, vaba kasutamine.'
+};
+const FOCUS_INSTRUCTIONS = {
+  recognition:'Fookus äratundmisel — õpilane näeb sõnu ja sobitab/valib.',
+  input:'Fookus sisendil — tutvusta materjali selgelt, anna näiteid.',
+  controlled_practice:'Fookus täpsusel — üks õige vastus, grammatika peab olema korrektne.',
+  free_production:'Fookus sujuvusel — õpilane väljendab end vabalt.',
+  consolidation:'Fookus kinnistamisel — näita kas materjal on omandatud.',
+  accuracy:'Fookus täpsusel — kinnista korrektne kasutus.',
+  fluency:'Fookus sujuvusel — kommunikatiivne kasutus.',
+  exam_prep:'Fookus eksami formaadil — täpselt eksami struktuur.',
+  speaking_prep:'Fookus suulise ettevalmistamisel — fraasid, struktuur.',
+  writing_model:'Fookus kirjutamise mudelil — analüüsi head teksti.',
+  writing_production:'Fookus kirjutamisel — selge ülesanne, hindamiskriteeriumid.'
+};
+
 // ── VOCABULARY HELPER ────────────────────────────────────────
 function getVocabForLevel(level, types=['nimisõna','tegusõna','omadussõna'], count=30) {
   const vocab = window._vocab;
@@ -796,8 +839,8 @@ async function genAI(prompt, subject, level, didacticCtx={}) {
   const {lessonType='', phase='', wordList=''} = didacticCtx;
 
   // Get didactic template if lesson type and phase selected
-  const template = lessonType&&phase&&window.DIDACTIC_TEMPLATES
-    ? (window.DIDACTIC_TEMPLATES[lessonType]||{})[phase] : null;
+  const template = lessonType&&phase&&DIDACTIC_TEMPLATES
+    ? (DIDACTIC_TEMPLATES[lessonType]||{})[phase] : null;
 
   const allowedTypes = template
     ? template.blockTypes
