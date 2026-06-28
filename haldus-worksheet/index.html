@@ -1178,6 +1178,49 @@ function SaveModal({meta,blocks,user,onClose,notify}) {
   );
 }
 
+// ── PAGED PREVIEW ─────────────────────────────────────────────
+function estimateBlockHeight(block) {
+  switch(block.type) {
+    case 'fill': return Math.max(80,(block.text||'').length*0.6+60);
+    case 'choice': return 60+(block.questions||[]).length*90;
+    case 'match': return 60+(block.pairs||[]).length*36;
+    case 'order': return 120;
+    case 'writing': return 60+(block.lines||6)*30;
+    case 'text': return 50+(block.content||'').length*0.45;
+    case 'reading': return 200+(block.questions||[]).length*80;
+    case 'table': return 60+(block.rows||4)*32;
+    case 'image': return 220;
+    default: return 80;
+  }
+}
+
+function PagedPreview({blocks}) {
+  const FIRST=840;const REST=940;
+  const pages=[];let cur=[];let h=0;let first=true;
+  blocks.forEach(function(b){
+    const bh=estimateBlockHeight(b)+24;
+    const limit=first?FIRST:REST;
+    if(h+bh>limit&&cur.length>0){pages.push(cur);cur=[b];h=bh;first=false;}
+    else{cur.push(b);h+=bh;}
+  });
+  if(cur.length>0)pages.push(cur);
+  let gi=0;
+  return React.createElement(React.Fragment,null,
+    pages.map(function(page,pi){
+      return React.createElement(React.Fragment,{key:pi},
+        pi>0&&React.createElement('div',{className:'a4-page-break'},
+          React.createElement('span',{className:'a4-page-break-label'},'Lehekülg '+(pi+1))
+        ),
+        pi>0&&React.createElement('div',{className:'a4-sheet',style:{borderRadius:'0 0 4px 4px',minHeight:'auto'}},
+          page.map(function(b){gi++;return React.createElement(PreviewBlock,{key:b.id,block:b,index:gi});}),
+          React.createElement('div',{className:'a4-page-num'},pi+1)
+        ),
+        pi===0&&page.map(function(b){gi++;return React.createElement(PreviewBlock,{key:b.id,block:b,index:gi});})
+      );
+    })
+  );
+}
+
 // ── MAIN APP ───────────────────────────────────────────────────
 function App() {
   const[user,setUser]=useState(null);
