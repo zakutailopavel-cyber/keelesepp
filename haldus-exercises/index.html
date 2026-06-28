@@ -376,6 +376,24 @@ mark{background:rgba(201,136,42,.2);color:#A96E1A;border-radius:3px;padding:0 2p
 .sp-phase-time{font-size:.76rem;color:#7A7167;margin-bottom:12px;}
 .sp-task{font-size:.9rem;line-height:1.6;color:#1C2B3A;margin-bottom:8px;}
 .sp-file-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;background:#F0EEE9;border:1px solid rgba(28,43,58,.1);font-size:.8rem;font-weight:600;color:#1C2B3A;text-decoration:none;margin:3px;}
+
+/* ── STATISTICS VIEW ─────────────────────────────────────────── */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:24px;}
+.stat-card{background:#fff;border-radius:14px;padding:18px 20px;border:0.5px solid rgba(28,43,58,.09);}
+.stat-num{font-size:2rem;font-weight:800;color:#1C2B3A;line-height:1;margin-bottom:4px;}
+.stat-lbl{font-size:.75rem;color:#7A7167;font-weight:600;text-transform:uppercase;letter-spacing:.07em;}
+.stat-sub{font-size:.78rem;color:#B0A898;margin-top:3px;}
+.stats-section{margin-bottom:28px;}
+.stats-section-title{font-size:.8rem;font-weight:700;color:#B0A898;text-transform:uppercase;letter-spacing:.09em;margin-bottom:12px;}
+.topic-bar-wrap{background:#fff;border-radius:12px;padding:14px 16px;border:0.5px solid rgba(28,43,58,.08);margin-bottom:8px;display:flex;align-items:center;gap:12px;}
+.topic-bar-name{font-size:.84rem;font-weight:700;color:#1C2B3A;min-width:140px;}
+.topic-bar-track{flex:1;height:8px;background:rgba(28,43,58,.07);border-radius:4px;overflow:hidden;}
+.topic-bar-fill{height:100%;border-radius:4px;transition:width .4s;}
+.topic-bar-count{font-size:.78rem;font-weight:700;color:#7A7167;min-width:40px;text-align:right;}
+.level-pill-row{display:flex;gap:8px;flex-wrap:wrap;}
+.level-pill{padding:8px 16px;border-radius:10px;font-size:.82rem;font-weight:700;border:1.5px solid transparent;}
+.conduct-row{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#fff;border-radius:10px;border:0.5px solid rgba(28,43,58,.08);margin-bottom:6px;}
+.conduct-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
 </style>
 </head>
 <body>
@@ -2314,6 +2332,190 @@ function WorksheetPreviewModal({lesson,onClose,onConduct}) {
   );
 }
 
+
+// ── STATISTICS VIEW ────────────────────────────────────────────
+function StatisticsView({allLessons}) {
+  const SUBJECT_COLORS={'Eesti keel':'#2F5D50','Inglise keel':'#1d4ed8','Matemaatika':'#A96E1A'};
+  const LEVEL_COLORS={A1:'#047857',A2:'#0e7490',B1:'#1d4ed8',B2:'#6d28d9',C1:'#be185d'};
+
+  // Total stats
+  const total = allLessons.length;
+  const withWorksheet = allLessons.filter(l=>l.worksheetData).length;
+  const withPhases = allLessons.filter(l=>l.phaseData).length;
+  const conducted = allLessons.filter(l=>l.conductedAt).length;
+
+  // By subject
+  const bySubject = {};
+  allLessons.forEach(l=>{
+    const s=l.subject||'Määramata';
+    bySubject[s]=(bySubject[s]||0)+1;
+  });
+
+  // By level
+  const byLevel = {};
+  allLessons.forEach(l=>{
+    const lv=l.level||'—';
+    byLevel[lv]=(byLevel[lv]||0)+1;
+  });
+
+  // Topics coverage — how many lessons per topic
+  const byTopic = {};
+  allLessons.forEach(l=>{
+    if(!l.topic) return;
+    const key=`${l.subject||''}|${l.level||''}|${l.topic}`;
+    if(!byTopic[key]) byTopic[key]={subject:l.subject,level:l.level,topic:l.topic,count:0,hasWorksheet:false};
+    byTopic[key].count++;
+    if(l.worksheetData) byTopic[key].hasWorksheet=true;
+  });
+  const topicList=Object.values(byTopic).sort((a,b)=>b.count-a.count);
+  const maxTopicCount=Math.max(...topicList.map(t=>t.count),1);
+
+  // Lesson types distribution
+  const byType={};
+  allLessons.forEach(l=>{
+    const t=l.lessonTypeLabel||l.lessonTypeDef||'Vaba vorm';
+    byType[t]=(byType[t]||0)+1;
+  });
+  const typeList=Object.entries(byType).sort((a,b)=>b[1]-a[1]);
+
+  // Topics without worksheet — need attention
+  const needsWorksheet=topicList.filter(t=>!t.hasWorksheet&&t.count>0).slice(0,5);
+
+  // Recent lessons
+  const recent=allLessons
+    .filter(l=>l.updatedAt)
+    .sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt))
+    .slice(0,8);
+
+  if(total===0) return(
+    <div style={{textAlign:'center',padding:'80px 0',color:'#B0A898'}}>
+      <i className="fa-solid fa-chart-bar" style={{fontSize:'2.5rem',opacity:.2,display:'block',marginBottom:12}}/>
+      <div style={{fontSize:'.9rem'}}>Statistika ilmub kui oled loonud esimesed tunnid</div>
+    </div>
+  );
+
+  return(
+    <div style={{padding:'24px 28px',maxWidth:1100,margin:'0 auto'}}>
+
+      {/* Summary cards */}
+      <div className="stats-grid">
+        <div className="stat-card">
+          <div className="stat-num">{total}</div>
+          <div className="stat-lbl">Kirjet kokku</div>
+          <div className="stat-sub">{withPhases} tunniplaaniga</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-num">{withWorksheet}</div>
+          <div className="stat-lbl">Töölehega</div>
+          <div className="stat-sub">{total-withWorksheet} ilma tööleheta</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-num">{topicList.length}</div>
+          <div className="stat-lbl">Teemat kaetud</div>
+          <div className="stat-sub">{Object.keys(byLevel).length} taset</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-num" style={{color:'#2F5D50'}}>{withPhases}</div>
+          <div className="stat-lbl">Struktureeritud tundi</div>
+          <div className="stat-sub">PPP / TBL / CLT</div>
+        </div>
+      </div>
+
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:20}}>
+        {/* Left column */}
+        <div>
+          {/* Topics coverage */}
+          <div className="stats-section">
+            <div className="stats-section-title">Teemade katvus</div>
+            {topicList.slice(0,10).map((t,i)=>(
+              <div key={i} className="topic-bar-wrap">
+                <div style={{flex:'0 0 auto',minWidth:0}}>
+                  <div className="topic-bar-name" style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:140}}>{t.topic}</div>
+                  <div style={{fontSize:'.68rem',color:'#B0A898'}}>{t.subject} · {t.level}</div>
+                </div>
+                <div className="topic-bar-track">
+                  <div className="topic-bar-fill" style={{width:(t.count/maxTopicCount*100)+'%',background:SUBJECT_COLORS[t.subject]||'#2F5D50'}}/>
+                </div>
+                <div className="topic-bar-count">{t.count}</div>
+                {t.hasWorksheet&&<i className="fa-solid fa-file-lines" style={{color:'#2F5D50',fontSize:'.72rem'}}/>}
+              </div>
+            ))}
+          </div>
+
+          {/* Needs attention */}
+          {needsWorksheet.length>0&&(
+            <div className="stats-section">
+              <div className="stats-section-title">⚠️ Teemad ilma tööleheta</div>
+              {needsWorksheet.map((t,i)=>(
+                <div key={i} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'9px 14px',background:'rgba(201,136,42,.06)',borderRadius:10,border:'1px solid rgba(201,136,42,.2)',marginBottom:6}}>
+                  <div>
+                    <div style={{fontSize:'.84rem',fontWeight:700,color:'#1C2B3A'}}>{t.topic}</div>
+                    <div style={{fontSize:'.7rem',color:'#7A7167'}}>{t.subject} · {t.level} · {t.count} kirjet</div>
+                  </div>
+                  <a href="/haldus-worksheet" style={{fontSize:'.72rem',padding:'4px 9px',borderRadius:7,background:'#C9882A',color:'#fff',textDecoration:'none',fontWeight:700,whiteSpace:'nowrap'}}>
+                    <i className="fa-solid fa-bolt"/> Loo tööleht
+                  </a>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Right column */}
+        <div>
+          {/* By level */}
+          <div className="stats-section">
+            <div className="stats-section-title">Tasemed</div>
+            <div className="level-pill-row">
+              {['A1','A2','B1','B2','C1'].map(lv=>(
+                <div key={lv} className="level-pill" style={{
+                  background:byLevel[lv]?((LEVEL_COLORS[lv]||'#718096')+'15'):'rgba(28,43,58,.04)',
+                  borderColor:byLevel[lv]?(LEVEL_COLORS[lv]||'#718096'):'rgba(28,43,58,.1)',
+                  color:byLevel[lv]?(LEVEL_COLORS[lv]||'#718096'):'#B0A898'
+                }}>
+                  <div style={{fontSize:'1.1rem',fontWeight:800}}>{byLevel[lv]||0}</div>
+                  <div style={{fontSize:'.7rem',opacity:.8}}>{lv}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Lesson types */}
+          <div className="stats-section">
+            <div className="stats-section-title">Tunni tüübid</div>
+            {typeList.map(([type,count],i)=>(
+              <div key={i} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'8px 12px',background:'#fff',borderRadius:9,border:'0.5px solid rgba(28,43,58,.08)',marginBottom:5}}>
+                <span style={{fontSize:'.84rem',fontWeight:600,color:'#1C2B3A'}}>{type}</span>
+                <div style={{display:'flex',alignItems:'center',gap:8}}>
+                  <div style={{width:60,height:5,background:'rgba(28,43,58,.07)',borderRadius:3,overflow:'hidden'}}>
+                    <div style={{width:(count/total*100)+'%',height:'100%',background:'#2F5D50',borderRadius:3}}/>
+                  </div>
+                  <span style={{fontSize:'.78rem',fontWeight:700,color:'#7A7167',minWidth:20,textAlign:'right'}}>{count}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Recent */}
+          <div className="stats-section">
+            <div className="stats-section-title">Viimati lisatud</div>
+            {recent.map((l,i)=>(
+              <div key={i} className="conduct-row">
+                <div className="conduct-dot" style={{background:SUBJECT_COLORS[l.subject]||'#718096'}}/>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontSize:'.83rem',fontWeight:700,color:'#1C2B3A',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{l.title}</div>
+                  <div style={{fontSize:'.7rem',color:'#B0A898'}}>{l.subject} · {l.level} · {l.topic}</div>
+                </div>
+                {l.worksheetData&&<i className="fa-solid fa-file-lines" style={{color:'#2F5D50',fontSize:'.72rem',flexShrink:0}}/>}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── APP ───────────────────────────────────────────────────────
 function App(){
   const[user,setUser]=useState(null);
@@ -2375,6 +2577,9 @@ function App(){
         <button className="top-tab" onClick={()=>setShowSearch(true)} style={{color:'#718096'}}>
           <i className="fa-solid fa-magnifying-glass"/> Otsi
         </button>
+        <button className={'top-tab'+(tab==='stats'?' active':'')} onClick={()=>setTab('stats')} style={{color:'#718096'}}>
+          <i className="fa-solid fa-chart-bar"/> Statistika
+        </button>
         {tab==='curriculum'&&isTeacher&&(
           <a href="/haldus-worksheet" className="top-tab"
             style={{marginLeft:'auto',color:'#A96E1A',borderBottomColor:'transparent',textDecoration:'none'}}>
@@ -2385,6 +2590,7 @@ function App(){
 
       {!showSearch&&tab==='curriculum'&&<CurriculumView isTeacher={isTeacher} user={user} notify={notify} onPreviewWorksheet={setWsPreview} onConductLesson={setConductLesson}/>}
       {!showSearch&&tab==='exercises'&&<ExercisesView isTeacher={isTeacher} user={user} notify={notify}/>}
+      {!showSearch&&tab==='stats'&&<StatisticsView allLessons={allLessons}/>}
     </div>
   );
 }
