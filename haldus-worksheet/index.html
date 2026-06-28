@@ -805,7 +805,7 @@ Tagasta AINULT JSON, ilma markdown koodiplokita.
   {"type":"table","instruction":"...","headers":["col1","col2"],"rows":4}
 ]}
 Tase: ${level||'B1'}. Genereeri 4-6 sisukat blokki. Kõik eestikeelne.`;
-  const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},
+  const res=await fetch('/api/anthropic-proxy',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2000,system:sys,
       messages:[{role:'user',content:`Genereeri tööleht: ${prompt}\nÕppeaine: ${subject||'Eesti keel'}, Tase: ${level||'B1'}`}]})});
   const data=await res.json();
@@ -1139,7 +1139,7 @@ Tagasta AINULT JSON, ilma markdown koodiplokita.
   {"type":"table","instruction":"...","headers":["Sõna","Tüüp","Näide"],"rows":6}
 ]}
 Tase: ${meta.level}. Kasuta kõiki pakutud sõnatüüpe. Genereeri 4-5 blokki.`;
-      const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+      const res=await fetch('/api/anthropic-proxy',{method:'POST',
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2000,system:sys,
           messages:[{role:'user',content:`Teema: ${aiPrompt}, Tase: ${meta.level}`}]})});
