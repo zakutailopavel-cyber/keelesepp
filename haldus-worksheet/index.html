@@ -769,7 +769,7 @@ const DIDACTIC_TEMPLATES = {
   },
   kinnistamine:{
     harjutamine:{label:'Harjutamine',blockTypes:['choice','fill','order'],instruction:'Süvendatud harjutamine. Tähelepanu levinumatele vigadele.',complexity:'medium',focus:'accuracy'},
-    kommunik:{label:'Kommunikatiivne',blockTypes:['writing','reading'],instruction:'Autentne kasutus. Rohkem vabadust, fookus suhtlusel.',complexity:'high',focus:'fluency'}
+    kommunik:{label:'Kommunikatiivne',blockTypes:['match','order','text'],instruction:'SUULINE harjutamine. Dialoogikaardid, rollimäng, aruteluküsimused. EI ole kirjutamisülesanne. Genereeri: match (situatsioon→reaktsioon), order (dialoogi järjestamine), text (aruteluküsimused ja abifraasid).',complexity:'high',focus:'speaking'}
   },
   kordamine:{
     kordamine:{label:'Kordamine',blockTypes:['choice','fill','match','order'],instruction:'Süsteemne kordamine. Kõik oskused, eksami formaadile sarnane.',complexity:'high',focus:'exam_prep'}
@@ -796,11 +796,12 @@ const FOCUS_INSTRUCTIONS = {
   free_production:'Fookus sujuvusel — õpilane väljendab end vabalt.',
   consolidation:'Fookus kinnistamisel — näita kas materjal on omandatud.',
   accuracy:'Fookus täpsusel — kinnista korrektne kasutus.',
-  fluency:'Fookus sujuvusel — kommunikatiivne kasutus.',
+  fluency:'Fookus SUULISEL sujuvusel. Genereeri AINULT suulisi ülesandeid: dialoogikaardid, situatsioonid, aruteluküsimused, fraasipank. KEELATUD: writing, reading blokid.',
   exam_prep:'Fookus eksami formaadil — täpselt eksami struktuur.',
   speaking_prep:'Fookus suulisel harjutamisel — dialoogirepliigid, fraasid, situatsioonid. EI genereeri writing ülesandeid. Genereeri match (fraas→situatsioon), order (dialoogi järjestamine), fill (dialoogis lüngad).',
   writing_model:'Fookus kirjutamise mudelil — analüüsi head teksti.',
-  writing_production:'Fookus kirjutamisel — selge ülesanne, hindamiskriteeriumid.'
+  writing_production:'Fookus kirjutamisel — selge ülesanne, hindamiskriteeriumid.',
+  speaking:'Fookus SUULISEL suhtlusel. Genereeri AINULT: match (fraas↔situatsioon/reaktsioon), order (dialoogi järjekord), text (aruteluküsimused koos abifraasidega). ABSOLUUTSELT KEELATUD: writing ja reading blokid.'
 };
 
 // ── VOCABULARY HELPER ────────────────────────────────────────
@@ -878,7 +879,8 @@ Tagasta AINULT JSON, ilma markdown koodiplokita:
 
 Tase: ${level||'B1'}. Genereeri 4-6 blokki. Kõik eestikeelne.
 TÄHTIS: sobita paarid (match) — kasuta VENE keelt tõlgetena, MITTE inglise. Näide: {"l":"ärkama","r":"просыпаться"}.
-TÄHTIS 2: Kui bloki tüüpide hulgas POLE "writing", siis EI TOHI genereerida writing blokke. Järgi LUBATUD BLOKI TÜÜBID täpselt.`;
+TÄHTIS 2: Järgi LUBATUD BLOKI TÜÜBID ABSOLUUTSELT TÄPSELT. Kui "writing" pole lubatud — EI TOHI esineda ühtegi writing blokki. Kui "reading" pole lubatud — EI TOHI esineda ühtegi reading blokki.
+TÄHTIS 3: Suulise tunni jaoks (kommunikatiivne/suuline fookus) genereeri AINULT: match (situatsioon↔reaktsioon või fraas↔tõlge), order (dialoogi repliikide järjestamine), text (aruteluküsimused + abifraasid). Kirjutamisülesandeid EI OLE.`;
 
   const res = await fetch('/api/anthropic-proxy', {
     method: 'POST',
@@ -1308,7 +1310,7 @@ function App() {
                   <div style={{marginBottom:8}}>
                     <div style={{fontSize:'.64rem',fontWeight:700,color:'rgba(255,255,255,.45)',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:5}}>Tunni tüüp (valikuline)</div>
                     <div style={{display:'flex',gap:5,flexWrap:'wrap'}}>
-                      {[['','Vaba'],['uus_teema','🌱 Uus teema'],['kinnistamine','🔁 Kinnistamine'],['kordamine','📋 Kordamine'],['kirjalik','✍️ Kirjalik']].map(([k,l])=>(
+                      {[['','Vaba'],['uus_teema','🌱 Uus teema'],['kinnistamine','🔁 Kinnistamine'],['suuline','🗣️ Suuline'],['kirjalik','✍️ Kirjalik'],['kordamine','📋 Kordamine']].map(([k,l])=>(
                         <button key={k} className={'ai-lvl'+(aiLessonType===k?' active':'')} onClick={()=>{setAiLessonType(k);setAiPhase('');}}
                           style={{fontSize:'.68rem'}}>{l}</button>
                       ))}
