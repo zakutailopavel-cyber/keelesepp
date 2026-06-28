@@ -102,7 +102,7 @@ textarea{resize:vertical;line-height:1.45;}
 
 /* A4 */
 .a4-wrap{display:flex;flex-direction:column;gap:0;align-items:center;}
-.a4-sheet{width:794px;min-height:1123px;max-height:1123px;overflow:hidden;background:#fff;box-shadow:0 4px 40px rgba(0,0,0,.14);padding:64px 72px 72px;font-family:'IBM Plex Sans',sans-serif;color:#1C2B3A;flex-shrink:0;position:relative;box-sizing:border-box;}
+.a4-sheet{width:794px;min-height:1123px;background:#fff;box-shadow:0 4px 40px rgba(0,0,0,.14);padding:64px 72px 72px;font-family:'IBM Plex Sans',sans-serif;color:#1C2B3A;flex-shrink:0;position:relative;box-sizing:border-box;}
 .a4-sheet.a4-first{border-radius:4px 4px 0 0;}
 .a4-page-break{width:794px;height:32px;background:#E8E6E1;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .a4-page-break-label{font-size:.62rem;color:#B0A898;font-weight:600;text-transform:uppercase;letter-spacing:.1em;}
@@ -1183,41 +1183,81 @@ function estimateBlockHeight(block) {
   switch(block.type) {
     case 'fill': return Math.max(80,(block.text||'').length*0.6+60);
     case 'choice': return 60+(block.questions||[]).length*90;
-    case 'match': return 60+(block.pairs||[]).length*36;
-    case 'order': return 120;
-    case 'writing': return 60+(block.lines||6)*30;
-    case 'text': return 50+(block.content||'').length*0.45;
-    case 'reading': return 200+(block.questions||[]).length*80;
-    case 'table': return 60+(block.rows||4)*32;
-    case 'image': return 220;
-    default: return 80;
+    case 'match': return 60+(block.pairs||[]).length*40;
+    case 'order': return 140;
+    case 'writing': return 70+(block.lines||6)*30;
+    case 'text': return 60+(block.content||'').length*0.5;
+    case 'reading': return 220+(block.questions||[]).length*90;
+    case 'table': return 70+(block.rows||4)*34;
+    case 'image': return 240;
+    default: return 90;
   }
 }
 
-function PagedPreview({blocks}) {
-  const FIRST=840;const REST=940;
-  const pages=[];let cur=[];let h=0;let first=true;
-  blocks.forEach(function(b){
-    const bh=estimateBlockHeight(b)+24;
-    const limit=first?FIRST:REST;
-    if(h+bh>limit&&cur.length>0){pages.push(cur);cur=[b];h=bh;first=false;}
-    else{cur.push(b);h+=bh;}
+function PagedSheet({meta,blocks}) {
+  const HEADER_H = 110;
+  const PAGE_H = 995; // A4 content height (1123 - 2*64 padding)
+  
+  // Group blocks into pages
+  const pages = [];
+  let cur = [];
+  let h = HEADER_H;
+  
+  blocks.forEach(function(b) {
+    const bh = estimateBlockHeight(b) + 28;
+    if (h + bh > PAGE_H && cur.length > 0) {
+      pages.push(cur);
+      cur = [b];
+      h = bh;
+    } else {
+      cur.push(b);
+      h += bh;
+    }
   });
-  if(cur.length>0)pages.push(cur);
-  let gi=0;
-  return React.createElement(React.Fragment,null,
-    pages.map(function(page,pi){
-      return React.createElement(React.Fragment,{key:pi},
-        pi>0&&React.createElement('div',{className:'a4-page-break'},
-          React.createElement('span',{className:'a4-page-break-label'},'Lehekülg '+(pi+1))
-        ),
-        pi>0&&React.createElement('div',{className:'a4-sheet',style:{borderRadius:'0 0 4px 4px',minHeight:'auto'}},
-          page.map(function(b){gi++;return React.createElement(PreviewBlock,{key:b.id,block:b,index:gi});}),
-          React.createElement('div',{className:'a4-page-num'},pi+1)
-        ),
-        pi===0&&page.map(function(b){gi++;return React.createElement(PreviewBlock,{key:b.id,block:b,index:gi});})
-      );
-    })
+  if (cur.length > 0 || pages.length === 0) pages.push(cur);
+
+  let gi = 0;
+  
+  return(
+    <>
+      {pages.map((page, pi) => (
+        <React.Fragment key={pi}>
+          {pi > 0 && (
+            <div className="a4-page-break">
+              <span className="a4-page-break-label">Lehekülg {pi + 1}</span>
+            </div>
+          )}
+          <div className="a4-sheet">
+            {/* Header only on first page */}
+            {pi === 0 && (
+              <div className="sheet-hdr">
+                <div>
+                  <div className="sheet-title">{meta.title||'Pealkiri puudub'}</div>
+                  <div className="sheet-meta-row">
+                    {meta.subject&&<span>📚 {meta.subject}</span>}
+                    {meta.level&&<span>📊 {meta.level}</span>}
+                    {meta.topic&&<span>💬 {meta.topic}</span>}
+                    {meta.date&&<span>📅 Kuupäev: ____________</span>}
+                    {meta.name&&<span>Nimi: ___________________________</span>}
+                  </div>
+                </div>
+                {meta.score&&<div className="score-box">Punkte: ___ / ___</div>}
+              </div>
+            )}
+            {pi === 0 && blocks.length === 0 && (
+              <div style={{textAlign:'center',padding:'56px 0',color:'#C0B8B0'}}>
+                <i className="fa-solid fa-layer-group" style={{fontSize:'2rem',opacity:.2,display:'block',marginBottom:10}}/>
+                <div style={{fontSize:'.86rem'}}>Lisa plokke vasakult paneelilt</div>
+              </div>
+            )}
+            {page.map(function(b) { gi++; return <PreviewBlock key={b.id} block={b} index={gi}/>; })}
+            {pages.length > 1 && (
+              <div className="a4-page-num">{pi + 1} / {pages.length}</div>
+            )}
+          </div>
+        </React.Fragment>
+      ))}
+    </>
   );
 }
 
@@ -1538,28 +1578,7 @@ function App() {
           </div>
 
           <div className="a4-wrap">
-            <div className="a4-sheet a4-first">
-              <div className="sheet-hdr">
-                <div>
-                  <div className="sheet-title">{meta.title||'Pealkiri puudub'}</div>
-                  <div className="sheet-meta-row">
-                    {meta.subject&&<span>📚 {meta.subject}</span>}
-                    {meta.level&&<span>📊 {meta.level}</span>}
-                    {meta.topic&&<span>💬 {meta.topic}</span>}
-                    {meta.date&&<span>📅 Kuupäev: ____________</span>}
-                    {meta.name&&<span>Nimi: ___________________________</span>}
-                  </div>
-                </div>
-                {meta.score&&<div className="score-box">Punkte: ___ / ___</div>}
-              </div>
-              {blocks.length===0
-                ?<div style={{textAlign:'center',padding:'56px 0',color:'#C0B8B0'}}>
-                   <i className="fa-solid fa-layer-group" style={{fontSize:'2rem',opacity:.2,display:'block',marginBottom:10}}/>
-                   <div style={{fontSize:'.86rem'}}>Lisa plokke vasakult paneelilt</div>
-                 </div>
-                :<PagedPreview blocks={blocks}/>
-              }
-            </div>
+            <PagedSheet meta={meta} blocks={blocks}/>
           </div>
           <div style={{height:40}}/>
         </div>
