@@ -779,7 +779,7 @@ function PreviewBlock({block,index}) {
 // ── DIDACTIC TEMPLATES ────────────────────────────────────────
 const DIDACTIC_TEMPLATES = {
   uus_teema:{
-    soojendus:{label:'Soojendus',blockTypes:['match','choice'],instruction:'Aktiveeri eelteadmised. Lihtsad äratundmisülesanded.',complexity:'low',focus:'recognition'},
+    soojendus:{label:'Soojendus',blockTypes:['match','choice','text'],instruction:'Aktiveeri eelteadmised. Lihtsad äratundmisülesanded — sobitamine ja valik. Ära genereeri täitmis- ega kirjutamisülesandeid.',complexity:'low',focus:'recognition'},
     esitlus:{label:'Esitlus',blockTypes:['table','text','fill'],instruction:'Tutvusta uut materjali kontekstis. Näited, täida tabel.',complexity:'low',focus:'input'},
     harjutamine:{label:'Harjutamine',blockTypes:['fill','choice','order'],instruction:'Kontrollitud harjutamine. Struktureeritud ülesanded, madal vearisk.',complexity:'medium',focus:'controlled_practice'},
     tootmine:{label:'Tootmine',blockTypes:['writing','order'],instruction:'Vaba kasutamine. Õpilane loob ise lauseid uue materjali põhjal.',complexity:'high',focus:'free_production'},
@@ -793,7 +793,7 @@ const DIDACTIC_TEMPLATES = {
     kordamine:{label:'Kordamine',blockTypes:['choice','fill','match','order'],instruction:'Süsteemne kordamine. Kõik oskused, eksami formaadile sarnane.',complexity:'high',focus:'exam_prep'}
   },
   suuline:{
-    soojendus:{label:'Soojendus',blockTypes:['match','choice'],instruction:'Aktiveeri suhtluskeelt. Sobi fraasid situatsiooniga, vali õige reaktsioon.',complexity:'low',focus:'recognition'},
+    soojendus:{label:'Soojendus',blockTypes:['match','choice','text'],instruction:'Aktiveeri suhtluskeelt. Sobi fraasid situatsiooniga, vali õige reaktsioon. Lisa abifraasid tekstiplokina.',complexity:'low',focus:'recognition'},
     harjutamine:{label:'Dialoog',blockTypes:['match','order','fill'],instruction:'Harjuta dialoogi fraase ja struktuuri. Sobita repliigid, järjesta dialoog, täida lüngad.',complexity:'medium',focus:'speaking_prep'},
     vaba:{label:'Vaba rääkimine',blockTypes:['text','order'],instruction:'Anna suuline ülesanne koos abifraasidega. Küsimused aruteluks, fraasipank.',complexity:'high',focus:'fluency'}
   },
@@ -895,7 +895,7 @@ Tagasta AINULT JSON, ilma markdown koodiplokita:
   {"type":"reading","instruction":"...","passage":"tekst...","questions":[{"q":"?","opts":["a","b","c"],"correct":0}]}
 ]}
 
-Tase: ${level||'B1'}. Genereeri 4-6 blokki. Kõik eestikeelne.
+Tase: ${level||'B1'}. Genereeri 3-5 blokki (võib olla ka 2-3 kui tüüpide arv on piiratud). Kõik eestikeelne.
 TÄHTIS: sobita paarid (match) — kasuta VENE keelt tõlgetena, MITTE inglise. Näide: {"l":"ärkama","r":"просыпаться"}.
 TÄHTIS 2: Järgi LUBATUD BLOKI TÜÜBID ABSOLUUTSELT TÄPSELT. Kui "writing" pole lubatud — EI TOHI esineda ühtegi writing blokki. Kui "reading" pole lubatud — EI TOHI esineda ühtegi reading blokki.
 TÄHTIS 3: Suulise tunni jaoks (kommunikatiivne/suuline fookus) genereeri AINULT: match (situatsioon↔reaktsioon või fraas↔tõlge), order (dialoogi repliikide järjestamine), text (aruteluküsimused + abifraasid). Kirjutamisülesandeid EI OLE.`;
@@ -911,7 +911,19 @@ TÄHTIS 3: Suulise tunni jaoks (kommunikatiivne/suuline fookus) genereeri AINULT
     })
   });
   const data = await res.json();
-  return JSON.parse((data.content?.[0]?.text||'').replace(/```json|```/g,'').trim());
+  if(data.error) throw new Error(data.error.message||JSON.stringify(data.error));
+  const raw = (data.content?.[0]?.text||'').trim();
+  // Strip markdown fences
+  const clean = raw.replace(/^```json\s*/,'').replace(/^```\s*/,'').replace(/\s*```$/,'').trim();
+  try {
+    return JSON.parse(clean);
+  } catch(parseErr) {
+    // Try to extract JSON object from response
+    const match = clean.match(/\{[\s\S]*\}/);
+    if(match) return JSON.parse(match[0]);
+    console.error('Parse error, raw response:', raw.slice(0,500));
+    throw new Error('AI vastuse töötlemine ebaõnnestus: ' + parseErr.message);
+  }
 }
 
 // ── EXPORT HTML ───────────────────────────────────────────────
@@ -1361,11 +1373,12 @@ function App() {
       });
       if(r.title) setMeta(m=>({...m,title:r.title}));
       const nb=(r.blocks||[]).map(b=>({...mkBlock(b.type),...b,id:uid()}));
+      if(!nb.length) throw new Error('AI ei genereerinud ühtegi blokki. Proovi teist teemat.');
       setBlocks(nb);
-      if(nb.length) setActiveId(nb[0].id);
+      setActiveId(nb[0].id);
       setTab('build');
       notify('✓ Tööleht EKI sõnavaraga genereeritud!');
-    }catch(e){notify('Viga: '+(e.message||'Genereerimine ebaõnnestus'));}
+    }catch(e){console.error('VocabAI error:',e);notify('Viga: '+(e.message||'Genereerimine ebaõnnestus'));}
     setAiLoading(false);
   };
 
@@ -1376,11 +1389,12 @@ function App() {
       const r=await genAI(aiPrompt,meta.subject,meta.level,{lessonType:aiLessonType,phase:aiPhase});
       if(r.title) setMeta(m=>({...m,title:r.title}));
       const nb=(r.blocks||[]).map(b=>({...mkBlock(b.type),...b,id:uid()}));
+      if(!nb.length) throw new Error('AI ei genereerinud ühtegi blokki. Proovi teist teemat.');
       setBlocks(nb);
-      if(nb.length) setActiveId(nb[0].id);
+      setActiveId(nb[0].id);
       setTab('build');
       notify('✓ Tööleht genereeritud!');
-    }catch(e){notify('Viga: '+(e.message||'Genereerimine ebaõnnestus'));}
+    }catch(e){console.error('RunAI error:',e);notify('Viga: '+(e.message||'Genereerimine ebaõnnestus'));}
     setAiLoading(false);
   };
 
