@@ -1892,9 +1892,28 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
                           {student.group ? `Grupp: ${student.group}` : 'Individuaal / grupp puudub'}
                         </div>
                       </div>
-                      <span style={{padding:"5px 9px",borderRadius:999,background:statusBg,color:statusColor,fontSize:".72rem",fontWeight:800,whiteSpace:"nowrap"}}>
-                        {weekText}
-                      </span>
+                      <div style={{display:"flex",alignItems:"center",gap:5}}>
+                        <span style={{padding:"5px 9px",borderRadius:999,background:statusBg,color:statusColor,fontSize:".72rem",fontWeight:800,whiteSpace:"nowrap"}}>
+                          {weekText}
+                        </span>
+                        {/* Inline target editor */}
+                        <div style={{display:"flex",alignItems:"center",gap:3,background:"rgba(28,43,58,.05)",borderRadius:8,padding:"3px 6px"}}>
+                          <span style={{fontSize:".62rem",color:"#B0A898",fontWeight:600}}>norm:</span>
+                          <input
+                            type="number" min={0} max={20}
+                            value={row.target||''}
+                            onChange={async e=>{
+                              const val=parseInt(e.target.value,10)||0;
+                              try{
+                                await db.collection('students').doc(row.student.id).update({weeklyLessons:val});
+                              }catch(err){console.error(err);}
+                            }}
+                            placeholder="0"
+                            style={{width:32,border:"none",background:"transparent",textAlign:"center",fontSize:".78rem",fontWeight:700,color:"#1C2B3A",padding:0,outline:"none"}}
+                          />
+                          <span style={{fontSize:".62rem",color:"#B0A898"}}>/ nädal</span>
+                        </div>
+                      </div>
                     </div>
                     <div style={{display:"flex",gap:6,flexWrap:"wrap",marginTop:10}}>
                       {row.lessonsThisWeek.map(ev=>(
