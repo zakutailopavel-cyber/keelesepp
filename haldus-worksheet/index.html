@@ -1538,28 +1538,28 @@ function App() {
           </div>
 
           <div className="a4-wrap">
-          <div className="a4-sheet a4-first">
-            <div className="sheet-hdr">
-              <div>
-                <div className="sheet-title">{meta.title||'Pealkiri puudub'}</div>
-                <div className="sheet-meta-row">
-                  {meta.subject&&<span>📚 {meta.subject}</span>}
-                  {meta.level&&<span>📊 {meta.level}</span>}
-                  {meta.topic&&<span>💬 {meta.topic}</span>}
-                  {meta.date&&<span>📅 Kuupäev: ____________</span>}
-                  {meta.name&&<span>Nimi: ___________________________</span>}
+            <div className="a4-sheet a4-first">
+              <div className="sheet-hdr">
+                <div>
+                  <div className="sheet-title">{meta.title||'Pealkiri puudub'}</div>
+                  <div className="sheet-meta-row">
+                    {meta.subject&&<span>📚 {meta.subject}</span>}
+                    {meta.level&&<span>📊 {meta.level}</span>}
+                    {meta.topic&&<span>💬 {meta.topic}</span>}
+                    {meta.date&&<span>📅 Kuupäev: ____________</span>}
+                    {meta.name&&<span>Nimi: ___________________________</span>}
+                  </div>
                 </div>
+                {meta.score&&<div className="score-box">Punkte: ___ / ___</div>}
               </div>
-              {meta.score&&<div className="score-box">Punkte: ___ / ___</div>}
+              {blocks.length===0
+                ?<div style={{textAlign:'center',padding:'56px 0',color:'#C0B8B0'}}>
+                   <i className="fa-solid fa-layer-group" style={{fontSize:'2rem',opacity:.2,display:'block',marginBottom:10}}/>
+                   <div style={{fontSize:'.86rem'}}>Lisa plokke vasakult paneelilt</div>
+                 </div>
+                :<PagedPreview blocks={blocks}/>
+              }
             </div>
-
-            {blocks.length===0
-              ?<div style={{textAlign:'center',padding:'56px 0',color:'#C0B8B0'}}>
-                 <i className="fa-solid fa-layer-group" style={{fontSize:'2rem',opacity:.2,display:'block',marginBottom:10}}/>
-                 <div style={{fontSize:'.86rem'}}>Lisa plokke vasakult paneelilt</div>
-               </div>
-              :<PagedPreview blocks={blocks}/>
-            }
           </div>
           <div style={{height:40}}/>
         </div>
