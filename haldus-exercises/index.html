@@ -2581,10 +2581,10 @@ function App(){
           <i className="fa-solid fa-chart-bar"/> Statistika
         </button>
         {tab==='curriculum'&&isTeacher&&(
-          <a href="/haldus-worksheet" target="_blank" className="top-tab"
-            style={{marginLeft:'auto',color:'#A96E1A',borderBottomColor:'transparent',textDecoration:'none'}}>
+          <button onClick={()=>window.open('/haldus-worksheet','_blank')} className="top-tab"
+            style={{marginLeft:'auto',color:'#A96E1A',borderBottomColor:'transparent',background:'none',border:'none',cursor:'pointer'}}>
             <i className="fa-solid fa-file-pen"/> Koosta tööleht
-          </a>
+          </button>
         )}
       </div>
 
