@@ -110,7 +110,7 @@ textarea{resize:vertical;line-height:1.45;}
 .score-box{border:1px solid #1C2B3A;border-radius:5px;padding:5px 12px;font-size:.78rem;font-weight:600;text-align:center;white-space:nowrap;}
 
 /* PREVIEW BLOCKS */
-.pb-wrap{margin-bottom:22px;}
+.pb-wrap{margin-bottom:22px;break-inside:avoid;page-break-inside:avoid;}
 .pb-wrap.half{width:calc(50% - 8px);display:inline-block;vertical-align:top;margin-right:16px;}
 .pb-wrap.half:nth-child(2n){margin-right:0;}
 .pb-num-row{display:flex;align-items:center;gap:7px;margin-bottom:6px;}
@@ -239,6 +239,18 @@ textarea{resize:vertical;line-height:1.45;}
 }
 .img-resizable-wrap:hover .img-resize-handle{opacity:.9;}
 .img-resize-handle::after{content:'⤡';color:#fff;font-size:.7rem;line-height:1;}
+
+@media print {
+  .ws-toolbar, .ws-sidebar, .tab-bar, .top-bar { display: none !important; }
+  .ws-preview { padding: 0 !important; background: #fff !important; }
+  .pb { break-inside: avoid; page-break-inside: avoid; margin-bottom: 18px; }
+  .pb-section { break-inside: avoid; page-break-inside: avoid; }
+  .match-cols, .choice-block, .fill-block, .order-block { break-inside: avoid; page-break-inside: avoid; }
+  .reading-block { break-inside: avoid; page-break-inside: avoid; }
+  table { break-inside: avoid; page-break-inside: avoid; }
+  h1, h2, h3 { break-after: avoid; page-break-after: avoid; }
+  .pb-num { break-after: avoid; page-break-after: avoid; }
+}
 </style>
 </head>
 <body>
@@ -905,7 +917,7 @@ function buildHTML(meta,blocks) {
     .score{border:1px solid #1a1a1a;border-radius:4px;padding:4px 10px;font-size:.75rem;font-weight:600;}
     .num{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#1a1a1a;color:#fff;font-size:.58rem;font-weight:700;margin-right:6px;}
     .lbl{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#555;}
-    .block{margin-bottom:24px;} .block.half{width:47%;display:inline-block;vertical-align:top;margin-right:4%;}
+    .block{margin-bottom:24px;break-inside:avoid;page-break-inside:avoid;} .block.half{width:47%;display:inline-block;vertical-align:top;margin-right:4%;}
     .block.third{width:30%;display:inline-block;vertical-align:top;margin-right:3%;}
     .instr{font-size:.78rem;font-style:italic;color:#666;margin-bottom:5px;}
     .fill{font-size:.9rem;line-height:2.4;} .blank{display:inline-block;min-width:75px;border-bottom:1.5px solid #1a1a1a;margin:0 2px;}
