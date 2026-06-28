@@ -677,7 +677,7 @@ function PreviewBlock({block,index}) {
       />
     );
     if(block.type==='text') return(
-      <p className="pb-text" style={{fontWeight:block.bold?700:400,fontSize:block.bold?'1rem':'.9rem'}}>{block.content||<span style={{color:'#C0B8B0',fontStyle:'italic'}}>Tekst puudub</span>}</p>
+      <p className="pb-text" style={{fontWeight:block.bold?700:400,fontSize:block.bold?'1rem':'.9rem',whiteSpace:'pre-wrap',lineHeight:1.65}}>{block.content||<span style={{color:'#C0B8B0',fontStyle:'italic'}}>Tekst puudub</span>}</p>
     );
     if(block.type==='fill') return(
       <div className="fill-line">{parseFill(block.text||'').map((p,i)=>p.t==='text'?<span key={i}>{p.v}</span>:<span key={i} className="fill-blank">&nbsp;</span>)}</div>
@@ -872,7 +872,7 @@ Tagasta AINULT JSON, ilma markdown koodiplokita:
   {"type":"match","instruction":"...","pairs":[{"l":"eesti sõna","r":"vene tõlge"}]},
   {"type":"order","instruction":"...","sentence":"õige järjekord"},
   {"type":"writing","instruction":"...","task":"kirjutamisülesanne","lines":8},
-  {"type":"text","content":"selgitav tekst","bold":false},
+  {"type":"text","content":"SITUATSIOON A:\nKirjeldus A\n\nSITUATSIOON B:\nKirjeldus B","bold":false},
   {"type":"table","instruction":"...","headers":["Sõna","Tüüp","Näide"],"rows":5},
   {"type":"reading","instruction":"...","passage":"tekst...","questions":[{"q":"?","opts":["a","b","c"],"correct":0}]}
 ]}
