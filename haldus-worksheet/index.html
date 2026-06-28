@@ -775,7 +775,9 @@ const DIDACTIC_TEMPLATES = {
     kordamine:{label:'Kordamine',blockTypes:['choice','fill','match','order'],instruction:'Süsteemne kordamine. Kõik oskused, eksami formaadile sarnane.',complexity:'high',focus:'exam_prep'}
   },
   suuline:{
-    harjutamine:{label:'Ettevalmistus',blockTypes:['match','order','text'],instruction:'Valmista ette suulist ülesannet. Fraasid, struktuur, abimaterjal.',complexity:'medium',focus:'speaking_prep'}
+    soojendus:{label:'Soojendus',blockTypes:['match','choice'],instruction:'Aktiveeri suhtluskeelt. Sobi fraasid situatsiooniga, vali õige reaktsioon.',complexity:'low',focus:'recognition'},
+    harjutamine:{label:'Dialoog',blockTypes:['match','order','fill'],instruction:'Harjuta dialoogi fraase ja struktuuri. Sobita repliigid, järjesta dialoog, täida lüngad.',complexity:'medium',focus:'speaking_prep'},
+    vaba:{label:'Vaba rääkimine',blockTypes:['text','order'],instruction:'Anna suuline ülesanne koos abifraasidega. Küsimused aruteluks, fraasipank.',complexity:'high',focus:'fluency'}
   },
   kirjalik:{
     mudel:{label:'Tekstimudel',blockTypes:['reading','fill','table'],instruction:'Analüüsi näidisteksti. Struktuur, fraasid, täida tabel.',complexity:'medium',focus:'writing_model'},
@@ -796,7 +798,7 @@ const FOCUS_INSTRUCTIONS = {
   accuracy:'Fookus täpsusel — kinnista korrektne kasutus.',
   fluency:'Fookus sujuvusel — kommunikatiivne kasutus.',
   exam_prep:'Fookus eksami formaadil — täpselt eksami struktuur.',
-  speaking_prep:'Fookus suulise ettevalmistamisel — fraasid, struktuur.',
+  speaking_prep:'Fookus suulisel harjutamisel — dialoogirepliigid, fraasid, situatsioonid. EI genereeri writing ülesandeid. Genereeri match (fraas→situatsioon), order (dialoogi järjestamine), fill (dialoogis lüngad).',
   writing_model:'Fookus kirjutamise mudelil — analüüsi head teksti.',
   writing_production:'Fookus kirjutamisel — selge ülesanne, hindamiskriteeriumid.'
 };
@@ -875,7 +877,8 @@ Tagasta AINULT JSON, ilma markdown koodiplokita:
 ]}
 
 Tase: ${level||'B1'}. Genereeri 4-6 blokki. Kõik eestikeelne.
-TÄHTIS: sobita paarid (match) — kasuta VENE keelt tõlgetena, MITTE inglise. Näide: {"l":"ärkama","r":"просыпаться"}.`;
+TÄHTIS: sobita paarid (match) — kasuta VENE keelt tõlgetena, MITTE inglise. Näide: {"l":"ärkama","r":"просыпаться"}.
+TÄHTIS 2: Kui bloki tüüpide hulgas POLE "writing", siis EI TOHI genereerida writing blokke. Järgi LUBATUD BLOKI TÜÜBID täpselt.`;
 
   const res = await fetch('/api/anthropic-proxy', {
     method: 'POST',
