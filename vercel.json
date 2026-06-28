@@ -4,6 +4,8 @@
     { "source": "/haldus/", "destination": "/haldus.html" },
     { "source": "/haldus-exercises", "destination": "/haldus-exercises/index.html" },
     { "source": "/haldus-exercises/", "destination": "/haldus-exercises/index.html" },
+    { "source": "/haldus-worksheet", "destination": "/haldus-worksheet/index.html" },
+    { "source": "/haldus-worksheet/", "destination": "/haldus-worksheet/index.html" },
     { "source": "/tasemetest", "destination": "/tasemetest.html" },
     { "source": "/tasemetest/", "destination": "/tasemetest.html" },
     { "source": "/privaatsus", "destination": "/privaatsus.html" },
@@ -20,6 +22,14 @@
     },
     {
       "source": "/haldus-exercises/",
+      "headers": [{ "key": "Content-Type", "value": "text/html; charset=utf-8" }]
+    },
+    {
+      "source": "/haldus-worksheet",
+      "headers": [{ "key": "Content-Type", "value": "text/html; charset=utf-8" }]
+    },
+    {
+      "source": "/haldus-worksheet/",
       "headers": [{ "key": "Content-Type", "value": "text/html; charset=utf-8" }]
     },
     {
