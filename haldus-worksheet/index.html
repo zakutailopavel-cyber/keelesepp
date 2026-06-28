@@ -792,23 +792,59 @@ function getVocabByTopic(level, topic) {
 }
 
 // ── AI GENERATE ────────────────────────────────────────────────
-async function genAI(prompt,subject,level) {
-  const sys=`Sa oled eesti keele õpetaja abiassistent. Genereeri tööleht JSON-ina.
-Tagasta AINULT JSON, ilma markdown koodiplokita.
+async function genAI(prompt, subject, level, didacticCtx={}) {
+  const {lessonType='', phase='', wordList=''} = didacticCtx;
+
+  // Get didactic template if lesson type and phase selected
+  const template = lessonType&&phase&&window.DIDACTIC_TEMPLATES
+    ? (window.DIDACTIC_TEMPLATES[lessonType]||{})[phase] : null;
+
+  const allowedTypes = template
+    ? template.blockTypes
+    : ['fill','choice','match','order','writing','table','text','reading'];
+
+  const didacticBlock = template ? `
+TUNNI KONTEKST: ${lessonType} — ${phase}
+DIDAKTILINE EESMÄRK: ${template.instruction}
+KEERUKUS: ${window.COMPLEXITY_INSTRUCTIONS[template.complexity]||''}
+FOOKUS: ${window.FOCUS_INSTRUCTIONS[template.focus]||''}
+LUBATUD BLOKI TÜÜBID: ${allowedTypes.join(', ')} — kasuta AINULT neid!
+Järgi didaktilist loogikat: paiguta blokid lihtsast raskeni.` : '';
+
+  const vocabBlock = wordList ? `
+KASUTA neid EKI sõnu: ${wordList}
+Ehita ülesanded nende sõnade ümber.` : '';
+
+  const sys = `Sa oled eesti keele õpetaja ja didaktika ekspert. Genereeri pedagoogiliselt korrektne tööleht JSON-ina.
+${didacticBlock}
+${vocabBlock}
+
+Tagasta AINULT JSON, ilma markdown koodiplokita:
 {"title":"...","blocks":[
   {"type":"fill","instruction":"...","text":"tekst [vastus] tekst"},
   {"type":"choice","instruction":"...","questions":[{"q":"?","opts":["a","b","c","d"],"correct":0}]},
-  {"type":"writing","instruction":"...","task":"ülesanne","lines":8},
-  {"type":"match","instruction":"...","pairs":[{"l":"est","r":"eng"}]},
-  {"type":"order","instruction":"...","sentence":"õige lause siin"},
-  {"type":"text","content":"tekst","bold":false},
-  {"type":"table","instruction":"...","headers":["col1","col2"],"rows":4}
+  {"type":"match","instruction":"...","pairs":[{"l":"eesti sõna","r":"vene tõlge"}]},
+  {"type":"order","instruction":"...","sentence":"õige järjekord"},
+  {"type":"writing","instruction":"...","task":"kirjutamisülesanne","lines":8},
+  {"type":"text","content":"selgitav tekst","bold":false},
+  {"type":"table","instruction":"...","headers":["Sõna","Tüüp","Näide"],"rows":5},
+  {"type":"reading","instruction":"...","passage":"tekst...","questions":[{"q":"?","opts":["a","b","c"],"correct":0}]}
 ]}
-Tase: ${level||'B1'}. Genereeri 4-6 sisukat blokki. Kõik eestikeelne.`;
-  const res=await fetch('/api/anthropic-proxy',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2000,system:sys,
-      messages:[{role:'user',content:`Genereeri tööleht: ${prompt}\nÕppeaine: ${subject||'Eesti keel'}, Tase: ${level||'B1'}`}]})});
-  const data=await res.json();
+
+Tase: ${level||'B1'}. Genereeri 4-6 blokki. Kõik eestikeelne.
+TÄHTIS: sobita paarid (match) — kasuta VENE keelt tõlgetena, MITTE inglise. Näide: {"l":"ärkama","r":"просыпаться"}.`;
+
+  const res = await fetch('/api/anthropic-proxy', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 2500,
+      system: sys,
+      messages: [{role:'user', content:`Teema: ${prompt}\nÕppeaine: ${subject||'Eesti keel'}, Tase: ${level||'B1'}`}]
+    })
+  });
+  const data = await res.json();
   return JSON.parse((data.content?.[0]?.text||'').replace(/```json|```/g,'').trim());
 }
 
@@ -1085,6 +1121,8 @@ function App() {
   const[activeId,setActiveId]=useState(null);
   const[tab,setTab]=useState('build');
   const[aiPrompt,setAiPrompt]=useState('');
+  const[aiLessonType,setAiLessonType]=useState('');
+  const[aiPhase,setAiPhase]=useState('');
   const[aiLoading,setAiLoading]=useState(false);
   const[toast,setToast]=useState('');
   const[dragId,setDragId]=useState(null);
@@ -1129,22 +1167,9 @@ function App() {
     try{
       const words=getVocabForLevel(meta.level);
       const wordList=words.slice(0,40).map(w=>w.word+' ('+w.type+')').join(', ');
-      const sys=`Sa oled eesti keele õpetaja. Genereeri tööleht JSON-ina kasutades AINULT neid sõnu: ${wordList}
-Tagasta AINULT JSON, ilma markdown koodiplokita.
-{"title":"...","blocks":[
-  {"type":"fill","instruction":"...","text":"tekst [vastus] tekst"},
-  {"type":"choice","instruction":"...","questions":[{"q":"?","opts":["a","b","c","d"],"correct":0}]},
-  {"type":"match","instruction":"...","pairs":[{"l":"eesti sõna","r":"selgitus/kontekst"}]},
-  {"type":"order","instruction":"...","sentence":"õige lause nendest sõnadest"},
-  {"type":"table","instruction":"...","headers":["Sõna","Tüüp","Näide"],"rows":6}
-]}
-Tase: ${meta.level}. Kasuta kõiki pakutud sõnatüüpe. Genereeri 4-5 blokki.`;
-      const res=await fetch('/api/anthropic-proxy',{method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2000,system:sys,
-          messages:[{role:'user',content:`Teema: ${aiPrompt}, Tase: ${meta.level}`}]})});
-      const data=await res.json();
-      const r=JSON.parse((data.content?.[0]?.text||'').replace(/```json|```/g,'').trim());
+      const r=await genAI(aiPrompt,meta.subject||'Eesti keel',meta.level,{
+        lessonType:aiLessonType, phase:aiPhase, wordList
+      });
       if(r.title) setMeta(m=>({...m,title:r.title}));
       const nb=(r.blocks||[]).map(b=>({...mkBlock(b.type),...b,id:uid()}));
       setBlocks(nb);
@@ -1159,7 +1184,7 @@ Tase: ${meta.level}. Kasuta kõiki pakutud sõnatüüpe. Genereeri 4-5 blokki.`;
     if(!aiPrompt.trim()){notify('Kirjuta juhis');return;}
     setAiLoading(true);
     try{
-      const r=await genAI(aiPrompt,meta.subject,meta.level);
+      const r=await genAI(aiPrompt,meta.subject,meta.level,{lessonType:aiLessonType,phase:aiPhase});
       if(r.title) setMeta(m=>({...m,title:r.title}));
       const nb=(r.blocks||[]).map(b=>({...mkBlock(b.type),...b,id:uid()}));
       setBlocks(nb);
@@ -1232,16 +1257,50 @@ Tase: ${meta.level}. Kasuta kõiki pakutud sõnatüüpe. Genereeri 4-5 blokki.`;
               <div>
                 <div className="ai-panel">
                   <div className="ai-title"><i className="fa-solid fa-wand-magic-sparkles"/> Genereeri AI-ga</div>
-                  <textarea className="ai-textarea" value={aiPrompt} onChange={e=>setAiPrompt(e.target.value)} rows={5}
-                    placeholder={"Näiteks:\n\"Tegusõnade pööramine olevikus A2\"\n\"Lugemisharjutus toidust B1\""}/>
+
+                  {/* Lesson type selector */}
+                  <div style={{marginBottom:8}}>
+                    <div style={{fontSize:'.64rem',fontWeight:700,color:'rgba(255,255,255,.45)',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:5}}>Tunni tüüp (valikuline)</div>
+                    <div style={{display:'flex',gap:5,flexWrap:'wrap'}}>
+                      {[['','Vaba'],['uus_teema','🌱 Uus teema'],['kinnistamine','🔁 Kinnistamine'],['kordamine','📋 Kordamine'],['kirjalik','✍️ Kirjalik']].map(([k,l])=>(
+                        <button key={k} className={'ai-lvl'+(aiLessonType===k?' active':'')} onClick={()=>{setAiLessonType(k);setAiPhase('');}}
+                          style={{fontSize:'.68rem'}}>{l}</button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Phase selector — shows only when lesson type selected */}
+                  {aiLessonType&&DIDACTIC_TEMPLATES[aiLessonType]&&(
+                    <div style={{marginBottom:8}}>
+                      <div style={{fontSize:'.64rem',fontWeight:700,color:'rgba(255,255,255,.45)',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:5}}>Tunni faas</div>
+                      <div style={{display:'flex',gap:5,flexWrap:'wrap'}}>
+                        {Object.entries(DIDACTIC_TEMPLATES[aiLessonType]).map(([k,v])=>(
+                          <button key={k} className={'ai-lvl'+(aiPhase===k?' active':'')} onClick={()=>setAiPhase(k)}
+                            style={{fontSize:'.67rem'}}>{v.label.split(' — ')[0]}</button>
+                        ))}
+                      </div>
+                      {aiPhase&&DIDACTIC_TEMPLATES[aiLessonType]?.[aiPhase]&&(
+                        <div style={{marginTop:6,padding:'6px 9px',background:'rgba(255,255,255,.07)',borderRadius:7,fontSize:'.72rem',color:'rgba(255,255,255,.55)',lineHeight:1.4}}>
+                          💡 {DIDACTIC_TEMPLATES[aiLessonType][aiPhase].instruction}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Topic input */}
+                  <textarea className="ai-textarea" value={aiPrompt} onChange={e=>setAiPrompt(e.target.value)} rows={3}
+                    placeholder={"Tunni teema, nt:\n\"Tegusõnade pööramine olevikus\"\n\"Igapäevaelu kirjeldamine\""}/>
+
+                  {/* Level */}
                   <div className="ai-lvl-btns">
                     {['A1','A2','B1','B2','C1'].map(l=>(
                       <button key={l} className={'ai-lvl'+(meta.level===l?' active':'')} onClick={()=>setMeta(m=>({...m,level:l}))}>{l}</button>
                     ))}
                   </div>
+
                   <div style={{display:'flex',gap:7,marginTop:10}}>
                     <button onClick={runAI} disabled={aiLoading} className="btn btn-pine" style={{flex:1,justifyContent:'center',background:'#C9882A',color:'#fff'}}>
-                      {aiLoading?<><div className="sp" style={{marginRight:6}}/> Genereerib...</>:<><i className="fa-solid fa-bolt"/> Genereeri AI-ga</>}
+                      {aiLoading?<><div className="sp" style={{marginRight:6}}/> Genereerib...</>:<><i className="fa-solid fa-bolt"/> Genereeri</>}
                     </button>
                     <button onClick={runVocabAI} disabled={aiLoading} className="btn btn-pine" style={{flex:1,justifyContent:'center',background:'#2F5D50',color:'#fff'}} title="Kasuta EKI sõnavara">
                       {aiLoading?<><div className="sp" style={{marginRight:6}}/> Genereerib...</>:<><i className="fa-solid fa-book"/> + Sõnavara</>}
