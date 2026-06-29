@@ -3074,8 +3074,8 @@ function AssignWorksheetModal({lesson, students, user, onClose, notify}) {
   React.useEffect(()=>{ if(lesson._pickForStudent) setSel([lesson._pickForStudent]); },[]);
   React.useEffect(()=>{
     if(!isPicker) return;
-    db.collection('curriculumLessons').where('subject','!=','').limit(60).get()
-      .then(snap=>setCurrLessons(snap.docs.map(d=>({id:d.id,...d.data()})).filter(l=>l.worksheetData?.blocks?.length)))
+    db.collection('curriculumLessons').limit(200).get()
+      .then(snap=>setCurrLessons(snap.docs.map(d=>({id:d.id,...d.data()})).filter(l=>l.worksheetData?.blocks?.length).sort((a,b)=>(a.subject||'').localeCompare(b.subject||'')||(a.level||'').localeCompare(b.level||'')||(a.title||'').localeCompare(b.title||''))))
       .catch(()=>{});
   },[isPicker]);
   const effectiveLesson = pickedLesson || lesson;
