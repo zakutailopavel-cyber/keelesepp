@@ -2290,7 +2290,7 @@ function WorksheetPreviewModal({lesson,onClose,onConduct}) {
             <div style={{color:'rgba(255,255,255,.45)',fontSize:'.75rem'}}>{lesson.subject} · {lesson.level} · {lesson.topic}</div>
           </div>
           <div style={{display:'flex',gap:8,alignItems:'center'}}>
-            <a href="/haldus-worksheet" style={{color:'rgba(255,255,255,.6)',fontSize:'.76rem',textDecoration:'none',padding:'5px 10px',border:'1px solid rgba(255,255,255,.15)',borderRadius:7}}>
+            <a href="/haldus-worksheet/" style={{color:'rgba(255,255,255,.6)',fontSize:'.76rem',textDecoration:'none',padding:'5px 10px',border:'1px solid rgba(255,255,255,.15)',borderRadius:7}}>
               <i className="fa-solid fa-pen"/> Muuda
             </a>
             <button onClick={()=>{
@@ -2452,7 +2452,7 @@ function StatisticsView({allLessons}) {
                     <div style={{fontSize:'.84rem',fontWeight:700,color:'#1C2B3A'}}>{t.topic}</div>
                     <div style={{fontSize:'.7rem',color:'#7A7167'}}>{t.subject} · {t.level} · {t.count} kirjet</div>
                   </div>
-                  <a href="/haldus-worksheet" style={{fontSize:'.72rem',padding:'4px 9px',borderRadius:7,background:'#C9882A',color:'#fff',textDecoration:'none',fontWeight:700,whiteSpace:'nowrap'}}>
+                  <a href="/haldus-worksheet/" style={{fontSize:'.72rem',padding:'4px 9px',borderRadius:7,background:'#C9882A',color:'#fff',textDecoration:'none',fontWeight:700,whiteSpace:'nowrap'}}>
                     <i className="fa-solid fa-bolt"/> Loo tööleht
                   </a>
                 </div>
@@ -2581,7 +2581,7 @@ function App(){
           <i className="fa-solid fa-chart-bar"/> Statistika
         </button>
         {tab==='curriculum'&&isTeacher&&(
-          <button onClick={()=>window.open('/haldus-worksheet','_blank')} className="top-tab"
+          <button onClick={()=>window.open('/haldus-worksheet/','_blank')} className="top-tab"
             style={{marginLeft:'auto',color:'#A96E1A',borderBottomColor:'transparent',background:'none',border:'none',cursor:'pointer'}}>
             <i className="fa-solid fa-file-pen"/> Koosta tööleht
           </button>
