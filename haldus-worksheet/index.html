@@ -867,18 +867,67 @@ function SaveModal({meta,blocks,user,onClose,notify}){
     });
   },[topic,topicMode,subject,level]);
   const finalTopic=topicMode==='new'?newTopic.trim():topic;
+  const[savedLessonId,setSavedLessonId]=useState('');
+  const[step,setStep]=useState('save'); // 'save' | 'assign'
+  const[students,setStudents]=useState([]);
+  const[selStudents,setSelStudents]=useState([]);
+  const[assignDue,setAssignDue]=useState('');
+  const[assignNote,setAssignNote]=useState('');
+  const[assigning,setAssigning]=useState(false);
+  const[stuSearch,setStuSearch]=useState('');
+
+  useEffect(()=>{
+    if(step!=='assign') return;
+    db.collection('students').where('active','!=',false).get()
+      .then(snap=>setStudents(snap.docs.map(d=>({id:d.id,...d.data()})).filter(s=>s.active!==false)))
+      .catch(()=>{});
+  },[step]);
+
+  const toggleStu=sid=>setSelStudents(p=>p.includes(sid)?p.filter(x=>x!==sid):[...p,sid]);
+
   const save=async()=>{
     if(!finalTopic){alert('Vali teema või sisesta uus teema nimi');return;}setSaving(true);
     try{
+      let lid=selectedLessonId;
       if(lessonMode==='existing'&&selectedLessonId){
         await db.collection('curriculumLessons').doc(selectedLessonId).update({worksheetData:{meta,blocks},updatedAt:new Date().toISOString()});
         notify('✓ Tööleht lisatud olemasolevale kirjele!');
       }else{
-        await db.collection('curriculumLessons').add({title:meta.title||'Tööleht',type:'material',description:'',subject,level,topic:finalTopic,examPart:null,worksheetData:{meta,blocks},files:[],order:0,authorUid:user?.uid||'',authorName:user?.displayName||user?.email||'',createdAt:new Date().toISOString().split('T')[0],updatedAt:new Date().toISOString()});
+        const ref=await db.collection('curriculumLessons').add({title:meta.title||'Tööleht',type:'material',description:'',subject,level,topic:finalTopic,examPart:null,worksheetData:{meta,blocks},files:[],order:0,authorUid:user?.uid||'',authorName:user?.displayName||user?.email||'',createdAt:new Date().toISOString().split('T')[0],updatedAt:new Date().toISOString()});
+        lid=ref.id;
         notify('✓ Tööleht salvestatud uue kirjena!');
       }
-      onClose();
+      setSavedLessonId(lid);
+      setStep('assign');
     }catch(e){notify('Viga: '+(e.message||'Salvestamine ebaõnnestus'));}setSaving(false);
+  };
+
+  const assign=async()=>{
+    if(!selStudents.length){onClose();return;}
+    setAssigning(true);
+    const batch=db.batch();
+    selStudents.forEach(sid=>{
+      const st=students.find(s=>s.id===sid);
+      const ref=db.collection('worksheetAssignments').doc();
+      batch.set(ref,{
+        lessonId:savedLessonId||'',
+        lessonTitle:meta.title||'Tööleht',
+        subject,level,topic:finalTopic,
+        worksheetData:{meta,blocks},
+        studentId:sid,
+        studentName:st?.name||'',
+        assignedBy:user?.uid||'',
+        assignedByName:user?.displayName||user?.email||'',
+        assignedAt:new Date().toISOString(),
+        dueDate:assignDue||'',
+        note:assignNote||'',
+        status:'new',score:null,completedAt:null,answers:{}
+      });
+    });
+    await batch.commit();
+    setAssigning(false);
+    notify('✓ Tööleht määratud '+selStudents.length+' õpilasele!');
+    onClose();
   };
   return(
     <div className="sav-ov">
@@ -904,7 +953,49 @@ function SaveModal({meta,blocks,user,onClose,notify}){
               :<div style={{padding:'10px 12px',borderRadius:9,background:'rgba(28,43,58,.04)',border:'1px dashed rgba(28,43,58,.15)',fontSize:'.82rem',color:'#7A7167'}}>Luuakse uus kirje teemasse "{finalTopic}"</div>}
           </div>)}
         </div>
-        <div className="sav-foot"><button onClick={onClose} className="btn btn-ghost">Tühista</button><button onClick={save} disabled={saving||(!finalTopic)} className="btn btn-green">{saving?'Salvestab…':lessonMode==='existing'&&selectedLessonId?'✓ Lisa olemasolevale':'✓ Loo uus kirje'}</button></div>
+        {step==='assign'&&(
+          <div style={{marginTop:12}}>
+            <div style={{padding:'10px 13px',borderRadius:10,background:'rgba(47,93,80,.08)',border:'0.5px solid rgba(47,93,80,.2)',fontSize:'.84rem',fontWeight:600,color:'#2F5D50',marginBottom:12}}>
+              ✓ Tööleht salvestatud! Kas määrad selle kohe mõnele õpilasele?
+            </div>
+            <input value={stuSearch} onChange={e=>setStuSearch(e.target.value)}
+              placeholder="🔍 Otsi õpilast..."
+              style={{width:'100%',padding:'8px 12px',borderRadius:9,border:'1.5px solid rgba(28,43,58,.12)',fontFamily:'inherit',fontSize:'.86rem',marginBottom:8}}/>
+            <div style={{border:'1px solid rgba(28,43,58,.1)',borderRadius:10,maxHeight:200,overflowY:'auto',padding:5,display:'flex',flexDirection:'column',gap:3,marginBottom:10}}>
+              {students.filter(s=>{const q=stuSearch.toLowerCase();return !q||s.name?.toLowerCase().includes(q)||(s.teacher||'').toLowerCase().includes(q);}).map(st=>(
+                <label key={st.id} style={{display:'flex',alignItems:'center',gap:9,padding:'7px 10px',borderRadius:8,cursor:'pointer',
+                  background:selStudents.includes(st.id)?'rgba(47,93,80,.08)':'transparent',
+                  border:selStudents.includes(st.id)?'1px solid rgba(47,93,80,.2)':'1px solid transparent'}}>
+                  <input type="checkbox" checked={selStudents.includes(st.id)} onChange={()=>toggleStu(st.id)} style={{accentColor:'#2F5D50',width:14,height:14}}/>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontWeight:700,fontSize:'.86rem',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{st.name}</div>
+                    <div style={{fontSize:'.7rem',color:'#7A7167'}}>{st.subject||'Eesti keel'} · {st.level||'A1'} · {st.teacher||'—'}</div>
+                  </div>
+                </label>
+              ))}
+              {students.length===0&&<div style={{color:'#B0A898',fontSize:'.84rem',padding:8,textAlign:'center'}}>Laen õpilasi...</div>}
+            </div>
+            {selStudents.length>0&&<div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:8}}>
+              <div>
+                <div style={{fontSize:'.7rem',fontWeight:700,color:'#718096',marginBottom:4}}>Tähtaeg</div>
+                <input type="date" value={assignDue} onChange={e=>setAssignDue(e.target.value)} style={{width:'100%',padding:'7px 10px',borderRadius:8,border:'1.5px solid rgba(28,43,58,.12)',fontFamily:'inherit',fontSize:'.84rem'}}/>
+              </div>
+              <div>
+                <div style={{fontSize:'.7rem',fontWeight:700,color:'#718096',marginBottom:4}}>Märkus</div>
+                <input value={assignNote} onChange={e=>setAssignNote(e.target.value)} placeholder="Valikuline..." style={{width:'100%',padding:'7px 10px',borderRadius:8,border:'1.5px solid rgba(28,43,58,.12)',fontFamily:'inherit',fontSize:'.84rem'}}/>
+              </div>
+            </div>}
+          </div>
+        )}
+        <div className="sav-foot">
+          <button onClick={onClose} className="btn btn-ghost">{step==='assign'?'Jäta määramata':'Tühista'}</button>
+          {step==='save'
+            ?<button onClick={save} disabled={saving||(!finalTopic)} className="btn btn-green">{saving?'Salvestab…':lessonMode==='existing'&&selectedLessonId?'✓ Lisa olemasolevale':'✓ Loo uus kirje'}</button>
+            :<button onClick={assign} disabled={assigning} className="btn btn-green" style={{background:'#2563eb'}}>
+              {assigning?'Määran…':selStudents.length?'📤 Määra '+selStudents.length+' õpilasele →':'Jäta määramata →'}
+            </button>
+          }
+        </div>
       </div>
     </div>
   );
