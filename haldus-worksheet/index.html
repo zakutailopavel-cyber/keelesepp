@@ -183,29 +183,35 @@ const _prefill=(()=>{
 
 // ── CONSTANTS ─────────────────────────────────────────────────
 const BTYPES=[
-  {key:'fill',    label:'Täida lünk',    icon:'fa-pen-line',         color:'#1d4ed8',bg:'rgba(29,78,216,.1)'},
-  {key:'choice',  label:'Vali vastus',   icon:'fa-list-check',       color:'#6d28d9',bg:'rgba(109,40,217,.1)'},
-  {key:'writing', label:'Kirjutamine',   icon:'fa-pen-nib',          color:'#A96E1A',bg:'rgba(169,110,26,.1)'},
-  {key:'match',   label:'Sobita paarid', icon:'fa-link',             color:'#047857',bg:'rgba(4,120,87,.1)'},
-  {key:'order',   label:'Järjesta sõnad',icon:'fa-shuffle',          color:'#2F5D50',bg:'rgba(47,93,80,.1)'},
-  {key:'table',   label:'Tabel',         icon:'fa-table',            color:'#0e7490',bg:'rgba(14,116,144,.1)'},
-  {key:'text',    label:'Tekst / juhis', icon:'fa-align-left',       color:'#718096',bg:'rgba(113,128,150,.1)'},
-  {key:'reading', label:'Lugemistekst',  icon:'fa-book-open-reader', color:'#be185d',bg:'rgba(190,24,93,.1)'},
-  {key:'image',   label:'Pilt',          icon:'fa-image',            color:'#0f766e',bg:'rgba(15,118,110,.1)'},
+  {key:'fill',             label:'Taida lunk',      icon:'fa-pen-line',         color:'#1d4ed8',bg:'rgba(29,78,216,.1)'},
+  {key:'choice',           label:'Vali vastus',      icon:'fa-list-check',       color:'#6d28d9',bg:'rgba(109,40,217,.1)'},
+  {key:'writing',          label:'Kirjutamine',      icon:'fa-pen-nib',          color:'#A96E1A',bg:'rgba(169,110,26,.1)'},
+  {key:'match',            label:'Sobita paarid',    icon:'fa-link',             color:'#047857',bg:'rgba(4,120,87,.1)'},
+  {key:'order',            label:'Jarjesta sonad',   icon:'fa-shuffle',          color:'#2F5D50',bg:'rgba(47,93,80,.1)'},
+  {key:'table',            label:'Tabel',            icon:'fa-table',            color:'#0e7490',bg:'rgba(14,116,144,.1)'},
+  {key:'text',             label:'Tekst / juhis',    icon:'fa-align-left',       color:'#718096',bg:'rgba(113,128,150,.1)'},
+  {key:'reading',          label:'Lugemistekst',     icon:'fa-book-open-reader', color:'#be185d',bg:'rgba(190,24,93,.1)'},
+  {key:'image',            label:'Pilt',             icon:'fa-image',            color:'#0f766e',bg:'rgba(15,118,110,.1)'},
+  {key:'dialogue',         label:'Dialoog',          icon:'fa-comments',         color:'#0369a1',bg:'rgba(3,105,161,.1)'},
+  {key:'error_correction', label:'Leia viga',        icon:'fa-spell-check',      color:'#dc2626',bg:'rgba(220,38,38,.1)'},
+  {key:'transformation',   label:'Muuda lauset',     icon:'fa-right-left',       color:'#7c3aed',bg:'rgba(124,58,237,.1)'},
 ];
 const BT=Object.fromEntries(BTYPES.map(b=>[b.key,b]));
 
 const mkBlock=type=>{
   const base={id:uid(),type,instruction:'',size:'full',imageUrl:'',imagePos:'top',label:''};
-  if(type==='fill')    return{...base,text:'Mina [elan] Tallinnas ja [töötan] koolis.'};
-  if(type==='choice')  return{...base,questions:[{q:'Mis on Eesti pealinn?',opts:['Tallinn','Tartu','Pärnu','Narva'],correct:0}]};
-  if(type==='writing') return{...base,task:'Kirjuta lühike tekst teemal "Minu pere" (50–80 sõna).',lines:8};
-  if(type==='match')   return{...base,pairs:[{l:'koer',r:'собака'},{l:'kass',r:'кошка'},{l:'lind',r:'птица'},{l:'kala',r:'рыба'}]};
-  if(type==='order')   return{...base,sentence:'Ma armastan õppida eesti keelt'};
-  if(type==='table')   return{...base,headers:['Sõna','Tõlge','Näide'],rows:4};
-  if(type==='text')    return{...base,content:'',bold:false};
-  if(type==='reading') return{...base,passage:'Sisesta lugemistekst...',questions:[{q:'',opts:['','','',''],correct:0}]};
-  if(type==='image')   return{...base,caption:''};
+  if(type==='fill')             return{...base,text:'Mina [elan] Tallinnas ja [töötan] koolis.'};
+  if(type==='choice')           return{...base,questions:[{q:'Mis on Eesti pealinn?',opts:['Tallinn','Tartu','Pärnu','Narva'],correct:0}]};
+  if(type==='writing')          return{...base,task:'Kirjuta lühike tekst teemal "Minu pere" (50-80 sona).',lines:8};
+  if(type==='match')            return{...base,pairs:[{l:'koer',r:'собака'},{l:'kass',r:'кошка'},{l:'lind',r:'птица'},{l:'kala',r:'рыба'}]};
+  if(type==='order')            return{...base,sentence:'Ma armastan oppida eesti keelt'};
+  if(type==='table')            return{...base,headers:['Sona','Tolge','Naite'],rows:4};
+  if(type==='text')             return{...base,content:'',bold:false};
+  if(type==='reading')          return{...base,passage:'Sisesta lugemistekst...',questions:[{q:'',opts:['','','',''],correct:0}]};
+  if(type==='image')            return{...base,caption:''};
+  if(type==='dialogue')         return{...base,lines:[{speaker:'A',text:'Tere! Kuidas laheb?'},{speaker:'B',text:'[vastus]'},{speaker:'A',text:'[vastus]'}]};
+  if(type==='error_correction') return{...base,sentences:[{wrong:'Ma lahen eile poodi.',correct:'Ma laksin eile poodi.'}]};
+  if(type==='transformation')   return{...base,example:{from:'Ma lahen poodi.',to:'Ma ei lahe poodi.'},sentences:['Ta tootab koolis.','Me elame Tallinnas.','Nad raagivad eesti keelt.']};
   return base;
 };
 
@@ -334,6 +340,78 @@ function ReadingEd({b,upd}){
 
 function ImageEd({b,upd}){return(<><div className="field-lbl">Pilt</div><ImgUploader value={b.imageUrl||''} onChange={url=>upd({imageUrl:url})}/><div className="field-lbl">Pildi asukoht</div><select value={b.imagePos||'top'} onChange={e=>upd({imagePos:e.target.value})}><option value="top">Üleval</option><option value="right">Paremal</option><option value="bottom">Allpool</option></select><div className="field-lbl">Allkiri (valikuline)</div><input value={b.caption||''} onChange={e=>upd({caption:e.target.value})} placeholder="Pildi kirjeldus..."/></>);}
 
+
+// ── NEW BLOCK TYPE EDITORS ────────────────────────────────────
+function DialogueEd({b,upd}){
+  const lines=b.lines||[];
+  const setLine=(i,field,val)=>upd({lines:lines.map((l,j)=>j===i?{...l,[field]:val}:l)});
+  return(<>
+    <div className="field-lbl">Dialoogi read ([vastus] = opilane taidab)</div>
+    {lines.map((line,i)=>(
+      <div key={i} style={{display:'grid',gridTemplateColumns:'70px 1fr auto',gap:5,marginBottom:5,alignItems:'center'}}>
+        <select value={line.speaker} onChange={e=>setLine(i,'speaker',e.target.value)} style={{padding:'5px 7px',fontSize:'.78rem'}}>
+          <option value="A">A</option><option value="B">B</option>
+          <option value="Opetaja">Opetaja</option><option value="Opilane">Opilane</option>
+        </select>
+        <input value={line.text} onChange={e=>setLine(i,'text',e.target.value)} placeholder="Tekst voi [vastus]"/>
+        <button onClick={()=>upd({lines:lines.filter((_,j)=>j!==i)})} disabled={lines.length<=2}
+          style={{background:'none',border:'none',color:'#dc2626',cursor:'pointer',fontSize:'.72rem',padding:'0 3px'}}>x</button>
+      </div>
+    ))}
+    <button onClick={()=>upd({lines:[...lines,{speaker:'A',text:''}]})} className="btn btn-ghost btn-sm" style={{width:'100%',marginTop:3}}>
+      + Lisa rida
+    </button>
+  </>);
+}
+
+function ErrorCorrectionEd({b,upd}){
+  const sents=b.sentences||[];
+  const setS=(i,field,val)=>upd({sentences:sents.map((s,j)=>j===i?{...s,[field]:val}:s)});
+  return(<>
+    <div className="field-lbl">Laused (wrong = vigane, correct = oige)</div>
+    {sents.map((s,i)=>(
+      <div key={i} style={{marginBottom:8,padding:'8px 10px',borderRadius:8,background:'#FFF5F5',border:'1px solid rgba(220,38,38,.12)'}}>
+        <div style={{display:'flex',justifyContent:'space-between',marginBottom:5}}>
+          <span style={{fontSize:'.7rem',fontWeight:700,color:'#dc2626'}}>Lause {i+1}</span>
+          {sents.length>1&&<button onClick={()=>upd({sentences:sents.filter((_,j)=>j!==i)})} style={{background:'none',border:'none',color:'#dc2626',cursor:'pointer',fontSize:'.7rem'}}>x</button>}
+        </div>
+        <div className="field-lbl">Vigane lause</div>
+        <input value={s.wrong} onChange={e=>setS(i,'wrong',e.target.value)} placeholder="Lause vigaga..." style={{marginBottom:4,borderColor:'rgba(220,38,38,.3)'}}/>
+        <div className="field-lbl">Oige lause (vastus)</div>
+        <input value={s.correct} onChange={e=>setS(i,'correct',e.target.value)} placeholder="Korrektne lause..."/>
+      </div>
+    ))}
+    <button onClick={()=>upd({sentences:[...sents,{wrong:'',correct:''}]})} className="btn btn-ghost btn-sm" style={{width:'100%'}}>+ Lisa lause</button>
+  </>);
+}
+
+function TransformationEd({b,upd}){
+  const sents=b.sentences||[];
+  return(<>
+    <div className="field-lbl">Naitevorm (naidis)</div>
+    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6,marginBottom:8}}>
+      <div>
+        <div style={{fontSize:'.64rem',color:'#7A7167',marginBottom:2}}>Algne</div>
+        <input value={b.example?.from||''} onChange={e=>upd({example:{...b.example,from:e.target.value}})} placeholder="Ma lahen poodi."/>
+      </div>
+      <div>
+        <div style={{fontSize:'.64rem',color:'#7A7167',marginBottom:2}}>Muudetud</div>
+        <input value={b.example?.to||''} onChange={e=>upd({example:{...b.example,to:e.target.value}})} placeholder="Ma ei lahe poodi."/>
+      </div>
+    </div>
+    <div className="field-lbl">Laused muutmiseks</div>
+    {sents.map((s,i)=>(
+      <div key={i} style={{display:'flex',gap:5,marginBottom:5,alignItems:'center'}}>
+        <span style={{fontSize:'.72rem',color:'#B0A898',minWidth:16,textAlign:'right'}}>{i+1}.</span>
+        <input value={s} onChange={e=>upd({sentences:sents.map((x,j)=>j===i?e.target.value:x)})} placeholder={`Lause ${i+1}...`}/>
+        <button onClick={()=>upd({sentences:sents.filter((_,j)=>j!==i)})} disabled={sents.length<=1}
+          style={{background:'none',border:'none',color:'#dc2626',cursor:'pointer',fontSize:'.72rem',padding:'0 3px'}}>x</button>
+      </div>
+    ))}
+    <button onClick={()=>upd({sentences:[...sents,'']})} className="btn btn-ghost btn-sm" style={{width:'100%',marginTop:3}}>+ Lisa lause</button>
+  </>);
+}
+
 function BlockEditor({block,onChange}){
   const upd=p=>onChange({...block,...p});
   return(
@@ -350,15 +428,18 @@ function BlockEditor({block,onChange}){
       <div className="field-lbl">Laius leheküljel</div>
       <div className="size-btns">{[['full','Täislaius'],['half','Pool'],['third','Kolmandik']].map(([s,l])=>(<button key={s} className={'size-btn'+(block.size===s?' active':'')} onClick={()=>upd({size:s})}>{l}</button>))}</div>
       <div style={{marginTop:8,paddingTop:8,borderTop:'0.5px solid rgba(28,43,58,.07)'}}>
-        {block.type==='fill'   &&<FillEd    b={block} upd={upd}/>}
-        {block.type==='choice' &&<ChoiceEd  b={block} upd={upd}/>}
-        {block.type==='writing'&&<WritingEd b={block} upd={upd}/>}
-        {block.type==='match'  &&<MatchEd   b={block} upd={upd}/>}
-        {block.type==='order'  &&<OrderEd   b={block} upd={upd}/>}
-        {block.type==='table'  &&<TableEd   b={block} upd={upd}/>}
-        {block.type==='text'   &&<TextEd    b={block} upd={upd}/>}
-        {block.type==='reading'&&<ReadingEd b={block} upd={upd}/>}
-        {block.type==='image'  &&<ImageEd   b={block} upd={upd}/>}
+        {block.type==='fill'            &&<FillEd            b={block} upd={upd}/>}
+        {block.type==='choice'          &&<ChoiceEd          b={block} upd={upd}/>}
+        {block.type==='writing'         &&<WritingEd         b={block} upd={upd}/>}
+        {block.type==='match'           &&<MatchEd           b={block} upd={upd}/>}
+        {block.type==='order'           &&<OrderEd           b={block} upd={upd}/>}
+        {block.type==='table'           &&<TableEd           b={block} upd={upd}/>}
+        {block.type==='text'            &&<TextEd            b={block} upd={upd}/>}
+        {block.type==='reading'         &&<ReadingEd         b={block} upd={upd}/>}
+        {block.type==='image'           &&<ImageEd           b={block} upd={upd}/>}
+        {block.type==='dialogue'        &&<DialogueEd        b={block} upd={upd}/>}
+        {block.type==='error_correction'&&<ErrorCorrectionEd b={block} upd={upd}/>}
+        {block.type==='transformation'  &&<TransformationEd  b={block} upd={upd}/>}
       </div>
     </div>
   );
@@ -411,6 +492,59 @@ function PreviewBlock({block,index,onChange}){
     if(block.type==='order'){const words=(block.sentence||'').split(' ').filter(Boolean).sort(()=>Math.random()-.5);return<div><div className="order-chips">{words.map((w,i)=><span key={i} className="order-chip">{w}</span>)}</div><div className="order-ans">Kirjuta õige järjestus: ___________________________________________________</div></div>;}
     if(block.type==='table'){const cd=block.cellData||{};return<table className="ws-tbl"><thead><tr>{(block.headers||[]).map((h,i)=><th key={i}>{h||`Veerg ${i+1}`}</th>)}</tr></thead><tbody>{Array.from({length:block.rows||4}).map((_,ri)=>(<tr key={ri}>{(block.headers||[]).filter(Boolean).map((_,ci)=><td key={ci}>{cd[ri+','+ci]||''}</td>)}</tr>))}</tbody></table>;}
     if(block.type==='reading')return<div><div className="pb-passage">{block.passage}</div>{(block.questions||[]).map((q,qi)=>(<div key={qi} style={{marginBottom:10}}><div className="ch-q">{qi+1}. {q.q||'Küsimus...'}</div><div className="ch-opts">{q.opts.filter(Boolean).map((o,oi)=>(<div key={oi} className="ch-opt"><div className="ch-circle"/><span>{o}</span></div>))}</div></div>))}</div>;
+    if(block.type==='dialogue'){
+      const lns=block.lines||[];
+      return(<div style={{border:'1px solid rgba(28,43,58,.1)',borderRadius:8,overflow:'hidden'}}>
+        {lns.map((line,i)=>{
+          const isA=line.speaker==='A'||line.speaker==='Õpetaja';
+          const parts=(line.text||'').split(/(\[[^\]]*\])/g);
+          const hasBlank=parts.some(p=>p.startsWith('['));
+          return(<div key={i} style={{display:'flex',alignItems:'flex-start',gap:8,padding:'8px 12px',background:isA?'#F9F8F6':'#fff',borderBottom:i<lns.length-1?'1px solid rgba(28,43,58,.06)':'none'}}>
+            <span style={{fontSize:'.72rem',fontWeight:700,color:isA?'#2F5D50':'#1d4ed8',minWidth:60,flexShrink:0,paddingTop:2}}>{line.speaker}:</span>
+            <span style={{fontSize:'.88rem',color:'#1C2B3A',flex:1}}>
+              {hasBlank?parts.map((p,pi)=>p.startsWith('[')?<span key={pi} style={{display:'inline-block',minWidth:80,borderBottom:'1.5px solid #1C2B3A',margin:'0 3px'}}>&nbsp;</span>:<span key={pi}>{p}</span>):line.text}
+            </span>
+          </div>);
+        })}
+      </div>);
+    }
+    if(block.type==='error_correction'){
+      const sents=block.sentences||[];
+      return(<div>{sents.map((s,i)=>(
+        <div key={i} style={{marginBottom:10}}>
+          <div style={{display:'flex',alignItems:'flex-start',gap:8,marginBottom:4}}>
+            <span style={{fontSize:'.72rem',fontWeight:800,color:'#dc2626',minWidth:20,paddingTop:2}}>{i+1}.</span>
+            <div>
+              <div style={{fontSize:'.88rem',color:'#7A7167',textDecoration:'line-through',marginBottom:3}}>{s.wrong}</div>
+              <div style={{display:'flex',alignItems:'center',gap:6}}>
+                <span style={{fontSize:'.72rem',color:'#7A7167',flexShrink:0}}>Parandus:</span>
+                <div style={{flex:1,borderBottom:'1.5px solid #1C2B3A',minHeight:20}}/>
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}</div>);
+    }
+    if(block.type==='transformation'){
+      const sents=block.sentences||[];
+      return(<div>
+        {block.example&&<div style={{padding:'7px 11px',borderRadius:7,background:'#F0EEE9',border:'1px solid rgba(28,43,58,.1)',marginBottom:12,fontSize:'.84rem',display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
+          <span style={{color:'#7A7167',fontSize:'.72rem',fontWeight:700}}>NÄIDE:</span>
+          <span>{block.example.from}</span>
+          <span style={{color:'#C9882A',fontSize:'1rem'}}>→</span>
+          <span style={{color:'#2F5D50',fontWeight:600}}>{block.example.to}</span>
+        </div>}
+        {sents.map((s,i)=>(
+          <div key={i} style={{marginBottom:9,display:'flex',alignItems:'flex-start',gap:8}}>
+            <span style={{fontSize:'.72rem',fontWeight:700,color:'#718096',minWidth:20,paddingTop:2,flexShrink:0}}>{i+1}.</span>
+            <div style={{flex:1}}>
+              <div style={{fontSize:'.88rem',color:'#1C2B3A',marginBottom:4}}>{s}</div>
+              <div style={{borderBottom:'1px solid rgba(28,43,58,.2)',minHeight:20}}/>
+            </div>
+          </div>
+        ))}
+      </div>);
+    }
     return null;
   };
   const withImg=block.type==='image'?<div>{content()}</div>
@@ -436,14 +570,103 @@ function PreviewBlock({block,index,onChange}){
 
 // ── DIDACTIC TEMPLATES ────────────────────────────────────────
 const DIDACTIC_TEMPLATES={
-  uus_teema:{soojendus:{label:'Soojendus',blockTypes:['match','choice','text'],instruction:'Aktiveeri eelteadmised. Lihtsad äratundmisülesanded.',complexity:'low',focus:'recognition'},esitlus:{label:'Esitlus',blockTypes:['table','text','fill'],instruction:'Tutvusta uut materjali kontekstis.',complexity:'low',focus:'input'},harjutamine:{label:'Harjutamine',blockTypes:['fill','choice','order'],instruction:'Kontrollitud harjutamine.',complexity:'medium',focus:'controlled_practice'},tootmine:{label:'Tootmine',blockTypes:['writing','order'],instruction:'Vaba kasutamine.',complexity:'high',focus:'free_production'},kokkuvote:{label:'Kokkuvõte',blockTypes:['fill','match'],instruction:'Kinnita õpitut.',complexity:'medium',focus:'consolidation'}},
-  kinnistamine:{harjutamine:{label:'Harjutamine',blockTypes:['choice','fill','order'],instruction:'Süvendatud harjutamine.',complexity:'medium',focus:'accuracy'},kommunik:{label:'Kommunikatiivne',blockTypes:['match','order','text'],instruction:'Suuline harjutamine. Dialoogikaardid, rollimäng.',complexity:'high',focus:'speaking'}},
-  kordamine:{kordamine:{label:'Kordamine',blockTypes:['choice','fill','match','order'],instruction:'Süsteemne kordamine. Eksami formaat.',complexity:'high',focus:'exam_prep'}},
-  suuline:{soojendus:{label:'Soojendus',blockTypes:['match','choice','text'],instruction:'Aktiveeri suhtluskeelt.',complexity:'low',focus:'recognition'},harjutamine:{label:'Dialoog',blockTypes:['match','order','fill'],instruction:'Harjuta dialoogi fraase.',complexity:'medium',focus:'speaking_prep'},vaba:{label:'Vaba rääkimine',blockTypes:['text','order'],instruction:'Suuline ülesanne koos abifraasidega.',complexity:'high',focus:'fluency'}},
-  kirjalik:{mudel:{label:'Tekstimudel',blockTypes:['reading','fill','table'],instruction:'Analüüsi näidisteksti.',complexity:'medium',focus:'writing_model'},kirjutamine:{label:'Kirjutamine',blockTypes:['writing'],instruction:'Kirjutamisülesanne.',complexity:'high',focus:'writing_production'}}
+  uus_teema:{
+    soojendus:{label:'Soojendus',blockTypes:['match','choice','text'],instruction:'Aktiveeri eelteadmised. Lihtsad äratundmisülesanded.',complexity:'low',focus:'recognition'},
+    esitlus:{label:'Esitlus',blockTypes:['table','text','fill'],instruction:'Tutvusta uut materjali kontekstis.',complexity:'low',focus:'input'},
+    harjutamine:{label:'Harjutamine',blockTypes:['fill','choice','order','error_correction'],instruction:'Kontrollitud harjutamine.',complexity:'medium',focus:'controlled_practice'},
+    tootmine:{label:'Tootmine',blockTypes:['writing','order','transformation'],instruction:'Vaba kasutamine.',complexity:'high',focus:'free_production'},
+    kokkuvote:{label:'Kokkuvõte',blockTypes:['fill','match'],instruction:'Kinnita õpitut.',complexity:'medium',focus:'consolidation'}
+  },
+  kinnistamine:{
+    harjutamine:{label:'Harjutamine',blockTypes:['choice','fill','order','error_correction','transformation'],instruction:'Süvendatud harjutamine.',complexity:'medium',focus:'accuracy'},
+    kommunik:{label:'Kommunikatiivne',blockTypes:['dialogue','match','order','text'],instruction:'Suuline harjutamine. Dialoogikaardid.',complexity:'high',focus:'speaking'}
+  },
+  kordamine:{kordamine:{label:'Kordamine',blockTypes:['choice','fill','match','order','error_correction'],instruction:'Süsteemne kordamine. Eksami formaat.',complexity:'high',focus:'exam_prep'}},
+  suuline:{
+    soojendus:{label:'Soojendus',blockTypes:['match','choice','dialogue'],instruction:'Aktiveeri suhtluskeelt.',complexity:'low',focus:'recognition'},
+    harjutamine:{label:'Dialoog',blockTypes:['dialogue','order','fill'],instruction:'Harjuta dialoogi fraase.',complexity:'medium',focus:'speaking_prep'},
+    vaba:{label:'Vaba rääkimine',blockTypes:['text','dialogue'],instruction:'Suuline ülesanne koos abifraasidega.',complexity:'high',focus:'fluency'}
+  },
+  kirjalik:{
+    mudel:{label:'Tekstimudel',blockTypes:['reading','fill','table'],instruction:'Analüüsi näidisteksti.',complexity:'medium',focus:'writing_model'},
+    kirjutamine:{label:'Kirjutamine',blockTypes:['writing','transformation'],instruction:'Kirjutamisülesanne.',complexity:'high',focus:'writing_production'}
+  }
 };
-window.COMPLEXITY_INSTRUCTIONS={low:'Lihtsad ülesanded — äratundmine, valik, sobitamine.',medium:'Mõningane iseseisev töö — lüngad, järjestamine.',high:'Iseseisvat loomingut nõudvad ülesanded.'};
-window.FOCUS_INSTRUCTIONS={recognition:'Fookus äratundmisel.',input:'Fookus sisendil.',controlled_practice:'Fookus täpsusel.',free_production:'Fookus sujuvusel.',consolidation:'Fookus kinnistamisel.',accuracy:'Fookus täpsusel.',fluency:'Fookus sujuvusel.',exam_prep:'Eksami formaat.',speaking_prep:'Suuline harjutamine.',writing_model:'Kirjutamise mudel.',writing_production:'Kirjutamine.',speaking:'Suuline suhtlus.'};
+
+// ── CEFR LEVEL PROFILES ───────────────────────────────────────
+// These are injected into the AI system prompt to calibrate difficulty precisely
+const CEFR_PROFILES={
+  A1:{
+    label:'A1 — Algaja',
+    vocab:'Ainult kõige sagedasemad 500 eesti sõna. Igapäevaelu: pere, toit, värvid, numbrid, tervis.',
+    grammar:'Ainult oleviku pööramine (olema, minema, tegema). Lihtsad jaatuslaused. EI: minevik, käänded, tingiv kõneviis.',
+    sentenceLen:'3–5 sõna lauses. Maksimaalselt 1 kõrvallause.',
+    textLen:'Fill: 1–2 lauset. Reading: 3–5 lihtlauset. Writing: 2–3 lauset.',
+    fillHint:'Lünk ainult sagedaseim tegusõna või nimisõna. Kontekst peab vastust selgelt vihjama.',
+    choiceHint:'Valikvastused peavad olema selgelt erinevad — ei tohi olla sarnase tähendusega.',
+    matchHint:'Sobi pilt/sõna tõlkega. Maksimaalselt 5 paari.',
+    orderHint:'3–4 sõnast lause. Sõnade järjekord on eesti keelele loomulik.',
+    writingHint:'Kirjuta 2–3 lauset. Näide antud. Sõnad abiks antud.',
+    avoid:'Väldi: idioome, keerukaid ajavorme, käändeharjutusi, pikki tekste.',
+    goodExample:'Fill näide: "Minu nimi [on] Mari. Ma [elan] Tallinnas."'
+  },
+  A2:{
+    label:'A2 — Elementaarne',
+    vocab:'1000 sagedaseimat sõna. Igapäevaelu laiemalt: töö, reisimine, ostlemine, hobid.',
+    grammar:'Oleviku ja lihtmineviku pööramine. Põhikäänded (nimetav, omastav, osastav, sisseütlev, seestütlev, alaleütlev). Sidesõnad: ja, aga, või, sest, et.',
+    sentenceLen:'5–8 sõna lauses. 1–2 kõrvallauset.',
+    textLen:'Fill: 2–3 lauset. Reading: 6–8 lauset. Writing: 4–6 lauset.',
+    fillHint:'Lüngad: tegusõna õige vorm (isik+aeg) või käändevorm. Kaks lünka lauses on OK.',
+    choiceHint:'4 varianti, millest 2 on semantiliselt lähedased (et sundida mõtlema).',
+    matchHint:'6–8 paari. Sobi situatsioon-reaktsioon, sõna-definitsioon.',
+    orderHint:'5–7 sõnaga lause. Sisaldab üht käändevormi.',
+    writingHint:'Kirjuta 4–6 lauset. Teema antud, struktuur soovitatud.',
+    avoid:'Väldi: keerulist konditsionaali, da-infinitiivi harjutusi, mitmekülgseid käändeid ühes lauses.',
+    goodExample:'Fill näide: "Eile [läksin] poodi ja [ostsin] leiba. Pood [oli] kodus lähedal."'
+  },
+  B1:{
+    label:'B1 — Kesktase',
+    vocab:'2000+ sõna. Abstraktsemad teemad: arvamused, tunded, tulevikuplaanid, töö.',
+    grammar:'Kõik põhikäänded, tingimuslause, da-infinitiiv, ma-infinitiiv. Oleviku ja mineviku täisvorm. Umbisikuline tegumood.',
+    sentenceLen:'8–12 sõna lauses. Keerukamad lausestruktuurid.',
+    textLen:'Fill: 3–5 lauset. Reading: 10–15 lauset. Writing: 80–120 sõna.',
+    fillHint:'Lüngad testivad käändevormi, tegusõna aspekti (tegema/teha) või sobivat sidesõna. Kontekst ei vihjab otseselt.',
+    choiceHint:'4 varianti, millest 2 on grammatiliselt õiged aga semantiliselt vale. Nõuab teksti mõistmist.',
+    matchHint:'8–10 paari. Sobi definitsioon-sõna, sinonüüm-sõna, situatsioon-sobiv vastus.',
+    orderHint:'7–10 sõnaga lause keerukama struktuuriga (kõrvallause, määrsõnad).',
+    writingHint:'Kirjuta 80–120 sõna. Nõuab argumendi esitamist või sündmuse kirjeldamist.',
+    avoid:'Väldi: liiga lihtsaid jaatus-eituse valikuid, ilmselgeid vihjeid, pelgalt sõnavara teste.',
+    goodExample:'Fill näide: "Kui ma oleksin [rikkam], [reisiksim] rohkem. Eriti [meeldiks] mulle külastada..."'
+  },
+  B2:{
+    label:'B2 — Ülem-kesktase',
+    vocab:'3000+ sõna. Erialane ja abstraktne sõnavara, idiomaatilised väljendid.',
+    grammar:'Kõik käänded ja pöörded. Kõneviisid (kindel, tingiv, käskiv). Kesksõnad (olev, tav, nud, tud). Umbisikuline tegumood laialdaselt.',
+    sentenceLen:'10–15 sõna lauses. Mitme kõrvallausega konstruktsioonid.',
+    textLen:'Fill: 5–8 lauset. Reading: 150–200 sõna. Writing: 150–200 sõna.',
+    fillHint:'Lüngad testivad idiome, kesksõnu, keerukaid käändekonstruktsioone. Kontekst võib eksitada.',
+    choiceHint:'4 varianti, kus 3 on grammatiliselt õiged aga 1 on kontekstis ainuõige. Nõuab täpset teksti mõistmist.',
+    matchHint:'10+ paari. Keerukamad seosed: põhjus-tagajärg, definitsioon-näide, väide-tõestus.',
+    orderHint:'Keerukas lause kesksõna või tingimusosaga. 10–14 sõna.',
+    writingHint:'Esitage struktureeritud argumenteeritud tekst. Seisukoht + 2 argumenti + näited.',
+    avoid:'Väldi: mehaanilist täitmist ilma mõistmiseta, triviaalseid valikvastuseid.',
+    goodExample:'Fill näide: "Olukord, mida ta [oli ette näinud], osutus palju keerukamaks kui [arvatud]."'
+  },
+  C1:{
+    label:'C1 — Edasijõudnu',
+    vocab:'5000+ sõna, erialane terminoloogia, haruldased idioomid, stilistilised varjundid.',
+    grammar:'Kõik grammatilised struktuurid. Rõhk stiilil: formaalne vs mitteformaalne. Retoorilised konstruktsioonid.',
+    sentenceLen:'15+ sõna lauses. Keerukas süntaks.',
+    textLen:'Fill: autentne tekst 8–12 lauset. Reading: 200–300 sõna autentne tekst. Writing: 200–250 sõna.',
+    fillHint:'Lüngad testivad stilistilist sobivust, idiome, haruldasi käändevorme. Valed variandid on grammatiliselt õiged aga stiililt valed.',
+    choiceHint:'Küsimused testivad teksti peidetud sõnumit, autori hoiakut, implikatsioone.',
+    matchHint:'Keerukad seosed: teksti lõik — peaiden, argument — vastuargument, allikas — tsitaat.',
+    orderHint:'Keerukas periood mitme osaga. Stiililine sidusus on oluline.',
+    writingHint:'Kirjutage analüütiline essee, ülevaade või ametlik kiri. Nõuab stiilitunnet.',
+    avoid:'Väldi: lihtsaid grammatikaharjutusi, ilmselgeid vastuseid, A/B taseme ülesandeid.',
+    goodExample:'Error correction näide: keeruka lause stiililine ebakoht (ametlik sõna mitteametlikus kontekstis).'
+  }
+};
 
 // ── VOCABULARY ────────────────────────────────────────────────
 function getVocabForLevel(level){
@@ -456,20 +679,119 @@ function getVocabForLevel(level){
   return words.sort(()=>Math.random()-.5);
 }
 
-// ── AI GENERATE ───────────────────────────────────────────────
-async function genAI(prompt,subject,level,didacticCtx={}){
-  const{lessonType='',phase='',wordList='',blockCount=4,extraInstr=''}=didacticCtx;
+// ── AI GENERATE (IMPROVED) ────────────────────────────────────
+async function genAI(prompt, subject, level, didacticCtx={}){
+  const{lessonType='',phase='',wordList='',blockCount=4,extraInstr='',sourceText='',imageBase64='',imageType=''}=didacticCtx;
+
   const template=lessonType&&phase&&DIDACTIC_TEMPLATES?(DIDACTIC_TEMPLATES[lessonType]||{})[phase]:null;
-  const allowedTypes=template?template.blockTypes:['fill','choice','match','order','writing','table','text','reading'];
-  const didacticBlock=template?`\nTUNNI KONTEKST: ${lessonType} — ${phase}\nDIDAKTILINE EESMÄRK: ${template.instruction}\nLUBATUD BLOKI TÜÜBID: ${allowedTypes.join(', ')} — kasuta AINULT neid!`:'';
-  const vocabBlock=wordList?`\nKASUTA neid EKI sõnu: ${wordList}`:'';
-  const sys=`Sa oled eesti keele õpetaja. Genereeri pedagoogiliselt korrektne tööleht JSON-ina.${didacticBlock}${vocabBlock}\nTagasta AINULT JSON:\n{"title":"...","blocks":[{"type":"fill","instruction":"...","text":"tekst [vastus] tekst"},{"type":"choice","instruction":"...","questions":[{"q":"?","opts":["a","b","c","d"],"correct":0}]},{"type":"match","instruction":"...","pairs":[{"l":"eesti","r":"vene tõlge"}]},{"type":"order","instruction":"...","sentence":"lause"},{"type":"writing","instruction":"...","task":"ülesanne","lines":8},{"type":"text","content":"tekst","bold":false},{"type":"table","instruction":"...","headers":["Sõna","Tõlge","Näide"],"rows":5},{"type":"reading","instruction":"...","passage":"tekst","questions":[{"q":"?","opts":["a","b","c"],"correct":0}]}]}\nTase: ${level||'B1'}. Genereeri TÄPSELT ${blockCount} blokki.${extraInstr?' Lisajuhised: '+extraInstr:''} Kõik eestikeelne. Match paarid — kasuta VENE keelt tõlgetena. Järgi lubatud bloki tüüpe absoluutselt.`;
-  const res=await fetch('/api/anthropic-proxy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2500,system:sys,messages:[{role:'user',content:`Teema: ${prompt}\nÕppeaine: ${subject||'Eesti keel'}, Tase: ${level||'B1'}`}]})});
+  const cefr=CEFR_PROFILES[level]||CEFR_PROFILES['B1'];
+
+  // If no template, allow all types including new ones
+  const allowedTypes=template
+    ? template.blockTypes
+    : ['fill','choice','match','order','writing','table','text','reading','dialogue','error_correction','transformation'];
+
+  const cefrBlock=`
+== CEFR TASE: ${cefr.label} ==
+SÕNAVARA: ${cefr.vocab}
+GRAMMATIKA: ${cefr.grammar}
+LAUSE PIKKUS: ${cefr.sentenceLen}
+TEKSTI PIKKUS: ${cefr.textLen}
+FILL juhis: ${cefr.fillHint}
+CHOICE juhis: ${cefr.choiceHint}
+MATCH juhis: ${cefr.matchHint}
+ORDER juhis: ${cefr.orderHint}
+WRITING juhis: ${cefr.writingHint}
+VÄLDI: ${cefr.avoid}
+HEADE ÜLESANNETE NÄIDE: ${cefr.goodExample}
+== TASE LÕPP ==`;
+
+  const didacticBlock=template?`
+== DIDAKTILINE KONTEKST ==
+Tunni tüüp: ${lessonType}, Faas: ${phase}
+Eesmärk: ${template.instruction}
+LUBATUD BLOKI TÜÜBID: ${allowedTypes.join(', ')} — kasuta AINULT neid!
+== DIDAKTIKA LÕPP ==`:'';
+
+  const vocabBlock=wordList?`
+== EKI SÕNAVARA — KASUTA NEID SÕNU ==
+${wordList}
+Ehita ülesanded nende sõnade ümber. Vali teemaga sobivad.
+== SÕNAVARA LÕPP ==`:'';
+
+  const sourceBlock=sourceText?`
+== LÄHTETEKST — TEE ÜLESANDED SELLE PÕHJAL ==
+${sourceText}
+Kasuta selle teksti sisu, tegelasi, sündmusi ja sõnavara ülesannetes.
+== LÄHTETEKST LÕPP ==`:'';
+
+  const sys=`Sa oled kogenud eesti keele õpetaja ja didaktika ekspert. Sinu ülesanne on genereerida KÕRGE KVALITEEDIGA tööleht JSON-ina.
+
+${cefrBlock}
+${didacticBlock}
+${vocabBlock}
+${sourceBlock}
+
+== BLOKI TÜÜBID JA STRUKTUUR ==
+Tagasta AINULT puhas JSON (ilma markdown koodiplokita):
+{
+  "title": "Tööleha pealkiri",
+  "blocks": [
+    {"type":"fill","instruction":"Täida lüngad õige sõnavormiga.","text":"Lause [vastus] tekst [vastus2]."},
+    {"type":"choice","instruction":"Vali õige variant.","questions":[{"q":"Küsimus?","opts":["a","b","c","d"],"correct":0}]},
+    {"type":"match","instruction":"Sobita paarid.","pairs":[{"l":"eesti sõna","r":"vene tõlge"}]},
+    {"type":"order","instruction":"Koosta õige lause.","sentence":"sõnad õiges järjekorras"},
+    {"type":"writing","instruction":"Kirjuta tekst.","task":"Ülesande kirjeldus.","lines":8},
+    {"type":"text","content":"Juhis või selgitus.","bold":false},
+    {"type":"table","instruction":"Täida tabel.","headers":["Sõna","Tüüp","Näide"],"rows":5},
+    {"type":"reading","instruction":"Loe ja vasta.","passage":"Lugemistekst...","questions":[{"q":"?","opts":["a","b","c"],"correct":0}]},
+    {"type":"dialogue","instruction":"Koosta dialoog.","lines":[{"speaker":"A","text":"Tere! Kuidas läheb?"},{"speaker":"B","text":"[vastus]"},{"speaker":"A","text":"[vastus]"}]},
+    {"type":"error_correction","instruction":"Leia ja paranda viga.","sentences":[{"wrong":"Vale lause vigaga.","correct":"Õige lause."}]},
+    {"type":"transformation","instruction":"Muuda lause vastavalt näitele.","example":{"from":"Ma lähen poodi.","to":"Ma ei lähe poodi."},"sentences":["Lause 1.","Lause 2.","Lause 3."]}
+  ]
+}
+
+== KVALITEEDINÕUDED ==
+1. TÄPSELT ${blockCount} blokki — ei rohkem, ei vähem.
+2. Iga blokk peab olema SISULISELT ERINEV — ära korda sama grammatilist struktuuri.
+3. Kõik tekstid EESTI KEELES. Match paarid: vasakul eesti, paremal VENE tõlge.
+4. Järgi CEFR taseme nõudeid ABSOLUUTSELT — see on kõige tähtsam!
+5. Ülesanded peavad olema AUTENTSED — ei tohi tunduda kui robot tegi.
+6. Fill-lüngad: [sõna] süntaks, üks või kaks lünka lauses.
+7. Choice: alati täpselt 4 varianti per küsimus.
+8. Järgi LUBATUD BLOKI TÜÜPE — muid tüüpe EI TOHI kasutada.
+${extraInstr?'9. ERISOOV: '+extraInstr:''}`;
+
+  // Build messages — support image input
+  const userContent=[];
+  if(imageBase64){
+    userContent.push({type:'image',source:{type:'base64',media_type:imageType||'image/jpeg',data:imageBase64}});
+    userContent.push({type:'text',text:`Teema/juhis: ${prompt||'Tee ülesanded pildi põhjal'}\nÕppeaine: ${subject||'Eesti keel'}, Tase: ${level||'B1'}`});
+  } else {
+    userContent.push({type:'text',text:`Teema: ${prompt}\nÕppeaine: ${subject||'Eesti keel'}, Tase: ${level||'B1'}`});
+  }
+
+  const res=await fetch('/api/anthropic-proxy',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      model:'claude-sonnet-4-6',
+      max_tokens:4000,
+      system:sys,
+      messages:[{role:'user',content:userContent}]
+    })
+  });
   const data=await res.json();
   if(data.error)throw new Error(data.error.message||JSON.stringify(data.error));
   const raw=(data.content?.[0]?.text||'').trim();
   const clean=raw.replace(/^```json\s*/,'').replace(/^```\s*/,'').replace(/\s*```$/,'').trim();
-  try{return JSON.parse(clean);}catch(e){const m=clean.match(/\{[\s\S]*\}/);if(m)return JSON.parse(m[0]);throw new Error('AI vastuse töötlemine ebaõnnestus');}
+  try{return JSON.parse(clean);}
+  catch(e){
+    const m=clean.match(/\{[\s\S]*\}/);
+    if(m)try{return JSON.parse(m[0]);}catch(e2){}
+    console.error('Parse error. Raw:',raw.slice(0,600));
+    throw new Error('AI vastuse töötlemine ebaõnnestus: '+e.message);
+  }
 }
 
 // ── BUILD HTML FOR EXPORT ─────────────────────────────────────
@@ -635,6 +957,10 @@ function App(){
   const[aiPhase,setAiPhase]=useState('');
   const[aiBlockCount,setAiBlockCount]=useState(4);
   const[aiExtraInstr,setAiExtraInstr]=useState('');
+  const[aiSourceMode,setAiSourceMode]=useState(''); // ''|'text'|'image'
+  const[aiSourceText,setAiSourceText]=useState('');
+  const[aiImageBase64,setAiImageBase64]=useState('');
+  const[aiImageType,setAiImageType]=useState('');
   const[aiLoading,setAiLoading]=useState(false);
   const[toast,setToast]=useState('');
   const[dragId,setDragId]=useState(null);
@@ -681,7 +1007,7 @@ function App(){
   const runAI=async()=>{
     if(!aiPrompt.trim()){notify('Kirjuta juhis');return;}setAiLoading(true);
     try{
-      const r=await genAI(aiPrompt,meta.subject,meta.level,{lessonType:aiLessonType,phase:aiPhase,blockCount:aiBlockCount,extraInstr:aiExtraInstr});
+      const r=await genAI(aiPrompt,meta.subject,meta.level,{lessonType:aiLessonType,phase:aiPhase,blockCount:aiBlockCount,extraInstr:aiExtraInstr,sourceText:aiSourceMode==='text'?aiSourceText:'',imageBase64:aiSourceMode==='image'?aiImageBase64:'',imageType:aiImageType});
       if(r.title)setMeta(m=>({...m,title:r.title}));
       const nb=(r.blocks||[]).map(b=>({...mkBlock(b.type),...b,id:uid()}));
       if(!nb.length)throw new Error('AI ei genereerinud ühtegi blokki.');
@@ -696,7 +1022,7 @@ function App(){
     try{
       const words=getVocabForLevel(meta.level);
       const wordList=words.slice(0,40).map(w=>w.word+' ('+w.type+')').join(', ');
-      const r=await genAI(aiPrompt,meta.subject||'Eesti keel',meta.level,{lessonType:aiLessonType,phase:aiPhase,wordList,blockCount:aiBlockCount,extraInstr:aiExtraInstr});
+      const r=await genAI(aiPrompt,meta.subject||'Eesti keel',meta.level,{lessonType:aiLessonType,phase:aiPhase,wordList,blockCount:aiBlockCount,extraInstr:aiExtraInstr,sourceText:aiSourceMode==='text'?aiSourceText:''});
       if(r.title)setMeta(m=>({...m,title:r.title}));
       const nb=(r.blocks||[]).map(b=>({...mkBlock(b.type),...b,id:uid()}));
       if(!nb.length)throw new Error('AI ei genereerinud ühtegi blokki.');
@@ -779,6 +1105,45 @@ function App(){
                   )}
                   <textarea className="ai-textarea" value={aiPrompt} onChange={e=>setAiPrompt(e.target.value)} rows={3} placeholder={"Tunni teema, nt:\n\"Tegusõnade pööramine olevikus\"\n\"Igapäevaelu kirjeldamine\""}/>
                   <textarea className="ai-textarea" value={aiExtraInstr} onChange={e=>setAiExtraInstr(e.target.value)} rows={2} placeholder="Lisajuhised AI-le (valikuline)..." style={{marginTop:6,fontSize:'.78rem',opacity:.85}}/>
+                  {/* Source text / image mode */}
+                  <div style={{marginTop:10,borderTop:'1px solid rgba(255,255,255,.12)',paddingTop:10}}>
+                    <div style={{fontSize:'.64rem',fontWeight:700,color:'rgba(255,255,255,.45)',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:6}}>
+                      Allikas (valikuline)
+                    </div>
+                    <div style={{display:'flex',gap:5,marginBottom:7}}>
+                      <button className={'ai-lvl'+(aiSourceMode===''?' active':'')} onClick={()=>setAiSourceMode('')} style={{fontSize:'.68rem'}}>Teema</button>
+                      <button className={'ai-lvl'+(aiSourceMode==='text'?' active':'')} onClick={()=>setAiSourceMode('text')} style={{fontSize:'.68rem'}}>📄 Tekst</button>
+                      <button className={'ai-lvl'+(aiSourceMode==='image'?' active':'')} onClick={()=>setAiSourceMode('image')} style={{fontSize:'.68rem'}}>🖼️ Foto/pilt</button>
+                    </div>
+                    {aiSourceMode==='text'&&(
+                      <textarea className="ai-textarea" value={aiSourceText} onChange={e=>setAiSourceText(e.target.value)} rows={4}
+                        placeholder="Kleebi tekst, harjutusvihiku tekst, artikkel... AI teeb ülesanded selle põhjal."/>
+                    )}
+                    {aiSourceMode==='image'&&(
+                      <div>
+                        {aiImageBase64
+                          ?<div style={{position:'relative',marginBottom:6}}>
+                             <img src={'data:'+aiImageType+';base64,'+aiImageBase64} alt="" style={{width:'100%',maxHeight:120,objectFit:'cover',borderRadius:7,border:'1px solid rgba(255,255,255,.2)'}}/>
+                             <button onClick={()=>{setAiImageBase64('');setAiImageType('');}} style={{position:'absolute',top:4,right:4,background:'rgba(0,0,0,.6)',border:'none',color:'#fff',borderRadius:'50%',width:22,height:22,cursor:'pointer',fontSize:'.72rem',display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button>
+                           </div>
+                          :<label style={{display:'block',border:'1.5px dashed rgba(255,255,255,.25)',borderRadius:8,padding:'12px',textAlign:'center',cursor:'pointer'}}>
+                             <input type="file" accept="image/*" style={{display:'none'}} onChange={async e=>{
+                               const file=e.target.files[0];if(!file)return;
+                               const reader=new FileReader();
+                               reader.onload=ev=>{
+                                 const b64=ev.target.result.split(',')[1];
+                                 setAiImageBase64(b64);
+                                 setAiImageType(file.type||'image/jpeg');
+                               };
+                               reader.readAsDataURL(file);
+                             }}/>
+                             <i className="fa-solid fa-image" style={{fontSize:'1.4rem',color:'rgba(255,255,255,.4)',display:'block',marginBottom:5}}/>
+                             <div style={{fontSize:'.75rem',color:'rgba(255,255,255,.6)',fontWeight:600}}>Klõpsa pildi lisamiseks</div>
+                             <div style={{fontSize:'.68rem',color:'rgba(255,255,255,.35)',marginTop:2}}>Harjutusraamat, tahvel, foto tekstiga</div>
+                           </label>}
+                      </div>
+                    )}
+                  </div>
                   <div style={{display:'flex',alignItems:'center',gap:8,marginTop:2}}>
                     <div className="ai-lvl-btns" style={{flex:1}}>
                       {['A1','A2','B1','B2','C1'].map(l=>(
