@@ -3058,6 +3058,244 @@ function GroupsView({groups,students,isAdmin,setSelStu,setTab,addGroup,deleteGro
   );
 }
 
+
+// ── SKILL MAP WIDGET (встроенный в карточку ученика) ─────────
+const SM_CATS = {
+  sõnavara:   {label:'Sõnavara',    icon:'📚', color:'#0e7490'},
+  grammatika: {label:'Grammatika',  icon:'⚙️', color:'#6d28d9'},
+  käänded:    {label:'Käänded',     icon:'🔤', color:'#1d4ed8'},
+  lugemine:   {label:'Lugemine',    icon:'📖', color:'#2F5D50'},
+  kirjutamine:{label:'Kirjutamine', icon:'✍️', color:'#A96E1A'},
+  rääkimine:  {label:'Rääkimine',   icon:'🗣️', color:'#047857'},
+  kuulamine:  {label:'Kuulamine',   icon:'🎧', color:'#be185d'},
+  lauseehitus:{label:'Lauseehitus', icon:'🧩', color:'#dc2626'},
+};
+const SM_SKILLS = {
+  A1:[
+    {id:'A1_GREET',        cat:'rääkimine',   name:'Tervimine'},
+    {id:'A1_NUMBERS',      cat:'sõnavara',    name:'Arvud 1–100'},
+    {id:'A1_COLORS',       cat:'sõnavara',    name:'Värvid'},
+    {id:'A1_FAMILY_BASIC', cat:'sõnavara',    name:'Perekond'},
+    {id:'A1_PRESENT_BASIC',cat:'grammatika',  name:'Olevik ma/sa/ta'},
+    {id:'A1_NOMINATIV',    cat:'käänded',     name:'Nimetav kääne'},
+    {id:'A1_READ_WORDS',   cat:'lugemine',    name:'Sõnade lugemine'},
+    {id:'A1_WRITE_NAME',   cat:'kirjutamine', name:'Enda andmed'},
+    {id:'A1_FOOD_BASIC',   cat:'sõnavara',    name:'Toit — põhisõnad'},
+    {id:'A1_SIMPLE_Q',     cat:'lauseehitus', name:'Lihtsad küsimused'},
+  ],
+  A2:[
+    {id:'A2_VOCAB_ROUTINE',cat:'sõnavara',    name:'Igapäevaelu'},
+    {id:'A2_PRESENT_FULL', cat:'grammatika',  name:'Olevik kõik pöörded'},
+    {id:'A2_PAST_BASIC',   cat:'grammatika',  name:'Lihtminevik'},
+    {id:'A2_WORD_ORDER',   cat:'lauseehitus', name:'Sõnajärg'},
+    {id:'A2_OSASTAV',      cat:'käänded',     name:'Osastav'},
+    {id:'A2_ILLATIIV',     cat:'käänded',     name:'Sisseütlev'},
+    {id:'A2_NEGATION',     cat:'grammatika',  name:'Eitus'},
+    {id:'A2_QUESTIONS',    cat:'lauseehitus', name:'Küsimused'},
+    {id:'A2_READ_TEXT',    cat:'lugemine',    name:'Lühitekst'},
+    {id:'A2_WRITE_TEXT',   cat:'kirjutamine', name:'Kirjutamine'},
+    {id:'A2_DIALOGUE',     cat:'rääkimine',   name:'Dialoog'},
+    {id:'A2_TIME_EXPR',    cat:'sõnavara',    name:'Ajaväljendid'},
+  ],
+  B1:[
+    {id:'B1_PAST_TYPES',   cat:'grammatika',  name:'Mineviku ajad'},
+    {id:'B1_CONDITIONAL',  cat:'grammatika',  name:'Tingiv kõneviis'},
+    {id:'B1_RELATIVE',     cat:'lauseehitus', name:'Põimlause'},
+    {id:'B1_KAANDED_ADV',  cat:'käänded',     name:'Käänded edasijõudnud'},
+    {id:'B1_PASSIVE',      cat:'grammatika',  name:'Umbisikuline tegumood'},
+    {id:'B1_READ_MEDIUM',  cat:'lugemine',    name:'Keskmise teksti mõistmine'},
+    {id:'B1_WRITE_PARA',   cat:'kirjutamine', name:'Lõigu kirjutamine'},
+    {id:'B1_SPEAK_DESC',   cat:'rääkimine',   name:'Kirjeldamine'},
+    {id:'B1_VOCAB_TOPIC',  cat:'sõnavara',    name:'Teemapõhine sõnavara'},
+    {id:'B1_INTONATION',   cat:'kuulamine',   name:'Kuulamine'},
+  ],
+  B2:[
+    {id:'B2_COMPLEX_SENT', cat:'lauseehitus', name:'Keerulised laused'},
+    {id:'B2_SUBJUNCTIVE',  cat:'grammatika',  name:'Kaudne kõneviis'},
+    {id:'B2_STYLE_REG',    cat:'kirjutamine', name:'Stiil ja register'},
+    {id:'B2_IDIOMS',       cat:'sõnavara',    name:'Fraseoloogiad'},
+    {id:'B2_ARGUMENT',     cat:'rääkimine',   name:'Argumenteerimine'},
+    {id:'B2_READ_COMPLEX', cat:'lugemine',    name:'Keerulise teksti mõistmine'},
+    {id:'B2_LISTEN_DETAIL',cat:'kuulamine',   name:'Detailne kuulamine'},
+    {id:'B2_WRITE_ESSAY',  cat:'kirjutamine', name:'Essee'},
+    {id:'B2_VOCAB_ABSTRACT',cat:'sõnavara',   name:'Abstraktne sõnavara'},
+    {id:'B2_GRAMMAR_FINE', cat:'grammatika',  name:'Grammatika peensused'},
+  ],
+  C1:[
+    {id:'C1_NUANCE',       cat:'sõnavara',    name:'Nüansirikkus'},
+    {id:'C1_RHETORIC',     cat:'rääkimine',   name:'Retoorika'},
+    {id:'C1_WRITE_FORMAL', cat:'kirjutamine', name:'Ametlik tekst'},
+    {id:'C1_READ_ALL',     cat:'lugemine',    name:'Kõik tekstiliigid'},
+    {id:'C1_LISTEN_NATIVE',cat:'kuulamine',   name:'Emakeelekõnelejad'},
+    {id:'C1_COMPLEX_GRAM', cat:'grammatika',  name:'Kõrgem grammatika'},
+    {id:'C1_CULTURE',      cat:'sõnavara',    name:'Kultuuriline arusaam'},
+    {id:'C1_SPONTANEOUS',  cat:'rääkimine',   name:'Spontaanne kõne'},
+  ],
+};
+
+function SkillMapWidget({student, isTeacher}) {
+  const [skillMap, setSkillMap] = React.useState({});
+  const [loading, setLoading] = React.useState(true);
+  const level = student?.level || 'A2';
+  const skills = SM_SKILLS[level] || SM_SKILLS.A2;
+
+  React.useEffect(()=>{
+    if(!student?.id) return;
+    // Read skillMap from the student document
+    const unsub = db.collection('students').doc(student.id).onSnapshot(snap=>{
+      setSkillMap(snap.data()?.skillMap || {});
+      setLoading(false);
+    }, ()=>setLoading(false));
+    return unsub;
+  },[student?.id]);
+
+  const getStars = score => {
+    if(score===null||score===undefined) return 0;
+    if(score>=80) return 3; if(score>=50) return 2; if(score>=25) return 1; return 0;
+  };
+  const getStatus = score => {
+    if(score===null||score===undefined) return 'untested';
+    if(score>=80) return 'strong'; if(score>=50) return 'normal'; return 'weak';
+  };
+  const statusColor = {strong:'#166534', normal:'#1d4ed8', weak:'#dc2626', untested:'#B0A898'};
+
+  // Radar chart
+  const cats = Object.keys(SM_CATS);
+  const N = cats.length;
+  const CX=130,CY=130,R=95;
+  const getPoint=(i,r)=>{
+    const angle=(2*Math.PI*i/N)-Math.PI/2;
+    return[CX+r*Math.cos(angle),CY+r*Math.sin(angle)];
+  };
+  const catScores={};
+  cats.forEach(cat=>{
+    const cs=skills.filter(s=>s.cat===cat);
+    if(!cs.length){catScores[cat]=0;return;}
+    const sc=cs.map(s=>skillMap[s.id]??0);
+    catScores[cat]=sc.reduce((a,b)=>a+b,0)/sc.length;
+  });
+  const LEVEL_COLORS={A1:'#047857',A2:'#0e7490',B1:'#1d4ed8',B2:'#6d28d9',C1:'#be185d'};
+  const lc=LEVEL_COLORS[level]||'#0e7490';
+  const gridPaths=[25,50,75,100].map(gl=>{
+    const pts=cats.map((_,i)=>getPoint(i,R*gl/100));
+    return pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ')+'Z';
+  });
+  const dataPts=cats.map((cat,i)=>getPoint(i,R*(catScores[cat]||0)/100));
+  const dataPath=dataPts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ')+'Z';
+
+  const tested = skills.filter(s=>skillMap[s.id]!==undefined&&skillMap[s.id]!==null);
+  const strong = skills.filter(s=>(skillMap[s.id]||0)>=80);
+  const weak   = skills.filter(s=>skillMap[s.id]!==undefined&&skillMap[s.id]!==null&&skillMap[s.id]<50);
+
+  if(loading) return null;
+
+  const hasAnyData = tested.length > 0;
+
+  return(
+    <div style={{background:'linear-gradient(135deg,#1C2B3A 0%,'+lc+' 100%)',borderRadius:18,padding:24,color:'#fff',position:'relative'}}>
+      {/* Header */}
+      <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:16,flexWrap:'wrap',gap:10}}>
+        <div>
+          <div style={{fontSize:'.68rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'.1em',color:'rgba(255,255,255,.45)',marginBottom:4}}>
+            Oskuste kaart — {level}
+          </div>
+          <div style={{display:'flex',gap:16,flexWrap:'wrap'}}>
+            <div style={{textAlign:'center'}}>
+              <div style={{fontSize:'1.6rem',fontWeight:800,color:strong.length?'#4ade80':'rgba(255,255,255,.3)'}}>{strong.length}</div>
+              <div style={{fontSize:'.62rem',color:'rgba(255,255,255,.45)',textTransform:'uppercase',letterSpacing:'.07em'}}>💪 Tugevad</div>
+            </div>
+            <div style={{textAlign:'center'}}>
+              <div style={{fontSize:'1.6rem',fontWeight:800,color:weak.length?'#fca5a5':'rgba(255,255,255,.3)'}}>{weak.length}</div>
+              <div style={{fontSize:'.62rem',color:'rgba(255,255,255,.45)',textTransform:'uppercase',letterSpacing:'.07em'}}>🎯 Arendada</div>
+            </div>
+            <div style={{textAlign:'center'}}>
+              <div style={{fontSize:'1.6rem',fontWeight:800,color:'rgba(255,255,255,.6)'}}>{tested.length}/{skills.length}</div>
+              <div style={{fontSize:'.62rem',color:'rgba(255,255,255,.45)',textTransform:'uppercase',letterSpacing:'.07em'}}>📊 Testitud</div>
+            </div>
+          </div>
+        </div>
+        {isTeacher&&(
+          <button onClick={()=>window.open('/haldus-skillmap/?student='+student.id,'_blank')}
+            style={{background:'rgba(255,255,255,.12)',border:'1px solid rgba(255,255,255,.2)',color:'#fff',
+              borderRadius:9,padding:'7px 13px',cursor:'pointer',fontSize:'.76rem',fontWeight:700,
+              display:'flex',alignItems:'center',gap:6}}>
+            ✏️ Muuda hindeid
+          </button>
+        )}
+      </div>
+
+      {!hasAnyData?(
+        <div style={{textAlign:'center',padding:'20px 0',color:'rgba(255,255,255,.35)',fontSize:'.84rem'}}>
+          {isTeacher?'Ava "Muuda hindeid" et lisada oskuste tulemused':'Oskuste hinded lisab õpetaja'}
+        </div>
+      ):(
+        <div style={{display:'flex',gap:20,alignItems:'flex-start',flexWrap:'wrap'}}>
+          {/* Radar */}
+          <div style={{flexShrink:0}}>
+            <svg width={260} height={260} viewBox="0 0 260 260">
+              {gridPaths.map((d,gi)=><path key={gi} d={d} fill="none" stroke="rgba(255,255,255,.08)" strokeWidth="1"/>)}
+              {cats.map((_,i)=>{const[x,y]=getPoint(i,R);return<line key={i} x1={CX} y1={CY} x2={x.toFixed(1)} y2={y.toFixed(1)} stroke="rgba(255,255,255,.07)" strokeWidth="1"/>;})};
+              <path d={dataPath} fill={lc} fillOpacity=".3" stroke={lc} strokeWidth="2.5"/>
+              {cats.map((cat,i)=>{
+                const[x,y]=getPoint(i,R+18);
+                const c=SM_CATS[cat];
+                const anchor=x<CX-8?'end':x>CX+8?'start':'middle';
+                return(
+                  <g key={cat}>
+                    <text x={x} y={y} fontSize="11" textAnchor={anchor} fill="rgba(255,255,255,.7)" fontFamily="IBM Plex Sans">{c.icon}</text>
+                    <text x={x} y={y+12} fontSize="7.5" textAnchor={anchor} fill="rgba(255,255,255,.4)" fontFamily="IBM Plex Sans">{c.label}</text>
+                  </g>
+                );
+              })}
+              {dataPts.map(([x,y],i)=><circle key={i} cx={x.toFixed(1)} cy={y.toFixed(1)} r="4" fill={lc} stroke="rgba(255,255,255,.6)" strokeWidth="2"/>)}
+            </svg>
+          </div>
+          {/* Skills list */}
+          <div style={{flex:1,minWidth:180,display:'flex',flexDirection:'column',gap:6}}>
+            {skills.map(sk=>{
+              const score=skillMap[sk.id]??null;
+              const stars=getStars(score);
+              const st=getStatus(score);
+              const cat=SM_CATS[sk.cat];
+              const barW=score??0;
+              return(
+                <div key={sk.id} style={{display:'flex',alignItems:'center',gap:8}}>
+                  <span style={{fontSize:'.72rem',minWidth:16}}>{cat.icon}</span>
+                  <span style={{fontSize:'.76rem',fontWeight:600,color:'rgba(255,255,255,.8)',flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{sk.name}</span>
+                  <div style={{width:60,height:4,background:'rgba(255,255,255,.1)',borderRadius:2,flexShrink:0}}>
+                    <div style={{width:barW+'%',height:'100%',borderRadius:2,background:statusColor[st]}}/>
+                  </div>
+                  <div style={{display:'flex',gap:1,flexShrink:0}}>
+                    {[0,1,2].map(i=><span key={i} style={{fontSize:'.65rem',opacity:i<stars?1:.2}}>⭐</span>)}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Encouragement for student/parent */}
+      {!isTeacher&&hasAnyData&&(
+        <div style={{marginTop:14,display:'flex',gap:10,flexWrap:'wrap'}}>
+          {strong.length>0&&(
+            <div style={{flex:1,minWidth:140,padding:'10px 12px',background:'rgba(74,222,128,.1)',borderRadius:10,border:'1px solid rgba(74,222,128,.2)'}}>
+              <div style={{fontSize:'.68rem',fontWeight:700,color:'#4ade80',marginBottom:5}}>💪 Tugevad oskused</div>
+              {strong.slice(0,3).map(s=><div key={s.id} style={{fontSize:'.74rem',color:'rgba(255,255,255,.7)',marginBottom:2}}>✓ {s.name}</div>)}
+            </div>
+          )}
+          {weak.length>0&&(
+            <div style={{flex:1,minWidth:140,padding:'10px 12px',background:'rgba(251,146,60,.1)',borderRadius:10,border:'1px solid rgba(251,146,60,.2)'}}>
+              <div style={{fontSize:'.68rem',fontWeight:700,color:'#fb923c',marginBottom:5}}>🎯 Harjuta rohkem</div>
+              {weak.slice(0,3).map(s=><div key={s.id} style={{fontSize:'.74rem',color:'rgba(255,255,255,.7)',marginBottom:2}}>→ {s.name}</div>)}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── ÕPILASE KAART ─────────────────────────────────────────────
 function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,setEditStu,toggleStudentActive,convertStudentToParent,
   hwTask,setHwTask,hwDue,setHwDue,hwFiles,setHwFiles,addHw,toggleHw,deleteHw,removeHwFile,
@@ -3167,10 +3405,6 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
                 </div>
               )}
             </div>
-            <div style={{display:'flex',justifyContent:'space-between',fontSize:'.78rem',fontWeight:600,marginBottom:6}}>
-              <span>{currentStu.level}</span><span style={{color:'#2F5D50'}}>{pct}% eesmärgini</span><span>{currentStu.targetLevel}</span>
-            </div>
-            <div className="level-bar"><div className="level-fill" style={{width:pct+'%'}}/></div>
           </div>
           {(canManage||user.role==='parent')&&(
             <div style={{display:'flex',flexDirection:'column',gap:8}}>
@@ -3194,6 +3428,8 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
           )}
         </div>
       </div>
+
+      <SkillMapWidget student={currentStu} isTeacher={canManage}/>
 
       {done.length>=2&&(
         <div className="card" style={{padding:24}}>
