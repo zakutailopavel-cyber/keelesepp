@@ -3804,7 +3804,7 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
   hwTask,setHwTask,hwDue,setHwDue,hwFiles,setHwFiles,addHw,toggleHw,deleteHw,removeHwFile,
   invAmt,setInvAmt,invDesc,setInvDesc,addInvoice,markPaid,unmarkPaid,deleteInvoice,printInvoice,submitParentPayment,resetParentPayment,deleteLesson,openLessonEditor,
   schDate,setSchDate,schTime,setSchTime,schTeach,setSchTeach,schRecurring,setSchRecurring,addStudentSchedule,canAssignTeacher,
-  stuMessages,teacherMessage,setTeacherMessage,sendTeacherMessage}) {
+  stuMessages,teacherMessage,setTeacherMessage,sendTeacherMessage,notify,setAssignWsLesson}) {
   if(!currentStu) return <div style={{textAlign:'center',padding:60,color:'#42536A'}}>Õpilane ei leitud.</div>;
   const done=stuLessons.filter(l=>l.status==='Toimunud');
   const pct=levelPct(currentStu.level,currentStu.targetLevel);
@@ -7284,7 +7284,8 @@ function App() {
             addInvoice={addInvoice} markPaid={markPaid} unmarkPaid={unmarkPaid} deleteInvoice={deleteInvoice} printInvoice={printInvoice} submitParentPayment={submitParentPayment} resetParentPayment={resetParentPayment} deleteLesson={deleteLesson} openLessonEditor={openLessonEditor}
             schDate={schDate} setSchDate={setSchDate} schTime={schTime} setSchTime={setSchTime} schTeach={schTeach} setSchTeach={setSchTeach}
             schRecurring={schRecurring} setSchRecurring={setSchRecurring} addStudentSchedule={addStudentSchedule} canAssignTeacher={canAssignTeacher}
-            stuMessages={stuMessages} teacherMessage={teacherMessage} setTeacherMessage={setTeacherMessage} sendTeacherMessage={sendTeacherMessage}/>}
+            stuMessages={stuMessages} teacherMessage={teacherMessage} setTeacherMessage={setTeacherMessage} sendTeacherMessage={sendTeacherMessage}
+            notify={notify} setAssignWsLesson={setAssignWsLesson}/>}
 
           {tab==='groups'&&isStaff&&<GroupsView groups={groups} students={canAssignTeacher?students:myStudents} isAdmin={canAssignTeacher}
             setSelStu={setSelStu} setTab={setTab}
