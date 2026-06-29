@@ -1,6 +1,6 @@
 # KeeleSepp — veebisait
 
-Avalik sait + CRM süsteem.
+Avalik sait +  CRM süsteem.
 
 - `/` → Avalik koduleht
 - `/haldus/` → CRM (õpetaja + õpilase kabinet)
