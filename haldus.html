@@ -3069,6 +3069,8 @@ function AssignWorksheetModal({lesson, students, user, onClose, notify}) {
   const [saving, setSaving] = React.useState(false);
   const [currLessons, setCurrLessons] = React.useState([]);
   const [pickedLesson, setPickedLesson] = React.useState(null);
+  const [wsSearch, setWsSearch] = React.useState('');
+  const [wsSearch, setWsSearch] = React.useState('');
   const isPicker = !!(lesson._pickForStudent);
   React.useEffect(()=>{ if(lesson._pickForStudent) setSel([lesson._pickForStudent]); },[]);
   React.useEffect(()=>{
@@ -3125,21 +3127,32 @@ function AssignWorksheetModal({lesson, students, user, onClose, notify}) {
         </div>
         <div style={{padding:'16px 22px',display:'flex',flexDirection:'column',gap:12}}>
           {isPicker&&<div>
-            <div style={{fontSize:'.7rem',fontWeight:800,color:'#718096',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:7}}>Vali tööleht</div>
-            <div style={{border:'1px solid rgba(28,43,58,.12)',borderRadius:10,maxHeight:180,overflowY:'auto',padding:6,display:'flex',flexDirection:'column',gap:3}}>
-              {currLessons.length===0&&<div style={{color:'#B0A898',fontSize:'.84rem',padding:8}}>Laen töölehti...</div>}
-              {currLessons.map(l=>(
-                <label key={l.id} style={{display:'flex',alignItems:'center',gap:9,padding:'7px 10px',borderRadius:8,cursor:'pointer',
-                  background:pickedLesson?.id===l.id?'rgba(47,93,80,.08)':'transparent',
-                  border:pickedLesson?.id===l.id?'1px solid rgba(47,93,80,.2)':'1px solid transparent'}}>
-                  <input type="radio" name="wslesson" checked={pickedLesson?.id===l.id} onChange={()=>setPickedLesson(l)} style={{accentColor:'#2F5D50'}}/>
-                  <div style={{flex:1,minWidth:0}}>
-                    <div style={{fontWeight:700,fontSize:'.84rem',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{l.title}</div>
-                    <div style={{fontSize:'.69rem',color:'#7A7167'}}>{l.subject} · {l.level} · {l.topic}</div>
-                  </div>
-                </label>
-              ))}
-            </div>
+            <div style={{fontSize:'.7rem',fontWeight:800,color:'#718096',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8}}>Vali tööleht</div>
+            {pickedLesson?<div style={{display:'flex',alignItems:'center',gap:8,padding:'10px 12px',borderRadius:10,background:'rgba(47,93,80,.1)',border:'1.5px solid rgba(47,93,80,.3)',marginBottom:8}}>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontWeight:700,fontSize:'.88rem',color:'#2F5D50'}}>{pickedLesson.title}</div>
+                <div style={{fontSize:'.72rem',color:'#2F5D50',opacity:.7}}>{pickedLesson.subject} · {pickedLesson.level}{pickedLesson.topic?' · '+pickedLesson.topic:''}</div>
+              </div>
+              <button onClick={()=>setPickedLesson(null)} style={{background:'none',border:'none',cursor:'pointer',color:'#2F5D50',fontSize:'.8rem',fontWeight:700,flexShrink:0,fontFamily:'inherit'}}>✕ Muuda</button>
+            </div>:<div>
+              <input value={wsSearch} onChange={e=>setWsSearch(e.target.value)}
+                placeholder="🔍 Otsi nimest, teemast, tasemest..."
+                style={{width:'100%',padding:'9px 12px',borderRadius:9,border:'1.5px solid rgba(28,43,58,.12)',fontFamily:'inherit',fontSize:'.86rem',marginBottom:8}}/>
+              <div style={{display:'flex',flexDirection:'column',gap:5,maxHeight:280,overflowY:'auto'}}>
+                {currLessons.length===0&&<div style={{color:'#B0A898',fontSize:'.84rem',padding:'12px 8px',textAlign:'center'}}>Laen töölehti...</div>}
+                {currLessons.filter(l=>{const q=wsSearch.toLowerCase();return !q||l.title?.toLowerCase().includes(q)||l.topic?.toLowerCase().includes(q)||l.level?.toLowerCase().includes(q)||l.subject?.toLowerCase().includes(q);}).map(l=>(
+                  <button key={l.id} onClick={()=>{setPickedLesson(l);setWsSearch('');}}
+                    style={{display:'flex',alignItems:'center',gap:10,padding:'11px 13px',borderRadius:10,border:'1px solid rgba(28,43,58,.1)',background:'#fff',cursor:'pointer',textAlign:'left',width:'100%',fontFamily:'inherit'}}>
+                    <div style={{width:32,height:32,borderRadius:8,background:'rgba(47,93,80,.1)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontSize:'.85rem'}}>📄</div>
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{fontWeight:700,fontSize:'.88rem',color:'#1C2B3A',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{l.title}</div>
+                      <div style={{fontSize:'.72rem',color:'#718096',marginTop:2}}>{l.subject} · {l.level}{l.topic?' · '+l.topic:''}</div>
+                    </div>
+                    <span style={{fontSize:'.72rem',color:'#2F5D50',fontWeight:700,flexShrink:0}}>Vali →</span>
+                  </button>
+                ))}
+              </div>
+            </div>}
           </div>}
           {!isPicker&&<div>
             <div style={{fontSize:'.7rem',fontWeight:800,color:'#718096',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:7}}>Vali õpilane(d)</div>
