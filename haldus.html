@@ -3070,7 +3070,6 @@ function AssignWorksheetModal({lesson, students, user, onClose, notify}) {
   const [currLessons, setCurrLessons] = React.useState([]);
   const [pickedLesson, setPickedLesson] = React.useState(null);
   const [wsSearch, setWsSearch] = React.useState('');
-  const [wsSearch, setWsSearch] = React.useState('');
   const isPicker = !!(lesson._pickForStudent);
   React.useEffect(()=>{ if(lesson._pickForStudent) setSel([lesson._pickForStudent]); },[]);
   React.useEffect(()=>{
