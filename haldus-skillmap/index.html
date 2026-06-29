@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="et" style="color-scheme:light only;">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>KeeleSepp — Oskuste kaart</title>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script>
+(function(){
+  try{
+    if(!firebase.apps.length){
+      firebase.initializeApp({
+        apiKey:"AIzaSyAp8emBOh1fIqv72k_O5hkLkXVkfBt1al4",
+        authDomain:"keelesepp-5136b.firebaseapp.com",
+        projectId:"keelesepp-5136b",
+        storageBucket:"keelesepp-5136b.firebasestorage.app",
+        messagingSenderId:"674098517935",
+        appId:"1:674098517935:web:e73d04a4ada67874da015a"
+      });
+    }
+    window._db=firebase.firestore();
+    window._auth=firebase.auth();
+  }catch(e){console.error('Firebase:',e);}
+})();
+</script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'IBM Plex Sans',sans-serif;background:#EEECE7;color:#1C2B3A;min-height:100vh;}
+.top-header{background:#1C2B3A;height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.18);}
+.logo{font-family:'Fraunces',serif;font-size:1.45rem;font-weight:700;color:#fff;letter-spacing:-.01em;}
+.logo span{color:#C9882A;}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 15px;border-radius:10px;font-family:inherit;font-weight:700;font-size:.83rem;cursor:pointer;border:none;transition:all .14s;}
+.btn-pine{background:#2F5D50;color:#fff;}
+.btn-pine:hover{background:#265048;}
+.btn-ghost{background:rgba(28,43,58,.07);color:#42536A;border:1px solid rgba(28,43,58,.1);}
+.btn-ghost:hover{background:rgba(28,43,58,.12);}
+.btn-sm{padding:6px 12px;font-size:.77rem;}
+.spinner{width:30px;height:30px;border:3px solid rgba(28,43,58,.1);border-top-color:#2F5D50;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* Layout */
+.page{max-width:1200px;margin:0 auto;padding:28px;}
+.page-title{font-family:'Fraunces',serif;font-size:1.6rem;font-weight:700;margin-bottom:4px;}
+.page-sub{font-size:.85rem;color:#718096;margin-bottom:28px;}
+
+/* Student selector */
+.student-sel{background:#fff;border-radius:16px;padding:20px 24px;margin-bottom:24px;border:0.5px solid rgba(28,43,58,.1);display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.student-sel label{font-size:.78rem;font-weight:700;color:#718096;text-transform:uppercase;letter-spacing:.08em;}
+.student-sel select{padding:9px 14px;border-radius:10px;border:1.5px solid rgba(28,43,58,.12);font-family:inherit;font-size:.9rem;color:#1C2B3A;background:#fff;outline:none;min-width:220px;}
+.student-sel select:focus{border-color:#2F5D50;}
+
+/* Level tabs */
+.level-tabs{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap;}
+.level-tab{padding:7px 18px;border-radius:20px;border:1.5px solid transparent;font-weight:700;font-size:.83rem;cursor:pointer;transition:all .15s;background:#fff;}
+.level-tab:hover{border-color:rgba(28,43,58,.2);}
+.level-tab.active{color:#fff;}
+
+/* Skill grid */
+.skill-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-bottom:32px;}
+
+/* Skill card */
+.skill-card{background:#fff;border-radius:14px;padding:16px 18px;border:0.5px solid rgba(28,43,58,.09);transition:all .18s;position:relative;overflow:hidden;}
+.skill-card:hover{box-shadow:0 4px 18px rgba(28,43,58,.09);transform:translateY(-1px);}
+.skill-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px;}
+.skill-cat{font-size:.64rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;padding:3px 8px;border-radius:6px;display:inline-flex;align-items:center;gap:5px;}
+.skill-name{font-size:.9rem;font-weight:700;color:#1C2B3A;margin-bottom:3px;line-height:1.3;}
+.skill-name-et{font-size:.78rem;color:#718096;line-height:1.4;margin-bottom:10px;}
+.skill-score-row{display:flex;align-items:center;gap:10px;}
+.skill-bar-wrap{flex:1;height:7px;background:rgba(28,43,58,.07);border-radius:4px;overflow:hidden;}
+.skill-bar{height:100%;border-radius:4px;transition:width .5s cubic-bezier(.4,0,.2,1);}
+.skill-score-num{font-size:.78rem;font-weight:800;min-width:30px;text-align:right;}
+.skill-status{font-size:.65rem;font-weight:800;padding:2px 8px;border-radius:5px;text-transform:uppercase;letter-spacing:.07em;margin-top:6px;display:inline-flex;align-items:center;gap:4px;}
+.status-strong{background:rgba(22,101,52,.1);color:#166534;}
+.status-normal{background:rgba(28,43,58,.07);color:#42536A;}
+.status-weak{background:rgba(153,27,27,.1);color:#991b1b;}
+.status-untested{background:rgba(201,136,42,.08);color:#92400e;}
+
+/* Score badge editable */
+.score-edit{width:44px;padding:4px 6px;border-radius:7px;border:1.5px solid rgba(28,43,58,.12);font-family:inherit;font-size:.82rem;font-weight:700;text-align:center;background:#F9F8F6;}
+.score-edit:focus{border-color:#2F5D50;outline:none;}
+
+/* Summary panel */
+.summary{background:#1C2B3A;border-radius:18px;padding:24px 28px;margin-bottom:28px;color:#fff;}
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:16px;margin-top:16px;}
+.sum-card{background:rgba(255,255,255,.07);border-radius:12px;padding:14px 16px;text-align:center;}
+.sum-num{font-size:2rem;font-weight:800;line-height:1;}
+.sum-lbl{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.45);margin-top:5px;}
+
+/* Radar chart */
+.radar-wrap{background:#fff;border-radius:18px;padding:24px;margin-bottom:24px;border:0.5px solid rgba(28,43,58,.09);display:flex;gap:28px;align-items:center;flex-wrap:wrap;}
+.radar-svg-wrap{flex-shrink:0;}
+
+/* Legend */
+.legend{flex:1;min-width:200px;}
+.legend-title{font-size:.8rem;font-weight:700;color:#718096;text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;}
+.legend-item{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:.84rem;}
+.legend-dot{width:12px;height:12px;border-radius:3px;flex-shrink:0;}
+
+/* Section header */
+.sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.sec-title{font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#718096;}
+
+/* Save bar */
+.save-bar{position:fixed;bottom:0;left:0;right:0;background:#1C2B3A;padding:14px 28px;display:flex;align-items:center;justify-content:space-between;z-index:50;gap:12px;}
+.save-bar-msg{color:rgba(255,255,255,.55);font-size:.82rem;}
+.save-bar-msg.changed{color:#C9882A;font-weight:700;}
+
+/* Student view mode */
+.student-view{background:linear-gradient(135deg,#1C2B3A 0%,#2F5D50 100%);border-radius:20px;padding:32px;margin-bottom:24px;color:#fff;}
+.sv-title{font-family:'Fraunces',serif;font-size:1.4rem;font-weight:700;margin-bottom:4px;}
+.sv-sub{color:rgba(255,255,255,.5);font-size:.84rem;margin-bottom:24px;}
+.sv-skill{background:rgba(255,255,255,.08);border-radius:12px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;}
+.sv-skill-icon{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
+.sv-skill-name{flex:1;}
+.sv-skill-title{font-size:.9rem;font-weight:700;margin-bottom:2px;}
+.sv-skill-desc{font-size:.74rem;color:rgba(255,255,255,.45);}
+.sv-bar-wrap{width:100px;height:6px;background:rgba(255,255,255,.12);border-radius:3px;overflow:hidden;flex-shrink:0;}
+.sv-bar-fill{height:100%;border-radius:3px;}
+.sv-stars{display:flex;gap:3px;flex-shrink:0;}
+.sv-star{font-size:.9rem;}
+
+/* Notif */
+.notif{position:fixed;top:18px;right:18px;background:#2F5D50;color:#fff;padding:11px 18px;border-radius:12px;z-index:500;font-weight:600;font-size:.86rem;box-shadow:0 8px 28px rgba(0,0,0,.22);animation:fadeIn .2s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:translateY(0);}}
+
+/* Toggle */
+.toggle-wrap{display:flex;background:rgba(28,43,58,.07);border-radius:10px;padding:3px;gap:2px;}
+.toggle-btn{padding:6px 14px;border-radius:8px;border:none;font-family:inherit;font-size:.78rem;font-weight:700;cursor:pointer;transition:all .15s;background:none;color:#718096;}
+.toggle-btn.active{background:#fff;color:#1C2B3A;box-shadow:0 1px 4px rgba(28,43,58,.1);}
+</style>
+</head>
+<body>
+<div id="root"><div style="display:flex;align-items:center;justify-content:center;min-height:100vh"><div class="spinner"></div></div></div>
+<script type="text/babel">
+const {useState,useEffect,useMemo,useCallback,useRef} = React;
+const db = window._db, auth = window._auth;
+
+// ── SKILL DEFINITIONS ─────────────────────────────────────────
+const LEVELS = ['A1','A2','B1','B2','C1'];
+
+const CATEGORIES = {
+  sõnavara:   {label:'Sõnavara',      labelRu:'Словарный запас',  icon:'📚', color:'#0e7490', bg:'rgba(14,116,144,.1)'},
+  grammatika: {label:'Grammatika',    labelRu:'Грамматика',       icon:'⚙️', color:'#6d28d9', bg:'rgba(109,40,217,.1)'},
+  käänded:    {label:'Käänded',       labelRu:'Падежи',           icon:'🔤', color:'#1d4ed8', bg:'rgba(29,78,216,.1)'},
+  lugemine:   {label:'Lugemine',      labelRu:'Чтение',           icon:'📖', color:'#2F5D50', bg:'rgba(47,93,80,.1)'},
+  kirjutamine:{label:'Kirjutamine',   labelRu:'Письмо',           icon:'✍️', color:'#A96E1A', bg:'rgba(169,110,26,.1)'},
+  rääkimine:  {label:'Rääkimine',     labelRu:'Говорение',        icon:'🗣️', color:'#047857', bg:'rgba(4,120,87,.1)'},
+  kuulamine:  {label:'Kuulamine',     labelRu:'Аудирование',      icon:'🎧', color:'#be185d', bg:'rgba(190,24,93,.1)'},
+  lauseehitus:{label:'Lauseehitus',   labelRu:'Построение предл.',icon:'🧩', color:'#dc2626', bg:'rgba(220,38,38,.1)'},
+};
+
+const SKILLS_BY_LEVEL = {
+  A1: [
+    {id:'A1_GREET',         cat:'rääkimine',   name:'Tervimine ja tutvustamine', nameRu:'Приветствие и знакомство',  desc:'Oskad öelda "Tere", "Minu nimi on..." ja küsida "Mis su nimi on?"'},
+    {id:'A1_NUMBERS',       cat:'sõnavara',    name:'Arvud 1–100',               nameRu:'Числа 1–100',               desc:'Tunned numbreid 1-st 100-ni ja oskad öelda oma vanuse ja telefoninumbri.'},
+    {id:'A1_COLORS',        cat:'sõnavara',    name:'Värvid ja kujud',           nameRu:'Цвета и формы',             desc:'Tead põhivärve ja oskad kirjeldada lihtsa eseme värvi.'},
+    {id:'A1_FAMILY_BASIC',  cat:'sõnavara',    name:'Perekond — põhisõnad',      nameRu:'Семья — базовые слова',     desc:'Tead sõnu: ema, isa, õde, vend, vanaema, vanaisa.'},
+    {id:'A1_PRESENT_BASIC', cat:'grammatika',  name:'Olevik — ma/sa/ta',         nameRu:'Настоящее время — я/ты/он', desc:'Oskad pöörata lihtsaid tegusõnu: ma olen, sa oled, ta on.'},
+    {id:'A1_NOMINATIV',     cat:'käänded',     name:'Nimetav kääne',             nameRu:'Именительный падеж',        desc:'Tead, et nimetav kääne vastab küsimusele "kes? mis?".'},
+    {id:'A1_READ_WORDS',    cat:'lugemine',    name:'Üksikute sõnade lugemine',  nameRu:'Чтение отдельных слов',     desc:'Oskad lugeda lühikesi üksikuid sõnu ja neid mõista.'},
+    {id:'A1_WRITE_NAME',    cat:'kirjutamine', name:'Enda andmete kirjutamine',  nameRu:'Написание личных данных',   desc:'Oskad kirjutada oma nime, vanuse ja kodulinna.'},
+    {id:'A1_FOOD_BASIC',    cat:'sõnavara',    name:'Toit — põhisõnad',          nameRu:'Еда — базовые слова',       desc:'Tead sõnu: leib, piim, juust, õun, vesi, mahl.'},
+    {id:'A1_SIMPLE_Q',      cat:'lauseehitus', name:'Lihtsad küsimused',         nameRu:'Простые вопросы',           desc:'Oskad küsida: Mis see on? Kus sa elad? Mitu aastat sa oled?'},
+  ],
+  A2: [
+    {id:'A2_VOCAB_ROUTINE', cat:'sõnavara',    name:'Igapäevaelu sõnavara',      nameRu:'Лексика повседневной жизни', desc:'Kasutad sõnu: ärkan, söön, lähen kooli, magama, tööl, kodus.'},
+    {id:'A2_PRESENT_FULL',  cat:'grammatika',  name:'Olevik — kõik pöörded',     nameRu:'Настоящее время — все формы',desc:'Oskad pöörata tegusõnu kõigis pööretes: ma, sa, ta, me, te, nad.'},
+    {id:'A2_PAST_BASIC',    cat:'grammatika',  name:'Lihtminevik — põhivormid',  nameRu:'Простое прошедшее — основы', desc:'Kasutad minevikku: ma läksin, ta ütles, me tegime.'},
+    {id:'A2_WORD_ORDER',    cat:'lauseehitus', name:'Sõnajärg lauses',           nameRu:'Порядок слов в предложении', desc:'Tead, et eesti keeles on tegusõna tavaliselt teisel kohal.'},
+    {id:'A2_OSASTAV',       cat:'käänded',     name:'Osastav kääne',             nameRu:'Частичный падеж',            desc:'Kasutad osastava käände vorme: Ma söön suppi. Ma loen raamatut.'},
+    {id:'A2_ILLATIIV',      cat:'käänded',     name:'Sisseütlev kääne',          nameRu:'Внутренний направительный',  desc:'Kasutad vormi: kooli, koju, linna, poodi, tuba.'},
+    {id:'A2_NEGATION',      cat:'grammatika',  name:'Eitus lauses',              nameRu:'Отрицание в предложении',    desc:'Oskad moodustada eitust: Ma ei lähe. Ma ei taha. Ta ei ole kodus.'},
+    {id:'A2_QUESTIONS',     cat:'lauseehitus', name:'Küsimuste moodustamine',    nameRu:'Составление вопросов',       desc:'Oskad küsida: Miks? Millal? Kus? Kuidas? Mis?'},
+    {id:'A2_READ_TEXT',     cat:'lugemine',    name:'Lühiteksti mõistmine',      nameRu:'Понимание короткого текста', desc:'Mõistad A2-tasemel kirjutatud tekste (60–120 sõna).'},
+    {id:'A2_WRITE_TEXT',    cat:'kirjutamine', name:'Lühiteksti kirjutamine',    nameRu:'Написание короткого текста', desc:'Kirjutad 6–8 lihtsat lauset ühel teemal.'},
+    {id:'A2_DIALOGUE',      cat:'rääkimine',   name:'Lihtne dialoog',            nameRu:'Простой диалог',             desc:'Osaled lihtsas dialoogis: küsid ja vastad tuttavatel teemadel.'},
+    {id:'A2_TIME_EXPR',     cat:'sõnavara',    name:'Ajajuhised',                nameRu:'Выражения времени',          desc:'Kasutad: hommikul, päeval, õhtul, kell seitse, eile, täna, homme.'},
+  ],
+  B1: [
+    {id:'B1_PAST_TYPES',    cat:'grammatika',  name:'Mineviku ajad',             nameRu:'Виды прошедшего времени',   desc:'Eristad lihtminevikku ja täisminevikku: ma läksin vs ma olen läinud.'},
+    {id:'B1_CONDITIONAL',   cat:'grammatika',  name:'Tingiv kõneviis',           nameRu:'Условное наклонение',       desc:'Kasutad tingiva kõneviisi vorme: Ma tahaksin, Ta võiks, Me saaksime.'},
+    {id:'B1_RELATIVE',      cat:'lauseehitus', name:'Põimlause',                 nameRu:'Сложноподчинённое предл.',  desc:'Ehitad lauseid sidesõnadega: et, kui, sest, aga, kuid, või.'},
+    {id:'B1_KAANDED_ADV',   cat:'käänded',     name:'Käänded — edasijõudnud',   nameRu:'Падежи — продвинутый',      desc:'Kasutad enesekindlalt kaasaütlevat, ilmaütlevat ja saavat käänet.'},
+    {id:'B1_PASSIVE',       cat:'grammatika',  name:'Umbisikuline tegumood',     nameRu:'Неопределённо-личная форма',desc:'Kasutad umbisikulist tegumoodi: Tehakse, Öeldakse, Müüakse.'},
+    {id:'B1_READ_MEDIUM',   cat:'lugemine',    name:'Keskmise teksti mõistmine', nameRu:'Понимание текста ср. сложн.',desc:'Mõistad B1-tasemel tekste (120–200 sõna) tuttavatel teemadel.'},
+    {id:'B1_WRITE_PARA',    cat:'kirjutamine', name:'Lõigu kirjutamine',         nameRu:'Написание абзаца',          desc:'Kirjutad sidusa lõigu (10–15 lauset) koos sissejuhatuse ja kokkuvõttega.'},
+    {id:'B1_SPEAK_DESC',    cat:'rääkimine',   name:'Kirjeldamine ja jutustamine',nameRu:'Описание и повествование',  desc:'Kirjeldad pilti, sündmust või kogemust 1–2 minutit.'},
+    {id:'B1_VOCAB_TOPIC',   cat:'sõnavara',    name:'Teemapõhine sõnavara',      nameRu:'Тематическая лексика',      desc:'Kasutad laiemat sõnavara teemadel: töö, tervis, reisimine, loodus.'},
+    {id:'B1_INTONATION',    cat:'kuulamine',   name:'Kuulamine ja järeldamine',  nameRu:'Аудирование с выводами',    desc:'Mõistad kuulmise järgi põhiideed ja teed lihtsaid järeldusi.'},
+  ],
+  B2: [
+    {id:'B2_COMPLEX_SENT',  cat:'lauseehitus', name:'Keerulised laused',         nameRu:'Сложные предложения',       desc:'Kasutad mitmesuguseid kõrvallauseid ja sidesõnu ladusalt.'},
+    {id:'B2_SUBJUNCTIVE',   cat:'grammatika',  name:'Kaudne kõneviis',           nameRu:'Косвенная речь',            desc:'Edastad teiste öeldut kaudse kõneviisiga: Ta ütles, et ta tulevat.'},
+    {id:'B2_STYLE_REG',     cat:'kirjutamine', name:'Stiil ja register',         nameRu:'Стиль и регистр',           desc:'Kohandad keelt vastavalt olukorrale: ametlik kiri vs sõbralik sõnum.'},
+    {id:'B2_IDIOMS',        cat:'sõnavara',    name:'Fraseoloogiad ja väljendid', nameRu:'Фразеологизмы и выражения', desc:'Mõistad ja kasutad levinumaid eesti keele väljendeid ja ütlusi.'},
+    {id:'B2_ARGUMENT',      cat:'rääkimine',   name:'Argumenteerimine',          nameRu:'Аргументация',              desc:'Esitad ja kaitsed oma arvamust selgelt ja veenvalt.'},
+    {id:'B2_READ_COMPLEX',  cat:'lugemine',    name:'Keerulise teksti mõistmine',nameRu:'Понимание сложных текстов', desc:'Mõistad ajalehte, aimeartiklit, ametlikku dokumenti.'},
+    {id:'B2_LISTEN_DETAIL', cat:'kuulamine',   name:'Detailne kuulamine',        nameRu:'Детальное аудирование',     desc:'Mõistad detaile ja varjatud tähendusi kõnes.'},
+    {id:'B2_WRITE_ESSAY',   cat:'kirjutamine', name:'Essee kirjutamine',         nameRu:'Написание эссе',            desc:'Kirjutad struktureeritud esseelt (200–300 sõna) selge seisukohaga.'},
+    {id:'B2_VOCAB_ABSTRACT',cat:'sõnavara',    name:'Abstraktne sõnavara',       nameRu:'Абстрактная лексика',       desc:'Kasutad abstraktseid mõisteid: vabadus, õiglus, ühiskond, vastutus.'},
+    {id:'B2_GRAMMAR_FINE',  cat:'grammatika',  name:'Peensõnavara ja grammatika',nameRu:'Тонкости грамматики',       desc:'Valdad käändelõppude varieerumist, astmevaheldust ja erandeid.'},
+  ],
+  C1: [
+    {id:'C1_NUANCE',        cat:'sõnavara',    name:'Nüansirikkus ja täpsus',    nameRu:'Нюансы и точность',         desc:'Valid sõnu nüansside järgi: mure vs ärevus, rõõm vs õndsus.'},
+    {id:'C1_RHETORIC',      cat:'rääkimine',   name:'Retoorika ja veenmine',     nameRu:'Риторика и убеждение',      desc:'Kõneled ladusalt, veenvalt ja stiilselt erinevates kontekstides.'},
+    {id:'C1_WRITE_FORMAL',  cat:'kirjutamine', name:'Ametlik ja akadeemiline tekst',nameRu:'Официальный и академич. текст',desc:'Kirjutad akadeemilisi tekste, ettekandeid ja analüüse.'},
+    {id:'C1_READ_ALL',      cat:'lugemine',    name:'Kõiki tekstiliike mõistmine',nameRu:'Понимание всех типов текстов',desc:'Mõistad kirjanduslikke, teaduslikke ja ametlikke tekste.'},
+    {id:'C1_LISTEN_NATIVE', cat:'kuulamine',   name:'Emakeelekõnelejate mõistmine',nameRu:'Понимание носителей языка',  desc:'Mõistad emakeelekõnelejaid ka kiires ja mitteformaalses kõnes.'},
+    {id:'C1_COMPLEX_GRAM',  cat:'grammatika',  name:'Kõrgem grammatika',         nameRu:'Высшая грамматика',         desc:'Valdad kõiki käänamis- ja pööramisreegleid, sealhulgas erandeid.'},
+    {id:'C1_CULTURE',       cat:'sõnavara',    name:'Kultuuriline arusaam',      nameRu:'Культурное понимание',      desc:'Mõistad eesti kultuurilisi viiteid, huumorit ja allegooriaid.'},
+    {id:'C1_SPONTANEOUS',   cat:'rääkimine',   name:'Spontaanne kõne',           nameRu:'Спонтанная речь',           desc:'Räägid loomulikult ja spontaanselt ilma märgatavate pauside või otsinguteta.'},
+  ],
+};
+
+// ── UTILS ──────────────────────────────────────────────────────
+const getStatus = score => {
+  if(score === null || score === undefined) return 'untested';
+  if(score >= 80) return 'strong';
+  if(score >= 50) return 'normal';
+  return 'weak';
+};
+const getStars = score => {
+  if(score === null || score === undefined) return 0;
+  if(score >= 80) return 3;
+  if(score >= 50) return 2;
+  if(score >= 25) return 1;
+  return 0;
+};
+const LEVEL_COLORS = {
+  A1: {main:'#047857', light:'rgba(4,120,87,.12)', text:'#065f46'},
+  A2: {main:'#0e7490', light:'rgba(14,116,144,.12)', text:'#164e63'},
+  B1: {main:'#1d4ed8', light:'rgba(29,78,216,.12)', text:'#1e3a8a'},
+  B2: {main:'#6d28d9', light:'rgba(109,40,217,.12)', text:'#4c1d95'},
+  C1: {main:'#be185d', light:'rgba(190,24,93,.12)', text:'#831843'},
+};
+
+// ── RADAR CHART ─────────────────────────────────────────────────
+function RadarChart({skills, skillMap, level}) {
+  const cats = Object.keys(CATEGORIES);
+  const N = cats.length;
+  const CX = 160, CY = 160, R = 120;
+  const getPoint = (i, r) => {
+    const angle = (2 * Math.PI * i / N) - Math.PI / 2;
+    return [CX + r * Math.cos(angle), CY + r * Math.sin(angle)];
+  };
+  // Average score per category from skills of this level
+  const catScores = {};
+  cats.forEach(cat => {
+    const catSkills = skills.filter(s => s.cat === cat);
+    if(!catSkills.length) { catScores[cat] = 0; return; }
+    const scores = catSkills.map(s => skillMap[s.id] ?? 0);
+    catScores[cat] = scores.reduce((a,b)=>a+b,0) / scores.length;
+  });
+  const lc = LEVEL_COLORS[level] || LEVEL_COLORS.A2;
+  // Grid circles
+  const gridLevels = [25, 50, 75, 100];
+  const gridPaths = gridLevels.map(gl => {
+    const pts = cats.map((_,i) => getPoint(i, R * gl / 100));
+    return pts.map((p,i) => (i===0?'M':'L')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ')+'Z';
+  });
+  // Data polygon
+  const dataPts = cats.map((cat,i) => getPoint(i, R * (catScores[cat] || 0) / 100));
+  const dataPath = dataPts.map((p,i) => (i===0?'M':'L')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ')+'Z';
+  return (
+    <svg width={320} height={320} viewBox="0 0 320 320">
+      {/* Grid */}
+      {gridPaths.map((d,gi) => <path key={gi} d={d} fill="none" stroke="rgba(28,43,58,.07)" strokeWidth="1"/>)}
+      {/* Axes */}
+      {cats.map((_,i) => {
+        const [x,y] = getPoint(i, R);
+        return <line key={i} x1={CX} y1={CY} x2={x.toFixed(1)} y2={y.toFixed(1)} stroke="rgba(28,43,58,.08)" strokeWidth="1"/>;
+      })}
+      {/* Grid labels */}
+      {[25,50,75].map(gl => {
+        const [x,y] = getPoint(0, R * gl / 100);
+        return <text key={gl} x={x+4} y={y+3} fontSize="8" fill="rgba(28,43,58,.3)" fontFamily="IBM Plex Sans">{gl}%</text>;
+      })}
+      {/* Data fill */}
+      <path d={dataPath} fill={lc.main} fillOpacity=".15" stroke={lc.main} strokeWidth="2.5"/>
+      {/* Category labels */}
+      {cats.map((cat,i) => {
+        const [x,y] = getPoint(i, R + 22);
+        const c = CATEGORIES[cat];
+        const anchor = x < CX-10 ? 'end' : x > CX+10 ? 'start' : 'middle';
+        return (
+          <g key={cat}>
+            <text x={x} y={y} fontSize="10" fontWeight="700" fill={c.color} textAnchor={anchor} fontFamily="IBM Plex Sans">{c.icon}</text>
+            <text x={x} y={y+12} fontSize="8.5" fill="rgba(28,43,58,.6)" textAnchor={anchor} fontFamily="IBM Plex Sans">{c.label}</text>
+          </g>
+        );
+      })}
+      {/* Data dots */}
+      {dataPts.map(([x,y],i) => (
+        <circle key={i} cx={x.toFixed(1)} cy={y.toFixed(1)} r="4" fill={lc.main} stroke="#fff" strokeWidth="2"/>
+      ))}
+    </svg>
+  );
+}
+
+// ── SKILL CARD ──────────────────────────────────────────────────
+function SkillCard({skill, score, isTeacher, onChange}) {
+  const cat = CATEGORIES[skill.cat] || CATEGORIES.sõnavara;
+  const status = getStatus(score);
+  const stars = getStars(score);
+  const lc = LEVEL_COLORS[skill.id.slice(0,2)] || {};
+  const barColor = status === 'strong' ? '#166534' : status === 'weak' ? '#dc2626' : '#1d4ed8';
+  return (
+    <div className="skill-card">
+      <div className="skill-card-head">
+        <div>
+          <span className="skill-cat" style={{background:cat.bg, color:cat.color}}>
+            {cat.icon} {cat.label}
+          </span>
+        </div>
+        <div style={{display:'flex',alignItems:'center',gap:6}}>
+          {[0,1,2].map(s => (
+            <span key={s} className="sv-star" style={{opacity:s<stars?1:.2}}>⭐</span>
+          ))}
+        </div>
+      </div>
+      <div className="skill-name">{skill.name}</div>
+      <div className="skill-name-et" style={{fontSize:'.74rem',color:'#7A7167',marginBottom:8}}>{skill.nameRu}</div>
+      <div style={{fontSize:'.78rem',color:'#42536A',lineHeight:1.45,marginBottom:10,fontStyle:'italic'}}>{skill.desc}</div>
+      <div className="skill-score-row">
+        <div className="skill-bar-wrap">
+          <div className="skill-bar" style={{width:(score??0)+'%', background:barColor}}/>
+        </div>
+        {isTeacher
+          ? <input
+              type="number" min={0} max={100}
+              className="score-edit"
+              value={score??''}
+              placeholder="—"
+              onChange={e => onChange(skill.id, e.target.value === '' ? null : Math.min(100, Math.max(0, Number(e.target.value))))}
+            />
+          : <span className="skill-score-num" style={{color:barColor}}>{score !== null && score !== undefined ? score+'%' : '—'}</span>
+        }
+      </div>
+      <div style={{marginTop:8}}>
+        <span className={'skill-status status-'+status}>
+          {status === 'strong' ? '✓ Tugev' : status === 'weak' ? '⚠ Nõrk' : status === 'untested' ? '○ Testimata' : '● Areneb'}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// ── STUDENT VIEW (for student-facing display) ───────────────────
+function StudentView({student, skillMap, activeLevel}) {
+  const skills = SKILLS_BY_LEVEL[activeLevel] || [];
+  const lc = LEVEL_COLORS[activeLevel] || LEVEL_COLORS.A2;
+  const levelSkills = skills.map(s => ({...s, score: skillMap[s.id] ?? null}));
+  const tested = levelSkills.filter(s => s.score !== null);
+  const avg = tested.length ? Math.round(tested.reduce((a,s) => a+s.score,0)/tested.length) : 0;
+  const strong = levelSkills.filter(s => s.score !== null && s.score >= 80);
+  const weak = levelSkills.filter(s => s.score !== null && s.score < 50);
+  return (
+    <div>
+      <div className="student-view" style={{background:`linear-gradient(135deg,${lc.main} 0%,#1C2B3A 100%)`}}>
+        <div className="sv-title">Tere, {student?.name || 'Õpilane'}! 👋</div>
+        <div className="sv-sub">Sinu keeleoskuse kaart — tase {activeLevel}</div>
+        {/* Progress overview */}
+        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12,marginBottom:20}}>
+          {[
+            {label:'Keskmine tulemus', val:avg+'%', icon:'📊'},
+            {label:'Tugevaid oskusi', val:strong.length, icon:'💪'},
+            {label:'Arendada', val:weak.length, icon:'🎯'},
+          ].map((item,i) => (
+            <div key={i} style={{background:'rgba(255,255,255,.1)',borderRadius:12,padding:'12px 14px',textAlign:'center'}}>
+              <div style={{fontSize:'1.3rem',marginBottom:4}}>{item.icon}</div>
+              <div style={{fontSize:'1.4rem',fontWeight:800,color:'#fff'}}>{item.val}</div>
+              <div style={{fontSize:'.7rem',color:'rgba(255,255,255,.5)',marginTop:2}}>{item.label}</div>
+            </div>
+          ))}
+        </div>
+        {/* Skills list */}
+        {levelSkills.map(s => {
+          const stars = getStars(s.score);
+          const pct = s.score ?? 0;
+          const cat = CATEGORIES[s.cat] || {};
+          return (
+            <div key={s.id} className="sv-skill">
+              <div className="sv-skill-icon">{cat.icon || '📚'}</div>
+              <div className="sv-skill-name">
+                <div className="sv-skill-title">{s.name}</div>
+                <div className="sv-skill-desc">{s.desc}</div>
+              </div>
+              <div className="sv-bar-wrap">
+                <div className="sv-bar-fill" style={{width:pct+'%',background:'rgba(255,255,255,.7)'}}/>
+              </div>
+              <div className="sv-stars">
+                {[0,1,2].map(i => <span key={i} className="sv-star" style={{opacity:i<stars?1:.2}}>⭐</span>)}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      {/* Encouragement */}
+      {strong.length > 0 && (
+        <div style={{background:'rgba(22,101,52,.08)',border:'1px solid rgba(22,101,52,.2)',borderRadius:14,padding:'16px 20px',marginBottom:14}}>
+          <div style={{fontWeight:700,color:'#166534',marginBottom:8}}>💪 Sinu tugevused:</div>
+          {strong.map(s => <div key={s.id} style={{fontSize:'.84rem',color:'#166534',marginBottom:3}}>✓ {s.name}</div>)}
+        </div>
+      )}
+      {weak.length > 0 && (
+        <div style={{background:'rgba(201,136,42,.08)',border:'1px solid rgba(201,136,42,.2)',borderRadius:14,padding:'16px 20px'}}>
+          <div style={{fontWeight:700,color:'#A96E1A',marginBottom:8}}>🎯 Harjuta rohkem:</div>
+          {weak.map(s => <div key={s.id} style={{fontSize:'.84rem',color:'#A96E1A',marginBottom:3}}>→ {s.name}</div>)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── MAIN APP ────────────────────────────────────────────────────
+function App() {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [students, setStudents] = useState([]);
+  const [selectedId, setSelectedId] = useState('');
+  const [skillMap, setSkillMap] = useState({});
+  const [origMap, setOrigMap] = useState({});
+  const [activeLevel, setActiveLevel] = useState('A2');
+  const [viewMode, setViewMode] = useState('teacher'); // 'teacher' | 'student'
+  const [saving, setSaving] = useState(false);
+  const [notif, setNotif] = useState('');
+  const [changed, setChanged] = useState(false);
+
+  const notify = msg => { setNotif(msg); setTimeout(() => setNotif(''), 3000); };
+
+  const isTeacher = user?.role === 'teacher' || user?.role === 'admin' || user?.email === 'zakutailo.pavel@gmail.com';
+
+  useEffect(() => {
+    const u = auth.onAuthStateChanged(async fb => {
+      if(fb) {
+        const s = await db.collection('users').doc(fb.uid).get();
+        setUser(s.exists ? {uid:fb.uid,...s.data()} : {uid:fb.uid,email:fb.email,role:'teacher'});
+      } else setUser(null);
+      setLoading(false);
+    });
+    return u;
+  }, []);
+
+  useEffect(() => {
+    const u = db.collection('students').onSnapshot(snap => {
+      setStudents(snap.docs.map(d => ({id:d.id,...d.data()})));
+    });
+    return u;
+  }, []);
+
+  // Load skill map when student changes
+  useEffect(() => {
+    if(!selectedId) { setSkillMap({}); setOrigMap({}); setChanged(false); return; }
+    const st = students.find(s => s.id === selectedId);
+    const map = st?.skillMap || {};
+    setSkillMap({...map});
+    setOrigMap({...map});
+    setChanged(false);
+  }, [selectedId, students]);
+
+  const updateScore = (skillId, val) => {
+    setSkillMap(p => {
+      const next = {...p};
+      if(val === null) delete next[skillId];
+      else next[skillId] = val;
+      return next;
+    });
+    setChanged(true);
+  };
+
+  const saveSkillMap = async () => {
+    if(!selectedId) return;
+    setSaving(true);
+    await db.collection('students').doc(selectedId).update({skillMap, skillMapUpdatedAt: new Date().toISOString()});
+    setOrigMap({...skillMap});
+    setChanged(false);
+    setSaving(false);
+    notify('✓ Oskuste kaart salvestatud!');
+  };
+
+  const selectedStudent = students.find(s => s.id === selectedId);
+  const levelSkills = SKILLS_BY_LEVEL[activeLevel] || [];
+  const lc = LEVEL_COLORS[activeLevel] || LEVEL_COLORS.A2;
+
+  // Summary stats across ALL levels
+  const allSkills = LEVELS.flatMap(lv => SKILLS_BY_LEVEL[lv] || []);
+  const testedAll = allSkills.filter(s => skillMap[s.id] !== undefined && skillMap[s.id] !== null);
+  const avgAll = testedAll.length ? Math.round(testedAll.reduce((a,s) => a + skillMap[s.id],0) / testedAll.length) : 0;
+  const strongAll = testedAll.filter(s => skillMap[s.id] >= 80).length;
+  const weakAll = testedAll.filter(s => skillMap[s.id] < 50).length;
+
+  if(loading) return <div style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh'}}><div className="spinner"/></div>;
+  if(!user) return <div style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh',color:'#718096'}}>Palun logi sisse peahalduslehelt.</div>;
+
+  return (
+    <div style={{minHeight:'100vh',background:'#EEECE7',paddingBottom:80}}>
+      {notif && <div className="notif">{notif}</div>}
+
+      {/* Header */}
+      <header className="top-header">
+        <div className="logo">Keele<span>Sepp</span></div>
+        <div style={{display:'flex',alignItems:'center',gap:12}}>
+          <a href="/haldus/" style={{color:'rgba(255,255,255,.5)',fontSize:'.78rem',textDecoration:'none',padding:'6px 12px',border:'1px solid rgba(255,255,255,.14)',borderRadius:8}}>← Haldus</a>
+          <a href="/haldus-exercises/" style={{color:'rgba(255,255,255,.5)',fontSize:'.78rem',textDecoration:'none',padding:'6px 12px',border:'1px solid rgba(255,255,255,.14)',borderRadius:8}}>Õppekava</a>
+        </div>
+      </header>
+
+      <div className="page">
+        <div className="page-title">🗺 Oskuste kaart</div>
+        <div className="page-sub">Vaata ja halda iga õpilase keeleoskust tasemete kaupa</div>
+
+        {/* Student selector */}
+        <div className="student-sel">
+          <label>Õpilane</label>
+          <select value={selectedId} onChange={e => setSelectedId(e.target.value)}>
+            <option value="">— Vali õpilane —</option>
+            {students.filter(s=>s.active!==false).map(s => (
+              <option key={s.id} value={s.id}>{s.name} ({s.level || '?'})</option>
+            ))}
+          </select>
+          {selectedStudent && (
+            <>
+              <div style={{fontSize:'.78rem',color:'#718096'}}>
+                <span style={{fontWeight:700,color:'#1C2B3A'}}>{selectedStudent.subject || 'Eesti keel'}</span>
+                {' · '}{selectedStudent.teacher || '—'}
+              </div>
+              <div className="toggle-wrap" style={{marginLeft:'auto'}}>
+                <button className={'toggle-btn'+(viewMode==='teacher'?' active':'')} onClick={() => setViewMode('teacher')}>
+                  👩‍🏫 Õpetaja vaade
+                </button>
+                <button className={'toggle-btn'+(viewMode==='student'?' active':'')} onClick={() => setViewMode('student')}>
+                  🎓 Õpilase vaade
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+
+        {!selectedId && (
+          <div style={{textAlign:'center',padding:'80px 0',color:'#B0A898'}}>
+            <div style={{fontSize:'3rem',marginBottom:12}}>🗺</div>
+            <div style={{fontSize:'1rem',fontWeight:600,color:'#1C2B3A',marginBottom:6}}>Vali õpilane</div>
+            <div style={{fontSize:'.84rem'}}>Seejärel saad sisestada ja salvestada tema keeleoskuse tasemeid.</div>
+          </div>
+        )}
+
+        {selectedId && viewMode === 'student' && (
+          <>
+            {/* Level tabs for student view */}
+            <div className="level-tabs">
+              {LEVELS.map(lv => {
+                const lvSkills = SKILLS_BY_LEVEL[lv] || [];
+                const tested = lvSkills.filter(s => skillMap[s.id] !== null && skillMap[s.id] !== undefined);
+                return (
+                  <button key={lv} className={'level-tab'+(activeLevel===lv?' active':'')}
+                    style={activeLevel===lv ? {background:LEVEL_COLORS[lv].main, borderColor:'transparent'} : {borderColor:'rgba(28,43,58,.12)'}}
+                    onClick={() => setActiveLevel(lv)}>
+                    {lv}
+                    <span style={{fontSize:'.68rem',opacity:.7,marginLeft:4}}>{tested.length}/{lvSkills.length}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <StudentView student={selectedStudent} skillMap={skillMap} activeLevel={activeLevel}/>
+          </>
+        )}
+
+        {selectedId && viewMode === 'teacher' && (
+          <>
+            {/* Summary */}
+            <div className="summary">
+              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:10}}>
+                <div>
+                  <div style={{fontSize:'1.1rem',fontWeight:700,color:'#fff'}}>{selectedStudent?.name}</div>
+                  <div style={{fontSize:'.78rem',color:'rgba(255,255,255,.45)'}}>
+                    Kõik tasemed kokku · {testedAll.length} / {allSkills.length} testitud
+                  </div>
+                </div>
+                <div style={{fontSize:'2.5rem',fontWeight:800,color:'#C9882A'}}>{avgAll}%</div>
+              </div>
+              <div className="summary-grid">
+                {[
+                  {label:'Testitud', val:testedAll.length, icon:'📊'},
+                  {label:'Tugevad (≥80%)', val:strongAll, icon:'💪', color:'#4ade80'},
+                  {label:'Nõrgad (<50%)', val:weakAll, icon:'⚠️', color:'#fca5a5'},
+                  {label:'Testimata', val:allSkills.length-testedAll.length, icon:'○', color:'rgba(255,255,255,.4)'},
+                ].map((item,i) => (
+                  <div key={i} className="sum-card">
+                    <div className="sum-num" style={{color:item.color||'#fff'}}>{item.val}</div>
+                    <div className="sum-lbl">{item.icon} {item.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Radar chart + legend */}
+            <div className="radar-wrap">
+              <div className="radar-svg-wrap">
+                <RadarChart skills={levelSkills} skillMap={skillMap} level={activeLevel}/>
+              </div>
+              <div className="legend">
+                <div className="legend-title">Kategooriad — {activeLevel}</div>
+                {Object.entries(CATEGORIES).map(([key,cat]) => {
+                  const catSkills = levelSkills.filter(s => s.cat === key);
+                  if(!catSkills.length) return null;
+                  const scores = catSkills.map(s => skillMap[s.id] ?? null).filter(x => x !== null);
+                  const avg = scores.length ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length) : null;
+                  return (
+                    <div key={key} className="legend-item">
+                      <div className="legend-dot" style={{background:cat.color}}/>
+                      <div style={{flex:1}}>
+                        <span style={{fontWeight:700,color:cat.color}}>{cat.icon} {cat.label}</span>
+                        <span style={{fontSize:'.74rem',color:'#B0A898',marginLeft:6}}>{cat.labelRu}</span>
+                      </div>
+                      <span style={{fontWeight:800,color:avg!==null?cat.color:'#B0A898',fontSize:'.82rem'}}>
+                        {avg !== null ? avg+'%' : '—'}
+                      </span>
+                    </div>
+                  );
+                })}
+                {/* Legend explanation */}
+                <div style={{marginTop:16,padding:'12px 14px',background:'rgba(28,43,58,.04)',borderRadius:10,border:'1px solid rgba(28,43,58,.08)'}}>
+                  <div style={{fontSize:'.72rem',fontWeight:700,color:'#718096',marginBottom:8}}>Selgitus</div>
+                  {[
+                    {label:'Tugev',   range:'80–100%', color:'#166534', bg:'rgba(22,101,52,.1)'},
+                    {label:'Areneb',  range:'50–79%',  color:'#1d4ed8', bg:'rgba(29,78,216,.1)'},
+                    {label:'Nõrk',    range:'0–49%',   color:'#dc2626', bg:'rgba(220,38,38,.1)'},
+                    {label:'Testimata', range:'—',     color:'#718096', bg:'rgba(28,43,58,.06)'},
+                  ].map(item => (
+                    <div key={item.label} style={{display:'flex',alignItems:'center',gap:7,marginBottom:5}}>
+                      <span style={{display:'inline-block',width:9,height:9,borderRadius:2,background:item.color,flexShrink:0}}/>
+                      <span style={{fontSize:'.75rem',fontWeight:700,color:item.color}}>{item.label}</span>
+                      <span style={{fontSize:'.73rem',color:'#B0A898'}}>{item.range}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Level tabs */}
+            <div className="level-tabs">
+              {LEVELS.map(lv => {
+                const lvSkills = SKILLS_BY_LEVEL[lv] || [];
+                const tested = lvSkills.filter(s => skillMap[s.id] !== null && skillMap[s.id] !== undefined);
+                const avgLv = tested.length ? Math.round(tested.reduce((a,s)=>a+skillMap[s.id],0)/tested.length) : null;
+                return (
+                  <button key={lv} className={'level-tab'+(activeLevel===lv?' active':'')}
+                    style={activeLevel===lv ? {background:LEVEL_COLORS[lv].main, borderColor:'transparent', color:'#fff'} : {borderColor:LEVEL_COLORS[lv].main+'40', color:LEVEL_COLORS[lv].main}}
+                    onClick={() => setActiveLevel(lv)}>
+                    <span style={{fontWeight:800}}>{lv}</span>
+                    {avgLv !== null && <span style={{fontSize:'.7rem',opacity:.8,marginLeft:4}}>{avgLv}%</span>}
+                    <span style={{fontSize:'.68rem',opacity:.6,marginLeft:4}}>{tested.length}/{lvSkills.length}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Skills grid */}
+            <div className="sec-head">
+              <div className="sec-title" style={{color:lc.main}}>
+                {activeLevel} — {levelSkills.length} oskust
+              </div>
+              <div style={{fontSize:'.76rem',color:'#718096'}}>
+                {isTeacher ? 'Sisesta hinne 0–100 iga oskuse jaoks' : 'Vaata oma tulemusi'}
+              </div>
+            </div>
+            <div className="skill-grid">
+              {levelSkills.map(skill => (
+                <SkillCard
+                  key={skill.id}
+                  skill={skill}
+                  score={skillMap[skill.id] ?? null}
+                  isTeacher={isTeacher}
+                  onChange={updateScore}
+                />
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Save bar */}
+      {selectedId && isTeacher && viewMode === 'teacher' && (
+        <div className="save-bar">
+          <div className={'save-bar-msg'+(changed?' changed':'')}>
+            {changed ? '● Salvestamata muudatused' : '✓ Kõik salvestatud'}
+          </div>
+          <div style={{display:'flex',gap:10,alignItems:'center'}}>
+            {changed && (
+              <button onClick={() => { setSkillMap({...origMap}); setChanged(false); }} className="btn btn-ghost btn-sm" style={{color:'rgba(255,255,255,.6)',borderColor:'rgba(255,255,255,.15)'}}>
+                Tühista
+              </button>
+            )}
+            <button onClick={saveSkillMap} disabled={saving || !changed} className="btn btn-pine">
+              {saving ? 'Salvestab…' : '✓ Salvesta oskuste kaart'}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
