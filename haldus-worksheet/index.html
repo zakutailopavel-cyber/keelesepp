@@ -35,29 +35,19 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'IBM Plex Sans',sans-serif;background:#EEECE7;color:#1C2B3A;min-height:100vh;overflow-x:hidden;}
-
-/* HEADER */
 .hdr{background:#1C2B3A;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(0,0,0,.2);}
 .logo{font-family:'Fraunces',serif;font-size:1.3rem;font-weight:700;color:#fff;}
 .logo span{color:#C9882A;}
-
-/* LAYOUT */
 .workspace{display:grid;grid-template-columns:320px minmax(0,1fr);height:calc(100vh - 56px);overflow:hidden;}
-
-/* LEFT PANEL */
 .left-panel{background:#F5F4F0;border-right:1px solid rgba(28,43,58,.1);display:flex;flex-direction:column;overflow:hidden;}
 .left-tabs{display:flex;border-bottom:1px solid rgba(28,43,58,.1);background:#fff;}
 .ltab{flex:1;padding:11px 6px;font-size:.76rem;font-weight:700;cursor:pointer;border:none;background:none;color:#718096;border-bottom:2px solid transparent;transition:all .12s;display:flex;align-items:center;justify-content:center;gap:5px;}
 .ltab.active{color:#1C2B3A;border-bottom-color:#C9882A;}
 .left-scroll{flex:1;overflow-y:auto;padding:12px;}
-
-/* BLOCK TYPE GRID */
 .btype-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px;}
 .btype-btn{padding:9px 8px;border-radius:9px;border:0.5px solid rgba(28,43,58,.12);background:#fff;cursor:pointer;font-size:.75rem;font-weight:600;color:#1C2B3A;display:flex;align-items:center;gap:6px;transition:all .13s;}
 .btype-btn:hover{border-color:#2F5D50;background:rgba(47,93,80,.05);color:#2F5D50;}
 .btype-icon{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.68rem;flex-shrink:0;}
-
-/* BLOCK LIST ITEMS */
 .block-item{background:#fff;border:0.5px solid rgba(28,43,58,.1);border-radius:10px;margin-bottom:6px;cursor:pointer;transition:all .13s;user-select:none;}
 .block-item:hover{border-color:rgba(28,43,58,.2);}
 .block-item.active{border-color:#2F5D50;box-shadow:0 0 0 2px rgba(47,93,80,.1);}
@@ -72,104 +62,55 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#EEECE7;color:#1C2B3A;min
 .bi-btn{background:none;border:none;cursor:pointer;color:#B0A898;font-size:.68rem;padding:3px 4px;border-radius:5px;}
 .bi-btn:hover{color:#2F5D50;background:rgba(47,93,80,.1);}
 .bi-btn.del:hover{color:#dc2626;background:rgba(220,38,38,.07);}
-
-/* BLOCK EDITOR */
 .block-editor{padding:8px 10px 10px;border-top:0.5px solid rgba(28,43,58,.07);}
 .field-lbl{font-size:.66rem;font-weight:700;color:#7A7167;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;margin-top:8px;}
 .field-lbl:first-child{margin-top:0;}
-input[type=text],input[type=number],textarea,select{width:100%;padding:7px 9px;border-radius:8px;border:1px solid rgba(28,43,58,.12);background:#FAFAF8;font-family:inherit;font-size:.82rem;color:#1C2B3A;outline:none;}
+input[type=text],input[type=number],input[type=date],textarea,select{width:100%;padding:7px 9px;border-radius:8px;border:1px solid rgba(28,43,58,.12);background:#FAFAF8;font-family:inherit;font-size:.82rem;color:#1C2B3A;outline:none;}
 input:focus,textarea:focus,select:focus{border-color:#2F5D50;background:#fff;}
 textarea{resize:vertical;line-height:1.45;}
-
-/* SIZE SELECTOR */
 .size-btns{display:flex;gap:5px;margin-bottom:2px;}
 .size-btn{padding:4px 10px;border-radius:7px;border:1px solid rgba(28,43,58,.12);background:#fff;cursor:pointer;font-size:.72rem;font-weight:600;color:#718096;transition:all .12s;}
 .size-btn.active{background:#2F5D50;border-color:#2F5D50;color:#fff;}
-
-/* COLUMN TOGGLE */
-.col-btns{display:flex;gap:5px;margin-bottom:2px;}
-.col-btn{padding:4px 10px;border-radius:7px;border:1px solid rgba(28,43,58,.12);background:#fff;cursor:pointer;font-size:.72rem;font-weight:600;color:#718096;transition:all .12s;display:flex;align-items:center;gap:4px;}
-.col-btn.active{background:#1d4ed8;border-color:#1d4ed8;color:#fff;}
-
-/* IMAGE UPLOAD in editor */
 .img-upload{border:1.5px dashed rgba(28,43,58,.18);border-radius:8px;padding:12px;text-align:center;cursor:pointer;transition:all .12s;background:rgba(28,43,58,.01);}
 .img-upload:hover{border-color:#C9882A;background:rgba(201,136,42,.04);}
 .img-upload input{display:none;}
 .img-thumb{width:100%;max-height:80px;object-fit:cover;border-radius:6px;margin-top:6px;}
-
-/* RIGHT PANEL */
 .right-panel{overflow-y:auto;padding:24px 24px 40px;display:flex;flex-direction:column;align-items:center;background:#E8E6E1;}
-
-/* A4 */
 .a4-wrap{display:flex;flex-direction:column;gap:0;align-items:center;}
 .a4-sheet{width:794px;min-height:1123px;background:#fff;box-shadow:0 4px 40px rgba(0,0,0,.14);padding:64px 72px 72px;font-family:'IBM Plex Sans',sans-serif;color:#1C2B3A;flex-shrink:0;position:relative;box-sizing:border-box;}
-.a4-sheet.a4-first{border-radius:4px 4px 0 0;}
 .a4-page-break{width:794px;height:32px;background:#E8E6E1;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .a4-page-break-label{font-size:.62rem;color:#B0A898;font-weight:600;text-transform:uppercase;letter-spacing:.1em;}
 .a4-page-num{position:absolute;bottom:20px;right:72px;font-size:.7rem;color:#B0A898;}
 @media(max-width:1150px){.a4-sheet{width:100%;padding:40px 32px;max-height:none;}}
-@media(max-width:1150px){.a4-sheet{width:100%;padding:40px 32px;}}
-
 .sheet-hdr{margin-bottom:24px;padding-bottom:14px;border-bottom:2px solid #1C2B3A;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;}
 .sheet-title{font-family:'Fraunces',serif;font-size:1.5rem;font-weight:700;margin-bottom:4px;}
 .sheet-meta-row{font-size:.77rem;color:#718096;display:flex;gap:14px;flex-wrap:wrap;}
 .score-box{border:1px solid #1C2B3A;border-radius:5px;padding:5px 12px;font-size:.78rem;font-weight:600;text-align:center;white-space:nowrap;}
-
-/* PREVIEW BLOCKS */
 .pb-wrap{margin-bottom:22px;break-inside:avoid;page-break-inside:avoid;}
-.pb-wrap.half{width:calc(50% - 8px);display:inline-block;vertical-align:top;margin-right:16px;}
-.pb-wrap.half:nth-child(2n){margin-right:0;}
 .pb-num-row{display:flex;align-items:center;gap:7px;margin-bottom:6px;}
 .pb-num{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#1C2B3A;color:#fff;font-size:.62rem;font-weight:800;flex-shrink:0;}
 .pb-type-lbl{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#718096;}
-.pb-instruction{font-size:.78rem;font-style:italic;color:#718096;margin-bottom:6px;}
-
-/* fill */
 .fill-line{font-size:.92rem;line-height:2.4;}
 .fill-blank{display:inline-block;min-width:80px;border-bottom:1.5px solid #1C2B3A;margin:0 3px;vertical-align:bottom;}
-
-/* choice */
 .ch-q{font-size:.9rem;font-weight:600;margin-bottom:5px;}
 .ch-opts{padding-left:12px;margin-bottom:10px;}
 .ch-opt{font-size:.86rem;display:flex;align-items:center;gap:7px;margin-bottom:3px;}
 .ch-circle{width:13px;height:13px;border-radius:50%;border:1.5px solid #1C2B3A;flex-shrink:0;}
-
-/* writing */
 .wr-task{font-size:.88rem;margin-bottom:9px;line-height:1.5;}
 .wr-line{height:26px;border-bottom:1px solid rgba(28,43,58,.15);}
-
-/* match */
 .match-cols{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
 .match-item{padding:6px 10px;border:1px solid rgba(28,43,58,.15);border-radius:5px;font-size:.85rem;margin-bottom:4px;}
 .match-answer-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
 .match-ans{font-size:.82rem;padding:3px 8px;border:1px solid rgba(28,43,58,.15);border-radius:4px;}
-
-/* order */
 .order-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
 .order-chip{padding:5px 12px;border:1.5px solid rgba(28,43,58,.18);border-radius:7px;font-size:.86rem;background:#FAFAF8;}
 .order-ans{border-bottom:1px solid rgba(28,43,58,.2);padding-bottom:2px;font-size:.8rem;color:#B0A898;margin-top:4px;}
-
-/* table */
 .ws-tbl{width:100%;border-collapse:collapse;font-size:.85rem;}
 .ws-tbl th{background:#F0EEE9;padding:6px 9px;border:1px solid rgba(28,43,58,.15);text-align:left;font-weight:700;}
 .ws-tbl td{padding:6px 9px;border:1px solid rgba(28,43,58,.15);height:28px;}
-
-/* text */
 .pb-text{font-size:.9rem;line-height:1.65;}
-
-/* image */
-.pb-img{width:100%;max-height:220px;object-fit:contain;border-radius:6px;margin-bottom:8px;border:1px solid rgba(28,43,58,.08);}
-
-/* reading */
 .pb-passage{background:#F9F8F6;border:1px solid rgba(28,43,58,.1);border-radius:6px;padding:11px 13px;margin-bottom:12px;font-size:.87rem;line-height:1.65;white-space:pre-wrap;}
-
-/* 2-COL LAYOUT WRAPPER */
-.two-col-preview{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
-
-/* DIVIDER */
 .pb-divider{border:none;border-top:1px dashed rgba(28,43,58,.12);margin:18px 0;}
-
-/* BUTTONS */
 .btn{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:8px;font-family:inherit;font-weight:700;font-size:.8rem;cursor:pointer;border:none;transition:all .13s;}
 .btn-pine{background:#2F5D50;color:#fff;}
 .btn-pine:hover{background:#265048;}
@@ -178,9 +119,9 @@ textarea{resize:vertical;line-height:1.45;}
 .btn-ghost:hover{background:rgba(28,43,58,.12);}
 .btn-gold{background:#C9882A;color:#fff;}
 .btn-gold:hover{background:#b37624;}
+.btn-green{background:#16a34a;color:#fff;}
+.btn-green:hover{background:#15803d;}
 .btn-sm{padding:5px 10px;font-size:.75rem;}
-
-/* AI PANEL */
 .ai-panel{background:linear-gradient(135deg,#1C2B3A,#2F5D50);border-radius:11px;padding:14px;margin-bottom:12px;color:#fff;}
 .ai-title{font-size:.82rem;font-weight:700;margin-bottom:9px;display:flex;align-items:center;gap:6px;}
 .ai-textarea{width:100%;padding:8px 10px;border-radius:8px;border:none;background:rgba(255,255,255,.12);color:#fff;font-family:inherit;font-size:.8rem;outline:none;resize:vertical;min-height:60px;}
@@ -189,73 +130,35 @@ textarea{resize:vertical;line-height:1.45;}
 .ai-lvl-btns{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;}
 .ai-lvl{padding:3px 9px;border-radius:6px;border:1px solid rgba(255,255,255,.22);background:transparent;color:rgba(255,255,255,.7);cursor:pointer;font-size:.72rem;font-weight:700;}
 .ai-lvl.active{background:rgba(255,255,255,.2);color:#fff;}
-
-/* META BOX */
 .meta-box{background:#fff;border:0.5px solid rgba(28,43,58,.1);border-radius:10px;padding:12px;margin-bottom:10px;}
 .meta-lbl{font-size:.66rem;font-weight:700;color:#7A7167;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;}
-
-/* SPINNER */
 .sp{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;display:inline-block;}
 .sp-dark{width:28px;height:28px;border:2.5px solid rgba(28,43,58,.1);border-top-color:#2F5D50;border-radius:50%;animation:spin .6s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
 .toast{position:fixed;top:14px;right:14px;background:#1C2B3A;color:#fff;padding:9px 15px;border-radius:10px;z-index:500;font-weight:600;font-size:.82rem;box-shadow:0 8px 24px rgba(0,0,0,.22);}
-
-/* NUM BADGE */
 .nbadge{display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;border-radius:50%;background:#2F5D50;color:#fff;font-size:.6rem;font-weight:800;}
-
-/* EMPTY */
 .empty-bld{text-align:center;padding:32px 12px;color:#B0A898;}
 .empty-bld i{font-size:1.8rem;margin-bottom:8px;opacity:.25;display:block;}
-
-/* TOOLBAR ROW above A4 */
 .toolbar-row{display:flex;justify-content:flex-end;width:794px;margin-bottom:10px;gap:7px;align-items:center;}
 @media(max-width:1150px){.toolbar-row{width:100%;}}
-
-/* SAVE MODAL */
-.sav-ov{position:fixed;inset:0;background:rgba(28,43,58,.5);display:flex;align-items:center;justify-content:center;padding:16px;z-index:300;backdrop-filter:blur(4px);}
-.sav-box{background:#FBFAF8;border-radius:18px;max-width:480px;width:100%;padding:0;overflow:hidden;}
-.sav-head{padding:18px 22px 14px;border-bottom:1px solid rgba(28,43,58,.08);display:flex;justify-content:space-between;align-items:center;}
-.sav-body{padding:18px 22px;display:flex;flex-direction:column;gap:12px;}
-.sav-foot{padding:12px 22px;border-top:1px solid rgba(28,43,58,.08);display:flex;gap:8px;justify-content:flex-end;}
-.btn-green{background:#16a34a;color:#fff;}
-.btn-green:hover{background:#15803d;}
-
-/* SAVE MODAL */
 .sav-ov{position:fixed;inset:0;background:rgba(28,43,58,.5);display:flex;align-items:center;justify-content:center;padding:16px;z-index:300;backdrop-filter:blur(4px);}
 .sav-box{background:#FBFAF8;border-radius:18px;max-width:480px;width:100%;overflow:hidden;}
 .sav-head{padding:18px 22px 14px;border-bottom:1px solid rgba(28,43,58,.08);display:flex;justify-content:space-between;align-items:center;}
 .sav-body{padding:18px 22px;display:flex;flex-direction:column;gap:12px;}
 .sav-foot{padding:12px 22px;border-top:1px solid rgba(28,43,58,.08);display:flex;gap:8px;justify-content:flex-end;}
-.btn-green{background:#16a34a;color:#fff;}
-.btn-green:hover{background:#15803d;}
-
-/* RESIZABLE IMAGE */
 .img-resizable-wrap{position:relative;display:inline-block;max-width:100%;line-height:0;}
 .img-resizable{display:block;max-width:100%;border-radius:6px;border:1px solid rgba(28,43,58,.08);}
-.img-resize-handle{
-  position:absolute;right:4px;bottom:4px;
-  width:18px;height:18px;
-  background:#2F5D50;border-radius:4px;
-  cursor:se-resize;
-  display:flex;align-items:center;justify-content:center;
-  opacity:0;transition:opacity .15s;
-  z-index:10;
-  /* Prevent handle from being dragged with the image */
-  touch-action:none;
-}
+.img-resize-handle{position:absolute;right:4px;bottom:4px;width:18px;height:18px;background:#2F5D50;border-radius:4px;cursor:se-resize;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s;z-index:10;touch-action:none;}
 .img-resizable-wrap:hover .img-resize-handle{opacity:.9;}
 .img-resize-handle::after{content:'⤡';color:#fff;font-size:.7rem;line-height:1;}
 
-@media print {
-  .ws-toolbar, .ws-sidebar, .tab-bar, .top-bar { display: none !important; }
-  .ws-preview { padding: 0 !important; background: #fff !important; }
-  .pb { break-inside: avoid; page-break-inside: avoid; margin-bottom: 18px; }
-  .pb-section { break-inside: avoid; page-break-inside: avoid; }
-  .match-cols, .choice-block, .fill-block, .order-block { break-inside: avoid; page-break-inside: avoid; }
-  .reading-block { break-inside: avoid; page-break-inside: avoid; }
-  table { break-inside: avoid; page-break-inside: avoid; }
-  h1, h2, h3 { break-after: avoid; page-break-after: avoid; }
-  .pb-num { break-after: avoid; page-break-after: avoid; }
+/* Prefill banner */
+.prefill-banner{background:linear-gradient(90deg,rgba(201,136,42,.12),rgba(201,136,42,.06));border:1px solid rgba(201,136,42,.3);border-radius:10px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;gap:9px;font-size:.8rem;color:#A96E1A;font-weight:600;}
+
+@media print{
+  .ws-toolbar,.ws-sidebar,.tab-bar,.top-bar{display:none!important;}
+  .ws-preview{padding:0!important;background:#fff!important;}
+  .pb{break-inside:avoid;page-break-inside:avoid;margin-bottom:18px;}
 }
 </style>
 </head>
@@ -268,40 +171,49 @@ const auth=window._auth, db=window._db, storage=window._storage;
 
 const uid=()=>Math.random().toString(36).slice(2,9);
 
+// ── READ PREFILL FROM LOCALSTORAGE ────────────────────────────
+// Called once at module level — reads and immediately clears localStorage
+const _prefill=(()=>{
+  try{
+    const raw=localStorage.getItem('ws_prefill');
+    if(raw){localStorage.removeItem('ws_prefill');return JSON.parse(raw);}
+  }catch(e){}
+  return null;
+})();
+
 // ── CONSTANTS ─────────────────────────────────────────────────
 const BTYPES=[
-  {key:'fill',    label:'Täida lünk',    icon:'fa-pen-line',          color:'#1d4ed8',bg:'rgba(29,78,216,.1)'},
-  {key:'choice',  label:'Vali vastus',   icon:'fa-list-check',        color:'#6d28d9',bg:'rgba(109,40,217,.1)'},
-  {key:'writing', label:'Kirjutamine',   icon:'fa-pen-nib',           color:'#A96E1A',bg:'rgba(169,110,26,.1)'},
-  {key:'match',   label:'Sobita paarid', icon:'fa-link',              color:'#047857',bg:'rgba(4,120,87,.1)'},
-  {key:'order',   label:'Järjesta sõnad',icon:'fa-shuffle',           color:'#2F5D50',bg:'rgba(47,93,80,.1)'},
-  {key:'table',   label:'Tabel',         icon:'fa-table',             color:'#0e7490',bg:'rgba(14,116,144,.1)'},
-  {key:'text',    label:'Tekst / juhis', icon:'fa-align-left',        color:'#718096',bg:'rgba(113,128,150,.1)'},
-  {key:'reading', label:'Lugemistekst',  icon:'fa-book-open-reader',  color:'#be185d',bg:'rgba(190,24,93,.1)'},
-  {key:'image',   label:'Pilt',          icon:'fa-image',             color:'#0f766e',bg:'rgba(15,118,110,.1)'},
+  {key:'fill',    label:'Täida lünk',    icon:'fa-pen-line',         color:'#1d4ed8',bg:'rgba(29,78,216,.1)'},
+  {key:'choice',  label:'Vali vastus',   icon:'fa-list-check',       color:'#6d28d9',bg:'rgba(109,40,217,.1)'},
+  {key:'writing', label:'Kirjutamine',   icon:'fa-pen-nib',          color:'#A96E1A',bg:'rgba(169,110,26,.1)'},
+  {key:'match',   label:'Sobita paarid', icon:'fa-link',             color:'#047857',bg:'rgba(4,120,87,.1)'},
+  {key:'order',   label:'Järjesta sõnad',icon:'fa-shuffle',          color:'#2F5D50',bg:'rgba(47,93,80,.1)'},
+  {key:'table',   label:'Tabel',         icon:'fa-table',            color:'#0e7490',bg:'rgba(14,116,144,.1)'},
+  {key:'text',    label:'Tekst / juhis', icon:'fa-align-left',       color:'#718096',bg:'rgba(113,128,150,.1)'},
+  {key:'reading', label:'Lugemistekst',  icon:'fa-book-open-reader', color:'#be185d',bg:'rgba(190,24,93,.1)'},
+  {key:'image',   label:'Pilt',          icon:'fa-image',            color:'#0f766e',bg:'rgba(15,118,110,.1)'},
 ];
 const BT=Object.fromEntries(BTYPES.map(b=>[b.key,b]));
 
 const mkBlock=type=>{
-  const base={id:uid(),type,instruction:'',size:'full',cols:1,imageUrl:'',imagePos:'top',label:''};
+  const base={id:uid(),type,instruction:'',size:'full',imageUrl:'',imagePos:'top',label:''};
   if(type==='fill')    return{...base,text:'Mina [elan] Tallinnas ja [töötan] koolis.'};
   if(type==='choice')  return{...base,questions:[{q:'Mis on Eesti pealinn?',opts:['Tallinn','Tartu','Pärnu','Narva'],correct:0}]};
   if(type==='writing') return{...base,task:'Kirjuta lühike tekst teemal "Minu pere" (50–80 sõna).',lines:8};
-  if(type==='match')   return{...base,pairs:[{l:'koer',r:'dog'},{l:'kass',r:'cat'},{l:'lind',r:'bird'},{l:'kala',r:'fish'}]};
+  if(type==='match')   return{...base,pairs:[{l:'koer',r:'собака'},{l:'kass',r:'кошка'},{l:'lind',r:'птица'},{l:'kala',r:'рыба'}]};
   if(type==='order')   return{...base,sentence:'Ma armastan õppida eesti keelt'};
   if(type==='table')   return{...base,headers:['Sõna','Tõlge','Näide'],rows:4};
   if(type==='text')    return{...base,content:'',bold:false};
   if(type==='reading') return{...base,passage:'Sisesta lugemistekst...',questions:[{q:'',opts:['','','',''],correct:0}]};
-  if(type==='image')   return{...base,caption:'',imageUrl:''};
+  if(type==='image')   return{...base,caption:''};
   return base;
 };
 
 // ── IMAGE UPLOADER ────────────────────────────────────────────
-function ImgUploader({value,onChange}) {
+function ImgUploader({value,onChange}){
   const ref=useRef();
   const[busy,setBusy]=useState(false);
   const[err,setErr]=useState('');
-
   const handle=async file=>{
     if(!file)return;
     if(file.size>8*1024*1024){setErr('Pilt on liiga suur (max 8MB)');return;}
@@ -312,119 +224,70 @@ function ImgUploader({value,onChange}) {
       const url=await r.getDownloadURL();
       onChange(url);
     }catch(e){
-      console.warn('Storage failed, using base64:', e.message);
       const reader=new FileReader();
-      reader.onload=ev=>{onChange(ev.target.result);};
+      reader.onload=ev=>onChange(ev.target.result);
       reader.onerror=()=>setErr('Pildi laadimine ebaõnnestus');
       reader.readAsDataURL(file);
     }
     setBusy(false);
   };
-
   return(
     <div>
       <div className="img-upload" onClick={()=>ref.current?.click()}>
         <input ref={ref} type="file" accept="image/*" onChange={e=>handle(e.target.files[0])}/>
         {busy
-          ?<div style={{padding:'14px 0',textAlign:'center'}}>
-             <div className="sp-dark" style={{margin:'0 auto 6px'}}/>
-             <div style={{fontSize:'.72rem',color:'#7A7167'}}>Laeb pilti...</div>
-           </div>
+          ?<div style={{padding:'14px 0',textAlign:'center'}}><div className="sp-dark" style={{margin:'0 auto 6px'}}/><div style={{fontSize:'.72rem',color:'#7A7167'}}>Laeb...</div></div>
           :value
             ?<img src={value} className="img-thumb" alt=""/>
-            :<div>
-               <i className="fa-solid fa-image" style={{fontSize:'1.4rem',color:'#B0A898',marginBottom:4,display:'block'}}/>
-               <div style={{fontSize:'.75rem',color:'#1C2B3A',fontWeight:600}}>Klõpsa pildi lisamiseks</div>
-               <div style={{fontSize:'.68rem',color:'#7A7167',marginTop:2}}>JPG, PNG, GIF — kuni 5MB</div>
-             </div>}
+            :<div><i className="fa-solid fa-image" style={{fontSize:'1.4rem',color:'#B0A898',marginBottom:4,display:'block'}}/><div style={{fontSize:'.75rem',color:'#1C2B3A',fontWeight:600}}>Klõpsa pildi lisamiseks</div><div style={{fontSize:'.68rem',color:'#7A7167',marginTop:2}}>JPG, PNG — kuni 8MB</div></div>}
       </div>
       {err&&<div style={{fontSize:'.72rem',color:'#dc2626',marginTop:4,padding:'4px 7px',background:'rgba(220,38,38,.07)',borderRadius:5}}>{err}</div>}
-      {value&&<button onClick={()=>{onChange('');setErr('');}} style={{background:'none',border:'none',color:'#dc2626',cursor:'pointer',fontSize:'.72rem',marginTop:4,display:'flex',alignItems:'center',gap:4}}>
-        <i className="fa-solid fa-trash" style={{fontSize:'.65rem'}}/> Eemalda pilt
-      </button>}
+      {value&&<button onClick={()=>{onChange('');setErr('');}} style={{background:'none',border:'none',color:'#dc2626',cursor:'pointer',fontSize:'.72rem',marginTop:4,display:'flex',alignItems:'center',gap:4}}><i className="fa-solid fa-trash" style={{fontSize:'.65rem'}}/> Eemalda pilt</button>}
     </div>
   );
 }
 
 // ── BLOCK EDITORS ─────────────────────────────────────────────
-function FillEd({b,upd}) {
-  return(<>
-    <div className="field-lbl">Tekst (vastused nurksulgudes [vastus])</div>
-    <textarea value={b.text} onChange={e=>upd({text:e.target.value})} rows={4} placeholder="Ma [elan] Tallinnas."/>
-    <div style={{fontSize:'.7rem',color:'#718096',marginTop:4,padding:'5px 7px',background:'rgba(29,78,216,.06)',borderRadius:6}}>
-      Süntaks: <code>Ma [elan] koolis.</code>
-    </div>
-  </>);
-}
+function FillEd({b,upd}){return(<><div className="field-lbl">Tekst (vastused nurksulgudes [vastus])</div><textarea value={b.text} onChange={e=>upd({text:e.target.value})} rows={4} placeholder="Ma [elan] Tallinnas."/><div style={{fontSize:'.7rem',color:'#718096',marginTop:4,padding:'5px 7px',background:'rgba(29,78,216,.06)',borderRadius:6}}>Süntaks: <code>Ma [elan] koolis.</code></div></>);}
 
-function ChoiceEd({b,upd}) {
+function ChoiceEd({b,upd}){
   const qs=b.questions||[];
   const uQ=(i,p)=>upd({questions:qs.map((q,j)=>j===i?{...q,...p}:q)});
-  return(<>
-    {qs.map((q,i)=>(
-      <div key={i} style={{marginBottom:8,padding:9,borderRadius:8,background:'#F9F8F6',border:'0.5px solid rgba(28,43,58,.1)'}}>
-        <div style={{display:'flex',justifyContent:'space-between',marginBottom:6}}>
-          <span style={{fontSize:'.7rem',fontWeight:700,color:'#718096'}}>Küsimus {i+1}</span>
-          {qs.length>1&&<button onClick={()=>upd({questions:qs.filter((_,j)=>j!==i)})} style={{background:'none',border:'none',color:'#dc2626',cursor:'pointer',fontSize:'.7rem'}}>✕</button>}
+  return(<>{qs.map((q,i)=>(
+    <div key={i} style={{marginBottom:8,padding:9,borderRadius:8,background:'#F9F8F6',border:'0.5px solid rgba(28,43,58,.1)'}}>
+      <div style={{display:'flex',justifyContent:'space-between',marginBottom:6}}><span style={{fontSize:'.7rem',fontWeight:700,color:'#718096'}}>Küsimus {i+1}</span>{qs.length>1&&<button onClick={()=>upd({questions:qs.filter((_,j)=>j!==i)})} style={{background:'none',border:'none',color:'#dc2626',cursor:'pointer',fontSize:'.7rem'}}>✕</button>}</div>
+      <input value={q.q} onChange={e=>uQ(i,{q:e.target.value})} placeholder="Küsimus..." style={{marginBottom:5}}/>
+      {q.opts.map((o,oi)=>(
+        <div key={oi} style={{display:'flex',gap:5,alignItems:'center',marginBottom:4}}>
+          <input type="radio" checked={q.correct===oi} onChange={()=>uQ(i,{correct:oi})} style={{width:13,height:13,cursor:'pointer',flexShrink:0}}/>
+          <input value={o} onChange={e=>uQ(i,{opts:q.opts.map((x,k)=>k===oi?e.target.value:x)})} placeholder={`Variant ${oi+1}`} style={{borderColor:q.correct===oi?'#2F5D50':'rgba(28,43,58,.12)'}}/>
         </div>
-        <input value={q.q} onChange={e=>uQ(i,{q:e.target.value})} placeholder="Küsimus..." style={{marginBottom:5}}/>
-        {q.opts.map((o,oi)=>(
-          <div key={oi} style={{display:'flex',gap:5,alignItems:'center',marginBottom:4}}>
-            <input type="radio" checked={q.correct===oi} onChange={()=>uQ(i,{correct:oi})} style={{width:13,height:13,cursor:'pointer',flexShrink:0}}/>
-            <input value={o} onChange={e=>uQ(i,{opts:q.opts.map((x,k)=>k===oi?e.target.value:x)})}
-              placeholder={`Variant ${oi+1}`} style={{borderColor:q.correct===oi?'#2F5D50':'rgba(28,43,58,.12)'}}/>
-          </div>
-        ))}
-      </div>
-    ))}
-    <button onClick={()=>upd({questions:[...qs,{q:'',opts:['','','',''],correct:0}]})}
-      className="btn btn-ghost btn-sm" style={{width:'100%'}}>
-      <i className="fa-solid fa-plus"/> Lisa küsimus
-    </button>
-  </>);
+      ))}
+    </div>
+  ))}
+  <button onClick={()=>upd({questions:[...qs,{q:'',opts:['','','',''],correct:0}]})} className="btn btn-ghost btn-sm" style={{width:'100%'}}><i className="fa-solid fa-plus"/> Lisa küsimus</button></>);
 }
 
-function WritingEd({b,upd}) {
-  return(<>
-    <div className="field-lbl">Ülesande kirjeldus</div>
-    <textarea value={b.task} onChange={e=>upd({task:e.target.value})} rows={3}/>
-    <div className="field-lbl">Ridade arv: {b.lines||6}</div>
-    <input type="range" min={2} max={20} value={b.lines||6} onChange={e=>upd({lines:+e.target.value})} style={{width:'100%'}}/>
-  </>);
-}
+function WritingEd({b,upd}){return(<><div className="field-lbl">Ülesande kirjeldus</div><textarea value={b.task} onChange={e=>upd({task:e.target.value})} rows={3}/><div className="field-lbl">Ridade arv: {b.lines||6}</div><input type="range" min={2} max={20} value={b.lines||6} onChange={e=>upd({lines:+e.target.value})} style={{width:'100%'}}/></>);}
 
-function MatchEd({b,upd}) {
+function MatchEd({b,upd}){
   const p=b.pairs||[];
-  return(<>
-    {p.map((pair,i)=>(
-      <div key={i} style={{display:'grid',gridTemplateColumns:'1fr 1fr auto',gap:5,marginBottom:5,alignItems:'center'}}>
-        <input value={pair.l} onChange={e=>upd({pairs:p.map((x,j)=>j===i?{...x,l:e.target.value}:x)})} placeholder="Vasak"/>
-        <input value={pair.r} onChange={e=>upd({pairs:p.map((x,j)=>j===i?{...x,r:e.target.value}:x)})} placeholder="Parem"/>
-        <button onClick={()=>upd({pairs:p.filter((_,j)=>j!==i)})} disabled={p.length<=2}
-          style={{background:'none',border:'none',cursor:'pointer',color:'#dc2626',fontSize:'.72rem',padding:'0 3px'}}>✕</button>
-      </div>
-    ))}
-    <button onClick={()=>upd({pairs:[...p,{l:'',r:''}]})} className="btn btn-ghost btn-sm" style={{width:'100%',marginTop:3}}>
-      <i className="fa-solid fa-plus"/> Lisa paar
-    </button>
-  </>);
+  return(<>{p.map((pair,i)=>(
+    <div key={i} style={{display:'grid',gridTemplateColumns:'1fr 1fr auto',gap:5,marginBottom:5,alignItems:'center'}}>
+      <input value={pair.l} onChange={e=>upd({pairs:p.map((x,j)=>j===i?{...x,l:e.target.value}:x)})} placeholder="Vasak"/>
+      <input value={pair.r} onChange={e=>upd({pairs:p.map((x,j)=>j===i?{...x,r:e.target.value}:x)})} placeholder="Parem (vene tõlge)"/>
+      <button onClick={()=>upd({pairs:p.filter((_,j)=>j!==i)})} disabled={p.length<=2} style={{background:'none',border:'none',cursor:'pointer',color:'#dc2626',fontSize:'.72rem',padding:'0 3px'}}>✕</button>
+    </div>
+  ))}
+  <button onClick={()=>upd({pairs:[...p,{l:'',r:''}]})} className="btn btn-ghost btn-sm" style={{width:'100%',marginTop:3}}><i className="fa-solid fa-plus"/> Lisa paar</button></>);
 }
 
-function OrderEd({b,upd}) {
-  return(<>
-    <div className="field-lbl">Lause õiges järjekorras</div>
-    <input value={b.sentence} onChange={e=>upd({sentence:e.target.value})} placeholder="Ma armastan eesti keelt"/>
-    <div style={{fontSize:'.7rem',color:'#718096',marginTop:4}}>Sõnad kuvatakse segamini</div>
-  </>);
-}
+function OrderEd({b,upd}){return(<><div className="field-lbl">Lause õiges järjekorras</div><input value={b.sentence} onChange={e=>upd({sentence:e.target.value})} placeholder="Ma armastan eesti keelt"/><div style={{fontSize:'.7rem',color:'#718096',marginTop:4}}>Sõnad kuvatakse segamini</div></>);}
 
-function TableEd({b,upd}) {
+function TableEd({b,upd}){
   const hdrs=(b.headers||['','','']).map(h=>h.trim()).filter(Boolean);
   const cellData=b.cellData||{};
-  const setCell=(r,c,v)=>{
-    const key=r+','+c;
-    upd({cellData:{...cellData,[key]:v}});
-  };
+  const setCell=(r,c,v)=>upd({cellData:{...cellData,[r+','+c]:v}});
   return(<>
     <div className="field-lbl">Veeru päised (komaga)</div>
     <input value={(b.headers||[]).join(',')} onChange={e=>upd({headers:e.target.value.split(',')})} placeholder="Sõna,Tõlge,Näide" style={{marginBottom:8}}/>
@@ -432,46 +295,31 @@ function TableEd({b,upd}) {
       <div className="field-lbl" style={{margin:0}}>Ridade arv: {b.rows||4}</div>
       <input type="range" min={2} max={15} value={b.rows||4} onChange={e=>upd({rows:+e.target.value})} style={{flex:1}}/>
     </div>
-    <div className="field-lbl">Eeltäida lahtrid (valikuline)</div>
     <div style={{overflowX:'auto'}}>
       <table style={{width:'100%',borderCollapse:'collapse',fontSize:'.78rem'}}>
-        <thead>
-          <tr>{hdrs.map((h,ci)=><th key={ci} style={{padding:'4px 6px',border:'1px solid rgba(28,43,58,.15)',background:'#F0EEE9',fontWeight:700,textAlign:'left'}}>{h}</th>)}</tr>
-        </thead>
-        <tbody>
-          {Array.from({length:b.rows||4}).map((_,ri)=>(
-            <tr key={ri}>{hdrs.map((_,ci)=>(
-              <td key={ci} style={{padding:2,border:'1px solid rgba(28,43,58,.12)'}}>
-                <input value={cellData[ri+','+ci]||''} onChange={e=>setCell(ri,ci,e.target.value)}
-                  style={{width:'100%',padding:'3px 5px',border:'none',background:'transparent',fontSize:'.78rem',borderRadius:0}}/>
-              </td>
-            ))}</tr>
-          ))}
-        </tbody>
+        <thead><tr>{hdrs.map((h,ci)=><th key={ci} style={{padding:'4px 6px',border:'1px solid rgba(28,43,58,.15)',background:'#F0EEE9',fontWeight:700,textAlign:'left'}}>{h}</th>)}</tr></thead>
+        <tbody>{Array.from({length:b.rows||4}).map((_,ri)=>(
+          <tr key={ri}>{hdrs.map((_,ci)=>(
+            <td key={ci} style={{padding:2,border:'1px solid rgba(28,43,58,.12)'}}>
+              <input value={cellData[ri+','+ci]||''} onChange={e=>setCell(ri,ci,e.target.value)} style={{width:'100%',padding:'3px 5px',border:'none',background:'transparent',fontSize:'.78rem',borderRadius:0}}/>
+            </td>
+          ))}</tr>
+        ))}</tbody>
       </table>
     </div>
   </>);
 }
 
-function TextEd({b,upd}) {
-  return(<>
-    <div className="field-lbl">Sisu</div>
-    <textarea value={b.content} onChange={e=>upd({content:e.target.value})} rows={3} placeholder="Juhis või tekst..."/>
-    <label style={{display:'flex',alignItems:'center',gap:7,fontSize:'.78rem',marginTop:6,cursor:'pointer'}}>
-      <input type="checkbox" checked={b.bold||false} onChange={e=>upd({bold:e.target.checked})}/> Rasvane (pealkiri)
-    </label>
-  </>);
-}
+function TextEd({b,upd}){return(<><div className="field-lbl">Sisu</div><textarea value={b.content} onChange={e=>upd({content:e.target.value})} rows={3} placeholder="Juhis või tekst..."/><label style={{display:'flex',alignItems:'center',gap:7,fontSize:'.78rem',marginTop:6,cursor:'pointer'}}><input type="checkbox" checked={b.bold||false} onChange={e=>upd({bold:e.target.checked})}/> Rasvane (pealkiri)</label></>);}
 
-function ReadingEd({b,upd}) {
+function ReadingEd({b,upd}){
   const qs=b.questions||[];
   return(<>
     <div className="field-lbl">Lugemistekst</div>
     <textarea value={b.passage} onChange={e=>upd({passage:e.target.value})} rows={5}/>
     {qs.map((q,i)=>(
       <div key={i} style={{marginBottom:7,padding:8,borderRadius:7,background:'#F9F8F6',border:'0.5px solid rgba(28,43,58,.1)'}}>
-        <input value={q.q} onChange={e=>upd({questions:qs.map((x,j)=>j===i?{...x,q:e.target.value}:x)})}
-          placeholder={`Küsimus ${i+1}...`} style={{marginBottom:4}}/>
+        <input value={q.q} onChange={e=>upd({questions:qs.map((x,j)=>j===i?{...x,q:e.target.value}:x)})} placeholder={`Küsimus ${i+1}...`} style={{marginBottom:4}}/>
         {q.opts.map((o,oi)=>(
           <div key={oi} style={{display:'flex',gap:5,alignItems:'center',marginBottom:3}}>
             <input type="radio" checked={q.correct===oi} onChange={()=>upd({questions:qs.map((x,j)=>j===i?{...x,correct:oi}:x)})} style={{width:12,height:12,cursor:'pointer',flexShrink:0}}/>
@@ -480,287 +328,97 @@ function ReadingEd({b,upd}) {
         ))}
       </div>
     ))}
-    <button onClick={()=>upd({questions:[...qs,{q:'',opts:['','','',''],correct:0}]})}
-      className="btn btn-ghost btn-sm" style={{width:'100%'}}>
-      <i className="fa-solid fa-plus"/> Lisa küsimus
-    </button>
+    <button onClick={()=>upd({questions:[...qs,{q:'',opts:['','','',''],correct:0}]})} className="btn btn-ghost btn-sm" style={{width:'100%'}}><i className="fa-solid fa-plus"/> Lisa küsimus</button>
   </>);
 }
 
-function ImageEd({b,upd}) {
-  return(<>
-    <div className="field-lbl">Pilt</div>
-    <ImgUploader value={b.imageUrl||''} onChange={url=>upd({imageUrl:url})}/>
-    <div className="field-lbl">Pildi asukoht</div>
-    <select value={b.imagePos||'top'} onChange={e=>upd({imagePos:e.target.value})}>
-      <option value="top">Üleval</option>
-      <option value="right">Paremal</option>
-      <option value="bottom">Allpool</option>
-    </select>
-    <div className="field-lbl">Pildi allkiri (valikuline)</div>
-    <input value={b.caption||''} onChange={e=>upd({caption:e.target.value})} placeholder="Pildi kirjeldus..."/>
-  </>);
-}
+function ImageEd({b,upd}){return(<><div className="field-lbl">Pilt</div><ImgUploader value={b.imageUrl||''} onChange={url=>upd({imageUrl:url})}/><div className="field-lbl">Pildi asukoht</div><select value={b.imagePos||'top'} onChange={e=>upd({imagePos:e.target.value})}><option value="top">Üleval</option><option value="right">Paremal</option><option value="bottom">Allpool</option></select><div className="field-lbl">Allkiri (valikuline)</div><input value={b.caption||''} onChange={e=>upd({caption:e.target.value})} placeholder="Pildi kirjeldus..."/></>);}
 
-function BlockEditor({block,onChange}) {
+function BlockEditor({block,onChange}){
   const upd=p=>onChange({...block,...p});
   return(
     <div className="block-editor">
-      {/* Label */}
-      <div className="field-lbl">Ülesande nimetus (asendab tüübi nime)</div>
-      <input value={block.label||''} onChange={e=>upd({label:e.target.value})} placeholder={BT[block.type]?.label||'Nimetus...'}  style={{marginBottom:6}}/>
-      {/* Instruction */}
+      <div className="field-lbl">Nimetus (asendab tüübi nime)</div>
+      <input value={block.label||''} onChange={e=>upd({label:e.target.value})} placeholder={BT[block.type]?.label||'Nimetus...'} style={{marginBottom:6}}/>
       <div className="field-lbl">Juhis õpilasele</div>
       <input value={block.instruction||''} onChange={e=>upd({instruction:e.target.value})} placeholder="nt. Täida lüngad õigete sõnadega..."/>
-
-      {/* Image for any block */}
-      {block.type!=='image'&&(
-        <>
-          <div className="field-lbl">Lisa pilt (valikuline)</div>
-          <ImgUploader value={block.imageUrl||''} onChange={url=>upd({imageUrl:url})}/>
-          {block.imageUrl&&(
-            <>
-              <div className="field-lbl">Pildi asukoht</div>
-              <select value={block.imagePos||'top'} onChange={e=>upd({imagePos:e.target.value})}>
-                <option value="top">Üleval</option>
-                <option value="right">Paremal (tekst kõrval)</option>
-                <option value="bottom">Allpool</option>
-              </select>
-            </>
-          )}
-        </>
-      )}
-
-      {/* Size */}
+      {block.type!=='image'&&(<>
+        <div className="field-lbl">Lisa pilt (valikuline)</div>
+        <ImgUploader value={block.imageUrl||''} onChange={url=>upd({imageUrl:url})}/>
+        {block.imageUrl&&(<><div className="field-lbl">Pildi asukoht</div><select value={block.imagePos||'top'} onChange={e=>upd({imagePos:e.target.value})}><option value="top">Üleval</option><option value="right">Paremal</option><option value="bottom">Allpool</option></select></>)}
+      </>)}
       <div className="field-lbl">Laius leheküljel</div>
-      <div className="size-btns">
-        {[['full','Täislaius'],['half','Pool'],['third','Kolmandik']].map(([s,l])=>(
-          <button key={s} className={'size-btn'+(block.size===s?' active':'')} onClick={()=>upd({size:s})}>{l}</button>
-        ))}
-      </div>
-
-      {/* Type-specific */}
+      <div className="size-btns">{[['full','Täislaius'],['half','Pool'],['third','Kolmandik']].map(([s,l])=>(<button key={s} className={'size-btn'+(block.size===s?' active':'')} onClick={()=>upd({size:s})}>{l}</button>))}</div>
       <div style={{marginTop:8,paddingTop:8,borderTop:'0.5px solid rgba(28,43,58,.07)'}}>
-        {block.type==='fill'    &&<FillEd    b={block} upd={upd}/>}
-        {block.type==='choice'  &&<ChoiceEd  b={block} upd={upd}/>}
-        {block.type==='writing' &&<WritingEd b={block} upd={upd}/>}
-        {block.type==='match'   &&<MatchEd   b={block} upd={upd}/>}
-        {block.type==='order'   &&<OrderEd   b={block} upd={upd}/>}
-        {block.type==='table'   &&<TableEd   b={block} upd={upd}/>}
-        {block.type==='text'    &&<TextEd    b={block} upd={upd}/>}
-        {block.type==='reading' &&<ReadingEd b={block} upd={upd}/>}
-        {block.type==='image'   &&<ImageEd   b={block} upd={upd}/>}
+        {block.type==='fill'   &&<FillEd    b={block} upd={upd}/>}
+        {block.type==='choice' &&<ChoiceEd  b={block} upd={upd}/>}
+        {block.type==='writing'&&<WritingEd b={block} upd={upd}/>}
+        {block.type==='match'  &&<MatchEd   b={block} upd={upd}/>}
+        {block.type==='order'  &&<OrderEd   b={block} upd={upd}/>}
+        {block.type==='table'  &&<TableEd   b={block} upd={upd}/>}
+        {block.type==='text'   &&<TextEd    b={block} upd={upd}/>}
+        {block.type==='reading'&&<ReadingEd b={block} upd={upd}/>}
+        {block.type==='image'  &&<ImageEd   b={block} upd={upd}/>}
       </div>
     </div>
   );
 }
 
 // ── PARSE FILL ────────────────────────────────────────────────
-function parseFill(text) {
+function parseFill(text){
   const parts=[];
   text.split(/\[([^\]]+)\]/g).forEach((c,i)=>parts.push(i%2===0?{t:'text',v:c}:{t:'blank',a:c}));
   return parts;
 }
 
 // ── RESIZABLE IMAGE ───────────────────────────────────────────
-function ResizableImage({src,caption,initWidth,onResize,overlayText,onTextChange}) {
+function ResizableImage({src,caption,initWidth,onResize}){
   const[width,setWidth]=useState(initWidth||null);
   const wrapRef=useRef(null);
-  // All resize state in a single ref — never causes re-render mid-drag
   const drag=useRef({active:false,startX:0,startW:0});
-
   useEffect(()=>{
-    const onMove=e=>{
-      if(!drag.current.active) return;
-      const delta=e.clientX-drag.current.startX;
-      const newW=Math.max(60,Math.min(740,drag.current.startW+delta));
-      // Directly set DOM width for smooth dragging — no React re-render
-      if(wrapRef.current) wrapRef.current.style.width=newW+'px';
-    };
-    const onUp=e=>{
-      if(!drag.current.active) return;
-      drag.current.active=false;
-      const delta=e.clientX-drag.current.startX;
-      const newW=Math.max(60,Math.min(740,drag.current.startW+delta));
-      setWidth(newW);
-      onResize&&onResize(newW);
-      document.body.style.cursor='';
-      document.body.style.userSelect='';
-    };
-    window.addEventListener('mousemove',onMove);
-    window.addEventListener('mouseup',onUp);
-    return()=>{
-      window.removeEventListener('mousemove',onMove);
-      window.removeEventListener('mouseup',onUp);
-    };
+    const onMove=e=>{if(!drag.current.active)return;const delta=e.clientX-drag.current.startX;const newW=Math.max(60,Math.min(740,drag.current.startW+delta));if(wrapRef.current)wrapRef.current.style.width=newW+'px';};
+    const onUp=e=>{if(!drag.current.active)return;drag.current.active=false;const delta=e.clientX-drag.current.startX;const newW=Math.max(60,Math.min(740,drag.current.startW+delta));setWidth(newW);onResize&&onResize(newW);document.body.style.cursor='';document.body.style.userSelect='';};
+    window.addEventListener('mousemove',onMove);window.addEventListener('mouseup',onUp);
+    return()=>{window.removeEventListener('mousemove',onMove);window.removeEventListener('mouseup',onUp);};
   },[onResize]);
-
-  const handleMouseDown=e=>{
-    e.preventDefault();
-    e.stopPropagation();
-    drag.current={
-      active:true,
-      startX:e.clientX,
-      startW:wrapRef.current?.offsetWidth||width||300
-    };
-    document.body.style.cursor='se-resize';
-    document.body.style.userSelect='none';
-  };
-
-  if(!src) return(
-    <div style={{background:'#F0EEE9',borderRadius:6,height:120,display:'flex',alignItems:'center',justifyContent:'center',color:'#B0A898',fontSize:'.82rem'}}>Pilt puudub</div>
-  );
-
+  if(!src)return<div style={{background:'#F0EEE9',borderRadius:6,height:120,display:'flex',alignItems:'center',justifyContent:'center',color:'#B0A898',fontSize:'.82rem'}}>Pilt puudub</div>;
   return(
     <div>
-      <div ref={wrapRef} className="img-resizable-wrap"
-        style={{width:width?width+'px':'100%'}}>
-        <img
-          src={src} alt={caption||''}
-          className="img-resizable"
-          style={{width:'100%',height:'auto',objectFit:'contain',display:'block'}}
-          draggable={false}
-        />
-        {overlayText&&(
-          <div style={{
-            position:'absolute',bottom:8,left:8,right:8,
-            background:'rgba(0,0,0,.55)',color:'#fff',
-            padding:'4px 8px',borderRadius:5,fontSize:'.8rem',lineHeight:1.4,
-            pointerEvents:'none'
-          }}>{overlayText}</div>
-        )}
-        <div
-          className="img-resize-handle"
-          onMouseDown={handleMouseDown}
-          title="Lohista suuruse muutmiseks"
-        />
+      <div ref={wrapRef} className="img-resizable-wrap" style={{width:width?width+'px':'100%'}}>
+        <img src={src} alt={caption||''} className="img-resizable" style={{width:'100%',height:'auto',objectFit:'contain',display:'block'}} draggable={false}/>
+        <div className="img-resize-handle" onMouseDown={e=>{e.preventDefault();e.stopPropagation();drag.current={active:true,startX:e.clientX,startW:wrapRef.current?.offsetWidth||width||300};document.body.style.cursor='se-resize';document.body.style.userSelect='none';}} title="Lohista suuruse muutmiseks"/>
       </div>
       {caption&&<div style={{fontSize:'.72rem',color:'#718096',marginTop:4,fontStyle:'italic',textAlign:'center'}}>{caption}</div>}
-      {onTextChange!==undefined&&(
-        <div style={{marginTop:8}}>
-          <textarea
-            value={overlayText||''}
-            onChange={e=>onTextChange(e.target.value)}
-            placeholder="Lisa tekst pildi alla (valikuline)..."
-            rows={2}
-            style={{width:'100%',fontSize:'.8rem',padding:'6px 8px',borderRadius:7,border:'1px solid rgba(28,43,58,.12)',resize:'vertical',fontFamily:'inherit'}}
-          />
-        </div>
-      )}
     </div>
   );
 }
 
 // ── PREVIEW BLOCK ─────────────────────────────────────────────
-function PreviewBlock({block,index}) {
-  const bt=BT[block.type]; if(!bt) return null;
-
+function PreviewBlock({block,index,onChange}){
+  const bt=BT[block.type];if(!bt)return null;
   const renderImg=pos=>{
-    if(!block.imageUrl||(block.imagePos||'top')!==pos) return null;
-    return(
-      <div style={{marginBottom:pos==='bottom'?0:10,marginTop:pos==='bottom'?10:0}}>
-        <ResizableImage
-          src={block.imageUrl}
-          caption={block.caption}
-          initWidth={block.imgWidth||null}
-          onResize={w=>onChange({...block,imgWidth:w})}
-        />
-      </div>
-    );
+    if(!block.imageUrl||(block.imagePos||'top')!==pos)return null;
+    return<div style={{marginBottom:pos==='bottom'?0:10,marginTop:pos==='bottom'?10:0}}><ResizableImage src={block.imageUrl} caption={block.caption} initWidth={block.imgWidth||null} onResize={w=>onChange&&onChange({...block,imgWidth:w})}/></div>;
   };
-
-  const renderRightImg=()=>{
-    if(!block.imageUrl||(block.imagePos||'top')!=='right') return null;
-    return(
-      <div style={{flexShrink:0,marginLeft:12}}>
-        <ResizableImage
-          src={block.imageUrl}
-          caption={null}
-          initWidth={block.imgWidth||120}
-          onResize={w=>onChange({...block,imgWidth:w})}
-        />
-      </div>
-    );
-  };
-
   const content=()=>{
-    if(block.type==='image') return(
-      <ResizableImage
-        src={block.imageUrl}
-        caption={block.caption}
-        initWidth={block.imgWidth||null}
-        onResize={w=>onChange({...block,imgWidth:w})}
-        overlayText={block.overlayText||''}
-        onTextChange={t=>onChange({...block,overlayText:t})}
-      />
-    );
-    if(block.type==='text') return(
-      <p className="pb-text" style={{fontWeight:block.bold?700:400,fontSize:block.bold?'1rem':'.9rem',whiteSpace:'pre-wrap',lineHeight:1.65}}>{block.content||<span style={{color:'#C0B8B0',fontStyle:'italic'}}>Tekst puudub</span>}</p>
-    );
-    if(block.type==='fill') return(
-      <div className="fill-line">{parseFill(block.text||'').map((p,i)=>p.t==='text'?<span key={i}>{p.v}</span>:<span key={i} className="fill-blank">&nbsp;</span>)}</div>
-    );
-    if(block.type==='choice') return(block.questions||[]).map((q,qi)=>(
-      <div key={qi} style={{marginBottom:10}}>
-        <div className="ch-q">{qi+1}. {q.q||'Küsimus...'}</div>
-        <div className="ch-opts">{q.opts.filter(Boolean).map((o,oi)=>(<div key={oi} className="ch-opt"><div className="ch-circle"/><span>{o}</span></div>))}</div>
-      </div>
-    ));
-    if(block.type==='writing') return(
-      <div>
-        <div className="wr-task">{block.task}</div>
-        {Array.from({length:block.lines||6}).map((_,i)=><div key={i} className="wr-line"/>)}
-      </div>
-    );
-    if(block.type==='match') return(
-      <div>
-        <div className="match-cols">
-          <div>{(block.pairs||[]).map((p,i)=><div key={i} className="match-item">{i+1}. {p.l}</div>)}</div>
-          <div>{[...(block.pairs||[])].sort(()=>Math.random()-.5).map((p,i)=><div key={i} className="match-item">{String.fromCharCode(65+i)}. {p.r}</div>)}</div>
-        </div>
-        <div className="match-answer-row">{(block.pairs||[]).map((_,i)=><span key={i} className="match-ans">{i+1} — ___</span>)}</div>
-      </div>
-    );
-    if(block.type==='order') {
-      const words=(block.sentence||'').split(' ').filter(Boolean).sort(()=>Math.random()-.5);
-      return(<div><div className="order-chips">{words.map((w,i)=><span key={i} className="order-chip">{w}</span>)}</div><div className="order-ans">Kirjuta õige järjestus: ___________________________________________________</div></div>);
-    }
-    if(block.type==='table') {
-      const cd=block.cellData||{};
-      return(
-        <table className="ws-tbl">
-          <thead><tr>{(block.headers||[]).map((h,i)=><th key={i}>{h||`Veerg ${i+1}`}</th>)}</tr></thead>
-          <tbody>{Array.from({length:block.rows||4}).map((_,ri)=>(<tr key={ri}>{(block.headers||[]).filter(Boolean).map((_,ci)=><td key={ci}>{cd[ri+','+ci]||''}</td>)}</tr>))}</tbody>
-        </table>
-      );
-    }
-    if(block.type==='reading') return(
-      <div>
-        <div className="pb-passage">{block.passage}</div>
-        {(block.questions||[]).map((q,qi)=>(
-          <div key={qi} style={{marginBottom:10}}>
-            <div className="ch-q">{qi+1}. {q.q||'Küsimus...'}</div>
-            <div className="ch-opts">{q.opts.filter(Boolean).map((o,oi)=>(<div key={oi} className="ch-opt"><div className="ch-circle"/><span>{o}</span></div>))}</div>
-          </div>
-        ))}
-      </div>
-    );
+    if(block.type==='image')return<ResizableImage src={block.imageUrl} caption={block.caption} initWidth={block.imgWidth||null} onResize={w=>onChange&&onChange({...block,imgWidth:w})}/>;
+    if(block.type==='text')return<p className="pb-text" style={{fontWeight:block.bold?700:400,fontSize:block.bold?'1rem':'.9rem',whiteSpace:'pre-wrap'}}>{block.content||<span style={{color:'#C0B8B0',fontStyle:'italic'}}>Tekst puudub</span>}</p>;
+    if(block.type==='fill')return<div className="fill-line">{parseFill(block.text||'').map((p,i)=>p.t==='text'?<span key={i}>{p.v}</span>:<span key={i} className="fill-blank">&nbsp;</span>)}</div>;
+    if(block.type==='choice')return(block.questions||[]).map((q,qi)=>(<div key={qi} style={{marginBottom:10}}><div className="ch-q">{qi+1}. {q.q||'Küsimus...'}</div><div className="ch-opts">{q.opts.filter(Boolean).map((o,oi)=>(<div key={oi} className="ch-opt"><div className="ch-circle"/><span>{o}</span></div>))}</div></div>));
+    if(block.type==='writing')return<div><div className="wr-task">{block.task}</div>{Array.from({length:block.lines||6}).map((_,i)=><div key={i} className="wr-line"/>)}</div>;
+    if(block.type==='match')return<div><div className="match-cols"><div>{(block.pairs||[]).map((p,i)=><div key={i} className="match-item">{i+1}. {p.l}</div>)}</div><div>{[...(block.pairs||[])].sort(()=>Math.random()-.5).map((p,i)=><div key={i} className="match-item">{String.fromCharCode(65+i)}. {p.r}</div>)}</div></div><div className="match-answer-row">{(block.pairs||[]).map((_,i)=><span key={i} className="match-ans">{i+1} — ___</span>)}</div></div>;
+    if(block.type==='order'){const words=(block.sentence||'').split(' ').filter(Boolean).sort(()=>Math.random()-.5);return<div><div className="order-chips">{words.map((w,i)=><span key={i} className="order-chip">{w}</span>)}</div><div className="order-ans">Kirjuta õige järjestus: ___________________________________________________</div></div>;}
+    if(block.type==='table'){const cd=block.cellData||{};return<table className="ws-tbl"><thead><tr>{(block.headers||[]).map((h,i)=><th key={i}>{h||`Veerg ${i+1}`}</th>)}</tr></thead><tbody>{Array.from({length:block.rows||4}).map((_,ri)=>(<tr key={ri}>{(block.headers||[]).filter(Boolean).map((_,ci)=><td key={ci}>{cd[ri+','+ci]||''}</td>)}</tr>))}</tbody></table>;}
+    if(block.type==='reading')return<div><div className="pb-passage">{block.passage}</div>{(block.questions||[]).map((q,qi)=>(<div key={qi} style={{marginBottom:10}}><div className="ch-q">{qi+1}. {q.q||'Küsimus...'}</div><div className="ch-opts">{q.opts.filter(Boolean).map((o,oi)=>(<div key={oi} className="ch-opt"><div className="ch-circle"/><span>{o}</span></div>))}</div></div>))}</div>;
     return null;
   };
-
-  // For 'image' type — just render content(), no extra renderImg
-  const withImg=(
-    block.type==='image'
-      ?<div>{content()}</div>
-      :block.imageUrl&&(block.imagePos||'top')==='right'
-        ?<div style={{display:'flex',alignItems:'flex-start'}}><div style={{flex:1}}>{content()}</div>{renderRightImg()}</div>
-        :<div>{renderImg('top')}{content()}{renderImg('bottom')}</div>
-  );
-
+  const withImg=block.type==='image'?<div>{content()}</div>
+    :block.imageUrl&&(block.imagePos||'top')==='right'
+      ?<div style={{display:'flex',alignItems:'flex-start'}}><div style={{flex:1}}>{content()}</div><div style={{flexShrink:0,marginLeft:12}}><ResizableImage src={block.imageUrl} caption={null} initWidth={block.imgWidth||120} onResize={w=>onChange&&onChange({...block,imgWidth:w})}/></div></div>
+      :<div>{renderImg('top')}{content()}{renderImg('bottom')}</div>;
   const colStyle=block.size==='half'?{width:'calc(50% - 10px)',display:'inline-block',verticalAlign:'top',marginRight:20}
-    :block.size==='third'?{width:'calc(33.33% - 12px)',display:'inline-block',verticalAlign:'top',marginRight:18}
-    :{};
-
+    :block.size==='third'?{width:'calc(33.33% - 12px)',display:'inline-block',verticalAlign:'top',marginRight:18}:{};
   return(
     <div style={colStyle}>
       <div className="pb-wrap">
@@ -777,549 +435,200 @@ function PreviewBlock({block,index}) {
 }
 
 // ── DIDACTIC TEMPLATES ────────────────────────────────────────
-const DIDACTIC_TEMPLATES = {
-  uus_teema:{
-    soojendus:{label:'Soojendus',blockTypes:['match','choice','text'],instruction:'Aktiveeri eelteadmised. Lihtsad äratundmisülesanded — sobitamine ja valik. Ära genereeri täitmis- ega kirjutamisülesandeid.',complexity:'low',focus:'recognition'},
-    esitlus:{label:'Esitlus',blockTypes:['table','text','fill'],instruction:'Tutvusta uut materjali kontekstis. Näited, täida tabel.',complexity:'low',focus:'input'},
-    harjutamine:{label:'Harjutamine',blockTypes:['fill','choice','order'],instruction:'Kontrollitud harjutamine. Struktureeritud ülesanded, madal vearisk.',complexity:'medium',focus:'controlled_practice'},
-    tootmine:{label:'Tootmine',blockTypes:['writing','order'],instruction:'Vaba kasutamine. Õpilane loob ise lauseid uue materjali põhjal.',complexity:'high',focus:'free_production'},
-    kokkuvote:{label:'Kokkuvõte',blockTypes:['fill','match'],instruction:'Kinnita õpitut. Lühike exit ticket.',complexity:'medium',focus:'consolidation'}
-  },
-  kinnistamine:{
-    harjutamine:{label:'Harjutamine',blockTypes:['choice','fill','order'],instruction:'Süvendatud harjutamine. Tähelepanu levinumatele vigadele.',complexity:'medium',focus:'accuracy'},
-    kommunik:{label:'Kommunikatiivne',blockTypes:['match','order','text'],instruction:'SUULINE harjutamine. Dialoogikaardid, rollimäng, aruteluküsimused. EI ole kirjutamisülesanne. Genereeri: match (situatsioon→reaktsioon), order (dialoogi järjestamine), text (aruteluküsimused ja abifraasid).',complexity:'high',focus:'speaking'}
-  },
-  kordamine:{
-    kordamine:{label:'Kordamine',blockTypes:['choice','fill','match','order'],instruction:'Süsteemne kordamine. Kõik oskused, eksami formaadile sarnane.',complexity:'high',focus:'exam_prep'}
-  },
-  suuline:{
-    soojendus:{label:'Soojendus',blockTypes:['match','choice','text'],instruction:'Aktiveeri suhtluskeelt. Sobi fraasid situatsiooniga, vali õige reaktsioon. Lisa abifraasid tekstiplokina.',complexity:'low',focus:'recognition'},
-    harjutamine:{label:'Dialoog',blockTypes:['match','order','fill'],instruction:'Harjuta dialoogi fraase ja struktuuri. Sobita repliigid, järjesta dialoog, täida lüngad.',complexity:'medium',focus:'speaking_prep'},
-    vaba:{label:'Vaba rääkimine',blockTypes:['text','order'],instruction:'Anna suuline ülesanne koos abifraasidega. Küsimused aruteluks, fraasipank.',complexity:'high',focus:'fluency'}
-  },
-  kirjalik:{
-    mudel:{label:'Tekstimudel',blockTypes:['reading','fill','table'],instruction:'Analüüsi näidisteksti. Struktuur, fraasid, täida tabel.',complexity:'medium',focus:'writing_model'},
-    kirjutamine:{label:'Kirjutamine',blockTypes:['writing'],instruction:'Kirjutamisülesanne koos selge juhise ja kriteeriumidega.',complexity:'high',focus:'writing_production'}
-  }
+const DIDACTIC_TEMPLATES={
+  uus_teema:{soojendus:{label:'Soojendus',blockTypes:['match','choice','text'],instruction:'Aktiveeri eelteadmised. Lihtsad äratundmisülesanded.',complexity:'low',focus:'recognition'},esitlus:{label:'Esitlus',blockTypes:['table','text','fill'],instruction:'Tutvusta uut materjali kontekstis.',complexity:'low',focus:'input'},harjutamine:{label:'Harjutamine',blockTypes:['fill','choice','order'],instruction:'Kontrollitud harjutamine.',complexity:'medium',focus:'controlled_practice'},tootmine:{label:'Tootmine',blockTypes:['writing','order'],instruction:'Vaba kasutamine.',complexity:'high',focus:'free_production'},kokkuvote:{label:'Kokkuvõte',blockTypes:['fill','match'],instruction:'Kinnita õpitut.',complexity:'medium',focus:'consolidation'}},
+  kinnistamine:{harjutamine:{label:'Harjutamine',blockTypes:['choice','fill','order'],instruction:'Süvendatud harjutamine.',complexity:'medium',focus:'accuracy'},kommunik:{label:'Kommunikatiivne',blockTypes:['match','order','text'],instruction:'Suuline harjutamine. Dialoogikaardid, rollimäng.',complexity:'high',focus:'speaking'}},
+  kordamine:{kordamine:{label:'Kordamine',blockTypes:['choice','fill','match','order'],instruction:'Süsteemne kordamine. Eksami formaat.',complexity:'high',focus:'exam_prep'}},
+  suuline:{soojendus:{label:'Soojendus',blockTypes:['match','choice','text'],instruction:'Aktiveeri suhtluskeelt.',complexity:'low',focus:'recognition'},harjutamine:{label:'Dialoog',blockTypes:['match','order','fill'],instruction:'Harjuta dialoogi fraase.',complexity:'medium',focus:'speaking_prep'},vaba:{label:'Vaba rääkimine',blockTypes:['text','order'],instruction:'Suuline ülesanne koos abifraasidega.',complexity:'high',focus:'fluency'}},
+  kirjalik:{mudel:{label:'Tekstimudel',blockTypes:['reading','fill','table'],instruction:'Analüüsi näidisteksti.',complexity:'medium',focus:'writing_model'},kirjutamine:{label:'Kirjutamine',blockTypes:['writing'],instruction:'Kirjutamisülesanne.',complexity:'high',focus:'writing_production'}}
 };
-const COMPLEXITY_INSTRUCTIONS = {
-  low:'Ülesanded peavad olema lihtsad — äratundmine, valik, sobitamine. EI nõua loomingulisust.',
-  medium:'Ülesanded nõuavad mõningast iseseisvat tööd — lüngad, järjestamine. Struktuur on antud.',
-  high:'Ülesanded nõuavad iseseisvat loomingut — kirjutamine, vaba kasutamine.'
-};
-const FOCUS_INSTRUCTIONS = {
-  recognition:'Fookus äratundmisel — õpilane näeb sõnu ja sobitab/valib.',
-  input:'Fookus sisendil — tutvusta materjali selgelt, anna näiteid.',
-  controlled_practice:'Fookus täpsusel — üks õige vastus, grammatika peab olema korrektne.',
-  free_production:'Fookus sujuvusel — õpilane väljendab end vabalt.',
-  consolidation:'Fookus kinnistamisel — näita kas materjal on omandatud.',
-  accuracy:'Fookus täpsusel — kinnista korrektne kasutus.',
-  fluency:'Fookus SUULISEL sujuvusel. Genereeri AINULT suulisi ülesandeid: dialoogikaardid, situatsioonid, aruteluküsimused, fraasipank. KEELATUD: writing, reading blokid.',
-  exam_prep:'Fookus eksami formaadil — täpselt eksami struktuur.',
-  speaking_prep:'Fookus suulisel harjutamisel — dialoogirepliigid, fraasid, situatsioonid. EI genereeri writing ülesandeid. Genereeri match (fraas→situatsioon), order (dialoogi järjestamine), fill (dialoogis lüngad).',
-  writing_model:'Fookus kirjutamise mudelil — analüüsi head teksti.',
-  writing_production:'Fookus kirjutamisel — selge ülesanne, hindamiskriteeriumid.',
-  speaking:'Fookus SUULISEL suhtlusel. Genereeri AINULT: match (fraas↔situatsioon/reaktsioon), order (dialoogi järjekord), text (aruteluküsimused koos abifraasidega). ABSOLUUTSELT KEELATUD: writing ja reading blokid.'
-};
+window.COMPLEXITY_INSTRUCTIONS={low:'Lihtsad ülesanded — äratundmine, valik, sobitamine.',medium:'Mõningane iseseisev töö — lüngad, järjestamine.',high:'Iseseisvat loomingut nõudvad ülesanded.'};
+window.FOCUS_INSTRUCTIONS={recognition:'Fookus äratundmisel.',input:'Fookus sisendil.',controlled_practice:'Fookus täpsusel.',free_production:'Fookus sujuvusel.',consolidation:'Fookus kinnistamisel.',accuracy:'Fookus täpsusel.',fluency:'Fookus sujuvusel.',exam_prep:'Eksami formaat.',speaking_prep:'Suuline harjutamine.',writing_model:'Kirjutamise mudel.',writing_production:'Kirjutamine.',speaking:'Suuline suhtlus.'};
 
-// ── VOCABULARY HELPER ────────────────────────────────────────
-function getVocabForLevel(level, types=['nimisõna','tegusõna','omadussõna'], count=30) {
-  const vocab = window._vocab;
-  if(!vocab||!vocab[level]) return [];
-  const words = [];
-  types.forEach(t=>{
-    const list = vocab[level][t]||[];
-    // random sample
-    const shuffled=[...list].sort(()=>Math.random()-.5).slice(0,Math.floor(count/types.length));
-    shuffled.forEach(w=>words.push({word:w,type:t}));
+// ── VOCABULARY ────────────────────────────────────────────────
+function getVocabForLevel(level){
+  const vocab=window._vocab;
+  if(!vocab||!vocab[level])return[];
+  const words=[];
+  Object.entries(vocab[level]||{}).forEach(([type,list])=>{
+    [...list].sort(()=>Math.random()-.5).slice(0,15).forEach(w=>words.push({word:w,type}));
   });
   return words.sort(()=>Math.random()-.5);
 }
 
-function getVocabByTopic(level, topic) {
-  // Filter words that might relate to topic keywords
-  const vocab = window._vocab;
-  if(!vocab||!vocab[level]) return [];
-  const topicWords = topic.toLowerCase().split(/\s+/);
-  const all = [];
-  Object.entries(vocab[level]||{}).forEach(([type,words])=>{
-    words.forEach(w=>{
-      const wl=w.toLowerCase();
-      const relevant=topicWords.some(tw=>wl.includes(tw)||tw.includes(wl.slice(0,4)));
-      all.push({word:w,type,relevant});
-    });
-  });
-  // Prioritize relevant, then random fill
-  const relevant=all.filter(w=>w.relevant).slice(0,15);
-  const random=all.filter(w=>!w.relevant).sort(()=>Math.random()-.5).slice(0,20);
-  return [...relevant,...random];
+// ── AI GENERATE ───────────────────────────────────────────────
+async function genAI(prompt,subject,level,didacticCtx={}){
+  const{lessonType='',phase='',wordList='',blockCount=4,extraInstr=''}=didacticCtx;
+  const template=lessonType&&phase&&DIDACTIC_TEMPLATES?(DIDACTIC_TEMPLATES[lessonType]||{})[phase]:null;
+  const allowedTypes=template?template.blockTypes:['fill','choice','match','order','writing','table','text','reading'];
+  const didacticBlock=template?`\nTUNNI KONTEKST: ${lessonType} — ${phase}\nDIDAKTILINE EESMÄRK: ${template.instruction}\nLUBATUD BLOKI TÜÜBID: ${allowedTypes.join(', ')} — kasuta AINULT neid!`:'';
+  const vocabBlock=wordList?`\nKASUTA neid EKI sõnu: ${wordList}`:'';
+  const sys=`Sa oled eesti keele õpetaja. Genereeri pedagoogiliselt korrektne tööleht JSON-ina.${didacticBlock}${vocabBlock}\nTagasta AINULT JSON:\n{"title":"...","blocks":[{"type":"fill","instruction":"...","text":"tekst [vastus] tekst"},{"type":"choice","instruction":"...","questions":[{"q":"?","opts":["a","b","c","d"],"correct":0}]},{"type":"match","instruction":"...","pairs":[{"l":"eesti","r":"vene tõlge"}]},{"type":"order","instruction":"...","sentence":"lause"},{"type":"writing","instruction":"...","task":"ülesanne","lines":8},{"type":"text","content":"tekst","bold":false},{"type":"table","instruction":"...","headers":["Sõna","Tõlge","Näide"],"rows":5},{"type":"reading","instruction":"...","passage":"tekst","questions":[{"q":"?","opts":["a","b","c"],"correct":0}]}]}\nTase: ${level||'B1'}. Genereeri TÄPSELT ${blockCount} blokki.${extraInstr?' Lisajuhised: '+extraInstr:''} Kõik eestikeelne. Match paarid — kasuta VENE keelt tõlgetena. Järgi lubatud bloki tüüpe absoluutselt.`;
+  const res=await fetch('/api/anthropic-proxy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2500,system:sys,messages:[{role:'user',content:`Teema: ${prompt}\nÕppeaine: ${subject||'Eesti keel'}, Tase: ${level||'B1'}`}]})});
+  const data=await res.json();
+  if(data.error)throw new Error(data.error.message||JSON.stringify(data.error));
+  const raw=(data.content?.[0]?.text||'').trim();
+  const clean=raw.replace(/^```json\s*/,'').replace(/^```\s*/,'').replace(/\s*```$/,'').trim();
+  try{return JSON.parse(clean);}catch(e){const m=clean.match(/\{[\s\S]*\}/);if(m)return JSON.parse(m[0]);throw new Error('AI vastuse töötlemine ebaõnnestus');}
 }
 
-// ── AI GENERATE ────────────────────────────────────────────────
-async function genAI(prompt, subject, level, didacticCtx={}) {
-  const {lessonType='', phase='', wordList='', blockCount=4, extraInstr=''} = didacticCtx;
-
-  // Get didactic template if lesson type and phase selected
-  const template = lessonType&&phase&&DIDACTIC_TEMPLATES
-    ? (DIDACTIC_TEMPLATES[lessonType]||{})[phase] : null;
-
-  const allowedTypes = template
-    ? template.blockTypes
-    : ['fill','choice','match','order','writing','table','text','reading'];
-
-  const didacticBlock = template ? `
-TUNNI KONTEKST: ${lessonType} — ${phase}
-DIDAKTILINE EESMÄRK: ${template.instruction}
-KEERUKUS: ${window.COMPLEXITY_INSTRUCTIONS[template.complexity]||''}
-FOOKUS: ${window.FOCUS_INSTRUCTIONS[template.focus]||''}
-LUBATUD BLOKI TÜÜBID: ${allowedTypes.join(', ')} — kasuta AINULT neid!
-Järgi didaktilist loogikat: paiguta blokid lihtsast raskeni.` : '';
-
-  const vocabBlock = wordList ? `
-KASUTA neid EKI sõnu: ${wordList}
-Ehita ülesanded nende sõnade ümber.` : '';
-
-  const sys = `Sa oled eesti keele õpetaja ja didaktika ekspert. Genereeri pedagoogiliselt korrektne tööleht JSON-ina.
-${didacticBlock}
-${vocabBlock}
-
-Tagasta AINULT JSON, ilma markdown koodiplokita:
-{"title":"...","blocks":[
-  {"type":"fill","instruction":"...","text":"tekst [vastus] tekst"},
-  {"type":"choice","instruction":"...","questions":[{"q":"?","opts":["a","b","c","d"],"correct":0}]},
-  {"type":"match","instruction":"...","pairs":[{"l":"eesti sõna","r":"vene tõlge"}]},
-  {"type":"order","instruction":"...","sentence":"õige järjekord"},
-  {"type":"writing","instruction":"...","task":"kirjutamisülesanne","lines":8},
-  {"type":"text","content":"SITUATSIOON A:\nKirjeldus A\n\nSITUATSIOON B:\nKirjeldus B","bold":false},
-  {"type":"table","instruction":"...","headers":["Sõna","Tüüp","Näide"],"rows":5},
-  {"type":"reading","instruction":"...","passage":"tekst...","questions":[{"q":"?","opts":["a","b","c"],"correct":0}]}
-]}
-
-Tase: ${level||'B1'}. Genereeri TÄPSELT ${blockCount} blokki (mitte rohkem, mitte vähem).${extraInstr?' Lisajuhised: '+extraInstr:''} Kõik eestikeelne.
-TÄHTIS: sobita paarid (match) — kasuta VENE keelt tõlgetena, MITTE inglise. Näide: {"l":"ärkama","r":"просыпаться"}.
-TÄHTIS 2: Järgi LUBATUD BLOKI TÜÜBID ABSOLUUTSELT TÄPSELT. Kui "writing" pole lubatud — EI TOHI esineda ühtegi writing blokki. Kui "reading" pole lubatud — EI TOHI esineda ühtegi reading blokki.
-TÄHTIS 3: Suulise tunni jaoks (kommunikatiivne/suuline fookus) genereeri AINULT: match (situatsioon↔reaktsioon või fraas↔tõlge), order (dialoogi repliikide järjestamine), text (aruteluküsimused + abifraasid). Kirjutamisülesandeid EI OLE.`;
-
-  const res = await fetch('/api/anthropic-proxy', {
-    method: 'POST',
-    headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 2500,
-      system: sys,
-      messages: [{role:'user', content:`Teema: ${prompt}\nÕppeaine: ${subject||'Eesti keel'}, Tase: ${level||'B1'}`}]
-    })
-  });
-  const data = await res.json();
-  if(data.error) throw new Error(data.error.message||JSON.stringify(data.error));
-  const raw = (data.content?.[0]?.text||'').trim();
-  // Strip markdown fences
-  const clean = raw.replace(/^```json\s*/,'').replace(/^```\s*/,'').replace(/\s*```$/,'').trim();
-  try {
-    return JSON.parse(clean);
-  } catch(parseErr) {
-    // Try to extract JSON object from response
-    const match = clean.match(/\{[\s\S]*\}/);
-    if(match) return JSON.parse(match[0]);
-    console.error('Parse error, raw response:', raw.slice(0,500));
-    throw new Error('AI vastuse töötlemine ebaõnnestus: ' + parseErr.message);
-  }
-}
-
-// ── EXPORT HTML ───────────────────────────────────────────────
-function buildHTML(meta,blocks) {
-  const css=`<style>
-    body{font-family:Arial,sans-serif;max-width:800px;margin:36px auto;padding:0 56px;color:#1a1a1a;font-size:13px;}
-    h1{font-size:1.4rem;margin-bottom:3px;}
-    .meta{color:#666;font-size:.78rem;margin-bottom:20px;padding-bottom:10px;border-bottom:2px solid #1a1a1a;display:flex;justify-content:space-between;}
-    .score{border:1px solid #1a1a1a;border-radius:4px;padding:4px 10px;font-size:.75rem;font-weight:600;}
-    .num{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#1a1a1a;color:#fff;font-size:.58rem;font-weight:700;margin-right:6px;}
-    .lbl{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#555;}
-    .block{margin-bottom:24px;break-inside:avoid;page-break-inside:avoid;} .block.half{width:47%;display:inline-block;vertical-align:top;margin-right:4%;}
-    .block.third{width:30%;display:inline-block;vertical-align:top;margin-right:3%;}
-    .instr{font-size:.78rem;font-style:italic;color:#666;margin-bottom:5px;}
-    .fill{font-size:.9rem;line-height:2.4;} .blank{display:inline-block;min-width:75px;border-bottom:1.5px solid #1a1a1a;margin:0 2px;}
-    .q{font-weight:700;font-size:.88rem;margin:5px 0 3px;} .opt{display:flex;align-items:center;gap:6px;font-size:.84rem;margin:2px 0 2px 12px;}
-    .circle{width:12px;height:12px;border-radius:50%;border:1.5px solid #1a1a1a;display:inline-block;flex-shrink:0;}
-    .wr-task{font-size:.88rem;margin-bottom:8px;line-height:1.5;} .wr-line{height:24px;border-bottom:1px solid #ccc;}
-    .match-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;} .match-item{padding:5px 9px;border:1px solid #ccc;border-radius:4px;font-size:.84rem;margin-bottom:4px;}
-    .ans-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;} .ans{padding:2px 7px;border:1px solid #ccc;border-radius:3px;font-size:.8rem;}
-    .chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;} .chip{padding:4px 10px;border:1.5px solid #999;border-radius:6px;font-size:.84rem;}
-    .order-ans{border-bottom:1px solid #ccc;margin-top:6px;font-size:.78rem;color:#aaa;}
-    table{width:100%;border-collapse:collapse;font-size:.84rem;} th{background:#f0f0f0;padding:6px 8px;border:1px solid #ccc;text-align:left;font-weight:700;}
-    td{padding:6px 8px;border:1px solid #ccc;height:26px;}
-    .passage{background:#f7f7f5;border:1px solid #ddd;border-radius:5px;padding:10px 12px;margin-bottom:10px;font-size:.86rem;line-height:1.6;white-space:pre-wrap;}
-    .pb-text{font-size:.9rem;line-height:1.6;} .pb-img{max-width:100%;max-height:200px;object-fit:contain;border-radius:5px;margin-bottom:6px;}
-    .img-caption{font-size:.72rem;color:#666;font-style:italic;text-align:center;}
-    .img-right{display:flex;gap:12px;align-items:flex-start;} .img-right img{width:110px;flex-shrink:0;object-fit:contain;border-radius:4px;}
-    .divider{border:none;border-top:1px dashed #ddd;margin:16px 0;}
-  </style>`;
-
+// ── BUILD HTML FOR EXPORT ─────────────────────────────────────
+function buildHTML(meta,blocks){
+  const css=`<style>body{font-family:Arial,sans-serif;max-width:800px;margin:36px auto;padding:0 56px;color:#1a1a1a;font-size:13px;}h1{font-size:1.4rem;margin-bottom:3px;}.meta{color:#666;font-size:.78rem;margin-bottom:20px;padding-bottom:10px;border-bottom:2px solid #1a1a1a;display:flex;justify-content:space-between;}.score{border:1px solid #1a1a1a;border-radius:4px;padding:4px 10px;font-size:.75rem;font-weight:600;}.num{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#1a1a1a;color:#fff;font-size:.58rem;font-weight:700;margin-right:6px;}.lbl{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#555;}.block{margin-bottom:24px;break-inside:avoid;}.instr{font-size:.78rem;font-style:italic;color:#666;margin-bottom:5px;}.fill{font-size:.9rem;line-height:2.4;}.blank{display:inline-block;min-width:75px;border-bottom:1.5px solid #1a1a1a;margin:0 2px;}.q{font-weight:700;font-size:.88rem;margin:5px 0 3px;}.opt{display:flex;align-items:center;gap:6px;font-size:.84rem;margin:2px 0 2px 12px;}.circle{width:12px;height:12px;border-radius:50%;border:1.5px solid #1a1a1a;display:inline-block;flex-shrink:0;}.wr-task{font-size:.88rem;margin-bottom:8px;line-height:1.5;}.wr-line{height:24px;border-bottom:1px solid #ccc;}.match-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;}.match-item{padding:5px 9px;border:1px solid #ccc;border-radius:4px;font-size:.84rem;margin-bottom:4px;}.ans-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}.ans{padding:2px 7px;border:1px solid #ccc;border-radius:3px;font-size:.8rem;}.chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;}.chip{padding:4px 10px;border:1.5px solid #999;border-radius:6px;font-size:.84rem;}.order-ans{border-bottom:1px solid #ccc;margin-top:6px;font-size:.78rem;color:#aaa;}table{width:100%;border-collapse:collapse;font-size:.84rem;}th{background:#f0f0f0;padding:6px 8px;border:1px solid #ccc;text-align:left;font-weight:700;}td{padding:6px 8px;border:1px solid #ccc;height:26px;}.passage{background:#f7f7f5;border:1px solid #ddd;border-radius:5px;padding:10px 12px;margin-bottom:10px;font-size:.86rem;line-height:1.6;white-space:pre-wrap;}.pb-text{font-size:.9rem;line-height:1.6;}.pb-img{max-width:100%;max-height:200px;object-fit:contain;border-radius:5px;margin-bottom:6px;}.divider{border:none;border-top:1px dashed #ddd;margin:16px 0;}</style>`;
   let html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${meta.title||'Tööleht'}</title>${css}</head><body>`;
-  html+=`<h1>${meta.title||'Tööleht'}</h1>`;
-  html+=`<div class="meta"><div>`;
-  if(meta.subject) html+=`<span>📚 ${meta.subject}&nbsp;&nbsp;</span>`;
-  if(meta.level)   html+=`<span>📊 ${meta.level}&nbsp;&nbsp;</span>`;
-  if(meta.topic)   html+=`<span>💬 ${meta.topic}&nbsp;&nbsp;</span>`;
-  if(meta.date)    html+=`<span>📅 Kuupäev: ____________&nbsp;&nbsp;</span>`;
-  if(meta.name)    html+=`<span>Nimi: ________________________&nbsp;&nbsp;</span>`;
-  html+=`</div>`;
-  if(meta.score)   html+=`<div class="score">Punkte: ___ / ___</div>`;
-  html+=`</div>`;
-
+  html+=`<h1>${meta.title||'Tööleht'}</h1><div class="meta"><div>`;
+  if(meta.subject)html+=`<span>📚 ${meta.subject}&nbsp;&nbsp;</span>`;
+  if(meta.level)html+=`<span>📊 ${meta.level}&nbsp;&nbsp;</span>`;
+  if(meta.topic)html+=`<span>💬 ${meta.topic}&nbsp;&nbsp;</span>`;
+  if(meta.date)html+=`<span>📅 Kuupäev: ____________&nbsp;&nbsp;</span>`;
+  if(meta.name)html+=`<span>Nimi: ________________________&nbsp;&nbsp;</span>`;
+  html+=`</div>`;if(meta.score)html+=`<div class="score">Punkte: ___ / ___</div>`;html+=`</div>`;
   let num=0;
   blocks.forEach(b=>{
-    const bt=BT[b.type]; if(!bt) return;
-    num++;
-    const cls='block'+(b.size==='half'?' half':b.size==='third'?' third':'');
-    html+=`<div class="${cls}">`;
-    html+=`<div style="margin-bottom:6px"><span class="num">${num}</span><span class="lbl">${bt.label}</span>`;
-    if(b.instruction) html+=` <span class="instr">— ${b.instruction}</span>`;
-    html+=`</div>`;
-
-    const imgTop=b.imageUrl&&(b.imagePos||'top')==='top';
-    const imgBot=b.imageUrl&&b.imagePos==='bottom';
-    const imgRight=b.imageUrl&&b.imagePos==='right';
-
-    if(imgTop) html+=`<div><img src="${b.imageUrl}" class="pb-img" alt=""/>${b.caption?`<div class="img-caption">${b.caption}</div>`:''}</div>`;
-    if(imgRight) html+=`<div class="img-right"><div style="flex:1">`;
-
-    if(b.type==='text')    html+=`<div class="pb-text" style="font-weight:${b.bold?700:400}">${b.content||''}</div>`;
-    else if(b.type==='image') {
-      if(b.imageUrl) html+=`<div><img src="${b.imageUrl}" class="pb-img" alt=""/>${b.caption?`<div class="img-caption">${b.caption}</div>`:''}</div>`;
-    }
-    else if(b.type==='fill') {
-      html+=`<div class="fill">`;
-      parseFill(b.text||'').forEach(p=>{ html+=p.t==='text'?p.v:`<span class="blank">&nbsp;</span>`; });
-      html+=`</div>`;
-    }
-    else if(b.type==='choice'||b.type==='reading') {
-      if(b.type==='reading') html+=`<div class="passage">${b.passage||''}</div>`;
-      (b.questions||[]).forEach((q,qi)=>{
-        html+=`<div class="q">${qi+1}. ${q.q||''}</div>`;
-        q.opts.filter(Boolean).forEach(o=>{ html+=`<div class="opt"><span class="circle"></span><span>${o}</span></div>`; });
-      });
-    }
-    else if(b.type==='writing') {
-      html+=`<div class="wr-task">${b.task||''}</div>`;
-      Array.from({length:b.lines||6}).forEach(()=>{ html+=`<div class="wr-line"></div>`; });
-    }
-    else if(b.type==='match') {
-      const sh=[...(b.pairs||[])].sort(()=>Math.random()-.5);
-      html+=`<div class="match-cols"><div>`;
-      (b.pairs||[]).forEach((p,i)=>{ html+=`<div class="match-item">${i+1}. ${p.l}</div>`; });
-      html+=`</div><div>`;
-      sh.forEach((p,i)=>{ html+=`<div class="match-item">${String.fromCharCode(65+i)}. ${p.r}</div>`; });
-      html+=`</div></div><div class="ans-row">`;
-      (b.pairs||[]).forEach((_,i)=>{ html+=`<span class="ans">${i+1} — ___</span>`; });
-      html+=`</div>`;
-    }
-    else if(b.type==='order') {
-      const w=(b.sentence||'').split(' ').filter(Boolean).sort(()=>Math.random()-.5);
-      html+=`<div class="chips">`;
-      w.forEach(x=>{ html+=`<span class="chip">${x}</span>`; });
-      html+=`</div><div class="order-ans">Kirjuta: ___________________________________________________</div>`;
-    }
-    else if(b.type==='table') {
-      html+=`<table><thead><tr>`;
-      (b.headers||[]).forEach(h=>{ html+=`<th>${h}</th>`; });
-      html+=`</tr></thead><tbody>`;
-      Array.from({length:b.rows||4}).forEach(()=>{
-        html+=`<tr>`; (b.headers||[]).forEach(()=>{ html+=`<td></td>`; }); html+=`</tr>`;
-      });
-      html+=`</tbody></table>`;
-    }
-
-    if(imgRight) html+=`</div><img src="${b.imageUrl}" style="width:110px;flex-shrink:0;object-fit:contain;border-radius:4px;" alt=""/></div>`;
-    if(imgBot)   html+=`<div style="margin-top:8px"><img src="${b.imageUrl}" class="pb-img" alt=""/>${b.caption?`<div class="img-caption">${b.caption}</div>`:''}</div>`;
-    if(b.size==='full') html+=`<hr class="divider"/>`;
-    html+=`</div>`;
+    const bt=BT[b.type];if(!bt)return;num++;
+    html+=`<div class="block">`;
+    html+=`<div style="margin-bottom:6px"><span class="num">${num}</span><span class="lbl">${b.label||bt.label}</span>`;
+    if(b.instruction)html+=` <span class="instr">— ${b.instruction}</span>`;html+=`</div>`;
+    if(b.imageUrl&&(b.imagePos||'top')==='top')html+=`<div><img src="${b.imageUrl}" class="pb-img" alt=""/></div>`;
+    if(b.type==='text')html+=`<div class="pb-text" style="font-weight:${b.bold?700:400}">${b.content||''}</div>`;
+    else if(b.type==='image'){if(b.imageUrl)html+=`<img src="${b.imageUrl}" class="pb-img" alt=""/>${b.caption?`<div style="font-size:.72rem;color:#666;text-align:center">${b.caption}</div>`:''}`;}
+    else if(b.type==='fill'){html+=`<div class="fill">`;parseFill(b.text||'').forEach(p=>{html+=p.t==='text'?p.v:`<span class="blank">&nbsp;</span>`;});html+=`</div>`;}
+    else if(b.type==='choice'||b.type==='reading'){if(b.type==='reading')html+=`<div class="passage">${b.passage||''}</div>`;(b.questions||[]).forEach((q,qi)=>{html+=`<div class="q">${qi+1}. ${q.q||''}</div>`;q.opts.filter(Boolean).forEach(o=>{html+=`<div class="opt"><span class="circle"></span><span>${o}</span></div>`;});});}
+    else if(b.type==='writing'){html+=`<div class="wr-task">${b.task||''}</div>`;Array.from({length:b.lines||6}).forEach(()=>{html+=`<div class="wr-line"></div>`;});}
+    else if(b.type==='match'){const sh=[...(b.pairs||[])].sort(()=>Math.random()-.5);html+=`<div class="match-cols"><div>`;(b.pairs||[]).forEach((p,i)=>{html+=`<div class="match-item">${i+1}. ${p.l}</div>`;});html+=`</div><div>`;sh.forEach((p,i)=>{html+=`<div class="match-item">${String.fromCharCode(65+i)}. ${p.r}</div>`;});html+=`</div></div><div class="ans-row">`;(b.pairs||[]).forEach((_,i)=>{html+=`<span class="ans">${i+1} — ___</span>`;});html+=`</div>`;}
+    else if(b.type==='order'){const w=(b.sentence||'').split(' ').filter(Boolean).sort(()=>Math.random()-.5);html+=`<div class="chips">`;w.forEach(x=>{html+=`<span class="chip">${x}</span>`;});html+=`</div><div class="order-ans">Kirjuta: ___________________________________________________</div>`;}
+    else if(b.type==='table'){html+=`<table><thead><tr>`;(b.headers||[]).forEach(h=>{html+=`<th>${h}</th>`;});html+=`</tr></thead><tbody>`;Array.from({length:b.rows||4}).forEach(()=>{html+=`<tr>`;(b.headers||[]).forEach(()=>{html+=`<td></td>`;});html+=`</tr>`;});html+=`</tbody></table>`;}
+    if(b.imageUrl&&b.imagePos==='bottom')html+=`<div style="margin-top:8px"><img src="${b.imageUrl}" class="pb-img" alt=""/></div>`;
+    if(b.size==='full')html+=`<hr class="divider"/>`;html+=`</div>`;
   });
-
-  html+=`</body></html>`;
-  return html;
+  html+=`</body></html>`;return html;
 }
 
 // ── SAVE MODAL ────────────────────────────────────────────────
-function SaveModal({meta,blocks,user,onClose,notify}) {
+function SaveModal({meta,blocks,user,onClose,notify}){
   const SUBJECTS=['Eesti keel','Inglise keel','Matemaatika'];
-  const LEVELS_BY_SUBJECT={
-    'Eesti keel':['A1','A2','B1','B2','C1'],
-    'Inglise keel':['A1','A2','B1','B2','C1','C2'],
-    'Matemaatika':Array.from({length:12},(_,i)=>i+1+'. klass'),
-  };
+  const LEVELS_BY_SUBJECT={'Eesti keel':['A1','A2','B1','B2','C1'],'Inglise keel':['A1','A2','B1','B2','C1','C2'],'Matemaatika':Array.from({length:12},(_,i)=>i+1+'. klass')};
   const[subject,setSubject]=useState(meta.subject||'Eesti keel');
   const[level,setLevel]=useState(meta.level||'B1');
   const[topic,setTopic]=useState('');
   const[newTopic,setNewTopic]=useState('');
   const[saving,setSaving]=useState(false);
   const[loading,setLoading]=useState(false);
-  const[lessons,setLessons]=useState([]); // lessons in selected topic
-  const[selectedLessonId,setSelectedLessonId]=useState(''); // attach to existing lesson
-  const[topicMode,setTopicMode]=useState('existing'); // 'existing'|'new'
-  const[lessonMode,setLessonMode]=useState('existing'); // 'existing'|'new'
+  const[lessons,setLessons]=useState([]);
+  const[selectedLessonId,setSelectedLessonId]=useState('');
+  const[topicMode,setTopicMode]=useState('existing');
+  const[lessonMode,setLessonMode]=useState('existing');
   const[allTopics,setAllTopics]=useState([]);
-
   const levels=LEVELS_BY_SUBJECT[subject]||[];
-
-  // Load topics when subject/level changes
   useEffect(()=>{
-    if(!subject||!level) return;
-    setLoading(true);
-    setTopic('');setLessons([]);setSelectedLessonId('');
-    db.collection('curriculumLessons')
-      .where('subject','==',subject)
-      .where('level','==',level)
-      .get()
-      .then(snap=>{
-        const docs=snap.docs.map(d=>({id:d.id,...d.data()}));
-        const topics=[...new Set(docs.map(d=>d.topic).filter(Boolean))].sort();
-        setAllTopics(topics);
-        if(topics.length>0){setTopic(topics[0]);setTopicMode('existing');}
-        else setTopicMode('new');
-        setLoading(false);
-      })
-      .catch(()=>setLoading(false));
+    if(!subject||!level)return;setLoading(true);setTopic('');setLessons([]);setSelectedLessonId('');
+    db.collection('curriculumLessons').where('subject','==',subject).where('level','==',level).get().then(snap=>{
+      const docs=snap.docs.map(d=>({id:d.id,...d.data()}));
+      const topics=[...new Set(docs.map(d=>d.topic).filter(Boolean))].sort();
+      setAllTopics(topics);
+      if(topics.length>0){setTopic(topics[0]);setTopicMode('existing');}else setTopicMode('new');
+      setLoading(false);
+    }).catch(()=>setLoading(false));
   },[subject,level]);
-
-  // Load lessons when topic changes
   useEffect(()=>{
-    if(!topic||topicMode==='new') return;
-    db.collection('curriculumLessons')
-      .where('subject','==',subject)
-      .where('level','==',level)
-      .where('topic','==',topic)
-      .get()
-      .then(snap=>{
-        const docs=snap.docs.map(d=>({id:d.id,...d.data()}));
-        setLessons(docs);
-        if(docs.length>0){setSelectedLessonId(docs[0].id);setLessonMode('existing');}
-        else setLessonMode('new');
-      });
+    if(!topic||topicMode==='new')return;
+    db.collection('curriculumLessons').where('subject','==',subject).where('level','==',level).where('topic','==',topic).get().then(snap=>{
+      const docs=snap.docs.map(d=>({id:d.id,...d.data()}));setLessons(docs);
+      if(docs.length>0){setSelectedLessonId(docs[0].id);setLessonMode('existing');}else setLessonMode('new');
+    });
   },[topic,topicMode,subject,level]);
-
   const finalTopic=topicMode==='new'?newTopic.trim():topic;
-
   const save=async()=>{
-    if(!finalTopic){alert('Vali teema või sisesta uus teema nimi');return;}
-    setSaving(true);
+    if(!finalTopic){alert('Vali teema või sisesta uus teema nimi');return;}setSaving(true);
     try{
       if(lessonMode==='existing'&&selectedLessonId){
-        // Add worksheet to existing lesson
-        await db.collection('curriculumLessons').doc(selectedLessonId).update({
-          worksheetData: {meta, blocks},
-          updatedAt: new Date().toISOString(),
-        });
+        await db.collection('curriculumLessons').doc(selectedLessonId).update({worksheetData:{meta,blocks},updatedAt:new Date().toISOString()});
         notify('✓ Tööleht lisatud olemasolevale kirjele!');
-      } else {
-        // Create new lesson with worksheet
-        await db.collection('curriculumLessons').add({
-          title: meta.title||'Tööleht',
-          type: 'material',
-          description: '',
-          subject, level,
-          topic: finalTopic,
-          examPart: null,
-          worksheetData: {meta, blocks},
-          files: [],
-          order: 0,
-          authorUid: user?.uid||'',
-          authorName: user?.displayName||user?.email||'',
-          createdAt: new Date().toISOString().split('T')[0],
-          updatedAt: new Date().toISOString(),
-        });
+      }else{
+        await db.collection('curriculumLessons').add({title:meta.title||'Tööleht',type:'material',description:'',subject,level,topic:finalTopic,examPart:null,worksheetData:{meta,blocks},files:[],order:0,authorUid:user?.uid||'',authorName:user?.displayName||user?.email||'',createdAt:new Date().toISOString().split('T')[0],updatedAt:new Date().toISOString()});
         notify('✓ Tööleht salvestatud uue kirjena!');
       }
       onClose();
-    }catch(e){
-      notify('Viga: '+(e.message||'Salvestamine ebaõnnestus'));
-    }
-    setSaving(false);
+    }catch(e){notify('Viga: '+(e.message||'Salvestamine ebaõnnestus'));}setSaving(false);
   };
-
   return(
     <div className="sav-ov">
       <div className="sav-box">
-        <div className="sav-head">
-          <h2 style={{fontSize:'1rem',fontWeight:800}}>💾 Salvesta õppekavasse</h2>
-          <button onClick={onClose} className="btn btn-ghost btn-sm">✕</button>
-        </div>
+        <div className="sav-head"><h2 style={{fontSize:'1rem',fontWeight:800}}>💾 Salvesta õppekavasse</h2><button onClick={onClose} className="btn btn-ghost btn-sm">✕</button></div>
         <div className="sav-body">
-          {/* Worksheet info */}
-          <div style={{padding:'10px 13px',borderRadius:10,background:'rgba(47,93,80,.08)',border:'0.5px solid rgba(47,93,80,.2)',fontSize:'.84rem',fontWeight:600,color:'#2F5D50'}}>
-            📄 {meta.title||'Tööleht'} · {blocks.length} plokki
-          </div>
-
-          {/* Subject + Level */}
+          <div style={{padding:'10px 13px',borderRadius:10,background:'rgba(47,93,80,.08)',border:'0.5px solid rgba(47,93,80,.2)',fontSize:'.84rem',fontWeight:600,color:'#2F5D50'}}>📄 {meta.title||'Tööleht'} · {blocks.length} plokki</div>
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
-            <div>
-              <div className="field-lbl">Õppeaine</div>
-              <select value={subject} onChange={e=>{setSubject(e.target.value);setLevel(LEVELS_BY_SUBJECT[e.target.value]?.[0]||'');}}>
-                {SUBJECTS.map(s=><option key={s}>{s}</option>)}
-              </select>
-            </div>
-            <div>
-              <div className="field-lbl">Tase</div>
-              <select value={level} onChange={e=>setLevel(e.target.value)}>
-                {levels.map(l=><option key={l}>{l}</option>)}
-              </select>
-            </div>
+            <div><div className="field-lbl">Õppeaine</div><select value={subject} onChange={e=>{setSubject(e.target.value);setLevel(LEVELS_BY_SUBJECT[e.target.value]?.[0]||'');}}>{SUBJECTS.map(s=><option key={s}>{s}</option>)}</select></div>
+            <div><div className="field-lbl">Tase</div><select value={level} onChange={e=>setLevel(e.target.value)}>{levels.map(l=><option key={l}>{l}</option>)}</select></div>
           </div>
-
-          {/* Step 1: Topic */}
           <div>
-            <div className="field-lbl" style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-              <span>1. Teema</span>
-              {allTopics.length>0&&<div style={{display:'flex',gap:5}}>
-                <button onClick={()=>setTopicMode('existing')} className={'btn btn-sm '+(topicMode==='existing'?'btn-pine':'btn-ghost')} style={{fontSize:'.7rem',padding:'2px 8px'}}>Olemasolev</button>
-                <button onClick={()=>{setTopicMode('new');setLessonMode('new');}} className={'btn btn-sm '+(topicMode==='new'?'btn-pine':'btn-ghost')} style={{fontSize:'.7rem',padding:'2px 8px'}}>+ Uus</button>
-              </div>}
-            </div>
+            <div className="field-lbl" style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}><span>1. Teema</span>{allTopics.length>0&&<div style={{display:'flex',gap:5}}><button onClick={()=>setTopicMode('existing')} className={'btn btn-sm '+(topicMode==='existing'?'btn-pine':'btn-ghost')} style={{fontSize:'.7rem',padding:'2px 8px'}}>Olemasolev</button><button onClick={()=>{setTopicMode('new');setLessonMode('new');}} className={'btn btn-sm '+(topicMode==='new'?'btn-pine':'btn-ghost')} style={{fontSize:'.7rem',padding:'2px 8px'}}>+ Uus</button></div>}</div>
             {loading?<div style={{fontSize:'.8rem',color:'#7A7167'}}>Laen...</div>
             :topicMode==='existing'&&allTopics.length>0
-              ?<div style={{display:'flex',flexWrap:'wrap',gap:5}}>
-                {allTopics.map(t=>(
-                  <button key={t} onClick={()=>setTopic(t)}
-                    style={{padding:'5px 11px',borderRadius:8,border:'1.5px solid '+(topic===t?'#2F5D50':'rgba(28,43,58,.1)'),background:topic===t?'rgba(47,93,80,.08)':'#fff',cursor:'pointer',fontSize:'.82rem',fontWeight:topic===t?700:400,color:topic===t?'#2F5D50':'#1C2B3A'}}>
-                    {t}
-                  </button>
-                ))}
-              </div>
-              :<input value={newTopic} onChange={e=>setNewTopic(e.target.value)} placeholder="Uue teema nimi..." autoFocus/>
-            }
+              ?<div style={{display:'flex',flexWrap:'wrap',gap:5}}>{allTopics.map(t=>(<button key={t} onClick={()=>setTopic(t)} style={{padding:'5px 11px',borderRadius:8,border:'1.5px solid '+(topic===t?'#2F5D50':'rgba(28,43,58,.1)'),background:topic===t?'rgba(47,93,80,.08)':'#fff',cursor:'pointer',fontSize:'.82rem',fontWeight:topic===t?700:400,color:topic===t?'#2F5D50':'#1C2B3A'}}>{t}</button>))}</div>
+              :<input value={newTopic} onChange={e=>setNewTopic(e.target.value)} placeholder="Uue teema nimi..." autoFocus/>}
           </div>
-
-          {/* Step 2: Lesson */}
-          {(topic||newTopic)&&(
-            <div>
-              <div className="field-lbl" style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-                <span>2. Kirje</span>
-                {lessons.length>0&&<div style={{display:'flex',gap:5}}>
-                  <button onClick={()=>setLessonMode('existing')} className={'btn btn-sm '+(lessonMode==='existing'?'btn-pine':'btn-ghost')} style={{fontSize:'.7rem',padding:'2px 8px'}}>Lisa olemasolevale</button>
-                  <button onClick={()=>setLessonMode('new')} className={'btn btn-sm '+(lessonMode==='new'?'btn-pine':'btn-ghost')} style={{fontSize:'.7rem',padding:'2px 8px'}}>+ Uus kirje</button>
-                </div>}
-              </div>
-              {lessonMode==='existing'&&lessons.length>0
-                ?<div style={{display:'flex',flexDirection:'column',gap:5,maxHeight:180,overflowY:'auto'}}>
-                  {lessons.map(l=>(
-                    <label key={l.id} style={{display:'flex',alignItems:'flex-start',gap:9,padding:'9px 12px',borderRadius:9,border:'1.5px solid '+(selectedLessonId===l.id?'#2F5D50':'rgba(28,43,58,.1)'),background:selectedLessonId===l.id?'rgba(47,93,80,.07)':'#fff',cursor:'pointer'}}>
-                      <input type="radio" name="lesson" checked={selectedLessonId===l.id} onChange={()=>setSelectedLessonId(l.id)} style={{marginTop:3,flexShrink:0}}/>
-                      <div>
-                        <div style={{fontSize:'.85rem',fontWeight:700,color:'#1C2B3A'}}>{l.title}</div>
-                        {l.description&&<div style={{fontSize:'.74rem',color:'#7A7167',marginTop:1}}>{l.description.slice(0,60)}{l.description.length>60?'...':''}</div>}
-                        {l.worksheetData&&<div style={{fontSize:'.68rem',color:'#C9882A',marginTop:2}}>⚠️ Tööleht olemas — asendatakse</div>}
-                      </div>
-                    </label>
-                  ))}
-                </div>
-                :<div style={{padding:'10px 12px',borderRadius:9,background:'rgba(28,43,58,.04)',border:'1px dashed rgba(28,43,58,.15)',fontSize:'.82rem',color:'#7A7167'}}>
-                  Luuakse uus kirje teemasse "{finalTopic}"
-                </div>
-              }
-            </div>
-          )}
+          {(topic||newTopic)&&(<div>
+            <div className="field-lbl" style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}><span>2. Kirje</span>{lessons.length>0&&<div style={{display:'flex',gap:5}}><button onClick={()=>setLessonMode('existing')} className={'btn btn-sm '+(lessonMode==='existing'?'btn-pine':'btn-ghost')} style={{fontSize:'.7rem',padding:'2px 8px'}}>Lisa olemasolevale</button><button onClick={()=>setLessonMode('new')} className={'btn btn-sm '+(lessonMode==='new'?'btn-pine':'btn-ghost')} style={{fontSize:'.7rem',padding:'2px 8px'}}>+ Uus kirje</button></div>}</div>
+            {lessonMode==='existing'&&lessons.length>0
+              ?<div style={{display:'flex',flexDirection:'column',gap:5,maxHeight:180,overflowY:'auto'}}>{lessons.map(l=>(<label key={l.id} style={{display:'flex',alignItems:'flex-start',gap:9,padding:'9px 12px',borderRadius:9,border:'1.5px solid '+(selectedLessonId===l.id?'#2F5D50':'rgba(28,43,58,.1)'),background:selectedLessonId===l.id?'rgba(47,93,80,.07)':'#fff',cursor:'pointer'}}><input type="radio" name="lesson" checked={selectedLessonId===l.id} onChange={()=>setSelectedLessonId(l.id)} style={{marginTop:3,flexShrink:0}}/><div><div style={{fontSize:'.85rem',fontWeight:700,color:'#1C2B3A'}}>{l.title}</div>{l.worksheetData&&<div style={{fontSize:'.68rem',color:'#C9882A',marginTop:2}}>⚠️ Tööleht olemas — asendatakse</div>}</div></label>))}</div>
+              :<div style={{padding:'10px 12px',borderRadius:9,background:'rgba(28,43,58,.04)',border:'1px dashed rgba(28,43,58,.15)',fontSize:'.82rem',color:'#7A7167'}}>Luuakse uus kirje teemasse "{finalTopic}"</div>}
+          </div>)}
         </div>
-        <div className="sav-foot">
-          <button onClick={onClose} className="btn btn-ghost">Tühista</button>
-          <button onClick={save} disabled={saving||(!finalTopic)} className="btn btn-green">
-            {saving?'Salvestab…':lessonMode==='existing'&&selectedLessonId?'✓ Lisa olemasolevale':'✓ Loo uus kirje'}
-          </button>
-        </div>
+        <div className="sav-foot"><button onClick={onClose} className="btn btn-ghost">Tühista</button><button onClick={save} disabled={saving||(!finalTopic)} className="btn btn-green">{saving?'Salvestab…':lessonMode==='existing'&&selectedLessonId?'✓ Lisa olemasolevale':'✓ Loo uus kirje'}</button></div>
       </div>
     </div>
   );
 }
 
 // ── PAGED PREVIEW ─────────────────────────────────────────────
-function estimateBlockHeight(block) {
-  switch(block.type) {
-    case 'fill': return Math.max(80,(block.text||'').length*0.6+60);
-    case 'choice': return 60+(block.questions||[]).length*90;
-    case 'match': return 60+(block.pairs||[]).length*40;
-    case 'order': return 140;
-    case 'writing': return 70+(block.lines||6)*30;
-    case 'text': return 60+(block.content||'').length*0.5;
-    case 'reading': return 220+(block.questions||[]).length*90;
-    case 'table': return 70+(block.rows||4)*34;
-    case 'image': return 240;
-    default: return 90;
+function estimateBlockHeight(block){
+  switch(block.type){
+    case 'fill':return Math.max(80,(block.text||'').length*0.6+60);
+    case 'choice':return 60+(block.questions||[]).length*90;
+    case 'match':return 60+(block.pairs||[]).length*40;
+    case 'order':return 140;
+    case 'writing':return 70+(block.lines||6)*30;
+    case 'text':return 60+(block.content||'').length*0.5;
+    case 'reading':return 220+(block.questions||[]).length*90;
+    case 'table':return 70+(block.rows||4)*34;
+    case 'image':return 240;
+    default:return 90;
   }
 }
 
-function PagedSheet({meta,blocks}) {
-  const HEADER_H = 110;
-  const PAGE_H = 995; // A4 content height (1123 - 2*64 padding)
-  
-  // Group blocks into pages
-  const pages = [];
-  let cur = [];
-  let h = HEADER_H;
-  
-  blocks.forEach(function(b) {
-    const bh = estimateBlockHeight(b) + 28;
-    if (h + bh > PAGE_H && cur.length > 0) {
-      pages.push(cur);
-      cur = [b];
-      h = bh;
-    } else {
-      cur.push(b);
-      h += bh;
-    }
-  });
-  if (cur.length > 0 || pages.length === 0) pages.push(cur);
-
-  let gi = 0;
-  
-  return(
-    <>
-      {pages.map((page, pi) => (
-        <React.Fragment key={pi}>
-          {pi > 0 && (
-            <div className="a4-page-break">
-              <span className="a4-page-break-label">Lehekülg {pi + 1}</span>
-            </div>
-          )}
-          <div className="a4-sheet">
-            {/* Header only on first page */}
-            {pi === 0 && (
-              <div className="sheet-hdr">
-                <div>
-                  <div className="sheet-title">{meta.title||'Pealkiri puudub'}</div>
-                  <div className="sheet-meta-row">
-                    {meta.subject&&<span>📚 {meta.subject}</span>}
-                    {meta.level&&<span>📊 {meta.level}</span>}
-                    {meta.topic&&<span>💬 {meta.topic}</span>}
-                    {meta.date&&<span>📅 Kuupäev: ____________</span>}
-                    {meta.name&&<span>Nimi: ___________________________</span>}
-                  </div>
-                </div>
-                {meta.score&&<div className="score-box">Punkte: ___ / ___</div>}
-              </div>
-            )}
-            {pi === 0 && blocks.length === 0 && (
-              <div style={{textAlign:'center',padding:'56px 0',color:'#C0B8B0'}}>
-                <i className="fa-solid fa-layer-group" style={{fontSize:'2rem',opacity:.2,display:'block',marginBottom:10}}/>
-                <div style={{fontSize:'.86rem'}}>Lisa plokke vasakult paneelilt</div>
-              </div>
-            )}
-            {page.map(function(b) { gi++; return <PreviewBlock key={b.id} block={b} index={gi}/>; })}
-            {pages.length > 1 && (
-              <div className="a4-page-num">{pi + 1} / {pages.length}</div>
-            )}
-          </div>
-        </React.Fragment>
-      ))}
-    </>
-  );
+function PagedSheet({meta,blocks,onChangeBlock}){
+  const HEADER_H=110,PAGE_H=995;
+  const pages=[];let cur=[],h=HEADER_H;
+  blocks.forEach(b=>{const bh=estimateBlockHeight(b)+28;if(h+bh>PAGE_H&&cur.length>0){pages.push(cur);cur=[b];h=bh;}else{cur.push(b);h+=bh;}});
+  if(cur.length>0||pages.length===0)pages.push(cur);
+  let gi=0;
+  return(<>
+    {pages.map((page,pi)=>(
+      <React.Fragment key={pi}>
+        {pi>0&&<div className="a4-page-break"><span className="a4-page-break-label">Lehekülg {pi+1}</span></div>}
+        <div className="a4-sheet">
+          {pi===0&&(<div className="sheet-hdr"><div><div className="sheet-title">{meta.title||'Pealkiri puudub'}</div><div className="sheet-meta-row">{meta.subject&&<span>📚 {meta.subject}</span>}{meta.level&&<span>📊 {meta.level}</span>}{meta.topic&&<span>💬 {meta.topic}</span>}{meta.date&&<span>📅 Kuupäev: ____________</span>}{meta.name&&<span>Nimi: ___________________________</span>}</div></div>{meta.score&&<div className="score-box">Punkte: ___ / ___</div>}</div>)}
+          {pi===0&&blocks.length===0&&<div style={{textAlign:'center',padding:'56px 0',color:'#C0B8B0'}}><i className="fa-solid fa-layer-group" style={{fontSize:'2rem',opacity:.2,display:'block',marginBottom:10}}/><div style={{fontSize:'.86rem'}}>Lisa plokke vasakult paneelilt</div></div>}
+          {page.map(b=>{gi++;return<PreviewBlock key={b.id} block={b} index={gi} onChange={onChangeBlock}/>;;})}
+          {pages.length>1&&<div className="a4-page-num">{pi+1} / {pages.length}</div>}
+        </div>
+      </React.Fragment>
+    ))}
+  </>);
 }
 
-// ── MAIN APP ───────────────────────────────────────────────────
-function App() {
+// ── MAIN APP ──────────────────────────────────────────────────
+function App(){
   const[user,setUser]=useState(null);
   const[authDone,setAuthDone]=useState(false);
-  const[meta,setMeta]=useState({title:'Uus tööleht',subject:'Eesti keel',level:'B1',topic:'',name:true,score:true,date:true});
-  const[blocks,setBlocks]=useState([]);
-  const[activeId,setActiveId]=useState(null);
+
+  // ── prefill from Õppekava "Muuda" button ──
+  const[meta,setMeta]=useState(_prefill?.meta||{title:'Uus tööleht',subject:'Eesti keel',level:'B1',topic:'',name:true,score:true,date:true});
+  const[blocks,setBlocks]=useState(()=>(_prefill?.blocks||[]).map(b=>({...b,id:b.id||uid()})));
+  const[activeId,setActiveId]=useState(_prefill?.blocks?.[0]?.id||null);
+  const[prefillLessonId]=useState(_prefill?.lessonId||null); // remember which lesson we're editing
+
   const[tab,setTab]=useState('build');
   const[aiPrompt,setAiPrompt]=useState('');
   const[aiLessonType,setAiLessonType]=useState('');
@@ -1332,36 +641,53 @@ function App() {
   const[dragOver,setDragOver]=useState(null);
   const[showSave,setShowSave]=useState(false);
 
-  const notify=msg=>{setToast(msg);setTimeout(()=>setToast(''),3000);};
+  const notify=msg=>{setToast(msg);setTimeout(()=>setToast(''),3200);};
 
   useEffect(()=>{
     const u=auth.onAuthStateChanged(fbUser=>{setUser(fbUser);setAuthDone(true);});
+    // Load EKI vocabulary
+    const loadVocab=async()=>{
+      try{
+        const ref=storage.ref('eesti_soned.json');
+        const url=await ref.getDownloadURL();
+        const r=await fetch(url);
+        const data=await r.json();
+        window._vocab=data;
+      }catch(e){console.warn('Vocab load failed:',e.message);}
+    };
+    loadVocab();
     return u;
   },[]);
 
   const addBlock=type=>{const b=mkBlock(type);setBlocks(p=>[...p,b]);setActiveId(b.id);setTab('build');};
   const updBlock=(id,data)=>setBlocks(p=>p.map(b=>b.id===id?data:b));
   const delBlock=id=>{setBlocks(p=>p.filter(b=>b.id!==id));if(activeId===id)setActiveId(null);};
-  const moveBlock=(id,dir)=>setBlocks(p=>{
-    const i=p.findIndex(b=>b.id===id);
-    if(dir===-1&&i===0||dir===1&&i===p.length-1) return p;
-    const a=[...p];[a[i],a[i+dir]]=[a[i+dir],a[i]];return a;
-  });
+  const moveBlock=(id,dir)=>setBlocks(p=>{const i=p.findIndex(b=>b.id===id);if(dir===-1&&i===0||dir===1&&i===p.length-1)return p;const a=[...p];[a[i],a[i+dir]]=[a[i+dir],a[i]];return a;});
 
-  // Drag & drop
   const onDragStart=(e,id)=>{setDragId(id);e.dataTransfer.effectAllowed='move';};
   const onDragOver=(e,id)=>{e.preventDefault();setDragOver(id);};
-  const onDrop=(e,targetId)=>{
-    e.preventDefault();
-    if(!dragId||dragId===targetId)return;
-    setBlocks(p=>{
-      const from=p.findIndex(b=>b.id===dragId);
-      const to=p.findIndex(b=>b.id===targetId);
-      const a=[...p];const[item]=a.splice(from,1);a.splice(to,0,item);return a;
-    });
-    setDragId(null);setDragOver(null);
-  };
+  const onDrop=(e,targetId)=>{e.preventDefault();if(!dragId||dragId===targetId)return;setBlocks(p=>{const from=p.findIndex(b=>b.id===dragId);const to=p.findIndex(b=>b.id===targetId);const a=[...p];const[item]=a.splice(from,1);a.splice(to,0,item);return a;});setDragId(null);setDragOver(null);};
   const onDragEnd=()=>{setDragId(null);setDragOver(null);};
+
+  // Quick-save back to same lesson (when opened via "Muuda")
+  const quickSave=async()=>{
+    if(!prefillLessonId){setShowSave(true);return;}
+    try{
+      await db.collection('curriculumLessons').doc(prefillLessonId).update({worksheetData:{meta,blocks},updatedAt:new Date().toISOString()});
+      notify('✓ Tööleht salvestatud õppekavasse!');
+    }catch(e){notify('Viga: '+e.message);}
+  };
+
+  const runAI=async()=>{
+    if(!aiPrompt.trim()){notify('Kirjuta juhis');return;}setAiLoading(true);
+    try{
+      const r=await genAI(aiPrompt,meta.subject,meta.level,{lessonType:aiLessonType,phase:aiPhase,blockCount:aiBlockCount,extraInstr:aiExtraInstr});
+      if(r.title)setMeta(m=>({...m,title:r.title}));
+      const nb=(r.blocks||[]).map(b=>({...mkBlock(b.type),...b,id:uid()}));
+      if(!nb.length)throw new Error('AI ei genereerinud ühtegi blokki.');
+      setBlocks(nb);setActiveId(nb[0].id);setTab('build');notify('✓ Tööleht genereeritud!');
+    }catch(e){notify('Viga: '+(e.message||'Genereerimine ebaõnnestus'));}setAiLoading(false);
+  };
 
   const runVocabAI=async()=>{
     if(!aiPrompt.trim()){notify('Kirjuta tunni teema');return;}
@@ -1370,50 +696,18 @@ function App() {
     try{
       const words=getVocabForLevel(meta.level);
       const wordList=words.slice(0,40).map(w=>w.word+' ('+w.type+')').join(', ');
-      const r=await genAI(aiPrompt,meta.subject||'Eesti keel',meta.level,{
-        lessonType:aiLessonType, phase:aiPhase, wordList
-      });
-      if(r.title) setMeta(m=>({...m,title:r.title}));
+      const r=await genAI(aiPrompt,meta.subject||'Eesti keel',meta.level,{lessonType:aiLessonType,phase:aiPhase,wordList,blockCount:aiBlockCount,extraInstr:aiExtraInstr});
+      if(r.title)setMeta(m=>({...m,title:r.title}));
       const nb=(r.blocks||[]).map(b=>({...mkBlock(b.type),...b,id:uid()}));
-      if(!nb.length) throw new Error('AI ei genereerinud ühtegi blokki. Proovi teist teemat.');
-      setBlocks(nb);
-      setActiveId(nb[0].id);
-      setTab('build');
-      notify('✓ Tööleht EKI sõnavaraga genereeritud!');
-    }catch(e){console.error('VocabAI error:',e);notify('Viga: '+(e.message||'Genereerimine ebaõnnestus'));}
-    setAiLoading(false);
+      if(!nb.length)throw new Error('AI ei genereerinud ühtegi blokki.');
+      setBlocks(nb);setActiveId(nb[0].id);setTab('build');notify('✓ Tööleht EKI sõnavaraga genereeritud!');
+    }catch(e){notify('Viga: '+(e.message||'Genereerimine ebaõnnestus'));}setAiLoading(false);
   };
 
-  const runAI=async()=>{
-    if(!aiPrompt.trim()){notify('Kirjuta juhis');return;}
-    setAiLoading(true);
-    try{
-      const r=await genAI(aiPrompt,meta.subject,meta.level,{lessonType:aiLessonType,phase:aiPhase});
-      if(r.title) setMeta(m=>({...m,title:r.title}));
-      const nb=(r.blocks||[]).map(b=>({...mkBlock(b.type),...b,id:uid()}));
-      if(!nb.length) throw new Error('AI ei genereerinud ühtegi blokki. Proovi teist teemat.');
-      setBlocks(nb);
-      setActiveId(nb[0].id);
-      setTab('build');
-      notify('✓ Tööleht genereeritud!');
-    }catch(e){console.error('RunAI error:',e);notify('Viga: '+(e.message||'Genereerimine ebaõnnestus'));}
-    setAiLoading(false);
-  };
+  const exportPrint=()=>{const w=window.open('','_blank');w.document.write(buildHTML(meta,blocks));w.document.close();setTimeout(()=>w.print(),400);};
+  const exportDL=()=>{const b=new Blob([buildHTML(meta,blocks)],{type:'text/html'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=(meta.title||'tööleht')+'.html';a.click();notify('✓ Allalaaditud!');};
 
-  const exportPrint=()=>{
-    const w=window.open('','_blank');
-    w.document.write(buildHTML(meta,blocks));
-    w.document.close();
-    setTimeout(()=>w.print(),400);
-  };
-  const exportDL=()=>{
-    const b=new Blob([buildHTML(meta,blocks)],{type:'text/html'});
-    const a=document.createElement('a');
-    a.href=URL.createObjectURL(b);a.download=(meta.title||'tööleht')+'.html';a.click();
-    notify('✓ Allalaaditud!');
-  };
-
-  if(!authDone) return <div style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh'}}><div className="sp-dark"/></div>;
+  if(!authDone)return<div style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh'}}><div className="sp-dark"/></div>;
 
   const activeBlock=blocks.find(b=>b.id===activeId);
 
@@ -1425,63 +719,55 @@ function App() {
         <div style={{display:'flex',alignItems:'center',gap:14}}>
           <div className="logo">Keele<span>Sepp</span></div>
           <span style={{color:'rgba(255,255,255,.3)',fontSize:'.76rem'}}>Töölehtede koostaja</span>
+          {prefillLessonId&&<span style={{fontSize:'.72rem',padding:'3px 9px',background:'rgba(201,136,42,.25)',color:'#F5C97A',borderRadius:6,fontWeight:700}}>✏️ Muutmisrežiim</span>}
         </div>
         <div style={{display:'flex',gap:8,alignItems:'center'}}>
           <a href="/haldus-exercises" style={{color:'rgba(255,255,255,.45)',fontSize:'.76rem',textDecoration:'none',padding:'5px 10px',border:'1px solid rgba(255,255,255,.12)',borderRadius:7}}>← Õppekava</a>
-          <button onClick={exportPrint} className="btn btn-ghost btn-sm" style={{color:'#fff',borderColor:'rgba(255,255,255,.18)'}}>
-            <i className="fa-solid fa-print"/> Prindi / PDF
-          </button>
-          <button onClick={()=>setShowSave(true)} className="btn btn-green btn-sm">
-            <i className="fa-solid fa-floppy-disk"/> Salvesta
-          </button>
-          <button onClick={exportDL} className="btn btn-gold btn-sm">
-            <i className="fa-solid fa-download"/> Laadi alla
-          </button>
+          <button onClick={exportPrint} className="btn btn-ghost btn-sm" style={{color:'#fff',borderColor:'rgba(255,255,255,.18)'}}><i className="fa-solid fa-print"/> Prindi / PDF</button>
+          {prefillLessonId
+            ?<button onClick={quickSave} className="btn btn-green btn-sm"><i className="fa-solid fa-floppy-disk"/> Salvesta muudatused</button>
+            :<button onClick={()=>setShowSave(true)} className="btn btn-green btn-sm"><i className="fa-solid fa-floppy-disk"/> Salvesta</button>}
+          <button onClick={exportDL} className="btn btn-gold btn-sm"><i className="fa-solid fa-download"/> Laadi alla</button>
         </div>
       </header>
 
       <div className="workspace">
-        {/* LEFT */}
+        {/* LEFT PANEL */}
         <div className="left-panel">
           <div className="left-tabs">
-            <button className={'ltab'+(tab==='build'?' active':'')} onClick={()=>setTab('build')}>
-              <i className="fa-solid fa-layer-group"/> Koosta
-            </button>
-            <button className={'ltab'+(tab==='ai'?' active':'')} onClick={()=>setTab('ai')}>
-              <i className="fa-solid fa-wand-magic-sparkles"/> AI
-            </button>
-            <button className={'ltab'+(tab==='meta'?' active':'')} onClick={()=>setTab('meta')}>
-              <i className="fa-solid fa-sliders"/> Seaded
-            </button>
+            <button className={'ltab'+(tab==='build'?' active':'')} onClick={()=>setTab('build')}><i className="fa-solid fa-layer-group"/> Koosta</button>
+            <button className={'ltab'+(tab==='ai'?' active':'')} onClick={()=>setTab('ai')}><i className="fa-solid fa-wand-magic-sparkles"/> AI</button>
+            <button className={'ltab'+(tab==='meta'?' active':'')} onClick={()=>setTab('meta')}><i className="fa-solid fa-sliders"/> Seaded</button>
           </div>
-
           <div className="left-scroll">
+
+            {/* PREFILL BANNER */}
+            {_prefill&&tab==='build'&&(
+              <div className="prefill-banner">
+                <i className="fa-solid fa-pen-to-square"/>
+                <span>Avatud: <strong>{_prefill.meta?.title||'tund'}</strong> · {_prefill.blocks?.length||0} plokki eeltäidetud</span>
+              </div>
+            )}
 
             {/* AI TAB */}
             {tab==='ai'&&(
               <div>
                 <div className="ai-panel">
                   <div className="ai-title"><i className="fa-solid fa-wand-magic-sparkles"/> Genereeri AI-ga</div>
-
-                  {/* Lesson type selector */}
                   <div style={{marginBottom:8}}>
                     <div style={{fontSize:'.64rem',fontWeight:700,color:'rgba(255,255,255,.45)',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:5}}>Tunni tüüp (valikuline)</div>
                     <div style={{display:'flex',gap:5,flexWrap:'wrap'}}>
                       {[['','Vaba'],['uus_teema','🌱 Uus teema'],['kinnistamine','🔁 Kinnistamine'],['suuline','🗣️ Suuline'],['kirjalik','✍️ Kirjalik'],['kordamine','📋 Kordamine']].map(([k,l])=>(
-                        <button key={k} className={'ai-lvl'+(aiLessonType===k?' active':'')} onClick={()=>{setAiLessonType(k);setAiPhase('');}}
-                          style={{fontSize:'.68rem'}}>{l}</button>
+                        <button key={k} className={'ai-lvl'+(aiLessonType===k?' active':'')} onClick={()=>{setAiLessonType(k);setAiPhase('');}} style={{fontSize:'.68rem'}}>{l}</button>
                       ))}
                     </div>
                   </div>
-
-                  {/* Phase selector — shows only when lesson type selected */}
                   {aiLessonType&&DIDACTIC_TEMPLATES[aiLessonType]&&(
                     <div style={{marginBottom:8}}>
                       <div style={{fontSize:'.64rem',fontWeight:700,color:'rgba(255,255,255,.45)',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:5}}>Tunni faas</div>
                       <div style={{display:'flex',gap:5,flexWrap:'wrap'}}>
                         {Object.entries(DIDACTIC_TEMPLATES[aiLessonType]).map(([k,v])=>(
-                          <button key={k} className={'ai-lvl'+(aiPhase===k?' active':'')} onClick={()=>setAiPhase(k)}
-                            style={{fontSize:'.67rem'}}>{v.label.split(' — ')[0]}</button>
+                          <button key={k} className={'ai-lvl'+(aiPhase===k?' active':'')} onClick={()=>setAiPhase(k)} style={{fontSize:'.67rem'}}>{v.label}</button>
                         ))}
                       </div>
                       {aiPhase&&DIDACTIC_TEMPLATES[aiLessonType]?.[aiPhase]&&(
@@ -1491,17 +777,8 @@ function App() {
                       )}
                     </div>
                   )}
-
-                  {/* Topic input */}
-                  <textarea className="ai-textarea" value={aiPrompt} onChange={e=>setAiPrompt(e.target.value)} rows={3}
-                    placeholder={"Tunni teema, nt:\n\"Tegusõnade pööramine olevikus\"\n\"Igapäevaelu kirjeldamine\""}/>
-
-                  {/* Extra instructions */}
-                  <textarea className="ai-textarea" value={aiExtraInstr} onChange={e=>setAiExtraInstr(e.target.value)} rows={2}
-                    placeholder="Lisajuhised AI-le (valikuline): nt. 'lisage rohkem grammatikaharjutusi', 'kasutage igapäevaelu sõnavara'..."
-                    style={{marginTop:6,fontSize:'.78rem',opacity:.85}}/>
-
-                  {/* Level + Block count */}
+                  <textarea className="ai-textarea" value={aiPrompt} onChange={e=>setAiPrompt(e.target.value)} rows={3} placeholder={"Tunni teema, nt:\n\"Tegusõnade pööramine olevikus\"\n\"Igapäevaelu kirjeldamine\""}/>
+                  <textarea className="ai-textarea" value={aiExtraInstr} onChange={e=>setAiExtraInstr(e.target.value)} rows={2} placeholder="Lisajuhised AI-le (valikuline)..." style={{marginTop:6,fontSize:'.78rem',opacity:.85}}/>
                   <div style={{display:'flex',alignItems:'center',gap:8,marginTop:2}}>
                     <div className="ai-lvl-btns" style={{flex:1}}>
                       {['A1','A2','B1','B2','C1'].map(l=>(
@@ -1515,7 +792,6 @@ function App() {
                       <button onClick={()=>setAiBlockCount(c=>Math.min(10,c+1))} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',cursor:'pointer',fontSize:'.9rem',padding:'0 2px',lineHeight:1}}>+</button>
                     </div>
                   </div>
-
                   <div style={{display:'flex',gap:7,marginTop:8}}>
                     <button onClick={runAI} disabled={aiLoading} className="btn btn-pine" style={{flex:1,justifyContent:'center',background:'#C9882A',color:'#fff'}}>
                       {aiLoading?<><div className="sp" style={{marginRight:6}}/> Genereerib...</>:<><i className="fa-solid fa-bolt"/> Genereeri</>}
@@ -1524,13 +800,9 @@ function App() {
                       {aiLoading?<><div className="sp" style={{marginRight:6}}/> Genereerib...</>:<><i className="fa-solid fa-book"/> + Sõnavara</>}
                     </button>
                   </div>
-                  <div style={{fontSize:'.68rem',color:'rgba(255,255,255,.35)',marginTop:6,textAlign:'center'}}>
-                    {window._vocab?'✓ EKI sõnavara laetud (10 564 sõna)':'⏳ Sõnavara laeb...'}
-                  </div>
+                  <div style={{fontSize:'.68rem',color:'rgba(255,255,255,.35)',marginTop:6,textAlign:'center'}}>{window._vocab?'✓ EKI sõnavara laetud (10 564 sõna)':'⏳ Sõnavara laeb...'}</div>
                 </div>
-                <button onClick={()=>setTab('build')} className="btn btn-ghost" style={{width:'100%',justifyContent:'center'}}>
-                  <i className="fa-solid fa-layer-group"/> Koosta käsitsi
-                </button>
+                <button onClick={()=>setTab('build')} className="btn btn-ghost" style={{width:'100%',justifyContent:'center'}}><i className="fa-solid fa-layer-group"/> Koosta käsitsi</button>
               </div>
             )}
 
@@ -1542,28 +814,16 @@ function App() {
                   <div className="field-lbl">Pealkiri</div>
                   <input value={meta.title} onChange={e=>setMeta(m=>({...m,title:e.target.value}))} style={{marginBottom:6}}/>
                   <div className="field-lbl">Õppeaine</div>
-                  <select value={meta.subject} onChange={e=>setMeta(m=>({...m,subject:e.target.value}))} style={{marginBottom:6}}>
-                    <option>Eesti keel</option><option>Inglise keel</option><option>Matemaatika</option>
-                  </select>
+                  <select value={meta.subject} onChange={e=>setMeta(m=>({...m,subject:e.target.value}))} style={{marginBottom:6}}><option>Eesti keel</option><option>Inglise keel</option><option>Matemaatika</option></select>
                   <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:7}}>
-                    <div>
-                      <div className="field-lbl">Tase</div>
-                      <select value={meta.level} onChange={e=>setMeta(m=>({...m,level:e.target.value}))}>
-                        {['A1','A2','B1','B2','C1','C2'].map(l=><option key={l}>{l}</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <div className="field-lbl">Teema</div>
-                      <input value={meta.topic} onChange={e=>setMeta(m=>({...m,topic:e.target.value}))} placeholder="nt. Pere"/>
-                    </div>
+                    <div><div className="field-lbl">Tase</div><select value={meta.level} onChange={e=>setMeta(m=>({...m,level:e.target.value}))}>{['A1','A2','B1','B2','C1','C2'].map(l=><option key={l}>{l}</option>)}</select></div>
+                    <div><div className="field-lbl">Teema</div><input value={meta.topic} onChange={e=>setMeta(m=>({...m,topic:e.target.value}))} placeholder="nt. Pere"/></div>
                   </div>
                 </div>
                 <div className="meta-box">
                   <div className="meta-lbl">Päise väljad</div>
                   {[['name','Nimi'],['score','Punkte'],['date','Kuupäev']].map(([k,l])=>(
-                    <label key={k} style={{display:'flex',alignItems:'center',gap:7,marginBottom:7,fontSize:'.8rem',cursor:'pointer'}}>
-                      <input type="checkbox" checked={meta[k]||false} onChange={e=>setMeta(m=>({...m,[k]:e.target.checked}))}/> {l}
-                    </label>
+                    <label key={k} style={{display:'flex',alignItems:'center',gap:7,marginBottom:7,fontSize:'.8rem',cursor:'pointer'}}><input type="checkbox" checked={meta[k]||false} onChange={e=>setMeta(m=>({...m,[k]:e.target.checked}))}/> {l}</label>
                   ))}
                 </div>
               </div>
@@ -1574,38 +834,21 @@ function App() {
               <div>
                 <div style={{fontSize:'.66rem',fontWeight:700,color:'#7A7167',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:7}}>Lisa plokk</div>
                 <div className="btype-grid">
-                  {BTYPES.map(bt=>(
-                    <button key={bt.key} className="btype-btn" onClick={()=>addBlock(bt.key)}>
-                      <div className="btype-icon" style={{background:bt.bg}}><i className={'fa-solid '+bt.icon} style={{color:bt.color}}/></div>
-                      {bt.label}
-                    </button>
-                  ))}
+                  {BTYPES.map(bt=>(<button key={bt.key} className="btype-btn" onClick={()=>addBlock(bt.key)}><div className="btype-icon" style={{background:bt.bg}}><i className={'fa-solid '+bt.icon} style={{color:bt.color}}/></div>{bt.label}</button>))}
                 </div>
-
                 {blocks.length===0
                   ?<div className="empty-bld"><i className="fa-solid fa-layer-group"/><p style={{fontSize:'.78rem'}}>Lisa plokke ülal</p></div>
                   :<div>
-                    <div style={{fontSize:'.66rem',fontWeight:700,color:'#7A7167',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:6}}>
-                      Plokid ({blocks.length}) — lohista järjekorra muutmiseks
-                    </div>
+                    <div style={{fontSize:'.66rem',fontWeight:700,color:'#7A7167',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:6}}>Plokid ({blocks.length}) — lohista järjekorra muutmiseks</div>
                     {blocks.map((block,idx)=>{
-                      const bt=BT[block.type];
-                      const isActive=activeId===block.id;
+                      const bt=BT[block.type];const isActive=activeId===block.id;
                       return(
-                        <div key={block.id}
-                          className={'block-item'+(isActive?' active':'')+(dragId===block.id?' dragging':'')+(dragOver===block.id?' drag-over':'')}
-                          draggable
-                          onDragStart={e=>onDragStart(e,block.id)}
-                          onDragOver={e=>onDragOver(e,block.id)}
-                          onDrop={e=>onDrop(e,block.id)}
-                          onDragEnd={onDragEnd}>
+                        <div key={block.id} className={'block-item'+(isActive?' active':'')+(dragId===block.id?' dragging':'')+(dragOver===block.id?' drag-over':'')}
+                          draggable onDragStart={e=>onDragStart(e,block.id)} onDragOver={e=>onDragOver(e,block.id)} onDrop={e=>onDrop(e,block.id)} onDragEnd={onDragEnd}>
                           <div className="bi-head" onClick={()=>setActiveId(isActive?null:block.id)}>
                             <span className="bi-drag"><i className="fa-solid fa-grip-vertical"/></span>
                             <span className="nbadge" style={{background:bt.color}}>{idx+1}</span>
-                            <span className="bi-tag" style={{background:bt.bg,color:bt.color}}>
-                              <i className={'fa-solid '+bt.icon} style={{fontSize:'.6rem'}}/>
-                              {bt.label}
-                            </span>
+                            <span className="bi-tag" style={{background:bt.bg,color:bt.color}}><i className={'fa-solid '+bt.icon} style={{fontSize:'.6rem'}}/>{bt.label}</span>
                             <span className="bi-preview">
                               {block.type==='fill'&&(block.text||'').replace(/\[([^\]]+)\]/g,'___')}
                               {block.type==='writing'&&block.task}
@@ -1623,11 +866,7 @@ function App() {
                               <button className="bi-btn del" onClick={()=>delBlock(block.id)} title="Kustuta"><i className="fa-solid fa-trash"/></button>
                             </div>
                           </div>
-                          {isActive&&(
-                            <div onClick={e=>e.stopPropagation()}>
-                              <BlockEditor block={block} onChange={data=>updBlock(block.id,data)}/>
-                            </div>
-                          )}
+                          {isActive&&<div onClick={e=>e.stopPropagation()}><BlockEditor block={block} onChange={data=>updBlock(block.id,data)}/></div>}
                         </div>
                       );
                     })}
@@ -1638,20 +877,20 @@ function App() {
           </div>
         </div>
 
-        {/* RIGHT — A4 PREVIEW */}
+        {/* RIGHT PANEL — A4 PREVIEW */}
         <div className="right-panel">
           <div className="toolbar-row">
-            <span style={{fontSize:'.74rem',color:'#7A7167',marginRight:'auto'}}>{blocks.length} plokki</span>
+            <span style={{fontSize:'.74rem',color:'#7A7167',marginRight:'auto'}}>{blocks.length} plokki{prefillLessonId?' · muutmisrežiim':''}</span>
             <button onClick={exportPrint} className="btn btn-ghost btn-sm"><i className="fa-solid fa-print"/> Prindi / PDF</button>
             <button onClick={exportDL} className="btn btn-pine btn-sm"><i className="fa-solid fa-download"/> Laadi alla (.html)</button>
           </div>
-
           <div className="a4-wrap">
-            <PagedSheet meta={meta} blocks={blocks}/>
+            <PagedSheet meta={meta} blocks={blocks} onChangeBlock={data=>updBlock(data.id,data)}/>
           </div>
           <div style={{height:40}}/>
         </div>
       </div>
+
       {showSave&&<SaveModal meta={meta} blocks={blocks} user={user} onClose={()=>setShowSave(false)} notify={notify}/>}
     </div>
   );
