@@ -784,11 +784,14 @@ ${extraInstr?'9. ERISOOV: '+extraInstr:''}`;
   const data=await res.json();
   if(data.error)throw new Error(data.error.message||JSON.stringify(data.error));
   const raw=(data.content?.[0]?.text||'').trim();
-  const clean=raw.replace(/^```json\s*/,'').replace(/^```\s*/,'').replace(/\s*```$/,'').trim();
+  const stripFences=s=>{s=s.trim();s=s.replace(/^[\s]*```[a-z]*\s*/i,'');s=s.replace(/\s*```[\s]*$/,'');return s.trim();};
+  const clean=stripFences(raw);
   try{return JSON.parse(clean);}
   catch(e){
     const m=clean.match(/\{[\s\S]*\}/);
     if(m)try{return JSON.parse(m[0]);}catch(e2){}
+    const fi=raw.indexOf('{');const li=raw.lastIndexOf('}');
+    if(fi!==-1&&li>fi)try{return JSON.parse(raw.slice(fi,li+1));}catch(e3){}
     console.error('Parse error. Raw:',raw.slice(0,600));
     throw new Error('AI vastuse töötlemine ebaõnnestus: '+e.message);
   }
@@ -796,7 +799,6 @@ ${extraInstr?'9. ERISOOV: '+extraInstr:''}`;
 
 // ── BUILD HTML FOR EXPORT ─────────────────────────────────────
 function buildHTML(meta,blocks){
-  // ── Шрифты подключаем через @import ──
   const parseFillPdf=text=>{const parts=[];text.split(/\[([^\]]+)\]/g).forEach((c,i)=>parts.push(i%2===0?{t:'text',v:c}:{t:'blank'}));return parts;};
   const shuffleArr=arr=>[...arr].sort(()=>Math.random()-.5);
   let num=0;
@@ -808,97 +810,27 @@ function buildHTML(meta,blocks){
     const color=BT_COLORS[b.type]||'#718096';
     const label=b.label||BT_LABELS[b.type];
     let inner='';
-    if(b.type==='text'){
-      inner=`<div style="font-size:13px;line-height:1.65;font-weight:${b.bold?700:400};white-space:pre-wrap;">${b.content||''}</div>`;
-    }else if(b.type==='image'){
-      inner=b.imageUrl?`<div style="text-align:center"><img src="${b.imageUrl}" style="max-width:${b.imgWidth?b.imgWidth+'px':'100%'};max-height:220px;object-fit:contain;border-radius:6px;"/>${b.caption?`<div style="font-size:11px;color:#718096;margin-top:4px;font-style:italic">${b.caption}</div>`:''}</div>`:'';
-    }else if(b.type==='fill'){
-      const parts=parseFillPdf(b.text||'');
-      inner=`<div style="font-size:13px;line-height:2.6;">${parts.map(p=>p.t==='text'?p.v:`<span style="display:inline-block;min-width:80px;border-bottom:1.5px solid #1C2B3A;margin:0 3px;">&nbsp;</span>`).join('')}</div>`;
-    }else if(b.type==='choice'){
-      inner=(b.questions||[]).map((q,qi)=>`<div style="margin-bottom:10px"><div style="font-weight:700;font-size:13px;margin-bottom:5px">${qi+1}. ${q.q||''}</div>${(q.opts||[]).filter(Boolean).map(o=>`<div style="display:flex;align-items:center;gap:8px;margin:3px 0 3px 14px;font-size:12.5px"><span style="width:12px;height:12px;border-radius:50%;border:1.5px solid #1C2B3A;display:inline-block;flex-shrink:0"></span><span>${o}</span></div>`).join('')}</div>`).join('');
-    }else if(b.type==='writing'){
-      inner=`<div style="font-size:13px;line-height:1.5;margin-bottom:10px">${b.task||''}</div>${Array.from({length:b.lines||6}).map(()=>`<div style="height:26px;border-bottom:1px solid #ccc;margin-bottom:2px"></div>`).join('')}`;
-    }else if(b.type==='match'){
-      const sh=shuffleArr(b.pairs||[]);
-      inner=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:10px"><div>${(b.pairs||[]).map((p,i)=>`<div style="padding:5px 9px;border:1px solid #ccc;border-radius:5px;font-size:12.5px;margin-bottom:5px">${i+1}. ${p.l}</div>`).join('')}</div><div>${sh.map((p,i)=>`<div style="padding:5px 9px;border:1px solid #ccc;border-radius:5px;font-size:12.5px;margin-bottom:5px">${String.fromCharCode(65+i)}. ${p.r}</div>`).join('')}</div></div><div style="display:flex;flex-wrap:wrap;gap:7px">${(b.pairs||[]).map((_,i)=>`<span style="padding:2px 9px;border:1px solid #ccc;border-radius:4px;font-size:12px">${i+1} — ___</span>`).join('')}</div>`;
-    }else if(b.type==='order'){
-      const words=shuffleArr((b.sentence||'').split(' ').filter(Boolean));
-      inner=`<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">${words.map(w=>`<span style="padding:5px 11px;border:1.5px solid #999;border-radius:7px;font-size:12.5px">${w}</span>`).join('')}</div><div style="border-bottom:1px solid #ccc;padding-top:4px;font-size:11.5px;color:#aaa">Kirjuta õige järjestus: ___________________________________________________</div>`;
-    }else if(b.type==='table'){
-      const cd=b.cellData||{};
-      inner=`<table style="width:100%;border-collapse:collapse;font-size:12.5px"><thead><tr>${(b.headers||[]).map(h=>`<th style="background:#f0f0f0;padding:7px 9px;border:1px solid #ccc;text-align:left;font-weight:700">${h}</th>`).join('')}</tr></thead><tbody>${Array.from({length:b.rows||4}).map((_,ri)=>`<tr>${(b.headers||[]).filter(Boolean).map((_,ci)=>`<td style="padding:6px 9px;border:1px solid #ccc;height:28px">${cd[ri+','+ci]||''}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
-    }else if(b.type==='reading'){
-      inner=`<div style="background:#f7f7f5;border:1px solid #ddd;border-radius:6px;padding:11px 14px;margin-bottom:12px;font-size:12.5px;line-height:1.65;white-space:pre-wrap">${b.passage||''}</div>${(b.questions||[]).map((q,qi)=>`<div style="margin-bottom:10px"><div style="font-weight:700;font-size:13px;margin-bottom:5px">${qi+1}. ${q.q||''}</div>${(q.opts||[]).filter(Boolean).map(o=>`<div style="display:flex;align-items:center;gap:8px;margin:3px 0 3px 14px;font-size:12.5px"><span style="width:12px;height:12px;border-radius:50%;border:1.5px solid #1C2B3A;display:inline-block;flex-shrink:0"></span><span>${o}</span></div>`).join('')}</div>`).join('')}`;
-    }else if(b.type==='dialogue'){
-      const lns=b.lines||[];
-      inner=`<div style="border:1px solid rgba(28,43,58,.15);border-radius:8px;overflow:hidden">${lns.map((line,i)=>{const isA=line.speaker==='A'||line.speaker==='Õpetaja';const parts=(line.text||'').split(/(\[[^\]]*\])/g);const hasBlank=parts.some(p=>p.startsWith('['));return`<div style="display:flex;align-items:flex-start;gap:10px;padding:8px 13px;background:${isA?'#F9F8F6':'#fff'};border-bottom:${i<lns.length-1?'1px solid rgba(28,43,58,.07)':'none'}"><span style="font-size:11px;font-weight:700;color:${isA?'#2F5D50':'#1d4ed8'};min-width:65px;flex-shrink:0;padding-top:2px">${line.speaker}:</span><span style="font-size:12.5px;color:#1C2B3A;flex:1">${hasBlank?parts.map(p=>p.startsWith('[')?`<span style="display:inline-block;min-width:80px;border-bottom:1.5px solid #1C2B3A;margin:0 2px">&nbsp;</span>`:p).join(''):line.text}</span></div>`}).join('')}</div>`;
-    }else if(b.type==='error_correction'){
-      inner=(b.sentences||[]).map((s,i)=>`<div style="margin-bottom:12px;display:flex;align-items:flex-start;gap:9px"><span style="font-size:11px;font-weight:800;color:#dc2626;min-width:20px;padding-top:2px">${i+1}.</span><div style="flex:1"><div style="font-size:12.5px;color:#7A7167;text-decoration:line-through;margin-bottom:5px">${s.wrong}</div><div style="display:flex;align-items:center;gap:7px"><span style="font-size:11px;color:#7A7167;flex-shrink:0">Parandus:</span><div style="flex:1;border-bottom:1.5px solid #1C2B3A;min-height:20px"></div></div></div></div>`).join('');
-    }else if(b.type==='transformation'){
-      const ex=b.example;
-      inner=(ex?`<div style="padding:8px 12px;border-radius:7px;background:#F0EEE9;border:1px solid rgba(28,43,58,.12);margin-bottom:14px;font-size:12.5px;display:flex;align-items:center;gap:9px;flex-wrap:wrap"><span style="color:#7A7167;font-size:11px;font-weight:700">NÄIDE:</span><span>${ex.from}</span><span style="color:#C9882A;font-size:1rem">→</span><span style="color:#2F5D50;font-weight:600">${ex.to}</span></div>`:'')+(b.sentences||[]).map((s,i)=>`<div style="margin-bottom:10px;display:flex;align-items:flex-start;gap:9px"><span style="font-size:11px;font-weight:700;color:#718096;min-width:20px;padding-top:2px;flex-shrink:0">${i+1}.</span><div style="flex:1"><div style="font-size:12.5px;color:#1C2B3A;margin-bottom:5px">${s}</div><div style="border-bottom:1px solid rgba(28,43,58,.2);min-height:20px"></div></div></div>`).join('');
-    }
-    // top image
+    if(b.type==='text'){inner=`<div style="font-size:13px;line-height:1.65;font-weight:${b.bold?700:400};white-space:pre-wrap">${b.content||''}</div>`;}
+    else if(b.type==='image'){inner=b.imageUrl?`<div style="text-align:center"><img src="${b.imageUrl}" style="max-width:${b.imgWidth?b.imgWidth+'px':'100%'};max-height:220px;object-fit:contain;border-radius:6px"/>${b.caption?`<div style="font-size:11px;color:#718096;margin-top:4px;font-style:italic">${b.caption}</div>`:''}</div>`:'';}
+    else if(b.type==='fill'){const parts=parseFillPdf(b.text||'');inner=`<div style="font-size:13px;line-height:2.6">${parts.map(p=>p.t==='text'?p.v:`<span style="display:inline-block;min-width:80px;border-bottom:1.5px solid #1C2B3A;margin:0 3px">&nbsp;</span>`).join('')}</div>`;}
+    else if(b.type==='choice'){inner=(b.questions||[]).map((q,qi)=>`<div style="margin-bottom:10px"><div style="font-weight:700;font-size:13px;margin-bottom:5px">${qi+1}. ${q.q||''}</div>${(q.opts||[]).filter(Boolean).map(o=>`<div style="display:flex;align-items:center;gap:8px;margin:3px 0 3px 14px;font-size:12.5px"><span style="width:12px;height:12px;border-radius:50%;border:1.5px solid #1C2B3A;display:inline-block;flex-shrink:0"></span><span>${o}</span></div>`).join('')}</div>`).join('');}
+    else if(b.type==='writing'){inner=`<div style="font-size:13px;line-height:1.5;margin-bottom:10px">${b.task||''}</div>${Array.from({length:b.lines||6}).map(()=>`<div style="height:26px;border-bottom:1px solid #ccc;margin-bottom:2px"></div>`).join('')}`;}
+    else if(b.type==='match'){const sh=shuffleArr(b.pairs||[]);inner=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:10px"><div>${(b.pairs||[]).map((p,i)=>`<div style="padding:5px 9px;border:1px solid #ccc;border-radius:5px;font-size:12.5px;margin-bottom:5px">${i+1}. ${p.l}</div>`).join('')}</div><div>${sh.map((p,i)=>`<div style="padding:5px 9px;border:1px solid #ccc;border-radius:5px;font-size:12.5px;margin-bottom:5px">${String.fromCharCode(65+i)}. ${p.r}</div>`).join('')}</div></div><div style="display:flex;flex-wrap:wrap;gap:7px">${(b.pairs||[]).map((_,i)=>`<span style="padding:2px 9px;border:1px solid #ccc;border-radius:4px;font-size:12px">${i+1} — ___</span>`).join('')}</div>`;}
+    else if(b.type==='order'){const words=shuffleArr((b.sentence||'').split(' ').filter(Boolean));inner=`<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">${words.map(w=>`<span style="padding:5px 11px;border:1.5px solid #999;border-radius:7px;font-size:12.5px">${w}</span>`).join('')}</div><div style="border-bottom:1px solid #ccc;padding-top:4px;font-size:11.5px;color:#aaa">Kirjuta õige järjestus: ___________________________________________________</div>`;}
+    else if(b.type==='table'){const cd=b.cellData||{};inner=`<table style="width:100%;border-collapse:collapse;font-size:12.5px"><thead><tr>${(b.headers||[]).map(h=>`<th style="background:#f0f0f0;padding:7px 9px;border:1px solid #ccc;text-align:left;font-weight:700">${h}</th>`).join('')}</tr></thead><tbody>${Array.from({length:b.rows||4}).map((_,ri)=>`<tr>${(b.headers||[]).filter(Boolean).map((_,ci)=>`<td style="padding:6px 9px;border:1px solid #ccc;height:28px">${cd[ri+','+ci]||''}</td>`).join('')}</tr>`).join('')}</tbody></table>`;}
+    else if(b.type==='reading'){inner=`<div style="background:#f7f7f5;border:1px solid #ddd;border-radius:6px;padding:11px 14px;margin-bottom:12px;font-size:12.5px;line-height:1.65;white-space:pre-wrap">${b.passage||''}</div>${(b.questions||[]).map((q,qi)=>`<div style="margin-bottom:10px"><div style="font-weight:700;font-size:13px;margin-bottom:5px">${qi+1}. ${q.q||''}</div>${(q.opts||[]).filter(Boolean).map(o=>`<div style="display:flex;align-items:center;gap:8px;margin:3px 0 3px 14px;font-size:12.5px"><span style="width:12px;height:12px;border-radius:50%;border:1.5px solid #1C2B3A;display:inline-block;flex-shrink:0"></span><span>${o}</span></div>`).join('')}</div>`).join('')}`;}
+    else if(b.type==='dialogue'){const lns=b.lines||[];inner=`<div style="border:1px solid rgba(28,43,58,.15);border-radius:8px;overflow:hidden">${lns.map((line,i)=>{const isA=line.speaker==='A'||line.speaker==='Õpetaja';const parts=(line.text||'').split(/(\[[^\]]*\])/g);const hasBlank=parts.some(p=>p.startsWith('['));return`<div style="display:flex;align-items:flex-start;gap:10px;padding:8px 13px;background:${isA?'#F9F8F6':'#fff'};border-bottom:${i<lns.length-1?'1px solid rgba(28,43,58,.07)':'none'}"><span style="font-size:11px;font-weight:700;color:${isA?'#2F5D50':'#1d4ed8'};min-width:65px;flex-shrink:0;padding-top:2px">${line.speaker}:</span><span style="font-size:12.5px;color:#1C2B3A;flex:1">${hasBlank?parts.map(p=>p.startsWith('[')?`<span style="display:inline-block;min-width:80px;border-bottom:1.5px solid #1C2B3A;margin:0 2px">&nbsp;</span>`:p).join(''):line.text}</span></div>`;}).join('')}</div>`;}
+    else if(b.type==='error_correction'){inner=(b.sentences||[]).map((s,i)=>`<div style="margin-bottom:12px;display:flex;align-items:flex-start;gap:9px"><span style="font-size:11px;font-weight:800;color:#dc2626;min-width:20px;padding-top:2px">${i+1}.</span><div style="flex:1"><div style="font-size:12.5px;color:#7A7167;text-decoration:line-through;margin-bottom:5px">${s.wrong}</div><div style="display:flex;align-items:center;gap:7px"><span style="font-size:11px;color:#7A7167;flex-shrink:0">Parandus:</span><div style="flex:1;border-bottom:1.5px solid #1C2B3A;min-height:20px"></div></div></div></div>`).join('');}
+    else if(b.type==='transformation'){const ex=b.example;inner=(ex?`<div style="padding:8px 12px;border-radius:7px;background:#F0EEE9;border:1px solid rgba(28,43,58,.12);margin-bottom:14px;font-size:12.5px;display:flex;align-items:center;gap:9px;flex-wrap:wrap"><span style="color:#7A7167;font-size:11px;font-weight:700">NÄIDE:</span><span>${ex.from}</span><span style="color:#C9882A;font-size:1rem">&#x2192;</span><span style="color:#2F5D50;font-weight:600">${ex.to}</span></div>`:'')+(b.sentences||[]).map((s,i)=>`<div style="margin-bottom:10px;display:flex;align-items:flex-start;gap:9px"><span style="font-size:11px;font-weight:700;color:#718096;min-width:20px;padding-top:2px;flex-shrink:0">${i+1}.</span><div style="flex:1"><div style="font-size:12.5px;color:#1C2B3A;margin-bottom:5px">${s}</div><div style="border-bottom:1px solid rgba(28,43,58,.2);min-height:20px"></div></div></div>`).join('');}
     let imgTop='',imgBot='';
-    if(b.imageUrl&&b.type!=='image'){
-      const pos=b.imagePos||'top';
-      const imgTag=`<div style="margin-bottom:${pos==='top'?10:0}px;margin-top:${pos==='bottom'?10:0}px;text-align:center"><img src="${b.imageUrl}" style="max-width:${b.imgWidth?b.imgWidth+'px':'100%'};max-height:180px;object-fit:contain;border-radius:5px"/></div>`;
-      if(pos==='top')imgTop=imgTag;else if(pos==='bottom')imgBot=imgTag;
-    }
-    return`<div style="margin-bottom:22px;page-break-inside:avoid">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
-        <span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#1C2B3A;color:#fff;font-size:10px;font-weight:800;flex-shrink:0">${num}</span>
-        <span style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:${color}">${label}</span>
-        ${b.instruction?`<span style="font-size:11px;font-style:italic;color:#718096">— ${b.instruction}</span>`:''}
-      </div>
-      ${imgTop}${inner}${imgBot}
-      ${num<blocks.filter(x=>BT_LABELS[x.type]).length?'<div style="border:none;border-top:1px dashed rgba(28,43,58,.12);margin-top:16px"></div>':''}
-    </div>`;
+    if(b.imageUrl&&b.type!=='image'){const pos=b.imagePos||'top';const imgTag=`<div style="margin-bottom:${pos==='top'?10:0}px;margin-top:${pos==='bottom'?10:0}px;text-align:center"><img src="${b.imageUrl}" style="max-width:${b.imgWidth?b.imgWidth+'px':'100%'};max-height:180px;object-fit:contain;border-radius:5px"/></div>`;if(pos==='top')imgTop=imgTag;else if(pos==='bottom')imgBot=imgTag;}
+    const visBlocks=blocks.filter(x=>BT_LABELS[x.type]);
+    return`<div style="margin-bottom:22px;page-break-inside:avoid"><div style="display:flex;align-items:center;gap:8px;margin-bottom:7px"><span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#1C2B3A;color:#fff;font-size:10px;font-weight:800;flex-shrink:0">${num}</span><span style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:${color}">${label}</span>${b.instruction?`<span style="font-size:11px;font-style:italic;color:#718096"> — ${b.instruction}</span>`:''}</div>${imgTop}${inner}${imgBot}${num<visBlocks.length?'<div style="border:none;border-top:1px dashed rgba(28,43,58,.12);margin-top:16px"></div>':''}</div>`;
   };
-  const css=`
-    @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700&family=IBM+Plex+Sans:wght@400;600;700&display=swap');
-    *{box-sizing:border-box;margin:0;padding:0;}
-    body{font-family:'IBM Plex Sans',Arial,sans-serif;max-width:794px;margin:0 auto;padding:0;color:#1C2B3A;background:#E8E6E1;}
-    .a4{background:#fff;padding:64px 72px 72px;min-height:1123px;box-shadow:0 4px 40px rgba(0,0,0,.14);}
-    .sheet-hdr{margin-bottom:24px;padding-bottom:14px;border-bottom:2.5px solid #1C2B3A;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;}
-    .sheet-title{font-family:'Fraunces',Georgia,serif;font-size:22px;font-weight:700;margin-bottom:5px;color:#1C2B3A;line-height:1.2;}
-    .sheet-meta{font-size:11.5px;color:#718096;display:flex;gap:14px;flex-wrap:wrap;margin-top:4px;}
-    .score-box{border:1px solid #1C2B3A;border-radius:5px;padding:5px 12px;font-size:11.5px;font-weight:600;white-space:nowrap;flex-shrink:0;}
-    @media print{
-      body{background:#fff;}
-      .a4{box-shadow:none;padding:32px 48px;}
-      @page{size:A4;margin:18mm 18mm 18mm 18mm;}
-    }
-  `;
-  const metaRow=[
-    meta.subject?`📚 ${meta.subject}`:'',
-    meta.level?`📊 ${meta.level}`:'',
-    meta.topic?`💬 ${meta.topic}`:'',
-    meta.date?'📅 Kuupäev: ____________':'',
-    meta.name?'Nimi: ___________________________':'',
-  ].filter(Boolean).map(s=>`<span>${s}</span>`).join('');
+  const metaRow=[meta.subject?`📚 ${meta.subject}`:'',meta.level?`📊 ${meta.level}`:'',meta.topic?`💬 ${meta.topic}`:'',meta.date?'📅 Kuupäev: ____________':'',meta.name?'Nimi: ___________________________':''].filter(Boolean).map(s=>`<span>${s}</span>`).join('');
   const blocksHtml=blocks.map(renderBlock).join('');
-  return`<!DOCTYPE html>
-<html lang="et">
-<head>
-<meta charset="UTF-8">
-<title>${meta.title||'Tööleht'}</title>
-<style>${css}</style>
-</head>
-<body>
-<div class="a4">
-  <div class="sheet-hdr">
-    <div>
-      <div class="sheet-title">${meta.title||'Tööleht'}</div>
-      <div class="sheet-meta">${metaRow}</div>
-    </div>
-    ${meta.score?'<div class="score-box">Punkte: ___ / ___</div>':''}
-  </div>
-  ${blocksHtml||'<div style="text-align:center;padding:60px 0;color:#B0A898;font-size:13px">Tööleht on tühi</div>'}
-</div>
-</body>
-</html>`;
+  const css=`@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700&family=IBM+Plex+Sans:wght@400;600;700&display=swap');*{box-sizing:border-box;margin:0;padding:0;}body{font-family:'IBM Plex Sans',Arial,sans-serif;max-width:794px;margin:0 auto;padding:0;color:#1C2B3A;background:#E8E6E1;}.a4{background:#fff;padding:64px 72px 72px;min-height:1123px;}.sheet-hdr{margin-bottom:24px;padding-bottom:14px;border-bottom:2.5px solid #1C2B3A;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;}.sheet-title{font-family:'Fraunces',Georgia,serif;font-size:22px;font-weight:700;margin-bottom:5px;color:#1C2B3A;line-height:1.2;}.sheet-meta{font-size:11.5px;color:#718096;display:flex;gap:14px;flex-wrap:wrap;margin-top:4px;}.score-box{border:1px solid #1C2B3A;border-radius:5px;padding:5px 12px;font-size:11.5px;font-weight:600;white-space:nowrap;flex-shrink:0;}@media print{body{background:#fff;}.a4{box-shadow:none;padding:32px 48px;}@page{size:A4;margin:15mm;}}`;
+  return`<!DOCTYPE html><html lang="et"><head><meta charset="UTF-8"><title>${meta.title||'Tööleht'}</title><style>${css}</style></head><body><div class="a4"><div class="sheet-hdr"><div><div class="sheet-title">${meta.title||'Tööleht'}</div><div class="sheet-meta">${metaRow}</div></div>${meta.score?'<div class="score-box">Punkte: ___ / ___</div>':''}</div>${blocksHtml||'<div style="text-align:center;padding:60px 0;color:#B0A898;font-size:13px">Tööleht on tühi</div>'}</div></body></html>`;
 }
 
 // ── SAVE MODAL ────────────────────────────────────────────────
