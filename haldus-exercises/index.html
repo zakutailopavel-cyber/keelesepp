@@ -2527,6 +2527,8 @@ function App(){
   const[allLessons,setAllLessons]=useState([]);
   const[notif,setNotif]=useState('');
   const[exCount,setExCount]=useState(0);
+  const[directExercise,setDirectExercise]=useState(null);
+  const[directExLoading,setDirectExLoading]=useState(false);
 
   const notify=msg=>{setNotif(msg);setTimeout(()=>setNotif(''),3000);};
   const isTeacher=user?.role==='teacher'||user?.role==='admin'||user?.email==='zakutailo.pavel@gmail.com';
@@ -2546,12 +2548,51 @@ function App(){
     return()=>{u();u2();};
   },[]);
 
+  // Open a specific exercise directly when ?exercise=ID is in the URL
+  useEffect(()=>{
+    if(!user) return;
+    const params=new URLSearchParams(window.location.search);
+    const exId=params.get('exercise');
+    if(!exId) return;
+    setDirectExLoading(true);
+    db.collection('exercises').doc(exId).get().then(snap=>{
+      if(snap.exists){setDirectExercise({id:snap.id,...snap.data()});}
+      else{notify('⚠ Harjutust ei leitud');}
+      setDirectExLoading(false);
+    }).catch(()=>{setDirectExLoading(false);notify('⚠ Harjutuse laadimine ebaõnnestus');});
+  },[user]);
+
+  const closeDirectExercise=()=>{
+    setDirectExercise(null);
+    const url=new URL(window.location.href);
+    url.searchParams.delete('exercise');
+    window.history.replaceState({},'',url.pathname+url.search);
+  };
+
   if(loading)return<div style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh'}}><div className="spinner"/></div>;
   if(!user)return<LoginScreen onLogin={setUser}/>;
 
   return(
     <div style={{minHeight:'100vh',background:'#F0EEE9'}}>
       {notif&&<div className="notif">{notif}</div>}
+      {directExLoading&&(
+        <div style={{position:'fixed',inset:0,background:'rgba(28,43,58,.6)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:400}}>
+          <div className="spinner"/>
+        </div>
+      )}
+      {directExercise&&(
+        <div style={{position:'fixed',inset:0,background:'rgba(28,43,58,.6)',display:'flex',alignItems:'flex-start',justifyContent:'center',padding:16,zIndex:400,backdropFilter:'blur(5px)',overflowY:'auto'}}>
+          <div style={{background:'#FBFAF8',borderRadius:20,maxWidth:640,width:'100%',marginTop:30,marginBottom:30}}>
+            <div style={{padding:'18px 22px',borderBottom:'1px solid rgba(28,43,58,.08)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+              <div style={{fontWeight:800,fontSize:'1rem'}}>📋 {directExercise.title||'Harjutus'}</div>
+              <button onClick={closeDirectExercise} className="btn btn-ghost btn-sm">✕ Sulge</button>
+            </div>
+            <div style={{padding:22}}>
+              <ExerciseCard ex={directExercise} isTeacher={isTeacher} user={user} onDelete={null}/>
+            </div>
+          </div>
+        </div>
+      )}
       {showSearch&&<SearchView lessons={allLessons} onClose={()=>setShowSearch(false)}
         onSelectLesson={l=>{setShowSearch(false);setWsPreview(l);}}/>}
       {conductLesson&&<LessonConductModal lesson={conductLesson} onClose={()=>setConductLesson(null)}/>}
