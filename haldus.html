@@ -7390,6 +7390,18 @@ function App() {
     w.document.close();setTimeout(()=>w.print(),500);
   },[students]);
 
+  const unseenWsCount = React.useMemo(()=>{
+    if(!isStaff) return 0;
+    const myIds=new Set(myStudents.map(s=>s.id));
+    return allWsAssignments.filter(a=>a.status==='done'&&a.seenByTeacher===false&&myIds.has(a.studentId)).length;
+  },[allWsAssignments,myStudents,isStaff]);
+
+  const newWsResults = React.useMemo(()=>{
+    if(!isStaff) return [];
+    const myIds=new Set(myStudents.map(s=>s.id));
+    return allWsAssignments.filter(a=>a.status==='done'&&a.seenByTeacher===false&&myIds.has(a.studentId));
+  },[allWsAssignments,myStudents,isStaff]);
+
   if(loading) return <div style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh'}}><div className="spinner"/></div>;
   if(bootError) return (
     <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',padding:20,background:'#F4F2EE'}}>
@@ -7402,18 +7414,6 @@ function App() {
     </div>
   );
   if(!user) return <AuthScreen onLogin={u=>{setUser(u);if(u.role==='teacher')setFilterT(canonicalTeacherName(u.displayName||''));if(u.role==='admin')setFilterT('Kõik');}}/>;
-
-  const unseenWsCount = React.useMemo(()=>{
-    if(!isStaff) return 0;
-    const myIds=new Set(myStudents.map(s=>s.id));
-    return allWsAssignments.filter(a=>a.status==='done'&&a.seenByTeacher===false&&myIds.has(a.studentId)).length;
-  },[allWsAssignments,myStudents,isStaff]);
-
-  const newWsResults = React.useMemo(()=>{
-    if(!isStaff) return [];
-    const myIds=new Set(myStudents.map(s=>s.id));
-    return allWsAssignments.filter(a=>a.status==='done'&&a.seenByTeacher===false&&myIds.has(a.studentId));
-  },[allWsAssignments,myStudents,isStaff]);
 
   const navItems=[
     {id:'dashboard',icon:'fa-chart-pie',label:'Töölaud',badge:unreadMessages.length},
