@@ -3415,7 +3415,7 @@ function KabinetView({user, myStudents, notify}) {
     const ids=myStudents.map(s=>s.id).filter(Boolean);
     if(!ids.length){setLoading(false);return;}
     const unsubs=ids.map(sid=>
-      db.collection('worksheetAssignments').where('studentId','==',sid).orderBy('assignedAt','desc')
+      db.collection('worksheetAssignments').where('studentId','==',sid)
         .onSnapshot(snap=>{
           setAssignments(prev=>{
             const others=prev.filter(a=>a.studentId!==sid);
@@ -3506,10 +3506,10 @@ function AssignedWorksheetsWidget({student, canManage, notify}) {
     if(!student?.id) return;
     const unsub = db.collection('worksheetAssignments')
       .where('studentId','==',student.id)
-      .orderBy('assignedAt','desc')
-      .limit(10)
       .onSnapshot(snap=>{
-        setAssignments(snap.docs.map(d=>({id:d.id,...d.data()})));
+        const list = snap.docs.map(d=>({id:d.id,...d.data()}));
+        list.sort((a,b)=>(b.assignedAt||'').localeCompare(a.assignedAt||''));
+        setAssignments(list.slice(0,10));
         setLoading(false);
       }, ()=>setLoading(false));
     return unsub;
