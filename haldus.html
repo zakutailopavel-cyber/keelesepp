@@ -392,6 +392,7 @@ function AuthScreen({onLogin}) {
 // TÄHTIS: kõik komponendid on App-ist VÄLJAS — see lahendab "iga täht uuendab lehte" probleemi
 function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
   tasks,staffMembers,unreadMessages,markMessagesRead,setSelStu:_setSelStu,setTab:_setTab,submitParentPayment,notify,
+  newWsResults,markWsSeen,
   nName,setNName,nParentName,setNParentName,nEmail,setNEmail,nPhone,setNPhone,
   nLevel,setNLevel,nTarget,setNTarget,nPkg,setNPkg,
   nSubject,setNSubject,nGrade,setNGrade,nGroup,setNGroup,
@@ -536,6 +537,39 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
                 <button onClick={()=>markMessagesRead&&markMessagesRead(msg.studentId)} className="btn btn-ghost btn-sm" style={{fontSize:'.72rem'}}>
                   Loetud
                 </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {isStaff&&(newWsResults||[]).length>0&&(
+        <div className="card" style={{padding:20,border:'1px solid rgba(220,38,38,.2)',background:'#fff7f7'}}>
+          <div style={{display:'flex',justifyContent:'space-between',gap:10,alignItems:'center',flexWrap:'wrap',marginBottom:12}}>
+            <div style={{display:'flex',alignItems:'center',gap:8}}>
+              <i className="fa-solid fa-clipboard-check" style={{color:'#dc2626'}}/>
+              <strong style={{color:'#dc2626'}}>Uued töölehtede tulemused</strong>
+              <span className="badge" style={{background:'#dc2626',color:'#fff'}}>{(newWsResults||[]).length}</span>
+            </div>
+          </div>
+          <div style={{display:'flex',flexDirection:'column',gap:8}}>
+            {[...(newWsResults||[])].sort((a,b)=>new Date(b.completedAt||0)-new Date(a.completedAt||0)).slice(0,6).map(a=>(
+              <div key={a.id} style={{display:'grid',gridTemplateColumns:'1fr auto auto',gap:10,alignItems:'center',padding:'10px 12px',borderRadius:10,background:'#fff',border:'1px solid rgba(220,38,38,.12)'}}>
+                <div style={{minWidth:0}}>
+                  <div style={{fontWeight:700,fontSize:'.86rem',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.lessonTitle}</div>
+                  <div style={{fontSize:'.78rem',color:'#42536A',marginTop:3}}>{a.studentName} · {a.subject} · {a.level}</div>
+                  <div style={{fontSize:'.7rem',color:'#9ca3af',marginTop:2}}>{a.completedAt?new Date(a.completedAt).toLocaleString('et-EE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):''}</div>
+                </div>
+                {a.score&&<span style={{fontWeight:800,fontSize:'.92rem',color:a.score.pct>=80?'#166534':a.score.pct>=50?'#A96E1A':'#dc2626'}}>{a.score.pct}%</span>}
+                <div style={{display:'flex',gap:6}}>
+                  <button onClick={()=>{_setSelStu&&_setSelStu(myStudents.find(s=>s.id===a.studentId));_setTab&&_setTab('students');markWsSeen&&markWsSeen(a.id);}}
+                    className="btn btn-pine btn-sm" style={{fontSize:'.72rem'}}>
+                    Vaata
+                  </button>
+                  <button onClick={()=>markWsSeen&&markWsSeen(a.id)} className="btn btn-ghost btn-sm" style={{fontSize:'.72rem'}}>
+                    Loetud
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -3517,9 +3551,12 @@ function AssignedWorksheetsWidget({student, canManage, notify}) {
 
   const submitAssignment = async(assignmentId, answers, score) => {
     await db.collection('worksheetAssignments').doc(assignmentId).update({
-      status:'done', answers, score, completedAt:new Date().toISOString()
+      status:'done', answers, score, completedAt:new Date().toISOString(), seenByTeacher:false
     });
     notify('✓ Tööleht esitatud!');
+  };
+  const markSeen = async(assignmentId) => {
+    await db.collection('worksheetAssignments').doc(assignmentId).update({seenByTeacher:true});
   };
 
   const deleteAssignment = async(id) => {
@@ -3546,10 +3583,14 @@ function AssignedWorksheetsWidget({student, canManage, notify}) {
         {assignments.map(a=>{
           const st=STATUS[a.status]||STATUS.new;
           const hasWs=!!(a.worksheetData?.blocks?.length);
+          const isUnseen=a.status==='done'&&a.seenByTeacher===false&&canManage;
           return(
-            <div key={a.id} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 14px',borderRadius:11,background:'#F9F8F6',border:'0.5px solid rgba(28,43,58,.08)'}}>
+            <div key={a.id} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 14px',borderRadius:11,background:isUnseen?'rgba(220,38,38,.05)':'#F9F8F6',border:isUnseen?'1px solid rgba(220,38,38,.25)':'0.5px solid rgba(28,43,58,.08)'}}>
               <div style={{flex:1,minWidth:0}}>
-                <div style={{fontWeight:700,fontSize:'.88rem',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.lessonTitle}</div>
+                <div style={{fontWeight:700,fontSize:'.88rem',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',display:'flex',alignItems:'center',gap:6}}>
+                  {a.lessonTitle}
+                  {isUnseen&&<span style={{fontSize:'.62rem',fontWeight:800,padding:'1px 7px',borderRadius:999,background:'#dc2626',color:'#fff',flexShrink:0}}>UUS!</span>}
+                </div>
                 <div style={{fontSize:'.72rem',color:'#718096',marginTop:2}}>
                   {a.subject} · {a.level}
                   {a.dueDate&&<span style={{marginLeft:6}}>📅 {fmtDate(a.dueDate)}</span>}
@@ -3557,8 +3598,8 @@ function AssignedWorksheetsWidget({student, canManage, notify}) {
                 </div>
               </div>
               <span style={{padding:'2px 8px',borderRadius:5,fontSize:'.68rem',fontWeight:800,background:st.bg,color:st.c,flexShrink:0}}>{st.l}</span>
-              {hasWs&&<button onClick={()=>setOpenWs(a)}
-                style={{padding:'6px 12px',borderRadius:8,border:'none',background:a.status==='done'?'rgba(28,43,58,.07)':'#2F5D50',color:a.status==='done'?'#42536A':'#fff',cursor:'pointer',fontFamily:'inherit',fontWeight:700,fontSize:'.76rem',flexShrink:0}}>
+              {hasWs&&<button onClick={()=>{setOpenWs(a);if(isUnseen)markSeen(a.id);}}
+                style={{padding:'6px 12px',borderRadius:8,border:'none',background:a.status==='done'?(isUnseen?'#dc2626':'rgba(28,43,58,.07)'):'#2F5D50',color:a.status==='done'?(isUnseen?'#fff':'#42536A'):'#fff',cursor:'pointer',fontFamily:'inherit',fontWeight:700,fontSize:'.76rem',flexShrink:0}}>
                 {a.status==='done'?'Vaata':'Täida'}
               </button>}
               {canManage&&<button onClick={()=>deleteAssignment(a.id)}
@@ -3570,6 +3611,203 @@ function AssignedWorksheetsWidget({student, canManage, notify}) {
         })}
       </div>
       {openWs&&<WorksheetPlayer assignment={openWs} onClose={()=>setOpenWs(null)} onSubmit={submitAssignment}/>}
+    </div>
+  );
+}
+
+
+// ── AI GENERATOR MODAL (генерация комплекта по skillMap) ──────
+const AI_METHODOLOGY_PROMPT = `Ты — методический ИИ-ассистент для сайта KeeleSepp.
+Твоя задача — строить персонализированную систему обучения эстонскому языку, не просто создавать рабочие листы.
+Каждый рабочий лист должен быть связан с уровнем ученика, темой урока, конкретными навыками, слабыми местами, целью урока.
+Ученик не должен получать случайные задания.
+
+ОСНОВНЫЕ ПРИНЦИПЫ:
+1. Не перегружай ученика. Материал соответствует указанному уровню.
+2. Двигайся от простого к сложному.
+3. В каждом комплекте: 30% повторение уже изученного, 50% тренировка слабых навыков, 20% новый материал.
+4. Слабые навыки повторяй через разные типы заданий.
+5. Все задания для ученика на эстонском языке. Пояснения учителю — на русском.
+
+СТРУКТУРА КОМПЛЕКТА — 3 рабочих листа:
+Лист 1: Введение в тему и говорение (словарный блок, matching, модели фраз, вопросы, парное задание)
+Лист 2: Письменная практика (повторение слов, порядок слов, грамматика, подстановка, текст 6-8 предложений)
+Лист 3: Закрепление и мини-контроль (текст для чтения, вопросы, лексика, грамматика, итоговое задание)
+
+Отвечай СТРОГО в формате JSON без markdown fences, без пояснений до или после:
+{
+  "kit_title": "название комплекта на русском для учителя",
+  "kit_goal": "цель комплекта на русском",
+  "sheets": [
+    {
+      "title": "название листа на эстонском",
+      "blocks": [
+        {"id":"b1","type":"text","content":"...","instruction":"..."},
+        {"id":"b2","type":"match","pairs":[{"l":"...","r":"..."}],"instruction":"..."},
+        {"id":"b3","type":"fill","text":"Ma [lähen] kooli.","instruction":"..."},
+        {"id":"b4","type":"choice","questions":[{"q":"...","opts":["a","b","c"],"correct":0}],"instruction":"..."},
+        {"id":"b5","type":"writing","task":"...","lines":6,"instruction":"..."},
+        {"id":"b6","type":"order","sentence":"...","instruction":"..."},
+        {"id":"b7","type":"dialogue","lines":[{"speaker":"A","text":"..."},{"speaker":"B","text":"[vastus]"}],"instruction":"..."}
+      ]
+    }
+  ],
+  "teacher_recommendations": "рекомендации учителю на русском"
+}
+Используй block id формата b1,b2,b3... уникальные внутри каждого листа. Block types: text, match, fill, choice, writing, order, dialogue, reading, error_correction, transformation.`;
+
+function AIGeneratorModal({student, skillMap, level, skills, onClose, user}) {
+  const [topic, setTopic] = React.useState('');
+  const [lessonGoal, setLessonGoal] = React.useState('');
+  const [generating, setGenerating] = React.useState(false);
+  const [result, setResult] = React.useState(null);
+  const [error, setError] = React.useState('');
+  const [assigning, setAssigning] = React.useState(false);
+  const [assignedSheets, setAssignedSheets] = React.useState([]);
+
+  const strongSkills = skills.filter(s=>(skillMap[s.id]||0)>=80).map(s=>s.name);
+  const weakSkills = skills.filter(s=>skillMap[s.id]!==undefined&&skillMap[s.id]!==null&&skillMap[s.id]<50).map(s=>s.name);
+
+  const generate = async () => {
+    if(!topic.trim()){ alert('Sisesta teema'); return; }
+    setGenerating(true); setError(''); setResult(null);
+    try {
+      const userMsg = `Имя ученика: ${student.name}
+Уровень: ${level}
+Тема: ${topic}
+Цель урока: ${lessonGoal || 'не указана, выбери сам исходя из темы'}
+Сильные навыки: ${strongSkills.join(', ')||'нет данных'}
+Слабые навыки: ${weakSkills.join(', ')||'нет данных'}
+Создай комплект из 3 рабочих листов согласно методике.`;
+
+      const res = await fetch('/api/anthropic-proxy', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 8000,
+          system: AI_METHODOLOGY_PROMPT,
+          messages: [{role:'user', content: userMsg}]
+        })
+      });
+      const data = await res.json();
+      if(data.error) throw new Error(data.error.message||JSON.stringify(data.error));
+      const raw = (data.content?.[0]?.text||'').trim();
+      const clean = raw.replace(/^[\s]*```[a-z]*\s*/i,'').replace(/\s*```[\s]*$/,'').trim();
+      let parsed;
+      try { parsed = JSON.parse(clean); }
+      catch(e) {
+        const m = clean.match(/\{[\s\S]*\}/);
+        if(m) parsed = JSON.parse(m[0]);
+        else throw new Error('AI vastust ei õnnestunud lugeda');
+      }
+      setResult(parsed);
+    } catch(e) {
+      console.error('AI generation failed:', e);
+      setError(e.message||'Genereerimine ebaõnnestus');
+    }
+    setGenerating(false);
+  };
+
+  const assignSheet = async (sheet, idx) => {
+    setAssigning(true);
+    try {
+      const lessonRef = await db.collection('curriculumLessons').add({
+        title: sheet.title||result.kit_title+' #'+(idx+1),
+        type: 'material', description: '',
+        subject: 'Eesti keel', level, topic,
+        examPart: null,
+        worksheetData: { meta:{title:sheet.title,subject:'Eesti keel',level,topic}, blocks: sheet.blocks||[] },
+        files: [], order: 0,
+        authorUid: user?.uid||'', authorName: (user?.displayName||user?.email||'AI Generator')+' (AI)',
+        createdAt: new Date().toISOString().split('T')[0],
+        updatedAt: new Date().toISOString(),
+        aiGenerated: true
+      });
+      await db.collection('worksheetAssignments').add({
+        lessonId: lessonRef.id,
+        lessonTitle: sheet.title||'',
+        subject: 'Eesti keel', level, topic,
+        worksheetData: { meta:{title:sheet.title,subject:'Eesti keel',level,topic}, blocks: sheet.blocks||[] },
+        studentId: student.id, studentName: student.name,
+        assignedBy: user?.uid||'', assignedByName: (user?.displayName||user?.email||'AI Generator')+' (AI)',
+        assignedAt: new Date().toISOString(),
+        dueDate: '', note: result.teacher_recommendations||'',
+        status:'new', score:null, completedAt:null, answers:{}
+      });
+      setAssignedSheets(p=>[...p, idx]);
+    } catch(e) {
+      console.error('Assign sheet failed:', e);
+      alert('Määramine ebaõnnestus: '+e.message);
+    }
+    setAssigning(false);
+  };
+
+  return (
+    <div style={{position:'fixed',inset:0,background:'rgba(28,43,58,.65)',display:'flex',alignItems:'flex-start',justifyContent:'center',padding:16,zIndex:320,backdropFilter:'blur(6px)',overflowY:'auto'}}>
+      <div style={{background:'#FBFAF8',borderRadius:20,maxWidth:680,width:'100%',marginTop:20,marginBottom:24}}>
+        <div style={{padding:'18px 22px',borderBottom:'1px solid rgba(28,43,58,.08)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+          <div>
+            <div style={{fontWeight:800,fontSize:'1rem'}}>🤖 Genereeri õppekomplekt — {student.name}</div>
+            <div style={{fontSize:'.76rem',color:'#7A7167',marginTop:2}}>Tase {level} · {strongSkills.length} tugevat, {weakSkills.length} nõrka oskust</div>
+          </div>
+          <button onClick={onClose} style={{background:'rgba(28,43,58,.07)',border:'none',borderRadius:8,width:28,height:28,cursor:'pointer'}}>✕</button>
+        </div>
+
+        <div style={{padding:'18px 22px',display:'flex',flexDirection:'column',gap:12}}>
+          {!result&&<>
+            <div>
+              <div style={{fontSize:'.7rem',fontWeight:800,color:'#718096',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:5}}>Teema *</div>
+              <input value={topic} onChange={e=>setTopic(e.target.value)} placeholder="nt. Minu pere, Igapäevaelu, Reisimine..."
+                style={{width:'100%',padding:'9px 12px',borderRadius:9,border:'1.5px solid rgba(28,43,58,.12)',fontFamily:'inherit',fontSize:'.86rem'}}/>
+            </div>
+            <div>
+              <div style={{fontSize:'.7rem',fontWeight:800,color:'#718096',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:5}}>Tunni eesmärk (valikuline)</div>
+              <input value={lessonGoal} onChange={e=>setLessonGoal(e.target.value)} placeholder="nt. Õpetada minevikuvormi kasutama..."
+                style={{width:'100%',padding:'9px 12px',borderRadius:9,border:'1.5px solid rgba(28,43,58,.12)',fontFamily:'inherit',fontSize:'.86rem'}}/>
+            </div>
+            {(strongSkills.length>0||weakSkills.length>0)&&<div style={{padding:'10px 13px',borderRadius:10,background:'rgba(47,93,80,.06)',fontSize:'.78rem',color:'#42536A',lineHeight:1.6}}>
+              {strongSkills.length>0&&<div><strong style={{color:'#166534'}}>💪 Tugevad:</strong> {strongSkills.join(', ')}</div>}
+              {weakSkills.length>0&&<div><strong style={{color:'#dc2626'}}>🎯 Nõrgad:</strong> {weakSkills.join(', ')}</div>}
+            </div>}
+            {error&&<div style={{padding:'10px 13px',borderRadius:9,background:'rgba(220,38,38,.08)',color:'#dc2626',fontSize:'.82rem'}}>{error}</div>}
+            <button onClick={generate} disabled={generating} className="btn btn-pine" style={{justifyContent:'center',padding:'11px'}}>
+              {generating?'⏳ Genereerin 3 töölehte...':'✨ Genereeri 3 töölehte'}
+            </button>
+          </>}
+
+          {result&&<>
+            <div style={{padding:'12px 14px',borderRadius:10,background:'rgba(201,136,42,.08)',border:'1px solid rgba(201,136,42,.2)'}}>
+              <div style={{fontWeight:800,fontSize:'.92rem',color:'#A96E1A'}}>{result.kit_title}</div>
+              <div style={{fontSize:'.8rem',color:'#7A7167',marginTop:3}}>{result.kit_goal}</div>
+            </div>
+            {(result.sheets||[]).map((sheet,idx)=>{
+              const isAssigned = assignedSheets.includes(idx);
+              return(
+                <div key={idx} style={{padding:'14px 16px',borderRadius:12,border:'1px solid rgba(28,43,58,.1)',background:'#fff'}}>
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:10}}>
+                    <div>
+                      <div style={{fontWeight:700,fontSize:'.88rem'}}>Tööleht {idx+1}: {sheet.title}</div>
+                      <div style={{fontSize:'.74rem',color:'#718096',marginTop:2}}>{(sheet.blocks||[]).length} plokki</div>
+                    </div>
+                    {isAssigned
+                      ?<span style={{color:'#166534',fontWeight:700,fontSize:'.82rem'}}>✓ Määratud</span>
+                      :<button onClick={()=>assignSheet(sheet,idx)} disabled={assigning} className="btn btn-pine btn-sm">
+                        {assigning?'…':'📤 Määra'}
+                      </button>}
+                  </div>
+                </div>
+              );
+            })}
+            {result.teacher_recommendations&&<div style={{padding:'12px 14px',borderRadius:10,background:'#F9F8F6',fontSize:'.8rem',color:'#42536A',lineHeight:1.55}}>
+              <strong>Soovitused õpetajale:</strong> {result.teacher_recommendations}
+            </div>}
+            <button onClick={()=>{setResult(null);setAssignedSheets([]);}} className="btn btn-ghost" style={{justifyContent:'center'}}>
+              ← Genereeri uus komplekt
+            </button>
+          </>}
+        </div>
+      </div>
     </div>
   );
 }
@@ -3648,9 +3886,10 @@ const SM_SKILLS = {
   ],
 };
 
-function SkillMapWidget({student, isTeacher}) {
+function SkillMapWidget({student, isTeacher, user}) {
   const [skillMap, setSkillMap] = React.useState({});
   const [loading, setLoading] = React.useState(true);
+  const [showAiGen, setShowAiGen] = React.useState(false);
   const level = student?.level || 'A2';
   const skills = SM_SKILLS[level] || SM_SKILLS.A2;
 
@@ -3707,6 +3946,7 @@ function SkillMapWidget({student, isTeacher}) {
   const hasAnyData = tested.length > 0;
 
   return(
+    <React.Fragment>
     <div style={{background:'linear-gradient(135deg,#1C2B3A 0%,'+lc+' 100%)',borderRadius:18,padding:24,color:'#fff',position:'relative'}}>
       {/* Header */}
       <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:16,flexWrap:'wrap',gap:10}}>
@@ -3730,12 +3970,20 @@ function SkillMapWidget({student, isTeacher}) {
           </div>
         </div>
         {isTeacher&&(
-          <button onClick={()=>window.open('/haldus-skillmap/?student='+student.id,'_blank')}
-            style={{background:'rgba(255,255,255,.12)',border:'1px solid rgba(255,255,255,.2)',color:'#fff',
-              borderRadius:9,padding:'7px 13px',cursor:'pointer',fontSize:'.76rem',fontWeight:700,
-              display:'flex',alignItems:'center',gap:6}}>
-            ✏️ Muuda hindeid
-          </button>
+          <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+            <button onClick={()=>window.open('/haldus-skillmap/?student='+student.id,'_blank')}
+              style={{background:'rgba(255,255,255,.12)',border:'1px solid rgba(255,255,255,.2)',color:'#fff',
+                borderRadius:9,padding:'7px 13px',cursor:'pointer',fontSize:'.76rem',fontWeight:700,
+                display:'flex',alignItems:'center',gap:6}}>
+              ✏️ Muuda hindeid
+            </button>
+            <button onClick={()=>setShowAiGen(true)}
+              style={{background:'#C9882A',border:'1px solid rgba(255,255,255,.2)',color:'#fff',
+                borderRadius:9,padding:'7px 13px',cursor:'pointer',fontSize:'.76rem',fontWeight:700,
+                display:'flex',alignItems:'center',gap:6}}>
+              🤖 Genereeri komplekt
+            </button>
+          </div>
         )}
       </div>
 
@@ -3808,6 +4056,8 @@ function SkillMapWidget({student, isTeacher}) {
         </div>
       )}
     </div>
+    {showAiGen&&<AIGeneratorModal student={student} skillMap={skillMap} level={level} skills={skills} user={user} onClose={()=>setShowAiGen(false)}/>}
+    </React.Fragment>
   );
 }
 
@@ -3949,7 +4199,7 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
         </div>
       </div>
 
-      <SkillMapWidget student={currentStu} isTeacher={canManage}/>
+      <SkillMapWidget student={currentStu} isTeacher={canManage} user={user}/>
 
       <AssignedWorksheetsWidget student={currentStu} canManage={canManage} notify={notify}/>
 
@@ -5619,6 +5869,7 @@ function App() {
   const [invStu,setInvStu]   = useState('');
   const [studentSort,setStudentSort] = useState('name_asc');
   const [assignWsLesson,setAssignWsLesson] = useState(null); // worksheet assign modal
+  const [allWsAssignments,setAllWsAssignments] = useState([]); // global worksheetAssignments for badges
 
   // AUTH
   useEffect(()=>{
@@ -5690,10 +5941,19 @@ function App() {
       s=>setActivityLog(s.docs.map(d=>({id:d.id,...d.data()}))),
       err=>{console.warn('Activity log listener failed:',err);setActivityLog([]);}
     );
-    return()=>{u1();u2();u3();u4();u5();u6();u7();u8();u9();u10();};
+    const u11=db.collection('worksheetAssignments').onSnapshot(
+      s=>setAllWsAssignments(s.docs.map(d=>({id:d.id,...d.data()}))),
+      err=>{console.warn('Worksheet assignments listener failed:',err);setAllWsAssignments([]);}
+    );
+    return()=>{u1();u2();u3();u4();u5();u6();u7();u8();u9();u10();u11();};
   },[user]);
 
   const notify=msg=>{setNotif(msg);setTimeout(()=>setNotif(''),3500);};
+  const markWsSeen=useCallback(async(assignmentId)=>{
+    if(!assignmentId) return;
+    try{ await db.collection('worksheetAssignments').doc(assignmentId).update({seenByTeacher:true}); }
+    catch(err){ console.warn('markWsSeen failed:',err); }
+  },[]);
   const goTab=t=>{
     const extItem = navItems && navItems.find(i=>i.id===t&&i.isExternal);
     if(extItem){ window.location.assign(extItem.href); return; }
@@ -7143,6 +7403,18 @@ function App() {
   );
   if(!user) return <AuthScreen onLogin={u=>{setUser(u);if(u.role==='teacher')setFilterT(canonicalTeacherName(u.displayName||''));if(u.role==='admin')setFilterT('Kõik');}}/>;
 
+  const unseenWsCount = React.useMemo(()=>{
+    if(!isStaff) return 0;
+    const myIds=new Set(myStudents.map(s=>s.id));
+    return allWsAssignments.filter(a=>a.status==='done'&&a.seenByTeacher===false&&myIds.has(a.studentId)).length;
+  },[allWsAssignments,myStudents,isStaff]);
+
+  const newWsResults = React.useMemo(()=>{
+    if(!isStaff) return [];
+    const myIds=new Set(myStudents.map(s=>s.id));
+    return allWsAssignments.filter(a=>a.status==='done'&&a.seenByTeacher===false&&myIds.has(a.studentId));
+  },[allWsAssignments,myStudents,isStaff]);
+
   const navItems=[
     {id:'dashboard',icon:'fa-chart-pie',label:'Töölaud',badge:unreadMessages.length},
     {id:'calendar', icon:'fa-calendar-days',label:'Tunniplaan'},
@@ -7151,8 +7423,7 @@ function App() {
     ...(isStaff?[{id:'programs',icon:'fa-book-open-reader',label:'Õppekavad'}]:[]),
     ...(isStaff?[{id:'exercises_link',icon:'fa-pen-line',label:'Harjutused',isExternal:true,href:'/haldus-exercises'}]:[]),
     {id:'students', icon:'fa-graduation-cap',label:isStaff?'Minu õpilased':user?.role==='parent'?'Minu lapsed':'Minu progress',
-      badge:isStaff&&homework.filter(h=>h.status==='Ootel'&&myStudents.some(s=>s.id===h.studentId)).length>0?
-        homework.filter(h=>h.status==='Ootel'&&myStudents.some(s=>s.id===h.studentId)).length:0},
+      badge:isStaff?unseenWsCount:0},
     ...(isStaff?[{id:'groups',icon:'fa-layer-group',label:'Grupid'}]:[]),
     ...(isStaff?[{id:'parents',icon:'fa-people-roof',label:'Lapsevanemad',badge:isAdmin?parentAlerts.length:0}]:[]),
     ...(isStaff?[{id:'database',icon:'fa-table',label:'Andmebaas'}]:[]),
@@ -7257,7 +7528,8 @@ function App() {
             taskDue={taskDue} setTaskDue={setTaskDue} taskPriority={taskPriority} setTaskPriority={setTaskPriority} taskCategory={taskCategory} setTaskCategory={setTaskCategory}
             addTask={addTask} toggleTask={toggleTask} deleteTask={deleteTask} replyTask={replyTask} markTaskRepliesSeen={markTaskRepliesSeen}
             addStudent={addStudent} openLessonEditor={openLessonEditor} isAdmin={isAdmin} isStaff={isStaff}
-            parentAlerts={parentAlerts} createMissingParentStudents={createMissingParentStudents} markParentChecked={markParentChecked} setTab={setTab} setSelStu={setSelStu}/>}
+            parentAlerts={parentAlerts} createMissingParentStudents={createMissingParentStudents} markParentChecked={markParentChecked} setTab={setTab} setSelStu={setSelStu}
+            newWsResults={newWsResults} markWsSeen={markWsSeen}/>}
 
           {tab==='calendar'&&<CalendarView user={user} myStudents={myStudents} schedule={schedule} groups={groups} isAdmin={canAssignTeacher}
             filterT={filterT} setFilterT={setFilterT}
