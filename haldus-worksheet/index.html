@@ -412,8 +412,22 @@ function TransformationEd({b,upd}){
   </>);
 }
 
-function BlockEditor({block,onChange}){
+function BlockEditor({block,onChange,meta,notify}){
   const upd=p=>onChange({...block,...p});
+  const[refineNote,setRefineNote]=useState(block.aiRefineNote||'');
+  const[regenerating,setRegenerating]=useState(false);
+  const doRegen=async()=>{
+    setRegenerating(true);
+    try{
+      const updated=await regenBlock(block,refineNote,meta);
+      onChange({...updated,aiRefineNote:refineNote});
+      notify&&notify('✓ Plokk uuendatud!');
+    }catch(e){
+      console.error('Block regen failed:',e);
+      alert('Viga: '+(e.message||'Ploki genereerimine ebaõnnestus'));
+    }
+    setRegenerating(false);
+  };
   return(
     <div className="block-editor">
       <div className="field-lbl">Nimetus (asendab tüübi nime)</div>
@@ -440,6 +454,18 @@ function BlockEditor({block,onChange}){
         {block.type==='dialogue'        &&<DialogueEd        b={block} upd={upd}/>}
         {block.type==='error_correction'&&<ErrorCorrectionEd b={block} upd={upd}/>}
         {block.type==='transformation'  &&<TransformationEd  b={block} upd={upd}/>}
+      </div>
+      <div style={{marginTop:10,paddingTop:10,borderTop:'1px dashed rgba(124,58,237,.25)',background:'rgba(124,58,237,.04)',borderRadius:8,padding:'10px 11px'}}>
+        <div className="field-lbl" style={{color:'#6d28d9',display:'flex',alignItems:'center',gap:5}}>
+          <i className="fa-solid fa-wand-magic-sparkles" style={{fontSize:'.7rem'}}/> AI täpsustus selle ploki jaoks
+        </div>
+        <textarea value={refineNote} onChange={e=>setRefineNote(e.target.value)} rows={2}
+          placeholder="nt. Tee lihtsamaks, lisa rohkem sõnu, vaheta teema reisimiseks..."
+          style={{marginBottom:7}}/>
+        <button onClick={doRegen} disabled={regenerating}
+          className="btn btn-sm" style={{background:'#6d28d9',color:'#fff',width:'100%',justifyContent:'center',opacity:regenerating?.7:1}}>
+          {regenerating?'⏳ Genereerin...':'🔄 Genereeri see plokk uuesti'}
+        </button>
       </div>
     </div>
   );
@@ -795,6 +821,74 @@ ${extraInstr?'9. ERISOOV: '+extraInstr:''}`;
     console.error('Parse error. Raw:',raw.slice(0,600));
     throw new Error('AI vastuse töötlemine ebaõnnestus: '+e.message);
   }
+}
+
+
+// ── REGENERATE SINGLE BLOCK ─────────────────────────────────────
+async function regenBlock(block, refineNote, meta){
+  const cefr=CEFR_PROFILES[meta?.level]||CEFR_PROFILES['B1'];
+  const cefrBlock=`
+== CEFR TASE: ${cefr.label} ==
+SÕNAVARA: ${cefr.vocab}
+GRAMMATIKA: ${cefr.grammar}
+LAUSE PIKKUS: ${cefr.sentenceLen}
+VÄLDI: ${cefr.avoid}
+== TASE LÕPP ==`;
+
+  const sys=`Sa oled kogenud eesti keele õpetaja. Sinu ülesanne on luua ÜKS ülesande plokk JSON-ina, mis asendab olemasoleva ploki.
+
+${cefrBlock}
+
+== PRAEGUNE PLOKK (mida muuta/parandada) ==
+${JSON.stringify(block,null,2)}
+== PRAEGUNE PLOKK LÕPP ==
+
+== ÕPETAJA TÄPSUSTUS ==
+${refineNote||'Tee see plokk uuesti, säilita sama tüüp ja teema, aga paranda kvaliteeti.'}
+== TÄPSUSTUS LÕPP ==
+
+Tagasta AINULT puhas JSON, ÜKS plokk samas struktuuris nagu praegune plokk (säilita "type" väli muutmata, säilita "id" väli kui see on olemas). Ära lisa markdown koodiplokki, ära lisa selgitusi.
+Struktuuri näited tüübi kaupa:
+fill: {"type":"fill","instruction":"...","text":"Lause [vastus] tekst."}
+choice: {"type":"choice","instruction":"...","questions":[{"q":"?","opts":["a","b","c","d"],"correct":0}]}
+match: {"type":"match","instruction":"...","pairs":[{"l":"eesti","r":"vene"}]}
+order: {"type":"order","instruction":"...","sentence":"sõnad õiges järjekorras"}
+writing: {"type":"writing","instruction":"...","task":"...","lines":8}
+text: {"type":"text","content":"...","bold":false}
+table: {"type":"table","instruction":"...","headers":["a","b"],"rows":5}
+reading: {"type":"reading","instruction":"...","passage":"...","questions":[{"q":"?","opts":["a","b","c"],"correct":0}]}
+dialogue: {"type":"dialogue","instruction":"...","lines":[{"speaker":"A","text":"..."},{"speaker":"B","text":"[vastus]"}]}
+error_correction: {"type":"error_correction","instruction":"...","sentences":[{"wrong":"...","correct":"..."}]}
+transformation: {"type":"transformation","instruction":"...","example":{"from":"...","to":"..."},"sentences":["...","..."]}`;
+
+  const res=await fetch('/api/anthropic-proxy',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      model:'claude-sonnet-4-6',
+      max_tokens:2000,
+      system:sys,
+      messages:[{role:'user',content:[{type:'text',text:'Genereeri uuendatud plokk.'}]}]
+    })
+  });
+  const data=await res.json();
+  if(data.error)throw new Error(data.error.message||JSON.stringify(data.error));
+  const raw=(data.content?.[0]?.text||'').trim();
+  const stripFences=s=>{s=s.trim();s=s.replace(/^[\s]*```[a-z]*\s*/i,'');s=s.replace(/\s*```[\s]*$/,'');return s.trim();};
+  const clean=stripFences(raw);
+  let parsed;
+  try{parsed=JSON.parse(clean);}
+  catch(e){
+    const m=clean.match(/\{[\s\S]*\}/);
+    if(m)try{parsed=JSON.parse(m[0]);}catch(e2){}
+    if(!parsed){
+      const fi=raw.indexOf('{');const li=raw.lastIndexOf('}');
+      if(fi!==-1&&li>fi)try{parsed=JSON.parse(raw.slice(fi,li+1));}catch(e3){}
+    }
+    if(!parsed){console.error('Block regen parse error. Raw:',raw.slice(0,400));throw new Error('Ploki genereerimine ebaõnnestus');}
+  }
+  // Preserve id, label, instruction overrides, image data, size from original unless AI explicitly changed them
+  return {...block, ...parsed, id:block.id, label:block.label};
 }
 
 // ── BUILD HTML FOR EXPORT ─────────────────────────────────────
@@ -1329,7 +1423,7 @@ function App(){
                               <button className="bi-btn del" onClick={()=>delBlock(block.id)} title="Kustuta"><i className="fa-solid fa-trash"/></button>
                             </div>
                           </div>
-                          {isActive&&<div onClick={e=>e.stopPropagation()}><BlockEditor block={block} onChange={data=>updBlock(block.id,data)}/></div>}
+                          {isActive&&<div onClick={e=>e.stopPropagation()}><BlockEditor block={block} onChange={data=>updBlock(block.id,data)} meta={meta} notify={notify}/></div>}
                         </div>
                       );
                     })}
