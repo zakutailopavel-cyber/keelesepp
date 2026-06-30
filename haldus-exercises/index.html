@@ -1572,6 +1572,143 @@ function FillPlayer({exercise,onDone}){const parsed=useMemo(()=>parseFillText(ex
 
 function ChoicePlayer({exercise,onDone}){const qs=exercise.questions||[];const[cur,setCur]=useState(0);const[sel,setSel]=useState({});const[chk,setChk]=useState({});const[done,setDone]=useState(false);const q=qs[cur];const pick=(qi,ci)=>{if(chk[qi])return;setSel(p=>({...p,[qi]:ci}));};const checkC=()=>setChk(p=>({...p,[cur]:true}));const next=()=>{if(cur<qs.length-1){setCur(c=>c+1);}else{const c=qs.filter((q,i)=>sel[i]===q.correct).length;setDone(true);onDone&&onDone({correct:c,total:qs.length});}};const reset=()=>{setCur(0);setSel({});setChk({});setDone(false);};if(done){const c=qs.filter((q,i)=>sel[i]===q.correct).length;return(<div style={{display:'flex',flexDirection:'column',gap:10}}><div className={c===qs.length?'result-ok':'result-fail'}>{c===qs.length?'✓ '+c+'/'+qs.length:c+'/'+qs.length+' vastust õiged'}</div><button onClick={reset} className="btn btn-ghost">Alusta uuesti</button></div>);}if(!q)return null;const isChk=chk[cur];const s=sel[cur];return(<div style={{display:'flex',flexDirection:'column',gap:10}}><div style={{fontWeight:700,fontSize:'.96rem',marginBottom:6}}>{q.question}</div>{(q.options||[]).map((opt,ci)=>{let cls='choice-btn';if(isChk){if(ci===q.correct)cls+=' correct';else if(ci===s)cls+=' wrong';}else if(ci===s)cls+=' selected';return<button key={ci} className={cls} onClick={()=>pick(cur,ci)}>{opt}</button>;})} {!isChk?<button onClick={checkC} className="btn btn-pine" disabled={s===undefined}>Kontrolli</button>:<button onClick={next} className="btn btn-pine">{cur<qs.length-1?'Järgmine →':'Lõpeta'}</button>}</div>);}
 
+
+function WritingPlayer({exercise,onDone}){
+  const[text,setText]=useState('');
+  const[submitted,setSubmitted]=useState(false);
+  const taskText=exercise.task||exercise.prompt||exercise.description||exercise.instruction||exercise.text||'';
+  const minWords=exercise.minWords||exercise.lines&&exercise.lines*8||0;
+  const wordCount=text.trim()?text.trim().split(/\s+/).length:0;
+  const submit=()=>{setSubmitted(true);onDone&&onDone({wordCount,text});};
+  return(<div style={{display:'flex',flexDirection:'column',gap:12}}>
+    {taskText&&<div style={{fontSize:'.92rem',lineHeight:1.6,color:'#1C2B3A',background:'#F9F8F6',borderRadius:10,padding:'12px 14px',border:'1px solid rgba(28,43,58,.08)'}}>{taskText}</div>}
+    <textarea value={text} disabled={submitted} onChange={e=>setText(e.target.value)}
+      rows={exercise.lines||8} placeholder="Kirjuta oma vastus siia..."
+      style={{width:'100%',padding:'12px 14px',borderRadius:10,border:'1.5px solid rgba(28,43,58,.12)',fontFamily:'inherit',fontSize:'.9rem',resize:'vertical',lineHeight:1.6}}/>
+    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+      <span style={{fontSize:'.78rem',color:'#718096'}}>{wordCount} sõna{minWords?' / soovitatav '+minWords:''}</span>
+      {!submitted
+        ?<button onClick={submit} className="btn btn-pine" disabled={!text.trim()}>✓ Esita</button>
+        :<div className="result-ok">✓ Vastus esitatud! {wordCount} sõna.</div>}
+    </div>
+  </div>);
+}
+
+function OrderPlayer({exercise,onDone}){
+  const correctSentence=exercise.sentence||exercise.text||'';
+  const words=useMemo(()=>correctSentence.split(' ').filter(Boolean).sort(()=>Math.random()-.5),[correctSentence]);
+  const[picked,setPicked]=useState([]);
+  const[checked,setChecked]=useState(false);
+  const available=words.filter((w,i)=>{
+    const usedIdx=picked.filter(p=>p.word===w).length;
+    const occurIdx=words.slice(0,i).filter(x=>x===w).length;
+    return occurIdx>=usedIdx;
+  });
+  const pick=w=>setPicked(p=>[...p,{word:w,id:Date.now()+Math.random()}]);
+  const removeAt=idx=>setPicked(p=>p.filter((_,i)=>i!==idx));
+  const userSentence=picked.map(p=>p.word).join(' ');
+  const isCorrect=userSentence.trim().toLowerCase()===correctSentence.trim().toLowerCase();
+  const check=()=>{setChecked(true);onDone&&onDone({correct:isCorrect?1:0,total:1});};
+  const reset=()=>{setPicked([]);setChecked(false);};
+  return(<div style={{display:'flex',flexDirection:'column',gap:14}}>
+    <div className="drop-zone">
+      {picked.length===0&&<span style={{color:'#B0A898',fontSize:'.84rem'}}>Klõpsa sõnadel, et moodustada lause...</span>}
+      {picked.map((p,i)=>(
+        <span key={p.id} className="word-chip placed" onClick={()=>!checked&&removeAt(i)}>{p.word}</span>
+      ))}
+    </div>
+    <div style={{display:'flex',flexWrap:'wrap',gap:5}}>
+      {available.map((w,i)=>(
+        <span key={w+i} className="word-chip" onClick={()=>!checked&&pick(w)}>{w}</span>
+      ))}
+    </div>
+    {checked&&<div className={isCorrect?'result-ok':'result-fail'}>
+      {isCorrect?'✓ Õige!':'Õige vastus: '+correctSentence}
+    </div>}
+    {!checked
+      ?<button onClick={check} className="btn btn-pine" disabled={!picked.length}>Kontrolli</button>
+      :<button onClick={reset} className="btn btn-ghost">Proovi uuesti</button>}
+  </div>);
+}
+
+function MatchPlayer({exercise,onDone}){
+  const pairs=exercise.pairs||[];
+  const shuffledRight=useMemo(()=>[...pairs].sort(()=>Math.random()-.5),[exercise.id]);
+  const[matches,setMatches]=useState({});
+  const[checked,setChecked]=useState(false);
+  const setMatch=(li,rval)=>setMatches(p=>({...p,[li]:rval}));
+  const check=()=>{
+    let correct=0;
+    pairs.forEach((p,i)=>{if(matches[i]===p.r)correct++;});
+    setChecked(true);onDone&&onDone({correct,total:pairs.length});
+  };
+  const reset=()=>{setMatches({});setChecked(false);};
+  return(<div style={{display:'flex',flexDirection:'column',gap:8}}>
+    {pairs.map((p,i)=>{
+      const isCorrect=checked&&matches[i]===p.r;
+      const isWrong=checked&&matches[i]&&matches[i]!==p.r;
+      return(<div key={i} style={{display:'flex',alignItems:'center',gap:10}}>
+        <div style={{flex:1,padding:'8px 12px',borderRadius:8,background:'#F9F8F6',border:'1px solid rgba(28,43,58,.1)',fontSize:'.86rem'}}>{p.l}</div>
+        <i className="fa-solid fa-arrow-right" style={{color:'#B0A898',fontSize:'.75rem'}}/>
+        <select value={matches[i]||''} disabled={checked} onChange={e=>setMatch(i,e.target.value)}
+          style={{flex:1,padding:'8px 10px',borderRadius:8,border:'1.5px solid '+(isCorrect?'#166534':isWrong?'#991b1b':'rgba(28,43,58,.12)'),
+            background:isCorrect?'rgba(22,101,52,.07)':isWrong?'rgba(153,27,27,.07)':'#fff',fontFamily:'inherit',fontSize:'.86rem'}}>
+          <option value="">— vali —</option>
+          {shuffledRight.map((sp,si)=><option key={si} value={sp.r}>{sp.r}</option>)}
+        </select>
+        {isWrong&&<span style={{fontSize:'.72rem',color:'#166534',fontWeight:700,whiteSpace:'nowrap'}}>({p.r})</span>}
+      </div>);
+    })}
+    {checked
+      ?<button onClick={reset} className="btn btn-ghost">Proovi uuesti</button>
+      :<button onClick={check} className="btn btn-pine" disabled={pairs.some((_,i)=>!matches[i])}>Kontrolli</button>}
+  </div>);
+}
+
+function ReadingPlayer({exercise,onDone}){
+  const passage=exercise.passage||exercise.text||'';
+  const questions=exercise.questions||[];
+  return(<div style={{display:'flex',flexDirection:'column',gap:14}}>
+    {passage&&<div style={{background:'#F9F8F6',border:'1px solid rgba(28,43,58,.1)',borderRadius:10,padding:'14px 16px',fontSize:'.88rem',lineHeight:1.7,whiteSpace:'pre-wrap'}}>{passage}</div>}
+    {questions.length>0?<ChoicePlayer exercise={{...exercise,questions}} onDone={onDone}/>
+      :<div style={{color:'#718096',fontSize:'.84rem'}}>Loe tekst läbi.</div>}
+  </div>);
+}
+
+function TranslatePlayer({exercise,onDone}){
+  const items=exercise.items||exercise.pairs||[];
+  const[answers,setAnswers]=useState({});
+  const[checked,setChecked]=useState(false);
+  const setAns=(i,v)=>setAnswers(p=>({...p,[i]:v}));
+  const check=()=>{
+    let correct=0;
+    items.forEach((it,i)=>{
+      const target=(it.to||it.r||it.translation||'').trim().toLowerCase();
+      if((answers[i]||'').trim().toLowerCase()===target)correct++;
+    });
+    setChecked(true);onDone&&onDone({correct,total:items.length});
+  };
+  const reset=()=>{setAnswers({});setChecked(false);};
+  return(<div style={{display:'flex',flexDirection:'column',gap:10}}>
+    {items.map((it,i)=>{
+      const target=it.to||it.r||it.translation||'';
+      const val=answers[i]||'';
+      const isCorrect=checked&&val.trim().toLowerCase()===target.trim().toLowerCase();
+      const isWrong=checked&&!isCorrect;
+      return(<div key={i}>
+        <div style={{fontWeight:600,fontSize:'.88rem',marginBottom:5}}>{i+1}. {it.from||it.l||it.source||''}</div>
+        <input value={val} disabled={checked} onChange={e=>setAns(i,e.target.value)} placeholder="Tõlge..."
+          style={{width:'100%',padding:'8px 12px',borderRadius:8,border:'1.5px solid '+(isCorrect?'#166534':isWrong?'#991b1b':'rgba(28,43,58,.12)'),
+            background:isCorrect?'rgba(22,101,52,.07)':isWrong?'rgba(153,27,27,.07)':'#fff',fontFamily:'inherit',fontSize:'.86rem'}}/>
+        {isWrong&&<div style={{fontSize:'.74rem',color:'#166534',marginTop:3}}>✓ {target}</div>}
+      </div>);
+    })}
+    {checked
+      ?<button onClick={reset} className="btn btn-ghost">Proovi uuesti</button>
+      :<button onClick={check} className="btn btn-pine" disabled={!items.length}>Kontrolli</button>}
+  </div>);
+}
+
 function ExerciseCard({ex,isTeacher,onDelete,students,user}){
   const[open,setOpen]=useState(false);const[result,setResult]=useState(null);
   const type=EX_TYPES[ex.type]||EX_TYPES.fill;
@@ -1595,7 +1732,12 @@ function ExerciseCard({ex,isTeacher,onDelete,students,user}){
     {open&&<div style={{borderTop:'1px solid rgba(28,43,58,.07)',paddingTop:13}}>
       {ex.type==='fill'&&<FillPlayer exercise={ex} onDone={setResult}/>}
       {ex.type==='choice'&&<ChoicePlayer exercise={ex} onDone={setResult}/>}
-      {!['fill','choice'].includes(ex.type)&&<div style={{color:'#718096',fontSize:'.86rem',padding:'10px 0'}}>Ava täisvaates harjutuse sooritamiseks.</div>}
+      {ex.type==='writing'&&<WritingPlayer exercise={ex} onDone={setResult}/>}
+      {ex.type==='order'&&<OrderPlayer exercise={ex} onDone={setResult}/>}
+      {ex.type==='match'&&<MatchPlayer exercise={ex} onDone={setResult}/>}
+      {ex.type==='reading'&&<ReadingPlayer exercise={ex} onDone={setResult}/>}
+      {ex.type==='translate'&&<TranslatePlayer exercise={ex} onDone={setResult}/>}
+      {!['fill','choice','writing','order','match','reading','translate'].includes(ex.type)&&<div style={{color:'#718096',fontSize:'.86rem',padding:'10px 0'}}>Selle harjutuse tüüpi ei toetata veel täisvaates.</div>}
     </div>}
   </div>);}
 
