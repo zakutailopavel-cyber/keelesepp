@@ -3287,10 +3287,48 @@ function WorksheetPlayer({assignment, onClose, onSubmit}) {
     });
     return total>0?{correct,total,pct:Math.round(correct/total*100)}:null;
   };
+
+  // Collect concrete errors for each auto-checkable block
+  const calcErrorLog = () => {
+    const errors = [];
+    blocks.forEach(b=>{
+      if(b.type==='fill'){
+        const parts=parseFill(b.text||''); let bi=0;
+        parts.forEach(p=>{
+          if(p.t==='blank'){
+            const ans=(answers[b.id+'_'+bi]||'').trim();
+            if(ans.toLowerCase()!==p.answer.trim().toLowerCase()){
+              errors.push({type:'fill', blockLabel:b.label||b.instruction||'Täida lünk',
+                correct:p.answer, given:ans||'(tühi)'});
+            }
+            bi++;
+          }
+        });
+      } else if(b.type==='choice'){
+        (b.questions||[]).forEach((q,qi)=>{
+          const sel=answers[b.id+'_'+qi];
+          if(sel!==q.correct){
+            errors.push({type:'choice', blockLabel:b.label||b.instruction||'Valikvastus',
+              question:q.q, correct:q.opts?.[q.correct]||'', given:q.opts?.[sel]||'(vastamata)'});
+          }
+        });
+      } else if(b.type==='match'){
+        (b.pairs||[]).forEach((pair,pi)=>{
+          const val=answers[b.id+'_'+pi]||'';
+          if(val!==pair.r){
+            errors.push({type:'match', blockLabel:b.label||b.instruction||'Sobita',
+              correct:pair.l+' → '+pair.r, given:pair.l+' → '+(val||'(vastamata)')});
+          }
+        });
+      }
+    });
+    return errors.slice(0,20); // max 20 errors stored
+  };
   const handleSubmit = async()=>{
     setSubmitting(true);
     const sc=calcScore();
-    await onSubmit(assignment.id,answers,sc);
+    const errorLog=calcErrorLog();
+    await onSubmit(assignment.id,answers,sc,errorLog);
     // Auto-update skillMap if assignment has skills_to_update from AI
     if(sc&&assignment.skillsToUpdate?.length) {
       await updateSkillMapFromResult(assignment.studentId, assignment.skillsToUpdate, sc);
@@ -3494,8 +3532,11 @@ function KabinetView({user, myStudents, notify}) {
     );
     return()=>unsubs.forEach(u=>u());
   },[user?.uid,myStudents.map(s=>s.id).join(',')]);
-  const submitAssignment=async(assignmentId,answers,score)=>{
-    await db.collection('worksheetAssignments').doc(assignmentId).update({status:'done',answers,score,completedAt:new Date().toISOString()});
+  const submitAssignment=async(assignmentId,answers,score,errorLog)=>{
+    await db.collection('worksheetAssignments').doc(assignmentId).update({
+      status:'done', answers, score, errorLog:errorLog||[],
+      completedAt:new Date().toISOString()
+    });
     notify('✓ Tööleht esitatud!');
   };
   const STATUS={new:{l:'Uus',c:'#1d4ed8',bg:'rgba(29,78,216,.1)'},started:{l:'Pooleli',c:'#A96E1A',bg:'rgba(201,136,42,.1)'},done:{l:'✓ Esitatud',c:'#166534',bg:'rgba(22,101,52,.1)'}};
@@ -3583,9 +3624,9 @@ function AssignedWorksheetsWidget({student, canManage, notify}) {
     return unsub;
   },[student?.id]);
 
-  const submitAssignment = async(assignmentId, answers, score) => {
+  const submitAssignment = async(assignmentId, answers, score, errorLog) => {
     await db.collection('worksheetAssignments').doc(assignmentId).update({
-      status:'done', answers, score, completedAt:new Date().toISOString(), seenByTeacher:false
+      status:'done', answers, score, errorLog:errorLog||[], completedAt:new Date().toISOString(), seenByTeacher:false
     });
     notify('✓ Tööleht esitatud!');
   };
@@ -3698,6 +3739,40 @@ function AIGeneratorModal({student, skillMap, level, skills, onClose, user}) {
   const [error, setError] = React.useState('');
   const [assigning, setAssigning] = React.useState(false);
   const [assignedSheets, setAssignedSheets] = React.useState([]);
+  const [recentErrors, setRecentErrors] = React.useState([]);
+  const [prevTopics, setPrevTopics] = React.useState([]);
+
+  // Load recent error history from last 5 submitted worksheets
+  React.useEffect(()=>{
+    if(!student?.id) return;
+    db.collection('worksheetAssignments')
+      .where('studentId','==',student.id)
+      .where('status','==','done')
+      .get()
+      .then(snap=>{
+        const docs = snap.docs.map(d=>d.data())
+          .sort((a,b)=>(b.completedAt||'').localeCompare(a.completedAt||''))
+          .slice(0,5);
+        // Aggregate errors across last 5 worksheets
+        const allErrors = docs.flatMap(d=>d.errorLog||[]);
+        // Count frequency of each error pattern
+        const freq = {};
+        allErrors.forEach(e=>{
+          const key = e.correct||e.question||'';
+          if(!freq[key]) freq[key] = {...e, count:0};
+          freq[key].count++;
+        });
+        const topErrors = Object.values(freq)
+          .sort((a,b)=>b.count-a.count)
+          .slice(0,8)
+          .map(e=>`${e.type==='fill'?`"${e.correct}" (дал: "${e.given}")`:e.type==='choice'?`"${e.question}" — правильно: "${e.correct}", дал: "${e.given}"`:e.type==='match'?`"${e.correct}" (дал: "${e.given}")`:''}${e.count>1?' ('+e.count+'x)':''}`);
+        setRecentErrors(topErrors);
+        // Collect previous topics
+        const topics = [...new Set(docs.map(d=>d.topic).filter(Boolean))];
+        setPrevTopics(topics);
+      })
+      .catch(()=>{});
+  },[student?.id]);
 
   const strongSkills = skills.filter(s=>(skillMap[s.id]||0)>=80).map(s=>s.name);
   const weakSkills = skills.filter(s=>skillMap[s.id]!==undefined&&skillMap[s.id]!==null&&skillMap[s.id]<50).map(s=>s.name);
@@ -3712,7 +3787,9 @@ function AIGeneratorModal({student, skillMap, level, skills, onClose, user}) {
 Цель урока: ${lessonGoal || 'не указана, выбери сам исходя из темы'}
 Сильные навыки: ${strongSkills.join(', ')||'нет данных'}
 Слабые навыки: ${weakSkills.join(', ')||'нет данных'}
-Создай комплект из 3 рабочих листов согласно методике.`;
+Последние ошибки ученика: ${recentErrors.length?recentErrors.join('; '):'нет данных — ученик ещё не выполнял листы'}
+Предыдущие темы: ${prevTopics.length?prevTopics.join(', '):'нет данных'}
+Создай комплект из 3 рабочих листов согласно методике. Учти последние ошибки и избегай повторения предыдущих тем.`;
 
       const res = await fetch('/api/anthropic-proxy', {
         method: 'POST',
@@ -3801,10 +3878,20 @@ function AIGeneratorModal({student, skillMap, level, skills, onClose, user}) {
               <input value={lessonGoal} onChange={e=>setLessonGoal(e.target.value)} placeholder="nt. Õpetada minevikuvormi kasutama..."
                 style={{width:'100%',padding:'9px 12px',borderRadius:9,border:'1.5px solid rgba(28,43,58,.12)',fontFamily:'inherit',fontSize:'.86rem'}}/>
             </div>
-            {(strongSkills.length>0||weakSkills.length>0)&&<div style={{padding:'10px 13px',borderRadius:10,background:'rgba(47,93,80,.06)',fontSize:'.78rem',color:'#42536A',lineHeight:1.6}}>
-              {strongSkills.length>0&&<div><strong style={{color:'#166534'}}>💪 Tugevad:</strong> {strongSkills.join(', ')}</div>}
-              {weakSkills.length>0&&<div><strong style={{color:'#dc2626'}}>🎯 Nõrgad:</strong> {weakSkills.join(', ')}</div>}
-            </div>}
+            <div style={{display:'flex',flexDirection:'column',gap:6}}>
+              {(strongSkills.length>0||weakSkills.length>0)&&<div style={{padding:'10px 13px',borderRadius:10,background:'rgba(47,93,80,.06)',fontSize:'.78rem',color:'#42536A',lineHeight:1.6}}>
+                {strongSkills.length>0&&<div><strong style={{color:'#166534'}}>💪 Tugevad:</strong> {strongSkills.join(', ')}</div>}
+                {weakSkills.length>0&&<div><strong style={{color:'#dc2626'}}>🎯 Nõrgad:</strong> {weakSkills.join(', ')}</div>}
+              </div>}
+              {recentErrors.length>0&&<div style={{padding:'10px 13px',borderRadius:10,background:'rgba(220,38,38,.05)',border:'1px solid rgba(220,38,38,.15)',fontSize:'.78rem',color:'#42536A',lineHeight:1.6}}>
+                <div style={{fontWeight:700,color:'#dc2626',marginBottom:4}}>🔴 Частые ошибки (из последних работ):</div>
+                {recentErrors.slice(0,5).map((e,i)=><div key={i} style={{marginBottom:2,paddingLeft:8,borderLeft:'2px solid rgba(220,38,38,.3)'}}>• {e}</div>)}
+                <div style={{fontSize:'.72rem',color:'#9ca3af',marginTop:4}}>AI учтёт эти ошибки при генерации</div>
+              </div>}
+              {prevTopics.length>0&&<div style={{padding:'8px 13px',borderRadius:10,background:'rgba(28,43,58,.04)',fontSize:'.74rem',color:'#718096'}}>
+                <strong>Предыдущие темы:</strong> {prevTopics.join(', ')}
+              </div>}
+            </div>
             {error&&<div style={{padding:'10px 13px',borderRadius:9,background:'rgba(220,38,38,.08)',color:'#dc2626',fontSize:'.82rem'}}>{error}</div>}
             <button onClick={generate} disabled={generating} className="btn btn-pine" style={{justifyContent:'center',padding:'11px'}}>
               {generating?'⏳ Genereerin 3 töölehte...':'✨ Genereeri 3 töölehte'}
