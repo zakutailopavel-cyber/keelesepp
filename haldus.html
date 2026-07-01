@@ -3095,6 +3095,36 @@ function GroupsView({groups,students,isAdmin,setSelStu,setTab,addGroup,deleteGro
 
 
 
+
+// ── SKILLMAP UPDATER ──────────────────────────────────────────────
+const scoreToDelta = pct => pct>=90?5:pct>=75?3:pct>=60?1:pct>=40?0:-3;
+
+async function updateSkillMapFromResult(studentId, skillsToUpdate, score) {
+  if(!studentId||!skillsToUpdate?.length||!score||score.total===0) return;
+  const delta = scoreToDelta(score.pct);
+  try {
+    const studentRef = db.collection('students').doc(studentId);
+    const snap = await studentRef.get();
+    if(!snap.exists) return;
+    const currentMap = snap.data().skillMap||{};
+    const updates = {};
+    skillsToUpdate.forEach(({skill_id})=>{
+      if(!skill_id) return;
+      const cur = currentMap[skill_id]??null;
+      if(cur===null||cur===undefined) {
+        updates[`skillMap.${skill_id}`] = Math.max(0,Math.min(100,score.pct));
+      } else {
+        updates[`skillMap.${skill_id}`] = Math.max(0,Math.min(100,cur+delta));
+      }
+    });
+    if(!Object.keys(updates).length) return;
+    await studentRef.update({...updates, skillMapLastUpdated:new Date().toISOString()});
+    console.info(`[SkillMapUpdater] Updated ${Object.keys(updates).length} skills, delta=${delta}`);
+  } catch(err) {
+    console.warn('[SkillMapUpdater] Update failed (non-critical):', err);
+  }
+}
+
 // ── WORKSHEET ASSIGN MODAL ────────────────────────────────────
 function AssignWorksheetModal({lesson, students, user, onClose, notify}) {
   const [sel, setSel] = React.useState([]);
@@ -3261,6 +3291,10 @@ function WorksheetPlayer({assignment, onClose, onSubmit}) {
     setSubmitting(true);
     const sc=calcScore();
     await onSubmit(assignment.id,answers,sc);
+    // Auto-update skillMap if assignment has skills_to_update from AI
+    if(sc&&assignment.skillsToUpdate?.length) {
+      await updateSkillMapFromResult(assignment.studentId, assignment.skillsToUpdate, sc);
+    }
     setScore(sc);setSubmitted(true);setSubmitting(false);
   };
   const done = submitted;
@@ -3733,7 +3767,8 @@ function AIGeneratorModal({student, skillMap, level, skills, onClose, user}) {
         assignedBy: user?.uid||'', assignedByName: (user?.displayName||user?.email||'AI Generator')+' (AI)',
         assignedAt: new Date().toISOString(),
         dueDate: '', note: result.teacher_recommendations||'',
-        status:'new', score:null, completedAt:null, answers:{}
+        status:'new', score:null, completedAt:null, answers:{},
+        skillsToUpdate: result.skills_to_update||[]
       });
       setAssignedSheets(p=>[...p, idx]);
     } catch(e) {
