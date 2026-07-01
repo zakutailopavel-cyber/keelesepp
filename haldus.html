@@ -561,9 +561,13 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
                   <div style={{fontSize:'.7rem',color:'#9ca3af',marginTop:2}}>{a.completedAt?new Date(a.completedAt).toLocaleString('et-EE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):''}</div>
                 </div>
                 {a.score&&<span style={{fontWeight:800,fontSize:'.92rem',color:a.score.pct>=80?'#166534':a.score.pct>=50?'#A96E1A':'#dc2626'}}>{a.score.pct}%</span>}
-                {a.selfAssessment&&<span title={'Enesehinang: '+['','Väga lihtne','Lihtne','Paras','Raske','Väga raske'][a.selfAssessment.difficulty||0]+(a.selfAssessment.comment?'. "'+a.selfAssessment.comment+'"':'')} style={{fontSize:'.9rem',cursor:'help'}}>
-                  {['','😊','🙂','😐','😓','😰'][a.selfAssessment.difficulty||0]}
-                </span>}
+                {a.selfAssessment&&(()=>{
+                  const diffLabels=['','Vaega lihtne','Lihtne','Paras','Raske','Vaega raske'];
+                  const emoji=['','😊','🙂','😐','😓','😰'];
+                  const d=a.selfAssessment.difficulty||0;
+                  const tip='Enesehinang: '+diffLabels[d]+(a.selfAssessment.comment?' | '+a.selfAssessment.comment:'');
+                  return<span title={tip} style={{fontSize:'.9rem',cursor:'help'}}>{emoji[d]}</span>;
+                })()}
                 <div style={{display:'flex',gap:6}}>
                   <button onClick={()=>{_setSelStu&&_setSelStu(myStudents.find(s=>s.id===a.studentId));_setTab&&_setTab('students');markWsSeen&&markWsSeen(a.id);}}
                     className="btn btn-pine btn-sm" style={{fontSize:'.72rem'}}>
@@ -3531,7 +3535,7 @@ function WorksheetPlayer({assignment, onClose, onSubmit}) {
           {showSelfAssess&&!selfSaved&&<div style={{display:'flex',flexDirection:'column',gap:10}}>
             <div style={{fontSize:'.82rem',fontWeight:700,color:'#1C2B3A'}}>Kui raske see tööleht oli?</div>
             <div style={{display:'flex',gap:6}}>
-              {[{v:1,l:'😊 Väga lihtne'},{v:2,l:'🙂 Lihtne'},{v:3,l:'😐 Paras'},{v:4,l:'😓 Raske'},{v:5,l:'😰 Väga raske'}].map(({v,l})=>(
+              {[{v:1,e:'😊',l:'Vaega lihtne'},{v:2,e:'🙂',l:'Lihtne'},{v:3,e:'😐',l:'Paras'},{v:4,e:'😓',l:'Raske'},{v:5,e:'😰',l:'Vaega raske'}].map(({v,e,l})=>(
                 <button key={v} onClick={()=>setSelfDifficulty(v)}
                   style={{flex:1,padding:'7px 4px',borderRadius:8,border:'1.5px solid '+(selfDifficulty===v?'#2F5D50':'rgba(28,43,58,.12)'),
                     background:selfDifficulty===v?'rgba(47,93,80,.1)':'#fff',cursor:'pointer',fontFamily:'inherit',
@@ -3731,11 +3735,13 @@ function AssignedWorksheetsWidget({student, canManage, notify}) {
                 </div>
               </div>
               <span style={{padding:'2px 8px',borderRadius:5,fontSize:'.68rem',fontWeight:800,background:st.bg,color:st.c,flexShrink:0}}>{st.l}</span>
-              {a.selfAssessment&&canManage&&<span title={'Enesehinang: '+['','Väga lihtne','Lihtne','Paras','Raske','Väga raske'][a.selfAssessment.difficulty||0]+(a.selfAssessment.comment?'
-"'+a.selfAssessment.comment+'"':'')}
-                style={{fontSize:'.8rem',cursor:'help',flexShrink:0}}>
-                {['','😊','🙂','😐','😓','😰'][a.selfAssessment.difficulty||0]}
-              </span>}
+              {a.selfAssessment&&canManage&&(()=>{
+                const diffLabels=['','Vaega lihtne','Lihtne','Paras','Raske','Vaega raske'];
+                const emoji=['','😊','🙂','😐','😓','😰'];
+                const d=a.selfAssessment.difficulty||0;
+                const tip='Enesehinang: '+diffLabels[d]+(a.selfAssessment.comment?' | '+a.selfAssessment.comment:'');
+                return<span title={tip} style={{fontSize:'.8rem',cursor:'help',flexShrink:0}}>{emoji[d]}</span>;
+              })()}
               {hasWs&&<button onClick={()=>{setOpenWs(a);if(isUnseen)markSeen(a.id);}}
                 style={{padding:'6px 12px',borderRadius:8,border:'none',background:a.status==='done'?(isUnseen?'#dc2626':'rgba(28,43,58,.07)'):'#2F5D50',color:a.status==='done'?(isUnseen?'#fff':'#42536A'):'#fff',cursor:'pointer',fontFamily:'inherit',fontWeight:700,fontSize:'.76rem',flexShrink:0}}>
                 {a.status==='done'?'Vaata':'Täida'}
