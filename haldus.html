@@ -3281,6 +3281,30 @@ function WorksheetPlayer({assignment, onClose, onSubmit, canAnnotate=false, canD
   const [annotationDraft, setAnnotationDraft] = React.useState(null);
   const [annotationView, setAnnotationView] = React.useState(null);
   const setAns = (k,v) => setAnswers(p=>({...p,[k]:v}));
+  React.useEffect(()=>{
+    setAnnotations(assignment.annotations||[]);
+    if(assignment.status==='done'){
+      setSubmitted(true);
+      setAnswers(assignment.answers||{});
+      setScore(assignment.score||null);
+    }
+    setSelfSaved(!!assignment.selfAssessment);
+  },[assignment.id]);
+  React.useEffect(()=>{
+    if(!assignment.id) return;
+    const unsub = db.collection('worksheetAssignments').doc(assignment.id).onSnapshot(doc=>{
+      if(!doc.exists) return;
+      const fresh = doc.data()||{};
+      setAnnotations(fresh.annotations||[]);
+      setSelfSaved(!!fresh.selfAssessment);
+      if(fresh.status==='done'){
+        setSubmitted(true);
+        setAnswers(fresh.answers||{});
+        setScore(fresh.score||null);
+      }
+    },err=>console.warn('Worksheet live update failed:',err));
+    return unsub;
+  },[assignment.id]);
   const annotationTools = window.AnnotationsManager||{};
   const annotationsForBlock = blockId => annotations.filter(a=>a.blockId===blockId);
   const splitAnnotatedText = (text, list) => {
