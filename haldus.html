@@ -108,6 +108,7 @@ window.__haldusConfigureBabel();
 </script>
 <script src="/haldus-shared.js"></script>
 <script src="/haldus-programs.js"></script>
+<script src="/annotations-manager.js"></script>
 <script type="text/babel" data-presets="haldus-react">
 const {useState,useEffect,useRef,useCallback,useMemo} = React;
 const db   = window._db;
@@ -3263,7 +3264,7 @@ function AssignWorksheetModal({lesson, students, user, onClose, notify}) {
 }
 
 // ── WORKSHEET PLAYER ───────────────────────────────────────────
-function WorksheetPlayer({assignment, onClose, onSubmit}) {
+function WorksheetPlayer({assignment, onClose, onSubmit, canAnnotate=false, canDismissAnnotations=false, notify}) {
   const ws = assignment.worksheetData;
   const blocks = ws?.blocks||[];
   const meta = ws?.meta||{};
@@ -3276,7 +3277,91 @@ function WorksheetPlayer({assignment, onClose, onSubmit}) {
   const [selfComment, setSelfComment] = React.useState('');
   const [selfSaving, setSelfSaving] = React.useState(false);
   const [selfSaved, setSelfSaved] = React.useState(!!(assignment.selfAssessment));
+  const [annotations, setAnnotations] = React.useState(assignment.annotations||[]);
+  const [annotationDraft, setAnnotationDraft] = React.useState(null);
+  const [annotationView, setAnnotationView] = React.useState(null);
   const setAns = (k,v) => setAnswers(p=>({...p,[k]:v}));
+  const annotationTools = window.AnnotationsManager||{};
+  const annotationsForBlock = blockId => annotations.filter(a=>a.blockId===blockId);
+  const splitAnnotatedText = (text, list) => {
+    if(annotationTools.splitTextByAnnotations) return annotationTools.splitTextByAnnotations(text, list);
+    const active = list.filter(a=>!a.dismissed).sort((a,b)=>a.start-b.start);
+    const parts = []; let last = 0;
+    active.forEach(annot=>{
+      if(annot.start>=text.length) return;
+      if(annot.start>last) parts.push({type:'text',text:text.slice(last,annot.start)});
+      parts.push({type:'annot',text:text.slice(annot.start,Math.min(annot.end,text.length)),annot});
+      last = Math.min(annot.end,text.length);
+    });
+    if(last<text.length) parts.push({type:'text',text:text.slice(last)});
+    return parts;
+  };
+  const selectionRange = (container, selection) => {
+    if(annotationTools.getSelectionRange) return annotationTools.getSelectionRange(container, selection);
+    if(!selection || selection.isCollapsed) return null;
+    const range = selection.getRangeAt(0);
+    const preRange = document.createRange();
+    preRange.selectNodeContents(container);
+    preRange.setEnd(range.startContainer, range.startOffset);
+    const start = preRange.toString().length;
+    return {start,end:start+selection.toString().length,text:selection.toString()};
+  };
+  const makeAnnotation = (blockId,start,end,selectedText,parandus,selgitus) => {
+    if(annotationTools.createAnnotation) return annotationTools.createAnnotation(blockId,start,end,selectedText,parandus,selgitus);
+    return {id:Date.now()+'_'+Math.random().toString(36).slice(2,7),blockId,start,end,selectedText,parandus:parandus||'',selgitus:selgitus||'',createdAt:new Date().toISOString(),dismissed:false};
+  };
+  const closeAnnotationPopups = () => {
+    setAnnotationDraft(null);
+    setAnnotationView(null);
+  };
+  const openAnnotationDraft = (block, event) => {
+    if(!canAnnotate || !submitted) return;
+    const selection = window.getSelection();
+    let range = null;
+    try{ range = selectionRange(event.currentTarget, selection); }catch(e){ range = null; }
+    if(!range || !range.text.trim()) return;
+    setAnnotationView(null);
+    setAnnotationDraft({
+      blockId:block.id,
+      start:range.start,
+      end:range.end,
+      selectedText:range.text,
+      parandus:'',
+      selgitus:'',
+      x:event.clientX,
+      y:event.clientY
+    });
+  };
+  const saveAnnotation = async() => {
+    if(!annotationDraft) return;
+    const annot = makeAnnotation(annotationDraft.blockId, annotationDraft.start, annotationDraft.end, annotationDraft.selectedText, annotationDraft.parandus, annotationDraft.selgitus);
+    const next = [...annotations, annot];
+    setAnnotations(next);
+    setAnnotationDraft(null);
+    try{
+      await db.collection('worksheetAssignments').doc(assignment.id).update({annotations:next});
+      notify&&notify('✓ Parandus salvestatud');
+      window.getSelection&&window.getSelection().removeAllRanges();
+    }catch(err){
+      console.error('Annotation save failed:', err);
+      setAnnotations(annotations);
+      notify&&notify('⚠ Parandust ei salvestatud');
+    }
+  };
+  const dismissAnnotation = async(annot) => {
+    if(!annot) return;
+    const next = annotations.map(a=>a.id===annot.id?{...a,dismissed:true,dismissedAt:new Date().toISOString()}:a);
+    setAnnotations(next);
+    setAnnotationView(null);
+    try{
+      await db.collection('worksheetAssignments').doc(assignment.id).update({annotations:next});
+      notify&&notify('✓ Märgitud selgeks');
+    }catch(err){
+      console.error('Annotation dismiss failed:', err);
+      setAnnotations(annotations);
+      notify&&notify('⚠ Märget ei salvestatud');
+    }
+  };
   const parseFill = text => {
     const parts=[]; let bi=0;
     text.split(/\[([^\]]+)\]/g).forEach((c,i)=>{
@@ -3412,9 +3497,24 @@ function WorksheetPlayer({assignment, onClose, onSubmit}) {
       </div>}
       {block.type==='writing'&&<div>
         <div style={{fontSize:'.86rem',marginBottom:8,color:'#42536A',lineHeight:1.5}}>{block.task}</div>
-        <textarea value={answers[block.id]||''} disabled={done} onChange={e=>setAns(block.id,e.target.value)}
+        {!done&&<textarea value={answers[block.id]||''} onChange={e=>setAns(block.id,e.target.value)}
           rows={block.lines||4} placeholder="Kirjuta siia..."
-          style={{width:'100%',padding:'9px 12px',borderRadius:9,border:'1.5px solid rgba(28,43,58,.12)',fontFamily:'inherit',fontSize:'.88rem',resize:'vertical',lineHeight:1.6}}/>
+          style={{width:'100%',padding:'9px 12px',borderRadius:9,border:'1.5px solid rgba(28,43,58,.12)',fontFamily:'inherit',fontSize:'.88rem',resize:'vertical',lineHeight:1.6}}/>}
+        {done&&(()=>{
+          const text = answers[block.id]||'';
+          const parts = splitAnnotatedText(text, annotationsForBlock(block.id));
+          return <div onMouseUp={e=>openAnnotationDraft(block,e)}
+            style={{width:'100%',minHeight:90,padding:'11px 13px',borderRadius:9,border:'1.5px solid rgba(28,43,58,.12)',background:'#F9F8F6',fontSize:'.9rem',lineHeight:1.65,whiteSpace:'pre-wrap',color:'#1C2B3A',userSelect:canAnnotate?'text':'auto',cursor:canAnnotate?'text':'default'}}>
+            {text?parts.map((part,pi)=>{
+              if(part.type==='text') return <span key={pi}>{part.text}</span>;
+              return <span key={part.annot.id} onClick={e=>{e.stopPropagation();setAnnotationDraft(null);setAnnotationView({annot:part.annot,x:e.clientX,y:e.clientY});}}
+                title={canAnnotate?'Parandus: '+(part.annot.parandus||''):'Kliki, et näha selgitust'}
+                style={{background:'rgba(220,38,38,.12)',color:'#991b1b',borderBottom:'2px solid #dc2626',borderRadius:3,padding:'0 2px',cursor:'pointer',fontWeight:650}}>
+                {part.text}
+              </span>;
+            }):<span style={{color:'#B0A898'}}>Vastus puudub.</span>}
+          </div>;
+        })()}
       </div>}
       {block.type==='dialogue'&&<div style={{border:'1px solid rgba(28,43,58,.1)',borderRadius:10,overflow:'hidden'}}>
         {(block.lines||[]).map((line,li)=>{
@@ -3507,6 +3607,38 @@ function WorksheetPlayer({assignment, onClose, onSubmit}) {
           {blocks.length===0&&<div style={{textAlign:'center',padding:'40px 0',color:'#B0A898'}}>Tööleht on tühi.</div>}
           {blocks.map((b,gi)=>renderBlock(b,gi))}
         </div>
+        {(annotationDraft||annotationView)&&<div onClick={closeAnnotationPopups} style={{position:'fixed',inset:0,zIndex:330}}>
+          {annotationDraft&&<div onClick={e=>e.stopPropagation()}
+            style={{position:'fixed',left:Math.min(annotationDraft.x+8,window.innerWidth-330),top:Math.min(annotationDraft.y+8,window.innerHeight-260),width:310,background:'#fff',border:'1px solid rgba(28,43,58,.14)',borderRadius:12,boxShadow:'0 14px 35px rgba(28,43,58,.22)',padding:14}}>
+            <div style={{fontSize:'.72rem',fontWeight:800,color:'#dc2626',textTransform:'uppercase',letterSpacing:'.07em',marginBottom:8}}>Parandus</div>
+            <div style={{fontSize:'.82rem',color:'#42536A',marginBottom:10}}>Valitud: <strong style={{color:'#1C2B3A'}}>{annotationDraft.selectedText}</strong></div>
+            <input value={annotationDraft.parandus} onChange={e=>setAnnotationDraft(p=>({...p,parandus:e.target.value}))}
+              placeholder="kogred → ahvenad"
+              style={{width:'100%',padding:'8px 10px',borderRadius:8,border:'1.5px solid rgba(28,43,58,.14)',fontFamily:'inherit',fontSize:'.84rem',marginBottom:8}}/>
+            <textarea value={annotationDraft.selgitus} onChange={e=>setAnnotationDraft(p=>({...p,selgitus:e.target.value}))}
+              placeholder="viga kirjaviisis" rows={3}
+              style={{width:'100%',padding:'8px 10px',borderRadius:8,border:'1.5px solid rgba(28,43,58,.14)',fontFamily:'inherit',fontSize:'.84rem',resize:'vertical',marginBottom:10}}/>
+            <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
+              <button onClick={()=>setAnnotationDraft(null)}
+                style={{padding:'7px 12px',borderRadius:8,border:'1px solid rgba(28,43,58,.12)',background:'#fff',fontFamily:'inherit',fontWeight:700,fontSize:'.78rem',cursor:'pointer'}}>Tühista</button>
+              <button onClick={saveAnnotation} disabled={!annotationDraft.parandus.trim()&&!annotationDraft.selgitus.trim()}
+                style={{padding:'7px 13px',borderRadius:8,border:'none',background:'#dc2626',color:'#fff',fontFamily:'inherit',fontWeight:800,fontSize:'.78rem',cursor:'pointer',opacity:(!annotationDraft.parandus.trim()&&!annotationDraft.selgitus.trim())?.5:1}}>Salvesta</button>
+            </div>
+          </div>}
+          {annotationView&&<div onClick={e=>e.stopPropagation()}
+            style={{position:'fixed',left:Math.min(annotationView.x+8,window.innerWidth-330),top:Math.min(annotationView.y+8,window.innerHeight-230),width:310,background:'#fff',border:'1px solid rgba(28,43,58,.14)',borderRadius:12,boxShadow:'0 14px 35px rgba(28,43,58,.22)',padding:14}}>
+            <div style={{fontSize:'.72rem',fontWeight:800,color:'#dc2626',textTransform:'uppercase',letterSpacing:'.07em',marginBottom:8}}>Õpetaja selgitus</div>
+            <div style={{fontSize:'.82rem',color:'#42536A',marginBottom:8}}>Tekst: <strong style={{color:'#1C2B3A'}}>{annotationView.annot.selectedText}</strong></div>
+            {annotationView.annot.parandus&&<div style={{padding:'8px 10px',borderRadius:8,background:'rgba(220,38,38,.08)',color:'#991b1b',fontWeight:700,fontSize:'.85rem',marginBottom:8}}>{annotationView.annot.parandus}</div>}
+            {annotationView.annot.selgitus&&<div style={{fontSize:'.84rem',lineHeight:1.45,color:'#1C2B3A',marginBottom:10}}>{annotationView.annot.selgitus}</div>}
+            <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
+              <button onClick={()=>setAnnotationView(null)}
+                style={{padding:'7px 12px',borderRadius:8,border:'1px solid rgba(28,43,58,.12)',background:'#fff',fontFamily:'inherit',fontWeight:700,fontSize:'.78rem',cursor:'pointer'}}>Sulge</button>
+              {canDismissAnnotations&&<button onClick={()=>dismissAnnotation(annotationView.annot)}
+                style={{padding:'7px 13px',borderRadius:8,border:'none',background:'#2F5D50',color:'#fff',fontFamily:'inherit',fontWeight:800,fontSize:'.78rem',cursor:'pointer'}}>Selge</button>}
+            </div>
+          </div>}
+        </div>}
         {!submitted&&blocks.length>0&&<div style={{padding:'14px 22px',borderTop:'1px solid rgba(28,43,58,.1)',background:'#fff',borderRadius:'0 0 20px 20px',display:'flex',justifyContent:'space-between',alignItems:'center',position:'sticky',bottom:0}}>
           <div style={{fontSize:'.8rem',color:'#718096'}}>Täida kõik ülesanded ja vajuta "Esita"</div>
           <button onClick={handleSubmit} disabled={submitting}
@@ -3662,7 +3794,7 @@ function KabinetView({user, myStudents, notify}) {
           </div>)}
         </div>
       </div>}
-      {openWs&&<WorksheetPlayer assignment={openWs} onClose={()=>setOpenWs(null)} onSubmit={submitAssignment}/>}
+      {openWs&&<WorksheetPlayer assignment={openWs} onClose={()=>setOpenWs(null)} onSubmit={submitAssignment} canDismissAnnotations={true} notify={notify}/>}
     </div>
   );
 }
@@ -3754,7 +3886,7 @@ function AssignedWorksheetsWidget({student, canManage, notify}) {
           );
         })}
       </div>
-      {openWs&&<WorksheetPlayer assignment={openWs} onClose={()=>setOpenWs(null)} onSubmit={submitAssignment}/>}
+      {openWs&&<WorksheetPlayer assignment={openWs} onClose={()=>setOpenWs(null)} onSubmit={submitAssignment} canAnnotate={canManage&&openWs.status==='done'} notify={notify}/>}
     </div>
   );
 }
