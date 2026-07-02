@@ -706,6 +706,44 @@ function getVocabForLevel(level){
 }
 
 // ── AI GENERATE (IMPROVED) ────────────────────────────────────
+function extractJsonObject(raw){
+  let text=String(raw||'').trim();
+  const fenced=text.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if(fenced) text=fenced[1].trim();
+  const start=text.indexOf('{');
+  if(start===-1)throw new Error('JSON object not found');
+
+  let depth=0,inString=false,escape=false;
+  for(let i=start;i<text.length;i++){
+    const ch=text[i];
+    if(inString){
+      if(escape){escape=false;continue;}
+      if(ch==='\\'){escape=true;continue;}
+      if(ch==='"')inString=false;
+      continue;
+    }
+    if(ch==='"'){inString=true;continue;}
+    if(ch==='{')depth++;
+    if(ch==='}'){
+      depth--;
+      if(depth===0)return text.slice(start,i+1);
+    }
+  }
+  throw new Error('JSON object is incomplete');
+}
+
+function parseAIJson(raw,label='AI response'){
+  const text=String(raw||'').trim();
+  try{return JSON.parse(text);}
+  catch(e1){
+    try{return JSON.parse(extractJsonObject(text));}
+    catch(e2){
+      console.error(label+' parse error. Raw:',text.slice(0,1200));
+      throw new Error('AI vastuse töötlemine ebaõnnestus: '+e2.message);
+    }
+  }
+}
+
 async function genAI(prompt, subject, level, didacticCtx={}){
   const{lessonType='',phase='',wordList='',blockCount=4,extraInstr='',sourceText='',imageBase64='',imageType=''}=didacticCtx;
 
@@ -810,17 +848,7 @@ ${extraInstr?'9. ERISOOV: '+extraInstr:''}`;
   const data=await res.json();
   if(data.error)throw new Error(data.error.message||JSON.stringify(data.error));
   const raw=(data.content?.[0]?.text||'').trim();
-  const stripFences=s=>{s=s.trim();s=s.replace(/^[\s]*```[a-z]*\s*/i,'');s=s.replace(/\s*```[\s]*$/,'');return s.trim();};
-  const clean=stripFences(raw);
-  try{return JSON.parse(clean);}
-  catch(e){
-    const m=clean.match(/\{[\s\S]*\}/);
-    if(m)try{return JSON.parse(m[0]);}catch(e2){}
-    const fi=raw.indexOf('{');const li=raw.lastIndexOf('}');
-    if(fi!==-1&&li>fi)try{return JSON.parse(raw.slice(fi,li+1));}catch(e3){}
-    console.error('Parse error. Raw:',raw.slice(0,600));
-    throw new Error('AI vastuse töötlemine ebaõnnestus: '+e.message);
-  }
+  return parseAIJson(raw,'AI worksheet');
 }
 
 
@@ -874,19 +902,7 @@ transformation: {"type":"transformation","instruction":"...","example":{"from":"
   const data=await res.json();
   if(data.error)throw new Error(data.error.message||JSON.stringify(data.error));
   const raw=(data.content?.[0]?.text||'').trim();
-  const stripFences=s=>{s=s.trim();s=s.replace(/^[\s]*```[a-z]*\s*/i,'');s=s.replace(/\s*```[\s]*$/,'');return s.trim();};
-  const clean=stripFences(raw);
-  let parsed;
-  try{parsed=JSON.parse(clean);}
-  catch(e){
-    const m=clean.match(/\{[\s\S]*\}/);
-    if(m)try{parsed=JSON.parse(m[0]);}catch(e2){}
-    if(!parsed){
-      const fi=raw.indexOf('{');const li=raw.lastIndexOf('}');
-      if(fi!==-1&&li>fi)try{parsed=JSON.parse(raw.slice(fi,li+1));}catch(e3){}
-    }
-    if(!parsed){console.error('Block regen parse error. Raw:',raw.slice(0,400));throw new Error('Ploki genereerimine ebaõnnestus');}
-  }
+  const parsed=parseAIJson(raw,'Block regen');
   // Preserve id, label, instruction overrides, image data, size from original unless AI explicitly changed them
   return {...block, ...parsed, id:block.id, label:block.label};
 }
