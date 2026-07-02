@@ -1917,7 +1917,7 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
 
         {/* Right sidebar */}
         {canManage&&(
-          <div style={{width:228,flexShrink:0,display:"flex",flexDirection:"column",gap:12}}>
+          <div style={{width:260,flexShrink:0,display:"flex",flexDirection:"column",gap:12}}>
 
             {/* Week stats card */}
             <div className="card" style={{padding:16}}>
@@ -7920,7 +7920,7 @@ function App() {
           {APP_VERSION}
         </div>
 
-        <div style={{padding:'28px',maxWidth:1100,margin:'0 auto'}}>
+        <div style={{padding:tab==='calendar'?'20px 24px':'28px',maxWidth:tab==='calendar'?'100%':1100,margin:'0 auto'}}>
           {notif&&<div style={{position:'fixed',top:20,right:20,background:'#1C2B3A',color:'#fff',padding:'12px 20px',borderRadius:12,zIndex:300,fontWeight:600,fontSize:'.9rem',boxShadow:'0 8px 28px rgba(0,0,0,.25)'}}>{notif}</div>}
 
           {tab==='dashboard'&&<Dashboard user={user} myStudents={myStudents} lessons={lessons} schedule={schedule} invoices={scopedInvoices} homework={homework} tasks={scopedTasks} staffMembers={staffMembers}
