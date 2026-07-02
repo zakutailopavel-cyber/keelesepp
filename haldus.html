@@ -1481,14 +1481,14 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
 
   const [showCanceled,setShowCanceled] = React.useState(true);
   const [weekOffset,setWeekOffset]     = React.useState(0);
+  const [quickAdd,setQuickAdd]         = React.useState(null);
   const [plannerSearch,setPlannerSearch] = React.useState('');
   const [plannerFilter,setPlannerFilter] = React.useState('all');
-  const [dragEv,setDragEv]             = React.useState(null); // {ev, sourceDay, sourceSlot}
-  const [dragOver,setDragOver]         = React.useState(null); // {day, slot}
+  const [dragEv,setDragEv]             = React.useState(null);
+  const [dragOver,setDragOver]         = React.useState(null);
   const [dragging,setDragging]         = React.useState(false);
-  const canManage = user.role==="teacher" || user.role==="admin";
+  const canManage = user.role==='teacher' || user.role==='admin';
 
-  // Вычисляем начало недели
   const weekStart = React.useMemo(()=>{
     const now = new Date();
     const day = now.getDay();
@@ -1508,7 +1508,6 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
       const dayId = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][jsDay];
       return {
         short: ["P","E","T","K","N","R","L"][jsDay],
-        full:  ["Pühapäev","Esmaspäev","Teisipäev","Kolmapäev","Neljapäev","Reede","Laupäev"][jsDay],
         iso, dayId,
         label: d.toLocaleDateString("et-EE",{day:"2-digit",month:"2-digit"}),
         isToday: iso===today()
@@ -1522,13 +1521,6 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
       +" – "+e.toLocaleDateString("et-EE",{day:"2-digit",month:"short",year:"numeric"});
   },[weekStart]);
 
-  const STATUS_META = {
-    Planeeritud: {bg:"rgba(47,93,80,.09)",border:"rgba(47,93,80,.2)",hover:"rgba(47,93,80,.18)",pill:"rgba(47,93,80,.14)",pillC:"#2F5D50",dot:"#2F5D50"},
-    Nihutatud:   {bg:"rgba(201,136,42,.09)",border:"rgba(201,136,42,.25)",hover:"rgba(201,136,42,.18)",pill:"rgba(201,136,42,.14)",pillC:"#A96E1A",dot:"#C9882A"},
-    Tühistatud:  {bg:"rgba(239,68,68,.07)",border:"rgba(239,68,68,.18)",hover:"rgba(239,68,68,.12)",pill:"rgba(239,68,68,.1)",pillC:"#991b1b",dot:"#ef4444"},
-    Toimunud:    {bg:"rgba(28,43,58,.06)",border:"rgba(28,43,58,.14)",hover:"rgba(28,43,58,.1)",pill:"rgba(28,43,58,.08)",pillC:"#42536A",dot:"#1C2B3A"},
-  };
-
   const filteredSch = React.useMemo(()=>{
     const linkedStudentNames = myStudents.map(s=>normalizeText(s.name));
     const linkedGroups = myStudents.map(s=>normalizeText(s.group)).filter(Boolean);
@@ -1540,40 +1532,29 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
           return Array.isArray(saved) ? saved.includes(lesson.id) : true;
         });
         return {
-          id:`group-${group.id}-${lesson.id}`,
-          groupId:group.id,
-          groupLessonId:lesson.id,
-          isGroup:true,
-          teacher:group.teacher||'Kõik',
-          studentName:group.name,
-          date:lesson.date||'',
-          day:lesson.day||'Mon',
-          time:lesson.time||'09:00',
-          status:lesson.status||'Planeeritud',
-          recurring:lesson.recurring!==false,
-          startDate:lesson.startDate||today(),
-          attendance:lesson.attendance||{},
-          students:assignedStudents,
-          groupMembers:assignedStudents
+          id:`group-${group.id}-${lesson.id}`,groupId:group.id,groupLessonId:lesson.id,isGroup:true,
+          teacher:group.teacher||'Kõik',studentName:group.name,date:lesson.date||'',
+          day:lesson.day||'Mon',time:lesson.time||'09:00',status:lesson.status||'Planeeritud',
+          recurring:lesson.recurring!==false,startDate:lesson.startDate||today(),
+          attendance:lesson.attendance||{},students:assignedStudents,groupMembers:assignedStudents
         };
       })
     );
     let list = canManage
-      ?(
-          isAdmin
-            ? (filterT==="Kõik"||!filterT?[...schedule,...groupEvents]:[
-                ...schedule.filter(s=>canonicalTeacherName(s.teacher)===canonicalTeacherName(filterT)),
-                ...groupEvents.filter(s=>canonicalTeacherName(s.teacher)===canonicalTeacherName(filterT) || s.teacher==='Kõik')
-              ])
-            : [...schedule.filter(s=>teacherMatches(s.teacher,user.displayName)),...groupEvents]
+      ?(isAdmin
+          ? (filterT==="Kõik"||!filterT?[...schedule,...groupEvents]:[
+              ...schedule.filter(s=>canonicalTeacherName(s.teacher)===canonicalTeacherName(filterT)),
+              ...groupEvents.filter(s=>canonicalTeacherName(s.teacher)===canonicalTeacherName(filterT)||s.teacher==='Kõik')
+            ])
+          : [...schedule.filter(s=>teacherMatches(s.teacher,user.displayName)),...groupEvents]
         )
       :schedule.filter(s=>{
-        const target = normalizeText(s.studentName);
-        return linkedStudentNames.includes(target) || linkedGroups.includes(target);
-      }).concat(groupEvents.filter(event=>
-        (event.students||[]).some(studentId=>myStudentIds.has(studentId)) ||
-        (!(event.students||[]).length && linkedGroups.includes(normalizeText(event.studentName)))
-      ));
+          const target=normalizeText(s.studentName);
+          return linkedStudentNames.includes(target)||linkedGroups.includes(target);
+        }).concat(groupEvents.filter(event=>
+          (event.students||[]).some(studentId=>myStudentIds.has(studentId))||
+          (!(event.students||[]).length&&linkedGroups.includes(normalizeText(event.studentName)))
+        ));
     if(!showCanceled) list=list.filter(s=>s.status!=="Tühistatud");
     return list;
   },[schedule,groups,myStudents,filterT,showCanceled,canManage,isAdmin,user]);
@@ -1581,415 +1562,456 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
   const getEventsForSlot = (slot, day) =>
     filteredSch.filter(s=>{
       if(s.time!==slot) return false;
-      if(s.recurring && s.startDate && day.iso < s.startDate) return false;
+      if(s.recurring&&s.startDate&&day.iso<s.startDate) return false;
       if(s.date) return s.date===day.iso;
       return s.day===day.dayId;
     });
 
-  // ── Drag & Drop ──────────────────────────────────────────────
-  const handleDragStart = React.useCallback((e, ev, day, slot) => {
-    if(!canManage) return;
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', ev.id);
-    setDragEv({ev, sourceDay:day.iso, sourceSlot:slot});
-    setDragging(true);
-  },[canManage]);
+  // Only show time slots that have at least one event this week
+  const occupiedSlots = React.useMemo(()=>{
+    const hasEvent = slot => weekDays.some(day=>getEventsForSlot(slot,day).length>0);
+    return TIMES.filter(hasEvent);
+  },[filteredSch,weekDays]);
 
-  const handleDragEnd = React.useCallback(() => {
-    setDragging(false);
-    setDragEv(null);
-    setDragOver(null);
-  },[]);
-
-  const handleDrop = React.useCallback(async(e, targetDay, targetSlot) => {
-    e.preventDefault();
-    setDragOver(null);
-    setDragging(false);
-    if(!dragEv || !dragEv.ev?.id) return;
-    const {ev, sourceDay, sourceSlot} = dragEv;
-    if(sourceDay===targetDay.iso && sourceSlot===targetSlot) return;
-    const jsDay = new Date(targetDay.iso).getDay();
-    const dayId = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][jsDay];
-    try {
-      const patch = ev.date
-        ? {date:targetDay.iso, day:dayId, time:targetSlot, status:ev.status==='Tühistatud'?ev.status:'Planeeritud'}
-        : {day:dayId, time:targetSlot};
-      await window._db.collection('schedule').doc(ev.id).update(patch);
-      notify(`✓ Tund liigutatud: ${ev.studentName} → ${targetDay.label} ${targetSlot}`);
-    } catch(err) {
-      console.error('Drag reschedule failed:', err);
-      notify('⚠ Tunni liigutamine ebaõnnestus');
-    }
-    setDragEv(null);
-  },[dragEv, notify]);
-
-  const plannerTeacher = React.useMemo(()=>{
-    if(isAdmin && filterT && filterT!=="Kõik") return canonicalTeacherName(filterT);
-    return canonicalTeacherName(user.displayName||'');
-  },[isAdmin,filterT,user]);
-
-  const plannerTeacherSelectValue = React.useMemo(()=>
-    TEACHERS.find(t=>canonicalTeacherName(t)===plannerTeacher) || (isAdmin && filterT && filterT!=="Kõik" ? filterT : schTeach)
-  ,[plannerTeacher,isAdmin,filterT,schTeach]);
+  const weekStats = React.useMemo(()=>{
+    let total=0,done=0,canceled=0,planned=0,revenue=0;
+    occupiedSlots.forEach(slot=>{
+      weekDays.forEach(day=>{
+        getEventsForSlot(slot,day).forEach(ev=>{
+          total++;
+          if(ev.status==='Toimunud') done++;
+          else if(ev.status==='Tühistatud') canceled++;
+          else planned++;
+          const stu=students.find(s=>s.id===ev.studentId||normalizeText(s.name)===normalizeText(ev.studentName));
+          if(stu?.lessonPrice) revenue+=stu.lessonPrice;
+        });
+      });
+    });
+    return {total,done,canceled,planned,revenue};
+  },[occupiedSlots,weekDays,students]);
 
   const weekEventList = React.useMemo(()=>filteredSch.filter(ev=>
     weekDays.some(day=>{
-      if(ev.recurring && ev.startDate && day.iso < ev.startDate) return false;
+      if(ev.recurring&&ev.startDate&&day.iso<ev.startDate) return false;
       if(ev.date) return ev.date===day.iso;
       return ev.day===day.dayId;
     })
   ),[filteredSch,weekDays]);
 
+  const plannerTeacher = React.useMemo(()=>{
+    if(isAdmin&&filterT&&filterT!=="Kõik") return canonicalTeacherName(filterT);
+    return canonicalTeacherName(user.displayName||'');
+  },[isAdmin,filterT,user]);
+
   const plannerRows = React.useMemo(()=>{
     const eventMatchesStudent = (ev,student)=>{
-      const evName = normalizeText(ev.studentName);
-      const studentName = normalizeText(student.name);
-      const studentGroup = normalizeText(student.group);
-      return ev.studentId===student.id ||
-        (ev.students||[]).includes(student.id) ||
-        evName===studentName ||
-        (!!studentGroup && evName===studentGroup);
+      const evName=normalizeText(ev.studentName);
+      const sName=normalizeText(student.name);
+      const sGroup=normalizeText(student.group);
+      return ev.studentId===student.id||(ev.students||[]).includes(student.id)||evName===sName||(!!sGroup&&evName===sGroup);
     };
-    const q = normalizeText(plannerSearch);
+    const q=normalizeText(plannerSearch);
     return myStudents
-      .filter(student=>student.active!==false)
-      .filter(student=>!plannerTeacher || teacherMatches(student.teacher,plannerTeacher))
+      .filter(s=>s.active!==false)
+      .filter(s=>!plannerTeacher||teacherMatches(s.teacher,plannerTeacher))
       .map(student=>{
-        const lessonsThisWeek = weekEventList.filter(ev=>eventMatchesStudent(ev,student) && ev.status!=="Tühistatud");
-        const canceledThisWeek = weekEventList.filter(ev=>eventMatchesStudent(ev,student) && ev.status==="Tühistatud").length;
-        const targetRaw = student.weeklyLessons || student.lessonsPerWeek || student.weeklyTarget || student.lessonGoal || '';
-        const target = parseInt(targetRaw,10) || 0;
-        const left = target ? Math.max(target-lessonsThisWeek.length,0) : null;
-        return {student,lessonsThisWeek,canceledThisWeek,target,left};
+        const lessonsThisWeek=weekEventList.filter(ev=>eventMatchesStudent(ev,student)&&ev.status!=="Tühistatud");
+        const target=parseInt(student.weeklyLessons||student.lessonsPerWeek||0,10)||0;
+        return {student,lessonsThisWeek,target,left:target?Math.max(target-lessonsThisWeek.length,0):null};
       })
       .filter(row=>{
-        if(q && ![row.student.name,row.student.parentName,row.student.subject,row.student.level,row.student.targetLevel,row.student.group,row.student.grade]
-          .some(value=>normalizeText(value).includes(q))) return false;
+        if(q&&!normalizeText(row.student.name).includes(q)) return false;
         if(plannerFilter==="empty") return row.lessonsThisWeek.length===0;
-        if(plannerFilter==="under") return row.target>0 && row.lessonsThisWeek.length<row.target;
-        if(plannerFilter==="group") return !!row.student.group;
+        if(plannerFilter==="under") return row.target>0&&row.lessonsThisWeek.length<row.target;
         return true;
       })
       .sort((a,b)=>{
-        const aMissing = a.target>0 ? a.left : (a.lessonsThisWeek.length===0 ? 1 : 0);
-        const bMissing = b.target>0 ? b.left : (b.lessonsThisWeek.length===0 ? 1 : 0);
-        return bMissing-aMissing || normalizeText(a.student.name).localeCompare(normalizeText(b.student.name),'et');
+        const am=a.target>0?(a.left||0):(a.lessonsThisWeek.length===0?1:0);
+        const bm=b.target>0?(b.left||0):(b.lessonsThisWeek.length===0?1:0);
+        return bm-am||normalizeText(a.student.name).localeCompare(normalizeText(b.student.name),'et');
       });
   },[myStudents,plannerTeacher,weekEventList,plannerSearch,plannerFilter]);
 
-  const setBookingFromStudent = student=>{
-    setSchStu(student.name||'');
-    if(isAdmin && plannerTeacherSelectValue) setSchTeach(plannerTeacherSelectValue);
-    if(!schDate) setSchDate(today());
+  const handleDragStart = React.useCallback((e,ev,day,slot)=>{
+    if(!canManage) return;
+    e.dataTransfer.effectAllowed='move';
+    setDragEv({ev,sourceDay:day.iso,sourceSlot:slot});
+    setDragging(true);
+  },[canManage]);
+
+  const handleDragEnd = React.useCallback(()=>{setDragging(false);setDragEv(null);setDragOver(null);},[]);
+
+  const handleDrop = React.useCallback(async(e,targetDay,targetSlot)=>{
+    e.preventDefault();setDragOver(null);setDragging(false);
+    if(!dragEv||!dragEv.ev?.id) return;
+    const {ev,sourceDay,sourceSlot}=dragEv;
+    if(sourceDay===targetDay.iso&&sourceSlot===targetSlot) return;
+    const jsDay=new Date(targetDay.iso).getDay();
+    const dayId=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][jsDay];
+    try{
+      const patch=ev.date?{date:targetDay.iso,day:dayId,time:targetSlot,status:ev.status==='Tühistatud'?ev.status:'Planeeritud'}:{day:dayId,time:targetSlot};
+      await window._db.collection('schedule').doc(ev.id).update(patch);
+      notify(`✓ Tund liigutatud: ${ev.studentName} → ${targetDay.label} ${targetSlot}`);
+    }catch(err){notify('⚠ Tunni liigutamine ebaõnnestus');}
+    setDragEv(null);
+  },[dragEv,notify]);
+
+  const tColor = t=>{
+    if(!t) return DEFAULT_TEACHER_COLOR;
+    const key=Object.keys(TEACHER_COLORS).find(k=>normalizeText(k)===normalizeText(t));
+    return key?TEACHER_COLORS[key]:DEFAULT_TEACHER_COLOR;
   };
 
+  const missingCount=plannerRows.filter(r=>r.lessonsThisWeek.length===0).length;
+
   return(
-    <div className="fade-in" style={{display:"flex",flexDirection:"column",gap:20}}>
-      {/* Заголовок */}
-      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:12}}>
+    <div className="fade-in" style={{display:"flex",flexDirection:"column",gap:14}}>
+
+      {/* Header */}
+      <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",flexWrap:"wrap",gap:10}}>
         <div>
           <h1 style={{fontSize:"1.7rem"}}>Tunniplaan</h1>
-          <div style={{fontSize:".85rem",color:"#42536A",marginTop:4}}>Nädal: {weekLabel}</div>
+          <div style={{fontSize:".84rem",color:"#42536A",marginTop:3,display:"flex",gap:10,flexWrap:"wrap"}}>
+            <span>{weekLabel}</span>
+            <span>·</span>
+            <strong>{weekStats.total} tundi</strong>
+            {weekStats.done>0&&<span style={{color:'#166534'}}>· {weekStats.done} toimunud</span>}
+            {weekStats.canceled>0&&<span style={{color:'#dc2626'}}>· {weekStats.canceled} tühistatud</span>}
+            {weekStats.revenue>0&&<span style={{color:'#2F5D50'}}>· {weekStats.revenue}€</span>}
+          </div>
         </div>
-        <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
-          {isAdmin&&(
-            <select value={filterT} onChange={e=>setFilterT(e.target.value)} style={{width:"auto",minWidth:160}}>
-              {TEACHERS.map(t=><option key={t}>{t}</option>)}
-              <option value="Kõik">Kõik õpetajad</option>
-            </select>
-          )}
-          <label style={{display:"flex",alignItems:"center",gap:6,padding:"8px 12px",background:"#fff",borderRadius:10,border:"1px solid rgba(28,43,58,.12)",cursor:"pointer",fontSize:".82rem",fontWeight:500}}>
-            <input type="checkbox" checked={showCanceled} onChange={e=>setShowCanceled(e.target.checked)} style={{width:"auto",padding:0,border:"none!important",boxShadow:"none!important"}}/>
-            Näita tühistatud
-          </label>
+        <div style={{display:"flex",gap:6}}>
           <button onClick={()=>setWeekOffset(w=>w-1)} className="btn btn-ghost btn-sm">← Eelmine</button>
-          <button onClick={()=>setWeekOffset(0)} className="btn btn-ghost btn-sm">See nädal</button>
+          <button onClick={()=>setWeekOffset(0)} className="btn btn-sm"
+            style={{background:weekOffset===0?'#1C2B3A':'#fff',color:weekOffset===0?'#fff':'#1C2B3A',
+              border:'1.5px solid '+(weekOffset===0?'#1C2B3A':'rgba(28,43,58,.15)')}}>
+            Täna
+          </button>
           <button onClick={()=>setWeekOffset(w=>w+1)} className="btn btn-ghost btn-sm">Järgmine →</button>
         </div>
       </div>
 
-      {/* Легенда учителей + статусов */}
-      <div style={{display:"flex",gap:6,flexWrap:"wrap",alignItems:"center"}}>
-        <span style={{fontSize:".72rem",color:"#42536A",fontWeight:700,marginRight:2}}>Õpetajad:</span>
-        {Object.entries(TEACHER_COLORS).map(([name,col])=>(
-          <span key={name} style={{display:"inline-flex",alignItems:"center",gap:5,padding:"3px 9px",borderRadius:999,
-            background:col.bg,fontSize:".72rem",fontWeight:700,color:col.text,
-            borderLeft:`3px solid ${col.dot}`,paddingLeft:7}}>
-            {name}
-          </span>
-        ))}
-        <span style={{width:1,height:14,background:'rgba(28,43,58,.12)',margin:'0 4px'}}/>
-        <span style={{fontSize:".72rem",color:"#42536A",fontWeight:700,marginRight:2}}>Staatus:</span>
-        {Object.entries(STATUS_META).map(([k,m])=>(
-          <span key={k} style={{display:"inline-flex",alignItems:"center",gap:4,padding:"3px 8px",borderRadius:999,
-            background:m.pill,color:m.pillC,fontSize:".72rem",fontWeight:600}}>
-            <span style={{width:5,height:5,borderRadius:"50%",background:m.dot,flexShrink:0}}/>
-            {k}
-          </span>
-        ))}
+      {/* Teacher pills + status legend */}
+      <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
+        {isAdmin&&(
+          <>
+            <span style={{fontSize:".7rem",fontWeight:700,color:"#9ca3af"}}>Õpetaja:</span>
+            {[...Object.keys(TEACHER_COLORS),'Kõik'].map(t=>{
+              const col=tColor(t);
+              const active=(t==='Kõik'&&(!filterT||filterT==='Kõik'))||canonicalTeacherName(filterT)===canonicalTeacherName(t);
+              return(
+                <button key={t} onClick={()=>setFilterT(t)}
+                  style={{padding:'3px 11px',borderRadius:999,
+                    border:'1.5px solid '+(active?col.dot:'rgba(28,43,58,.1)'),
+                    background:active?col.bg:'transparent',color:active?col.text:'#42536A',
+                    cursor:'pointer',fontFamily:'inherit',fontSize:'.74rem',fontWeight:active?700:400,transition:'all .12s'}}>
+                  {t}
+                </button>
+              );
+            })}
+            <div style={{width:1,height:14,background:'rgba(28,43,58,.12)'}}/>
+          </>
+        )}
+        <label style={{display:"flex",alignItems:"center",gap:5,fontSize:".74rem",color:"#42536A",cursor:"pointer"}}>
+          <input type="checkbox" checked={showCanceled} onChange={e=>setShowCanceled(e.target.checked)} style={{width:"auto"}}/>
+          Tühistatud
+        </label>
       </div>
 
-      {/* Google Calendar — прямо в Tunniplaan, перед бронированием */}
+      {/* Google Calendar */}
       {canManage&&<GCalSettings user={user} notify={notify}/>}
 
-      {/* Форма бронирования */}
-      {canManage&&(
-        <div className="card" style={{padding:20}}>
-          <div style={{fontSize:".78rem",fontWeight:700,color:"#42536A",textTransform:"uppercase",letterSpacing:".08em",marginBottom:12}}>
-            Broneeri uus tund
-          </div>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(170px,1fr))",gap:10,marginBottom:12}}>
-            <StuSearch
-              value={schStu}
-              onChange={setSchStu}
-              students={myStudents.filter(s=>s.active!==false)}
-              placeholder="Otsi õpilast…"
-            />
-            <input type="date" value={schDate} onChange={e=>setSchDate(e.target.value)}/>
-            <select value={schTime} onChange={e=>setSchTime(e.target.value)}>
-              {TIMES.map(t=><option key={t}>{t}</option>)}
-            </select>
-            {isAdmin&&<select value={schTeach} onChange={e=>setSchTeach(e.target.value)}>
-              {TEACHERS.map(t=><option key={t}>{t}</option>)}
-            </select>}
-          </div>
-          <label style={{display:"inline-flex",alignItems:"center",gap:8,padding:"8px 12px",background:"#F9F8F6",borderRadius:10,border:"1px solid rgba(28,43,58,.08)",cursor:"pointer",fontSize:".84rem",fontWeight:500,marginBottom:12,width:"fit-content"}}>
-            <input type="checkbox" checked={schRecurring} onChange={e=>setSchRecurring(e.target.checked)} style={{width:"auto",padding:0,border:"none!important",boxShadow:"none!important"}}/>
-            Korda igal nädalal automaatselt
-          </label>
-          <button onClick={addSchedule} className="btn btn-pine" style={{width:"100%"}}>
-            <i className="fa-solid fa-calendar-plus"/> {schRecurring?'Loo korduv tund':'Kinnita tund'}
-          </button>
-        </div>
-      )}
+      {/* Main layout: grid + sidebar */}
+      <div style={{display:"flex",gap:14,alignItems:"flex-start"}}>
 
-      {/* Сетка календаря */}
-      <div className="card" style={{overflow:"hidden"}}>
-        <div className="scroll" style={{overflowX:"auto"}}>
-          <div style={{minWidth:720}}>
-            {/* Заголовок дней */}
-            <div style={{display:"grid",gridTemplateColumns:"64px repeat(7,1fr)",background:"#EFEDE7",borderBottom:"1px solid rgba(28,43,58,.1)"}}>
-              <div style={{padding:"10px 8px",textAlign:"center",fontSize:".72rem",fontWeight:700,color:"#42536A"}}>Kell</div>
-              {weekDays.map(d=>(
-                <div key={d.iso} style={{padding:"10px 4px",textAlign:"center",borderLeft:"1px solid rgba(28,43,58,.08)",
-                  background:d.isToday?"rgba(201,136,42,.06)":"transparent"}}>
-                  <div style={{fontSize:".78rem",fontWeight:700,color:d.isToday?"#C9882A":"#1C2B3A"}}>{d.short}</div>
-                  <div style={{fontSize:".7rem",fontWeight:600,color:d.isToday?"#C9882A":"#42536A",marginTop:1}}>{d.label}</div>
+        {/* Left: booking form + grid */}
+        <div style={{flex:1,minWidth:0,display:"flex",flexDirection:"column",gap:12}}>
+
+          {/* Booking form */}
+          {canManage&&(
+            <div id="cal-booking-form" className="card"
+              style={{padding:16,border:quickAdd?'1.5px solid rgba(201,136,42,.4)':'1px solid rgba(28,43,58,.07)'}}>
+              <div style={{fontSize:".74rem",fontWeight:700,color:"#42536A",textTransform:"uppercase",letterSpacing:".08em",marginBottom:10}}>
+                {quickAdd?`📅 Broneeri: ${quickAdd.label} kell ${quickAdd.slot}`:'📅 Broneeri uus tund'}
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(155px,1fr))",gap:8,marginBottom:10}}>
+                <StuSearch value={schStu} onChange={setSchStu} students={myStudents.filter(s=>s.active!==false)} placeholder="Otsi õpilast…"/>
+                <input type="date" value={schDate} onChange={e=>{setSchDate(e.target.value);setQuickAdd(null);}}/>
+                <select value={schTime} onChange={e=>setSchTime(e.target.value)}>
+                  {TIMES.map(t=><option key={t}>{t}</option>)}
+                </select>
+                {isAdmin&&<select value={schTeach} onChange={e=>setSchTeach(e.target.value)}>
+                  {TEACHERS.map(t=><option key={t}>{t}</option>)}
+                </select>}
+              </div>
+              <div style={{display:"flex",gap:8,alignItems:"center"}}>
+                <label style={{display:"flex",alignItems:"center",gap:5,fontSize:".8rem",color:"#42536A",cursor:"pointer"}}>
+                  <input type="checkbox" checked={schRecurring} onChange={e=>setSchRecurring(e.target.checked)} style={{width:"auto"}}/>
+                  Korduv
+                </label>
+                <button onClick={addSchedule} className="btn btn-pine" style={{flex:1}}>
+                  <i className="fa-solid fa-calendar-plus"/> {schRecurring?'Loo korduv':'Kinnita tund'}
+                </button>
+                {quickAdd&&<button onClick={()=>setQuickAdd(null)} className="btn btn-ghost btn-sm">✕</button>}
+              </div>
+            </div>
+          )}
+
+          {/* Calendar grid */}
+          <div className="card" style={{overflow:"hidden"}}>
+            <div className="scroll" style={{overflowX:"auto"}}>
+              <div style={{minWidth:560}}>
+                {/* Day headers */}
+                <div style={{display:"grid",gridTemplateColumns:"52px repeat(7,1fr)",
+                  background:"#EFEDE7",borderBottom:"1px solid rgba(28,43,58,.1)"}}>
+                  <div style={{padding:"8px",textAlign:"center",fontSize:".64rem",fontWeight:700,color:"#9ca3af"}}>Kell</div>
+                  {weekDays.map(d=>(
+                    <div key={d.iso} style={{padding:"7px 4px",textAlign:"center",
+                      borderLeft:"1px solid rgba(28,43,58,.08)",
+                      background:d.isToday?"rgba(201,136,42,.07)":"transparent"}}>
+                      <div style={{fontSize:".7rem",fontWeight:700,color:d.isToday?"#C9882A":"#1C2B3A"}}>{d.short}</div>
+                      <div style={{fontSize:".72rem",fontWeight:600,color:d.isToday?"#C9882A":"#42536A",marginTop:1}}>{d.label}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Occupied slots only */}
+                {occupiedSlots.length===0&&(
+                  <div style={{padding:"32px",textAlign:"center",color:"#42536A",fontSize:".88rem"}}>
+                    Sellel nädalal tunde ei ole.
+                  </div>
+                )}
+                {occupiedSlots.map((slot,si)=>{
+                  const prev=occupiedSlots[si-1];
+                  const gapH=prev?(parseInt(slot)-parseInt(prev)):(parseInt(slot)-7);
+                  return(
+                    <React.Fragment key={slot}>
+                      {gapH>1&&(
+                        <div style={{display:"grid",gridTemplateColumns:"52px repeat(7,1fr)",
+                          background:"rgba(239,237,231,.5)",height:14,
+                          borderTop:"0.5px solid rgba(28,43,58,.05)",borderBottom:"0.5px solid rgba(28,43,58,.05)"}}>
+                          <div style={{display:"flex",alignItems:"center",justifyContent:"center",
+                            fontSize:".6rem",color:"#B0A898",fontFamily:"monospace",
+                            background:"rgba(239,237,231,.5)",borderRight:"1px solid rgba(28,43,58,.05)"}}>
+                            ···
+                          </div>
+                          {weekDays.map(d=><div key={d.iso} style={{borderLeft:"1px solid rgba(28,43,58,.03)"}}/>)}
+                        </div>
+                      )}
+                      <div style={{display:"grid",gridTemplateColumns:"52px repeat(7,1fr)",
+                        borderBottom:"0.5px solid rgba(28,43,58,.06)"}}>
+                        <div style={{display:"flex",alignItems:"flex-start",justifyContent:"center",
+                          paddingTop:6,fontSize:".68rem",fontFamily:"monospace",fontWeight:700,color:"#9ca3af",
+                          background:"rgba(239,237,231,.3)",borderRight:"1px solid rgba(28,43,58,.06)"}}>
+                          {slot}
+                        </div>
+                        {weekDays.map(day=>{
+                          const evs=getEventsForSlot(slot,day);
+                          const isDropTarget=dragOver&&dragOver.day===day.iso&&dragOver.slot===slot;
+                          return(
+                            <div key={day.iso}
+                              onDragOver={e=>{if(canManage&&dragging){e.preventDefault();setDragOver({day:day.iso,slot});}}}
+                              onDragLeave={()=>setDragOver(null)}
+                              onDrop={e=>handleDrop(e,day,slot)}
+                              onClick={evs.length===0&&canManage?()=>{
+                                setSchDate(day.iso);setSchTime(slot);
+                                setQuickAdd({label:day.label,slot});
+                                setTimeout(()=>document.getElementById('cal-booking-form')?.scrollIntoView({behavior:'smooth',block:'center'}),50);
+                              }:undefined}
+                              style={{padding:3,borderLeft:"0.5px solid rgba(28,43,58,.05)",
+                                minHeight:evs.length>0?'auto':38,display:"flex",flexDirection:"column",gap:2,
+                                background:isDropTarget?"rgba(47,93,80,.12)":day.isToday?"rgba(201,136,42,.02)":"transparent",
+                                outline:isDropTarget?"1.5px dashed #2F5D50":"none",
+                                cursor:evs.length===0&&canManage?"pointer":"default",
+                                transition:"background .1s",position:"relative"}}>
+                              {evs.length===0&&canManage&&(
+                                <div className="quick-add-hint"
+                                  style={{position:"absolute",inset:0,display:"flex",alignItems:"center",
+                                    justifyContent:"center",fontSize:".64rem",color:"rgba(28,43,58,.0)",
+                                    transition:"all .15s",borderRadius:3}}>
+                                  +
+                                </div>
+                              )}
+                              {evs.map(ev=>{
+                                const st=ev.status||"Planeeritud";
+                                const tc=tColor(ev.teacher);
+                                const isDraggingThis=dragEv?.ev?.id===ev.id;
+                                const linkedStu=!canManage?myStudents.find(stu=>{
+                                  const target=normalizeText(ev.studentName);
+                                  return normalizeText(stu.name)===target||normalizeText(stu.group)===target||(ev.students||[]).includes(stu.id);
+                                }):null;
+                                const attendanceKey=linkedStu?`${linkedStu.id}_${day.iso}`:"";
+                                const attendanceStatus=attendanceKey?ev.attendance?.[attendanceKey]?.status:"";
+                                return(
+                                  <div key={ev.id+day.iso}
+                                    draggable={canManage}
+                                    onDragStart={e=>handleDragStart(e,ev,day,slot)}
+                                    onDragEnd={handleDragEnd}
+                                    onClick={e=>{e.stopPropagation();canManage&&openScheduleEditor({...ev,occurrenceDate:day.iso});}}
+                                    style={{fontSize:".71rem",padding:"4px 5px",borderRadius:6,
+                                      cursor:canManage?"pointer":"default",
+                                      background:st==='Tühistatud'?"rgba(239,68,68,.07)":tc.bg,
+                                      borderLeft:`3px solid ${st==='Tühistatud'?'#ef4444':tc.dot}`,
+                                      border:`0.5px solid ${st==='Tühistatud'?'rgba(239,68,68,.2)':tc.border}`,
+                                      borderLeftWidth:3,
+                                      opacity:isDraggingThis?.3:st==="Tühistatud"?.5:1,
+                                      userSelect:'none',transition:"background .1s"}}
+                                    onMouseEnter={e=>{if(canManage&&!isDraggingThis)e.currentTarget.style.background=tc.hover;}}
+                                    onMouseLeave={e=>{e.currentTarget.style.background=st==='Tühistatud'?"rgba(239,68,68,.07)":tc.bg;}}>
+                                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:2}}>
+                                      <span style={{fontWeight:700,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",
+                                        color:st==="Tühistatud"?"#991b1b":tc.text,flex:1,minWidth:0,
+                                        textDecoration:st==="Tühistatud"?"line-through":"none"}}>
+                                        {ev.studentName}
+                                      </span>
+                                      {canManage&&(
+                                        <button onClick={e=>{e.stopPropagation();delSchedule(ev.id,e);}}
+                                          style={{background:"none",border:"none",cursor:"pointer",
+                                            color:"rgba(0,0,0,.15)",fontSize:".58rem",padding:0,lineHeight:1,flexShrink:0}}
+                                          onMouseEnter={e=>{e.currentTarget.style.color="#ef4444";e.stopPropagation();}}
+                                          onMouseLeave={e=>e.currentTarget.style.color="rgba(0,0,0,.15)"}>✕</button>
+                                      )}
+                                    </div>
+                                    <div style={{fontSize:".58rem",color:tc.dot,marginTop:1,display:"flex",gap:3,alignItems:'center'}}>
+                                      {!ev.date&&<span style={{opacity:.6}}>↻</span>}
+                                      {(isAdmin&&(filterT==='Kõik'||!filterT))&&<span style={{fontWeight:600}}>{ev.teacher}</span>}
+                                      {st==="Toimunud"&&<span style={{color:'#166534'}}>✓</span>}
+                                      {(st==='Tühistatud'||st==='Nihutatud')&&<span style={{color:st==='Tühistatud'?'#dc2626':'#C9882A',fontWeight:600}}>{st}</span>}
+                                    </div>
+                                    {!canManage&&linkedStu&&ev.id&&st!=="Tühistatud"&&(
+                                      <div style={{display:"flex",gap:3,marginTop:3,flexWrap:"wrap"}}>
+                                        <button onClick={e=>{e.stopPropagation();markAttendance(ev,attendanceKey,"coming");}}
+                                          className="btn btn-pine btn-sm"
+                                          style={{padding:"2px 5px",fontSize:".58rem",opacity:attendanceStatus==="coming"?1:.8}}>
+                                          Tuleb
+                                        </button>
+                                        <button onClick={e=>{e.stopPropagation();markAttendance(ev,attendanceKey,"absent");}}
+                                          className="btn btn-red btn-sm"
+                                          style={{padding:"2px 5px",fontSize:".58rem",opacity:attendanceStatus==="absent"?1:.8}}>
+                                          Ei tule
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </React.Fragment>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+          {/* Quick add hover CSS */}
+          <style>{`.time-cell:hover .quick-add-hint{color:rgba(47,93,80,.5)!important;}`}</style>
+        </div>
+
+        {/* Right sidebar */}
+        {canManage&&(
+          <div style={{width:228,flexShrink:0,display:"flex",flexDirection:"column",gap:12}}>
+
+            {/* Week stats card */}
+            <div className="card" style={{padding:16}}>
+              <div style={{fontSize:".66rem",fontWeight:800,color:"#9ca3af",textTransform:"uppercase",letterSpacing:".1em",marginBottom:10}}>
+                Nädala kokkuvõte
+              </div>
+              {[
+                {l:'Tunde kokku',  v:weekStats.total,           c:'#1C2B3A'},
+                {l:'Toimunud',     v:weekStats.done,            c:'#166534'},
+                {l:'Planeeritud',  v:weekStats.planned,         c:'#1d4ed8'},
+                {l:'Tühistatud',   v:weekStats.canceled,        c:'#dc2626'},
+                {l:'Oodatav tulu', v:weekStats.revenue+'€',     c:'#2F5D50'},
+              ].map(s=>(
+                <div key={s.l} style={{display:"flex",justifyContent:"space-between",alignItems:"center",
+                  padding:"5px 0",borderBottom:"0.5px solid rgba(28,43,58,.06)"}}>
+                  <span style={{fontSize:".76rem",color:"#42536A"}}>{s.l}</span>
+                  <span style={{fontSize:".82rem",fontWeight:700,color:s.c}}>{s.v}</span>
                 </div>
               ))}
             </div>
-            {/* Строки времени */}
-            {TIMES.map(slot=>(
-              <div key={slot} style={{display:"grid",gridTemplateColumns:"64px repeat(7,1fr)",minHeight:48,borderBottom:"1px solid rgba(28,43,58,.04)"}}>
-                <div style={{display:"flex",alignItems:"center",justifyContent:"center",fontSize:".72rem",fontFamily:"monospace",fontWeight:700,color:"#9ca3af",background:"rgba(239,237,231,.3)",borderRight:"1px solid rgba(28,43,58,.06)"}}>
-                  {slot}
+
+            {/* Spikker card */}
+            <div className="card" style={{padding:16}}>
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8,gap:6,flexWrap:"wrap"}}>
+                <div style={{fontSize:".66rem",fontWeight:800,color:"#9ca3af",textTransform:"uppercase",letterSpacing:".1em"}}>
+                  Õpilaste spikker
                 </div>
-                {weekDays.map(day=>{
-                  const evs = getEventsForSlot(slot, day);
-                  const isDropTarget = dragOver && dragOver.day===day.iso && dragOver.slot===slot;
-                  const isDragSource = dragEv && evs.some(e=>e.id===dragEv.ev?.id);
+                <div style={{display:"flex",gap:3}}>
+                  {[['all','Kõik'],['empty','0 t'],['under','Vähe']].map(([id,l])=>(
+                    <button key={id} onClick={()=>setPlannerFilter(id)}
+                      style={{padding:"2px 7px",borderRadius:6,
+                        border:"0.5px solid rgba(28,43,58,.1)",
+                        background:plannerFilter===id?"#1C2B3A":"transparent",
+                        color:plannerFilter===id?"#fff":"#42536A",
+                        cursor:"pointer",fontSize:".64rem",fontWeight:600,fontFamily:"inherit"}}>
+                      {l}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <input value={plannerSearch} onChange={e=>setPlannerSearch(e.target.value)}
+                placeholder="Otsi..." style={{marginBottom:8,fontSize:".78rem"}}/>
+              {missingCount>0&&plannerFilter==='all'&&(
+                <div style={{padding:"5px 9px",borderRadius:7,background:"rgba(220,38,38,.06)",
+                  border:"0.5px solid rgba(220,38,38,.15)",marginBottom:8,
+                  fontSize:".72rem",color:"#dc2626",fontWeight:600}}>
+                  ⚠ {missingCount} õpilasel 0 tundi
+                </div>
+              )}
+              <div style={{display:"flex",flexDirection:"column",gap:3,maxHeight:400,overflowY:"auto"}} className="scroll">
+                {plannerRows.length===0&&(
+                  <div style={{textAlign:"center",padding:"14px 0",color:"#9ca3af",fontSize:".76rem"}}>
+                    Õpilasi ei leitud
+                  </div>
+                )}
+                {plannerRows.map(row=>{
+                  const {student,lessonsThisWeek,target}=row;
+                  const isOk=lessonsThisWeek.length>0&&(target===0||lessonsThisWeek.length>=target);
+                  const tc=tColor(student.teacher);
                   return(
-                    <div key={day.iso}
-                      onDragOver={e=>{if(canManage&&dragging){e.preventDefault();setDragOver({day:day.iso,slot});}}}
-                      onDragLeave={()=>setDragOver(null)}
-                      onDrop={e=>handleDrop(e,day,slot)}
-                      style={{padding:2,borderLeft:"1px solid rgba(28,43,58,.05)",display:"flex",flexDirection:"column",gap:2,
-                        minHeight:48,
-                        background:isDropTarget?"rgba(47,93,80,.12)":day.isToday?"rgba(201,136,42,.02)":"transparent",
-                        border:isDropTarget?"1.5px dashed #2F5D50":"none",
-                        borderRadius:isDropTarget?6:0,
-                        transition:"background .1s"}}>
-                      {evs.map(ev=>{
-                        const isLegacy = !ev.date;
-                        const st = ev.status||"Planeeritud";
-                        // Цвет по учителю (для статусов Tühistatud/Nihutatud — оверрайд)
-                        const tc = teacherColor(ev.teacher);
-                        const m = st==='Tühistatud'
-                          ? {bg:"rgba(239,68,68,.07)",border:"rgba(239,68,68,.2)",hover:"rgba(239,68,68,.13)"}
-                          : st==='Nihutatud'
-                            ? {bg:"rgba(201,136,42,.1)",border:"rgba(201,136,42,.3)",hover:"rgba(201,136,42,.18)"}
-                            : isLegacy
-                              ? {bg:tc.bg,border:tc.border,hover:tc.hover}
-                              : {bg:tc.bg,border:tc.border,hover:tc.hover};
-                        const isDraggingThis = dragEv?.ev?.id===ev.id;
-                        const linkedStu = !canManage
-                          ? myStudents.find(stu=>{
-                              const target = normalizeText(ev.studentName);
-                              return normalizeText(stu.name)===target || normalizeText(stu.group)===target || (ev.students||[]).includes(stu.id);
-                            })
-                          : null;
-                        const attendanceKey = linkedStu ? `${linkedStu.id}_${day.iso}` : "";
-                        const attendanceStatus = attendanceKey ? ev.attendance?.[attendanceKey]?.status : "";
-                        return(
-                          <div key={ev.id+day.iso}
-                            draggable={canManage}
-                            onDragStart={e=>handleDragStart(e,ev,day,slot)}
-                            onDragEnd={handleDragEnd}
-                            onClick={()=>canManage&&openScheduleEditor({...ev,occurrenceDate:day.iso})}
-                            style={{fontSize:".7rem",padding:"3px 5px",borderRadius:6,
-                              cursor:canManage?"grab":"default",
-                              background:m.bg,
-                              borderLeft:`3px solid ${tc.dot}`,
-                              border:`1px solid ${m.border}`,
-                              borderLeftWidth:3,
-                              transition:"background .12s,opacity .12s",
-                              opacity:isDraggingThis?.35:st==="Tühistatud"?.5:1,
-                              userSelect:'none'}}
-                            onMouseEnter={e=>{if(canManage&&!isDraggingThis)e.currentTarget.style.background=m.hover}}
-                            onMouseLeave={e=>{if(!isDraggingThis)e.currentTarget.style.background=m.bg}}>
-                            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:2}}>
-                              <span style={{fontWeight:700,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",
-                                color:tc.text,
-                                textDecoration:st==="Tühistatud"?"line-through":"none",
-                                flex:1,minWidth:0}}>
-                                {ev.studentName}
-                              </span>
-                              {canManage&&(
-                                <button onClick={e=>delSchedule(ev.id,e)}
-                                  style={{background:"none",border:"none",cursor:"pointer",color:"rgba(0,0,0,.2)",fontSize:".65rem",padding:"0 0 0 2px",lineHeight:1,flexShrink:0}}
-                                  onMouseEnter={e=>{e.currentTarget.style.color="#ef4444";e.stopPropagation();}}
-                                  onMouseLeave={e=>e.currentTarget.style.color="rgba(0,0,0,.2)"}>✕</button>
-                              )}
-                            </div>
-                            <div style={{fontSize:".6rem",color:tc.dot,marginTop:1,display:"flex",gap:3,alignItems:'center'}}>
-                              {isLegacy&&<span style={{opacity:.7}}>↻</span>}
-                              {filterT==="Kõik"&&<span style={{fontWeight:600}}>{ev.teacher}</span>}
-                              {!isLegacy&&st!=="Planeeritud"&&<span style={{color:st==='Tühistatud'?'#dc2626':'#C9882A',fontWeight:600}}>{st}</span>}
-                            </div>
-                            {!canManage&&linkedStu&&ev.id&&st!=="Tühistatud"&&(
-                              <div style={{display:"flex",gap:3,marginTop:4,flexWrap:"wrap"}}>
-                                <button onClick={e=>{e.stopPropagation();markAttendance(ev,attendanceKey,"coming");}}
-                                  className="btn btn-pine btn-sm"
-                                  style={{padding:"2px 6px",fontSize:".6rem",opacity:attendanceStatus==="coming"?1:.86}}>
-                                  Tuleb
-                                </button>
-                                <button onClick={e=>{e.stopPropagation();markAttendance(ev,attendanceKey,"absent");}}
-                                  className="btn btn-red btn-sm"
-                                  style={{padding:"2px 6px",fontSize:".6rem",opacity:attendanceStatus==="absent"?1:.86}}>
-                                  Ei tule
-                                </button>
-                                {attendanceStatus&&(
-                                  <span style={{fontSize:".6rem",fontWeight:700,color:attendanceStatus==="coming"?"#166534":"#991b1b",alignSelf:"center"}}>
-                                    {attendanceStatus==="coming"?"✓":"puudub"}
-                                  </span>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
+                    <div key={student.id} style={{display:"flex",alignItems:"center",gap:6,
+                      padding:"5px 7px",borderRadius:8,
+                      background:!isOk?"rgba(220,38,38,.04)":"rgba(28,43,58,.02)",
+                      border:`0.5px solid ${!isOk?"rgba(220,38,38,.1)":"rgba(28,43,58,.05)"}`}}>
+                      <div style={{width:5,height:5,borderRadius:"50%",background:tc.dot,flexShrink:0}}/>
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{fontSize:".76rem",fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                          {student.name}
+                        </div>
+                        <div style={{fontSize:".62rem",color:"#42536A"}}>{student.level||'—'}</div>
+                      </div>
+                      <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:2,flexShrink:0}}>
+                        <span style={{fontSize:".66rem",fontWeight:700,padding:"1px 5px",borderRadius:999,
+                          background:isOk?"rgba(22,101,52,.1)":"rgba(220,38,38,.1)",
+                          color:isOk?"#166534":"#dc2626"}}>
+                          {target>0?`${lessonsThisWeek.length}/${target}`:lessonsThisWeek.length}
+                        </span>
+                        <button onClick={()=>{
+                          setSchStu(student.name);
+                          document.getElementById('cal-booking-form')?.scrollIntoView({behavior:'smooth',block:'center'});
+                        }} style={{fontSize:".6rem",padding:"1px 5px",borderRadius:5,
+                          border:"0.5px solid rgba(28,43,58,.12)",background:"#fff",
+                          cursor:"pointer",color:"#42536A",fontFamily:"inherit"}}>
+                          + Lisa
+                        </button>
+                      </div>
                     </div>
                   );
                 })}
               </div>
-            ))}
-          </div>
-        </div>
-      </div>
+            </div>
 
-      {canManage&&(
-        <div className="card" style={{padding:20}}>
-          <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:14,flexWrap:"wrap",marginBottom:14}}>
-            <div>
-              <h2 style={{fontSize:"1.15rem",marginBottom:4}}>Õpilaste spikker</h2>
-              <div style={{fontSize:".82rem",color:"#42536A"}}>
-                Õpetaja: <b>{plannerTeacher||'määramata'}</b> · nädalas nähtaval {plannerRows.length} õpilast
-              </div>
-            </div>
-            <div style={{display:"flex",gap:8,flexWrap:"wrap",justifyContent:"flex-end"}}>
-              <input value={plannerSearch} onChange={e=>setPlannerSearch(e.target.value)}
-                placeholder="Otsi õpilast, gruppi, taset..." style={{width:240,padding:"9px 12px"}}/>
-              <select value={plannerFilter} onChange={e=>setPlannerFilter(e.target.value)} style={{width:"auto"}}>
-                <option value="all">Kõik</option>
-                <option value="empty">0 tundi sel nädalal</option>
-                <option value="under">Alla normi</option>
-                <option value="group">Grupiga</option>
-              </select>
-            </div>
           </div>
-          {plannerRows.length===0 ? (
-            <div style={{padding:18,borderRadius:12,border:"1px solid rgba(239,68,68,.25)",background:"rgba(239,68,68,.06)",color:"#991b1b",fontWeight:700,textAlign:"center"}}>
-              Selle õpetaja õpilasi ei leitud.
-            </div>
-          ) : (
-            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))",gap:12}}>
-              {plannerRows.map(row=>{
-                const student = row.student;
-                const hasTarget = row.target>0;
-                const isMissing = row.lessonsThisWeek.length===0 || (hasTarget && row.lessonsThisWeek.length<row.target);
-                const statusBg = isMissing ? "rgba(239,68,68,.08)" : "rgba(47,93,80,.08)";
-                const statusColor = isMissing ? "#991b1b" : "#166534";
-                const weekText = hasTarget
-                  ? `${row.lessonsThisWeek.length}/${row.target} tundi`
-                  : `${row.lessonsThisWeek.length} tundi`;
-                return(
-                  <div key={student.id} style={{border:"1px solid rgba(28,43,58,.09)",borderRadius:12,padding:14,background:"#fff"}}>
-                    <div style={{display:"flex",justifyContent:"space-between",gap:10,alignItems:"flex-start"}}>
-                      <div>
-                        <div style={{fontWeight:800,color:"#1C2B3A"}}>{student.name||'Nimetu'}</div>
-                        <div style={{fontSize:".75rem",color:"#42536A",marginTop:3}}>
-                          {student.subject||'Aine määramata'} · {student.level||'—'} → {student.targetLevel||'—'}
-                        </div>
-                        <div style={{fontSize:".72rem",color:"#64748b",marginTop:3}}>
-                          {student.group ? `Grupp: ${student.group}` : 'Individuaal / grupp puudub'}
-                        </div>
-                      </div>
-                      <div style={{display:"flex",alignItems:"center",gap:5}}>
-                        <span style={{padding:"5px 9px",borderRadius:999,background:statusBg,color:statusColor,fontSize:".72rem",fontWeight:800,whiteSpace:"nowrap"}}>
-                          {weekText}
-                        </span>
-                        {/* Inline target editor */}
-                        <div style={{display:"flex",alignItems:"center",gap:3,background:"rgba(28,43,58,.05)",borderRadius:8,padding:"3px 6px"}}>
-                          <span style={{fontSize:".62rem",color:"#B0A898",fontWeight:600}}>norm:</span>
-                          <input
-                            type="number" min={0} max={20}
-                            value={row.target||''}
-                            onChange={async e=>{
-                              const val=parseInt(e.target.value,10)||0;
-                              try{
-                                await db.collection('students').doc(row.student.id).update({weeklyLessons:val});
-                              }catch(err){console.error(err);}
-                            }}
-                            placeholder="0"
-                            style={{width:32,border:"none",background:"transparent",textAlign:"center",fontSize:".78rem",fontWeight:700,color:"#1C2B3A",padding:0,outline:"none"}}
-                          />
-                          <span style={{fontSize:".62rem",color:"#B0A898"}}>/ nädal</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div style={{display:"flex",gap:6,flexWrap:"wrap",marginTop:10}}>
-                      {row.lessonsThisWeek.map(ev=>(
-                        <span key={`${ev.id}-${ev.date||ev.day}-${ev.time}`} style={{fontSize:".68rem",padding:"4px 7px",borderRadius:999,background:"rgba(28,43,58,.06)",color:"#42536A",fontWeight:700}}>
-                          {ev.date ? fmtDate(ev.date) : (DAYS_SHORT[DAYS_ID.indexOf(ev.day)]||ev.day)} · {ev.time}
-                        </span>
-                      ))}
-                      {row.lessonsThisWeek.length===0&&(
-                        <span style={{fontSize:".72rem",color:"#991b1b",fontWeight:700}}>Tunde pole lisatud</span>
-                      )}
-                      {row.canceledThisWeek>0&&(
-                        <span style={{fontSize:".68rem",padding:"4px 7px",borderRadius:999,background:"rgba(239,68,68,.08)",color:"#991b1b",fontWeight:700}}>
-                          {row.canceledThisWeek} tühistatud
-                        </span>
-                      )}
-                    </div>
-                    <div style={{display:"flex",gap:8,marginTop:12}}>
-                      <button className="btn btn-pine btn-sm" onClick={()=>setBookingFromStudent(student)} style={{flex:1}}>
-                        <i className="fa-solid fa-calendar-plus"/> Lisa tund
-                      </button>
-                      <button className="btn btn-ghost btn-sm" onClick={()=>openStudent&&openStudent(student)} style={{flex:1}}>
-                        Ava kaart
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
+
+
 
 // ── ÕPILASTE NIMEKIRI ─────────────────────────────────────────
 function StudentsList({filteredStudents,lessons,isAdmin,search,setSearch,stuFilter,setStuFilter,setSelStu}) {
