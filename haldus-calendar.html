@@ -313,14 +313,26 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
 
   const [showCanceled,setShowCanceled] = React.useState(true);
   const [weekOffset,setWeekOffset]     = React.useState(0);
-  const [quickAdd,setQuickAdd]         = React.useState(null);
+  const [viewMode,setViewMode]         = React.useState('week'); // 'week' | 'day'
+  const [selectedDay,setSelectedDay]   = React.useState(null);  // iso string for day view
+  // Popup creation (Google-style)
+  const [createPopup,setCreatePopup]   = React.useState(null);  // {x,y,day,slot,anchorEl}
+  const [popupStu,setPopupStu]         = React.useState('');
+  const [popupTeach,setPopupTeach]     = React.useState('Pavel');
+  const [popupDur,setPopupDur]         = React.useState(60);
+  const [popupRecurring,setPopupRecurring] = React.useState(false);
+  const [popupSaving,setPopupSaving]   = React.useState(false);
+  // Sidebar
   const [plannerSearch,setPlannerSearch] = React.useState('');
   const [plannerFilter,setPlannerFilter] = React.useState('all');
-  const [dragEv,setDragEv]             = React.useState(null);
-  const [dragOver,setDragOver]         = React.useState(null);
-  const [dragging,setDragging]         = React.useState(false);
+  // Drag & drop
+  const [dragEv,setDragEv]   = React.useState(null);
+  const [dragOver,setDragOver] = React.useState(null);
+  const [dragging,setDragging] = React.useState(false);
+
   const canManage = user.role==='teacher' || user.role==='admin';
 
+  // ── Week computation ─────────────────────────────────────────
   const weekStart = React.useMemo(()=>{
     const now = new Date();
     const day = now.getDay();
@@ -339,7 +351,8 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
       const jsDay = d.getDay();
       const dayId = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][jsDay];
       return {
-        short: ["P","E","T","K","N","R","L"][jsDay],
+        short:["P","E","T","K","N","R","L"][jsDay],
+        full: ["Pühapäev","Esmaspäev","Teisipäev","Kolmapäev","Neljapäev","Reede","Laupäev"][jsDay],
         iso, dayId,
         label: d.toLocaleDateString("et-EE",{day:"2-digit",month:"2-digit"}),
         isToday: iso===today()
@@ -353,63 +366,88 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
       +" – "+e.toLocaleDateString("et-EE",{day:"2-digit",month:"short",year:"numeric"});
   },[weekStart]);
 
+  // ── Day view date ─────────────────────────────────────────────
+  const dayViewDate = React.useMemo(()=>{
+    if(selectedDay) return selectedDay;
+    return today();
+  },[selectedDay]);
+
+  const dayViewObj = React.useMemo(()=>{
+    const d = new Date(dayViewDate);
+    const jsDay = d.getDay();
+    const dayId = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][jsDay];
+    return {
+      iso:dayViewDate, dayId,
+      label:d.toLocaleDateString("et-EE",{weekday:'long',day:"2-digit",month:"long"}),
+      isToday:dayViewDate===today()
+    };
+  },[dayViewDate]);
+
+  // ── Filter schedule ───────────────────────────────────────────
   const filteredSch = React.useMemo(()=>{
     const linkedStudentNames = myStudents.map(s=>normalizeText(s.name));
     const linkedGroups = myStudents.map(s=>normalizeText(s.group)).filter(Boolean);
     const myStudentIds = new Set(myStudents.map(s=>s.id));
     const groupEvents = (groups||[]).flatMap(group=>
       (group.lessons||[]).map(lesson=>{
-        const assignedStudents = (group.students||[]).filter(studentId=>{
-          const saved = group.studentLessonMap?.[studentId];
-          return Array.isArray(saved) ? saved.includes(lesson.id) : true;
+        const assignedStudents=(group.students||[]).filter(studentId=>{
+          const saved=group.studentLessonMap?.[studentId];
+          return Array.isArray(saved)?saved.includes(lesson.id):true;
         });
         return {
           id:`group-${group.id}-${lesson.id}`,groupId:group.id,groupLessonId:lesson.id,isGroup:true,
           teacher:group.teacher||'Kõik',studentName:group.name,date:lesson.date||'',
-          day:lesson.day||'Mon',time:lesson.time||'09:00',status:lesson.status||'Planeeritud',
-          recurring:lesson.recurring!==false,startDate:lesson.startDate||today(),
-          attendance:lesson.attendance||{},students:assignedStudents,groupMembers:assignedStudents
+          day:lesson.day||'Mon',time:lesson.time||'09:00',duration:lesson.duration||60,
+          status:lesson.status||'Planeeritud',recurring:lesson.recurring!==false,
+          startDate:lesson.startDate||today(),attendance:lesson.attendance||{},
+          students:assignedStudents,groupMembers:assignedStudents
         };
       })
     );
     let list = canManage
       ?(isAdmin
-          ? (filterT==="Kõik"||!filterT?[...schedule,...groupEvents]:[
+          ?(filterT==="Kõik"||!filterT?[...schedule,...groupEvents]:[
               ...schedule.filter(s=>canonicalTeacherName(s.teacher)===canonicalTeacherName(filterT)),
               ...groupEvents.filter(s=>canonicalTeacherName(s.teacher)===canonicalTeacherName(filterT)||s.teacher==='Kõik')
             ])
-          : [...schedule.filter(s=>teacherMatches(s.teacher,user.displayName)),...groupEvents]
+          :[...schedule.filter(s=>teacherMatches(s.teacher,user.displayName)),...groupEvents]
         )
       :schedule.filter(s=>{
           const target=normalizeText(s.studentName);
           return linkedStudentNames.includes(target)||linkedGroups.includes(target);
-        }).concat(groupEvents.filter(event=>
-          (event.students||[]).some(studentId=>myStudentIds.has(studentId))||
-          (!(event.students||[]).length&&linkedGroups.includes(normalizeText(event.studentName)))
+        }).concat(groupEvents.filter(ev=>
+          (ev.students||[]).some(id=>myStudentIds.has(id))||
+          (!(ev.students||[]).length&&linkedGroups.includes(normalizeText(ev.studentName)))
         ));
     if(!showCanceled) list=list.filter(s=>s.status!=="Tühistatud");
     return list;
   },[schedule,groups,myStudents,filterT,showCanceled,canManage,isAdmin,user]);
 
-  const getEventsForSlot = (slot, day) =>
+  const eventsForDaySlot = (slot, dayIso, dayId) =>
     filteredSch.filter(s=>{
       if(s.time!==slot) return false;
-      if(s.recurring&&s.startDate&&day.iso<s.startDate) return false;
-      if(s.date) return s.date===day.iso;
-      return s.day===day.dayId;
+      if(s.recurring&&s.startDate&&dayIso<s.startDate) return false;
+      if(s.date) return s.date===dayIso;
+      return s.day===dayId;
     });
 
-  // Only show time slots that have at least one event this week
+  // ── Occupied slots (week view) ────────────────────────────────
   const occupiedSlots = React.useMemo(()=>{
-    const hasEvent = slot => weekDays.some(day=>getEventsForSlot(slot,day).length>0);
-    return TIMES.filter(hasEvent);
+    const has = slot=>weekDays.some(d=>eventsForDaySlot(slot,d.iso,d.dayId).length>0);
+    return TIMES.filter(has);
   },[filteredSch,weekDays]);
 
+  // ── All slots for day view ────────────────────────────────────
+  const occupiedSlotsDay = React.useMemo(()=>{
+    return TIMES.filter(slot=>eventsForDaySlot(slot,dayViewObj.iso,dayViewObj.dayId).length>0);
+  },[filteredSch,dayViewObj]);
+
+  // ── Week stats ────────────────────────────────────────────────
   const weekStats = React.useMemo(()=>{
     let total=0,done=0,canceled=0,planned=0,revenue=0;
     occupiedSlots.forEach(slot=>{
       weekDays.forEach(day=>{
-        getEventsForSlot(slot,day).forEach(ev=>{
+        eventsForDaySlot(slot,day.iso,day.dayId).forEach(ev=>{
           total++;
           if(ev.status==='Toimunud') done++;
           else if(ev.status==='Tühistatud') canceled++;
@@ -422,6 +460,7 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
     return {total,done,canceled,planned,revenue};
   },[occupiedSlots,weekDays,students]);
 
+  // ── Planner rows ──────────────────────────────────────────────
   const weekEventList = React.useMemo(()=>filteredSch.filter(ev=>
     weekDays.some(day=>{
       if(ev.recurring&&ev.startDate&&day.iso<ev.startDate) return false;
@@ -436,20 +475,18 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
   },[isAdmin,filterT,user]);
 
   const plannerRows = React.useMemo(()=>{
-    const eventMatchesStudent = (ev,student)=>{
-      const evName=normalizeText(ev.studentName);
-      const sName=normalizeText(student.name);
-      const sGroup=normalizeText(student.group);
-      return ev.studentId===student.id||(ev.students||[]).includes(student.id)||evName===sName||(!!sGroup&&evName===sGroup);
+    const match=(ev,s)=>{
+      const en=normalizeText(ev.studentName),sn=normalizeText(s.name),sg=normalizeText(s.group);
+      return ev.studentId===s.id||(ev.students||[]).includes(s.id)||en===sn||(!!sg&&en===sg);
     };
     const q=normalizeText(plannerSearch);
     return myStudents
       .filter(s=>s.active!==false)
       .filter(s=>!plannerTeacher||teacherMatches(s.teacher,plannerTeacher))
-      .map(student=>{
-        const lessonsThisWeek=weekEventList.filter(ev=>eventMatchesStudent(ev,student)&&ev.status!=="Tühistatud");
-        const target=parseInt(student.weeklyLessons||student.lessonsPerWeek||0,10)||0;
-        return {student,lessonsThisWeek,target,left:target?Math.max(target-lessonsThisWeek.length,0):null};
+      .map(s=>{
+        const tw=weekEventList.filter(ev=>match(ev,s)&&ev.status!=="Tühistatud");
+        const target=parseInt(s.weeklyLessons||s.lessonsPerWeek||0,10)||0;
+        return {student:s,lessonsThisWeek:tw,target,left:target?Math.max(target-tw.length,0):null};
       })
       .filter(row=>{
         if(q&&!normalizeText(row.student.name).includes(q)) return false;
@@ -464,67 +501,243 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
       });
   },[myStudents,plannerTeacher,weekEventList,plannerSearch,plannerFilter]);
 
-  const handleDragStart = React.useCallback((e,ev,day,slot)=>{
+  // ── Drag & drop ───────────────────────────────────────────────
+  const handleDragStart = React.useCallback((e,ev,dayIso,slot)=>{
     if(!canManage) return;
     e.dataTransfer.effectAllowed='move';
-    setDragEv({ev,sourceDay:day.iso,sourceSlot:slot});
+    setDragEv({ev,sourceDay:dayIso,sourceSlot:slot});
     setDragging(true);
   },[canManage]);
-
   const handleDragEnd = React.useCallback(()=>{setDragging(false);setDragEv(null);setDragOver(null);},[]);
-
-  const handleDrop = React.useCallback(async(e,targetDay,targetSlot)=>{
+  const handleDrop = React.useCallback(async(e,targetIso,targetSlot)=>{
     e.preventDefault();setDragOver(null);setDragging(false);
-    if(!dragEv||!dragEv.ev?.id) return;
-    const {ev,sourceDay,sourceSlot}=dragEv;
-    if(sourceDay===targetDay.iso&&sourceSlot===targetSlot) return;
-    const jsDay=new Date(targetDay.iso).getDay();
+    if(!dragEv?.ev?.id) return;
+    const {ev}=dragEv;
+    const jsDay=new Date(targetIso).getDay();
     const dayId=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][jsDay];
     try{
-      const patch=ev.date?{date:targetDay.iso,day:dayId,time:targetSlot,status:ev.status==='Tühistatud'?ev.status:'Planeeritud'}:{day:dayId,time:targetSlot};
+      const patch=ev.date
+        ?{date:targetIso,day:dayId,time:targetSlot,status:ev.status==='Tühistatud'?ev.status:'Planeeritud'}
+        :{day:dayId,time:targetSlot};
       await window._db.collection('schedule').doc(ev.id).update(patch);
-      notify(`✓ Tund liigutatud: ${ev.studentName} → ${targetDay.label} ${targetSlot}`);
-    }catch(err){notify('⚠ Tunni liigutamine ebaõnnestus');}
+      notify(`✓ ${ev.studentName} → ${targetSlot}`);
+    }catch{notify('⚠ Liigutamine ebaõnnestus');}
     setDragEv(null);
   },[dragEv,notify]);
 
-  const tColor = t=>{
+  // ── Popup create (Google-style) ───────────────────────────────
+  const openCreatePopup = React.useCallback((e,dayIso,slot)=>{
+    e.stopPropagation();
+    setCreatePopup({dayIso,slot});
+    setPopupStu('');
+    setPopupTeach(isAdmin?(filterT&&filterT!=='Kõik'?filterT:'Pavel'):canonicalTeacherName(user.displayName)||'Pavel');
+    setPopupDur(60);
+    setPopupRecurring(false);
+  },[isAdmin,filterT,user]);
+
+  const saveFromPopup = React.useCallback(async()=>{
+    if(!createPopup||!popupStu) return;
+    setPopupSaving(true);
+    const {dayIso,slot}=createPopup;
+    const jsDay=new Date(dayIso).getDay();
+    const dayId=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][jsDay];
+    const payload=popupRecurring
+      ?{teacher:popupTeach,studentName:popupStu,day:dayId,time:slot,status:'Planeeritud',
+        recurring:true,startDate:dayIso,duration:popupDur,createdAt:today()}
+      :{teacher:popupTeach,studentName:popupStu,date:dayIso,day:dayId,time:slot,
+        status:'Planeeritud',duration:popupDur,createdAt:today()};
+    try{
+      await window._db.collection('schedule').add(payload);
+      notify(`✓ Tund lisatud: ${popupStu} ${slot}`);
+      setCreatePopup(null);
+    }catch{notify('⚠ Lisamine ebaõnnestus');}
+    setPopupSaving(false);
+  },[createPopup,popupStu,popupTeach,popupDur,popupRecurring,notify]);
+
+  // ── Teacher color ─────────────────────────────────────────────
+  const tColor=t=>{
     if(!t) return DEFAULT_TEACHER_COLOR;
     const key=Object.keys(TEACHER_COLORS).find(k=>normalizeText(k)===normalizeText(t));
     return key?TEACHER_COLORS[key]:DEFAULT_TEACHER_COLOR;
   };
 
+  // ── Duration → row height (px) ────────────────────────────────
+  // Base row height ~52px = 60min. 90min = 78px, 120min = 104px
+  const ROW_BASE = 52;
+  const durToHeight = dur => Math.max(ROW_BASE, Math.round((dur/60)*ROW_BASE));
+
+  // ── Event card renderer ───────────────────────────────────────
+  const renderEvent = (ev, dayIso, slot, isDayView=false) => {
+    const st=ev.status||'Planeeritud';
+    const tc=tColor(ev.teacher);
+    const isDraggingThis=dragEv?.ev?.id===ev.id;
+    const dur=ev.duration||60;
+    const height=isDayView?durToHeight(dur):undefined;
+    const linkedStu=!canManage?myStudents.find(s=>{
+      const target=normalizeText(ev.studentName);
+      return normalizeText(s.name)===target||normalizeText(s.group)===target||(ev.students||[]).includes(s.id);
+    }):null;
+    const attendanceKey=linkedStu?`${linkedStu.id}_${dayIso}`:'';
+    const attendanceStatus=attendanceKey?ev.attendance?.[attendanceKey]?.status:'';
+
+    return(
+      <div key={ev.id+dayIso}
+        draggable={canManage}
+        onDragStart={e=>{e.stopPropagation();handleDragStart(e,ev,dayIso,slot);}}
+        onDragEnd={handleDragEnd}
+        onClick={e=>{e.stopPropagation();canManage&&openScheduleEditor({...ev,occurrenceDate:dayIso});}}
+        style={{
+          fontSize:".73rem",
+          padding:isDayView?"6px 10px":"3px 6px",
+          borderRadius:isDayView?8:5,
+          cursor:canManage?"pointer":"default",
+          background:st==='Tühistatud'?"rgba(239,68,68,.06)":tc.bg,
+          borderLeft:`3px solid ${st==='Tühistatud'?'#ef4444':tc.dot}`,
+          border:`0.5px solid ${st==='Tühistatud'?'rgba(239,68,68,.15)':tc.border}`,
+          borderLeftWidth:3,
+          opacity:isDraggingThis?.3:st==="Tühistatud"?.5:1,
+          userSelect:'none',transition:"background .12s",
+          position:"relative",
+          ...(isDayView?{minHeight:height,display:"flex",flexDirection:"column",gap:2}:{})
+        }}
+        onMouseEnter={e=>{if(canManage&&!isDraggingThis)e.currentTarget.style.background=tc.hover;}}
+        onMouseLeave={e=>{e.currentTarget.style.background=st==='Tühistatud'?"rgba(239,68,68,.06)":tc.bg;}}>
+
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:2}}>
+          <span style={{fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",
+            whiteSpace:isDayView?"normal":"nowrap",
+            color:st==="Tühistatud"?"#991b1b":tc.text,flex:1,minWidth:0,
+            textDecoration:st==="Tühistatud"?"line-through":"none",
+            lineHeight:1.3,fontSize:isDayView?".84rem":".73rem"}}>
+            {ev.studentName}
+          </span>
+          {canManage&&(
+            <button onClick={e=>{e.stopPropagation();delSchedule(ev.id,e);}}
+              style={{background:"none",border:"none",cursor:"pointer",
+                color:"rgba(0,0,0,.0)",fontSize:".58rem",padding:0,lineHeight:1,flexShrink:0,
+                width:12,height:12,display:"flex",alignItems:"center",justifyContent:"center"}}
+              className="ev-del-btn"
+              onMouseEnter={e=>{e.currentTarget.style.color="#ef4444";e.stopPropagation();}}
+              onMouseLeave={e=>e.currentTarget.style.color="rgba(0,0,0,.0)"}>✕</button>
+          )}
+        </div>
+
+        <div style={{fontSize:".6rem",color:tc.dot,display:"flex",gap:3,alignItems:'center',lineHeight:1.2}}>
+          {!ev.date&&<span style={{opacity:.5}}>↻</span>}
+          {isDayView&&<span>{slot}{dur>60?` – ${slot.split(':')[0]}:${String(parseInt(slot.split(':')[1]||0)+dur%60).padStart(2,'0')}`:''}  · {dur}min</span>}
+          {(isAdmin&&(filterT==='Kõik'||!filterT))&&!isDayView&&<span style={{fontWeight:600,opacity:.75}}>{ev.teacher}</span>}
+          {st==="Toimunud"&&<span style={{color:'#166534',fontWeight:700}}>✓</span>}
+          {st==='Nihutatud'&&<span style={{color:'#C9882A',fontWeight:600}}>Nihut.</span>}
+          {st==='Tühistatud'&&<span style={{color:'#dc2626',fontWeight:600}}>Tüh.</span>}
+        </div>
+
+        {isDayView&&(
+          <div style={{marginTop:2,fontSize:".72rem",color:"#42536A"}}>
+            {ev.teacher&&<span>Õp. {ev.teacher}</span>}
+          </div>
+        )}
+
+        {!canManage&&linkedStu&&ev.id&&st!=="Tühistatud"&&(
+          <div style={{display:"flex",gap:3,marginTop:4,flexWrap:"wrap"}}>
+            <button onClick={e=>{e.stopPropagation();markAttendance(ev,attendanceKey,"coming");}}
+              className="btn btn-pine btn-sm"
+              style={{padding:"2px 5px",fontSize:".58rem",opacity:attendanceStatus==="coming"?1:.8}}>Tuleb</button>
+            <button onClick={e=>{e.stopPropagation();markAttendance(ev,attendanceKey,"absent");}}
+              className="btn btn-red btn-sm"
+              style={{padding:"2px 5px",fontSize:".58rem",opacity:attendanceStatus==="absent"?1:.8}}>Ei tule</button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // ── Slot cell renderer ────────────────────────────────────────
+  const renderSlotCell = (slot, dayIso, dayId, isDayView=false) => {
+    const evs=eventsForDaySlot(slot,dayIso,dayId);
+    const isDropTarget=dragOver&&dragOver.day===dayIso&&dragOver.slot===slot;
+    return(
+      <div
+        onDragOver={e=>{if(canManage&&dragging){e.preventDefault();setDragOver({day:dayIso,slot});}}}
+        onDragLeave={()=>setDragOver(null)}
+        onDrop={e=>handleDrop(e,dayIso,slot)}
+        onClick={evs.length===0&&canManage?(e)=>openCreatePopup(e,dayIso,slot):undefined}
+        style={{
+          padding:3,borderLeft:"0.5px solid rgba(28,43,58,.05)",
+          minHeight:isDayView?48:38,
+          display:"flex",flexDirection:"column",gap:2,
+          background:isDropTarget?"rgba(47,93,80,.1)":(dayIso===today()?"rgba(201,136,42,.02)":"transparent"),
+          outline:isDropTarget?"1.5px dashed #2F5D50":"none",
+          cursor:evs.length===0&&canManage?"pointer":"default",
+          transition:"background .1s",position:"relative"
+        }}>
+        {evs.length===0&&canManage&&(
+          <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",
+            color:"rgba(47,93,80,.0)",fontSize:".65rem",fontWeight:600,transition:"color .15s",borderRadius:3,pointerEvents:"none"}}
+            className="slot-add-hint">+</div>
+        )}
+        {evs.map(ev=>renderEvent(ev,dayIso,slot,isDayView))}
+      </div>
+    );
+  };
+
   const missingCount=plannerRows.filter(r=>r.lessonsThisWeek.length===0).length;
+
+  // ── Day navigation ────────────────────────────────────────────
+  const goToPrevDay=()=>{const d=new Date(dayViewDate);d.setDate(d.getDate()-1);setSelectedDay(toLocalISODate(d));};
+  const goToNextDay=()=>{const d=new Date(dayViewDate);d.setDate(d.getDate()+1);setSelectedDay(toLocalISODate(d));};
 
   return(
     <div className="fade-in" style={{display:"flex",flexDirection:"column",gap:14}}>
 
-      {/* Header */}
+      {/* ── Header ── */}
       <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",flexWrap:"wrap",gap:10}}>
         <div>
           <h1 style={{fontSize:"1.7rem"}}>Tunniplaan</h1>
-          <div style={{fontSize:".84rem",color:"#42536A",marginTop:3,display:"flex",gap:10,flexWrap:"wrap"}}>
-            <span>{weekLabel}</span>
-            <span>·</span>
-            <strong>{weekStats.total} tundi</strong>
-            {weekStats.done>0&&<span style={{color:'#166534'}}>· {weekStats.done} toimunud</span>}
-            {weekStats.canceled>0&&<span style={{color:'#dc2626'}}>· {weekStats.canceled} tühistatud</span>}
-            {weekStats.revenue>0&&<span style={{color:'#2F5D50'}}>· {weekStats.revenue}€</span>}
+          <div style={{fontSize:".84rem",color:"#42536A",marginTop:3,display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
+            {viewMode==='week'&&<>
+              <span>{weekLabel}</span>
+              <span style={{color:"#d1d5db"}}>·</span>
+              <strong>{weekStats.total} tundi</strong>
+              {weekStats.done>0&&<span style={{color:'#166534'}}>· {weekStats.done} toimunud</span>}
+              {weekStats.canceled>0&&<span style={{color:'#dc2626'}}>· {weekStats.canceled} tüh.</span>}
+              {weekStats.revenue>0&&<span style={{color:'#2F5D50',fontWeight:600}}>· {weekStats.revenue}€</span>}
+            </>}
+            {viewMode==='day'&&<span style={{fontWeight:600,color:dayViewObj.isToday?'#C9882A':'#1C2B3A'}}>{dayViewObj.label}</span>}
           </div>
         </div>
-        <div style={{display:"flex",gap:6}}>
-          <button onClick={()=>setWeekOffset(w=>w-1)} className="btn btn-ghost btn-sm">← Eelmine</button>
-          <button onClick={()=>setWeekOffset(0)} className="btn btn-sm"
-            style={{background:weekOffset===0?'#1C2B3A':'#fff',color:weekOffset===0?'#fff':'#1C2B3A',
-              border:'1.5px solid '+(weekOffset===0?'#1C2B3A':'rgba(28,43,58,.15)')}}>
-            Täna
-          </button>
-          <button onClick={()=>setWeekOffset(w=>w+1)} className="btn btn-ghost btn-sm">Järgmine →</button>
+        <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
+          {/* View toggle */}
+          <div style={{display:"flex",background:"rgba(28,43,58,.07)",borderRadius:10,padding:3,gap:2}}>
+            {[['week','Nädal'],['day','Päev']].map(([v,l])=>(
+              <button key={v} onClick={()=>setViewMode(v)}
+                style={{padding:"5px 14px",borderRadius:8,border:"none",cursor:"pointer",fontFamily:"inherit",
+                  fontSize:".8rem",fontWeight:600,
+                  background:viewMode===v?"#fff":"transparent",
+                  color:viewMode===v?"#1C2B3A":"#42536A",
+                  boxShadow:viewMode===v?"0 1px 4px rgba(0,0,0,.1)":"none",transition:"all .12s"}}>
+                {l}
+              </button>
+            ))}
+          </div>
+          {viewMode==='week'&&<>
+            <button onClick={()=>setWeekOffset(w=>w-1)} className="btn btn-ghost btn-sm">← Eelmine</button>
+            <button onClick={()=>setWeekOffset(0)} className="btn btn-sm"
+              style={{background:weekOffset===0?"#1C2B3A":"#fff",color:weekOffset===0?"#fff":"#1C2B3A",
+                border:"1.5px solid "+(weekOffset===0?"#1C2B3A":"rgba(28,43,58,.15)")}}>Täna</button>
+            <button onClick={()=>setWeekOffset(w=>w+1)} className="btn btn-ghost btn-sm">Järgmine →</button>
+          </>}
+          {viewMode==='day'&&<>
+            <button onClick={goToPrevDay} className="btn btn-ghost btn-sm">← Eelmine päev</button>
+            <button onClick={()=>setSelectedDay(today())} className="btn btn-sm"
+              style={{background:dayViewDate===today()?"#1C2B3A":"#fff",color:dayViewDate===today()?"#fff":"#1C2B3A",
+                border:"1.5px solid "+(dayViewDate===today()?"#1C2B3A":"rgba(28,43,58,.15)")}}>Täna</button>
+            <button onClick={goToNextDay} className="btn btn-ghost btn-sm">Järgmine päev →</button>
+          </>}
         </div>
       </div>
 
-      {/* Teacher pills + status legend */}
-      <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
+      {/* ── Teacher pills ── */}
+      <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
         {isAdmin&&(
           <>
             <span style={{fontSize:".7rem",fontWeight:700,color:"#9ca3af"}}>Õpetaja:</span>
@@ -544,236 +757,260 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
             <div style={{width:1,height:14,background:'rgba(28,43,58,.12)'}}/>
           </>
         )}
+        {!isAdmin&&<span style={{padding:'3px 11px',borderRadius:999,
+          background:tColor(user.displayName).bg,color:tColor(user.displayName).text,
+          border:'1.5px solid '+tColor(user.displayName).dot,fontSize:'.74rem',fontWeight:700}}>
+          {user.displayName}
+        </span>}
         <label style={{display:"flex",alignItems:"center",gap:5,fontSize:".74rem",color:"#42536A",cursor:"pointer"}}>
           <input type="checkbox" checked={showCanceled} onChange={e=>setShowCanceled(e.target.checked)} style={{width:"auto"}}/>
           Tühistatud
         </label>
       </div>
 
-      {/* Google Calendar */}
+      {/* ── Google Calendar widget ── */}
       {canManage&&<GCalSettings user={user} notify={notify}/>}
 
-      {/* Main layout: grid + sidebar */}
-      <div style={{display:"flex",gap:14,alignItems:"flex-start"}}>
-
-        {/* Left: booking form + grid */}
-        <div style={{flex:1,minWidth:0,display:"flex",flexDirection:"column",gap:12}}>
-
-          {/* Booking form */}
-          {canManage&&(
-            <div id="cal-booking-form" className="card"
-              style={{padding:16,border:quickAdd?'1.5px solid rgba(201,136,42,.4)':'1px solid rgba(28,43,58,.07)'}}>
-              <div style={{fontSize:".74rem",fontWeight:700,color:"#42536A",textTransform:"uppercase",letterSpacing:".08em",marginBottom:10}}>
-                {quickAdd?`📅 Broneeri: ${quickAdd.label} kell ${quickAdd.slot}`:'📅 Broneeri uus tund'}
+      {/* ── Create popup (Google-style) ── */}
+      {createPopup&&(
+        <>
+          <div style={{position:'fixed',inset:0,zIndex:299}} onClick={()=>setCreatePopup(null)}/>
+          <div style={{position:'fixed',top:'50%',left:'50%',transform:'translate(-50%,-50%)',
+            zIndex:300,background:'#fff',borderRadius:16,padding:20,width:320,
+            boxShadow:'0 8px 40px rgba(0,0,0,.18)',border:'1px solid rgba(28,43,58,.1)'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}}>
+              <div>
+                <div style={{fontWeight:700,fontSize:'.9rem'}}>📅 Lisa tund</div>
+                <div style={{fontSize:'.76rem',color:'#42536A',marginTop:2}}>
+                  {new Date(createPopup.dayIso).toLocaleDateString('et-EE',{weekday:'short',day:'2-digit',month:'short'})} · {createPopup.slot}
+                </div>
               </div>
-              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(155px,1fr))",gap:8,marginBottom:10}}>
-                <StuSearch value={schStu} onChange={setSchStu} students={myStudents.filter(s=>s.active!==false)} placeholder="Otsi õpilast…"/>
-                <input type="date" value={schDate} onChange={e=>{setSchDate(e.target.value);setQuickAdd(null);}}/>
-                <select value={schTime} onChange={e=>setSchTime(e.target.value)}>
-                  {TIMES.map(t=><option key={t}>{t}</option>)}
-                </select>
-                {isAdmin&&<select value={schTeach} onChange={e=>setSchTeach(e.target.value)}>
+              <button onClick={()=>setCreatePopup(null)}
+                style={{background:'rgba(28,43,58,.07)',border:'none',borderRadius:8,width:28,height:28,
+                  cursor:'pointer',fontSize:'.9rem',display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button>
+            </div>
+            <div style={{display:'flex',flexDirection:'column',gap:10}}>
+              <StuSearch value={popupStu} onChange={setPopupStu}
+                students={myStudents.filter(s=>s.active!==false)} placeholder="Otsi õpilast…"/>
+              {isAdmin&&(
+                <select value={popupTeach} onChange={e=>setPopupTeach(e.target.value)}>
                   {TEACHERS.map(t=><option key={t}>{t}</option>)}
-                </select>}
-              </div>
-              <div style={{display:"flex",gap:8,alignItems:"center"}}>
-                <label style={{display:"flex",alignItems:"center",gap:5,fontSize:".8rem",color:"#42536A",cursor:"pointer"}}>
-                  <input type="checkbox" checked={schRecurring} onChange={e=>setSchRecurring(e.target.checked)} style={{width:"auto"}}/>
+                </select>
+              )}
+              <div style={{display:'flex',gap:8,alignItems:'center'}}>
+                <div style={{flex:1}}>
+                  <div style={{fontSize:'.72rem',color:'#42536A',marginBottom:4}}>Kestus</div>
+                  <select value={popupDur} onChange={e=>setPopupDur(Number(e.target.value))}>
+                    {[30,45,60,90,120].map(d=><option key={d} value={d}>{d} min</option>)}
+                  </select>
+                </div>
+                <label style={{display:'flex',alignItems:'center',gap:5,fontSize:'.76rem',color:'#42536A',cursor:'pointer',marginTop:16}}>
+                  <input type="checkbox" checked={popupRecurring} onChange={e=>setPopupRecurring(e.target.checked)} style={{width:'auto'}}/>
                   Korduv
                 </label>
-                <button onClick={addSchedule} className="btn btn-pine" style={{flex:1}}>
-                  <i className="fa-solid fa-calendar-plus"/> {schRecurring?'Loo korduv':'Kinnita tund'}
-                </button>
-                {quickAdd&&<button onClick={()=>setQuickAdd(null)} className="btn btn-ghost btn-sm">✕</button>}
               </div>
+              <button onClick={saveFromPopup} disabled={!popupStu||popupSaving}
+                className="btn btn-pine" style={{width:'100%',opacity:!popupStu||popupSaving?.5:1}}>
+                {popupSaving?'Salvestab…':'✓ Kinnita tund'}
+              </button>
             </div>
-          )}
+          </div>
+        </>
+      )}
 
-          {/* Calendar grid */}
+      {/* ── Main area ── */}
+      <div style={{display:"flex",gap:14,alignItems:"flex-start"}}>
+
+        {/* ── Calendar ── */}
+        <div style={{flex:1,minWidth:0}}>
           <div className="card" style={{overflow:"hidden"}}>
             <div className="scroll" style={{overflowX:"auto"}}>
-              <div style={{minWidth:720}}>
-                {/* Day headers */}
-                <div style={{display:"grid",gridTemplateColumns:"46px repeat(7,1fr)",
-                  background:"#EFEDE7",borderBottom:"1px solid rgba(28,43,58,.1)"}}>
-                  <div style={{padding:"8px",textAlign:"center",fontSize:".64rem",fontWeight:700,color:"#9ca3af"}}>Kell</div>
-                  {weekDays.map(d=>(
-                    <div key={d.iso} style={{padding:"7px 4px",textAlign:"center",
-                      borderLeft:"1px solid rgba(28,43,58,.08)",
-                      background:d.isToday?"rgba(201,136,42,.07)":"transparent"}}>
-                      <div style={{fontSize:".7rem",fontWeight:700,color:d.isToday?"#C9882A":"#1C2B3A"}}>{d.short}</div>
-                      <div style={{fontSize:".72rem",fontWeight:600,color:d.isToday?"#C9882A":"#42536A",marginTop:1}}>{d.label}</div>
+              <div style={{minWidth:viewMode==='day'?400:720}}>
+
+                {/* ── WEEK VIEW ── */}
+                {viewMode==='week'&&<>
+                  <div style={{display:"grid",gridTemplateColumns:"46px repeat(7,1fr)",
+                    background:"#EFEDE7",borderBottom:"1px solid rgba(28,43,58,.1)"}}>
+                    <div style={{padding:"8px",textAlign:"center",fontSize:".64rem",fontWeight:700,color:"#9ca3af"}}>Kell</div>
+                    {weekDays.map(d=>(
+                      <div key={d.iso}
+                        onClick={()=>{setViewMode('day');setSelectedDay(d.iso);}}
+                        style={{padding:"8px 4px",textAlign:"center",
+                          borderLeft:"1px solid rgba(28,43,58,.08)",
+                          background:d.isToday?"rgba(201,136,42,.07)":"transparent",
+                          cursor:"pointer",transition:"background .1s"}}
+                        onMouseEnter={e=>e.currentTarget.style.background=d.isToday?"rgba(201,136,42,.12)":"rgba(28,43,58,.04)"}
+                        onMouseLeave={e=>e.currentTarget.style.background=d.isToday?"rgba(201,136,42,.07)":"transparent"}>
+                        <div style={{fontSize:".7rem",fontWeight:700,color:d.isToday?"#C9882A":"#1C2B3A"}}>{d.short}</div>
+                        <div style={{fontSize:".8rem",fontWeight:700,color:d.isToday?"#C9882A":"#42536A",marginTop:1}}>{d.label}</div>
+                      </div>
+                    ))}
+                  </div>
+                  {occupiedSlots.length===0&&(
+                    <div style={{padding:"40px",textAlign:"center",color:"#42536A",fontSize:".88rem"}}>
+                      Sellel nädalal tunde ei ole.
+                      {canManage&&<div style={{marginTop:8,fontSize:".8rem",color:"#9ca3af"}}>Klõpsa suvalisele reale, et lisada tund</div>}
+                    </div>
+                  )}
+                  {occupiedSlots.map((slot,si)=>{
+                    const prev=occupiedSlots[si-1];
+                    const gapH=prev?(parseInt(slot)-parseInt(prev)):(parseInt(slot)-7);
+                    return(
+                      <React.Fragment key={slot}>
+                        {gapH>1&&(
+                          <div style={{display:"grid",gridTemplateColumns:"46px repeat(7,1fr)",
+                            background:"rgba(239,237,231,.5)",height:12,
+                            borderTop:"0.5px solid rgba(28,43,58,.04)",borderBottom:"0.5px solid rgba(28,43,58,.04)"}}>
+                            <div style={{display:"flex",alignItems:"center",justifyContent:"center",
+                              fontSize:".6rem",color:"#B0A898",fontFamily:"monospace",
+                              background:"rgba(239,237,231,.5)",borderRight:"1px solid rgba(28,43,58,.04)"}}>···</div>
+                            {weekDays.map(d=><div key={d.iso} style={{borderLeft:"0.5px solid rgba(28,43,58,.03)"}}/>)}
+                          </div>
+                        )}
+                        <div style={{display:"grid",gridTemplateColumns:"46px repeat(7,1fr)",
+                          borderBottom:"0.5px solid rgba(28,43,58,.06)"}}>
+                          <div style={{display:"flex",alignItems:"flex-start",justifyContent:"center",paddingTop:6,
+                            fontSize:".68rem",fontFamily:"monospace",fontWeight:700,color:"#9ca3af",
+                            background:"rgba(239,237,231,.3)",borderRight:"1px solid rgba(28,43,58,.06)"}}>
+                            {slot}
+                          </div>
+                          {weekDays.map(day=>
+                            <div key={day.iso} style={{borderLeft:"0.5px solid rgba(28,43,58,.04)"}}>
+                              {renderSlotCell(slot,day.iso,day.dayId,false)}
+                            </div>
+                          )}
+                        </div>
+                      </React.Fragment>
+                    );
+                  })}
+                  {/* Add empty slots below for quick add */}
+                  {canManage&&TIMES.filter(t=>!occupiedSlots.includes(t)).slice(0,3).map(slot=>(
+                    <div key={'empty-'+slot} style={{display:"grid",gridTemplateColumns:"46px repeat(7,1fr)",
+                      borderBottom:"0.5px solid rgba(28,43,58,.03)"}}>
+                      <div style={{display:"flex",alignItems:"center",justifyContent:"center",
+                        fontSize:".68rem",fontFamily:"monospace",color:"rgba(156,163,175,.5)",
+                        background:"rgba(239,237,231,.2)",borderRight:"0.5px solid rgba(28,43,58,.04)"}}>
+                        {slot}
+                      </div>
+                      {weekDays.map(day=>(
+                        <div key={day.iso}
+                          onClick={e=>openCreatePopup(e,day.iso,slot)}
+                          style={{padding:3,borderLeft:"0.5px solid rgba(28,43,58,.03)",
+                            minHeight:32,cursor:"pointer",position:"relative",
+                            background:day.isToday?"rgba(201,136,42,.01)":"transparent"}}
+                          onMouseEnter={e=>e.currentTarget.style.background="rgba(47,93,80,.04)"}
+                          onMouseLeave={e=>e.currentTarget.style.background=day.isToday?"rgba(201,136,42,.01)":"transparent"}>
+                          <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",
+                            color:"rgba(47,93,80,.0)",fontSize:".65rem",fontWeight:600,pointerEvents:"none"}}
+                            className="slot-add-hint">+</div>
+                        </div>
+                      ))}
                     </div>
                   ))}
-                </div>
+                </>}
 
-                {/* Occupied slots only */}
-                {occupiedSlots.length===0&&(
-                  <div style={{padding:"32px",textAlign:"center",color:"#42536A",fontSize:".88rem"}}>
-                    Sellel nädalal tunde ei ole.
+                {/* ── DAY VIEW ── */}
+                {viewMode==='day'&&<>
+                  <div style={{display:"grid",gridTemplateColumns:"56px 1fr",
+                    background:"#EFEDE7",borderBottom:"1px solid rgba(28,43,58,.1)"}}>
+                    <div style={{padding:"10px 8px",textAlign:"center",fontSize:".68rem",fontWeight:700,color:"#9ca3af"}}>Kell</div>
+                    <div style={{padding:"10px 14px",borderLeft:"1px solid rgba(28,43,58,.08)",
+                      background:dayViewObj.isToday?"rgba(201,136,42,.07)":"transparent"}}>
+                      <div style={{fontSize:".76rem",fontWeight:700,color:dayViewObj.isToday?"#C9882A":"#42536A",textTransform:"capitalize"}}>
+                        {dayViewObj.label}
+                      </div>
+                    </div>
                   </div>
-                )}
-                {occupiedSlots.map((slot,si)=>{
-                  const prev=occupiedSlots[si-1];
-                  const gapH=prev?(parseInt(slot)-parseInt(prev)):(parseInt(slot)-7);
-                  return(
-                    <React.Fragment key={slot}>
-                      {gapH>1&&(
-                        <div style={{display:"grid",gridTemplateColumns:"46px repeat(7,1fr)",
-                          background:"rgba(239,237,231,.5)",height:14,
-                          borderTop:"0.5px solid rgba(28,43,58,.05)",borderBottom:"0.5px solid rgba(28,43,58,.05)"}}>
-                          <div style={{display:"flex",alignItems:"center",justifyContent:"center",
-                            fontSize:".6rem",color:"#B0A898",fontFamily:"monospace",
-                            background:"rgba(239,237,231,.5)",borderRight:"1px solid rgba(28,43,58,.05)"}}>
-                            ···
-                          </div>
-                          {weekDays.map(d=><div key={d.iso} style={{borderLeft:"1px solid rgba(28,43,58,.03)"}}/>)}
-                        </div>
-                      )}
-                      <div style={{display:"grid",gridTemplateColumns:"46px repeat(7,1fr)",
-                        borderBottom:"0.5px solid rgba(28,43,58,.06)"}}>
+                  {TIMES.map(slot=>{
+                    const evs=eventsForDaySlot(slot,dayViewObj.iso,dayViewObj.dayId);
+                    const isDropTarget=dragOver&&dragOver.day===dayViewObj.iso&&dragOver.slot===slot;
+                    const hasEvents=evs.length>0;
+                    return(
+                      <div key={slot} style={{display:"grid",gridTemplateColumns:"56px 1fr",
+                        borderBottom:"0.5px solid rgba(28,43,58,.05)",
+                        minHeight:hasEvents?'auto':40}}>
                         <div style={{display:"flex",alignItems:"flex-start",justifyContent:"center",
-                          paddingTop:6,fontSize:".68rem",fontFamily:"monospace",fontWeight:700,color:"#9ca3af",
-                          background:"rgba(239,237,231,.3)",borderRight:"1px solid rgba(28,43,58,.06)"}}>
+                          paddingTop:hasEvents?8:10,
+                          fontSize:".7rem",fontFamily:"monospace",fontWeight:700,
+                          color:hasEvents?"#9ca3af":"rgba(156,163,175,.4)",
+                          background:"rgba(239,237,231,.3)",borderRight:"0.5px solid rgba(28,43,58,.06)"}}>
                           {slot}
                         </div>
-                        {weekDays.map(day=>{
-                          const evs=getEventsForSlot(slot,day);
-                          const isDropTarget=dragOver&&dragOver.day===day.iso&&dragOver.slot===slot;
-                          return(
-                            <div key={day.iso}
-                              onDragOver={e=>{if(canManage&&dragging){e.preventDefault();setDragOver({day:day.iso,slot});}}}
-                              onDragLeave={()=>setDragOver(null)}
-                              onDrop={e=>handleDrop(e,day,slot)}
-                              onClick={evs.length===0&&canManage?()=>{
-                                setSchDate(day.iso);setSchTime(slot);
-                                setQuickAdd({label:day.label,slot});
-                                setTimeout(()=>document.getElementById('cal-booking-form')?.scrollIntoView({behavior:'smooth',block:'center'}),50);
-                              }:undefined}
-                              style={{padding:3,borderLeft:"0.5px solid rgba(28,43,58,.05)",
-                                minHeight:evs.length>0?'auto':38,display:"flex",flexDirection:"column",gap:2,
-                                background:isDropTarget?"rgba(47,93,80,.12)":day.isToday?"rgba(201,136,42,.02)":"transparent",
-                                outline:isDropTarget?"1.5px dashed #2F5D50":"none",
-                                cursor:evs.length===0&&canManage?"pointer":"default",
-                                transition:"background .1s",position:"relative"}}>
-                              {evs.length===0&&canManage&&(
-                                <div className="quick-add-hint"
-                                  style={{position:"absolute",inset:0,display:"flex",alignItems:"center",
-                                    justifyContent:"center",fontSize:".64rem",color:"rgba(28,43,58,.0)",
-                                    transition:"all .15s",borderRadius:3}}>
-                                  +
-                                </div>
-                              )}
-                              {evs.map(ev=>{
-                                const st=ev.status||"Planeeritud";
-                                const tc=tColor(ev.teacher);
-                                const isDraggingThis=dragEv?.ev?.id===ev.id;
-                                const linkedStu=!canManage?myStudents.find(stu=>{
-                                  const target=normalizeText(ev.studentName);
-                                  return normalizeText(stu.name)===target||normalizeText(stu.group)===target||(ev.students||[]).includes(stu.id);
-                                }):null;
-                                const attendanceKey=linkedStu?`${linkedStu.id}_${day.iso}`:"";
-                                const attendanceStatus=attendanceKey?ev.attendance?.[attendanceKey]?.status:"";
-                                return(
-                                  <div key={ev.id+day.iso}
-                                    draggable={canManage}
-                                    onDragStart={e=>handleDragStart(e,ev,day,slot)}
-                                    onDragEnd={handleDragEnd}
-                                    onClick={e=>{e.stopPropagation();canManage&&openScheduleEditor({...ev,occurrenceDate:day.iso});}}
-                                    style={{fontSize:".72rem",padding:"4px 6px 3px 6px",borderRadius:5,
-                                      cursor:canManage?"pointer":"default",
-                                      background:st==='Tühistatud'?"rgba(239,68,68,.06)":tc.bg,
-                                      borderLeft:`3px solid ${st==='Tühistatud'?'#ef4444':tc.dot}`,
-                                      border:`0.5px solid ${st==='Tühistatud'?'rgba(239,68,68,.15)':tc.border}`,
-                                      borderLeftWidth:3,
-                                      opacity:isDraggingThis?.3:st==="Tühistatud"?.5:1,
-                                      userSelect:'none',transition:"background .1s"}}
-                                    onMouseEnter={e=>{if(canManage&&!isDraggingThis)e.currentTarget.style.background=tc.hover;}}
-                                    onMouseLeave={e=>{e.currentTarget.style.background=st==='Tühistatud'?"rgba(239,68,68,.07)":tc.bg;}}>
-                                    <div style={{position:"relative",paddingRight:canManage?12:0}}>
-                                      <div style={{fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",
-                                        color:st==="Tühistatud"?"#991b1b":tc.text,
-                                        textDecoration:st==="Tühistatud"?"line-through":"none",lineHeight:1.35,fontSize:".73rem"}}>
-                                        {ev.studentName}
-                                      </div>
-                                      {canManage&&(
-                                        <button onClick={e=>{e.stopPropagation();delSchedule(ev.id,e);}}
-                                          style={{position:"absolute",top:0,right:-2,background:"none",border:"none",cursor:"pointer",
-                                            color:"rgba(0,0,0,.0)",fontSize:".6rem",lineHeight:1,padding:0,width:12,height:12,
-                                            display:"flex",alignItems:"center",justifyContent:"center"}}
-                                          className="del-btn"
-                                          onMouseEnter={e=>{e.currentTarget.style.color="#ef4444";e.stopPropagation();}}
-                                          onMouseLeave={e=>e.currentTarget.style.color="rgba(0,0,0,.0)"}>✕</button>
-                                      )}
-                                    </div>
-                                    <div style={{fontSize:".58rem",color:tc.dot,display:"flex",gap:3,alignItems:'center',lineHeight:1.2}}>
-                                      {!ev.date&&<span style={{opacity:.5,fontSize:".55rem"}}>↻</span>}
-                                      {(isAdmin&&(filterT==='Kõik'||!filterT))&&<span style={{fontWeight:600,opacity:.75}}>{ev.teacher}</span>}
-                                      {st==="Toimunud"&&<span style={{color:'#166534',fontWeight:700}}>✓</span>}
-                                      {st==='Nihutatud'&&<span style={{color:'#C9882A',fontWeight:600}}>Nihut.</span>}
-                                      {st==='Tühistatud'&&<span style={{color:'#dc2626',fontWeight:600}}>Tüh.</span>}
-                                    </div>
-                                    {!canManage&&linkedStu&&ev.id&&st!=="Tühistatud"&&(
-                                      <div style={{display:"flex",gap:3,marginTop:3,flexWrap:"wrap"}}>
-                                        <button onClick={e=>{e.stopPropagation();markAttendance(ev,attendanceKey,"coming");}}
-                                          className="btn btn-pine btn-sm"
-                                          style={{padding:"2px 5px",fontSize:".58rem",opacity:attendanceStatus==="coming"?1:.8}}>
-                                          Tuleb
-                                        </button>
-                                        <button onClick={e=>{e.stopPropagation();markAttendance(ev,attendanceKey,"absent");}}
-                                          className="btn btn-red btn-sm"
-                                          style={{padding:"2px 5px",fontSize:".58rem",opacity:attendanceStatus==="absent"?1:.8}}>
-                                          Ei tule
-                                        </button>
-                                      </div>
-                                    )}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          );
-                        })}
+                        <div
+                          onDragOver={e=>{if(canManage&&dragging){e.preventDefault();setDragOver({day:dayViewObj.iso,slot});}}}
+                          onDragLeave={()=>setDragOver(null)}
+                          onDrop={e=>handleDrop(e,dayViewObj.iso,slot)}
+                          onClick={evs.length===0&&canManage?(e)=>openCreatePopup(e,dayViewObj.iso,slot):undefined}
+                          style={{padding:hasEvents?"8px 10px":"4px 10px",
+                            borderLeft:"0.5px solid rgba(28,43,58,.05)",
+                            display:"flex",flexDirection:"column",gap:6,
+                            background:isDropTarget?"rgba(47,93,80,.08)":"transparent",
+                            outline:isDropTarget?"1.5px dashed #2F5D50":"none",
+                            cursor:evs.length===0&&canManage?"pointer":"default",
+                            minHeight:hasEvents?'auto':40,
+                            transition:"background .1s",position:"relative"}}>
+                          {evs.length===0&&canManage&&(
+                            <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",
+                              padding:"0 14px",color:"rgba(47,93,80,.0)",fontSize:".75rem",
+                              fontWeight:600,pointerEvents:"none"}}
+                              className="slot-add-hint">+ Lisa tund</div>
+                          )}
+                          {evs.map(ev=>renderEvent(ev,dayViewObj.iso,slot,true))}
+                        </div>
                       </div>
-                    </React.Fragment>
-                  );
-                })}
+                    );
+                  })}
+                </>}
+
               </div>
             </div>
           </div>
-          {/* Quick add + del btn hover CSS */}
-          <style>{`
-            .time-cell:hover .quick-add-hint{color:rgba(47,93,80,.5)!important;}
-            .ev-card:hover .del-btn{color:rgba(0,0,0,.25)!important;}
-          `}</style>
         </div>
 
-        {/* Right sidebar */}
+        {/* ── Sidebar ── */}
         {canManage&&(
-          <div style={{width:228,flexShrink:0,display:"flex",flexDirection:"column",gap:12}}>
+          <div style={{width:260,flexShrink:0,display:"flex",flexDirection:"column",gap:12}}>
 
-            {/* Week stats card */}
+            {/* Week stats */}
             <div className="card" style={{padding:16}}>
               <div style={{fontSize:".66rem",fontWeight:800,color:"#9ca3af",textTransform:"uppercase",letterSpacing:".1em",marginBottom:10}}>
-                Nädala kokkuvõte
+                {viewMode==='week'?'Nädala kokkuvõte':'Päeva kokkuvõte'}
               </div>
-              {[
-                {l:'Tunde kokku',  v:weekStats.total,           c:'#1C2B3A'},
-                {l:'Toimunud',     v:weekStats.done,            c:'#166534'},
-                {l:'Planeeritud',  v:weekStats.planned,         c:'#1d4ed8'},
-                {l:'Tühistatud',   v:weekStats.canceled,        c:'#dc2626'},
-                {l:'Oodatav tulu', v:weekStats.revenue+'€',     c:'#2F5D50'},
-              ].map(s=>(
-                <div key={s.l} style={{display:"flex",justifyContent:"space-between",alignItems:"center",
-                  padding:"5px 0",borderBottom:"0.5px solid rgba(28,43,58,.06)"}}>
-                  <span style={{fontSize:".76rem",color:"#42536A"}}>{s.l}</span>
-                  <span style={{fontSize:".82rem",fontWeight:700,color:s.c}}>{s.v}</span>
-                </div>
-              ))}
+              {(()=>{
+                const dayEvs = viewMode==='day'
+                  ? TIMES.flatMap(slot=>eventsForDaySlot(slot,dayViewObj.iso,dayViewObj.dayId))
+                  : null;
+                const stats = viewMode==='day'
+                  ? {
+                      total:dayEvs.length,
+                      done:dayEvs.filter(e=>e.status==='Toimunud').length,
+                      planned:dayEvs.filter(e=>e.status==='Planeeritud').length,
+                      canceled:dayEvs.filter(e=>e.status==='Tühistatud').length,
+                      revenue:dayEvs.reduce((sum,ev)=>{
+                        const stu=students.find(s=>s.id===ev.studentId||normalizeText(s.name)===normalizeText(ev.studentName));
+                        return sum+(stu?.lessonPrice||0);
+                      },0)
+                    }
+                  : weekStats;
+                return [
+                  {l:'Tunde kokku',v:stats.total,c:'#1C2B3A'},
+                  {l:'Toimunud',v:stats.done,c:'#166534'},
+                  {l:'Planeeritud',v:stats.planned,c:'#1d4ed8'},
+                  {l:'Tühistatud',v:stats.canceled,c:'#dc2626'},
+                  {l:'Tulu',v:stats.revenue+'€',c:'#2F5D50'},
+                ].map(s=>(
+                  <div key={s.l} style={{display:"flex",justifyContent:"space-between",alignItems:"center",
+                    padding:"5px 0",borderBottom:"0.5px solid rgba(28,43,58,.06)"}}>
+                    <span style={{fontSize:".76rem",color:"#42536A"}}>{s.l}</span>
+                    <span style={{fontSize:".84rem",fontWeight:700,color:s.c}}>{s.v}</span>
+                  </div>
+                ));
+              })()}
             </div>
 
-            {/* Spikker card */}
+            {/* Spikker */}
             <div className="card" style={{padding:16}}>
-              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8,gap:6,flexWrap:"wrap"}}>
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8,gap:4,flexWrap:"wrap"}}>
                 <div style={{fontSize:".66rem",fontWeight:800,color:"#9ca3af",textTransform:"uppercase",letterSpacing:".1em"}}>
                   Õpilaste spikker
                 </div>
@@ -799,11 +1036,9 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
                   ⚠ {missingCount} õpilasel 0 tundi
                 </div>
               )}
-              <div style={{display:"flex",flexDirection:"column",gap:3,maxHeight:400,overflowY:"auto"}} className="scroll">
+              <div style={{display:"flex",flexDirection:"column",gap:3,maxHeight:420,overflowY:"auto"}} className="scroll">
                 {plannerRows.length===0&&(
-                  <div style={{textAlign:"center",padding:"14px 0",color:"#9ca3af",fontSize:".76rem"}}>
-                    Õpilasi ei leitud
-                  </div>
+                  <div style={{textAlign:"center",padding:"14px 0",color:"#9ca3af",fontSize:".76rem"}}>Õpilasi ei leitud</div>
                 )}
                 {plannerRows.map(row=>{
                   const {student,lessonsThisWeek,target}=row;
@@ -827,12 +1062,12 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
                           color:isOk?"#166534":"#dc2626"}}>
                           {target>0?`${lessonsThisWeek.length}/${target}`:lessonsThisWeek.length}
                         </span>
-                        <button onClick={()=>{
-                          setSchStu(student.name);
-                          document.getElementById('cal-booking-form')?.scrollIntoView({behavior:'smooth',block:'center'});
-                        }} style={{fontSize:".6rem",padding:"1px 5px",borderRadius:5,
-                          border:"0.5px solid rgba(28,43,58,.12)",background:"#fff",
-                          cursor:"pointer",color:"#42536A",fontFamily:"inherit"}}>
+                        <button onClick={()=>openCreatePopup({stopPropagation:()=>{}},
+                          weekDays[0]?.iso||today(),TIMES[2]||'09:00')}
+                          style={{fontSize:".6rem",padding:"1px 5px",borderRadius:5,
+                            border:"0.5px solid rgba(28,43,58,.12)",background:"#fff",
+                            cursor:"pointer",color:"#42536A",fontFamily:"inherit"}}
+                          onMouseEnter={e=>{e.stopPropagation();setPopupStu(student.name);openCreatePopup({stopPropagation:()=>{}},weekDays[0]?.iso||today(),'09:00');}}>
                           + Lisa
                         </button>
                       </div>
@@ -841,14 +1076,19 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
                 })}
               </div>
             </div>
-
           </div>
         )}
       </div>
+
+      <style>{`
+        .slot-add-hint { transition: color .15s !important; }
+        div:hover > .slot-add-hint { color: rgba(47,93,80,.45) !important; }
+        .ev-del-btn { transition: color .1s !important; }
+        .ev-card:hover .ev-del-btn, div:hover > .ev-del-btn { color: rgba(0,0,0,.25) !important; }
+      `}</style>
     </div>
   );
 }
-
 
 
 
