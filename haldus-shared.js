@@ -1,5 +1,5 @@
 (function(){
-  const APP_VERSION  = 'CRM 2026-06-29 12:00';
+  const APP_VERSION  = 'CRM 2026-07-08 00:10';
   const LEVELS   = ['Eelkool','A1','A2','B1','B2','C1'];
   const TEACHERS = ['Pavel','Jelena','Elizaveta','Angelina'];
   const STAFF_ALIASES = {

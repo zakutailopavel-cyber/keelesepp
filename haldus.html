@@ -136,8 +136,10 @@ const isOwnStudentRecord = (student, profile) => {
   if(!student || !profile) return false;
   const uid = profile.uid || profile.id || '';
   const linkedUid = student.linkedUserId || student.studentUid || '';
+  const linkedParentUid = student.linkedParentId || student.parentUid || student.guardianUid || '';
   if(uid && linkedUid===uid) return true;
   if(student.isSelfStudent && normalizeText(student.email) && normalizeText(student.email)===normalizeText(profile.email)) return true;
+  if(uid && linkedParentUid===uid && normalizeText(student.name)===normalizeText(profile.displayName)) return true;
   return false;
 };
 
@@ -6223,7 +6225,7 @@ function EditStudentModal({student,onClose,onSave,onDelete,db,notify,isAdmin,gro
 
 
 // ── LAPSEVANEMA LASTE VAADE ───────────────────────────────────
-function ParentChildrenView({user,myStudents,isAdmin,lessons,homework,setSelStu,db,notify,groupOptions,addStudentForParent,deleteStudentForParent}) {
+function ParentChildrenView({user,myStudents,isAdmin,lessons,homework,setSelStu,db,notify,groupOptions,addStudentForParent,addSelfStudentForParent,deleteStudentForParent}) {
   const [showForm,setShowForm] = React.useState(false);
   const [nName,setNName] = React.useState('');
   const [nLevel,setNLevel] = React.useState('A1');
@@ -6232,6 +6234,7 @@ function ParentChildrenView({user,myStudents,isAdmin,lessons,homework,setSelStu,
   const [nTeach,setNTeach] = React.useState('Pavel');
   const [nGrade,setNGrade] = React.useState('');
   const [busy,setBusy] = React.useState(false);
+  const [selfBusy,setSelfBusy] = React.useState(false);
   const [confirmDelete,setConfirmDelete] = React.useState(null);
   const hasOwnStudy = myStudents.some(student=>isOwnStudentRecord(student,user));
 
@@ -6241,6 +6244,14 @@ function ParentChildrenView({user,myStudents,isAdmin,lessons,homework,setSelStu,
     await addStudentForParent({name:nName,level:nLevel,targetLevel:nTarget,subject:nSubject,teacher:nTeach,grade:nGrade});
     setNName('');setNGrade('');setShowForm(false);
     setBusy(false);
+  };
+  const addSelfStudy = async()=>{
+    setSelfBusy(true);
+    try{
+      await addSelfStudentForParent?.();
+    }finally{
+      setSelfBusy(false);
+    }
   };
 
   return(
@@ -6252,9 +6263,16 @@ function ParentChildrenView({user,myStudents,isAdmin,lessons,homework,setSelStu,
             {hasOwnStudy?'Sinu ja laste õppeprofiilid ning progress.':'Sinu laste õppeprofiilid ja progress.'}
           </div>
         </div>
-        <button onClick={()=>setShowForm(v=>!v)} className="btn btn-pine">
-          <i className="fa-solid fa-plus"/> Lisa laps
-        </button>
+        <div style={{display:'flex',gap:8,flexWrap:'wrap',justifyContent:'flex-end'}}>
+          {!hasOwnStudy&&(
+            <button onClick={addSelfStudy} disabled={selfBusy} className="btn btn-ghost">
+              <i className="fa-solid fa-user-graduate"/> {selfBusy?'Lisab...':'Lisa enda õpingud'}
+            </button>
+          )}
+          <button onClick={()=>setShowForm(v=>!v)} className="btn btn-pine">
+            <i className="fa-solid fa-plus"/> Lisa laps
+          </button>
+        </div>
       </div>
 
       {showForm&&(
@@ -6895,6 +6913,49 @@ function App() {
     await logActivity('student.created','Lapsevanem lisas lapse',{studentId:ref.id,studentName:data.name});
     notify('✓ Laps '+data.name+' lisatud!');
   },[user,logActivity]);
+
+  const addSelfStudentForParent=useCallback(async()=>{
+    if(!user?.uid) return;
+    const existing = students.find(student=>student.active!==false && !student.convertedToParent && isOwnStudentRecord(student,user));
+    if(existing){
+      setSelStu(existing);
+      setTab('students');
+      notify('✓ Sinu õpilase kaart on juba olemas');
+      return;
+    }
+    const teacher = canonicalTeacherName(user.preferredTeacher || user.teacher || 'Pavel');
+    const data = {
+      linkedUserId:user.uid,
+      studentUid:user.uid,
+      isSelfStudent:true,
+      parentAsStudent:true,
+      name:user.displayName||user.email||'Õpilane',
+      email:user.email||'',
+      phone:user.phone||user.parentPhone||'',
+      level:'A1',
+      targetLevel:'B1',
+      teacher,
+      active:true,
+      packageTotal:0,
+      packageUsed:0,
+      subject:'Eesti keel',
+      grade:'Täiskasvanu',
+      group:'',
+      registrationSource:'parent-self-student',
+      profileStatus:'new',
+      contactStatus:'new',
+      contactOwner:teacher,
+      contactLastAt:'',
+      contactNotes:'Lapsevanem lisas enda õpingud',
+      createdAt:today()
+    };
+    const ref = await db.collection('students').add(data);
+    const created = {id:ref.id,...data};
+    await logActivity('student.self_created','Lapsevanem lisas enda õpingud',{studentId:ref.id,studentName:data.name});
+    setSelStu(created);
+    setTab('students');
+    notify('✓ Sinu õpilase kaart loodud');
+  },[user,students,logActivity,notify]);
 
   const deleteStudentForParent=useCallback(async(student)=>{
     if(!isAdmin){notify('⚠ Ainult admin saab kustutada');return;}
@@ -8190,11 +8251,12 @@ function App() {
   );
   if(!user) return <AuthScreen onLogin={u=>{setUser(u);if(u.role==='teacher')setFilterT(canonicalTeacherName(u.displayName||''));if(u.role==='admin')setFilterT('Kõik');}}/>;
 
+  const hasStudyProfile = isStudentUser || Boolean(ownStudent);
   const roleLabel = isAdmin
     ? 'Administraator'
     : hasUserRole(user,'teacher')
       ? 'Õpetaja'
-      : isParentUser&&isStudentUser
+      : isParentUser&&hasStudyProfile
         ? 'Lapsevanem + Õpilane'
         : isParentUser
           ? 'Lapsevanem'
@@ -8206,7 +8268,7 @@ function App() {
       badge:scopedTasks.filter(t=>t.status!=='done').length}]:[]),
     ...(isStaff?[{id:'programs',icon:'fa-book-open-reader',label:'Õppekavad'}]:[]),
     ...(isStaff?[{id:'exercises_link',icon:'fa-pen-line',label:'Harjutused',isExternal:true,href:'/haldus-exercises'}]:[]),
-    {id:'students', icon:'fa-graduation-cap',label:isStaff?'Minu õpilased':isParentUser&&isStudentUser?'Minu lapsed / õpingud':isParentUser?'Minu lapsed':'Minu progress',
+    {id:'students', icon:'fa-graduation-cap',label:isStaff?'Minu õpilased':isParentUser&&hasStudyProfile?'Minu lapsed / õpingud':isParentUser?'Minu lapsed':'Minu progress',
       badge:isStaff?unseenWsCount:0},
     ...(isStaff?[{id:'groups',icon:'fa-layer-group',label:'Grupid'}]:[]),
     ...(isStaff?[{id:'parents',icon:'fa-people-roof',label:'Lapsevanemad',badge:isAdmin?parentAlerts.length:0}]:[]),
@@ -8341,6 +8403,7 @@ function App() {
             setSelStu={setSelStu} db={db} notify={notify}
             groupOptions={groupOptions}
             addStudentForParent={addStudentForParent}
+            addSelfStudentForParent={addSelfStudentForParent}
             deleteStudentForParent={deleteStudentForParent}/>}
           {tab==='students'&&(!isStaff||(isStaff&&selStu)||selStu)&&!(isParentUser&&!selStu)&&<StudentCard
             setEditStu={setEditStu}
