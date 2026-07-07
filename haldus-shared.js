@@ -1,6 +1,4 @@
 (function(){
-  const TEACHER_CODE = 'KS2026';
-  const ADMIN_CODE   = 'KSADMIN2026';
   const APP_VERSION  = 'CRM 2026-06-29 12:00';
   const LEVELS   = ['Eelkool','A1','A2','B1','B2','C1'];
   const TEACHERS = ['Pavel','Jelena','Elizaveta','Angelina'];
@@ -111,6 +109,21 @@
     }
   };
 
+  const getAuthHeaders = async (extraHeaders = {}) => {
+    const currentUser = window._auth?.currentUser;
+    if(!currentUser) throw new Error('Sisselogimine on aegunud. Palun logi uuesti sisse.');
+    const token = await currentUser.getIdToken();
+    return {
+      ...extraHeaders,
+      Authorization: `Bearer ${token}`
+    };
+  };
+
+  const authFetch = async (url, options = {}) => {
+    const headers = await getAuthHeaders(options.headers || {});
+    return fetch(url, {...options, headers});
+  };
+
   async function ensureStudentRecord(authUser, profile){
     if(!authUser || profile?.role!=='student') return;
     const db = window._db;
@@ -202,8 +215,6 @@
   }
 
   window.HaldusShared = {
-    TEACHER_CODE,
-    ADMIN_CODE,
     APP_VERSION,
     LEVELS,
     TEACHERS,
@@ -229,6 +240,8 @@
     today,
     pkgLeft,
     copyText,
+    getAuthHeaders,
+    authFetch,
     ensureStudentRecord,
     ensureParentStudentRecords
   };

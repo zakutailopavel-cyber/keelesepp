@@ -1,0 +1,189 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function uid() {
+      return request.auth.uid;
+    }
+
+    function email() {
+      return request.auth.token.email != null
+        ? request.auth.token.email.lower()
+        : '';
+    }
+
+    function superAdmin() {
+      return signedIn() && email() in ['zakutailo.pavel@gmail.com'];
+    }
+
+    function userPath(userId) {
+      return /databases/$(database)/documents/users/$(userId);
+    }
+
+    function hasUserDoc(userId) {
+      return exists(userPath(userId));
+    }
+
+    function userRole(userId) {
+      return hasUserDoc(userId) ? get(userPath(userId)).data.role : '';
+    }
+
+    function isAdmin() {
+      return superAdmin() || (signedIn() && userRole(uid()) == 'admin');
+    }
+
+    function isStaff() {
+      return isAdmin() || (signedIn() && userRole(uid()) == 'teacher');
+    }
+
+    function studentPath(studentId) {
+      return /databases/$(database)/documents/students/$(studentId);
+    }
+
+    function studentDoc(studentId) {
+      return get(studentPath(studentId)).data;
+    }
+
+    function ownsStudent(studentId) {
+      return signedIn()
+        && exists(studentPath(studentId))
+        && (
+          studentDoc(studentId).linkedUserId == uid()
+          || studentDoc(studentId).studentUid == uid()
+          || studentDoc(studentId).linkedParentId == uid()
+          || studentDoc(studentId).parentUid == uid()
+          || studentDoc(studentId).guardianUid == uid()
+        );
+    }
+
+    function createsOwnStudent() {
+      return signedIn()
+        && (
+          request.resource.data.linkedUserId == uid()
+          || request.resource.data.studentUid == uid()
+          || request.resource.data.linkedParentId == uid()
+          || request.resource.data.parentUid == uid()
+          || request.resource.data.guardianUid == uid()
+        );
+    }
+
+    function safeSelfUserFields() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+        'displayName',
+        'email',
+        'childName',
+        'preferredTeacher',
+        'phone',
+        'updatedAt',
+        'parentReviewStatus',
+        'parentReviewKey'
+      ]);
+    }
+
+    match /users/{userId} {
+      allow read: if signedIn() && (uid() == userId || isStaff());
+      allow create: if signedIn()
+        && uid() == userId
+        && request.resource.data.role in ['parent', 'student'];
+      allow update: if isAdmin() || (signedIn() && uid() == userId && safeSelfUserFields());
+      allow delete: if isAdmin();
+    }
+
+    match /students/{studentId} {
+      allow read: if isStaff() || ownsStudent(studentId);
+      allow create: if isStaff() || createsOwnStudent();
+      allow update: if isStaff()
+        || (
+          ownsStudent(studentId)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'email',
+            'phone',
+            'parentName',
+            'parentEmail',
+            'contactEmail',
+            'guardianEmail',
+            'updatedAt',
+            'skillMap',
+            'skillMapUpdatedAt',
+            'skillMapLastUpdated'
+          ])
+        );
+      allow delete: if isAdmin();
+    }
+
+    match /schedule/{scheduleId} {
+      allow read: if isStaff() || ownsStudent(resource.data.studentId);
+      allow create, update, delete: if isStaff();
+    }
+
+    match /lessons/{lessonId} {
+      allow read: if isStaff() || ownsStudent(resource.data.studentId);
+      allow create, update, delete: if isStaff();
+    }
+
+    match /homework/{homeworkId} {
+      allow read: if isStaff() || ownsStudent(resource.data.studentId);
+      allow create, update, delete: if isStaff() || ownsStudent(request.resource.data.studentId);
+    }
+
+    match /invoices/{invoiceId} {
+      allow read: if isStaff() || ownsStudent(resource.data.studentId);
+      allow create, update, delete: if isStaff();
+    }
+
+    match /messages/{messageId} {
+      allow read: if isStaff() || ownsStudent(resource.data.studentId);
+      allow create: if isStaff() || ownsStudent(request.resource.data.studentId);
+      allow update: if isStaff() || ownsStudent(resource.data.studentId);
+      allow delete: if isAdmin();
+    }
+
+    match /worksheetAssignments/{assignmentId} {
+      allow read: if isStaff() || ownsStudent(resource.data.studentId);
+      allow create, delete: if isStaff();
+      allow update: if isStaff() || ownsStudent(resource.data.studentId);
+    }
+
+    match /exerciseResults/{resultId} {
+      allow read: if isStaff() || ownsStudent(resource.data.studentId);
+      allow create, update: if isStaff() || ownsStudent(request.resource.data.studentId);
+      allow delete: if isAdmin();
+    }
+
+    match /groups/{groupId} {
+      allow read, write: if isStaff();
+    }
+
+    match /tasks/{taskId} {
+      allow read, write: if isStaff();
+    }
+
+    match /activityLog/{entryId} {
+      allow read: if isStaff();
+      allow create: if signedIn();
+      allow update, delete: if isAdmin();
+    }
+
+    match /curriculumLessons/{lessonId} {
+      allow read: if signedIn();
+      allow write: if isStaff();
+    }
+
+    match /exercises/{exerciseId} {
+      allow read: if signedIn();
+      allow write: if isStaff();
+    }
+
+    match /oauthStates/{stateId} {
+      allow read, write: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

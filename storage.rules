@@ -1,0 +1,79 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function email() {
+      return request.auth.token.email != null
+        ? request.auth.token.email.lower()
+        : '';
+    }
+
+    function superAdmin() {
+      return signedIn() && email() in ['zakutailo.pavel@gmail.com'];
+    }
+
+    function role() {
+      return signedIn()
+        && firestore.exists(/databases/(default)/documents/users/$(request.auth.uid))
+        ? firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role
+        : '';
+    }
+
+    function staff() {
+      return superAdmin() || role() in ['teacher', 'admin'];
+    }
+
+    function ownsStudent(studentId) {
+      return signedIn()
+        && firestore.exists(/databases/(default)/documents/students/$(studentId))
+        && (
+          firestore.get(/databases/(default)/documents/students/$(studentId)).data.linkedUserId == request.auth.uid
+          || firestore.get(/databases/(default)/documents/students/$(studentId)).data.studentUid == request.auth.uid
+          || firestore.get(/databases/(default)/documents/students/$(studentId)).data.linkedParentId == request.auth.uid
+          || firestore.get(/databases/(default)/documents/students/$(studentId)).data.parentUid == request.auth.uid
+          || firestore.get(/databases/(default)/documents/students/$(studentId)).data.guardianUid == request.auth.uid
+        );
+    }
+
+    function safeContent() {
+      return request.resource == null
+        || (
+          request.resource.size < 20 * 1024 * 1024
+          && request.resource.contentType.matches('^(image/|application/pdf|text/|audio/|video/|application/vnd\\.|application/msword)')
+        );
+    }
+
+    match /eesti_soned.json {
+      allow read: if signedIn();
+      allow write: if staff();
+    }
+
+    match /worksheet/{fileName} {
+      allow read: if signedIn();
+      allow write: if staff() && safeContent();
+    }
+
+    match /curriculum/{fileName} {
+      allow read: if signedIn();
+      allow write: if staff() && safeContent();
+    }
+
+    match /lessons/{studentId}/{fileName} {
+      allow read: if staff() || ownsStudent(studentId);
+      allow write: if staff() && safeContent();
+    }
+
+    match /homework/{studentId}/{fileName} {
+      allow read: if staff() || ownsStudent(studentId);
+      allow write: if (staff() || ownsStudent(studentId)) && safeContent();
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

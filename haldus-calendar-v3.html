@@ -68,7 +68,6 @@ const {useState,useEffect,useRef,useCallback} = React;
 const db   = window._db;
 const auth = window._auth;
 
-const TEACHER_CODE = 'KS2026'; // Invite code for teacher registration
 const LEVELS   = ['A1','A2','B1','B2','C1'];
 const TEACHERS = ['Pavel','Jelena','Elizaveta','Angelina'];
 const DAYS = [{id:'Mon',n:'E'},{id:'Tue',n:'T'},{id:'Wed',n:'K'},{id:'Thu',n:'N'},{id:'Fri',n:'R'},{id:'Sat',n:'L'},{id:'Sun',n:'P'}];
@@ -217,7 +216,7 @@ function AuthScreen({onLogin}) {
     if(!name.trim()||!email.trim()||!pass) { setErr('Täida kõik kohustuslikud väljad'); return; }
     if(pass!==pass2) { setErr('Paroolid ei ühti'); return; }
     if(pass.length<6) { setErr('Parool peab olema vähemalt 6 tähemärki'); return; }
-    if(role==='teacher' && tCode!==TEACHER_CODE) { setErr('Vale õpetaja kutse-kood. Küsi kooli administraatorilt.'); return; }
+    if(!['parent','student'].includes(role)) { setErr('Õpetaja kontod loob administraator.'); return; }
     setErr(''); setBusy(true);
     try {
       const res = await auth.createUserWithEmailAndPassword(email,pass);
@@ -260,7 +259,7 @@ function AuthScreen({onLogin}) {
         {/* Role tabs on register */}
         {mode==='register' && (
           <div style={{display:'flex',background:'#EFEDE7',borderRadius:12,padding:4,marginBottom:20,gap:3}}>
-            {[{id:'parent',l:'👨‍👩‍👧 Lapsevanem'},{id:'student',l:'🎓 Õpilane'},{id:'teacher',l:'📚 Õpetaja'}].map(r=>(
+            {[{id:'parent',l:'Lapsevanem'},{id:'student',l:'Õpilane'}].map(r=>(
               <button key={r.id} onClick={()=>setRole(r.id)}
                 style={{flex:1,padding:'8px 4px',borderRadius:9,border:'none',cursor:'pointer',fontWeight:600,
                   fontSize:'.8rem',transition:'all .15s',
@@ -284,14 +283,6 @@ function AuthScreen({onLogin}) {
           {mode==='register' && <>
             <input type="password" value={pass2} onChange={e=>setPass2(e.target.value)} placeholder="Korda parooli *" {...inp}/>
             {role==='parent' && <input value={childName} onChange={e=>setChildName(e.target.value)} placeholder="Lapse nimi KeeleSepis" {...inp}/>}
-            {role==='teacher' && (
-              <div>
-                <input value={tCode} onChange={e=>setTCode(e.target.value)} placeholder="Õpetaja kutse-kood *" {...inp}/>
-                <div style={{fontSize:'.72rem',color:'#42536A',marginTop:5,paddingLeft:2}}>
-                  🔑 Kutse-koodi saad kooli administraatorilt
-                </div>
-              </div>
-            )}
           </>}
         </div>
 
@@ -489,7 +480,10 @@ function App() {
     };
     await db.collection('lessons').add(lessonData);
     if(stu&&lStatus==='Toimunud'){
-      await db.collection('students').doc(stu.id).update({packageUsed:firebase.firestore.FieldValue.increment(1)});
+      await db.collection('students').doc(stu.id).update({
+        packageUsed:firebase.firestore.FieldValue.increment(1),
+        lessonsSinceInvoice:firebase.firestore.FieldValue.increment(1)
+      });
     }
     if(modalEv.id && modalEv.date){
       await db.collection('schedule').doc(modalEv.id).update({
@@ -597,9 +591,12 @@ function App() {
 
   const printInvoice=inv=>{
     const stu=students.find(s=>s.id===inv.studentId);
+    const esc=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+    const safeNum=esc(inv.num||'');
+    const safeDue=esc(fmtDate(inv.due));
     const w=window.open('','_blank');
     w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
-    <title>Arve ${inv.num}</title>
+    <title>Arve ${safeNum}</title>
     <style>body{font-family:Georgia,serif;padding:60px;color:#1C2B3A;max-width:700px;margin:0 auto}
     .logo{font-size:2rem;font-weight:700;margin-bottom:4px}b{color:#C9882A}
     h1{font-size:1.4rem;border-bottom:2px solid #C9882A;padding-bottom:12px;margin:30px 0 20px}
@@ -609,15 +606,15 @@ function App() {
     </style></head><body>
     <div class="logo">Keele<b>Sepp</b></div>
     <div style="font-size:.85rem;color:#666">E&P Koolitus OÜ · info@epkoolitus.ee · +372 5374 0753</div>
-    <h1>ARVE ${inv.num}</h1>
-    <div class="row"><span>Arve number:</span><span>${inv.num}</span></div>
-    <div class="row"><span>Kuupäev:</span><span>${fmtDate(inv.date)}</span></div>
-    <div class="row"><span>Tähtaeg:</span><span>${fmtDate(inv.due)}</span></div>
-    <div class="row"><span>Õpilane:</span><span>${inv.studentName}</span></div>
-    ${stu?.email?`<div class="row"><span>E-post:</span><span>${stu.email}</span></div>`:''}
-    <div class="row"><span>Kirjeldus:</span><span>${inv.desc}</span></div>
-    <div class="row total"><span>KOKKU:</span><span>${inv.amount} €</span></div>
-    <p style="margin-top:30px;font-size:.85rem;color:#666">Palun tasuda arve tähtajaks ${fmtDate(inv.due)}.</p>
+    <h1>ARVE ${safeNum}</h1>
+    <div class="row"><span>Arve number:</span><span>${safeNum}</span></div>
+    <div class="row"><span>Kuupäev:</span><span>${esc(fmtDate(inv.date))}</span></div>
+    <div class="row"><span>Tähtaeg:</span><span>${safeDue}</span></div>
+    <div class="row"><span>Õpilane:</span><span>${esc(inv.studentName)}</span></div>
+    ${stu?.email?`<div class="row"><span>E-post:</span><span>${esc(stu.email)}</span></div>`:''}
+    <div class="row"><span>Kirjeldus:</span><span>${esc(inv.desc)}</span></div>
+    <div class="row total"><span>KOKKU:</span><span>${esc(inv.amount)} €</span></div>
+    <p style="margin-top:30px;font-size:.85rem;color:#666">Palun tasuda arve tähtajaks ${safeDue}.</p>
     <div class="footer">KeeleSepp · E&P Koolitus OÜ · Mustamäe tee 33, 10616 Tallinn · Reg nr: xxxxxxxx</div>
     </body></html>`);
     w.document.close();
@@ -625,7 +622,7 @@ function App() {
   };
 
   // ── FILTRID ────────────────────────────────────────────────
-  const isAdmin   = user?.displayName==='Pavel';
+  const isAdmin   = user?.role==='admin'||String(user?.email||'').trim().toLowerCase()==='zakutailo.pavel@gmail.com';
   const myStudents = user?.role==='teacher'
     ? (isAdmin?students:students.filter(s=>s.teacher===user.displayName))
     : user?.role==='parent'

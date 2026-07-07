@@ -58,7 +58,7 @@
     },
     {
       "source": "/kutse",
-      "destination": "/kutse"
+      "destination": "/kutse.html"
     },
     {
       "source": "/",
@@ -149,6 +149,15 @@
     },
     {
       "source": "/tingimused/",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/html; charset=utf-8"
+        }
+      ]
+    },
+    {
+      "source": "/kutse",
       "headers": [
         {
           "key": "Content-Type",

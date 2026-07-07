@@ -115,12 +115,12 @@ const db   = window._db;
 const auth = window._auth;
 const storage = window._storage;
 const {
-  TEACHER_CODE, ADMIN_CODE, APP_VERSION, LEVELS:SHARED_LEVELS, TEACHERS,
+  APP_VERSION, LEVELS:SHARED_LEVELS, TEACHERS,
   SUBJECTS, GRADES:SHARED_GRADES, LESSON_DURATIONS,
   PAYMENT_METHODS, PAYMENT_DETAILS, CONTACT_STATUSES,
   DAYS_SHORT, DAYS_ID, DAYS_FULL, TIMES,
   normalizeText, studentIdentityKey, studentProfileKey, parseLinkedNames, canonicalTeacherName,
-  levelPct, avg, fmtDate, toLocalISODate, today, pkgLeft, copyText,
+  levelPct, avg, fmtDate, toLocalISODate, today, pkgLeft, copyText, authFetch,
   ensureStudentRecord, ensureParentStudentRecords
 } = window.HaldusShared;
 const LEVELS = SHARED_LEVELS.includes('Eelkool') ? SHARED_LEVELS : ['Eelkool',...SHARED_LEVELS];
@@ -211,7 +211,7 @@ function GCalSettings({user,notify}) {
 
   React.useEffect(()=>{
     if(!user?.uid) return;
-    fetch(`${FUNCTIONS_BASE}/gcal/status?uid=${user.uid}`)
+    authFetch(`${FUNCTIONS_BASE}/gcal/status?uid=${user.uid}`)
       .then(r=>r.json())
       .then(d=>{
         setStatus(d.connected?'connected':'disconnected');
@@ -221,7 +221,7 @@ function GCalSettings({user,notify}) {
   },[user?.uid]);
 
   const connect = async()=>{
-    const r = await fetch(`${FUNCTIONS_BASE}/gcal/auth-url?uid=${user.uid}`);
+    const r = await authFetch(`${FUNCTIONS_BASE}/gcal/auth-url?uid=${user.uid}`);
     const d = await r.json();
     window.location.href = d.url;
   };
@@ -229,7 +229,7 @@ function GCalSettings({user,notify}) {
   const sync = async()=>{
     setSyncing(true);
     try{
-      const r = await fetch(`${FUNCTIONS_BASE}/gcal/sync`,{
+      const r = await authFetch(`${FUNCTIONS_BASE}/gcal/sync`,{
         method:'POST',
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify({uid:user.uid})
@@ -245,7 +245,7 @@ function GCalSettings({user,notify}) {
 
   const disconnect = async()=>{
     if(!window.confirm('Eemalda Google Calendar ühendus?')) return;
-    await fetch(`${FUNCTIONS_BASE}/gcal/disconnect`,{
+    await authFetch(`${FUNCTIONS_BASE}/gcal/disconnect`,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({uid:user.uid})
