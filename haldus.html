@@ -121,6 +121,7 @@ const {
   DAYS_SHORT, DAYS_ID, DAYS_FULL, TIMES,
   normalizeText, studentIdentityKey, studentProfileKey, parseLinkedNames, canonicalTeacherName,
   levelPct, avg, fmtDate, toLocalISODate, today, pkgLeft, copyText, authFetch,
+  hasUserRole, withUserRoles,
   ensureStudentRecord, ensureParentStudentRecords
 } = window.HaldusShared;
 const LEVELS = SHARED_LEVELS.includes('Eelkool') ? SHARED_LEVELS : ['Eelkool',...SHARED_LEVELS];
@@ -130,6 +131,14 @@ const GRADES = SHARED_GRADES.includes('Eelkool') ? SHARED_GRADES : ['Eelkool',..
 const teacherMatches = (a, b) => {
   if(!a || !b) return false;
   return canonicalTeacherName(a) === canonicalTeacherName(b);
+};
+const isOwnStudentRecord = (student, profile) => {
+  if(!student || !profile) return false;
+  const uid = profile.uid || profile.id || '';
+  const linkedUid = student.linkedUserId || student.studentUid || '';
+  if(uid && linkedUid===uid) return true;
+  if(student.isSelfStudent && normalizeText(student.email) && normalizeText(student.email)===normalizeText(profile.email)) return true;
+  return false;
 };
 
 // ── PROGRESSIGRAAFIK ─────────────────────────────────────────
@@ -601,7 +610,7 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
       </div>
 
       {/* ── PARENT DASHBOARD ─────────────────────────────────── */}
-      {user.role==='parent'&&(()=>{
+      {hasUserRole(user,'parent')&&(()=>{
         const todayIso = today();
         const nextTwoWeeks = new Date(); nextTwoWeeks.setDate(nextTwoWeeks.getDate()+14);
         const nextTwoWeeksIso = nextTwoWeeks.toISOString().split('T')[0];
@@ -2468,6 +2477,10 @@ function ParentsView({parents,students,invoices,isAdmin,parentAlerts,setSelStu,s
     setSelStu(student);
     setTab('students');
   };
+  const parentHasStudentRole = parent => {
+    const roles = Array.isArray(parent?.roles) ? parent.roles : [];
+    return parent?.studentRole===true || roles.includes('student') || parent?.role==='student';
+  };
   return(
     <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:20}}>
       <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',flexWrap:'wrap',gap:12}}>
@@ -2615,11 +2628,18 @@ function ParentsView({parents,students,invoices,isAdmin,parentAlerts,setSelStu,s
                   <i className="fa-solid fa-link"/> Määra õpilane
                 </button>
               )}
-              {isAdmin&&(
-                <button onClick={()=>changeParentToStudent(row.parent)} className="btn btn-ghost btn-sm" style={{color:'#2563eb'}}>
-                  <i className="fa-solid fa-user-graduate"/> Tee õpilaseks
-                </button>
-              )}
+              {isAdmin&&(()=>{
+                const alreadyStudent = row.parents.some(parentHasStudentRole);
+                return (
+                  <button
+                    onClick={()=>alreadyStudent?notify?.('✓ Õpilase roll on juba olemas'):changeParentToStudent(row.parent)}
+                    disabled={alreadyStudent}
+                    className="btn btn-ghost btn-sm"
+                    style={{color:alreadyStudent?'#64748b':'#2563eb',opacity:alreadyStudent?0.75:1}}>
+                    <i className="fa-solid fa-user-graduate"/> {alreadyStudent?'Õpilase roll olemas':'Lisa õpilase roll'}
+                  </button>
+                );
+              })()}
               {isAdmin&&row.rawNames.length>0&&row.linkedChildren.length===0&&(
                 <button onClick={()=>createMissingParentStudents(row.parent)} className="btn btn-red btn-sm">
                   Loo / seo õpilane
@@ -4816,7 +4836,7 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
               )}
             </div>
           </div>
-          {(canManage||user.role==='parent')&&(
+          {(canManage||hasUserRole(user,'parent'))&&(
             <div style={{display:'flex',flexDirection:'column',gap:8}}>
               <button onClick={()=>setSelStu(null)} className="btn btn-ghost btn-sm">← Tagasi</button>
               <button onClick={()=>setEditStu(currentStu)} className="btn btn-dark btn-sm">✏️ Muuda profiili</button>
@@ -6213,6 +6233,7 @@ function ParentChildrenView({user,myStudents,isAdmin,lessons,homework,setSelStu,
   const [nGrade,setNGrade] = React.useState('');
   const [busy,setBusy] = React.useState(false);
   const [confirmDelete,setConfirmDelete] = React.useState(null);
+  const hasOwnStudy = myStudents.some(student=>isOwnStudentRecord(student,user));
 
   const addChild = async()=>{
     if(!nName.trim()){notify('⚠ Sisesta lapse nimi');return;}
@@ -6226,8 +6247,10 @@ function ParentChildrenView({user,myStudents,isAdmin,lessons,homework,setSelStu,
     <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:20}}>
       <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:12,flexWrap:'wrap'}}>
         <div>
-          <h1 style={{fontSize:'1.7rem'}}>Minu lapsed</h1>
-          <div style={{fontSize:'.88rem',color:'#42536A',marginTop:4}}>Sinu laste õppeprofiilid ja progress.</div>
+          <h1 style={{fontSize:'1.7rem'}}>{hasOwnStudy?'Minu lapsed ja õpingud':'Minu lapsed'}</h1>
+          <div style={{fontSize:'.88rem',color:'#42536A',marginTop:4}}>
+            {hasOwnStudy?'Sinu ja laste õppeprofiilid ning progress.':'Sinu laste õppeprofiilid ja progress.'}
+          </div>
         </div>
         <button onClick={()=>setShowForm(v=>!v)} className="btn btn-pine">
           <i className="fa-solid fa-plus"/> Lisa laps
@@ -6274,6 +6297,7 @@ function ParentChildrenView({user,myStudents,isAdmin,lessons,homework,setSelStu,
 
       <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))',gap:16}}>
         {myStudents.map(s=>{
+          const isOwn = isOwnStudentRecord(s,user);
           const done = lessons.filter(l=>(l.studentId===s.id||normalizeText(l.studentName)===normalizeText(s.name))&&l.status==='Toimunud');
           const pendingHw = homework.filter(h=>h.studentId===s.id&&h.status==='Ootel').length;
           const pct = levelPct(s.level,s.targetLevel);
@@ -6287,16 +6311,19 @@ function ParentChildrenView({user,myStudents,isAdmin,lessons,homework,setSelStu,
                     {s.grade&&<span> · {s.grade}</span>}
                   </div>
                 </div>
-                {isAdmin&&(
-                  confirmDelete===s.id
-                    ? <div style={{display:'flex',gap:6}}>
-                        <button onClick={()=>{deleteStudentForParent(s);setConfirmDelete(null);}} className="btn btn-red btn-sm">Kustuta</button>
-                        <button onClick={()=>setConfirmDelete(null)} className="btn btn-ghost btn-sm">Ei</button>
-                      </div>
-                    : <button onClick={()=>setConfirmDelete(s.id)} className="btn btn-ghost btn-sm" style={{color:'#991b1b'}}>
-                        <i className="fa-solid fa-trash"/>
-                      </button>
-                )}
+                <div style={{display:'flex',alignItems:'center',gap:6,flexWrap:'wrap',justifyContent:'flex-end'}}>
+                  {isOwn&&<span className="badge" style={{background:'#dbeafe',color:'#1d4ed8'}}>Minu õpingud</span>}
+                  {isAdmin&&!isOwn&&(
+                    confirmDelete===s.id
+                      ? <div style={{display:'flex',gap:6}}>
+                          <button onClick={()=>{deleteStudentForParent(s);setConfirmDelete(null);}} className="btn btn-red btn-sm">Kustuta</button>
+                          <button onClick={()=>setConfirmDelete(null)} className="btn btn-ghost btn-sm">Ei</button>
+                        </div>
+                      : <button onClick={()=>setConfirmDelete(s.id)} className="btn btn-ghost btn-sm" style={{color:'#991b1b'}}>
+                          <i className="fa-solid fa-trash"/>
+                        </button>
+                  )}
+                </div>
               </div>
 
               <div>
@@ -6585,7 +6612,7 @@ function App() {
       s=>{
         const usersList = s.docs.map(d=>({id:d.id,...d.data()}));
         setAllUsers(usersList);
-        setStaffMembers(usersList.filter(member=>member.role==='teacher'||member.role==='admin'));
+        setStaffMembers(usersList.filter(member=>hasUserRole(member,'teacher')||hasUserRole(member,'admin')));
       },
       err=>{console.warn('Users listener failed:',err);setAllUsers([]);setStaffMembers([]);}
     );
@@ -6612,44 +6639,63 @@ function App() {
     setTab(t);setSelStu(null);setMobileNav(false);
   };
 
-  const isAdmin = user?.role==='admin' || normalizeText(user?.email)==='zakutailo.pavel@gmail.com';
-  const isStaff = user?.role==='teacher' || user?.role==='admin';
+  const isAdmin = hasUserRole(user,'admin') || normalizeText(user?.email)==='zakutailo.pavel@gmail.com';
+  const isStaff = hasUserRole(user,'teacher') || isAdmin;
+  const isParentUser = hasUserRole(user,'parent');
+  const isStudentUser = hasUserRole(user,'student');
   const canAssignTeacher = isAdmin;
 
   useEffect(()=>{
-    if(user?.role==='teacher'&&!canAssignTeacher) setNTeach(user.displayName||'');
+    if(hasUserRole(user,'teacher')&&!canAssignTeacher) setNTeach(user.displayName||'');
     if(user?.displayName) setTaskAssignee(canonicalTeacherName(user.displayName));
   },[user,canAssignTeacher]);
 
   const myStudents = useMemo(()=>{
     if(!user) return [];
     const visibleStudents = students.filter(s=>s.active!==false && !s.convertedToParent);
-    if(user.role==='teacher') return isAdmin?visibleStudents:visibleStudents.filter(s=>canonicalTeacherName(s.teacher)===canonicalTeacherName(user.displayName));
-    if(user.role==='admin')   return visibleStudents;
-    if(user.role==='parent'){
+    const uniqueStudents = items => {
+      const seen = new Set();
+      return items.filter(student=>{
+        const key = student.id || studentProfileKey(student);
+        if(!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    };
+    if(hasUserRole(user,'teacher')) return isAdmin?visibleStudents:visibleStudents.filter(s=>canonicalTeacherName(s.teacher)===canonicalTeacherName(user.displayName));
+    if(isAdmin) return visibleStudents;
+    const userEmail = normalizeText(user.email);
+    const userName = normalizeText(user.displayName);
+    const ownStudents = visibleStudents.filter(s=>{
+      if(isOwnStudentRecord(s,user)) return true;
+      if(isStudentUser && userEmail && normalizeText(s.email)===userEmail) return true;
+      if(isStudentUser && !isParentUser && userName && normalizeText(s.name)===userName) return true;
+      return false;
+    });
+    if(isParentUser){
       const linkedNames = parseLinkedNames(user.childName);
-      const userEmail = normalizeText(user.email);
       const parentName = normalizeText(user.displayName);
-      return visibleStudents.filter(s=>{
+      const childStudents = visibleStudents.filter(s=>{
         const studentName = normalizeText(s.name);
-        const studentEmail = normalizeText(s.email);
         const parentEmail = normalizeText(s.parentEmail || s.contactEmail || s.guardianEmail);
         const studentParentName = normalizeText(s.parentName || s.guardianName);
         const linkedParentId = s.linkedParentId || s.parentUid || s.guardianUid || '';
         const parentMatched = linkedParentId===user.uid ||
-          (!!userEmail && (studentEmail===userEmail || parentEmail===userEmail)) ||
+          (!!userEmail && parentEmail===userEmail) ||
           (!!parentName && studentParentName===parentName);
         return parentMatched || (linkedNames.includes(studentName) && parentMatched);
       });
+      return uniqueStudents([...ownStudents,...childStudents]);
     }
-    return visibleStudents.filter(s=>s.name?.toLowerCase()===user.displayName?.toLowerCase());
-  },[user,students,isAdmin]);
+    if(isStudentUser) return ownStudents.length ? ownStudents : visibleStudents.filter(s=>normalizeText(s.name)===userName);
+    return visibleStudents.filter(s=>normalizeText(s.name)===userName);
+  },[user,students,isAdmin,isParentUser,isStudentUser]);
 
   const parentAlerts = useMemo(()=>{
     if(!isAdmin) return [];
     return allUsers
       .filter(parent=>{
-        if(parent.role!=='parent') return false;
+        if(!hasUserRole(parent,'parent')) return false;
         const childKey = parseLinkedNames(parent.childName).join('|');
         if(!childKey) return false;
         return !(parent.parentReviewStatus==='checked' && parent.parentReviewKey===childKey);
@@ -6718,35 +6764,37 @@ function App() {
     });
   },[myStudents,stuFilter,groupFilter,contactFilter,search,studentSort]);
 
+  const ownStudent = useMemo(()=>myStudents.find(student=>isOwnStudentRecord(student,user))||null,[myStudents,user]);
   const currentStu = useMemo(()=>{
     if(selStu){
       return students.find(s=>s.id===selStu.id)||selStu;
     }
-    return user?.role!=='teacher' ? myStudents[0] : null;
-  },[selStu,students,user,myStudents,isAdmin]);
+    if(isStaff && !isAdmin) return null;
+    return ownStudent || myStudents[0] || null;
+  },[selStu,students,myStudents,ownStudent,isStaff,isAdmin]);
 
   // schStu starts empty — user picks via StuSearch
 
   const stuLessons = useMemo(()=>currentStu?lessons.filter(l=>{
     const matchesStudent = l.studentId===currentStu.id || normalizeText(l.studentName)===normalizeText(currentStu.name);
     if(!matchesStudent) return false;
-    if(user?.role==='admin' || user?.role==='parent' || user?.role==='student') return true;
+    if(isAdmin || isParentUser || isStudentUser) return true;
     return canonicalTeacherName(l.teacher)===canonicalTeacherName(user.displayName);
   }):[]
-  ,[currentStu,lessons,user]);
+  ,[currentStu,lessons,user,isAdmin,isParentUser,isStudentUser]);
   const stuHw  = useMemo(()=>currentStu?homework.filter(h=>h.studentId===currentStu.id):[]  ,[currentStu,homework]);
   const stuInv = useMemo(()=>currentStu?invoices.filter(i=>i.studentId===currentStu.id):[] ,[currentStu,invoices]);
   const stuMessages = useMemo(()=>currentStu?messages.filter(m=>
     m.studentId===currentStu.id || normalizeText(m.studentName)===normalizeText(currentStu.name)
   ):[],[currentStu,messages]);
   const scopedInvoices = useMemo(()=>{
-    if(user?.role==='admin') return invoices;
+    if(isAdmin) return invoices;
     const myStudentIds = new Set(myStudents.map(s=>s.id));
     const myStudentNames = new Set(myStudents.map(s=>normalizeText(s.name)));
     return invoices.filter(inv=>myStudentIds.has(inv.studentId) || myStudentNames.has(normalizeText(inv.studentName)));
-  },[invoices,myStudents,user]);
+  },[invoices,myStudents,isAdmin]);
   const scopedParents = useMemo(()=>{
-    const parentUsers = allUsers.filter(member=>member.role==='parent');
+    const parentUsers = allUsers.filter(member=>hasUserRole(member,'parent'));
     if(isAdmin) return parentUsers;
     const myStudentIds = new Set(myStudents.map(s=>s.linkedParentId || s.parentUid || s.guardianUid).filter(Boolean));
     const myStudentNames = new Set(myStudents.map(s=>normalizeText(s.name)).filter(Boolean));
@@ -6761,7 +6809,7 @@ function App() {
     });
   },[allUsers,myStudents,isAdmin]);
   const scopedTasks = useMemo(()=>{
-    if(user?.role==='admin' || isAdmin) return tasks;
+    if(isAdmin) return tasks;
     const teacherName = canonicalTeacherName(user?.displayName||'');
     return tasks.filter(task=>
       canonicalTeacherName(task.assignedTo||'')===teacherName ||
@@ -6770,7 +6818,7 @@ function App() {
     );
   },[tasks,user,isAdmin]);
   const scopedActivityLog = useMemo(()=>{
-    if(user?.role==='admin' || isAdmin) return activityLog;
+    if(isAdmin) return activityLog;
     const myStudentIds = new Set(myStudents.map(s=>s.id));
     const myStudentNames = new Set(myStudents.map(s=>normalizeText(s.name)));
     return activityLog.filter(item=>
@@ -6953,12 +7001,77 @@ function App() {
     if(!isAdmin){notify('⚠ Ainult admin');return;}
     const docId = parent?.uid || parent?.id;
     if(!docId){notify('⚠ Kasutaja UID puudub');return;}
-    const name = parent?.displayName || parent?.name || parent?.email || docId;
-    if(!window.confirm('Muuta '+name+' õpilaseks? See muudab tema rolli.')) return;
-    await db.collection('users').doc(docId).update({role:'student'});
-    await logActivity('user.roleChanged','Roll muudetud õpilaseks',{uid:docId,name});
-    notify('✓ Roll muudetud õpilaseks');
-  },[isAdmin,logActivity,notify]);
+    const name = parent?.displayName || parent?.name || parent?.email || 'Õpilane';
+    if(!window.confirm('Lisada lapsevanemale "'+name+'" ka õpilase roll? Lapsevanema ligipääs jääb alles.')) return;
+    try{
+      const roles = withUserRoles(parent,'parent','student');
+      const now = new Date().toISOString();
+      await db.collection('users').doc(docId).set({
+        role:['admin','teacher'].includes(parent?.role) ? parent.role : 'parent',
+        roles,
+        parentRole:true,
+        studentRole:true,
+        studentRoleEnabledAt:now,
+        studentRoleEnabledBy:user?.displayName||user?.email||'',
+        updatedAt:now
+      },{merge:true});
+
+      const linkedSnap = await db.collection('students').where('linkedUserId','==',docId).limit(1).get();
+      const uidSnap = linkedSnap.empty
+        ? await db.collection('students').where('studentUid','==',docId).limit(1).get()
+        : null;
+      const studentDoc = !linkedSnap.empty
+        ? linkedSnap.docs[0]
+        : (!uidSnap?.empty ? uidSnap.docs[0] : null);
+      const preferredTeacher = canonicalTeacherName(parent?.preferredTeacher || parent?.teacher || 'Pavel');
+      const baseStudent = {
+        name,
+        email:parent?.email||'',
+        phone:parent?.phone||parent?.parentPhone||'',
+        level:'A1',
+        targetLevel:'B1',
+        teacher:preferredTeacher,
+        active:true,
+        packageTotal:0,
+        packageUsed:0,
+        subject:'Eesti keel',
+        grade:'Täiskasvanu',
+        group:'',
+        registrationSource:'parent-as-student',
+        profileStatus:'new',
+        contactStatus:'new',
+        contactOwner:preferredTeacher,
+        contactLastAt:'',
+        contactNotes:'Lapsevanemale lisati õpilase roll',
+        createdAt:today()
+      };
+      const linkPatch = {
+        linkedUserId:docId,
+        studentUid:docId,
+        isSelfStudent:true,
+        parentAsStudent:true,
+        updatedAt:now
+      };
+      let studentId = '';
+      if(studentDoc){
+        const existing = studentDoc.data() || {};
+        const patch = {...linkPatch};
+        Object.entries(baseStudent).forEach(([key,value])=>{
+          if(existing[key]===undefined || existing[key]===null || existing[key]==='') patch[key]=value;
+        });
+        await studentDoc.ref.set(patch,{merge:true});
+        studentId = studentDoc.id;
+      }else{
+        const ref = await db.collection('students').add({...baseStudent,...linkPatch});
+        studentId = ref.id;
+      }
+      await logActivity('user.studentRoleEnabled','Lapsevanemale lisati õpilase roll',{uid:docId,name,roles,studentId});
+      notify('✓ Lapsevanem saab nüüd ka õpilasena õppida');
+    }catch(err){
+      console.error('Enable parent student role failed:',err);
+      notify('⚠ Õpilase rolli ei saanud lisada');
+    }
+  },[isAdmin,logActivity,notify,user]);
 
   const mergeParentDuplicates=useCallback(async(row)=>{
     if(!isAdmin){notify('⚠ Ainult administraator saab duplikaate ühendada');return;}
@@ -8077,6 +8190,15 @@ function App() {
   );
   if(!user) return <AuthScreen onLogin={u=>{setUser(u);if(u.role==='teacher')setFilterT(canonicalTeacherName(u.displayName||''));if(u.role==='admin')setFilterT('Kõik');}}/>;
 
+  const roleLabel = isAdmin
+    ? 'Administraator'
+    : hasUserRole(user,'teacher')
+      ? 'Õpetaja'
+      : isParentUser&&isStudentUser
+        ? 'Lapsevanem + Õpilane'
+        : isParentUser
+          ? 'Lapsevanem'
+          : 'Õpilane';
   const navItems=[
     {id:'dashboard',icon:'fa-chart-pie',label:'Töölaud',badge:unreadMessages.length},
     {id:'calendar', icon:'fa-calendar-days',label:'Tunniplaan'},
@@ -8084,7 +8206,7 @@ function App() {
       badge:scopedTasks.filter(t=>t.status!=='done').length}]:[]),
     ...(isStaff?[{id:'programs',icon:'fa-book-open-reader',label:'Õppekavad'}]:[]),
     ...(isStaff?[{id:'exercises_link',icon:'fa-pen-line',label:'Harjutused',isExternal:true,href:'/haldus-exercises'}]:[]),
-    {id:'students', icon:'fa-graduation-cap',label:isStaff?'Minu õpilased':user?.role==='parent'?'Minu lapsed':'Minu progress',
+    {id:'students', icon:'fa-graduation-cap',label:isStaff?'Minu õpilased':isParentUser&&isStudentUser?'Minu lapsed / õpingud':isParentUser?'Minu lapsed':'Minu progress',
       badge:isStaff?unseenWsCount:0},
     ...(isStaff?[{id:'groups',icon:'fa-layer-group',label:'Grupid'}]:[]),
     ...(isStaff?[{id:'parents',icon:'fa-people-roof',label:'Lapsevanemad',badge:isAdmin?parentAlerts.length:0}]:[]),
@@ -8104,7 +8226,7 @@ function App() {
           Keele<span style={{color:'#C9882A'}}>Sepp</span>
         </div>
         <div style={{fontSize:'.7rem',color:'rgba(255,255,255,.35)',marginTop:2,fontWeight:600,letterSpacing:'.08em',textTransform:'uppercase'}}>
-          {user.role==='teacher'?'Õpetaja':user.role==='admin'?'Administraator':user.role==='parent'?'Lapsevanem':'Õpilane'}
+          {roleLabel}
         </div>
       </div>
       <div style={{fontSize:'.82rem',color:'rgba(255,255,255,.45)',padding:'0 14px 12px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
@@ -8213,14 +8335,14 @@ function App() {
           {tab==='students'&&isStaff&&!selStu&&<StudentsList filteredStudents={filteredStudents} lessons={lessons} isAdmin={canAssignTeacher}
             search={search} setSearch={setSearch} stuFilter={stuFilter} setStuFilter={setStuFilter} setSelStu={setSelStu}/>}
 
-          {tab==='students'&&user?.role==='parent'&&!selStu&&<ParentChildrenView
+          {tab==='students'&&isParentUser&&!selStu&&<ParentChildrenView
             user={user} myStudents={myStudents} isAdmin={isAdmin}
             lessons={lessons} homework={homework}
             setSelStu={setSelStu} db={db} notify={notify}
             groupOptions={groupOptions}
             addStudentForParent={addStudentForParent}
             deleteStudentForParent={deleteStudentForParent}/>}
-          {tab==='students'&&(!isStaff||(isStaff&&selStu)||selStu)&&!(user?.role==='parent'&&!selStu)&&<StudentCard
+          {tab==='students'&&(!isStaff||(isStaff&&selStu)||selStu)&&!(isParentUser&&!selStu)&&<StudentCard
             setEditStu={setEditStu}
             user={user} currentStu={currentStu} stuLessons={stuLessons} stuHw={stuHw} stuInv={stuInv}
             isAdmin={canAssignTeacher} setSelStu={setSelStu} toggleStudentActive={toggleStudentActive}

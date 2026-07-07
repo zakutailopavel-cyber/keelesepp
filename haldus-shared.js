@@ -124,28 +124,53 @@
     return fetch(url, {...options, headers});
   };
 
+  const getUserRoles = profile => {
+    const roles = new Set();
+    if(Array.isArray(profile?.roles)){
+      profile.roles.forEach(role => { if(role) roles.add(role); });
+    }
+    if(profile?.role) roles.add(profile.role);
+    if(profile?.parentRole || profile?.isParent) roles.add('parent');
+    if(profile?.studentRole || profile?.isStudent) roles.add('student');
+    return Array.from(roles);
+  };
+  const hasUserRole = (profile, role) => getUserRoles(profile).includes(role);
+  const withUserRoles = (profile, ...extraRoles) => {
+    const roles = new Set(getUserRoles(profile));
+    extraRoles.flat().forEach(role => { if(role) roles.add(role); });
+    return Array.from(roles);
+  };
+
   async function ensureStudentRecord(authUser, profile){
-    if(!authUser || profile?.role!=='student') return;
+    if(!authUser || !hasUserRole(profile,'student')) return;
     const db = window._db;
     const name = profile.displayName || authUser.displayName || authUser.email || 'Õpilane';
     const email = profile.email || authUser.email || '';
-    const existing = await db.collection('students').where('linkedUserId','==',authUser.uid).limit(1).get();
-    if(!existing.empty) return;
+    const existingByLink = await db.collection('students').where('linkedUserId','==',authUser.uid).limit(1).get();
+    const existingByUid = existingByLink.empty
+      ? await db.collection('students').where('studentUid','==',authUser.uid).limit(1).get()
+      : null;
+    const existingDoc = !existingByLink.empty
+      ? existingByLink.docs[0]
+      : (!existingByUid?.empty ? existingByUid.docs[0] : null);
+    if(existingDoc) return;
     await db.collection('students').add({
       linkedUserId: authUser.uid,
+      studentUid: authUser.uid,
+      isSelfStudent:true,
       name,
       email,
       phone:'',
       level:'A1',
-      targetLevel:'A2',
-      teacher:'',
+      targetLevel:'B1',
+      teacher:canonicalTeacherName(profile.preferredTeacher || profile.teacher || ''),
       active:true,
       packageTotal:0,
       packageUsed:0,
       subject:'Eesti keel',
-      grade:'',
+      grade:hasUserRole(profile,'parent')?'Täiskasvanu':'',
       group:'',
-      registrationSource:'self-service',
+      registrationSource:hasUserRole(profile,'parent')?'parent-as-student':'self-service',
       profileStatus:'new',
       contactStatus:'new',
       contactOwner:'',
@@ -156,7 +181,7 @@
   }
 
   async function ensureParentStudentRecords(authUser, profile){
-    if(!authUser || profile?.role!=='parent') return;
+    if(!authUser || !hasUserRole(profile,'parent')) return;
     const db = window._db;
     const linkedNames = parseLinkedNames(profile.childName);
     if(linkedNames.length===0) return;
@@ -242,6 +267,9 @@
     copyText,
     getAuthHeaders,
     authFetch,
+    getUserRoles,
+    hasUserRole,
+    withUserRoles,
     ensureStudentRecord,
     ensureParentStudentRecords
   };
