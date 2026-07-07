@@ -16,9 +16,26 @@
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const { google } = require("googleapis");
+const crypto = require("crypto");
 
 admin.initializeApp();
 const db = admin.firestore();
+const APP_TIME_ZONE = process.env.APP_TIME_ZONE || "Europe/Tallinn";
+const STAFF_ROLES = new Set(["teacher", "admin"]);
+const SUPER_ADMIN_EMAILS = new Set(
+  (process.env.SUPER_ADMIN_EMAILS || "zakutailo.pavel@gmail.com")
+    .split(",")
+    .map(v => v.trim().toLowerCase())
+    .filter(Boolean),
+);
+const DEFAULT_ALLOWED_ORIGINS = [
+  "https://keelesepp.vercel.app",
+  "https://epkoolitus.ee",
+  "https://www.epkoolitus.ee",
+  "http://localhost:3000",
+  "http://localhost:5173",
+  "http://localhost:8080",
+];
 
 // ── CONFIG ────────────────────────────────────────────────────
 // Set these in Firebase Functions config:
@@ -37,6 +54,75 @@ function getOAuthClient() {
 }
 
 // ── HELPERS ───────────────────────────────────────────────────
+function applyCors(req, res) {
+  const allowed = new Set([
+    ...DEFAULT_ALLOWED_ORIGINS,
+    ...(process.env.ALLOWED_ORIGINS || "").split(",").map(v => v.trim()).filter(Boolean),
+  ]);
+  const origin = req.get("Origin");
+  if (origin && allowed.has(origin)) {
+    res.set("Access-Control-Allow-Origin", origin);
+    res.set("Vary", "Origin");
+  }
+  res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.set("X-Content-Type-Options", "nosniff");
+}
+
+function httpError(status, message) {
+  const err = new Error(message);
+  err.status = status;
+  return err;
+}
+
+function sendError(res, err) {
+  const status = err.status || 500;
+  res.status(status).json({ error: status >= 500 ? "Internal error" : err.message });
+}
+
+async function requireFirebaseUser(req) {
+  const header = req.get("Authorization") || "";
+  const match = header.match(/^Bearer\s+(.+)$/i);
+  if (!match) throw httpError(401, "Firebase ID token required");
+  try {
+    return await admin.auth().verifyIdToken(match[1]);
+  } catch (e) {
+    throw httpError(401, "Invalid Firebase ID token");
+  }
+}
+
+function isSuperAdmin(decoded) {
+  return SUPER_ADMIN_EMAILS.has(String(decoded.email || "").toLowerCase());
+}
+
+async function requireCalendarOwner(req, uid, { staffOnly = true } = {}) {
+  const decoded = await requireFirebaseUser(req);
+  if (decoded.uid !== uid && !isSuperAdmin(decoded)) throw httpError(403, "Forbidden");
+  const snap = await db.collection("users").doc(uid).get();
+  const profile = snap.exists ? snap.data() : {};
+  const role = profile.role || decoded.role || "";
+  if (staffOnly && !STAFF_ROLES.has(role) && !isSuperAdmin(decoded)) {
+    throw httpError(403, "Teacher or admin access required");
+  }
+  return { decoded, profile, role };
+}
+
+function formatInTimeZone(date, timeZone, fields) {
+  const parts = new Intl.DateTimeFormat("en-GB", { timeZone, ...fields })
+    .formatToParts(date)
+    .reduce((acc, part) => ({ ...acc, [part.type]: part.value }), {});
+  return parts;
+}
+
+function localDate(date, timeZone) {
+  const parts = formatInTimeZone(date, timeZone, { year: "numeric", month: "2-digit", day: "2-digit" });
+  return `${parts.year}-${parts.month}-${parts.day}`;
+}
+
+function localTime(date, timeZone) {
+  const parts = formatInTimeZone(date, timeZone, { hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+  return `${parts.hour}:${parts.minute}`;
+}
 
 // Normalize name for matching: "Maria Mägi" → "maria magi"
 function normalizeName(str) {
@@ -88,15 +174,16 @@ async function findStudentByName(name, teacherName) {
 }
 
 // Convert Google Calendar event to KeeleSepp schedule format
-function gcalEventToSchedule(event, teacher, studentId, studentName) {
+function gcalEventToSchedule(event, teacher, studentId, studentName, teacherUid) {
   const start = event.start?.dateTime || event.start?.date;
   const end   = event.end?.dateTime   || event.end?.date;
   if (!start) return null;
 
   const startDate = new Date(start);
-  const date = startDate.toISOString().split("T")[0];
+  const timeZone = event.start?.timeZone || event.end?.timeZone || APP_TIME_ZONE;
+  const date = event.start?.date || localDate(startDate, timeZone);
   const time = event.start?.dateTime
-    ? startDate.toLocaleTimeString("et-EE", { hour: "2-digit", minute: "2-digit" })
+    ? localTime(startDate, timeZone)
     : "";
 
   // Duration in minutes
@@ -113,6 +200,7 @@ function gcalEventToSchedule(event, teacher, studentId, studentName) {
     studentName:  studentName || extractStudentName(event.summary) || "",
     teacher:      teacher || "",
     teacherFull:  teacher || "",
+    teacherUid:   teacherUid || "",
     date,
     time,
     duration,
@@ -125,10 +213,7 @@ function gcalEventToSchedule(event, teacher, studentId, studentName) {
 
 // ── API: GET /api/gcal/auth-url ───────────────────────────────
 exports.gcalApi = functions.https.onRequest(async (req, res) => {
-  // CORS
-  res.set("Access-Control-Allow-Origin", "*");
-  res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  applyCors(req, res);
   if (req.method === "OPTIONS") { res.status(204).send(""); return; }
 
   const path = req.path;
@@ -137,22 +222,41 @@ exports.gcalApi = functions.https.onRequest(async (req, res) => {
   if (path === "/gcal/auth-url" && req.method === "GET") {
     const uid = req.query.uid;
     if (!uid) { res.status(400).json({ error: "uid required" }); return; }
-    const oauth2 = getOAuthClient();
-    const url = oauth2.generateAuthUrl({
-      access_type: "offline",
-      prompt: "consent",
-      scope: ["https://www.googleapis.com/auth/calendar.readonly"],
-      state: uid, // pass uid through OAuth flow
-    });
-    res.json({ url });
+    try {
+      await requireCalendarOwner(req, uid);
+      const oauth2 = getOAuthClient();
+      const state = crypto.randomBytes(24).toString("hex");
+      await db.collection("oauthStates").doc(state).set({
+        uid,
+        provider: "gcal",
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+      const url = oauth2.generateAuthUrl({
+        access_type: "offline",
+        prompt: "consent",
+        scope: ["https://www.googleapis.com/auth/calendar.readonly"],
+        state,
+      });
+      res.json({ url });
+    } catch (e) {
+      sendError(res, e);
+    }
     return;
   }
 
   // ── GET /gcal/callback ──────────────────────────────────────
   if (path === "/gcal/callback" && req.method === "GET") {
-    const { code, state: uid } = req.query;
-    if (!code || !uid) { res.status(400).send("Missing code or state"); return; }
+    const { code, state } = req.query;
+    if (!code || !state) { res.status(400).send("Missing code or state"); return; }
     try {
+      const stateRef = db.collection("oauthStates").doc(String(state));
+      const stateSnap = await stateRef.get();
+      if (!stateSnap.exists || stateSnap.data().provider !== "gcal") {
+        res.status(400).send("Invalid OAuth state");
+        return;
+      }
+      const { uid } = stateSnap.data();
+      await stateRef.delete();
       const oauth2 = getOAuthClient();
       const { tokens } = await oauth2.getToken(code);
       // Save tokens to Firestore under user doc
@@ -181,6 +285,7 @@ exports.gcalApi = functions.https.onRequest(async (req, res) => {
     const { uid } = req.body;
     if (!uid) { res.status(400).json({ error: "uid required" }); return; }
     try {
+      await requireCalendarOwner(req, uid);
       const userDoc = await db.collection("users").doc(uid).get();
       if (!userDoc.exists || !userDoc.data().gcal?.refreshToken) {
         res.status(404).json({ error: "Google Calendar not connected" });
@@ -200,16 +305,26 @@ exports.gcalApi = functions.https.onRequest(async (req, res) => {
     const { uid } = req.body;
     if (!uid) { res.status(400).json({ error: "uid required" }); return; }
     try {
+      const { profile } = await requireCalendarOwner(req, uid);
       await db.collection("users").doc(uid).update({
         gcal: admin.firestore.FieldValue.delete(),
       });
       // Remove synced events from schedule
-      const snap = await db.collection("schedule")
+      const teacherName = (profile.displayName || "").split(" ")[0] || profile.displayName || "";
+      const byUidSnap = await db.collection("schedule")
         .where("source", "==", "gcal")
-        .where("teacher", "==", uid)
+        .where("teacherUid", "==", uid)
         .get();
+      const byNameSnap = teacherName
+        ? await db.collection("schedule").where("source", "==", "gcal").where("teacher", "==", teacherName).get()
+        : { docs: [] };
       const batch = db.batch();
-      snap.docs.forEach(d => batch.delete(d.ref));
+      const seen = new Set();
+      [...byUidSnap.docs, ...byNameSnap.docs].forEach(d => {
+        if (seen.has(d.id)) return;
+        seen.add(d.id);
+        batch.delete(d.ref);
+      });
       await batch.commit();
       res.json({ success: true });
     } catch (e) {
@@ -222,12 +337,17 @@ exports.gcalApi = functions.https.onRequest(async (req, res) => {
   if (path === "/gcal/status" && req.method === "GET") {
     const uid = req.query.uid;
     if (!uid) { res.status(400).json({ error: "uid required" }); return; }
-    const userDoc = await db.collection("users").doc(uid).get();
-    const gcal = userDoc.data()?.gcal || {};
-    res.json({
-      connected: !!gcal.connected,
-      connectedAt: gcal.connectedAt || null,
-    });
+    try {
+      await requireCalendarOwner(req, uid);
+      const userDoc = await db.collection("users").doc(uid).get();
+      const gcal = userDoc.data()?.gcal || {};
+      res.json({
+        connected: !!gcal.connected,
+        connectedAt: gcal.connectedAt || null,
+      });
+    } catch (e) {
+      sendError(res, e);
+    }
     return;
   }
 
@@ -312,6 +432,7 @@ async function syncTeacherCalendar(uid, tokens) {
       teacherName,
       student.id,
       student.name,
+      uid,
     );
     if (!scheduleData) { skipped++; continue; }
 

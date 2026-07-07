@@ -1,12 +1,15 @@
+import { checkRateLimit, handleOptions, requireFirebaseUser, sendError, setCors } from './_auth.js';
+
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (handleOptions(req, res)) return;
+  setCors(req, res);
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const { studentText, task, level, criteria } = req.body || {};
   if (!studentText || !task) return res.status(400).json({ error: 'Missing studentText or task' });
+  if (String(studentText).length > 12000 || String(task).length > 4000) {
+    return res.status(413).json({ error: 'Submitted text is too large' });
+  }
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return res.status(500).json({ error: 'API key not configured' });
@@ -41,6 +44,8 @@ ${criteria ? `HINDAMISKRITEERIUMID:\n${criteria}\n\n` : ''}ÕPILASE TEKST:
 ${studentText}`;
 
   try {
+    const decoded = await requireFirebaseUser(req);
+    checkRateLimit(decoded.uid, 20);
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -59,7 +64,7 @@ ${studentText}`;
     if (!response.ok) {
       const err = await response.text();
       console.error('Anthropic error:', err);
-      return res.status(502).json({ error: 'Anthropic API error', detail: err });
+      return res.status(502).json({ error: 'Anthropic API error' });
     }
 
     const data = await response.json();
@@ -69,6 +74,6 @@ ${studentText}`;
     return res.status(200).json({ feedback, wordCount });
   } catch (e) {
     console.error('Handler error:', e);
-    return res.status(500).json({ error: 'Internal error', detail: e.message });
+    return sendError(res, e);
   }
 }

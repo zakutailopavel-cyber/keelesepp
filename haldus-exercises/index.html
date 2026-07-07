@@ -1830,8 +1830,8 @@ function ExercisesView({isTeacher,user,notify}){
 // ── LOGIN ─────────────────────────────────────────────────────
 function LoginScreen({onLogin}){
   const[email,setEmail]=useState('');const[pass,setPass]=useState('');const[err,setErr]=useState('');const[busy,setBusy]=useState(false);
-  const go=async()=>{if(!email||!pass){setErr('Täida kõik väljad');return;}setBusy(true);setErr('');try{const r=await auth.signInWithEmailAndPassword(email,pass);const s=await db.collection('users').doc(r.user.uid).get();if(s.exists)onLogin({uid:r.user.uid,...s.data()});else onLogin({uid:r.user.uid,email,role:'teacher'});}catch(e){setErr('Vale e-post või parool');}setBusy(false);};
-  const gLogin=async()=>{setBusy(true);setErr('');try{const r=await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());const s=await db.collection('users').doc(r.user.uid).get();if(s.exists)onLogin({uid:r.user.uid,displayName:r.user.displayName,...s.data()});else onLogin({uid:r.user.uid,displayName:r.user.displayName,email:r.user.email,role:'teacher'});}catch(e){setErr('Google sisselogimine ebaõnnestus');}setBusy(false);};
+  const go=async()=>{if(!email||!pass){setErr('Täida kõik väljad');return;}setBusy(true);setErr('');try{const r=await auth.signInWithEmailAndPassword(email,pass);const s=await db.collection('users').doc(r.user.uid).get();if(s.exists)onLogin({uid:r.user.uid,...s.data()});else onLogin({uid:r.user.uid,email,role:'student'});}catch(e){setErr('Vale e-post või parool');}setBusy(false);};
+  const gLogin=async()=>{setBusy(true);setErr('');try{const r=await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());const s=await db.collection('users').doc(r.user.uid).get();if(s.exists)onLogin({uid:r.user.uid,displayName:r.user.displayName,...s.data()});else onLogin({uid:r.user.uid,displayName:r.user.displayName,email:r.user.email,role:'student'});}catch(e){setErr('Google sisselogimine ebaõnnestus');}setBusy(false);};
   return(
     <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',padding:16,background:'linear-gradient(135deg,#1C2B3A 0%,#2F5D50 100%)'}}>
       <div style={{background:'#FBFAF8',borderRadius:24,padding:36,width:'100%',maxWidth:380,boxShadow:'0 32px 80px rgba(0,0,0,.3)'}}>
@@ -2441,7 +2441,8 @@ function WorksheetPreviewModal({lesson,onClose,onConduct}) {
               const b=new Blob([document.getElementById('ws-prev-content')?.innerHTML||''],{type:'text/html'});
               // simpler: open print dialog
               const w=window.open('','_blank');
-              const printHtml=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${lesson.title}</title><style>body{font-family:Arial,sans-serif;margin:40px;}</style></head><body>${document.getElementById('ws-prev-content')?.innerHTML||''}</body></html>`;
+              const safeTitle=String(lesson.title||'Tööleht').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+              const printHtml=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${safeTitle}</title><style>body{font-family:Arial,sans-serif;margin:40px;}</style></head><body>${document.getElementById('ws-prev-content')?.innerHTML||''}</body></html>`;
               w.document.write(printHtml);w.document.close();setTimeout(()=>w.print(),300);
             }} className="btn btn-gold btn-sm">
               <i className="fa-solid fa-print"/> Prindi / PDF

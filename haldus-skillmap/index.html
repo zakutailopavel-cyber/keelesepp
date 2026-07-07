@@ -441,7 +441,7 @@ function App() {
     const u = auth.onAuthStateChanged(async fb => {
       if(fb) {
         const s = await db.collection('users').doc(fb.uid).get();
-        setUser(s.exists ? {uid:fb.uid,...s.data()} : {uid:fb.uid,email:fb.email,role:'teacher'});
+        setUser(s.exists ? {uid:fb.uid,...s.data()} : {uid:fb.uid,email:fb.email,role:'student'});
       } else setUser(null);
       setLoading(false);
     });
