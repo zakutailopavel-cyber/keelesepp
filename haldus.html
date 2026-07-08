@@ -142,6 +142,55 @@ const isOwnStudentRecord = (student, profile) => {
   if(uid && linkedParentUid===uid && normalizeText(student.name)===normalizeText(profile.displayName)) return true;
   return false;
 };
+const getLessonAttachments = lesson => {
+  const list = Array.isArray(lesson?.attachments) ? lesson.attachments.filter(att=>att&&(att.url||att.name)) : [];
+  const legacyUrl = lesson?.fileUrl || lesson?.attachmentUrl || lesson?.attachment?.url || '';
+  const legacyName = lesson?.fileName || lesson?.attachmentName || lesson?.attachment?.name || '';
+  const legacy = legacyUrl ? [{url:legacyUrl,name:legacyName||'Tunni fail'}] : [];
+  const urls = new Set(list.map(att=>att.url).filter(Boolean));
+  return [...list,...legacy.filter(att=>!urls.has(att.url))];
+};
+function LessonDetailsPanel({lesson}) {
+  if(!lesson) return null;
+  const attachments = getLessonAttachments(lesson);
+  const detailRows = [
+    {label:'Mida tegime tunnis',value:lesson.covered,icon:'fa-list-check'},
+    {label:'Uued sõnad ja väljendid',value:lesson.newWords,icon:'fa-book-open'},
+    {label:'Grammatika',value:lesson.grammar,icon:'fa-spell-check'},
+    {label:'Järgmiseks korraks',value:lesson.nextNotes,icon:'fa-bullseye'},
+    {label:'Õpetaja kommentaar',value:lesson.comment,icon:'fa-message'}
+  ].filter(row=>String(row.value||'').trim());
+  const statusLabel = lesson.status==='Toimunud' ? 'Toimunud' : lesson.status==='Puudus_p' ? 'Puudus põhjusega' : lesson.status==='Puudus_eta' ? 'Puudus' : (lesson.status||'Planeeritud');
+  return (
+    <div style={{margin:'0 0 12px 50px',padding:'14px 16px',borderRadius:14,background:'#F9F8F6',border:'1px solid rgba(47,93,80,.16)',display:'flex',flexDirection:'column',gap:12}}>
+      <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
+        <span className="badge" style={{background:'#dcfce7',color:'#166534'}}>{statusLabel}</span>
+        {lesson.status==='Toimunud'&&lesson.grade>0&&<span className="badge" style={{background:'rgba(201,136,42,.12)',color:'#A96E1A'}}>Hinne {lesson.grade}</span>}
+        {lesson.duration&&<span className="badge" style={{background:'#e0f2fe',color:'#075985'}}>{lesson.duration} min</span>}
+        <span style={{fontSize:'.78rem',color:'#42536A'}}>Õp. {lesson.teacher||'—'} · {fmtDate(lesson.date)}</span>
+      </div>
+      {detailRows.length===0&&attachments.length===0&&(
+        <div style={{fontSize:'.82rem',color:'#42536A'}}>Õpetaja ei ole selle tunni kohta veel detailset päevikukannet lisanud.</div>
+      )}
+      {detailRows.map(row=>(
+        <div key={row.label} style={{display:'grid',gridTemplateColumns:'22px 150px 1fr',gap:8,alignItems:'start'}}>
+          <i className={`fa-solid ${row.icon}`} style={{color:'#2F5D50',fontSize:'.78rem',marginTop:2}}/>
+          <div style={{fontSize:'.76rem',fontWeight:800,color:'#42536A'}}>{row.label}</div>
+          <div style={{fontSize:'.84rem',color:'#1C2B3A',lineHeight:1.45,whiteSpace:'pre-wrap'}}>{row.value}</div>
+        </div>
+      ))}
+      {attachments.length>0&&(
+        <div style={{display:'flex',gap:8,flexWrap:'wrap',paddingTop:2}}>
+          {attachments.map((att,idx)=>(
+            <a key={`${att.url||att.name}-${idx}`} href={att.url||'#'} target="_blank" rel="noreferrer" style={{display:'inline-flex',alignItems:'center',gap:6,fontSize:'.78rem',fontWeight:800,color:'#2F5D50',textDecoration:'none',padding:'7px 10px',borderRadius:10,background:'#fff',border:'1px solid rgba(47,93,80,.16)'}}>
+              <i className="fa-solid fa-paperclip"/> {att.name||'Tunni fail'}
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ── PROGRESSIGRAAFIK ─────────────────────────────────────────
 function ProgressChart({data}) {
@@ -410,6 +459,7 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
   groupOptions,
   taskTitle,setTaskTitle,taskAssignee,setTaskAssignee,taskDue,setTaskDue,taskPriority,setTaskPriority,taskCategory,setTaskCategory,
   addTask,toggleTask,deleteTask,replyTask,markTaskRepliesSeen,openLessonEditor,isAdmin,isStaff,parentAlerts,createMissingParentStudents,markParentChecked,setTab,setSelStu}) {
+  const [expandedLessonId,setExpandedLessonId] = React.useState('');
   const unpaidAmt = invoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+i.amount,0);
   const pendingHw = homework.filter(h=>h.status==='Ootel'&&myStudents.some(s=>s.id===h.studentId)).length;
   const openTasks = tasks.filter(t=>t.status!=='done');
@@ -1087,21 +1137,33 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
         <h3 style={{marginBottom:16}}>🕐 Viimased tunnid</h3>
         {visibleLessons.length===0
           ?<div style={{textAlign:'center',padding:'24px 0',color:'#42536A',fontSize:'.88rem'}}>Tunnid puuduvad.</div>
-          :[...visibleLessons].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,6).map(l=>(
-            <button key={l.id} onClick={()=>isStaff&&openLessonEditor&&openLessonEditor(l)}
-              style={{width:'100%',display:'flex',alignItems:'center',gap:12,padding:'11px 0',border:'none',borderBottom:'1px solid rgba(28,43,58,.06)',background:'transparent',textAlign:'left',cursor:isStaff?'pointer':'default'}}>
-              <div style={{width:38,height:38,borderRadius:10,flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center',
-                fontWeight:700,background:l.status==='Toimunud'?'rgba(201,136,42,.1)':'rgba(239,68,68,.08)',
-                color:l.status==='Toimunud'?'#C9882A':'#dc2626'}}>
-                {l.status==='Toimunud'?l.grade:'—'}
+          :[...visibleLessons].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,6).map(l=>{
+            const isOpen = expandedLessonId===l.id;
+            return (
+              <div key={l.id} style={{borderBottom:'1px solid rgba(28,43,58,.06)'}}>
+                <button
+                  onClick={()=>{
+                    if(isStaff&&openLessonEditor){openLessonEditor(l);return;}
+                    setExpandedLessonId(isOpen?'':l.id);
+                  }}
+                  aria-expanded={isOpen}
+                  style={{width:'100%',display:'flex',alignItems:'center',gap:12,padding:'11px 0',border:'none',background:'transparent',textAlign:'left',cursor:'pointer'}}>
+                  <div style={{width:38,height:38,borderRadius:10,flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center',
+                    fontWeight:700,background:l.status==='Toimunud'?'rgba(201,136,42,.1)':'rgba(239,68,68,.08)',
+                    color:l.status==='Toimunud'?'#C9882A':'#dc2626'}}>
+                    {l.status==='Toimunud'?l.grade:'—'}
+                  </div>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontWeight:600,fontSize:'.88rem',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{l.topic}</div>
+                    <div style={{fontSize:'.75rem',color:'#42536A'}}>{l.studentName} · {fmtDate(l.date)}</div>
+                  </div>
+                  <div style={{fontSize:'.75rem',color:'#42536A',flexShrink:0}}>{l.teacher}</div>
+                  {!isStaff&&<i className={`fa-solid ${isOpen?'fa-chevron-up':'fa-chevron-down'}`} style={{fontSize:'.72rem',color:'#42536A',flexShrink:0}}/>}
+                </button>
+                {!isStaff&&isOpen&&<LessonDetailsPanel lesson={l}/>}
               </div>
-              <div style={{flex:1,minWidth:0}}>
-                <div style={{fontWeight:600,fontSize:'.88rem',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{l.topic}</div>
-                <div style={{fontSize:'.75rem',color:'#42536A'}}>{l.studentName} · {fmtDate(l.date)}</div>
-              </div>
-              <div style={{fontSize:'.75rem',color:'#42536A',flexShrink:0}}>{l.teacher}</div>
-            </button>
-          ))
+            );
+          })
         }
       </div>
     </div>
