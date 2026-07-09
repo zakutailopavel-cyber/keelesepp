@@ -5655,6 +5655,27 @@ function InvoicesView({invoices,myStudents,schedule,students,isAdmin,invStu,setI
     const exact = activeInvoiceStudents.find(s=>normalizeText(s.name)===q);
     setInvStu(exact?.id||'');
   };
+  const [invoiceStep,setInvoiceStep] = React.useState(1);
+  const invoiceReady = Boolean(invoiceStudentCandidate?.id && invoiceDraft.amount);
+  const invoiceReferencePreview = String(invRef||'').trim() || 'Uue arve number';
+  const invoiceSteps = [
+    {id:1,label:'Õpilane',done:Boolean(invoiceStudentCandidate?.id)},
+    {id:2,label:'Summa',done:Boolean(invoiceDraft.amount)},
+    {id:3,label:'Selgitus',done:Boolean(invoiceReferencePreview)},
+    {id:4,label:'Eelvaade',done:invoiceReady}
+  ];
+  const invoiceCanGoNext = invoiceStep===1
+    ? Boolean(invoiceStudentCandidate?.id)
+    : invoiceStep===2
+      ? Boolean(invoiceDraft.amount)
+      : true;
+  const createInvoiceFromWizard = async()=>{
+    if(!invoiceStudentCandidate?.id){setInvoiceStep(1);return;}
+    if(!invoiceDraft.amount){setInvoiceStep(2);return;}
+    await addInvoice(invoiceStudentCandidate.id);
+    setInvoiceStudentQuery('');
+    setInvoiceStep(1);
+  };
   return(
     <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:20}}>
       <h1 style={{fontSize:'1.7rem'}}>Arved</h1>
@@ -5749,56 +5770,167 @@ function InvoicesView({invoices,myStudents,schedule,students,isAdmin,invStu,setI
           </div>
         </div>
       )}
-      <div className="card" style={{padding:24}}>
+      <div className="card" style={{padding:24,overflow:'visible'}}>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:12,flexWrap:'wrap',marginBottom:16}}>
           <div>
             <h3>Genereeri arve</h3>
             <div style={{fontSize:'.84rem',color:'#42536A',marginTop:4}}>
-              Kui summa on tühi, kasutab süsteem õpilase arveldamata tunde ja tunni hinda.
+              Vali õpilane, kontrolli summat ja kinnita arve enne loomist.
             </div>
           </div>
-          {invoiceStudentCandidate&&(
-            <span className="badge" style={{background:invoiceDraft.hasAuto?'#dbeafe':'#f3f4f6',color:invoiceDraft.hasAuto?'#1d4ed8':'#42536A'}}>
-              {invoiceDraft.hasAuto
-                ? `${invoiceDraft.lessons} x ${money(invoiceDraft.lessonPrice)}€ = ${money(invoiceDraft.autoAmount)}€`
-                : 'Automaatne summa puudub'}
-            </span>
-          )}
+          <span className="badge" style={{background:invoiceReady?'#dcfce7':'#fef3c7',color:invoiceReady?'#166534':'#92400e'}}>
+            {invoiceReady?'Valmis loomiseks':'Vajab andmeid'}
+          </span>
         </div>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(190px,1fr))',gap:10}}>
-          <div style={{position:'relative',display:'flex',flexDirection:'column',gap:6}}>
-            <input value={invoiceStudentQuery}
-              onChange={e=>updateInvoiceStudentQuery(e.target.value)}
-              onKeyDown={e=>{
-                if(e.key==='Enter'&&filteredInvoiceStudents.length===1){
-                  e.preventDefault();
-                  chooseInvoiceStudent(filteredInvoiceStudents[0]);
-                }
-              }}
-              placeholder="Kirjuta õpilase nimi *"/>
-            {invoiceStudentQuery.trim()&&!selectedInvoiceStudent&&(
-              <div style={{position:'absolute',zIndex:20,top:'calc(100% + 6px)',left:0,right:0,background:'#fff',border:'1px solid rgba(28,43,58,.12)',borderRadius:12,boxShadow:'0 12px 28px rgba(28,43,58,.12)',overflow:'hidden'}}>
-                {filteredInvoiceStudents.length===0
-                  ? <div style={{padding:'10px 12px',fontSize:'.82rem',color:'#991b1b'}}>Õpilast ei leitud</div>
-                  : filteredInvoiceStudents.map(s=>(
-                    <button key={s.id} type="button" onMouseDown={e=>{e.preventDefault();chooseInvoiceStudent(s);}}
-                      style={{width:'100%',textAlign:'left',background:'#fff',border:'none',borderBottom:'1px solid rgba(28,43,58,.06)',padding:'10px 12px',cursor:'pointer'}}>
-                      <div style={{fontWeight:700,color:'#1C2B3A'}}>{s.name}</div>
-                      <div style={{fontSize:'.74rem',color:'#42536A'}}>{s.parentName||s.email||s.phone||'Õpilane'}</div>
-                    </button>
-                  ))}
-              </div>
+
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(130px,1fr))',gap:8,marginBottom:16}}>
+          {invoiceSteps.map(step=>(
+            <button key={step.id} type="button" onClick={()=>setInvoiceStep(step.id)}
+              className="btn btn-ghost btn-sm"
+              style={{justifyContent:'flex-start',background:invoiceStep===step.id?'#1C2B3A':'#fff',color:invoiceStep===step.id?'#fff':'#42536A',borderColor:invoiceStep===step.id?'#1C2B3A':'rgba(28,43,58,.12)'}}>
+              <span style={{width:22,height:22,borderRadius:'50%',display:'inline-flex',alignItems:'center',justifyContent:'center',background:invoiceStep===step.id?'rgba(255,255,255,.18)':'#F3F4F6',fontWeight:800,fontSize:'.76rem'}}>
+                {step.done?<i className="fa-solid fa-check"/>:step.id}
+              </span>
+              <span>{step.label}</span>
+            </button>
+          ))}
+        </div>
+
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))',gap:16,alignItems:'stretch'}}>
+          <div style={{padding:16,borderRadius:14,background:'#F9F8F6',border:'1px solid rgba(28,43,58,.08)',minHeight:260,display:'flex',flexDirection:'column',gap:14}}>
+            {invoiceStep===1&&(
+              <React.Fragment>
+                <div>
+                  <div style={{fontSize:'.76rem',fontWeight:800,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em'}}>1. Õpilane</div>
+                  <div style={{fontSize:'.84rem',color:'#42536A',marginTop:4}}>Kirjuta nimi ja vali õige õpilane nimekirjast.</div>
+                </div>
+                <div style={{position:'relative',display:'flex',flexDirection:'column',gap:8}}>
+                  <input value={invoiceStudentQuery}
+                    onChange={e=>updateInvoiceStudentQuery(e.target.value)}
+                    onKeyDown={e=>{
+                      if(e.key==='Enter'&&filteredInvoiceStudents.length===1){
+                        e.preventDefault();
+                        chooseInvoiceStudent(filteredInvoiceStudents[0]);
+                        setInvoiceStep(2);
+                      }
+                    }}
+                    placeholder="Kirjuta õpilase nimi *"/>
+                  {selectedInvoiceStudent&&(
+                    <div style={{padding:'12px 14px',borderRadius:12,background:'#fff',border:'1px solid rgba(47,93,80,.18)',display:'flex',justifyContent:'space-between',gap:12,alignItems:'center'}}>
+                      <div>
+                        <div style={{fontWeight:800,color:'#1C2B3A'}}>{selectedInvoiceStudent.name}</div>
+                        <div style={{fontSize:'.78rem',color:'#42536A'}}>{selectedInvoiceStudent.parentName||selectedInvoiceStudent.email||selectedInvoiceStudent.phone||'Õpilane valitud'}</div>
+                      </div>
+                      <button type="button" onClick={()=>chooseInvoiceStudent(null)} className="btn btn-ghost btn-sm">Vaheta</button>
+                    </div>
+                  )}
+                  {invoiceStudentQuery.trim()&&!selectedInvoiceStudent&&(
+                    <div style={{position:'absolute',zIndex:20,top:'calc(100% + 6px)',left:0,right:0,background:'#fff',border:'1px solid rgba(28,43,58,.12)',borderRadius:12,boxShadow:'0 12px 28px rgba(28,43,58,.12)',overflow:'hidden'}}>
+                      {filteredInvoiceStudents.length===0
+                        ? <div style={{padding:'10px 12px',fontSize:'.82rem',color:'#991b1b'}}>Õpilast ei leitud</div>
+                        : filteredInvoiceStudents.map(s=>(
+                          <button key={s.id} type="button" onMouseDown={e=>{e.preventDefault();chooseInvoiceStudent(s);setInvoiceStep(2);}}
+                            style={{width:'100%',textAlign:'left',background:'#fff',border:'none',borderBottom:'1px solid rgba(28,43,58,.06)',padding:'10px 12px',cursor:'pointer'}}>
+                            <div style={{fontWeight:700,color:'#1C2B3A'}}>{s.name}</div>
+                            <div style={{fontSize:'.74rem',color:'#42536A'}}>{s.parentName||s.email||s.phone||'Õpilane'}</div>
+                          </button>
+                        ))}
+                    </div>
+                  )}
+                </div>
+              </React.Fragment>
             )}
+
+            {invoiceStep===2&&(
+              <React.Fragment>
+                <div>
+                  <div style={{fontSize:'.76rem',fontWeight:800,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em'}}>2. Summa ja kirjeldus</div>
+                  <div style={{fontSize:'.84rem',color:'#42536A',marginTop:4}}>Jäta summa tühjaks, kui tahad kasutada automaatset arvestust.</div>
+                </div>
+                {invoiceDraft.hasAuto
+                  ? <div style={{padding:'10px 12px',borderRadius:12,background:'#dcfce7',color:'#166534',fontWeight:700,fontSize:'.84rem'}}>
+                      Automaatne: {invoiceDraft.lessons} tundi x {money(invoiceDraft.lessonPrice)}€ = {money(invoiceDraft.autoAmount)}€
+                    </div>
+                  : <div style={{padding:'10px 12px',borderRadius:12,background:'#fef3c7',color:'#92400e',fontWeight:700,fontSize:'.84rem'}}>
+                      Lisa tunni hind või sisesta summa käsitsi.
+                    </div>}
+                <input type="number" value={invAmt} onChange={e=>setInvAmt(e.target.value)}
+                  placeholder={invoiceDraft.hasAuto?`Automaatne ${money(invoiceDraft.autoAmount)}€`:'Summa (€) *'}/>
+                <input value={invDesc} onChange={e=>setInvDesc(e.target.value)}
+                  placeholder={invoiceDraft.hasAuto?invoiceDraft.desc:'Kirjeldus, nt Eesti keel juuli eest'}/>
+              </React.Fragment>
+            )}
+
+            {invoiceStep===3&&(
+              <React.Fragment>
+                <div>
+                  <div style={{fontSize:'.76rem',fontWeight:800,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em'}}>3. Makse selgitus</div>
+                  <div style={{fontSize:'.84rem',color:'#42536A',marginTop:4}}>See tekst läheb pangaülekande selgitusse. Tühjana kasutame arve numbrit.</div>
+                </div>
+                <input value={invRef} onChange={e=>setInvRef(e.target.value)}
+                  placeholder="Makse selgitus (vaikimisi arve nr)"/>
+                <div style={{padding:'10px 12px',borderRadius:12,background:'#fff',border:'1px solid rgba(28,43,58,.08)',fontSize:'.82rem',color:'#42536A'}}>
+                  Praegune selgitus: <strong style={{color:'#1C2B3A'}}>{invoiceReferencePreview}</strong>
+                </div>
+              </React.Fragment>
+            )}
+
+            {invoiceStep===4&&(
+              <React.Fragment>
+                <div>
+                  <div style={{fontSize:'.76rem',fontWeight:800,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em'}}>4. Eelvaade</div>
+                  <div style={{fontSize:'.84rem',color:'#42536A',marginTop:4}}>Kontrolli üle. Pärast loomist näeb pere arvet oma kabinetis.</div>
+                </div>
+                <div style={{padding:14,borderRadius:14,background:'#fff',border:'1px solid rgba(28,43,58,.08)',display:'grid',gap:8,fontSize:'.86rem'}}>
+                  <div><strong>Õpilane:</strong> {invoiceStudentCandidate?.name||'Valimata'}</div>
+                  <div><strong>Summa:</strong> {invoiceDraft.amount?money(invoiceDraft.amount)+'€':'Puudub'}</div>
+                  <div><strong>Kirjeldus:</strong> {invoiceDraft.desc||'Keeletunnid'}</div>
+                  <div><strong>Selgitus:</strong> {invoiceReferencePreview}</div>
+                  <div><strong>Tähtaeg:</strong> {PAYMENT_DETAILS.paymentTermDays} kalendripäeva</div>
+                </div>
+              </React.Fragment>
+            )}
+
+            <div style={{display:'flex',justifyContent:'space-between',gap:10,flexWrap:'wrap',marginTop:'auto'}}>
+              <button type="button" onClick={()=>setInvoiceStep(Math.max(1,invoiceStep-1))}
+                className="btn btn-ghost btn-sm" disabled={invoiceStep===1}
+                style={{opacity:invoiceStep===1 ? .55 : 1,cursor:invoiceStep===1?'not-allowed':'pointer'}}>
+                Tagasi
+              </button>
+              {invoiceStep<4
+                ? <button type="button" onClick={()=>invoiceCanGoNext&&setInvoiceStep(invoiceStep+1)}
+                    className="btn btn-pine btn-sm" disabled={!invoiceCanGoNext}
+                    style={{opacity:invoiceCanGoNext?1:.55,cursor:invoiceCanGoNext?'pointer':'not-allowed'}}>
+                    Edasi
+                  </button>
+                : <button type="button" onClick={createInvoiceFromWizard}
+                    className="btn btn-pine btn-sm" disabled={!invoiceReady}
+                    style={{opacity:invoiceReady?1:.55,cursor:invoiceReady?'pointer':'not-allowed'}}>
+                    <i className="fa-solid fa-file-circle-plus"/> Genereeri arve
+                  </button>}
+            </div>
           </div>
-          <input type="number" value={invAmt} onChange={e=>setInvAmt(e.target.value)}
-            placeholder={invoiceDraft.hasAuto?`Automaatne ${money(invoiceDraft.autoAmount)}€`:'Summa (€) *'}/>
-          <input value={invDesc} onChange={e=>setInvDesc(e.target.value)}
-            placeholder={invoiceDraft.hasAuto?invoiceDraft.desc:'Kirjeldus'}/>
-          <input value={invRef} onChange={e=>setInvRef(e.target.value)}
-            placeholder="Makse selgitus (vaikimisi arve nr)"/>
-          <button onClick={()=>addInvoice(invoiceStudentCandidate?.id)} className="btn btn-pine" style={{justifyContent:'center'}}>
-            <i className="fa-solid fa-file-circle-plus"/> Genereeri arve
-          </button>
+
+          <div style={{padding:16,borderRadius:14,background:'linear-gradient(135deg,rgba(47,93,80,.09),#fff)',border:'1px solid rgba(47,93,80,.16)',display:'flex',flexDirection:'column',gap:12}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:10}}>
+              <div style={{fontSize:'.76rem',fontWeight:800,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em'}}>Arve eelvaade</div>
+              <span className="badge" style={{background:invoiceReady?'#dcfce7':'#f3f4f6',color:invoiceReady?'#166534':'#42536A'}}>
+                {invoiceReady?'OK':'Pooleli'}
+              </span>
+            </div>
+            <div style={{fontSize:'2rem',fontWeight:800,color:'#2F5D50'}}>
+              {invoiceDraft.amount?money(invoiceDraft.amount)+'€':'—'}
+            </div>
+            <div style={{display:'grid',gap:8,fontSize:'.84rem',color:'#42536A'}}>
+              <div>Õpilane: <strong style={{color:'#1C2B3A'}}>{invoiceStudentCandidate?.name||'vali õpilane'}</strong></div>
+              <div>Kirjeldus: <strong style={{color:'#1C2B3A'}}>{invoiceDraft.desc||'Keeletunnid'}</strong></div>
+              <div>Selgitus: <strong style={{color:'#1C2B3A'}}>{invoiceReferencePreview}</strong></div>
+              <div>Maksetähtaeg: <strong style={{color:'#1C2B3A'}}>{PAYMENT_DETAILS.paymentTermDays} päeva</strong></div>
+            </div>
+            <div style={{marginTop:'auto',padding:'10px 12px',borderRadius:12,background:'#fff',border:'1px solid rgba(28,43,58,.08)',fontSize:'.8rem',color:'#42536A'}}>
+              Arve salvestatakse alles siis, kui vajutad viimasel sammul <strong>Genereeri arve</strong>.
+            </div>
+          </div>
         </div>
       </div>
       <div className="card" style={{overflow:'hidden'}}>
