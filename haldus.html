@@ -5623,8 +5623,38 @@ function InvoicesView({invoices,myStudents,schedule,students,isAdmin,invStu,setI
     if(invoiceFilter==='reported') return invoices.filter(i=>i.parentPaymentStatus==='submitted'&&i.status!=='Makstud');
     return invoices;
   },[invoiceFilter,invoices]);
-  const selectedInvoiceStudent = myStudents.find(s=>s.id===invStu);
-  const invoiceDraft = invoiceDraftForStudent(selectedInvoiceStudent,invAmt,invDesc);
+  const activeInvoiceStudents = React.useMemo(
+    ()=>(myStudents||[]).filter(s=>s.active!==false),
+    [myStudents]
+  );
+  const selectedInvoiceStudent = activeInvoiceStudents.find(s=>s.id===invStu);
+  const [invoiceStudentQuery,setInvoiceStudentQuery] = React.useState('');
+  React.useEffect(()=>{
+    if(selectedInvoiceStudent){
+      setInvoiceStudentQuery(selectedInvoiceStudent.name||'');
+    }else if(!invStu){
+      setInvoiceStudentQuery('');
+    }
+  },[selectedInvoiceStudent?.id,invStu]);
+  const filteredInvoiceStudents = React.useMemo(()=>{
+    const q = normalizeText(invoiceStudentQuery);
+    if(!q) return activeInvoiceStudents.slice(0,8);
+    return activeInvoiceStudents
+      .filter(s=>normalizeText(`${s.name||''} ${s.parentName||''} ${s.email||''} ${s.phone||''}`).includes(q))
+      .slice(0,8);
+  },[activeInvoiceStudents,invoiceStudentQuery]);
+  const invoiceStudentCandidate = selectedInvoiceStudent || (invoiceStudentQuery.trim()&&filteredInvoiceStudents.length===1 ? filteredInvoiceStudents[0] : null);
+  const invoiceDraft = invoiceDraftForStudent(invoiceStudentCandidate,invAmt,invDesc);
+  const chooseInvoiceStudent = student => {
+    setInvStu(student?.id||'');
+    setInvoiceStudentQuery(student?.name||'');
+  };
+  const updateInvoiceStudentQuery = value => {
+    setInvoiceStudentQuery(value);
+    const q = normalizeText(value);
+    const exact = activeInvoiceStudents.find(s=>normalizeText(s.name)===q);
+    setInvStu(exact?.id||'');
+  };
   return(
     <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:20}}>
       <h1 style={{fontSize:'1.7rem'}}>Arved</h1>
@@ -5727,7 +5757,7 @@ function InvoicesView({invoices,myStudents,schedule,students,isAdmin,invStu,setI
               Kui summa on tühi, kasutab süsteem õpilase arveldamata tunde ja tunni hinda.
             </div>
           </div>
-          {selectedInvoiceStudent&&(
+          {invoiceStudentCandidate&&(
             <span className="badge" style={{background:invoiceDraft.hasAuto?'#dbeafe':'#f3f4f6',color:invoiceDraft.hasAuto?'#1d4ed8':'#42536A'}}>
               {invoiceDraft.hasAuto
                 ? `${invoiceDraft.lessons} x ${money(invoiceDraft.lessonPrice)}€ = ${money(invoiceDraft.autoAmount)}€`
@@ -5736,17 +5766,37 @@ function InvoicesView({invoices,myStudents,schedule,students,isAdmin,invStu,setI
           )}
         </div>
         <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(190px,1fr))',gap:10}}>
-          <select value={invStu} onChange={e=>setInvStu(e.target.value)}>
-            <option value="">Vali õpilane *</option>
-            {myStudents.filter(s=>s.active!==false).map(s=><option key={s.id} value={s.id}>{s.name}</option>)}
-          </select>
+          <div style={{position:'relative',display:'flex',flexDirection:'column',gap:6}}>
+            <input value={invoiceStudentQuery}
+              onChange={e=>updateInvoiceStudentQuery(e.target.value)}
+              onKeyDown={e=>{
+                if(e.key==='Enter'&&filteredInvoiceStudents.length===1){
+                  e.preventDefault();
+                  chooseInvoiceStudent(filteredInvoiceStudents[0]);
+                }
+              }}
+              placeholder="Kirjuta õpilase nimi *"/>
+            {invoiceStudentQuery.trim()&&!selectedInvoiceStudent&&(
+              <div style={{position:'absolute',zIndex:20,top:'calc(100% + 6px)',left:0,right:0,background:'#fff',border:'1px solid rgba(28,43,58,.12)',borderRadius:12,boxShadow:'0 12px 28px rgba(28,43,58,.12)',overflow:'hidden'}}>
+                {filteredInvoiceStudents.length===0
+                  ? <div style={{padding:'10px 12px',fontSize:'.82rem',color:'#991b1b'}}>Õpilast ei leitud</div>
+                  : filteredInvoiceStudents.map(s=>(
+                    <button key={s.id} type="button" onMouseDown={e=>{e.preventDefault();chooseInvoiceStudent(s);}}
+                      style={{width:'100%',textAlign:'left',background:'#fff',border:'none',borderBottom:'1px solid rgba(28,43,58,.06)',padding:'10px 12px',cursor:'pointer'}}>
+                      <div style={{fontWeight:700,color:'#1C2B3A'}}>{s.name}</div>
+                      <div style={{fontSize:'.74rem',color:'#42536A'}}>{s.parentName||s.email||s.phone||'Õpilane'}</div>
+                    </button>
+                  ))}
+              </div>
+            )}
+          </div>
           <input type="number" value={invAmt} onChange={e=>setInvAmt(e.target.value)}
             placeholder={invoiceDraft.hasAuto?`Automaatne ${money(invoiceDraft.autoAmount)}€`:'Summa (€) *'}/>
           <input value={invDesc} onChange={e=>setInvDesc(e.target.value)}
             placeholder={invoiceDraft.hasAuto?invoiceDraft.desc:'Kirjeldus'}/>
           <input value={invRef} onChange={e=>setInvRef(e.target.value)}
             placeholder="Makse selgitus (vaikimisi arve nr)"/>
-          <button onClick={()=>addInvoice()} className="btn btn-pine" style={{justifyContent:'center'}}>
+          <button onClick={()=>addInvoice(invoiceStudentCandidate?.id)} className="btn btn-pine" style={{justifyContent:'center'}}>
             <i className="fa-solid fa-file-circle-plus"/> Genereeri arve
           </button>
         </div>
