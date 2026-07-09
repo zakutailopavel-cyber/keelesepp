@@ -1,5 +1,5 @@
 (function(){
-  const APP_VERSION  = 'CRM 2026-07-09 20:47';
+  const APP_VERSION  = 'CRM 2026-07-09 21:11';
   const LEVELS   = ['Eelkool','A1','A2','B1','B2','C1'];
   const TEACHERS = ['Pavel','Jelena','Elizaveta','Angelina'];
   const STAFF_ALIASES = {
@@ -23,6 +23,7 @@
     company:'E&P Koolitus OÜ',
     regCode:'17270880',
     address:'Harju maakond, Saue vald, Laagri alevik, Nõlvaku põik 3b, 76401',
+    email:'zakutailo.pavel@gmail.com',
     iban:'EE917700771011885682',
     bank:'LHV Pank AS',
     swift:'LHVBEE22',

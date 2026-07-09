@@ -142,6 +142,22 @@ const isOwnStudentRecord = (student, profile) => {
   if(uid && linkedParentUid===uid && normalizeText(student.name)===normalizeText(profile.displayName)) return true;
   return false;
 };
+const money = value => {
+  const n = Number(value)||0;
+  return Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/\.?0+$/,'');
+};
+const invoiceDraftForStudent = (student, amountInput='', descInput='') => {
+  const lessons = Math.max(0, Number(student?.lessonsSinceInvoice)||0);
+  const lessonPrice = Math.max(0, Number(student?.lessonPrice)||0);
+  const autoAmount = lessons>0&&lessonPrice>0 ? Math.round(lessons*lessonPrice*100)/100 : 0;
+  const manualAmount = Number(String(amountInput||'').replace(',','.'))||0;
+  const amount = manualAmount||autoAmount;
+  const autoDesc = lessons>0&&lessonPrice>0
+    ? `${lessons} keeletundi x ${money(lessonPrice)}€`
+    : 'Keeletunnid';
+  const desc = String(descInput||'').trim()||autoDesc;
+  return {lessons,lessonPrice,autoAmount,manualAmount,amount,desc,hasAuto:autoAmount>0};
+};
 const getLessonAttachments = lesson => {
   const list = Array.isArray(lesson?.attachments) ? lesson.attachments.filter(att=>att&&(att.url||att.name)) : [];
   const legacyUrl = lesson?.fileUrl || lesson?.attachmentUrl || lesson?.attachment?.url || '';
@@ -4968,6 +4984,9 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
   const [paymentChoices,setPaymentChoices] = React.useState({});
   const [copiedPaymentKey,setCopiedPaymentKey] = React.useState('');
   const [exerciseResults,setExerciseResults] = React.useState([]);
+  const invoiceDraft = invoiceDraftForStudent(currentStu,invAmt,invDesc);
+  const unpaidStudentInvoices = stuInv.filter(inv=>inv.status==='Ootel');
+  const unpaidStudentAmount = unpaidStudentInvoices.reduce((sum,inv)=>sum+(Number(inv.amount)||0),0);
   React.useEffect(()=>{
     if(!currentStu?.id||!user?.uid) return;
     // Mark messages as read when opening student card
@@ -5300,78 +5319,89 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
 
       {canManage&&(
         <div className="card" style={{padding:24}}>
-          <h3 style={{marginBottom:16}}>💳 Arved ({stuInv.length})</h3>
-          {canManage&&(
-            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(170px,1fr))',gap:10,marginBottom:14}}>
-              <input type="number" value={invAmt} onChange={e=>setInvAmt(e.target.value)} placeholder="Summa (€) *"/>
-              <input value={invDesc} onChange={e=>setInvDesc(e.target.value)} placeholder="Kirjeldus"/>
-              <button onClick={()=>addInvoice(currentStu.id)} className="btn btn-amber btn-sm">
-                <i className="fa-solid fa-plus"/> Loo arve
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:14,flexWrap:'wrap',marginBottom:16}}>
+            <div>
+              <h3>💳 Arved ({stuInv.length})</h3>
+              <div style={{fontSize:'.84rem',color:'#42536A',marginTop:4}}>
+                Genereeri arve automaatselt arveldamata tundide põhjal või sisesta summa käsitsi.
+              </div>
+            </div>
+            <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+              <span className="badge" style={{background:unpaidStudentAmount?'#fee2e2':'#dcfce7',color:unpaidStudentAmount?'#991b1b':'#166534'}}>
+                {unpaidStudentAmount?`${money(unpaidStudentAmount)}€ ootel`:'Kõik korras'}
+              </span>
+              {invoiceDraft.hasAuto&&(
+                <span className="badge" style={{background:'#dbeafe',color:'#1d4ed8'}}>
+                  {invoiceDraft.lessons} x {money(invoiceDraft.lessonPrice)}€
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(260px,1fr))',gap:14,alignItems:'stretch',marginBottom:16}}>
+            <div style={{padding:16,borderRadius:14,background:'linear-gradient(135deg,rgba(47,93,80,.09),#fff)',border:'1px solid rgba(47,93,80,.16)',display:'flex',flexDirection:'column',gap:10,justifyContent:'space-between'}}>
+              <div>
+                <div style={{fontSize:'.74rem',fontWeight:800,color:'#42536A',textTransform:'uppercase'}}>Arve mustand</div>
+                <div style={{fontSize:'2rem',fontWeight:800,color:'#2F5D50',marginTop:6}}>{invoiceDraft.amount?money(invoiceDraft.amount)+'€':'—'}</div>
+                <div style={{fontSize:'.82rem',color:'#42536A',marginTop:4}}>{invoiceDraft.desc}</div>
+              </div>
+              <div style={{fontSize:'.76rem',color:'#42536A'}}>
+                {invoiceDraft.hasAuto
+                  ? `${invoiceDraft.lessons} arveldamata tundi x ${money(invoiceDraft.lessonPrice)}€`
+                  : 'Automaatseks summaks lisa õpilasele tunni hind ja arveldamata tunnid.'}
+              </div>
+            </div>
+            <div style={{padding:16,borderRadius:14,background:'#F9F8F6',border:'1px solid rgba(28,43,58,.07)',display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))',gap:10,alignContent:'center'}}>
+              <input type="number" value={invAmt} onChange={e=>setInvAmt(e.target.value)}
+                placeholder={invoiceDraft.hasAuto?`Automaatne ${money(invoiceDraft.autoAmount)}€`:'Summa (€) *'}/>
+              <input value={invDesc} onChange={e=>setInvDesc(e.target.value)}
+                placeholder={invoiceDraft.hasAuto?invoiceDraft.desc:'Kirjeldus'}/>
+              <button onClick={()=>addInvoice(currentStu.id)} className="btn btn-pine" style={{justifyContent:'center'}}>
+                <i className="fa-solid fa-file-circle-plus"/> Genereeri arve
               </button>
             </div>
-          )}
-          <div style={{display:'flex',flexDirection:'column',gap:8}}>
-            {stuInv.length===0&&<p style={{color:'#42536A',fontSize:'.85rem',textAlign:'center',padding:'12px 0'}}>Arveid pole.</p>}
-            {stuInv.map(inv=>(
-              <div key={inv.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'12px 16px',background:'#F9F8F6',borderRadius:10,border:'1px solid rgba(28,43,58,.07)',flexWrap:'wrap',gap:10}}>
-                <div>
-                  <div style={{fontWeight:600,fontSize:'.9rem'}}>{inv.num}</div>
-                  <div style={{fontSize:'.78rem',color:'#42536A'}}>{inv.desc} · Tähtaeg: {fmtDate(inv.due)}</div>
-                  {!canManage&&inv.status!=='Makstud'&&(
-                    <div style={{marginTop:10,padding:'14px 14px',borderRadius:12,background:'#fff',border:'1px solid rgba(28,43,58,.08)',display:'flex',flexDirection:'column',gap:10,maxWidth:460,boxShadow:'0 1px 4px rgba(28,43,58,.04)'}}>
-                      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,flexWrap:'wrap'}}>
-                        <div style={{fontSize:'.78rem',fontWeight:700,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em'}}>Maksmise info</div>
-                        <span className="badge" style={{background:'rgba(201,136,42,.1)',color:'#A96E1A'}}>Arve {inv.num}</span>
-                      </div>
+          </div>
 
-                      <div style={{display:'grid',gridTemplateColumns:'1fr auto',gap:'6px 10px',alignItems:'center'}}>
-                        <div style={{fontSize:'.78rem',color:'#42536A'}}>Saaja: <strong style={{color:'#1C2B3A'}}>{PAYMENT_DETAILS.company}</strong></div>
-                        <div />
-                        <div style={{fontSize:'.78rem',color:'#42536A'}}>Registrikood: <strong style={{color:'#1C2B3A'}}>{PAYMENT_DETAILS.regCode}</strong></div>
-                        <div />
-                        <div style={{fontSize:'.78rem',color:'#42536A'}}>IBAN: <strong style={{color:'#1C2B3A'}}>{PAYMENT_DETAILS.iban}</strong></div>
-                        <button onClick={()=>copyPaymentValue(`iban-${inv.id}`,PAYMENT_DETAILS.iban)} className="btn btn-ghost btn-sm">{copiedPaymentKey===`iban-${inv.id}`?'Kopeeritud':'Kopeeri'}</button>
-                        <div style={{fontSize:'.78rem',color:'#42536A'}}>Pank: <strong style={{color:'#1C2B3A'}}>{PAYMENT_DETAILS.bank}</strong></div>
-                        <div />
-                        <div style={{fontSize:'.78rem',color:'#42536A'}}>SWIFT: <strong style={{color:'#1C2B3A'}}>{PAYMENT_DETAILS.swift}</strong></div>
-                        <div />
-                        <div style={{fontSize:'.78rem',color:'#42536A'}}>Selgitus: <strong style={{color:'#1C2B3A'}}>{inv.paymentReference||inv.num}</strong></div>
-                        <button onClick={()=>copyPaymentValue(`ref-${inv.id}`,inv.paymentReference||inv.num)} className="btn btn-ghost btn-sm">{copiedPaymentKey===`ref-${inv.id}`?'Kopeeritud':'Kopeeri'}</button>
-                        <div style={{fontSize:'.78rem',color:'#42536A'}}>Summa: <strong style={{color:'#1C2B3A'}}>{inv.amount} €</strong></div>
-                        <button onClick={()=>copyPaymentValue(`sum-${inv.id}`,String(inv.amount))} className="btn btn-ghost btn-sm">{copiedPaymentKey===`sum-${inv.id}`?'Kopeeritud':'Kopeeri'}</button>
-                      </div>
-
-                      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))',gap:8,padding:'10px 12px',borderRadius:10,background:'#F9F8F6'}}>
-                        <div style={{fontSize:'.78rem',color:'#42536A'}}>Maksetähtaeg: <strong style={{color:'#1C2B3A'}}>{fmtDate(inv.due)}</strong></div>
-                        <div style={{fontSize:'.78rem',color:'#42536A'}}>Viivis: <strong style={{color:'#1C2B3A'}}>{PAYMENT_DETAILS.lateFeePerDay} päevas</strong></div>
-                      </div>
-
-                      <select value={paymentChoices[inv.id]||inv.parentPaymentMethod||'bank'} onChange={e=>setPaymentChoices(prev=>({...prev,[inv.id]:e.target.value}))}>
-                        {PAYMENT_METHODS.map(method=><option key={method.id} value={method.id}>{method.label}</option>)}
-                      </select>
-                      {inv.parentPaymentStatus==='submitted'
-                        ? <div style={{fontSize:'.78rem',color:'#166534',fontWeight:600}}>✓ Maksest on teavitatud {fmtDate(inv.parentPaymentSubmittedAt)}</div>
-                        : <button onClick={()=>submitParentPayment(inv.id,paymentChoices[inv.id]||inv.parentPaymentMethod||'bank')} className="btn btn-pine btn-sm">Teavita maksest</button>
-                      }
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))',gap:12}}>
+            {stuInv.length===0&&(
+              <div style={{color:'#42536A',fontSize:'.85rem',textAlign:'center',padding:'18px 0',gridColumn:'1/-1'}}>
+                Arveid pole.
+              </div>
+            )}
+            {[...stuInv].sort((a,b)=>new Date(b.date)-new Date(a.date)).map(inv=>(
+              <div key={inv.id} style={{padding:16,background:'#fff',borderRadius:14,border:'1px solid rgba(28,43,58,.08)',boxShadow:'0 2px 8px rgba(28,43,58,.04)',display:'flex',flexDirection:'column',gap:12}}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:12}}>
+                  <div>
+                    <div style={{fontSize:'.76rem',fontWeight:800,color:'#42536A',textTransform:'uppercase'}}>Arve {inv.num}</div>
+                    <div style={{fontWeight:700,fontSize:'.96rem',marginTop:4}}>{inv.desc||'Keeletunnid'}</div>
+                    <div style={{fontSize:'.78rem',color:'#42536A',marginTop:3}}>
+                      {fmtDate(inv.date)} · tähtaeg {fmtDate(inv.due)}
                     </div>
-                  )}
+                  </div>
+                  <div style={{fontWeight:800,fontSize:'1.35rem',color:'#1C2B3A',whiteSpace:'nowrap'}}>{money(inv.amount)}€</div>
                 </div>
-                <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
-                  <span style={{fontWeight:700}}>{inv.amount}€</span>
+                <div style={{display:'flex',gap:7,flexWrap:'wrap'}}>
                   {inv.status==='Makstud'
                     ?<span className="badge" style={{background:'#dcfce7',color:'#166534'}}>✓ Makstud</span>
                     :<span className="badge" style={{background:'#fef3c7',color:'#92400e'}}>Ootel</span>}
                   {inv.parentPaymentStatus==='submitted'&&inv.status!=='Makstud'&&<span className="badge" style={{background:'#dbeafe',color:'#1d4ed8'}}>Maksest teavitatud</span>}
-                  {canManage&&inv.parentPaymentStatus==='submitted'&&(
+                  {inv.parentPaymentStatus==='submitted'&&inv.status!=='Makstud'&&(
                     <span className="badge" style={{background:'#eef2ff',color:'#4338ca'}}>
                       {PAYMENT_METHODS.find(method=>method.id===(inv.parentPaymentMethod||'bank'))?.label || 'Pangaülekanne'}
                     </span>
                   )}
-                  {canManage&&inv.status!=='Makstud'&&<button onClick={()=>markPaid(inv.id)} className="btn btn-pine btn-sm">Märgi makstud</button>}
-                  {canManage&&inv.status==='Makstud'&&<button onClick={()=>unmarkPaid(inv.id)} className="btn btn-red btn-sm">Tühista makse</button>}
-                  {canManage&&inv.parentPaymentStatus==='submitted'&&inv.status!=='Makstud'&&<button onClick={()=>resetParentPayment(inv.id)} className="btn btn-ghost btn-sm">Lähtesta teavitus</button>}
-                  {canManage&&<button onClick={()=>deleteInvoice(inv)} className="btn btn-red btn-sm">Kustuta arve</button>}
-                  <button onClick={()=>printInvoice(inv)} className="btn btn-ghost btn-sm"><i className="fa-solid fa-print"/> Prindi</button>
+                </div>
+                {inv.parentPaymentStatus==='submitted'&&inv.status!=='Makstud'&&(
+                  <div style={{padding:'9px 11px',borderRadius:10,background:'#eff6ff',color:'#1d4ed8',fontSize:'.78rem'}}>
+                    Vanem teavitas maksest {fmtDate(inv.parentPaymentSubmittedAt)}.
+                  </div>
+                )}
+                <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap',marginTop:'auto'}}>
+                  {inv.status!=='Makstud'&&<button onClick={()=>markPaid(inv.id)} className="btn btn-pine btn-sm">Märgi makstud</button>}
+                  {inv.status==='Makstud'&&<button onClick={()=>unmarkPaid(inv.id)} className="btn btn-red btn-sm">Tühista makse</button>}
+                  {inv.parentPaymentStatus==='submitted'&&inv.status!=='Makstud'&&<button onClick={()=>resetParentPayment(inv.id)} className="btn btn-ghost btn-sm">Lähtesta teavitus</button>}
+                  <button onClick={()=>printInvoice(inv)} className="btn btn-ghost btn-sm"><i className="fa-solid fa-print"/> Arve vaade</button>
+                  <button onClick={()=>deleteInvoice(inv)} className="btn btn-red btn-sm">Kustuta</button>
                 </div>
               </div>
             ))}
@@ -5457,7 +5487,7 @@ function ParentInvoicesView({invoices,printInvoice,submitParentPayment}) {
                     <button onClick={()=>copyPaymentValue(`iban-${inv.id}`,PAYMENT_DETAILS.iban)} className="btn btn-ghost btn-sm">{copiedPaymentKey===`iban-${inv.id}`?'Kopeeritud':'Kopeeri'}</button>
                     <div style={{fontSize:'.82rem',color:'#42536A'}}>Selgitus: <strong style={{color:'#1C2B3A'}}>{inv.paymentReference||inv.num}</strong></div>
                     <button onClick={()=>copyPaymentValue(`ref-${inv.id}`,inv.paymentReference||inv.num)} className="btn btn-ghost btn-sm">{copiedPaymentKey===`ref-${inv.id}`?'Kopeeritud':'Kopeeri'}</button>
-                    <div style={{fontSize:'.82rem',color:'#42536A'}}>Summa: <strong style={{color:'#1C2B3A'}}>{inv.amount} €</strong></div>
+                    <div style={{fontSize:'.82rem',color:'#42536A'}}>Summa: <strong style={{color:'#1C2B3A'}}>{money(inv.amount)} €</strong></div>
                     <button onClick={()=>copyPaymentValue(`sum-${inv.id}`,String(inv.amount))} className="btn btn-ghost btn-sm">{copiedPaymentKey===`sum-${inv.id}`?'Kopeeritud':'Kopeeri'}</button>
                   </div>
                   <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
@@ -5472,7 +5502,7 @@ function ParentInvoicesView({invoices,printInvoice,submitParentPayment}) {
               )}
 
               <div>
-                <button onClick={()=>printInvoice(inv)} className="btn btn-ghost btn-sm"><i className="fa-solid fa-print"/> Prindi</button>
+                <button onClick={()=>printInvoice(inv)} className="btn btn-ghost btn-sm"><i className="fa-solid fa-print"/> Arve vaade</button>
               </div>
             </div>
           ))}
@@ -5587,6 +5617,8 @@ function InvoicesView({invoices,myStudents,schedule,students,isAdmin,invStu,setI
     if(invoiceFilter==='reported') return invoices.filter(i=>i.parentPaymentStatus==='submitted'&&i.status!=='Makstud');
     return invoices;
   },[invoiceFilter,invoices]);
+  const selectedInvoiceStudent = myStudents.find(s=>s.id===invStu);
+  const invoiceDraft = invoiceDraftForStudent(selectedInvoiceStudent,invAmt,invDesc);
   return(
     <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:20}}>
       <h1 style={{fontSize:'1.7rem'}}>Arved</h1>
@@ -5682,15 +5714,33 @@ function InvoicesView({invoices,myStudents,schedule,students,isAdmin,invStu,setI
         </div>
       )}
       <div className="card" style={{padding:24}}>
-        <h3 style={{marginBottom:16}}>Loo uus arve</h3>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))',gap:10,marginBottom:12}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:12,flexWrap:'wrap',marginBottom:16}}>
+          <div>
+            <h3>Genereeri arve</h3>
+            <div style={{fontSize:'.84rem',color:'#42536A',marginTop:4}}>
+              Kui summa on tühi, kasutab süsteem õpilase arveldamata tunde ja tunni hinda.
+            </div>
+          </div>
+          {selectedInvoiceStudent&&(
+            <span className="badge" style={{background:invoiceDraft.hasAuto?'#dbeafe':'#f3f4f6',color:invoiceDraft.hasAuto?'#1d4ed8':'#42536A'}}>
+              {invoiceDraft.hasAuto
+                ? `${invoiceDraft.lessons} x ${money(invoiceDraft.lessonPrice)}€ = ${money(invoiceDraft.autoAmount)}€`
+                : 'Automaatne summa puudub'}
+            </span>
+          )}
+        </div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(190px,1fr))',gap:10}}>
           <select value={invStu} onChange={e=>setInvStu(e.target.value)}>
             <option value="">Vali õpilane *</option>
             {myStudents.filter(s=>s.active!==false).map(s=><option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
-          <input type="number" value={invAmt} onChange={e=>setInvAmt(e.target.value)} placeholder="Summa (€) *"/>
-          <input value={invDesc} onChange={e=>setInvDesc(e.target.value)} placeholder="Kirjeldus"/>
-          <button onClick={()=>addInvoice()} className="btn btn-amber"><i className="fa-solid fa-plus"/> Loo arve</button>
+          <input type="number" value={invAmt} onChange={e=>setInvAmt(e.target.value)}
+            placeholder={invoiceDraft.hasAuto?`Automaatne ${money(invoiceDraft.autoAmount)}€`:'Summa (€) *'}/>
+          <input value={invDesc} onChange={e=>setInvDesc(e.target.value)}
+            placeholder={invoiceDraft.hasAuto?invoiceDraft.desc:'Kirjeldus'}/>
+          <button onClick={()=>addInvoice()} className="btn btn-pine" style={{justifyContent:'center'}}>
+            <i className="fa-solid fa-file-circle-plus"/> Genereeri arve
+          </button>
         </div>
       </div>
       <div className="card" style={{overflow:'hidden'}}>
@@ -5732,7 +5782,7 @@ function InvoicesView({invoices,myStudents,schedule,students,isAdmin,invStu,setI
                 )}
               </div>
               <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
-                <span style={{fontWeight:700}}>{inv.amount}€</span>
+                <span style={{fontWeight:700}}>{money(inv.amount)}€</span>
                 {inv.status==='Makstud'
                   ?<>
                     <span className="badge" style={{background:'#dcfce7',color:'#166534'}}>✓ Makstud</span>
@@ -5743,7 +5793,7 @@ function InvoicesView({invoices,myStudents,schedule,students,isAdmin,invStu,setI
                   </>}
                 {inv.parentPaymentStatus==='submitted'&&inv.status!=='Makstud'&&<span className="badge" style={{background:'#dbeafe',color:'#1d4ed8'}}>Vanem teavitas maksest</span>}
                 <button onClick={()=>deleteInvoice(inv)} className="btn btn-red btn-sm">Kustuta</button>
-                <button onClick={()=>printInvoice(inv)} className="btn btn-ghost btn-sm"><i className="fa-solid fa-print"/> Prindi</button>
+                <button onClick={()=>printInvoice(inv)} className="btn btn-ghost btn-sm"><i className="fa-solid fa-print"/> Arve vaade</button>
               </div>
             </div>
           ))
@@ -8347,15 +8397,20 @@ function App() {
 
   const addInvoice=useCallback(async(stuId)=>{
     const sid=stuId||invStu;
-    if(!invAmt||!sid){notify('⚠ Vali õpilane ja sisesta summa');return;}
+    if(!sid){notify('⚠ Vali õpilane');return;}
     const stu=students.find(s=>s.id===sid);
+    const draft = invoiceDraftForStudent(stu,invAmt,invDesc);
+    if(!draft.amount){notify('⚠ Sisesta summa või määra õpilasele tunni hind ja arveldamata tunnid');return;}
     const num=`KS-${new Date().getFullYear()}-${String(invoices.length+1).padStart(3,'0')}`;
     const due=new Date(Date.now()+PAYMENT_DETAILS.paymentTermDays*864e5).toISOString().split('T')[0];
     const ref = await db.collection('invoices').add({
       studentId:sid,
       studentName:stu?.name||'—',
-      amount:parseInt(invAmt),
-      desc:invDesc||'Keeletunnid',
+      amount:draft.amount,
+      desc:draft.desc,
+      lessonCount:draft.lessons||0,
+      lessonPrice:draft.lessonPrice||0,
+      autoGenerated:!draft.manualAmount&&draft.hasAuto,
       num,
       status:'Ootel',
       date:today(),
@@ -8365,7 +8420,7 @@ function App() {
       parentPaymentSubmittedAt:'',
       paymentReference:num
     });
-    await logActivity('invoice.created','Loodi arve',{invoiceId:ref.id,studentId:sid,studentName:stu?.name||'—',amount:parseInt(invAmt),num});
+    await logActivity('invoice.created','Loodi arve',{invoiceId:ref.id,studentId:sid,studentName:stu?.name||'—',amount:draft.amount,num});
     // Reset lesson counter for this student
     await db.collection('students').doc(sid).update({lessonsSinceInvoice:0,lastInvoiceAt:today()});
     setInvAmt('');setInvDesc('');setInvStu('');
@@ -8421,34 +8476,194 @@ function App() {
     const esc=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
     const safeNum=esc(inv.num||'');
     const safeDue=esc(fmtDate(inv.due));
+    const amountValue = Number(inv.amount)||0;
+    const itemCount = Number(inv.lessonCount)||1;
+    const itemPrice = Number(inv.lessonPrice)||(itemCount?amountValue/itemCount:amountValue);
+    const itemName = inv.desc || (inv.lessonCount ? 'Keeletunnid' : 'Koolitus');
+    const sellerLines = [
+      PAYMENT_DETAILS.company,
+      `Reg. kood: ${PAYMENT_DETAILS.regCode}`,
+      PAYMENT_DETAILS.address,
+      PAYMENT_DETAILS.email ? `E-post: ${PAYMENT_DETAILS.email}` : '',
+      `${PAYMENT_DETAILS.iban}, ${PAYMENT_DETAILS.bank}, SWIFT: ${PAYMENT_DETAILS.swift}`
+    ].filter(Boolean);
+    const payerName = stu?.payerName || stu?.companyName || stu?.parentName || inv.payerName || inv.studentName || stu?.name || '—';
+    const payerRegCode = stu?.payerRegCode || stu?.companyRegCode || '';
+    const payerLines = [
+      payerName,
+      payerRegCode ? `Reg. kood: ${payerRegCode}` : '',
+      stu?.payerAddress || stu?.address || '',
+      stu?.parentEmail || stu?.contactEmail || stu?.guardianEmail || stu?.email || '',
+      stu?.phone ? `Tel: ${stu.phone}` : ''
+    ].filter(Boolean);
+    const ones=['','üks','kaks','kolm','neli','viis','kuus','seitse','kaheksa','üheksa'];
+    const teens=['kümme','üksteist','kaksteist','kolmteist','neliteist','viisteist','kuusteist','seitseteist','kaheksateist','üheksateist'];
+    const underThousand=n=>{
+      if(n===0) return '';
+      if(n<10) return ones[n];
+      if(n<20) return teens[n-10];
+      if(n<100) return `${ones[Math.floor(n/10)]}kümmend${n%10?' '+ones[n%10]:''}`;
+      return `${ones[Math.floor(n/100)]}sada${n%100?' '+underThousand(n%100):''}`;
+    };
+    const etWords=n=>{
+      const whole=Math.max(0,Math.floor(n));
+      if(whole===0) return 'null';
+      if(whole<1000) return underThousand(whole);
+      const thousands=Math.floor(whole/1000);
+      const rest=whole%1000;
+      const prefix=thousands===1?'tuhat':`${etWords(thousands)} tuhat`;
+      return rest?`${prefix} ${underThousand(rest)}`:prefix;
+    };
+    const amountText=(()=>{
+      const cents=Math.round((amountValue-Math.floor(amountValue))*100);
+      const euros=etWords(amountValue);
+      return cents ? `${euros} eurot ja ${cents} senti` : `${euros} eurot`;
+    })();
     const w=window.open('','_blank');
     w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Arve ${safeNum}</title>
-    <style>body{font-family:Georgia,serif;padding:60px;color:#1C2B3A;max-width:700px;margin:0 auto}
-    .logo{font-size:2rem;font-weight:700}b{color:#C9882A}
-    h1{font-size:1.4rem;border-bottom:2px solid #C9882A;padding-bottom:12px;margin:30px 0 20px}
-    .row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eee}
-    .total{font-size:1.3rem;font-weight:700;color:#2F5D50}
-    .footer{margin-top:50px;font-size:.8rem;color:#666;text-align:center}
+    <style>
+      @page{size:A4;margin:18mm}
+      *{box-sizing:border-box}
+      body{font-family:Arial,Helvetica,sans-serif;color:#111827;margin:0;background:#fff;font-size:12px;line-height:1.35}
+      .page{max-width:760px;margin:0 auto;padding:8px 0 22px}
+      .seller{font-size:11px;color:#374151;line-height:1.55}
+      .seller strong{display:block;font-size:18px;color:#111827;margin-bottom:2px}
+      .top{display:grid;grid-template-columns:1fr 250px;gap:28px;align-items:start;margin-bottom:24px}
+      .invoice-title{font-size:24px;font-weight:800;margin:24px 0 10px;color:#111827}
+      .meta{border:1px solid #d1d5db;border-radius:2px;overflow:hidden}
+      .meta-row{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid #e5e7eb}
+      .meta-row:last-child{border-bottom:0}
+      .meta-row span{padding:8px 10px}
+      .meta-row span:first-child{background:#f9fafb;color:#4b5563;font-weight:700}
+      .party-grid{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin:18px 0 26px}
+      .party-title{font-size:12px;font-weight:800;margin-bottom:8px;color:#111827}
+      .party{min-height:76px;color:#374151}
+      table{width:100%;border-collapse:collapse;margin-top:10px}
+      th,td{border:1px solid #111827;padding:7px 8px;vertical-align:middle}
+      th{background:#f3f4f6;font-size:10px;text-align:center;font-weight:800}
+      td.num{text-align:right;white-space:nowrap}
+      td.center{text-align:center}
+      .summary td{font-weight:800;background:#fafafa}
+      .amount-text{margin-top:12px;font-size:12px}
+      .amount-text strong{display:block;margin-bottom:4px}
+      .payment{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:22px}
+      .box{border:1px solid #d1d5db;border-radius:2px;padding:12px}
+      .box-title{font-weight:800;margin-bottom:8px;color:#111827}
+      .signature{display:grid;grid-template-columns:1fr 1fr;gap:70px;margin-top:44px}
+      .line{border-top:1px solid #111827;padding-top:8px;min-height:34px}
+      .muted{color:#6b7280}
+      .print-actions{display:flex;justify-content:flex-end;gap:8px;margin-bottom:16px}
+      .print-actions button{border:1px solid #d1d5db;background:#fff;border-radius:8px;padding:8px 12px;font-weight:700;cursor:pointer}
+      .print-actions button.primary{background:#2F5D50;color:#fff;border-color:#2F5D50}
+      @media print{.print-actions{display:none}.page{padding:0}}
     </style></head><body>
-    <div class="logo">Keele<b>Sepp</b></div>
-    <div style="font-size:.85rem;color:#666">${esc(PAYMENT_DETAILS.company)} · Reg. kood ${esc(PAYMENT_DETAILS.regCode)}</div>
-    <div style="font-size:.85rem;color:#666">${esc(PAYMENT_DETAILS.address)}</div>
-    <div style="font-size:.85rem;color:#666">${esc(PAYMENT_DETAILS.iban)} · ${esc(PAYMENT_DETAILS.bank)} · SWIFT ${esc(PAYMENT_DETAILS.swift)}</div>
-    <h1>ARVE ${safeNum}</h1>
-    <div class="row"><span>Arve number:</span><span>${safeNum}</span></div>
-    <div class="row"><span>Kuupäev:</span><span>${esc(fmtDate(inv.date))}</span></div>
-    <div class="row"><span>Tähtaeg:</span><span>${safeDue}</span></div>
-    <div class="row"><span>Maksetingimus:</span><span>${esc(PAYMENT_DETAILS.paymentTermDays)} kalendripäeva</span></div>
-    <div class="row"><span>Viivis:</span><span>${esc(PAYMENT_DETAILS.lateFeePerDay)} päevas</span></div>
-    <div class="row"><span>Õpilane:</span><span>${esc(inv.studentName)}</span></div>
-    ${stu?.email?`<div class="row"><span>E-post:</span><span>${esc(stu.email)}</span></div>`:''}
-    <div class="row"><span>Kirjeldus:</span><span>${esc(inv.desc)}</span></div>
-    <div class="row"><span>Selgitus:</span><span>${esc(inv.paymentReference||inv.num)}</span></div>
-    <div class="row total"><span>KOKKU:</span><span>${esc(inv.amount)} €</span></div>
-    <p style="margin-top:30px;font-size:.85rem;color:#666">Palun tasuda arve tähtajaks ${safeDue}.</p>
-    <div class="footer">Koostaja: ${esc(PAYMENT_DETAILS.issuer)}</div>
+    <div class="page">
+      <div class="print-actions">
+        <button onclick="window.close()">Sulge</button>
+        <button class="primary" onclick="window.print()">Prindi / salvesta PDF</button>
+      </div>
+      <div class="top">
+        <div class="seller">
+          <strong>${esc(PAYMENT_DETAILS.company)}</strong>
+          ${sellerLines.slice(1).map(line=>`<div>${esc(line)}</div>`).join('')}
+        </div>
+        <div class="meta">
+          <div class="meta-row"><span>Arve nr.</span><span>${safeNum}</span></div>
+          <div class="meta-row"><span>Kuupäev</span><span>${esc(fmtDate(inv.date))}</span></div>
+          <div class="meta-row"><span>Tähtaeg</span><span>${safeDue}</span></div>
+          <div class="meta-row"><span>Valuuta</span><span>EUR</span></div>
+        </div>
+      </div>
+
+      <div class="invoice-title">Arve ${safeNum}</div>
+      <div class="party-grid">
+        <div>
+          <div class="party-title">Maksja</div>
+          <div class="party">
+            ${payerLines.map((line,idx)=>idx===0?`<strong>${esc(line)}</strong>`:`<div>${esc(line)}</div>`).join('')}
+          </div>
+        </div>
+        <div>
+          <div class="party-title">Maksetingimused</div>
+          <div class="party">
+            <div>Maksetingimus: ${esc(PAYMENT_DETAILS.paymentTermDays)} kalendripäeva</div>
+            <div>Maksetähtaeg: ${safeDue}</div>
+            <div>Viivis: ${esc(PAYMENT_DETAILS.lateFeePerDay)} päevas</div>
+            <div>Selgitus: ${esc(inv.paymentReference||inv.num)}</div>
+          </div>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width:38px">Nr.</th>
+            <th style="width:54px">Kood</th>
+            <th>Nimetus</th>
+            <th style="width:58px">Ühik</th>
+            <th style="width:70px">Kogus</th>
+            <th style="width:78px">Hind</th>
+            <th style="width:78px">Summa</th>
+            <th style="width:78px">KM</th>
+            <th style="width:82px">Kokku</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="center">1</td>
+            <td class="center">1</td>
+            <td>${esc(itemName)}</td>
+            <td class="center">tund</td>
+            <td class="num">${esc(money(itemCount))}</td>
+            <td class="num">${esc(money(itemPrice))}</td>
+            <td class="num">${esc(money(amountValue))}</td>
+            <td class="num">0.00</td>
+            <td class="num">${esc(money(amountValue))}</td>
+          </tr>
+          <tr class="summary">
+            <td colspan="6"></td>
+            <td class="num">${esc(money(amountValue))}</td>
+            <td class="num">0.00</td>
+            <td class="num">${esc(money(amountValue))}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="amount-text">
+        <strong>Summa tasumiseks:</strong>
+        ${esc(amountText)}
+      </div>
+
+      <div class="payment">
+        <div class="box">
+          <div class="box-title">Makseinfo</div>
+          <div>Saaja: ${esc(PAYMENT_DETAILS.company)}</div>
+          <div>IBAN: ${esc(PAYMENT_DETAILS.iban)}</div>
+          <div>Pank: ${esc(PAYMENT_DETAILS.bank)}</div>
+          <div>SWIFT: ${esc(PAYMENT_DETAILS.swift)}</div>
+        </div>
+        <div class="box">
+          <div class="box-title">Õpilane</div>
+          <div>${esc(inv.studentName||stu?.name||'—')}</div>
+          ${stu?.teacher?`<div class="muted">Õpetaja: ${esc(stu.teacher)}</div>`:''}
+          ${stu?.subject?`<div class="muted">Õppeaine: ${esc(stu.subject)}</div>`:''}
+        </div>
+      </div>
+
+      <div class="signature">
+        <div>
+          <div class="line">Väljastas</div>
+          <div class="muted">Koostaja: ${esc(PAYMENT_DETAILS.issuer)}</div>
+        </div>
+        <div>
+          <div class="line">Võttis vastu</div>
+          <div class="muted">Kuupäev</div>
+        </div>
+      </div>
+    </div>
     </body></html>`);
-    w.document.close();setTimeout(()=>w.print(),500);
+    w.document.close();
+    w.focus();
   },[students]);
 
   const unseenWsCount = React.useMemo(()=>{
