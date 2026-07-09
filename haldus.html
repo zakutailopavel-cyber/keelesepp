@@ -166,9 +166,10 @@ const getLessonAttachments = lesson => {
   const urls = new Set(list.map(att=>att.url).filter(Boolean));
   return [...list,...legacy.filter(att=>!urls.has(att.url))];
 };
-function LessonDetailsPanel({lesson}) {
+function LessonDetailsPanel({lesson,homeworkItems=[]}) {
   if(!lesson) return null;
   const attachments = getLessonAttachments(lesson);
+  const relatedHomework = Array.isArray(homeworkItems) ? homeworkItems.filter(Boolean) : [];
   const detailRows = [
     {label:'Mida tegime tunnis',value:lesson.covered,icon:'fa-list-check'},
     {label:'Uued sõnad ja väljendid',value:lesson.newWords,icon:'fa-book-open'},
@@ -179,13 +180,19 @@ function LessonDetailsPanel({lesson}) {
   const statusLabel = lesson.status==='Toimunud' ? 'Toimunud' : lesson.status==='Puudus_p' ? 'Puudus põhjusega' : lesson.status==='Puudus_eta' ? 'Puudus' : (lesson.status||'Planeeritud');
   return (
     <div style={{margin:'0 0 12px 50px',padding:'14px 16px',borderRadius:14,background:'#F9F8F6',border:'1px solid rgba(47,93,80,.16)',display:'flex',flexDirection:'column',gap:12}}>
-      <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
-        <span className="badge" style={{background:'#dcfce7',color:'#166534'}}>{statusLabel}</span>
-        {lesson.status==='Toimunud'&&lesson.grade>0&&<span className="badge" style={{background:'rgba(201,136,42,.12)',color:'#A96E1A'}}>Hinne {lesson.grade}</span>}
-        {lesson.duration&&<span className="badge" style={{background:'#e0f2fe',color:'#075985'}}>{lesson.duration} min</span>}
-        <span style={{fontSize:'.78rem',color:'#42536A'}}>Õp. {lesson.teacher||'—'} · {fmtDate(lesson.date)}</span>
+      <div style={{display:'flex',justifyContent:'space-between',gap:12,alignItems:'flex-start',flexWrap:'wrap'}}>
+        <div>
+          <div style={{fontSize:'.76rem',fontWeight:800,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em'}}>Tunni kokkuvõte</div>
+          <div style={{fontWeight:800,color:'#1C2B3A',marginTop:4}}>{lesson.topic||'Tund'}</div>
+          <div style={{fontSize:'.78rem',color:'#42536A',marginTop:3}}>Õp. {lesson.teacher||'—'} · {fmtDate(lesson.date)}</div>
+        </div>
+        <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap',justifyContent:'flex-end'}}>
+          <span className="badge" style={{background:'#dcfce7',color:'#166534'}}>{statusLabel}</span>
+          {lesson.status==='Toimunud'&&lesson.grade>0&&<span className="badge" style={{background:'rgba(201,136,42,.12)',color:'#A96E1A'}}>Hinne {lesson.grade}</span>}
+          {lesson.duration&&<span className="badge" style={{background:'#e0f2fe',color:'#075985'}}>{lesson.duration} min</span>}
+        </div>
       </div>
-      {detailRows.length===0&&attachments.length===0&&(
+      {detailRows.length===0&&attachments.length===0&&relatedHomework.length===0&&(
         <div style={{fontSize:'.82rem',color:'#42536A'}}>Õpetaja ei ole selle tunni kohta veel detailset päevikukannet lisanud.</div>
       )}
       {detailRows.map(row=>(
@@ -195,6 +202,21 @@ function LessonDetailsPanel({lesson}) {
           <div style={{fontSize:'.84rem',color:'#1C2B3A',lineHeight:1.45,whiteSpace:'pre-wrap'}}>{row.value}</div>
         </div>
       ))}
+      {relatedHomework.length>0&&(
+        <div style={{padding:'10px 12px',borderRadius:12,background:'#fff',border:'1px solid rgba(124,58,237,.14)',display:'flex',flexDirection:'column',gap:8}}>
+          <div style={{display:'flex',alignItems:'center',gap:8,fontSize:'.78rem',fontWeight:800,color:'#7c3aed'}}>
+            <i className="fa-solid fa-book-open"/> Kodutöö pärast tundi
+          </div>
+          {relatedHomework.map(hw=>(
+            <div key={hw.id||hw.task} style={{display:'flex',justifyContent:'space-between',gap:10,alignItems:'flex-start',fontSize:'.82rem'}}>
+              <div style={{color:'#1C2B3A',lineHeight:1.4}}>{hw.task||'Kodutöö'}</div>
+              <span className="badge" style={{background:hw.status==='Tehtud'?'#dcfce7':'#f3e8ff',color:hw.status==='Tehtud'?'#166534':'#7c3aed',flexShrink:0}}>
+                {hw.due?`tähtaeg ${fmtDate(hw.due)}`:(hw.status||'ootel')}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
       {attachments.length>0&&(
         <div style={{display:'flex',gap:8,flexWrap:'wrap',paddingTop:2}}>
           {attachments.map((att,idx)=>(
@@ -476,6 +498,7 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
   taskTitle,setTaskTitle,taskAssignee,setTaskAssignee,taskDue,setTaskDue,taskPriority,setTaskPriority,taskCategory,setTaskCategory,
   addTask,toggleTask,deleteTask,replyTask,markTaskRepliesSeen,openLessonEditor,isAdmin,isStaff,parentAlerts,createMissingParentStudents,markParentChecked,setTab,setSelStu}) {
   const [expandedLessonId,setExpandedLessonId] = React.useState('');
+  const [parentDashboardMode,setParentDashboardMode] = React.useState('family');
   const unpaidAmt = invoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+i.amount,0);
   const pendingHw = homework.filter(h=>h.status==='Ootel'&&myStudents.some(s=>s.id===h.studentId)).length;
   const openTasks = tasks.filter(t=>t.status!=='done');
@@ -498,6 +521,18 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
         myStudents.some(s=>s.id===l.studentId) ||
         linkedStudentNames.includes(normalizeText(l.studentName))
       );
+  const parentOwnStudyStudents = hasUserRole(user,'parent') ? myStudents.filter(student=>isOwnStudentRecord(student,user)) : [];
+  const parentFamilyStudents = parentOwnStudyStudents.length
+    ? myStudents.filter(student=>!isOwnStudentRecord(student,user))
+    : myStudents;
+  const parentFocusStudents = parentDashboardMode==='self' && parentOwnStudyStudents.length
+    ? parentOwnStudyStudents
+    : (parentFamilyStudents.length ? parentFamilyStudents : myStudents);
+  const parentFocusIds = new Set(parentFocusStudents.map(student=>student.id));
+  const parentFocusNames = new Set(parentFocusStudents.map(student=>normalizeText(student.name)));
+  const dashboardVisibleLessons = hasUserRole(user,'parent')
+    ? visibleLessons.filter(lesson=>parentFocusIds.has(lesson.studentId)||parentFocusNames.has(normalizeText(lesson.studentName)))
+    : visibleLessons;
   const attendance= stuLessons.length?Math.round(doneLess.length/stuLessons.length*100):0;
   const unassignedStudents = isAdmin ? myStudents.filter(student=>student.active!==false && !canonicalTeacherName(student.teacher||'') && !student.hiddenFields?.teacher) : [];
   const newContactStudents = isAdmin ? myStudents.filter(student=>student.active!==false && (student.contactStatus||'new')==='new' && !student.hiddenFields?.contactStatus) : [];
@@ -682,10 +717,20 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
         const todayIso = today();
         const nextTwoWeeks = new Date(); nextTwoWeeks.setDate(nextTwoWeeks.getDate()+14);
         const nextTwoWeeksIso = nextTwoWeeks.toISOString().split('T')[0];
+        const ownStudyStudents = parentOwnStudyStudents;
+        const familyStudents = parentFamilyStudents;
+        const effectiveParentMode = ownStudyStudents.length ? parentDashboardMode : 'family';
+        const dashboardStudents = effectiveParentMode==='self'
+          ? ownStudyStudents
+          : parentFocusStudents;
+        const dashboardTitle = effectiveParentMode==='self' ? 'Minu õpingud' : 'Pere ülevaade';
+        const dashboardSubtitle = effectiveParentMode==='self'
+          ? 'Sinu enda tunnid, kodutööd, progress ja arved.'
+          : 'Laste tunnid, kodutööd, progress ja arved ühes kohas.';
 
-	        // Upcoming lessons for all children
-	        const childIds = new Set(myStudents.map(s=>s.id));
-	        const childNames = new Set(myStudents.map(s=>normalizeText(s.name)));
+		        // Upcoming lessons for all children
+		        const childIds = new Set(dashboardStudents.map(s=>s.id));
+		        const childNames = new Set(dashboardStudents.map(s=>normalizeText(s.name)));
 	        const parentHasStudent = (studentId,studentName) =>
 	          childIds.has(studentId)||childNames.has(normalizeText(studentName));
 	        const upcomingLessons = [];
@@ -716,8 +761,8 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
 	        ].sort((a,b)=>new Date(b._ts)-new Date(a._ts)).slice(0,8);
 
 	        const unpaidAmount = unpaid.reduce((sum,i)=>sum+(Number(i.amount)||0),0);
-	        const latestLesson = [...visibleLessons]
-	          .filter(l=>l.status==='Toimunud')
+		        const latestLesson = [...visibleLessons]
+		          .filter(l=>parentHasStudent(l.studentId,l.studentName)&&l.status==='Toimunud')
 	          .sort((a,b)=>new Date(b.date)-new Date(a.date))[0]||null;
 	        const nextLesson = upcomingLessons[0]||null;
 	        const studentByIdentity = (studentId,studentName) =>
@@ -731,7 +776,7 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
 	          }
 	        };
 	        const parentStats = [
-	          {label:'Õpilased',value:myStudents.length,sub:'aktiivset profiili',icon:'fa-user-graduate',tone:'#2F5D50'},
+		          {label:'Profiilid',value:dashboardStudents.length,sub:effectiveParentMode==='self'?'sinu õpingud':'aktiivset profiili',icon:'fa-user-graduate',tone:'#2F5D50'},
 	          {label:'Kodutööd',value:pendingHomeworkItems.length,sub:'ootel',icon:'fa-book-open',tone:'#7c3aed'},
 	          {label:'Tasumata',value:unpaidAmount?`${unpaidAmount}€`:'0€',sub:unpaid.length?`${unpaid.length} arvet`:'korras',icon:'fa-file-invoice',tone:unpaidAmount?'#dc2626':'#2F5D50'},
 	          {label:'Järgmine tund',value:nextLesson?new Date(nextLesson._date).toLocaleDateString('et-EE',{day:'2-digit',month:'2-digit'}):'—',sub:nextLesson?(nextLesson.time||'aeg puudub'):'tunde pole',icon:'fa-calendar-day',tone:'#C9882A'}
@@ -787,17 +832,34 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
 	            <div className="card" style={{padding:22}}>
 	              <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))',gap:18,alignItems:'stretch'}}>
 	                <div style={{display:'flex',flexDirection:'column',gap:14,minWidth:0}}>
-	                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:12,flexWrap:'wrap'}}>
-	                    <div>
-	                      <h3 style={{marginBottom:4}}>Tänane ülevaade</h3>
-	                      <div style={{fontSize:'.84rem',color:'#42536A'}}>
-	                        Kõige olulisem info laste ja sinu õpingute kohta ühes kohas.
-	                      </div>
-	                    </div>
-	                    <span className="badge" style={{background:'#ecfdf5',color:'#166534'}}>
-	                      {myStudents.length?`${myStudents.length} profiili`:'Profiile pole'}
-	                    </span>
-	                  </div>
+		                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:12,flexWrap:'wrap'}}>
+		                    <div>
+		                      <h3 style={{marginBottom:4}}>{dashboardTitle}</h3>
+		                      <div style={{fontSize:'.84rem',color:'#42536A'}}>
+		                        {dashboardSubtitle}
+		                      </div>
+		                    </div>
+		                    <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap',justifyContent:'flex-end'}}>
+		                      {ownStudyStudents.length>0&&(
+		                        <div style={{display:'inline-flex',padding:3,borderRadius:999,background:'#F3F4F6',border:'1px solid rgba(28,43,58,.08)'}}>
+		                          {[
+		                            {id:'family',label:'Pere'},
+		                            {id:'self',label:'Õpilane'}
+		                          ].map(mode=>(
+		                            <button key={mode.id} type="button" onClick={()=>setParentDashboardMode(mode.id)}
+		                              style={{border:'none',borderRadius:999,padding:'6px 11px',fontSize:'.74rem',fontWeight:800,cursor:'pointer',
+		                                background:effectiveParentMode===mode.id?'#1C2B3A':'transparent',
+		                                color:effectiveParentMode===mode.id?'#fff':'#42536A'}}>
+		                              {mode.label}
+		                            </button>
+		                          ))}
+		                        </div>
+		                      )}
+		                      <span className="badge" style={{background:'#ecfdf5',color:'#166534'}}>
+		                        {dashboardStudents.length?`${dashboardStudents.length} profiili`:'Profiile pole'}
+		                      </span>
+		                    </div>
+		                  </div>
 	                  <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(118px,1fr))',gap:10}}>
 	                    {parentStats.map(stat=>(
 	                      <div key={stat.label} style={{padding:'12px 13px',borderRadius:12,background:'rgba(28,43,58,.035)',border:'1px solid rgba(28,43,58,.06)'}}>
@@ -843,9 +905,9 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
 	              </div>
 	            </div>
 
-	            {/* Children cards */}
-	            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))',gap:14}}>
-	              {myStudents.map(s=>{
+		            {/* Children cards */}
+		            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))',gap:14}}>
+		              {dashboardStudents.map(s=>{
 	                const studentMatches = (studentId,studentName) => s.id===studentId||normalizeText(s.name)===normalizeText(studentName);
 	                const done=lessons.filter(l=>studentMatches(l.studentId,l.studentName)&&l.status==='Toimunud');
 	                const pct=levelPct(s.level,s.targetLevel);
@@ -924,12 +986,12 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
 	                  </div>
 	                );
 	              })}
-              {myStudents.length===0&&(
-                <div className="card" style={{padding:28,textAlign:'center',color:'#42536A',gridColumn:'1/-1'}}>
-                  <div style={{fontSize:'1.4rem',marginBottom:8}}>👶</div>
-                  Lapsi pole lisatud. Mine "Minu lapsed" ja lisa laps.
-                </div>
-              )}
+		              {dashboardStudents.length===0&&(
+		                <div className="card" style={{padding:28,textAlign:'center',color:'#42536A',gridColumn:'1/-1'}}>
+		                  <div style={{fontSize:'1.4rem',marginBottom:8}}><i className="fa-solid fa-user-graduate"/></div>
+		                  Õppeprofiile pole lisatud. Ava "Minu lapsed / õpingud" ja lisa vajalik profiil.
+		                </div>
+		              )}
             </div>
 
             {/* Feed + upcoming lessons */}
@@ -1314,10 +1376,15 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
 
       <div className="card" style={{padding:24}}>
         <h3 style={{marginBottom:16}}>🕐 Viimased tunnid</h3>
-        {visibleLessons.length===0
+        {dashboardVisibleLessons.length===0
           ?<div style={{textAlign:'center',padding:'24px 0',color:'#42536A',fontSize:'.88rem'}}>Tunnid puuduvad.</div>
-          :[...visibleLessons].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,6).map(l=>{
+          :[...dashboardVisibleLessons].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,6).map(l=>{
             const isOpen = expandedLessonId===l.id;
+            const lessonHomework = homework.filter(hw=>
+              (hw.lessonId&&hw.lessonId===l.id) ||
+              (hw.studentId&&hw.studentId===l.studentId) ||
+              normalizeText(hw.studentName)===normalizeText(l.studentName)
+            ).slice(0,3);
             return (
               <div key={l.id} style={{borderBottom:'1px solid rgba(28,43,58,.06)'}}>
                 <button
@@ -1339,7 +1406,7 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
                   <div style={{fontSize:'.75rem',color:'#42536A',flexShrink:0}}>{l.teacher}</div>
                   {!isStaff&&<i className={`fa-solid ${isOpen?'fa-chevron-up':'fa-chevron-down'}`} style={{fontSize:'.72rem',color:'#42536A',flexShrink:0}}/>}
                 </button>
-                {!isStaff&&isOpen&&<LessonDetailsPanel lesson={l}/>}
+                {!isStaff&&isOpen&&<LessonDetailsPanel lesson={l} homeworkItems={lessonHomework}/>}
               </div>
             );
           })
@@ -5654,9 +5721,10 @@ function InvoicesView({invoices,myStudents,schedule,students,isAdmin,invStu,setI
     const q = normalizeText(value);
     const exact = activeInvoiceStudents.find(s=>normalizeText(s.name)===q);
     setInvStu(exact?.id||'');
-  };
-  const [invoiceStep,setInvoiceStep] = React.useState(1);
-  const invoiceReady = Boolean(invoiceStudentCandidate?.id && invoiceDraft.amount);
+	  };
+	  const [invoiceStep,setInvoiceStep] = React.useState(1);
+	  const [lastCreatedInvoice,setLastCreatedInvoice] = React.useState(null);
+	  const invoiceReady = Boolean(invoiceStudentCandidate?.id && invoiceDraft.amount);
   const invoiceReferencePreview = String(invRef||'').trim() || 'Uue arve number';
   const invoiceSteps = [
     {id:1,label:'Õpilane',done:Boolean(invoiceStudentCandidate?.id)},
@@ -5669,13 +5737,14 @@ function InvoicesView({invoices,myStudents,schedule,students,isAdmin,invStu,setI
     : invoiceStep===2
       ? Boolean(invoiceDraft.amount)
       : true;
-  const createInvoiceFromWizard = async()=>{
-    if(!invoiceStudentCandidate?.id){setInvoiceStep(1);return;}
-    if(!invoiceDraft.amount){setInvoiceStep(2);return;}
-    await addInvoice(invoiceStudentCandidate.id);
-    setInvoiceStudentQuery('');
-    setInvoiceStep(1);
-  };
+	  const createInvoiceFromWizard = async()=>{
+	    if(!invoiceStudentCandidate?.id){setInvoiceStep(1);return;}
+	    if(!invoiceDraft.amount){setInvoiceStep(2);return;}
+	    const created = await addInvoice(invoiceStudentCandidate.id);
+	    if(created) setLastCreatedInvoice(created);
+	    setInvoiceStudentQuery('');
+	    setInvoiceStep(1);
+	  };
   return(
     <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:20}}>
       <h1 style={{fontSize:'1.7rem'}}>Arved</h1>
@@ -5692,10 +5761,61 @@ function InvoicesView({invoices,myStudents,schedule,students,isAdmin,invStu,setI
             <div style={{fontSize:'.72rem',color:s.c+'88',marginTop:2}}>{s.n}</div>
           </div>
         ))}
-      </div>
+	      </div>
 
-      {/* Period stats for admin */}
-      {isAdmin&&(
+	      {lastCreatedInvoice&&(
+	        <div className="card" style={{padding:22,border:'1px solid rgba(47,93,80,.22)',background:'#f7fffb',display:'flex',flexDirection:'column',gap:16}}>
+	          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:12,flexWrap:'wrap'}}>
+	            <div style={{display:'flex',gap:12,alignItems:'flex-start'}}>
+	              <div style={{width:42,height:42,borderRadius:12,background:'#2F5D50',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+	                <i className="fa-solid fa-check"/>
+	              </div>
+	              <div>
+	                <h3 style={{color:'#2F5D50',marginBottom:4}}>Arve loodud</h3>
+	                <div style={{fontSize:'.86rem',color:'#42536A'}}>
+	                  Pere näeb seda arvet oma kabinetis. Kontrolli PDF-i või märgi makstuks, kui raha on juba laekunud.
+	                </div>
+	              </div>
+	            </div>
+	            <button type="button" onClick={()=>setLastCreatedInvoice(null)} className="btn btn-ghost btn-sm" title="Peida">
+	              <i className="fa-solid fa-xmark"/>
+	            </button>
+	          </div>
+	          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(145px,1fr))',gap:10}}>
+	            {[
+	              ['Arve',lastCreatedInvoice.num],
+	              ['Õpilane',lastCreatedInvoice.studentName],
+	              ['Summa',money(lastCreatedInvoice.amount)+'€'],
+	              ['Tähtaeg',fmtDate(lastCreatedInvoice.due)],
+	              ['Selgitus',lastCreatedInvoice.paymentReference||lastCreatedInvoice.num]
+	            ].map(([label,value])=>(
+	              <div key={label} style={{padding:'10px 12px',borderRadius:12,background:'#fff',border:'1px solid rgba(47,93,80,.1)'}}>
+	                <div style={{fontSize:'.7rem',fontWeight:800,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em'}}>{label}</div>
+	                <div style={{fontWeight:800,color:'#1C2B3A',marginTop:4,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}} title={String(value||'')}>{value||'—'}</div>
+	              </div>
+	            ))}
+	          </div>
+	          <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+	            <button type="button" onClick={()=>printInvoice(lastCreatedInvoice)} className="btn btn-pine btn-sm">
+	              <i className="fa-solid fa-file-pdf"/> Ava PDF
+	            </button>
+	            {lastCreatedInvoice.status!=='Makstud'&&(
+	              <button type="button" onClick={async()=>{await markPaid(lastCreatedInvoice.id);setLastCreatedInvoice({...lastCreatedInvoice,status:'Makstud'});}} className="btn btn-ghost btn-sm">
+	                <i className="fa-solid fa-circle-check"/> Märgi makstuks
+	              </button>
+	            )}
+	            <button type="button" onClick={()=>setInvoiceFilter('pending')} className="btn btn-ghost btn-sm">
+	              Ava maksmata arved
+	            </button>
+	            <button type="button" onClick={()=>{setLastCreatedInvoice(null);setInvoiceStep(1);}} className="btn btn-ghost btn-sm">
+	              Loo järgmine arve
+	            </button>
+	          </div>
+	        </div>
+	      )}
+
+	      {/* Period stats for admin */}
+	      {isAdmin&&(
         <div className="card" style={{padding:22}}>
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:12,flexWrap:'wrap',marginBottom:18}}>
             <div>
@@ -8594,13 +8714,13 @@ function App() {
     const stu=students.find(s=>s.id===sid);
     const draft = invoiceDraftForStudent(stu,invAmt,invDesc);
     if(!draft.amount){notify('⚠ Sisesta summa või määra õpilasele tunni hind ja arveldamata tunnid');return;}
-    const num=`KS-${new Date().getFullYear()}-${String(invoices.length+1).padStart(3,'0')}`;
-    const due=new Date(Date.now()+PAYMENT_DETAILS.paymentTermDays*864e5).toISOString().split('T')[0];
-    const paymentReference = String(invRef||'').trim() || num;
-    const ref = await db.collection('invoices').add({
-      studentId:sid,
-      studentName:stu?.name||'—',
-      amount:draft.amount,
+	    const num=`KS-${new Date().getFullYear()}-${String(invoices.length+1).padStart(3,'0')}`;
+	    const due=new Date(Date.now()+PAYMENT_DETAILS.paymentTermDays*864e5).toISOString().split('T')[0];
+	    const paymentReference = String(invRef||'').trim() || num;
+	    const invoiceData = {
+	      studentId:sid,
+	      studentName:stu?.name||'—',
+	      amount:draft.amount,
       desc:draft.desc,
       lessonCount:draft.lessons||0,
       lessonPrice:draft.lessonPrice||0,
@@ -8609,17 +8729,20 @@ function App() {
       status:'Ootel',
       date:today(),
       due,
-      parentPaymentStatus:'pending',
-      parentPaymentMethod:'',
-      parentPaymentSubmittedAt:'',
-      paymentReference
-    });
-    await logActivity('invoice.created','Loodi arve',{invoiceId:ref.id,studentId:sid,studentName:stu?.name||'—',amount:draft.amount,num,paymentReference});
-    // Reset lesson counter for this student
-    await db.collection('students').doc(sid).update({lessonsSinceInvoice:0,lastInvoiceAt:today()});
-    setInvAmt('');setInvDesc('');setInvRef('');setInvStu('');
-    notify('✓ Arve '+num+' loodud!');
-  },[invStu,invAmt,invDesc,invRef,invoices,students,logActivity]);
+	      parentPaymentStatus:'pending',
+	      parentPaymentMethod:'',
+	      parentPaymentSubmittedAt:'',
+	      paymentReference
+	    };
+	    const ref = await db.collection('invoices').add(invoiceData);
+	    const createdInvoice = {id:ref.id,...invoiceData};
+	    await logActivity('invoice.created','Loodi arve',{invoiceId:ref.id,studentId:sid,studentName:stu?.name||'—',amount:draft.amount,num,paymentReference});
+	    // Reset lesson counter for this student
+	    await db.collection('students').doc(sid).update({lessonsSinceInvoice:0,lastInvoiceAt:today()});
+	    setInvAmt('');setInvDesc('');setInvRef('');setInvStu('');
+	    notify('✓ Arve '+num+' loodud!');
+	    return createdInvoice;
+	  },[invStu,invAmt,invDesc,invRef,invoices,students,logActivity]);
 
   const markPaid=useCallback(async id=>{
     await db.collection('invoices').doc(id).update({status:'Makstud',paidAt:today(),parentPaymentStatus:'confirmed'});
@@ -8938,6 +9061,20 @@ function App() {
       <div style={{fontSize:'.82rem',color:'rgba(255,255,255,.45)',padding:'0 14px 12px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
         {user.displayName}
       </div>
+      {isParentUser&&hasStudyProfile&&(
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6,padding:'0 4px 12px'}}>
+          <button type="button"
+            onClick={()=>{setSelStu(null);setTab('dashboard');setMobileNav(false);}}
+            style={{border:'1px solid rgba(255,255,255,.08)',borderRadius:10,padding:'8px 6px',background:tab==='dashboard'?'rgba(255,255,255,.14)':'rgba(255,255,255,.05)',color:'#fff',fontWeight:800,fontSize:'.72rem',cursor:'pointer'}}>
+            Pere
+          </button>
+          <button type="button"
+            onClick={()=>{if(ownStudent)setSelStu(ownStudent);setTab('students');setMobileNav(false);}}
+            style={{border:'1px solid rgba(255,255,255,.08)',borderRadius:10,padding:'8px 6px',background:ownStudent&&selStu?.id===ownStudent.id&&tab==='students'?'rgba(255,255,255,.14)':'rgba(255,255,255,.05)',color:'#fff',fontWeight:800,fontSize:'.72rem',cursor:'pointer'}}>
+            Õpilane
+          </button>
+        </div>
+      )}
       <nav style={{flex:1,display:'flex',flexDirection:'column',gap:2}}>
         {navItems.map(item=>(
           item.isExternal
