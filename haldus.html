@@ -4972,7 +4972,7 @@ function SkillMapWidget({student, isTeacher, user}) {
 // ── ÕPILASE KAART ─────────────────────────────────────────────
 function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,setEditStu,toggleStudentActive,convertStudentToParent,
   hwTask,setHwTask,hwDue,setHwDue,hwFiles,setHwFiles,addHw,toggleHw,deleteHw,removeHwFile,
-  invAmt,setInvAmt,invDesc,setInvDesc,addInvoice,markPaid,unmarkPaid,deleteInvoice,printInvoice,submitParentPayment,resetParentPayment,deleteLesson,openLessonEditor,
+  invAmt,setInvAmt,invDesc,setInvDesc,invRef,setInvRef,addInvoice,markPaid,unmarkPaid,deleteInvoice,printInvoice,submitParentPayment,resetParentPayment,updateInvoiceReference,deleteLesson,openLessonEditor,
   schDate,setSchDate,schTime,setSchTime,schTeach,setSchTeach,schRecurring,setSchRecurring,addStudentSchedule,canAssignTeacher,
   stuMessages,teacherMessage,setTeacherMessage,sendTeacherMessage,notify,setAssignWsLesson}) {
   if(!currentStu) return <div style={{textAlign:'center',padding:60,color:'#42536A'}}>Õpilane ei leitud.</div>;
@@ -5356,6 +5356,8 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
                 placeholder={invoiceDraft.hasAuto?`Automaatne ${money(invoiceDraft.autoAmount)}€`:'Summa (€) *'}/>
               <input value={invDesc} onChange={e=>setInvDesc(e.target.value)}
                 placeholder={invoiceDraft.hasAuto?invoiceDraft.desc:'Kirjeldus'}/>
+              <input value={invRef} onChange={e=>setInvRef(e.target.value)}
+                placeholder="Makse selgitus (vaikimisi arve nr)"/>
               <button onClick={()=>addInvoice(currentStu.id)} className="btn btn-pine" style={{justifyContent:'center'}}>
                 <i className="fa-solid fa-file-circle-plus"/> Genereeri arve
               </button>
@@ -5376,6 +5378,9 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
                     <div style={{fontWeight:700,fontSize:'.96rem',marginTop:4}}>{inv.desc||'Keeletunnid'}</div>
                     <div style={{fontSize:'.78rem',color:'#42536A',marginTop:3}}>
                       {fmtDate(inv.date)} · tähtaeg {fmtDate(inv.due)}
+                    </div>
+                    <div style={{fontSize:'.78rem',color:'#42536A',marginTop:3}}>
+                      Selgitus: <strong style={{color:'#1C2B3A'}}>{inv.paymentReference||inv.num}</strong>
                     </div>
                   </div>
                   <div style={{fontWeight:800,fontSize:'1.35rem',color:'#1C2B3A',whiteSpace:'nowrap'}}>{money(inv.amount)}€</div>
@@ -5400,6 +5405,7 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
                   {inv.status!=='Makstud'&&<button onClick={()=>markPaid(inv.id)} className="btn btn-pine btn-sm">Märgi makstud</button>}
                   {inv.status==='Makstud'&&<button onClick={()=>unmarkPaid(inv.id)} className="btn btn-red btn-sm">Tühista makse</button>}
                   {inv.parentPaymentStatus==='submitted'&&inv.status!=='Makstud'&&<button onClick={()=>resetParentPayment(inv.id)} className="btn btn-ghost btn-sm">Lähtesta teavitus</button>}
+                  <button onClick={()=>updateInvoiceReference(inv)} className="btn btn-ghost btn-sm">Muuda selgitust</button>
                   <button onClick={()=>printInvoice(inv)} className="btn btn-ghost btn-sm"><i className="fa-solid fa-print"/> Arve vaade</button>
                   <button onClick={()=>deleteInvoice(inv)} className="btn btn-red btn-sm">Kustuta</button>
                 </div>
@@ -5513,7 +5519,7 @@ function ParentInvoicesView({invoices,printInvoice,submitParentPayment}) {
 }
 
 // ── ARVED ÜLDVAADE ────────────────────────────────────────────
-function InvoicesView({invoices,myStudents,schedule,students,isAdmin,invStu,setInvStu,invAmt,setInvAmt,invDesc,setInvDesc,addInvoice,markPaid,unmarkPaid,deleteInvoice,printInvoice}) {
+function InvoicesView({invoices,myStudents,schedule,students,isAdmin,invStu,setInvStu,invAmt,setInvAmt,invDesc,setInvDesc,invRef,setInvRef,addInvoice,markPaid,unmarkPaid,deleteInvoice,printInvoice,updateInvoiceReference}) {
   const unpaidAmt=invoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+i.amount,0);
   const paid=invoices.filter(i=>i.status==='Makstud');
   const [statsPeriod,setStatsPeriod] = React.useState('current');
@@ -5738,6 +5744,8 @@ function InvoicesView({invoices,myStudents,schedule,students,isAdmin,invStu,setI
             placeholder={invoiceDraft.hasAuto?`Automaatne ${money(invoiceDraft.autoAmount)}€`:'Summa (€) *'}/>
           <input value={invDesc} onChange={e=>setInvDesc(e.target.value)}
             placeholder={invoiceDraft.hasAuto?invoiceDraft.desc:'Kirjeldus'}/>
+          <input value={invRef} onChange={e=>setInvRef(e.target.value)}
+            placeholder="Makse selgitus (vaikimisi arve nr)"/>
           <button onClick={()=>addInvoice()} className="btn btn-pine" style={{justifyContent:'center'}}>
             <i className="fa-solid fa-file-circle-plus"/> Genereeri arve
           </button>
@@ -5775,6 +5783,7 @@ function InvoicesView({invoices,myStudents,schedule,students,isAdmin,invStu,setI
               <div>
                 <div style={{fontWeight:600,fontSize:'.9rem'}}>{inv.num} · {inv.studentName}</div>
                 <div style={{fontSize:'.78rem',color:'#42536A'}}>{inv.desc} · {fmtDate(inv.date)} · tähtaeg {fmtDate(inv.due)}</div>
+                <div style={{fontSize:'.78rem',color:'#42536A',marginTop:3}}>Selgitus: <strong style={{color:'#1C2B3A'}}>{inv.paymentReference||inv.num}</strong></div>
                 {inv.parentPaymentStatus==='submitted'&&inv.status!=='Makstud'&&(
                   <div style={{fontSize:'.78rem',color:'#1d4ed8',marginTop:4}}>
                     Vanem teavitas maksest {fmtDate(inv.parentPaymentSubmittedAt)} · {PAYMENT_METHODS.find(method=>method.id===(inv.parentPaymentMethod||'bank'))?.label || 'Pangaülekanne'}
@@ -5792,6 +5801,7 @@ function InvoicesView({invoices,myStudents,schedule,students,isAdmin,invStu,setI
                     <button onClick={()=>markPaid(inv.id)} className="btn btn-pine btn-sm">Märgi makstud</button>
                   </>}
                 {inv.parentPaymentStatus==='submitted'&&inv.status!=='Makstud'&&<span className="badge" style={{background:'#dbeafe',color:'#1d4ed8'}}>Vanem teavitas maksest</span>}
+                <button onClick={()=>updateInvoiceReference(inv)} className="btn btn-ghost btn-sm">Muuda selgitust</button>
                 <button onClick={()=>deleteInvoice(inv)} className="btn btn-red btn-sm">Kustuta</button>
                 <button onClick={()=>printInvoice(inv)} className="btn btn-ghost btn-sm"><i className="fa-solid fa-print"/> Arve vaade</button>
               </div>
@@ -6838,6 +6848,7 @@ function App() {
   // Invoice
   const [invAmt,setInvAmt]   = useState('');
   const [invDesc,setInvDesc] = useState('');
+  const [invRef,setInvRef]   = useState('');
   const [invStu,setInvStu]   = useState('');
   const [studentSort,setStudentSort] = useState('name_asc');
   const [assignWsLesson,setAssignWsLesson] = useState(null); // worksheet assign modal
@@ -8403,6 +8414,7 @@ function App() {
     if(!draft.amount){notify('⚠ Sisesta summa või määra õpilasele tunni hind ja arveldamata tunnid');return;}
     const num=`KS-${new Date().getFullYear()}-${String(invoices.length+1).padStart(3,'0')}`;
     const due=new Date(Date.now()+PAYMENT_DETAILS.paymentTermDays*864e5).toISOString().split('T')[0];
+    const paymentReference = String(invRef||'').trim() || num;
     const ref = await db.collection('invoices').add({
       studentId:sid,
       studentName:stu?.name||'—',
@@ -8418,14 +8430,14 @@ function App() {
       parentPaymentStatus:'pending',
       parentPaymentMethod:'',
       parentPaymentSubmittedAt:'',
-      paymentReference:num
+      paymentReference
     });
-    await logActivity('invoice.created','Loodi arve',{invoiceId:ref.id,studentId:sid,studentName:stu?.name||'—',amount:draft.amount,num});
+    await logActivity('invoice.created','Loodi arve',{invoiceId:ref.id,studentId:sid,studentName:stu?.name||'—',amount:draft.amount,num,paymentReference});
     // Reset lesson counter for this student
     await db.collection('students').doc(sid).update({lessonsSinceInvoice:0,lastInvoiceAt:today()});
-    setInvAmt('');setInvDesc('');setInvStu('');
+    setInvAmt('');setInvDesc('');setInvRef('');setInvStu('');
     notify('✓ Arve '+num+' loodud!');
-  },[invStu,invAmt,invDesc,invoices,students,logActivity]);
+  },[invStu,invAmt,invDesc,invRef,invoices,students,logActivity]);
 
   const markPaid=useCallback(async id=>{
     await db.collection('invoices').doc(id).update({status:'Makstud',paidAt:today(),parentPaymentStatus:'confirmed'});
@@ -8451,6 +8463,17 @@ function App() {
     await db.collection('invoices').doc(inv.id).delete();
     await logActivity('invoice.deleted','Arve kustutati',{invoiceId:inv.id,studentId:inv.studentId||'',studentName:inv.studentName||'',num:inv.num||''});
     notify(`✓ Arve ${inv.num} kustutatud`);
+  },[logActivity]);
+
+  const updateInvoiceReference=useCallback(async(inv)=>{
+    if(!inv?.id) return;
+    const current = inv.paymentReference || inv.num || '';
+    const next = window.prompt('Makse selgitus / назначение платежа', current);
+    if(next===null) return;
+    const paymentReference = String(next).trim() || inv.num || current;
+    await db.collection('invoices').doc(inv.id).update({paymentReference});
+    await logActivity('invoice.reference.updated','Arve makse selgitus muudeti',{invoiceId:inv.id,num:inv.num||'',paymentReference});
+    notify('✓ Makse selgitus uuendatud');
   },[logActivity]);
 
   const submitParentPayment=useCallback(async(id,method)=>{
@@ -8645,7 +8668,6 @@ function App() {
         <div class="box">
           <div class="box-title">Õpilane</div>
           <div>${esc(inv.studentName||stu?.name||'—')}</div>
-          ${stu?.teacher?`<div class="muted">Õpetaja: ${esc(stu.teacher)}</div>`:''}
           ${stu?.subject?`<div class="muted">Õppeaine: ${esc(stu.subject)}</div>`:''}
         </div>
       </div>
@@ -8852,7 +8874,8 @@ function App() {
             convertStudentToParent={convertStudentToParent}
             hwTask={hwTask} setHwTask={setHwTask} hwDue={hwDue} setHwDue={setHwDue} hwFiles={hwFiles} setHwFiles={setHwFiles} addHw={addHw} toggleHw={toggleHw} deleteHw={deleteHw} removeHwFile={removeHwFile}
             invAmt={invAmt} setInvAmt={setInvAmt} invDesc={invDesc} setInvDesc={setInvDesc}
-            addInvoice={addInvoice} markPaid={markPaid} unmarkPaid={unmarkPaid} deleteInvoice={deleteInvoice} printInvoice={printInvoice} submitParentPayment={submitParentPayment} resetParentPayment={resetParentPayment} deleteLesson={deleteLesson} openLessonEditor={openLessonEditor}
+            invRef={invRef} setInvRef={setInvRef}
+            addInvoice={addInvoice} markPaid={markPaid} unmarkPaid={unmarkPaid} deleteInvoice={deleteInvoice} printInvoice={printInvoice} submitParentPayment={submitParentPayment} resetParentPayment={resetParentPayment} updateInvoiceReference={updateInvoiceReference} deleteLesson={deleteLesson} openLessonEditor={openLessonEditor}
             schDate={schDate} setSchDate={setSchDate} schTime={schTime} setSchTime={setSchTime} schTeach={schTeach} setSchTeach={setSchTeach}
             schRecurring={schRecurring} setSchRecurring={setSchRecurring} addStudentSchedule={addStudentSchedule} canAssignTeacher={canAssignTeacher}
             stuMessages={stuMessages} teacherMessage={teacherMessage} setTeacherMessage={setTeacherMessage} sendTeacherMessage={sendTeacherMessage}
@@ -8931,7 +8954,8 @@ function App() {
           {tab==='invoices'&&isStaff&&<InvoicesView invoices={scopedInvoices} myStudents={myStudents}
             schedule={schedule} students={students} isAdmin={isAdmin}
             invStu={invStu} setInvStu={setInvStu} invAmt={invAmt} setInvAmt={setInvAmt}
-            invDesc={invDesc} setInvDesc={setInvDesc} addInvoice={addInvoice} markPaid={markPaid} unmarkPaid={unmarkPaid} deleteInvoice={deleteInvoice} printInvoice={printInvoice}/>}
+            invDesc={invDesc} setInvDesc={setInvDesc} invRef={invRef} setInvRef={setInvRef}
+            addInvoice={addInvoice} markPaid={markPaid} unmarkPaid={unmarkPaid} deleteInvoice={deleteInvoice} printInvoice={printInvoice} updateInvoiceReference={updateInvoiceReference}/>}
 
           {tab==='activity'&&isStaff&&<ActivityLogView logs={scopedActivityLog} isAdmin={isAdmin}/>}
           {tab==='kabinet'&&!isStaff&&<KabinetView user={user} myStudents={myStudents} notify={notify}/>}
