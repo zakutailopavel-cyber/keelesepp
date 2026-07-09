@@ -667,14 +667,16 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
         const nextTwoWeeks = new Date(); nextTwoWeeks.setDate(nextTwoWeeks.getDate()+14);
         const nextTwoWeeksIso = nextTwoWeeks.toISOString().split('T')[0];
 
-        // Upcoming lessons for all children
-        const childIds = new Set(myStudents.map(s=>s.id));
-        const childNames = new Set(myStudents.map(s=>normalizeText(s.name)));
-        const upcomingLessons = [];
-        (schedule||[]).forEach(ev=>{
-          if(ev.status==='Tühistatud') return;
-          const isChild = childIds.has(ev.studentId) || childNames.has(normalizeText(ev.studentName));
-          if(!isChild) return;
+	        // Upcoming lessons for all children
+	        const childIds = new Set(myStudents.map(s=>s.id));
+	        const childNames = new Set(myStudents.map(s=>normalizeText(s.name)));
+	        const parentHasStudent = (studentId,studentName) =>
+	          childIds.has(studentId)||childNames.has(normalizeText(studentName));
+	        const upcomingLessons = [];
+	        (schedule||[]).forEach(ev=>{
+	          if(ev.status==='Tühistatud') return;
+	          const isChild = parentHasStudent(ev.studentId,ev.studentName);
+	          if(!isChild) return;
           if(ev.date && ev.date>=todayIso && ev.date<=nextTwoWeeksIso){
             upcomingLessons.push({...ev,_date:ev.date});
           } else if(ev.recurring && ev.startDate && ev.day){
@@ -688,37 +690,171 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
         });
         upcomingLessons.sort((a,b)=>a._date.localeCompare(b._date)||(a.time||'').localeCompare(b.time||''));
 
-        // Feed: unread messages + pending homework merged and sorted
-        const feed = [
-          ...(unreadMessages||[]).map(m=>({...m,_type:'message',_ts:m.createdAt})),
-          ...homework.filter(h=>myStudents.some(s=>s.id===h.studentId)&&h.status==='Ootel').map(h=>({...h,_type:'homework',_ts:h.date}))
-        ].sort((a,b)=>new Date(b._ts)-new Date(a._ts)).slice(0,8);
+	        const pendingHomeworkItems = homework.filter(h=>h.status==='Ootel'&&parentHasStudent(h.studentId,h.studentName));
+	        const unpaid = invoices.filter(i=>i.status==='Ootel'&&parentHasStudent(i.studentId,i.studentName));
 
-        // Unpaid invoices
-        const unpaid = invoices.filter(i=>i.status==='Ootel'&&myStudents.some(s=>s.id===i.studentId));
+	        // Feed: unread messages + pending homework merged and sorted
+	        const feed = [
+	          ...(unreadMessages||[]).map(m=>({...m,_type:'message',_ts:m.createdAt})),
+	          ...pendingHomeworkItems.map(h=>({...h,_type:'homework',_ts:h.date}))
+	        ].sort((a,b)=>new Date(b._ts)-new Date(a._ts)).slice(0,8);
 
-        return(
-          <div style={{display:'flex',flexDirection:'column',gap:20}}>
-            {/* Children cards */}
-            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))',gap:14}}>
-              {myStudents.map(s=>{
-                const done=lessons.filter(l=>(l.studentId===s.id||normalizeText(l.studentName)===normalizeText(s.name))&&l.status==='Toimunud');
-                const pct=levelPct(s.level,s.targetLevel);
-                const avgGrade=done.length?avg(done.map(l=>l.grade)):null;
-                const att=lessons.filter(l=>l.studentId===s.id||normalizeText(l.studentName)===normalizeText(s.name));
-                const attPct=att.length?Math.round(done.length/att.length*100):0;
-                const pendHw=homework.filter(h=>h.studentId===s.id&&h.status==='Ootel').length;
-                return(
-                  <div key={s.id} className="card" style={{padding:20,display:'flex',flexDirection:'column',gap:14}}>
-                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:10}}>
-                      <div>
-                        <div style={{fontWeight:800,fontSize:'1.1rem'}}>{s.name}</div>
-                        <div style={{fontSize:'.78rem',color:'#42536A',marginTop:3}}>
-                          {s.subject||'—'} · Õpetaja: <strong>{s.teacher||'—'}</strong>
-                        </div>
-                      </div>
-                      <span className="badge" style={{background:'rgba(201,136,42,.12)',color:'#A96E1A',fontWeight:700}}>{s.level}</span>
-                    </div>
+	        const unpaidAmount = unpaid.reduce((sum,i)=>sum+(Number(i.amount)||0),0);
+	        const latestLesson = [...visibleLessons]
+	          .filter(l=>l.status==='Toimunud')
+	          .sort((a,b)=>new Date(b.date)-new Date(a.date))[0]||null;
+	        const nextLesson = upcomingLessons[0]||null;
+	        const studentByIdentity = (studentId,studentName) =>
+	          myStudents.find(s=>s.id===studentId)||
+	          myStudents.find(s=>normalizeText(s.name)===normalizeText(studentName));
+	        const openStudentByIdentity = (studentId,studentName) => {
+	          const student = studentByIdentity(studentId,studentName);
+	          if(student){
+	            _setSelStu&&_setSelStu(student);
+	            _setTab&&_setTab('students');
+	          }
+	        };
+	        const parentStats = [
+	          {label:'Õpilased',value:myStudents.length,sub:'aktiivset profiili',icon:'fa-user-graduate',tone:'#2F5D50'},
+	          {label:'Kodutööd',value:pendingHomeworkItems.length,sub:'ootel',icon:'fa-book-open',tone:'#7c3aed'},
+	          {label:'Tasumata',value:unpaidAmount?`${unpaidAmount}€`:'0€',sub:unpaid.length?`${unpaid.length} arvet`:'korras',icon:'fa-file-invoice',tone:unpaidAmount?'#dc2626':'#2F5D50'},
+	          {label:'Järgmine tund',value:nextLesson?new Date(nextLesson._date).toLocaleDateString('et-EE',{day:'2-digit',month:'2-digit'}):'—',sub:nextLesson?(nextLesson.time||'aeg puudub'):'tunde pole',icon:'fa-calendar-day',tone:'#C9882A'}
+	        ];
+	        const focusAction = (()=>{
+	          if(unpaidAmount>0) return {
+	            title:'Tasumata arve vajab tähelepanu',
+	            text:`Ootel on ${unpaid.length} arvet summas ${unpaidAmount}€. Märgi makse, kui ülekanne on tehtud.`,
+	            icon:'fa-file-invoice-dollar',
+	            tone:'#dc2626',
+	            action:'Ava arved',
+	            onClick:()=>_setTab&&_setTab('invoices')
+	          };
+	          if(pendingHomeworkItems.length){
+	            const hw = pendingHomeworkItems[0];
+	            return {
+	              title:'Kodutöö ootab tegemist',
+	              text:`${hw.studentName||'Õpilane'}: ${hw.task||'kodutöö'}${hw.due?` · tähtaeg ${fmtDate(hw.due)}`:''}`,
+	              icon:'fa-book-open',
+	              tone:'#7c3aed',
+	              action:'Ava õpilase kaart',
+	              onClick:()=>openStudentByIdentity(hw.studentId,hw.studentName)
+	            };
+	          }
+	          if(nextLesson) return {
+	            title:'Järgmine tund on plaanis',
+	            text:`${nextLesson.studentName||'Õpilane'} · ${fmtDate(nextLesson._date)} ${nextLesson.time||''} · Õp. ${nextLesson.teacher||'—'}`,
+	            icon:'fa-calendar-check',
+	            tone:'#C9882A',
+	            action:'Ava õpilase kaart',
+	            onClick:()=>openStudentByIdentity(nextLesson.studentId,nextLesson.studentName)
+	          };
+	          if(latestLesson) return {
+	            title:'Vaata viimase tunni kokkuvõtet',
+	            text:`${latestLesson.studentName||'Õpilane'} · ${fmtDate(latestLesson.date)} · ${latestLesson.topic||'Tund'}`,
+	            icon:'fa-clock-rotate-left',
+	            tone:'#2F5D50',
+	            action:'Näita kokkuvõtet',
+	            onClick:()=>setExpandedLessonId(latestLesson.id)
+	          };
+	          return {
+	            title:'Profiil on valmis',
+	            text:'Siit saad kiiresti avada õpingud, tunniplaani, arved ja töölehed.',
+	            icon:'fa-circle-check',
+	            tone:'#2F5D50',
+	            action:'Ava õpingud',
+	            onClick:()=>_setTab&&_setTab('students')
+	          };
+	        })();
+
+	        return(
+	          <div style={{display:'flex',flexDirection:'column',gap:20}}>
+	            <div className="card" style={{padding:22}}>
+	              <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))',gap:18,alignItems:'stretch'}}>
+	                <div style={{display:'flex',flexDirection:'column',gap:14,minWidth:0}}>
+	                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:12,flexWrap:'wrap'}}>
+	                    <div>
+	                      <h3 style={{marginBottom:4}}>Tänane ülevaade</h3>
+	                      <div style={{fontSize:'.84rem',color:'#42536A'}}>
+	                        Kõige olulisem info laste ja sinu õpingute kohta ühes kohas.
+	                      </div>
+	                    </div>
+	                    <span className="badge" style={{background:'#ecfdf5',color:'#166534'}}>
+	                      {myStudents.length?`${myStudents.length} profiili`:'Profiile pole'}
+	                    </span>
+	                  </div>
+	                  <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(118px,1fr))',gap:10}}>
+	                    {parentStats.map(stat=>(
+	                      <div key={stat.label} style={{padding:'12px 13px',borderRadius:12,background:'rgba(28,43,58,.035)',border:'1px solid rgba(28,43,58,.06)'}}>
+	                        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:8,marginBottom:8}}>
+	                          <span style={{fontSize:'.72rem',color:'#42536A',fontWeight:700}}>{stat.label}</span>
+	                          <i className={`fa-solid ${stat.icon}`} style={{color:stat.tone,fontSize:'.78rem'}}/>
+	                        </div>
+	                        <div style={{fontWeight:800,fontSize:'1.08rem',color:stat.tone,lineHeight:1}}>{stat.value}</div>
+	                        <div style={{fontSize:'.7rem',color:'#42536A',marginTop:5}}>{stat.sub}</div>
+	                      </div>
+	                    ))}
+	                  </div>
+	                  <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+	                    <button onClick={()=>_setTab&&_setTab('students')} className="btn btn-pine btn-sm">
+	                      <i className="fa-solid fa-graduation-cap"/> Õpingud
+	                    </button>
+	                    <button onClick={()=>_setTab&&_setTab('calendar')} className="btn btn-ghost btn-sm">
+	                      <i className="fa-solid fa-calendar-days"/> Tunniplaan
+	                    </button>
+	                    <button onClick={()=>_setTab&&_setTab('invoices')} className="btn btn-ghost btn-sm">
+	                      <i className="fa-solid fa-file-invoice"/> Arved
+	                    </button>
+	                    <button onClick={()=>_setTab&&_setTab('kabinet')} className="btn btn-ghost btn-sm">
+	                      <i className="fa-solid fa-clipboard-list"/> Töölehed
+	                    </button>
+	                  </div>
+	                </div>
+	                <div style={{borderRadius:14,padding:16,background:`linear-gradient(135deg, ${focusAction.tone}14, #fff)`,border:`1px solid ${focusAction.tone}28`,display:'flex',flexDirection:'column',gap:12,justifyContent:'space-between'}}>
+	                  <div style={{display:'flex',gap:12,alignItems:'flex-start'}}>
+	                    <div style={{width:42,height:42,borderRadius:12,background:'#fff',display:'flex',alignItems:'center',justifyContent:'center',color:focusAction.tone,boxShadow:'0 2px 8px rgba(28,43,58,.06)',flexShrink:0}}>
+	                      <i className={`fa-solid ${focusAction.icon}`}/>
+	                    </div>
+	                    <div style={{minWidth:0}}>
+		                      <div style={{fontSize:'.74rem',fontWeight:800,color:focusAction.tone,textTransform:'uppercase'}}>Järgmine samm</div>
+	                      <div style={{fontWeight:800,fontSize:'1rem',marginTop:4,color:'#1C2B3A'}}>{focusAction.title}</div>
+	                      <div style={{fontSize:'.84rem',color:'#42536A',marginTop:5,lineHeight:1.45}}>{focusAction.text}</div>
+	                    </div>
+	                  </div>
+	                  <button onClick={focusAction.onClick} className="btn btn-dark btn-sm" style={{alignSelf:'flex-start'}}>
+	                    {focusAction.action}
+	                  </button>
+	                </div>
+	              </div>
+	            </div>
+
+	            {/* Children cards */}
+	            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))',gap:14}}>
+	              {myStudents.map(s=>{
+	                const studentMatches = (studentId,studentName) => s.id===studentId||normalizeText(s.name)===normalizeText(studentName);
+	                const done=lessons.filter(l=>studentMatches(l.studentId,l.studentName)&&l.status==='Toimunud');
+	                const pct=levelPct(s.level,s.targetLevel);
+	                const avgGrade=done.length?avg(done.map(l=>l.grade)):null;
+	                const att=lessons.filter(l=>studentMatches(l.studentId,l.studentName));
+	                const attPct=att.length?Math.round(done.length/att.length*100):0;
+	                const homeworkForStudent=pendingHomeworkItems.filter(h=>studentMatches(h.studentId,h.studentName));
+	                const pendHw=homeworkForStudent.length;
+	                const nextForStudent=upcomingLessons.find(ev=>studentMatches(ev.studentId,ev.studentName));
+	                const unpaidForStudent=unpaid.filter(inv=>studentMatches(inv.studentId,inv.studentName));
+	                const isOwn=isOwnStudentRecord(s,user);
+	                return(
+	                  <div key={s.id} className="card" style={{padding:20,display:'flex',flexDirection:'column',gap:14}}>
+	                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:10}}>
+	                      <div>
+	                        <div style={{fontWeight:800,fontSize:'1.1rem'}}>{s.name}</div>
+	                        <div style={{fontSize:'.78rem',color:'#42536A',marginTop:3}}>
+	                          {s.subject||'—'} · Õpetaja: <strong>{s.teacher||'—'}</strong>
+	                        </div>
+	                      </div>
+	                      <div style={{display:'flex',flexDirection:'column',gap:6,alignItems:'flex-end',flexShrink:0}}>
+	                        <span className="badge" style={{background:'rgba(201,136,42,.12)',color:'#A96E1A',fontWeight:700}}>{s.level||'—'}</span>
+	                        {isOwn&&<span className="badge" style={{background:'#dbeafe',color:'#1d4ed8',fontSize:'.68rem'}}>Minu õpingud</span>}
+	                      </div>
+	                    </div>
                     <div>
                       <div style={{display:'flex',justifyContent:'space-between',fontSize:'.72rem',color:'#42536A',marginBottom:5}}>
                         <span>{s.level}</span><span style={{color:'#2F5D50',fontWeight:600}}>{pct}% eesmärgini</span><span>{s.targetLevel}</span>
@@ -736,15 +872,42 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
                       </div>
                       <div style={{textAlign:'center',padding:'8px 4px',borderRadius:9,background:pendHw?'rgba(124,58,237,.07)':'rgba(28,43,58,.04)'}}>
                         <div style={{fontWeight:700,color:pendHw?'#7c3aed':'#42536A'}}>{pendHw}</div>
-                        <div style={{fontSize:'.68rem',color:'#42536A'}}>Kodutööd</div>
-                      </div>
-                    </div>
-                    <button onClick={()=>{_setSelStu&&_setSelStu(s);_setTab&&_setTab('students');}} className="btn btn-pine" style={{width:'100%'}}>
-                      Ava kaart
-                    </button>
-                  </div>
-                );
-              })}
+	                        <div style={{fontSize:'.68rem',color:'#42536A'}}>Kodutööd</div>
+	                      </div>
+	                    </div>
+	                    {(nextForStudent||pendHw>0||unpaidForStudent.length>0)&&(
+	                      <div style={{display:'flex',flexDirection:'column',gap:7}}>
+	                        {nextForStudent&&(
+	                          <div style={{display:'flex',justifyContent:'space-between',gap:10,padding:'9px 11px',borderRadius:10,background:'rgba(201,136,42,.07)',fontSize:'.78rem'}}>
+	                            <span style={{color:'#42536A'}}>Järgmine tund</span>
+	                            <strong style={{color:'#A96E1A'}}>{fmtDate(nextForStudent._date)} {nextForStudent.time||''}</strong>
+	                          </div>
+	                        )}
+	                        {pendHw>0&&(
+	                          <div style={{display:'flex',justifyContent:'space-between',gap:10,padding:'9px 11px',borderRadius:10,background:'rgba(124,58,237,.07)',fontSize:'.78rem'}}>
+	                            <span style={{color:'#42536A'}}>Kodutöö ootab</span>
+	                            <strong style={{color:'#7c3aed'}}>{pendHw}</strong>
+	                          </div>
+	                        )}
+	                        {unpaidForStudent.length>0&&(
+	                          <div style={{display:'flex',justifyContent:'space-between',gap:10,padding:'9px 11px',borderRadius:10,background:'rgba(220,38,38,.07)',fontSize:'.78rem'}}>
+	                            <span style={{color:'#42536A'}}>Tasumata</span>
+	                            <strong style={{color:'#dc2626'}}>{unpaidForStudent.reduce((sum,inv)=>sum+(Number(inv.amount)||0),0)}€</strong>
+	                          </div>
+	                        )}
+	                      </div>
+	                    )}
+	                    <div style={{display:'grid',gridTemplateColumns:'1fr auto',gap:8,alignItems:'center'}}>
+	                      <button onClick={()=>{_setSelStu&&_setSelStu(s);_setTab&&_setTab('students');}} className="btn btn-pine" style={{width:'100%'}}>
+	                        Ava kaart
+	                      </button>
+	                      <button onClick={()=>_setTab&&_setTab(unpaidForStudent.length?'invoices':'calendar')} className="btn btn-ghost" title={unpaidForStudent.length?'Ava arved':'Ava tunniplaan'}>
+	                        <i className={`fa-solid ${unpaidForStudent.length?'fa-file-invoice':'fa-calendar-days'}`}/>
+	                      </button>
+	                    </div>
+	                  </div>
+	                );
+	              })}
               {myStudents.length===0&&(
                 <div className="card" style={{padding:28,textAlign:'center',color:'#42536A',gridColumn:'1/-1'}}>
                   <div style={{fontSize:'1.4rem',marginBottom:8}}>👶</div>
@@ -754,7 +917,7 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
             </div>
 
             {/* Feed + upcoming lessons */}
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
+	            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(320px,1fr))',gap:16}}>
 
               {/* Activity feed */}
               <div className="card" style={{padding:22}}>
@@ -789,10 +952,10 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
                           </>
                         )}
                       </div>
-                      {item._type==='message'&&(
-                        <button onClick={()=>{_setSelStu&&_setSelStu(myStudents.find(s=>s.id===item.studentId));_setTab&&_setTab('students');}}
-                          className="btn btn-ghost btn-sm" style={{flexShrink:0,fontSize:'.72rem'}}>Ava</button>
-                      )}
+	                      {studentByIdentity(item.studentId,item.studentName)&&(
+	                        <button onClick={()=>openStudentByIdentity(item.studentId,item.studentName)}
+	                          className="btn btn-ghost btn-sm" style={{flexShrink:0,fontSize:'.72rem'}}>Ava</button>
+	                      )}
                     </div>
                   ))}
                 </div>
@@ -806,27 +969,27 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
                     Lähiajal tunde pole.
                   </div>
                 )}
-                <div style={{display:'flex',flexDirection:'column',gap:8}}>
-                  {upcomingLessons.slice(0,8).map((ev,idx)=>{
-                    const isToday = ev._date===todayIso;
-                    return(
-                      <div key={ev.id+(ev._date||idx)} style={{display:'flex',gap:10,alignItems:'center',padding:'10px 12px',borderRadius:12,
-                        background:isToday?'rgba(201,136,42,.08)':'#F9F8F6',
-                        border:`1px solid ${isToday?'rgba(201,136,42,.25)':'rgba(28,43,58,.07)'}`}}>
-                        <div style={{textAlign:'center',minWidth:38}}>
-                          <div style={{fontWeight:800,fontSize:'.9rem',color:isToday?'#C9882A':'#1C2B3A'}}>
-                            {new Date(ev._date).toLocaleDateString('et-EE',{day:'2-digit',month:'2-digit'})}
-                          </div>
-                          <div style={{fontSize:'.68rem',color:'#42536A'}}>{ev.time}</div>
-                        </div>
-                        <div style={{flex:1,minWidth:0}}>
-                          <div style={{fontWeight:700,fontSize:'.84rem',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{ev.studentName}</div>
-                          <div style={{fontSize:'.72rem',color:'#42536A'}}>Õp. {ev.teacher||'—'}</div>
-                        </div>
-                        {isToday&&<span className="badge" style={{background:'#C9882A',color:'#fff',flexShrink:0}}>Täna</span>}
-                      </div>
-                    );
-                  })}
+	                <div style={{display:'flex',flexDirection:'column',gap:8}}>
+	                  {upcomingLessons.slice(0,8).map((ev,idx)=>{
+	                    const isToday = ev._date===todayIso;
+	                    return(
+	                      <button key={ev.id+(ev._date||idx)} onClick={()=>openStudentByIdentity(ev.studentId,ev.studentName)} style={{width:'100%',display:'flex',gap:10,alignItems:'center',padding:'10px 12px',borderRadius:12,
+	                        background:isToday?'rgba(201,136,42,.08)':'#F9F8F6',
+	                        border:`1px solid ${isToday?'rgba(201,136,42,.25)':'rgba(28,43,58,.07)'}`,cursor:'pointer',textAlign:'left',font:'inherit'}}>
+	                        <div style={{textAlign:'center',minWidth:38}}>
+	                          <div style={{fontWeight:800,fontSize:'.9rem',color:isToday?'#C9882A':'#1C2B3A'}}>
+	                            {new Date(ev._date).toLocaleDateString('et-EE',{day:'2-digit',month:'2-digit'})}
+	                          </div>
+	                          <div style={{fontSize:'.68rem',color:'#42536A'}}>{ev.time}</div>
+	                        </div>
+	                        <div style={{flex:1,minWidth:0}}>
+	                          <div style={{fontWeight:700,fontSize:'.84rem',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{ev.studentName}</div>
+	                          <div style={{fontSize:'.72rem',color:'#42536A'}}>Õp. {ev.teacher||'—'}</div>
+	                        </div>
+	                        {isToday&&<span className="badge" style={{background:'#C9882A',color:'#fff',flexShrink:0}}>Täna</span>}
+	                      </button>
+	                    );
+	                  })}
                 </div>
               </div>
             </div>
