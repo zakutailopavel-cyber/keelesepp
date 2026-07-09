@@ -1,5 +1,5 @@
 (function(){
-  const APP_VERSION  = 'CRM 2026-07-09 22:36';
+  const APP_VERSION  = 'CRM 2026-07-09 23:05';
   const LEVELS   = ['Eelkool','A1','A2','B1','B2','C1'];
   const TEACHERS = ['Pavel','Jelena','Elizaveta','Angelina'];
   const STAFF_ALIASES = {
@@ -28,6 +28,8 @@
     bank:'LHV Pank AS',
     swift:'LHVBEE22',
     paymentTermDays:5,
+    paymentDueDay:10,
+    paymentDueRule:'monthly_10',
     lateFeePerDay:'0.0%',
     issuer:'Pavel Zakutailo'
   };

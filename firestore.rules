@@ -182,6 +182,11 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    match /emailQueue/{entryId} {
+      allow read: if isStaff();
+      allow write: if false;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }
