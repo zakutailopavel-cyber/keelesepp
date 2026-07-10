@@ -13,9 +13,8 @@
  *  syncAllCalendars                  → runs every hour, syncs all connected teachers
  */
 
-const functions = require("firebase-functions");
+const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
-const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { google } = require("googleapis");
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
@@ -935,10 +934,10 @@ async function syncTeacherCalendar(uid, tokens) {
 }
 
 // ── SCHEDULED: sync all connected teachers every hour ─────────
-exports.syncAllCalendars = onSchedule({
-  schedule: "every 60 minutes",
-  timeZone: APP_TIME_ZONE,
-}, async () => {
+exports.syncAllCalendars = functions.pubsub
+  .schedule("every 60 minutes")
+  .timeZone(APP_TIME_ZONE)
+  .onRun(async () => {
     const snap = await db.collection("users")
       .where("gcal.connected", "==", true)
       .get();
@@ -955,10 +954,10 @@ exports.syncAllCalendars = onSchedule({
   });
 
 // ── SCHEDULED: invoice payment reminders ─────────────────────
-exports.sendInvoicePaymentReminders = onSchedule({
-  schedule: "0 9 * * *",
-  timeZone: APP_TIME_ZONE,
-}, async () => {
+exports.sendInvoicePaymentReminders = functions.pubsub
+  .schedule("0 9 * * *")
+  .timeZone(APP_TIME_ZONE)
+  .onRun(async () => {
     const due10 = await sendInvoiceBatch({ type: "due10", force: false });
     const overdue = await sendInvoiceBatch({ type: "reminder", force: false });
     console.log("Invoice reminders", { due10, overdue });
