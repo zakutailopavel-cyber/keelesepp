@@ -17,6 +17,7 @@ const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { google } = require("googleapis");
+const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 
 admin.initializeApp();
@@ -55,6 +56,7 @@ const INVOICE_REMINDER_INTERVAL_DAYS = Number(process.env.INVOICE_REMINDER_INTER
 // ── CONFIG ────────────────────────────────────────────────────
 // Set these in Firebase Functions config:
 // firebase functions:config:set gcal.client_id="..." gcal.client_secret="..." gcal.redirect_uri="..."
+// SMTP mail: firebase functions:config:set mail.smtp_host="..." mail.smtp_port="465" mail.smtp_secure="true" mail.smtp_user="..." mail.smtp_pass="..." mail.from="KeeleSepp <...>" mail.reply_to="..."
 const getConfig = () => ({
   clientId:     functions.config().gcal?.client_id     || process.env.GCAL_CLIENT_ID,
   clientSecret: functions.config().gcal?.client_secret || process.env.GCAL_CLIENT_SECRET,
@@ -128,6 +130,15 @@ function runtimeConfig() {
   } catch (e) {
     return {};
   }
+}
+
+function configValue(...values) {
+  return values.find(value => value !== undefined && value !== null && String(value).trim() !== "");
+}
+
+function configBool(value, fallback = false) {
+  if (value === undefined || value === null || String(value).trim() === "") return fallback;
+  return ["1", "true", "yes", "y", "on"].includes(String(value).trim().toLowerCase());
 }
 
 function collectRoles(profile = {}, decoded = {}) {
@@ -337,6 +348,15 @@ async function deliverEmail(message, context = {}) {
   const cfg = runtimeConfig().mail || {};
   const resendKey = process.env.RESEND_API_KEY || cfg.resend_api_key || cfg.resendKey;
   const sendgridKey = process.env.SENDGRID_API_KEY || cfg.sendgrid_api_key || cfg.sendgridKey;
+  const smtpHost = configValue(process.env.SMTP_HOST, cfg.smtp_host, cfg.smtpHost);
+  const smtpUser = configValue(process.env.SMTP_USER, cfg.smtp_user, cfg.smtpUser);
+  const smtpPass = configValue(process.env.SMTP_PASS, cfg.smtp_pass, cfg.smtpPass, cfg.smtp_password, cfg.smtpPassword);
+  const smtpPortRaw = configValue(process.env.SMTP_PORT, cfg.smtp_port, cfg.smtpPort);
+  const smtpSecureRaw = configValue(process.env.SMTP_SECURE, cfg.smtp_secure, cfg.smtpSecure);
+  const smtpSecure = configBool(smtpSecureRaw, Number(smtpPortRaw || 0) === 465);
+  const smtpPort = Number(smtpPortRaw || (smtpSecure ? 465 : 587));
+  const hasSmtp = Boolean(smtpHost && smtpUser && smtpPass);
+  const provider = hasSmtp ? "smtp" : resendKey ? "resend" : sendgridKey ? "sendgrid" : "firestore";
   const from = process.env.MAIL_FROM || cfg.from || MAIL_FROM;
   const replyTo = process.env.MAIL_REPLY_TO || cfg.reply_to || PAYMENT_DETAILS.email;
   const ref = db.collection("emailQueue").doc();
@@ -352,15 +372,35 @@ async function deliverEmail(message, context = {}) {
     createdAt: admin.firestore.FieldValue.serverTimestamp(),
   };
 
-  if (!resendKey && !sendgridKey) {
+  if (provider === "firestore") {
     await ref.set({ ...queueBase, provider: "firestore" });
     return { status: "queued", provider: "firestore", queueId: ref.id };
   }
 
-  await ref.set({ ...queueBase, status: "sending", provider: resendKey ? "resend" : "sendgrid" });
+  await ref.set({ ...queueBase, status: "sending", provider });
   try {
     let providerId = "";
-    if (resendKey) {
+    if (provider === "smtp") {
+      const transporter = nodemailer.createTransport({
+        host: smtpHost,
+        port: smtpPort,
+        secure: smtpSecure,
+        auth: { user: smtpUser, pass: smtpPass },
+      });
+      const info = await transporter.sendMail({
+        from,
+        to: message.to,
+        replyTo,
+        subject: message.subject,
+        html: message.html,
+        text: message.text,
+      });
+      providerId = info.messageId || "";
+      await ref.update({ status: "sent", provider: "smtp", providerId, sentAt: admin.firestore.FieldValue.serverTimestamp() });
+      return { status: "sent", provider: "smtp", queueId: ref.id, providerId };
+    }
+
+    if (provider === "resend") {
       const data = await postJson("https://api.resend.com/emails", {
         Authorization: `Bearer ${resendKey}`,
       }, {
