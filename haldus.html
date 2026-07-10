@@ -187,6 +187,41 @@ const invoiceDraftForStudent = (student, amountInput='', descInput='') => {
   const desc = String(descInput||'').trim()||autoDesc;
   return {lessons,lessonPrice,autoAmount,manualAmount,amount,desc,hasAuto:autoAmount>0};
 };
+function CollapsibleCard({id,title,subtitle,badge,children,defaultCollapsed=false,style={},bodyStyle={},titleColor='#1C2B3A'}) {
+  const storageKey = `keelesepp:collapse:${id}`;
+  const [collapsed,setCollapsed] = React.useState(()=>{
+    try{
+      const saved = window.localStorage.getItem(storageKey);
+      if(saved!==null) return saved==='1';
+    }catch(e){}
+    return Boolean(defaultCollapsed);
+  });
+  const toggle = () => {
+    setCollapsed(prev=>{
+      const next = !prev;
+      try{window.localStorage.setItem(storageKey,next?'1':'0');}catch(e){}
+      return next;
+    });
+  };
+  return (
+    <div className="card" style={{padding:0,overflow:'hidden',...style}}>
+      <button type="button" onClick={toggle} aria-expanded={!collapsed}
+        style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:12,flexWrap:'wrap',padding:24,border:'none',background:'transparent',font:'inherit',textAlign:'left',cursor:'pointer'}}>
+        <div style={{minWidth:0,flex:1}}>
+          <h3 style={{color:titleColor,marginBottom:subtitle?4:0}}>{title}</h3>
+          {subtitle&&<div style={{fontSize:'.84rem',color:'#42536A',marginTop:4}}>{subtitle}</div>}
+        </div>
+        <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap',justifyContent:'flex-end'}}>
+          {badge}
+          <span className="badge" style={{background:'rgba(28,43,58,.06)',color:'#42536A',border:'1px solid rgba(28,43,58,.08)'}}>
+            {collapsed?'Näita':'Peida'} <i className={`fa-solid ${collapsed?'fa-chevron-down':'fa-chevron-up'}`} style={{fontSize:'.68rem',marginLeft:4}}/>
+          </span>
+        </div>
+      </button>
+      {!collapsed&&<div style={{padding:'0 24px 24px',...bodyStyle}}>{children}</div>}
+    </div>
+  );
+}
 const getLessonAttachments = lesson => {
   const list = Array.isArray(lesson?.attachments) ? lesson.attachments.filter(att=>att&&(att.url||att.name)) : [];
   const legacyUrl = lesson?.fileUrl || lesson?.attachmentUrl || lesson?.attachment?.url || '';
@@ -1151,18 +1186,16 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
       })()}
 
       {isAdmin&&(
-        <div className="card" style={{padding:24,border:adminAttention.length?'1px solid rgba(153,27,27,.18)':'1px solid rgba(47,93,80,.18)',background:adminAttention.length?'#fff':'#f7fffb'}}>
-          <div style={{display:'flex',justifyContent:'space-between',gap:12,alignItems:'flex-start',flexWrap:'wrap',marginBottom:adminAttention.length?16:0}}>
-            <div>
-              <h3>🧭 Admini tähelepanu</h3>
-              <div style={{fontSize:'.84rem',color:'#42536A',marginTop:4}}>
-                Kõige olulisemad asjad, mis vajavad täna kontrolli.
-              </div>
-            </div>
-            <span className="badge" style={{background:adminAttention.length?'#fee2e2':'#dcfce7',color:adminAttention.length?'#991b1b':'#166534'}}>
+        <CollapsibleCard
+          id="dashboard-admin-attention"
+          title="🧭 Admini tähelepanu"
+          subtitle="Kõige olulisemad asjad, mis vajavad täna kontrolli."
+          defaultCollapsed={adminAttention.length===0}
+          style={{border:adminAttention.length?'1px solid rgba(153,27,27,.18)':'1px solid rgba(47,93,80,.18)',background:adminAttention.length?'#fff':'#f7fffb'}}
+          badge={<span className="badge" style={{background:adminAttention.length?'#fee2e2':'#dcfce7',color:adminAttention.length?'#991b1b':'#166534'}}>
               {adminAttention.length?`${adminAttention.reduce((sum,item)=>sum+item.count,0)} tähelepanu`:'Kõik korras'}
-            </span>
-          </div>
+            </span>}
+        >
           {adminAttention.length===0?(
             <div style={{fontSize:'.9rem',color:'#2F5D50',fontWeight:700}}>Hetkel kriitilisi teavitusi pole.</div>
           ):(
@@ -1188,7 +1221,7 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
               ))}
             </div>
           )}
-        </div>
+        </CollapsibleCard>
       )}
 
       
@@ -1199,19 +1232,18 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
         const totalRevenue = billable.reduce((sum,s)=>sum+((s.lessonsSinceInvoice||0)*(s.lessonPrice||0)),0);
         if(!billable.length) return null;
         return(
-          <div className="card" style={{padding:24,border:'1px solid rgba(37,99,235,.18)',background:'#eff6ff'}}>
-            <div style={{display:'flex',justifyContent:'space-between',gap:12,alignItems:'flex-start',flexWrap:'wrap',marginBottom:16}}>
-              <div>
-                <h3 style={{color:'#1d4ed8'}}>💰 Arveldamata tunnid</h3>
-                <div style={{fontSize:'.84rem',color:'#1d4ed8',marginTop:4}}>
-                  Õpilased, kellele pole veel arvet väljastatud.
-                </div>
-              </div>
-              <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
+          <CollapsibleCard
+            id="dashboard-unbilled-lessons"
+            title="💰 Arveldamata tunnid"
+            subtitle="Õpilased, kellele pole veel arvet väljastatud."
+            titleColor="#1d4ed8"
+            defaultCollapsed={billable.length>5}
+            style={{border:'1px solid rgba(37,99,235,.18)',background:'#eff6ff'}}
+            badge={<React.Fragment>
                 <span className="badge" style={{background:'#dbeafe',color:'#1d4ed8'}}>{totalLessons} tundi</span>
                 <span className="badge" style={{background:'#1d4ed8',color:'#fff'}}>{totalRevenue}€ kokku</span>
-              </div>
-            </div>
+              </React.Fragment>}
+          >
             <div style={{display:'flex',flexDirection:'column',gap:8}}>
               {billable.sort((a,b)=>(b.lessonsSinceInvoice||0)-(a.lessonsSinceInvoice||0)).map(s=>(
                 <div key={s.id} style={{display:'grid',gridTemplateColumns:'1fr auto auto',gap:12,alignItems:'center',padding:'10px 14px',borderRadius:12,background:'#fff',border:'1px solid rgba(37,99,235,.1)'}}>
@@ -1228,21 +1260,19 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
                 </div>
               ))}
             </div>
-          </div>
+          </CollapsibleCard>
         );
       })()}
 
       {isAdmin&&parentAlerts?.length>0&&(
-        <div className="card" style={{padding:24,border:'1px solid #fecaca',background:'#fff7f7'}}>
-          <div style={{display:'flex',justifyContent:'space-between',gap:12,alignItems:'flex-start',flexWrap:'wrap',marginBottom:14}}>
-            <div>
-              <h3 style={{color:'#991b1b'}}>⚠️ Uued lapsevanema registreeringud</h3>
-              <div style={{fontSize:'.84rem',color:'#7f1d1d',marginTop:4}}>
-                Need kontod vajavad kontrolli: lapse andmed on sisestatud, aga õpilase kaart puudub või ei ole kindlalt seotud.
-              </div>
-            </div>
-            <span className="badge" style={{background:'#fee2e2',color:'#991b1b'}}>{parentAlerts.length} kontrollida</span>
-          </div>
+        <CollapsibleCard
+          id="dashboard-parent-alerts"
+          title="⚠️ Uued lapsevanema registreeringud"
+          subtitle="Need kontod vajavad kontrolli: lapse andmed on sisestatud, aga õpilase kaart puudub või ei ole kindlalt seotud."
+          titleColor="#991b1b"
+          style={{border:'1px solid #fecaca',background:'#fff7f7'}}
+          badge={<span className="badge" style={{background:'#fee2e2',color:'#991b1b'}}>{parentAlerts.length} kontrollida</span>}
+        >
           <div style={{display:'flex',flexDirection:'column',gap:10}}>
             {parentAlerts.slice(0,6).map(alert=>(
               <div key={alert.parent.id} style={{display:'grid',gridTemplateColumns:'1fr auto',gap:12,alignItems:'center',padding:'12px 14px',borderRadius:12,background:'#fff',border:'1px solid rgba(153,27,27,.18)'}}>
@@ -1263,22 +1293,18 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
               </div>
             ))}
           </div>
-        </div>
+        </CollapsibleCard>
       )}
 
       {isStaff&&(
-        <div className="card" style={{padding:24}}>
-          <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:12,flexWrap:'wrap',marginBottom:16}}>
-            <div>
-              <h3>✅ Ülesanded</h3>
-              <div style={{fontSize:'.82rem',color:'#42536A',marginTop:4}}>
-                Määra töökaaslasele tegevus, pane tähtaeg ja märgi tehtuks.
-              </div>
-            </div>
-            <span className="badge" style={{background:openTasks.length?'#dbeafe':'#dcfce7',color:openTasks.length?'#1d4ed8':'#166534'}}>
+        <CollapsibleCard
+          id="dashboard-tasks"
+          title="✅ Ülesanded"
+          subtitle="Määra töökaaslasele tegevus, pane tähtaeg ja märgi tehtuks."
+          badge={<span className="badge" style={{background:openTasks.length?'#dbeafe':'#dcfce7',color:openTasks.length?'#1d4ed8':'#166534'}}>
               {openTasks.length} aktiivset
-            </span>
-          </div>
+            </span>}
+        >
 
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))',gap:10,marginBottom:14}}>
             <input value={taskTitle} onChange={e=>setTaskTitle(e.target.value)} placeholder="Mida on vaja teha?"/>
@@ -1387,12 +1413,17 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
               );
             })}
           </div>
-        </div>
+        </CollapsibleCard>
       )}
 
       {isStaff&&(
-        <div className="card" style={{padding:24}}>
-          <h3 style={{marginBottom:16}}>➕ Lisa uus õpilane</h3>
+        <CollapsibleCard
+          id="dashboard-add-student"
+          title="➕ Lisa uus õpilane"
+          subtitle="Ava ainult siis, kui lisad uut õpilast või kontakti."
+          defaultCollapsed={true}
+          badge={<span className="badge" style={{background:'#f3f4f6',color:'#42536A'}}>vorm</span>}
+        >
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(185px,1fr))',gap:10,marginBottom:12}}>
             <input value={nName}  onChange={e=>setNName(e.target.value)}  placeholder="Lapse nimi *"/>
             <input value={nParentName} onChange={e=>setNParentName(e.target.value)} placeholder="Vanema nimi"/>
@@ -1417,11 +1448,15 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
           <button onClick={addStudent} className="btn btn-pine" style={{width:'100%'}}>
             <i className="fa-solid fa-user-plus"/> Lisa õpilane
           </button>
-        </div>
+        </CollapsibleCard>
       )}
 
-      <div className="card" style={{padding:24}}>
-        <h3 style={{marginBottom:16}}>🕐 Viimased tunnid</h3>
+      <CollapsibleCard
+        id="dashboard-recent-lessons"
+        title="🕐 Viimased tunnid"
+        subtitle="Viimased tunnid ja vanema vaates tunni detailid."
+        badge={<span className="badge" style={{background:'#f3f4f6',color:'#42536A'}}>{dashboardVisibleLessons.length} kokku</span>}
+      >
         {dashboardVisibleLessons.length===0
           ?<div style={{textAlign:'center',padding:'24px 0',color:'#42536A',fontSize:'.88rem'}}>Tunnid puuduvad.</div>
           :[...dashboardVisibleLessons].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,6).map(l=>{
@@ -1457,7 +1492,7 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
             );
           })
         }
-      </div>
+      </CollapsibleCard>
     </div>
   );
 }
