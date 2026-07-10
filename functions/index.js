@@ -49,17 +49,22 @@ const PAYMENT_DETAILS = {
   paymentDueDay: 10,
 };
 const MAIL_FROM = process.env.MAIL_FROM || `KeeleSepp <${PAYMENT_DETAILS.email}>`;
+const MAIL_REPLY_TO = process.env.MAIL_REPLY_TO || "info@epkoolitus.ee";
+const SMTP_DEFAULTS = {
+  host: "smtp.zone.eu",
+  port: "465",
+  secure: "true",
+  user: "info@epkoolitus.ee",
+  from: "KeeleSepp <info@epkoolitus.ee>",
+};
 const APP_BASE_URL = process.env.APP_BASE_URL || "https://www.epkoolitus.ee/haldus/";
 const INVOICE_REMINDER_INTERVAL_DAYS = Number(process.env.INVOICE_REMINDER_INTERVAL_DAYS || 3);
 
 // ── CONFIG ────────────────────────────────────────────────────
-// Set these in Firebase Functions config:
-// firebase functions:config:set gcal.client_id="..." gcal.client_secret="..." gcal.redirect_uri="..."
-// SMTP mail: firebase functions:config:set mail.smtp_host="..." mail.smtp_port="465" mail.smtp_secure="true" mail.smtp_user="..." mail.smtp_pass="..." mail.from="KeeleSepp <...>" mail.reply_to="..."
 const getConfig = () => ({
-  clientId:     functions.config().gcal?.client_id     || process.env.GCAL_CLIENT_ID,
-  clientSecret: functions.config().gcal?.client_secret || process.env.GCAL_CLIENT_SECRET,
-  redirectUri:  functions.config().gcal?.redirect_uri  || process.env.GCAL_REDIRECT_URI ||
+  clientId:     process.env.GCAL_CLIENT_ID,
+  clientSecret: process.env.GCAL_CLIENT_SECRET,
+  redirectUri:  process.env.GCAL_REDIRECT_URI ||
                 "https://us-central1-keelesepp-5136b.cloudfunctions.net/gcalApi/gcal/callback",
 });
 
@@ -121,14 +126,6 @@ async function requireCalendarOwner(req, uid, { staffOnly = true } = {}) {
     throw httpError(403, "Teacher or admin access required");
   }
   return { decoded, profile, role };
-}
-
-function runtimeConfig() {
-  try {
-    return functions.config() || {};
-  } catch (e) {
-    return {};
-  }
 }
 
 function configValue(...values) {
@@ -344,20 +341,19 @@ async function postJson(url, headers, body) {
 }
 
 async function deliverEmail(message, context = {}) {
-  const cfg = runtimeConfig().mail || {};
-  const resendKey = process.env.RESEND_API_KEY || cfg.resend_api_key || cfg.resendKey;
-  const sendgridKey = process.env.SENDGRID_API_KEY || cfg.sendgrid_api_key || cfg.sendgridKey;
-  const smtpHost = configValue(process.env.SMTP_HOST, cfg.smtp_host, cfg.smtpHost);
-  const smtpUser = configValue(process.env.SMTP_USER, cfg.smtp_user, cfg.smtpUser);
-  const smtpPass = configValue(process.env.SMTP_PASS, cfg.smtp_pass, cfg.smtpPass, cfg.smtp_password, cfg.smtpPassword);
-  const smtpPortRaw = configValue(process.env.SMTP_PORT, cfg.smtp_port, cfg.smtpPort);
-  const smtpSecureRaw = configValue(process.env.SMTP_SECURE, cfg.smtp_secure, cfg.smtpSecure);
+  const resendKey = process.env.RESEND_API_KEY;
+  const sendgridKey = process.env.SENDGRID_API_KEY;
+  const smtpHost = configValue(process.env.SMTP_HOST, SMTP_DEFAULTS.host);
+  const smtpUser = configValue(process.env.SMTP_USER, SMTP_DEFAULTS.user);
+  const smtpPass = process.env.SMTP_PASS;
+  const smtpPortRaw = configValue(process.env.SMTP_PORT, SMTP_DEFAULTS.port);
+  const smtpSecureRaw = configValue(process.env.SMTP_SECURE, SMTP_DEFAULTS.secure);
   const smtpSecure = configBool(smtpSecureRaw, Number(smtpPortRaw || 0) === 465);
   const smtpPort = Number(smtpPortRaw || (smtpSecure ? 465 : 587));
   const hasSmtp = Boolean(smtpHost && smtpUser && smtpPass);
   const provider = hasSmtp ? "smtp" : resendKey ? "resend" : sendgridKey ? "sendgrid" : "firestore";
-  const from = process.env.MAIL_FROM || cfg.from || MAIL_FROM;
-  const replyTo = process.env.MAIL_REPLY_TO || cfg.reply_to || PAYMENT_DETAILS.email;
+  const from = process.env.MAIL_FROM || SMTP_DEFAULTS.from || MAIL_FROM;
+  const replyTo = MAIL_REPLY_TO;
   const ref = db.collection("emailQueue").doc();
   const queueBase = {
     ...context,
@@ -647,7 +643,9 @@ function gcalEventToSchedule(event, teacher, studentId, studentName, teacherUid)
 }
 
 // ── API: invoice emails and reminders ────────────────────────
-exports.invoiceApi = functions.https.onRequest(async (req, res) => {
+exports.invoiceApi = functions
+  .runWith({ secrets: ["SMTP_PASS"] })
+  .https.onRequest(async (req, res) => {
   applyCors(req, res);
   if (req.method === "OPTIONS") { res.status(204).send(""); return; }
 
@@ -688,7 +686,7 @@ exports.invoiceApi = functions.https.onRequest(async (req, res) => {
   } catch (e) {
     sendError(res, e);
   }
-});
+  });
 
 // ── API: GET /api/gcal/auth-url ───────────────────────────────
 exports.gcalApi = functions.https.onRequest(async (req, res) => {
@@ -954,7 +952,9 @@ exports.syncAllCalendars = functions.pubsub
   });
 
 // ── SCHEDULED: invoice payment reminders ─────────────────────
-exports.sendInvoicePaymentReminders = functions.pubsub
+exports.sendInvoicePaymentReminders = functions
+  .runWith({ secrets: ["SMTP_PASS"] })
+  .pubsub
   .schedule("0 9 * * *")
   .timeZone(APP_TIME_ZONE)
   .onRun(async () => {
