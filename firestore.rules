@@ -60,6 +60,20 @@ service cloud.firestore {
         );
     }
 
+    function ownsInvoice(invoice) {
+      return signedIn()
+        && (
+          (invoice.studentId is string && invoice.studentId != '' && ownsStudent(invoice.studentId))
+          || invoice.parentUid == uid()
+          || invoice.linkedParentId == uid()
+          || invoice.guardianUid == uid()
+          || (invoice.parentEmailLower is string && invoice.parentEmailLower == email())
+          || (invoice.payerEmailLower is string && invoice.payerEmailLower == email())
+          || (invoice.parentEmail is string && invoice.parentEmail.lower() == email())
+          || (invoice.payerEmail is string && invoice.payerEmail.lower() == email())
+        );
+    }
+
     function createsOwnStudent() {
       return signedIn()
         && (
@@ -131,7 +145,7 @@ service cloud.firestore {
     }
 
     match /invoices/{invoiceId} {
-      allow read: if isStaff() || ownsStudent(resource.data.studentId);
+      allow read: if isStaff() || ownsInvoice(resource.data);
       allow create, update, delete: if isStaff();
     }
 

@@ -175,6 +175,24 @@ const invoiceMailStatusMeta = inv => {
   if(inv?.lastReminderSentAt) return {text:`Meeldetuletus ${fmtDate(inv.lastReminderSentAt)}`,bg:'#eef2ff',color:'#4338ca'};
   return null;
 };
+const parentDisplayName = parent => parent?.displayName || parent?.name || parent?.email || '';
+const invoiceIsParentTarget = inv => {
+  if(!inv) return false;
+  return inv.invoiceTargetType==='parent' || (!inv.studentId && Boolean(inv.parentUid||inv.linkedParentId||inv.parentName||inv.parentEmail||inv.payerName||inv.payerEmail));
+};
+const invoicePartyLabel = inv => {
+  if(!inv) return '—';
+  if(invoiceIsParentTarget(inv)) return inv.parentName || inv.payerName || inv.parentEmail || inv.payerEmail || 'Lapsevanem';
+  return inv.studentName || inv.parentName || inv.payerName || '—';
+};
+const invoicePartyTypeLabel = inv => invoiceIsParentTarget(inv) ? 'Lapsevanem' : 'Õpilane';
+const invoiceMatchesParentProfile = (inv,parent) => {
+  if(!inv || !parent) return false;
+  const parentId = parent.id || parent.uid || '';
+  const parentEmail = normalizeText(parent.email);
+  return (parentId && [inv.parentUid,inv.linkedParentId,inv.guardianUid].includes(parentId)) ||
+    (parentEmail && [inv.parentEmailLower,inv.payerEmailLower,normalizeText(inv.parentEmail),normalizeText(inv.payerEmail)].includes(parentEmail));
+};
 const invoiceDraftForStudent = (student, amountInput='', descInput='') => {
   const lessons = Math.max(0, Number(student?.lessonsSinceInvoice)||0);
   const lessonPrice = Math.max(0, Number(student?.lessonPrice)||0);
@@ -814,8 +832,8 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
         });
         upcomingLessons.sort((a,b)=>a._date.localeCompare(b._date)||(a.time||'').localeCompare(b.time||''));
 
-	        const pendingHomeworkItems = homework.filter(h=>h.status==='Ootel'&&parentHasStudent(h.studentId,h.studentName));
-	        const unpaid = invoices.filter(i=>i.status==='Ootel'&&parentHasStudent(i.studentId,i.studentName));
+		        const pendingHomeworkItems = homework.filter(h=>h.status==='Ootel'&&parentHasStudent(h.studentId,h.studentName));
+		        const unpaid = invoices.filter(i=>i.status==='Ootel'&&(parentHasStudent(i.studentId,i.studentName)||invoiceMatchesParentProfile(i,user)));
 
 	        // Feed: unread messages + pending homework merged and sorted
 	        const feed = [
@@ -1166,7 +1184,7 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
                   {unpaid.map(inv=>(
                     <div key={inv.id} style={{display:'grid',gridTemplateColumns:'1fr auto auto',gap:12,alignItems:'center',padding:'10px 14px',borderRadius:12,background:'#F9F8F6',border:'1px solid rgba(28,43,58,.07)'}}>
                       <div>
-                        <div style={{fontWeight:700,fontSize:'.86rem'}}>{inv.num} · {inv.studentName}</div>
+	                        <div style={{fontWeight:700,fontSize:'.86rem'}}>{inv.num} · {invoicePartyLabel(inv)}</div>
                         <div style={{fontSize:'.74rem',color:'#42536A',marginTop:2}}>{inv.desc} · tähtaeg {fmtDate(inv.due)}</div>
                       </div>
                       <span style={{fontWeight:800,color:'#dc2626'}}>{inv.amount}€</span>
@@ -2796,7 +2814,10 @@ function ParentsView({parents,students,invoices,isAdmin,parentAlerts,setSelStu,s
       const uniqueChildren = uniqBy(linkedChildren,student=>studentProfileKey(student)||student.id);
       const childGroups = buildChildGroups(uniqueChildren);
       const unpaid = invoices.filter(inv=>
-        inv.status==='Ootel' && uniqueChildren.some(student=>student.id===inv.studentId || normalizeText(student.name)===normalizeText(inv.studentName))
+        inv.status==='Ootel' && (
+          invoiceMatchesParentProfile(inv,parent) ||
+          uniqueChildren.some(student=>student.id===inv.studentId || normalizeText(student.name)===normalizeText(inv.studentName))
+        )
       );
       return {key:parentMergeKey(parent),parent,parents:[parent],duplicateParents:[],rawNames,linkedChildren:uniqueChildren,childGroups,unpaid};
     };
@@ -5606,10 +5627,10 @@ function ParentInvoicesView({invoices,printInvoice,submitParentPayment}) {
   return (
     <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:24}}>
       <div>
-        <h1 style={{fontSize:'1.7rem'}}>Arved</h1>
-        <div style={{color:'#42536A',fontSize:'.88rem',marginTop:4}}>
-          Siin on sinu lapse arved, makseinfo ja makseteavitused.
-        </div>
+	        <h1 style={{fontSize:'1.7rem'}}>Arved</h1>
+	        <div style={{color:'#42536A',fontSize:'.88rem',marginTop:4}}>
+	          Siin on pere arved, makseinfo ja makseteavitused.
+	        </div>
       </div>
 
       <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))',gap:12}}>
@@ -5640,7 +5661,7 @@ function ParentInvoicesView({invoices,printInvoice,submitParentPayment}) {
                 <div>
                   <div style={{fontWeight:800,fontSize:'1rem'}}>{inv.num}</div>
                   <div style={{fontSize:'.82rem',color:'#42536A',marginTop:3}}>
-                    {inv.studentName} · {inv.desc} · Tähtaeg: {fmtDate(inv.due)}
+                    {invoicePartyTypeLabel(inv)}: {invoicePartyLabel(inv)} · {inv.desc} · Tähtaeg: {fmtDate(inv.due)}
                   </div>
                 </div>
                 <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
@@ -5689,7 +5710,7 @@ function ParentInvoicesView({invoices,printInvoice,submitParentPayment}) {
 }
 
 // ── ARVED ÜLDVAADE ────────────────────────────────────────────
-function InvoicesView({invoices,myStudents,schedule,students,isAdmin,invStu,setInvStu,invAmt,setInvAmt,invDesc,setInvDesc,invRef,setInvRef,addInvoice,markPaid,unmarkPaid,deleteInvoice,printInvoice,updateInvoiceReference,sendInvoiceEmail,sendInvoiceReminder,sendMonthlyInvoiceReminders,invoiceEmailBusy}) {
+function InvoicesView({invoices,myStudents,parents,schedule,students,isAdmin,invStu,setInvStu,invAmt,setInvAmt,invDesc,setInvDesc,invRef,setInvRef,addInvoice,markPaid,unmarkPaid,deleteInvoice,printInvoice,updateInvoiceReference,sendInvoiceEmail,sendInvoiceReminder,sendMonthlyInvoiceReminders,invoiceEmailBusy}) {
   const unpaidAmt=invoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+i.amount,0);
   const paid=invoices.filter(i=>i.status==='Makstud');
   const [statsPeriod,setStatsPeriod] = React.useState('current');
@@ -5793,11 +5814,19 @@ function InvoicesView({invoices,myStudents,schedule,students,isAdmin,invStu,setI
     if(invoiceFilter==='reported') return invoices.filter(i=>i.parentPaymentStatus==='submitted'&&i.status!=='Makstud');
     return invoices;
   },[invoiceFilter,invoices]);
+  const [invoiceTargetType,setInvoiceTargetType] = React.useState('student');
+  const [invoiceParentQuery,setInvoiceParentQuery] = React.useState('');
+  const [invoiceParentId,setInvoiceParentId] = React.useState('');
   const activeInvoiceStudents = React.useMemo(
     ()=>(myStudents||[]).filter(s=>s.active!==false),
     [myStudents]
   );
+  const activeInvoiceParents = React.useMemo(
+    ()=>(parents||[]).filter(parent=>parent&&parent.id&&parent.active!==false),
+    [parents]
+  );
   const selectedInvoiceStudent = activeInvoiceStudents.find(s=>s.id===invStu);
+  const selectedInvoiceParent = activeInvoiceParents.find(parent=>parent.id===invoiceParentId);
   const [invoiceStudentQuery,setInvoiceStudentQuery] = React.useState('');
   React.useEffect(()=>{
     if(selectedInvoiceStudent){
@@ -5813,41 +5842,76 @@ function InvoicesView({invoices,myStudents,schedule,students,isAdmin,invStu,setI
       .filter(s=>normalizeText(`${s.name||''} ${s.parentName||''} ${s.email||''} ${s.phone||''}`).includes(q))
       .slice(0,8);
   },[activeInvoiceStudents,invoiceStudentQuery]);
+  const filteredInvoiceParents = React.useMemo(()=>{
+    const q = normalizeText(invoiceParentQuery);
+    if(!q) return activeInvoiceParents.slice(0,8);
+    return activeInvoiceParents
+      .filter(parent=>normalizeText(`${parentDisplayName(parent)} ${parent.email||''} ${parent.phone||''} ${parent.childName||''}`).includes(q))
+      .slice(0,8);
+  },[activeInvoiceParents,invoiceParentQuery]);
   const invoiceStudentCandidate = selectedInvoiceStudent || (invoiceStudentQuery.trim()&&filteredInvoiceStudents.length===1 ? filteredInvoiceStudents[0] : null);
-  const invoiceDraft = invoiceDraftForStudent(invoiceStudentCandidate,invAmt,invDesc);
+  const invoiceParentCandidate = selectedInvoiceParent || (invoiceParentQuery.trim()&&filteredInvoiceParents.length===1 ? filteredInvoiceParents[0] : null);
+  const invoiceTargetReady = invoiceTargetType==='parent' ? Boolean(invoiceParentCandidate?.id) : Boolean(invoiceStudentCandidate?.id);
+  const invoiceTargetName = invoiceTargetType==='parent'
+    ? (invoiceParentCandidate ? parentDisplayName(invoiceParentCandidate) : '')
+    : (invoiceStudentCandidate?.name||'');
+  const invoiceDraft = invoiceDraftForStudent(invoiceTargetType==='student'?invoiceStudentCandidate:null,invAmt,invDesc);
   const chooseInvoiceStudent = student => {
     setInvStu(student?.id||'');
     setInvoiceStudentQuery(student?.name||'');
+  };
+  const chooseInvoiceParent = parent => {
+    setInvoiceParentId(parent?.id||'');
+    setInvoiceParentQuery(parent ? parentDisplayName(parent) : '');
+  };
+  const switchInvoiceTarget = type => {
+    setInvoiceTargetType(type);
+    setInvoiceStep(1);
+    if(type==='student'){
+      chooseInvoiceParent(null);
+    }else{
+      chooseInvoiceStudent(null);
+    }
   };
   const updateInvoiceStudentQuery = value => {
     setInvoiceStudentQuery(value);
     const q = normalizeText(value);
     const exact = activeInvoiceStudents.find(s=>normalizeText(s.name)===q);
     setInvStu(exact?.id||'');
-	  };
-	  const [invoiceStep,setInvoiceStep] = React.useState(1);
-	  const [lastCreatedInvoice,setLastCreatedInvoice] = React.useState(null);
-	  const invoiceReady = Boolean(invoiceStudentCandidate?.id && invoiceDraft.amount);
+  };
+  const updateInvoiceParentQuery = value => {
+    setInvoiceParentQuery(value);
+    const q = normalizeText(value);
+    const exact = activeInvoiceParents.find(parent=>normalizeText(parentDisplayName(parent))===q || normalizeText(parent.email)===q);
+    setInvoiceParentId(exact?.id||'');
+  };
+  const [invoiceStep,setInvoiceStep] = React.useState(1);
+  const [lastCreatedInvoice,setLastCreatedInvoice] = React.useState(null);
+  const invoiceReady = Boolean(invoiceTargetReady && invoiceDraft.amount);
   const invoiceReferencePreview = String(invRef||'').trim() || 'Uue arve number';
   const invoiceSteps = [
-    {id:1,label:'Õpilane',done:Boolean(invoiceStudentCandidate?.id)},
+    {id:1,label:'Saaja',done:invoiceTargetReady},
     {id:2,label:'Summa',done:Boolean(invoiceDraft.amount)},
     {id:3,label:'Selgitus',done:Boolean(invoiceReferencePreview)},
     {id:4,label:'Eelvaade',done:invoiceReady}
   ];
   const invoiceCanGoNext = invoiceStep===1
-    ? Boolean(invoiceStudentCandidate?.id)
+    ? invoiceTargetReady
     : invoiceStep===2
       ? Boolean(invoiceDraft.amount)
       : true;
-	  const createInvoiceFromWizard = async()=>{
-	    if(!invoiceStudentCandidate?.id){setInvoiceStep(1);return;}
-	    if(!invoiceDraft.amount){setInvoiceStep(2);return;}
-	    const created = await addInvoice(invoiceStudentCandidate.id);
-	    if(created) setLastCreatedInvoice(created);
-	    setInvoiceStudentQuery('');
-	    setInvoiceStep(1);
-	  };
+  const createInvoiceFromWizard = async()=>{
+    if(!invoiceTargetReady){setInvoiceStep(1);return;}
+    if(!invoiceDraft.amount){setInvoiceStep(2);return;}
+    const created = invoiceTargetType==='parent'
+      ? await addInvoice(null,{targetType:'parent',parent:invoiceParentCandidate})
+      : await addInvoice(invoiceStudentCandidate.id,{targetType:'student'});
+    if(created) setLastCreatedInvoice(created);
+    setInvoiceStudentQuery('');
+    setInvoiceParentQuery('');
+    setInvoiceParentId('');
+    setInvoiceStep(1);
+  };
   const invoiceMailMeta = invoiceMailStatusMeta;
   return(
     <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:20}}>
@@ -5886,10 +5950,10 @@ function InvoicesView({invoices,myStudents,schedule,students,isAdmin,invStu,setI
 	            </button>
 	          </div>
 	          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(145px,1fr))',gap:10}}>
-	            {[
-	              ['Arve',lastCreatedInvoice.num],
-	              ['Õpilane',lastCreatedInvoice.studentName],
-	              ['Summa',money(lastCreatedInvoice.amount)+'€'],
+		            {[
+		              ['Arve',lastCreatedInvoice.num],
+		              ['Saaja',invoicePartyLabel(lastCreatedInvoice)],
+		              ['Summa',money(lastCreatedInvoice.amount)+'€'],
 	              ['Tähtaeg',invoicePaymentTermsLabel(lastCreatedInvoice.due)],
 	              ['Selgitus',lastCreatedInvoice.paymentReference||lastCreatedInvoice.num]
 	            ].map(([label,value])=>(
@@ -6003,18 +6067,28 @@ function InvoicesView({invoices,myStudents,schedule,students,isAdmin,invStu,setI
       )}
       <div className="card" style={{padding:24,overflow:'visible'}}>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:12,flexWrap:'wrap',marginBottom:16}}>
-          <div>
-            <h3>Genereeri arve</h3>
-            <div style={{fontSize:'.84rem',color:'#42536A',marginTop:4}}>
-              Vali õpilane, kontrolli summat ja kinnita arve enne loomist.
-            </div>
-          </div>
+	          <div>
+	            <h3>Genereeri arve</h3>
+	            <div style={{fontSize:'.84rem',color:'#42536A',marginTop:4}}>
+	              Vali, kas arve läheb õpilasele või otse lapsevanemale, kontrolli summat ja kinnita loomine.
+	            </div>
+	          </div>
           <span className="badge" style={{background:invoiceReady?'#dcfce7':'#fef3c7',color:invoiceReady?'#166534':'#92400e'}}>
             {invoiceReady?'Valmis loomiseks':'Vajab andmeid'}
           </span>
-        </div>
+	        </div>
 
-        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(130px,1fr))',gap:8,marginBottom:16}}>
+	        <div style={{display:'inline-flex',gap:6,padding:4,borderRadius:14,background:'#F3F4F6',border:'1px solid rgba(28,43,58,.08)',marginBottom:16}}>
+	          {[{id:'student',label:'Õpilane',icon:'fa-user-graduate'},{id:'parent',label:'Lapsevanem',icon:'fa-people-roof'}].map(item=>(
+	            <button key={item.id} type="button" onClick={()=>switchInvoiceTarget(item.id)}
+	              className="btn btn-sm"
+	              style={{background:invoiceTargetType===item.id?'#1C2B3A':'transparent',color:invoiceTargetType===item.id?'#fff':'#42536A',border:'none',boxShadow:'none'}}>
+	              <i className={`fa-solid ${item.icon}`}/> {item.label}
+	            </button>
+	          ))}
+	        </div>
+
+	        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(130px,1fr))',gap:8,marginBottom:16}}>
           {invoiceSteps.map(step=>(
             <button key={step.id} type="button" onClick={()=>setInvoiceStep(step.id)}
               className="btn btn-ghost btn-sm"
@@ -6029,62 +6103,109 @@ function InvoicesView({invoices,myStudents,schedule,students,isAdmin,invStu,setI
 
         <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))',gap:16,alignItems:'stretch'}}>
           <div style={{padding:16,borderRadius:14,background:'#F9F8F6',border:'1px solid rgba(28,43,58,.08)',minHeight:260,display:'flex',flexDirection:'column',gap:14}}>
-            {invoiceStep===1&&(
-              <React.Fragment>
-                <div>
-                  <div style={{fontSize:'.76rem',fontWeight:800,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em'}}>1. Õpilane</div>
-                  <div style={{fontSize:'.84rem',color:'#42536A',marginTop:4}}>Kirjuta nimi ja vali õige õpilane nimekirjast.</div>
-                </div>
-                <div style={{position:'relative',display:'flex',flexDirection:'column',gap:8}}>
-                  <input value={invoiceStudentQuery}
-                    onChange={e=>updateInvoiceStudentQuery(e.target.value)}
-                    onKeyDown={e=>{
-                      if(e.key==='Enter'&&filteredInvoiceStudents.length===1){
-                        e.preventDefault();
-                        chooseInvoiceStudent(filteredInvoiceStudents[0]);
-                        setInvoiceStep(2);
-                      }
-                    }}
-                    placeholder="Kirjuta õpilase nimi *"/>
-                  {selectedInvoiceStudent&&(
-                    <div style={{padding:'12px 14px',borderRadius:12,background:'#fff',border:'1px solid rgba(47,93,80,.18)',display:'flex',justifyContent:'space-between',gap:12,alignItems:'center'}}>
-                      <div>
-                        <div style={{fontWeight:800,color:'#1C2B3A'}}>{selectedInvoiceStudent.name}</div>
-                        <div style={{fontSize:'.78rem',color:'#42536A'}}>{selectedInvoiceStudent.parentName||selectedInvoiceStudent.email||selectedInvoiceStudent.phone||'Õpilane valitud'}</div>
-                      </div>
-                      <button type="button" onClick={()=>chooseInvoiceStudent(null)} className="btn btn-ghost btn-sm">Vaheta</button>
-                    </div>
-                  )}
-                  {invoiceStudentQuery.trim()&&!selectedInvoiceStudent&&(
-                    <div style={{position:'absolute',zIndex:20,top:'calc(100% + 6px)',left:0,right:0,background:'#fff',border:'1px solid rgba(28,43,58,.12)',borderRadius:12,boxShadow:'0 12px 28px rgba(28,43,58,.12)',overflow:'hidden'}}>
-                      {filteredInvoiceStudents.length===0
-                        ? <div style={{padding:'10px 12px',fontSize:'.82rem',color:'#991b1b'}}>Õpilast ei leitud</div>
-                        : filteredInvoiceStudents.map(s=>(
-                          <button key={s.id} type="button" onMouseDown={e=>{e.preventDefault();chooseInvoiceStudent(s);setInvoiceStep(2);}}
-                            style={{width:'100%',textAlign:'left',background:'#fff',border:'none',borderBottom:'1px solid rgba(28,43,58,.06)',padding:'10px 12px',cursor:'pointer'}}>
-                            <div style={{fontWeight:700,color:'#1C2B3A'}}>{s.name}</div>
-                            <div style={{fontSize:'.74rem',color:'#42536A'}}>{s.parentName||s.email||s.phone||'Õpilane'}</div>
-                          </button>
-                        ))}
-                    </div>
-                  )}
-                </div>
-              </React.Fragment>
-            )}
+	            {invoiceStep===1&&(
+	              <React.Fragment>
+	                <div>
+	                  <div style={{fontSize:'.76rem',fontWeight:800,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em'}}>
+	                    1. {invoiceTargetType==='parent'?'Lapsevanem':'Õpilane'}
+	                  </div>
+	                  <div style={{fontSize:'.84rem',color:'#42536A',marginTop:4}}>
+	                    {invoiceTargetType==='parent'
+	                      ? 'Kirjuta lapsevanema nimi või e-post ja vali õige profiil.'
+	                      : 'Kirjuta nimi ja vali õige õpilane nimekirjast.'}
+	                  </div>
+	                </div>
+	                {invoiceTargetType==='student' ? (
+	                  <div style={{position:'relative',display:'flex',flexDirection:'column',gap:8}}>
+	                    <input value={invoiceStudentQuery}
+	                      onChange={e=>updateInvoiceStudentQuery(e.target.value)}
+	                      onKeyDown={e=>{
+	                        if(e.key==='Enter'&&filteredInvoiceStudents.length===1){
+	                          e.preventDefault();
+	                          chooseInvoiceStudent(filteredInvoiceStudents[0]);
+	                          setInvoiceStep(2);
+	                        }
+	                      }}
+	                      placeholder="Kirjuta õpilase nimi *"/>
+	                    {selectedInvoiceStudent&&(
+	                      <div style={{padding:'12px 14px',borderRadius:12,background:'#fff',border:'1px solid rgba(47,93,80,.18)',display:'flex',justifyContent:'space-between',gap:12,alignItems:'center'}}>
+	                        <div>
+	                          <div style={{fontWeight:800,color:'#1C2B3A'}}>{selectedInvoiceStudent.name}</div>
+	                          <div style={{fontSize:'.78rem',color:'#42536A'}}>{selectedInvoiceStudent.parentName||selectedInvoiceStudent.email||selectedInvoiceStudent.phone||'Õpilane valitud'}</div>
+	                        </div>
+	                        <button type="button" onClick={()=>chooseInvoiceStudent(null)} className="btn btn-ghost btn-sm">Vaheta</button>
+	                      </div>
+	                    )}
+	                    {invoiceStudentQuery.trim()&&!selectedInvoiceStudent&&(
+	                      <div style={{position:'absolute',zIndex:20,top:'calc(100% + 6px)',left:0,right:0,background:'#fff',border:'1px solid rgba(28,43,58,.12)',borderRadius:12,boxShadow:'0 12px 28px rgba(28,43,58,.12)',overflow:'hidden'}}>
+	                        {filteredInvoiceStudents.length===0
+	                          ? <div style={{padding:'10px 12px',fontSize:'.82rem',color:'#991b1b'}}>Õpilast ei leitud</div>
+	                          : filteredInvoiceStudents.map(s=>(
+	                            <button key={s.id} type="button" onMouseDown={e=>{e.preventDefault();chooseInvoiceStudent(s);setInvoiceStep(2);}}
+	                              style={{width:'100%',textAlign:'left',background:'#fff',border:'none',borderBottom:'1px solid rgba(28,43,58,.06)',padding:'10px 12px',cursor:'pointer'}}>
+	                              <div style={{fontWeight:700,color:'#1C2B3A'}}>{s.name}</div>
+	                              <div style={{fontSize:'.74rem',color:'#42536A'}}>{s.parentName||s.email||s.phone||'Õpilane'}</div>
+	                            </button>
+	                          ))}
+	                      </div>
+	                    )}
+	                  </div>
+	                ) : (
+	                  <div style={{position:'relative',display:'flex',flexDirection:'column',gap:8}}>
+	                    <input value={invoiceParentQuery}
+	                      onChange={e=>updateInvoiceParentQuery(e.target.value)}
+	                      onKeyDown={e=>{
+	                        if(e.key==='Enter'&&filteredInvoiceParents.length===1){
+	                          e.preventDefault();
+	                          chooseInvoiceParent(filteredInvoiceParents[0]);
+	                          setInvoiceStep(2);
+	                        }
+	                      }}
+	                      placeholder="Kirjuta lapsevanema nimi või e-post *"/>
+	                    {selectedInvoiceParent&&(
+	                      <div style={{padding:'12px 14px',borderRadius:12,background:'#fff',border:'1px solid rgba(47,93,80,.18)',display:'flex',justifyContent:'space-between',gap:12,alignItems:'center'}}>
+	                        <div>
+	                          <div style={{fontWeight:800,color:'#1C2B3A'}}>{parentDisplayName(selectedInvoiceParent)}</div>
+	                          <div style={{fontSize:'.78rem',color:'#42536A'}}>{selectedInvoiceParent.email||selectedInvoiceParent.phone||'Lapsevanem valitud'}</div>
+	                        </div>
+	                        <button type="button" onClick={()=>chooseInvoiceParent(null)} className="btn btn-ghost btn-sm">Vaheta</button>
+	                      </div>
+	                    )}
+	                    {invoiceParentQuery.trim()&&!selectedInvoiceParent&&(
+	                      <div style={{position:'absolute',zIndex:20,top:'calc(100% + 6px)',left:0,right:0,background:'#fff',border:'1px solid rgba(28,43,58,.12)',borderRadius:12,boxShadow:'0 12px 28px rgba(28,43,58,.12)',overflow:'hidden'}}>
+	                        {filteredInvoiceParents.length===0
+	                          ? <div style={{padding:'10px 12px',fontSize:'.82rem',color:'#991b1b'}}>Lapsevanemat ei leitud</div>
+	                          : filteredInvoiceParents.map(parent=>(
+	                            <button key={parent.id} type="button" onMouseDown={e=>{e.preventDefault();chooseInvoiceParent(parent);setInvoiceStep(2);}}
+	                              style={{width:'100%',textAlign:'left',background:'#fff',border:'none',borderBottom:'1px solid rgba(28,43,58,.06)',padding:'10px 12px',cursor:'pointer'}}>
+	                              <div style={{fontWeight:700,color:'#1C2B3A'}}>{parentDisplayName(parent)}</div>
+	                              <div style={{fontSize:'.74rem',color:'#42536A'}}>{parent.email||parent.phone||parent.childName||'Lapsevanem'}</div>
+	                            </button>
+	                          ))}
+	                      </div>
+	                    )}
+	                  </div>
+	                )}
+	              </React.Fragment>
+	            )}
 
             {invoiceStep===2&&(
-              <React.Fragment>
-                <div>
-                  <div style={{fontSize:'.76rem',fontWeight:800,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em'}}>2. Summa ja kirjeldus</div>
-                  <div style={{fontSize:'.84rem',color:'#42536A',marginTop:4}}>Jäta summa tühjaks, kui tahad kasutada automaatset arvestust.</div>
-                </div>
-                {invoiceDraft.hasAuto
-                  ? <div style={{padding:'10px 12px',borderRadius:12,background:'#dcfce7',color:'#166534',fontWeight:700,fontSize:'.84rem'}}>
-                      Automaatne: {invoiceDraft.lessons} tundi x {money(invoiceDraft.lessonPrice)}€ = {money(invoiceDraft.autoAmount)}€
-                    </div>
-                  : <div style={{padding:'10px 12px',borderRadius:12,background:'#fef3c7',color:'#92400e',fontWeight:700,fontSize:'.84rem'}}>
-                      Lisa tunni hind või sisesta summa käsitsi.
-                    </div>}
+	              <React.Fragment>
+	                <div>
+	                  <div style={{fontSize:'.76rem',fontWeight:800,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em'}}>2. Summa ja kirjeldus</div>
+	                  <div style={{fontSize:'.84rem',color:'#42536A',marginTop:4}}>
+	                    {invoiceTargetType==='parent'
+	                      ? 'Sisesta summa käsitsi ja lisa vajadusel selgitav kirjeldus.'
+	                      : 'Jäta summa tühjaks, kui tahad kasutada automaatset arvestust.'}
+	                  </div>
+	                </div>
+	                {invoiceDraft.hasAuto
+	                  ? <div style={{padding:'10px 12px',borderRadius:12,background:'#dcfce7',color:'#166534',fontWeight:700,fontSize:'.84rem'}}>
+	                      Automaatne: {invoiceDraft.lessons} tundi x {money(invoiceDraft.lessonPrice)}€ = {money(invoiceDraft.autoAmount)}€
+	                    </div>
+	                  : <div style={{padding:'10px 12px',borderRadius:12,background:'#fef3c7',color:'#92400e',fontWeight:700,fontSize:'.84rem'}}>
+	                      {invoiceTargetType==='parent'?'Lapsevanema arvel on summa käsitsi sisestatav.':'Lisa tunni hind või sisesta summa käsitsi.'}
+	                    </div>}
                 <input type="number" value={invAmt} onChange={e=>setInvAmt(e.target.value)}
                   placeholder={invoiceDraft.hasAuto?`Automaatne ${money(invoiceDraft.autoAmount)}€`:'Summa (€) *'}/>
                 <input value={invDesc} onChange={e=>setInvDesc(e.target.value)}
@@ -6111,11 +6232,11 @@ function InvoicesView({invoices,myStudents,schedule,students,isAdmin,invStu,setI
                 <div>
                   <div style={{fontSize:'.76rem',fontWeight:800,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em'}}>4. Eelvaade</div>
                   <div style={{fontSize:'.84rem',color:'#42536A',marginTop:4}}>Kontrolli üle. Pärast loomist näeb pere arvet oma kabinetis.</div>
-                </div>
-                <div style={{padding:14,borderRadius:14,background:'#fff',border:'1px solid rgba(28,43,58,.08)',display:'grid',gap:8,fontSize:'.86rem'}}>
-                  <div><strong>Õpilane:</strong> {invoiceStudentCandidate?.name||'Valimata'}</div>
-                  <div><strong>Summa:</strong> {invoiceDraft.amount?money(invoiceDraft.amount)+'€':'Puudub'}</div>
-                  <div><strong>Kirjeldus:</strong> {invoiceDraft.desc||'Keeletunnid'}</div>
+	                </div>
+	                <div style={{padding:14,borderRadius:14,background:'#fff',border:'1px solid rgba(28,43,58,.08)',display:'grid',gap:8,fontSize:'.86rem'}}>
+	                  <div><strong>Saaja:</strong> {invoiceTargetName||'Valimata'} <span style={{color:'#42536A'}}>({invoiceTargetType==='parent'?'lapsevanem':'õpilane'})</span></div>
+	                  <div><strong>Summa:</strong> {invoiceDraft.amount?money(invoiceDraft.amount)+'€':'Puudub'}</div>
+	                  <div><strong>Kirjeldus:</strong> {invoiceDraft.desc||'Keeletunnid'}</div>
                   <div><strong>Selgitus:</strong> {invoiceReferencePreview}</div>
                   <div><strong>Tähtaeg:</strong> {invoicePaymentTermsLabel(invoiceDueDate())}</div>
                 </div>
@@ -6151,10 +6272,10 @@ function InvoicesView({invoices,myStudents,schedule,students,isAdmin,invStu,setI
             </div>
             <div style={{fontSize:'2rem',fontWeight:800,color:'#2F5D50'}}>
               {invoiceDraft.amount?money(invoiceDraft.amount)+'€':'—'}
-            </div>
-            <div style={{display:'grid',gap:8,fontSize:'.84rem',color:'#42536A'}}>
-              <div>Õpilane: <strong style={{color:'#1C2B3A'}}>{invoiceStudentCandidate?.name||'vali õpilane'}</strong></div>
-              <div>Kirjeldus: <strong style={{color:'#1C2B3A'}}>{invoiceDraft.desc||'Keeletunnid'}</strong></div>
+	            </div>
+	            <div style={{display:'grid',gap:8,fontSize:'.84rem',color:'#42536A'}}>
+	              <div>Saaja: <strong style={{color:'#1C2B3A'}}>{invoiceTargetName||`vali ${invoiceTargetType==='parent'?'lapsevanem':'õpilane'}`}</strong></div>
+	              <div>Kirjeldus: <strong style={{color:'#1C2B3A'}}>{invoiceDraft.desc||'Keeletunnid'}</strong></div>
               <div>Selgitus: <strong style={{color:'#1C2B3A'}}>{invoiceReferencePreview}</strong></div>
               <div>Maksetähtaeg: <strong style={{color:'#1C2B3A'}}>{invoicePaymentTermsLabel(invoiceDueDate())}</strong></div>
             </div>
@@ -6206,7 +6327,7 @@ function InvoicesView({invoices,myStudents,schedule,students,isAdmin,invStu,setI
             return (
             <div key={inv.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'14px 20px',borderBottom:'1px solid rgba(28,43,58,.05)',flexWrap:'wrap',gap:10}}>
               <div>
-                <div style={{fontWeight:600,fontSize:'.9rem'}}>{inv.num} · {inv.studentName}</div>
+	                <div style={{fontWeight:600,fontSize:'.9rem'}}>{inv.num} · {invoicePartyLabel(inv)}</div>
                 <div style={{fontSize:'.78rem',color:'#42536A'}}>{inv.desc} · {fmtDate(inv.date)} · tähtaeg {fmtDate(inv.due)}</div>
                 <div style={{fontSize:'.78rem',color:'#42536A',marginTop:3}}>Selgitus: <strong style={{color:'#1C2B3A'}}>{inv.paymentReference||inv.num}</strong></div>
                 {mailMeta&&(
@@ -7346,11 +7467,10 @@ function App() {
   useEffect(()=>{
     if(!user) return;
     const u1=db.collection('students').onSnapshot(s=>setStu(s.docs.map(d=>({id:d.id,...d.data()}))));
-    const u2=db.collection('lessons').onSnapshot(s=>setLes(s.docs.map(d=>({id:d.id,...d.data()}))));
-    const u3=db.collection('homework').onSnapshot(s=>setHw(s.docs.map(d=>({id:d.id,...d.data()}))));
-    const u4=db.collection('schedule').onSnapshot(s=>setSch(s.docs.map(d=>({id:d.id,...d.data()}))));
-    const u5=db.collection('invoices').onSnapshot(s=>setInv(s.docs.map(d=>({id:d.id,...d.data()}))));
-    const u6=db.collection('messages').onSnapshot(s=>setMessages(s.docs.map(d=>({id:d.id,...d.data()}))));
+	    const u2=db.collection('lessons').onSnapshot(s=>setLes(s.docs.map(d=>({id:d.id,...d.data()}))));
+	    const u3=db.collection('homework').onSnapshot(s=>setHw(s.docs.map(d=>({id:d.id,...d.data()}))));
+	    const u4=db.collection('schedule').onSnapshot(s=>setSch(s.docs.map(d=>({id:d.id,...d.data()}))));
+	    const u6=db.collection('messages').onSnapshot(s=>setMessages(s.docs.map(d=>({id:d.id,...d.data()}))));
     const u7=db.collection('groups').onSnapshot(
       s=>setGroups(s.docs.map(d=>({id:d.id,...d.data()}))),
       err=>{console.warn('Groups listener failed:',err);setGroups([]);}
@@ -7375,8 +7495,8 @@ function App() {
       s=>setAllWsAssignments(s.docs.map(d=>({id:d.id,...d.data()}))),
       err=>{console.warn('Worksheet assignments listener failed:',err);setAllWsAssignments([]);}
     );
-    return()=>{u1();u2();u3();u4();u5();u6();u7();u8();u9();u10();u11();};
-  },[user]);
+	    return()=>{u1();u2();u3();u4();u6();u7();u8();u9();u10();u11();};
+	  },[user]);
 
   const notify=msg=>{setNotif(msg);setTimeout(()=>setNotif(''),3500);};
   const markWsSeen=useCallback(async(assignmentId)=>{
@@ -7401,9 +7521,9 @@ function App() {
     if(user?.displayName) setTaskAssignee(canonicalTeacherName(user.displayName));
   },[user,canAssignTeacher]);
 
-  const myStudents = useMemo(()=>{
-    if(!user) return [];
-    const visibleStudents = students.filter(s=>s.active!==false && !s.convertedToParent);
+	  const myStudents = useMemo(()=>{
+	    if(!user) return [];
+	    const visibleStudents = students.filter(s=>s.active!==false && !s.convertedToParent);
     const uniqueStudents = items => {
       const seen = new Set();
       return items.filter(student=>{
@@ -7438,11 +7558,63 @@ function App() {
       });
       return uniqueStudents([...ownStudents,...childStudents]);
     }
-    if(isStudentUser) return ownStudents.length ? ownStudents : visibleStudents.filter(s=>normalizeText(s.name)===userName);
-    return visibleStudents.filter(s=>normalizeText(s.name)===userName);
-  },[user,students,isAdmin,isParentUser,isStudentUser]);
+	    if(isStudentUser) return ownStudents.length ? ownStudents : visibleStudents.filter(s=>normalizeText(s.name)===userName);
+	    return visibleStudents.filter(s=>normalizeText(s.name)===userName);
+	  },[user,students,isAdmin,isParentUser,isStudentUser]);
 
-  const parentAlerts = useMemo(()=>{
+	  useEffect(()=>{
+	    if(!user){setInv([]);return;}
+	    const mapDocs = snap => snap.docs.map(d=>({id:d.id,...d.data()}));
+	    const onError = err => {
+	      console.warn('Invoices listener failed:',err);
+	      setInv([]);
+	    };
+	    if(isStaff){
+	      return db.collection('invoices').onSnapshot(s=>setInv(mapDocs(s)),onError);
+	    }
+	    const specs = [];
+	    const addQuery = (key,query) => specs.push({key,query});
+	    const chunks = (items,size) => {
+	      const result = [];
+	      for(let i=0;i<items.length;i+=size) result.push(items.slice(i,i+size));
+	      return result;
+	    };
+	    const studentIds = [...new Set(myStudents.map(s=>s.id).filter(Boolean))];
+	    chunks(studentIds,10).forEach((ids,index)=>{
+	      addQuery(`student:${index}`,db.collection('invoices').where('studentId','in',ids));
+	    });
+	    const userId = user.uid || user.id || '';
+	    if(userId){
+	      addQuery('parentUid',db.collection('invoices').where('parentUid','==',userId));
+	      addQuery('linkedParentId',db.collection('invoices').where('linkedParentId','==',userId));
+	      addQuery('guardianUid',db.collection('invoices').where('guardianUid','==',userId));
+	    }
+	    const userEmailLower = normalizeText(user.email);
+	    if(userEmailLower){
+	      addQuery('parentEmailLower',db.collection('invoices').where('parentEmailLower','==',userEmailLower));
+	      addQuery('payerEmailLower',db.collection('invoices').where('payerEmailLower','==',userEmailLower));
+	      addQuery('parentEmail',db.collection('invoices').where('parentEmail','==',user.email));
+	      addQuery('payerEmail',db.collection('invoices').where('payerEmail','==',user.email));
+	    }
+	    if(!specs.length){setInv([]);return;}
+	    const docsByQuery = new Map();
+	    const pushMerged = () => {
+	      const merged = new Map();
+	      docsByQuery.forEach(list=>list.forEach(inv=>merged.set(inv.id,inv)));
+	      setInv([...merged.values()]);
+	    };
+	    const unsubs = specs.map(spec=>spec.query.onSnapshot(snap=>{
+	      docsByQuery.set(spec.key,mapDocs(snap));
+	      pushMerged();
+	    },err=>{
+	      console.warn(`Invoices listener failed (${spec.key}):`,err);
+	      docsByQuery.set(spec.key,[]);
+	      pushMerged();
+	    }));
+	    return()=>unsubs.forEach(unsub=>unsub&&unsub());
+	  },[user,isStaff,myStudents]);
+
+	  const parentAlerts = useMemo(()=>{
     if(!isAdmin) return [];
     return allUsers
       .filter(parent=>{
@@ -7538,12 +7710,16 @@ function App() {
   const stuMessages = useMemo(()=>currentStu?messages.filter(m=>
     m.studentId===currentStu.id || normalizeText(m.studentName)===normalizeText(currentStu.name)
   ):[],[currentStu,messages]);
-  const scopedInvoices = useMemo(()=>{
-    if(isAdmin) return invoices;
-    const myStudentIds = new Set(myStudents.map(s=>s.id));
-    const myStudentNames = new Set(myStudents.map(s=>normalizeText(s.name)));
-    return invoices.filter(inv=>myStudentIds.has(inv.studentId) || myStudentNames.has(normalizeText(inv.studentName)));
-  },[invoices,myStudents,isAdmin]);
+	  const scopedInvoices = useMemo(()=>{
+	    if(isAdmin) return invoices;
+	    const myStudentIds = new Set(myStudents.map(s=>s.id));
+	    const myStudentNames = new Set(myStudents.map(s=>normalizeText(s.name)));
+	    return invoices.filter(inv=>
+	      myStudentIds.has(inv.studentId) ||
+	      myStudentNames.has(normalizeText(inv.studentName)) ||
+	      invoiceMatchesParentProfile(inv,user)
+	    );
+	  },[invoices,myStudents,isAdmin,user]);
   const scopedParents = useMemo(()=>{
     const parentUsers = allUsers.filter(member=>hasUserRole(member,'parent'));
     if(isAdmin) return parentUsers;
@@ -8853,27 +9029,16 @@ function App() {
     setModalEv({...event,occurrenceDate:lessonDate,date:event.date||lessonDate,fileUrl:'',fileName:'',attachmentUrl:'',attachmentName:'',attachment:null,attachments:[],attachmentType:'',attachmentSize:0,attachmentRemoved:false});
   },[lessons,openLessonEditor]);
 
-  const addInvoice=useCallback(async(stuId)=>{
-    const sid=stuId||invStu;
-    if(!sid){notify('⚠ Vali õpilane');return;}
-    const stu=students.find(s=>s.id===sid);
-    const draft = invoiceDraftForStudent(stu,invAmt,invDesc);
-    if(!draft.amount){notify('⚠ Sisesta summa või määra õpilasele tunni hind ja arveldamata tunnid');return;}
+	  const addInvoice=useCallback(async(stuId,options={})=>{
+	    const targetType = options.targetType || 'student';
 	    const num=`KS-${new Date().getFullYear()}-${String(invoices.length+1).padStart(3,'0')}`;
 	    const due=invoiceDueDate();
 	    const paymentReference = String(invRef||'').trim() || num;
-	    const invoiceData = {
-	      studentId:sid,
-	      studentName:stu?.name||'—',
-	      amount:draft.amount,
-      desc:draft.desc,
-      lessonCount:draft.lessons||0,
-      lessonPrice:draft.lessonPrice||0,
-      autoGenerated:!draft.manualAmount&&draft.hasAuto,
-      num,
-      status:'Ootel',
-      date:today(),
-      due,
+	    const baseInvoiceData = {
+	      num,
+	      status:'Ootel',
+	      date:today(),
+	      due,
 	      paymentDueRule:PAYMENT_DETAILS.paymentDueRule||'monthly_10',
 	      parentPaymentStatus:'pending',
 	      parentPaymentMethod:'',
@@ -8887,9 +9052,74 @@ function App() {
 	      reminderCount:0,
 	      due10ReminderMonth:''
 	    };
+	    if(targetType==='parent'){
+	      const parent = options.parent;
+	      if(!parent?.id){notify('⚠ Vali lapsevanem');return;}
+	      const draft = invoiceDraftForStudent(null,invAmt,invDesc);
+	      if(!draft.amount){notify('⚠ Sisesta summa lapsevanema arvele');return;}
+	      const parentName = parentDisplayName(parent) || 'Lapsevanem';
+	      const parentEmail = parent.email || parent.parentEmail || '';
+	      const invoiceData = {
+	        ...baseInvoiceData,
+	        invoiceTargetType:'parent',
+	        studentId:'',
+	        studentName:'',
+	        parentUid:parent.id,
+	        linkedParentId:parent.id,
+	        guardianUid:'',
+	        parentName,
+	        parentEmail,
+	        parentEmailLower:normalizeText(parentEmail),
+	        payerName:parentName,
+	        payerEmail:parentEmail,
+	        payerEmailLower:normalizeText(parentEmail),
+	        amount:draft.amount,
+	        desc:draft.desc,
+	        lessonCount:0,
+	        lessonPrice:0,
+	        autoGenerated:false
+	      };
+	      const ref = await db.collection('invoices').add(invoiceData);
+	      const createdInvoice = {id:ref.id,...invoiceData};
+	      await logActivity('invoice.created','Loodi arve',{invoiceId:ref.id,invoiceTargetType:'parent',parentId:parent.id,parentName,amount:draft.amount,num,paymentReference});
+	      setInvAmt('');setInvDesc('');setInvRef('');setInvStu('');
+	      notify('✓ Arve '+num+' loodud!');
+	      return createdInvoice;
+	    }
+
+	    const sid=stuId||invStu;
+	    if(!sid){notify('⚠ Vali õpilane');return;}
+	    const stu=students.find(s=>s.id===sid);
+	    const draft = invoiceDraftForStudent(stu,invAmt,invDesc);
+	    if(!draft.amount){notify('⚠ Sisesta summa või määra õpilasele tunni hind ja arveldamata tunnid');return;}
+	    const parentUid = stu?.linkedParentId || stu?.parentUid || stu?.guardianUid || '';
+	    const parentName = stu?.parentName || stu?.guardianName || '';
+	    const parentEmail = stu?.parentEmail || stu?.contactEmail || stu?.guardianEmail || '';
+	    const payerName = stu?.payerName || stu?.companyName || parentName || stu?.name || '';
+	    const payerEmail = stu?.payerEmail || parentEmail || stu?.email || '';
+	    const invoiceData = {
+	      ...baseInvoiceData,
+	      invoiceTargetType:'student',
+	      studentId:sid,
+	      studentName:stu?.name||'—',
+	      parentUid,
+	      linkedParentId:stu?.linkedParentId || stu?.parentUid || '',
+	      guardianUid:stu?.guardianUid || '',
+	      parentName,
+	      parentEmail,
+	      parentEmailLower:normalizeText(parentEmail),
+	      payerName,
+	      payerEmail,
+	      payerEmailLower:normalizeText(payerEmail),
+	      amount:draft.amount,
+	      desc:draft.desc,
+	      lessonCount:draft.lessons||0,
+	      lessonPrice:draft.lessonPrice||0,
+	      autoGenerated:!draft.manualAmount&&draft.hasAuto
+	    };
 	    const ref = await db.collection('invoices').add(invoiceData);
 	    const createdInvoice = {id:ref.id,...invoiceData};
-	    await logActivity('invoice.created','Loodi arve',{invoiceId:ref.id,studentId:sid,studentName:stu?.name||'—',amount:draft.amount,num,paymentReference});
+	    await logActivity('invoice.created','Loodi arve',{invoiceId:ref.id,invoiceTargetType:'student',studentId:sid,studentName:stu?.name||'—',amount:draft.amount,num,paymentReference});
 	    // Reset lesson counter for this student
 	    await db.collection('students').doc(sid).update({lessonsSinceInvoice:0,lastInvoiceAt:today()});
 	    setInvAmt('');setInvDesc('');setInvRef('');setInvStu('');
@@ -9002,15 +9232,17 @@ function App() {
     notify('✓ Makseteavitus lähtestatud');
   },[]);
 
-  const printInvoice=useCallback(inv=>{
-    const stu=students.find(s=>s.id===inv.studentId);
-    const esc=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+	  const printInvoice=useCallback(inv=>{
+	    const stu=students.find(s=>s.id===inv.studentId);
+	    const isParentInvoice = invoiceIsParentTarget(inv);
+	    const esc=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
     const safeNum=esc(inv.num||'');
     const safeDue=esc(fmtDate(inv.due));
-    const amountValue = Number(inv.amount)||0;
-    const itemCount = Number(inv.lessonCount)||1;
-    const itemPrice = Number(inv.lessonPrice)||(itemCount?amountValue/itemCount:amountValue);
-    const itemName = inv.desc || (inv.lessonCount ? 'Keeletunnid' : 'Koolitus');
+	    const amountValue = Number(inv.amount)||0;
+	    const itemCount = Number(inv.lessonCount)||1;
+	    const itemPrice = Number(inv.lessonPrice)||(itemCount?amountValue/itemCount:amountValue);
+	    const itemUnit = Number(inv.lessonCount)>0 ? 'tund' : 'tk';
+	    const itemName = inv.desc || (inv.lessonCount ? 'Keeletunnid' : 'Koolitus');
     const sellerLines = [
       PAYMENT_DETAILS.company,
       `Reg. kood: ${PAYMENT_DETAILS.regCode}`,
@@ -9018,15 +9250,16 @@ function App() {
       PAYMENT_DETAILS.email ? `E-post: ${PAYMENT_DETAILS.email}` : '',
       `${PAYMENT_DETAILS.iban}, ${PAYMENT_DETAILS.bank}, SWIFT: ${PAYMENT_DETAILS.swift}`
     ].filter(Boolean);
-    const payerName = stu?.payerName || stu?.companyName || stu?.parentName || inv.payerName || inv.studentName || stu?.name || '—';
-    const payerRegCode = stu?.payerRegCode || stu?.companyRegCode || '';
-    const payerLines = [
-      payerName,
-      payerRegCode ? `Reg. kood: ${payerRegCode}` : '',
-      stu?.payerAddress || stu?.address || '',
-      stu?.parentEmail || stu?.contactEmail || stu?.guardianEmail || stu?.email || '',
-      stu?.phone ? `Tel: ${stu.phone}` : ''
-    ].filter(Boolean);
+	    const payerName = inv.payerName || inv.parentName || stu?.payerName || stu?.companyName || stu?.parentName || inv.studentName || stu?.name || '—';
+	    const payerRegCode = inv.payerRegCode || stu?.payerRegCode || stu?.companyRegCode || '';
+	    const payerEmail = inv.payerEmail || inv.parentEmail || stu?.parentEmail || stu?.contactEmail || stu?.guardianEmail || stu?.email || '';
+	    const payerLines = [
+	      payerName,
+	      payerRegCode ? `Reg. kood: ${payerRegCode}` : '',
+	      inv.payerAddress || inv.parentAddress || stu?.payerAddress || stu?.address || '',
+	      payerEmail,
+	      stu?.phone ? `Tel: ${stu.phone}` : ''
+	    ].filter(Boolean);
     const ones=['','üks','kaks','kolm','neli','viis','kuus','seitse','kaheksa','üheksa'];
     const teens=['kümme','üksteist','kaksteist','kolmteist','neliteist','viisteist','kuusteist','seitseteist','kaheksateist','üheksateist'];
     const underThousand=n=>{
@@ -9144,7 +9377,7 @@ function App() {
             <td class="center">1</td>
             <td class="center">1</td>
             <td>${esc(itemName)}</td>
-            <td class="center">tund</td>
+	            <td class="center">${esc(itemUnit)}</td>
             <td class="num">${esc(money(itemCount))}</td>
             <td class="num">${esc(money(itemPrice))}</td>
             <td class="num">${esc(money(amountValue))}</td>
@@ -9172,12 +9405,12 @@ function App() {
           <div>IBAN: ${esc(PAYMENT_DETAILS.iban)}</div>
           <div>Pank: ${esc(PAYMENT_DETAILS.bank)}</div>
           <div>SWIFT: ${esc(PAYMENT_DETAILS.swift)}</div>
-        </div>
-        <div class="box">
-          <div class="box-title">Õpilane</div>
-          <div>${esc(inv.studentName||stu?.name||'—')}</div>
-          ${stu?.subject?`<div class="muted">Õppeaine: ${esc(stu.subject)}</div>`:''}
-        </div>
+	        </div>
+	        <div class="box">
+	          <div class="box-title">${esc(isParentInvoice?'Arve saaja':'Õpilane')}</div>
+	          <div>${esc(invoicePartyLabel(inv)||stu?.name||'—')}</div>
+	          ${!isParentInvoice&&stu?.subject?`<div class="muted">Õppeaine: ${esc(stu.subject)}</div>`:''}
+	        </div>
       </div>
 
       <div class="signature">
@@ -9465,8 +9698,8 @@ function App() {
 
           {tab==='invoices'&&!isStaff&&<ParentInvoicesView invoices={scopedInvoices} printInvoice={printInvoice} submitParentPayment={submitParentPayment}/>}
 
-          {tab==='invoices'&&isStaff&&<InvoicesView invoices={scopedInvoices} myStudents={myStudents}
-            schedule={schedule} students={students} isAdmin={isAdmin}
+	          {tab==='invoices'&&isStaff&&<InvoicesView invoices={scopedInvoices} myStudents={myStudents} parents={scopedParents}
+	            schedule={schedule} students={students} isAdmin={isAdmin}
             invStu={invStu} setInvStu={setInvStu} invAmt={invAmt} setInvAmt={setInvAmt}
             invDesc={invDesc} setInvDesc={setInvDesc} invRef={invRef} setInvRef={setInvRef}
             addInvoice={addInvoice} markPaid={markPaid} unmarkPaid={unmarkPaid} deleteInvoice={deleteInvoice} printInvoice={printInvoice} updateInvoiceReference={updateInvoiceReference}

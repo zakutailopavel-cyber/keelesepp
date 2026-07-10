@@ -248,11 +248,23 @@ function invoiceRecipient(invoice, student) {
   );
 }
 
+function invoiceIsParentTarget(invoice) {
+  return invoice?.invoiceTargetType === "parent" || (!invoice?.studentId && Boolean(invoice?.parentUid || invoice?.linkedParentId || invoice?.parentName || invoice?.parentEmail || invoice?.payerName || invoice?.payerEmail));
+}
+
+function invoicePartyLabel(invoice, student) {
+  if (invoiceIsParentTarget(invoice)) {
+    return invoice.parentName || invoice.payerName || invoice.parentEmail || invoice.payerEmail || "lapsevanem";
+  }
+  return invoice.studentName || student?.name || "õpilane";
+}
+
 function composeInvoiceEmail(invoice, student, type = "invoice") {
   const amount = money(invoice.amount);
   const due = invoice.due || invoiceDueDate();
   const reference = invoice.paymentReference || invoice.num || "";
-  const studentName = invoice.studentName || student?.name || "õpilane";
+  const partyKind = invoiceIsParentTarget(invoice) ? "Lapsevanem" : "Õpilane";
+  const partyName = invoicePartyLabel(invoice, student);
   const desc = invoice.desc || "Keeletunnid";
   const isReminder = type === "reminder" || type === "due10";
   const subject = isReminder
@@ -269,7 +281,7 @@ function composeInvoiceEmail(invoice, student, type = "invoice") {
     intro,
     "",
     `Arve: ${invoice.num || ""}`,
-    `Õpilane: ${studentName}`,
+    `${partyKind}: ${partyName}`,
     `Kirjeldus: ${desc}`,
     `Summa: ${amount} EUR`,
     `Tähtaeg: ${formatEtDate(due)}`,
@@ -289,7 +301,7 @@ function composeInvoiceEmail(invoice, student, type = "invoice") {
       <p>${escapeHtml(intro)}</p>
       <table style="border-collapse:collapse;width:100%;margin:16px 0;background:#fff">
         <tr><td style="padding:8px;border:1px solid #e5e7eb;font-weight:700">Arve</td><td style="padding:8px;border:1px solid #e5e7eb">${escapeHtml(invoice.num || "")}</td></tr>
-        <tr><td style="padding:8px;border:1px solid #e5e7eb;font-weight:700">Õpilane</td><td style="padding:8px;border:1px solid #e5e7eb">${escapeHtml(studentName)}</td></tr>
+        <tr><td style="padding:8px;border:1px solid #e5e7eb;font-weight:700">${escapeHtml(partyKind)}</td><td style="padding:8px;border:1px solid #e5e7eb">${escapeHtml(partyName)}</td></tr>
         <tr><td style="padding:8px;border:1px solid #e5e7eb;font-weight:700">Kirjeldus</td><td style="padding:8px;border:1px solid #e5e7eb">${escapeHtml(desc)}</td></tr>
         <tr><td style="padding:8px;border:1px solid #e5e7eb;font-weight:700">Summa</td><td style="padding:8px;border:1px solid #e5e7eb">${escapeHtml(amount)} EUR</td></tr>
         <tr><td style="padding:8px;border:1px solid #e5e7eb;font-weight:700">Tähtaeg</td><td style="padding:8px;border:1px solid #e5e7eb">${escapeHtml(formatEtDate(due))}</td></tr>
@@ -409,6 +421,10 @@ async function sendInvoiceMessage(invoiceId, { type = "invoice", actor = null } 
       invoiceNum: invoice.num || "",
       studentId: invoice.studentId || "",
       studentName: invoice.studentName || student?.name || "",
+      invoiceTargetType: invoice.invoiceTargetType || (invoiceIsParentTarget(invoice) ? "parent" : "student"),
+      parentUid: invoice.parentUid || invoice.linkedParentId || "",
+      parentName: invoice.parentName || invoice.payerName || "",
+      parentEmail: invoice.parentEmail || invoice.payerEmail || "",
       createdByUid: actor?.decoded?.uid || "system",
       createdByEmail: actor?.decoded?.email || "system",
     });
