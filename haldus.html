@@ -155,7 +155,9 @@ const invoiceDueDate = (baseDate=new Date()) => {
 };
 const invoicePaymentTermsLabel = due => {
   const dueDay = Number(PAYMENT_DETAILS.paymentDueDay)||10;
-  return due ? `${fmtDate(due)} (${dueDay}. kuupäev)` : `${dueDay}. kuupäev`;
+  if(!due) return `${dueDay}. kuupäev`;
+  const selectedDay = Number(String(due).slice(8,10)) || dueDay;
+  return `${fmtDate(due)} (${selectedDay}. kuupäev)`;
 };
 const INVOICE_FUNCTIONS_BASE = 'https://us-central1-keelesepp-5136b.cloudfunctions.net/invoiceApi';
 const invoiceApiPost = async(path,body={}) => {
@@ -5141,7 +5143,7 @@ function SkillMapWidget({student, isTeacher, user}) {
 // ── ÕPILASE KAART ─────────────────────────────────────────────
 function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,setEditStu,toggleStudentActive,convertStudentToParent,
   hwTask,setHwTask,hwDue,setHwDue,hwFiles,setHwFiles,addHw,toggleHw,deleteHw,removeHwFile,
-  invAmt,setInvAmt,invDesc,setInvDesc,invRef,setInvRef,addInvoice,markPaid,unmarkPaid,deleteInvoice,printInvoice,submitParentPayment,resetParentPayment,updateInvoiceReference,sendInvoiceEmail,sendInvoiceReminder,invoiceEmailBusy,deleteLesson,openLessonEditor,
+  invAmt,setInvAmt,invDesc,setInvDesc,invRef,setInvRef,invDue,setInvDue,addInvoice,markPaid,unmarkPaid,deleteInvoice,printInvoice,submitParentPayment,resetParentPayment,updateInvoiceReference,updateInvoiceDue,sendInvoiceEmail,sendInvoiceReminder,invoiceEmailBusy,deleteLesson,openLessonEditor,
   schDate,setSchDate,schTime,setSchTime,schTeach,setSchTeach,schRecurring,setSchRecurring,addStudentSchedule,canAssignTeacher,
   stuMessages,teacherMessage,setTeacherMessage,sendTeacherMessage,notify,setAssignWsLesson}) {
   if(!currentStu) return <div style={{textAlign:'center',padding:60,color:'#42536A'}}>Õpilane ei leitud.</div>;
@@ -5527,6 +5529,8 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
                 placeholder={invoiceDraft.hasAuto?invoiceDraft.desc:'Kirjeldus'}/>
               <input value={invRef} onChange={e=>setInvRef(e.target.value)}
                 placeholder="Makse selgitus (vaikimisi arve nr)"/>
+              <input type="date" value={invDue||invoiceDueDate()} onChange={e=>setInvDue(e.target.value)}
+                title="Maksetähtaeg"/>
               <button onClick={()=>addInvoice(currentStu.id)} className="btn btn-pine" style={{justifyContent:'center'}}>
                 <i className="fa-solid fa-file-circle-plus"/> Genereeri arve
               </button>
@@ -5582,6 +5586,7 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
                   {inv.status==='Makstud'&&<button onClick={()=>unmarkPaid(inv.id)} className="btn btn-red btn-sm">Tühista makse</button>}
                   {inv.parentPaymentStatus==='submitted'&&inv.status!=='Makstud'&&<button onClick={()=>resetParentPayment(inv.id)} className="btn btn-ghost btn-sm">Lähtesta teavitus</button>}
                   <button onClick={()=>updateInvoiceReference(inv)} className="btn btn-ghost btn-sm">Muuda selgitust</button>
+                  {updateInvoiceDue&&<button onClick={()=>updateInvoiceDue(inv)} className="btn btn-ghost btn-sm">Muuda tähtaega</button>}
                   {sendInvoiceEmail&&(
                     <button onClick={()=>sendInvoiceEmail(inv)} className="btn btn-ghost btn-sm"
                       disabled={invoiceEmailBusy===`invoice:${inv.id}`}
@@ -5710,7 +5715,7 @@ function ParentInvoicesView({invoices,printInvoice,submitParentPayment}) {
 }
 
 // ── ARVED ÜLDVAADE ────────────────────────────────────────────
-function InvoicesView({invoices,myStudents,parents,schedule,students,isAdmin,invStu,setInvStu,invAmt,setInvAmt,invDesc,setInvDesc,invRef,setInvRef,addInvoice,markPaid,unmarkPaid,deleteInvoice,printInvoice,updateInvoiceReference,sendInvoiceEmail,sendInvoiceReminder,sendMonthlyInvoiceReminders,invoiceEmailBusy}) {
+function InvoicesView({invoices,myStudents,parents,schedule,students,isAdmin,invStu,setInvStu,invAmt,setInvAmt,invDesc,setInvDesc,invRef,setInvRef,invDue,setInvDue,addInvoice,markPaid,unmarkPaid,deleteInvoice,printInvoice,updateInvoiceReference,updateInvoiceDue,sendInvoiceEmail,sendInvoiceReminder,sendMonthlyInvoiceReminders,invoiceEmailBusy}) {
   const unpaidAmt=invoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+i.amount,0);
   const paid=invoices.filter(i=>i.status==='Makstud');
   const [statsPeriod,setStatsPeriod] = React.useState('current');
@@ -5889,17 +5894,21 @@ function InvoicesView({invoices,myStudents,parents,schedule,students,isAdmin,inv
   const [lastCreatedInvoice,setLastCreatedInvoice] = React.useState(null);
   const invoiceReady = Boolean(invoiceTargetReady && invoiceDraft.amount);
   const invoiceReferencePreview = String(invRef||'').trim() || 'Uue arve number';
+  const invoiceDuePreview = String(invDue||'').trim() || invoiceDueDate();
   const invoiceSteps = [
     {id:1,label:'Saaja',done:invoiceTargetReady},
     {id:2,label:'Summa',done:Boolean(invoiceDraft.amount)},
-    {id:3,label:'Selgitus',done:Boolean(invoiceReferencePreview)},
-    {id:4,label:'Eelvaade',done:invoiceReady}
+    {id:3,label:'Tähtaeg',done:Boolean(invoiceDuePreview)},
+    {id:4,label:'Selgitus',done:Boolean(invoiceReferencePreview)},
+    {id:5,label:'Eelvaade',done:invoiceReady}
   ];
   const invoiceCanGoNext = invoiceStep===1
     ? invoiceTargetReady
     : invoiceStep===2
       ? Boolean(invoiceDraft.amount)
-      : true;
+      : invoiceStep===3
+        ? Boolean(invoiceDuePreview)
+        : true;
   const createInvoiceFromWizard = async()=>{
     if(!invoiceTargetReady){setInvoiceStep(1);return;}
     if(!invoiceDraft.amount){setInvoiceStep(2);return;}
@@ -6216,7 +6225,21 @@ function InvoicesView({invoices,myStudents,parents,schedule,students,isAdmin,inv
             {invoiceStep===3&&(
               <React.Fragment>
                 <div>
-                  <div style={{fontSize:'.76rem',fontWeight:800,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em'}}>3. Makse selgitus</div>
+                  <div style={{fontSize:'.76rem',fontWeight:800,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em'}}>3. Maksetähtaeg</div>
+                  <div style={{fontSize:'.84rem',color:'#42536A',marginTop:4}}>Vali kuupäev, mis läheb arvele ja e-posti meeldetuletusse.</div>
+                </div>
+                <input type="date" value={invoiceDuePreview} onChange={e=>setInvDue(e.target.value)}/>
+                <div style={{padding:'10px 12px',borderRadius:12,background:'#fff',border:'1px solid rgba(28,43,58,.08)',fontSize:'.82rem',color:'#42536A',display:'flex',justifyContent:'space-between',gap:10,alignItems:'center',flexWrap:'wrap'}}>
+                  <span>Praegune tähtaeg: <strong style={{color:'#1C2B3A'}}>{invoicePaymentTermsLabel(invoiceDuePreview)}</strong></span>
+                  <button type="button" onClick={()=>setInvDue(invoiceDueDate())} className="btn btn-ghost btn-sm">10. kuupäev</button>
+                </div>
+              </React.Fragment>
+            )}
+
+            {invoiceStep===4&&(
+              <React.Fragment>
+                <div>
+                  <div style={{fontSize:'.76rem',fontWeight:800,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em'}}>4. Makse selgitus</div>
                   <div style={{fontSize:'.84rem',color:'#42536A',marginTop:4}}>See tekst läheb pangaülekande selgitusse. Tühjana kasutame arve numbrit.</div>
                 </div>
                 <input value={invRef} onChange={e=>setInvRef(e.target.value)}
@@ -6227,10 +6250,10 @@ function InvoicesView({invoices,myStudents,parents,schedule,students,isAdmin,inv
               </React.Fragment>
             )}
 
-            {invoiceStep===4&&(
+            {invoiceStep===5&&(
               <React.Fragment>
                 <div>
-                  <div style={{fontSize:'.76rem',fontWeight:800,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em'}}>4. Eelvaade</div>
+                  <div style={{fontSize:'.76rem',fontWeight:800,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em'}}>5. Eelvaade</div>
                   <div style={{fontSize:'.84rem',color:'#42536A',marginTop:4}}>Kontrolli üle. Pärast loomist näeb pere arvet oma kabinetis.</div>
 	                </div>
 	                <div style={{padding:14,borderRadius:14,background:'#fff',border:'1px solid rgba(28,43,58,.08)',display:'grid',gap:8,fontSize:'.86rem'}}>
@@ -6238,7 +6261,7 @@ function InvoicesView({invoices,myStudents,parents,schedule,students,isAdmin,inv
 	                  <div><strong>Summa:</strong> {invoiceDraft.amount?money(invoiceDraft.amount)+'€':'Puudub'}</div>
 	                  <div><strong>Kirjeldus:</strong> {invoiceDraft.desc||'Keeletunnid'}</div>
                   <div><strong>Selgitus:</strong> {invoiceReferencePreview}</div>
-                  <div><strong>Tähtaeg:</strong> {invoicePaymentTermsLabel(invoiceDueDate())}</div>
+                  <div><strong>Tähtaeg:</strong> {invoicePaymentTermsLabel(invoiceDuePreview)}</div>
                 </div>
               </React.Fragment>
             )}
@@ -6249,7 +6272,7 @@ function InvoicesView({invoices,myStudents,parents,schedule,students,isAdmin,inv
                 style={{opacity:invoiceStep===1 ? .55 : 1,cursor:invoiceStep===1?'not-allowed':'pointer'}}>
                 Tagasi
               </button>
-              {invoiceStep<4
+              {invoiceStep<5
                 ? <button type="button" onClick={()=>invoiceCanGoNext&&setInvoiceStep(invoiceStep+1)}
                     className="btn btn-pine btn-sm" disabled={!invoiceCanGoNext}
                     style={{opacity:invoiceCanGoNext?1:.55,cursor:invoiceCanGoNext?'pointer':'not-allowed'}}>
@@ -6274,10 +6297,10 @@ function InvoicesView({invoices,myStudents,parents,schedule,students,isAdmin,inv
               {invoiceDraft.amount?money(invoiceDraft.amount)+'€':'—'}
 	            </div>
 	            <div style={{display:'grid',gap:8,fontSize:'.84rem',color:'#42536A'}}>
-	              <div>Saaja: <strong style={{color:'#1C2B3A'}}>{invoiceTargetName||`vali ${invoiceTargetType==='parent'?'lapsevanem':'õpilane'}`}</strong></div>
+              <div>Saaja: <strong style={{color:'#1C2B3A'}}>{invoiceTargetName||`vali ${invoiceTargetType==='parent'?'lapsevanem':'õpilane'}`}</strong></div>
 	              <div>Kirjeldus: <strong style={{color:'#1C2B3A'}}>{invoiceDraft.desc||'Keeletunnid'}</strong></div>
               <div>Selgitus: <strong style={{color:'#1C2B3A'}}>{invoiceReferencePreview}</strong></div>
-              <div>Maksetähtaeg: <strong style={{color:'#1C2B3A'}}>{invoicePaymentTermsLabel(invoiceDueDate())}</strong></div>
+              <div>Maksetähtaeg: <strong style={{color:'#1C2B3A'}}>{invoicePaymentTermsLabel(invoiceDuePreview)}</strong></div>
             </div>
             <div style={{marginTop:'auto',padding:'10px 12px',borderRadius:12,background:'#fff',border:'1px solid rgba(28,43,58,.08)',fontSize:'.8rem',color:'#42536A'}}>
               Arve salvestatakse alles siis, kui vajutad viimasel sammul <strong>Genereeri arve</strong>.
@@ -6354,6 +6377,7 @@ function InvoicesView({invoices,myStudents,parents,schedule,students,isAdmin,inv
                   </>}
                 {inv.parentPaymentStatus==='submitted'&&inv.status!=='Makstud'&&<span className="badge" style={{background:'#dbeafe',color:'#1d4ed8'}}>Vanem teavitas maksest</span>}
                 <button onClick={()=>updateInvoiceReference(inv)} className="btn btn-ghost btn-sm">Muuda selgitust</button>
+                {updateInvoiceDue&&<button onClick={()=>updateInvoiceDue(inv)} className="btn btn-ghost btn-sm">Muuda tähtaega</button>}
                 {sendInvoiceEmail&&(
                   <button onClick={()=>sendInvoiceEmail(inv)} className="btn btn-ghost btn-sm"
                     disabled={invoiceEmailBusy===`invoice:${inv.id}`}
@@ -7416,6 +7440,7 @@ function App() {
   const [invAmt,setInvAmt]   = useState('');
   const [invDesc,setInvDesc] = useState('');
   const [invRef,setInvRef]   = useState('');
+  const [invDue,setInvDue]   = useState(()=>invoiceDueDate());
   const [invStu,setInvStu]   = useState('');
   const [invoiceEmailBusy,setInvoiceEmailBusy] = useState('');
   const [studentSort,setStudentSort] = useState('name_asc');
@@ -8355,7 +8380,7 @@ function App() {
     await db.collection('tasks').doc(task.id).delete();
     await logActivity('task.deleted','Kustutati ülesanne',{taskId:task.id,taskTitle:task.title||''});
     notify('✓ Ülesanne kustutatud');
-  },[logActivity]);
+  },[logActivity,notify]);
 
   const addSchedule=useCallback(async()=>{
     if(!schStu||!schDate){notify('⚠ Vali õpilane ja kuupäev');return;}
@@ -8824,7 +8849,7 @@ function App() {
     await db.collection('homework').doc(hw.id).delete();
     await logActivity('homework.deleted','Kustutati kodutöö',{homeworkId:hw.id,studentId:hw.studentId,studentName:hw.studentName});
     notify('✓ Kodutöö kustutatud');
-  },[logActivity]);
+  },[logActivity,notify]);
 
   const delSchedule=useCallback(async(id,e)=>{
     e.stopPropagation();
@@ -9032,7 +9057,7 @@ function App() {
 	  const addInvoice=useCallback(async(stuId,options={})=>{
 	    const targetType = options.targetType || 'student';
 	    const num=`KS-${new Date().getFullYear()}-${String(invoices.length+1).padStart(3,'0')}`;
-	    const due=invoiceDueDate();
+	    const due=String(invDue||'').trim() || invoiceDueDate();
 	    const paymentReference = String(invRef||'').trim() || num;
 	    const baseInvoiceData = {
 	      num,
@@ -9082,7 +9107,7 @@ function App() {
 	      const ref = await db.collection('invoices').add(invoiceData);
 	      const createdInvoice = {id:ref.id,...invoiceData};
 	      await logActivity('invoice.created','Loodi arve',{invoiceId:ref.id,invoiceTargetType:'parent',parentId:parent.id,parentName,amount:draft.amount,num,paymentReference});
-	      setInvAmt('');setInvDesc('');setInvRef('');setInvStu('');
+	      setInvAmt('');setInvDesc('');setInvRef('');setInvDue(invoiceDueDate());setInvStu('');
 	      notify('✓ Arve '+num+' loodud!');
 	      return createdInvoice;
 	    }
@@ -9122,10 +9147,10 @@ function App() {
 	    await logActivity('invoice.created','Loodi arve',{invoiceId:ref.id,invoiceTargetType:'student',studentId:sid,studentName:stu?.name||'—',amount:draft.amount,num,paymentReference});
 	    // Reset lesson counter for this student
 	    await db.collection('students').doc(sid).update({lessonsSinceInvoice:0,lastInvoiceAt:today()});
-	    setInvAmt('');setInvDesc('');setInvRef('');setInvStu('');
+	    setInvAmt('');setInvDesc('');setInvRef('');setInvDue(invoiceDueDate());setInvStu('');
 	    notify('✓ Arve '+num+' loodud!');
 	    return createdInvoice;
-	  },[invStu,invAmt,invDesc,invRef,invoices,students,logActivity]);
+	  },[invStu,invAmt,invDesc,invRef,invDue,invoices,students,logActivity]);
 
   const markPaid=useCallback(async id=>{
     await db.collection('invoices').doc(id).update({status:'Makstud',paidAt:today(),parentPaymentStatus:'confirmed'});
@@ -9163,6 +9188,22 @@ function App() {
     await logActivity('invoice.reference.updated','Arve makse selgitus muudeti',{invoiceId:inv.id,num:inv.num||'',paymentReference});
     notify('✓ Makse selgitus uuendatud');
   },[logActivity]);
+
+  const updateInvoiceDue=useCallback(async(inv)=>{
+    if(!inv?.id) return;
+    const current = inv.due || invoiceDueDate();
+    const next = window.prompt('Maksetähtaeg / срок оплаты (YYYY-MM-DD)', current);
+    if(next===null) return;
+    const due = String(next).trim();
+    const valid = /^\d{4}-\d{2}-\d{2}$/.test(due) && !Number.isNaN(new Date(`${due}T12:00:00`).getTime());
+    if(!valid){notify('⚠ Sisesta kuupäev kujul YYYY-MM-DD');return;}
+    await db.collection('invoices').doc(inv.id).update({
+      due,
+      due10ReminderMonth:''
+    });
+    await logActivity('invoice.due.updated','Arve maksetähtaeg muudeti',{invoiceId:inv.id,num:inv.num||'',due});
+    notify('✓ Maksetähtaeg uuendatud');
+  },[logActivity,notify]);
 
   const sendInvoiceEmail=useCallback(async(inv)=>{
     if(!inv?.id) return null;
@@ -9619,8 +9660,8 @@ function App() {
             convertStudentToParent={convertStudentToParent}
             hwTask={hwTask} setHwTask={setHwTask} hwDue={hwDue} setHwDue={setHwDue} hwFiles={hwFiles} setHwFiles={setHwFiles} addHw={addHw} toggleHw={toggleHw} deleteHw={deleteHw} removeHwFile={removeHwFile}
             invAmt={invAmt} setInvAmt={setInvAmt} invDesc={invDesc} setInvDesc={setInvDesc}
-            invRef={invRef} setInvRef={setInvRef}
-            addInvoice={addInvoice} markPaid={markPaid} unmarkPaid={unmarkPaid} deleteInvoice={deleteInvoice} printInvoice={printInvoice} submitParentPayment={submitParentPayment} resetParentPayment={resetParentPayment} updateInvoiceReference={updateInvoiceReference}
+            invRef={invRef} setInvRef={setInvRef} invDue={invDue} setInvDue={setInvDue}
+            addInvoice={addInvoice} markPaid={markPaid} unmarkPaid={unmarkPaid} deleteInvoice={deleteInvoice} printInvoice={printInvoice} submitParentPayment={submitParentPayment} resetParentPayment={resetParentPayment} updateInvoiceReference={updateInvoiceReference} updateInvoiceDue={updateInvoiceDue}
             sendInvoiceEmail={sendInvoiceEmail} sendInvoiceReminder={sendInvoiceReminder} invoiceEmailBusy={invoiceEmailBusy}
             deleteLesson={deleteLesson} openLessonEditor={openLessonEditor}
             schDate={schDate} setSchDate={setSchDate} schTime={schTime} setSchTime={setSchTime} schTeach={schTeach} setSchTeach={setSchTeach}
@@ -9701,8 +9742,8 @@ function App() {
 	          {tab==='invoices'&&isStaff&&<InvoicesView invoices={scopedInvoices} myStudents={myStudents} parents={scopedParents}
 	            schedule={schedule} students={students} isAdmin={isAdmin}
             invStu={invStu} setInvStu={setInvStu} invAmt={invAmt} setInvAmt={setInvAmt}
-            invDesc={invDesc} setInvDesc={setInvDesc} invRef={invRef} setInvRef={setInvRef}
-            addInvoice={addInvoice} markPaid={markPaid} unmarkPaid={unmarkPaid} deleteInvoice={deleteInvoice} printInvoice={printInvoice} updateInvoiceReference={updateInvoiceReference}
+            invDesc={invDesc} setInvDesc={setInvDesc} invRef={invRef} setInvRef={setInvRef} invDue={invDue} setInvDue={setInvDue}
+            addInvoice={addInvoice} markPaid={markPaid} unmarkPaid={unmarkPaid} deleteInvoice={deleteInvoice} printInvoice={printInvoice} updateInvoiceReference={updateInvoiceReference} updateInvoiceDue={updateInvoiceDue}
             sendInvoiceEmail={sendInvoiceEmail} sendInvoiceReminder={sendInvoiceReminder} sendMonthlyInvoiceReminders={sendMonthlyInvoiceReminders} invoiceEmailBusy={invoiceEmailBusy}/>}
 
           {tab==='activity'&&isStaff&&<ActivityLogView logs={scopedActivityLog} isAdmin={isAdmin}/>}
