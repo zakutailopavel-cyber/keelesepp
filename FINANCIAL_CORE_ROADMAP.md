@@ -28,8 +28,8 @@ retries are possible, and represented in an immutable audit trail.
 |---|---|---|
 | 1. Payment register | Separate payments, invoice balances, partial payments, overpayments, immutable audit | Done in PR #3 |
 | 2. Bank allocation | Normalized bank transactions, one transaction split across invoices, residual payer credits | Done in PR #4 |
-| 3. Credit and corrections | Apply payer credits to invoices; void one payment and restore its source without touching unrelated payments | In progress |
-| 4. Lesson billing | Link invoice lines to exact lessons and cancellation rules; prevent double billing | Next |
+| 3. Credit and corrections | Apply payer credits to invoices; void one payment and restore its source without touching unrelated payments | Done in PR #5 |
+| 4. Lesson billing | Link invoice lines to exact lessons and cancellation rules; prevent double billing | In progress |
 | 5. Tariffs and packages | Versioned prices, group/individual packages, discounts, family/employer/Töötukassa payer models | Planned |
 | 6. Teacher payroll | Rate history, delivered hours, group rules, substitutions, bonuses, payroll review and lock | Planned |
 | 7. Expenses and suppliers | Expense categories, supplier invoices, receipts, VAT metadata, recurring costs | Planned |
@@ -37,7 +37,7 @@ retries are possible, and represented in an immutable audit trail.
 | 9. Accounting export | Accountant-ready CSV/API export, attachments, payment and invoice ledgers | Planned |
 | 10. Financial analytics | Cash flow, aged debt, revenue by course/group, margin after payroll and expenses | Planned |
 
-## Stage 3 — current definition of done
+## Stage 3 — definition of done
 
 - An administrator can apply one payer credit across one or more open invoices.
 - Credit application and every resulting invoice payment happen atomically.
@@ -49,7 +49,7 @@ retries are possible, and represented in an immutable audit trail.
 - Every operation requires a reason where it is a correction and writes immutable audit data.
 - Existing invoices, payments, reconciliation, and legacy paid flags remain readable.
 
-## Next vertical slice: lesson-to-invoice linkage
+## Stage 4 — lesson-to-invoice linkage
 
 The next PR should add billable lesson records without replacing the calendar:
 
@@ -62,6 +62,15 @@ The next PR should add billable lesson records without replacing the calendar:
 5. Preserve the current `lessonsSinceInvoice × lessonPrice` calculation only as
    a migration fallback.
 6. Add correction entries instead of silently changing already issued invoice lines.
+
+The first Stage 4 slice creates automatic student invoices from exact completed,
+unbilled lesson documents. The invoice stores dated immutable lines and the same
+transaction marks every source lesson as invoiced. Manual and parent invoices
+remain available as a migration fallback.
+
+The following Stage 4 slice will add explicit cancellation billing states and
+correction/credit invoice documents. Until that correction flow exists, invoices
+linked to lessons are intentionally not directly deletable.
 
 ## Following slice: tariffs and packages
 

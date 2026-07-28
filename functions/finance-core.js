@@ -139,6 +139,99 @@ function creditAfterRestoration(credit = {}, restoredAmountCents, nowIso, { reve
   };
 }
 
+function buildLessonInvoiceLines(lessons = [], lessonPrice) {
+  if (!Array.isArray(lessons) || lessons.length === 0) {
+    const error = new Error("at least one lesson required");
+    error.status = 400;
+    throw error;
+  }
+  if (lessons.length > 100) {
+    const error = new Error("at most 100 lessons are allowed per invoice");
+    error.status = 400;
+    throw error;
+  }
+  const unitPriceCents = toCents(lessonPrice, "lesson price");
+  const seen = new Set();
+  const lines = lessons.map((lesson, index) => {
+    const lessonId = String(lesson?.id || "").trim();
+    if (!lessonId) {
+      const error = new Error(`lessons[${index}].id required`);
+      error.status = 400;
+      throw error;
+    }
+    if (seen.has(lessonId)) {
+      const error = new Error(`lesson ${lessonId} is included more than once`);
+      error.status = 400;
+      throw error;
+    }
+    seen.add(lessonId);
+    if (lesson.status !== "Toimunud") {
+      const error = new Error(`lesson ${lessonId} is not completed`);
+      error.status = 409;
+      throw error;
+    }
+    if (
+      (lesson.billingStatus && lesson.billingStatus !== "unbilled")
+      || String(lesson.invoiceId || "").trim()
+    ) {
+      const error = new Error(`lesson ${lessonId} is already billed or excluded`);
+      error.status = 409;
+      throw error;
+    }
+    const date = String(lesson.date || "").slice(0, 10);
+    const parsedDate = new Date(`${date}T12:00:00.000Z`);
+    if (
+      !/^\d{4}-\d{2}-\d{2}$/.test(date)
+      || Number.isNaN(parsedDate.getTime())
+      || parsedDate.toISOString().slice(0, 10) !== date
+    ) {
+      const error = new Error(`lesson ${lessonId} has an invalid date`);
+      error.status = 409;
+      throw error;
+    }
+    return {
+      lessonId,
+      date,
+      description: `Keeletund${date ? ` ${date}` : ""}`,
+      quantity: 1,
+      unit: "tund",
+      unitPriceCents,
+      unitPrice: centsToAmount(unitPriceCents),
+      amountCents: unitPriceCents,
+      amount: centsToAmount(unitPriceCents),
+    };
+  }).sort((a, b) => `${a.date}:${a.lessonId}`.localeCompare(`${b.date}:${b.lessonId}`));
+  const amountCents = lines.reduce((sum, line) => sum + line.amountCents, 0);
+  return {
+    lines,
+    lessonIds: lines.map(line => line.lessonId),
+    lessonCount: lines.length,
+    lessonPriceCents: unitPriceCents,
+    lessonPrice: centsToAmount(unitPriceCents),
+    amountCents,
+    amount: centsToAmount(amountCents),
+  };
+}
+
+function selectBillableLessons(lessons = [], lessonsSinceInvoice) {
+  const candidates = (Array.isArray(lessons) ? lessons : [])
+    .filter(lesson =>
+      lesson?.status === "Toimunud"
+      && (!lesson.billingStatus || lesson.billingStatus === "unbilled")
+      && !String(lesson.invoiceId || "").trim(),
+    )
+    .sort((a, b) => `${a.date || ""}:${a.id || ""}`.localeCompare(`${b.date || ""}:${b.id || ""}`));
+  const explicit = candidates.filter(lesson => lesson.billingStatus === "unbilled");
+  const legacy = candidates.filter(lesson => !lesson.billingStatus);
+  const legacyCount = lessonsSinceInvoice === undefined || lessonsSinceInvoice === null
+    ? legacy.length
+    : Math.max(0, Number(lessonsSinceInvoice) || 0);
+  const selectedLegacy = legacy.slice(Math.max(0, legacy.length - legacyCount));
+  return [...explicit, ...selectedLegacy]
+    .filter((lesson, index, list) => list.findIndex(item => item.id === lesson.id) === index)
+    .sort((a, b) => `${a.date || ""}:${a.id || ""}`.localeCompare(`${b.date || ""}:${b.id || ""}`));
+}
+
 function invoiceFinancialPatch(invoice, payments, nowIso) {
   const amountCents = invoiceAmountCents(invoice);
   const paidAmountCents = activePaymentTotalCents(payments);
@@ -173,11 +266,13 @@ function invoiceFinancialPatch(invoice, payments, nowIso) {
 
 module.exports = {
   activePaymentTotalCents,
+  buildLessonInvoiceLines,
   centsToAmount,
   creditAfterApplication,
   creditAfterRestoration,
   invoiceAmountCents,
   invoiceFinancialPatch,
   normalizeAllocations,
+  selectBillableLessons,
   toCents,
 };

@@ -222,8 +222,29 @@ const invoiceMatchesParentProfile = (inv,parent) => {
   return (parentId && [inv.parentUid,inv.linkedParentId,inv.guardianUid].includes(parentId)) ||
     (parentEmail && [inv.parentEmailLower,inv.payerEmailLower,normalizeText(inv.parentEmail),normalizeText(inv.payerEmail)].includes(parentEmail));
 };
-const invoiceDraftForStudent = (student, amountInput='', descInput='') => {
-  const lessons = Math.max(0, Number(student?.lessonsSinceInvoice)||0);
+const billableLessonsForStudent = (lessonRecords,student) => {
+  const studentId = typeof student==='string' ? student : student?.id;
+  const candidates = (lessonRecords||[])
+    .filter(lesson=>
+      lesson.studentId===studentId &&
+      lesson.status==='Toimunud' &&
+      (!lesson.billingStatus||lesson.billingStatus==='unbilled') &&
+      !lesson.invoiceId
+    )
+    .sort((a,b)=>`${a.date||''}:${a.id||''}`.localeCompare(`${b.date||''}:${b.id||''}`));
+  if(typeof student==='string'||!student) return candidates;
+  const explicit = candidates.filter(lesson=>lesson.billingStatus==='unbilled');
+  const legacy = candidates.filter(lesson=>!lesson.billingStatus);
+  const hasLegacyCounter = Object.prototype.hasOwnProperty.call(student,'lessonsSinceInvoice');
+  const legacyCount = hasLegacyCounter ? Math.max(0,Number(student.lessonsSinceInvoice)||0) : legacy.length;
+  const selectedLegacy = legacy.slice(Math.max(0,legacy.length-legacyCount));
+  return [...explicit,...selectedLegacy]
+    .filter((lesson,index,list)=>list.findIndex(item=>item.id===lesson.id)===index)
+    .sort((a,b)=>`${a.date||''}:${a.id||''}`.localeCompare(`${b.date||''}:${b.id||''}`));
+};
+const invoiceDraftForStudent = (student, amountInput='', descInput='', lessonRecords=null) => {
+  const billableLessons = Array.isArray(lessonRecords) ? lessonRecords : null;
+  const lessons = billableLessons ? billableLessons.length : Math.max(0, Number(student?.lessonsSinceInvoice)||0);
   const lessonPrice = Math.max(0, Number(student?.lessonPrice)||0);
   const autoAmount = lessons>0&&lessonPrice>0 ? Math.round(lessons*lessonPrice*100)/100 : 0;
   const manualProvided = String(amountInput??'').trim()!=='';
@@ -236,7 +257,17 @@ const invoiceDraftForStudent = (student, amountInput='', descInput='') => {
     ? `${lessons} keeletundi x ${money(lessonPrice)}€`
     : 'Keeletunnid';
   const desc = String(descInput||'').trim()||autoDesc;
-  return {lessons,lessonPrice,autoAmount,manualAmount,amount,desc,hasAuto:autoAmount>0};
+  return {
+    lessons,
+    lessonPrice,
+    autoAmount,
+    manualProvided,
+    manualAmount,
+    amount,
+    desc,
+    hasAuto:autoAmount>0,
+    lessonIds:billableLessons ? billableLessons.map(lesson=>lesson.id) : []
+  };
 };
 function CollapsibleCard({id,title,subtitle,badge,children,defaultCollapsed=false,style={},bodyStyle={},titleColor='#1C2B3A'}) {
   const storageKey = `keelesepp:collapse:${id}`;
@@ -303,6 +334,7 @@ function LessonDetailsPanel({lesson,homeworkItems=[]}) {
         </div>
         <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap',justifyContent:'flex-end'}}>
           <span className="badge" style={{background:'#dcfce7',color:'#166534'}}>{statusLabel}</span>
+          {lesson.invoiceId&&<span className="badge" style={{background:'#ede9fe',color:'#6d28d9'}}>Arvel {lesson.invoiceNum||''}</span>}
           {lesson.status==='Toimunud'&&lesson.grade>0&&<span className="badge" style={{background:'rgba(201,136,42,.12)',color:'#A96E1A'}}>Hinne {lesson.grade}</span>}
           {lesson.duration&&<span className="badge" style={{background:'#e0f2fe',color:'#075985'}}>{lesson.duration} min</span>}
         </div>
@@ -5186,7 +5218,13 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
   const [paymentChoices,setPaymentChoices] = React.useState({});
   const [copiedPaymentKey,setCopiedPaymentKey] = React.useState('');
   const [exerciseResults,setExerciseResults] = React.useState([]);
-  const invoiceDraft = invoiceDraftForStudent(currentStu,invAmt,invDesc);
+  const currentBillableLessons = billableLessonsForStudent(stuLessons,currentStu);
+  const invoiceDraft = invoiceDraftForStudent(
+    currentStu,
+    invAmt,
+    invDesc,
+    currentBillableLessons
+  );
   const unpaidStudentInvoices = stuInv.filter(inv=>inv.status==='Ootel');
   const unpaidStudentAmount = unpaidStudentInvoices.reduce((sum,inv)=>sum+(Number(inv.amount)||0),0);
   React.useEffect(()=>{
@@ -5490,8 +5528,13 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
                       <span style={{fontWeight:600,fontSize:'.88rem',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{l.topic}</span>
                       <div style={{display:'flex',alignItems:'center',gap:6,flexShrink:0}}>
                         <span className="badge" style={{background:b.bg,color:b.c,fontSize:'.68rem'}}>{b.t}</span>
+                        {l.invoiceId&&<span className="badge" style={{background:'#ede9fe',color:'#6d28d9',fontSize:'.68rem'}}>Arvel {l.invoiceNum||''}</span>}
+                        {invoiceDraft.lessonIds.includes(l.id)&&<span className="badge" style={{background:'#fef3c7',color:'#92400e',fontSize:'.68rem'}}>Arveldamata</span>}
                         {canManage&&<button onClick={()=>openLessonEditor(l)} className="btn btn-dark btn-sm" style={{padding:'4px 8px'}}>Muuda</button>}
-                        {canManage&&<button onClick={()=>deleteLesson(l)} className="btn btn-ghost btn-sm" style={{padding:'4px 8px'}}>Kustuta</button>}
+                        {canManage&&<button onClick={()=>l.invoiceId?notify('⚠ Arvega seotud tundi ei saa kustutada'):deleteLesson(l)}
+                          className="btn btn-ghost btn-sm" style={{padding:'4px 8px',opacity:l.invoiceId?.55:1}}>
+                          {l.invoiceId?'Arvel':'Kustuta'}
+                        </button>}
                       </div>
                     </div>
                     {l.comment&&<div style={{fontSize:'.78rem',color:'#42536A',marginBottom:3}}>{l.comment}</div>}
@@ -5746,7 +5789,7 @@ function ParentInvoicesView({invoices,printInvoice,submitParentPayment}) {
 }
 
 // ── ARVED ÜLDVAADE ────────────────────────────────────────────
-function InvoicesView({invoices,payments,myStudents,parents,schedule,students,isAdmin,invStu,setInvStu,invAmt,setInvAmt,invDesc,setInvDesc,invRef,setInvRef,invDue,setInvDue,addInvoice,recordPayment,markPaid,unmarkPaid,voidPayment,deleteInvoice,printInvoice,updateInvoiceReference,updateInvoiceDue,sendInvoiceEmail,sendInvoiceReminder,sendMonthlyInvoiceReminders,invoiceEmailBusy}) {
+function InvoicesView({invoices,payments,myStudents,parents,schedule,students,lessons,isAdmin,invStu,setInvStu,invAmt,setInvAmt,invDesc,setInvDesc,invRef,setInvRef,invDue,setInvDue,addInvoice,recordPayment,markPaid,unmarkPaid,voidPayment,deleteInvoice,printInvoice,updateInvoiceReference,updateInvoiceDue,sendInvoiceEmail,sendInvoiceReminder,sendMonthlyInvoiceReminders,invoiceEmailBusy}) {
   const unpaidAmt=invoices.filter(i=>i.status==='Ootel').reduce((sum,inv)=>sum+invoiceFinancialSummary(inv).balance,0);
   const paid=invoices.filter(i=>i.status==='Makstud');
   const [statsPeriod,setStatsPeriod] = React.useState('current');
@@ -5891,7 +5934,15 @@ function InvoicesView({invoices,payments,myStudents,parents,schedule,students,is
   const invoiceTargetName = invoiceTargetType==='parent'
     ? (invoiceParentCandidate ? parentDisplayName(invoiceParentCandidate) : '')
     : (invoiceStudentCandidate?.name||'');
-  const invoiceDraft = invoiceDraftForStudent(invoiceTargetType==='student'?invoiceStudentCandidate:null,invAmt,invDesc);
+  const selectedBillableLessons = invoiceTargetType==='student'&&invoiceStudentCandidate
+    ? billableLessonsForStudent(lessons,invoiceStudentCandidate)
+    : [];
+  const invoiceDraft = invoiceDraftForStudent(
+    invoiceTargetType==='student'?invoiceStudentCandidate:null,
+    invAmt,
+    invDesc,
+    invoiceTargetType==='student'?selectedBillableLessons:null
+  );
   const chooseInvoiceStudent = student => {
     setInvStu(student?.id||'');
     setInvoiceStudentQuery(student?.name||'');
@@ -6241,11 +6292,17 @@ function InvoicesView({invoices,payments,myStudents,parents,schedule,students,is
 	                </div>
 	                {invoiceDraft.hasAuto
 	                  ? <div style={{padding:'10px 12px',borderRadius:12,background:'#dcfce7',color:'#166534',fontWeight:700,fontSize:'.84rem'}}>
-	                      Automaatne: {invoiceDraft.lessons} tundi x {money(invoiceDraft.lessonPrice)}€ = {money(invoiceDraft.autoAmount)}€
+	                      Automaatne: {invoiceDraft.lessons} lõpetatud arveldamata tundi x {money(invoiceDraft.lessonPrice)}€ = {money(invoiceDraft.autoAmount)}€
 	                    </div>
 	                  : <div style={{padding:'10px 12px',borderRadius:12,background:'#fef3c7',color:'#92400e',fontWeight:700,fontSize:'.84rem'}}>
 	                      {invoiceTargetType==='parent'?'Lapsevanema arvel on summa käsitsi sisestatav.':'Lisa tunni hind või sisesta summa käsitsi.'}
 	                    </div>}
+                {invoiceTargetType==='student'&&selectedBillableLessons.length>0&&(
+                  <div style={{padding:'10px 12px',borderRadius:12,background:'#fff',border:'1px solid rgba(47,93,80,.14)',fontSize:'.78rem',color:'#42536A'}}>
+                    <strong style={{color:'#1C2B3A'}}>Arve tunnid:</strong>{' '}
+                    {selectedBillableLessons.map(lesson=>fmtDate(lesson.date)).join(', ')}
+                  </div>
+                )}
                 <input type="number" value={invAmt} onChange={e=>setInvAmt(e.target.value)}
                   placeholder={invoiceDraft.hasAuto?`Automaatne ${money(invoiceDraft.autoAmount)}€`:'Summa (€) *'}/>
                 <input value={invDesc} onChange={e=>setInvDesc(e.target.value)}
@@ -6385,6 +6442,11 @@ function InvoicesView({invoices,payments,myStudents,parents,schedule,students,is
               <div>
 	                <div style={{fontWeight:600,fontSize:'.9rem'}}>{inv.num} · {invoicePartyLabel(inv)}</div>
                 <div style={{fontSize:'.78rem',color:'#42536A'}}>{inv.desc} · {fmtDate(inv.date)} · tähtaeg {fmtDate(inv.due)}</div>
+                {Array.isArray(inv.lines)&&inv.lines.length>0&&(
+                  <div style={{fontSize:'.74rem',color:'#2F5D50',marginTop:3,fontWeight:700}}>
+                    {inv.lines.length} arveldatud tundi · {inv.lines.map(line=>fmtDate(line.date)).join(', ')}
+                  </div>
+                )}
                 <div style={{fontSize:'.78rem',color:'#42536A',marginTop:3}}>Selgitus: <strong style={{color:'#1C2B3A'}}>{inv.paymentReference||inv.num}</strong></div>
                 {mailMeta&&(
                   <div style={{fontSize:'.76rem',color:mailMeta.color,marginTop:4,fontWeight:700}}>
@@ -9624,6 +9686,10 @@ function App() {
 
   const deleteLesson=useCallback(async(lesson)=>{
     if(!lesson?.id) return;
+    if(lesson.invoiceId){
+      notify(`⚠ Tund on seotud arvega ${lesson.invoiceNum||lesson.invoiceId} ja seda ei saa kustutada.`);
+      return;
+    }
     if(!window.confirm('Kustuta see päeviku sissekanne?')) return;
     await db.collection('lessons').doc(lesson.id).delete();
     if(lesson.studentId && lesson.studentId!=='ext' && lesson.status==='Toimunud'){
@@ -9640,7 +9706,7 @@ function App() {
       await db.collection('schedule').doc(lesson.scheduleId).update({status:'Planeeritud'});
     }
     notify('✓ Tunni sissekanne kustutatud');
-  },[]);
+  },[notify]);
 
   const openLessonEditor=useCallback(async(lesson)=>{
     if(!lesson) return;
@@ -9719,6 +9785,41 @@ function App() {
 
 	  const addInvoice=useCallback(async(stuId,options={})=>{
 	    const targetType = options.targetType || 'student';
+	    if(targetType==='student'){
+	      const automaticStudentId=stuId||invStu;
+	      const automaticStudent=students.find(student=>student.id===automaticStudentId);
+	      const automaticLessons=billableLessonsForStudent(lessons,automaticStudent);
+	      const automaticDraft=invoiceDraftForStudent(automaticStudent,invAmt,invDesc,automaticLessons);
+	      if(isAdmin&&automaticStudentId&&!automaticDraft.manualProvided&&automaticDraft.hasAuto&&automaticDraft.lessonIds.length){
+	        try{
+	          const result=await financeApiPost('/invoices/from-lessons',{
+	            studentId:automaticStudentId,
+	            lessonIds:automaticDraft.lessonIds,
+	            due:String(invDue||'').trim()||invoiceDueDate(),
+	            description:automaticDraft.desc,
+	            paymentReference:String(invRef||'').trim(),
+	            requestId:financeRequestId('lessoninvoice')
+	          });
+	          const createdInvoice=result?.invoice;
+	          if(!createdInvoice) throw new Error('Arve vastus puudub');
+	          await logActivity('invoice.created_from_lessons','Loodi arve lõpetatud tundidest',{
+	            invoiceId:createdInvoice.id,
+	            studentId:automaticStudentId,
+	            studentName:automaticStudent?.name||'—',
+	            lessonIds:automaticDraft.lessonIds,
+	            amount:createdInvoice.amount,
+	            num:createdInvoice.num
+	          });
+	          setInvAmt('');setInvDesc('');setInvRef('');setInvDue(invoiceDueDate());setInvStu('');
+	          notify(`✓ Arve ${createdInvoice.num} loodud ${automaticDraft.lessonIds.length} tunni eest!`);
+	          return createdInvoice;
+	        }catch(err){
+	          console.error('Lesson invoice creation failed:',err);
+	          notify(`⚠ Tundide arve loomine ebaõnnestus: ${err.message||err}`);
+	          return null;
+	        }
+	      }
+	    }
 	    // Номер счёта берётся из транзакционного счётчика meta/invoiceCounter,
 	    // а не из invoices.length — тот давал одинаковые номера при
 	    // одновременном создании счетов (реальные дубли: KS-2026-007, KS-2026-013).
@@ -9838,7 +9939,7 @@ function App() {
 	    setInvAmt('');setInvDesc('');setInvRef('');setInvDue(invoiceDueDate());setInvStu('');
 	    notify('✓ Arve '+num+' loodud!');
 	    return createdInvoice;
-	  },[invStu,invAmt,invDesc,invRef,invDue,invoices,students,logActivity]);
+	  },[isAdmin,invStu,invAmt,invDesc,invRef,invDue,invoices,students,lessons,logActivity]);
 
   const recordPayment=useCallback(async(inv,amountOverride=null,options={})=>{
     if(!isAdmin||!inv?.id){notify('⚠ Ainult administraator saab makseid lisada');return false;}
@@ -9970,6 +10071,10 @@ function App() {
 
   const deleteInvoice=useCallback(async(inv)=>{
     if(!inv?.id) return;
+    if(Array.isArray(inv.lessonIds)&&inv.lessonIds.length>0){
+      notify('⚠ Tundidega seotud arvet ei saa kustutada. Järgmine etapp lisab parandusarve; seni säilitame seose ja auditi.');
+      return;
+    }
     const linkedPayments=payments.filter(payment=>payment.invoiceId===inv.id);
     if((Number(inv.paymentCount)||0)>0||linkedPayments.length>0){
       notify('⚠ Maksetega arvet ei saa kustutada. Tühista makse ja säilita arve auditi jaoks.');
@@ -10087,6 +10192,22 @@ function App() {
 	    const itemPrice = Number(inv.lessonPrice)||(itemCount?amountValue/itemCount:amountValue);
 	    const itemUnit = Number(inv.lessonCount)>0 ? 'tund' : 'tk';
 	    const itemName = inv.desc || (inv.lessonCount ? 'Keeletunnid' : 'Koolitus');
+	    const invoiceLines = Array.isArray(inv.lines)&&inv.lines.length
+	      ? inv.lines
+	      : [{description:itemName,unit:itemUnit,quantity:itemCount,unitPrice:itemPrice,amount:amountValue}];
+	    const invoiceRowsHtml = invoiceLines.map((line,index)=>`
+	      <tr>
+	        <td class="center">${index+1}</td>
+	        <td class="center">1</td>
+	        <td>${esc(line.description||itemName)}</td>
+	        <td class="center">${esc(line.unit||itemUnit)}</td>
+	        <td class="num">${esc(money(Number(line.quantity)||1))}</td>
+	        <td class="num">${esc(money(Number(line.unitPrice)||0))}</td>
+	        <td class="num">${esc(money(Number(line.amount)||0))}</td>
+	        <td class="num">0.00</td>
+	        <td class="num">${esc(money(Number(line.amount)||0))}</td>
+	      </tr>
+	    `).join('');
     const sellerLines = [
       PAYMENT_DETAILS.company,
       `Reg. kood: ${PAYMENT_DETAILS.regCode}`,
@@ -10217,17 +10338,7 @@ function App() {
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td class="center">1</td>
-            <td class="center">1</td>
-            <td>${esc(itemName)}</td>
-	            <td class="center">${esc(itemUnit)}</td>
-            <td class="num">${esc(money(itemCount))}</td>
-            <td class="num">${esc(money(itemPrice))}</td>
-            <td class="num">${esc(money(amountValue))}</td>
-            <td class="num">0.00</td>
-            <td class="num">${esc(money(amountValue))}</td>
-          </tr>
+          ${invoiceRowsHtml}
           <tr class="summary">
             <td colspan="6"></td>
             <td class="num">${esc(money(amountValue))}</td>
@@ -10544,7 +10655,7 @@ function App() {
           {tab==='invoices'&&!isStaff&&<ParentInvoicesView invoices={scopedInvoices} printInvoice={printInvoice} submitParentPayment={submitParentPayment}/>}
 
 	          {tab==='invoices'&&isStaff&&<InvoicesView invoices={scopedInvoices} payments={payments} myStudents={myStudents} parents={scopedParents}
-	            schedule={schedule} students={students} isAdmin={isAdmin}
+	            schedule={schedule} students={students} lessons={lessons} isAdmin={isAdmin}
             invStu={invStu} setInvStu={setInvStu} invAmt={invAmt} setInvAmt={setInvAmt}
             invDesc={invDesc} setInvDesc={setInvDesc} invRef={invRef} setInvRef={setInvRef} invDue={invDue} setInvDue={setInvDue}
             addInvoice={addInvoice} recordPayment={recordPayment} markPaid={markPaid} unmarkPaid={unmarkPaid} voidPayment={voidPayment} deleteInvoice={deleteInvoice} printInvoice={printInvoice} updateInvoiceReference={updateInvoiceReference} updateInvoiceDue={updateInvoiceDue}

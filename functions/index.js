@@ -19,11 +19,13 @@ const { google } = require("googleapis");
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 const {
+  buildLessonInvoiceLines,
   centsToAmount,
   creditAfterApplication,
   creditAfterRestoration,
   invoiceFinancialPatch,
   normalizeAllocations,
+  selectBillableLessons,
   toCents,
 } = require("./finance-core");
 
@@ -202,6 +204,186 @@ function cleanRequestId(value) {
 
 function cleanText(value, maxLength = 500) {
   return String(value || "").trim().slice(0, maxLength);
+}
+
+async function createLessonInvoice({
+  actor,
+  studentId,
+  lessonIds,
+  due,
+  description,
+  paymentReference,
+  requestId,
+}) {
+  const mutationId = cleanRequestId(requestId);
+  const cleanStudentId = String(studentId || "").trim();
+  if (!cleanStudentId) throw httpError(400, "studentId required");
+  if (!Array.isArray(lessonIds) || lessonIds.length === 0 || lessonIds.length > 100) {
+    throw httpError(400, "Between 1 and 100 lessonIds required");
+  }
+  const uniqueLessonIds = [...new Set(lessonIds.map(id => String(id || "").trim()).filter(Boolean))].sort();
+  if (uniqueLessonIds.length !== lessonIds.length) {
+    throw httpError(400, "lessonIds must be non-empty and unique");
+  }
+  const cleanDue = String(due || "").trim();
+  const parsedDue = new Date(`${cleanDue}T12:00:00.000Z`);
+  if (
+    !/^\d{4}-\d{2}-\d{2}$/.test(cleanDue)
+    || Number.isNaN(parsedDue.getTime())
+    || parsedDue.toISOString().slice(0, 10) !== cleanDue
+  ) {
+    throw httpError(400, "Valid due date required");
+  }
+  const cleanDescription = cleanText(description, 300);
+  const cleanReference = cleanText(paymentReference, 160);
+  const signature = crypto.createHash("sha256").update(JSON.stringify({
+    studentId: cleanStudentId,
+    lessonIds: uniqueLessonIds,
+    due: cleanDue,
+    description: cleanDescription,
+    paymentReference: cleanReference,
+  })).digest("hex");
+  const invoiceRef = db.collection("invoices").doc(mutationId);
+  const auditRef = db.collection("financialAudit").doc(mutationId);
+  const studentRef = db.collection("students").doc(cleanStudentId);
+  const counterRef = db.collection("meta").doc("invoiceCounter");
+  const lessonRefs = uniqueLessonIds.map(id => db.collection("lessons").doc(id));
+  const studentLessonsQuery = db.collection("lessons").where("studentId", "==", cleanStudentId);
+  const nowIso = new Date().toISOString();
+  const todayIso = nowIso.slice(0, 10);
+  const actorData = actorSnapshot(actor);
+
+  return db.runTransaction(async transaction => {
+    const existingInvoice = await transaction.get(invoiceRef);
+    if (existingInvoice.exists) {
+      if (existingInvoice.data().creationSignature !== signature) {
+        throw httpError(409, "requestId already used for a different invoice");
+      }
+      return { invoice: { id: existingInvoice.id, ...existingInvoice.data() }, idempotent: true };
+    }
+    const [studentSnap, counterSnap, studentLessonsSnap] = await Promise.all([
+      transaction.get(studentRef),
+      transaction.get(counterRef),
+      transaction.get(studentLessonsQuery),
+    ]);
+    if (!studentSnap.exists) throw httpError(404, "Student not found");
+
+    const student = studentSnap.data();
+    const studentLessons = studentLessonsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const hasLegacyCounter = Object.prototype.hasOwnProperty.call(student, "lessonsSinceInvoice");
+    const eligibleLessons = selectBillableLessons(
+      studentLessons,
+      hasLegacyCounter ? student.lessonsSinceInvoice : undefined,
+    );
+    const eligibleById = new Map(eligibleLessons.map(lesson => [lesson.id, lesson]));
+    const selectedLessons = uniqueLessonIds.map(id => {
+      const lesson = eligibleById.get(id);
+      if (!lesson) throw httpError(409, `Lesson ${id} is not currently billable`);
+      return lesson;
+    });
+    const lessonPrice = Number(student.lessonPrice) || 0;
+    const lessonData = buildLessonInvoiceLines(selectedLessons, lessonPrice);
+    const nextSequence = (Number(counterSnap.data()?.seq) || 0) + 1;
+    const invoiceNum = `KS-${todayIso.slice(0, 4)}-${String(nextSequence).padStart(3, "0")}`;
+    const parentUid = student.linkedParentId || student.parentUid || student.guardianUid || "";
+    const parentName = student.parentName || student.guardianName || "";
+    const parentEmail = student.parentEmail || student.contactEmail || student.guardianEmail || "";
+    const payerName = student.payerName || student.companyName || parentName || student.name || "";
+    const payerEmail = student.payerEmail || parentEmail || student.email || "";
+    const invoice = {
+      num: invoiceNum,
+      status: "Ootel",
+      date: todayIso,
+      due: cleanDue,
+      paymentDueRule: PAYMENT_DETAILS.paymentDueRule || "monthly_10",
+      paymentReference: cleanReference || invoiceNum,
+      invoiceTargetType: "student",
+      studentId: cleanStudentId,
+      studentName: student.name || "—",
+      parentUid,
+      linkedParentId: student.linkedParentId || student.parentUid || "",
+      guardianUid: student.guardianUid || "",
+      parentName,
+      parentEmail,
+      parentEmailLower: String(parentEmail).trim().toLowerCase(),
+      payerName,
+      payerEmail,
+      payerEmailLower: String(payerEmail).trim().toLowerCase(),
+      amountCents: lessonData.amountCents,
+      amount: lessonData.amount,
+      paidAmountCents: 0,
+      paidAmount: 0,
+      balanceDueCents: lessonData.amountCents,
+      balanceDue: lessonData.amount,
+      overpaidAmountCents: 0,
+      overpaidAmount: 0,
+      paymentStatus: "unpaid",
+      paymentCount: 0,
+      parentPaymentStatus: "pending",
+      parentPaymentMethod: "",
+      parentPaymentSubmittedAt: "",
+      emailStatus: "",
+      emailRecipient: "",
+      emailSentAt: "",
+      emailLastType: "",
+      lastReminderSentAt: "",
+      reminderCount: 0,
+      due10ReminderMonth: "",
+      desc: cleanDescription || `${lessonData.lessonCount} keeletundi x ${lessonData.lessonPrice}€`,
+      lessonCount: lessonData.lessonCount,
+      lessonPrice: lessonData.lessonPrice,
+      lessonPriceCents: lessonData.lessonPriceCents,
+      lessonIds: lessonData.lessonIds,
+      lines: lessonData.lines,
+      lineVersion: 1,
+      billingMode: "lesson_lines_v1",
+      autoGenerated: true,
+      creationSignature: signature,
+      createdAt: nowIso,
+      createdBy: actorData,
+      requestId: mutationId,
+    };
+
+    transaction.create(invoiceRef, invoice);
+    transaction.set(counterRef, { seq: nextSequence, updatedAt: nowIso }, { merge: true });
+    const lineIndexByLessonId = new Map(lessonData.lines.map((line, index) => [line.lessonId, index]));
+    lessonRefs.forEach(ref => {
+      transaction.set(ref, {
+        billingStatus: "invoiced",
+        invoiceId: invoiceRef.id,
+        invoiceNum,
+        invoiceLineIndex: lineIndexByLessonId.get(ref.id),
+        billedAmountCents: lessonData.lessonPriceCents,
+        billedAmount: lessonData.lessonPrice,
+        invoicedAt: nowIso,
+        billingUpdatedAt: nowIso,
+      }, { merge: true });
+    });
+    transaction.set(studentRef, {
+      lessonsSinceInvoice: Math.max(
+        0,
+        (Number(student.lessonsSinceInvoice) || 0) - lessonData.lessonCount,
+      ),
+      lastInvoiceAt: todayIso,
+    }, { merge: true });
+    transaction.create(auditRef, {
+      entityType: "invoice",
+      entityId: invoiceRef.id,
+      action: "invoice.created_from_lessons",
+      invoiceId: invoiceRef.id,
+      invoiceNum,
+      studentId: cleanStudentId,
+      studentName: invoice.studentName,
+      lessonIds: lessonData.lessonIds,
+      amountCents: lessonData.amountCents,
+      amount: lessonData.amount,
+      actor: actorData,
+      reason: "Completed lessons invoiced",
+      createdAt: nowIso,
+      requestId: mutationId,
+    });
+    return { invoice: { id: invoiceRef.id, ...invoice }, idempotent: false };
+  });
 }
 
 async function activeInvoicePayments(transaction, invoiceId) {
@@ -1357,6 +1539,19 @@ exports.financeApi = functions.https.onRequest(async (req, res) => {
 
   try {
     const actor = await requireAdminUser(req);
+    if (req.path === "/invoices/from-lessons") {
+      const result = await createLessonInvoice({
+        actor,
+        studentId: req.body?.studentId,
+        lessonIds: req.body?.lessonIds,
+        due: req.body?.due,
+        description: req.body?.description,
+        paymentReference: req.body?.paymentReference,
+        requestId: req.body?.requestId,
+      });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
     if (req.path === "/payments") {
       const result = await recordInvoicePayment({
         actor,
