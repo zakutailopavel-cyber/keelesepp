@@ -1,4 +1,4 @@
-import { checkRateLimit, handleOptions, requireFirebaseUser, sendError, setCors } from './_auth.js';
+import { checkRateLimit, handleOptions, requireActiveUser, sendError, setCors } from './_auth.js';
 
 export default async function handler(req, res) {
   if (handleOptions(req, res)) return;
@@ -44,7 +44,7 @@ ${criteria ? `HINDAMISKRITEERIUMID:\n${criteria}\n\n` : ''}ÕPILASE TEKST:
 ${studentText}`;
 
   try {
-    const decoded = await requireFirebaseUser(req);
+    const { decoded } = await requireActiveUser(req);
     checkRateLimit(decoded.uid, 20);
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',

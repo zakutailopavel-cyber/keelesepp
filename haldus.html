@@ -199,8 +199,12 @@ const invoiceDraftForStudent = (student, amountInput='', descInput='') => {
   const lessons = Math.max(0, Number(student?.lessonsSinceInvoice)||0);
   const lessonPrice = Math.max(0, Number(student?.lessonPrice)||0);
   const autoAmount = lessons>0&&lessonPrice>0 ? Math.round(lessons*lessonPrice*100)/100 : 0;
-  const manualAmount = Number(String(amountInput||'').replace(',','.'))||0;
-  const amount = manualAmount||autoAmount;
+  const manualProvided = String(amountInput??'').trim()!=='';
+  const manualAmount = manualProvided ? (Number(String(amountInput).replace(',','.'))||0) : 0;
+  // Если сумма введена явно (в т.ч. «0» или мусор) — автосумма НЕ подставляется
+  // молча: ноль остановит создание счёта с предупреждением, а не выставит
+  // неожиданную сумму за спиной у администратора.
+  const amount = manualProvided ? manualAmount : autoAmount;
   const autoDesc = lessons>0&&lessonPrice>0
     ? `${lessons} keeletundi x ${money(lessonPrice)}€`
     : 'Keeletunnid';
@@ -9419,7 +9423,17 @@ function App() {
 
 	  const addInvoice=useCallback(async(stuId,options={})=>{
 	    const targetType = options.targetType || 'student';
-	    const num=`KS-${new Date().getFullYear()}-${String(invoices.length+1).padStart(3,'0')}`;
+	    // Номер счёта берётся из транзакционного счётчика meta/invoiceCounter,
+	    // а не из invoices.length — тот давал одинаковые номера при
+	    // одновременном создании счетов (реальные дубли: KS-2026-007, KS-2026-013).
+	    // Math.max с invoices.length — чтобы первый запуск не выдал уже занятый номер.
+	    const num = await db.runTransaction(async tx=>{
+	      const counterRef = db.collection('meta').doc('invoiceCounter');
+	      const snap = await tx.get(counterRef);
+	      const next = Math.max(Number(snap.data()?.seq)||0, invoices.length)+1;
+	      tx.set(counterRef,{seq:next,updatedAt:new Date().toISOString()},{merge:true});
+	      return `KS-${new Date().getFullYear()}-${String(next).padStart(3,'0')}`;
+	    });
 	    const due=String(invDue||'').trim() || invoiceDueDate();
 	    const paymentReference = String(invRef||'').trim() || num;
 	    const baseInvoiceData = {
@@ -9986,7 +10000,7 @@ function App() {
             taskDue={taskDue} setTaskDue={setTaskDue} taskPriority={taskPriority} setTaskPriority={setTaskPriority} taskCategory={taskCategory} setTaskCategory={setTaskCategory}
             addTask={addTask} toggleTask={toggleTask} deleteTask={deleteTask} replyTask={replyTask} markTaskRepliesSeen={markTaskRepliesSeen}
             addStudent={addStudent} openLessonEditor={openLessonEditor} isAdmin={isAdmin} isStaff={isStaff}
-            parentAlerts={parentAlerts} createMissingParentStudents={createMissingParentStudents} markParentChecked={markParentChecked} setTab={setTab} setSelStu={setSelStu}
+            parentAlerts={parentAlerts} createMissingParentStudents={createMissingParentStudents} markParentChecked={markParentChecked}
             newWsResults={newWsResults} markWsSeen={markWsSeen}/>}
 
           {tab==='calendar'&&<CalendarView user={user} myStudents={myStudents} schedule={schedule} groups={groups} isAdmin={canAssignTeacher}

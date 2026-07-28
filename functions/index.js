@@ -585,24 +585,8 @@ function extractStudentName(title) {
   return null;
 }
 
-// Find matching student in Firestore by name
-async function findStudentByName(name, teacherName) {
-  if (!name) return null;
-  const norm = normalizeName(name);
-  const snap = await db.collection("students").get();
-  let best = null;
-  for (const doc of snap.docs) {
-    const s = doc.data();
-    if (normalizeName(s.name) === norm) {
-      // Prefer student assigned to this teacher
-      if (teacherName && normalizeName(s.teacher || "") === normalizeName(teacherName)) {
-        return { id: doc.id, ...s };
-      }
-      best = { id: doc.id, ...s };
-    }
-  }
-  return best;
-}
+// (findStudentByName удалена: поиск по имени теперь идёт по кэшу,
+// собираемому один раз за прогон в syncTeacherCalendar)
 
 // Convert Google Calendar event to KeeleSepp schedule format
 function gcalEventToSchedule(event, teacher, studentId, studentName, teacherUid) {
@@ -874,6 +858,28 @@ async function syncTeacherCalendar(uid, tokens) {
   let synced = 0;
   let skipped = 0;
 
+  // Один запрос студентов на весь прогон вместо чтения на каждое событие
+  // (раньше: doc.get() на каждый student:ID + полный скан коллекции на каждый
+  // фолбэк по имени — до ~500 событий за прогон).
+  const studentsSnap = await db.collection("students").get();
+  const studentsById = new Map();
+  const studentsByName = new Map(); // normalizedName -> [{...student}]
+  for (const doc of studentsSnap.docs) {
+    const s = { id: doc.id, ...doc.data() };
+    studentsById.set(doc.id, s);
+    const key = normalizeName(s.name);
+    if (key) {
+      if (!studentsByName.has(key)) studentsByName.set(key, []);
+      studentsByName.get(key).push(s);
+    }
+  }
+  const findCachedStudentByName = (name) => {
+    const candidates = studentsByName.get(normalizeName(name)) || [];
+    if (!candidates.length) return null;
+    const normTeacher = normalizeName(teacherName);
+    return candidates.find(s => normTeacher && normalizeName(s.teacher || "") === normTeacher) || candidates[0];
+  };
+
   const batch = db.batch();
 
   for (const event of events) {
@@ -887,17 +893,14 @@ async function syncTeacherCalendar(uid, tokens) {
 
     if (studentIdFromDesc) {
       // Primary: look up by ID from description
-      const studentDoc = await db.collection("students").doc(studentIdFromDesc).get();
-      if (studentDoc.exists) {
-        student = { id: studentDoc.id, ...studentDoc.data() };
-      }
+      student = studentsById.get(studentIdFromDesc) || null;
     }
 
     // Fallback: try to extract name from title (legacy support)
     if (!student) {
       const studentName = extractStudentName(event.summary || "");
       if (studentName) {
-        student = await findStudentByName(studentName, teacherName);
+        student = findCachedStudentByName(studentName);
       }
     }
 

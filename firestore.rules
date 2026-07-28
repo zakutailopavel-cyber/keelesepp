@@ -141,7 +141,22 @@ service cloud.firestore {
 
     match /homework/{homeworkId} {
       allow read: if isStaff() || ownsStudent(resource.data.studentId);
-      allow create, update, delete: if isStaff() || ownsStudent(request.resource.data.studentId);
+      allow create: if isStaff() || ownsStudent(request.resource.data.studentId);
+      allow update: if isStaff()
+        || (
+          ownsStudent(resource.data.studentId)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'status',
+            'fileUrl',
+            'fileName',
+            'attachments',
+            'submittedAt',
+            'updatedAt',
+            'fileRemovedAt',
+            'fileRemovedBy'
+          ])
+        );
+      allow delete: if isStaff();
     }
 
     match /invoices/{invoiceId} {
@@ -152,20 +167,46 @@ service cloud.firestore {
     match /messages/{messageId} {
       allow read: if isStaff() || ownsStudent(resource.data.studentId);
       allow create: if isStaff() || ownsStudent(request.resource.data.studentId);
-      allow update: if isStaff() || ownsStudent(resource.data.studentId);
+      allow update: if isStaff()
+        || (
+          ownsStudent(resource.data.studentId)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read'])
+        );
       allow delete: if isAdmin();
     }
 
     match /worksheetAssignments/{assignmentId} {
       allow read: if isStaff() || ownsStudent(resource.data.studentId);
       allow create, delete: if isStaff();
-      allow update: if isStaff() || ownsStudent(resource.data.studentId);
+      allow update: if isStaff()
+        || (
+          ownsStudent(resource.data.studentId)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'status',
+            'answers',
+            'score',
+            'errorLog',
+            'completedAt',
+            'seenByTeacher',
+            'selfAssessment',
+            'updatedAt'
+          ])
+        );
     }
 
     match /exerciseResults/{resultId} {
       allow read: if isStaff() || ownsStudent(resource.data.studentId);
-      allow create, update: if isStaff() || ownsStudent(request.resource.data.studentId);
+      allow create: if isStaff() || ownsStudent(request.resource.data.studentId);
+      allow update: if isStaff()
+        || (
+          ownsStudent(resource.data.studentId)
+          && request.resource.data.studentId == resource.data.studentId
+        );
       allow delete: if isAdmin();
+    }
+
+    match /meta/invoiceCounter {
+      allow read, write: if isStaff();
     }
 
     match /groups/{groupId} {
