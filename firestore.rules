@@ -176,6 +176,10 @@ service cloud.firestore {
       allow read, write: if isStaff();
     }
 
+    match /reconciliation/{docId} {
+      allow read, write: if isAdmin();
+    }
+
     match /activityLog/{entryId} {
       allow read: if isStaff();
       allow create: if signedIn();
