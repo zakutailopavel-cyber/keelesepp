@@ -6,6 +6,15 @@ on:
       - "firebase.json"
       - "firestore.rules"
       - "functions/**"
+      - "haldus.html"
+      - "haldus-shared.js"
+      - "haldus-quality.js"
+      - "haldus-quality.test.js"
+      - "live-classroom.html"
+      - "live-classroom.css"
+      - "live-classroom.js"
+      - "live-classroom-core.js"
+      - "live-classroom-core.test.js"
       - ".github/workflows/financial-core-emulator.yml"
   workflow_dispatch:
 
@@ -31,6 +40,13 @@ jobs:
         run: npm ci --prefix functions
       - name: Run unit tests
         run: npm test --prefix functions
+      - name: Run CRM and Live Classroom tests
+        run: node --test haldus-quality.test.js live-classroom-core.test.js
+      - name: Check browser JavaScript syntax
+        run: |
+          node --check haldus-quality.js
+          node --check live-classroom-core.js
+          node --check live-classroom.js
       - name: Run finance transaction integration tests
         run: >-
           npx --yes firebase-tools@15.22.3 emulators:exec

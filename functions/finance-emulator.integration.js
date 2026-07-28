@@ -26,6 +26,11 @@ function requireSafeEmulatorEnvironment() {
   }
 }
 
+function tokenUid(token) {
+  const payload = JSON.parse(Buffer.from(token.split(".")[1], "base64url").toString("utf8"));
+  return payload.user_id || payload.sub;
+}
+
 async function createAdminToken() {
   if (!adminTokenPromise) {
     adminTokenPromise = (async () => {
@@ -819,4 +824,190 @@ test("completed lessons consume one package credit and reversals append restorat
     "lessonPackageStates/lesson-package-cycle",
   );
   assert.equal(nonAdminStateRead.status, 403, JSON.stringify(nonAdminStateRead.body));
+});
+
+test("Live Classroom keeps the teacher desk private and scopes student interaction", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const teacherToken = await createUserToken("live-teacher@example.com");
+  const otherTeacherToken = await createUserToken("live-other-teacher@example.com");
+  const studentToken = await createUserToken("live-student@example.com");
+  const outsiderToken = await createUserToken("live-outsider@example.com");
+  const teacherUid = tokenUid(teacherToken);
+  const otherTeacherUid = tokenUid(otherTeacherToken);
+  const studentUid = tokenUid(studentToken);
+  const outsiderUid = tokenUid(outsiderToken);
+
+  await Promise.all([
+    db.collection("users").doc(teacherUid).set({
+      role: "teacher",
+      displayName: "Live Teacher",
+      email: "live-teacher@example.com",
+    }),
+    db.collection("users").doc(otherTeacherUid).set({
+      role: "teacher",
+      displayName: "Other Live Teacher",
+      email: "live-other-teacher@example.com",
+    }),
+    db.collection("users").doc(studentUid).set({
+      role: "student",
+      displayName: "Live Student",
+      email: "live-student@example.com",
+    }),
+    db.collection("users").doc(outsiderUid).set({
+      role: "student",
+      displayName: "Outside Student",
+      email: "live-outsider@example.com",
+    }),
+    db.collection("students").doc("live-student-record").set({
+      name: "Live Student",
+      linkedUserId: studentUid,
+      active: true,
+    }),
+    db.collection("students").doc("outside-student-record").set({
+      name: "Outside Student",
+      linkedUserId: outsiderUid,
+      active: true,
+    }),
+  ]);
+
+  const createRoom = await firestoreDocumentRequest(
+    teacherToken,
+    "PATCH",
+    "liveClassrooms/live-room-001",
+    {
+      fields: {
+        title: { stringValue: "Secure lesson" },
+        studentId: { stringValue: "live-student-record" },
+        studentName: { stringValue: "Live Student" },
+        teacherUid: { stringValue: teacherUid },
+        teacherName: { stringValue: "Live Teacher" },
+        status: { stringValue: "waiting" },
+        sceneVersion: { integerValue: "1" },
+        accessVersion: { integerValue: "1" },
+        activeScene: {
+          mapValue: {
+            fields: {
+              type: { stringValue: "welcome" },
+              title: { stringValue: "Welcome" },
+              body: { stringValue: "Published stage only" },
+              version: { integerValue: "1" },
+            },
+          },
+        },
+        screenShare: {
+          mapValue: {
+            fields: {
+              status: { stringValue: "idle" },
+              shareId: { stringValue: "" },
+            },
+          },
+        },
+      },
+    },
+  );
+  assert.equal(createRoom.status, 200, JSON.stringify(createRoom.body));
+
+  const ownRoomRead = await firestoreDocumentRequest(
+    studentToken,
+    "GET",
+    "liveClassrooms/live-room-001",
+  );
+  assert.equal(ownRoomRead.status, 200, JSON.stringify(ownRoomRead.body));
+  const outsiderRoomRead = await firestoreDocumentRequest(
+    outsiderToken,
+    "GET",
+    "liveClassrooms/live-room-001",
+  );
+  assert.equal(outsiderRoomRead.status, 403, JSON.stringify(outsiderRoomRead.body));
+  const otherTeacherRoomRead = await firestoreDocumentRequest(
+    otherTeacherToken,
+    "GET",
+    "liveClassrooms/live-room-001",
+  );
+  assert.equal(
+    otherTeacherRoomRead.status,
+    403,
+    JSON.stringify(otherTeacherRoomRead.body),
+  );
+
+  const studentRoomMutation = await firestoreDocumentRequest(
+    studentToken,
+    "PATCH",
+    "liveClassrooms/live-room-001",
+    { fields: { status: { stringValue: "ended" } } },
+  );
+  assert.equal(studentRoomMutation.status, 403, JSON.stringify(studentRoomMutation.body));
+
+  await db.collection("liveClassrooms").doc("live-room-001").update({
+    activeScene: {
+      type: "short_answer",
+      title: "Secure question",
+      body: "Write the answer",
+      version: 1,
+    },
+  });
+  const responseBody = {
+    fields: {
+      classroomId: { stringValue: "live-room-001" },
+      sceneVersion: { integerValue: "1" },
+      sceneType: { stringValue: "short_answer" },
+      studentId: { stringValue: "live-student-record" },
+      studentName: { stringValue: "Live Student" },
+      studentUid: { stringValue: studentUid },
+      answer: { stringValue: "Minu turvaline vastus" },
+    },
+  };
+  const ownResponse = await firestoreDocumentRequest(
+    studentToken,
+    "PATCH",
+    `liveClassrooms/live-room-001/responses/scene-1-${studentUid}`,
+    responseBody,
+  );
+  assert.equal(ownResponse.status, 200, JSON.stringify(ownResponse.body));
+  const outsiderResponse = await firestoreDocumentRequest(
+    outsiderToken,
+    "PATCH",
+    `liveClassrooms/live-room-001/responses/scene-1-${outsiderUid}`,
+    {
+      fields: {
+        ...responseBody.fields,
+        studentUid: { stringValue: outsiderUid },
+      },
+    },
+  );
+  assert.equal(outsiderResponse.status, 403, JSON.stringify(outsiderResponse.body));
+
+  await db.collection("liveClassrooms").doc("live-room-001").update({
+    status: "live",
+    screenShare: { status: "active", shareId: "share-secure-001" },
+  });
+  const teacherSignal = await firestoreDocumentRequest(
+    teacherToken,
+    "PATCH",
+    "liveClassrooms/live-room-001/signals/offer-001",
+    {
+      fields: {
+        type: { stringValue: "offer" },
+        payload: { stringValue: "{\"type\":\"offer\",\"sdp\":\"emulator\"}" },
+        senderUid: { stringValue: teacherUid },
+        senderRole: { stringValue: "teacher" },
+        shareId: { stringValue: "share-secure-001" },
+      },
+    },
+  );
+  assert.equal(teacherSignal.status, 200, JSON.stringify(teacherSignal.body));
+  const ownSignalRead = await firestoreDocumentRequest(
+    studentToken,
+    "GET",
+    "liveClassrooms/live-room-001/signals/offer-001",
+  );
+  assert.equal(ownSignalRead.status, 200, JSON.stringify(ownSignalRead.body));
+  const outsiderSignalRead = await firestoreDocumentRequest(
+    outsiderToken,
+    "GET",
+    "liveClassrooms/live-room-001/signals/offer-001",
+  );
+  assert.equal(outsiderSignalRead.status, 403, JSON.stringify(outsiderSignalRead.body));
 });
