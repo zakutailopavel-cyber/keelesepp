@@ -20,6 +20,111 @@ function centsToAmount(cents) {
   return Number((Number(cents || 0) / 100).toFixed(2));
 }
 
+function validIsoDate(value, field = "date") {
+  const date = String(value || "").trim();
+  const parsed = new Date(`${date}T12:00:00.000Z`);
+  if (
+    !/^\d{4}-\d{2}-\d{2}$/.test(date)
+    || Number.isNaN(parsed.getTime())
+    || parsed.toISOString().slice(0, 10) !== date
+  ) {
+    const error = new Error(`${field} must be a valid YYYY-MM-DD date`);
+    error.status = 400;
+    throw error;
+  }
+  return date;
+}
+
+function previousIsoDate(value) {
+  const date = validIsoDate(value);
+  const parsed = new Date(`${date}T12:00:00.000Z`);
+  parsed.setUTCDate(parsed.getUTCDate() - 1);
+  return parsed.toISOString().slice(0, 10);
+}
+
+function tariffAssignmentPlan(existingAssignments = [], effectiveFrom) {
+  const startDate = validIsoDate(effectiveFrom, "effectiveFrom");
+  const sorted = (Array.isArray(existingAssignments) ? existingAssignments : [])
+    .filter(assignment => assignment && assignment.id && assignment.effectiveFrom)
+    .sort((a, b) =>
+      `${a.effectiveFrom}:${a.createdAt || ""}:${a.id}`
+        .localeCompare(`${b.effectiveFrom}:${b.createdAt || ""}:${b.id}`),
+    );
+  const previous = sorted.at(-1) || null;
+  if (previous && startDate <= previous.effectiveFrom) {
+    const error = new Error("new tariff assignment must start after the latest assignment");
+    error.status = 409;
+    throw error;
+  }
+  const previousEffectiveUntil = previous ? previousIsoDate(startDate) : "";
+  if (
+    previous
+    && previous.effectiveUntil
+    && previous.effectiveUntil < previousEffectiveUntil
+  ) {
+    return {
+      effectiveFrom: startDate,
+      previousAssignmentId: "",
+      previousEffectiveUntil: "",
+    };
+  }
+  return {
+    effectiveFrom: startDate,
+    previousAssignmentId: previous?.id || "",
+    previousEffectiveUntil,
+  };
+}
+
+function resolveLessonPricing(lessons = [], assignments = [], legacyLessonPrice) {
+  const sortedAssignments = (Array.isArray(assignments) ? assignments : [])
+    .filter(assignment =>
+      assignment
+      && assignment.id
+      && assignment.effectiveFrom
+      && (!assignment.billingModel || assignment.billingModel === "per_lesson"),
+    )
+    .sort((a, b) =>
+      `${a.effectiveFrom}:${a.createdAt || ""}:${a.id}`
+        .localeCompare(`${b.effectiveFrom}:${b.createdAt || ""}:${b.id}`),
+    );
+  let legacyPriceCents = null;
+  const legacyPricing = () => {
+    if (legacyPriceCents === null) {
+      legacyPriceCents = toCents(legacyLessonPrice, "lesson price");
+    }
+    return {
+      pricingSource: "legacy_student_price",
+      unitPriceCents: legacyPriceCents,
+      unitPrice: centsToAmount(legacyPriceCents),
+    };
+  };
+  return Object.fromEntries((Array.isArray(lessons) ? lessons : []).map(lesson => {
+    const lessonId = String(lesson?.id || "").trim();
+    const lessonDate = validIsoDate(lesson?.date, `lesson ${lessonId || "unknown"} date`);
+    const assignment = [...sortedAssignments].reverse().find(item =>
+      item.effectiveFrom <= lessonDate
+      && (!item.effectiveUntil || lessonDate <= item.effectiveUntil),
+    );
+    if (!assignment) return [lessonId, legacyPricing()];
+    const unitPriceCents = Number.isInteger(assignment.unitPriceCents)
+      ? assignment.unitPriceCents
+      : toCents(assignment.unitPrice, "tariff unit price");
+    if (unitPriceCents <= 0) {
+      const error = new Error(`tariff assignment ${assignment.id} has an invalid unit price`);
+      error.status = 409;
+      throw error;
+    }
+    return [lessonId, {
+      pricingSource: "tariff_assignment",
+      unitPriceCents,
+      unitPrice: centsToAmount(unitPriceCents),
+      tariffId: String(assignment.tariffId || ""),
+      tariffName: String(assignment.tariffName || ""),
+      tariffAssignmentId: String(assignment.id || ""),
+    }];
+  }));
+}
+
 function invoiceAmountCents(invoice = {}) {
   if (Number.isInteger(invoice.effectiveAmountCents) && invoice.effectiveAmountCents >= 0) {
     return invoice.effectiveAmountCents;
@@ -316,7 +421,7 @@ function lessonBillingDispositionPatch(lesson = {}, nextStatus, nowIso) {
   };
 }
 
-function buildLessonInvoiceLines(lessons = [], lessonPrice) {
+function buildLessonInvoiceLines(lessons = [], lessonPrice, assignments = []) {
   if (!Array.isArray(lessons) || lessons.length === 0) {
     const error = new Error("at least one lesson required");
     error.status = 400;
@@ -327,7 +432,6 @@ function buildLessonInvoiceLines(lessons = [], lessonPrice) {
     error.status = 400;
     throw error;
   }
-  const unitPriceCents = toCents(lessonPrice, "lesson price");
   const seen = new Set();
   const lines = lessons.map((lesson, index) => {
     const lessonId = String(lesson?.id || "").trim();
@@ -355,17 +459,16 @@ function buildLessonInvoiceLines(lessons = [], lessonPrice) {
       error.status = 409;
       throw error;
     }
-    const date = String(lesson.date || "").slice(0, 10);
-    const parsedDate = new Date(`${date}T12:00:00.000Z`);
-    if (
-      !/^\d{4}-\d{2}-\d{2}$/.test(date)
-      || Number.isNaN(parsedDate.getTime())
-      || parsedDate.toISOString().slice(0, 10) !== date
-    ) {
-      const error = new Error(`lesson ${lessonId} has an invalid date`);
+    let date;
+    try {
+      date = validIsoDate(lesson.date, `lesson ${lessonId} date`);
+    } catch (error) {
       error.status = 409;
+      error.message = `lesson ${lessonId} has an invalid date`;
       throw error;
     }
+    const pricing = resolveLessonPricing([lesson], assignments, lessonPrice)[lessonId];
+    const unitPriceCents = pricing.unitPriceCents;
     return {
       lessonId,
       date,
@@ -378,17 +481,38 @@ function buildLessonInvoiceLines(lessons = [], lessonPrice) {
       unitPrice: centsToAmount(unitPriceCents),
       amountCents: unitPriceCents,
       amount: centsToAmount(unitPriceCents),
+      pricingSource: pricing.pricingSource,
+      ...(pricing.tariffId ? { tariffId: pricing.tariffId } : {}),
+      ...(pricing.tariffName ? { tariffName: pricing.tariffName } : {}),
+      ...(pricing.tariffAssignmentId
+        ? { tariffAssignmentId: pricing.tariffAssignmentId }
+        : {}),
     };
   }).sort((a, b) => `${a.date}:${a.lessonId}`.localeCompare(`${b.date}:${b.lessonId}`));
   const amountCents = lines.reduce((sum, line) => sum + line.amountCents, 0);
+  const uniquePrices = [...new Set(lines.map(line => line.unitPriceCents))];
+  const tariffAssignmentIds = [...new Set(
+    lines.map(line => line.tariffAssignmentId).filter(Boolean),
+  )];
+  const tariffIds = [...new Set(lines.map(line => line.tariffId).filter(Boolean))];
+  const tariffLineCount = lines.filter(line => line.pricingSource === "tariff_assignment").length;
+  const pricingMode = tariffLineCount === lines.length
+    ? "tariff_assignments_v1"
+    : tariffLineCount > 0
+      ? "mixed_tariff_legacy_v1"
+      : "legacy_student_price";
+  const lessonPriceCents = uniquePrices.length === 1 ? uniquePrices[0] : 0;
   return {
     lines,
     lessonIds: lines.map(line => line.lessonId),
     lessonCount: lines.length,
-    lessonPriceCents: unitPriceCents,
-    lessonPrice: centsToAmount(unitPriceCents),
+    lessonPriceCents,
+    lessonPrice: centsToAmount(lessonPriceCents),
     amountCents,
     amount: centsToAmount(amountCents),
+    pricingMode,
+    tariffAssignmentIds,
+    tariffIds,
   };
 }
 
@@ -462,5 +586,8 @@ module.exports = {
   paymentNetAmountCents,
   planInvoiceOverpaymentTransfer,
   selectBillableLessons,
+  tariffAssignmentPlan,
   toCents,
+  validIsoDate,
+  resolveLessonPricing,
 };

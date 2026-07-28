@@ -30,7 +30,7 @@ retries are possible, and represented in an immutable audit trail.
 | 2. Bank allocation | Normalized bank transactions, one transaction split across invoices, residual payer credits | Done in PR #4 |
 | 3. Credit and corrections | Apply payer credits to invoices; void one payment and restore its source without touching unrelated payments | Done in PR #5 |
 | 4. Lesson billing | Link invoice lines to exact lessons and cancellation rules; prevent double billing | Done |
-| 5. Tariffs and packages | Versioned prices, group/individual packages, discounts, family/employer/Töötukassa payer models | Planned |
+| 5. Tariffs and packages | Versioned prices, group/individual packages, discounts, family/employer/Töötukassa payer models | In progress |
 | 6. Teacher payroll | Rate history, delivered hours, group rules, substitutions, bonuses, payroll review and lock | Planned |
 | 7. Expenses and suppliers | Expense categories, supplier invoices, receipts, VAT metadata, recurring costs | Planned |
 | 8. Period close | Monthly reconciliation checklist, locked periods, correction entries, opening/closing balances | Planned |
@@ -116,6 +116,19 @@ directly deletable.
 - Record effective dates so historical invoices and payroll never change when a
   future tariff is edited.
 - Model discounts and third-party payers separately from the lesson price.
+
+The first Stage 5 slice introduces immutable per-lesson tariff versions and
+dated student assignments. When a new assignment starts, the previous interval
+is closed without changing its price snapshot. Lesson invoice lines resolve the
+assignment that was active on each lesson date and preserve the tariff,
+assignment, and unit price used. Existing `student.lessonPrice` remains a
+migration fallback for dates without an assignment. Administrators can create
+tariff versions and assign them from the invoice workflow; client-side writes to
+both financial collections are denied.
+
+The next Stage 5 slice should add package products and package balances as
+separate ledger entries. It must not reuse the mutable `packageTotal` /
+`packageUsed` counters as the accounting source of truth.
 
 ## Payroll dependency
 

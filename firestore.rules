@@ -85,6 +85,9 @@ service cloud.firestore {
         'lines',
         'lineVersion',
         'billingMode',
+        'pricingMode',
+        'tariffIds',
+        'tariffAssignmentIds',
         'creationSignature',
         'creditedAmount',
         'creditedAmountCents',
@@ -107,6 +110,10 @@ service cloud.firestore {
         'invoiceLineIndex',
         'billedAmount',
         'billedAmountCents',
+        'pricingSource',
+        'billedTariffId',
+        'billedTariffName',
+        'billedTariffAssignmentId',
         'invoicedAt',
         'billingUpdatedAt',
         'billingDispositionReason',
@@ -124,6 +131,18 @@ service cloud.firestore {
         'date',
         'duration',
         'status'
+      ]);
+    }
+
+    function changesStudentTariffSource() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasAny([
+        'latestTariffAssignmentId',
+        'latestTariffId',
+        'latestTariffName',
+        'latestTariffUnitPriceCents',
+        'latestTariffUnitPrice',
+        'latestTariffEffectiveFrom',
+        'tariffUpdatedAt'
       ]);
     }
 
@@ -163,7 +182,7 @@ service cloud.firestore {
     match /students/{studentId} {
       allow read: if isStaff() || ownsStudent(studentId);
       allow create: if isStaff() || createsOwnStudent();
-      allow update: if isStaff()
+      allow update: if (isStaff() && !changesStudentTariffSource())
         || (
           ownsStudent(studentId)
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
@@ -307,6 +326,16 @@ service cloud.firestore {
     }
 
     match /refunds/{refundId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
+    match /tariffs/{tariffId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
+    match /studentTariffAssignments/{assignmentId} {
       allow read: if isAdmin();
       allow create, update, delete: if false;
     }

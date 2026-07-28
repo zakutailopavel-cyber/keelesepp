@@ -38,7 +38,9 @@ const {
   paymentNetAmountCents,
   planInvoiceOverpaymentTransfer,
   selectBillableLessons,
+  tariffAssignmentPlan,
   toCents,
+  validIsoDate,
 } = require("./finance-core");
 
 admin.initializeApp();
@@ -219,6 +221,195 @@ function cleanText(value, maxLength = 500) {
   return String(value || "").trim().slice(0, maxLength);
 }
 
+async function createTariffVersion({
+  actor,
+  name,
+  unitPrice,
+  effectiveFrom,
+  requestId,
+}) {
+  const mutationId = cleanRequestId(requestId);
+  const cleanName = cleanText(name, 120);
+  if (!cleanName) throw httpError(400, "Tariff name required");
+  const unitPriceCents = toCents(unitPrice, "tariff unit price");
+  const cleanEffectiveFrom = validIsoDate(effectiveFrom, "effectiveFrom");
+  const signature = crypto.createHash("sha256").update(JSON.stringify({
+    name: cleanName,
+    unitPriceCents,
+    effectiveFrom: cleanEffectiveFrom,
+    billingModel: "per_lesson",
+    currency: "EUR",
+  })).digest("hex");
+  const tariffRef = db.collection("tariffs").doc(mutationId);
+  const auditRef = db.collection("financialAudit").doc(mutationId);
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+
+  return db.runTransaction(async transaction => {
+    const existing = await transaction.get(tariffRef);
+    if (existing.exists) {
+      if (existing.data().creationSignature !== signature) {
+        throw httpError(409, "requestId already used for a different tariff");
+      }
+      return { tariff: { id: existing.id, ...existing.data() }, idempotent: true };
+    }
+    const tariff = {
+      name: cleanName,
+      billingModel: "per_lesson",
+      unitPriceCents,
+      unitPrice: centsToAmount(unitPriceCents),
+      currency: "EUR",
+      effectiveFrom: cleanEffectiveFrom,
+      status: "active",
+      creationSignature: signature,
+      createdAt: nowIso,
+      createdBy: actorData,
+      requestId: mutationId,
+    };
+    transaction.create(tariffRef, tariff);
+    transaction.create(auditRef, {
+      entityType: "tariff",
+      entityId: tariffRef.id,
+      action: "tariff.version_created",
+      tariffId: tariffRef.id,
+      tariffName: cleanName,
+      unitPriceCents,
+      unitPrice: tariff.unitPrice,
+      effectiveFrom: cleanEffectiveFrom,
+      actor: actorData,
+      reason: "Versioned tariff created",
+      createdAt: nowIso,
+      requestId: mutationId,
+    });
+    return { tariff: { id: tariffRef.id, ...tariff }, idempotent: false };
+  });
+}
+
+async function assignStudentTariff({
+  actor,
+  studentId,
+  tariffId,
+  effectiveFrom,
+  requestId,
+}) {
+  const mutationId = cleanRequestId(requestId);
+  const cleanStudentId = String(studentId || "").trim();
+  const cleanTariffId = String(tariffId || "").trim();
+  if (!cleanStudentId) throw httpError(400, "studentId required");
+  if (!cleanTariffId) throw httpError(400, "tariffId required");
+  const cleanEffectiveFrom = validIsoDate(effectiveFrom, "effectiveFrom");
+  const signature = crypto.createHash("sha256").update(JSON.stringify({
+    studentId: cleanStudentId,
+    tariffId: cleanTariffId,
+    effectiveFrom: cleanEffectiveFrom,
+  })).digest("hex");
+  const assignmentRef = db.collection("studentTariffAssignments").doc(mutationId);
+  const auditRef = db.collection("financialAudit").doc(mutationId);
+  const studentRef = db.collection("students").doc(cleanStudentId);
+  const tariffRef = db.collection("tariffs").doc(cleanTariffId);
+  const assignmentsQuery = db.collection("studentTariffAssignments")
+    .where("studentId", "==", cleanStudentId);
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+
+  return db.runTransaction(async transaction => {
+    const existing = await transaction.get(assignmentRef);
+    if (existing.exists) {
+      if (existing.data().creationSignature !== signature) {
+        throw httpError(409, "requestId already used for a different tariff assignment");
+      }
+      return {
+        assignment: { id: existing.id, ...existing.data() },
+        idempotent: true,
+      };
+    }
+    const [studentSnap, tariffSnap, assignmentsSnap] = await Promise.all([
+      transaction.get(studentRef),
+      transaction.get(tariffRef),
+      transaction.get(assignmentsQuery),
+    ]);
+    if (!studentSnap.exists) throw httpError(404, "Student not found");
+    if (!tariffSnap.exists) throw httpError(404, "Tariff not found");
+    const tariff = tariffSnap.data();
+    if (tariff.status !== "active" || tariff.billingModel !== "per_lesson") {
+      throw httpError(409, "Tariff is not active for per-lesson billing");
+    }
+    if (cleanEffectiveFrom < tariff.effectiveFrom) {
+      throw httpError(409, "Assignment cannot start before the tariff version");
+    }
+    const existingAssignments = assignmentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    let plan;
+    try {
+      plan = tariffAssignmentPlan(existingAssignments, cleanEffectiveFrom);
+    } catch (error) {
+      throw httpError(error.status || 409, error.message);
+    }
+    const student = studentSnap.data();
+    const assignment = {
+      studentId: cleanStudentId,
+      studentName: student.name || "—",
+      tariffId: cleanTariffId,
+      tariffName: tariff.name || "—",
+      billingModel: "per_lesson",
+      unitPriceCents: tariff.unitPriceCents,
+      unitPrice: tariff.unitPrice,
+      currency: tariff.currency || "EUR",
+      effectiveFrom: cleanEffectiveFrom,
+      effectiveUntil: "",
+      status: "active",
+      creationSignature: signature,
+      createdAt: nowIso,
+      createdBy: actorData,
+      requestId: mutationId,
+    };
+    if (plan.previousAssignmentId) {
+      transaction.set(
+        db.collection("studentTariffAssignments").doc(plan.previousAssignmentId),
+        {
+          effectiveUntil: plan.previousEffectiveUntil,
+          status: "superseded",
+          supersededBy: assignmentRef.id,
+          updatedAt: nowIso,
+          updatedBy: actorData,
+        },
+        { merge: true },
+      );
+    }
+    transaction.set(studentRef, {
+      latestTariffAssignmentId: assignmentRef.id,
+      latestTariffId: cleanTariffId,
+      latestTariffName: assignment.tariffName,
+      latestTariffUnitPriceCents: assignment.unitPriceCents,
+      latestTariffUnitPrice: assignment.unitPrice,
+      latestTariffEffectiveFrom: cleanEffectiveFrom,
+      tariffUpdatedAt: nowIso,
+    }, { merge: true });
+    transaction.create(assignmentRef, assignment);
+    transaction.create(auditRef, {
+      entityType: "student_tariff_assignment",
+      entityId: assignmentRef.id,
+      action: "student.tariff_assigned",
+      studentId: cleanStudentId,
+      studentName: assignment.studentName,
+      tariffId: cleanTariffId,
+      tariffName: assignment.tariffName,
+      unitPriceCents: assignment.unitPriceCents,
+      unitPrice: assignment.unitPrice,
+      effectiveFrom: cleanEffectiveFrom,
+      previousAssignmentId: plan.previousAssignmentId,
+      previousEffectiveUntil: plan.previousEffectiveUntil,
+      actor: actorData,
+      reason: "Versioned tariff assigned to student",
+      createdAt: nowIso,
+      requestId: mutationId,
+    });
+    return {
+      assignment: { id: assignmentRef.id, ...assignment },
+      idempotent: false,
+    };
+  });
+}
+
 async function createLessonInvoice({
   actor,
   studentId,
@@ -262,6 +453,8 @@ async function createLessonInvoice({
   const counterRef = db.collection("meta").doc("invoiceCounter");
   const lessonRefs = uniqueLessonIds.map(id => db.collection("lessons").doc(id));
   const studentLessonsQuery = db.collection("lessons").where("studentId", "==", cleanStudentId);
+  const tariffAssignmentsQuery = db.collection("studentTariffAssignments")
+    .where("studentId", "==", cleanStudentId);
   const nowIso = new Date().toISOString();
   const todayIso = nowIso.slice(0, 10);
   const actorData = actorSnapshot(actor);
@@ -274,10 +467,11 @@ async function createLessonInvoice({
       }
       return { invoice: { id: existingInvoice.id, ...existingInvoice.data() }, idempotent: true };
     }
-    const [studentSnap, counterSnap, studentLessonsSnap] = await Promise.all([
+    const [studentSnap, counterSnap, studentLessonsSnap, tariffAssignmentsSnap] = await Promise.all([
       transaction.get(studentRef),
       transaction.get(counterRef),
       transaction.get(studentLessonsQuery),
+      transaction.get(tariffAssignmentsQuery),
     ]);
     if (!studentSnap.exists) throw httpError(404, "Student not found");
 
@@ -295,7 +489,13 @@ async function createLessonInvoice({
       return lesson;
     });
     const lessonPrice = Number(student.lessonPrice) || 0;
-    const lessonData = buildLessonInvoiceLines(selectedLessons, lessonPrice);
+    const tariffAssignments = tariffAssignmentsSnap.docs
+      .map(doc => ({ id: doc.id, ...doc.data() }));
+    const lessonData = buildLessonInvoiceLines(
+      selectedLessons,
+      lessonPrice,
+      tariffAssignments,
+    );
     const nextSequence = (Number(counterSnap.data()?.seq) || 0) + 1;
     const invoiceNum = `KS-${todayIso.slice(0, 4)}-${String(nextSequence).padStart(3, "0")}`;
     const parentUid = student.linkedParentId || student.parentUid || student.guardianUid || "";
@@ -342,14 +542,21 @@ async function createLessonInvoice({
       lastReminderSentAt: "",
       reminderCount: 0,
       due10ReminderMonth: "",
-      desc: cleanDescription || `${lessonData.lessonCount} keeletundi x ${lessonData.lessonPrice}€`,
+      desc: cleanDescription || (
+        lessonData.lessonPrice > 0
+          ? `${lessonData.lessonCount} keeletundi x ${lessonData.lessonPrice}€`
+          : `${lessonData.lessonCount} keeletundi tariifide järgi`
+      ),
       lessonCount: lessonData.lessonCount,
       lessonPrice: lessonData.lessonPrice,
       lessonPriceCents: lessonData.lessonPriceCents,
       lessonIds: lessonData.lessonIds,
       lines: lessonData.lines,
-      lineVersion: 1,
+      lineVersion: lessonData.tariffAssignmentIds.length ? 2 : 1,
       billingMode: "lesson_lines_v1",
+      pricingMode: lessonData.pricingMode,
+      tariffIds: lessonData.tariffIds,
+      tariffAssignmentIds: lessonData.tariffAssignmentIds,
       autoGenerated: true,
       creationSignature: signature,
       createdAt: nowIso,
@@ -359,15 +566,26 @@ async function createLessonInvoice({
 
     transaction.create(invoiceRef, invoice);
     transaction.set(counterRef, { seq: nextSequence, updatedAt: nowIso }, { merge: true });
-    const lineIndexByLessonId = new Map(lessonData.lines.map((line, index) => [line.lessonId, index]));
+    const lineByLessonId = new Map(
+      lessonData.lines.map((line, index) => [line.lessonId, { line, index }]),
+    );
     lessonRefs.forEach(ref => {
+      const pricedLine = lineByLessonId.get(ref.id);
       transaction.set(ref, {
         billingStatus: "invoiced",
         invoiceId: invoiceRef.id,
         invoiceNum,
-        invoiceLineIndex: lineIndexByLessonId.get(ref.id),
-        billedAmountCents: lessonData.lessonPriceCents,
-        billedAmount: lessonData.lessonPrice,
+        invoiceLineIndex: pricedLine.index,
+        billedAmountCents: pricedLine.line.amountCents,
+        billedAmount: pricedLine.line.amount,
+        pricingSource: pricedLine.line.pricingSource,
+        ...(pricedLine.line.tariffId ? { billedTariffId: pricedLine.line.tariffId } : {}),
+        ...(pricedLine.line.tariffName
+          ? { billedTariffName: pricedLine.line.tariffName }
+          : {}),
+        ...(pricedLine.line.tariffAssignmentId
+          ? { billedTariffAssignmentId: pricedLine.line.tariffAssignmentId }
+          : {}),
         invoicedAt: nowIso,
         billingUpdatedAt: nowIso,
       }, { merge: true });
@@ -388,6 +606,9 @@ async function createLessonInvoice({
       studentId: cleanStudentId,
       studentName: invoice.studentName,
       lessonIds: lessonData.lessonIds,
+      pricingMode: lessonData.pricingMode,
+      tariffIds: lessonData.tariffIds,
+      tariffAssignmentIds: lessonData.tariffAssignmentIds,
       amountCents: lessonData.amountCents,
       amount: lessonData.amount,
       actor: actorData,
@@ -2310,6 +2531,28 @@ exports.financeApi = functions.https.onRequest(async (req, res) => {
 
   try {
     const actor = await requireAdminUser(req);
+    if (req.path === "/tariffs") {
+      const result = await createTariffVersion({
+        actor,
+        name: req.body?.name,
+        unitPrice: req.body?.unitPrice,
+        effectiveFrom: req.body?.effectiveFrom,
+        requestId: req.body?.requestId,
+      });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/students/tariff-assignments") {
+      const result = await assignStudentTariff({
+        actor,
+        studentId: req.body?.studentId,
+        tariffId: req.body?.tariffId,
+        effectiveFrom: req.body?.effectiveFrom,
+        requestId: req.body?.requestId,
+      });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
     if (req.path === "/invoices/from-lessons") {
       const result = await createLessonInvoice({
         actor,
