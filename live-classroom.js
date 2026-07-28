@@ -322,13 +322,13 @@
           <div class="field"><label>Pealkiri</label><input id="scene-title" maxlength="160" value="${escapeHtml(mode===current.type?current.title:'')}"></div>
           <div class="field" style="margin-top:10px"><label>Juhis või küsimus</label><textarea id="scene-body" maxlength="4000">${escapeHtml(mode===current.type?current.body:'')}</textarea></div>
           ${mode==='choice'?`<div class="field" style="margin-top:10px"><label>Vastusevariandid — üks real</label><textarea id="scene-options" placeholder="Variant A&#10;Variant B">${escapeHtml((mode===current.type?current.options||[]:[]).join('\n'))}</textarea></div>`:''}
-          <button id="publish-scene" class="btn btn-primary" style="width:100%;margin-top:12px">Avalda õpilase lavale</button>
+          <button id="publish-scene" class="btn btn-primary" style="width:100%;margin-top:12px" ${room.status==='ended'?'disabled':''}>Avalda õpilase lavale</button>
         </section>
         <section class="card desk-section">
           <h3>Ekraani jagamine</h3>
           <div class="safety"><strong>Vali brauseri aknas ainult üks vahekaart või rakenduse aken.</strong> Ära vali „Entire screen“, sest seal võivad olla e-post, paroolid või teiste õpilaste andmed.</div>
           <div class="actions">
-            <button id="start-screen" class="btn btn-amber" ${state.screenStream?'disabled':''}>Jaga valitud akent</button>
+            <button id="start-screen" class="btn btn-amber" ${state.screenStream||room.status==='ended'?'disabled':''}>Jaga valitud akent</button>
             <button id="stop-screen" class="btn btn-danger" ${state.screenStream?'':'disabled'}>Lõpeta jagamine</button>
           </div>
           <div id="connection-status" class="room-meta">${escapeHtml(state.connectionStatus||'Ekraani ei jagata.')}</div>
@@ -433,6 +433,10 @@
   }
 
   async function publishScene(){
+    if(state.room?.status==='ended'){
+      setNotice('Lõpetatud tunnis ei saa uut õppestseeni avaldada.','error');
+      return;
+    }
     try{
       const nextVersion=(Number(state.room.sceneVersion)||0)+1;
       const scene=buildScene({
@@ -474,8 +478,18 @@
     if(state.room.status==='ended') return;
     if(!window.confirm('Kas lõpetada see tund? Õpilase lava suletakse.')) return;
     await stopScreenShare(false);
+    const nextVersion=(Number(state.room.sceneVersion)||0)+1;
+    const scene=buildScene({
+      type:'welcome',
+      title:'Tund on lõpetatud',
+      body:'Aitäh osalemast! Vastused on õpetajale salvestatud.',
+      version:nextVersion
+    });
     await db.collection('liveClassrooms').doc(state.room.id).update({
       status:'ended',
+      activeScene:scene,
+      sceneVersion:nextVersion,
+      screenShare:{status:'idle',shareId:''},
       endedAt:serverTimestamp(),
       updatedAt:serverTimestamp()
     });
@@ -639,6 +653,10 @@
   }
 
   async function startScreenShare(){
+    if(state.room?.status==='ended'){
+      setNotice('Lõpetatud tunnis ei saa ekraani jagada.','error');
+      return;
+    }
     if(!navigator.mediaDevices?.getDisplayMedia){
       setNotice('See brauser ei toeta ekraani jagamist.','error');
       return;

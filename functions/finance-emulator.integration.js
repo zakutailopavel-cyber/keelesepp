@@ -940,18 +940,32 @@ test("Live Classroom keeps the teacher desk private and scopes student interacti
   );
   assert.equal(studentRoomMutation.status, 403, JSON.stringify(studentRoomMutation.body));
 
-  await db.collection("liveClassrooms").doc("live-room-001").update({
-    activeScene: {
-      type: "short_answer",
-      title: "Secure question",
-      body: "Write the answer",
-      version: 1,
+  const publishQuestion = await firestoreDocumentRequest(
+    teacherToken,
+    "PATCH",
+    "liveClassrooms/live-room-001?updateMask.fieldPaths=activeScene&updateMask.fieldPaths=status&updateMask.fieldPaths=sceneVersion",
+    {
+      fields: {
+        activeScene: {
+          mapValue: {
+            fields: {
+              type: { stringValue: "short_answer" },
+              title: { stringValue: "Secure question" },
+              body: { stringValue: "Write the answer" },
+              version: { integerValue: "2" },
+            },
+          },
+        },
+        status: { stringValue: "live" },
+        sceneVersion: { integerValue: "2" },
+      },
     },
-  });
+  );
+  assert.equal(publishQuestion.status, 200, JSON.stringify(publishQuestion.body));
   const responseBody = {
     fields: {
       classroomId: { stringValue: "live-room-001" },
-      sceneVersion: { integerValue: "1" },
+      sceneVersion: { integerValue: "2" },
       sceneType: { stringValue: "short_answer" },
       studentId: { stringValue: "live-student-record" },
       studentName: { stringValue: "Live Student" },
@@ -962,14 +976,14 @@ test("Live Classroom keeps the teacher desk private and scopes student interacti
   const ownResponse = await firestoreDocumentRequest(
     studentToken,
     "PATCH",
-    `liveClassrooms/live-room-001/responses/scene-1-${studentUid}`,
+    `liveClassrooms/live-room-001/responses/scene-2-${studentUid}`,
     responseBody,
   );
   assert.equal(ownResponse.status, 200, JSON.stringify(ownResponse.body));
   const outsiderResponse = await firestoreDocumentRequest(
     outsiderToken,
     "PATCH",
-    `liveClassrooms/live-room-001/responses/scene-1-${outsiderUid}`,
+    `liveClassrooms/live-room-001/responses/scene-2-${outsiderUid}`,
     {
       fields: {
         ...responseBody.fields,
@@ -979,10 +993,35 @@ test("Live Classroom keeps the teacher desk private and scopes student interacti
   );
   assert.equal(outsiderResponse.status, 403, JSON.stringify(outsiderResponse.body));
 
-  await db.collection("liveClassrooms").doc("live-room-001").update({
-    status: "live",
-    screenShare: { status: "active", shareId: "share-secure-001" },
-  });
+  const publishScreen = await firestoreDocumentRequest(
+    teacherToken,
+    "PATCH",
+    "liveClassrooms/live-room-001?updateMask.fieldPaths=activeScene&updateMask.fieldPaths=sceneVersion&updateMask.fieldPaths=screenShare",
+    {
+      fields: {
+        activeScene: {
+          mapValue: {
+            fields: {
+              type: { stringValue: "screen" },
+              title: { stringValue: "Secure screen" },
+              body: { stringValue: "Selected window only" },
+              version: { integerValue: "3" },
+            },
+          },
+        },
+        sceneVersion: { integerValue: "3" },
+        screenShare: {
+          mapValue: {
+            fields: {
+              status: { stringValue: "active" },
+              shareId: { stringValue: "share-secure-001" },
+            },
+          },
+        },
+      },
+    },
+  );
+  assert.equal(publishScreen.status, 200, JSON.stringify(publishScreen.body));
   const teacherSignal = await firestoreDocumentRequest(
     teacherToken,
     "PATCH",
@@ -1010,4 +1049,42 @@ test("Live Classroom keeps the teacher desk private and scopes student interacti
     "liveClassrooms/live-room-001/signals/offer-001",
   );
   assert.equal(outsiderSignalRead.status, 403, JSON.stringify(outsiderSignalRead.body));
+
+  const endRoom = await firestoreDocumentRequest(
+    teacherToken,
+    "PATCH",
+    "liveClassrooms/live-room-001?updateMask.fieldPaths=activeScene&updateMask.fieldPaths=sceneVersion&updateMask.fieldPaths=screenShare&updateMask.fieldPaths=status",
+    {
+      fields: {
+        activeScene: {
+          mapValue: {
+            fields: {
+              type: { stringValue: "welcome" },
+              title: { stringValue: "Lesson ended" },
+              body: { stringValue: "Responses saved" },
+              version: { integerValue: "4" },
+            },
+          },
+        },
+        sceneVersion: { integerValue: "4" },
+        screenShare: {
+          mapValue: {
+            fields: {
+              status: { stringValue: "idle" },
+              shareId: { stringValue: "" },
+            },
+          },
+        },
+        status: { stringValue: "ended" },
+      },
+    },
+  );
+  assert.equal(endRoom.status, 200, JSON.stringify(endRoom.body));
+  const reopenEndedRoom = await firestoreDocumentRequest(
+    teacherToken,
+    "PATCH",
+    "liveClassrooms/live-room-001?updateMask.fieldPaths=status",
+    { fields: { status: { stringValue: "live" } } },
+  );
+  assert.equal(reopenEndedRoom.status, 403, JSON.stringify(reopenEndedRoom.body));
 });

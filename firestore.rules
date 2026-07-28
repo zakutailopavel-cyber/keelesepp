@@ -488,6 +488,17 @@ service cloud.firestore {
           && request.resource.data.teacherUid == resource.data.teacherUid
           && request.resource.data.studentId == resource.data.studentId
           && request.resource.data.accessVersion == resource.data.accessVersion
+          && request.resource.data.status in ['waiting', 'live', 'ended']
+          && (resource.data.status != 'ended' || request.resource.data.status == 'ended')
+          && request.resource.data.sceneVersion >= resource.data.sceneVersion
+          && request.resource.data.activeScene.type in [
+            'welcome',
+            'message',
+            'choice',
+            'short_answer',
+            'screen'
+          ]
+          && request.resource.data.screenShare.status in ['idle', 'active']
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
             'activeScene',
             'sceneVersion',
