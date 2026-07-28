@@ -932,6 +932,107 @@ test("Live Classroom keeps the teacher desk private and scopes student interacti
     JSON.stringify(otherTeacherRoomRead.body),
   );
 
+  const presenceTimestamp = new Date().toISOString();
+  const teacherPresenceBody = {
+    fields: {
+      classroomId: { stringValue: "live-room-001" },
+      uid: { stringValue: teacherUid },
+      role: { stringValue: "teacher" },
+      displayName: { stringValue: "Live Teacher" },
+      online: { booleanValue: true },
+      lastSeen: { timestampValue: presenceTimestamp },
+      lastSeenIso: { stringValue: presenceTimestamp },
+    },
+  };
+  const teacherPresence = await firestoreDocumentRequest(
+    teacherToken,
+    "PATCH",
+    `liveClassrooms/live-room-001/presence/${teacherUid}`,
+    teacherPresenceBody,
+  );
+  assert.equal(teacherPresence.status, 200, JSON.stringify(teacherPresence.body));
+  const studentReadsTeacherPresence = await firestoreDocumentRequest(
+    studentToken,
+    "GET",
+    `liveClassrooms/live-room-001/presence/${teacherUid}`,
+  );
+  assert.equal(
+    studentReadsTeacherPresence.status,
+    200,
+    JSON.stringify(studentReadsTeacherPresence.body),
+  );
+  const outsiderPresenceRead = await firestoreDocumentRequest(
+    outsiderToken,
+    "GET",
+    `liveClassrooms/live-room-001/presence/${teacherUid}`,
+  );
+  assert.equal(outsiderPresenceRead.status, 403, JSON.stringify(outsiderPresenceRead.body));
+
+  const studentPresenceBody = {
+    fields: {
+      classroomId: { stringValue: "live-room-001" },
+      uid: { stringValue: studentUid },
+      role: { stringValue: "student" },
+      displayName: { stringValue: "Live Student" },
+      online: { booleanValue: true },
+      lastSeen: { timestampValue: presenceTimestamp },
+      lastSeenIso: { stringValue: presenceTimestamp },
+    },
+  };
+  const studentPresence = await firestoreDocumentRequest(
+    studentToken,
+    "PATCH",
+    `liveClassrooms/live-room-001/presence/${studentUid}`,
+    studentPresenceBody,
+  );
+  assert.equal(studentPresence.status, 200, JSON.stringify(studentPresence.body));
+  const futurePresenceTimestamp = new Date(Date.now() + 5 * 60 * 1000).toISOString();
+  const forgedFuturePresence = await firestoreDocumentRequest(
+    studentToken,
+    "PATCH",
+    `liveClassrooms/live-room-001/presence/${studentUid}`,
+    {
+      fields: {
+        ...studentPresenceBody.fields,
+        lastSeen: { timestampValue: futurePresenceTimestamp },
+        lastSeenIso: { stringValue: futurePresenceTimestamp },
+      },
+    },
+  );
+  assert.equal(
+    forgedFuturePresence.status,
+    403,
+    JSON.stringify(forgedFuturePresence.body),
+  );
+  const forgedStudentPresence = await firestoreDocumentRequest(
+    otherTeacherToken,
+    "PATCH",
+    `liveClassrooms/live-room-001/presence/${otherTeacherUid}`,
+    {
+      fields: {
+        ...studentPresenceBody.fields,
+        uid: { stringValue: otherTeacherUid },
+      },
+    },
+  );
+  assert.equal(
+    forgedStudentPresence.status,
+    403,
+    JSON.stringify(forgedStudentPresence.body),
+  );
+  const forgedPresenceRole = await firestoreDocumentRequest(
+    studentToken,
+    "PATCH",
+    `liveClassrooms/live-room-001/presence/${studentUid}`,
+    {
+      fields: {
+        ...studentPresenceBody.fields,
+        role: { stringValue: "teacher" },
+      },
+    },
+  );
+  assert.equal(forgedPresenceRole.status, 403, JSON.stringify(forgedPresenceRole.body));
+
   const studentRoomMutation = await firestoreDocumentRequest(
     studentToken,
     "PATCH",
@@ -1087,4 +1188,17 @@ test("Live Classroom keeps the teacher desk private and scopes student interacti
     { fields: { status: { stringValue: "live" } } },
   );
   assert.equal(reopenEndedRoom.status, 403, JSON.stringify(reopenEndedRoom.body));
+  const endedRoomPresence = await firestoreDocumentRequest(
+    studentToken,
+    "PATCH",
+    `liveClassrooms/live-room-001/presence/${studentUid}`,
+    {
+      fields: {
+        ...studentPresenceBody.fields,
+        lastSeen: { timestampValue: new Date().toISOString() },
+        lastSeenIso: { stringValue: new Date().toISOString() },
+      },
+    },
+  );
+  assert.equal(endedRoomPresence.status, 403, JSON.stringify(endedRoomPresence.body));
 });

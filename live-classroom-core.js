@@ -48,6 +48,33 @@
     if(!response) return '';
     return cleanText(response.answer||response.option||'',1000);
   };
+  const timestampMillis=value=>{
+    if(!value) return 0;
+    if(typeof value.toMillis==='function') return value.toMillis();
+    if(typeof value.toDate==='function') return value.toDate().getTime();
+    const parsed=Date.parse(value);
+    return Number.isNaN(parsed)?0:parsed;
+  };
+  const isPresenceFresh=(presence,now=Date.now(),maxAgeMs=60000)=>{
+    if(!presence||presence.online===false) return false;
+    const seenAt=timestampMillis(presence.lastSeen)||timestampMillis(presence.lastSeenIso);
+    return seenAt>0&&Math.max(0,Number(now)-seenAt)<=Math.max(1000,Number(maxAgeMs)||60000);
+  };
+  const classroomErrorMessage=error=>{
+    const code=String(error?.code||'').toLowerCase();
+    const message=String(typeof error==='string'?error:error?.message||'').trim();
+    const combined=`${code} ${message}`.toLowerCase();
+    if(combined.includes('permission-denied')||combined.includes('insufficient permission')){
+      return 'Sul ei ole sellele klassiruumile ligipääsu. Ava enda tunni link või palu õpetajal uus link saata.';
+    }
+    if(combined.includes('unauthenticated')||combined.includes('auth/user-token-expired')){
+      return 'Sinu sisselogimine on aegunud. Logi CRM-is uuesti sisse ja proovi veel kord.';
+    }
+    if(combined.includes('unavailable')||combined.includes('network')||combined.includes('offline')){
+      return 'Ühendus klassiruumiga katkes. Kontrolli internetti ja proovi uuesti.';
+    }
+    return cleanText(message,300)||'Klassiruumi ei saanud avada. Proovi uuesti või ava CRM.';
+  };
   return {
     cleanText,
     escapeHtml,
@@ -58,6 +85,9 @@
     sceneAcceptsResponse,
     isUnsafeDisplaySurface,
     classroomLink,
-    responseLabel
+    responseLabel,
+    timestampMillis,
+    isPresenceFresh,
+    classroomErrorMessage
   };
 });

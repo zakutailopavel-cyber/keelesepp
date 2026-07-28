@@ -7,9 +7,9 @@ The release has two coordinated tracks:
 1. make the existing CRM calmer, consistent and explicit about bad data;
 2. introduce Live Classroom without exposing the teacher's private workspace.
 
-## Current implementation slice
+## Implemented foundation
 
-Included in this pull request:
+Implemented so far:
 
 - correct today's lesson count and make bad legacy package data explicit;
 - surface historical duplicate invoice numbers without rewriting accounting history;
@@ -71,6 +71,14 @@ follow-up slices below.
   on all networks.
 
 ### B3. Rich interaction
+
+Implemented:
+
+- Live participant presence with a bounded heartbeat.
+- Interactive choice and short-answer tasks open in a focused stage dialog.
+- The teacher sees the current response state next to the stage.
+
+Next:
 
 - Shared whiteboard and teacher pointer.
 - Drag-and-drop, matching and fill-in-the-gap activities.
