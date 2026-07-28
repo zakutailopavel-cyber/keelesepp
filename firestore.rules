@@ -60,6 +60,29 @@ service cloud.firestore {
         );
     }
 
+    function liveClassroomPath(classroomId) {
+      return /databases/$(database)/documents/liveClassrooms/$(classroomId);
+    }
+
+    function liveClassroomData(classroomId) {
+      return get(liveClassroomPath(classroomId)).data;
+    }
+
+    function ownsLiveClassroom(classroomId) {
+      return signedIn()
+        && exists(liveClassroomPath(classroomId))
+        && ownsStudent(liveClassroomData(classroomId).studentId);
+    }
+
+    function hostsLiveClassroom(classroomId) {
+      return isAdmin()
+        || (
+          signedIn()
+          && exists(liveClassroomPath(classroomId))
+          && liveClassroomData(classroomId).teacherUid == uid()
+        );
+    }
+
     function ownsInvoice(invoice) {
       return signedIn()
         && (
@@ -437,6 +460,96 @@ service cloud.firestore {
           && request.resource.data.studentId == resource.data.studentId
         );
       allow delete: if isAdmin();
+    }
+
+    match /liveClassrooms/{classroomId} {
+      allow read: if isAdmin()
+        || (signedIn() && resource.data.teacherUid == uid())
+        || ownsStudent(resource.data.studentId);
+      allow create: if isStaff()
+        && request.resource.data.teacherUid == uid()
+        && request.resource.data.studentId is string
+        && request.resource.data.studentId != ''
+        && exists(studentPath(request.resource.data.studentId))
+        && request.resource.data.status == 'waiting'
+        && request.resource.data.sceneVersion == 1
+        && request.resource.data.accessVersion == 1
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.title.size() <= 160
+        && request.resource.data.activeScene.type == 'welcome'
+        && request.resource.data.activeScene.version == 1
+        && request.resource.data.screenShare.status == 'idle'
+        && request.resource.data.screenShare.shareId == '';
+      allow update: if isAdmin()
+        || (
+          isStaff()
+          && resource.data.teacherUid == uid()
+          && request.resource.data.teacherUid == resource.data.teacherUid
+          && request.resource.data.studentId == resource.data.studentId
+          && request.resource.data.accessVersion == resource.data.accessVersion
+          && request.resource.data.status in ['waiting', 'live', 'ended']
+          && (resource.data.status != 'ended' || request.resource.data.status == 'ended')
+          && request.resource.data.sceneVersion >= resource.data.sceneVersion
+          && request.resource.data.activeScene.type in [
+            'welcome',
+            'message',
+            'choice',
+            'short_answer',
+            'screen'
+          ]
+          && request.resource.data.screenShare.status in ['idle', 'active']
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'activeScene',
+            'sceneVersion',
+            'status',
+            'startedAt',
+            'endedAt',
+            'screenShare',
+            'updatedAt'
+          ])
+        );
+      allow delete: if isAdmin();
+
+      match /responses/{responseId} {
+        allow read: if hostsLiveClassroom(classroomId) || ownsLiveClassroom(classroomId);
+        allow create: if ownsLiveClassroom(classroomId)
+          && liveClassroomData(classroomId).status != 'ended'
+          && liveClassroomData(classroomId).activeScene.type in ['choice', 'short_answer']
+          && request.resource.data.studentUid == uid()
+          && request.resource.data.studentId == liveClassroomData(classroomId).studentId
+          && request.resource.data.sceneVersion == liveClassroomData(classroomId).sceneVersion
+          && request.resource.data.answer is string
+          && request.resource.data.answer.size() > 0
+          && request.resource.data.answer.size() <= 1600;
+        allow update: if false;
+        allow delete: if isAdmin();
+      }
+
+      match /signals/{signalId} {
+        allow read: if hostsLiveClassroom(classroomId) || ownsLiveClassroom(classroomId);
+        allow create: if signedIn()
+          && liveClassroomData(classroomId).status == 'live'
+          && liveClassroomData(classroomId).screenShare.status == 'active'
+          && liveClassroomData(classroomId).screenShare.shareId != ''
+          && request.resource.data.senderUid == uid()
+          && request.resource.data.type in ['offer', 'answer', 'candidate']
+          && request.resource.data.payload is string
+          && request.resource.data.payload.size() > 0
+          && request.resource.data.payload.size() <= 25000
+          && request.resource.data.shareId == liveClassroomData(classroomId).screenShare.shareId
+          && (
+            (
+              hostsLiveClassroom(classroomId)
+              && request.resource.data.senderRole == 'teacher'
+            )
+            || (
+              ownsLiveClassroom(classroomId)
+              && request.resource.data.senderRole == 'student'
+            )
+          );
+        allow update, delete: if false;
+      }
     }
 
     match /meta/invoiceCounter {

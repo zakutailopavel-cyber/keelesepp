@@ -1,5 +1,5 @@
 (function(){
-  const APP_VERSION  = 'CRM 2026-07-10 18:05';
+  const APP_VERSION  = 'KeeleSepp CRM · 28.07.2026';
   const LEVELS   = ['Eelkool','A1','A2','B1','B2','C1'];
   const TEACHERS = ['Pavel','Jelena','Elizaveta','Angelina'];
   const STAFF_ALIASES = {
@@ -88,7 +88,7 @@
     return `${year}-${month}-${day}`;
   };
   const today = () => toLocalISODate();
-  const pkgLeft = s => (s.packageTotal||0)-(s.packageUsed||0);
+  const pkgLeft = s => Math.max(0,(Number.parseInt(s?.packageTotal,10)||0)-(Number.parseInt(s?.packageUsed,10)||0));
   const copyText = async text => {
     try{
       if(navigator.clipboard?.writeText){

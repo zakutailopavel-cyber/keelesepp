@@ -107,6 +107,7 @@ window.addEventListener('load', function(){
 window.__haldusConfigureBabel();
 </script>
 <script src="/haldus-shared.js"></script>
+<script src="/haldus-quality.js"></script>
 <script src="/haldus-programs.js"></script>
 <script src="/annotations-manager.js"></script>
 <script type="text/babel" data-presets="haldus-react">
@@ -124,6 +125,11 @@ const {
   hasUserRole, withUserRoles,
   ensureStudentRecord, ensureParentStudentRecords
 } = window.HaldusShared;
+const {
+  legacyPackageSummary,
+  scheduleEventOccursOnDate,
+  dataQualitySummary
+} = window.HaldusQuality;
 const LEVELS = SHARED_LEVELS.includes('Eelkool') ? SHARED_LEVELS : ['Eelkool',...SHARED_LEVELS];
 const GRADES = SHARED_GRADES.includes('Eelkool') ? SHARED_GRADES : ['Eelkool',...SHARED_GRADES];
 
@@ -727,9 +733,10 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
     user.displayName
   ].filter(Boolean).map(canonicalTeacherName))];
   const teacherScope = canonicalTeacherName(user.displayName);
+  const todaySchedule = schedule.filter(event=>scheduleEventOccursOnDate(event,today()));
   const todaySch  = isAdmin
-    ? schedule.length
-    : schedule.filter(s=>teacherMatches(s.teacher,user.displayName)).length;
+    ? todaySchedule.length
+    : todaySchedule.filter(s=>teacherMatches(s.teacher,user.displayName)).length;
   const currentStu= !isStaff?myStudents[0]:null;
   const doneLess  = currentStu?lessons.filter(l=>(l.studentId===currentStu.id||l.studentName?.toLowerCase()===currentStu.name?.toLowerCase())&&l.status==='Toimunud'):[];
   const stuLessons= currentStu?lessons.filter(l=>l.studentId===currentStu.id||l.studentName?.toLowerCase()===currentStu.name?.toLowerCase()):[];
@@ -769,7 +776,32 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
     !(task.lastReplySeenBy||[]).includes(user.uid)
   ) : [];
   const unpaidInvoices = isAdmin ? invoices.filter(inv=>inv.status==='Ootel') : [];
+  const dashboardQuality = isAdmin
+    ? dataQualitySummary({students:myStudents,invoices})
+    : {invalidPackages:[],duplicateInvoices:[],issueCount:0};
   const adminAttention = [
+    {
+      id:'duplicate-invoices',
+      title:'Korduvad arvenumbrid',
+      count:dashboardQuality.duplicateInvoices.length,
+      text:'Ajaloolistes arvetes leidub sama numbriga dokumente. Uued numbrid on juba kaitstud.',
+      tone:'#991b1b',
+      bg:'#fff7f7',
+      icon:'fa-copy',
+      action:'Ava arved',
+      onClick:()=>setTab&&setTab('invoices')
+    },
+    {
+      id:'invalid-packages',
+      title:'Vigane paketijääk',
+      count:dashboardQuality.invalidPackages.length,
+      text:'Vana paketiloendur sisaldab kasutatud tundide arvu, mis ületab paketi mahtu.',
+      tone:'#991b1b',
+      bg:'#fff7f7',
+      icon:'fa-box-open',
+      action:'Ava andmebaas',
+      onClick:()=>setTab&&setTab('database')
+    },
     {
       id:'parents',
       title:'Uued lapsevanemad',
@@ -2847,7 +2879,8 @@ function StudentsList({filteredStudents,lessons,isAdmin,search,setSearch,stuFilt
             return canonicalTeacherName(l.teacher)===canonicalTeacherName(s.teacher);
           });
           const pct=levelPct(s.level,s.targetLevel);
-          const rem=pkgLeft(s);
+          const packageSummary=legacyPackageSummary(s);
+          const rem=packageSummary.remaining;
           return(
             <div key={s.id} className="card" style={{padding:20,cursor:'pointer',transition:'all .18s',opacity:s.active===false?.6:1,position:'relative'}}
               onClick={()=>setSelStu(s)}
@@ -2868,11 +2901,11 @@ function StudentsList({filteredStudents,lessons,isAdmin,search,setSearch,stuFilt
               <div style={{display:'flex',justifyContent:'space-between',fontSize:'.72rem',color:'#42536A'}}>
                 <span>{s.level}</span><span style={{color:'#2F5D50',fontWeight:600}}>{pct}%</span><span>{s.targetLevel}</span>
               </div>
-              {s.packageTotal>0&&(
+              {packageSummary.total>0&&(
                 <div style={{marginTop:12,padding:'8px 12px',borderRadius:9,display:'flex',justifyContent:'space-between',
                   background:rem<=2?'#fee2e2':rem<=5?'#fef3c7':'#f0fdf4'}}>
                   <span style={{fontSize:'.75rem',fontWeight:600,color:rem<=2?'#991b1b':rem<=5?'#92400e':'#166534'}}>📦 Paketi jääk</span>
-                  <span style={{fontSize:'.82rem',fontWeight:700,color:rem<=2?'#991b1b':rem<=5?'#92400e':'#166534'}}>{rem}/{s.packageTotal}</span>
+                  <span style={{fontSize:'.82rem',fontWeight:700,color:rem<=2?'#991b1b':rem<=5?'#92400e':'#166534'}}>{rem} / {packageSummary.total} alles</span>
                 </div>
               )}
             </div>
@@ -2888,6 +2921,7 @@ function StudentsList({filteredStudents,lessons,isAdmin,search,setSearch,stuFilt
 function ParentsView({parents,students,invoices,isAdmin,parentAlerts,setSelStu,setTab,createMissingParentStudents,markParentChecked,mergeParentDuplicates,assignStudentToParent,changeParentToStudent,notify}) {
   const [search,setSearch] = React.useState('');
   const [statusFilter,setStatusFilter] = React.useState('all');
+  const [editingParentId,setEditingParentId] = React.useState('');
   const parentStatusMeta = {
     new:{t:'Uus',bg:'#dbeafe',c:'#1d4ed8'},
     written:{t:'Kirjutatud',bg:'#ede9fe',c:'#6d28d9'},
@@ -2899,7 +2933,7 @@ function ParentsView({parents,students,invoices,isAdmin,parentAlerts,setSelStu,s
   };
   const noData = (
     <span style={{display:'inline-flex',alignItems:'center',justifyContent:'center',padding:'3px 8px',borderRadius:999,background:'#fee2e2',border:'1px solid #fecaca',color:'#991b1b',fontWeight:800,fontSize:'.72rem'}}>
-      Нет данных
+      Andmed puuduvad
     </span>
   );
   const updateParent = async(parent,patch)=>{
@@ -3120,41 +3154,55 @@ function ParentsView({parents,students,invoices,isAdmin,parentAlerts,setSelStu,s
                 }}>
                   {(parentStatusMeta[row.statusValue||'new']||parentStatusMeta.new).t}
                 </span>
+                <button
+                  onClick={()=>setEditingParentId(current=>current===row.parent.id?'':row.parent.id)}
+                  className="btn btn-ghost btn-sm">
+                  <i className={`fa-solid ${editingParentId===row.parent.id?'fa-check':'fa-pen'}`}/>
+                  {editingParentId===row.parent.id?'Valmis':'Muuda'}
+                </button>
               </div>
             </div>
 
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
-              <label style={{fontSize:'.76rem',fontWeight:800,color:'#42536A'}}>
-                Kontakti staatus
-                <select defaultValue={row.parent.parentContactStatus||'new'} onChange={e=>updateParent(row.parent,{parentContactStatus:e.target.value})}>
-                  {Object.entries(parentStatusMeta).map(([key,meta])=><option key={key} value={key}>{meta.t}</option>)}
-                </select>
-              </label>
-              <label style={{fontSize:'.76rem',fontWeight:800,color:'#42536A'}}>
-                Suhtluskanal
-                <select defaultValue={row.parent.parentContactChannel||'phone'} onChange={e=>updateParent(row.parent,{parentContactChannel:e.target.value})}>
-                  <option value="phone">Telefon</option>
-                  <option value="email">E-post</option>
-                  <option value="whatsapp">WhatsApp</option>
-                  <option value="telegram">Telegram</option>
-                  <option value="other">Muu</option>
-                </select>
-              </label>
-              <label style={{fontSize:'.76rem',fontWeight:800,color:'#42536A'}}>
-                Järgmine kontakt
-                <input type="date" defaultValue={row.parent.parentNextContactAt||''} onBlur={e=>updateParent(row.parent,{parentNextContactAt:e.target.value})}/>
-              </label>
-              <label style={{fontSize:'.76rem',fontWeight:800,color:'#42536A'}}>
-                Vastutaja
-                <input defaultValue={row.parent.parentContactOwner||''} placeholder="Kes suhtleb?" onBlur={e=>updateParent(row.parent,{parentContactOwner:e.target.value})}/>
-              </label>
-            </div>
+            {editingParentId===row.parent.id?(
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+                <label style={{fontSize:'.76rem',fontWeight:800,color:'#42536A'}}>
+                  Kontakti staatus
+                  <select defaultValue={row.parent.parentContactStatus||'new'} onChange={e=>updateParent(row.parent,{parentContactStatus:e.target.value})}>
+                    {Object.entries(parentStatusMeta).map(([key,meta])=><option key={key} value={key}>{meta.t}</option>)}
+                  </select>
+                </label>
+                <label style={{fontSize:'.76rem',fontWeight:800,color:'#42536A'}}>
+                  Suhtluskanal
+                  <select defaultValue={row.parent.parentContactChannel||'phone'} onChange={e=>updateParent(row.parent,{parentContactChannel:e.target.value})}>
+                    <option value="phone">Telefon</option>
+                    <option value="email">E-post</option>
+                    <option value="whatsapp">WhatsApp</option>
+                    <option value="telegram">Telegram</option>
+                    <option value="other">Muu</option>
+                  </select>
+                </label>
+                <label style={{fontSize:'.76rem',fontWeight:800,color:'#42536A'}}>
+                  Järgmine kontakt
+                  <input type="date" defaultValue={row.parent.parentNextContactAt||''} onBlur={e=>updateParent(row.parent,{parentNextContactAt:e.target.value})}/>
+                </label>
+                <label style={{fontSize:'.76rem',fontWeight:800,color:'#42536A'}}>
+                  Vastutaja
+                  <input defaultValue={row.parent.parentContactOwner||''} placeholder="Kes suhtleb?" onBlur={e=>updateParent(row.parent,{parentContactOwner:e.target.value})}/>
+                </label>
+              </div>
+            ):(
+              <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(120px,1fr))',gap:8,padding:12,borderRadius:12,background:'#F9F8F6',fontSize:'.78rem',color:'#42536A'}}>
+                <div><strong>Kanal</strong><br/>{({phone:'Telefon',email:'E-post',whatsapp:'WhatsApp',telegram:'Telegram',other:'Muu'})[row.parent.parentContactChannel||'phone']}</div>
+                <div><strong>Järgmine kontakt</strong><br/>{row.parent.parentNextContactAt?fmtDate(row.parent.parentNextContactAt):'Pole määratud'}</div>
+                <div><strong>Vastutaja</strong><br/>{row.parent.parentContactOwner||'Pole määratud'}</div>
+              </div>
+            )}
 
             <div>
               <div style={{fontSize:'.72rem',fontWeight:800,letterSpacing:'.08em',textTransform:'uppercase',color:'#42536A',marginBottom:8}}>Lapsed</div>
               {row.childGroups.length===0&&(
                 <div style={{padding:12,borderRadius:12,background:'#fff7f7',border:'1px solid #fecaca',color:'#991b1b',fontWeight:800}}>
-                  Нет данных
+                  Andmed puuduvad
                   {row.rawNames.length>0&&<div style={{fontSize:'.78rem',fontWeight:600,marginTop:4}}>Registreerimisel sisestatud: {row.rawNames.join(', ')}</div>}
                 </div>
               )}
@@ -3179,7 +3227,12 @@ function ParentsView({parents,students,invoices,isAdmin,parentAlerts,setSelStu,s
               <div><strong>Telefon:</strong><br/>{row.phone||noData}</div>
               <div><strong>Ootel arved:</strong><br/>{row.unpaid.length?`${row.unpaid.reduce((a,inv)=>a+(parseFloat(inv.amount)||0),0)} €`:'0 €'}</div>
             </div>
-            <textarea defaultValue={row.parent.parentContactNotes||''} placeholder="Mida lapsevanem ütles, millal tagasi helistada, kokkulepped..." onBlur={e=>updateParent(row.parent,{parentContactNotes:e.target.value})} style={{minHeight:74}}/>
+            {editingParentId===row.parent.id
+              ? <textarea defaultValue={row.parent.parentContactNotes||''} placeholder="Mida lapsevanem ütles, millal tagasi helistada, kokkulepped..." onBlur={e=>updateParent(row.parent,{parentContactNotes:e.target.value})} style={{minHeight:74}}/>
+              : <div style={{padding:'10px 12px',borderRadius:10,border:'1px solid rgba(28,43,58,.08)',fontSize:'.8rem',color:'#42536A'}}>
+                  <strong>Märkmed:</strong> {row.parent.parentContactNotes||'Märkmeid pole.'}
+                </div>
+            }
             <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
               {row.phone&&<a className="btn btn-ghost btn-sm" href={`tel:${row.phone}`}><i className="fa-solid fa-phone"/> Helista</a>}
               {row.email&&<a className="btn btn-ghost btn-sm" href={`mailto:${row.email}`}><i className="fa-solid fa-envelope"/> E-post</a>}
@@ -3277,7 +3330,7 @@ function StudentsDatabaseView({
       minHeight:inline?24:34,padding:inline?'3px 8px':'7px 10px',borderRadius:10,
       background:'#fee2e2',border:'1px solid #fecaca',color:'#991b1b',
       fontWeight:800,fontSize:inline?'.72rem':'.78rem',boxShadow:'0 0 0 3px rgba(239,68,68,.08)'
-    }}>Нет данных</span>
+    }}>Andmed puuduvad</span>
   );
   const teacherStudents = React.useMemo(()=>{
     if(!teacherFocus) return [];
@@ -3433,7 +3486,10 @@ function StudentsDatabaseView({
         </div>
         <div className="card" style={{padding:'16px 18px'}}>
           <div style={{fontSize:'.74rem',color:'#42536A',fontWeight:600,textTransform:'uppercase',letterSpacing:'.08em'}}>Paketid lõppemas</div>
-          <div style={{fontSize:'1.6rem',fontWeight:700,marginTop:8,color:'#C9882A'}}>{filteredStudents.filter(s=>(s.packageTotal||0)>0&&pkgLeft(s)<=3).length}</div>
+          <div style={{fontSize:'1.6rem',fontWeight:700,marginTop:8,color:'#C9882A'}}>{filteredStudents.filter(s=>{
+            const summary=legacyPackageSummary(s);
+            return summary.total>0&&summary.remaining<=3;
+          }).length}</div>
         </div>
         <div className="card" style={{padding:'16px 18px'}}>
           <div style={{fontSize:'.74rem',color:'#42536A',fontWeight:600,textTransform:'uppercase',letterSpacing:'.08em'}}>Tasumata arved</div>
@@ -3550,15 +3606,18 @@ function StudentsDatabaseView({
                 });
                 const completedLessons = studentLessons.filter(l=>l.status==='Toimunud');
                 const unpaidInvoices = invoices.filter(i=>i.studentId===student.id&&i.status==='Ootel');
-                const remaining = pkgLeft(student);
+                const packageSummary = legacyPackageSummary(student);
+                const remaining = packageSummary.remaining;
                 const avgGrade = completedLessons.length ? avg(completedLessons.map(l=>l.grade)) : '—';
                 const lastLesson = [...studentLessons].sort((a,b)=>new Date(b.date)-new Date(a.date))[0];
                 const contact = contactMeta[student.contactStatus||'new'] || contactMeta.new;
                 const statusBadge = student.active===false
                   ? {bg:'#f3f4f6',c:'#6b7280',t:'Arhiveeritud'}
-                  : remaining<=2 && (student.packageTotal||0)>0
-                    ? {bg:'#fef3c7',c:'#92400e',t:'Jääk madal'}
-                    : {bg:'#dcfce7',c:'#166534',t:'Aktiivne'};
+                  : packageSummary.invalid
+                    ? {bg:'#fee2e2',c:'#991b1b',t:'Vajab parandust'}
+                    : remaining<=2 && packageSummary.total>0
+                      ? {bg:'#fef3c7',c:'#92400e',t:'Jääk madal'}
+                      : {bg:'#dcfce7',c:'#166534',t:'Aktiivne'};
 
                 const isSelected = selectedForGroup.find(s=>s.id===student.id);
                 if(item._isGroup){
@@ -3657,10 +3716,10 @@ function StudentsDatabaseView({
                       {isAdmin&&lastLesson?.teacher&&<div style={{fontSize:'.78rem',color:'#42536A',marginTop:4}}>Viimane tund: {lastLesson.teacher}</div>}
                     </td>
                     <td style={{padding:'14px 16px',verticalAlign:'top'}}>
-                      <div style={{fontWeight:700,color:remaining<=2&&student.packageTotal>0?'#b45309':'#1C2B3A'}}>
-                        {remaining}/{student.packageTotal||0}
+                      <div style={{fontWeight:700,color:packageSummary.invalid?'#991b1b':remaining<=2&&packageSummary.total>0?'#b45309':'#1C2B3A'}}>
+                        {packageSummary.invalid?'Vigane jääk':`${remaining} / ${packageSummary.total} alles`}
                       </div>
-                      <div style={{fontSize:'.78rem',color:'#42536A',marginTop:4}}>Kasutatud: {student.packageUsed||0}</div>
+                      <div style={{fontSize:'.78rem',color:'#42536A',marginTop:4}}>Kasutatud: {packageSummary.used}</div>
                     </td>
                     <td style={{padding:'14px 16px',verticalAlign:'top'}}>
                       <div style={{fontWeight:700}}>{completedLessons.length}</div>
@@ -4987,12 +5046,12 @@ function AIGeneratorModal({student, skillMap, level, skills, onClose, user}) {
                 {weakSkills.length>0&&<div><strong style={{color:'#dc2626'}}>🎯 Nõrgad:</strong> {weakSkills.join(', ')}</div>}
               </div>}
               {recentErrors.length>0&&<div style={{padding:'10px 13px',borderRadius:10,background:'rgba(220,38,38,.05)',border:'1px solid rgba(220,38,38,.15)',fontSize:'.78rem',color:'#42536A',lineHeight:1.6}}>
-                <div style={{fontWeight:700,color:'#dc2626',marginBottom:4}}>🔴 Частые ошибки (из последних работ):</div>
+                <div style={{fontWeight:700,color:'#dc2626',marginBottom:4}}>🔴 Sagedased vead viimastes töödes:</div>
                 {recentErrors.slice(0,5).map((e,i)=><div key={i} style={{marginBottom:2,paddingLeft:8,borderLeft:'2px solid rgba(220,38,38,.3)'}}>• {e}</div>)}
-                <div style={{fontSize:'.72rem',color:'#9ca3af',marginTop:4}}>AI учтёт эти ошибки при генерации</div>
+                <div style={{fontSize:'.72rem',color:'#9ca3af',marginTop:4}}>AI arvestab neid vigu uute materjalide loomisel.</div>
               </div>}
               {prevTopics.length>0&&<div style={{padding:'8px 13px',borderRadius:10,background:'rgba(28,43,58,.04)',fontSize:'.74rem',color:'#718096'}}>
-                <strong>Предыдущие темы:</strong> {prevTopics.join(', ')}
+                <strong>Varasemad teemad:</strong> {prevTopics.join(', ')}
               </div>}
             </div>
             {error&&<div style={{padding:'10px 13px',borderRadius:9,background:'rgba(220,38,38,.08)',color:'#dc2626',fontSize:'.82rem'}}>{error}</div>}
@@ -7241,14 +7300,14 @@ function PaymentReconciliationView({invoices, students, isAdmin, bankTransaction
       const amount=Number(String(row.amount).replace(',','.'));
       return (row.invoiceId&&(!Number.isFinite(amount)||amount<=0)) || (!row.invoiceId&&Number.isFinite(amount)&&amount>0);
     });
-    if(hasIncompleteRow){window.alert('Заполните и счёт, и положительную сумму в каждой используемой строке.');return;}
+    if(hasIncompleteRow){window.alert('Täida igal kasutatud real nii arve kui ka positiivne summa.');return;}
     const rows=allocationDraft.rows
       .map(row=>({invoiceId:row.invoiceId,amount:Number(String(row.amount).replace(',','.'))}))
       .filter(row=>row.invoiceId&&Number.isFinite(row.amount)&&row.amount>0);
     const ids=rows.map(row=>row.invoiceId);
-    if(new Set(ids).size!==ids.length){window.alert('Один счёт нельзя добавить дважды.');return;}
+    if(new Set(ids).size!==ids.length){window.alert('Sama arvet ei saa kaks korda lisada.');return;}
     const total=rows.reduce((sum,row)=>sum+row.amount,0);
-    if(total>allocationDraft.payment.amount+.001){window.alert('Распределённая сумма больше банковской операции.');return;}
+    if(total>allocationDraft.payment.amount+.001){window.alert('Jaotatud summa on pangatehingust suurem.');return;}
     setAllocationBusy(true);
     const saved=await allocateBankTransaction(allocationDraft.payment,rows);
     setAllocationBusy(false);
@@ -7276,21 +7335,21 @@ function PaymentReconciliationView({invoices, students, isAdmin, bankTransaction
       const amount=Number(String(row.amount).replace(',','.'));
       return (row.invoiceId&&(!Number.isFinite(amount)||amount<=0)) || (!row.invoiceId&&Number.isFinite(amount)&&amount>0);
     });
-    if(hasIncompleteRow){window.alert('Заполните и счёт, и положительную сумму в каждой используемой строке.');return;}
+    if(hasIncompleteRow){window.alert('Täida igal kasutatud real nii arve kui ka positiivne summa.');return;}
     const rows=creditDraft.rows
       .map(row=>({invoiceId:row.invoiceId,amount:Number(String(row.amount).replace(',','.'))}))
       .filter(row=>row.invoiceId&&Number.isFinite(row.amount)&&row.amount>0);
-    if(rows.length===0){window.alert('Добавьте хотя бы один счёт и сумму.');return;}
-    if(new Set(rows.map(row=>row.invoiceId)).size!==rows.length){window.alert('Один счёт нельзя добавить дважды.');return;}
+    if(rows.length===0){window.alert('Lisa vähemalt üks arve ja summa.');return;}
+    if(new Set(rows.map(row=>row.invoiceId)).size!==rows.length){window.alert('Sama arvet ei saa kaks korda lisada.');return;}
     const total=rows.reduce((sum,row)=>sum+row.amount,0);
-    if(total>(Number(creditDraft.credit.availableAmount)||0)+.001){window.alert('Сумма больше доступного аванса.');return;}
+    if(total>(Number(creditDraft.credit.availableAmount)||0)+.001){window.alert('Summa ületab kasutatava ettemakse.');return;}
     setCreditBusy(true);
     const saved=await applyPayerCredit(creditDraft.credit,rows,creditDraft.requestId);
     setCreditBusy(false);
     if(saved) setCreditDraft(null);
   }
   function resetAll() {
-    if (!window.confirm('Сбросить все отметки и назначения по сверке? Выписка останется.')) return;
+    if (!window.confirm('Kas lähtestada kõik sobitamise märked ja seosed? Väljavõte jääb alles.')) return;
     setAssignState({}); setVerified({});
     persist({assign: {}, verified: {}});
   }
@@ -7358,7 +7417,7 @@ function PaymentReconciliationView({invoices, students, isAdmin, bankTransaction
   const monthlyTotals = React.useMemo(() => {
     const t = {};
     payments.forEach(p => {
-      const name = effectiveName(p) || '(не назначено)';
+      const name = effectiveName(p) || '(sidumata)';
       if (!t[name]) t[name] = {byMonth: {}, isStudent: studentNames.has(name)};
       t[name].byMonth[p.month] = (t[name].byMonth[p.month] || 0) + p.amount;
     });
@@ -7410,30 +7469,30 @@ function PaymentReconciliationView({invoices, students, isAdmin, bankTransaction
   if (moSearch) monthEntries = monthEntries.filter(e => e.name.toLowerCase().includes(moSearch.toLowerCase()));
   monthEntries.sort((a, b) => b.sum - a.sum);
 
-  if (!loaded) return <div className="card" style={{padding: 40, textAlign: 'center', color: '#94a3b8'}}>Загрузка…</div>;
+  if (!loaded) return <div className="card" style={{padding: 40, textAlign: 'center', color: '#94a3b8'}}>Laadimine…</div>;
 
   return (
     <div className="fade-in" style={{display: 'flex', flexDirection: 'column', gap: 16}}>
       <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10}}>
-        <h2 style={{fontSize: '1.3rem'}}>Sverka maksete</h2>
-        <button onClick={resetAll} className="btn btn-ghost btn-sm">Сбросить отметки</button>
+        <h2 style={{fontSize: '1.3rem'}}>Maksete sobitamine</h2>
+        <button onClick={resetAll} className="btn btn-ghost btn-sm">Lähtesta märked</button>
       </div>
 
       <div className="card" style={{padding: 16}}>
         <div style={{fontWeight: 700, marginBottom: 6, fontSize: '.85rem'}}>
-          Импорт выписки {payments.length > 0 && <span style={{fontWeight: 400, color: '#64748b'}}>— загружено {payments.length} платежей</span>}
+          Pangaväljavõtte import {payments.length > 0 && <span style={{fontWeight: 400, color: '#64748b'}}>— laaditud {payments.length} makset</span>}
         </div>
         <div style={{fontSize: '.75rem', color: '#64748b', marginBottom: 6}}>
-          По одной строке на платёж: дата, плательщик, описание, сумма — через таб или запятую.
+          Üks makse rea kohta: kuupäev, maksja, selgitus ja summa — eralda tabulaatori või komaga.
         </div>
         <textarea rows={3} style={{fontFamily: 'monospace', fontSize: '.8rem'}}
           placeholder={'05.05.2026\tIRINA ŠAŠKOVA\tKS-2026-001\t25.00'}
           value={rawStatement} onChange={e => setRawStatement(e.target.value)} />
-        <button onClick={handleParse} className="btn btn-pine btn-sm" style={{marginTop: 8}}>Разобрать</button>
+        <button onClick={handleParse} className="btn btn-pine btn-sm" style={{marginTop: 8}}>Töötle väljavõte</button>
       </div>
 
       <div style={{display: 'flex', gap: 8}}>
-        {[['pay', 'Платежи'], ['invoices', 'Счета (Ootel)'], ['credits', 'Авансы'], ['months', 'По месяцам']].map(([k, l]) => (
+        {[['pay', 'Maksed'], ['invoices', 'Ootel arved'], ['credits', 'Ettemaksed'], ['months', 'Kuude kaupa']].map(([k, l]) => (
           <button key={k} onClick={() => setSubTab(k)}
             className={subTab === k ? 'btn btn-dark btn-sm' : 'btn btn-ghost btn-sm'}>{l}</button>
         ))}
@@ -7443,11 +7502,11 @@ function PaymentReconciliationView({invoices, students, isAdmin, bankTransaction
         <div className="card" style={{padding:18,border:'2px solid rgba(47,93,80,.28)',display:'flex',flexDirection:'column',gap:14}}>
           <div style={{display:'flex',justifyContent:'space-between',gap:12,alignItems:'flex-start',flexWrap:'wrap'}}>
             <div>
-              <div style={{fontSize:'.72rem',fontWeight:800,color:'#42536A',textTransform:'uppercase'}}>Распределение банковской операции</div>
+              <div style={{fontSize:'.72rem',fontWeight:800,color:'#42536A',textTransform:'uppercase'}}>Pangatehingu jaotamine</div>
               <div style={{fontWeight:800,fontSize:'1.05rem',marginTop:4}}>{allocationDraft.payment.payer} · {allocationDraft.payment.amount.toFixed(2)} €</div>
-              <div style={{fontSize:'.78rem',color:'#64748b'}}>{allocationDraft.payment.date} · {allocationDraft.payment.desc||'без пояснения'}</div>
+              <div style={{fontSize:'.78rem',color:'#64748b'}}>{allocationDraft.payment.date} · {allocationDraft.payment.desc||'selgitus puudub'}</div>
             </div>
-            <button onClick={()=>setAllocationDraft(null)} className="btn btn-ghost btn-sm" disabled={allocationBusy}>Закрыть</button>
+            <button onClick={()=>setAllocationDraft(null)} className="btn btn-ghost btn-sm" disabled={allocationBusy}>Sulge</button>
           </div>
           <div style={{display:'flex',flexDirection:'column',gap:8}}>
             {allocationDraft.rows.map((row,index)=>{
@@ -7456,33 +7515,33 @@ function PaymentReconciliationView({invoices, students, isAdmin, bankTransaction
               return(
                 <div key={`${index}-${row.invoiceId}`} style={{display:'grid',gridTemplateColumns:'minmax(220px,1fr) 130px auto',gap:8,alignItems:'center'}}>
                   <select value={row.invoiceId} onChange={event=>updateAllocationRow(index,{invoiceId:event.target.value})}>
-                    <option value="">Выберите счёт</option>
+                    <option value="">Vali arve</option>
                     {allocatableInvoices.map(invoice=>(
                       <option key={invoice.id} value={invoice.id}>
-                        {invoice.num} · {invoicePartyLabel(invoice)} · остаток {money(invoiceFinancialSummary(invoice).balance)}€
+                        {invoice.num} · {invoicePartyLabel(invoice)} · jääk {money(invoiceFinancialSummary(invoice).balance)}€
                       </option>
                     ))}
                   </select>
                   <input value={row.amount} onChange={event=>updateAllocationRow(index,{amount:event.target.value})}
-                    inputMode="decimal" placeholder={selected?`до ${money(balance)}€`:'Сумма €'}/>
-                  <button onClick={()=>removeAllocationRow(index)} className="btn btn-red btn-sm" title="Удалить строку">×</button>
+                    inputMode="decimal" placeholder={selected?`kuni ${money(balance)}€`:'Summa €'}/>
+                  <button onClick={()=>removeAllocationRow(index)} className="btn btn-red btn-sm" title="Eemalda rida">×</button>
                 </div>
               );
             })}
           </div>
           <div style={{display:'flex',justifyContent:'space-between',gap:10,alignItems:'center',flexWrap:'wrap'}}>
             <button onClick={()=>setAllocationDraft(current=>({...current,rows:[...current.rows,{invoiceId:'',amount:''}]}))}
-              className="btn btn-ghost btn-sm">+ Добавить счёт</button>
+              className="btn btn-ghost btn-sm">+ Lisa arve</button>
             <div style={{fontSize:'.82rem',fontWeight:700,color:allocationRemaining<-.001?'#991b1b':allocationRemaining>0?'#7c3aed':'#166534'}}>
-              Распределено {money(allocationTotal)}€ · {allocationRemaining>0?`аванс ${money(allocationRemaining)}€`:allocationRemaining<0?`превышение ${money(Math.abs(allocationRemaining))}€`:'остаток 0€'}
+              Jaotatud {money(allocationTotal)}€ · {allocationRemaining>0?`ettemakse ${money(allocationRemaining)}€`:allocationRemaining<0?`ületus ${money(Math.abs(allocationRemaining))}€`:'jääk 0€'}
             </div>
             <button onClick={saveAllocation} className="btn btn-pine btn-sm" disabled={allocationBusy||allocationRemaining<-.001}
               style={{opacity:(allocationBusy||allocationRemaining<-.001) ? .55 : 1}}>
-              {allocationBusy?'Сохраняю…':'Сохранить операцию'}
+              {allocationBusy?'Salvestan…':'Salvesta tehing'}
             </button>
           </div>
           <div style={{fontSize:'.74rem',color:'#64748b'}}>
-            Нераспределённый остаток сохранится как аванс плательщика. Его перенос на будущий счёт будет следующим отдельным действием.
+            Jaotamata jääk salvestatakse maksja ettemaksena ja seda saab hiljem eraldi arvele rakendada.
           </div>
         </div>
       )}
@@ -7491,11 +7550,11 @@ function PaymentReconciliationView({invoices, students, isAdmin, bankTransaction
         <div className="card" style={{padding:18,border:'2px solid rgba(109,40,217,.24)',display:'flex',flexDirection:'column',gap:14}}>
           <div style={{display:'flex',justifyContent:'space-between',gap:12,alignItems:'flex-start',flexWrap:'wrap'}}>
             <div>
-              <div style={{fontSize:'.72rem',fontWeight:800,color:'#6d28d9',textTransform:'uppercase'}}>Применение аванса</div>
-              <div style={{fontWeight:800,fontSize:'1.05rem',marginTop:4}}>{creditDraft.credit.payerName||'Плательщик'} · доступно {money(creditDraft.credit.availableAmount)}€</div>
-              <div style={{fontSize:'.75rem',color:'#64748b'}}>Источник: {creditDraft.credit.bankTransactionId||creditDraft.credit.id}</div>
+              <div style={{fontSize:'.72rem',fontWeight:800,color:'#6d28d9',textTransform:'uppercase'}}>Ettemakse kasutamine</div>
+              <div style={{fontWeight:800,fontSize:'1.05rem',marginTop:4}}>{creditDraft.credit.payerName||'Maksja'} · kasutada {money(creditDraft.credit.availableAmount)}€</div>
+              <div style={{fontSize:'.75rem',color:'#64748b'}}>Allikas: {creditDraft.credit.bankTransactionId||creditDraft.credit.id}</div>
             </div>
-            <button onClick={()=>setCreditDraft(null)} className="btn btn-ghost btn-sm" disabled={creditBusy}>Закрыть</button>
+            <button onClick={()=>setCreditDraft(null)} className="btn btn-ghost btn-sm" disabled={creditBusy}>Sulge</button>
           </div>
           <div style={{display:'flex',flexDirection:'column',gap:8}}>
             {creditDraft.rows.map((row,index)=>{
@@ -7504,30 +7563,30 @@ function PaymentReconciliationView({invoices, students, isAdmin, bankTransaction
               return(
                 <div key={`${index}-${row.invoiceId}`} style={{display:'grid',gridTemplateColumns:'minmax(220px,1fr) 130px auto',gap:8,alignItems:'center'}}>
                   <select value={row.invoiceId} onChange={event=>updateCreditRow(index,{invoiceId:event.target.value})}>
-                    <option value="">Выберите счёт</option>
+                    <option value="">Vali arve</option>
                     {allocatableInvoices.map(invoice=>(
                       <option key={invoice.id} value={invoice.id}>
-                        {invoice.num} · {invoicePartyLabel(invoice)} · остаток {money(invoiceFinancialSummary(invoice).balance)}€
+                        {invoice.num} · {invoicePartyLabel(invoice)} · jääk {money(invoiceFinancialSummary(invoice).balance)}€
                       </option>
                     ))}
                   </select>
                   <input value={row.amount} onChange={event=>updateCreditRow(index,{amount:event.target.value})}
-                    inputMode="decimal" placeholder={selected?`до ${money(balance)}€`:'Сумма €'}/>
-                  <button onClick={()=>removeCreditRow(index)} className="btn btn-red btn-sm" title="Удалить строку">×</button>
+                    inputMode="decimal" placeholder={selected?`kuni ${money(balance)}€`:'Summa €'}/>
+                  <button onClick={()=>removeCreditRow(index)} className="btn btn-red btn-sm" title="Eemalda rida">×</button>
                 </div>
               );
             })}
           </div>
           <div style={{display:'flex',justifyContent:'space-between',gap:10,alignItems:'center',flexWrap:'wrap'}}>
             <button onClick={()=>setCreditDraft(current=>({...current,rows:[...current.rows,{invoiceId:'',amount:''}]}))}
-              className="btn btn-ghost btn-sm">+ Добавить счёт</button>
+              className="btn btn-ghost btn-sm">+ Lisa arve</button>
             <div style={{fontSize:'.82rem',fontWeight:700,color:creditApplicationRemaining<-.001?'#991b1b':'#6d28d9'}}>
-              Применяется {money(creditApplicationTotal)}€ · останется {money(Math.max(0,creditApplicationRemaining))}€
+              Kasutatakse {money(creditApplicationTotal)}€ · alles jääb {money(Math.max(0,creditApplicationRemaining))}€
             </div>
             <button onClick={saveCreditApplication} className="btn btn-pine btn-sm"
               disabled={creditBusy||creditApplicationTotal<=0||creditApplicationRemaining<-.001}
               style={{opacity:(creditBusy||creditApplicationTotal<=0||creditApplicationRemaining<-.001) ? .55 : 1}}>
-              {creditBusy?'Применяю…':'Применить аванс'}
+              {creditBusy?'Rakendan…':'Rakenda ettemakse'}
             </button>
           </div>
         </div>
@@ -7536,31 +7595,31 @@ function PaymentReconciliationView({invoices, students, isAdmin, bankTransaction
       {subTab === 'pay' && (
         <div className="card" style={{overflow: 'hidden'}}>
           <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(110px,1fr))', gap: 10, padding: 14, background: '#1C2B3A'}}>
-            <MiniStat label="Сумма" value={totalSum.toFixed(2) + ' €'} />
-            <MiniStat label="Сверено" value={doneSum.toFixed(2) + ' €'} color="#4ade80" />
-            <MiniStat label="Осталось" value={(totalSum - doneSum).toFixed(2) + ' €'} color="#fbbf24" />
-            <MiniStat label="Авансы" value={openCreditTotal.toFixed(2) + ' €'} color="#c4b5fd" />
+            <MiniStat label="Summa" value={totalSum.toFixed(2) + ' €'} />
+            <MiniStat label="Sobitatud" value={doneSum.toFixed(2) + ' €'} color="#4ade80" />
+            <MiniStat label="Sobitamata" value={(totalSum - doneSum).toFixed(2) + ' €'} color="#fbbf24" />
+            <MiniStat label="Ettemaksed" value={openCreditTotal.toFixed(2) + ' €'} color="#c4b5fd" />
           </div>
           <div style={{display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', padding: 12, borderBottom: '1px solid rgba(28,43,58,.08)'}}>
             <div style={{display: 'flex', gap: 4}}>
               {['all', ...months].map(m => (
                 <button key={m} onClick={() => setMonth(m)}
-                  className={month === m ? 'btn btn-dark btn-sm' : 'btn btn-ghost btn-sm'}>{m === 'all' ? 'Все' : m}</button>
+                  className={month === m ? 'btn btn-dark btn-sm' : 'btn btn-ghost btn-sm'}>{m === 'all' ? 'Kõik' : m}</button>
               ))}
             </div>
-            <input style={{flex: 1, minWidth: 160}} placeholder="Поиск…" value={search} onChange={e => setSearch(e.target.value)} />
+            <input style={{flex: 1, minWidth: 160}} placeholder="Otsi…" value={search} onChange={e => setSearch(e.target.value)} />
             <label style={{fontSize: '.78rem', display: 'flex', gap: 5, alignItems: 'center', color: '#64748b'}}>
-              <input type="checkbox" checked={hideVerified} onChange={e => setHideVerified(e.target.checked)} style={{width: 'auto'}} /> скрыть сверенные
+              <input type="checkbox" checked={hideVerified} onChange={e => setHideVerified(e.target.checked)} style={{width: 'auto'}} /> peida sobitatud
             </label>
           </div>
 
           <datalist id="ks-recon-students">
-            {students.slice().sort((a, b) => a.name.localeCompare(b.name, 'ru')).map(s => <option key={s.id} value={s.name} />)}
+            {students.slice().sort((a, b) => a.name.localeCompare(b.name, 'et')).map(s => <option key={s.id} value={s.name} />)}
           </datalist>
 
           <div style={{maxHeight: 500, overflowY: 'auto'}}>
             {filteredPayments.length === 0
-              ? <div style={{textAlign: 'center', padding: 30, color: '#94a3b8', fontSize: '.85rem'}}>Ничего не найдено — вставьте выписку выше.</div>
+              ? <div style={{textAlign: 'center', padding: 30, color: '#94a3b8', fontSize: '.85rem'}}>Makseid ei leitud — lisa pangaväljavõte ülal.</div>
               : filteredPayments.map((p, i) => {
                 const m = matchOf(p);
                 const eff = effectiveName(p);
@@ -7580,20 +7639,20 @@ function PaymentReconciliationView({invoices, students, isAdmin, bankTransaction
                       <div style={{fontSize: '.72rem', color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>{p.desc}</div>
                       <div style={{display: 'flex', gap: 6, alignItems: 'center', marginTop: 2}}>
                         <input list="ks-recon-students" value={eff} onChange={e => setAssign(p.id, e.target.value)}
-                          placeholder="кто это?" style={{
+                          placeholder="Kelle makse?" style={{
                             fontSize: '.72rem', padding: '2px 6px', width: 200, borderRadius: 6,
                             border: manual ? '1.5px solid #2F5D50' : m.tier === 'ref' ? '1.5px solid #2F5D50'
                               : m.tier === 'ref-dup' ? '1.5px solid #dc2626' : eff ? '1.5px dashed #C9882A' : '1.5px solid rgba(28,43,58,.15)'
                           }} />
-                        {m.tier === 'ref' && !manual && <span className="badge" style={{background: '#dcfce7', color: '#166534'}}>по счёту {m.invoice.num}</span>}
-                        {m.tier === 'ref-dup' && <span className="badge" style={{background: '#fee2e2', color: '#991b1b'}}>номер счёта задвоен!</span>}
+                        {m.tier === 'ref' && !manual && <span className="badge" style={{background: '#dcfce7', color: '#166534'}}>arve {m.invoice.num} järgi</span>}
+                        {m.tier === 'ref-dup' && <span className="badge" style={{background: '#fee2e2', color: '#991b1b'}}>arvenumber kordub</span>}
                       </div>
                     </span>
                     <span style={{fontFamily: 'monospace', fontWeight: 700, textAlign: 'right'}}>{p.amount.toFixed(2)} €</span>
                     <span>
                       <button onClick={()=>openAllocation(p,m)} disabled={isRecorded}
                         className="btn btn-pine btn-sm" style={{opacity:isRecorded ? .55 : 1}}>
-                        {isRecorded?'Распределён':'Распределить'}
+                        {isRecorded?'Jaotatud':'Jaota'}
                       </button>
                     </span>
                   </div>
@@ -7605,7 +7664,7 @@ function PaymentReconciliationView({invoices, students, isAdmin, bankTransaction
 
       {subTab === 'invoices' && (
         <div className="card" style={{padding: 16}}>
-          <div style={{fontWeight: 700, marginBottom: 10}}>Неоплаченные счета по CRM ({pendingInvoices.length})</div>
+          <div style={{fontWeight: 700, marginBottom: 10}}>CRM-i ootel arved ({pendingInvoices.length})</div>
           <div style={{display: 'flex', flexDirection: 'column', gap: 8}}>
             {pendingInvoices.map(inv => {
               const paidSum = invoicePaidSums[inv.id] || 0;
@@ -7615,49 +7674,49 @@ function PaymentReconciliationView({invoices, students, isAdmin, bankTransaction
                   <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8}}>
                     <div>
                       <b>{inv.studentName || inv.parentName || '—'}</b>
-                      <span style={{color: '#64748b', fontSize: '.78rem'}}> · счёт {inv.num} · ссылка {inv.paymentReference || inv.num}</span>
+                      <span style={{color: '#64748b', fontSize: '.78rem'}}> · arve {inv.num} · viide {inv.paymentReference || inv.num}</span>
                     </div>
                     <span className="badge" style={{background: paidSum <= 0 ? '#fee2e2' : ok ? '#dcfce7' : '#fef3c7', color: paidSum <= 0 ? '#991b1b' : ok ? '#166534' : '#92400e'}}>
-                      {paidSum <= 0 ? '🔴 нет платежей' : ok ? '✅ похоже, оплачено' : '🟡 частично'}
+                      {paidSum <= 0 ? '🔴 makseid pole' : ok ? '✅ tõenäoliselt makstud' : '🟡 osaliselt'}
                     </span>
                   </div>
                   <div style={{fontSize: '.8rem', marginTop: 6}}>
-                    Долг: <b>{inv.amount.toFixed(2)} €</b> · найдено по номеру счёта: <b>{paidSum.toFixed(2)} €</b>
+                    Tasuda: <b>{inv.amount.toFixed(2)} €</b> · arvenumbri järgi leitud: <b>{paidSum.toFixed(2)} €</b>
                   </div>
                   {isAdmin&&paidSum>0&&(
                     <div style={{fontSize:'.75rem',color:'#64748b',marginTop:8}}>
-                      Запишите каждую банковскую строку во вкладке «Платежи» — это сохраняет дату, сумму и защищает от повторного импорта.
+                      Salvesta iga pangarida vahekaardil „Maksed“, et kuupäev ja summa säiliksid ning topeltimport oleks välistatud.
                     </div>
                   )}
                 </div>
               );
             })}
-            {pendingInvoices.length === 0 && <div style={{color: '#94a3b8', fontSize: '.85rem'}}>Неоплаченных счетов нет.</div>}
+            {pendingInvoices.length === 0 && <div style={{color: '#94a3b8', fontSize: '.85rem'}}>Ootel arveid pole.</div>}
           </div>
         </div>
       )}
 
       {subTab === 'credits' && (
         <div className="card" style={{padding:16}}>
-          <div style={{fontWeight:700,marginBottom:10}}>Нераспределённые авансы ({(payerCredits||[]).filter(credit=>credit.status==='open').length})</div>
+          <div style={{fontWeight:700,marginBottom:10}}>Jaotamata ettemaksed ({(payerCredits||[]).filter(credit=>credit.status==='open').length})</div>
           <div style={{display:'flex',flexDirection:'column',gap:8}}>
             {(payerCredits||[]).filter(credit=>credit.status==='open').sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||''))).map(credit=>(
               <div key={credit.id} style={{display:'flex',justifyContent:'space-between',gap:12,alignItems:'center',padding:12,border:'1px solid rgba(28,43,58,.1)',borderRadius:12,flexWrap:'wrap'}}>
                 <div>
-                  <div style={{fontWeight:700}}>{credit.payerName||'Плательщик не указан'}</div>
+                  <div style={{fontWeight:700}}>{credit.payerName||'Maksja puudub'}</div>
                   <div style={{fontSize:'.75rem',color:'#64748b'}}>
-                    Источник {credit.bankTransactionId||credit.sourceInvoiceNum||credit.sourcePaymentId||credit.id} · {fmtDate(credit.createdAt)}
+                    Allikas {credit.bankTransactionId||credit.sourceInvoiceNum||credit.sourcePaymentId||credit.id} · {fmtDate(credit.createdAt)}
                   </div>
                 </div>
                 <div style={{display:'flex',gap:8,alignItems:'center'}}>
                   <span className="badge" style={{background:'#ede9fe',color:'#6d28d9',fontWeight:800}}>{money(credit.availableAmount)}€</span>
-                  <button onClick={()=>openCreditApplication(credit)} className="btn btn-pine btn-sm">Применить</button>
-                  {refundPayerCredit&&<button onClick={()=>refundPayerCredit(credit)} className="btn btn-red btn-sm">Зарегистрировать возврат</button>}
+                  <button onClick={()=>openCreditApplication(credit)} className="btn btn-pine btn-sm">Rakenda</button>
+                  {refundPayerCredit&&<button onClick={()=>refundPayerCredit(credit)} className="btn btn-red btn-sm">Registreeri tagastus</button>}
                 </div>
               </div>
             ))}
             {(payerCredits||[]).filter(credit=>credit.status==='open').length===0&&(
-              <div style={{padding:24,textAlign:'center',color:'#94a3b8'}}>Открытых авансов нет.</div>
+              <div style={{padding:24,textAlign:'center',color:'#94a3b8'}}>Avatud ettemakseid pole.</div>
             )}
           </div>
         </div>
@@ -7666,13 +7725,13 @@ function PaymentReconciliationView({invoices, students, isAdmin, bankTransaction
       {subTab === 'months' && (
         <div className="card" style={{overflow: 'hidden'}}>
           <div style={{padding: 10, borderBottom: '1px solid rgba(28,43,58,.08)'}}>
-            <input style={{maxWidth: 260}} placeholder="Поиск по имени…" value={moSearch} onChange={e => setMoSearch(e.target.value)} />
+            <input style={{maxWidth: 260}} placeholder="Otsi nime järgi…" value={moSearch} onChange={e => setMoSearch(e.target.value)} />
           </div>
           <div style={{display: 'grid', gridTemplateColumns: `1.6fr repeat(${months.length},80px) 90px`, gap: 8,
             padding: '8px 14px', background: '#2F5D50', color: '#fff', fontSize: '.7rem', textTransform: 'uppercase', fontWeight: 700}}>
-            <div>Кто платил</div>
+            <div>Maksja</div>
             {months.map(m => <div key={m} style={{textAlign: 'right'}}>{m}</div>)}
-            <div style={{textAlign: 'right'}}>Итого</div>
+            <div style={{textAlign: 'right'}}>Kokku</div>
           </div>
           <div style={{maxHeight: 480, overflowY: 'auto'}}>
             {monthEntries.map((e, i) => (
@@ -7686,7 +7745,7 @@ function PaymentReconciliationView({invoices, students, isAdmin, bankTransaction
                 <div style={{textAlign: 'right', fontFamily: 'monospace', fontWeight: 700}}>{e.sum.toFixed(2)}</div>
               </div>
             ))}
-            {monthEntries.length === 0 && <div style={{textAlign: 'center', padding: 30, color: '#94a3b8', fontSize: '.85rem'}}>Нет данных.</div>}
+            {monthEntries.length === 0 && <div style={{textAlign: 'center', padding: 30, color: '#94a3b8', fontSize: '.85rem'}}>Andmed puuduvad.</div>}
           </div>
         </div>
       )}
@@ -8698,6 +8757,7 @@ function GCalSettings({user,notify}) {
   const [status,setStatus] = React.useState(null); // null | 'connected' | 'disconnected'
   const [lastSync,setLastSync] = React.useState(null);
   const [syncing,setSyncing] = React.useState(false);
+  const [detailsOpen,setDetailsOpen] = React.useState(false);
   const FUNCTIONS_BASE = 'https://us-central1-keelesepp-5136b.cloudfunctions.net/gcalApi';
 
   React.useEffect(()=>{
@@ -8746,50 +8806,52 @@ function GCalSettings({user,notify}) {
   };
 
   return(
-    <div className="card" style={{padding:22,marginTop:16}}>
-      <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:14}}>
-        <div style={{width:32,height:32,borderRadius:8,background:'rgba(66,133,244,.12)',display:'flex',alignItems:'center',justifyContent:'center'}}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-            <rect x="3" y="4" width="18" height="17" rx="2" stroke="#4285f4" strokeWidth="2"/>
-            <path d="M3 9h18" stroke="#4285f4" strokeWidth="2"/>
-            <path d="M8 2v4M16 2v4" stroke="#4285f4" strokeWidth="2" strokeLinecap="round"/>
-          </svg>
-        </div>
-        <div>
-          <div style={{fontWeight:700}}>Google Calendar</div>
-          <div style={{fontSize:'.76rem',color:'#42536A'}}>
-            {status==='connected'
-              ? <span style={{color:'#166534'}}>✓ Ühendatud{lastSync&&` · Viimane sync: ${new Date(lastSync).toLocaleDateString('et-EE')}`}</span>
-              : 'Ühenda oma Google Calendar tunniplaan'}
+    <div className="card" style={{padding:'14px 18px',marginTop:16}}>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:12,flexWrap:'wrap'}}>
+        <div style={{display:'flex',alignItems:'center',gap:10}}>
+          <div style={{width:32,height:32,borderRadius:8,background:'rgba(66,133,244,.12)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <rect x="3" y="4" width="18" height="17" rx="2" stroke="#4285f4" strokeWidth="2"/>
+              <path d="M3 9h18" stroke="#4285f4" strokeWidth="2"/>
+              <path d="M8 2v4M16 2v4" stroke="#4285f4" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
           </div>
+          <div>
+            <div style={{fontWeight:700}}>Google Calendar</div>
+            <div style={{fontSize:'.76rem',color:'#42536A'}}>
+              {status==='connected'
+                ? <span style={{color:'#166534'}}>✓ Ühendatud{lastSync&&` · Viimane sünkroonimine: ${new Date(lastSync).toLocaleDateString('et-EE')}`}</span>
+                : status===null?'Kontrollin staatust…':'Kalender pole ühendatud'}
+            </div>
+          </div>
+        </div>
+        <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+          {status==='disconnected'&&(
+            <button onClick={connect} className="btn btn-pine btn-sm">
+              Ühenda kalender
+            </button>
+          )}
+          {status==='connected'&&(
+            <>
+              <button onClick={sync} disabled={syncing} className="btn btn-pine btn-sm">
+                {syncing?'Sünkroonin…':'Sünkrooni'}
+              </button>
+              <button onClick={()=>setDetailsOpen(open=>!open)} className="btn btn-ghost btn-sm">
+                {detailsOpen?'Peida':'Seaded'} <i className={`fa-solid fa-chevron-${detailsOpen?'up':'down'}`}/>
+              </button>
+            </>
+          )}
         </div>
       </div>
 
-      {status===null&&<div style={{color:'#9ca3af',fontSize:'.84rem'}}>Kontrollin staatust…</div>}
-
-      {status==='disconnected'&&(
-        <button onClick={connect} className="btn btn-pine" style={{gap:8}}>
-          <svg width="16" height="16" viewBox="0 0 24 24"><path d="M12.545 10.239v3.821h5.445c-.712 2.315-2.647 3.972-5.445 3.972a6.033 6.033 0 110-12.064 5.95 5.95 0 014.131 1.619l2.921-2.921A10 10 0 1022 12c0-.637-.057-1.266-.166-1.878H12.545z" fill="#fff"/></svg>
-          Ühenda Google Calendar
-        </button>
-      )}
-
-      {status==='connected'&&(
-        <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-          <button onClick={sync} disabled={syncing} className="btn btn-pine">
-            {syncing?'Sünkroonimine…':'🔄 Sünkrooni kohe'}
-          </button>
-          <button onClick={disconnect} className="btn btn-ghost" style={{color:'#dc2626'}}>
+      {status==='connected'&&detailsOpen&&(
+        <div style={{marginTop:12,paddingTop:12,borderTop:'1px solid rgba(28,43,58,.08)',display:'flex',justifyContent:'space-between',gap:12,alignItems:'center',flexWrap:'wrap'}}>
+          <div style={{fontSize:'.78rem',color:'#42536A',maxWidth:760}}>
+            Sündmused sünkroonitakse iga tund. Lisa õpilase nimi sündmuse pealkirja, näiteks „Tund — Hanna Skoryk“.
+          </div>
+          <button onClick={disconnect} className="btn btn-ghost btn-sm" style={{color:'#dc2626'}}>
             Eemalda ühendus
           </button>
-        </div>
-      )}
-
-      {status==='connected'&&(
-        <div style={{marginTop:14,padding:'10px 14px',background:'#F9F8F6',borderRadius:10,fontSize:'.78rem',color:'#42536A'}}>
-          <strong>Kuidas toimib:</strong> Sündmused sünkroonitakse automaatselt iga tund.
-          Õpilase nimi peab olema sündmuse pealkirjas, nt: <em>"Занятие — Hanna Skoryk"</em> või <em>"Tund - Maria Mägi"</em>.
-          Sündmused kuvatakse tunniplaanis ja õpilase isiklikul lehel.
         </div>
       )}
     </div>
@@ -11190,7 +11252,7 @@ function App() {
   const updateInvoiceReference=useCallback(async(inv)=>{
     if(!inv?.id) return;
     const current = inv.paymentReference || inv.num || '';
-    const next = window.prompt('Makse selgitus / назначение платежа', current);
+    const next = window.prompt('Makse selgitus', current);
     if(next===null) return;
     const paymentReference = String(next).trim() || inv.num || current;
     await db.collection('invoices').doc(inv.id).update({paymentReference});
@@ -11201,7 +11263,7 @@ function App() {
   const updateInvoiceDue=useCallback(async(inv)=>{
     if(!inv?.id) return;
     const current = inv.due || invoiceDueDate();
-    const next = window.prompt('Maksetähtaeg / срок оплаты (YYYY-MM-DD)', current);
+    const next = window.prompt('Maksetähtaeg (AAAA-KK-PP)', current);
     if(next===null) return;
     const due = String(next).trim();
     const valid = /^\d{4}-\d{2}-\d{2}$/.test(due) && !Number.isNaN(new Date(`${due}T12:00:00`).getTime());
@@ -11523,6 +11585,7 @@ function App() {
   const navItems=[
     {id:'dashboard',icon:'fa-chart-pie',label:'Töölaud',badge:unreadMessages.length},
     {id:'calendar', icon:'fa-calendar-days',label:'Tunniplaan'},
+    {id:'live_classroom',icon:'fa-display',label:'Live Classroom',isExternal:true,href:'/live-classroom/'},
     ...(isStaff?[{id:'tasks',icon:'fa-list-check',label:'Ülesanded',
       badge:scopedTasks.filter(t=>t.status!=='done').length}]:[]),
     ...(isStaff?[{id:'programs',icon:'fa-book-open-reader',label:'Õppekavad'}]:[]),
@@ -11534,7 +11597,7 @@ function App() {
     ...(isStaff?[{id:'database',icon:'fa-table',label:'Andmebaas'}]:[]),
     ...(isStaff?[{id:'invoices',icon:'fa-file-invoice',label:'Arved',
       badge:scopedInvoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+invoiceFinancialSummary(i).balance,0)>0?scopedInvoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+invoiceFinancialSummary(i).balance,0)+'€':0}]:[]),
-    ...(isAdmin?[{id:'reconciliation',icon:'fa-money-bill-transfer',label:'Sverka maksete'}]:[]),
+    ...(isAdmin?[{id:'reconciliation',icon:'fa-money-bill-transfer',label:'Maksete sobitamine'}]:[]),
     ...(isStaff?[{id:'activity',icon:'fa-clock-rotate-left',label:'Tegevused'}]:[]),
     ...(!isStaff?[{id:'invoices',icon:'fa-file-invoice',label:'Arved',
       badge:scopedInvoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+invoiceFinancialSummary(i).balance,0)>0?scopedInvoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+invoiceFinancialSummary(i).balance,0)+'€':0}]:[]),
@@ -11572,6 +11635,9 @@ function App() {
         ))}
       </nav>
       <div style={{borderTop:'1px solid rgba(255,255,255,.08)',paddingTop:12,marginTop:8}}>
+        <div style={{fontSize:'.64rem',color:'rgba(255,255,255,.32)',padding:'0 14px 8px'}}>
+          {APP_VERSION}
+        </div>
         <button onClick={async()=>{await auth.signOut();setUser(null);}} className="sidebar-link" style={{color:'#fca5a5'}}>
           <i className="fa-solid fa-right-from-bracket" style={{width:18,textAlign:'center'}}/>
           Logi välja
@@ -11608,20 +11674,6 @@ function App() {
           <div style={{fontFamily:'Fraunces,Georgia,serif',fontSize:'1.3rem',fontWeight:600}}>Keele<span style={{color:'#C9882A'}}>Sepp</span></div>
           <button onClick={()=>setMobileNav(!mobileNav)} style={{background:'none',border:'none',cursor:'pointer',fontSize:'1.3rem',color:'#1C2B3A',padding:'4px 8px'}}>{mobileNav?'✕':'☰'}</button>
         </div>
-
-        {isStaff&&(
-          <div style={{position:'sticky',top:0,zIndex:40,display:'flex',justifyContent:'center',padding:'10px 16px 0',pointerEvents:'none'}}>
-            <div style={{background:'#C9882A',color:'#fff',padding:'8px 14px',borderRadius:999,fontSize:'.78rem',fontWeight:800,letterSpacing:'.04em',boxShadow:'0 10px 24px rgba(201,136,42,.28)'}}>
-              {APP_VERSION}
-            </div>
-          </div>
-        )}
-
-        {isStaff&&(
-          <div style={{position:'fixed',right:18,bottom:18,zIndex:120,background:'rgba(28,43,58,.92)',color:'#fff',padding:'8px 12px',borderRadius:999,fontSize:'.72rem',fontWeight:700,letterSpacing:'.04em',boxShadow:'0 10px 24px rgba(0,0,0,.18)'}}>
-            {APP_VERSION}
-          </div>
-        )}
 
         <div style={{padding:tab==='calendar'?'20px 24px':tab==='dashboard'&&!isStaff?'18px 28px 28px':'28px',maxWidth:tab==='calendar'?'100%':tab==='dashboard'&&!isStaff?1040:1100,margin:'0 auto'}}>
           {notif&&<div style={{position:'fixed',top:20,right:20,background:'#1C2B3A',color:'#fff',padding:'12px 20px',borderRadius:12,zIndex:300,fontWeight:600,fontSize:'.9rem',boxShadow:'0 8px 28px rgba(0,0,0,.25)'}}>{notif}</div>}

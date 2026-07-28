@@ -9,6 +9,14 @@
       "destination": "/haldus.html"
     },
     {
+      "source": "/live-classroom",
+      "destination": "/live-classroom.html"
+    },
+    {
+      "source": "/live-classroom/",
+      "destination": "/live-classroom.html"
+    },
+    {
       "source": "/haldus-calendar/",
       "destination": "/haldus-calendar.html"
     },
