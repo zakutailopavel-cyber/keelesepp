@@ -23,6 +23,7 @@ const {
   centsToAmount,
   creditAfterApplication,
   creditAfterRestoration,
+  invoiceAfterLessonCredit,
   invoiceFinancialPatch,
   lessonBillingDispositionPatch,
   normalizeAllocations,
@@ -494,6 +495,194 @@ async function activeInvoicePayments(transaction, invoiceId) {
   return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
 
+async function createInvoiceLessonCreditNote({
+  actor,
+  invoiceId,
+  lessonId,
+  reason,
+  requestId,
+}) {
+  const mutationId = cleanRequestId(requestId);
+  const cleanInvoiceId = String(invoiceId || "").trim();
+  const cleanLessonId = String(lessonId || "").trim();
+  const cleanReason = cleanText(reason);
+  if (!cleanInvoiceId) throw httpError(400, "invoiceId required");
+  if (!cleanLessonId) throw httpError(400, "lessonId required");
+  if (!cleanReason) throw httpError(400, "Reason required");
+
+  const signature = crypto.createHash("sha256").update(JSON.stringify({
+    invoiceId: cleanInvoiceId,
+    lessonId: cleanLessonId,
+    reason: cleanReason,
+  })).digest("hex");
+  const invoiceRef = db.collection("invoices").doc(cleanInvoiceId);
+  const lessonRef = db.collection("lessons").doc(cleanLessonId);
+  const creditNoteRef = db.collection("creditNotes").doc(mutationId);
+  const auditRef = db.collection("financialAudit").doc(mutationId);
+  const counterRef = db.collection("meta").doc("creditNoteCounter");
+  const nowIso = new Date().toISOString();
+  const todayIso = nowIso.slice(0, 10);
+  const actorData = actorSnapshot(actor);
+
+  return db.runTransaction(async transaction => {
+    const existingCreditNote = await transaction.get(creditNoteRef);
+    if (existingCreditNote.exists) {
+      if (existingCreditNote.data().signature !== signature) {
+        throw httpError(409, "requestId already used for a different credit note");
+      }
+      return {
+        creditNote: { id: existingCreditNote.id, ...existingCreditNote.data() },
+        idempotent: true,
+      };
+    }
+
+    const [invoiceSnap, lessonSnap, counterSnap, payments] = await Promise.all([
+      transaction.get(invoiceRef),
+      transaction.get(lessonRef),
+      transaction.get(counterRef),
+      activeInvoicePayments(transaction, cleanInvoiceId),
+    ]);
+    if (!invoiceSnap.exists) throw httpError(404, "Invoice not found");
+    if (!lessonSnap.exists) throw httpError(404, "Lesson not found");
+
+    const invoice = invoiceSnap.data();
+    const lesson = lessonSnap.data();
+    const line = (Array.isArray(invoice.lines) ? invoice.lines : [])
+      .find(item => item && item.lessonId === cleanLessonId);
+    if (!line) throw httpError(409, "Invoice does not contain this lesson line");
+    if (lesson.invoiceId !== cleanInvoiceId || lesson.billingStatus !== "invoiced") {
+      throw httpError(409, "Lesson is not actively invoiced by this invoice");
+    }
+    const hasLegacyPaidFlag = invoice.status === "Makstud"
+      && invoice.paidAmount === undefined
+      && invoice.paidAmountCents === undefined
+      && payments.every(payment => payment.status === "voided");
+    if (hasLegacyPaidFlag) {
+      throw httpError(
+        409,
+        "Legacy paid invoice must have its paid flag reset before a lesson line can be credited",
+      );
+    }
+
+    const creditPatch = invoiceAfterLessonCredit(invoice, line);
+    const updatedInvoice = { ...invoice, ...creditPatch };
+    const financialPatch = invoiceFinancialPatch(updatedInvoice, payments, nowIso);
+    if (financialPatch.overpaidAmountCents > 0) {
+      throw httpError(
+        409,
+        "Credit would create an overpayment; void or refund the excess payment first",
+      );
+    }
+
+    const nextSequence = (Number(counterSnap.data()?.seq) || 0) + 1;
+    const creditNoteNum = `KN-${todayIso.slice(0, 4)}-${String(nextSequence).padStart(3, "0")}`;
+    const lineAmountCents = Number(line.amountCents)
+      || Math.round((Number(line.amount) || 0) * 100);
+    const isFullyCredited = creditPatch.effectiveAmountCents === 0;
+    const correction = {
+      creditNoteId: mutationId,
+      creditNoteNum,
+      lessonId: cleanLessonId,
+      lessonDate: line.date || lesson.date || "",
+      amountCents: lineAmountCents,
+      amount: centsToAmount(lineAmountCents),
+      reason: cleanReason,
+      createdAt: nowIso,
+    };
+    const creditNote = {
+      num: creditNoteNum,
+      status: "issued",
+      date: todayIso,
+      invoiceId: cleanInvoiceId,
+      invoiceNum: invoice.num || "",
+      studentId: invoice.studentId || lesson.studentId || "",
+      studentName: invoice.studentName || lesson.studentName || "",
+      payerName: invoice.payerName || invoice.parentName || invoice.studentName || "",
+      lessonId: cleanLessonId,
+      lessonDate: correction.lessonDate,
+      amountCents: lineAmountCents,
+      amount: centsToAmount(lineAmountCents),
+      lines: [{
+        ...line,
+        type: "lesson_credit",
+        amountCents: -lineAmountCents,
+        amount: -centsToAmount(lineAmountCents),
+      }],
+      originalInvoiceAmountCents: Number(invoice.amountCents)
+        || Math.round((Number(invoice.amount) || 0) * 100),
+      originalInvoiceAmount: Number(invoice.amount) || 0,
+      effectiveInvoiceAmountCents: creditPatch.effectiveAmountCents,
+      effectiveInvoiceAmount: creditPatch.effectiveAmount,
+      reason: cleanReason,
+      signature,
+      createdAt: nowIso,
+      createdBy: actorData,
+      requestId: mutationId,
+    };
+
+    transaction.create(creditNoteRef, creditNote);
+    transaction.set(counterRef, { seq: nextSequence, updatedAt: nowIso }, { merge: true });
+    transaction.set(invoiceRef, {
+      ...creditPatch,
+      ...financialPatch,
+      status: isFullyCredited ? "Krediteeritud" : financialPatch.status,
+      paymentStatus: isFullyCredited ? "credited" : financialPatch.paymentStatus,
+      correctionStatus: isFullyCredited ? "fully_credited" : "partially_credited",
+      creditNoteIds: admin.firestore.FieldValue.arrayUnion(mutationId),
+      corrections: admin.firestore.FieldValue.arrayUnion(correction),
+      ...(financialPatch.paidAt ? {} : { paidAt: admin.firestore.FieldValue.delete() }),
+    }, { merge: true });
+    transaction.set(lessonRef, {
+      billingStatus: "credited",
+      creditNoteId: mutationId,
+      creditNoteNum,
+      creditedAt: nowIso,
+      creditReason: cleanReason,
+      billingUpdatedAt: nowIso,
+      billingUpdatedBy: actorData,
+    }, { merge: true });
+    transaction.create(auditRef, {
+      entityType: "creditNote",
+      entityId: mutationId,
+      action: "invoice.lesson_line_credited",
+      creditNoteId: mutationId,
+      creditNoteNum,
+      invoiceId: cleanInvoiceId,
+      invoiceNum: invoice.num || "",
+      lessonId: cleanLessonId,
+      amountCents: lineAmountCents,
+      amount: centsToAmount(lineAmountCents),
+      before: {
+        originalAmount: Number(invoice.amount) || 0,
+        effectiveAmount: Number(invoice.effectiveAmount ?? invoice.amount) || 0,
+        balanceDue: Number(invoice.balanceDue ?? invoice.amount) || 0,
+      },
+      after: {
+        originalAmount: Number(invoice.amount) || 0,
+        effectiveAmount: creditPatch.effectiveAmount,
+        balanceDue: financialPatch.balanceDue,
+        status: isFullyCredited ? "Krediteeritud" : financialPatch.status,
+      },
+      actor: actorData,
+      reason: cleanReason,
+      createdAt: nowIso,
+      requestId: mutationId,
+    });
+    return {
+      creditNote: { id: mutationId, ...creditNote },
+      invoice: {
+        id: cleanInvoiceId,
+        ...invoice,
+        ...creditPatch,
+        ...financialPatch,
+        status: isFullyCredited ? "Krediteeritud" : financialPatch.status,
+        paymentStatus: isFullyCredited ? "credited" : financialPatch.paymentStatus,
+      },
+      idempotent: false,
+    };
+  });
+}
+
 async function recordInvoicePayment({ actor, invoiceId, amount, paidAt, method, reference, note, requestId }) {
   const mutationId = cleanRequestId(requestId);
   const amountCents = toCents(amount);
@@ -620,7 +809,11 @@ async function resetInvoicePayments({ actor, invoiceId, reason, requestId }) {
         status: invoice.status || "Ootel",
         paidAmount: invoice.paidAmount ?? (invoice.status === "Makstud" ? Number(invoice.amount) || 0 : 0),
       },
-      after: { status: "Ootel", paidAmount: 0, balanceDue: Number(invoice.amount) || 0 },
+      after: {
+        status: patch.status,
+        paidAmount: 0,
+        balanceDue: Number(invoice.effectiveAmount ?? invoice.amount) || 0,
+      },
       paymentIds: activePayments.map(payment => payment.id),
       actor: actorData,
       reason: cleanReason,
@@ -1222,13 +1415,18 @@ function invoicePartyLabel(invoice, student) {
 }
 
 function composeInvoiceEmail(invoice, student, type = "invoice") {
-  const amount = money(invoice.amount);
   const due = invoice.due || invoiceDueDate();
   const reference = invoice.paymentReference || invoice.num || "";
   const partyKind = invoiceIsParentTarget(invoice) ? "Lapsevanem" : "Õpilane";
   const partyName = invoicePartyLabel(invoice, student);
   const desc = invoice.desc || "Keeletunnid";
   const isReminder = type === "reminder" || type === "due10";
+  const effectiveAmount = Number(invoice.effectiveAmount ?? invoice.amount) || 0;
+  const payableAmount = isReminder
+    ? Number(invoice.balanceDue ?? effectiveAmount) || 0
+    : effectiveAmount;
+  const amount = money(payableAmount);
+  const creditedAmount = Number(invoice.creditedAmount) || 0;
   const subject = isReminder
     ? `Meeldetuletus: arve ${invoice.num || ""} tasumine`
     : `Arve ${invoice.num || ""} - KeeleSepp`;
@@ -1245,7 +1443,8 @@ function composeInvoiceEmail(invoice, student, type = "invoice") {
     `Arve: ${invoice.num || ""}`,
     `${partyKind}: ${partyName}`,
     `Kirjeldus: ${desc}`,
-    `Summa: ${amount} EUR`,
+    creditedAmount > 0 ? `Parandused: -${money(creditedAmount)} EUR` : "",
+    `${isReminder ? "Tasuda" : "Summa"}: ${amount} EUR`,
     `Tähtaeg: ${formatEtDate(due)}`,
     `Makse selgitus: ${reference}`,
     "",
@@ -1257,6 +1456,9 @@ function composeInvoiceEmail(invoice, student, type = "invoice") {
     "Aitäh!",
     "KeeleSepp",
   ];
+  const correctionRow = creditedAmount > 0
+    ? `<tr><td style="padding:8px;border:1px solid #e5e7eb;font-weight:700">Parandused</td><td style="padding:8px;border:1px solid #e5e7eb">-${escapeHtml(money(creditedAmount))} EUR</td></tr>`
+    : "";
   const html = `
     <div style="font-family:Arial,Helvetica,sans-serif;color:#1C2B3A;line-height:1.5;max-width:640px">
       <h2 style="margin:0 0 12px;color:#1C2B3A">${escapeHtml(subject)}</h2>
@@ -1265,7 +1467,8 @@ function composeInvoiceEmail(invoice, student, type = "invoice") {
         <tr><td style="padding:8px;border:1px solid #e5e7eb;font-weight:700">Arve</td><td style="padding:8px;border:1px solid #e5e7eb">${escapeHtml(invoice.num || "")}</td></tr>
         <tr><td style="padding:8px;border:1px solid #e5e7eb;font-weight:700">${escapeHtml(partyKind)}</td><td style="padding:8px;border:1px solid #e5e7eb">${escapeHtml(partyName)}</td></tr>
         <tr><td style="padding:8px;border:1px solid #e5e7eb;font-weight:700">Kirjeldus</td><td style="padding:8px;border:1px solid #e5e7eb">${escapeHtml(desc)}</td></tr>
-        <tr><td style="padding:8px;border:1px solid #e5e7eb;font-weight:700">Summa</td><td style="padding:8px;border:1px solid #e5e7eb">${escapeHtml(amount)} EUR</td></tr>
+        ${correctionRow}
+        <tr><td style="padding:8px;border:1px solid #e5e7eb;font-weight:700">${isReminder ? "Tasuda" : "Summa"}</td><td style="padding:8px;border:1px solid #e5e7eb">${escapeHtml(amount)} EUR</td></tr>
         <tr><td style="padding:8px;border:1px solid #e5e7eb;font-weight:700">Tähtaeg</td><td style="padding:8px;border:1px solid #e5e7eb">${escapeHtml(formatEtDate(due))}</td></tr>
         <tr><td style="padding:8px;border:1px solid #e5e7eb;font-weight:700">Makse selgitus</td><td style="padding:8px;border:1px solid #e5e7eb">${escapeHtml(reference)}</td></tr>
       </table>
@@ -1658,6 +1861,17 @@ exports.financeApi = functions.https.onRequest(async (req, res) => {
         actor,
         lessonId: req.body?.lessonId,
         billingStatus: req.body?.billingStatus,
+        reason: req.body?.reason,
+        requestId: req.body?.requestId,
+      });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/invoices/credit-lesson-line") {
+      const result = await createInvoiceLessonCreditNote({
+        actor,
+        invoiceId: req.body?.invoiceId,
+        lessonId: req.body?.lessonId,
         reason: req.body?.reason,
         requestId: req.body?.requestId,
       });

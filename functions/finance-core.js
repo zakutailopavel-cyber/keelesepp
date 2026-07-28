@@ -21,10 +21,45 @@ function centsToAmount(cents) {
 }
 
 function invoiceAmountCents(invoice = {}) {
+  if (Number.isInteger(invoice.effectiveAmountCents) && invoice.effectiveAmountCents >= 0) {
+    return invoice.effectiveAmountCents;
+  }
   if (Number.isInteger(invoice.amountCents) && invoice.amountCents >= 0) {
     return invoice.amountCents;
   }
   return Math.max(0, Math.round((Number(invoice.amount) || 0) * 100));
+}
+
+function invoiceAfterLessonCredit(invoice = {}, line = {}) {
+  const lessonId = String(line.lessonId || "").trim();
+  const lineAmountCents = Number(line.amountCents) || Math.round((Number(line.amount) || 0) * 100);
+  if (!lessonId || lineAmountCents <= 0) {
+    const error = new Error("valid lesson invoice line required");
+    error.status = 400;
+    throw error;
+  }
+  if ((invoice.correctedLessonIds || []).includes(lessonId)) {
+    const error = new Error("lesson invoice line is already credited");
+    error.status = 409;
+    throw error;
+  }
+  const originalAmountCents = Number.isInteger(invoice.amountCents)
+    ? invoice.amountCents
+    : Math.round((Number(invoice.amount) || 0) * 100);
+  const creditedAmountCents = (Number(invoice.creditedAmountCents) || 0) + lineAmountCents;
+  const effectiveAmountCents = originalAmountCents - creditedAmountCents;
+  if (effectiveAmountCents < 0) {
+    const error = new Error("credit exceeds original invoice amount");
+    error.status = 409;
+    throw error;
+  }
+  return {
+    creditedAmountCents,
+    creditedAmount: centsToAmount(creditedAmountCents),
+    effectiveAmountCents,
+    effectiveAmount: centsToAmount(effectiveAmountCents),
+    correctedLessonIds: [...(invoice.correctedLessonIds || []), lessonId],
+  };
 }
 
 function activePaymentTotalCents(payments = []) {
@@ -326,6 +361,7 @@ module.exports = {
   creditAfterApplication,
   creditAfterRestoration,
   invoiceAmountCents,
+  invoiceAfterLessonCredit,
   invoiceFinancialPatch,
   lessonBillingDispositionPatch,
   lessonIsBillable,

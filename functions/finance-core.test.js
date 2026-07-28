@@ -7,6 +7,7 @@ const {
   creditAfterApplication,
   creditAfterRestoration,
   invoiceFinancialPatch,
+  invoiceAfterLessonCredit,
   lessonBillingDispositionPatch,
   lessonIsBillable,
   normalizeAllocations,
@@ -230,4 +231,43 @@ test("billing dispositions reject incompatible lesson states and invoiced lesson
     ),
     /cannot be changed/,
   );
+});
+
+test("lesson credit reduces effective invoice amount without changing original amount", () => {
+  const patch = invoiceAfterLessonCredit(
+    { amountCents: 6000, correctedLessonIds: [] },
+    { lessonId: "lesson-a", amountCents: 3000 },
+  );
+  assert.equal(patch.creditedAmount, 30);
+  assert.equal(patch.effectiveAmount, 30);
+  const financial = invoiceFinancialPatch(
+    { amountCents: 6000, ...patch },
+    [{ amountCents: 1000, status: "active" }],
+    "2026-07-28T10:00:00.000Z",
+  );
+  assert.equal(financial.balanceDue, 20);
+});
+
+test("lesson credit rejects duplicate corrections", () => {
+  assert.throws(
+    () => invoiceAfterLessonCredit(
+      { amountCents: 6000, correctedLessonIds: ["lesson-a"] },
+      { lessonId: "lesson-a", amountCents: 3000 },
+    ),
+    /already credited/,
+  );
+});
+
+test("multiple lesson credits accumulate against the immutable original total", () => {
+  const first = invoiceAfterLessonCredit(
+    { amountCents: 6000 },
+    { lessonId: "lesson-a", amountCents: 3000 },
+  );
+  const second = invoiceAfterLessonCredit(
+    { amountCents: 6000, ...first },
+    { lessonId: "lesson-b", amountCents: 3000 },
+  );
+  assert.equal(second.creditedAmountCents, 6000);
+  assert.equal(second.effectiveAmountCents, 0);
+  assert.deepEqual(second.correctedLessonIds, ["lesson-a", "lesson-b"]);
 });

@@ -85,7 +85,15 @@ service cloud.firestore {
         'lines',
         'lineVersion',
         'billingMode',
-        'creationSignature'
+        'creationSignature',
+        'creditedAmount',
+        'creditedAmountCents',
+        'effectiveAmount',
+        'effectiveAmountCents',
+        'correctedLessonIds',
+        'creditNoteIds',
+        'corrections',
+        'correctionStatus'
       ]);
     }
 
@@ -100,7 +108,11 @@ service cloud.firestore {
         'invoicedAt',
         'billingUpdatedAt',
         'billingDispositionReason',
-        'billingUpdatedBy'
+        'billingUpdatedBy',
+        'creditNoteId',
+        'creditNoteNum',
+        'creditedAt',
+        'creditReason'
       ]);
     }
 
@@ -278,6 +290,11 @@ service cloud.firestore {
     }
 
     match /creditApplications/{applicationId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
+    match /creditNotes/{creditNoteId} {
       allow read: if isAdmin();
       allow create, update, delete: if false;
     }
