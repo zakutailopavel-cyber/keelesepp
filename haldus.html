@@ -5831,7 +5831,7 @@ function ParentInvoicesView({invoices,printInvoice,submitParentPayment}) {
 }
 
 // ── ARVED ÜLDVAADE ────────────────────────────────────────────
-function InvoicesView({invoices,payments,myStudents,parents,schedule,students,lessons,isAdmin,invStu,setInvStu,invAmt,setInvAmt,invDesc,setInvDesc,invRef,setInvRef,invDue,setInvDue,addInvoice,recordPayment,markPaid,unmarkPaid,voidPayment,resolveInvoiceOverpayment,creditInvoiceLessonLine,deleteInvoice,printInvoice,updateInvoiceReference,updateInvoiceDue,sendInvoiceEmail,sendInvoiceReminder,sendMonthlyInvoiceReminders,invoiceEmailBusy}) {
+function InvoicesView({invoices,payments,myStudents,parents,schedule,students,lessons,isAdmin,invStu,setInvStu,invAmt,setInvAmt,invDesc,setInvDesc,invRef,setInvRef,invDue,setInvDue,addInvoice,recordPayment,markPaid,unmarkPaid,voidPayment,resolveInvoiceOverpayment,creditInvoiceLessonLine,openCreditNotePdf,sendCreditNoteEmail,deleteInvoice,printInvoice,updateInvoiceReference,updateInvoiceDue,sendInvoiceEmail,sendInvoiceReminder,sendMonthlyInvoiceReminders,invoiceEmailBusy}) {
   const unpaidAmt=invoices.filter(i=>i.status==='Ootel').reduce((sum,inv)=>sum+invoiceFinancialSummary(inv).balance,0);
   const paid=invoices.filter(i=>i.status==='Makstud');
   const [statsPeriod,setStatsPeriod] = React.useState('current');
@@ -6583,11 +6583,30 @@ function InvoicesView({invoices,payments,myStudents,parents,schedule,students,le
                     </div>
                     {inv.lines.map(line=>{
                       const corrected=correctedLessonIds.has(line.lessonId);
+                      const correction=(inv.corrections||[]).find(item=>item?.lessonId===line.lessonId);
                       return (
                         <div key={line.lessonId||line.date} style={{fontSize:'.72rem',color:'#64748b',display:'flex',alignItems:'center',gap:6,flexWrap:'wrap'}}>
                           <span>{fmtDate(line.date)} · {line.description||'Keeletund'} · {money(line.amount)}€</span>
                           {corrected
-                            ? <span className="badge" style={{background:'#ede9fe',color:'#6d28d9'}}>Krediteeritud</span>
+                            ? <React.Fragment>
+                                <span className="badge" style={{background:'#ede9fe',color:'#6d28d9'}}>
+                                  {correction?.creditNoteNum||'Krediteeritud'}
+                                </span>
+                                {correction?.creditNoteId&&openCreditNotePdf&&(
+                                  <button onClick={()=>openCreditNotePdf(correction.creditNoteId)} className="btn btn-ghost btn-sm"
+                                    disabled={invoiceEmailBusy===`credit-pdf:${correction.creditNoteId}`}
+                                    style={{padding:'2px 7px',fontSize:'.66rem',opacity:invoiceEmailBusy===`credit-pdf:${correction.creditNoteId}` ? .6 : 1}}>
+                                    <i className="fa-solid fa-file-pdf"/> {invoiceEmailBusy===`credit-pdf:${correction.creditNoteId}`?'Laen...':'PDF'}
+                                  </button>
+                                )}
+                                {correction?.creditNoteId&&sendCreditNoteEmail&&(
+                                  <button onClick={()=>sendCreditNoteEmail(correction.creditNoteId)} className="btn btn-ghost btn-sm"
+                                    disabled={invoiceEmailBusy===`credit-email:${correction.creditNoteId}`}
+                                    style={{padding:'2px 7px',fontSize:'.66rem',opacity:invoiceEmailBusy===`credit-email:${correction.creditNoteId}` ? .6 : 1}}>
+                                    <i className="fa-solid fa-envelope"/> {invoiceEmailBusy===`credit-email:${correction.creditNoteId}`?'Saadan...':'Saada'}
+                                  </button>
+                                )}
+                              </React.Fragment>
                             : isAdmin&&creditInvoiceLessonLine&&(
                               <button onClick={()=>creditInvoiceLessonLine(inv,line)} className="btn btn-ghost btn-sm" style={{padding:'2px 7px',fontSize:'.66rem'}}>
                                 Parandusarve
@@ -10391,6 +10410,57 @@ function App() {
     }
   },[isAdmin]);
 
+  const openCreditNotePdf=useCallback(async creditNoteId=>{
+    if(!isAdmin||!creditNoteId){notify('⚠ Kreeditarve PDF on saadaval administraatorile');return null;}
+    const preview=window.open('','_blank');
+    setInvoiceEmailBusy(`credit-pdf:${creditNoteId}`);
+    try{
+      const result=await invoiceApiPost('/credit-note/pdf',{creditNoteId});
+      if(!result?.contentBase64) throw new Error('PDF-i sisu puudub');
+      const binary=window.atob(result.contentBase64);
+      const bytes=new Uint8Array(binary.length);
+      for(let index=0;index<binary.length;index+=1) bytes[index]=binary.charCodeAt(index);
+      const url=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));
+      if(preview){
+        preview.location.href=url;
+        preview.focus();
+      }else{
+        const link=document.createElement('a');
+        link.href=url;
+        link.target='_blank';
+        link.rel='noopener';
+        link.click();
+      }
+      window.setTimeout(()=>URL.revokeObjectURL(url),60000);
+      return result;
+    }catch(err){
+      if(preview) preview.close();
+      console.error('Credit note PDF failed:',err);
+      notify('⚠ Kreeditarve PDF-i avamine ebaõnnestus: '+(err.message||''));
+      return null;
+    }finally{
+      setInvoiceEmailBusy('');
+    }
+  },[isAdmin]);
+
+  const sendCreditNoteEmail=useCallback(async creditNoteId=>{
+    if(!isAdmin||!creditNoteId){notify('⚠ Kreeditarve saab saata administraator');return null;}
+    setInvoiceEmailBusy(`credit-email:${creditNoteId}`);
+    try{
+      const result=await invoiceApiPost('/credit-note/send',{creditNoteId});
+      notify(result.status==='sent'
+        ? '✓ Kreeditarve PDF saadetud e-postiga'
+        : '✓ Kreeditarve PDF lisatud e-posti järjekorda');
+      return result;
+    }catch(err){
+      console.error('Credit note email failed:',err);
+      notify('⚠ Kreeditarve saatmine ebaõnnestus: '+(err.message||''));
+      return null;
+    }finally{
+      setInvoiceEmailBusy('');
+    }
+  },[isAdmin]);
+
   const markPaid=useCallback(async id=>{
     const inv=invoices.find(item=>item.id===id);
     if(!inv){notify('⚠ Arvet ei leitud');return false;}
@@ -11008,7 +11078,7 @@ function App() {
 	            schedule={schedule} students={students} lessons={lessons} isAdmin={isAdmin}
             invStu={invStu} setInvStu={setInvStu} invAmt={invAmt} setInvAmt={setInvAmt}
             invDesc={invDesc} setInvDesc={setInvDesc} invRef={invRef} setInvRef={setInvRef} invDue={invDue} setInvDue={setInvDue}
-            addInvoice={addInvoice} recordPayment={recordPayment} markPaid={markPaid} unmarkPaid={unmarkPaid} voidPayment={voidPayment} resolveInvoiceOverpayment={resolveInvoiceOverpayment} creditInvoiceLessonLine={creditInvoiceLessonLine} deleteInvoice={deleteInvoice} printInvoice={printInvoice} updateInvoiceReference={updateInvoiceReference} updateInvoiceDue={updateInvoiceDue}
+            addInvoice={addInvoice} recordPayment={recordPayment} markPaid={markPaid} unmarkPaid={unmarkPaid} voidPayment={voidPayment} resolveInvoiceOverpayment={resolveInvoiceOverpayment} creditInvoiceLessonLine={creditInvoiceLessonLine} openCreditNotePdf={openCreditNotePdf} sendCreditNoteEmail={sendCreditNoteEmail} deleteInvoice={deleteInvoice} printInvoice={printInvoice} updateInvoiceReference={updateInvoiceReference} updateInvoiceDue={updateInvoiceDue}
             sendInvoiceEmail={sendInvoiceEmail} sendInvoiceReminder={sendInvoiceReminder} sendMonthlyInvoiceReminders={sendMonthlyInvoiceReminders} invoiceEmailBusy={invoiceEmailBusy}/>}
 
           {tab==='reconciliation'&&isAdmin&&<PaymentReconciliationView
