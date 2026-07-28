@@ -6,7 +6,9 @@ const {
   buildScene,
   sceneAcceptsResponse,
   isUnsafeDisplaySurface,
-  classroomLink
+  classroomLink,
+  isPresenceFresh,
+  classroomErrorMessage
 }=require('./live-classroom-core');
 
 test('combined roles are normalized for classroom access',()=>{
@@ -34,4 +36,18 @@ test('whole-monitor sharing is rejected by the privacy guard',()=>{
   assert.equal(isUnsafeDisplaySurface('window'),false);
   assert.equal(isUnsafeDisplaySurface('browser'),false);
   assert.equal(isUnsafeDisplaySurface(undefined),false);
+});
+
+test('presence becomes offline when the heartbeat is stale or explicitly stopped',()=>{
+  const now=Date.parse('2026-07-28T20:00:00.000Z');
+  assert.equal(isPresenceFresh({online:true,lastSeenIso:'2026-07-28T19:59:30.000Z'},now),true);
+  assert.equal(isPresenceFresh({online:true,lastSeenIso:'2026-07-28T19:58:00.000Z'},now),false);
+  assert.equal(isPresenceFresh({online:false,lastSeenIso:'2026-07-28T19:59:59.000Z'},now),false);
+  assert.equal(isPresenceFresh(null,now),false);
+});
+
+test('technical classroom errors are translated into useful guidance',()=>{
+  assert.match(classroomErrorMessage({code:'permission-denied',message:'Missing or insufficient permissions.'}),/ligipääsu/);
+  assert.match(classroomErrorMessage({code:'unavailable'}),/Ühendus/);
+  assert.equal(classroomErrorMessage('Klassiruumi ei leitud.'),'Klassiruumi ei leitud.');
 });

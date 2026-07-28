@@ -526,6 +526,57 @@ service cloud.firestore {
         allow delete: if isAdmin();
       }
 
+      match /presence/{presenceId} {
+        allow read: if hostsLiveClassroom(classroomId) || ownsLiveClassroom(classroomId);
+        allow create, update: if signedIn()
+          && presenceId == uid()
+          && liveClassroomData(classroomId).status != 'ended'
+          && request.resource.data.keys().hasOnly([
+            'classroomId',
+            'uid',
+            'role',
+            'displayName',
+            'online',
+            'lastSeen',
+            'lastSeenIso'
+          ])
+          && request.resource.data.classroomId == classroomId
+          && request.resource.data.uid == uid()
+          && request.resource.data.displayName is string
+          && request.resource.data.displayName.size() <= 160
+          && request.resource.data.online is bool
+          && request.resource.data.lastSeen is timestamp
+          && request.resource.data.lastSeen <= request.time
+          && request.resource.data.lastSeen >= request.time - duration.value(2, 'm')
+          && request.resource.data.lastSeenIso is string
+          && request.resource.data.lastSeenIso.size() <= 40
+          && (
+            (
+              hostsLiveClassroom(classroomId)
+              && request.resource.data.role == 'teacher'
+            )
+            || (
+              ownsLiveClassroom(classroomId)
+              && request.resource.data.role == 'student'
+            )
+          )
+          && (
+            !exists(/databases/$(database)/documents/liveClassrooms/$(classroomId)/presence/$(presenceId))
+            || (
+              request.resource.data.classroomId == resource.data.classroomId
+              && request.resource.data.uid == resource.data.uid
+              && request.resource.data.role == resource.data.role
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                'displayName',
+                'online',
+                'lastSeen',
+                'lastSeenIso'
+              ])
+            )
+          );
+        allow delete: if isAdmin();
+      }
+
       match /signals/{signalId} {
         allow read: if hostsLiveClassroom(classroomId) || ownsLiveClassroom(classroomId);
         allow create: if signedIn()

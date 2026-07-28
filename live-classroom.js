@@ -8,7 +8,9 @@
     sceneAcceptsResponse,
     isUnsafeDisplaySurface,
     classroomLink,
-    responseLabel
+    responseLabel,
+    isPresenceFresh,
+    classroomErrorMessage
   }=window.LiveClassroomCore;
 
   if(!firebase.apps.length){
@@ -35,9 +37,16 @@
     roomUnsub:null,
     responseUnsub:null,
     signalUnsub:null,
+    presenceUnsub:null,
+    presenceTimer:null,
+    presenceTicker:null,
+    presenceRef:null,
+    presenceWrite:null,
+    presence:[],
     responses:[],
     sceneMode:'message',
     selectedChoice:'',
+    lastSceneVersion:0,
     submitting:false,
     peer:null,
     screenStream:null,
@@ -76,6 +85,7 @@
   };
 
   function cleanupRoom(){
+    stopPresence(true);
     state.roomUnsub?.();
     state.responseUnsub?.();
     state.signalUnsub?.();
@@ -85,6 +95,8 @@
     stopPeer(true);
     state.room=null;
     state.responses=[];
+    state.presence=[];
+    state.lastSceneVersion=0;
     state.processedSignals.clear();
   }
 
@@ -101,17 +113,24 @@
       </main>`;
   }
 
-  function accessError(message){
+  function accessError(error){
+    const message=classroomErrorMessage(error);
+    const roomId=roomIdFromUrl();
     app.className='';
     app.innerHTML=`
       <header class="topbar"><div class="brand">Keele<span>Sepp</span> Classroom</div></header>
       <main class="shell">
         <section class="card panel" style="max-width:700px;margin:70px auto">
           <h1>Ruumi ei saanud avada</h1>
-          <p class="subtitle">${escapeHtml(message||'Sul puudub sellele ruumile ligipääs.')}</p>
-          <div class="actions"><a class="btn btn-primary" href="/live-classroom/">Tagasi klassiruumi</a><a class="btn" href="/haldus/">CRM</a></div>
+          <p class="subtitle">${escapeHtml(message)}</p>
+          <div class="actions">
+            ${roomId?'<button id="retry-room" class="btn btn-primary">Proovi uuesti</button>':''}
+            <a class="btn" href="/live-classroom/">Tagasi klassiruumi</a>
+            <a class="btn" href="/haldus/">CRM</a>
+          </div>
         </section>
       </main>`;
+    document.getElementById('retry-room')?.addEventListener('click',()=>openRoom(roomId,false));
   }
 
   async function loadProfile(user){
@@ -272,6 +291,88 @@
     await openRoom(ref.id,true);
   }
 
+  function presenceRole(){
+    return isRoomHost()?'teacher':'student';
+  }
+
+  function presenceName(role){
+    if(role==='teacher') return teacherName();
+    return state.profile?.displayName||state.room?.studentName||state.authUser?.email||'Õpilane';
+  }
+
+  function writePresence(online=true){
+    if(!state.presenceRef||!state.room||state.room.status==='ended') return Promise.resolve();
+    const ref=state.presenceRef;
+    const now=new Date().toISOString();
+    const role=presenceRole();
+    const write=ref.set({
+      classroomId:state.room.id,
+      uid:state.authUser.uid,
+      role,
+      displayName:cleanText(presenceName(role),160),
+      online:Boolean(online),
+      lastSeen:serverTimestamp(),
+      lastSeenIso:now
+    },{merge:true}).catch(error=>console.warn('Classroom presence unavailable',error));
+    state.presenceWrite=write;
+    return write;
+  }
+
+  function stopPresence(markOffline=false){
+    window.clearInterval(state.presenceTimer);
+    window.clearInterval(state.presenceTicker);
+    state.presenceTimer=null;
+    state.presenceTicker=null;
+    state.presenceUnsub?.();
+    state.presenceUnsub=null;
+    const ref=state.presenceRef;
+    const pending=state.presenceWrite;
+    state.presenceRef=null;
+    state.presenceWrite=null;
+    if(markOffline&&ref&&state.authUser){
+      return Promise.resolve(pending).then(()=>ref.set({
+          online:false,
+          lastSeen:serverTimestamp(),
+          lastSeenIso:new Date().toISOString()
+        },{merge:true}).catch(()=>{}));
+    }
+    return Promise.resolve();
+  }
+
+  function startPresence(roomRef){
+    if(state.presenceRef||!state.room||state.room.status==='ended') return;
+    const collection=roomRef.collection('presence');
+    state.presenceRef=collection.doc(state.authUser.uid);
+    state.presenceUnsub=collection.onSnapshot(snapshot=>{
+      state.presence=snapshot.docs.map(doc=>({id:doc.id,...doc.data()}));
+      updatePresenceUi();
+    },error=>console.warn('Classroom presence unavailable',error));
+    writePresence(true);
+    state.presenceTimer=window.setInterval(()=>writePresence(true),25000);
+    state.presenceTicker=window.setInterval(updatePresenceUi,10000);
+  }
+
+  function counterpartPresence(){
+    const counterpartRole=isRoomHost()?'student':'teacher';
+    return state.presence.find(item=>item.role===counterpartRole);
+  }
+
+  function updatePresenceUi(){
+    if(!state.room) return;
+    const host=isRoomHost();
+    const presence=counterpartPresence();
+    const online=isPresenceFresh(presence);
+    const label=host
+      ? (online?'Õpilane on tunnis':'Õpilane pole veel liitunud')
+      : (online?'Õpetaja on tunnis':'Õpetaja pole praegu ühendatud');
+    ['participant-presence','student-presence'].forEach(id=>{
+      const target=document.getElementById(id);
+      if(!target) return;
+      target.className=`presence-pill ${online?'online':'offline'}`;
+      target.innerHTML=`<span class="presence-dot" aria-hidden="true"></span><span>${escapeHtml(label)}</span>`;
+    });
+  }
+
   async function openRoom(roomId,pushUrl=false){
     cleanupRoom();
     if(pushUrl) setRoomUrl(roomId);
@@ -281,15 +382,24 @@
     try{
       const first=await ref.get();
       if(!first.exists){accessError('Klassiruumi ei leitud.');return;}
+      state.room={id:first.id,...first.data()};
+      state.lastSceneVersion=Number(state.room.sceneVersion)||0;
+      startPresence(ref);
     }catch(error){
-      accessError(error.message||'Sul puudub sellele ruumile ligipääs.');
+      accessError(error);
       return;
     }
     state.roomUnsub=ref.onSnapshot(snapshot=>{
       if(!snapshot.exists){accessError('Klassiruumi ei leitud.');return;}
-      state.room={id:snapshot.id,...snapshot.data()};
+      const nextRoom={id:snapshot.id,...snapshot.data()};
+      const nextVersion=Number(nextRoom.sceneVersion)||0;
+      if(state.lastSceneVersion&&nextVersion!==state.lastSceneVersion) state.selectedChoice='';
+      state.lastSceneVersion=nextVersion;
+      state.room=nextRoom;
       renderRoom();
-    },error=>accessError(error.message));
+      if(state.room.status==='ended') stopPresence(false);
+      else startPresence(ref);
+    },error=>accessError(error));
     state.responseUnsub=ref.collection('responses').onSnapshot(snapshot=>{
       state.responses=snapshot.docs.map(doc=>({id:doc.id,...doc.data()})).sort((a,b)=>String(b.createdAtIso||'').localeCompare(String(a.createdAtIso||'')));
       renderResponseArea();
@@ -306,7 +416,10 @@
       <aside class="private-desk">
         <section class="card desk-section">
           <div class="private-label">🔒 Privaatne õpetaja töölaud — õpilane seda osa ei näe</div>
-          <div style="margin-top:12px"><strong>${escapeHtml(room.studentName||'Õpilane')}</strong><div class="room-meta">${escapeHtml(room.title||'KeeleSepp tund')}</div></div>
+          <div class="student-summary">
+            <div><strong>${escapeHtml(room.studentName||'Õpilane')}</strong><div class="room-meta">${escapeHtml(room.title||'KeeleSepp tund')}</div></div>
+            <div id="student-presence" class="presence-pill offline" role="status" aria-live="polite"><span class="presence-dot" aria-hidden="true"></span><span>Õpilane pole veel liitunud</span></div>
+          </div>
           <div class="actions">
             <button id="copy-room-link" class="btn">Kopeeri õpilase link</button>
             <button id="back-lobby" class="btn">Kõik ruumid</button>
@@ -356,28 +469,53 @@
     }
     const title=scene?.title||'Tere tulemast tundi!';
     const body=scene?.body||'Õpetaja valmistab õppestseeni ette.';
+    const interactive=sceneAcceptsResponse(scene);
     const options=(scene?.options||[]).map((option,index)=>`
-      <button class="choice" data-choice="${escapeHtml(option)}"><span>${String.fromCharCode(65+index)}.</span> ${escapeHtml(option)}</button>
+      <button class="choice" data-choice="${escapeHtml(option)}" ${student?'':'disabled'}><span>${String.fromCharCode(65+index)}.</span> ${escapeHtml(option)}</button>
     `).join('');
+    if(interactive){
+      return `
+        <div class="task-overlay">
+          <section class="task-dialog" role="dialog" aria-modal="${student?'true':'false'}" aria-labelledby="task-title">
+            <div class="task-kicker">${type==='choice'?'Valikvastusega ülesanne':'Kirjalik vastus'}</div>
+            <h2 id="task-title">${escapeHtml(title)}</h2>
+            <div class="scene-body">${escapeHtml(body)}</div>
+            ${type==='choice'?`<div class="choice-grid">${options}</div>`:''}
+            ${student&&type==='choice'?`<div class="student-actions"><button id="submit-choice" class="btn btn-primary" disabled>Saada vastus</button></div>`:''}
+            ${type==='short_answer'?`
+              <div class="answer-box">
+                <textarea id="${student?'student-answer':'answer-preview'}" maxlength="1600" placeholder="${student?'Kirjuta vastus siia…':'Õpilane kirjutab vastuse siia…'}" ${student?'':'disabled'}></textarea>
+                ${student?'<div class="student-actions"><button id="submit-short" class="btn btn-primary">Saada vastus</button></div>':''}
+              </div>`:''}
+            ${student
+              ? `<div id="submitted-note" class="notice ok task-success" hidden>Vastus on õpetajale saadetud.</div>`
+              : `<div class="task-preview-note">Eelvaade — õpilane saab vastata oma ekraanil.</div>`}
+          </section>
+        </div>`;
+    }
     return `
       <div class="scene-content">
-        <div class="eyebrow">${type==='choice'?'Valikvastusega ülesanne':type==='short_answer'?'Kirjalik vastus':'KeeleSepp Live'}</div>
+        <div class="eyebrow">KeeleSepp Live</div>
         <h2 style="margin-top:8px">${escapeHtml(title)}</h2>
         <div class="scene-body">${escapeHtml(body)}</div>
-        ${student&&type==='choice'?`<div class="choice-grid">${options}</div><div class="student-actions"><button id="submit-choice" class="btn btn-primary" disabled>Saada vastus</button></div>`:''}
-        ${student&&type==='short_answer'?`<div class="answer-box"><textarea id="student-answer" maxlength="1600" placeholder="Kirjuta vastus siia…"></textarea><div class="student-actions"><button id="submit-short" class="btn btn-primary">Saada vastus</button></div></div>`:''}
-        ${student&&sceneAcceptsResponse(scene)?`<div id="submitted-note" class="notice ok" hidden style="margin-top:18px">Vastus on õpetajale saadetud.</div>`:''}
       </div>`;
   }
 
   function stageCard(student=false){
     const room=state.room;
     const meta=statusMeta(room.status);
+    const interactive=sceneAcceptsResponse(room.activeScene);
+    const version=Number(room.sceneVersion)||1;
+    const responseCount=state.responses.filter(response=>response.sceneVersion===version).length;
     return `
       <section class="card stage-wrap">
         <div class="stage-head">
           <div><strong>${escapeHtml(room.title||'KeeleSepp tund')}</strong><div class="room-meta">${student?'Õpilase avalik lava':'Õpilase lava eelvaade'}</div></div>
-          <span class="badge ${meta.className}">${meta.label}</span>
+          <div class="stage-status">
+            <div id="participant-presence" class="presence-pill offline" role="status" aria-live="polite"><span class="presence-dot" aria-hidden="true"></span><span>${student?'Õpetaja pole praegu ühendatud':'Õpilane pole veel liitunud'}</span></div>
+            ${!student&&interactive?`<span id="stage-response-status" class="response-status ${responseCount?'received':'waiting'}" role="status" aria-live="polite">${responseCount?'Vastus saabus':'Ootan vastust'}</span>`:''}
+            <span class="badge ${meta.className}">${meta.label}</span>
+          </div>
         </div>
         <div class="stage">${sceneHtml(room.activeScene,{student})}</div>
       </section>`;
@@ -400,6 +538,7 @@
     else if(!staff) bindStudentControls();
     else document.getElementById('back-lobby')?.addEventListener('click',backToLobby);
     renderResponseArea();
+    updatePresenceUi();
     if(state.room.activeScene?.type==='screen'){
       if(host&&state.screenStream) attachLocalScreen();
       if(!staff) connectStudentToScreen();
@@ -478,6 +617,7 @@
     if(state.room.status==='ended') return;
     if(!window.confirm('Kas lõpetada see tund? Õpilase lava suletakse.')) return;
     await stopScreenShare(false);
+    await stopPresence(true);
     const nextVersion=(Number(state.room.sceneVersion)||0)+1;
     const scene=buildScene({
       type:'welcome',
@@ -545,9 +685,15 @@
 
   function renderResponseArea(){
     const target=document.getElementById('teacher-responses');
-    if(!target||!state.room) return;
+    if(!state.room) return;
     const version=Number(state.room.sceneVersion)||1;
     const responses=state.responses.filter(response=>response.sceneVersion===version);
+    const status=document.getElementById('stage-response-status');
+    if(status){
+      status.className=`response-status ${responses.length?'received':'waiting'}`;
+      status.textContent=responses.length?'Vastus saabus':'Ootan vastust';
+    }
+    if(!target) return;
     target.innerHTML=responses.length
       ? responses.map(response=>`
           <div class="response">
@@ -782,6 +928,9 @@
     const roomId=roomIdFromUrl();
     if(roomId) openRoom(roomId,false);
     else loadRooms().then(renderLobby);
+  });
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState==='visible') writePresence(true);
   });
   window.addEventListener('beforeunload',()=>cleanupRoom());
 
