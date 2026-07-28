@@ -36,10 +36,12 @@ const {
   lessonBillingDispositionPatch,
   normalizeAllocations,
   packageBalanceAfterEntry,
+  packageBalanceAfterLessonMovement,
   paymentNetAmountCents,
   planInvoiceOverpaymentTransfer,
   positiveInteger,
   selectBillableLessons,
+  selectStudentPackageForLesson,
   tariffAssignmentPlan,
   toCents,
   validIsoDate,
@@ -706,6 +708,386 @@ async function adjustStudentPackage({
       },
       idempotent: false,
     };
+  });
+}
+
+function lessonPackageLedgerEntryId(lessonId, cycle, movement) {
+  const hash = crypto.createHash("sha256")
+    .update(`${lessonId}:${cycle}:${movement}`)
+    .digest("hex")
+    .slice(0, 48);
+  return `lesson_${hash}`;
+}
+
+async function syncLessonPackageConsumption({
+  actor,
+  lessonId,
+  requestId,
+}) {
+  const mutationId = cleanRequestId(requestId);
+  const cleanLessonId = String(lessonId || "").trim();
+  if (!cleanLessonId) throw httpError(400, "lessonId required");
+  const signature = crypto.createHash("sha256").update(JSON.stringify({
+    lessonId: cleanLessonId,
+    command: "sync_lesson_package_v1",
+  })).digest("hex");
+  const requestRef = db.collection("lessonPackageSyncRequests").doc(mutationId);
+  const lessonRef = db.collection("lessons").doc(cleanLessonId);
+  const stateRef = db.collection("lessonPackageStates").doc(cleanLessonId);
+  const auditRef = db.collection("financialAudit").doc(mutationId);
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+
+  return db.runTransaction(async transaction => {
+    const [existingRequest, lessonSnap, stateSnap] = await Promise.all([
+      transaction.get(requestRef),
+      transaction.get(lessonRef),
+      transaction.get(stateRef),
+    ]);
+    if (existingRequest.exists) {
+      if (existingRequest.data().creationSignature !== signature) {
+        throw httpError(409, "requestId already used for a different lesson package sync");
+      }
+      return { ...(existingRequest.data().result || {}), idempotent: true };
+    }
+    if (!lessonSnap.exists) throw httpError(404, "Lesson not found");
+    const lesson = lessonSnap.data();
+    const state = stateSnap.exists ? stateSnap.data() : {};
+    const completed = lesson.status === "Toimunud";
+    const lessonDate = validIsoDate(lesson.date, "lesson date");
+    const requestRecord = result => ({
+      lessonId: cleanLessonId,
+      creationSignature: signature,
+      result,
+      actor: actorData,
+      createdAt: nowIso,
+      requestId: mutationId,
+    });
+
+    if (completed && state.status === "consumed") {
+      const result = {
+        changed: false,
+        status: "consumed",
+        lessonId: cleanLessonId,
+        studentPackageId: state.studentPackageId || "",
+        ledgerEntryId: state.consumptionEntryId || "",
+        cycle: Number(state.cycle) || 1,
+      };
+      transaction.create(requestRef, requestRecord(result));
+      return { ...result, idempotent: false };
+    }
+
+    if (
+      completed
+      && (
+        String(lesson.invoiceId || "").trim()
+        || ["invoiced", "free", "written_off"].includes(lesson.billingStatus)
+      )
+    ) {
+      const result = {
+        changed: false,
+        status: "not_applicable",
+        lessonId: cleanLessonId,
+        reason: "Lesson is already invoiced or excluded from billing",
+      };
+      transaction.create(requestRef, requestRecord(result));
+      return { ...result, idempotent: false };
+    }
+
+    if (completed) {
+      const cleanStudentId = String(lesson.studentId || "").trim();
+      if (!cleanStudentId || cleanStudentId === "ext") {
+        const result = {
+          changed: false,
+          status: "not_applicable",
+          lessonId: cleanLessonId,
+          reason: "Lesson has no registered student",
+        };
+        transaction.create(requestRef, requestRecord(result));
+        return { ...result, idempotent: false };
+      }
+      const packagesQuery = db.collection("studentPackages")
+        .where("studentId", "==", cleanStudentId);
+      const packagesSnap = await transaction.get(packagesQuery);
+      const packages = packagesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      let selectedPackage = null;
+      let selectionError = "";
+      try {
+        selectedPackage = selectStudentPackageForLesson(packages, {
+          lessonDate,
+          requestedPackageId: lesson.requestedStudentPackageId || "",
+          preferredPackageId: state.studentPackageId || "",
+        });
+      } catch (error) {
+        selectionError = error.message;
+      }
+      if (!selectedPackage) {
+        const reason = selectionError
+          || (packages.length
+            ? "No eligible lesson credits remain"
+            : "No student package is registered");
+        const lessonFields = {
+          packageAccountingSource: "package_ledger_v1",
+          packageConsumptionStatus: "needs_attention",
+          packageSyncError: reason,
+          packageSyncedAt: nowIso,
+        };
+        const result = {
+          changed: false,
+          status: "needs_attention",
+          lessonId: cleanLessonId,
+          reason,
+          lessonFields,
+        };
+        transaction.set(lessonRef, lessonFields, { merge: true });
+        transaction.set(stateRef, {
+          lessonId: cleanLessonId,
+          studentId: cleanStudentId,
+          status: "needs_attention",
+          cycle: Number(state.cycle) || 0,
+          lastError: reason,
+          updatedAt: nowIso,
+          updatedBy: actorData,
+        }, { merge: true });
+        transaction.create(requestRef, requestRecord(result));
+        return { ...result, idempotent: false };
+      }
+
+      const cycle = (Number(state.cycle) || 0) + 1;
+      let movement;
+      try {
+        movement = packageBalanceAfterLessonMovement(selectedPackage, "consume", nowIso);
+      } catch (error) {
+        throw httpError(error.status || 409, error.message);
+      }
+      const ledgerEntryId = lessonPackageLedgerEntryId(cleanLessonId, cycle, "consume");
+      const ledgerRef = db.collection("packageLedger").doc(ledgerEntryId);
+      const packageRef = db.collection("studentPackages").doc(selectedPackage.id);
+      const ledgerSignature = crypto.createHash("sha256").update(JSON.stringify({
+        lessonId: cleanLessonId,
+        studentPackageId: selectedPackage.id,
+        cycle,
+        movement: "consume",
+      })).digest("hex");
+      const ledgerEntry = {
+        studentPackageId: selectedPackage.id,
+        studentId: cleanStudentId,
+        studentName: lesson.studentName || selectedPackage.studentName || "—",
+        packageProductId: selectedPackage.packageProductId || "",
+        packageProductName: selectedPackage.packageProductName || "—",
+        lessonId: cleanLessonId,
+        lessonDate,
+        lessonTopic: cleanText(lesson.topic, 200),
+        cycle,
+        entryType: "lesson_consumption",
+        sourceType: "lesson_status",
+        creditsDelta: movement.creditsDelta,
+        balanceBefore: movement.balanceBefore,
+        balanceAfter: movement.balanceAfter,
+        reason: "Completed lesson consumed one package credit",
+        actor: actorData,
+        createdAt: nowIso,
+        requestId: mutationId,
+        creationSignature: ledgerSignature,
+      };
+      const lessonFields = {
+        packageAccountingSource: "package_ledger_v1",
+        packageConsumptionStatus: "consumed",
+        packageStudentPackageId: selectedPackage.id,
+        packageProductName: selectedPackage.packageProductName || "—",
+        packageConsumptionEntryId: ledgerEntryId,
+        packageRestorationEntryId: "",
+        packageConsumptionCycle: cycle,
+        packageSyncError: FieldValue.delete(),
+        packageSyncedAt: nowIso,
+      };
+      transaction.set(packageRef, {
+        ...movement.accountPatch,
+        latestLedgerEntryId: ledgerEntryId,
+        latestMovementAt: nowIso,
+        latestMovementBy: actorData,
+      }, { merge: true });
+      transaction.create(ledgerRef, ledgerEntry);
+      transaction.set(stateRef, {
+        lessonId: cleanLessonId,
+        studentId: cleanStudentId,
+        studentPackageId: selectedPackage.id,
+        packageProductId: selectedPackage.packageProductId || "",
+        packageProductName: selectedPackage.packageProductName || "—",
+        status: "consumed",
+        cycle,
+        consumptionEntryId: ledgerEntryId,
+        restorationEntryId: "",
+        consumedAt: nowIso,
+        restoredAt: "",
+        lastError: "",
+        updatedAt: nowIso,
+        updatedBy: actorData,
+      }, { merge: true });
+      transaction.set(lessonRef, lessonFields, { merge: true });
+      transaction.create(auditRef, {
+        entityType: "lesson_package_consumption",
+        entityId: ledgerEntryId,
+        action: "lesson.package_credit_consumed",
+        lessonId: cleanLessonId,
+        lessonDate,
+        studentId: cleanStudentId,
+        studentName: ledgerEntry.studentName,
+        studentPackageId: selectedPackage.id,
+        packageProductId: ledgerEntry.packageProductId,
+        packageProductName: ledgerEntry.packageProductName,
+        creditsDelta: movement.creditsDelta,
+        balanceBefore: movement.balanceBefore,
+        balanceAfter: movement.balanceAfter,
+        cycle,
+        actor: actorData,
+        reason: ledgerEntry.reason,
+        createdAt: nowIso,
+        requestId: mutationId,
+      });
+      const result = {
+        changed: true,
+        status: "consumed",
+        lessonId: cleanLessonId,
+        studentPackageId: selectedPackage.id,
+        ledgerEntryId,
+        cycle,
+        balanceAfter: movement.balanceAfter,
+        lessonFields: {
+          ...lessonFields,
+          packageSyncError: "",
+        },
+      };
+      transaction.create(requestRef, requestRecord(result));
+      return { ...result, idempotent: false };
+    }
+
+    if (state.status !== "consumed") {
+      const lessonFields = {
+        packageAccountingSource: lesson.packageAccountingSource || "",
+        packageConsumptionStatus: state.status === "restored" ? "restored" : "not_applicable",
+        packageSyncError: FieldValue.delete(),
+        packageSyncedAt: nowIso,
+      };
+      const result = {
+        changed: false,
+        status: lessonFields.packageConsumptionStatus,
+        lessonId: cleanLessonId,
+        lessonFields: {
+          ...lessonFields,
+          packageSyncError: "",
+        },
+      };
+      transaction.set(lessonRef, lessonFields, { merge: true });
+      transaction.create(requestRef, requestRecord(result));
+      return { ...result, idempotent: false };
+    }
+
+    const cleanPackageId = String(state.studentPackageId || "").trim();
+    if (!cleanPackageId) throw httpError(409, "Lesson package state has no package reference");
+    const packageRef = db.collection("studentPackages").doc(cleanPackageId);
+    const packageSnap = await transaction.get(packageRef);
+    if (!packageSnap.exists) throw httpError(409, "Consumed lesson package no longer exists");
+    const studentPackage = { id: packageSnap.id, ...packageSnap.data() };
+    let movement;
+    try {
+      movement = packageBalanceAfterLessonMovement(studentPackage, "restore", nowIso);
+    } catch (error) {
+      throw httpError(error.status || 409, error.message);
+    }
+    const cycle = Number(state.cycle) || 1;
+    const ledgerEntryId = lessonPackageLedgerEntryId(cleanLessonId, cycle, "restore");
+    const ledgerRef = db.collection("packageLedger").doc(ledgerEntryId);
+    const ledgerSignature = crypto.createHash("sha256").update(JSON.stringify({
+      lessonId: cleanLessonId,
+      studentPackageId: cleanPackageId,
+      cycle,
+      movement: "restore",
+    })).digest("hex");
+    const ledgerEntry = {
+      studentPackageId: cleanPackageId,
+      studentId: studentPackage.studentId || lesson.studentId || "",
+      studentName: lesson.studentName || studentPackage.studentName || "—",
+      packageProductId: studentPackage.packageProductId || "",
+      packageProductName: studentPackage.packageProductName || "—",
+      lessonId: cleanLessonId,
+      lessonDate,
+      lessonTopic: cleanText(lesson.topic, 200),
+      cycle,
+      entryType: "lesson_restoration",
+      sourceType: "lesson_status",
+      creditsDelta: movement.creditsDelta,
+      balanceBefore: movement.balanceBefore,
+      balanceAfter: movement.balanceAfter,
+      restoresLedgerEntryId: state.consumptionEntryId || "",
+      reason: "Lesson completion reversal restored one package credit",
+      actor: actorData,
+      createdAt: nowIso,
+      requestId: mutationId,
+      creationSignature: ledgerSignature,
+    };
+    const lessonFields = {
+      packageAccountingSource: "package_ledger_v1",
+      packageConsumptionStatus: "restored",
+      packageStudentPackageId: cleanPackageId,
+      packageProductName: studentPackage.packageProductName || "—",
+      packageRestorationEntryId: ledgerEntryId,
+      packageConsumptionCycle: cycle,
+      packageSyncError: FieldValue.delete(),
+      packageSyncedAt: nowIso,
+    };
+    transaction.set(packageRef, {
+      ...movement.accountPatch,
+      latestLedgerEntryId: ledgerEntryId,
+      latestMovementAt: nowIso,
+      latestMovementBy: actorData,
+    }, { merge: true });
+    transaction.create(ledgerRef, ledgerEntry);
+    transaction.set(stateRef, {
+      status: "restored",
+      restorationEntryId: ledgerEntryId,
+      restoredAt: nowIso,
+      lastError: "",
+      updatedAt: nowIso,
+      updatedBy: actorData,
+    }, { merge: true });
+    transaction.set(lessonRef, lessonFields, { merge: true });
+    transaction.create(auditRef, {
+      entityType: "lesson_package_restoration",
+      entityId: ledgerEntryId,
+      action: "lesson.package_credit_restored",
+      lessonId: cleanLessonId,
+      lessonDate,
+      studentId: ledgerEntry.studentId,
+      studentName: ledgerEntry.studentName,
+      studentPackageId: cleanPackageId,
+      packageProductId: ledgerEntry.packageProductId,
+      packageProductName: ledgerEntry.packageProductName,
+      creditsDelta: movement.creditsDelta,
+      balanceBefore: movement.balanceBefore,
+      balanceAfter: movement.balanceAfter,
+      cycle,
+      restoresLedgerEntryId: state.consumptionEntryId || "",
+      actor: actorData,
+      reason: ledgerEntry.reason,
+      createdAt: nowIso,
+      requestId: mutationId,
+    });
+    const result = {
+      changed: true,
+      status: "restored",
+      lessonId: cleanLessonId,
+      studentPackageId: cleanPackageId,
+      ledgerEntryId,
+      cycle,
+      balanceAfter: movement.balanceAfter,
+      lessonFields: {
+        ...lessonFields,
+        packageSyncError: "",
+      },
+    };
+    transaction.create(requestRef, requestRecord(result));
+    return { ...result, idempotent: false };
   });
 }
 
@@ -2829,6 +3211,16 @@ exports.financeApi = functions.https.onRequest(async (req, res) => {
   }
 
   try {
+    if (req.path === "/lessons/package-consumption/sync") {
+      const actor = await requireStaffUser(req);
+      const result = await syncLessonPackageConsumption({
+        actor,
+        lessonId: req.body?.lessonId,
+        requestId: req.body?.requestId,
+      });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
     const actor = await requireAdminUser(req);
     if (req.path === "/tariffs") {
       const result = await createTariffVersion({

@@ -135,12 +135,25 @@ financial audit. Direct client writes to product, account, and ledger
 collections are denied. Existing `packageTotal` / `packageUsed` counters remain
 visible only as a migration fallback and are not rewritten by the new flow.
 
-The next Stage 5 slice should consume one package credit from an eligible
-student package when a lesson is completed, restore it through a compensating
-entry when that completion is reversed, and link the ledger entry to the exact
-lesson occurrence. It must define deterministic package selection when a
-student has more than one active balance before replacing any legacy automatic
-counter updates.
+The third Stage 5 slice synchronizes completed lessons with package balances.
+An explicit package selection is honored first; otherwise the oldest eligible
+balance is used. Each completed lesson consumes exactly one credit through an
+append-only entry linked to the lesson ID. Reversing completion creates a
+separate restoration entry in the same package, and completing it again starts
+a new numbered cycle. Sync requests and deterministic ledger IDs prevent
+duplicate debits under retries or concurrent saves. A completed lesson with no
+eligible credit is marked for attention rather than forcing a negative balance.
+Lessons with active consumption cannot be deleted until their credit is
+restored. Package-covered lessons are excluded from per-lesson invoice
+selection, preventing double charging. Newly ledger-managed students stop
+changing both legacy `packageUsed` and `lessonsSinceInvoice` counters; students
+without registered package accounts retain the existing behavior.
+
+The next Stage 5 slice should link package issuance to an invoice/payment
+workflow. It should preserve the immutable product price snapshot, distinguish
+issued versus paid/activated packages, support an explicit free or sponsored
+package reason, and correct a sale with credit/refund entries rather than
+rewriting either the package or its opening grant.
 
 ## Payroll dependency
 

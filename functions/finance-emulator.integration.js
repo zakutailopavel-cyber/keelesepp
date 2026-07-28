@@ -564,3 +564,259 @@ test("package products issue balances and append immutable ledger movements", as
   );
   assert.equal(nonAdminPackageRead.status, 403, JSON.stringify(nonAdminPackageRead.body));
 });
+
+test("completed lessons consume one package credit and reversals append restoration", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const adminToken = await createAdminToken();
+  const teacherToken = await createUserToken("package-teacher@example.com");
+  const teacherClaims = JSON.parse(
+    Buffer.from(teacherToken.split(".")[1], "base64url").toString("utf8"),
+  );
+  await db.collection("users").doc(teacherClaims.user_id).set({
+    role: "teacher",
+    displayName: "Package Teacher",
+    email: "package-teacher@example.com",
+  });
+  await db.collection("students").doc("student-package-lesson").set({
+    name: "Lesson Package Student",
+    email: "lesson-package@example.com",
+    packageTotal: 5,
+    packageUsed: 2,
+    lessonsSinceInvoice: 0,
+    active: true,
+  });
+
+  const productPayload = {
+    name: "One lesson package",
+    lessonCredits: 1,
+    totalPrice: 30,
+    effectiveFrom: "2026-07-01",
+    requestId: "emulator_lesson_package_product_0001",
+  };
+  const product = await financeRequest(adminToken, "/package-products", productPayload);
+  assert.equal(product.status, 201, JSON.stringify(product.body));
+  const issuePayload = {
+    studentId: "student-package-lesson",
+    packageProductId: productPayload.requestId,
+    issuedAt: "2026-07-01",
+    requestId: "emulator_lesson_package_issue_0001",
+  };
+  const issued = await financeRequest(adminToken, "/student-packages", issuePayload);
+  assert.equal(issued.status, 201, JSON.stringify(issued.body));
+
+  await db.collection("lessons").doc("lesson-package-cycle").set({
+    studentId: "student-package-lesson",
+    studentName: "Lesson Package Student",
+    teacher: "Package Teacher",
+    topic: "Package ledger lesson",
+    date: "2026-07-28",
+    status: "Toimunud",
+    requestedStudentPackageId: issuePayload.requestId,
+  });
+  const consumePayload = {
+    lessonId: "lesson-package-cycle",
+    requestId: "emulator_lesson_package_consume_0001",
+  };
+  const consumed = await financeRequest(
+    teacherToken,
+    "/lessons/package-consumption/sync",
+    consumePayload,
+  );
+  assert.equal(consumed.status, 201, JSON.stringify(consumed.body));
+  assert.equal(consumed.body.changed, true);
+  assert.equal(consumed.body.status, "consumed");
+  assert.equal(consumed.body.balanceAfter, 0);
+  assert.equal(consumed.body.cycle, 1);
+
+  const [
+    consumedPackageSnap,
+    consumedLessonSnap,
+    consumedStateSnap,
+    consumedLedgerSnap,
+    consumedAuditSnap,
+    legacyStudentSnap,
+  ] = await Promise.all([
+    db.collection("studentPackages").doc(issuePayload.requestId).get(),
+    db.collection("lessons").doc("lesson-package-cycle").get(),
+    db.collection("lessonPackageStates").doc("lesson-package-cycle").get(),
+    db.collection("packageLedger").doc(consumed.body.ledgerEntryId).get(),
+    db.collection("financialAudit").doc(consumePayload.requestId).get(),
+    db.collection("students").doc("student-package-lesson").get(),
+  ]);
+  assert.equal(consumedPackageSnap.data().balanceCredits, 0);
+  assert.equal(consumedPackageSnap.data().consumedCredits, 1);
+  assert.equal(consumedPackageSnap.data().status, "depleted");
+  assert.equal(consumedLessonSnap.data().packageConsumptionStatus, "consumed");
+  assert.equal(consumedLessonSnap.data().packageStudentPackageId, issuePayload.requestId);
+  assert.equal(consumedStateSnap.data().status, "consumed");
+  assert.equal(consumedStateSnap.data().cycle, 1);
+  assert.equal(consumedLedgerSnap.data().entryType, "lesson_consumption");
+  assert.equal(consumedLedgerSnap.data().creditsDelta, -1);
+  assert.equal(consumedLedgerSnap.data().lessonId, "lesson-package-cycle");
+  assert.equal(consumedAuditSnap.data().action, "lesson.package_credit_consumed");
+  assert.equal(consumedAuditSnap.data().actor.role, "teacher");
+  assert.equal(legacyStudentSnap.data().packageTotal, 5);
+  assert.equal(legacyStudentSnap.data().packageUsed, 2);
+
+  const consumeRetry = await financeRequest(
+    teacherToken,
+    "/lessons/package-consumption/sync",
+    consumePayload,
+  );
+  assert.equal(consumeRetry.status, 200, JSON.stringify(consumeRetry.body));
+  assert.equal(consumeRetry.body.idempotent, true);
+
+  const duplicateSync = await financeRequest(
+    teacherToken,
+    "/lessons/package-consumption/sync",
+    {
+      lessonId: "lesson-package-cycle",
+      requestId: "emulator_lesson_package_consume_0002",
+    },
+  );
+  assert.equal(duplicateSync.status, 201, JSON.stringify(duplicateSync.body));
+  assert.equal(duplicateSync.body.changed, false);
+  assert.equal(duplicateSync.body.ledgerEntryId, consumed.body.ledgerEntryId);
+  assert.equal(
+    (await db.collection("studentPackages").doc(issuePayload.requestId).get())
+      .data().ledgerEntryCount,
+    2,
+  );
+
+  await db.collection("lessons").doc("lesson-package-cycle").update({
+    status: "Puudus_p",
+  });
+  const restorePayload = {
+    lessonId: "lesson-package-cycle",
+    requestId: "emulator_lesson_package_restore_0001",
+  };
+  const restored = await financeRequest(
+    teacherToken,
+    "/lessons/package-consumption/sync",
+    restorePayload,
+  );
+  assert.equal(restored.status, 201, JSON.stringify(restored.body));
+  assert.equal(restored.body.changed, true);
+  assert.equal(restored.body.status, "restored");
+  assert.equal(restored.body.balanceAfter, 1);
+
+  const [
+    restoredPackageSnap,
+    restoredStateSnap,
+    restoredLedgerSnap,
+    originalLedgerAfterRestore,
+    restoredAuditSnap,
+  ] = await Promise.all([
+    db.collection("studentPackages").doc(issuePayload.requestId).get(),
+    db.collection("lessonPackageStates").doc("lesson-package-cycle").get(),
+    db.collection("packageLedger").doc(restored.body.ledgerEntryId).get(),
+    db.collection("packageLedger").doc(consumed.body.ledgerEntryId).get(),
+    db.collection("financialAudit").doc(restorePayload.requestId).get(),
+  ]);
+  assert.equal(restoredPackageSnap.data().balanceCredits, 1);
+  assert.equal(restoredPackageSnap.data().consumedCredits, 0);
+  assert.equal(restoredStateSnap.data().status, "restored");
+  assert.equal(restoredLedgerSnap.data().entryType, "lesson_restoration");
+  assert.equal(restoredLedgerSnap.data().creditsDelta, 1);
+  assert.equal(restoredLedgerSnap.data().restoresLedgerEntryId, consumed.body.ledgerEntryId);
+  assert.equal(originalLedgerAfterRestore.data().creditsDelta, -1);
+  assert.equal(restoredAuditSnap.data().action, "lesson.package_credit_restored");
+
+  await db.collection("lessons").doc("lesson-package-cycle").update({
+    status: "Toimunud",
+  });
+  const secondCycle = await financeRequest(
+    teacherToken,
+    "/lessons/package-consumption/sync",
+    {
+      lessonId: "lesson-package-cycle",
+      requestId: "emulator_lesson_package_consume_0003",
+    },
+  );
+  assert.equal(secondCycle.status, 201, JSON.stringify(secondCycle.body));
+  assert.equal(secondCycle.body.changed, true);
+  assert.equal(secondCycle.body.cycle, 2);
+  assert.notEqual(secondCycle.body.ledgerEntryId, consumed.body.ledgerEntryId);
+  assert.equal(secondCycle.body.balanceAfter, 0);
+
+  const doubleChargeAttempt = await financeRequest(
+    adminToken,
+    "/invoices/from-lessons",
+    {
+      studentId: "student-package-lesson",
+      lessonIds: ["lesson-package-cycle"],
+      due: "2026-08-10",
+      description: "Must not invoice package-covered lesson",
+      paymentReference: "PACKAGE-COVERED-001",
+      requestId: "emulator_lesson_package_invoice_0001",
+    },
+  );
+  assert.equal(doubleChargeAttempt.status, 409, JSON.stringify(doubleChargeAttempt.body));
+  assert.match(doubleChargeAttempt.body.error, /not currently billable/);
+
+  await db.collection("lessons").doc("lesson-package-no-credit").set({
+    studentId: "student-package-lesson",
+    studentName: "Lesson Package Student",
+    teacher: "Package Teacher",
+    topic: "No credit lesson",
+    date: "2026-07-28",
+    status: "Toimunud",
+  });
+  const noCredit = await financeRequest(
+    teacherToken,
+    "/lessons/package-consumption/sync",
+    {
+      lessonId: "lesson-package-no-credit",
+      requestId: "emulator_lesson_package_attention_0001",
+    },
+  );
+  assert.equal(noCredit.status, 201, JSON.stringify(noCredit.body));
+  assert.equal(noCredit.body.changed, false);
+  assert.equal(noCredit.body.status, "needs_attention");
+  assert.match(noCredit.body.reason, /No eligible/);
+  assert.equal(
+    (await db.collection("lessons").doc("lesson-package-no-credit").get())
+      .data().packageConsumptionStatus,
+    "needs_attention",
+  );
+  assert.equal(
+    (await db.collection("financialAudit")
+      .doc("emulator_lesson_package_attention_0001").get()).exists,
+    false,
+  );
+
+  const clientStateWrite = await firestoreDocumentRequest(
+    teacherToken,
+    "PATCH",
+    "lessonPackageStates/lesson-package-cycle",
+    { fields: { status: { stringValue: "restored" } } },
+  );
+  assert.equal(clientStateWrite.status, 403, JSON.stringify(clientStateWrite.body));
+  const forgedLessonCreate = await firestoreDocumentRequest(
+    teacherToken,
+    "PATCH",
+    "lessons/client-forged-package-lesson",
+    {
+      fields: {
+        studentId: { stringValue: "student-package-lesson" },
+        status: { stringValue: "Toimunud" },
+        packageConsumptionStatus: { stringValue: "consumed" },
+      },
+    },
+  );
+  assert.equal(forgedLessonCreate.status, 403, JSON.stringify(forgedLessonCreate.body));
+  const clientLessonDelete = await firestoreDocumentRequest(
+    teacherToken,
+    "DELETE",
+    "lessons/lesson-package-cycle",
+  );
+  assert.equal(clientLessonDelete.status, 403, JSON.stringify(clientLessonDelete.body));
+  const nonAdminStateRead = await firestoreDocumentRequest(
+    teacherToken,
+    "GET",
+    "lessonPackageStates/lesson-package-cycle",
+  );
+  assert.equal(nonAdminStateRead.status, 403, JSON.stringify(nonAdminStateRead.body));
+});
