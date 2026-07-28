@@ -5746,7 +5746,7 @@ function ParentInvoicesView({invoices,printInvoice,submitParentPayment}) {
 }
 
 // ── ARVED ÜLDVAADE ────────────────────────────────────────────
-function InvoicesView({invoices,payments,myStudents,parents,schedule,students,isAdmin,invStu,setInvStu,invAmt,setInvAmt,invDesc,setInvDesc,invRef,setInvRef,invDue,setInvDue,addInvoice,recordPayment,markPaid,unmarkPaid,deleteInvoice,printInvoice,updateInvoiceReference,updateInvoiceDue,sendInvoiceEmail,sendInvoiceReminder,sendMonthlyInvoiceReminders,invoiceEmailBusy}) {
+function InvoicesView({invoices,payments,myStudents,parents,schedule,students,isAdmin,invStu,setInvStu,invAmt,setInvAmt,invDesc,setInvDesc,invRef,setInvRef,invDue,setInvDue,addInvoice,recordPayment,markPaid,unmarkPaid,voidPayment,deleteInvoice,printInvoice,updateInvoiceReference,updateInvoiceDue,sendInvoiceEmail,sendInvoiceReminder,sendMonthlyInvoiceReminders,invoiceEmailBusy}) {
   const unpaidAmt=invoices.filter(i=>i.status==='Ootel').reduce((sum,inv)=>sum+invoiceFinancialSummary(inv).balance,0);
   const paid=invoices.filter(i=>i.status==='Makstud');
   const [statsPeriod,setStatsPeriod] = React.useState('current');
@@ -6406,9 +6406,14 @@ function InvoicesView({invoices,payments,myStudents,parents,schedule,students,is
                       {financial.paymentStatus==='legacy_paid'&&<span style={{fontWeight:500,color:'#42536A'}}> · vana märge</span>}
                     </div>
                     {invoicePayments.slice().sort((a,b)=>String(b.paidAt||b.createdAt).localeCompare(String(a.paidAt||a.createdAt))).slice(0,5).map(payment=>(
-                      <div key={payment.id} style={{fontSize:'.72rem',color:'#64748b',marginTop:2}}>
-                        {fmtDate(payment.paidAt||payment.createdAt)} · {money(payment.amount)}€ · {PAYMENT_METHODS.find(method=>method.id===payment.method)?.label||payment.method||'Makse'}
-                        {payment.reference&&<> · {payment.reference}</>}
+                      <div key={payment.id} style={{fontSize:'.72rem',color:'#64748b',marginTop:3,display:'flex',gap:6,alignItems:'center',flexWrap:'wrap'}}>
+                        <span>
+                          {fmtDate(payment.paidAt||payment.createdAt)} · {money(payment.amount)}€ · {payment.method==='credit'?'Avanss':PAYMENT_METHODS.find(method=>method.id===payment.method)?.label||payment.method||'Makse'}
+                          {payment.reference&&<> · {payment.reference}</>}
+                        </span>
+                        {isAdmin&&voidPayment&&(
+                          <button onClick={()=>voidPayment(payment)} className="btn btn-red btn-sm" style={{padding:'2px 7px',fontSize:'.66rem'}}>Tühista see</button>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -6419,7 +6424,7 @@ function InvoicesView({invoices,payments,myStudents,parents,schedule,students,is
                 {inv.status==='Makstud'
                   ?<>
                     <span className="badge" style={{background:'#dcfce7',color:'#166534'}}>✓ Makstud</span>
-                    <button onClick={()=>unmarkPaid(inv.id)} className="btn btn-red btn-sm">Tühista makse</button>
+                    <button onClick={()=>unmarkPaid(inv.id)} className="btn btn-red btn-sm">Tühista kõik</button>
                   </>
                   :<><span className="badge" style={{background:'#fef3c7',color:'#92400e'}}>Ootel</span>
                     {isAdmin&&<button onClick={()=>recordPayment(inv)} className="btn btn-pine btn-sm">Lisa makse</button>}
@@ -6467,7 +6472,7 @@ function InvoicesView({invoices,payments,myStudents,parents,schedule,students,is
 // однозначна. Только когда номера в описании нет (или он задвоен —
 // см. предупреждение о дублях ниже), используется резервное угадывание
 // по имени ученика/родителя, которое пользователь может поправить вручную.
-function PaymentReconciliationView({invoices, students, isAdmin, bankTransactions, payerCredits, allocateBankTransaction}) {
+function PaymentReconciliationView({invoices, students, isAdmin, bankTransactions, payerCredits, allocateBankTransaction, applyPayerCredit}) {
   const [rawStatement, setRawStatement] = React.useState('');
   const [payments, setPayments] = React.useState([]);
   const [assign, setAssignState] = React.useState({});   // paymentId -> имя ученика (ручной override)
@@ -6481,6 +6486,8 @@ function PaymentReconciliationView({invoices, students, isAdmin, bankTransaction
   const [moSearch, setMoSearch] = React.useState('');
   const [allocationDraft, setAllocationDraft] = React.useState(null);
   const [allocationBusy, setAllocationBusy] = React.useState(false);
+  const [creditDraft, setCreditDraft] = React.useState(null);
+  const [creditBusy, setCreditBusy] = React.useState(false);
 
   // ---- load / save (Firestore, видно всем админам) ----
   React.useEffect(() => {
@@ -6559,6 +6566,37 @@ function PaymentReconciliationView({invoices, students, isAdmin, bankTransaction
     setVerified(next);
     persist({verified:next});
     setAllocationDraft(null);
+  }
+  function openCreditApplication(credit) {
+    setCreditDraft({credit,requestId:financeRequestId('creditapply'),rows:[{invoiceId:'',amount:''}]});
+  }
+  function updateCreditRow(index,patch) {
+    setCreditDraft(current=>({
+      ...current,
+      rows:current.rows.map((row,rowIndex)=>rowIndex===index?{...row,...patch}:row)
+    }));
+  }
+  function removeCreditRow(index) {
+    setCreditDraft(current=>({...current,rows:current.rows.filter((_,rowIndex)=>rowIndex!==index)}));
+  }
+  async function saveCreditApplication() {
+    if(!creditDraft||creditBusy) return;
+    const hasIncompleteRow=creditDraft.rows.some(row=>{
+      const amount=Number(String(row.amount).replace(',','.'));
+      return (row.invoiceId&&(!Number.isFinite(amount)||amount<=0)) || (!row.invoiceId&&Number.isFinite(amount)&&amount>0);
+    });
+    if(hasIncompleteRow){window.alert('Заполните и счёт, и положительную сумму в каждой используемой строке.');return;}
+    const rows=creditDraft.rows
+      .map(row=>({invoiceId:row.invoiceId,amount:Number(String(row.amount).replace(',','.'))}))
+      .filter(row=>row.invoiceId&&Number.isFinite(row.amount)&&row.amount>0);
+    if(rows.length===0){window.alert('Добавьте хотя бы один счёт и сумму.');return;}
+    if(new Set(rows.map(row=>row.invoiceId)).size!==rows.length){window.alert('Один счёт нельзя добавить дважды.');return;}
+    const total=rows.reduce((sum,row)=>sum+row.amount,0);
+    if(total>(Number(creditDraft.credit.availableAmount)||0)+.001){window.alert('Сумма больше доступного аванса.');return;}
+    setCreditBusy(true);
+    const saved=await applyPayerCredit(creditDraft.credit,rows,creditDraft.requestId);
+    setCreditBusy(false);
+    if(saved) setCreditDraft(null);
   }
   function resetAll() {
     if (!window.confirm('Сбросить все отметки и назначения по сверке? Выписка останется.')) return;
@@ -6649,6 +6687,12 @@ function PaymentReconciliationView({invoices, students, isAdmin, bankTransaction
     : 0;
   const allocationRemaining = allocationDraft
     ? Math.round((allocationDraft.payment.amount-allocationTotal)*100)/100
+    : 0;
+  const creditApplicationTotal = creditDraft
+    ? creditDraft.rows.reduce((sum,row)=>sum+(Number(String(row.amount).replace(',','.'))||0),0)
+    : 0;
+  const creditApplicationRemaining = creditDraft
+    ? Math.round(((Number(creditDraft.credit.availableAmount)||0)-creditApplicationTotal)*100)/100
     : 0;
   const openCreditTotal = (payerCredits||[])
     .filter(credit=>credit.status==='open')
@@ -6748,6 +6792,52 @@ function PaymentReconciliationView({invoices, students, isAdmin, bankTransaction
           </div>
           <div style={{fontSize:'.74rem',color:'#64748b'}}>
             Нераспределённый остаток сохранится как аванс плательщика. Его перенос на будущий счёт будет следующим отдельным действием.
+          </div>
+        </div>
+      )}
+
+      {creditDraft&&(
+        <div className="card" style={{padding:18,border:'2px solid rgba(109,40,217,.24)',display:'flex',flexDirection:'column',gap:14}}>
+          <div style={{display:'flex',justifyContent:'space-between',gap:12,alignItems:'flex-start',flexWrap:'wrap'}}>
+            <div>
+              <div style={{fontSize:'.72rem',fontWeight:800,color:'#6d28d9',textTransform:'uppercase'}}>Применение аванса</div>
+              <div style={{fontWeight:800,fontSize:'1.05rem',marginTop:4}}>{creditDraft.credit.payerName||'Плательщик'} · доступно {money(creditDraft.credit.availableAmount)}€</div>
+              <div style={{fontSize:'.75rem',color:'#64748b'}}>Источник: {creditDraft.credit.bankTransactionId||creditDraft.credit.id}</div>
+            </div>
+            <button onClick={()=>setCreditDraft(null)} className="btn btn-ghost btn-sm" disabled={creditBusy}>Закрыть</button>
+          </div>
+          <div style={{display:'flex',flexDirection:'column',gap:8}}>
+            {creditDraft.rows.map((row,index)=>{
+              const selected=allocatableInvoices.find(invoice=>invoice.id===row.invoiceId);
+              const balance=selected ? invoiceFinancialSummary(selected).balance : 0;
+              return(
+                <div key={`${index}-${row.invoiceId}`} style={{display:'grid',gridTemplateColumns:'minmax(220px,1fr) 130px auto',gap:8,alignItems:'center'}}>
+                  <select value={row.invoiceId} onChange={event=>updateCreditRow(index,{invoiceId:event.target.value})}>
+                    <option value="">Выберите счёт</option>
+                    {allocatableInvoices.map(invoice=>(
+                      <option key={invoice.id} value={invoice.id}>
+                        {invoice.num} · {invoicePartyLabel(invoice)} · остаток {money(invoiceFinancialSummary(invoice).balance)}€
+                      </option>
+                    ))}
+                  </select>
+                  <input value={row.amount} onChange={event=>updateCreditRow(index,{amount:event.target.value})}
+                    inputMode="decimal" placeholder={selected?`до ${money(balance)}€`:'Сумма €'}/>
+                  <button onClick={()=>removeCreditRow(index)} className="btn btn-red btn-sm" title="Удалить строку">×</button>
+                </div>
+              );
+            })}
+          </div>
+          <div style={{display:'flex',justifyContent:'space-between',gap:10,alignItems:'center',flexWrap:'wrap'}}>
+            <button onClick={()=>setCreditDraft(current=>({...current,rows:[...current.rows,{invoiceId:'',amount:''}]}))}
+              className="btn btn-ghost btn-sm">+ Добавить счёт</button>
+            <div style={{fontSize:'.82rem',fontWeight:700,color:creditApplicationRemaining<-.001?'#991b1b':'#6d28d9'}}>
+              Применяется {money(creditApplicationTotal)}€ · останется {money(Math.max(0,creditApplicationRemaining))}€
+            </div>
+            <button onClick={saveCreditApplication} className="btn btn-pine btn-sm"
+              disabled={creditBusy||creditApplicationTotal<=0||creditApplicationRemaining<-.001}
+              style={{opacity:(creditBusy||creditApplicationTotal<=0||creditApplicationRemaining<-.001) ? .55 : 1}}>
+              {creditBusy?'Применяю…':'Применить аванс'}
+            </button>
           </div>
         </div>
       )}
@@ -6866,7 +6956,10 @@ function PaymentReconciliationView({invoices, students, isAdmin, bankTransaction
                   <div style={{fontWeight:700}}>{credit.payerName||'Плательщик не указан'}</div>
                   <div style={{fontSize:'.75rem',color:'#64748b'}}>Операция {credit.bankTransactionId} · {fmtDate(credit.createdAt)}</div>
                 </div>
-                <span className="badge" style={{background:'#ede9fe',color:'#6d28d9',fontWeight:800}}>{money(credit.availableAmount)}€</span>
+                <div style={{display:'flex',gap:8,alignItems:'center'}}>
+                  <span className="badge" style={{background:'#ede9fe',color:'#6d28d9',fontWeight:800}}>{money(credit.availableAmount)}€</span>
+                  <button onClick={()=>openCreditApplication(credit)} className="btn btn-pine btn-sm">Применить</button>
+                </div>
               </div>
             ))}
             {(payerCredits||[]).filter(credit=>credit.status==='open').length===0&&(
@@ -9806,6 +9899,47 @@ function App() {
     }
   },[isAdmin]);
 
+  const applyPayerCredit=useCallback(async(credit,allocations,requestId)=>{
+    if(!isAdmin||!credit?.id){notify('⚠ Ainult administraator saab avanssi kasutada');return false;}
+    try{
+      const result=await financeApiPost('/payer-credits/apply',{
+        creditId:credit.id,
+        allocations,
+        note:'Avansi rakendamine arvetele',
+        requestId:requestId||financeRequestId('creditapply')
+      });
+      notify(`✓ Avansist kasutatud ${money(result?.creditApplication?.amount)}€`);
+      return true;
+    }catch(err){
+      console.error('Payer credit application failed:',err);
+      notify(`⚠ Avansi kasutamine ebaõnnestus: ${err.message||err}`);
+      return false;
+    }
+  },[isAdmin]);
+
+  const voidPayment=useCallback(async(payment)=>{
+    if(!isAdmin||!payment?.id){notify('⚠ Ainult administraator saab makset tühistada');return false;}
+    const reason=window.prompt(`Tühistamise põhjus: ${money(payment.amount)}€`, 'Vale jaotus');
+    if(reason===null) return false;
+    if(!String(reason).trim()){notify('⚠ Sisesta tühistamise põhjus');return false;}
+    try{
+      const result=await financeApiPost('/payments/void',{
+        paymentId:payment.id,
+        reason:String(reason).trim(),
+        requestId:financeRequestId('paymentvoid')
+      });
+      const restored=Number(result?.restoredCredit?.availableAmount);
+      notify(Number.isFinite(restored)
+        ? `✓ Makse tühistatud; avansis saadaval ${money(restored)}€`
+        : '✓ Makse tühistatud');
+      return true;
+    }catch(err){
+      console.error('Payment void failed:',err);
+      notify(`⚠ Makse tühistamine ebaõnnestus: ${err.message||err}`);
+      return false;
+    }
+  },[isAdmin]);
+
   const markPaid=useCallback(async id=>{
     const inv=invoices.find(item=>item.id===id);
     if(!inv){notify('⚠ Arvet ei leitud');return false;}
@@ -10413,13 +10547,14 @@ function App() {
 	            schedule={schedule} students={students} isAdmin={isAdmin}
             invStu={invStu} setInvStu={setInvStu} invAmt={invAmt} setInvAmt={setInvAmt}
             invDesc={invDesc} setInvDesc={setInvDesc} invRef={invRef} setInvRef={setInvRef} invDue={invDue} setInvDue={setInvDue}
-            addInvoice={addInvoice} recordPayment={recordPayment} markPaid={markPaid} unmarkPaid={unmarkPaid} deleteInvoice={deleteInvoice} printInvoice={printInvoice} updateInvoiceReference={updateInvoiceReference} updateInvoiceDue={updateInvoiceDue}
+            addInvoice={addInvoice} recordPayment={recordPayment} markPaid={markPaid} unmarkPaid={unmarkPaid} voidPayment={voidPayment} deleteInvoice={deleteInvoice} printInvoice={printInvoice} updateInvoiceReference={updateInvoiceReference} updateInvoiceDue={updateInvoiceDue}
             sendInvoiceEmail={sendInvoiceEmail} sendInvoiceReminder={sendInvoiceReminder} sendMonthlyInvoiceReminders={sendMonthlyInvoiceReminders} invoiceEmailBusy={invoiceEmailBusy}/>}
 
           {tab==='reconciliation'&&isAdmin&&<PaymentReconciliationView
             invoices={invoices} students={students} isAdmin={isAdmin}
             bankTransactions={bankTransactions} payerCredits={payerCredits}
-            allocateBankTransaction={allocateImportedBankTransaction}/>}
+            allocateBankTransaction={allocateImportedBankTransaction}
+            applyPayerCredit={applyPayerCredit}/>}
 
           {tab==='activity'&&isStaff&&<ActivityLogView logs={scopedActivityLog} isAdmin={isAdmin}/>}
           {tab==='kabinet'&&!isStaff&&<KabinetView user={user} myStudents={myStudents} notify={notify}/>}

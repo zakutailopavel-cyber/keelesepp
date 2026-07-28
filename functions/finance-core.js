@@ -84,6 +84,61 @@ function normalizeAllocations(transactionAmount, allocations = []) {
   };
 }
 
+function creditAfterApplication(credit = {}, appliedAmountCents, nowIso) {
+  const availableAmountCents = Number.isInteger(credit.availableAmountCents)
+    ? credit.availableAmountCents
+    : Math.max(0, Math.round((Number(credit.availableAmount) || 0) * 100));
+  if (!Number.isInteger(appliedAmountCents) || appliedAmountCents <= 0) {
+    const error = new Error("applied credit amount must be positive cents");
+    error.status = 400;
+    throw error;
+  }
+  if (appliedAmountCents > availableAmountCents) {
+    const error = new Error("applied amount exceeds available payer credit");
+    error.status = 409;
+    throw error;
+  }
+  const nextAvailableCents = availableAmountCents - appliedAmountCents;
+  const appliedTotalCents = (Number(credit.appliedAmountCents) || 0) + appliedAmountCents;
+  return {
+    availableAmountCents: nextAvailableCents,
+    availableAmount: centsToAmount(nextAvailableCents),
+    appliedAmountCents: appliedTotalCents,
+    appliedAmount: centsToAmount(appliedTotalCents),
+    status: nextAvailableCents === 0 ? "closed" : "open",
+    applicationCount: (Number(credit.applicationCount) || 0) + 1,
+    lastAppliedAt: nowIso,
+    updatedAt: nowIso,
+  };
+}
+
+function creditAfterRestoration(credit = {}, restoredAmountCents, nowIso, { reverseApplication = true } = {}) {
+  if (!Number.isInteger(restoredAmountCents) || restoredAmountCents <= 0) {
+    const error = new Error("restored credit amount must be positive cents");
+    error.status = 400;
+    throw error;
+  }
+  const availableAmountCents = Number.isInteger(credit.availableAmountCents)
+    ? credit.availableAmountCents
+    : Math.max(0, Math.round((Number(credit.availableAmount) || 0) * 100));
+  const appliedAmountCents = reverseApplication
+    ? Math.max(0, (Number(credit.appliedAmountCents) || 0) - restoredAmountCents)
+    : (Number(credit.appliedAmountCents) || 0);
+  const nextAvailableCents = availableAmountCents + restoredAmountCents;
+  const restoredTotalCents = (Number(credit.restoredAmountCents) || 0) + restoredAmountCents;
+  return {
+    availableAmountCents: nextAvailableCents,
+    availableAmount: centsToAmount(nextAvailableCents),
+    appliedAmountCents,
+    appliedAmount: centsToAmount(appliedAmountCents),
+    restoredAmountCents: restoredTotalCents,
+    restoredAmount: centsToAmount(restoredTotalCents),
+    status: "open",
+    lastRestoredAt: nowIso,
+    updatedAt: nowIso,
+  };
+}
+
 function invoiceFinancialPatch(invoice, payments, nowIso) {
   const amountCents = invoiceAmountCents(invoice);
   const paidAmountCents = activePaymentTotalCents(payments);
@@ -119,6 +174,8 @@ function invoiceFinancialPatch(invoice, payments, nowIso) {
 module.exports = {
   activePaymentTotalCents,
   centsToAmount,
+  creditAfterApplication,
+  creditAfterRestoration,
   invoiceAmountCents,
   invoiceFinancialPatch,
   normalizeAllocations,
