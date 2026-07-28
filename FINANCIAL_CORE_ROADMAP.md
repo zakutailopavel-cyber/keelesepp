@@ -87,9 +87,15 @@ immutable resolution and audit entry. Open payer credit can be refunded through
 a separate immutable outgoing record. Credit-sourced invoice payments must still
 be voided back to their source credit before an overpayment is transferred.
 
-The next slice should add selectable lesson lines when creating an invoice and a
-printable/email credit-note document. Invoices linked to lessons remain
-intentionally not directly deletable.
+The fifth Stage 4 slice lets an administrator select an exact subset of currently
+billable lessons in the invoice wizard. All eligible lessons remain selected by
+default, manual invoices remain available as a migration fallback, and the
+server still validates the chosen IDs transactionally before creating immutable
+lines and marking their source lessons as invoiced.
+
+The next slice should add a printable/email credit-note document, then close
+Stage 4 with focused emulator coverage for the lesson and invoice transaction.
+Invoices linked to lessons remain intentionally not directly deletable.
 
 ## Following slice: tariffs and packages
 

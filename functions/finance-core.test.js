@@ -148,6 +148,22 @@ test("completed unbilled lessons become dated immutable invoice lines", () => {
   assert.equal(result.lines[0].unitPriceCents, 2750);
 });
 
+test("a selected lesson subset produces only the requested immutable lines", () => {
+  const eligible = selectBillableLessons([
+    { id: "lesson-a", date: "2026-07-05", status: "Toimunud", billingStatus: "unbilled" },
+    { id: "lesson-b", date: "2026-07-12", status: "Toimunud", billingStatus: "unbilled" },
+    { id: "lesson-c", date: "2026-07-19", status: "Toimunud", billingStatus: "unbilled" },
+  ]);
+  const requestedIds = new Set(["lesson-a", "lesson-c"]);
+  const selected = eligible.filter(lesson => requestedIds.has(lesson.id));
+  const result = buildLessonInvoiceLines(selected, 25);
+
+  assert.deepEqual(result.lessonIds, ["lesson-a", "lesson-c"]);
+  assert.equal(result.lessonCount, 2);
+  assert.equal(result.amount, 50);
+  assert.equal(eligible.find(lesson => lesson.id === "lesson-b").billingStatus, "unbilled");
+});
+
 test("lesson invoice lines reject billed, incomplete, and duplicate lessons", () => {
   assert.throws(
     () => buildLessonInvoiceLines([{ id: "lesson-a", status: "Planeeritud" }], 25),
