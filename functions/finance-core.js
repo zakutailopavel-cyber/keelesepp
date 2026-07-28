@@ -30,6 +30,18 @@ function invoiceAmountCents(invoice = {}) {
   return Math.max(0, Math.round((Number(invoice.amount) || 0) * 100));
 }
 
+function invoiceOriginalAmountCents(invoice = {}) {
+  const hasAmount = invoice.amount !== undefined
+    && invoice.amount !== null
+    && invoice.amount !== "";
+  const amount = Number(invoice.amount);
+  if (hasAmount && Number.isFinite(amount) && amount >= 0) return Math.round(amount * 100);
+  if (Number.isInteger(invoice.amountCents) && invoice.amountCents >= 0) {
+    return invoice.amountCents;
+  }
+  return 0;
+}
+
 function invoiceAfterLessonCredit(invoice = {}, line = {}) {
   const lessonId = String(line.lessonId || "").trim();
   const lineAmountCents = Number(line.amountCents) || Math.round((Number(line.amount) || 0) * 100);
@@ -43,9 +55,7 @@ function invoiceAfterLessonCredit(invoice = {}, line = {}) {
     error.status = 409;
     throw error;
   }
-  const originalAmountCents = Number.isInteger(invoice.amountCents)
-    ? invoice.amountCents
-    : Math.round((Number(invoice.amount) || 0) * 100);
+  const originalAmountCents = invoiceOriginalAmountCents(invoice);
   const creditedAmountCents = (Number(invoice.creditedAmountCents) || 0) + lineAmountCents;
   const effectiveAmountCents = originalAmountCents - creditedAmountCents;
   if (effectiveAmountCents < 0) {
@@ -62,14 +72,64 @@ function invoiceAfterLessonCredit(invoice = {}, line = {}) {
   };
 }
 
+function paymentNetAmountCents(payment = {}) {
+  const grossAmountCents = Number.isInteger(payment.amountCents)
+    ? payment.amountCents
+    : Math.round((Number(payment.amount) || 0) * 100);
+  const resolvedAmountCents = Number.isInteger(payment.resolvedAmountCents)
+    ? payment.resolvedAmountCents
+    : Math.round((Number(payment.resolvedAmount) || 0) * 100);
+  return Math.max(0, grossAmountCents - Math.max(0, resolvedAmountCents));
+}
+
 function activePaymentTotalCents(payments = []) {
   return payments.reduce((sum, payment) => {
     if (!payment || payment.status === "voided") return sum;
-    const cents = Number.isInteger(payment.amountCents)
-      ? payment.amountCents
-      : Math.round((Number(payment.amount) || 0) * 100);
-    return sum + Math.max(0, cents);
+    return sum + paymentNetAmountCents(payment);
   }, 0);
+}
+
+function planInvoiceOverpaymentTransfer(invoice = {}, payments = []) {
+  const overpaidAmountCents = Math.max(
+    0,
+    activePaymentTotalCents(payments) - invoiceAmountCents(invoice),
+  );
+  if (overpaidAmountCents <= 0) {
+    const error = new Error("invoice has no overpayment to transfer");
+    error.status = 409;
+    throw error;
+  }
+  let remainingAmountCents = overpaidAmountCents;
+  const allocations = payments
+    .filter(payment =>
+      payment
+      && payment.status !== "voided"
+      && !payment.sourceCreditId
+      && payment.method !== "credit"
+      && paymentNetAmountCents(payment) > 0,
+    )
+    .sort((a, b) =>
+      `${b.createdAt || b.paidAt || ""}:${b.id || ""}`
+        .localeCompare(`${a.createdAt || a.paidAt || ""}:${a.id || ""}`),
+    )
+    .map(payment => {
+      if (remainingAmountCents <= 0) return null;
+      const amountCents = Math.min(paymentNetAmountCents(payment), remainingAmountCents);
+      remainingAmountCents -= amountCents;
+      return {
+        paymentId: String(payment.id || ""),
+        amountCents,
+      };
+    })
+    .filter(Boolean);
+  if (remainingAmountCents > 0 || allocations.some(allocation => !allocation.paymentId)) {
+    const error = new Error(
+      "overpayment includes payer-credit payments; void those payments before transferring the remainder",
+    );
+    error.status = 409;
+    throw error;
+  }
+  return { overpaidAmountCents, allocations };
 }
 
 function normalizeAllocations(transactionAmount, allocations = []) {
@@ -170,6 +230,34 @@ function creditAfterRestoration(credit = {}, restoredAmountCents, nowIso, { reve
     restoredAmount: centsToAmount(restoredTotalCents),
     status: "open",
     lastRestoredAt: nowIso,
+    updatedAt: nowIso,
+  };
+}
+
+function creditAfterRefund(credit = {}, refundAmountCents, nowIso) {
+  const availableAmountCents = Number.isInteger(credit.availableAmountCents)
+    ? credit.availableAmountCents
+    : Math.max(0, Math.round((Number(credit.availableAmount) || 0) * 100));
+  if (!Number.isInteger(refundAmountCents) || refundAmountCents <= 0) {
+    const error = new Error("refund amount must be positive cents");
+    error.status = 400;
+    throw error;
+  }
+  if (refundAmountCents > availableAmountCents) {
+    const error = new Error("refund amount exceeds available payer credit");
+    error.status = 409;
+    throw error;
+  }
+  const nextAvailableAmountCents = availableAmountCents - refundAmountCents;
+  const refundedAmountCents = (Number(credit.refundedAmountCents) || 0) + refundAmountCents;
+  return {
+    availableAmountCents: nextAvailableAmountCents,
+    availableAmount: centsToAmount(nextAvailableAmountCents),
+    refundedAmountCents,
+    refundedAmount: centsToAmount(refundedAmountCents),
+    refundCount: (Number(credit.refundCount) || 0) + 1,
+    status: nextAvailableAmountCents === 0 ? "closed" : "open",
+    lastRefundedAt: nowIso,
     updatedAt: nowIso,
   };
 }
@@ -336,7 +424,6 @@ function invoiceFinancialPatch(invoice, payments, nowIso) {
         : "paid";
 
   return {
-    amountCents,
     paidAmountCents,
     paidAmount: centsToAmount(paidAmountCents),
     balanceDueCents,
@@ -344,7 +431,11 @@ function invoiceFinancialPatch(invoice, payments, nowIso) {
     overpaidAmountCents,
     overpaidAmount: centsToAmount(overpaidAmountCents),
     paymentStatus,
-    paymentCount: payments.filter(payment => payment && payment.status !== "voided").length,
+    paymentCount: payments.filter(payment =>
+      payment
+      && payment.status !== "voided"
+      && paymentNetAmountCents(payment) > 0,
+    ).length,
     status: balanceDueCents === 0 && amountCents > 0 ? "Makstud" : "Ootel",
     paidAt: balanceDueCents === 0 && amountCents > 0
       ? (invoice.paidAt || nowIso.slice(0, 10))
@@ -359,13 +450,17 @@ module.exports = {
   buildLessonInvoiceLines,
   centsToAmount,
   creditAfterApplication,
+  creditAfterRefund,
   creditAfterRestoration,
   invoiceAmountCents,
   invoiceAfterLessonCredit,
+  invoiceOriginalAmountCents,
   invoiceFinancialPatch,
   lessonBillingDispositionPatch,
   lessonIsBillable,
   normalizeAllocations,
+  paymentNetAmountCents,
+  planInvoiceOverpaymentTransfer,
   selectBillableLessons,
   toCents,
 };

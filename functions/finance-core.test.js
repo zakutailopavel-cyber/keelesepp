@@ -5,12 +5,16 @@ const assert = require("node:assert/strict");
 const {
   buildLessonInvoiceLines,
   creditAfterApplication,
+  creditAfterRefund,
   creditAfterRestoration,
   invoiceFinancialPatch,
   invoiceAfterLessonCredit,
+  invoiceOriginalAmountCents,
   lessonBillingDispositionPatch,
   lessonIsBillable,
   normalizeAllocations,
+  paymentNetAmountCents,
+  planInvoiceOverpaymentTransfer,
   selectBillableLessons,
   toCents,
 } = require("./finance-core");
@@ -246,6 +250,7 @@ test("lesson credit reduces effective invoice amount without changing original a
     "2026-07-28T10:00:00.000Z",
   );
   assert.equal(financial.balanceDue, 20);
+  assert.equal(Object.prototype.hasOwnProperty.call(financial, "amountCents"), false);
 });
 
 test("lesson credit rejects duplicate corrections", () => {
@@ -270,4 +275,71 @@ test("multiple lesson credits accumulate against the immutable original total", 
   assert.equal(second.creditedAmountCents, 6000);
   assert.equal(second.effectiveAmountCents, 0);
   assert.deepEqual(second.correctedLessonIds, ["lesson-a", "lesson-b"]);
+});
+
+test("lesson credit recovers original cents from immutable amount after a legacy aggregate overwrite", () => {
+  const legacyAffectedInvoice = {
+    amount: 60,
+    amountCents: 3000,
+    creditedAmountCents: 3000,
+    effectiveAmountCents: 3000,
+    correctedLessonIds: ["lesson-a"],
+  };
+  assert.equal(invoiceOriginalAmountCents(legacyAffectedInvoice), 6000);
+  const patch = invoiceAfterLessonCredit(
+    legacyAffectedInvoice,
+    { lessonId: "lesson-b", amountCents: 3000 },
+  );
+  assert.equal(patch.effectiveAmountCents, 0);
+});
+
+test("overpayment transfer plan preserves gross payments and selects newest cash source", () => {
+  const payments = [
+    { id: "old", amountCents: 5000, status: "active", createdAt: "2026-07-01" },
+    { id: "new", amountCents: 3000, status: "active", createdAt: "2026-07-02" },
+  ];
+  const plan = planInvoiceOverpaymentTransfer({ amountCents: 6000 }, payments);
+  assert.equal(plan.overpaidAmountCents, 2000);
+  assert.deepEqual(plan.allocations, [{ paymentId: "new", amountCents: 2000 }]);
+  assert.equal(paymentNetAmountCents({ ...payments[1], resolvedAmountCents: 2000 }), 1000);
+  assert.equal(payments[1].amountCents, 3000);
+  const financial = invoiceFinancialPatch(
+    { amountCents: 6000 },
+    [payments[0], { ...payments[1], resolvedAmountCents: 2000 }],
+    "2026-07-28T10:00:00.000Z",
+  );
+  assert.equal(financial.paidAmount, 60);
+  assert.equal(financial.overpaidAmount, 0);
+  assert.equal(financial.status, "Makstud");
+});
+
+test("overpayment transfer refuses credit-sourced money that must be voided first", () => {
+  assert.throws(
+    () => planInvoiceOverpaymentTransfer(
+      { amountCents: 5000 },
+      [{ id: "credit-payment", amountCents: 6000, status: "active", sourceCreditId: "credit-a" }],
+    ),
+    /void those payments/,
+  );
+});
+
+test("payer credit refund reduces only available balance and is cumulative", () => {
+  const original = { availableAmountCents: 3000, appliedAmountCents: 1000 };
+  const first = {
+    ...original,
+    ...creditAfterRefund(original, 1200, "2026-07-28T10:00:00.000Z"),
+  };
+  const second = {
+    ...first,
+    ...creditAfterRefund(first, 1800, "2026-07-28T11:00:00.000Z"),
+  };
+  assert.equal(first.availableAmount, 18);
+  assert.equal(first.appliedAmountCents, 1000);
+  assert.equal(second.availableAmount, 0);
+  assert.equal(second.refundedAmount, 30);
+  assert.equal(second.status, "closed");
+  assert.throws(
+    () => creditAfterRefund(second, 1, "2026-07-28T12:00:00.000Z"),
+    /exceeds available/,
+  );
 });

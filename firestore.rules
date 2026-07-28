@@ -93,7 +93,9 @@ service cloud.firestore {
         'correctedLessonIds',
         'creditNoteIds',
         'corrections',
-        'correctionStatus'
+        'correctionStatus',
+        'overpaymentResolutionIds',
+        'lastOverpaymentResolvedAt'
       ]);
     }
 
@@ -295,6 +297,16 @@ service cloud.firestore {
     }
 
     match /creditNotes/{creditNoteId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
+    match /overpaymentResolutions/{resolutionId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
+    match /refunds/{refundId} {
       allow read: if isAdmin();
       allow create, update, delete: if false;
     }
