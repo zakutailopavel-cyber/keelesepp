@@ -37,6 +37,53 @@ function activePaymentTotalCents(payments = []) {
   }, 0);
 }
 
+function normalizeAllocations(transactionAmount, allocations = []) {
+  const transactionAmountCents = toCents(transactionAmount, "transaction amount");
+  if (!Array.isArray(allocations)) {
+    const error = new Error("allocations must be an array");
+    error.status = 400;
+    throw error;
+  }
+  if (allocations.length > 50) {
+    const error = new Error("at most 50 invoice allocations are allowed");
+    error.status = 400;
+    throw error;
+  }
+
+  const seenInvoiceIds = new Set();
+  const normalized = allocations.map((allocation, index) => {
+    const invoiceId = String(allocation?.invoiceId || "").trim();
+    if (!invoiceId) {
+      const error = new Error(`allocations[${index}].invoiceId required`);
+      error.status = 400;
+      throw error;
+    }
+    if (seenInvoiceIds.has(invoiceId)) {
+      const error = new Error(`invoice ${invoiceId} is allocated more than once`);
+      error.status = 400;
+      throw error;
+    }
+    seenInvoiceIds.add(invoiceId);
+    return {
+      invoiceId,
+      amountCents: toCents(allocation?.amount, `allocations[${index}].amount`),
+    };
+  });
+  const allocatedAmountCents = normalized.reduce((sum, allocation) => sum + allocation.amountCents, 0);
+  if (allocatedAmountCents > transactionAmountCents) {
+    const error = new Error("allocated amount exceeds bank transaction amount");
+    error.status = 400;
+    throw error;
+  }
+
+  return {
+    transactionAmountCents,
+    allocations: normalized,
+    allocatedAmountCents,
+    unappliedAmountCents: transactionAmountCents - allocatedAmountCents,
+  };
+}
+
 function invoiceFinancialPatch(invoice, payments, nowIso) {
   const amountCents = invoiceAmountCents(invoice);
   const paidAmountCents = activePaymentTotalCents(payments);
@@ -74,5 +121,6 @@ module.exports = {
   centsToAmount,
   invoiceAmountCents,
   invoiceFinancialPatch,
+  normalizeAllocations,
   toCents,
 };

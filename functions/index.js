@@ -21,6 +21,7 @@ const crypto = require("crypto");
 const {
   centsToAmount,
   invoiceFinancialPatch,
+  normalizeAllocations,
   toCents,
 } = require("./finance-core");
 
@@ -336,6 +337,188 @@ async function resetInvoicePayments({ actor, invoiceId, reason, requestId }) {
       requestId: mutationId,
     });
     return { invoiceId: invoiceRef.id, voidedPaymentCount: activePayments.length, idempotent: false };
+  });
+}
+
+function payerKey(value) {
+  const normalized = String(value || "").trim().toLowerCase().replace(/\s+/g, " ");
+  return normalized
+    ? crypto.createHash("sha256").update(normalized).digest("hex").slice(0, 24)
+    : "unknown";
+}
+
+async function allocateBankTransaction({
+  actor,
+  requestId,
+  externalId,
+  paidAt,
+  payerName,
+  reference,
+  amount,
+  allocations,
+  note,
+}) {
+  const mutationId = cleanRequestId(requestId);
+  const normalized = normalizeAllocations(amount, allocations);
+  const sortedAllocations = [...normalized.allocations].sort((a, b) => a.invoiceId.localeCompare(b.invoiceId));
+  const signature = crypto.createHash("sha256").update(JSON.stringify({
+    amountCents: normalized.transactionAmountCents,
+    allocations: sortedAllocations,
+    externalId: cleanText(externalId, 160),
+    paidAt: String(paidAt || ""),
+    payerName: cleanText(payerName, 200),
+    reference: cleanText(reference, 300),
+    note: cleanText(note),
+  })).digest("hex");
+  const bankRef = db.collection("bankTransactions").doc(mutationId);
+  const auditRef = db.collection("financialAudit").doc(mutationId);
+  const creditRef = db.collection("payerCredits").doc(mutationId);
+  const nowIso = new Date().toISOString();
+  const rawTransactionDate = String(paidAt || "");
+  const parsedTransactionDate = new Date(`${rawTransactionDate}T12:00:00.000Z`);
+  const transactionDate = /^\d{4}-\d{2}-\d{2}$/.test(rawTransactionDate)
+    && !Number.isNaN(parsedTransactionDate.getTime())
+    && parsedTransactionDate.toISOString().slice(0, 10) === rawTransactionDate
+    ? rawTransactionDate
+    : nowIso.slice(0, 10);
+  const cleanPayerName = cleanText(payerName, 200);
+  const cleanReference = cleanText(reference, 300);
+  const cleanNote = cleanText(note);
+  const actorData = actorSnapshot(actor);
+
+  return db.runTransaction(async transaction => {
+    const existing = await transaction.get(bankRef);
+    if (existing.exists) {
+      if (existing.data().signature !== signature) {
+        throw httpError(409, "requestId already used for a different bank transaction");
+      }
+      return { bankTransaction: { id: existing.id, ...existing.data() }, idempotent: true };
+    }
+
+    const invoiceRefs = sortedAllocations.map(allocation => db.collection("invoices").doc(allocation.invoiceId));
+    const invoiceSnaps = await Promise.all(invoiceRefs.map(ref => transaction.get(ref)));
+    invoiceSnaps.forEach((snap, index) => {
+      if (!snap.exists) throw httpError(404, `Invoice ${sortedAllocations[index].invoiceId} not found`);
+    });
+    const paymentSnaps = await Promise.all(sortedAllocations.map(allocation =>
+      activeInvoicePayments(transaction, allocation.invoiceId),
+    ));
+    const legacyExternalId = cleanText(externalId, 160).replace(/[^A-Za-z0-9_-]/g, "_");
+    const legacyPaymentSnaps = legacyExternalId
+      ? await Promise.all(sortedAllocations.map(allocation =>
+        transaction.get(db.collection("payments").doc(`bank_${legacyExternalId}_${allocation.invoiceId}`)),
+      ))
+      : [];
+    if (legacyPaymentSnaps.some(snap => snap.exists)) {
+      throw httpError(409, "Bank row was already recorded by the previous reconciliation flow");
+    }
+
+    const bankTransaction = {
+      externalId: cleanText(externalId, 160),
+      paidAt: transactionDate,
+      payerName: cleanPayerName,
+      payerKey: payerKey(cleanPayerName),
+      reference: cleanReference,
+      amountCents: normalized.transactionAmountCents,
+      amount: centsToAmount(normalized.transactionAmountCents),
+      allocatedAmountCents: normalized.allocatedAmountCents,
+      allocatedAmount: centsToAmount(normalized.allocatedAmountCents),
+      unappliedAmountCents: normalized.unappliedAmountCents,
+      unappliedAmount: centsToAmount(normalized.unappliedAmountCents),
+      allocationCount: sortedAllocations.length,
+      status: normalized.allocatedAmountCents === 0
+        ? "unapplied"
+        : normalized.unappliedAmountCents > 0
+          ? "partially_allocated"
+          : "allocated",
+      signature,
+      note: cleanNote,
+      createdAt: nowIso,
+      createdBy: actorData,
+      requestId: mutationId,
+    };
+    const auditInvoices = [];
+    const paymentIds = [];
+
+    sortedAllocations.forEach((allocation, index) => {
+      const invoice = invoiceSnaps[index].data();
+      const paymentId = `${mutationId}_a${index + 1}`;
+      const paymentRef = db.collection("payments").doc(paymentId);
+      const payment = {
+        invoiceId: allocation.invoiceId,
+        invoiceNum: invoice.num || "",
+        studentId: invoice.studentId || "",
+        studentName: invoice.studentName || "",
+        payerName: cleanPayerName || invoice.payerName || invoice.parentName || invoice.studentName || "",
+        amountCents: allocation.amountCents,
+        amount: centsToAmount(allocation.amountCents),
+        paidAt: transactionDate,
+        method: "bank",
+        reference: cleanReference || invoice.paymentReference || invoice.num || "",
+        note: cleanNote || "Allocated bank transaction",
+        status: "active",
+        bankTransactionId: mutationId,
+        bankExternalId: cleanText(externalId, 160),
+        allocationIndex: index,
+        createdAt: nowIso,
+        createdBy: actorData,
+        requestId: paymentId,
+      };
+      const patch = invoiceFinancialPatch(invoice, [...paymentSnaps[index], payment], nowIso);
+      transaction.create(paymentRef, payment);
+      transaction.set(invoiceRefs[index], patch, { merge: true });
+      paymentIds.push(paymentId);
+      auditInvoices.push({
+        invoiceId: allocation.invoiceId,
+        invoiceNum: invoice.num || "",
+        amount: payment.amount,
+        beforePaidAmount: Number(invoice.paidAmount) || 0,
+        afterPaidAmount: patch.paidAmount,
+        afterBalanceDue: patch.balanceDue,
+        afterOverpaidAmount: patch.overpaidAmount,
+      });
+    });
+
+    transaction.create(bankRef, bankTransaction);
+    if (normalized.unappliedAmountCents > 0) {
+      transaction.create(creditRef, {
+        payerKey: bankTransaction.payerKey,
+        payerName: cleanPayerName,
+        bankTransactionId: mutationId,
+        originalAmountCents: normalized.unappliedAmountCents,
+        originalAmount: centsToAmount(normalized.unappliedAmountCents),
+        availableAmountCents: normalized.unappliedAmountCents,
+        availableAmount: centsToAmount(normalized.unappliedAmountCents),
+        status: "open",
+        createdAt: nowIso,
+        createdBy: actorData,
+      });
+    }
+    transaction.create(auditRef, {
+      entityType: "bankTransaction",
+      entityId: mutationId,
+      action: "bank_transaction.allocated",
+      bankTransactionId: mutationId,
+      paymentIds,
+      invoices: auditInvoices,
+      transactionAmount: bankTransaction.amount,
+      allocatedAmount: bankTransaction.allocatedAmount,
+      unappliedAmount: bankTransaction.unappliedAmount,
+      payerKey: bankTransaction.payerKey,
+      payerName: cleanPayerName,
+      actor: actorData,
+      reason: cleanNote || "Bank transaction allocated",
+      createdAt: nowIso,
+      requestId: mutationId,
+    });
+    return {
+      bankTransaction: { id: mutationId, ...bankTransaction },
+      paymentIds,
+      payerCredit: normalized.unappliedAmountCents > 0
+        ? { id: mutationId, amount: centsToAmount(normalized.unappliedAmountCents) }
+        : null,
+      idempotent: false,
+    };
   });
 }
 
@@ -879,6 +1062,21 @@ exports.financeApi = functions.https.onRequest(async (req, res) => {
         requestId: req.body?.requestId,
       });
       res.json(result);
+      return;
+    }
+    if (req.path === "/bank-transactions/allocate") {
+      const result = await allocateBankTransaction({
+        actor,
+        requestId: req.body?.requestId,
+        externalId: req.body?.externalId,
+        paidAt: req.body?.paidAt,
+        payerName: req.body?.payerName,
+        reference: req.body?.reference,
+        amount: req.body?.amount,
+        allocations: req.body?.allocations,
+        note: req.body?.note,
+      });
+      res.status(result.idempotent ? 200 : 201).json(result);
       return;
     }
     res.status(404).json({ error: "Not found" });

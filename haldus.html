@@ -6457,8 +6457,8 @@ function InvoicesView({invoices,payments,myStudents,parents,schedule,students,is
 // ── SVERKA MAKSETE (сверка банковской выписки со счетами) ───────
 // Использует реальные данные из Firestore: invoices (num, paymentReference,
 // status, amount, studentId, studentName) и students (name, parentName,
-// teacher, subject, grade). Банковской выписки в базе нет — она вставляется
-// вручную (paste) прямо в этой вкладке и парсится на лету.
+// teacher, subject, grade). Выписка вставляется вручную и парсится на лету;
+// подтверждённые строки затем сохраняются как нормализованные bankTransactions.
 //
 // Ключевая идея: у каждого счёта (invoice) уже есть paymentReference вида
 // "KS-2026-007" — это ровно то, что клиенты пишут в назначении платежа.
@@ -6467,7 +6467,7 @@ function InvoicesView({invoices,payments,myStudents,parents,schedule,students,is
 // однозначна. Только когда номера в описании нет (или он задвоен —
 // см. предупреждение о дублях ниже), используется резервное угадывание
 // по имени ученика/родителя, которое пользователь может поправить вручную.
-function PaymentReconciliationView({invoices, students, isAdmin, recordPayment}) {
+function PaymentReconciliationView({invoices, students, isAdmin, bankTransactions, payerCredits, allocateBankTransaction}) {
   const [rawStatement, setRawStatement] = React.useState('');
   const [payments, setPayments] = React.useState([]);
   const [assign, setAssignState] = React.useState({});   // paymentId -> имя ученика (ручной override)
@@ -6479,6 +6479,8 @@ function PaymentReconciliationView({invoices, students, isAdmin, recordPayment})
   const [search, setSearch] = React.useState('');
   const [hideVerified, setHideVerified] = React.useState(false);
   const [moSearch, setMoSearch] = React.useState('');
+  const [allocationDraft, setAllocationDraft] = React.useState(null);
+  const [allocationBusy, setAllocationBusy] = React.useState(false);
 
   // ---- load / save (Firestore, видно всем админам) ----
   React.useEffect(() => {
@@ -6516,19 +6518,47 @@ function PaymentReconciliationView({invoices, students, isAdmin, recordPayment})
     setVerified(next);
     persist({verified: next});
   }
-  async function registerBankPayment(payment, match) {
-    if(match.tier!=='ref'||!match.invoice) return;
-    const saved = await recordPayment(match.invoice,payment.amount,{
-      paidAt:payment.iso,
-      method:'bank',
-      reference:payment.desc,
-      note:`Pangaväljavõte: ${payment.payer}`,
-      requestId:`bank_${payment.id}_${match.invoice.id}`
+  function openAllocation(payment, match) {
+    const matchedInvoice = match.tier==='ref' ? match.invoice : null;
+    const matchedBalance = matchedInvoice ? invoiceFinancialSummary(matchedInvoice).balance : 0;
+    setAllocationDraft({
+      payment,
+      rows:matchedInvoice&&matchedBalance>0
+        ? [{invoiceId:matchedInvoice.id,amount:money(Math.min(payment.amount,matchedBalance))}]
+        : [{invoiceId:'',amount:''}]
     });
+  }
+  function updateAllocationRow(index,patch) {
+    setAllocationDraft(current=>({
+      ...current,
+      rows:current.rows.map((row,rowIndex)=>rowIndex===index?{...row,...patch}:row)
+    }));
+  }
+  function removeAllocationRow(index) {
+    setAllocationDraft(current=>({...current,rows:current.rows.filter((_,rowIndex)=>rowIndex!==index)}));
+  }
+  async function saveAllocation() {
+    if(!allocationDraft||allocationBusy) return;
+    const hasIncompleteRow=allocationDraft.rows.some(row=>{
+      const amount=Number(String(row.amount).replace(',','.'));
+      return (row.invoiceId&&(!Number.isFinite(amount)||amount<=0)) || (!row.invoiceId&&Number.isFinite(amount)&&amount>0);
+    });
+    if(hasIncompleteRow){window.alert('Заполните и счёт, и положительную сумму в каждой используемой строке.');return;}
+    const rows=allocationDraft.rows
+      .map(row=>({invoiceId:row.invoiceId,amount:Number(String(row.amount).replace(',','.'))}))
+      .filter(row=>row.invoiceId&&Number.isFinite(row.amount)&&row.amount>0);
+    const ids=rows.map(row=>row.invoiceId);
+    if(new Set(ids).size!==ids.length){window.alert('Один счёт нельзя добавить дважды.');return;}
+    const total=rows.reduce((sum,row)=>sum+row.amount,0);
+    if(total>allocationDraft.payment.amount+.001){window.alert('Распределённая сумма больше банковской операции.');return;}
+    setAllocationBusy(true);
+    const saved=await allocateBankTransaction(allocationDraft.payment,rows);
+    setAllocationBusy(false);
     if(!saved) return;
-    const next = {...verified,[payment.id]:true};
+    const next={...verified,[allocationDraft.payment.id]:true};
     setVerified(next);
     persist({verified:next});
+    setAllocationDraft(null);
   }
   function resetAll() {
     if (!window.confirm('Сбросить все отметки и назначения по сверке? Выписка останется.')) return;
@@ -6608,6 +6638,21 @@ function PaymentReconciliationView({invoices, students, isAdmin, recordPayment})
   }, [payments, assign, students]);
 
   const pendingInvoices = invoices.filter(i => i.status === 'Ootel');
+  const allocatableInvoices = React.useMemo(
+    ()=>invoices
+      .filter(invoice=>invoiceFinancialSummary(invoice).balance>0)
+      .sort((a,b)=>String(a.due||a.date||'').localeCompare(String(b.due||b.date||''))),
+    [invoices]
+  );
+  const allocationTotal = allocationDraft
+    ? allocationDraft.rows.reduce((sum,row)=>sum+(Number(String(row.amount).replace(',','.'))||0),0)
+    : 0;
+  const allocationRemaining = allocationDraft
+    ? Math.round((allocationDraft.payment.amount-allocationTotal)*100)/100
+    : 0;
+  const openCreditTotal = (payerCredits||[])
+    .filter(credit=>credit.status==='open')
+    .reduce((sum,credit)=>sum+(Number(credit.availableAmount)||0),0);
 
   const filteredPayments = payments.filter(p => {
     if (month !== 'all' && p.month !== month) return false;
@@ -6653,18 +6698,67 @@ function PaymentReconciliationView({invoices, students, isAdmin, recordPayment})
       </div>
 
       <div style={{display: 'flex', gap: 8}}>
-        {[['pay', 'Платежи'], ['invoices', 'Счета (Ootel)'], ['months', 'По месяцам']].map(([k, l]) => (
+        {[['pay', 'Платежи'], ['invoices', 'Счета (Ootel)'], ['credits', 'Авансы'], ['months', 'По месяцам']].map(([k, l]) => (
           <button key={k} onClick={() => setSubTab(k)}
             className={subTab === k ? 'btn btn-dark btn-sm' : 'btn btn-ghost btn-sm'}>{l}</button>
         ))}
       </div>
 
+      {allocationDraft&&(
+        <div className="card" style={{padding:18,border:'2px solid rgba(47,93,80,.28)',display:'flex',flexDirection:'column',gap:14}}>
+          <div style={{display:'flex',justifyContent:'space-between',gap:12,alignItems:'flex-start',flexWrap:'wrap'}}>
+            <div>
+              <div style={{fontSize:'.72rem',fontWeight:800,color:'#42536A',textTransform:'uppercase'}}>Распределение банковской операции</div>
+              <div style={{fontWeight:800,fontSize:'1.05rem',marginTop:4}}>{allocationDraft.payment.payer} · {allocationDraft.payment.amount.toFixed(2)} €</div>
+              <div style={{fontSize:'.78rem',color:'#64748b'}}>{allocationDraft.payment.date} · {allocationDraft.payment.desc||'без пояснения'}</div>
+            </div>
+            <button onClick={()=>setAllocationDraft(null)} className="btn btn-ghost btn-sm" disabled={allocationBusy}>Закрыть</button>
+          </div>
+          <div style={{display:'flex',flexDirection:'column',gap:8}}>
+            {allocationDraft.rows.map((row,index)=>{
+              const selected=allocatableInvoices.find(invoice=>invoice.id===row.invoiceId);
+              const balance=selected ? invoiceFinancialSummary(selected).balance : 0;
+              return(
+                <div key={`${index}-${row.invoiceId}`} style={{display:'grid',gridTemplateColumns:'minmax(220px,1fr) 130px auto',gap:8,alignItems:'center'}}>
+                  <select value={row.invoiceId} onChange={event=>updateAllocationRow(index,{invoiceId:event.target.value})}>
+                    <option value="">Выберите счёт</option>
+                    {allocatableInvoices.map(invoice=>(
+                      <option key={invoice.id} value={invoice.id}>
+                        {invoice.num} · {invoicePartyLabel(invoice)} · остаток {money(invoiceFinancialSummary(invoice).balance)}€
+                      </option>
+                    ))}
+                  </select>
+                  <input value={row.amount} onChange={event=>updateAllocationRow(index,{amount:event.target.value})}
+                    inputMode="decimal" placeholder={selected?`до ${money(balance)}€`:'Сумма €'}/>
+                  <button onClick={()=>removeAllocationRow(index)} className="btn btn-red btn-sm" title="Удалить строку">×</button>
+                </div>
+              );
+            })}
+          </div>
+          <div style={{display:'flex',justifyContent:'space-between',gap:10,alignItems:'center',flexWrap:'wrap'}}>
+            <button onClick={()=>setAllocationDraft(current=>({...current,rows:[...current.rows,{invoiceId:'',amount:''}]}))}
+              className="btn btn-ghost btn-sm">+ Добавить счёт</button>
+            <div style={{fontSize:'.82rem',fontWeight:700,color:allocationRemaining<-.001?'#991b1b':allocationRemaining>0?'#7c3aed':'#166534'}}>
+              Распределено {money(allocationTotal)}€ · {allocationRemaining>0?`аванс ${money(allocationRemaining)}€`:allocationRemaining<0?`превышение ${money(Math.abs(allocationRemaining))}€`:'остаток 0€'}
+            </div>
+            <button onClick={saveAllocation} className="btn btn-pine btn-sm" disabled={allocationBusy||allocationRemaining<-.001}
+              style={{opacity:(allocationBusy||allocationRemaining<-.001) ? .55 : 1}}>
+              {allocationBusy?'Сохраняю…':'Сохранить операцию'}
+            </button>
+          </div>
+          <div style={{fontSize:'.74rem',color:'#64748b'}}>
+            Нераспределённый остаток сохранится как аванс плательщика. Его перенос на будущий счёт будет следующим отдельным действием.
+          </div>
+        </div>
+      )}
+
       {subTab === 'pay' && (
         <div className="card" style={{overflow: 'hidden'}}>
-          <div style={{display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, padding: 14, background: '#1C2B3A'}}>
+          <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(110px,1fr))', gap: 10, padding: 14, background: '#1C2B3A'}}>
             <MiniStat label="Сумма" value={totalSum.toFixed(2) + ' €'} />
             <MiniStat label="Сверено" value={doneSum.toFixed(2) + ' €'} color="#4ade80" />
             <MiniStat label="Осталось" value={(totalSum - doneSum).toFixed(2) + ' €'} color="#fbbf24" />
+            <MiniStat label="Авансы" value={openCreditTotal.toFixed(2) + ' €'} color="#c4b5fd" />
           </div>
           <div style={{display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', padding: 12, borderBottom: '1px solid rgba(28,43,58,.08)'}}>
             <div style={{display: 'flex', gap: 4}}>
@@ -6691,6 +6785,7 @@ function PaymentReconciliationView({invoices, students, isAdmin, recordPayment})
                 const eff = effectiveName(p);
                 const manual = Object.prototype.hasOwnProperty.call(assign, p.id);
                 const isVer = !!verified[p.id];
+                const isRecorded = (bankTransactions||[]).some(transaction=>transaction.externalId===p.id);
                 return (
                   <div key={p.id} style={{
                     display: 'grid', gridTemplateColumns: '24px 68px minmax(180px,1fr) 90px auto', gap: 10, alignItems: 'center',
@@ -6715,12 +6810,10 @@ function PaymentReconciliationView({invoices, students, isAdmin, recordPayment})
                     </span>
                     <span style={{fontFamily: 'monospace', fontWeight: 700, textAlign: 'right'}}>{p.amount.toFixed(2)} €</span>
                     <span>
-                      {m.tier==='ref'&&(
-                        <button onClick={()=>registerBankPayment(p,m)} disabled={isVer}
-                          className="btn btn-pine btn-sm" style={{opacity:isVer ? .55 : 1}}>
-                          {isVer?'Записан':'Записать'}
-                        </button>
-                      )}
+                      <button onClick={()=>openAllocation(p,m)} disabled={isRecorded}
+                        className="btn btn-pine btn-sm" style={{opacity:isRecorded ? .55 : 1}}>
+                        {isRecorded?'Распределён':'Распределить'}
+                      </button>
                     </span>
                   </div>
                 );
@@ -6759,6 +6852,26 @@ function PaymentReconciliationView({invoices, students, isAdmin, recordPayment})
               );
             })}
             {pendingInvoices.length === 0 && <div style={{color: '#94a3b8', fontSize: '.85rem'}}>Неоплаченных счетов нет.</div>}
+          </div>
+        </div>
+      )}
+
+      {subTab === 'credits' && (
+        <div className="card" style={{padding:16}}>
+          <div style={{fontWeight:700,marginBottom:10}}>Нераспределённые авансы ({(payerCredits||[]).filter(credit=>credit.status==='open').length})</div>
+          <div style={{display:'flex',flexDirection:'column',gap:8}}>
+            {(payerCredits||[]).filter(credit=>credit.status==='open').sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||''))).map(credit=>(
+              <div key={credit.id} style={{display:'flex',justifyContent:'space-between',gap:12,alignItems:'center',padding:12,border:'1px solid rgba(28,43,58,.1)',borderRadius:12,flexWrap:'wrap'}}>
+                <div>
+                  <div style={{fontWeight:700}}>{credit.payerName||'Плательщик не указан'}</div>
+                  <div style={{fontSize:'.75rem',color:'#64748b'}}>Операция {credit.bankTransactionId} · {fmtDate(credit.createdAt)}</div>
+                </div>
+                <span className="badge" style={{background:'#ede9fe',color:'#6d28d9',fontWeight:800}}>{money(credit.availableAmount)}€</span>
+              </div>
+            ))}
+            {(payerCredits||[]).filter(credit=>credit.status==='open').length===0&&(
+              <div style={{padding:24,textAlign:'center',color:'#94a3b8'}}>Открытых авансов нет.</div>
+            )}
           </div>
         </div>
       )}
@@ -6807,6 +6920,7 @@ function MiniStat({label, value, color}) {
 function parseStatement(text) {
   const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
   const rows = [];
+  const duplicateCounts = {};
   lines.forEach(line => {
     const parts = line.includes('\t') ? line.split('\t') : line.split(',');
     if (parts.length < 4) return;
@@ -6815,10 +6929,14 @@ function parseStatement(text) {
     const dm = rawDate.match(/^(\d{2})[.\/](\d{2})[.\/](\d{4})$/);
     const ym = rawDate.match(/^(\d{4})-(\d{2})-(\d{2})$/);
     if (dm) iso = `${dm[3]}-${dm[2]}-${dm[1]}`; else if (ym) iso = rawDate; else return;
+    const parsedDate = new Date(`${iso}T12:00:00.000Z`);
+    if(Number.isNaN(parsedDate.getTime())||parsedDate.toISOString().slice(0,10)!==iso) return;
     const amount = parseFloat(rawAmount.replace(/\s/g, '').replace(',', '.'));
     if (!isFinite(amount) || amount <= 0) return;
     const month = iso.slice(5, 7);
-    const id = 'p' + Math.abs(hashStr(`${iso}|${payer}|${desc}|${amount}`)).toString(36);
+    const baseId = 'p' + Math.abs(hashStr(`${iso}|${payer}|${desc}|${amount}`)).toString(36);
+    duplicateCounts[baseId] = (duplicateCounts[baseId]||0)+1;
+    const id = duplicateCounts[baseId]===1 ? baseId : `${baseId}_${duplicateCounts[baseId]}`;
     rows.push({id, iso, date: `${iso.slice(8,10)}.${iso.slice(5,7)}.${iso.slice(0,4)}`, month, payer, desc, amount});
   });
   return rows;
@@ -7823,6 +7941,8 @@ function App() {
   const [schedule,setSch] = useState([]);
   const [invoices,setInv] = useState([]);
   const [payments,setPayments] = useState([]);
+  const [bankTransactions,setBankTransactions] = useState([]);
+  const [payerCredits,setPayerCredits] = useState([]);
   const [messages,setMessages] = useState([]);
   const [groups,setGroups] = useState([]);
   const [tasks,setTasks] = useState([]);
@@ -7975,11 +8095,20 @@ function App() {
   const isStudentUser = hasUserRole(user,'student');
   const canAssignTeacher = isAdmin;
   React.useEffect(()=>{
-    if(!user||!isAdmin){setPayments([]);return;}
-    return db.collection('payments').onSnapshot(
+    if(!user||!isAdmin){setPayments([]);setBankTransactions([]);setPayerCredits([]);return;}
+    const unsubscribePayments=db.collection('payments').onSnapshot(
       snap=>setPayments(snap.docs.map(doc=>({id:doc.id,...doc.data()}))),
       err=>{console.warn('Payments listener failed:',err);setPayments([]);}
     );
+    const unsubscribeBankTransactions=db.collection('bankTransactions').onSnapshot(
+      snap=>setBankTransactions(snap.docs.map(doc=>({id:doc.id,...doc.data()}))),
+      err=>{console.warn('Bank transactions listener failed:',err);setBankTransactions([]);}
+    );
+    const unsubscribePayerCredits=db.collection('payerCredits').onSnapshot(
+      snap=>setPayerCredits(snap.docs.map(doc=>({id:doc.id,...doc.data()}))),
+      err=>{console.warn('Payer credits listener failed:',err);setPayerCredits([]);}
+    );
+    return()=>{unsubscribePayments();unsubscribeBankTransactions();unsubscribePayerCredits();};
   },[user?.uid,isAdmin]);
 
   useEffect(()=>{
@@ -9652,6 +9781,31 @@ function App() {
     }
   },[isAdmin]);
 
+  const allocateImportedBankTransaction=useCallback(async(payment,allocations)=>{
+    if(!isAdmin||!payment?.id){notify('⚠ Ainult administraator saab pangatehinguid jaotada');return false;}
+    try{
+      const result=await financeApiPost('/bank-transactions/allocate',{
+        requestId:`banktx_${payment.id}`,
+        externalId:payment.id,
+        paidAt:payment.iso,
+        payerName:payment.payer,
+        reference:payment.desc,
+        amount:payment.amount,
+        allocations,
+        note:'Pangaväljavõtte jaotus'
+      });
+      const credit=Number(result?.payerCredit?.amount)||0;
+      notify(credit>0
+        ? `✓ Pangatehing salvestatud; avanss ${money(credit)}€`
+        : '✓ Pangatehing jaotatud');
+      return true;
+    }catch(err){
+      console.error('Bank transaction allocation failed:',err);
+      notify(`⚠ Pangatehingu jaotus ebaõnnestus: ${err.message||err}`);
+      return false;
+    }
+  },[isAdmin]);
+
   const markPaid=useCallback(async id=>{
     const inv=invoices.find(item=>item.id===id);
     if(!inv){notify('⚠ Arvet ei leitud');return false;}
@@ -10262,7 +10416,10 @@ function App() {
             addInvoice={addInvoice} recordPayment={recordPayment} markPaid={markPaid} unmarkPaid={unmarkPaid} deleteInvoice={deleteInvoice} printInvoice={printInvoice} updateInvoiceReference={updateInvoiceReference} updateInvoiceDue={updateInvoiceDue}
             sendInvoiceEmail={sendInvoiceEmail} sendInvoiceReminder={sendInvoiceReminder} sendMonthlyInvoiceReminders={sendMonthlyInvoiceReminders} invoiceEmailBusy={invoiceEmailBusy}/>}
 
-          {tab==='reconciliation'&&isAdmin&&<PaymentReconciliationView invoices={invoices} students={students} isAdmin={isAdmin} recordPayment={recordPayment}/>}
+          {tab==='reconciliation'&&isAdmin&&<PaymentReconciliationView
+            invoices={invoices} students={students} isAdmin={isAdmin}
+            bankTransactions={bankTransactions} payerCredits={payerCredits}
+            allocateBankTransaction={allocateImportedBankTransaction}/>}
 
           {tab==='activity'&&isStaff&&<ActivityLogView logs={scopedActivityLog} isAdmin={isAdmin}/>}
           {tab==='kabinet'&&!isStaff&&<KabinetView user={user} myStudents={myStudents} notify={notify}/>}
