@@ -6,11 +6,12 @@
     "shell": "firebase functions:shell",
     "start": "npm run shell",
     "test": "node --test",
+    "test:emulator": "node --test finance-emulator.integration.js",
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log"
   },
   "engines": {
-    "node": "20"
+    "node": "22"
   },
   "main": "index.js",
   "dependencies": {

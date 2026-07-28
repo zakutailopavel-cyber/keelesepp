@@ -1,0 +1,40 @@
+name: Financial Core emulator
+
+on:
+  pull_request:
+    paths:
+      - "firebase.json"
+      - "firestore.rules"
+      - "functions/**"
+      - ".github/workflows/financial-core-emulator.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  financial-core:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: Install Functions dependencies
+        run: npm ci --prefix functions
+      - name: Run unit tests
+        run: npm test --prefix functions
+      - name: Run finance transaction integration tests
+        run: >-
+          npx --yes firebase-tools@15.22.3 emulators:exec
+          --only auth,firestore,functions
+          --project demo-keelesepp-finance
+          --log-verbosity QUIET
+          "npm --prefix functions run test:emulator"
