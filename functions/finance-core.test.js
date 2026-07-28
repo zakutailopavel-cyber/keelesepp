@@ -3,10 +3,12 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const {
+  buildLessonInvoiceLines,
   creditAfterApplication,
   creditAfterRestoration,
   invoiceFinancialPatch,
   normalizeAllocations,
+  selectBillableLessons,
   toCents,
 } = require("./finance-core");
 
@@ -126,4 +128,48 @@ test("payer credit closes at zero and rejects over-application", () => {
     () => creditAfterApplication({ availableAmountCents: 1000 }, 1001, "2026-07-28T10:00:00.000Z"),
     /exceeds/,
   );
+});
+
+test("completed unbilled lessons become dated immutable invoice lines", () => {
+  const result = buildLessonInvoiceLines([
+    { id: "lesson-b", date: "2026-07-12", status: "Toimunud" },
+    { id: "lesson-a", date: "2026-07-05", status: "Toimunud", billingStatus: "unbilled" },
+  ], 27.5);
+  assert.equal(result.amount, 55);
+  assert.equal(result.lessonCount, 2);
+  assert.deepEqual(result.lessonIds, ["lesson-a", "lesson-b"]);
+  assert.equal(result.lines[0].unitPriceCents, 2750);
+});
+
+test("lesson invoice lines reject billed, incomplete, and duplicate lessons", () => {
+  assert.throws(
+    () => buildLessonInvoiceLines([{ id: "lesson-a", status: "Planeeritud" }], 25),
+    /not completed/,
+  );
+  assert.throws(
+    () => buildLessonInvoiceLines([{ id: "lesson-a", status: "Toimunud", billingStatus: "invoiced" }], 25),
+    /already billed/,
+  );
+  assert.throws(
+    () => buildLessonInvoiceLines([
+      { id: "lesson-a", date: "2026-07-01", status: "Toimunud" },
+      { id: "lesson-a", date: "2026-07-01", status: "Toimunud" },
+    ], 25),
+    /more than once/,
+  );
+  assert.throws(
+    () => buildLessonInvoiceLines([{ id: "lesson-a", date: "not-a-date", status: "Toimunud" }], 25),
+    /invalid date/,
+  );
+});
+
+test("legacy lesson counter limits migration billing to the newest unlinked lessons", () => {
+  const selected = selectBillableLessons([
+    { id: "old", date: "2026-05-01", status: "Toimunud" },
+    { id: "recent-a", date: "2026-07-01", status: "Toimunud" },
+    { id: "recent-b", date: "2026-07-08", status: "Toimunud" },
+    { id: "explicit", date: "2026-06-01", status: "Toimunud", billingStatus: "unbilled" },
+    { id: "billed", date: "2026-07-10", status: "Toimunud", invoiceId: "invoice-1" },
+  ], 2);
+  assert.deepEqual(selected.map(lesson => lesson.id), ["explicit", "recent-a", "recent-b"]);
 });

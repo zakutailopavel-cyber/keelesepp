@@ -74,6 +74,43 @@ service cloud.firestore {
         );
     }
 
+    function changesInvoiceFinancialSource() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasAny([
+        'amount',
+        'amountCents',
+        'lessonCount',
+        'lessonPrice',
+        'lessonPriceCents',
+        'lessonIds',
+        'lines',
+        'lineVersion',
+        'billingMode',
+        'creationSignature'
+      ]);
+    }
+
+    function changesLessonBillingSource() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasAny([
+        'billingStatus',
+        'invoiceId',
+        'invoiceNum',
+        'invoiceLineIndex',
+        'billedAmount',
+        'billedAmountCents',
+        'invoicedAt',
+        'billingUpdatedAt'
+      ]);
+    }
+
+    function changesLessonBillingBasis() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasAny([
+        'studentId',
+        'date',
+        'duration',
+        'status'
+      ]);
+    }
+
     function createsOwnStudent() {
       return signedIn()
         && (
@@ -136,7 +173,19 @@ service cloud.firestore {
 
     match /lessons/{lessonId} {
       allow read: if isStaff() || ownsStudent(resource.data.studentId);
-      allow create, update, delete: if isStaff();
+      allow create: if isStaff();
+      allow update: if isStaff()
+        && !changesLessonBillingSource()
+        && (
+          !resource.data.keys().hasAny(['invoiceId'])
+          || resource.data.invoiceId == ''
+          || !changesLessonBillingBasis()
+        );
+      allow delete: if isStaff()
+        && (
+          !resource.data.keys().hasAny(['invoiceId'])
+          || resource.data.invoiceId == ''
+        );
     }
 
     match /homework/{homeworkId} {
@@ -162,11 +211,14 @@ service cloud.firestore {
     match /invoices/{invoiceId} {
       allow read: if isStaff() || ownsInvoice(resource.data);
       allow create: if isStaff();
-      allow update: if isAdmin()
+      allow update: if (
+          isAdmin()
+          && !changesInvoiceFinancialSource()
+        )
         || (
           isStaff()
+          && !changesInvoiceFinancialSource()
           && !request.resource.data.diff(resource.data).affectedKeys().hasAny([
-            'amountCents',
             'paidAmountCents',
             'paidAmount',
             'balanceDueCents',
@@ -184,6 +236,10 @@ service cloud.firestore {
         && (
           !resource.data.keys().hasAny(['paymentCount'])
           || resource.data.paymentCount == 0
+        )
+        && (
+          !resource.data.keys().hasAny(['lessonIds'])
+          || resource.data.lessonIds.size() == 0
         );
     }
 
