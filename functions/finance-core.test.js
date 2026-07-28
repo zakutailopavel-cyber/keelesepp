@@ -4,6 +4,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const {
   invoiceFinancialPatch,
+  normalizeAllocations,
   toCents,
 } = require("./finance-core");
 
@@ -65,4 +66,28 @@ test("voided payments do not affect the invoice", () => {
 test("toCents rejects invalid and over-precise values", () => {
   assert.throws(() => toCents(0), /positive/);
   assert.throws(() => toCents("12.345"), /two decimal/);
+});
+
+test("bank transaction can be split across invoices with residual credit", () => {
+  const result = normalizeAllocations(120, [
+    { invoiceId: "invoice-a", amount: 40 },
+    { invoiceId: "invoice-b", amount: 55.5 },
+  ]);
+  assert.equal(result.transactionAmountCents, 12000);
+  assert.equal(result.allocatedAmountCents, 9550);
+  assert.equal(result.unappliedAmountCents, 2450);
+});
+
+test("allocation rejects duplicate invoices and amounts above the transaction", () => {
+  assert.throws(
+    () => normalizeAllocations(100, [
+      { invoiceId: "invoice-a", amount: 50 },
+      { invoiceId: "invoice-a", amount: 20 },
+    ]),
+    /more than once/,
+  );
+  assert.throws(
+    () => normalizeAllocations(100, [{ invoiceId: "invoice-a", amount: 100.01 }]),
+    /exceeds/,
+  );
 });

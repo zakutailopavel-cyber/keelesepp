@@ -197,6 +197,16 @@ service cloud.firestore {
       allow create, update, delete: if false;
     }
 
+    match /bankTransactions/{transactionId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
+    match /payerCredits/{creditId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
     match /messages/{messageId} {
       allow read: if isStaff() || ownsStudent(resource.data.studentId);
       allow create: if isStaff() || ownsStudent(request.resource.data.studentId);
