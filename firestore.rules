@@ -98,7 +98,9 @@ service cloud.firestore {
         'billedAmount',
         'billedAmountCents',
         'invoicedAt',
-        'billingUpdatedAt'
+        'billingUpdatedAt',
+        'billingDispositionReason',
+        'billingUpdatedBy'
       ]);
     }
 
@@ -177,14 +179,26 @@ service cloud.firestore {
       allow update: if isStaff()
         && !changesLessonBillingSource()
         && (
-          !resource.data.keys().hasAny(['invoiceId'])
-          || resource.data.invoiceId == ''
-          || !changesLessonBillingBasis()
+          !changesLessonBillingBasis()
+          || (
+            (
+              !resource.data.keys().hasAny(['invoiceId'])
+              || resource.data.invoiceId == ''
+            )
+            && (
+              !resource.data.keys().hasAny(['billingStatus'])
+              || resource.data.billingStatus == ''
+            )
+          )
         );
       allow delete: if isStaff()
         && (
           !resource.data.keys().hasAny(['invoiceId'])
           || resource.data.invoiceId == ''
+        )
+        && (
+          !resource.data.keys().hasAny(['billingStatus'])
+          || resource.data.billingStatus == ''
         );
     }
 
