@@ -7,6 +7,8 @@ const {
   creditAfterApplication,
   creditAfterRestoration,
   invoiceFinancialPatch,
+  lessonBillingDispositionPatch,
+  lessonIsBillable,
   normalizeAllocations,
   selectBillableLessons,
   toCents,
@@ -171,5 +173,61 @@ test("legacy lesson counter limits migration billing to the newest unlinked less
     { id: "explicit", date: "2026-06-01", status: "Toimunud", billingStatus: "unbilled" },
     { id: "billed", date: "2026-07-10", status: "Toimunud", invoiceId: "invoice-1" },
   ], 2);
-  assert.deepEqual(selected.map(lesson => lesson.id), ["explicit", "recent-a", "recent-b"]);
+  assert.deepEqual(selected.map(lesson => lesson.id), ["explicit", "recent-b"]);
+});
+
+test("late cancellation is billable and uses a dedicated invoice description", () => {
+  const lesson = {
+    id: "late-cancel",
+    date: "2026-07-20",
+    status: "Puudus_eta",
+    billingStatus: "late_cancel_billable",
+  };
+  assert.equal(lessonIsBillable(lesson), true);
+  const result = buildLessonInvoiceLines([lesson], 30);
+  assert.equal(result.amount, 30);
+  assert.match(result.lines[0].description, /Hilinenud/);
+  const migrationSelection = selectBillableLessons([
+    { id: "old", date: "2026-05-01", status: "Toimunud" },
+    lesson,
+  ], 1);
+  assert.deepEqual(migrationSelection.map(item => item.id), ["late-cancel"]);
+});
+
+test("billing disposition transitions adjust the legacy unbilled counter", () => {
+  const completed = { id: "lesson-a", status: "Toimunud" };
+  const free = lessonBillingDispositionPatch(completed, "free", "2026-07-28T10:00:00.000Z");
+  assert.equal(free.counterDelta, -1);
+  assert.equal(free.afterBillable, false);
+
+  const absence = { id: "lesson-b", status: "Puudus_eta" };
+  const late = lessonBillingDispositionPatch(absence, "late_cancel_billable", "2026-07-28T10:00:00.000Z");
+  assert.equal(late.counterDelta, 1);
+  assert.equal(late.afterBillable, true);
+
+  const onTime = lessonBillingDispositionPatch(
+    { ...absence, billingStatus: "late_cancel_billable" },
+    "cancelled_on_time",
+    "2026-07-28T11:00:00.000Z",
+  );
+  assert.equal(onTime.counterDelta, -1);
+});
+
+test("billing dispositions reject incompatible lesson states and invoiced lessons", () => {
+  assert.throws(
+    () => lessonBillingDispositionPatch({ status: "Puudus_eta" }, "free", "now"),
+    /completed lesson/,
+  );
+  assert.throws(
+    () => lessonBillingDispositionPatch({ status: "Toimunud" }, "late_cancel_billable", "now"),
+    /absent lesson/,
+  );
+  assert.throws(
+    () => lessonBillingDispositionPatch(
+      { status: "Toimunud", billingStatus: "invoiced", invoiceId: "invoice-1" },
+      "written_off",
+      "now",
+    ),
+    /cannot be changed/,
+  );
 });

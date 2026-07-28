@@ -139,6 +139,60 @@ function creditAfterRestoration(credit = {}, restoredAmountCents, nowIso, { reve
   };
 }
 
+function lessonIsBillable(lesson = {}) {
+  if (String(lesson.invoiceId || "").trim() || lesson.billingStatus === "invoiced") return false;
+  if (lesson.billingStatus === "late_cancel_billable") return true;
+  return lesson.status === "Toimunud"
+    && (!lesson.billingStatus || lesson.billingStatus === "unbilled");
+}
+
+function lessonBillingDispositionPatch(lesson = {}, nextStatus, nowIso) {
+  const allowed = new Set([
+    "unset",
+    "unbilled",
+    "free",
+    "cancelled_on_time",
+    "late_cancel_billable",
+    "written_off",
+  ]);
+  if (!allowed.has(nextStatus)) {
+    const error = new Error("unsupported lesson billing status");
+    error.status = 400;
+    throw error;
+  }
+  if (String(lesson.invoiceId || "").trim() || lesson.billingStatus === "invoiced") {
+    const error = new Error("invoiced lesson billing status cannot be changed");
+    error.status = 409;
+    throw error;
+  }
+  if (["unbilled", "free"].includes(nextStatus) && lesson.status !== "Toimunud") {
+    const error = new Error(`${nextStatus} requires a completed lesson`);
+    error.status = 409;
+    throw error;
+  }
+  if (
+    ["cancelled_on_time", "late_cancel_billable"].includes(nextStatus)
+    && !["Puudus_p", "Puudus_eta"].includes(lesson.status)
+  ) {
+    const error = new Error(`${nextStatus} requires an absent lesson`);
+    error.status = 409;
+    throw error;
+  }
+  const beforeBillable = lessonIsBillable(lesson);
+  const nextLesson = {
+    ...lesson,
+    billingStatus: nextStatus === "unset" ? "" : nextStatus,
+  };
+  const afterBillable = lessonIsBillable(nextLesson);
+  return {
+    billingStatus: nextStatus === "unset" ? null : nextStatus,
+    counterDelta: Number(afterBillable) - Number(beforeBillable),
+    beforeBillable,
+    afterBillable,
+    billingUpdatedAt: nowIso,
+  };
+}
+
 function buildLessonInvoiceLines(lessons = [], lessonPrice) {
   if (!Array.isArray(lessons) || lessons.length === 0) {
     const error = new Error("at least one lesson required");
@@ -165,16 +219,16 @@ function buildLessonInvoiceLines(lessons = [], lessonPrice) {
       throw error;
     }
     seen.add(lessonId);
-    if (lesson.status !== "Toimunud") {
-      const error = new Error(`lesson ${lessonId} is not completed`);
+    if (
+      String(lesson.invoiceId || "").trim()
+      || ["invoiced", "free", "cancelled_on_time", "written_off"].includes(lesson.billingStatus)
+    ) {
+      const error = new Error(`lesson ${lessonId} is already billed or excluded`);
       error.status = 409;
       throw error;
     }
-    if (
-      (lesson.billingStatus && lesson.billingStatus !== "unbilled")
-      || String(lesson.invoiceId || "").trim()
-    ) {
-      const error = new Error(`lesson ${lessonId} is already billed or excluded`);
+    if (!lessonIsBillable(lesson)) {
+      const error = new Error(`lesson ${lessonId} is not completed`);
       error.status = 409;
       throw error;
     }
@@ -192,7 +246,9 @@ function buildLessonInvoiceLines(lessons = [], lessonPrice) {
     return {
       lessonId,
       date,
-      description: `Keeletund${date ? ` ${date}` : ""}`,
+      description: lesson.billingStatus === "late_cancel_billable"
+        ? `Hilinenud tühistamine ${date}`
+        : `Keeletund ${date}`,
       quantity: 1,
       unit: "tund",
       unitPriceCents,
@@ -215,17 +271,16 @@ function buildLessonInvoiceLines(lessons = [], lessonPrice) {
 
 function selectBillableLessons(lessons = [], lessonsSinceInvoice) {
   const candidates = (Array.isArray(lessons) ? lessons : [])
-    .filter(lesson =>
-      lesson?.status === "Toimunud"
-      && (!lesson.billingStatus || lesson.billingStatus === "unbilled")
-      && !String(lesson.invoiceId || "").trim(),
-    )
+    .filter(lesson => lessonIsBillable(lesson))
     .sort((a, b) => `${a.date || ""}:${a.id || ""}`.localeCompare(`${b.date || ""}:${b.id || ""}`));
-  const explicit = candidates.filter(lesson => lesson.billingStatus === "unbilled");
+  const explicit = candidates.filter(lesson =>
+    lesson.billingStatus === "unbilled"
+    || lesson.billingStatus === "late_cancel_billable",
+  );
   const legacy = candidates.filter(lesson => !lesson.billingStatus);
   const legacyCount = lessonsSinceInvoice === undefined || lessonsSinceInvoice === null
     ? legacy.length
-    : Math.max(0, Number(lessonsSinceInvoice) || 0);
+    : Math.max(0, (Number(lessonsSinceInvoice) || 0) - explicit.length);
   const selectedLegacy = legacy.slice(Math.max(0, legacy.length - legacyCount));
   return [...explicit, ...selectedLegacy]
     .filter((lesson, index, list) => list.findIndex(item => item.id === lesson.id) === index)
@@ -272,6 +327,8 @@ module.exports = {
   creditAfterRestoration,
   invoiceAmountCents,
   invoiceFinancialPatch,
+  lessonBillingDispositionPatch,
+  lessonIsBillable,
   normalizeAllocations,
   selectBillableLessons,
   toCents,

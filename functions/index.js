@@ -24,6 +24,7 @@ const {
   creditAfterApplication,
   creditAfterRestoration,
   invoiceFinancialPatch,
+  lessonBillingDispositionPatch,
   normalizeAllocations,
   selectBillableLessons,
   toCents,
@@ -383,6 +384,106 @@ async function createLessonInvoice({
       requestId: mutationId,
     });
     return { invoice: { id: invoiceRef.id, ...invoice }, idempotent: false };
+  });
+}
+
+async function setLessonBillingDisposition({
+  actor,
+  lessonId,
+  billingStatus,
+  reason,
+  requestId,
+}) {
+  const mutationId = cleanRequestId(requestId);
+  const cleanLessonId = String(lessonId || "").trim();
+  if (!cleanLessonId) throw httpError(400, "lessonId required");
+  const cleanReason = cleanText(reason);
+  if (!cleanReason) throw httpError(400, "Reason required");
+  const cleanBillingStatus = String(billingStatus || "").trim();
+  const lessonRef = db.collection("lessons").doc(cleanLessonId);
+  const auditRef = db.collection("financialAudit").doc(mutationId);
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+
+  return db.runTransaction(async transaction => {
+    const existingAudit = await transaction.get(auditRef);
+    if (existingAudit.exists) {
+      const existing = existingAudit.data();
+      if (
+        existing.action !== "lesson.billing_disposition_changed"
+        || existing.lessonId !== cleanLessonId
+        || existing.afterBillingStatus !== cleanBillingStatus
+      ) {
+        throw httpError(409, "requestId already used for a different financial mutation");
+      }
+      return { lessonId: cleanLessonId, billingStatus: cleanBillingStatus, idempotent: true };
+    }
+    const lessonSnap = await transaction.get(lessonRef);
+    if (!lessonSnap.exists) throw httpError(404, "Lesson not found");
+    const lesson = lessonSnap.data();
+    const disposition = lessonBillingDispositionPatch(
+      lesson,
+      cleanBillingStatus,
+      nowIso,
+    );
+    const studentId = String(lesson.studentId || "").trim();
+    const studentRef = studentId && studentId !== "ext"
+      ? db.collection("students").doc(studentId)
+      : null;
+    const studentSnap = studentRef ? await transaction.get(studentRef) : null;
+    if (studentRef && !studentSnap.exists) throw httpError(409, "Lesson student not found");
+
+    const lessonPatch = {
+      billingDispositionReason: cleanReason,
+      billingUpdatedAt: nowIso,
+      billingUpdatedBy: actorData,
+    };
+    if (disposition.billingStatus === null) {
+      lessonPatch.billingStatus = admin.firestore.FieldValue.delete();
+      lessonPatch.billingDispositionReason = admin.firestore.FieldValue.delete();
+    } else {
+      lessonPatch.billingStatus = disposition.billingStatus;
+    }
+    transaction.set(lessonRef, lessonPatch, { merge: true });
+    if (studentRef && disposition.counterDelta !== 0) {
+      const student = studentSnap.data();
+      transaction.set(studentRef, {
+        lessonsSinceInvoice: Math.max(
+          0,
+          (Number(student.lessonsSinceInvoice) || 0) + disposition.counterDelta,
+        ),
+        billingUpdatedAt: nowIso,
+      }, { merge: true });
+    }
+    transaction.create(auditRef, {
+      entityType: "lesson",
+      entityId: cleanLessonId,
+      action: "lesson.billing_disposition_changed",
+      lessonId: cleanLessonId,
+      studentId,
+      studentName: lesson.studentName || "",
+      lessonDate: lesson.date || "",
+      beforeBillingStatus: lesson.billingStatus
+        || (lesson.status === "Toimunud" ? "unbilled_legacy" : "unset"),
+      afterBillingStatus: cleanBillingStatus,
+      counterDelta: disposition.counterDelta,
+      actor: actorData,
+      reason: cleanReason,
+      createdAt: nowIso,
+      requestId: mutationId,
+    });
+    return {
+      lesson: {
+        id: cleanLessonId,
+        ...lesson,
+        billingStatus: disposition.billingStatus || "",
+        billingDispositionReason: disposition.billingStatus === null ? "" : cleanReason,
+        billingUpdatedAt: nowIso,
+        billingUpdatedBy: actorData,
+      },
+      counterDelta: disposition.counterDelta,
+      idempotent: false,
+    };
   });
 }
 
@@ -1547,6 +1648,17 @@ exports.financeApi = functions.https.onRequest(async (req, res) => {
         due: req.body?.due,
         description: req.body?.description,
         paymentReference: req.body?.paymentReference,
+        requestId: req.body?.requestId,
+      });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/lessons/billing-disposition") {
+      const result = await setLessonBillingDisposition({
+        actor,
+        lessonId: req.body?.lessonId,
+        billingStatus: req.body?.billingStatus,
+        reason: req.body?.reason,
         requestId: req.body?.requestId,
       });
       res.status(result.idempotent ? 200 : 201).json(result);

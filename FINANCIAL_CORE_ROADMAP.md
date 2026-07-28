@@ -63,14 +63,19 @@ The next PR should add billable lesson records without replacing the calendar:
    a migration fallback.
 6. Add correction entries instead of silently changing already issued invoice lines.
 
-The first Stage 4 slice creates automatic student invoices from exact completed,
-unbilled lesson documents. The invoice stores dated immutable lines and the same
-transaction marks every source lesson as invoiced. Manual and parent invoices
-remain available as a migration fallback.
+The first Stage 4 slice (PR #6) creates automatic student invoices from exact
+completed, unbilled lesson documents. The invoice stores dated immutable lines
+and the same transaction marks every source lesson as invoiced. Manual and parent
+invoices remain available as a migration fallback.
 
-The following Stage 4 slice will add explicit cancellation billing states and
-correction/credit invoice documents. Until that correction flow exists, invoices
-linked to lessons are intentionally not directly deletable.
+The second Stage 4 slice adds explicit dispositions for free lessons, timely
+cancellations, billable late cancellations, and write-offs. Disposition changes
+require an administrator reason, update the unbilled counter transactionally,
+and are written to the immutable financial audit.
+
+The following slice will add correction/credit invoice documents. Until that
+correction flow exists, invoices linked to lessons are intentionally not directly
+deletable.
 
 ## Following slice: tariffs and packages
 

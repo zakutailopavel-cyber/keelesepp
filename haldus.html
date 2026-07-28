@@ -222,21 +222,38 @@ const invoiceMatchesParentProfile = (inv,parent) => {
   return (parentId && [inv.parentUid,inv.linkedParentId,inv.guardianUid].includes(parentId)) ||
     (parentEmail && [inv.parentEmailLower,inv.payerEmailLower,normalizeText(inv.parentEmail),normalizeText(inv.payerEmail)].includes(parentEmail));
 };
+const lessonBillingStatusMeta = lesson => {
+  if(lesson?.invoiceId||lesson?.billingStatus==='invoiced') return {label:`Arvel ${lesson?.invoiceNum||''}`.trim(),bg:'#ede9fe',color:'#6d28d9'};
+  if(lesson?.billingStatus==='free') return {label:'Tasuta',bg:'#dcfce7',color:'#166534'};
+  if(lesson?.billingStatus==='cancelled_on_time') return {label:'Õigeaegselt tühistatud',bg:'#dbeafe',color:'#1d4ed8'};
+  if(lesson?.billingStatus==='late_cancel_billable') return {label:'Hiline tühistus · tasuline',bg:'#ffedd5',color:'#9a3412'};
+  if(lesson?.billingStatus==='written_off') return {label:'Mahakantud',bg:'#f3f4f6',color:'#4b5563'};
+  return null;
+};
 const billableLessonsForStudent = (lessonRecords,student) => {
   const studentId = typeof student==='string' ? student : student?.id;
   const candidates = (lessonRecords||[])
     .filter(lesson=>
       lesson.studentId===studentId &&
-      lesson.status==='Toimunud' &&
-      (!lesson.billingStatus||lesson.billingStatus==='unbilled') &&
+      (
+        (
+          lesson.status==='Toimunud' &&
+          (!lesson.billingStatus||lesson.billingStatus==='unbilled')
+        )
+        || lesson.billingStatus==='late_cancel_billable'
+      ) &&
       !lesson.invoiceId
     )
     .sort((a,b)=>`${a.date||''}:${a.id||''}`.localeCompare(`${b.date||''}:${b.id||''}`));
   if(typeof student==='string'||!student) return candidates;
-  const explicit = candidates.filter(lesson=>lesson.billingStatus==='unbilled');
+  const explicit = candidates.filter(lesson=>
+    lesson.billingStatus==='unbilled'||lesson.billingStatus==='late_cancel_billable'
+  );
   const legacy = candidates.filter(lesson=>!lesson.billingStatus);
   const hasLegacyCounter = Object.prototype.hasOwnProperty.call(student,'lessonsSinceInvoice');
-  const legacyCount = hasLegacyCounter ? Math.max(0,Number(student.lessonsSinceInvoice)||0) : legacy.length;
+  const legacyCount = hasLegacyCounter
+    ? Math.max(0,(Number(student.lessonsSinceInvoice)||0)-explicit.length)
+    : legacy.length;
   const selectedLegacy = legacy.slice(Math.max(0,legacy.length-legacyCount));
   return [...explicit,...selectedLegacy]
     .filter((lesson,index,list)=>list.findIndex(item=>item.id===lesson.id)===index)
@@ -334,7 +351,7 @@ function LessonDetailsPanel({lesson,homeworkItems=[]}) {
         </div>
         <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap',justifyContent:'flex-end'}}>
           <span className="badge" style={{background:'#dcfce7',color:'#166534'}}>{statusLabel}</span>
-          {lesson.invoiceId&&<span className="badge" style={{background:'#ede9fe',color:'#6d28d9'}}>Arvel {lesson.invoiceNum||''}</span>}
+          {(()=>{const meta=lessonBillingStatusMeta(lesson);return meta?<span className="badge" style={{background:meta.bg,color:meta.color}}>{meta.label}</span>:null;})()}
           {lesson.status==='Toimunud'&&lesson.grade>0&&<span className="badge" style={{background:'rgba(201,136,42,.12)',color:'#A96E1A'}}>Hinne {lesson.grade}</span>}
           {lesson.duration&&<span className="badge" style={{background:'#e0f2fe',color:'#075985'}}>{lesson.duration} min</span>}
         </div>
@@ -5517,6 +5534,7 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
             {[...stuLessons].sort((a,b)=>new Date(b.date)-new Date(a.date)).map(l=>{
               const bmap={Toimunud:{bg:'#dcfce7',c:'#166534',t:'✓ Toimunud'},Puudus_p:{bg:'#dbeafe',c:'#1e40af',t:'Puudus (põhj.)'},Puudus_eta:{bg:'#fee2e2',c:'#991b1b',t:'Puudus'}};
               const b=bmap[l.status]||bmap.Toimunud;
+              const billingMeta=lessonBillingStatusMeta(l);
               return(
                 <div key={l.id} style={{display:'flex',gap:12,paddingBottom:12,borderBottom:'1px solid rgba(28,43,58,.06)'}}>
                   <div style={{width:38,height:38,borderRadius:10,flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center',
@@ -5528,12 +5546,12 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
                       <span style={{fontWeight:600,fontSize:'.88rem',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{l.topic}</span>
                       <div style={{display:'flex',alignItems:'center',gap:6,flexShrink:0}}>
                         <span className="badge" style={{background:b.bg,color:b.c,fontSize:'.68rem'}}>{b.t}</span>
-                        {l.invoiceId&&<span className="badge" style={{background:'#ede9fe',color:'#6d28d9',fontSize:'.68rem'}}>Arvel {l.invoiceNum||''}</span>}
-                        {invoiceDraft.lessonIds.includes(l.id)&&<span className="badge" style={{background:'#fef3c7',color:'#92400e',fontSize:'.68rem'}}>Arveldamata</span>}
+                        {billingMeta&&<span className="badge" style={{background:billingMeta.bg,color:billingMeta.color,fontSize:'.68rem'}}>{billingMeta.label}</span>}
+                        {!billingMeta&&invoiceDraft.lessonIds.includes(l.id)&&<span className="badge" style={{background:'#fef3c7',color:'#92400e',fontSize:'.68rem'}}>Arveldamata</span>}
                         {canManage&&<button onClick={()=>openLessonEditor(l)} className="btn btn-dark btn-sm" style={{padding:'4px 8px'}}>Muuda</button>}
-                        {canManage&&<button onClick={()=>l.invoiceId?notify('⚠ Arvega seotud tundi ei saa kustutada'):deleteLesson(l)}
-                          className="btn btn-ghost btn-sm" style={{padding:'4px 8px',opacity:l.invoiceId?.55:1}}>
-                          {l.invoiceId?'Arvel':'Kustuta'}
+                        {canManage&&<button onClick={()=>(l.invoiceId||l.billingStatus)?notify('⚠ Finantsstaatusega tundi ei saa kustutada'):deleteLesson(l)}
+                          className="btn btn-ghost btn-sm" style={{padding:'4px 8px',opacity:(l.invoiceId||l.billingStatus)?.55:1}}>
+                          {l.invoiceId||l.billingStatus?'Lukus':'Kustuta'}
                         </button>}
                       </div>
                     </div>
@@ -7114,17 +7132,48 @@ function guessStudentName(payment, students) {
 function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
   lStatus,setLStatus,lComment,setLComment,
   lNewWords,setLNewWords,lGrammar,setLGrammar,lCovered,setLCovered,lNextNotes,setLNextNotes,
-  lDur,setLDur,lessonFile,setLessonFile,saveLesson,deleteLesson,db,user,notify,students,markAttendance}) {
+  lDur,setLDur,lessonFile,setLessonFile,saveLesson,deleteLesson,db,user,notify,students,markAttendance,
+  isAdmin,updateLessonBillingDisposition}) {
 
   const [moveDate,setMoveDate] = React.useState(modalEv.occurrenceDate||modalEv.date||new Date().toISOString().split("T")[0]);
   const [moveTime,setMoveTime] = React.useState(modalEv.time||"09:00");
   const [saving,setSaving]     = React.useState(false);
   const [savingDiary,setSavingDiary] = React.useState(false);
+  const [billingBusy,setBillingBusy] = React.useState(false);
 
   const fmtDate = d => d?new Date(d).toLocaleDateString("et-EE",{day:"2-digit",month:"2-digit",year:"numeric"}):"—";
   const hasDate = Boolean(modalEv.date||modalEv.occurrenceDate);
   const st = modalEv.status||"Planeeritud";
   const isJournalEdit = Boolean(modalEv.lessonEntryId);
+  const savedLessonStatus = modalEv.status||lStatus;
+  const billingOptions = savedLessonStatus==='Toimunud'
+    ? [
+        ['', 'Finantsstaatus määramata'],
+        ['unbilled','Arveldamata · tasuline'],
+        ['free','Tasuta tund'],
+        ['written_off','Mahakantud']
+      ]
+    : [
+        ['', 'Finantsstaatus määramata'],
+        ['cancelled_on_time','Õigeaegselt tühistatud · tasuta'],
+        ['late_cancel_billable','Hilinenud tühistus · tasuline'],
+        ['written_off','Mahakantud']
+      ];
+  const changeBillingDisposition = async event=>{
+    const nextStatus=event.target.value||'unset';
+    if(!updateLessonBillingDisposition||billingBusy) return;
+    setBillingBusy(true);
+    const updated=await updateLessonBillingDisposition(modalEv.lessonEntryId,nextStatus);
+    setBillingBusy(false);
+    if(updated){
+      setModalEv(prev=>({
+        ...prev,
+        billingStatus:updated.billingStatus||'',
+        billingDispositionReason:updated.billingDispositionReason||'',
+        billingUpdatedAt:updated.billingUpdatedAt||''
+      }));
+    }
+  };
   const lessonDate = modalEv.occurrenceDate||modalEv.date||today();
   const assignedGroupStudents = React.useMemo(()=>{
     if(!modalEv.isGroup) return [];
@@ -7487,7 +7536,7 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
               </div>
               <input value={lTopic} onChange={e=>setLTopic(e.target.value)} placeholder="Tunni teema *"/>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-                <select value={lStatus} onChange={e=>setLStatus(e.target.value)}>
+                <select value={lStatus} onChange={e=>setLStatus(e.target.value)} disabled={Boolean(modalEv.billingStatus||modalEv.invoiceId)}>
                   <option value="Toimunud">✓ Toimunud</option>
                   <option value="Puudus_p">Puudus (põhjusega)</option>
                   <option value="Puudus_eta">Puudus (põhjuseta)</option>
@@ -7499,7 +7548,20 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
                   <option value="2">2 ★★</option>
                 </select>
               </div>
-              <select value={lDur} onChange={e=>setLDur(e.target.value)}>
+              {isAdmin&&isJournalEdit&&(
+                <div style={{padding:12,borderRadius:12,background:'#fff7ed',border:'1px solid #fed7aa',display:'grid',gap:7}}>
+                  <div style={{fontSize:'.75rem',fontWeight:800,color:'#9a3412',textTransform:'uppercase'}}>Finantsstaatus</div>
+                  {modalEv.invoiceId
+                    ? <div style={{fontSize:'.82rem',fontWeight:700,color:'#6d28d9'}}>Arvel {modalEv.invoiceNum||modalEv.invoiceId} · muutmine lukus</div>
+                    : <select value={modalEv.billingStatus||''} onChange={changeBillingDisposition} disabled={billingBusy}>
+                        {billingOptions.map(([value,label])=><option key={value||'unset'} value={value}>{label}</option>)}
+                      </select>}
+                  <div style={{fontSize:'.72rem',color:'#9a3412'}}>
+                    Salvesta esmalt päeviku staatus. Finantsstaatuse muutmine küsib põhjust ja salvestub auditisse.
+                  </div>
+                </div>
+              )}
+              <select value={lDur} onChange={e=>setLDur(e.target.value)} disabled={Boolean(modalEv.billingStatus||modalEv.invoiceId)}>
                 {LESSON_DURATIONS.map(d=><option key={d} value={d}>{d} minutit</option>)}
               </select>
               <textarea value={lComment} onChange={e=>setLComment(e.target.value)} placeholder="Õpetaja kommentaar…" rows={2} style={{resize:"vertical"}}/>
@@ -9686,8 +9748,8 @@ function App() {
 
   const deleteLesson=useCallback(async(lesson)=>{
     if(!lesson?.id) return;
-    if(lesson.invoiceId){
-      notify(`⚠ Tund on seotud arvega ${lesson.invoiceNum||lesson.invoiceId} ja seda ei saa kustutada.`);
+    if(lesson.invoiceId||lesson.billingStatus){
+      notify(`⚠ Tunnil on finantsstaatus${lesson.invoiceNum?` (${lesson.invoiceNum})`:''} ja seda ei saa kustutada.`);
       return;
     }
     if(!window.confirm('Kustuta see päeviku sissekanne?')) return;
@@ -9743,6 +9805,11 @@ function App() {
       occurrenceDate: freshLesson.date||today(),
       time: freshLesson.scheduleTime||'09:00',
       status: freshLesson.status||'Toimunud',
+      billingStatus:freshLesson.billingStatus||'',
+      billingDispositionReason:freshLesson.billingDispositionReason||'',
+      billingUpdatedAt:freshLesson.billingUpdatedAt||'',
+      invoiceId:freshLesson.invoiceId||'',
+      invoiceNum:freshLesson.invoiceNum||'',
       fileUrl: lessonFileUrl,
       fileName: lessonFileName,
       attachmentUrl: lessonFileUrl,
@@ -9782,6 +9849,35 @@ function App() {
     setLessonFile([]);
     setModalEv({...event,occurrenceDate:lessonDate,date:event.date||lessonDate,fileUrl:'',fileName:'',attachmentUrl:'',attachmentName:'',attachment:null,attachments:[],attachmentType:'',attachmentSize:0,attachmentRemoved:false});
   },[lessons,openLessonEditor]);
+
+  const updateLessonBillingDisposition=useCallback(async(lessonId,billingStatus)=>{
+    if(!isAdmin||!lessonId){notify('⚠ Ainult administraator saab finantsstaatust muuta');return null;}
+    const labels={
+      unset:'staatuse eemaldamine',
+      unbilled:'arveldamata tasuline tund',
+      free:'tasuta tund',
+      cancelled_on_time:'õigeaegne tühistamine',
+      late_cancel_billable:'hilinenud tasuline tühistamine',
+      written_off:'mahakandmine'
+    };
+    const reason=window.prompt(`Põhjus: ${labels[billingStatus]||billingStatus}`,'Administraatori otsus');
+    if(reason===null) return null;
+    if(!String(reason).trim()){notify('⚠ Sisesta finantsstaatuse muutmise põhjus');return null;}
+    try{
+      const result=await financeApiPost('/lessons/billing-disposition',{
+        lessonId,
+        billingStatus,
+        reason:String(reason).trim(),
+        requestId:financeRequestId('lessonbilling')
+      });
+      notify(`✓ Finantsstaatus uuendatud: ${labels[billingStatus]||billingStatus}`);
+      return result?.lesson||null;
+    }catch(err){
+      console.error('Lesson billing disposition failed:',err);
+      notify(`⚠ Finantsstaatuse muutmine ebaõnnestus: ${err.message||err}`);
+      return null;
+    }
+  },[isAdmin]);
 
 	  const addInvoice=useCallback(async(stuId,options={})=>{
 	    const targetType = options.targetType || 'student';
@@ -10683,7 +10779,8 @@ function App() {
         lNextNotes={lNextNotes} setLNextNotes={setLNextNotes}
         lDur={lDur} setLDur={setLDur} lessonFile={lessonFile} setLessonFile={setLessonFile}
         saveLesson={saveLesson} deleteLesson={deleteLesson} db={db} user={user} notify={notify}
-        students={students} markAttendance={markAttendance}/>}
+        students={students} markAttendance={markAttendance}
+        isAdmin={isAdmin} updateLessonBillingDisposition={updateLessonBillingDisposition}/>}
     </div>
   );
 }
