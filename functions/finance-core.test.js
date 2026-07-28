@@ -13,8 +13,10 @@ const {
   lessonBillingDispositionPatch,
   lessonIsBillable,
   normalizeAllocations,
+  packageBalanceAfterEntry,
   paymentNetAmountCents,
   planInvoiceOverpaymentTransfer,
+  positiveInteger,
   selectBillableLessons,
   tariffAssignmentPlan,
   toCents,
@@ -78,6 +80,45 @@ test("voided payments do not affect the invoice", () => {
 test("toCents rejects invalid and over-precise values", () => {
   assert.throws(() => toCents(0), /positive/);
   assert.throws(() => toCents("12.345"), /two decimal/);
+});
+
+test("package balance applies append-only credit and debit movements", () => {
+  const credited = packageBalanceAfterEntry(
+    { balanceCredits: 7, adjustmentCreditCredits: 0, ledgerEntryCount: 1 },
+    2,
+    "2026-07-28T10:00:00.000Z",
+  );
+  assert.equal(credited.balanceBefore, 7);
+  assert.equal(credited.balanceAfter, 9);
+  assert.equal(credited.accountPatch.adjustmentCreditCredits, 2);
+  assert.equal(credited.accountPatch.status, "active");
+
+  const debited = packageBalanceAfterEntry(
+    { balanceCredits: 3, adjustmentDebitCredits: 1, ledgerEntryCount: 2 },
+    -3,
+    "2026-07-28T11:00:00.000Z",
+  );
+  assert.equal(debited.balanceAfter, 0);
+  assert.equal(debited.accountPatch.adjustmentDebitCredits, 4);
+  assert.equal(debited.accountPatch.ledgerEntryCount, 3);
+  assert.equal(debited.accountPatch.status, "depleted");
+});
+
+test("package balance rejects fractional, zero, and overdraft movements", () => {
+  assert.equal(positiveInteger("10", "lesson credits", 500), 10);
+  assert.throws(() => positiveInteger(0, "lesson credits", 500), /positive integer/);
+  assert.throws(
+    () => packageBalanceAfterEntry({ balanceCredits: 2 }, -3, "now"),
+    /insufficient/,
+  );
+  assert.throws(
+    () => packageBalanceAfterEntry({ balanceCredits: 2 }, 0.5, "now"),
+    /non-zero integer/,
+  );
+  assert.throws(
+    () => packageBalanceAfterEntry({ balanceCredits: 2 }, 0, "now"),
+    /non-zero integer/,
+  );
 });
 
 test("bank transaction can be split across invoices with residual credit", () => {

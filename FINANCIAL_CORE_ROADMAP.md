@@ -126,9 +126,21 @@ migration fallback for dates without an assignment. Administrators can create
 tariff versions and assign them from the invoice workflow; client-side writes to
 both financial collections are denied.
 
-The next Stage 5 slice should add package products and package balances as
-separate ledger entries. It must not reuse the mutable `packageTotal` /
-`packageUsed` counters as the accounting source of truth.
+The second Stage 5 slice introduces immutable lesson-package product versions,
+separate student package accounts, and an append-only credit ledger. Issuing a
+package creates its opening grant entry transactionally. Administrators can add
+reasoned credit or debit corrections; the server prevents negative balances and
+writes the resulting before/after balance to both the ledger and immutable
+financial audit. Direct client writes to product, account, and ledger
+collections are denied. Existing `packageTotal` / `packageUsed` counters remain
+visible only as a migration fallback and are not rewritten by the new flow.
+
+The next Stage 5 slice should consume one package credit from an eligible
+student package when a lesson is completed, restore it through a compensating
+entry when that completion is reversed, and link the ledger entry to the exact
+lesson occurrence. It must define deterministic package selection when a
+student has more than one active balance before replacing any legacy automatic
+counter updates.
 
 ## Payroll dependency
 

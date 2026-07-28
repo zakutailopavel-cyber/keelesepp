@@ -42,6 +42,51 @@ function previousIsoDate(value) {
   return parsed.toISOString().slice(0, 10);
 }
 
+function positiveInteger(value, field = "value", max = 10000) {
+  const number = Number(value);
+  if (!Number.isInteger(number) || number <= 0 || number > max) {
+    const error = new Error(`${field} must be a positive integer not greater than ${max}`);
+    error.status = 400;
+    throw error;
+  }
+  return number;
+}
+
+function packageBalanceAfterEntry(packageAccount = {}, creditsDelta, nowIso) {
+  const delta = Number(creditsDelta);
+  if (!Number.isInteger(delta) || delta === 0 || Math.abs(delta) > 500) {
+    const error = new Error("package credits delta must be a non-zero integer between -500 and 500");
+    error.status = 400;
+    throw error;
+  }
+  const balanceBefore = Number(packageAccount.balanceCredits);
+  if (!Number.isInteger(balanceBefore) || balanceBefore < 0) {
+    const error = new Error("package account has an invalid balance");
+    error.status = 409;
+    throw error;
+  }
+  const balanceAfter = balanceBefore + delta;
+  if (balanceAfter < 0) {
+    const error = new Error("package has insufficient lesson credits");
+    error.status = 409;
+    throw error;
+  }
+  return {
+    balanceBefore,
+    balanceAfter,
+    accountPatch: {
+      balanceCredits: balanceAfter,
+      adjustmentCreditCredits:
+        (Number(packageAccount.adjustmentCreditCredits) || 0) + Math.max(0, delta),
+      adjustmentDebitCredits:
+        (Number(packageAccount.adjustmentDebitCredits) || 0) + Math.max(0, -delta),
+      ledgerEntryCount: (Number(packageAccount.ledgerEntryCount) || 0) + 1,
+      status: balanceAfter === 0 ? "depleted" : "active",
+      updatedAt: nowIso,
+    },
+  };
+}
+
 function tariffAssignmentPlan(existingAssignments = [], effectiveFrom) {
   const startDate = validIsoDate(effectiveFrom, "effectiveFrom");
   const sorted = (Array.isArray(existingAssignments) ? existingAssignments : [])
@@ -583,8 +628,10 @@ module.exports = {
   lessonBillingDispositionPatch,
   lessonIsBillable,
   normalizeAllocations,
+  packageBalanceAfterEntry,
   paymentNetAmountCents,
   planInvoiceOverpaymentTransfer,
+  positiveInteger,
   selectBillableLessons,
   tariffAssignmentPlan,
   toCents,
