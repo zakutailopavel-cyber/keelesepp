@@ -49,15 +49,20 @@ export default async function handler(req, res) {
       data = { error: { message: response.ok ? 'Invalid provider response' : 'Anthropic API error' } };
     }
 
-    // Логируем стоимость в Vercel Functions → Logs
+    // Логируем стоимость в Vercel Functions → Logs (цены за 1M токенов по модели)
     if (data.usage) {
+      const PRICES = {
+        'claude-sonnet-4-6':            { in: 3,    cacheWrite: 3.75, cacheRead: 0.3,   out: 15 },
+        'claude-haiku-4-5-20251001':    { in: 1,    cacheWrite: 1.25, cacheRead: 0.1,   out: 5 },
+      };
+      const p = PRICES[body.model] || PRICES['claude-sonnet-4-6'];
       const u = data.usage;
       const fresh   = u.input_tokens || 0;
       const written = u.cache_creation_input_tokens || 0;
       const hit     = u.cache_read_input_tokens || 0;
       const out     = u.output_tokens || 0;
-      const cost    = (fresh * 3 + written * 3.75 + hit * 0.3 + out * 15) / 1_000_000;
-      console.log(`[proxy] fresh:${fresh} cache_write:${written} cache_hit:${hit} out:${out} | $${cost.toFixed(5)}`);
+      const cost    = (fresh * p.in + written * p.cacheWrite + hit * p.cacheRead + out * p.out) / 1_000_000;
+      console.log(`[proxy] model:${body.model} fresh:${fresh} cache_write:${written} cache_hit:${hit} out:${out} | $${cost.toFixed(5)}`);
     }
 
     return res.status(response.status).json(data);

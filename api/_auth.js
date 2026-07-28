@@ -24,6 +24,9 @@ const SUPER_ADMIN_EMAILS = new Set(
     .filter(Boolean)
 );
 const WINDOW_MS = 15 * 60 * 1000;
+// NB: лимит в памяти процесса — на Vercel каждый холодный старт/новый инстанс
+// обнуляет счётчики, так что это мягкий тормоз, а не строгая квота.
+// Для строгого лимита нужно общее хранилище (Firestore/Upstash Redis).
 const RATE_BUCKETS = new Map();
 let certCache = { expiresAt: 0, certs: {} };
 
@@ -84,17 +87,20 @@ async function verifyFirebaseToken(token) {
   return { ...payload, uid: payload.sub, _token: token };
 }
 
-async function fetchUserRole(decoded) {
-  if (decoded.admin === true) return 'admin';
-  if (typeof decoded.role === 'string') return decoded.role;
+async function fetchUserProfile(decoded) {
+  const profile = { role: '', disabled: false };
+  if (decoded.admin === true) profile.role = 'admin';
+  else if (typeof decoded.role === 'string') profile.role = decoded.role;
   try {
     const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/users/${encodeURIComponent(decoded.uid)}`;
     const response = await fetch(url, { headers: { Authorization: `Bearer ${decoded._token}` } });
-    if (!response.ok) return '';
+    if (!response.ok) return profile;
     const doc = await response.json();
-    return doc.fields?.role?.stringValue || '';
+    if (!profile.role) profile.role = doc.fields?.role?.stringValue || '';
+    profile.disabled = doc.fields?.disabled?.booleanValue === true;
+    return profile;
   } catch (err) {
-    return '';
+    return profile;
   }
 }
 
@@ -137,10 +143,21 @@ export async function requireFirebaseUser(req) {
 
 export async function requireStaff(req) {
   const decoded = await requireFirebaseUser(req);
-  const role = await fetchUserRole(decoded);
+  const profile = await fetchUserProfile(decoded);
+  // NB: ручная проверка JWT не видит отзыва токена (в отличие от Admin SDK).
+  // Флаг users/{uid}.disabled=true — способ мгновенно отрезать аккаунт от этих API,
+  // не дожидаясь истечения токена (~1 час).
+  if (profile.disabled) throw httpError(403, 'Account disabled');
   const email = String(decoded.email || '').toLowerCase();
-  if (STAFF_ROLES.has(role) || SUPER_ADMIN_EMAILS.has(email)) return { decoded, role: role || 'admin' };
+  if (STAFF_ROLES.has(profile.role) || SUPER_ADMIN_EMAILS.has(email)) return { decoded, role: profile.role || 'admin' };
   throw httpError(403, 'Teacher or admin access required');
+}
+
+export async function requireActiveUser(req) {
+  const decoded = await requireFirebaseUser(req);
+  const profile = await fetchUserProfile(decoded);
+  if (profile.disabled) throw httpError(403, 'Account disabled');
+  return { decoded, role: profile.role };
 }
 
 export function checkRateLimit(key, limit = 30) {
