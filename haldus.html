@@ -202,6 +202,11 @@ const invoiceFinancialSummary = inv => {
     paymentStatus:inv?.paymentStatus || (legacyPaid?'legacy_paid':paid>0?'partial':'unpaid')
   };
 };
+const paymentFinancialSummary = payment => {
+  const gross = Math.max(0,Number(payment?.amount)||0);
+  const resolved = Math.max(0,Number(payment?.resolvedAmount)||0);
+  return {gross,resolved,net:Math.max(0,gross-resolved)};
+};
 const invoiceMailStatusMeta = inv => {
   if(inv?.emailStatus==='failed') return {text:'E-post ebaõnnestus',bg:'#fee2e2',color:'#991b1b'};
   if(inv?.emailStatus==='sent') return {text:`E-post saadetud${inv.emailSentAt?' '+fmtDate(inv.emailSentAt):''}`,bg:'#dcfce7',color:'#166534'};
@@ -5826,7 +5831,7 @@ function ParentInvoicesView({invoices,printInvoice,submitParentPayment}) {
 }
 
 // ── ARVED ÜLDVAADE ────────────────────────────────────────────
-function InvoicesView({invoices,payments,myStudents,parents,schedule,students,lessons,isAdmin,invStu,setInvStu,invAmt,setInvAmt,invDesc,setInvDesc,invRef,setInvRef,invDue,setInvDue,addInvoice,recordPayment,markPaid,unmarkPaid,voidPayment,creditInvoiceLessonLine,deleteInvoice,printInvoice,updateInvoiceReference,updateInvoiceDue,sendInvoiceEmail,sendInvoiceReminder,sendMonthlyInvoiceReminders,invoiceEmailBusy}) {
+function InvoicesView({invoices,payments,myStudents,parents,schedule,students,lessons,isAdmin,invStu,setInvStu,invAmt,setInvAmt,invDesc,setInvDesc,invRef,setInvRef,invDue,setInvDue,addInvoice,recordPayment,markPaid,unmarkPaid,voidPayment,resolveInvoiceOverpayment,creditInvoiceLessonLine,deleteInvoice,printInvoice,updateInvoiceReference,updateInvoiceDue,sendInvoiceEmail,sendInvoiceReminder,sendMonthlyInvoiceReminders,invoiceEmailBusy}) {
   const unpaidAmt=invoices.filter(i=>i.status==='Ootel').reduce((sum,inv)=>sum+invoiceFinancialSummary(inv).balance,0);
   const paid=invoices.filter(i=>i.status==='Makstud');
   const [statsPeriod,setStatsPeriod] = React.useState('current');
@@ -6525,10 +6530,12 @@ function InvoicesView({invoices,payments,myStudents,parents,schedule,students,le
                     {invoicePayments.slice().sort((a,b)=>String(b.paidAt||b.createdAt).localeCompare(String(a.paidAt||a.createdAt))).slice(0,5).map(payment=>(
                       <div key={payment.id} style={{fontSize:'.72rem',color:'#64748b',marginTop:3,display:'flex',gap:6,alignItems:'center',flexWrap:'wrap'}}>
                         <span>
-                          {fmtDate(payment.paidAt||payment.createdAt)} · {money(payment.amount)}€ · {payment.method==='credit'?'Avanss':PAYMENT_METHODS.find(method=>method.id===payment.method)?.label||payment.method||'Makse'}
+                          {fmtDate(payment.paidAt||payment.createdAt)} · {money(paymentFinancialSummary(payment).net)}€
+                          {paymentFinancialSummary(payment).resolved>0&&<> <s>{money(paymentFinancialSummary(payment).gross)}€</s> · {money(paymentFinancialSummary(payment).resolved)}€ avansiks</>}
+                          {' · '}{payment.method==='credit'?'Avanss':PAYMENT_METHODS.find(method=>method.id===payment.method)?.label||payment.method||'Makse'}
                           {payment.reference&&<> · {payment.reference}</>}
                         </span>
-                        {isAdmin&&voidPayment&&(
+                        {isAdmin&&voidPayment&&paymentFinancialSummary(payment).net>0&&(
                           <button onClick={()=>voidPayment(payment)} className="btn btn-red btn-sm" style={{padding:'2px 7px',fontSize:'.66rem'}}>Tühista see</button>
                         )}
                       </div>
@@ -6552,6 +6559,9 @@ function InvoicesView({invoices,payments,myStudents,parents,schedule,students,le
                     {isAdmin&&<button onClick={()=>recordPayment(inv)} className="btn btn-pine btn-sm">Lisa makse</button>}
                   </>}
                 {inv.parentPaymentStatus==='submitted'&&inv.status!=='Makstud'&&<span className="badge" style={{background:'#dbeafe',color:'#1d4ed8'}}>Vanem teavitas maksest</span>}
+                {financial.overpaid>0&&isAdmin&&resolveInvoiceOverpayment&&(
+                  <button onClick={()=>resolveInvoiceOverpayment(inv)} className="btn btn-amber btn-sm">Vii ettemaksuks</button>
+                )}
                 <button onClick={()=>updateInvoiceReference(inv)} className="btn btn-ghost btn-sm">Muuda selgitust</button>
                 {updateInvoiceDue&&<button onClick={()=>updateInvoiceDue(inv)} className="btn btn-ghost btn-sm">Muuda tähtaega</button>}
                 {sendInvoiceEmail&&(
@@ -6594,7 +6604,7 @@ function InvoicesView({invoices,payments,myStudents,parents,schedule,students,le
 // однозначна. Только когда номера в описании нет (или он задвоен —
 // см. предупреждение о дублях ниже), используется резервное угадывание
 // по имени ученика/родителя, которое пользователь может поправить вручную.
-function PaymentReconciliationView({invoices, students, isAdmin, bankTransactions, payerCredits, allocateBankTransaction, applyPayerCredit}) {
+function PaymentReconciliationView({invoices, students, isAdmin, bankTransactions, payerCredits, allocateBankTransaction, applyPayerCredit, refundPayerCredit}) {
   const [rawStatement, setRawStatement] = React.useState('');
   const [payments, setPayments] = React.useState([]);
   const [assign, setAssignState] = React.useState({});   // paymentId -> имя ученика (ручной override)
@@ -7076,11 +7086,14 @@ function PaymentReconciliationView({invoices, students, isAdmin, bankTransaction
               <div key={credit.id} style={{display:'flex',justifyContent:'space-between',gap:12,alignItems:'center',padding:12,border:'1px solid rgba(28,43,58,.1)',borderRadius:12,flexWrap:'wrap'}}>
                 <div>
                   <div style={{fontWeight:700}}>{credit.payerName||'Плательщик не указан'}</div>
-                  <div style={{fontSize:'.75rem',color:'#64748b'}}>Операция {credit.bankTransactionId} · {fmtDate(credit.createdAt)}</div>
+                  <div style={{fontSize:'.75rem',color:'#64748b'}}>
+                    Источник {credit.bankTransactionId||credit.sourceInvoiceNum||credit.sourcePaymentId||credit.id} · {fmtDate(credit.createdAt)}
+                  </div>
                 </div>
                 <div style={{display:'flex',gap:8,alignItems:'center'}}>
                   <span className="badge" style={{background:'#ede9fe',color:'#6d28d9',fontWeight:800}}>{money(credit.availableAmount)}€</span>
                   <button onClick={()=>openCreditApplication(credit)} className="btn btn-pine btn-sm">Применить</button>
+                  {refundPayerCredit&&<button onClick={()=>refundPayerCredit(credit)} className="btn btn-red btn-sm">Зарегистрировать возврат</button>}
                 </div>
               </div>
             ))}
@@ -10179,6 +10192,64 @@ function App() {
     }
   },[isAdmin]);
 
+  const resolveInvoiceOverpayment=useCallback(async(inv)=>{
+    if(!isAdmin||!inv?.id){notify('⚠ Ainult administraator saab enammakse lahendada');return false;}
+    const financial=invoiceFinancialSummary(inv);
+    if(financial.overpaid<=0){notify('✓ Arvel pole enammakset');return true;}
+    const reason=window.prompt(
+      `Viia ${money(financial.overpaid)}€ maksja ettemaksuks? Põhjus:`,
+      'Enammakse eraldamine ettemaksuks'
+    );
+    if(reason===null) return false;
+    if(!String(reason).trim()){notify('⚠ Sisesta enammakse põhjendus');return false;}
+    try{
+      const result=await financeApiPost('/invoices/resolve-overpayment',{
+        invoiceId:inv.id,
+        reason:String(reason).trim(),
+        requestId:financeRequestId('overpayment')
+      });
+      notify(`✓ ${money(result?.resolution?.amount)}€ viidi ettemaksuks`);
+      return true;
+    }catch(err){
+      console.error('Overpayment resolution failed:',err);
+      notify(`⚠ Enammakse lahendamine ebaõnnestus: ${err.message||err}`);
+      return false;
+    }
+  },[isAdmin]);
+
+  const refundPayerCredit=useCallback(async(credit)=>{
+    if(!isAdmin||!credit?.id){notify('⚠ Ainult administraator saab tagasimakset registreerida');return false;}
+    const available=Math.max(0,Number(credit.availableAmount)||0);
+    const input=window.prompt(`Tagastatav summa · saadaval ${money(available)}€`,money(available));
+    if(input===null) return false;
+    const amount=Number(String(input).replace(',','.'));
+    if(!Number.isFinite(amount)||amount<=0||amount>available+.001){
+      notify('⚠ Sisesta korrektne summa, mis ei ületa saadaolevat ettemaksu');
+      return false;
+    }
+    const reason=window.prompt('Tagasimakse põhjus (kohustuslik)','Ettemaks tagastati maksjale');
+    if(reason===null) return false;
+    if(!String(reason).trim()){notify('⚠ Sisesta tagasimakse põhjus');return false;}
+    const reference=window.prompt('Panga viide või märkus (valikuline)','')||'';
+    try{
+      const result=await financeApiPost('/payer-credits/refund',{
+        creditId:credit.id,
+        amount,
+        refundedAt:today(),
+        method:'bank',
+        reference,
+        reason:String(reason).trim(),
+        requestId:financeRequestId('refund')
+      });
+      notify(`✓ Tagasimakse ${money(result?.refund?.amount)}€ registreeritud`);
+      return true;
+    }catch(err){
+      console.error('Payer credit refund failed:',err);
+      notify(`⚠ Tagasimakse registreerimine ebaõnnestus: ${err.message||err}`);
+      return false;
+    }
+  },[isAdmin]);
+
   const creditInvoiceLessonLine=useCallback(async(inv,line)=>{
     if(!isAdmin||!inv?.id||!line?.lessonId){
       notify('⚠ Ainult administraator saab parandusarvet luua');
@@ -10237,7 +10308,7 @@ function App() {
   const deleteInvoice=useCallback(async(inv)=>{
     if(!inv?.id) return;
     if(Array.isArray(inv.lessonIds)&&inv.lessonIds.length>0){
-      notify('⚠ Tundidega seotud arvet ei saa kustutada. Järgmine etapp lisab parandusarve; seni säilitame seose ja auditi.');
+      notify('⚠ Tundidega seotud arvet ei saa kustutada. Kasuta rea parandusarvet, et säilitada seos ja audit.');
       return;
     }
     const linkedPayments=payments.filter(payment=>payment.invoiceId===inv.id);
@@ -10823,14 +10894,15 @@ function App() {
 	            schedule={schedule} students={students} lessons={lessons} isAdmin={isAdmin}
             invStu={invStu} setInvStu={setInvStu} invAmt={invAmt} setInvAmt={setInvAmt}
             invDesc={invDesc} setInvDesc={setInvDesc} invRef={invRef} setInvRef={setInvRef} invDue={invDue} setInvDue={setInvDue}
-            addInvoice={addInvoice} recordPayment={recordPayment} markPaid={markPaid} unmarkPaid={unmarkPaid} voidPayment={voidPayment} creditInvoiceLessonLine={creditInvoiceLessonLine} deleteInvoice={deleteInvoice} printInvoice={printInvoice} updateInvoiceReference={updateInvoiceReference} updateInvoiceDue={updateInvoiceDue}
+            addInvoice={addInvoice} recordPayment={recordPayment} markPaid={markPaid} unmarkPaid={unmarkPaid} voidPayment={voidPayment} resolveInvoiceOverpayment={resolveInvoiceOverpayment} creditInvoiceLessonLine={creditInvoiceLessonLine} deleteInvoice={deleteInvoice} printInvoice={printInvoice} updateInvoiceReference={updateInvoiceReference} updateInvoiceDue={updateInvoiceDue}
             sendInvoiceEmail={sendInvoiceEmail} sendInvoiceReminder={sendInvoiceReminder} sendMonthlyInvoiceReminders={sendMonthlyInvoiceReminders} invoiceEmailBusy={invoiceEmailBusy}/>}
 
           {tab==='reconciliation'&&isAdmin&&<PaymentReconciliationView
             invoices={invoices} students={students} isAdmin={isAdmin}
             bankTransactions={bankTransactions} payerCredits={payerCredits}
             allocateBankTransaction={allocateImportedBankTransaction}
-            applyPayerCredit={applyPayerCredit}/>}
+            applyPayerCredit={applyPayerCredit}
+            refundPayerCredit={refundPayerCredit}/>}
 
           {tab==='activity'&&isStaff&&<ActivityLogView logs={scopedActivityLog} isAdmin={isAdmin}/>}
           {tab==='kabinet'&&!isStaff&&<KabinetView user={user} myStudents={myStudents} notify={notify}/>}

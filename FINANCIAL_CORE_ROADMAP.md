@@ -80,9 +80,16 @@ and an immutable audit entry records the reason and actor. A correction that
 would turn an existing payment into an overpayment is intentionally blocked
 until the excess payment is voided or a dedicated refund workflow exists.
 
-The next slice should add a refund/credit-transfer workflow and selectable lesson
-lines when creating an invoice. Invoices linked to lessons remain intentionally
-not directly deletable.
+The fourth Stage 4 slice resolves an invoice overpayment into traceable payer
+credit without rewriting the original payment. It records gross, resolved, and
+net payment amounts, updates linked bank allocation totals, and writes an
+immutable resolution and audit entry. Open payer credit can be refunded through
+a separate immutable outgoing record. Credit-sourced invoice payments must still
+be voided back to their source credit before an overpayment is transferred.
+
+The next slice should add selectable lesson lines when creating an invoice and a
+printable/email credit-note document. Invoices linked to lessons remain
+intentionally not directly deletable.
 
 ## Following slice: tariffs and packages
 

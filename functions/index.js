@@ -22,11 +22,15 @@ const {
   buildLessonInvoiceLines,
   centsToAmount,
   creditAfterApplication,
+  creditAfterRefund,
   creditAfterRestoration,
   invoiceAfterLessonCredit,
   invoiceFinancialPatch,
+  invoiceOriginalAmountCents,
   lessonBillingDispositionPatch,
   normalizeAllocations,
+  paymentNetAmountCents,
+  planInvoiceOverpaymentTransfer,
   selectBillableLessons,
   toCents,
 } = require("./finance-core");
@@ -495,6 +499,309 @@ async function activeInvoicePayments(transaction, invoiceId) {
   return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
 
+function bankAllocationStatus(allocatedAmountCents, unappliedAmountCents) {
+  if (allocatedAmountCents <= 0) return "unapplied";
+  return unappliedAmountCents > 0 ? "partially_allocated" : "allocated";
+}
+
+async function transferInvoiceOverpayment({ actor, invoiceId, reason, requestId }) {
+  const mutationId = cleanRequestId(requestId);
+  const cleanInvoiceId = String(invoiceId || "").trim();
+  const cleanReason = cleanText(reason);
+  if (!cleanInvoiceId) throw httpError(400, "invoiceId required");
+  if (!cleanReason) throw httpError(400, "Reason required");
+  const signature = crypto.createHash("sha256").update(JSON.stringify({
+    invoiceId: cleanInvoiceId,
+    reason: cleanReason,
+  })).digest("hex");
+  const invoiceRef = db.collection("invoices").doc(cleanInvoiceId);
+  const resolutionRef = db.collection("overpaymentResolutions").doc(mutationId);
+  const auditRef = db.collection("financialAudit").doc(mutationId);
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+
+  return db.runTransaction(async transaction => {
+    const existingResolution = await transaction.get(resolutionRef);
+    if (existingResolution.exists) {
+      if (existingResolution.data().signature !== signature) {
+        throw httpError(409, "requestId already used for a different overpayment resolution");
+      }
+      return {
+        resolution: { id: existingResolution.id, ...existingResolution.data() },
+        idempotent: true,
+      };
+    }
+    const invoiceSnap = await transaction.get(invoiceRef);
+    if (!invoiceSnap.exists) throw httpError(404, "Invoice not found");
+    const invoice = invoiceSnap.data();
+    const payments = await activeInvoicePayments(transaction, cleanInvoiceId);
+    const plan = planInvoiceOverpaymentTransfer(invoice, payments);
+    const paymentsById = new Map(payments.map(payment => [payment.id, payment]));
+    const bankIds = [...new Set(plan.allocations
+      .map(allocation => paymentsById.get(allocation.paymentId)?.bankTransactionId)
+      .filter(Boolean))];
+    const bankRefs = bankIds.map(id => db.collection("bankTransactions").doc(String(id)));
+    const bankSnaps = await Promise.all(bankRefs.map(ref => transaction.get(ref)));
+    bankSnaps.forEach((snap, index) => {
+      if (!snap.exists) throw httpError(409, `Source bank transaction ${bankIds[index]} not found`);
+    });
+    const bankById = new Map(bankSnaps.map((snap, index) => [
+      bankIds[index],
+      { ref: bankRefs[index], data: snap.data(), resolvedAmountCents: 0 },
+    ]));
+
+    const creditIds = [];
+    const creditSummaries = [];
+    const resolvedPayments = payments.map(payment => ({ ...payment }));
+    plan.allocations.forEach((allocation, index) => {
+      const payment = paymentsById.get(allocation.paymentId);
+      if (!payment) throw httpError(409, "Overpayment source payment not found");
+      const previousResolvedAmountCents = Number(payment.resolvedAmountCents)
+        || Math.round((Number(payment.resolvedAmount) || 0) * 100);
+      const resolvedAmountCents = previousResolvedAmountCents + allocation.amountCents;
+      const netAmountCents = paymentNetAmountCents({
+        ...payment,
+        resolvedAmountCents,
+      });
+      const paymentRef = db.collection("payments").doc(payment.id);
+      transaction.set(paymentRef, {
+        resolvedAmountCents,
+        resolvedAmount: centsToAmount(resolvedAmountCents),
+        netAmountCents,
+        netAmount: centsToAmount(netAmountCents),
+        resolutionIds: admin.firestore.FieldValue.arrayUnion(mutationId),
+        lastResolvedAt: nowIso,
+        updatedAt: nowIso,
+      }, { merge: true });
+      const resolvedIndex = resolvedPayments.findIndex(item => item.id === payment.id);
+      resolvedPayments[resolvedIndex] = {
+        ...resolvedPayments[resolvedIndex],
+        resolvedAmountCents,
+      };
+
+      const creditId = `${mutationId}_c${index + 1}`;
+      const creditRef = db.collection("payerCredits").doc(creditId);
+      const payerName = payment.payerName
+        || invoice.payerName
+        || invoice.parentName
+        || invoice.studentName
+        || "";
+      const payerCredit = {
+        payerKey: payerKey(payerName),
+        payerName,
+        bankTransactionId: payment.bankTransactionId || "",
+        sourcePaymentId: payment.id,
+        sourceInvoiceId: cleanInvoiceId,
+        sourceInvoiceNum: invoice.num || "",
+        overpaymentResolutionId: mutationId,
+        originalAmountCents: allocation.amountCents,
+        originalAmount: centsToAmount(allocation.amountCents),
+        availableAmountCents: allocation.amountCents,
+        availableAmount: centsToAmount(allocation.amountCents),
+        appliedAmountCents: 0,
+        appliedAmount: 0,
+        refundedAmountCents: 0,
+        refundedAmount: 0,
+        status: "open",
+        createdAt: nowIso,
+        createdBy: actorData,
+      };
+      transaction.create(creditRef, payerCredit);
+      creditIds.push(creditId);
+      creditSummaries.push({
+        creditId,
+        paymentId: payment.id,
+        bankTransactionId: payment.bankTransactionId || "",
+        amountCents: allocation.amountCents,
+        amount: centsToAmount(allocation.amountCents),
+      });
+      if (payment.bankTransactionId) {
+        bankById.get(payment.bankTransactionId).resolvedAmountCents += allocation.amountCents;
+      }
+    });
+
+    bankById.forEach(({ ref, data, resolvedAmountCents }) => {
+      const allocatedAmountCents = Math.max(
+        0,
+        (Number(data.allocatedAmountCents) || 0) - resolvedAmountCents,
+      );
+      const unappliedAmountCents = Math.max(
+        0,
+        (Number(data.unappliedAmountCents) || 0) + resolvedAmountCents,
+      );
+      transaction.set(ref, {
+        allocatedAmountCents,
+        allocatedAmount: centsToAmount(allocatedAmountCents),
+        unappliedAmountCents,
+        unappliedAmount: centsToAmount(unappliedAmountCents),
+        status: bankAllocationStatus(allocatedAmountCents, unappliedAmountCents),
+        overpaymentResolutionIds: admin.firestore.FieldValue.arrayUnion(mutationId),
+        updatedAt: nowIso,
+      }, { merge: true });
+    });
+
+    const invoicePatch = invoiceFinancialPatch(invoice, resolvedPayments, nowIso);
+    if (invoicePatch.overpaidAmountCents !== 0 || invoicePatch.balanceDueCents !== 0) {
+      throw httpError(409, "Overpayment resolution did not balance the invoice");
+    }
+    const isFullyCredited = invoice.correctionStatus === "fully_credited"
+      || Number(invoice.effectiveAmountCents) === 0;
+    const balancedInvoicePatch = isFullyCredited
+      ? { ...invoicePatch, status: "Krediteeritud", paymentStatus: "credited" }
+      : invoicePatch;
+    transaction.set(invoiceRef, {
+      ...balancedInvoicePatch,
+      overpaymentResolutionIds: admin.firestore.FieldValue.arrayUnion(mutationId),
+      lastOverpaymentResolvedAt: nowIso,
+    }, { merge: true });
+    const resolution = {
+      invoiceId: cleanInvoiceId,
+      invoiceNum: invoice.num || "",
+      payerName: invoice.payerName || invoice.parentName || invoice.studentName || "",
+      amountCents: plan.overpaidAmountCents,
+      amount: centsToAmount(plan.overpaidAmountCents),
+      type: "payer_credit",
+      credits: creditSummaries,
+      creditIds,
+      sourcePaymentIds: plan.allocations.map(allocation => allocation.paymentId),
+      signature,
+      reason: cleanReason,
+      createdAt: nowIso,
+      createdBy: actorData,
+      requestId: mutationId,
+    };
+    transaction.create(resolutionRef, resolution);
+    transaction.create(auditRef, {
+      entityType: "overpaymentResolution",
+      entityId: mutationId,
+      action: "invoice.overpayment_transferred_to_credit",
+      invoiceId: cleanInvoiceId,
+      invoiceNum: invoice.num || "",
+      amountCents: plan.overpaidAmountCents,
+      amount: centsToAmount(plan.overpaidAmountCents),
+      credits: creditSummaries,
+      before: {
+        paidAmount: Number(invoice.paidAmount) || 0,
+        overpaidAmount: Number(invoice.overpaidAmount) || centsToAmount(plan.overpaidAmountCents),
+      },
+      after: {
+        paidAmount: balancedInvoicePatch.paidAmount,
+        overpaidAmount: balancedInvoicePatch.overpaidAmount,
+        balanceDue: balancedInvoicePatch.balanceDue,
+      },
+      actor: actorData,
+      reason: cleanReason,
+      createdAt: nowIso,
+      requestId: mutationId,
+    });
+    return {
+      resolution: { id: mutationId, ...resolution },
+      invoice: { id: cleanInvoiceId, ...invoice, ...balancedInvoicePatch },
+      payerCredits: creditSummaries,
+      idempotent: false,
+    };
+  });
+}
+
+async function refundPayerCredit({
+  actor,
+  creditId,
+  amount,
+  refundedAt,
+  method,
+  reference,
+  reason,
+  requestId,
+}) {
+  const mutationId = cleanRequestId(requestId);
+  const cleanCreditId = String(creditId || "").trim();
+  if (!cleanCreditId) throw httpError(400, "creditId required");
+  const amountCents = toCents(amount, "refund amount");
+  const cleanReason = cleanText(reason);
+  if (!cleanReason) throw httpError(400, "Reason required");
+  const nowIso = new Date().toISOString();
+  const rawRefundDate = String(refundedAt || "");
+  const parsedRefundDate = new Date(`${rawRefundDate}T12:00:00.000Z`);
+  const refundDate = /^\d{4}-\d{2}-\d{2}$/.test(rawRefundDate)
+    && !Number.isNaN(parsedRefundDate.getTime())
+    && parsedRefundDate.toISOString().slice(0, 10) === rawRefundDate
+    ? rawRefundDate
+    : nowIso.slice(0, 10);
+  const cleanMethod = cleanText(method, 40) || "bank";
+  const cleanReference = cleanText(reference, 160);
+  const signature = crypto.createHash("sha256").update(JSON.stringify({
+    creditId: cleanCreditId,
+    amountCents,
+    refundedAt: refundDate,
+    method: cleanMethod,
+    reference: cleanReference,
+    reason: cleanReason,
+  })).digest("hex");
+  const creditRef = db.collection("payerCredits").doc(cleanCreditId);
+  const refundRef = db.collection("refunds").doc(mutationId);
+  const auditRef = db.collection("financialAudit").doc(mutationId);
+  const actorData = actorSnapshot(actor);
+
+  return db.runTransaction(async transaction => {
+    const existingRefund = await transaction.get(refundRef);
+    if (existingRefund.exists) {
+      if (existingRefund.data().signature !== signature) {
+        throw httpError(409, "requestId already used for a different refund");
+      }
+      return { refund: { id: existingRefund.id, ...existingRefund.data() }, idempotent: true };
+    }
+    const creditSnap = await transaction.get(creditRef);
+    if (!creditSnap.exists) throw httpError(404, "Payer credit not found");
+    const credit = creditSnap.data();
+    const creditPatch = creditAfterRefund(credit, amountCents, nowIso);
+    const refund = {
+      creditId: cleanCreditId,
+      payerKey: credit.payerKey || "",
+      payerName: credit.payerName || "",
+      bankTransactionId: credit.bankTransactionId || "",
+      sourcePaymentId: credit.sourcePaymentId || "",
+      sourceInvoiceId: credit.sourceInvoiceId || "",
+      amountCents,
+      amount: centsToAmount(amountCents),
+      refundedAt: refundDate,
+      method: cleanMethod,
+      reference: cleanReference,
+      reason: cleanReason,
+      status: "recorded",
+      signature,
+      createdAt: nowIso,
+      createdBy: actorData,
+      requestId: mutationId,
+    };
+    transaction.set(creditRef, {
+      ...creditPatch,
+      refundIds: admin.firestore.FieldValue.arrayUnion(mutationId),
+    }, { merge: true });
+    transaction.create(refundRef, refund);
+    transaction.create(auditRef, {
+      entityType: "refund",
+      entityId: mutationId,
+      action: "payer_credit.refunded",
+      refundId: mutationId,
+      creditId: cleanCreditId,
+      payerName: credit.payerName || "",
+      amountCents,
+      amount: centsToAmount(amountCents),
+      beforeAvailableAmount: Number(credit.availableAmount) || 0,
+      afterAvailableAmount: creditPatch.availableAmount,
+      actor: actorData,
+      reason: cleanReason,
+      createdAt: nowIso,
+      requestId: mutationId,
+    });
+    return {
+      refund: { id: mutationId, ...refund },
+      payerCredit: { id: cleanCreditId, ...credit, ...creditPatch },
+      idempotent: false,
+    };
+  });
+}
+
 async function createInvoiceLessonCreditNote({
   actor,
   invoiceId,
@@ -565,6 +872,7 @@ async function createInvoiceLessonCreditNote({
     }
 
     const creditPatch = invoiceAfterLessonCredit(invoice, line);
+    const originalInvoiceAmountCents = invoiceOriginalAmountCents(invoice);
     const updatedInvoice = { ...invoice, ...creditPatch };
     const financialPatch = invoiceFinancialPatch(updatedInvoice, payments, nowIso);
     if (financialPatch.overpaidAmountCents > 0) {
@@ -608,8 +916,7 @@ async function createInvoiceLessonCreditNote({
         amountCents: -lineAmountCents,
         amount: -centsToAmount(lineAmountCents),
       }],
-      originalInvoiceAmountCents: Number(invoice.amountCents)
-        || Math.round((Number(invoice.amount) || 0) * 100),
+      originalInvoiceAmountCents,
       originalInvoiceAmount: Number(invoice.amount) || 0,
       effectiveInvoiceAmountCents: creditPatch.effectiveAmountCents,
       effectiveInvoiceAmount: creditPatch.effectiveAmount,
@@ -623,6 +930,7 @@ async function createInvoiceLessonCreditNote({
     transaction.create(creditNoteRef, creditNote);
     transaction.set(counterRef, { seq: nextSequence, updatedAt: nowIso }, { merge: true });
     transaction.set(invoiceRef, {
+      amountCents: originalInvoiceAmountCents,
       ...creditPatch,
       ...financialPatch,
       status: isFullyCredited ? "Krediteeritud" : financialPatch.status,
@@ -673,6 +981,7 @@ async function createInvoiceLessonCreditNote({
       invoice: {
         id: cleanInvoiceId,
         ...invoice,
+        amountCents: originalInvoiceAmountCents,
         ...creditPatch,
         ...financialPatch,
         status: isFullyCredited ? "Krediteeritud" : financialPatch.status,
@@ -1213,7 +1522,7 @@ async function voidSinglePayment({ actor, paymentId, reason, requestId }) {
       };
     }
 
-    const amountCents = Number(payment.amountCents) || Math.round((Number(payment.amount) || 0) * 100);
+    const amountCents = paymentNetAmountCents(payment);
     if (amountCents <= 0) throw httpError(409, "Payment amount is invalid");
     const voidedPayment = {
       ...payment,
@@ -1923,6 +2232,30 @@ exports.financeApi = functions.https.onRequest(async (req, res) => {
         creditId: req.body?.creditId,
         allocations: req.body?.allocations,
         note: req.body?.note,
+        requestId: req.body?.requestId,
+      });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/invoices/resolve-overpayment") {
+      const result = await transferInvoiceOverpayment({
+        actor,
+        invoiceId: req.body?.invoiceId,
+        reason: req.body?.reason,
+        requestId: req.body?.requestId,
+      });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/payer-credits/refund") {
+      const result = await refundPayerCredit({
+        actor,
+        creditId: req.body?.creditId,
+        amount: req.body?.amount,
+        refundedAt: req.body?.refundedAt,
+        method: req.body?.method,
+        reference: req.body?.reference,
+        reason: req.body?.reason,
         requestId: req.body?.requestId,
       });
       res.status(result.idempotent ? 200 : 201).json(result);
