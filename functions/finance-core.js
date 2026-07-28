@@ -87,6 +87,87 @@ function packageBalanceAfterEntry(packageAccount = {}, creditsDelta, nowIso) {
   };
 }
 
+function selectStudentPackageForLesson(
+  studentPackages = [],
+  { lessonDate, requestedPackageId = "", preferredPackageId = "" } = {},
+) {
+  const date = validIsoDate(lessonDate, "lesson date");
+  const packages = (Array.isArray(studentPackages) ? studentPackages : [])
+    .filter(studentPackage =>
+      studentPackage
+      && studentPackage.id
+      && studentPackage.studentId
+      && studentPackage.productType === "lesson_package"
+      && studentPackage.status === "active"
+      && Number.isInteger(studentPackage.balanceCredits)
+      && studentPackage.balanceCredits > 0
+      && (!studentPackage.issuedAt || studentPackage.issuedAt <= date),
+    )
+    .sort((a, b) =>
+      `${a.issuedAt || ""}:${a.createdAt || ""}:${a.id}`
+        .localeCompare(`${b.issuedAt || ""}:${b.createdAt || ""}:${b.id}`),
+    );
+  const requestedId = String(requestedPackageId || "").trim();
+  if (requestedId) {
+    const requested = packages.find(studentPackage => studentPackage.id === requestedId);
+    if (!requested) {
+      const error = new Error("requested student package has no eligible lesson credits");
+      error.status = 409;
+      throw error;
+    }
+    return requested;
+  }
+  const preferredId = String(preferredPackageId || "").trim();
+  if (preferredId) {
+    const preferred = packages.find(studentPackage => studentPackage.id === preferredId);
+    if (preferred) return preferred;
+  }
+  return packages[0] || null;
+}
+
+function packageBalanceAfterLessonMovement(packageAccount = {}, movement, nowIso) {
+  const direction = String(movement || "");
+  if (!["consume", "restore"].includes(direction)) {
+    const error = new Error("package lesson movement must be consume or restore");
+    error.status = 400;
+    throw error;
+  }
+  const balanceBefore = Number(packageAccount.balanceCredits);
+  const consumedBefore = Number(packageAccount.consumedCredits) || 0;
+  if (!Number.isInteger(balanceBefore) || balanceBefore < 0 || !Number.isInteger(consumedBefore)) {
+    const error = new Error("package account has invalid lesson balances");
+    error.status = 409;
+    throw error;
+  }
+  if (direction === "consume" && balanceBefore <= 0) {
+    const error = new Error("package has insufficient lesson credits");
+    error.status = 409;
+    throw error;
+  }
+  if (direction === "restore" && consumedBefore <= 0) {
+    const error = new Error("package has no consumed lesson credit to restore");
+    error.status = 409;
+    throw error;
+  }
+  const creditsDelta = direction === "consume" ? -1 : 1;
+  const balanceAfter = balanceBefore + creditsDelta;
+  const consumedAfter = consumedBefore - creditsDelta;
+  return {
+    creditsDelta,
+    balanceBefore,
+    balanceAfter,
+    consumedBefore,
+    consumedAfter,
+    accountPatch: {
+      balanceCredits: balanceAfter,
+      consumedCredits: consumedAfter,
+      ledgerEntryCount: (Number(packageAccount.ledgerEntryCount) || 0) + 1,
+      status: balanceAfter === 0 ? "depleted" : "active",
+      updatedAt: nowIso,
+    },
+  };
+}
+
 function tariffAssignmentPlan(existingAssignments = [], effectiveFrom) {
   const startDate = validIsoDate(effectiveFrom, "effectiveFrom");
   const sorted = (Array.isArray(existingAssignments) ? existingAssignments : [])
@@ -414,6 +495,8 @@ function creditAfterRefund(credit = {}, refundAmountCents, nowIso) {
 
 function lessonIsBillable(lesson = {}) {
   if (String(lesson.invoiceId || "").trim() || lesson.billingStatus === "invoiced") return false;
+  if (lesson.packageAccountingSource === "package_ledger_v1") return false;
+  if (lesson.packageConsumptionStatus === "consumed") return false;
   if (lesson.billingStatus === "late_cancel_billable") return true;
   return lesson.status === "Toimunud"
     && (!lesson.billingStatus || lesson.billingStatus === "unbilled");
@@ -431,6 +514,11 @@ function lessonBillingDispositionPatch(lesson = {}, nextStatus, nowIso) {
   if (!allowed.has(nextStatus)) {
     const error = new Error("unsupported lesson billing status");
     error.status = 400;
+    throw error;
+  }
+  if (lesson.packageConsumptionStatus === "consumed") {
+    const error = new Error("package-covered lesson billing status cannot be changed");
+    error.status = 409;
     throw error;
   }
   if (String(lesson.invoiceId || "").trim() || lesson.billingStatus === "invoiced") {
@@ -629,9 +717,11 @@ module.exports = {
   lessonIsBillable,
   normalizeAllocations,
   packageBalanceAfterEntry,
+  packageBalanceAfterLessonMovement,
   paymentNetAmountCents,
   planInvoiceOverpaymentTransfer,
   positiveInteger,
+  selectStudentPackageForLesson,
   selectBillableLessons,
   tariffAssignmentPlan,
   toCents,

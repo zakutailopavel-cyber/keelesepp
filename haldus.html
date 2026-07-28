@@ -234,6 +234,8 @@ const invoiceMatchesParentProfile = (inv,parent) => {
 };
 const lessonBillingStatusMeta = lesson => {
   if(lesson?.invoiceId||lesson?.billingStatus==='invoiced') return {label:`Arvel ${lesson?.invoiceNum||''}`.trim(),bg:'#ede9fe',color:'#6d28d9'};
+  if(lesson?.packageConsumptionStatus==='consumed') return {label:'Paketist tasutud',bg:'#dcfce7',color:'#166534'};
+  if(lesson?.packageConsumptionStatus==='needs_attention') return {label:'Pakett vajab tähelepanu',bg:'#fee2e2',color:'#991b1b'};
   if(lesson?.billingStatus==='free') return {label:'Tasuta',bg:'#dcfce7',color:'#166534'};
   if(lesson?.billingStatus==='cancelled_on_time') return {label:'Õigeaegselt tühistatud',bg:'#dbeafe',color:'#1d4ed8'};
   if(lesson?.billingStatus==='late_cancel_billable') return {label:'Hiline tühistus · tasuline',bg:'#ffedd5',color:'#9a3412'};
@@ -248,7 +250,9 @@ const billableLessonsForStudent = (lessonRecords,student) => {
       (
         (
           lesson.status==='Toimunud' &&
-          (!lesson.billingStatus||lesson.billingStatus==='unbilled')
+          (!lesson.billingStatus||lesson.billingStatus==='unbilled') &&
+          lesson.packageAccountingSource!=='package_ledger_v1' &&
+          lesson.packageConsumptionStatus!=='consumed'
         )
         || lesson.billingStatus==='late_cancel_billable'
       ) &&
@@ -5616,9 +5620,9 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
                         {billingMeta&&<span className="badge" style={{background:billingMeta.bg,color:billingMeta.color,fontSize:'.68rem'}}>{billingMeta.label}</span>}
                         {!billingMeta&&invoiceDraft.lessonIds.includes(l.id)&&<span className="badge" style={{background:'#fef3c7',color:'#92400e',fontSize:'.68rem'}}>Arveldamata</span>}
                         {canManage&&<button onClick={()=>openLessonEditor(l)} className="btn btn-dark btn-sm" style={{padding:'4px 8px'}}>Muuda</button>}
-                        {canManage&&<button onClick={()=>(l.invoiceId||l.billingStatus)?notify('⚠ Finantsstaatusega tundi ei saa kustutada'):deleteLesson(l)}
-                          className="btn btn-ghost btn-sm" style={{padding:'4px 8px',opacity:(l.invoiceId||l.billingStatus)?.55:1}}>
-                          {l.invoiceId||l.billingStatus?'Lukus':'Kustuta'}
+                        {canManage&&<button onClick={()=>(l.invoiceId||l.billingStatus||l.packageConsumptionStatus==='consumed')?notify('⚠ Finants- või paketiliikumisega tundi ei saa kustutada'):deleteLesson(l)}
+                          className="btn btn-ghost btn-sm" style={{padding:'4px 8px',opacity:(l.invoiceId||l.billingStatus||l.packageConsumptionStatus==='consumed')?.55:1}}>
+                          {l.invoiceId||l.billingStatus||l.packageConsumptionStatus==='consumed'?'Lukus':'Kustuta'}
                         </button>}
                       </div>
                     </div>
@@ -7743,7 +7747,7 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
   lStatus,setLStatus,lComment,setLComment,
   lNewWords,setLNewWords,lGrammar,setLGrammar,lCovered,setLCovered,lNextNotes,setLNextNotes,
   lDur,setLDur,lessonFile,setLessonFile,saveLesson,deleteLesson,db,user,notify,students,markAttendance,
-  isAdmin,updateLessonBillingDisposition}) {
+  studentPackages=[],isAdmin,updateLessonBillingDisposition}) {
 
   const [moveDate,setMoveDate] = React.useState(modalEv.occurrenceDate||modalEv.date||new Date().toISOString().split("T")[0]);
   const [moveTime,setMoveTime] = React.useState(modalEv.time||"09:00");
@@ -7785,6 +7789,26 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
     }
   };
   const lessonDate = modalEv.occurrenceDate||modalEv.date||today();
+  const lessonStudent = (students||[]).find(student=>
+    student.id===modalEv.studentId
+    || normalizeText(student.name)===normalizeText(modalEv.studentName)
+  );
+  const lessonPackageOptions = React.useMemo(
+    ()=>(studentPackages||[])
+      .filter(studentPackage=>
+        studentPackage.studentId===lessonStudent?.id
+        && (
+          (
+            studentPackage.status==='active'
+            && Number(studentPackage.balanceCredits)>0
+            && (!studentPackage.issuedAt||studentPackage.issuedAt<=lessonDate)
+          )
+          || studentPackage.id===modalEv.packageStudentPackageId
+        )
+      )
+      .sort((a,b)=>`${a.issuedAt||''}:${a.createdAt||''}:${a.id}`.localeCompare(`${b.issuedAt||''}:${b.createdAt||''}:${b.id}`)),
+    [studentPackages,lessonStudent?.id,lessonDate,modalEv.packageStudentPackageId]
+  );
   const assignedGroupStudents = React.useMemo(()=>{
     if(!modalEv.isGroup) return [];
     const ids = new Set([...(modalEv.students||[]),...(modalEv.groupMembers||[])]);
@@ -7887,16 +7911,22 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
     if(!linkedLessonSnap.empty){
       const linkedLessonDoc = linkedLessonSnap.docs[0];
       const linkedLessonData = linkedLessonDoc.data();
+      if(linkedLessonData.packageConsumptionStatus==="consumed"){
+        notify("⚠ Paketist maha arvestatud tundi ei saa kustutada. Muuda päeviku staatus esmalt puudumiseks.");
+        return;
+      }
       await linkedLessonDoc.ref.delete();
       if(linkedLessonData.studentId && linkedLessonData.studentId!=="ext" && linkedLessonData.status==="Toimunud"){
-        const studentRef = db.collection("students").doc(linkedLessonData.studentId);
-        const studentSnap = await studentRef.get();
-        const lastInvoiceAt = studentSnap.data()?.lastInvoiceAt || "";
-        const patch = {packageUsed:firebase.firestore.FieldValue.increment(-1)};
-        if(!lastInvoiceAt || String(linkedLessonData.date||"") >= String(lastInvoiceAt)){
-          patch.lessonsSinceInvoice = firebase.firestore.FieldValue.increment(-1);
+        if(linkedLessonData.packageAccountingSource!=="package_ledger_v1"){
+          const studentRef = db.collection("students").doc(linkedLessonData.studentId);
+          const studentSnap = await studentRef.get();
+          const lastInvoiceAt = studentSnap.data()?.lastInvoiceAt || "";
+          const patch = {packageUsed:firebase.firestore.FieldValue.increment(-1)};
+          if(!lastInvoiceAt || String(linkedLessonData.date||"") >= String(lastInvoiceAt)){
+            patch.lessonsSinceInvoice = firebase.firestore.FieldValue.increment(-1);
+          }
+          await studentRef.update(patch);
         }
-        await studentRef.update(patch);
       }
     }
     await db.collection("schedule").doc(modalEv.id).delete();
@@ -7906,13 +7936,15 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
 
   const hardDeleteJournalEntry = async()=>{
     if(!modalEv.lessonEntryId) return;
-    await deleteLesson({
+    const deleted=await deleteLesson({
       id: modalEv.lessonEntryId,
       studentId: modalEv.studentId||'',
       status: modalEv.status||lStatus,
-      scheduleId: modalEv.scheduleId||modalEv.id||''
+      scheduleId: modalEv.scheduleId||modalEv.id||'',
+      packageConsumptionStatus:modalEv.packageConsumptionStatus||'',
+      packageAccountingSource:modalEv.packageAccountingSource||''
     });
-    setModalEv(null);
+    if(deleted) setModalEv(null);
   };
 
   const rescheduleLesson = async()=>{
@@ -8158,14 +8190,45 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
                   <option value="2">2 ★★</option>
                 </select>
               </div>
+              {(lessonPackageOptions.length>0||modalEv.packageAccountingSource==='package_ledger_v1')&&(
+                <div style={{padding:12,borderRadius:12,background:'#f0fdf4',border:'1px solid #bbf7d0',display:'grid',gap:7}}>
+                  <div style={{fontSize:'.75rem',fontWeight:800,color:'#166534',textTransform:'uppercase'}}>Tunnipakett</div>
+                  <select
+                    value={modalEv.requestedStudentPackageId||(
+                      modalEv.packageConsumptionStatus==='consumed'
+                        ? modalEv.packageStudentPackageId||''
+                        : ''
+                    )}
+                    onChange={e=>setModalEv(prev=>({...prev,requestedStudentPackageId:e.target.value}))}
+                    disabled={modalEv.packageConsumptionStatus==='consumed'}>
+                    <option value="">Automaatne · vanim kehtiv pakett</option>
+                    {lessonPackageOptions.map(studentPackage=>(
+                      <option key={studentPackage.id} value={studentPackage.id}>
+                        {studentPackage.packageProductName} · {Number(studentPackage.balanceCredits)||0} tundi alles
+                      </option>
+                    ))}
+                  </select>
+                  <div style={{fontSize:'.72rem',color:modalEv.packageConsumptionStatus==='needs_attention'?'#991b1b':'#166534'}}>
+                    {modalEv.packageConsumptionStatus==='consumed'
+                      ? `Üks tund on maha arvestatud paketist ${modalEv.packageProductName||''}.`
+                      : modalEv.packageConsumptionStatus==='restored'
+                        ? 'Varasem paketikrediit on tagastatud eraldi liikumisega.'
+                        : modalEv.packageConsumptionStatus==='needs_attention'
+                          ? `Vajab tähelepanu: ${modalEv.packageSyncError||'sobivat paketikrediiti ei leitud'}.`
+                          : 'Toimunud tunni salvestamisel arvestatakse üks krediit automaatselt maha.'}
+                  </div>
+                </div>
+              )}
               {isAdmin&&isJournalEdit&&(
                 <div style={{padding:12,borderRadius:12,background:'#fff7ed',border:'1px solid #fed7aa',display:'grid',gap:7}}>
                   <div style={{fontSize:'.75rem',fontWeight:800,color:'#9a3412',textTransform:'uppercase'}}>Finantsstaatus</div>
                   {modalEv.invoiceId
                     ? <div style={{fontSize:'.82rem',fontWeight:700,color:'#6d28d9'}}>Arvel {modalEv.invoiceNum||modalEv.invoiceId} · muutmine lukus</div>
-                    : <select value={modalEv.billingStatus||''} onChange={changeBillingDisposition} disabled={billingBusy}>
-                        {billingOptions.map(([value,label])=><option key={value||'unset'} value={value}>{label}</option>)}
-                      </select>}
+                    : modalEv.packageConsumptionStatus==='consumed'
+                      ? <div style={{fontSize:'.82rem',fontWeight:700,color:'#166534'}}>Paketist tasutud · muutmine lukus</div>
+                      : <select value={modalEv.billingStatus||''} onChange={changeBillingDisposition} disabled={billingBusy}>
+                          {billingOptions.map(([value,label])=><option key={value||'unset'} value={value}>{label}</option>)}
+                        </select>}
                   <div style={{fontSize:'.72rem',color:'#9a3412'}}>
                     Salvesta esmalt päeviku staatus. Finantsstaatuse muutmine küsib põhjust ja salvestub auditisse.
                   </div>
@@ -10094,7 +10157,8 @@ function App() {
       attachmentType:primaryAttachment?.type||'',
       attachmentSize:primaryAttachment?.size||0,
       attachment:primaryAttachment,
-      attachments
+      attachments,
+      requestedStudentPackageId:modalEv.requestedStudentPackageId||''
     };
 
     let existingLessonDoc = null;
@@ -10160,7 +10224,37 @@ function App() {
       await db.collection('schedule').doc(modalEv.id).update({status:scheduleStatus});
     }
 
-    if(stu){
+    let packageSyncMessage='';
+    const ledgerManaged=Boolean(
+      stu
+      && (
+        (studentPackages||[]).some(studentPackage=>studentPackage.studentId===stu.id)
+        || existingLessonData?.packageAccountingSource==='package_ledger_v1'
+      )
+    );
+    if(stu&&ledgerManaged){
+      try{
+        const packageSync=await financeApiPost('/lessons/package-consumption/sync',{
+          lessonId:savedLessonId,
+          requestId:financeRequestId('lessonpackage')
+        });
+        if(packageSync?.lessonFields){
+          setLes(prev=>prev.map(lesson=>lesson.id===savedLessonId?{...lesson,...packageSync.lessonFields}:lesson));
+        }
+        if(packageSync?.status==='consumed'){
+          packageSyncMessage=` · paketis ${packageSync.balanceAfter??'—'} tundi`;
+        }else if(packageSync?.status==='restored'){
+          packageSyncMessage=` · paketikrediit tagastatud`;
+        }else if(packageSync?.status==='needs_attention'){
+          packageSyncMessage=` · ⚠ paketikrediit vajab tähelepanu`;
+        }
+      }catch(err){
+        console.error('Lesson package sync failed:',err);
+        packageSyncMessage=' · ⚠ paketi arvestus vajab kordust';
+      }
+    }
+
+    if(stu&&!ledgerManaged){
       const wasCounted = existingLessonData?.status==='Toimunud';
       const isCounted = lStatus==='Toimunud';
       if(!existingLessonRef && isCounted){
@@ -10182,7 +10276,7 @@ function App() {
     }
 
     setLTopic('');setLComment('');setLNewWords('');setLGrammar('');setLCovered('');setLNextNotes('');setLessonFile([]);setModalEv(null);
-    notify(existingLessonRef?'✓ Aruanne uuendatud!':'✓ Aruanne salvestatud!');
+    notify(`${existingLessonRef?'✓ Aruanne uuendatud!':'✓ Aruanne salvestatud!'}${packageSyncMessage}`);
     if(selectedLessonFiles.length){
       const filesToUpload = [...selectedLessonFiles];
       const baseAttachments = [...(lessonPayload.attachments||[])];
@@ -10220,7 +10314,7 @@ function App() {
         }
       },0);
     }
-  },[modalEv,lTopic,lGrade,lStatus,lComment,lDur,lessonFile,students,lessons,user,logActivity,notify]);
+  },[modalEv,lTopic,lGrade,lStatus,lComment,lDur,lessonFile,students,lessons,studentPackages,user,logActivity,notify]);
 
   const addHw=useCallback(async()=>{
     if(!selStu||!hwTask.trim()){notify('⚠ Sisesta ülesanne');return;}
@@ -10391,27 +10485,34 @@ function App() {
   },[allUsers,students,user,logActivity,notify,setSelStu,setTab]);
 
   const deleteLesson=useCallback(async(lesson)=>{
-    if(!lesson?.id) return;
+    if(!lesson?.id) return false;
+    if(lesson.packageConsumptionStatus==='consumed'){
+      notify('⚠ Paketist maha arvestatud tundi ei saa kustutada. Muuda staatus esmalt puudumiseks, et krediit tagastataks.');
+      return false;
+    }
     if(lesson.invoiceId||lesson.billingStatus){
       notify(`⚠ Tunnil on finantsstaatus${lesson.invoiceNum?` (${lesson.invoiceNum})`:''} ja seda ei saa kustutada.`);
-      return;
+      return false;
     }
-    if(!window.confirm('Kustuta see päeviku sissekanne?')) return;
+    if(!window.confirm('Kustuta see päeviku sissekanne?')) return false;
     await db.collection('lessons').doc(lesson.id).delete();
     if(lesson.studentId && lesson.studentId!=='ext' && lesson.status==='Toimunud'){
-      const studentRef = db.collection('students').doc(lesson.studentId);
-      const studentSnap = await studentRef.get();
-      const lastInvoiceAt = studentSnap.data()?.lastInvoiceAt || '';
-      const patch = {packageUsed:firebase.firestore.FieldValue.increment(-1)};
-      if(!lastInvoiceAt || String(lesson.date||'') >= String(lastInvoiceAt)){
-        patch.lessonsSinceInvoice = firebase.firestore.FieldValue.increment(-1);
+      if(lesson.packageAccountingSource!=='package_ledger_v1'){
+        const studentRef = db.collection('students').doc(lesson.studentId);
+        const studentSnap = await studentRef.get();
+        const lastInvoiceAt = studentSnap.data()?.lastInvoiceAt || '';
+        const patch = {packageUsed:firebase.firestore.FieldValue.increment(-1)};
+        if(!lastInvoiceAt || String(lesson.date||'') >= String(lastInvoiceAt)){
+          patch.lessonsSinceInvoice = firebase.firestore.FieldValue.increment(-1);
+        }
+        await studentRef.update(patch);
       }
-      await studentRef.update(patch);
     }
     if(lesson.scheduleId){
       await db.collection('schedule').doc(lesson.scheduleId).update({status:'Planeeritud'});
     }
     notify('✓ Tunni sissekanne kustutatud');
+    return true;
   },[notify]);
 
   const openLessonEditor=useCallback(async(lesson)=>{
@@ -10454,6 +10555,16 @@ function App() {
       billingUpdatedAt:freshLesson.billingUpdatedAt||'',
       invoiceId:freshLesson.invoiceId||'',
       invoiceNum:freshLesson.invoiceNum||'',
+      requestedStudentPackageId:freshLesson.requestedStudentPackageId||'',
+      packageAccountingSource:freshLesson.packageAccountingSource||'',
+      packageConsumptionStatus:freshLesson.packageConsumptionStatus||'',
+      packageStudentPackageId:freshLesson.packageStudentPackageId||'',
+      packageProductName:freshLesson.packageProductName||'',
+      packageConsumptionEntryId:freshLesson.packageConsumptionEntryId||'',
+      packageRestorationEntryId:freshLesson.packageRestorationEntryId||'',
+      packageConsumptionCycle:freshLesson.packageConsumptionCycle||0,
+      packageSyncError:freshLesson.packageSyncError||'',
+      packageSyncedAt:freshLesson.packageSyncedAt||'',
       fileUrl: lessonFileUrl,
       fileName: lessonFileName,
       attachmentUrl: lessonFileUrl,
@@ -11678,7 +11789,7 @@ function App() {
         lNextNotes={lNextNotes} setLNextNotes={setLNextNotes}
         lDur={lDur} setLDur={setLDur} lessonFile={lessonFile} setLessonFile={setLessonFile}
         saveLesson={saveLesson} deleteLesson={deleteLesson} db={db} user={user} notify={notify}
-        students={students} markAttendance={markAttendance}
+        students={students} studentPackages={studentPackages} markAttendance={markAttendance}
         isAdmin={isAdmin} updateLessonBillingDisposition={updateLessonBillingDisposition}/>}
     </div>
   );

@@ -134,6 +134,34 @@ service cloud.firestore {
       ]);
     }
 
+    function createsNoLessonPackageSource() {
+      return !request.resource.data.keys().hasAny([
+        'packageAccountingSource',
+        'packageConsumptionStatus',
+        'packageStudentPackageId',
+        'packageProductName',
+        'packageConsumptionEntryId',
+        'packageRestorationEntryId',
+        'packageConsumptionCycle',
+        'packageSyncError',
+        'packageSyncedAt'
+      ]);
+    }
+
+    function changesLessonPackageSource() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasAny([
+        'packageAccountingSource',
+        'packageConsumptionStatus',
+        'packageStudentPackageId',
+        'packageProductName',
+        'packageConsumptionEntryId',
+        'packageRestorationEntryId',
+        'packageConsumptionCycle',
+        'packageSyncError',
+        'packageSyncedAt'
+      ]);
+    }
+
     function changesStudentTariffSource() {
       return request.resource.data.diff(resource.data).affectedKeys().hasAny([
         'latestTariffAssignmentId',
@@ -208,9 +236,10 @@ service cloud.firestore {
 
     match /lessons/{lessonId} {
       allow read: if isStaff() || ownsStudent(resource.data.studentId);
-      allow create: if isStaff();
+      allow create: if isStaff() && createsNoLessonPackageSource();
       allow update: if isStaff()
         && !changesLessonBillingSource()
+        && !changesLessonPackageSource()
         && (
           !changesLessonBillingBasis()
           || (
@@ -232,6 +261,10 @@ service cloud.firestore {
         && (
           !resource.data.keys().hasAny(['billingStatus'])
           || resource.data.billingStatus == ''
+        )
+        && (
+          !resource.data.keys().hasAny(['packageConsumptionStatus'])
+          || resource.data.packageConsumptionStatus != 'consumed'
         );
     }
 
@@ -351,6 +384,16 @@ service cloud.firestore {
     }
 
     match /packageLedger/{entryId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
+    match /lessonPackageStates/{lessonId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
+    match /lessonPackageSyncRequests/{requestId} {
       allow read: if isAdmin();
       allow create, update, delete: if false;
     }

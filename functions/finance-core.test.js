@@ -14,10 +14,12 @@ const {
   lessonIsBillable,
   normalizeAllocations,
   packageBalanceAfterEntry,
+  packageBalanceAfterLessonMovement,
   paymentNetAmountCents,
   planInvoiceOverpaymentTransfer,
   positiveInteger,
   selectBillableLessons,
+  selectStudentPackageForLesson,
   tariffAssignmentPlan,
   toCents,
 } = require("./finance-core");
@@ -118,6 +120,109 @@ test("package balance rejects fractional, zero, and overdraft movements", () => 
   assert.throws(
     () => packageBalanceAfterEntry({ balanceCredits: 2 }, 0, "now"),
     /non-zero integer/,
+  );
+});
+
+test("lesson package selection honors explicit choice then oldest eligible balance", () => {
+  const packages = [
+    {
+      id: "new",
+      studentId: "student-a",
+      productType: "lesson_package",
+      status: "active",
+      balanceCredits: 4,
+      issuedAt: "2026-07-15",
+      createdAt: "2026-07-15T10:00:00.000Z",
+    },
+    {
+      id: "old",
+      studentId: "student-a",
+      productType: "lesson_package",
+      status: "active",
+      balanceCredits: 2,
+      issuedAt: "2026-07-01",
+      createdAt: "2026-07-01T10:00:00.000Z",
+    },
+    {
+      id: "future",
+      studentId: "student-a",
+      productType: "lesson_package",
+      status: "active",
+      balanceCredits: 10,
+      issuedAt: "2026-08-01",
+    },
+  ];
+  assert.equal(
+    selectStudentPackageForLesson(packages, { lessonDate: "2026-07-28" }).id,
+    "old",
+  );
+  assert.equal(
+    selectStudentPackageForLesson(packages, {
+      lessonDate: "2026-07-28",
+      requestedPackageId: "new",
+    }).id,
+    "new",
+  );
+  assert.equal(
+    selectStudentPackageForLesson(packages, {
+      lessonDate: "2026-07-28",
+      preferredPackageId: "new",
+    }).id,
+    "new",
+  );
+  assert.throws(
+    () => selectStudentPackageForLesson(packages, {
+      lessonDate: "2026-07-28",
+      requestedPackageId: "future",
+    }),
+    /no eligible/,
+  );
+});
+
+test("lesson package consumption and restoration preserve account totals", () => {
+  const consumed = packageBalanceAfterLessonMovement(
+    { balanceCredits: 2, consumedCredits: 3, ledgerEntryCount: 4 },
+    "consume",
+    "2026-07-28T10:00:00.000Z",
+  );
+  assert.equal(consumed.creditsDelta, -1);
+  assert.equal(consumed.balanceAfter, 1);
+  assert.equal(consumed.consumedAfter, 4);
+  assert.equal(consumed.accountPatch.ledgerEntryCount, 5);
+
+  const restored = packageBalanceAfterLessonMovement(
+    { balanceCredits: 1, consumedCredits: 4, ledgerEntryCount: 5 },
+    "restore",
+    "2026-07-28T11:00:00.000Z",
+  );
+  assert.equal(restored.creditsDelta, 1);
+  assert.equal(restored.balanceAfter, 2);
+  assert.equal(restored.consumedAfter, 3);
+  assert.equal(restored.accountPatch.status, "active");
+  assert.throws(
+    () => packageBalanceAfterLessonMovement(
+      { balanceCredits: 0, consumedCredits: 1 },
+      "consume",
+      "now",
+    ),
+    /insufficient/,
+  );
+  assert.equal(
+    lessonIsBillable({
+      id: "package-covered",
+      status: "Toimunud",
+      packageConsumptionStatus: "consumed",
+    }),
+    false,
+  );
+  assert.equal(
+    lessonIsBillable({
+      id: "package-needs-attention",
+      status: "Toimunud",
+      packageAccountingSource: "package_ledger_v1",
+      packageConsumptionStatus: "needs_attention",
+    }),
+    false,
   );
 });
 
@@ -292,6 +397,14 @@ test("billing dispositions reject incompatible lesson states and invoiced lesson
       "now",
     ),
     /cannot be changed/,
+  );
+  assert.throws(
+    () => lessonBillingDispositionPatch(
+      { status: "Toimunud", packageConsumptionStatus: "consumed" },
+      "free",
+      "now",
+    ),
+    /package-covered/,
   );
 });
 
