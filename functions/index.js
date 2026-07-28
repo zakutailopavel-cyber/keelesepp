@@ -19,6 +19,11 @@ const { google } = require("googleapis");
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 const {
+  buildCreditNotePdf,
+  composeCreditNoteEmail,
+  creditNoteFileName,
+} = require("./credit-note-document");
+const {
   buildLessonInvoiceLines,
   centsToAmount,
   creditAfterApplication,
@@ -906,6 +911,14 @@ async function createInvoiceLessonCreditNote({
       studentId: invoice.studentId || lesson.studentId || "",
       studentName: invoice.studentName || lesson.studentName || "",
       payerName: invoice.payerName || invoice.parentName || invoice.studentName || "",
+      payerEmail: invoice.payerEmail || invoice.parentEmail || "",
+      payerRegCode: invoice.payerRegCode || "",
+      payerAddress: invoice.payerAddress || invoice.parentAddress || "",
+      issuer: {
+        company: PAYMENT_DETAILS.company,
+        regCode: PAYMENT_DETAILS.regCode,
+        email: PAYMENT_DETAILS.email,
+      },
       lessonId: cleanLessonId,
       lessonDate: correction.lessonDate,
       amountCents: lineAmountCents,
@@ -1693,6 +1706,14 @@ async function loadInvoice(invoiceId) {
   return { id: snap.id, ref, ...snap.data() };
 }
 
+async function loadCreditNote(creditNoteId) {
+  if (!creditNoteId) throw httpError(400, "creditNoteId required");
+  const ref = db.collection("creditNotes").doc(String(creditNoteId));
+  const snap = await ref.get();
+  if (!snap.exists) throw httpError(404, "Credit note not found");
+  return { id: snap.id, ref, ...snap.data() };
+}
+
 async function loadInvoiceStudent(invoice) {
   if (!invoice.studentId) return null;
   const snap = await db.collection("students").doc(String(invoice.studentId)).get();
@@ -1821,6 +1842,22 @@ async function deliverEmail(message, context = {}) {
   const provider = hasSmtp ? "smtp" : resendKey ? "resend" : sendgridKey ? "sendgrid" : "firestore";
   const from = process.env.MAIL_FROM || SMTP_DEFAULTS.from || MAIL_FROM;
   const replyTo = MAIL_REPLY_TO;
+  const attachments = (Array.isArray(message.attachments) ? message.attachments : []).map(attachment => {
+    const content = Buffer.isBuffer(attachment.content)
+      ? attachment.content
+      : Buffer.from(String(attachment.content || ""), "base64");
+    return {
+      filename: String(attachment.filename || "attachment"),
+      contentType: String(attachment.contentType || "application/octet-stream"),
+      content,
+      contentBase64: content.toString("base64"),
+      size: content.length,
+    };
+  });
+  const attachmentBytes = attachments.reduce((sum, attachment) => sum + attachment.size, 0);
+  if (attachmentBytes > 600000) {
+    throw httpError(413, "Email attachments are too large for the delivery queue");
+  }
   const ref = db.collection("emailQueue").doc();
   const queueBase = {
     ...context,
@@ -1830,6 +1867,12 @@ async function deliverEmail(message, context = {}) {
     subject: message.subject,
     html: message.html,
     text: message.text,
+    attachments: attachments.map(attachment => ({
+      filename: attachment.filename,
+      contentType: attachment.contentType,
+      contentBase64: attachment.contentBase64,
+      size: attachment.size,
+    })),
     status: "queued",
     createdAt: admin.firestore.FieldValue.serverTimestamp(),
   };
@@ -1856,6 +1899,11 @@ async function deliverEmail(message, context = {}) {
         subject: message.subject,
         html: message.html,
         text: message.text,
+        attachments: attachments.map(attachment => ({
+          filename: attachment.filename,
+          content: attachment.content,
+          contentType: attachment.contentType,
+        })),
       });
       providerId = info.messageId || "";
       await ref.update({ status: "sent", provider: "smtp", providerId, sentAt: admin.firestore.FieldValue.serverTimestamp() });
@@ -1872,6 +1920,10 @@ async function deliverEmail(message, context = {}) {
         subject: message.subject,
         html: message.html,
         text: message.text,
+        attachments: attachments.map(attachment => ({
+          filename: attachment.filename,
+          content: attachment.contentBase64,
+        })),
       });
       providerId = data.id || "";
       await ref.update({ status: "sent", provider: "resend", providerId, sentAt: admin.firestore.FieldValue.serverTimestamp() });
@@ -1890,6 +1942,12 @@ async function deliverEmail(message, context = {}) {
         { type: "text/plain", value: message.text },
         { type: "text/html", value: message.html },
       ],
+      attachments: attachments.map(attachment => ({
+        content: attachment.contentBase64,
+        type: attachment.contentType,
+        filename: attachment.filename,
+        disposition: "attachment",
+      })),
     });
     providerId = data.id || "";
     await ref.update({ status: "sent", provider: "sendgrid", providerId, sentAt: admin.firestore.FieldValue.serverTimestamp() });
@@ -1956,6 +2014,87 @@ async function sendInvoiceMessage(invoiceId, { type = "invoice", actor = null } 
   }
   await invoice.ref.update(patch);
   return { ...delivery, to, invoiceId: invoice.id };
+}
+
+async function creditNoteDocumentData(creditNoteId) {
+  const creditNote = await loadCreditNote(creditNoteId);
+  const invoice = await loadInvoice(creditNote.invoiceId);
+  const student = await loadInvoiceStudent(invoice);
+  return { creditNote, invoice, student };
+}
+
+async function creditNotePdf(creditNoteId) {
+  const data = await creditNoteDocumentData(creditNoteId);
+  const content = await buildCreditNotePdf({
+    ...data,
+    paymentDetails: {
+      ...PAYMENT_DETAILS,
+      ...(data.creditNote.issuer || {}),
+    },
+  });
+  return {
+    ...data,
+    content,
+    filename: creditNoteFileName(data.creditNote),
+  };
+}
+
+async function sendCreditNoteMessage(creditNoteId, { actor = null } = {}) {
+  const data = await creditNotePdf(creditNoteId);
+  const payload = composeCreditNoteEmail({
+    creditNote: data.creditNote,
+    invoice: data.invoice,
+    student: data.student,
+    appBaseUrl: APP_BASE_URL,
+  });
+  const to = firstEmail(payload.to);
+  if (!to) throw httpError(400, "Recipient email is missing");
+  const nowIso = new Date().toISOString();
+
+  let delivery;
+  try {
+    delivery = await deliverEmail({
+      ...payload,
+      to,
+      attachments: [{
+        filename: data.filename,
+        contentType: "application/pdf",
+        content: data.content,
+      }],
+    }, {
+      type: "credit_note",
+      creditNoteId: data.creditNote.id,
+      creditNoteNum: data.creditNote.num || "",
+      invoiceId: data.invoice.id,
+      invoiceNum: data.invoice.num || "",
+      studentId: data.invoice.studentId || "",
+      studentName: data.invoice.studentName || data.student?.name || "",
+      createdByUid: actor?.decoded?.uid || "system",
+      createdByEmail: actor?.decoded?.email || "system",
+    });
+  } catch (error) {
+    await data.creditNote.ref.update({
+      emailStatus: "failed",
+      emailLastError: String(error.message || error).slice(0, 300),
+      emailUpdatedAt: nowIso,
+    });
+    throw error;
+  }
+
+  const patch = {
+    emailRecipient: to,
+    emailStatus: delivery.status,
+    emailUpdatedAt: nowIso,
+  };
+  if (delivery.status === "sent") patch.emailSentAt = nowIso;
+  if (delivery.status === "queued") patch.emailQueuedAt = nowIso;
+  await data.creditNote.ref.update(patch);
+  return {
+    ...delivery,
+    to,
+    creditNoteId: data.creditNote.id,
+    filename: data.filename,
+  };
 }
 
 function shouldSendDue10Reminder(invoice, todayIso, force = false) {
@@ -2107,6 +2246,23 @@ exports.invoiceApi = functions
   }
 
   try {
+    if (path === "/credit-note/pdf" || path === "/credit-note/send") {
+      const actor = await requireAdminUser(req);
+      if (path === "/credit-note/pdf") {
+        const result = await creditNotePdf(req.body?.creditNoteId);
+        res.json({
+          creditNoteId: result.creditNote.id,
+          filename: result.filename,
+          contentType: "application/pdf",
+          contentBase64: result.content.toString("base64"),
+        });
+        return;
+      }
+      const result = await sendCreditNoteMessage(req.body?.creditNoteId, { actor });
+      res.json(result);
+      return;
+    }
+
     const actor = await requireStaffUser(req);
 
     if (path === "/send") {

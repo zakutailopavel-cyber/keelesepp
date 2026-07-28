@@ -93,8 +93,14 @@ default, manual invoices remain available as a migration fallback, and the
 server still validates the chosen IDs transactionally before creating immutable
 lines and marking their source lessons as invoiced.
 
-The next slice should add a printable/email credit-note document, then close
-Stage 4 with focused emulator coverage for the lesson and invoice transaction.
+The sixth Stage 4 slice creates a real PDF document for each lesson-line credit
+note and can send that PDF as an email attachment through the existing SMTP,
+Resend, SendGrid, or Firestore queue delivery path. The PDF is always rebuilt
+from the immutable credit-note record; delivery metadata does not rewrite its
+financial amount, reason, source invoice, or source lesson.
+
+The final Stage 4 hardening slice should add focused Firestore emulator coverage
+for the lesson-to-invoice and lesson-credit transactions, then mark Stage 4 done.
 Invoices linked to lessons remain intentionally not directly deletable.
 
 ## Following slice: tariffs and packages
