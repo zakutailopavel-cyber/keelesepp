@@ -35,8 +35,10 @@ const {
   invoiceOriginalAmountCents,
   lessonBillingDispositionPatch,
   normalizeAllocations,
+  packageBalanceAfterEntry,
   paymentNetAmountCents,
   planInvoiceOverpaymentTransfer,
+  positiveInteger,
   selectBillableLessons,
   tariffAssignmentPlan,
   toCents,
@@ -405,6 +407,303 @@ async function assignStudentTariff({
     });
     return {
       assignment: { id: assignmentRef.id, ...assignment },
+      idempotent: false,
+    };
+  });
+}
+
+async function createPackageProduct({
+  actor,
+  name,
+  lessonCredits,
+  totalPrice,
+  effectiveFrom,
+  requestId,
+}) {
+  const mutationId = cleanRequestId(requestId);
+  const cleanName = cleanText(name, 120);
+  if (!cleanName) throw httpError(400, "Package product name required");
+  const credits = positiveInteger(lessonCredits, "lesson credits", 500);
+  const priceCents = toCents(totalPrice, "package total price");
+  const cleanEffectiveFrom = validIsoDate(effectiveFrom, "effectiveFrom");
+  const signature = crypto.createHash("sha256").update(JSON.stringify({
+    name: cleanName,
+    lessonCredits: credits,
+    priceCents,
+    effectiveFrom: cleanEffectiveFrom,
+    productType: "lesson_package",
+    currency: "EUR",
+  })).digest("hex");
+  const productRef = db.collection("packageProducts").doc(mutationId);
+  const auditRef = db.collection("financialAudit").doc(mutationId);
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+
+  return db.runTransaction(async transaction => {
+    const existing = await transaction.get(productRef);
+    if (existing.exists) {
+      if (existing.data().creationSignature !== signature) {
+        throw httpError(409, "requestId already used for a different package product");
+      }
+      return { packageProduct: { id: existing.id, ...existing.data() }, idempotent: true };
+    }
+    const packageProduct = {
+      name: cleanName,
+      productType: "lesson_package",
+      billingModel: "package",
+      lessonCredits: credits,
+      priceCents,
+      price: centsToAmount(priceCents),
+      currency: "EUR",
+      effectiveFrom: cleanEffectiveFrom,
+      status: "active",
+      creationSignature: signature,
+      createdAt: nowIso,
+      createdBy: actorData,
+      requestId: mutationId,
+    };
+    transaction.create(productRef, packageProduct);
+    transaction.create(auditRef, {
+      entityType: "package_product",
+      entityId: productRef.id,
+      action: "package.product_created",
+      packageProductId: productRef.id,
+      packageProductName: cleanName,
+      lessonCredits: credits,
+      priceCents,
+      price: packageProduct.price,
+      effectiveFrom: cleanEffectiveFrom,
+      actor: actorData,
+      reason: "Immutable lesson package product created",
+      createdAt: nowIso,
+      requestId: mutationId,
+    });
+    return {
+      packageProduct: { id: productRef.id, ...packageProduct },
+      idempotent: false,
+    };
+  });
+}
+
+async function issueStudentPackage({
+  actor,
+  studentId,
+  packageProductId,
+  issuedAt,
+  requestId,
+}) {
+  const mutationId = cleanRequestId(requestId);
+  const cleanStudentId = String(studentId || "").trim();
+  const cleanProductId = String(packageProductId || "").trim();
+  if (!cleanStudentId) throw httpError(400, "studentId required");
+  if (!cleanProductId) throw httpError(400, "packageProductId required");
+  const cleanIssuedAt = validIsoDate(issuedAt, "issuedAt");
+  const signature = crypto.createHash("sha256").update(JSON.stringify({
+    studentId: cleanStudentId,
+    packageProductId: cleanProductId,
+    issuedAt: cleanIssuedAt,
+  })).digest("hex");
+  const packageRef = db.collection("studentPackages").doc(mutationId);
+  const ledgerRef = db.collection("packageLedger").doc(mutationId);
+  const auditRef = db.collection("financialAudit").doc(mutationId);
+  const studentRef = db.collection("students").doc(cleanStudentId);
+  const productRef = db.collection("packageProducts").doc(cleanProductId);
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+
+  return db.runTransaction(async transaction => {
+    const existing = await transaction.get(packageRef);
+    if (existing.exists) {
+      if (existing.data().creationSignature !== signature) {
+        throw httpError(409, "requestId already used for a different student package");
+      }
+      return { studentPackage: { id: existing.id, ...existing.data() }, idempotent: true };
+    }
+    const [studentSnap, productSnap] = await Promise.all([
+      transaction.get(studentRef),
+      transaction.get(productRef),
+    ]);
+    if (!studentSnap.exists) throw httpError(404, "Student not found");
+    if (!productSnap.exists) throw httpError(404, "Package product not found");
+    const product = productSnap.data();
+    if (product.status !== "active" || product.productType !== "lesson_package") {
+      throw httpError(409, "Package product is not active");
+    }
+    if (cleanIssuedAt < product.effectiveFrom) {
+      throw httpError(409, "Package cannot be issued before the product effective date");
+    }
+    const student = studentSnap.data();
+    const studentPackage = {
+      studentId: cleanStudentId,
+      studentName: student.name || "—",
+      packageProductId: cleanProductId,
+      packageProductName: product.name || "—",
+      productType: "lesson_package",
+      lessonCredits: product.lessonCredits,
+      grantedCredits: product.lessonCredits,
+      balanceCredits: product.lessonCredits,
+      consumedCredits: 0,
+      adjustmentCreditCredits: 0,
+      adjustmentDebitCredits: 0,
+      ledgerEntryCount: 1,
+      priceCents: product.priceCents,
+      price: product.price,
+      currency: product.currency || "EUR",
+      productEffectiveFrom: product.effectiveFrom,
+      issuedAt: cleanIssuedAt,
+      status: "active",
+      creationSignature: signature,
+      createdAt: nowIso,
+      createdBy: actorData,
+      updatedAt: nowIso,
+      requestId: mutationId,
+    };
+    const ledgerEntry = {
+      studentPackageId: packageRef.id,
+      studentId: cleanStudentId,
+      studentName: studentPackage.studentName,
+      packageProductId: cleanProductId,
+      packageProductName: studentPackage.packageProductName,
+      entryType: "grant",
+      sourceType: "package_issue",
+      creditsDelta: product.lessonCredits,
+      balanceBefore: 0,
+      balanceAfter: product.lessonCredits,
+      reason: "Lesson package issued",
+      actor: actorData,
+      createdAt: nowIso,
+      requestId: mutationId,
+      creationSignature: signature,
+    };
+    transaction.create(packageRef, studentPackage);
+    transaction.create(ledgerRef, ledgerEntry);
+    transaction.create(auditRef, {
+      entityType: "student_package",
+      entityId: packageRef.id,
+      action: "student.package_issued",
+      studentPackageId: packageRef.id,
+      studentId: cleanStudentId,
+      studentName: studentPackage.studentName,
+      packageProductId: cleanProductId,
+      packageProductName: studentPackage.packageProductName,
+      creditsDelta: product.lessonCredits,
+      balanceBefore: 0,
+      balanceAfter: product.lessonCredits,
+      actor: actorData,
+      reason: "Lesson package issued from immutable product version",
+      createdAt: nowIso,
+      requestId: mutationId,
+    });
+    return {
+      studentPackage: { id: packageRef.id, ...studentPackage },
+      idempotent: false,
+    };
+  });
+}
+
+async function adjustStudentPackage({
+  actor,
+  studentPackageId,
+  creditsDelta,
+  reason,
+  requestId,
+}) {
+  const mutationId = cleanRequestId(requestId);
+  const cleanPackageId = String(studentPackageId || "").trim();
+  if (!cleanPackageId) throw httpError(400, "studentPackageId required");
+  const delta = Number(creditsDelta);
+  if (!Number.isInteger(delta) || delta === 0 || Math.abs(delta) > 500) {
+    throw httpError(400, "creditsDelta must be a non-zero integer between -500 and 500");
+  }
+  const cleanReason = cleanText(reason, 500);
+  if (!cleanReason) throw httpError(400, "Adjustment reason required");
+  const signature = crypto.createHash("sha256").update(JSON.stringify({
+    studentPackageId: cleanPackageId,
+    creditsDelta: delta,
+    reason: cleanReason,
+  })).digest("hex");
+  const packageRef = db.collection("studentPackages").doc(cleanPackageId);
+  const ledgerRef = db.collection("packageLedger").doc(mutationId);
+  const auditRef = db.collection("financialAudit").doc(mutationId);
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+
+  return db.runTransaction(async transaction => {
+    const [existingEntry, packageSnap] = await Promise.all([
+      transaction.get(ledgerRef),
+      transaction.get(packageRef),
+    ]);
+    if (existingEntry.exists) {
+      if (existingEntry.data().creationSignature !== signature) {
+        throw httpError(409, "requestId already used for a different package movement");
+      }
+      return {
+        ledgerEntry: { id: existingEntry.id, ...existingEntry.data() },
+        studentPackage: packageSnap.exists
+          ? { id: packageSnap.id, ...packageSnap.data() }
+          : null,
+        idempotent: true,
+      };
+    }
+    if (!packageSnap.exists) throw httpError(404, "Student package not found");
+    const studentPackage = packageSnap.data();
+    let movement;
+    try {
+      movement = packageBalanceAfterEntry(studentPackage, delta, nowIso);
+    } catch (error) {
+      throw httpError(error.status || 409, error.message);
+    }
+    const ledgerEntry = {
+      studentPackageId: cleanPackageId,
+      studentId: studentPackage.studentId || "",
+      studentName: studentPackage.studentName || "—",
+      packageProductId: studentPackage.packageProductId || "",
+      packageProductName: studentPackage.packageProductName || "—",
+      entryType: delta > 0 ? "manual_credit" : "manual_debit",
+      sourceType: "admin_adjustment",
+      creditsDelta: delta,
+      balanceBefore: movement.balanceBefore,
+      balanceAfter: movement.balanceAfter,
+      reason: cleanReason,
+      actor: actorData,
+      createdAt: nowIso,
+      requestId: mutationId,
+      creationSignature: signature,
+    };
+    transaction.set(packageRef, {
+      ...movement.accountPatch,
+      latestLedgerEntryId: ledgerRef.id,
+      latestMovementAt: nowIso,
+      latestMovementBy: actorData,
+    }, { merge: true });
+    transaction.create(ledgerRef, ledgerEntry);
+    transaction.create(auditRef, {
+      entityType: "student_package",
+      entityId: cleanPackageId,
+      action: delta > 0 ? "student.package_adjusted_credit" : "student.package_adjusted_debit",
+      studentPackageId: cleanPackageId,
+      studentId: ledgerEntry.studentId,
+      studentName: ledgerEntry.studentName,
+      packageProductId: ledgerEntry.packageProductId,
+      packageProductName: ledgerEntry.packageProductName,
+      creditsDelta: delta,
+      balanceBefore: movement.balanceBefore,
+      balanceAfter: movement.balanceAfter,
+      actor: actorData,
+      reason: cleanReason,
+      createdAt: nowIso,
+      requestId: mutationId,
+    });
+    return {
+      ledgerEntry: { id: ledgerRef.id, ...ledgerEntry },
+      studentPackage: {
+        id: packageRef.id,
+        ...studentPackage,
+        ...movement.accountPatch,
+        latestLedgerEntryId: ledgerRef.id,
+        latestMovementAt: nowIso,
+        latestMovementBy: actorData,
+      },
       idempotent: false,
     };
   });
@@ -2548,6 +2847,40 @@ exports.financeApi = functions.https.onRequest(async (req, res) => {
         studentId: req.body?.studentId,
         tariffId: req.body?.tariffId,
         effectiveFrom: req.body?.effectiveFrom,
+        requestId: req.body?.requestId,
+      });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/package-products") {
+      const result = await createPackageProduct({
+        actor,
+        name: req.body?.name,
+        lessonCredits: req.body?.lessonCredits,
+        totalPrice: req.body?.totalPrice,
+        effectiveFrom: req.body?.effectiveFrom,
+        requestId: req.body?.requestId,
+      });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/student-packages") {
+      const result = await issueStudentPackage({
+        actor,
+        studentId: req.body?.studentId,
+        packageProductId: req.body?.packageProductId,
+        issuedAt: req.body?.issuedAt,
+        requestId: req.body?.requestId,
+      });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/student-packages/adjust") {
+      const result = await adjustStudentPackage({
+        actor,
+        studentPackageId: req.body?.studentPackageId,
+        creditsDelta: req.body?.creditsDelta,
+        reason: req.body?.reason,
         requestId: req.body?.requestId,
       });
       res.status(result.idempotent ? 200 : 201).json(result);

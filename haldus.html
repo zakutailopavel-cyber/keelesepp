@@ -5892,7 +5892,7 @@ function ParentInvoicesView({invoices,printInvoice,submitParentPayment}) {
 }
 
 // ── ARVED ÜLDVAADE ────────────────────────────────────────────
-function InvoicesView({invoices,payments,myStudents,parents,schedule,students,lessons,isAdmin,tariffs=[],tariffAssignments=[],createTariffVersion,assignStudentTariff,invStu,setInvStu,invAmt,setInvAmt,invDesc,setInvDesc,invRef,setInvRef,invDue,setInvDue,addInvoice,recordPayment,markPaid,unmarkPaid,voidPayment,resolveInvoiceOverpayment,creditInvoiceLessonLine,openCreditNotePdf,sendCreditNoteEmail,deleteInvoice,printInvoice,updateInvoiceReference,updateInvoiceDue,sendInvoiceEmail,sendInvoiceReminder,sendMonthlyInvoiceReminders,invoiceEmailBusy}) {
+function InvoicesView({invoices,payments,myStudents,parents,schedule,students,lessons,isAdmin,tariffs=[],tariffAssignments=[],packageProducts=[],studentPackages=[],packageLedger=[],createTariffVersion,assignStudentTariff,createPackageProduct,issueStudentPackage,adjustStudentPackage,invStu,setInvStu,invAmt,setInvAmt,invDesc,setInvDesc,invRef,setInvRef,invDue,setInvDue,addInvoice,recordPayment,markPaid,unmarkPaid,voidPayment,resolveInvoiceOverpayment,creditInvoiceLessonLine,openCreditNotePdf,sendCreditNoteEmail,deleteInvoice,printInvoice,updateInvoiceReference,updateInvoiceDue,sendInvoiceEmail,sendInvoiceReminder,sendMonthlyInvoiceReminders,invoiceEmailBusy}) {
   const unpaidAmt=invoices.filter(i=>i.status==='Ootel').reduce((sum,inv)=>sum+invoiceFinancialSummary(inv).balance,0);
   const paid=invoices.filter(i=>i.status==='Makstud');
   const [statsPeriod,setStatsPeriod] = React.useState('current');
@@ -6017,6 +6017,19 @@ function InvoicesView({invoices,payments,myStudents,parents,schedule,students,le
   const [invoiceTariffId,setInvoiceTariffId] = React.useState('');
   const [invoiceTariffFrom,setInvoiceTariffFrom] = React.useState(today());
   const [tariffAssignmentSaving,setTariffAssignmentSaving] = React.useState(false);
+  const [packageName,setPackageName] = React.useState('');
+  const [packageCredits,setPackageCredits] = React.useState('');
+  const [packagePrice,setPackagePrice] = React.useState('');
+  const [packageEffectiveFrom,setPackageEffectiveFrom] = React.useState(today());
+  const [packageProductSaving,setPackageProductSaving] = React.useState(false);
+  const [invoicePackageProductId,setInvoicePackageProductId] = React.useState('');
+  const [invoicePackageIssuedAt,setInvoicePackageIssuedAt] = React.useState(today());
+  const [packageIssueSaving,setPackageIssueSaving] = React.useState(false);
+  const [packageAdjustmentId,setPackageAdjustmentId] = React.useState('');
+  const [packageAdjustmentDirection,setPackageAdjustmentDirection] = React.useState('debit');
+  const [packageAdjustmentCredits,setPackageAdjustmentCredits] = React.useState('');
+  const [packageAdjustmentReason,setPackageAdjustmentReason] = React.useState('');
+  const [packageAdjustmentSaving,setPackageAdjustmentSaving] = React.useState(false);
   const [invoiceParentQuery,setInvoiceParentQuery] = React.useState('');
   const [invoiceParentId,setInvoiceParentId] = React.useState('');
   const [invoiceLessonSelection,setInvoiceLessonSelection] = React.useState({
@@ -6041,6 +6054,13 @@ function InvoicesView({invoices,payments,myStudents,parents,schedule,students,le
     [tariffs]
   );
   const selectedTariffVersion=availableTariffs.find(tariff=>tariff.id===invoiceTariffId)||null;
+  const availablePackageProducts = React.useMemo(
+    ()=>(packageProducts||[])
+      .filter(product=>product.status==='active'&&product.productType==='lesson_package')
+      .sort((a,b)=>`${b.effectiveFrom||''}:${b.createdAt||''}`.localeCompare(`${a.effectiveFrom||''}:${a.createdAt||''}`)),
+    [packageProducts]
+  );
+  const selectedPackageProduct=availablePackageProducts.find(product=>product.id===invoicePackageProductId)||null;
   const selectedStudentTariffAssignments = React.useMemo(
     ()=>(tariffAssignments||[])
       .filter(assignment=>assignment.studentId===selectedInvoiceStudent?.id)
@@ -6050,6 +6070,28 @@ function InvoicesView({invoices,payments,myStudents,parents,schedule,students,le
   const currentStudentTariff = selectedInvoiceStudent
     ? tariffAssignmentForDate(tariffAssignments,selectedInvoiceStudent.id,today())
     : null;
+  const selectedStudentPackages = React.useMemo(
+    ()=>(studentPackages||[])
+      .filter(studentPackage=>studentPackage.studentId===selectedInvoiceStudent?.id)
+      .sort((a,b)=>`${b.issuedAt||''}:${b.createdAt||''}`.localeCompare(`${a.issuedAt||''}:${a.createdAt||''}`)),
+    [studentPackages,selectedInvoiceStudent?.id]
+  );
+  const selectedStudentPackageIds = React.useMemo(
+    ()=>new Set(selectedStudentPackages.map(studentPackage=>studentPackage.id)),
+    [selectedStudentPackages]
+  );
+  const selectedStudentPackageLedger = React.useMemo(
+    ()=>(packageLedger||[])
+      .filter(entry=>selectedStudentPackageIds.has(entry.studentPackageId))
+      .sort((a,b)=>`${b.createdAt||''}:${b.id||''}`.localeCompare(`${a.createdAt||''}:${a.id||''}`)),
+    [packageLedger,selectedStudentPackageIds]
+  );
+  const selectedStudentPackageKey=selectedStudentPackages.map(item=>item.id).join('|');
+  React.useEffect(()=>{
+    if(!selectedStudentPackages.some(item=>item.id===packageAdjustmentId)){
+      setPackageAdjustmentId(selectedStudentPackages[0]?.id||'');
+    }
+  },[selectedInvoiceStudent?.id,selectedStudentPackageKey,packageAdjustmentId]);
   const saveTariffVersion = async()=>{
     const price=Number(String(tariffPrice).replace(',','.'));
     if(!tariffName.trim()||!Number.isFinite(price)||price<=0||!tariffEffectiveFrom) return;
@@ -6072,6 +6114,54 @@ function InvoicesView({invoices,payments,myStudents,parents,schedule,students,le
     });
     if(assigned) setInvoiceTariffId('');
     setTariffAssignmentSaving(false);
+  };
+  const savePackageProduct = async()=>{
+    const credits=Number(packageCredits);
+    const price=Number(String(packagePrice).replace(',','.'));
+    if(!packageName.trim()||!Number.isInteger(credits)||credits<=0||!Number.isFinite(price)||price<=0||!packageEffectiveFrom) return;
+    setPackageProductSaving(true);
+    const created=await createPackageProduct?.({
+      name:packageName.trim(),
+      lessonCredits:credits,
+      totalPrice:price,
+      effectiveFrom:packageEffectiveFrom
+    });
+    if(created){
+      setPackageName('');
+      setPackageCredits('');
+      setPackagePrice('');
+      setInvoicePackageProductId(created.id);
+    }
+    setPackageProductSaving(false);
+  };
+  const saveStudentPackage = async()=>{
+    if(!selectedInvoiceStudent?.id||!invoicePackageProductId||!invoicePackageIssuedAt) return;
+    setPackageIssueSaving(true);
+    const issued=await issueStudentPackage?.({
+      studentId:selectedInvoiceStudent.id,
+      packageProductId:invoicePackageProductId,
+      issuedAt:invoicePackageIssuedAt
+    });
+    if(issued){
+      setInvoicePackageProductId('');
+      setPackageAdjustmentId(issued.id);
+    }
+    setPackageIssueSaving(false);
+  };
+  const savePackageAdjustment = async()=>{
+    const credits=Number(packageAdjustmentCredits);
+    if(!packageAdjustmentId||!Number.isInteger(credits)||credits<=0||!packageAdjustmentReason.trim()) return;
+    setPackageAdjustmentSaving(true);
+    const adjusted=await adjustStudentPackage?.({
+      studentPackageId:packageAdjustmentId,
+      creditsDelta:packageAdjustmentDirection==='credit'?credits:-credits,
+      reason:packageAdjustmentReason.trim()
+    });
+    if(adjusted){
+      setPackageAdjustmentCredits('');
+      setPackageAdjustmentReason('');
+    }
+    setPackageAdjustmentSaving(false);
   };
   const [invoiceStudentQuery,setInvoiceStudentQuery] = React.useState('');
   React.useEffect(()=>{
@@ -6254,6 +6344,45 @@ function InvoicesView({invoices,payments,myStudents,parents,schedule,students,le
             {availableTariffs.slice(0,8).map(tariff=>(
               <span key={tariff.id} style={{padding:'7px 10px',borderRadius:10,background:'#F9F8F6',border:'1px solid rgba(28,43,58,.08)',fontSize:'.78rem'}}>
                 <strong>{tariff.name}</strong> · {money(tariff.unitPrice)}€/tund · alates {fmtDate(tariff.effectiveFrom)}
+              </span>
+            ))}
+          </div>
+        </CollapsibleCard>
+      )}
+
+      {isAdmin&&(
+        <CollapsibleCard id="invoice-package-products" title="Tunnipakettide versioonid"
+          subtitle="Paketi maht ja hind salvestatakse muutumatu tootena. Õpilase jääk elab eraldi liikumiste registris."
+          badge={availablePackageProducts.length}>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(145px,1fr))',gap:10,alignItems:'end'}}>
+            <div>
+              <div style={{fontSize:'.72rem',fontWeight:800,color:'#42536A',marginBottom:5}}>Paketi nimi</div>
+              <input value={packageName} onChange={e=>setPackageName(e.target.value)} placeholder="Nt 10 individuaaltundi"/>
+            </div>
+            <div>
+              <div style={{fontSize:'.72rem',fontWeight:800,color:'#42536A',marginBottom:5}}>Tundide arv</div>
+              <input type="number" min="1" max="500" step="1" value={packageCredits} onChange={e=>setPackageCredits(e.target.value)} placeholder="10"/>
+            </div>
+            <div>
+              <div style={{fontSize:'.72rem',fontWeight:800,color:'#42536A',marginBottom:5}}>Paketi hind (€)</div>
+              <input type="number" min="0.01" step="0.01" value={packagePrice} onChange={e=>setPackagePrice(e.target.value)} placeholder="250"/>
+            </div>
+            <div>
+              <div style={{fontSize:'.72rem',fontWeight:800,color:'#42536A',marginBottom:5}}>Kehtib alates</div>
+              <input type="date" value={packageEffectiveFrom} onChange={e=>setPackageEffectiveFrom(e.target.value)}/>
+            </div>
+            <button type="button" className="btn btn-pine" onClick={savePackageProduct}
+              disabled={packageProductSaving||!packageName.trim()||!packageCredits||!packagePrice||!packageEffectiveFrom}>
+              {packageProductSaving?'Salvestan…':'Loo pakett'}
+            </button>
+          </div>
+          <div style={{display:'flex',gap:8,flexWrap:'wrap',marginTop:14}}>
+            {availablePackageProducts.length===0&&(
+              <span style={{fontSize:'.8rem',color:'#42536A'}}>Pakette pole veel loodud. Õpilase vana paketiloendur töötab edasi varuvariandina.</span>
+            )}
+            {availablePackageProducts.slice(0,8).map(product=>(
+              <span key={product.id} style={{padding:'7px 10px',borderRadius:10,background:'#F9F8F6',border:'1px solid rgba(28,43,58,.08)',fontSize:'.78rem'}}>
+                <strong>{product.name}</strong> · {product.lessonCredits} tundi · {money(product.price)}€ · alates {fmtDate(product.effectiveFrom)}
               </span>
             ))}
           </div>
@@ -6587,6 +6716,106 @@ function InvoicesView({invoices,payments,myStudents,parents,schedule,students,le
 	                    </div>
 	                    {availableTariffs.length===0&&(
 	                      <div style={{fontSize:'.74rem',color:'#92400e'}}>Loo esmalt ülal tariifi versioon.</div>
+	                    )}
+	                  </div>
+	                )}
+	                {isAdmin&&invoiceTargetType==='student'&&selectedInvoiceStudent&&(
+	                  <div style={{padding:'12px',borderRadius:12,background:'#fff',border:'1px solid rgba(201,136,42,.2)',display:'flex',flexDirection:'column',gap:12}}>
+	                    <div style={{display:'flex',justifyContent:'space-between',gap:10,alignItems:'flex-start',flexWrap:'wrap'}}>
+	                      <div>
+	                        <strong style={{color:'#1C2B3A'}}>Õpilase tunnipaketid</strong>
+	                        <div style={{fontSize:'.74rem',color:'#42536A',marginTop:3}}>
+	                          Iga väljastamine ja käsitsi muudatus lisab uue jälgitava liikumise. Varasemat kirjet ei kirjutata üle.
+	                        </div>
+	                      </div>
+	                      <span style={{padding:'4px 9px',borderRadius:999,background:'#fef3c7',color:'#92400e',fontSize:'.72rem',fontWeight:800}}>
+	                        {selectedStudentPackages.reduce((sum,item)=>sum+(Number(item.balanceCredits)||0),0)} tundi alles
+	                      </span>
+	                    </div>
+	                    {selectedStudentPackages.length>0&&(
+	                      <div style={{display:'flex',flexDirection:'column',gap:6}}>
+	                        {selectedStudentPackages.map(studentPackage=>(
+	                          <div key={studentPackage.id} style={{display:'flex',justifyContent:'space-between',gap:10,alignItems:'center',padding:'8px 10px',borderRadius:10,background:'#F9F8F6',border:'1px solid rgba(28,43,58,.07)',fontSize:'.78rem'}}>
+	                            <span>
+	                              <strong>{studentPackage.packageProductName}</strong>
+	                              <span style={{color:'#42536A'}}> · väljastatud {fmtDate(studentPackage.issuedAt)}</span>
+	                            </span>
+	                            <strong style={{color:Number(studentPackage.balanceCredits)<=2?'#991b1b':'#166534'}}>
+	                              {Number(studentPackage.balanceCredits)||0}/{Number(studentPackage.grantedCredits)||0}
+	                            </strong>
+	                          </div>
+	                        ))}
+	                      </div>
+	                    )}
+	                    {selectedStudentPackages.length===0&&(
+	                      <div style={{fontSize:'.74rem',color:'#42536A'}}>
+	                        Registripaketti pole. Vana loendur: {Math.max(0,(Number(selectedInvoiceStudent.packageTotal)||0)-(Number(selectedInvoiceStudent.packageUsed)||0))}/{Number(selectedInvoiceStudent.packageTotal)||0}.
+	                      </div>
+	                    )}
+	                    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))',gap:8,alignItems:'end'}}>
+	                      <div>
+	                        <div style={{fontSize:'.7rem',fontWeight:800,color:'#42536A',marginBottom:4}}>Väljasta uus pakett</div>
+	                        <select value={invoicePackageProductId} onChange={e=>{
+	                          const nextId=e.target.value;
+	                          const nextProduct=availablePackageProducts.find(product=>product.id===nextId);
+	                          setInvoicePackageProductId(nextId);
+	                          if(nextProduct?.effectiveFrom&&invoicePackageIssuedAt<nextProduct.effectiveFrom){
+	                            setInvoicePackageIssuedAt(nextProduct.effectiveFrom);
+	                          }
+	                        }}>
+	                          <option value="">Vali pakett</option>
+	                          {availablePackageProducts.map(product=>(
+	                            <option key={product.id} value={product.id}>
+	                              {product.name} · {product.lessonCredits} tundi · {money(product.price)}€
+	                            </option>
+	                          ))}
+	                        </select>
+	                      </div>
+	                      <div>
+	                        <div style={{fontSize:'.7rem',fontWeight:800,color:'#42536A',marginBottom:4}}>Väljastamise kuupäev</div>
+	                        <input type="date" value={invoicePackageIssuedAt} min={selectedPackageProduct?.effectiveFrom||''} onChange={e=>setInvoicePackageIssuedAt(e.target.value)}/>
+	                      </div>
+	                      <button type="button" className="btn btn-ghost" onClick={saveStudentPackage}
+	                        disabled={packageIssueSaving||!invoicePackageProductId||!invoicePackageIssuedAt}>
+	                        {packageIssueSaving?'Väljastan…':'Väljasta pakett'}
+	                      </button>
+	                    </div>
+	                    {availablePackageProducts.length===0&&(
+	                      <div style={{fontSize:'.74rem',color:'#92400e'}}>Loo esmalt ülal tunnipaketi versioon.</div>
+	                    )}
+	                    {selectedStudentPackages.length>0&&(
+	                      <div style={{paddingTop:10,borderTop:'1px solid rgba(28,43,58,.08)',display:'flex',flexDirection:'column',gap:8}}>
+	                        <div style={{fontSize:'.72rem',fontWeight:800,color:'#42536A'}}>Jäägi parandus</div>
+	                        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(135px,1fr))',gap:8,alignItems:'end'}}>
+	                          <select value={packageAdjustmentId} onChange={e=>setPackageAdjustmentId(e.target.value)}>
+	                            <option value="">Vali õpilase pakett</option>
+	                            {selectedStudentPackages.map(studentPackage=>(
+	                              <option key={studentPackage.id} value={studentPackage.id}>
+	                                {studentPackage.packageProductName} · alles {Number(studentPackage.balanceCredits)||0}
+	                              </option>
+	                            ))}
+	                          </select>
+	                          <select value={packageAdjustmentDirection} onChange={e=>setPackageAdjustmentDirection(e.target.value)}>
+	                            <option value="debit">Vähenda jääki</option>
+	                            <option value="credit">Suurenda jääki</option>
+	                          </select>
+	                          <input type="number" min="1" max="500" step="1" value={packageAdjustmentCredits} onChange={e=>setPackageAdjustmentCredits(e.target.value)} placeholder="Tundide arv"/>
+	                          <input value={packageAdjustmentReason} onChange={e=>setPackageAdjustmentReason(e.target.value)} placeholder="Põhjus (kohustuslik)"/>
+	                          <button type="button" className="btn btn-ghost" onClick={savePackageAdjustment}
+	                            disabled={packageAdjustmentSaving||!packageAdjustmentId||!packageAdjustmentCredits||!packageAdjustmentReason.trim()}>
+	                            {packageAdjustmentSaving?'Salvestan…':'Lisa liikumine'}
+	                          </button>
+	                        </div>
+	                      </div>
+	                    )}
+	                    {selectedStudentPackageLedger.length>0&&(
+	                      <div style={{fontSize:'.7rem',color:'#42536A'}}>
+	                        Viimased liikumised: {selectedStudentPackageLedger.slice(0,3).map(entry=>(
+	                          <span key={entry.id} style={{display:'inline-block',marginRight:8}}>
+	                            {Number(entry.creditsDelta)>0?'+':''}{entry.creditsDelta} → {entry.balanceAfter}
+	                          </span>
+	                        ))}
+	                      </div>
 	                    )}
 	                  </div>
 	                )}
@@ -8543,6 +8772,9 @@ function App() {
   const [payerCredits,setPayerCredits] = useState([]);
   const [tariffs,setTariffs] = useState([]);
   const [tariffAssignments,setTariffAssignments] = useState([]);
+  const [packageProducts,setPackageProducts] = useState([]);
+  const [studentPackages,setStudentPackages] = useState([]);
+  const [packageLedger,setPackageLedger] = useState([]);
   const [messages,setMessages] = useState([]);
   const [groups,setGroups] = useState([]);
   const [tasks,setTasks] = useState([]);
@@ -8698,6 +8930,7 @@ function App() {
     if(!user||!isAdmin){
       setPayments([]);setBankTransactions([]);setPayerCredits([]);
       setTariffs([]);setTariffAssignments([]);
+      setPackageProducts([]);setStudentPackages([]);setPackageLedger([]);
       return;
     }
     const unsubscribePayments=db.collection('payments').onSnapshot(
@@ -8720,9 +8953,22 @@ function App() {
       snap=>setTariffAssignments(snap.docs.map(doc=>({id:doc.id,...doc.data()}))),
       err=>{console.warn('Tariff assignments listener failed:',err);setTariffAssignments([]);}
     );
+    const unsubscribePackageProducts=db.collection('packageProducts').onSnapshot(
+      snap=>setPackageProducts(snap.docs.map(doc=>({id:doc.id,...doc.data()}))),
+      err=>{console.warn('Package products listener failed:',err);setPackageProducts([]);}
+    );
+    const unsubscribeStudentPackages=db.collection('studentPackages').onSnapshot(
+      snap=>setStudentPackages(snap.docs.map(doc=>({id:doc.id,...doc.data()}))),
+      err=>{console.warn('Student packages listener failed:',err);setStudentPackages([]);}
+    );
+    const unsubscribePackageLedger=db.collection('packageLedger').orderBy('createdAt','desc').limit(500).onSnapshot(
+      snap=>setPackageLedger(snap.docs.map(doc=>({id:doc.id,...doc.data()}))),
+      err=>{console.warn('Package ledger listener failed:',err);setPackageLedger([]);}
+    );
     return()=>{
       unsubscribePayments();unsubscribeBankTransactions();unsubscribePayerCredits();
       unsubscribeTariffs();unsubscribeTariffAssignments();
+      unsubscribePackageProducts();unsubscribeStudentPackages();unsubscribePackageLedger();
     };
   },[user?.uid,isAdmin]);
 
@@ -10284,6 +10530,61 @@ function App() {
     }
   },[isAdmin]);
 
+  const createPackageProduct=useCallback(async({name,lessonCredits,totalPrice,effectiveFrom})=>{
+    if(!isAdmin){notify('⚠ Ainult administraator saab pakette luua');return null;}
+    try{
+      const result=await financeApiPost('/package-products',{
+        name,
+        lessonCredits,
+        totalPrice,
+        effectiveFrom,
+        requestId:financeRequestId('packageproduct')
+      });
+      notify(`✓ Pakett ${result?.packageProduct?.name||name} loodud`);
+      return result?.packageProduct||null;
+    }catch(err){
+      console.error('Package product creation failed:',err);
+      notify(`⚠ Paketi loomine ebaõnnestus: ${err.message||err}`);
+      return null;
+    }
+  },[isAdmin]);
+
+  const issueStudentPackage=useCallback(async({studentId,packageProductId,issuedAt})=>{
+    if(!isAdmin){notify('⚠ Ainult administraator saab paketti väljastada');return null;}
+    try{
+      const result=await financeApiPost('/student-packages',{
+        studentId,
+        packageProductId,
+        issuedAt,
+        requestId:financeRequestId('studentpackage')
+      });
+      notify(`✓ Pakett ${result?.studentPackage?.packageProductName||''} väljastatud`);
+      return result?.studentPackage||null;
+    }catch(err){
+      console.error('Student package issue failed:',err);
+      notify(`⚠ Paketi väljastamine ebaõnnestus: ${err.message||err}`);
+      return null;
+    }
+  },[isAdmin]);
+
+  const adjustStudentPackage=useCallback(async({studentPackageId,creditsDelta,reason})=>{
+    if(!isAdmin){notify('⚠ Ainult administraator saab paketi jääki muuta');return null;}
+    try{
+      const result=await financeApiPost('/student-packages/adjust',{
+        studentPackageId,
+        creditsDelta,
+        reason,
+        requestId:financeRequestId('packageadjustment')
+      });
+      notify(`✓ Paketi jääk: ${result?.ledgerEntry?.balanceAfter??'uuendatud'} tundi`);
+      return result?.studentPackage||null;
+    }catch(err){
+      console.error('Student package adjustment failed:',err);
+      notify(`⚠ Paketi jäägi muutmine ebaõnnestus: ${err.message||err}`);
+      return null;
+    }
+  },[isAdmin]);
+
   const updateLessonBillingDisposition=useCallback(async(lessonId,billingStatus)=>{
     if(!isAdmin||!lessonId){notify('⚠ Ainult administraator saab finantsstaatust muuta');return null;}
     const labels={
@@ -11347,6 +11648,8 @@ function App() {
 	            schedule={schedule} students={students} lessons={lessons} isAdmin={isAdmin}
             tariffs={tariffs} tariffAssignments={tariffAssignments}
             createTariffVersion={createTariffVersion} assignStudentTariff={assignStudentTariff}
+            packageProducts={packageProducts} studentPackages={studentPackages} packageLedger={packageLedger}
+            createPackageProduct={createPackageProduct} issueStudentPackage={issueStudentPackage} adjustStudentPackage={adjustStudentPackage}
             invStu={invStu} setInvStu={setInvStu} invAmt={invAmt} setInvAmt={setInvAmt}
             invDesc={invDesc} setInvDesc={setInvDesc} invRef={invRef} setInvRef={setInvRef} invDue={invDue} setInvDue={setInvDue}
             addInvoice={addInvoice} recordPayment={recordPayment} markPaid={markPaid} unmarkPaid={unmarkPaid} voidPayment={voidPayment} resolveInvoiceOverpayment={resolveInvoiceOverpayment} creditInvoiceLessonLine={creditInvoiceLessonLine} openCreditNotePdf={openCreditNotePdf} sendCreditNoteEmail={sendCreditNoteEmail} deleteInvoice={deleteInvoice} printInvoice={printInvoice} updateInvoiceReference={updateInvoiceReference} updateInvoiceDue={updateInvoiceDue}

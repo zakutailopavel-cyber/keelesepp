@@ -340,6 +340,21 @@ service cloud.firestore {
       allow create, update, delete: if false;
     }
 
+    match /packageProducts/{productId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
+    match /studentPackages/{packageId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
+    match /packageLedger/{entryId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
     match /messages/{messageId} {
       allow read: if isStaff() || ownsStudent(resource.data.studentId);
       allow create: if isStaff() || ownsStudent(request.resource.data.studentId);

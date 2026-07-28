@@ -403,3 +403,164 @@ test("versioned tariffs and assignments price invoice lines by lesson date", asy
   assert.equal(assignmentAuditSnap.data().action, "student.tariff_assigned");
   assert.equal(invoiceAuditSnap.data().pricingMode, "tariff_assignments_v1");
 });
+
+test("package products issue balances and append immutable ledger movements", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const token = await createAdminToken();
+
+  await db.collection("students").doc("student-package").set({
+    name: "Package Student",
+    email: "package-student@example.com",
+    packageTotal: 6,
+    packageUsed: 2,
+    active: true,
+  });
+
+  const productPayload = {
+    name: "Ten individual lessons",
+    lessonCredits: 10,
+    totalPrice: 250,
+    effectiveFrom: "2026-07-01",
+    requestId: "emulator_package_product_0001",
+  };
+  const productCreated = await financeRequest(token, "/package-products", productPayload);
+  assert.equal(productCreated.status, 201, JSON.stringify(productCreated.body));
+  assert.equal(productCreated.body.packageProduct.lessonCredits, 10);
+  assert.equal(productCreated.body.packageProduct.priceCents, 25000);
+
+  const productRetry = await financeRequest(token, "/package-products", productPayload);
+  assert.equal(productRetry.status, 200, JSON.stringify(productRetry.body));
+  assert.equal(productRetry.body.idempotent, true);
+
+  const issuePayload = {
+    studentId: "student-package",
+    packageProductId: productPayload.requestId,
+    issuedAt: "2026-07-28",
+    requestId: "emulator_student_package_0001",
+  };
+  const issued = await financeRequest(token, "/student-packages", issuePayload);
+  assert.equal(issued.status, 201, JSON.stringify(issued.body));
+  assert.equal(issued.body.studentPackage.balanceCredits, 10);
+  assert.equal(issued.body.studentPackage.grantedCredits, 10);
+
+  const [
+    issuedPackageSnap,
+    grantLedgerSnap,
+    issueAuditSnap,
+    legacyStudentSnap,
+  ] = await Promise.all([
+    db.collection("studentPackages").doc(issuePayload.requestId).get(),
+    db.collection("packageLedger").doc(issuePayload.requestId).get(),
+    db.collection("financialAudit").doc(issuePayload.requestId).get(),
+    db.collection("students").doc("student-package").get(),
+  ]);
+  assert.equal(issuedPackageSnap.data().ledgerEntryCount, 1);
+  assert.equal(grantLedgerSnap.data().entryType, "grant");
+  assert.equal(grantLedgerSnap.data().creditsDelta, 10);
+  assert.equal(grantLedgerSnap.data().balanceBefore, 0);
+  assert.equal(grantLedgerSnap.data().balanceAfter, 10);
+  assert.equal(issueAuditSnap.data().action, "student.package_issued");
+  assert.equal(legacyStudentSnap.data().packageTotal, 6);
+  assert.equal(legacyStudentSnap.data().packageUsed, 2);
+
+  const adjustmentPayload = {
+    studentPackageId: issuePayload.requestId,
+    creditsDelta: -3,
+    reason: "Emulator manual correction",
+    requestId: "emulator_package_adjust_0001",
+  };
+  const adjusted = await financeRequest(
+    token,
+    "/student-packages/adjust",
+    adjustmentPayload,
+  );
+  assert.equal(adjusted.status, 201, JSON.stringify(adjusted.body));
+  assert.equal(adjusted.body.ledgerEntry.balanceBefore, 10);
+  assert.equal(adjusted.body.ledgerEntry.balanceAfter, 7);
+  assert.equal(adjusted.body.studentPackage.balanceCredits, 7);
+
+  const [
+    adjustedPackageSnap,
+    adjustmentLedgerSnap,
+    adjustmentAuditSnap,
+  ] = await Promise.all([
+    db.collection("studentPackages").doc(issuePayload.requestId).get(),
+    db.collection("packageLedger").doc(adjustmentPayload.requestId).get(),
+    db.collection("financialAudit").doc(adjustmentPayload.requestId).get(),
+  ]);
+  assert.equal(adjustedPackageSnap.data().balanceCredits, 7);
+  assert.equal(adjustedPackageSnap.data().adjustmentDebitCredits, 3);
+  assert.equal(adjustedPackageSnap.data().ledgerEntryCount, 2);
+  assert.equal(adjustmentLedgerSnap.data().creditsDelta, -3);
+  assert.equal(adjustmentLedgerSnap.data().reason, adjustmentPayload.reason);
+  assert.equal(adjustmentAuditSnap.data().action, "student.package_adjusted_debit");
+
+  const adjustmentRetry = await financeRequest(
+    token,
+    "/student-packages/adjust",
+    adjustmentPayload,
+  );
+  assert.equal(adjustmentRetry.status, 200, JSON.stringify(adjustmentRetry.body));
+  assert.equal(adjustmentRetry.body.idempotent, true);
+  assert.equal(
+    (await db.collection("studentPackages").doc(issuePayload.requestId).get())
+      .data().ledgerEntryCount,
+    2,
+  );
+
+  const overdraft = await financeRequest(token, "/student-packages/adjust", {
+    ...adjustmentPayload,
+    creditsDelta: -8,
+    requestId: "emulator_package_adjust_0002",
+  });
+  assert.equal(overdraft.status, 409, JSON.stringify(overdraft.body));
+  assert.match(overdraft.body.error, /insufficient/);
+  assert.equal(
+    (await db.collection("studentPackages").doc(issuePayload.requestId).get())
+      .data().balanceCredits,
+    7,
+  );
+  assert.equal(
+    (await db.collection("packageLedger").doc("emulator_package_adjust_0002").get())
+      .exists,
+    false,
+  );
+
+  const adminProductRead = await firestoreDocumentRequest(
+    token,
+    "GET",
+    `packageProducts/${productPayload.requestId}`,
+  );
+  assert.equal(adminProductRead.status, 200, JSON.stringify(adminProductRead.body));
+  const clientProductWrite = await firestoreDocumentRequest(
+    token,
+    "PATCH",
+    `packageProducts/${productPayload.requestId}`,
+    { fields: { lessonCredits: { integerValue: "1" } } },
+  );
+  assert.equal(clientProductWrite.status, 403, JSON.stringify(clientProductWrite.body));
+  const clientPackageWrite = await firestoreDocumentRequest(
+    token,
+    "PATCH",
+    `studentPackages/${issuePayload.requestId}`,
+    { fields: { balanceCredits: { integerValue: "999" } } },
+  );
+  assert.equal(clientPackageWrite.status, 403, JSON.stringify(clientPackageWrite.body));
+  const clientLedgerWrite = await firestoreDocumentRequest(
+    token,
+    "PATCH",
+    `packageLedger/${adjustmentPayload.requestId}`,
+    { fields: { creditsDelta: { integerValue: "999" } } },
+  );
+  assert.equal(clientLedgerWrite.status, 403, JSON.stringify(clientLedgerWrite.body));
+
+  const nonAdminToken = await createUserToken("non-admin-package@example.com");
+  const nonAdminPackageRead = await firestoreDocumentRequest(
+    nonAdminToken,
+    "GET",
+    `studentPackages/${issuePayload.requestId}`,
+  );
+  assert.equal(nonAdminPackageRead.status, 403, JSON.stringify(nonAdminPackageRead.body));
+});
