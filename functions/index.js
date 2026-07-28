@@ -20,6 +20,8 @@ const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 const {
   centsToAmount,
+  creditAfterApplication,
+  creditAfterRestoration,
   invoiceFinancialPatch,
   normalizeAllocations,
   toCents,
@@ -302,6 +304,12 @@ async function resetInvoicePayments({ actor, invoiceId, reason, requestId }) {
     const invoice = invoiceSnap.data();
     const payments = await activeInvoicePayments(transaction, invoiceRef.id);
     const activePayments = payments.filter(payment => payment.status !== "voided");
+    if (activePayments.some(payment => payment.bankTransactionId || payment.sourceCreditId)) {
+      throw httpError(
+        409,
+        "Source-linked payments must be voided individually so the bank transaction or payer credit can be restored",
+      );
+    }
 
     activePayments.forEach(payment => {
       transaction.set(db.collection("payments").doc(payment.id), {
@@ -426,6 +434,7 @@ async function allocateBankTransaction({
       unappliedAmountCents: normalized.unappliedAmountCents,
       unappliedAmount: centsToAmount(normalized.unappliedAmountCents),
       allocationCount: sortedAllocations.length,
+      activeAllocationCount: sortedAllocations.length,
       status: normalized.allocatedAmountCents === 0
         ? "unapplied"
         : normalized.unappliedAmountCents > 0
@@ -516,6 +525,314 @@ async function allocateBankTransaction({
       paymentIds,
       payerCredit: normalized.unappliedAmountCents > 0
         ? { id: mutationId, amount: centsToAmount(normalized.unappliedAmountCents) }
+        : null,
+      idempotent: false,
+    };
+  });
+}
+
+async function applyPayerCredit({ actor, creditId, allocations, note, requestId }) {
+  const mutationId = cleanRequestId(requestId);
+  const cleanCreditId = String(creditId || "").trim();
+  if (!cleanCreditId) throw httpError(400, "creditId required");
+  if (!Array.isArray(allocations) || allocations.length === 0) {
+    throw httpError(400, "At least one credit allocation required");
+  }
+  const requestedAmount = allocations.reduce((sum, allocation) => sum + (Number(allocation?.amount) || 0), 0);
+  const normalized = normalizeAllocations(requestedAmount, allocations);
+  const sortedAllocations = [...normalized.allocations].sort((a, b) => a.invoiceId.localeCompare(b.invoiceId));
+  const cleanNote = cleanText(note);
+  const signature = crypto.createHash("sha256").update(JSON.stringify({
+    creditId: cleanCreditId,
+    allocations: sortedAllocations,
+    note: cleanNote,
+  })).digest("hex");
+  const creditRef = db.collection("payerCredits").doc(cleanCreditId);
+  const applicationRef = db.collection("creditApplications").doc(mutationId);
+  const auditRef = db.collection("financialAudit").doc(mutationId);
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+
+  return db.runTransaction(async transaction => {
+    const existingApplication = await transaction.get(applicationRef);
+    if (existingApplication.exists) {
+      if (existingApplication.data().signature !== signature) {
+        throw httpError(409, "requestId already used for a different credit application");
+      }
+      return { creditApplication: { id: existingApplication.id, ...existingApplication.data() }, idempotent: true };
+    }
+    const creditSnap = await transaction.get(creditRef);
+    if (!creditSnap.exists) throw httpError(404, "Payer credit not found");
+    const credit = creditSnap.data();
+    if (credit.status !== "open" || (Number(credit.availableAmountCents) || 0) <= 0) {
+      throw httpError(409, "Payer credit is not available");
+    }
+    const invoiceRefs = sortedAllocations.map(allocation => db.collection("invoices").doc(allocation.invoiceId));
+    const invoiceSnaps = await Promise.all(invoiceRefs.map(ref => transaction.get(ref)));
+    invoiceSnaps.forEach((snap, index) => {
+      if (!snap.exists) throw httpError(404, `Invoice ${sortedAllocations[index].invoiceId} not found`);
+    });
+    const paymentSnaps = await Promise.all(sortedAllocations.map(allocation =>
+      activeInvoicePayments(transaction, allocation.invoiceId),
+    ));
+    sortedAllocations.forEach((allocation, index) => {
+      const preview = invoiceFinancialPatch(invoiceSnaps[index].data(), paymentSnaps[index], nowIso);
+      if (allocation.amountCents > preview.balanceDueCents) {
+        throw httpError(409, `Credit allocation exceeds invoice ${allocation.invoiceId} balance`);
+      }
+    });
+    const creditPatch = creditAfterApplication(credit, normalized.allocatedAmountCents, nowIso);
+    const paymentIds = [];
+    const auditInvoices = [];
+
+    sortedAllocations.forEach((allocation, index) => {
+      const invoice = invoiceSnaps[index].data();
+      const paymentId = `${mutationId}_a${index + 1}`;
+      const payment = {
+        invoiceId: allocation.invoiceId,
+        invoiceNum: invoice.num || "",
+        studentId: invoice.studentId || "",
+        studentName: invoice.studentName || "",
+        payerName: credit.payerName || invoice.payerName || invoice.parentName || invoice.studentName || "",
+        amountCents: allocation.amountCents,
+        amount: centsToAmount(allocation.amountCents),
+        paidAt: nowIso.slice(0, 10),
+        method: "credit",
+        reference: `Avanss ${creditRef.id}`,
+        note: cleanNote || "Payer credit applied",
+        status: "active",
+        sourceCreditId: creditRef.id,
+        creditApplicationId: mutationId,
+        createdAt: nowIso,
+        createdBy: actorData,
+        requestId: paymentId,
+      };
+      const patch = invoiceFinancialPatch(invoice, [...paymentSnaps[index], payment], nowIso);
+      transaction.create(db.collection("payments").doc(paymentId), payment);
+      transaction.set(invoiceRefs[index], patch, { merge: true });
+      paymentIds.push(paymentId);
+      auditInvoices.push({
+        invoiceId: allocation.invoiceId,
+        invoiceNum: invoice.num || "",
+        amount: payment.amount,
+        beforePaidAmount: Number(invoice.paidAmount) || 0,
+        afterPaidAmount: patch.paidAmount,
+        afterBalanceDue: patch.balanceDue,
+      });
+    });
+
+    const application = {
+      creditId: creditRef.id,
+      payerKey: credit.payerKey || "",
+      payerName: credit.payerName || "",
+      amountCents: normalized.allocatedAmountCents,
+      amount: centsToAmount(normalized.allocatedAmountCents),
+      originalAmountCents: normalized.allocatedAmountCents,
+      originalAmount: centsToAmount(normalized.allocatedAmountCents),
+      allocations: auditInvoices,
+      paymentIds,
+      activePaymentCount: paymentIds.length,
+      status: "active",
+      signature,
+      note: cleanNote,
+      createdAt: nowIso,
+      createdBy: actorData,
+      requestId: mutationId,
+    };
+    transaction.set(creditRef, creditPatch, { merge: true });
+    transaction.create(applicationRef, application);
+    transaction.create(auditRef, {
+      entityType: "payerCredit",
+      entityId: creditRef.id,
+      action: "payer_credit.applied",
+      creditId: creditRef.id,
+      creditApplicationId: mutationId,
+      paymentIds,
+      invoices: auditInvoices,
+      amount: application.amount,
+      beforeAvailableAmount: Number(credit.availableAmount) || 0,
+      afterAvailableAmount: creditPatch.availableAmount,
+      actor: actorData,
+      reason: cleanNote || "Payer credit applied",
+      createdAt: nowIso,
+      requestId: mutationId,
+    });
+    return {
+      creditApplication: { id: mutationId, ...application },
+      payerCredit: { id: creditRef.id, ...credit, ...creditPatch },
+      idempotent: false,
+    };
+  });
+}
+
+async function voidSinglePayment({ actor, paymentId, reason, requestId }) {
+  const mutationId = cleanRequestId(requestId);
+  const cleanPaymentId = String(paymentId || "").trim();
+  if (!cleanPaymentId) throw httpError(400, "paymentId required");
+  const cleanReason = cleanText(reason);
+  if (!cleanReason) throw httpError(400, "Reason required");
+  const paymentRef = db.collection("payments").doc(cleanPaymentId);
+  const auditRef = db.collection("financialAudit").doc(mutationId);
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+
+  return db.runTransaction(async transaction => {
+    const existingAudit = await transaction.get(auditRef);
+    if (existingAudit.exists) {
+      const existingData = existingAudit.data();
+      if (existingData.action !== "payment.voided" || existingData.paymentId !== paymentRef.id) {
+        throw httpError(409, "requestId already used for a different financial mutation");
+      }
+      return { paymentId: paymentRef.id, idempotent: true };
+    }
+    const paymentSnap = await transaction.get(paymentRef);
+    if (!paymentSnap.exists) throw httpError(404, "Payment not found");
+    const payment = paymentSnap.data();
+    if (payment.status === "voided") throw httpError(409, "Payment is already voided");
+    const invoiceRef = db.collection("invoices").doc(String(payment.invoiceId || ""));
+    const invoiceSnap = await transaction.get(invoiceRef);
+    if (!invoiceSnap.exists) throw httpError(404, "Invoice not found");
+    const invoice = invoiceSnap.data();
+    const invoicePayments = await activeInvoicePayments(transaction, invoiceRef.id);
+
+    let sourceCreditRef = null;
+    let sourceCredit = null;
+    let applicationRef = null;
+    let application = null;
+    let bankRef = null;
+    let bankTransaction = null;
+    if (payment.sourceCreditId) {
+      sourceCreditRef = db.collection("payerCredits").doc(String(payment.sourceCreditId));
+      const creditSnap = await transaction.get(sourceCreditRef);
+      if (!creditSnap.exists) throw httpError(409, "Source payer credit not found");
+      sourceCredit = creditSnap.data();
+      if (payment.creditApplicationId) {
+        applicationRef = db.collection("creditApplications").doc(String(payment.creditApplicationId));
+        const applicationSnap = await transaction.get(applicationRef);
+        if (!applicationSnap.exists) throw httpError(409, "Credit application not found");
+        application = applicationSnap.data();
+      }
+    } else if (payment.bankTransactionId) {
+      bankRef = db.collection("bankTransactions").doc(String(payment.bankTransactionId));
+      sourceCreditRef = db.collection("payerCredits").doc(String(payment.bankTransactionId));
+      const [bankSnap, creditSnap] = await Promise.all([
+        transaction.get(bankRef),
+        transaction.get(sourceCreditRef),
+      ]);
+      if (!bankSnap.exists) throw httpError(409, "Source bank transaction not found");
+      bankTransaction = bankSnap.data();
+      sourceCredit = creditSnap.exists ? creditSnap.data() : {
+        payerKey: bankTransaction.payerKey || "",
+        payerName: bankTransaction.payerName || payment.payerName || "",
+        bankTransactionId: bankRef.id,
+        originalAmountCents: Number(payment.amountCents) || Math.round((Number(payment.amount) || 0) * 100),
+        originalAmount: Number(payment.amount) || centsToAmount(Number(payment.amountCents) || 0),
+        availableAmountCents: 0,
+        availableAmount: 0,
+        appliedAmountCents: 0,
+        appliedAmount: 0,
+        status: "open",
+        createdAt: nowIso,
+        createdBy: actorData,
+      };
+    }
+
+    const amountCents = Number(payment.amountCents) || Math.round((Number(payment.amount) || 0) * 100);
+    if (amountCents <= 0) throw httpError(409, "Payment amount is invalid");
+    const voidedPayment = {
+      ...payment,
+      status: "voided",
+      voidedAt: nowIso,
+      voidedBy: actorData,
+      voidReason: cleanReason,
+      voidRequestId: mutationId,
+    };
+    const recalculatedPayments = invoicePayments.map(item =>
+      item.id === paymentRef.id ? { ...item, status: "voided" } : item,
+    );
+    const invoicePatch = invoiceFinancialPatch(invoice, recalculatedPayments, nowIso);
+    transaction.set(paymentRef, {
+      status: "voided",
+      voidedAt: nowIso,
+      voidedBy: actorData,
+      voidReason: cleanReason,
+      voidRequestId: mutationId,
+    }, { merge: true });
+    transaction.set(invoiceRef, {
+      ...invoicePatch,
+      ...(invoicePatch.paidAt ? {} : { paidAt: admin.firestore.FieldValue.delete() }),
+    }, { merge: true });
+
+    let restoredCreditPatch = null;
+    if (sourceCreditRef && sourceCredit) {
+      restoredCreditPatch = creditAfterRestoration(
+        sourceCredit,
+        amountCents,
+        nowIso,
+        { reverseApplication: Boolean(payment.sourceCreditId) },
+      );
+      transaction.set(sourceCreditRef, {
+        ...sourceCredit,
+        ...restoredCreditPatch,
+      }, { merge: true });
+    }
+    if (applicationRef && application) {
+      const remainingAmountCents = Math.max(0, (Number(application.amountCents) || 0) - amountCents);
+      transaction.set(applicationRef, {
+        amountCents: remainingAmountCents,
+        amount: centsToAmount(remainingAmountCents),
+        activePaymentCount: Math.max(0, (Number(application.activePaymentCount) || application.paymentIds?.length || 0) - 1),
+        status: remainingAmountCents === 0 ? "voided" : "partially_voided",
+        voidedPaymentIds: admin.firestore.FieldValue.arrayUnion(paymentRef.id),
+        updatedAt: nowIso,
+      }, { merge: true });
+    }
+    if (bankRef && bankTransaction) {
+      const allocatedAmountCents = Math.max(0, (Number(bankTransaction.allocatedAmountCents) || 0) - amountCents);
+      const unappliedAmountCents = Math.max(0, (Number(bankTransaction.unappliedAmountCents) || 0) + amountCents);
+      transaction.set(bankRef, {
+        allocatedAmountCents,
+        allocatedAmount: centsToAmount(allocatedAmountCents),
+        unappliedAmountCents,
+        unappliedAmount: centsToAmount(unappliedAmountCents),
+        activeAllocationCount: Math.max(0, (Number(bankTransaction.activeAllocationCount) || bankTransaction.allocationCount || 0) - 1),
+        status: allocatedAmountCents === 0 ? "unapplied" : "partially_allocated",
+        updatedAt: nowIso,
+      }, { merge: true });
+    }
+
+    transaction.create(auditRef, {
+      entityType: "payment",
+      entityId: paymentRef.id,
+      action: "payment.voided",
+      paymentId: paymentRef.id,
+      invoiceId: invoiceRef.id,
+      invoiceNum: invoice.num || payment.invoiceNum || "",
+      bankTransactionId: payment.bankTransactionId || "",
+      sourceCreditId: payment.sourceCreditId || "",
+      creditApplicationId: payment.creditApplicationId || "",
+      amount: centsToAmount(amountCents),
+      before: {
+        paymentStatus: payment.status || "active",
+        invoicePaidAmount: Number(invoice.paidAmount) || 0,
+        invoiceBalanceDue: invoice.balanceDue ?? (Number(invoice.amount) || 0),
+      },
+      after: {
+        paymentStatus: voidedPayment.status,
+        invoicePaidAmount: invoicePatch.paidAmount,
+        invoiceBalanceDue: invoicePatch.balanceDue,
+        restoredCreditAmount: restoredCreditPatch?.availableAmount ?? null,
+      },
+      actor: actorData,
+      reason: cleanReason,
+      createdAt: nowIso,
+      requestId: mutationId,
+    });
+    return {
+      payment: { id: paymentRef.id, ...voidedPayment },
+      invoice: { id: invoiceRef.id, ...invoice, ...invoicePatch },
+      restoredCredit: restoredCreditPatch
+        ? { id: sourceCreditRef.id, ...sourceCredit, ...restoredCreditPatch }
         : null,
       idempotent: false,
     };
@@ -1077,6 +1394,27 @@ exports.financeApi = functions.https.onRequest(async (req, res) => {
         note: req.body?.note,
       });
       res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/payer-credits/apply") {
+      const result = await applyPayerCredit({
+        actor,
+        creditId: req.body?.creditId,
+        allocations: req.body?.allocations,
+        note: req.body?.note,
+        requestId: req.body?.requestId,
+      });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/payments/void") {
+      const result = await voidSinglePayment({
+        actor,
+        paymentId: req.body?.paymentId,
+        reason: req.body?.reason,
+        requestId: req.body?.requestId,
+      });
+      res.json(result);
       return;
     }
     res.status(404).json({ error: "Not found" });

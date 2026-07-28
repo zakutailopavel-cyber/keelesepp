@@ -3,6 +3,8 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const {
+  creditAfterApplication,
+  creditAfterRestoration,
   invoiceFinancialPatch,
   normalizeAllocations,
   toCents,
@@ -88,6 +90,40 @@ test("allocation rejects duplicate invoices and amounts above the transaction", 
   );
   assert.throws(
     () => normalizeAllocations(100, [{ invoiceId: "invoice-a", amount: 100.01 }]),
+    /exceeds/,
+  );
+});
+
+test("payer credit can be partially applied and later restored", () => {
+  const applied = creditAfterApplication(
+    { availableAmountCents: 5000, appliedAmountCents: 0, applicationCount: 0 },
+    3000,
+    "2026-07-28T10:00:00.000Z",
+  );
+  assert.equal(applied.availableAmount, 20);
+  assert.equal(applied.appliedAmount, 30);
+  assert.equal(applied.status, "open");
+
+  const restored = creditAfterRestoration(
+    applied,
+    1000,
+    "2026-07-28T11:00:00.000Z",
+  );
+  assert.equal(restored.availableAmount, 30);
+  assert.equal(restored.appliedAmount, 20);
+  assert.equal(restored.status, "open");
+});
+
+test("payer credit closes at zero and rejects over-application", () => {
+  const closed = creditAfterApplication(
+    { availableAmountCents: 2500 },
+    2500,
+    "2026-07-28T10:00:00.000Z",
+  );
+  assert.equal(closed.availableAmount, 0);
+  assert.equal(closed.status, "closed");
+  assert.throws(
+    () => creditAfterApplication({ availableAmountCents: 1000 }, 1001, "2026-07-28T10:00:00.000Z"),
     /exceeds/,
   );
 });
