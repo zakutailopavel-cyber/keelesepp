@@ -16,6 +16,7 @@ const {
   paymentNetAmountCents,
   planInvoiceOverpaymentTransfer,
   selectBillableLessons,
+  tariffAssignmentPlan,
   toCents,
 } = require("./finance-core");
 
@@ -357,5 +358,97 @@ test("payer credit refund reduces only available balance and is cumulative", () 
   assert.throws(
     () => creditAfterRefund(second, 1, "2026-07-28T12:00:00.000Z"),
     /exceeds available/,
+  );
+});
+
+test("versioned tariff assignments price each lesson by its date", () => {
+  const invoice = buildLessonInvoiceLines(
+    [
+      { id: "lesson-old", date: "2026-07-07", status: "Toimunud", billingStatus: "unbilled" },
+      { id: "lesson-new", date: "2026-07-21", status: "Toimunud", billingStatus: "unbilled" },
+    ],
+    20,
+    [
+      {
+        id: "assignment-old",
+        tariffId: "tariff-old",
+        tariffName: "Individual 25",
+        billingModel: "per_lesson",
+        unitPriceCents: 2500,
+        effectiveFrom: "2026-07-01",
+        effectiveUntil: "2026-07-14",
+      },
+      {
+        id: "assignment-new",
+        tariffId: "tariff-new",
+        tariffName: "Individual 30",
+        billingModel: "per_lesson",
+        unitPriceCents: 3000,
+        effectiveFrom: "2026-07-15",
+        effectiveUntil: "",
+      },
+    ],
+  );
+  assert.equal(invoice.amountCents, 5500);
+  assert.equal(invoice.lessonPriceCents, 0);
+  assert.equal(invoice.pricingMode, "tariff_assignments_v1");
+  assert.deepEqual(invoice.tariffIds, ["tariff-old", "tariff-new"]);
+  assert.deepEqual(
+    invoice.lines.map(line => [
+      line.lessonId,
+      line.unitPriceCents,
+      line.tariffAssignmentId,
+    ]),
+    [
+      ["lesson-old", 2500, "assignment-old"],
+      ["lesson-new", 3000, "assignment-new"],
+    ],
+  );
+});
+
+test("lessons outside tariff assignment dates keep the legacy student price", () => {
+  const invoice = buildLessonInvoiceLines(
+    [
+      { id: "lesson-legacy", date: "2026-06-20", status: "Toimunud", billingStatus: "unbilled" },
+      { id: "lesson-tariff", date: "2026-07-20", status: "Toimunud", billingStatus: "unbilled" },
+    ],
+    20,
+    [{
+      id: "assignment-a",
+      tariffId: "tariff-a",
+      tariffName: "Individual 30",
+      billingModel: "per_lesson",
+      unitPriceCents: 3000,
+      effectiveFrom: "2026-07-01",
+      effectiveUntil: "",
+    }],
+  );
+  assert.equal(invoice.amountCents, 5000);
+  assert.equal(invoice.pricingMode, "mixed_tariff_legacy_v1");
+  assert.equal(invoice.lines[0].pricingSource, "legacy_student_price");
+  assert.equal(invoice.lines[1].pricingSource, "tariff_assignment");
+});
+
+test("new tariff assignments close the latest interval without rewriting its price", () => {
+  const plan = tariffAssignmentPlan(
+    [{
+      id: "assignment-a",
+      effectiveFrom: "2026-07-01",
+      effectiveUntil: "",
+      unitPriceCents: 2500,
+    }],
+    "2026-08-01",
+  );
+  assert.deepEqual(plan, {
+    effectiveFrom: "2026-08-01",
+    previousAssignmentId: "assignment-a",
+    previousEffectiveUntil: "2026-07-31",
+  });
+  assert.throws(
+    () => tariffAssignmentPlan(
+      [{ id: "assignment-a", effectiveFrom: "2026-07-01" }],
+      "2026-07-01",
+    ),
+    /must start after/,
   );
 });

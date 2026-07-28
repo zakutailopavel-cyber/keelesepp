@@ -269,19 +269,57 @@ const billableLessonsForStudent = (lessonRecords,student) => {
     .filter((lesson,index,list)=>list.findIndex(item=>item.id===lesson.id)===index)
     .sort((a,b)=>`${a.date||''}:${a.id||''}`.localeCompare(`${b.date||''}:${b.id||''}`));
 };
-const invoiceDraftForStudent = (student, amountInput='', descInput='', lessonRecords=null) => {
+const tariffAssignmentForDate = (assignments,studentId,date) => (assignments||[])
+  .filter(assignment=>
+    assignment.studentId===studentId
+    && assignment.effectiveFrom<=date
+    && (!assignment.effectiveUntil||date<=assignment.effectiveUntil)
+  )
+  .sort((a,b)=>`${b.effectiveFrom||''}:${b.createdAt||''}:${b.id||''}`.localeCompare(`${a.effectiveFrom||''}:${a.createdAt||''}:${a.id||''}`))[0]||null;
+const invoiceDraftForStudent = (student, amountInput='', descInput='', lessonRecords=null, tariffAssignments=[]) => {
   const billableLessons = Array.isArray(lessonRecords) ? lessonRecords : null;
   const lessons = billableLessons ? billableLessons.length : Math.max(0, Number(student?.lessonsSinceInvoice)||0);
-  const lessonPrice = Math.max(0, Number(student?.lessonPrice)||0);
-  const autoAmount = lessons>0&&lessonPrice>0 ? Math.round(lessons*lessonPrice*100)/100 : 0;
+  const legacyLessonPrice = Math.max(0, Number(student?.lessonPrice)||0);
+  const pricedLessons = billableLessons
+    ? billableLessons.map(lesson=>{
+        const assignment=tariffAssignmentForDate(tariffAssignments,student?.id,lesson.date);
+        const lessonPrice=Math.max(0,Number(assignment?.unitPrice)||legacyLessonPrice);
+        return {
+          lessonId:lesson.id,
+          lessonPrice,
+          tariffName:assignment?.tariffName||'',
+          tariffAssignmentId:assignment?.id||'',
+          pricingSource:assignment?'tariff_assignment':'legacy_student_price'
+        };
+      })
+    : Array.from({length:lessons},()=>({
+        lessonId:'',
+        lessonPrice:legacyLessonPrice,
+        tariffName:'',
+        tariffAssignmentId:'',
+        pricingSource:'legacy_student_price'
+      }));
+  const autoAmount = pricedLessons.length&&pricedLessons.every(item=>item.lessonPrice>0)
+    ? Math.round(pricedLessons.reduce((sum,item)=>sum+item.lessonPrice,0)*100)/100
+    : 0;
+  const uniquePrices=[...new Set(pricedLessons.map(item=>item.lessonPrice).filter(price=>price>0))];
+  const lessonPrice=uniquePrices.length===1?uniquePrices[0]:0;
+  const lessonPricesById=Object.fromEntries(pricedLessons.filter(item=>item.lessonId).map(item=>[item.lessonId,item.lessonPrice]));
+  const tariffNamesById=Object.fromEntries(pricedLessons.filter(item=>item.lessonId).map(item=>[item.lessonId,item.tariffName]));
+  const tariffCount=pricedLessons.filter(item=>item.pricingSource==='tariff_assignment').length;
+  const pricingMode=tariffCount===pricedLessons.length&&pricedLessons.length
+    ? 'tariff_assignments_v1'
+    : tariffCount>0?'mixed_tariff_legacy_v1':'legacy_student_price';
   const manualProvided = String(amountInput??'').trim()!=='';
   const manualAmount = manualProvided ? (Number(String(amountInput).replace(',','.'))||0) : 0;
   // Если сумма введена явно (в т.ч. «0» или мусор) — автосумма НЕ подставляется
   // молча: ноль остановит создание счёта с предупреждением, а не выставит
   // неожиданную сумму за спиной у администратора.
   const amount = manualProvided ? manualAmount : autoAmount;
-  const autoDesc = lessons>0&&lessonPrice>0
-    ? `${lessons} keeletundi x ${money(lessonPrice)}€`
+  const autoDesc = lessons>0&&autoAmount>0
+    ? lessonPrice>0
+      ? `${lessons} keeletundi x ${money(lessonPrice)}€`
+      : `${lessons} keeletundi tariifide järgi`
     : 'Keeletunnid';
   const desc = String(descInput||'').trim()||autoDesc;
   return {
@@ -293,7 +331,10 @@ const invoiceDraftForStudent = (student, amountInput='', descInput='', lessonRec
     amount,
     desc,
     hasAuto:autoAmount>0,
-    lessonIds:billableLessons ? billableLessons.map(lesson=>lesson.id) : []
+    lessonIds:billableLessons ? billableLessons.map(lesson=>lesson.id) : [],
+    lessonPricesById,
+    tariffNamesById,
+    pricingMode
   };
 };
 function CollapsibleCard({id,title,subtitle,badge,children,defaultCollapsed=false,style={},bodyStyle={},titleColor='#1C2B3A'}) {
@@ -670,7 +711,7 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
   nTeach,setNTeach,addStudent,
   groupOptions,
   taskTitle,setTaskTitle,taskAssignee,setTaskAssignee,taskDue,setTaskDue,taskPriority,setTaskPriority,taskCategory,setTaskCategory,
-  addTask,toggleTask,deleteTask,replyTask,markTaskRepliesSeen,openLessonEditor,isAdmin,isStaff,parentAlerts,createMissingParentStudents,markParentChecked,setTab,setSelStu}) {
+  addTask,toggleTask,deleteTask,replyTask,markTaskRepliesSeen,openLessonEditor,isAdmin,isStaff,parentAlerts,createMissingParentStudents,markParentChecked,setTab,setSelStu,tariffAssignments=[]}) {
   const [expandedLessonId,setExpandedLessonId] = React.useState('');
   const [parentDashboardMode,setParentDashboardMode] = React.useState('family');
   const unpaidAmt = invoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+invoiceFinancialSummary(i).balance,0);
@@ -1337,9 +1378,16 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
       
 
       {isAdmin&&(()=>{
-        const billable = myStudents.filter(s=>s.active!==false&&(s.lessonsSinceInvoice||0)>0);
-        const totalLessons = billable.reduce((sum,s)=>sum+(s.lessonsSinceInvoice||0),0);
-        const totalRevenue = billable.reduce((sum,s)=>sum+((s.lessonsSinceInvoice||0)*(s.lessonPrice||0)),0);
+        const billable = myStudents
+          .filter(s=>s.active!==false)
+          .map(s=>{
+            const billableLessons=billableLessonsForStudent(lessons,s);
+            const draft=invoiceDraftForStudent(s,'','',billableLessons,tariffAssignments);
+            return {...s,_billableLessons:billableLessons.length,_invoiceDraft:draft};
+          })
+          .filter(s=>s._billableLessons>0);
+        const totalLessons = billable.reduce((sum,s)=>sum+s._billableLessons,0);
+        const totalRevenue = billable.reduce((sum,s)=>sum+(s._invoiceDraft.autoAmount||0),0);
         if(!billable.length) return null;
         return(
           <CollapsibleCard
@@ -1355,17 +1403,19 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
               </React.Fragment>}
           >
             <div style={{display:'flex',flexDirection:'column',gap:8}}>
-              {billable.sort((a,b)=>(b.lessonsSinceInvoice||0)-(a.lessonsSinceInvoice||0)).map(s=>(
+              {billable.sort((a,b)=>b._billableLessons-a._billableLessons).map(s=>(
                 <div key={s.id} style={{display:'grid',gridTemplateColumns:'1fr auto auto',gap:12,alignItems:'center',padding:'10px 14px',borderRadius:12,background:'#fff',border:'1px solid rgba(37,99,235,.1)'}}>
                   <div>
                     <div style={{fontWeight:700}}>{s.name}</div>
                     <div style={{fontSize:'.76rem',color:'#42536A',marginTop:2}}>
-                      {s.teacher||'—'} · Tunni hind: {s.lessonPrice?s.lessonPrice+'€':'määramata'}
+                      {s.teacher||'—'} · {s._invoiceDraft.lessonPrice>0
+                        ? `Tunni hind: ${money(s._invoiceDraft.lessonPrice)}€`
+                        : s._invoiceDraft.hasAuto?'Erinevad tariifid':'Hind määramata'}
                     </div>
                   </div>
-                  <span className="badge" style={{background:'#dbeafe',color:'#1d4ed8'}}>{s.lessonsSinceInvoice} tundi</span>
+                  <span className="badge" style={{background:'#dbeafe',color:'#1d4ed8'}}>{s._billableLessons} tundi</span>
                   <span style={{fontWeight:700,color:'#1d4ed8',minWidth:50,textAlign:'right'}}>
-                    {s.lessonPrice?((s.lessonsSinceInvoice||0)*s.lessonPrice)+'€':'—'}
+                    {s._invoiceDraft.hasAuto?money(s._invoiceDraft.autoAmount)+'€':'—'}
                   </span>
                 </div>
               ))}
@@ -1985,7 +2035,7 @@ function StuSearch({value, onChange, students, placeholder}) {
 function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilterT,
   schStu,setSchStu,schDate,setSchDate,schTime,setSchTime,schTeach,setSchTeach,
   schRecurring,setSchRecurring,addSchedule,openScheduleEditor,delSchedule,markAttendance,openStudent,
-  db,notify,students,setSelStu,setTab}) {
+  db,notify,students,setSelStu,setTab,tariffAssignments=[]}) {
 
   const [showCanceled,setShowCanceled] = React.useState(true);
   const [weekOffset,setWeekOffset]     = React.useState(0);
@@ -2129,12 +2179,13 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
           else if(ev.status==='Tühistatud') canceled++;
           else planned++;
           const stu=students.find(s=>s.id===ev.studentId||normalizeText(s.name)===normalizeText(ev.studentName));
-          if(stu?.lessonPrice) revenue+=stu.lessonPrice;
+          const assignment=tariffAssignmentForDate(tariffAssignments,stu?.id,day.iso);
+          revenue+=Math.max(0,Number(assignment?.unitPrice)||Number(stu?.lessonPrice)||0);
         });
       });
     });
     return {total,done,canceled,planned,revenue};
-  },[occupiedSlots,weekDays,students]);
+  },[occupiedSlots,weekDays,students,tariffAssignments]);
 
   // ── Planner rows ──────────────────────────────────────────────
   const weekEventList = React.useMemo(()=>filteredSch.filter(ev=>
@@ -2664,7 +2715,8 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
                       canceled:dayEvs.filter(e=>e.status==='Tühistatud').length,
                       revenue:dayEvs.reduce((sum,ev)=>{
                         const stu=students.find(s=>s.id===ev.studentId||normalizeText(s.name)===normalizeText(ev.studentName));
-                        return sum+(stu?.lessonPrice||0);
+                        const assignment=tariffAssignmentForDate(tariffAssignments,stu?.id,dayViewObj.iso);
+                        return sum+Math.max(0,Number(assignment?.unitPrice)||Number(stu?.lessonPrice)||0);
                       },0)
                     }
                   : weekStats;
@@ -5235,7 +5287,7 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
   hwTask,setHwTask,hwDue,setHwDue,hwFiles,setHwFiles,addHw,toggleHw,deleteHw,removeHwFile,
   invAmt,setInvAmt,invDesc,setInvDesc,invRef,setInvRef,invDue,setInvDue,addInvoice,markPaid,unmarkPaid,deleteInvoice,printInvoice,submitParentPayment,resetParentPayment,updateInvoiceReference,updateInvoiceDue,sendInvoiceEmail,sendInvoiceReminder,invoiceEmailBusy,deleteLesson,openLessonEditor,
   schDate,setSchDate,schTime,setSchTime,schTeach,setSchTeach,schRecurring,setSchRecurring,addStudentSchedule,canAssignTeacher,
-  stuMessages,teacherMessage,setTeacherMessage,sendTeacherMessage,notify,setAssignWsLesson}) {
+  stuMessages,teacherMessage,setTeacherMessage,sendTeacherMessage,notify,setAssignWsLesson,tariffAssignments=[]}) {
   if(!currentStu) return <div style={{textAlign:'center',padding:60,color:'#42536A'}}>Õpilane ei leitud.</div>;
   const done=stuLessons.filter(l=>l.status==='Toimunud');
   const pct=levelPct(currentStu.level,currentStu.targetLevel);
@@ -5246,11 +5298,13 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
   const [copiedPaymentKey,setCopiedPaymentKey] = React.useState('');
   const [exerciseResults,setExerciseResults] = React.useState([]);
   const currentBillableLessons = billableLessonsForStudent(stuLessons,currentStu);
+  const currentTariffAssignment=tariffAssignmentForDate(tariffAssignments,currentStu.id,today());
   const invoiceDraft = invoiceDraftForStudent(
     currentStu,
     invAmt,
     invDesc,
-    currentBillableLessons
+    currentBillableLessons,
+    tariffAssignments
   );
   const unpaidStudentInvoices = stuInv.filter(inv=>inv.status==='Ootel');
   const unpaidStudentAmount = unpaidStudentInvoices.reduce((sum,inv)=>sum+invoiceFinancialSummary(inv).balance,0);
@@ -5305,7 +5359,10 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
               Õpetaja: <strong>{currentStu.teacher}</strong>
               {currentStu.email&&<> · {currentStu.email}</>}
               {currentStu.phone&&<> · {currentStu.phone}</>}
-              {canManage&&currentStu.lessonPrice>0&&<> · Tunni hind: <strong>{currentStu.lessonPrice}€</strong></>}
+              {canManage&&(currentTariffAssignment||currentStu.lessonPrice>0)&&<>
+                {' '}· Tunni hind: <strong>{money(currentTariffAssignment?.unitPrice||currentStu.lessonPrice)}€</strong>
+                {currentTariffAssignment?.tariffName&&<> ({currentTariffAssignment.tariffName})</>}
+              </>}
             </div>
             {isAdmin&&(
               <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:10}}>
@@ -5341,9 +5398,9 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
                   <div style={{fontSize:'.72rem',color:'#42536A'}}>Arveldamata</div>
                 </div>
               )}
-              {canManage&&currentStu.lessonPrice>0&&(
+              {canManage&&invoiceDraft.hasAuto&&(
                 <div style={{borderRadius:10,padding:'10px 16px',textAlign:'center',minWidth:80,background:'rgba(47,93,80,.08)'}}>
-                  <div style={{fontWeight:700,fontSize:'1.2rem',color:'#2F5D50'}}>{((currentStu.lessonsSinceInvoice||0)*(currentStu.lessonPrice||0))}€</div>
+                  <div style={{fontWeight:700,fontSize:'1.2rem',color:'#2F5D50'}}>{money(invoiceDraft.autoAmount)}€</div>
                   <div style={{fontSize:'.72rem',color:'#42536A'}}>Võlgnevus</div>
                 </div>
               )}
@@ -5605,7 +5662,9 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
               </span>
               {invoiceDraft.hasAuto&&(
                 <span className="badge" style={{background:'#dbeafe',color:'#1d4ed8'}}>
-                  {invoiceDraft.lessons} x {money(invoiceDraft.lessonPrice)}€
+                  {invoiceDraft.lessonPrice>0
+                    ? `${invoiceDraft.lessons} x ${money(invoiceDraft.lessonPrice)}€`
+                    : `${invoiceDraft.lessons} tundi tariifide järgi`}
                 </span>
               )}
             </div>
@@ -5620,7 +5679,9 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
               </div>
               <div style={{fontSize:'.76rem',color:'#42536A'}}>
                 {invoiceDraft.hasAuto
-                  ? `${invoiceDraft.lessons} arveldamata tundi x ${money(invoiceDraft.lessonPrice)}€`
+                  ? invoiceDraft.lessonPrice>0
+                    ? `${invoiceDraft.lessons} arveldamata tundi x ${money(invoiceDraft.lessonPrice)}€`
+                    : `${invoiceDraft.lessons} arveldamata tundi tariifide järgi`
                   : 'Automaatseks summaks lisa õpilasele tunni hind ja arveldamata tunnid.'}
               </div>
             </div>
@@ -5831,7 +5892,7 @@ function ParentInvoicesView({invoices,printInvoice,submitParentPayment}) {
 }
 
 // ── ARVED ÜLDVAADE ────────────────────────────────────────────
-function InvoicesView({invoices,payments,myStudents,parents,schedule,students,lessons,isAdmin,invStu,setInvStu,invAmt,setInvAmt,invDesc,setInvDesc,invRef,setInvRef,invDue,setInvDue,addInvoice,recordPayment,markPaid,unmarkPaid,voidPayment,resolveInvoiceOverpayment,creditInvoiceLessonLine,openCreditNotePdf,sendCreditNoteEmail,deleteInvoice,printInvoice,updateInvoiceReference,updateInvoiceDue,sendInvoiceEmail,sendInvoiceReminder,sendMonthlyInvoiceReminders,invoiceEmailBusy}) {
+function InvoicesView({invoices,payments,myStudents,parents,schedule,students,lessons,isAdmin,tariffs=[],tariffAssignments=[],createTariffVersion,assignStudentTariff,invStu,setInvStu,invAmt,setInvAmt,invDesc,setInvDesc,invRef,setInvRef,invDue,setInvDue,addInvoice,recordPayment,markPaid,unmarkPaid,voidPayment,resolveInvoiceOverpayment,creditInvoiceLessonLine,openCreditNotePdf,sendCreditNoteEmail,deleteInvoice,printInvoice,updateInvoiceReference,updateInvoiceDue,sendInvoiceEmail,sendInvoiceReminder,sendMonthlyInvoiceReminders,invoiceEmailBusy}) {
   const unpaidAmt=invoices.filter(i=>i.status==='Ootel').reduce((sum,inv)=>sum+invoiceFinancialSummary(inv).balance,0);
   const paid=invoices.filter(i=>i.status==='Makstud');
   const [statsPeriod,setStatsPeriod] = React.useState('current');
@@ -5879,7 +5940,12 @@ function InvoicesView({invoices,payments,myStudents,parents,schedule,students,le
     return dates;
   },[periodStart,periodEnd]);
 
-  // Expected income: scheduled lessons × lessonPrice per student
+  const scheduledLessonPrice = React.useCallback((student,date)=>{
+    const assignment=tariffAssignmentForDate(tariffAssignments,student?.id,date);
+    return Math.max(0,Number(assignment?.unitPrice)||Number(student?.lessonPrice)||0);
+  },[tariffAssignments]);
+
+  // Expected income: scheduled lessons × dated tariff (legacy lessonPrice as fallback)
   const expectedIncome = React.useMemo(()=>{
     if(!isAdmin) return null;
     let total = 0;
@@ -5890,16 +5956,24 @@ function InvoicesView({invoices,payments,myStudents,parents,schedule,students,le
         s.id===ev.studentId ||
         (s.name||'').toLowerCase()===(ev.studentName||'').toLowerCase()
       );
-      if(!stu || !stu.lessonPrice) return;
+      if(!stu) return;
       const dates = getEventDatesInPeriod(ev);
-      const price = (stu.lessonPrice||0)*dates.length;
+      const prices=dates.map(date=>scheduledLessonPrice(stu,date)).filter(price=>price>0);
+      const price=prices.reduce((sum,item)=>sum+item,0);
+      if(price<=0) return;
       total += price;
-      if(!byStudent[stu.id]) byStudent[stu.id]={name:stu.name,count:0,price:stu.lessonPrice,teacher:stu.teacher||'—',total:0};
-      byStudent[stu.id].count += dates.length;
+      if(!byStudent[stu.id]) byStudent[stu.id]={name:stu.name,count:0,prices:[],teacher:stu.teacher||'—',total:0};
+      byStudent[stu.id].count += prices.length;
+      byStudent[stu.id].prices.push(...prices);
       byStudent[stu.id].total += price;
     });
-    return {total, byStudent:Object.values(byStudent).sort((a,b)=>b.total-a.total)};
-  },[schedule,students,isAdmin,getEventDatesInPeriod]);
+    return {
+      total,
+      byStudent:Object.values(byStudent)
+        .map(item=>({...item,priceLabel:[...new Set(item.prices)].map(money).join(' / ')}))
+        .sort((a,b)=>b.total-a.total)
+    };
+  },[schedule,students,isAdmin,getEventDatesInPeriod,scheduledLessonPrice]);
 
   // Teacher stats
   const teacherStats = React.useMemo(()=>{
@@ -5917,10 +5991,10 @@ function InvoicesView({invoices,payments,myStudents,parents,schedule,students,le
         s.id===ev.studentId ||
         (s.name||'').toLowerCase()===(ev.studentName||'').toLowerCase()
       );
-      if(stu?.lessonPrice) byTeacher[teacher].revenue += (stu.lessonPrice||0)*dates.length;
+      if(stu) byTeacher[teacher].revenue += dates.reduce((sum,date)=>sum+scheduledLessonPrice(stu,date),0);
     });
     return Object.values(byTeacher).sort((a,b)=>b.planned+b.done-(a.planned+a.done));
-  },[schedule,students,isAdmin,getEventDatesInPeriod]);
+  },[schedule,students,isAdmin,getEventDatesInPeriod,scheduledLessonPrice]);
 
   const periodLabel = statsPeriod==='current'
     ? now.toLocaleDateString('et-EE',{month:'long',year:'numeric'})
@@ -5936,6 +6010,13 @@ function InvoicesView({invoices,payments,myStudents,parents,schedule,students,le
     return invoices;
   },[invoiceFilter,invoices]);
   const [invoiceTargetType,setInvoiceTargetType] = React.useState('student');
+  const [tariffName,setTariffName] = React.useState('');
+  const [tariffPrice,setTariffPrice] = React.useState('');
+  const [tariffEffectiveFrom,setTariffEffectiveFrom] = React.useState(today());
+  const [tariffSaving,setTariffSaving] = React.useState(false);
+  const [invoiceTariffId,setInvoiceTariffId] = React.useState('');
+  const [invoiceTariffFrom,setInvoiceTariffFrom] = React.useState(today());
+  const [tariffAssignmentSaving,setTariffAssignmentSaving] = React.useState(false);
   const [invoiceParentQuery,setInvoiceParentQuery] = React.useState('');
   const [invoiceParentId,setInvoiceParentId] = React.useState('');
   const [invoiceLessonSelection,setInvoiceLessonSelection] = React.useState({
@@ -5953,6 +6034,45 @@ function InvoicesView({invoices,payments,myStudents,parents,schedule,students,le
   );
   const selectedInvoiceStudent = activeInvoiceStudents.find(s=>s.id===invStu);
   const selectedInvoiceParent = activeInvoiceParents.find(parent=>parent.id===invoiceParentId);
+  const availableTariffs = React.useMemo(
+    ()=>(tariffs||[])
+      .filter(tariff=>tariff.status==='active'&&tariff.billingModel==='per_lesson')
+      .sort((a,b)=>`${b.effectiveFrom||''}:${b.createdAt||''}`.localeCompare(`${a.effectiveFrom||''}:${a.createdAt||''}`)),
+    [tariffs]
+  );
+  const selectedTariffVersion=availableTariffs.find(tariff=>tariff.id===invoiceTariffId)||null;
+  const selectedStudentTariffAssignments = React.useMemo(
+    ()=>(tariffAssignments||[])
+      .filter(assignment=>assignment.studentId===selectedInvoiceStudent?.id)
+      .sort((a,b)=>`${b.effectiveFrom||''}:${b.createdAt||''}`.localeCompare(`${a.effectiveFrom||''}:${a.createdAt||''}`)),
+    [tariffAssignments,selectedInvoiceStudent?.id]
+  );
+  const currentStudentTariff = selectedInvoiceStudent
+    ? tariffAssignmentForDate(tariffAssignments,selectedInvoiceStudent.id,today())
+    : null;
+  const saveTariffVersion = async()=>{
+    const price=Number(String(tariffPrice).replace(',','.'));
+    if(!tariffName.trim()||!Number.isFinite(price)||price<=0||!tariffEffectiveFrom) return;
+    setTariffSaving(true);
+    const created=await createTariffVersion?.({
+      name:tariffName.trim(),
+      unitPrice:price,
+      effectiveFrom:tariffEffectiveFrom
+    });
+    if(created){setTariffName('');setTariffPrice('');setInvoiceTariffId(created.id);}
+    setTariffSaving(false);
+  };
+  const saveStudentTariffAssignment = async()=>{
+    if(!selectedInvoiceStudent?.id||!invoiceTariffId||!invoiceTariffFrom) return;
+    setTariffAssignmentSaving(true);
+    const assigned=await assignStudentTariff?.({
+      studentId:selectedInvoiceStudent.id,
+      tariffId:invoiceTariffId,
+      effectiveFrom:invoiceTariffFrom
+    });
+    if(assigned) setInvoiceTariffId('');
+    setTariffAssignmentSaving(false);
+  };
   const [invoiceStudentQuery,setInvoiceStudentQuery] = React.useState('');
   React.useEffect(()=>{
     if(selectedInvoiceStudent){
@@ -6034,7 +6154,8 @@ function InvoicesView({invoices,payments,myStudents,parents,schedule,students,le
     invoiceTargetType==='student'?invoiceStudentCandidate:null,
     invAmt,
     invDesc,
-    invoiceTargetType==='student'?selectedBillableLessons:null
+    invoiceTargetType==='student'?selectedBillableLessons:null,
+    tariffAssignments
   );
   const chooseInvoiceStudent = student => {
     setInvStu(student?.id||'');
@@ -6103,6 +6224,41 @@ function InvoicesView({invoices,payments,myStudents,parents,schedule,students,le
   return(
     <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:20}}>
       <h1 style={{fontSize:'1.7rem'}}>Arved</h1>
+
+      {isAdmin&&(
+        <CollapsibleCard id="invoice-tariffs" title="Tariifide versioonid"
+          subtitle="Uus hind loob uue versiooni. Varasemad arved ja tariifid ei muutu."
+          badge={availableTariffs.length}>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))',gap:10,alignItems:'end'}}>
+            <div>
+              <div style={{fontSize:'.72rem',fontWeight:800,color:'#42536A',marginBottom:5}}>Tariifi nimi</div>
+              <input value={tariffName} onChange={e=>setTariffName(e.target.value)} placeholder="Nt Individuaaltund"/>
+            </div>
+            <div>
+              <div style={{fontSize:'.72rem',fontWeight:800,color:'#42536A',marginBottom:5}}>Hind (€)</div>
+              <input type="number" min="0.01" step="0.01" value={tariffPrice} onChange={e=>setTariffPrice(e.target.value)} placeholder="30"/>
+            </div>
+            <div>
+              <div style={{fontSize:'.72rem',fontWeight:800,color:'#42536A',marginBottom:5}}>Kehtib alates</div>
+              <input type="date" value={tariffEffectiveFrom} onChange={e=>setTariffEffectiveFrom(e.target.value)}/>
+            </div>
+            <button type="button" className="btn btn-pine" onClick={saveTariffVersion}
+              disabled={tariffSaving||!tariffName.trim()||!tariffPrice||!tariffEffectiveFrom}>
+              {tariffSaving?'Salvestan…':'Loo versioon'}
+            </button>
+          </div>
+          <div style={{display:'flex',gap:8,flexWrap:'wrap',marginTop:14}}>
+            {availableTariffs.length===0&&(
+              <span style={{fontSize:'.8rem',color:'#42536A'}}>Tariife pole veel loodud. Õpilase vana tunni hind töötab edasi varuvariandina.</span>
+            )}
+            {availableTariffs.slice(0,8).map(tariff=>(
+              <span key={tariff.id} style={{padding:'7px 10px',borderRadius:10,background:'#F9F8F6',border:'1px solid rgba(28,43,58,.08)',fontSize:'.78rem'}}>
+                <strong>{tariff.name}</strong> · {money(tariff.unitPrice)}€/tund · alates {fmtDate(tariff.effectiveFrom)}
+              </span>
+            ))}
+          </div>
+        </CollapsibleCard>
+      )}
 
       {/* Main invoice stats */}
       <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))',gap:12}}>
@@ -6208,7 +6364,7 @@ function InvoicesView({invoices,payments,myStudents,parents,schedule,students,le
                   <div key={s.name} style={{display:'grid',gridTemplateColumns:'1fr auto auto',gap:10,alignItems:'center',padding:'8px 12px',borderRadius:10,background:'#F9F8F6',border:'1px solid rgba(28,43,58,.07)'}}>
                     <div>
                       <div style={{fontWeight:700,fontSize:'.84rem'}}>{s.name}</div>
-                      <div style={{fontSize:'.72rem',color:'#42536A'}}>{s.teacher} · {s.price}€/tund</div>
+                      <div style={{fontSize:'.72rem',color:'#42536A'}}>{s.teacher} · {s.priceLabel}€/tund</div>
                     </div>
                     <span className="badge" style={{background:'#dbeafe',color:'#1d4ed8'}}>{s.count} tk</span>
                     <span style={{fontWeight:700,color:'#1d4ed8',minWidth:45,textAlign:'right'}}>{s.total}€</span>
@@ -6386,9 +6542,59 @@ function InvoicesView({invoices,payments,myStudents,parents,schedule,students,le
 	                      : 'Jäta summa tühjaks, kui tahad kasutada automaatset arvestust.'}
 	                  </div>
 	                </div>
+	                {isAdmin&&invoiceTargetType==='student'&&selectedInvoiceStudent&&(
+	                  <div style={{padding:'12px',borderRadius:12,background:'#fff',border:'1px solid rgba(47,93,80,.14)',display:'flex',flexDirection:'column',gap:10}}>
+	                    <div style={{display:'flex',justifyContent:'space-between',gap:10,alignItems:'flex-start',flexWrap:'wrap'}}>
+	                      <div>
+	                        <strong style={{color:'#1C2B3A'}}>Õpilase tariif</strong>
+	                        <div style={{fontSize:'.74rem',color:'#42536A',marginTop:3}}>
+	                          {currentStudentTariff
+	                            ? `${currentStudentTariff.tariffName} · ${money(currentStudentTariff.unitPrice)}€/tund · alates ${fmtDate(currentStudentTariff.effectiveFrom)}`
+	                            : `Versioonitud tariifi pole. Kasutatakse vana tunni hinda ${money(selectedInvoiceStudent.lessonPrice)}€.`}
+	                        </div>
+	                      </div>
+	                      {selectedStudentTariffAssignments.length>0&&(
+	                        <span className="badge badge-green">{selectedStudentTariffAssignments.length} versiooni</span>
+	                      )}
+	                    </div>
+	                    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))',gap:8,alignItems:'end'}}>
+	                      <div>
+	                        <div style={{fontSize:'.7rem',fontWeight:800,color:'#42536A',marginBottom:4}}>Uus tariifiversioon</div>
+	                        <select value={invoiceTariffId} onChange={e=>{
+	                          const nextId=e.target.value;
+	                          const nextTariff=availableTariffs.find(tariff=>tariff.id===nextId);
+	                          setInvoiceTariffId(nextId);
+	                          if(nextTariff?.effectiveFrom&&invoiceTariffFrom<nextTariff.effectiveFrom){
+	                            setInvoiceTariffFrom(nextTariff.effectiveFrom);
+	                          }
+	                        }}>
+	                          <option value="">Vali tariif</option>
+	                          {availableTariffs.map(tariff=>(
+	                            <option key={tariff.id} value={tariff.id}>
+	                              {tariff.name} · {money(tariff.unitPrice)}€ · {fmtDate(tariff.effectiveFrom)}
+	                            </option>
+	                          ))}
+	                        </select>
+	                      </div>
+	                      <div>
+	                        <div style={{fontSize:'.7rem',fontWeight:800,color:'#42536A',marginBottom:4}}>Õpilasele alates</div>
+	                        <input type="date" value={invoiceTariffFrom} min={selectedTariffVersion?.effectiveFrom||''} onChange={e=>setInvoiceTariffFrom(e.target.value)}/>
+	                      </div>
+	                      <button type="button" className="btn btn-ghost" onClick={saveStudentTariffAssignment}
+	                        disabled={tariffAssignmentSaving||!invoiceTariffId||!invoiceTariffFrom}>
+	                        {tariffAssignmentSaving?'Määran…':'Määra tariif'}
+	                      </button>
+	                    </div>
+	                    {availableTariffs.length===0&&(
+	                      <div style={{fontSize:'.74rem',color:'#92400e'}}>Loo esmalt ülal tariifi versioon.</div>
+	                    )}
+	                  </div>
+	                )}
 	                {invoiceDraft.hasAuto
 	                  ? <div style={{padding:'10px 12px',borderRadius:12,background:'#dcfce7',color:'#166534',fontWeight:700,fontSize:'.84rem'}}>
-	                      Valitud: {invoiceDraft.lessons} arveldamata tundi x {money(invoiceDraft.lessonPrice)}€ = {money(invoiceDraft.autoAmount)}€
+	                      {invoiceDraft.lessonPrice>0
+	                        ? `Valitud: ${invoiceDraft.lessons} arveldamata tundi x ${money(invoiceDraft.lessonPrice)}€ = ${money(invoiceDraft.autoAmount)}€`
+	                        : `Valitud: ${invoiceDraft.lessons} arveldamata tundi tariifide järgi = ${money(invoiceDraft.autoAmount)}€`}
 	                    </div>
 	                  : <div style={{padding:'10px 12px',borderRadius:12,background:'#fef3c7',color:'#92400e',fontWeight:700,fontSize:'.84rem'}}>
 	                      {invoiceTargetType==='parent'
@@ -6429,7 +6635,17 @@ function InvoicesView({invoices,payments,myStudents,parents,schedule,students,le
                                 {lateCancel?'Hilinenud tasuline tühistamine':(lesson.topic||lesson.title||lesson.comment||'Toimunud tund')}
                               </span>
                             </span>
-                            <span style={{fontWeight:800,color:'#2F5D50',fontSize:'.8rem'}}>{money(invoiceDraft.lessonPrice)}€</span>
+                            <span style={{textAlign:'right',flexShrink:0}}>
+                              <span style={{display:'block',fontWeight:800,color:'#2F5D50',fontSize:'.8rem'}}>
+                                {money(invoiceDraft.lessonPricesById[lesson.id]||invoiceDraft.lessonPrice)}€
+                              </span>
+                              {invoiceDraft.tariffNamesById[lesson.id]&&(
+                                <span style={{display:'block',fontSize:'.64rem',color:'#42536A',maxWidth:130,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}
+                                  title={invoiceDraft.tariffNamesById[lesson.id]}>
+                                  {invoiceDraft.tariffNamesById[lesson.id]}
+                                </span>
+                              )}
+                            </span>
                           </label>
                         );
                       })}
@@ -7989,7 +8205,7 @@ function EditStudentModal({student,onClose,onSave,onDelete,db,notify,isAdmin,gro
               <input value={pkg} onChange={e=>setPkg(e.target.value)} type="number" placeholder="10"/>
             </div>
             <div>
-              <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Tunni hind (€)</div>
+              <div style={{fontSize:'.78rem',fontWeight:600,color:'#42536A',marginBottom:4}}>Vana tunni hind (€) · varuvariant</div>
               <input value={lessonPrice} onChange={e=>setLessonPrice(e.target.value)} type="number" placeholder="nt. 25"/>
             </div>
             <div>
@@ -8325,6 +8541,8 @@ function App() {
   const [payments,setPayments] = useState([]);
   const [bankTransactions,setBankTransactions] = useState([]);
   const [payerCredits,setPayerCredits] = useState([]);
+  const [tariffs,setTariffs] = useState([]);
+  const [tariffAssignments,setTariffAssignments] = useState([]);
   const [messages,setMessages] = useState([]);
   const [groups,setGroups] = useState([]);
   const [tasks,setTasks] = useState([]);
@@ -8477,7 +8695,11 @@ function App() {
   const isStudentUser = hasUserRole(user,'student');
   const canAssignTeacher = isAdmin;
   React.useEffect(()=>{
-    if(!user||!isAdmin){setPayments([]);setBankTransactions([]);setPayerCredits([]);return;}
+    if(!user||!isAdmin){
+      setPayments([]);setBankTransactions([]);setPayerCredits([]);
+      setTariffs([]);setTariffAssignments([]);
+      return;
+    }
     const unsubscribePayments=db.collection('payments').onSnapshot(
       snap=>setPayments(snap.docs.map(doc=>({id:doc.id,...doc.data()}))),
       err=>{console.warn('Payments listener failed:',err);setPayments([]);}
@@ -8490,7 +8712,18 @@ function App() {
       snap=>setPayerCredits(snap.docs.map(doc=>({id:doc.id,...doc.data()}))),
       err=>{console.warn('Payer credits listener failed:',err);setPayerCredits([]);}
     );
-    return()=>{unsubscribePayments();unsubscribeBankTransactions();unsubscribePayerCredits();};
+    const unsubscribeTariffs=db.collection('tariffs').onSnapshot(
+      snap=>setTariffs(snap.docs.map(doc=>({id:doc.id,...doc.data()}))),
+      err=>{console.warn('Tariffs listener failed:',err);setTariffs([]);}
+    );
+    const unsubscribeTariffAssignments=db.collection('studentTariffAssignments').onSnapshot(
+      snap=>setTariffAssignments(snap.docs.map(doc=>({id:doc.id,...doc.data()}))),
+      err=>{console.warn('Tariff assignments listener failed:',err);setTariffAssignments([]);}
+    );
+    return()=>{
+      unsubscribePayments();unsubscribeBankTransactions();unsubscribePayerCredits();
+      unsubscribeTariffs();unsubscribeTariffAssignments();
+    };
   },[user?.uid,isAdmin]);
 
   useEffect(()=>{
@@ -10015,6 +10248,42 @@ function App() {
     setModalEv({...event,occurrenceDate:lessonDate,date:event.date||lessonDate,fileUrl:'',fileName:'',attachmentUrl:'',attachmentName:'',attachment:null,attachments:[],attachmentType:'',attachmentSize:0,attachmentRemoved:false});
   },[lessons,openLessonEditor]);
 
+  const createTariffVersion=useCallback(async({name,unitPrice,effectiveFrom})=>{
+    if(!isAdmin){notify('⚠ Ainult administraator saab tariife luua');return null;}
+    try{
+      const result=await financeApiPost('/tariffs',{
+        name,
+        unitPrice,
+        effectiveFrom,
+        requestId:financeRequestId('tariff')
+      });
+      notify(`✓ Tariif ${result?.tariff?.name||name} loodud`);
+      return result?.tariff||null;
+    }catch(err){
+      console.error('Tariff creation failed:',err);
+      notify(`⚠ Tariifi loomine ebaõnnestus: ${err.message||err}`);
+      return null;
+    }
+  },[isAdmin]);
+
+  const assignStudentTariff=useCallback(async({studentId,tariffId,effectiveFrom})=>{
+    if(!isAdmin){notify('⚠ Ainult administraator saab tariifi määrata');return null;}
+    try{
+      const result=await financeApiPost('/students/tariff-assignments',{
+        studentId,
+        tariffId,
+        effectiveFrom,
+        requestId:financeRequestId('tariffassignment')
+      });
+      notify(`✓ Tariif ${result?.assignment?.tariffName||''} määratud`);
+      return result?.assignment||null;
+    }catch(err){
+      console.error('Tariff assignment failed:',err);
+      notify(`⚠ Tariifi määramine ebaõnnestus: ${err.message||err}`);
+      return null;
+    }
+  },[isAdmin]);
+
   const updateLessonBillingDisposition=useCallback(async(lessonId,billingStatus)=>{
     if(!isAdmin||!lessonId){notify('⚠ Ainult administraator saab finantsstaatust muuta');return null;}
     const labels={
@@ -10073,7 +10342,7 @@ function App() {
 	        notify('⚠ Tundide loend muutus. Värskenda valikut ja proovi uuesti');
 	        return null;
 	      }
-	      const automaticDraft=invoiceDraftForStudent(automaticStudent,invAmt,invDesc,automaticLessons);
+	      const automaticDraft=invoiceDraftForStudent(automaticStudent,invAmt,invDesc,automaticLessons,tariffAssignments);
 	      if(isAdmin&&automaticStudentId&&!automaticDraft.manualProvided&&automaticDraft.hasAuto&&automaticDraft.lessonIds.length){
 	        try{
 	          const result=await financeApiPost('/invoices/from-lessons',{
@@ -10223,7 +10492,7 @@ function App() {
 	    setInvAmt('');setInvDesc('');setInvRef('');setInvDue(invoiceDueDate());setInvStu('');
 	    notify('✓ Arve '+num+' loodud!');
 	    return createdInvoice;
-	  },[isAdmin,invStu,invAmt,invDesc,invRef,invDue,invoices,students,lessons,logActivity]);
+	  },[isAdmin,invStu,invAmt,invDesc,invRef,invDue,invoices,students,lessons,tariffAssignments,logActivity]);
 
   const recordPayment=useCallback(async(inv,amountOverride=null,options={})=>{
     if(!isAdmin||!inv?.id){notify('⚠ Ainult administraator saab makseid lisada');return false;}
@@ -10958,7 +11227,7 @@ function App() {
             addTask={addTask} toggleTask={toggleTask} deleteTask={deleteTask} replyTask={replyTask} markTaskRepliesSeen={markTaskRepliesSeen}
             addStudent={addStudent} openLessonEditor={openLessonEditor} isAdmin={isAdmin} isStaff={isStaff}
             parentAlerts={parentAlerts} createMissingParentStudents={createMissingParentStudents} markParentChecked={markParentChecked}
-            newWsResults={newWsResults} markWsSeen={markWsSeen}/>}
+            newWsResults={newWsResults} markWsSeen={markWsSeen} tariffAssignments={tariffAssignments}/>}
 
           {tab==='calendar'&&<CalendarView user={user} myStudents={myStudents} schedule={schedule} groups={groups} isAdmin={canAssignTeacher}
             filterT={filterT} setFilterT={setFilterT}
@@ -10967,7 +11236,7 @@ function App() {
             schRecurring={schRecurring} setSchRecurring={setSchRecurring}
             addSchedule={addSchedule} openScheduleEditor={openScheduleEditor} delSchedule={delSchedule} markAttendance={markAttendance}
             db={db} notify={notify} students={students} setSelStu={setSelStu} setTab={setTab}
-            openStudent={(student)=>{setSelStu(student);setTab('students');}}/>}
+            openStudent={(student)=>{setSelStu(student);setTab('students');}} tariffAssignments={tariffAssignments}/>}
 
           {tab==='tasks'&&isStaff&&<TasksView user={user} tasks={scopedTasks} staffMembers={staffMembers}
             taskTitle={taskTitle} setTaskTitle={setTaskTitle} taskAssignee={taskAssignee} setTaskAssignee={setTaskAssignee}
@@ -11002,7 +11271,7 @@ function App() {
             schDate={schDate} setSchDate={setSchDate} schTime={schTime} setSchTime={setSchTime} schTeach={schTeach} setSchTeach={setSchTeach}
             schRecurring={schRecurring} setSchRecurring={setSchRecurring} addStudentSchedule={addStudentSchedule} canAssignTeacher={canAssignTeacher}
             stuMessages={stuMessages} teacherMessage={teacherMessage} setTeacherMessage={setTeacherMessage} sendTeacherMessage={sendTeacherMessage}
-            notify={notify} setAssignWsLesson={setAssignWsLesson}/>}
+            notify={notify} setAssignWsLesson={setAssignWsLesson} tariffAssignments={tariffAssignments}/>}
 
           {tab==='groups'&&isStaff&&<GroupsView groups={groups} students={canAssignTeacher?students:myStudents} isAdmin={canAssignTeacher}
             setSelStu={setSelStu} setTab={setTab}
@@ -11076,6 +11345,8 @@ function App() {
 
 	          {tab==='invoices'&&isStaff&&<InvoicesView invoices={scopedInvoices} payments={payments} myStudents={myStudents} parents={scopedParents}
 	            schedule={schedule} students={students} lessons={lessons} isAdmin={isAdmin}
+            tariffs={tariffs} tariffAssignments={tariffAssignments}
+            createTariffVersion={createTariffVersion} assignStudentTariff={assignStudentTariff}
             invStu={invStu} setInvStu={setInvStu} invAmt={invAmt} setInvAmt={setInvAmt}
             invDesc={invDesc} setInvDesc={setInvDesc} invRef={invRef} setInvRef={setInvRef} invDue={invDue} setInvDue={setInvDue}
             addInvoice={addInvoice} recordPayment={recordPayment} markPaid={markPaid} unmarkPaid={unmarkPaid} voidPayment={voidPayment} resolveInvoiceOverpayment={resolveInvoiceOverpayment} creditInvoiceLessonLine={creditInvoiceLessonLine} openCreditNotePdf={openCreditNotePdf} sendCreditNoteEmail={sendCreditNoteEmail} deleteInvoice={deleteInvoice} printInvoice={printInvoice} updateInvoiceReference={updateInvoiceReference} updateInvoiceDue={updateInvoiceDue}
