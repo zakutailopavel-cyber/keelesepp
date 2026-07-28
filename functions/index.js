@@ -15,6 +15,7 @@
 
 const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
+const { FieldValue } = require("firebase-admin/firestore");
 const { google } = require("googleapis");
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
@@ -119,6 +120,7 @@ function httpError(status, message) {
 
 function sendError(res, err) {
   const status = err.status || 500;
+  if (status >= 500) console.error("Unhandled request error:", err);
   res.status(status).json({ error: status >= 500 ? "Internal error" : err.message });
 }
 
@@ -449,8 +451,8 @@ async function setLessonBillingDisposition({
       billingUpdatedBy: actorData,
     };
     if (disposition.billingStatus === null) {
-      lessonPatch.billingStatus = admin.firestore.FieldValue.delete();
-      lessonPatch.billingDispositionReason = admin.firestore.FieldValue.delete();
+      lessonPatch.billingStatus = FieldValue.delete();
+      lessonPatch.billingDispositionReason = FieldValue.delete();
     } else {
       lessonPatch.billingStatus = disposition.billingStatus;
     }
@@ -574,7 +576,7 @@ async function transferInvoiceOverpayment({ actor, invoiceId, reason, requestId 
         resolvedAmount: centsToAmount(resolvedAmountCents),
         netAmountCents,
         netAmount: centsToAmount(netAmountCents),
-        resolutionIds: admin.firestore.FieldValue.arrayUnion(mutationId),
+        resolutionIds: FieldValue.arrayUnion(mutationId),
         lastResolvedAt: nowIso,
         updatedAt: nowIso,
       }, { merge: true });
@@ -640,7 +642,7 @@ async function transferInvoiceOverpayment({ actor, invoiceId, reason, requestId 
         unappliedAmountCents,
         unappliedAmount: centsToAmount(unappliedAmountCents),
         status: bankAllocationStatus(allocatedAmountCents, unappliedAmountCents),
-        overpaymentResolutionIds: admin.firestore.FieldValue.arrayUnion(mutationId),
+        overpaymentResolutionIds: FieldValue.arrayUnion(mutationId),
         updatedAt: nowIso,
       }, { merge: true });
     });
@@ -656,7 +658,7 @@ async function transferInvoiceOverpayment({ actor, invoiceId, reason, requestId 
       : invoicePatch;
     transaction.set(invoiceRef, {
       ...balancedInvoicePatch,
-      overpaymentResolutionIds: admin.firestore.FieldValue.arrayUnion(mutationId),
+      overpaymentResolutionIds: FieldValue.arrayUnion(mutationId),
       lastOverpaymentResolvedAt: nowIso,
     }, { merge: true });
     const resolution = {
@@ -780,7 +782,7 @@ async function refundPayerCredit({
     };
     transaction.set(creditRef, {
       ...creditPatch,
-      refundIds: admin.firestore.FieldValue.arrayUnion(mutationId),
+      refundIds: FieldValue.arrayUnion(mutationId),
     }, { merge: true });
     transaction.create(refundRef, refund);
     transaction.create(auditRef, {
@@ -949,9 +951,9 @@ async function createInvoiceLessonCreditNote({
       status: isFullyCredited ? "Krediteeritud" : financialPatch.status,
       paymentStatus: isFullyCredited ? "credited" : financialPatch.paymentStatus,
       correctionStatus: isFullyCredited ? "fully_credited" : "partially_credited",
-      creditNoteIds: admin.firestore.FieldValue.arrayUnion(mutationId),
-      corrections: admin.firestore.FieldValue.arrayUnion(correction),
-      ...(financialPatch.paidAt ? {} : { paidAt: admin.firestore.FieldValue.delete() }),
+      creditNoteIds: FieldValue.arrayUnion(mutationId),
+      corrections: FieldValue.arrayUnion(correction),
+      ...(financialPatch.paidAt ? {} : { paidAt: FieldValue.delete() }),
     }, { merge: true });
     transaction.set(lessonRef, {
       billingStatus: "credited",
@@ -1117,7 +1119,7 @@ async function resetInvoicePayments({ actor, invoiceId, reason, requestId }) {
     const patch = invoiceFinancialPatch(invoice, [], nowIso);
     transaction.set(invoiceRef, {
       ...patch,
-      paidAt: admin.firestore.FieldValue.delete(),
+      paidAt: FieldValue.delete(),
       parentPaymentSubmittedAt: "",
       parentPaymentMethod: "",
     }, { merge: true });
@@ -1558,7 +1560,7 @@ async function voidSinglePayment({ actor, paymentId, reason, requestId }) {
     }, { merge: true });
     transaction.set(invoiceRef, {
       ...invoicePatch,
-      ...(invoicePatch.paidAt ? {} : { paidAt: admin.firestore.FieldValue.delete() }),
+      ...(invoicePatch.paidAt ? {} : { paidAt: FieldValue.delete() }),
     }, { merge: true });
 
     let restoredCreditPatch = null;
@@ -1581,7 +1583,7 @@ async function voidSinglePayment({ actor, paymentId, reason, requestId }) {
         amount: centsToAmount(remainingAmountCents),
         activePaymentCount: Math.max(0, (Number(application.activePaymentCount) || application.paymentIds?.length || 0) - 1),
         status: remainingAmountCents === 0 ? "voided" : "partially_voided",
-        voidedPaymentIds: admin.firestore.FieldValue.arrayUnion(paymentRef.id),
+        voidedPaymentIds: FieldValue.arrayUnion(paymentRef.id),
         updatedAt: nowIso,
       }, { merge: true });
     }
@@ -1874,7 +1876,7 @@ async function deliverEmail(message, context = {}) {
       size: attachment.size,
     })),
     status: "queued",
-    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    createdAt: FieldValue.serverTimestamp(),
   };
 
   if (provider === "firestore") {
@@ -1906,7 +1908,7 @@ async function deliverEmail(message, context = {}) {
         })),
       });
       providerId = info.messageId || "";
-      await ref.update({ status: "sent", provider: "smtp", providerId, sentAt: admin.firestore.FieldValue.serverTimestamp() });
+      await ref.update({ status: "sent", provider: "smtp", providerId, sentAt: FieldValue.serverTimestamp() });
       return { status: "sent", provider: "smtp", queueId: ref.id, providerId };
     }
 
@@ -1926,7 +1928,7 @@ async function deliverEmail(message, context = {}) {
         })),
       });
       providerId = data.id || "";
-      await ref.update({ status: "sent", provider: "resend", providerId, sentAt: admin.firestore.FieldValue.serverTimestamp() });
+      await ref.update({ status: "sent", provider: "resend", providerId, sentAt: FieldValue.serverTimestamp() });
       return { status: "sent", provider: "resend", queueId: ref.id, providerId };
     }
 
@@ -1950,13 +1952,13 @@ async function deliverEmail(message, context = {}) {
       })),
     });
     providerId = data.id || "";
-    await ref.update({ status: "sent", provider: "sendgrid", providerId, sentAt: admin.firestore.FieldValue.serverTimestamp() });
+    await ref.update({ status: "sent", provider: "sendgrid", providerId, sentAt: FieldValue.serverTimestamp() });
     return { status: "sent", provider: "sendgrid", queueId: ref.id, providerId };
   } catch (e) {
     await ref.update({
       status: "failed",
       error: String(e.message || e).slice(0, 500),
-      failedAt: admin.firestore.FieldValue.serverTimestamp(),
+      failedAt: FieldValue.serverTimestamp(),
     });
     throw httpError(502, "Email provider error");
   }
@@ -2009,7 +2011,7 @@ async function sendInvoiceMessage(invoiceId, { type = "invoice", actor = null } 
   if (type === "invoice") patch.invoiceEmailSentAt = nowIso;
   if (type !== "invoice") {
     patch.lastReminderSentAt = nowIso;
-    patch.reminderCount = admin.firestore.FieldValue.increment(1);
+    patch.reminderCount = FieldValue.increment(1);
     if (type === "due10") patch.due10ReminderMonth = monthKey(invoice.due || invoiceDueDate());
   }
   await invoice.ref.update(patch);
@@ -2451,7 +2453,7 @@ exports.gcalApi = functions.https.onRequest(async (req, res) => {
       await db.collection("oauthStates").doc(state).set({
         uid,
         provider: "gcal",
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        createdAt: FieldValue.serverTimestamp(),
       });
       const url = oauth2.generateAuthUrl({
         access_type: "offline",
@@ -2529,7 +2531,7 @@ exports.gcalApi = functions.https.onRequest(async (req, res) => {
     try {
       const { profile } = await requireCalendarOwner(req, uid);
       await db.collection("users").doc(uid).update({
-        gcal: admin.firestore.FieldValue.delete(),
+        gcal: FieldValue.delete(),
       });
       // Remove synced events from schedule
       const teacherName = (profile.displayName || "").split(" ")[0] || profile.displayName || "";

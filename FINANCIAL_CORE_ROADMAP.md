@@ -29,7 +29,7 @@ retries are possible, and represented in an immutable audit trail.
 | 1. Payment register | Separate payments, invoice balances, partial payments, overpayments, immutable audit | Done in PR #3 |
 | 2. Bank allocation | Normalized bank transactions, one transaction split across invoices, residual payer credits | Done in PR #4 |
 | 3. Credit and corrections | Apply payer credits to invoices; void one payment and restore its source without touching unrelated payments | Done in PR #5 |
-| 4. Lesson billing | Link invoice lines to exact lessons and cancellation rules; prevent double billing | In progress |
+| 4. Lesson billing | Link invoice lines to exact lessons and cancellation rules; prevent double billing | Done |
 | 5. Tariffs and packages | Versioned prices, group/individual packages, discounts, family/employer/Töötukassa payer models | Planned |
 | 6. Teacher payroll | Rate history, delivered hours, group rules, substitutions, bonuses, payroll review and lock | Planned |
 | 7. Expenses and suppliers | Expense categories, supplier invoices, receipts, VAT metadata, recurring costs | Planned |
@@ -99,9 +99,15 @@ Resend, SendGrid, or Firestore queue delivery path. The PDF is always rebuilt
 from the immutable credit-note record; delivery metadata does not rewrite its
 financial amount, reason, source invoice, or source lesson.
 
-The final Stage 4 hardening slice should add focused Firestore emulator coverage
-for the lesson-to-invoice and lesson-credit transactions, then mark Stage 4 done.
-Invoices linked to lessons remain intentionally not directly deletable.
+The final Stage 4 hardening slice runs the real `financeApi` against isolated
+Authentication, Functions, and Firestore emulators. It verifies atomic
+lesson-to-invoice linkage, immutable lines, counters, audit documents,
+idempotent retries, rejection of double billing, lesson-line credit notes, and
+rejection of duplicate corrections. The test refuses to run without emulator
+hosts or with any project ID other than `demo-keelesepp-finance`.
+
+Stage 4 is complete. Invoices linked to lessons remain intentionally not
+directly deletable.
 
 ## Following slice: tariffs and packages
 
@@ -150,3 +156,6 @@ modules or server functions. A full rewrite is not required. Extraction order:
 
 Security rules, unit tests, migration notes, and an explicit rollback/correction
 path are required for every financial PR.
+
+The Functions runtime is Node.js 22. Financial pull requests run unit tests and
+the isolated emulator transaction suite in GitHub Actions.
