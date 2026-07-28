@@ -160,6 +160,7 @@ const invoicePaymentTermsLabel = due => {
   return `${fmtDate(due)} (${selectedDay}. kuupäev)`;
 };
 const INVOICE_FUNCTIONS_BASE = 'https://us-central1-keelesepp-5136b.cloudfunctions.net/invoiceApi';
+const FINANCE_FUNCTIONS_BASE = 'https://us-central1-keelesepp-5136b.cloudfunctions.net/financeApi';
 const invoiceApiPost = async(path,body={}) => {
   const response = await authFetch(`${INVOICE_FUNCTIONS_BASE}${path}`,{
     method:'POST',
@@ -169,6 +170,32 @@ const invoiceApiPost = async(path,body={}) => {
   const data = await response.json().catch(()=>({}));
   if(!response.ok) throw new Error(data.error||'Päring ebaõnnestus');
   return data;
+};
+const financeApiPost = async(path,body={}) => {
+  const response = await authFetch(`${FINANCE_FUNCTIONS_BASE}${path}`,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(body)
+  });
+  const data = await response.json().catch(()=>({}));
+  if(!response.ok) throw new Error(data.error||'Finantspäring ebaõnnestus');
+  return data;
+};
+const financeRequestId = prefix => {
+  const random = window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  return `${prefix}-${random}`.replace(/[^A-Za-z0-9_-]/g,'_');
+};
+const invoiceFinancialSummary = inv => {
+  const amount = Math.max(0,Number(inv?.amount)||0);
+  const legacyPaid = inv?.status==='Makstud' && inv?.paidAmount===undefined;
+  const paid = legacyPaid ? amount : Math.max(0,Number(inv?.paidAmount)||0);
+  return {
+    amount,
+    paid,
+    balance:Math.max(0,amount-paid),
+    overpaid:Math.max(0,Number(inv?.overpaidAmount)||paid-amount),
+    paymentStatus:inv?.paymentStatus || (legacyPaid?'legacy_paid':paid>0?'partial':'unpaid')
+  };
 };
 const invoiceMailStatusMeta = inv => {
   if(inv?.emailStatus==='failed') return {text:'E-post ebaõnnestus',bg:'#fee2e2',color:'#991b1b'};
@@ -5719,8 +5746,8 @@ function ParentInvoicesView({invoices,printInvoice,submitParentPayment}) {
 }
 
 // ── ARVED ÜLDVAADE ────────────────────────────────────────────
-function InvoicesView({invoices,myStudents,parents,schedule,students,isAdmin,invStu,setInvStu,invAmt,setInvAmt,invDesc,setInvDesc,invRef,setInvRef,invDue,setInvDue,addInvoice,markPaid,unmarkPaid,deleteInvoice,printInvoice,updateInvoiceReference,updateInvoiceDue,sendInvoiceEmail,sendInvoiceReminder,sendMonthlyInvoiceReminders,invoiceEmailBusy}) {
-  const unpaidAmt=invoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+i.amount,0);
+function InvoicesView({invoices,payments,myStudents,parents,schedule,students,isAdmin,invStu,setInvStu,invAmt,setInvAmt,invDesc,setInvDesc,invRef,setInvRef,invDue,setInvDue,addInvoice,recordPayment,markPaid,unmarkPaid,deleteInvoice,printInvoice,updateInvoiceReference,updateInvoiceDue,sendInvoiceEmail,sendInvoiceReminder,sendMonthlyInvoiceReminders,invoiceEmailBusy}) {
+  const unpaidAmt=invoices.filter(i=>i.status==='Ootel').reduce((sum,inv)=>sum+invoiceFinancialSummary(inv).balance,0);
   const paid=invoices.filter(i=>i.status==='Makstud');
   const [statsPeriod,setStatsPeriod] = React.useState('current');
 
@@ -6351,6 +6378,8 @@ function InvoicesView({invoices,myStudents,parents,schedule,students,isAdmin,inv
           ?<div style={{padding:40,textAlign:'center',color:'#42536A'}}>Arveid pole.</div>
           :[...visibleInvoices].sort((a,b)=>new Date(b.date)-new Date(a.date)).map(inv=>{
             const mailMeta = invoiceMailMeta(inv);
+            const financial = invoiceFinancialSummary(inv);
+            const invoicePayments = (payments||[]).filter(payment=>payment.invoiceId===inv.id&&payment.status!=='voided');
             return (
             <div key={inv.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'14px 20px',borderBottom:'1px solid rgba(28,43,58,.05)',flexWrap:'wrap',gap:10}}>
               <div>
@@ -6368,6 +6397,22 @@ function InvoicesView({invoices,myStudents,parents,schedule,students,isAdmin,inv
                     Vanem teavitas maksest {fmtDate(inv.parentPaymentSubmittedAt)} · {PAYMENT_METHODS.find(method=>method.id===(inv.parentPaymentMethod||'bank'))?.label || 'Pangaülekanne'}
                   </div>
                 )}
+                {(financial.paid>0||invoicePayments.length>0)&&(
+                  <div style={{marginTop:4}}>
+                    <div style={{fontSize:'.78rem',color:financial.overpaid>0?'#7c3aed':'#166534',fontWeight:700}}>
+                      Laekunud {money(financial.paid)}€ · jääk {money(financial.balance)}€
+                      {financial.overpaid>0&&<> · ettemaks {money(financial.overpaid)}€</>}
+                      {invoicePayments.length>0&&<span style={{fontWeight:500,color:'#42536A'}}> · {invoicePayments.length} makset</span>}
+                      {financial.paymentStatus==='legacy_paid'&&<span style={{fontWeight:500,color:'#42536A'}}> · vana märge</span>}
+                    </div>
+                    {invoicePayments.slice().sort((a,b)=>String(b.paidAt||b.createdAt).localeCompare(String(a.paidAt||a.createdAt))).slice(0,5).map(payment=>(
+                      <div key={payment.id} style={{fontSize:'.72rem',color:'#64748b',marginTop:2}}>
+                        {fmtDate(payment.paidAt||payment.createdAt)} · {money(payment.amount)}€ · {PAYMENT_METHODS.find(method=>method.id===payment.method)?.label||payment.method||'Makse'}
+                        {payment.reference&&<> · {payment.reference}</>}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
                 <span style={{fontWeight:700}}>{money(inv.amount)}€</span>
@@ -6377,7 +6422,7 @@ function InvoicesView({invoices,myStudents,parents,schedule,students,isAdmin,inv
                     <button onClick={()=>unmarkPaid(inv.id)} className="btn btn-red btn-sm">Tühista makse</button>
                   </>
                   :<><span className="badge" style={{background:'#fef3c7',color:'#92400e'}}>Ootel</span>
-                    <button onClick={()=>markPaid(inv.id)} className="btn btn-pine btn-sm">Märgi makstud</button>
+                    {isAdmin&&<button onClick={()=>recordPayment(inv)} className="btn btn-pine btn-sm">Lisa makse</button>}
                   </>}
                 {inv.parentPaymentStatus==='submitted'&&inv.status!=='Makstud'&&<span className="badge" style={{background:'#dbeafe',color:'#1d4ed8'}}>Vanem teavitas maksest</span>}
                 <button onClick={()=>updateInvoiceReference(inv)} className="btn btn-ghost btn-sm">Muuda selgitust</button>
@@ -6422,7 +6467,7 @@ function InvoicesView({invoices,myStudents,parents,schedule,students,isAdmin,inv
 // однозначна. Только когда номера в описании нет (или он задвоен —
 // см. предупреждение о дублях ниже), используется резервное угадывание
 // по имени ученика/родителя, которое пользователь может поправить вручную.
-function PaymentReconciliationView({invoices, students, isAdmin, markPaid}) {
+function PaymentReconciliationView({invoices, students, isAdmin, recordPayment}) {
   const [rawStatement, setRawStatement] = React.useState('');
   const [payments, setPayments] = React.useState([]);
   const [assign, setAssignState] = React.useState({});   // paymentId -> имя ученика (ручной override)
@@ -6470,6 +6515,20 @@ function PaymentReconciliationView({invoices, students, isAdmin, markPaid}) {
     if (next[id]) delete next[id]; else next[id] = true;
     setVerified(next);
     persist({verified: next});
+  }
+  async function registerBankPayment(payment, match) {
+    if(match.tier!=='ref'||!match.invoice) return;
+    const saved = await recordPayment(match.invoice,payment.amount,{
+      paidAt:payment.iso,
+      method:'bank',
+      reference:payment.desc,
+      note:`Pangaväljavõte: ${payment.payer}`,
+      requestId:`bank_${payment.id}_${match.invoice.id}`
+    });
+    if(!saved) return;
+    const next = {...verified,[payment.id]:true};
+    setVerified(next);
+    persist({verified:next});
   }
   function resetAll() {
     if (!window.confirm('Сбросить все отметки и назначения по сверке? Выписка останется.')) return;
@@ -6634,7 +6693,7 @@ function PaymentReconciliationView({invoices, students, isAdmin, markPaid}) {
                 const isVer = !!verified[p.id];
                 return (
                   <div key={p.id} style={{
-                    display: 'grid', gridTemplateColumns: '24px 68px 1fr 90px', gap: 10, alignItems: 'center',
+                    display: 'grid', gridTemplateColumns: '24px 68px minmax(180px,1fr) 90px auto', gap: 10, alignItems: 'center',
                     padding: '8px 14px', borderBottom: '1px solid rgba(28,43,58,.06)',
                     background: i % 2 ? '#FAFAF8' : '#fff', opacity: isVer ? .55 : 1
                   }}>
@@ -6655,6 +6714,14 @@ function PaymentReconciliationView({invoices, students, isAdmin, markPaid}) {
                       </div>
                     </span>
                     <span style={{fontFamily: 'monospace', fontWeight: 700, textAlign: 'right'}}>{p.amount.toFixed(2)} €</span>
+                    <span>
+                      {m.tier==='ref'&&(
+                        <button onClick={()=>registerBankPayment(p,m)} disabled={isVer}
+                          className="btn btn-pine btn-sm" style={{opacity:isVer ? .55 : 1}}>
+                          {isVer?'Записан':'Записать'}
+                        </button>
+                      )}
+                    </span>
                   </div>
                 );
               })}
@@ -6683,11 +6750,10 @@ function PaymentReconciliationView({invoices, students, isAdmin, markPaid}) {
                   <div style={{fontSize: '.8rem', marginTop: 6}}>
                     Долг: <b>{inv.amount.toFixed(2)} €</b> · найдено по номеру счёта: <b>{paidSum.toFixed(2)} €</b>
                   </div>
-                  {isAdmin && ok && (
-                    <button onClick={() => { if (window.confirm(`Отметить счёт ${inv.num} (${inv.amount.toFixed(2)} €) оплаченным?`)) markPaid(inv.id); }}
-                      className="btn btn-pine btn-sm" style={{marginTop: 8}}>
-                      ✓ Отметить оплаченным
-                    </button>
+                  {isAdmin&&paidSum>0&&(
+                    <div style={{fontSize:'.75rem',color:'#64748b',marginTop:8}}>
+                      Запишите каждую банковскую строку во вкладке «Платежи» — это сохраняет дату, сумму и защищает от повторного импорта.
+                    </div>
                   )}
                 </div>
               );
@@ -7756,6 +7822,7 @@ function App() {
   const [homework,setHw]  = useState([]);
   const [schedule,setSch] = useState([]);
   const [invoices,setInv] = useState([]);
+  const [payments,setPayments] = useState([]);
   const [messages,setMessages] = useState([]);
   const [groups,setGroups] = useState([]);
   const [tasks,setTasks] = useState([]);
@@ -7907,6 +7974,13 @@ function App() {
   const isParentUser = hasUserRole(user,'parent');
   const isStudentUser = hasUserRole(user,'student');
   const canAssignTeacher = isAdmin;
+  React.useEffect(()=>{
+    if(!user||!isAdmin){setPayments([]);return;}
+    return db.collection('payments').onSnapshot(
+      snap=>setPayments(snap.docs.map(doc=>({id:doc.id,...doc.data()}))),
+      err=>{console.warn('Payments listener failed:',err);setPayments([]);}
+    );
+  },[user?.uid,isAdmin]);
 
   useEffect(()=>{
     if(hasUserRole(user,'teacher')&&!canAssignTeacher) setNTeach(user.displayName||'');
@@ -9452,7 +9526,16 @@ function App() {
 	      emailLastType:'',
 	      lastReminderSentAt:'',
 	      reminderCount:0,
-	      due10ReminderMonth:''
+	      due10ReminderMonth:'',
+	      amountCents:0,
+	      paidAmountCents:0,
+	      paidAmount:0,
+	      balanceDueCents:0,
+	      balanceDue:0,
+	      overpaidAmountCents:0,
+	      overpaidAmount:0,
+	      paymentStatus:'unpaid',
+	      paymentCount:0
 	    };
 	    if(targetType==='parent'){
 	      const parent = options.parent;
@@ -9476,6 +9559,9 @@ function App() {
 	        payerEmail:parentEmail,
 	        payerEmailLower:normalizeText(parentEmail),
 	        amount:draft.amount,
+	        amountCents:Math.round(draft.amount*100),
+	        balanceDueCents:Math.round(draft.amount*100),
+	        balanceDue:draft.amount,
 	        desc:draft.desc,
 	        lessonCount:0,
 	        lessonPrice:0,
@@ -9514,6 +9600,9 @@ function App() {
 	      payerEmail,
 	      payerEmailLower:normalizeText(payerEmail),
 	      amount:draft.amount,
+	      amountCents:Math.round(draft.amount*100),
+	      balanceDueCents:Math.round(draft.amount*100),
+	      balanceDue:draft.amount,
 	      desc:draft.desc,
 	      lessonCount:draft.lessons||0,
 	      lessonPrice:draft.lessonPrice||0,
@@ -9529,31 +9618,80 @@ function App() {
 	    return createdInvoice;
 	  },[invStu,invAmt,invDesc,invRef,invDue,invoices,students,logActivity]);
 
+  const recordPayment=useCallback(async(inv,amountOverride=null,options={})=>{
+    if(!isAdmin||!inv?.id){notify('⚠ Ainult administraator saab makseid lisada');return false;}
+    const financial=invoiceFinancialSummary(inv);
+    const suggested=amountOverride===null ? financial.balance : Number(amountOverride);
+    const input=amountOverride===null
+      ? window.prompt(`Laekunud summa arvele ${inv.num}`,money(suggested))
+      : String(amountOverride);
+    if(input===null) return false;
+    const amount=Number(String(input).replace(',','.'));
+    if(!Number.isFinite(amount)||amount<=0){notify('⚠ Sisesta korrektne positiivne summa');return false;}
+    const note=options.note!==undefined
+      ? options.note
+      : (window.prompt('Makse märkus (valikuline)','')||'');
+    try{
+      await financeApiPost('/payments',{
+        invoiceId:inv.id,
+        amount,
+        paidAt:options.paidAt||today(),
+        method:options.method||'bank',
+        reference:options.reference||inv.paymentReference||inv.num||'',
+        note,
+        requestId:options.requestId||financeRequestId('payment')
+      });
+      notify(amount>financial.balance&&financial.balance>0
+        ? `✓ Makse lisatud, ettemaks ${money(amount-financial.balance)}€`
+        : '✓ Makse lisatud');
+      return true;
+    }catch(err){
+      console.error('Payment create failed:',err);
+      notify(`⚠ Makse lisamine ebaõnnestus: ${err.message||err}`);
+      return false;
+    }
+  },[isAdmin]);
+
   const markPaid=useCallback(async id=>{
-    await db.collection('invoices').doc(id).update({status:'Makstud',paidAt:today(),parentPaymentStatus:'confirmed'});
-    await logActivity('invoice.paid','Arve märgiti makstuks',{invoiceId:id});
-    notify('✓ Märgitud makstud!');
-  },[logActivity]);
+    const inv=invoices.find(item=>item.id===id);
+    if(!inv){notify('⚠ Arvet ei leitud');return false;}
+    const financial=invoiceFinancialSummary(inv);
+    if(financial.balance<=0){notify('✓ Arve on juba tasutud');return true;}
+    return recordPayment(inv,financial.balance,{note:'Arve märgiti täielikult makstuks'});
+  },[invoices,recordPayment]);
 
   const unmarkPaid=useCallback(async id=>{
-    await db.collection('invoices').doc(id).update({
-      status:'Ootel',
-      paidAt:firebase.firestore.FieldValue.delete(),
-      parentPaymentStatus:'pending',
-      parentPaymentSubmittedAt:'',
-      parentPaymentMethod:''
-    });
-    await logActivity('invoice.unpaid','Arve makse tühistati',{invoiceId:id});
-    notify('✓ Makse tühistatud');
-  },[logActivity]);
+    if(!isAdmin){notify('⚠ Ainult administraator saab makseid tühistada');return;}
+    const inv=invoices.find(item=>item.id===id);
+    if(!inv){notify('⚠ Arvet ei leitud');return;}
+    const reason=window.prompt('Tühistamise põhjus (kohustuslik)','Vale kanne');
+    if(reason===null) return;
+    if(!String(reason).trim()){notify('⚠ Sisesta tühistamise põhjus');return;}
+    try{
+      await financeApiPost('/reset-invoice-payments',{
+        invoiceId:id,
+        reason:String(reason).trim(),
+        requestId:financeRequestId('reset')
+      });
+      notify('✓ Maksed tühistatud; audit säilitati');
+    }catch(err){
+      console.error('Payment reset failed:',err);
+      notify(`⚠ Makse tühistamine ebaõnnestus: ${err.message||err}`);
+    }
+  },[isAdmin,invoices]);
 
   const deleteInvoice=useCallback(async(inv)=>{
     if(!inv?.id) return;
+    const linkedPayments=payments.filter(payment=>payment.invoiceId===inv.id);
+    if((Number(inv.paymentCount)||0)>0||linkedPayments.length>0){
+      notify('⚠ Maksetega arvet ei saa kustutada. Tühista makse ja säilita arve auditi jaoks.');
+      return;
+    }
     if(!window.confirm(`Kustuta arve ${inv.num}?`)) return;
     await db.collection('invoices').doc(inv.id).delete();
     await logActivity('invoice.deleted','Arve kustutati',{invoiceId:inv.id,studentId:inv.studentId||'',studentName:inv.studentName||'',num:inv.num||''});
     notify(`✓ Arve ${inv.num} kustutatud`);
-  },[logActivity]);
+  },[logActivity,payments]);
 
   const updateInvoiceReference=useCallback(async(inv)=>{
     if(!inv?.id) return;
@@ -10117,14 +10255,14 @@ function App() {
 
           {tab==='invoices'&&!isStaff&&<ParentInvoicesView invoices={scopedInvoices} printInvoice={printInvoice} submitParentPayment={submitParentPayment}/>}
 
-	          {tab==='invoices'&&isStaff&&<InvoicesView invoices={scopedInvoices} myStudents={myStudents} parents={scopedParents}
+	          {tab==='invoices'&&isStaff&&<InvoicesView invoices={scopedInvoices} payments={payments} myStudents={myStudents} parents={scopedParents}
 	            schedule={schedule} students={students} isAdmin={isAdmin}
             invStu={invStu} setInvStu={setInvStu} invAmt={invAmt} setInvAmt={setInvAmt}
             invDesc={invDesc} setInvDesc={setInvDesc} invRef={invRef} setInvRef={setInvRef} invDue={invDue} setInvDue={setInvDue}
-            addInvoice={addInvoice} markPaid={markPaid} unmarkPaid={unmarkPaid} deleteInvoice={deleteInvoice} printInvoice={printInvoice} updateInvoiceReference={updateInvoiceReference} updateInvoiceDue={updateInvoiceDue}
+            addInvoice={addInvoice} recordPayment={recordPayment} markPaid={markPaid} unmarkPaid={unmarkPaid} deleteInvoice={deleteInvoice} printInvoice={printInvoice} updateInvoiceReference={updateInvoiceReference} updateInvoiceDue={updateInvoiceDue}
             sendInvoiceEmail={sendInvoiceEmail} sendInvoiceReminder={sendInvoiceReminder} sendMonthlyInvoiceReminders={sendMonthlyInvoiceReminders} invoiceEmailBusy={invoiceEmailBusy}/>}
 
-          {tab==='reconciliation'&&isAdmin&&<PaymentReconciliationView invoices={invoices} students={students} isAdmin={isAdmin} markPaid={markPaid}/>}
+          {tab==='reconciliation'&&isAdmin&&<PaymentReconciliationView invoices={invoices} students={students} isAdmin={isAdmin} recordPayment={recordPayment}/>}
 
           {tab==='activity'&&isStaff&&<ActivityLogView logs={scopedActivityLog} isAdmin={isAdmin}/>}
           {tab==='kabinet'&&!isStaff&&<KabinetView user={user} myStudents={myStudents} notify={notify}/>}

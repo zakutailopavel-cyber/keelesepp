@@ -161,7 +161,40 @@ service cloud.firestore {
 
     match /invoices/{invoiceId} {
       allow read: if isStaff() || ownsInvoice(resource.data);
-      allow create, update, delete: if isStaff();
+      allow create: if isStaff();
+      allow update: if isAdmin()
+        || (
+          isStaff()
+          && !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+            'amountCents',
+            'paidAmountCents',
+            'paidAmount',
+            'balanceDueCents',
+            'balanceDue',
+            'overpaidAmountCents',
+            'overpaidAmount',
+            'paymentStatus',
+            'paymentCount',
+            'financialUpdatedAt',
+            'status',
+            'paidAt'
+          ])
+        );
+      allow delete: if isAdmin()
+        && (
+          !resource.data.keys().hasAny(['paymentCount'])
+          || resource.data.paymentCount == 0
+        );
+    }
+
+    match /payments/{paymentId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
+    match /financialAudit/{entryId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
     }
 
     match /messages/{messageId} {
