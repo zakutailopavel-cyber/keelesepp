@@ -186,11 +186,16 @@ const financeRequestId = prefix => {
   return `${prefix}-${random}`.replace(/[^A-Za-z0-9_-]/g,'_');
 };
 const invoiceFinancialSummary = inv => {
-  const amount = Math.max(0,Number(inv?.amount)||0);
+  const originalAmount = Math.max(0,Number(inv?.amount)||0);
+  const amount = inv?.effectiveAmount!==undefined
+    ? Math.max(0,Number(inv.effectiveAmount)||0)
+    : originalAmount;
   const legacyPaid = inv?.status==='Makstud' && inv?.paidAmount===undefined;
   const paid = legacyPaid ? amount : Math.max(0,Number(inv?.paidAmount)||0);
   return {
     amount,
+    originalAmount,
+    credited:Math.max(0,Number(inv?.creditedAmount)||originalAmount-amount),
     paid,
     balance:Math.max(0,amount-paid),
     overpaid:Math.max(0,Number(inv?.overpaidAmount)||paid-amount),
@@ -663,7 +668,7 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
   addTask,toggleTask,deleteTask,replyTask,markTaskRepliesSeen,openLessonEditor,isAdmin,isStaff,parentAlerts,createMissingParentStudents,markParentChecked,setTab,setSelStu}) {
   const [expandedLessonId,setExpandedLessonId] = React.useState('');
   const [parentDashboardMode,setParentDashboardMode] = React.useState('family');
-  const unpaidAmt = invoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+i.amount,0);
+  const unpaidAmt = invoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+invoiceFinancialSummary(i).balance,0);
   const pendingHw = homework.filter(h=>h.status==='Ootel'&&myStudents.some(s=>s.id===h.studentId)).length;
   const openTasks = tasks.filter(t=>t.status!=='done');
   const taskStaffOptions = [...new Set([
@@ -763,7 +768,7 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
       id:'invoices',
       title:'Ootel arved',
       count:unpaidInvoices.length,
-      text:`Maksmata summa: ${unpaidInvoices.reduce((sum,inv)=>sum+(parseFloat(inv.amount)||0),0)}€`,
+      text:`Maksmata summa: ${unpaidInvoices.reduce((sum,inv)=>sum+invoiceFinancialSummary(inv).balance,0)}€`,
       tone:'#991b1b',
       bg:'#fff7f7',
       icon:'fa-file-invoice-dollar',
@@ -1151,7 +1156,7 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
 	                        {unpaidForStudent.length>0&&(
 	                          <div style={{display:'flex',justifyContent:'space-between',gap:10,padding:'9px 11px',borderRadius:10,background:'rgba(220,38,38,.07)',fontSize:'.78rem'}}>
 	                            <span style={{color:'#42536A'}}>Tasumata</span>
-	                            <strong style={{color:'#dc2626'}}>{unpaidForStudent.reduce((sum,inv)=>sum+(Number(inv.amount)||0),0)}€</strong>
+	                            <strong style={{color:'#dc2626'}}>{unpaidForStudent.reduce((sum,inv)=>sum+invoiceFinancialSummary(inv).balance,0)}€</strong>
 	                          </div>
 	                        )}
 	                      </div>
@@ -5243,7 +5248,7 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
     currentBillableLessons
   );
   const unpaidStudentInvoices = stuInv.filter(inv=>inv.status==='Ootel');
-  const unpaidStudentAmount = unpaidStudentInvoices.reduce((sum,inv)=>sum+(Number(inv.amount)||0),0);
+  const unpaidStudentAmount = unpaidStudentInvoices.reduce((sum,inv)=>sum+invoiceFinancialSummary(inv).balance,0);
   React.useEffect(()=>{
     if(!currentStu?.id||!user?.uid) return;
     // Mark messages as read when opening student card
@@ -5637,6 +5642,7 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
             )}
             {[...stuInv].sort((a,b)=>new Date(b.date)-new Date(a.date)).map(inv=>{
               const mailMeta = invoiceMailStatusMeta(inv);
+              const financial = invoiceFinancialSummary(inv);
               return (
               <div key={inv.id} style={{padding:16,background:'#fff',borderRadius:14,border:'1px solid rgba(28,43,58,.08)',boxShadow:'0 2px 8px rgba(28,43,58,.04)',display:'flex',flexDirection:'column',gap:12}}>
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:12}}>
@@ -5650,10 +5656,15 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
                       Selgitus: <strong style={{color:'#1C2B3A'}}>{inv.paymentReference||inv.num}</strong>
                     </div>
                   </div>
-                  <div style={{fontWeight:800,fontSize:'1.35rem',color:'#1C2B3A',whiteSpace:'nowrap'}}>{money(inv.amount)}€</div>
+                  <div style={{fontWeight:800,fontSize:'1.35rem',color:'#1C2B3A',whiteSpace:'nowrap'}}>
+                    {financial.credited>0&&<><s style={{color:'#94a3b8',fontSize:'.85rem'}}>{money(financial.originalAmount)}€</s>{' → '}</>}
+                    {money(financial.amount)}€
+                  </div>
                 </div>
                 <div style={{display:'flex',gap:7,flexWrap:'wrap'}}>
-                  {inv.status==='Makstud'
+                  {inv.status==='Krediteeritud'
+                    ?<span className="badge" style={{background:'#ede9fe',color:'#6d28d9'}}>Krediteeritud</span>
+                    :inv.status==='Makstud'
                     ?<span className="badge" style={{background:'#dcfce7',color:'#166534'}}>✓ Makstud</span>
                     :<span className="badge" style={{background:'#fef3c7',color:'#92400e'}}>Ootel</span>}
                   {inv.parentPaymentStatus==='submitted'&&inv.status!=='Makstud'&&<span className="badge" style={{background:'#dbeafe',color:'#1d4ed8'}}>Maksest teavitatud</span>}
@@ -5674,7 +5685,7 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
                   </div>
                 )}
                 <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap',marginTop:'auto'}}>
-                  {inv.status!=='Makstud'&&<button onClick={()=>markPaid(inv.id)} className="btn btn-pine btn-sm">Märgi makstud</button>}
+                  {inv.status==='Ootel'&&<button onClick={()=>markPaid(inv.id)} className="btn btn-pine btn-sm">Märgi makstud</button>}
                   {inv.status==='Makstud'&&<button onClick={()=>unmarkPaid(inv.id)} className="btn btn-red btn-sm">Tühista makse</button>}
                   {inv.parentPaymentStatus==='submitted'&&inv.status!=='Makstud'&&<button onClick={()=>resetParentPayment(inv.id)} className="btn btn-ghost btn-sm">Lähtesta teavitus</button>}
                   <button onClick={()=>updateInvoiceReference(inv)} className="btn btn-ghost btn-sm">Muuda selgitust</button>
@@ -5710,9 +5721,9 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
 function ParentInvoicesView({invoices,printInvoice,submitParentPayment}) {
   const [paymentChoices,setPaymentChoices] = React.useState({});
   const [copiedPaymentKey,setCopiedPaymentKey] = React.useState('');
-  const pending = invoices.filter(inv=>inv.status!=='Makstud');
+  const pending = invoices.filter(inv=>inv.status==='Ootel');
   const paid = invoices.filter(inv=>inv.status==='Makstud');
-  const pendingTotal = pending.reduce((sum,inv)=>sum+(inv.amount||0),0);
+  const pendingTotal = pending.reduce((sum,inv)=>sum+invoiceFinancialSummary(inv).balance,0);
   const copyPaymentValue = async(key,value)=>{
     const ok = await copyText(value);
     if(ok){
@@ -5752,7 +5763,9 @@ function ParentInvoicesView({invoices,printInvoice,submitParentPayment}) {
           </div>
         )}
         <div style={{display:'flex',flexDirection:'column',gap:12}}>
-          {[...invoices].sort((a,b)=>new Date(b.date)-new Date(a.date)).map(inv=>(
+          {[...invoices].sort((a,b)=>new Date(b.date)-new Date(a.date)).map(inv=>{
+            const financial=invoiceFinancialSummary(inv);
+            return (
             <div key={inv.id} style={{padding:16,borderRadius:14,background:'#F9F8F6',border:'1px solid rgba(28,43,58,.07)',display:'flex',flexDirection:'column',gap:12}}>
               <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:12,flexWrap:'wrap'}}>
                 <div>
@@ -5762,8 +5775,13 @@ function ParentInvoicesView({invoices,printInvoice,submitParentPayment}) {
                   </div>
                 </div>
                 <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
-                  <strong>{inv.amount}€</strong>
-                  {inv.status==='Makstud'
+                  <strong>
+                    {financial.credited>0&&<><s style={{color:'#94a3b8',fontWeight:500}}>{money(financial.originalAmount)}€</s>{' → '}</>}
+                    {money(financial.amount)}€
+                  </strong>
+                  {inv.status==='Krediteeritud'
+                    ? <span className="badge" style={{background:'#ede9fe',color:'#6d28d9'}}>Krediteeritud</span>
+                    : inv.status==='Makstud'
                     ? <span className="badge" style={{background:'#dcfce7',color:'#166534'}}>✓ Makstud</span>
                     : <span className="badge" style={{background:'#fef3c7',color:'#92400e'}}>Ootel</span>}
                   {inv.parentPaymentStatus==='submitted'&&inv.status!=='Makstud'&&(
@@ -5772,7 +5790,7 @@ function ParentInvoicesView({invoices,printInvoice,submitParentPayment}) {
                 </div>
               </div>
 
-              {inv.status!=='Makstud'&&(
+              {inv.status==='Ootel'&&(
                 <div style={{padding:14,borderRadius:12,background:'#fff',border:'1px solid rgba(28,43,58,.08)',display:'flex',flexDirection:'column',gap:10}}>
                   <div style={{fontSize:'.78rem',fontWeight:800,color:'#42536A',textTransform:'uppercase',letterSpacing:'.08em'}}>Maksmise info</div>
                   <div style={{display:'grid',gridTemplateColumns:'1fr auto',gap:'8px 10px',alignItems:'center'}}>
@@ -5781,8 +5799,8 @@ function ParentInvoicesView({invoices,printInvoice,submitParentPayment}) {
                     <button onClick={()=>copyPaymentValue(`iban-${inv.id}`,PAYMENT_DETAILS.iban)} className="btn btn-ghost btn-sm">{copiedPaymentKey===`iban-${inv.id}`?'Kopeeritud':'Kopeeri'}</button>
                     <div style={{fontSize:'.82rem',color:'#42536A'}}>Selgitus: <strong style={{color:'#1C2B3A'}}>{inv.paymentReference||inv.num}</strong></div>
                     <button onClick={()=>copyPaymentValue(`ref-${inv.id}`,inv.paymentReference||inv.num)} className="btn btn-ghost btn-sm">{copiedPaymentKey===`ref-${inv.id}`?'Kopeeritud':'Kopeeri'}</button>
-                    <div style={{fontSize:'.82rem',color:'#42536A'}}>Summa: <strong style={{color:'#1C2B3A'}}>{money(inv.amount)} €</strong></div>
-                    <button onClick={()=>copyPaymentValue(`sum-${inv.id}`,String(inv.amount))} className="btn btn-ghost btn-sm">{copiedPaymentKey===`sum-${inv.id}`?'Kopeeritud':'Kopeeri'}</button>
+                    <div style={{fontSize:'.82rem',color:'#42536A'}}>Tasuda: <strong style={{color:'#1C2B3A'}}>{money(financial.balance)} €</strong></div>
+                    <button onClick={()=>copyPaymentValue(`sum-${inv.id}`,String(financial.balance))} className="btn btn-ghost btn-sm">{copiedPaymentKey===`sum-${inv.id}`?'Kopeeritud':'Kopeeri'}</button>
                   </div>
                   <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
                     <select value={paymentChoices[inv.id]||inv.parentPaymentMethod||'bank'} onChange={e=>setPaymentChoices(prev=>({...prev,[inv.id]:e.target.value}))} style={{maxWidth:220}}>
@@ -5799,7 +5817,8 @@ function ParentInvoicesView({invoices,printInvoice,submitParentPayment}) {
                 <button onClick={()=>printInvoice(inv)} className="btn btn-ghost btn-sm"><i className="fa-solid fa-print"/> Arve vaade</button>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
@@ -5807,7 +5826,7 @@ function ParentInvoicesView({invoices,printInvoice,submitParentPayment}) {
 }
 
 // ── ARVED ÜLDVAADE ────────────────────────────────────────────
-function InvoicesView({invoices,payments,myStudents,parents,schedule,students,lessons,isAdmin,invStu,setInvStu,invAmt,setInvAmt,invDesc,setInvDesc,invRef,setInvRef,invDue,setInvDue,addInvoice,recordPayment,markPaid,unmarkPaid,voidPayment,deleteInvoice,printInvoice,updateInvoiceReference,updateInvoiceDue,sendInvoiceEmail,sendInvoiceReminder,sendMonthlyInvoiceReminders,invoiceEmailBusy}) {
+function InvoicesView({invoices,payments,myStudents,parents,schedule,students,lessons,isAdmin,invStu,setInvStu,invAmt,setInvAmt,invDesc,setInvDesc,invRef,setInvRef,invDue,setInvDue,addInvoice,recordPayment,markPaid,unmarkPaid,voidPayment,creditInvoiceLessonLine,deleteInvoice,printInvoice,updateInvoiceReference,updateInvoiceDue,sendInvoiceEmail,sendInvoiceReminder,sendMonthlyInvoiceReminders,invoiceEmailBusy}) {
   const unpaidAmt=invoices.filter(i=>i.status==='Ootel').reduce((sum,inv)=>sum+invoiceFinancialSummary(inv).balance,0);
   const paid=invoices.filter(i=>i.status==='Makstud');
   const [statsPeriod,setStatsPeriod] = React.useState('current');
@@ -6455,14 +6474,32 @@ function InvoicesView({invoices,payments,myStudents,parents,schedule,students,le
             const mailMeta = invoiceMailMeta(inv);
             const financial = invoiceFinancialSummary(inv);
             const invoicePayments = (payments||[]).filter(payment=>payment.invoiceId===inv.id&&payment.status!=='voided');
+            const correctedLessonIds = new Set(inv.correctedLessonIds||[]);
             return (
             <div key={inv.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'14px 20px',borderBottom:'1px solid rgba(28,43,58,.05)',flexWrap:'wrap',gap:10}}>
               <div>
 	                <div style={{fontWeight:600,fontSize:'.9rem'}}>{inv.num} · {invoicePartyLabel(inv)}</div>
                 <div style={{fontSize:'.78rem',color:'#42536A'}}>{inv.desc} · {fmtDate(inv.date)} · tähtaeg {fmtDate(inv.due)}</div>
                 {Array.isArray(inv.lines)&&inv.lines.length>0&&(
-                  <div style={{fontSize:'.74rem',color:'#2F5D50',marginTop:3,fontWeight:700}}>
-                    {inv.lines.length} arveldatud tundi · {inv.lines.map(line=>fmtDate(line.date)).join(', ')}
+                  <div style={{display:'grid',gap:4,marginTop:5}}>
+                    <div style={{fontSize:'.74rem',color:'#2F5D50',fontWeight:700}}>
+                      {inv.lines.length} arveldatud tundi
+                    </div>
+                    {inv.lines.map(line=>{
+                      const corrected=correctedLessonIds.has(line.lessonId);
+                      return (
+                        <div key={line.lessonId||line.date} style={{fontSize:'.72rem',color:'#64748b',display:'flex',alignItems:'center',gap:6,flexWrap:'wrap'}}>
+                          <span>{fmtDate(line.date)} · {line.description||'Keeletund'} · {money(line.amount)}€</span>
+                          {corrected
+                            ? <span className="badge" style={{background:'#ede9fe',color:'#6d28d9'}}>Krediteeritud</span>
+                            : isAdmin&&creditInvoiceLessonLine&&(
+                              <button onClick={()=>creditInvoiceLessonLine(inv,line)} className="btn btn-ghost btn-sm" style={{padding:'2px 7px',fontSize:'.66rem'}}>
+                                Parandusarve
+                              </button>
+                            )}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
                 <div style={{fontSize:'.78rem',color:'#42536A',marginTop:3}}>Selgitus: <strong style={{color:'#1C2B3A'}}>{inv.paymentReference||inv.num}</strong></div>
@@ -6500,8 +6537,13 @@ function InvoicesView({invoices,payments,myStudents,parents,schedule,students,le
                 )}
               </div>
               <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
-                <span style={{fontWeight:700}}>{money(inv.amount)}€</span>
-                {inv.status==='Makstud'
+                <span style={{fontWeight:700}}>
+                  {financial.credited>0&&<><s style={{color:'#94a3b8',fontWeight:500}}>{money(financial.originalAmount)}€</s>{' → '}</>}
+                  {money(financial.amount)}€
+                </span>
+                {inv.status==='Krediteeritud'
+                  ? <span className="badge" style={{background:'#ede9fe',color:'#6d28d9'}}>Krediteeritud</span>
+                  : inv.status==='Makstud'
                   ?<>
                     <span className="badge" style={{background:'#dcfce7',color:'#166534'}}>✓ Makstud</span>
                     <button onClick={()=>unmarkPaid(inv.id)} className="btn btn-red btn-sm">Tühista kõik</button>
@@ -10137,6 +10179,33 @@ function App() {
     }
   },[isAdmin]);
 
+  const creditInvoiceLessonLine=useCallback(async(inv,line)=>{
+    if(!isAdmin||!inv?.id||!line?.lessonId){
+      notify('⚠ Ainult administraator saab parandusarvet luua');
+      return false;
+    }
+    const reason=window.prompt(
+      `Parandusarve põhjus: ${fmtDate(line.date)} · ${money(line.amount)}€`,
+      'Tund tühistati või lisati arvele ekslikult'
+    );
+    if(reason===null) return false;
+    if(!String(reason).trim()){notify('⚠ Sisesta parandusarve põhjus');return false;}
+    try{
+      const result=await financeApiPost('/invoices/credit-lesson-line',{
+        invoiceId:inv.id,
+        lessonId:line.lessonId,
+        reason:String(reason).trim(),
+        requestId:financeRequestId('creditnote')
+      });
+      notify(`✓ Parandusarve ${result?.creditNote?.num||''} loodud`);
+      return true;
+    }catch(err){
+      console.error('Lesson line credit failed:',err);
+      notify(`⚠ Parandusarve loomine ebaõnnestus: ${err.message||err}`);
+      return false;
+    }
+  },[isAdmin]);
+
   const markPaid=useCallback(async id=>{
     const inv=invoices.find(item=>item.id===id);
     if(!inv){notify('⚠ Arvet ei leitud');return false;}
@@ -10528,11 +10597,11 @@ function App() {
     ...(isStaff?[{id:'parents',icon:'fa-people-roof',label:'Lapsevanemad',badge:isAdmin?parentAlerts.length:0}]:[]),
     ...(isStaff?[{id:'database',icon:'fa-table',label:'Andmebaas'}]:[]),
     ...(isStaff?[{id:'invoices',icon:'fa-file-invoice',label:'Arved',
-      badge:scopedInvoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+i.amount,0)>0?scopedInvoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+i.amount,0)+'€':0}]:[]),
+      badge:scopedInvoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+invoiceFinancialSummary(i).balance,0)>0?scopedInvoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+invoiceFinancialSummary(i).balance,0)+'€':0}]:[]),
     ...(isAdmin?[{id:'reconciliation',icon:'fa-money-bill-transfer',label:'Sverka maksete'}]:[]),
     ...(isStaff?[{id:'activity',icon:'fa-clock-rotate-left',label:'Tegevused'}]:[]),
     ...(!isStaff?[{id:'invoices',icon:'fa-file-invoice',label:'Arved',
-      badge:scopedInvoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+i.amount,0)>0?scopedInvoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+i.amount,0)+'€':0}]:[]),
+      badge:scopedInvoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+invoiceFinancialSummary(i).balance,0)>0?scopedInvoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+invoiceFinancialSummary(i).balance,0)+'€':0}]:[]),
     ...(!isStaff?[{id:'kabinet',icon:'fa-clipboard-list',label:'Minu töölehed'}]:[]),
   ];
 
@@ -10754,7 +10823,7 @@ function App() {
 	            schedule={schedule} students={students} lessons={lessons} isAdmin={isAdmin}
             invStu={invStu} setInvStu={setInvStu} invAmt={invAmt} setInvAmt={setInvAmt}
             invDesc={invDesc} setInvDesc={setInvDesc} invRef={invRef} setInvRef={setInvRef} invDue={invDue} setInvDue={setInvDue}
-            addInvoice={addInvoice} recordPayment={recordPayment} markPaid={markPaid} unmarkPaid={unmarkPaid} voidPayment={voidPayment} deleteInvoice={deleteInvoice} printInvoice={printInvoice} updateInvoiceReference={updateInvoiceReference} updateInvoiceDue={updateInvoiceDue}
+            addInvoice={addInvoice} recordPayment={recordPayment} markPaid={markPaid} unmarkPaid={unmarkPaid} voidPayment={voidPayment} creditInvoiceLessonLine={creditInvoiceLessonLine} deleteInvoice={deleteInvoice} printInvoice={printInvoice} updateInvoiceReference={updateInvoiceReference} updateInvoiceDue={updateInvoiceDue}
             sendInvoiceEmail={sendInvoiceEmail} sendInvoiceReminder={sendInvoiceReminder} sendMonthlyInvoiceReminders={sendMonthlyInvoiceReminders} invoiceEmailBusy={invoiceEmailBusy}/>}
 
           {tab==='reconciliation'&&isAdmin&&<PaymentReconciliationView

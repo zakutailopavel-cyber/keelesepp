@@ -73,9 +73,16 @@ cancellations, billable late cancellations, and write-offs. Disposition changes
 require an administrator reason, update the unbilled counter transactionally,
 and are written to the immutable financial audit.
 
-The following slice will add correction/credit invoice documents. Until that
-correction flow exists, invoices linked to lessons are intentionally not directly
-deletable.
+The third Stage 4 slice adds immutable credit notes for individual lesson lines.
+The original invoice amount and lines remain unchanged; its effective amount and
+balance are recalculated transactionally, the source lesson becomes credited,
+and an immutable audit entry records the reason and actor. A correction that
+would turn an existing payment into an overpayment is intentionally blocked
+until the excess payment is voided or a dedicated refund workflow exists.
+
+The next slice should add a refund/credit-transfer workflow and selectable lesson
+lines when creating an invoice. Invoices linked to lessons remain intentionally
+not directly deletable.
 
 ## Following slice: tariffs and packages
 
