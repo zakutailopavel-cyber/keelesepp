@@ -18,6 +18,11 @@ const admin = require("firebase-admin");
 const { google } = require("googleapis");
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
+const {
+  centsToAmount,
+  invoiceFinancialPatch,
+  toCents,
+} = require("./finance-core");
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -165,6 +170,173 @@ async function requireStaffUser(req) {
     throw httpError(403, "Teacher or admin access required");
   }
   return { decoded, profile, roles };
+}
+
+async function requireAdminUser(req) {
+  const actor = await requireStaffUser(req);
+  if (!isSuperAdmin(actor.decoded) && !actor.roles.has("admin")) {
+    throw httpError(403, "Administrator access required");
+  }
+  return actor;
+}
+
+function actorSnapshot(actor) {
+  return {
+    uid: actor.decoded.uid,
+    email: String(actor.decoded.email || "").toLowerCase(),
+    name: actor.profile.displayName || actor.decoded.name || actor.decoded.email || "",
+    role: isSuperAdmin(actor.decoded) ? "admin" : [...actor.roles].sort().join(","),
+  };
+}
+
+function cleanRequestId(value) {
+  const id = String(value || "").trim();
+  if (!/^[A-Za-z0-9_-]{12,120}$/.test(id)) {
+    throw httpError(400, "Valid requestId required");
+  }
+  return id;
+}
+
+function cleanText(value, maxLength = 500) {
+  return String(value || "").trim().slice(0, maxLength);
+}
+
+async function activeInvoicePayments(transaction, invoiceId) {
+  const snap = await transaction.get(
+    db.collection("payments").where("invoiceId", "==", invoiceId),
+  );
+  return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+
+async function recordInvoicePayment({ actor, invoiceId, amount, paidAt, method, reference, note, requestId }) {
+  const mutationId = cleanRequestId(requestId);
+  const amountCents = toCents(amount);
+  const invoiceRef = db.collection("invoices").doc(String(invoiceId || ""));
+  const paymentRef = db.collection("payments").doc(mutationId);
+  const auditRef = db.collection("financialAudit").doc(mutationId);
+  const nowIso = new Date().toISOString();
+  const paymentDate = /^\d{4}-\d{2}-\d{2}$/.test(String(paidAt || ""))
+    ? String(paidAt)
+    : nowIso.slice(0, 10);
+  const actorData = actorSnapshot(actor);
+
+  return db.runTransaction(async transaction => {
+    const existing = await transaction.get(paymentRef);
+    if (existing.exists) {
+      const data = existing.data();
+      if (data.invoiceId !== invoiceRef.id || data.amountCents !== amountCents) {
+        throw httpError(409, "requestId already used for a different payment");
+      }
+      const invoiceSnap = await transaction.get(invoiceRef);
+      return { payment: { id: existing.id, ...data }, invoice: { id: invoiceSnap.id, ...invoiceSnap.data() }, idempotent: true };
+    }
+
+    const invoiceSnap = await transaction.get(invoiceRef);
+    if (!invoiceSnap.exists) throw httpError(404, "Invoice not found");
+    const invoice = invoiceSnap.data();
+    const payments = await activeInvoicePayments(transaction, invoiceRef.id);
+    const payment = {
+      invoiceId: invoiceRef.id,
+      invoiceNum: invoice.num || "",
+      studentId: invoice.studentId || "",
+      studentName: invoice.studentName || "",
+      payerName: invoice.payerName || invoice.parentName || invoice.studentName || "",
+      amountCents,
+      amount: centsToAmount(amountCents),
+      paidAt: paymentDate,
+      method: cleanText(method, 40) || "bank",
+      reference: cleanText(reference, 160) || invoice.paymentReference || invoice.num || "",
+      note: cleanText(note),
+      status: "active",
+      createdAt: nowIso,
+      createdBy: actorData,
+      requestId: mutationId,
+    };
+    const patch = invoiceFinancialPatch(invoice, [...payments, payment], nowIso);
+
+    transaction.create(paymentRef, payment);
+    transaction.set(invoiceRef, patch, { merge: true });
+    transaction.create(auditRef, {
+      entityType: "payment",
+      entityId: mutationId,
+      invoiceId: invoiceRef.id,
+      invoiceNum: invoice.num || "",
+      action: "payment.created",
+      before: {
+        status: invoice.status || "Ootel",
+        paidAmount: Number(invoice.paidAmount) || 0,
+        balanceDue: invoice.balanceDue ?? (Number(invoice.amount) || 0),
+      },
+      after: {
+        status: patch.status,
+        paidAmount: patch.paidAmount,
+        balanceDue: patch.balanceDue,
+        overpaidAmount: patch.overpaidAmount,
+      },
+      amountCents,
+      amount: centsToAmount(amountCents),
+      actor: actorData,
+      reason: cleanText(note) || "Payment recorded",
+      createdAt: nowIso,
+      requestId: mutationId,
+    });
+    return { payment: { id: mutationId, ...payment }, invoice: { id: invoiceRef.id, ...invoice, ...patch }, idempotent: false };
+  });
+}
+
+async function resetInvoicePayments({ actor, invoiceId, reason, requestId }) {
+  const mutationId = cleanRequestId(requestId);
+  const invoiceRef = db.collection("invoices").doc(String(invoiceId || ""));
+  const auditRef = db.collection("financialAudit").doc(mutationId);
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+  const cleanReason = cleanText(reason);
+  if (!cleanReason) throw httpError(400, "Reason required");
+
+  return db.runTransaction(async transaction => {
+    const existingAudit = await transaction.get(auditRef);
+    if (existingAudit.exists) return { idempotent: true };
+    const invoiceSnap = await transaction.get(invoiceRef);
+    if (!invoiceSnap.exists) throw httpError(404, "Invoice not found");
+    const invoice = invoiceSnap.data();
+    const payments = await activeInvoicePayments(transaction, invoiceRef.id);
+    const activePayments = payments.filter(payment => payment.status !== "voided");
+
+    activePayments.forEach(payment => {
+      transaction.set(db.collection("payments").doc(payment.id), {
+        status: "voided",
+        voidedAt: nowIso,
+        voidedBy: actorData,
+        voidReason: cleanReason,
+        voidRequestId: mutationId,
+      }, { merge: true });
+    });
+    const patch = invoiceFinancialPatch(invoice, [], nowIso);
+    transaction.set(invoiceRef, {
+      ...patch,
+      paidAt: admin.firestore.FieldValue.delete(),
+      parentPaymentSubmittedAt: "",
+      parentPaymentMethod: "",
+    }, { merge: true });
+    transaction.create(auditRef, {
+      entityType: "invoice",
+      entityId: invoiceRef.id,
+      invoiceId: invoiceRef.id,
+      invoiceNum: invoice.num || "",
+      action: activePayments.length ? "payments.voided" : "invoice.legacy_payment_reset",
+      before: {
+        status: invoice.status || "Ootel",
+        paidAmount: invoice.paidAmount ?? (invoice.status === "Makstud" ? Number(invoice.amount) || 0 : 0),
+      },
+      after: { status: "Ootel", paidAmount: 0, balanceDue: Number(invoice.amount) || 0 },
+      paymentIds: activePayments.map(payment => payment.id),
+      actor: actorData,
+      reason: cleanReason,
+      createdAt: nowIso,
+      requestId: mutationId,
+    });
+    return { invoiceId: invoiceRef.id, voidedPaymentCount: activePayments.length, idempotent: false };
+  });
 }
 
 function escapeHtml(value) {
@@ -671,6 +843,49 @@ exports.invoiceApi = functions
     sendError(res, e);
   }
   });
+
+// ── API: transactional payment register ──────────────────────
+// Payment and invoice aggregates are changed in one transaction. Every
+// mutation also creates an immutable financialAudit document.
+exports.financeApi = functions.https.onRequest(async (req, res) => {
+  applyCors(req, res);
+  if (req.method === "OPTIONS") { res.status(204).send(""); return; }
+  if (req.method !== "POST") {
+    res.status(405).json({ error: "POST required" });
+    return;
+  }
+
+  try {
+    const actor = await requireAdminUser(req);
+    if (req.path === "/payments") {
+      const result = await recordInvoicePayment({
+        actor,
+        invoiceId: req.body?.invoiceId,
+        amount: req.body?.amount,
+        paidAt: req.body?.paidAt,
+        method: req.body?.method,
+        reference: req.body?.reference,
+        note: req.body?.note,
+        requestId: req.body?.requestId,
+      });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/reset-invoice-payments") {
+      const result = await resetInvoicePayments({
+        actor,
+        invoiceId: req.body?.invoiceId,
+        reason: req.body?.reason,
+        requestId: req.body?.requestId,
+      });
+      res.json(result);
+      return;
+    }
+    res.status(404).json({ error: "Not found" });
+  } catch (e) {
+    sendError(res, e);
+  }
+});
 
 // ── API: GET /api/gcal/auth-url ───────────────────────────────
 exports.gcalApi = functions.https.onRequest(async (req, res) => {
