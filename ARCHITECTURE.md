@@ -68,10 +68,12 @@ silently repairing authoritative records.
 
 The lesson-payment projection joins both directions of the immutable lesson/invoice ID link.
 It excludes credited lines, keeps package consumption as a separate coverage source, and exposes
-legacy invoices without lesson lines instead of inventing historical links. Active invoice
-payments are projected onto immutable lesson lines oldest-first. This FIFO allocation is
-deterministic and explicitly labelled as derived; exact payer intent for a partial invoice cannot
-be recovered until payment allocations themselves carry a lesson-line ID. The projection reports
+legacy invoices without lesson lines instead of inventing historical links. An administrator can
+create an append-only `paymentLineAllocations` version that snapshots exact lesson IDs, invoice
+line indexes and allocated cents. The active payment stores the current version pointer; a dated,
+reasoned correction creates a new version and audit entry instead of rewriting history. Explicit
+allocations reserve their selected rows first. Payments without a version are then projected
+oldest-first as a deterministic, labelled migration fallback. The projection reports
 duplicate lesson lines, one lesson on multiple invoices, broken reciprocal links, line-total
 mismatches, payment overflow, paid snapshots without payment records and absences without a
 billing disposition. Both registers have CSV output with stable IDs. VAT, expenses and
@@ -91,7 +93,8 @@ Monthly billing control is a reviewed snapshot, not yet a statutory period lock.
 `accounting-ledger-core.js` combines invoice/payment, bank-allocation and lesson-line issues into
 one administrator checklist. A review request is sent only when the browser projection has no
 blocking errors, but the browser is not authoritative: `financeApi` reads `invoices`, `payments`,
-`bankTransactions` and `lessons` again and builds an independent `billing_control_v1` snapshot.
+`bankTransactions`, `lessons` and `paymentLineAllocations` again and builds an independent
+`billing_control_v2` snapshot.
 Blocking issues reject the request. A successful review creates an append-only
 `financialPeriodReviews/{requestId}` document, updates the
 `financialPeriods/{YYYY-MM}` latest-review pointer and writes an immutable

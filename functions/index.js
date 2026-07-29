@@ -39,6 +39,7 @@ const {
   packageBalanceAfterEntry,
   packageBalanceAfterLessonMovement,
   paymentDocumentRecord,
+  paymentLineAllocationPlan,
   paymentNetAmountCents,
   planInvoiceOverpaymentTransfer,
   positiveInteger,
@@ -2225,6 +2226,193 @@ async function attachPaymentDocument({
   });
 }
 
+async function savePaymentLineAllocation({
+  actor,
+  paymentId,
+  allocations,
+  effectiveDate,
+  reason,
+  requestId,
+}) {
+  const mutationId = cleanRequestId(requestId);
+  const cleanPaymentId = String(paymentId || "").trim();
+  if (!cleanPaymentId) throw httpError(400, "paymentId required");
+  const allocationInput = (Array.isArray(allocations) ? allocations : []).map(item => ({
+    lessonId: String(item?.lessonId || "").trim(),
+    amount: Number(item?.amount),
+  }));
+  const cleanEffectiveDate = validIsoDate(effectiveDate, "effectiveDate");
+  const cleanReason = cleanText(reason);
+  const requestSignature = crypto.createHash("sha256").update(JSON.stringify({
+    paymentId: cleanPaymentId,
+    allocations: allocationInput,
+    effectiveDate: cleanEffectiveDate,
+    reason: cleanReason,
+  })).digest("hex");
+  const allocationRef = db.collection("paymentLineAllocations").doc(mutationId);
+  const paymentRef = db.collection("payments").doc(cleanPaymentId);
+  const auditRef = db.collection("financialAudit").doc(mutationId);
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+
+  return db.runTransaction(async transaction => {
+    const existing = await transaction.get(allocationRef);
+    if (existing.exists) {
+      const data = existing.data();
+      if (data.requestSignature !== requestSignature) {
+        throw httpError(409, "requestId already used for a different payment allocation");
+      }
+      return { allocation: { id: existing.id, ...data }, idempotent: true };
+    }
+    const paymentSnap = await transaction.get(paymentRef);
+    if (!paymentSnap.exists) throw httpError(404, "Payment not found");
+    const payment = { id: paymentSnap.id, ...paymentSnap.data() };
+    const invoiceRef = db.collection("invoices").doc(String(payment.invoiceId || ""));
+    const invoiceSnap = await transaction.get(invoiceRef);
+    if (!invoiceSnap.exists) throw httpError(404, "Invoice not found");
+    const invoice = { id: invoiceSnap.id, ...invoiceSnap.data() };
+    const invoicePayments = await activeInvoicePayments(transaction, invoice.id);
+    const allocationIds = [...new Set(invoicePayments
+      .filter(item => item.status !== "voided" && item.lineAllocationId)
+      .map(item => String(item.lineAllocationId)))];
+    const allocationSnaps = await Promise.all(allocationIds.map(id =>
+      transaction.get(db.collection("paymentLineAllocations").doc(id)),
+    ));
+    const currentAllocationById = new Map(
+      allocationSnaps.filter(snap => snap.exists).map(snap => [
+        snap.id,
+        { id: snap.id, ...snap.data() },
+      ]),
+    );
+    const previousAllocation = payment.lineAllocationId
+      ? currentAllocationById.get(String(payment.lineAllocationId)) || null
+      : null;
+    if (payment.lineAllocationId && !previousAllocation) {
+      throw httpError(409, "Current payment allocation version is missing");
+    }
+    if (
+      previousAllocation
+      && (
+        String(previousAllocation.paymentId || "") !== payment.id
+        || String(previousAllocation.invoiceId || "") !== invoice.id
+        || Number(previousAllocation.version || 0) !== Number(payment.lineAllocationVersion || 0)
+      )
+    ) {
+      throw httpError(409, "Current payment allocation pointer is invalid");
+    }
+    const allocatedByLesson = {};
+    invoicePayments
+      .filter(item =>
+        item.id !== payment.id
+        && item.status !== "voided"
+        && paymentNetAmountCents(item) > 0
+        && item.lineAllocationId,
+      )
+      .forEach(item => {
+        const current = currentAllocationById.get(String(item.lineAllocationId));
+        if (
+          !current
+          || String(current.paymentId || "") !== String(item.id)
+          || String(current.invoiceId || "") !== invoice.id
+          || Number(current.version || 0) !== Number(item.lineAllocationVersion || 0)
+        ) {
+          throw httpError(409, "Another payment has an invalid allocation pointer");
+        }
+        (Array.isArray(current.lines) ? current.lines : []).forEach(line => {
+          const lessonId = String(line?.lessonId || "");
+          allocatedByLesson[lessonId] = (allocatedByLesson[lessonId] || 0)
+            + Math.max(0, Number(line?.allocatedAmountCents) || 0);
+        });
+      });
+    const plan = paymentLineAllocationPlan({
+      payment,
+      invoice,
+      allocations: allocationInput,
+      allocatedByLesson,
+      effectiveDate: cleanEffectiveDate,
+      reason: cleanReason,
+      previousAllocation,
+    });
+    const allocation = {
+      paymentId: payment.id,
+      invoiceId: invoice.id,
+      invoiceNum: invoice.num || "",
+      studentId: invoice.studentId || payment.studentId || "",
+      studentName: invoice.studentName || payment.studentName || "",
+      allocationMethod: "explicit_invoice_lines_v1",
+      version: plan.version,
+      supersedesAllocationId: plan.supersedesAllocationId,
+      effectiveDate: plan.effectiveDate,
+      reason: plan.reason,
+      paymentAmountCents: plan.paymentAmountCents,
+      paymentAmount: centsToAmount(plan.paymentAmountCents),
+      allocatedAmountCents: plan.allocatedAmountCents,
+      allocatedAmount: centsToAmount(plan.allocatedAmountCents),
+      unallocatedAmountCents: plan.unallocatedAmountCents,
+      unallocatedAmount: centsToAmount(plan.unallocatedAmountCents),
+      lines: plan.lines,
+      requestSignature,
+      createdAt: nowIso,
+      createdBy: actorData,
+      requestId: mutationId,
+    };
+    transaction.create(allocationRef, allocation);
+    transaction.update(paymentRef, {
+      lineAllocationId: mutationId,
+      lineAllocationVersion: plan.version,
+      lineAllocatedAmountCents: plan.allocatedAmountCents,
+      lineAllocatedAmount: centsToAmount(plan.allocatedAmountCents),
+      lineUnallocatedAmountCents: plan.unallocatedAmountCents,
+      lineUnallocatedAmount: centsToAmount(plan.unallocatedAmountCents),
+      allocationMethod: "explicit_invoice_lines_v1",
+      lineAllocationUpdatedAt: nowIso,
+    });
+    transaction.create(auditRef, {
+      entityType: "payment_line_allocation",
+      entityId: mutationId,
+      paymentId: payment.id,
+      invoiceId: invoice.id,
+      invoiceNum: invoice.num || "",
+      action: previousAllocation
+        ? "payment.line_allocation_corrected"
+        : "payment.line_allocation_created",
+      version: plan.version,
+      supersedesAllocationId: plan.supersedesAllocationId,
+      effectiveDate: plan.effectiveDate,
+      before: previousAllocation ? {
+        allocationId: previousAllocation.id,
+        version: previousAllocation.version,
+        allocatedAmountCents: previousAllocation.allocatedAmountCents,
+        unallocatedAmountCents: previousAllocation.unallocatedAmountCents,
+        lines: previousAllocation.lines,
+      } : null,
+      after: {
+        allocationId: mutationId,
+        version: plan.version,
+        allocatedAmountCents: plan.allocatedAmountCents,
+        unallocatedAmountCents: plan.unallocatedAmountCents,
+        lines: plan.lines,
+      },
+      actor: actorData,
+      reason: plan.reason,
+      createdAt: nowIso,
+      requestId: mutationId,
+    });
+    return {
+      allocation: { id: mutationId, ...allocation },
+      payment: {
+        ...payment,
+        lineAllocationId: mutationId,
+        lineAllocationVersion: plan.version,
+        lineAllocatedAmountCents: plan.allocatedAmountCents,
+        lineUnallocatedAmountCents: plan.unallocatedAmountCents,
+        allocationMethod: "explicit_invoice_lines_v1",
+      },
+      idempotent: false,
+    };
+  });
+}
+
 async function reviewFinancialPeriod({ actor, month, requestId }) {
   const reviewMonth = validIsoMonth(month);
   const mutationId = cleanRequestId(requestId);
@@ -2249,12 +2437,14 @@ async function reviewFinancialPeriod({ actor, month, requestId }) {
       paymentSnap,
       bankSnap,
       lessonSnap,
+      lineAllocationSnap,
     ] = await Promise.all([
       transaction.get(periodRef),
       transaction.get(db.collection("invoices")),
       transaction.get(db.collection("payments")),
       transaction.get(db.collection("bankTransactions")),
       transaction.get(db.collection("lessons")),
+      transaction.get(db.collection("paymentLineAllocations")),
     ]);
     const withIds = snapshot => snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     const snapshot = financialPeriodReviewSnapshot({
@@ -2263,6 +2453,7 @@ async function reviewFinancialPeriod({ actor, month, requestId }) {
       payments: withIds(paymentSnap),
       bankTransactions: withIds(bankSnap),
       lessons: withIds(lessonSnap),
+      paymentLineAllocations: withIds(lineAllocationSnap),
     });
     if (!snapshot.canReview) {
       throw httpError(
@@ -4173,6 +4364,18 @@ exports.financeApi = functions.https.onRequest(async (req, res) => {
         method: req.body?.method,
         reference: req.body?.reference,
         note: req.body?.note,
+        requestId: req.body?.requestId,
+      });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/payments/line-allocations") {
+      const result = await savePaymentLineAllocation({
+        actor,
+        paymentId: req.body?.paymentId,
+        allocations: req.body?.allocations,
+        effectiveDate: req.body?.effectiveDate,
+        reason: req.body?.reason,
         requestId: req.body?.requestId,
       });
       res.status(result.idempotent ? 200 : 201).json(result);

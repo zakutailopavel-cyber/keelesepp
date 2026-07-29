@@ -256,11 +256,16 @@
     lessons=[],
     invoices=[],
     payments=[],
+    paymentLineAllocations=[],
     month=''
   }={}){
     const lessonList=Array.isArray(lessons)?lessons:[];
     const invoiceList=Array.isArray(invoices)?invoices:[];
     const paymentList=Array.isArray(payments)?payments:[];
+    const allocationList=Array.isArray(paymentLineAllocations)?paymentLineAllocations:[];
+    const allocationById=new Map(
+      allocationList.filter(item=>item?.id).map(item=>[String(item.id),item])
+    );
     const lessonById=new Map(lessonList.filter(item=>item?.id).map(item=>[String(item.id),item]));
     const invoiceById=new Map(invoiceList.filter(item=>item?.id).map(item=>[String(item.id),item]));
     const activePayments=paymentList.filter(activePayment);
@@ -336,8 +341,77 @@
         });
       }
       let unallocatedPaymentCents=0;
-      invoicePayments.forEach(payment=>{
+      const allocationOrderedPayments=[
+        ...invoicePayments.filter(payment=>payment.lineAllocationId),
+        ...invoicePayments.filter(payment=>!payment.lineAllocationId)
+      ];
+      allocationOrderedPayments.forEach(payment=>{
         let paymentRemaining=paymentNetCents(payment);
+        if(payment.lineAllocationId){
+          const exact=allocationById.get(String(payment.lineAllocationId));
+          const pointerValid=exact
+            &&String(exact.paymentId||'')===String(payment.id||'')
+            &&String(exact.invoiceId||'')===invoiceId
+            &&Number(exact.version||0)===Number(payment.lineAllocationVersion||0);
+          if(!pointerValid){
+            issues.push({
+              type:'payment_line_allocation_invalid',
+              severity:'error',
+              invoiceId,
+              entityId:String(payment.id||''),
+              title:'Makse täpse jaotuse versiooni ei leitud',
+              detail:`Arve ${invoice.num||invoiceId} · makse ${payment.id||'—'} viitab puuduvale või valele jaotusversioonile.`
+            });
+            unallocatedPaymentCents+=paymentRemaining;
+            return;
+          }
+          (Array.isArray(exact.lines)?exact.lines:[]).forEach(exactLine=>{
+            const lessonId=String(exactLine?.lessonId||'');
+            const allocatedCents=Math.max(0,Number(exactLine?.allocatedAmountCents)||0);
+            const lineRemaining=remainingByLesson.get(lessonId);
+            if(
+              lineRemaining===undefined
+              ||allocatedCents<=0
+              ||allocatedCents>lineRemaining
+              ||allocatedCents>paymentRemaining
+            ){
+              issues.push({
+                type:'payment_line_allocation_invalid',
+                severity:'error',
+                invoiceId,
+                lessonId,
+                entityId:String(payment.id||''),
+                title:'Makse täpne jaotus ei vasta arvereale',
+                detail:`Arve ${invoice.num||invoiceId} · makse ${payment.id||'—'} · tund ${lessonId||'puudub'}.`
+              });
+              return;
+            }
+            allocationByLesson.get(lessonId).push({
+              paymentId:String(payment.id||''),
+              paidAt:paymentDate(payment),
+              amountCents:allocatedCents,
+              source:paymentSource(payment),
+              reference:String(payment.reference||''),
+              allocationId:String(exact.id||payment.lineAllocationId),
+              allocationVersion:Number(exact.version||0),
+              allocationMethod:'explicit_invoice_lines_v1'
+            });
+            remainingByLesson.set(lessonId,lineRemaining-allocatedCents);
+            paymentRemaining-=allocatedCents;
+          });
+          if(paymentRemaining>1){
+            issues.push({
+              type:'payment_line_allocation_incomplete',
+              severity:'attention',
+              invoiceId,
+              entityId:String(payment.id||''),
+              title:'Osa maksest ei ole tunnireale jaotatud',
+              detail:`Arve ${invoice.num||invoiceId} · makse ${payment.id||'—'} · jaotamata ${amountFromCents(paymentRemaining)} €.`
+            });
+          }
+          unallocatedPaymentCents+=Math.max(0,paymentRemaining);
+          return;
+        }
         activeLines.forEach(line=>{
           if(paymentRemaining<=0) return;
           const lineRemaining=remainingByLesson.get(line.lessonId)||0;
@@ -348,7 +422,8 @@
             paidAt:paymentDate(payment),
             amountCents:allocatedCents,
             source:paymentSource(payment),
-            reference:String(payment.reference||'')
+            reference:String(payment.reference||''),
+            allocationMethod:'invoice_fifo_v1'
           });
           remainingByLesson.set(line.lessonId,lineRemaining-allocatedCents);
           paymentRemaining-=allocatedCents;
@@ -366,7 +441,10 @@
           detail:`Arve ${invoice.num||invoiceId}: kehtivad tunniread ${amountFromCents(activeLineTotal)} €, arve kehtiv summa ${amountFromCents(effectiveAmount)} €.`
         });
       }
-      if(unallocatedPaymentCents>1){
+      if(unallocatedPaymentCents>1&&!issues.some(issue=>
+        issue.invoiceId===invoiceId
+        &&['payment_line_allocation_incomplete','payment_line_allocation_invalid'].includes(issue.type)
+      )){
         issues.push({
           type:'payment_exceeds_lesson_lines',
           severity:'error',
@@ -430,7 +508,9 @@
           balanceCents,
           status,
           linkExact,
-          allocationMethod:allocations.length?'invoice_fifo_v1':'',
+          allocationMethod:allocations.length
+            ?unique(allocations.map(item=>item.allocationMethod)).join(',')
+            :'',
           paymentAllocations:allocations,
           paymentDates:unique(allocations.map(item=>item.paidAt)),
           paymentSources:unique(allocations.map(item=>item.source)),
@@ -540,6 +620,8 @@
     const summary={
       lessonCount:rows.length,
       exactLinkedCount:rows.filter(row=>row.linkExact).length,
+      explicitAllocationCount:rows.filter(row=>row.allocationMethod.includes('explicit_invoice_lines_v1')).length,
+      fifoAllocationCount:rows.filter(row=>row.allocationMethod.includes('invoice_fifo_v1')).length,
       paidCount:rows.filter(row=>row.status==='paid').length,
       partialCount:rows.filter(row=>row.status==='partial').length,
       invoicedUnpaidCount:rows.filter(row=>row.status==='invoiced_unpaid').length,
@@ -562,6 +644,7 @@
     bankTransactions=[],
     payerCredits=[],
     lessons=[],
+    paymentLineAllocations=[],
     month=''
   }={}){
     const invoiceRegister=accountingRegister({
@@ -575,6 +658,7 @@
       lessons,
       invoices,
       payments,
+      paymentLineAllocations,
       month
     });
     const issues=[
@@ -633,7 +717,7 @@
       {
         id:'payments',
         label:'Arvete ja maksete koond',
-        ready:!hasBlockingType(['invoice_payment_','invoice_paid_','payment_without_','payment_exceeds_']),
+        ready:!hasBlockingType(['invoice_payment_','invoice_paid_','payment_without_','payment_exceeds_','payment_line_']),
         value:`${invoiceRegister.summary.paymentCount} maksekirjet`
       },
       {
@@ -717,7 +801,11 @@
       (row.paymentAllocations||[]).map(item=>item.paymentId).filter(Boolean).join(', '),
       (row.paymentDates||[]).join(', '),
       (row.paymentSources||[]).map(sourceLabel).join(', '),
-      row.allocationMethod==='invoice_fifo_v1'?'Arve FIFO (vanim tund enne)':'',
+      row.allocationMethod.includes('explicit_invoice_lines_v1')
+        ?'Täpne maksejaotus'
+        :row.allocationMethod==='invoice_fifo_v1'
+          ?'Arve FIFO (vanim tund enne)'
+          :'',
       row.linkExact?'Täpne ID-seos':row.status==='package_covered'?'Paketikirje':'Pärand või määramata'
     ].map(csvCell).join(';'));
     return '\uFEFF'+[header.map(csvCell).join(';'),...lines].join('\n');

@@ -101,6 +101,14 @@ korral kasutatakse nähtavat ja korratavat FIFO-projektsiooni: makse katab kõig
 varaseima tunni. See jaotus ei väida, et maksja valis konkreetse tunni; kasutatud meetod ning
 maksed jäävad ekraanil ja CSV-s eraldi nähtavaks.
 
+Administraator saab arve makseajaloos valida **Jaga tundidele** ja siduda aktiivse makse
+konkreetsete muutumatute tunniridadega. Salvestus loob `paymentLineAllocations` kirje ning maksele
+jääb ainult aktiivse versiooni viit. Jaotuse parandamine nõuab kuupäeva ja põhjust ning loob uue
+kirje, mis viitab eelmisele versioonile; vana jaotust, makse summat ega arvet ei kirjutata üle.
+Kahe aktiivse täpse maksega ei saa sama tunnirea summat ületada. Kui täpse jaotuse osa jääb
+määramata või versiooniviit on vigane, muutub see kuu kontrollis blokeerivaks kirjeks. Varasemad
+maksed ilma jaotusversioonita jätkavad migratsiooniohutu FIFO-projektsiooniga.
+
 Paketist kaetud, tasuta, õigeaegselt tühistatud, mahakantud ja krediteeritud tunnid ei segune
 tasumata tundidega. Vana arve, millel puuduvad tunni ID-ga read, jääb pärandkirjeks ega saa
 automaatselt täpse maksekinnituse märget. Samuti annab register vea, kui arvel on tasumise märge,
@@ -129,8 +137,8 @@ kontrolli viita kogus `financialPeriods` ning kirjutab `financial_period.reviewe
 lugeda ega saa kontrolli ise luua, muuta või kustutada.
 
 Vaade ei loo uut finantsandmete koopiat ega muuda ajaloolisi kirjeid. See arvutab kontrollitava
-projektsiooni olemasolevatest `lessons`, `invoices`, `payments`, `bankTransactions` ja
-`payerCredits` kogudest; kõik rahalised muudatused jäävad endiselt serveripoolse Financial
+projektsiooni olemasolevatest `lessons`, `invoices`, `payments`, `paymentLineAllocations`,
+`bankTransactions` ja `payerCredits` kogudest; kõik rahalised muudatused jäävad endiselt serveripoolse Financial
 Core'i kaudu tehtavaks. Uus alamregister ei vaja andmemigratsiooni ega uusi brauseri
 kirjutusõigusi. Kuu kontroll on tõendatud ülevaatus, mitte raamatupidamisperioodi lukustus:
 praegune versioon ei sisalda veel kulusid, käibemaksuarvestust, palgaarvestuse kinnitust ega
