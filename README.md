@@ -94,10 +94,23 @@ Register näitab arve summat, laekunud summat, jääki, staatust, maksekuupäevi
 Arve koondi ning maksete registri vastuolu, vigase pangajaotuse või jaotamata pangajäägi korral
 tekib eraldi kontrollmärge. Filtreeritud arvete registri saab eksportida semikooloniga CSV-faili.
 
+Sama vaate alamregister **Tunnid ↔ maksed** alustab kontrolli tunni toimumise kuupäevast ja
+näitab ühe rea kaupa tunni muutumatut ID-d, arverida, arve ID-d, aktiivseid maksekirjeid ning
+allesjäänud summat. Täielikult tasutud arve katab kõik selle kehtivad tunniread. Osalise makse
+korral kasutatakse nähtavat ja korratavat FIFO-projektsiooni: makse katab kõigepealt arve
+varaseima tunni. See jaotus ei väida, et maksja valis konkreetse tunni; kasutatud meetod ning
+maksed jäävad ekraanil ja CSV-s eraldi nähtavaks.
+
+Paketist kaetud, tasuta, õigeaegselt tühistatud, mahakantud ja krediteeritud tunnid ei segune
+tasumata tundidega. Vana arve, millel puuduvad tunni ID-ga read, jääb pärandkirjeks ega saa
+automaatselt täpse maksekinnituse märget. Samuti annab register vea, kui arvel on tasumise märge,
+kuid eraldi maksekirje puudub, või kui tunni ja arve vastassuunalised ID-seosed ei ühti.
+
 Vaade ei loo uut finantsandmete koopiat ega muuda ajaloolisi kirjeid. See arvutab kontrollitava
-projektsiooni olemasolevatest `invoices`, `payments`, `bankTransactions` ja `payerCredits`
-kogudest; kõik rahalised muudatused jäävad endiselt serveripoolse Financial Core'i kaudu
-tehtavaks. Esimene versioon ei sisalda kulusid, käibemaksuarvestust ega perioodi sulgemist.
+projektsiooni olemasolevatest `lessons`, `invoices`, `payments`, `bankTransactions` ja
+`payerCredits` kogudest; kõik rahalised muudatused jäävad endiselt serveripoolse Financial
+Core'i kaudu tehtavaks. Uus alamregister ei vaja andmemigratsiooni ega uusi brauseri
+kirjutusõigusi. Praegune versioon ei sisalda kulusid, käibemaksuarvestust ega perioodi sulgemist.
 
 ## Live Classroom
 

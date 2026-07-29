@@ -87,6 +87,7 @@ window.addEventListener('load', function(){
     if(typeof window._db === 'undefined') missing.push('Firestore');
     if(typeof window._storage === 'undefined') missing.push('Firebase Storage');
     if(typeof window.CalendarCore === 'undefined') missing.push('Calendar Core');
+    if(typeof window.AccountingLedgerCore === 'undefined') missing.push('Accounting Ledger Core');
 
     var root = document.getElementById('root');
     if(!root) return;
@@ -143,6 +144,9 @@ const {
   accountingRegister,
   accountingRegisterCsv,
   amountFromCents:accountingAmount,
+  lessonPaymentRegister,
+  lessonPaymentRegisterCsv,
+  lessonPaymentStatusLabel,
   statusLabel:accountingStatusLabel
 } = window.AccountingLedgerCore;
 const PROGRAM_ACTIVITY_LAUNCH_DATE='2026-07-29';
@@ -7939,8 +7943,195 @@ function InvoicesView({invoices,payments,myStudents,parents,schedule,students,le
 
 // ── TUNNI MODAL ───────────────────────────────────────────────
 // ── ACCOUNTING INVOICE REGISTER ───────────────────────────────
-function AccountingRegisterView({invoices,payments,bankTransactions,payerCredits,openInvoices,openReconciliation}) {
+function LessonPaymentRegisterPanel({month,lessons,invoices,payments,openInvoices,openReconciliation}) {
+  const [status,setStatus]=React.useState('all');
+  const [search,setSearch]=React.useState('');
+  const register=React.useMemo(()=>lessonPaymentRegister({
+    lessons,
+    invoices,
+    payments,
+    month
+  }),[lessons,invoices,payments,month]);
+  const visibleRows=React.useMemo(()=>{
+    const query=normalizeText(search);
+    return register.rows.filter(row=>{
+      if(status!=='all'&&row.status!==status) return false;
+      if(query&&!normalizeText(`${row.studentName} ${row.teacher} ${row.topic} ${row.invoiceNum} ${row.invoiceId} ${row.lessonId} ${(row.paymentAllocations||[]).map(item=>item.paymentId).join(' ')}`).includes(query)) return false;
+      return true;
+    });
+  },[register.rows,status,search]);
+  const moneyCents=value=>`${accountingAmount(value).toFixed(2)} €`;
+  const downloadCsv=()=>{
+    const csv=lessonPaymentRegisterCsv({...register,rows:visibleRows});
+    const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+    const url=URL.createObjectURL(blob);
+    const link=document.createElement('a');
+    link.href=url;
+    link.download=`keelesepp-tundide-maksete-register-${month}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  };
+  const statusMeta={
+    paid:{bg:'#dcfce7',color:'#166534'},
+    partial:{bg:'#fef3c7',color:'#92400e'},
+    invoiced_unpaid:{bg:'#fee2e2',color:'#991b1b'},
+    unbilled:{bg:'#ffedd5',color:'#9a3412'},
+    package_covered:{bg:'#dbeafe',color:'#1d4ed8'},
+    free:{bg:'#ecfdf5',color:'#166534'},
+    cancelled:{bg:'#f3f4f6',color:'#42536A'},
+    written_off:{bg:'#f3f4f6',color:'#4b5563'},
+    credited:{bg:'#e0f2fe',color:'#075985'},
+    legacy_invoice:{bg:'#fef3c7',color:'#92400e'},
+    not_billable:{bg:'#f3f4f6',color:'#64748b'}
+  };
+  const summaryCards=[
+    {label:'Tunde perioodis',value:register.summary.lessonCount,note:`${register.summary.exactLinkedCount} täpse ID-seosega`,color:'#1C2B3A'},
+    {label:'Makstud',value:register.summary.paidCount,note:moneyCents(register.summary.paidCents),color:'#166534'},
+    {label:'Osaliselt',value:register.summary.partialCount,note:'makse katab osa tunni hinnast',color:'#92400e'},
+    {label:'Arvel · tasumata',value:register.summary.invoicedUnpaidCount,note:`jääk koos osalistega ${moneyCents(register.summary.balanceCents)}`,color:'#991b1b'},
+    {label:'Arveldamata',value:register.summary.unbilledCount,note:'vajavad arveotsust',color:'#9a3412'},
+    {label:'Paketist kaetud',value:register.summary.packageCount,note:'eraldi paketiliikumine',color:'#1d4ed8'}
+  ];
+  return(
+    <div style={{display:'flex',flexDirection:'column',gap:14}}>
+      <div className="card" style={{padding:16,background:'#eef6f2',border:'1px solid rgba(47,93,80,.18)'}}>
+        <div style={{fontWeight:800}}>Kuidas osaline makse seotakse tunniga?</div>
+        <div style={{fontSize:'.76rem',color:'#42536A',marginTop:4,lineHeight:1.55}}>
+          Täielikult tasutud arve katab kõik selle muutumatud tunniread. Osalise makse korral katab süsteem
+          kõigepealt varaseima arvel oleva tunni ja seejärel järgmised. Selline rida on arvutuslik FIFO-jaotus;
+          arve, tunni ja makse ID-d jäävad alati nähtavaks.
+        </div>
+      </div>
+
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))',gap:10}}>
+        {summaryCards.map(card=>(
+          <div key={card.label} className="card" style={{padding:14}}>
+            <div style={{fontSize:'.65rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'.06em',color:'#64748b'}}>{card.label}</div>
+            <div style={{fontFamily:'Fraunces,Georgia,serif',fontSize:'1.45rem',fontWeight:700,color:card.color,marginTop:5}}>{card.value}</div>
+            <div style={{fontSize:'.68rem',color:'#64748b',marginTop:2}}>{card.note}</div>
+          </div>
+        ))}
+      </div>
+
+      {register.issues.length>0&&(
+        <div className="card" style={{padding:0,overflow:'hidden',border:'1px solid rgba(220,38,38,.2)'}}>
+          <div style={{padding:'13px 15px',background:'#fff7ed',display:'flex',justifyContent:'space-between',alignItems:'center',gap:10,flexWrap:'wrap'}}>
+            <div>
+              <div style={{fontWeight:800}}>Tunniarvestuse kontroll</div>
+              <div style={{fontSize:'.72rem',color:'#64748b'}}>{register.summary.errorCount} viga · {register.summary.attentionCount} pärand- või paketikirjet</div>
+            </div>
+            <div style={{display:'flex',gap:6}}>
+              <button onClick={openInvoices} className="btn btn-ghost btn-sm">Arved</button>
+              <button onClick={openReconciliation} className="btn btn-amber btn-sm">Maksete sobitamine</button>
+            </div>
+          </div>
+          <div style={{maxHeight:230,overflowY:'auto'}}>
+            {register.issues.map((issue,index)=>(
+              <div key={`${issue.type}-${issue.lessonId||issue.invoiceId||index}-${index}`} style={{padding:'10px 15px',borderTop:'1px solid rgba(28,43,58,.07)',display:'flex',gap:9}}>
+                <i className={`fa-solid ${issue.severity==='error'?'fa-triangle-exclamation':'fa-circle-info'}`}
+                  style={{color:issue.severity==='error'?'#dc2626':'#C9882A',marginTop:2}}/>
+                <div>
+                  <div style={{fontWeight:700,fontSize:'.78rem'}}>{issue.title}</div>
+                  <div style={{fontSize:'.7rem',color:'#64748b',marginTop:2}}>{issue.detail}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="card" style={{overflow:'hidden'}}>
+        <div style={{padding:14,borderBottom:'1px solid rgba(28,43,58,.08)',display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
+          <input value={search} onChange={event=>setSearch(event.target.value)}
+            placeholder="Otsi õpilase, õpetaja, tunni, arve või ID järgi…" style={{flex:1,minWidth:250}}/>
+          <select value={status} onChange={event=>setStatus(event.target.value)} style={{width:205}}>
+            <option value="all">Kõik finantsstaatused</option>
+            <option value="paid">Makstud</option>
+            <option value="partial">Osaliselt makstud</option>
+            <option value="invoiced_unpaid">Arvel · tasumata</option>
+            <option value="unbilled">Arveldamata</option>
+            <option value="package_covered">Paketist kaetud</option>
+            <option value="free">Tasuta</option>
+            <option value="cancelled">Tühistatud · tasuta</option>
+            <option value="written_off">Mahakantud</option>
+            <option value="credited">Krediteeritud</option>
+            <option value="legacy_invoice">Vana arve · seos puudub</option>
+          </select>
+          <button onClick={downloadCsv} className="btn btn-pine btn-sm"><i className="fa-solid fa-file-csv"/> Ekspordi tunnid</button>
+        </div>
+        <div style={{overflowX:'auto'}}>
+          <table style={{width:'100%',borderCollapse:'collapse',minWidth:1100}}>
+            <thead>
+              <tr style={{background:'#F9F8F6',fontSize:'.66rem',textTransform:'uppercase',letterSpacing:'.05em',color:'#64748b'}}>
+                {['Kuupäev','Õpilane / tund','Arve','Hind','Kaetud','Jääk','Makse','Seose täpsus','Staatus'].map(label=>(
+                  <th key={label} style={{padding:'10px 11px',textAlign:['Hind','Kaetud','Jääk'].includes(label)?'right':'left'}}>{label}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {visibleRows.map(row=>{
+                const meta=statusMeta[row.status]||statusMeta.not_billable;
+                return(
+                  <tr key={row.lessonId} style={{borderTop:'1px solid rgba(28,43,58,.07)',fontSize:'.76rem'}}>
+                    <td style={{padding:'11px',verticalAlign:'top',whiteSpace:'nowrap'}}>{fmtDate(row.date)}</td>
+                    <td style={{padding:'11px',verticalAlign:'top'}}>
+                      <div style={{fontWeight:800}}>{row.studentName}</div>
+                      <div style={{fontSize:'.68rem',color:'#64748b',marginTop:2}}>{row.topic||'Teema puudub'}{row.teacher?` · ${row.teacher}`:''}</div>
+                      <div title={row.lessonId} style={{fontFamily:'monospace',fontSize:'.62rem',color:'#94a3b8',marginTop:3,maxWidth:170,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{row.lessonId}</div>
+                    </td>
+                    <td style={{padding:'11px',verticalAlign:'top'}}>
+                      <div style={{fontWeight:700}}>{row.invoiceNum||'—'}</div>
+                      {row.invoiceId&&<div title={row.invoiceId} style={{fontFamily:'monospace',fontSize:'.62rem',color:'#94a3b8',marginTop:3,maxWidth:120,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{row.invoiceId}</div>}
+                    </td>
+                    <td style={{padding:'11px',verticalAlign:'top',textAlign:'right',fontFamily:'monospace',fontWeight:700}}>{row.amountCents?moneyCents(row.amountCents):'—'}</td>
+                    <td style={{padding:'11px',verticalAlign:'top',textAlign:'right',fontFamily:'monospace',fontWeight:700,color:'#166534'}}>{row.paidCents?moneyCents(row.paidCents):'—'}</td>
+                    <td style={{padding:'11px',verticalAlign:'top',textAlign:'right',fontFamily:'monospace',fontWeight:700,color:row.balanceCents?'#991b1b':'#42536A'}}>{row.balanceCents?moneyCents(row.balanceCents):'—'}</td>
+                    <td style={{padding:'11px',verticalAlign:'top'}}>
+                      {row.paymentAllocations.length>0
+                        ? <div>
+                            {row.paymentAllocations.map(item=>(
+                              <div key={`${item.paymentId}-${item.amountCents}`} style={{fontSize:'.67rem',marginBottom:3}}>
+                                <div>{fmtDate(item.paidAt)} · {moneyCents(item.amountCents)} · {item.source==='bank'?'Pank':item.source==='credit'?'Ettemakse':item.source||'Muu'}</div>
+                                {item.paymentId&&<div title={item.paymentId} style={{fontFamily:'monospace',fontSize:'.6rem',color:'#94a3b8',maxWidth:150,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{item.paymentId}</div>}
+                              </div>
+                            ))}
+                          </div>
+                        : row.status==='package_covered'
+                          ? <span style={{color:'#1d4ed8',fontWeight:700}}>{row.packageName||'Paketiliikumine'}</span>
+                          : <span style={{color:'#94a3b8'}}>—</span>}
+                    </td>
+                    <td style={{padding:'11px',verticalAlign:'top'}}>
+                      {row.linkExact
+                        ? <span className="badge" style={{background:'#dcfce7',color:'#166534'}}>ID-seos täpne</span>
+                        : row.status==='package_covered'
+                          ? <span className="badge" style={{background:'#dbeafe',color:'#1d4ed8'}}>Paketikirje</span>
+                          : <span className="badge" style={{background:'#fef3c7',color:'#92400e'}}>Pole tõendatud</span>}
+                      {row.allocationMethod==='invoice_fifo_v1'&&row.status==='partial'&&(
+                        <div style={{fontSize:'.63rem',color:'#92400e',marginTop:4}}>Osaline · FIFO</div>
+                      )}
+                    </td>
+                    <td style={{padding:'11px',verticalAlign:'top'}}>
+                      <span className="badge" style={{background:meta.bg,color:meta.color}}>{lessonPaymentStatusLabel(row.status)}</span>
+                    </td>
+                  </tr>
+                );
+              })}
+              {visibleRows.length===0&&(
+                <tr><td colSpan="9" style={{padding:34,textAlign:'center',color:'#94a3b8'}}>Selles perioodis sobivaid tunde ei ole.</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AccountingRegisterView({invoices,payments,bankTransactions,payerCredits,lessons,openInvoices,openReconciliation}) {
   const [month,setMonth]=React.useState(()=>today().slice(0,7));
+  const [registerMode,setRegisterMode]=React.useState('invoices');
   const [status,setStatus]=React.useState('all');
   const [search,setSearch]=React.useState('');
   const register=React.useMemo(()=>accountingRegister({
@@ -8002,26 +8193,39 @@ function AccountingRegisterView({invoices,payments,bankTransactions,payerCredits
       <div style={{display:'flex',justifyContent:'space-between',gap:14,alignItems:'flex-end',flexWrap:'wrap'}}>
         <div>
           <h1 style={{fontSize:'1.7rem'}}>Raamatupidamine</h1>
-          <p style={{color:'#64748b',fontSize:'.88rem',marginTop:3}}>Arvete ja laekumiste register</p>
+          <p style={{color:'#64748b',fontSize:'.88rem',marginTop:3}}>
+            {registerMode==='invoices'?'Arvete ja laekumiste register':'Tundide ja maksete täpne kontroll'}
+          </p>
         </div>
         <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
           <button onClick={()=>moveMonth(-1)} className="btn btn-ghost btn-sm"><i className="fa-solid fa-chevron-left"/> Eelmine</button>
           <input type="month" value={month} onChange={event=>setMonth(event.target.value)}
             style={{width:155,fontWeight:700}}/>
           <button onClick={()=>moveMonth(1)} className="btn btn-ghost btn-sm">Järgmine <i className="fa-solid fa-chevron-right"/></button>
-          <button onClick={downloadCsv} className="btn btn-pine btn-sm"><i className="fa-solid fa-file-csv"/> Ekspordi CSV</button>
+          {registerMode==='invoices'&&<button onClick={downloadCsv} className="btn btn-pine btn-sm"><i className="fa-solid fa-file-csv"/> Ekspordi CSV</button>}
         </div>
+      </div>
+
+      <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+        <button onClick={()=>setRegisterMode('invoices')} className={registerMode==='invoices'?'btn btn-dark btn-sm':'btn btn-ghost btn-sm'}>
+          <i className="fa-solid fa-file-invoice"/> Arvete register
+        </button>
+        <button onClick={()=>setRegisterMode('lessons')} className={registerMode==='lessons'?'btn btn-dark btn-sm':'btn btn-ghost btn-sm'}>
+          <i className="fa-solid fa-link"/> Tunnid ↔ maksed
+        </button>
       </div>
 
       <div className="card" style={{padding:16,background:'#1C2B3A',color:'#fff'}}>
         <div style={{fontSize:'.72rem',textTransform:'uppercase',letterSpacing:'.08em',fontWeight:800,color:'rgba(255,255,255,.55)'}}>Valitud periood</div>
         <div style={{fontFamily:'Fraunces,Georgia,serif',fontSize:'1.4rem',marginTop:3,textTransform:'capitalize'}}>{selectedMonthLabel}</div>
         <div style={{fontSize:'.75rem',color:'rgba(255,255,255,.65)',marginTop:5}}>
-          Arved kuuluvad perioodi väljastamise kuupäeva järgi. Laekumised kuuluvad perioodi makse kuupäeva järgi.
-          Seetõttu võivad laekumised sisaldada varasemate arvete tasumisi.
+          {registerMode==='invoices'
+            ?'Arved kuuluvad perioodi väljastamise kuupäeva järgi. Laekumised kuuluvad perioodi makse kuupäeva järgi; seetõttu võivad laekumised sisaldada varasemate arvete tasumisi.'
+            :'Tunnid kuuluvad perioodi toimumise kuupäeva järgi. Iga rida kontrollib tunni ID-d, arverida, makseid, paketikatet ja allesjäänud summat.'}
         </div>
       </div>
 
+      {registerMode==='invoices'&&<>
       <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(175px,1fr))',gap:12}}>
         {summaryCards.map(card=>(
           <div key={card.label} className="card" style={{padding:16,background:card.bg}}>
@@ -8124,6 +8328,14 @@ function AccountingRegisterView({invoices,payments,bankTransactions,payerCredits
           </table>
         </div>
       </div>
+      </>}
+      {registerMode==='lessons'&&<LessonPaymentRegisterPanel
+        month={month}
+        lessons={lessons}
+        invoices={invoices}
+        payments={payments}
+        openInvoices={openInvoices}
+        openReconciliation={openReconciliation}/>}
     </div>
   );
 }
@@ -13120,6 +13332,7 @@ function App() {
             payments={payments}
             bankTransactions={bankTransactions}
             payerCredits={payerCredits}
+            lessons={lessons}
             openInvoices={()=>goTab('invoices')}
             openReconciliation={()=>goTab('reconciliation')}/>}
 

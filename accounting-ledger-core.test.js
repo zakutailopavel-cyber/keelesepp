@@ -3,7 +3,9 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const {
   accountingRegister,
-  accountingRegisterCsv
+  accountingRegisterCsv,
+  lessonPaymentRegister,
+  lessonPaymentRegisterCsv
 }=require('./accounting-ledger-core');
 
 test('CRM loads the accounting ledger and exposes an administrator screen',()=>{
@@ -11,6 +13,8 @@ test('CRM loads the accounting ledger and exposes an administrator screen',()=>{
   assert.match(html,/accounting-ledger-core\.js/);
   assert.match(html,/Raamatupidamine/);
   assert.match(html,/Arvete ja laekumiste register/);
+  assert.match(html,/Tunnid ↔ maksed/);
+  assert.match(html,/Tundide ja maksete täpne kontroll/);
 });
 
 test('invoice issuance and reconciled payments form one register row',()=>{
@@ -182,4 +186,208 @@ test('CSV export keeps accountant-friendly columns and escaped values',()=>{
   assert.match(csv,/"Arve nr";"Kuupäev"/);
   assert.match(csv,/"Mari ""M"""/);
   assert.match(csv,/"25\.00"/);
+});
+
+test('lesson payments cover immutable invoice lines oldest first',()=>{
+  const register=lessonPaymentRegister({
+    month:'2026-07',
+    lessons:[
+      {id:'lesson-a',date:'2026-07-01',studentName:'Mari',status:'Toimunud',billingStatus:'invoiced',invoiceId:'invoice-a'},
+      {id:'lesson-b',date:'2026-07-08',studentName:'Mari',status:'Toimunud',billingStatus:'invoiced',invoiceId:'invoice-a'}
+    ],
+    invoices:[{
+      id:'invoice-a',
+      num:'KS-1',
+      date:'2026-07-09',
+      amountCents:6000,
+      effectiveAmountCents:6000,
+      lines:[
+        {lessonId:'lesson-a',date:'2026-07-01',amountCents:3000},
+        {lessonId:'lesson-b',date:'2026-07-08',amountCents:3000}
+      ]
+    }],
+    payments:[{
+      id:'payment-a',
+      invoiceId:'invoice-a',
+      amountCents:4500,
+      paidAt:'2026-07-10',
+      status:'active',
+      bankTransactionId:'bank-a'
+    }]
+  });
+  const first=register.rows.find(row=>row.lessonId==='lesson-a');
+  const second=register.rows.find(row=>row.lessonId==='lesson-b');
+  assert.equal(first.status,'paid');
+  assert.equal(first.paidCents,3000);
+  assert.equal(second.status,'partial');
+  assert.equal(second.paidCents,1500);
+  assert.equal(second.balanceCents,1500);
+  assert.equal(first.paymentAllocations[0].paymentId,'payment-a');
+  assert.equal(register.summary.paidCents,4500);
+  assert.equal(register.summary.balanceCents,1500);
+  assert.equal(register.summary.errorCount,0);
+});
+
+test('credited lesson lines are excluded without rewriting the original invoice',()=>{
+  const register=lessonPaymentRegister({
+    month:'2026-07',
+    lessons:[
+      {id:'lesson-a',date:'2026-07-01',studentName:'Mari',billingStatus:'credited',invoiceId:'invoice-a'},
+      {id:'lesson-b',date:'2026-07-08',studentName:'Mari',billingStatus:'invoiced',invoiceId:'invoice-a'}
+    ],
+    invoices:[{
+      id:'invoice-a',
+      num:'KS-1',
+      date:'2026-07-09',
+      amountCents:6000,
+      effectiveAmountCents:3000,
+      correctedLessonIds:['lesson-a'],
+      lines:[
+        {lessonId:'lesson-a',date:'2026-07-01',amountCents:3000},
+        {lessonId:'lesson-b',date:'2026-07-08',amountCents:3000}
+      ]
+    }],
+    payments:[{
+      id:'payment-a',
+      invoiceId:'invoice-a',
+      amountCents:3000,
+      paidAt:'2026-07-10',
+      status:'active'
+    }]
+  });
+  const credited=register.rows.find(row=>row.lessonId==='lesson-a');
+  const paid=register.rows.find(row=>row.lessonId==='lesson-b');
+  assert.equal(credited.status,'credited');
+  assert.equal(credited.originalAmountCents,3000);
+  assert.equal(credited.amountCents,0);
+  assert.equal(paid.status,'paid');
+  assert.equal(register.summary.billedCents,3000);
+  assert.equal(register.summary.errorCount,0);
+});
+
+test('legacy invoice linkage is never presented as exact payment evidence',()=>{
+  const register=lessonPaymentRegister({
+    month:'2026-07',
+    lessons:[{
+      id:'lesson-a',
+      date:'2026-07-01',
+      studentName:'Mari',
+      status:'Toimunud',
+      billingStatus:'invoiced',
+      invoiceId:'legacy-invoice',
+      invoiceNum:'KS-OLD'
+    }],
+    invoices:[{
+      id:'legacy-invoice',
+      num:'KS-OLD',
+      date:'2026-07-02',
+      amountCents:3000,
+      status:'Makstud'
+    }]
+  });
+  assert.equal(register.rows[0].status,'legacy_invoice');
+  assert.equal(register.rows[0].linkExact,false);
+  assert.equal(register.summary.legacyCount,1);
+  assert.equal(register.summary.errorCount,0);
+  assert.equal(register.summary.attentionCount,1);
+  assert.equal(register.issues[0].type,'legacy_invoice_without_lesson_line');
+});
+
+test('paid invoice snapshot without payment records is reported and never allocated to lessons',()=>{
+  const register=lessonPaymentRegister({
+    month:'2026-07',
+    lessons:[{
+      id:'lesson-a',
+      date:'2026-07-01',
+      studentName:'Mari',
+      billingStatus:'invoiced',
+      invoiceId:'invoice-a'
+    }],
+    invoices:[{
+      id:'invoice-a',
+      num:'KS-1',
+      amountCents:3000,
+      paidAmountCents:3000,
+      status:'Makstud',
+      lines:[{lessonId:'lesson-a',date:'2026-07-01',amountCents:3000}]
+    }]
+  });
+  assert.equal(register.rows[0].status,'invoiced_unpaid');
+  assert.equal(register.rows[0].paidCents,0);
+  assert.ok(register.issues.some(issue=>issue.type==='invoice_paid_without_payment_records'));
+  assert.equal(register.summary.errorCount,1);
+});
+
+test('absence without billing disposition remains visible for a financial decision',()=>{
+  const register=lessonPaymentRegister({
+    month:'2026-07',
+    lessons:[{
+      id:'lesson-a',
+      date:'2026-07-01',
+      studentName:'Mari',
+      status:'Puudus_eta'
+    }]
+  });
+  assert.equal(register.rows[0].status,'unbilled');
+  assert.ok(register.issues.some(issue=>issue.type==='absence_billing_disposition_missing'));
+  assert.equal(register.summary.attentionCount,1);
+});
+
+test('package-covered and unbilled lessons remain financially distinct',()=>{
+  const register=lessonPaymentRegister({
+    month:'2026-07',
+    lessons:[
+      {id:'package',date:'2026-07-01',studentName:'Mari',status:'Toimunud',packageConsumptionStatus:'consumed',packageProductName:'10 tundi'},
+      {id:'unbilled',date:'2026-07-02',studentName:'Jüri',status:'Toimunud',billingStatus:'unbilled'}
+    ]
+  });
+  assert.equal(register.rows.find(row=>row.lessonId==='package').status,'package_covered');
+  assert.equal(register.rows.find(row=>row.lessonId==='unbilled').status,'unbilled');
+  assert.equal(register.summary.packageCount,1);
+  assert.equal(register.summary.unbilledCount,1);
+});
+
+test('lesson register detects duplicate invoice ownership and broken links',()=>{
+  const register=lessonPaymentRegister({
+    month:'2026-07',
+    lessons:[{
+      id:'lesson-a',
+      date:'2026-07-01',
+      studentName:'Mari',
+      billingStatus:'invoiced',
+      invoiceId:'invoice-a'
+    }],
+    invoices:[
+      {id:'invoice-a',num:'A',amountCents:3000,lines:[{lessonId:'lesson-a',date:'2026-07-01',amountCents:3000}]},
+      {id:'invoice-b',num:'B',amountCents:3000,lines:[{lessonId:'lesson-a',date:'2026-07-01',amountCents:3000}]}
+    ]
+  });
+  assert.ok(register.issues.some(issue=>issue.type==='lesson_in_multiple_invoices'));
+  assert.ok(register.issues.some(issue=>issue.type==='lesson_invoice_link_mismatch'));
+  assert.ok(register.summary.errorCount>=2);
+});
+
+test('lesson payment CSV exports stable lesson and invoice identifiers',()=>{
+  const register=lessonPaymentRegister({
+    month:'2026-07',
+    lessons:[{
+      id:'lesson-a',
+      date:'2026-07-01',
+      studentName:'Mari',
+      teacher:'Pavel',
+      status:'Toimunud',
+      billingStatus:'invoiced',
+      invoiceId:'invoice-a'
+    }],
+    invoices:[{
+      id:'invoice-a',
+      num:'KS-1',
+      amountCents:3000,
+      lines:[{lessonId:'lesson-a',date:'2026-07-01',amountCents:3000}]
+    }]
+  });
+  const csv=lessonPaymentRegisterCsv(register);
+  assert.match(csv,/"Tunni ID";"Arve nr";"Arve ID"/);
+  assert.match(csv,/"lesson-a";"KS-1";"invoice-a"/);
+  assert.match(csv,/"Täpne ID-seos"/);
 });
