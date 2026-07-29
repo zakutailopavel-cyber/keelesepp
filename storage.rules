@@ -27,6 +27,10 @@ service firebase.storage {
       return superAdmin() || role() in ['teacher', 'admin'];
     }
 
+    function accountingAdmin() {
+      return superAdmin() || role() == 'admin';
+    }
+
     function ownsStudent(studentId) {
       return signedIn()
         && firestore.exists(/databases/(default)/documents/students/$(studentId))
@@ -45,6 +49,13 @@ service firebase.storage {
           request.resource.size < 20 * 1024 * 1024
           && request.resource.contentType.matches('^(image/|application/pdf|text/|audio/|video/|application/vnd\\.|application/msword)')
         );
+    }
+
+    function safePaymentOrder() {
+      return request.resource != null
+        && request.resource.size > 0
+        && request.resource.size <= 10 * 1024 * 1024
+        && request.resource.contentType.matches('^(application/pdf|image/jpeg|image/png|image/webp)$');
     }
 
     match /eesti_soned.json {
@@ -70,6 +81,12 @@ service firebase.storage {
     match /homework/{studentId}/{fileName} {
       allow read: if staff() || ownsStudent(studentId);
       allow write: if (staff() || ownsStudent(studentId)) && safeContent();
+    }
+
+    match /financial/payment-orders/{paymentId}/{documentId} {
+      allow read: if accountingAdmin();
+      allow create: if accountingAdmin() && safePaymentOrder();
+      allow update, delete: if false;
     }
 
     match /{allPaths=**} {

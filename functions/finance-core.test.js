@@ -15,6 +15,7 @@ const {
   normalizeAllocations,
   packageBalanceAfterEntry,
   packageBalanceAfterLessonMovement,
+  paymentDocumentRecord,
   paymentNetAmountCents,
   planInvoiceOverpaymentTransfer,
   positiveInteger,
@@ -23,6 +24,45 @@ const {
   tariffAssignmentPlan,
   toCents,
 } = require("./finance-core");
+
+test("payment documents keep an exact private storage path and bounded metadata", () => {
+  const document = paymentDocumentRecord({
+    paymentId: "payment_0001",
+    documentId: "paymentdoc_0001",
+    storagePath: "financial/payment-orders/payment_0001/paymentdoc_0001",
+    fileName: "LHV maksekorraldus.pdf",
+    contentType: "application/pdf",
+    size: 123456,
+    uploadedAt: "2026-07-29T20:00:00.000Z",
+  });
+  assert.equal(document.kind, "payment_order");
+  assert.equal(document.paymentId, "payment_0001");
+  assert.equal(document.fileName, "LHV maksekorraldus.pdf");
+  assert.equal(document.size, 123456);
+});
+
+test("payment documents reject wrong paths, unsafe types, and oversized files", () => {
+  const base = {
+    paymentId: "payment_0001",
+    documentId: "paymentdoc_0001",
+    storagePath: "financial/payment-orders/payment_0001/paymentdoc_0001",
+    fileName: "payment.pdf",
+    contentType: "application/pdf",
+    size: 100,
+  };
+  assert.throws(
+    () => paymentDocumentRecord({ ...base, storagePath: "lessons/student/payment.pdf" }),
+    /storage path/,
+  );
+  assert.throws(
+    () => paymentDocumentRecord({ ...base, contentType: "text/html" }),
+    /PDF, JPEG, PNG, or WebP/,
+  );
+  assert.throws(
+    () => paymentDocumentRecord({ ...base, size: (10 * 1024 * 1024) + 1 }),
+    /10 MB/,
+  );
+});
 
 test("toCents accepts normal currency amounts", () => {
   assert.equal(toCents("12.34"), 1234);

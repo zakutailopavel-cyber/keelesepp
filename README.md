@@ -106,6 +106,15 @@ tasumata tundidega. Vana arve, millel puuduvad tunni ID-ga read, jääb pärandk
 automaatselt täpse maksekinnituse märget. Samuti annab register vea, kui arvel on tasumise märge,
 kuid eraldi maksekirje puudub, või kui tunni ja arve vastassuunalised ID-seosed ei ühti.
 
+Administraator saab iga aktiivse maksekirje juurde lisada maksekorralduse PDF-, JPG-, PNG- või
+WebP-failina (kuni 10 MB). Fail salvestatakse privaatsesse Firebase Storage'i finantskausta;
+maksekirjesse jäävad muutumatult faili nimi, tüüp, suurus, Storage'i tee, dokumendi ID, laadimise
+aeg ja laadija. Sama serveritehing kirjutab `financialAudit` kirje. Dokument on nähtav arve
+makseajaloo juures ja raamatupidamise registris ning selle nimi ja ID jõuavad CSV-eksporti.
+Õpilastel, lapsevanematel ja õpetajatel ei ole maksekorralduste lugemis- ega kirjutamisõigust.
+Tühistatud makse dokument säilib ajaloolise tõendina, kuid uut dokumenti tühistatud maksele
+lisada ei saa.
+
 Vaade ei loo uut finantsandmete koopiat ega muuda ajaloolisi kirjeid. See arvutab kontrollitava
 projektsiooni olemasolevatest `lessons`, `invoices`, `payments`, `bankTransactions` ja
 `payerCredits` kogudest; kõik rahalised muudatused jäävad endiselt serveripoolse Financial
@@ -160,15 +169,16 @@ vercel --prod
 
 ## Firestore reeglite avaldamine
 
-Vercel avaldab veebiliidese, kuid ei avalda Firestore reegleid. Kui `firestore.rules` muutub,
-tuleb pärast kontrollitud ühendamist avaldada ainult reeglid:
+Vercel avaldab veebiliidese, kuid ei avalda Firestore ega Storage'i reegleid. Kui
+`firestore.rules` või `storage.rules` muutub, tuleb pärast kontrollitud ühendamist avaldada
+vastavad reeglid:
 
 ```bash
-firebase deploy --only firestore:rules --project keelesepp-5136b
+firebase deploy --only firestore:rules,storage --project keelesepp-5136b
 ```
 
 Kontrolli enne tootmiskeskkonna proovimist, et käsu lõpus kuvatakse
-`released rules firestore.rules to cloud.firestore`.
+nii Firestore'i kui ka Storage'i reeglite edukas avaldamine.
 
 Kui veebiversioon hakkab kasutama uut Firestore kollektsiooni, avalda kontrollitud lisavad
 reeglid enne veebiversiooni ühendamist. Nii ei teki väljalaske ajal hetke, mil uus liides on

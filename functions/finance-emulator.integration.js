@@ -256,6 +256,85 @@ test("lesson invoice and lesson credit stay atomic, idempotent, and auditable", 
   assert.match(duplicateCredit.body.error, /not actively invoiced/);
 });
 
+test("payment-order metadata is attached server-side and audited immutably", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const token = await createAdminToken();
+  const invoiceId = "invoice-payment-document";
+  await db.collection("invoices").doc(invoiceId).set({
+    num: "KS-DOC-001",
+    date: "2026-07-29",
+    due: "2026-08-10",
+    amountCents: 3000,
+    amount: 30,
+    paidAmountCents: 0,
+    paidAmount: 0,
+    balanceDueCents: 3000,
+    balanceDue: 30,
+    paymentStatus: "unpaid",
+    status: "Ootel",
+    studentId: "student-document",
+    studentName: "Document Student",
+  });
+  const paymentPayload = {
+    invoiceId,
+    amount: 30,
+    paidAt: "2026-07-29",
+    method: "bank",
+    reference: "KS-DOC-001",
+    note: "Document test payment",
+    requestId: "emulator_payment_document_payment_0001",
+  };
+  const paymentCreated = await financeRequest(token, "/payments", paymentPayload);
+  assert.equal(paymentCreated.status, 201, JSON.stringify(paymentCreated.body));
+
+  const documentPayload = {
+    paymentId: paymentPayload.requestId,
+    storagePath:
+      `financial/payment-orders/${paymentPayload.requestId}/emulator_payment_document_file_0001`,
+    fileName: "LHV payment order.pdf",
+    contentType: "application/pdf",
+    size: 45678,
+    requestId: "emulator_payment_document_file_0001",
+  };
+  const attached = await financeRequest(token, "/payments/documents", documentPayload);
+  assert.equal(attached.status, 201, JSON.stringify(attached.body));
+  assert.equal(attached.body.document.paymentId, paymentPayload.requestId);
+  assert.equal(attached.body.document.fileName, "LHV payment order.pdf");
+
+  const [paymentSnap, auditSnap] = await Promise.all([
+    db.collection("payments").doc(paymentPayload.requestId).get(),
+    db.collection("financialAudit").doc(documentPayload.requestId).get(),
+  ]);
+  assert.equal(paymentSnap.data().documentCount, 1);
+  assert.equal(paymentSnap.data().documents[0].storagePath, documentPayload.storagePath);
+  assert.equal(auditSnap.data().action, "payment.document_attached");
+  assert.equal(auditSnap.data().paymentId, paymentPayload.requestId);
+  assert.equal(auditSnap.data().invoiceId, invoiceId);
+
+  const retry = await financeRequest(token, "/payments/documents", documentPayload);
+  assert.equal(retry.status, 200, JSON.stringify(retry.body));
+  assert.equal(retry.body.idempotent, true);
+  assert.equal((await db.collection("payments").doc(paymentPayload.requestId).get())
+    .data().documents.length, 1);
+
+  const wrongPath = await financeRequest(token, "/payments/documents", {
+    ...documentPayload,
+    storagePath: "lessons/student-document/not-financial.pdf",
+    requestId: "emulator_payment_document_file_0002",
+  });
+  assert.equal(wrongPath.status, 400, JSON.stringify(wrongPath.body));
+
+  const clientRewrite = await firestoreDocumentRequest(
+    token,
+    "PATCH",
+    `payments/${paymentPayload.requestId}`,
+    { fields: { documentCount: { integerValue: "99" } } },
+  );
+  assert.equal(clientRewrite.status, 403, JSON.stringify(clientRewrite.body));
+});
+
 test("versioned tariffs and assignments price invoice lines by lesson date", async () => {
   requireSafeEmulatorEnvironment();
   if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
