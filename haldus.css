@@ -26,3 +26,17 @@ input:focus,select:focus,textarea:focus{border-color:#C9882A!important;outline:n
 @media print{aside,.no-print{display:none!important}main{padding:0!important;background:#fff!important}}
 @media(min-width:768px){#desktop-sidebar{display:flex!important}#mobile-sidebar{display:none!important}#mobile-header{display:none!important}}
 @media(max-width:767px){#desktop-sidebar{display:none!important}#mobile-sidebar{display:flex!important}#mobile-header{display:flex!important}}
+@media (max-width: 760px) {
+  .work-form-grid,
+  .work-summary-grid,
+  .work-people-grid,
+  .assistant-summary-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .work-history-row,
+  .assistant-alert-row {
+    grid-template-columns: 1fr !important;
+    align-items: flex-start !important;
+  }
+}

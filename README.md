@@ -51,6 +51,22 @@ Interaktiivne tööleht määratakse õpilase töölehtede kabinetti. Harjutus v
 materjal lisatakse kodutööna. Harjutuse lõpetamisel salvestatakse tulemus õpetajale
 ja seotud kodutöö märgitakse tehtuks.
 
+## Tööaeg ja juhi abi
+
+Töötaja alustab ja lõpetab tööpäeva CRM-i vaates **Tööaeg**. Lõpetatud tööpäev läheb
+administraatorile kinnitamiseks; palk arvutatakse ainult kinnitatud minutite ja kinnitamise
+hetkel lukustatud tunnitasu alusel. Tegevuslogidest arvutatud aeg kuvatakse eraldi hinnanguna
+ning see ei ole automaatselt palga alus.
+
+Tööpäeva loomine, lõpetamine, parandamine, kinnitamine, tagasilükkamine ja tunnitasu muutmine
+käivad Cloud Functioni kaudu ning kirjutavad eraldi muutmatu auditi. Brauseril ei ole
+`workSessions`, `workSessionOpen` ega `workTimeAudit` kogudesse kirjutamisõigust.
+
+Vaade **Juhi abi** koondab tasumata tähtaja ületanud arved, hilinenud ülesanded, liiga kaua
+avatud tööpäevad ja Google Calendari sünkroonimisvead. Sama reeglipõhine kontroll käivitub
+serveris iga tund ja seda saab administraator ka käsitsi värskendada. Esimene versioon ei saada
+kooli andmeid ühelegi välisele tehisintellekti API-le.
+
 ## Live Classroom
 
 Esimene piiratud versioon võimaldab õpetajal luua ühe õpilasega tunni, avaldada juhiseid ja

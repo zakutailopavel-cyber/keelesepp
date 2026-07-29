@@ -60,6 +60,12 @@ const {
   googleOccurrenceExceptionSchedule,
   googleNativeExclusionState,
 } = require("./calendar-sync-core");
+const {
+  buildOperationalAlerts,
+  hourlyRateCents,
+  payAmountCents,
+  workDurationMinutes,
+} = require("./staff-operations-core");
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -3301,6 +3307,416 @@ function gcalEventToSchedule(event, teacher, studentId, studentName, teacherUid)
   };
 }
 
+// ── STAFF TIME AND OWNER ASSISTANT ───────────────────────────
+const openWorkSessionRef = uid => db.collection("workSessionOpen").doc(uid);
+
+function workTimeAuditPayload({ action, actor, sessionId, staffUid, before = null, after = null, reason = "" }) {
+  return {
+    action,
+    sessionId,
+    staffUid,
+    actor: actorSnapshot(actor),
+    before,
+    after,
+    reason: cleanText(reason, 500),
+    createdAt: new Date().toISOString(),
+  };
+}
+
+async function clockInStaff({ actor, note = "" }) {
+  const staff = actorSnapshot(actor);
+  const pointerRef = openWorkSessionRef(staff.uid);
+  const sessionRef = db.collection("workSessions").doc();
+  const auditRef = db.collection("workTimeAudit").doc();
+  const now = new Date();
+  const nowIso = now.toISOString();
+  const startedDate = localDate(now, APP_TIME_ZONE);
+
+  return db.runTransaction(async transaction => {
+    const pointerSnap = await transaction.get(pointerRef);
+    if (pointerSnap.exists) {
+      const existingId = pointerSnap.data()?.sessionId;
+      if (existingId) {
+        const existingSnap = await transaction.get(db.collection("workSessions").doc(existingId));
+        if (existingSnap.exists && existingSnap.data()?.status === "open") {
+          return { idempotent: true, session: { id: existingSnap.id, ...existingSnap.data() } };
+        }
+      }
+    }
+
+    const session = {
+      staffUid: staff.uid,
+      staffName: staff.name,
+      staffRole: staff.role,
+      startedAt: nowIso,
+      startedDate,
+      endedAt: "",
+      status: "open",
+      breakMinutes: 0,
+      durationMinutes: 0,
+      note: cleanText(note, 500),
+      source: "manual",
+      approvalStatus: "open",
+      hourlyRateCents: 0,
+      payAmountCents: 0,
+      createdAt: nowIso,
+      updatedAt: nowIso,
+    };
+    transaction.set(sessionRef, session);
+    transaction.set(pointerRef, { sessionId: sessionRef.id, staffUid: staff.uid, startedAt: nowIso });
+    transaction.set(auditRef, workTimeAuditPayload({
+      action: "clock_in",
+      actor,
+      sessionId: sessionRef.id,
+      staffUid: staff.uid,
+      after: session,
+    }));
+    return { idempotent: false, session: { id: sessionRef.id, ...session } };
+  });
+}
+
+async function clockOutStaff({ actor, breakMinutes = 0, note = "" }) {
+  const staff = actorSnapshot(actor);
+  const pointerRef = openWorkSessionRef(staff.uid);
+  const auditRef = db.collection("workTimeAudit").doc();
+  const nowIso = new Date().toISOString();
+
+  return db.runTransaction(async transaction => {
+    const pointerSnap = await transaction.get(pointerRef);
+    if (!pointerSnap.exists || !pointerSnap.data()?.sessionId) {
+      throw httpError(409, "No open work session");
+    }
+    const sessionRef = db.collection("workSessions").doc(pointerSnap.data().sessionId);
+    const sessionSnap = await transaction.get(sessionRef);
+    if (!sessionSnap.exists || sessionSnap.data()?.status !== "open") {
+      transaction.delete(pointerRef);
+      throw httpError(409, "Open work session is inconsistent");
+    }
+    const before = sessionSnap.data();
+    if (before.staffUid !== staff.uid) throw httpError(403, "Work session does not belong to user");
+    const cleanBreakMinutes = Number(breakMinutes || 0);
+    let durationMinutes;
+    try {
+      durationMinutes = workDurationMinutes({
+        ...before,
+        endedAt: nowIso,
+        breakMinutes: cleanBreakMinutes,
+      });
+    } catch (error) {
+      throw httpError(400, error.message);
+    }
+    const after = {
+      ...before,
+      endedAt: nowIso,
+      status: "closed",
+      breakMinutes: cleanBreakMinutes,
+      durationMinutes,
+      note: cleanText(note || before.note, 500),
+      approvalStatus: "pending",
+      updatedAt: nowIso,
+    };
+    transaction.set(sessionRef, after);
+    transaction.delete(pointerRef);
+    transaction.set(auditRef, workTimeAuditPayload({
+      action: "clock_out",
+      actor,
+      sessionId: sessionRef.id,
+      staffUid: staff.uid,
+      before,
+      after,
+    }));
+    return { idempotent: false, session: { id: sessionRef.id, ...after } };
+  });
+}
+
+async function setStaffHourlyRate({ actor, staffUid, hourlyRate }) {
+  const cleanUid = String(staffUid || "").trim();
+  if (!cleanUid) throw httpError(400, "Staff user required");
+  let rateCents;
+  try {
+    rateCents = hourlyRateCents(hourlyRate, { allowZero: true });
+  } catch (error) {
+    throw httpError(400, error.message);
+  }
+  const userRef = db.collection("users").doc(cleanUid);
+  const auditRef = db.collection("workTimeAudit").doc();
+  const nowIso = new Date().toISOString();
+  await db.runTransaction(async transaction => {
+    const userSnap = await transaction.get(userRef);
+    if (!userSnap.exists) throw httpError(404, "Staff user not found");
+    const target = userSnap.data() || {};
+    const targetRoles = collectRoles(target, {});
+    const targetEmail = String(target.email || "").trim().toLowerCase();
+    if (![...targetRoles].some(role => STAFF_ROLES.has(role)) && !SUPER_ADMIN_EMAILS.has(targetEmail)) {
+      throw httpError(409, "Hourly rate can be assigned only to staff");
+    }
+    const before = Number(target.workHourlyRateCents || 0);
+    transaction.set(userRef, {
+      workHourlyRateCents: rateCents,
+      workHourlyRateUpdatedAt: nowIso,
+      workHourlyRateUpdatedBy: actorSnapshot(actor),
+    }, { merge: true });
+    transaction.set(auditRef, workTimeAuditPayload({
+      action: "rate_updated",
+      actor,
+      sessionId: "",
+      staffUid: cleanUid,
+      before: { hourlyRateCents: before },
+      after: { hourlyRateCents: rateCents },
+    }));
+  });
+  return { staffUid: cleanUid, hourlyRateCents: rateCents };
+}
+
+async function reviewWorkSession({ actor, sessionId, decision, reason = "", hourlyRate }) {
+  const cleanId = String(sessionId || "").trim();
+  if (!cleanId) throw httpError(400, "Work session required");
+  if (!["approve", "reject"].includes(decision)) throw httpError(400, "Valid decision required");
+  const sessionRef = db.collection("workSessions").doc(cleanId);
+  const auditRef = db.collection("workTimeAudit").doc();
+  const nowIso = new Date().toISOString();
+
+  return db.runTransaction(async transaction => {
+    const sessionSnap = await transaction.get(sessionRef);
+    if (!sessionSnap.exists) throw httpError(404, "Work session not found");
+    const before = sessionSnap.data();
+    if (before.status !== "closed") throw httpError(409, "Only closed sessions can be reviewed");
+    if (before.approvalStatus !== "pending") {
+      throw httpError(409, "Session was already reviewed; adjust it before a new review");
+    }
+
+    let rateCents = Number(before.hourlyRateCents || 0);
+    if (decision === "approve") {
+      if (String(hourlyRate ?? "").trim()) {
+        try {
+          rateCents = hourlyRateCents(hourlyRate);
+        } catch (error) {
+          throw httpError(400, error.message);
+        }
+      } else if (!rateCents) {
+        const userSnap = await transaction.get(db.collection("users").doc(before.staffUid));
+        rateCents = Number(userSnap.data()?.workHourlyRateCents || 0);
+      }
+      if (!rateCents) throw httpError(409, "Set an hourly rate before approval");
+    }
+
+    const after = {
+      ...before,
+      approvalStatus: decision === "approve" ? "approved" : "rejected",
+      approvalReason: cleanText(reason, 500),
+      reviewedAt: nowIso,
+      reviewedBy: actorSnapshot(actor),
+      hourlyRateCents: decision === "approve" ? rateCents : 0,
+      payAmountCents: decision === "approve"
+        ? payAmountCents(Number(before.durationMinutes || 0), rateCents)
+        : 0,
+      updatedAt: nowIso,
+    };
+    transaction.set(sessionRef, after);
+    transaction.set(auditRef, workTimeAuditPayload({
+      action: decision === "approve" ? "session_approved" : "session_rejected",
+      actor,
+      sessionId: cleanId,
+      staffUid: before.staffUid,
+      before,
+      after,
+      reason,
+    }));
+    return { session: { id: cleanId, ...after } };
+  });
+}
+
+async function adjustWorkSession({ actor, sessionId, startedAt, endedAt, breakMinutes = 0, note = "", reason = "" }) {
+  const cleanId = String(sessionId || "").trim();
+  if (!cleanId) throw httpError(400, "Work session required");
+  if (!cleanText(reason, 500)) throw httpError(400, "Adjustment reason required");
+  const sessionRef = db.collection("workSessions").doc(cleanId);
+  const auditRef = db.collection("workTimeAudit").doc();
+  const nowIso = new Date().toISOString();
+  return db.runTransaction(async transaction => {
+    const sessionSnap = await transaction.get(sessionRef);
+    if (!sessionSnap.exists) throw httpError(404, "Work session not found");
+    const before = sessionSnap.data();
+    let openPointerSnap = null;
+    if (before.status === "open") {
+      openPointerSnap = await transaction.get(openWorkSessionRef(before.staffUid));
+    }
+    const nextStart = String(startedAt || before.startedAt || "");
+    const nextEnd = String(endedAt || before.endedAt || "");
+    if (!nextEnd) throw httpError(400, "End time required");
+    let durationMinutes;
+    try {
+      durationMinutes = workDurationMinutes({
+        startedAt: nextStart,
+        endedAt: nextEnd,
+        breakMinutes: Number(breakMinutes || 0),
+      });
+    } catch (error) {
+      throw httpError(400, error.message);
+    }
+    const after = {
+      ...before,
+      startedAt: new Date(nextStart).toISOString(),
+      startedDate: localDate(new Date(nextStart), APP_TIME_ZONE),
+      endedAt: new Date(nextEnd).toISOString(),
+      status: "closed",
+      breakMinutes: Number(breakMinutes || 0),
+      durationMinutes,
+      note: cleanText(note || before.note, 500),
+      approvalStatus: "pending",
+      approvalReason: "",
+      hourlyRateCents: 0,
+      payAmountCents: 0,
+      reviewedAt: "",
+      reviewedBy: null,
+      updatedAt: nowIso,
+    };
+    transaction.set(sessionRef, after);
+    if (openPointerSnap?.data()?.sessionId === cleanId) {
+      transaction.delete(openWorkSessionRef(before.staffUid));
+    }
+    transaction.set(auditRef, workTimeAuditPayload({
+      action: "session_adjusted",
+      actor,
+      sessionId: cleanId,
+      staffUid: before.staffUid,
+      before,
+      after,
+      reason,
+    }));
+    return { session: { id: cleanId, ...after } };
+  });
+}
+
+async function commitInChunks(writes, chunkSize = 400) {
+  for (let index = 0; index < writes.length; index += chunkSize) {
+    const batch = db.batch();
+    writes.slice(index, index + chunkSize).forEach(write => {
+      if (write.type === "set") batch.set(write.ref, write.data, write.options || {});
+      if (write.type === "update") batch.update(write.ref, write.data);
+    });
+    await batch.commit();
+  }
+}
+
+async function refreshOperationalAlerts({ actor = null } = {}) {
+  const now = new Date();
+  const nowIso = now.toISOString();
+  const todayIso = localDate(now, APP_TIME_ZONE);
+  const [invoiceSnap, taskSnap, sessionSnap, userSnap, existingSnap] = await Promise.all([
+    db.collection("invoices").get(),
+    db.collection("tasks").get(),
+    db.collection("workSessions").get(),
+    db.collection("users").get(),
+    db.collection("assistantAlerts").get(),
+  ]);
+  const mapDocs = snap => snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  const alerts = buildOperationalAlerts({
+    invoices: mapDocs(invoiceSnap),
+    tasks: mapDocs(taskSnap),
+    workSessions: mapDocs(sessionSnap),
+    users: mapDocs(userSnap),
+    nowIso,
+    todayIso,
+  });
+  const activeIds = new Set(alerts.map(alert => alert.id));
+  const existingById = new Map(existingSnap.docs.map(doc => [doc.id, doc.data()]));
+  const writes = alerts.map(alert => ({
+    type: "set",
+    ref: db.collection("assistantAlerts").doc(alert.id),
+    data: {
+      ...alert,
+      active: true,
+      firstDetectedAt: existingById.get(alert.id)?.firstDetectedAt || nowIso,
+      lastDetectedAt: nowIso,
+      refreshedAt: nowIso,
+      refreshedBy: actor ? actorSnapshot(actor) : { uid: "system", role: "system" },
+      resolvedAt: "",
+    },
+    options: { merge: true },
+  }));
+  existingSnap.docs.forEach(doc => {
+    if (doc.data()?.active && !activeIds.has(doc.id)) {
+      writes.push({
+        type: "update",
+        ref: doc.ref,
+        data: { active: false, resolvedAt: nowIso, refreshedAt: nowIso },
+      });
+    }
+  });
+  if (writes.length) await commitInChunks(writes);
+  return {
+    activeCount: alerts.length,
+    criticalCount: alerts.filter(alert => alert.severity === "critical").length,
+    refreshedAt: nowIso,
+  };
+}
+
+exports.staffOperationsApi = functions.https.onRequest(async (req, res) => {
+  applyCors(req, res);
+  if (req.method === "OPTIONS") { res.status(204).send(""); return; }
+  if (req.method !== "POST") {
+    res.status(405).json({ error: "POST required" });
+    return;
+  }
+  try {
+    if (req.path === "/clock-in") {
+      const actor = await requireStaffUser(req);
+      const result = await clockInStaff({ actor, note: req.body?.note });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/clock-out") {
+      const actor = await requireStaffUser(req);
+      const result = await clockOutStaff({
+        actor,
+        breakMinutes: req.body?.breakMinutes,
+        note: req.body?.note,
+      });
+      res.json(result);
+      return;
+    }
+    const actor = await requireAdminUser(req);
+    if (req.path === "/rates") {
+      res.json(await setStaffHourlyRate({
+        actor,
+        staffUid: req.body?.staffUid,
+        hourlyRate: req.body?.hourlyRate,
+      }));
+      return;
+    }
+    if (req.path === "/sessions/approve" || req.path === "/sessions/reject") {
+      res.json(await reviewWorkSession({
+        actor,
+        sessionId: req.body?.sessionId,
+        decision: req.path.endsWith("/approve") ? "approve" : "reject",
+        reason: req.body?.reason,
+        hourlyRate: req.body?.hourlyRate,
+      }));
+      return;
+    }
+    if (req.path === "/sessions/adjust") {
+      res.json(await adjustWorkSession({
+        actor,
+        sessionId: req.body?.sessionId,
+        startedAt: req.body?.startedAt,
+        endedAt: req.body?.endedAt,
+        breakMinutes: req.body?.breakMinutes,
+        note: req.body?.note,
+        reason: req.body?.reason,
+      }));
+      return;
+    }
+    if (req.path === "/assistant/refresh") {
+      res.json(await refreshOperationalAlerts({ actor }));
+      return;
+    }
+    res.status(404).json({ error: "Not found" });
+  } catch (error) {
+    sendError(res, error);
+  }
+});
+
 // ── API: invoice emails and reminders ────────────────────────
 exports.invoiceApi = functions
   .runWith({ secrets: ["SMTP_PASS"] })
@@ -4422,5 +4838,18 @@ exports.sendInvoicePaymentReminders = functions
     const due10 = await sendInvoiceBatch({ type: "due10", force: false });
     const overdue = await sendInvoiceBatch({ type: "reminder", force: false });
     console.log("Invoice reminders", { due10, overdue });
+    return null;
+  });
+
+// ── SCHEDULED: rule-based owner assistant ───────────────────
+// This monitor deliberately does not call an external AI provider. It keeps
+// student, payroll and finance data inside the Firebase project.
+exports.refreshSchoolAssistant = functions
+  .pubsub
+  .schedule("15 * * * *")
+  .timeZone(APP_TIME_ZONE)
+  .onRun(async () => {
+    const result = await refreshOperationalAlerts();
+    console.log("School assistant refreshed", result);
     return null;
   });

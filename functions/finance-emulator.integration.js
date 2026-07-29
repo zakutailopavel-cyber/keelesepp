@@ -122,6 +122,22 @@ async function financeRequest(token, path, payload) {
   return { status: response.status, body };
 }
 
+async function staffOperationsRequest(token, path, payload = {}) {
+  const response = await fetch(
+    `http://${FUNCTIONS_EMULATOR}/${PROJECT_ID}/us-central1/staffOperationsApi${path}`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    },
+  );
+  const body = await response.json();
+  return { status: response.status, body };
+}
+
 test("lesson invoice and lesson credit stay atomic, idempotent, and auditable", async () => {
   requireSafeEmulatorEnvironment();
   if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
@@ -1587,4 +1603,118 @@ test("calendar OAuth credentials and deferred sync operations stay server-only",
     },
   );
   assert.equal(forgedOutboxWrite.status, 403, JSON.stringify(forgedOutboxWrite.body));
+});
+
+test("staff work time is server-owned, approved for payroll, and audited", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const ownerToken = await createAdminToken();
+  const staffToken = await createUserToken("work-time-admin@example.com");
+  const staffUid = tokenUid(staffToken);
+  await db.collection("users").doc(staffUid).set({
+    displayName: "Emulator Admin",
+    email: "work-time-admin@example.com",
+    role: "admin",
+  });
+
+  const clockedIn = await staffOperationsRequest(staffToken, "/clock-in", {
+    note: "Morning administration",
+  });
+  assert.equal(clockedIn.status, 201, JSON.stringify(clockedIn.body));
+  assert.equal(clockedIn.body.session.staffUid, staffUid);
+  assert.equal(clockedIn.body.session.status, "open");
+  const sessionId = clockedIn.body.session.id;
+
+  const retry = await staffOperationsRequest(staffToken, "/clock-in", {});
+  assert.equal(retry.status, 200, JSON.stringify(retry.body));
+  assert.equal(retry.body.idempotent, true);
+  assert.equal(retry.body.session.id, sessionId);
+
+  const forgedBrowserWrite = await firestoreDocumentRequest(
+    staffToken,
+    "PATCH",
+    `workSessions/${sessionId}?updateMask.fieldPaths=durationMinutes`,
+    { fields: { durationMinutes: { integerValue: "999" } } },
+  );
+  assert.equal(forgedBrowserWrite.status, 403, JSON.stringify(forgedBrowserWrite.body));
+
+  const clockedOut = await staffOperationsRequest(staffToken, "/clock-out", {
+    breakMinutes: 0,
+    note: "Morning administration completed",
+  });
+  assert.equal(clockedOut.status, 200, JSON.stringify(clockedOut.body));
+  assert.equal(clockedOut.body.session.status, "closed");
+  assert.equal(clockedOut.body.session.approvalStatus, "pending");
+
+  const rate = await staffOperationsRequest(ownerToken, "/rates", {
+    staffUid,
+    hourlyRate: "15.50",
+  });
+  assert.equal(rate.status, 200, JSON.stringify(rate.body));
+  assert.equal(rate.body.hourlyRateCents, 1550);
+
+  const approved = await staffOperationsRequest(ownerToken, "/sessions/approve", {
+    sessionId,
+  });
+  assert.equal(approved.status, 200, JSON.stringify(approved.body));
+  assert.equal(approved.body.session.approvalStatus, "approved");
+  assert.equal(approved.body.session.hourlyRateCents, 1550);
+
+  const [sessionSnap, pointerSnap, auditSnap] = await Promise.all([
+    db.collection("workSessions").doc(sessionId).get(),
+    db.collection("workSessionOpen").doc(staffUid).get(),
+    db.collection("workTimeAudit").where("sessionId", "==", sessionId).get(),
+  ]);
+  assert.equal(sessionSnap.data().approvalStatus, "approved");
+  assert.equal(pointerSnap.exists, false);
+  assert.ok(auditSnap.size >= 3);
+  assert.deepEqual(
+    new Set(auditSnap.docs.map(doc => doc.data().action)),
+    new Set(["clock_in", "clock_out", "session_approved"]),
+  );
+});
+
+test("owner assistant refreshes operational alerts without an external AI", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const ownerToken = await createAdminToken();
+  await Promise.all([
+    db.collection("invoices").doc("assistant-overdue-invoice").set({
+      num: "KS-ASSISTANT-1",
+      due: "2020-01-01",
+      status: "Ootel",
+      amountCents: 5000,
+      balanceDueCents: 5000,
+    }),
+    db.collection("tasks").doc("assistant-overdue-task").set({
+      title: "Emulator overdue task",
+      due: "2020-01-01",
+      status: "active",
+    }),
+  ]);
+
+  const refreshed = await staffOperationsRequest(ownerToken, "/assistant/refresh");
+  assert.equal(refreshed.status, 200, JSON.stringify(refreshed.body));
+  assert.ok(refreshed.body.activeCount >= 2);
+
+  const [invoiceAlert, taskAlert] = await Promise.all([
+    db.collection("assistantAlerts").doc("invoice_assistant-overdue-invoice").get(),
+    db.collection("assistantAlerts").doc("task_assistant-overdue-task").get(),
+  ]);
+  assert.equal(invoiceAlert.data().active, true);
+  assert.equal(invoiceAlert.data().category, "invoice");
+  assert.equal(taskAlert.data().active, true);
+  assert.equal(taskAlert.data().category, "task");
+
+  const nonAdminToken = await createUserToken("assistant-teacher@example.com");
+  const nonAdminUid = tokenUid(nonAdminToken);
+  await db.collection("users").doc(nonAdminUid).set({
+    displayName: "Assistant Teacher",
+    email: "assistant-teacher@example.com",
+    role: "teacher",
+  });
+  const forbiddenRefresh = await staffOperationsRequest(nonAdminToken, "/assistant/refresh");
+  assert.equal(forbiddenRefresh.status, 403, JSON.stringify(forbiddenRefresh.body));
 });
