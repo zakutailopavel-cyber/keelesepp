@@ -3343,6 +3343,9 @@ function LessonHistoryView({rooms}){
                 )}
               </div>
               <div className="history-room-badges">
+                {room.lessonSummary?.curriculumGoalIds?.length>0&&(
+                  <span className="badge" style={{background:'#EEF4FF',color:'#234C8C'}}>Õppekava progress</span>
+                )}
                 <span className="badge" style={{background:'#E8F3EE',color:'#2F5D50'}}>Lõpetatud</span>
                 <button className="btn btn-ghost btn-sm" onClick={()=>openDetail(room)}>
                   <i className="fa-solid fa-clock-rotate-left"/> Ava kokkuvõte
@@ -3387,6 +3390,18 @@ function LessonHistoryView({rooms}){
                       <span>Saavutatud eesmärgid</span>
                       <div className="history-goals">
                         {selectedRoom.lessonSummary.achievedGoals.map((goal,index)=><span key={index} className="history-goal">✓ {goal}</span>)}
+                      </div>
+                    </div>
+                  )}
+                  {selectedRoom.lessonSummary.curriculumGoalIds?.length>0&&(
+                    <div className="history-outcome-row">
+                      <span>Õppekava progress</span>
+                      <div>
+                        <strong>{selectedRoom.lessonSummary.curriculumLevel||selectedRoom.studentLevel||'—'}</strong>
+                        {(selectedRoom.lessonSummary.curriculumSubject||selectedRoom.studentSubject)
+                          ?` · ${selectedRoom.lessonSummary.curriculumSubject||selectedRoom.studentSubject}`
+                          :''}
+                        {` · ${selectedRoom.lessonSummary.curriculumSkillIds?.length||0} oskust uuendatud`}
                       </div>
                     </div>
                   )}

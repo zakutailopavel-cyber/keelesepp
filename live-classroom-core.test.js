@@ -6,6 +6,8 @@ const {
   buildScene,
   buildSceneHistoryEntry,
   buildLessonSummary,
+  normalizeCurriculumGoals,
+  applyCurriculumGoalsToSkillMap,
   normalizeActionUrl,
   sceneAcceptsResponse,
   isUnsafeDisplaySurface,
@@ -122,10 +124,47 @@ test('lesson summary requires a teacher comment and drops orphan homework metada
     {
       teacherComment:'Tunni kokkuvõte',
       achievedGoals:[],
+      curriculumGoalIds:[],
+      curriculumGoalLabels:[],
+      curriculumSkillIds:[],
+      curriculumSubject:'',
+      curriculumLevel:'',
       nextHomework:'',
       homeworkDue:'',
       homeworkId:''
     }
+  );
+});
+
+test('curriculum goals keep stable evidence and only raise confirmed skills',()=>{
+  const curriculumGoals=normalizeCurriculumGoals([
+    {id:'A2_BASIC_TENSES',label:'Kasutab põhilisi ajavorme',skillIds:['A2_PRESENT_FULL','A2_PAST_BASIC','A2_PAST_BASIC']},
+    {id:'A2_BASIC_TENSES',label:'Duplikaat',skillIds:['SHOULD_NOT_APPEAR']},
+    {id:'bad id!',label:'Puhastatud ID',skillIds:['A2_READ_TEXT']}
+  ]);
+  assert.deepEqual(curriculumGoals,[
+    {id:'A2_BASIC_TENSES',label:'Kasutab põhilisi ajavorme',skillIds:['A2_PRESENT_FULL','A2_PAST_BASIC']},
+    {id:'badid',label:'Puhastatud ID',skillIds:['A2_READ_TEXT']}
+  ]);
+
+  const summary=buildLessonSummary({
+    teacherComment:'Harjutasime ajavorme.',
+    achievedGoals:'Iseseisev lisatulemus',
+    curriculumGoals:[curriculumGoals[0]],
+    curriculumSubject:'Eesti keel',
+    curriculumLevel:'A2'
+  });
+  assert.deepEqual(summary.curriculumGoalIds,['A2_BASIC_TENSES']);
+  assert.deepEqual(summary.curriculumGoalLabels,['Kasutab põhilisi ajavorme']);
+  assert.deepEqual(summary.curriculumSkillIds,['A2_PRESENT_FULL','A2_PAST_BASIC']);
+  assert.deepEqual(summary.achievedGoals,['Kasutab põhilisi ajavorme','Iseseisev lisatulemus']);
+
+  assert.deepEqual(
+    applyCurriculumGoalsToSkillMap(
+      {A2_PRESENT_FULL:55,A2_PAST_BASIC:92,UNRELATED:30},
+      summary.curriculumSkillIds
+    ),
+    {A2_PRESENT_FULL:80,A2_PAST_BASIC:92,UNRELATED:30}
   );
 });
 

@@ -86,13 +86,15 @@ Implemented:
 - Teachers finish a room with a required lesson summary and optional achieved goals.
 - Optional follow-up homework is created atomically and appears in the normal student homework flow.
 - Completed Live Classroom lessons are attached by immutable student ID and shown in the student profile and personal cabinet.
+- Teachers select achieved outcomes from the student's curriculum when ending a lesson.
+- Curriculum evidence and the student's existing skill map are updated in the same transaction.
 
 Next:
 
 - Shared whiteboard and teacher pointer.
 - Drag-and-drop, matching and fill-in-the-gap activities.
 - Timers, polls and per-task reveal.
-- Add reusable follow-up action templates and curriculum outcome analytics.
+- Add reusable follow-up action templates and curriculum outcome analytics across several lessons.
 - Add a curriculum-id migration assistant for legacy topic-only records.
 
 ### B4. Calls and groups

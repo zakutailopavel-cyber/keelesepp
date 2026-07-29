@@ -7,6 +7,8 @@
     buildScene,
     buildSceneHistoryEntry,
     buildLessonSummary,
+    normalizeCurriculumGoals,
+    applyCurriculumGoalsToSkillMap,
     normalizeActionUrl,
     sceneAcceptsResponse,
     isUnsafeDisplaySurface,
@@ -54,6 +56,7 @@
     lessonSummaryDraft:{
       teacherComment:'',
       achievedGoals:'',
+      curriculumGoalIds:[],
       nextHomework:'',
       homeworkDue:''
     },
@@ -118,6 +121,16 @@
       if(scene.type!=='screen'&&!('screenShare' in normalizedExtra)){
         normalizedExtra.screenShare={status:'idle',shareId:''};
       }
+      if(typeof transactionExtras==='function'){
+        await transactionExtras({
+          transaction,
+          ref,
+          room,
+          scene,
+          nextVersion,
+          createdAtIso
+        });
+      }
       transaction.update(ref,{
         activeScene:scene,
         sceneVersion:nextVersion,
@@ -128,16 +141,6 @@
         ...history,
         createdAt:serverTimestamp()
       });
-      if(typeof transactionExtras==='function'){
-        transactionExtras({
-          transaction,
-          ref,
-          room,
-          scene,
-          nextVersion,
-          createdAtIso
-        });
-      }
       return{room,scene,nextVersion};
     });
   }
@@ -158,6 +161,7 @@
     state.lessonSummaryDraft={
       teacherComment:'',
       achievedGoals:'',
+      curriculumGoalIds:[],
       nextHomework:'',
       homeworkDue:''
     };
@@ -341,6 +345,8 @@
       title,
       studentId:student.id,
       studentName:student.name||'Õpilane',
+      studentLevel:cleanText(student.level,40),
+      studentSubject:cleanText(student.subject||student.course||'',80),
       teacherUid:state.authUser.uid,
       teacherName:teacherName(),
       status:'waiting',
@@ -473,6 +479,27 @@
     listenSignals(ref);
   }
 
+  function curriculumContext(room=state.room){
+    const student=state.students.find(item=>item.id===room?.studentId)||{};
+    const level=cleanText(room?.studentLevel||student.level,40);
+    const programs=Array.isArray(window.HaldusPrograms)?window.HaldusPrograms:[];
+    const program=programs.find(item=>item.level===level)||null;
+    const subject=cleanText(
+      room?.studentSubject
+        ||student.subject
+        ||student.course
+        ||program?.subjects?.[0]
+        ||'',
+      80
+    );
+    return{
+      level,
+      subject,
+      title:program?.title||level,
+      goals:normalizeCurriculumGoals(program?.outcomes||[])
+    };
+  }
+
   function teacherControls(){
     const room=state.room;
     const mode=state.sceneMode;
@@ -481,6 +508,14 @@
     const summary=room.status==='ended'
       ?savedSummary
       :state.lessonSummaryDraft;
+    const curriculum=curriculumContext(room);
+    const selectedGoalIds=new Set(summary.curriculumGoalIds||[]);
+    const curriculumGoalChoices=curriculum.goals.map(goal=>`
+      <label style="display:flex;align-items:flex-start;gap:9px;padding:9px 10px;border:1px solid rgba(28,43,58,.1);border-radius:10px;background:${selectedGoalIds.has(goal.id)?'#E8F3EE':'#fff'};cursor:pointer">
+        <input class="curriculum-goal" type="checkbox" value="${escapeHtml(goal.id)}" ${selectedGoalIds.has(goal.id)?'checked':''} style="width:auto;margin-top:3px">
+        <span><strong style="display:block;font-size:.82rem">${escapeHtml(goal.label)}</strong><small style="color:#607086">${escapeHtml(goal.skillIds.join(' · '))}</small></span>
+      </label>
+    `).join('');
     return `
       <aside class="private-desk">
         <section class="card desk-section">
@@ -527,6 +562,9 @@
                 ${savedSummary.achievedGoals?.length
                   ?`<div><span>Saavutatud eesmärgid</span><ul>${savedSummary.achievedGoals.map(goal=>`<li>${escapeHtml(goal)}</li>`).join('')}</ul></div>`
                   :''}
+                ${savedSummary.curriculumGoalIds?.length
+                  ?`<div><span>Õppekava progress</span><p>${escapeHtml(savedSummary.curriculumLevel||room.studentLevel||'')} · ${escapeHtml(savedSummary.curriculumSubject||room.studentSubject||'')} · ${savedSummary.curriculumSkillIds?.length||0} oskust uuendatud</p></div>`
+                  :''}
                 ${savedSummary.nextHomework
                   ?`<div><span>Järgmine kodutöö</span><p>${escapeHtml(savedSummary.nextHomework)}${savedSummary.homeworkDue?`<br><small>Tähtaeg: ${escapeHtml(savedSummary.homeworkDue)}</small>`:''}</p></div>`
                   :''}
@@ -538,8 +576,14 @@
                 <textarea id="lesson-summary-comment" maxlength="3000" placeholder="Mida tunnis tegite, kuidas õpilasel läks?">${escapeHtml(summary.teacherComment||'')}</textarea>
               </div>
               <div class="field" style="margin-top:10px">
-                <label>Saavutatud eesmärgid — üks real</label>
-                <textarea id="lesson-summary-goals" maxlength="3000" placeholder="Oskab kasutada uut sõnavara&#10;Moodustab minevikulauseid">${escapeHtml(summary.achievedGoals||'')}</textarea>
+                <label>Õppekava eesmärgid${curriculum.title?` · ${escapeHtml(curriculum.title)}`:''}</label>
+                ${curriculumGoalChoices
+                  ?`<div style="display:grid;gap:7px;margin-top:7px">${curriculumGoalChoices}</div>`
+                  :`<div class="immutable-note" style="margin-top:7px">Selle õpilase tasemele ei leitud veel struktureeritud eesmärke.</div>`}
+              </div>
+              <div class="field" style="margin-top:10px">
+                <label>Muu saavutatud eesmärk — üks real</label>
+                <textarea id="lesson-summary-goals" maxlength="3000" placeholder="Lisa ainult eesmärk, mida õppekavas veel ei ole">${escapeHtml(summary.achievedGoals||'')}</textarea>
               </div>
               <div class="field" style="margin-top:10px">
                 <label>Järgmine kodutöö</label>
@@ -670,6 +714,9 @@
         state.lessonSummaryDraft[key]=event.target.value;
       });
     });
+    document.querySelectorAll('.curriculum-goal').forEach(input=>input.addEventListener('change',()=>{
+      state.lessonSummaryDraft.curriculumGoalIds=Array.from(document.querySelectorAll('.curriculum-goal:checked')).map(item=>item.value);
+    }));
   }
 
   function bindStudentControls(){
@@ -726,11 +773,17 @@
     if(state.submitting) return;
     let summary;
     try{
+      const curriculum=curriculumContext(state.room);
+      const selectedIds=new Set(Array.from(document.querySelectorAll('.curriculum-goal:checked')).map(item=>item.value));
+      const curriculumGoals=curriculum.goals.filter(goal=>selectedIds.has(goal.id));
       const nextHomework=document.getElementById('lesson-summary-homework')?.value||state.lessonSummaryDraft.nextHomework;
       const homeworkId=cleanText(nextHomework,2000)?`live-classroom-${state.room.id}`:'';
       summary=buildLessonSummary({
         teacherComment:document.getElementById('lesson-summary-comment')?.value||state.lessonSummaryDraft.teacherComment,
         achievedGoals:document.getElementById('lesson-summary-goals')?.value||state.lessonSummaryDraft.achievedGoals,
+        curriculumGoals,
+        curriculumSubject:curriculum.subject,
+        curriculumLevel:curriculum.level,
         nextHomework,
         homeworkDue:document.getElementById('lesson-summary-due')?.value||state.lessonSummaryDraft.homeworkDue,
         homeworkId
@@ -755,24 +808,38 @@
         screenShare:{status:'idle',shareId:''},
         endedAt:serverTimestamp(),
         lessonSummary:summary,
-        summaryVersion:1
-      },({transaction,room})=>{
-        if(!summary.homeworkId) return;
-        const homeworkRef=db.collection('homework').doc(summary.homeworkId);
-        transaction.set(homeworkRef,{
-          studentId:room.studentId,
-          studentName:room.studentName||state.room.studentName||'Õpilane',
-          task:summary.nextHomework,
-          due:summary.homeworkDue,
-          status:'Ootel',
-          sourceType:'live_classroom',
-          sourceRoomId:state.room.id,
-          teacherUid:room.teacherUid,
-          teacherName:room.teacherName||teacherName(),
-          createdByUid:state.authUser.uid,
-          createdAt:serverTimestamp(),
-          createdAtIso:new Date().toISOString()
-        });
+        summaryVersion:2
+      },async({transaction,room})=>{
+        if(summary.curriculumGoalIds.length){
+          const studentRef=db.collection('students').doc(room.studentId);
+          const studentSnapshot=await transaction.get(studentRef);
+          if(!studentSnapshot.exists) throw new Error('Õpilase profiili ei leitud.');
+          transaction.update(studentRef,{
+            skillMap:applyCurriculumGoalsToSkillMap(studentSnapshot.data().skillMap,summary.curriculumSkillIds),
+            skillMapLastUpdated:new Date().toISOString(),
+            lastLiveLessonId:state.room.id,
+            lastLiveLessonAt:serverTimestamp(),
+            lastCurriculumGoalIds:summary.curriculumGoalIds,
+            lastCurriculumSkillIds:summary.curriculumSkillIds
+          });
+        }
+        if(summary.homeworkId){
+          const homeworkRef=db.collection('homework').doc(summary.homeworkId);
+          transaction.set(homeworkRef,{
+            studentId:room.studentId,
+            studentName:room.studentName||state.room.studentName||'Õpilane',
+            task:summary.nextHomework,
+            due:summary.homeworkDue,
+            status:'Ootel',
+            sourceType:'live_classroom',
+            sourceRoomId:state.room.id,
+            teacherUid:room.teacherUid,
+            teacherName:room.teacherName||teacherName(),
+            createdByUid:state.authUser.uid,
+            createdAt:serverTimestamp(),
+            createdAtIso:new Date().toISOString()
+          });
+        }
       });
       await stopPresence(true);
       setNotice('Tund lõpetati ja kinnitati õpilase ajalukku.');

@@ -49,6 +49,35 @@
     .map(goal=>cleanText(goal,240))
     .filter(Boolean)
     .slice(0,12);
+  const normalizeCurriculumGoals=goals=>{
+    const seenGoalIds=new Set();
+    return(Array.isArray(goals)?goals:[]).reduce((result,goal)=>{
+      if(!goal||typeof goal!=='object'||Array.isArray(goal)) return result;
+      const id=cleanText(goal.id,80).replace(/[^A-Za-z0-9_-]/g,'');
+      const label=cleanText(goal.label,240);
+      if(!id||!label||seenGoalIds.has(id)||result.length>=12) return result;
+      seenGoalIds.add(id);
+      result.push({
+        id,
+        label,
+        skillIds:Array.from(new Set((Array.isArray(goal.skillIds)?goal.skillIds:[])
+          .map(skillId=>cleanText(skillId,80).replace(/[^A-Za-z0-9_-]/g,''))
+          .filter(Boolean))).slice(0,8)
+      });
+      return result;
+    },[]);
+  };
+  const applyCurriculumGoalsToSkillMap=(currentSkillMap,skillIds,minimumScore=80)=>{
+    const next={...(currentSkillMap&&typeof currentSkillMap==='object'&&!Array.isArray(currentSkillMap)?currentSkillMap:{})};
+    Array.from(new Set((Array.isArray(skillIds)?skillIds:[])
+      .map(skillId=>cleanText(skillId,80).replace(/[^A-Za-z0-9_-]/g,''))
+      .filter(Boolean))).slice(0,48).forEach(skillId=>{
+        const current=Number(next[skillId]);
+        const normalizedCurrent=Number.isFinite(current)?Math.max(0,Math.min(100,current)):0;
+        next[skillId]=Math.max(normalizedCurrent,Math.max(0,Math.min(100,Number(minimumScore)||80)));
+      });
+    return next;
+  };
   const normalizeHomeworkDue=value=>{
     const due=cleanText(value,10);
     return /^\d{4}-\d{2}-\d{2}$/.test(due)?due:'';
@@ -56,13 +85,26 @@
   const buildLessonSummary=({
     teacherComment='',
     achievedGoals=[],
+    curriculumGoals=[],
+    curriculumSubject='',
+    curriculumLevel='',
     nextHomework='',
     homeworkDue='',
     homeworkId=''
   }={})=>{
+    const normalizedCurriculumGoals=normalizeCurriculumGoals(curriculumGoals);
+    const curriculumGoalLabels=normalizedCurriculumGoals.map(goal=>goal.label);
     const summary={
       teacherComment:cleanText(teacherComment,3000),
-      achievedGoals:normalizeLessonGoals(achievedGoals),
+      achievedGoals:normalizeLessonGoals([
+        ...curriculumGoalLabels,
+        ...normalizeLessonGoals(achievedGoals)
+      ]),
+      curriculumGoalIds:normalizedCurriculumGoals.map(goal=>goal.id),
+      curriculumGoalLabels,
+      curriculumSkillIds:Array.from(new Set(normalizedCurriculumGoals.flatMap(goal=>goal.skillIds))).slice(0,48),
+      curriculumSubject:cleanText(curriculumSubject,80),
+      curriculumLevel:cleanText(curriculumLevel,40),
       nextHomework:cleanText(nextHomework,2000),
       homeworkDue:normalizeHomeworkDue(homeworkDue),
       homeworkId:cleanText(homeworkId,180)
@@ -191,6 +233,8 @@
     normalizeSceneSource,
     normalizeActionUrl,
     normalizeLessonGoals,
+    normalizeCurriculumGoals,
+    applyCurriculumGoalsToSkillMap,
     buildLessonSummary,
     buildScene,
     sceneHistorySnapshot,

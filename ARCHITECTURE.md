@@ -47,7 +47,11 @@ versioned public scenes with append-only student responses without copying priva
 Ending a room requires a bounded `lessonSummary` with a teacher comment and optional achieved
 goals and follow-up homework. The room's immutable `studentId` is the durable link to the
 student cabinet. If homework is present, Firestore rules require the matching student homework
-record to exist after the same atomic transaction. Completed summaries cannot be edited later.
+record to exist after the same atomic transaction. Summary v2 also stores stable curriculum-goal
+IDs, display labels and the affected skill IDs. When structured goals are selected, the same
+transaction updates the linked student's existing `skillMap`; rules require the student's
+last-lesson markers to match the completed room. Completed summaries cannot be edited later.
+Summary v1 remains valid for previously completed rooms.
 
 ### Finance
 
@@ -61,6 +65,8 @@ Cloud Functions and are covered by unit and emulator tests.
 - `worksheetAssignments`, `homework`, `exerciseResults` — student-specific learning activity.
 - `liveClassrooms` — one teacher and one student per current room.
 - `liveClassrooms.lessonSummary` — immutable teacher outcome attached when a room is completed.
+- `students.skillMap` — the canonical current mastery view; structured lesson outcomes may only
+  raise their mapped skills and keep the immutable room summary as evidence.
 - `liveClassrooms/{id}/scenes` — immutable public scene snapshots for versions published after
   learning-history rollout.
 - `liveClassrooms/{id}/responses` — append-only student responses for the current scene version.

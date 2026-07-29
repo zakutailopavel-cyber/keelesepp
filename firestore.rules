@@ -185,7 +185,7 @@ service cloud.firestore {
         );
     }
 
-    function validLiveLessonSummary(summary) {
+    function validLiveLessonSummaryV1(summary) {
       return summary is map
         && summary.keys().hasOnly([
           'teacherComment',
@@ -226,6 +226,96 @@ service cloud.firestore {
             summary.nextHomework != ''
             && summary.homeworkId != ''
           )
+        );
+    }
+
+    function validLiveLessonSummaryV2(summary) {
+      return summary is map
+        && summary.keys().hasOnly([
+          'teacherComment',
+          'achievedGoals',
+          'curriculumGoalIds',
+          'curriculumGoalLabels',
+          'curriculumSkillIds',
+          'curriculumSubject',
+          'curriculumLevel',
+          'nextHomework',
+          'homeworkDue',
+          'homeworkId'
+        ])
+        && summary.keys().hasAll([
+          'teacherComment',
+          'achievedGoals',
+          'curriculumGoalIds',
+          'curriculumGoalLabels',
+          'curriculumSkillIds',
+          'curriculumSubject',
+          'curriculumLevel',
+          'nextHomework',
+          'homeworkDue',
+          'homeworkId'
+        ])
+        && summary.teacherComment is string
+        && summary.teacherComment.size() > 0
+        && summary.teacherComment.size() <= 3000
+        && summary.achievedGoals is list
+        && summary.achievedGoals.size() <= 12
+        && summary.curriculumGoalIds is list
+        && summary.curriculumGoalIds.size() <= 12
+        && summary.curriculumGoalLabels is list
+        && summary.curriculumGoalLabels.size()
+          == summary.curriculumGoalIds.size()
+        && summary.curriculumSkillIds is list
+        && summary.curriculumSkillIds.size() <= 48
+        && summary.curriculumSubject is string
+        && summary.curriculumSubject.size() <= 80
+        && summary.curriculumLevel is string
+        && summary.curriculumLevel.size() <= 40
+        && (
+          (
+            summary.curriculumGoalIds.size() == 0
+            && summary.curriculumSkillIds.size() == 0
+          )
+          || (
+            summary.curriculumGoalIds.size() > 0
+            && summary.curriculumSkillIds.size() > 0
+            && summary.curriculumSubject != ''
+            && summary.curriculumLevel != ''
+          )
+        )
+        && summary.nextHomework is string
+        && summary.nextHomework.size() <= 2000
+        && summary.homeworkDue is string
+        && summary.homeworkDue.size() <= 10
+        && (
+          summary.homeworkDue == ''
+          || summary.homeworkDue.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        )
+        && summary.homeworkId is string
+        && summary.homeworkId.size() <= 180
+        && (
+          (
+            summary.nextHomework == ''
+            && summary.homeworkDue == ''
+            && summary.homeworkId == ''
+          )
+          || (
+            summary.nextHomework != ''
+            && summary.homeworkId != ''
+          )
+        );
+    }
+
+    function liveLessonProgressMatches(classroomId, studentId, summary) {
+      return summary.curriculumGoalIds.size() == 0
+        || (
+          existsAfter(studentPath(studentId))
+          && getAfter(studentPath(studentId)).data.lastLiveLessonId
+            == classroomId
+          && getAfter(studentPath(studentId)).data.lastCurriculumGoalIds
+            == summary.curriculumGoalIds
+          && getAfter(studentPath(studentId)).data.lastCurriculumSkillIds
+            == summary.curriculumSkillIds
         );
     }
 
@@ -663,8 +753,21 @@ service cloud.firestore {
         && (
           request.resource.data.status != 'ended'
           || (
-            request.resource.data.summaryVersion == 1
-            && validLiveLessonSummary(request.resource.data.lessonSummary)
+            (
+              (
+                request.resource.data.summaryVersion == 1
+                && validLiveLessonSummaryV1(request.resource.data.lessonSummary)
+              )
+              || (
+                request.resource.data.summaryVersion == 2
+                && validLiveLessonSummaryV2(request.resource.data.lessonSummary)
+                && liveLessonProgressMatches(
+                  classroomId,
+                  resource.data.studentId,
+                  request.resource.data.lessonSummary
+                )
+              )
+            )
             && liveLessonHomeworkMatches(
               classroomId,
               resource.data.studentId,
