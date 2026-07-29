@@ -19,6 +19,9 @@ Implemented so far:
 - add the public learning stage, private teacher desk, choice and short-answer tasks;
 - add opt-in tab/window screen sharing with classroom-scoped signaling;
 - enforce room, response and signaling access in Firestore rules.
+- add month/week/day calendar views, a proportional day timeline and 15-minute booking;
+- block teacher/student overlaps and attach new schedule entries by stable student ID;
+- make Google Calendar import status explicit and move OAuth credentials to server-only storage.
 
 This is intentionally a foundation, not the full release. Finance navigation, remaining
 responsive cleanup, TURN-backed connectivity and richer task types stay in the ordered
@@ -47,6 +50,25 @@ follow-up slices below.
 - Reduce wide-table pressure and keep primary columns visible.
 - Add clear empty states and quick-action templates.
 - Verify teacher, student and parent mobile layouts.
+
+### A4. Calendar and scheduling
+
+Implemented:
+
+- Month, compact week and proportional day timeline views.
+- 15-minute creation and drag targets with correct duration labels.
+- Side-by-side display for simultaneous lessons.
+- Teacher and student overlap checks for creation, drag and rescheduling.
+- Stable student ownership and activity-log events for new and moved lessons.
+- Safe inbound Google Calendar reconciliation with visible counts and errors.
+- Lazy migration of legacy Google OAuth tokens into a server-only collection.
+
+Next:
+
+- Two-way Google synchronization with explicit write consent, origin ids and conflict policy.
+- Per-occurrence editing for recurring series instead of moving the entire template.
+- Teacher availability, rooms and working-hour constraints.
+- Mobile long-press creation and a compact agenda view.
 
 ## Track B — Live Classroom
 

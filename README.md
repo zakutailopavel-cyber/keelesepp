@@ -7,6 +7,18 @@ Avalik sait +  CRM süsteem.
 - `/haldus-exercises/` → Õppevara (raamatukogu, õppekavad, ülesanded ja töölehtede loomine)
 - `/live-classroom/` → Live Classroom (õpetaja privaatne töölaud + õpilase avalik õppestseen)
 
+## Kalender
+
+CRM-i tunniplaanil on kuu-, nädala- ja päevavaade. Päevavaade kasutab 15-minutilist ajaskaalat
+ning näitab tunni tegelikku kestust; samal ajal toimuvad eri õpetajate tunnid paiknevad kõrvuti.
+Uue tunni loomisel seotakse kirje õpilase muutumatu ID-ga ning õpetaja või õpilase kattuv aeg
+blokeeritakse.
+
+Google Calendar ühendus impordib sündmusi KeeleSeppa kord tunnis. Liides näitab viimase impordi
+aega, imporditud, vahele jäetud ja Google'ist eemaldatud sündmuste arvu. Praegune suund on
+teadlikult `Google → KeeleSepp`; kahepoolne sünkroonimine lisatakse eraldi versioonina koos
+kirjutamisloa ja konfliktireeglitega.
+
 ## Õppevara
 
 Õpetaja näeb ühes raamatukogus olemasolevaid tunnikavasid, töölehti, harjutusi,

@@ -8,6 +8,8 @@ on:
       - "functions/**"
       - "haldus.html"
       - "haldus-shared.js"
+      - "calendar-core.js"
+      - "calendar-core.test.js"
       - "haldus-quality.js"
       - "haldus-quality.test.js"
       - "haldus-exercises/**"
@@ -43,11 +45,12 @@ jobs:
         run: npm ci --prefix functions
       - name: Run unit tests
         run: npm test --prefix functions
-      - name: Run CRM, learning library and Live Classroom tests
-        run: node --test haldus-quality.test.js learning-library-core.test.js live-classroom-core.test.js
+      - name: Run CRM, calendar, learning library and Live Classroom tests
+        run: node --test haldus-quality.test.js calendar-core.test.js learning-library-core.test.js live-classroom-core.test.js
       - name: Check browser JavaScript syntax
         run: |
           node --check haldus-quality.js
+          node --check calendar-core.js
           node --check learning-library-core.js
           node --check live-classroom-core.js
           node --check live-classroom.js
