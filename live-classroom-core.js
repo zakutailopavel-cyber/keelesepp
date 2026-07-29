@@ -38,6 +38,13 @@
     if(url.startsWith('/haldus-exercises/')||url.startsWith('/haldus-worksheet/')) return url;
     return '';
   };
+  const historyEventTypes=new Set([
+    'scene_published',
+    'material_published',
+    'screen_started',
+    'screen_stopped',
+    'lesson_ended'
+  ]);
   const buildScene=({type='message',title='',body='',options=[],version=1,source=null,actionUrl=''}={})=>{
     const normalizedType=sceneTypes.has(type)?type:'message';
     const scene={
@@ -60,6 +67,39 @@
     }
     return scene;
   };
+  const sceneHistorySnapshot=scene=>{
+    const snapshot=buildScene({
+      type:scene?.type,
+      title:scene?.title,
+      body:scene?.body,
+      options:scene?.options,
+      version:scene?.version,
+      source:scene?.source,
+      actionUrl:scene?.actionUrl
+    });
+    snapshot.publishedAt=cleanText(scene?.publishedAt,40)||snapshot.publishedAt;
+    return snapshot;
+  };
+  const buildSceneHistoryEntry=({
+    classroomId='',
+    room={},
+    scene={},
+    eventType='scene_published',
+    createdAtIso=new Date().toISOString()
+  }={})=>{
+    const snapshot=sceneHistorySnapshot(scene);
+    return{
+      classroomId:cleanText(classroomId||room.id,180),
+      sceneVersion:snapshot.version,
+      eventType:historyEventTypes.has(eventType)?eventType:'scene_published',
+      scene:snapshot,
+      studentId:cleanText(room.studentId,180),
+      studentName:cleanText(room.studentName,160),
+      teacherUid:cleanText(room.teacherUid,180),
+      teacherName:cleanText(room.teacherName,160),
+      createdAtIso:cleanText(createdAtIso,40)
+    };
+  };
   const sceneAcceptsResponse=scene=>scene?.type==='choice'||scene?.type==='short_answer';
   const isUnsafeDisplaySurface=surface=>String(surface||'').toLowerCase()==='monitor';
   const classroomLink=(origin,roomId)=>`${String(origin||'').replace(/\/$/,'')}/live-classroom/?room=${encodeURIComponent(roomId||'')}`;
@@ -74,6 +114,23 @@
     const parsed=Date.parse(value);
     return Number.isNaN(parsed)?0:parsed;
   };
+  const lessonHistorySortValue=room=>Math.max(
+    timestampMillis(room?.endedAt),
+    timestampMillis(room?.endedAtIso),
+    timestampMillis(room?.updatedAt),
+    timestampMillis(room?.createdAt),
+    timestampMillis(room?.createdAtIso)
+  );
+  const lessonDurationMinutes=room=>{
+    const started=timestampMillis(room?.startedAt)||timestampMillis(room?.createdAt)||timestampMillis(room?.createdAtIso);
+    const ended=timestampMillis(room?.endedAt)||timestampMillis(room?.endedAtIso);
+    if(!started||!ended||ended<started) return null;
+    return Math.max(1,Math.round((ended-started)/60000));
+  };
+  const responsesForScene=(responses,sceneVersion)=>(Array.isArray(responses)?responses:[])
+    .filter(response=>Number(response?.sceneVersion)===Number(sceneVersion))
+    .sort((a,b)=>timestampMillis(a?.createdAt)-timestampMillis(b?.createdAt)
+      ||timestampMillis(a?.createdAtIso)-timestampMillis(b?.createdAtIso));
   const isPresenceFresh=(presence,now=Date.now(),maxAgeMs=60000)=>{
     if(!presence||presence.online===false) return false;
     const seenAt=timestampMillis(presence.lastSeen)||timestampMillis(presence.lastSeenIso);
@@ -103,11 +160,16 @@
     normalizeSceneSource,
     normalizeActionUrl,
     buildScene,
+    sceneHistorySnapshot,
+    buildSceneHistoryEntry,
     sceneAcceptsResponse,
     isUnsafeDisplaySurface,
     classroomLink,
     responseLabel,
     timestampMillis,
+    lessonHistorySortValue,
+    lessonDurationMinutes,
+    responsesForScene,
     isPresenceFresh,
     classroomErrorMessage
   };

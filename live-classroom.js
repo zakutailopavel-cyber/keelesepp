@@ -5,6 +5,7 @@
     getRoles,
     isStaff,
     buildScene,
+    buildSceneHistoryEntry,
     normalizeActionUrl,
     sceneAcceptsResponse,
     isUnsafeDisplaySurface,
@@ -93,8 +94,16 @@
       const room=snapshot.data();
       if(room.status==='ended'&&!sceneInput.allowEnded) throw new Error('Lõpetatud tunnis ei saa uut õppestseeni avaldada.');
       const nextVersion=(Number(room.sceneVersion)||0)+1;
-      const {allowEnded,...publicSceneInput}=sceneInput;
+      const {allowEnded,historyEvent='scene_published',...publicSceneInput}=sceneInput;
       const scene=buildScene({...publicSceneInput,version:nextVersion});
+      const createdAtIso=new Date().toISOString();
+      const history=buildSceneHistoryEntry({
+        classroomId:ref.id,
+        room,
+        scene,
+        eventType:historyEvent,
+        createdAtIso
+      });
       const extra=typeof changesForRoom==='function'
         ?changesForRoom(room,scene,nextVersion)
         :changesForRoom;
@@ -107,6 +116,10 @@
         sceneVersion:nextVersion,
         updatedAt:serverTimestamp(),
         ...normalizedExtra
+      });
+      transaction.set(ref.collection('scenes').doc(`scene-${nextVersion}`),{
+        ...history,
+        createdAt:serverTimestamp()
       });
       return{room,scene,nextVersion};
     });
@@ -651,7 +664,8 @@
       type:'welcome',
       title:'Tund on lõpetatud',
       body:'Aitäh osalemast! Vastused on õpetajale salvestatud.',
-      allowEnded:true
+      allowEnded:true,
+      historyEvent:'lesson_ended'
     },{
       status:'ended',
       screenShare:{status:'idle',shareId:''},
@@ -860,7 +874,8 @@
       await commitRoomScene({
         type:'screen',
         title:'Õpetaja jagab valitud akent',
-        body:'Näed ainult õpetaja valitud vahekaarti või rakenduse akent.'
+        body:'Näed ainult õpetaja valitud vahekaarti või rakenduse akent.',
+        historyEvent:'screen_started'
       },room=>({
         status:'live',
         startedAt:room.startedAt||serverTimestamp(),
@@ -878,7 +893,8 @@
           await commitRoomScene({
             type:'welcome',
             title:'Ekraani jagamine katkestati',
-            body:'Õpetaja valmistab järgmist õppestseeni ette.'
+            body:'Õpetaja valmistab järgmist õppestseeni ette.',
+            historyEvent:'screen_stopped'
           },{
             screenShare:{status:'idle',shareId:''},
           });
@@ -924,7 +940,8 @@
     await commitRoomScene({
       type:'welcome',
       title:'Ekraani jagamine on lõppenud',
-      body:'Õpetaja valmistab järgmist õppestseeni ette.'
+      body:'Õpetaja valmistab järgmist õppestseeni ette.',
+      historyEvent:'screen_stopped'
     },{
       screenShare:{status:'idle',shareId:''},
     });

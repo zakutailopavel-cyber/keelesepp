@@ -80,13 +80,16 @@ Implemented:
 - The learning library opens as recoverable subject, level/age and curriculum/topic folders.
 - A teacher can publish a safe projection of a library item to an active classroom.
 - Classroom scenes use sequential transactional versions and a server-enforced public schema.
+- Completed lessons appear in teacher history with scene chronology and student responses.
+- New scene history entries are immutable and written atomically with the room version.
+- Older completed rooms remain readable with an explicit limited-history state.
 
 Next:
 
 - Shared whiteboard and teacher pointer.
 - Drag-and-drop, matching and fill-in-the-gap activities.
 - Timers, polls and per-task reveal.
-- Save the lesson scene and responses into the student's learning history.
+- Add teacher notes, achieved curriculum outcomes and reusable follow-up actions to lesson history.
 - Add a curriculum-id migration assistant for legacy topic-only records.
 
 ### B4. Calls and groups
