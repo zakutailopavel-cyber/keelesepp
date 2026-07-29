@@ -67,6 +67,12 @@ Töötaja võib lisaks alustada ja lõpetada tööpäeva CRM-i vaates **Tööaeg
 tabell jääb tööpäeva märkuse, pausi ja administraatori kinnituse jaoks, kuid põhivaates kuvatakse
 esimesena automaatselt mõõdetud aeg programmis.
 
+Enne automaatse loenduse käivitamist, s.o enne 29.07.2026, saab vaade taastada eraldi
+**ajaloolise hinnangu** olemasolevatest `activityLog` kirjetest. Kuni 15-minutilised tegevuste
+vahed ühendatakse ning iga eraldiseisev tööblokk saab konservatiivse 5-minutilise algväärtuse.
+Vaade näitab hinnangut päeva, töötaja, logikirjete arvu ja kindlustaseme kaupa. Hinnangut ei
+kirjutata `staffProgramDays` täpse aja hulka ega käsitleta automaatselt kinnitatud palga alusena.
+
 Tööpäeva loomine, lõpetamine, parandamine, kinnitamine, tagasilükkamine ja tunnitasu muutmine
 käivad Cloud Functioni kaudu ning kirjutavad eraldi muutmatu auditi. Brauseril ei ole
 `workSessions`, `workSessionOpen`, `workTimeAudit`, `staffProgramDays` ega
