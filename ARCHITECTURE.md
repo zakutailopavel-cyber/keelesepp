@@ -59,6 +59,20 @@ Financial writes remain isolated from the learning-content slice. Browser screen
 financial operations, but authoritative payment, credit, package and invoice mutations live in
 Cloud Functions and are covered by unit and emulator tests.
 
+### Staff operations
+
+`functions/staff-operations-core.js` owns deterministic work-duration, hourly-rate, payroll and
+operational-alert calculations. `staffOperationsApi` is the only writer for work sessions:
+one server-side pointer per staff member prevents concurrent open shifts, while every transition
+also creates a `workTimeAudit` snapshot. Closed shifts are pending until an administrator
+approves them; approval snapshots the hourly rate and calculated pay so later rate changes do not
+rewrite prior payroll.
+
+Activity-log time is deliberately a capped estimate and remains separate from approved payroll.
+The scheduled `refreshSchoolAssistant` function derives owner-only alerts from invoices, tasks,
+work sessions and sanitized Google Calendar status. It runs without an external AI provider, so
+school and payroll records remain inside the Firebase project.
+
 ### Calendar
 
 `calendar-core.js` owns migration-safe schedule calculations:
@@ -118,6 +132,10 @@ Google eTag preconditions and incremental sync tokens remain separate releases.
   learning-history rollout.
 - `liveClassrooms/{id}/responses` — append-only student responses for the current scene version.
 - `activityLog` — operational audit events, including library assignment and classroom publish.
+- `workSessions` — server-authored staff shifts; staff read their own and administrators read all.
+- `workTimeAudit` — immutable server-authored snapshots for shift, approval and rate transitions.
+- `workSessionOpen` — server-only concurrency pointers enforcing one open shift per staff member.
+- `assistantAlerts` — server-authored operational attention queue visible only to administrators.
 - `schedule` — dated or recurring lesson intent plus additive occurrence exceptions with stable
   student ownership.
 - `calendarConnections` — server-only Google OAuth credentials and sync status; browser access is denied.

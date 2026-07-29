@@ -985,9 +985,42 @@ service cloud.firestore {
       allow read, write: if isAdmin();
     }
 
+    // Payroll evidence is created and changed only by trusted Cloud Functions.
+    // Staff can see their own sessions; owners can review every session.
+    match /workSessions/{sessionId} {
+      allow read: if isAdmin() || (signedIn() && resource.data.staffUid == uid());
+      allow create, update, delete: if false;
+    }
+
+    match /workTimeAudit/{entryId} {
+      allow read: if isAdmin() || (signedIn() && resource.data.staffUid == uid());
+      allow create, update, delete: if false;
+    }
+
+    // Concurrency guard for one open shift per staff member.
+    match /workSessionOpen/{staffUid} {
+      allow read, write: if false;
+    }
+
+    // The scheduled rule-based monitor writes these alerts. Only an
+    // administrator can see operational and financial attention items.
+    match /assistantAlerts/{alertId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
     match /activityLog/{entryId} {
       allow read: if isStaff();
-      allow create: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.byUid == uid()
+        && request.resource.data.type is string
+        && request.resource.data.type.size() > 0
+        && request.resource.data.type.size() <= 120
+        && request.resource.data.label is string
+        && request.resource.data.label.size() > 0
+        && request.resource.data.label.size() <= 300
+        && request.resource.data.createdAt is string
+        && request.resource.data.date is string;
       allow update, delete: if isAdmin();
     }
 

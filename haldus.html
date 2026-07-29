@@ -187,6 +187,7 @@ const invoicePaymentTermsLabel = due => {
 };
 const INVOICE_FUNCTIONS_BASE = 'https://us-central1-keelesepp-5136b.cloudfunctions.net/invoiceApi';
 const FINANCE_FUNCTIONS_BASE = 'https://us-central1-keelesepp-5136b.cloudfunctions.net/financeApi';
+const STAFF_OPERATIONS_FUNCTIONS_BASE = 'https://us-central1-keelesepp-5136b.cloudfunctions.net/staffOperationsApi';
 const invoiceApiPost = async(path,body={}) => {
   const response = await authFetch(`${INVOICE_FUNCTIONS_BASE}${path}`,{
     method:'POST',
@@ -205,6 +206,16 @@ const financeApiPost = async(path,body={}) => {
   });
   const data = await response.json().catch(()=>({}));
   if(!response.ok) throw new Error(data.error||'Finantspäring ebaõnnestus');
+  return data;
+};
+const staffOperationsApiPost = async(path,body={}) => {
+  const response = await authFetch(`${STAFF_OPERATIONS_FUNCTIONS_BASE}${path}`,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(body)
+  });
+  const data = await response.json().catch(()=>({}));
+  if(!response.ok) throw new Error(data.error||'Tööaja päring ebaõnnestus');
   return data;
 };
 const financeRequestId = prefix => {
@@ -1947,6 +1958,351 @@ function ProgramsView() {
             Õppekava ei leitud.
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+// ── TÖÖAEG JA JUHI ABI ──────────────────────────────────────
+const workMinutesLabel = value => {
+  const minutes=Math.max(0,Math.round(Number(value)||0));
+  const hours=Math.floor(minutes/60);
+  const remainder=minutes%60;
+  return `${hours} h ${String(remainder).padStart(2,'0')} min`;
+};
+const workDateTimeLabel = value => {
+  if(!value) return '—';
+  const date=new Date(value);
+  return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleString('et-EE',{
+    day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'
+  });
+};
+const staffActivityEstimateMinutes = logs => {
+  const groups=new Map();
+  (logs||[]).forEach(item=>{
+    if(!item?.createdAt) return;
+    const time=new Date(item.createdAt).getTime();
+    if(!Number.isFinite(time)) return;
+    const key=String(item.date||item.createdAt).slice(0,10);
+    if(!groups.has(key)) groups.set(key,[]);
+    groups.get(key).push(time);
+  });
+  let total=0;
+  groups.forEach(times=>{
+    times.sort((a,b)=>a-b);
+    if(!times.length) return;
+    total+=5;
+    for(let index=1;index<times.length;index+=1){
+      total+=Math.min(15,Math.max(0,Math.floor((times[index]-times[index-1])/60000)));
+    }
+  });
+  return total;
+};
+
+function WorkTimeView({user,isAdmin,staffMembers,sessions,activityLog,notify}) {
+  const [month,setMonth]=React.useState(today().slice(0,7));
+  const [breakMinutes,setBreakMinutes]=React.useState('0');
+  const [note,setNote]=React.useState('');
+  const [busy,setBusy]=React.useState('');
+  const [rates,setRates]=React.useState({});
+
+  React.useEffect(()=>{
+    const next={};
+    (staffMembers||[]).forEach(member=>{
+      const uid=member.id||member.uid;
+      if(uid) next[uid]=String((Number(member.workHourlyRateCents)||0)/100||'');
+    });
+    setRates(next);
+  },[staffMembers]);
+
+  const ownOpen=(sessions||[]).find(item=>item.staffUid===user?.uid&&item.status==='open');
+  const monthSessions=(sessions||[])
+    .filter(item=>String(item.startedDate||item.startedAt||'').slice(0,7)===month)
+    .sort((a,b)=>String(b.startedAt||'').localeCompare(String(a.startedAt||'')));
+  const people=isAdmin
+    ? (staffMembers||[]).map(member=>({...member,uid:member.id||member.uid})).filter(member=>member.uid)
+    : [{...user,uid:user?.uid}];
+  const summaries=people.map(member=>{
+    const memberSessions=monthSessions.filter(item=>item.staffUid===member.uid);
+    const approved=memberSessions.filter(item=>item.approvalStatus==='approved');
+    const pending=memberSessions.filter(item=>item.status==='closed'&&item.approvalStatus==='pending');
+    const rejected=memberSessions.filter(item=>item.approvalStatus==='rejected');
+    const memberLogs=(activityLog||[]).filter(item=>
+      item.byUid===member.uid&&String(item.date||item.createdAt||'').slice(0,7)===month
+    );
+    return {
+      member,
+      approvedMinutes:approved.reduce((sum,item)=>sum+(Number(item.durationMinutes)||0),0),
+      pendingMinutes:pending.reduce((sum,item)=>sum+(Number(item.durationMinutes)||0),0),
+      payCents:approved.reduce((sum,item)=>sum+(Number(item.payAmountCents)||0),0),
+      estimatedMinutes:staffActivityEstimateMinutes(memberLogs),
+      pendingCount:pending.length,
+      rejectedCount:rejected.length,
+      open:memberSessions.find(item=>item.status==='open')||null
+    };
+  });
+  const totalApproved=summaries.reduce((sum,item)=>sum+item.approvedMinutes,0);
+  const totalPending=summaries.reduce((sum,item)=>sum+item.pendingMinutes,0);
+  const totalPay=summaries.reduce((sum,item)=>sum+item.payCents,0);
+
+  const run=async(key,fn,success)=>{
+    setBusy(key);
+    try{
+      await fn();
+      if(success) notify(success);
+    }catch(error){
+      console.error('Work time action failed:',error);
+      notify(`⚠ ${error.message||error}`);
+    }finally{
+      setBusy('');
+    }
+  };
+  const clockIn=()=>run('clock-in',()=>staffOperationsApiPost('/clock-in',{note}),'✓ Tööpäev alustatud');
+  const clockOut=()=>run('clock-out',()=>staffOperationsApiPost('/clock-out',{
+    breakMinutes:Number(breakMinutes)||0,note
+  }),'✓ Tööpäev lõpetatud ja saadetud kinnitamisele');
+  const saveRate=member=>{
+    const uid=member.uid||member.id;
+    return run(`rate-${uid}`,()=>staffOperationsApiPost('/rates',{
+      staffUid:uid,hourlyRate:rates[uid]||'0'
+    }),'✓ Tunnitasu salvestatud');
+  };
+  const approve=session=>{
+    const member=people.find(item=>item.uid===session.staffUid)||{};
+    const rate=rates[session.staffUid]||String((Number(member.workHourlyRateCents)||0)/100||'');
+    if(!rate){notify('⚠ Määra enne kinnitamist töötaja tunnitasu');return;}
+    run(`approve-${session.id}`,()=>staffOperationsApiPost('/sessions/approve',{
+      sessionId:session.id,hourlyRate:rate
+    }),'✓ Tööaeg kinnitatud');
+  };
+  const reject=session=>{
+    const reason=window.prompt('Tagasilükkamise põhjus','');
+    if(reason===null) return;
+    if(!reason.trim()){notify('⚠ Lisa põhjus');return;}
+    run(`reject-${session.id}`,()=>staffOperationsApiPost('/sessions/reject',{
+      sessionId:session.id,reason
+    }),'✓ Tööaeg lükati tagasi');
+  };
+  const adjust=session=>{
+    const startedAt=window.prompt('Algus ISO-kujul',session.startedAt||'');
+    if(startedAt===null) return;
+    const endedAt=window.prompt('Lõpp ISO-kujul',session.endedAt||new Date().toISOString());
+    if(endedAt===null) return;
+    const nextBreak=window.prompt('Paus minutites',String(session.breakMinutes||0));
+    if(nextBreak===null) return;
+    const reason=window.prompt('Paranduse põhjus (kohustuslik)','');
+    if(reason===null||!reason.trim()){notify('⚠ Lisa paranduse põhjus');return;}
+    run(`adjust-${session.id}`,()=>staffOperationsApiPost('/sessions/adjust',{
+      sessionId:session.id,startedAt,endedAt,breakMinutes:Number(nextBreak)||0,
+      note:session.note||'',reason
+    }),'✓ Tööaeg parandatud ja saadetud uuesti kinnitamisele');
+  };
+
+  return(
+    <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:20}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:14,flexWrap:'wrap'}}>
+        <div>
+          <h1 style={{fontSize:'1.7rem'}}>Tööaeg</h1>
+          <div style={{fontSize:'.88rem',color:'#42536A',marginTop:4}}>
+            Palgaarvestus põhineb kinnitatud tööpäevadel. Logid näitavad ainult aktiivsuse hinnangut.
+          </div>
+        </div>
+        <input type="month" value={month} onChange={event=>setMonth(event.target.value)} style={{width:'auto'}}/>
+      </div>
+
+      <div className="card" style={{padding:22}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:16,flexWrap:'wrap'}}>
+          <div>
+            <div style={{fontSize:'.72rem',textTransform:'uppercase',letterSpacing:'.08em',fontWeight:800,color:'#42536A'}}>Minu tööpäev</div>
+            <h3 style={{marginTop:6}}>{ownOpen?'Tööpäev käib':'Tööpäev ei ole alustatud'}</h3>
+            {ownOpen&&<div style={{fontSize:'.82rem',color:'#2F5D50',marginTop:4}}>Alates {workDateTimeLabel(ownOpen.startedAt)}</div>}
+          </div>
+          <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+            {!ownOpen
+              ? <button className="btn btn-primary" disabled={Boolean(busy)} onClick={clockIn}>
+                  <i className="fa-solid fa-play"/> {busy==='clock-in'?'Alustan...':'Alusta tööpäeva'}
+                </button>
+              : <button className="btn btn-primary" disabled={Boolean(busy)} onClick={clockOut}>
+                  <i className="fa-solid fa-stop"/> {busy==='clock-out'?'Lõpetan...':'Lõpeta tööpäev'}
+                </button>}
+          </div>
+        </div>
+        <div className="work-form-grid" style={{display:'grid',gridTemplateColumns:'160px minmax(220px,1fr)',gap:10,marginTop:16}}>
+          <div>
+            <label style={{fontSize:'.72rem',fontWeight:800,color:'#42536A'}}>Paus minutites</label>
+            <input type="number" min="0" max="1440" value={breakMinutes} onChange={event=>setBreakMinutes(event.target.value)}/>
+          </div>
+          <div>
+            <label style={{fontSize:'.72rem',fontWeight:800,color:'#42536A'}}>Märkus</label>
+            <input value={note} onChange={event=>setNote(event.target.value)} placeholder="Mida täna tegid? (valikuline)"/>
+          </div>
+        </div>
+      </div>
+
+      {isAdmin&&(
+        <div className="work-summary-grid" style={{display:'grid',gridTemplateColumns:'repeat(3,minmax(0,1fr))',gap:12}}>
+          {[
+            {label:'Kinnitatud aeg',value:workMinutesLabel(totalApproved),color:'#166534',bg:'#dcfce7'},
+            {label:'Kinnitamise ootel',value:workMinutesLabel(totalPending),color:'#92400e',bg:'#fef3c7'},
+            {label:'Palga summa',value:`${(totalPay/100).toFixed(2)} €`,color:'#1d4ed8',bg:'#dbeafe'}
+          ].map(item=><div key={item.label} className="card" style={{padding:18,background:item.bg}}>
+            <div style={{fontSize:'.72rem',fontWeight:800,color:item.color,textTransform:'uppercase',letterSpacing:'.06em'}}>{item.label}</div>
+            <div style={{fontSize:'1.45rem',fontWeight:800,color:item.color,marginTop:6}}>{item.value}</div>
+          </div>)}
+        </div>
+      )}
+
+      <div className="work-people-grid" style={{display:'grid',gridTemplateColumns:isAdmin?'repeat(2,minmax(0,1fr))':'1fr',gap:14}}>
+        {summaries.map(summary=>{
+          const member=summary.member;
+          const uid=member.uid;
+          return <div key={uid} className="card" style={{padding:20}}>
+            <div style={{display:'flex',justifyContent:'space-between',gap:12,alignItems:'flex-start'}}>
+              <div>
+                <h3>{member.displayName||member.name||member.email||'Töötaja'}</h3>
+                <div style={{fontSize:'.78rem',color:'#42536A',marginTop:4}}>
+                  {summary.open?'● Tööpäev avatud':`${summary.pendingCount} kinnitamise ootel`}
+                </div>
+              </div>
+              {summary.open&&<span className="badge" style={{background:'#dcfce7',color:'#166534'}}>Tööl</span>}
+            </div>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(2,minmax(0,1fr))',gap:10,marginTop:16}}>
+              <div style={{padding:12,borderRadius:10,background:'#F9F8F6'}}>
+                <div style={{fontSize:'.7rem',color:'#42536A'}}>Kinnitatud</div>
+                <strong>{workMinutesLabel(summary.approvedMinutes)}</strong>
+              </div>
+              <div style={{padding:12,borderRadius:10,background:'#F9F8F6'}}>
+                <div style={{fontSize:'.7rem',color:'#42536A'}}>Logide hinnang</div>
+                <strong>{workMinutesLabel(summary.estimatedMinutes)}</strong>
+              </div>
+              <div style={{padding:12,borderRadius:10,background:'#F9F8F6'}}>
+                <div style={{fontSize:'.7rem',color:'#42536A'}}>Ootel</div>
+                <strong>{workMinutesLabel(summary.pendingMinutes)}</strong>
+              </div>
+              <div style={{padding:12,borderRadius:10,background:'#F9F8F6'}}>
+                <div style={{fontSize:'.7rem',color:'#42536A'}}>Tasu</div>
+                <strong>{(summary.payCents/100).toFixed(2)} €</strong>
+              </div>
+            </div>
+            {isAdmin&&<div style={{display:'flex',gap:8,alignItems:'flex-end',marginTop:14}}>
+              <div style={{flex:1}}>
+                <label style={{fontSize:'.7rem',fontWeight:800,color:'#42536A'}}>Tunnitasu (€)</label>
+                <input inputMode="decimal" value={rates[uid]??''} onChange={event=>setRates(current=>({...current,[uid]:event.target.value}))} placeholder="0.00"/>
+              </div>
+              <button className="btn btn-ghost btn-sm" disabled={Boolean(busy)} onClick={()=>saveRate(member)}>
+                {busy===`rate-${uid}`?'Salvestan...':'Salvesta'}
+              </button>
+            </div>}
+          </div>;
+        })}
+      </div>
+
+      <div className="card" style={{padding:0,overflow:'hidden'}}>
+        <div style={{padding:'18px 20px',borderBottom:'1px solid rgba(28,43,58,.07)'}}>
+          <h3>Tööpäevade ajalugu</h3>
+        </div>
+        {monthSessions.map(session=>{
+          const status=session.status==='open'
+            ? {label:'Avatud',bg:'#dbeafe',color:'#1d4ed8'}
+            : session.approvalStatus==='approved'
+              ? {label:'Kinnitatud',bg:'#dcfce7',color:'#166534'}
+              : session.approvalStatus==='rejected'
+                ? {label:'Tagasi lükatud',bg:'#fee2e2',color:'#991b1b'}
+                : {label:'Ootel',bg:'#fef3c7',color:'#92400e'};
+          return <div key={session.id} className="work-history-row" style={{display:'grid',gridTemplateColumns:'minmax(180px,1fr) minmax(210px,1.2fr) auto',gap:14,alignItems:'center',padding:'14px 20px',borderBottom:'1px solid rgba(28,43,58,.06)'}}>
+            <div>
+              <div style={{fontWeight:800}}>{session.staffName||'Töötaja'}</div>
+              <div style={{fontSize:'.76rem',color:'#42536A',marginTop:3}}>{session.note||'Märkus puudub'}</div>
+            </div>
+            <div style={{fontSize:'.78rem',color:'#42536A'}}>
+              <div>{workDateTimeLabel(session.startedAt)} → {session.endedAt?workDateTimeLabel(session.endedAt):'praegu'}</div>
+              <div style={{marginTop:3}}>Paus {session.breakMinutes||0} min · {workMinutesLabel(session.durationMinutes||0)}</div>
+            </div>
+            <div style={{display:'flex',gap:7,alignItems:'center',justifyContent:'flex-end',flexWrap:'wrap'}}>
+              <span className="badge" style={{background:status.bg,color:status.color}}>{status.label}</span>
+              {isAdmin&&session.status==='closed'&&session.approvalStatus==='pending'&&<>
+                <button className="btn btn-primary btn-sm" disabled={Boolean(busy)} onClick={()=>approve(session)}>Kinnita</button>
+                <button className="btn btn-ghost btn-sm" disabled={Boolean(busy)} onClick={()=>reject(session)}>Lükka tagasi</button>
+              </>}
+              {isAdmin&&<button className="btn btn-ghost btn-sm" disabled={Boolean(busy)} onClick={()=>adjust(session)}>Paranda</button>}
+            </div>
+          </div>;
+        })}
+        {monthSessions.length===0&&<div style={{padding:32,textAlign:'center',color:'#42536A'}}>Selles kuus tööpäevi ei ole.</div>}
+      </div>
+
+      <div style={{padding:14,borderRadius:12,background:'#eff6ff',border:'1px solid #bfdbfe',color:'#1e3a8a',fontSize:'.82rem'}}>
+        <strong>Oluline:</strong> logide hinnang aitab märgata erinevusi, kuid ei ole palga alus. Iga muutmine, kinnitamine ja tunnitasu vahetus salvestatakse eraldi auditisse.
+      </div>
+    </div>
+  );
+}
+
+function SchoolAssistantView({alerts,refresh,goTab}) {
+  const [busy,setBusy]=React.useState(false);
+  const active=(alerts||[]).filter(item=>item.active!==false).sort((a,b)=>{
+    const priority={critical:0,warning:1,info:2};
+    return (priority[a.severity]??9)-(priority[b.severity]??9)||String(b.lastDetectedAt||'').localeCompare(String(a.lastDetectedAt||''));
+  });
+  const categoryMeta={
+    invoice:{label:'Arved',icon:'fa-file-invoice-dollar'},
+    task:{label:'Ülesanded',icon:'fa-list-check'},
+    work_time:{label:'Tööaeg',icon:'fa-stopwatch'},
+    calendar:{label:'Kalender',icon:'fa-calendar-xmark'}
+  };
+  const doRefresh=async()=>{
+    setBusy(true);
+    try{await refresh();}finally{setBusy(false);}
+  };
+  return(
+    <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:20}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:14,flexWrap:'wrap'}}>
+        <div>
+          <h1 style={{fontSize:'1.7rem'}}>Juhi abi</h1>
+          <div style={{fontSize:'.88rem',color:'#42536A',marginTop:4}}>
+            Automaatne kooli valve: arved, tähtajad, tööaeg ja kalendri vead ühes kohas.
+          </div>
+        </div>
+        <button className="btn btn-primary" disabled={busy} onClick={doRefresh}>
+          <i className={`fa-solid ${busy?'fa-spinner fa-spin':'fa-rotate'}`}/> {busy?'Kontrollin...':'Kontrolli kohe'}
+        </button>
+      </div>
+      <div style={{padding:16,borderRadius:12,background:'#ecfdf5',border:'1px solid #a7f3d0',color:'#166534',fontSize:'.84rem'}}>
+        <strong>0 € välise API eest.</strong> Abiline töötab iga tund reeglite järgi Firebase’is ega saada õpilaste, palkade ega arvete andmeid välisele tehisintellektile.
+      </div>
+      <div className="assistant-summary-grid" style={{display:'grid',gridTemplateColumns:'repeat(3,minmax(0,1fr))',gap:12}}>
+        {[
+          {label:'Aktiivsed',value:active.length,bg:'#F9F8F6',color:'#1C2B3A'},
+          {label:'Kriitilised',value:active.filter(item=>item.severity==='critical').length,bg:'#fee2e2',color:'#991b1b'},
+          {label:'Hoiatused',value:active.filter(item=>item.severity==='warning').length,bg:'#fef3c7',color:'#92400e'}
+        ].map(item=><div key={item.label} className="card" style={{padding:18,background:item.bg}}>
+          <div style={{fontSize:'.72rem',fontWeight:800,color:item.color,textTransform:'uppercase',letterSpacing:'.06em'}}>{item.label}</div>
+          <div style={{fontSize:'1.55rem',fontWeight:800,color:item.color,marginTop:4}}>{item.value}</div>
+        </div>)}
+      </div>
+      <div className="card" style={{padding:0,overflow:'hidden'}}>
+        {active.map(alert=>{
+          const meta=categoryMeta[alert.category]||{label:alert.category||'Muu',icon:'fa-circle-exclamation'};
+          const critical=alert.severity==='critical';
+          return <div key={alert.id} className="assistant-alert-row" style={{display:'grid',gridTemplateColumns:'42px minmax(0,1fr) auto',gap:14,alignItems:'center',padding:'16px 20px',borderBottom:'1px solid rgba(28,43,58,.06)'}}>
+            <div style={{width:38,height:38,borderRadius:11,display:'flex',alignItems:'center',justifyContent:'center',background:critical?'#fee2e2':'#fef3c7',color:critical?'#991b1b':'#92400e'}}>
+              <i className={`fa-solid ${meta.icon}`}/>
+            </div>
+            <div>
+              <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
+                <strong>{alert.title}</strong>
+                <span className="badge" style={{background:critical?'#fee2e2':'#fef3c7',color:critical?'#991b1b':'#92400e'}}>{meta.label}</span>
+              </div>
+              <div style={{fontSize:'.79rem',color:'#42536A',marginTop:4}}>{alert.detail}</div>
+            </div>
+            <button className="btn btn-ghost btn-sm" onClick={()=>goTab(alert.targetTab||'dashboard')}>{alert.actionLabel||'Ava'}</button>
+          </div>;
+        })}
+        {active.length===0&&<div style={{padding:42,textAlign:'center',color:'#42536A'}}>
+          <i className="fa-solid fa-shield-check" style={{fontSize:'1.6rem',color:'#2F5D50',marginBottom:10}}/>
+          <div style={{fontWeight:800,color:'#1C2B3A'}}>Kõik on kontrolli all</div>
+          <div style={{fontSize:'.82rem',marginTop:4}}>Aktiivseid tähelepanu vajavaid olukordi ei ole.</div>
+        </div>}
       </div>
     </div>
   );
@@ -9439,6 +9795,8 @@ function App() {
   const [allUsers,setAllUsers] = useState([]);
   const [staffMembers,setStaffMembers] = useState([]);
   const [activityLog,setActivityLog] = useState([]);
+  const [workSessions,setWorkSessions] = useState([]);
+  const [assistantAlerts,setAssistantAlerts] = useState([]);
 
   // Add student
   const [nName,setNName]   = useState('');
@@ -9592,6 +9950,30 @@ function App() {
     );
     return member?.id||member?.uid||'';
   },[staffMembers,user]);
+  React.useEffect(()=>{
+    if(!user?.uid||!isStaff){
+      setWorkSessions([]);
+      setAssistantAlerts([]);
+      return;
+    }
+    const workQuery=isAdmin
+      ? db.collection('workSessions')
+      : db.collection('workSessions').where('staffUid','==',user.uid);
+    const unsubscribeWork=workQuery.onSnapshot(
+      snap=>setWorkSessions(snap.docs.map(doc=>({id:doc.id,...doc.data()}))),
+      err=>{console.warn('Work sessions listener failed:',err);setWorkSessions([]);}
+    );
+    let unsubscribeAlerts=()=>{};
+    if(isAdmin){
+      unsubscribeAlerts=db.collection('assistantAlerts').onSnapshot(
+        snap=>setAssistantAlerts(snap.docs.map(doc=>({id:doc.id,...doc.data()}))),
+        err=>{console.warn('Assistant alerts listener failed:',err);setAssistantAlerts([]);}
+      );
+    }else{
+      setAssistantAlerts([]);
+    }
+    return()=>{unsubscribeWork();unsubscribeAlerts();};
+  },[user?.uid,isStaff,isAdmin]);
   React.useEffect(()=>{
     if(!user||!isAdmin){
       setPayments([]);setBankTransactions([]);setPayerCredits([]);
@@ -9936,6 +10318,17 @@ function App() {
       console.warn('Activity log failed:',err);
     }
   },[user]);
+  const refreshAssistant=useCallback(async()=>{
+    try{
+      const result=await staffOperationsApiPost('/assistant/refresh',{});
+      notify(`✓ Kontroll valmis: ${result.activeCount||0} tähelepanu vajavat olukorda`);
+      return result;
+    }catch(error){
+      console.error('Assistant refresh failed:',error);
+      notify(`⚠ Kontroll ebaõnnestus: ${error.message||error}`);
+      throw error;
+    }
+  },[]);
 
   const addStudentForParent=useCallback(async(data)=>{
     if(!user?.uid) return;
@@ -12194,6 +12587,10 @@ function App() {
     ...(isStaff?[{id:'invoices',icon:'fa-file-invoice',label:'Arved',
       badge:scopedInvoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+invoiceFinancialSummary(i).balance,0)>0?scopedInvoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+invoiceFinancialSummary(i).balance,0)+'€':0}]:[]),
     ...(isAdmin?[{id:'reconciliation',icon:'fa-money-bill-transfer',label:'Maksete sobitamine'}]:[]),
+    ...(isStaff?[{id:'work_time',icon:'fa-stopwatch',label:'Tööaeg',
+      badge:isAdmin?workSessions.filter(item=>item.status==='closed'&&item.approvalStatus==='pending').length:0}]:[]),
+    ...(isAdmin?[{id:'school_assistant',icon:'fa-shield-halved',label:'Juhi abi',
+      badge:assistantAlerts.filter(item=>item.active!==false).length}]:[]),
     ...(isStaff?[{id:'activity',icon:'fa-clock-rotate-left',label:'Tegevused'}]:[]),
     ...(!isStaff?[{id:'invoices',icon:'fa-file-invoice',label:'Arved',
       badge:scopedInvoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+invoiceFinancialSummary(i).balance,0)>0?scopedInvoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+invoiceFinancialSummary(i).balance,0)+'€':0}]:[]),
@@ -12418,6 +12815,19 @@ function App() {
             allocateBankTransaction={allocateImportedBankTransaction}
             applyPayerCredit={applyPayerCredit}
             refundPayerCredit={refundPayerCredit}/>}
+
+          {tab==='work_time'&&isStaff&&<WorkTimeView
+            user={user}
+            isAdmin={isAdmin}
+            staffMembers={staffMembers}
+            sessions={workSessions}
+            activityLog={activityLog}
+            notify={notify}/>}
+
+          {tab==='school_assistant'&&isAdmin&&<SchoolAssistantView
+            alerts={assistantAlerts}
+            refresh={refreshAssistant}
+            goTab={goTab}/>}
 
           {tab==='activity'&&isStaff&&<ActivityLogView logs={scopedActivityLog} isAdmin={isAdmin}/>}
           {tab==='kabinet'&&!isStaff&&<KabinetView user={user} myStudents={myStudents} notify={notify}/>}
