@@ -23,7 +23,22 @@
     .map(option=>cleanText(option,180))
     .filter(Boolean)
     .slice(0,8);
-  const buildScene=({type='message',title='',body='',options=[],version=1}={})=>{
+  const normalizeSceneSource=source=>{
+    if(!source||typeof source!=='object'||Array.isArray(source)) return null;
+    const normalized={
+      kind:cleanText(source.kind,40),
+      id:cleanText(source.id,180),
+      type:cleanText(source.type,40)
+    };
+    return normalized.kind&&normalized.id?normalized:null;
+  };
+  const normalizeActionUrl=value=>{
+    const url=cleanText(value,500);
+    if(!url||url.startsWith('//')||url.includes('\\')) return '';
+    if(url.startsWith('/haldus-exercises/')||url.startsWith('/haldus-worksheet/')) return url;
+    return '';
+  };
+  const buildScene=({type='message',title='',body='',options=[],version=1,source=null,actionUrl=''}={})=>{
     const normalizedType=sceneTypes.has(type)?type:'message';
     const scene={
       type:normalizedType,
@@ -33,6 +48,10 @@
       version:Math.max(1,Number.parseInt(version,10)||1),
       publishedAt:new Date().toISOString()
     };
+    const normalizedSource=normalizeSceneSource(source);
+    const normalizedActionUrl=normalizeActionUrl(actionUrl);
+    if(normalizedSource) scene.source=normalizedSource;
+    if(normalizedActionUrl) scene.actionUrl=normalizedActionUrl;
     if(normalizedType==='choice'&&scene.options.length<2){
       throw new Error('Valikvastusega ülesanne vajab vähemalt kahte vastust.');
     }
@@ -81,6 +100,8 @@
     getRoles,
     isStaff,
     normalizeOptions,
+    normalizeSceneSource,
+    normalizeActionUrl,
     buildScene,
     sceneAcceptsResponse,
     isUnsafeDisplaySurface,

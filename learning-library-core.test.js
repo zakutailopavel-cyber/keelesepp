@@ -6,6 +6,10 @@ const {
   curriculumType,
   groupLibraryItems,
   itemsInLibraryPath,
+  libraryPathFromSearch,
+  searchWithLibraryPath,
+  normalizeLibraryPath,
+  classroomSceneDraft,
   assignmentKind
 }=require('./learning-library-core');
 
@@ -99,4 +103,115 @@ test('prefers an explicit curriculum folder while preserving topic search',()=>{
 
   assert.equal(groupLibraryItems([item],'topic')[0].label,'A2 kevadkursus');
   assert.equal(filterLibraryItems([item],{query:'igapäevaelu'}).length,1);
+});
+
+test('uses a stable curriculum id for folders when one is available',()=>{
+  const [item]=buildLibraryItems([{
+    id:'linked',
+    curriculumId:'plan-a2-spring',
+    curriculumTitle:'A2 kevadkursus',
+    topic:'Igapäevaelu',
+    title:'Sõnavara'
+  }],[]);
+
+  const [folder]=groupLibraryItems([item],'topic');
+  assert.equal(folder.key,'__curriculum__:plan-a2-spring');
+  assert.equal(folder.label,'A2 kevadkursus');
+  assert.equal(itemsInLibraryPath([item],{topic:folder.key}).length,1);
+});
+
+test('serializes a library path without losing unrelated query parameters',()=>{
+  const search=searchWithLibraryPath('?preview=library&exercise=keep',{
+    subject:'Eesti keel',
+    stage:'A2',
+    topic:'Minu pere'
+  });
+
+  assert.deepEqual(libraryPathFromSearch(search),{
+    subject:'Eesti keel',
+    stage:'A2',
+    topic:'Minu pere'
+  });
+  const params=new URLSearchParams(search);
+  assert.equal(params.get('preview'),'library');
+  assert.equal(params.get('exercise'),'keep');
+});
+
+test('clears stale child folders while keeping the deepest valid path',()=>{
+  const items=buildLibraryItems([{
+    id:'one',
+    subject:'Eesti keel',
+    level:'A1',
+    topic:'Pere',
+    title:'Pere'
+  }],[]);
+
+  assert.deepEqual(normalizeLibraryPath(items,{
+    subject:'Eesti keel',
+    stage:'A1',
+    topic:'Puuduv'
+  }),{
+    subject:'Eesti keel',
+    stage:'A1',
+    topic:''
+  });
+  assert.deepEqual(normalizeLibraryPath(items,{
+    subject:'Puuduv',
+    stage:'A1',
+    topic:'Pere'
+  }),{
+    subject:'',
+    stage:'',
+    topic:''
+  });
+});
+
+test('creates a public choice scene without its answer key',()=>{
+  const [item]=buildLibraryItems([],[{
+    id:'choice-1',
+    title:'Vali õige vastus',
+    type:'choice',
+    questions:[{question:'Ma ___ kooli.',options:['lähen','läheb'],correct:0}]
+  }]);
+  const scene=classroomSceneDraft(item);
+
+  assert.equal(scene.type,'choice');
+  assert.deepEqual(scene.options,['lähen','läheb']);
+  assert.deepEqual(scene.source,{kind:'exercise',id:'choice-1',type:'exercise'});
+  assert.equal(JSON.stringify(scene).includes('"correct"'),false);
+});
+
+test('removes fill answers and correct order from public classroom scenes',()=>{
+  const [fill,order]=buildLibraryItems([],[
+    {id:'fill-1',title:'Lüngad',type:'fill',text:'Ma [lähen] täna [kooli].'},
+    {id:'order-1',title:'Lause',type:'order',sentence:'Mina lähen täna kooli'}
+  ]);
+
+  const fillScene=classroomSceneDraft(fill);
+  const orderScene=classroomSceneDraft(order);
+  assert.equal(fillScene.body,'Ma _____ täna _____.');
+  assert.equal(fillScene.body.includes('lähen'),false);
+  assert.equal(fillScene.body.includes('kooli'),false);
+  assert.equal(orderScene.body.includes('Mina lähen täna kooli'),false);
+  assert.match(orderScene.body,/lähen · täna · kooli · Mina/);
+});
+
+test('publishes the first supported worksheet block and omits internal worksheet data',()=>{
+  const [item]=buildLibraryItems([{
+    id:'worksheet-1',
+    title:'Tööleht',
+    worksheetData:{
+      answerKey:'private',
+      blocks:[
+        {type:'image',imageUrl:'https://private.example/image.png'},
+        {type:'writing',task:'Kirjuta oma päevast.',teacherAnswer:'private'}
+      ]
+    }
+  }],[]);
+  const scene=classroomSceneDraft(item);
+
+  assert.equal(scene.type,'short_answer');
+  assert.equal(scene.body,'Kirjuta oma päevast.');
+  assert.deepEqual(Object.keys(scene.source).sort(),['id','kind','type']);
+  assert.equal(JSON.stringify(scene).includes('private'),false);
 });

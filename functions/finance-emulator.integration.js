@@ -1094,6 +1094,117 @@ test("Live Classroom keeps the teacher desk private and scopes student interacti
   );
   assert.equal(outsiderResponse.status, 403, JSON.stringify(outsiderResponse.body));
 
+  const externalMaterialLink = await firestoreDocumentRequest(
+    teacherToken,
+    "PATCH",
+    "liveClassrooms/live-room-001?updateMask.fieldPaths=activeScene&updateMask.fieldPaths=sceneVersion",
+    {
+      fields: {
+        activeScene: {
+          mapValue: {
+            fields: {
+              type: { stringValue: "short_answer" },
+              title: { stringValue: "Unsafe link" },
+              body: { stringValue: "Must be rejected" },
+              version: { integerValue: "3" },
+              actionUrl: { stringValue: "https://evil.example/answer-key" },
+            },
+          },
+        },
+        sceneVersion: { integerValue: "3" },
+      },
+    },
+  );
+  assert.equal(
+    externalMaterialLink.status,
+    403,
+    JSON.stringify(externalMaterialLink.body),
+  );
+
+  const leakedAnswerKey = await firestoreDocumentRequest(
+    teacherToken,
+    "PATCH",
+    "liveClassrooms/live-room-001?updateMask.fieldPaths=activeScene&updateMask.fieldPaths=sceneVersion",
+    {
+      fields: {
+        activeScene: {
+          mapValue: {
+            fields: {
+              type: { stringValue: "short_answer" },
+              title: { stringValue: "Unsafe payload" },
+              body: { stringValue: "Must be rejected" },
+              version: { integerValue: "3" },
+              answerKey: { stringValue: "private" },
+            },
+          },
+        },
+        sceneVersion: { integerValue: "3" },
+      },
+    },
+  );
+  assert.equal(leakedAnswerKey.status, 403, JSON.stringify(leakedAnswerKey.body));
+
+  const jumpedSceneVersion = await firestoreDocumentRequest(
+    teacherToken,
+    "PATCH",
+    "liveClassrooms/live-room-001?updateMask.fieldPaths=activeScene&updateMask.fieldPaths=sceneVersion",
+    {
+      fields: {
+        activeScene: {
+          mapValue: {
+            fields: {
+              type: { stringValue: "message" },
+              title: { stringValue: "Skipped version" },
+              body: { stringValue: "Must be rejected" },
+              version: { integerValue: "4" },
+            },
+          },
+        },
+        sceneVersion: { integerValue: "4" },
+      },
+    },
+  );
+  assert.equal(jumpedSceneVersion.status, 403, JSON.stringify(jumpedSceneVersion.body));
+
+  const publishLibraryMaterial = await firestoreDocumentRequest(
+    teacherToken,
+    "PATCH",
+    "liveClassrooms/live-room-001?updateMask.fieldPaths=activeScene&updateMask.fieldPaths=sceneVersion",
+    {
+      fields: {
+        activeScene: {
+          mapValue: {
+            fields: {
+              type: { stringValue: "short_answer" },
+              title: { stringValue: "Library task" },
+              body: { stringValue: "Write a public answer" },
+              version: { integerValue: "3" },
+              source: {
+                mapValue: {
+                  fields: {
+                    kind: { stringValue: "exercise" },
+                    id: { stringValue: "exercise-001" },
+                    type: { stringValue: "exercise" },
+                  },
+                },
+              },
+              actionUrl: {
+                stringValue:
+                  "/haldus-exercises/?exercise=exercise-001&student=live-student-record",
+              },
+            },
+          },
+        },
+        sceneVersion: { integerValue: "3" },
+      },
+    },
+  );
+  assert.equal(
+    publishLibraryMaterial.status,
+    200,
+    JSON.stringify(publishLibraryMaterial.body),
+  );
+
   const publishScreen = await firestoreDocumentRequest(
     teacherToken,
     "PATCH",
@@ -1106,11 +1217,11 @@ test("Live Classroom keeps the teacher desk private and scopes student interacti
               type: { stringValue: "screen" },
               title: { stringValue: "Secure screen" },
               body: { stringValue: "Selected window only" },
-              version: { integerValue: "3" },
+              version: { integerValue: "4" },
             },
           },
         },
-        sceneVersion: { integerValue: "3" },
+        sceneVersion: { integerValue: "4" },
         screenShare: {
           mapValue: {
             fields: {
@@ -1163,11 +1274,11 @@ test("Live Classroom keeps the teacher desk private and scopes student interacti
               type: { stringValue: "welcome" },
               title: { stringValue: "Lesson ended" },
               body: { stringValue: "Responses saved" },
-              version: { integerValue: "4" },
+              version: { integerValue: "5" },
             },
           },
         },
-        sceneVersion: { integerValue: "4" },
+        sceneVersion: { integerValue: "5" },
         screenShare: {
           mapValue: {
             fields: {

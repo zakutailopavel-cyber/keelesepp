@@ -77,6 +77,9 @@ Implemented:
 - Live participant presence with a bounded heartbeat.
 - Interactive choice and short-answer tasks open in a focused stage dialog.
 - The teacher sees the current response state next to the stage.
+- The learning library opens as recoverable subject, level/age and curriculum/topic folders.
+- A teacher can publish a safe projection of a library item to an active classroom.
+- Classroom scenes use sequential transactional versions and a server-enforced public schema.
 
 Next:
 
@@ -84,6 +87,7 @@ Next:
 - Drag-and-drop, matching and fill-in-the-gap activities.
 - Timers, polls and per-task reveal.
 - Save the lesson scene and responses into the student's learning history.
+- Add a curriculum-id migration assistant for legacy topic-only records.
 
 ### B4. Calls and groups
 

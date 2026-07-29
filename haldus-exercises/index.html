@@ -31,6 +31,7 @@
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <script src="/learning-library-core.js"></script>
+<script src="/live-classroom-core.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="/haldus.css">
@@ -104,6 +105,13 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#EEECE7;color:#1C2B3A;min
 .assign-student-list{border:1px solid rgba(28,43,58,.12);border-radius:11px;max-height:270px;overflow-y:auto;padding:6px;display:flex;flex-direction:column;gap:3px;}
 .assign-student{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:8px;cursor:pointer;border:1px solid transparent;}
 .assign-student.selected{background:rgba(47,93,80,.08);border-color:rgba(47,93,80,.2);}
+.classroom-room-list{display:flex;flex-direction:column;gap:7px;margin-top:10px;}
+.classroom-room{width:100%;border:1px solid rgba(28,43,58,.1);background:#fff;border-radius:11px;padding:11px 12px;text-align:left;font:inherit;color:#1C2B3A;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.classroom-room:hover{border-color:rgba(47,93,80,.45);}
+.classroom-room.selected{background:rgba(47,93,80,.08);border-color:#2F5D50;box-shadow:0 0 0 2px rgba(47,93,80,.08);}
+.classroom-scene-preview{border:1px solid rgba(28,43,58,.09);background:#F7F5F1;border-radius:12px;padding:15px;margin-bottom:15px;}
+.classroom-scene-preview h3{font-size:.95rem;margin:4px 0 6px;}
+.classroom-scene-preview p{font-size:.8rem;line-height:1.55;color:#42536A;white-space:pre-wrap;max-height:145px;overflow:auto;}
 
 /* BREADCRUMB */
 .bc{max-width:1300px;margin:0 auto;padding:18px 28px 0;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
@@ -484,8 +492,13 @@ const {
   groupLabel,
   groupLibraryItems,
   itemsInLibraryPath,
+  libraryPathFromSearch,
+  searchWithLibraryPath,
+  normalizeLibraryPath,
+  classroomSceneDraft,
   assignmentKind
 }=window.LearningLibraryCore;
+const {buildScene:buildClassroomScene}=window.LiveClassroomCore;
 
 const today=()=>new Date().toISOString().split('T')[0];
 const fmtDate=d=>d?new Date(d).toLocaleDateString('et-EE',{day:'2-digit',month:'2-digit',year:'numeric'}):'—';
@@ -556,6 +569,10 @@ const PREVIEW_STUDENTS=[
   {id:'preview-st-1',name:'Näidisõpilane A',subject:'Eesti keel',level:'A2',teacher:'Pavel',active:true},
   {id:'preview-st-2',name:'Näidisõpilane B',subject:'Eesti keel',level:'B1',teacher:'Elizaveta',active:true},
   {id:'preview-st-3',name:'Näidisõpilane C',subject:'Inglise keel',level:'A1',teacher:'Pavel',active:true}
+];
+const PREVIEW_LIVE_ROOMS=[
+  {id:'preview-room-1',title:'A2 näidistund',studentId:'preview-st-1',studentName:'Näidisõpilane A',teacherUid:'preview',status:'live',sceneVersion:2},
+  {id:'preview-room-2',title:'B1 individuaaltund',studentId:'preview-st-2',studentName:'Näidisõpilane B',teacherUid:'preview',status:'waiting',sceneVersion:1}
 ];
 
 const EXT_COLORS={pdf:'#dc2626',docx:'#1d4ed8',doc:'#1d4ed8',xlsx:'#166534',xls:'#166534',pptx:'#ea580c',ppt:'#ea580c',jpg:'#0e7490',jpeg:'#0e7490',png:'#0e7490',mp3:'#7c3aed',mp4:'#7c3aed'};
@@ -1705,6 +1722,8 @@ function AssignLearningItemModal({item,students,user,onClose,notify}){
             subject:item.subject,
             level:item.level,
             topic:item.topic,
+            curriculumId:item.curriculumId||'',
+            curriculumTitle:item.curriculum||'',
             worksheetData:item.source.worksheetData,
             studentId,
             studentName:student.name||'',
@@ -1739,6 +1758,8 @@ function AssignLearningItemModal({item,students,user,onClose,notify}){
             exerciseTitle:mode==='exercise'?item.title:'',
             sourceType:item.kind,
             sourceId:item.sourceId,
+            curriculumId:item.curriculumId||'',
+            curriculumTitle:item.curriculum||'',
             assignedBy:user.uid,
             assignedByName:user.displayName||user.email||'',
             assignedAt:now
@@ -1754,6 +1775,8 @@ function AssignLearningItemModal({item,students,user,onClose,notify}){
           sourceType:item.kind,
           materialType:item.type,
           title:item.title,
+          curriculumId:item.curriculumId||'',
+          curriculumTitle:item.curriculum||'',
           studentIds:selected
         },
         studentId:selected.length===1?selected[0]:'',
@@ -1838,11 +1861,138 @@ function AssignLearningItemModal({item,students,user,onClose,notify}){
   );
 }
 
-function LearningLibraryView({lessons,exercises,students,isTeacher,onOpenLesson,onOpenExercise,onAssign,onGoCurriculum,onGoExercises,onConductLesson}){
+function SendToClassroomModal({item,rooms,user,onClose,notify}){
+  const[selectedRoomId,setSelectedRoomId]=useState(rooms[0]?.id||'');
+  const[publishing,setPublishing]=useState(false);
+  const draft=useMemo(()=>classroomSceneDraft(item),[item]);
+  const selectedRoom=rooms.find(room=>room.id===selectedRoomId)||null;
+  const publish=async()=>{
+    if(!selectedRoom){notify('Vali aktiivne klassiruum');return;}
+    if(LOCAL_LIBRARY_PREVIEW){
+      notify(`✓ Eelvaade: "${item.title}" saadeti klassiruumi`);
+      onClose();
+      return;
+    }
+    setPublishing(true);
+    try{
+      const roomRef=db.collection('liveClassrooms').doc(selectedRoom.id);
+      const logRef=db.collection('activityLog').doc();
+      await db.runTransaction(async transaction=>{
+        const snapshot=await transaction.get(roomRef);
+        if(!snapshot.exists) throw new Error('Klassiruumi ei leitud.');
+        const room=snapshot.data();
+        if(room.teacherUid!==user.uid) throw new Error('Saad avaldada ainult enda klassiruumi.');
+        if(room.status==='ended') throw new Error('Lõpetatud tundi ei saa uut materjali saata.');
+        const nextVersion=(Number(room.sceneVersion)||0)+1;
+        const actionUrl=item.kind==='exercise'
+          ?`/haldus-exercises/?exercise=${encodeURIComponent(item.sourceId)}&student=${encodeURIComponent(room.studentId||'')}`
+          :'';
+        const scene=buildClassroomScene({...draft,version:nextVersion,actionUrl});
+        const now=new Date().toISOString();
+        transaction.update(roomRef,{
+          activeScene:scene,
+          sceneVersion:nextVersion,
+          status:'live',
+          startedAt:room.startedAt||firebase.firestore.FieldValue.serverTimestamp(),
+          screenShare:{status:'idle',shareId:''},
+          updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+        });
+        transaction.set(logRef,{
+          type:'live_classroom.material_published',
+          label:'Õppevara saadeti klassiruumi',
+          meta:{
+            roomId:snapshot.id,
+            sourceId:item.sourceId,
+            sourceType:item.kind,
+            materialType:item.type,
+            sceneType:scene.type,
+            title:item.title
+          },
+          studentId:room.studentId||'',
+          studentName:room.studentName||'',
+          byUid:user.uid||'',
+          byName:user.displayName||user.email||'',
+          byRole:user.role||'',
+          createdAt:now,
+          date:today()
+        });
+      });
+      notify(`✓ "${item.title}" avaldati õpilasele`);
+      onClose();
+    }catch(error){
+      console.error('Classroom material publish failed:',error);
+      notify(`⚠ ${error.message||'Materjali ei saanud klassiruumi saata.'}`);
+    }finally{
+      setPublishing(false);
+    }
+  };
+
+  return(
+    <div className="modal-ov" onClick={event=>{if(event.target===event.currentTarget)onClose();}}>
+      <div className="modal-box" style={{maxWidth:590}}>
+        <div className="modal-head">
+          <div>
+            <div style={{fontWeight:800,fontSize:'1rem'}}>Saada Live Classroomi</div>
+            <div style={{fontSize:'.76rem',color:'#718096',marginTop:3}}>{item.typeLabel} · {item.title}</div>
+          </div>
+          <button onClick={onClose} className="btn btn-ghost btn-sm">✕</button>
+        </div>
+        <div className="modal-body">
+          <div className="classroom-scene-preview">
+            <div className="sec-lbl">{draft.type==='choice'?'Valikvastus':draft.type==='short_answer'?'Kirjalik vastus':'Õppestseen'}</div>
+            <h3>{draft.title}</h3>
+            <p>{draft.body}</p>
+            {draft.options?.length>0&&<div style={{display:'flex',gap:5,flexWrap:'wrap',marginTop:9}}>
+              {draft.options.map((option,index)=><span key={index} className="badge" style={{background:'#fff',border:'1px solid rgba(28,43,58,.1)'}}>{String.fromCharCode(65+index)}. {option}</span>)}
+            </div>}
+          </div>
+          <div className="sec-lbl">Aktiivne tund</div>
+          {rooms.length?<div className="classroom-room-list">
+            {rooms.map(room=>(
+              <button key={room.id} className={'classroom-room'+(selectedRoomId===room.id?' selected':'')} onClick={()=>setSelectedRoomId(room.id)}>
+                <span>
+                  <strong style={{display:'block',fontSize:'.86rem'}}>{room.title||'KeeleSepp tund'}</strong>
+                  <span style={{fontSize:'.73rem',color:'#718096'}}>{room.studentName||'Õpilane'} · {room.status==='live'?'tund käib':'ootab alustamist'}</span>
+                </span>
+                <i className={'fa-solid '+(selectedRoomId===room.id?'fa-circle-check':'fa-circle')} style={{color:selectedRoomId===room.id?'#2F5D50':'#D7D3CC'}}/>
+              </button>
+            ))}
+          </div>:<div className="library-empty" style={{padding:'28px 18px'}}>
+            <i className="fa-solid fa-display" style={{fontSize:'1.5rem',opacity:.3,marginBottom:9}}/>
+            <div style={{fontWeight:700,marginBottom:5}}>Aktiivset klassiruumi ei ole</div>
+            <div style={{fontSize:'.78rem',marginBottom:13}}>Loo kõigepealt õpilasele tund. Materjal jääb raamatukogus alles.</div>
+            <a href="/live-classroom/" target="_blank" rel="noreferrer" className="btn btn-ghost btn-sm" style={{textDecoration:'none'}}>Ava Live Classroom</a>
+          </div>}
+        </div>
+        <div className="modal-foot">
+          <button onClick={onClose} className="btn btn-ghost">Tühista</button>
+          <button onClick={publish} disabled={!selectedRoom||publishing} className="btn btn-pine">
+            <i className="fa-solid fa-display"/> {publishing?'Avaldan…':'Avalda õpilasele'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function LearningLibraryView({lessons,exercises,students,isTeacher,onOpenLesson,onOpenExercise,onAssign,onClassroom,onGoCurriculum,onGoExercises,onConductLesson}){
   const[query,setQuery]=useState('');
   const[type,setType]=useState('all');
-  const[path,setPath]=useState({subject:'',stage:'',topic:''});
+  const[path,setPath]=useState(()=>libraryPathFromSearch(window.location.search));
   const items=useMemo(()=>buildLibraryItems(lessons,exercises),[lessons,exercises]);
+  useEffect(()=>{
+    const restorePath=()=>setPath(libraryPathFromSearch(window.location.search));
+    window.addEventListener('popstate',restorePath);
+    return()=>window.removeEventListener('popstate',restorePath);
+  },[]);
+  useEffect(()=>{
+    if(!items.length) return;
+    const safePath=normalizeLibraryPath(items,path);
+    if(safePath.subject===path.subject&&safePath.stage===path.stage&&safePath.topic===path.topic) return;
+    const search=searchWithLibraryPath(window.location.search,safePath);
+    window.history.replaceState({},'',window.location.pathname+search+window.location.hash);
+    setPath(safePath);
+  },[items,path.subject,path.stage,path.topic]);
   const scoped=useMemo(()=>itemsInLibraryPath(items,path),[items,path]);
   const visible=useMemo(()=>filterLibraryItems(scoped,{query,type}),[scoped,query,type]);
   const depth=path.topic?3:path.stage?2:path.subject?1:0;
@@ -1863,21 +2013,26 @@ function LearningLibraryView({lessons,exercises,students,isTeacher,onOpenLesson,
     if(item.kind==='exercise') onOpenExercise(item.source);
     else onOpenLesson(item.source);
   };
+  const navigatePath=nextPath=>{
+    const search=searchWithLibraryPath(window.location.search,nextPath);
+    window.history.pushState({},'',window.location.pathname+search+window.location.hash);
+    setPath(nextPath);
+  };
   const openFolder=folder=>{
     setQuery('');
-    if(folderDimension==='subject') setPath({subject:folder.key,stage:'',topic:''});
-    if(folderDimension==='stage') setPath(current=>({...current,stage:folder.key,topic:''}));
-    if(folderDimension==='topic') setPath(current=>({...current,topic:folder.key}));
+    if(folderDimension==='subject') navigatePath({subject:folder.key,stage:'',topic:''});
+    if(folderDimension==='stage') navigatePath({...path,stage:folder.key,topic:''});
+    if(folderDimension==='topic') navigatePath({...path,topic:folder.key});
   };
   const goToDepth=target=>{
     setQuery('');
-    if(target===0) setPath({subject:'',stage:'',topic:''});
-    if(target===1) setPath(current=>({subject:current.subject,stage:'',topic:''}));
-    if(target===2) setPath(current=>({subject:current.subject,stage:current.stage,topic:''}));
+    if(target===0) navigatePath({subject:'',stage:'',topic:''});
+    if(target===1) navigatePath({subject:path.subject,stage:'',topic:''});
+    if(target===2) navigatePath({subject:path.subject,stage:path.stage,topic:''});
   };
   const subjectLabel=path.subject?groupLabel('subject',path.subject):'';
   const stageLabel=path.stage?groupLabel('stage',path.stage):'';
-  const topicLabel=path.topic?groupLabel('topic',path.topic):'';
+  const topicLabel=path.topic?groupLabel('topic',path.topic,scoped[0]):'';
   const subjectDefinition=SUBJECTS.find(candidate=>candidate.key===path.subject);
   const folderHeading=depth===0?'Ained'
     :depth===1?'Tasemed ja vanuserühmad'
@@ -2037,6 +2192,7 @@ function LearningLibraryView({lessons,exercises,students,isTeacher,onOpenLesson,
             <div className="library-card-actions">
               <button onClick={()=>openItem(item)} className="btn btn-ghost btn-sm"><i className="fa-solid fa-eye"/> Ava</button>
               {isTeacher&&<button onClick={()=>onAssign(item)} className="btn btn-pine btn-sm"><i className="fa-solid fa-paper-plane"/> Määra</button>}
+              {isTeacher&&<button onClick={()=>onClassroom(item)} className="btn btn-ghost btn-sm"><i className="fa-solid fa-display"/> Live tund</button>}
               {item.type==='lesson'&&item.source.phaseData&&<button onClick={()=>onConductLesson(item.source)} className="btn btn-ghost btn-sm"><i className="fa-solid fa-play"/> Vii läbi</button>}
               {item.kind==='exercise'&&<button onClick={onGoExercises} className="btn btn-ghost btn-sm" title="Ava kõik harjutused"><i className="fa-solid fa-arrow-right"/></button>}
             </div>
@@ -3146,7 +3302,9 @@ function App(){
   const[allLessons,setAllLessons]=useState(LOCAL_LIBRARY_PREVIEW?PREVIEW_LESSONS:[]);
   const[allExercises,setAllExercises]=useState(LOCAL_LIBRARY_PREVIEW?PREVIEW_EXERCISES:[]);
   const[students,setStudents]=useState(LOCAL_LIBRARY_PREVIEW?PREVIEW_STUDENTS:[]);
+  const[liveRooms,setLiveRooms]=useState(LOCAL_LIBRARY_PREVIEW?PREVIEW_LIVE_ROOMS:[]);
   const[assignItem,setAssignItem]=useState(null);
+  const[classroomItem,setClassroomItem]=useState(null);
   const[notif,setNotif]=useState('');
   const[directExercise,setDirectExercise]=useState(null);
   const[directExLoading,setDirectExLoading]=useState(false);
@@ -3181,6 +3339,13 @@ function App(){
       unsubs.push(db.collection('students').onSnapshot(
         snapshot=>setStudents(snapshot.docs.map(doc=>({id:doc.id,...doc.data()}))),
         error=>{console.warn('Students listener:',error);setStudents([]);}
+      ));
+      unsubs.push(db.collection('liveClassrooms').where('teacherUid','==',user.uid).onSnapshot(
+        snapshot=>setLiveRooms(snapshot.docs
+          .map(doc=>({id:doc.id,...doc.data()}))
+          .filter(room=>room.status==='waiting'||room.status==='live')
+          .sort((a,b)=>(a.status==='live'?-1:1)-(b.status==='live'?-1:1))),
+        error=>{console.warn('Live classroom listener:',error);setLiveRooms([]);}
       ));
     }
     return()=>unsubs.forEach(unsubscribe=>unsubscribe());
@@ -3276,6 +3441,7 @@ function App(){
       {conductLesson&&<LessonConductModal lesson={conductLesson} onClose={()=>setConductLesson(null)}/>}
       {wsPreview&&<WorksheetPreviewModal lesson={wsPreview} onClose={()=>setWsPreview(null)} onConduct={l=>{setWsPreview(null);setConductLesson(l);}}/>}
       {assignItem&&<AssignLearningItemModal item={assignItem} students={students} user={user} notify={notify} onClose={()=>setAssignItem(null)}/>}
+      {classroomItem&&<SendToClassroomModal item={classroomItem} rooms={liveRooms} user={user} notify={notify} onClose={()=>setClassroomItem(null)}/>}
 
       <header className="top-header">
         <div className="logo">Keele<span>Sepp</span> <small style={{fontFamily:'IBM Plex Sans',fontSize:'.68rem',color:'rgba(255,255,255,.4)',fontWeight:600,marginLeft:7}}>Õppevara</small></div>
@@ -3317,6 +3483,7 @@ function App(){
         onOpenLesson={setWsPreview}
         onOpenExercise={setDirectExercise}
         onAssign={setAssignItem}
+        onClassroom={setClassroomItem}
         onGoCurriculum={()=>setTab('curriculum')}
         onGoExercises={()=>setTab('exercises')}
         onConductLesson={setConductLesson}
