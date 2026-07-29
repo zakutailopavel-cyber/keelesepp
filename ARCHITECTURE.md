@@ -41,7 +41,9 @@ continue to fall back to their curriculum title or topic and do not need a destr
 Answer keys, full worksheet objects and arbitrary links are not part of the public contract.
 Every room scene update is versioned transactionally. Firestore rules repeat the same boundary
 server-side and reject extra fields, external action links, invalid screen-share state and
-non-sequential versions.
+non-sequential versions. The same transaction writes an immutable
+`liveClassrooms/{id}/scenes/{sceneId}` journal entry keyed by scene version. The history screen joins those
+versioned public scenes with append-only student responses without copying private source data.
 
 ### Finance
 
@@ -54,6 +56,8 @@ Cloud Functions and are covered by unit and emulator tests.
 - `curriculumLessons`, `exercises` — staff-authored learning sources.
 - `worksheetAssignments`, `homework`, `exerciseResults` — student-specific learning activity.
 - `liveClassrooms` — one teacher and one student per current room.
+- `liveClassrooms/{id}/scenes` — immutable public scene snapshots for versions published after
+  learning-history rollout.
 - `liveClassrooms/{id}/responses` — append-only student responses for the current scene version.
 - `activityLog` — operational audit events, including library assignment and classroom publish.
 - financial collections — governed by the financial core and its immutable audit model.
@@ -67,7 +71,11 @@ Assignment records copy display metadata for historical readability and also sto
 2. Put reusable classification, validation and conversion logic in a tested core module.
 3. Treat the student stage as a public projection, never as a view of the teacher workspace.
 4. Use transactions for versioned or auditable state transitions.
-5. Deploy `firestore.rules` separately after the web release is merged.
+5. Deploy additive `firestore.rules` before a web release that depends on a new collection;
+   deploy restrictive rule changes only with an explicit compatibility plan.
+
+Completed rooms created before the scene journal remain valid. The teacher history UI shows their
+room metadata and an explicit legacy notice instead of inventing missing scene details.
 
 ## Next extraction seams
 
@@ -76,7 +84,7 @@ The remaining large files should be reduced incrementally:
 1. extract the library React view and assignment dialogs from `haldus-exercises/index.html`;
 2. extract Live Classroom room transactions into a dedicated service module;
 3. split CRM domains from `haldus.html` one workflow at a time;
-4. add a versioned learning-history collection for completed classroom scenes;
+4. add teacher-authored lesson notes and curriculum outcomes to completed-room summaries;
 5. add a migration tool that can attach stable curriculum ids to legacy topic-only records.
 
 These are bounded extractions, not a request to replace the platform in one release.

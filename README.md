@@ -34,6 +34,11 @@ Klassiruum näitab õpetajale ja õpilasele teise osaleja kohalolekut. Interakti
 Õpetaja saab materjali saata aktiivsesse enda klassiruumi otse õppevara kaardilt. Avalikule
 lavale jõuab ainult piiratud õppestseen, mitte vastusevõti ega kogu materjali lähteandmed.
 
+Lõpetatud Live Classroomi tunnid kuvatakse õpetajale õppevara vahekaardil **Tundide ajalugu**.
+Iga uus avaldatud õppestseen salvestatakse muutmatu versioonina ning seotakse sama versiooni
+õpilase vastustega. Vanad klassiruumid jäävad nähtavaks kuupäeva, osalejate ja kestusega ka siis,
+kui nende detailne stseeniajalugu loodi enne selle funktsiooni kasutuselevõttu.
+
 Enne laiemat kasutuselevõttu vajab ekraanijagamine TURN-serverit ja
 kahe kasutajaga prooviperioodi eri võrkudes. Arenduse etapid ja turvapiirid on kirjeldatud failis
 `NEXT_RELEASE_ROADMAP.md`.
@@ -64,3 +69,7 @@ firebase deploy --only firestore:rules --project keelesepp-5136b
 
 Kontrolli enne tootmiskeskkonna proovimist, et käsu lõpus kuvatakse
 `released rules firestore.rules to cloud.firestore`.
+
+Kui veebiversioon hakkab kasutama uut Firestore kollektsiooni, avalda kontrollitud lisavad
+reeglid enne veebiversiooni ühendamist. Nii ei teki väljalaske ajal hetke, mil uus liides on
+avatud, kuid vajalik kirjutus on veel keelatud.

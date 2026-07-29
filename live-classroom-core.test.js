@@ -4,10 +4,14 @@ const {
   getRoles,
   isStaff,
   buildScene,
+  buildSceneHistoryEntry,
   normalizeActionUrl,
   sceneAcceptsResponse,
   isUnsafeDisplaySurface,
   classroomLink,
+  lessonHistorySortValue,
+  lessonDurationMinutes,
+  responsesForScene,
   isPresenceFresh,
   classroomErrorMessage
 }=require('./live-classroom-core');
@@ -57,6 +61,54 @@ test('external and malformed classroom action links are rejected',()=>{
   assert.equal(normalizeActionUrl('//evil.example/task'),'');
   assert.equal(normalizeActionUrl('javascript:alert(1)'),'');
   assert.equal(normalizeActionUrl('/haldus-exercises/'),'\/haldus-exercises\/');
+});
+
+test('scene history keeps a bounded public snapshot and stable ownership metadata',()=>{
+  const entry=buildSceneHistoryEntry({
+    classroomId:'room-1',
+    room:{
+      studentId:'student-1',
+      studentName:'Mari',
+      teacherUid:'teacher-1',
+      teacherName:'Pavel'
+    },
+    scene:{
+      type:'short_answer',
+      title:'Kirjuta vastus',
+      body:'Selgita oma valikut.',
+      options:[],
+      version:3,
+      publishedAt:'2026-07-29T08:00:00.000Z',
+      source:{kind:'exercise',id:'exercise-1',type:'exercise',answerKey:'private'},
+      actionUrl:'/haldus-exercises/?exercise=exercise-1'
+    },
+    eventType:'material_published',
+    createdAtIso:'2026-07-29T08:00:00.000Z'
+  });
+
+  assert.equal(entry.classroomId,'room-1');
+  assert.equal(entry.sceneVersion,3);
+  assert.equal(entry.eventType,'material_published');
+  assert.deepEqual(entry.scene.source,{kind:'exercise',id:'exercise-1',type:'exercise'});
+  assert.equal(JSON.stringify(entry).includes('answerKey'),false);
+});
+
+test('lesson history helpers order rooms, calculate duration and pair responses to scenes',()=>{
+  const room={
+    startedAt:'2026-07-29T08:00:00.000Z',
+    endedAt:'2026-07-29T08:47:00.000Z'
+  };
+  assert.equal(lessonHistorySortValue(room),Date.parse(room.endedAt));
+  assert.equal(lessonDurationMinutes(room),47);
+  assert.equal(lessonDurationMinutes({createdAtIso:'invalid'}),null);
+  assert.deepEqual(
+    responsesForScene([
+      {id:'later',sceneVersion:2,createdAtIso:'2026-07-29T08:05:00.000Z'},
+      {id:'other',sceneVersion:3,createdAtIso:'2026-07-29T08:02:00.000Z'},
+      {id:'earlier',sceneVersion:2,createdAtIso:'2026-07-29T08:03:00.000Z'}
+    ],2).map(item=>item.id),
+    ['earlier','later']
+  );
 });
 
 test('whole-monitor sharing is rejected by the privacy guard',()=>{

@@ -91,6 +91,21 @@ async function firestoreDocumentRequest(token, method, documentPath, body) {
   return { status: response.status, body: await response.json().catch(() => ({})) };
 }
 
+async function firestoreCommitRequest(token, writes) {
+  const response = await fetch(
+    `http://${FIRESTORE_EMULATOR}/v1/projects/${PROJECT_ID}/databases/(default)/documents:commit`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ writes }),
+    },
+  );
+  return { status: response.status, body: await response.json().catch(() => ({})) };
+}
+
 async function financeRequest(token, path, payload) {
   const response = await fetch(
     `http://${FUNCTIONS_EMULATOR}/${PROJECT_ID}/us-central1/financeApi${path}`,
@@ -1063,6 +1078,80 @@ test("Live Classroom keeps the teacher desk private and scopes student interacti
     },
   );
   assert.equal(publishQuestion.status, 200, JSON.stringify(publishQuestion.body));
+  const historyTimestamp = new Date().toISOString();
+  const historyBody = {
+    fields: {
+      classroomId: { stringValue: "live-room-001" },
+      sceneVersion: { integerValue: "2" },
+      eventType: { stringValue: "scene_published" },
+      scene: {
+        mapValue: {
+          fields: {
+            type: { stringValue: "short_answer" },
+            title: { stringValue: "Secure question" },
+            body: { stringValue: "Write the answer" },
+            version: { integerValue: "2" },
+          },
+        },
+      },
+      studentId: { stringValue: "live-student-record" },
+      studentName: { stringValue: "Live Student" },
+      teacherUid: { stringValue: teacherUid },
+      teacherName: { stringValue: "Live Teacher" },
+      createdAt: { timestampValue: historyTimestamp },
+      createdAtIso: { stringValue: historyTimestamp },
+    },
+  };
+  const teacherCreatesHistory = await firestoreDocumentRequest(
+    teacherToken,
+    "PATCH",
+    "liveClassrooms/live-room-001/scenes/scene-2",
+    historyBody,
+  );
+  assert.equal(
+    teacherCreatesHistory.status,
+    200,
+    JSON.stringify(teacherCreatesHistory.body),
+  );
+  const studentReadsHistory = await firestoreDocumentRequest(
+    studentToken,
+    "GET",
+    "liveClassrooms/live-room-001/scenes/scene-2",
+  );
+  assert.equal(studentReadsHistory.status, 200, JSON.stringify(studentReadsHistory.body));
+  const outsiderReadsHistory = await firestoreDocumentRequest(
+    outsiderToken,
+    "GET",
+    "liveClassrooms/live-room-001/scenes/scene-2",
+  );
+  assert.equal(outsiderReadsHistory.status, 403, JSON.stringify(outsiderReadsHistory.body));
+  const studentCreatesHistory = await firestoreDocumentRequest(
+    studentToken,
+    "PATCH",
+    "liveClassrooms/live-room-001/scenes/scene-2-forged",
+    historyBody,
+  );
+  assert.equal(
+    studentCreatesHistory.status,
+    403,
+    JSON.stringify(studentCreatesHistory.body),
+  );
+  const teacherChangesHistory = await firestoreDocumentRequest(
+    teacherToken,
+    "PATCH",
+    "liveClassrooms/live-room-001/scenes/scene-2",
+    {
+      fields: {
+        ...historyBody.fields,
+        eventType: { stringValue: "lesson_ended" },
+      },
+    },
+  );
+  assert.equal(
+    teacherChangesHistory.status,
+    403,
+    JSON.stringify(teacherChangesHistory.body),
+  );
   const responseBody = {
     fields: {
       classroomId: { stringValue: "live-room-001" },
@@ -1166,38 +1255,61 @@ test("Live Classroom keeps the teacher desk private and scopes student interacti
   );
   assert.equal(jumpedSceneVersion.status, 403, JSON.stringify(jumpedSceneVersion.body));
 
-  const publishLibraryMaterial = await firestoreDocumentRequest(
-    teacherToken,
-    "PATCH",
-    "liveClassrooms/live-room-001?updateMask.fieldPaths=activeScene&updateMask.fieldPaths=sceneVersion",
-    {
-      fields: {
-        activeScene: {
-          mapValue: {
-            fields: {
-              type: { stringValue: "short_answer" },
-              title: { stringValue: "Library task" },
-              body: { stringValue: "Write a public answer" },
-              version: { integerValue: "3" },
-              source: {
-                mapValue: {
-                  fields: {
-                    kind: { stringValue: "exercise" },
-                    id: { stringValue: "exercise-001" },
-                    type: { stringValue: "exercise" },
-                  },
-                },
-              },
-              actionUrl: {
-                stringValue:
-                  "/haldus-exercises/?exercise=exercise-001&student=live-student-record",
-              },
-            },
-          },
+  const librarySceneFields = {
+    type: { stringValue: "short_answer" },
+    title: { stringValue: "Library task" },
+    body: { stringValue: "Write a public answer" },
+    version: { integerValue: "3" },
+    source: {
+      mapValue: {
+        fields: {
+          kind: { stringValue: "exercise" },
+          id: { stringValue: "exercise-001" },
+          type: { stringValue: "exercise" },
         },
-        sceneVersion: { integerValue: "3" },
       },
     },
+    actionUrl: {
+      stringValue:
+        "/haldus-exercises/?exercise=exercise-001&student=live-student-record",
+    },
+  };
+  const libraryHistoryTimestamp = new Date().toISOString();
+  const publishLibraryMaterial = await firestoreCommitRequest(
+    teacherToken,
+    [
+      {
+        update: {
+          name:
+            `projects/${PROJECT_ID}/databases/(default)/documents/liveClassrooms/live-room-001`,
+          fields: {
+            activeScene: { mapValue: { fields: librarySceneFields } },
+            sceneVersion: { integerValue: "3" },
+          },
+        },
+        updateMask: { fieldPaths: ["activeScene", "sceneVersion"] },
+        currentDocument: { exists: true },
+      },
+      {
+        update: {
+          name:
+            `projects/${PROJECT_ID}/databases/(default)/documents/liveClassrooms/live-room-001/scenes/scene-3`,
+          fields: {
+            classroomId: { stringValue: "live-room-001" },
+            sceneVersion: { integerValue: "3" },
+            eventType: { stringValue: "material_published" },
+            scene: { mapValue: { fields: librarySceneFields } },
+            studentId: { stringValue: "live-student-record" },
+            studentName: { stringValue: "Live Student" },
+            teacherUid: { stringValue: teacherUid },
+            teacherName: { stringValue: "Live Teacher" },
+            createdAt: { timestampValue: libraryHistoryTimestamp },
+            createdAtIso: { stringValue: libraryHistoryTimestamp },
+          },
+        },
+        currentDocument: { exists: false },
+      },
+    ],
   );
   assert.equal(
     publishLibraryMaterial.status,

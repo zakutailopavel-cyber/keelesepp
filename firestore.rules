@@ -622,6 +622,65 @@ service cloud.firestore {
         ]);
       allow delete: if isAdmin();
 
+      match /scenes/{sceneId} {
+        allow read: if hostsLiveClassroom(classroomId) || ownsLiveClassroom(classroomId);
+        allow create: if hostsLiveClassroom(classroomId)
+          && request.resource.data.keys().hasOnly([
+            'classroomId',
+            'sceneVersion',
+            'eventType',
+            'scene',
+            'studentId',
+            'studentName',
+            'teacherUid',
+            'teacherName',
+            'createdAt',
+            'createdAtIso'
+          ])
+          && request.resource.data.keys().hasAll([
+            'classroomId',
+            'sceneVersion',
+            'eventType',
+            'scene',
+            'studentId',
+            'studentName',
+            'teacherUid',
+            'teacherName',
+            'createdAt',
+            'createdAtIso'
+          ])
+          && request.resource.data.classroomId == classroomId
+          && request.resource.data.sceneVersion is int
+          && request.resource.data.sceneVersion > 1
+          && request.resource.data.sceneVersion
+            == getAfter(liveClassroomPath(classroomId)).data.sceneVersion
+          && request.resource.data.eventType in [
+            'scene_published',
+            'material_published',
+            'screen_started',
+            'screen_stopped',
+            'lesson_ended'
+          ]
+          && validLiveScene(
+            request.resource.data.scene,
+            request.resource.data.sceneVersion
+          )
+          && request.resource.data.studentId
+            == liveClassroomData(classroomId).studentId
+          && request.resource.data.studentName is string
+          && request.resource.data.studentName.size() <= 160
+          && request.resource.data.teacherUid
+            == liveClassroomData(classroomId).teacherUid
+          && request.resource.data.teacherName is string
+          && request.resource.data.teacherName.size() <= 160
+          && request.resource.data.createdAt is timestamp
+          && request.resource.data.createdAt <= request.time
+          && request.resource.data.createdAt >= request.time - duration.value(5, 'm')
+          && request.resource.data.createdAtIso is string
+          && request.resource.data.createdAtIso.size() <= 40;
+        allow update, delete: if false;
+      }
+
       match /responses/{responseId} {
         allow read: if hostsLiveClassroom(classroomId) || ownsLiveClassroom(classroomId);
         allow create: if ownsLiveClassroom(classroomId)
