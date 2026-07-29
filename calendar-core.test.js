@@ -63,6 +63,7 @@ test('day layout keeps duration scale and places simultaneous lessons side by si
 test('new schedule payload keeps stable student ownership and version metadata',()=>{
   const payload=buildSchedulePayload({
     teacher:'Pavel',
+    teacherUid:'teacher-1',
     studentId:'student-1',
     studentName:'Mari',
     date:'2026-07-29',
@@ -71,6 +72,7 @@ test('new schedule payload keeps stable student ownership and version metadata',
     nowIso:'2026-07-29T08:00:00.000Z'
   });
   assert.equal(payload.studentId,'student-1');
+  assert.equal(payload.teacherUid,'teacher-1');
   assert.equal(payload.recurring,false);
   assert.equal(payload.scheduleVersion,2);
   assert.equal(payload.source,'keelesepp');

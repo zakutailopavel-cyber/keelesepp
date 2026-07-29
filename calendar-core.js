@@ -204,6 +204,7 @@
     const nowIso=input.nowIso||new Date().toISOString();
     return {
       teacher:String(input.teacher||'').trim(),
+      teacherUid:String(input.teacherUid||'').trim(),
       studentId:String(input.studentId||'').trim(),
       studentName:String(input.studentName||'').trim(),
       ...(recurring

@@ -2091,7 +2091,7 @@ function StuSearch({value, onChange, onPick, students, placeholder}) {
 function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilterT,
   schStu,setSchStu,schDate,setSchDate,schTime,setSchTime,schTeach,setSchTeach,
   schRecurring,setSchRecurring,addSchedule,openScheduleEditor,delSchedule,markAttendance,openStudent,
-  db,notify,logActivity,students,setSelStu,setTab,tariffAssignments=[]}) {
+  db,notify,logActivity,students,staffMembers=[],setSelStu,setTab,tariffAssignments=[]}) {
 
   const [showCanceled,setShowCanceled] = React.useState(true);
   const [weekOffset,setWeekOffset]     = React.useState(0);
@@ -2115,6 +2115,14 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
   const [dragging,setDragging] = React.useState(false);
 
   const canManage = user.role==='teacher' || user.role==='admin';
+  const teacherUidForName = React.useCallback(teacherName=>{
+    const canonical=normalizeText(canonicalTeacherName(teacherName));
+    if(canonical&&canonical===normalizeText(canonicalTeacherName(user.displayName||''))) return user.uid||'';
+    const member=staffMembers.find(item=>
+      normalizeText(canonicalTeacherName(item.displayName||item.name||''))===canonical
+    );
+    return member?.id||member?.uid||'';
+  },[staffMembers,user]);
 
   // ── Week computation ─────────────────────────────────────────
   const weekStart = React.useMemo(()=>{
@@ -2376,8 +2384,8 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
     }
     try{
       const patch=ev.date
-        ?{date:targetIso,day:dayId,time:targetSlot,status:ev.status==='Tühistatud'?ev.status:'Planeeritud',updatedAtIso:new Date().toISOString()}
-        :{day:dayId,time:targetSlot,updatedAtIso:new Date().toISOString()};
+        ?{date:targetIso,day:dayId,time:targetSlot,status:ev.status==='Tühistatud'?ev.status:'Planeeritud',teacherUid:ev.teacherUid||teacherUidForName(ev.teacher),updatedAtIso:new Date().toISOString()}
+        :{day:dayId,time:targetSlot,teacherUid:ev.teacherUid||teacherUidForName(ev.teacher),updatedAtIso:new Date().toISOString()};
       await window._db.collection('schedule').doc(ev.id).update(patch);
       if(logActivity) await logActivity('schedule.moved','Tõsteti tund kalendris',{
         scheduleId:ev.id,studentId:ev.studentId||'',studentName:ev.studentName||'',
@@ -2386,7 +2394,7 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
       notify(`✓ ${ev.studentName} → ${targetSlot}`);
     }catch{notify('⚠ Liigutamine ebaõnnestus');}
     setDragEv(null);
-  },[dragEv,notify,filteredSch,logActivity]);
+  },[dragEv,notify,filteredSch,logActivity,teacherUidForName]);
 
   // ── Popup create (Google-style) ───────────────────────────────
   const openCreatePopup = React.useCallback((e,dayIso,slot)=>{
@@ -2412,6 +2420,7 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
     const {dayIso,slot}=createPopup;
     const payload=buildSchedulePayload({
       teacher:popupTeach,
+      teacherUid:teacherUidForName(popupTeach),
       studentId:selectedStudent.id,
       studentName:selectedStudent.name,
       date:dayIso,
@@ -2445,7 +2454,7 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
       setCreatePopup(null);
     }catch{notify('⚠ Lisamine ebaõnnestus');}
     setPopupSaving(false);
-  },[createPopup,popupStu,popupStudentId,popupTeach,popupDur,popupRecurring,notify,myStudents,filteredSch,logActivity]);
+  },[createPopup,popupStu,popupStudentId,popupTeach,popupDur,popupRecurring,notify,myStudents,filteredSch,logActivity,teacherUidForName]);
 
   // ── Teacher color ─────────────────────────────────────────────
   const tColor=t=>{
@@ -2519,6 +2528,9 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
         <div style={{fontSize:".6rem",color:tc.dot,display:"flex",gap:3,alignItems:'center',lineHeight:1.2}}>
           {!ev.date&&<span style={{opacity:.5}}>↻</span>}
           {isExternal&&<span title="Imporditud Google Calendarist">G</span>}
+          {!isExternal&&ev.gcalSyncStatus==='synced'&&<span title="Google Calendariga sünkroonitud" style={{color:'#166534',fontWeight:800}}>G✓</span>}
+          {!isExternal&&ev.gcalSyncStatus==='error'&&<span title={ev.gcalSyncError||'Google Calendari viga'} style={{color:'#dc2626',fontWeight:800}}>G!</span>}
+          {!isExternal&&ev.gcalSyncStatus==='queued'&&<span title="Google Calendarisse saatmise ootel" style={{color:'#C9882A',fontWeight:800}}>G…</span>}
           {conflicts.length>0&&<span title="Kalendris on kattuv tund" style={{color:'#dc2626',fontWeight:800}}>⚠</span>}
           {isDayView&&<span>{slot} – {calendarAddMinutes(slot,dur)} · {dur}min</span>}
           {(isAdmin&&(filterT==='Kõik'||!filterT))&&!isDayView&&<span style={{fontWeight:600,opacity:.75}}>{ev.teacher}</span>}
@@ -8055,13 +8067,21 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
   lStatus,setLStatus,lComment,setLComment,
   lNewWords,setLNewWords,lGrammar,setLGrammar,lCovered,setLCovered,lNextNotes,setLNextNotes,
   lDur,setLDur,lessonFile,setLessonFile,saveLesson,deleteLesson,db,user,notify,students,markAttendance,
-  studentPackages=[],schedule=[],isAdmin,updateLessonBillingDisposition}) {
+  studentPackages=[],schedule=[],staffMembers=[],isAdmin,updateLessonBillingDisposition}) {
 
   const [moveDate,setMoveDate] = React.useState(modalEv.occurrenceDate||modalEv.date||new Date().toISOString().split("T")[0]);
   const [moveTime,setMoveTime] = React.useState(modalEv.time||"09:00");
   const [saving,setSaving]     = React.useState(false);
   const [savingDiary,setSavingDiary] = React.useState(false);
   const [billingBusy,setBillingBusy] = React.useState(false);
+  const teacherUidForName = React.useCallback(teacherName=>{
+    const canonical=normalizeText(canonicalTeacherName(teacherName));
+    if(canonical&&canonical===normalizeText(canonicalTeacherName(user.displayName||''))) return user.uid||'';
+    const member=staffMembers.find(item=>
+      normalizeText(canonicalTeacherName(item.displayName||item.name||''))===canonical
+    );
+    return member?.id||member?.uid||'';
+  },[staffMembers,user]);
 
   const fmtDate = d => d?new Date(d).toLocaleDateString("et-EE",{day:"2-digit",month:"2-digit",year:"numeric"}):"—";
   const hasDate = Boolean(modalEv.date||modalEv.occurrenceDate);
@@ -8202,7 +8222,12 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
   const cancelLesson = async()=>{
     if(!modalEv.id) return;
     if(isGoogleEvent){notify("Muuda Google’i sündmust Google Calendaris.");return;}
-    await db.collection("schedule").doc(modalEv.id).update({status:"Tühistatud",canceledAt:new Date().toISOString().split("T")[0]});
+    await db.collection("schedule").doc(modalEv.id).update({
+      status:"Tühistatud",
+      teacherUid:modalEv.teacherUid||teacherUidForName(modalEv.teacher),
+      canceledAt:new Date().toISOString().split("T")[0],
+      updatedAtIso:new Date().toISOString()
+    });
     notify("✓ Tund tühistatud");
     setModalEv(prev=>({...prev,status:"Tühistatud"}));
   };
@@ -8210,7 +8235,11 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
   const restoreLesson = async()=>{
     if(!modalEv.id) return;
     if(isGoogleEvent){notify("Muuda Google’i sündmust Google Calendaris.");return;}
-    await db.collection("schedule").doc(modalEv.id).update({status:"Planeeritud"});
+    await db.collection("schedule").doc(modalEv.id).update({
+      status:"Planeeritud",
+      teacherUid:modalEv.teacherUid||teacherUidForName(modalEv.teacher),
+      updatedAtIso:new Date().toISOString()
+    });
     notify("✓ Tund taastatud");
     setModalEv(prev=>({...prev,status:"Planeeritud"}));
   };
@@ -8283,6 +8312,7 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
     const dayId = calendarDayIdForDate(moveDate);
     await db.collection("schedule").doc(modalEv.id).update({
       date:moveDate, day:dayId, time:moveTime,
+      teacherUid:modalEv.teacherUid||teacherUidForName(modalEv.teacher),
       status:"Nihutatud",
       originalDate: modalEv.originalDate||modalEv.date||modalEv.occurrenceDate||null,
       originalTime: modalEv.originalTime||modalEv.time||null,
@@ -8332,6 +8362,8 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
       recurring:true,
       startDate:baseDate,
       day:dayId,
+      teacherUid:modalEv.teacherUid||teacherUidForName(modalEv.teacher),
+      updatedAtIso:new Date().toISOString(),
       date:firebase.firestore.FieldValue.delete()
     });
     notify("✓ Tund kordub nüüd igal nädalal");
@@ -8349,6 +8381,8 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
       recurring:false,
       startDate:firebase.firestore.FieldValue.delete(),
       day:dayId,
+      teacherUid:modalEv.teacherUid||teacherUidForName(modalEv.teacher),
+      updatedAtIso:new Date().toISOString(),
       date:baseDate
     });
     notify("✓ Tund on nüüd ühekordne");
@@ -9040,7 +9074,12 @@ function GCalSettings({user,notify}) {
   const [lastCount,setLastCount] = React.useState(0);
   const [lastSkipped,setLastSkipped] = React.useState(0);
   const [lastRemoved,setLastRemoved] = React.useState(0);
+  const [lastCancelled,setLastCancelled] = React.useState(0);
   const [lastError,setLastError] = React.useState('');
+  const [writeEnabled,setWriteEnabled] = React.useState(false);
+  const [requiresWriteConsent,setRequiresWriteConsent] = React.useState(false);
+  const [lastPush,setLastPush] = React.useState(null);
+  const [lastPushError,setLastPushError] = React.useState('');
   const [syncing,setSyncing] = React.useState(false);
   const [detailsOpen,setDetailsOpen] = React.useState(false);
   const FUNCTIONS_BASE = 'https://us-central1-keelesepp-5136b.cloudfunctions.net/gcalApi';
@@ -9055,7 +9094,12 @@ function GCalSettings({user,notify}) {
         setLastCount(Number(d.lastSyncCount||0));
         setLastSkipped(Number(d.lastSyncSkipped||0));
         setLastRemoved(Number(d.lastSyncRemoved||0));
+        setLastCancelled(Number(d.lastSyncCancelled||0));
         setLastError(d.lastSyncError||'');
+        setWriteEnabled(Boolean(d.writeEnabled));
+        setRequiresWriteConsent(Boolean(d.requiresWriteConsent));
+        setLastPush(d.lastPushAt||null);
+        setLastPushError(d.lastPushError||'');
       })
       .catch(()=>setStatus('disconnected'));
   },[user?.uid]);
@@ -9077,12 +9121,15 @@ function GCalSettings({user,notify}) {
       });
       const d = await r.json();
       if(!r.ok) throw new Error(d.error||'Sünkroonimine ebaõnnestus');
-      notify(`✓ Imporditud: ${d.synced}${d.removed?` · eemaldatud: ${d.removed}`:''}${d.skipped?` · vahele jäetud: ${d.skipped}`:''}`);
+      notify(`✓ Google → KeeleSepp: ${d.synced}${d.pushed?` · Google’isse: ${d.pushed}`:''}${d.removed?` · eemaldatud: ${d.removed}`:''}${d.cancelled?` · tühistatud: ${d.cancelled}`:''}${d.skipped?` · vahele jäetud: ${d.skipped}`:''}`);
       setLastSync(new Date().toISOString());
       setLastCount(Number(d.synced||0));
       setLastSkipped(Number(d.skipped||0));
       setLastRemoved(Number(d.removed||0));
+      setLastCancelled(Number(d.cancelled||0));
       setLastError('');
+      if(d.pushed) setLastPush(new Date().toISOString());
+      setLastPushError(d.pushFailed?'Mõnda muudatust ei õnnestunud Google Calendarisse saata.':'');
     }catch(e){
       const message=String(e?.message||'Sünkroonimine ebaõnnestus').slice(0,500);
       setLastError(message);
@@ -9117,8 +9164,12 @@ function GCalSettings({user,notify}) {
             <div style={{fontWeight:700}}>Google Calendar</div>
             <div style={{fontSize:'.76rem',color:'#42536A'}}>
               {status==='connected'
-                ? <span style={{color:lastError?'#991b1b':'#166534'}}>
-                    {lastError?'⚠ Sünkroonimine vajab tähelepanu':'✓ Ühendatud · Google → KeeleSepp'}
+                ? <span style={{color:(lastError||lastPushError)?'#991b1b':'#166534'}}>
+                    {(lastError||lastPushError)
+                      ?'⚠ Sünkroonimine vajab tähelepanu'
+                      :writeEnabled
+                        ?'✓ Ühendatud · KeeleSepp ↔ Google'
+                        :'✓ Ühendatud · Google → KeeleSepp'}
                     {lastSync&&` · ${new Date(lastSync).toLocaleString('et-EE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}`}
                   </span>
                 : status===null?'Kontrollin staatust…':'Kalender pole ühendatud'}
@@ -9133,6 +9184,11 @@ function GCalSettings({user,notify}) {
           )}
           {status==='connected'&&(
             <>
+              {requiresWriteConsent&&(
+                <button onClick={connect} className="btn btn-amber btn-sm">
+                  Luba kahesuunaline sync
+                </button>
+              )}
               <button onClick={sync} disabled={syncing} className="btn btn-pine btn-sm">
                 {syncing?'Sünkroonin…':'Sünkrooni'}
               </button>
@@ -9147,10 +9203,16 @@ function GCalSettings({user,notify}) {
       {status==='connected'&&detailsOpen&&(
         <div style={{marginTop:12,paddingTop:12,borderTop:'1px solid rgba(28,43,58,.08)',display:'flex',justifyContent:'space-between',gap:12,alignItems:'center',flexWrap:'wrap'}}>
           <div style={{fontSize:'.78rem',color:'#42536A',maxWidth:760}}>
-            Praegu toimub turvaline import Google Calendarist KeeleSeppa iga tund. Lisa õpilase nimi pealkirja,
-            näiteks „Tund — Hanna Skoryk“. Viimati imporditi {lastCount} ja jäeti seoseta {lastSkipped} sündmust vahele.
+            {writeEnabled
+              ?'KeeleSeppa lisatud, tõstetud ja tühistatud tunnid saadetakse Google Calendarisse ning Google’i muudatused tuuakse tagasi iga tund.'
+              :'Praegu toimub turvaline import Google Calendarist KeeleSeppa iga tund. Kahesuunalise sünkroonimise jaoks kinnita üks kord uus sündmuste muutmise luba.'}
+            {' '}Lisa välise sündmuse pealkirja õpilase nimi, näiteks „Tund — Hanna Skoryk“.
+            Viimati imporditi {lastCount} ja jäeti seoseta {lastSkipped} sündmust vahele.
             {lastRemoved>0&&<> Google’ist eemaldatud sündmusi koristati kalendrist {lastRemoved}.</>}
+            {lastCancelled>0&&<> Google’is kustutatud KeeleSepa tunde märgiti tühistatuks {lastCancelled}.</>}
+            {lastPush&&<> Viimane saatmine Google’isse: {new Date(lastPush).toLocaleString('et-EE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}.</>}
             {lastError&&<div style={{marginTop:5,color:'#991b1b'}}>Viimane viga: {lastError}</div>}
+            {lastPushError&&<div style={{marginTop:5,color:'#991b1b'}}>Google’isse saatmise viga: {lastPushError}</div>}
           </div>
           <button onClick={disconnect} className="btn btn-ghost btn-sm" style={{color:'#dc2626'}}>
             Eemalda ühendus
@@ -9355,6 +9417,14 @@ function App() {
   const isParentUser = hasUserRole(user,'parent');
   const isStudentUser = hasUserRole(user,'student');
   const canAssignTeacher = isAdmin;
+  const teacherUidForName = React.useCallback(teacherName=>{
+    const canonical=normalizeText(canonicalTeacherName(teacherName));
+    if(canonical&&canonical===normalizeText(canonicalTeacherName(user?.displayName||''))) return user?.uid||'';
+    const member=staffMembers.find(item=>
+      normalizeText(canonicalTeacherName(item.displayName||item.name||''))===canonical
+    );
+    return member?.id||member?.uid||'';
+  },[staffMembers,user]);
   React.useEffect(()=>{
     if(!user||!isAdmin){
       setPayments([]);setBankTransactions([]);setPayerCredits([]);
@@ -10273,6 +10343,7 @@ function App() {
     const t=canAssignTeacher?schTeach:canonicalTeacherName(user.displayName);
     const payload=buildSchedulePayload({
       teacher:t,
+      teacherUid:teacherUidForName(t),
       studentId:student.id,
       studentName:student.name,
       date:schDate,
@@ -10287,7 +10358,7 @@ function App() {
       studentId:student.id,studentName:student.name,teacher:t,date:schDate,time:schTime,recurring:schRecurring
     });
     notify(schRecurring?'✓ Korduv tund lisatud!':'✓ Tund broneeritud!');
-  },[schStu,schDate,schTime,schTeach,schRecurring,canAssignTeacher,user,students,schedule,logActivity]);
+  },[schStu,schDate,schTime,schTeach,schRecurring,canAssignTeacher,user,students,schedule,logActivity,teacherUidForName]);
 
   const addStudentSchedule=useCallback(async(student)=>{
     if(!student?.id){notify('⚠ Õpilast ei leitud');return;}
@@ -10295,6 +10366,7 @@ function App() {
     const t=canAssignTeacher?schTeach:canonicalTeacherName(user.displayName);
     const payload=buildSchedulePayload({
       teacher:t,
+      teacherUid:teacherUidForName(t),
       studentId:student.id,
       studentName:student.name,
       date:schDate,
@@ -10307,7 +10379,7 @@ function App() {
     await db.collection('schedule').add(payload);
     await logActivity('schedule.created','Lisati tund õpilase kaardilt',{studentId:student.id,studentName:student.name,teacher:t,date:schDate,time:schTime});
     notify(schRecurring?'✓ Korduv tund lisatud!':'✓ Tund lisatud kalendrisse!');
-  },[schDate,schTime,schTeach,schRecurring,canAssignTeacher,user,logActivity,schedule]);
+  },[schDate,schTime,schTeach,schRecurring,canAssignTeacher,user,logActivity,schedule,teacherUidForName]);
 
   const markAttendance=useCallback(async(event,attendanceKey,status)=>{
     if(!event||!attendanceKey){notify('⚠ Tundi ei leitud');return;}
@@ -12043,7 +12115,7 @@ function App() {
             schTime={schTime} setSchTime={setSchTime} schTeach={schTeach} setSchTeach={setSchTeach}
             schRecurring={schRecurring} setSchRecurring={setSchRecurring}
             addSchedule={addSchedule} openScheduleEditor={openScheduleEditor} delSchedule={delSchedule} markAttendance={markAttendance}
-            db={db} notify={notify} logActivity={logActivity} students={students} setSelStu={setSelStu} setTab={setTab}
+            db={db} notify={notify} logActivity={logActivity} students={students} staffMembers={staffMembers} setSelStu={setSelStu} setTab={setTab}
             openStudent={(student)=>{setSelStu(student);setTab('students');}} tariffAssignments={tariffAssignments}/>}
 
           {tab==='tasks'&&isStaff&&<TasksView user={user} tasks={scopedTasks} staffMembers={staffMembers}
@@ -12184,6 +12256,7 @@ function App() {
         lDur={lDur} setLDur={setLDur} lessonFile={lessonFile} setLessonFile={setLessonFile}
         saveLesson={saveLesson} deleteLesson={deleteLesson} db={db} user={user} notify={notify}
         students={students} studentPackages={studentPackages} schedule={schedule} markAttendance={markAttendance}
+        staffMembers={staffMembers}
         isAdmin={isAdmin} updateLessonBillingDisposition={updateLessonBillingDisposition}/>}
     </div>
   );

@@ -1011,6 +1011,12 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // Deferred Google Calendar deletions are created and retried only by
+    // trusted Cloud Functions.
+    match /calendarSyncOutbox/{entryId} {
+      allow read, write: if false;
+    }
+
     match /emailQueue/{entryId} {
       allow read: if isStaff();
       allow write: if false;

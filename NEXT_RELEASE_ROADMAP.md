@@ -62,11 +62,15 @@ Implemented:
 - Stable student ownership and activity-log events for new and moved lessons.
 - Safe inbound Google Calendar reconciliation with visible counts and errors.
 - Lazy migration of legacy Google OAuth tokens into a server-only collection.
+- Two-way Google synchronization after explicit write consent.
+- Private origin ids, content fingerprints and a server-only deferred deletion outbox.
+- KeeleSepp insert, move, restore and cancellation propagation for individual lessons and
+  whole recurring series.
 
 Next:
 
-- Two-way Google synchronization with explicit write consent, origin ids and conflict policy.
 - Per-occurrence editing for recurring series instead of moving the entire template.
+- Explicit conflict review, Google eTag checks and incremental sync tokens.
 - Teacher availability, rooms and working-hour constraints.
 - Mobile long-press creation and a compact agenda view.
 

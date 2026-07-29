@@ -46,6 +46,15 @@ const {
   toCents,
   validIsoDate,
 } = require("./finance-core");
+const {
+  GOOGLE_SCOPE_EVENTS_OWNED,
+  hasCalendarWriteScope,
+  scheduleToGoogleEvent,
+  scheduleSyncFingerprint,
+  managedGoogleScheduleId,
+  isKeeleSeppManagedGoogleEvent,
+  isGoogleGoneError,
+} = require("./calendar-sync-core");
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -109,16 +118,24 @@ const calendarReturnUrl = status => {
 };
 
 function publicCalendarMetadata(connection = {}) {
+  const writeEnabled = Boolean(
+    connection.writeEnabled || hasCalendarWriteScope(connection.grantedScopes),
+  );
   return {
     connected: Boolean(connection.connected),
     provider: "google",
-    direction: "google_to_keelesepp",
+    direction: writeEnabled ? "two_way" : "google_to_keelesepp",
+    writeEnabled,
+    requiresWriteConsent: Boolean(connection.connected) && !writeEnabled,
     connectedAt: connection.connectedAt || null,
     lastSyncAt: connection.lastSyncAt || null,
     lastSyncCount: Number(connection.lastSyncCount || 0),
     lastSyncSkipped: Number(connection.lastSyncSkipped || 0),
     lastSyncRemoved: Number(connection.lastSyncRemoved || 0),
+    lastSyncCancelled: Number(connection.lastSyncCancelled || 0),
     lastSyncError: connection.lastSyncError || "",
+    lastPushAt: connection.lastPushAt || null,
+    lastPushError: connection.lastPushError || "",
   };
 }
 
@@ -149,7 +166,12 @@ async function loadCalendarConnection(uid, { migrateLegacy = true } = {}) {
     lastSyncCount: Number(legacy.lastSyncCount || 0),
     lastSyncSkipped: Number(legacy.lastSyncSkipped || 0),
     lastSyncRemoved: Number(legacy.lastSyncRemoved || 0),
+    lastSyncCancelled: Number(legacy.lastSyncCancelled || 0),
     lastSyncError: legacy.lastSyncError || "",
+    grantedScopes: "",
+    writeEnabled: false,
+    lastPushAt: null,
+    lastPushError: "",
     migratedAt: new Date().toISOString(),
   };
   if (migrateLegacy) {
@@ -160,10 +182,23 @@ async function loadCalendarConnection(uid, { migrateLegacy = true } = {}) {
 }
 
 async function saveCalendarConnection(uid, connection, { merge = true } = {}) {
+  let existing = {};
+  if (merge) {
+    const existingSnap = await calendarConnectionRef(uid).get();
+    existing = existingSnap.exists ? existingSnap.data() : {};
+  }
+  const grantedScopes = connection.grantedScopes || existing.grantedScopes || "";
   const next = {
+    ...existing,
     ...connection,
     connected: connection.connected !== false,
     provider: "google",
+    grantedScopes,
+    writeEnabled: Boolean(
+      connection.writeEnabled
+      || existing.writeEnabled
+      || hasCalendarWriteScope(grantedScopes),
+    ),
     updatedAt: new Date().toISOString(),
   };
   await calendarConnectionRef(uid).set(next, { merge });
@@ -171,6 +206,24 @@ async function saveCalendarConnection(uid, connection, { merge = true } = {}) {
     gcal: publicCalendarMetadata(next),
   }, { merge: true });
   return next;
+}
+
+async function authorizedGoogleCalendar(uid, connection) {
+  const oauth2 = getOAuthClient();
+  oauth2.setCredentials({
+    access_token: connection.accessToken || connection.access_token,
+    refresh_token: connection.refreshToken || connection.refresh_token,
+    expiry_date: connection.expiryDate || connection.expiry_date,
+  });
+  const refreshed = await oauth2.getAccessToken();
+  if (refreshed.res?.data?.access_token) {
+    await calendarConnectionRef(uid).set({
+      accessToken: refreshed.res.data.access_token,
+      expiryDate: refreshed.res.data.expiry_date || connection.expiryDate || null,
+      updatedAt: new Date().toISOString(),
+    }, { merge: true });
+  }
+  return google.calendar({ version: "v3", auth: oauth2 });
 }
 
 // ── HELPERS ───────────────────────────────────────────────────
@@ -3169,6 +3222,28 @@ function extractStudentName(title) {
 // (findStudentByName удалена: поиск по имени теперь идёт по кэшу,
 // собираемому один раз за прогон в syncTeacherCalendar)
 
+function stripKeeleSeppCalendarMetadata(description) {
+  return String(description || "")
+    .split(/\r?\n/)
+    .filter(line => !/^student:/i.test(line) && !/^KeeleSepp schedule:/i.test(line))
+    .join("\n")
+    .trim();
+}
+
+function googleRecurrenceDay(event) {
+  const rrule = (event.recurrence || []).find(item => /^RRULE:/i.test(item)) || "";
+  const match = rrule.match(/(?:^|;)BYDAY=(MO|TU|WE|TH|FR|SA|SU)(?:;|$)/i);
+  return {
+    MO: "Mon",
+    TU: "Tue",
+    WE: "Wed",
+    TH: "Thu",
+    FR: "Fri",
+    SA: "Sat",
+    SU: "Sun",
+  }[String(match?.[1] || "").toUpperCase()] || "";
+}
+
 // Convert Google Calendar event to KeeleSepp schedule format
 function gcalEventToSchedule(event, teacher, studentId, studentName, teacherUid) {
   const start = event.start?.dateTime || event.start?.date;
@@ -3188,21 +3263,31 @@ function gcalEventToSchedule(event, teacher, studentId, studentName, teacherUid)
     duration = Math.round((new Date(end) - startDate) / 60000);
   }
 
+  const managedByKeeleSepp = isKeeleSeppManagedGoogleEvent(event);
+  const recurrenceDay = managedByKeeleSepp ? googleRecurrenceDay(event) : "";
   return {
     gcalEventId:  event.id,
     gcalCalId:    event.calendarId || "primary",
+    gcalEtag:     event.etag || "",
     title:        event.summary || "",
     studentId:    studentId || "",
     studentName:  studentName || extractStudentName(event.summary) || "",
     teacher:      teacher || "",
     teacherFull:  teacher || "",
     teacherUid:   teacherUid || "",
-    date,
+    date:         recurrenceDay ? "" : date,
+    startDate:    recurrenceDay ? date : "",
+    day:          recurrenceDay,
+    recurring:    Boolean(recurrenceDay),
     time,
     duration,
-    notes:        event.description || "",
+    notes:        managedByKeeleSepp
+      ? stripKeeleSeppCalendarMetadata(event.description)
+      : event.description || "",
     status:       "Planeeritud",
-    source:       "gcal",
+    source:       managedByKeeleSepp ? "keelesepp" : "gcal",
+    gcalSyncStatus: "synced",
+    gcalSyncedAt: new Date().toISOString(),
     updatedAt:    new Date().toISOString(),
   };
 }
@@ -3492,12 +3577,13 @@ exports.gcalApi = functions.https.onRequest(async (req, res) => {
       await db.collection("oauthStates").doc(state).set({
         uid,
         provider: "gcal",
+        requestedWriteAccess: true,
         createdAt: FieldValue.serverTimestamp(),
       });
       const url = oauth2.generateAuthUrl({
         access_type: "offline",
         prompt: "consent",
-        scope: ["https://www.googleapis.com/auth/calendar.readonly"],
+        scope: [GOOGLE_SCOPE_EVENTS_OWNED],
         state,
       });
       res.json({ url });
@@ -3518,25 +3604,36 @@ exports.gcalApi = functions.https.onRequest(async (req, res) => {
         res.status(400).send("Invalid OAuth state");
         return;
       }
-      const { uid } = stateSnap.data();
+      const stateData = stateSnap.data();
+      const { uid } = stateData;
       await stateRef.delete();
       const oauth2 = getOAuthClient();
       const { tokens } = await oauth2.getToken(code);
       const existing = await loadCalendarConnection(uid, { migrateLegacy: true });
+      const grantedScopes = tokens.scope
+        || (stateData.requestedWriteAccess ? GOOGLE_SCOPE_EVENTS_OWNED : existing?.grantedScopes)
+        || "";
       const connection = await saveCalendarConnection(uid, {
         connected: true,
         accessToken: tokens.access_token || existing?.accessToken || "",
         refreshToken: tokens.refresh_token || existing?.refreshToken || "",
         expiryDate: tokens.expiry_date || existing?.expiryDate || null,
+        grantedScopes,
+        writeEnabled: hasCalendarWriteScope(grantedScopes),
         connectedAt: new Date().toISOString(),
         lastSyncAt: null,
         lastSyncCount: 0,
         lastSyncSkipped: 0,
         lastSyncRemoved: 0,
+        lastSyncCancelled: 0,
         lastSyncError: "",
+        lastPushAt: null,
+        lastPushError: "",
       });
       // Trigger initial sync
       await syncTeacherCalendar(uid, connection);
+      await flushCalendarSyncOutbox(uid, connection);
+      await backfillScheduleToGoogle(uid, connection);
       // Redirect back to app
       res.redirect(calendarReturnUrl("connected"));
     } catch (e) {
@@ -3558,7 +3655,22 @@ exports.gcalApi = functions.https.onRequest(async (req, res) => {
         return;
       }
       const result = await syncTeacherCalendar(uid, connection);
-      res.json({ success: true, synced: result.synced, skipped: result.skipped, removed: result.removed });
+      const outbox = calendarConnectionCanWrite(connection)
+        ? await flushCalendarSyncOutbox(uid, connection)
+        : { deleted: 0, failed: 0 };
+      const pushed = calendarConnectionCanWrite(connection)
+        ? await backfillScheduleToGoogle(uid, connection)
+        : { synced: 0, skipped: 0, failed: 0 };
+      res.json({
+        success: true,
+        synced: result.synced,
+        skipped: result.skipped,
+        removed: result.removed,
+        cancelled: result.cancelled,
+        pushed: pushed.synced,
+        pushFailed: pushed.failed + outbox.failed,
+        deferredDeleted: outbox.deleted,
+      });
     } catch (e) {
       console.error("Sync error:", e);
       const message=String(e.message||"Sync failed").slice(0,500);
@@ -3568,7 +3680,7 @@ exports.gcalApi = functions.https.onRequest(async (req, res) => {
           updatedAt:new Date().toISOString(),
         },{merge:true});
         await db.collection("users").doc(uid).set({
-          "gcal.lastSyncError":message,
+          gcal: { lastSyncError: message },
         },{merge:true});
       } catch (statusError) {
         console.error("Could not persist Google Calendar sync error:",statusError);
@@ -3624,11 +3736,16 @@ exports.gcalApi = functions.https.onRequest(async (req, res) => {
         connected: !!gcal.connected,
         connectedAt: gcal.connectedAt || null,
         direction: gcal.direction,
+        writeEnabled: gcal.writeEnabled,
+        requiresWriteConsent: gcal.requiresWriteConsent,
         lastSyncAt: gcal.lastSyncAt || null,
         lastSyncCount: gcal.lastSyncCount || 0,
         lastSyncSkipped: gcal.lastSyncSkipped || 0,
         lastSyncRemoved: gcal.lastSyncRemoved || 0,
+        lastSyncCancelled: gcal.lastSyncCancelled || 0,
         lastSyncError: gcal.lastSyncError || "",
+        lastPushAt: gcal.lastPushAt || null,
+        lastPushError: gcal.lastPushError || "",
       });
     } catch (e) {
       sendError(res, e);
@@ -3641,24 +3758,7 @@ exports.gcalApi = functions.https.onRequest(async (req, res) => {
 
 // ── CORE SYNC FUNCTION ────────────────────────────────────────
 async function syncTeacherCalendar(uid, tokens) {
-  const oauth2 = getOAuthClient();
-  oauth2.setCredentials({
-    access_token:  tokens.accessToken  || tokens.access_token,
-    refresh_token: tokens.refreshToken || tokens.refresh_token,
-    expiry_date:   tokens.expiryDate   || tokens.expiry_date,
-  });
-
-  // Refresh token if needed and save
-  const newTokens = await oauth2.getAccessToken();
-  if (newTokens.res?.data?.access_token) {
-    await calendarConnectionRef(uid).set({
-      accessToken: newTokens.res.data.access_token,
-      expiryDate: newTokens.res.data.expiry_date || tokens.expiryDate || null,
-      updatedAt: new Date().toISOString(),
-    }, { merge: true });
-  }
-
-  const calendar = google.calendar({ version: "v3", auth: oauth2 });
+  const calendar = await authorizedGoogleCalendar(uid, tokens);
 
   // Get teacher name from Firestore
   const userDoc = await db.collection("users").doc(uid).get();
@@ -3679,7 +3779,29 @@ async function syncTeacherCalendar(uid, tokens) {
     maxResults: 500,
   });
 
-  const events = eventsResp.data.items || [];
+  let events = eventsResp.data.items || [];
+  const managedRecurringIds = [...new Set(events
+    .filter(event => event.recurringEventId && isKeeleSeppManagedGoogleEvent(event))
+    .map(event => event.recurringEventId))];
+  if (managedRecurringIds.length) {
+    const recurringMasters = (await Promise.all(managedRecurringIds.map(async eventId => {
+      try {
+        const response = await calendar.events.get({ calendarId: "primary", eventId });
+        return { ...response.data, calendarId: "primary" };
+      } catch (error) {
+        if (!isGoogleGoneError(error)) {
+          console.warn(`Could not load recurring Google event ${eventId}:`, error.message);
+        }
+        return null;
+      }
+    }))).filter(Boolean);
+    events = [
+      ...events.filter(event => !(
+        event.recurringEventId && isKeeleSeppManagedGoogleEvent(event)
+      )),
+      ...recurringMasters,
+    ];
+  }
   let synced = 0;
   let skipped = 0;
   const importedDocIds = new Set();
@@ -3742,8 +3864,18 @@ async function syncTeacherCalendar(uid, tokens) {
     );
     if (!scheduleData?.time) { skipped++; continue; }
 
-    // Upsert by gcalEventId
-    const docRef = db.collection("schedule").doc(`gcal_${event.id}`);
+    const managedScheduleId = managedGoogleScheduleId(event);
+    const docRef = db.collection("schedule").doc(
+      managedScheduleId || `gcal_${event.id}`,
+    );
+    if (managedScheduleId) {
+      scheduleData.gcalSyncHash = scheduleSyncFingerprint(
+        managedScheduleId,
+        scheduleData,
+        APP_TIME_ZONE,
+      );
+      scheduleData.gcalLastImportedAt = new Date().toISOString();
+    }
     batch.set(docRef, scheduleData, { merge: true });
     importedDocIds.add(docRef.id);
     synced++;
@@ -3769,6 +3901,33 @@ async function syncTeacherCalendar(uid, tokens) {
     await deleteBatch.commit();
   }
   const removed = staleDocs.length;
+  const managedStaleDocs = importedSnap.docs.filter(doc => {
+    const event = doc.data();
+    const scheduleDate = event.date || event.startDate || "";
+    const isForwardLooking = event.recurring
+      || (scheduleDate >= syncWindowStart && scheduleDate <= syncWindowEnd);
+    return event.source === "keelesepp"
+      && Boolean(event.gcalEventId)
+      && isForwardLooking
+      && !importedDocIds.has(doc.id);
+  });
+  for (let offset = 0; offset < managedStaleDocs.length; offset += 400) {
+    const cancelBatch = db.batch();
+    managedStaleDocs.slice(offset, offset + 400).forEach(doc => {
+      const cancelled = { ...doc.data(), status: "Tühistatud" };
+      cancelBatch.set(doc.ref, {
+        status: "Tühistatud",
+        gcalEventId: FieldValue.delete(),
+        gcalEtag: FieldValue.delete(),
+        gcalSyncStatus: "deleted_in_google",
+        gcalSyncHash: scheduleSyncFingerprint(doc.id, cancelled, APP_TIME_ZONE),
+        gcalDeletedInGoogleAt: new Date().toISOString(),
+        updatedAtIso: new Date().toISOString(),
+      }, { merge: true });
+    });
+    await cancelBatch.commit();
+  }
+  const cancelled = managedStaleDocs.length;
 
   const syncMetadata = {
     connected: true,
@@ -3777,13 +3936,298 @@ async function syncTeacherCalendar(uid, tokens) {
     lastSyncCount: synced,
     lastSyncSkipped: skipped,
     lastSyncRemoved: removed,
+    lastSyncCancelled: cancelled,
     lastSyncError: "",
   };
   await saveCalendarConnection(uid, syncMetadata);
 
-  console.log(`Synced ${synced} events for teacher ${teacherName}, skipped ${skipped}, removed ${removed}`);
-  return { synced, skipped, removed };
+  console.log(`Synced ${synced} events for teacher ${teacherName}, skipped ${skipped}, removed ${removed}, cancelled ${cancelled}`);
+  return { synced, skipped, removed, cancelled };
 }
+
+async function updateCalendarPushMetadata(uid, { error = "" } = {}) {
+  const nowIso = new Date().toISOString();
+  const patch = {
+    lastPushError: String(error || "").slice(0, 500),
+    updatedAt: nowIso,
+  };
+  if (!error) patch.lastPushAt = nowIso;
+  await calendarConnectionRef(uid).set(patch, { merge: true });
+  const publicGcalPatch = {
+    lastPushError: patch.lastPushError,
+  };
+  if (!error) publicGcalPatch.lastPushAt = nowIso;
+  await db.collection("users").doc(uid).set({
+    gcal: publicGcalPatch,
+  }, { merge: true });
+}
+
+function calendarConnectionCanWrite(connection) {
+  return Boolean(
+    connection?.connected
+    && connection?.refreshToken
+    && (connection.writeEnabled || hasCalendarWriteScope(connection.grantedScopes)),
+  );
+}
+
+async function queueGoogleEventDeletion(scheduleId, schedule, reason) {
+  if (!schedule?.gcalEventId || !schedule?.teacherUid) return;
+  await db.collection("calendarSyncOutbox").doc(`delete_${scheduleId}`).set({
+    action: "delete",
+    scheduleId,
+    teacherUid: schedule.teacherUid,
+    calendarId: schedule.gcalCalId || "primary",
+    eventId: schedule.gcalEventId,
+    reason: String(reason || "Deferred Google Calendar deletion").slice(0, 300),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  }, { merge: true });
+}
+
+async function flushCalendarSyncOutbox(uid, connection, calendarOverride = null) {
+  if (!calendarConnectionCanWrite(connection)) return { deleted: 0, failed: 0 };
+  const snap = await db.collection("calendarSyncOutbox")
+    .where("teacherUid", "==", uid)
+    .get();
+  if (snap.empty) return { deleted: 0, failed: 0 };
+  const calendar = calendarOverride || await authorizedGoogleCalendar(uid, connection);
+  let deleted = 0;
+  let failed = 0;
+  for (const doc of snap.docs) {
+    const entry = doc.data();
+    if (entry.action !== "delete" || !entry.eventId) continue;
+    try {
+      await calendar.events.delete({
+        calendarId: entry.calendarId || "primary",
+        eventId: entry.eventId,
+      });
+      await doc.ref.delete();
+      deleted++;
+    } catch (error) {
+      if (isGoogleGoneError(error)) {
+        await doc.ref.delete();
+        deleted++;
+      } else {
+        failed++;
+        await doc.ref.set({
+          lastError: String(error.message || error).slice(0, 500),
+          lastAttemptAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }, { merge: true });
+      }
+    }
+  }
+  return { deleted, failed };
+}
+
+async function syncScheduleRecordToGoogle(
+  scheduleId,
+  before,
+  after,
+  { force = false, connectionOverride = null, calendarOverride = null } = {},
+) {
+  const schedule = after || before;
+  if (!schedule || schedule.source === "gcal" || schedule.isGroup) {
+    return { skipped: "external_or_group" };
+  }
+  const uid = String(schedule.teacherUid || "").trim();
+  if (!uid) return { skipped: "missing_teacher_uid" };
+  const connection = connectionOverride
+    || await loadCalendarConnection(uid, { migrateLegacy: true });
+
+  if (!after) {
+    if (!schedule.gcalEventId) return { skipped: "not_linked" };
+    if (!calendarConnectionCanWrite(connection)) {
+      await queueGoogleEventDeletion(scheduleId, schedule, "Calendar write consent unavailable");
+      return { queued: true };
+    }
+    try {
+      const calendar = calendarOverride || await authorizedGoogleCalendar(uid, connection);
+      await calendar.events.delete({
+        calendarId: schedule.gcalCalId || "primary",
+        eventId: schedule.gcalEventId,
+      });
+      await db.collection("calendarSyncOutbox").doc(`delete_${scheduleId}`).delete();
+      await updateCalendarPushMetadata(uid);
+      return { deleted: true };
+    } catch (error) {
+      if (isGoogleGoneError(error)) return { deleted: true, alreadyGone: true };
+      await queueGoogleEventDeletion(scheduleId, schedule, error.message || "Google deletion failed");
+      await updateCalendarPushMetadata(uid, { error: error.message || "Google deletion failed" });
+      return { queued: true, error: error.message || String(error) };
+    }
+  }
+
+  const syncHash = scheduleSyncFingerprint(scheduleId, after, APP_TIME_ZONE);
+  if (!force && (
+    after.gcalSyncHash === syncHash
+    || (after.gcalSyncAttemptHash === syncHash && after.gcalSyncStatus === "error")
+  )) {
+    return { skipped: "already_synchronized" };
+  }
+  if (!calendarConnectionCanWrite(connection)) return { skipped: "write_consent_required" };
+
+  const scheduleRef = db.collection("schedule").doc(scheduleId);
+  const requestBody = scheduleToGoogleEvent(scheduleId, after, APP_TIME_ZONE);
+  if (!requestBody && after.status !== "Tühistatud") {
+    await scheduleRef.set({
+      gcalSyncHash: syncHash,
+      gcalSyncAttemptHash: syncHash,
+      gcalSyncStatus: "skipped",
+      gcalSyncError: "Tunnil puudub Google Calendariga sünkroonimiseks vajalik seos, kuupäev või kellaaeg.",
+      gcalSyncUpdatedAt: new Date().toISOString(),
+    }, { merge: true });
+    return { skipped: "invalid_schedule" };
+  }
+
+  try {
+    const calendar = calendarOverride || await authorizedGoogleCalendar(uid, connection);
+    if (after.status === "Tühistatud") {
+      if (after.gcalEventId) {
+        try {
+          await calendar.events.delete({
+            calendarId: after.gcalCalId || "primary",
+            eventId: after.gcalEventId,
+          });
+        } catch (error) {
+          if (!isGoogleGoneError(error)) throw error;
+        }
+      }
+      await scheduleRef.set({
+        gcalEventId: FieldValue.delete(),
+        gcalEtag: FieldValue.delete(),
+        gcalSyncHash: syncHash,
+        gcalSyncAttemptHash: syncHash,
+        gcalSyncStatus: "cancelled",
+        gcalSyncError: "",
+        gcalSyncedAt: new Date().toISOString(),
+      }, { merge: true });
+      await updateCalendarPushMetadata(uid);
+      return { cancelled: true };
+    }
+
+    let googleEvent;
+    if (after.gcalEventId) {
+      try {
+        const response = await calendar.events.patch({
+          calendarId: after.gcalCalId || "primary",
+          eventId: after.gcalEventId,
+          requestBody,
+        });
+        googleEvent = response.data;
+      } catch (error) {
+        if (!isGoogleGoneError(error)) throw error;
+      }
+    }
+    if (!googleEvent) {
+      const response = await calendar.events.insert({
+        calendarId: "primary",
+        requestBody,
+      });
+      googleEvent = response.data;
+    }
+
+    await scheduleRef.set({
+      gcalEventId: googleEvent.id,
+      gcalCalId: "primary",
+      gcalEtag: googleEvent.etag || "",
+      gcalSyncHash: syncHash,
+      gcalSyncAttemptHash: syncHash,
+      gcalSyncStatus: "synced",
+      gcalSyncError: "",
+      gcalSyncedAt: new Date().toISOString(),
+      source: "keelesepp",
+    }, { merge: true });
+    await updateCalendarPushMetadata(uid);
+    return { synced: true, eventId: googleEvent.id };
+  } catch (error) {
+    const message = String(error.message || error).slice(0, 500);
+    await scheduleRef.set({
+      gcalSyncAttemptHash: syncHash,
+      gcalSyncStatus: "error",
+      gcalSyncError: message,
+      gcalSyncUpdatedAt: new Date().toISOString(),
+    }, { merge: true });
+    await updateCalendarPushMetadata(uid, { error: message });
+    return { error: message };
+  }
+}
+
+function calendarTeacherKey(value) {
+  const first = normalizeName(value).split(/\s+/)[0] || "";
+  return {
+    yelyzaveta: "elizaveta",
+    elizaveta: "elizaveta",
+    anhelina: "angelina",
+    angelina: "angelina",
+    elena: "jelena",
+    jelena: "jelena",
+  }[first] || first;
+}
+
+async function backfillScheduleToGoogle(uid, connection, { force = false } = {}) {
+  if (!calendarConnectionCanWrite(connection)) return { synced: 0, skipped: 0, failed: 0 };
+  const [scheduleSnap, userSnap] = await Promise.all([
+    db.collection("schedule").get(),
+    db.collection("users").doc(uid).get(),
+  ]);
+  const teacherKey = calendarTeacherKey(userSnap.data()?.displayName || "");
+  const candidateDocs = scheduleSnap.docs.filter(doc => {
+    const schedule = doc.data();
+    if (schedule.teacherUid === uid) return true;
+    return !schedule.teacherUid
+      && teacherKey
+      && calendarTeacherKey(schedule.teacherFull || schedule.teacher) === teacherKey;
+  });
+  const calendar = await authorizedGoogleCalendar(uid, connection);
+  let synced = 0;
+  let skipped = 0;
+  let failed = 0;
+  for (const doc of candidateDocs) {
+    const schedule = doc.data();
+    const scheduleDate = schedule.date || schedule.startDate || "";
+    if (schedule.source === "gcal" || (!schedule.recurring && scheduleDate < localDate(new Date(), APP_TIME_ZONE))) {
+      skipped++;
+      continue;
+    }
+    if (!schedule.teacherUid) {
+      await doc.ref.set({
+        teacherUid: uid,
+        teacherFull: schedule.teacherFull || userSnap.data()?.displayName || schedule.teacher || "",
+        gcalSyncStatus: "queued",
+        gcalSyncUpdatedAt: new Date().toISOString(),
+      }, { merge: true });
+      skipped++;
+      continue;
+    }
+    const result = await syncScheduleRecordToGoogle(
+      doc.id,
+      null,
+      schedule,
+      { force, connectionOverride: connection, calendarOverride: calendar },
+    );
+    if (result.synced || result.cancelled) synced++;
+    else if (result.error) failed++;
+    else skipped++;
+  }
+  return { synced, skipped, failed };
+}
+
+exports.syncScheduleToGoogle = functions.firestore
+  .document("schedule/{scheduleId}")
+  .onWrite(async (change, context) => {
+    const before = change.before.exists ? change.before.data() : null;
+    const after = change.after.exists ? change.after.data() : null;
+    const result = await syncScheduleRecordToGoogle(
+      context.params.scheduleId,
+      before,
+      after,
+    );
+    if (result.error) {
+      console.error(`Google Calendar push failed for ${context.params.scheduleId}:`, result.error);
+    }
+    return null;
+  });
 
 // ── SCHEDULED: sync all connected teachers every hour ─────────
 exports.syncAllCalendars = functions.pubsub
@@ -3808,6 +4252,10 @@ exports.syncAllCalendars = functions.pubsub
     for (const [uid, connection] of connected.entries()) {
       try {
         await syncTeacherCalendar(uid, connection);
+        if (calendarConnectionCanWrite(connection)) {
+          await flushCalendarSyncOutbox(uid, connection);
+          await backfillScheduleToGoogle(uid, connection);
+        }
       } catch (e) {
         console.error(`Sync failed for ${uid}:`, e.message);
         const message = String(e.message || "Sync failed").slice(0, 500);
@@ -3816,7 +4264,7 @@ exports.syncAllCalendars = functions.pubsub
           updatedAt: new Date().toISOString(),
         }, { merge: true });
         await db.collection("users").doc(uid).set({
-          "gcal.lastSyncError": message,
+          gcal: { lastSyncError: message },
         }, { merge: true });
       }
     }
