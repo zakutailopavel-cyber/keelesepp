@@ -10,8 +10,10 @@ Avalik sait +  CRM süsteem.
 ## Õppevara
 
 Õpetaja näeb ühes raamatukogus olemasolevaid tunnikavasid, töölehti, harjutusi,
-kodutöid, materjale ja kontrolltöid. Materjale saab otsida ning filtreerida aine,
-taseme ja tüübi järgi.
+kodutöid, materjale ja kontrolltöid. Raamatukogu avaneb kaustadena:
+aine → tase, klass või vanuserühm → õppekava või teema → materjalid. Otsing töötab
+nii kogu raamatukogus kui ka avatud kausta sees. Puuduvate metaandmetega vanad
+kirjed jäävad nähtavaks eraldi määramata kaustades.
 
 Interaktiivne tööleht määratakse õpilase töölehtede kabinetti. Harjutus või tavaline
 materjal lisatakse kodutööna. Harjutuse lõpetamisel salvestatakse tulemus õpetajale
