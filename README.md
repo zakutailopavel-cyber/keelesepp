@@ -31,6 +31,10 @@ eranditesse ning konkreetne tund salvestatakse eraldi õpilasega seotud kirjena.
 Calendar saab sarja `EXDATE` erandi ja vajadusel uue ühekordse sündmuse. Erandi kustutamisel
 taastatakse sarja algne tund.
 
+Kui õpetaja tõstab või tühistab ühe KeeleSepa sarja tunni otse Google Calendaris, impordib
+käsitsi või tunnine sünkroonimine ainult selle erandi eraldi kirjena. Algne sarjakuupäev ja
+õpilase muutumatu ID säilivad ning Google'is taastatud üksiktund eemaldab erandi KeeleSepast.
+
 ## Õppevara
 
 Õpetaja näeb ühes raamatukogus olemasolevaid tunnikavasid, töölehti, harjutusi,
