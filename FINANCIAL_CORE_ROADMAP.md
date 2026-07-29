@@ -203,6 +203,14 @@ allocations. That will replace the derived FIFO distribution where a payer or
 administrator explicitly identifies which lesson a partial payment covers, while
 preserving FIFO as a migration-safe fallback.
 
+The third Stage 9 slice attaches private payment-order evidence to an exact payment record.
+Administrators can upload a bounded PDF or image, while students, parents and teachers have no
+Storage access. The Financial Core validates the payment-scoped Storage path and appends
+immutable document metadata plus a financial audit entry without changing payment or invoice
+amounts. The accounting register exposes evidence files and includes their names and stable IDs
+in CSV. OCR, supplier documents, accountant export archives and document retention policies
+remain future slices.
+
 ## Cross-cutting technical work
 
 The platform currently keeps substantial UI and business logic in `haldus.html`.

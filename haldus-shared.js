@@ -1,5 +1,5 @@
 (function(){
-  const APP_VERSION  = 'KeeleSepp CRM · 29.07.2026.7';
+  const APP_VERSION  = 'KeeleSepp CRM · 29.07.2026.8';
   const LEVELS   = ['Eelkool','A1','A2','B1','B2','C1'];
   const TEACHERS = ['Pavel','Jelena','Elizaveta','Angelina'];
   const STAFF_ALIASES = {

@@ -107,6 +107,20 @@
     const invoiceById=new Map(invoiceList.filter(item=>item?.id).map(item=>[item.id,item]));
     const activePayments=paymentList.filter(activePayment);
     const paymentsByInvoice=new Map();
+    const documentsByInvoice=new Map();
+    paymentList.forEach(payment=>{
+      const invoiceId=String(payment.invoiceId||'');
+      const documents=(Array.isArray(payment.documents)?payment.documents:[])
+        .filter(document=>document?.storagePath&&document?.fileName)
+        .map(document=>({
+          ...document,
+          paymentId:String(payment.id||document.paymentId||''),
+          paymentStatus:String(payment.status||'active')
+        }));
+      if(!documents.length) return;
+      if(!documentsByInvoice.has(invoiceId)) documentsByInvoice.set(invoiceId,[]);
+      documentsByInvoice.get(invoiceId).push(...documents);
+    });
     activePayments.forEach(payment=>{
       const invoiceId=String(payment.invoiceId||'');
       if(!paymentsByInvoice.has(invoiceId)) paymentsByInvoice.set(invoiceId,[]);
@@ -155,6 +169,9 @@
           paymentSources:sources,
           paymentSourceLabels:sources.map(source=>source==='legacy'?'Vana märge':sourceLabel(source)),
           paymentIds:linkedPayments.map(payment=>payment.id).filter(Boolean),
+          paymentDocuments:(documentsByInvoice.get(String(invoice.id||''))||[])
+            .slice()
+            .sort((a,b)=>`${b.uploadedAt||''}:${b.id||''}`.localeCompare(`${a.uploadedAt||''}:${a.id||''}`)),
           reconciliationMismatch:hasSnapshot&&Math.abs(snapshotPaidCents-ledgerPaidCents)>1,
           legacyPaid:!linkedPayments.length&&invoice.status==='Makstud',
           raw:invoice
@@ -543,7 +560,8 @@
   function accountingRegisterCsv(register={}){
     const header=[
       'Arve nr','Kuupäev','Tähtaeg','Maksja','Kirjeldus',
-      'Arve summa','Laekunud','Jääk','Staatus','Makseallikas','Maksekuupäevad'
+      'Arve summa','Laekunud','Jääk','Staatus','Makseallikas','Maksekuupäevad',
+      'Maksekorraldused','Dokumendi ID-d'
     ];
     const lines=(register.rows||[]).map(row=>[
       row.number,
@@ -556,7 +574,9 @@
       amountFromCents(row.balanceCents).toFixed(2),
       statusLabel(row.status),
       (row.paymentSourceLabels||[]).join(', '),
-      (row.paymentDates||[]).join(', ')
+      (row.paymentDates||[]).join(', '),
+      (row.paymentDocuments||[]).map(document=>document.fileName).join(', '),
+      (row.paymentDocuments||[]).map(document=>document.id).filter(Boolean).join(', ')
     ].map(csvCell).join(';'));
     return '\uFEFF'+[header.map(csvCell).join(';'),...lines].join('\n');
   }

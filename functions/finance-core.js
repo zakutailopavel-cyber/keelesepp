@@ -52,6 +52,73 @@ function positiveInteger(value, field = "value", max = 10000) {
   return number;
 }
 
+const PAYMENT_DOCUMENT_CONTENT_TYPES = new Set([
+  "application/pdf",
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+]);
+
+function paymentDocumentRecord({
+  paymentId,
+  documentId,
+  storagePath,
+  fileName,
+  contentType,
+  size,
+  uploadedAt,
+} = {}) {
+  const cleanPaymentId = String(paymentId || "").trim();
+  const cleanDocumentId = String(documentId || "").trim();
+  if (!/^[A-Za-z0-9_-]{1,160}$/.test(cleanPaymentId)) {
+    const error = new Error("valid paymentId required");
+    error.status = 400;
+    throw error;
+  }
+  if (!/^[A-Za-z0-9_-]{12,120}$/.test(cleanDocumentId)) {
+    const error = new Error("valid documentId required");
+    error.status = 400;
+    throw error;
+  }
+  const expectedPath = `financial/payment-orders/${cleanPaymentId}/${cleanDocumentId}`;
+  if (String(storagePath || "").trim() !== expectedPath) {
+    const error = new Error("payment document storage path does not match its payment");
+    error.status = 400;
+    throw error;
+  }
+  const cleanFileName = String(fileName || "")
+    .replace(/[\u0000-\u001f\u007f]/g, "")
+    .trim()
+    .slice(0, 180);
+  if (!cleanFileName) {
+    const error = new Error("payment document fileName required");
+    error.status = 400;
+    throw error;
+  }
+  const cleanContentType = String(contentType || "").trim().toLowerCase();
+  if (!PAYMENT_DOCUMENT_CONTENT_TYPES.has(cleanContentType)) {
+    const error = new Error("payment document must be PDF, JPEG, PNG, or WebP");
+    error.status = 400;
+    throw error;
+  }
+  const byteSize = Number(size);
+  if (!Number.isInteger(byteSize) || byteSize <= 0 || byteSize > 10 * 1024 * 1024) {
+    const error = new Error("payment document must be between 1 byte and 10 MB");
+    error.status = 400;
+    throw error;
+  }
+  return {
+    id: cleanDocumentId,
+    kind: "payment_order",
+    paymentId: cleanPaymentId,
+    storagePath: expectedPath,
+    fileName: cleanFileName,
+    contentType: cleanContentType,
+    size: byteSize,
+    uploadedAt: String(uploadedAt || ""),
+  };
+}
+
 function packageBalanceAfterEntry(packageAccount = {}, creditsDelta, nowIso) {
   const delta = Number(creditsDelta);
   if (!Number.isInteger(delta) || delta === 0 || Math.abs(delta) > 500) {
@@ -718,6 +785,7 @@ module.exports = {
   normalizeAllocations,
   packageBalanceAfterEntry,
   packageBalanceAfterLessonMovement,
+  paymentDocumentRecord,
   paymentNetAmountCents,
   planInvoiceOverpaymentTransfer,
   positiveInteger,

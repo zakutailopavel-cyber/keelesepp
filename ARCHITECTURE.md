@@ -77,6 +77,16 @@ mismatches, payment overflow, paid snapshots without payment records and absence
 billing disposition. Both registers have CSV output with stable IDs. VAT, expenses and
 period-close evidence remain future accounting slices.
 
+Payment-order evidence is stored under
+`financial/payment-orders/{paymentId}/{documentId}` in Firebase Storage. Only administrators
+may create or read these objects; client updates and deletes are denied. After a successful
+upload, the administrator calls the Financial Core with the exact payment ID, immutable
+document ID, expected Storage path, bounded filename, MIME type and byte size. The server
+validates the path and metadata, appends the document snapshot to the payment and writes an
+immutable `payment.document_attached` audit entry in one Firestore transaction. Payment amount,
+invoice balance and allocation are not changed by attaching evidence. Voided payments keep
+their prior evidence but reject new attachments.
+
 ### Staff operations
 
 `functions/staff-operations-core.js` owns deterministic work-duration, hourly-rate, payroll and

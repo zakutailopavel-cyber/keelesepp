@@ -37,6 +37,7 @@ const {
   normalizeAllocations,
   packageBalanceAfterEntry,
   packageBalanceAfterLessonMovement,
+  paymentDocumentRecord,
   paymentNetAmountCents,
   planInvoiceOverpaymentTransfer,
   positiveInteger,
@@ -2123,6 +2124,105 @@ async function recordInvoicePayment({ actor, invoiceId, amount, paidAt, method, 
   });
 }
 
+async function attachPaymentDocument({
+  actor,
+  paymentId,
+  storagePath,
+  fileName,
+  contentType,
+  size,
+  requestId,
+}) {
+  const mutationId = cleanRequestId(requestId);
+  const cleanPaymentId = String(paymentId || "").trim();
+  const paymentRef = db.collection("payments").doc(cleanPaymentId);
+  const auditRef = db.collection("financialAudit").doc(mutationId);
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+  const document = {
+    ...paymentDocumentRecord({
+      paymentId: cleanPaymentId,
+      documentId: mutationId,
+      storagePath,
+      fileName,
+      contentType,
+      size,
+      uploadedAt: nowIso,
+    }),
+    uploadedBy: actorData,
+  };
+
+  return db.runTransaction(async transaction => {
+    const auditSnap = await transaction.get(auditRef);
+    const paymentSnap = await transaction.get(paymentRef);
+    if (!paymentSnap.exists) throw httpError(404, "Payment not found");
+    const payment = paymentSnap.data();
+    if (auditSnap.exists) {
+      const audit = auditSnap.data();
+      if (
+        audit.action !== "payment.document_attached"
+        || audit.paymentId !== cleanPaymentId
+        || audit.documentId !== mutationId
+        || audit.storagePath !== document.storagePath
+      ) {
+        throw httpError(409, "requestId already used for a different financial mutation");
+      }
+      return {
+        payment: { id: paymentSnap.id, ...payment },
+        document,
+        idempotent: true,
+      };
+    }
+    if (payment.status === "voided") {
+      throw httpError(409, "Cannot attach a document to a voided payment");
+    }
+
+    const documents = Array.isArray(payment.documents) ? payment.documents : [];
+    if (documents.length >= 20) {
+      throw httpError(409, "A payment can have at most 20 accounting documents");
+    }
+    if (documents.some(item => item?.id === mutationId || item?.storagePath === document.storagePath)) {
+      throw httpError(409, "Payment document already attached");
+    }
+    const nextDocuments = [...documents, document];
+    transaction.update(paymentRef, {
+      documents: nextDocuments,
+      documentCount: nextDocuments.length,
+      documentsUpdatedAt: nowIso,
+    });
+    transaction.create(auditRef, {
+      entityType: "payment",
+      entityId: cleanPaymentId,
+      invoiceId: payment.invoiceId || "",
+      invoiceNum: payment.invoiceNum || "",
+      paymentId: cleanPaymentId,
+      documentId: mutationId,
+      storagePath: document.storagePath,
+      fileName: document.fileName,
+      contentType: document.contentType,
+      size: document.size,
+      action: "payment.document_attached",
+      beforeDocumentCount: documents.length,
+      afterDocumentCount: nextDocuments.length,
+      actor: actorData,
+      reason: "Payment order attached for accounting",
+      createdAt: nowIso,
+      requestId: mutationId,
+    });
+    return {
+      payment: {
+        id: paymentSnap.id,
+        ...payment,
+        documents: nextDocuments,
+        documentCount: nextDocuments.length,
+        documentsUpdatedAt: nowIso,
+      },
+      document,
+      idempotent: false,
+    };
+  });
+}
+
 async function resetInvoicePayments({ actor, invoiceId, reason, requestId }) {
   const mutationId = cleanRequestId(requestId);
   const invoiceRef = db.collection("invoices").doc(String(invoiceId || ""));
@@ -3968,6 +4068,19 @@ exports.financeApi = functions.https.onRequest(async (req, res) => {
         method: req.body?.method,
         reference: req.body?.reference,
         note: req.body?.note,
+        requestId: req.body?.requestId,
+      });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/payments/documents") {
+      const result = await attachPaymentDocument({
+        actor,
+        paymentId: req.body?.paymentId,
+        storagePath: req.body?.storagePath,
+        fileName: req.body?.fileName,
+        contentType: req.body?.contentType,
+        size: req.body?.size,
         requestId: req.body?.requestId,
       });
       res.status(result.idempotent ? 200 : 201).json(result);

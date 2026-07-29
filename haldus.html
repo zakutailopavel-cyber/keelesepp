@@ -6687,10 +6687,21 @@ function ParentInvoicesView({invoices,printInvoice,submitParentPayment}) {
 }
 
 // ── ARVED ÜLDVAADE ────────────────────────────────────────────
-function InvoicesView({invoices,payments,myStudents,parents,schedule,students,lessons,isAdmin,tariffs=[],tariffAssignments=[],packageProducts=[],studentPackages=[],packageLedger=[],createTariffVersion,assignStudentTariff,createPackageProduct,issueStudentPackage,adjustStudentPackage,invStu,setInvStu,invAmt,setInvAmt,invDesc,setInvDesc,invRef,setInvRef,invDue,setInvDue,addInvoice,recordPayment,markPaid,unmarkPaid,voidPayment,resolveInvoiceOverpayment,creditInvoiceLessonLine,openCreditNotePdf,sendCreditNoteEmail,deleteInvoice,printInvoice,updateInvoiceReference,updateInvoiceDue,sendInvoiceEmail,sendInvoiceReminder,sendMonthlyInvoiceReminders,invoiceEmailBusy}) {
+function InvoicesView({invoices,payments,myStudents,parents,schedule,students,lessons,isAdmin,tariffs=[],tariffAssignments=[],packageProducts=[],studentPackages=[],packageLedger=[],createTariffVersion,assignStudentTariff,createPackageProduct,issueStudentPackage,adjustStudentPackage,invStu,setInvStu,invAmt,setInvAmt,invDesc,setInvDesc,invRef,setInvRef,invDue,setInvDue,addInvoice,recordPayment,uploadPaymentDocument,openPaymentDocument,markPaid,unmarkPaid,voidPayment,resolveInvoiceOverpayment,creditInvoiceLessonLine,openCreditNotePdf,sendCreditNoteEmail,deleteInvoice,printInvoice,updateInvoiceReference,updateInvoiceDue,sendInvoiceEmail,sendInvoiceReminder,sendMonthlyInvoiceReminders,invoiceEmailBusy}) {
   const unpaidAmt=invoices.filter(i=>i.status==='Ootel').reduce((sum,inv)=>sum+invoiceFinancialSummary(inv).balance,0);
   const paid=invoices.filter(i=>i.status==='Makstud');
   const [statsPeriod,setStatsPeriod] = React.useState('current');
+  const [paymentDocumentBusy,setPaymentDocumentBusy] = React.useState('');
+  const attachPaymentFile=async(payment,file,input)=>{
+    if(!file||!uploadPaymentDocument) return;
+    setPaymentDocumentBusy(payment.id);
+    try{
+      await uploadPaymentDocument(payment,file);
+    }finally{
+      setPaymentDocumentBusy('');
+      if(input) input.value='';
+    }
+  };
 
   // Period boundaries
   const now = new Date();
@@ -7810,7 +7821,8 @@ function InvoicesView({invoices,payments,myStudents,parents,schedule,students,le
           :[...visibleInvoices].sort((a,b)=>new Date(b.date)-new Date(a.date)).map(inv=>{
             const mailMeta = invoiceMailMeta(inv);
             const financial = invoiceFinancialSummary(inv);
-            const invoicePayments = (payments||[]).filter(payment=>payment.invoiceId===inv.id&&payment.status!=='voided');
+            const invoicePaymentHistory = (payments||[]).filter(payment=>payment.invoiceId===inv.id);
+            const invoicePayments = invoicePaymentHistory.filter(payment=>payment.status!=='voided');
             const correctedLessonIds = new Set(inv.correctedLessonIds||[]);
             return (
             <div key={inv.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'14px 20px',borderBottom:'1px solid rgba(28,43,58,.05)',flexWrap:'wrap',gap:10}}>
@@ -7870,7 +7882,7 @@ function InvoicesView({invoices,payments,myStudents,parents,schedule,students,le
                     Vanem teavitas maksest {fmtDate(inv.parentPaymentSubmittedAt)} · {PAYMENT_METHODS.find(method=>method.id===(inv.parentPaymentMethod||'bank'))?.label || 'Pangaülekanne'}
                   </div>
                 )}
-                {(financial.paid>0||invoicePayments.length>0)&&(
+                {(financial.paid>0||invoicePaymentHistory.length>0)&&(
                   <div style={{marginTop:4}}>
                     <div style={{fontSize:'.78rem',color:financial.overpaid>0?'#7c3aed':'#166534',fontWeight:700}}>
                       Laekunud {money(financial.paid)}€ · jääk {money(financial.balance)}€
@@ -7878,16 +7890,37 @@ function InvoicesView({invoices,payments,myStudents,parents,schedule,students,le
                       {invoicePayments.length>0&&<span style={{fontWeight:500,color:'#42536A'}}> · {invoicePayments.length} makset</span>}
                       {financial.paymentStatus==='legacy_paid'&&<span style={{fontWeight:500,color:'#42536A'}}> · vana märge</span>}
                     </div>
-                    {invoicePayments.slice().sort((a,b)=>String(b.paidAt||b.createdAt).localeCompare(String(a.paidAt||a.createdAt))).slice(0,5).map(payment=>(
-                      <div key={payment.id} style={{fontSize:'.72rem',color:'#64748b',marginTop:3,display:'flex',gap:6,alignItems:'center',flexWrap:'wrap'}}>
-                        <span>
-                          {fmtDate(payment.paidAt||payment.createdAt)} · {money(paymentFinancialSummary(payment).net)}€
-                          {paymentFinancialSummary(payment).resolved>0&&<> <s>{money(paymentFinancialSummary(payment).gross)}€</s> · {money(paymentFinancialSummary(payment).resolved)}€ avansiks</>}
-                          {' · '}{payment.method==='credit'?'Avanss':PAYMENT_METHODS.find(method=>method.id===payment.method)?.label||payment.method||'Makse'}
-                          {payment.reference&&<> · {payment.reference}</>}
-                        </span>
-                        {isAdmin&&voidPayment&&paymentFinancialSummary(payment).net>0&&(
-                          <button onClick={()=>voidPayment(payment)} className="btn btn-red btn-sm" style={{padding:'2px 7px',fontSize:'.66rem'}}>Tühista see</button>
+                    {invoicePaymentHistory.slice().sort((a,b)=>String(b.paidAt||b.createdAt).localeCompare(String(a.paidAt||a.createdAt))).slice(0,10).map(payment=>(
+                      <div key={payment.id} style={{fontSize:'.72rem',color:'#64748b',marginTop:6,padding:'7px 9px',border:'1px solid rgba(28,43,58,.08)',borderRadius:9}}>
+                        <div style={{display:'flex',gap:6,alignItems:'center',flexWrap:'wrap'}}>
+                          <span>
+                            {fmtDate(payment.paidAt||payment.createdAt)} · {money(paymentFinancialSummary(payment).net)}€
+                            {paymentFinancialSummary(payment).resolved>0&&<> <s>{money(paymentFinancialSummary(payment).gross)}€</s> · {money(paymentFinancialSummary(payment).resolved)}€ avansiks</>}
+                            {' · '}{payment.method==='credit'?'Avanss':PAYMENT_METHODS.find(method=>method.id===payment.method)?.label||payment.method||'Makse'}
+                            {payment.reference&&<> · {payment.reference}</>}
+                          </span>
+                          {payment.status==='voided'&&<span className="badge" style={{background:'#fee2e2',color:'#991b1b'}}>Tühistatud</span>}
+                          {isAdmin&&voidPayment&&payment.status!=='voided'&&paymentFinancialSummary(payment).net>0&&(
+                            <button onClick={()=>voidPayment(payment)} className="btn btn-red btn-sm" style={{padding:'2px 7px',fontSize:'.66rem'}}>Tühista see</button>
+                          )}
+                          {isAdmin&&uploadPaymentDocument&&payment.status!=='voided'&&(
+                            <label className="btn btn-ghost btn-sm" style={{padding:'2px 7px',fontSize:'.66rem',cursor:paymentDocumentBusy===payment.id?'wait':'pointer',opacity:paymentDocumentBusy===payment.id?0.6:1}}>
+                              <i className="fa-solid fa-paperclip"/> {paymentDocumentBusy===payment.id?'Laen...':'Lisa maksekorraldus'}
+                              <input type="file" accept=".pdf,image/jpeg,image/png,image/webp" hidden disabled={paymentDocumentBusy===payment.id}
+                                onChange={event=>attachPaymentFile(payment,event.target.files?.[0],event.currentTarget)}/>
+                            </label>
+                          )}
+                        </div>
+                        {Array.isArray(payment.documents)&&payment.documents.length>0&&(
+                          <div style={{display:'flex',gap:5,flexWrap:'wrap',marginTop:6}}>
+                            {payment.documents.map(document=>(
+                              <button key={document.id||document.storagePath} onClick={()=>openPaymentDocument&&openPaymentDocument(document)}
+                                className="btn btn-ghost btn-sm" style={{padding:'3px 7px',fontSize:'.65rem'}}>
+                                <i className={`fa-solid ${document.contentType==='application/pdf'?'fa-file-pdf':'fa-file-image'}`}/>
+                                {document.fileName||'Maksekorraldus'}
+                              </button>
+                            ))}
+                          </div>
                         )}
                       </div>
                     ))}
@@ -8129,7 +8162,7 @@ function LessonPaymentRegisterPanel({month,lessons,invoices,payments,openInvoice
   );
 }
 
-function AccountingRegisterView({invoices,payments,bankTransactions,payerCredits,lessons,openInvoices,openReconciliation}) {
+function AccountingRegisterView({invoices,payments,bankTransactions,payerCredits,lessons,openInvoices,openReconciliation,openPaymentDocument}) {
   const [month,setMonth]=React.useState(()=>today().slice(0,7));
   const [registerMode,setRegisterMode]=React.useState('invoices');
   const [status,setStatus]=React.useState('all');
@@ -8145,7 +8178,7 @@ function AccountingRegisterView({invoices,payments,bankTransactions,payerCredits
     const query=normalizeText(search);
     return register.rows.filter(row=>{
       if(status!=='all'&&row.status!==status) return false;
-      if(query&&!normalizeText(`${row.number} ${row.payer} ${row.description} ${(row.paymentSourceLabels||[]).join(' ')}`).includes(query)) return false;
+      if(query&&!normalizeText(`${row.number} ${row.payer} ${row.description} ${(row.paymentSourceLabels||[]).join(' ')} ${(row.paymentDocuments||[]).map(document=>`${document.fileName||''} ${document.id||''}`).join(' ')}`).includes(query)) return false;
       return true;
     });
   },[register.rows,status,search]);
@@ -8281,7 +8314,7 @@ function AccountingRegisterView({invoices,payments,bankTransactions,payerCredits
           <table style={{width:'100%',borderCollapse:'collapse',minWidth:940}}>
             <thead>
               <tr style={{background:'#F9F8F6',fontSize:'.68rem',textTransform:'uppercase',letterSpacing:'.06em',color:'#64748b'}}>
-                {['Arve','Kuupäev / tähtaeg','Maksja','Summa','Laekunud','Jääk','Makseallikas','Staatus'].map(label=>(
+                {['Arve','Kuupäev / tähtaeg','Maksja','Summa','Laekunud','Jääk','Makseallikas','Dokumendid','Staatus'].map(label=>(
                   <th key={label} style={{padding:'11px 12px',textAlign:['Summa','Laekunud','Jääk'].includes(label)?'right':'left'}}>{label}</th>
                 ))}
               </tr>
@@ -8316,13 +8349,27 @@ function AccountingRegisterView({invoices,payments,bankTransactions,payerCredits
                       {row.reconciliationMismatch&&<div style={{color:'#991b1b',fontSize:'.67rem',fontWeight:700,marginTop:4}}>Summad ei ühti</div>}
                     </td>
                     <td style={{padding:'12px',verticalAlign:'top'}}>
+                      {row.paymentDocuments.length
+                        ? <div style={{display:'grid',gap:4}}>
+                            {row.paymentDocuments.map(document=>(
+                              <button key={`${document.paymentId}-${document.id}`} onClick={()=>openPaymentDocument&&openPaymentDocument(document)}
+                                className="btn btn-ghost btn-sm" style={{padding:'3px 7px',fontSize:'.65rem',justifyContent:'flex-start'}}>
+                                <i className={`fa-solid ${document.contentType==='application/pdf'?'fa-file-pdf':'fa-file-image'}`}/>
+                                <span style={{maxWidth:125,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{document.fileName}</span>
+                                {document.paymentStatus==='voided'&&<span style={{color:'#991b1b'}}>· tühistatud</span>}
+                              </button>
+                            ))}
+                          </div>
+                        : <span style={{color:'#94a3b8'}}>—</span>}
+                    </td>
+                    <td style={{padding:'12px',verticalAlign:'top'}}>
                       <span className="badge" style={{background:meta.bg,color:meta.color}}>{accountingStatusLabel(row.status)}</span>
                     </td>
                   </tr>
                 );
               })}
               {visibleRows.length===0&&(
-                <tr><td colSpan="8" style={{padding:34,textAlign:'center',color:'#94a3b8'}}>Selles perioodis sobivaid arveid ei ole.</td></tr>
+                <tr><td colSpan="9" style={{padding:34,textAlign:'center',color:'#94a3b8'}}>Selles perioodis sobivaid arveid ei ole.</td></tr>
               )}
             </tbody>
           </table>
@@ -12502,6 +12549,78 @@ function App() {
     }
   },[isAdmin]);
 
+  const uploadPaymentDocument=useCallback(async(payment,file)=>{
+    if(!isAdmin||!payment?.id||!file){notify('⚠ Maksekorralduse lisamiseks vali makse ja fail');return false;}
+    const extension=String(file.name||'').toLowerCase().split('.').pop();
+    const inferredType={
+      pdf:'application/pdf',
+      jpg:'image/jpeg',
+      jpeg:'image/jpeg',
+      png:'image/png',
+      webp:'image/webp'
+    }[extension]||'';
+    const contentType=String(file.type||inferredType).toLowerCase();
+    const allowedTypes=new Set(['application/pdf','image/jpeg','image/png','image/webp']);
+    if(!allowedTypes.has(contentType)){
+      notify('⚠ Lubatud on PDF, JPG, PNG või WebP');
+      return false;
+    }
+    if(!Number.isInteger(file.size)||file.size<=0||file.size>10*1024*1024){
+      notify('⚠ Maksekorralduse fail peab olema kuni 10 MB');
+      return false;
+    }
+    if(!storage){
+      notify('⚠ Failide üleslaadimine pole saadaval');
+      return false;
+    }
+    const requestId=financeRequestId('paymentdoc');
+    const storagePath=`financial/payment-orders/${payment.id}/${requestId}`;
+    try{
+      const fileRef=storage.ref().child(storagePath);
+      await fileRef.put(file,{
+        contentType,
+        customMetadata:{
+          kind:'payment_order',
+          paymentId:String(payment.id),
+          documentId:requestId
+        }
+      });
+      await financeApiPost('/payments/documents',{
+        paymentId:payment.id,
+        storagePath,
+        fileName:String(file.name||'Maksekorraldus').slice(0,180),
+        contentType,
+        size:file.size,
+        requestId
+      });
+      notify('✓ Maksekorraldus lisatud raamatupidamisele');
+      return true;
+    }catch(err){
+      console.error('Payment document upload failed:',err);
+      notify(`⚠ Maksekorralduse lisamine ebaõnnestus: ${err.message||err}`);
+      return false;
+    }
+  },[isAdmin]);
+
+  const openPaymentDocument=useCallback(async paymentDocument=>{
+    if(!isAdmin||!paymentDocument?.storagePath){notify('⚠ Maksekorralduse faili ei leitud');return false;}
+    try{
+      const url=await storage.ref().child(paymentDocument.storagePath).getDownloadURL();
+      const link=document.createElement('a');
+      link.href=url;
+      link.target='_blank';
+      link.rel='noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      return true;
+    }catch(err){
+      console.error('Payment document open failed:',err);
+      notify(`⚠ Maksekorraldust ei saanud avada: ${err.message||err}`);
+      return false;
+    }
+  },[isAdmin]);
+
   const allocateImportedBankTransaction=useCallback(async(payment,allocations)=>{
     if(!isAdmin||!payment?.id){notify('⚠ Ainult administraator saab pangatehinguid jaotada');return false;}
     try{
@@ -13317,7 +13436,7 @@ function App() {
             createPackageProduct={createPackageProduct} issueStudentPackage={issueStudentPackage} adjustStudentPackage={adjustStudentPackage}
             invStu={invStu} setInvStu={setInvStu} invAmt={invAmt} setInvAmt={setInvAmt}
             invDesc={invDesc} setInvDesc={setInvDesc} invRef={invRef} setInvRef={setInvRef} invDue={invDue} setInvDue={setInvDue}
-            addInvoice={addInvoice} recordPayment={recordPayment} markPaid={markPaid} unmarkPaid={unmarkPaid} voidPayment={voidPayment} resolveInvoiceOverpayment={resolveInvoiceOverpayment} creditInvoiceLessonLine={creditInvoiceLessonLine} openCreditNotePdf={openCreditNotePdf} sendCreditNoteEmail={sendCreditNoteEmail} deleteInvoice={deleteInvoice} printInvoice={printInvoice} updateInvoiceReference={updateInvoiceReference} updateInvoiceDue={updateInvoiceDue}
+            addInvoice={addInvoice} recordPayment={recordPayment} uploadPaymentDocument={uploadPaymentDocument} openPaymentDocument={openPaymentDocument} markPaid={markPaid} unmarkPaid={unmarkPaid} voidPayment={voidPayment} resolveInvoiceOverpayment={resolveInvoiceOverpayment} creditInvoiceLessonLine={creditInvoiceLessonLine} openCreditNotePdf={openCreditNotePdf} sendCreditNoteEmail={sendCreditNoteEmail} deleteInvoice={deleteInvoice} printInvoice={printInvoice} updateInvoiceReference={updateInvoiceReference} updateInvoiceDue={updateInvoiceDue}
             sendInvoiceEmail={sendInvoiceEmail} sendInvoiceReminder={sendInvoiceReminder} sendMonthlyInvoiceReminders={sendMonthlyInvoiceReminders} invoiceEmailBusy={invoiceEmailBusy}/>}
 
           {tab==='reconciliation'&&isAdmin&&<PaymentReconciliationView
@@ -13333,6 +13452,7 @@ function App() {
             bankTransactions={bankTransactions}
             payerCredits={payerCredits}
             lessons={lessons}
+            openPaymentDocument={openPaymentDocument}
             openInvoices={()=>goTab('invoices')}
             openReconciliation={()=>goTab('reconciliation')}/>}
 

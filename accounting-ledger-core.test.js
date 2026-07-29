@@ -15,6 +15,12 @@ test('CRM loads the accounting ledger and exposes an administrator screen',()=>{
   assert.match(html,/Arvete ja laekumiste register/);
   assert.match(html,/Tunnid ↔ maksed/);
   assert.match(html,/Tundide ja maksete täpne kontroll/);
+  assert.match(html,/Lisa maksekorraldus/);
+  assert.match(html,/\/payments\/documents/);
+  const storageRules=fs.readFileSync('storage.rules','utf8');
+  assert.match(storageRules,/financial\/payment-orders\/\{paymentId\}\/\{documentId\}/);
+  assert.match(storageRules,/allow read: if accountingAdmin\(\)/);
+  assert.match(storageRules,/application\/pdf\|image\/jpeg\|image\/png\|image\/webp/);
 });
 
 test('invoice issuance and reconciled payments form one register row',()=>{
@@ -31,7 +37,21 @@ test('invoice issuance and reconciled payments form one register row',()=>{
     }],
     payments:[
       {id:'payment-a',invoiceId:'invoice-a',amountCents:4000,paidAt:'2026-07-05',status:'active',bankTransactionId:'bank-a'},
-      {id:'payment-b',invoiceId:'invoice-a',amountCents:2500,paidAt:'2026-07-08',status:'active',method:'cash'}
+      {
+        id:'payment-b',
+        invoiceId:'invoice-a',
+        amountCents:2500,
+        paidAt:'2026-07-08',
+        status:'active',
+        method:'cash',
+        documents:[{
+          id:'paymentdoc-a',
+          storagePath:'financial/payment-orders/payment-b/paymentdoc-a',
+          fileName:'maksekorraldus.pdf',
+          contentType:'application/pdf',
+          size:1200
+        }]
+      }
     ],
     bankTransactions:[{
       id:'bank-a',
@@ -47,6 +67,8 @@ test('invoice issuance and reconciled payments form one register row',()=>{
   assert.equal(register.rows[0].balanceCents,3500);
   assert.equal(register.rows[0].status,'partial');
   assert.deepEqual(register.rows[0].paymentSourceLabels,['Pank','Sularaha']);
+  assert.equal(register.rows[0].paymentDocuments.length,1);
+  assert.equal(register.rows[0].paymentDocuments[0].paymentId,'payment-b');
   assert.equal(register.summary.issuedCents,10000);
   assert.equal(register.summary.paymentsAppliedCents,6500);
   assert.equal(register.summary.bankReceivedCents,4000);
@@ -186,6 +208,35 @@ test('CSV export keeps accountant-friendly columns and escaped values',()=>{
   assert.match(csv,/"Arve nr";"Kuupäev"/);
   assert.match(csv,/"Mari ""M"""/);
   assert.match(csv,/"25\.00"/);
+});
+
+test('accounting CSV includes attached payment-order evidence',()=>{
+  const register=accountingRegister({
+    month:'2026-07',
+    invoices:[{
+      id:'invoice-a',
+      num:'KS-1',
+      date:'2026-07-02',
+      amountCents:3000
+    }],
+    payments:[{
+      id:'payment-a',
+      invoiceId:'invoice-a',
+      amountCents:3000,
+      paidAt:'2026-07-03',
+      status:'active',
+      documents:[{
+        id:'paymentdoc-a',
+        storagePath:'financial/payment-orders/payment-a/paymentdoc-a',
+        fileName:'LHV maksekorraldus.pdf',
+        contentType:'application/pdf',
+        size:1200
+      }]
+    }]
+  });
+  const csv=accountingRegisterCsv(register);
+  assert.match(csv,/"Maksekorraldused";"Dokumendi ID-d"/);
+  assert.match(csv,/"LHV maksekorraldus.pdf";"paymentdoc-a"/);
 });
 
 test('lesson payments cover immutable invoice lines oldest first',()=>{

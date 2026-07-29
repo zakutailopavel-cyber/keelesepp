@@ -5,6 +5,7 @@ on:
     paths:
       - "firebase.json"
       - "firestore.rules"
+      - "storage.rules"
       - "functions/**"
       - "haldus.html"
       - "haldus-calendar-v3.html"
