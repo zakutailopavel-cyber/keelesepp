@@ -71,6 +71,25 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#EEECE7;color:#1C2B3A;min
 .library-type-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
 .library-type-btn{border:1px solid rgba(28,43,58,.1);background:#fff;color:#42536A;border-radius:10px;padding:7px 12px;font-family:inherit;font-size:.77rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;}
 .library-type-btn.active{background:#1C2B3A;color:#fff;border-color:#1C2B3A;}
+.library-breadcrumbs{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:2px 0 15px;font-size:.79rem;}
+.library-crumb{border:none;background:none;color:#718096;font:inherit;font-weight:700;cursor:pointer;padding:3px 0;}
+.library-crumb:hover{color:#2F5D50;}
+.library-crumb.current{color:#1C2B3A;cursor:default;}
+.library-crumb-sep{color:rgba(28,43,58,.24);font-size:.7rem;}
+.library-location{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin:4px 0 12px;}
+.library-location-title{font-family:'Fraunces',Georgia,serif;font-size:1.25rem;font-weight:700;}
+.library-location-sub{font-size:.76rem;color:#718096;margin-top:3px;}
+.library-folder-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
+.library-folder{appearance:none;width:100%;background:#fff;border:1px solid rgba(28,43,58,.08);border-radius:16px;padding:18px;text-align:left;color:#1C2B3A;font-family:inherit;cursor:pointer;min-height:190px;display:flex;flex-direction:column;transition:transform .15s,border-color .15s,box-shadow .15s;}
+.library-folder:hover{transform:translateY(-2px);border-color:var(--folder-color,#C9882A);box-shadow:0 9px 25px rgba(28,43,58,.08);}
+.library-folder-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:15px;}
+.library-folder-icon{width:43px;height:43px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.15rem;flex-shrink:0;}
+.library-folder-count{font-size:.72rem;font-weight:800;padding:4px 9px;border-radius:999px;background:#F0EEE9;color:#42536A;white-space:nowrap;}
+.library-folder-title{font-family:'Fraunces',Georgia,serif;font-size:1.08rem;font-weight:700;line-height:1.3;margin-bottom:4px;}
+.library-folder-sub{font-size:.76rem;color:#718096;line-height:1.45;margin-bottom:13px;}
+.library-folder-preview{display:flex;flex-wrap:wrap;gap:5px;margin-top:auto;}
+.library-folder-preview span{max-width:100%;font-size:.66rem;font-weight:700;padding:4px 7px;border-radius:6px;background:#F4F2EE;color:#42536A;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.library-folder-open{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;padding-top:11px;border-top:1px solid rgba(28,43,58,.07);font-size:.75rem;font-weight:800;color:var(--folder-color,#2F5D50);}
 .library-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
 .library-card{background:#fff;border:1px solid rgba(28,43,58,.08);border-radius:15px;padding:17px 18px;display:flex;flex-direction:column;min-height:215px;transition:transform .15s,border-color .15s,box-shadow .15s;}
 .library-card:hover{transform:translateY(-2px);border-color:rgba(201,136,42,.45);box-shadow:0 8px 24px rgba(28,43,58,.07);}
@@ -239,7 +258,7 @@ textarea{resize:vertical;line-height:1.5;}
 .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:6px;font-size:.71rem;font-weight:700;}
 
 @media(max-width:1000px){
-  .library-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .library-grid,.library-folder-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
   .library-stats{grid-template-columns:repeat(2,minmax(0,1fr));}
 }
 @media(max-width:700px){
@@ -250,10 +269,11 @@ textarea{resize:vertical;line-height:1.5;}
   .library-shell{padding:22px 16px 48px;}
   .library-hero{flex-direction:column;}
   .library-actions{justify-content:flex-start;width:100%;}
-  .library-grid{grid-template-columns:1fr;}
+  .library-grid,.library-folder-grid{grid-template-columns:1fr;}
   .library-stats{grid-template-columns:1fr 1fr;}
   .library-toolbar{align-items:stretch;}
   .library-filter{flex:1;min-width:130px;}
+  .library-location{align-items:flex-start;flex-direction:column;}
 }
 
 /* WORKSHEET PREVIEW MODAL */
@@ -461,6 +481,9 @@ const {
   TYPE_META:LIBRARY_TYPES,
   buildLibraryItems,
   filterLibraryItems,
+  groupLabel,
+  groupLibraryItems,
+  itemsInLibraryPath,
   assignmentKind
 }=window.LearningLibraryCore;
 
@@ -1818,12 +1841,14 @@ function AssignLearningItemModal({item,students,user,onClose,notify}){
 function LearningLibraryView({lessons,exercises,students,isTeacher,onOpenLesson,onOpenExercise,onAssign,onGoCurriculum,onGoExercises,onConductLesson}){
   const[query,setQuery]=useState('');
   const[type,setType]=useState('all');
-  const[subject,setSubject]=useState('all');
-  const[level,setLevel]=useState('all');
+  const[path,setPath]=useState({subject:'',stage:'',topic:''});
   const items=useMemo(()=>buildLibraryItems(lessons,exercises),[lessons,exercises]);
-  const filtered=useMemo(()=>filterLibraryItems(items,{query,type,subject,level}),[items,query,type,subject,level]);
-  const subjects=useMemo(()=>[...new Set(items.map(item=>item.subject).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'et')),[items]);
-  const levels=useMemo(()=>[...new Set(items.map(item=>item.level).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'et',{numeric:true})),[items]);
+  const scoped=useMemo(()=>itemsInLibraryPath(items,path),[items,path]);
+  const visible=useMemo(()=>filterLibraryItems(scoped,{query,type}),[scoped,query,type]);
+  const depth=path.topic?3:path.stage?2:path.subject?1:0;
+  const folderDimension=depth===0?'subject':depth===1?'stage':depth===2?'topic':'';
+  const folderSource=useMemo(()=>type==='all'?scoped:scoped.filter(item=>item.type===type),[scoped,type]);
+  const folders=useMemo(()=>folderDimension&&!query?groupLibraryItems(folderSource,folderDimension):[],[folderSource,folderDimension,query]);
   const counts=useMemo(()=>({
     all:items.length,
     lesson:items.filter(item=>item.type==='lesson').length,
@@ -1838,6 +1863,52 @@ function LearningLibraryView({lessons,exercises,students,isTeacher,onOpenLesson,
     if(item.kind==='exercise') onOpenExercise(item.source);
     else onOpenLesson(item.source);
   };
+  const openFolder=folder=>{
+    setQuery('');
+    if(folderDimension==='subject') setPath({subject:folder.key,stage:'',topic:''});
+    if(folderDimension==='stage') setPath(current=>({...current,stage:folder.key,topic:''}));
+    if(folderDimension==='topic') setPath(current=>({...current,topic:folder.key}));
+  };
+  const goToDepth=target=>{
+    setQuery('');
+    if(target===0) setPath({subject:'',stage:'',topic:''});
+    if(target===1) setPath(current=>({subject:current.subject,stage:'',topic:''}));
+    if(target===2) setPath(current=>({subject:current.subject,stage:current.stage,topic:''}));
+  };
+  const subjectLabel=path.subject?groupLabel('subject',path.subject):'';
+  const stageLabel=path.stage?groupLabel('stage',path.stage):'';
+  const topicLabel=path.topic?groupLabel('topic',path.topic):'';
+  const subjectDefinition=SUBJECTS.find(candidate=>candidate.key===path.subject);
+  const folderHeading=depth===0?'Ained'
+    :depth===1?'Tasemed ja vanuserühmad'
+      :depth===2?'Õppekavad ja teemad'
+        :topicLabel;
+  const folderHelp=depth===0?'Vali aine, et avada selle tasemed ja õppematerjalid.'
+    :depth===1?`Vali ${subjectLabel} tase, klass või vanuserühm.`
+      :depth===2?`Vali ${stageLabel} õppekava või teema.`
+        :`${subjectLabel} · ${stageLabel}`;
+  const folderColor=subjectDefinition?.color||'#2F5D50';
+  const nextDimension=folderDimension==='subject'?'stage':folderDimension==='stage'?'topic':'';
+  const folderPreview=folder=>{
+    if(nextDimension) return groupLibraryItems(folder.items,nextDimension).slice(0,3).map(child=>child.label);
+    return folder.items.slice(0,3).map(item=>item.title);
+  };
+  const folderSub=folder=>{
+    if(folderDimension==='subject'){
+      const childCount=groupLibraryItems(folder.items,'stage').length;
+      return `${childCount} ${childCount===1?'tase või vanuserühm':'taset või vanuserühma'}`;
+    }
+    if(folderDimension==='stage'){
+      const childCount=groupLibraryItems(folder.items,'topic').length;
+      return `${childCount} ${childCount===1?'õppekava või teema':'õppekava või teemat'}`;
+    }
+    const taskCount=folder.items.filter(item=>['worksheet','exercise','homework','test'].includes(item.type)).length;
+    const planCount=folder.items.filter(item=>item.type==='lesson').length;
+    return [
+      planCount?`${planCount} tunnikava`:'',
+      taskCount?`${taskCount} ${taskCount===1?'ülesanne':'ülesannet'}`:''
+    ].filter(Boolean).join(' · ')||'Õppematerjalid';
+  };
 
   return(
     <div className="library-shell">
@@ -1845,7 +1916,7 @@ function LearningLibraryView({lessons,exercises,students,isTeacher,onOpenLesson,
         <div>
           <div className="library-eyebrow">Õpetaja tööruum</div>
           <h1 className="library-title">Õppevara</h1>
-          <p className="library-sub">Tunnikavad, töölehed, harjutused, kodutööd ja kontrolltööd ühes otsitavas raamatukogus. Ava materjal või määra see kohe õpilasele.</p>
+          <p className="library-sub">Materjalid on paigutatud kaustadesse: aine → tase või vanus → õppekava või teema. Ava kaust, leia ülesanne ja määra see õpilasele.</p>
         </div>
         {isTeacher&&<div className="library-actions">
           <button onClick={onGoCurriculum} className="btn btn-ghost"><i className="fa-solid fa-plus"/> Lisa materjal</button>
@@ -1853,7 +1924,7 @@ function LearningLibraryView({lessons,exercises,students,isTeacher,onOpenLesson,
         </div>}
       </div>
 
-      <div className="library-stats">
+      {depth===0&&!query&&<div className="library-stats">
         {[
           {label:'Materjale kokku',value:counts.all,icon:'fa-book-open',color:'#1C2B3A'},
           {label:'Tunnikavasid',value:counts.lesson,icon:'fa-chalkboard-user',color:'#2F5D50'},
@@ -1865,27 +1936,34 @@ function LearningLibraryView({lessons,exercises,students,isTeacher,onOpenLesson,
             <div><div className="library-stat-num">{stat.value}</div><div className="library-stat-label">{stat.label}</div></div>
           </div>
         ))}
-      </div>
+      </div>}
+
+      <nav className="library-breadcrumbs" aria-label="Õppevara asukoht">
+        <button className={'library-crumb'+(depth===0?' current':'')} onClick={()=>depth&&goToDepth(0)}>
+          <i className="fa-solid fa-house" style={{marginRight:5}}/> Õppevara
+        </button>
+        {path.subject&&<><span className="library-crumb-sep">›</span>
+          <button className={'library-crumb'+(depth===1?' current':'')} onClick={()=>depth>1&&goToDepth(1)}>{subjectLabel}</button>
+        </>}
+        {path.stage&&<><span className="library-crumb-sep">›</span>
+          <button className={'library-crumb'+(depth===2?' current':'')} onClick={()=>depth>2&&goToDepth(2)}>{stageLabel}</button>
+        </>}
+        {path.topic&&<><span className="library-crumb-sep">›</span>
+          <span className="library-crumb current">{topicLabel}</span>
+        </>}
+      </nav>
 
       <div className="library-toolbar">
         <div className="library-search">
           <i className="fa-solid fa-magnifying-glass"/>
-          <input value={query} onChange={event=>setQuery(event.target.value)} placeholder="Otsi nime, teema, taseme või märksõna järgi..."/>
+          <input value={query} onChange={event=>setQuery(event.target.value)} placeholder={depth?'Otsi selles kaustas...':'Otsi kogu raamatukogust...'}/>
         </div>
-        <select className="library-filter" value={subject} onChange={event=>setSubject(event.target.value)}>
-          <option value="all">Kõik ained</option>
-          {subjects.map(value=><option key={value} value={value}>{value}</option>)}
-        </select>
-        <select className="library-filter" value={level} onChange={event=>setLevel(event.target.value)}>
-          <option value="all">Kõik tasemed</option>
-          {levels.map(value=><option key={value} value={value}>{value}</option>)}
-        </select>
       </div>
 
       <div className="library-type-row">
         {typeOptions.map(option=>{
           const meta=LIBRARY_TYPES[option.key];
-          const count=option.key==='all'?items.length:items.filter(item=>item.type===option.key).length;
+          const count=option.key==='all'?scoped.length:scoped.filter(item=>item.type===option.key).length;
           return(
             <button key={option.key} className={'library-type-btn'+(type===option.key?' active':'')} onClick={()=>setType(option.key)}>
               {option.icon&&<i className={'fa-solid '+option.icon} style={type!==option.key&&meta?{color:meta.color}:{}}/>}
@@ -1895,13 +1973,52 @@ function LearningLibraryView({lessons,exercises,students,isTeacher,onOpenLesson,
         })}
       </div>
 
-      <div style={{fontSize:'.78rem',color:'#718096',marginBottom:10}}>
-        {filtered.length} {filtered.length===1?'tulemus':'tulemust'}
-        {(query||type!=='all'||subject!=='all'||level!=='all')&&<button onClick={()=>{setQuery('');setType('all');setSubject('all');setLevel('all');}} style={{background:'none',border:'none',color:'#A96E1A',fontWeight:700,cursor:'pointer',marginLeft:8}}>Tühista filtrid</button>}
+      <div className="library-location">
+        <div>
+          <div className="library-location-title">{query?'Otsingutulemused':folderHeading}</div>
+          <div className="library-location-sub">{query
+            ?`${visible.length} ${visible.length===1?'materjal':'materjali'} avatud asukohas`
+            :folderDimension
+              ?`${folders.length} ${folders.length===1?'kaust':'kausta'} · ${folderSource.length} ${folderSource.length===1?'materjal':'materjali'}`
+              :`${visible.length} ${visible.length===1?'materjal':'materjali'} · ${folderHelp}`}</div>
+        </div>
+        {(query||type!=='all')&&<button onClick={()=>{setQuery('');setType('all');}} className="btn btn-ghost btn-sm">Tühista filtrid</button>}
       </div>
 
-      <div className="library-grid">
-        {filtered.map(item=>(
+      {folderDimension&&!query?<div className="library-folder-grid">
+        {folders.map(folder=>{
+          const color=folderDimension==='subject'
+            ?(SUBJECTS.find(candidate=>candidate.key===folder.key)?.color||'#2F5D50')
+            :folderColor;
+          const subjectIcon=SUBJECTS.find(candidate=>candidate.key===folder.key)?.emoji;
+          const previews=folderPreview(folder);
+          return(
+            <button key={folder.key} className="library-folder" style={{'--folder-color':color}} onClick={()=>openFolder(folder)}>
+              <div className="library-folder-head">
+                <span className="library-folder-icon" style={{background:color+'12',color}}>
+                  {folderDimension==='subject'&&subjectIcon
+                    ?subjectIcon
+                    :<i className={'fa-solid '+(folderDimension==='stage'?'fa-layer-group':'fa-folder-open')}/>}
+                </span>
+                <span className="library-folder-count">{folder.count} {folder.count===1?'materjal':'materjali'}</span>
+              </div>
+              <div className="library-folder-title">{folder.label}</div>
+              <div className="library-folder-sub">{folderSub(folder)}</div>
+              <div className="library-folder-preview">
+                {previews.map((label,index)=><span key={label+'-'+index}>{label}</span>)}
+                {previews.length===0&&<span>Kaust on tühi</span>}
+              </div>
+              <div className="library-folder-open"><span>Ava kaust</span><i className="fa-solid fa-arrow-right"/></div>
+            </button>
+          );
+        })}
+        {!folders.length&&<div className="library-empty">
+          <i className="fa-solid fa-folder-open" style={{fontSize:'1.8rem',opacity:.3,marginBottom:10}}/>
+          <div style={{fontWeight:700,marginBottom:5}}>Selles vaates kaustu ei ole</div>
+          <div style={{fontSize:'.8rem'}}>Muuda materjali tüüpi või mine eelmisesse kausta.</div>
+        </div>}
+      </div>:<div className="library-grid">
+        {visible.map(item=>(
           <article key={item.key} className="library-card">
             <div className="library-card-top">
               <span className="library-kind" style={{background:item.color+'12',color:item.color}}>
@@ -1913,8 +2030,8 @@ function LearningLibraryView({lessons,exercises,students,isTeacher,onOpenLesson,
             {item.description&&<p className="library-card-desc">{item.description}</p>}
             <div className="library-meta">
               {item.subject&&<span>{item.subject}</span>}
-              {item.level&&<span>{item.level}</span>}
-              {item.topic&&<span>{item.topic}</span>}
+              {(item.level||item.ageGroup)&&<span>{item.level||item.ageGroup}</span>}
+              {(item.curriculum||item.topic)&&<span>{item.curriculum||item.topic}</span>}
               {item.examPart&&<span>{EXAM_PARTS.find(part=>part.key===item.examPart)?.label||item.examPart}</span>}
             </div>
             <div className="library-card-actions">
@@ -1925,12 +2042,12 @@ function LearningLibraryView({lessons,exercises,students,isTeacher,onOpenLesson,
             </div>
           </article>
         ))}
-        {!filtered.length&&<div className="library-empty">
+        {!visible.length&&<div className="library-empty">
           <i className="fa-solid fa-folder-open" style={{fontSize:'1.8rem',opacity:.3,marginBottom:10}}/>
           <div style={{fontWeight:700,marginBottom:5}}>Sobivaid materjale ei leitud</div>
           <div style={{fontSize:'.8rem'}}>Muuda filtreid või loo uus materjal.</div>
         </div>}
-      </div>
+      </div>}
     </div>
   );
 }
