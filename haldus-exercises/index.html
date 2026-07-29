@@ -132,6 +132,11 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#EEECE7;color:#1C2B3A;min
 .history-detail-summary{background:#F3F1ED;border:1px solid rgba(28,43,58,.08);border-radius:13px;padding:14px 15px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}
 .history-detail-summary div{font-size:.72rem;color:#718096;}
 .history-detail-summary strong{font-size:.84rem;color:#1C2B3A;display:block;margin-top:3px;}
+.history-outcome{margin-top:14px;border:1px solid rgba(47,93,80,.18);background:#F5FAF8;border-radius:14px;padding:15px 16px;display:grid;gap:12px;}
+.history-outcome-row>span{display:block;color:#607086;font-size:.67rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;}
+.history-outcome-row>div{font-size:.82rem;line-height:1.55;color:#1C2B3A;white-space:pre-wrap;}
+.history-goals{display:flex;gap:6px;flex-wrap:wrap;}
+.history-goal{border-radius:999px;background:#E5F1EC;color:#245044;font-size:.72rem;font-weight:700;padding:5px 9px;}
 .history-timeline{display:flex;flex-direction:column;gap:0;}
 .history-event{position:relative;padding:0 0 20px 28px;}
 .history-event:before{content:"";position:absolute;left:8px;top:18px;bottom:-2px;width:2px;background:#E2DED6;}
@@ -635,6 +640,14 @@ const PREVIEW_LESSON_HISTORY=[
     createdAtIso:'2026-07-29T07:55:00.000Z',
     startedAt:'2026-07-29T08:00:00.000Z',
     endedAt:'2026-07-29T08:47:00.000Z',
+    summaryVersion:1,
+    lessonSummary:{
+      teacherComment:'Harjutasime igapäevase rutiini kirjeldamist olevikus. Õpilane vastas täislausetega ja kasutas uut sõnavara iseseisvalt.',
+      achievedGoals:['Kirjeldab oma hommikurutiini','Kasutab ajamäärusi täislauses'],
+      nextHomework:'Kirjuta 6 lauset oma argipäeva kohta.',
+      homeworkDue:'2026-08-02',
+      homeworkId:'live-classroom-preview-history-1'
+    },
     previewScenes:[
       {id:'scene-2',sceneVersion:2,eventType:'scene_published',createdAtIso:'2026-07-29T08:03:00.000Z',scene:{type:'message',title:'Tunni eesmärk',body:'Harjutame igapäevase rutiini kirjeldamist olevikus.',options:[],version:2,publishedAt:'2026-07-29T08:03:00.000Z'}},
       {id:'scene-3',sceneVersion:3,eventType:'material_published',createdAtIso:'2026-07-29T08:18:00.000Z',scene:{type:'short_answer',title:'Minu hommik',body:'Kirjuta 3–4 lauset oma hommikuse rutiini kohta.',options:[],version:3,publishedAt:'2026-07-29T08:18:00.000Z',source:{kind:'exercise',id:'preview-ex-1',type:'exercise'}}},
@@ -3323,6 +3336,11 @@ function LessonHistoryView({rooms}){
                   <span><i className="fa-regular fa-clock"/>{historyDurationLabel(duration)}</span>
                   {room.teacherName&&<span><i className="fa-solid fa-chalkboard-user"/>{room.teacherName}</span>}
                 </div>
+                {room.lessonSummary?.teacherComment&&(
+                  <div style={{fontSize:'.75rem',color:'#42536A',marginTop:7,lineHeight:1.45}}>
+                    {room.lessonSummary.teacherComment}
+                  </div>
+                )}
               </div>
               <div className="history-room-badges">
                 <span className="badge" style={{background:'#E8F3EE',color:'#2F5D50'}}>Lõpetatud</span>
@@ -3358,6 +3376,31 @@ function LessonHistoryView({rooms}){
                 <div>Õpetaja<strong>{selectedRoom.teacherName||'—'}</strong></div>
                 <div>Kestus<strong>{historyDurationLabel(lessonDurationMinutes(selectedRoom))}</strong></div>
               </div>
+              {selectedRoom.lessonSummary&&(
+                <div className="history-outcome">
+                  <div className="history-outcome-row">
+                    <span>Õpetaja kokkuvõte</span>
+                    <div>{selectedRoom.lessonSummary.teacherComment||'—'}</div>
+                  </div>
+                  {selectedRoom.lessonSummary.achievedGoals?.length>0&&(
+                    <div className="history-outcome-row">
+                      <span>Saavutatud eesmärgid</span>
+                      <div className="history-goals">
+                        {selectedRoom.lessonSummary.achievedGoals.map((goal,index)=><span key={index} className="history-goal">✓ {goal}</span>)}
+                      </div>
+                    </div>
+                  )}
+                  {selectedRoom.lessonSummary.nextHomework&&(
+                    <div className="history-outcome-row">
+                      <span>Järgmine kodutöö</span>
+                      <div>
+                        {selectedRoom.lessonSummary.nextHomework}
+                        {selectedRoom.lessonSummary.homeworkDue&&<div style={{fontSize:'.72rem',color:'#607086',marginTop:4}}>Tähtaeg: {fmtDate(selectedRoom.lessonSummary.homeworkDue)}</div>}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
               {detailLoading&&<div className="empty" style={{padding:'38px 20px'}}><div className="spinner"/></div>}
               {detailError&&<div className="history-legacy">{detailError}</div>}
               {!detailLoading&&!detailError&&detail?.scenes?.length>0&&(

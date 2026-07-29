@@ -107,6 +107,7 @@ window.addEventListener('load', function(){
 window.__haldusConfigureBabel();
 </script>
 <script src="/haldus-shared.js"></script>
+<script src="/live-classroom-core.js"></script>
 <script src="/haldus-quality.js"></script>
 <script src="/haldus-programs.js"></script>
 <script src="/annotations-manager.js"></script>
@@ -130,6 +131,10 @@ const {
   scheduleEventOccursOnDate,
   dataQualitySummary
 } = window.HaldusQuality;
+const {
+  lessonHistorySortValue:liveLessonHistorySortValue,
+  lessonDurationMinutes:liveLessonDurationMinutes
+} = window.LiveClassroomCore;
 const LEVELS = SHARED_LEVELS.includes('Eelkool') ? SHARED_LEVELS : ['Eelkool',...SHARED_LEVELS];
 const GRADES = SHARED_GRADES.includes('Eelkool') ? SHARED_GRADES : ['Eelkool',...SHARED_GRADES];
 
@@ -5346,7 +5351,7 @@ function SkillMapWidget({student, isTeacher, user}) {
 }
 
 // ── ÕPILASE KAART ─────────────────────────────────────────────
-function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,setEditStu,toggleStudentActive,convertStudentToParent,
+function StudentCard({user,currentStu,stuLessons,liveLessons=[],stuHw,stuInv,isAdmin,setSelStu,setEditStu,toggleStudentActive,convertStudentToParent,
   hwTask,setHwTask,hwDue,setHwDue,hwFiles,setHwFiles,addHw,toggleHw,deleteHw,removeHwFile,
   invAmt,setInvAmt,invDesc,setInvDesc,invRef,setInvRef,invDue,setInvDue,addInvoice,markPaid,unmarkPaid,deleteInvoice,printInvoice,submitParentPayment,resetParentPayment,updateInvoiceReference,updateInvoiceDue,sendInvoiceEmail,sendInvoiceReminder,invoiceEmailBusy,deleteLesson,openLessonEditor,
   schDate,setSchDate,schTime,setSchTime,schTeach,setSchTeach,schRecurring,setSchRecurring,addStudentSchedule,canAssignTeacher,
@@ -5357,6 +5362,7 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
   const rem=pkgLeft(currentStu);
   const attendance=stuLessons.length?Math.round(done.length/stuLessons.length*100):0;
   const canManage = user.role==='teacher' || user.role==='admin';
+  const sortedLiveLessons=[...liveLessons].sort((a,b)=>liveLessonHistorySortValue(b)-liveLessonHistorySortValue(a));
   const [paymentChoices,setPaymentChoices] = React.useState({});
   const [copiedPaymentKey,setCopiedPaymentKey] = React.useState('');
   const [exerciseResults,setExerciseResults] = React.useState([]);
@@ -5507,6 +5513,78 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
           <ProgressChart data={done}/>
         </div>
       )}
+
+      <div className="card" style={{padding:24}}>
+        <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:12,flexWrap:'wrap',marginBottom:16}}>
+          <div>
+            <h3>🎥 Live Classroomi tundide ajalugu</h3>
+            <div style={{fontSize:'.82rem',color:'#42536A',marginTop:4}}>
+              Lõpetatud tunnid ja õpetaja kinnitatud kokkuvõtted on püsivalt seotud selle õpilase profiiliga.
+            </div>
+          </div>
+          <span className="badge" style={{background:'#E8F3EE',color:'#2F5D50'}}>
+            {sortedLiveLessons.length} {sortedLiveLessons.length===1?'tund':'tundi'}
+          </span>
+        </div>
+        {sortedLiveLessons.length===0&&(
+          <div style={{padding:'22px 14px',borderRadius:14,background:'#F9F8F6',border:'1px dashed rgba(28,43,58,.14)',color:'#607086',fontSize:'.84rem',textAlign:'center'}}>
+            Live Classroomis lõpetatud tunde veel ei ole.
+          </div>
+        )}
+        <div style={{display:'flex',flexDirection:'column',gap:10,maxHeight:520,overflowY:'auto'}} className="scroll">
+          {sortedLiveLessons.map(room=>{
+            const summary=room.lessonSummary||null;
+            const duration=liveLessonDurationMinutes(room);
+            const dateValue=room.endedAt||room.endedAtIso||room.updatedAt||room.createdAt||room.createdAtIso;
+            const date=dateValue?.toDate?dateValue.toDate():new Date(dateValue||'');
+            const dateLabel=Number.isNaN(date.getTime())
+              ?'Kuupäev puudub'
+              :date.toLocaleString('et-EE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+            return(
+              <article key={room.id} style={{padding:16,borderRadius:14,background:'#fff',border:'1px solid rgba(28,43,58,.09)',boxShadow:'0 2px 8px rgba(28,43,58,.035)'}}>
+                <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:12,flexWrap:'wrap'}}>
+                  <div>
+                    <div style={{fontWeight:800,fontSize:'.96rem'}}>{room.title||'KeeleSepp tund'}</div>
+                    <div style={{fontSize:'.74rem',color:'#607086',marginTop:4}}>
+                      {dateLabel}{duration?` · ${duration} min`:''}{room.teacherName?` · ${room.teacherName}`:''}
+                    </div>
+                  </div>
+                  <span className="badge" style={{background:'#dcfce7',color:'#166534'}}>✓ Profiiliga seotud</span>
+                </div>
+                {summary?(
+                  <div style={{display:'grid',gap:10,marginTop:14}}>
+                    <div style={{padding:'11px 12px',borderRadius:11,background:'#F9F8F6'}}>
+                      <div style={{fontSize:'.68rem',fontWeight:800,color:'#607086',textTransform:'uppercase',letterSpacing:'.07em',marginBottom:4}}>Õpetaja kokkuvõte</div>
+                      <div style={{fontSize:'.82rem',lineHeight:1.55,whiteSpace:'pre-wrap'}}>{summary.teacherComment}</div>
+                    </div>
+                    {summary.achievedGoals?.length>0&&(
+                      <div>
+                        <div style={{fontSize:'.68rem',fontWeight:800,color:'#607086',textTransform:'uppercase',letterSpacing:'.07em',marginBottom:6}}>Saavutatud eesmärgid</div>
+                        <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+                          {summary.achievedGoals.map((goal,index)=>(
+                            <span key={index} className="badge" style={{background:'#E8F3EE',color:'#2F5D50'}}>✓ {goal}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {summary.nextHomework&&(
+                      <div style={{padding:'11px 12px',borderRadius:11,background:'#FFF8E6',border:'1px solid #F1D994'}}>
+                        <div style={{fontSize:'.68rem',fontWeight:800,color:'#7A5718',textTransform:'uppercase',letterSpacing:'.07em',marginBottom:4}}>Järgmine kodutöö</div>
+                        <div style={{fontSize:'.82rem',lineHeight:1.55,whiteSpace:'pre-wrap'}}>{summary.nextHomework}</div>
+                        {summary.homeworkDue&&<div style={{fontSize:'.72rem',color:'#7A5718',marginTop:5}}>Tähtaeg: {fmtDate(summary.homeworkDue)}</div>}
+                      </div>
+                    )}
+                  </div>
+                ):(
+                  <div style={{fontSize:'.78rem',color:'#7A5718',background:'#FFF8E6',border:'1px solid #F1D994',borderRadius:10,padding:'9px 11px',marginTop:12}}>
+                    See tund lõpetati enne detailsete kokkuvõtete kasutuselevõttu.
+                  </div>
+                )}
+              </article>
+            );
+          })}
+        </div>
+      </div>
 
       <div className="card" style={{padding:24}}>
         <h3 style={{marginBottom:14}}>✉️ Vestlus</h3>
@@ -8889,6 +8967,7 @@ function App() {
 
   const [students,setStu] = useState([]);
   const [lessons,setLes]  = useState([]);
+  const [studentLiveLessons,setStudentLiveLessons] = useState([]);
   const [homework,setHw]  = useState([]);
   const [schedule,setSch] = useState([]);
   const [invoices,setInv] = useState([]);
@@ -9276,6 +9355,30 @@ function App() {
     if(isStaff && !isAdmin) return null;
     return ownStudent || myStudents[0] || null;
   },[selStu,students,myStudents,ownStudent,isStaff,isAdmin]);
+
+  React.useEffect(()=>{
+    if(!user?.uid||!currentStu?.id){
+      setStudentLiveLessons([]);
+      return;
+    }
+    let query=db.collection('liveClassrooms');
+    if(isAdmin||!isStaff){
+      query=query.where('studentId','==',currentStu.id);
+    }else{
+      query=query.where('teacherUid','==',user.uid);
+    }
+    const unsubscribe=query.onSnapshot(snapshot=>{
+      const attached=snapshot.docs
+        .map(doc=>({id:doc.id,...doc.data()}))
+        .filter(room=>room.status==='ended'&&room.studentId===currentStu.id)
+        .sort((a,b)=>liveLessonHistorySortValue(b)-liveLessonHistorySortValue(a));
+      setStudentLiveLessons(attached);
+    },error=>{
+      console.warn('Student live lesson history listener failed:',error);
+      setStudentLiveLessons([]);
+    });
+    return unsubscribe;
+  },[user?.uid,currentStu?.id,isAdmin,isStaff]);
 
   // schStu starts empty — user picks via StuSearch
 
@@ -11720,7 +11823,7 @@ function App() {
             deleteStudentForParent={deleteStudentForParent}/>}
           {tab==='students'&&(!isStaff||(isStaff&&selStu)||selStu)&&!(isParentUser&&!selStu)&&<StudentCard
             setEditStu={setEditStu}
-            user={user} currentStu={currentStu} stuLessons={stuLessons} stuHw={stuHw} stuInv={stuInv}
+            user={user} currentStu={currentStu} stuLessons={stuLessons} liveLessons={studentLiveLessons} stuHw={stuHw} stuInv={stuInv}
             isAdmin={canAssignTeacher} setSelStu={setSelStu} toggleStudentActive={toggleStudentActive}
             convertStudentToParent={convertStudentToParent}
             hwTask={hwTask} setHwTask={setHwTask} hwDue={hwDue} setHwDue={setHwDue} hwFiles={hwFiles} setHwFiles={setHwFiles} addHw={addHw} toggleHw={toggleHw} deleteHw={deleteHw} removeHwFile={removeHwFile}

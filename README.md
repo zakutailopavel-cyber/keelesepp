@@ -39,6 +39,12 @@ Iga uus avaldatud õppestseen salvestatakse muutmatu versioonina ning seotakse s
 õpilase vastustega. Vanad klassiruumid jäävad nähtavaks kuupäeva, osalejate ja kestusega ka siis,
 kui nende detailne stseeniajalugu loodi enne selle funktsiooni kasutuselevõttu.
 
+Tunni lõpetamisel lisab õpetaja kohustusliku kokkuvõtte, saavutatud eesmärgid ja soovi korral
+järgmise kodutöö. Lõpetamine salvestab tunni kokkuvõtte, muutmatu lõpusündmuse ja kodutöö ühe
+Firestore tehinguna. Tund jääb seotuks muutumatu õpilase ID-ga ning ilmub nii õpetaja
+õpilasekaardile kui ka õpilase isiklikku kabinetti. Enne kokkuvõtete kasutuselevõttu lõpetatud
+tunnid jäävad nähtavaks eraldi pärandolekuga.
+
 Enne laiemat kasutuselevõttu vajab ekraanijagamine TURN-serverit ja
 kahe kasutajaga prooviperioodi eri võrkudes. Arenduse etapid ja turvapiirid on kirjeldatud failis
 `NEXT_RELEASE_ROADMAP.md`.

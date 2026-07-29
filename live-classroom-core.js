@@ -45,6 +45,37 @@
     'screen_stopped',
     'lesson_ended'
   ]);
+  const normalizeLessonGoals=goals=>(Array.isArray(goals)?goals:String(goals||'').split('\n'))
+    .map(goal=>cleanText(goal,240))
+    .filter(Boolean)
+    .slice(0,12);
+  const normalizeHomeworkDue=value=>{
+    const due=cleanText(value,10);
+    return /^\d{4}-\d{2}-\d{2}$/.test(due)?due:'';
+  };
+  const buildLessonSummary=({
+    teacherComment='',
+    achievedGoals=[],
+    nextHomework='',
+    homeworkDue='',
+    homeworkId=''
+  }={})=>{
+    const summary={
+      teacherComment:cleanText(teacherComment,3000),
+      achievedGoals:normalizeLessonGoals(achievedGoals),
+      nextHomework:cleanText(nextHomework,2000),
+      homeworkDue:normalizeHomeworkDue(homeworkDue),
+      homeworkId:cleanText(homeworkId,180)
+    };
+    if(!summary.teacherComment){
+      throw new Error('Lisa enne tunni lõpetamist lühike kokkuvõte.');
+    }
+    if(!summary.nextHomework){
+      summary.homeworkDue='';
+      summary.homeworkId='';
+    }
+    return summary;
+  };
   const buildScene=({type='message',title='',body='',options=[],version=1,source=null,actionUrl=''}={})=>{
     const normalizedType=sceneTypes.has(type)?type:'message';
     const scene={
@@ -159,6 +190,8 @@
     normalizeOptions,
     normalizeSceneSource,
     normalizeActionUrl,
+    normalizeLessonGoals,
+    buildLessonSummary,
     buildScene,
     sceneHistorySnapshot,
     buildSceneHistoryEntry,

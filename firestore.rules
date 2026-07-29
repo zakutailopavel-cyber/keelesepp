@@ -185,6 +185,71 @@ service cloud.firestore {
         );
     }
 
+    function validLiveLessonSummary(summary) {
+      return summary is map
+        && summary.keys().hasOnly([
+          'teacherComment',
+          'achievedGoals',
+          'nextHomework',
+          'homeworkDue',
+          'homeworkId'
+        ])
+        && summary.keys().hasAll([
+          'teacherComment',
+          'achievedGoals',
+          'nextHomework',
+          'homeworkDue',
+          'homeworkId'
+        ])
+        && summary.teacherComment is string
+        && summary.teacherComment.size() > 0
+        && summary.teacherComment.size() <= 3000
+        && summary.achievedGoals is list
+        && summary.achievedGoals.size() <= 12
+        && summary.nextHomework is string
+        && summary.nextHomework.size() <= 2000
+        && summary.homeworkDue is string
+        && summary.homeworkDue.size() <= 10
+        && (
+          summary.homeworkDue == ''
+          || summary.homeworkDue.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        )
+        && summary.homeworkId is string
+        && summary.homeworkId.size() <= 180
+        && (
+          (
+            summary.nextHomework == ''
+            && summary.homeworkDue == ''
+            && summary.homeworkId == ''
+          )
+          || (
+            summary.nextHomework != ''
+            && summary.homeworkId != ''
+          )
+        );
+    }
+
+    function liveLessonHomeworkMatches(classroomId, studentId, summary) {
+      return summary.homeworkId == ''
+        || (
+          existsAfter(
+            /databases/$(database)/documents/homework/$(summary.homeworkId)
+          )
+          && getAfter(
+            /databases/$(database)/documents/homework/$(summary.homeworkId)
+          ).data.studentId == studentId
+          && getAfter(
+            /databases/$(database)/documents/homework/$(summary.homeworkId)
+          ).data.sourceType == 'live_classroom'
+          && getAfter(
+            /databases/$(database)/documents/homework/$(summary.homeworkId)
+          ).data.sourceRoomId == classroomId
+          && getAfter(
+            /databases/$(database)/documents/homework/$(summary.homeworkId)
+          ).data.task == summary.nextHomework
+        );
+    }
+
     function ownsInvoice(invoice) {
       return signedIn()
         && (
@@ -595,6 +660,32 @@ service cloud.firestore {
         && request.resource.data.accessVersion == resource.data.accessVersion
         && request.resource.data.status in ['waiting', 'live', 'ended']
         && (resource.data.status != 'ended' || request.resource.data.status == 'ended')
+        && (
+          request.resource.data.status != 'ended'
+          || (
+            request.resource.data.summaryVersion == 1
+            && validLiveLessonSummary(request.resource.data.lessonSummary)
+            && liveLessonHomeworkMatches(
+              classroomId,
+              resource.data.studentId,
+              request.resource.data.lessonSummary
+            )
+          )
+        )
+        && (
+          request.resource.data.status == 'ended'
+          || !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+            'lessonSummary',
+            'summaryVersion'
+          ])
+        )
+        && (
+          resource.data.status != 'ended'
+          || (
+            request.resource.data.lessonSummary == resource.data.lessonSummary
+            && request.resource.data.summaryVersion == resource.data.summaryVersion
+          )
+        )
         && request.resource.data.sceneVersion == resource.data.sceneVersion + 1
         && validLiveScene(
           request.resource.data.activeScene,
@@ -617,6 +708,8 @@ service cloud.firestore {
           'status',
           'startedAt',
           'endedAt',
+          'lessonSummary',
+          'summaryVersion',
           'screenShare',
           'updatedAt'
         ]);

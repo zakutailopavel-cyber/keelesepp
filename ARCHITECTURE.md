@@ -44,6 +44,10 @@ server-side and reject extra fields, external action links, invalid screen-share
 non-sequential versions. The same transaction writes an immutable
 `liveClassrooms/{id}/scenes/{sceneId}` journal entry keyed by scene version. The history screen joins those
 versioned public scenes with append-only student responses without copying private source data.
+Ending a room requires a bounded `lessonSummary` with a teacher comment and optional achieved
+goals and follow-up homework. The room's immutable `studentId` is the durable link to the
+student cabinet. If homework is present, Firestore rules require the matching student homework
+record to exist after the same atomic transaction. Completed summaries cannot be edited later.
 
 ### Finance
 
@@ -56,6 +60,7 @@ Cloud Functions and are covered by unit and emulator tests.
 - `curriculumLessons`, `exercises` — staff-authored learning sources.
 - `worksheetAssignments`, `homework`, `exerciseResults` — student-specific learning activity.
 - `liveClassrooms` — one teacher and one student per current room.
+- `liveClassrooms.lessonSummary` — immutable teacher outcome attached when a room is completed.
 - `liveClassrooms/{id}/scenes` — immutable public scene snapshots for versions published after
   learning-history rollout.
 - `liveClassrooms/{id}/responses` — append-only student responses for the current scene version.
@@ -84,7 +89,7 @@ The remaining large files should be reduced incrementally:
 1. extract the library React view and assignment dialogs from `haldus-exercises/index.html`;
 2. extract Live Classroom room transactions into a dedicated service module;
 3. split CRM domains from `haldus.html` one workflow at a time;
-4. add teacher-authored lesson notes and curriculum outcomes to completed-room summaries;
+4. extract reusable student learning-history cards from the CRM;
 5. add a migration tool that can attach stable curriculum ids to legacy topic-only records.
 
 These are bounded extractions, not a request to replace the platform in one release.
