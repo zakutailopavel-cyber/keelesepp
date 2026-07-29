@@ -34,7 +34,7 @@ retries are possible, and represented in an immutable audit trail.
 | 6. Teacher payroll | Rate history, delivered hours, group rules, substitutions, bonuses, payroll review and lock | Planned |
 | 7. Expenses and suppliers | Expense categories, supplier invoices, receipts, VAT metadata, recurring costs | Planned |
 | 8. Period close | Monthly reconciliation checklist, locked periods, correction entries, opening/closing balances | Planned |
-| 9. Accounting export | Accountant-ready CSV/API export, attachments, payment and invoice ledgers | Planned |
+| 9. Accounting export | Accountant-ready CSV/API export, attachments, payment and invoice ledgers | In progress |
 | 10. Financial analytics | Cash flow, aged debt, revenue by course/group, margin after payroll and expenses | Planned |
 
 ## Stage 3 — definition of done
@@ -179,6 +179,14 @@ A period can be closed only when:
 
 After close, changes are made through dated correction entries rather than by
 editing historical records.
+
+The first Stage 9 slice adds an administrator-only monthly invoice register. It joins
+issued invoices with active payment allocations and normalized bank transactions,
+shows payment provenance and reconciliation mismatches, and exports the filtered
+invoice register as CSV. It is a read-only projection and does not duplicate the
+authoritative financial collections. Accountant-specific VAT fields, attachments,
+payment-ledger export, opening balances and an archived export manifest remain
+separate slices.
 
 ## Cross-cutting technical work
 

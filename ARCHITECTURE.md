@@ -59,6 +59,14 @@ Financial writes remain isolated from the learning-content slice. Browser screen
 financial operations, but authoritative payment, credit, package and invoice mutations live in
 Cloud Functions and are covered by unit and emulator tests.
 
+`accounting-ledger-core.js` builds the administrator's monthly invoice register as a read-only
+projection of `invoices`, `payments`, `bankTransactions` and `payerCredits`. It deliberately does
+not persist a second ledger. Invoice periods use the issue date while incoming-payment periods
+use the payment date. The projection compares invoice payment snapshots with active payment
+records and checks bank allocation arithmetic, exposing mismatches without silently repairing
+authoritative records. Its CSV output contains invoice-register fields only; VAT, expenses and
+period-close evidence remain future accounting slices.
+
 ### Staff operations
 
 `functions/staff-operations-core.js` owns deterministic work-duration, hourly-rate, payroll and
