@@ -83,13 +83,16 @@ Implemented:
 - Completed lessons appear in teacher history with scene chronology and student responses.
 - New scene history entries are immutable and written atomically with the room version.
 - Older completed rooms remain readable with an explicit limited-history state.
+- Teachers finish a room with a required lesson summary and optional achieved goals.
+- Optional follow-up homework is created atomically and appears in the normal student homework flow.
+- Completed Live Classroom lessons are attached by immutable student ID and shown in the student profile and personal cabinet.
 
 Next:
 
 - Shared whiteboard and teacher pointer.
 - Drag-and-drop, matching and fill-in-the-gap activities.
 - Timers, polls and per-task reveal.
-- Add teacher notes, achieved curriculum outcomes and reusable follow-up actions to lesson history.
+- Add reusable follow-up action templates and curriculum outcome analytics.
 - Add a curriculum-id migration assistant for legacy topic-only records.
 
 ### B4. Calls and groups

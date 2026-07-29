@@ -1374,36 +1374,154 @@ test("Live Classroom keeps the teacher desk private and scopes student interacti
   );
   assert.equal(outsiderSignalRead.status, 403, JSON.stringify(outsiderSignalRead.body));
 
-  const endRoom = await firestoreDocumentRequest(
+  const endTimestamp = new Date().toISOString();
+  const endedSceneFields = {
+    type: { stringValue: "welcome" },
+    title: { stringValue: "Lesson ended" },
+    body: { stringValue: "Summary saved to the student cabinet" },
+    version: { integerValue: "5" },
+  };
+  const lessonSummaryFields = {
+    teacherComment: { stringValue: "Practised the past tense and speaking." },
+    achievedGoals: {
+      arrayValue: {
+        values: [
+          { stringValue: "Builds a past-tense sentence" },
+          { stringValue: "Uses the new vocabulary" },
+        ],
+      },
+    },
+    nextHomework: { stringValue: "Complete exercise 4." },
+    homeworkDue: { stringValue: "2026-08-05" },
+    homeworkId: { stringValue: "live-classroom-live-room-001" },
+  };
+  const endRoom = await firestoreCommitRequest(
+    teacherToken,
+    [
+      {
+        update: {
+          name:
+            `projects/${PROJECT_ID}/databases/(default)/documents/liveClassrooms/live-room-001`,
+          fields: {
+            activeScene: { mapValue: { fields: endedSceneFields } },
+            sceneVersion: { integerValue: "5" },
+            screenShare: {
+              mapValue: {
+                fields: {
+                  status: { stringValue: "idle" },
+                  shareId: { stringValue: "" },
+                },
+              },
+            },
+            status: { stringValue: "ended" },
+            endedAt: { timestampValue: endTimestamp },
+            lessonSummary: { mapValue: { fields: lessonSummaryFields } },
+            summaryVersion: { integerValue: "1" },
+          },
+        },
+        updateMask: {
+          fieldPaths: [
+            "activeScene",
+            "sceneVersion",
+            "screenShare",
+            "status",
+            "endedAt",
+            "lessonSummary",
+            "summaryVersion",
+          ],
+        },
+        currentDocument: { exists: true },
+      },
+      {
+        update: {
+          name:
+            `projects/${PROJECT_ID}/databases/(default)/documents/liveClassrooms/live-room-001/scenes/scene-5`,
+          fields: {
+            classroomId: { stringValue: "live-room-001" },
+            sceneVersion: { integerValue: "5" },
+            eventType: { stringValue: "lesson_ended" },
+            scene: { mapValue: { fields: endedSceneFields } },
+            studentId: { stringValue: "live-student-record" },
+            studentName: { stringValue: "Live Student" },
+            teacherUid: { stringValue: teacherUid },
+            teacherName: { stringValue: "Live Teacher" },
+            createdAt: { timestampValue: endTimestamp },
+            createdAtIso: { stringValue: endTimestamp },
+          },
+        },
+        currentDocument: { exists: false },
+      },
+      {
+        update: {
+          name:
+            `projects/${PROJECT_ID}/databases/(default)/documents/homework/live-classroom-live-room-001`,
+          fields: {
+            studentId: { stringValue: "live-student-record" },
+            studentName: { stringValue: "Live Student" },
+            task: { stringValue: "Complete exercise 4." },
+            due: { stringValue: "2026-08-05" },
+            status: { stringValue: "Ootel" },
+            sourceType: { stringValue: "live_classroom" },
+            sourceRoomId: { stringValue: "live-room-001" },
+            teacherUid: { stringValue: teacherUid },
+            teacherName: { stringValue: "Live Teacher" },
+            createdByUid: { stringValue: teacherUid },
+            createdAt: { timestampValue: endTimestamp },
+            createdAtIso: { stringValue: endTimestamp },
+          },
+        },
+        currentDocument: { exists: false },
+      },
+    ],
+  );
+  assert.equal(endRoom.status, 200, JSON.stringify(endRoom.body));
+  const studentEndedRoomRead = await firestoreDocumentRequest(
+    studentToken,
+    "GET",
+    "liveClassrooms/live-room-001",
+  );
+  assert.equal(
+    studentEndedRoomRead.status,
+    200,
+    JSON.stringify(studentEndedRoomRead.body),
+  );
+  assert.equal(
+    studentEndedRoomRead.body.fields.lessonSummary.mapValue.fields.homeworkId
+      .stringValue,
+    "live-classroom-live-room-001",
+  );
+  const studentHomeworkRead = await firestoreDocumentRequest(
+    studentToken,
+    "GET",
+    "homework/live-classroom-live-room-001",
+  );
+  assert.equal(
+    studentHomeworkRead.status,
+    200,
+    JSON.stringify(studentHomeworkRead.body),
+  );
+  const mutateEndedSummary = await firestoreDocumentRequest(
     teacherToken,
     "PATCH",
-    "liveClassrooms/live-room-001?updateMask.fieldPaths=activeScene&updateMask.fieldPaths=sceneVersion&updateMask.fieldPaths=screenShare&updateMask.fieldPaths=status",
+    "liveClassrooms/live-room-001?updateMask.fieldPaths=lessonSummary",
     {
       fields: {
-        activeScene: {
+        lessonSummary: {
           mapValue: {
             fields: {
-              type: { stringValue: "welcome" },
-              title: { stringValue: "Lesson ended" },
-              body: { stringValue: "Responses saved" },
-              version: { integerValue: "5" },
+              ...lessonSummaryFields,
+              teacherComment: { stringValue: "Changed after completion" },
             },
           },
         },
-        sceneVersion: { integerValue: "5" },
-        screenShare: {
-          mapValue: {
-            fields: {
-              status: { stringValue: "idle" },
-              shareId: { stringValue: "" },
-            },
-          },
-        },
-        status: { stringValue: "ended" },
       },
     },
   );
-  assert.equal(endRoom.status, 200, JSON.stringify(endRoom.body));
+  assert.equal(
+    mutateEndedSummary.status,
+    403,
+    JSON.stringify(mutateEndedSummary.body),
+  );
   const reopenEndedRoom = await firestoreDocumentRequest(
     teacherToken,
     "PATCH",

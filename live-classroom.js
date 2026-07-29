@@ -6,6 +6,7 @@
     isStaff,
     buildScene,
     buildSceneHistoryEntry,
+    buildLessonSummary,
     normalizeActionUrl,
     sceneAcceptsResponse,
     isUnsafeDisplaySurface,
@@ -50,6 +51,12 @@
     selectedChoice:'',
     lastSceneVersion:0,
     submitting:false,
+    lessonSummaryDraft:{
+      teacherComment:'',
+      achievedGoals:'',
+      nextHomework:'',
+      homeworkDue:''
+    },
     peer:null,
     screenStream:null,
     shareId:'',
@@ -85,7 +92,7 @@
     const url=roomId?`/live-classroom/?room=${encodeURIComponent(roomId)}`:'/live-classroom/';
     history.pushState({},'',url);
   };
-  async function commitRoomScene(sceneInput,changesForRoom={}){
+  async function commitRoomScene(sceneInput,changesForRoom={},transactionExtras=null){
     if(!state.room?.id) throw new Error('Klassiruumi ei leitud.');
     const ref=db.collection('liveClassrooms').doc(state.room.id);
     return db.runTransaction(async transaction=>{
@@ -121,6 +128,16 @@
         ...history,
         createdAt:serverTimestamp()
       });
+      if(typeof transactionExtras==='function'){
+        transactionExtras({
+          transaction,
+          ref,
+          room,
+          scene,
+          nextVersion,
+          createdAtIso
+        });
+      }
       return{room,scene,nextVersion};
     });
   }
@@ -138,6 +155,12 @@
     state.responses=[];
     state.presence=[];
     state.lastSceneVersion=0;
+    state.lessonSummaryDraft={
+      teacherComment:'',
+      achievedGoals:'',
+      nextHomework:'',
+      homeworkDue:''
+    };
     state.processedSignals.clear();
   }
 
@@ -454,6 +477,10 @@
     const room=state.room;
     const mode=state.sceneMode;
     const current=room.activeScene||{};
+    const savedSummary=room.lessonSummary||{};
+    const summary=room.status==='ended'
+      ?savedSummary
+      :state.lessonSummaryDraft;
     return `
       <aside class="private-desk">
         <section class="card desk-section">
@@ -493,7 +520,36 @@
           <div id="teacher-responses" class="response-list"></div>
         </section>
         <section class="card desk-section">
-          <button id="end-room" class="btn btn-danger" style="width:100%">${room.status==='ended'?'Tund on lõpetatud':'Lõpeta tund'}</button>
+          <h3>${room.status==='ended'?'Tunni kokkuvõte':'Lõpeta ja kinnita ajalugu'}</h3>
+          ${room.status==='ended'
+            ?`<div class="lesson-summary-saved">
+                <div><span>Õpetaja kokkuvõte</span><p>${escapeHtml(savedSummary.teacherComment||'Kokkuvõte puudub.')}</p></div>
+                ${savedSummary.achievedGoals?.length
+                  ?`<div><span>Saavutatud eesmärgid</span><ul>${savedSummary.achievedGoals.map(goal=>`<li>${escapeHtml(goal)}</li>`).join('')}</ul></div>`
+                  :''}
+                ${savedSummary.nextHomework
+                  ?`<div><span>Järgmine kodutöö</span><p>${escapeHtml(savedSummary.nextHomework)}${savedSummary.homeworkDue?`<br><small>Tähtaeg: ${escapeHtml(savedSummary.homeworkDue)}</small>`:''}</p></div>`
+                  :''}
+              </div>
+              <div class="immutable-note">🔒 Kokkuvõte on kinnitatud õpilase tunni ajalukku.</div>`
+            :`<div class="immutable-note">Pärast lõpetamist jääb kokkuvõte püsivalt selle õpilase isiklikku ajalukku.</div>
+              <div class="field" style="margin-top:12px">
+                <label>Tunni kokkuvõte *</label>
+                <textarea id="lesson-summary-comment" maxlength="3000" placeholder="Mida tunnis tegite, kuidas õpilasel läks?">${escapeHtml(summary.teacherComment||'')}</textarea>
+              </div>
+              <div class="field" style="margin-top:10px">
+                <label>Saavutatud eesmärgid — üks real</label>
+                <textarea id="lesson-summary-goals" maxlength="3000" placeholder="Oskab kasutada uut sõnavara&#10;Moodustab minevikulauseid">${escapeHtml(summary.achievedGoals||'')}</textarea>
+              </div>
+              <div class="field" style="margin-top:10px">
+                <label>Järgmine kodutöö</label>
+                <textarea id="lesson-summary-homework" maxlength="2000" placeholder="Järgmise korra ülesanne">${escapeHtml(summary.nextHomework||'')}</textarea>
+              </div>
+              <div class="field" style="margin-top:10px">
+                <label>Kodutöö tähtaeg</label>
+                <input id="lesson-summary-due" type="date" value="${escapeHtml(summary.homeworkDue||'')}">
+              </div>
+              <button id="end-room" class="btn btn-danger" style="width:100%;margin-top:12px">Lõpeta tund ja salvesta</button>`}
         </section>
       </aside>`;
   }
@@ -604,6 +660,16 @@
     document.getElementById('start-screen')?.addEventListener('click',startScreenShare);
     document.getElementById('stop-screen')?.addEventListener('click',()=>stopScreenShare(true));
     document.getElementById('end-room')?.addEventListener('click',endRoom);
+    [
+      ['lesson-summary-comment','teacherComment'],
+      ['lesson-summary-goals','achievedGoals'],
+      ['lesson-summary-homework','nextHomework'],
+      ['lesson-summary-due','homeworkDue']
+    ].forEach(([id,key])=>{
+      document.getElementById(id)?.addEventListener('input',event=>{
+        state.lessonSummaryDraft[key]=event.target.value;
+      });
+    });
   }
 
   function bindStudentControls(){
@@ -657,20 +723,64 @@
 
   async function endRoom(){
     if(state.room.status==='ended') return;
-    if(!window.confirm('Kas lõpetada see tund? Õpilase lava suletakse.')) return;
-    await stopScreenShare(false);
-    await stopPresence(true);
-    await commitRoomScene({
-      type:'welcome',
-      title:'Tund on lõpetatud',
-      body:'Aitäh osalemast! Vastused on õpetajale salvestatud.',
-      allowEnded:true,
-      historyEvent:'lesson_ended'
-    },{
-      status:'ended',
-      screenShare:{status:'idle',shareId:''},
-      endedAt:serverTimestamp()
-    });
+    if(state.submitting) return;
+    let summary;
+    try{
+      const nextHomework=document.getElementById('lesson-summary-homework')?.value||state.lessonSummaryDraft.nextHomework;
+      const homeworkId=cleanText(nextHomework,2000)?`live-classroom-${state.room.id}`:'';
+      summary=buildLessonSummary({
+        teacherComment:document.getElementById('lesson-summary-comment')?.value||state.lessonSummaryDraft.teacherComment,
+        achievedGoals:document.getElementById('lesson-summary-goals')?.value||state.lessonSummaryDraft.achievedGoals,
+        nextHomework,
+        homeworkDue:document.getElementById('lesson-summary-due')?.value||state.lessonSummaryDraft.homeworkDue,
+        homeworkId
+      });
+    }catch(error){
+      setNotice(error.message,'error');
+      document.getElementById('lesson-summary-comment')?.focus();
+      return;
+    }
+    if(!window.confirm('Kas lõpetada tund ja kinnitada kokkuvõte õpilase ajalukku?')) return;
+    state.submitting=true;
+    try{
+      await stopScreenShare(false);
+      await commitRoomScene({
+        type:'welcome',
+        title:'Tund on lõpetatud',
+        body:'Aitäh osalemast! Tunni kokkuvõte on sinu isiklikus kabinetis.',
+        allowEnded:true,
+        historyEvent:'lesson_ended'
+      },{
+        status:'ended',
+        screenShare:{status:'idle',shareId:''},
+        endedAt:serverTimestamp(),
+        lessonSummary:summary,
+        summaryVersion:1
+      },({transaction,room})=>{
+        if(!summary.homeworkId) return;
+        const homeworkRef=db.collection('homework').doc(summary.homeworkId);
+        transaction.set(homeworkRef,{
+          studentId:room.studentId,
+          studentName:room.studentName||state.room.studentName||'Õpilane',
+          task:summary.nextHomework,
+          due:summary.homeworkDue,
+          status:'Ootel',
+          sourceType:'live_classroom',
+          sourceRoomId:state.room.id,
+          teacherUid:room.teacherUid,
+          teacherName:room.teacherName||teacherName(),
+          createdByUid:state.authUser.uid,
+          createdAt:serverTimestamp(),
+          createdAtIso:new Date().toISOString()
+        });
+      });
+      await stopPresence(true);
+      setNotice('Tund lõpetati ja kinnitati õpilase ajalukku.');
+    }catch(error){
+      setNotice(error.message||'Tundi ei saanud lõpetada. Proovi uuesti.','error');
+    }finally{
+      state.submitting=false;
+    }
   }
 
   async function submitResponse(answer){

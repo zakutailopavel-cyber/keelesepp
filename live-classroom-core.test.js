@@ -5,6 +5,7 @@ const {
   isStaff,
   buildScene,
   buildSceneHistoryEntry,
+  buildLessonSummary,
   normalizeActionUrl,
   sceneAcceptsResponse,
   isUnsafeDisplaySurface,
@@ -91,6 +92,41 @@ test('scene history keeps a bounded public snapshot and stable ownership metadat
   assert.equal(entry.eventType,'material_published');
   assert.deepEqual(entry.scene.source,{kind:'exercise',id:'exercise-1',type:'exercise'});
   assert.equal(JSON.stringify(entry).includes('answerKey'),false);
+});
+
+test('lesson summary is bounded and keeps homework tied to the completed room',()=>{
+  const summary=buildLessonSummary({
+    teacherComment:`  Harjutasime minevikku. ${'x'.repeat(4000)}  `,
+    achievedGoals:'Moodustab minevikulauseid\n\nKasutab uut sõnavara\n'.repeat(8),
+    nextHomework:'Tee harjutus 4.',
+    homeworkDue:'2026-08-05',
+    homeworkId:'live-classroom-room-1'
+  });
+
+  assert.equal(summary.teacherComment.length,3000);
+  assert.equal(summary.achievedGoals.length,12);
+  assert.equal(summary.achievedGoals[0],'Moodustab minevikulauseid');
+  assert.equal(summary.nextHomework,'Tee harjutus 4.');
+  assert.equal(summary.homeworkDue,'2026-08-05');
+  assert.equal(summary.homeworkId,'live-classroom-room-1');
+});
+
+test('lesson summary requires a teacher comment and drops orphan homework metadata',()=>{
+  assert.throws(()=>buildLessonSummary({nextHomework:'Ülesanne'}),/kokkuvõte/);
+  assert.deepEqual(
+    buildLessonSummary({
+      teacherComment:'Tunni kokkuvõte',
+      homeworkDue:'not-a-date',
+      homeworkId:'orphan'
+    }),
+    {
+      teacherComment:'Tunni kokkuvõte',
+      achievedGoals:[],
+      nextHomework:'',
+      homeworkDue:'',
+      homeworkId:''
+    }
+  );
 });
 
 test('lesson history helpers order rooms, calculate duration and pair responses to scenes',()=>{
