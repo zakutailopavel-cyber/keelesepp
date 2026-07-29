@@ -53,14 +53,24 @@ ja seotud kodutöö märgitakse tehtuks.
 
 ## Tööaeg ja juhi abi
 
-Töötaja alustab ja lõpetab tööpäeva CRM-i vaates **Tööaeg**. Lõpetatud tööpäev läheb
-administraatorile kinnitamiseks; palk arvutatakse ainult kinnitatud minutite ja kinnitamise
-hetkel lukustatud tunnitasu alusel. Tegevuslogidest arvutatud aeg kuvatakse eraldi hinnanguna
-ning see ei ole automaatselt palga alus.
+KeeleSepp loendab õpetaja või administraatori aktiivset aega automaatselt CRM-is, õppevara
+raamatukogus, kalendris, töölehe koostajas, oskuste kaardil ja Live Classroomis. Aega lisatakse
+ainult siis, kui aken on nähtav, brauser fookuses ja kasutaja pole olnud üle viie minuti
+tegevuseta. Klahve, hiire asukohta, ekraanipilti ega avatud andmete sisu ei salvestata.
+
+Brauser saadab ainult kohaloleku südamelöögi; kestuse arvutab server enda kella järgi. Ühine
+serveripoolne kohalolekuviit väldib mitme avatud vahekaardi aja topeltarvestust. Päeva koond
+salvestatakse `staffProgramDays` kogusse ning palgaprognoos arvutatakse selle aktiivse aja ja
+töötaja kehtiva tunnitasu järgi.
+
+Töötaja võib lisaks alustada ja lõpetada tööpäeva CRM-i vaates **Tööaeg**. See käsitsi kinnitatav
+tabell jääb tööpäeva märkuse, pausi ja administraatori kinnituse jaoks, kuid põhivaates kuvatakse
+esimesena automaatselt mõõdetud aeg programmis.
 
 Tööpäeva loomine, lõpetamine, parandamine, kinnitamine, tagasilükkamine ja tunnitasu muutmine
 käivad Cloud Functioni kaudu ning kirjutavad eraldi muutmatu auditi. Brauseril ei ole
-`workSessions`, `workSessionOpen` ega `workTimeAudit` kogudesse kirjutamisõigust.
+`workSessions`, `workSessionOpen`, `workTimeAudit`, `staffProgramDays` ega
+`staffProgramPresence` kogudesse kirjutamisõigust.
 
 Vaade **Juhi abi** koondab tasumata tähtaja ületanud arved, hilinenud ülesanded, liiga kaua
 avatud tööpäevad ja Google Calendari sünkroonimisvead. Sama reeglipõhine kontroll käivitub

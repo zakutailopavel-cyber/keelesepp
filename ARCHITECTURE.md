@@ -135,6 +135,10 @@ Google eTag preconditions and incremental sync tokens remain separate releases.
 - `workSessions` — server-authored staff shifts; staff read their own and administrators read all.
 - `workTimeAudit` — immutable server-authored snapshots for shift, approval and rate transitions.
 - `workSessionOpen` — server-only concurrency pointers enforcing one open shift per staff member.
+- `staffProgramDays` — server-authored daily active-time aggregates; staff read their own and
+  administrators read all. Browsers cannot submit or edit a duration.
+- `staffProgramPresence` — server-only cross-tab heartbeat pointer. It prevents several visible
+  KeeleSepp windows from multiplying the same wall-clock interval.
 - `assistantAlerts` — server-authored operational attention queue visible only to administrators.
 - `schedule` — dated or recurring lesson intent plus additive occurrence exceptions with stable
   student ownership.

@@ -1002,6 +1002,19 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // Active program time is measured by a trusted heartbeat endpoint. The
+    // browser never submits a duration and cannot edit payroll evidence.
+    match /staffProgramDays/{dayId} {
+      allow read: if isAdmin() || (signedIn() && resource.data.staffUid == uid());
+      allow create, update, delete: if false;
+    }
+
+    // Internal cross-tab pointer used to prevent duplicate time when several
+    // KeeleSepp windows are open at once.
+    match /staffProgramPresence/{staffUid} {
+      allow read, write: if false;
+    }
+
     // The scheduled rule-based monitor writes these alerts. Only an
     // administrator can see operational and financial attention items.
     match /assistantAlerts/{alertId} {

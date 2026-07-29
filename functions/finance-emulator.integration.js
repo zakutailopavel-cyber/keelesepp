@@ -1675,6 +1675,63 @@ test("staff work time is server-owned, approved for payroll, and audited", async
   );
 });
 
+test("active program time is measured by server heartbeats and cannot be forged", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const staffToken = await createUserToken("active-program-admin@example.com");
+  const staffUid = tokenUid(staffToken);
+  await db.collection("users").doc(staffUid).set({
+    displayName: "Active Program Admin",
+    email: "active-program-admin@example.com",
+    role: "admin",
+  });
+
+  const first = await staffOperationsRequest(staffToken, "/activity/heartbeat", {
+    pageInstanceId: "emulator_page_one",
+    area: "crm",
+  });
+  assert.equal(first.status, 200, JSON.stringify(first.body));
+  assert.equal(first.body.activeSeconds, 0);
+  assert.equal(first.body.creditedSeconds, 0);
+
+  await db.collection("staffProgramPresence").doc(staffUid).set({
+    staffUid,
+    date: first.body.date,
+    lastHeartbeatAt: new Date(Date.now() - 30_000).toISOString(),
+    lastPageInstanceId: "emulator_page_one",
+    lastArea: "crm",
+  });
+  const second = await staffOperationsRequest(staffToken, "/activity/heartbeat", {
+    pageInstanceId: "emulator_page_two",
+    area: "learning-library",
+  });
+  assert.equal(second.status, 200, JSON.stringify(second.body));
+  assert.ok(second.body.creditedSeconds >= 25 && second.body.creditedSeconds <= 60);
+
+  const dayId = `${staffUid}_${first.body.date}`;
+  const daySnap = await db.collection("staffProgramDays").doc(dayId).get();
+  assert.equal(daySnap.data().staffUid, staffUid);
+  assert.equal(daySnap.data().heartbeatCount, 2);
+  assert.equal(daySnap.data().activeSeconds, second.body.creditedSeconds);
+
+  const ownRead = await firestoreDocumentRequest(staffToken, "GET", `staffProgramDays/${dayId}`);
+  assert.equal(ownRead.status, 200, JSON.stringify(ownRead.body));
+  const forgedBrowserWrite = await firestoreDocumentRequest(
+    staffToken,
+    "PATCH",
+    `staffProgramDays/${dayId}?updateMask.fieldPaths=activeSeconds`,
+    { fields: { activeSeconds: { integerValue: "999999" } } },
+  );
+  assert.equal(forgedBrowserWrite.status, 403, JSON.stringify(forgedBrowserWrite.body));
+  const privatePointerRead = await firestoreDocumentRequest(
+    staffToken,
+    "GET",
+    `staffProgramPresence/${staffUid}`,
+  );
+  assert.equal(privatePointerRead.status, 403, JSON.stringify(privatePointerRead.body));
+});
+
 test("owner assistant refreshes operational alerts without an external AI", async () => {
   requireSafeEmulatorEnvironment();
   if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });

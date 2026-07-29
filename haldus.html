@@ -27,6 +27,7 @@
   }catch(e){console.error('Firebase:',e);}
 })();
 </script>
+<script src="/staff-activity.js"></script>
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -1977,29 +1978,8 @@ const workDateTimeLabel = value => {
     day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'
   });
 };
-const staffActivityEstimateMinutes = logs => {
-  const groups=new Map();
-  (logs||[]).forEach(item=>{
-    if(!item?.createdAt) return;
-    const time=new Date(item.createdAt).getTime();
-    if(!Number.isFinite(time)) return;
-    const key=String(item.date||item.createdAt).slice(0,10);
-    if(!groups.has(key)) groups.set(key,[]);
-    groups.get(key).push(time);
-  });
-  let total=0;
-  groups.forEach(times=>{
-    times.sort((a,b)=>a-b);
-    if(!times.length) return;
-    total+=5;
-    for(let index=1;index<times.length;index+=1){
-      total+=Math.min(15,Math.max(0,Math.floor((times[index]-times[index-1])/60000)));
-    }
-  });
-  return total;
-};
 
-function WorkTimeView({user,isAdmin,staffMembers,sessions,activityLog,notify}) {
+function WorkTimeView({user,isAdmin,staffMembers,sessions,programDays,notify}) {
   const [month,setMonth]=React.useState(today().slice(0,7));
   const [breakMinutes,setBreakMinutes]=React.useState('0');
   const [note,setNote]=React.useState('');
@@ -2019,31 +1999,37 @@ function WorkTimeView({user,isAdmin,staffMembers,sessions,activityLog,notify}) {
   const monthSessions=(sessions||[])
     .filter(item=>String(item.startedDate||item.startedAt||'').slice(0,7)===month)
     .sort((a,b)=>String(b.startedAt||'').localeCompare(String(a.startedAt||'')));
+  const monthProgramDays=(programDays||[])
+    .filter(item=>String(item.date||'').slice(0,7)===month)
+    .sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))||String(b.lastActiveAt||'').localeCompare(String(a.lastActiveAt||'')));
   const people=isAdmin
     ? (staffMembers||[]).map(member=>({...member,uid:member.id||member.uid})).filter(member=>member.uid)
-    : [{...user,uid:user?.uid}];
+    : [{...((staffMembers||[]).find(member=>(member.id||member.uid)===user?.uid)||user),uid:user?.uid}];
   const summaries=people.map(member=>{
     const memberSessions=monthSessions.filter(item=>item.staffUid===member.uid);
     const approved=memberSessions.filter(item=>item.approvalStatus==='approved');
     const pending=memberSessions.filter(item=>item.status==='closed'&&item.approvalStatus==='pending');
     const rejected=memberSessions.filter(item=>item.approvalStatus==='rejected');
-    const memberLogs=(activityLog||[]).filter(item=>
-      item.byUid===member.uid&&String(item.date||item.createdAt||'').slice(0,7)===month
+    const memberProgramDays=(programDays||[]).filter(item=>
+      item.staffUid===member.uid&&String(item.date||'').slice(0,7)===month
     );
+    const programSeconds=memberProgramDays.reduce((sum,item)=>sum+(Number(item.activeSeconds)||0),0);
+    const currentRateCents=Number(member.workHourlyRateCents)||0;
     return {
       member,
       approvedMinutes:approved.reduce((sum,item)=>sum+(Number(item.durationMinutes)||0),0),
       pendingMinutes:pending.reduce((sum,item)=>sum+(Number(item.durationMinutes)||0),0),
       payCents:approved.reduce((sum,item)=>sum+(Number(item.payAmountCents)||0),0),
-      estimatedMinutes:staffActivityEstimateMinutes(memberLogs),
+      programMinutes:Math.round(programSeconds/60),
+      programPayCents:Math.round((programSeconds*currentRateCents)/3600),
       pendingCount:pending.length,
       rejectedCount:rejected.length,
       open:memberSessions.find(item=>item.status==='open')||null
     };
   });
-  const totalApproved=summaries.reduce((sum,item)=>sum+item.approvedMinutes,0);
+  const totalProgram=summaries.reduce((sum,item)=>sum+item.programMinutes,0);
   const totalPending=summaries.reduce((sum,item)=>sum+item.pendingMinutes,0);
-  const totalPay=summaries.reduce((sum,item)=>sum+item.payCents,0);
+  const totalProgramPay=summaries.reduce((sum,item)=>sum+item.programPayCents,0);
 
   const run=async(key,fn,success)=>{
     setBusy(key);
@@ -2104,7 +2090,7 @@ function WorkTimeView({user,isAdmin,staffMembers,sessions,activityLog,notify}) {
         <div>
           <h1 style={{fontSize:'1.7rem'}}>Tööaeg</h1>
           <div style={{fontSize:'.88rem',color:'#42536A',marginTop:4}}>
-            Palgaarvestus põhineb kinnitatud tööpäevadel. Logid näitavad ainult aktiivsuse hinnangut.
+            KeeleSepp loendab automaatselt aktiivset tööaega nähtavas aknas. Viie minuti tegevusetuse järel loendus peatub.
           </div>
         </div>
         <input type="month" value={month} onChange={event=>setMonth(event.target.value)} style={{width:'auto'}}/>
@@ -2113,9 +2099,10 @@ function WorkTimeView({user,isAdmin,staffMembers,sessions,activityLog,notify}) {
       <div className="card" style={{padding:22}}>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:16,flexWrap:'wrap'}}>
           <div>
-            <div style={{fontSize:'.72rem',textTransform:'uppercase',letterSpacing:'.08em',fontWeight:800,color:'#42536A'}}>Minu tööpäev</div>
-            <h3 style={{marginTop:6}}>{ownOpen?'Tööpäev käib':'Tööpäev ei ole alustatud'}</h3>
+            <div style={{fontSize:'.72rem',textTransform:'uppercase',letterSpacing:'.08em',fontWeight:800,color:'#42536A'}}>Tööpäeva kinnitus</div>
+            <h3 style={{marginTop:6}}>{ownOpen?'Tööpäev käib':'Automaatne loendus töötab ilma käivitamiseta'}</h3>
             {ownOpen&&<div style={{fontSize:'.82rem',color:'#2F5D50',marginTop:4}}>Alates {workDateTimeLabel(ownOpen.startedAt)}</div>}
+            {!ownOpen&&<div style={{fontSize:'.8rem',color:'#42536A',marginTop:4}}>Nupp on valikuline ja aitab administraatoril tööpäeva hiljem kinnitada.</div>}
           </div>
           <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
             {!ownOpen
@@ -2142,9 +2129,9 @@ function WorkTimeView({user,isAdmin,staffMembers,sessions,activityLog,notify}) {
       {isAdmin&&(
         <div className="work-summary-grid" style={{display:'grid',gridTemplateColumns:'repeat(3,minmax(0,1fr))',gap:12}}>
           {[
-            {label:'Kinnitatud aeg',value:workMinutesLabel(totalApproved),color:'#166534',bg:'#dcfce7'},
+            {label:'Programmis aktiivne',value:workMinutesLabel(totalProgram),color:'#166534',bg:'#dcfce7'},
             {label:'Kinnitamise ootel',value:workMinutesLabel(totalPending),color:'#92400e',bg:'#fef3c7'},
-            {label:'Palga summa',value:`${(totalPay/100).toFixed(2)} €`,color:'#1d4ed8',bg:'#dbeafe'}
+            {label:'Palk programmi järgi',value:`${(totalProgramPay/100).toFixed(2)} €`,color:'#1d4ed8',bg:'#dbeafe'}
           ].map(item=><div key={item.label} className="card" style={{padding:18,background:item.bg}}>
             <div style={{fontSize:'.72rem',fontWeight:800,color:item.color,textTransform:'uppercase',letterSpacing:'.06em'}}>{item.label}</div>
             <div style={{fontSize:'1.45rem',fontWeight:800,color:item.color,marginTop:6}}>{item.value}</div>
@@ -2168,20 +2155,20 @@ function WorkTimeView({user,isAdmin,staffMembers,sessions,activityLog,notify}) {
             </div>
             <div style={{display:'grid',gridTemplateColumns:'repeat(2,minmax(0,1fr))',gap:10,marginTop:16}}>
               <div style={{padding:12,borderRadius:10,background:'#F9F8F6'}}>
-                <div style={{fontSize:'.7rem',color:'#42536A'}}>Kinnitatud</div>
+                <div style={{fontSize:'.7rem',color:'#42536A'}}>Programmis aktiivne</div>
+                <strong>{workMinutesLabel(summary.programMinutes)}</strong>
+              </div>
+              <div style={{padding:12,borderRadius:10,background:'#F9F8F6'}}>
+                <div style={{fontSize:'.7rem',color:'#42536A'}}>Palk programmi järgi</div>
+                <strong>{(summary.programPayCents/100).toFixed(2)} €</strong>
+              </div>
+              <div style={{padding:12,borderRadius:10,background:'#F9F8F6'}}>
+                <div style={{fontSize:'.7rem',color:'#42536A'}}>Kinnitatud tabellis</div>
                 <strong>{workMinutesLabel(summary.approvedMinutes)}</strong>
               </div>
               <div style={{padding:12,borderRadius:10,background:'#F9F8F6'}}>
-                <div style={{fontSize:'.7rem',color:'#42536A'}}>Logide hinnang</div>
-                <strong>{workMinutesLabel(summary.estimatedMinutes)}</strong>
-              </div>
-              <div style={{padding:12,borderRadius:10,background:'#F9F8F6'}}>
-                <div style={{fontSize:'.7rem',color:'#42536A'}}>Ootel</div>
+                <div style={{fontSize:'.7rem',color:'#42536A'}}>Kinnitamise ootel</div>
                 <strong>{workMinutesLabel(summary.pendingMinutes)}</strong>
-              </div>
-              <div style={{padding:12,borderRadius:10,background:'#F9F8F6'}}>
-                <div style={{fontSize:'.7rem',color:'#42536A'}}>Tasu</div>
-                <strong>{(summary.payCents/100).toFixed(2)} €</strong>
               </div>
             </div>
             {isAdmin&&<div style={{display:'flex',gap:8,alignItems:'flex-end',marginTop:14}}>
@@ -2199,7 +2186,37 @@ function WorkTimeView({user,isAdmin,staffMembers,sessions,activityLog,notify}) {
 
       <div className="card" style={{padding:0,overflow:'hidden'}}>
         <div style={{padding:'18px 20px',borderBottom:'1px solid rgba(28,43,58,.07)'}}>
-          <h3>Tööpäevade ajalugu</h3>
+          <h3>Programmi aktiivsus päevade kaupa</h3>
+          <div style={{fontSize:'.78rem',color:'#42536A',marginTop:4}}>
+            Esimene ja viimane aktiivsus on serveri aeg; sisu ega klahvivajutusi ei salvestata.
+          </div>
+        </div>
+        {monthProgramDays.length===0
+          ? <div style={{padding:24,color:'#718096'}}>Selles kuus pole aktiivset aega veel salvestatud.</div>
+          : monthProgramDays.map(day=>{
+              const recent=Date.now()-new Date(day.lastActiveAt||0).getTime()<2*60*1000;
+              return <div key={day.id} className="work-history-row" style={{display:'grid',gridTemplateColumns:'minmax(180px,1fr) minmax(150px,.7fr) minmax(220px,1.2fr)',gap:14,alignItems:'center',padding:'14px 20px',borderBottom:'1px solid rgba(28,43,58,.06)'}}>
+                <div>
+                  <div style={{fontWeight:800}}>{day.staffName||people.find(item=>item.uid===day.staffUid)?.displayName||'Töötaja'}</div>
+                  <div style={{fontSize:'.76rem',color:'#42536A',marginTop:3}}>{fmtDate(day.date)}</div>
+                </div>
+                <div>
+                  <div style={{fontSize:'.7rem',color:'#42536A'}}>Aktiivne aeg</div>
+                  <strong>{workMinutesLabel((Number(day.activeSeconds)||0)/60)}</strong>
+                </div>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:10,flexWrap:'wrap'}}>
+                  <div style={{fontSize:'.76rem',color:'#42536A'}}>
+                    {workDateTimeLabel(day.firstActiveAt)} – {workDateTimeLabel(day.lastActiveAt)}
+                  </div>
+                  {recent&&<span className="badge" style={{background:'#dcfce7',color:'#166534'}}>Aktiivne praegu</span>}
+                </div>
+              </div>;
+            })}
+      </div>
+
+      <div className="card" style={{padding:0,overflow:'hidden'}}>
+        <div style={{padding:'18px 20px',borderBottom:'1px solid rgba(28,43,58,.07)'}}>
+          <h3>Käsitsi kinnitatavate tööpäevade ajalugu</h3>
         </div>
         {monthSessions.map(session=>{
           const status=session.status==='open'
@@ -9796,6 +9813,7 @@ function App() {
   const [staffMembers,setStaffMembers] = useState([]);
   const [activityLog,setActivityLog] = useState([]);
   const [workSessions,setWorkSessions] = useState([]);
+  const [staffProgramDays,setStaffProgramDays] = useState([]);
   const [assistantAlerts,setAssistantAlerts] = useState([]);
 
   // Add student
@@ -9953,6 +9971,7 @@ function App() {
   React.useEffect(()=>{
     if(!user?.uid||!isStaff){
       setWorkSessions([]);
+      setStaffProgramDays([]);
       setAssistantAlerts([]);
       return;
     }
@@ -9963,6 +9982,13 @@ function App() {
       snap=>setWorkSessions(snap.docs.map(doc=>({id:doc.id,...doc.data()}))),
       err=>{console.warn('Work sessions listener failed:',err);setWorkSessions([]);}
     );
+    const programDaysQuery=isAdmin
+      ? db.collection('staffProgramDays')
+      : db.collection('staffProgramDays').where('staffUid','==',user.uid);
+    const unsubscribeProgramDays=programDaysQuery.onSnapshot(
+      snap=>setStaffProgramDays(snap.docs.map(doc=>({id:doc.id,...doc.data()}))),
+      err=>{console.warn('Program time listener failed:',err);setStaffProgramDays([]);}
+    );
     let unsubscribeAlerts=()=>{};
     if(isAdmin){
       unsubscribeAlerts=db.collection('assistantAlerts').onSnapshot(
@@ -9972,7 +9998,7 @@ function App() {
     }else{
       setAssistantAlerts([]);
     }
-    return()=>{unsubscribeWork();unsubscribeAlerts();};
+    return()=>{unsubscribeWork();unsubscribeProgramDays();unsubscribeAlerts();};
   },[user?.uid,isStaff,isAdmin]);
   React.useEffect(()=>{
     if(!user||!isAdmin){
@@ -12821,7 +12847,7 @@ function App() {
             isAdmin={isAdmin}
             staffMembers={staffMembers}
             sessions={workSessions}
-            activityLog={activityLog}
+            programDays={staffProgramDays}
             notify={notify}/>}
 
           {tab==='school_assistant'&&isAdmin&&<SchoolAssistantView
