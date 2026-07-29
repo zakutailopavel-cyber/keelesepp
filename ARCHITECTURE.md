@@ -95,9 +95,16 @@ Recurring schedule exceptions are additive and migration-safe. The parent series
 `EXDATE` recurrence lines, while an active moved occurrence is synchronized as its own managed
 event. Deleting the exception removes that child record and restores the date on the parent.
 
-The current two-way slice still uses last-synchronized-write-wins. Native Google exceptions
-created directly from an otherwise unmanaged recurring series, explicit conflict review and
-incremental sync tokens remain separate releases.
+Google-native exceptions of a KeeleSepp-managed recurring series are imported through the
+non-expanded Calendar API view. Ordinary instances are omitted; only moved, overridden or
+cancelled instances become deterministic `gcalx_*` child records. Their immutable
+`originalStartTime` is stored as `originalOccurrenceDate`, the parent records the corresponding
+native excluded date, and a restored Google instance removes both projections on the next sync.
+These child records keep `source: gcal`, so their authority remains Google and the Firestore
+push trigger cannot echo the import back as another event.
+
+The current two-way slice still uses last-synchronized-write-wins. Explicit conflict review,
+Google eTag preconditions and incremental sync tokens remain separate releases.
 
 ## Firestore ownership
 

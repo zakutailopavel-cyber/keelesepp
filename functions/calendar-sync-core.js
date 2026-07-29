@@ -70,6 +70,151 @@ function googleRecurrenceExcludedDates(event) {
   return [...new Set(dates)].sort();
 }
 
+function googleDateTimePart(value, timeZone, part) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(date).reduce((result, item) => {
+    result[item.type] = item.value;
+    return result;
+  }, {});
+  if (part === "date") return `${parts.year}-${parts.month}-${parts.day}`;
+  if (part === "time") return `${parts.hour}:${parts.minute}`;
+  return "";
+}
+
+function googleOriginalOccurrenceDate(event, timeZone = "Europe/Tallinn") {
+  const original = event?.originalStartTime || {};
+  if (/^\d{4}-\d{2}-\d{2}$/.test(String(original.date || ""))) {
+    return String(original.date);
+  }
+  return googleDateTimePart(original.dateTime, original.timeZone || timeZone, "date");
+}
+
+function managedGoogleOccurrenceExceptionId(seriesId, eventId) {
+  const parent = String(seriesId || "").trim();
+  const instance = String(eventId || "").trim();
+  if (!parent || !instance) return "";
+  const digest = crypto.createHash("sha256")
+    .update(`${parent}:${instance}`)
+    .digest("hex")
+    .slice(0, 40);
+  return `gcalx_${digest}`;
+}
+
+function dayFromIsoDate(date) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(date || ""))) return "";
+  return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][
+    new Date(`${date}T12:00:00Z`).getUTCDay()
+  ];
+}
+
+function googleOccurrenceExceptionSchedule(
+  seriesId,
+  parent,
+  event,
+  timeZone = "Europe/Tallinn",
+  nowIso = new Date().toISOString(),
+) {
+  if (!seriesId || !parent?.studentId || !event?.id || !event?.recurringEventId) return null;
+  const originalDate = googleOriginalOccurrenceDate(event, timeZone);
+  if (!originalDate) return null;
+
+  const cancelled = event.status === "cancelled";
+  const startValue = event.start?.dateTime || event.start?.date || "";
+  const actualTimeZone = event.start?.timeZone || event.end?.timeZone || timeZone;
+  const actualDate = event.start?.date
+    || googleDateTimePart(startValue, actualTimeZone, "date")
+    || originalDate;
+  const actualTime = event.start?.dateTime
+    ? googleDateTimePart(startValue, actualTimeZone, "time")
+    : String(parent.time || "");
+  let duration = Math.max(5, Number(parent.duration) || 60);
+  if (event.start?.dateTime && event.end?.dateTime) {
+    const calculated = Math.round(
+      (new Date(event.end.dateTime).getTime() - new Date(event.start.dateTime).getTime()) / 60000,
+    );
+    if (Number.isFinite(calculated) && calculated >= 5) duration = calculated;
+  }
+  const moved = !cancelled && (
+    actualDate !== originalDate || actualTime !== String(parent.time || "")
+  );
+  const occurrenceKind = cancelled ? "cancelled" : moved ? "moved" : "override";
+
+  return {
+    title: String(event.summary || parent.title || "").slice(0, 300),
+    studentId: String(parent.studentId),
+    studentName: String(parent.studentName || ""),
+    teacher: String(parent.teacher || ""),
+    teacherFull: String(parent.teacherFull || parent.teacher || ""),
+    teacherUid: String(parent.teacherUid || ""),
+    date: actualDate,
+    startDate: "",
+    day: dayFromIsoDate(actualDate),
+    time: actualTime,
+    duration,
+    recurring: false,
+    status: cancelled ? "Tühistatud" : "Planeeritud",
+    notes: String(event.description || parent.notes || "").slice(0, 2000),
+    source: "gcal",
+    scheduleVersion: 3,
+    seriesId: String(seriesId),
+    originalOccurrenceDate: originalDate,
+    originalDate,
+    originalTime: String(parent.time || ""),
+    occurrenceKind,
+    gcalNativeException: true,
+    gcalEventId: String(event.id),
+    gcalRecurringEventId: String(event.recurringEventId),
+    gcalCalId: String(event.calendarId || "primary"),
+    gcalEtag: String(event.etag || ""),
+    gcalSyncStatus: "synced",
+    gcalSyncedAt: nowIso,
+    gcalLastImportedAt: nowIso,
+    updatedAt: nowIso,
+    updatedAtIso: nowIso,
+  };
+}
+
+function googleNativeExclusionState({
+  previousExcludedDates = [],
+  previousNativeDates = [],
+  currentNativeDates = [],
+  googleExcludedDates = [],
+  windowStart = "",
+  windowEnd = "",
+} = {}) {
+  const validDates = values => [...new Set((Array.isArray(values) ? values : [])
+    .map(value => String(value || "").trim())
+    .filter(value => /^\d{4}-\d{2}-\d{2}$/.test(value)))];
+  const previousNative = new Set(validDates(previousNativeDates));
+  const preserved = validDates(previousExcludedDates)
+    .filter(date => !previousNative.has(date));
+  const retainedNative = [...previousNative].filter(date =>
+    !windowStart || !windowEnd || date < windowStart || date > windowEnd
+  );
+  const nativeDates = [...new Set([
+    ...retainedNative,
+    ...validDates(currentNativeDates),
+  ])].sort();
+  return {
+    nativeDates,
+    excludedDates: [...new Set([
+      ...preserved,
+      ...validDates(googleExcludedDates),
+      ...nativeDates,
+    ])].sort(),
+  };
+}
+
 function scheduleToGoogleEvent(scheduleId, schedule, timeZone = "Europe/Tallinn") {
   if (!schedule || schedule.status === "Tühistatud") return null;
   const date = recurrenceStartDate(schedule);
@@ -152,6 +297,10 @@ module.exports = {
   addLocalMinutes,
   recurrenceExcludedDates,
   googleRecurrenceExcludedDates,
+  googleOriginalOccurrenceDate,
+  managedGoogleOccurrenceExceptionId,
+  googleOccurrenceExceptionSchedule,
+  googleNativeExclusionState,
   scheduleToGoogleEvent,
   scheduleSyncFingerprint,
   managedGoogleScheduleId,

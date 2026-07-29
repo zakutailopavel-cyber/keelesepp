@@ -55,6 +55,10 @@ const {
   isKeeleSeppManagedGoogleEvent,
   isGoogleGoneError,
   googleRecurrenceExcludedDates,
+  googleOriginalOccurrenceDate,
+  managedGoogleOccurrenceExceptionId,
+  googleOccurrenceExceptionSchedule,
+  googleNativeExclusionState,
 } = require("./calendar-sync-core");
 
 admin.initializeApp();
@@ -134,6 +138,7 @@ function publicCalendarMetadata(connection = {}) {
     lastSyncSkipped: Number(connection.lastSyncSkipped || 0),
     lastSyncRemoved: Number(connection.lastSyncRemoved || 0),
     lastSyncCancelled: Number(connection.lastSyncCancelled || 0),
+    lastSyncExceptions: Number(connection.lastSyncExceptions || 0),
     lastSyncError: connection.lastSyncError || "",
     lastPushAt: connection.lastPushAt || null,
     lastPushError: connection.lastPushError || "",
@@ -168,6 +173,7 @@ async function loadCalendarConnection(uid, { migrateLegacy = true } = {}) {
     lastSyncSkipped: Number(legacy.lastSyncSkipped || 0),
     lastSyncRemoved: Number(legacy.lastSyncRemoved || 0),
     lastSyncCancelled: Number(legacy.lastSyncCancelled || 0),
+    lastSyncExceptions: Number(legacy.lastSyncExceptions || 0),
     lastSyncError: legacy.lastSyncError || "",
     grantedScopes: "",
     writeEnabled: false,
@@ -3629,6 +3635,7 @@ exports.gcalApi = functions.https.onRequest(async (req, res) => {
         lastSyncSkipped: 0,
         lastSyncRemoved: 0,
         lastSyncCancelled: 0,
+        lastSyncExceptions: 0,
         lastSyncError: "",
         lastPushAt: null,
         lastPushError: "",
@@ -3670,6 +3677,7 @@ exports.gcalApi = functions.https.onRequest(async (req, res) => {
         skipped: result.skipped,
         removed: result.removed,
         cancelled: result.cancelled,
+        exceptions: result.exceptions,
         pushed: pushed.synced,
         pushFailed: pushed.failed + outbox.failed,
         deferredDeleted: outbox.deleted,
@@ -3746,6 +3754,7 @@ exports.gcalApi = functions.https.onRequest(async (req, res) => {
         lastSyncSkipped: gcal.lastSyncSkipped || 0,
         lastSyncRemoved: gcal.lastSyncRemoved || 0,
         lastSyncCancelled: gcal.lastSyncCancelled || 0,
+        lastSyncExceptions: gcal.lastSyncExceptions || 0,
         lastSyncError: gcal.lastSyncError || "",
         lastPushAt: gcal.lastPushAt || null,
         lastPushError: gcal.lastPushError || "",
@@ -3760,6 +3769,24 @@ exports.gcalApi = functions.https.onRequest(async (req, res) => {
 });
 
 // ── CORE SYNC FUNCTION ────────────────────────────────────────
+async function listGoogleCalendarEvents(calendar, params, maxPages = 10) {
+  const items = [];
+  let pageToken = "";
+  for (let page = 0; page < maxPages; page++) {
+    const response = await calendar.events.list({
+      ...params,
+      ...(pageToken ? { pageToken } : {}),
+    });
+    items.push(...(response.data.items || []));
+    pageToken = response.data.nextPageToken || "";
+    if (!pageToken) break;
+  }
+  if (pageToken) {
+    throw new Error("Google Calendar sync exceeded the safe pagination limit");
+  }
+  return items;
+}
+
 async function syncTeacherCalendar(uid, tokens) {
   const calendar = await authorizedGoogleCalendar(uid, tokens);
 
@@ -3772,8 +3799,10 @@ async function syncTeacherCalendar(uid, tokens) {
   // Fetch events: now → 60 days ahead
   const timeMin = new Date().toISOString();
   const timeMax = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString();
+  const exceptionTimeMin = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const exceptionTimeMax = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
 
-  const eventsResp = await calendar.events.list({
+  const expandedEvents = await listGoogleCalendarEvents(calendar, {
     calendarId: "primary",
     timeMin,
     timeMax,
@@ -3781,13 +3810,35 @@ async function syncTeacherCalendar(uid, tokens) {
     orderBy: "startTime",
     maxResults: 500,
   });
+  // With singleEvents=false Google returns recurring masters and only their
+  // exceptional instances, not every ordinary occurrence.
+  const compactEvents = await listGoogleCalendarEvents(calendar, {
+    calendarId: "primary",
+    timeMin: exceptionTimeMin,
+    timeMax: exceptionTimeMax,
+    singleEvents: false,
+    showDeleted: true,
+    maxResults: 500,
+  });
 
-  let events = eventsResp.data.items || [];
-  const managedRecurringIds = [...new Set(events
-    .filter(event => event.recurringEventId && isKeeleSeppManagedGoogleEvent(event))
-    .map(event => event.recurringEventId))];
-  if (managedRecurringIds.length) {
-    const recurringMasters = (await Promise.all(managedRecurringIds.map(async eventId => {
+  const recurringMastersByGoogleId = new Map();
+  compactEvents
+    .filter(event => event.recurrence && isKeeleSeppManagedGoogleEvent(event))
+    .forEach(event => recurringMastersByGoogleId.set(event.id, {
+      ...event,
+      calendarId: "primary",
+    }));
+  const managedRecurringIds = [...new Set([
+    ...expandedEvents
+      .filter(event => event.recurringEventId && isKeeleSeppManagedGoogleEvent(event))
+      .map(event => event.recurringEventId),
+    ...compactEvents
+      .filter(event => event.recurringEventId && isKeeleSeppManagedGoogleEvent(event))
+      .map(event => event.recurringEventId),
+  ])];
+  const missingMasterIds = managedRecurringIds.filter(id => !recurringMastersByGoogleId.has(id));
+  if (missingMasterIds.length) {
+    const recurringMasters = (await Promise.all(missingMasterIds.map(async eventId => {
       try {
         const response = await calendar.events.get({ calendarId: "primary", eventId });
         return { ...response.data, calendarId: "primary" };
@@ -3798,21 +3849,36 @@ async function syncTeacherCalendar(uid, tokens) {
         return null;
       }
     }))).filter(Boolean);
-    events = [
-      ...events.filter(event => !(
-        event.recurringEventId && isKeeleSeppManagedGoogleEvent(event)
-      )),
-      ...recurringMasters,
-    ];
+    recurringMasters
+      .filter(isKeeleSeppManagedGoogleEvent)
+      .forEach(event => recurringMastersByGoogleId.set(event.id, event));
   }
+  const nativeOccurrenceExceptions = compactEvents.filter(event =>
+    event.recurringEventId
+    && recurringMastersByGoogleId.has(event.recurringEventId)
+    && googleOriginalOccurrenceDate(event, APP_TIME_ZONE)
+  );
+  const events = [
+    ...expandedEvents.filter(event => !(
+      event.recurringEventId && recurringMastersByGoogleId.has(event.recurringEventId)
+    )),
+    ...recurringMastersByGoogleId.values(),
+  ];
   let synced = 0;
   let skipped = 0;
+  let exceptions = 0;
   const importedDocIds = new Set();
 
   // Один запрос студентов на весь прогон вместо чтения на каждое событие
   // (раньше: doc.get() на каждый student:ID + полный скан коллекции на каждый
   // фолбэк по имени — до ~500 событий за прогон).
-  const studentsSnap = await db.collection("students").get();
+  const [studentsSnap, currentScheduleSnap] = await Promise.all([
+    db.collection("students").get(),
+    db.collection("schedule").where("teacherUid", "==", uid).get(),
+  ]);
+  const currentScheduleById = new Map(
+    currentScheduleSnap.docs.map(doc => [doc.id, { id: doc.id, ...doc.data() }]),
+  );
   const studentsById = new Map();
   const studentsByName = new Map(); // normalizedName -> [{...student}]
   for (const doc of studentsSnap.docs) {
@@ -3831,7 +3897,20 @@ async function syncTeacherCalendar(uid, tokens) {
     return candidates.find(s => normTeacher && normalizeName(s.teacher || "") === normTeacher) || candidates[0];
   };
 
-  const batch = db.batch();
+  const nativeDatesBySeries = new Map();
+  nativeOccurrenceExceptions.forEach(event => {
+    const master = recurringMastersByGoogleId.get(event.recurringEventId);
+    const seriesId = managedGoogleScheduleId(master);
+    const originalDate = googleOriginalOccurrenceDate(event, APP_TIME_ZONE);
+    if (!seriesId || !originalDate) return;
+    if (!nativeDatesBySeries.has(seriesId)) nativeDatesBySeries.set(seriesId, new Set());
+    nativeDatesBySeries.get(seriesId).add(originalDate);
+  });
+  const parentScheduleById = new Map();
+  const scheduleWrites = [];
+  const nowIso = new Date().toISOString();
+  const nativeWindowStart = localDate(new Date(exceptionTimeMin), APP_TIME_ZONE);
+  const nativeWindowEnd = localDate(new Date(exceptionTimeMax), APP_TIME_ZONE);
 
   for (const event of events) {
     // Try to find student ID in event description
@@ -3872,19 +3951,68 @@ async function syncTeacherCalendar(uid, tokens) {
       managedScheduleId || `gcal_${event.id}`,
     );
     if (managedScheduleId) {
+      if (scheduleData.recurring) {
+        const previous = currentScheduleById.get(managedScheduleId) || {};
+        const exclusionState = googleNativeExclusionState({
+          previousExcludedDates: previous.excludedDates,
+          previousNativeDates: previous.gcalNativeExcludedDates,
+          currentNativeDates: [...(nativeDatesBySeries.get(managedScheduleId) || [])],
+          googleExcludedDates: scheduleData.excludedDates,
+          windowStart: nativeWindowStart,
+          windowEnd: nativeWindowEnd,
+        });
+        scheduleData.excludedDates = exclusionState.excludedDates;
+        scheduleData.gcalNativeExcludedDates = exclusionState.nativeDates;
+      }
       scheduleData.gcalSyncHash = scheduleSyncFingerprint(
         managedScheduleId,
         scheduleData,
         APP_TIME_ZONE,
       );
-      scheduleData.gcalLastImportedAt = new Date().toISOString();
+      scheduleData.gcalLastImportedAt = nowIso;
+      if (scheduleData.recurring) {
+        parentScheduleById.set(managedScheduleId, scheduleData);
+      }
     }
-    batch.set(docRef, scheduleData, { merge: true });
+    scheduleWrites.push({ ref: docRef, data: scheduleData });
     importedDocIds.add(docRef.id);
     synced++;
   }
 
-  await batch.commit();
+  for (const event of nativeOccurrenceExceptions) {
+    const master = recurringMastersByGoogleId.get(event.recurringEventId);
+    const seriesId = managedGoogleScheduleId(master);
+    const parent = parentScheduleById.get(seriesId) || currentScheduleById.get(seriesId);
+    const scheduleData = googleOccurrenceExceptionSchedule(
+      seriesId,
+      parent,
+      {
+        ...event,
+        calendarId: "primary",
+        description: stripKeeleSeppCalendarMetadata(event.description),
+      },
+      APP_TIME_ZONE,
+      nowIso,
+    );
+    const exceptionId = managedGoogleOccurrenceExceptionId(seriesId, event.id);
+    if (!scheduleData || !exceptionId) {
+      skipped++;
+      continue;
+    }
+    const docRef = db.collection("schedule").doc(exceptionId);
+    scheduleWrites.push({ ref: docRef, data: scheduleData });
+    importedDocIds.add(exceptionId);
+    synced++;
+    exceptions++;
+  }
+
+  for (let offset = 0; offset < scheduleWrites.length; offset += 400) {
+    const batch = db.batch();
+    scheduleWrites.slice(offset, offset + 400).forEach(write => {
+      batch.set(write.ref, write.data, { merge: true });
+    });
+    await batch.commit();
+  }
 
   // Reconcile the same forward-looking window so deleted Google events do not
   // remain forever in KeeleSepp. Historical lessons are intentionally kept.
@@ -3893,9 +4021,18 @@ async function syncTeacherCalendar(uid, tokens) {
   const importedSnap = await db.collection("schedule").where("teacherUid", "==", uid).get();
   const staleDocs = importedSnap.docs.filter(doc => {
     const event = doc.data();
+    const reconciliationDate = event.gcalNativeException
+      ? event.originalOccurrenceDate
+      : event.date;
+    const reconciliationStart = event.gcalNativeException
+      ? nativeWindowStart
+      : syncWindowStart;
+    const reconciliationEnd = event.gcalNativeException
+      ? nativeWindowEnd
+      : syncWindowEnd;
     return event.source === "gcal"
-      && event.date >= syncWindowStart
-      && event.date <= syncWindowEnd
+      && reconciliationDate >= reconciliationStart
+      && reconciliationDate <= reconciliationEnd
       && !importedDocIds.has(doc.id);
   });
   for (let offset = 0; offset < staleDocs.length; offset += 400) {
@@ -3940,12 +4077,13 @@ async function syncTeacherCalendar(uid, tokens) {
     lastSyncSkipped: skipped,
     lastSyncRemoved: removed,
     lastSyncCancelled: cancelled,
+    lastSyncExceptions: exceptions,
     lastSyncError: "",
   };
   await saveCalendarConnection(uid, syncMetadata);
 
-  console.log(`Synced ${synced} events for teacher ${teacherName}, skipped ${skipped}, removed ${removed}, cancelled ${cancelled}`);
-  return { synced, skipped, removed, cancelled };
+  console.log(`Synced ${synced} events for teacher ${teacherName}, including ${exceptions} native exceptions, skipped ${skipped}, removed ${removed}, cancelled ${cancelled}`);
+  return { synced, skipped, removed, cancelled, exceptions };
 }
 
 async function updateCalendarPushMetadata(uid, { error = "" } = {}) {

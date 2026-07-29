@@ -68,11 +68,12 @@ Implemented:
   whole recurring series.
 - Per-occurrence move and cancellation using parent `excludedDates`, child schedule records and
   Google `EXDATE` projection.
+- Native Google per-occurrence moves and cancellations imported as deterministic child lessons
+  with the original series date and stable student ownership.
 
 Next:
 
 - Explicit conflict review, Google eTag checks and incremental sync tokens.
-- Import of native Google instance exceptions that were not originally created by KeeleSepp.
 - Teacher availability, rooms and working-hour constraints.
 - Mobile long-press creation and a compact agenda view.
 

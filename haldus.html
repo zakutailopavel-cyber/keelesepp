@@ -9238,6 +9238,7 @@ function GCalSettings({user,notify}) {
   const [lastSkipped,setLastSkipped] = React.useState(0);
   const [lastRemoved,setLastRemoved] = React.useState(0);
   const [lastCancelled,setLastCancelled] = React.useState(0);
+  const [lastExceptions,setLastExceptions] = React.useState(0);
   const [lastError,setLastError] = React.useState('');
   const [writeEnabled,setWriteEnabled] = React.useState(false);
   const [requiresWriteConsent,setRequiresWriteConsent] = React.useState(false);
@@ -9258,6 +9259,7 @@ function GCalSettings({user,notify}) {
         setLastSkipped(Number(d.lastSyncSkipped||0));
         setLastRemoved(Number(d.lastSyncRemoved||0));
         setLastCancelled(Number(d.lastSyncCancelled||0));
+        setLastExceptions(Number(d.lastSyncExceptions||0));
         setLastError(d.lastSyncError||'');
         setWriteEnabled(Boolean(d.writeEnabled));
         setRequiresWriteConsent(Boolean(d.requiresWriteConsent));
@@ -9284,12 +9286,13 @@ function GCalSettings({user,notify}) {
       });
       const d = await r.json();
       if(!r.ok) throw new Error(d.error||'Sünkroonimine ebaõnnestus');
-      notify(`✓ Google → KeeleSepp: ${d.synced}${d.pushed?` · Google’isse: ${d.pushed}`:''}${d.removed?` · eemaldatud: ${d.removed}`:''}${d.cancelled?` · tühistatud: ${d.cancelled}`:''}${d.skipped?` · vahele jäetud: ${d.skipped}`:''}`);
+      notify(`✓ Google → KeeleSepp: ${d.synced}${d.exceptions?` · sarja erandeid: ${d.exceptions}`:''}${d.pushed?` · Google’isse: ${d.pushed}`:''}${d.removed?` · eemaldatud: ${d.removed}`:''}${d.cancelled?` · tühistatud: ${d.cancelled}`:''}${d.skipped?` · vahele jäetud: ${d.skipped}`:''}`);
       setLastSync(new Date().toISOString());
       setLastCount(Number(d.synced||0));
       setLastSkipped(Number(d.skipped||0));
       setLastRemoved(Number(d.removed||0));
       setLastCancelled(Number(d.cancelled||0));
+      setLastExceptions(Number(d.exceptions||0));
       setLastError('');
       if(d.pushed) setLastPush(new Date().toISOString());
       setLastPushError(d.pushFailed?'Mõnda muudatust ei õnnestunud Google Calendarisse saata.':'');
@@ -9371,6 +9374,7 @@ function GCalSettings({user,notify}) {
               :'Praegu toimub turvaline import Google Calendarist KeeleSeppa iga tund. Kahesuunalise sünkroonimise jaoks kinnita üks kord uus sündmuste muutmise luba.'}
             {' '}Lisa välise sündmuse pealkirja õpilase nimi, näiteks „Tund — Hanna Skoryk“.
             Viimati imporditi {lastCount} ja jäeti seoseta {lastSkipped} sündmust vahele.
+            {lastExceptions>0&&<> Neist {lastExceptions} olid Google’is muudetud või tühistatud sarja üksiktunnid.</>}
             {lastRemoved>0&&<> Google’ist eemaldatud sündmusi koristati kalendrist {lastRemoved}.</>}
             {lastCancelled>0&&<> Google’is kustutatud KeeleSepa tunde märgiti tühistatuks {lastCancelled}.</>}
             {lastPush&&<> Viimane saatmine Google’isse: {new Date(lastPush).toLocaleString('et-EE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}.</>}
