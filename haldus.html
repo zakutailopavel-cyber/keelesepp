@@ -1914,9 +1914,9 @@ function ProgramsView() {
             <div>
               <div style={{fontSize:'.74rem',fontWeight:800,color:'#42536A',letterSpacing:'.08em',textTransform:'uppercase',marginBottom:8}}>Tulemus</div>
               <div style={{display:'flex',flexWrap:'wrap',gap:7}}>
-                {(program.outcomes||[]).map(outcome=>(
-                  <span key={outcome} className="badge" style={{background:'#F9F8F6',color:'#42536A',border:'1px solid rgba(28,43,58,.08)'}}>
-                    {outcome}
+                {(program.outcomes||[]).map((outcome,index)=>(
+                  <span key={outcome?.id||outcome||index} className="badge" style={{background:'#F9F8F6',color:'#42536A',border:'1px solid rgba(28,43,58,.08)'}}>
+                    {typeof outcome==='string'?outcome:outcome?.label}
                   </span>
                 ))}
               </div>
@@ -5112,75 +5112,14 @@ const SM_CATS = {
   kuulamine:  {label:'Kuulamine',   icon:'🎧', color:'#be185d'},
   lauseehitus:{label:'Lauseehitus', icon:'🧩', color:'#dc2626'},
 };
-const SM_SKILLS = {
-  A1:[
-    {id:'A1_GREET',        cat:'rääkimine',   name:'Tervimine'},
-    {id:'A1_NUMBERS',      cat:'sõnavara',    name:'Arvud 1–100'},
-    {id:'A1_COLORS',       cat:'sõnavara',    name:'Värvid'},
-    {id:'A1_FAMILY_BASIC', cat:'sõnavara',    name:'Perekond'},
-    {id:'A1_PRESENT_BASIC',cat:'grammatika',  name:'Olevik ma/sa/ta'},
-    {id:'A1_NOMINATIV',    cat:'käänded',     name:'Nimetav kääne'},
-    {id:'A1_READ_WORDS',   cat:'lugemine',    name:'Sõnade lugemine'},
-    {id:'A1_WRITE_NAME',   cat:'kirjutamine', name:'Enda andmed'},
-    {id:'A1_FOOD_BASIC',   cat:'sõnavara',    name:'Toit — põhisõnad'},
-    {id:'A1_SIMPLE_Q',     cat:'lauseehitus', name:'Lihtsad küsimused'},
-  ],
-  A2:[
-    {id:'A2_VOCAB_ROUTINE',cat:'sõnavara',    name:'Igapäevaelu'},
-    {id:'A2_PRESENT_FULL', cat:'grammatika',  name:'Olevik kõik pöörded'},
-    {id:'A2_PAST_BASIC',   cat:'grammatika',  name:'Lihtminevik'},
-    {id:'A2_WORD_ORDER',   cat:'lauseehitus', name:'Sõnajärg'},
-    {id:'A2_OSASTAV',      cat:'käänded',     name:'Osastav'},
-    {id:'A2_ILLATIIV',     cat:'käänded',     name:'Sisseütlev'},
-    {id:'A2_NEGATION',     cat:'grammatika',  name:'Eitus'},
-    {id:'A2_QUESTIONS',    cat:'lauseehitus', name:'Küsimused'},
-    {id:'A2_READ_TEXT',    cat:'lugemine',    name:'Lühitekst'},
-    {id:'A2_WRITE_TEXT',   cat:'kirjutamine', name:'Kirjutamine'},
-    {id:'A2_DIALOGUE',     cat:'rääkimine',   name:'Dialoog'},
-    {id:'A2_TIME_EXPR',    cat:'sõnavara',    name:'Ajaväljendid'},
-  ],
-  B1:[
-    {id:'B1_PAST_TYPES',   cat:'grammatika',  name:'Mineviku ajad'},
-    {id:'B1_CONDITIONAL',  cat:'grammatika',  name:'Tingiv kõneviis'},
-    {id:'B1_RELATIVE',     cat:'lauseehitus', name:'Põimlause'},
-    {id:'B1_KAANDED_ADV',  cat:'käänded',     name:'Käänded edasijõudnud'},
-    {id:'B1_PASSIVE',      cat:'grammatika',  name:'Umbisikuline tegumood'},
-    {id:'B1_READ_MEDIUM',  cat:'lugemine',    name:'Keskmise teksti mõistmine'},
-    {id:'B1_WRITE_PARA',   cat:'kirjutamine', name:'Lõigu kirjutamine'},
-    {id:'B1_SPEAK_DESC',   cat:'rääkimine',   name:'Kirjeldamine'},
-    {id:'B1_VOCAB_TOPIC',  cat:'sõnavara',    name:'Teemapõhine sõnavara'},
-    {id:'B1_INTONATION',   cat:'kuulamine',   name:'Kuulamine'},
-  ],
-  B2:[
-    {id:'B2_COMPLEX_SENT', cat:'lauseehitus', name:'Keerulised laused'},
-    {id:'B2_SUBJUNCTIVE',  cat:'grammatika',  name:'Kaudne kõneviis'},
-    {id:'B2_STYLE_REG',    cat:'kirjutamine', name:'Stiil ja register'},
-    {id:'B2_IDIOMS',       cat:'sõnavara',    name:'Fraseoloogiad'},
-    {id:'B2_ARGUMENT',     cat:'rääkimine',   name:'Argumenteerimine'},
-    {id:'B2_READ_COMPLEX', cat:'lugemine',    name:'Keerulise teksti mõistmine'},
-    {id:'B2_LISTEN_DETAIL',cat:'kuulamine',   name:'Detailne kuulamine'},
-    {id:'B2_WRITE_ESSAY',  cat:'kirjutamine', name:'Essee'},
-    {id:'B2_VOCAB_ABSTRACT',cat:'sõnavara',   name:'Abstraktne sõnavara'},
-    {id:'B2_GRAMMAR_FINE', cat:'grammatika',  name:'Grammatika peensused'},
-  ],
-  C1:[
-    {id:'C1_NUANCE',       cat:'sõnavara',    name:'Nüansirikkus'},
-    {id:'C1_RHETORIC',     cat:'rääkimine',   name:'Retoorika'},
-    {id:'C1_WRITE_FORMAL', cat:'kirjutamine', name:'Ametlik tekst'},
-    {id:'C1_READ_ALL',     cat:'lugemine',    name:'Kõik tekstiliigid'},
-    {id:'C1_LISTEN_NATIVE',cat:'kuulamine',   name:'Emakeelekõnelejad'},
-    {id:'C1_COMPLEX_GRAM', cat:'grammatika',  name:'Kõrgem grammatika'},
-    {id:'C1_CULTURE',      cat:'sõnavara',    name:'Kultuuriline arusaam'},
-    {id:'C1_SPONTANEOUS',  cat:'rääkimine',   name:'Spontaanne kõne'},
-  ],
-};
+const SM_SKILLS = window.HaldusSkillCatalog || {};
 
 function SkillMapWidget({student, isTeacher, user}) {
   const [skillMap, setSkillMap] = React.useState({});
   const [loading, setLoading] = React.useState(true);
   const [showAiGen, setShowAiGen] = React.useState(false);
   const level = student?.level || 'A2';
-  const skills = SM_SKILLS[level] || SM_SKILLS.A2;
+  const skills = SM_SKILLS[level] || SM_SKILLS.A2 || [];
 
   React.useEffect(()=>{
     if(!student?.id) return;
@@ -5565,6 +5504,13 @@ function StudentCard({user,currentStu,stuLessons,liveLessons=[],stuHw,stuInv,isA
                             <span key={index} className="badge" style={{background:'#E8F3EE',color:'#2F5D50'}}>✓ {goal}</span>
                           ))}
                         </div>
+                      </div>
+                    )}
+                    {summary.curriculumGoalIds?.length>0&&(
+                      <div style={{padding:'10px 12px',borderRadius:11,background:'#EEF4FF',border:'1px solid #C8D8F3',fontSize:'.78rem',color:'#234C8C'}}>
+                        <strong>Õppekava progress uuendatud:</strong> {summary.curriculumLevel||room.studentLevel||currentStu.level||'—'}
+                        {(summary.curriculumSubject||room.studentSubject||currentStu.subject)?` · ${summary.curriculumSubject||room.studentSubject||currentStu.subject}`:''}
+                        {` · ${summary.curriculumSkillIds?.length||0} oskust`}
                       </div>
                     )}
                     {summary.nextHomework&&(

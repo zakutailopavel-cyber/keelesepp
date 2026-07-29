@@ -45,6 +45,11 @@ Firestore tehinguna. Tund jääb seotuks muutumatu õpilase ID-ga ning ilmub nii
 õpilasekaardile kui ka õpilase isiklikku kabinetti. Enne kokkuvõtete kasutuselevõttu lõpetatud
 tunnid jäävad nähtavaks eraldi pärandolekuga.
 
+Uue tunni lõpetamisel saab õpetaja valida saavutatud eesmärgid otse õpilase taseme õppekavast.
+Eesmärgi stabiilne ID, nähtav nimetus ja seotud oskused jäävad tunni muutmatusse kokkuvõttesse.
+Sama tehing tõstab kinnitatud oskused õpilase olemasolevas oskuste kaardis vähemalt 80%-ni,
+ilma kõrgemat tulemust vähendamata. Vana v1 kokkuvõttevorming jääb reeglites loetavaks.
+
 Enne laiemat kasutuselevõttu vajab ekraanijagamine TURN-serverit ja
 kahe kasutajaga prooviperioodi eri võrkudes. Arenduse etapid ja turvapiirid on kirjeldatud failis
 `NEXT_RELEASE_ROADMAP.md`.
