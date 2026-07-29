@@ -132,6 +132,9 @@ Google eTag preconditions and incremental sync tokens remain separate releases.
   learning-history rollout.
 - `liveClassrooms/{id}/responses` — append-only student responses for the current scene version.
 - `activityLog` — operational audit events, including library assignment and classroom publish.
+  Records before 29.07.2026 may be projected into a read-only historical work-time estimate.
+  This projection remains visibly separate from server-measured `staffProgramDays` and is never
+  silently promoted to payroll evidence.
 - `workSessions` — server-authored staff shifts; staff read their own and administrators read all.
 - `workTimeAudit` — immutable server-authored snapshots for shift, approval and rate transitions.
 - `workSessionOpen` — server-only concurrency pointers enforcing one open shift per staff member.

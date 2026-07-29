@@ -109,6 +109,7 @@ window.addEventListener('load', function(){
 window.__haldusConfigureBabel();
 </script>
 <script src="/haldus-shared.js"></script>
+<script src="/staff-time-core.js"></script>
 <script src="/calendar-core.js"></script>
 <script src="/live-classroom-core.js"></script>
 <script src="/haldus-quality.js"></script>
@@ -134,6 +135,10 @@ const {
   scheduleEventOccursOnDate,
   dataQualitySummary
 } = window.HaldusQuality;
+const {
+  historicalActivitySummary
+} = window.StaffTimeCore;
+const PROGRAM_ACTIVITY_LAUNCH_DATE='2026-07-29';
 const {
   lessonHistorySortValue:liveLessonHistorySortValue,
   lessonDurationMinutes:liveLessonDurationMinutes
@@ -1978,8 +1983,14 @@ const workDateTimeLabel = value => {
     day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'
   });
 };
+const previousWorkMonth = () => {
+  const date=new Date();
+  date.setDate(1);
+  date.setMonth(date.getMonth()-1);
+  return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}`;
+};
 
-function WorkTimeView({user,isAdmin,staffMembers,sessions,programDays,notify}) {
+function WorkTimeView({user,isAdmin,staffMembers,sessions,programDays,activityLog,notify}) {
   const [month,setMonth]=React.useState(today().slice(0,7));
   const [breakMinutes,setBreakMinutes]=React.useState('0');
   const [note,setNote]=React.useState('');
@@ -2005,6 +2016,12 @@ function WorkTimeView({user,isAdmin,staffMembers,sessions,programDays,notify}) {
   const people=isAdmin
     ? (staffMembers||[]).map(member=>({...member,uid:member.id||member.uid})).filter(member=>member.uid)
     : [{...((staffMembers||[]).find(member=>(member.id||member.uid)===user?.uid)||user),uid:user?.uid}];
+  const historical=historicalActivitySummary(activityLog,{
+    month,
+    beforeDate:PROGRAM_ACTIVITY_LAUNCH_DATE,
+    staffUids:people.map(member=>member.uid)
+  });
+  const historicalByStaff=new Map(historical.staff.map(item=>[item.staffUid,item]));
   const summaries=people.map(member=>{
     const memberSessions=monthSessions.filter(item=>item.staffUid===member.uid);
     const approved=memberSessions.filter(item=>item.approvalStatus==='approved');
@@ -2015,6 +2032,9 @@ function WorkTimeView({user,isAdmin,staffMembers,sessions,programDays,notify}) {
     );
     const programSeconds=memberProgramDays.reduce((sum,item)=>sum+(Number(item.activeSeconds)||0),0);
     const currentRateCents=Number(member.workHourlyRateCents)||0;
+    const historicalSummary=historicalByStaff.get(member.uid)||{
+      estimateMinutes:0,eventCount:0,sessionCount:0,dayCount:0
+    };
     return {
       member,
       approvedMinutes:approved.reduce((sum,item)=>sum+(Number(item.durationMinutes)||0),0),
@@ -2022,14 +2042,25 @@ function WorkTimeView({user,isAdmin,staffMembers,sessions,programDays,notify}) {
       payCents:approved.reduce((sum,item)=>sum+(Number(item.payAmountCents)||0),0),
       programMinutes:Math.round(programSeconds/60),
       programPayCents:Math.round((programSeconds*currentRateCents)/3600),
+      historicalMinutes:historicalSummary.estimateMinutes,
+      historicalEventCount:historicalSummary.eventCount,
+      historicalDayCount:historicalSummary.dayCount,
+      historicalPayCents:Math.round((historicalSummary.estimateMinutes*currentRateCents)/60),
       pendingCount:pending.length,
       rejectedCount:rejected.length,
       open:memberSessions.find(item=>item.status==='open')||null
     };
   });
   const totalProgram=summaries.reduce((sum,item)=>sum+item.programMinutes,0);
+  const totalHistorical=summaries.reduce((sum,item)=>sum+item.historicalMinutes,0);
   const totalPending=summaries.reduce((sum,item)=>sum+item.pendingMinutes,0);
   const totalProgramPay=summaries.reduce((sum,item)=>sum+item.programPayCents,0);
+  const totalHistoricalPay=summaries.reduce((sum,item)=>sum+item.historicalPayCents,0);
+  const confidenceMeta={
+    medium:{label:'Keskmine kindlus',bg:'#fef3c7',color:'#92400e'},
+    low:{label:'Madal kindlus',bg:'#ffedd5',color:'#9a3412'},
+    very_low:{label:'Väga madal kindlus',bg:'#fee2e2',color:'#991b1b'}
+  };
 
   const run=async(key,fn,success)=>{
     setBusy(key);
@@ -2090,10 +2121,13 @@ function WorkTimeView({user,isAdmin,staffMembers,sessions,programDays,notify}) {
         <div>
           <h1 style={{fontSize:'1.7rem'}}>Tööaeg</h1>
           <div style={{fontSize:'.88rem',color:'#42536A',marginTop:4}}>
-            KeeleSepp loendab automaatselt aktiivset tööaega nähtavas aknas. Viie minuti tegevusetuse järel loendus peatub.
+            Täpne aeg alates 29.07.2026. Varasemate kuude eraldi hinnang taastatakse säilinud tegevuslogidest.
           </div>
         </div>
-        <input type="month" value={month} onChange={event=>setMonth(event.target.value)} style={{width:'auto'}}/>
+        <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
+          <button className="btn btn-ghost btn-sm" onClick={()=>setMonth(previousWorkMonth())}>Eelmine kuu</button>
+          <input type="month" value={month} onChange={event=>setMonth(event.target.value)} style={{width:'auto'}}/>
+        </div>
       </div>
 
       <div className="card" style={{padding:22}}>
@@ -2127,11 +2161,13 @@ function WorkTimeView({user,isAdmin,staffMembers,sessions,programDays,notify}) {
       </div>
 
       {isAdmin&&(
-        <div className="work-summary-grid" style={{display:'grid',gridTemplateColumns:'repeat(3,minmax(0,1fr))',gap:12}}>
+        <div className="work-summary-grid" style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(185px,1fr))',gap:12}}>
           {[
             {label:'Programmis aktiivne',value:workMinutesLabel(totalProgram),color:'#166534',bg:'#dcfce7'},
+            {label:'Palk programmi järgi',value:`${(totalProgramPay/100).toFixed(2)} €`,color:'#1d4ed8',bg:'#dbeafe'},
+            {label:'Ajalooline hinnang',value:workMinutesLabel(totalHistorical),color:'#9a3412',bg:'#ffedd5'},
+            {label:'Hinnanguline summa',value:`${(totalHistoricalPay/100).toFixed(2)} €`,color:'#9a3412',bg:'#fff7ed'},
             {label:'Kinnitamise ootel',value:workMinutesLabel(totalPending),color:'#92400e',bg:'#fef3c7'},
-            {label:'Palk programmi järgi',value:`${(totalProgramPay/100).toFixed(2)} €`,color:'#1d4ed8',bg:'#dbeafe'}
           ].map(item=><div key={item.label} className="card" style={{padding:18,background:item.bg}}>
             <div style={{fontSize:'.72rem',fontWeight:800,color:item.color,textTransform:'uppercase',letterSpacing:'.06em'}}>{item.label}</div>
             <div style={{fontSize:'1.45rem',fontWeight:800,color:item.color,marginTop:6}}>{item.value}</div>
@@ -2162,6 +2198,15 @@ function WorkTimeView({user,isAdmin,staffMembers,sessions,programDays,notify}) {
                 <div style={{fontSize:'.7rem',color:'#42536A'}}>Palk programmi järgi</div>
                 <strong>{(summary.programPayCents/100).toFixed(2)} €</strong>
               </div>
+              <div style={{padding:12,borderRadius:10,background:'#fff7ed'}}>
+                <div style={{fontSize:'.7rem',color:'#9a3412'}}>Ajalooline hinnang</div>
+                <strong>{workMinutesLabel(summary.historicalMinutes)}</strong>
+                <div style={{fontSize:'.68rem',color:'#9a3412',marginTop:2}}>{summary.historicalEventCount} logikirjet · {summary.historicalDayCount} päeva</div>
+              </div>
+              <div style={{padding:12,borderRadius:10,background:'#fff7ed'}}>
+                <div style={{fontSize:'.7rem',color:'#9a3412'}}>Hinnanguline summa</div>
+                <strong>{(summary.historicalPayCents/100).toFixed(2)} €</strong>
+              </div>
               <div style={{padding:12,borderRadius:10,background:'#F9F8F6'}}>
                 <div style={{fontSize:'.7rem',color:'#42536A'}}>Kinnitatud tabellis</div>
                 <strong>{workMinutesLabel(summary.approvedMinutes)}</strong>
@@ -2183,6 +2228,36 @@ function WorkTimeView({user,isAdmin,staffMembers,sessions,programDays,notify}) {
           </div>;
         })}
       </div>
+
+      {historical.days.length>0&&<div className="card" style={{padding:0,overflow:'hidden',border:'1px solid #fed7aa'}}>
+        <div style={{padding:'18px 20px',borderBottom:'1px solid #fed7aa',background:'#fff7ed'}}>
+          <h3>Ajalooline aktiivsuse hinnang päevade kaupa</h3>
+          <div style={{fontSize:'.78rem',color:'#9a3412',marginTop:4}}>
+            Iga logikirje annab tööblokile 5 minutit; kuni 15-minutilised vahed ühendatakse. See ei ole täpne tööaeg ega automaatselt palga alus.
+          </div>
+        </div>
+        {historical.days.map(day=>{
+          const confidence=confidenceMeta[day.confidence]||confidenceMeta.very_low;
+          const member=people.find(item=>item.uid===day.staffUid)||{};
+          return <div key={`${day.staffUid}-${day.date}`} className="work-history-row" style={{display:'grid',gridTemplateColumns:'minmax(180px,1fr) minmax(150px,.7fr) minmax(240px,1.2fr)',gap:14,alignItems:'center',padding:'14px 20px',borderBottom:'1px solid #ffedd5'}}>
+            <div>
+              <div style={{fontWeight:800}}>{member.displayName||member.name||member.email||'Töötaja'}</div>
+              <div style={{fontSize:'.76rem',color:'#42536A',marginTop:3}}>{fmtDate(day.date)}</div>
+            </div>
+            <div>
+              <div style={{fontSize:'.7rem',color:'#9a3412'}}>Taastatud hinnang</div>
+              <strong>{workMinutesLabel(day.estimateMinutes)}</strong>
+              <div style={{fontSize:'.68rem',color:'#9a3412',marginTop:2}}>{day.eventCount} sündmust · {day.sessionCount} blokki</div>
+            </div>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:10,flexWrap:'wrap'}}>
+              <div style={{fontSize:'.76rem',color:'#42536A'}}>
+                {workDateTimeLabel(day.firstActivityAt)} – {workDateTimeLabel(day.lastActivityAt)}
+              </div>
+              <span className="badge" style={{background:confidence.bg,color:confidence.color}}>{confidence.label}</span>
+            </div>
+          </div>;
+        })}
+      </div>}
 
       <div className="card" style={{padding:0,overflow:'hidden'}}>
         <div style={{padding:'18px 20px',borderBottom:'1px solid rgba(28,43,58,.07)'}}>
@@ -2249,7 +2324,7 @@ function WorkTimeView({user,isAdmin,staffMembers,sessions,programDays,notify}) {
       </div>
 
       <div style={{padding:14,borderRadius:12,background:'#eff6ff',border:'1px solid #bfdbfe',color:'#1e3a8a',fontSize:'.82rem'}}>
-        <strong>Oluline:</strong> logide hinnang aitab märgata erinevusi, kuid ei ole palga alus. Iga muutmine, kinnitamine ja tunnitasu vahetus salvestatakse eraldi auditisse.
+        <strong>Oluline:</strong> alates 29.07.2026 mõõdetud aktiivne aeg ja varasem logipõhine hinnang on alati eraldi. Ajalooline hinnang vajab enne palgaarvestust inimese kontrolli.
       </div>
     </div>
   );
@@ -12848,6 +12923,7 @@ function App() {
             staffMembers={staffMembers}
             sessions={workSessions}
             programDays={staffProgramDays}
+            activityLog={activityLog}
             notify={notify}/>}
 
           {tab==='school_assistant'&&isAdmin&&<SchoolAssistantView
