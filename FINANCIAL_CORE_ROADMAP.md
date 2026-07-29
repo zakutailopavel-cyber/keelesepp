@@ -188,6 +188,21 @@ authoritative financial collections. Accountant-specific VAT fields, attachments
 payment-ledger export, opening balances and an archived export manifest remain
 separate slices.
 
+The second Stage 9 slice adds a lesson-to-payment control register. For every lesson
+in the selected month it distinguishes exact immutable invoice-line links, package
+coverage, explicit free/cancelled/write-off decisions, credits, unbilled work and
+legacy records. Full payments cover every active lesson line; partial invoice
+payments are shown as a deterministic oldest-line-first projection with the
+allocation method, lesson ID, invoice ID and payment IDs visible in the UI and CSV.
+The register does not rewrite or backfill historical data. Missing reciprocal links,
+duplicate billing, line-total mismatches and paid invoice flags without authoritative
+payment records are surfaced as blocking reconciliation errors.
+
+The next accuracy slice should add optional immutable payment-to-invoice-line
+allocations. That will replace the derived FIFO distribution where a payer or
+administrator explicitly identifies which lesson a partial payment covers, while
+preserving FIFO as a migration-safe fallback.
+
 ## Cross-cutting technical work
 
 The platform currently keeps substantial UI and business logic in `haldus.html`.

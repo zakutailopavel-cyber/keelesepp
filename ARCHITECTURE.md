@@ -60,11 +60,21 @@ financial operations, but authoritative payment, credit, package and invoice mut
 Cloud Functions and are covered by unit and emulator tests.
 
 `accounting-ledger-core.js` builds the administrator's monthly invoice register as a read-only
-projection of `invoices`, `payments`, `bankTransactions` and `payerCredits`. It deliberately does
-not persist a second ledger. Invoice periods use the issue date while incoming-payment periods
-use the payment date. The projection compares invoice payment snapshots with active payment
-records and checks bank allocation arithmetic, exposing mismatches without silently repairing
-authoritative records. Its CSV output contains invoice-register fields only; VAT, expenses and
+projection of `lessons`, `invoices`, `payments`, `bankTransactions` and `payerCredits`. It
+deliberately does not persist a second ledger. Invoice periods use the issue date while
+incoming-payment periods use the payment date. The invoice projection compares payment snapshots
+with active payment records and checks bank allocation arithmetic, exposing mismatches without
+silently repairing authoritative records.
+
+The lesson-payment projection joins both directions of the immutable lesson/invoice ID link.
+It excludes credited lines, keeps package consumption as a separate coverage source, and exposes
+legacy invoices without lesson lines instead of inventing historical links. Active invoice
+payments are projected onto immutable lesson lines oldest-first. This FIFO allocation is
+deterministic and explicitly labelled as derived; exact payer intent for a partial invoice cannot
+be recovered until payment allocations themselves carry a lesson-line ID. The projection reports
+duplicate lesson lines, one lesson on multiple invoices, broken reciprocal links, line-total
+mismatches, payment overflow, paid snapshots without payment records and absences without a
+billing disposition. Both registers have CSV output with stable IDs. VAT, expenses and
 period-close evidence remain future accounting slices.
 
 ### Staff operations
