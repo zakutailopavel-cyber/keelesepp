@@ -95,6 +95,97 @@ test('monthly control is ready when exact lesson and payment evidence reconcile'
   assert.equal(control.checklist.every(item=>item.ready),true);
 });
 
+test('explicit payment versions allocate partial money to selected lesson rows instead of FIFO',()=>{
+  const register=lessonPaymentRegister({
+    month:'2026-07',
+    lessons:[
+      {id:'lesson-a',date:'2026-07-01',studentName:'Mari',status:'Toimunud',billingStatus:'invoiced',invoiceId:'invoice-a'},
+      {id:'lesson-b',date:'2026-07-08',studentName:'Mari',status:'Toimunud',billingStatus:'invoiced',invoiceId:'invoice-a'}
+    ],
+    invoices:[{
+      id:'invoice-a',
+      num:'KS-EXACT',
+      amountCents:6000,
+      paidAmountCents:3000,
+      lines:[
+        {lessonId:'lesson-a',date:'2026-07-01',amountCents:3000},
+        {lessonId:'lesson-b',date:'2026-07-08',amountCents:3000}
+      ]
+    }],
+    payments:[{
+      id:'payment-a',
+      invoiceId:'invoice-a',
+      amountCents:3000,
+      paidAt:'2026-07-10',
+      status:'active',
+      lineAllocationId:'allocation-v2',
+      lineAllocationVersion:2
+    }],
+    paymentLineAllocations:[
+      {
+        id:'allocation-v1',
+        paymentId:'payment-a',
+        invoiceId:'invoice-a',
+        version:1,
+        allocatedAmountCents:3000,
+        lines:[{lessonId:'lesson-a',allocatedAmountCents:3000}]
+      },
+      {
+        id:'allocation-v2',
+        paymentId:'payment-a',
+        invoiceId:'invoice-a',
+        version:2,
+        supersedesAllocationId:'allocation-v1',
+        allocatedAmountCents:3000,
+        lines:[{lessonId:'lesson-b',allocatedAmountCents:3000}]
+      }
+    ]
+  });
+  const first=register.rows.find(row=>row.lessonId==='lesson-a');
+  const second=register.rows.find(row=>row.lessonId==='lesson-b');
+  assert.equal(first.status,'invoiced_unpaid');
+  assert.equal(second.status,'paid');
+  assert.equal(second.allocationMethod,'explicit_invoice_lines_v1');
+  assert.equal(second.paymentAllocations[0].allocationVersion,2);
+  assert.equal(register.summary.explicitAllocationCount,1);
+  assert.equal(register.summary.fifoAllocationCount,0);
+});
+
+test('old payments retain migration-safe FIFO while broken explicit pointers block review',()=>{
+  const shared={
+    month:'2026-07',
+    lessons:[{id:'lesson-a',date:'2026-07-01',studentName:'Mari',status:'Toimunud',billingStatus:'invoiced',invoiceId:'invoice-a'}],
+    invoices:[{
+      id:'invoice-a',
+      num:'KS-FALLBACK',
+      amountCents:3000,
+      paidAmountCents:1000,
+      lines:[{lessonId:'lesson-a',date:'2026-07-01',amountCents:3000}]
+    }]
+  };
+  const legacy=lessonPaymentRegister({
+    ...shared,
+    payments:[{id:'payment-old',invoiceId:'invoice-a',amountCents:1000,paidAt:'2026-07-05',status:'active'}]
+  });
+  assert.equal(legacy.rows[0].allocationMethod,'invoice_fifo_v1');
+  assert.equal(legacy.rows[0].status,'partial');
+
+  const broken=financialPeriodControl({
+    ...shared,
+    payments:[{
+      id:'payment-new',
+      invoiceId:'invoice-a',
+      amountCents:1000,
+      paidAt:'2026-07-05',
+      status:'active',
+      lineAllocationId:'missing-allocation',
+      lineAllocationVersion:1
+    }]
+  });
+  assert.equal(broken.canReview,false);
+  assert.ok(broken.issues.some(issue=>issue.type==='payment_line_allocation_invalid'));
+});
+
 test('CRM loads the accounting ledger and exposes an administrator screen',()=>{
   const html=fs.readFileSync('haldus.html','utf8');
   assert.match(html,/accounting-ledger-core\.js/);
@@ -106,6 +197,8 @@ test('CRM loads the accounting ledger and exposes an administrator screen',()=>{
   assert.match(html,/Tundide ja maksete täpne kontroll/);
   assert.match(html,/Lisa maksekorraldus/);
   assert.match(html,/\/payments\/documents/);
+  assert.match(html,/\/payments\/line-allocations/);
+  assert.match(html,/Jaga tundidele/);
   const storageRules=fs.readFileSync('storage.rules','utf8');
   assert.match(storageRules,/financial\/payment-orders\/\{paymentId\}\/\{documentId\}/);
   assert.match(storageRules,/allow read: if accountingAdmin\(\)/);
@@ -113,6 +206,7 @@ test('CRM loads the accounting ledger and exposes an administrator screen',()=>{
   const firestoreRules=fs.readFileSync('firestore.rules','utf8');
   assert.match(firestoreRules,/match \/financialPeriods\/\{monthId\}/);
   assert.match(firestoreRules,/match \/financialPeriodReviews\/\{reviewId\}/);
+  assert.match(firestoreRules,/match \/paymentLineAllocations\/\{allocationId\}/);
   assert.match(firestoreRules,/allow create, update, delete: if false/);
 });
 

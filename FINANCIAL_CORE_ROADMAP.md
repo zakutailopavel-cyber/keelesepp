@@ -198,10 +198,14 @@ The register does not rewrite or backfill historical data. Missing reciprocal li
 duplicate billing, line-total mismatches and paid invoice flags without authoritative
 payment records are surfaced as blocking reconciliation errors.
 
-The next accuracy slice should add optional immutable payment-to-invoice-line
-allocations. That will replace the derived FIFO distribution where a payer or
-administrator explicitly identifies which lesson a partial payment covers, while
-preserving FIFO as a migration-safe fallback.
+The fourth Stage 9 slice adds optional immutable payment-to-invoice-line allocations.
+An administrator can distribute an active payment across exact lesson rows. The current
+allocation is a version pointer on the payment; every correction requires its own date and
+reason, creates a new append-only `paymentLineAllocations` document, links to the superseded
+version and writes a before/after financial audit entry. Explicit allocations reserve lesson
+capacity before remaining unversioned payments use the derived FIFO projection. Missing,
+overlapping, over-payment or incomplete exact allocations block monthly review. Existing
+payments without allocation versions remain readable through the migration-safe FIFO fallback.
 
 The third Stage 9 slice attaches private payment-order evidence to an exact payment record.
 Administrators can upload a bounded PDF or image, while students, parents and teachers have no

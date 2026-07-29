@@ -17,6 +17,7 @@ const {
   packageBalanceAfterEntry,
   packageBalanceAfterLessonMovement,
   paymentDocumentRecord,
+  paymentLineAllocationPlan,
   paymentNetAmountCents,
   planInvoiceOverpaymentTransfer,
   positiveInteger,
@@ -26,6 +27,112 @@ const {
   toCents,
   validIsoMonth,
 } = require("./finance-core");
+
+test("exact payment allocation snapshots immutable invoice lesson lines", () => {
+  const plan = paymentLineAllocationPlan({
+    payment: {
+      id: "payment-a",
+      invoiceId: "invoice-a",
+      amountCents: 4000,
+      paidAt: "2026-07-10",
+      status: "active",
+    },
+    invoice: {
+      id: "invoice-a",
+      lines: [
+        { lessonId: "lesson-a", date: "2026-07-01", description: "Grammar", amountCents: 3000 },
+        { lessonId: "lesson-b", date: "2026-07-08", description: "Reading", amountCents: 3000 },
+      ],
+    },
+    allocations: [
+      { lessonId: "lesson-a", amount: 30 },
+      { lessonId: "lesson-b", amount: 10 },
+    ],
+    effectiveDate: "2026-07-10",
+  });
+  assert.equal(plan.version, 1);
+  assert.equal(plan.allocatedAmountCents, 4000);
+  assert.equal(plan.unallocatedAmountCents, 0);
+  assert.deepEqual(plan.lines.map(line => line.invoiceLineIndex), [0, 1]);
+  assert.equal(plan.lines[0].lineAmountCents, 3000);
+  assert.equal(plan.reason, "Initial exact lesson allocation");
+});
+
+test("allocation corrections require a dated reason and respect remaining line capacity", () => {
+  const base = {
+    payment: {
+      id: "payment-a",
+      invoiceId: "invoice-a",
+      amountCents: 3000,
+      paidAt: "2026-07-10",
+      status: "active",
+    },
+    invoice: {
+      id: "invoice-a",
+      lines: [{ lessonId: "lesson-a", date: "2026-07-01", amountCents: 3000 }],
+    },
+    allocations: [{ lessonId: "lesson-a", amount: 25 }],
+    effectiveDate: "2026-07-11",
+    previousAllocation: { id: "allocation-v1", version: 1 },
+  };
+  assert.throws(
+    () => paymentLineAllocationPlan(base),
+    /Reason required/,
+  );
+  assert.throws(
+    () => paymentLineAllocationPlan({
+      ...base,
+      reason: "Corrected bank evidence",
+      allocatedByLesson: { "lesson-a": 1000 },
+    }),
+    /available amount/,
+  );
+  const correction = paymentLineAllocationPlan({
+    ...base,
+    reason: "Corrected bank evidence",
+    allocations: [{ lessonId: "lesson-a", amount: 20 }],
+    allocatedByLesson: { "lesson-a": 1000 },
+  });
+  assert.equal(correction.version, 2);
+  assert.equal(correction.supersedesAllocationId, "allocation-v1");
+  assert.equal(correction.unallocatedAmountCents, 1000);
+});
+
+test("exact allocation rejects corrected, duplicate, unknown, and over-payment lesson rows", () => {
+  const base = {
+    payment: {
+      id: "payment-a",
+      invoiceId: "invoice-a",
+      amountCents: 3000,
+      paidAt: "2026-07-10",
+      status: "active",
+    },
+    invoice: {
+      id: "invoice-a",
+      correctedLessonIds: ["lesson-b"],
+      lines: [
+        { lessonId: "lesson-a", amountCents: 3000 },
+        { lessonId: "lesson-b", amountCents: 3000 },
+      ],
+    },
+    effectiveDate: "2026-07-10",
+  };
+  assert.throws(() => paymentLineAllocationPlan({
+    ...base,
+    allocations: [{ lessonId: "lesson-b", amount: 10 }],
+  }), /not an active line/);
+  assert.throws(() => paymentLineAllocationPlan({
+    ...base,
+    allocations: [
+      { lessonId: "lesson-a", amount: 10 },
+      { lessonId: "lesson-a", amount: 10 },
+    ],
+  }), /unique lesson IDs/);
+  assert.throws(() => paymentLineAllocationPlan({
+    ...base,
+    allocations: [{ lessonId: "lesson-a", amount: 30.01 }],
+  }), /available amount|payment amount/);
+});
 
 test("financial period review is ready only when lessons, invoices, payments, and bank rows reconcile", () => {
   const snapshot = financialPeriodReviewSnapshot({
@@ -68,6 +175,65 @@ test("financial period review is ready only when lessons, invoices, payments, an
   assert.equal(snapshot.summary.exactLessonLinkCount, 1);
   assert.equal(snapshot.summary.issuedCents, 3000);
   assert.equal(snapshot.summary.paymentsCents, 3000);
+});
+
+test("monthly review validates the active exact payment allocation version", () => {
+  const base = {
+    month: "2026-07",
+    lessons: [{
+      id: "lesson-exact",
+      date: "2026-07-10",
+      studentName: "Mari",
+      status: "Toimunud",
+      billingStatus: "invoiced",
+      invoiceId: "invoice-exact",
+    }],
+    invoices: [{
+      id: "invoice-exact",
+      date: "2026-07-11",
+      amountCents: 3000,
+      paidAmountCents: 3000,
+      status: "Makstud",
+      lines: [{ lessonId: "lesson-exact", date: "2026-07-10", amountCents: 3000 }],
+    }],
+    payments: [{
+      id: "payment-exact",
+      invoiceId: "invoice-exact",
+      amountCents: 3000,
+      paidAt: "2026-07-12",
+      status: "active",
+      lineAllocationId: "allocation-exact",
+      lineAllocationVersion: 1,
+      lineAllocatedAmountCents: 3000,
+      lineUnallocatedAmountCents: 0,
+      allocationMethod: "explicit_invoice_lines_v1",
+    }],
+  };
+  const missing = financialPeriodReviewSnapshot(base);
+  assert.equal(missing.canReview, false);
+  assert.ok(missing.issues.some(issue => issue.type === "payment_line_allocation_invalid"));
+
+  const valid = financialPeriodReviewSnapshot({
+    ...base,
+    paymentLineAllocations: [{
+      id: "allocation-exact",
+      paymentId: "payment-exact",
+      invoiceId: "invoice-exact",
+      version: 1,
+      effectiveDate: "2026-07-12",
+      allocatedAmountCents: 3000,
+      unallocatedAmountCents: 0,
+      lines: [{
+        lessonId: "lesson-exact",
+        invoiceLineIndex: 0,
+        lineAmountCents: 3000,
+        allocatedAmountCents: 3000,
+      }],
+    }],
+  });
+  assert.equal(valid.canReview, true);
+  assert.equal(valid.scope, "billing_control_v2");
+  assert.equal(valid.dataVersion, 2);
 });
 
 test("financial period review blocks unbilled lessons, unmatched bank money, and missing payment evidence", () => {

@@ -6688,11 +6688,130 @@ function ParentInvoicesView({invoices,printInvoice,submitParentPayment}) {
 }
 
 // ── ARVED ÜLDVAADE ────────────────────────────────────────────
-function InvoicesView({invoices,payments,myStudents,parents,schedule,students,lessons,isAdmin,tariffs=[],tariffAssignments=[],packageProducts=[],studentPackages=[],packageLedger=[],createTariffVersion,assignStudentTariff,createPackageProduct,issueStudentPackage,adjustStudentPackage,invStu,setInvStu,invAmt,setInvAmt,invDesc,setInvDesc,invRef,setInvRef,invDue,setInvDue,addInvoice,recordPayment,uploadPaymentDocument,openPaymentDocument,markPaid,unmarkPaid,voidPayment,resolveInvoiceOverpayment,creditInvoiceLessonLine,openCreditNotePdf,sendCreditNoteEmail,deleteInvoice,printInvoice,updateInvoiceReference,updateInvoiceDue,sendInvoiceEmail,sendInvoiceReminder,sendMonthlyInvoiceReminders,invoiceEmailBusy}) {
+function PaymentLineAllocationModal({invoice,payment,currentAllocation,onSave,onClose}) {
+  const correctedIds=new Set((invoice.correctedLessonIds||[]).map(String));
+  const lines=(Array.isArray(invoice.lines)?invoice.lines:[])
+    .map((line,index)=>({...line,index,lessonId:String(line.lessonId||'')}))
+    .filter(line=>line.lessonId&&!correctedIds.has(line.lessonId));
+  const paymentNet=paymentFinancialSummary(payment).net;
+  const initialAmounts=React.useMemo(()=>{
+    if(currentAllocation){
+      return Object.fromEntries((currentAllocation.lines||[]).map(line=>[
+        String(line.lessonId),
+        money(Number(line.allocatedAmountCents||0)/100)
+      ]));
+    }
+    let remaining=Math.round(paymentNet*100);
+    return Object.fromEntries(lines.map(line=>{
+      const lineCents=Number.isInteger(Number(line.amountCents))
+        ?Number(line.amountCents)
+        :Math.round((Number(line.amount)||0)*100);
+      const allocated=Math.min(Math.max(0,lineCents),remaining);
+      remaining-=allocated;
+      return [line.lessonId,allocated>0?money(allocated/100):''];
+    }));
+  },[payment.id,currentAllocation?.id]);
+  const [amounts,setAmounts]=React.useState(initialAmounts);
+  const [effectiveDate,setEffectiveDate]=React.useState(today());
+  const [reason,setReason]=React.useState('');
+  const [saving,setSaving]=React.useState(false);
+  const total=Object.values(amounts).reduce((sum,value)=>{
+    const amount=Number(String(value||'').replace(',','.'));
+    return sum+(Number.isFinite(amount)&&amount>0?amount:0);
+  },0);
+  const remaining=Math.max(0,paymentNet-total);
+  const invalid=total<=0||total>paymentNet+.001||(currentAllocation&&!reason.trim());
+  const submit=async()=>{
+    if(invalid||saving) return;
+    setSaving(true);
+    const saved=await onSave(payment,{
+      allocations:lines.map(line=>({
+        lessonId:line.lessonId,
+        amount:Number(String(amounts[line.lessonId]||'').replace(',','.'))
+      })).filter(item=>Number.isFinite(item.amount)&&item.amount>0),
+      effectiveDate,
+      reason:reason.trim()
+    });
+    setSaving(false);
+    if(saved) onClose();
+  };
+  return(
+    <div style={{position:'fixed',inset:0,background:'rgba(28,43,58,.65)',display:'flex',alignItems:'flex-start',justifyContent:'center',padding:16,zIndex:340,backdropFilter:'blur(6px)',overflowY:'auto'}}>
+      <div className="card" style={{width:'min(720px,100%)',marginTop:30,padding:0,overflow:'hidden'}}>
+        <div style={{padding:'18px 20px',background:'#1C2B3A',color:'#fff',display:'flex',justifyContent:'space-between',gap:16}}>
+          <div>
+            <div style={{fontSize:'.7rem',textTransform:'uppercase',letterSpacing:'.08em',opacity:.65}}>
+              {currentAllocation?`Täpse jaotuse parandus · versioon ${Number(currentAllocation.version||0)+1}`:'Täpne maksejaotus'}
+            </div>
+            <h2 style={{fontSize:'1.25rem',marginTop:4}}>{invoice.num||invoice.id} · {money(paymentNet)} €</h2>
+          </div>
+          <button onClick={onClose} className="btn btn-ghost btn-sm" style={{background:'#fff'}}>Sulge</button>
+        </div>
+        <div style={{padding:20}}>
+          <div style={{fontSize:'.78rem',color:'#42536A',lineHeight:1.55,marginBottom:14}}>
+            Määra, milliseid arve tunniridu see makse katab. Salvestatud versiooni ei muudeta:
+            parandamisel luuakse uus kuupäeva, põhjuse ja auditiga versioon.
+          </div>
+          <div style={{display:'flex',flexDirection:'column',gap:8}}>
+            {lines.map(line=>{
+              const lineAmount=Number.isInteger(Number(line.amountCents))
+                ?Number(line.amountCents)/100
+                :Number(line.amount)||0;
+              return(
+                <div key={line.lessonId} style={{display:'grid',gridTemplateColumns:'minmax(0,1fr) 130px',gap:12,alignItems:'center',padding:'10px 12px',border:'1px solid rgba(28,43,58,.09)',borderRadius:10}}>
+                  <div>
+                    <div style={{fontWeight:700,fontSize:'.82rem'}}>{fmtDate(line.date)} · {line.description||`Tund ${line.index+1}`}</div>
+                    <div style={{fontSize:'.7rem',color:'#64748b',marginTop:3}}>Rea summa {money(lineAmount)} € · ID {line.lessonId}</div>
+                  </div>
+                  <div style={{position:'relative'}}>
+                    <input type="number" min="0" max={lineAmount} step="0.01"
+                      value={amounts[line.lessonId]||''}
+                      onChange={event=>setAmounts({...amounts,[line.lessonId]:event.target.value})}
+                      aria-label={`Jaotus tunnile ${line.lessonId}`}/>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))',gap:12,marginTop:16}}>
+            <div>
+              <div style={{fontSize:'.7rem',fontWeight:800,color:'#42536A',marginBottom:5}}>Kande kuupäev</div>
+              <input type="date" min={String(payment.paidAt||'').slice(0,10)} value={effectiveDate} onChange={event=>setEffectiveDate(event.target.value)}/>
+            </div>
+            <div>
+              <div style={{fontSize:'.7rem',fontWeight:800,color:'#42536A',marginBottom:5}}>
+                Põhjus {currentAllocation?'(kohustuslik)':'(valikuline)'}
+              </div>
+              <input value={reason} onChange={event=>setReason(event.target.value)}
+                placeholder={currentAllocation?'Miks jaotust parandatakse?':'Esmane täpne jaotus'}/>
+            </div>
+          </div>
+          <div style={{marginTop:16,padding:14,borderRadius:12,background:remaining>.001?'#fffbeb':'#ecfdf5',display:'flex',justifyContent:'space-between',gap:12,flexWrap:'wrap'}}>
+            <span>Jaotatud <strong>{money(total)} €</strong> / makse {money(paymentNet)} €</span>
+            <span style={{color:remaining>.001?'#92400e':'#166534'}}>Jaotamata <strong>{money(remaining)} €</strong></span>
+          </div>
+          {remaining>.001&&<div style={{fontSize:'.72rem',color:'#92400e',marginTop:7}}>Jaotamata osa jääb kuu kontrollis tähelepanu nõudvaks kirjeks.</div>}
+          <div style={{display:'flex',justifyContent:'flex-end',gap:8,marginTop:18}}>
+            <button onClick={onClose} className="btn btn-ghost">Loobu</button>
+            <button onClick={submit} disabled={invalid||saving} className="btn btn-pine" style={{opacity:(invalid||saving)?0.55:1}}>
+              {saving?'Salvestan…':currentAllocation?'Loo parandusversioon':'Salvesta täpne jaotus'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function InvoicesView({invoices,payments,paymentLineAllocations=[],myStudents,parents,schedule,students,lessons,isAdmin,tariffs=[],tariffAssignments=[],packageProducts=[],studentPackages=[],packageLedger=[],createTariffVersion,assignStudentTariff,createPackageProduct,issueStudentPackage,adjustStudentPackage,invStu,setInvStu,invAmt,setInvAmt,invDesc,setInvDesc,invRef,setInvRef,invDue,setInvDue,addInvoice,recordPayment,savePaymentLineAllocation,uploadPaymentDocument,openPaymentDocument,markPaid,unmarkPaid,voidPayment,resolveInvoiceOverpayment,creditInvoiceLessonLine,openCreditNotePdf,sendCreditNoteEmail,deleteInvoice,printInvoice,updateInvoiceReference,updateInvoiceDue,sendInvoiceEmail,sendInvoiceReminder,sendMonthlyInvoiceReminders,invoiceEmailBusy}) {
   const unpaidAmt=invoices.filter(i=>i.status==='Ootel').reduce((sum,inv)=>sum+invoiceFinancialSummary(inv).balance,0);
   const paid=invoices.filter(i=>i.status==='Makstud');
   const [statsPeriod,setStatsPeriod] = React.useState('current');
   const [paymentDocumentBusy,setPaymentDocumentBusy] = React.useState('');
+  const [lineAllocationDraft,setLineAllocationDraft] = React.useState(null);
+  const currentAllocationForPayment=payment=>payment?.lineAllocationId
+    ?paymentLineAllocations.find(item=>item.id===payment.lineAllocationId)||null
+    :null;
   const attachPaymentFile=async(payment,file,input)=>{
     if(!file||!uploadPaymentDocument) return;
     setPaymentDocumentBusy(payment.id);
@@ -7904,6 +8023,15 @@ function InvoicesView({invoices,payments,myStudents,parents,schedule,students,le
                           {isAdmin&&voidPayment&&payment.status!=='voided'&&paymentFinancialSummary(payment).net>0&&(
                             <button onClick={()=>voidPayment(payment)} className="btn btn-red btn-sm" style={{padding:'2px 7px',fontSize:'.66rem'}}>Tühista see</button>
                           )}
+                          {isAdmin&&savePaymentLineAllocation&&payment.status!=='voided'&&paymentFinancialSummary(payment).net>0&&Array.isArray(inv.lines)&&inv.lines.some(line=>line.lessonId)&&(
+                            <button onClick={()=>setLineAllocationDraft({invoice:inv,payment})}
+                              className="btn btn-pine btn-sm" style={{padding:'2px 7px',fontSize:'.66rem'}}>
+                              <i className="fa-solid fa-list-check"/>
+                              {currentAllocationForPayment(payment)
+                                ?` Muuda jaotust · v${currentAllocationForPayment(payment).version}`
+                                :' Jaga tundidele'}
+                            </button>
+                          )}
                           {isAdmin&&uploadPaymentDocument&&payment.status!=='voided'&&(
                             <label className="btn btn-ghost btn-sm" style={{padding:'2px 7px',fontSize:'.66rem',cursor:paymentDocumentBusy===payment.id?'wait':'pointer',opacity:paymentDocumentBusy===payment.id?0.6:1}}>
                               <i className="fa-solid fa-paperclip"/> {paymentDocumentBusy===payment.id?'Laen...':'Lisa maksekorraldus'}
@@ -7971,21 +8099,30 @@ function InvoicesView({invoices,payments,myStudents,parents,schedule,students,le
           })
         }
       </div>
+      {lineAllocationDraft&&(
+        <PaymentLineAllocationModal
+          invoice={lineAllocationDraft.invoice}
+          payment={lineAllocationDraft.payment}
+          currentAllocation={currentAllocationForPayment(lineAllocationDraft.payment)}
+          onSave={savePaymentLineAllocation}
+          onClose={()=>setLineAllocationDraft(null)}/>
+      )}
     </div>
   );
 }
 
 // ── TUNNI MODAL ───────────────────────────────────────────────
 // ── ACCOUNTING INVOICE REGISTER ───────────────────────────────
-function LessonPaymentRegisterPanel({month,lessons,invoices,payments,openInvoices,openReconciliation}) {
+function LessonPaymentRegisterPanel({month,lessons,invoices,payments,paymentLineAllocations,openInvoices,openReconciliation}) {
   const [status,setStatus]=React.useState('all');
   const [search,setSearch]=React.useState('');
   const register=React.useMemo(()=>lessonPaymentRegister({
     lessons,
     invoices,
     payments,
+    paymentLineAllocations,
     month
-  }),[lessons,invoices,payments,month]);
+  }),[lessons,invoices,payments,paymentLineAllocations,month]);
   const visibleRows=React.useMemo(()=>{
     const query=normalizeText(search);
     return register.rows.filter(row=>{
@@ -8033,9 +8170,9 @@ function LessonPaymentRegisterPanel({month,lessons,invoices,payments,openInvoice
       <div className="card" style={{padding:16,background:'#eef6f2',border:'1px solid rgba(47,93,80,.18)'}}>
         <div style={{fontWeight:800}}>Kuidas osaline makse seotakse tunniga?</div>
         <div style={{fontSize:'.76rem',color:'#42536A',marginTop:4,lineHeight:1.55}}>
-          Täielikult tasutud arve katab kõik selle muutumatud tunniread. Osalise makse korral katab süsteem
-          kõigepealt varaseima arvel oleva tunni ja seejärel järgmised. Selline rida on arvutuslik FIFO-jaotus;
-          arve, tunni ja makse ID-d jäävad alati nähtavaks.
+          Uute maksete puhul saab administraator määrata täpsed tunniread. Iga parandus loob uue muutumatu
+          kuupäeva ja põhjusega versiooni. Vanadel maksetel, millel täpset jaotust veel pole, säilib
+          migratsiooniturvaline FIFO-arvutus: kõigepealt kaetakse varaseim arverida.
         </div>
       </div>
 
@@ -8052,7 +8189,7 @@ function LessonPaymentRegisterPanel({month,lessons,invoices,payments,openInvoice
       {register.issues.length>0&&(
         <div className="card" style={{padding:0,overflow:'hidden',border:'1px solid rgba(220,38,38,.2)'}}>
           <div style={{padding:'13px 15px',background:'#fff7ed',display:'flex',justifyContent:'space-between',alignItems:'center',gap:10,flexWrap:'wrap'}}>
-            <div>
+      <div>
               <div style={{fontWeight:800}}>Tunniarvestuse kontroll</div>
               <div style={{fontSize:'.72rem',color:'#64748b'}}>{register.summary.errorCount} viga · {register.summary.attentionCount} pärand- või paketikirjet</div>
             </div>
@@ -8144,6 +8281,9 @@ function LessonPaymentRegisterPanel({month,lessons,invoices,payments,openInvoice
                           : <span className="badge" style={{background:'#fef3c7',color:'#92400e'}}>Pole tõendatud</span>}
                       {row.allocationMethod==='invoice_fifo_v1'&&row.status==='partial'&&(
                         <div style={{fontSize:'.63rem',color:'#92400e',marginTop:4}}>Osaline · FIFO</div>
+                      )}
+                      {row.allocationMethod.includes('explicit_invoice_lines_v1')&&(
+                        <div style={{fontSize:'.63rem',color:'#166534',marginTop:4}}>Täpne maksejaotus</div>
                       )}
                     </td>
                     <td style={{padding:'11px',verticalAlign:'top'}}>
@@ -8303,7 +8443,7 @@ function FinancialPeriodControlPanel({
   );
 }
 
-function AccountingRegisterView({invoices,payments,bankTransactions,payerCredits,lessons,financialPeriods,reviewFinancialPeriod,openInvoices,openReconciliation,openPaymentDocument}) {
+function AccountingRegisterView({invoices,payments,paymentLineAllocations,bankTransactions,payerCredits,lessons,financialPeriods,reviewFinancialPeriod,openInvoices,openReconciliation,openPaymentDocument}) {
   const [month,setMonth]=React.useState(()=>today().slice(0,7));
   const [registerMode,setRegisterMode]=React.useState('invoices');
   const [status,setStatus]=React.useState('all');
@@ -8321,8 +8461,9 @@ function AccountingRegisterView({invoices,payments,bankTransactions,payerCredits
     bankTransactions,
     payerCredits,
     lessons,
+    paymentLineAllocations,
     month
-  }),[invoices,payments,bankTransactions,payerCredits,lessons,month]);
+  }),[invoices,payments,paymentLineAllocations,bankTransactions,payerCredits,lessons,month]);
   const period=React.useMemo(()=>
     (financialPeriods||[]).find(item=>(item.month||item.id)===month)||null
   ,[financialPeriods,month]);
@@ -8545,6 +8686,7 @@ function AccountingRegisterView({invoices,payments,bankTransactions,payerCredits
         lessons={lessons}
         invoices={invoices}
         payments={payments}
+        paymentLineAllocations={paymentLineAllocations}
         openInvoices={openInvoices}
         openReconciliation={openReconciliation}/>}
       {registerMode==='control'&&<FinancialPeriodControlPanel
@@ -10501,6 +10643,7 @@ function App() {
   const [schedule,setSch] = useState([]);
   const [invoices,setInv] = useState([]);
   const [payments,setPayments] = useState([]);
+  const [paymentLineAllocations,setPaymentLineAllocations] = useState([]);
   const [bankTransactions,setBankTransactions] = useState([]);
   const [payerCredits,setPayerCredits] = useState([]);
   const [financialPeriods,setFinancialPeriods] = useState([]);
@@ -10706,6 +10849,7 @@ function App() {
   React.useEffect(()=>{
     if(!user||!isAdmin){
       setPayments([]);setBankTransactions([]);setPayerCredits([]);
+      setPaymentLineAllocations([]);
       setFinancialPeriods([]);
       setTariffs([]);setTariffAssignments([]);
       setPackageProducts([]);setStudentPackages([]);setPackageLedger([]);
@@ -10714,6 +10858,10 @@ function App() {
     const unsubscribePayments=db.collection('payments').onSnapshot(
       snap=>setPayments(snap.docs.map(doc=>({id:doc.id,...doc.data()}))),
       err=>{console.warn('Payments listener failed:',err);setPayments([]);}
+    );
+    const unsubscribePaymentLineAllocations=db.collection('paymentLineAllocations').onSnapshot(
+      snap=>setPaymentLineAllocations(snap.docs.map(doc=>({id:doc.id,...doc.data()}))),
+      err=>{console.warn('Payment line allocations listener failed:',err);setPaymentLineAllocations([]);}
     );
     const unsubscribeBankTransactions=db.collection('bankTransactions').onSnapshot(
       snap=>setBankTransactions(snap.docs.map(doc=>({id:doc.id,...doc.data()}))),
@@ -10748,7 +10896,7 @@ function App() {
       err=>{console.warn('Package ledger listener failed:',err);setPackageLedger([]);}
     );
     return()=>{
-      unsubscribePayments();unsubscribeBankTransactions();unsubscribePayerCredits();unsubscribeFinancialPeriods();
+      unsubscribePayments();unsubscribePaymentLineAllocations();unsubscribeBankTransactions();unsubscribePayerCredits();unsubscribeFinancialPeriods();
       unsubscribeTariffs();unsubscribeTariffAssignments();
       unsubscribePackageProducts();unsubscribeStudentPackages();unsubscribePackageLedger();
     };
@@ -12726,6 +12874,28 @@ function App() {
     }
   },[isAdmin]);
 
+  const savePaymentLineAllocation=useCallback(async(payment,draft)=>{
+    if(!isAdmin||!payment?.id){notify('⚠ Ainult administraator saab makset tundidele jaotada');return false;}
+    try{
+      const result=await financeApiPost('/payments/line-allocations',{
+        paymentId:payment.id,
+        allocations:draft.allocations,
+        effectiveDate:draft.effectiveDate||today(),
+        reason:draft.reason||'',
+        requestId:financeRequestId('lineallocation')
+      });
+      const allocation=result?.allocation;
+      notify(allocation?.version>1
+        ?`✓ Täpse jaotuse parandusversioon ${allocation.version} loodud`
+        :'✓ Makse on täpselt tunniridadele jaotatud');
+      return true;
+    }catch(err){
+      console.error('Payment line allocation failed:',err);
+      notify(`⚠ Maksejaotust ei saanud salvestada: ${err.message||err}`);
+      return false;
+    }
+  },[isAdmin]);
+
   const uploadPaymentDocument=useCallback(async(payment,file)=>{
     if(!isAdmin||!payment?.id||!file){notify('⚠ Maksekorralduse lisamiseks vali makse ja fail');return false;}
     const extension=String(file.name||'').toLowerCase().split('.').pop();
@@ -13624,7 +13794,7 @@ function App() {
 
           {tab==='invoices'&&!isStaff&&<ParentInvoicesView invoices={scopedInvoices} printInvoice={printInvoice} submitParentPayment={submitParentPayment}/>}
 
-	          {tab==='invoices'&&isStaff&&<InvoicesView invoices={scopedInvoices} payments={payments} myStudents={myStudents} parents={scopedParents}
+	          {tab==='invoices'&&isStaff&&<InvoicesView invoices={scopedInvoices} payments={payments} paymentLineAllocations={paymentLineAllocations} myStudents={myStudents} parents={scopedParents}
 	            schedule={schedule} students={students} lessons={lessons} isAdmin={isAdmin}
             tariffs={tariffs} tariffAssignments={tariffAssignments}
             createTariffVersion={createTariffVersion} assignStudentTariff={assignStudentTariff}
@@ -13632,7 +13802,7 @@ function App() {
             createPackageProduct={createPackageProduct} issueStudentPackage={issueStudentPackage} adjustStudentPackage={adjustStudentPackage}
             invStu={invStu} setInvStu={setInvStu} invAmt={invAmt} setInvAmt={setInvAmt}
             invDesc={invDesc} setInvDesc={setInvDesc} invRef={invRef} setInvRef={setInvRef} invDue={invDue} setInvDue={setInvDue}
-            addInvoice={addInvoice} recordPayment={recordPayment} uploadPaymentDocument={uploadPaymentDocument} openPaymentDocument={openPaymentDocument} markPaid={markPaid} unmarkPaid={unmarkPaid} voidPayment={voidPayment} resolveInvoiceOverpayment={resolveInvoiceOverpayment} creditInvoiceLessonLine={creditInvoiceLessonLine} openCreditNotePdf={openCreditNotePdf} sendCreditNoteEmail={sendCreditNoteEmail} deleteInvoice={deleteInvoice} printInvoice={printInvoice} updateInvoiceReference={updateInvoiceReference} updateInvoiceDue={updateInvoiceDue}
+            addInvoice={addInvoice} recordPayment={recordPayment} savePaymentLineAllocation={savePaymentLineAllocation} uploadPaymentDocument={uploadPaymentDocument} openPaymentDocument={openPaymentDocument} markPaid={markPaid} unmarkPaid={unmarkPaid} voidPayment={voidPayment} resolveInvoiceOverpayment={resolveInvoiceOverpayment} creditInvoiceLessonLine={creditInvoiceLessonLine} openCreditNotePdf={openCreditNotePdf} sendCreditNoteEmail={sendCreditNoteEmail} deleteInvoice={deleteInvoice} printInvoice={printInvoice} updateInvoiceReference={updateInvoiceReference} updateInvoiceDue={updateInvoiceDue}
             sendInvoiceEmail={sendInvoiceEmail} sendInvoiceReminder={sendInvoiceReminder} sendMonthlyInvoiceReminders={sendMonthlyInvoiceReminders} invoiceEmailBusy={invoiceEmailBusy}/>}
 
           {tab==='reconciliation'&&isAdmin&&<PaymentReconciliationView
@@ -13645,6 +13815,7 @@ function App() {
           {tab==='accounting'&&isAdmin&&<AccountingRegisterView
             invoices={invoices}
             payments={payments}
+            paymentLineAllocations={paymentLineAllocations}
             bankTransactions={bankTransactions}
             payerCredits={payerCredits}
             lessons={lessons}

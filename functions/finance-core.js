@@ -70,18 +70,138 @@ function nonNegativeCents(record, centsField, amountField) {
   return Math.max(0, Math.round((Number(record?.[amountField]) || 0) * 100));
 }
 
+function paymentLineAllocationPlan({
+  payment,
+  invoice,
+  allocations = [],
+  allocatedByLesson = {},
+  effectiveDate,
+  reason,
+  previousAllocation = null,
+} = {}) {
+  if (!payment?.id || !invoice?.id) {
+    const error = new Error("payment and invoice required");
+    error.status = 400;
+    throw error;
+  }
+  if (String(payment.invoiceId || "") !== String(invoice.id)) {
+    const error = new Error("payment does not belong to invoice");
+    error.status = 409;
+    throw error;
+  }
+  if (payment.status === "voided" || paymentNetAmountCents(payment) <= 0) {
+    const error = new Error("payment is not active");
+    error.status = 409;
+    throw error;
+  }
+  const cleanEffectiveDate = validIsoDate(effectiveDate, "effectiveDate");
+  const paymentDate = recordIsoDate(payment.paidAt || payment.createdAt);
+  if (paymentDate && cleanEffectiveDate < paymentDate) {
+    const error = new Error("effectiveDate cannot be before the payment date");
+    error.status = 400;
+    throw error;
+  }
+  const cleanReason = String(reason || "").trim().slice(0, 500);
+  if (previousAllocation && !cleanReason) {
+    const error = new Error("Reason required for an allocation correction");
+    error.status = 400;
+    throw error;
+  }
+  const correctedLessonIds = new Set((invoice.correctedLessonIds || []).map(String));
+  const activeLines = (Array.isArray(invoice.lines) ? invoice.lines : [])
+    .map((line, index) => ({
+      ...line,
+      invoiceLineIndex: index,
+      lessonId: String(line?.lessonId || ""),
+      lineAmountCents: nonNegativeCents(line, "amountCents", "amount"),
+    }))
+    .filter(line => line.lessonId && !correctedLessonIds.has(line.lessonId));
+  if (!activeLines.length) {
+    const error = new Error("invoice has no active immutable lesson lines");
+    error.status = 409;
+    throw error;
+  }
+  const lineByLesson = new Map(activeLines.map(line => [line.lessonId, line]));
+  const requested = Array.isArray(allocations) ? allocations : [];
+  if (!requested.length) {
+    const error = new Error("at least one lesson allocation required");
+    error.status = 400;
+    throw error;
+  }
+  const seen = new Set();
+  const lines = requested.map(item => {
+    const lessonId = String(item?.lessonId || "").trim();
+    if (!lessonId || seen.has(lessonId)) {
+      const error = new Error("lesson allocations must contain unique lesson IDs");
+      error.status = 400;
+      throw error;
+    }
+    seen.add(lessonId);
+    const line = lineByLesson.get(lessonId);
+    if (!line) {
+      const error = new Error(`lesson ${lessonId} is not an active line of this invoice`);
+      error.status = 409;
+      throw error;
+    }
+    const allocatedAmountCents = toCents(item.amount, `allocation for lesson ${lessonId}`);
+    const alreadyAllocatedCents = Math.max(
+      0,
+      Number(allocatedByLesson?.[lessonId]) || 0,
+    );
+    const availableCents = Math.max(0, line.lineAmountCents - alreadyAllocatedCents);
+    if (allocatedAmountCents > availableCents) {
+      const error = new Error(`allocation for lesson ${lessonId} exceeds its available amount`);
+      error.status = 409;
+      throw error;
+    }
+    return {
+      lessonId,
+      invoiceLineIndex: line.invoiceLineIndex,
+      lessonDate: recordIsoDate(line.date),
+      description: String(line.description || line.title || "").slice(0, 300),
+      lineAmountCents: line.lineAmountCents,
+      allocatedAmountCents,
+    };
+  });
+  const paymentAmountCents = paymentNetAmountCents(payment);
+  const allocatedAmountCents = lines.reduce(
+    (sum, line) => sum + line.allocatedAmountCents,
+    0,
+  );
+  if (allocatedAmountCents > paymentAmountCents) {
+    const error = new Error("lesson allocations exceed the payment amount");
+    error.status = 409;
+    throw error;
+  }
+  return {
+    version: Math.max(0, Number(previousAllocation?.version) || 0) + 1,
+    supersedesAllocationId: previousAllocation?.id || "",
+    effectiveDate: cleanEffectiveDate,
+    reason: cleanReason || "Initial exact lesson allocation",
+    paymentAmountCents,
+    allocatedAmountCents,
+    unallocatedAmountCents: paymentAmountCents - allocatedAmountCents,
+    lines,
+  };
+}
+
 function financialPeriodReviewSnapshot({
   month,
   invoices = [],
   payments = [],
   bankTransactions = [],
   lessons = [],
+  paymentLineAllocations = [],
 } = {}) {
   const reviewMonth = validIsoMonth(month);
   const invoiceList = Array.isArray(invoices) ? invoices : [];
   const paymentList = Array.isArray(payments) ? payments : [];
   const bankList = Array.isArray(bankTransactions) ? bankTransactions : [];
   const lessonList = Array.isArray(lessons) ? lessons : [];
+  const allocationList = Array.isArray(paymentLineAllocations) ? paymentLineAllocations : [];
+  const allocationById = new Map(
+    allocationList.filter(item => item?.id).map(item => [String(item.id), item]),
+  );
   const invoiceById = new Map(
     invoiceList.filter(item => item?.id).map(item => [String(item.id), item]),
   );
@@ -248,6 +368,96 @@ function financialPeriodReviewSnapshot({
       addIssue("payment_without_invoice", "error", payment.id, String(payment.invoiceId || ""));
     }
   });
+  const exactAllocatedByLine = new Map();
+  activePayments.filter(payment => payment.lineAllocationId).forEach(payment => {
+    const invoiceId = String(payment.invoiceId || "");
+    const isPeriodRelevant = periodInvoiceIds.has(invoiceId)
+      || periodPayments.some(item => String(item.id || "") === String(payment.id || ""));
+    if (!isPeriodRelevant) return;
+    const allocation = allocationById.get(String(payment.lineAllocationId));
+    if (
+      !allocation
+      || String(allocation.paymentId || "") !== String(payment.id || "")
+      || String(allocation.invoiceId || "") !== String(payment.invoiceId || "")
+      || Number(allocation.version || 0) !== Number(payment.lineAllocationVersion || 0)
+    ) {
+      addIssue(
+        "payment_line_allocation_invalid",
+        "error",
+        payment.id,
+        String(payment.lineAllocationId || ""),
+      );
+      return;
+    }
+    const invoice = invoiceById.get(invoiceId);
+    const correctedLessonIds = new Set((invoice?.correctedLessonIds || []).map(String));
+    const activeLineByLesson = new Map(
+      (Array.isArray(invoice?.lines) ? invoice.lines : [])
+        .map((line, index) => ({ line, index }))
+        .filter(item => item.line?.lessonId && !correctedLessonIds.has(String(item.line.lessonId)))
+        .map(item => [String(item.line.lessonId), {
+          amountCents: nonNegativeCents(item.line, "amountCents", "amount"),
+          invoiceLineIndex: item.index,
+        }]),
+    );
+    let allocatedCents = 0;
+    const seenLessonIds = new Set();
+    (Array.isArray(allocation.lines) ? allocation.lines : []).forEach(line => {
+      const lessonId = String(line?.lessonId || "");
+      const lineAllocatedCents = Math.max(0, Number(line?.allocatedAmountCents) || 0);
+      allocatedCents += lineAllocatedCents;
+      const lineKey = `${invoiceId}:${lessonId}`;
+      const previous = exactAllocatedByLine.get(lineKey) || 0;
+      const invoiceLine = activeLineByLesson.get(lessonId);
+      if (
+        !lessonId
+        || seenLessonIds.has(lessonId)
+        || !invoiceLine
+        || lineAllocatedCents <= 0
+        || previous + lineAllocatedCents > invoiceLine.amountCents
+        || Number(line?.lineAmountCents) !== invoiceLine.amountCents
+        || Number(line?.invoiceLineIndex) !== invoiceLine.invoiceLineIndex
+      ) {
+        addIssue(
+          "payment_line_allocation_invalid",
+          "error",
+          payment.id,
+          `lesson:${lessonId};allocated:${lineAllocatedCents}`,
+        );
+        return;
+      }
+      seenLessonIds.add(lessonId);
+      exactAllocatedByLine.set(lineKey, previous + lineAllocatedCents);
+    });
+    if (
+      allocatedCents !== nonNegativeCents(allocation, "allocatedAmountCents", "allocatedAmount")
+      || allocatedCents > paymentNetAmountCents(payment)
+      || nonNegativeCents(allocation, "unallocatedAmountCents", "unallocatedAmount")
+        !== Math.max(0, paymentNetAmountCents(payment) - allocatedCents)
+      || Number(payment.lineAllocatedAmountCents) !== allocatedCents
+      || Number(payment.lineUnallocatedAmountCents)
+        !== Math.max(0, paymentNetAmountCents(payment) - allocatedCents)
+      || String(payment.allocationMethod || "") !== "explicit_invoice_lines_v1"
+      || !recordIsoDate(allocation.effectiveDate)
+    ) {
+      addIssue(
+        "payment_line_allocation_invalid",
+        "error",
+        payment.id,
+        `lines:${allocatedCents};payment:${paymentNetAmountCents(payment)}`,
+      );
+      return;
+    }
+    const unallocatedCents = Math.max(0, paymentNetAmountCents(payment) - allocatedCents);
+    if (unallocatedCents > 1) {
+      addIssue(
+        "payment_line_allocation_incomplete",
+        "attention",
+        payment.id,
+        `unallocated:${unallocatedCents}`,
+      );
+    }
+  });
   const periodBanks = bankList.filter(transaction =>
     recordMonth(transaction?.paidAt || transaction?.createdAt) === reviewMonth,
   );
@@ -300,8 +510,8 @@ function financialPeriodReviewSnapshot({
   };
   return {
     month: reviewMonth,
-    scope: "billing_control_v1",
-    dataVersion: 1,
+    scope: "billing_control_v2",
+    dataVersion: 2,
     canReview: blockingIssues.length === 0,
     summary,
     issues,
@@ -1059,6 +1269,7 @@ module.exports = {
   packageBalanceAfterEntry,
   packageBalanceAfterLessonMovement,
   paymentDocumentRecord,
+  paymentLineAllocationPlan,
   paymentNetAmountCents,
   financialPeriodReviewSnapshot,
   planInvoiceOverpaymentTransfer,

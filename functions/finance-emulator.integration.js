@@ -335,6 +335,107 @@ test("payment-order metadata is attached server-side and audited immutably", asy
   assert.equal(clientRewrite.status, 403, JSON.stringify(clientRewrite.body));
 });
 
+test("payment lesson allocations are server-validated, versioned, and append-only", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const token = await createAdminToken();
+  const invoiceId = "invoice-line-allocation";
+  await db.collection("invoices").doc(invoiceId).set({
+    num: "KS-LINE-001",
+    date: "2026-07-29",
+    due: "2026-08-10",
+    amountCents: 6000,
+    amount: 60,
+    paidAmountCents: 0,
+    paidAmount: 0,
+    balanceDueCents: 6000,
+    balanceDue: 60,
+    paymentStatus: "unpaid",
+    status: "Ootel",
+    studentId: "student-line-allocation",
+    studentName: "Allocation Student",
+    lessonIds: ["line-lesson-a", "line-lesson-b"],
+    lines: [
+      { lessonId: "line-lesson-a", date: "2026-07-10", description: "First lesson", amountCents: 3000, amount: 30 },
+      { lessonId: "line-lesson-b", date: "2026-07-17", description: "Second lesson", amountCents: 3000, amount: 30 },
+    ],
+  });
+  const firstPayment = {
+    invoiceId,
+    amount: 30,
+    paidAt: "2026-07-29",
+    method: "bank",
+    reference: "KS-LINE-001",
+    requestId: "emulator_line_payment_0001",
+  };
+  assert.equal((await financeRequest(token, "/payments", firstPayment)).status, 201);
+
+  const versionOne = {
+    paymentId: firstPayment.requestId,
+    allocations: [{ lessonId: "line-lesson-b", amount: 30 }],
+    effectiveDate: "2026-07-29",
+    reason: "",
+    requestId: "emulator_line_allocation_0001",
+  };
+  const created = await financeRequest(token, "/payments/line-allocations", versionOne);
+  assert.equal(created.status, 201, JSON.stringify(created.body));
+  assert.equal(created.body.allocation.version, 1);
+  assert.equal(created.body.allocation.lines[0].lessonId, "line-lesson-b");
+  assert.equal(created.body.allocation.unallocatedAmountCents, 0);
+
+  const versionTwo = {
+    ...versionOne,
+    allocations: [{ lessonId: "line-lesson-a", amount: 30 }],
+    effectiveDate: "2026-07-30",
+    reason: "Bank reference confirmed the earlier lesson",
+    requestId: "emulator_line_allocation_0002",
+  };
+  const corrected = await financeRequest(token, "/payments/line-allocations", versionTwo);
+  assert.equal(corrected.status, 201, JSON.stringify(corrected.body));
+  assert.equal(corrected.body.allocation.version, 2);
+  assert.equal(corrected.body.allocation.supersedesAllocationId, versionOne.requestId);
+
+  const [paymentSnap, firstVersionSnap, secondVersionSnap, auditSnap] = await Promise.all([
+    db.collection("payments").doc(firstPayment.requestId).get(),
+    db.collection("paymentLineAllocations").doc(versionOne.requestId).get(),
+    db.collection("paymentLineAllocations").doc(versionTwo.requestId).get(),
+    db.collection("financialAudit").doc(versionTwo.requestId).get(),
+  ]);
+  assert.equal(paymentSnap.data().lineAllocationId, versionTwo.requestId);
+  assert.equal(paymentSnap.data().lineAllocationVersion, 2);
+  assert.equal(firstVersionSnap.data().lines[0].lessonId, "line-lesson-b");
+  assert.equal(secondVersionSnap.data().lines[0].lessonId, "line-lesson-a");
+  assert.equal(auditSnap.data().action, "payment.line_allocation_corrected");
+
+  const retry = await financeRequest(token, "/payments/line-allocations", versionTwo);
+  assert.equal(retry.status, 200, JSON.stringify(retry.body));
+  assert.equal(retry.body.idempotent, true);
+
+  const directRewrite = await firestoreDocumentRequest(
+    token,
+    "PATCH",
+    `paymentLineAllocations/${versionOne.requestId}`,
+    { fields: { reason: { stringValue: "rewritten" } } },
+  );
+  assert.equal(directRewrite.status, 403, JSON.stringify(directRewrite.body));
+
+  const secondPayment = {
+    ...firstPayment,
+    requestId: "emulator_line_payment_0002",
+  };
+  assert.equal((await financeRequest(token, "/payments", secondPayment)).status, 201);
+  const overCapacity = await financeRequest(token, "/payments/line-allocations", {
+    paymentId: secondPayment.requestId,
+    allocations: [{ lessonId: "line-lesson-a", amount: 30 }],
+    effectiveDate: "2026-07-30",
+    reason: "",
+    requestId: "emulator_line_allocation_0003",
+  });
+  assert.equal(overCapacity.status, 409, JSON.stringify(overCapacity.body));
+  assert.match(overCapacity.body.error, /available amount/);
+});
+
 test("monthly financial review is server-verified, versioned, idempotent, and immutable", async () => {
   requireSafeEmulatorEnvironment();
   if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
