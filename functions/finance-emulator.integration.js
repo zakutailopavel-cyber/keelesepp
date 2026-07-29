@@ -1543,3 +1543,48 @@ test("Live Classroom keeps the teacher desk private and scopes student interacti
   );
   assert.equal(endedRoomPresence.status, 403, JSON.stringify(endedRoomPresence.body));
 });
+
+test("calendar OAuth credentials and deferred sync operations stay server-only", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const token = await createAdminToken();
+  await Promise.all([
+    db.collection("calendarConnections").doc("teacher-calendar-private").set({
+      connected: true,
+      refreshToken: "emulator-secret",
+      writeEnabled: true,
+    }),
+    db.collection("calendarSyncOutbox").doc("delete-schedule-private").set({
+      action: "delete",
+      teacherUid: "teacher-calendar-private",
+      eventId: "google-event-private",
+    }),
+  ]);
+
+  const connectionRead = await firestoreDocumentRequest(
+    token,
+    "GET",
+    "calendarConnections/teacher-calendar-private",
+  );
+  assert.equal(connectionRead.status, 403, JSON.stringify(connectionRead.body));
+  const outboxRead = await firestoreDocumentRequest(
+    token,
+    "GET",
+    "calendarSyncOutbox/delete-schedule-private",
+  );
+  assert.equal(outboxRead.status, 403, JSON.stringify(outboxRead.body));
+  const forgedOutboxWrite = await firestoreDocumentRequest(
+    token,
+    "PATCH",
+    "calendarSyncOutbox/delete-schedule-forged",
+    {
+      fields: {
+        action: { stringValue: "delete" },
+        teacherUid: { stringValue: "victim" },
+        eventId: { stringValue: "victim-event" },
+      },
+    },
+  );
+  assert.equal(forgedOutboxWrite.status, 403, JSON.stringify(forgedOutboxWrite.body));
+});

@@ -14,10 +14,16 @@ ning näitab tunni tegelikku kestust; samal ajal toimuvad eri õpetajate tunnid 
 Uue tunni loomisel seotakse kirje õpilase muutumatu ID-ga ning õpetaja või õpilase kattuv aeg
 blokeeritakse.
 
-Google Calendar ühendus impordib sündmusi KeeleSeppa kord tunnis. Liides näitab viimase impordi
-aega, imporditud, vahele jäetud ja Google'ist eemaldatud sündmuste arvu. Praegune suund on
-teadlikult `Google → KeeleSepp`; kahepoolne sünkroonimine lisatakse eraldi versioonina koos
-kirjutamisloa ja konfliktireeglitega.
+Google Calendar ühendus impordib sündmusi KeeleSeppa kord tunnis. Uue kirjutamisloa kinnitanud
+ühendus sünkroonib ka KeeleSepas loodud, teisaldatud, taastatud ja tühistatud individuaaltunnid
+õpetaja enda põhikalendrisse. Varem ühendatud kontod jäävad turvaliselt režiimi
+`Google → KeeleSepp`, kuni õpetaja kinnitab liideses ühekordse lisaloa.
+
+KeeleSepa loodud Google'i sündmused kannavad privaatset päritolu-ID-d. Server võrdleb
+sünkroonimisel ka sündmuse sisulist sõrmejälge, et sama muudatus ei liiguks lõputult kahe
+süsteemi vahel. Edasilükatud kustutused jäävad serveripoolsesse järjekorda; OAuthi võtmeid ega
+järjekorda brauser lugeda ei saa. Praegune konfliktipoliitika on viimase sünkroonitud muudatuse
+võit ning korduva tunni üksiku esinemise muutmine jääb järgmisse kalendriversiooni.
 
 ## Õppevara
 

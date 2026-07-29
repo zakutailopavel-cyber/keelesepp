@@ -74,11 +74,23 @@ The CRM renders month, week and day projections from the same schedule records. 
 without `scheduleVersion` remain valid. New browser-created records use `scheduleVersion: 2` and
 keep their source (`keelesepp` or `gcal`) explicit.
 
-Google Calendar is currently an inbound synchronization (`Google → KeeleSepp`), not a hidden
-two-way promise. OAuth credentials live only in the server-only `calendarConnections` collection;
+`functions/calendar-sync-core.js` owns the pure Google event projection, scope checks, stable
+origin identifiers and content fingerprints. The Firestore schedule trigger pushes individual
+KeeleSepp lessons to a write-enabled teacher's owned primary Google Calendar. Insert, move,
+restore and cancellation use the same server-owned path; hard deletes that cannot reach Google
+immediately are retried through `calendarSyncOutbox`.
+
+OAuth credentials live only in the server-only `calendarConnections` collection;
 `users/{uid}.gcal` contains sanitized status metadata. Existing connections are migrated lazily
-on their next status check or synchronization. The hourly import reconciles its forward-looking
-window, removes events deleted in Google and never rewrites completed lesson history.
+and remain inbound-only until the teacher grants the additional write scope. The hourly job
+reconciles Google changes, flushes deferred deletes and backfills eligible KeeleSepp records.
+Private Google extended properties plus a stable content fingerprint stop the service from
+re-importing its own write as a new change. Completed lesson history is never deleted when a
+Google event disappears.
+
+The first two-way slice deliberately uses last-synchronized-write-wins and treats a recurring
+series as one unit. Per-occurrence exceptions, explicit conflict review and incremental sync
+tokens remain separate releases.
 
 ## Firestore ownership
 
@@ -94,6 +106,7 @@ window, removes events deleted in Google and never rewrites completed lesson his
 - `activityLog` — operational audit events, including library assignment and classroom publish.
 - `schedule` — dated or recurring lesson intent with stable student ownership for new records.
 - `calendarConnections` — server-only Google OAuth credentials and sync status; browser access is denied.
+- `calendarSyncOutbox` — server-only deferred Google event deletions; browser access is denied.
 - financial collections — governed by the financial core and its immutable audit model.
 
 Assignment records copy display metadata for historical readability and also store stable
