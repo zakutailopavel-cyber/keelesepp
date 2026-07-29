@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>KeeleSepp — Õppekava & Harjutused</title>
+<title>KeeleSepp — Õppevara</title>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
@@ -30,6 +30,7 @@
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="/learning-library-core.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="/haldus.css">
@@ -49,6 +50,41 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#EEECE7;color:#1C2B3A;min
 .top-tab.active{color:#1C2B3A;border-bottom-color:#C9882A;}
 .top-tab .tab-count{background:rgba(28,43,58,.08);color:#42536A;font-size:.68rem;padding:2px 7px;border-radius:20px;font-weight:800;}
 .top-tab.active .tab-count{background:#C9882A;color:#fff;}
+
+/* LEARNING LIBRARY */
+.library-shell{max-width:1300px;margin:0 auto;padding:30px 28px 64px;}
+.library-hero{display:flex;align-items:flex-start;justify-content:space-between;gap:22px;margin-bottom:22px;}
+.library-eyebrow{font-size:.7rem;font-weight:800;color:#A96E1A;text-transform:uppercase;letter-spacing:.11em;margin-bottom:7px;}
+.library-title{font-family:'Fraunces',Georgia,serif;font-size:2rem;line-height:1.1;margin-bottom:7px;}
+.library-sub{color:#718096;font-size:.88rem;line-height:1.55;max-width:650px;}
+.library-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
+.library-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:16px;}
+.library-stat{background:#fff;border:1px solid rgba(28,43,58,.08);border-radius:14px;padding:15px 17px;display:flex;align-items:center;gap:12px;}
+.library-stat-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.library-stat-num{font-size:1.35rem;font-weight:800;line-height:1.05;}
+.library-stat-label{font-size:.72rem;color:#718096;margin-top:3px;}
+.library-toolbar{background:#fff;border:1px solid rgba(28,43,58,.08);border-radius:15px;padding:14px 16px;margin-bottom:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.library-search{position:relative;flex:1;min-width:240px;}
+.library-search i{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#B0A898;font-size:.78rem;}
+.library-search input{padding-left:36px!important;}
+.library-filter{width:auto;min-width:145px;}
+.library-type-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+.library-type-btn{border:1px solid rgba(28,43,58,.1);background:#fff;color:#42536A;border-radius:10px;padding:7px 12px;font-family:inherit;font-size:.77rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;}
+.library-type-btn.active{background:#1C2B3A;color:#fff;border-color:#1C2B3A;}
+.library-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
+.library-card{background:#fff;border:1px solid rgba(28,43,58,.08);border-radius:15px;padding:17px 18px;display:flex;flex-direction:column;min-height:215px;transition:transform .15s,border-color .15s,box-shadow .15s;}
+.library-card:hover{transform:translateY(-2px);border-color:rgba(201,136,42,.45);box-shadow:0 8px 24px rgba(28,43,58,.07);}
+.library-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px;}
+.library-kind{display:inline-flex;align-items:center;gap:6px;padding:4px 9px;border-radius:7px;font-size:.69rem;font-weight:800;}
+.library-card-title{font-size:1rem;font-weight:800;line-height:1.35;margin-bottom:6px;}
+.library-card-desc{font-size:.78rem;color:#718096;line-height:1.5;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:12px;}
+.library-meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:auto;margin-bottom:13px;}
+.library-meta span{font-size:.67rem;font-weight:700;padding:3px 7px;border-radius:6px;background:#F0EEE9;color:#42536A;}
+.library-card-actions{display:flex;gap:7px;flex-wrap:wrap;padding-top:11px;border-top:1px solid rgba(28,43,58,.07);}
+.library-empty{grid-column:1/-1;background:#fff;border:1px dashed rgba(28,43,58,.16);border-radius:15px;text-align:center;padding:54px 20px;color:#718096;}
+.assign-student-list{border:1px solid rgba(28,43,58,.12);border-radius:11px;max-height:270px;overflow-y:auto;padding:6px;display:flex;flex-direction:column;gap:3px;}
+.assign-student{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:8px;cursor:pointer;border:1px solid transparent;}
+.assign-student.selected{background:rgba(47,93,80,.08);border-color:rgba(47,93,80,.2);}
 
 /* BREADCRUMB */
 .bc{max-width:1300px;margin:0 auto;padding:18px 28px 0;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
@@ -197,8 +233,28 @@ textarea{resize:vertical;line-height:1.5;}
 .btn-ghost{background:rgba(28,43,58,.07);color:#42536A;border:1px solid rgba(28,43,58,.1);}
 .btn-ghost:hover{background:rgba(28,43,58,.12);}
 .btn-dark{background:#1C2B3A;color:#fff;}
+.btn-gold{background:#C9882A;color:#fff;}
+.btn-gold:hover{background:#A96E1A;}
 .btn-sm{padding:6px 12px;font-size:.77rem;}
 .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:6px;font-size:.71rem;font-weight:700;}
+
+@media(max-width:1000px){
+  .library-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .library-stats{grid-template-columns:repeat(2,minmax(0,1fr));}
+}
+@media(max-width:700px){
+  .top-header{padding:0 16px;}
+  .top-header .header-user{display:none;}
+  .top-tabs{padding:0 10px;overflow-x:auto;}
+  .top-tab{padding:0 14px;white-space:nowrap;}
+  .library-shell{padding:22px 16px 48px;}
+  .library-hero{flex-direction:column;}
+  .library-actions{justify-content:flex-start;width:100%;}
+  .library-grid{grid-template-columns:1fr;}
+  .library-stats{grid-template-columns:1fr 1fr;}
+  .library-toolbar{align-items:stretch;}
+  .library-filter{flex:1;min-width:130px;}
+}
 
 /* WORKSHEET PREVIEW MODAL */
 .ws-prev-ov{position:fixed;inset:0;background:rgba(28,43,58,.6);display:flex;align-items:center;justify-content:center;padding:16px;z-index:300;backdrop-filter:blur(5px);}
@@ -401,6 +457,12 @@ mark{background:rgba(201,136,42,.2);color:#A96E1A;border-radius:3px;padding:0 2p
 <script type="text/babel">
 const {useState,useEffect,useCallback,useMemo,useRef} = React;
 const db=window._db, auth=window._auth, storage=window._storage;
+const {
+  TYPE_META:LIBRARY_TYPES,
+  buildLibraryItems,
+  filterLibraryItems,
+  assignmentKind
+}=window.LearningLibraryCore;
 
 const today=()=>new Date().toISOString().split('T')[0];
 const fmtDate=d=>d?new Date(d).toLocaleDateString('et-EE',{day:'2-digit',month:'2-digit',year:'numeric'}):'—';
@@ -453,6 +515,25 @@ const EX_TYPES={
   match:{label:'Sobita paarid',icon:'fa-link',badge:'type-badge-match',color:'#047857'},
   translate:{label:'Tõlkimine',icon:'fa-language',badge:'type-badge-translate',color:'#be185d'},
 };
+
+const LOCAL_LIBRARY_PREVIEW=['localhost','127.0.0.1'].includes(window.location.hostname)
+  &&new URLSearchParams(window.location.search).get('preview')==='library';
+const PREVIEW_LESSONS=[
+  {id:'preview-plan',title:'Minu pere — suhtlustund',subject:'Eesti keel',level:'A1',topic:'Minu pere',type:'lesson',lessonTypeLabel:'Uus teema',builderObjectives:'Õpilane oskab tutvustada oma pereliikmeid ja esitada lihtsaid küsimusi.',builderDuration:60,phaseData:{org:{0:'Tervitus'},harjutamine:{0:'Paaristöö'}}},
+  {id:'preview-sheet',title:'Igapäevased tegevused',subject:'Eesti keel',level:'A2',topic:'Igapäevaelu',type:'hw',description:'Sõnavara ja oleviku kordamise interaktiivne tööleht.',worksheetData:{meta:{title:'Igapäevased tegevused'},blocks:[{id:'b1',type:'fill',text:'Hommikul ma [ärkan] kell seitse.'}]}},
+  {id:'preview-test',title:'B1 kontrolltöö — reisimine',subject:'Eesti keel',level:'B1',topic:'Reisimine',type:'test',examPart:'kirjutamine',description:'Kontrolltöö lugemise, sõnavara ja kirjutamise ülesannetega.',worksheetData:{meta:{title:'B1 kontrolltöö'},blocks:[{id:'b2',type:'writing',task:'Kirjuta oma viimasest reisist.',lines:6}]}},
+  {id:'preview-material',title:'Inglise keele häälduskaardid',subject:'Inglise keel',level:'A1',topic:'Pronunciation',type:'material',description:'Visuaalsed kaardid häälduse harjutamiseks tunnis.',files:[]},
+  {id:'preview-homework',title:'Geomeetria kordamine',subject:'Matemaatika',level:'7. klass',topic:'Geomeetria',type:'hw',description:'Kolmnurkade pindala ja ümbermõõdu ülesanded.'}
+];
+const PREVIEW_EXERCISES=[
+  {id:'preview-ex-1',title:'Vali õige tegusõna',subject:'Eesti keel',level:'A2',topic:'Igapäevaelu',type:'choice',description:'Lühike valikvastustega harjutus.',questions:[{question:'Ma ___ kooli.',options:['lähen','läheb'],correct:0}]},
+  {id:'preview-ex-2',title:'My family — match the words',subject:'Inglise keel',level:'A1',topic:'My family',type:'match',pairs:[{l:'ema',r:'mother'}]}
+];
+const PREVIEW_STUDENTS=[
+  {id:'preview-st-1',name:'Näidisõpilane A',subject:'Eesti keel',level:'A2',teacher:'Pavel',active:true},
+  {id:'preview-st-2',name:'Näidisõpilane B',subject:'Eesti keel',level:'B1',teacher:'Elizaveta',active:true},
+  {id:'preview-st-3',name:'Näidisõpilane C',subject:'Inglise keel',level:'A1',teacher:'Pavel',active:true}
+];
 
 const EXT_COLORS={pdf:'#dc2626',docx:'#1d4ed8',doc:'#1d4ed8',xlsx:'#166534',xls:'#166534',pptx:'#ea580c',ppt:'#ea580c',jpg:'#0e7490',jpeg:'#0e7490',png:'#0e7490',mp3:'#7c3aed',mp4:'#7c3aed'};
 
@@ -1385,19 +1466,9 @@ function TopicView({subject,level,activeTopic,topics,allLessons,isTeacher,onSele
 }
 
 // ── CURRICULUM ────────────────────────────────────────────────
-function CurriculumView({isTeacher,user,notify,onPreviewWorksheet,onConductLesson}){
-  const[lessons,setLessons]=useState([]);
-  const[loading,setLoading]=useState(true);
+function CurriculumView({lessons,isTeacher,user,notify,onPreviewWorksheet,onConductLesson}){
   const[nav,setNav]=useState(null); // null | {subject} | {subject,level,topic}
   const[modal,setModal]=useState(null);
-
-  useEffect(()=>{
-    const u=db.collection('curriculumLessons').onSnapshot(
-      s=>{setLessons(s.docs.map(d=>({id:d.id,...d.data()})));setLoading(false);},
-      ()=>setLoading(false)
-    );
-    return u;
-  },[]);
 
   const subject=nav?.subject?SUBJECTS.find(s=>s.key===nav.subject):null;
   const level=nav?.level||null;
@@ -1415,8 +1486,6 @@ function CurriculumView({isTeacher,user,notify,onPreviewWorksheet,onConductLesso
     await db.collection('curriculumLessons').doc(lesson.id).delete();
     notify('✓ Kustutatud');
   };
-
-  if(loading)return<div style={{display:'flex',justifyContent:'center',padding:60}}><div className="spinner"/></div>;
 
   return(
     <>
@@ -1565,6 +1634,307 @@ function CurriculumView({isTeacher,user,notify,onPreviewWorksheet,onConductLesso
   );
 }
 
+// ── UNIFIED LEARNING LIBRARY ───────────────────────────────────
+function AssignLearningItemModal({item,students,user,onClose,notify}){
+  const[search,setSearch]=useState('');
+  const[selected,setSelected]=useState([]);
+  const[dueDate,setDueDate]=useState('');
+  const[note,setNote]=useState('');
+  const[saving,setSaving]=useState(false);
+  const activeStudents=useMemo(()=>students
+    .filter(student=>student.active!==false&&!student.convertedToParent)
+    .sort((a,b)=>(a.name||'').localeCompare(b.name||'','et')),
+  [students]);
+  const visibleStudents=useMemo(()=>{
+    const q=normalizeText(search);
+    return activeStudents.filter(student=>!q||normalizeText([
+      student.name,student.teacher,student.subject,student.level,student.group
+    ].join(' ')).includes(q));
+  },[activeStudents,search]);
+  const mode=assignmentKind(item);
+  const toggle=id=>setSelected(current=>current.includes(id)?current.filter(value=>value!==id):[...current,id]);
+  const toggleVisible=()=>{
+    const visibleIds=visibleStudents.map(student=>student.id);
+    const allSelected=visibleIds.length>0&&visibleIds.every(id=>selected.includes(id));
+    setSelected(current=>allSelected
+      ?current.filter(id=>!visibleIds.includes(id))
+      :[...new Set([...current,...visibleIds])]);
+  };
+  const save=async()=>{
+    if(!selected.length){notify('Vali vähemalt üks õpilane');return;}
+    if(LOCAL_LIBRARY_PREVIEW){
+      notify(`✓ Eelvaade: "${item.title}" määratud ${selected.length} õpilasele`);
+      onClose();
+      return;
+    }
+    setSaving(true);
+    try{
+      const now=new Date().toISOString();
+      const batch=db.batch();
+      selected.forEach(studentId=>{
+        const student=students.find(candidate=>candidate.id===studentId);
+        if(!student) return;
+        if(mode==='worksheet'){
+          const ref=db.collection('worksheetAssignments').doc();
+          batch.set(ref,{
+            lessonId:item.sourceId,
+            lessonTitle:item.title,
+            subject:item.subject,
+            level:item.level,
+            topic:item.topic,
+            worksheetData:item.source.worksheetData,
+            studentId,
+            studentName:student.name||'',
+            assignedBy:user.uid,
+            assignedByName:user.displayName||user.email||'',
+            assignedAt:now,
+            dueDate:dueDate||'',
+            note:note||'',
+            status:'new',
+            score:null,
+            completedAt:null,
+            answers:{},
+            source:'learning_library'
+          });
+        }else{
+          const attachments=Array.isArray(item.source.files)?item.source.files:[];
+          const primary=attachments[0]||null;
+          const ref=db.collection('homework').doc();
+          batch.set(ref,{
+            studentId,
+            studentName:student.name||'',
+            task:note?`${item.title} — ${note}`:item.title,
+            note:note||'',
+            due:dueDate||'',
+            status:'Ootel',
+            date:today(),
+            fileUrl:primary?.url||'',
+            fileName:primary?.name||'',
+            attachments,
+            isExercise:mode==='exercise',
+            exerciseId:mode==='exercise'?item.sourceId:'',
+            exerciseTitle:mode==='exercise'?item.title:'',
+            sourceType:item.kind,
+            sourceId:item.sourceId,
+            assignedBy:user.uid,
+            assignedByName:user.displayName||user.email||'',
+            assignedAt:now
+          });
+        }
+      });
+      const logRef=db.collection('activityLog').doc();
+      batch.set(logRef,{
+        type:'learning_material.assigned',
+        label:'Õppevara määratud',
+        meta:{
+          sourceId:item.sourceId,
+          sourceType:item.kind,
+          materialType:item.type,
+          title:item.title,
+          studentIds:selected
+        },
+        studentId:selected.length===1?selected[0]:'',
+        studentName:selected.length===1?(students.find(student=>student.id===selected[0])?.name||''):'',
+        byUid:user.uid||'',
+        byName:user.displayName||user.email||'',
+        byRole:user.role||'',
+        createdAt:now,
+        date:today()
+      });
+      await batch.commit();
+      notify(`✓ "${item.title}" määratud ${selected.length} õpilasele`);
+      onClose();
+    }catch(error){
+      console.error('Learning material assignment failed:',error);
+      notify('⚠ Materjali ei saanud määrata. Proovi uuesti.');
+    }finally{
+      setSaving(false);
+    }
+  };
+
+  return(
+    <div className="modal-ov" onClick={event=>{if(event.target===event.currentTarget)onClose();}}>
+      <div className="modal-box" style={{maxWidth:560}}>
+        <div className="modal-head">
+          <div>
+            <div style={{fontWeight:800,fontSize:'1rem'}}>Määra õppevara</div>
+            <div style={{fontSize:'.76rem',color:'#718096',marginTop:3}}>{item.typeLabel} · {item.title}</div>
+          </div>
+          <button onClick={onClose} className="btn btn-ghost btn-sm">✕</button>
+        </div>
+        <div className="modal-body">
+          <div style={{padding:'10px 12px',borderRadius:10,background:item.color+'12',border:'1px solid '+item.color+'30',fontSize:'.8rem',color:'#42536A',lineHeight:1.5}}>
+            {mode==='worksheet'
+              ?'Õpilane saab interaktiivse töölehe oma kabinetti ja õpetaja näeb tulemust.'
+              :mode==='exercise'
+                ?'Õpilane saab kodutöö lingi, mis avab harjutuse otse õppevara lehel.'
+                :'Õpilane saab kodutöö koos kirjelduse ja lisatud failidega.'}
+          </div>
+          <div>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,marginBottom:7}}>
+              <div className="sec-lbl" style={{margin:0}}>Õpilased ({selected.length} valitud)</div>
+              <button onClick={toggleVisible} className="btn btn-ghost btn-sm">
+                {visibleStudents.length&&visibleStudents.every(student=>selected.includes(student.id))?'Tühista nähtavad':'Vali nähtavad'}
+              </button>
+            </div>
+            <input value={search} onChange={event=>setSearch(event.target.value)} placeholder="🔍 Otsi õpilast, gruppi või õpetajat..." style={{marginBottom:8}}/>
+            <div className="assign-student-list">
+              {visibleStudents.map(student=>(
+                <label key={student.id} className={'assign-student'+(selected.includes(student.id)?' selected':'')}>
+                  <input type="checkbox" checked={selected.includes(student.id)} onChange={()=>toggle(student.id)} style={{accentColor:'#2F5D50',width:15,height:15}}/>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontWeight:700,fontSize:'.86rem'}}>{student.name}</div>
+                    <div style={{fontSize:'.7rem',color:'#718096',marginTop:2}}>
+                      {[student.subject,student.level,student.group,student.teacher].filter(Boolean).join(' · ')||'Õppeinfo puudub'}
+                    </div>
+                  </div>
+                </label>
+              ))}
+              {!visibleStudents.length&&<div style={{padding:18,textAlign:'center',fontSize:'.82rem',color:'#B0A898'}}>Õpilasi ei leitud.</div>}
+            </div>
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'170px 1fr',gap:10}}>
+            <div>
+              <div className="sec-lbl">Tähtaeg</div>
+              <input type="date" value={dueDate} onChange={event=>setDueDate(event.target.value)}/>
+            </div>
+            <div>
+              <div className="sec-lbl">Märkus õpilasele</div>
+              <input value={note} onChange={event=>setNote(event.target.value)} placeholder="nt. Tee enne järgmist tundi"/>
+            </div>
+          </div>
+        </div>
+        <div className="modal-foot">
+          <button onClick={onClose} className="btn btn-ghost">Tühista</button>
+          <button onClick={save} disabled={saving||!selected.length} className="btn btn-pine">
+            {saving?'Määran…':`Määra ${selected.length||''}`.trim()}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function LearningLibraryView({lessons,exercises,students,isTeacher,onOpenLesson,onOpenExercise,onAssign,onGoCurriculum,onGoExercises,onConductLesson}){
+  const[query,setQuery]=useState('');
+  const[type,setType]=useState('all');
+  const[subject,setSubject]=useState('all');
+  const[level,setLevel]=useState('all');
+  const items=useMemo(()=>buildLibraryItems(lessons,exercises),[lessons,exercises]);
+  const filtered=useMemo(()=>filterLibraryItems(items,{query,type,subject,level}),[items,query,type,subject,level]);
+  const subjects=useMemo(()=>[...new Set(items.map(item=>item.subject).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'et')),[items]);
+  const levels=useMemo(()=>[...new Set(items.map(item=>item.level).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'et',{numeric:true})),[items]);
+  const counts=useMemo(()=>({
+    all:items.length,
+    lesson:items.filter(item=>item.type==='lesson').length,
+    tasks:items.filter(item=>['worksheet','exercise','homework'].includes(item.type)).length,
+    test:items.filter(item=>item.type==='test').length
+  }),[items]);
+  const typeOptions=[
+    {key:'all',label:'Kõik'},
+    ...Object.entries(LIBRARY_TYPES).map(([key,value])=>({key,label:value.label,icon:value.icon}))
+  ];
+  const openItem=item=>{
+    if(item.kind==='exercise') onOpenExercise(item.source);
+    else onOpenLesson(item.source);
+  };
+
+  return(
+    <div className="library-shell">
+      <div className="library-hero">
+        <div>
+          <div className="library-eyebrow">Õpetaja tööruum</div>
+          <h1 className="library-title">Õppevara</h1>
+          <p className="library-sub">Tunnikavad, töölehed, harjutused, kodutööd ja kontrolltööd ühes otsitavas raamatukogus. Ava materjal või määra see kohe õpilasele.</p>
+        </div>
+        {isTeacher&&<div className="library-actions">
+          <button onClick={onGoCurriculum} className="btn btn-ghost"><i className="fa-solid fa-plus"/> Lisa materjal</button>
+          <button onClick={()=>window.open('/haldus-worksheet/','_blank')} className="btn btn-gold"><i className="fa-solid fa-wand-magic-sparkles"/> Loo AI-tööleht</button>
+        </div>}
+      </div>
+
+      <div className="library-stats">
+        {[
+          {label:'Materjale kokku',value:counts.all,icon:'fa-book-open',color:'#1C2B3A'},
+          {label:'Tunnikavasid',value:counts.lesson,icon:'fa-chalkboard-user',color:'#2F5D50'},
+          {label:'Ülesandeid',value:counts.tasks,icon:'fa-file-pen',color:'#6d28d9'},
+          {label:'Kontrolltöid',value:counts.test,icon:'fa-clipboard-check',color:'#1d4ed8'}
+        ].map(stat=>(
+          <div key={stat.label} className="library-stat">
+            <div className="library-stat-icon" style={{background:stat.color+'12',color:stat.color}}><i className={'fa-solid '+stat.icon}/></div>
+            <div><div className="library-stat-num">{stat.value}</div><div className="library-stat-label">{stat.label}</div></div>
+          </div>
+        ))}
+      </div>
+
+      <div className="library-toolbar">
+        <div className="library-search">
+          <i className="fa-solid fa-magnifying-glass"/>
+          <input value={query} onChange={event=>setQuery(event.target.value)} placeholder="Otsi nime, teema, taseme või märksõna järgi..."/>
+        </div>
+        <select className="library-filter" value={subject} onChange={event=>setSubject(event.target.value)}>
+          <option value="all">Kõik ained</option>
+          {subjects.map(value=><option key={value} value={value}>{value}</option>)}
+        </select>
+        <select className="library-filter" value={level} onChange={event=>setLevel(event.target.value)}>
+          <option value="all">Kõik tasemed</option>
+          {levels.map(value=><option key={value} value={value}>{value}</option>)}
+        </select>
+      </div>
+
+      <div className="library-type-row">
+        {typeOptions.map(option=>{
+          const meta=LIBRARY_TYPES[option.key];
+          const count=option.key==='all'?items.length:items.filter(item=>item.type===option.key).length;
+          return(
+            <button key={option.key} className={'library-type-btn'+(type===option.key?' active':'')} onClick={()=>setType(option.key)}>
+              {option.icon&&<i className={'fa-solid '+option.icon} style={type!==option.key&&meta?{color:meta.color}:{}}/>}
+              {option.label} <span style={{opacity:.65}}>{count}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div style={{fontSize:'.78rem',color:'#718096',marginBottom:10}}>
+        {filtered.length} {filtered.length===1?'tulemus':'tulemust'}
+        {(query||type!=='all'||subject!=='all'||level!=='all')&&<button onClick={()=>{setQuery('');setType('all');setSubject('all');setLevel('all');}} style={{background:'none',border:'none',color:'#A96E1A',fontWeight:700,cursor:'pointer',marginLeft:8}}>Tühista filtrid</button>}
+      </div>
+
+      <div className="library-grid">
+        {filtered.map(item=>(
+          <article key={item.key} className="library-card">
+            <div className="library-card-top">
+              <span className="library-kind" style={{background:item.color+'12',color:item.color}}>
+                <i className={'fa-solid '+item.icon}/> {item.typeLabel}
+              </span>
+              {item.source.worksheetData?.blocks?.length>0&&<span title="Interaktiivne" style={{fontSize:'.72rem',fontWeight:800,color:'#2F5D50'}}>● interaktiivne</span>}
+            </div>
+            <h2 className="library-card-title">{item.title}</h2>
+            {item.description&&<p className="library-card-desc">{item.description}</p>}
+            <div className="library-meta">
+              {item.subject&&<span>{item.subject}</span>}
+              {item.level&&<span>{item.level}</span>}
+              {item.topic&&<span>{item.topic}</span>}
+              {item.examPart&&<span>{EXAM_PARTS.find(part=>part.key===item.examPart)?.label||item.examPart}</span>}
+            </div>
+            <div className="library-card-actions">
+              <button onClick={()=>openItem(item)} className="btn btn-ghost btn-sm"><i className="fa-solid fa-eye"/> Ava</button>
+              {isTeacher&&<button onClick={()=>onAssign(item)} className="btn btn-pine btn-sm"><i className="fa-solid fa-paper-plane"/> Määra</button>}
+              {item.type==='lesson'&&item.source.phaseData&&<button onClick={()=>onConductLesson(item.source)} className="btn btn-ghost btn-sm"><i className="fa-solid fa-play"/> Vii läbi</button>}
+              {item.kind==='exercise'&&<button onClick={onGoExercises} className="btn btn-ghost btn-sm" title="Ava kõik harjutused"><i className="fa-solid fa-arrow-right"/></button>}
+            </div>
+          </article>
+        ))}
+        {!filtered.length&&<div className="library-empty">
+          <i className="fa-solid fa-folder-open" style={{fontSize:'1.8rem',opacity:.3,marginBottom:10}}/>
+          <div style={{fontWeight:700,marginBottom:5}}>Sobivaid materjale ei leitud</div>
+          <div style={{fontSize:'.8rem'}}>Muuda filtreid või loo uus materjal.</div>
+        </div>}
+      </div>
+    </div>
+  );
+}
+
 // ── EXERCISE PLAYERS ──────────────────────────────────────────
 function parseFillText(raw){const blanks=[];let idx=0;const parts=raw.split(/\[([^\]]+)\]/g);let result=[];for(let i=0;i<parts.length;i++){if(i%2===0){result.push({type:'text',value:parts[i]});}else{result.push({type:'blank',answer:parts[i],index:idx++});blanks.push({answer:parts[i],index:idx-1});}}return{parts:result,blanks};}
 
@@ -1709,9 +2079,10 @@ function TranslatePlayer({exercise,onDone}){
   </div>);
 }
 
-function ExerciseCard({ex,isTeacher,onDelete,students,user}){
+function ExerciseCard({ex,isTeacher,onDelete,students,user,onResult}){
   const[open,setOpen]=useState(false);const[result,setResult]=useState(null);
   const type=EX_TYPES[ex.type]||EX_TYPES.fill;
+  const handleResult=value=>{setResult(value);onResult&&onResult(value);};
   return(<div className="ex-card" style={{display:'flex',flexDirection:'column',gap:12}}>
     <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:10}}>
       <div style={{flex:1,minWidth:0}}>
@@ -1730,32 +2101,22 @@ function ExerciseCard({ex,isTeacher,onDelete,students,user}){
       </div>
     </div>
     {open&&<div style={{borderTop:'1px solid rgba(28,43,58,.07)',paddingTop:13}}>
-      {ex.type==='fill'&&<FillPlayer exercise={ex} onDone={setResult}/>}
-      {ex.type==='choice'&&<ChoicePlayer exercise={ex} onDone={setResult}/>}
-      {ex.type==='writing'&&<WritingPlayer exercise={ex} onDone={setResult}/>}
-      {ex.type==='order'&&<OrderPlayer exercise={ex} onDone={setResult}/>}
-      {ex.type==='match'&&<MatchPlayer exercise={ex} onDone={setResult}/>}
-      {ex.type==='reading'&&<ReadingPlayer exercise={ex} onDone={setResult}/>}
-      {ex.type==='translate'&&<TranslatePlayer exercise={ex} onDone={setResult}/>}
+      {ex.type==='fill'&&<FillPlayer exercise={ex} onDone={handleResult}/>}
+      {ex.type==='choice'&&<ChoicePlayer exercise={ex} onDone={handleResult}/>}
+      {ex.type==='writing'&&<WritingPlayer exercise={ex} onDone={handleResult}/>}
+      {ex.type==='order'&&<OrderPlayer exercise={ex} onDone={handleResult}/>}
+      {ex.type==='match'&&<MatchPlayer exercise={ex} onDone={handleResult}/>}
+      {ex.type==='reading'&&<ReadingPlayer exercise={ex} onDone={handleResult}/>}
+      {ex.type==='translate'&&<TranslatePlayer exercise={ex} onDone={handleResult}/>}
       {!['fill','choice','writing','order','match','reading','translate'].includes(ex.type)&&<div style={{color:'#718096',fontSize:'.86rem',padding:'10px 0'}}>Selle harjutuse tüüpi ei toetata veel täisvaates.</div>}
     </div>}
   </div>);}
 
 // ── EXERCISES TAB ─────────────────────────────────────────────
-function ExercisesView({isTeacher,user,notify}){
-  const[exercises,setExercises]=useState([]);
-  const[loading,setLoading]=useState(true);
+function ExercisesView({exercises,isTeacher,user,notify}){
   const[search,setSearch]=useState('');
   const[typeFilter,setTypeFilter]=useState('all');
   const[subjectFilter,setSubjectFilter]=useState('all');
-
-  useEffect(()=>{
-    const u=db.collection('exercises').orderBy('createdAt','desc').onSnapshot(
-      s=>{setExercises(s.docs.map(d=>({id:d.id,...d.data()})));setLoading(false);},
-      ()=>setLoading(false)
-    );
-    return u;
-  },[user]);
 
   const filtered=useMemo(()=>{
     const q=search.toLowerCase();
@@ -1766,8 +2127,6 @@ function ExercisesView({isTeacher,user,notify}){
       return(e.title||'').toLowerCase().includes(q)||(e.tags||[]).some(t=>t.toLowerCase().includes(q));
     });
   },[exercises,typeFilter,subjectFilter,search]);
-
-  if(loading)return<div style={{display:'flex',justifyContent:'center',padding:60}}><div className="spinner"/></div>;
 
   return(
     <div style={{maxWidth:1100,margin:'0 auto',padding:'22px 28px 60px'}}>
@@ -1835,7 +2194,7 @@ function LoginScreen({onLogin}){
   return(
     <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',padding:16,background:'linear-gradient(135deg,#1C2B3A 0%,#2F5D50 100%)'}}>
       <div style={{background:'#FBFAF8',borderRadius:24,padding:36,width:'100%',maxWidth:380,boxShadow:'0 32px 80px rgba(0,0,0,.3)'}}>
-        <div style={{textAlign:'center',marginBottom:28}}><div style={{fontFamily:'Fraunces,Georgia,serif',fontSize:'1.9rem',fontWeight:700}}>Keele<span style={{color:'#C9882A'}}>Sepp</span></div><div style={{fontSize:'.8rem',color:'#718096',marginTop:4}}>Õppekava & Harjutused</div></div>
+        <div style={{textAlign:'center',marginBottom:28}}><div style={{fontFamily:'Fraunces,Georgia,serif',fontSize:'1.9rem',fontWeight:700}}>Keele<span style={{color:'#C9882A'}}>Sepp</span></div><div style={{fontSize:'.8rem',color:'#718096',marginTop:4}}>Õppevara raamatukogu</div></div>
         <div style={{display:'flex',flexDirection:'column',gap:10,marginBottom:14}}><input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="E-post" onKeyDown={e=>e.key==='Enter'&&go()}/><input type="password" value={pass} onChange={e=>setPass(e.target.value)} placeholder="Parool" onKeyDown={e=>e.key==='Enter'&&go()}/></div>
         {err&&<div style={{background:'#fee2e2',color:'#991b1b',borderRadius:9,padding:'9px 12px',fontSize:'.82rem',marginBottom:12}}>{err}</div>}
         <button onClick={go} disabled={busy} className="btn btn-dark" style={{width:'100%',marginBottom:10,borderRadius:12,padding:12,justifyContent:'center'}}>{busy?'Laeb…':'Sisene'}</button>
@@ -2661,15 +3020,17 @@ function StatisticsView({allLessons}) {
 
 // ── APP ───────────────────────────────────────────────────────
 function App(){
-  const[user,setUser]=useState(null);
-  const[loading,setLoading]=useState(true);
-  const[tab,setTab]=useState('curriculum');
+  const[user,setUser]=useState(LOCAL_LIBRARY_PREVIEW?{uid:'preview',displayName:'Pavel Zakutailo',email:'preview@localhost',role:'admin'}:null);
+  const[loading,setLoading]=useState(!LOCAL_LIBRARY_PREVIEW);
+  const[tab,setTab]=useState('library');
   const[wsPreview,setWsPreview]=useState(null);
   const[conductLesson,setConductLesson]=useState(null);
   const[showSearch,setShowSearch]=useState(false);
-  const[allLessons,setAllLessons]=useState([]);
+  const[allLessons,setAllLessons]=useState(LOCAL_LIBRARY_PREVIEW?PREVIEW_LESSONS:[]);
+  const[allExercises,setAllExercises]=useState(LOCAL_LIBRARY_PREVIEW?PREVIEW_EXERCISES:[]);
+  const[students,setStudents]=useState(LOCAL_LIBRARY_PREVIEW?PREVIEW_STUDENTS:[]);
+  const[assignItem,setAssignItem]=useState(null);
   const[notif,setNotif]=useState('');
-  const[exCount,setExCount]=useState(0);
   const[directExercise,setDirectExercise]=useState(null);
   const[directExLoading,setDirectExLoading]=useState(false);
 
@@ -2677,6 +3038,7 @@ function App(){
   const isTeacher=user?.role==='teacher'||user?.role==='admin'||user?.email==='zakutailo.pavel@gmail.com';
 
   useEffect(()=>{
+    if(LOCAL_LIBRARY_PREVIEW) return;
     const u=auth.onAuthStateChanged(async fbUser=>{
       if(fbUser){const s=await db.collection('users').doc(fbUser.uid).get();if(s.exists)setUser({uid:fbUser.uid,displayName:fbUser.displayName||fbUser.email,...s.data()});else setUser({uid:fbUser.uid,displayName:fbUser.displayName||fbUser.email,email:fbUser.email,role:'student'});}
       else setUser(null);
@@ -2686,10 +3048,26 @@ function App(){
   },[]);
 
   useEffect(()=>{
-    const u=db.collection('exercises').onSnapshot(s=>setExCount(s.docs.length),()=>{});
-    const u2=db.collection('curriculumLessons').onSnapshot(s=>setAllLessons(s.docs.map(d=>({id:d.id,...d.data()}))),()=>{});
-    return()=>{u();u2();};
-  },[]);
+    if(LOCAL_LIBRARY_PREVIEW) return;
+    if(!user?.uid) return;
+    const unsubs=[
+      db.collection('exercises').orderBy('createdAt','desc').onSnapshot(
+        snapshot=>setAllExercises(snapshot.docs.map(doc=>({id:doc.id,...doc.data()}))),
+        error=>{console.warn('Exercises listener:',error);setAllExercises([]);}
+      ),
+      db.collection('curriculumLessons').onSnapshot(
+        snapshot=>setAllLessons(snapshot.docs.map(doc=>({id:doc.id,...doc.data()}))),
+        error=>{console.warn('Curriculum listener:',error);setAllLessons([]);}
+      )
+    ];
+    if(isTeacher){
+      unsubs.push(db.collection('students').onSnapshot(
+        snapshot=>setStudents(snapshot.docs.map(doc=>({id:doc.id,...doc.data()}))),
+        error=>{console.warn('Students listener:',error);setStudents([]);}
+      ));
+    }
+    return()=>unsubs.forEach(unsubscribe=>unsubscribe());
+  },[user?.uid,isTeacher]);
 
   // Open a specific exercise directly when ?exercise=ID is in the URL
   useEffect(()=>{
@@ -2711,6 +3089,46 @@ function App(){
     url.searchParams.delete('exercise');
     window.history.replaceState({},'',url.pathname+url.search);
   };
+  const saveDirectExerciseResult=async result=>{
+    if(!directExercise||LOCAL_LIBRARY_PREVIEW) return;
+    const params=new URLSearchParams(window.location.search);
+    const studentId=params.get('student')||'';
+    const homeworkId=params.get('homework')||'';
+    if(!studentId) return;
+    try{
+      const now=new Date().toISOString();
+      const correct=Number(result?.correct);
+      const total=Number(result?.total);
+      const hasScore=Number.isFinite(correct)&&Number.isFinite(total)&&total>0;
+      const batch=db.batch();
+      const resultRef=db.collection('exerciseResults').doc();
+      batch.set(resultRef,{
+        studentId,
+        exerciseId:directExercise.id,
+        exerciseTitle:directExercise.title||'Harjutus',
+        exerciseType:directExercise.type||'',
+        homeworkId,
+        score:hasScore?{correct,total}:null,
+        pct:hasScore?Math.round(correct/total*100):null,
+        result:result||{},
+        completedAt:now,
+        createdAt:now,
+        completedBy:user.uid||''
+      });
+      if(homeworkId){
+        batch.update(db.collection('homework').doc(homeworkId),{
+          status:'Tehtud',
+          submittedAt:now,
+          updatedAt:now
+        });
+      }
+      await batch.commit();
+      notify('✓ Tulemus salvestatud õpetajale');
+    }catch(error){
+      console.error('Exercise result save failed:',error);
+      notify('⚠ Tulemust ei saanud salvestada. Proovi uuesti.');
+    }
+  };
 
   if(loading)return<div style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh'}}><div className="spinner"/></div>;
   if(!user)return<LoginScreen onLogin={setUser}/>;
@@ -2731,7 +3149,7 @@ function App(){
               <button onClick={closeDirectExercise} className="btn btn-ghost btn-sm">✕ Sulge</button>
             </div>
             <div style={{padding:22}}>
-              <ExerciseCard ex={directExercise} isTeacher={isTeacher} user={user} onDelete={null}/>
+              <ExerciseCard ex={directExercise} isTeacher={isTeacher} user={user} onDelete={null} onResult={saveDirectExerciseResult}/>
             </div>
           </div>
         </div>
@@ -2740,40 +3158,54 @@ function App(){
         onSelectLesson={l=>{setShowSearch(false);setWsPreview(l);}}/>}
       {conductLesson&&<LessonConductModal lesson={conductLesson} onClose={()=>setConductLesson(null)}/>}
       {wsPreview&&<WorksheetPreviewModal lesson={wsPreview} onClose={()=>setWsPreview(null)} onConduct={l=>{setWsPreview(null);setConductLesson(l);}}/>}
+      {assignItem&&<AssignLearningItemModal item={assignItem} students={students} user={user} notify={notify} onClose={()=>setAssignItem(null)}/>}
 
       <header className="top-header">
-        <div className="logo">Keele<span>Sepp</span></div>
+        <div className="logo">Keele<span>Sepp</span> <small style={{fontFamily:'IBM Plex Sans',fontSize:'.68rem',color:'rgba(255,255,255,.4)',fontWeight:600,marginLeft:7}}>Õppevara</small></div>
         <div style={{display:'flex',alignItems:'center',gap:12}}>
-          <span style={{color:'rgba(255,255,255,.45)',fontSize:'.8rem'}}>{user.displayName||user.email}</span>
+          <span className="header-user" style={{color:'rgba(255,255,255,.45)',fontSize:'.8rem'}}>{user.displayName||user.email}</span>
           <a href="/haldus/" style={{color:'rgba(255,255,255,.55)',fontSize:'.78rem',textDecoration:'none',padding:'6px 12px',border:'1px solid rgba(255,255,255,.14)',borderRadius:8}}>← Haldus</a>
           <button onClick={()=>auth.signOut().then(()=>setUser(null))} style={{background:'none',border:'1px solid rgba(255,255,255,.14)',color:'rgba(255,255,255,.55)',cursor:'pointer',borderRadius:8,padding:'6px 12px',fontSize:'.78rem'}}>Logi välja</button>
         </div>
       </header>
 
       <div className="top-tabs">
+        <button className={'top-tab'+(tab==='library'?' active':'')} onClick={()=>setTab('library')}>
+          <i className="fa-solid fa-book-open"/> Raamatukogu
+          <span className="tab-count">{allLessons.filter(item=>!item.__placeholder).length+allExercises.length}</span>
+        </button>
         <button className={'top-tab'+(tab==='curriculum'?' active':'')} onClick={()=>setTab('curriculum')}>
-          <i className="fa-solid fa-layer-group"/> Õppekava
+          <i className="fa-solid fa-layer-group"/> Õppekavad
         </button>
         <button className={'top-tab'+(tab==='exercises'?' active':'')} onClick={()=>setTab('exercises')}>
-          <i className="fa-solid fa-dumbbell"/> Harjutused
-          <span className="tab-count">{exCount}</span>
-        </button>
-        <button className="top-tab" onClick={()=>setShowSearch(true)} style={{color:'#718096'}}>
-          <i className="fa-solid fa-magnifying-glass"/> Otsi
+          <i className="fa-solid fa-dumbbell"/> Ülesanded
+          <span className="tab-count">{allExercises.length}</span>
         </button>
         <button className={'top-tab'+(tab==='stats'?' active':'')} onClick={()=>setTab('stats')} style={{color:'#718096'}}>
           <i className="fa-solid fa-chart-bar"/> Statistika
         </button>
-        {tab==='curriculum'&&isTeacher&&(
+        {isTeacher&&(
           <button onClick={()=>window.open('/haldus-worksheet/','_blank')} className="top-tab"
             style={{marginLeft:'auto',color:'#A96E1A',borderBottomColor:'transparent',background:'none',border:'none',cursor:'pointer'}}>
-            <i className="fa-solid fa-file-pen"/> Koosta tööleht
+            <i className="fa-solid fa-wand-magic-sparkles"/> AI-tööleht
           </button>
         )}
       </div>
 
-      {!showSearch&&tab==='curriculum'&&<CurriculumView isTeacher={isTeacher} user={user} notify={notify} onPreviewWorksheet={setWsPreview} onConductLesson={setConductLesson}/>}
-      {!showSearch&&tab==='exercises'&&<ExercisesView isTeacher={isTeacher} user={user} notify={notify}/>}
+      {!showSearch&&tab==='library'&&<LearningLibraryView
+        lessons={allLessons}
+        exercises={allExercises}
+        students={students}
+        isTeacher={isTeacher}
+        onOpenLesson={setWsPreview}
+        onOpenExercise={setDirectExercise}
+        onAssign={setAssignItem}
+        onGoCurriculum={()=>setTab('curriculum')}
+        onGoExercises={()=>setTab('exercises')}
+        onConductLesson={setConductLesson}
+      />}
+      {!showSearch&&tab==='curriculum'&&<CurriculumView lessons={allLessons} isTeacher={isTeacher} user={user} notify={notify} onPreviewWorksheet={setWsPreview} onConductLesson={setConductLesson}/>}
+      {!showSearch&&tab==='exercises'&&<ExercisesView exercises={allExercises} isTeacher={isTeacher} user={user} notify={notify}/>}
       {!showSearch&&tab==='stats'&&<StatisticsView allLessons={allLessons}/>}
     </div>
   );

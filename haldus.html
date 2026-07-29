@@ -5592,7 +5592,7 @@ function StudentCard({user,currentStu,stuLessons,stuHw,stuInv,isAdmin,setSelStu,
                 </div>
                 <div style={{display:'flex',alignItems:'center',gap:6,flexWrap:'wrap',justifyContent:'flex-end'}}>
                   {hw.isExercise&&hw.exerciseId&&(
-  <a href={'/haldus-exercises?exercise='+hw.exerciseId}
+  <a href={'/haldus-exercises/?exercise='+encodeURIComponent(hw.exerciseId)+'&student='+encodeURIComponent(hw.studentId||'')+'&homework='+encodeURIComponent(hw.id||'')}
     className="btn btn-pine btn-sm"
     style={{textDecoration:'none',display:'inline-flex',alignItems:'center',gap:5}}>
     <i className="fa-solid fa-play" style={{fontSize:'.7rem'}}/> Ava ülesanne
@@ -11588,8 +11588,7 @@ function App() {
     {id:'live_classroom',icon:'fa-display',label:'Live Classroom',isExternal:true,href:'/live-classroom/'},
     ...(isStaff?[{id:'tasks',icon:'fa-list-check',label:'Ülesanded',
       badge:scopedTasks.filter(t=>t.status!=='done').length}]:[]),
-    ...(isStaff?[{id:'programs',icon:'fa-book-open-reader',label:'Õppekavad'}]:[]),
-    ...(isStaff?[{id:'exercises_link',icon:'fa-pen-line',label:'Harjutused',isExternal:true,href:'/haldus-exercises'}]:[]),
+    ...(isStaff?[{id:'learning_library',icon:'fa-book-open',label:'Õppevara',isExternal:true,href:'/haldus-exercises/'}]:[]),
     {id:'students', icon:'fa-graduation-cap',label:isStaff?'Minu õpilased':isParentUser&&hasStudyProfile?'Minu lapsed / õpingud':isParentUser?'Minu lapsed':'Minu progress',
       badge:isStaff?unseenWsCount:0},
     ...(isStaff?[{id:'groups',icon:'fa-layer-group',label:'Grupid'}]:[]),
@@ -11707,8 +11706,6 @@ function App() {
             taskDue={taskDue} setTaskDue={setTaskDue} taskPriority={taskPriority} setTaskPriority={setTaskPriority}
             taskCategory={taskCategory} setTaskCategory={setTaskCategory}
             addTask={addTask} toggleTask={toggleTask} deleteTask={deleteTask} replyTask={replyTask} markTaskRepliesSeen={markTaskRepliesSeen} isAdmin={isAdmin}/>}
-
-          {tab==='programs'&&isStaff&&<ProgramsView/>}
 
           {tab==='students'&&isStaff&&!selStu&&<StudentsList filteredStudents={filteredStudents} lessons={lessons} isAdmin={canAssignTeacher}
             search={search} setSearch={setSearch} stuFilter={stuFilter} setStuFilter={setStuFilter} setSelStu={setSelStu}/>}

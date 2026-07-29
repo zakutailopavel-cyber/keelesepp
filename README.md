@@ -4,7 +4,18 @@ Avalik sait +  CRM süsteem.
 
 - `/` → Avalik koduleht
 - `/haldus/` → CRM (õpetaja + õpilase kabinet)
+- `/haldus-exercises/` → Õppevara (raamatukogu, õppekavad, ülesanded ja töölehtede loomine)
 - `/live-classroom/` → Live Classroom (õpetaja privaatne töölaud + õpilase avalik õppestseen)
+
+## Õppevara
+
+Õpetaja näeb ühes raamatukogus olemasolevaid tunnikavasid, töölehti, harjutusi,
+kodutöid, materjale ja kontrolltöid. Materjale saab otsida ning filtreerida aine,
+taseme ja tüübi järgi.
+
+Interaktiivne tööleht määratakse õpilase töölehtede kabinetti. Harjutus või tavaline
+materjal lisatakse kodutööna. Harjutuse lõpetamisel salvestatakse tulemus õpetajale
+ja seotud kodutöö märgitakse tehtuks.
 
 ## Live Classroom
 
