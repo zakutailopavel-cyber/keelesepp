@@ -30,6 +30,7 @@ const {
   creditAfterApplication,
   creditAfterRefund,
   creditAfterRestoration,
+  financialPeriodReviewSnapshot,
   invoiceAfterLessonCredit,
   invoiceFinancialPatch,
   invoiceOriginalAmountCents,
@@ -46,6 +47,7 @@ const {
   tariffAssignmentPlan,
   toCents,
   validIsoDate,
+  validIsoMonth,
 } = require("./finance-core");
 const {
   GOOGLE_SCOPE_EVENTS_OWNED,
@@ -2223,6 +2225,109 @@ async function attachPaymentDocument({
   });
 }
 
+async function reviewFinancialPeriod({ actor, month, requestId }) {
+  const reviewMonth = validIsoMonth(month);
+  const mutationId = cleanRequestId(requestId);
+  const periodRef = db.collection("financialPeriods").doc(reviewMonth);
+  const reviewRef = db.collection("financialPeriodReviews").doc(mutationId);
+  const auditRef = db.collection("financialAudit").doc(mutationId);
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+
+  return db.runTransaction(async transaction => {
+    const reviewSnap = await transaction.get(reviewRef);
+    if (reviewSnap.exists) {
+      const review = reviewSnap.data();
+      if (review.month !== reviewMonth || review.requestId !== mutationId) {
+        throw httpError(409, "requestId already used for a different financial mutation");
+      }
+      return { review: { id: reviewSnap.id, ...review }, idempotent: true };
+    }
+    const [
+      periodSnap,
+      invoiceSnap,
+      paymentSnap,
+      bankSnap,
+      lessonSnap,
+    ] = await Promise.all([
+      transaction.get(periodRef),
+      transaction.get(db.collection("invoices")),
+      transaction.get(db.collection("payments")),
+      transaction.get(db.collection("bankTransactions")),
+      transaction.get(db.collection("lessons")),
+    ]);
+    const withIds = snapshot => snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const snapshot = financialPeriodReviewSnapshot({
+      month: reviewMonth,
+      invoices: withIds(invoiceSnap),
+      payments: withIds(paymentSnap),
+      bankTransactions: withIds(bankSnap),
+      lessons: withIds(lessonSnap),
+    });
+    if (!snapshot.canReview) {
+      throw httpError(
+        409,
+        `Period has ${snapshot.summary.blockingIssueCount} blocking financial issue(s)`,
+      );
+    }
+    const previous = periodSnap.exists ? periodSnap.data() : {};
+    const reviewVersion = Math.max(0, Number(previous.reviewVersion) || 0) + 1;
+    const fingerprint = crypto
+      .createHash("sha256")
+      .update(JSON.stringify({
+        month: snapshot.month,
+        scope: snapshot.scope,
+        summary: snapshot.summary,
+        issues: snapshot.issues,
+      }))
+      .digest("hex");
+    const review = {
+      month: reviewMonth,
+      status: "reviewed",
+      scope: snapshot.scope,
+      dataVersion: snapshot.dataVersion,
+      reviewVersion,
+      summary: snapshot.summary,
+      warnings: snapshot.issues.filter(issue => issue.severity === "warning").slice(0, 100),
+      fingerprint,
+      reviewedAt: nowIso,
+      reviewedBy: actorData,
+      requestId: mutationId,
+    };
+    transaction.create(reviewRef, review);
+    transaction.set(periodRef, {
+      month: reviewMonth,
+      status: "reviewed",
+      scope: snapshot.scope,
+      dataVersion: snapshot.dataVersion,
+      reviewVersion,
+      lastReviewId: mutationId,
+      lastReviewFingerprint: fingerprint,
+      lastReviewedAt: nowIso,
+      lastReviewedBy: actorData,
+      lastReviewSummary: snapshot.summary,
+      updatedAt: nowIso,
+    }, { merge: true });
+    transaction.create(auditRef, {
+      entityType: "financial_period",
+      entityId: reviewMonth,
+      action: "financial_period.reviewed",
+      month: reviewMonth,
+      reviewId: mutationId,
+      reviewVersion,
+      scope: snapshot.scope,
+      fingerprint,
+      summary: snapshot.summary,
+      warningCount: snapshot.summary.warningCount,
+      actor: actorData,
+      reason: "Monthly billing control reviewed",
+      createdAt: nowIso,
+      requestId: mutationId,
+    });
+    return { review: { id: mutationId, ...review }, idempotent: false };
+  });
+}
+
 async function resetInvoicePayments({ actor, invoiceId, reason, requestId }) {
   const mutationId = cleanRequestId(requestId);
   const invoiceRef = db.collection("invoices").doc(String(invoiceId || ""));
@@ -4081,6 +4186,15 @@ exports.financeApi = functions.https.onRequest(async (req, res) => {
         fileName: req.body?.fileName,
         contentType: req.body?.contentType,
         size: req.body?.size,
+        requestId: req.body?.requestId,
+      });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/financial-periods/review") {
+      const result = await reviewFinancialPeriod({
+        actor,
+        month: req.body?.month,
         requestId: req.body?.requestId,
       });
       res.status(result.idempotent ? 200 : 201).json(result);

@@ -35,6 +35,279 @@ function validIsoDate(value, field = "date") {
   return date;
 }
 
+function validIsoMonth(value, field = "month") {
+  const month = String(value || "").trim();
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
+    const error = new Error(`${field} must be a valid YYYY-MM month`);
+    error.status = 400;
+    throw error;
+  }
+  return month;
+}
+
+function recordIsoDate(value) {
+  if (!value) return "";
+  if (typeof value === "string") {
+    const match = value.match(/^\d{4}-\d{2}-\d{2}/);
+    return match ? match[0] : "";
+  }
+  if (typeof value?.toDate === "function") {
+    return value.toDate().toISOString().slice(0, 10);
+  }
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value.toISOString().slice(0, 10);
+  }
+  return "";
+}
+
+function recordMonth(value) {
+  return recordIsoDate(value).slice(0, 7);
+}
+
+function nonNegativeCents(record, centsField, amountField) {
+  const centsValue = Number(record?.[centsField]);
+  if (Number.isInteger(centsValue)) return Math.max(0, centsValue);
+  return Math.max(0, Math.round((Number(record?.[amountField]) || 0) * 100));
+}
+
+function financialPeriodReviewSnapshot({
+  month,
+  invoices = [],
+  payments = [],
+  bankTransactions = [],
+  lessons = [],
+} = {}) {
+  const reviewMonth = validIsoMonth(month);
+  const invoiceList = Array.isArray(invoices) ? invoices : [];
+  const paymentList = Array.isArray(payments) ? payments : [];
+  const bankList = Array.isArray(bankTransactions) ? bankTransactions : [];
+  const lessonList = Array.isArray(lessons) ? lessons : [];
+  const invoiceById = new Map(
+    invoiceList.filter(item => item?.id).map(item => [String(item.id), item]),
+  );
+  const lessonById = new Map(
+    lessonList.filter(item => item?.id).map(item => [String(item.id), item]),
+  );
+  const periodLessons = lessonList.filter(lesson => recordMonth(lesson?.date) === reviewMonth);
+  const periodLessonIds = new Set(periodLessons.map(lesson => String(lesson.id || "")).filter(Boolean));
+  const periodInvoices = invoiceList.filter(invoice =>
+    recordMonth(invoice?.date || invoice?.issuedAt || invoice?.createdAt) === reviewMonth
+    || (Array.isArray(invoice?.lines) && invoice.lines.some(line =>
+      recordMonth(line?.date) === reviewMonth || periodLessonIds.has(String(line?.lessonId || "")),
+    )),
+  );
+  const periodInvoiceIds = new Set(periodInvoices.map(invoice => String(invoice.id || "")).filter(Boolean));
+  const activePayments = paymentList.filter(payment =>
+    payment && payment.status !== "voided" && paymentNetAmountCents(payment) > 0,
+  );
+  const paymentsByInvoice = new Map();
+  activePayments.forEach(payment => {
+    const invoiceId = String(payment.invoiceId || "");
+    if (!paymentsByInvoice.has(invoiceId)) paymentsByInvoice.set(invoiceId, []);
+    paymentsByInvoice.get(invoiceId).push(payment);
+  });
+  const issues = [];
+  const addIssue = (type, severity, entityId, detail) => {
+    issues.push({
+      type,
+      severity,
+      entityId: String(entityId || ""),
+      detail: String(detail || "").slice(0, 300),
+    });
+  };
+  const lineOwners = new Map();
+  const exactLessonIds = new Set();
+
+  invoiceList.forEach(invoice => {
+    const invoiceId = String(invoice.id || "");
+    const lines = Array.isArray(invoice.lines) ? invoice.lines : [];
+    if (!lines.length) return;
+    const correctedLessonIds = new Set((invoice.correctedLessonIds || []).map(String));
+    const seenLessonIds = new Set();
+    lines.forEach(line => {
+      const lessonId = String(line?.lessonId || "");
+      if (!lessonId) return;
+      if (!lineOwners.has(lessonId)) lineOwners.set(lessonId, []);
+      lineOwners.get(lessonId).push(invoiceId);
+      if (seenLessonIds.has(lessonId) && (periodLessonIds.has(lessonId) || periodInvoiceIds.has(invoiceId))) {
+        addIssue("duplicate_lesson_line", "error", lessonId, `invoice:${invoiceId}`);
+      }
+      seenLessonIds.add(lessonId);
+      const lesson = lessonById.get(lessonId);
+      if (!lesson && (recordMonth(line?.date) === reviewMonth || periodInvoiceIds.has(invoiceId))) {
+        addIssue("invoice_line_missing_lesson", "error", lessonId, `invoice:${invoiceId}`);
+        return;
+      }
+      if (!lesson || !periodLessonIds.has(lessonId)) return;
+      const linkExact = String(lesson.invoiceId || "") === invoiceId
+        && ["invoiced", "credited"].includes(String(lesson.billingStatus || ""));
+      if (!linkExact) {
+        addIssue("lesson_invoice_link_mismatch", "error", lessonId, `invoice:${invoiceId}`);
+      } else {
+        exactLessonIds.add(lessonId);
+      }
+    });
+    if (!periodInvoiceIds.has(invoiceId)) return;
+    const activeLines = lines.filter(line =>
+      line?.lessonId && !correctedLessonIds.has(String(line.lessonId)),
+    );
+    const activeLineTotalCents = activeLines.reduce(
+      (sum, line) => sum + nonNegativeCents(line, "amountCents", "amount"),
+      0,
+    );
+    const effectiveAmountCents = invoiceAmountCents(invoice);
+    if (Math.abs(activeLineTotalCents - effectiveAmountCents) > 1) {
+      addIssue(
+        "invoice_line_total_mismatch",
+        "error",
+        invoiceId,
+        `lines:${activeLineTotalCents};invoice:${effectiveAmountCents}`,
+      );
+    }
+    const invoicePayments = paymentsByInvoice.get(invoiceId) || [];
+    const ledgerPaidCents = invoicePayments.reduce(
+      (sum, payment) => sum + paymentNetAmountCents(payment),
+      0,
+    );
+    const hasSnapshot = invoice.paidAmountCents !== undefined || invoice.paidAmount !== undefined;
+    const snapshotPaidCents = hasSnapshot
+      ? nonNegativeCents(invoice, "paidAmountCents", "paidAmount")
+      : invoice.status === "Makstud"
+        ? effectiveAmountCents
+        : 0;
+    if (snapshotPaidCents > 0 && invoicePayments.length === 0) {
+      addIssue("invoice_paid_without_payment_records", "error", invoiceId, `snapshot:${snapshotPaidCents}`);
+    } else if (hasSnapshot && Math.abs(snapshotPaidCents - ledgerPaidCents) > 1) {
+      addIssue(
+        "invoice_payment_snapshot_mismatch",
+        "error",
+        invoiceId,
+        `snapshot:${snapshotPaidCents};ledger:${ledgerPaidCents}`,
+      );
+    }
+    if (ledgerPaidCents - activeLineTotalCents > 1) {
+      addIssue(
+        "payment_exceeds_lesson_lines",
+        "error",
+        invoiceId,
+        `payments:${ledgerPaidCents};lines:${activeLineTotalCents}`,
+      );
+    }
+  });
+
+  lineOwners.forEach((owners, lessonId) => {
+    const distinctOwners = [...new Set(owners.filter(Boolean))];
+    if (periodLessonIds.has(lessonId) && distinctOwners.length > 1) {
+      addIssue("lesson_in_multiple_invoices", "error", lessonId, distinctOwners.join(","));
+    }
+  });
+
+  let unbilledLessonCount = 0;
+  let legacyLessonCount = 0;
+  periodLessons.forEach(lesson => {
+    const lessonId = String(lesson.id || "");
+    const billingStatus = String(lesson.billingStatus || "");
+    const packageStatus = String(lesson.packageConsumptionStatus || "");
+    const lessonStatus = String(lesson.status || "");
+    if (packageStatus === "needs_attention") {
+      unbilledLessonCount += 1;
+      addIssue("package_needs_attention", "attention", lessonId, lesson.studentName || "");
+      return;
+    }
+    if (packageStatus === "consumed"
+      || ["free", "cancelled_on_time", "written_off", "credited"].includes(billingStatus)) {
+      return;
+    }
+    if (["Puudus_p", "Puudus_eta"].includes(lessonStatus) && !billingStatus) {
+      unbilledLessonCount += 1;
+      addIssue("absence_billing_disposition_missing", "attention", lessonId, lesson.studentName || "");
+      return;
+    }
+    if (lesson.invoiceId || billingStatus === "invoiced") {
+      if (!exactLessonIds.has(lessonId)) {
+        legacyLessonCount += 1;
+        addIssue("legacy_invoice_without_lesson_line", "warning", lessonId, String(lesson.invoiceId || ""));
+      }
+      return;
+    }
+    if (
+      billingStatus === "late_cancel_billable"
+      || billingStatus === "unbilled"
+      || (lessonStatus === "Toimunud" && !billingStatus)
+    ) {
+      unbilledLessonCount += 1;
+      addIssue("unbilled_lesson", "attention", lessonId, lesson.studentName || "");
+    }
+  });
+
+  const periodPayments = activePayments.filter(payment =>
+    recordMonth(payment?.paidAt || payment?.createdAt) === reviewMonth,
+  );
+  periodPayments.forEach(payment => {
+    if (!invoiceById.has(String(payment.invoiceId || ""))) {
+      addIssue("payment_without_invoice", "error", payment.id, String(payment.invoiceId || ""));
+    }
+  });
+  const periodBanks = bankList.filter(transaction =>
+    recordMonth(transaction?.paidAt || transaction?.createdAt) === reviewMonth,
+  );
+  periodBanks.forEach(transaction => {
+    const amountCents = nonNegativeCents(transaction, "amountCents", "amount");
+    const allocatedCents = nonNegativeCents(transaction, "allocatedAmountCents", "allocatedAmount");
+    const unappliedCents = nonNegativeCents(transaction, "unappliedAmountCents", "unappliedAmount");
+    if (Math.abs(amountCents - allocatedCents - unappliedCents) > 1) {
+      addIssue(
+        "bank_balance_mismatch",
+        "error",
+        transaction.id,
+        `amount:${amountCents};allocated:${allocatedCents};unapplied:${unappliedCents}`,
+      );
+    } else if (unappliedCents > 0) {
+      addIssue("bank_unapplied", "attention", transaction.id, `unapplied:${unappliedCents}`);
+    }
+  });
+
+  const blockingIssues = issues.filter(issue => ["error", "attention"].includes(issue.severity));
+  const issuedCents = periodInvoices.reduce((sum, invoice) => sum + invoiceAmountCents(invoice), 0);
+  const paymentsCents = periodPayments.reduce(
+    (sum, payment) => sum + paymentNetAmountCents(payment),
+    0,
+  );
+  const bankReceivedCents = periodBanks.reduce(
+    (sum, transaction) => sum + nonNegativeCents(transaction, "amountCents", "amount"),
+    0,
+  );
+  const bankUnappliedCents = periodBanks.reduce(
+    (sum, transaction) => sum + nonNegativeCents(transaction, "unappliedAmountCents", "unappliedAmount"),
+    0,
+  );
+  const summary = {
+    invoiceCount: periodInvoices.length,
+    issuedCents,
+    paymentCount: periodPayments.length,
+    paymentsCents,
+    bankTransactionCount: periodBanks.length,
+    bankReceivedCents,
+    bankUnappliedCents,
+    lessonCount: periodLessons.length,
+    exactLessonLinkCount: exactLessonIds.size,
+    unbilledLessonCount,
+    legacyLessonCount,
+    errorCount: issues.filter(issue => issue.severity === "error").length,
+    attentionCount: issues.filter(issue => issue.severity === "attention").length,
+    warningCount: issues.filter(issue => issue.severity === "warning").length,
+    blockingIssueCount: blockingIssues.length,
+  };
+  return {
+    month: reviewMonth,
+    scope: "billing_control_v1",
+    dataVersion: 1,
+    canReview: blockingIssues.length === 0,
+    summary,
+    issues,
+  };
+}
+
 function previousIsoDate(value) {
   const date = validIsoDate(value);
   const parsed = new Date(`${date}T12:00:00.000Z`);
@@ -787,6 +1060,7 @@ module.exports = {
   packageBalanceAfterLessonMovement,
   paymentDocumentRecord,
   paymentNetAmountCents,
+  financialPeriodReviewSnapshot,
   planInvoiceOverpaymentTransfer,
   positiveInteger,
   selectStudentPackageForLesson,
@@ -794,5 +1068,6 @@ module.exports = {
   tariffAssignmentPlan,
   toCents,
   validIsoDate,
+  validIsoMonth,
   resolveLessonPricing,
 };

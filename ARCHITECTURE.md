@@ -87,6 +87,23 @@ immutable `payment.document_attached` audit entry in one Firestore transaction. 
 invoice balance and allocation are not changed by attaching evidence. Voided payments keep
 their prior evidence but reject new attachments.
 
+Monthly billing control is a reviewed snapshot, not yet a statutory period lock.
+`accounting-ledger-core.js` combines invoice/payment, bank-allocation and lesson-line issues into
+one administrator checklist. A review request is sent only when the browser projection has no
+blocking errors, but the browser is not authoritative: `financeApi` reads `invoices`, `payments`,
+`bankTransactions` and `lessons` again and builds an independent `billing_control_v1` snapshot.
+Blocking issues reject the request. A successful review creates an append-only
+`financialPeriodReviews/{requestId}` document, updates the
+`financialPeriods/{YYYY-MM}` latest-review pointer and writes an immutable
+`financial_period.reviewed` audit entry in one transaction. Direct client writes to both period
+collections are denied. Legacy invoices without immutable lesson lines remain warnings so old
+data stays reviewable without inventing evidence.
+
+The reviewed snapshot deliberately does not prevent later financial mutations. A true locked
+period depends on dated correction entries, payroll approval, expenses and an archived
+accountant export; enabling a lock before those workflows exist would make legitimate
+corrections unsafe.
+
 ### Staff operations
 
 `functions/staff-operations-core.js` owns deterministic work-duration, hourly-rate, payroll and

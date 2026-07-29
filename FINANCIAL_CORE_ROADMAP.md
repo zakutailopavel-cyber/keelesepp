@@ -33,7 +33,7 @@ retries are possible, and represented in an immutable audit trail.
 | 5. Tariffs and packages | Versioned prices, group/individual packages, discounts, family/employer/Töötukassa payer models | In progress |
 | 6. Teacher payroll | Rate history, delivered hours, group rules, substitutions, bonuses, payroll review and lock | Planned |
 | 7. Expenses and suppliers | Expense categories, supplier invoices, receipts, VAT metadata, recurring costs | Planned |
-| 8. Period close | Monthly reconciliation checklist, locked periods, correction entries, opening/closing balances | Planned |
+| 8. Period close | Monthly reconciliation checklist, locked periods, correction entries, opening/closing balances | In progress |
 | 9. Accounting export | Accountant-ready CSV/API export, attachments, payment and invoice ledgers | In progress |
 | 10. Financial analytics | Cash flow, aged debt, revenue by course/group, margin after payroll and expenses | Planned |
 
@@ -210,6 +210,19 @@ immutable document metadata plus a financial audit entry without changing paymen
 amounts. The accounting register exposes evidence files and includes their names and stable IDs
 in CSV. OCR, supplier documents, accountant export archives and document retention policies
 remain future slices.
+
+The first Stage 8 slice adds a consolidated monthly billing-control checklist and an
+administrator-confirmed review snapshot. The UI joins the invoice, payment, bank-allocation and
+lesson-line controls, promotes normal unbilled lessons to blocking decisions, and keeps
+migration-era invoice links as visible non-blocking warnings. Confirmation is never trusted from
+the browser: Financial Core independently re-reads the authoritative collections, rejects a
+month with errors or unresolved decisions, and creates an append-only
+`financialPeriodReviews` version plus a latest-review pointer and financial audit entry.
+
+This slice intentionally uses `reviewed`, not `closed`. It does not lock old records until dated
+correction entries, approved payroll, supplier expenses and archived accountant exports exist.
+The next Stage 8 slice should add those dependencies, an explicit pre-close checklist and a
+server guard that blocks direct historical mutations while accepting dated corrections.
 
 ## Cross-cutting technical work
 

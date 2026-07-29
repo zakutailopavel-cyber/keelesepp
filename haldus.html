@@ -144,6 +144,7 @@ const {
   accountingRegister,
   accountingRegisterCsv,
   amountFromCents:accountingAmount,
+  financialPeriodControl,
   lessonPaymentRegister,
   lessonPaymentRegisterCsv,
   lessonPaymentStatusLabel,
@@ -8162,7 +8163,147 @@ function LessonPaymentRegisterPanel({month,lessons,invoices,payments,openInvoice
   );
 }
 
-function AccountingRegisterView({invoices,payments,bankTransactions,payerCredits,lessons,openInvoices,openReconciliation,openPaymentDocument}) {
+function FinancialPeriodControlPanel({
+  control,
+  period,
+  reviewFinancialPeriod,
+  openInvoices,
+  openReconciliation,
+  openLessonRegister
+}) {
+  const [busy,setBusy]=React.useState(false);
+  const storedSummary=period?.lastReviewSummary||{};
+  const comparisonKeys=[
+    'paymentCount','paymentsCents','bankTransactionCount','bankReceivedCents',
+    'bankUnappliedCents','lessonCount','exactLessonLinkCount','unbilledLessonCount',
+    'blockingIssueCount'
+  ];
+  const reviewMatches=Boolean(period?.lastReviewId)
+    && comparisonKeys.every(key=>Number(storedSummary[key]||0)===Number(control.summary[key]||0));
+  const reviewedAt=period?.lastReviewedAt
+    ? new Date(period.lastReviewedAt).toLocaleString('et-EE',{dateStyle:'medium',timeStyle:'short'})
+    : '';
+  const reviewer=period?.lastReviewedBy?.name||period?.lastReviewedBy?.email||'administraator';
+  const severityMeta={
+    error:{icon:'fa-triangle-exclamation',color:'#991b1b',bg:'#fff1f2',label:'Vastuolu'},
+    attention:{icon:'fa-circle-exclamation',color:'#92400e',bg:'#fffbeb',label:'Vajab otsust'},
+    warning:{icon:'fa-clock-rotate-left',color:'#475569',bg:'#f8fafc',label:'Vana kirje'}
+  };
+  const confirmReview=async()=>{
+    if(!control.canReview||busy) return;
+    if(!window.confirm('Kinnita selle kuu arvete, maksete, pangatehingute ja tundide finantskontroll?')) return;
+    setBusy(true);
+    try{ await reviewFinancialPeriod(control.month); }
+    finally{ setBusy(false); }
+  };
+  return(
+    <div style={{display:'flex',flexDirection:'column',gap:14}}>
+      <div className="card" style={{
+        padding:18,
+        border:`1px solid ${control.canReview?'rgba(22,101,52,.2)':'rgba(153,27,27,.18)'}`,
+        background:control.canReview?'#f0fdf4':'#fff7f7'
+      }}>
+        <div style={{display:'flex',justifyContent:'space-between',gap:16,alignItems:'center',flexWrap:'wrap'}}>
+          <div>
+            <div style={{fontSize:'.7rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'.08em',color:control.canReview?'#166534':'#991b1b'}}>
+              {control.canReview?'Kontroll on kinnitamiseks valmis':'Enne kinnitamist lahenda vastuolud'}
+            </div>
+            <div style={{fontFamily:'Fraunces,Georgia,serif',fontSize:'1.35rem',fontWeight:700,marginTop:5}}>
+              {control.summary.blockingIssueCount} blokeerivat kirjet
+            </div>
+            <div style={{fontSize:'.75rem',color:'#64748b',marginTop:4}}>
+              {control.summary.errorCount} tehnilist vastuolu · {control.summary.attentionCount} finantsotsust · {control.summary.warningCount} vana hoiatust
+            </div>
+          </div>
+          <button onClick={confirmReview} disabled={!control.canReview||busy} className="btn btn-pine"
+            style={{opacity:(!control.canReview||busy)?0.6:1,cursor:(!control.canReview||busy)?'not-allowed':'pointer'}}>
+            <i className={`fa-solid ${busy?'fa-spinner fa-spin':'fa-shield-check'}`}/>
+            {busy?'Kontrollin serveris…':period?.lastReviewId?'Kinnita uus kontroll':'Kinnita kuu kontroll'}
+          </button>
+        </div>
+        <div style={{marginTop:12,padding:'10px 12px',borderRadius:10,background:'rgba(255,255,255,.7)',fontSize:'.72rem',color:'#42536A'}}>
+          Server loeb finantskirjed uuesti ja loob muutumatu kontrollversiooni. See ei lukusta veel perioodi ega muuda ühtegi arvet, makset või tundi.
+        </div>
+      </div>
+
+      {period?.lastReviewId&&(
+        <div className="card" style={{padding:16,border:`1px solid ${reviewMatches?'rgba(22,101,52,.2)':'rgba(201,136,42,.3)'}`}}>
+          <div style={{display:'flex',justifyContent:'space-between',gap:12,alignItems:'center',flexWrap:'wrap'}}>
+            <div>
+              <div style={{fontWeight:800}}>
+                <i className={`fa-solid ${reviewMatches?'fa-circle-check':'fa-rotate'}`} style={{color:reviewMatches?'#166534':'#C9882A',marginRight:7}}/>
+                Kontrollversioon {period.reviewVersion||1}
+              </div>
+              <div style={{fontSize:'.74rem',color:'#64748b',marginTop:4}}>
+                {reviewedAt} · {reviewer} · ID {period.lastReviewId}
+              </div>
+            </div>
+            <span className="badge" style={{background:reviewMatches?'#dcfce7':'#fef3c7',color:reviewMatches?'#166534':'#92400e'}}>
+              {reviewMatches?'Koond vastab praegustele andmetele':'Koond on pärast kontrolli muutunud'}
+            </span>
+          </div>
+        </div>
+      )}
+
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))',gap:12}}>
+        {control.checklist.map(item=>(
+          <div key={item.id} className="card" style={{padding:15}}>
+            <div style={{display:'flex',gap:9,alignItems:'flex-start'}}>
+              <i className={`fa-solid ${item.ready?'fa-circle-check':'fa-circle-xmark'}`}
+                style={{color:item.ready?'#166534':'#991b1b',marginTop:2}}/>
+              <div>
+                <div style={{fontWeight:800,fontSize:'.82rem'}}>{item.label}</div>
+                <div style={{fontSize:'.72rem',color:'#64748b',marginTop:3}}>{item.value}</div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {control.issues.length>0?(
+        <div className="card" style={{overflow:'hidden'}}>
+          <div style={{padding:'14px 16px',borderBottom:'1px solid rgba(28,43,58,.08)',display:'flex',justifyContent:'space-between',gap:10,alignItems:'center',flexWrap:'wrap'}}>
+            <div>
+              <div style={{fontWeight:800}}>Kontrolli tööjärjekord</div>
+              <div style={{fontSize:'.73rem',color:'#64748b',marginTop:2}}>Paranda ülalt alla; hoiatused ei takista kinnitamist.</div>
+            </div>
+            <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+              <button onClick={openLessonRegister} className="btn btn-ghost btn-sm">Tunnid ↔ maksed</button>
+              <button onClick={openReconciliation} className="btn btn-ghost btn-sm">Maksete sobitamine</button>
+              <button onClick={openInvoices} className="btn btn-ghost btn-sm">Arved</button>
+            </div>
+          </div>
+          <div>
+            {control.issues.slice(0,100).map((issue,index)=>{
+              const meta=severityMeta[issue.severity]||severityMeta.warning;
+              return(
+                <div key={`${issue.type}-${issue.entityId||issue.lessonId||issue.invoiceId||index}`}
+                  style={{padding:'11px 16px',borderTop:index?'1px solid rgba(28,43,58,.07)':'none',display:'flex',gap:10,alignItems:'flex-start',background:meta.bg}}>
+                  <i className={`fa-solid ${meta.icon}`} style={{color:meta.color,marginTop:2}}/>
+                  <div style={{flex:1}}>
+                    <div style={{display:'flex',gap:7,alignItems:'center',flexWrap:'wrap'}}>
+                      <span style={{fontWeight:800,fontSize:'.8rem'}}>{issue.title||issue.type}</span>
+                      <span className="badge" style={{background:'#fff',color:meta.color}}>{meta.label}</span>
+                    </div>
+                    <div style={{fontSize:'.72rem',color:'#64748b',marginTop:3}}>{issue.detail||'Kontrolli seotud finantskirjet.'}</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ):(
+        <div className="card" style={{padding:24,textAlign:'center'}}>
+          <i className="fa-solid fa-shield-check" style={{fontSize:'1.7rem',color:'#166534'}}/>
+          <div style={{fontFamily:'Fraunces,Georgia,serif',fontSize:'1.2rem',fontWeight:700,marginTop:10}}>Kõik kontrollid läbitud</div>
+          <div style={{fontSize:'.75rem',color:'#64748b',marginTop:4}}>Kuu kontrolli võib serveris kinnitada.</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AccountingRegisterView({invoices,payments,bankTransactions,payerCredits,lessons,financialPeriods,reviewFinancialPeriod,openInvoices,openReconciliation,openPaymentDocument}) {
   const [month,setMonth]=React.useState(()=>today().slice(0,7));
   const [registerMode,setRegisterMode]=React.useState('invoices');
   const [status,setStatus]=React.useState('all');
@@ -8174,6 +8315,17 @@ function AccountingRegisterView({invoices,payments,bankTransactions,payerCredits
     payerCredits,
     month
   }),[invoices,payments,bankTransactions,payerCredits,month]);
+  const periodControl=React.useMemo(()=>financialPeriodControl({
+    invoices,
+    payments,
+    bankTransactions,
+    payerCredits,
+    lessons,
+    month
+  }),[invoices,payments,bankTransactions,payerCredits,lessons,month]);
+  const period=React.useMemo(()=>
+    (financialPeriods||[]).find(item=>(item.month||item.id)===month)||null
+  ,[financialPeriods,month]);
   const visibleRows=React.useMemo(()=>{
     const query=normalizeText(search);
     return register.rows.filter(row=>{
@@ -8227,7 +8379,11 @@ function AccountingRegisterView({invoices,payments,bankTransactions,payerCredits
         <div>
           <h1 style={{fontSize:'1.7rem'}}>Raamatupidamine</h1>
           <p style={{color:'#64748b',fontSize:'.88rem',marginTop:3}}>
-            {registerMode==='invoices'?'Arvete ja laekumiste register':'Tundide ja maksete täpne kontroll'}
+            {registerMode==='invoices'
+              ?'Arvete ja laekumiste register'
+              :registerMode==='lessons'
+                ?'Tundide ja maksete täpne kontroll'
+                :'Kuu finantskontroll ja kinnitatud kontrollversioon'}
           </p>
         </div>
         <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
@@ -8246,6 +8402,12 @@ function AccountingRegisterView({invoices,payments,bankTransactions,payerCredits
         <button onClick={()=>setRegisterMode('lessons')} className={registerMode==='lessons'?'btn btn-dark btn-sm':'btn btn-ghost btn-sm'}>
           <i className="fa-solid fa-link"/> Tunnid ↔ maksed
         </button>
+        <button onClick={()=>setRegisterMode('control')} className={registerMode==='control'?'btn btn-dark btn-sm':'btn btn-ghost btn-sm'}>
+          <i className="fa-solid fa-shield-check"/> Kuu kontroll
+          {periodControl.summary.blockingIssueCount>0&&(
+            <span className="badge" style={{marginLeft:4,background:'#fee2e2',color:'#991b1b'}}>{periodControl.summary.blockingIssueCount}</span>
+          )}
+        </button>
       </div>
 
       <div className="card" style={{padding:16,background:'#1C2B3A',color:'#fff'}}>
@@ -8254,7 +8416,9 @@ function AccountingRegisterView({invoices,payments,bankTransactions,payerCredits
         <div style={{fontSize:'.75rem',color:'rgba(255,255,255,.65)',marginTop:5}}>
           {registerMode==='invoices'
             ?'Arved kuuluvad perioodi väljastamise kuupäeva järgi. Laekumised kuuluvad perioodi makse kuupäeva järgi; seetõttu võivad laekumised sisaldada varasemate arvete tasumisi.'
-            :'Tunnid kuuluvad perioodi toimumise kuupäeva järgi. Iga rida kontrollib tunni ID-d, arverida, makseid, paketikatet ja allesjäänud summat.'}
+            :registerMode==='lessons'
+              ?'Tunnid kuuluvad perioodi toimumise kuupäeva järgi. Iga rida kontrollib tunni ID-d, arverida, makseid, paketikatet ja allesjäänud summat.'
+              :'Kuu kontroll ühendab tundide finantsotsused, arveread, aktiivsed maksekirjed ja pangatehingute jaotuse. Kinnitamine loob muutumatu serveripoolse kontrollversiooni.'}
         </div>
       </div>
 
@@ -8383,6 +8547,13 @@ function AccountingRegisterView({invoices,payments,bankTransactions,payerCredits
         payments={payments}
         openInvoices={openInvoices}
         openReconciliation={openReconciliation}/>}
+      {registerMode==='control'&&<FinancialPeriodControlPanel
+        control={periodControl}
+        period={period}
+        reviewFinancialPeriod={reviewFinancialPeriod}
+        openInvoices={openInvoices}
+        openReconciliation={openReconciliation}
+        openLessonRegister={()=>setRegisterMode('lessons')}/>}
     </div>
   );
 }
@@ -10332,6 +10503,7 @@ function App() {
   const [payments,setPayments] = useState([]);
   const [bankTransactions,setBankTransactions] = useState([]);
   const [payerCredits,setPayerCredits] = useState([]);
+  const [financialPeriods,setFinancialPeriods] = useState([]);
   const [tariffs,setTariffs] = useState([]);
   const [tariffAssignments,setTariffAssignments] = useState([]);
   const [packageProducts,setPackageProducts] = useState([]);
@@ -10534,6 +10706,7 @@ function App() {
   React.useEffect(()=>{
     if(!user||!isAdmin){
       setPayments([]);setBankTransactions([]);setPayerCredits([]);
+      setFinancialPeriods([]);
       setTariffs([]);setTariffAssignments([]);
       setPackageProducts([]);setStudentPackages([]);setPackageLedger([]);
       return;
@@ -10549,6 +10722,10 @@ function App() {
     const unsubscribePayerCredits=db.collection('payerCredits').onSnapshot(
       snap=>setPayerCredits(snap.docs.map(doc=>({id:doc.id,...doc.data()}))),
       err=>{console.warn('Payer credits listener failed:',err);setPayerCredits([]);}
+    );
+    const unsubscribeFinancialPeriods=db.collection('financialPeriods').onSnapshot(
+      snap=>setFinancialPeriods(snap.docs.map(doc=>({id:doc.id,...doc.data()}))),
+      err=>{console.warn('Financial periods listener failed:',err);setFinancialPeriods([]);}
     );
     const unsubscribeTariffs=db.collection('tariffs').onSnapshot(
       snap=>setTariffs(snap.docs.map(doc=>({id:doc.id,...doc.data()}))),
@@ -10571,7 +10748,7 @@ function App() {
       err=>{console.warn('Package ledger listener failed:',err);setPackageLedger([]);}
     );
     return()=>{
-      unsubscribePayments();unsubscribeBankTransactions();unsubscribePayerCredits();
+      unsubscribePayments();unsubscribeBankTransactions();unsubscribePayerCredits();unsubscribeFinancialPeriods();
       unsubscribeTariffs();unsubscribeTariffAssignments();
       unsubscribePackageProducts();unsubscribeStudentPackages();unsubscribePackageLedger();
     };
@@ -12621,6 +12798,25 @@ function App() {
     }
   },[isAdmin]);
 
+  const reviewFinancialPeriod=useCallback(async month=>{
+    if(!isAdmin||!/^\d{4}-\d{2}$/.test(String(month||''))){
+      notify('⚠ Vali kontrollitav kuu');
+      return null;
+    }
+    try{
+      const result=await financeApiPost('/financial-periods/review',{
+        month,
+        requestId:financeRequestId('periodreview')
+      });
+      notify(`✓ ${month} finantskontroll kinnitatud`);
+      return result?.review||null;
+    }catch(err){
+      console.error('Financial period review failed:',err);
+      notify(`⚠ Kuu kontrolli ei saanud kinnitada: ${err.message||err}`);
+      return null;
+    }
+  },[isAdmin]);
+
   const allocateImportedBankTransaction=useCallback(async(payment,allocations)=>{
     if(!isAdmin||!payment?.id){notify('⚠ Ainult administraator saab pangatehinguid jaotada');return false;}
     try{
@@ -13452,6 +13648,8 @@ function App() {
             bankTransactions={bankTransactions}
             payerCredits={payerCredits}
             lessons={lessons}
+            financialPeriods={financialPeriods}
+            reviewFinancialPeriod={reviewFinancialPeriod}
             openPaymentDocument={openPaymentDocument}
             openInvoices={()=>goTab('invoices')}
             openReconciliation={()=>goTab('reconciliation')}/>}

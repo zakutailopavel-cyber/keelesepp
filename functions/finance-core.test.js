@@ -7,6 +7,7 @@ const {
   creditAfterApplication,
   creditAfterRefund,
   creditAfterRestoration,
+  financialPeriodReviewSnapshot,
   invoiceFinancialPatch,
   invoiceAfterLessonCredit,
   invoiceOriginalAmountCents,
@@ -23,7 +24,117 @@ const {
   selectStudentPackageForLesson,
   tariffAssignmentPlan,
   toCents,
+  validIsoMonth,
 } = require("./finance-core");
+
+test("financial period review is ready only when lessons, invoices, payments, and bank rows reconcile", () => {
+  const snapshot = financialPeriodReviewSnapshot({
+    month: "2026-07",
+    lessons: [{
+      id: "lesson-a",
+      date: "2026-07-10",
+      studentName: "Mari",
+      status: "Toimunud",
+      billingStatus: "invoiced",
+      invoiceId: "invoice-a",
+    }],
+    invoices: [{
+      id: "invoice-a",
+      date: "2026-07-11",
+      status: "Makstud",
+      amountCents: 3000,
+      paidAmountCents: 3000,
+      lines: [{ lessonId: "lesson-a", date: "2026-07-10", amountCents: 3000 }],
+    }],
+    payments: [{
+      id: "payment-a",
+      invoiceId: "invoice-a",
+      amountCents: 3000,
+      paidAt: "2026-07-12",
+      status: "active",
+      bankTransactionId: "bank-a",
+    }],
+    bankTransactions: [{
+      id: "bank-a",
+      paidAt: "2026-07-12",
+      amountCents: 3000,
+      allocatedAmountCents: 3000,
+      unappliedAmountCents: 0,
+    }],
+  });
+  assert.equal(snapshot.canReview, true);
+  assert.equal(snapshot.summary.blockingIssueCount, 0);
+  assert.equal(snapshot.summary.lessonCount, 1);
+  assert.equal(snapshot.summary.exactLessonLinkCount, 1);
+  assert.equal(snapshot.summary.issuedCents, 3000);
+  assert.equal(snapshot.summary.paymentsCents, 3000);
+});
+
+test("financial period review blocks unbilled lessons, unmatched bank money, and missing payment evidence", () => {
+  const snapshot = financialPeriodReviewSnapshot({
+    month: "2026-07",
+    lessons: [
+      { id: "unbilled", date: "2026-07-01", status: "Toimunud", studentName: "Jüri" },
+      {
+        id: "invoiced",
+        date: "2026-07-02",
+        status: "Toimunud",
+        billingStatus: "invoiced",
+        invoiceId: "invoice-a",
+      },
+    ],
+    invoices: [{
+      id: "invoice-a",
+      date: "2026-07-03",
+      status: "Makstud",
+      amountCents: 2500,
+      paidAmountCents: 2500,
+      lines: [{ lessonId: "invoiced", date: "2026-07-02", amountCents: 2500 }],
+    }],
+    bankTransactions: [{
+      id: "bank-a",
+      paidAt: "2026-07-04",
+      amountCents: 2500,
+      allocatedAmountCents: 0,
+      unappliedAmountCents: 2500,
+    }],
+  });
+  assert.equal(snapshot.canReview, false);
+  assert.equal(snapshot.summary.unbilledLessonCount, 1);
+  assert.ok(snapshot.issues.some(issue => issue.type === "unbilled_lesson"));
+  assert.ok(snapshot.issues.some(issue => issue.type === "invoice_paid_without_payment_records"));
+  assert.ok(snapshot.issues.some(issue => issue.type === "bank_unapplied"));
+  assert.equal(snapshot.summary.blockingIssueCount, 3);
+});
+
+test("legacy lesson evidence remains visible without blocking a migration-safe review", () => {
+  const snapshot = financialPeriodReviewSnapshot({
+    month: "2026-07",
+    lessons: [{
+      id: "legacy-lesson",
+      date: "2026-07-01",
+      status: "Toimunud",
+      billingStatus: "invoiced",
+      invoiceId: "legacy-invoice",
+    }],
+    invoices: [{
+      id: "legacy-invoice",
+      date: "2026-07-02",
+      amountCents: 2500,
+      status: "Ootel",
+    }],
+  });
+  assert.equal(snapshot.canReview, true);
+  assert.equal(snapshot.summary.legacyLessonCount, 1);
+  assert.equal(snapshot.summary.warningCount, 1);
+  assert.equal(snapshot.issues[0].type, "legacy_invoice_without_lesson_line");
+});
+
+test("financial period months are validated strictly", () => {
+  assert.equal(validIsoMonth("2026-07"), "2026-07");
+  assert.throws(() => validIsoMonth("2026-7"), /YYYY-MM/);
+  assert.throws(() => financialPeriodReviewSnapshot({ month: "2026-13" }), /YYYY-MM/);
+});
 
 test("payment documents keep an exact private storage path and bounded metadata", () => {
   const document = paymentDocumentRecord({

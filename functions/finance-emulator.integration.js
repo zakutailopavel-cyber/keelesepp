@@ -335,6 +335,123 @@ test("payment-order metadata is attached server-side and audited immutably", asy
   assert.equal(clientRewrite.status, 403, JSON.stringify(clientRewrite.body));
 });
 
+test("monthly financial review is server-verified, versioned, idempotent, and immutable", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const token = await createAdminToken();
+  const month = "2026-09";
+  const lessonId = "period-review-lesson";
+  const invoiceId = "period-review-invoice";
+  const paymentId = "period-review-payment";
+  const bankId = "period-review-bank";
+  await Promise.all([
+    db.collection("lessons").doc(lessonId).set({
+      studentId: "period-review-student",
+      studentName: "Review Student",
+      date: "2026-09-05",
+      status: "Toimunud",
+      billingStatus: "unbilled",
+    }),
+    db.collection("bankTransactions").doc(bankId).set({
+      paidAt: "2026-09-07",
+      payerName: "Review Parent",
+      amountCents: 3000,
+      amount: 30,
+      allocatedAmountCents: 0,
+      allocatedAmount: 0,
+      unappliedAmountCents: 3000,
+      unappliedAmount: 30,
+      status: "unapplied",
+    }),
+  ]);
+
+  const blocked = await financeRequest(token, "/financial-periods/review", {
+    month,
+    requestId: "period_review_blocked_0001",
+  });
+  assert.equal(blocked.status, 409, JSON.stringify(blocked.body));
+  assert.match(blocked.body.error, /blocking financial issue/);
+  assert.equal((await db.collection("financialPeriods").doc(month).get()).exists, false);
+
+  await Promise.all([
+    db.collection("lessons").doc(lessonId).set({
+      studentId: "period-review-student",
+      studentName: "Review Student",
+      date: "2026-09-05",
+      status: "Toimunud",
+      billingStatus: "invoiced",
+      invoiceId,
+      invoiceNum: "KS-REVIEW-001",
+    }, { merge: true }),
+    db.collection("invoices").doc(invoiceId).set({
+      num: "KS-REVIEW-001",
+      date: "2026-09-06",
+      amountCents: 3000,
+      amount: 30,
+      paidAmountCents: 3000,
+      paidAmount: 30,
+      balanceDueCents: 0,
+      balanceDue: 0,
+      paymentStatus: "paid",
+      status: "Makstud",
+      lines: [{ lessonId, date: "2026-09-05", amountCents: 3000, amount: 30 }],
+      lessonIds: [lessonId],
+    }),
+    db.collection("payments").doc(paymentId).set({
+      invoiceId,
+      invoiceNum: "KS-REVIEW-001",
+      amountCents: 3000,
+      amount: 30,
+      paidAt: "2026-09-07",
+      status: "active",
+      method: "bank",
+      bankTransactionId: bankId,
+    }),
+    db.collection("bankTransactions").doc(bankId).set({
+      allocatedAmountCents: 3000,
+      allocatedAmount: 30,
+      unappliedAmountCents: 0,
+      unappliedAmount: 0,
+      status: "allocated",
+    }, { merge: true }),
+  ]);
+
+  const payload = {
+    month,
+    requestId: "period_review_success_0001",
+  };
+  const reviewed = await financeRequest(token, "/financial-periods/review", payload);
+  assert.equal(reviewed.status, 201, JSON.stringify(reviewed.body));
+  assert.equal(reviewed.body.review.status, "reviewed");
+  assert.equal(reviewed.body.review.summary.blockingIssueCount, 0);
+  assert.equal(reviewed.body.review.summary.exactLessonLinkCount, 1);
+
+  const [periodSnap, reviewSnap, auditSnap] = await Promise.all([
+    db.collection("financialPeriods").doc(month).get(),
+    db.collection("financialPeriodReviews").doc(payload.requestId).get(),
+    db.collection("financialAudit").doc(payload.requestId).get(),
+  ]);
+  assert.equal(periodSnap.data().lastReviewId, payload.requestId);
+  assert.equal(periodSnap.data().reviewVersion, 1);
+  assert.equal(reviewSnap.data().fingerprint.length, 64);
+  assert.equal(auditSnap.data().action, "financial_period.reviewed");
+
+  const retry = await financeRequest(token, "/financial-periods/review", payload);
+  assert.equal(retry.status, 200, JSON.stringify(retry.body));
+  assert.equal(retry.body.idempotent, true);
+  assert.equal((await db.collection("financialPeriodReviews").get()).docs
+    .filter(doc => doc.id === payload.requestId).length, 1);
+
+  const clientOverwrite = await firestoreDocumentRequest(
+    token,
+    "PATCH",
+    `financialPeriods/${month}`,
+    { fields: { status: { stringValue: "closed" } } },
+  );
+  assert.equal(clientOverwrite.status, 403, JSON.stringify(clientOverwrite.body));
+});
+
 test("versioned tariffs and assignments price invoice lines by lesson date", async () => {
   requireSafeEmulatorEnvironment();
   if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });

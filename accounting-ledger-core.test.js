@@ -4,14 +4,103 @@ const fs=require('node:fs');
 const {
   accountingRegister,
   accountingRegisterCsv,
+  financialPeriodControl,
   lessonPaymentRegister,
   lessonPaymentRegisterCsv
 }=require('./accounting-ledger-core');
+
+test('monthly control combines lesson, invoice, payment and bank blockers',()=>{
+  const control=financialPeriodControl({
+    month:'2026-07',
+    lessons:[{id:'lesson-a',date:'2026-07-05',status:'Toimunud',studentName:'Mari'}],
+    bankTransactions:[{
+      id:'bank-a',
+      paidAt:'2026-07-06',
+      amountCents:3000,
+      allocatedAmountCents:0,
+      unappliedAmountCents:3000
+    }]
+  });
+  assert.equal(control.canReview,false);
+  assert.ok(control.issues.some(issue=>issue.type==='unbilled_lesson'));
+  assert.ok(control.issues.some(issue=>issue.type==='bank_unapplied'));
+  assert.equal(control.summary.blockingIssueCount,2);
+  assert.equal(control.checklist.find(item=>item.id==='lessons').ready,false);
+  assert.equal(control.checklist.find(item=>item.id==='bank').ready,false);
+});
+
+test('monthly control allows reviewed legacy evidence as a visible warning',()=>{
+  const control=financialPeriodControl({
+    month:'2026-07',
+    lessons:[{
+      id:'legacy-lesson',
+      date:'2026-07-05',
+      status:'Toimunud',
+      billingStatus:'invoiced',
+      invoiceId:'legacy-invoice',
+      invoiceNum:'KS-OLD'
+    }],
+    invoices:[{
+      id:'legacy-invoice',
+      num:'KS-OLD',
+      date:'2026-07-06',
+      amountCents:3000,
+      status:'Ootel'
+    }]
+  });
+  assert.equal(control.canReview,true);
+  assert.equal(control.summary.warningCount,1);
+  assert.equal(control.summary.blockingIssueCount,0);
+  assert.equal(control.issues[0].severity,'warning');
+});
+
+test('monthly control is ready when exact lesson and payment evidence reconcile',()=>{
+  const control=financialPeriodControl({
+    month:'2026-07',
+    lessons:[{
+      id:'lesson-a',
+      date:'2026-07-05',
+      studentName:'Mari',
+      status:'Toimunud',
+      billingStatus:'invoiced',
+      invoiceId:'invoice-a'
+    }],
+    invoices:[{
+      id:'invoice-a',
+      num:'KS-1',
+      date:'2026-07-06',
+      amountCents:3000,
+      paidAmountCents:3000,
+      status:'Makstud',
+      lines:[{lessonId:'lesson-a',date:'2026-07-05',amountCents:3000}]
+    }],
+    payments:[{
+      id:'payment-a',
+      invoiceId:'invoice-a',
+      amountCents:3000,
+      paidAt:'2026-07-07',
+      status:'active',
+      bankTransactionId:'bank-a'
+    }],
+    bankTransactions:[{
+      id:'bank-a',
+      paidAt:'2026-07-07',
+      amountCents:3000,
+      allocatedAmountCents:3000,
+      unappliedAmountCents:0
+    }]
+  });
+  assert.equal(control.canReview,true);
+  assert.equal(control.summary.blockingIssueCount,0);
+  assert.equal(control.checklist.every(item=>item.ready),true);
+});
 
 test('CRM loads the accounting ledger and exposes an administrator screen',()=>{
   const html=fs.readFileSync('haldus.html','utf8');
   assert.match(html,/accounting-ledger-core\.js/);
   assert.match(html,/Raamatupidamine/);
+  assert.match(html,/Kuu kontroll/);
+  assert.match(html,/financial-periods\/review/);
   assert.match(html,/Arvete ja laekumiste register/);
   assert.match(html,/Tunnid ↔ maksed/);
   assert.match(html,/Tundide ja maksete täpne kontroll/);
@@ -21,6 +110,10 @@ test('CRM loads the accounting ledger and exposes an administrator screen',()=>{
   assert.match(storageRules,/financial\/payment-orders\/\{paymentId\}\/\{documentId\}/);
   assert.match(storageRules,/allow read: if accountingAdmin\(\)/);
   assert.match(storageRules,/application\/pdf\|image\/jpeg\|image\/png\|image\/webp/);
+  const firestoreRules=fs.readFileSync('firestore.rules','utf8');
+  assert.match(firestoreRules,/match \/financialPeriods\/\{monthId\}/);
+  assert.match(firestoreRules,/match \/financialPeriodReviews\/\{reviewId\}/);
+  assert.match(firestoreRules,/allow create, update, delete: if false/);
 });
 
 test('invoice issuance and reconciled payments form one register row',()=>{
