@@ -1005,6 +1005,12 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // OAuth credentials are server-only. The client sees only sanitized status
+    // metadata in users/{uid}.gcal.
+    match /calendarConnections/{userId} {
+      allow read, write: if false;
+    }
+
     match /emailQueue/{entryId} {
       allow read: if isStaff();
       allow write: if false;

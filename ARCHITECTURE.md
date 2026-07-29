@@ -59,6 +59,27 @@ Financial writes remain isolated from the learning-content slice. Browser screen
 financial operations, but authoritative payment, credit, package and invoice mutations live in
 Cloud Functions and are covered by unit and emulator tests.
 
+### Calendar
+
+`calendar-core.js` owns migration-safe schedule calculations:
+
+- 15-minute time slots and lesson end times;
+- dated and legacy weekly-recurring occurrence rules;
+- teacher and student overlap detection;
+- Monday-first month grids;
+- proportional day-timeline layout for simultaneous lessons;
+- versioned payloads with stable `studentId` ownership.
+
+The CRM renders month, week and day projections from the same schedule records. Existing records
+without `scheduleVersion` remain valid. New browser-created records use `scheduleVersion: 2` and
+keep their source (`keelesepp` or `gcal`) explicit.
+
+Google Calendar is currently an inbound synchronization (`Google → KeeleSepp`), not a hidden
+two-way promise. OAuth credentials live only in the server-only `calendarConnections` collection;
+`users/{uid}.gcal` contains sanitized status metadata. Existing connections are migrated lazily
+on their next status check or synchronization. The hourly import reconciles its forward-looking
+window, removes events deleted in Google and never rewrites completed lesson history.
+
 ## Firestore ownership
 
 - `curriculumLessons`, `exercises` — staff-authored learning sources.
@@ -71,6 +92,8 @@ Cloud Functions and are covered by unit and emulator tests.
   learning-history rollout.
 - `liveClassrooms/{id}/responses` — append-only student responses for the current scene version.
 - `activityLog` — operational audit events, including library assignment and classroom publish.
+- `schedule` — dated or recurring lesson intent with stable student ownership for new records.
+- `calendarConnections` — server-only Google OAuth credentials and sync status; browser access is denied.
 - financial collections — governed by the financial core and its immutable audit model.
 
 Assignment records copy display metadata for historical readability and also store stable

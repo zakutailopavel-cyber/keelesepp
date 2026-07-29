@@ -85,6 +85,7 @@ window.addEventListener('load', function(){
     if(typeof window._auth === 'undefined') missing.push('Firebase Auth');
     if(typeof window._db === 'undefined') missing.push('Firestore');
     if(typeof window._storage === 'undefined') missing.push('Firebase Storage');
+    if(typeof window.CalendarCore === 'undefined') missing.push('Calendar Core');
 
     var root = document.getElementById('root');
     if(!root) return;
@@ -107,6 +108,7 @@ window.addEventListener('load', function(){
 window.__haldusConfigureBabel();
 </script>
 <script src="/haldus-shared.js"></script>
+<script src="/calendar-core.js"></script>
 <script src="/live-classroom-core.js"></script>
 <script src="/haldus-quality.js"></script>
 <script src="/haldus-programs.js"></script>
@@ -135,6 +137,18 @@ const {
   lessonHistorySortValue:liveLessonHistorySortValue,
   lessonDurationMinutes:liveLessonDurationMinutes
 } = window.LiveClassroomCore;
+const {
+  addMinutes:calendarAddMinutes,
+  dayIdForDate:calendarDayIdForDate,
+  eventsForDate:calendarEventsForDate,
+  eventOccursOnDate:calendarEventOccursOnDate,
+  findScheduleConflicts,
+  layoutDayEvents:calendarLayoutDayEvents,
+  monthGrid:calendarMonthGrid,
+  monthLabel:calendarMonthLabel,
+  shiftMonth:calendarShiftMonth,
+  buildSchedulePayload
+} = window.CalendarCore;
 const LEVELS = SHARED_LEVELS.includes('Eelkool') ? SHARED_LEVELS : ['Eelkool',...SHARED_LEVELS];
 const GRADES = SHARED_GRADES.includes('Eelkool') ? SHARED_GRADES : ['Eelkool',...SHARED_GRADES];
 
@@ -2017,7 +2031,7 @@ function teacherColor(teacher) {
 }
 
 // ── ÕPILASE OTSING (autocomplete) ────────────────────────────
-function StuSearch({value, onChange, students, placeholder}) {
+function StuSearch({value, onChange, onPick, students, placeholder}) {
   const [query, setQuery] = React.useState('');
   const [open, setOpen] = React.useState(false);
   const blurTimer = React.useRef(null);
@@ -2037,6 +2051,7 @@ function StuSearch({value, onChange, students, placeholder}) {
     clearTimeout(blurTimer.current);
     setQuery(student.name);
     onChange(student.name);
+    if(onPick) onPick(student);
     setOpen(false);
   };
 
@@ -2076,15 +2091,17 @@ function StuSearch({value, onChange, students, placeholder}) {
 function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilterT,
   schStu,setSchStu,schDate,setSchDate,schTime,setSchTime,schTeach,setSchTeach,
   schRecurring,setSchRecurring,addSchedule,openScheduleEditor,delSchedule,markAttendance,openStudent,
-  db,notify,students,setSelStu,setTab,tariffAssignments=[]}) {
+  db,notify,logActivity,students,setSelStu,setTab,tariffAssignments=[]}) {
 
   const [showCanceled,setShowCanceled] = React.useState(true);
   const [weekOffset,setWeekOffset]     = React.useState(0);
-  const [viewMode,setViewMode]         = React.useState('week'); // 'week' | 'day'
+  const [viewMode,setViewMode]         = React.useState('week'); // 'month' | 'week' | 'day'
   const [selectedDay,setSelectedDay]   = React.useState(null);  // iso string for day view
+  const [monthAnchor,setMonthAnchor]   = React.useState(today());
   // Popup creation (Google-style)
   const [createPopup,setCreatePopup]   = React.useState(null);  // {x,y,day,slot,anchorEl}
   const [popupStu,setPopupStu]         = React.useState('');
+  const [popupStudentId,setPopupStudentId] = React.useState('');
   const [popupTeach,setPopupTeach]     = React.useState('Pavel');
   const [popupDur,setPopupDur]         = React.useState(60);
   const [popupRecurring,setPopupRecurring] = React.useState(false);
@@ -2150,6 +2167,9 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
     };
   },[dayViewDate]);
 
+  const monthDays = React.useMemo(()=>calendarMonthGrid(monthAnchor),[monthAnchor]);
+  const monthTitle = React.useMemo(()=>calendarMonthLabel(monthAnchor),[monthAnchor]);
+
   // ── Filter schedule ───────────────────────────────────────────
   const filteredSch = React.useMemo(()=>{
     const linkedStudentNames = myStudents.map(s=>normalizeText(s.name));
@@ -2190,31 +2210,47 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
     return list;
   },[schedule,groups,myStudents,filterT,showCanceled,canManage,isAdmin,user]);
 
-  const eventsForDaySlot = (slot, dayIso, dayId) =>
-    filteredSch.filter(s=>{
-      if(s.time!==slot) return false;
-      if(s.recurring&&s.startDate&&dayIso<s.startDate) return false;
-      if(s.date) return s.date===dayIso;
-      return s.day===dayId;
-    });
+  const eventsOnDate = React.useCallback(
+    dayIso=>calendarEventsForDate(filteredSch,dayIso)
+      .sort((left,right)=>String(left.time||'').localeCompare(String(right.time||''))),
+    [filteredSch]
+  );
+
+  const eventsForDaySlot = (slot, dayIso) =>
+    eventsOnDate(dayIso).filter(event=>event.time===slot);
+
+  const calendarSlots = React.useMemo(()=>[
+    ...new Set([
+      ...TIMES,
+      ...filteredSch.map(event=>event.time).filter(time=>/^\d{1,2}:\d{2}$/.test(time||''))
+    ])
+  ].sort((left,right)=>left.localeCompare(right)),[filteredSch]);
+
+  const DAY_TIMELINE_START=7*60;
+  const DAY_SLOT_HEIGHT=18;
+  const DAY_PIXELS_PER_MINUTE=DAY_SLOT_HEIGHT/15;
+  const dayTimelineHeight=TIMES.length*DAY_SLOT_HEIGHT;
+  const dayTimelineLayout=React.useMemo(
+    ()=>calendarLayoutDayEvents(filteredSch,dayViewObj.iso,{
+      startMinute:DAY_TIMELINE_START,
+      endMinute:DAY_TIMELINE_START+(TIMES.length*15),
+      pixelsPerMinute:DAY_PIXELS_PER_MINUTE
+    }),
+    [filteredSch,dayViewObj.iso]
+  );
 
   // ── Occupied slots (week view) ────────────────────────────────
   const occupiedSlots = React.useMemo(()=>{
-    const has = slot=>weekDays.some(d=>eventsForDaySlot(slot,d.iso,d.dayId).length>0);
-    return TIMES.filter(has);
+    const has = slot=>weekDays.some(day=>eventsForDaySlot(slot,day.iso).length>0);
+    return calendarSlots.filter(has);
   },[filteredSch,weekDays]);
-
-  // ── All slots for day view ────────────────────────────────────
-  const occupiedSlotsDay = React.useMemo(()=>{
-    return TIMES.filter(slot=>eventsForDaySlot(slot,dayViewObj.iso,dayViewObj.dayId).length>0);
-  },[filteredSch,dayViewObj]);
 
   // ── Week stats ────────────────────────────────────────────────
   const weekStats = React.useMemo(()=>{
     let total=0,done=0,canceled=0,planned=0,revenue=0;
     occupiedSlots.forEach(slot=>{
       weekDays.forEach(day=>{
-        eventsForDaySlot(slot,day.iso,day.dayId).forEach(ev=>{
+        eventsForDaySlot(slot,day.iso).forEach(ev=>{
           total++;
           if(ev.status==='Toimunud') done++;
           else if(ev.status==='Tühistatud') canceled++;
@@ -2228,14 +2264,47 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
     return {total,done,canceled,planned,revenue};
   },[occupiedSlots,weekDays,students,tariffAssignments]);
 
+  const monthStats = React.useMemo(()=>{
+    let total=0,done=0,canceled=0,planned=0,revenue=0;
+    monthDays.filter(day=>day.inMonth).forEach(day=>{
+      eventsOnDate(day.iso).forEach(event=>{
+        total++;
+        if(event.status==='Toimunud') done++;
+        else if(event.status==='Tühistatud') canceled++;
+        else planned++;
+        const student=students.find(item=>
+          item.id===event.studentId||normalizeText(item.name)===normalizeText(event.studentName)
+        );
+        const assignment=tariffAssignmentForDate(tariffAssignments,student?.id,day.iso);
+        revenue+=Math.max(0,Number(assignment?.unitPrice)||Number(student?.lessonPrice)||0);
+      });
+    });
+    return {total,done,canceled,planned,revenue};
+  },[monthDays,eventsOnDate,students,tariffAssignments]);
+
   // ── Planner rows ──────────────────────────────────────────────
-  const weekEventList = React.useMemo(()=>filteredSch.filter(ev=>
-    weekDays.some(day=>{
-      if(ev.recurring&&ev.startDate&&day.iso<ev.startDate) return false;
-      if(ev.date) return ev.date===day.iso;
-      return ev.day===day.dayId;
-    })
-  ),[filteredSch,weekDays]);
+  const weekEventList = React.useMemo(
+    ()=>filteredSch.filter(event=>weekDays.some(day=>calendarEventOccursOnDate(event,day.iso))),
+    [filteredSch,weekDays]
+  );
+
+  const visibleConflictCount = React.useMemo(()=>{
+    const dates=viewMode==='month'
+      ?monthDays.filter(day=>day.inMonth).map(day=>day.iso)
+      :viewMode==='day'
+        ?[dayViewObj.iso]
+        :weekDays.map(day=>day.iso);
+    const keys=new Set();
+    dates.forEach(dateIso=>{
+      eventsOnDate(dateIso).forEach(event=>{
+        findScheduleConflicts(filteredSch,event,dateIso,{excludeId:event.id}).forEach(conflict=>{
+          const pair=[event.id,conflict.event.id].sort().join('|');
+          keys.add(`${dateIso}|${pair}`);
+        });
+      });
+    });
+    return keys.size;
+  },[viewMode,monthDays,dayViewObj.iso,weekDays,eventsOnDate,filteredSch]);
 
   const plannerTeacher = React.useMemo(()=>{
     if(isAdmin&&filterT&&filterT!=="Kõik") return canonicalTeacherName(filterT);
@@ -2271,7 +2340,7 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
 
   // ── Drag & drop ───────────────────────────────────────────────
   const handleDragStart = React.useCallback((e,ev,dayIso,slot)=>{
-    if(!canManage) return;
+    if(!canManage||ev.source==='gcal'||ev.isGroup) return;
     e.dataTransfer.effectAllowed='move';
     setDragEv({ev,sourceDay:dayIso,sourceSlot:slot});
     setDragging(true);
@@ -2281,23 +2350,50 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
     e.preventDefault();setDragOver(null);setDragging(false);
     if(!dragEv?.ev?.id) return;
     const {ev}=dragEv;
-    const jsDay=new Date(targetIso).getDay();
-    const dayId=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][jsDay];
+    if(ev.source==='gcal'||ev.isGroup){
+      notify('Google’i ja grupitunde muudetakse nende algallikas.');
+      setDragEv(null);
+      return;
+    }
+    const dayId=calendarDayIdForDate(targetIso);
+    const candidate={
+      ...ev,
+      date:ev.date?targetIso:'',
+      day:dayId,
+      time:targetSlot
+    };
+    const conflicts=findScheduleConflicts(filteredSch,candidate,targetIso,{excludeId:ev.id});
+    if(conflicts.length){
+      const conflict=conflicts[0];
+      const reason=conflict.reasons.includes('teacher')?'õpetaja':'õpilase';
+      notify(`⚠ Aega ei muudetud: ${reason} kalendris on kattuv tund ${conflict.event.time}.`);
+      setDragEv(null);
+      return;
+    }
+    if(ev.recurring&&!ev.date&&!window.confirm('Kas tõsta kogu korduv tunnisari uuele päevale ja kellaajale?')){
+      setDragEv(null);
+      return;
+    }
     try{
       const patch=ev.date
-        ?{date:targetIso,day:dayId,time:targetSlot,status:ev.status==='Tühistatud'?ev.status:'Planeeritud'}
-        :{day:dayId,time:targetSlot};
+        ?{date:targetIso,day:dayId,time:targetSlot,status:ev.status==='Tühistatud'?ev.status:'Planeeritud',updatedAtIso:new Date().toISOString()}
+        :{day:dayId,time:targetSlot,updatedAtIso:new Date().toISOString()};
       await window._db.collection('schedule').doc(ev.id).update(patch);
+      if(logActivity) await logActivity('schedule.moved','Tõsteti tund kalendris',{
+        scheduleId:ev.id,studentId:ev.studentId||'',studentName:ev.studentName||'',
+        fromDate:dragEv.sourceDay,fromTime:dragEv.sourceSlot,toDate:targetIso,toTime:targetSlot
+      });
       notify(`✓ ${ev.studentName} → ${targetSlot}`);
     }catch{notify('⚠ Liigutamine ebaõnnestus');}
     setDragEv(null);
-  },[dragEv,notify]);
+  },[dragEv,notify,filteredSch,logActivity]);
 
   // ── Popup create (Google-style) ───────────────────────────────
   const openCreatePopup = React.useCallback((e,dayIso,slot)=>{
     e.stopPropagation();
     setCreatePopup({dayIso,slot});
     setPopupStu('');
+    setPopupStudentId('');
     setPopupTeach(isAdmin?(filterT&&filterT!=='Kõik'?filterT:'Pavel'):canonicalTeacherName(user.displayName)||'Pavel');
     setPopupDur(60);
     setPopupRecurring(false);
@@ -2305,22 +2401,51 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
 
   const saveFromPopup = React.useCallback(async()=>{
     if(!createPopup||!popupStu) return;
+    const selectedStudent=myStudents.find(student=>
+      student.id===popupStudentId||normalizeText(student.name)===normalizeText(popupStu)
+    );
+    if(!selectedStudent){
+      notify('⚠ Vali õpilane nimekirjast, et tund seotaks tema kontoga.');
+      return;
+    }
     setPopupSaving(true);
     const {dayIso,slot}=createPopup;
-    const jsDay=new Date(dayIso).getDay();
-    const dayId=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][jsDay];
-    const payload=popupRecurring
-      ?{teacher:popupTeach,studentName:popupStu,day:dayId,time:slot,status:'Planeeritud',
-        recurring:true,startDate:dayIso,duration:popupDur,createdAt:today()}
-      :{teacher:popupTeach,studentName:popupStu,date:dayIso,day:dayId,time:slot,
-        status:'Planeeritud',duration:popupDur,createdAt:today()};
+    const payload=buildSchedulePayload({
+      teacher:popupTeach,
+      studentId:selectedStudent.id,
+      studentName:selectedStudent.name,
+      date:dayIso,
+      day:calendarDayIdForDate(dayIso),
+      time:slot,
+      duration:popupDur,
+      recurring:popupRecurring
+    });
+    const conflictDates=popupRecurring
+      ?Array.from({length:12},(_,index)=>{
+          const date=new Date(`${dayIso}T12:00:00`);
+          date.setDate(date.getDate()+(index*7));
+          return toLocalISODate(date);
+        })
+      :[dayIso];
+    const conflicts=conflictDates.flatMap(dateIso=>findScheduleConflicts(filteredSch,payload,dateIso));
+    if(conflicts.length){
+      const conflict=conflicts[0];
+      const reason=conflict.reasons.includes('teacher')?'õpetaja':'õpilase';
+      notify(`⚠ Tundi ei lisatud: ${reason} kalendris on ${conflict.date} kell ${conflict.event.time} kattuv tund.`);
+      setPopupSaving(false);
+      return;
+    }
     try{
-      await window._db.collection('schedule').add(payload);
-      notify(`✓ Tund lisatud: ${popupStu} ${slot}`);
+      const created=await window._db.collection('schedule').add(payload);
+      if(logActivity) await logActivity('schedule.created','Lisati tund kalendrisse',{
+        scheduleId:created.id,studentId:selectedStudent.id,studentName:selectedStudent.name,
+        teacher:popupTeach,date:dayIso,time:slot,recurring:popupRecurring
+      });
+      notify(`✓ Tund lisatud: ${selectedStudent.name} ${slot}`);
       setCreatePopup(null);
     }catch{notify('⚠ Lisamine ebaõnnestus');}
     setPopupSaving(false);
-  },[createPopup,popupStu,popupTeach,popupDur,popupRecurring,notify]);
+  },[createPopup,popupStu,popupStudentId,popupTeach,popupDur,popupRecurring,notify,myStudents,filteredSch,logActivity]);
 
   // ── Teacher color ─────────────────────────────────────────────
   const tColor=t=>{
@@ -2330,9 +2455,7 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
   };
 
   // ── Duration → row height (px) ────────────────────────────────
-  // Base row height ~52px = 60min. 90min = 78px, 120min = 104px
-  const ROW_BASE = 52;
-  const durToHeight = dur => Math.max(ROW_BASE, Math.round((dur/60)*ROW_BASE));
+  const durToHeight = dur => Math.max(18,Math.round((dur/15)*DAY_SLOT_HEIGHT)-4);
 
   // ── Event card renderer ───────────────────────────────────────
   const renderEvent = (ev, dayIso, slot, isDayView=false) => {
@@ -2347,10 +2470,13 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
     }):null;
     const attendanceKey=linkedStu?`${linkedStu.id}_${dayIso}`:'';
     const attendanceStatus=attendanceKey?ev.attendance?.[attendanceKey]?.status:'';
+    const conflicts=findScheduleConflicts(filteredSch,ev,dayIso,{excludeId:ev.id});
+    const isExternal=ev.source==='gcal';
+    const canMove=canManage&&!isExternal&&!ev.isGroup;
 
     return(
       <div key={ev.id+dayIso}
-        draggable={canManage}
+        draggable={canMove}
         onDragStart={e=>{e.stopPropagation();handleDragStart(e,ev,dayIso,slot);}}
         onDragEnd={handleDragEnd}
         onClick={e=>{e.stopPropagation();canManage&&openScheduleEditor({...ev,occurrenceDate:dayIso});}}
@@ -2379,7 +2505,7 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
             lineHeight:1.3,fontSize:isDayView?".84rem":".73rem"}}>
             {ev.studentName}
           </span>
-          {canManage&&(
+          {canManage&&!isExternal&&!ev.isGroup&&(
             <button onClick={e=>{e.stopPropagation();delSchedule(ev.id,e);}}
               style={{background:"none",border:"none",cursor:"pointer",
                 color:"rgba(0,0,0,.0)",fontSize:".58rem",padding:0,lineHeight:1,flexShrink:0,
@@ -2392,7 +2518,9 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
 
         <div style={{fontSize:".6rem",color:tc.dot,display:"flex",gap:3,alignItems:'center',lineHeight:1.2}}>
           {!ev.date&&<span style={{opacity:.5}}>↻</span>}
-          {isDayView&&<span>{slot}{dur>60?` – ${slot.split(':')[0]}:${String(parseInt(slot.split(':')[1]||0)+dur%60).padStart(2,'0')}`:''}  · {dur}min</span>}
+          {isExternal&&<span title="Imporditud Google Calendarist">G</span>}
+          {conflicts.length>0&&<span title="Kalendris on kattuv tund" style={{color:'#dc2626',fontWeight:800}}>⚠</span>}
+          {isDayView&&<span>{slot} – {calendarAddMinutes(slot,dur)} · {dur}min</span>}
           {(isAdmin&&(filterT==='Kõik'||!filterT))&&!isDayView&&<span style={{fontWeight:600,opacity:.75}}>{ev.teacher}</span>}
           {st==="Toimunud"&&<span style={{color:'#166534',fontWeight:700}}>✓</span>}
           {st==='Nihutatud'&&<span style={{color:'#C9882A',fontWeight:600}}>Nihut.</span>}
@@ -2421,7 +2549,7 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
 
   // ── Slot cell renderer ────────────────────────────────────────
   const renderSlotCell = (slot, dayIso, dayId, isDayView=false) => {
-    const evs=eventsForDaySlot(slot,dayIso,dayId);
+    const evs=eventsForDaySlot(slot,dayIso);
     const isDropTarget=dragOver&&dragOver.day===dayIso&&dragOver.slot===slot;
     return(
       <div
@@ -2462,6 +2590,12 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
         <div>
           <h1 style={{fontSize:"1.7rem"}}>Tunniplaan</h1>
           <div style={{fontSize:".84rem",color:"#42536A",marginTop:3,display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
+            {viewMode==='month'&&<>
+              <span style={{fontWeight:600,textTransform:'capitalize'}}>{monthTitle}</span>
+              <span style={{color:"#d1d5db"}}>·</span>
+              <strong>{monthStats.total} tundi</strong>
+              {monthStats.revenue>0&&<span style={{color:'#2F5D50',fontWeight:600}}>· {monthStats.revenue}€</span>}
+            </>}
             {viewMode==='week'&&<>
               <span>{weekLabel}</span>
               <span style={{color:"#d1d5db"}}>·</span>
@@ -2471,12 +2605,15 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
               {weekStats.revenue>0&&<span style={{color:'#2F5D50',fontWeight:600}}>· {weekStats.revenue}€</span>}
             </>}
             {viewMode==='day'&&<span style={{fontWeight:600,color:dayViewObj.isToday?'#C9882A':'#1C2B3A'}}>{dayViewObj.label}</span>}
+            {visibleConflictCount>0&&(
+              <span style={{color:'#dc2626',fontWeight:700}}>· ⚠ {visibleConflictCount} kattuvust</span>
+            )}
           </div>
         </div>
         <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
           {/* View toggle */}
           <div style={{display:"flex",background:"rgba(28,43,58,.07)",borderRadius:10,padding:3,gap:2}}>
-            {[['week','Nädal'],['day','Päev']].map(([v,l])=>(
+            {[['month','Kuu'],['week','Nädal'],['day','Päev']].map(([v,l])=>(
               <button key={v} onClick={()=>setViewMode(v)}
                 style={{padding:"5px 14px",borderRadius:8,border:"none",cursor:"pointer",fontFamily:"inherit",
                   fontSize:".8rem",fontWeight:600,
@@ -2487,6 +2624,14 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
               </button>
             ))}
           </div>
+          {viewMode==='month'&&<>
+            <button onClick={()=>setMonthAnchor(anchor=>calendarShiftMonth(anchor,-1))} className="btn btn-ghost btn-sm">← Eelmine</button>
+            <button onClick={()=>setMonthAnchor(today())} className="btn btn-sm"
+              style={{background:monthAnchor.slice(0,7)===today().slice(0,7)?"#1C2B3A":"#fff",
+                color:monthAnchor.slice(0,7)===today().slice(0,7)?"#fff":"#1C2B3A",
+                border:"1.5px solid "+(monthAnchor.slice(0,7)===today().slice(0,7)?"#1C2B3A":"rgba(28,43,58,.15)")}}>Täna</button>
+            <button onClick={()=>setMonthAnchor(anchor=>calendarShiftMonth(anchor,1))} className="btn btn-ghost btn-sm">Järgmine →</button>
+          </>}
           {viewMode==='week'&&<>
             <button onClick={()=>setWeekOffset(w=>w-1)} className="btn btn-ghost btn-sm">← Eelmine</button>
             <button onClick={()=>setWeekOffset(0)} className="btn btn-sm"
@@ -2558,7 +2703,13 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
                   cursor:'pointer',fontSize:'.9rem',display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button>
             </div>
             <div style={{display:'flex',flexDirection:'column',gap:10}}>
-              <StuSearch value={popupStu} onChange={setPopupStu}
+              <StuSearch value={popupStu}
+                onChange={value=>{
+                  setPopupStu(value);
+                  const exact=myStudents.find(student=>normalizeText(student.name)===normalizeText(value));
+                  setPopupStudentId(exact?.id||'');
+                }}
+                onPick={student=>setPopupStudentId(student.id)}
                 students={myStudents.filter(s=>s.active!==false)} placeholder="Otsi õpilast…"/>
               {isAdmin&&(
                 <select value={popupTeach} onChange={e=>setPopupTeach(e.target.value)}>
@@ -2594,6 +2745,76 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
           <div className="card" style={{overflow:"hidden"}}>
             <div className="scroll" style={{overflowX:"auto"}}>
               <div style={{minWidth:viewMode==='day'?400:720}}>
+
+                {/* ── MONTH VIEW ── */}
+                {viewMode==='month'&&<>
+                  <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',background:'#EFEDE7',
+                    borderBottom:'1px solid rgba(28,43,58,.1)'}}>
+                    {['E','T','K','N','R','L','P'].map(day=>(
+                      <div key={day} style={{padding:'9px 6px',textAlign:'center',fontSize:'.7rem',
+                        fontWeight:800,color:'#42536A',borderLeft:'1px solid rgba(28,43,58,.05)'}}>
+                        {day}
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)'}}>
+                    {monthDays.map(day=>{
+                      const dayEvents=eventsOnDate(day.iso);
+                      return(
+                        <div key={day.iso}
+                          onClick={canManage?(event)=>openCreatePopup(event,day.iso,'09:00'):undefined}
+                          style={{minHeight:112,padding:6,borderRight:'1px solid rgba(28,43,58,.06)',
+                            borderBottom:'1px solid rgba(28,43,58,.06)',
+                            background:day.isToday?'rgba(201,136,42,.06)':day.inMonth?'#fff':'rgba(239,237,231,.35)',
+                            opacity:day.inMonth?1:.55,cursor:canManage?'pointer':'default'}}>
+                          <button onClick={event=>{
+                              event.stopPropagation();
+                              setSelectedDay(day.iso);
+                              setViewMode('day');
+                            }}
+                            style={{width:28,height:28,borderRadius:999,border:'none',
+                              background:day.isToday?'#C9882A':'transparent',
+                              color:day.isToday?'#fff':'#42536A',fontWeight:800,cursor:'pointer'}}>
+                            {day.day}
+                          </button>
+                          <div style={{display:'flex',flexDirection:'column',gap:3,marginTop:3}}>
+                            {dayEvents.slice(0,3).map(event=>{
+                              const color=tColor(event.teacher);
+                              const conflicts=findScheduleConflicts(filteredSch,event,day.iso,{excludeId:event.id});
+                              return(
+                                <button key={`${event.id}-${day.iso}`}
+                                  onClick={click=>{
+                                    click.stopPropagation();
+                                    if(canManage) openScheduleEditor({...event,occurrenceDate:day.iso});
+                                  }}
+                                  title={`${event.time} · ${event.studentName}`}
+                                  style={{border:`1px solid ${conflicts.length?'rgba(220,38,38,.35)':color.border}`,
+                                    borderLeft:`3px solid ${conflicts.length?'#dc2626':color.dot}`,
+                                    borderRadius:5,background:color.bg,color:color.text,
+                                    padding:'3px 5px',fontSize:'.65rem',fontWeight:700,textAlign:'left',
+                                    overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',
+                                    cursor:canManage?'pointer':'default'}}>
+                                  {conflicts.length?'⚠ ':''}{event.time} {event.studentName}
+                                </button>
+                              );
+                            })}
+                            {dayEvents.length>3&&(
+                              <button onClick={event=>{
+                                  event.stopPropagation();
+                                  setSelectedDay(day.iso);
+                                  setViewMode('day');
+                                }}
+                                style={{border:'none',background:'transparent',color:'#42536A',
+                                  textAlign:'left',fontSize:'.65rem',fontWeight:700,cursor:'pointer'}}>
+                                + {dayEvents.length-3} veel
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>}
 
                 {/* ── WEEK VIEW ── */}
                 {viewMode==='week'&&<>
@@ -2689,45 +2910,47 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
                       </div>
                     </div>
                   </div>
-                  {TIMES.map(slot=>{
-                    const evs=eventsForDaySlot(slot,dayViewObj.iso,dayViewObj.dayId);
-                    const isDropTarget=dragOver&&dragOver.day===dayViewObj.iso&&dragOver.slot===slot;
-                    const hasEvents=evs.length>0;
-                    return(
-                      <div key={slot} style={{display:"grid",gridTemplateColumns:"56px 1fr",
-                        borderBottom:"0.5px solid rgba(28,43,58,.05)",
-                        minHeight:hasEvents?'auto':40}}>
-                        <div style={{display:"flex",alignItems:"flex-start",justifyContent:"center",
-                          paddingTop:hasEvents?8:10,
-                          fontSize:".7rem",fontFamily:"monospace",fontWeight:700,
-                          color:hasEvents?"#9ca3af":"rgba(156,163,175,.4)",
-                          background:"rgba(239,237,231,.3)",borderRight:"0.5px solid rgba(28,43,58,.06)"}}>
+                  <div style={{display:'grid',gridTemplateColumns:'56px 1fr'}}>
+                    <div style={{height:dayTimelineHeight,position:'relative',background:'rgba(239,237,231,.3)',
+                      borderRight:'1px solid rgba(28,43,58,.08)'}}>
+                      {TIMES.filter((_,index)=>index%4===0).map((slot,index)=>(
+                        <div key={slot} style={{position:'absolute',top:index*4*DAY_SLOT_HEIGHT-7,left:0,right:0,
+                          textAlign:'center',fontSize:'.68rem',fontFamily:'monospace',fontWeight:700,color:'#9ca3af'}}>
                           {slot}
                         </div>
-                        <div
-                          onDragOver={e=>{if(canManage&&dragging){e.preventDefault();setDragOver({day:dayViewObj.iso,slot});}}}
-                          onDragLeave={()=>setDragOver(null)}
-                          onDrop={e=>handleDrop(e,dayViewObj.iso,slot)}
-                          onClick={evs.length===0&&canManage?(e)=>openCreatePopup(e,dayViewObj.iso,slot):undefined}
-                          style={{padding:hasEvents?"8px 10px":"4px 10px",
-                            borderLeft:"0.5px solid rgba(28,43,58,.05)",
-                            display:"flex",flexDirection:"column",gap:6,
-                            background:isDropTarget?"rgba(47,93,80,.08)":"transparent",
-                            outline:isDropTarget?"1.5px dashed #2F5D50":"none",
-                            cursor:evs.length===0&&canManage?"pointer":"default",
-                            minHeight:hasEvents?'auto':40,
-                            transition:"background .1s",position:"relative"}}>
-                          {evs.length===0&&canManage&&(
-                            <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",
-                              padding:"0 14px",color:"rgba(47,93,80,.0)",fontSize:".75rem",
-                              fontWeight:600,pointerEvents:"none"}}
-                              className="slot-add-hint">+ Lisa tund</div>
-                          )}
-                          {evs.map(ev=>renderEvent(ev,dayViewObj.iso,slot,true))}
+                      ))}
+                    </div>
+                    <div style={{height:dayTimelineHeight,position:'relative',background:'#fff'}}>
+                      {TIMES.map((slot,index)=>{
+                        const isHour=index%4===0;
+                        const isDropTarget=dragOver&&dragOver.day===dayViewObj.iso&&dragOver.slot===slot;
+                        return(
+                          <div key={slot}
+                            onDragOver={event=>{
+                              if(canManage&&dragging){
+                                event.preventDefault();
+                                setDragOver({day:dayViewObj.iso,slot});
+                              }
+                            }}
+                            onDragLeave={()=>setDragOver(null)}
+                            onDrop={event=>handleDrop(event,dayViewObj.iso,slot)}
+                            onClick={canManage?(event)=>openCreatePopup(event,dayViewObj.iso,slot):undefined}
+                            style={{position:'absolute',left:0,right:0,top:index*DAY_SLOT_HEIGHT,height:DAY_SLOT_HEIGHT,
+                              borderTop:`${isHour?1:0.5}px solid ${isHour?'rgba(28,43,58,.13)':'rgba(28,43,58,.045)'}`,
+                              background:isDropTarget?'rgba(47,93,80,.1)':'transparent',
+                              cursor:canManage?'pointer':'default',zIndex:1}}/>
+                        );
+                      })}
+                      {dayTimelineLayout.map(item=>(
+                        <div key={`${item.event.id}-${dayViewObj.iso}`}
+                          style={{position:'absolute',zIndex:2,top:item.top+2,height:Math.max(18,item.height-4),
+                            left:`calc(${item.leftPercent}% + 5px)`,
+                            width:`calc(${item.widthPercent}% - 8px)`,overflow:'hidden'}}>
+                          {renderEvent(item.event,dayViewObj.iso,item.event.time,true)}
                         </div>
-                      </div>
-                    );
-                  })}
+                      ))}
+                    </div>
+                  </div>
                 </>}
 
               </div>
@@ -2742,13 +2965,15 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
             {/* Week stats */}
             <div className="card" style={{padding:16}}>
               <div style={{fontSize:".66rem",fontWeight:800,color:"#9ca3af",textTransform:"uppercase",letterSpacing:".1em",marginBottom:10}}>
-                {viewMode==='week'?'Nädala kokkuvõte':'Päeva kokkuvõte'}
+                {viewMode==='month'?'Kuu kokkuvõte':viewMode==='week'?'Nädala kokkuvõte':'Päeva kokkuvõte'}
               </div>
               {(()=>{
                 const dayEvs = viewMode==='day'
-                  ? TIMES.flatMap(slot=>eventsForDaySlot(slot,dayViewObj.iso,dayViewObj.dayId))
+                  ? eventsOnDate(dayViewObj.iso)
                   : null;
-                const stats = viewMode==='day'
+                const stats = viewMode==='month'
+                  ? monthStats
+                  : viewMode==='day'
                   ? {
                       total:dayEvs.length,
                       done:dayEvs.filter(e=>e.status==='Toimunud').length,
@@ -7830,7 +8055,7 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
   lStatus,setLStatus,lComment,setLComment,
   lNewWords,setLNewWords,lGrammar,setLGrammar,lCovered,setLCovered,lNextNotes,setLNextNotes,
   lDur,setLDur,lessonFile,setLessonFile,saveLesson,deleteLesson,db,user,notify,students,markAttendance,
-  studentPackages=[],isAdmin,updateLessonBillingDisposition}) {
+  studentPackages=[],schedule=[],isAdmin,updateLessonBillingDisposition}) {
 
   const [moveDate,setMoveDate] = React.useState(modalEv.occurrenceDate||modalEv.date||new Date().toISOString().split("T")[0]);
   const [moveTime,setMoveTime] = React.useState(modalEv.time||"09:00");
@@ -7842,6 +8067,7 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
   const hasDate = Boolean(modalEv.date||modalEv.occurrenceDate);
   const st = modalEv.status||"Planeeritud";
   const isJournalEdit = Boolean(modalEv.lessonEntryId);
+  const isGoogleEvent = modalEv.source==='gcal';
   const savedLessonStatus = modalEv.status||lStatus;
   const billingOptions = savedLessonStatus==='Toimunud'
     ? [
@@ -7975,6 +8201,7 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
 
   const cancelLesson = async()=>{
     if(!modalEv.id) return;
+    if(isGoogleEvent){notify("Muuda Google’i sündmust Google Calendaris.");return;}
     await db.collection("schedule").doc(modalEv.id).update({status:"Tühistatud",canceledAt:new Date().toISOString().split("T")[0]});
     notify("✓ Tund tühistatud");
     setModalEv(prev=>({...prev,status:"Tühistatud"}));
@@ -7982,6 +8209,7 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
 
   const restoreLesson = async()=>{
     if(!modalEv.id) return;
+    if(isGoogleEvent){notify("Muuda Google’i sündmust Google Calendaris.");return;}
     await db.collection("schedule").doc(modalEv.id).update({status:"Planeeritud"});
     notify("✓ Tund taastatud");
     setModalEv(prev=>({...prev,status:"Planeeritud"}));
@@ -7989,6 +8217,7 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
 
   const hardDeleteSchedule = async()=>{
     if(!modalEv.id) return;
+    if(isGoogleEvent){notify("Kustuta sündmus Google Calendaris.");return;}
     if(!window.confirm("Kustuta tund kalendrist täielikult?")) return;
     const linkedLessonSnap = await db.collection("lessons").where("scheduleId","==",modalEv.id).limit(1).get();
     if(!linkedLessonSnap.empty){
@@ -8032,15 +8261,33 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
 
   const rescheduleLesson = async()=>{
     if(!modalEv.id||!moveDate){notify("⚠ Vali uus kuupäev");return;}
+    if(modalEv.source==='gcal'){
+      notify("Google Calendarist imporditud tunni aega tuleb muuta Google'is.");
+      return;
+    }
+    const candidate={
+      ...modalEv,
+      date:moveDate,
+      day:calendarDayIdForDate(moveDate),
+      time:moveTime,
+      duration:Number(lDur)||Number(modalEv.duration)||60
+    };
+    const conflicts=findScheduleConflicts(schedule,candidate,moveDate,{excludeId:modalEv.id});
+    if(conflicts.length){
+      const conflict=conflicts[0];
+      const reason=conflict.reasons.includes('teacher')?'õpetaja':'õpilase';
+      notify(`⚠ Aega ei muudetud: ${reason} kalendris on kell ${conflict.event.time} kattuv tund.`);
+      return;
+    }
     setSaving(true);
-    const jsDay = new Date(moveDate).getDay();
-    const dayId = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][jsDay];
+    const dayId = calendarDayIdForDate(moveDate);
     await db.collection("schedule").doc(modalEv.id).update({
       date:moveDate, day:dayId, time:moveTime,
       status:"Nihutatud",
       originalDate: modalEv.originalDate||modalEv.date||modalEv.occurrenceDate||null,
       originalTime: modalEv.originalTime||modalEv.time||null,
-      rescheduledAt: new Date().toISOString().split("T")[0]
+      rescheduledAt: new Date().toISOString().split("T")[0],
+      updatedAtIso:new Date().toISOString()
     });
     notify("✓ Tund tõsteti ümber: "+fmtDate(moveDate)+" "+moveTime);
     setModalEv(prev=>({...prev,date:moveDate,time:moveTime,status:"Nihutatud"}));
@@ -8076,6 +8323,7 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
 
   const makeRecurring = async()=>{
     if(!modalEv.id) return;
+    if(isGoogleEvent){notify("Muuda kordust Google Calendaris.");return;}
     const baseDate = modalEv.occurrenceDate||modalEv.date;
     if(!baseDate){notify("⚠ Vali konkreetne kuupäev");return;}
     const jsDay = new Date(baseDate).getDay();
@@ -8092,6 +8340,7 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
 
   const makeSingle = async()=>{
     if(!modalEv.id) return;
+    if(isGoogleEvent){notify("Muuda kordust Google Calendaris.");return;}
     const baseDate = modalEv.occurrenceDate||modalEv.date||modalEv.startDate;
     if(!baseDate){notify("⚠ Vali konkreetne kuupäev");return;}
     const jsDay = new Date(baseDate).getDay();
@@ -8140,6 +8389,14 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
               📅 Kalendri haldus
             </div>
 
+            {isGoogleEvent&&(
+              <div style={{padding:"9px 11px",borderRadius:9,background:"#eff6ff",border:"1px solid #bfdbfe",
+                color:"#1e40af",fontSize:".78rem",marginBottom:12}}>
+                See tund on imporditud Google Calendarist. Aega, kordust ja tühistamist muuda Google’is;
+                tunni päevikut saad täita siin.
+              </div>
+            )}
+
             {modalEv.id&&hasDate&&(
               <div style={{marginBottom:12}}>
                 <div style={{fontSize:".78rem",fontWeight:600,color:"#42536A",marginBottom:6}}>Tunni tüüp:</div>
@@ -8147,14 +8404,14 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
                   <button
                     onClick={makeSingle}
                     className={`btn btn-sm ${modalEv.recurring?'btn-ghost':'btn-dark'}`}
-                    disabled={!modalEv.recurring}
+                    disabled={!modalEv.recurring||isGoogleEvent}
                     style={{opacity:modalEv.recurring?1:.9}}>
                     <i className="fa-solid fa-calendar-day"/> Ühekordne
                   </button>
                   <button
                     onClick={makeRecurring}
                     className={`btn btn-sm ${modalEv.recurring?'btn-dark':'btn-ghost'}`}
-                    disabled={!!modalEv.recurring}
+                    disabled={!!modalEv.recurring||isGoogleEvent}
                     style={{opacity:modalEv.recurring?.9:1}}>
                     <i className="fa-solid fa-repeat"/> Korduv
                   </button>
@@ -8165,19 +8422,19 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
             {/* Кнопки отмены/восстановления */}
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
               <button onClick={cancelLesson} className="btn btn-red btn-sm"
-                disabled={!modalEv.id||st==="Tühistatud"}
+                disabled={!modalEv.id||st==="Tühistatud"||isGoogleEvent}
                 style={{opacity:st==="Tühistatud"?.4:1}}>
                 <i className="fa-solid fa-ban"/> Tühista tund
               </button>
               <button onClick={restoreLesson} className="btn btn-pine btn-sm"
-                disabled={!modalEv.id||st!=="Tühistatud"}
+                disabled={!modalEv.id||st!=="Tühistatud"||isGoogleEvent}
                 style={{opacity:st!=="Tühistatud"?.4:1}}>
                 <i className="fa-solid fa-rotate-left"/> Taasta tund
               </button>
             </div>
 
             {modalEv.id&&(
-              <button onClick={hardDeleteSchedule} className="btn btn-ghost btn-sm" style={{width:"100%",marginBottom:12,color:"#991b1b",borderColor:"rgba(239,68,68,.25)"}}>
+              <button onClick={hardDeleteSchedule} disabled={isGoogleEvent} className="btn btn-ghost btn-sm" style={{width:"100%",marginBottom:12,color:"#991b1b",borderColor:"rgba(239,68,68,.25)",opacity:isGoogleEvent?0.45:1}}>
                 <i className="fa-solid fa-trash"/> Kustuta tund täielikult
               </button>
             )}
@@ -8186,13 +8443,13 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
             <div style={{fontSize:".78rem",fontWeight:600,color:"#42536A",marginBottom:6}}>Tõsta tund ümber:</div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
               <input type="date" value={moveDate} onChange={e=>setMoveDate(e.target.value)}
-                disabled={!hasDate} style={{opacity:!hasDate?.5:1}}/>
-              <select value={moveTime} onChange={e=>setMoveTime(e.target.value)} disabled={!hasDate} style={{opacity:!hasDate?.5:1}}>
+                disabled={!hasDate||isGoogleEvent} style={{opacity:(!hasDate||isGoogleEvent)?0.5:1}}/>
+              <select value={moveTime} onChange={e=>setMoveTime(e.target.value)} disabled={!hasDate||isGoogleEvent} style={{opacity:(!hasDate||isGoogleEvent)?0.5:1}}>
                 {TIMES.map(t=><option key={t}>{t}</option>)}
               </select>
             </div>
             <div style={{display:"flex",gap:8}}>
-              <button onClick={rescheduleLesson} className="btn btn-amber btn-sm" disabled={!hasDate||saving} style={{flex:1,opacity:!hasDate?.5:1}}>
+              <button onClick={rescheduleLesson} className="btn btn-amber btn-sm" disabled={!hasDate||saving||isGoogleEvent} style={{flex:1,opacity:(!hasDate||isGoogleEvent)?0.5:1}}>
                 <i className="fa-solid fa-calendar-days"/> {saving?"Salvestab…":"Salvesta uus aeg"}
               </button>
               <button onClick={exportIcs} className="btn btn-ghost btn-sm" disabled={!hasDate} style={{opacity:!hasDate?.5:1}} title="Ekspordi .ics faili (avab Google/Apple Calendar)">
@@ -8780,6 +9037,10 @@ function ParentChildrenView({user,myStudents,isAdmin,lessons,homework,setSelStu,
 function GCalSettings({user,notify}) {
   const [status,setStatus] = React.useState(null); // null | 'connected' | 'disconnected'
   const [lastSync,setLastSync] = React.useState(null);
+  const [lastCount,setLastCount] = React.useState(0);
+  const [lastSkipped,setLastSkipped] = React.useState(0);
+  const [lastRemoved,setLastRemoved] = React.useState(0);
+  const [lastError,setLastError] = React.useState('');
   const [syncing,setSyncing] = React.useState(false);
   const [detailsOpen,setDetailsOpen] = React.useState(false);
   const FUNCTIONS_BASE = 'https://us-central1-keelesepp-5136b.cloudfunctions.net/gcalApi';
@@ -8790,7 +9051,11 @@ function GCalSettings({user,notify}) {
       .then(r=>r.json())
       .then(d=>{
         setStatus(d.connected?'connected':'disconnected');
-        setLastSync(d.connectedAt||null);
+        setLastSync(d.lastSyncAt||null);
+        setLastCount(Number(d.lastSyncCount||0));
+        setLastSkipped(Number(d.lastSyncSkipped||0));
+        setLastRemoved(Number(d.lastSyncRemoved||0));
+        setLastError(d.lastSyncError||'');
       })
       .catch(()=>setStatus('disconnected'));
   },[user?.uid]);
@@ -8798,6 +9063,7 @@ function GCalSettings({user,notify}) {
   const connect = async()=>{
     const r = await authFetch(`${FUNCTIONS_BASE}/gcal/auth-url?uid=${user.uid}`);
     const d = await r.json();
+    if(!r.ok) throw new Error(d.error||'Google Calendar ühendamine ebaõnnestus');
     window.location.href = d.url;
   };
 
@@ -8810,10 +9076,17 @@ function GCalSettings({user,notify}) {
         body:JSON.stringify({uid:user.uid})
       });
       const d = await r.json();
-      notify(`✓ Sünkroonitud: ${d.synced} sündmust`);
+      if(!r.ok) throw new Error(d.error||'Sünkroonimine ebaõnnestus');
+      notify(`✓ Imporditud: ${d.synced}${d.removed?` · eemaldatud: ${d.removed}`:''}${d.skipped?` · vahele jäetud: ${d.skipped}`:''}`);
       setLastSync(new Date().toISOString());
+      setLastCount(Number(d.synced||0));
+      setLastSkipped(Number(d.skipped||0));
+      setLastRemoved(Number(d.removed||0));
+      setLastError('');
     }catch(e){
-      notify('⚠ Sünkroonimine ebaõnnestus');
+      const message=String(e?.message||'Sünkroonimine ebaõnnestus').slice(0,500);
+      setLastError(message);
+      notify(`⚠ ${message}`);
     }
     setSyncing(false);
   };
@@ -8844,7 +9117,10 @@ function GCalSettings({user,notify}) {
             <div style={{fontWeight:700}}>Google Calendar</div>
             <div style={{fontSize:'.76rem',color:'#42536A'}}>
               {status==='connected'
-                ? <span style={{color:'#166534'}}>✓ Ühendatud{lastSync&&` · Viimane sünkroonimine: ${new Date(lastSync).toLocaleDateString('et-EE')}`}</span>
+                ? <span style={{color:lastError?'#991b1b':'#166534'}}>
+                    {lastError?'⚠ Sünkroonimine vajab tähelepanu':'✓ Ühendatud · Google → KeeleSepp'}
+                    {lastSync&&` · ${new Date(lastSync).toLocaleString('et-EE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}`}
+                  </span>
                 : status===null?'Kontrollin staatust…':'Kalender pole ühendatud'}
             </div>
           </div>
@@ -8871,7 +9147,10 @@ function GCalSettings({user,notify}) {
       {status==='connected'&&detailsOpen&&(
         <div style={{marginTop:12,paddingTop:12,borderTop:'1px solid rgba(28,43,58,.08)',display:'flex',justifyContent:'space-between',gap:12,alignItems:'center',flexWrap:'wrap'}}>
           <div style={{fontSize:'.78rem',color:'#42536A',maxWidth:760}}>
-            Sündmused sünkroonitakse iga tund. Lisa õpilase nimi sündmuse pealkirja, näiteks „Tund — Hanna Skoryk“.
+            Praegu toimub turvaline import Google Calendarist KeeleSeppa iga tund. Lisa õpilase nimi pealkirja,
+            näiteks „Tund — Hanna Skoryk“. Viimati imporditi {lastCount} ja jäeti seoseta {lastSkipped} sündmust vahele.
+            {lastRemoved>0&&<> Google’ist eemaldatud sündmusi koristati kalendrist {lastRemoved}.</>}
+            {lastError&&<div style={{marginTop:5,color:'#991b1b'}}>Viimane viga: {lastError}</div>}
           </div>
           <button onClick={disconnect} className="btn btn-ghost btn-sm" style={{color:'#dc2626'}}>
             Eemalda ühendus
@@ -9989,29 +10268,46 @@ function App() {
 
   const addSchedule=useCallback(async()=>{
     if(!schStu||!schDate){notify('⚠ Vali õpilane ja kuupäev');return;}
+    const student=students.find(item=>normalizeText(item.name)===normalizeText(schStu));
+    if(!student){notify('⚠ Vali õpilane nimekirjast');return;}
     const t=canAssignTeacher?schTeach:canonicalTeacherName(user.displayName);
-    const jsDay=new Date(schDate).getDay();
-    const dayId=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][jsDay];
-    const payload = schRecurring
-      ? {teacher:t,studentName:schStu,day:dayId,time:schTime,status:'Planeeritud',recurring:true,startDate:schDate,createdAt:today()}
-      : {teacher:t,studentName:schStu,date:schDate,day:dayId,time:schTime,status:'Planeeritud',createdAt:today()};
+    const payload=buildSchedulePayload({
+      teacher:t,
+      studentId:student.id,
+      studentName:student.name,
+      date:schDate,
+      time:schTime,
+      duration:60,
+      recurring:schRecurring
+    });
+    const conflicts=findScheduleConflicts(schedule,payload,schDate);
+    if(conflicts.length){notify('⚠ Sellel ajal on õpetajal või õpilasel juba tund');return;}
     await db.collection('schedule').add(payload);
+    await logActivity('schedule.created','Lisati tund kalendrisse',{
+      studentId:student.id,studentName:student.name,teacher:t,date:schDate,time:schTime,recurring:schRecurring
+    });
     notify(schRecurring?'✓ Korduv tund lisatud!':'✓ Tund broneeritud!');
-  },[schStu,schDate,schTime,schTeach,schRecurring,canAssignTeacher,user]);
+  },[schStu,schDate,schTime,schTeach,schRecurring,canAssignTeacher,user,students,schedule,logActivity]);
 
   const addStudentSchedule=useCallback(async(student)=>{
     if(!student?.id){notify('⚠ Õpilast ei leitud');return;}
     if(!schDate){notify('⚠ Vali kuupäev');return;}
     const t=canAssignTeacher?schTeach:canonicalTeacherName(user.displayName);
-    const jsDay=new Date(schDate).getDay();
-    const dayId=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][jsDay];
-    const payload = schRecurring
-      ? {teacher:t,studentId:student.id,studentName:student.name,day:dayId,time:schTime,status:'Planeeritud',recurring:true,startDate:schDate,createdAt:today()}
-      : {teacher:t,studentId:student.id,studentName:student.name,date:schDate,day:dayId,time:schTime,status:'Planeeritud',createdAt:today()};
+    const payload=buildSchedulePayload({
+      teacher:t,
+      studentId:student.id,
+      studentName:student.name,
+      date:schDate,
+      time:schTime,
+      duration:60,
+      recurring:schRecurring
+    });
+    const conflicts=findScheduleConflicts(schedule,payload,schDate);
+    if(conflicts.length){notify('⚠ Sellel ajal on õpetajal või õpilasel juba tund');return;}
     await db.collection('schedule').add(payload);
     await logActivity('schedule.created','Lisati tund õpilase kaardilt',{studentId:student.id,studentName:student.name,teacher:t,date:schDate,time:schTime});
     notify(schRecurring?'✓ Korduv tund lisatud!':'✓ Tund lisatud kalendrisse!');
-  },[schDate,schTime,schTeach,schRecurring,canAssignTeacher,user,logActivity]);
+  },[schDate,schTime,schTeach,schRecurring,canAssignTeacher,user,logActivity,schedule]);
 
   const markAttendance=useCallback(async(event,attendanceKey,status)=>{
     if(!event||!attendanceKey){notify('⚠ Tundi ei leitud');return;}
@@ -11747,7 +12043,7 @@ function App() {
             schTime={schTime} setSchTime={setSchTime} schTeach={schTeach} setSchTeach={setSchTeach}
             schRecurring={schRecurring} setSchRecurring={setSchRecurring}
             addSchedule={addSchedule} openScheduleEditor={openScheduleEditor} delSchedule={delSchedule} markAttendance={markAttendance}
-            db={db} notify={notify} students={students} setSelStu={setSelStu} setTab={setTab}
+            db={db} notify={notify} logActivity={logActivity} students={students} setSelStu={setSelStu} setTab={setTab}
             openStudent={(student)=>{setSelStu(student);setTab('students');}} tariffAssignments={tariffAssignments}/>}
 
           {tab==='tasks'&&isStaff&&<TasksView user={user} tasks={scopedTasks} staffMembers={staffMembers}
@@ -11887,7 +12183,7 @@ function App() {
         lNextNotes={lNextNotes} setLNextNotes={setLNextNotes}
         lDur={lDur} setLDur={setLDur} lessonFile={lessonFile} setLessonFile={setLessonFile}
         saveLesson={saveLesson} deleteLesson={deleteLesson} db={db} user={user} notify={notify}
-        students={students} studentPackages={studentPackages} markAttendance={markAttendance}
+        students={students} studentPackages={studentPackages} schedule={schedule} markAttendance={markAttendance}
         isAdmin={isAdmin} updateLessonBillingDisposition={updateLessonBillingDisposition}/>}
     </div>
   );

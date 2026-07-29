@@ -102,6 +102,77 @@ function getOAuthClient() {
   return new google.auth.OAuth2(cfg.clientId, cfg.clientSecret, cfg.redirectUri);
 }
 
+const calendarConnectionRef = uid => db.collection("calendarConnections").doc(uid);
+const calendarReturnUrl = status => {
+  const separator = APP_BASE_URL.includes("?") ? "&" : "?";
+  return `${APP_BASE_URL}${separator}gcal=${encodeURIComponent(status)}`;
+};
+
+function publicCalendarMetadata(connection = {}) {
+  return {
+    connected: Boolean(connection.connected),
+    provider: "google",
+    direction: "google_to_keelesepp",
+    connectedAt: connection.connectedAt || null,
+    lastSyncAt: connection.lastSyncAt || null,
+    lastSyncCount: Number(connection.lastSyncCount || 0),
+    lastSyncSkipped: Number(connection.lastSyncSkipped || 0),
+    lastSyncRemoved: Number(connection.lastSyncRemoved || 0),
+    lastSyncError: connection.lastSyncError || "",
+  };
+}
+
+async function loadCalendarConnection(uid, { migrateLegacy = true } = {}) {
+  const privateRef = calendarConnectionRef(uid);
+  const userRef = db.collection("users").doc(uid);
+  const privateSnap = await privateRef.get();
+  if (privateSnap.exists && privateSnap.data()?.refreshToken) {
+    const connection = privateSnap.data();
+    if (migrateLegacy) {
+      await userRef.set({ gcal: publicCalendarMetadata(connection) }, { merge: true });
+    }
+    return connection;
+  }
+
+  const userSnap = await userRef.get();
+  const legacy = userSnap.data()?.gcal || {};
+  if (!legacy.refreshToken) return null;
+
+  const migrated = {
+    connected: legacy.connected !== false,
+    provider: "google",
+    accessToken: legacy.accessToken || legacy.access_token || "",
+    refreshToken: legacy.refreshToken || legacy.refresh_token || "",
+    expiryDate: legacy.expiryDate || legacy.expiry_date || null,
+    connectedAt: legacy.connectedAt || new Date().toISOString(),
+    lastSyncAt: legacy.lastSyncAt || null,
+    lastSyncCount: Number(legacy.lastSyncCount || 0),
+    lastSyncSkipped: Number(legacy.lastSyncSkipped || 0),
+    lastSyncRemoved: Number(legacy.lastSyncRemoved || 0),
+    lastSyncError: legacy.lastSyncError || "",
+    migratedAt: new Date().toISOString(),
+  };
+  if (migrateLegacy) {
+    await privateRef.set(migrated, { merge: true });
+    await userRef.set({ gcal: publicCalendarMetadata(migrated) }, { merge: true });
+  }
+  return migrated;
+}
+
+async function saveCalendarConnection(uid, connection, { merge = true } = {}) {
+  const next = {
+    ...connection,
+    connected: connection.connected !== false,
+    provider: "google",
+    updatedAt: new Date().toISOString(),
+  };
+  await calendarConnectionRef(uid).set(next, { merge });
+  await db.collection("users").doc(uid).set({
+    gcal: publicCalendarMetadata(next),
+  }, { merge: true });
+  return next;
+}
+
 // ── HELPERS ───────────────────────────────────────────────────
 function applyCors(req, res) {
   const allowed = new Set([
@@ -3451,23 +3522,26 @@ exports.gcalApi = functions.https.onRequest(async (req, res) => {
       await stateRef.delete();
       const oauth2 = getOAuthClient();
       const { tokens } = await oauth2.getToken(code);
-      // Save tokens to Firestore under user doc
-      await db.collection("users").doc(uid).update({
-        gcal: {
-          connected: true,
-          accessToken:  tokens.access_token,
-          refreshToken: tokens.refresh_token,
-          expiryDate:   tokens.expiry_date,
-          connectedAt:  new Date().toISOString(),
-        },
+      const existing = await loadCalendarConnection(uid, { migrateLegacy: true });
+      const connection = await saveCalendarConnection(uid, {
+        connected: true,
+        accessToken: tokens.access_token || existing?.accessToken || "",
+        refreshToken: tokens.refresh_token || existing?.refreshToken || "",
+        expiryDate: tokens.expiry_date || existing?.expiryDate || null,
+        connectedAt: new Date().toISOString(),
+        lastSyncAt: null,
+        lastSyncCount: 0,
+        lastSyncSkipped: 0,
+        lastSyncRemoved: 0,
+        lastSyncError: "",
       });
       // Trigger initial sync
-      await syncTeacherCalendar(uid, tokens);
+      await syncTeacherCalendar(uid, connection);
       // Redirect back to app
-      res.redirect("https://keelesepp.vercel.app/haldus.html?gcal=connected");
+      res.redirect(calendarReturnUrl("connected"));
     } catch (e) {
       console.error("OAuth callback error:", e);
-      res.redirect("https://keelesepp.vercel.app/haldus.html?gcal=error");
+      res.redirect(calendarReturnUrl("error"));
     }
     return;
   }
@@ -3478,15 +3552,27 @@ exports.gcalApi = functions.https.onRequest(async (req, res) => {
     if (!uid) { res.status(400).json({ error: "uid required" }); return; }
     try {
       await requireCalendarOwner(req, uid);
-      const userDoc = await db.collection("users").doc(uid).get();
-      if (!userDoc.exists || !userDoc.data().gcal?.refreshToken) {
+      const connection = await loadCalendarConnection(uid, { migrateLegacy: true });
+      if (!connection?.refreshToken) {
         res.status(404).json({ error: "Google Calendar not connected" });
         return;
       }
-      const result = await syncTeacherCalendar(uid, userDoc.data().gcal);
-      res.json({ success: true, synced: result.synced, skipped: result.skipped });
+      const result = await syncTeacherCalendar(uid, connection);
+      res.json({ success: true, synced: result.synced, skipped: result.skipped, removed: result.removed });
     } catch (e) {
       console.error("Sync error:", e);
+      const message=String(e.message||"Sync failed").slice(0,500);
+      try {
+        await calendarConnectionRef(uid).set({
+          lastSyncError:message,
+          updatedAt:new Date().toISOString(),
+        },{merge:true});
+        await db.collection("users").doc(uid).set({
+          "gcal.lastSyncError":message,
+        },{merge:true});
+      } catch (statusError) {
+        console.error("Could not persist Google Calendar sync error:",statusError);
+      }
       res.status(500).json({ error: e.message });
     }
     return;
@@ -3498,6 +3584,7 @@ exports.gcalApi = functions.https.onRequest(async (req, res) => {
     if (!uid) { res.status(400).json({ error: "uid required" }); return; }
     try {
       const { profile } = await requireCalendarOwner(req, uid);
+      await calendarConnectionRef(uid).delete();
       await db.collection("users").doc(uid).update({
         gcal: FieldValue.delete(),
       });
@@ -3531,11 +3618,17 @@ exports.gcalApi = functions.https.onRequest(async (req, res) => {
     if (!uid) { res.status(400).json({ error: "uid required" }); return; }
     try {
       await requireCalendarOwner(req, uid);
-      const userDoc = await db.collection("users").doc(uid).get();
-      const gcal = userDoc.data()?.gcal || {};
+      const connection = await loadCalendarConnection(uid, { migrateLegacy: true });
+      const gcal = publicCalendarMetadata(connection || {});
       res.json({
         connected: !!gcal.connected,
         connectedAt: gcal.connectedAt || null,
+        direction: gcal.direction,
+        lastSyncAt: gcal.lastSyncAt || null,
+        lastSyncCount: gcal.lastSyncCount || 0,
+        lastSyncSkipped: gcal.lastSyncSkipped || 0,
+        lastSyncRemoved: gcal.lastSyncRemoved || 0,
+        lastSyncError: gcal.lastSyncError || "",
       });
     } catch (e) {
       sendError(res, e);
@@ -3558,10 +3651,11 @@ async function syncTeacherCalendar(uid, tokens) {
   // Refresh token if needed and save
   const newTokens = await oauth2.getAccessToken();
   if (newTokens.res?.data?.access_token) {
-    await db.collection("users").doc(uid).update({
-      "gcal.accessToken": newTokens.res.data.access_token,
-      "gcal.expiryDate":  newTokens.res.data.expiry_date,
-    });
+    await calendarConnectionRef(uid).set({
+      accessToken: newTokens.res.data.access_token,
+      expiryDate: newTokens.res.data.expiry_date || tokens.expiryDate || null,
+      updatedAt: new Date().toISOString(),
+    }, { merge: true });
   }
 
   const calendar = google.calendar({ version: "v3", auth: oauth2 });
@@ -3588,6 +3682,7 @@ async function syncTeacherCalendar(uid, tokens) {
   const events = eventsResp.data.items || [];
   let synced = 0;
   let skipped = 0;
+  const importedDocIds = new Set();
 
   // Один запрос студентов на весь прогон вместо чтения на каждое событие
   // (раньше: doc.get() на каждый student:ID + полный скан коллекции на каждый
@@ -3645,24 +3740,49 @@ async function syncTeacherCalendar(uid, tokens) {
       student.name,
       uid,
     );
-    if (!scheduleData) { skipped++; continue; }
+    if (!scheduleData?.time) { skipped++; continue; }
 
     // Upsert by gcalEventId
     const docRef = db.collection("schedule").doc(`gcal_${event.id}`);
     batch.set(docRef, scheduleData, { merge: true });
+    importedDocIds.add(docRef.id);
     synced++;
   }
 
   await batch.commit();
 
-  // Update last sync time
-  await db.collection("users").doc(uid).update({
-    "gcal.lastSyncAt": new Date().toISOString(),
-    "gcal.lastSyncCount": synced,
+  // Reconcile the same forward-looking window so deleted Google events do not
+  // remain forever in KeeleSepp. Historical lessons are intentionally kept.
+  const syncWindowStart = localDate(new Date(), APP_TIME_ZONE);
+  const syncWindowEnd = localDate(new Date(timeMax), APP_TIME_ZONE);
+  const importedSnap = await db.collection("schedule").where("teacherUid", "==", uid).get();
+  const staleDocs = importedSnap.docs.filter(doc => {
+    const event = doc.data();
+    return event.source === "gcal"
+      && event.date >= syncWindowStart
+      && event.date <= syncWindowEnd
+      && !importedDocIds.has(doc.id);
   });
+  for (let offset = 0; offset < staleDocs.length; offset += 400) {
+    const deleteBatch = db.batch();
+    staleDocs.slice(offset, offset + 400).forEach(doc => deleteBatch.delete(doc.ref));
+    await deleteBatch.commit();
+  }
+  const removed = staleDocs.length;
 
-  console.log(`Synced ${synced} events for teacher ${teacherName}, skipped ${skipped}`);
-  return { synced, skipped };
+  const syncMetadata = {
+    connected: true,
+    connectedAt: tokens.connectedAt || null,
+    lastSyncAt: new Date().toISOString(),
+    lastSyncCount: synced,
+    lastSyncSkipped: skipped,
+    lastSyncRemoved: removed,
+    lastSyncError: "",
+  };
+  await saveCalendarConnection(uid, syncMetadata);
+
+  console.log(`Synced ${synced} events for teacher ${teacherName}, skipped ${skipped}, removed ${removed}`);
+  return { synced, skipped, removed };
 }
 
 // ── SCHEDULED: sync all connected teachers every hour ─────────
@@ -3670,16 +3790,34 @@ exports.syncAllCalendars = functions.pubsub
   .schedule("every 60 minutes")
   .timeZone(APP_TIME_ZONE)
   .onRun(async () => {
-    const snap = await db.collection("users")
+    const connectionsSnap = await db.collection("calendarConnections")
+      .where("connected", "==", true)
+      .get();
+    const legacySnap = await db.collection("users")
       .where("gcal.connected", "==", true)
       .get();
+    const connected = new Map();
+    connectionsSnap.docs.forEach(doc => connected.set(doc.id, doc.data()));
+    for (const doc of legacySnap.docs) {
+      if (connected.has(doc.id)) continue;
+      const migrated = await loadCalendarConnection(doc.id, { migrateLegacy: true });
+      if (migrated) connected.set(doc.id, migrated);
+    }
 
-    console.log(`Syncing ${snap.docs.length} connected teachers`);
-    for (const doc of snap.docs) {
+    console.log(`Syncing ${connected.size} connected teachers`);
+    for (const [uid, connection] of connected.entries()) {
       try {
-        await syncTeacherCalendar(doc.id, doc.data().gcal);
+        await syncTeacherCalendar(uid, connection);
       } catch (e) {
-        console.error(`Sync failed for ${doc.id}:`, e.message);
+        console.error(`Sync failed for ${uid}:`, e.message);
+        const message = String(e.message || "Sync failed").slice(0, 500);
+        await calendarConnectionRef(uid).set({
+          lastSyncError: message,
+          updatedAt: new Date().toISOString(),
+        }, { merge: true });
+        await db.collection("users").doc(uid).set({
+          "gcal.lastSyncError": message,
+        }, { merge: true });
       }
     }
     return null;
