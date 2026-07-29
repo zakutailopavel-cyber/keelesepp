@@ -83,6 +83,108 @@ service cloud.firestore {
         );
     }
 
+    function validLiveSceneSource(source) {
+      return source is map
+        && source.keys().hasOnly(['kind', 'id', 'type'])
+        && source.keys().hasAll(['kind', 'id', 'type'])
+        && source.kind is string
+        && source.kind.size() > 0
+        && source.kind.size() <= 40
+        && source.id is string
+        && source.id.size() > 0
+        && source.id.size() <= 180
+        && source.type is string
+        && source.type.size() <= 40;
+    }
+
+    function validLiveScene(scene, expectedVersion) {
+      return scene is map
+        && scene.keys().hasOnly([
+          'type',
+          'title',
+          'body',
+          'options',
+          'version',
+          'publishedAt',
+          'source',
+          'actionUrl'
+        ])
+        && scene.keys().hasAll(['type', 'version'])
+        && scene.type in ['welcome', 'message', 'choice', 'short_answer', 'screen']
+        && scene.version == expectedVersion
+        && (
+          !('title' in scene)
+          || (
+            scene.title is string
+            && scene.title.size() <= 160
+          )
+        )
+        && (
+          !('body' in scene)
+          || (
+            scene.body is string
+            && scene.body.size() <= 4000
+          )
+        )
+        && (
+          !('options' in scene)
+          || (
+            scene.options is list
+            && scene.options.size() <= 8
+          )
+        )
+        && (
+          scene.type != 'choice'
+          || (
+            'options' in scene
+            && scene.options is list
+            && scene.options.size() >= 2
+          )
+        )
+        && (
+          !('publishedAt' in scene)
+          || (
+            scene.publishedAt is string
+            && scene.publishedAt.size() <= 40
+          )
+        )
+        && (
+          !('source' in scene)
+          || validLiveSceneSource(scene.source)
+        )
+        && (
+          !('actionUrl' in scene)
+          || (
+            scene.actionUrl is string
+            && scene.actionUrl.size() <= 500
+            && (
+              scene.actionUrl.matches('^/haldus-exercises/.*')
+              || scene.actionUrl.matches('^/haldus-worksheet/.*')
+            )
+          )
+        );
+    }
+
+    function validLiveScreenShare(screenShare) {
+      return screenShare is map
+        && screenShare.keys().hasOnly(['status', 'shareId', 'startedAtIso'])
+        && screenShare.keys().hasAll(['status', 'shareId'])
+        && screenShare.status in ['idle', 'active']
+        && screenShare.shareId is string
+        && screenShare.shareId.size() <= 180
+        && (
+          !('startedAtIso' in screenShare)
+          || (
+            screenShare.startedAtIso is string
+            && screenShare.startedAtIso.size() <= 40
+          )
+        )
+        && (
+          (screenShare.status == 'idle' && screenShare.shareId == '')
+          || (screenShare.status == 'active' && screenShare.shareId != '')
+        );
+    }
+
     function ownsInvoice(invoice) {
       return signedIn()
         && (
@@ -478,37 +580,46 @@ service cloud.firestore {
         && request.resource.data.title.size() > 0
         && request.resource.data.title.size() <= 160
         && request.resource.data.activeScene.type == 'welcome'
-        && request.resource.data.activeScene.version == 1
-        && request.resource.data.screenShare.status == 'idle'
-        && request.resource.data.screenShare.shareId == '';
-      allow update: if isAdmin()
-        || (
-          isStaff()
-          && resource.data.teacherUid == uid()
-          && request.resource.data.teacherUid == resource.data.teacherUid
-          && request.resource.data.studentId == resource.data.studentId
-          && request.resource.data.accessVersion == resource.data.accessVersion
-          && request.resource.data.status in ['waiting', 'live', 'ended']
-          && (resource.data.status != 'ended' || request.resource.data.status == 'ended')
-          && request.resource.data.sceneVersion >= resource.data.sceneVersion
-          && request.resource.data.activeScene.type in [
-            'welcome',
-            'message',
-            'choice',
-            'short_answer',
-            'screen'
-          ]
-          && request.resource.data.screenShare.status in ['idle', 'active']
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-            'activeScene',
-            'sceneVersion',
-            'status',
-            'startedAt',
-            'endedAt',
-            'screenShare',
-            'updatedAt'
-          ])
-        );
+        && validLiveScene(request.resource.data.activeScene, 1)
+        && validLiveScreenShare(request.resource.data.screenShare)
+        && request.resource.data.screenShare.status == 'idle';
+      allow update: if (
+          isAdmin()
+          || (
+            isStaff()
+            && resource.data.teacherUid == uid()
+          )
+        )
+        && request.resource.data.teacherUid == resource.data.teacherUid
+        && request.resource.data.studentId == resource.data.studentId
+        && request.resource.data.accessVersion == resource.data.accessVersion
+        && request.resource.data.status in ['waiting', 'live', 'ended']
+        && (resource.data.status != 'ended' || request.resource.data.status == 'ended')
+        && request.resource.data.sceneVersion == resource.data.sceneVersion + 1
+        && validLiveScene(
+          request.resource.data.activeScene,
+          request.resource.data.sceneVersion
+        )
+        && validLiveScreenShare(request.resource.data.screenShare)
+        && (
+          (
+            request.resource.data.activeScene.type == 'screen'
+            && request.resource.data.screenShare.status == 'active'
+          )
+          || (
+            request.resource.data.activeScene.type != 'screen'
+            && request.resource.data.screenShare.status == 'idle'
+          )
+        )
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'activeScene',
+          'sceneVersion',
+          'status',
+          'startedAt',
+          'endedAt',
+          'screenShare',
+          'updatedAt'
+        ]);
       allow delete: if isAdmin();
 
       match /responses/{responseId} {

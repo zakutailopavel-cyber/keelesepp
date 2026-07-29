@@ -5,6 +5,7 @@
     getRoles,
     isStaff,
     buildScene,
+    normalizeActionUrl,
     sceneAcceptsResponse,
     isUnsafeDisplaySurface,
     classroomLink,
@@ -83,6 +84,33 @@
     const url=roomId?`/live-classroom/?room=${encodeURIComponent(roomId)}`:'/live-classroom/';
     history.pushState({},'',url);
   };
+  async function commitRoomScene(sceneInput,changesForRoom={}){
+    if(!state.room?.id) throw new Error('Klassiruumi ei leitud.');
+    const ref=db.collection('liveClassrooms').doc(state.room.id);
+    return db.runTransaction(async transaction=>{
+      const snapshot=await transaction.get(ref);
+      if(!snapshot.exists) throw new Error('Klassiruumi ei leitud.');
+      const room=snapshot.data();
+      if(room.status==='ended'&&!sceneInput.allowEnded) throw new Error('Lõpetatud tunnis ei saa uut õppestseeni avaldada.');
+      const nextVersion=(Number(room.sceneVersion)||0)+1;
+      const {allowEnded,...publicSceneInput}=sceneInput;
+      const scene=buildScene({...publicSceneInput,version:nextVersion});
+      const extra=typeof changesForRoom==='function'
+        ?changesForRoom(room,scene,nextVersion)
+        :changesForRoom;
+      const normalizedExtra={...(extra||{})};
+      if(scene.type!=='screen'&&!('screenShare' in normalizedExtra)){
+        normalizedExtra.screenShare={status:'idle',shareId:''};
+      }
+      transaction.update(ref,{
+        activeScene:scene,
+        sceneVersion:nextVersion,
+        updatedAt:serverTimestamp(),
+        ...normalizedExtra
+      });
+      return{room,scene,nextVersion};
+    });
+  }
 
   function cleanupRoom(){
     stopPresence(true);
@@ -394,6 +422,7 @@
       const nextRoom={id:snapshot.id,...snapshot.data()};
       const nextVersion=Number(nextRoom.sceneVersion)||0;
       if(state.lastSceneVersion&&nextVersion!==state.lastSceneVersion) state.selectedChoice='';
+      if(state.room?.activeScene?.type==='screen'&&nextRoom.activeScene?.type!=='screen') stopPeer(true);
       state.lastSceneVersion=nextVersion;
       state.room=nextRoom;
       renderRoom();
@@ -470,6 +499,10 @@
     const title=scene?.title||'Tere tulemast tundi!';
     const body=scene?.body||'Õpetaja valmistab õppestseeni ette.';
     const interactive=sceneAcceptsResponse(scene);
+    const actionUrl=normalizeActionUrl(scene?.actionUrl);
+    const action=actionUrl&&student
+      ?`<div class="student-actions"><a class="btn btn-amber" href="${escapeHtml(actionUrl)}" target="_blank" rel="noopener">Ava täisülesanne</a></div>`
+      :'';
     const options=(scene?.options||[]).map((option,index)=>`
       <button class="choice" data-choice="${escapeHtml(option)}" ${student?'':'disabled'}><span>${String.fromCharCode(65+index)}.</span> ${escapeHtml(option)}</button>
     `).join('');
@@ -487,6 +520,7 @@
                 <textarea id="${student?'student-answer':'answer-preview'}" maxlength="1600" placeholder="${student?'Kirjuta vastus siia…':'Õpilane kirjutab vastuse siia…'}" ${student?'':'disabled'}></textarea>
                 ${student?'<div class="student-actions"><button id="submit-short" class="btn btn-primary">Saada vastus</button></div>':''}
               </div>`:''}
+            ${action}
             ${student
               ? `<div id="submitted-note" class="notice ok task-success" hidden>Vastus on õpetajale saadetud.</div>`
               : `<div class="task-preview-note">Eelvaade — õpilane saab vastata oma ekraanil.</div>`}
@@ -498,6 +532,7 @@
         <div class="eyebrow">KeeleSepp Live</div>
         <h2 style="margin-top:8px">${escapeHtml(title)}</h2>
         <div class="scene-body">${escapeHtml(body)}</div>
+        ${action}
       </div>`;
   }
 
@@ -577,21 +612,15 @@
       return;
     }
     try{
-      const nextVersion=(Number(state.room.sceneVersion)||0)+1;
-      const scene=buildScene({
+      await commitRoomScene({
         type:state.sceneMode,
         title:document.getElementById('scene-title')?.value,
         body:document.getElementById('scene-body')?.value,
-        options:document.getElementById('scene-options')?.value,
-        version:nextVersion
-      });
-      await db.collection('liveClassrooms').doc(state.room.id).update({
-        activeScene:scene,
-        sceneVersion:nextVersion,
+        options:document.getElementById('scene-options')?.value
+      },room=>({
         status:'live',
-        startedAt:state.room.startedAt||serverTimestamp(),
-        updatedAt:serverTimestamp()
-      });
+        startedAt:room.startedAt||serverTimestamp()
+      }));
       setNotice('Õppestseen avaldati õpilasele.');
     }catch(error){
       setNotice(error.message||'Stseeni ei saanud avaldada.','error');
@@ -618,20 +647,15 @@
     if(!window.confirm('Kas lõpetada see tund? Õpilase lava suletakse.')) return;
     await stopScreenShare(false);
     await stopPresence(true);
-    const nextVersion=(Number(state.room.sceneVersion)||0)+1;
-    const scene=buildScene({
+    await commitRoomScene({
       type:'welcome',
       title:'Tund on lõpetatud',
       body:'Aitäh osalemast! Vastused on õpetajale salvestatud.',
-      version:nextVersion
-    });
-    await db.collection('liveClassrooms').doc(state.room.id).update({
+      allowEnded:true
+    },{
       status:'ended',
-      activeScene:scene,
-      sceneVersion:nextVersion,
       screenShare:{status:'idle',shareId:''},
-      endedAt:serverTimestamp(),
-      updatedAt:serverTimestamp()
+      endedAt:serverTimestamp()
     });
   }
 
@@ -833,21 +857,15 @@
       state.screenStream=stream;
       stream.getTracks().forEach(track=>peer.addTrack(track,stream));
       videoTrack.addEventListener('ended',()=>stopScreenShare(true));
-      const nextVersion=(Number(state.room.sceneVersion)||0)+1;
-      const scene=buildScene({
+      await commitRoomScene({
         type:'screen',
         title:'Õpetaja jagab valitud akent',
-        body:'Näed ainult õpetaja valitud vahekaarti või rakenduse akent.',
-        version:nextVersion
-      });
-      await db.collection('liveClassrooms').doc(state.room.id).update({
-        activeScene:scene,
-        sceneVersion:nextVersion,
+        body:'Näed ainult õpetaja valitud vahekaarti või rakenduse akent.'
+      },room=>({
         status:'live',
-        startedAt:state.room.startedAt||serverTimestamp(),
+        startedAt:room.startedAt||serverTimestamp(),
         screenShare:{status:'active',shareId,startedAtIso:new Date().toISOString()},
-        updatedAt:serverTimestamp()
-      });
+      }));
       publishedShareId=shareId;
       const offer=await peer.createOffer();
       await peer.setLocalDescription(offer);
@@ -856,19 +874,13 @@
     }catch(error){
       stopPeer(true);
       if(publishedShareId&&state.room){
-        const nextVersion=(Number(state.room.sceneVersion)||0)+2;
-        const scene=buildScene({
-          type:'welcome',
-          title:'Ekraani jagamine katkestati',
-          body:'Õpetaja valmistab järgmist õppestseeni ette.',
-          version:nextVersion
-        });
         try{
-          await db.collection('liveClassrooms').doc(state.room.id).update({
-            activeScene:scene,
-            sceneVersion:nextVersion,
+          await commitRoomScene({
+            type:'welcome',
+            title:'Ekraani jagamine katkestati',
+            body:'Õpetaja valmistab järgmist õppestseeni ette.'
+          },{
             screenShare:{status:'idle',shareId:''},
-            updatedAt:serverTimestamp()
           });
         }catch(rollbackError){
           console.error('Screen share rollback failed',rollbackError);
@@ -909,18 +921,12 @@
     stopPeer(true);
     state.connectionStatus='Ekraani jagamine lõpetati.';
     if(!updateRoom||!state.room) return;
-    const nextVersion=(Number(state.room.sceneVersion)||0)+1;
-    const scene=buildScene({
+    await commitRoomScene({
       type:'welcome',
       title:'Ekraani jagamine on lõppenud',
-      body:'Õpetaja valmistab järgmist õppestseeni ette.',
-      version:nextVersion
-    });
-    await db.collection('liveClassrooms').doc(state.room.id).update({
-      activeScene:scene,
-      sceneVersion:nextVersion,
+      body:'Õpetaja valmistab järgmist õppestseeni ette.'
+    },{
       screenShare:{status:'idle',shareId:''},
-      updatedAt:serverTimestamp()
     });
   }
 

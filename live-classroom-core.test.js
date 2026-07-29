@@ -4,6 +4,7 @@ const {
   getRoles,
   isStaff,
   buildScene,
+  normalizeActionUrl,
   sceneAcceptsResponse,
   isUnsafeDisplaySurface,
   classroomLink,
@@ -29,6 +30,33 @@ test('message scenes are bounded and classroom links are stable',()=>{
   const scene=buildScene({type:'message',body:'x'.repeat(5000)});
   assert.equal(scene.body.length,4000);
   assert.equal(classroomLink('https://www.epkoolitus.ee/','room one'),'https://www.epkoolitus.ee/live-classroom/?room=room%20one');
+});
+
+test('library scenes keep only public source metadata and safe internal links',()=>{
+  const scene=buildScene({
+    type:'short_answer',
+    title:'Kirjuta',
+    body:'Vasta küsimusele.',
+    version:2,
+    source:{
+      kind:'exercise',
+      id:'exercise-1',
+      type:'exercise',
+      answerKey:'must-not-leak'
+    },
+    actionUrl:'/haldus-exercises/?exercise=exercise-1&student=student-1'
+  });
+
+  assert.deepEqual(scene.source,{kind:'exercise',id:'exercise-1',type:'exercise'});
+  assert.equal(scene.actionUrl,'/haldus-exercises/?exercise=exercise-1&student=student-1');
+  assert.equal(JSON.stringify(scene).includes('answerKey'),false);
+});
+
+test('external and malformed classroom action links are rejected',()=>{
+  assert.equal(normalizeActionUrl('https://evil.example/task'),'');
+  assert.equal(normalizeActionUrl('//evil.example/task'),'');
+  assert.equal(normalizeActionUrl('javascript:alert(1)'),'');
+  assert.equal(normalizeActionUrl('/haldus-exercises/'),'\/haldus-exercises\/');
 });
 
 test('whole-monitor sharing is rejected by the privacy guard',()=>{

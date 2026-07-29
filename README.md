@@ -15,6 +15,10 @@ aine → tase, klass või vanuserühm → õppekava või teema → materjalid. O
 nii kogu raamatukogus kui ka avatud kausta sees. Puuduvate metaandmetega vanad
 kirjed jäävad nähtavaks eraldi määramata kaustades.
 
+Avatud kaust salvestatakse aadressi, seega lehe värskendamine ning brauseri tagasi- ja
+edasi-nupud taastavad sama aine, taseme ja teema. Uued seosed kasutavad võimalusel
+muutumatut `curriculumId` väärtust; vanad kirjed töötavad edasi teema nime alusel.
+
 Interaktiivne tööleht määratakse õpilase töölehtede kabinetti. Harjutus või tavaline
 materjal lisatakse kodutööna. Harjutuse lõpetamisel salvestatakse tulemus õpetajale
 ja seotud kodutöö märgitakse tehtuks.
@@ -27,10 +31,14 @@ interaktiivseid ülesandeid ning jagada teadlikult valitud brauseri vahekaarti v
 
 Klassiruum näitab õpetajale ja õpilasele teise osaleja kohalolekut. Interaktiivne ülesanne avaneb
 õpilase avalikul laval eraldi ülesandeaknas ning vastus ilmub õpetaja vaates reaalajas.
+Õpetaja saab materjali saata aktiivsesse enda klassiruumi otse õppevara kaardilt. Avalikule
+lavale jõuab ainult piiratud õppestseen, mitte vastusevõti ega kogu materjali lähteandmed.
 
 Enne laiemat kasutuselevõttu vajab ekraanijagamine TURN-serverit ja
 kahe kasutajaga prooviperioodi eri võrkudes. Arenduse etapid ja turvapiirid on kirjeldatud failis
 `NEXT_RELEASE_ROADMAP.md`.
+
+Tehnilised piirid ja järkjärguline eraldamise plaan on failis `ARCHITECTURE.md`.
 
 ## Arendus
 
