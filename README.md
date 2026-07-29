@@ -109,6 +109,13 @@ Kahe aktiivse täpse maksega ei saa sama tunnirea summat ületada. Kui täpse ja
 määramata või versiooniviit on vigane, muutub see kuu kontrollis blokeerivaks kirjeks. Varasemad
 maksed ilma jaotusversioonita jätkavad migratsiooniohutu FIFO-projektsiooniga.
 
+Raamatupidamise alamvaade **Maksejaotused** koondab valitud kuu aktiivsed maksed
+tööjärjekorda. Süsteem arvestab arve muutumatuid tunniridu, teiste kinnitatud maksete
+reserveeritud summasid, makse kuupäeva ja summat ning pakub vanimast vabast reast alustavat
+jaotust koos kindlustasemega. Ettepanekut ei salvestata automaatselt: administraator peab summad
+üle vaatama ja kinnitama. Sama aken näitab kõiki makse varasemaid muutumatuid versioone, nende
+kuupäeva, põhjust ja tunniridade summasid.
+
 Paketist kaetud, tasuta, õigeaegselt tühistatud, mahakantud ja krediteeritud tunnid ei segune
 tasumata tundidega. Vana arve, millel puuduvad tunni ID-ga read, jääb pärandkirjeks ega saa
 automaatselt täpse maksekinnituse märget. Samuti annab register vea, kui arvel on tasumise märge,

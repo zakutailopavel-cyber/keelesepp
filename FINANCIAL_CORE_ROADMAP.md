@@ -207,6 +207,14 @@ capacity before remaining unversioned payments use the derived FIFO projection. 
 overlapping, over-payment or incomplete exact allocations block monthly review. Existing
 payments without allocation versions remain readable through the migration-safe FIFO fallback.
 
+The fifth Stage 9 slice adds an accountant-facing allocation work queue and version history.
+Suggestions are computed from the payment's invoice, immutable lesson rows, dates, amounts and
+capacity already reserved by other current exact versions. High, medium and low confidence remain
+advisory: no suggestion is persisted until an administrator reviews the rows and submits the
+existing server-validated command. The same modal exposes every append-only version with its
+effective date, reason and line amounts. Automatic bank-reference matching and bulk confirmation
+remain separate future slices.
+
 The third Stage 9 slice attaches private payment-order evidence to an exact payment record.
 Administrators can upload a bounded PDF or image, while students, parents and teachers have no
 Storage access. The Financial Core validates the payment-scoped Storage path and appends
