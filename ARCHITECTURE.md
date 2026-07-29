@@ -79,6 +79,14 @@ mismatches, payment overflow, paid snapshots without payment records and absence
 billing disposition. Both registers have CSV output with stable IDs. VAT, expenses and
 period-close evidence remain future accounting slices.
 
+`paymentAllocationQueue()` is a read-only client projection over the same authoritative
+collections. It never writes or confirms money. For each active payment in the selected month it
+subtracts lesson capacity reserved by other current exact versions, builds a bounded oldest-line
+suggestion, classifies confidence, and exposes incomplete, invalid and legacy cases. Confirmation
+still goes through the transactional Financial Core endpoint. The allocation modal also reads all
+append-only versions for the selected payment so the accountant can inspect the complete correction
+chain without granting the browser any financial write access.
+
 Payment-order evidence is stored under
 `financial/payment-orders/{paymentId}/{documentId}` in Firebase Storage. Only administrators
 may create or read these objects; client updates and deletes are denied. After a successful

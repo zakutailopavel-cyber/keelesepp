@@ -148,6 +148,7 @@ const {
   lessonPaymentRegister,
   lessonPaymentRegisterCsv,
   lessonPaymentStatusLabel,
+  paymentAllocationQueue,
   statusLabel:accountingStatusLabel
 } = window.AccountingLedgerCore;
 const PROGRAM_ACTIVITY_LAUNCH_DATE='2026-07-29';
@@ -6688,13 +6689,19 @@ function ParentInvoicesView({invoices,printInvoice,submitParentPayment}) {
 }
 
 // ── ARVED ÜLDVAADE ────────────────────────────────────────────
-function PaymentLineAllocationModal({invoice,payment,currentAllocation,onSave,onClose}) {
+function PaymentLineAllocationModal({invoice,payment,currentAllocation,allocationHistory=[],suggestedLines=[],onSave,onClose}) {
   const correctedIds=new Set((invoice.correctedLessonIds||[]).map(String));
   const lines=(Array.isArray(invoice.lines)?invoice.lines:[])
     .map((line,index)=>({...line,index,lessonId:String(line.lessonId||'')}))
     .filter(line=>line.lessonId&&!correctedIds.has(line.lessonId));
   const paymentNet=paymentFinancialSummary(payment).net;
   const initialAmounts=React.useMemo(()=>{
+    if(suggestedLines.length){
+      return Object.fromEntries(suggestedLines.map(line=>[
+        String(line.lessonId),
+        money(Number(line.allocatedAmountCents||0)/100)
+      ]));
+    }
     if(currentAllocation){
       return Object.fromEntries((currentAllocation.lines||[]).map(line=>[
         String(line.lessonId),
@@ -6710,7 +6717,7 @@ function PaymentLineAllocationModal({invoice,payment,currentAllocation,onSave,on
       remaining-=allocated;
       return [line.lessonId,allocated>0?money(allocated/100):''];
     }));
-  },[payment.id,currentAllocation?.id]);
+  },[payment.id,currentAllocation?.id,suggestedLines]);
   const [amounts,setAmounts]=React.useState(initialAmounts);
   const [effectiveDate,setEffectiveDate]=React.useState(today());
   const [reason,setReason]=React.useState('');
@@ -6791,6 +6798,30 @@ function PaymentLineAllocationModal({invoice,payment,currentAllocation,onSave,on
             <span style={{color:remaining>.001?'#92400e':'#166534'}}>Jaotamata <strong>{money(remaining)} €</strong></span>
           </div>
           {remaining>.001&&<div style={{fontSize:'.72rem',color:'#92400e',marginTop:7}}>Jaotamata osa jääb kuu kontrollis tähelepanu nõudvaks kirjeks.</div>}
+          {allocationHistory.length>0&&(
+            <div style={{marginTop:18,paddingTop:16,borderTop:'1px solid rgba(28,43,58,.1)'}}>
+              <div style={{fontSize:'.72rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'.07em',color:'#42536A'}}>
+                Muutmatu versiooniajalugu · {allocationHistory.length}
+              </div>
+              <div style={{display:'grid',gap:8,marginTop:9}}>
+                {allocationHistory.slice().sort((a,b)=>Number(b.version||0)-Number(a.version||0)).map(version=>(
+                  <div key={version.id} style={{padding:'10px 12px',borderRadius:10,background:version.id===currentAllocation?.id?'#ecfdf5':'#F9F8F6',border:'1px solid rgba(28,43,58,.08)'}}>
+                    <div style={{display:'flex',justifyContent:'space-between',gap:10,flexWrap:'wrap'}}>
+                      <strong style={{fontSize:'.78rem'}}>Versioon {version.version} · {fmtDate(version.effectiveDate)}</strong>
+                      <span style={{fontSize:'.7rem',color:version.id===currentAllocation?.id?'#166534':'#64748b'}}>
+                        {version.id===currentAllocation?.id?'Aktiivne · ':''}
+                        {money(Number(version.allocatedAmountCents||0)/100)} € jaotatud
+                      </span>
+                    </div>
+                    <div style={{fontSize:'.7rem',color:'#42536A',marginTop:4}}>{version.reason||'Põhjus puudub'}</div>
+                    <div style={{fontSize:'.66rem',color:'#64748b',marginTop:5}}>
+                      {(version.lines||[]).map(line=>`${fmtDate(line.lessonDate)} · ${money(Number(line.allocatedAmountCents||0)/100)} €`).join(' · ')||'Tunniridu pole'}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           <div style={{display:'flex',justifyContent:'flex-end',gap:8,marginTop:18}}>
             <button onClick={onClose} className="btn btn-ghost">Loobu</button>
             <button onClick={submit} disabled={invalid||saving} className="btn btn-pine" style={{opacity:(invalid||saving)?0.55:1}}>
@@ -6812,6 +6843,9 @@ function InvoicesView({invoices,payments,paymentLineAllocations=[],myStudents,pa
   const currentAllocationForPayment=payment=>payment?.lineAllocationId
     ?paymentLineAllocations.find(item=>item.id===payment.lineAllocationId)||null
     :null;
+  const allocationHistoryForPayment=payment=>paymentLineAllocations
+    .filter(item=>item.paymentId===payment?.id)
+    .sort((a,b)=>Number(b.version||0)-Number(a.version||0));
   const attachPaymentFile=async(payment,file,input)=>{
     if(!file||!uploadPaymentDocument) return;
     setPaymentDocumentBusy(payment.id);
@@ -8104,6 +8138,7 @@ function InvoicesView({invoices,payments,paymentLineAllocations=[],myStudents,pa
           invoice={lineAllocationDraft.invoice}
           payment={lineAllocationDraft.payment}
           currentAllocation={currentAllocationForPayment(lineAllocationDraft.payment)}
+          allocationHistory={allocationHistoryForPayment(lineAllocationDraft.payment)}
           onSave={savePaymentLineAllocation}
           onClose={()=>setLineAllocationDraft(null)}/>
       )}
@@ -8443,11 +8478,124 @@ function FinancialPeriodControlPanel({
   );
 }
 
-function AccountingRegisterView({invoices,payments,paymentLineAllocations,bankTransactions,payerCredits,lessons,financialPeriods,reviewFinancialPeriod,openInvoices,openReconciliation,openPaymentDocument}) {
+function PaymentAllocationQueuePanel({queue,onOpen}) {
+  const [filter,setFilter]=React.useState('work');
+  const [search,setSearch]=React.useState('');
+  const rows=React.useMemo(()=>{
+    const query=normalizeText(search);
+    return queue.rows.filter(row=>{
+      if(filter==='work'&&row.status==='exact') return false;
+      if(filter==='confirm'&&row.status!=='needs_confirmation') return false;
+      if(filter==='attention'&&!['invalid','incomplete','attention','unsupported'].includes(row.status)) return false;
+      if(filter==='exact'&&row.status!=='exact') return false;
+      return !query||normalizeText(`${row.invoiceNum} ${row.payer} ${row.paymentId} ${row.reason}`).includes(query);
+    });
+  },[queue.rows,filter,search]);
+  const statusMeta={
+    needs_confirmation:{label:'Kinnita ettepanek',bg:'#eff6ff',color:'#1d4ed8',icon:'fa-wand-magic-sparkles'},
+    incomplete:{label:'Jaotus pooleli',bg:'#fffbeb',color:'#92400e',icon:'fa-circle-half-stroke'},
+    attention:{label:'Summa ei mahu',bg:'#fff1f2',color:'#991b1b',icon:'fa-triangle-exclamation'},
+    invalid:{label:'Vigane versiooniviit',bg:'#fee2e2',color:'#991b1b',icon:'fa-link-slash'},
+    unsupported:{label:'Pärandarve',bg:'#f3f4f6',color:'#42536A',icon:'fa-box-archive'},
+    exact:{label:'Täpselt jaotatud',bg:'#ecfdf5',color:'#166534',icon:'fa-shield-check'}
+  };
+  const confidenceMeta={
+    high:{label:'Kõrge kindlus',bg:'#dcfce7',color:'#166534'},
+    medium:{label:'Keskmine kindlus',bg:'#fef3c7',color:'#92400e'},
+    low:{label:'Madal kindlus',bg:'#ffedd5',color:'#9a3412'},
+    confirmed:{label:'Kinnitatud',bg:'#dcfce7',color:'#166534'},
+    none:{label:'Ettepanek puudub',bg:'#f3f4f6',color:'#64748b'}
+  };
+  return(
+    <div style={{display:'flex',flexDirection:'column',gap:14}}>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(170px,1fr))',gap:10}}>
+        {[
+          ['Vajavad kinnitamist',queue.summary.needsConfirmationCount,'#1d4ed8','#eff6ff'],
+          ['Vajavad tähelepanu',queue.summary.attentionCount,'#991b1b','#fff1f2'],
+          ['Kõrge kindlusega',queue.summary.highConfidenceCount,'#166534','#ecfdf5'],
+          ['Täpselt jaotatud',queue.summary.exactCount,'#166534','#f0fdf4']
+        ].map(([label,value,color,bg])=>(
+          <div key={label} className="card" style={{padding:15,background:bg}}>
+            <div style={{fontSize:'.66rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'.06em',color:'#64748b'}}>{label}</div>
+            <div style={{fontFamily:'Fraunces,Georgia,serif',fontSize:'1.55rem',fontWeight:700,color,marginTop:5}}>{value}</div>
+          </div>
+        ))}
+      </div>
+      <div className="card" style={{padding:14}}>
+        <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
+          <input value={search} onChange={event=>setSearch(event.target.value)}
+            placeholder="Otsi arve, maksja või makse ID järgi…" style={{flex:1,minWidth:230}}/>
+          {[
+            ['work','Tööjärjekord'],
+            ['confirm','Kinnitamata'],
+            ['attention','Tähelepanu'],
+            ['exact','Kinnitatud'],
+            ['all','Kõik']
+          ].map(([id,label])=>(
+            <button key={id} onClick={()=>setFilter(id)} className={filter===id?'btn btn-dark btn-sm':'btn btn-ghost btn-sm'}>{label}</button>
+          ))}
+        </div>
+      </div>
+      {rows.map(row=>{
+        const meta=statusMeta[row.status]||statusMeta.attention;
+        const confidence=confidenceMeta[row.confidence]||confidenceMeta.none;
+        const canOpen=!['invalid','unsupported'].includes(row.status);
+        return(
+          <div key={row.paymentId} className="card" style={{padding:0,overflow:'hidden',border:`1px solid ${meta.color}22`}}>
+            <div style={{padding:'14px 16px',display:'flex',justifyContent:'space-between',gap:14,alignItems:'flex-start',flexWrap:'wrap'}}>
+              <div style={{minWidth:220,flex:1}}>
+                <div style={{display:'flex',gap:7,alignItems:'center',flexWrap:'wrap'}}>
+                  <strong>{row.invoiceNum} · {row.payer}</strong>
+                  <span className="badge" style={{background:meta.bg,color:meta.color}}>
+                    <i className={`fa-solid ${meta.icon}`}/> {meta.label}
+                  </span>
+                  <span className="badge" style={{background:confidence.bg,color:confidence.color}}>{confidence.label}</span>
+                </div>
+                <div style={{fontSize:'.72rem',color:'#64748b',marginTop:5}}>
+                  {fmtDate(row.paidAt)} · makse {money(accountingAmount(row.paymentCents))} € · ID {row.paymentId}
+                </div>
+                <div style={{fontSize:'.74rem',color:'#42536A',marginTop:7}}>{row.reason}</div>
+              </div>
+              <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
+                {row.history.length>0&&<span style={{fontSize:'.7rem',color:'#64748b'}}>{row.history.length} versiooni</span>}
+                {canOpen&&(
+                  <button onClick={()=>onOpen(row)} className={row.status==='exact'?'btn btn-ghost btn-sm':'btn btn-pine btn-sm'}>
+                    {row.status==='exact'?'Ava ajalugu':row.currentAllocation?'Paranda jaotust':'Kontrolli ja kinnita'}
+                  </button>
+                )}
+              </div>
+            </div>
+            {row.suggestedLines.length>0&&row.status!=='exact'&&(
+              <div style={{padding:'10px 16px',background:'#F9F8F6',borderTop:'1px solid rgba(28,43,58,.07)'}}>
+                <div style={{fontSize:'.66rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'.06em',color:'#64748b'}}>Süsteemi ettepanek</div>
+                <div style={{display:'flex',gap:7,flexWrap:'wrap',marginTop:7}}>
+                  {row.suggestedLines.map(line=>(
+                    <span key={line.lessonId} style={{padding:'6px 8px',borderRadius:8,background:'#fff',border:'1px solid rgba(28,43,58,.08)',fontSize:'.7rem'}}>
+                      {fmtDate(line.lessonDate)} · {line.description||'Tund'} · <strong>{money(accountingAmount(line.allocatedAmountCents))} €</strong>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })}
+      {rows.length===0&&(
+        <div className="card" style={{padding:34,textAlign:'center',color:'#64748b'}}>
+          <i className="fa-solid fa-circle-check" style={{fontSize:'1.5rem',color:'#166534'}}/>
+          <div style={{fontWeight:800,marginTop:9}}>Selles vaates pole makseid</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AccountingRegisterView({invoices,payments,paymentLineAllocations,bankTransactions,payerCredits,lessons,financialPeriods,reviewFinancialPeriod,savePaymentLineAllocation,openInvoices,openReconciliation,openPaymentDocument}) {
   const [month,setMonth]=React.useState(()=>today().slice(0,7));
   const [registerMode,setRegisterMode]=React.useState('invoices');
   const [status,setStatus]=React.useState('all');
   const [search,setSearch]=React.useState('');
+  const [allocationDraft,setAllocationDraft]=React.useState(null);
   const register=React.useMemo(()=>accountingRegister({
     invoices,
     payments,
@@ -8467,6 +8615,12 @@ function AccountingRegisterView({invoices,payments,paymentLineAllocations,bankTr
   const period=React.useMemo(()=>
     (financialPeriods||[]).find(item=>(item.month||item.id)===month)||null
   ,[financialPeriods,month]);
+  const allocationQueue=React.useMemo(()=>paymentAllocationQueue({
+    invoices,
+    payments,
+    paymentLineAllocations,
+    month
+  }),[invoices,payments,paymentLineAllocations,month]);
   const visibleRows=React.useMemo(()=>{
     const query=normalizeText(search);
     return register.rows.filter(row=>{
@@ -8524,7 +8678,9 @@ function AccountingRegisterView({invoices,payments,paymentLineAllocations,bankTr
               ?'Arvete ja laekumiste register'
               :registerMode==='lessons'
                 ?'Tundide ja maksete täpne kontroll'
-                :'Kuu finantskontroll ja kinnitatud kontrollversioon'}
+                :registerMode==='allocations'
+                  ?'Maksete täpse tunnijaotuse tööjärjekord'
+                  :'Kuu finantskontroll ja kinnitatud kontrollversioon'}
           </p>
         </div>
         <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
@@ -8543,6 +8699,14 @@ function AccountingRegisterView({invoices,payments,paymentLineAllocations,bankTr
         <button onClick={()=>setRegisterMode('lessons')} className={registerMode==='lessons'?'btn btn-dark btn-sm':'btn btn-ghost btn-sm'}>
           <i className="fa-solid fa-link"/> Tunnid ↔ maksed
         </button>
+        <button onClick={()=>setRegisterMode('allocations')} className={registerMode==='allocations'?'btn btn-dark btn-sm':'btn btn-ghost btn-sm'}>
+          <i className="fa-solid fa-list-check"/> Maksejaotused
+          {(allocationQueue.summary.needsConfirmationCount+allocationQueue.summary.attentionCount)>0&&(
+            <span className="badge" style={{marginLeft:4,background:'#fef3c7',color:'#92400e'}}>
+              {allocationQueue.summary.needsConfirmationCount+allocationQueue.summary.attentionCount}
+            </span>
+          )}
+        </button>
         <button onClick={()=>setRegisterMode('control')} className={registerMode==='control'?'btn btn-dark btn-sm':'btn btn-ghost btn-sm'}>
           <i className="fa-solid fa-shield-check"/> Kuu kontroll
           {periodControl.summary.blockingIssueCount>0&&(
@@ -8559,7 +8723,9 @@ function AccountingRegisterView({invoices,payments,paymentLineAllocations,bankTr
             ?'Arved kuuluvad perioodi väljastamise kuupäeva järgi. Laekumised kuuluvad perioodi makse kuupäeva järgi; seetõttu võivad laekumised sisaldada varasemate arvete tasumisi.'
             :registerMode==='lessons'
               ?'Tunnid kuuluvad perioodi toimumise kuupäeva järgi. Iga rida kontrollib tunni ID-d, arverida, makseid, paketikatet ja allesjäänud summat.'
-              :'Kuu kontroll ühendab tundide finantsotsused, arveread, aktiivsed maksekirjed ja pangatehingute jaotuse. Kinnitamine loob muutumatu serveripoolse kontrollversiooni.'}
+              :registerMode==='allocations'
+                ?'Süsteem pakub jaotust ainult aktiivse makse, arve muutumatute tunniridade ja allesjäänud summade põhjal. Ettepanek ei muutu finantskirjeks enne administraatori kinnitust.'
+                :'Kuu kontroll ühendab tundide finantsotsused, arveread, aktiivsed maksekirjed ja pangatehingute jaotuse. Kinnitamine loob muutumatu serveripoolse kontrollversiooni.'}
         </div>
       </div>
 
@@ -8689,6 +8855,9 @@ function AccountingRegisterView({invoices,payments,paymentLineAllocations,bankTr
         paymentLineAllocations={paymentLineAllocations}
         openInvoices={openInvoices}
         openReconciliation={openReconciliation}/>}
+      {registerMode==='allocations'&&(
+        <PaymentAllocationQueuePanel queue={allocationQueue} onOpen={setAllocationDraft}/>
+      )}
       {registerMode==='control'&&<FinancialPeriodControlPanel
         control={periodControl}
         period={period}
@@ -8696,6 +8865,16 @@ function AccountingRegisterView({invoices,payments,paymentLineAllocations,bankTr
         openInvoices={openInvoices}
         openReconciliation={openReconciliation}
         openLessonRegister={()=>setRegisterMode('lessons')}/>}
+      {allocationDraft&&(
+        <PaymentLineAllocationModal
+          invoice={allocationDraft.invoice}
+          payment={allocationDraft.payment}
+          currentAllocation={allocationDraft.currentAllocation}
+          allocationHistory={allocationDraft.history}
+          suggestedLines={allocationDraft.status==='exact'?[]:allocationDraft.suggestedLines}
+          onSave={savePaymentLineAllocation}
+          onClose={()=>setAllocationDraft(null)}/>
+      )}
     </div>
   );
 }
@@ -13821,6 +14000,7 @@ function App() {
             lessons={lessons}
             financialPeriods={financialPeriods}
             reviewFinancialPeriod={reviewFinancialPeriod}
+            savePaymentLineAllocation={savePaymentLineAllocation}
             openPaymentDocument={openPaymentDocument}
             openInvoices={()=>goTab('invoices')}
             openReconciliation={()=>goTab('reconciliation')}/>}

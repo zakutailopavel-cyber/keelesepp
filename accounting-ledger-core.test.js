@@ -6,7 +6,8 @@ const {
   accountingRegisterCsv,
   financialPeriodControl,
   lessonPaymentRegister,
-  lessonPaymentRegisterCsv
+  lessonPaymentRegisterCsv,
+  paymentAllocationQueue
 }=require('./accounting-ledger-core');
 
 test('monthly control combines lesson, invoice, payment and bank blockers',()=>{
@@ -186,6 +187,118 @@ test('old payments retain migration-safe FIFO while broken explicit pointers blo
   assert.ok(broken.issues.some(issue=>issue.type==='payment_line_allocation_invalid'));
 });
 
+test('payment allocation queue suggests one exact free lesson with high confidence',()=>{
+  const queue=paymentAllocationQueue({
+    month:'2026-07',
+    invoices:[{
+      id:'invoice-a',
+      num:'KS-QUEUE-1',
+      lines:[
+        {lessonId:'lesson-a',date:'2026-07-01',description:'Grammar',amountCents:3000},
+        {lessonId:'lesson-b',date:'2026-07-08',description:'Reading',amountCents:3000}
+      ]
+    }],
+    payments:[
+      {
+        id:'payment-confirmed',
+        invoiceId:'invoice-a',
+        amountCents:3000,
+        paidAt:'2026-07-09',
+        status:'active',
+        lineAllocationId:'allocation-confirmed',
+        lineAllocationVersion:1,
+        payerName:'Mari'
+      },
+      {
+        id:'payment-new',
+        invoiceId:'invoice-a',
+        amountCents:3000,
+        paidAt:'2026-07-10',
+        status:'active',
+        payerName:'Mari'
+      }
+    ],
+    paymentLineAllocations:[{
+      id:'allocation-confirmed',
+      paymentId:'payment-confirmed',
+      invoiceId:'invoice-a',
+      version:1,
+      allocatedAmountCents:3000,
+      lines:[{lessonId:'lesson-a',allocatedAmountCents:3000}]
+    }]
+  });
+  const suggestion=queue.rows.find(row=>row.paymentId==='payment-new');
+  assert.equal(suggestion.status,'needs_confirmation');
+  assert.equal(suggestion.confidence,'high');
+  assert.deepEqual(
+    suggestion.suggestedLines.map(line=>[line.lessonId,line.allocatedAmountCents]),
+    [['lesson-b',3000]]
+  );
+  assert.equal(queue.summary.needsConfirmationCount,1);
+  assert.equal(queue.summary.highConfidenceCount,1);
+});
+
+test('payment allocation queue exposes immutable history and incomplete or invalid pointers',()=>{
+  const base={
+    month:'2026-07',
+    invoices:[{
+      id:'invoice-a',
+      num:'KS-QUEUE-2',
+      lines:[{lessonId:'lesson-a',date:'2026-07-01',amountCents:3000}]
+    }],
+    paymentLineAllocations:[
+      {
+        id:'allocation-v1',
+        paymentId:'payment-a',
+        invoiceId:'invoice-a',
+        version:1,
+        createdAt:'2026-07-03T10:00:00Z',
+        allocatedAmountCents:1000,
+        lines:[{lessonId:'lesson-a',allocatedAmountCents:1000}]
+      },
+      {
+        id:'allocation-v2',
+        paymentId:'payment-a',
+        invoiceId:'invoice-a',
+        version:2,
+        createdAt:'2026-07-04T10:00:00Z',
+        allocatedAmountCents:2000,
+        lines:[{lessonId:'lesson-a',allocatedAmountCents:2000}]
+      }
+    ]
+  };
+  const incomplete=paymentAllocationQueue({
+    ...base,
+    payments:[{
+      id:'payment-a',
+      invoiceId:'invoice-a',
+      amountCents:3000,
+      paidAt:'2026-07-04',
+      status:'active',
+      lineAllocationId:'allocation-v2',
+      lineAllocationVersion:2
+    }]
+  });
+  assert.equal(incomplete.rows[0].status,'incomplete');
+  assert.deepEqual(incomplete.rows[0].history.map(item=>item.id),['allocation-v2','allocation-v1']);
+  assert.equal(incomplete.summary.attentionCount,1);
+
+  const invalid=paymentAllocationQueue({
+    ...base,
+    payments:[{
+      id:'payment-b',
+      invoiceId:'invoice-a',
+      amountCents:3000,
+      paidAt:'2026-07-04',
+      status:'active',
+      lineAllocationId:'missing-version',
+      lineAllocationVersion:1
+    }]
+  });
+  assert.equal(invalid.rows[0].status,'invalid');
+  assert.equal(invalid.rows[0].confidence,'none');
+});
+
 test('CRM loads the accounting ledger and exposes an administrator screen',()=>{
   const html=fs.readFileSync('haldus.html','utf8');
   assert.match(html,/accounting-ledger-core\.js/);
@@ -199,6 +312,9 @@ test('CRM loads the accounting ledger and exposes an administrator screen',()=>{
   assert.match(html,/\/payments\/documents/);
   assert.match(html,/\/payments\/line-allocations/);
   assert.match(html,/Jaga tundidele/);
+  assert.match(html,/Maksejaotused/);
+  assert.match(html,/Süsteemi ettepanek/);
+  assert.match(html,/Muutmatu versiooniajalugu/);
   const storageRules=fs.readFileSync('storage.rules','utf8');
   assert.match(storageRules,/financial\/payment-orders\/\{paymentId\}\/\{documentId\}/);
   assert.match(storageRules,/allow read: if accountingAdmin\(\)/);

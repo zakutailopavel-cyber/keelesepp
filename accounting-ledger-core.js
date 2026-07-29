@@ -755,6 +755,183 @@
     };
   }
 
+  function paymentAllocationQueue({
+    invoices=[],
+    payments=[],
+    paymentLineAllocations=[],
+    month=''
+  }={}){
+    const invoiceById=new Map(
+      (Array.isArray(invoices)?invoices:[])
+        .filter(item=>item?.id)
+        .map(item=>[String(item.id),item])
+    );
+    const activePayments=(Array.isArray(payments)?payments:[])
+      .filter(activePayment);
+    const allocationList=Array.isArray(paymentLineAllocations)?paymentLineAllocations:[];
+    const allocationById=new Map(
+      allocationList.filter(item=>item?.id).map(item=>[String(item.id),item])
+    );
+    const versionsByPayment=new Map();
+    allocationList.forEach(allocation=>{
+      const paymentId=String(allocation?.paymentId||'');
+      if(!paymentId) return;
+      if(!versionsByPayment.has(paymentId)) versionsByPayment.set(paymentId,[]);
+      versionsByPayment.get(paymentId).push(allocation);
+    });
+    versionsByPayment.forEach(list=>list.sort((a,b)=>
+      Number(b.version||0)-Number(a.version||0)
+      ||String(b.createdAt||'').localeCompare(String(a.createdAt||''))
+    ));
+
+    const currentAllocationFor=payment=>{
+      if(!payment?.lineAllocationId) return null;
+      const allocation=allocationById.get(String(payment.lineAllocationId));
+      if(
+        !allocation
+        ||String(allocation.paymentId||'')!==String(payment.id||'')
+        ||String(allocation.invoiceId||'')!==String(payment.invoiceId||'')
+        ||Number(allocation.version||0)!==Number(payment.lineAllocationVersion||0)
+      ) return null;
+      return allocation;
+    };
+    const rows=activePayments
+      .filter(payment=>inMonth(paymentDate(payment),month))
+      .map(payment=>{
+        const paymentId=String(payment.id||'');
+        const invoiceId=String(payment.invoiceId||'');
+        const invoice=invoiceById.get(invoiceId)||null;
+        const correctedIds=new Set((invoice?.correctedLessonIds||[]).map(String));
+        const invoiceLines=(Array.isArray(invoice?.lines)?invoice.lines:[])
+          .map((line,index)=>({
+            ...line,
+            invoiceLineIndex:index,
+            lessonId:String(line?.lessonId||''),
+            amountCents:cents(line,'amountCents','amount')
+          }))
+          .filter(line=>line.lessonId&&!correctedIds.has(line.lessonId))
+          .sort((a,b)=>`${isoDate(a.date)}:${String(a.invoiceLineIndex).padStart(4,'0')}`
+            .localeCompare(`${isoDate(b.date)}:${String(b.invoiceLineIndex).padStart(4,'0')}`));
+        const currentAllocation=currentAllocationFor(payment);
+        const hasPointer=Boolean(payment.lineAllocationId);
+        const reservedByOthers={};
+        activePayments
+          .filter(other=>
+            String(other.id||'')!==paymentId
+            &&String(other.invoiceId||'')===invoiceId
+            &&other.lineAllocationId
+          )
+          .forEach(other=>{
+            const allocation=currentAllocationFor(other);
+            if(!allocation) return;
+            (allocation.lines||[]).forEach(line=>{
+              const lessonId=String(line?.lessonId||'');
+              reservedByOthers[lessonId]=(reservedByOthers[lessonId]||0)
+                +Math.max(0,Number(line?.allocatedAmountCents)||0);
+            });
+          });
+        const availableLines=invoiceLines.map(line=>({
+          ...line,
+          availableCents:Math.max(0,line.amountCents-(reservedByOthers[line.lessonId]||0))
+        }));
+        const paymentCents=paymentNetCents(payment);
+        let remainingCents=paymentCents;
+        const suggestedLines=[];
+        availableLines.forEach(line=>{
+          if(remainingCents<=0||line.availableCents<=0) return;
+          const allocatedAmountCents=Math.min(line.availableCents,remainingCents);
+          suggestedLines.push({
+            lessonId:line.lessonId,
+            invoiceLineIndex:line.invoiceLineIndex,
+            lessonDate:isoDate(line.date),
+            description:String(line.description||line.title||''),
+            lineAmountCents:line.amountCents,
+            availableCents:line.availableCents,
+            allocatedAmountCents
+          });
+          remainingCents-=allocatedAmountCents;
+        });
+        const currentAllocatedCents=currentAllocation
+          ?Math.max(0,Number(currentAllocation.allocatedAmountCents)||0)
+          :0;
+        const currentUnallocatedCents=currentAllocation
+          ?Math.max(0,paymentCents-currentAllocatedCents)
+          :paymentCents;
+        let status='needs_confirmation';
+        let confidence='low';
+        let reason='Makse vajab administraatori kinnitatud tunnijaotust.';
+        if(!invoice||invoiceLines.length===0){
+          status='unsupported';
+          confidence='none';
+          reason='Arvel puuduvad muutumatud tunni ID-ga read.';
+        }else if(hasPointer&&!currentAllocation){
+          status='invalid';
+          confidence='none';
+          reason='Makse aktiivse jaotusversiooni viit on vigane või puudub.';
+        }else if(currentAllocation&&currentUnallocatedCents>1){
+          status='incomplete';
+          confidence='none';
+          reason=`Aktiivses versioonis on ${amountFromCents(currentUnallocatedCents).toFixed(2)} € jaotamata.`;
+        }else if(currentAllocation){
+          status='exact';
+          confidence='confirmed';
+          reason=`Kinnitatud täpne jaotus · versioon ${Number(currentAllocation.version||0)}.`;
+        }else if(remainingCents>1){
+          status='attention';
+          confidence='none';
+          reason=`Tunniridadel ei ole ${amountFromCents(remainingCents).toFixed(2)} € jaoks piisavalt vaba summat.`;
+        }else if(
+          suggestedLines.length===1
+          &&suggestedLines[0].allocatedAmountCents===suggestedLines[0].availableCents
+        ){
+          confidence='high';
+          reason='Summa vastab täpselt ühele vabale tunnireale.';
+        }else if(suggestedLines.every(line=>line.allocatedAmountCents===line.availableCents)){
+          confidence='medium';
+          reason='Summa katab terviklikud tunniread vanimast alates.';
+        }else{
+          confidence='low';
+          reason='Ettepanek sisaldab osalist tunnirida ja vajab hoolikat kontrolli.';
+        }
+        return {
+          paymentId,
+          invoiceId,
+          invoice,
+          payment,
+          invoiceNum:String(invoice?.num||payment.invoiceNum||invoiceId||'—'),
+          payer:payerLabel(payment),
+          paidAt:paymentDate(payment),
+          paymentCents,
+          status,
+          confidence,
+          reason,
+          suggestedLines,
+          suggestedCents:paymentCents-Math.max(0,remainingCents),
+          suggestionRemainderCents:Math.max(0,remainingCents),
+          currentAllocation,
+          currentAllocatedCents,
+          currentUnallocatedCents,
+          history:versionsByPayment.get(paymentId)||[]
+        };
+      })
+      .sort((a,b)=>{
+        const rank={invalid:0,incomplete:1,attention:2,needs_confirmation:3,unsupported:4,exact:5};
+        return (rank[a.status]??9)-(rank[b.status]??9)
+          ||`${b.paidAt}:${b.paymentId}`.localeCompare(`${a.paidAt}:${a.paymentId}`);
+      });
+    return {
+      month,
+      rows,
+      summary:{
+        paymentCount:rows.length,
+        needsConfirmationCount:rows.filter(row=>row.status==='needs_confirmation').length,
+        attentionCount:rows.filter(row=>['invalid','incomplete','attention','unsupported'].includes(row.status)).length,
+        exactCount:rows.filter(row=>row.status==='exact').length,
+        highConfidenceCount:rows.filter(row=>row.status==='needs_confirmation'&&row.confidence==='high').length
+      }
+    };
+  }
+
   const csvCell=value=>`"${String(value??'').replace(/"/g,'""')}"`;
   function accountingRegisterCsv(register={}){
     const header=[
@@ -821,6 +998,7 @@
     lessonPaymentRegister,
     lessonPaymentRegisterCsv,
     lessonPaymentStatusLabel,
+    paymentAllocationQueue,
     paymentNetCents,
     statusLabel
   };
