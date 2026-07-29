@@ -72,7 +72,8 @@ Cloud Functions and are covered by unit and emulator tests.
 
 The CRM renders month, week and day projections from the same schedule records. Existing records
 without `scheduleVersion` remain valid. New browser-created records use `scheduleVersion: 2` and
-keep their source (`keelesepp` or `gcal`) explicit.
+keep their source (`keelesepp` or `gcal`) explicit. Per-occurrence child records use
+`scheduleVersion: 3` and preserve their parent series reference.
 
 `functions/calendar-sync-core.js` owns the pure Google event projection, scope checks, stable
 origin identifiers and content fingerprints. The Firestore schedule trigger pushes individual
@@ -88,9 +89,15 @@ Private Google extended properties plus a stable content fingerprint stop the se
 re-importing its own write as a new change. Completed lesson history is never deleted when a
 Google event disappears.
 
-The first two-way slice deliberately uses last-synchronized-write-wins and treats a recurring
-series as one unit. Per-occurrence exceptions, explicit conflict review and incremental sync
-tokens remain separate releases.
+Recurring schedule exceptions are additive and migration-safe. The parent series keeps an
+`excludedDates` array. A moved or cancelled occurrence becomes a separate `schedule` record with
+`seriesId`, `originalOccurrenceDate` and stable student ownership. Google receives matching
+`EXDATE` recurrence lines, while an active moved occurrence is synchronized as its own managed
+event. Deleting the exception removes that child record and restores the date on the parent.
+
+The current two-way slice still uses last-synchronized-write-wins. Native Google exceptions
+created directly from an otherwise unmanaged recurring series, explicit conflict review and
+incremental sync tokens remain separate releases.
 
 ## Firestore ownership
 
@@ -104,7 +111,8 @@ tokens remain separate releases.
   learning-history rollout.
 - `liveClassrooms/{id}/responses` — append-only student responses for the current scene version.
 - `activityLog` — operational audit events, including library assignment and classroom publish.
-- `schedule` — dated or recurring lesson intent with stable student ownership for new records.
+- `schedule` — dated or recurring lesson intent plus additive occurrence exceptions with stable
+  student ownership.
 - `calendarConnections` — server-only Google OAuth credentials and sync status; browser access is denied.
 - `calendarSyncOutbox` — server-only deferred Google event deletions; browser access is denied.
 - financial collections — governed by the financial core and its immutable audit model.

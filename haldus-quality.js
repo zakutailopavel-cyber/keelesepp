@@ -29,6 +29,7 @@
 
   const scheduleEventOccursOnDate=(event,dateIso)=>{
     if(!event||!dateIso||event.status==='Tühistatud') return false;
+    if(Array.isArray(event.excludedDates)&&event.excludedDates.includes(String(dateIso))) return false;
     if(event.date) return String(event.date)===String(dateIso);
     const date=new Date(`${dateIso}T12:00:00`);
     if(Number.isNaN(date.getTime())) return false;

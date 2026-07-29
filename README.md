@@ -23,7 +23,13 @@ KeeleSepa loodud Google'i sündmused kannavad privaatset päritolu-ID-d. Server 
 sünkroonimisel ka sündmuse sisulist sõrmejälge, et sama muudatus ei liiguks lõputult kahe
 süsteemi vahel. Edasilükatud kustutused jäävad serveripoolsesse järjekorda; OAuthi võtmeid ega
 järjekorda brauser lugeda ei saa. Praegune konfliktipoliitika on viimase sünkroonitud muudatuse
-võit ning korduva tunni üksiku esinemise muutmine jääb järgmisse kalendriversiooni.
+võit; eraldi konfliktide kinnitamise vaade jääb järgmisse kalendriversiooni.
+
+Korduva tunni avamisel saab õpetaja valida **Ainult see tund** või **Kogu sari**. Ühe tunni
+ümbertõstmisel või tühistamisel jääb sarja mall muutmata: algne kuupäev lisatakse sarja
+eranditesse ning konkreetne tund salvestatakse eraldi õpilasega seotud kirjena. Google
+Calendar saab sarja `EXDATE` erandi ja vajadusel uue ühekordse sündmuse. Erandi kustutamisel
+taastatakse sarja algne tund.
 
 ## Õppevara
 

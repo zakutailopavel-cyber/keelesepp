@@ -147,7 +147,8 @@ const {
   monthGrid:calendarMonthGrid,
   monthLabel:calendarMonthLabel,
   shiftMonth:calendarShiftMonth,
-  buildSchedulePayload
+  buildSchedulePayload,
+  buildOccurrenceExceptionPlan
 } = window.CalendarCore;
 const LEVELS = SHARED_LEVELS.includes('Eelkool') ? SHARED_LEVELS : ['Eelkool',...SHARED_LEVELS];
 const GRADES = SHARED_GRADES.includes('Eelkool') ? SHARED_GRADES : ['Eelkool',...SHARED_GRADES];
@@ -1014,7 +1015,11 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
             const target=dayMap[ev.day];
             const d=new Date(Math.max(new Date(ev.startDate),new Date(todayIso)));
             while(d.getDay()!==target) d.setDate(d.getDate()+1);
-            const dIso=d.toISOString().split('T')[0];
+            let dIso=d.toISOString().split('T')[0];
+            while(dIso<=nextTwoWeeksIso&&(ev.excludedDates||[]).includes(dIso)){
+              d.setDate(d.getDate()+7);
+              dIso=d.toISOString().split('T')[0];
+            }
             if(dIso<=nextTwoWeeksIso) upcomingLessons.push({...ev,_date:dIso});
           }
         });
@@ -2363,6 +2368,17 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
       setDragEv(null);
       return;
     }
+    if(ev.recurring&&!ev.date){
+      openScheduleEditor({
+        ...ev,
+        occurrenceDate:dragEv.sourceDay,
+        requestedMoveDate:targetIso,
+        requestedMoveTime:targetSlot
+      });
+      notify('Vali, kas muuta ainult seda tundi või kogu sarja.');
+      setDragEv(null);
+      return;
+    }
     const dayId=calendarDayIdForDate(targetIso);
     const candidate={
       ...ev,
@@ -2378,10 +2394,6 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
       setDragEv(null);
       return;
     }
-    if(ev.recurring&&!ev.date&&!window.confirm('Kas tõsta kogu korduv tunnisari uuele päevale ja kellaajale?')){
-      setDragEv(null);
-      return;
-    }
     try{
       const patch=ev.date
         ?{date:targetIso,day:dayId,time:targetSlot,status:ev.status==='Tühistatud'?ev.status:'Planeeritud',teacherUid:ev.teacherUid||teacherUidForName(ev.teacher),updatedAtIso:new Date().toISOString()}
@@ -2394,7 +2406,7 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
       notify(`✓ ${ev.studentName} → ${targetSlot}`);
     }catch{notify('⚠ Liigutamine ebaõnnestus');}
     setDragEv(null);
-  },[dragEv,notify,filteredSch,logActivity,teacherUidForName]);
+  },[dragEv,notify,filteredSch,logActivity,teacherUidForName,openScheduleEditor]);
 
   // ── Popup create (Google-style) ───────────────────────────────
   const openCreatePopup = React.useCallback((e,dayIso,slot)=>{
@@ -6257,7 +6269,8 @@ function InvoicesView({invoices,payments,myStudents,parents,schedule,students,le
       // Advance to first occurrence of targetDay
       while(d.getDay()!==targetDay && d<=end) d.setDate(d.getDate()+1);
       while(d<=end){
-        dates.push(d.toISOString().split('T')[0]);
+        const dateIso=d.toISOString().split('T')[0];
+        if(!(ev.excludedDates||[]).includes(dateIso)) dates.push(dateIso);
         d.setDate(d.getDate()+7);
       }
     }
@@ -8067,13 +8080,14 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
   lStatus,setLStatus,lComment,setLComment,
   lNewWords,setLNewWords,lGrammar,setLGrammar,lCovered,setLCovered,lNextNotes,setLNextNotes,
   lDur,setLDur,lessonFile,setLessonFile,saveLesson,deleteLesson,db,user,notify,students,markAttendance,
-  studentPackages=[],schedule=[],staffMembers=[],isAdmin,updateLessonBillingDisposition}) {
+  studentPackages=[],schedule=[],staffMembers=[],isAdmin,updateLessonBillingDisposition,logActivity}) {
 
-  const [moveDate,setMoveDate] = React.useState(modalEv.occurrenceDate||modalEv.date||new Date().toISOString().split("T")[0]);
-  const [moveTime,setMoveTime] = React.useState(modalEv.time||"09:00");
+  const [moveDate,setMoveDate] = React.useState(modalEv.requestedMoveDate||modalEv.occurrenceDate||modalEv.date||new Date().toISOString().split("T")[0]);
+  const [moveTime,setMoveTime] = React.useState(modalEv.requestedMoveTime||modalEv.time||"09:00");
   const [saving,setSaving]     = React.useState(false);
   const [savingDiary,setSavingDiary] = React.useState(false);
   const [billingBusy,setBillingBusy] = React.useState(false);
+  const [seriesScope,setSeriesScope] = React.useState('occurrence');
   const teacherUidForName = React.useCallback(teacherName=>{
     const canonical=normalizeText(canonicalTeacherName(teacherName));
     if(canonical&&canonical===normalizeText(canonicalTeacherName(user.displayName||''))) return user.uid||'';
@@ -8088,6 +8102,8 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
   const st = modalEv.status||"Planeeritud";
   const isJournalEdit = Boolean(modalEv.lessonEntryId);
   const isGoogleEvent = modalEv.source==='gcal';
+  const isSeries = Boolean(modalEv.recurring&&!modalEv.seriesId&&!modalEv.isGroup);
+  const isOccurrenceException = Boolean(modalEv.seriesId&&modalEv.originalOccurrenceDate);
   const savedLessonStatus = modalEv.status||lStatus;
   const billingOptions = savedLessonStatus==='Toimunud'
     ? [
@@ -8219,17 +8235,77 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
     Tühistatud:"rgba(239,68,68,.08)",Toimunud:"rgba(28,43,58,.07)"
   };
 
+  const createOccurrenceException = async(changes,action)=>{
+    const occurrenceDate=modalEv.occurrenceDate||modalEv.date;
+    const plan=buildOccurrenceExceptionPlan(modalEv,occurrenceDate,changes);
+    if(!plan){
+      notify("⚠ Selle tunni erandit ei saanud luua.");
+      return null;
+    }
+    const exceptionRef=db.collection("schedule").doc();
+    const exception={
+      ...plan.exception,
+      teacherUid:plan.exception.teacherUid||modalEv.teacherUid||teacherUidForName(modalEv.teacher)
+    };
+    const batch=db.batch();
+    batch.update(db.collection("schedule").doc(modalEv.id),{
+      excludedDates:firebase.firestore.FieldValue.arrayUnion(occurrenceDate),
+      updatedAtIso:plan.seriesPatch.updatedAtIso
+    });
+    batch.set(exceptionRef,exception);
+    await batch.commit();
+    if(logActivity){
+      try{
+        await logActivity(action,'Muudeti korduva sarja üht tundi',{
+          scheduleId:exceptionRef.id,
+          seriesId:modalEv.id,
+          studentId:modalEv.studentId||'',
+          studentName:modalEv.studentName||'',
+          originalOccurrenceDate:occurrenceDate,
+          date:exception.date,
+          time:exception.time,
+          status:exception.status
+        });
+      }catch(error){
+        console.warn('Occurrence activity log failed:',error);
+      }
+    }
+    return {id:exceptionRef.id,...exception};
+  };
+
   const cancelLesson = async()=>{
     if(!modalEv.id) return;
     if(isGoogleEvent){notify("Muuda Google’i sündmust Google Calendaris.");return;}
-    await db.collection("schedule").doc(modalEv.id).update({
-      status:"Tühistatud",
-      teacherUid:modalEv.teacherUid||teacherUidForName(modalEv.teacher),
-      canceledAt:new Date().toISOString().split("T")[0],
-      updatedAtIso:new Date().toISOString()
-    });
-    notify("✓ Tund tühistatud");
-    setModalEv(prev=>({...prev,status:"Tühistatud"}));
+    if(saving) return;
+    setSaving(true);
+    try{
+      if(isSeries&&seriesScope==='occurrence'){
+        const exception=await createOccurrenceException({
+          status:"Tühistatud",
+          date:modalEv.occurrenceDate,
+          time:modalEv.time,
+          duration:Number(lDur)||Number(modalEv.duration)||60
+        },'schedule.occurrence_cancelled');
+        if(exception){
+          notify("✓ Ainult see tund tühistati");
+          setModalEv(null);
+        }
+      }else{
+        await db.collection("schedule").doc(modalEv.id).update({
+          status:"Tühistatud",
+          teacherUid:modalEv.teacherUid||teacherUidForName(modalEv.teacher),
+          canceledAt:new Date().toISOString().split("T")[0],
+          updatedAtIso:new Date().toISOString()
+        });
+        notify(isSeries?"✓ Kogu tunnisari tühistati":"✓ Tund tühistatud");
+        setModalEv(prev=>({...prev,status:"Tühistatud"}));
+      }
+    }catch(error){
+      console.error('Lesson cancellation failed:',error);
+      notify("⚠ Tunni tühistamine ebaõnnestus");
+    }finally{
+      setSaving(false);
+    }
   };
 
   const restoreLesson = async()=>{
@@ -8237,6 +8313,7 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
     if(isGoogleEvent){notify("Muuda Google’i sündmust Google Calendaris.");return;}
     await db.collection("schedule").doc(modalEv.id).update({
       status:"Planeeritud",
+      ...(isOccurrenceException?{occurrenceKind:"override"}:{}),
       teacherUid:modalEv.teacherUid||teacherUidForName(modalEv.teacher),
       updatedAtIso:new Date().toISOString()
     });
@@ -8247,7 +8324,11 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
   const hardDeleteSchedule = async()=>{
     if(!modalEv.id) return;
     if(isGoogleEvent){notify("Kustuta sündmus Google Calendaris.");return;}
-    if(!window.confirm("Kustuta tund kalendrist täielikult?")) return;
+    if(!window.confirm(isSeries
+      ?"Kustuta kogu korduv tunnisari kalendrist täielikult?"
+      :isOccurrenceException
+        ?"Kustuta see erand ja taasta sarja algne tund?"
+        :"Kustuta tund kalendrist täielikult?")) return;
     const linkedLessonSnap = await db.collection("lessons").where("scheduleId","==",modalEv.id).limit(1).get();
     if(!linkedLessonSnap.empty){
       const linkedLessonDoc = linkedLessonSnap.docs[0];
@@ -8270,8 +8351,19 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
         }
       }
     }
-    await db.collection("schedule").doc(modalEv.id).delete();
-    notify("✓ Tund kustutatud kalendrist");
+    if(isOccurrenceException){
+      const batch=db.batch();
+      batch.update(db.collection("schedule").doc(modalEv.seriesId),{
+        excludedDates:firebase.firestore.FieldValue.arrayRemove(modalEv.originalOccurrenceDate),
+        updatedAtIso:new Date().toISOString()
+      });
+      batch.delete(db.collection("schedule").doc(modalEv.id));
+      await batch.commit();
+      notify("✓ Erand kustutati ja sarja algne tund taastati");
+    }else{
+      await db.collection("schedule").doc(modalEv.id).delete();
+      notify("✓ Tund kustutatud kalendrist");
+    }
     setModalEv(null);
   };
 
@@ -8294,14 +8386,27 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
       notify("Google Calendarist imporditud tunni aega tuleb muuta Google'is.");
       return;
     }
+    const singleOccurrence=isSeries&&seriesScope==='occurrence';
     const candidate={
       ...modalEv,
+      id:singleOccurrence?'':modalEv.id,
       date:moveDate,
       day:calendarDayIdForDate(moveDate),
       time:moveTime,
-      duration:Number(lDur)||Number(modalEv.duration)||60
+      duration:Number(lDur)||Number(modalEv.duration)||60,
+      recurring:singleOccurrence?false:modalEv.recurring
     };
-    const conflicts=findScheduleConflicts(schedule,candidate,moveDate,{excludeId:modalEv.id});
+    const conflictSchedule=singleOccurrence
+      ?schedule.map(item=>item.id===modalEv.id
+        ?{...item,excludedDates:[...new Set([...(item.excludedDates||[]),modalEv.occurrenceDate])]}
+        :item)
+      :schedule;
+    const conflicts=findScheduleConflicts(
+      conflictSchedule,
+      candidate,
+      moveDate,
+      {excludeId:singleOccurrence?'':modalEv.id}
+    );
     if(conflicts.length){
       const conflict=conflicts[0];
       const reason=conflict.reasons.includes('teacher')?'õpetaja':'õpilase';
@@ -8310,18 +8415,46 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
     }
     setSaving(true);
     const dayId = calendarDayIdForDate(moveDate);
-    await db.collection("schedule").doc(modalEv.id).update({
-      date:moveDate, day:dayId, time:moveTime,
-      teacherUid:modalEv.teacherUid||teacherUidForName(modalEv.teacher),
-      status:"Nihutatud",
-      originalDate: modalEv.originalDate||modalEv.date||modalEv.occurrenceDate||null,
-      originalTime: modalEv.originalTime||modalEv.time||null,
-      rescheduledAt: new Date().toISOString().split("T")[0],
-      updatedAtIso:new Date().toISOString()
-    });
-    notify("✓ Tund tõsteti ümber: "+fmtDate(moveDate)+" "+moveTime);
-    setModalEv(prev=>({...prev,date:moveDate,time:moveTime,status:"Nihutatud"}));
-    setSaving(false);
+    try{
+      if(singleOccurrence){
+        const exception=await createOccurrenceException({
+          date:moveDate,
+          time:moveTime,
+          duration:Number(lDur)||Number(modalEv.duration)||60,
+          status:"Nihutatud"
+        },'schedule.occurrence_moved');
+        if(exception){
+          notify("✓ Ainult see tund tõsteti ümber: "+fmtDate(moveDate)+" "+moveTime);
+          setModalEv(null);
+        }
+      }else{
+        const patch={
+          day:dayId,
+          time:moveTime,
+          teacherUid:modalEv.teacherUid||teacherUidForName(modalEv.teacher),
+          status:"Nihutatud",
+          originalDate:modalEv.originalDate||modalEv.date||modalEv.occurrenceDate||null,
+          originalTime:modalEv.originalTime||modalEv.time||null,
+          rescheduledAt:new Date().toISOString().split("T")[0],
+          updatedAtIso:new Date().toISOString()
+        };
+        if(isSeries){
+          patch.date=firebase.firestore.FieldValue.delete();
+        }else{
+          patch.date=moveDate;
+        }
+        await db.collection("schedule").doc(modalEv.id).update(patch);
+        notify(isSeries
+          ?"✓ Kogu tunnisari tõsteti ümber"
+          :"✓ Tund tõsteti ümber: "+fmtDate(moveDate)+" "+moveTime);
+        setModalEv(prev=>({...prev,date:isSeries?'':moveDate,day:dayId,time:moveTime,status:"Nihutatud"}));
+      }
+    }catch(error){
+      console.error('Lesson reschedule failed:',error);
+      notify("⚠ Tunni ümbertõstmine ebaõnnestus");
+    }finally{
+      setSaving(false);
+    }
   };
 
   const exportIcs = ()=>{
@@ -8373,6 +8506,7 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
   const makeSingle = async()=>{
     if(!modalEv.id) return;
     if(isGoogleEvent){notify("Muuda kordust Google Calendaris.");return;}
+    if(isSeries&&seriesScope!=='series'){notify("Vali esmalt „Kogu sari“.");return;}
     const baseDate = modalEv.occurrenceDate||modalEv.date||modalEv.startDate;
     if(!baseDate){notify("⚠ Vali konkreetne kuupäev");return;}
     const jsDay = new Date(baseDate).getDay();
@@ -8408,6 +8542,7 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
                 {st}
               </span>
               {!modalEv.date&&<span style={{fontSize:".7rem",padding:"2px 8px",borderRadius:999,background:"rgba(201,136,42,.1)",color:"#A96E1A",fontWeight:700}}>korduv mall</span>}
+              {isOccurrenceException&&<span style={{fontSize:".7rem",padding:"2px 8px",borderRadius:999,background:"#eff6ff",color:"#1d4ed8",fontWeight:700}}>sarja erand</span>}
             </div>
           </div>
           <button onClick={()=>{setLessonFile([]);setModalEv(null);}}
@@ -8431,6 +8566,29 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
               </div>
             )}
 
+            {isSeries&&(
+              <div style={{marginBottom:12,padding:10,borderRadius:10,background:"#fff",border:"1px solid rgba(28,43,58,.09)"}}>
+                <div style={{fontSize:".78rem",fontWeight:700,color:"#1C2B3A",marginBottom:7}}>
+                  Mida soovid muuta?
+                </div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+                  <button type="button" onClick={()=>setSeriesScope('occurrence')}
+                    className={`btn btn-sm ${seriesScope==='occurrence'?'btn-dark':'btn-ghost'}`}>
+                    Ainult see tund
+                  </button>
+                  <button type="button" onClick={()=>setSeriesScope('series')}
+                    className={`btn btn-sm ${seriesScope==='series'?'btn-dark':'btn-ghost'}`}>
+                    Kogu sari
+                  </button>
+                </div>
+                <div style={{fontSize:".71rem",color:"#42536A",marginTop:7,lineHeight:1.45}}>
+                  {seriesScope==='occurrence'
+                    ?'Teised nädalad jäävad muutmata. See kuupäev salvestatakse eraldi erandina.'
+                    :'Muudatus rakendub kogu korduva tunni mallile.'}
+                </div>
+              </div>
+            )}
+
             {modalEv.id&&hasDate&&(
               <div style={{marginBottom:12}}>
                 <div style={{fontSize:".78rem",fontWeight:600,color:"#42536A",marginBottom:6}}>Tunni tüüp:</div>
@@ -8438,8 +8596,8 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
                   <button
                     onClick={makeSingle}
                     className={`btn btn-sm ${modalEv.recurring?'btn-ghost':'btn-dark'}`}
-                    disabled={!modalEv.recurring||isGoogleEvent}
-                    style={{opacity:modalEv.recurring?1:.9}}>
+                    disabled={!modalEv.recurring||isGoogleEvent||(isSeries&&seriesScope!=='series')}
+                    style={{opacity:(!modalEv.recurring||isGoogleEvent||(isSeries&&seriesScope!=='series'))?.45:1}}>
                     <i className="fa-solid fa-calendar-day"/> Ühekordne
                   </button>
                   <button
@@ -8456,9 +8614,9 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
             {/* Кнопки отмены/восстановления */}
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
               <button onClick={cancelLesson} className="btn btn-red btn-sm"
-                disabled={!modalEv.id||st==="Tühistatud"||isGoogleEvent}
+                disabled={!modalEv.id||st==="Tühistatud"||isGoogleEvent||saving}
                 style={{opacity:st==="Tühistatud"?.4:1}}>
-                <i className="fa-solid fa-ban"/> Tühista tund
+                <i className="fa-solid fa-ban"/> {isSeries&&seriesScope==='series'?'Tühista sari':'Tühista tund'}
               </button>
               <button onClick={restoreLesson} className="btn btn-pine btn-sm"
                 disabled={!modalEv.id||st!=="Tühistatud"||isGoogleEvent}
@@ -8468,8 +8626,11 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
             </div>
 
             {modalEv.id&&(
-              <button onClick={hardDeleteSchedule} disabled={isGoogleEvent} className="btn btn-ghost btn-sm" style={{width:"100%",marginBottom:12,color:"#991b1b",borderColor:"rgba(239,68,68,.25)",opacity:isGoogleEvent?0.45:1}}>
-                <i className="fa-solid fa-trash"/> Kustuta tund täielikult
+              <button onClick={hardDeleteSchedule}
+                disabled={isGoogleEvent||(isSeries&&seriesScope==='occurrence')}
+                className="btn btn-ghost btn-sm"
+                style={{width:"100%",marginBottom:12,color:"#991b1b",borderColor:"rgba(239,68,68,.25)",opacity:(isGoogleEvent||(isSeries&&seriesScope==='occurrence'))?0.45:1}}>
+                <i className="fa-solid fa-trash"/> {isSeries?'Kustuta kogu sari':isOccurrenceException?'Kustuta erand ja taasta algne tund':'Kustuta tund täielikult'}
               </button>
             )}
 
@@ -8499,7 +8660,9 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
             )}
             {modalEv.recurring&&(
               <div style={{fontSize:".72rem",color:"#2F5D50",marginTop:8,fontWeight:600}}>
-                See tund on korduv ja ilmub automaatselt ka järgmiste nädalate kalendrisse.
+                {seriesScope==='occurrence'
+                  ?'Muudatus eraldab ainult valitud kuupäeva korduvast sarjast.'
+                  :'See tund on korduv ja muudatus mõjutab kogu sarja.'}
               </div>
             )}
           </div>}
@@ -11081,7 +11244,20 @@ function App() {
     setLComment('');
     setLDur('60');
     setLessonFile([]);
-    setModalEv({...event,occurrenceDate:lessonDate,date:event.date||lessonDate,fileUrl:'',fileName:'',attachmentUrl:'',attachmentName:'',attachment:null,attachments:[],attachmentType:'',attachmentSize:0,attachmentRemoved:false});
+    setModalEv({
+      ...event,
+      occurrenceDate:lessonDate,
+      date:event.recurring&&!event.date?'':(event.date||lessonDate),
+      fileUrl:'',
+      fileName:'',
+      attachmentUrl:'',
+      attachmentName:'',
+      attachment:null,
+      attachments:[],
+      attachmentType:'',
+      attachmentSize:0,
+      attachmentRemoved:false
+    });
   },[lessons,openLessonEditor]);
 
   const createTariffVersion=useCallback(async({name,unitPrice,effectiveFrom})=>{
@@ -12257,7 +12433,8 @@ function App() {
         saveLesson={saveLesson} deleteLesson={deleteLesson} db={db} user={user} notify={notify}
         students={students} studentPackages={studentPackages} schedule={schedule} markAttendance={markAttendance}
         staffMembers={staffMembers}
-        isAdmin={isAdmin} updateLessonBillingDisposition={updateLessonBillingDisposition}/>}
+        isAdmin={isAdmin} updateLessonBillingDisposition={updateLessonBillingDisposition}
+        logActivity={logActivity}/>}
     </div>
   );
 }
