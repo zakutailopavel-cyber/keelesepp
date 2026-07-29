@@ -556,6 +556,121 @@
     return {month,rows,issues:visibleIssues,summary};
   }
 
+  function financialPeriodControl({
+    invoices=[],
+    payments=[],
+    bankTransactions=[],
+    payerCredits=[],
+    lessons=[],
+    month=''
+  }={}){
+    const invoiceRegister=accountingRegister({
+      invoices,
+      payments,
+      bankTransactions,
+      payerCredits,
+      month
+    });
+    const lessonRegister=lessonPaymentRegister({
+      lessons,
+      invoices,
+      payments,
+      month
+    });
+    const issues=[
+      ...invoiceRegister.issues.map(issue=>({...issue,source:'invoices'})),
+      ...lessonRegister.issues.map(issue=>({
+        ...issue,
+        source:'lessons',
+        severity:issue.type==='legacy_invoice_without_lesson_line'?'warning':issue.severity
+      }))
+    ];
+    const existingLessonIssues=new Set(
+      issues.filter(issue=>issue.lessonId||issue.entityId)
+        .map(issue=>`${issue.type}:${issue.lessonId||issue.entityId}`)
+    );
+    lessonRegister.rows
+      .filter(row=>row.status==='unbilled')
+      .forEach(row=>{
+        const alreadyVisible=[...existingLessonIssues].some(key=>key.endsWith(`:${row.lessonId}`));
+        if(alreadyVisible) return;
+        issues.push({
+          type:'unbilled_lesson',
+          severity:'attention',
+          source:'lessons',
+          lessonId:row.lessonId,
+          entityId:row.lessonId,
+          title:'Tund on arveldamata',
+          detail:`${row.date||'—'} · ${row.studentName||'õpilane'} · otsusta arve, pakett või tasuta põhjus.`
+        });
+      });
+    const uniqueIssues=[];
+    const issueKeys=new Set();
+    issues.forEach(issue=>{
+      const key=`${issue.type}:${issue.entityId||issue.lessonId||issue.invoiceId||''}`;
+      if(issueKeys.has(key)) return;
+      issueKeys.add(key);
+      uniqueIssues.push(issue);
+    });
+    const blockingIssues=uniqueIssues.filter(issue=>['error','attention'].includes(issue.severity));
+    const hasBlockingType=prefixes=>blockingIssues.some(issue=>
+      prefixes.some(prefix=>String(issue.type||'').startsWith(prefix))
+    );
+    const checklist=[
+      {
+        id:'lessons',
+        label:'Tundide finantsotsused',
+        ready:lessonRegister.summary.unbilledCount===0
+          && !hasBlockingType(['absence_','package_','unbilled_']),
+        value:`${lessonRegister.summary.lessonCount} tundi · ${lessonRegister.summary.unbilledCount} arveldamata`
+      },
+      {
+        id:'links',
+        label:'Tundide ja arvete ID-seosed',
+        ready:!hasBlockingType(['lesson_','duplicate_','invoice_line_']),
+        value:`${lessonRegister.summary.exactLinkedCount} täpset seost`
+      },
+      {
+        id:'payments',
+        label:'Arvete ja maksete koond',
+        ready:!hasBlockingType(['invoice_payment_','invoice_paid_','payment_without_','payment_exceeds_']),
+        value:`${invoiceRegister.summary.paymentCount} maksekirjet`
+      },
+      {
+        id:'bank',
+        label:'Pangatehingute jaotus',
+        ready:!hasBlockingType(['bank_']),
+        value:`${invoiceRegister.summary.bankTransactionCount} tehingut · ${amountFromCents(invoiceRegister.summary.bankUnappliedCents)} € jaotamata`
+      }
+    ];
+    return {
+      month,
+      invoiceRegister,
+      lessonRegister,
+      issues:uniqueIssues,
+      blockingIssues,
+      canReview:blockingIssues.length===0,
+      checklist,
+      summary:{
+        invoiceCount:invoiceRegister.summary.invoiceCount,
+        issuedCents:invoiceRegister.summary.issuedCents,
+        paymentCount:invoiceRegister.summary.paymentCount,
+        paymentsCents:invoiceRegister.summary.paymentsAppliedCents,
+        bankTransactionCount:invoiceRegister.summary.bankTransactionCount,
+        bankReceivedCents:invoiceRegister.summary.bankReceivedCents,
+        bankUnappliedCents:invoiceRegister.summary.bankUnappliedCents,
+        lessonCount:lessonRegister.summary.lessonCount,
+        exactLessonLinkCount:lessonRegister.summary.exactLinkedCount,
+        unbilledLessonCount:lessonRegister.summary.unbilledCount,
+        legacyLessonCount:lessonRegister.summary.legacyCount,
+        errorCount:uniqueIssues.filter(issue=>issue.severity==='error').length,
+        attentionCount:uniqueIssues.filter(issue=>issue.severity==='attention').length,
+        warningCount:uniqueIssues.filter(issue=>issue.severity==='warning').length,
+        blockingIssueCount:blockingIssues.length
+      }
+    };
+  }
+
   const csvCell=value=>`"${String(value??'').replace(/"/g,'""')}"`;
   function accountingRegisterCsv(register={}){
     const header=[
@@ -611,6 +726,7 @@
   return {
     accountingRegister,
     accountingRegisterCsv,
+    financialPeriodControl,
     amountFromCents,
     invoiceEffectiveCents,
     isoDate,

@@ -115,11 +115,26 @@ makseajaloo juures ja raamatupidamise registris ning selle nimi ja ID jõuavad C
 Tühistatud makse dokument säilib ajaloolise tõendina, kuid uut dokumenti tühistatud maksele
 lisada ei saa.
 
+Alamvaade **Kuu kontroll** ühendab mõlema registri vastuolud üheks tööjärjekorraks. Enne
+kinnitamist peavad olema lahendatud arveldamata tunnid, puudumiste finantsotsused, tunni ja
+arverea ID-seosed, arve maksekoondi vastuolud ning jaotamata või vigase summaga pangatehingud.
+Vanad arved, millel puuduvad tunni ID-ga read, jäävad nähtava pärandhoiatusena, kuid ei blokeeri
+migratsiooniohutut kontrolli.
+
+Kinnitamisel loeb `financeApi` kõik asjakohased finantskirjed uuesti, mitte ei usalda brauseris
+arvutatud tulemust. Kui blokeeriv vastuolu on endiselt olemas, lükkab server kinnituse tagasi.
+Õnnestunud kontroll loob muutumatu `financialPeriodReviews` versiooni, uuendab kuu viimase
+kontrolli viita kogus `financialPeriods` ning kirjutab `financial_period.reviewed`
+`financialAudit` kirje. Kordus sama päringu ID-ga on idempotentne. Brauser saab perioode ainult
+lugeda ega saa kontrolli ise luua, muuta või kustutada.
+
 Vaade ei loo uut finantsandmete koopiat ega muuda ajaloolisi kirjeid. See arvutab kontrollitava
 projektsiooni olemasolevatest `lessons`, `invoices`, `payments`, `bankTransactions` ja
 `payerCredits` kogudest; kõik rahalised muudatused jäävad endiselt serveripoolse Financial
 Core'i kaudu tehtavaks. Uus alamregister ei vaja andmemigratsiooni ega uusi brauseri
-kirjutusõigusi. Praegune versioon ei sisalda kulusid, käibemaksuarvestust ega perioodi sulgemist.
+kirjutusõigusi. Kuu kontroll on tõendatud ülevaatus, mitte raamatupidamisperioodi lukustus:
+praegune versioon ei sisalda veel kulusid, käibemaksuarvestust, palgaarvestuse kinnitust ega
+tagantjärele muudatusi blokeerivat perioodi sulgemist.
 
 ## Live Classroom
 
