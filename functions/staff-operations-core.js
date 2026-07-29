@@ -2,6 +2,8 @@
 
 const MINUTE_MS = 60 * 1000;
 const MAX_SHIFT_MINUTES = 24 * 60;
+const DEFAULT_HEARTBEAT_MAX_GAP_SECONDS = 90;
+const DEFAULT_HEARTBEAT_MAX_CREDIT_SECONDS = 60;
 
 function asDate(value, label = "date") {
   const date = value instanceof Date ? new Date(value.getTime()) : new Date(String(value || ""));
@@ -44,6 +46,30 @@ function payAmountCents(durationMinutes, rateCents) {
   const minutes = nonNegativeInteger(durationMinutes, "Duration minutes");
   const rate = nonNegativeInteger(rateCents, "Hourly rate cents", 100000);
   return Math.round((minutes * rate) / 60);
+}
+
+function heartbeatDeltaSeconds(
+  previousAt,
+  currentAt,
+  {
+    maxGapSeconds = DEFAULT_HEARTBEAT_MAX_GAP_SECONDS,
+    maxCreditSeconds = DEFAULT_HEARTBEAT_MAX_CREDIT_SECONDS,
+  } = {},
+) {
+  if (!previousAt) return 0;
+  const previous = asDate(previousAt, "previous heartbeat");
+  const current = asDate(currentAt, "current heartbeat");
+  const elapsedSeconds = Math.floor((current.getTime() - previous.getTime()) / 1000);
+  const cleanMaxGap = nonNegativeInteger(maxGapSeconds, "Maximum heartbeat gap", 15 * 60);
+  const cleanMaxCredit = nonNegativeInteger(maxCreditSeconds, "Maximum heartbeat credit", 15 * 60);
+  if (elapsedSeconds <= 0 || elapsedSeconds > cleanMaxGap) return 0;
+  return Math.min(elapsedSeconds, cleanMaxCredit);
+}
+
+function programPayAmountCents(activeSeconds, rateCents) {
+  const seconds = nonNegativeInteger(activeSeconds, "Active seconds", 31 * 24 * 60 * 60);
+  const rate = nonNegativeInteger(rateCents, "Hourly rate cents", 100000);
+  return Math.round((seconds * rate) / 3600);
 }
 
 function activityEstimateMinutes(logs, { idleCapMinutes = 15, singleEventMinutes = 5 } = {}) {
@@ -180,11 +206,15 @@ function buildOperationalAlerts({
 }
 
 module.exports = {
+  DEFAULT_HEARTBEAT_MAX_CREDIT_SECONDS,
+  DEFAULT_HEARTBEAT_MAX_GAP_SECONDS,
   MAX_SHIFT_MINUTES,
   activityEstimateMinutes,
   buildOperationalAlerts,
+  heartbeatDeltaSeconds,
   hourlyRateCents,
   invoiceBalance,
   payAmountCents,
+  programPayAmountCents,
   workDurationMinutes,
 };

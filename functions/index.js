@@ -62,6 +62,7 @@ const {
 } = require("./calendar-sync-core");
 const {
   buildOperationalAlerts,
+  heartbeatDeltaSeconds,
   hourlyRateCents,
   payAmountCents,
   workDurationMinutes,
@@ -3309,6 +3310,7 @@ function gcalEventToSchedule(event, teacher, studentId, studentName, teacherUid)
 
 // ── STAFF TIME AND OWNER ASSISTANT ───────────────────────────
 const openWorkSessionRef = uid => db.collection("workSessionOpen").doc(uid);
+const staffProgramPresenceRef = uid => db.collection("staffProgramPresence").doc(uid);
 
 function workTimeAuditPayload({ action, actor, sessionId, staffUid, before = null, after = null, reason = "" }) {
   return {
@@ -3599,6 +3601,60 @@ async function commitInChunks(writes, chunkSize = 400) {
   }
 }
 
+async function recordStaffProgramHeartbeat({ actor, pageInstanceId = "", area = "" }) {
+  const staff = actorSnapshot(actor);
+  const cleanInstanceId = cleanText(pageInstanceId, 120);
+  if (!cleanInstanceId || !/^[A-Za-z0-9_-]+$/.test(cleanInstanceId)) {
+    throw httpError(400, "Valid page instance required");
+  }
+  const now = new Date();
+  const nowIso = now.toISOString();
+  const date = localDate(now, APP_TIME_ZONE);
+  const dayRef = db.collection("staffProgramDays").doc(`${staff.uid}_${date}`);
+  const presenceRef = staffProgramPresenceRef(staff.uid);
+
+  return db.runTransaction(async transaction => {
+    const [presenceSnap, daySnap] = await Promise.all([
+      transaction.get(presenceRef),
+      transaction.get(dayRef),
+    ]);
+    const previous = presenceSnap.exists ? presenceSnap.data() : {};
+    const existingDay = daySnap.exists ? daySnap.data() : {};
+    const creditedSeconds = previous.date === date
+      ? heartbeatDeltaSeconds(previous.lastHeartbeatAt, nowIso)
+      : 0;
+    const activeSeconds = Math.max(0, Number(existingDay.activeSeconds) || 0) + creditedSeconds;
+    const heartbeatCount = Math.max(0, Number(existingDay.heartbeatCount) || 0) + 1;
+
+    transaction.set(dayRef, {
+      staffUid: staff.uid,
+      staffName: staff.name,
+      staffRole: staff.role,
+      date,
+      activeSeconds,
+      heartbeatCount,
+      firstActiveAt: existingDay.firstActiveAt || nowIso,
+      lastActiveAt: nowIso,
+      updatedAt: nowIso,
+    }, { merge: true });
+    transaction.set(presenceRef, {
+      staffUid: staff.uid,
+      date,
+      lastHeartbeatAt: nowIso,
+      lastPageInstanceId: cleanInstanceId,
+      lastArea: cleanText(area, 120),
+      updatedAt: nowIso,
+    });
+
+    return {
+      date,
+      activeSeconds,
+      creditedSeconds,
+      heartbeatCount,
+    };
+  });
+}
+
 async function refreshOperationalAlerts({ actor = null } = {}) {
   const now = new Date();
   const nowIso = now.toISOString();
@@ -3674,6 +3730,15 @@ exports.staffOperationsApi = functions.https.onRequest(async (req, res) => {
         note: req.body?.note,
       });
       res.json(result);
+      return;
+    }
+    if (req.path === "/activity/heartbeat") {
+      const actor = await requireStaffUser(req);
+      res.json(await recordStaffProgramHeartbeat({
+        actor,
+        pageInstanceId: req.body?.pageInstanceId,
+        area: req.body?.area,
+      }));
       return;
     }
     const actor = await requireAdminUser(req);

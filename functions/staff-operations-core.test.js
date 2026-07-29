@@ -5,8 +5,10 @@ const assert = require("node:assert/strict");
 const {
   activityEstimateMinutes,
   buildOperationalAlerts,
+  heartbeatDeltaSeconds,
   hourlyRateCents,
   payAmountCents,
+  programPayAmountCents,
   workDurationMinutes,
 } = require("./staff-operations-core");
 
@@ -46,6 +48,45 @@ test("activity estimate caps idle gaps and remains an estimate", () => {
     { byUid: "admin", date: "2026-07-29", createdAt: "2026-07-29T08:10:00.000Z" },
     { byUid: "admin", date: "2026-07-29", createdAt: "2026-07-29T10:00:00.000Z" },
   ]), 30);
+});
+
+test("program heartbeat credits only a recent server-measured interval", () => {
+  assert.equal(heartbeatDeltaSeconds(
+    "2026-07-29T08:00:00.000Z",
+    "2026-07-29T08:00:45.000Z",
+  ), 45);
+  assert.equal(heartbeatDeltaSeconds(
+    "2026-07-29T08:00:00.000Z",
+    "2026-07-29T08:01:15.000Z",
+  ), 60);
+  assert.equal(heartbeatDeltaSeconds(
+    "2026-07-29T08:00:00.000Z",
+    "2026-07-29T08:01:31.000Z",
+  ), 0);
+  assert.equal(heartbeatDeltaSeconds(
+    "2026-07-29T08:00:45.000Z",
+    "2026-07-29T08:00:44.000Z",
+  ), 0);
+  assert.equal(heartbeatDeltaSeconds(null, "2026-07-29T08:00:00.000Z"), 0);
+});
+
+test("multiple browser tabs cannot create more than wall-clock time", () => {
+  const heartbeats = [
+    "2026-07-29T08:00:00.000Z",
+    "2026-07-29T08:00:15.000Z",
+    "2026-07-29T08:00:45.000Z",
+    "2026-07-29T08:01:00.000Z",
+  ];
+  const credited = heartbeats.slice(1).reduce(
+    (sum, current, index) => sum + heartbeatDeltaSeconds(heartbeats[index], current),
+    0,
+  );
+  assert.equal(credited, 60);
+});
+
+test("program pay uses active seconds without rounding every heartbeat", () => {
+  assert.equal(programPayAmountCents(90 * 60, 1250), 1875);
+  assert.equal(programPayAmountCents(45, 1200), 15);
 });
 
 test("assistant detects overdue money, work, tasks and calendar errors", () => {
