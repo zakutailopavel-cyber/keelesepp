@@ -54,6 +54,7 @@ const {
   managedGoogleScheduleId,
   isKeeleSeppManagedGoogleEvent,
   isGoogleGoneError,
+  googleRecurrenceExcludedDates,
 } = require("./calendar-sync-core");
 
 admin.initializeApp();
@@ -3265,6 +3266,7 @@ function gcalEventToSchedule(event, teacher, studentId, studentName, teacherUid)
 
   const managedByKeeleSepp = isKeeleSeppManagedGoogleEvent(event);
   const recurrenceDay = managedByKeeleSepp ? googleRecurrenceDay(event) : "";
+  const excludedDates = recurrenceDay ? googleRecurrenceExcludedDates(event) : [];
   return {
     gcalEventId:  event.id,
     gcalCalId:    event.calendarId || "primary",
@@ -3279,6 +3281,7 @@ function gcalEventToSchedule(event, teacher, studentId, studentName, teacherUid)
     startDate:    recurrenceDay ? date : "",
     day:          recurrenceDay,
     recurring:    Boolean(recurrenceDay),
+    ...(excludedDates.length ? { excludedDates } : {}),
     time,
     duration,
     notes:        managedByKeeleSepp

@@ -13,6 +13,13 @@ test('dashboard counts only schedule entries that occur on the selected date',()
   assert.equal(scheduleEventOccursOnDate({day:'Tue',recurring:true,startDate:'2026-07-01',status:'Planeeritud'},'2026-07-28'),true);
   assert.equal(scheduleEventOccursOnDate({day:'Tue',recurring:true,startDate:'2026-08-01',status:'Planeeritud'},'2026-07-28'),false);
   assert.equal(scheduleEventOccursOnDate({day:'Tue',recurring:true,status:'Tühistatud'},'2026-07-28'),false);
+  assert.equal(scheduleEventOccursOnDate({
+    day:'Tue',
+    recurring:true,
+    startDate:'2026-07-01',
+    status:'Planeeritud',
+    excludedDates:['2026-07-28']
+  },'2026-07-28'),false);
 });
 
 test('legacy package display never exposes a negative balance',()=>{

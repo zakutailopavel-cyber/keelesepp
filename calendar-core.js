@@ -221,6 +221,58 @@
     };
   };
 
+  const buildOccurrenceExceptionPlan=(series,originalDate,changes={},options={})=>{
+    const date=String(originalDate||'').trim();
+    if(!series?.id||!series.recurring||!/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
+    if(!eventOccursOnDate(series,date)) return null;
+    const targetDate=String(changes.date||date).trim();
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(targetDate)) return null;
+    const excludedDates=[...new Set([
+      ...(Array.isArray(series.excludedDates)?series.excludedDates:[]),
+      date
+    ].filter(value=>/^\d{4}-\d{2}-\d{2}$/.test(String(value||''))))].sort();
+    if(excludedDates.length>500) return null;
+    const nowIso=options.nowIso||new Date().toISOString();
+    const copied={};
+    [
+      'teacher','teacherFull','teacherUid','studentId','studentName','title',
+      'notes','comment','subject','level','group','groupId','classroom'
+    ].forEach(key=>{
+      if(series[key]!==undefined&&series[key]!==null&&series[key]!=='') copied[key]=series[key];
+    });
+    const status=changes.status||series.status||'Planeeritud';
+    return {
+      seriesPatch:{
+        excludedDates,
+        updatedAtIso:nowIso
+      },
+      exception:{
+        ...copied,
+        date:targetDate,
+        day:dayIdForDate(targetDate),
+        time:String(changes.time||series.time||'09:00'),
+        duration:Math.max(5,Number(changes.duration)||Number(series.duration)||60),
+        status,
+        recurring:false,
+        source:'keelesepp',
+        scheduleVersion:3,
+        seriesId:String(series.id),
+        originalOccurrenceDate:date,
+        originalDate:date,
+        originalTime:String(series.time||''),
+        occurrenceKind:status==='Tühistatud'?'cancelled':'override',
+        ...(status==='Tühistatud'
+          ?{canceledAt:nowIso.slice(0,10)}
+          :status==='Nihutatud'
+            ?{rescheduledAt:nowIso.slice(0,10)}
+            :{}),
+        createdAt:targetDate,
+        createdAtIso:nowIso,
+        updatedAtIso:nowIso
+      }
+    };
+  };
+
   return {
     DAY_IDS,
     normalize,
@@ -239,6 +291,7 @@
     monthGrid,
     shiftMonth,
     monthLabel,
-    buildSchedulePayload
+    buildSchedulePayload,
+    buildOccurrenceExceptionPlan
   };
 });

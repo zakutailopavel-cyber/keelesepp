@@ -8,7 +8,8 @@ const {
   layoutDayEvents,
   monthGrid,
   shiftMonth,
-  buildSchedulePayload
+  buildSchedulePayload,
+  buildOccurrenceExceptionPlan
 }=require('./calendar-core');
 
 test('calendar uses a real 15-minute grid and calculates lesson end times',()=>{
@@ -77,4 +78,85 @@ test('new schedule payload keeps stable student ownership and version metadata',
   assert.equal(payload.scheduleVersion,2);
   assert.equal(payload.source,'keelesepp');
   assert.equal(payload.createdAtIso,'2026-07-29T08:00:00.000Z');
+});
+
+test('single occurrence plan excludes the series date and creates a stable child lesson',()=>{
+  const plan=buildOccurrenceExceptionPlan({
+    id:'series-1',
+    recurring:true,
+    startDate:'2026-07-01',
+    day:'Wed',
+    time:'10:00',
+    duration:60,
+    teacher:'Pavel',
+    teacherUid:'teacher-1',
+    studentId:'student-1',
+    studentName:'Mari'
+  },'2026-07-29',{
+    date:'2026-07-30',
+    time:'11:15',
+    status:'Nihutatud'
+  },{nowIso:'2026-07-29T10:00:00.000Z'});
+  assert.deepEqual(plan.seriesPatch.excludedDates,['2026-07-29']);
+  assert.equal(plan.exception.seriesId,'series-1');
+  assert.equal(plan.exception.originalOccurrenceDate,'2026-07-29');
+  assert.equal(plan.exception.originalDate,'2026-07-29');
+  assert.equal(plan.exception.date,'2026-07-30');
+  assert.equal(plan.exception.day,'Thu');
+  assert.equal(plan.exception.time,'11:15');
+  assert.equal(plan.exception.recurring,false);
+  assert.equal(plan.exception.scheduleVersion,3);
+  assert.equal(plan.exception.occurrenceKind,'override');
+  assert.equal(plan.exception.rescheduledAt,'2026-07-29');
+  assert.equal(plan.exception.gcalEventId,undefined);
+});
+
+test('single occurrence cancellation remains visible as a cancelled child record',()=>{
+  const plan=buildOccurrenceExceptionPlan({
+    id:'series-2',
+    recurring:true,
+    startDate:'2026-07-01',
+    day:'Wed',
+    time:'12:00',
+    studentId:'student-2',
+    studentName:'Mark'
+  },'2026-07-29',{status:'Tühistatud'});
+  assert.equal(plan.exception.date,'2026-07-29');
+  assert.equal(plan.exception.status,'Tühistatud');
+  assert.equal(plan.exception.occurrenceKind,'cancelled');
+  assert.equal(plan.exception.seriesId,'series-2');
+});
+
+test('occurrence plan rejects dates outside the active series',()=>{
+  assert.equal(buildOccurrenceExceptionPlan({
+    id:'series-3',
+    recurring:true,
+    startDate:'2026-08-01',
+    day:'Wed',
+    time:'12:00'
+  },'2026-07-29',{}),null);
+});
+
+test('moved occurrence still conflicts with another date from its own series',()=>{
+  const series={
+    id:'series-4',
+    recurring:true,
+    startDate:'2026-07-01',
+    day:'Wed',
+    time:'10:00',
+    duration:60,
+    teacher:'Pavel',
+    studentId:'student-4',
+    excludedDates:['2026-07-29']
+  };
+  const candidate={
+    ...series,
+    id:'',
+    recurring:false,
+    date:'2026-08-05',
+    time:'10:15'
+  };
+  const conflicts=findScheduleConflicts([series],candidate,'2026-08-05',{excludeId:''});
+  assert.equal(conflicts.length,1);
+  assert.deepEqual(conflicts[0].reasons,['teacher','student']);
 });

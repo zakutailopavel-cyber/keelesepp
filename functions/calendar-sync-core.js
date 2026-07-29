@@ -51,6 +51,25 @@ function recurrenceStartDate(schedule) {
   return String(schedule.date || schedule.startDate || "").trim();
 }
 
+function recurrenceExcludedDates(schedule) {
+  return [...new Set((Array.isArray(schedule?.excludedDates) ? schedule.excludedDates : [])
+    .map(value => String(value || "").trim())
+    .filter(value => /^\d{4}-\d{2}-\d{2}$/.test(value)))].sort();
+}
+
+function googleRecurrenceExcludedDates(event) {
+  const dates = [];
+  (Array.isArray(event?.recurrence) ? event.recurrence : []).forEach(line => {
+    if (!/^EXDATE(?:;|:)/i.test(String(line || ""))) return;
+    const values = String(line).split(":").slice(1).join(":").split(",");
+    values.forEach(value => {
+      const match = value.trim().match(/^(\d{4})(\d{2})(\d{2})/);
+      if (match) dates.push(`${match[1]}-${match[2]}-${match[3]}`);
+    });
+  });
+  return [...new Set(dates)].sort();
+}
+
 function scheduleToGoogleEvent(scheduleId, schedule, timeZone = "Europe/Tallinn") {
   if (!schedule || schedule.status === "Tühistatud") return null;
   const date = recurrenceStartDate(schedule);
@@ -86,7 +105,13 @@ function scheduleToGoogleEvent(scheduleId, schedule, timeZone = "Europe/Tallinn"
     if (/^\d{4}-\d{2}-\d{2}$/.test(String(schedule.endDate || ""))) {
       parts.push(`UNTIL=${String(schedule.endDate).replaceAll("-", "")}T215959Z`);
     }
-    event.recurrence = [parts.join(";")];
+    const excludedTime = String(time).replace(":", "");
+    event.recurrence = [
+      parts.join(";"),
+      ...recurrenceExcludedDates(schedule).map(excludedDate =>
+        `EXDATE;TZID=${timeZone}:${excludedDate.replaceAll("-", "")}T${excludedTime}00`
+      ),
+    ];
   }
   return event;
 }
@@ -125,6 +150,8 @@ module.exports = {
   hasCalendarWriteScope,
   localDateTime,
   addLocalMinutes,
+  recurrenceExcludedDates,
+  googleRecurrenceExcludedDates,
   scheduleToGoogleEvent,
   scheduleSyncFingerprint,
   managedGoogleScheduleId,

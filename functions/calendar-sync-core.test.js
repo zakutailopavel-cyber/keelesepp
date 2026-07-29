@@ -6,6 +6,7 @@ const {
   GOOGLE_SCOPE_EVENTS_OWNED,
   hasCalendarWriteScope,
   addLocalMinutes,
+  googleRecurrenceExcludedDates,
   scheduleToGoogleEvent,
   scheduleSyncFingerprint,
   managedGoogleScheduleId,
@@ -67,6 +68,29 @@ test("weekly lesson keeps its recurrence and cancellation has no Google payload"
   }), null);
 });
 
+test("weekly lesson exports and reads occurrence exclusions as EXDATE lines", () => {
+  const event = scheduleToGoogleEvent("series_exdates", {
+    studentId: "student_2",
+    studentName: "Mark Test",
+    startDate: "2026-08-05",
+    day: "Wed",
+    time: "10:00",
+    duration: 60,
+    recurring: true,
+    status: "Planeeritud",
+    excludedDates: ["2026-08-12", "invalid", "2026-08-05", "2026-08-12"],
+  }, "Europe/Tallinn");
+  assert.deepEqual(event.recurrence, [
+    "RRULE:FREQ=WEEKLY;BYDAY=WE",
+    "EXDATE;TZID=Europe/Tallinn:20260805T100000",
+    "EXDATE;TZID=Europe/Tallinn:20260812T100000",
+  ]);
+  assert.deepEqual(googleRecurrenceExcludedDates(event), [
+    "2026-08-05",
+    "2026-08-12",
+  ]);
+});
+
 test("fingerprint changes only when Google-visible lesson data changes", () => {
   const schedule = {
     studentId: "student_3",
@@ -84,8 +108,17 @@ test("fingerprint changes only when Google-visible lesson data changes", () => {
     gcalSyncStatus: "synced",
   });
   const moved = scheduleSyncFingerprint("schedule_3", { ...schedule, time: "12:15" });
+  const excluded = scheduleSyncFingerprint("schedule_3", {
+    ...schedule,
+    recurring: true,
+    startDate: schedule.date,
+    date: "",
+    day: "Thu",
+    excludedDates: ["2026-08-13"],
+  });
   assert.equal(before, bookkeepingOnly);
   assert.notEqual(before, moved);
+  assert.notEqual(before, excluded);
 });
 
 test("managed origin ids are validated and Google deletion errors are idempotent", () => {

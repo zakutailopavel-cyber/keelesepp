@@ -66,11 +66,13 @@ Implemented:
 - Private origin ids, content fingerprints and a server-only deferred deletion outbox.
 - KeeleSepp insert, move, restore and cancellation propagation for individual lessons and
   whole recurring series.
+- Per-occurrence move and cancellation using parent `excludedDates`, child schedule records and
+  Google `EXDATE` projection.
 
 Next:
 
-- Per-occurrence editing for recurring series instead of moving the entire template.
 - Explicit conflict review, Google eTag checks and incremental sync tokens.
+- Import of native Google instance exceptions that were not originally created by KeeleSepp.
 - Teacher availability, rooms and working-hour constraints.
 - Mobile long-press creation and a compact agenda view.
 
