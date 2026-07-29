@@ -83,6 +83,22 @@ avatud tööpäevad ja Google Calendari sünkroonimisvead. Sama reeglipõhine ko
 serveris iga tund ja seda saab administraator ka käsitsi värskendada. Esimene versioon ei saada
 kooli andmeid ühelegi välisele tehisintellekti API-le.
 
+## Raamatupidamise register
+
+Administraatori vaade **Raamatupidamine** ühendab väljastatud arved, arvetele rakendatud maksed,
+pangaväljavõtte sobitamise ja avatud ettemaksed üheks kuupõhiseks kontrollvaateks. Arved kuuluvad
+perioodi väljastamise kuupäeva järgi, laekumised makse kuupäeva järgi. Nii jääb nähtavaks olukord,
+kus jooksval kuul tasutakse varasema kuu arve.
+
+Register näitab arve summat, laekunud summat, jääki, staatust, maksekuupäevi ja makse allikat.
+Arve koondi ning maksete registri vastuolu, vigase pangajaotuse või jaotamata pangajäägi korral
+tekib eraldi kontrollmärge. Filtreeritud arvete registri saab eksportida semikooloniga CSV-faili.
+
+Vaade ei loo uut finantsandmete koopiat ega muuda ajaloolisi kirjeid. See arvutab kontrollitava
+projektsiooni olemasolevatest `invoices`, `payments`, `bankTransactions` ja `payerCredits`
+kogudest; kõik rahalised muudatused jäävad endiselt serveripoolse Financial Core'i kaudu
+tehtavaks. Esimene versioon ei sisalda kulusid, käibemaksuarvestust ega perioodi sulgemist.
+
 ## Live Classroom
 
 Esimene piiratud versioon võimaldab õpetajal luua ühe õpilasega tunni, avaldada juhiseid ja

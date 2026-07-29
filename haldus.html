@@ -110,6 +110,7 @@ window.__haldusConfigureBabel();
 </script>
 <script src="/haldus-shared.js"></script>
 <script src="/staff-time-core.js"></script>
+<script src="/accounting-ledger-core.js"></script>
 <script src="/calendar-core.js"></script>
 <script src="/live-classroom-core.js"></script>
 <script src="/haldus-quality.js"></script>
@@ -138,6 +139,12 @@ const {
 const {
   historicalActivitySummary
 } = window.StaffTimeCore;
+const {
+  accountingRegister,
+  accountingRegisterCsv,
+  amountFromCents:accountingAmount,
+  statusLabel:accountingStatusLabel
+} = window.AccountingLedgerCore;
 const PROGRAM_ACTIVITY_LAUNCH_DATE='2026-07-29';
 const {
   lessonHistorySortValue:liveLessonHistorySortValue,
@@ -7931,6 +7938,196 @@ function InvoicesView({invoices,payments,myStudents,parents,schedule,students,le
 }
 
 // ── TUNNI MODAL ───────────────────────────────────────────────
+// ── ACCOUNTING INVOICE REGISTER ───────────────────────────────
+function AccountingRegisterView({invoices,payments,bankTransactions,payerCredits,openInvoices,openReconciliation}) {
+  const [month,setMonth]=React.useState(()=>today().slice(0,7));
+  const [status,setStatus]=React.useState('all');
+  const [search,setSearch]=React.useState('');
+  const register=React.useMemo(()=>accountingRegister({
+    invoices,
+    payments,
+    bankTransactions,
+    payerCredits,
+    month
+  }),[invoices,payments,bankTransactions,payerCredits,month]);
+  const visibleRows=React.useMemo(()=>{
+    const query=normalizeText(search);
+    return register.rows.filter(row=>{
+      if(status!=='all'&&row.status!==status) return false;
+      if(query&&!normalizeText(`${row.number} ${row.payer} ${row.description} ${(row.paymentSourceLabels||[]).join(' ')}`).includes(query)) return false;
+      return true;
+    });
+  },[register.rows,status,search]);
+  const selectedMonthLabel=React.useMemo(()=>{
+    const parsed=new Date(`${month}-01T12:00:00`);
+    return Number.isNaN(parsed.getTime())
+      ? month
+      : parsed.toLocaleDateString('et-EE',{month:'long',year:'numeric'});
+  },[month]);
+  const moveMonth=delta=>{
+    const parsed=new Date(`${month}-01T12:00:00`);
+    parsed.setMonth(parsed.getMonth()+delta);
+    setMonth(toLocalISODate(parsed).slice(0,7));
+  };
+  const downloadCsv=()=>{
+    const csv=accountingRegisterCsv({...register,rows:visibleRows});
+    const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+    const url=URL.createObjectURL(blob);
+    const link=document.createElement('a');
+    link.href=url;
+    link.download=`keelesepp-arvete-register-${month}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  };
+  const statusMeta={
+    paid:{bg:'#dcfce7',color:'#166534'},
+    partial:{bg:'#fef3c7',color:'#92400e'},
+    unpaid:{bg:'#f3f4f6',color:'#42536A'},
+    overdue:{bg:'#fee2e2',color:'#991b1b'},
+    overpaid:{bg:'#ede9fe',color:'#6d28d9'},
+    credited:{bg:'#e0f2fe',color:'#075985'}
+  };
+  const moneyCents=value=>`${accountingAmount(value).toFixed(2)} €`;
+  const summaryCards=[
+    {label:'Väljastatud arveid',value:moneyCents(register.summary.issuedCents),note:`${register.summary.invoiceCount} arvet`,color:'#1C2B3A',bg:'#fff'},
+    {label:'Arvetele kantud',value:moneyCents(register.summary.paymentsAppliedCents),note:`${register.summary.paymentCount} maksekirjet sel kuul`,color:'#166534',bg:'#ecfdf5'},
+    {label:'Pangalaekumised',value:moneyCents(register.summary.bankReceivedCents),note:`${register.summary.bankTransactionCount} sobitatud tehingut`,color:'#1d4ed8',bg:'#eff6ff'},
+    {label:'Arvete jääk',value:moneyCents(register.summary.outstandingCents),note:'valitud kuul väljastatud arvetel',color:'#991b1b',bg:'#fff1f2'},
+    {label:'Avatud ettemaksed',value:moneyCents(register.summary.openCreditCents),note:`${register.summary.openCreditCount} aktiivset jääki`,color:'#6d28d9',bg:'#f5f3ff'}
+  ];
+  return(
+    <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:18}}>
+      <div style={{display:'flex',justifyContent:'space-between',gap:14,alignItems:'flex-end',flexWrap:'wrap'}}>
+        <div>
+          <h1 style={{fontSize:'1.7rem'}}>Raamatupidamine</h1>
+          <p style={{color:'#64748b',fontSize:'.88rem',marginTop:3}}>Arvete ja laekumiste register</p>
+        </div>
+        <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
+          <button onClick={()=>moveMonth(-1)} className="btn btn-ghost btn-sm"><i className="fa-solid fa-chevron-left"/> Eelmine</button>
+          <input type="month" value={month} onChange={event=>setMonth(event.target.value)}
+            style={{width:155,fontWeight:700}}/>
+          <button onClick={()=>moveMonth(1)} className="btn btn-ghost btn-sm">Järgmine <i className="fa-solid fa-chevron-right"/></button>
+          <button onClick={downloadCsv} className="btn btn-pine btn-sm"><i className="fa-solid fa-file-csv"/> Ekspordi CSV</button>
+        </div>
+      </div>
+
+      <div className="card" style={{padding:16,background:'#1C2B3A',color:'#fff'}}>
+        <div style={{fontSize:'.72rem',textTransform:'uppercase',letterSpacing:'.08em',fontWeight:800,color:'rgba(255,255,255,.55)'}}>Valitud periood</div>
+        <div style={{fontFamily:'Fraunces,Georgia,serif',fontSize:'1.4rem',marginTop:3,textTransform:'capitalize'}}>{selectedMonthLabel}</div>
+        <div style={{fontSize:'.75rem',color:'rgba(255,255,255,.65)',marginTop:5}}>
+          Arved kuuluvad perioodi väljastamise kuupäeva järgi. Laekumised kuuluvad perioodi makse kuupäeva järgi.
+          Seetõttu võivad laekumised sisaldada varasemate arvete tasumisi.
+        </div>
+      </div>
+
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(175px,1fr))',gap:12}}>
+        {summaryCards.map(card=>(
+          <div key={card.label} className="card" style={{padding:16,background:card.bg}}>
+            <div style={{fontSize:'.68rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'.07em',color:'#64748b'}}>{card.label}</div>
+            <div style={{fontFamily:'Fraunces,Georgia,serif',fontSize:'1.55rem',fontWeight:700,color:card.color,marginTop:7}}>{card.value}</div>
+            <div style={{fontSize:'.7rem',color:'#64748b',marginTop:3}}>{card.note}</div>
+          </div>
+        ))}
+      </div>
+
+      {register.issues.length>0&&(
+        <div className="card" style={{padding:0,overflow:'hidden',border:'1px solid rgba(201,136,42,.28)'}}>
+          <div style={{padding:'14px 16px',background:'#fffbeb',display:'flex',justifyContent:'space-between',gap:10,alignItems:'center',flexWrap:'wrap'}}>
+            <div>
+              <div style={{fontWeight:800}}>Kontrolli vajavad kirjed</div>
+              <div style={{fontSize:'.75rem',color:'#64748b',marginTop:2}}>
+                {register.summary.errorCount} vastuolu · {register.summary.attentionCount} jaotamata jääki
+              </div>
+            </div>
+            <button onClick={openReconciliation} className="btn btn-amber btn-sm">Ava maksete sobitamine</button>
+          </div>
+          <div>
+            {register.issues.map((issue,index)=>(
+              <div key={`${issue.type}-${issue.entityId}-${index}`} style={{padding:'11px 16px',borderTop:'1px solid rgba(28,43,58,.07)',display:'flex',gap:10,alignItems:'flex-start'}}>
+                <i className={`fa-solid ${issue.severity==='error'?'fa-triangle-exclamation':'fa-circle-info'}`}
+                  style={{color:issue.severity==='error'?'#dc2626':'#C9882A',marginTop:2}}/>
+                <div>
+                  <div style={{fontWeight:700,fontSize:'.82rem'}}>{issue.title}</div>
+                  <div style={{fontSize:'.74rem',color:'#64748b',marginTop:2}}>{issue.detail}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="card" style={{overflow:'hidden'}}>
+        <div style={{padding:14,borderBottom:'1px solid rgba(28,43,58,.08)',display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
+          <input value={search} onChange={event=>setSearch(event.target.value)}
+            placeholder="Otsi arvenumbri, maksja või kirjelduse järgi…" style={{flex:1,minWidth:240}}/>
+          <select value={status} onChange={event=>setStatus(event.target.value)} style={{width:190}}>
+            <option value="all">Kõik staatused</option>
+            <option value="paid">Makstud</option>
+            <option value="partial">Osaliselt makstud</option>
+            <option value="unpaid">Tasumata</option>
+            <option value="overdue">Tähtaja ületanud</option>
+            <option value="overpaid">Enammakstud</option>
+            <option value="credited">Krediteeritud</option>
+          </select>
+          <button onClick={openInvoices} className="btn btn-ghost btn-sm">Ava arvete väljastamine</button>
+        </div>
+        <div style={{overflowX:'auto'}}>
+          <table style={{width:'100%',borderCollapse:'collapse',minWidth:940}}>
+            <thead>
+              <tr style={{background:'#F9F8F6',fontSize:'.68rem',textTransform:'uppercase',letterSpacing:'.06em',color:'#64748b'}}>
+                {['Arve','Kuupäev / tähtaeg','Maksja','Summa','Laekunud','Jääk','Makseallikas','Staatus'].map(label=>(
+                  <th key={label} style={{padding:'11px 12px',textAlign:['Summa','Laekunud','Jääk'].includes(label)?'right':'left'}}>{label}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {visibleRows.map(row=>{
+                const meta=statusMeta[row.status]||statusMeta.unpaid;
+                return(
+                  <tr key={row.id} style={{borderTop:'1px solid rgba(28,43,58,.07)',fontSize:'.78rem'}}>
+                    <td style={{padding:'12px',verticalAlign:'top'}}>
+                      <div style={{fontWeight:800}}>{row.number}</div>
+                      <div style={{color:'#64748b',fontSize:'.7rem',marginTop:2,maxWidth:190,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{row.description||'—'}</div>
+                    </td>
+                    <td style={{padding:'12px',verticalAlign:'top'}}>
+                      <div>{fmtDate(row.date)}</div>
+                      <div style={{color:'#64748b',fontSize:'.7rem',marginTop:2}}>tähtaeg {fmtDate(row.due)}</div>
+                    </td>
+                    <td style={{padding:'12px',verticalAlign:'top',fontWeight:600}}>{row.payer}</td>
+                    <td style={{padding:'12px',verticalAlign:'top',textAlign:'right',fontFamily:'monospace',fontWeight:700}}>{moneyCents(row.amountCents)}</td>
+                    <td style={{padding:'12px',verticalAlign:'top',textAlign:'right',fontFamily:'monospace',fontWeight:700,color:'#166534'}}>
+                      {moneyCents(row.paidCents)}
+                      {row.paymentCount>0&&<div style={{fontFamily:'IBM Plex Sans',fontWeight:500,fontSize:'.66rem',color:'#64748b'}}>{row.paymentCount} makset</div>}
+                    </td>
+                    <td style={{padding:'12px',verticalAlign:'top',textAlign:'right',fontFamily:'monospace',fontWeight:700,color:row.balanceCents>0?'#991b1b':'#42536A'}}>{moneyCents(row.balanceCents)}</td>
+                    <td style={{padding:'12px',verticalAlign:'top'}}>
+                      <div style={{display:'flex',gap:4,flexWrap:'wrap'}}>
+                        {(row.paymentSourceLabels.length?row.paymentSourceLabels:['—']).map(label=>(
+                          <span key={label} className="badge" style={{background:'#f3f4f6',color:'#42536A'}}>{label}</span>
+                        ))}
+                      </div>
+                      {row.paymentDates.length>0&&<div style={{color:'#64748b',fontSize:'.67rem',marginTop:4}}>{row.paymentDates.map(fmtDate).join(', ')}</div>}
+                      {row.reconciliationMismatch&&<div style={{color:'#991b1b',fontSize:'.67rem',fontWeight:700,marginTop:4}}>Summad ei ühti</div>}
+                    </td>
+                    <td style={{padding:'12px',verticalAlign:'top'}}>
+                      <span className="badge" style={{background:meta.bg,color:meta.color}}>{accountingStatusLabel(row.status)}</span>
+                    </td>
+                  </tr>
+                );
+              })}
+              {visibleRows.length===0&&(
+                <tr><td colSpan="8" style={{padding:34,textAlign:'center',color:'#94a3b8'}}>Selles perioodis sobivaid arveid ei ole.</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── SVERKA MAKSETE (сверка банковской выписки со счетами) ───────
 // Использует реальные данные из Firestore: invoices (num, paymentReference,
 // status, amount, studentId, studentName) и students (name, parentName,
@@ -12688,6 +12885,7 @@ function App() {
     ...(isStaff?[{id:'invoices',icon:'fa-file-invoice',label:'Arved',
       badge:scopedInvoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+invoiceFinancialSummary(i).balance,0)>0?scopedInvoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+invoiceFinancialSummary(i).balance,0)+'€':0}]:[]),
     ...(isAdmin?[{id:'reconciliation',icon:'fa-money-bill-transfer',label:'Maksete sobitamine'}]:[]),
+    ...(isAdmin?[{id:'accounting',icon:'fa-book',label:'Raamatupidamine'}]:[]),
     ...(isStaff?[{id:'work_time',icon:'fa-stopwatch',label:'Tööaeg',
       badge:isAdmin?workSessions.filter(item=>item.status==='closed'&&item.approvalStatus==='pending').length:0}]:[]),
     ...(isAdmin?[{id:'school_assistant',icon:'fa-shield-halved',label:'Juhi abi',
@@ -12916,6 +13114,14 @@ function App() {
             allocateBankTransaction={allocateImportedBankTransaction}
             applyPayerCredit={applyPayerCredit}
             refundPayerCredit={refundPayerCredit}/>}
+
+          {tab==='accounting'&&isAdmin&&<AccountingRegisterView
+            invoices={invoices}
+            payments={payments}
+            bankTransactions={bankTransactions}
+            payerCredits={payerCredits}
+            openInvoices={()=>goTab('invoices')}
+            openReconciliation={()=>goTab('reconciliation')}/>}
 
           {tab==='work_time'&&isStaff&&<WorkTimeView
             user={user}
