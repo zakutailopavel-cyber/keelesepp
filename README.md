@@ -83,7 +83,21 @@ avatud tööpäevad ja Google Calendari sünkroonimisvead. Sama reeglipõhine ko
 serveris iga tund ja seda saab administraator ka käsitsi värskendada. Esimene versioon ei saada
 kooli andmeid ühelegi välisele tehisintellekti API-le.
 
-## Raamatupidamise register
+## Finantside tööruum
+
+Administraatori menüüs on arvete, maksete sobitamise ja raamatupidamise jaoks üks ühine
+**Finants** tööruum. Selle sees on kolm selge vastutusega töövoogu:
+
+- **Arved** — arve koostamine, saatmine, meeldetuletused ja maksekirjete haldus;
+- **Maksete sobitamine** — pangaväljavõtte import, laekumise sidumine arvetega ning ettemaks;
+- **Raamatupidamine** — kuupõhised registrid, tundide ja maksete seosed, audit ning kuu kontroll.
+
+Õpetaja näeb endiselt ainult oma tööks vajalikku **Arved** vaadet. Õpilase ja lapsevanema
+isiklikus kabinetis jääb **Arved** lihtsaks arvete ning makseinfo leheks. Ühendamine muudab
+ainult administraatori navigeerimist: olemasolevaid finantskirjeid ei kopeerita ega migreerita
+ning vanad sisemised lingid suunatakse õigesse Finants-tööruumi ossa.
+
+### Raamatupidamise register
 
 Administraatori vaade **Raamatupidamine** ühendab väljastatud arved, arvetele rakendatud maksed,
 pangaväljavõtte sobitamise ja avatud ettemaksed üheks kuupõhiseks kontrollvaateks. Arved kuuluvad
