@@ -6835,6 +6835,90 @@ function PaymentLineAllocationModal({invoice,payment,currentAllocation,allocatio
   );
 }
 
+const ADMIN_FINANCE_SECTIONS=['invoices','reconciliation','accounting'];
+
+function FinanceWorkspaceNav({section,setSection,invoices=[],bankTransactions=[]}) {
+  const unpaidBalance=invoices
+    .filter(invoice=>invoice.status==='Ootel')
+    .reduce((sum,invoice)=>sum+invoiceFinancialSummary(invoice).balance,0);
+  const bankAttention=bankTransactions.filter(transaction=>
+    Number(transaction.unappliedAmountCents||transaction.unappliedAmount||0)>0
+  ).length;
+  const items=[
+    {
+      id:'invoices',
+      icon:'fa-file-invoice',
+      label:'Arved',
+      description:'Koosta, saada ja halda arveid',
+      badge:unpaidBalance>0?`${money(unpaidBalance)} € ootel`:''
+    },
+    {
+      id:'reconciliation',
+      icon:'fa-money-bill-transfer',
+      label:'Maksete sobitamine',
+      description:'Impordi pank ja jaga laekumised',
+      badge:bankAttention>0?`${bankAttention} kontrollida`:''
+    },
+    {
+      id:'accounting',
+      icon:'fa-book',
+      label:'Raamatupidamine',
+      description:'Kontrolli seoseid ja kinnita kuu',
+      badge:''
+    }
+  ];
+  return(
+    <section className="fade-in" aria-label="Finantside tööruum" style={{marginBottom:18}}>
+      <div style={{display:'flex',justifyContent:'space-between',gap:16,alignItems:'flex-end',flexWrap:'wrap',marginBottom:14}}>
+        <div>
+          <div style={{fontSize:'.7rem',fontWeight:800,letterSpacing:'.09em',textTransform:'uppercase',color:'#C9882A'}}>Administraatori tööruum</div>
+          <h1 style={{fontSize:'2rem',marginTop:3}}>Finants</h1>
+          <p style={{color:'#64748b',fontSize:'.88rem',marginTop:4}}>
+            Arvete väljastamine, pangalaekumised ja raamatupidamise kontroll ühes kohas.
+          </p>
+        </div>
+        <div className="badge" style={{background:'#ecfdf5',color:'#166534',padding:'7px 11px'}}>
+          <i className="fa-solid fa-shield-halved"/> Finantsmuudatused auditeeritakse
+        </div>
+      </div>
+      <div role="tablist" aria-label="Finantside töövood" style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(210px,1fr))',gap:10}}>
+        {items.map(item=>{
+          const active=section===item.id;
+          return(
+            <button key={item.id} type="button" role="tab" aria-selected={active}
+              onClick={()=>setSection(item.id)}
+              className="card"
+              style={{
+                appearance:'none',
+                border:active?'2px solid #2F6758':'1px solid rgba(28,43,58,.1)',
+                background:active?'#edf7f3':'#fff',
+                padding:'14px 16px',
+                textAlign:'left',
+                cursor:'pointer',
+                display:'flex',
+                gap:12,
+                alignItems:'center',
+                boxShadow:active?'0 8px 22px rgba(47,103,88,.12)':'0 4px 14px rgba(28,43,58,.05)'
+              }}>
+              <span style={{width:38,height:38,borderRadius:11,display:'grid',placeItems:'center',flexShrink:0,background:active?'#2F6758':'#F4F2EE',color:active?'#fff':'#42536A'}}>
+                <i className={`fa-solid ${item.icon}`}/>
+              </span>
+              <span style={{minWidth:0,flex:1}}>
+                <span style={{display:'flex',alignItems:'center',gap:7,flexWrap:'wrap'}}>
+                  <strong style={{color:'#1C2B3A'}}>{item.label}</strong>
+                  {item.badge&&<span className="badge" style={{background:active?'#fff':'#f3f4f6',color:active?'#166534':'#64748b'}}>{item.badge}</span>}
+                </span>
+                <span style={{display:'block',fontSize:'.72rem',color:'#64748b',marginTop:3}}>{item.description}</span>
+              </span>
+              <i className="fa-solid fa-chevron-right" style={{fontSize:'.7rem',color:active?'#2F6758':'#cbd5e1'}}/>
+            </button>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function InvoicesView({invoices,payments,paymentLineAllocations=[],myStudents,parents,schedule,students,lessons,isAdmin,tariffs=[],tariffAssignments=[],packageProducts=[],studentPackages=[],packageLedger=[],createTariffVersion,assignStudentTariff,createPackageProduct,issueStudentPackage,adjustStudentPackage,invStu,setInvStu,invAmt,setInvAmt,invDesc,setInvDesc,invRef,setInvRef,invDue,setInvDue,addInvoice,recordPayment,savePaymentLineAllocation,uploadPaymentDocument,openPaymentDocument,markPaid,unmarkPaid,voidPayment,resolveInvoiceOverpayment,creditInvoiceLessonLine,openCreditNotePdf,sendCreditNoteEmail,deleteInvoice,printInvoice,updateInvoiceReference,updateInvoiceDue,sendInvoiceEmail,sendInvoiceReminder,sendMonthlyInvoiceReminders,invoiceEmailBusy}) {
   const unpaidAmt=invoices.filter(i=>i.status==='Ootel').reduce((sum,inv)=>sum+invoiceFinancialSummary(inv).balance,0);
   const paid=invoices.filter(i=>i.status==='Makstud');
@@ -10865,6 +10949,7 @@ function App() {
   const [loading,setLoading]   = useState(true);
   const [bootError,setBootError] = useState('');
   const [tab,setTab]           = useState('dashboard');
+  const [financeSection,setFinanceSection] = useState('invoices');
   const [selStu,setSelStu]     = useState(null);
   const [editStu,setEditStu]   = useState(null);
   const [filterT,setFilterT]   = useState('');
@@ -11038,6 +11123,10 @@ function App() {
   const goTab=t=>{
     const extItem = navItems && navItems.find(i=>i.id===t&&i.isExternal);
     if(extItem){ window.location.assign(extItem.href); return; }
+    if(isAdmin&&ADMIN_FINANCE_SECTIONS.includes(t)){
+      setFinanceSection(t);
+      t='finance';
+    }
     setTab(t);setSelStu(null);setMobileNav(false);
   };
 
@@ -11046,6 +11135,12 @@ function App() {
   const isParentUser = hasUserRole(user,'parent');
   const isStudentUser = hasUserRole(user,'student');
   const canAssignTeacher = isAdmin;
+  React.useEffect(()=>{
+    if(isAdmin&&ADMIN_FINANCE_SECTIONS.includes(tab)){
+      setFinanceSection(tab);
+      setTab('finance');
+    }
+  },[isAdmin,tab]);
   const teacherUidForName = React.useCallback(teacherName=>{
     const canonical=normalizeText(canonicalTeacherName(teacherName));
     if(canonical&&canonical===normalizeText(canonicalTeacherName(user?.displayName||''))) return user?.uid||'';
@@ -13821,10 +13916,10 @@ function App() {
     ...(isStaff?[{id:'groups',icon:'fa-layer-group',label:'Grupid'}]:[]),
     ...(isStaff?[{id:'parents',icon:'fa-people-roof',label:'Lapsevanemad',badge:isAdmin?parentAlerts.length:0}]:[]),
     ...(isStaff?[{id:'database',icon:'fa-table',label:'Andmebaas'}]:[]),
-    ...(isStaff?[{id:'invoices',icon:'fa-file-invoice',label:'Arved',
-      badge:scopedInvoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+invoiceFinancialSummary(i).balance,0)>0?scopedInvoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+invoiceFinancialSummary(i).balance,0)+'€':0}]:[]),
-    ...(isAdmin?[{id:'reconciliation',icon:'fa-money-bill-transfer',label:'Maksete sobitamine'}]:[]),
-    ...(isAdmin?[{id:'accounting',icon:'fa-book',label:'Raamatupidamine'}]:[]),
+    ...(isAdmin?[{id:'finance',icon:'fa-wallet',label:'Finants',
+      badge:scopedInvoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+invoiceFinancialSummary(i).balance,0)>0?scopedInvoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+invoiceFinancialSummary(i).balance,0)+'€':0}]
+      :isStaff?[{id:'invoices',icon:'fa-file-invoice',label:'Arved',
+        badge:scopedInvoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+invoiceFinancialSummary(i).balance,0)>0?scopedInvoices.filter(i=>i.status==='Ootel').reduce((a,i)=>a+invoiceFinancialSummary(i).balance,0)+'€':0}]:[]),
     ...(isStaff?[{id:'work_time',icon:'fa-stopwatch',label:'Tööaeg',
       badge:isAdmin?workSessions.filter(item=>item.status==='closed'&&item.approvalStatus==='pending').length:0}]:[]),
     ...(isAdmin?[{id:'school_assistant',icon:'fa-shield-halved',label:'Juhi abi',
@@ -14036,7 +14131,13 @@ function App() {
 
           {tab==='invoices'&&!isStaff&&<ParentInvoicesView invoices={scopedInvoices} printInvoice={printInvoice} submitParentPayment={submitParentPayment}/>}
 
-	          {tab==='invoices'&&isStaff&&<InvoicesView invoices={scopedInvoices} payments={payments} paymentLineAllocations={paymentLineAllocations} myStudents={myStudents} parents={scopedParents}
+          {tab==='finance'&&isAdmin&&<FinanceWorkspaceNav
+            section={financeSection}
+            setSection={setFinanceSection}
+            invoices={scopedInvoices}
+            bankTransactions={bankTransactions}/>}
+
+	          {((tab==='invoices'&&isStaff&&!isAdmin)||(tab==='finance'&&isAdmin&&financeSection==='invoices'))&&<InvoicesView invoices={scopedInvoices} payments={payments} paymentLineAllocations={paymentLineAllocations} myStudents={myStudents} parents={scopedParents}
 	            schedule={schedule} students={students} lessons={lessons} isAdmin={isAdmin}
             tariffs={tariffs} tariffAssignments={tariffAssignments}
             createTariffVersion={createTariffVersion} assignStudentTariff={assignStudentTariff}
@@ -14047,14 +14148,14 @@ function App() {
             addInvoice={addInvoice} recordPayment={recordPayment} savePaymentLineAllocation={savePaymentLineAllocation} uploadPaymentDocument={uploadPaymentDocument} openPaymentDocument={openPaymentDocument} markPaid={markPaid} unmarkPaid={unmarkPaid} voidPayment={voidPayment} resolveInvoiceOverpayment={resolveInvoiceOverpayment} creditInvoiceLessonLine={creditInvoiceLessonLine} openCreditNotePdf={openCreditNotePdf} sendCreditNoteEmail={sendCreditNoteEmail} deleteInvoice={deleteInvoice} printInvoice={printInvoice} updateInvoiceReference={updateInvoiceReference} updateInvoiceDue={updateInvoiceDue}
             sendInvoiceEmail={sendInvoiceEmail} sendInvoiceReminder={sendInvoiceReminder} sendMonthlyInvoiceReminders={sendMonthlyInvoiceReminders} invoiceEmailBusy={invoiceEmailBusy}/>}
 
-          {tab==='reconciliation'&&isAdmin&&<PaymentReconciliationView
+          {tab==='finance'&&isAdmin&&financeSection==='reconciliation'&&<PaymentReconciliationView
             invoices={invoices} students={students} isAdmin={isAdmin}
             bankTransactions={bankTransactions} payerCredits={payerCredits}
             allocateBankTransaction={allocateImportedBankTransaction}
             applyPayerCredit={applyPayerCredit}
             refundPayerCredit={refundPayerCredit}/>}
 
-          {tab==='accounting'&&isAdmin&&<AccountingRegisterView
+          {tab==='finance'&&isAdmin&&financeSection==='accounting'&&<AccountingRegisterView
             invoices={invoices}
             payments={payments}
             paymentLineAllocations={paymentLineAllocations}
@@ -14065,8 +14166,8 @@ function App() {
             reviewFinancialPeriod={reviewFinancialPeriod}
             savePaymentLineAllocation={savePaymentLineAllocation}
             openPaymentDocument={openPaymentDocument}
-            openInvoices={()=>goTab('invoices')}
-            openReconciliation={()=>goTab('reconciliation')}/>}
+            openInvoices={()=>setFinanceSection('invoices')}
+            openReconciliation={()=>setFinanceSection('reconciliation')}/>}
 
           {tab==='work_time'&&isStaff&&<WorkTimeView
             user={user}

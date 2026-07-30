@@ -59,6 +59,13 @@ Financial writes remain isolated from the learning-content slice. Browser screen
 financial operations, but authoritative payment, credit, package and invoice mutations live in
 Cloud Functions and are covered by unit and emulator tests.
 
+The administrator enters these workflows through one `Finants` workspace. Its `Arved`,
+`Maksete sobitamine` and `Raamatupidamine` sections are navigation boundaries over the existing
+views, not separate data stores. Teachers retain the narrower invoice-management route and
+students or parents retain their own invoice cabinet. Legacy internal routes are mapped to the
+matching administrator section so dashboard alerts and saved operational links do not lose their
+destination during the UI consolidation.
+
 `accounting-ledger-core.js` builds the administrator's monthly invoice register as a read-only
 projection of `lessons`, `invoices`, `payments`, `bankTransactions` and `payerCredits`. It
 deliberately does not persist a second ledger. Invoice periods use the issue date while
