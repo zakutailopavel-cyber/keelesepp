@@ -8,8 +8,72 @@ const {
   financialPeriodControl,
   lessonPaymentRegister,
   lessonPaymentRegisterCsv,
-  paymentAllocationQueue
+  paymentAllocationQueue,
+  studentInvoiceRegister
 }=require('./accounting-ledger-core');
+
+test('student payment register separates paid, partial, unpaid and missing invoices',()=>{
+  const register=studentInvoiceRegister({
+    students:[
+      {id:'student-paid',name:'Mari',active:true},
+      {id:'student-partial',name:'Jüri',active:true},
+      {id:'student-unpaid',name:'Anna',active:true},
+      {id:'student-none',name:'Karl',active:true}
+    ],
+    invoices:[
+      {id:'invoice-paid',studentId:'student-paid',studentName:'Mari',num:'KS-1',date:'2026-07-01',amountCents:3000},
+      {id:'invoice-partial',studentId:'student-partial',studentName:'Jüri',num:'KS-2',date:'2026-07-01',amountCents:4000},
+      {id:'invoice-unpaid',studentId:'student-unpaid',studentName:'Anna',num:'KS-3',date:'2026-07-01',due:'2026-07-10',amountCents:2000}
+    ],
+    payments:[
+      {id:'payment-paid',invoiceId:'invoice-paid',amountCents:3000,paidAt:'2026-07-05',status:'active',bankTransactionId:'bank-1'},
+      {id:'payment-partial',invoiceId:'invoice-partial',amountCents:1000,paidAt:'2026-07-06',status:'active',bankTransactionId:'bank-2'}
+    ]
+  });
+  assert.equal(register.rows.find(row=>row.studentId==='student-paid').status,'paid');
+  assert.equal(register.rows.find(row=>row.studentId==='student-partial').status,'partial');
+  assert.equal(register.rows.find(row=>row.studentId==='student-unpaid').status,'overdue');
+  assert.equal(register.rows.find(row=>row.studentId==='student-none').status,'no_invoice');
+  assert.equal(register.rows.find(row=>row.studentId==='student-partial').balanceCents,3000);
+  assert.equal(register.rows.find(row=>row.studentId==='student-paid').lastPaymentDate,'2026-07-05');
+});
+
+test('shared parent invoices are visible without inflating the summary balance',()=>{
+  const register=studentInvoiceRegister({
+    students:[
+      {id:'one',name:'Laps 1',parentName:'Parent',active:true},
+      {id:'two',name:'Laps 2',parentName:'Parent',active:true}
+    ],
+    invoices:[{
+      id:'parent-invoice',
+      invoiceTargetType:'parent',
+      parentName:'Parent',
+      num:'P-1',
+      date:'2026-07-01',
+      amountCents:5000
+    }]
+  });
+  assert.equal(register.rows[0].sharedParentInvoiceCount,1);
+  assert.equal(register.rows[1].sharedParentInvoiceCount,1);
+  assert.equal(register.summary.balanceCents,0);
+});
+
+test('legacy paid invoice markers stay reviewable instead of looking bank-confirmed',()=>{
+  const register=studentInvoiceRegister({
+    students:[{id:'student',name:'Mari',active:true}],
+    invoices:[{
+      id:'legacy',
+      studentId:'student',
+      studentName:'Mari',
+      num:'OLD-1',
+      date:'2026-07-01',
+      amountCents:3000,
+      status:'Makstud'
+    }]
+  });
+  assert.equal(register.rows[0].status,'needs_review');
+  assert.equal(register.summary.needsReviewCount,1);
+});
 
 test('monthly control combines lesson, invoice, payment and bank blockers',()=>{
   const control=financialPeriodControl({

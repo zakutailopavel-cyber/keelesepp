@@ -152,6 +152,7 @@ const {
   lessonPaymentRegisterCsv,
   lessonPaymentStatusLabel,
   paymentAllocationQueue,
+  studentInvoiceRegister,
   statusLabel:accountingStatusLabel
 } = window.AccountingLedgerCore;
 const {
@@ -9095,10 +9096,11 @@ function AccountingRegisterView({invoices,payments,paymentLineAllocations,bankTr
 // однозначна. Только когда номера в описании нет (или он задвоен —
 // см. предупреждение о дублях ниже), используется резервное угадывание
 // по имени ученика/родителя, которое пользователь может поправить вручную.
-function PaymentReconciliationView({invoices, students, isAdmin, bankTransactions, payerCredits, allocateBankTransaction, applyPayerCredit, refundPayerCredit}) {
+function PaymentReconciliationView({invoices, students, payments:invoicePayments=[], isAdmin, bankTransactions, payerCredits, allocateBankTransaction, applyPayerCredit, refundPayerCredit}) {
   const [rawStatement, setRawStatement] = React.useState('');
   const [payments, setPayments] = React.useState([]);
   const [showImport, setShowImport] = React.useState(true);
+  const [showRawImport, setShowRawImport] = React.useState(false);
   const [statementFileName, setStatementFileName] = React.useState('');
   const [importResult, setImportResult] = React.useState(null);
   const [assign, setAssignState] = React.useState({});   // paymentId -> имя ученика (ручной override)
@@ -9109,6 +9111,8 @@ function PaymentReconciliationView({invoices, students, isAdmin, bankTransaction
   const [month, setMonth] = React.useState('all');
   const [search, setSearch] = React.useState('');
   const [hideVerified, setHideVerified] = React.useState(false);
+  const [studentPaymentSearch,setStudentPaymentSearch] = React.useState('');
+  const [studentPaymentFilter,setStudentPaymentFilter] = React.useState('attention');
   const [moSearch, setMoSearch] = React.useState('');
   const [allocationDraft, setAllocationDraft] = React.useState(null);
   const [allocationBusy, setAllocationBusy] = React.useState(false);
@@ -9121,6 +9125,7 @@ function PaymentReconciliationView({invoices, students, isAdmin, bankTransaction
       if (snap.exists) {
         const d = snap.data();
         setRawStatement(d.rawStatement || '');
+        setStatementFileName(d.sourceFileName||'');
         const parsed=d.rawStatement ? parseStatementDetailed(d.rawStatement) : null;
         setPayments(parsed?.rows||[]);
         if(parsed?.rows?.length){
@@ -9150,7 +9155,13 @@ function PaymentReconciliationView({invoices, students, isAdmin, bankTransaction
     setPayments(parsed.rows);
     setShowImport(false);
     setSubTab('pay');
-    persist({rawStatement});
+    persist({
+      rawStatement,
+      sourceFileName:statementFileName,
+      statementFormat:parsed.format,
+      statementRowCount:parsed.rows.length,
+      importedAt:new Date().toISOString()
+    });
   }
   async function loadStatementFile(event) {
     const file=event.target.files?.[0];
@@ -9162,9 +9173,11 @@ function PaymentReconciliationView({invoices, students, isAdmin, bankTransaction
     }
     try{
       const text=await file.text();
+      const parsed=parseStatementDetailed(text);
       setRawStatement(text);
       setStatementFileName(file.name);
-      setImportResult(null);
+      setImportResult(parsed);
+      setShowRawImport(false);
     }catch(error){
       console.error('Statement file read failed:',error);
       setImportResult({rows:[],totalLines:0,skippedLines:0,error:'Faili ei saanud lugeda.'});
@@ -9350,6 +9363,26 @@ function PaymentReconciliationView({invoices, students, isAdmin, bankTransaction
     .reduce((s, p) => s + p.amount, 0);
   const automaticMatchCount=payments.filter(payment=>matchOf(payment).tier==='ref').length;
   const reviewCount=payments.filter(payment=>!recordedPaymentIds.has(payment.id)).length;
+  const studentPaymentRegisterData=React.useMemo(
+    ()=>studentInvoiceRegister({students,invoices,payments:invoicePayments}),
+    [students,invoices,invoicePayments]
+  );
+  const studentPaymentRows=studentPaymentRegisterData.rows.filter(row=>{
+    const query=normalizeText(studentPaymentSearch);
+    if(query&&!normalizeText(`${row.studentName} ${row.parentName} ${row.invoiceNumbers.join(' ')}`).includes(query)) return false;
+    if(studentPaymentFilter==='attention') return ['partial','unpaid','overdue','needs_review'].includes(row.status);
+    if(studentPaymentFilter==='paid') return row.status==='paid';
+    if(studentPaymentFilter==='no_invoice') return row.status==='no_invoice';
+    return true;
+  });
+  const studentPaymentStatusMeta=status=>({
+    paid:{label:'Makstud',bg:'#dcfce7',color:'#166534'},
+    partial:{label:'Osaliselt',bg:'#fef3c7',color:'#92400e'},
+    overdue:{label:'Tähtaja ületanud',bg:'#fee2e2',color:'#991b1b'},
+    unpaid:{label:'Tasumata',bg:'#fee2e2',color:'#991b1b'},
+    needs_review:{label:'Kontrolli vana märget',bg:'#fffbeb',color:'#92400e'},
+    no_invoice:{label:'Arvet pole',bg:'#f1f5f9',color:'#475569'}
+  }[status]||{label:status,bg:'#f1f5f9',color:'#475569'});
 
   let monthEntries = Object.keys(monthlyTotals).map(name => {
     const byMonth = monthlyTotals[name].byMonth;
@@ -9405,7 +9438,11 @@ function PaymentReconciliationView({invoices, students, isAdmin, bankTransaction
             </div>
           </div>
           {payments.length>0&&!showImport&&(
-            <button onClick={()=>{setShowImport(true);setImportResult(null);}} className="btn btn-ghost btn-sm">
+            <button onClick={()=>{
+              setShowImport(true);
+              setImportResult(rawStatement.trim()?parseStatementDetailed(rawStatement):null);
+              setShowRawImport(false);
+            }} className="btn btn-ghost btn-sm">
               <i className="fa-solid fa-rotate"/> Asenda väljavõte
             </button>
           )}
@@ -9432,27 +9469,66 @@ function PaymentReconciliationView({invoices, students, isAdmin, bankTransaction
                 {statementFileName?`Valitud: ${statementFileName}`:'või kleebi read allolevasse kasti'}
               </span>
             </div>
-            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(145px,1fr))',gap:6,fontSize:'.68rem',fontWeight:800,color:'#42536A'}}>
-              <span>1 · Kuupäev</span><span>2 · Maksja</span><span>3 · Selgitus / arve nr</span><span>4 · Summa</span>
-            </div>
-            <textarea rows={5} style={{fontFamily:'monospace',fontSize:'.8rem'}}
-              aria-label="Pangaväljavõtte read"
-              placeholder={'30.07.2026\tIRINA ŠAŠKOVA\tKS-2026-041\t25,00'}
-              value={rawStatement} onChange={event=>{setRawStatement(event.target.value);setStatementFileName('');setImportResult(null);}}/>
-            <div style={{fontSize:'.7rem',color:'#64748b'}}>
-              Lubatud eraldajad: tabulaator, semikoolon või CSV-koma. Esimene päiserida võib jääda faili.
-            </div>
             {importResult&&(
-              <div role="status" style={{padding:'10px 12px',borderRadius:10,background:importResult.error||!importResult.rows?.length?'#fff1f2':importResult.skippedLines?'#fffbeb':'#ecfdf5',color:importResult.error||!importResult.rows?.length?'#991b1b':importResult.skippedLines?'#92400e':'#166534',fontSize:'.75rem',fontWeight:700}}>
-                {importResult.error||(!importResult.rows?.length
-                  ?'Ühtegi sobivat makserida ei leitud. Kontrolli nelja veeru järjekorda.'
-                  :`${importResult.rows.length} makset leitud${importResult.skippedLines?` · ${importResult.skippedLines} rida jäeti vahele`:''}.`)}
+              <div role="status" style={{border:'1px solid rgba(28,43,58,.1)',borderRadius:12,overflow:'hidden'}}>
+                <div style={{padding:'12px 14px',background:importResult.error||!importResult.rows?.length?'#fff1f2':'#ecfdf5',display:'flex',justifyContent:'space-between',gap:10,alignItems:'center',flexWrap:'wrap'}}>
+                  <div>
+                    <div style={{fontWeight:800,color:importResult.error||!importResult.rows?.length?'#991b1b':'#166534'}}>
+                      {importResult.error||(!importResult.rows?.length
+                        ?'Sobivaid laekumisi ei leitud'
+                        :`${importResult.formatLabel} tuvastatud · ${importResult.rows.length} laekumist`)}
+                    </div>
+                    <div style={{fontSize:'.7rem',color:'#42536A',marginTop:3}}>
+                      {importResult.outgoingLines?`${importResult.outgoingLines} väljaminevat makset jäeti välja · `:''}
+                      {Math.max(0,importResult.skippedLines-(importResult.outgoingLines||0))} vigast või mittesobivat rida
+                    </div>
+                  </div>
+                  <button type="button" onClick={()=>setShowRawImport(value=>!value)} className="btn btn-ghost btn-sm">
+                    {showRawImport?'Peida lähtefail':'Näita lähtefaili'}
+                  </button>
+                </div>
+                {importResult.rows?.length>0&&(
+                  <div style={{overflowX:'auto'}}>
+                    <div style={{minWidth:720}}>
+                      <div style={{display:'grid',gridTemplateColumns:'90px minmax(170px,1fr) minmax(240px,1.4fr) 90px',gap:10,padding:'8px 12px',background:'#F4F2EE',fontSize:'.66rem',fontWeight:800,color:'#42536A',textTransform:'uppercase'}}>
+                        <span>Kuupäev</span><span>Maksja</span><span>Selgitus / viide</span><span style={{textAlign:'right'}}>Summa</span>
+                      </div>
+                      {importResult.rows.slice(0,8).map((payment,index)=>(
+                        <div key={`${payment.id}-${index}`} style={{display:'grid',gridTemplateColumns:'90px minmax(170px,1fr) minmax(240px,1.4fr) 90px',gap:10,padding:'8px 12px',fontSize:'.76rem',borderTop:'1px solid rgba(28,43,58,.06)',background:index%2?'#FAFAF8':'#fff'}}>
+                          <span>{payment.date}</span>
+                          <strong style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{payment.payer}</strong>
+                          <span style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',color:'#42536A'}}>{payment.desc||'—'}</span>
+                          <strong style={{textAlign:'right',fontFamily:'monospace'}}>{payment.amount.toFixed(2)} €</strong>
+                        </div>
+                      ))}
+                      {importResult.rows.length>8&&(
+                        <div style={{padding:'8px 12px',fontSize:'.7rem',color:'#64748b',textAlign:'center'}}>
+                          Eelvaates 8 rida · registrisse salvestatakse kõik {importResult.rows.length} laekumist
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
+            {(!statementFileName||showRawImport)&&(
+              <>
+                <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(145px,1fr))',gap:6,fontSize:'.68rem',fontWeight:800,color:'#42536A'}}>
+                  <span>1 · Kuupäev</span><span>2 · Maksja</span><span>3 · Selgitus / arve nr</span><span>4 · Summa</span>
+                </div>
+                <textarea rows={5} style={{fontFamily:'monospace',fontSize:'.8rem'}}
+                  aria-label="Pangaväljavõtte lähteandmed"
+                  placeholder={'30.07.2026\tIRINA ŠAŠKOVA\tKS-2026-041\t25,00'}
+                  value={rawStatement} onChange={event=>{setRawStatement(event.target.value);setStatementFileName('');setImportResult(null);}}/>
+                <div style={{fontSize:'.7rem',color:'#64748b'}}>
+                  Toetatud on panga CSV või neli veergu: kuupäev, maksja, selgitus ja summa.
+                </div>
+              </>
+            )}
             <div>
-              <button onClick={handleParse} disabled={!rawStatement.trim()} className="btn btn-pine"
-                style={{opacity:rawStatement.trim()?1:.55}}>
-                <i className="fa-solid fa-wand-magic-sparkles"/> Leia maksetele arved
+              <button onClick={handleParse} disabled={!importResult?.rows?.length&&!rawStatement.trim()} className="btn btn-pine"
+                style={{opacity:(importResult?.rows?.length||rawStatement.trim())?1:.55}}>
+                <i className="fa-solid fa-table-list"/> Salvesta register ja kontrolli
               </button>
             </div>
           </div>
@@ -9462,8 +9538,9 @@ function PaymentReconciliationView({invoices, students, isAdmin, bankTransaction
       <div className="card" style={{padding:10,display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
         <span style={{fontSize:'.68rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'.06em',color:'#64748b',padding:'0 6px'}}>Töövaated</span>
         {[
-          ['pay',`Kontrolli makseid${payments.length?` (${payments.length})`:''}`],
-          ['invoices',`Ootel arved (${pendingInvoices.length})`],
+          ['pay',`Pangamaksed${payments.length?` (${payments.length})`:''}`],
+          ['students',`Õpilaste maksed (${studentPaymentRegisterData.summary.unpaidCount+studentPaymentRegisterData.summary.partialCount+studentPaymentRegisterData.summary.needsReviewCount})`],
+          ['invoices',`Tasumata arved (${pendingInvoices.length})`],
           ['credits',`Ettemaksed (${(payerCredits||[]).filter(credit=>credit.status==='open').length})`],
           ['months','Kuukoond']
         ].map(([k, l]) => (
@@ -9607,28 +9684,35 @@ function PaymentReconciliationView({invoices, students, isAdmin, bankTransaction
             {students.slice().sort((a, b) => a.name.localeCompare(b.name, 'et')).map(s => <option key={s.id} value={s.name} />)}
           </datalist>
 
-          <div style={{maxHeight: 500, overflowY: 'auto'}}>
-            {filteredPayments.length === 0
-              ? <div style={{textAlign:'center',padding:30,color:'#94a3b8',fontSize:'.85rem'}}>Valitud filtrile vastavaid makseid ei ole.</div>
-              : filteredPayments.map((p, i) => {
-                const m = matchOf(p);
-                const eff = effectiveName(p);
-                const manual = Object.prototype.hasOwnProperty.call(assign, p.id);
-                const isRecorded = recordedPaymentIds.has(p.id);
-                return (
-                  <div key={p.id} style={{
-                    display:'grid',gridTemplateColumns:'82px minmax(220px,1fr) 95px 130px',gap:10,alignItems:'center',
-                    padding: '8px 14px', borderBottom: '1px solid rgba(28,43,58,.06)',
-                    background:isRecorded?'#f0fdf4':i%2?'#FAFAF8':'#fff'
-                  }}>
-                    <span style={{fontSize: '.72rem', color: '#64748b', fontFamily: 'monospace'}}>{p.date}</span>
-                    <span style={{minWidth: 0}}>
-                      <div style={{fontWeight: 600, fontSize: '.85rem'}}>{p.payer}</div>
-                      <div style={{fontSize: '.72rem', color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>{p.desc}</div>
-                      <div style={{display: 'flex', gap: 6, alignItems: 'center', marginTop: 2}}>
+          <div style={{overflowX:'auto'}}>
+            <div style={{minWidth:960}}>
+              <div style={{display:'grid',gridTemplateColumns:'82px minmax(220px,1.1fr) minmax(250px,1.2fr) 95px 145px',gap:10,padding:'9px 14px',background:'#F4F2EE',borderBottom:'1px solid rgba(28,43,58,.08)',fontSize:'.66rem',fontWeight:800,color:'#42536A',textTransform:'uppercase'}}>
+                <span>Kuupäev</span><span>Pangamakse</span><span>Õpilane ja arve</span><span style={{textAlign:'right'}}>Summa</span><span>Staatus</span>
+              </div>
+              <div style={{maxHeight:500,overflowY:'auto'}}>
+                {filteredPayments.length === 0
+                  ? <div style={{textAlign:'center',padding:30,color:'#94a3b8',fontSize:'.85rem'}}>Valitud filtrile vastavaid makseid ei ole.</div>
+                  : filteredPayments.map((p, i) => {
+                    const m = matchOf(p);
+                    const eff = effectiveName(p);
+                    const manual = Object.prototype.hasOwnProperty.call(assign, p.id);
+                    const isRecorded = recordedPaymentIds.has(p.id);
+                    return (
+                      <div key={p.id} style={{
+                        display:'grid',gridTemplateColumns:'82px minmax(220px,1.1fr) minmax(250px,1.2fr) 95px 145px',gap:10,alignItems:'center',
+                        padding:'9px 14px',borderBottom:'1px solid rgba(28,43,58,.06)',
+                        background:isRecorded?'#f0fdf4':i%2?'#FAFAF8':'#fff'
+                      }}>
+                        <span style={{fontSize:'.72rem',color:'#64748b',fontFamily:'monospace'}}>{p.date}</span>
+                        <span style={{minWidth:0}}>
+                          <div style={{fontWeight:700,fontSize:'.82rem'}}>{p.payer}</div>
+                          <div title={p.desc} style={{fontSize:'.7rem',color:'#64748b',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{p.desc||'Selgitus puudub'}</div>
+                        </span>
+                        <span style={{minWidth:0}}>
+                          <div style={{display:'flex',gap:6,alignItems:'center',flexWrap:'wrap'}}>
                         <input list="ks-recon-students" value={eff} onChange={e => setAssign(p.id, e.target.value)}
                           placeholder="Kelle makse?" style={{
-                            fontSize: '.72rem', padding: '2px 6px', width: 200, borderRadius: 6,
+                            fontSize:'.72rem',padding:'4px 7px',width:190,borderRadius:6,
                             border: manual ? '1.5px solid #2F5D50' : m.tier === 'ref' ? '1.5px solid #2F5D50'
                               : ['ref-dup','name-dup'].includes(m.tier) ? '1.5px solid #dc2626'
                                 : m.tier === 'name-amount' ? '1.5px dashed #C9882A'
@@ -9638,30 +9722,103 @@ function PaymentReconciliationView({invoices, students, isAdmin, bankTransaction
                         {m.tier === 'name-amount' && !manual && <span className="badge" style={{background: '#fef3c7', color: '#92400e'}}>nimi + summa · kontrolli</span>}
                         {m.tier === 'ref-dup' && <span className="badge" style={{background: '#fee2e2', color: '#991b1b'}}>arvenumber kordub</span>}
                         {m.tier === 'name-dup' && <span className="badge" style={{background: '#fee2e2', color: '#991b1b'}}>mitu nimekandidaati</span>}
-                        {m.reason&&<span title={m.reason} style={{fontSize:'.68rem',color:'#64748b'}}>{m.confidence==='high'?'kõrge':m.confidence==='medium'?'keskmine':m.confidence==='low'?'madal':'kontrolli'}</span>}
+                          </div>
+                          {m.reason&&<div title={m.reason} style={{fontSize:'.66rem',color:'#64748b',marginTop:3}}>
+                            Kindlus: {m.confidence==='high'?'kõrge':m.confidence==='medium'?'keskmine':m.confidence==='low'?'madal':'vajab kontrolli'}
+                          </div>}
+                        </span>
+                        <span style={{fontFamily:'monospace',fontWeight:800,textAlign:'right'}}>{p.amount.toFixed(2)} €</span>
+                        <span>
+                          <button onClick={()=>openAllocation(p,m)} disabled={isRecorded}
+                            className="btn btn-pine btn-sm" style={{opacity:isRecorded ? .65 : 1}}>
+                            {isRecorded?<><i className="fa-solid fa-check"/> Salvestatud</>:<><i className="fa-solid fa-arrow-right"/> Kinnita</>}
+                          </button>
+                        </span>
                       </div>
-                    </span>
-                    <span style={{fontFamily: 'monospace', fontWeight: 700, textAlign: 'right'}}>{p.amount.toFixed(2)} €</span>
-                    <span>
-                      <button onClick={()=>openAllocation(p,m)} disabled={isRecorded}
-                        className="btn btn-pine btn-sm" style={{opacity:isRecorded ? .55 : 1}}>
-                        {isRecorded?<><i className="fa-solid fa-check"/> Salvestatud</>:<><i className="fa-solid fa-arrow-right"/> Kinnita jaotus</>}
-                      </button>
-                    </span>
-                  </div>
-                );
-              })}
+                    );
+                  })}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {subTab === 'students' && (
+        <div className="card" style={{overflow:'hidden'}}>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))',gap:10,padding:14,background:'#1C2B3A'}}>
+            <MiniStat label="Õpilasi" value={String(studentPaymentRegisterData.summary.studentCount)}/>
+            <MiniStat label="Makstud" value={String(studentPaymentRegisterData.summary.paidCount)} color="#4ade80"/>
+            <MiniStat label="Vajab tähelepanu" value={String(studentPaymentRegisterData.summary.unpaidCount+studentPaymentRegisterData.summary.partialCount+studentPaymentRegisterData.summary.needsReviewCount)} color="#fbbf24"/>
+            <MiniStat label="Arvet pole" value={String(studentPaymentRegisterData.summary.noInvoiceCount)} color="#cbd5e1"/>
+          </div>
+          <div style={{padding:'10px 12px',display:'flex',gap:8,alignItems:'center',flexWrap:'wrap',borderBottom:'1px solid rgba(28,43,58,.08)'}}>
+            <input value={studentPaymentSearch} onChange={event=>setStudentPaymentSearch(event.target.value)}
+              placeholder="Otsi õpilast, vanemat või arvet…" style={{flex:1,minWidth:220}}/>
+            {[
+              ['attention','Vajab tähelepanu'],
+              ['paid','Makstud'],
+              ['no_invoice','Arvet pole'],
+              ['all','Kõik']
+            ].map(([id,label])=>(
+              <button key={id} onClick={()=>setStudentPaymentFilter(id)}
+                className={studentPaymentFilter===id?'btn btn-dark btn-sm':'btn btn-ghost btn-sm'}>
+                {label}
+              </button>
+            ))}
+          </div>
+          <div style={{padding:'10px 12px',background:'#eff6ff',borderBottom:'1px solid rgba(28,43,58,.08)',fontSize:'.7rem',color:'#1e3a5f'}}>
+            Summad pärinevad CRM-i arvetest ja kinnitatud maksekirjetest. Mitme lapse ühine lapsevanema arve märgitakse eraldi ega liideta üldjääki mitu korda.
+          </div>
+          <div style={{overflowX:'auto'}}>
+            <div style={{minWidth:930}}>
+              <div style={{display:'grid',gridTemplateColumns:'minmax(180px,1.2fr) minmax(150px,1fr) 100px 100px 100px 100px 130px',gap:10,padding:'9px 14px',background:'#F4F2EE',fontSize:'.66rem',fontWeight:800,color:'#42536A',textTransform:'uppercase'}}>
+                <span>Õpilane</span><span>Arved</span><span style={{textAlign:'right'}}>Arvestatud</span><span style={{textAlign:'right'}}>Laekunud</span><span style={{textAlign:'right'}}>Tasuda</span><span>Viimane makse</span><span>Staatus</span>
+              </div>
+              <div style={{maxHeight:540,overflowY:'auto'}}>
+                {studentPaymentRows.map((row,index)=>{
+                  const status=studentPaymentStatusMeta(row.status);
+                  return(
+                    <div key={row.studentId||row.studentName} style={{display:'grid',gridTemplateColumns:'minmax(180px,1.2fr) minmax(150px,1fr) 100px 100px 100px 100px 130px',gap:10,alignItems:'center',padding:'9px 14px',borderTop:'1px solid rgba(28,43,58,.06)',background:index%2?'#FAFAF8':'#fff',fontSize:'.76rem'}}>
+                      <span style={{minWidth:0}}>
+                        <strong style={{display:'block',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{row.studentName}</strong>
+                        <span style={{display:'block',fontSize:'.67rem',color:'#64748b',marginTop:2}}>
+                          {row.parentName||row.teacher||'—'}
+                        </span>
+                      </span>
+                      <span style={{minWidth:0}}>
+                        <span title={row.invoiceNumbers.join(', ')} style={{display:'block',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
+                          {row.invoiceNumbers.join(', ')||'—'}
+                        </span>
+                        {row.sharedParentInvoiceCount>0&&(
+                          <span className="badge" style={{marginTop:3,background:'#eef2ff',color:'#4338ca'}}>ühine vanema arve</span>
+                        )}
+                      </span>
+                      <strong style={{textAlign:'right',fontFamily:'monospace'}}>{money(row.amountCents/100)} €</strong>
+                      <strong style={{textAlign:'right',fontFamily:'monospace',color:'#166534'}}>{money(row.paidCents/100)} €</strong>
+                      <strong style={{textAlign:'right',fontFamily:'monospace',color:row.balanceCents>0?'#991b1b':'#166534'}}>{money(row.balanceCents/100)} €</strong>
+                      <span>{row.lastPaymentDate?fmtDate(row.lastPaymentDate):'—'}</span>
+                      <span className="badge" style={{background:status.bg,color:status.color,justifySelf:'start'}}>{status.label}</span>
+                    </div>
+                  );
+                })}
+                {studentPaymentRows.length===0&&(
+                  <div style={{padding:30,textAlign:'center',color:'#94a3b8'}}>Valitud filtrile vastavaid õpilasi ei ole.</div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       )}
 
       {subTab === 'invoices' && (
         <div className="card" style={{padding: 16}}>
-          <div style={{fontWeight: 700, marginBottom: 10}}>CRM-i ootel arved ({pendingInvoices.length})</div>
+          <div style={{fontWeight:700,marginBottom:3}}>Tasumata ja osaliselt makstud arved ({pendingInvoices.length})</div>
+          <div style={{fontSize:'.72rem',color:'#64748b',marginBottom:10}}>Laekunud summa põhineb ainult kinnitatud maksekirjetel.</div>
           <div style={{display: 'flex', flexDirection: 'column', gap: 8}}>
             {pendingInvoices.map(inv => {
-              const paidSum = invoicePaidSums[inv.id] || 0;
-              const ok = paidSum + 0.01 >= inv.amount;
+              const proposalPaidSum=invoicePaidSums[inv.id]||0;
+              const financial=invoiceFinancialSummary(inv);
+              const partial=financial.paid>0&&financial.balance>0;
               return (
                 <div key={inv.id} style={{border: '1px solid rgba(28,43,58,.1)', borderRadius: 12, padding: 12}}>
                   <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8}}>
@@ -9669,16 +9826,16 @@ function PaymentReconciliationView({invoices, students, isAdmin, bankTransaction
                       <b>{inv.studentName || inv.parentName || '—'}</b>
                       <span style={{color: '#64748b', fontSize: '.78rem'}}> · arve {inv.num} · viide {inv.paymentReference || inv.num}</span>
                     </div>
-                    <span className="badge" style={{background: paidSum <= 0 ? '#fee2e2' : ok ? '#dcfce7' : '#fef3c7', color: paidSum <= 0 ? '#991b1b' : ok ? '#166534' : '#92400e'}}>
-                      {paidSum <= 0 ? '🔴 makseid pole' : ok ? '✅ tõenäoliselt makstud' : '🟡 osaliselt'}
+                    <span className="badge" style={{background:partial?'#fef3c7':'#fee2e2',color:partial?'#92400e':'#991b1b'}}>
+                      {partial?'Osaliselt makstud':'Tasumata'}
                     </span>
                   </div>
                   <div style={{fontSize: '.8rem', marginTop: 6}}>
-                    Tasuda: <b>{inv.amount.toFixed(2)} €</b> · arvenumbri järgi leitud: <b>{paidSum.toFixed(2)} €</b>
+                    Arve: <b>{money(financial.amount)} €</b> · laekunud: <b style={{color:'#166534'}}>{money(financial.paid)} €</b> · tasuda: <b style={{color:'#991b1b'}}>{money(financial.balance)} €</b>
                   </div>
-                  {isAdmin&&paidSum>0&&(
-                    <div style={{fontSize:'.75rem',color:'#64748b',marginTop:8}}>
-                      Salvesta iga pangarida vahekaardil „Maksed“, et kuupäev ja summa säiliksid ning topeltimport oleks välistatud.
+                  {isAdmin&&proposalPaidSum>0&&(
+                    <div style={{fontSize:'.72rem',color:'#92400e',marginTop:8,padding:'6px 8px',background:'#fffbeb',borderRadius:8}}>
+                      Väljavõttes leitud ettepanek: {money(proposalPaidSum)} €. Kinnita pangamakse, et see muutuks ametlikuks laekumiseks.
                     </div>
                   )}
                 </div>
@@ -14291,7 +14448,7 @@ function App() {
             sendInvoiceEmail={sendInvoiceEmail} sendInvoiceReminder={sendInvoiceReminder} sendMonthlyInvoiceReminders={sendMonthlyInvoiceReminders} invoiceEmailBusy={invoiceEmailBusy}/>}
 
           {tab==='finance'&&isAdmin&&financeSection==='reconciliation'&&<PaymentReconciliationView
-            invoices={invoices} students={students} isAdmin={isAdmin}
+            invoices={invoices} students={students} payments={payments} isAdmin={isAdmin}
             bankTransactions={bankTransactions} payerCredits={payerCredits}
             allocateBankTransaction={allocateImportedBankTransaction}
             applyPayerCredit={applyPayerCredit}

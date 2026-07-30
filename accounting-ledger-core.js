@@ -92,6 +92,12 @@
     not_billable:'Ei kuulu arveldamisele'
   }[status]||status);
   const unique=values=>[...new Set(values.filter(Boolean))];
+  const identity=value=>String(value||'')
+    .toLocaleLowerCase('et-EE')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g,'')
+    .replace(/\s+/g,' ')
+    .trim();
 
   function accountingRegister({
     invoices=[],
@@ -249,6 +255,98 @@
       periodPayments,
       periodBanks,
       openCredits
+    };
+  }
+
+  function studentInvoiceRegister({
+    students=[],
+    invoices=[],
+    payments=[]
+  }={}){
+    const studentList=(Array.isArray(students)?students:[]).filter(student=>student?.active!==false);
+    const invoiceList=Array.isArray(invoices)?invoices:[];
+    const register=accountingRegister({invoices:invoiceList,payments});
+    const financialByInvoice=new Map(register.rows.map(row=>[row.id,row]));
+    const childrenByParent=new Map();
+    studentList.forEach(student=>{
+      const key=identity(student.parentName||student.guardianName);
+      if(!key) return;
+      if(!childrenByParent.has(key)) childrenByParent.set(key,[]);
+      childrenByParent.get(key).push(student.id||student.name);
+    });
+    const rows=studentList.map(student=>{
+      const studentId=String(student.id||'');
+      const studentName=identity(student.name);
+      const parentName=identity(student.parentName||student.guardianName);
+      const directInvoices=invoiceList.filter(invoice=>
+        (studentId&&String(invoice.studentId||'')===studentId)
+        ||(studentName&&identity(invoice.studentName)===studentName)
+      );
+      const parentInvoices=parentName
+        ?invoiceList.filter(invoice=>
+          (invoice.invoiceTargetType==='parent'||(!invoice.studentId&&Boolean(invoice.parentName||invoice.payerName)))
+          &&identity(invoice.parentName||invoice.payerName)===parentName
+        )
+        :[];
+      const linkedInvoices=[
+        ...new Map([...directInvoices,...parentInvoices].filter(invoice=>invoice?.id).map(invoice=>[invoice.id,invoice])).values()
+      ];
+      const linkedFinancial=linkedInvoices
+        .map(invoice=>financialByInvoice.get(String(invoice.id||'')))
+        .filter(Boolean);
+      const amountCents=linkedFinancial.reduce((sum,row)=>sum+row.amountCents,0);
+      const paidCents=linkedFinancial.reduce((sum,row)=>sum+row.paidCents,0);
+      const balanceCents=linkedFinancial.reduce((sum,row)=>sum+row.balanceCents,0);
+      const paymentDates=unique(linkedFinancial.flatMap(row=>row.paymentDates||[])).sort();
+      const hasOverdue=linkedFinancial.some(row=>row.status==='overdue');
+      const hasLegacyPaymentEvidence=linkedFinancial.some(row=>(row.paymentSources||[]).includes('legacy'));
+      const status=!linkedInvoices.length
+        ?'no_invoice'
+        :hasLegacyPaymentEvidence
+          ?'needs_review'
+        :balanceCents===0&&amountCents>0
+          ?'paid'
+          :paidCents>0
+            ?'partial'
+            :hasOverdue
+              ?'overdue'
+              :'unpaid';
+      const sharedParentInvoiceCount=parentInvoices.filter(invoice=>
+        (childrenByParent.get(identity(invoice.parentName||invoice.payerName))||[]).length>1
+      ).length;
+      return {
+        studentId,
+        studentName:String(student.name||'—'),
+        parentName:String(student.parentName||student.guardianName||''),
+        teacher:String(student.teacher||''),
+        invoiceCount:linkedInvoices.length,
+        directInvoiceCount:directInvoices.length,
+        parentInvoiceCount:parentInvoices.length,
+        sharedParentInvoiceCount,
+        invoiceNumbers:linkedInvoices.map(invoice=>String(invoice.num||invoice.id||'')).filter(Boolean),
+        amountCents,
+        paidCents,
+        balanceCents,
+        lastPaymentDate:paymentDates[paymentDates.length-1]||'',
+        status
+      };
+    }).sort((left,right)=>
+      Number(right.balanceCents)-Number(left.balanceCents)
+      ||left.studentName.localeCompare(right.studentName,'et')
+    );
+    return {
+      rows,
+      summary:{
+        studentCount:rows.length,
+        paidCount:rows.filter(row=>row.status==='paid').length,
+        partialCount:rows.filter(row=>row.status==='partial').length,
+        unpaidCount:rows.filter(row=>['unpaid','overdue'].includes(row.status)).length,
+        needsReviewCount:rows.filter(row=>row.status==='needs_review').length,
+        noInvoiceCount:rows.filter(row=>row.status==='no_invoice').length,
+        balanceCents:rows
+          .filter(row=>row.sharedParentInvoiceCount===0)
+          .reduce((sum,row)=>sum+row.balanceCents,0)
+      }
     };
   }
 
@@ -1143,6 +1241,7 @@
     lessonPaymentStatusLabel,
     paymentAllocationQueue,
     paymentNetCents,
+    studentInvoiceRegister,
     statusLabel
   };
 });
