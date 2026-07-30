@@ -114,7 +114,15 @@ tööjärjekorda. Süsteem arvestab arve muutumatuid tunniridu, teiste kinnitatu
 reserveeritud summasid, makse kuupäeva ja summat ning pakub vanimast vabast reast alustavat
 jaotust koos kindlustasemega. Ettepanekut ei salvestata automaatselt: administraator peab summad
 üle vaatama ja kinnitama. Sama aken näitab kõiki makse varasemaid muutumatuid versioone, nende
-kuupäeva, põhjust ja tunniridade summasid.
+kuupäeva, põhjust ja tunniridade summasid. Mitu sama arve kinnitamata makset saavad järjestikused
+vabad tunniread, mitte kattuva ettepaneku. Kõrge kindlusega tervikettepanekuid saab administraator
+valida paketina; iga makse läbib endiselt eraldi serveripoolse summa-, versiooni- ja jäägikontrolli
+ning saab oma auditikirje. Pangamakse puhul nõuab kõrge kindlus ka makse selgituses leiduvat
+unikaalset arveviidet.
+
+Pangaväljavõtte sobitamine normaliseerib arveviite kirjavahemärgid ja tühikud. Unikaalne viide on
+kõrge kindlusega vaste. Nime ja täpselt ühe tasumata arve summa vaste jääb keskmise kindlusega
+ettepanekuks ning vajab käsitsi kontrolli; võrdsed nimekandidaadid ei valita enam vaikimisi.
 
 Paketist kaetud, tasuta, õigeaegselt tühistatud, mahakantud ja krediteeritud tunnid ei segune
 tasumata tundidega. Vana arve, millel puuduvad tunni ID-ga read, jääb pärandkirjeks ega saa

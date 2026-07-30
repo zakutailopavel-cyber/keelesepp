@@ -85,7 +85,17 @@ subtracts lesson capacity reserved by other current exact versions, builds a bou
 suggestion, classifies confidence, and exposes incomplete, invalid and legacy cases. Confirmation
 still goes through the transactional Financial Core endpoint. The allocation modal also reads all
 append-only versions for the selected payment so the accountant can inspect the complete correction
-chain without granting the browser any financial write access.
+chain without granting the browser any financial write access. Complete proposals reserve capacity
+in deterministic payment-date order inside the projection, so two pending payments never propose
+the same lesson capacity. Bulk confirmation is deliberately limited to complete high-confidence
+rows. Each selected payment is submitted as its own idempotent, audited server command and is
+revalidated against current Firestore state; one rejection cannot corrupt another payment.
+
+`bankStatementMatchProposal()` is a second read-only projection. It normalizes punctuation and
+spacing in invoice references, accepts only a unique reference as high confidence, and can propose
+a single open invoice from a unique payer/student name plus exact balance as medium confidence.
+Ambiguous names or duplicate references remain visibly unresolved. For bank-sourced lesson
+allocation, a reference match is required before a proposal becomes eligible for bulk confirmation.
 
 Payment-order evidence is stored under
 `financial/payment-orders/{paymentId}/{documentId}` in Firebase Storage. Only administrators

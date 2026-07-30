@@ -4,6 +4,7 @@ const fs=require('node:fs');
 const {
   accountingRegister,
   accountingRegisterCsv,
+  bankStatementMatchProposal,
   financialPeriodControl,
   lessonPaymentRegister,
   lessonPaymentRegisterCsv,
@@ -299,6 +300,132 @@ test('payment allocation queue exposes immutable history and incomplete or inval
   assert.equal(invalid.rows[0].confidence,'none');
 });
 
+test('payment allocation queue reserves complete proposals so a batch never suggests the same lesson twice',()=>{
+  const queue=paymentAllocationQueue({
+    month:'2026-07',
+    invoices:[{
+      id:'invoice-a',
+      num:'KS-2026-120',
+      paymentReference:'KS-2026-120',
+      lines:[
+        {lessonId:'lesson-a',date:'2026-07-01',amountCents:3000},
+        {lessonId:'lesson-b',date:'2026-07-08',amountCents:3000}
+      ]
+    }],
+    payments:[
+      {
+        id:'payment-a',
+        invoiceId:'invoice-a',
+        amountCents:3000,
+        paidAt:'2026-07-09',
+        method:'bank',
+        reference:'Payment KS 2026 120',
+        status:'active'
+      },
+      {
+        id:'payment-b',
+        invoiceId:'invoice-a',
+        amountCents:3000,
+        paidAt:'2026-07-10',
+        method:'bank',
+        reference:'KS-2026-120',
+        status:'active'
+      }
+    ]
+  });
+  const first=queue.rows.find(row=>row.paymentId==='payment-a');
+  const second=queue.rows.find(row=>row.paymentId==='payment-b');
+  assert.deepEqual(first.suggestedLines.map(line=>line.lessonId),['lesson-a']);
+  assert.deepEqual(second.suggestedLines.map(line=>line.lessonId),['lesson-b']);
+  assert.equal(first.confidence,'high');
+  assert.equal(second.confidence,'high');
+  assert.equal(queue.summary.highConfidenceCount,2);
+});
+
+test('bank payment without an invoice reference is not eligible for high-confidence batch confirmation',()=>{
+  const queue=paymentAllocationQueue({
+    month:'2026-07',
+    invoices:[{
+      id:'invoice-a',
+      num:'KS-2026-121',
+      lines:[{lessonId:'lesson-a',date:'2026-07-01',amountCents:3000}]
+    }],
+    payments:[{
+      id:'payment-a',
+      invoiceId:'invoice-a',
+      amountCents:3000,
+      paidAt:'2026-07-09',
+      method:'bank',
+      reference:'Language lessons',
+      status:'active'
+    }]
+  });
+  assert.equal(queue.rows[0].status,'needs_confirmation');
+  assert.equal(queue.rows[0].confidence,'medium');
+  assert.equal(queue.rows[0].referenceEvidence.matched,false);
+  assert.equal(queue.summary.highConfidenceCount,0);
+});
+
+test('bank statement matching accepts normalized invoice references and keeps name matching reviewable',()=>{
+  const invoices=[
+    {
+      id:'invoice-a',
+      num:'KS-2026-122',
+      paymentReference:'KS-2026-122',
+      studentId:'student-a',
+      studentName:'Mari Tamm',
+      amountCents:3000,
+      balanceDueCents:3000
+    },
+    {
+      id:'invoice-b',
+      num:'KS-2026-123',
+      studentId:'student-b',
+      studentName:'Jaan Saar',
+      amountCents:2500,
+      balanceDueCents:2500
+    },
+    {
+      id:'invoice-prefix',
+      num:'KS-2026-12',
+      amountCents:1000,
+      balanceDueCents:1000
+    }
+  ];
+  const students=[
+    {id:'student-a',name:'Mari Tamm',parentName:'Katrin Tamm'},
+    {id:'student-b',name:'Jaan Saar',parentName:'Peeter Saar'}
+  ];
+  const exact=bankStatementMatchProposal({
+    payment:{desc:'Invoice KS 2026 122',payer:'Katrin Tamm',amount:30},
+    invoices,
+    students
+  });
+  assert.equal(exact.tier,'ref');
+  assert.equal(exact.confidence,'high');
+  assert.equal(exact.invoice.id,'invoice-a');
+
+  const nameAndAmount=bankStatementMatchProposal({
+    payment:{desc:'language course',payer:'Peeter Saar',amount:25},
+    invoices,
+    students
+  });
+  assert.equal(nameAndAmount.tier,'name-amount');
+  assert.equal(nameAndAmount.confidence,'medium');
+  assert.equal(nameAndAmount.invoice.id,'invoice-b');
+
+  const ambiguous=bankStatementMatchProposal({
+    payment:{desc:'language course',payer:'Katrin Tamm',amount:30},
+    invoices,
+    students:[
+      ...students,
+      {id:'student-c',name:'Marta Tamm',parentName:'Katrin Tamm'}
+    ]
+  });
+  assert.equal(ambiguous.tier,'name-dup');
+  assert.equal(ambiguous.confidence,'none');
+});
+
 test('CRM loads the accounting ledger and exposes an administrator screen',()=>{
   const html=fs.readFileSync('haldus.html','utf8');
   assert.match(html,/accounting-ledger-core\.js/);
@@ -315,6 +442,9 @@ test('CRM loads the accounting ledger and exposes an administrator screen',()=>{
   assert.match(html,/Maksejaotused/);
   assert.match(html,/Süsteemi ettepanek/);
   assert.match(html,/Muutmatu versiooniajalugu/);
+  assert.match(html,/Turvaline paketkinnitus/);
+  assert.match(html,/Pangaselgituse arveviide kinnitatud/);
+  assert.match(html,/nimi \+ summa · kontrolli/);
   const storageRules=fs.readFileSync('storage.rules','utf8');
   assert.match(storageRules,/financial\/payment-orders\/\{paymentId\}\/\{documentId\}/);
   assert.match(storageRules,/allow read: if accountingAdmin\(\)/);
