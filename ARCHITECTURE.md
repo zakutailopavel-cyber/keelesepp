@@ -108,6 +108,11 @@ allocation, a reference match is required before a proposal becomes eligible for
 view and returns explicit accepted/skipped diagnostics. The matching UI treats a proposal and an
 authoritative saved transaction as different states: totals and completed styling are derived from
 server-created `bankTransactions.externalId` values, never from a client-only review checkbox.
+It also recognizes header-based bank exports (including the current Swedbank Estonia CSV), imports
+only incoming EUR credit rows, preserves stable bank-origin identifiers where present, and excludes
+outgoing or unsupported-currency rows with visible diagnostics. `studentInvoiceRegister()` builds
+the per-student paid/partial/unpaid view from invoice and active payment records; shared parent
+invoices and legacy paid flags remain visibly reviewable rather than being counted as exact evidence.
 
 Payment-order evidence is stored under
 `financial/payment-orders/{paymentId}/{documentId}` in Firebase Storage. Only administrators

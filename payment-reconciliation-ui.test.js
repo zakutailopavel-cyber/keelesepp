@@ -26,3 +26,19 @@ test('payment allocation uses explicit confirmation language',()=>{
   assert.match(html,/Kinnita ja salvesta/);
   assert.match(html,/Alles selle nupu järel tekib auditeeritud maksekirje/);
 });
+
+test('bank import shows a normalized preview instead of requiring raw four-column text',()=>{
+  assert.match(html,/Salvesta register ja kontrolli/);
+  assert.match(html,/importResult\.formatLabel/);
+  assert.match(html,/Näita lähtefaili/);
+  assert.match(html,/registrisse salvestatakse kõik/);
+  assert.match(html,/Pangamakse/);
+  assert.match(html,/Õpilane ja arve/);
+});
+
+test('reconciliation exposes an authoritative student payment register',()=>{
+  assert.match(html,/studentInvoiceRegister\(\{students,invoices,payments:invoicePayments\}\)/);
+  assert.match(html,/Õpilaste maksed/);
+  assert.match(html,/Summad pärinevad CRM-i arvetest ja kinnitatud maksekirjetest/);
+  assert.match(html,/Kontrolli vana märget/);
+});

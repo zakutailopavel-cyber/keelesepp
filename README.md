@@ -144,6 +144,13 @@ kontroll, jaotuse kinnitamine ning kuu kontroll raamatupidamise vaates. CSV- võ
 brauseris; sama sisu võib kleepida nelja veeruna: kuupäev, maksja, selgitus ja summa. Import näitab
 eraldi, mitu makset leiti ja mitu vigast või päisena tuvastatud rida vahele jäeti.
 
+Panga täielik CSV (sh Swedbanki Eesti väljavõte) tuvastatakse päiste järgi automaatselt. Register
+võtab arvesse ainult EUR-i kreeditlaekumised, jätab deebetmaksed välja ning näitab enne salvestamist
+normaliseeritud tabelit: kuupäev, maksja, selgitus/viide ja summa. Lähtefaili tekst on vaikimisi
+peidetud, kuid jääb administraatorile kontrollitavaks. Õpilaste maksete vaade koondab CRM-i arved
+ja auditeeritud maksekirjed staatusteks makstud, osaliselt makstud, tasumata, tähtaja ületanud,
+arvet pole või vana märge vajab kontrolli. Mitme lapse ühine lapsevanema arve märgitakse jagatuks.
+
 Automaatne arvenumbri vaste on ainult ettepanek. Makse läheb kokkuvõttes
 **Salvestatud** summa sisse alles siis, kui administraator avab rea, kontrollib jaotuse ning
 vajutab **Kinnita ja salvesta**. Varasem käsitsi märgitud linnuke ei ole enam raamatupidamisliku
