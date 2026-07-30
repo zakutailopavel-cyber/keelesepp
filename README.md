@@ -149,7 +149,21 @@ võtab arvesse ainult EUR-i kreeditlaekumised, jätab deebetmaksed välja ning n
 normaliseeritud tabelit: kuupäev, maksja, selgitus/viide ja summa. Lähtefaili tekst on vaikimisi
 peidetud, kuid jääb administraatorile kontrollitavaks. Õpilaste maksete vaade koondab CRM-i arved
 ja auditeeritud maksekirjed staatusteks makstud, osaliselt makstud, tasumata, tähtaja ületanud,
-arvet pole või vana märge vajab kontrolli. Mitme lapse ühine lapsevanema arve märgitakse jagatuks.
+arvet pole, **tunnid makstud ilma arveta**, **ettemaks** või vana märge vajab kontrolli. Mitme
+lapse ühine lapsevanema arve märgitakse jagatuks.
+
+Iga pangalaekumise kinnitamisel valib administraator ühe kolmest tähendusest:
+
+- **Arve makse** seob summa ühe või mitme olemasoleva arvega;
+- **Tundide makse** seob summa konkreetsete toimunud tundidega, millele arvet ei väljastata;
+- **Ettemaks** jätab summa valitud õpilase kontole tulevaseks kasutamiseks.
+
+Arve või tundide osalise jaotuse ülejääk muutub sama õpilase ettemaksuks. Avansi saab hiljem
+kasutada nii arve kui ka konkreetsete tundide tasumiseks. Ilma arveta tasutud tund saab eraldi
+`direct_lesson` maksekirje ja staatuse **Makstud ilma arveta**; see ei ilmu ekslikult tasumata
+ega arveldamata tundide hulka. Vale otsemakse saab põhjusega tühistada: tund muutub uuesti
+arveldamata kirjeks ning summa taastatakse õpilase ettemaksu saldole. Kõik need muutused
+salvestavad serveripoolse auditikirje.
 
 Automaatne arvenumbri vaste on ainult ettepanek. Makse läheb kokkuvõttes
 **Salvestatud** summa sisse alles siis, kui administraator avab rea, kontrollib jaotuse ning

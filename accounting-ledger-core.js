@@ -80,6 +80,7 @@
   }[status]||status);
   const lessonPaymentStatusLabel=status=>({
     paid:'Makstud',
+    paid_direct:'Makstud ilma arveta',
     partial:'Osaliselt makstud',
     invoiced_unpaid:'Arvel · tasumata',
     unbilled:'Arveldamata',
@@ -261,10 +262,14 @@
   function studentInvoiceRegister({
     students=[],
     invoices=[],
-    payments=[]
+    payments=[],
+    payerCredits=[]
   }={}){
     const studentList=(Array.isArray(students)?students:[]).filter(student=>student?.active!==false);
     const invoiceList=Array.isArray(invoices)?invoices:[];
+    const paymentList=(Array.isArray(payments)?payments:[]).filter(activePayment);
+    const creditList=(Array.isArray(payerCredits)?payerCredits:[])
+      .filter(credit=>credit?.status!=='closed'&&cents(credit,'availableAmountCents','availableAmount')>0);
     const register=accountingRegister({invoices:invoiceList,payments});
     const financialByInvoice=new Map(register.rows.map(row=>[row.id,row]));
     const childrenByParent=new Map();
@@ -297,11 +302,27 @@
       const amountCents=linkedFinancial.reduce((sum,row)=>sum+row.amountCents,0);
       const paidCents=linkedFinancial.reduce((sum,row)=>sum+row.paidCents,0);
       const balanceCents=linkedFinancial.reduce((sum,row)=>sum+row.balanceCents,0);
-      const paymentDates=unique(linkedFinancial.flatMap(row=>row.paymentDates||[])).sort();
+      const studentCredits=studentId
+        ?creditList.filter(credit=>String(credit.studentId||'')===studentId)
+        :[];
+      const directPayments=studentId
+        ?paymentList.filter(payment=>
+          payment.kind==='direct_lesson'&&String(payment.studentId||'')===studentId
+        )
+        :[];
+      const directPaidCents=directPayments.reduce((sum,payment)=>sum+paymentNetCents(payment),0);
+      const advanceCents=studentCredits.reduce(
+        (sum,credit)=>sum+cents(credit,'availableAmountCents','availableAmount'),
+        0
+      );
+      const paymentDates=unique([
+        ...linkedFinancial.flatMap(row=>row.paymentDates||[]),
+        ...directPayments.map(paymentDate)
+      ]).sort();
       const hasOverdue=linkedFinancial.some(row=>row.status==='overdue');
       const hasLegacyPaymentEvidence=linkedFinancial.some(row=>(row.paymentSources||[]).includes('legacy'));
       const status=!linkedInvoices.length
-        ?'no_invoice'
+        ?directPaidCents>0?'direct_paid':advanceCents>0?'advance':'no_invoice'
         :hasLegacyPaymentEvidence
           ?'needs_review'
         :balanceCents===0&&amountCents>0
@@ -326,7 +347,12 @@
         invoiceNumbers:linkedInvoices.map(invoice=>String(invoice.num||invoice.id||'')).filter(Boolean),
         amountCents,
         paidCents,
+        directPaidCents,
+        advanceCents,
+        receivedCents:paidCents+directPaidCents+advanceCents,
         balanceCents,
+        advanceCount:studentCredits.length,
+        directPaymentCount:directPayments.length,
         lastPaymentDate:paymentDates[paymentDates.length-1]||'',
         status
       };
@@ -343,6 +369,8 @@
         unpaidCount:rows.filter(row=>['unpaid','overdue'].includes(row.status)).length,
         needsReviewCount:rows.filter(row=>row.status==='needs_review').length,
         noInvoiceCount:rows.filter(row=>row.status==='no_invoice').length,
+        advanceCount:rows.filter(row=>row.advanceCents>0).length,
+        directPaidCount:rows.filter(row=>row.directPaidCents>0).length,
         balanceCents:rows
           .filter(row=>row.sharedParentInvoiceCount===0)
           .reduce((sum,row)=>sum+row.balanceCents,0)
@@ -367,6 +395,9 @@
     const lessonById=new Map(lessonList.filter(item=>item?.id).map(item=>[String(item.id),item]));
     const invoiceById=new Map(invoiceList.filter(item=>item?.id).map(item=>[String(item.id),item]));
     const activePayments=paymentList.filter(activePayment);
+    const activePaymentById=new Map(
+      activePayments.filter(item=>item?.id).map(item=>[String(item.id),item])
+    );
     const paymentsByInvoice=new Map();
     activePayments.forEach(payment=>{
       const invoiceId=String(payment.invoiceId||'');
@@ -642,6 +673,7 @@
       else if(billingStatus==='cancelled_on_time') status='cancelled';
       else if(billingStatus==='written_off') status='written_off';
       else if(billingStatus==='credited') status='credited';
+      else if(billingStatus==='paid_directly') status='paid_direct';
       else if(lesson.invoiceId||billingStatus==='invoiced') status='legacy_invoice';
       else if(
         billingStatus==='late_cancel_billable'
@@ -678,6 +710,25 @@
           detail:`${isoDate(lesson.date)} · ${lesson.studentName||'õpilane'} · määra, kas tühistamine oli tasuta või kuulub arveldamisele.`
         });
       }
+      const directAmountCents=status==='paid_direct'
+        ?cents(lesson,'directPaymentAmountCents','directPaymentAmount')
+        :0;
+      const directPayment=status==='paid_direct'
+        ?activePaymentById.get(String(lesson.directPaymentId||''))
+        :null;
+      const directSource=directPayment
+        ?paymentSource(directPayment)
+        :lesson.sourceCreditId?'credit':lesson.bankTransactionId?'bank':'manual';
+      if(status==='paid_direct'&&(!directPayment||paymentNetCents(directPayment)!==directAmountCents)){
+        issues.push({
+          type:'direct_lesson_payment_evidence_mismatch',
+          severity:'error',
+          lessonId,
+          entityId:String(lesson.directPaymentId||''),
+          title:'Tunni otsemakse tõend ei ühti',
+          detail:`${isoDate(lesson.date)} · ${lesson.studentName||'õpilane'} · maksekirje puudub või summa ei vasta tunnile.`
+        });
+      }
       rowByLessonId.set(lessonId,{
         lessonId,
         date:isoDate(lesson.date),
@@ -690,16 +741,22 @@
         invoiceNum:String(lesson.invoiceNum||invoiceById.get(String(lesson.invoiceId||''))?.num||''),
         invoiceDate:'',
         lineIndex:null,
-        amountCents:0,
-        originalAmountCents:0,
-        paidCents:0,
+        amountCents:directAmountCents,
+        originalAmountCents:directAmountCents,
+        paidCents:directAmountCents,
         balanceCents:0,
         status,
         linkExact:false,
-        allocationMethod:'',
-        paymentAllocations:[],
-        paymentDates:[],
-        paymentSources:[],
+        allocationMethod:status==='paid_direct'?'direct_lesson_v1':'',
+        paymentAllocations:status==='paid_direct'?[{
+          paymentId:String(lesson.directPaymentId||''),
+          amountCents:directAmountCents,
+          paidAt:isoDate(directPayment?.paidAt||lesson.directPaidAt),
+          source:directSource,
+          allocationMethod:'direct_lesson_v1'
+        }]:[],
+        paymentDates:status==='paid_direct'?[isoDate(directPayment?.paidAt||lesson.directPaidAt)].filter(Boolean):[],
+        paymentSources:status==='paid_direct'?[directSource]:[],
         packageName:String(lesson.packageProductName||''),
         rawLesson:lesson
       });
@@ -721,6 +778,7 @@
       explicitAllocationCount:rows.filter(row=>row.allocationMethod.includes('explicit_invoice_lines_v1')).length,
       fifoAllocationCount:rows.filter(row=>row.allocationMethod.includes('invoice_fifo_v1')).length,
       paidCount:rows.filter(row=>row.status==='paid').length,
+      directPaidCount:rows.filter(row=>row.status==='paid_direct').length,
       partialCount:rows.filter(row=>row.status==='partial').length,
       invoicedUnpaidCount:rows.filter(row=>row.status==='invoiced_unpaid').length,
       unbilledCount:rows.filter(row=>row.status==='unbilled').length,

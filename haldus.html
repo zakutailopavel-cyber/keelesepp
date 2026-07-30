@@ -299,6 +299,7 @@ const invoiceMatchesParentProfile = (inv,parent) => {
 };
 const lessonBillingStatusMeta = lesson => {
   if(lesson?.invoiceId||lesson?.billingStatus==='invoiced') return {label:`Arvel ${lesson?.invoiceNum||''}`.trim(),bg:'#ede9fe',color:'#6d28d9'};
+  if(lesson?.billingStatus==='paid_directly') return {label:'Makstud ilma arveta',bg:'#dcfce7',color:'#166534'};
   if(lesson?.packageConsumptionStatus==='consumed') return {label:'Paketist tasutud',bg:'#dcfce7',color:'#166534'};
   if(lesson?.packageConsumptionStatus==='needs_attention') return {label:'Pakett vajab tähelepanu',bg:'#fee2e2',color:'#991b1b'};
   if(lesson?.billingStatus==='free') return {label:'Tasuta',bg:'#dcfce7',color:'#166534'};
@@ -8265,7 +8266,7 @@ function InvoicesView({invoices,payments,paymentLineAllocations=[],myStudents,pa
 
 // ── TUNNI MODAL ───────────────────────────────────────────────
 // ── ACCOUNTING INVOICE REGISTER ───────────────────────────────
-function LessonPaymentRegisterPanel({month,lessons,invoices,payments,paymentLineAllocations,openInvoices,openReconciliation}) {
+function LessonPaymentRegisterPanel({month,lessons,invoices,payments,paymentLineAllocations,openInvoices,openReconciliation,voidPayment}) {
   const [status,setStatus]=React.useState('all');
   const [search,setSearch]=React.useState('');
   const register=React.useMemo(()=>lessonPaymentRegister({
@@ -8275,6 +8276,9 @@ function LessonPaymentRegisterPanel({month,lessons,invoices,payments,paymentLine
     paymentLineAllocations,
     month
   }),[lessons,invoices,payments,paymentLineAllocations,month]);
+  const paymentById=React.useMemo(()=>
+    new Map((payments||[]).filter(payment=>payment?.id).map(payment=>[String(payment.id),payment]))
+  ,[payments]);
   const visibleRows=React.useMemo(()=>{
     const query=normalizeText(search);
     return register.rows.filter(row=>{
@@ -8298,6 +8302,7 @@ function LessonPaymentRegisterPanel({month,lessons,invoices,payments,paymentLine
   };
   const statusMeta={
     paid:{bg:'#dcfce7',color:'#166534'},
+    paid_direct:{bg:'#dcfce7',color:'#166534'},
     partial:{bg:'#fef3c7',color:'#92400e'},
     invoiced_unpaid:{bg:'#fee2e2',color:'#991b1b'},
     unbilled:{bg:'#ffedd5',color:'#9a3412'},
@@ -8311,7 +8316,7 @@ function LessonPaymentRegisterPanel({month,lessons,invoices,payments,paymentLine
   };
   const summaryCards=[
     {label:'Tunde perioodis',value:register.summary.lessonCount,note:`${register.summary.exactLinkedCount} täpse ID-seosega`,color:'#1C2B3A'},
-    {label:'Makstud',value:register.summary.paidCount,note:moneyCents(register.summary.paidCents),color:'#166534'},
+    {label:'Makstud',value:register.summary.paidCount+register.summary.directPaidCount,note:moneyCents(register.summary.paidCents),color:'#166534'},
     {label:'Osaliselt',value:register.summary.partialCount,note:'makse katab osa tunni hinnast',color:'#92400e'},
     {label:'Arvel · tasumata',value:register.summary.invoicedUnpaidCount,note:`jääk koos osalistega ${moneyCents(register.summary.balanceCents)}`,color:'#991b1b'},
     {label:'Arveldamata',value:register.summary.unbilledCount,note:'vajavad arveotsust',color:'#9a3412'},
@@ -8372,6 +8377,7 @@ function LessonPaymentRegisterPanel({month,lessons,invoices,payments,paymentLine
           <select value={status} onChange={event=>setStatus(event.target.value)} style={{width:205}}>
             <option value="all">Kõik finantsstaatused</option>
             <option value="paid">Makstud</option>
+            <option value="paid_direct">Makstud ilma arveta</option>
             <option value="partial">Osaliselt makstud</option>
             <option value="invoiced_unpaid">Arvel · tasumata</option>
             <option value="unbilled">Arveldamata</option>
@@ -8414,13 +8420,22 @@ function LessonPaymentRegisterPanel({month,lessons,invoices,payments,paymentLine
                     <td style={{padding:'11px',verticalAlign:'top'}}>
                       {row.paymentAllocations.length>0
                         ? <div>
-                            {row.paymentAllocations.map(item=>(
-                              <div key={`${item.paymentId}-${item.amountCents}`} style={{fontSize:'.67rem',marginBottom:3}}>
+                            {row.paymentAllocations.map(item=>{
+                              const payment=paymentById.get(String(item.paymentId||''));
+                              return <div key={`${item.paymentId}-${item.amountCents}`} style={{fontSize:'.67rem',marginBottom:5}}>
                                 <div>{fmtDate(item.paidAt)} · {moneyCents(item.amountCents)} · {item.source==='bank'?'Pank':item.source==='credit'?'Ettemakse':item.source||'Muu'}</div>
                                 {item.paymentId&&<div title={item.paymentId} style={{fontFamily:'monospace',fontSize:'.6rem',color:'#94a3b8',maxWidth:150,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{item.paymentId}</div>}
+                                {row.status==='paid_direct'&&payment&&payment.status!=='voided'&&(
+                                  <button onClick={()=>voidPayment&&voidPayment(payment)}
+                                    className="btn btn-red btn-sm" style={{padding:'3px 7px',fontSize:'.62rem',marginTop:4}}>
+                                    Tühista otsemakse
+                                  </button>
+                                )}
                               </div>
-                            ))}
+                            })}
                           </div>
+                        : row.status==='paid_direct'
+                          ? <span className="badge" style={{background:'#dcfce7',color:'#166534'}}>Otsemakse</span>
                         : row.status==='package_covered'
                           ? <span style={{color:'#1d4ed8',fontWeight:700}}>{row.packageName||'Paketiliikumine'}</span>
                           : <span style={{color:'#94a3b8'}}>—</span>}
@@ -8428,6 +8443,8 @@ function LessonPaymentRegisterPanel({month,lessons,invoices,payments,paymentLine
                     <td style={{padding:'11px',verticalAlign:'top'}}>
                       {row.linkExact
                         ? <span className="badge" style={{background:'#dcfce7',color:'#166534'}}>ID-seos täpne</span>
+                        : row.status==='paid_direct'&&row.paymentAllocations.some(item=>paymentById.has(String(item.paymentId||'')))
+                          ? <span className="badge" style={{background:'#dcfce7',color:'#166534'}}>Otsemakse ID-seos</span>
                         : row.status==='package_covered'
                           ? <span className="badge" style={{background:'#dbeafe',color:'#1d4ed8'}}>Paketikirje</span>
                           : <span className="badge" style={{background:'#fef3c7',color:'#92400e'}}>Pole tõendatud</span>}
@@ -8765,7 +8782,7 @@ function PaymentAllocationQueuePanel({queue,onOpen,onConfirmBatch,batchBusy}) {
   );
 }
 
-function AccountingRegisterView({invoices,payments,paymentLineAllocations,bankTransactions,payerCredits,lessons,financialPeriods,reviewFinancialPeriod,savePaymentLineAllocation,openInvoices,openReconciliation,openPaymentDocument}) {
+function AccountingRegisterView({invoices,payments,paymentLineAllocations,bankTransactions,payerCredits,lessons,financialPeriods,reviewFinancialPeriod,savePaymentLineAllocation,openInvoices,openReconciliation,openPaymentDocument,voidPayment}) {
   const [month,setMonth]=React.useState(()=>today().slice(0,7));
   const [registerMode,setRegisterMode]=React.useState('invoices');
   const [status,setStatus]=React.useState('all');
@@ -9054,7 +9071,8 @@ function AccountingRegisterView({invoices,payments,paymentLineAllocations,bankTr
         payments={payments}
         paymentLineAllocations={paymentLineAllocations}
         openInvoices={openInvoices}
-        openReconciliation={openReconciliation}/>}
+        openReconciliation={openReconciliation}
+        voidPayment={voidPayment}/>}
       {registerMode==='allocations'&&(
         <PaymentAllocationQueuePanel
           queue={allocationQueue}
@@ -9096,7 +9114,7 @@ function AccountingRegisterView({invoices,payments,paymentLineAllocations,bankTr
 // однозначна. Только когда номера в описании нет (или он задвоен —
 // см. предупреждение о дублях ниже), используется резервное угадывание
 // по имени ученика/родителя, которое пользователь может поправить вручную.
-function PaymentReconciliationView({invoices, students, payments:invoicePayments=[], isAdmin, bankTransactions, payerCredits, allocateBankTransaction, applyPayerCredit, refundPayerCredit}) {
+function PaymentReconciliationView({invoices, students, lessons=[], tariffAssignments=[], payments:invoicePayments=[], isAdmin, bankTransactions, payerCredits, allocateBankTransaction, applyPayerCredit, refundPayerCredit}) {
   const [rawStatement, setRawStatement] = React.useState('');
   const [payments, setPayments] = React.useState([]);
   const [showImport, setShowImport] = React.useState(true);
@@ -9192,11 +9210,18 @@ function PaymentReconciliationView({invoices, students, payments:invoicePayments
   function openAllocation(payment, match) {
     const matchedInvoice = ['ref','name-amount'].includes(match.tier) ? match.invoice : null;
     const matchedBalance = matchedInvoice ? invoiceFinancialSummary(matchedInvoice).balance : 0;
+    const matchedStudent=students.find(student=>
+      normalizeText(student.name)===normalizeText(effectiveName(payment))
+    )||students.find(student=>student.id===matchedInvoice?.studentId)||null;
+    const directLessons=matchedStudent?billableLessonsForStudent(lessons,matchedStudent):[];
     setAllocationDraft({
       payment,
+      mode:matchedInvoice?'invoice':directLessons.length?'lessons':'advance',
+      studentId:matchedStudent?.id||'',
       rows:matchedInvoice&&matchedBalance>0
         ? [{invoiceId:matchedInvoice.id,amount:money(Math.min(payment.amount,matchedBalance))}]
-        : [{invoiceId:'',amount:''}]
+        : [{invoiceId:'',amount:''}],
+      lessonRows:[]
     });
   }
   function updateAllocationRow(index,patch) {
@@ -9208,22 +9233,68 @@ function PaymentReconciliationView({invoices, students, payments:invoicePayments
   function removeAllocationRow(index) {
     setAllocationDraft(current=>({...current,rows:current.rows.filter((_,rowIndex)=>rowIndex!==index)}));
   }
+  function setAllocationMode(mode) {
+    setAllocationDraft(current=>({...current,mode}));
+  }
+  function toggleDirectLesson(lesson,checked) {
+    setAllocationDraft(current=>{
+      const existing=(current.lessonRows||[]).filter(row=>row.lessonId!==lesson.id);
+      if(!checked) return {...current,lessonRows:existing};
+      const student=students.find(item=>item.id===current.studentId)||null;
+      const options=student?billableLessonsForStudent(lessons,student):[];
+      const pricing=student?invoiceDraftForStudent(student,'','',options,tariffAssignments):{lessonPricesById:{}};
+      const price=Number(pricing.lessonPricesById?.[lesson.id])||0;
+      return {...current,lessonRows:[...existing,{lessonId:lesson.id,amount:price?money(price):''}]};
+    });
+  }
+  function updateDirectLessonAmount(lessonId,amount) {
+    setAllocationDraft(current=>({
+      ...current,
+      lessonRows:(current.lessonRows||[]).map(row=>row.lessonId===lessonId?{...row,amount}:row)
+    }));
+  }
   async function saveAllocation() {
     if(!allocationDraft||allocationBusy) return;
-    const hasIncompleteRow=allocationDraft.rows.some(row=>{
+    const mode=allocationDraft.mode||'invoice';
+    if(['lessons','advance'].includes(mode)&&!allocationDraft.studentId){
+      window.alert('Vali õpilane, kellele makse kuulub.');
+      return;
+    }
+    const sourceRows=mode==='invoice'?allocationDraft.rows:[];
+    const hasIncompleteRow=sourceRows.some(row=>{
       const amount=Number(String(row.amount).replace(',','.'));
       return (row.invoiceId&&(!Number.isFinite(amount)||amount<=0)) || (!row.invoiceId&&Number.isFinite(amount)&&amount>0);
     });
     if(hasIncompleteRow){window.alert('Täida igal kasutatud real nii arve kui ka positiivne summa.');return;}
-    const rows=allocationDraft.rows
+    const rows=sourceRows
       .map(row=>({invoiceId:row.invoiceId,amount:Number(String(row.amount).replace(',','.'))}))
       .filter(row=>row.invoiceId&&Number.isFinite(row.amount)&&row.amount>0);
+    const lessonRows=mode==='lessons'
+      ?(allocationDraft.lessonRows||[])
+        .map(row=>({lessonId:row.lessonId,amount:Number(String(row.amount).replace(',','.'))}))
+        .filter(row=>row.lessonId&&Number.isFinite(row.amount)&&row.amount>0)
+      :[];
+    if(mode==='lessons'&&lessonRows.length===0){
+      window.alert('Vali vähemalt üks tund.');
+      return;
+    }
     const ids=rows.map(row=>row.invoiceId);
     if(new Set(ids).size!==ids.length){window.alert('Sama arvet ei saa kaks korda lisada.');return;}
-    const total=rows.reduce((sum,row)=>sum+row.amount,0);
+    const total=[
+      ...rows.map(row=>row.amount),
+      ...lessonRows.map(row=>row.amount)
+    ].reduce((sum,amount)=>sum+amount,0);
     if(total>allocationDraft.payment.amount+.001){window.alert('Jaotatud summa on pangatehingust suurem.');return;}
+    if(allocationDraft.payment.amount-total>.001&&!allocationDraft.studentId){
+      window.alert('Vali õpilane, kelle kontole ülejäänud ettemaks jääb.');
+      return;
+    }
     setAllocationBusy(true);
-    const saved=await allocateBankTransaction(allocationDraft.payment,rows);
+    const saved=await allocateBankTransaction(allocationDraft.payment,rows,{
+      lessonAllocations:lessonRows,
+      creditStudentId:allocationDraft.studentId,
+      mode
+    });
     setAllocationBusy(false);
     if(!saved) return;
     const next={...verified,[allocationDraft.payment.id]:true};
@@ -9232,7 +9303,13 @@ function PaymentReconciliationView({invoices, students, payments:invoicePayments
     setAllocationDraft(null);
   }
   function openCreditApplication(credit) {
-    setCreditDraft({credit,requestId:financeRequestId('creditapply'),rows:[{invoiceId:'',amount:''}]});
+    setCreditDraft({
+      credit,
+      mode:'invoice',
+      requestId:financeRequestId('creditapply'),
+      rows:[{invoiceId:'',amount:''}],
+      lessonRows:[]
+    });
   }
   function updateCreditRow(index,patch) {
     setCreditDraft(current=>({
@@ -9243,22 +9320,50 @@ function PaymentReconciliationView({invoices, students, payments:invoicePayments
   function removeCreditRow(index) {
     setCreditDraft(current=>({...current,rows:current.rows.filter((_,rowIndex)=>rowIndex!==index)}));
   }
+  function toggleCreditLesson(lesson,checked) {
+    setCreditDraft(current=>{
+      const existing=(current.lessonRows||[]).filter(row=>row.lessonId!==lesson.id);
+      if(!checked) return {...current,lessonRows:existing};
+      const student=students.find(item=>item.id===current.credit.studentId)||null;
+      const options=student?billableLessonsForStudent(lessons,student):[];
+      const pricing=student?invoiceDraftForStudent(student,'','',options,tariffAssignments):{lessonPricesById:{}};
+      const price=Number(pricing.lessonPricesById?.[lesson.id])||0;
+      return {...current,lessonRows:[...existing,{lessonId:lesson.id,amount:price?money(price):''}]};
+    });
+  }
+  function updateCreditLessonAmount(lessonId,amount) {
+    setCreditDraft(current=>({
+      ...current,
+      lessonRows:(current.lessonRows||[]).map(row=>row.lessonId===lessonId?{...row,amount}:row)
+    }));
+  }
   async function saveCreditApplication() {
     if(!creditDraft||creditBusy) return;
-    const hasIncompleteRow=creditDraft.rows.some(row=>{
+    const sourceRows=creditDraft.mode==='lessons'?[]:creditDraft.rows;
+    const hasIncompleteRow=sourceRows.some(row=>{
       const amount=Number(String(row.amount).replace(',','.'));
       return (row.invoiceId&&(!Number.isFinite(amount)||amount<=0)) || (!row.invoiceId&&Number.isFinite(amount)&&amount>0);
     });
     if(hasIncompleteRow){window.alert('Täida igal kasutatud real nii arve kui ka positiivne summa.');return;}
-    const rows=creditDraft.rows
+    const rows=sourceRows
       .map(row=>({invoiceId:row.invoiceId,amount:Number(String(row.amount).replace(',','.'))}))
       .filter(row=>row.invoiceId&&Number.isFinite(row.amount)&&row.amount>0);
-    if(rows.length===0){window.alert('Lisa vähemalt üks arve ja summa.');return;}
+    const lessonRows=creditDraft.mode==='lessons'
+      ?(creditDraft.lessonRows||[])
+        .map(row=>({lessonId:row.lessonId,amount:Number(String(row.amount).replace(',','.'))}))
+        .filter(row=>row.lessonId&&Number.isFinite(row.amount)&&row.amount>0)
+      :[];
+    if(rows.length===0&&lessonRows.length===0){window.alert('Lisa vähemalt üks arve või tund ja summa.');return;}
     if(new Set(rows.map(row=>row.invoiceId)).size!==rows.length){window.alert('Sama arvet ei saa kaks korda lisada.');return;}
-    const total=rows.reduce((sum,row)=>sum+row.amount,0);
+    const total=[...rows,...lessonRows].reduce((sum,row)=>sum+row.amount,0);
     if(total>(Number(creditDraft.credit.availableAmount)||0)+.001){window.alert('Summa ületab kasutatava ettemakse.');return;}
     setCreditBusy(true);
-    const saved=await applyPayerCredit(creditDraft.credit,rows,creditDraft.requestId);
+    const saved=await applyPayerCredit(
+      creditDraft.credit,
+      rows,
+      creditDraft.requestId,
+      {lessonAllocations:lessonRows,mode:creditDraft.mode}
+    );
     setCreditBusy(false);
     if(saved) setCreditDraft(null);
   }
@@ -9327,18 +9432,42 @@ function PaymentReconciliationView({invoices, students, payments:invoicePayments
       .sort((a,b)=>String(a.due||a.date||'').localeCompare(String(b.due||b.date||''))),
     [invoices]
   );
+  const allocationStudent=allocationDraft
+    ?students.find(student=>student.id===allocationDraft.studentId)||null
+    :null;
+  const directLessonOptions=allocationStudent
+    ?billableLessonsForStudent(lessons,allocationStudent)
+    :[];
+  const directLessonPricing=allocationStudent
+    ?invoiceDraftForStudent(allocationStudent,'','',directLessonOptions,tariffAssignments)
+    :{lessonPricesById:{}};
   const allocationTotal = allocationDraft
-    ? allocationDraft.rows.reduce((sum,row)=>sum+(Number(String(row.amount).replace(',','.'))||0),0)
+    ? [
+        ...((allocationDraft.mode==='invoice'?allocationDraft.rows:[])||[]),
+        ...((allocationDraft.mode==='lessons'?allocationDraft.lessonRows:[])||[])
+      ].reduce((sum,row)=>sum+(Number(String(row.amount).replace(',','.'))||0),0)
     : 0;
   const allocationRemaining = allocationDraft
     ? Math.round((allocationDraft.payment.amount-allocationTotal)*100)/100
     : 0;
   const creditApplicationTotal = creditDraft
-    ? creditDraft.rows.reduce((sum,row)=>sum+(Number(String(row.amount).replace(',','.'))||0),0)
+    ? [
+        ...((creditDraft.mode==='lessons'?creditDraft.lessonRows:creditDraft.rows)||[])
+      ].reduce((sum,row)=>sum+(Number(String(row.amount).replace(',','.'))||0),0)
     : 0;
   const creditApplicationRemaining = creditDraft
     ? Math.round(((Number(creditDraft.credit.availableAmount)||0)-creditApplicationTotal)*100)/100
     : 0;
+  const creditEligibleInvoices=creditDraft?.credit?.studentId
+    ?allocatableInvoices.filter(invoice=>String(invoice.studentId||'')===String(creditDraft.credit.studentId))
+    :allocatableInvoices;
+  const creditStudent=creditDraft?.credit?.studentId
+    ?students.find(student=>student.id===creditDraft.credit.studentId)||null
+    :null;
+  const creditLessonOptions=creditStudent?billableLessonsForStudent(lessons,creditStudent):[];
+  const creditLessonPricing=creditStudent
+    ?invoiceDraftForStudent(creditStudent,'','',creditLessonOptions,tariffAssignments)
+    :{lessonPricesById:{}};
   const openCreditTotal = (payerCredits||[])
     .filter(credit=>credit.status==='open')
     .reduce((sum,credit)=>sum+(Number(credit.availableAmount)||0),0);
@@ -9364,14 +9493,15 @@ function PaymentReconciliationView({invoices, students, payments:invoicePayments
   const automaticMatchCount=payments.filter(payment=>matchOf(payment).tier==='ref').length;
   const reviewCount=payments.filter(payment=>!recordedPaymentIds.has(payment.id)).length;
   const studentPaymentRegisterData=React.useMemo(
-    ()=>studentInvoiceRegister({students,invoices,payments:invoicePayments}),
-    [students,invoices,invoicePayments]
+    ()=>studentInvoiceRegister({students,invoices,payments:invoicePayments,payerCredits}),
+    [students,invoices,invoicePayments,payerCredits]
   );
   const studentPaymentRows=studentPaymentRegisterData.rows.filter(row=>{
     const query=normalizeText(studentPaymentSearch);
     if(query&&!normalizeText(`${row.studentName} ${row.parentName} ${row.invoiceNumbers.join(' ')}`).includes(query)) return false;
     if(studentPaymentFilter==='attention') return ['partial','unpaid','overdue','needs_review'].includes(row.status);
     if(studentPaymentFilter==='paid') return row.status==='paid';
+    if(studentPaymentFilter==='direct') return row.directPaidCents>0||row.advanceCents>0;
     if(studentPaymentFilter==='no_invoice') return row.status==='no_invoice';
     return true;
   });
@@ -9381,6 +9511,8 @@ function PaymentReconciliationView({invoices, students, payments:invoicePayments
     overdue:{label:'Tähtaja ületanud',bg:'#fee2e2',color:'#991b1b'},
     unpaid:{label:'Tasumata',bg:'#fee2e2',color:'#991b1b'},
     needs_review:{label:'Kontrolli vana märget',bg:'#fffbeb',color:'#92400e'},
+    direct_paid:{label:'Tunnid makstud ilma arveta',bg:'#dcfce7',color:'#166534'},
+    advance:{label:'Ettemaks',bg:'#ede9fe',color:'#6d28d9'},
     no_invoice:{label:'Arvet pole',bg:'#f1f5f9',color:'#475569'}
   }[status]||{label:status,bg:'#f1f5f9',color:'#475569'});
 
@@ -9559,7 +9691,40 @@ function PaymentReconciliationView({invoices, students, payments:invoicePayments
             </div>
             <button onClick={()=>setAllocationDraft(null)} className="btn btn-ghost btn-sm" disabled={allocationBusy}>Sulge</button>
           </div>
-          <div style={{display:'flex',flexDirection:'column',gap:8}}>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(3,minmax(0,1fr))',gap:8}}>
+            {[
+              ['invoice','Arve makse','Sulgeb ühe või mitu arvet'],
+              ['lessons','Tundide makse','Tasub valitud tunnid ilma arveta'],
+              ['advance','Ettemaks','Jääb õpilase kontole kasutamiseks']
+            ].map(([mode,title,description])=>(
+              <button key={mode} onClick={()=>setAllocationMode(mode)}
+                className={allocationDraft.mode===mode?'btn btn-dark':'btn btn-ghost'}
+                style={{height:'auto',padding:'10px 12px',textAlign:'left',display:'block'}}>
+                <strong style={{display:'block'}}>{title}</strong>
+                <span style={{display:'block',fontSize:'.66rem',fontWeight:500,opacity:.72,marginTop:2}}>{description}</span>
+              </button>
+            ))}
+          </div>
+          {(allocationDraft.mode!=='invoice'||allocationRemaining>0)&&(
+            <div style={{padding:12,borderRadius:12,background:'#f8fafc',border:'1px solid rgba(28,43,58,.1)'}}>
+              <label style={{display:'block',fontSize:'.7rem',fontWeight:800,color:'#42536A',marginBottom:5}}>
+                {allocationDraft.mode==='advance'?'Kelle ettemaks?':allocationDraft.mode==='lessons'?'Kelle tunnid?':'Kellele jääk ettemaksuks jääb?'}
+              </label>
+              <select value={allocationDraft.studentId} onChange={event=>setAllocationDraft(current=>({
+                ...current,
+                studentId:event.target.value,
+                lessonRows:[]
+              }))}>
+                <option value="">Vali õpilane</option>
+                {[...students].filter(student=>student.active!==false).sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'et')).map(student=>(
+                  <option key={student.id} value={student.id}>
+                    {student.name}{student.parentName?` · ${student.parentName}`:''}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+          {allocationDraft.mode==='invoice'&&<div style={{display:'flex',flexDirection:'column',gap:8}}>
             {allocationDraft.rows.map((row,index)=>{
               const selected=allocatableInvoices.find(invoice=>invoice.id===row.invoiceId);
               const balance=selected ? invoiceFinancialSummary(selected).balance : 0;
@@ -9579,20 +9744,59 @@ function PaymentReconciliationView({invoices, students, payments:invoicePayments
                 </div>
               );
             })}
-          </div>
+          </div>}
+          {allocationDraft.mode==='lessons'&&(
+            <div style={{display:'flex',flexDirection:'column',gap:8}}>
+              {!allocationDraft.studentId&&(
+                <div style={{padding:14,textAlign:'center',color:'#64748b'}}>Vali kõigepealt õpilane.</div>
+              )}
+              {allocationDraft.studentId&&directLessonOptions.map(lesson=>{
+                const row=(allocationDraft.lessonRows||[]).find(item=>item.lessonId===lesson.id);
+                const suggested=Number(directLessonPricing.lessonPricesById?.[lesson.id])||0;
+                return(
+                  <label key={lesson.id} style={{display:'grid',gridTemplateColumns:'auto minmax(180px,1fr) 130px',gap:10,alignItems:'center',padding:'10px 12px',border:'1px solid rgba(28,43,58,.1)',borderRadius:11,background:row?'#eef6f2':'#fff'}}>
+                    <input type="checkbox" checked={Boolean(row)} onChange={event=>toggleDirectLesson(lesson,event.target.checked)} style={{width:'auto'}}/>
+                    <span>
+                      <strong style={{display:'block'}}>{fmtDate(lesson.date)} · {lesson.topic||lesson.title||'Tund'}</strong>
+                      <span style={{display:'block',fontSize:'.68rem',color:'#64748b',marginTop:2}}>
+                        {lesson.teacher||'—'}{suggested?` · tariif ${money(suggested)}€`:''}
+                      </span>
+                    </span>
+                    <input value={row?.amount||''} onChange={event=>updateDirectLessonAmount(lesson.id,event.target.value)}
+                      onClick={event=>event.stopPropagation()} disabled={!row} inputMode="decimal"
+                      placeholder={suggested?`${money(suggested)} €`:'Summa €'}/>
+                  </label>
+                );
+              })}
+              {allocationDraft.studentId&&directLessonOptions.length===0&&(
+                <div style={{padding:14,textAlign:'center',color:'#64748b'}}>Sellel õpilasel pole tasumata arveldamata tunde.</div>
+              )}
+            </div>
+          )}
+          {allocationDraft.mode==='advance'&&(
+            <div style={{padding:16,borderRadius:12,background:'#f5f3ff',border:'1px solid #ddd6fe',color:'#4c1d95'}}>
+              Kogu summa <strong>{allocationDraft.payment.amount.toFixed(2)} €</strong> salvestatakse valitud õpilase ettemaksuna.
+              See ei märgi ühtegi tundi ega arvet tasutuks enne hilisemat jaotamist.
+            </div>
+          )}
           <div style={{display:'flex',justifyContent:'space-between',gap:10,alignItems:'center',flexWrap:'wrap'}}>
-            <button onClick={()=>setAllocationDraft(current=>({...current,rows:[...current.rows,{invoiceId:'',amount:''}]}))}
-              className="btn btn-ghost btn-sm">+ Lisa arve</button>
+            {allocationDraft.mode==='invoice'
+              ?<button onClick={()=>setAllocationDraft(current=>({...current,rows:[...current.rows,{invoiceId:'',amount:''}]}))}
+                className="btn btn-ghost btn-sm">+ Lisa arve</button>
+              :<span/>}
             <div style={{fontSize:'.82rem',fontWeight:700,color:allocationRemaining<-.001?'#991b1b':allocationRemaining>0?'#7c3aed':'#166534'}}>
-              Jaotatud {money(allocationTotal)}€ · {allocationRemaining>0?`ettemakse ${money(allocationRemaining)}€`:allocationRemaining<0?`ületus ${money(Math.abs(allocationRemaining))}€`:'jääk 0€'}
+              {allocationDraft.mode==='advance'
+                ?`Ettemakse ${money(allocationDraft.payment.amount)}€`
+                :<>Jaotatud {money(allocationTotal)}€ · {allocationRemaining>0?`ettemakse ${money(allocationRemaining)}€`:allocationRemaining<0?`ületus ${money(Math.abs(allocationRemaining))}€`:'jääk 0€'}</>}
             </div>
             <button onClick={saveAllocation} className="btn btn-pine btn-sm" disabled={allocationBusy||allocationRemaining<-.001}
               style={{opacity:(allocationBusy||allocationRemaining<-.001) ? .55 : 1}}>
-              {allocationBusy?'Salvestan…':'Kinnita ja salvesta'}
+              {allocationBusy?'Salvestan…':allocationDraft.mode==='advance'?'Salvesta ettemaks':allocationDraft.mode==='lessons'?'Kinnita tunnimakse':'Kinnita ja salvesta'}
             </button>
           </div>
           <div style={{fontSize:'.74rem',color:'#64748b'}}>
-            Alles selle nupu järel tekib auditeeritud maksekirje. Jaotamata jääk salvestatakse maksja ettemaksena.
+            Alles selle nupu järel tekib auditeeritud maksekirje. Tundide makse lukustab valitud tunnid otsemaksena;
+            jaotamata jääk salvestatakse valitud õpilase ettemaksena.
           </div>
         </div>
       )}
@@ -9602,20 +9806,37 @@ function PaymentReconciliationView({invoices, students, payments:invoicePayments
           <div style={{display:'flex',justifyContent:'space-between',gap:12,alignItems:'flex-start',flexWrap:'wrap'}}>
             <div>
               <div style={{fontSize:'.72rem',fontWeight:800,color:'#6d28d9',textTransform:'uppercase'}}>Ettemakse kasutamine</div>
-              <div style={{fontWeight:800,fontSize:'1.05rem',marginTop:4}}>{creditDraft.credit.payerName||'Maksja'} · kasutada {money(creditDraft.credit.availableAmount)}€</div>
+              <div style={{fontWeight:800,fontSize:'1.05rem',marginTop:4}}>
+                {creditDraft.credit.studentName||creditDraft.credit.payerName||'Maksja'} · kasutada {money(creditDraft.credit.availableAmount)}€
+              </div>
+              {creditDraft.credit.studentName&&creditDraft.credit.payerName&&(
+                <div style={{fontSize:'.75rem',color:'#64748b'}}>Pangamaksja: {creditDraft.credit.payerName}</div>
+              )}
               <div style={{fontSize:'.75rem',color:'#64748b'}}>Allikas: {creditDraft.credit.bankTransactionId||creditDraft.credit.id}</div>
             </div>
             <button onClick={()=>setCreditDraft(null)} className="btn btn-ghost btn-sm" disabled={creditBusy}>Sulge</button>
           </div>
-          <div style={{display:'flex',flexDirection:'column',gap:8}}>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(2,minmax(0,1fr))',gap:8}}>
+            <button onClick={()=>setCreditDraft(current=>({...current,mode:'invoice'}))}
+              className={creditDraft.mode==='invoice'?'btn btn-dark':'btn btn-ghost'}>
+              Kasuta arvel
+            </button>
+            <button onClick={()=>setCreditDraft(current=>({...current,mode:'lessons'}))}
+              disabled={!creditDraft.credit.studentId}
+              className={creditDraft.mode==='lessons'?'btn btn-dark':'btn btn-ghost'}
+              style={{opacity:creditDraft.credit.studentId?1:.5}}>
+              Kasuta tundidel
+            </button>
+          </div>
+          {creditDraft.mode==='invoice'&&<div style={{display:'flex',flexDirection:'column',gap:8}}>
             {creditDraft.rows.map((row,index)=>{
-              const selected=allocatableInvoices.find(invoice=>invoice.id===row.invoiceId);
+              const selected=creditEligibleInvoices.find(invoice=>invoice.id===row.invoiceId);
               const balance=selected ? invoiceFinancialSummary(selected).balance : 0;
               return(
                 <div key={`${index}-${row.invoiceId}`} style={{display:'grid',gridTemplateColumns:'minmax(220px,1fr) 130px auto',gap:8,alignItems:'center'}}>
                   <select value={row.invoiceId} onChange={event=>updateCreditRow(index,{invoiceId:event.target.value})}>
                     <option value="">Vali arve</option>
-                    {allocatableInvoices.map(invoice=>(
+                    {creditEligibleInvoices.map(invoice=>(
                       <option key={invoice.id} value={invoice.id}>
                         {invoice.num} · {invoicePartyLabel(invoice)} · jääk {money(invoiceFinancialSummary(invoice).balance)}€
                       </option>
@@ -9627,17 +9848,44 @@ function PaymentReconciliationView({invoices, students, payments:invoicePayments
                 </div>
               );
             })}
-          </div>
+          </div>}
+          {creditDraft.mode==='lessons'&&(
+            <div style={{display:'flex',flexDirection:'column',gap:8}}>
+              {creditLessonOptions.map(lesson=>{
+                const row=(creditDraft.lessonRows||[]).find(item=>item.lessonId===lesson.id);
+                const suggested=Number(creditLessonPricing.lessonPricesById?.[lesson.id])||0;
+                return(
+                  <label key={lesson.id} style={{display:'grid',gridTemplateColumns:'auto minmax(180px,1fr) 130px',gap:10,alignItems:'center',padding:'10px 12px',border:'1px solid rgba(28,43,58,.1)',borderRadius:11,background:row?'#f5f3ff':'#fff'}}>
+                    <input type="checkbox" checked={Boolean(row)} onChange={event=>toggleCreditLesson(lesson,event.target.checked)} style={{width:'auto'}}/>
+                    <span>
+                      <strong style={{display:'block'}}>{fmtDate(lesson.date)} · {lesson.topic||lesson.title||'Tund'}</strong>
+                      <span style={{display:'block',fontSize:'.68rem',color:'#64748b',marginTop:2}}>
+                        {suggested?`Tariif ${money(suggested)}€`:'Sisesta summa'}
+                      </span>
+                    </span>
+                    <input value={row?.amount||''} onChange={event=>updateCreditLessonAmount(lesson.id,event.target.value)}
+                      onClick={event=>event.stopPropagation()} disabled={!row} inputMode="decimal"
+                      placeholder={suggested?`${money(suggested)} €`:'Summa €'}/>
+                  </label>
+                );
+              })}
+              {creditLessonOptions.length===0&&(
+                <div style={{padding:14,textAlign:'center',color:'#64748b'}}>Sellel õpilasel pole tasumata arveldamata tunde.</div>
+              )}
+            </div>
+          )}
           <div style={{display:'flex',justifyContent:'space-between',gap:10,alignItems:'center',flexWrap:'wrap'}}>
-            <button onClick={()=>setCreditDraft(current=>({...current,rows:[...current.rows,{invoiceId:'',amount:''}]}))}
-              className="btn btn-ghost btn-sm">+ Lisa arve</button>
+            {creditDraft.mode==='invoice'
+              ?<button onClick={()=>setCreditDraft(current=>({...current,rows:[...current.rows,{invoiceId:'',amount:''}]}))}
+                className="btn btn-ghost btn-sm">+ Lisa arve</button>
+              :<span/>}
             <div style={{fontSize:'.82rem',fontWeight:700,color:creditApplicationRemaining<-.001?'#991b1b':'#6d28d9'}}>
               Kasutatakse {money(creditApplicationTotal)}€ · alles jääb {money(Math.max(0,creditApplicationRemaining))}€
             </div>
             <button onClick={saveCreditApplication} className="btn btn-pine btn-sm"
               disabled={creditBusy||creditApplicationTotal<=0||creditApplicationRemaining<-.001}
               style={{opacity:(creditBusy||creditApplicationTotal<=0||creditApplicationRemaining<-.001) ? .55 : 1}}>
-              {creditBusy?'Rakendan…':'Rakenda ettemakse'}
+              {creditBusy?'Rakendan…':creditDraft.mode==='lessons'?'Maksa tunnid ettemaksust':'Rakenda ettemakse'}
             </button>
           </div>
         </div>
@@ -9748,6 +9996,7 @@ function PaymentReconciliationView({invoices, students, payments:invoicePayments
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))',gap:10,padding:14,background:'#1C2B3A'}}>
             <MiniStat label="Õpilasi" value={String(studentPaymentRegisterData.summary.studentCount)}/>
             <MiniStat label="Makstud" value={String(studentPaymentRegisterData.summary.paidCount)} color="#4ade80"/>
+            <MiniStat label="Ilma arveta" value={String(studentPaymentRegisterData.summary.directPaidCount+studentPaymentRegisterData.summary.advanceCount)} color="#c4b5fd"/>
             <MiniStat label="Vajab tähelepanu" value={String(studentPaymentRegisterData.summary.unpaidCount+studentPaymentRegisterData.summary.partialCount+studentPaymentRegisterData.summary.needsReviewCount)} color="#fbbf24"/>
             <MiniStat label="Arvet pole" value={String(studentPaymentRegisterData.summary.noInvoiceCount)} color="#cbd5e1"/>
           </div>
@@ -9757,6 +10006,7 @@ function PaymentReconciliationView({invoices, students, payments:invoicePayments
             {[
               ['attention','Vajab tähelepanu'],
               ['paid','Makstud'],
+              ['direct','Ilma arveta / ettemaks'],
               ['no_invoice','Arvet pole'],
               ['all','Kõik']
             ].map(([id,label])=>(
@@ -9767,7 +10017,8 @@ function PaymentReconciliationView({invoices, students, payments:invoicePayments
             ))}
           </div>
           <div style={{padding:'10px 12px',background:'#eff6ff',borderBottom:'1px solid rgba(28,43,58,.08)',fontSize:'.7rem',color:'#1e3a5f'}}>
-            Summad pärinevad CRM-i arvetest ja kinnitatud maksekirjetest. Mitme lapse ühine lapsevanema arve märgitakse eraldi ega liideta üldjääki mitu korda.
+            Laekunud summa sisaldab arvetel kajastatud makseid, otse tasutud tunde ja õpilase kasutamata ettemaksu.
+            Mitme lapse ühine lapsevanema arve märgitakse eraldi ega liideta üldjääki mitu korda.
           </div>
           <div style={{overflowX:'auto'}}>
             <div style={{minWidth:930}}>
@@ -9787,14 +10038,28 @@ function PaymentReconciliationView({invoices, students, payments:invoicePayments
                       </span>
                       <span style={{minWidth:0}}>
                         <span title={row.invoiceNumbers.join(', ')} style={{display:'block',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
-                          {row.invoiceNumbers.join(', ')||'—'}
+                          {row.invoiceNumbers.join(', ')||(
+                            row.directPaymentCount>0?`${row.directPaymentCount} tunni otsemakse`
+                              :row.advanceCount>0?`${row.advanceCount} ettemakse`
+                                :'—'
+                          )}
                         </span>
                         {row.sharedParentInvoiceCount>0&&(
                           <span className="badge" style={{marginTop:3,background:'#eef2ff',color:'#4338ca'}}>ühine vanema arve</span>
                         )}
+                        {row.directPaymentCount>0&&(
+                          <span className="badge" style={{marginTop:3,marginRight:3,background:'#dcfce7',color:'#166534'}}>
+                            {row.directPaymentCount} tunni otsemakse
+                          </span>
+                        )}
+                        {row.advanceCents>0&&(
+                          <span className="badge" style={{marginTop:3,background:'#ede9fe',color:'#6d28d9'}}>
+                            ettemaks {money(row.advanceCents/100)} €
+                          </span>
+                        )}
                       </span>
                       <strong style={{textAlign:'right',fontFamily:'monospace'}}>{money(row.amountCents/100)} €</strong>
-                      <strong style={{textAlign:'right',fontFamily:'monospace',color:'#166534'}}>{money(row.paidCents/100)} €</strong>
+                      <strong style={{textAlign:'right',fontFamily:'monospace',color:'#166534'}}>{money(row.receivedCents/100)} €</strong>
                       <strong style={{textAlign:'right',fontFamily:'monospace',color:row.balanceCents>0?'#991b1b':'#166534'}}>{money(row.balanceCents/100)} €</strong>
                       <span>{row.lastPaymentDate?fmtDate(row.lastPaymentDate):'—'}</span>
                       <span className="badge" style={{background:status.bg,color:status.color,justifySelf:'start'}}>{status.label}</span>
@@ -9853,7 +10118,10 @@ function PaymentReconciliationView({invoices, students, payments:invoicePayments
             {(payerCredits||[]).filter(credit=>credit.status==='open').sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||''))).map(credit=>(
               <div key={credit.id} style={{display:'flex',justifyContent:'space-between',gap:12,alignItems:'center',padding:12,border:'1px solid rgba(28,43,58,.1)',borderRadius:12,flexWrap:'wrap'}}>
                 <div>
-                  <div style={{fontWeight:700}}>{credit.payerName||'Maksja puudub'}</div>
+                  <div style={{fontWeight:700}}>{credit.studentName||credit.payerName||'Maksja puudub'}</div>
+                  {credit.studentName&&credit.payerName&&(
+                    <div style={{fontSize:'.72rem',color:'#64748b'}}>Pangamaksja: {credit.payerName}</div>
+                  )}
                   <div style={{fontSize:'.75rem',color:'#64748b'}}>
                     Allikas {credit.bankTransactionId||credit.sourceInvoiceNum||credit.sourcePaymentId||credit.id} · {fmtDate(credit.createdAt)}
                   </div>
@@ -13623,7 +13891,7 @@ function App() {
     }
   },[isAdmin]);
 
-  const allocateImportedBankTransaction=useCallback(async(payment,allocations)=>{
+  const allocateImportedBankTransaction=useCallback(async(payment,allocations,options={})=>{
     if(!isAdmin||!payment?.id){notify('⚠ Ainult administraator saab pangatehinguid jaotada');return false;}
     try{
       const result=await financeApiPost('/bank-transactions/allocate',{
@@ -13634,10 +13902,19 @@ function App() {
         reference:payment.desc,
         amount:payment.amount,
         allocations,
-        note:'Pangaväljavõtte jaotus'
+        lessonAllocations:options.lessonAllocations||[],
+        creditStudentId:options.creditStudentId||'',
+        note:options.mode==='lessons'
+          ?'Tundide otsemakse ilma arveta'
+          :options.mode==='advance'
+            ?'Õpilase ettemaks ilma arveta'
+            :'Pangaväljavõtte jaotus'
       });
       const credit=Number(result?.payerCredit?.amount)||0;
-      notify(credit>0
+      const directLessonCount=Array.isArray(result?.directLessons)?result.directLessons.length:0;
+      notify(directLessonCount>0
+        ? `✓ ${directLessonCount} tunni otsemakse salvestatud${credit>0?`; ettemaks ${money(credit)}€`:''}`
+        :credit>0
         ? `✓ Pangatehing salvestatud; avanss ${money(credit)}€`
         : '✓ Pangatehing jaotatud');
       return true;
@@ -13648,16 +13925,22 @@ function App() {
     }
   },[isAdmin]);
 
-  const applyPayerCredit=useCallback(async(credit,allocations,requestId)=>{
+  const applyPayerCredit=useCallback(async(credit,allocations,requestId,options={})=>{
     if(!isAdmin||!credit?.id){notify('⚠ Ainult administraator saab avanssi kasutada');return false;}
     try{
       const result=await financeApiPost('/payer-credits/apply',{
         creditId:credit.id,
         allocations,
-        note:'Avansi rakendamine arvetele',
+        lessonAllocations:options.lessonAllocations||[],
+        note:options.mode==='lessons'?'Avansi rakendamine tundidele':'Avansi rakendamine arvetele',
         requestId:requestId||financeRequestId('creditapply')
       });
-      notify(`✓ Avansist kasutatud ${money(result?.creditApplication?.amount)}€`);
+      const lessonCount=Array.isArray(result?.creditApplication?.lessonAllocations)
+        ?result.creditApplication.lessonAllocations.length
+        :0;
+      notify(lessonCount
+        ?`✓ Ettemaksust tasuti ${lessonCount} tundi · ${money(result?.creditApplication?.amount)}€`
+        :`✓ Avansist kasutatud ${money(result?.creditApplication?.amount)}€`);
       return true;
     }catch(err){
       console.error('Payer credit application failed:',err);
@@ -14448,7 +14731,7 @@ function App() {
             sendInvoiceEmail={sendInvoiceEmail} sendInvoiceReminder={sendInvoiceReminder} sendMonthlyInvoiceReminders={sendMonthlyInvoiceReminders} invoiceEmailBusy={invoiceEmailBusy}/>}
 
           {tab==='finance'&&isAdmin&&financeSection==='reconciliation'&&<PaymentReconciliationView
-            invoices={invoices} students={students} payments={payments} isAdmin={isAdmin}
+            invoices={invoices} students={students} lessons={lessons} tariffAssignments={tariffAssignments} payments={payments} isAdmin={isAdmin}
             bankTransactions={bankTransactions} payerCredits={payerCredits}
             allocateBankTransaction={allocateImportedBankTransaction}
             applyPayerCredit={applyPayerCredit}
@@ -14465,6 +14748,7 @@ function App() {
             reviewFinancialPeriod={reviewFinancialPeriod}
             savePaymentLineAllocation={savePaymentLineAllocation}
             openPaymentDocument={openPaymentDocument}
+            voidPayment={voidPayment}
             openInvoices={()=>setFinanceSection('invoices')}
             openReconciliation={()=>setFinanceSection('reconciliation')}/>}
 

@@ -111,8 +111,25 @@ server-created `bankTransactions.externalId` values, never from a client-only re
 It also recognizes header-based bank exports (including the current Swedbank Estonia CSV), imports
 only incoming EUR credit rows, preserves stable bank-origin identifiers where present, and excludes
 outgoing or unsupported-currency rows with visible diagnostics. `studentInvoiceRegister()` builds
-the per-student paid/partial/unpaid view from invoice and active payment records; shared parent
-invoices and legacy paid flags remain visibly reviewable rather than being counted as exact evidence.
+the per-student paid/partial/unpaid view from invoice and active payment records; it also projects
+student-owned open advances and invoice-free direct lesson payments without treating either as an
+invoice. Shared parent invoices and legacy paid flags remain visibly reviewable rather than being
+counted as exact evidence.
+
+An imported bank transaction has three explicit audited allocation targets. Invoice allocations
+create ordinary `payments` linked to immutable invoice IDs. Direct lesson allocations create
+`payments.kind = direct_lesson`, link one payment to one immutable lesson ID and mark that lesson
+`billingStatus = paid_directly`; no synthetic invoice is created. Any residual or wholly unallocated
+amount creates a `payerCredits` balance owned by an exact `studentId`. A student-owned credit may
+later be applied transactionally to either an invoice or one or more billable lessons. The lesson
+register verifies the direct payment ID, amount and source before accepting it as exact evidence.
+
+Correcting a direct lesson payment never deletes history. The payment becomes voided, the lesson
+returns to `unbilled`, the value returns to the same student credit, and the bank/application
+aggregates are updated in the same transaction. Firestore rules prevent browser clients from
+editing direct-payment pointers, amounts or source-credit fields. Existing legacy payer credits
+without a stable `studentId` remain usable for invoice allocation but are not guessed onto a
+student or silently applied to lessons.
 
 Payment-order evidence is stored under
 `financial/payment-orders/{paymentId}/{documentId}` in Firebase Storage. Only administrators
