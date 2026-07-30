@@ -37,8 +37,31 @@ test('bank import shows a normalized preview instead of requiring raw four-colum
 });
 
 test('reconciliation exposes an authoritative student payment register',()=>{
-  assert.match(html,/studentInvoiceRegister\(\{students,invoices,payments:invoicePayments\}\)/);
+  assert.match(html,/studentInvoiceRegister\(\{students,invoices,payments:invoicePayments,payerCredits\}\)/);
   assert.match(html,/Õpilaste maksed/);
-  assert.match(html,/Summad pärinevad CRM-i arvetest ja kinnitatud maksekirjetest/);
+  assert.match(html,/Laekunud summa sisaldab arvetel kajastatud makseid, otse tasutud tunde ja õpilase kasutamata ettemaksu/);
   assert.match(html,/Kontrolli vana märget/);
+});
+
+test('bank payment can be separated into invoice, direct lessons, or student advance',()=>{
+  assert.match(html,/\['invoice','Arve makse'/);
+  assert.match(html,/\['lessons','Tundide makse'/);
+  assert.match(html,/\['advance','Ettemaks'/);
+  assert.match(html,/Tundide otsemakse ilma arveta/);
+  assert.match(html,/Õpilase ettemaks ilma arveta/);
+  assert.match(html,/lessonAllocations:options\.lessonAllocations/);
+});
+
+test('student advances can later pay either invoices or lessons',()=>{
+  assert.match(html,/Kasuta arvel/);
+  assert.match(html,/Kasuta tundidel/);
+  assert.match(html,/Maksa tunnid ettemaksust/);
+  assert.match(html,/Avansi rakendamine tundidele/);
+});
+
+test('direct lesson payments stay auditable and can be safely corrected',()=>{
+  assert.match(html,/Makstud ilma arveta/);
+  assert.match(html,/Otsemakse ID-seos/);
+  assert.match(html,/Tühista otsemakse/);
+  assert.match(html,/voidPayment=\{voidPayment\}/);
 });

@@ -38,6 +38,52 @@ test('student payment register separates paid, partial, unpaid and missing invoi
   assert.equal(register.rows.find(row=>row.studentId==='student-paid').lastPaymentDate,'2026-07-05');
 });
 
+test('student payment register shows an invoice-free bank payment as an advance',()=>{
+  const register=studentInvoiceRegister({
+    students:[
+      {id:'student-advance',name:'Mari',active:true},
+      {id:'student-none',name:'Karl',active:true}
+    ],
+    payerCredits:[{
+      id:'credit-a',
+      studentId:'student-advance',
+      studentName:'Mari',
+      availableAmountCents:2500,
+      status:'open'
+    }]
+  });
+  const advance=register.rows.find(row=>row.studentId==='student-advance');
+  assert.equal(advance.status,'advance');
+  assert.equal(advance.advanceCents,2500);
+  assert.equal(advance.receivedCents,2500);
+  assert.equal(advance.advanceCount,1);
+  assert.equal(register.rows.find(row=>row.studentId==='student-none').status,'no_invoice');
+  assert.equal(register.summary.advanceCount,1);
+});
+
+test('student payment register shows lessons paid directly without an invoice',()=>{
+  const register=studentInvoiceRegister({
+    students:[{id:'student-direct',name:'Mari',active:true}],
+    payments:[{
+      id:'payment-direct',
+      kind:'direct_lesson',
+      lessonId:'lesson-a',
+      studentId:'student-direct',
+      amountCents:3000,
+      paidAt:'2026-07-07',
+      status:'active',
+      bankTransactionId:'bank-a'
+    }]
+  });
+  const row=register.rows[0];
+  assert.equal(row.status,'direct_paid');
+  assert.equal(row.directPaidCents,3000);
+  assert.equal(row.receivedCents,3000);
+  assert.equal(row.directPaymentCount,1);
+  assert.equal(row.lastPaymentDate,'2026-07-07');
+  assert.equal(register.summary.directPaidCount,1);
+});
+
 test('shared parent invoices are visible without inflating the summary balance',()=>{
   const register=studentInvoiceRegister({
     students:[
@@ -518,6 +564,9 @@ test('CRM loads the accounting ledger and exposes an administrator screen',()=>{
   assert.match(firestoreRules,/match \/financialPeriodReviews\/\{reviewId\}/);
   assert.match(firestoreRules,/match \/paymentLineAllocations\/\{allocationId\}/);
   assert.match(firestoreRules,/allow create, update, delete: if false/);
+  assert.match(firestoreRules,/'directPaymentId'/);
+  assert.match(firestoreRules,/'directPaymentAmountCents'/);
+  assert.match(firestoreRules,/'sourceCreditId'/);
 });
 
 test('invoice issuance and reconciled payments form one register row',()=>{
@@ -774,6 +823,59 @@ test('lesson payments cover immutable invoice lines oldest first',()=>{
   assert.equal(register.summary.paidCents,4500);
   assert.equal(register.summary.balanceCents,1500);
   assert.equal(register.summary.errorCount,0);
+});
+
+test('lesson register proves an invoice-free lesson payment and preserves its source',()=>{
+  const register=lessonPaymentRegister({
+    month:'2026-07',
+    lessons:[{
+      id:'lesson-direct',
+      date:'2026-07-11',
+      studentId:'student-a',
+      studentName:'Mari',
+      status:'Toimunud',
+      billingStatus:'paid_directly',
+      directPaymentId:'payment-direct',
+      directPaymentAmountCents:3000,
+      directPaidAt:'2026-07-12',
+      sourceCreditId:'credit-a'
+    }],
+    payments:[{
+      id:'payment-direct',
+      kind:'direct_lesson',
+      lessonId:'lesson-direct',
+      studentId:'student-a',
+      amountCents:3000,
+      paidAt:'2026-07-12',
+      status:'active',
+      sourceCreditId:'credit-a'
+    }]
+  });
+  const row=register.rows[0];
+  assert.equal(row.status,'paid_direct');
+  assert.equal(row.paidCents,3000);
+  assert.equal(row.balanceCents,0);
+  assert.equal(row.paymentAllocations[0].paymentId,'payment-direct');
+  assert.equal(row.paymentAllocations[0].source,'credit');
+  assert.equal(register.summary.directPaidCount,1);
+  assert.equal(register.summary.errorCount,0);
+});
+
+test('lesson register flags a direct payment without matching immutable evidence',()=>{
+  const register=lessonPaymentRegister({
+    month:'2026-07',
+    lessons:[{
+      id:'lesson-direct',
+      date:'2026-07-11',
+      studentName:'Mari',
+      billingStatus:'paid_directly',
+      directPaymentId:'missing-payment',
+      directPaymentAmountCents:3000
+    }]
+  });
+  assert.equal(register.rows[0].status,'paid_direct');
+  assert.ok(register.issues.some(issue=>issue.type==='direct_lesson_payment_evidence_mismatch'));
+  assert.equal(register.summary.errorCount,1);
 });
 
 test('credited lesson lines are excluded without rewriting the original invoice',()=>{

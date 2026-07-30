@@ -14,6 +14,7 @@ const {
   lessonBillingDispositionPatch,
   lessonIsBillable,
   normalizeAllocations,
+  normalizeBankDistribution,
   packageBalanceAfterEntry,
   packageBalanceAfterLessonMovement,
   paymentDocumentRecord,
@@ -271,6 +272,43 @@ test("financial period review blocks unbilled lessons, unmatched bank money, and
   assert.ok(snapshot.issues.some(issue => issue.type === "invoice_paid_without_payment_records"));
   assert.ok(snapshot.issues.some(issue => issue.type === "bank_unapplied"));
   assert.equal(snapshot.summary.blockingIssueCount, 3);
+});
+
+test("financial period accepts an audited lesson payment without an invoice", () => {
+  const snapshot = financialPeriodReviewSnapshot({
+    month: "2026-07",
+    lessons: [{
+      id: "lesson-direct",
+      date: "2026-07-05",
+      status: "Toimunud",
+      billingStatus: "paid_directly",
+      directPaymentId: "payment-direct",
+      directPaymentAmountCents: 3000,
+      studentId: "student-a",
+    }],
+    payments: [{
+      id: "payment-direct",
+      kind: "direct_lesson",
+      lessonId: "lesson-direct",
+      studentId: "student-a",
+      amountCents: 3000,
+      paidAt: "2026-07-05",
+      status: "active",
+      bankTransactionId: "bank-direct",
+    }],
+    bankTransactions: [{
+      id: "bank-direct",
+      paidAt: "2026-07-05",
+      amountCents: 3000,
+      allocatedAmountCents: 3000,
+      unappliedAmountCents: 0,
+    }],
+  });
+  assert.equal(snapshot.canReview, true);
+  assert.equal(snapshot.summary.unbilledLessonCount, 0);
+  assert.equal(snapshot.summary.paymentsCents, 3000);
+  assert.equal(snapshot.summary.exactLessonLinkCount, 1);
+  assert.equal(snapshot.issues.length, 0);
 });
 
 test("legacy lesson evidence remains visible without blocking a migration-safe review", () => {
@@ -551,6 +589,35 @@ test("bank transaction can be split across invoices with residual credit", () =>
   assert.equal(result.transactionAmountCents, 12000);
   assert.equal(result.allocatedAmountCents, 9550);
   assert.equal(result.unappliedAmountCents, 2450);
+});
+
+test("bank transaction can pay lessons directly and keep the remainder as an advance", () => {
+  const result = normalizeBankDistribution(
+    100,
+    [{ invoiceId: "invoice-a", amount: 20 }],
+    [
+      { lessonId: "lesson-a", amount: 30 },
+      { lessonId: "lesson-b", amount: 25 },
+    ],
+  );
+  assert.equal(result.invoiceAllocatedAmountCents, 2000);
+  assert.equal(result.lessonAllocatedAmountCents, 5500);
+  assert.equal(result.allocatedAmountCents, 7500);
+  assert.equal(result.unappliedAmountCents, 2500);
+});
+
+test("direct lesson allocation rejects duplicates and a total above the bank payment", () => {
+  assert.throws(
+    () => normalizeBankDistribution(50, [], [
+      { lessonId: "lesson-a", amount: 20 },
+      { lessonId: "lesson-a", amount: 20 },
+    ]),
+    /more than once/,
+  );
+  assert.throws(
+    () => normalizeBankDistribution(50, [], [{ lessonId: "lesson-a", amount: 50.01 }]),
+    /exceeds/,
+  );
 });
 
 test("allocation rejects duplicate invoices and amounts above the transaction", () => {

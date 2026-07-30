@@ -35,7 +35,9 @@ const {
   invoiceFinancialPatch,
   invoiceOriginalAmountCents,
   lessonBillingDispositionPatch,
+  lessonIsBillable,
   normalizeAllocations,
+  normalizeBankDistribution,
   packageBalanceAfterEntry,
   packageBalanceAfterLessonMovement,
   paymentDocumentRecord,
@@ -1640,6 +1642,8 @@ async function transferInvoiceOverpayment({ actor, invoiceId, reason, requestId 
       const payerCredit = {
         payerKey: payerKey(payerName),
         payerName,
+        studentId: invoice.studentId || "",
+        studentName: invoice.studentName || "",
         bankTransactionId: payment.bankTransactionId || "",
         sourcePaymentId: payment.id,
         sourceInvoiceId: cleanInvoiceId,
@@ -2597,20 +2601,27 @@ async function allocateBankTransaction({
   externalId,
   paidAt,
   payerName,
+  creditStudentId,
   reference,
   amount,
   allocations,
+  lessonAllocations,
   note,
 }) {
   const mutationId = cleanRequestId(requestId);
-  const normalized = normalizeAllocations(amount, allocations);
-  const sortedAllocations = [...normalized.allocations].sort((a, b) => a.invoiceId.localeCompare(b.invoiceId));
+  const normalized = normalizeBankDistribution(amount, allocations, lessonAllocations);
+  const sortedAllocations = [...normalized.invoiceAllocations]
+    .sort((a, b) => a.invoiceId.localeCompare(b.invoiceId));
+  const sortedLessonAllocations = [...normalized.lessonAllocations]
+    .sort((a, b) => a.lessonId.localeCompare(b.lessonId));
   const signature = crypto.createHash("sha256").update(JSON.stringify({
     amountCents: normalized.transactionAmountCents,
     allocations: sortedAllocations,
+    lessonAllocations: sortedLessonAllocations,
     externalId: cleanText(externalId, 160),
     paidAt: String(paidAt || ""),
     payerName: cleanText(payerName, 200),
+    creditStudentId: cleanText(creditStudentId, 160),
     reference: cleanText(reference, 300),
     note: cleanText(note),
   })).digest("hex");
@@ -2626,6 +2637,7 @@ async function allocateBankTransaction({
     ? rawTransactionDate
     : nowIso.slice(0, 10);
   const cleanPayerName = cleanText(payerName, 200);
+  const cleanCreditStudentId = cleanText(creditStudentId, 160);
   const cleanReference = cleanText(reference, 300);
   const cleanNote = cleanText(note);
   const actorData = actorSnapshot(actor);
@@ -2644,6 +2656,60 @@ async function allocateBankTransaction({
     invoiceSnaps.forEach((snap, index) => {
       if (!snap.exists) throw httpError(404, `Invoice ${sortedAllocations[index].invoiceId} not found`);
     });
+    const lessonRefs = sortedLessonAllocations.map(allocation =>
+      db.collection("lessons").doc(allocation.lessonId),
+    );
+    const lessonSnaps = await Promise.all(lessonRefs.map(ref => transaction.get(ref)));
+    lessonSnaps.forEach((snap, index) => {
+      if (!snap.exists) {
+        throw httpError(404, `Lesson ${sortedLessonAllocations[index].lessonId} not found`);
+      }
+      const lesson = snap.data();
+      if (!lessonIsBillable(lesson) || lesson.directPaymentId || lesson.billingStatus === "paid_directly") {
+        throw httpError(409, `Lesson ${sortedLessonAllocations[index].lessonId} is not available for direct payment`);
+      }
+    });
+    const requestedCreditStudentRef = cleanCreditStudentId
+      ? db.collection("students").doc(cleanCreditStudentId)
+      : null;
+    const requestedCreditStudentSnap = requestedCreditStudentRef
+      ? await transaction.get(requestedCreditStudentRef)
+      : null;
+    if (requestedCreditStudentSnap && !requestedCreditStudentSnap.exists) {
+      throw httpError(404, "Advance student not found");
+    }
+    const allocationStudentIds = [...new Set(
+      [...invoiceSnaps, ...lessonSnaps]
+        .map(snap => String(snap.data()?.studentId || ""))
+        .filter(Boolean),
+    )];
+    const derivedCreditStudentId = cleanCreditStudentId
+      || (allocationStudentIds.length === 1 ? allocationStudentIds[0] : "");
+    if (sortedLessonAllocations.length && !derivedCreditStudentId) {
+      throw httpError(400, "Student required for direct lesson payment");
+    }
+    if (normalized.unappliedAmountCents > 0 && !derivedCreditStudentId) {
+      throw httpError(400, "Student required for advance payment");
+    }
+    lessonSnaps.forEach((snap, index) => {
+      if (String(snap.data()?.studentId || "") !== derivedCreditStudentId) {
+        throw httpError(
+          409,
+          `Direct lesson payment belongs to another student than lesson ${sortedLessonAllocations[index].lessonId}`,
+        );
+      }
+    });
+    const derivedInvoiceStudent = derivedCreditStudentId
+      ? invoiceSnaps.map(snap => snap.data()).find(invoice =>
+        String(invoice?.studentId || "") === derivedCreditStudentId,
+      )
+      : null;
+    const creditStudentName = requestedCreditStudentSnap?.data()?.name
+      || derivedInvoiceStudent?.studentName
+      || lessonSnaps.map(snap => snap.data()).find(lesson =>
+        String(lesson?.studentId || "") === derivedCreditStudentId,
+      )?.studentName
+      || "";
     const paymentSnaps = await Promise.all(sortedAllocations.map(allocation =>
       activeInvoicePayments(transaction, allocation.invoiceId),
     ));
@@ -2662,15 +2728,24 @@ async function allocateBankTransaction({
       paidAt: transactionDate,
       payerName: cleanPayerName,
       payerKey: payerKey(cleanPayerName),
+      creditStudentId: normalized.unappliedAmountCents > 0 ? derivedCreditStudentId : "",
+      creditStudentName: normalized.unappliedAmountCents > 0 ? creditStudentName : "",
       reference: cleanReference,
       amountCents: normalized.transactionAmountCents,
       amount: centsToAmount(normalized.transactionAmountCents),
       allocatedAmountCents: normalized.allocatedAmountCents,
       allocatedAmount: centsToAmount(normalized.allocatedAmountCents),
+      invoiceAllocatedAmountCents: normalized.invoiceAllocatedAmountCents,
+      invoiceAllocatedAmount: centsToAmount(normalized.invoiceAllocatedAmountCents),
+      lessonAllocatedAmountCents: normalized.lessonAllocatedAmountCents,
+      lessonAllocatedAmount: centsToAmount(normalized.lessonAllocatedAmountCents),
       unappliedAmountCents: normalized.unappliedAmountCents,
       unappliedAmount: centsToAmount(normalized.unappliedAmountCents),
-      allocationCount: sortedAllocations.length,
-      activeAllocationCount: sortedAllocations.length,
+      allocationCount: sortedAllocations.length + sortedLessonAllocations.length,
+      invoiceAllocationCount: sortedAllocations.length,
+      lessonAllocationCount: sortedLessonAllocations.length,
+      activeAllocationCount: sortedAllocations.length + sortedLessonAllocations.length,
+      activeLessonAllocationCount: sortedLessonAllocations.length,
       status: normalized.allocatedAmountCents === 0
         ? "unapplied"
         : normalized.unappliedAmountCents > 0
@@ -2683,6 +2758,7 @@ async function allocateBankTransaction({
       requestId: mutationId,
     };
     const auditInvoices = [];
+    const auditLessons = [];
     const paymentIds = [];
 
     sortedAllocations.forEach((allocation, index) => {
@@ -2724,11 +2800,62 @@ async function allocateBankTransaction({
       });
     });
 
+    sortedLessonAllocations.forEach((allocation, index) => {
+      const lesson = lessonSnaps[index].data();
+      const paymentId = `${mutationId}_l${index + 1}`;
+      const paymentRef = db.collection("payments").doc(paymentId);
+      const paidAmount = centsToAmount(allocation.amountCents);
+      const payment = {
+        kind: "direct_lesson",
+        invoiceId: "",
+        invoiceNum: "",
+        lessonId: allocation.lessonId,
+        studentId: lesson.studentId || derivedCreditStudentId,
+        studentName: lesson.studentName || creditStudentName,
+        payerName: cleanPayerName || lesson.studentName || "",
+        amountCents: allocation.amountCents,
+        amount: paidAmount,
+        paidAt: transactionDate,
+        method: "bank",
+        reference: cleanReference,
+        note: cleanNote || "Direct lesson payment without invoice",
+        status: "active",
+        bankTransactionId: mutationId,
+        bankExternalId: cleanText(externalId, 160),
+        allocationIndex: sortedAllocations.length + index,
+        allocationMethod: "direct_lesson_v1",
+        createdAt: nowIso,
+        createdBy: actorData,
+        requestId: paymentId,
+      };
+      transaction.create(paymentRef, payment);
+      transaction.set(lessonRefs[index], {
+        billingStatus: "paid_directly",
+        directPaymentId: paymentId,
+        directPaymentAmountCents: allocation.amountCents,
+        directPaymentAmount: paidAmount,
+        directPaidAt: transactionDate,
+        bankTransactionId: mutationId,
+        financialUpdatedAt: nowIso,
+      }, { merge: true });
+      paymentIds.push(paymentId);
+      auditLessons.push({
+        lessonId: allocation.lessonId,
+        studentId: payment.studentId,
+        studentName: payment.studentName,
+        date: lesson.date || "",
+        amount: paidAmount,
+        paymentId,
+      });
+    });
+
     transaction.create(bankRef, bankTransaction);
     if (normalized.unappliedAmountCents > 0) {
       transaction.create(creditRef, {
         payerKey: bankTransaction.payerKey,
         payerName: cleanPayerName,
+        studentId: derivedCreditStudentId,
+        studentName: creditStudentName,
         bankTransactionId: mutationId,
         originalAmountCents: normalized.unappliedAmountCents,
         originalAmount: centsToAmount(normalized.unappliedAmountCents),
@@ -2742,15 +2869,20 @@ async function allocateBankTransaction({
     transaction.create(auditRef, {
       entityType: "bankTransaction",
       entityId: mutationId,
-      action: "bank_transaction.allocated",
+      action: sortedAllocations.length || sortedLessonAllocations.length
+        ? "bank_transaction.allocated"
+        : "bank_transaction.saved_as_advance",
       bankTransactionId: mutationId,
       paymentIds,
       invoices: auditInvoices,
+      lessons: auditLessons,
       transactionAmount: bankTransaction.amount,
       allocatedAmount: bankTransaction.allocatedAmount,
       unappliedAmount: bankTransaction.unappliedAmount,
       payerKey: bankTransaction.payerKey,
       payerName: cleanPayerName,
+      studentId: derivedCreditStudentId,
+      studentName: creditStudentName,
       actor: actorData,
       reason: cleanNote || "Bank transaction allocated",
       createdAt: nowIso,
@@ -2759,6 +2891,7 @@ async function allocateBankTransaction({
     return {
       bankTransaction: { id: mutationId, ...bankTransaction },
       paymentIds,
+      directLessons: auditLessons,
       payerCredit: normalized.unappliedAmountCents > 0
         ? { id: mutationId, amount: centsToAmount(normalized.unappliedAmountCents) }
         : null,
@@ -2767,20 +2900,30 @@ async function allocateBankTransaction({
   });
 }
 
-async function applyPayerCredit({ actor, creditId, allocations, note, requestId }) {
+async function applyPayerCredit({ actor, creditId, allocations, lessonAllocations, note, requestId }) {
   const mutationId = cleanRequestId(requestId);
   const cleanCreditId = String(creditId || "").trim();
   if (!cleanCreditId) throw httpError(400, "creditId required");
-  if (!Array.isArray(allocations) || allocations.length === 0) {
+  if (
+    (!Array.isArray(allocations) || allocations.length === 0)
+    && (!Array.isArray(lessonAllocations) || lessonAllocations.length === 0)
+  ) {
     throw httpError(400, "At least one credit allocation required");
   }
-  const requestedAmount = allocations.reduce((sum, allocation) => sum + (Number(allocation?.amount) || 0), 0);
-  const normalized = normalizeAllocations(requestedAmount, allocations);
-  const sortedAllocations = [...normalized.allocations].sort((a, b) => a.invoiceId.localeCompare(b.invoiceId));
+  const requestedAmount = [
+    ...(Array.isArray(allocations) ? allocations : []),
+    ...(Array.isArray(lessonAllocations) ? lessonAllocations : []),
+  ].reduce((sum, allocation) => sum + (Number(allocation?.amount) || 0), 0);
+  const normalized = normalizeBankDistribution(requestedAmount, allocations, lessonAllocations);
+  const sortedAllocations = [...normalized.invoiceAllocations]
+    .sort((a, b) => a.invoiceId.localeCompare(b.invoiceId));
+  const sortedLessonAllocations = [...normalized.lessonAllocations]
+    .sort((a, b) => a.lessonId.localeCompare(b.lessonId));
   const cleanNote = cleanText(note);
   const signature = crypto.createHash("sha256").update(JSON.stringify({
     creditId: cleanCreditId,
     allocations: sortedAllocations,
+    lessonAllocations: sortedLessonAllocations,
     note: cleanNote,
   })).digest("hex");
   const creditRef = db.collection("payerCredits").doc(cleanCreditId);
@@ -2808,6 +2951,38 @@ async function applyPayerCredit({ actor, creditId, allocations, note, requestId 
     invoiceSnaps.forEach((snap, index) => {
       if (!snap.exists) throw httpError(404, `Invoice ${sortedAllocations[index].invoiceId} not found`);
     });
+    if (credit.studentId) {
+      invoiceSnaps.forEach((snap, index) => {
+        if (String(snap.data()?.studentId || "") !== String(credit.studentId)) {
+          throw httpError(
+            409,
+            `Payer credit belongs to another student than invoice ${sortedAllocations[index].invoiceId}`,
+          );
+        }
+      });
+    }
+    const lessonRefs = sortedLessonAllocations.map(allocation =>
+      db.collection("lessons").doc(allocation.lessonId),
+    );
+    const lessonSnaps = await Promise.all(lessonRefs.map(ref => transaction.get(ref)));
+    lessonSnaps.forEach((snap, index) => {
+      if (!snap.exists) {
+        throw httpError(404, `Lesson ${sortedLessonAllocations[index].lessonId} not found`);
+      }
+      const lesson = snap.data();
+      if (!credit.studentId) {
+        throw httpError(409, "Assign the advance to a student before applying it to lessons");
+      }
+      if (String(lesson.studentId || "") !== String(credit.studentId)) {
+        throw httpError(
+          409,
+          `Payer credit belongs to another student than lesson ${sortedLessonAllocations[index].lessonId}`,
+        );
+      }
+      if (!lessonIsBillable(lesson) || lesson.directPaymentId || lesson.billingStatus === "paid_directly") {
+        throw httpError(409, `Lesson ${sortedLessonAllocations[index].lessonId} is not available for direct payment`);
+      }
+    });
     const paymentSnaps = await Promise.all(sortedAllocations.map(allocation =>
       activeInvoicePayments(transaction, allocation.invoiceId),
     ));
@@ -2820,6 +2995,7 @@ async function applyPayerCredit({ actor, creditId, allocations, note, requestId 
     const creditPatch = creditAfterApplication(credit, normalized.allocatedAmountCents, nowIso);
     const paymentIds = [];
     const auditInvoices = [];
+    const auditLessons = [];
 
     sortedAllocations.forEach((allocation, index) => {
       const invoice = invoiceSnaps[index].data();
@@ -2857,15 +3033,66 @@ async function applyPayerCredit({ actor, creditId, allocations, note, requestId 
       });
     });
 
+    sortedLessonAllocations.forEach((allocation, index) => {
+      const lesson = lessonSnaps[index].data();
+      const paymentId = `${mutationId}_l${index + 1}`;
+      const paidAmount = centsToAmount(allocation.amountCents);
+      const payment = {
+        kind: "direct_lesson",
+        invoiceId: "",
+        invoiceNum: "",
+        lessonId: allocation.lessonId,
+        studentId: lesson.studentId || credit.studentId || "",
+        studentName: lesson.studentName || credit.studentName || "",
+        payerName: credit.payerName || lesson.studentName || "",
+        amountCents: allocation.amountCents,
+        amount: paidAmount,
+        paidAt: nowIso.slice(0, 10),
+        method: "credit",
+        reference: `Avanss ${creditRef.id}`,
+        note: cleanNote || "Payer credit applied directly to lesson",
+        status: "active",
+        sourceCreditId: creditRef.id,
+        creditApplicationId: mutationId,
+        allocationIndex: sortedAllocations.length + index,
+        allocationMethod: "direct_lesson_v1",
+        createdAt: nowIso,
+        createdBy: actorData,
+        requestId: paymentId,
+      };
+      transaction.create(db.collection("payments").doc(paymentId), payment);
+      transaction.set(lessonRefs[index], {
+        billingStatus: "paid_directly",
+        directPaymentId: paymentId,
+        directPaymentAmountCents: allocation.amountCents,
+        directPaymentAmount: paidAmount,
+        directPaidAt: nowIso.slice(0, 10),
+        sourceCreditId: creditRef.id,
+        financialUpdatedAt: nowIso,
+      }, { merge: true });
+      paymentIds.push(paymentId);
+      auditLessons.push({
+        lessonId: allocation.lessonId,
+        studentId: payment.studentId,
+        studentName: payment.studentName,
+        date: lesson.date || "",
+        amount: paidAmount,
+        paymentId,
+      });
+    });
+
     const application = {
       creditId: creditRef.id,
       payerKey: credit.payerKey || "",
       payerName: credit.payerName || "",
+      studentId: credit.studentId || "",
+      studentName: credit.studentName || "",
       amountCents: normalized.allocatedAmountCents,
       amount: centsToAmount(normalized.allocatedAmountCents),
       originalAmountCents: normalized.allocatedAmountCents,
       originalAmount: centsToAmount(normalized.allocatedAmountCents),
       allocations: auditInvoices,
+      lessonAllocations: auditLessons,
       paymentIds,
       activePaymentCount: paymentIds.length,
       status: "active",
@@ -2885,9 +3112,12 @@ async function applyPayerCredit({ actor, creditId, allocations, note, requestId 
       creditApplicationId: mutationId,
       paymentIds,
       invoices: auditInvoices,
+      lessons: auditLessons,
       amount: application.amount,
       beforeAvailableAmount: Number(credit.availableAmount) || 0,
       afterAvailableAmount: creditPatch.availableAmount,
+      studentId: credit.studentId || "",
+      studentName: credit.studentName || "",
       actor: actorData,
       reason: cleanNote || "Payer credit applied",
       createdAt: nowIso,
@@ -2916,7 +3146,10 @@ async function voidSinglePayment({ actor, paymentId, reason, requestId }) {
     const existingAudit = await transaction.get(auditRef);
     if (existingAudit.exists) {
       const existingData = existingAudit.data();
-      if (existingData.action !== "payment.voided" || existingData.paymentId !== paymentRef.id) {
+      if (
+        !["payment.voided", "direct_lesson_payment.voided"].includes(existingData.action)
+        || existingData.paymentId !== paymentRef.id
+      ) {
         throw httpError(409, "requestId already used for a different financial mutation");
       }
       return { paymentId: paymentRef.id, idempotent: true };
@@ -2925,6 +3158,177 @@ async function voidSinglePayment({ actor, paymentId, reason, requestId }) {
     if (!paymentSnap.exists) throw httpError(404, "Payment not found");
     const payment = paymentSnap.data();
     if (payment.status === "voided") throw httpError(409, "Payment is already voided");
+    if (payment.kind === "direct_lesson") {
+      const lessonRef = db.collection("lessons").doc(String(payment.lessonId || ""));
+      const lessonSnap = await transaction.get(lessonRef);
+      if (!lessonSnap.exists) throw httpError(404, "Directly paid lesson not found");
+      const lesson = lessonSnap.data();
+      if (String(lesson.directPaymentId || "") !== paymentRef.id) {
+        throw httpError(409, "Lesson is linked to another direct payment");
+      }
+      const amountCents = paymentNetAmountCents(payment);
+      if (amountCents <= 0) throw httpError(409, "Payment amount is invalid");
+      let sourceCreditRef = null;
+      let sourceCredit = null;
+      let sourceCreditExists = false;
+      let applicationRef = null;
+      let application = null;
+      let bankRef = null;
+      let bankTransaction = null;
+      if (payment.sourceCreditId) {
+        sourceCreditRef = db.collection("payerCredits").doc(String(payment.sourceCreditId));
+        applicationRef = payment.creditApplicationId
+          ? db.collection("creditApplications").doc(String(payment.creditApplicationId))
+          : null;
+        const [creditSnap, applicationSnap] = await Promise.all([
+          transaction.get(sourceCreditRef),
+          applicationRef ? transaction.get(applicationRef) : Promise.resolve(null),
+        ]);
+        if (!creditSnap.exists) throw httpError(409, "Source payer credit not found");
+        sourceCredit = creditSnap.data();
+        sourceCreditExists = true;
+        application = applicationSnap?.exists ? applicationSnap.data() : null;
+      } else if (payment.bankTransactionId) {
+        bankRef = db.collection("bankTransactions").doc(String(payment.bankTransactionId));
+        sourceCreditRef = db.collection("payerCredits").doc(String(payment.bankTransactionId));
+        const [bankSnap, creditSnap] = await Promise.all([
+          transaction.get(bankRef),
+          transaction.get(sourceCreditRef),
+        ]);
+        if (!bankSnap.exists) throw httpError(409, "Source bank transaction not found");
+        bankTransaction = bankSnap.data();
+        sourceCreditExists = creditSnap.exists;
+        sourceCredit = creditSnap.exists ? creditSnap.data() : {
+          payerKey: bankTransaction.payerKey || "",
+          payerName: bankTransaction.payerName || payment.payerName || "",
+          studentId: payment.studentId || bankTransaction.creditStudentId || "",
+          studentName: payment.studentName || bankTransaction.creditStudentName || "",
+          bankTransactionId: bankRef.id,
+          originalAmountCents: amountCents,
+          originalAmount: centsToAmount(amountCents),
+          availableAmountCents: 0,
+          availableAmount: 0,
+          appliedAmountCents: 0,
+          appliedAmount: 0,
+          status: "open",
+          createdAt: nowIso,
+          createdBy: actorData,
+        };
+      }
+      const restoredCreditPatch = sourceCreditRef && sourceCredit
+        ? creditAfterRestoration(
+          sourceCredit,
+          amountCents,
+          nowIso,
+          { reverseApplication: Boolean(payment.sourceCreditId) },
+        )
+        : null;
+      if (bankRef && restoredCreditPatch) {
+        const originalAmountCents = sourceCreditExists
+          ? (Number(sourceCredit.originalAmountCents) || 0) + amountCents
+          : amountCents;
+        restoredCreditPatch.originalAmountCents = originalAmountCents;
+        restoredCreditPatch.originalAmount = centsToAmount(restoredCreditPatch.originalAmountCents);
+      }
+      transaction.set(paymentRef, {
+        status: "voided",
+        voidedAt: nowIso,
+        voidedBy: actorData,
+        voidReason: cleanReason,
+        voidRequestId: mutationId,
+      }, { merge: true });
+      transaction.set(lessonRef, {
+        billingStatus: "unbilled",
+        directPaymentId: FieldValue.delete(),
+        directPaymentAmountCents: FieldValue.delete(),
+        directPaymentAmount: FieldValue.delete(),
+        directPaidAt: FieldValue.delete(),
+        bankTransactionId: FieldValue.delete(),
+        sourceCreditId: FieldValue.delete(),
+        financialUpdatedAt: nowIso,
+      }, { merge: true });
+      if (sourceCreditRef && sourceCredit && restoredCreditPatch) {
+        transaction.set(sourceCreditRef, {
+          ...sourceCredit,
+          ...restoredCreditPatch,
+        }, { merge: true });
+      }
+      if (applicationRef && application) {
+        const remainingAmountCents = Math.max(0, (Number(application.amountCents) || 0) - amountCents);
+        transaction.set(applicationRef, {
+          amountCents: remainingAmountCents,
+          amount: centsToAmount(remainingAmountCents),
+          activePaymentCount: Math.max(
+            0,
+            (Number(application.activePaymentCount) || application.paymentIds?.length || 0) - 1,
+          ),
+          status: remainingAmountCents === 0 ? "voided" : "partially_voided",
+          voidedPaymentIds: FieldValue.arrayUnion(paymentRef.id),
+          updatedAt: nowIso,
+        }, { merge: true });
+      }
+      if (bankRef && bankTransaction) {
+        const allocatedAmountCents = Math.max(
+          0,
+          (Number(bankTransaction.allocatedAmountCents) || 0) - amountCents,
+        );
+        const lessonAllocatedAmountCents = Math.max(
+          0,
+          (Number(bankTransaction.lessonAllocatedAmountCents) || 0) - amountCents,
+        );
+        const unappliedAmountCents = Math.max(
+          0,
+          (Number(bankTransaction.unappliedAmountCents) || 0) + amountCents,
+        );
+        transaction.set(bankRef, {
+          allocatedAmountCents,
+          allocatedAmount: centsToAmount(allocatedAmountCents),
+          lessonAllocatedAmountCents,
+          lessonAllocatedAmount: centsToAmount(lessonAllocatedAmountCents),
+          unappliedAmountCents,
+          unappliedAmount: centsToAmount(unappliedAmountCents),
+          activeAllocationCount: Math.max(
+            0,
+            (Number(bankTransaction.activeAllocationCount) || bankTransaction.allocationCount || 0) - 1,
+          ),
+          activeLessonAllocationCount: Math.max(
+            0,
+            (
+              Number(bankTransaction.activeLessonAllocationCount)
+              || bankTransaction.lessonAllocationCount
+              || 0
+            ) - 1,
+          ),
+          status: allocatedAmountCents === 0 ? "unapplied" : "partially_allocated",
+          updatedAt: nowIso,
+        }, { merge: true });
+      }
+      transaction.create(auditRef, {
+        entityType: "payment",
+        entityId: paymentRef.id,
+        action: "direct_lesson_payment.voided",
+        paymentId: paymentRef.id,
+        lessonId: lessonRef.id,
+        studentId: payment.studentId || lesson.studentId || "",
+        bankTransactionId: payment.bankTransactionId || "",
+        sourceCreditId: payment.sourceCreditId || "",
+        creditApplicationId: payment.creditApplicationId || "",
+        amount: centsToAmount(amountCents),
+        restoredCreditAmount: restoredCreditPatch?.availableAmount ?? null,
+        actor: actorData,
+        reason: cleanReason,
+        createdAt: nowIso,
+        requestId: mutationId,
+      });
+      return {
+        payment: { id: paymentRef.id, ...payment, status: "voided" },
+        lesson: { id: lessonRef.id, ...lesson, billingStatus: "unbilled" },
+        restoredCredit: restoredCreditPatch
+          ? { id: sourceCreditRef.id, ...sourceCredit, ...restoredCreditPatch }
+          : null,
+        idempotent: false,
+      };
+    }
     const invoiceRef = db.collection("invoices").doc(String(payment.invoiceId || ""));
     const invoiceSnap = await transaction.get(invoiceRef);
     if (!invoiceSnap.exists) throw httpError(404, "Invoice not found");
@@ -4420,9 +4824,11 @@ exports.financeApi = functions.https.onRequest(async (req, res) => {
         externalId: req.body?.externalId,
         paidAt: req.body?.paidAt,
         payerName: req.body?.payerName,
+        creditStudentId: req.body?.creditStudentId,
         reference: req.body?.reference,
         amount: req.body?.amount,
         allocations: req.body?.allocations,
+        lessonAllocations: req.body?.lessonAllocations,
         note: req.body?.note,
       });
       res.status(result.idempotent ? 200 : 201).json(result);
@@ -4433,6 +4839,7 @@ exports.financeApi = functions.https.onRequest(async (req, res) => {
         actor,
         creditId: req.body?.creditId,
         allocations: req.body?.allocations,
+        lessonAllocations: req.body?.lessonAllocations,
         note: req.body?.note,
         requestId: req.body?.requestId,
       });

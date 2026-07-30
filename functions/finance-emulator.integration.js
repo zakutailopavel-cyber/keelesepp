@@ -436,6 +436,139 @@ test("payment lesson allocations are server-validated, versioned, and append-onl
   assert.match(overCapacity.body.error, /available amount/);
 });
 
+test("invoice-free lesson payments and student advances stay atomic and reversible", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const token = await createAdminToken();
+  const studentId = "direct-payment-student";
+  const lessonId = "direct-payment-lesson";
+  const laterLessonId = "advance-payment-lesson";
+  await Promise.all([
+    db.collection("students").doc(studentId).set({
+      name: "Direct Payment Student",
+      active: true,
+    }),
+    db.collection("lessons").doc(lessonId).set({
+      studentId,
+      studentName: "Direct Payment Student",
+      date: "2026-07-25",
+      status: "Toimunud",
+      billingStatus: "unbilled",
+    }),
+    db.collection("lessons").doc(laterLessonId).set({
+      studentId,
+      studentName: "Direct Payment Student",
+      date: "2026-07-26",
+      status: "Toimunud",
+      billingStatus: "unbilled",
+    }),
+  ]);
+
+  const missingStudent = await financeRequest(token, "/bank-transactions/allocate", {
+    externalId: "DIRECT-MISSING-STUDENT",
+    paidAt: "2026-07-25",
+    payerName: "Direct Payer",
+    reference: "Advance",
+    amount: 10,
+    allocations: [],
+    lessonAllocations: [],
+    requestId: "emulator_direct_missing_student",
+  });
+  assert.equal(missingStudent.status, 400, JSON.stringify(missingStudent.body));
+  assert.match(missingStudent.body.error, /Student required for advance payment/);
+
+  const bankRequestId = "emulator_direct_bank_0001";
+  const allocated = await financeRequest(token, "/bank-transactions/allocate", {
+    externalId: "DIRECT-BANK-001",
+    paidAt: "2026-07-25",
+    payerName: "Direct Payer",
+    creditStudentId: studentId,
+    reference: "Lessons and advance",
+    amount: 50,
+    allocations: [],
+    lessonAllocations: [{ lessonId, amount: 30 }],
+    note: "Invoice-free regular client payment",
+    requestId: bankRequestId,
+  });
+  assert.equal(allocated.status, 201, JSON.stringify(allocated.body));
+  assert.equal(allocated.body.directLessons.length, 1);
+  assert.equal(allocated.body.payerCredit.amount, 20);
+  const paymentId = `${bankRequestId}_l1`;
+
+  let [bankSnap, creditSnap, lessonSnap, paymentSnap, auditSnap] = await Promise.all([
+    db.collection("bankTransactions").doc(bankRequestId).get(),
+    db.collection("payerCredits").doc(bankRequestId).get(),
+    db.collection("lessons").doc(lessonId).get(),
+    db.collection("payments").doc(paymentId).get(),
+    db.collection("financialAudit").doc(bankRequestId).get(),
+  ]);
+  assert.equal(bankSnap.data().lessonAllocatedAmountCents, 3000);
+  assert.equal(bankSnap.data().unappliedAmountCents, 2000);
+  assert.equal(creditSnap.data().studentId, studentId);
+  assert.equal(creditSnap.data().availableAmountCents, 2000);
+  assert.equal(lessonSnap.data().billingStatus, "paid_directly");
+  assert.equal(lessonSnap.data().directPaymentId, paymentId);
+  assert.equal(paymentSnap.data().kind, "direct_lesson");
+  assert.equal(paymentSnap.data().invoiceId, "");
+  assert.equal(auditSnap.data().lessons[0].lessonId, lessonId);
+
+  const directRewrite = await firestoreDocumentRequest(
+    token,
+    "PATCH",
+    `lessons/${lessonId}?updateMask.fieldPaths=directPaymentAmountCents`,
+    { fields: { directPaymentAmountCents: { integerValue: "1" } } },
+  );
+  assert.equal(directRewrite.status, 403, JSON.stringify(directRewrite.body));
+
+  const voidPayload = {
+    paymentId,
+    reason: "Wrong lesson allocation",
+    requestId: "emulator_direct_void_0001",
+  };
+  const voided = await financeRequest(token, "/payments/void", voidPayload);
+  assert.equal(voided.status, 200, JSON.stringify(voided.body));
+  assert.equal(voided.body.idempotent, false);
+  const voidRetry = await financeRequest(token, "/payments/void", voidPayload);
+  assert.equal(voidRetry.status, 200, JSON.stringify(voidRetry.body));
+  assert.equal(voidRetry.body.idempotent, true);
+
+  [bankSnap, creditSnap, lessonSnap, paymentSnap, auditSnap] = await Promise.all([
+    db.collection("bankTransactions").doc(bankRequestId).get(),
+    db.collection("payerCredits").doc(bankRequestId).get(),
+    db.collection("lessons").doc(lessonId).get(),
+    db.collection("payments").doc(paymentId).get(),
+    db.collection("financialAudit").doc(voidPayload.requestId).get(),
+  ]);
+  assert.equal(bankSnap.data().allocatedAmountCents, 0);
+  assert.equal(bankSnap.data().unappliedAmountCents, 5000);
+  assert.equal(creditSnap.data().originalAmountCents, 5000);
+  assert.equal(creditSnap.data().availableAmountCents, 5000);
+  assert.equal(lessonSnap.data().billingStatus, "unbilled");
+  assert.equal(lessonSnap.data().directPaymentId, undefined);
+  assert.equal(paymentSnap.data().status, "voided");
+  assert.equal(auditSnap.data().action, "direct_lesson_payment.voided");
+
+  const creditApplication = await financeRequest(token, "/payer-credits/apply", {
+    creditId: bankRequestId,
+    allocations: [],
+    lessonAllocations: [{ lessonId: laterLessonId, amount: 25 }],
+    note: "Use advance for the next lesson",
+    requestId: "emulator_direct_credit_apply_0001",
+  });
+  assert.equal(creditApplication.status, 201, JSON.stringify(creditApplication.body));
+  const [appliedCreditSnap, laterLessonSnap, laterPaymentSnap] = await Promise.all([
+    db.collection("payerCredits").doc(bankRequestId).get(),
+    db.collection("lessons").doc(laterLessonId).get(),
+    db.collection("payments").doc("emulator_direct_credit_apply_0001_l1").get(),
+  ]);
+  assert.equal(appliedCreditSnap.data().availableAmountCents, 2500);
+  assert.equal(laterLessonSnap.data().billingStatus, "paid_directly");
+  assert.equal(laterLessonSnap.data().sourceCreditId, bankRequestId);
+  assert.equal(laterPaymentSnap.data().kind, "direct_lesson");
+  assert.equal(laterPaymentSnap.data().sourceCreditId, bankRequestId);
+});
+
 test("monthly financial review is server-verified, versioned, idempotent, and immutable", async () => {
   requireSafeEmulatorEnvironment();
   if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });

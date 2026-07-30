@@ -322,6 +322,25 @@ function financialPeriodReviewSnapshot({
     }
   });
 
+  const periodPayments = activePayments.filter(payment =>
+    recordMonth(payment?.paidAt || payment?.createdAt) === reviewMonth,
+  );
+  periodPayments.filter(payment => payment.kind === "direct_lesson").forEach(payment => {
+    const lessonId = String(payment.lessonId || "");
+    const lesson = lessonById.get(lessonId);
+    const amountCents = paymentNetAmountCents(payment);
+    if (
+      !lesson
+      || lesson.billingStatus !== "paid_directly"
+      || String(lesson.directPaymentId || "") !== String(payment.id || "")
+      || nonNegativeCents(lesson, "directPaymentAmountCents", "directPaymentAmount") !== amountCents
+    ) {
+      addIssue("direct_lesson_payment_invalid", "error", payment.id, `lesson:${lessonId}`);
+    } else {
+      exactLessonIds.add(lessonId);
+    }
+  });
+
   let unbilledLessonCount = 0;
   let legacyLessonCount = 0;
   periodLessons.forEach(lesson => {
@@ -335,7 +354,10 @@ function financialPeriodReviewSnapshot({
       return;
     }
     if (packageStatus === "consumed"
-      || ["free", "cancelled_on_time", "written_off", "credited"].includes(billingStatus)) {
+      || ["free", "cancelled_on_time", "written_off", "credited", "paid_directly"].includes(billingStatus)) {
+      if (billingStatus === "paid_directly" && !exactLessonIds.has(lessonId)) {
+        addIssue("direct_lesson_payment_missing", "error", lessonId, String(lesson.directPaymentId || ""));
+      }
       return;
     }
     if (["Puudus_p", "Puudus_eta"].includes(lessonStatus) && !billingStatus) {
@@ -360,10 +382,8 @@ function financialPeriodReviewSnapshot({
     }
   });
 
-  const periodPayments = activePayments.filter(payment =>
-    recordMonth(payment?.paidAt || payment?.createdAt) === reviewMonth,
-  );
   periodPayments.forEach(payment => {
+    if (payment.kind === "direct_lesson") return;
     if (!invoiceById.has(String(payment.invoiceId || ""))) {
       addIssue("payment_without_invoice", "error", payment.id, String(payment.invoiceId || ""));
     }
@@ -960,6 +980,58 @@ function normalizeAllocations(transactionAmount, allocations = []) {
   };
 }
 
+function normalizeBankDistribution(transactionAmount, invoiceAllocations = [], lessonAllocations = []) {
+  const invoicePlan = normalizeAllocations(transactionAmount, invoiceAllocations);
+  if (!Array.isArray(lessonAllocations)) {
+    const error = new Error("lessonAllocations must be an array");
+    error.status = 400;
+    throw error;
+  }
+  if (lessonAllocations.length > 100) {
+    const error = new Error("at most 100 lesson allocations are allowed");
+    error.status = 400;
+    throw error;
+  }
+  const seenLessonIds = new Set();
+  const lessons = lessonAllocations.map((allocation, index) => {
+    const lessonId = String(allocation?.lessonId || "").trim();
+    if (!lessonId) {
+      const error = new Error(`lessonAllocations[${index}].lessonId required`);
+      error.status = 400;
+      throw error;
+    }
+    if (seenLessonIds.has(lessonId)) {
+      const error = new Error(`lesson ${lessonId} is allocated more than once`);
+      error.status = 400;
+      throw error;
+    }
+    seenLessonIds.add(lessonId);
+    return {
+      lessonId,
+      amountCents: toCents(allocation?.amount, `lessonAllocations[${index}].amount`),
+    };
+  });
+  const lessonAllocatedAmountCents = lessons.reduce(
+    (sum, allocation) => sum + allocation.amountCents,
+    0,
+  );
+  const allocatedAmountCents = invoicePlan.allocatedAmountCents + lessonAllocatedAmountCents;
+  if (allocatedAmountCents > invoicePlan.transactionAmountCents) {
+    const error = new Error("allocated amount exceeds bank transaction amount");
+    error.status = 400;
+    throw error;
+  }
+  return {
+    transactionAmountCents: invoicePlan.transactionAmountCents,
+    invoiceAllocations: invoicePlan.allocations,
+    lessonAllocations: lessons,
+    invoiceAllocatedAmountCents: invoicePlan.allocatedAmountCents,
+    lessonAllocatedAmountCents,
+    allocatedAmountCents,
+    unappliedAmountCents: invoicePlan.transactionAmountCents - allocatedAmountCents,
+  };
+}
+
 function creditAfterApplication(credit = {}, appliedAmountCents, nowIso) {
   const availableAmountCents = Number.isInteger(credit.availableAmountCents)
     ? credit.availableAmountCents
@@ -1266,6 +1338,7 @@ module.exports = {
   lessonBillingDispositionPatch,
   lessonIsBillable,
   normalizeAllocations,
+  normalizeBankDistribution,
   packageBalanceAfterEntry,
   packageBalanceAfterLessonMovement,
   paymentDocumentRecord,
