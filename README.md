@@ -11,8 +11,9 @@ Avalik sait +  CRM süsteem.
 
 CRM-i tunniplaanil on kuu-, nädala- ja päevavaade. Päevavaade kasutab 15-minutilist ajaskaalat
 ning näitab tunni tegelikku kestust; samal ajal toimuvad eri õpetajate tunnid paiknevad kõrvuti.
-Uue tunni loomisel seotakse kirje õpilase muutumatu ID-ga ning õpetaja või õpilase kattuv aeg
-blokeeritakse.
+Uue tunni loomisel seotakse kirje õpilase muutumatu ID-ga. Õpetaja või õpilase kattuv aeg
+ei blokeeri salvestamist: kalender jätab kattuvuse punase hoiatusena nähtavaks ning kuvab
+pärast lisamist või ümbertõstmist täpse hoiatusteate.
 
 Google Calendar ühendus impordib sündmusi KeeleSeppa kord tunnis. Uue kirjutamisloa kinnitanud
 ühendus sünkroonib ka KeeleSepas loodud, teisaldatud, taastatud ja tühistatud individuaaltunnid
