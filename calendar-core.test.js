@@ -3,6 +3,7 @@ const assert=require('node:assert/strict');
 const {
   addMinutes,
   generateTimeSlots,
+  quickLessonSlot,
   eventOccursOnDate,
   findScheduleConflicts,
   scheduleConflictWarning,
@@ -17,6 +18,30 @@ test('calendar uses a real 15-minute grid and calculates lesson end times',()=>{
   const slots=generateTimeSlots('07:00','08:00',15);
   assert.deepEqual(slots,['07:00','07:15','07:30','07:45','08:00']);
   assert.equal(addMinutes('09:45',90),'11:15');
+});
+
+test('student quick add uses the visible current day and nearest future quarter hour',()=>{
+  assert.deepEqual(
+    quickLessonSlot(
+      ['2026-07-27','2026-07-28','2026-07-29','2026-07-30','2026-07-31'],
+      {now:new Date(2026,6,30,12,33)}
+    ),
+    {dayIso:'2026-07-30',slot:'12:45'}
+  );
+  assert.deepEqual(
+    quickLessonSlot(
+      ['2026-08-03','2026-08-04'],
+      {now:new Date(2026,6,30,12,33)}
+    ),
+    {dayIso:'2026-08-03',slot:'09:00'}
+  );
+});
+
+test('student quick add moves late-evening creation to tomorrow',()=>{
+  assert.deepEqual(
+    quickLessonSlot(['2026-07-30'],{now:new Date(2026,6,30,22,10)}),
+    {dayIso:'2026-07-31',slot:'09:00'}
+  );
 });
 
 test('legacy dated and recurring events remain visible without migration',()=>{
