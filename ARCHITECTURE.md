@@ -152,7 +152,7 @@ school and payroll records remain inside the Firebase project.
 
 - 15-minute time slots and lesson end times;
 - dated and legacy weekly-recurring occurrence rules;
-- teacher and student overlap detection;
+- teacher and student overlap detection with non-blocking save warnings;
 - Monday-first month grids;
 - proportional day-timeline layout for simultaneous lessons;
 - versioned payloads with stable `studentId` ownership.

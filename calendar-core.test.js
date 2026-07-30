@@ -5,6 +5,7 @@ const {
   generateTimeSlots,
   eventOccursOnDate,
   findScheduleConflicts,
+  scheduleConflictWarning,
   layoutDayEvents,
   monthGrid,
   shiftMonth,
@@ -37,6 +38,26 @@ test('overlapping teacher and student bookings are reported',()=>{
 
   const studentConflict=findScheduleConflicts(existing,{...candidate,teacher:'Jelena',studentId:'student-1'},'2026-07-29');
   assert.deepEqual(studentConflict[0].reasons,['student']);
+});
+
+test('overlap warning confirms the save and explains who is double-booked',()=>{
+  const warning=scheduleConflictWarning([
+    {
+      date:'2026-07-29',
+      reasons:['teacher','student'],
+      event:{time:'10:00'}
+    },
+    {
+      date:'2026-07-29',
+      reasons:['teacher'],
+      event:{time:'10:30'}
+    }
+  ],'Tund lisati');
+  assert.equal(
+    warning,
+    '⚠ Tund lisati, kuid õpetajal ja õpilasel on 2026-07-29 kell 10:00 kattuv tund. Veel 1 kattuvust.'
+  );
+  assert.equal(scheduleConflictWarning([],'Tund lisati'),'');
 });
 
 test('month grid is Monday-first and contains six stable weeks',()=>{

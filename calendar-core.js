@@ -114,6 +114,23 @@
     });
   };
 
+  const scheduleConflictWarning=(conflicts,action='Tund salvestati')=>{
+    const list=Array.isArray(conflicts)?conflicts.filter(Boolean):[];
+    if(!list.length) return '';
+    const first=list[0];
+    const reasons=Array.isArray(first.reasons)?first.reasons:[];
+    const owner=reasons.includes('teacher')&&reasons.includes('student')
+      ?'õpetajal ja õpilasel'
+      :reasons.includes('teacher')
+        ?'õpetajal'
+        :'õpilasel';
+    const date=String(first.date||'').trim();
+    const time=String(first.event?.time||'').trim();
+    const where=[date,time?`kell ${time}`:''].filter(Boolean).join(' ');
+    const more=list.length>1?` Veel ${list.length-1} kattuvust.`:'';
+    return `⚠ ${action}, kuid ${owner} on${where?' '+where:''} kattuv tund.${more}`;
+  };
+
   const layoutDayEvents=(events,dateIso,options={})=>{
     const startMinute=Number.isFinite(options.startMinute)?options.startMinute:7*60;
     const endMinute=Number.isFinite(options.endMinute)?options.endMinute:21*60+15;
@@ -287,6 +304,7 @@
     eventsForDate,
     eventInterval,
     findScheduleConflicts,
+    scheduleConflictWarning,
     layoutDayEvents,
     monthGrid,
     shiftMonth,

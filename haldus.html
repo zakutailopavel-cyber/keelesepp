@@ -163,6 +163,7 @@ const {
   eventsForDate:calendarEventsForDate,
   eventOccursOnDate:calendarEventOccursOnDate,
   findScheduleConflicts,
+  scheduleConflictWarning,
   layoutDayEvents:calendarLayoutDayEvents,
   monthGrid:calendarMonthGrid,
   monthLabel:calendarMonthLabel,
@@ -2849,13 +2850,6 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
       time:targetSlot
     };
     const conflicts=findScheduleConflicts(filteredSch,candidate,targetIso,{excludeId:ev.id});
-    if(conflicts.length){
-      const conflict=conflicts[0];
-      const reason=conflict.reasons.includes('teacher')?'õpetaja':'õpilase';
-      notify(`⚠ Aega ei muudetud: ${reason} kalendris on kattuv tund ${conflict.event.time}.`);
-      setDragEv(null);
-      return;
-    }
     try{
       const patch=ev.date
         ?{date:targetIso,day:dayId,time:targetSlot,status:ev.status==='Tühistatud'?ev.status:'Planeeritud',teacherUid:ev.teacherUid||teacherUidForName(ev.teacher),updatedAtIso:new Date().toISOString()}
@@ -2863,9 +2857,12 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
       await window._db.collection('schedule').doc(ev.id).update(patch);
       if(logActivity) await logActivity('schedule.moved','Tõsteti tund kalendris',{
         scheduleId:ev.id,studentId:ev.studentId||'',studentName:ev.studentName||'',
-        fromDate:dragEv.sourceDay,fromTime:dragEv.sourceSlot,toDate:targetIso,toTime:targetSlot
+        fromDate:dragEv.sourceDay,fromTime:dragEv.sourceSlot,toDate:targetIso,toTime:targetSlot,
+        conflictCount:conflicts.length
       });
-      notify(`✓ ${ev.studentName} → ${targetSlot}`);
+      notify(conflicts.length
+        ?scheduleConflictWarning(conflicts,'Tund tõsteti ümber')
+        :`✓ ${ev.studentName} → ${targetSlot}`);
     }catch{notify('⚠ Liigutamine ebaõnnestus');}
     setDragEv(null);
   },[dragEv,notify,filteredSch,logActivity,teacherUidForName,openScheduleEditor]);
@@ -2911,20 +2908,16 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
         })
       :[dayIso];
     const conflicts=conflictDates.flatMap(dateIso=>findScheduleConflicts(filteredSch,payload,dateIso));
-    if(conflicts.length){
-      const conflict=conflicts[0];
-      const reason=conflict.reasons.includes('teacher')?'õpetaja':'õpilase';
-      notify(`⚠ Tundi ei lisatud: ${reason} kalendris on ${conflict.date} kell ${conflict.event.time} kattuv tund.`);
-      setPopupSaving(false);
-      return;
-    }
     try{
       const created=await window._db.collection('schedule').add(payload);
       if(logActivity) await logActivity('schedule.created','Lisati tund kalendrisse',{
         scheduleId:created.id,studentId:selectedStudent.id,studentName:selectedStudent.name,
-        teacher:popupTeach,date:dayIso,time:slot,recurring:popupRecurring
+        teacher:popupTeach,date:dayIso,time:slot,recurring:popupRecurring,
+        conflictCount:conflicts.length
       });
-      notify(`✓ Tund lisatud: ${selectedStudent.name} ${slot}`);
+      notify(conflicts.length
+        ?scheduleConflictWarning(conflicts,'Tund lisati')
+        :`✓ Tund lisatud: ${selectedStudent.name} ${slot}`);
       setCreatePopup(null);
     }catch{notify('⚠ Lisamine ebaõnnestus');}
     setPopupSaving(false);
@@ -9948,12 +9941,6 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
       moveDate,
       {excludeId:singleOccurrence?'':modalEv.id}
     );
-    if(conflicts.length){
-      const conflict=conflicts[0];
-      const reason=conflict.reasons.includes('teacher')?'õpetaja':'õpilase';
-      notify(`⚠ Aega ei muudetud: ${reason} kalendris on kell ${conflict.event.time} kattuv tund.`);
-      return;
-    }
     setSaving(true);
     const dayId = calendarDayIdForDate(moveDate);
     try{
@@ -9965,7 +9952,9 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
           status:"Nihutatud"
         },'schedule.occurrence_moved');
         if(exception){
-          notify("✓ Ainult see tund tõsteti ümber: "+fmtDate(moveDate)+" "+moveTime);
+          notify(conflicts.length
+            ?scheduleConflictWarning(conflicts,'Tund tõsteti ümber')
+            :"✓ Ainult see tund tõsteti ümber: "+fmtDate(moveDate)+" "+moveTime);
           setModalEv(null);
         }
       }else{
@@ -9985,9 +9974,11 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
           patch.date=moveDate;
         }
         await db.collection("schedule").doc(modalEv.id).update(patch);
-        notify(isSeries
-          ?"✓ Kogu tunnisari tõsteti ümber"
-          :"✓ Tund tõsteti ümber: "+fmtDate(moveDate)+" "+moveTime);
+        notify(conflicts.length
+          ?scheduleConflictWarning(conflicts,isSeries?'Tunnisari tõsteti ümber':'Tund tõsteti ümber')
+          :isSeries
+            ?"✓ Kogu tunnisari tõsteti ümber"
+            :"✓ Tund tõsteti ümber: "+fmtDate(moveDate)+" "+moveTime);
         setModalEv(prev=>({...prev,date:isSeries?'':moveDate,day:dayId,time:moveTime,status:"Nihutatud"}));
       }
     }catch(error){
@@ -12129,12 +12120,14 @@ function App() {
       recurring:schRecurring
     });
     const conflicts=findScheduleConflicts(schedule,payload,schDate);
-    if(conflicts.length){notify('⚠ Sellel ajal on õpetajal või õpilasel juba tund');return;}
     await db.collection('schedule').add(payload);
     await logActivity('schedule.created','Lisati tund kalendrisse',{
-      studentId:student.id,studentName:student.name,teacher:t,date:schDate,time:schTime,recurring:schRecurring
+      studentId:student.id,studentName:student.name,teacher:t,date:schDate,time:schTime,recurring:schRecurring,
+      conflictCount:conflicts.length
     });
-    notify(schRecurring?'✓ Korduv tund lisatud!':'✓ Tund broneeritud!');
+    notify(conflicts.length
+      ?scheduleConflictWarning(conflicts,schRecurring?'Korduv tund lisati':'Tund lisati')
+      :schRecurring?'✓ Korduv tund lisatud!':'✓ Tund broneeritud!');
   },[schStu,schDate,schTime,schTeach,schRecurring,canAssignTeacher,user,students,schedule,logActivity,teacherUidForName]);
 
   const addStudentSchedule=useCallback(async(student)=>{
@@ -12152,10 +12145,14 @@ function App() {
       recurring:schRecurring
     });
     const conflicts=findScheduleConflicts(schedule,payload,schDate);
-    if(conflicts.length){notify('⚠ Sellel ajal on õpetajal või õpilasel juba tund');return;}
     await db.collection('schedule').add(payload);
-    await logActivity('schedule.created','Lisati tund õpilase kaardilt',{studentId:student.id,studentName:student.name,teacher:t,date:schDate,time:schTime});
-    notify(schRecurring?'✓ Korduv tund lisatud!':'✓ Tund lisatud kalendrisse!');
+    await logActivity('schedule.created','Lisati tund õpilase kaardilt',{
+      studentId:student.id,studentName:student.name,teacher:t,date:schDate,time:schTime,
+      conflictCount:conflicts.length
+    });
+    notify(conflicts.length
+      ?scheduleConflictWarning(conflicts,schRecurring?'Korduv tund lisati':'Tund lisati')
+      :schRecurring?'✓ Korduv tund lisatud!':'✓ Tund lisatud kalendrisse!');
   },[schDate,schTime,schTeach,schRecurring,canAssignTeacher,user,logActivity,schedule,teacherUidForName]);
 
   const markAttendance=useCallback(async(event,attendanceKey,status)=>{
