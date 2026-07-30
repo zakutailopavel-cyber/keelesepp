@@ -144,6 +144,7 @@ const {
   accountingRegister,
   accountingRegisterCsv,
   amountFromCents:accountingAmount,
+  bankStatementMatchProposal,
   financialPeriodControl,
   lessonPaymentRegister,
   lessonPaymentRegisterCsv,
@@ -8478,9 +8479,34 @@ function FinancialPeriodControlPanel({
   );
 }
 
-function PaymentAllocationQueuePanel({queue,onOpen}) {
+function PaymentAllocationQueuePanel({queue,onOpen,onConfirmBatch,batchBusy}) {
   const [filter,setFilter]=React.useState('work');
   const [search,setSearch]=React.useState('');
+  const [selected,setSelected]=React.useState([]);
+  const eligibleRows=React.useMemo(
+    ()=>queue.rows.filter(row=>row.status==='needs_confirmation'&&row.confidence==='high'),
+    [queue.rows]
+  );
+  const eligibleIds=React.useMemo(()=>new Set(eligibleRows.map(row=>row.paymentId)),[eligibleRows]);
+  React.useEffect(()=>{
+    setSelected(current=>current.filter(paymentId=>eligibleIds.has(paymentId)));
+  },[eligibleIds]);
+  const selectedRows=eligibleRows.filter(row=>selected.includes(row.paymentId));
+  const toggleSelected=paymentId=>setSelected(current=>
+    current.includes(paymentId)
+      ?current.filter(id=>id!==paymentId)
+      :[...current,paymentId]
+  );
+  const confirmSelected=async()=>{
+    if(!selectedRows.length||batchBusy) return;
+    if(!window.confirm(`Kinnitada ${selectedRows.length} kõrge kindlusega maksejaotust? Iga jaotus kontrollitakse serveris eraldi.`)) return;
+    const result=await onConfirmBatch(selectedRows);
+    if(!result) return;
+    setSelected(result.failedPaymentIds||[]);
+    window.alert(result.failed
+      ?`Kinnitatud ${result.saved}. Kontrolli ebaõnnestunud jaotusi: ${result.failed}.`
+      :`Kõik ${result.saved} maksejaotust on kinnitatud.`);
+  };
   const rows=React.useMemo(()=>{
     const query=normalizeText(search);
     return queue.rows.filter(row=>{
@@ -8521,6 +8547,28 @@ function PaymentAllocationQueuePanel({queue,onOpen}) {
           </div>
         ))}
       </div>
+      {eligibleRows.length>0&&(
+        <div className="card" style={{padding:14,background:'#ecfdf5',border:'1px solid rgba(22,101,52,.16)'}}>
+          <div style={{display:'flex',justifyContent:'space-between',gap:12,alignItems:'center',flexWrap:'wrap'}}>
+            <div>
+              <div style={{fontWeight:800,color:'#166534'}}>Turvaline paketkinnitus</div>
+              <div style={{fontSize:'.72rem',color:'#42536A',marginTop:3}}>
+                Valida saab ainult täielikud kõrge kindlusega ettepanekud. Server kontrollib summasid ja vaba tunnijääki uuesti.
+              </div>
+            </div>
+            <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
+              <button onClick={()=>setSelected(selected.length===eligibleRows.length?[]:eligibleRows.map(row=>row.paymentId))}
+                className="btn btn-ghost btn-sm" disabled={batchBusy}>
+                {selected.length===eligibleRows.length?'Tühista valik':'Vali kõik'} · {eligibleRows.length}
+              </button>
+              <button onClick={confirmSelected} className="btn btn-pine btn-sm" disabled={!selectedRows.length||batchBusy}
+                style={{opacity:(!selectedRows.length||batchBusy)?.55:1}}>
+                <i className="fa-solid fa-shield-check"/> {batchBusy?'Kontrollin…':`Kinnita valitud · ${selectedRows.length}`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="card" style={{padding:14}}>
         <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
           <input value={search} onChange={event=>setSearch(event.target.value)}
@@ -8540,11 +8588,17 @@ function PaymentAllocationQueuePanel({queue,onOpen}) {
         const meta=statusMeta[row.status]||statusMeta.attention;
         const confidence=confidenceMeta[row.confidence]||confidenceMeta.none;
         const canOpen=!['invalid','unsupported'].includes(row.status);
+        const canBatch=eligibleIds.has(row.paymentId);
         return(
           <div key={row.paymentId} className="card" style={{padding:0,overflow:'hidden',border:`1px solid ${meta.color}22`}}>
             <div style={{padding:'14px 16px',display:'flex',justifyContent:'space-between',gap:14,alignItems:'flex-start',flexWrap:'wrap'}}>
               <div style={{minWidth:220,flex:1}}>
                 <div style={{display:'flex',gap:7,alignItems:'center',flexWrap:'wrap'}}>
+                  {canBatch&&(
+                    <input type="checkbox" checked={selected.includes(row.paymentId)}
+                      onChange={()=>toggleSelected(row.paymentId)} disabled={batchBusy}
+                      aria-label={`Vali makse ${row.paymentId}`} style={{width:'auto'}}/>
+                  )}
                   <strong>{row.invoiceNum} · {row.payer}</strong>
                   <span className="badge" style={{background:meta.bg,color:meta.color}}>
                     <i className={`fa-solid ${meta.icon}`}/> {meta.label}
@@ -8555,6 +8609,11 @@ function PaymentAllocationQueuePanel({queue,onOpen}) {
                   {fmtDate(row.paidAt)} · makse {money(accountingAmount(row.paymentCents))} € · ID {row.paymentId}
                 </div>
                 <div style={{fontSize:'.74rem',color:'#42536A',marginTop:7}}>{row.reason}</div>
+                {row.referenceEvidence?.matched&&(
+                  <div style={{fontSize:'.7rem',color:'#166534',marginTop:4}}>
+                    <i className="fa-solid fa-receipt"/> Pangaselgituse arveviide kinnitatud
+                  </div>
+                )}
               </div>
               <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
                 {row.history.length>0&&<span style={{fontSize:'.7rem',color:'#64748b'}}>{row.history.length} versiooni</span>}
@@ -8596,6 +8655,7 @@ function AccountingRegisterView({invoices,payments,paymentLineAllocations,bankTr
   const [status,setStatus]=React.useState('all');
   const [search,setSearch]=React.useState('');
   const [allocationDraft,setAllocationDraft]=React.useState(null);
+  const [allocationBatchBusy,setAllocationBatchBusy]=React.useState(false);
   const register=React.useMemo(()=>accountingRegister({
     invoices,
     payments,
@@ -8621,6 +8681,30 @@ function AccountingRegisterView({invoices,payments,paymentLineAllocations,bankTr
     paymentLineAllocations,
     month
   }),[invoices,payments,paymentLineAllocations,month]);
+  const confirmAllocationBatch=async rows=>{
+    if(allocationBatchBusy||!rows.length) return null;
+    setAllocationBatchBusy(true);
+    const result={saved:0,failed:0,failedPaymentIds:[]};
+    for(const row of rows){
+      const saved=await savePaymentLineAllocation(row.payment,{
+        allocations:row.suggestedLines.map(line=>({
+          lessonId:line.lessonId,
+          amount:accountingAmount(line.allocatedAmountCents)
+        })),
+        effectiveDate:today(),
+        reason:'Kõrge kindlusega süsteemiettepanek kinnitatud paketina',
+        requestId:financeRequestId('lineallocationbatch'),
+        silent:true
+      });
+      if(saved) result.saved+=1;
+      else{
+        result.failed+=1;
+        result.failedPaymentIds.push(row.paymentId);
+      }
+    }
+    setAllocationBatchBusy(false);
+    return result;
+  };
   const visibleRows=React.useMemo(()=>{
     const query=normalizeText(search);
     return register.rows.filter(row=>{
@@ -8856,7 +8940,11 @@ function AccountingRegisterView({invoices,payments,paymentLineAllocations,bankTr
         openInvoices={openInvoices}
         openReconciliation={openReconciliation}/>}
       {registerMode==='allocations'&&(
-        <PaymentAllocationQueuePanel queue={allocationQueue} onOpen={setAllocationDraft}/>
+        <PaymentAllocationQueuePanel
+          queue={allocationQueue}
+          onOpen={setAllocationDraft}
+          onConfirmBatch={confirmAllocationBatch}
+          batchBusy={allocationBatchBusy}/>
       )}
       {registerMode==='control'&&<FinancialPeriodControlPanel
         control={periodControl}
@@ -8946,7 +9034,7 @@ function PaymentReconciliationView({invoices, students, isAdmin, bankTransaction
     persist({verified: next});
   }
   function openAllocation(payment, match) {
-    const matchedInvoice = match.tier==='ref' ? match.invoice : null;
+    const matchedInvoice = ['ref','name-amount'].includes(match.tier) ? match.invoice : null;
     const matchedBalance = matchedInvoice ? invoiceFinancialSummary(matchedInvoice).balance : 0;
     setAllocationDraft({
       payment,
@@ -9024,28 +9112,9 @@ function PaymentReconciliationView({invoices, students, isAdmin, bankTransaction
     persist({assign: {}, verified: {}});
   }
 
-  // ---- matching: по номеру счёта (точно), иначе по имени (догадка) ----
-  const invoiceByRef = React.useMemo(() => {
-    const idx = {};
-    invoices.forEach(inv => {
-      const ref = String(inv.paymentReference || inv.num || '').toUpperCase().trim();
-      if (!ref) return;
-      if (!idx[ref]) idx[ref] = [];
-      idx[ref].push(inv);
-    });
-    return idx;
-  }, [invoices]);
-
+  // ---- matching: unique invoice reference first, then unique name + amount ----
   function matchOf(p) {
-    const refMatch = p.desc.toUpperCase().match(/KS-\d{4}-\d+/);
-    if (refMatch) {
-      const cands = invoiceByRef[refMatch[0]] || [];
-      if (cands.length === 1) return {tier: 'ref', invoice: cands[0], name: cands[0].studentName || cands[0].parentName};
-      if (cands.length > 1) return {tier: 'ref-dup', candidates: cands, name: ''};
-    }
-    const guess = guessStudentName(p, students);
-    if (guess) return {tier: 'guess', name: guess};
-    return {tier: 'none', name: ''};
+    return bankStatementMatchProposal({payment:p,invoices,students});
   }
 
   function effectiveName(p) {
@@ -9312,10 +9381,15 @@ function PaymentReconciliationView({invoices, students, isAdmin, bankTransaction
                           placeholder="Kelle makse?" style={{
                             fontSize: '.72rem', padding: '2px 6px', width: 200, borderRadius: 6,
                             border: manual ? '1.5px solid #2F5D50' : m.tier === 'ref' ? '1.5px solid #2F5D50'
-                              : m.tier === 'ref-dup' ? '1.5px solid #dc2626' : eff ? '1.5px dashed #C9882A' : '1.5px solid rgba(28,43,58,.15)'
+                              : ['ref-dup','name-dup'].includes(m.tier) ? '1.5px solid #dc2626'
+                                : m.tier === 'name-amount' ? '1.5px dashed #C9882A'
+                                  : eff ? '1.5px dashed #C9882A' : '1.5px solid rgba(28,43,58,.15)'
                           }} />
                         {m.tier === 'ref' && !manual && <span className="badge" style={{background: '#dcfce7', color: '#166534'}}>arve {m.invoice.num} järgi</span>}
+                        {m.tier === 'name-amount' && !manual && <span className="badge" style={{background: '#fef3c7', color: '#92400e'}}>nimi + summa · kontrolli</span>}
                         {m.tier === 'ref-dup' && <span className="badge" style={{background: '#fee2e2', color: '#991b1b'}}>arvenumber kordub</span>}
+                        {m.tier === 'name-dup' && <span className="badge" style={{background: '#fee2e2', color: '#991b1b'}}>mitu nimekandidaati</span>}
+                        {m.reason&&<span title={m.reason} style={{fontSize:'.68rem',color:'#64748b'}}>{m.confidence==='high'?'kõrge':m.confidence==='medium'?'keskmine':m.confidence==='low'?'madal':'kontrolli'}</span>}
                       </div>
                     </span>
                     <span style={{fontFamily: 'monospace', fontWeight: 700, textAlign: 'right'}}>{p.amount.toFixed(2)} €</span>
@@ -9458,19 +9532,6 @@ function parseStatement(text) {
   return rows;
 }
 function hashStr(s) { let h = 0; for (let i = 0; i < s.length; i++) h = (Math.imul(31, h) + s.charCodeAt(i)) | 0; return h; }
-
-// Резервная догадка по имени, когда в описании нет номера счёта KS-YYYY-NNN
-function guessStudentName(payment, students) {
-  const hay = `${payment.payer} ${payment.desc}`.toLowerCase();
-  let best = null;
-  students.forEach(s => {
-    const tokens = [s.name, s.parentName].filter(Boolean).join(' ').toLowerCase().split(/\s+/).filter(t => t.length >= 3);
-    const hits = tokens.filter(t => hay.includes(t)).length;
-    if (hits > 0 && (!best || hits > best.hits)) best = {name: s.name, hits};
-  });
-  return best ? best.name : '';
-}
-
 
 function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
   lStatus,setLStatus,lComment,setLComment,
@@ -13061,16 +13122,18 @@ function App() {
         allocations:draft.allocations,
         effectiveDate:draft.effectiveDate||today(),
         reason:draft.reason||'',
-        requestId:financeRequestId('lineallocation')
+        requestId:draft.requestId||financeRequestId('lineallocation')
       });
       const allocation=result?.allocation;
-      notify(allocation?.version>1
-        ?`✓ Täpse jaotuse parandusversioon ${allocation.version} loodud`
-        :'✓ Makse on täpselt tunniridadele jaotatud');
+      if(!draft.silent){
+        notify(allocation?.version>1
+          ?`✓ Täpse jaotuse parandusversioon ${allocation.version} loodud`
+          :'✓ Makse on täpselt tunniridadele jaotatud');
+      }
       return true;
     }catch(err){
       console.error('Payment line allocation failed:',err);
-      notify(`⚠ Maksejaotust ei saanud salvestada: ${err.message||err}`);
+      if(!draft.silent) notify(`⚠ Maksejaotust ei saanud salvestada: ${err.message||err}`);
       return false;
     }
   },[isAdmin]);

@@ -755,6 +755,112 @@
     };
   }
 
+  const normalizedReference=value=>String(value||'').toUpperCase().replace(/[^A-Z0-9ÕÄÖÜŠŽ]/g,'');
+  const referenceAppearsIn=(text,reference)=>{
+    const canonical=normalizedReference(reference);
+    if(canonical.length<5) return false;
+    const alphanumeric='A-Z0-9ÕÄÖÜŠŽ';
+    const flexible=canonical.split('').join(`[^${alphanumeric}]*`);
+    return new RegExp(`(^|[^${alphanumeric}])${flexible}(?=$|[^${alphanumeric}])`,'u')
+      .test(String(text||'').toUpperCase());
+  };
+  const referenceMatches=(payment,invoice)=>{
+    const references=unique([invoice?.paymentReference,invoice?.num])
+      .filter(reference=>normalizedReference(reference).length>=5);
+    const matchedReference=references.find(reference=>
+      referenceAppearsIn(`${payment?.reference||''} ${payment?.note||''}`,reference)
+    )||'';
+    return {matched:Boolean(matchedReference),matchedReference};
+  };
+  const invoiceRemainingCents=invoice=>{
+    if(Number.isInteger(Number(invoice?.balanceDueCents))) return Math.max(0,Number(invoice.balanceDueCents));
+    if(invoice?.balanceDue!==undefined) return Math.max(0,Math.round((Number(invoice.balanceDue)||0)*100));
+    const paid=Number.isInteger(Number(invoice?.paidAmountCents))
+      ?Math.max(0,Number(invoice.paidAmountCents))
+      :Math.max(0,Math.round((Number(invoice?.paidAmount)||0)*100));
+    return Math.max(0,invoiceEffectiveCents(invoice)-paid);
+  };
+
+  function bankStatementMatchProposal({payment={},invoices=[],students=[]}={}){
+    const invoiceList=Array.isArray(invoices)?invoices:[];
+    const studentList=Array.isArray(students)?students:[];
+    const referenceMatchesList=invoiceList.filter(invoice=>
+      unique([invoice?.paymentReference,invoice?.num])
+        .filter(reference=>normalizedReference(reference).length>=5)
+        .some(reference=>referenceAppearsIn(`${payment?.desc||''} ${payment?.reference||''}`,reference))
+    );
+    if(referenceMatchesList.length===1){
+      const invoice=referenceMatchesList[0];
+      return {
+        tier:'ref',
+        confidence:'high',
+        invoice,
+        name:invoice.studentName||invoice.parentName||'',
+        reason:`Makse selgituses on unikaalne arveviide ${invoice.paymentReference||invoice.num}.`
+      };
+    }
+    if(referenceMatchesList.length>1){
+      return {
+        tier:'ref-dup',
+        confidence:'none',
+        candidates:referenceMatchesList,
+        name:'',
+        reason:'Makse selgituses leitud arveviide ei ole unikaalne.'
+      };
+    }
+
+    const nameHaystack=String(`${payment?.payer||''} ${payment?.payerName||''} ${payment?.desc||''}`)
+      .toLocaleLowerCase('et');
+    const scoredStudents=studentList.map(student=>{
+      const tokens=unique(
+        unique([student?.name,student?.parentName])
+          .join(' ')
+          .toLocaleLowerCase('et')
+          .split(/\s+/)
+          .filter(token=>token.length>=3)
+      );
+      return {
+        student,
+        hits:tokens.filter(token=>nameHaystack.includes(token)).length
+      };
+    }).filter(item=>item.hits>0).sort((a,b)=>b.hits-a.hits);
+    if(!scoredStudents.length){
+      return {tier:'none',confidence:'none',name:'',reason:'Arveviidet ega unikaalset nime ei leitud.'};
+    }
+    if(scoredStudents.length>1&&scoredStudents[0].hits===scoredStudents[1].hits){
+      return {tier:'name-dup',confidence:'none',name:'',reason:'Nime järgi leiti mitu sama tugevat kandidaati.'};
+    }
+    const student=scoredStudents[0].student;
+    const studentInvoices=invoiceList.filter(invoice=>
+      invoiceRemainingCents(invoice)>0
+      &&(
+        String(invoice.studentId||'')===String(student.id||'')
+        ||String(invoice.studentName||'').toLocaleLowerCase('et')===String(student.name||'').toLocaleLowerCase('et')
+      )
+    );
+    const paymentCents=Math.max(0,Math.round((Number(payment?.amount)||0)*100));
+    const exactAmountInvoices=studentInvoices.filter(invoice=>
+      Math.abs(invoiceRemainingCents(invoice)-paymentCents)<=1
+    );
+    if(exactAmountInvoices.length===1){
+      return {
+        tier:'name-amount',
+        confidence:'medium',
+        invoice:exactAmountInvoices[0],
+        name:student.name||'',
+        reason:'Maksja nimi ja summa vastavad ühele tasumata arvele.'
+      };
+    }
+    return {
+      tier:'guess',
+      confidence:'low',
+      name:student.name||'',
+      reason:exactAmountInvoices.length>1
+        ?'Nimi sobib, kuid sama summaga arveid on mitu.'
+        :'Nimi sobib, kuid summa ei määra üht arvet.'
+    };
+  }
+
   function paymentAllocationQueue({
     invoices=[],
     payments=[],
@@ -795,44 +901,62 @@
       ) return null;
       return allocation;
     };
-    const rows=activePayments
+    const invalidAllocationInvoiceIds=new Set(activePayments
+      .filter(payment=>payment.lineAllocationId&&!currentAllocationFor(payment))
+      .map(payment=>String(payment.invoiceId||'')));
+    const invoiceLinesById=new Map([...invoiceById].map(([invoiceId,invoice])=>{
+      const correctedIds=new Set((invoice?.correctedLessonIds||[]).map(String));
+      const lines=(Array.isArray(invoice?.lines)?invoice.lines:[])
+        .map((line,index)=>({
+          ...line,
+          invoiceLineIndex:index,
+          lessonId:String(line?.lessonId||''),
+          amountCents:cents(line,'amountCents','amount')
+        }))
+        .filter(line=>line.lessonId&&!correctedIds.has(line.lessonId))
+        .sort((a,b)=>`${isoDate(a.date)}:${String(a.invoiceLineIndex).padStart(4,'0')}`
+          .localeCompare(`${isoDate(b.date)}:${String(b.invoiceLineIndex).padStart(4,'0')}`));
+      return [invoiceId,lines];
+    }));
+    const confirmedReservedByInvoice=new Map();
+    activePayments.forEach(payment=>{
+      const allocation=currentAllocationFor(payment);
+      if(!allocation) return;
+      const invoiceId=String(payment.invoiceId||'');
+      if(!confirmedReservedByInvoice.has(invoiceId)) confirmedReservedByInvoice.set(invoiceId,{});
+      const reserved=confirmedReservedByInvoice.get(invoiceId);
+      (allocation.lines||[]).forEach(line=>{
+        const lessonId=String(line?.lessonId||'');
+        reserved[lessonId]=(reserved[lessonId]||0)+Math.max(0,Number(line?.allocatedAmountCents)||0);
+      });
+    });
+    const provisionalReservedByInvoice=new Map();
+    const processingPayments=activePayments
       .filter(payment=>inMonth(paymentDate(payment),month))
+      .sort((a,b)=>`${paymentDate(a)}:${String(a.id||'')}`.localeCompare(`${paymentDate(b)}:${String(b.id||'')}`));
+    const rows=processingPayments
       .map(payment=>{
         const paymentId=String(payment.id||'');
         const invoiceId=String(payment.invoiceId||'');
         const invoice=invoiceById.get(invoiceId)||null;
-        const correctedIds=new Set((invoice?.correctedLessonIds||[]).map(String));
-        const invoiceLines=(Array.isArray(invoice?.lines)?invoice.lines:[])
-          .map((line,index)=>({
-            ...line,
-            invoiceLineIndex:index,
-            lessonId:String(line?.lessonId||''),
-            amountCents:cents(line,'amountCents','amount')
-          }))
-          .filter(line=>line.lessonId&&!correctedIds.has(line.lessonId))
-          .sort((a,b)=>`${isoDate(a.date)}:${String(a.invoiceLineIndex).padStart(4,'0')}`
-            .localeCompare(`${isoDate(b.date)}:${String(b.invoiceLineIndex).padStart(4,'0')}`));
+        const invoiceLines=invoiceLinesById.get(invoiceId)||[];
         const currentAllocation=currentAllocationFor(payment);
         const hasPointer=Boolean(payment.lineAllocationId);
-        const reservedByOthers={};
-        activePayments
-          .filter(other=>
-            String(other.id||'')!==paymentId
-            &&String(other.invoiceId||'')===invoiceId
-            &&other.lineAllocationId
-          )
-          .forEach(other=>{
-            const allocation=currentAllocationFor(other);
-            if(!allocation) return;
-            (allocation.lines||[]).forEach(line=>{
-              const lessonId=String(line?.lessonId||'');
-              reservedByOthers[lessonId]=(reservedByOthers[lessonId]||0)
-                +Math.max(0,Number(line?.allocatedAmountCents)||0);
-            });
-          });
+        const ownReserved={};
+        (currentAllocation?.lines||[]).forEach(line=>{
+          ownReserved[String(line?.lessonId||'')]=Math.max(0,Number(line?.allocatedAmountCents)||0);
+        });
+        const confirmedReserved=confirmedReservedByInvoice.get(invoiceId)||{};
+        const provisionalReserved=provisionalReservedByInvoice.get(invoiceId)||{};
         const availableLines=invoiceLines.map(line=>({
           ...line,
-          availableCents:Math.max(0,line.amountCents-(reservedByOthers[line.lessonId]||0))
+          availableCents:Math.max(
+            0,
+            line.amountCents
+              -(confirmedReserved[line.lessonId]||0)
+              +(ownReserved[line.lessonId]||0)
+              -(provisionalReserved[line.lessonId]||0)
+          )
         }));
         const paymentCents=paymentNetCents(payment);
         let remainingCents=paymentCents;
@@ -860,6 +984,7 @@
         let status='needs_confirmation';
         let confidence='low';
         let reason='Makse vajab administraatori kinnitatud tunnijaotust.';
+        const referenceEvidence=referenceMatches(payment,invoice);
         if(!invoice||invoiceLines.length===0){
           status='unsupported';
           confidence='none';
@@ -868,6 +993,10 @@
           status='invalid';
           confidence='none';
           reason='Makse aktiivse jaotusversiooni viit on vigane või puudub.';
+        }else if(invalidAllocationInvoiceIds.has(invoiceId)){
+          status='attention';
+          confidence='none';
+          reason='Sama arve teisel maksel on vigane jaotusviit; paranda see enne jätkamist.';
         }else if(currentAllocation&&currentUnallocatedCents>1){
           status='incomplete';
           confidence='none';
@@ -884,14 +1013,26 @@
           suggestedLines.length===1
           &&suggestedLines[0].allocatedAmountCents===suggestedLines[0].availableCents
         ){
-          confidence='high';
-          reason='Summa vastab täpselt ühele vabale tunnireale.';
+          const bankSource=paymentSource(payment)==='bank';
+          confidence=bankSource&&!referenceEvidence.matched?'medium':'high';
+          reason=referenceEvidence.matched
+            ?`Summa vastab ühele vabale tunnireale ja makse selgitus sisaldab arveviidet.`
+            :bankSource
+              ?'Summa vastab ühele vabale tunnireale, kuid pangaselgituses ei leitud arveviidet.'
+              :'Summa vastab täpselt ühele vabale tunnireale.';
         }else if(suggestedLines.every(line=>line.allocatedAmountCents===line.availableCents)){
           confidence='medium';
           reason='Summa katab terviklikud tunniread vanimast alates.';
         }else{
           confidence='low';
           reason='Ettepanek sisaldab osalist tunnirida ja vajab hoolikat kontrolli.';
+        }
+        if(status==='needs_confirmation'&&remainingCents<=1){
+          if(!provisionalReservedByInvoice.has(invoiceId)) provisionalReservedByInvoice.set(invoiceId,{});
+          const provisional=provisionalReservedByInvoice.get(invoiceId);
+          suggestedLines.forEach(line=>{
+            provisional[line.lessonId]=(provisional[line.lessonId]||0)+line.allocatedAmountCents;
+          });
         }
         return {
           paymentId,
@@ -905,6 +1046,7 @@
           status,
           confidence,
           reason,
+          referenceEvidence,
           suggestedLines,
           suggestedCents:paymentCents-Math.max(0,remainingCents),
           suggestionRemainderCents:Math.max(0,remainingCents),
@@ -991,6 +1133,7 @@
   return {
     accountingRegister,
     accountingRegisterCsv,
+    bankStatementMatchProposal,
     financialPeriodControl,
     amountFromCents,
     invoiceEffectiveCents,

@@ -212,8 +212,16 @@ Suggestions are computed from the payment's invoice, immutable lesson rows, date
 capacity already reserved by other current exact versions. High, medium and low confidence remain
 advisory: no suggestion is persisted until an administrator reviews the rows and submits the
 existing server-validated command. The same modal exposes every append-only version with its
-effective date, reason and line amounts. Automatic bank-reference matching and bulk confirmation
-remain separate future slices.
+effective date, reason and line amounts.
+
+The sixth Stage 9 slice adds safe bulk confirmation and bank-reference evidence. Pending complete
+suggestions reserve lesson capacity in deterministic payment-date order, preventing overlapping
+batch proposals. Only high-confidence rows can be selected; bank-sourced rows require a unique
+normalized invoice reference in their payment description. Every selection still executes as an
+independent idempotent Financial Core command with its own immutable audit record and current-state
+validation. The bank-statement matcher also distinguishes unique references, duplicate references,
+unique name-plus-balance proposals and ambiguous names. Fully automatic posting and OCR remain
+future slices.
 
 The third Stage 9 slice attaches private payment-order evidence to an exact payment record.
 Administrators can upload a bounded PDF or image, while students, parents and teachers have no
