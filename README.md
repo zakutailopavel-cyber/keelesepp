@@ -139,6 +139,16 @@ Pangaväljavõtte sobitamine normaliseerib arveviite kirjavahemärgid ja tühiku
 kõrge kindlusega vaste. Nime ja täpselt ühe tasumata arve summa vaste jääb keskmise kindlusega
 ettepanekuks ning vajab käsitsi kontrolli; võrdsed nimekandidaadid ei valita enam vaikimisi.
 
+Maksete sobitamise vaade kasutab nelja selget sammu: väljavõtte lisamine, süsteemi ettepanekute
+kontroll, jaotuse kinnitamine ning kuu kontroll raamatupidamise vaates. CSV- või TXT-fail loetakse
+brauseris; sama sisu võib kleepida nelja veeruna: kuupäev, maksja, selgitus ja summa. Import näitab
+eraldi, mitu makset leiti ja mitu vigast või päisena tuvastatud rida vahele jäeti.
+
+Automaatne arvenumbri vaste on ainult ettepanek. Makse läheb kokkuvõttes
+**Salvestatud** summa sisse alles siis, kui administraator avab rea, kontrollib jaotuse ning
+vajutab **Kinnita ja salvesta**. Varasem käsitsi märgitud linnuke ei ole enam raamatupidamisliku
+maksekirje tõend; salvestatud olek arvutatakse serveris loodud `bankTransactions` kirjetest.
+
 Paketist kaetud, tasuta, õigeaegselt tühistatud, mahakantud ja krediteeritud tunnid ei segune
 tasumata tundidega. Vana arve, millel puuduvad tunni ID-ga read, jääb pärandkirjeks ega saa
 automaatselt täpse maksekinnituse märget. Samuti annab register vea, kui arvel on tasumise märge,

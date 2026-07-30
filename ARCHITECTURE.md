@@ -104,6 +104,11 @@ a single open invoice from a unique payer/student name plus exact balance as med
 Ambiguous names or duplicate references remain visibly unresolved. For bank-sourced lesson
 allocation, a reference match is required before a proposal becomes eligible for bulk confirmation.
 
+`bank-statement-core.js` parses the four-column browser import independently from the reconciliation
+view and returns explicit accepted/skipped diagnostics. The matching UI treats a proposal and an
+authoritative saved transaction as different states: totals and completed styling are derived from
+server-created `bankTransactions.externalId` values, never from a client-only review checkbox.
+
 Payment-order evidence is stored under
 `financial/payment-orders/{paymentId}/{documentId}` in Firebase Storage. Only administrators
 may create or read these objects; client updates and deletes are denied. After a successful
