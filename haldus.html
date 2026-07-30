@@ -164,6 +164,7 @@ const {
 } = window.LiveClassroomCore;
 const {
   addMinutes:calendarAddMinutes,
+  quickLessonSlot:calendarQuickLessonSlot,
   dayIdForDate:calendarDayIdForDate,
   eventsForDate:calendarEventsForDate,
   eventOccursOnDate:calendarEventOccursOnDate,
@@ -2873,18 +2874,34 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
   },[dragEv,notify,filteredSch,logActivity,teacherUidForName,openScheduleEditor]);
 
   // ── Popup create (Google-style) ───────────────────────────────
-  const openCreatePopup = React.useCallback((e,dayIso,slot)=>{
+  const openCreatePopup = React.useCallback((e,dayIso,slot,student=null)=>{
     e.stopPropagation();
     setCreatePopup({dayIso,slot});
-    setPopupStu('');
-    setPopupStudentId('');
+    setPopupStu(student?.name||'');
+    setPopupStudentId(student?.id||'');
     setPopupTeach(isAdmin?(filterT&&filterT!=='Kõik'?filterT:'Pavel'):canonicalTeacherName(user.displayName)||'Pavel');
     setPopupDur(60);
     setPopupRecurring(false);
   },[isAdmin,filterT,user]);
 
+  const openPlannerStudentPopup = React.useCallback((event,student)=>{
+    const visibleDates=viewMode==='month'
+      ?monthDays.filter(day=>day.inMonth).map(day=>day.iso)
+      :viewMode==='day'
+        ?[dayViewObj.iso]
+        :weekDays.map(day=>day.iso);
+    const target=calendarQuickLessonSlot(visibleDates,{
+      preferredDate:viewMode==='day'?dayViewObj.iso:''
+    });
+    openCreatePopup(event,target.dayIso,target.slot,student);
+  },[viewMode,monthDays,dayViewObj.iso,weekDays,openCreatePopup]);
+
   const saveFromPopup = React.useCallback(async()=>{
     if(!createPopup||!popupStu) return;
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(createPopup.dayIso||'')||!/^\d{2}:\d{2}$/.test(createPopup.slot||'')){
+      notify('⚠ Vali tunni kuupäev ja kellaaeg.');
+      return;
+    }
     const selectedStudent=myStudents.find(student=>
       student.id===popupStudentId||normalizeText(student.name)===normalizeText(popupStu)
     );
@@ -3187,6 +3204,22 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
                   cursor:'pointer',fontSize:'.9rem',display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button>
             </div>
             <div style={{display:'flex',flexDirection:'column',gap:10}}>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 110px',gap:8}}>
+                <label style={{fontSize:'.72rem',color:'#42536A'}}>
+                  Kuupäev
+                  <input type="date" value={createPopup.dayIso}
+                    onChange={event=>setCreatePopup(current=>({...current,dayIso:event.target.value}))}
+                    style={{marginTop:4}}/>
+                </label>
+                <label style={{fontSize:'.72rem',color:'#42536A'}}>
+                  Kellaaeg
+                  <select value={createPopup.slot}
+                    onChange={event=>setCreatePopup(current=>({...current,slot:event.target.value}))}
+                    style={{marginTop:4}}>
+                    {TIMES.map(time=><option key={time} value={time}>{time}</option>)}
+                  </select>
+                </label>
+              </div>
               <StuSearch value={popupStu}
                 onChange={value=>{
                   setPopupStu(value);
@@ -3212,8 +3245,10 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
                   Korduv
                 </label>
               </div>
-              <button onClick={saveFromPopup} disabled={!popupStu||popupSaving}
-                className="btn btn-pine" style={{width:'100%',opacity:!popupStu||popupSaving?.5:1}}>
+              <button onClick={saveFromPopup}
+                disabled={!popupStu||!createPopup.dayIso||!createPopup.slot||popupSaving}
+                className="btn btn-pine"
+                style={{width:'100%',opacity:(!popupStu||!createPopup.dayIso||!createPopup.slot||popupSaving)?0.5:1}}>
                 {popupSaving?'Salvestab…':'✓ Kinnita tund'}
               </button>
             </div>
@@ -3540,12 +3575,10 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
                           color:isOk?"#166534":"#dc2626"}}>
                           {target>0?`${lessonsThisWeek.length}/${target}`:lessonsThisWeek.length}
                         </span>
-                        <button onClick={()=>openCreatePopup({stopPropagation:()=>{}},
-                          weekDays[0]?.iso||today(),TIMES[2]||'09:00')}
+                        <button onClick={event=>openPlannerStudentPopup(event,student)}
                           style={{fontSize:".6rem",padding:"1px 5px",borderRadius:5,
                             border:"0.5px solid rgba(28,43,58,.12)",background:"#fff",
-                            cursor:"pointer",color:"#42536A",fontFamily:"inherit"}}
-                          onMouseEnter={e=>{e.stopPropagation();setPopupStu(student.name);openCreatePopup({stopPropagation:()=>{}},weekDays[0]?.iso||today(),'09:00');}}>
+                            cursor:"pointer",color:"#42536A",fontFamily:"inherit"}}>
                           + Lisa
                         </button>
                       </div>

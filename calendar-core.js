@@ -64,6 +64,41 @@
     return result;
   };
 
+  const quickLessonSlot=(visibleDates=[],options={})=>{
+    const now=options.now instanceof Date
+      ?new Date(options.now.getTime())
+      :new Date(options.now||Date.now());
+    const currentDate=toLocalISODate(now);
+    const dates=[...new Set((visibleDates||[])
+      .map(value=>String(value||'').trim())
+      .filter(value=>Boolean(parseLocalDate(value))))];
+    const preferredDate=String(options.preferredDate||'').trim();
+    let dayIso=preferredDate&&parseLocalDate(preferredDate)
+      ?preferredDate
+      :dates.includes(currentDate)
+        ?currentDate
+        :dates[0]||currentDate;
+    const defaultTime=timeToMinutes(options.defaultTime)===null?'09:00':options.defaultTime;
+    let slot=defaultTime;
+    if(dayIso===currentDate&&!Number.isNaN(now.getTime())){
+      const step=Math.max(5,Number(options.step)||15);
+      const start=timeToMinutes(options.startTime||'07:00');
+      const end=timeToMinutes(options.endTime||'21:00');
+      const current=now.getHours()*60+now.getMinutes();
+      const rounded=Math.ceil(current/step)*step;
+      if(start!==null&&rounded<start){
+        slot=minutesToTime(start);
+      }else if(end!==null&&rounded>end){
+        const nextDate=new Date(now);
+        nextDate.setDate(nextDate.getDate()+1);
+        dayIso=toLocalISODate(nextDate);
+      }else{
+        slot=minutesToTime(rounded);
+      }
+    }
+    return {dayIso,slot};
+  };
+
   const eventOccursOnDate=(event,dateIso)=>{
     if(!event||!dateIso) return false;
     if(Array.isArray(event.excludedDates)&&event.excludedDates.includes(dateIso)) return false;
@@ -300,6 +335,7 @@
     minutesToTime,
     addMinutes,
     generateTimeSlots,
+    quickLessonSlot,
     eventOccursOnDate,
     eventsForDate,
     eventInterval,

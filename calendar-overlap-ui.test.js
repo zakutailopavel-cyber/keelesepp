@@ -15,3 +15,11 @@ test('all calendar save surfaces use the same non-blocking warning',()=>{
   assert.ok(warningCalls.length>=5);
   assert.match(html,/conflictCount:conflicts\.length/);
 });
+
+test('student planner quick add keeps the student and exposes editable date and time',()=>{
+  assert.match(html,/openPlannerStudentPopup\(event,student\)/);
+  assert.match(html,/type="date" value=\{createPopup\.dayIso\}/);
+  assert.match(html,/select value=\{createPopup\.slot\}/);
+  assert.doesNotMatch(html,/weekDays\[0\]\?\.iso\|\|today\(\),TIMES\[2\]\|\|'09:00'/);
+  assert.doesNotMatch(html,/onMouseEnter=.*openCreatePopup/);
+});
