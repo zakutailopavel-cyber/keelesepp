@@ -4231,7 +4231,7 @@ async function setStaffHourlyRate({ actor, staffUid, hourlyRate }) {
     const userSnap = await transaction.get(userRef);
     if (!userSnap.exists) throw httpError(404, "Staff user not found");
     const target = userSnap.data() || {};
-    const targetRoles = collectRoles(target, {});
+    const targetRoles = collectTrustedRoles(target, {});
     const targetEmail = String(target.email || "").trim().toLowerCase();
     if (![...targetRoles].some(role => STAFF_ROLES.has(role)) && !SUPER_ADMIN_EMAILS.has(targetEmail)) {
       throw httpError(409, "Hourly rate can be assigned only to staff");
