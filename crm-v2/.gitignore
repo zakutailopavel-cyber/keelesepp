@@ -10,3 +10,4 @@ dist/
 *.swo
 *.log
 .vercel/
+.vite/
