@@ -1,13 +1,19 @@
 import { Archive, ChevronRight, Pencil, Plus, Search } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { AuthContext } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, IconButton, Input, LoadingState, Modal, PageHeader, Select } from '../../components/ui/index.js';
 import { studentsService } from '../../services/firebase/students.js';
+import { ROLES } from '../../utils/roles.js';
 import StudentForm from './StudentForm.jsx';
+import { LEGACY_TEACHERS, STUDENT_LEVELS } from './studentOptions.js';
 
 const initialFilters = { search: '', status: 'active', level: '', teacher: '', sort: 'name-asc' };
 
-export default function StudentsPage({ service = studentsService }) {
+export default function StudentsPage({ service = studentsService, actor }) {
+  const auth = useContext(AuthContext);
+  const currentUser = actor || auth?.user || { roles: [ROLES.ADMIN], displayName: '' };
+  const canAssignTeacher = currentUser.roles?.includes(ROLES.ADMIN);
   const [filters, setFilters] = useState(initialFilters);
   const [state, setState] = useState({ loading: true, error: null, items: [], cursor: null, hasMore: false });
   const [formStudent, setFormStudent] = useState(undefined);
@@ -15,6 +21,7 @@ export default function StudentsPage({ service = studentsService }) {
   const [archiveTarget, setArchiveTarget] = useState(null);
   const [archiving, setArchiving] = useState(false);
   const [notice, setNotice] = useState('');
+  const [actionError, setActionError] = useState('');
 
   const load = useCallback(async ({ append = false } = {}) => {
     setState((current) => ({ ...current, loading: true, error: null }));
@@ -27,27 +34,33 @@ export default function StudentsPage({ service = studentsService }) {
   useEffect(() => { load(); }, [filters, service]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const options = useMemo(() => ({
-    teachers: [...new Set(state.items.map((student) => student.teacher).filter(Boolean))].sort(),
-    levels: [...new Set(state.items.map((student) => student.level).filter(Boolean))].sort(),
+    teachers: [...new Set([...LEGACY_TEACHERS, ...state.items.map((student) => student.teacher)].filter(Boolean))].sort(),
+    levels: STUDENT_LEVELS.filter(Boolean),
   }), [state.items]);
 
   const setFilter = (event) => setFilters((current) => ({ ...current, [event.target.name]: event.target.value }));
   const openCreate = () => { setFormStudent(undefined); setFormOpen(true); };
   const openEdit = (student) => { setFormStudent(student); setFormOpen(true); };
   const save = async (values) => {
-    if (formStudent) await service.update(formStudent.id, values); else await service.create(values);
+    setActionError('');
+    const safeValues = canAssignTeacher ? values : { ...values, teacher: formStudent?.teacher || currentUser.displayName || '' };
+    if (formStudent) await service.update(formStudent.id, safeValues); else await service.create(safeValues);
     setNotice(formStudent ? 'Õpilase andmed on salvestatud.' : 'Õpilane on lisatud.');
     await load();
   };
   const archive = async () => {
     setArchiving(true);
-    try { await service.archive(archiveTarget.id); setArchiveTarget(null); setNotice('Õpilane on arhiveeritud.'); await load(); } finally { setArchiving(false); }
+    setActionError('');
+    try { await service.archive(archiveTarget.id); setArchiveTarget(null); setNotice('Õpilane on arhiveeritud.'); await load(); }
+    catch (error) { setArchiveTarget(null); setActionError(error.message); }
+    finally { setArchiving(false); }
   };
 
   return (
     <div className="page-content">
       <PageHeader eyebrow="CRM" title="Õpilased" description="Olemasoleva Firebase students-kogu reaalajas töövoog." actions={<Button onClick={openCreate}><Plus size={18} /> Lisa õpilane</Button>} />
       {notice ? <div className="success-notice" role="status">{notice}<button onClick={() => setNotice('')} aria-label="Sulge teade">×</button></div> : null}
+      {actionError ? <div className="action-error" role="alert">{actionError}<button onClick={() => setActionError('')} aria-label="Sulge veateade">×</button></div> : null}
       <Card className="filters-card">
         <div className="search-field"><Search size={18} /><Input aria-label="Otsi nime, telefoni või e-posti järgi" name="search" placeholder="Otsi nime, telefoni või e-posti järgi…" value={filters.search} onChange={setFilter} /></div>
         <Select aria-label="Staatus" name="status" value={filters.status} onChange={setFilter}><option value="">Kõik staatused</option><option value="active">Aktiivsed</option><option value="archived">Arhiveeritud</option></Select>
@@ -58,7 +71,7 @@ export default function StudentsPage({ service = studentsService }) {
 
       {state.loading && !state.items.length ? <Card><LoadingState label="Laen õpilasi…" /></Card> : null}
       {state.error ? <Card><ErrorState message={state.error.message} onRetry={() => load()} /></Card> : null}
-      {!state.loading && !state.error && !state.items.length ? <Card><EmptyState title="Õpilasi ei leitud" description="Muuda filtreid või lisa esimene õpilane." action={<Button onClick={openCreate}>Lisa õpilane</Button>} /></Card> : null}
+      {!state.loading && !state.error && !state.items.length ? <Card><EmptyState title="Õpilasi ei leitud" description={state.hasMore ? 'Esimesel andmelehel vasteid ei olnud. Laadi järgmine leht.' : 'Muuda filtreid või lisa esimene õpilane.'} action={state.hasMore ? <Button variant="secondary" loading={state.loading} onClick={() => load({ append: true })}>Laadi veel</Button> : <Button onClick={openCreate}>Lisa õpilane</Button>} /></Card> : null}
       {state.items.length ? (
         <Card className="students-card">
           <div className="students-table-wrap">
@@ -71,7 +84,7 @@ export default function StudentsPage({ service = studentsService }) {
         </Card>
       ) : null}
 
-      <StudentForm open={formOpen} student={formStudent} teachers={options.teachers} onClose={() => setFormOpen(false)} onSubmit={save} />
+      <StudentForm open={formOpen} student={formStudent} teachers={options.teachers} canAssignTeacher={canAssignTeacher} defaultTeacher={currentUser.displayName || ''} onClose={() => setFormOpen(false)} onSubmit={save} />
       <Modal open={Boolean(archiveTarget)} title="Arhiveeri õpilane" onClose={() => !archiving && setArchiveTarget(null)} footer={<><Button variant="secondary" onClick={() => setArchiveTarget(null)} disabled={archiving}>Loobu</Button><Button variant="danger" loading={archiving} onClick={archive}>Arhiveeri</Button></>}><p>Kas arhiveerida <strong>{archiveTarget?.name}</strong>? Õpilase ajalugu säilib ning kirje märgitakse väljal <code>active</code> mitteaktiivseks.</p></Modal>
     </div>
   );

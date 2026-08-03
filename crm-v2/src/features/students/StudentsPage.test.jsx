@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import StudentsPage from './StudentsPage.jsx';
 
@@ -25,5 +25,17 @@ describe('students list states', () => {
   it('renders students returned by the service', async () => {
     renderPage({ list: async () => ({ items: [{ id: 's1', name: 'Mari Maas', email: 'mari@example.com', active: true, skillMap: {} }], cursor: null, hasMore: false }) });
     expect(await screen.findAllByText('Mari Maas')).not.toHaveLength(0);
+  });
+
+  it('can continue when a filtered first page contains no matches', async () => {
+    const service = {
+      list: vi.fn()
+        .mockResolvedValueOnce({ items: [], cursor: 'page-1', hasMore: true })
+        .mockResolvedValueOnce({ items: [{ id: 's2', name: 'Jaan Tamm', active: true }], cursor: null, hasMore: false }),
+    };
+    renderPage(service);
+    fireEvent.click(await screen.findByRole('button', { name: 'Laadi veel' }));
+    expect(await screen.findAllByText('Jaan Tamm')).not.toHaveLength(0);
+    expect(service.list).toHaveBeenLastCalledWith(expect.objectContaining({ cursor: 'page-1' }));
   });
 });
