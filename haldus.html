@@ -133,7 +133,7 @@ const {
   SUBJECTS, GRADES:SHARED_GRADES, LESSON_DURATIONS,
   PAYMENT_METHODS, PAYMENT_DETAILS, CONTACT_STATUSES,
   DAYS_SHORT, DAYS_ID, DAYS_FULL, TIMES,
-  normalizeText, studentIdentityKey, studentProfileKey, parseLinkedNames, canonicalTeacherName,
+  normalizeText, studentIdentityKey, studentProfileKey, parseLinkedNames, canonicalTeacherName, teacherUidFromDirectory,
   levelPct, avg, fmtDate, toLocalISODate, today, pkgLeft, copyText, authFetch,
   hasUserRole, withUserRoles,
   ensureStudentRecord, ensureParentStudentRecords
@@ -10964,7 +10964,7 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
 }
 
 // ── РЕДАКТИРОВАНИЕ И УДАЛЕНИЕ УЧЕНИКА ────────────────────────
-function EditStudentModal({student,onClose,onSave,onDelete,db,notify,isAdmin,groupOptions=[]}) {
+function EditStudentModal({student,onClose,onSave,onDelete,db,notify,isAdmin,resolveTeacherUid,groupOptions=[]}) {
   const [name,    setName]    = React.useState(student.name||'');
   const [parentName,setParentName] = React.useState(student.parentName||'');
   const [email,   setEmail]   = React.useState(student.email||'');
@@ -11003,7 +11003,7 @@ function EditStudentModal({student,onClose,onSave,onDelete,db,notify,isAdmin,gro
     setSaving(true);
     await db.collection('students').doc(student.id).update({
       name,parentName,email,phone,level,targetLevel:target,
-      subject,grade,group,teacher,
+      subject,grade,group,teacher,teacherUid:resolveTeacherUid?.(teacher)||student.teacherUid||'',
       contactStatus,contactOwner,contactLastAt,contactNotes,
       packageTotal:parseInt(pkg)||0,
       packageUsed:parseInt(used)||0,
@@ -11551,6 +11551,7 @@ function App() {
   const [workSessions,setWorkSessions] = useState([]);
   const [staffProgramDays,setStaffProgramDays] = useState([]);
   const [assistantAlerts,setAssistantAlerts] = useState([]);
+  const [teacherScopeReadEnforced,setTeacherScopeReadEnforced] = useState(false);
 
   // Add student
   const [nName,setNName]   = useState('');
@@ -11644,13 +11645,34 @@ function App() {
     return unsub;
   },[]);
 
+  useEffect(()=>{
+    if(!user){setTeacherScopeReadEnforced(false);return undefined;}
+    return db.collection('securityMigrations').doc('teacherUidV1').onSnapshot(
+      snapshot=>setTeacherScopeReadEnforced(snapshot.exists&&snapshot.data()?.readEnforced===true),
+      error=>{
+        console.warn('Teacher scope migration status failed:',error);
+        setTeacherScopeReadEnforced(false);
+      }
+    );
+  },[user]);
+
   // FIRESTORE
   useEffect(()=>{
     if(!user) return;
-    const u1=db.collection('students').onSnapshot(s=>setStu(s.docs.map(d=>({id:d.id,...d.data()}))));
-	    const u2=db.collection('lessons').onSnapshot(s=>setLes(s.docs.map(d=>({id:d.id,...d.data()}))));
+    const mapDocs = snapshot => snapshot.docs.map(doc=>({id:doc.id,...doc.data()}));
+    const userIsAdmin = hasUserRole(user,'admin') || normalizeText(user?.email)==='zakutailo.pavel@gmail.com';
+    const teacherScoped = teacherScopeReadEnforced && hasUserRole(user,'teacher') && !userIsAdmin;
+    const scopedCollection = name => teacherScoped
+      ? db.collection(name).where('teacherUid','==',user.uid)
+      : db.collection(name);
+    const scopedError = (name,setter) => error=>{
+      console.warn(`${name} listener failed:`,error);
+      setter([]);
+    };
+    const u1=scopedCollection('students').onSnapshot(s=>setStu(mapDocs(s)),scopedError('Students',setStu));
+	    const u2=scopedCollection('lessons').onSnapshot(s=>setLes(mapDocs(s)),scopedError('Lessons',setLes));
 	    const u3=db.collection('homework').onSnapshot(s=>setHw(s.docs.map(d=>({id:d.id,...d.data()}))));
-	    const u4=db.collection('schedule').onSnapshot(s=>setSch(s.docs.map(d=>({id:d.id,...d.data()}))));
+	    const u4=scopedCollection('schedule').onSnapshot(s=>setSch(mapDocs(s)),scopedError('Schedule',setSch));
 	    const u6=db.collection('messages').onSnapshot(s=>setMessages(s.docs.map(d=>({id:d.id,...d.data()}))));
     const u7=db.collection('groups').onSnapshot(
       s=>setGroups(s.docs.map(d=>({id:d.id,...d.data()}))),
@@ -11677,7 +11699,7 @@ function App() {
       err=>{console.warn('Worksheet assignments listener failed:',err);setAllWsAssignments([]);}
     );
 	    return()=>{u1();u2();u3();u4();u6();u7();u8();u9();u10();u11();};
-	  },[user]);
+	  },[user,teacherScopeReadEnforced]);
 
   const notify=msg=>{setNotif(msg);setTimeout(()=>setNotif(''),3500);};
   const markWsSeen=useCallback(async(assignmentId)=>{
@@ -12114,13 +12136,16 @@ function App() {
 
   const addStudentForParent=useCallback(async(data)=>{
     if(!user?.uid) return;
+    const teacher=canonicalTeacherName(data.teacher||'Pavel');
+    const teacherUid=teacherUidForName(teacher)||await teacherUidFromDirectory(teacher);
     const ref = await db.collection('students').add({
       name:data.name,
       parentName:user.displayName||'',
       parentEmail:user.email||'',
       linkedParentId:user.uid,
       parentUid:user.uid,
-      teacher:data.teacher||'Pavel',
+      teacher,
+      teacherUid,
       level:data.level||'A1',
       targetLevel:data.targetLevel||'B1',
       subject:data.subject||'Eesti keel',
@@ -12142,7 +12167,7 @@ function App() {
     await db.collection('users').doc(user.uid).update({childName:existing});
     await logActivity('student.created','Lapsevanem lisas lapse',{studentId:ref.id,studentName:data.name});
     notify('✓ Laps '+data.name+' lisatud!');
-  },[user,logActivity]);
+  },[user,logActivity,teacherUidForName]);
 
   const addSelfStudentForParent=useCallback(async()=>{
     if(!user?.uid) return;
@@ -12154,6 +12179,7 @@ function App() {
       return;
     }
     const teacher = canonicalTeacherName(user.preferredTeacher || user.teacher || 'Pavel');
+    const teacherUid = teacherUidForName(teacher)||await teacherUidFromDirectory(teacher);
     const data = {
       linkedUserId:user.uid,
       studentUid:user.uid,
@@ -12165,6 +12191,7 @@ function App() {
       level:'A1',
       targetLevel:'B1',
       teacher,
+      teacherUid,
       active:true,
       packageTotal:0,
       packageUsed:0,
@@ -12185,7 +12212,7 @@ function App() {
     setSelStu(created);
     setTab('students');
     notify('✓ Sinu õpilase kaart loodud');
-  },[user,students,logActivity,notify]);
+  },[user,students,logActivity,notify,teacherUidForName]);
 
   const deleteStudentForParent=useCallback(async(student)=>{
     if(!isAdmin){notify('⚠ Ainult admin saab kustutada');return;}
@@ -12322,6 +12349,7 @@ function App() {
         level:'A1',
         targetLevel:'B1',
         teacher:preferredTeacher,
+        teacherUid:teacherUidForName(preferredTeacher),
         active:true,
         packageTotal:0,
         packageUsed:0,
@@ -12362,7 +12390,7 @@ function App() {
       console.error('Enable parent student role failed:',err);
       notify('⚠ Õpilase rolli ei saanud lisada');
     }
-  },[isAdmin,logActivity,notify,user]);
+  },[isAdmin,logActivity,notify,user,teacherUidForName]);
 
   const mergeParentDuplicates=useCallback(async(row)=>{
     if(!isAdmin){notify('⚠ Ainult administraator saab duplikaate ühendada');return;}
@@ -12593,11 +12621,11 @@ function App() {
       notify(`⚠ Selline õpilase profiil on juba olemas: ${duplicate.name} · ${duplicate.subject||'Eesti keel'} · ${duplicate.teacher||'õpetaja puudub'}`);
       return;
     }
-    const ref = await db.collection('students').add({name:nName,parentName:nParentName,level:nLevel,targetLevel:nTarget,teacher:t,phone:nPhone,email:nEmail,active:true,packageTotal:parseInt(nPkg)||0,packageUsed:0,subject:nSubject,grade:nGrade,group:nGroup,contactStatus:'new',contactOwner:user?.displayName||'',contactLastAt:'',contactNotes:'',createdAt:today()});
+    const ref = await db.collection('students').add({name:nName,parentName:nParentName,level:nLevel,targetLevel:nTarget,teacher:t,teacherUid:teacherUidForName(t),phone:nPhone,email:nEmail,active:true,packageTotal:parseInt(nPkg)||0,packageUsed:0,subject:nSubject,grade:nGrade,group:nGroup,contactStatus:'new',contactOwner:user?.displayName||'',contactLastAt:'',contactNotes:'',createdAt:today()});
     await logActivity('student.created','Lisati õpilane',{studentId:ref.id,studentName:nName,teacher:t});
     setNName('');setNParentName('');setNPhone('');setNEmail('');setNGroup('');
     notify('✓ Õpilane '+nName+' lisatud!');
-  },[nName,nParentName,nLevel,nTarget,nTeach,nPhone,nEmail,nPkg,nSubject,nGrade,nGroup,canAssignTeacher,user,students,logActivity]);
+  },[nName,nParentName,nLevel,nTarget,nTeach,nPhone,nEmail,nPkg,nSubject,nGrade,nGroup,canAssignTeacher,user,students,logActivity,teacherUidForName]);
 
   const addTask=useCallback(async()=>{
     if(!taskTitle.trim()){notify('⚠ Sisesta ülesande pealkiri');return;}
@@ -12976,6 +13004,7 @@ function App() {
       duration:parseInt(lDur),status:lStatus,comment:lComment,
       newWords:lNewWords||'',grammar:lGrammar||'',covered:lCovered||'',nextNotes:lNextNotes||'',
       date:modalEv.occurrenceDate||modalEv.date||today(),submittedAt:now.toLocaleString('et-EE'),teacher:user.displayName,
+      teacherUid:modalEv.teacherUid||stu?.teacherUid||teacherUidForName(modalEv.teacher||user.displayName),
       updatedAt: now.toISOString(),
       fileUrl:primaryAttachment?.url||'',
       fileName:primaryAttachment?.name||'',
@@ -13141,7 +13170,7 @@ function App() {
         }
       },0);
     }
-  },[modalEv,lTopic,lGrade,lStatus,lComment,lDur,lessonFile,students,lessons,studentPackages,user,logActivity,notify]);
+  },[modalEv,lTopic,lGrade,lStatus,lComment,lDur,lessonFile,students,lessons,studentPackages,user,logActivity,notify,teacherUidForName]);
 
   const addHw=useCallback(async()=>{
     if(!selStu||!hwTask.trim()){notify('⚠ Sisesta ülesanne');return;}
@@ -13250,13 +13279,15 @@ function App() {
       const existingChild = students.find(item=>item.active!==false && studentProfileKey(item)===studentProfileKey(childCandidate));
       let childRefId = '';
       if(!existingChild){
+        const childTeacher=canonicalTeacherName(student.teacher||'Pavel');
         const childRef = await db.collection('students').add({
           name:cleanChildName,
           parentName:student.name||'',
           parentEmail:student.email||'',
           linkedParentId:parentDocId,
           parentUid:parentDocId,
-          teacher:canonicalTeacherName(student.teacher||'Pavel'),
+          teacher:childTeacher,
+          teacherUid:student.teacherUid||teacherUidForName(childTeacher),
           level:student.level||'A1',
           targetLevel:student.targetLevel||'B1',
           subject:student.subject||'Eesti keel',
@@ -13309,7 +13340,7 @@ function App() {
       console.error('Student to parent conversion failed:',err);
       notify('⚠ Lapsevanemaks muutmine ebaõnnestus');
     }
-  },[allUsers,students,user,logActivity,notify,setSelStu,setTab]);
+  },[allUsers,students,user,logActivity,notify,setSelStu,setTab,teacherUidForName]);
 
   const deleteLesson=useCallback(async(lesson)=>{
     if(!lesson?.id) return false;
@@ -14776,7 +14807,7 @@ function App() {
         </div>
       </main>
 
-      {editStu&&<EditStudentModal student={editStu} onClose={()=>setEditStu(null)} onSave={()=>{setEditStu(null);}} onDelete={()=>{setEditStu(null);setSelStu(null);}} db={db} notify={notify} isAdmin={isAdmin} groupOptions={groupOptions}/>}
+      {editStu&&<EditStudentModal student={editStu} onClose={()=>setEditStu(null)} onSave={()=>{setEditStu(null);}} onDelete={()=>{setEditStu(null);setSelStu(null);}} db={db} notify={notify} isAdmin={isAdmin} resolveTeacherUid={teacherUidForName} groupOptions={groupOptions}/>}
       {modalEv&&<LessonModal modalEv={modalEv} setModalEv={setModalEv}
         lTopic={lTopic} setLTopic={setLTopic} lGrade={lGrade} setLGrade={setLGrade}
         lStatus={lStatus} setLStatus={setLStatus} lComment={lComment} setLComment={setLComment}

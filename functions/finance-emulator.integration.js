@@ -106,6 +106,34 @@ async function firestoreCommitRequest(token, writes) {
   return { status: response.status, body: await response.json().catch(() => ({})) };
 }
 
+async function firestoreQueryRequest(token, collectionId, teacherUid) {
+  const response = await fetch(
+    `http://${FIRESTORE_EMULATOR}/v1/projects/${PROJECT_ID}/databases/(default)/documents:runQuery`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        structuredQuery: {
+          from: [{ collectionId }],
+          ...(teacherUid ? {
+            where: {
+              fieldFilter: {
+                field: { fieldPath: "teacherUid" },
+                op: "EQUAL",
+                value: { stringValue: teacherUid },
+              },
+            },
+          } : {}),
+        },
+      }),
+    },
+  );
+  return { status: response.status, body: await response.json().catch(() => ({})) };
+}
+
 async function financeRequest(token, path, payload) {
   const response = await fetch(
     `http://${FUNCTIONS_EMULATOR}/${PROJECT_ID}/us-central1/financeApi${path}`,
@@ -137,6 +165,102 @@ async function staffOperationsRequest(token, path, payload = {}) {
   const body = await response.json();
   return { status: response.status, body };
 }
+
+async function teacherScopeMigrationRequest(token, path, payload = {}) {
+  const response = await fetch(
+    `http://${FUNCTIONS_EMULATOR}/${PROJECT_ID}/us-central1/teacherScopeMigrationApi${path}`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    },
+  );
+  const body = await response.json();
+  return { status: response.status, body };
+}
+
+test("teacher UID migration API is admin-only and preview is non-mutating", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const attackerToken = await createUserToken("migration-attacker@example.com");
+  const attackerUid = tokenUid(attackerToken);
+  await db.collection("users").doc(attackerUid).set({
+    role: "student",
+    displayName: "Migration Attacker",
+    email: "migration-attacker@example.com",
+    roles: ["admin"],
+    isAdmin: true,
+  });
+
+  const forbidden = await teacherScopeMigrationRequest(attackerToken, "/status");
+  assert.equal(forbidden.status, 403, JSON.stringify(forbidden.body));
+
+  const adminToken = await createAdminToken();
+  const before = await db.collection("securityMigrations").doc("teacherUidV1").get();
+  const preview = await teacherScopeMigrationRequest(adminToken, "/preview");
+  assert.equal(preview.status, 200, JSON.stringify(preview.body));
+  assert.equal(typeof preview.body.readyToApply, "boolean");
+  assert.ok(preview.body.summary?.students);
+  const after = await db.collection("securityMigrations").doc("teacherUidV1").get();
+  assert.equal(before.exists, false);
+  assert.equal(after.exists, false);
+});
+
+test("teacher scope flag preserves legacy reads and then enforces teacher ownership", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const teacherToken = await createUserToken("scope-teacher@example.com");
+  const otherTeacherToken = await createUserToken("scope-other@example.com");
+  const teacherUid = tokenUid(teacherToken);
+  const otherTeacherUid = tokenUid(otherTeacherToken);
+  await Promise.all([
+    db.collection("users").doc(teacherUid).set({ role: "teacher", displayName: "Scope Teacher" }),
+    db.collection("users").doc(otherTeacherUid).set({ role: "teacher", displayName: "Other Teacher" }),
+    db.collection("students").doc("scope-own").set({ name: "Own", teacherUid }),
+    db.collection("students").doc("scope-foreign").set({ name: "Foreign", teacherUid: otherTeacherUid }),
+    db.collection("lessons").doc("scope-own").set({ studentId: "scope-own", teacherUid }),
+    db.collection("lessons").doc("scope-foreign").set({ studentId: "scope-foreign", teacherUid: otherTeacherUid }),
+    db.collection("schedule").doc("scope-own").set({ studentId: "scope-own", teacherUid }),
+    db.collection("schedule").doc("scope-foreign").set({ studentId: "scope-foreign", teacherUid: otherTeacherUid }),
+  ]);
+
+  try {
+    const legacyForeign = await firestoreDocumentRequest(teacherToken, "GET", "students/scope-foreign");
+    assert.equal(legacyForeign.status, 200, JSON.stringify(legacyForeign.body));
+
+    await db.collection("securityMigrations").doc("teacherUidV1").set({
+      version: 1,
+      backfillComplete: true,
+      readEnforced: true,
+    });
+
+    for (const collectionName of ["students", "lessons", "schedule"]) {
+      const own = await firestoreDocumentRequest(teacherToken, "GET", `${collectionName}/scope-own`);
+      const foreign = await firestoreDocumentRequest(teacherToken, "GET", `${collectionName}/scope-foreign`);
+      assert.equal(own.status, 200, `${collectionName}: ${JSON.stringify(own.body)}`);
+      assert.equal(foreign.status, 403, `${collectionName}: ${JSON.stringify(foreign.body)}`);
+    }
+
+    const scopedQuery = await firestoreQueryRequest(teacherToken, "students", teacherUid);
+    const broadQuery = await firestoreQueryRequest(teacherToken, "students");
+    assert.equal(scopedQuery.status, 200, JSON.stringify(scopedQuery.body));
+    assert.equal(broadQuery.status, 403, JSON.stringify(broadQuery.body));
+
+    const migrationRead = await firestoreDocumentRequest(teacherToken, "GET", "securityMigrations/teacherUidV1");
+    const migrationWrite = await firestoreDocumentRequest(teacherToken, "PATCH", "securityMigrations/teacherUidV1", {
+      fields: { readEnforced: { booleanValue: false } },
+    });
+    assert.equal(migrationRead.status, 200, JSON.stringify(migrationRead.body));
+    assert.equal(migrationWrite.status, 403, JSON.stringify(migrationWrite.body));
+  } finally {
+    await db.collection("securityMigrations").doc("teacherUidV1").delete();
+  }
+});
 
 test("lesson invoice and lesson credit stay atomic, idempotent, and auditable", async () => {
   requireSafeEmulatorEnvironment();

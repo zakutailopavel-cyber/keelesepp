@@ -73,6 +73,8 @@ const {
   payAmountCents,
   workDurationMinutes,
 } = require("./staff-operations-core");
+const { collectTrustedRoles, isDisabledProfile } = require("./auth-core");
+const { planTeacherScopeBackfill } = require("./teacher-scope-core");
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -271,7 +273,9 @@ function httpError(status, message) {
 function sendError(res, err) {
   const status = err.status || 500;
   if (status >= 500) console.error("Unhandled request error:", err);
-  res.status(status).json({ error: status >= 500 ? "Internal error" : err.message });
+  const payload = { error: status >= 500 ? "Internal error" : err.message };
+  if (status < 500 && err.details) payload.details = err.details;
+  res.status(status).json(payload);
 }
 
 async function requireFirebaseUser(req) {
@@ -279,7 +283,7 @@ async function requireFirebaseUser(req) {
   const match = header.match(/^Bearer\s+(.+)$/i);
   if (!match) throw httpError(401, "Firebase ID token required");
   try {
-    return await admin.auth().verifyIdToken(match[1]);
+    return await admin.auth().verifyIdToken(match[1], true);
   } catch (e) {
     throw httpError(401, "Invalid Firebase ID token");
   }
@@ -294,6 +298,7 @@ async function requireCalendarOwner(req, uid, { staffOnly = true } = {}) {
   if (decoded.uid !== uid && !isSuperAdmin(decoded)) throw httpError(403, "Forbidden");
   const snap = await db.collection("users").doc(uid).get();
   const profile = snap.exists ? snap.data() : {};
+  if (isDisabledProfile(profile)) throw httpError(403, "Account disabled");
   const role = profile.role || decoded.role || "";
   if (staffOnly && !STAFF_ROLES.has(role) && !isSuperAdmin(decoded)) {
     throw httpError(403, "Teacher or admin access required");
@@ -310,30 +315,12 @@ function configBool(value, fallback = false) {
   return ["1", "true", "yes", "y", "on"].includes(String(value).trim().toLowerCase());
 }
 
-function collectRoles(profile = {}, decoded = {}) {
-  const roles = new Set();
-  const addRole = value => {
-    if (!value) return;
-    if (Array.isArray(value)) {
-      value.forEach(addRole);
-      return;
-    }
-    roles.add(String(value).toLowerCase());
-  };
-  addRole(profile.role);
-  addRole(profile.roles);
-  addRole(decoded.role);
-  addRole(decoded.roles);
-  if (profile.isAdmin) roles.add("admin");
-  if (profile.teacherRole || profile.isTeacher) roles.add("teacher");
-  return roles;
-}
-
 async function requireStaffUser(req) {
   const decoded = await requireFirebaseUser(req);
   const snap = await db.collection("users").doc(decoded.uid).get();
   const profile = snap.exists ? snap.data() : {};
-  const roles = collectRoles(profile, decoded);
+  if (isDisabledProfile(profile)) throw httpError(403, "Account disabled");
+  const roles = collectTrustedRoles(profile, decoded);
   if (!isSuperAdmin(decoded) && ![...roles].some(role => STAFF_ROLES.has(role))) {
     throw httpError(403, "Teacher or admin access required");
   }
@@ -4247,7 +4234,7 @@ async function setStaffHourlyRate({ actor, staffUid, hourlyRate }) {
     const userSnap = await transaction.get(userRef);
     if (!userSnap.exists) throw httpError(404, "Staff user not found");
     const target = userSnap.data() || {};
-    const targetRoles = collectRoles(target, {});
+    const targetRoles = collectTrustedRoles(target, {});
     const targetEmail = String(target.email || "").trim().toLowerCase();
     if (![...targetRoles].some(role => STAFF_ROLES.has(role)) && !SUPER_ADMIN_EMAILS.has(targetEmail)) {
       throw httpError(409, "Hourly rate can be assigned only to staff");
@@ -4399,6 +4386,119 @@ async function commitInChunks(writes, chunkSize = 400) {
     });
     await batch.commit();
   }
+}
+
+const teacherScopeMigrationRef = () => db.collection("securityMigrations").doc("teacherUidV1");
+
+async function teacherScopeMigrationPlan() {
+  const [usersSnap, studentsSnap, lessonsSnap, scheduleSnap] = await Promise.all([
+    db.collection("users").get(),
+    db.collection("students").get(),
+    db.collection("lessons").get(),
+    db.collection("schedule").get(),
+  ]);
+  const records = snapshot => snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+  return planTeacherScopeBackfill({
+    users: records(usersSnap),
+    students: records(studentsSnap),
+    lessons: records(lessonsSnap),
+    schedule: records(scheduleSnap),
+  });
+}
+
+function publicTeacherScopePlan(plan) {
+  return {
+    readyToApply: plan.readyToApply,
+    summary: plan.summary,
+    directoryConflicts: plan.directoryConflicts,
+    unresolved: Object.fromEntries(Object.entries(plan.unresolved).map(([name, records]) => [name, records.slice(0, 100)])),
+    unresolvedTruncated: Object.fromEntries(Object.entries(plan.unresolved).map(([name, records]) => [name, records.length > 100])),
+    unassigned: Object.fromEntries(Object.entries(plan.unassigned).map(([name, records]) => [name, records.slice(0, 100)])),
+    unassignedTruncated: Object.fromEntries(Object.entries(plan.unassigned).map(([name, records]) => [name, records.length > 100])),
+  };
+}
+
+async function applyTeacherScopeBackfill({ actor }) {
+  const currentSnapshot = await teacherScopeMigrationRef().get();
+  if (currentSnapshot.exists && currentSnapshot.data()?.readEnforced === true) {
+    throw httpError(409, "Roll back teacher scope enforcement before applying the backfill again");
+  }
+  const plan = await teacherScopeMigrationPlan();
+  if (!plan.readyToApply) {
+    const error = httpError(409, "Teacher UID migration has unresolved or ambiguous records");
+    error.details = publicTeacherScopePlan(plan);
+    throw error;
+  }
+  const nowIso = new Date().toISOString();
+  const writes = [];
+  Object.entries(plan.patches).forEach(([collectionName, patches]) => {
+    patches.forEach(patch => writes.push({
+      type: "set",
+      ref: db.collection(collectionName).doc(patch.id),
+      data: {
+        ...patch.data,
+        teacherUidMigrationVersion: 1,
+        teacherUidMigratedAt: nowIso,
+      },
+      options: { merge: true },
+    }));
+  });
+  await commitInChunks(writes);
+  const actorData = actorSnapshot(actor);
+  await db.collection("securityConfig").doc("teacherDirectoryV1").set({
+    version: 1,
+    teachers: plan.teacherDirectory,
+    updatedAt: nowIso,
+    updatedBy: actorData,
+  });
+  await teacherScopeMigrationRef().set({
+    version: 1,
+    status: "backfilled",
+    backfillComplete: true,
+    readEnforced: false,
+    summary: plan.summary,
+    appliedWrites: writes.length,
+    appliedAt: nowIso,
+    appliedBy: actorData,
+    updatedAt: nowIso,
+  }, { merge: true });
+  return { ...publicTeacherScopePlan(plan), appliedWrites: writes.length, readEnforced: false };
+}
+
+async function setTeacherScopeReadEnforcement({ actor, enabled }) {
+  const nowIso = new Date().toISOString();
+  const currentSnapshot = await teacherScopeMigrationRef().get();
+  const current = currentSnapshot.exists ? currentSnapshot.data() : {};
+  if (enabled) {
+    const directorySnapshot = await db.collection("securityConfig").doc("teacherDirectoryV1").get();
+    if (current.backfillComplete !== true || !directorySnapshot.exists) {
+      throw httpError(409, "Teacher UID backfill must be applied before read enforcement");
+    }
+    const plan = await teacherScopeMigrationPlan();
+    const patchCount = Object.values(plan.patches).reduce((sum, patches) => sum + patches.length, 0);
+    if (!plan.readyToApply || patchCount > 0) {
+      const error = httpError(409, "Teacher UID backfill must be complete before read enforcement");
+      error.details = publicTeacherScopePlan(plan);
+      throw error;
+    }
+  }
+  if (!enabled && current.readEnforced !== true) {
+    return { readEnforced: false, updatedAt: current.updatedAt || "", changed: false };
+  }
+  const backfillComplete = enabled ? true : current.backfillComplete === true;
+  const actorData = actorSnapshot(actor);
+  await teacherScopeMigrationRef().set({
+    version: 1,
+    status: enabled ? "enforced" : (backfillComplete ? "backfilled" : "not_started"),
+    backfillComplete,
+    readEnforced: Boolean(enabled),
+    updatedAt: nowIso,
+    updatedBy: actorData,
+    ...(enabled
+      ? { enforcedAt: nowIso, enforcedBy: actorData }
+      : { rolledBackAt: nowIso, rolledBackBy: actorData }),
+  }, { merge: true });
+  return { readEnforced: Boolean(enabled), updatedAt: nowIso, changed: true };
 }
 
 async function recordStaffProgramHeartbeat({ actor, pageInstanceId = "", area = "" }) {
@@ -4574,6 +4674,47 @@ exports.staffOperationsApi = functions.https.onRequest(async (req, res) => {
     }
     if (req.path === "/assistant/refresh") {
       res.json(await refreshOperationalAlerts({ actor }));
+      return;
+    }
+    res.status(404).json({ error: "Not found" });
+  } catch (error) {
+    sendError(res, error);
+  }
+});
+
+exports.teacherScopeMigrationApi = functions.https.onRequest(async (req, res) => {
+  applyCors(req, res);
+  if (req.method === "OPTIONS") { res.status(204).send(""); return; }
+  if (req.method !== "POST") {
+    res.status(405).json({ error: "POST required" });
+    return;
+  }
+  try {
+    const actor = await requireAdminUser(req);
+    if (req.path === "/preview") {
+      res.json(publicTeacherScopePlan(await teacherScopeMigrationPlan()));
+      return;
+    }
+    if (req.path === "/apply") {
+      res.json(await applyTeacherScopeBackfill({ actor }));
+      return;
+    }
+    if (req.path === "/enforce") {
+      res.json(await setTeacherScopeReadEnforcement({ actor, enabled: true }));
+      return;
+    }
+    if (req.path === "/rollback") {
+      res.json(await setTeacherScopeReadEnforcement({ actor, enabled: false }));
+      return;
+    }
+    if (req.path === "/status") {
+      const snapshot = await teacherScopeMigrationRef().get();
+      res.json(snapshot.exists ? snapshot.data() : {
+        version: 1,
+        status: "not_started",
+        backfillComplete: false,
+        readEnforced: false,
+      });
       return;
     }
     res.status(404).json({ error: "Not found" });
