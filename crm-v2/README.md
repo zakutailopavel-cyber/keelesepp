@@ -67,13 +67,15 @@ support the canonical roles:
 Only `users.role` and signed token claims are authorization inputs. Client-owned
 flags such as `isAdmin` or profile role arrays do not grant staff access.
 
-## Firebase collections used by Students
+## Firebase collections used by CRM v2
 
 - `users` — role, display name and the authoritative teacher UID directory;
 - `students` — profile, contacts, level, assignment, progress and active state;
 - `schedule` — student schedule entries;
 - `lessons` — completed lesson history and progress evidence;
 - `invoices` — administrator-only financial summary;
+- `homework` — assignments, deadlines and completion state;
+- `messages` — student-linked conversations;
 - `securityMigrations/teacherUidV1` — UID backfill and read-enforcement state.
 
 The service preserves existing collection names and legacy field meanings. New
@@ -82,7 +84,7 @@ ambiguous teacher is rejected instead of producing an unscoped record.
 
 ## Migrated scope
 
-The Students module currently includes:
+CRM v2 currently includes:
 
 - real Firestore list and profile data;
 - name, phone and email search plus status, level and teacher filters;
@@ -93,9 +95,13 @@ The Students module currently includes:
 - duplicate prevention, validation, submit locking and confirmations;
 - schedule, recent lessons, progress and administrator-only finance summary;
 - route, permission, service and state tests.
-
-Calendar, Finance, Teachers, Homework and Messages remain explicit migration
-boundaries; their navigation is present but they are not presented as complete.
+- a real-data dashboard with upcoming lessons and attention queues;
+- week calendar with lesson creation, conflict prevention and cancellation;
+- finance overview with invoice search, status filters and balances;
+- teacher directory with current student and schedule workload;
+- homework creation, completion, filtering and deletion;
+- student-linked conversations with sending and unread counters;
+- account, role and Firebase connection settings.
 
 ## Migration and deployment status
 
@@ -122,5 +128,6 @@ The isolated preview is available at
 - Firebase's browser bundle is isolated into its own build chunk but remains the
   largest client asset.
 
-Do not merge PR #51 or replace the legacy CRM until the release gate in
-`ACCEPTANCE.md` is complete.
+The legacy CRM remains available as a rollback path while CRM v2 is rolled out.
+Complete the role-based checks in `ACCEPTANCE.md` before enabling strict teacher
+reads or retiring `haldus.html`.

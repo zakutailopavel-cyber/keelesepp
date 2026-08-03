@@ -124,6 +124,14 @@ export function sortStudents(items, sort = 'name-asc') {
 }
 
 export const studentsService = {
+  async listOwned(uid) {
+    const { db } = requireFirebaseClient();
+    const fields = ['linkedUserId', 'studentUid', 'linkedParentId', 'parentUid', 'guardianUid'];
+    const snapshots = await Promise.all(fields.map((field) => getDocs(query(collection(db, 'students'), where(field, '==', uid)))));
+    const unique = new Map();
+    snapshots.forEach((snapshot) => snapshot.docs.forEach((item) => unique.set(item.id, normalizeStudent(item.id, item.data()))));
+    return sortStudents([...unique.values()]);
+  },
   async list(filters = {}) {
     const { db } = requireFirebaseClient();
     const pageSize = Math.max(1, Number(filters.pageSize) || PAGE_SIZE);
