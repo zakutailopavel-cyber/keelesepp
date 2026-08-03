@@ -161,6 +161,12 @@ test("self-registration cannot forge staff roles and disabled accounts are rejec
     },
   );
   assert.equal(normalProfile.status, 200, JSON.stringify(normalProfile.body));
+  const normalProfileRead = await firestoreDocumentRequest(
+    parentToken,
+    "GET",
+    `users/${parentUid}`,
+  );
+  assert.equal(normalProfileRead.status, 200, JSON.stringify(normalProfileRead.body));
 
   const attackerToken = await createUserToken("role-attacker@example.com");
   const attackerUid = tokenUid(attackerToken);
