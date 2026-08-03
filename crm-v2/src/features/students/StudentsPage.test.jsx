@@ -55,6 +55,8 @@ describe('students list states', () => {
     const callsBeforeDebounce = service.list.mock.calls.length;
     expect(service.list).toHaveBeenCalledTimes(callsBeforeDebounce);
     await waitFor(() => expect(service.list).toHaveBeenCalledWith(expect.objectContaining({ search: 'Mari' })), { timeout: 1000 });
+    await new Promise((resolve) => window.setTimeout(resolve, 400));
+    expect(service.list).toHaveBeenLastCalledWith(expect.objectContaining({ search: 'Mari' }));
   });
 
   it('forces a teacher’s own canonical name when creating a student', async () => {

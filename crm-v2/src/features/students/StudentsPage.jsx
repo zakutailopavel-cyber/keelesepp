@@ -31,14 +31,19 @@ export default function StudentsPage({ service = studentsService, actor }) {
   const [actionError, setActionError] = useState('');
   const requestId = useRef(0);
   const urlSearch = searchParams.get('search') || '';
+  const lastUrlSearch = useRef(urlSearch);
 
   useEffect(() => {
-    if (urlSearch !== search && urlSearch !== filters.search) setSearch(urlSearch);
-  }, [filters.search, search, urlSearch]);
+    if (urlSearch === lastUrlSearch.current) return;
+    lastUrlSearch.current = urlSearch;
+    setSearch(urlSearch);
+    setFilters((current) => current.search === urlSearch ? current : { ...current, search: urlSearch });
+  }, [urlSearch]);
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
       const nextSearch = search.trim();
+      lastUrlSearch.current = nextSearch;
       setFilters((current) => current.search === nextSearch ? current : { ...current, search: nextSearch });
       setSearchParams((current) => {
         const next = new window.URLSearchParams(current);
