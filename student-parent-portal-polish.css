@@ -1,0 +1,103 @@
+/* Student and parent portal polish. Existing React and Firebase logic remain unchanged. */
+
+.fade-in:has(.level-bar):has(button):not(:has(input[placeholder*="Otsi"])){
+  gap:18px!important;
+}
+
+.fade-in:has(.level-bar):has(button):not(:has(input[placeholder*="Otsi"])) > div:first-child{
+  position:relative;
+  overflow:hidden;
+  padding:22px!important;
+  border:1px solid var(--ks-border);
+  border-radius:20px;
+  background:
+    radial-gradient(circle at 94% 8%,rgba(201,138,46,.16),transparent 28%),
+    linear-gradient(135deg,#fff 0%,#f8fafc 62%,#eef7f3 100%);
+  box-shadow:var(--ks-shadow-sm);
+}
+
+.fade-in:has(.level-bar):has(button):not(:has(input[placeholder*="Otsi"])) > div:first-child::after{
+  content:"";
+  position:absolute;
+  right:-54px;
+  bottom:-72px;
+  width:145px;
+  height:145px;
+  border:24px solid rgba(47,102,88,.07);
+  border-radius:50%;
+  pointer-events:none;
+}
+
+.fade-in:has(.level-bar):has(button):not(:has(input[placeholder*="Otsi"])) h1{
+  font-size:clamp(1.55rem,2.1vw,2rem)!important;
+}
+
+.fade-in:has(.level-bar):has(button):not(:has(input[placeholder*="Otsi"])) .card{
+  border-color:var(--ks-border)!important;
+  box-shadow:var(--ks-shadow-sm)!important;
+}
+
+.fade-in:has(.level-bar):has(button):not(:has(input[placeholder*="Otsi"])) .card:hover{
+  border-color:#cdd7e2!important;
+  box-shadow:var(--ks-shadow-md)!important;
+}
+
+.fade-in:has(.level-bar):has(button):not(:has(input[placeholder*="Otsi"])) .level-bar{
+  height:9px;
+  background:#e7edf2;
+}
+
+.fade-in:has(.level-bar):has(button):not(:has(input[placeholder*="Otsi"])) .level-fill{
+  box-shadow:0 0 0 1px rgba(255,255,255,.45) inset;
+}
+
+.fade-in:has(.level-bar):has(button):not(:has(input[placeholder*="Otsi"])) [style*="text-transform:uppercase"]{
+  color:#667085!important;
+  letter-spacing:.075em!important;
+}
+
+.fade-in:has(.level-bar):has(button):not(:has(input[placeholder*="Otsi"])) [style*="background:#F9F8F6"],
+.fade-in:has(.level-bar):has(button):not(:has(input[placeholder*="Otsi"])) [style*="background:'#F9F8F6'"]{
+  background:var(--ks-surface-soft)!important;
+  border-color:var(--ks-border)!important;
+}
+
+.fade-in:has(.level-bar):has(button):not(:has(input[placeholder*="Otsi"])) button:not(.btn){
+  transition:transform .14s ease,box-shadow .14s ease,border-color .14s ease,background-color .14s ease;
+}
+
+.fade-in:has(.level-bar):has(button):not(:has(input[placeholder*="Otsi"])) button:not(.btn):hover{
+  transform:translateY(-1px);
+  box-shadow:var(--ks-shadow-sm);
+}
+
+.fade-in:has(.level-bar):has(button):not(:has(input[placeholder*="Otsi"])) .badge{
+  font-weight:650;
+}
+
+@media(max-width:767px){
+  .fade-in:has(.level-bar):has(button):not(:has(input[placeholder*="Otsi"])){
+    gap:14px!important;
+  }
+
+  .fade-in:has(.level-bar):has(button):not(:has(input[placeholder*="Otsi"])) > div:first-child{
+    padding:17px!important;
+    border-radius:16px;
+  }
+
+  .fade-in:has(.level-bar):has(button):not(:has(input[placeholder*="Otsi"])) > div:first-child::after{
+    width:105px;
+    height:105px;
+    right:-50px;
+    bottom:-62px;
+    border-width:20px;
+  }
+
+  .fade-in:has(.level-bar):has(button):not(:has(input[placeholder*="Otsi"])) [style*="display:flex"][style*="gap"]{
+    row-gap:8px!important;
+  }
+
+  .fade-in:has(.level-bar):has(button):not(:has(input[placeholder*="Otsi"])) .btn{
+    flex:1 1 145px;
+  }
+}
