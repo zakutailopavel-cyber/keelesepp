@@ -3,6 +3,20 @@ import { doc, getDoc } from 'firebase/firestore';
 import { getFirebaseClient, requireFirebaseClient } from './client.js';
 import { normalizeRoles } from '../../utils/roles.js';
 
+export class AccountAccessError extends Error {
+  constructor(message = 'Konto profiilile puudub ligipääs. Võta ühendust administraatoriga.') {
+    super(message);
+    this.name = 'AccountAccessError';
+    this.code = 'auth/account-access-denied';
+  }
+}
+
+function accountAccessError(error) {
+  return error?.code === 'permission-denied' || error?.code === 'firestore/permission-denied'
+    ? new AccountAccessError()
+    : error;
+}
+
 async function enrichUser(firebaseUser) {
   if (!firebaseUser) return null;
   const { db } = requireFirebaseClient();
@@ -27,14 +41,27 @@ export const authService = {
       onSession(null);
       return () => {};
     }
-    return onAuthStateChanged(client.auth, async (firebaseUser) => {
-      try { onSession(await enrichUser(firebaseUser)); } catch (error) { onError(error); }
+    let generation = 0;
+    const unsubscribe = onAuthStateChanged(client.auth, async (firebaseUser) => {
+      const activeGeneration = ++generation;
+      try {
+        const user = await enrichUser(firebaseUser);
+        if (activeGeneration === generation) onSession(user);
+      } catch (error) {
+        if (activeGeneration === generation) onError(accountAccessError(error));
+      }
     }, onError);
+    return () => { generation += 1; unsubscribe(); };
   },
   async signIn(email, password) {
     const { auth } = requireFirebaseClient();
     const credential = await signInWithEmailAndPassword(auth, email, password);
-    return enrichUser(credential.user);
+    try {
+      return await enrichUser(credential.user);
+    } catch (error) {
+      await signOut(auth);
+      throw accountAccessError(error);
+    }
   },
   async signOut() {
     const { auth } = requireFirebaseClient();

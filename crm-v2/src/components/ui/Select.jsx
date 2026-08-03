@@ -1,10 +1,11 @@
 export default function Select({ label, error, id, children, className = '', ...props }) {
   const selectId = id || props.name;
+  const errorId = error ? `${selectId}-error` : undefined;
   return (
-    <label className={`field ${className}`} htmlFor={selectId}>
-      {label ? <span className="field__label">{label}</span> : null}
-      <select id={selectId} className={error ? 'is-invalid' : ''} aria-invalid={Boolean(error)} {...props}>{children}</select>
-      {error ? <span className="field__error">{error}</span> : null}
-    </label>
+    <div className={`field ${className}`}>
+      {label ? <label className="field__label" htmlFor={selectId}>{label}</label> : null}
+      <select id={selectId} className={error ? 'is-invalid' : ''} aria-invalid={Boolean(error)} aria-describedby={errorId} {...props}>{children}</select>
+      {error ? <span id={errorId} className="field__error">{error}</span> : null}
+    </div>
   );
 }

@@ -1,9 +1,9 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import StudentsPage from './StudentsPage.jsx';
 
-function renderPage(service) {
-  return render(<MemoryRouter><StudentsPage service={service} /></MemoryRouter>);
+function renderPage(service, actor) {
+  return render(<MemoryRouter><StudentsPage service={service} actor={actor} /></MemoryRouter>);
 }
 
 describe('students list states', () => {
@@ -37,5 +37,36 @@ describe('students list states', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Laadi veel' }));
     expect(await screen.findAllByText('Jaan Tamm')).not.toHaveLength(0);
     expect(service.list).toHaveBeenLastCalledWith(expect.objectContaining({ cursor: 'page-1' }));
+  });
+
+  it('scopes teacher requests to the signed-in teacher', async () => {
+    const service = { list: vi.fn().mockResolvedValue({ items: [], cursor: null, hasMore: false }) };
+    renderPage(service, { roles: ['teacher'], displayName: 'Pavel' });
+    await waitFor(() => expect(service.list).toHaveBeenCalledWith(expect.objectContaining({ scopeTeacher: 'Pavel Zakutailo' })));
+    expect(screen.queryByLabelText('Õpetaja')).not.toBeInTheDocument();
+  });
+
+  it('debounces search requests and keeps hidden contacts out of the UI', async () => {
+    const service = { list: vi.fn().mockResolvedValue({ items: [{ id: 's3', name: 'Kati', email: 'private@example.com', hiddenFields: { email: true }, active: true }], cursor: null, hasMore: false }) };
+    renderPage(service);
+    expect(await screen.findAllByText('Kati')).not.toHaveLength(0);
+    expect(screen.queryByText('private@example.com')).not.toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Otsi nime, telefoni või e-posti järgi'), { target: { value: 'Mari' } });
+    const callsBeforeDebounce = service.list.mock.calls.length;
+    expect(service.list).toHaveBeenCalledTimes(callsBeforeDebounce);
+    await waitFor(() => expect(service.list).toHaveBeenCalledWith(expect.objectContaining({ search: 'Mari' })), { timeout: 1000 });
+  });
+
+  it('forces a teacher’s own canonical name when creating a student', async () => {
+    const service = {
+      list: vi.fn().mockResolvedValue({ items: [{ id: 'existing', name: 'Olemas', teacher: 'Pavel', active: true }], cursor: null, hasMore: false }),
+      create: vi.fn().mockResolvedValue({ id: 'new' }),
+    };
+    renderPage(service, { roles: ['teacher'], displayName: 'Pavel' });
+    await screen.findAllByText('Olemas');
+    fireEvent.click(screen.getByRole('button', { name: 'Lisa õpilane' }));
+    fireEvent.change(screen.getByLabelText('Õpilase nimi *'), { target: { value: 'Uus Õpilane' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Salvesta' }));
+    await waitFor(() => expect(service.create).toHaveBeenCalledWith(expect.objectContaining({ name: 'Uus Õpilane', teacher: 'Pavel Zakutailo' })));
   });
 });

@@ -211,6 +211,16 @@ test("self-registration cannot forge staff roles and disabled accounts are rejec
     requestId: "disabled_admin_request_001",
   });
   assert.equal(disabledCall.status, 403, JSON.stringify(disabledCall.body));
+  const disabledFirestoreRead = await firestoreDocumentRequest(
+    disabledToken,
+    "GET",
+    `users/${disabledUid}`,
+  );
+  assert.equal(
+    disabledFirestoreRead.status,
+    403,
+    JSON.stringify(disabledFirestoreRead.body),
+  );
 });
 
 test("lesson invoice and lesson credit stay atomic, idempotent, and auditable", async () => {

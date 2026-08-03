@@ -11,6 +11,8 @@ import {
   updateDoc,
 } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
+import { canonicalTeacherName, isSameTeacher } from '../../utils/teachers.js';
+import { visibleStudentValue } from '../../utils/studentPrivacy.js';
 
 const PAGE_SIZE = 50;
 const writableFields = [
@@ -27,6 +29,7 @@ export function normalizeStudent(id, data = {}) {
     ...data,
     name: cleanText(data.name),
     parentName: cleanText(data.parentName),
+    parentEmail: cleanText(data.parentEmail),
     email: cleanText(data.email),
     phone: cleanText(data.phone),
     level: cleanText(data.level),
@@ -38,21 +41,46 @@ export function normalizeStudent(id, data = {}) {
   };
 }
 
+export function studentProfileKey(student = {}) {
+  return [
+    cleanText(student.name).toLocaleLowerCase('et'),
+    cleanText(student.parentEmail || student.email).toLocaleLowerCase('et'),
+    cleanText(student.parentName).toLocaleLowerCase('et'),
+    cleanText(student.subject || 'Eesti keel').toLocaleLowerCase('et'),
+    canonicalTeacherName(student.teacher).toLocaleLowerCase('et'),
+  ].join('|');
+}
+
+export class StudentDuplicateError extends Error {
+  constructor() {
+    super('Sama nime, kontakti, õppeaine ja õpetajaga aktiivne õpilane on juba olemas.');
+    this.name = 'StudentDuplicateError';
+    this.code = 'students/duplicate';
+  }
+}
+
 function pickStudentFields(data) {
   return Object.fromEntries(writableFields.filter((key) => key in data).map((key) => [key, typeof data[key] === 'string' ? cleanText(data[key]) : data[key]]));
 }
 
-function matchesFilters(student, filters = {}) {
+export function matchesStudentFilters(student, filters = {}) {
   const search = cleanText(filters.search).toLocaleLowerCase('et');
-  if (search && ![student.name, student.phone, student.email, student.parentName].some((value) => cleanText(value).toLocaleLowerCase('et').includes(search))) return false;
+  if (search && ![
+    visibleStudentValue(student, 'name'),
+    visibleStudentValue(student, 'phone'),
+    visibleStudentValue(student, 'email'),
+    visibleStudentValue(student, 'parentEmail'),
+    visibleStudentValue(student, 'parentName'),
+  ].some((value) => cleanText(value).toLocaleLowerCase('et').includes(search))) return false;
   if (filters.status === 'active' && !student.active) return false;
   if (filters.status === 'archived' && student.active) return false;
   if (filters.level && student.level !== filters.level) return false;
-  if (filters.teacher && student.teacher !== filters.teacher) return false;
+  if (filters.teacher && !isSameTeacher(student.teacher, filters.teacher)) return false;
+  if (filters.scopeTeacher && !isSameTeacher(student.teacher, filters.scopeTeacher)) return false;
   return true;
 }
 
-function sortStudents(items, sort = 'name-asc') {
+export function sortStudents(items, sort = 'name-asc') {
   const collator = new Intl.Collator('et', { sensitivity: 'base', numeric: true });
   const sorted = [...items];
   if (sort === 'name-desc') sorted.sort((a, b) => collator.compare(b.name, a.name));
@@ -65,14 +93,29 @@ function sortStudents(items, sort = 'name-asc') {
 export const studentsService = {
   async list(filters = {}) {
     const { db } = requireFirebaseClient();
-    const constraints = [orderBy('name'), limit(filters.pageSize || PAGE_SIZE)];
-    if (filters.cursor) constraints.splice(1, 0, startAfter(filters.cursor));
-    const snapshot = await getDocs(query(collection(db, 'students'), ...constraints));
-    const items = snapshot.docs.map((item) => normalizeStudent(item.id, item.data()));
+    const pageSize = Math.max(1, Number(filters.pageSize) || PAGE_SIZE);
+    const exhaustiveSort = filters.sort === 'level' || filters.sort === 'teacher';
+    const direction = filters.sort === 'name-desc' ? 'desc' : 'asc';
+    let cursor = filters.cursor || null;
+    let hasMore = true;
+    const items = [];
+
+    while (hasMore && (exhaustiveSort || items.length < pageSize)) {
+      const constraints = [orderBy('name', direction), limit(pageSize)];
+      if (cursor) constraints.splice(1, 0, startAfter(cursor));
+      const snapshot = await getDocs(query(collection(db, 'students'), ...constraints));
+      cursor = snapshot.docs.at(-1) || cursor;
+      hasMore = snapshot.size === pageSize;
+      items.push(...snapshot.docs
+        .map((item) => normalizeStudent(item.id, item.data()))
+        .filter((student) => matchesStudentFilters(student, filters)));
+      if (!snapshot.size) hasMore = false;
+    }
+
     return {
-      items: sortStudents(items.filter((student) => matchesFilters(student, filters)), filters.sort),
-      cursor: snapshot.docs.at(-1) || null,
-      hasMore: snapshot.size === (filters.pageSize || PAGE_SIZE),
+      items: sortStudents(items, filters.sort),
+      cursor,
+      hasMore,
     };
   },
   async getById(id) {
@@ -82,7 +125,20 @@ export const studentsService = {
   },
   async create(data) {
     const { db } = requireFirebaseClient();
-    const payload = { ...pickStudentFields(data), active: true, createdAt: new Date().toISOString().slice(0, 10) };
+    const candidate = normalizeStudent('', data);
+    const possibleDuplicates = await this.list({ search: candidate.name, status: 'active', pageSize: PAGE_SIZE });
+    const duplicate = possibleDuplicates.items
+      .some((student) => student.active && studentProfileKey(student) === studentProfileKey(candidate));
+    if (duplicate) throw new StudentDuplicateError();
+    const payload = {
+      ...pickStudentFields(data),
+      active: true,
+      contactStatus: data.contactStatus || 'new',
+      contactOwner: data.contactOwner || '',
+      contactLastAt: data.contactLastAt || '',
+      contactNotes: data.contactNotes || '',
+      createdAt: new Date().toISOString().slice(0, 10),
+    };
     const reference = await addDoc(collection(db, 'students'), payload);
     return normalizeStudent(reference.id, payload);
   },

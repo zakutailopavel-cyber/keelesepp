@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Button, Input, Modal, Select } from '../../components/ui/index.js';
+import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
 import { STUDENT_LEVELS } from './studentOptions.js';
 
 const emptyForm = { name: '', parentName: '', email: '', phone: '', level: 'A1', targetLevel: 'B1', subject: 'Eesti keel', grade: '', group: '', teacher: '', active: true };
@@ -33,7 +34,7 @@ export default function StudentForm({ open, student, teachers = [], canAssignTea
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) return;
     setSubmitting(true); setSubmitError('');
-    try { await onSubmit(values); onClose(); } catch (error) { setSubmitError(error.message); } finally { setSubmitting(false); }
+    try { await onSubmit(values); onClose(); } catch (error) { setSubmitError(firebaseErrorMessage(error)); } finally { setSubmitting(false); }
   };
 
   return (

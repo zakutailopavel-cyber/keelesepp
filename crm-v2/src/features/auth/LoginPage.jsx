@@ -21,7 +21,12 @@ export default function LoginPage() {
       await signIn(form.email, form.password);
       navigate(location.state?.from?.pathname || '/', { replace: true });
     } catch (caught) {
-      setError(caught.code === 'auth/invalid-credential' ? 'Vale e-post või parool.' : caught.message);
+      const messages = {
+        'auth/invalid-credential': 'Vale e-post või parool.',
+        'auth/user-disabled': 'Konto on administraatori poolt välja lülitatud.',
+        'auth/account-access-denied': 'Konto profiilile puudub ligipääs. Võta ühendust administraatoriga.',
+      };
+      setError(messages[caught.code] || caught.message);
     } finally { setSubmitting(false); }
   };
 

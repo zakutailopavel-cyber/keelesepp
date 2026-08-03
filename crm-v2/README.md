@@ -23,6 +23,16 @@ npm run build
 npm test
 ```
 
+## Acceptance deployment
+
+The dedicated CRM v2 deployment is available at
+[keelesepp-crm-v2.vercel.app](https://keelesepp-crm-v2.vercel.app). The Vercel
+project uses `crm-v2/` as its root directory and does not change the legacy
+`www.epkoolitus.ee` project. Firebase web configuration is stored in Vercel
+environment variables, not in Git.
+
+Use [ACCEPTANCE.md](./ACCEPTANCE.md) for the role-based manual smoke test.
+
 ## Current scope
 
 - new application shell
@@ -31,6 +41,9 @@ npm test
 - modular Firebase services (no Firestore calls from components)
 - real `students` collection list, filters, gradual loading and profile route
 - create, edit and non-destructive archive student workflows
+- teacher-scoped student visibility compatible with legacy teacher aliases
+- student schedule, progress and administrator-only financial summary
+- legacy hidden-field handling and duplicate-student protection
 - shared UI primitives and explicit loading, empty and error states
 - placeholder boundaries for the remaining feature migrations
 
