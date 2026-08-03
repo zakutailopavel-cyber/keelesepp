@@ -1,0 +1,90 @@
+/* Calendar workspace polish. Keeps scheduling logic untouched. */
+
+.fade-in:has([style*="grid-template-columns"]):has(button[title*="nädal"],button[title*="päev"],button[title*="kuu"]){
+  gap:18px!important;
+}
+
+.fade-in:has(button[title*="nädal"],button[title*="päev"],button[title*="kuu"]) > div:first-child{
+  padding:18px 20px;
+  border:1px solid var(--ks-border);
+  border-radius:18px;
+  background:linear-gradient(135deg,#fff,#f7faf9);
+  box-shadow:var(--ks-shadow-sm);
+}
+
+.fade-in:has(button[title*="nädal"],button[title*="päev"],button[title*="kuu"]) button{
+  transition:background-color .15s ease,border-color .15s ease,color .15s ease,transform .15s ease,box-shadow .15s ease;
+}
+
+.fade-in:has(button[title*="nädal"],button[title*="päev"],button[title*="kuu"]) button:hover{
+  transform:translateY(-1px);
+}
+
+.fade-in:has(button[title*="nädal"],button[title*="päev"],button[title*="kuu"]) [style*="overflow-x:auto"],
+.fade-in:has(button[title*="nädal"],button[title*="päev"],button[title*="kuu"]) [style*="overflowX:'auto'"]{
+  scrollbar-color:#c7d0da transparent;
+  scrollbar-width:thin;
+}
+
+.fade-in:has(button[title*="nädal"],button[title*="päev"],button[title*="kuu"]) [style*="overflow-x:auto"]::-webkit-scrollbar,
+.fade-in:has(button[title*="nädal"],button[title*="päev"],button[title*="kuu"]) [style*="overflowX:'auto'"]::-webkit-scrollbar{
+  height:8px;
+}
+
+.fade-in:has(button[title*="nädal"],button[title*="päev"],button[title*="kuu"]) [style*="overflow-x:auto"]::-webkit-scrollbar-thumb,
+.fade-in:has(button[title*="nädal"],button[title*="päev"],button[title*="kuu"]) [style*="overflowX:'auto'"]::-webkit-scrollbar-thumb{
+  background:#c7d0da;
+  border-radius:999px;
+}
+
+/* Schedule event cards */
+.fade-in:has(button[title*="nädal"],button[title*="päev"],button[title*="kuu"]) [draggable="true"],
+.fade-in:has(button[title*="nädal"],button[title*="päev"],button[title*="kuu"]) button[style*="border-left"],
+.fade-in:has(button[title*="nädal"],button[title*="päev"],button[title*="kuu"]) button[style*="borderLeft"]{
+  border-radius:10px!important;
+  box-shadow:0 2px 6px rgba(16,24,40,.08)!important;
+}
+
+.fade-in:has(button[title*="nädal"],button[title*="päev"],button[title*="kuu"]) [draggable="true"]:hover,
+.fade-in:has(button[title*="nädal"],button[title*="päev"],button[title*="kuu"]) button[style*="border-left"]:hover,
+.fade-in:has(button[title*="nädal"],button[title*="päev"],button[title*="kuu"]) button[style*="borderLeft"]:hover{
+  box-shadow:0 8px 18px rgba(16,24,40,.14)!important;
+  z-index:3;
+}
+
+/* Today columns and conflict callouts become easier to scan. */
+.fade-in:has(button[title*="nädal"],button[title*="päev"],button[title*="kuu"]) [style*="background:#fff7ed"],
+.fade-in:has(button[title*="nädal"],button[title*="päev"],button[title*="kuu"]) [style*="background:'#fff7ed'"]{
+  background:linear-gradient(180deg,#fffaf2,#fff)!important;
+}
+
+.fade-in:has(button[title*="nädal"],button[title*="päev"],button[title*="kuu"]) [style*="color:#991b1b"],
+.fade-in:has(button[title*="nädal"],button[title*="päev"],button[title*="kuu"]) [style*="color:'#991b1b'"]{
+  font-weight:700!important;
+}
+
+.fade-in:has(button[title*="nädal"],button[title*="päev"],button[title*="kuu"]) .card{
+  border-color:var(--ks-border)!important;
+  box-shadow:var(--ks-shadow-sm)!important;
+}
+
+@media(max-width:767px){
+  .fade-in:has(button[title*="nädal"],button[title*="päev"],button[title*="kuu"]) > div:first-child{
+    padding:15px;
+    border-radius:16px;
+  }
+
+  .fade-in:has(button[title*="nädal"],button[title*="päev"],button[title*="kuu"]) > div:first-child > div{
+    width:100%;
+  }
+
+  .fade-in:has(button[title*="nädal"],button[title*="päev"],button[title*="kuu"]) select,
+  .fade-in:has(button[title*="nädal"],button[title*="päev"],button[title*="kuu"]) input{
+    min-width:0!important;
+  }
+
+  .fade-in:has(button[title*="nädal"],button[title*="päev"],button[title*="kuu"]) [style*="min-width"],
+  .fade-in:has(button[title*="nädal"],button[title*="päev"],button[title*="kuu"]) [style*="minWidth"]{
+    scroll-snap-type:x proximity;
+  }
+}
