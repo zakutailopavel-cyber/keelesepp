@@ -29,6 +29,16 @@ export function AuthProvider({ children, service = authService }) {
         throw error;
       }
     },
+    signInWithGoogle: async () => {
+      setState((current) => ({ ...current, loading: true, error: null }));
+      try {
+        const user = await service.signInWithGoogle();
+        setState({ loading: false, user, error: null });
+      } catch (error) {
+        setState({ loading: false, user: null, error });
+        throw error;
+      }
+    },
     signOut: () => service.signOut(),
   }), [configured, service, state]);
 

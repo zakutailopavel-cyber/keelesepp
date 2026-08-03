@@ -1,4 +1,10 @@
-import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import {
+  GoogleAuthProvider,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signOut,
+} from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { getFirebaseClient, requireFirebaseClient } from './client.js';
 import { normalizeRoles } from '../../utils/roles.js';
@@ -56,6 +62,16 @@ export const authService = {
   async signIn(email, password) {
     const { auth } = requireFirebaseClient();
     const credential = await signInWithEmailAndPassword(auth, email, password);
+    try {
+      return await enrichUser(credential.user);
+    } catch (error) {
+      await signOut(auth);
+      throw accountAccessError(error);
+    }
+  },
+  async signInWithGoogle() {
+    const { auth } = requireFirebaseClient();
+    const credential = await signInWithPopup(auth, new GoogleAuthProvider());
     try {
       return await enrichUser(credential.user);
     } catch (error) {

@@ -4,7 +4,7 @@ import { Button, Card, ErrorState, Input } from '../../components/ui/index.js';
 import { useAuth } from '../../app/AuthContext.jsx';
 
 export default function LoginPage() {
-  const { configured, user, signIn } = useAuth();
+  const { configured, user, signIn, signInWithGoogle } = useAuth();
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -30,6 +30,22 @@ export default function LoginPage() {
     } finally { setSubmitting(false); }
   };
 
+  const googleSignIn = async () => {
+    setSubmitting(true); setError('');
+    try {
+      await signInWithGoogle();
+      navigate(location.state?.from?.pathname || '/', { replace: true });
+    } catch (caught) {
+      const messages = {
+        'auth/popup-closed-by-user': 'Google’i sisselogimisaken suleti.',
+        'auth/popup-blocked': 'Brauser blokeeris Google’i sisselogimisakna.',
+        'auth/unauthorized-domain': 'See CRM v2 aadress ei ole Firebase Authenticationis lubatud.',
+        'auth/account-access-denied': 'Konto profiilile puudub ligipääs. Võta ühendust administraatoriga.',
+      };
+      setError(messages[caught.code] || caught.message);
+    } finally { setSubmitting(false); }
+  };
+
   return (
     <main className="login-page">
       <Card className="login-card">
@@ -39,6 +55,7 @@ export default function LoginPage() {
           <Input label="Parool" name="password" type="password" autoComplete="current-password" required value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} />
           {error ? <p className="form-error" role="alert">{error}</p> : null}
           <Button type="submit" loading={submitting}>Logi sisse</Button>
+          <Button type="button" variant="secondary" disabled={submitting} onClick={googleSignIn}>Jätka Google’iga</Button>
         </form>
       </Card>
     </main>
