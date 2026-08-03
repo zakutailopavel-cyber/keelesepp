@@ -94,22 +94,28 @@ export const studentsService = {
   async list(filters = {}) {
     const { db } = requireFirebaseClient();
     const pageSize = Math.max(1, Number(filters.pageSize) || PAGE_SIZE);
-    const exhaustiveSort = filters.sort === 'level' || filters.sort === 'teacher';
+    const exhaustive = filters.exhaustive || filters.sort === 'level' || filters.sort === 'teacher';
     const direction = filters.sort === 'name-desc' ? 'desc' : 'asc';
     let cursor = filters.cursor || null;
     let hasMore = true;
     const items = [];
 
-    while (hasMore && (exhaustiveSort || items.length < pageSize)) {
+    while (hasMore && (exhaustive || items.length < pageSize)) {
       const constraints = [orderBy('name', direction), limit(pageSize)];
       if (cursor) constraints.splice(1, 0, startAfter(cursor));
       const snapshot = await getDocs(query(collection(db, 'students'), ...constraints));
-      cursor = snapshot.docs.at(-1) || cursor;
       hasMore = snapshot.size === pageSize;
-      items.push(...snapshot.docs
-        .map((item) => normalizeStudent(item.id, item.data()))
-        .filter((student) => matchesStudentFilters(student, filters)));
       if (!snapshot.size) hasMore = false;
+
+      for (const [index, item] of snapshot.docs.entries()) {
+        cursor = item;
+        const student = normalizeStudent(item.id, item.data());
+        if (matchesStudentFilters(student, filters)) items.push(student);
+        if (!exhaustive && items.length === pageSize) {
+          hasMore = index < snapshot.docs.length - 1 || snapshot.size === pageSize;
+          break;
+        }
+      }
     }
 
     return {
@@ -126,7 +132,7 @@ export const studentsService = {
   async create(data) {
     const { db } = requireFirebaseClient();
     const candidate = normalizeStudent('', data);
-    const possibleDuplicates = await this.list({ search: candidate.name, status: 'active', pageSize: PAGE_SIZE });
+    const possibleDuplicates = await this.list({ search: candidate.name, status: 'active', pageSize: PAGE_SIZE, exhaustive: true });
     const duplicate = possibleDuplicates.items
       .some((student) => student.active && studentProfileKey(student) === studentProfileKey(candidate));
     if (duplicate) throw new StudentDuplicateError();
