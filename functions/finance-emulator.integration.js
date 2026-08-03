@@ -166,6 +166,319 @@ async function staffOperationsRequest(token, path, payload = {}) {
   return { status: response.status, body };
 }
 
+test("self-registration cannot forge staff roles and disabled accounts are rejected", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+
+  const parentToken = await createUserToken("safe-parent@example.com");
+  const parentUid = tokenUid(parentToken);
+  const normalProfile = await firestoreDocumentRequest(
+    parentToken,
+    "PATCH",
+    `users/${parentUid}`,
+    {
+      fields: {
+        role: { stringValue: "parent" },
+        displayName: { stringValue: "Safe Parent" },
+        email: { stringValue: "safe-parent@example.com" },
+        childName: { stringValue: "" },
+        preferredTeacher: { stringValue: "Pavel" },
+        createdAt: { stringValue: "2026-08-03" },
+      },
+    },
+  );
+  assert.equal(normalProfile.status, 200, JSON.stringify(normalProfile.body));
+  const normalProfileRead = await firestoreDocumentRequest(
+    parentToken,
+    "GET",
+    `users/${parentUid}`,
+  );
+  assert.equal(normalProfileRead.status, 200, JSON.stringify(normalProfileRead.body));
+
+  const attackerToken = await createUserToken("role-attacker@example.com");
+  const attackerUid = tokenUid(attackerToken);
+  const forgedProfile = await firestoreDocumentRequest(
+    attackerToken,
+    "PATCH",
+    `users/${attackerUid}`,
+    {
+      fields: {
+        role: { stringValue: "student" },
+        displayName: { stringValue: "Role Attacker" },
+        email: { stringValue: "role-attacker@example.com" },
+        createdAt: { stringValue: "2026-08-03" },
+        isAdmin: { booleanValue: true },
+        roles: { arrayValue: { values: [{ stringValue: "admin" }] } },
+      },
+    },
+  );
+  assert.equal(forgedProfile.status, 403, JSON.stringify(forgedProfile.body));
+
+  await db.collection("users").doc(attackerUid).set({
+    role: "student",
+    displayName: "Role Attacker",
+    email: "role-attacker@example.com",
+    isAdmin: true,
+    roles: ["admin"],
+  });
+  const forgedAdminCall = await financeRequest(attackerToken, "/tariffs", {
+    name: "Forged tariff",
+    unitPrice: 1,
+    effectiveFrom: "2026-08-03",
+    requestId: "forged_admin_request_001",
+  });
+  assert.equal(forgedAdminCall.status, 403, JSON.stringify(forgedAdminCall.body));
+
+  const disabledToken = await createUserToken("disabled-admin@example.com");
+  const disabledUid = tokenUid(disabledToken);
+  await db.collection("users").doc(disabledUid).set({
+    role: "admin",
+    displayName: "Disabled Admin",
+    email: "disabled-admin@example.com",
+    disabled: true,
+  });
+  const disabledCall = await financeRequest(disabledToken, "/tariffs", {
+    name: "Disabled tariff",
+    unitPrice: 1,
+    effectiveFrom: "2026-08-03",
+    requestId: "disabled_admin_request_001",
+  });
+  assert.equal(disabledCall.status, 403, JSON.stringify(disabledCall.body));
+  const disabledFirestoreRead = await firestoreDocumentRequest(
+    disabledToken,
+    "GET",
+    `users/${disabledUid}`,
+  );
+  assert.equal(
+    disabledFirestoreRead.status,
+    403,
+    JSON.stringify(disabledFirestoreRead.body),
+  );
+});
+
+test("student writes keep teachers inside their assigned scope", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const adminToken = await createAdminToken();
+  const teacherToken = await createUserToken("student-scope-pavel@example.com");
+  const otherTeacherToken = await createUserToken("student-scope-elena@example.com");
+  const parentToken = await createUserToken("student-scope-parent@example.com");
+  const teacherUid = tokenUid(teacherToken);
+  const otherTeacherUid = tokenUid(otherTeacherToken);
+  const parentUid = tokenUid(parentToken);
+
+  await Promise.all([
+    db.collection("users").doc(teacherUid).set({
+      role: "teacher",
+      displayName: "Pavel Zakutailo",
+      email: "student-scope-pavel@example.com",
+    }),
+    db.collection("users").doc(otherTeacherUid).set({
+      role: "teacher",
+      displayName: "Elena Zakutailo",
+      email: "student-scope-elena@example.com",
+    }),
+    db.collection("users").doc(parentUid).set({
+      role: "parent",
+      displayName: "Scope Parent",
+      email: "student-scope-parent@example.com",
+    }),
+  ]);
+
+  const ownCreate = await firestoreDocumentRequest(
+    teacherToken,
+    "PATCH",
+    "students/teacher-owned-student",
+    {
+      fields: {
+        name: { stringValue: "Teacher Owned" },
+        teacher: { stringValue: "Pavel" },
+        active: { booleanValue: true },
+      },
+    },
+  );
+  assert.equal(ownCreate.status, 200, JSON.stringify(ownCreate.body));
+
+  const foreignCreate = await firestoreDocumentRequest(
+    teacherToken,
+    "PATCH",
+    "students/foreign-create-student",
+    {
+      fields: {
+        name: { stringValue: "Foreign Create" },
+        teacher: { stringValue: "Elena" },
+        active: { booleanValue: true },
+      },
+    },
+  );
+  assert.equal(foreignCreate.status, 403, JSON.stringify(foreignCreate.body));
+
+  const adminCreate = await firestoreDocumentRequest(
+    adminToken,
+    "PATCH",
+    "students/other-teacher-student",
+    {
+      fields: {
+        name: { stringValue: "Other Teacher Student" },
+        teacher: { stringValue: "Elena Zakutailo" },
+        linkedParentId: { stringValue: parentUid },
+        active: { booleanValue: true },
+      },
+    },
+  );
+  assert.equal(adminCreate.status, 200, JSON.stringify(adminCreate.body));
+
+  const ownUpdate = await firestoreDocumentRequest(
+    teacherToken,
+    "PATCH",
+    "students/teacher-owned-student?updateMask.fieldPaths=phone",
+    { fields: { phone: { stringValue: "+3725550001" } } },
+  );
+  assert.equal(ownUpdate.status, 200, JSON.stringify(ownUpdate.body));
+
+  const reassignment = await firestoreDocumentRequest(
+    teacherToken,
+    "PATCH",
+    "students/teacher-owned-student?updateMask.fieldPaths=teacher",
+    { fields: { teacher: { stringValue: "Elena" } } },
+  );
+  assert.equal(reassignment.status, 403, JSON.stringify(reassignment.body));
+
+  const foreignUpdate = await firestoreDocumentRequest(
+    teacherToken,
+    "PATCH",
+    "students/other-teacher-student?updateMask.fieldPaths=phone",
+    { fields: { phone: { stringValue: "+3725550002" } } },
+  );
+  assert.equal(foreignUpdate.status, 403, JSON.stringify(foreignUpdate.body));
+
+  const otherTeacherUpdate = await firestoreDocumentRequest(
+    otherTeacherToken,
+    "PATCH",
+    "students/other-teacher-student?updateMask.fieldPaths=phone",
+    { fields: { phone: { stringValue: "+3725550003" } } },
+  );
+  assert.equal(otherTeacherUpdate.status, 200, JSON.stringify(otherTeacherUpdate.body));
+
+  const linkedParentRead = await firestoreDocumentRequest(
+    parentToken,
+    "GET",
+    "students/other-teacher-student",
+  );
+  assert.equal(linkedParentRead.status, 200, JSON.stringify(linkedParentRead.body));
+
+  const parentOwnedCreate = await firestoreDocumentRequest(
+    parentToken,
+    "PATCH",
+    "students/parent-created-student",
+    {
+      fields: {
+        name: { stringValue: "Parent Created" },
+        linkedParentId: { stringValue: parentUid },
+        parentUid: { stringValue: parentUid },
+        parentName: { stringValue: "Scope Parent" },
+        parentEmail: { stringValue: "student-scope-parent@example.com" },
+        teacher: { stringValue: "Pavel" },
+        level: { stringValue: "A1" },
+        targetLevel: { stringValue: "B1" },
+        subject: { stringValue: "Eesti keel" },
+        grade: { stringValue: "" },
+        group: { stringValue: "" },
+        phone: { stringValue: "" },
+        email: { stringValue: "" },
+        active: { booleanValue: true },
+        packageTotal: { integerValue: "0" },
+        packageUsed: { integerValue: "0" },
+        contactStatus: { stringValue: "new" },
+        contactOwner: { stringValue: "" },
+        contactLastAt: { stringValue: "" },
+        contactNotes: { stringValue: "" },
+        createdAt: { stringValue: "2026-08-03" },
+      },
+    },
+  );
+  assert.equal(parentOwnedCreate.status, 200, JSON.stringify(parentOwnedCreate.body));
+
+  const selfStudentCreate = await firestoreDocumentRequest(
+    parentToken,
+    "PATCH",
+    "students/parent-self-student",
+    {
+      fields: {
+        linkedUserId: { stringValue: parentUid },
+        studentUid: { stringValue: parentUid },
+        isSelfStudent: { booleanValue: true },
+        parentAsStudent: { booleanValue: true },
+        name: { stringValue: "Scope Parent" },
+        email: { stringValue: "student-scope-parent@example.com" },
+        phone: { stringValue: "" },
+        level: { stringValue: "A1" },
+        targetLevel: { stringValue: "B1" },
+        teacher: { stringValue: "Pavel" },
+        active: { booleanValue: true },
+        packageTotal: { integerValue: "0" },
+        packageUsed: { integerValue: "0" },
+        subject: { stringValue: "Eesti keel" },
+        grade: { stringValue: "Täiskasvanu" },
+        group: { stringValue: "" },
+        registrationSource: { stringValue: "parent-self-student" },
+        profileStatus: { stringValue: "new" },
+        contactStatus: { stringValue: "new" },
+        contactOwner: { stringValue: "Pavel" },
+        contactLastAt: { stringValue: "" },
+        contactNotes: { stringValue: "Lapsevanem lisas enda õpingud" },
+        createdAt: { stringValue: "2026-08-03" },
+      },
+    },
+  );
+  assert.equal(selfStudentCreate.status, 200, JSON.stringify(selfStudentCreate.body));
+
+  const forgedPackageCreate = await firestoreDocumentRequest(
+    parentToken,
+    "PATCH",
+    "students/parent-forged-package",
+    {
+      fields: {
+        name: { stringValue: "Forged Package" },
+        linkedParentId: { stringValue: parentUid },
+        active: { booleanValue: true },
+        packageTotal: { integerValue: "100" },
+        packageUsed: { integerValue: "0" },
+        createdAt: { stringValue: "2026-08-03" },
+      },
+    },
+  );
+  assert.equal(forgedPackageCreate.status, 403, JSON.stringify(forgedPackageCreate.body));
+
+  const forgedTariffCreate = await firestoreDocumentRequest(
+    parentToken,
+    "PATCH",
+    "students/parent-forged-tariff",
+    {
+      fields: {
+        name: { stringValue: "Forged Tariff" },
+        linkedParentId: { stringValue: parentUid },
+        active: { booleanValue: true },
+        packageTotal: { integerValue: "0" },
+        packageUsed: { integerValue: "0" },
+        latestTariffUnitPriceCents: { integerValue: "1" },
+        createdAt: { stringValue: "2026-08-03" },
+      },
+    },
+  );
+  assert.equal(forgedTariffCreate.status, 403, JSON.stringify(forgedTariffCreate.body));
+
+  const parentArchive = await firestoreDocumentRequest(
+    parentToken,
+    "PATCH",
+    "students/other-teacher-student?updateMask.fieldPaths=active",
+    { fields: { active: { booleanValue: false } } },
+  );
+  assert.equal(parentArchive.status, 403, JSON.stringify(parentArchive.body));
+});
+
 async function teacherScopeMigrationRequest(token, path, payload = {}) {
   const response = await fetch(
     `http://${FUNCTIONS_EMULATOR}/${PROJECT_ID}/us-central1/teacherScopeMigrationApi${path}`,
@@ -238,6 +551,35 @@ test("teacher scope flag preserves legacy reads and then enforces teacher owners
       backfillComplete: true,
       readEnforced: true,
     });
+
+    const scopedCreate = await firestoreDocumentRequest(
+      teacherToken,
+      "PATCH",
+      "students/scope-created",
+      {
+        fields: {
+          name: { stringValue: "Scoped Create" },
+          teacher: { stringValue: "Scope Teacher" },
+          teacherUid: { stringValue: teacherUid },
+          active: { booleanValue: true },
+        },
+      },
+    );
+    const foreignCreate = await firestoreDocumentRequest(
+      teacherToken,
+      "PATCH",
+      "students/scope-foreign-create",
+      {
+        fields: {
+          name: { stringValue: "Foreign Scoped Create" },
+          teacher: { stringValue: "Other Teacher" },
+          teacherUid: { stringValue: otherTeacherUid },
+          active: { booleanValue: true },
+        },
+      },
+    );
+    assert.equal(scopedCreate.status, 200, JSON.stringify(scopedCreate.body));
+    assert.equal(foreignCreate.status, 403, JSON.stringify(foreignCreate.body));
 
     for (const collectionName of ["students", "lessons", "schedule"]) {
       const own = await firestoreDocumentRequest(teacherToken, "GET", `${collectionName}/scope-own`);

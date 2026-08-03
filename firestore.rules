@@ -3,7 +3,11 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() {
-      return request.auth != null;
+      return request.auth != null
+        && (
+          !exists(/databases/$(database)/documents/users/$(request.auth.uid))
+          || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('disabled', false) != true
+        );
     }
 
     function uid() {
@@ -44,6 +48,41 @@ service cloud.firestore {
       return signedIn() && userRole(uid()) == 'teacher';
     }
 
+    function teacherName(userId) {
+      return hasUserDoc(userId)
+        ? get(userPath(userId)).data.get('displayName', '')
+        : '';
+    }
+
+    function sameTeacherName(left, right) {
+      return left is string
+        && right is string
+        && (
+          left.lower() == right.lower()
+          || (
+            left.lower().matches('^pavel( .*)?$')
+            && right.lower().matches('^pavel( .*)?$')
+          )
+          || (
+            left.lower().matches('^(jelena|elena)( .*)?$')
+            && right.lower().matches('^(jelena|elena)( .*)?$')
+          )
+          || (
+            left.lower().matches('^(elizaveta|yelyzaveta)( .*)?$')
+            && right.lower().matches('^(elizaveta|yelyzaveta)( .*)?$')
+          )
+          || (
+            left.lower().matches('^(angelina|anhelina)( .*)?$')
+            && right.lower().matches('^(angelina|anhelina)( .*)?$')
+          )
+        );
+    }
+
+    function teacherOwnsStudentData(data) {
+      return isTeacher()
+        && sameTeacherName(data.get('teacher', ''), teacherName(uid()));
+    }
+
     function teacherScopeReadEnforced() {
       return signedIn()
         && exists(/databases/$(database)/documents/securityMigrations/teacherUidV1)
@@ -57,14 +96,30 @@ service cloud.firestore {
 
     function teacherCanCreate(data) {
       return isTeacher()
-        && (!teacherScopeReadEnforced() || data.teacherUid == uid());
+        && (
+          data.get('teacherUid', '') == uid()
+          || (
+            !teacherScopeReadEnforced()
+            && data.get('teacherUid', '') == ''
+            && teacherOwnsStudentData(data)
+          )
+        );
     }
 
     function teacherCanUpdate(before, after) {
       return isTeacher()
         && (
-          !teacherScopeReadEnforced()
-          || (before.teacherUid == uid() && after.teacherUid == uid())
+          (
+            before.get('teacherUid', '') == uid()
+            && after.get('teacherUid', '') == uid()
+          )
+          || (
+            !teacherScopeReadEnforced()
+            && before.get('teacherUid', '') == ''
+            && after.get('teacherUid', '') == ''
+            && teacherOwnsStudentData(before)
+            && teacherOwnsStudentData(after)
+          )
         );
     }
 
@@ -489,15 +544,70 @@ service cloud.firestore {
       ]);
     }
 
+    function changesStudentOwnership() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasAny([
+        'teacher',
+        'linkedUserId',
+        'studentUid',
+        'linkedParentId',
+        'parentUid',
+        'guardianUid'
+      ]);
+    }
+
     function createsOwnStudent() {
       return signedIn()
         && (
-          request.resource.data.linkedUserId == uid()
-          || request.resource.data.studentUid == uid()
-          || request.resource.data.linkedParentId == uid()
-          || request.resource.data.parentUid == uid()
-          || request.resource.data.guardianUid == uid()
-        );
+          request.resource.data.get('linkedUserId', '') == uid()
+          || request.resource.data.get('studentUid', '') == uid()
+          || request.resource.data.get('linkedParentId', '') == uid()
+          || request.resource.data.get('parentUid', '') == uid()
+          || request.resource.data.get('guardianUid', '') == uid()
+        )
+        && request.resource.data.keys().hasOnly([
+          'linkedUserId',
+          'studentUid',
+          'linkedParentId',
+          'parentUid',
+          'guardianUid',
+          'isSelfStudent',
+          'parentAsStudent',
+          'name',
+          'parentName',
+          'parentEmail',
+          'email',
+          'phone',
+          'level',
+          'targetLevel',
+          'teacher',
+          'active',
+          'packageTotal',
+          'packageUsed',
+          'subject',
+          'grade',
+          'group',
+          'registrationSource',
+          'profileStatus',
+          'contactStatus',
+          'contactOwner',
+          'contactLastAt',
+          'contactNotes',
+          'createdAt',
+          'updatedAt'
+        ])
+        && request.resource.data.keys().hasAll([
+          'name',
+          'active',
+          'packageTotal',
+          'packageUsed',
+          'createdAt'
+        ])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 160
+        && request.resource.data.active == true
+        && request.resource.data.packageTotal == 0
+        && request.resource.data.packageUsed == 0;
     }
 
     function safeSelfUserFields() {
@@ -513,11 +623,40 @@ service cloud.firestore {
       ]);
     }
 
+    function safeSelfUserCreate() {
+      return request.resource.data.keys().hasOnly([
+          'role',
+          'displayName',
+          'email',
+          'childName',
+          'preferredTeacher',
+          'phone',
+          'parentPhone',
+          'createdAt',
+          'updatedAt',
+          'parentReviewStatus',
+          'parentReviewKey'
+        ])
+        && request.resource.data.keys().hasAll([
+          'role',
+          'displayName',
+          'email',
+          'createdAt'
+        ])
+        && request.resource.data.role in ['parent', 'student']
+        && request.resource.data.displayName is string
+        && request.resource.data.displayName.size() > 0
+        && request.resource.data.displayName.size() <= 160
+        && request.resource.data.email is string
+        && request.resource.data.email.size() > 0
+        && request.resource.data.email.size() <= 320;
+    }
+
     match /users/{userId} {
       allow read: if signedIn() && (uid() == userId || isStaff());
       allow create: if signedIn()
         && uid() == userId
-        && request.resource.data.role in ['parent', 'student'];
+        && safeSelfUserCreate();
       allow update: if isAdmin() || (signedIn() && uid() == userId && safeSelfUserFields());
       allow delete: if isAdmin();
     }
@@ -525,7 +664,15 @@ service cloud.firestore {
     match /students/{studentId} {
       allow read: if isAdmin() || teacherCanRead(resource.data) || ownsStudent(studentId);
       allow create: if isAdmin() || teacherCanCreate(request.resource.data) || createsOwnStudent();
-      allow update: if ((isAdmin() || teacherCanUpdate(resource.data, request.resource.data)) && !changesStudentTariffSource())
+      allow update: if (
+          isAdmin()
+          && !changesStudentTariffSource()
+        )
+        || (
+          teacherCanUpdate(resource.data, request.resource.data)
+          && !changesStudentOwnership()
+          && !changesStudentTariffSource()
+        )
         || (
           ownsStudent(studentId)
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
