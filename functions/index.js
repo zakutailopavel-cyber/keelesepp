@@ -4451,7 +4451,6 @@ async function applyTeacherScopeBackfill({ actor }) {
     updatedAt: nowIso,
     updatedBy: actorData,
   });
-  const actorData = actorSnapshot(actor);
   await teacherScopeMigrationRef().set({
     version: 1,
     status: "backfilled",
@@ -4487,6 +4486,7 @@ async function setTeacherScopeReadEnforcement({ actor, enabled }) {
     return { readEnforced: false, updatedAt: current.updatedAt || "", changed: false };
   }
   const backfillComplete = enabled ? true : current.backfillComplete === true;
+  const actorData = actorSnapshot(actor);
   await teacherScopeMigrationRef().set({
     version: 1,
     status: enabled ? "enforced" : (backfillComplete ? "backfilled" : "not_started"),
