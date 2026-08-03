@@ -28,7 +28,7 @@ function LessonButton({ item, compact = false, onClick }) {
   return <button className={`lesson-chip ${compact ? 'lesson-chip--compact' : ''}`} onClick={() => onClick(item)}><time>{item.time}</time><strong>{item.studentName || 'Õpilane'}</strong>{compact ? null : <small>{item.teacher || 'Õpetaja'} · {item.duration} min</small>}</button>;
 }
 
-export default function CalendarPage() {
+export default function CalendarPage({ scheduleRepository = scheduleService, studentRepository = studentsService }) {
   const { user } = useAuth();
   const [anchor, setAnchor] = useState(toIsoDate());
   const [view, setView] = useState('week');
@@ -40,9 +40,9 @@ export default function CalendarPage() {
   const [actionError, setActionError] = useState('');
   const teacherOnly = user.roles.includes(ROLES.TEACHER) && !user.roles.includes(ROLES.ADMIN);
   const state = useAsyncData(async () => Promise.all([
-    scheduleService.list(teacherOnly ? { teacherUid: user.uid } : {}),
-    studentsService.list({ status: 'active', pageSize: 500, exhaustive: true, ...(teacherOnly ? { scopeTeacherUid: user.uid } : {}) }),
-  ]), [teacherOnly, user.uid]);
+    scheduleRepository.list(teacherOnly ? { teacherUid: user.uid } : {}),
+    studentRepository.list({ status: 'active', pageSize: 500, exhaustive: true, ...(teacherOnly ? { scopeTeacherUid: user.uid } : {}) }),
+  ]), [scheduleRepository, studentRepository, teacherOnly, user.uid]);
   const dates = useMemo(() => datesForView(anchor, view), [anchor, view]);
 
   if (state.loading) return <LoadingState label="Laen kalendrit…" />;
@@ -68,15 +68,15 @@ export default function CalendarPage() {
       const candidate = { ...form, studentName: student.name, teacher: student.teacher || user.displayName, teacherUid: student.teacherUid || user.uid };
       const conflictEvents = occurrencesForDates(events, [candidate.date]).map((item) => ({ ...item, date: item.occurrenceDate }));
       if (hasScheduleConflict(conflictEvents, candidate, editing?.id)) throw new Error('Sellel õpetajal on valitud ajal juba teine tund.');
-      if (editing) await scheduleService.update(editing.id, candidate, editing);
-      else await scheduleService.create(candidate);
+      if (editing) await scheduleRepository.update(editing.id, candidate, editing);
+      else await scheduleRepository.create(candidate);
       setModal(false); setEditing(null); await state.reload();
     } catch (error) { setActionError(error.message); } finally { setSaving(false); }
   };
   const cancelLesson = async () => {
     if (!editing || !window.confirm('Kas tühistada see tund?')) return;
     setSaving(true);
-    try { await scheduleService.cancel(editing.id, editing); setModal(false); setEditing(null); await state.reload(); }
+    try { await scheduleRepository.cancel(editing.id, editing); setModal(false); setEditing(null); await state.reload(); }
     catch (error) { setActionError(error.message); } finally { setSaving(false); }
   };
 
