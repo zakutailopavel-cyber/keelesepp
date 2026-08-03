@@ -1,4 +1,4 @@
-import { matchesStudentFilters, normalizeStudent, sortStudents, studentProfileKey } from './students.js';
+import { hasDuplicateStudent, matchesStudentFilters, normalizeStudent, sortStudents, studentProfileKey } from './students.js';
 
 describe('students service mapping', () => {
   it('preserves legacy fields and normalizes missing values', () => {
@@ -23,5 +23,16 @@ describe('students service mapping', () => {
     const left = studentProfileKey({ name: ' Mari ', email: 'PARENT@EXAMPLE.COM', parentName: ' Kati ', subject: 'Eesti keel', teacher: 'Pavel' });
     const right = studentProfileKey({ name: 'mari', parentEmail: 'parent@example.com', parentName: 'kati', subject: 'eesti keel', teacher: 'pavel' });
     expect(left).toBe(right);
+  });
+
+  it('rejects a duplicate identity while excluding the record being edited', () => {
+    const candidate = normalizeStudent('editing', { name: 'Mari', email: 'parent@example.com', parentName: 'Kati', teacher: 'Pavel' });
+    const records = [
+      normalizeStudent('editing', { name: 'Mari', email: 'parent@example.com', parentName: 'Kati', teacher: 'Pavel' }),
+      normalizeStudent('duplicate', { name: ' mari ', parentEmail: 'PARENT@EXAMPLE.COM', parentName: 'kati', teacher: 'Pavel Zakutailo' }),
+    ];
+
+    expect(hasDuplicateStudent(records, candidate, 'editing')).toBe(true);
+    expect(hasDuplicateStudent(records.slice(0, 1), candidate, 'editing')).toBe(false);
   });
 });

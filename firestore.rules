@@ -44,6 +44,45 @@ service cloud.firestore {
       return isAdmin() || (signedIn() && userRole(uid()) == 'teacher');
     }
 
+    function isTeacher() {
+      return signedIn() && userRole(uid()) == 'teacher';
+    }
+
+    function teacherName(userId) {
+      return hasUserDoc(userId)
+        ? get(userPath(userId)).data.get('displayName', '')
+        : '';
+    }
+
+    function sameTeacherName(left, right) {
+      return left is string
+        && right is string
+        && (
+          left.lower() == right.lower()
+          || (
+            left.lower().matches('^pavel( .*)?$')
+            && right.lower().matches('^pavel( .*)?$')
+          )
+          || (
+            left.lower().matches('^(jelena|elena)( .*)?$')
+            && right.lower().matches('^(jelena|elena)( .*)?$')
+          )
+          || (
+            left.lower().matches('^(elizaveta|yelyzaveta)( .*)?$')
+            && right.lower().matches('^(elizaveta|yelyzaveta)( .*)?$')
+          )
+          || (
+            left.lower().matches('^(angelina|anhelina)( .*)?$')
+            && right.lower().matches('^(angelina|anhelina)( .*)?$')
+          )
+        );
+    }
+
+    function teacherOwnsStudentData(data) {
+      return isTeacher()
+        && sameTeacherName(data.get('teacher', ''), teacherName(uid()));
+    }
+
     function studentPath(studentId) {
       return /databases/$(database)/documents/students/$(studentId);
     }
@@ -465,6 +504,17 @@ service cloud.firestore {
       ]);
     }
 
+    function changesStudentOwnership() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasAny([
+        'teacher',
+        'linkedUserId',
+        'studentUid',
+        'linkedParentId',
+        'parentUid',
+        'guardianUid'
+      ]);
+    }
+
     function createsOwnStudent() {
       return signedIn()
         && (
@@ -529,8 +579,19 @@ service cloud.firestore {
 
     match /students/{studentId} {
       allow read: if isStaff() || ownsStudent(studentId);
-      allow create: if isStaff() || createsOwnStudent();
-      allow update: if (isStaff() && !changesStudentTariffSource())
+      allow create: if isAdmin()
+        || teacherOwnsStudentData(request.resource.data)
+        || createsOwnStudent();
+      allow update: if (
+          isAdmin()
+          && !changesStudentTariffSource()
+        )
+        || (
+          teacherOwnsStudentData(resource.data)
+          && teacherOwnsStudentData(request.resource.data)
+          && !changesStudentOwnership()
+          && !changesStudentTariffSource()
+        )
         || (
           ownsStudent(studentId)
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([

@@ -229,6 +229,127 @@ test("self-registration cannot forge staff roles and disabled accounts are rejec
   );
 });
 
+test("student writes keep teachers inside their assigned scope", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const adminToken = await createAdminToken();
+  const teacherToken = await createUserToken("student-scope-pavel@example.com");
+  const otherTeacherToken = await createUserToken("student-scope-elena@example.com");
+  const parentToken = await createUserToken("student-scope-parent@example.com");
+  const teacherUid = tokenUid(teacherToken);
+  const otherTeacherUid = tokenUid(otherTeacherToken);
+  const parentUid = tokenUid(parentToken);
+
+  await Promise.all([
+    db.collection("users").doc(teacherUid).set({
+      role: "teacher",
+      displayName: "Pavel Zakutailo",
+      email: "student-scope-pavel@example.com",
+    }),
+    db.collection("users").doc(otherTeacherUid).set({
+      role: "teacher",
+      displayName: "Elena Zakutailo",
+      email: "student-scope-elena@example.com",
+    }),
+    db.collection("users").doc(parentUid).set({
+      role: "parent",
+      displayName: "Scope Parent",
+      email: "student-scope-parent@example.com",
+    }),
+  ]);
+
+  const ownCreate = await firestoreDocumentRequest(
+    teacherToken,
+    "PATCH",
+    "students/teacher-owned-student",
+    {
+      fields: {
+        name: { stringValue: "Teacher Owned" },
+        teacher: { stringValue: "Pavel" },
+        active: { booleanValue: true },
+      },
+    },
+  );
+  assert.equal(ownCreate.status, 200, JSON.stringify(ownCreate.body));
+
+  const foreignCreate = await firestoreDocumentRequest(
+    teacherToken,
+    "PATCH",
+    "students/foreign-create-student",
+    {
+      fields: {
+        name: { stringValue: "Foreign Create" },
+        teacher: { stringValue: "Elena" },
+        active: { booleanValue: true },
+      },
+    },
+  );
+  assert.equal(foreignCreate.status, 403, JSON.stringify(foreignCreate.body));
+
+  const adminCreate = await firestoreDocumentRequest(
+    adminToken,
+    "PATCH",
+    "students/other-teacher-student",
+    {
+      fields: {
+        name: { stringValue: "Other Teacher Student" },
+        teacher: { stringValue: "Elena Zakutailo" },
+        linkedParentId: { stringValue: parentUid },
+        active: { booleanValue: true },
+      },
+    },
+  );
+  assert.equal(adminCreate.status, 200, JSON.stringify(adminCreate.body));
+
+  const ownUpdate = await firestoreDocumentRequest(
+    teacherToken,
+    "PATCH",
+    "students/teacher-owned-student?updateMask.fieldPaths=phone",
+    { fields: { phone: { stringValue: "+3725550001" } } },
+  );
+  assert.equal(ownUpdate.status, 200, JSON.stringify(ownUpdate.body));
+
+  const reassignment = await firestoreDocumentRequest(
+    teacherToken,
+    "PATCH",
+    "students/teacher-owned-student?updateMask.fieldPaths=teacher",
+    { fields: { teacher: { stringValue: "Elena" } } },
+  );
+  assert.equal(reassignment.status, 403, JSON.stringify(reassignment.body));
+
+  const foreignUpdate = await firestoreDocumentRequest(
+    teacherToken,
+    "PATCH",
+    "students/other-teacher-student?updateMask.fieldPaths=phone",
+    { fields: { phone: { stringValue: "+3725550002" } } },
+  );
+  assert.equal(foreignUpdate.status, 403, JSON.stringify(foreignUpdate.body));
+
+  const otherTeacherUpdate = await firestoreDocumentRequest(
+    otherTeacherToken,
+    "PATCH",
+    "students/other-teacher-student?updateMask.fieldPaths=phone",
+    { fields: { phone: { stringValue: "+3725550003" } } },
+  );
+  assert.equal(otherTeacherUpdate.status, 200, JSON.stringify(otherTeacherUpdate.body));
+
+  const linkedParentRead = await firestoreDocumentRequest(
+    parentToken,
+    "GET",
+    "students/other-teacher-student",
+  );
+  assert.equal(linkedParentRead.status, 200, JSON.stringify(linkedParentRead.body));
+
+  const parentArchive = await firestoreDocumentRequest(
+    parentToken,
+    "PATCH",
+    "students/other-teacher-student?updateMask.fieldPaths=active",
+    { fields: { active: { booleanValue: false } } },
+  );
+  assert.equal(parentArchive.status, 403, JSON.stringify(parentArchive.body));
+});
+
 test("lesson invoice and lesson credit stay atomic, idempotent, and auditable", async () => {
   requireSafeEmulatorEnvironment();
   if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });

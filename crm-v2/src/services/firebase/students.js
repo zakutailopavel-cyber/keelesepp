@@ -59,6 +59,15 @@ export class StudentDuplicateError extends Error {
   }
 }
 
+export function hasDuplicateStudent(items, candidate, excludeId = '') {
+  const candidateKey = studentProfileKey(candidate);
+  return items.some((student) => (
+    student.id !== excludeId
+    && student.active
+    && studentProfileKey(student) === candidateKey
+  ));
+}
+
 function pickStudentFields(data) {
   return Object.fromEntries(writableFields.filter((key) => key in data).map((key) => [key, typeof data[key] === 'string' ? cleanText(data[key]) : data[key]]));
 }
@@ -131,11 +140,9 @@ export const studentsService = {
   },
   async create(data) {
     const { db } = requireFirebaseClient();
-    const candidate = normalizeStudent('', data);
+    const candidate = normalizeStudent('', { ...data, active: true });
     const possibleDuplicates = await this.list({ search: candidate.name, status: 'active', pageSize: PAGE_SIZE, exhaustive: true });
-    const duplicate = possibleDuplicates.items
-      .some((student) => student.active && studentProfileKey(student) === studentProfileKey(candidate));
-    if (duplicate) throw new StudentDuplicateError();
+    if (hasDuplicateStudent(possibleDuplicates.items, candidate)) throw new StudentDuplicateError();
     const payload = {
       ...pickStudentFields(data),
       active: true,
@@ -151,6 +158,15 @@ export const studentsService = {
   async update(id, data) {
     const { db } = requireFirebaseClient();
     const payload = { ...pickStudentFields(data), updatedAt: new Date().toISOString().slice(0, 10) };
+    const current = await this.getById(id);
+    const candidate = current ? normalizeStudent(id, { ...current, ...payload }) : null;
+    if (
+      candidate?.active
+      && studentProfileKey(candidate) !== studentProfileKey(current)
+    ) {
+      const possibleDuplicates = await this.list({ search: candidate.name, status: 'active', pageSize: PAGE_SIZE, exhaustive: true });
+      if (hasDuplicateStudent(possibleDuplicates.items, candidate, id)) throw new StudentDuplicateError();
+    }
     await updateDoc(doc(db, 'students', id), payload);
     return this.getById(id);
   },
