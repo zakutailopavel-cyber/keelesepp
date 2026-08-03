@@ -518,12 +518,56 @@ service cloud.firestore {
     function createsOwnStudent() {
       return signedIn()
         && (
-          request.resource.data.linkedUserId == uid()
-          || request.resource.data.studentUid == uid()
-          || request.resource.data.linkedParentId == uid()
-          || request.resource.data.parentUid == uid()
-          || request.resource.data.guardianUid == uid()
-        );
+          request.resource.data.get('linkedUserId', '') == uid()
+          || request.resource.data.get('studentUid', '') == uid()
+          || request.resource.data.get('linkedParentId', '') == uid()
+          || request.resource.data.get('parentUid', '') == uid()
+          || request.resource.data.get('guardianUid', '') == uid()
+        )
+        && request.resource.data.keys().hasOnly([
+          'linkedUserId',
+          'studentUid',
+          'linkedParentId',
+          'parentUid',
+          'guardianUid',
+          'isSelfStudent',
+          'parentAsStudent',
+          'name',
+          'parentName',
+          'parentEmail',
+          'email',
+          'phone',
+          'level',
+          'targetLevel',
+          'teacher',
+          'active',
+          'packageTotal',
+          'packageUsed',
+          'subject',
+          'grade',
+          'group',
+          'registrationSource',
+          'profileStatus',
+          'contactStatus',
+          'contactOwner',
+          'contactLastAt',
+          'contactNotes',
+          'createdAt',
+          'updatedAt'
+        ])
+        && request.resource.data.keys().hasAll([
+          'name',
+          'active',
+          'packageTotal',
+          'packageUsed',
+          'createdAt'
+        ])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 160
+        && request.resource.data.active == true
+        && request.resource.data.packageTotal == 0
+        && request.resource.data.packageUsed == 0;
     }
 
     function safeSelfUserFields() {

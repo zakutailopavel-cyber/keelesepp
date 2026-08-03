@@ -341,6 +341,60 @@ test("student writes keep teachers inside their assigned scope", async () => {
   );
   assert.equal(linkedParentRead.status, 200, JSON.stringify(linkedParentRead.body));
 
+  const parentOwnedCreate = await firestoreDocumentRequest(
+    parentToken,
+    "PATCH",
+    "students/parent-created-student",
+    {
+      fields: {
+        name: { stringValue: "Parent Created" },
+        linkedParentId: { stringValue: parentUid },
+        parentUid: { stringValue: parentUid },
+        teacher: { stringValue: "Pavel" },
+        active: { booleanValue: true },
+        packageTotal: { integerValue: "0" },
+        packageUsed: { integerValue: "0" },
+        createdAt: { stringValue: "2026-08-03" },
+      },
+    },
+  );
+  assert.equal(parentOwnedCreate.status, 200, JSON.stringify(parentOwnedCreate.body));
+
+  const forgedPackageCreate = await firestoreDocumentRequest(
+    parentToken,
+    "PATCH",
+    "students/parent-forged-package",
+    {
+      fields: {
+        name: { stringValue: "Forged Package" },
+        linkedParentId: { stringValue: parentUid },
+        active: { booleanValue: true },
+        packageTotal: { integerValue: "100" },
+        packageUsed: { integerValue: "0" },
+        createdAt: { stringValue: "2026-08-03" },
+      },
+    },
+  );
+  assert.equal(forgedPackageCreate.status, 403, JSON.stringify(forgedPackageCreate.body));
+
+  const forgedTariffCreate = await firestoreDocumentRequest(
+    parentToken,
+    "PATCH",
+    "students/parent-forged-tariff",
+    {
+      fields: {
+        name: { stringValue: "Forged Tariff" },
+        linkedParentId: { stringValue: parentUid },
+        active: { booleanValue: true },
+        packageTotal: { integerValue: "0" },
+        packageUsed: { integerValue: "0" },
+        latestTariffUnitPriceCents: { integerValue: "1" },
+        createdAt: { stringValue: "2026-08-03" },
+      },
+    },
+  );
+  assert.equal(forgedTariffCreate.status, 403, JSON.stringify(forgedTariffCreate.body));
+
   const parentArchive = await firestoreDocumentRequest(
     parentToken,
     "PATCH",
