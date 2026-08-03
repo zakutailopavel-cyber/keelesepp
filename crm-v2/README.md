@@ -6,17 +6,33 @@ A separate React/Vite workspace for rebuilding the CRM without disrupting the cu
 
 ```bash
 cd crm-v2
-npm install
+npm ci
+cp .env.example .env
 npm run dev
+```
+
+Use the existing KeeleSepp Firebase web configuration in `.env`. Real values are
+not committed. Without configuration the application renders an explicit setup
+message instead of crashing.
+
+## Verify
+
+```bash
+npm run lint
+npm run build
+npm test
 ```
 
 ## Current scope
 
 - new application shell
 - responsive sidebar and top navigation
-- dashboard metrics
-- lesson schedule overview
-- attention/action queue
+- role-aware authentication and protected routes
+- modular Firebase services (no Firestore calls from components)
+- real `students` collection list, filters, gradual loading and profile route
+- create, edit and non-destructive archive student workflows
+- shared UI primitives and explicit loading, empty and error states
+- placeholder boundaries for the remaining feature migrations
 
 ## Migration rule
 

@@ -73,6 +73,7 @@ const {
   payAmountCents,
   workDurationMinutes,
 } = require("./staff-operations-core");
+const { collectTrustedRoles, isDisabledProfile } = require("./auth-core");
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -279,7 +280,7 @@ async function requireFirebaseUser(req) {
   const match = header.match(/^Bearer\s+(.+)$/i);
   if (!match) throw httpError(401, "Firebase ID token required");
   try {
-    return await admin.auth().verifyIdToken(match[1]);
+    return await admin.auth().verifyIdToken(match[1], true);
   } catch (e) {
     throw httpError(401, "Invalid Firebase ID token");
   }
@@ -294,6 +295,7 @@ async function requireCalendarOwner(req, uid, { staffOnly = true } = {}) {
   if (decoded.uid !== uid && !isSuperAdmin(decoded)) throw httpError(403, "Forbidden");
   const snap = await db.collection("users").doc(uid).get();
   const profile = snap.exists ? snap.data() : {};
+  if (isDisabledProfile(profile)) throw httpError(403, "Account disabled");
   const role = profile.role || decoded.role || "";
   if (staffOnly && !STAFF_ROLES.has(role) && !isSuperAdmin(decoded)) {
     throw httpError(403, "Teacher or admin access required");
@@ -310,30 +312,12 @@ function configBool(value, fallback = false) {
   return ["1", "true", "yes", "y", "on"].includes(String(value).trim().toLowerCase());
 }
 
-function collectRoles(profile = {}, decoded = {}) {
-  const roles = new Set();
-  const addRole = value => {
-    if (!value) return;
-    if (Array.isArray(value)) {
-      value.forEach(addRole);
-      return;
-    }
-    roles.add(String(value).toLowerCase());
-  };
-  addRole(profile.role);
-  addRole(profile.roles);
-  addRole(decoded.role);
-  addRole(decoded.roles);
-  if (profile.isAdmin) roles.add("admin");
-  if (profile.teacherRole || profile.isTeacher) roles.add("teacher");
-  return roles;
-}
-
 async function requireStaffUser(req) {
   const decoded = await requireFirebaseUser(req);
   const snap = await db.collection("users").doc(decoded.uid).get();
   const profile = snap.exists ? snap.data() : {};
-  const roles = collectRoles(profile, decoded);
+  if (isDisabledProfile(profile)) throw httpError(403, "Account disabled");
+  const roles = collectTrustedRoles(profile, decoded);
   if (!isSuperAdmin(decoded) && ![...roles].some(role => STAFF_ROLES.has(role))) {
     throw httpError(403, "Teacher or admin access required");
   }

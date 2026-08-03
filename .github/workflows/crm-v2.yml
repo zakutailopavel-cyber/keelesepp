@@ -1,0 +1,49 @@
+name: CRM v2
+
+on:
+  pull_request:
+    paths:
+      - 'crm-v2/**'
+      - '.github/workflows/crm-v2.yml'
+  push:
+    branches: [crm-v2]
+    paths:
+      - 'crm-v2/**'
+      - '.github/workflows/crm-v2.yml'
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: crm-v2
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: crm-v2/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+      - run: npm test
+
+  security-regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: npm ci
+        working-directory: functions
+      - run: npm test
+        working-directory: functions
+      - run: npx --yes firebase-tools emulators:exec --project demo-keelesepp-finance --only auth,firestore,functions "cd functions && npm run test:emulator"

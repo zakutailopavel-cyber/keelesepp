@@ -1,6 +1,0 @@
-a.nav-item{text-decoration:none}
-.data-notice{margin:-10px 0 18px;padding:11px 14px;border:1px solid #fedf89;border-radius:12px;background:#fffaeb;color:#92400e;font-size:.86rem;font-weight:600}
-.compact-heading{align-items:flex-start}
-.empty-state{min-height:280px;display:grid;place-content:center;text-align:center;padding:42px}
-.empty-state strong{font:800 1.25rem Manrope,sans-serif}
-.empty-state p{max-width:620px;color:var(--muted);line-height:1.65;margin:10px auto 0}

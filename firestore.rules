@@ -485,11 +485,40 @@ service cloud.firestore {
       ]);
     }
 
+    function safeSelfUserCreate() {
+      return request.resource.data.keys().hasOnly([
+          'role',
+          'displayName',
+          'email',
+          'childName',
+          'preferredTeacher',
+          'phone',
+          'parentPhone',
+          'createdAt',
+          'updatedAt',
+          'parentReviewStatus',
+          'parentReviewKey'
+        ])
+        && request.resource.data.keys().hasAll([
+          'role',
+          'displayName',
+          'email',
+          'createdAt'
+        ])
+        && request.resource.data.role in ['parent', 'student']
+        && request.resource.data.displayName is string
+        && request.resource.data.displayName.size() > 0
+        && request.resource.data.displayName.size() <= 160
+        && request.resource.data.email is string
+        && request.resource.data.email.size() > 0
+        && request.resource.data.email.size() <= 320;
+    }
+
     match /users/{userId} {
       allow read: if signedIn() && (uid() == userId || isStaff());
       allow create: if signedIn()
         && uid() == userId
-        && request.resource.data.role in ['parent', 'student'];
+        && safeSelfUserCreate();
       allow update: if isAdmin() || (signedIn() && uid() == userId && safeSelfUserFields());
       allow delete: if isAdmin();
     }

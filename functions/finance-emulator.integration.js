@@ -138,6 +138,81 @@ async function staffOperationsRequest(token, path, payload = {}) {
   return { status: response.status, body };
 }
 
+test("self-registration cannot forge staff roles and disabled accounts are rejected", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+
+  const parentToken = await createUserToken("safe-parent@example.com");
+  const parentUid = tokenUid(parentToken);
+  const normalProfile = await firestoreDocumentRequest(
+    parentToken,
+    "PATCH",
+    `users/${parentUid}`,
+    {
+      fields: {
+        role: { stringValue: "parent" },
+        displayName: { stringValue: "Safe Parent" },
+        email: { stringValue: "safe-parent@example.com" },
+        childName: { stringValue: "" },
+        preferredTeacher: { stringValue: "Pavel" },
+        createdAt: { stringValue: "2026-08-03" },
+      },
+    },
+  );
+  assert.equal(normalProfile.status, 200, JSON.stringify(normalProfile.body));
+
+  const attackerToken = await createUserToken("role-attacker@example.com");
+  const attackerUid = tokenUid(attackerToken);
+  const forgedProfile = await firestoreDocumentRequest(
+    attackerToken,
+    "PATCH",
+    `users/${attackerUid}`,
+    {
+      fields: {
+        role: { stringValue: "student" },
+        displayName: { stringValue: "Role Attacker" },
+        email: { stringValue: "role-attacker@example.com" },
+        createdAt: { stringValue: "2026-08-03" },
+        isAdmin: { booleanValue: true },
+        roles: { arrayValue: { values: [{ stringValue: "admin" }] } },
+      },
+    },
+  );
+  assert.equal(forgedProfile.status, 403, JSON.stringify(forgedProfile.body));
+
+  await db.collection("users").doc(attackerUid).set({
+    role: "student",
+    displayName: "Role Attacker",
+    email: "role-attacker@example.com",
+    isAdmin: true,
+    roles: ["admin"],
+  });
+  const forgedAdminCall = await financeRequest(attackerToken, "/tariffs", {
+    name: "Forged tariff",
+    unitPrice: 1,
+    effectiveFrom: "2026-08-03",
+    requestId: "forged_admin_request_001",
+  });
+  assert.equal(forgedAdminCall.status, 403, JSON.stringify(forgedAdminCall.body));
+
+  const disabledToken = await createUserToken("disabled-admin@example.com");
+  const disabledUid = tokenUid(disabledToken);
+  await db.collection("users").doc(disabledUid).set({
+    role: "admin",
+    displayName: "Disabled Admin",
+    email: "disabled-admin@example.com",
+    disabled: true,
+  });
+  const disabledCall = await financeRequest(disabledToken, "/tariffs", {
+    name: "Disabled tariff",
+    unitPrice: 1,
+    effectiveFrom: "2026-08-03",
+    requestId: "disabled_admin_request_001",
+  });
+  assert.equal(disabledCall.status, 403, JSON.stringify(disabledCall.body));
+});
+
 test("lesson invoice and lesson credit stay atomic, idempotent, and auditable", async () => {
   requireSafeEmulatorEnvironment();
   if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
