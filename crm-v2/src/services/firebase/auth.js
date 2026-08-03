@@ -36,7 +36,7 @@ async function enrichUser(firebaseUser) {
     email: firebaseUser.email || profile.email || '',
     displayName: profile.displayName || firebaseUser.displayName || firebaseUser.email || '',
     profile,
-    roles: normalizeRoles(profile, tokenResult.claims),
+    roles: normalizeRoles(profile, tokenResult.claims, { email: firebaseUser.email }),
   };
 }
 

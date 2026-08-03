@@ -20,6 +20,10 @@ The repository contains no private keys, access tokens or production secrets.
 When required configuration is missing, the application shows a setup message
 instead of initializing Firebase or crashing.
 
+`VITE_SUPER_ADMIN_EMAILS` mirrors the existing server-side super-administrator
+allowlist for route presentation. Firestore rules and Cloud Functions remain the
+authoritative permission boundary.
+
 ## Commands
 
 ```bash
