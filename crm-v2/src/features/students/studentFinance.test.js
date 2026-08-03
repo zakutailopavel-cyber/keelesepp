@@ -19,4 +19,9 @@ describe('legacy invoice summary', () => {
     ], new Date('2026-08-03T12:00:00Z'));
     expect(summary).toEqual({ balanceCents: 8500, overdue: 1 });
   });
+
+  it('is safe to pass directly to Array.filter', () => {
+    const invoices = [{ balanceDueCents: 1000, dueDate: '2020-01-01' }];
+    expect(invoices.filter(isInvoiceOverdue)).toHaveLength(1);
+  });
 });
