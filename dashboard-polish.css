@@ -1,3 +1,5 @@
+@import url('/students-crm.css');
+
 /* Dashboard and workspace polish layered over the existing CRM markup. */
 
 .fade-in:has(> div:first-child > h1:first-child){
@@ -43,7 +45,6 @@
   margin-top:7px!important;
 }
 
-/* Existing KPI grids become denser, clearer dashboard tiles without changing React logic. */
 .fade-in > div[style*="grid-template-columns: repeat(auto-fill,minmax(180px,1fr))"],
 .fade-in > div[style*="grid-template-columns:'repeat(auto-fill,minmax(180px,1fr))'"]{
   gap:14px!important;
@@ -75,7 +76,6 @@
   box-shadow:var(--ks-shadow-md)!important;
 }
 
-/* Dashboard action rows remain usable on phones instead of becoming button soup. */
 .fade-in .card > div[style*="justify-content:space-between"]{
   row-gap:10px!important;
 }
@@ -88,7 +88,6 @@
   letter-spacing:.075em!important;
 }
 
-/* Better visual hierarchy for lists inside dashboard cards. */
 .fade-in .card > div[style*="flex-direction:column"] > div[style*="background:#F9F8F6"],
 .fade-in .card > div[style*="flex-direction:column"] > div[style*="background:'#F9F8F6'"]{
   background:var(--ks-surface-soft)!important;
