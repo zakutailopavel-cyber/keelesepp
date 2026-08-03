@@ -75,6 +75,28 @@
     const matched = TEACHERS.find(t => lower === t.toLowerCase() || lower.startsWith(t.toLowerCase() + ' '));
     return matched || name;
   };
+  const canonicalTeacherKey = value => {
+    const first = normalizeText(canonicalTeacherName(value)).split(/\s+/)[0] || '';
+    return {
+      jelena:'elena',
+      elena:'elena',
+      elizaveta:'yelyzaveta',
+      yelyzaveta:'yelyzaveta',
+      angelina:'anhelina',
+      anhelina:'anhelina'
+    }[first] || first;
+  };
+  const teacherUidFromDirectory = async teacherName => {
+    const key = canonicalTeacherKey(teacherName);
+    if(!key || !window._db) return '';
+    try{
+      const snapshot = await window._db.collection('securityConfig').doc('teacherDirectoryV1').get();
+      return snapshot.exists ? String(snapshot.data()?.teachers?.[key] || '') : '';
+    }catch(error){
+      console.warn('Teacher directory lookup failed:',error);
+      return '';
+    }
+  };
 
   const levelPct = (cur,tgt) => { const c=LEVELS.indexOf(cur),t=LEVELS.indexOf(tgt); return t>0&&c<t?Math.round(c/t*100):c>=t?100:0; };
   const avg = arr => arr.length?(arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(1):'—';
@@ -156,6 +178,8 @@
       ? existingByLink.docs[0]
       : (!existingByUid?.empty ? existingByUid.docs[0] : null);
     if(existingDoc) return;
+    const teacher = canonicalTeacherName(profile.preferredTeacher || profile.teacher || '');
+    const teacherUid = await teacherUidFromDirectory(teacher);
     await db.collection('students').add({
       linkedUserId: authUser.uid,
       studentUid: authUser.uid,
@@ -165,7 +189,8 @@
       phone:'',
       level:'A1',
       targetLevel:'B1',
-      teacher:canonicalTeacherName(profile.preferredTeacher || profile.teacher || ''),
+      teacher,
+      teacherUid,
       active:true,
       packageTotal:0,
       packageUsed:0,
@@ -191,6 +216,7 @@
     const parentDisplayName = profile.displayName || authUser.displayName || profile.email || authUser.email || 'Lapsevanem';
     const parentEmail = profile.email || authUser.email || '';
     const preferredTeacher = canonicalTeacherName(profile.preferredTeacher || 'Pavel');
+    const preferredTeacherUid = await teacherUidFromDirectory(preferredTeacher);
     const existingSnap = await db.collection('students').where('linkedParentId','==',authUser.uid).get();
     const existingProfiles = new Set(existingSnap.docs.map(doc => studentProfileKey({
       ...doc.data(),
@@ -224,6 +250,7 @@
         level:'A1',
         targetLevel:'A2',
         teacher:preferredTeacher,
+        teacherUid:preferredTeacherUid,
         active:true,
         packageTotal:0,
         packageUsed:0,
@@ -260,6 +287,8 @@
     studentProfileKey,
     parseLinkedNames,
     canonicalTeacherName,
+    canonicalTeacherKey,
+    teacherUidFromDirectory,
     levelPct,
     avg,
     fmtDate,
