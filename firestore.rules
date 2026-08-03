@@ -83,6 +83,46 @@ service cloud.firestore {
         && sameTeacherName(data.get('teacher', ''), teacherName(uid()));
     }
 
+    function teacherScopeReadEnforced() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/securityMigrations/teacherUidV1)
+        && get(/databases/$(database)/documents/securityMigrations/teacherUidV1).data.get('readEnforced', false) == true;
+    }
+
+    function teacherCanRead(data) {
+      return isTeacher()
+        && (!teacherScopeReadEnforced() || data.teacherUid == uid());
+    }
+
+    function teacherCanCreate(data) {
+      return isTeacher()
+        && (
+          data.get('teacherUid', '') == uid()
+          || (
+            !teacherScopeReadEnforced()
+            && data.get('teacherUid', '') == ''
+            && teacherOwnsStudentData(data)
+          )
+        );
+    }
+
+    function teacherCanUpdate(before, after) {
+      return isTeacher()
+        && (
+          (
+            before.get('teacherUid', '') == uid()
+            && after.get('teacherUid', '') == uid()
+          )
+          || (
+            !teacherScopeReadEnforced()
+            && before.get('teacherUid', '') == ''
+            && after.get('teacherUid', '') == ''
+            && teacherOwnsStudentData(before)
+            && teacherOwnsStudentData(after)
+          )
+        );
+    }
+
     function studentPath(studentId) {
       return /databases/$(database)/documents/students/$(studentId);
     }
@@ -622,17 +662,14 @@ service cloud.firestore {
     }
 
     match /students/{studentId} {
-      allow read: if isStaff() || ownsStudent(studentId);
-      allow create: if isAdmin()
-        || teacherOwnsStudentData(request.resource.data)
-        || createsOwnStudent();
+      allow read: if isAdmin() || teacherCanRead(resource.data) || ownsStudent(studentId);
+      allow create: if isAdmin() || teacherCanCreate(request.resource.data) || createsOwnStudent();
       allow update: if (
           isAdmin()
           && !changesStudentTariffSource()
         )
         || (
-          teacherOwnsStudentData(resource.data)
-          && teacherOwnsStudentData(request.resource.data)
+          teacherCanUpdate(resource.data, request.resource.data)
           && !changesStudentOwnership()
           && !changesStudentTariffSource()
         )
@@ -655,14 +692,16 @@ service cloud.firestore {
     }
 
     match /schedule/{scheduleId} {
-      allow read: if isStaff() || ownsStudent(resource.data.studentId);
-      allow create, update, delete: if isStaff();
+      allow read: if isAdmin() || teacherCanRead(resource.data) || ownsStudent(resource.data.studentId);
+      allow create: if isAdmin() || teacherCanCreate(request.resource.data);
+      allow update: if isAdmin() || teacherCanUpdate(resource.data, request.resource.data);
+      allow delete: if isAdmin() || teacherCanRead(resource.data);
     }
 
     match /lessons/{lessonId} {
-      allow read: if isStaff() || ownsStudent(resource.data.studentId);
-      allow create: if isStaff() && createsNoLessonPackageSource();
-      allow update: if isStaff()
+      allow read: if isAdmin() || teacherCanRead(resource.data) || ownsStudent(resource.data.studentId);
+      allow create: if (isAdmin() || teacherCanCreate(request.resource.data)) && createsNoLessonPackageSource();
+      allow update: if (isAdmin() || teacherCanUpdate(resource.data, request.resource.data))
         && !changesLessonBillingSource()
         && !changesLessonPackageSource()
         && (
@@ -678,7 +717,7 @@ service cloud.firestore {
             )
           )
         );
-      allow delete: if isStaff()
+      allow delete: if (isAdmin() || teacherCanRead(resource.data))
         && (
           !resource.data.keys().hasAny(['invoiceId'])
           || resource.data.invoiceId == ''
@@ -1225,6 +1264,18 @@ service cloud.firestore {
 
     match /emailQueue/{entryId} {
       allow read: if isStaff();
+      allow write: if false;
+    }
+
+    // The browser may observe rollout state and the canonical name directory,
+    // but only trusted migration functions may change either document.
+    match /securityMigrations/{migrationId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    match /securityConfig/{configId} {
+      allow read: if signedIn() && configId == 'teacherDirectoryV1';
       allow write: if false;
     }
 

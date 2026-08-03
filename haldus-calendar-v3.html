@@ -75,6 +75,20 @@ const auth = window._auth;
 
 const LEVELS   = ['A1','A2','B1','B2','C1'];
 const TEACHERS = ['Pavel','Jelena','Elizaveta','Angelina'];
+const teacherKey=value=>{
+  const first=String(value||'').trim().toLowerCase().split(/\s+/)[0]||'';
+  return {jelena:'elena',elizaveta:'yelyzaveta',angelina:'anhelina'}[first]||first;
+};
+const resolveTeacherUid=async(teacherName,currentUser)=>{
+  if(teacherKey(teacherName)===teacherKey(currentUser?.displayName)) return currentUser?.uid||'';
+  try{
+    const snapshot=await db.collection('securityConfig').doc('teacherDirectoryV1').get();
+    return snapshot.exists?String(snapshot.data()?.teachers?.[teacherKey(teacherName)]||''):'';
+  }catch(error){
+    console.warn('Teacher directory lookup failed:',error);
+    return '';
+  }
+};
 const DAYS = [{id:'Mon',n:'E'},{id:'Tue',n:'T'},{id:'Wed',n:'K'},{id:'Thu',n:'N'},{id:'Fri',n:'R'},{id:'Sat',n:'L'},{id:'Sun',n:'P'}];
 const DAYS_FULL = [{id:'Mon',n:'Esmaspäev'},{id:'Tue',n:'Teisipäev'},{id:'Wed',n:'Kolmapäev'},{id:'Thu',n:'Neljapäev'},{id:'Fri',n:'Reede'},{id:'Sat',n:'Laupäev'},{id:'Sun',n:'Pühapäev'}];
 const TIMES = ["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00"];
@@ -355,6 +369,7 @@ function App() {
   const [notif,   setNotif]   = useState('');
   const [mobileNav,setMobileNav]=useState(false);
   const [stuFilter,setStuFilter]=useState('active'); // active | all | inactive
+  const [teacherScopeReadEnforced,setTeacherScopeReadEnforced]=useState(false);
 
   // Firestore
   const [students, setStu] = useState([]);
@@ -414,16 +429,27 @@ function App() {
     return unsub;
   },[]);
 
+  useEffect(()=>{
+    if(!user){setTeacherScopeReadEnforced(false);return undefined;}
+    return db.collection('securityMigrations').doc('teacherUidV1').onSnapshot(
+      snapshot=>setTeacherScopeReadEnforced(snapshot.exists&&snapshot.data()?.readEnforced===true),
+      error=>{console.warn('Teacher scope status failed:',error);setTeacherScopeReadEnforced(false);}
+    );
+  },[user]);
+
   // ── FIRESTORE ─────────────────────────────────────────────
   useEffect(()=>{
     if(!user) return;
-    const u1=db.collection('students').onSnapshot(s=>setStu(s.docs.map(d=>({id:d.id,...d.data()}))));
-    const u2=db.collection('lessons').onSnapshot(s=>setLes(s.docs.map(d=>({id:d.id,...d.data()}))));
+    const teacherScoped=teacherScopeReadEnforced&&user.role==='teacher';
+    const scopedCollection=name=>teacherScoped?db.collection(name).where('teacherUid','==',user.uid):db.collection(name);
+    const onError=(name,setter)=>error=>{console.warn(`${name} listener failed:`,error);setter([]);};
+    const u1=scopedCollection('students').onSnapshot(s=>setStu(s.docs.map(d=>({id:d.id,...d.data()}))),onError('Students',setStu));
+    const u2=scopedCollection('lessons').onSnapshot(s=>setLes(s.docs.map(d=>({id:d.id,...d.data()}))),onError('Lessons',setLes));
     const u3=db.collection('homework').onSnapshot(s=>setHw(s.docs.map(d=>({id:d.id,...d.data()}))));
-    const u4=db.collection('schedule').onSnapshot(s=>setSch(s.docs.map(d=>({id:d.id,...d.data()}))));
+    const u4=scopedCollection('schedule').onSnapshot(s=>setSch(s.docs.map(d=>({id:d.id,...d.data()}))),onError('Schedule',setSch));
     const u5=db.collection('invoices').onSnapshot(s=>setInv(s.docs.map(d=>({id:d.id,...d.data()}))));
     return()=>{u1();u2();u3();u4();u5();};
-  },[user]);
+  },[user,teacherScopeReadEnforced]);
 
   const notify=msg=>{setNotif(msg);setTimeout(()=>setNotif(''),3500);};
   const goTab=t=>{setTab(t);setSelStu(null);setMobileNav(false);};
@@ -439,8 +465,9 @@ function App() {
   const addStudent=async()=>{
     if(!nName.trim()){notify('⚠ Sisesta õpilase nimi');return;}
     const t=user.displayName==='Pavel'?nTeach:user.displayName;
+    const teacherUid=await resolveTeacherUid(t,user);
     await db.collection('students').add({
-      name:nName,level:nLevel,targetLevel:nTarget,teacher:t,
+      name:nName,level:nLevel,targetLevel:nTarget,teacher:t,teacherUid,
       phone:nPhone,email:nEmail,active:true,
       packageTotal:parseInt(nPkg)||0,packageUsed:0,
       createdAt:today()
@@ -452,8 +479,10 @@ function App() {
   const addSchedule=async()=>{
     if(!schStu || !schDate){notify('⚠ Vali õpilane ja kuupäev');return;}
     const t=user.displayName==='Pavel'?schTeach:user.displayName;
+    const teacherUid=await resolveTeacherUid(t,user);
     await db.collection('schedule').add({
       teacher:t,
+      teacherUid,
       studentName:schStu,
       date:schDate,
       day:dayIdFromDate(schDate),
@@ -480,6 +509,7 @@ function App() {
       date:lessonDate,
       submittedAt:now.toLocaleString('et-EE'),
       teacher:user.displayName,
+      teacherUid:modalEv.teacherUid||stu?.teacherUid||await resolveTeacherUid(modalEv.teacher||user.displayName,user),
       scheduleId: modalEv.id || null,
       scheduledTime: modalEv.time || null
     };
