@@ -552,6 +552,35 @@ test("teacher scope flag preserves legacy reads and then enforces teacher owners
       readEnforced: true,
     });
 
+    const scopedCreate = await firestoreDocumentRequest(
+      teacherToken,
+      "PATCH",
+      "students/scope-created",
+      {
+        fields: {
+          name: { stringValue: "Scoped Create" },
+          teacher: { stringValue: "Scope Teacher" },
+          teacherUid: { stringValue: teacherUid },
+          active: { booleanValue: true },
+        },
+      },
+    );
+    const foreignCreate = await firestoreDocumentRequest(
+      teacherToken,
+      "PATCH",
+      "students/scope-foreign-create",
+      {
+        fields: {
+          name: { stringValue: "Foreign Scoped Create" },
+          teacher: { stringValue: "Other Teacher" },
+          teacherUid: { stringValue: otherTeacherUid },
+          active: { booleanValue: true },
+        },
+      },
+    );
+    assert.equal(scopedCreate.status, 200, JSON.stringify(scopedCreate.body));
+    assert.equal(foreignCreate.status, 403, JSON.stringify(foreignCreate.body));
+
     for (const collectionName of ["students", "lessons", "schedule"]) {
       const own = await firestoreDocumentRequest(teacherToken, "GET", `${collectionName}/scope-own`);
       const foreign = await firestoreDocumentRequest(teacherToken, "GET", `${collectionName}/scope-foreign`);

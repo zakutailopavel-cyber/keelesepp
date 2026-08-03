@@ -9,6 +9,7 @@ import {
   query,
   startAfter,
   updateDoc,
+  where,
 } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
 import { canonicalTeacherName, isSameTeacher } from '../../utils/teachers.js';
@@ -72,6 +73,29 @@ function pickStudentFields(data) {
   return Object.fromEntries(writableFields.filter((key) => key in data).map((key) => [key, typeof data[key] === 'string' ? cleanText(data[key]) : data[key]]));
 }
 
+export class TeacherResolutionError extends Error {
+  constructor() {
+    super('Valitud õpetaja kontot ei leitud või nimi ei ole üheselt seostatav. Kontrolli kasutajate kataloogi.');
+    this.name = 'TeacherResolutionError';
+    this.code = 'students/teacher-not-resolved';
+  }
+}
+
+async function resolveTeacherUid(db, teacherName) {
+  const canonicalName = canonicalTeacherName(teacherName);
+  if (!canonicalName) return '';
+  const snapshot = await getDocs(query(
+    collection(db, 'users'),
+    where('role', 'in', ['admin', 'teacher']),
+  ));
+  const matches = snapshot.docs.filter((item) => {
+    const profile = item.data();
+    return profile.disabled !== true && isSameTeacher(profile.displayName || profile.name, canonicalName);
+  });
+  if (matches.length !== 1) throw new TeacherResolutionError();
+  return matches[0].id;
+}
+
 export function matchesStudentFilters(student, filters = {}) {
   const search = cleanText(filters.search).toLocaleLowerCase('et');
   if (search && ![
@@ -110,8 +134,11 @@ export const studentsService = {
     const items = [];
 
     while (hasMore && (exhaustive || items.length < pageSize)) {
-      const constraints = [orderBy('name', direction), limit(pageSize)];
-      if (cursor) constraints.splice(1, 0, startAfter(cursor));
+      const constraints = filters.scopeTeacherUid
+        ? [where('teacherUid', '==', filters.scopeTeacherUid)]
+        : [orderBy('name', direction)];
+      if (cursor) constraints.push(startAfter(cursor));
+      constraints.push(limit(pageSize));
       const snapshot = await getDocs(query(collection(db, 'students'), ...constraints));
       hasMore = snapshot.size === pageSize;
       if (!snapshot.size) hasMore = false;
@@ -140,8 +167,15 @@ export const studentsService = {
   },
   async create(data) {
     const { db } = requireFirebaseClient();
-    const candidate = normalizeStudent('', { ...data, active: true });
-    const possibleDuplicates = await this.list({ search: candidate.name, status: 'active', pageSize: PAGE_SIZE, exhaustive: true });
+    const teacherUid = await resolveTeacherUid(db, data.teacher);
+    const candidate = normalizeStudent('', { ...data, teacherUid, active: true });
+    const possibleDuplicates = await this.list({
+      search: candidate.name,
+      status: 'active',
+      scopeTeacherUid: teacherUid,
+      pageSize: PAGE_SIZE,
+      exhaustive: true,
+    });
     if (hasDuplicateStudent(possibleDuplicates.items, candidate)) throw new StudentDuplicateError();
     const payload = {
       ...pickStudentFields(data),
@@ -152,6 +186,7 @@ export const studentsService = {
       contactNotes: data.contactNotes || '',
       createdAt: new Date().toISOString().slice(0, 10),
     };
+    payload.teacherUid = teacherUid;
     const reference = await addDoc(collection(db, 'students'), payload);
     return normalizeStudent(reference.id, payload);
   },
@@ -159,12 +194,23 @@ export const studentsService = {
     const { db } = requireFirebaseClient();
     const payload = { ...pickStudentFields(data), updatedAt: new Date().toISOString().slice(0, 10) };
     const current = await this.getById(id);
+    if ('teacher' in payload) {
+      payload.teacherUid = current?.teacherUid && isSameTeacher(current.teacher, payload.teacher)
+        ? current.teacherUid
+        : await resolveTeacherUid(db, payload.teacher);
+    }
     const candidate = current ? normalizeStudent(id, { ...current, ...payload }) : null;
     if (
       candidate?.active
       && studentProfileKey(candidate) !== studentProfileKey(current)
     ) {
-      const possibleDuplicates = await this.list({ search: candidate.name, status: 'active', pageSize: PAGE_SIZE, exhaustive: true });
+      const possibleDuplicates = await this.list({
+        search: candidate.name,
+        status: 'active',
+        scopeTeacherUid: candidate.teacherUid,
+        pageSize: PAGE_SIZE,
+        exhaustive: true,
+      });
       if (hasDuplicateStudent(possibleDuplicates.items, candidate, id)) throw new StudentDuplicateError();
     }
     await updateDoc(doc(db, 'students', id), payload);

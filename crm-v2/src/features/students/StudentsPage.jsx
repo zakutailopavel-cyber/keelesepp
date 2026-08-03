@@ -53,13 +53,18 @@ export default function StudentsPage({ service = studentsService, actor }) {
     const activeRequest = ++requestId.current;
     setState((current) => ({ ...current, loading: true, error: null }));
     try {
-      const result = await service.list({ ...filters, scopeTeacher: teacherScope, cursor: append ? state.cursor : null });
+      const result = await service.list({
+        ...filters,
+        scopeTeacher: teacherScope,
+        scopeTeacherUid: canAssignTeacher ? '' : currentUser.uid,
+        cursor: append ? state.cursor : null,
+      });
       if (activeRequest !== requestId.current) return;
       setState((current) => ({ loading: false, error: null, items: append ? [...current.items, ...result.items] : result.items, cursor: result.cursor, hasMore: result.hasMore }));
     } catch (error) {
       if (activeRequest === requestId.current) setState((current) => ({ ...current, loading: false, error: new Error(firebaseErrorMessage(error)) }));
     }
-  }, [filters, service, state.cursor, teacherScope]);
+  }, [canAssignTeacher, currentUser.uid, filters, service, state.cursor, teacherScope]);
 
   useEffect(() => { load(); }, [filters, service]); // eslint-disable-line react-hooks/exhaustive-deps
 

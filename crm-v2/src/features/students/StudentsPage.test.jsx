@@ -41,8 +41,8 @@ describe('students list states', () => {
 
   it('scopes teacher requests to the signed-in teacher', async () => {
     const service = { list: vi.fn().mockResolvedValue({ items: [], cursor: null, hasMore: false }) };
-    renderPage(service, { roles: ['teacher'], displayName: 'Pavel' });
-    await waitFor(() => expect(service.list).toHaveBeenCalledWith(expect.objectContaining({ scopeTeacher: 'Pavel Zakutailo' })));
+    renderPage(service, { uid: 'teacher-pavel', roles: ['teacher'], displayName: 'Pavel' });
+    await waitFor(() => expect(service.list).toHaveBeenCalledWith(expect.objectContaining({ scopeTeacher: 'Pavel Zakutailo', scopeTeacherUid: 'teacher-pavel' })));
     expect(screen.queryByLabelText('Õpetaja')).not.toBeInTheDocument();
   });
 
@@ -62,7 +62,7 @@ describe('students list states', () => {
       list: vi.fn().mockResolvedValue({ items: [{ id: 'existing', name: 'Olemas', teacher: 'Pavel', active: true }], cursor: null, hasMore: false }),
       create: vi.fn().mockResolvedValue({ id: 'new' }),
     };
-    renderPage(service, { roles: ['teacher'], displayName: 'Pavel' });
+    renderPage(service, { uid: 'teacher-pavel', roles: ['teacher'], displayName: 'Pavel' });
     await screen.findAllByText('Olemas');
     fireEvent.click(screen.getByRole('button', { name: 'Lisa õpilane' }));
     fireEvent.change(screen.getByLabelText('Õpilase nimi *'), { target: { value: 'Uus Õpilane' } });
