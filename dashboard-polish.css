@@ -1,0 +1,123 @@
+/* Dashboard and workspace polish layered over the existing CRM markup. */
+
+.fade-in:has(> div:first-child > h1:first-child){
+  gap:22px!important;
+}
+
+.fade-in:has(> div:first-child > h1:first-child) > div:first-child{
+  position:relative;
+  padding:22px 24px;
+  overflow:hidden;
+  border:1px solid rgba(23,32,51,.08);
+  border-radius:20px;
+  background:
+    radial-gradient(circle at 92% 12%,rgba(201,138,46,.18),transparent 28%),
+    linear-gradient(135deg,#fff 0%,#f8fafc 62%,#f2f7f5 100%);
+  box-shadow:var(--ks-shadow-sm);
+}
+
+.fade-in:has(> div:first-child > h1:first-child) > div:first-child::after{
+  content:"";
+  position:absolute;
+  width:150px;
+  height:150px;
+  right:-58px;
+  bottom:-82px;
+  border-radius:50%;
+  border:28px solid rgba(47,102,88,.07);
+  pointer-events:none;
+}
+
+.fade-in:has(> div:first-child > h1:first-child) > div:first-child h1{
+  position:relative;
+  z-index:1;
+  max-width:760px;
+  font-size:clamp(1.65rem,2.3vw,2.2rem)!important;
+}
+
+.fade-in:has(> div:first-child > h1:first-child) > div:first-child h1 + div,
+.fade-in:has(> div:first-child > h1:first-child) > div:first-child h1 + p{
+  position:relative;
+  z-index:1;
+  color:var(--ks-text-muted)!important;
+  margin-top:7px!important;
+}
+
+/* Existing KPI grids become denser, clearer dashboard tiles without changing React logic. */
+.fade-in > div[style*="grid-template-columns: repeat(auto-fill,minmax(180px,1fr))"],
+.fade-in > div[style*="grid-template-columns:'repeat(auto-fill,minmax(180px,1fr))'"]{
+  gap:14px!important;
+}
+
+.fade-in > div[style*="grid-template-columns"] > .card{
+  min-width:0;
+}
+
+.fade-in > div[style*="grid-template-columns"] > .card[style*="padding:20"]{
+  position:relative;
+  overflow:hidden;
+  padding:20px!important;
+  border-color:rgba(23,32,51,.08)!important;
+  box-shadow:var(--ks-shadow-sm)!important;
+}
+
+.fade-in > div[style*="grid-template-columns"] > .card[style*="padding:20"]::before{
+  content:"";
+  position:absolute;
+  inset:0 auto 0 0;
+  width:4px;
+  background:linear-gradient(180deg,var(--ks-pine),var(--ks-amber));
+  opacity:.72;
+}
+
+.fade-in > div[style*="grid-template-columns"] > .card[style*="padding:20"]:hover{
+  transform:translateY(-2px);
+  box-shadow:var(--ks-shadow-md)!important;
+}
+
+/* Dashboard action rows remain usable on phones instead of becoming button soup. */
+.fade-in .card > div[style*="justify-content:space-between"]{
+  row-gap:10px!important;
+}
+
+.fade-in .card h3{
+  font-size:1.12rem;
+}
+
+.fade-in .card [style*="text-transform:uppercase"]{
+  letter-spacing:.075em!important;
+}
+
+/* Better visual hierarchy for lists inside dashboard cards. */
+.fade-in .card > div[style*="flex-direction:column"] > div[style*="background:#F9F8F6"],
+.fade-in .card > div[style*="flex-direction:column"] > div[style*="background:'#F9F8F6'"]{
+  background:var(--ks-surface-soft)!important;
+  border-color:var(--ks-border)!important;
+}
+
+@media(max-width:767px){
+  .fade-in:has(> div:first-child > h1:first-child){
+    gap:16px!important;
+  }
+
+  .fade-in:has(> div:first-child > h1:first-child) > div:first-child{
+    padding:18px;
+    border-radius:16px;
+  }
+
+  .fade-in:has(> div:first-child > h1:first-child) > div:first-child::after{
+    width:110px;
+    height:110px;
+    right:-52px;
+    bottom:-64px;
+    border-width:22px;
+  }
+
+  .fade-in > div[style*="grid-template-columns"]{
+    gap:10px!important;
+  }
+
+  .fade-in > div[style*="grid-template-columns"] > .card[style*="padding:20"]{
+    padding:17px!important;
+  }
+}
