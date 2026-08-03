@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import StudentsPage from './StudentsPage.jsx';
 
@@ -68,5 +68,25 @@ describe('students list states', () => {
     fireEvent.change(screen.getByLabelText('Õpilase nimi *'), { target: { value: 'Uus Õpilane' } });
     fireEvent.click(screen.getByRole('button', { name: 'Salvesta' }));
     await waitFor(() => expect(service.create).toHaveBeenCalledWith(expect.objectContaining({ name: 'Uus Õpilane', teacher: 'Pavel Zakutailo' })));
+  });
+
+  it('requires confirmation before non-destructive archive and refreshes the list', async () => {
+    const service = {
+      list: vi.fn()
+        .mockResolvedValueOnce({ items: [{ id: 's1', name: 'Mari', teacher: 'Pavel', active: true }], cursor: null, hasMore: false })
+        .mockResolvedValue({ items: [], cursor: null, hasMore: false }),
+      archive: vi.fn().mockResolvedValue(undefined),
+    };
+    renderPage(service);
+    await screen.findAllByText('Mari');
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Arhiveeri Mari' })[0]);
+    expect(service.archive).not.toHaveBeenCalled();
+    const dialog = screen.getByRole('dialog', { name: 'Arhiveeri õpilane' });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Arhiveeri' }));
+
+    await waitFor(() => expect(service.archive).toHaveBeenCalledWith('s1'));
+    await waitFor(() => expect(service.list).toHaveBeenCalledTimes(2));
+    expect(await screen.findByText('Õpilane on arhiveeritud.')).toBeInTheDocument();
   });
 });

@@ -39,7 +39,7 @@ export default function StudentForm({ open, student, teachers = [], canAssignTea
 
   return (
     <Modal open={open} onClose={submitting ? () => {} : onClose} title={student ? 'Muuda õpilast' : 'Lisa õpilane'} footer={<><Button variant="secondary" type="button" onClick={onClose} disabled={submitting}>Loobu</Button><Button type="submit" form="student-form" loading={submitting}>Salvesta</Button></>}>
-      <form id="student-form" className="form-grid" onSubmit={submit}>
+      <form id="student-form" className="form-grid" onSubmit={submit} noValidate>
         <Input label="Õpilase nimi *" name="name" value={values.name} onChange={change} error={errors.name} />
         <Input label="Lapsevanema nimi" name="parentName" value={values.parentName} onChange={change} />
         <Input label="E-post" name="email" type="email" value={values.email} onChange={change} error={errors.email} />

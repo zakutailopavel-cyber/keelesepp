@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import StudentForm from './StudentForm.jsx';
 
 const baseProps = { open: true, onClose: () => {}, onSubmit: async () => {} };
@@ -22,5 +22,39 @@ describe('student form business options', () => {
     render(<StudentForm {...baseProps} canAssignTeacher teachers={['Pavel', 'Jelena']} />);
     expect(screen.getByLabelText('Õpetaja')).toBeEnabled();
     expect(screen.getByRole('option', { name: 'Jelena' })).toBeInTheDocument();
+  });
+
+  it('validates required and contact fields before submitting', async () => {
+    const onSubmit = vi.fn();
+    render(<StudentForm {...baseProps} onSubmit={onSubmit} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Salvesta' }));
+    expect(await screen.findByText('Nimi on kohustuslik.')).toBeInTheDocument();
+    expect(onSubmit).not.toHaveBeenCalled();
+
+    fireEvent.change(screen.getByLabelText('Õpilase nimi *'), { target: { value: 'Mari' } });
+    fireEvent.change(screen.getByLabelText('E-post'), { target: { value: 'not-an-email' } });
+    fireEvent.change(screen.getByLabelText('Telefon'), { target: { value: '123' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Salvesta' }));
+    expect(await screen.findByText('Kontrolli e-posti aadressi.')).toBeInTheDocument();
+    expect(screen.getByText('Kontrolli telefoninumbrit.')).toBeInTheDocument();
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('blocks repeat submission and exposes a service error', async () => {
+    let rejectSubmit;
+    const onSubmit = vi.fn(() => new Promise((resolve, reject) => { rejectSubmit = reject; }));
+    render(<StudentForm {...baseProps} onSubmit={onSubmit} />);
+    fireEvent.change(screen.getByLabelText('Õpilase nimi *'), { target: { value: 'Mari' } });
+    const submit = screen.getByRole('button', { name: 'Salvesta' });
+
+    fireEvent.click(submit);
+    await waitFor(() => expect(submit).toBeDisabled());
+    fireEvent.click(submit);
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+
+    rejectSubmit(new Error('Salvestamine ebaõnnestus'));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Salvestamine ebaõnnestus');
+    expect(submit).toBeEnabled();
   });
 });
