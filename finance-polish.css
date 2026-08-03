@@ -1,0 +1,99 @@
+/* Finance workspace polish. Keeps accounting and payment logic untouched. */
+
+.fade-in[aria-label="Finantside tööruum"]{
+  margin-bottom:22px!important;
+}
+
+.fade-in[aria-label="Finantside tööruum"] > div:first-child{
+  padding:20px 22px;
+  border:1px solid var(--ks-border);
+  border-radius:18px;
+  background:
+    radial-gradient(circle at 94% 10%,rgba(47,102,88,.14),transparent 25%),
+    linear-gradient(135deg,#fff 0%,#f8fafc 70%,#f1f7f4 100%);
+  box-shadow:var(--ks-shadow-sm);
+}
+
+.fade-in[aria-label="Finantside tööruum"] [role="tablist"]{
+  margin-top:12px;
+}
+
+.fade-in[aria-label="Finantside tööruum"] [role="tab"]{
+  min-height:82px;
+  transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease,background-color .15s ease;
+}
+
+.fade-in[aria-label="Finantside tööruum"] [role="tab"]:hover{
+  transform:translateY(-2px);
+  box-shadow:var(--ks-shadow-md)!important;
+}
+
+.fade-in:has(h1):has(input[type="number"]):has(.badge) .card{
+  border-color:var(--ks-border)!important;
+}
+
+.fade-in:has(h1):has(input[type="number"]):has(.badge) .card[style*="padding:20"],
+.fade-in:has(h1):has(input[type="number"]):has(.badge) .card[style*="padding:24"]{
+  box-shadow:var(--ks-shadow-sm)!important;
+}
+
+.fade-in:has(h1):has(input[type="number"]):has(.badge) .card > div:first-child{
+  row-gap:10px!important;
+}
+
+.fade-in:has(h1):has(input[type="number"]):has(.badge) input,
+.fade-in:has(h1):has(input[type="number"]):has(.badge) select{
+  background:#fff!important;
+}
+
+/* Financial status cards and outstanding balances should read immediately. */
+.fade-in:has(h1):has(input[type="number"]):has(.badge) .badge{
+  border-color:rgba(23,32,51,.06);
+}
+
+.fade-in:has(h1):has(input[type="number"]):has(.badge) div[style*="background:#fef3c7"],
+.fade-in:has(h1):has(input[type="number"]):has(.badge) div[style*="background:'#fef3c7'"]{
+  border:1px solid #fedf89!important;
+}
+
+.fade-in:has(h1):has(input[type="number"]):has(.badge) div[style*="background:#dcfce7"],
+.fade-in:has(h1):has(input[type="number"]):has(.badge) div[style*="background:'#dcfce7'"]{
+  border:1px solid #abefc6!important;
+}
+
+.fade-in:has(h1):has(input[type="number"]):has(.badge) div[style*="background:#fee2e2"],
+.fade-in:has(h1):has(input[type="number"]):has(.badge) div[style*="background:'#fee2e2'"]{
+  border:1px solid #fecdca!important;
+}
+
+/* Dense finance action rows stay legible instead of becoming an invoice-button hedge. */
+.fade-in:has(h1):has(input[type="number"]):has(.badge) div[style*="display:flex"][style*="flex-wrap:wrap"]{
+  row-gap:8px!important;
+}
+
+.fade-in:has(h1):has(input[type="number"]):has(.badge) .btn-sm{
+  min-height:36px;
+}
+
+@media(max-width:767px){
+  .fade-in[aria-label="Finantside tööruum"] > div:first-child{
+    padding:17px;
+    border-radius:16px;
+  }
+
+  .fade-in[aria-label="Finantside tööruum"] [role="tablist"]{
+    grid-template-columns:1fr!important;
+  }
+
+  .fade-in[aria-label="Finantside tööruum"] [role="tab"]{
+    min-height:72px;
+  }
+
+  .fade-in:has(h1):has(input[type="number"]):has(.badge) .card{
+    border-radius:14px!important;
+  }
+
+  .fade-in:has(h1):has(input[type="number"]):has(.badge) .btn-sm{
+    flex:1 1 135px;
+  }
+}
