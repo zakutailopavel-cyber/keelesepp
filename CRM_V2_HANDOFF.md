@@ -234,6 +234,15 @@ Firestore rules compilation: passed
 git diff --check: passed
 ```
 
+Read-only production QA 04.08.2026:
+
+- в Chrome доступна только совмещённая роль `teacher, admin`; отдельных teacher/student/parent/finance сессий нет;
+- `/students` и одна карточка ученика проверены на 390 px и 768 px, horizontal overflow отсутствует;
+- модальное окно добавления ученика получает фокус, закрывается Escape и возвращает фокус на `Lisa õpilane`;
+- обязательное имя помечается `aria-invalid` и связано с текстом ошибки через `aria-describedby`;
+- strict teacher read enforcement намеренно не включён, потому что совмещённая admin-сессия не доказывает отсутствие утечки в teacher-only роли;
+- production `/finance` всё ещё показывает bundle `d8c7817`; backend закрытия и аналитики уже опубликован, но новый UI ждёт сброса Vercel quota.
+
 ## 5. Состояние локального рабочего дерева
 
 Закрытие/экспорт/locks находятся в `35a9202` + `fe0e86d`, аналитика — в `b279117`. Отслеживаемых локальных изменений после них нет, кроме обновления документации до следующего docs-коммита. Пользовательские `* 2.*` файлы не тронуты.
@@ -267,14 +276,17 @@ git diff --check: passed
 - после успешного теста включить строгий teacher read enforcement;
 - сохранить и проверить rollback endpoint.
 
+Текущий блокер: в доступной production-сессии пользователь имеет роли `teacher, admin` одновременно. Это подходит для admin smoke, но не для проверки teacher-only ограничений. Не создавать рабочие аккаунты и не менять роли production-пользователей только ради теста.
+
 ### P2. Финальный UX/качество
 
-- 390 px, 768 px и desktop;
-- keyboard/Escape/focus return;
-- отсутствие horizontal overflow;
+- 390 px и 768 px для списка/карточки ученика проверены 04.08.2026, overflow отсутствует;
+- keyboard/Escape/focus return для формы ученика проверены 04.08.2026;
+- desktop admin finance/settings прочитаны без ошибок загрузки;
+- повторить responsive/keyboard smoke для нового period-close/analytics bundle после Vercel deploy;
 - понятные empty/error states;
 - проверить console errors;
-- обновить `crm-v2/ACCEPTANCE.md` фактическими результатами.
+- расширенный фактический чек-лист находится в `crm-v2/ACCEPTANCE.md`.
 
 ### Последним: Live Classroom
 

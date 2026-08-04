@@ -3,6 +3,25 @@
 Use dedicated test accounts and non-production-like sample records for write
 checks. Do not archive or edit an active learner during a smoke test.
 
+## Verification status — 4 August 2026
+
+- Automated release gate is green: 57 CRM test files / 229 tests, 94 Functions
+  tests, ESLint, Vite production build, Firestore Rules compilation and the full
+  isolated financial emulator suite.
+- Read-only production QA with the existing `teacher, admin` session passed for
+  the Students list and one student profile at 390 px and 768 px: no horizontal
+  page overflow was detected.
+- The student modal focuses its close button, closes with Escape and restores
+  focus to `Lisa õpilane`. The required-name error is linked to the field with
+  `aria-describedby` and `aria-invalid`.
+- A separate teacher-only, student, parent and finance session was not available
+  during this run. Strict `teacherUid` read enforcement therefore remains off;
+  do not enable it until the role checks below pass with real dedicated accounts.
+- Production frontend is still on UI commit `d8c7817` because Vercel rejected
+  later deploys at the Free-plan daily deployment limit. The newer period-close
+  and analytics UI is verified by tests/build but still needs a production deploy
+  and read-only visual smoke test after the quota resets.
+
 ## Anonymous and routing
 
 - Open `/`, `/students` and `/students/example` directly.
@@ -118,6 +137,53 @@ checks. Do not archive or edit an active learner during a smoke test.
 - Send a password reset link and confirm it targets the signed-in account's
   e-mail address.
 
+## Parents and linked children
+
+- Open a parent with one linked child and confirm `Lisa laps` shows the existing
+  relationship before offering another student.
+- Link a second existing student and confirm both children and the new count are
+  visible without closing and reopening the parent card.
+- Create a new child from the same manager and confirm an arbitrary child name is
+  preserved and no existing student is inferred from a similar name.
+- As a teacher, confirm only parents reached through teacher-owned students are
+  visible. As a parent, confirm only explicitly linked children are returned.
+
+## Library, preview and homework
+
+- Open PDF and image materials with `Eelvaade`; confirm the content is rendered
+  in-app without starting a mandatory download.
+- Confirm an unsupported file offers a safe fallback instead of a blank modal.
+- Create or edit a material, assign it to one test student and one test group,
+  then verify the assignment snapshot survives a later material edit.
+- Submit and review one homework item and confirm attachments and review state
+  are visible only to the permitted student/parent and teacher/admin scope.
+
+## Payroll and school expenses
+
+- As an administrator, open `/finance/payroll`, set a future rate, approve one
+  test work session and confirm historical approved amounts do not change.
+- Correct a test work session with a reason and confirm it returns to review;
+  activity evidence alone must never become payable time automatically.
+- Open `/finance/expenses`, add a test school expense with date, category,
+  description, amount, optional VAT, payment method and note. No supplier,
+  contract or counterparty directory is part of this workflow.
+- Attach one PDF/image receipt, correct the expense and then void the replacement;
+  confirm the original, correction and void history remain auditable.
+- Confirm a non-administrator cannot read expenses or their private Storage files.
+
+## Period close, export and analytics
+
+- For a completed test month, verify the review fingerprint becomes stale after
+  any underlying lesson/invoice/payment/bank/credit change.
+- Confirm close is blocked until payroll is resolved, every active expense has a
+  document and the archived export matches the current evidence fingerprint.
+- Close only an isolated test month. Confirm ordinary dated writes are rejected
+  afterwards and a late correction must be append-only in a later open period.
+- Open management analytics and compare cash movement, accrual margin, forecast,
+  six-month trend, aged debt and revenue breakdown with the source test records.
+- Confirm a debt row opens its invoice and bank-linked or credit-sourced payments
+  are not counted twice in cash inflow.
+
 ## Responsive and keyboard
 
 - Repeat the list and profile smoke test at 390 px and 768 px widths.
@@ -130,4 +196,7 @@ checks. Do not archive or edit an active learner during a smoke test.
 - `npm run lint`, `npm test` and `npm run build` pass from `crm-v2/`.
 - Firestore rules compile and emulator security regression tests pass.
 - Vercel Preview is built from the `crm-v2/` root and nested routes return HTTP 200.
-- Keep PR #51 in draft until the administrator and teacher checks above pass with real test accounts.
+- Do not enable strict teacher reads until the administrator and teacher checks
+  above pass with real dedicated accounts and the rollback endpoint is verified.
+- Do not close a real accounting month merely to smoke-test the release; use
+  preview/read-only checks or an isolated test period.
