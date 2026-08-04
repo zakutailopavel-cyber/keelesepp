@@ -103,6 +103,40 @@ export const financeApi = {
       requestId: financeRequestId(`period_${month}`),
     });
   },
+  applyPayerCredit(creditId, invoiceId, amount, note) {
+    return post('/payer-credits/apply', {
+      creditId,
+      allocations: [{ invoiceId, amount }],
+      lessonAllocations: [],
+      note: note || '',
+      requestId: financeRequestId('credit_apply'),
+    });
+  },
+  refundPayerCredit(creditId, refund) {
+    return post('/payer-credits/refund', {
+      creditId,
+      amount: refund.amount,
+      refundedAt: refund.refundedAt,
+      method: refund.method || 'bank',
+      reference: refund.reference || '',
+      reason: refund.reason,
+      requestId: financeRequestId('credit_refund'),
+    });
+  },
+  voidPayment(paymentId, reason) {
+    return post('/payments/void', {
+      paymentId,
+      reason,
+      requestId: financeRequestId('payment_void'),
+    });
+  },
+  resolveInvoiceOverpayment(invoiceId, reason) {
+    return post('/invoices/resolve-overpayment', {
+      invoiceId,
+      reason,
+      requestId: financeRequestId('overpayment'),
+    });
+  },
 };
 
 export const invoiceDeliveryApi = {

@@ -121,6 +121,9 @@ CRM v2 currently includes:
 - administrator monthly financial review that reconciles lessons, invoice lines,
   payments, bank transactions and audited student advances, blocks confirmation
   on unresolved differences and exports an Excel-friendly CSV report;
+- administrator advance ledger with same-student invoice application, audited
+  payer refunds, invoice-overpayment transfer and reversible payment voiding that
+  recalculates the invoice, bank transaction and credit source atomically;
 - teacher directory with current student and schedule workload;
 - staff group directory with administrator-managed membership, weekly lesson
   templates, teacher scoping, group events in the shared calendar and

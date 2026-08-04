@@ -1,5 +1,6 @@
 import {
   ArrowRight,
+  Ban,
   CalendarCheck2,
   CircleCheck,
   Clock3,
@@ -35,6 +36,7 @@ import {
   invoiceDeliveryApi,
   invoicesService,
   lessonsService,
+  payerCreditsService,
   paymentsService,
   revenuePlansService,
   studentsService,
@@ -53,6 +55,7 @@ import {
 import LessonAccountingPanel from "./LessonAccountingPanel.jsx";
 import BankReconciliationPanel from "./BankReconciliationPanel.jsx";
 import FinancialPeriodPanel from "./FinancialPeriodPanel.jsx";
+import AdvanceManagementPanel from "./AdvanceManagementPanel.jsx";
 import "./financeWorkspace.css";
 
 const money = (value) =>
@@ -80,6 +83,13 @@ const badgeTone = (value) =>
       : value === "partial"
         ? "info"
         : "neutral";
+const invoiceOverpaidCents = (invoice) =>
+  Math.max(
+    0,
+    Number.isInteger(invoice?.overpaidAmountCents)
+      ? invoice.overpaidAmountCents
+      : Math.round(Number(invoice?.overpaidAmount || 0) * 100),
+  );
 
 function paymentDraft(invoice) {
   return {
@@ -114,27 +124,38 @@ export default function FinancePage({
   lessonRepository = lessonsService,
   bankRepository = bankTransactionsService,
   periodRepository = financialPeriodsService,
+  creditRepository = payerCreditsService,
 }) {
   const { user } = useAuth();
   const canRegisterPayment = hasAnyRole(user.roles, [ROLES.ADMIN]);
   const state = useAsyncData(async () => {
-    const [invoices, plans, students, lessons, bankTransactions, periods] =
-      await Promise.all([
-        invoiceRepository.list(),
-        planRepository.list(),
-        canRegisterPayment
-          ? studentRepository.list({
-              status: "active",
-              pageSize: 500,
-              exhaustive: true,
-            })
-          : Promise.resolve({ items: [] }),
-        canRegisterPayment
-          ? lessonRepository.listForBilling()
-          : Promise.resolve([]),
-        canRegisterPayment ? bankRepository.list() : Promise.resolve([]),
-        canRegisterPayment ? periodRepository.list() : Promise.resolve([]),
-      ]);
+    const [
+      invoices,
+      plans,
+      students,
+      lessons,
+      bankTransactions,
+      periods,
+      credits,
+      refunds,
+    ] = await Promise.all([
+      invoiceRepository.list(),
+      planRepository.list(),
+      canRegisterPayment
+        ? studentRepository.list({
+            status: "active",
+            pageSize: 500,
+            exhaustive: true,
+          })
+        : Promise.resolve({ items: [] }),
+      canRegisterPayment
+        ? lessonRepository.listForBilling()
+        : Promise.resolve([]),
+      canRegisterPayment ? bankRepository.list() : Promise.resolve([]),
+      canRegisterPayment ? periodRepository.list() : Promise.resolve([]),
+      canRegisterPayment ? creditRepository.list() : Promise.resolve([]),
+      canRegisterPayment ? creditRepository.listRefunds() : Promise.resolve([]),
+    ]);
     return {
       invoices,
       plans,
@@ -142,10 +163,13 @@ export default function FinancePage({
       lessons,
       bankTransactions,
       periods,
+      credits,
+      refunds,
     };
   }, [
     bankRepository,
     canRegisterPayment,
+    creditRepository,
     invoiceRepository,
     lessonRepository,
     planRepository,
@@ -177,6 +201,11 @@ export default function FinancePage({
   const [deliveryBusy, setDeliveryBusy] = useState("");
   const [creditLine, setCreditLine] = useState(null);
   const [creditReason, setCreditReason] = useState("");
+  const [voidPaymentTarget, setVoidPaymentTarget] = useState(null);
+  const [voidReason, setVoidReason] = useState("");
+  const [overpaymentTarget, setOverpaymentTarget] = useState(null);
+  const [overpaymentReason, setOverpaymentReason] = useState("");
+  const [correctionSaving, setCorrectionSaving] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -243,9 +272,15 @@ export default function FinancePage({
       });
       const invoiceNumber =
         selected.num || selected.number || selected.invoiceNumber || "";
+      const createsOverpayment =
+        Math.round(validation.amount * 100) > invoiceBalanceCents(selected);
       setSelected(null);
       setPaymentMode(false);
-      setSuccess(`Makse arvele ${invoiceNumber} on registreeritud.`);
+      setSuccess(
+        createsOverpayment
+          ? `Makse arvele ${invoiceNumber} registreeriti. Ava arve ja muuda ülejääk avansiks.`
+          : `Makse arvele ${invoiceNumber} on registreeritud.`,
+      );
       await state.reload();
     } catch (error) {
       setActionError(error.message || "Makse registreerimine ebaõnnestus.");
@@ -319,6 +354,10 @@ export default function FinancePage({
     financeRepository.previewFinancialPeriod(month);
   const reviewFinancialPeriod = (month) =>
     financeRepository.reviewFinancialPeriod(month);
+  const applyPayerCredit = (creditId, invoiceId, amount, note) =>
+    financeRepository.applyPayerCredit(creditId, invoiceId, amount, note);
+  const refundPayerCredit = (creditId, refund) =>
+    financeRepository.refundPayerCredit(creditId, refund);
   const deliverInvoice = async (mode) => {
     setDeliveryBusy(mode);
     setActionError("");
@@ -363,12 +402,65 @@ export default function FinancePage({
       setSaving(false);
     }
   };
+  const submitVoidPayment = async (event) => {
+    event.preventDefault();
+    if (!voidReason.trim()) {
+      setActionError("Lisa makse tühistamise põhjus.");
+      return;
+    }
+    setCorrectionSaving(true);
+    setActionError("");
+    try {
+      await financeRepository.voidPayment(voidPaymentTarget.id, voidReason);
+      setVoidPaymentTarget(null);
+      setVoidReason("");
+      setSuccess(
+        "Makse tühistati ja arve ning rahaallika jäägid arvutati uuesti.",
+      );
+      await state.reload();
+    } catch (error) {
+      setActionError(error.message || "Makse tühistamine ebaõnnestus.");
+    } finally {
+      setCorrectionSaving(false);
+    }
+  };
+  const submitOverpayment = async (event) => {
+    event.preventDefault();
+    if (!overpaymentReason.trim()) {
+      setActionError("Lisa ülemakse avansiks muutmise põhjus.");
+      return;
+    }
+    setCorrectionSaving(true);
+    setActionError("");
+    try {
+      await financeRepository.resolveInvoiceOverpayment(
+        overpaymentTarget.id,
+        overpaymentReason,
+      );
+      setOverpaymentTarget(null);
+      setOverpaymentReason("");
+      setSuccess("Arve ülemakse muudeti õpilase avansiks.");
+      await state.reload();
+    } catch (error) {
+      setActionError(error.message || "Ülemakse lahendamine ebaõnnestus.");
+    } finally {
+      setCorrectionSaving(false);
+    }
+  };
 
   if (state.loading) return <LoadingState label="Laen finantsandmeid…" />;
   if (state.error)
     return <ErrorState message={state.error.message} onRetry={state.reload} />;
-  const { invoices, plans, students, lessons, bankTransactions, periods } =
-    state.data;
+  const {
+    invoices,
+    plans,
+    students,
+    lessons,
+    bankTransactions,
+    periods,
+    credits,
+    refunds,
+  } = state.data;
   const forecast = revenueForecast(plans);
   const paid = invoices.reduce((sum, item) => sum + invoicePaidCents(item), 0);
   const balance = invoices.reduce(
@@ -378,6 +470,7 @@ export default function FinancePage({
   const overdue = invoices.filter((item) => invoiceStatus(item) === "overdue");
   const selectedStatus = selected ? invoiceStatus(selected) : null;
   const selectedBalance = selected ? invoiceBalanceCents(selected) : 0;
+  const selectedOverpayment = selected ? invoiceOverpaidCents(selected) : 0;
 
   return (
     <div className="page-content">
@@ -458,6 +551,16 @@ export default function FinancePage({
           students={students}
           transactions={bankTransactions}
           onAllocate={allocateBankTransaction}
+          onReload={state.reload}
+        />
+      ) : null}
+      {canRegisterPayment ? (
+        <AdvanceManagementPanel
+          credits={credits}
+          refunds={refunds}
+          invoices={invoices}
+          onApply={applyPayerCredit}
+          onRefund={refundPayerCredit}
           onReload={state.reload}
         />
       ) : null}
@@ -792,6 +895,18 @@ export default function FinancePage({
                   <CreditCard size={17} /> Registreeri makse
                 </Button>
               ) : null}
+              {canRegisterPayment && selectedOverpayment > 0 ? (
+                <Button
+                  onClick={() => {
+                    setOverpaymentTarget(selected);
+                    setSelected(null);
+                    setOverpaymentReason("");
+                    setActionError("");
+                  }}
+                >
+                  <WalletCards size={17} /> Muuda avansiks
+                </Button>
+              ) : null}
             </>
           ) : paymentMode ? (
             <>
@@ -828,8 +943,12 @@ export default function FinancePage({
             ) : null}
             <div className="invoice-detail__hero">
               <div>
-                <span className="eyebrow">Tasumisele kuuluv jääk</span>
-                <strong>{money(selectedBalance)}</strong>
+                <span className="eyebrow">
+                  {selectedOverpayment
+                    ? "Arve ülemakse"
+                    : "Tasumisele kuuluv jääk"}
+                </span>
+                <strong>{money(selectedOverpayment || selectedBalance)}</strong>
                 <small>Kogusumma {money(invoiceAmountCents(selected))}</small>
               </div>
               <Badge tone={badgeTone(selectedStatus)}>
@@ -969,15 +1088,37 @@ export default function FinancePage({
                           <small>Viide: {payment.reference}</small>
                         ) : null}
                       </div>
-                      <Badge
-                        tone={
-                          payment.status === "voided" ? "danger" : "success"
-                        }
-                      >
-                        {payment.status === "voided"
-                          ? "Tühistatud"
-                          : "Kinnitatud"}
-                      </Badge>
+                      <div className="payment-list__actions">
+                        <Badge
+                          tone={
+                            payment.status === "voided" ? "danger" : "success"
+                          }
+                        >
+                          {payment.status === "voided"
+                            ? "Tühistatud"
+                            : "Kinnitatud"}
+                        </Badge>
+                        {payment.status !== "voided" ? (
+                          <Button
+                            variant="secondary"
+                            onClick={() => {
+                              setVoidPaymentTarget({
+                                ...payment,
+                                invoiceNum:
+                                  selected.num ||
+                                  selected.number ||
+                                  selected.invoiceNumber ||
+                                  "",
+                              });
+                              setSelected(null);
+                              setVoidReason("");
+                              setActionError("");
+                            }}
+                          >
+                            <Ban size={14} /> Tühista
+                          </Button>
+                        ) : null}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -1072,8 +1213,9 @@ export default function FinancePage({
             {Number(String(form.amount || "").replace(",", ".")) >
             selectedBalance / 100 ? (
               <p className="payment-warning">
-                Sisestatud summa ületab arve jääki. Ülejääk registreeritakse
-                ettemaksuna.
+                Sisestatud summa ületab arve jääki. Ülejääk jääb arvele
+                ülemaksena; pärast salvestamist ava arve ja vali „Muuda
+                avansiks“.
               </p>
             ) : null}
             <p className="payment-confirmation">
@@ -1142,6 +1284,120 @@ export default function FinancePage({
             <p className="payment-warning form-grid__wide">
               Kinnitamisel luuakse muutmatu kreeditarve ning arve summa ja jääk
               arvutatakse uuesti. Algset arvet ei kustutata.
+            </p>
+          </form>
+        ) : null}
+      </Modal>
+      <Modal
+        open={Boolean(voidPaymentTarget)}
+        title="Tühista makse"
+        onClose={() => !correctionSaving && setVoidPaymentTarget(null)}
+        footer={
+          <>
+            <Button
+              variant="secondary"
+              disabled={correctionSaving}
+              onClick={() => setVoidPaymentTarget(null)}
+            >
+              Loobu
+            </Button>
+            <Button
+              variant="danger"
+              type="submit"
+              form="void-payment-form"
+              loading={correctionSaving}
+            >
+              Tühista makse
+            </Button>
+          </>
+        }
+      >
+        {voidPaymentTarget ? (
+          <form
+            id="void-payment-form"
+            className="form-grid"
+            onSubmit={submitVoidPayment}
+          >
+            <div className="payment-context form-grid__wide">
+              <span>
+                Arve {voidPaymentTarget.invoiceNum || "—"} ·{" "}
+                {displayDate(voidPaymentTarget.paidAt)}
+              </span>
+              <strong>{money(invoiceAmountCents(voidPaymentTarget))}</strong>
+            </div>
+            {actionError ? (
+              <p className="form-error form-grid__wide" role="alert">
+                {actionError}
+              </p>
+            ) : null}
+            <label className="textarea-field form-grid__wide">
+              <span>Tühistamise põhjus *</span>
+              <textarea
+                rows="4"
+                value={voidReason}
+                onChange={(event) => setVoidReason(event.target.value)}
+                placeholder="Näiteks: makse sisestati kaks korda"
+              />
+            </label>
+            <p className="payment-warning form-grid__wide">
+              Makse jääb auditisse tühistatuna. Arve, pangatehingu ja avansi
+              jäägid arvutatakse automaatselt uuesti.
+            </p>
+          </form>
+        ) : null}
+      </Modal>
+      <Modal
+        open={Boolean(overpaymentTarget)}
+        title="Muuda ülemakse avansiks"
+        onClose={() => !correctionSaving && setOverpaymentTarget(null)}
+        footer={
+          <>
+            <Button
+              variant="secondary"
+              disabled={correctionSaving}
+              onClick={() => setOverpaymentTarget(null)}
+            >
+              Loobu
+            </Button>
+            <Button
+              type="submit"
+              form="resolve-overpayment-form"
+              loading={correctionSaving}
+            >
+              Kinnita avanss
+            </Button>
+          </>
+        }
+      >
+        {overpaymentTarget ? (
+          <form
+            id="resolve-overpayment-form"
+            className="form-grid"
+            onSubmit={submitOverpayment}
+          >
+            <div className="payment-context form-grid__wide">
+              <span>
+                Arve {overpaymentTarget.num || overpaymentTarget.number || "—"}
+              </span>
+              <strong>{money(invoiceOverpaidCents(overpaymentTarget))}</strong>
+            </div>
+            {actionError ? (
+              <p className="form-error form-grid__wide" role="alert">
+                {actionError}
+              </p>
+            ) : null}
+            <label className="textarea-field form-grid__wide">
+              <span>Põhjus *</span>
+              <textarea
+                rows="4"
+                value={overpaymentReason}
+                onChange={(event) => setOverpaymentReason(event.target.value)}
+                placeholder="Näiteks: kliendi soovil järgmise arve ettemaks"
+              />
+            </label>
+            <p className="payment-confirmation form-grid__wide">
+              Ülemakse eraldatakse arvest avansiks. Algne makse ja seos
+              pangatehinguga jäävad auditis alles.
             </p>
           </form>
         ) : null}

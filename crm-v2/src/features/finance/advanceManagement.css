@@ -1,0 +1,121 @@
+.advance-management {
+  display: grid;
+  gap: 20px;
+}
+.advance-management .section-heading p {
+  color: var(--muted);
+  margin: 6px 0 0;
+  max-width: 720px;
+}
+.advance-management__metrics {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.advance-management__metrics > span {
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  color: var(--muted);
+  display: flex;
+  gap: 9px;
+  padding: 14px;
+}
+.advance-management__metrics svg {
+  color: var(--green);
+}
+.advance-management__metrics strong {
+  color: #162033;
+  margin-left: auto;
+}
+.advance-list {
+  display: grid;
+}
+.advance-list article {
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  display: grid;
+  gap: 13px;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  padding: 14px 2px;
+}
+.advance-list article:last-child {
+  border-bottom: 0;
+}
+.advance-list article > svg {
+  color: var(--green);
+}
+.advance-list article > span {
+  display: grid;
+  gap: 3px;
+}
+.advance-list article small {
+  color: var(--muted);
+}
+.advance-list article > b {
+  font-size: 1.05rem;
+}
+.advance-list article > div {
+  display: flex;
+  gap: 8px;
+}
+.refund-history {
+  border-top: 1px solid var(--border);
+  display: grid;
+  gap: 0;
+  padding-top: 17px;
+}
+.refund-history > div {
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  padding: 11px 2px;
+}
+.refund-history > div > span {
+  display: grid;
+  gap: 3px;
+}
+.refund-history small {
+  color: var(--muted);
+}
+.advance-context {
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  padding: 13px;
+}
+@media (max-width: 800px) {
+  .advance-management__metrics {
+    grid-template-columns: 1fr;
+  }
+  .advance-list article {
+    align-items: start;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+  .advance-list article > div {
+    grid-column: 2/4;
+    flex-wrap: wrap;
+  }
+}
+@media (max-width: 520px) {
+  .advance-list article {
+    grid-template-columns: auto 1fr;
+  }
+  .advance-list article > b,
+  .advance-list article > div {
+    grid-column: 2;
+  }
+  .advance-list article > div .button {
+    flex: 1;
+  }
+  .advance-context {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
+  }
+}

@@ -94,6 +94,23 @@ checks. Do not archive or edit an active learner during a smoke test.
 - Resolve blocking differences, rerun the check and mark the month reviewed;
   confirm `financialPeriods/{YYYY-MM}` stores a new review version and audit link.
 
+## Advances, refunds and payment corrections
+
+- Create or import an overpayment and confirm the available advance appears for
+  the linked student with its payer and source.
+- Apply part of the advance to an open invoice for the same student; confirm the
+  invoice balance and advance balance change in the same transaction.
+- Confirm an advance cannot be applied to another student's invoice or above the
+  invoice/advance balance.
+- Refund part of an advance with date, method and mandatory reason; confirm the
+  refund remains visible and the available balance is reduced without deleting
+  the original bank transaction.
+- Register an accidental payment, void it with a mandatory reason and confirm the
+  payment remains in history as voided while invoice, bank and credit balances are
+  restored.
+- Register a manual invoice overpayment and transfer it to the student's advance;
+  confirm the invoice no longer carries an unresolved overpaid balance.
+
 ## Account settings
 
 - For each role, open Settings and update the current account's name or phone.
