@@ -72,7 +72,7 @@ flags such as `isAdmin` or profile role arrays do not grant staff access.
 
 ## Firebase collections used by CRM v2
 
-- `users` — role, display name and the authoritative teacher UID directory;
+- `users` — role, display name, parent CRM contacts and the authoritative teacher UID directory;
 - `students` — profile, contacts, level, assignment, progress and active state;
 - `schedule` — student schedule entries;
 - `lessons` — completed lesson history and progress evidence;
@@ -106,6 +106,11 @@ CRM v2 currently includes:
 - staff group directory with administrator-managed membership, weekly lesson
   templates, teacher scoping, group events in the shared calendar and
   occurrence-level attendance marking for every assigned student;
+- parent directory with teacher-scoped visibility, administrator-only CRM
+  contact editing, registration review, explicit child linking and
+  administrator-only linked invoice balances;
+- a parent home dashboard based only on explicitly owned student records, with
+  children, upcoming lessons, pending homework, invoice balance and message links;
 - homework creation, completion, filtering and deletion;
 - in-app preview of assigned library materials and PDF/image attachments from
   the student homework view, with assignment snapshots as a resilient fallback;
