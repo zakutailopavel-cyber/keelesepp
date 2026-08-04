@@ -12,6 +12,7 @@ const actionLabels = {
   "invoice.created_from_lessons": "Arve loodi tundidest",
   "invoice.lesson_line_credited": "Arverida krediteeriti",
   "invoice.overpayment_transferred_to_credit": "Ülemakse muudeti avansiks",
+  "invoice.numbering_repaired": "Korduvad arvenumbrid parandati",
   "payment.created": "Makse registreeriti",
   "payment.voided": "Makse tühistati",
   "direct_lesson_payment.voided": "Otsemakse tühistati",

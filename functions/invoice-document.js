@@ -65,6 +65,9 @@ function buildInvoicePdf({ invoice, student = {}, paymentDetails = {} }) {
   const originalAmount = Number(invoice.amount) || 0;
   const creditedAmount = Number(invoice.creditedAmount) || 0;
   const effectiveAmount = Number(invoice.effectiveAmount ?? invoice.amount) || 0;
+  const previousNumber = Array.isArray(invoice.previousInvoiceNumbers)
+    ? invoice.previousInvoiceNumbers.at(-1) || ""
+    : "";
 
   return new Promise((resolve, reject) => {
     const document = new PDFDocument({
@@ -101,6 +104,10 @@ function buildInvoicePdf({ invoice, student = {}, paymentDetails = {} }) {
         .text(`Nr ${invoiceNumber}`, rightColumn, 78, { width: 214, align: "right" })
         .text(`Kuupäev ${formatEtDate(invoice.date || invoice.createdAt)}`, rightColumn, 94, { width: 214, align: "right" })
         .text(`Tähtaeg ${formatEtDate(invoice.due || invoice.dueDate)}`, rightColumn, 110, { width: 214, align: "right" });
+      if (previousNumber) {
+        document.font("Helvetica-Bold").fontSize(8).fillColor("#B54708")
+          .text(`Parandatud · eelmine nr ${previousNumber}`, rightColumn, 128, { width: 214, align: "right" });
+      }
     };
 
     const drawTableHeader = y => {

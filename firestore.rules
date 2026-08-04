@@ -806,6 +806,11 @@ service cloud.firestore {
       allow create, update, delete: if false;
     }
 
+    match /invoiceNumberRepairs/{repairId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
     match /financialPeriods/{monthId} {
       allow read: if isAdmin();
       allow create, update, delete: if false;

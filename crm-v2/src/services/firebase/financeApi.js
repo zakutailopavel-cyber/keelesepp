@@ -147,6 +147,16 @@ export const financeApi = {
       requestId: document.requestId,
     });
   },
+  previewInvoiceNumbering() {
+    return post('/invoices/numbering/preview', {});
+  },
+  repairInvoiceNumbering(plan, reason) {
+    return post('/invoices/numbering/repair', {
+      expectedFingerprint: plan.fingerprint,
+      reason,
+      requestId: financeRequestId('invoice_numbering'),
+    });
+  },
 };
 
 export const invoiceDeliveryApi = {

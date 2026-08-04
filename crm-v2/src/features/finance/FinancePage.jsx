@@ -13,6 +13,7 @@ import {
   RotateCcw,
   Search,
   Send,
+  ShieldCheck,
   TrendingUp,
   WalletCards,
 } from "lucide-react";
@@ -64,6 +65,7 @@ import FinancialPeriodPanel from "./FinancialPeriodPanel.jsx";
 import AdvanceManagementPanel from "./AdvanceManagementPanel.jsx";
 import DocumentPreviewModal from "./DocumentPreviewModal.jsx";
 import FinancialAuditPanel from "./FinancialAuditPanel.jsx";
+import InvoiceNumberingPanel from "./InvoiceNumberingPanel.jsx";
 import "./financeWorkspace.css";
 
 const money = (value) =>
@@ -380,6 +382,10 @@ export default function FinancePage({
     financeRepository.applyPayerCredit(creditId, invoiceId, amount, note);
   const refundPayerCredit = (creditId, refund) =>
     financeRepository.refundPayerCredit(creditId, refund);
+  const previewInvoiceNumbering = () =>
+    financeRepository.previewInvoiceNumbering();
+  const repairInvoiceNumbering = (plan, reason) =>
+    financeRepository.repairInvoiceNumbering(plan, reason);
   const deliverInvoice = async (mode) => {
     setDeliveryBusy(mode);
     setActionError("");
@@ -664,6 +670,15 @@ export default function FinancePage({
         />
       ) : null}
       {canRegisterPayment ? <FinancialAuditPanel entries={auditEntries} /> : null}
+      {canRegisterPayment ? (
+        <InvoiceNumberingPanel
+          invoices={invoices}
+          onPreview={previewInvoiceNumbering}
+          onRepair={repairInvoiceNumbering}
+          onReload={state.reload}
+          onOpenInvoice={openInvoice}
+        />
+      ) : null}
       <Card className="revenue-forecast-card">
         <div className="section-heading">
           <div>
@@ -1057,6 +1072,22 @@ export default function FinancePage({
                 {statusLabel[selectedStatus]}
               </Badge>
             </div>
+            {selected.previousInvoiceNumbers?.length ? (
+              <div className="invoice-numbering-note">
+                <ShieldCheck size={19} />
+                <span>
+                  <strong>Arvenumber on parandatud</strong>
+                  <small>
+                    Eelmine number {selected.previousInvoiceNumbers.at(-1)} · uus number {selected.num}
+                  </small>
+                </span>
+                {selected.correctedInvoiceDeliveryRequired ? (
+                  <Badge tone="danger">Saada uuesti</Badge>
+                ) : (
+                  <Badge tone="success">Teavitatud</Badge>
+                )}
+              </div>
+            ) : null}
             <dl className="invoice-detail__facts">
               <div>
                 <dt>Õpilane</dt>

@@ -28,6 +28,7 @@ const {
   buildInvoicePdf,
   invoiceFileName,
 } = require("./invoice-document");
+const { invoiceNumberingPlan } = require("./invoice-numbering-core");
 const {
   buildLessonInvoiceLines,
   centsToAmount,
@@ -1313,8 +1314,20 @@ async function createLessonInvoice({
       lessonPrice,
       tariffAssignments,
     );
-    const nextSequence = (Number(counterSnap.data()?.seq) || 0) + 1;
-    const invoiceNum = `KS-${todayIso.slice(0, 4)}-${String(nextSequence).padStart(3, "0")}`;
+    let nextSequence = (Number(counterSnap.data()?.seq) || 0) + 1;
+    let invoiceNum = "";
+    for (let attempt = 0; attempt < 50; attempt += 1) {
+      const candidate = `KS-${todayIso.slice(0, 4)}-${String(nextSequence).padStart(3, "0")}`;
+      const collision = await transaction.get(
+        db.collection("invoices").where("num", "==", candidate).limit(1),
+      );
+      if (collision.empty) {
+        invoiceNum = candidate;
+        break;
+      }
+      nextSequence += 1;
+    }
+    if (!invoiceNum) throw httpError(409, "Invoice counter requires numbering repair");
     const parentUid = student.linkedParentId || student.parentUid || student.guardianUid || "";
     const parentName = student.parentName || student.guardianName || "";
     const parentEmail = student.parentEmail || student.contactEmail || student.guardianEmail || "";
@@ -2432,6 +2445,137 @@ async function previewFinancialPeriod({ month }) {
       paymentLineAllocations: withIds(lineAllocationSnap),
     }),
   };
+}
+
+async function previewInvoiceNumbering() {
+  const [invoiceSnap, counterSnap] = await Promise.all([
+    db.collection("invoices").get(),
+    db.collection("meta").doc("invoiceCounter").get(),
+  ]);
+  return {
+    plan: invoiceNumberingPlan(
+      invoiceSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })),
+      { counterSeq: Number(counterSnap.data()?.seq) || 0 },
+    ),
+  };
+}
+
+async function repairInvoiceNumbering({ actor, reason, expectedFingerprint, requestId }) {
+  const mutationId = cleanRequestId(requestId);
+  const cleanReason = cleanText(reason, 500);
+  if (!cleanReason) throw httpError(400, "Reason required");
+  const fingerprint = String(expectedFingerprint || "").trim();
+  if (!/^[a-f0-9]{64}$/.test(fingerprint)) throw httpError(400, "Valid numbering fingerprint required");
+  const auditRef = db.collection("financialAudit").doc(mutationId);
+  const repairRef = db.collection("invoiceNumberRepairs").doc(mutationId);
+  const counterRef = db.collection("meta").doc("invoiceCounter");
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+
+  return db.runTransaction(async transaction => {
+    const [auditSnap, repairSnap, invoiceSnap, counterSnap] = await Promise.all([
+      transaction.get(auditRef),
+      transaction.get(repairRef),
+      transaction.get(db.collection("invoices")),
+      transaction.get(counterRef),
+    ]);
+    if (auditSnap.exists || repairSnap.exists) {
+      const repair = repairSnap.data();
+      if (!repairSnap.exists || repair.fingerprint !== fingerprint || repair.reason !== cleanReason) {
+        throw httpError(409, "requestId already used for a different financial mutation");
+      }
+      return { repair: { id: repairSnap.id, ...repair }, idempotent: true };
+    }
+
+    const invoices = invoiceSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const invoiceById = new Map(invoices.map(invoice => [invoice.id, invoice]));
+    const plan = invoiceNumberingPlan(invoices, {
+      counterSeq: Number(counterSnap.data()?.seq) || 0,
+    });
+    if (plan.fingerprint !== fingerprint) {
+      throw httpError(409, "Invoice data changed; run numbering preview again");
+    }
+    if (!plan.replacementCount) throw httpError(409, "No duplicate invoice numbers require repair");
+    if (plan.replacementCount > 100) throw httpError(409, "Too many duplicate invoices for one repair");
+
+    plan.replacements.forEach(replacement => {
+      const invoice = invoiceById.get(replacement.invoiceId);
+      const invoiceRef = db.collection("invoices").doc(replacement.invoiceId);
+      const previousNumbers = [...new Set([
+        ...(Array.isArray(invoice.previousInvoiceNumbers) ? invoice.previousInvoiceNumbers : []),
+        replacement.oldNumber,
+      ].filter(Boolean))].slice(-20);
+      const history = [
+        ...(Array.isArray(invoice.renumberingHistory) ? invoice.renumberingHistory : []),
+        {
+          from: replacement.oldNumber,
+          to: replacement.newNumber,
+          reason: cleanReason,
+          correctedAt: nowIso,
+          correctedBy: actorData,
+          requestId: mutationId,
+        },
+      ].slice(-20);
+      transaction.update(invoiceRef, {
+        num: replacement.newNumber,
+        paymentReference: !invoice.paymentReference || invoice.paymentReference === replacement.oldNumber
+          ? replacement.newNumber
+          : invoice.paymentReference,
+        previousInvoiceNumbers: previousNumbers,
+        renumberingHistory: history,
+        numberingStatus: "corrected",
+        numberingCorrectedAt: nowIso,
+        numberingCorrectedBy: actorData,
+        numberingCorrectionReason: cleanReason,
+        numberingRepairId: mutationId,
+        correctedInvoiceDeliveryRequired: replacement.requiresResend,
+        correctedInvoiceDeliveredAt: replacement.requiresResend ? "" : (invoice.correctedInvoiceDeliveredAt || ""),
+        updatedAt: nowIso,
+      });
+    });
+
+    const counterAfter = Math.max(Number(counterSnap.data()?.seq) || 0, plan.counterAfter);
+    transaction.set(counterRef, {
+      seq: counterAfter,
+      numberingRepairedAt: nowIso,
+      numberingRepairId: mutationId,
+      updatedAt: nowIso,
+    }, { merge: true });
+    const repair = {
+      status: "completed",
+      fingerprint,
+      reason: cleanReason,
+      replacementCount: plan.replacementCount,
+      duplicateGroupCount: plan.duplicateGroupCount,
+      requiresResendCount: plan.requiresResendCount,
+      riskyReplacementCount: plan.riskyReplacementCount,
+      counterBefore: plan.counterBefore,
+      counterAfter,
+      replacements: plan.replacements,
+      createdAt: nowIso,
+      createdBy: actorData,
+      requestId: mutationId,
+    };
+    transaction.create(repairRef, repair);
+    transaction.create(auditRef, {
+      entityType: "invoice_numbering",
+      entityId: mutationId,
+      action: "invoice.numbering_repaired",
+      fingerprint,
+      replacementCount: plan.replacementCount,
+      duplicateGroupCount: plan.duplicateGroupCount,
+      requiresResendCount: plan.requiresResendCount,
+      riskyReplacementCount: plan.riskyReplacementCount,
+      counterBefore: plan.counterBefore,
+      counterAfter,
+      replacements: plan.replacements,
+      actor: actorData,
+      reason: cleanReason,
+      createdAt: nowIso,
+      requestId: mutationId,
+    });
+    return { repair: { id: mutationId, ...repair }, plan, idempotent: false };
+  });
 }
 
 async function reviewFinancialPeriod({ actor, month, requestId }) {
@@ -3635,9 +3779,12 @@ function composeInvoiceEmail(invoice, student, type = "invoice") {
     : effectiveAmount;
   const amount = money(payableAmount);
   const creditedAmount = Number(invoice.creditedAmount) || 0;
+  const previousNumber = Array.isArray(invoice.previousInvoiceNumbers)
+    ? invoice.previousInvoiceNumbers.at(-1) || ""
+    : "";
   const subject = isReminder
     ? `Meeldetuletus: arve ${invoice.num || ""} tasumine`
-    : `Arve ${invoice.num || ""} - KeeleSepp`;
+    : `${previousNumber ? "Parandatud " : ""}arve ${invoice.num || ""} - KeeleSepp`;
   const intro = type === "due10"
     ? `Tuletame meelde, et arve tasumise tähtaeg on ${PAYMENT_DETAILS.paymentDueDay}. kuupäeval.`
     : isReminder
@@ -3649,6 +3796,7 @@ function composeInvoiceEmail(invoice, student, type = "invoice") {
     intro,
     "",
     `Arve: ${invoice.num || ""}`,
+    previousNumber ? `Eelmine arvenumber: ${previousNumber}` : "",
     `${partyKind}: ${partyName}`,
     `Kirjeldus: ${desc}`,
     creditedAmount > 0 ? `Parandused: -${money(creditedAmount)} EUR` : "",
@@ -3667,6 +3815,9 @@ function composeInvoiceEmail(invoice, student, type = "invoice") {
   const correctionRow = creditedAmount > 0
     ? `<tr><td style="padding:8px;border:1px solid #e5e7eb;font-weight:700">Parandused</td><td style="padding:8px;border:1px solid #e5e7eb">-${escapeHtml(money(creditedAmount))} EUR</td></tr>`
     : "";
+  const numberingRow = previousNumber
+    ? `<tr><td style="padding:8px;border:1px solid #e5e7eb;font-weight:700">Eelmine arvenumber</td><td style="padding:8px;border:1px solid #e5e7eb">${escapeHtml(previousNumber)}</td></tr>`
+    : "";
   const html = `
     <div style="font-family:Arial,Helvetica,sans-serif;color:#1C2B3A;line-height:1.5;max-width:640px">
       <h2 style="margin:0 0 12px;color:#1C2B3A">${escapeHtml(subject)}</h2>
@@ -3675,6 +3826,7 @@ function composeInvoiceEmail(invoice, student, type = "invoice") {
         <tr><td style="padding:8px;border:1px solid #e5e7eb;font-weight:700">Arve</td><td style="padding:8px;border:1px solid #e5e7eb">${escapeHtml(invoice.num || "")}</td></tr>
         <tr><td style="padding:8px;border:1px solid #e5e7eb;font-weight:700">${escapeHtml(partyKind)}</td><td style="padding:8px;border:1px solid #e5e7eb">${escapeHtml(partyName)}</td></tr>
         <tr><td style="padding:8px;border:1px solid #e5e7eb;font-weight:700">Kirjeldus</td><td style="padding:8px;border:1px solid #e5e7eb">${escapeHtml(desc)}</td></tr>
+        ${numberingRow}
         ${correctionRow}
         <tr><td style="padding:8px;border:1px solid #e5e7eb;font-weight:700">${isReminder ? "Tasuda" : "Summa"}</td><td style="padding:8px;border:1px solid #e5e7eb">${escapeHtml(amount)} EUR</td></tr>
         <tr><td style="padding:8px;border:1px solid #e5e7eb;font-weight:700">Tähtaeg</td><td style="padding:8px;border:1px solid #e5e7eb">${escapeHtml(formatEtDate(due))}</td></tr>
@@ -3885,6 +4037,10 @@ async function sendInvoiceMessage(invoiceId, { type = "invoice", actor = null } 
   if (delivery.status === "sent") patch.emailSentAt = nowIso;
   if (delivery.status === "queued") patch.emailQueuedAt = nowIso;
   if (type === "invoice") patch.invoiceEmailSentAt = nowIso;
+  if (type === "invoice" && invoice.correctedInvoiceDeliveryRequired) {
+    patch.correctedInvoiceDeliveryRequired = false;
+    patch.correctedInvoiceDeliveredAt = nowIso;
+  }
   if (type !== "invoice") {
     patch.lastReminderSentAt = nowIso;
     patch.reminderCount = FieldValue.increment(1);
@@ -5009,6 +5165,20 @@ exports.financeApi = functions.https.onRequest(async (req, res) => {
         fileName: req.body?.fileName,
         contentType: req.body?.contentType,
         size: req.body?.size,
+        requestId: req.body?.requestId,
+      });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/invoices/numbering/preview") {
+      res.json(await previewInvoiceNumbering());
+      return;
+    }
+    if (req.path === "/invoices/numbering/repair") {
+      const result = await repairInvoiceNumbering({
+        actor,
+        reason: req.body?.reason,
+        expectedFingerprint: req.body?.expectedFingerprint,
         requestId: req.body?.requestId,
       });
       res.status(result.idempotent ? 200 : 201).json(result);
