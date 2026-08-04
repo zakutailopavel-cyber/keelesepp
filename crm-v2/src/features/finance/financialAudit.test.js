@@ -10,6 +10,7 @@ describe("financial audit filtering", () => {
   it("maps actions to readable labels and categories", () => {
     expect(auditActionLabel("payment.created")).toBe("Makse registreeriti");
     expect(auditCategory("payment.document_attached")).toBe("document");
+    expect(auditActionLabel("bank_transaction.saved_as_advance")).toBe("Pangamakse salvestati avansina");
   });
 
   it("filters by query, category, and month", () => {

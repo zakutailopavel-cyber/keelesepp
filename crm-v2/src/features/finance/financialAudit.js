@@ -16,6 +16,8 @@ const actionLabels = {
   "payment.voided": "Makse tühistati",
   "direct_lesson_payment.voided": "Otsemakse tühistati",
   "payment.document_attached": "Makse kinnitus lisati",
+  "bank_transaction.allocated": "Pangamakse seoti arvetega",
+  "bank_transaction.saved_as_advance": "Pangamakse salvestati avansina",
   "payer_credit.applied": "Avanss kasutati arvel",
   "payer_credit.refunded": "Avanss tagastati",
   "financial_period.reviewed": "Finantsperiood kontrolliti",

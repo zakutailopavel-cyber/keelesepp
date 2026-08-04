@@ -17,6 +17,7 @@ const money = (cents) => new Intl.NumberFormat("et-EE", {
 function amountCents(entry) {
   if (Number.isInteger(entry.amountCents)) return entry.amountCents;
   if (Number.isInteger(entry.creditsDeltaCents)) return entry.creditsDeltaCents;
+  if (Number.isFinite(Number(entry.transactionAmount))) return Math.round(Number(entry.transactionAmount) * 100);
   if (Number.isFinite(Number(entry.amount))) return Math.round(Number(entry.amount) * 100);
   return null;
 }

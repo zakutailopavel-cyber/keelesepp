@@ -116,7 +116,7 @@ describe('FinancePage', () => {
     const repositories = renderPage();
     fireEvent.click(await screen.findByRole('button', { name: 'KS-101' }));
     const dialog = screen.getByRole('dialog', { name: 'Arve KS-101' });
-    const file = new File(['payment'], 'maksekorraldus.pdf', { type: 'application/pdf' });
+    const file = new globalThis.File(['payment'], 'maksekorraldus.pdf', { type: 'application/pdf' });
     fireEvent.change(await within(dialog).findByLabelText(/Lisa kinnitus/), { target: { files: [file] } });
     await waitFor(() => expect(repositories.documentRepository.upload).toHaveBeenCalledWith('payment-1', file, repositories.financeRepository));
     expect(await screen.findByRole('status')).toHaveTextContent('maksekorraldus.pdf');
