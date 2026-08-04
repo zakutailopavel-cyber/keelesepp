@@ -1083,8 +1083,10 @@ export default function FinancePage({
                 </span>
                 {selected.correctedInvoiceDeliveryRequired ? (
                   <Badge tone="danger">Saada uuesti</Badge>
+                ) : selected.correctedInvoiceDeliveredAt ? (
+                  <Badge tone="success">Uuesti saadetud</Badge>
                 ) : (
-                  <Badge tone="success">Teavitatud</Badge>
+                  <Badge tone="neutral">Saatmine polnud vajalik</Badge>
                 )}
               </div>
             ) : null}

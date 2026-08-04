@@ -179,7 +179,9 @@ The isolated preview is available at
 
 ## Known limitations
 
-- The legacy CRM is still the production source of truth outside Students.
+- The legacy CRM remains available as a rollback interface while CRM v2 reads
+  and writes the same production collections through its service layer and
+  trusted Cloud Functions.
 - Classroom publishing still opens the existing legacy tool while that live
   teaching workflow is migrated into the v2 feature modules.
 - Teacher read enforcement is deliberately off until the role-based production

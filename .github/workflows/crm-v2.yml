@@ -6,7 +6,7 @@ on:
       - 'crm-v2/**'
       - '.github/workflows/crm-v2.yml'
   push:
-    branches: [crm-v2]
+    branches: [main, crm-v2]
     paths:
       - 'crm-v2/**'
       - '.github/workflows/crm-v2.yml'

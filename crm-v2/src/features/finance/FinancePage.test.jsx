@@ -46,6 +46,17 @@ describe('FinancePage', () => {
     expect(repositories.paymentRepository.listByInvoice).toHaveBeenCalledWith('invoice-1');
   });
 
+  it('describes corrected invoice delivery without claiming an unsent notice', async () => {
+    renderPage(undefined, undefined, {
+      invoices: [{ ...invoice, num: 'KS-2026-042', previousInvoiceNumbers: ['KS-2026-013'] }],
+    });
+    fireEvent.click(await screen.findByRole('button', { name: 'KS-2026-042' }));
+    const dialog = screen.getByRole('dialog', { name: 'Arve KS-2026-042' });
+    expect(within(dialog).getByText(/Eelmine number KS-2026-013/)).toBeInTheDocument();
+    expect(within(dialog).getByText('Saatmine polnud vajalik')).toBeInTheDocument();
+    expect(within(dialog).queryByText('Teavitatud')).not.toBeInTheDocument();
+  });
+
   it('sends a payment through the trusted finance repository', async () => {
     const financeRepository = { recordPayment: vi.fn().mockResolvedValue({}) };
     renderPage(financeRepository);

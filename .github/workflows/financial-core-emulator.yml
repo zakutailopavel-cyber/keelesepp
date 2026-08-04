@@ -29,6 +29,15 @@ on:
       - "live-classroom-core.js"
       - "live-classroom-core.test.js"
       - ".github/workflows/financial-core-emulator.yml"
+  push:
+    branches: [main]
+    paths:
+      - "firebase.json"
+      - "firestore.rules"
+      - "storage.rules"
+      - "functions/**"
+      - "crm-v2/**"
+      - ".github/workflows/financial-core-emulator.yml"
   workflow_dispatch:
 
 permissions:
