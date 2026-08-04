@@ -167,69 +167,53 @@ KeeleSepp CRM v2 заменяет старую CRM по модулям, без �
 - production-нумерация сейчас уникальна; после repair уже создан и виден счёт `KS-2026-046`;
 - исправленные счета различают `Saada uuesti`, `Uuesti saadetud` и `Saatmine polnud vajalik`;
 - строки ошибок месячной сверки теперь показывают имя ученика/группы, дату, время и преподавателя; Firebase ID оставлен только вторичной технической деталью.
+- admin-only workspace `/finance/payroll` для учёта рабочего времени и зарплат;
+- месячные итоги по pending/approved времени, рассчитанной зарплате и server-measured activity;
+- ставки сотрудников применяются только к будущим подтверждениям и не меняют утверждённую историю;
+- approve/reject с обязательной ставкой или причиной;
+- аудируемое исправление начала, конца, перерыва и примечания возвращает запись на повторное подтверждение;
+- сотрудники с одной только activity evidence остаются видимыми, но activity явно не считается основанием для зарплаты.
 
 ## 4. Последнее опубликованное изменение
 
-Коммит: `fa80172 feat: support multiple parent children and readable finance issues`
+Коммит: `0fdf689 feat: add audited payroll workspace`
 
 В нём:
 
-- `Lisa laps` и multi-child flow на странице родителей;
-- список уже связанных детей внутри modal;
-- добавление существующей карточки без закрытия modal;
-- создание нового ребёнка из карточки любого родителя;
-- свободный ввод имени ребёнка вместо ограничения только именами регистрации;
-- readable identity для financial-period issues;
-- structured identity fields в `finance-core`;
-- имя/дата/преподаватель в интерфейсе и CSV;
-- новые component/unit tests.
+- admin-only маршрут `/finance/payroll` и вход из страницы финансов;
+- месячная группировка work sessions и program activity по staff UID;
+- totals по pending/approved времени и утверждённой сумме;
+- настройка будущей hourly rate через trusted API;
+- approve/reject с фиксированным snapshot ставки и суммы;
+- `Paranda` для аудируемого исправления времени, перерыва, заметки и обязательной причины;
+- повторное подтверждение после исправления;
+- component/projection tests и responsive payroll styles.
+
+Предыдущий функциональный коммит: `fa80172 feat: support multiple parent children and readable finance issues` (`Lisa laps` + readable financial-period issues).
 
 Публикация проверена:
 
-- GitHub `main` содержит `fa80172`;
+- GitHub `main` содержит `0fdf689`;
 - Vercel production отдаёт новый bundle;
 - Firebase Functions успешно задеплоены 04.08.2026;
 - production `/parents`: modal `Lisa laps: …` показывает текущих детей и кнопку `Loo uus lapse kaart`;
 - production `/finance`: июльская сверка показывает понятные строки вроде имени/группы, даты и преподавателя, а ID — ниже;
+- production `/finance/payroll`: отображаются реальные сотрудники, месячная activity evidence, ставки и пустые состояния; форма ставки проверена без сохранения;
 - production-проверка была read-only, детей и финансовые данные не изменяли.
 
 Последняя полная проверка:
 
 ```text
-CRM v2: 53 test files, 217 tests passed
+CRM v2: 54 test files, 222 tests passed
 Functions: 83 tests passed
 ESLint: passed
 Vite production build: passed
 git diff --check: passed
 ```
 
-## 5. Незавершённая локальная работа — не потерять
+## 5. Состояние локального рабочего дерева
 
-В рабочем дереве есть отдельный, ещё не закоммиченный payroll-блок. Он намеренно не был смешан с коммитом родителей/финансовой читаемости.
-
-Изменённые/новые файлы этого блока:
-
-- `crm-v2/.env.example`
-- `crm-v2/src/app/routes.jsx`
-- `crm-v2/src/features/finance/FinancePage.jsx`
-- `crm-v2/src/services/firebase/workTime.js`
-- `crm-v2/src/features/payroll/PayrollPage.jsx`
-- `crm-v2/src/features/payroll/payroll.js`
-- `crm-v2/src/features/payroll/payroll.css`
-- `crm-v2/src/features/payroll/payroll.test.js`
-
-Задуманный scope payroll-блока:
-
-- admin-route `/finance/payroll`;
-- ссылка из финансового workspace;
-- просмотр всех work sessions за месяц;
-- ставка сотрудника;
-- расчёт часов и суммы в центах;
-- approve/reject/adjust через trusted `staffOperationsApi`;
-- immutable audit и snapshot ставки при утверждении;
-- переменная `VITE_STAFF_OPERATIONS_API_URL`.
-
-До последнего опубликованного изменения targeted payroll tests, workTime tests, Finance tests, lint и build проходили. Перед публикацией payroll всё равно нужно повторить полный набор тестов и визуальную production-проверку.
+Payroll-блок опубликован и больше не является незакоммиченной работой. Отслеживаемых локальных изменений после `0fdf689` нет, кроме обновления этого handoff-файла до следующего docs-коммита.
 
 ### Пользовательские файлы, которые нельзя случайно коммитить
 
@@ -245,15 +229,7 @@ git diff --check: passed
 
 ## 6. Что осталось — приоритетный порядок
 
-### P0. Закончить payroll
-
-1. Проверить контракт UI ↔ `staffOperationsApi`.
-2. Проверить admin-only маршрут и отсутствие payroll у teacher/finance/student/parent.
-3. Проверить ставки, approve/reject/adjust, повторный запрос и audit.
-4. Убедиться, что прошлые утверждённые выплаты не меняются после новой ставки.
-5. Полные тесты, сборка, production smoke test.
-
-### P1. Расходы и поставщики
+### P0. Расходы и поставщики
 
 - категории расходов;
 - поставщик и supplier invoice;
@@ -367,6 +343,6 @@ npx firebase-tools deploy --only functions --project keelesepp-5136b --non-inter
 2. Выполнить `git status --short` и сохранить все пользовательские изменения.
 3. Прочитать `ARCHITECTURE.md`, `FINANCIAL_CORE_ROADMAP.md` и нужный раздел `crm-v2/ACCEPTANCE.md`.
 4. Не трогать Live Classroom и тарифы.
-5. Начать с аудита незакоммиченного payroll-блока.
+5. Начать с отдельного модуля расходов и поставщиков.
 6. Довести один блок до тестов, production и записи в этот handoff-файл.
 7. После каждого крупного релиза обновлять разделы 4–6 и новый HEAD-коммит.
