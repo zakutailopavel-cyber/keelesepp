@@ -19,6 +19,7 @@ function renderPage() {
     list: vi.fn().mockResolvedValue(data),
     assign: vi.fn().mockResolvedValue({ count: 1 }),
     saveMaterial: vi.fn().mockResolvedValue({ id: 'material-1', title: 'Uus materjal', created: true }),
+    saveExercise: vi.fn().mockResolvedValue({ id: 'exercise-new', title: 'Uus harjutus', created: true }),
     uploadFile: vi.fn().mockResolvedValue({ name: 'Uus.pdf', url: 'https://files.example/Uus.pdf', size: 1200, type: 'application/pdf', storagePath: 'curriculum/Uus.pdf' }),
     deleteUploadedFile: vi.fn().mockResolvedValue(undefined),
   };
@@ -129,5 +130,37 @@ describe('LibraryPage', () => {
     repository.saveMaterial.mockResolvedValueOnce({ id: 'lesson-1', title: 'Pere tunnikava', created: false });
     fireEvent.click(editor.getByRole('button', { name: 'Salvesta' }));
     expect(await screen.findByRole('status')).toHaveTextContent('„Pere tunnikava” salvestati.');
+  });
+
+  it('creates a legacy-compatible interactive exercise in CRM v2', async () => {
+    const { repository, user } = renderPage();
+    await screen.findByRole('button', { name: /Eesti keel.*2 materjali/ });
+    fireEvent.click(screen.getByRole('button', { name: 'Loo harjutus' }));
+    const editor = within(screen.getByRole('dialog', { name: 'Loo interaktiivne harjutus' }));
+    fireEvent.change(editor.getByLabelText('Pealkiri *'), { target: { value: 'Uus harjutus' } });
+    fireEvent.change(editor.getByLabelText('Õppeaine *'), { target: { value: 'Eesti keel' } });
+    fireEvent.change(editor.getByLabelText('Tase'), { target: { value: 'A1' } });
+    fireEvent.change(editor.getByLabelText('Teema'), { target: { value: 'Pere' } });
+    fireEvent.change(editor.getByLabelText('Tekst koos vastustega'), { target: { value: 'Minu [ema] nimi on Mari.' } });
+    fireEvent.click(editor.getByRole('button', { name: 'Salvesta harjutus' }));
+
+    expect(await screen.findByRole('status')).toHaveTextContent('Harjutus „Uus harjutus” loodi.');
+    expect(repository.saveExercise).toHaveBeenCalledWith(expect.objectContaining({
+      item: null,
+      user,
+      values: expect.objectContaining({ title: 'Uus harjutus', exerciseType: 'fill', subject: 'Eesti keel', text: 'Minu [ema] nimi on Mari.' }),
+    }));
+    expect(repository.list).toHaveBeenCalledTimes(2);
+  });
+
+  it('opens an existing exercise in the correct editor', async () => {
+    renderPage();
+    await screen.findByRole('button', { name: /Eesti keel.*2 materjali/ });
+    fireEvent.change(screen.getByLabelText('Otsi õppevara'), { target: { value: 'family' } });
+    fireEvent.click(screen.getByRole('button', { name: /Family match/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Muuda' }));
+    const editor = within(screen.getByRole('dialog', { name: 'Muuda harjutust: Family match' }));
+    expect(editor.getByLabelText('Harjutuse tüüp')).toBeDisabled();
+    expect(editor.getByRole('heading', { name: 'Sobita paarid' })).toBeInTheDocument();
   });
 });

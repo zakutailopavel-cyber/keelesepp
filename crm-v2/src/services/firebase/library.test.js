@@ -151,4 +151,63 @@ describe('libraryService', () => {
     expect(storageApi.deleteObject).toHaveBeenCalledOnce();
     expect(storageApi.ref).toHaveBeenCalledWith('firebase-storage', 'curriculum/temporary.pdf');
   });
+
+  it('creates a choice exercise in the existing exercises collection', async () => {
+    await expect(libraryService.saveExercise({
+      values: {
+        title: 'Vali tegusõna',
+        exerciseType: 'choice',
+        subject: 'Eesti keel',
+        level: 'A2',
+        topic: 'Igapäevaelu',
+        tags: 'tegusõna, olevik',
+        questions: [{ question: 'Ma ___ kooli.', options: ['lähen', 'läheb', '', ''], correct: 0 }],
+      },
+      user: { uid: 'teacher-1', displayName: 'Õpetaja', roles: ['teacher'] },
+    })).resolves.toMatchObject({ title: 'Vali tegusõna', created: true });
+
+    expect(firestore.batch.set).toHaveBeenCalledTimes(2);
+    expect(firestore.batch.set.mock.calls[0][1]).toMatchObject({
+      title: 'Vali tegusõna',
+      type: 'choice',
+      subject: 'Eesti keel',
+      tags: ['tegusõna', 'olevik'],
+      questions: [{ question: 'Ma ___ kooli.', options: ['lähen', 'läheb'], correct: 0 }],
+      authorUid: 'teacher-1',
+      assignCount: 0,
+    });
+    expect(firestore.batch.set.mock.calls[1][1]).toMatchObject({ type: 'learning_exercise.created' });
+  });
+
+  it('updates legacy pair exercises without replacing unrelated fields', async () => {
+    const item = { sourceId: 'exercise-1', source: { type: 'match' } };
+    await libraryService.saveExercise({
+      item,
+      values: { title: 'Pere sõnad', exerciseType: 'match', subject: 'Inglise keel', pairs: [{ left: 'ema', right: 'mother' }] },
+      user: { uid: 'admin-1', email: 'admin@example.com', roles: ['admin'] },
+    });
+    expect(firestore.doc).toHaveBeenCalledWith('firebase-db', 'exercises', 'exercise-1');
+    expect(firestore.batch.set.mock.calls[0][1]).toMatchObject({ type: 'match', pairs: [{ l: 'ema', r: 'mother' }] });
+    expect(firestore.batch.set.mock.calls[0][2]).toEqual({ merge: true });
+  });
+
+  it('rejects incomplete interactive exercise content', async () => {
+    await expect(libraryService.saveExercise({ values: { title: 'Lüngad', exerciseType: 'fill', subject: 'Eesti keel', text: 'Vastus puudub' }, user: { uid: 'teacher-1' } })).rejects.toThrow('nurksulgudega');
+    await expect(libraryService.saveExercise({ values: { title: 'Valik', exerciseType: 'choice', subject: 'Eesti keel', questions: [] }, user: { uid: 'teacher-1' } })).rejects.toThrow('vähemalt üks');
+    expect(firestore.batch.commit).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['fill', { text: 'Minu [nimi] on Mari.' }, { text: 'Minu [nimi] on Mari.' }],
+    ['writing', { task: 'Kirjuta oma päevast.', lines: 8 }, { task: 'Kirjuta oma päevast.', lines: 8 }],
+    ['order', { sentence: 'Ma õpin eesti keelt' }, { sentence: 'Ma õpin eesti keelt' }],
+    ['reading', { passage: 'Mari elab Tallinnas.', questions: [{ question: 'Kus Mari elab?', options: ['Tallinnas', 'Tartus'], correct: 0 }] }, { passage: 'Mari elab Tallinnas.', questions: [{ question: 'Kus Mari elab?', options: ['Tallinnas', 'Tartus'], correct: 0 }] }],
+    ['translate', { pairs: [{ left: 'tere', right: 'hello' }] }, { items: [{ from: 'tere', to: 'hello' }] }],
+  ])('normalizes %s exercise content for the legacy player', async (exerciseType, content, expected) => {
+    await libraryService.saveExercise({
+      values: { title: `Harjutus ${exerciseType}`, exerciseType, subject: 'Eesti keel', ...content },
+      user: { uid: 'teacher-1', roles: ['teacher'] },
+    });
+    expect(firestore.batch.set.mock.calls[0][1]).toMatchObject({ type: exerciseType, ...expected });
+  });
 });

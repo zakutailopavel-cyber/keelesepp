@@ -4,6 +4,7 @@ import { requireFirebaseClient } from './client.js';
 
 const MAX_MATERIAL_FILE_SIZE = 19 * 1024 * 1024;
 const SAFE_MATERIAL_TYPE = /^(image\/|application\/pdf$|text\/|audio\/|video\/|application\/vnd\.|application\/msword$)/;
+const EXERCISE_TYPES = new Set(['fill', 'choice', 'writing', 'order', 'match', 'reading', 'translate']);
 
 function records(snapshot) {
   return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
@@ -17,6 +18,47 @@ function storedFiles(files = []) {
     type: String(type || ''),
     ...(storagePath ? { storagePath } : {}),
   })).filter((file) => file.url);
+}
+
+function exerciseContent(values, type) {
+  if (type === 'fill') {
+    const text = String(values.text || '').trim();
+    if (!/\[[^\]]+\]/.test(text)) throw new Error('Märgi vähemalt üks õige vastus nurksulgudega.');
+    return { text };
+  }
+  if (type === 'writing') {
+    const task = String(values.task || '').trim();
+    if (!task) throw new Error('Sisesta kirjutamisülesanne.');
+    return { task, lines: Math.min(Math.max(Number(values.lines) || 5, 1), 20) };
+  }
+  if (type === 'order') {
+    const sentence = String(values.sentence || '').trim();
+    if (sentence.split(/\s+/).length < 2) throw new Error('Sisesta vähemalt kahest sõnast koosnev lause.');
+    return { sentence };
+  }
+  if (type === 'match' || type === 'translate') {
+    const pairs = (values.pairs || []).map((pair) => ({ left: String(pair.left || '').trim(), right: String(pair.right || '').trim() })).filter((pair) => pair.left || pair.right);
+    if (!pairs.length || pairs.some((pair) => !pair.left || !pair.right)) throw new Error('Täida vähemalt üks paar täielikult.');
+    return type === 'match'
+      ? { pairs: pairs.map((pair) => ({ l: pair.left, r: pair.right })) }
+      : { items: pairs.map((pair) => ({ from: pair.left, to: pair.right })) };
+  }
+  if (type === 'choice' || type === 'reading') {
+    const questions = (values.questions || []).map((question) => ({
+      question: String(question.question || '').trim(),
+      options: (question.options || []).map((option) => String(option || '').trim()).filter(Boolean),
+      correct: Number(question.correct) || 0,
+    })).filter((question) => question.question || question.options.length);
+    if (type === 'choice' && !questions.length) throw new Error('Lisa vähemalt üks valikvastustega küsimus.');
+    if (questions.some((question) => !question.question || question.options.length < 2 || question.correct < 0 || question.correct >= question.options.length)) throw new Error('Täida küsimus, vähemalt kaks vastust ja vali õige vastus.');
+    if (type === 'reading') {
+      const passage = String(values.passage || '').trim();
+      if (!passage) throw new Error('Sisesta lugemistekst.');
+      return { passage, questions };
+    }
+    return { questions };
+  }
+  throw new Error('Tundmatu harjutuse tüüp.');
 }
 
 export const libraryService = {
@@ -202,5 +244,46 @@ export const libraryService = {
     if (!String(file?.storagePath || '').startsWith('curriculum/')) return;
     const { storage } = requireFirebaseClient();
     await deleteObject(ref(storage, file.storagePath));
+  },
+  async saveExercise({ item = null, values, user }) {
+    const title = String(values.title || '').trim();
+    const subject = String(values.subject || '').trim();
+    const type = String(values.exerciseType || item?.source?.type || 'fill');
+    if (!title) throw new Error('Sisesta harjutuse pealkiri.');
+    if (!subject) throw new Error('Sisesta õppeaine.');
+    if (!EXERCISE_TYPES.has(type)) throw new Error('Tundmatu harjutuse tüüp.');
+    const now = new Date().toISOString();
+    const payload = {
+      title,
+      type,
+      subject,
+      level: String(values.level || '').trim(),
+      topic: String(values.topic || '').trim(),
+      description: String(values.description || '').trim(),
+      tags: String(values.tags || '').split(',').map((tag) => tag.trim()).filter(Boolean).slice(0, 20),
+      ...exerciseContent(values, type),
+      updatedAt: now,
+    };
+    const { db } = requireFirebaseClient();
+    const batch = writeBatch(db);
+    const exerciseRef = item?.sourceId ? doc(db, 'exercises', item.sourceId) : doc(collection(db, 'exercises'));
+    const created = !item?.sourceId;
+    if (created) {
+      batch.set(exerciseRef, { ...payload, assignCount: 0, authorUid: user.uid, authorName: user.displayName || user.email || '', createdAt: now });
+    } else {
+      batch.set(exerciseRef, payload, { merge: true });
+    }
+    batch.set(doc(collection(db, 'activityLog')), {
+      type: created ? 'learning_exercise.created' : 'learning_exercise.updated',
+      label: created ? 'Harjutus loodud' : 'Harjutus muudetud',
+      meta: { sourceId: item?.sourceId || exerciseRef.id || '', exerciseType: type, title },
+      byUid: user.uid,
+      byName: user.displayName || user.email || '',
+      byRole: user.roles?.[0] || '',
+      createdAt: now,
+      date: now.slice(0, 10),
+    });
+    await batch.commit();
+    return { id: item?.sourceId || exerciseRef.id || '', title, created };
   },
 };
