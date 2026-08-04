@@ -1,0 +1,207 @@
+.financial-analytics {
+  display: grid;
+  gap: 22px;
+}
+.financial-analytics__heading {
+  align-items: end;
+}
+.financial-analytics__controls {
+  display: flex;
+  align-items: end;
+  gap: 10px;
+}
+.financial-analytics__controls .field {
+  min-width: 190px;
+}
+.financial-analytics__metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+.financial-analytics__metrics > span {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 5px 9px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: #f8fafc;
+}
+.financial-analytics__metrics svg {
+  grid-row: 1 / span 3;
+  color: var(--green);
+}
+.financial-analytics__metrics small,
+.financial-analytics__metrics em {
+  color: var(--muted);
+  font-style: normal;
+}
+.financial-analytics__metrics strong {
+  font-size: 1.35rem;
+}
+.financial-analytics__metrics .is-negative strong {
+  color: var(--danger);
+}
+.financial-analytics__metrics .is-positive strong {
+  color: #067647;
+}
+.analytics-forecast {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) minmax(220px, 2fr) auto;
+  align-items: center;
+  gap: 18px;
+  padding: 18px;
+  border-radius: 16px;
+  background: #f8fafc;
+  border: 1px solid var(--border);
+}
+.analytics-forecast > div:first-child {
+  display: grid;
+  gap: 4px;
+}
+.analytics-forecast > div:first-child > strong {
+  font-size: 1.2rem;
+}
+.analytics-forecast small {
+  color: var(--muted);
+}
+.analytics-forecast__progress {
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--border);
+}
+.analytics-forecast__progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--green);
+}
+.analytics-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.8fr);
+  gap: 18px;
+}
+.analytics-columns > section,
+.analytics-trend {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+}
+.analytics-columns h3,
+.analytics-trend h3 {
+  margin: 3px 0 0;
+}
+.aged-debt-buckets {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 16px 0;
+}
+.aged-debt-buckets article {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border-radius: 13px;
+  background: #f8fafc;
+}
+.aged-debt-buckets small,
+.aged-debt-buckets em {
+  color: var(--muted);
+  font-style: normal;
+}
+.analytics-table-wrap {
+  overflow-x: auto;
+}
+.analytics-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.analytics-table th,
+.analytics-table td {
+  padding: 11px 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  white-space: nowrap;
+}
+.analytics-table th {
+  color: var(--muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.analytics-table td small {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+}
+.analytics-table td:last-child {
+  text-align: right;
+}
+.analytics-breakdown {
+  display: grid;
+  gap: 2px;
+  margin-top: 14px;
+}
+.analytics-breakdown article {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 2px;
+  border-bottom: 1px solid var(--border);
+}
+.analytics-breakdown span {
+  display: grid;
+  gap: 3px;
+}
+.analytics-breakdown small {
+  color: var(--muted);
+}
+.analytics-empty,
+.financial-analytics__empty {
+  color: var(--muted);
+}
+.financial-analytics__empty {
+  display: grid;
+  justify-items: center;
+  gap: 7px;
+  padding: 30px;
+  text-align: center;
+  border: 1px dashed var(--border);
+  border-radius: 16px;
+}
+.analytics-method {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+@media (max-width: 1100px) {
+  .financial-analytics__metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .analytics-columns {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 720px) {
+  .financial-analytics__heading,
+  .financial-analytics__controls,
+  .analytics-forecast {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  .financial-analytics__controls .field {
+    min-width: 0;
+  }
+  .financial-analytics__metrics,
+  .aged-debt-buckets {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 430px) {
+  .financial-analytics__metrics,
+  .aged-debt-buckets {
+    grid-template-columns: 1fr;
+  }
+}

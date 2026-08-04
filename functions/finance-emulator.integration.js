@@ -1404,6 +1404,15 @@ test("a reviewed month exports, closes, locks historical writes, and accepts dat
   assert.equal(correction.body.correction.sourceMonth, month);
   assert.equal(correction.body.correction.effectiveDate, "2026-08-04");
   assert.equal(correction.body.correction.amountDeltaCents, 1000);
+
+  const analytics = await financeRequest(token, "/financial-analytics/preview", {
+    month: "2026-08",
+  });
+  assert.equal(analytics.status, 200, JSON.stringify(analytics.body));
+  assert.equal(analytics.body.snapshot.schemaVersion, "financial_analytics_v1");
+  assert.equal(analytics.body.snapshot.month, "2026-08");
+  assert.ok(Array.isArray(analytics.body.snapshot.trend));
+  assert.ok(Array.isArray(analytics.body.snapshot.agedDebt.rows));
 });
 
 test("versioned tariffs and assignments price invoice lines by lesson date", async () => {

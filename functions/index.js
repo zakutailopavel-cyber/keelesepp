@@ -35,6 +35,7 @@ const {
   billingFingerprint,
   periodCloseProjection,
 } = require("./period-close-core");
+const { financialAnalyticsSnapshot } = require("./financial-analytics-core");
 const {
   buildLessonInvoiceLines,
   centsToAmount,
@@ -2501,6 +2502,41 @@ async function previewFinancialPeriod({ month }) {
     },
     latestExport,
   };
+}
+
+async function previewFinancialAnalytics({ month }) {
+  const snapshots = await Promise.all([
+    db.collection("invoices").get(),
+    db.collection("payments").get(),
+    db.collection("bankTransactions").get(),
+    db.collection("refunds").get(),
+    db.collection("expenses").get(),
+    db.collection("workSessions").get(),
+    db.collection("studentRevenuePlans").get(),
+    db.collection("financialPeriodCorrections").get(),
+    db.collection("lessons").get(),
+  ]);
+  const records = snapshot => snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  const [invoices, payments, bankTransactions, refunds, expenses, workSessions,
+    revenuePlans, corrections, lessons] = snapshots.map(records);
+  try {
+    return {
+      snapshot: financialAnalyticsSnapshot({
+        month,
+        invoices,
+        payments,
+        bankTransactions,
+        refunds,
+        expenses,
+        workSessions,
+        revenuePlans,
+        corrections,
+        lessons,
+      }),
+    };
+  } catch (error) {
+    throw httpError(400, error.message);
+  }
 }
 
 async function previewInvoiceNumbering() {
@@ -5794,6 +5830,10 @@ exports.financeApi = functions.https.onRequest(async (req, res) => {
     if (req.path === "/financial-periods/preview") {
       const result = await previewFinancialPeriod({ month: req.body?.month });
       res.json(result);
+      return;
+    }
+    if (req.path === "/financial-analytics/preview") {
+      res.json(await previewFinancialAnalytics({ month: req.body?.month }));
       return;
     }
     if (req.path === "/financial-periods/review") {

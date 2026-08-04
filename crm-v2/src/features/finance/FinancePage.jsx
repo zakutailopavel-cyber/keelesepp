@@ -63,6 +63,7 @@ import {
 import LessonAccountingPanel from "./LessonAccountingPanel.jsx";
 import BankReconciliationPanel from "./BankReconciliationPanel.jsx";
 import FinancialPeriodPanel from "./FinancialPeriodPanel.jsx";
+import FinancialAnalyticsPanel from "./FinancialAnalyticsPanel.jsx";
 import AdvanceManagementPanel from "./AdvanceManagementPanel.jsx";
 import DocumentPreviewModal from "./DocumentPreviewModal.jsx";
 import FinancialAuditPanel from "./FinancialAuditPanel.jsx";
@@ -377,6 +378,8 @@ export default function FinancePage({
     financeRepository.allocateBankTransaction(transaction);
   const previewFinancialPeriod = (month) =>
     financeRepository.previewFinancialPeriod(month);
+  const previewFinancialAnalytics = (month) =>
+    financeRepository.previewFinancialAnalytics(month);
   const reviewFinancialPeriod = (month) =>
     financeRepository.reviewFinancialPeriod(month);
   const generateFinancialPeriodExport = (month) =>
@@ -659,6 +662,15 @@ export default function FinancePage({
           <small>{forecast.rows.length} õpilase plaan</small>
         </Card>
       </section>
+      {canRegisterPayment ? (
+        <FinancialAnalyticsPanel
+          onPreview={previewFinancialAnalytics}
+          onOpenInvoice={(invoiceId) => {
+            const invoice = invoices.find((item) => item.id === invoiceId);
+            if (invoice) openInvoice(invoice);
+          }}
+        />
+      ) : null}
       {canRegisterPayment ? (
         <LessonAccountingPanel
           lessons={lessons}

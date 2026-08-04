@@ -145,6 +145,9 @@ export const financeApi = {
   previewFinancialPeriod(month) {
     return post("/financial-periods/preview", { month });
   },
+  previewFinancialAnalytics(month) {
+    return post("/financial-analytics/preview", { month });
+  },
   reviewFinancialPeriod(month) {
     return post("/financial-periods/review", {
       month,
