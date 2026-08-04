@@ -1,6 +1,7 @@
 import { getApp, getApps, initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -20,7 +21,7 @@ export function isFirebaseConfigured(config = firebaseConfig) {
 export function getFirebaseClient() {
   if (!isFirebaseConfigured()) return null;
   const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-  return { app, auth: getAuth(app), db: getFirestore(app) };
+  return { app, auth: getAuth(app), db: getFirestore(app), storage: getStorage(app) };
 }
 
 export class FirebaseConfigurationError extends Error {

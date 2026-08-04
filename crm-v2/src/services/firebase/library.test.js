@@ -7,17 +7,30 @@ const firestore = vi.hoisted(() => ({
   batch: { set: vi.fn(), commit: vi.fn().mockResolvedValue(undefined) },
   writeBatch: vi.fn(),
 }));
+const storageApi = vi.hoisted(() => ({
+  ref: vi.fn((_storage, path) => `storage-ref:${path}`),
+  uploadBytesResumable: vi.fn(),
+  getDownloadURL: vi.fn().mockResolvedValue('https://files.example/uploaded.pdf'),
+  deleteObject: vi.fn().mockResolvedValue(undefined),
+}));
 
 vi.mock('firebase/firestore', () => firestore);
-vi.mock('./client.js', () => ({ requireFirebaseClient: () => ({ db: 'firebase-db' }) }));
+vi.mock('firebase/storage', () => storageApi);
+vi.mock('./client.js', () => ({ requireFirebaseClient: () => ({ db: 'firebase-db', storage: 'firebase-storage' }) }));
 
 import { libraryService } from './library.js';
 
 describe('libraryService', () => {
   beforeEach(() => {
-    firestore.batch.set.mockClear();
-    firestore.batch.commit.mockClear();
+    vi.clearAllMocks();
     firestore.writeBatch.mockReturnValue(firestore.batch);
+    storageApi.uploadBytesResumable.mockReturnValue({
+      snapshot: { ref: 'uploaded-storage-ref' },
+      on: vi.fn((_event, progress, _error, complete) => {
+        progress({ bytesTransferred: 50, totalBytes: 100 });
+        complete();
+      }),
+    });
   });
 
   it('loads the existing curriculum and exercise collections without changing their records', async () => {
@@ -82,6 +95,7 @@ describe('libraryService', () => {
         topic: 'Pere',
         description: 'Lünkharjutus',
         blocks: [{ id: 'block-1', type: 'fill', text: 'Minu [ema].' }],
+        files: [{ name: 'Pere.pdf', url: 'https://files.example/Pere.pdf', size: 1200, type: 'application/pdf', storagePath: 'curriculum/Pere.pdf', _new: true }],
       },
       user,
     })).resolves.toMatchObject({ title: 'Pere tööleht', created: true });
@@ -91,6 +105,7 @@ describe('libraryService', () => {
       title: 'Pere tööleht',
       type: 'material',
       authorUid: 'teacher-1',
+      files: [{ name: 'Pere.pdf', url: 'https://files.example/Pere.pdf', size: 1200, type: 'application/pdf', storagePath: 'curriculum/Pere.pdf' }],
       worksheetData: { meta: { title: 'Pere tööleht', subject: 'Eesti keel', level: 'A1', topic: 'Pere' }, blocks: [{ id: 'block-1', type: 'fill', text: 'Minu [ema].' }] },
     });
     expect(firestore.batch.set.mock.calls[1][1]).toMatchObject({ type: 'learning_material.created', byUid: 'teacher-1' });
@@ -108,5 +123,32 @@ describe('libraryService', () => {
     expect(firestore.batch.set.mock.calls[0][1]).toMatchObject({ title: 'Muudetud tund', type: 'lesson', description: 'Uus kirjeldus' });
     expect(firestore.batch.set.mock.calls[0][2]).toEqual({ merge: true });
     expect(firestore.batch.set.mock.calls[1][1]).toMatchObject({ type: 'learning_material.updated' });
+  });
+
+  it('uploads a safe material file to the staff curriculum folder', async () => {
+    const progress = vi.fn();
+    const file = new globalThis.File(['pdf'], 'Pere tööleht.pdf', { type: 'application/pdf' });
+    await expect(libraryService.uploadFile({ file, user: { uid: 'teacher-1' }, onProgress: progress })).resolves.toMatchObject({
+      name: 'Pere tööleht.pdf',
+      url: 'https://files.example/uploaded.pdf',
+      type: 'application/pdf',
+    });
+
+    expect(storageApi.ref).toHaveBeenCalledWith('firebase-storage', expect.stringMatching(/^curriculum\/\d+_teacher-1_/));
+    expect(storageApi.uploadBytesResumable).toHaveBeenCalledWith(expect.stringMatching(/^storage-ref:curriculum\//), file, { contentType: 'application/pdf' });
+    expect(progress).toHaveBeenCalledWith(50);
+  });
+
+  it('rejects unsafe or oversized material files before uploading', async () => {
+    await expect(libraryService.uploadFile({ file: new globalThis.File(['x'], 'script.exe', { type: 'application/x-msdownload' }), user: { uid: 'teacher-1' } })).rejects.toThrow('failivormingut');
+    await expect(libraryService.uploadFile({ file: { name: 'huge.pdf', type: 'application/pdf', size: 20 * 1024 * 1024 }, user: { uid: 'teacher-1' } })).rejects.toThrow('liiga suur');
+    expect(storageApi.uploadBytesResumable).not.toHaveBeenCalled();
+  });
+
+  it('only deletes temporary files from the curriculum storage folder', async () => {
+    await libraryService.deleteUploadedFile({ storagePath: 'curriculum/temporary.pdf' });
+    await libraryService.deleteUploadedFile({ storagePath: 'financial/payment-orders/private.pdf' });
+    expect(storageApi.deleteObject).toHaveBeenCalledOnce();
+    expect(storageApi.ref).toHaveBeenCalledWith('firebase-storage', 'curriculum/temporary.pdf');
   });
 });

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { vi } from 'vitest';
 import { AuthContext } from '../../app/AuthContext.jsx';
@@ -15,7 +15,13 @@ const data = {
 };
 
 function renderPage() {
-  const repository = { list: vi.fn().mockResolvedValue(data), assign: vi.fn().mockResolvedValue({ count: 1 }), saveMaterial: vi.fn().mockResolvedValue({ id: 'material-1', title: 'Uus materjal', created: true }) };
+  const repository = {
+    list: vi.fn().mockResolvedValue(data),
+    assign: vi.fn().mockResolvedValue({ count: 1 }),
+    saveMaterial: vi.fn().mockResolvedValue({ id: 'material-1', title: 'Uus materjal', created: true }),
+    uploadFile: vi.fn().mockResolvedValue({ name: 'Uus.pdf', url: 'https://files.example/Uus.pdf', size: 1200, type: 'application/pdf', storagePath: 'curriculum/Uus.pdf' }),
+    deleteUploadedFile: vi.fn().mockResolvedValue(undefined),
+  };
   const studentRepository = { list: vi.fn().mockResolvedValue({ items: [{ id: 'student-1', name: 'Mari', subject: 'Eesti keel', level: 'A1', active: true }] }) };
   const user = { uid: 'teacher-1', displayName: 'Õpetaja', roles: ['teacher'] };
   render(<MemoryRouter><AuthContext.Provider value={{ user }}><LibraryPage repository={repository} studentRepository={studentRepository} /></AuthContext.Provider></MemoryRouter>);
@@ -96,14 +102,18 @@ describe('LibraryPage', () => {
     fireEvent.change(editor.getByLabelText('Ülesande tüüp'), { target: { value: 'fill' } });
     fireEvent.change(editor.getByLabelText('Juhis või alapealkiri'), { target: { value: 'Täida lüngad' } });
     fireEvent.change(editor.getByLabelText('Sisu'), { target: { value: 'Hommikul ma [ärkan].' } });
+    const pdf = new globalThis.File(['pdf'], 'Uus.pdf', { type: 'application/pdf' });
+    fireEvent.change(editor.getByLabelText('Lisa materjali failid'), { target: { files: [pdf] } });
+    await waitFor(() => expect(editor.getByText('Uus.pdf')).toBeInTheDocument());
     fireEvent.click(editor.getByRole('button', { name: 'Salvesta' }));
 
     expect(await screen.findByRole('status')).toHaveTextContent('„Uus materjal” loodi.');
     expect(repository.saveMaterial).toHaveBeenCalledWith(expect.objectContaining({
       item: null,
       user,
-      values: expect.objectContaining({ title: 'Uus materjal', materialType: 'worksheet', subject: 'Eesti keel', blocks: [expect.objectContaining({ type: 'fill', text: 'Hommikul ma [ärkan].' })] }),
+      values: expect.objectContaining({ title: 'Uus materjal', materialType: 'worksheet', subject: 'Eesti keel', blocks: [expect.objectContaining({ type: 'fill', text: 'Hommikul ma [ärkan].' })], files: [expect.objectContaining({ name: 'Uus.pdf', _new: true })] }),
     }));
+    expect(repository.uploadFile).toHaveBeenCalledWith(expect.objectContaining({ file: pdf, user }));
     expect(repository.list).toHaveBeenCalledTimes(2);
   });
 

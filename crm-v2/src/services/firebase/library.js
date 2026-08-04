@@ -1,8 +1,22 @@
 import { collection, doc, getDocs, writeBatch } from 'firebase/firestore';
+import { deleteObject, getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
 import { requireFirebaseClient } from './client.js';
+
+const MAX_MATERIAL_FILE_SIZE = 19 * 1024 * 1024;
+const SAFE_MATERIAL_TYPE = /^(image\/|application\/pdf$|text\/|audio\/|video\/|application\/vnd\.|application\/msword$)/;
 
 function records(snapshot) {
   return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+}
+
+function storedFiles(files = []) {
+  return files.map(({ name, url, size, type, storagePath }) => ({
+    name: String(name || 'Fail'),
+    url: String(url || ''),
+    size: Number(size) || 0,
+    type: String(type || ''),
+    ...(storagePath ? { storagePath } : {}),
+  })).filter((file) => file.url);
 }
 
 export const libraryService = {
@@ -121,6 +135,7 @@ export const libraryService = {
       level: String(values.level || '').trim(),
       topic: String(values.topic || '').trim(),
       order: Number(values.order) || 0,
+      files: storedFiles(values.files),
       updatedAt: now,
     };
 
@@ -147,7 +162,6 @@ export const libraryService = {
     if (created) {
       batch.set(materialRef, {
         ...payload,
-        files: [],
         authorUid: user.uid,
         authorName: user.displayName || user.email || '',
         createdAt: now.slice(0, 10),
@@ -167,5 +181,26 @@ export const libraryService = {
     });
     await batch.commit();
     return { id: item?.sourceId || materialRef.id || '', title, created };
+  },
+  async uploadFile({ file, user, onProgress = () => {} }) {
+    if (!file || !file.size) throw new Error('Vali üleslaadimiseks fail.');
+    if (file.size > MAX_MATERIAL_FILE_SIZE) throw new Error('Fail on liiga suur. Maksimaalne suurus on 19 MB.');
+    if (!SAFE_MATERIAL_TYPE.test(file.type || '')) throw new Error('Seda failivormingut ei saa õppematerjalile lisada.');
+    const { storage } = requireFirebaseClient();
+    const safeName = String(file.name || 'file').normalize('NFKD').replace(/[^a-zA-Z0-9._-]+/g, '_').slice(-120);
+    const storagePath = `curriculum/${Date.now()}_${user.uid}_${safeName}`;
+    const storageRef = ref(storage, storagePath);
+    const task = uploadBytesResumable(storageRef, file, { contentType: file.type });
+    await new Promise((resolve, reject) => task.on('state_changed',
+      (snapshot) => onProgress(Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100)),
+      reject,
+      resolve));
+    const url = await getDownloadURL(task.snapshot.ref);
+    return { name: file.name, url, size: file.size, type: file.type, storagePath };
+  },
+  async deleteUploadedFile(file) {
+    if (!String(file?.storagePath || '').startsWith('curriculum/')) return;
+    const { storage } = requireFirebaseClient();
+    await deleteObject(ref(storage, file.storagePath));
   },
 };

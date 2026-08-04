@@ -1,5 +1,5 @@
-import { Plus, Trash2 } from 'lucide-react';
-import { useId, useState } from 'react';
+import { FileText, Plus, Trash2, UploadCloud } from 'lucide-react';
+import { useId, useRef, useState } from 'react';
 import { Button, Input, Modal, Select } from '../../components/ui/index.js';
 
 const MATERIAL_TYPES = [
@@ -37,7 +37,14 @@ function initialValues(item) {
     order: source.order || 0,
     examPart: source.examPart || '',
     blocks: source.worksheetData?.blocks?.map((block) => ({ ...block })) || [],
+    files: source.files?.map((file) => ({ ...file })) || [],
   };
+}
+
+function formatFileSize(size) {
+  if (!size) return '';
+  if (size < 1024 * 1024) return `${Math.ceil(size / 1024)} KB`;
+  return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 function MaterialBlockEditor({ block, index, onChange, onRemove }) {
@@ -63,14 +70,56 @@ function MaterialBlockEditor({ block, index, onChange, onRemove }) {
 
 export default function MaterialEditor({ item = null, repository, user, onClose, onSaved }) {
   const formId = useId();
+  const fileInput = useRef(null);
   const [values, setValues] = useState(() => initialValues(item));
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [saveError, setSaveError] = useState('');
   const structured = values.materialType === 'worksheet' || values.materialType === 'test';
   const update = (field, value) => setValues((current) => ({ ...current, [field]: value }));
   const updateBlock = (index, block) => update('blocks', values.blocks.map((current, currentIndex) => currentIndex === index ? block : current));
   const removeBlock = (index) => update('blocks', values.blocks.filter((_, currentIndex) => currentIndex !== index));
+
+  const uploadFiles = async (fileList) => {
+    const files = [...(fileList || [])];
+    if (!files.length) return;
+    setUploading(true);
+    setSaveError('');
+    try {
+      for (const file of files) {
+        setProgress(0);
+        const uploaded = await repository.uploadFile({ file, user, onProgress: setProgress });
+        setValues((current) => ({ ...current, files: [...current.files, { ...uploaded, _new: true }] }));
+      }
+    } catch (error) {
+      setSaveError(error.message || 'Faili üleslaadimine ebaõnnestus.');
+    } finally {
+      setUploading(false);
+      setProgress(0);
+      if (fileInput.current) fileInput.current.value = '';
+    }
+  };
+
+  const removeFile = async (file, index) => {
+    update('files', values.files.filter((_, currentIndex) => currentIndex !== index));
+    if (!file._new) return;
+    try {
+      await repository.deleteUploadedFile(file);
+    } catch {
+      setSaveError('Fail eemaldati materjalist, kuid salvestusruumi puhastamine ebaõnnestus.');
+    }
+  };
+
+  const discard = () => {
+    if (uploading) {
+      setSaveError('Oota, kuni faili üleslaadimine lõpeb.');
+      return;
+    }
+    const temporaryFiles = values.files.filter((file) => file._new);
+    Promise.allSettled(temporaryFiles.map((file) => repository.deleteUploadedFile(file))).finally(onClose);
+  };
 
   const submit = async (event) => {
     event.preventDefault();
@@ -99,8 +148,8 @@ export default function MaterialEditor({ item = null, repository, user, onClose,
       open
       title={item ? `Muuda: ${item.title}` : 'Loo õppematerjal'}
       className="modal--editor"
-      onClose={onClose}
-      footer={<><Button variant="secondary" disabled={saving} onClick={onClose}>Tühista</Button><Button type="submit" form={formId} loading={saving}>Salvesta</Button></>}
+      onClose={discard}
+      footer={<><Button variant="secondary" disabled={saving || uploading} onClick={discard}>Tühista</Button><Button type="submit" form={formId} loading={saving} disabled={uploading}>Salvesta</Button></>}
     >
       <form id={formId} className="material-editor" onSubmit={submit}>
         {saveError ? <div className="action-error" role="alert">{saveError}</div> : null}
@@ -114,6 +163,16 @@ export default function MaterialEditor({ item = null, repository, user, onClose,
           <Input id={`${formId}-topic`} label="Teema" value={values.topic} maxLength={140} onChange={(event) => update('topic', event.target.value)} placeholder="Näiteks: Minu pere" />
           <label className="textarea-field form-grid__wide"><span>Kirjeldus{structured ? '' : ' *'}</span><textarea className={errors.description ? 'is-invalid' : ''} aria-invalid={Boolean(errors.description)} rows={4} value={values.description} maxLength={4000} onChange={(event) => update('description', event.target.value)} placeholder="Mida õpilane selle materjaliga õpib?" />{errors.description ? <small className="field__error">{errors.description}</small> : null}</label>
         </div>
+        <section className="material-attachments">
+          <div className="section-heading"><div><span>Failid</span><h2>Manused</h2></div><small>Kuni 19 MB faili kohta</small></div>
+          <input ref={fileInput} className="sr-only" aria-label="Lisa materjali failid" type="file" multiple accept="image/*,application/pdf,text/*,audio/*,video/*,.doc,.docx,.xls,.xlsx,.ppt,.pptx" onChange={(event) => uploadFiles(event.target.files)} />
+          <button className="material-upload" type="button" disabled={uploading} onClick={() => fileInput.current?.click()} onDrop={(event) => { event.preventDefault(); uploadFiles(event.dataTransfer.files); }} onDragOver={(event) => event.preventDefault()}>
+            <UploadCloud size={24} />
+            <span><strong>{uploading ? `Laadin üles… ${progress}%` : 'Lisa failid'}</strong><small>PDF, pildid, dokumendid, heli või video</small></span>
+          </button>
+          {uploading ? <div className="upload-progress" role="progressbar" aria-label="Faili üleslaadimine" aria-valuemin="0" aria-valuemax="100" aria-valuenow={progress}><i style={{ width: `${progress}%` }} /></div> : null}
+          {values.files.length ? <div className="material-file-list">{values.files.map((file, index) => <div key={`${file.url}-${index}`}><FileText size={19} /><span><strong>{file.name}</strong><small>{[formatFileSize(file.size), file.type].filter(Boolean).join(' · ')}</small></span><Button variant="danger" aria-label={`Eemalda fail ${file.name}`} disabled={uploading} onClick={() => removeFile(file, index)}><Trash2 size={15} /></Button></div>)}</div> : null}
+        </section>
         {structured ? (
           <section className="material-block-list">
             <div className="section-heading"><div><span>Sisu</span><h2>Ülesanded</h2></div><Button variant="secondary" onClick={() => update('blocks', [...values.blocks, newBlock('text')])}><Plus size={16} /> Lisa ülesanne</Button></div>
