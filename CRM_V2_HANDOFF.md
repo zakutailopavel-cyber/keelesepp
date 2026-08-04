@@ -189,40 +189,44 @@ KeeleSepp CRM v2 заменяет старую CRM по модулям, без �
 - каждый день закрытого месяца получает server-owned lock; обычные изменения уроков, счетов, платежей, возвратов, банковских распределений, payroll и расходов блокируются и Cloud Functions, и Firestore Rules;
 - поздняя ошибка оформляется append-only записью `financialPeriodCorrections` с датой в следующем открытом периоде; исходный архив и история не переписываются;
 - архив ограничен безопасным размером Firestore-документа, повторное закрытие месяца запрещено.
+- read-only управленческая аналитика считает cash inflow/outflow/net без двойного учёта bank-linked платежей, отдельно показывает accrual margin после approved payroll и расходов;
+- analytics сравнивает фактически выставленный доход с текущим месячным forecast, строит шестимесячный trend и aged debt buckets `tähtaeg ees / 1–30 / 31–60 / 61+`;
+- выручка раскладывается по предмету, преподавателю и группе через точные invoice lesson lines; из строки долга можно открыть исходный счёт;
+- расчёт выполняет admin-only `financial-analytics/preview` в Cloud Function, интерфейс не читает дополнительные финансовые коллекции напрямую и ничего не изменяет.
 
 ## 4. Последнее опубликованное изменение
 
-Функциональный коммит: `35a9202 feat: close and archive financial periods`
+Функциональный коммит: `b279117 feat: add financial management analytics`
 
-Исправление после emulator CI: `fe0e86d fix: unify financial period fingerprints`
+Предыдущие финансовые коммиты: `35a9202 feat: close and archive financial periods` и `fe0e86d fix: unify financial period fingerprints`.
 
 В нём:
 
-- UI checklist закрытия месяца и opening/closing balances;
-- trusted API `financial-periods/export`, `financial-periods/close` и `financial-periods/corrections`;
-- архивный CSV по бухгалтерским реестрам и supporting documents;
-- exact canonical evidence fingerprint, меняющийся даже при замене ID операции на другую с той же суммой;
-- server-owned lock каждой даты закрытого месяца;
-- блокировка исторических мутаций в Functions и Firestore Rules;
-- append-only поправка в открытый период без переписывания закрытой истории;
-- unit, component и полный emulator regression test.
+- server-side read-only endpoint `financial-analytics/preview`;
+- cash inflow, cash outflow и net cash flow без двойного учёта банковских распределений;
+- accrual margin = выставленный доход − approved payroll − active expenses;
+- forecast vs actual, шестимесячный trend и датированный aged debt;
+- breakdown выручки по предмету, преподавателю и группе;
+- drill-down от задолженности к исходному счёту;
+- unit/component/full-emulator test coverage.
 
-Предыдущий функциональный коммит: `d8c7817 feat: add audited expense register`.
+Предыдущий опубликованный UI-коммит на Vercel: `d8c7817 feat: add audited expense register`.
 
 Состояние публикации:
 
-- GitHub `main` содержит `fe0e86d`;
-- Firebase Functions и Firestore Rules успешно задеплоены 04.08.2026, включая новый `financeApi`;
-- GitHub Actions `Financial Core emulator` run `30945254785` завершился успешно; сценарий review → export → close → locked write rejection → dated correction прошёл;
+- GitHub `main` содержит `b279117`;
+- Firebase `financeApi` с закрытием периода и аналитикой, а также Firestore Rules успешно задеплоены 04.08.2026;
+- GitHub Actions `CRM v2` run `30946649775` и `Financial Core emulator` run `30946649492` завершились успешно;
+- emulator проверяет review → export → close → locked write rejection → dated correction и read-only analytics endpoint;
 - frontend локально полностью проверен и собирается, но Vercel не принял новый deploy из-за лимита Free plan `more than 100 deployments per day`;
-- последний Vercel production bundle пока остаётся на `d8c7817`, поэтому новый UI закрытия месяца ещё не виден на production;
+- последний Vercel production bundle пока остаётся на `d8c7817`, поэтому UI закрытия месяца и аналитики ещё не видны на production;
 - после сброса лимита повторить deploy `keelesepp-crm-v2` из корня репозитория с project root `crm-v2`, затем выполнить только read-only production preview; реальные месяцы ради smoke test не закрывать.
 
 Последняя полная проверка:
 
 ```text
-CRM v2: 56 test files, 228 tests passed
-Functions: 90 tests passed
+CRM v2: 57 test files, 229 tests passed
+Functions: 94 tests passed
 Financial Core emulator: 20 integration tests passed in CI
 ESLint: passed
 Vite production build: passed
@@ -232,7 +236,7 @@ git diff --check: passed
 
 ## 5. Состояние локального рабочего дерева
 
-Финансовое закрытие, экспорт и locks закоммичены в `35a9202` + `fe0e86d`. Отслеживаемых локальных изменений после них нет, кроме обновления этого handoff-файла до следующего docs-коммита. Пользовательские `* 2.*` файлы не тронуты.
+Закрытие/экспорт/locks находятся в `35a9202` + `fe0e86d`, аналитика — в `b279117`. Отслеживаемых локальных изменений после них нет, кроме обновления документации до следующего docs-коммита. Пользовательские `* 2.*` файлы не тронуты.
 
 ### Пользовательские файлы, которые нельзя случайно коммитить
 
@@ -255,15 +259,6 @@ git diff --check: passed
 - проверить, что `/finance` показывает checklist, totals, export и close actions;
 - production smoke test только read-only: выбрать прошлый месяц и нажать `Kontrolli kuu`;
 - не нажимать `Loo ja arhiveeri eksport` и `Sulge kuu` на реальных данных без осознанного решения владельца.
-
-### P2. Финансовая аналитика
-
-- cash flow;
-- aged debt;
-- выручка по предмету/курсу/группе;
-- маржа после payroll и расходов;
-- forecast vs actual;
-- drill-down к исходным операциям.
 
 ### P2. Teacher-scope release gate
 
@@ -340,6 +335,6 @@ npx firebase-tools deploy --only functions,firestore:rules,storage --project kee
 3. Прочитать `ARCHITECTURE.md`, `FINANCIAL_CORE_ROADMAP.md` и нужный раздел `crm-v2/ACCEPTANCE.md`.
 4. Не трогать Live Classroom и тарифы.
 5. Сначала проверить Vercel quota и выпустить уже готовый frontend закрытия периода; код блока не переделывать.
-6. После production-проверки перейти к финансовой аналитике: cash flow, aged debt, margin, forecast vs actual и drill-down.
+6. После production-проверки провести role-based teacher-scope release gate и финальный responsive/keyboard QA.
 7. Довести один блок до тестов, production и записи в этот handoff-файл.
 8. После каждого крупного релиза обновлять разделы 4–6 и новый HEAD-коммит.

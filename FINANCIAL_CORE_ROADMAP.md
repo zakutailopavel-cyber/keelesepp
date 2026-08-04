@@ -35,7 +35,7 @@ retries are possible, and represented in an immutable audit trail.
 | 7. Expenses | Expense categories, receipts, VAT metadata and audited corrections; suppliers intentionally omitted for this language school | Done |
 | 8. Period close | Monthly reconciliation checklist, locked periods, correction entries, opening/closing balances | Done |
 | 9. Accounting export | Archived accountant CSV, attachments, payment/invoice/bank/lesson/payroll/expense/correction ledgers | Done (v1) |
-| 10. Financial analytics | Cash flow, aged debt, revenue by course/group, margin after payroll and expenses | Planned |
+| 10. Financial analytics | Cash flow, aged debt, forecast vs actual, six-month trend, revenue breakdown and margin after payroll/expenses | Done (v1) |
 
 ## Stage 3 — definition of done
 
@@ -247,6 +247,13 @@ Cloud Functions and Firestore Rules reject ordinary historical mutations on thos
 errors use append-only `financialPeriodCorrections` dated in an open period. The archived v1 export
 contains stable-ID registers for invoices, payments and documents, bank rows, lessons, expenses and
 receipts, payroll and corrections, with a bounded Firestore archive size.
+
+Stage 10 v1 adds a server-calculated read-only management projection. It separates cash movement
+from accrual margin, avoids double-counting bank-linked and credit-sourced payments, compares issued
+revenue with the current student-plan forecast, builds a six-month trend and reconstructs aged debt
+at the selected period date. Revenue is grouped by subject, teacher and group through exact invoice
+lesson lines, and debt rows retain stable invoice IDs for drill-down. Approved payroll is treated as
+an accrued cost, not automatically as proof of a cash salary payment.
 
 ## Cross-cutting technical work
 
