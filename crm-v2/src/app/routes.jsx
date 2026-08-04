@@ -9,6 +9,7 @@ import MessagesPage from '../features/messages/MessagesPage.jsx';
 import StudentsPage from '../features/students/StudentsPage.jsx';
 import StudentProfilePage from '../features/students/StudentProfilePage.jsx';
 import TeachersPage from '../features/teachers/TeachersPage.jsx';
+import TeacherProfilePage from '../features/teachers/TeacherProfilePage.jsx';
 import SettingsPage from '../features/settings/SettingsPage.jsx';
 import ProtectedRoute from './ProtectedRoute.jsx';
 import { ROLES } from '../utils/roles.js';
@@ -30,7 +31,7 @@ export default function AppRoutes() {
             <Route path="students/:studentId" element={<StudentProfilePage />} />
             <Route path="calendar" element={<CalendarPage />} />
           </Route>
-          <Route element={<ProtectedRoute roles={[ROLES.ADMIN]} />}><Route path="teachers" element={<TeachersPage />} /><Route path="settings" element={<SettingsPage />} /></Route>
+          <Route element={<ProtectedRoute roles={[ROLES.ADMIN]} />}><Route path="teachers" element={<TeachersPage />} /><Route path="teachers/:teacherId" element={<TeacherProfilePage />} /><Route path="settings" element={<SettingsPage />} /></Route>
           <Route path="homework" element={<HomeworkPage />} />
           <Route path="messages" element={<MessagesPage />} />
           <Route element={<ProtectedRoute roles={[ROLES.ADMIN, ROLES.FINANCE]} />}><Route path="finance" element={<FinancePage />} /></Route>
