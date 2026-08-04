@@ -1,6 +1,8 @@
 export { authService } from './auth.js';
 export { bankTransactionsService } from './bankTransactions.js';
+export { creditNotesService } from './creditNotes.js';
 export { financeApi, invoiceDeliveryApi } from './financeApi.js';
+export { financialAuditService } from './financialAudit.js';
 export { financialPeriodsService } from './financialPeriods.js';
 export { getFirebaseClient, isFirebaseConfigured } from './client.js';
 export { groupsService } from './groups.js';
@@ -10,6 +12,7 @@ export { homeworkService } from './homework.js';
 export { lessonsService } from './lessons.js';
 export { messagesService } from './messages.js';
 export { paymentsService } from './payments.js';
+export { paymentDocumentsService } from './paymentDocuments.js';
 export { payerCreditsService } from './payerCredits.js';
 export { revenuePlansService } from './revenuePlans.js';
 export { parentsService } from './parents.js';

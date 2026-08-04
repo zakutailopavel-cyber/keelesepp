@@ -18,7 +18,7 @@ const invoice = {
   lines: [{ lessonId: 'lesson-1', date: '2026-07-30', description: 'Keeletund 2026-07-30', amountCents: 12000 }],
 };
 
-function renderPage(financeRepository = { recordPayment: vi.fn().mockResolvedValue({}), createInvoiceFromLessons: vi.fn().mockResolvedValue({}), setLessonBillingDisposition: vi.fn().mockResolvedValue({}), creditInvoiceLessonLine: vi.fn().mockResolvedValue({}), allocateBankTransaction: vi.fn().mockResolvedValue({}), previewFinancialPeriod: vi.fn().mockResolvedValue({ snapshot: { month: '2026-07', canReview: true, summary: {}, issues: [] } }), reviewFinancialPeriod: vi.fn().mockResolvedValue({}), applyPayerCredit: vi.fn().mockResolvedValue({}), refundPayerCredit: vi.fn().mockResolvedValue({}), voidPayment: vi.fn().mockResolvedValue({}), resolveInvoiceOverpayment: vi.fn().mockResolvedValue({}) }, deliveryRepository = { send: vi.fn().mockResolvedValue({}), remind: vi.fn().mockResolvedValue({}) }, options = {}) {
+function renderPage(financeRepository = { recordPayment: vi.fn().mockResolvedValue({}), createInvoiceFromLessons: vi.fn().mockResolvedValue({}), setLessonBillingDisposition: vi.fn().mockResolvedValue({}), creditInvoiceLessonLine: vi.fn().mockResolvedValue({}), allocateBankTransaction: vi.fn().mockResolvedValue({}), previewFinancialPeriod: vi.fn().mockResolvedValue({ snapshot: { month: '2026-07', canReview: true, summary: {}, issues: [] } }), reviewFinancialPeriod: vi.fn().mockResolvedValue({}), applyPayerCredit: vi.fn().mockResolvedValue({}), refundPayerCredit: vi.fn().mockResolvedValue({}), voidPayment: vi.fn().mockResolvedValue({}), resolveInvoiceOverpayment: vi.fn().mockResolvedValue({}), attachPaymentDocument: vi.fn().mockResolvedValue({}) }, deliveryRepository = { send: vi.fn().mockResolvedValue({}), remind: vi.fn().mockResolvedValue({}), pdf: vi.fn().mockResolvedValue({ filename: 'arve-KS-101.pdf', contentType: 'application/pdf', contentBase64: 'JVBERg==' }), creditNotePdf: vi.fn().mockResolvedValue({}), sendCreditNote: vi.fn().mockResolvedValue({}) }, options = {}) {
   const invoiceRepository = { list: vi.fn().mockResolvedValue(options.invoices || [invoice]) };
   const paymentRepository = { listByInvoice: vi.fn().mockResolvedValue(options.payments || [{ id: 'payment-1', amountCents: 4000, paidAt: '2026-08-03', method: 'bank', status: 'active' }]) };
   const planRepository = { list: vi.fn().mockResolvedValue([{ id: 'student-1', studentId: 'student-1', studentName: 'Sofia Tamm', lessonPriceCents: 2500, weeklyLessons: 2, active: true }]), save: vi.fn().mockResolvedValue({}) };
@@ -27,9 +27,12 @@ function renderPage(financeRepository = { recordPayment: vi.fn().mockResolvedVal
   const bankRepository = { list: vi.fn().mockResolvedValue([]) };
   const periodRepository = { list: vi.fn().mockResolvedValue([]) };
   const creditRepository = { list: vi.fn().mockResolvedValue(options.credits || []), listRefunds: vi.fn().mockResolvedValue(options.refunds || []) };
+  const creditNoteRepository = { list: vi.fn().mockResolvedValue(options.creditNotes || []) };
+  const auditRepository = { list: vi.fn().mockResolvedValue(options.auditEntries || []) };
+  const documentRepository = { upload: vi.fn().mockResolvedValue({ payment: { id: 'payment-1', amountCents: 4000, paidAt: '2026-08-03', method: 'bank', status: 'active', documents: [] } }), getUrl: vi.fn().mockResolvedValue('blob:payment-document') };
   const user = { uid: 'admin-1', displayName: 'Admin', roles: ['admin'] };
-  render(<MemoryRouter><AuthContext.Provider value={{ user }}><FinancePage invoiceRepository={invoiceRepository} paymentRepository={paymentRepository} financeRepository={financeRepository} deliveryRepository={deliveryRepository} planRepository={planRepository} studentRepository={studentRepository} lessonRepository={lessonRepository} bankRepository={bankRepository} periodRepository={periodRepository} creditRepository={creditRepository} /></AuthContext.Provider></MemoryRouter>);
-  return { financeRepository, deliveryRepository, invoiceRepository, paymentRepository, planRepository, studentRepository, lessonRepository, bankRepository, periodRepository, creditRepository, user };
+  render(<MemoryRouter><AuthContext.Provider value={{ user }}><FinancePage invoiceRepository={invoiceRepository} paymentRepository={paymentRepository} financeRepository={financeRepository} deliveryRepository={deliveryRepository} planRepository={planRepository} studentRepository={studentRepository} lessonRepository={lessonRepository} bankRepository={bankRepository} periodRepository={periodRepository} creditRepository={creditRepository} creditNoteRepository={creditNoteRepository} auditRepository={auditRepository} documentRepository={documentRepository} /></AuthContext.Provider></MemoryRouter>);
+  return { financeRepository, deliveryRepository, invoiceRepository, paymentRepository, planRepository, studentRepository, lessonRepository, bankRepository, periodRepository, creditRepository, creditNoteRepository, auditRepository, documentRepository, user };
 }
 
 describe('FinancePage', () => {
@@ -96,6 +99,44 @@ describe('FinancePage', () => {
     fireEvent.click(within(dialog).getByRole('button', { name: /Saada arve/ }));
     await waitFor(() => expect(repositories.deliveryRepository.send).toHaveBeenCalledWith('invoice-1'));
     expect(await screen.findByRole('status')).toHaveTextContent('Arve saadeti');
+  });
+
+  it('opens the invoice PDF inside the CRM without downloading it first', async () => {
+    Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: vi.fn(() => 'blob:invoice-preview') });
+    Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: vi.fn() });
+    const repositories = renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: 'KS-101' }));
+    const invoiceDialog = screen.getByRole('dialog', { name: 'Arve KS-101' });
+    fireEvent.click(within(invoiceDialog).getByRole('button', { name: /Eelvaade/ }));
+    await waitFor(() => expect(repositories.deliveryRepository.pdf).toHaveBeenCalledWith('invoice-1'));
+    expect(await screen.findByRole('dialog', { name: 'arve-KS-101.pdf' })).toBeInTheDocument();
+  });
+
+  it('uploads a payment confirmation through the protected document repository', async () => {
+    const repositories = renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: 'KS-101' }));
+    const dialog = screen.getByRole('dialog', { name: 'Arve KS-101' });
+    const file = new File(['payment'], 'maksekorraldus.pdf', { type: 'application/pdf' });
+    fireEvent.change(await within(dialog).findByLabelText(/Lisa kinnitus/), { target: { files: [file] } });
+    await waitFor(() => expect(repositories.documentRepository.upload).toHaveBeenCalledWith('payment-1', file, repositories.financeRepository));
+    expect(await screen.findByRole('status')).toHaveTextContent('maksekorraldus.pdf');
+  });
+
+  it('shows immutable financial audit entries', async () => {
+    renderPage(undefined, undefined, {
+      auditEntries: [{
+        id: 'audit-1',
+        action: 'payment.created',
+        invoiceNum: 'KS-101',
+        studentName: 'Sofia Tamm',
+        amountCents: 4000,
+        createdAt: '2026-08-04T10:00:00.000Z',
+        actor: { email: 'admin@example.com' },
+      }],
+    });
+    expect(await screen.findByText('Finantstegevuste ajalugu')).toBeInTheDocument();
+    expect(screen.getByText('Makse registreeriti')).toBeInTheDocument();
+    expect(screen.getByText(/admin@example.com/)).toBeInTheDocument();
   });
 
   it('requires a reason before crediting an immutable invoice lesson line', async () => {
@@ -218,7 +259,9 @@ describe('FinancePage', () => {
     const bankRepository = { list: vi.fn() };
     const periodRepository = { list: vi.fn() };
     const creditRepository = { list: vi.fn(), listRefunds: vi.fn() };
-    render(<MemoryRouter><AuthContext.Provider value={{ user }}><FinancePage invoiceRepository={invoiceRepository} paymentRepository={{}} financeRepository={{}} planRepository={planRepository} studentRepository={studentRepository} bankRepository={bankRepository} periodRepository={periodRepository} creditRepository={creditRepository} /></AuthContext.Provider></MemoryRouter>);
+    const creditNoteRepository = { list: vi.fn() };
+    const auditRepository = { list: vi.fn() };
+    render(<MemoryRouter><AuthContext.Provider value={{ user }}><FinancePage invoiceRepository={invoiceRepository} paymentRepository={{}} financeRepository={{}} planRepository={planRepository} studentRepository={studentRepository} bankRepository={bankRepository} periodRepository={periodRepository} creditRepository={creditRepository} creditNoteRepository={creditNoteRepository} auditRepository={auditRepository} /></AuthContext.Provider></MemoryRouter>);
 
     expect(await screen.findByText('Planeeritud tunnitulu')).toBeInTheDocument();
     expect(screen.getByText('Sofia Tamm')).toBeInTheDocument();
@@ -229,5 +272,7 @@ describe('FinancePage', () => {
     expect(periodRepository.list).not.toHaveBeenCalled();
     expect(creditRepository.list).not.toHaveBeenCalled();
     expect(creditRepository.listRefunds).not.toHaveBeenCalled();
+    expect(creditNoteRepository.list).not.toHaveBeenCalled();
+    expect(auditRepository.list).not.toHaveBeenCalled();
   });
 });

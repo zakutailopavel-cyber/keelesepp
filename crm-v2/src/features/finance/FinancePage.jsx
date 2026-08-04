@@ -5,6 +5,9 @@ import {
   CircleCheck,
   Clock3,
   CreditCard,
+  Eye,
+  FileCheck2,
+  FileUp,
   Mail,
   ReceiptText,
   RotateCcw,
@@ -31,12 +34,15 @@ import {
 import { useAsyncData } from "../../hooks/useAsyncData.js";
 import {
   bankTransactionsService,
+  creditNotesService,
   financeApi,
+  financialAuditService,
   financialPeriodsService,
   invoiceDeliveryApi,
   invoicesService,
   lessonsService,
   payerCreditsService,
+  paymentDocumentsService,
   paymentsService,
   revenuePlansService,
   studentsService,
@@ -56,6 +62,8 @@ import LessonAccountingPanel from "./LessonAccountingPanel.jsx";
 import BankReconciliationPanel from "./BankReconciliationPanel.jsx";
 import FinancialPeriodPanel from "./FinancialPeriodPanel.jsx";
 import AdvanceManagementPanel from "./AdvanceManagementPanel.jsx";
+import DocumentPreviewModal from "./DocumentPreviewModal.jsx";
+import FinancialAuditPanel from "./FinancialAuditPanel.jsx";
 import "./financeWorkspace.css";
 
 const money = (value) =>
@@ -125,6 +133,9 @@ export default function FinancePage({
   bankRepository = bankTransactionsService,
   periodRepository = financialPeriodsService,
   creditRepository = payerCreditsService,
+  creditNoteRepository = creditNotesService,
+  auditRepository = financialAuditService,
+  documentRepository = paymentDocumentsService,
 }) {
   const { user } = useAuth();
   const canRegisterPayment = hasAnyRole(user.roles, [ROLES.ADMIN]);
@@ -138,6 +149,8 @@ export default function FinancePage({
       periods,
       credits,
       refunds,
+      creditNotes,
+      auditEntries,
     ] = await Promise.all([
       invoiceRepository.list(),
       planRepository.list(),
@@ -155,6 +168,8 @@ export default function FinancePage({
       canRegisterPayment ? periodRepository.list() : Promise.resolve([]),
       canRegisterPayment ? creditRepository.list() : Promise.resolve([]),
       canRegisterPayment ? creditRepository.listRefunds() : Promise.resolve([]),
+      canRegisterPayment ? creditNoteRepository.list() : Promise.resolve([]),
+      canRegisterPayment ? auditRepository.list() : Promise.resolve([]),
     ]);
     return {
       invoices,
@@ -165,15 +180,19 @@ export default function FinancePage({
       periods,
       credits,
       refunds,
+      creditNotes,
+      auditEntries,
     };
   }, [
     bankRepository,
     canRegisterPayment,
     creditRepository,
+    creditNoteRepository,
     invoiceRepository,
     lessonRepository,
     planRepository,
     periodRepository,
+    auditRepository,
     studentRepository,
   ]);
   const [query, setQuery] = useState("");
@@ -206,6 +225,9 @@ export default function FinancePage({
   const [overpaymentTarget, setOverpaymentTarget] = useState(null);
   const [overpaymentReason, setOverpaymentReason] = useState("");
   const [correctionSaving, setCorrectionSaving] = useState(false);
+  const [documentPreview, setDocumentPreview] = useState(null);
+  const [documentBusy, setDocumentBusy] = useState("");
+  const [uploadBusy, setUploadBusy] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -377,6 +399,70 @@ export default function FinancePage({
       setDeliveryBusy("");
     }
   };
+  const previewInvoiceDocument = async () => {
+    setDocumentBusy("invoice");
+    setActionError("");
+    try {
+      setDocumentPreview(await deliveryRepository.pdf(selected.id));
+    } catch (error) {
+      setActionError(error.message || "Arve eelvaate avamine ebaõnnestus.");
+    } finally {
+      setDocumentBusy("");
+    }
+  };
+  const previewCreditNote = async (creditNote) => {
+    setDocumentBusy(creditNote.id);
+    setActionError("");
+    try {
+      setDocumentPreview(await deliveryRepository.creditNotePdf(creditNote.id));
+    } catch (error) {
+      setActionError(error.message || "Kreeditarve eelvaate avamine ebaõnnestus.");
+    } finally {
+      setDocumentBusy("");
+    }
+  };
+  const sendCreditNote = async (creditNote) => {
+    setDocumentBusy(`send-${creditNote.id}`);
+    setActionError("");
+    try {
+      await deliveryRepository.sendCreditNote(creditNote.id);
+      setSuccess(`Kreeditarve ${creditNote.num || ""} saadeti maksjale.`);
+      await state.reload();
+    } catch (error) {
+      setActionError(error.message || "Kreeditarve saatmine ebaõnnestus.");
+    } finally {
+      setDocumentBusy("");
+    }
+  };
+  const previewPaymentDocument = async (document) => {
+    setDocumentBusy(document.id);
+    setActionError("");
+    try {
+      const url = await documentRepository.getUrl(document);
+      setDocumentPreview({ ...document, filename: document.fileName, url });
+    } catch (error) {
+      setActionError(error.message || "Maksedokumendi avamine ebaõnnestus.");
+    } finally {
+      setDocumentBusy("");
+    }
+  };
+  const uploadPaymentDocument = async (payment, file) => {
+    if (!file) return;
+    setUploadBusy(payment.id);
+    setActionError("");
+    try {
+      const result = await documentRepository.upload(payment.id, file, financeRepository);
+      setPayments((current) => ({
+        ...current,
+        items: current.items.map((item) => item.id === payment.id ? result.payment : item),
+      }));
+      setSuccess(`Makse kinnitus „${file.name}“ lisati.`);
+    } catch (error) {
+      setActionError(error.message || "Makse kinnituse lisamine ebaõnnestus.");
+    } finally {
+      setUploadBusy("");
+    }
+  };
   const submitCredit = async (event) => {
     event.preventDefault();
     if (!creditReason.trim()) {
@@ -460,6 +546,8 @@ export default function FinancePage({
     periods,
     credits,
     refunds,
+    creditNotes,
+    auditEntries,
   } = state.data;
   const forecast = revenueForecast(plans);
   const paid = invoices.reduce((sum, item) => sum + invoicePaidCents(item), 0);
@@ -471,6 +559,9 @@ export default function FinancePage({
   const selectedStatus = selected ? invoiceStatus(selected) : null;
   const selectedBalance = selected ? invoiceBalanceCents(selected) : 0;
   const selectedOverpayment = selected ? invoiceOverpaidCents(selected) : 0;
+  const selectedCreditNotes = selected
+    ? creditNotes.filter((item) => item.invoiceId === selected.id)
+    : [];
 
   return (
     <div className="page-content">
@@ -572,6 +663,7 @@ export default function FinancePage({
           onReload={state.reload}
         />
       ) : null}
+      {canRegisterPayment ? <FinancialAuditPanel entries={auditEntries} /> : null}
       <Card className="revenue-forecast-card">
         <div className="section-heading">
           <div>
@@ -873,6 +965,16 @@ export default function FinancePage({
               {canRegisterPayment ? (
                 <Button
                   variant="secondary"
+                  loading={documentBusy === "invoice"}
+                  disabled={Boolean(documentBusy)}
+                  onClick={previewInvoiceDocument}
+                >
+                  <Eye size={17} /> Eelvaade
+                </Button>
+              ) : null}
+              {canRegisterPayment ? (
+                <Button
+                  variant="secondary"
                   loading={deliveryBusy === "send"}
                   disabled={Boolean(deliveryBusy)}
                   onClick={() => deliverInvoice("send")}
@@ -1052,6 +1154,52 @@ export default function FinancePage({
                 </div>
               </section>
             ) : null}
+            {selectedCreditNotes.length ? (
+              <section className="invoice-credit-notes">
+                <div className="section-heading">
+                  <div>
+                    <span className="eyebrow">Parandused</span>
+                    <h2>Kreeditarved</h2>
+                  </div>
+                  <strong>{selectedCreditNotes.length}</strong>
+                </div>
+                <div>
+                  {selectedCreditNotes.map((creditNote) => (
+                    <article key={creditNote.id}>
+                      <FileCheck2 size={18} />
+                      <span>
+                        <strong>{creditNote.num || "Kreeditarve"}</strong>
+                        <small>
+                          {displayDate(creditNote.date || creditNote.createdAt)} · {creditNote.reason || "Parandus"}
+                        </small>
+                      </span>
+                      <b>
+                        -{money(Math.abs(
+                          Number(creditNote.amountCents)
+                            || Math.round(Number(creditNote.amount || 0) * 100),
+                        ))}
+                      </b>
+                      <Button
+                        variant="secondary"
+                        loading={documentBusy === creditNote.id}
+                        disabled={Boolean(documentBusy)}
+                        onClick={() => previewCreditNote(creditNote)}
+                      >
+                        <Eye size={15} /> Eelvaade
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        loading={documentBusy === `send-${creditNote.id}`}
+                        disabled={Boolean(documentBusy)}
+                        onClick={() => sendCreditNote(creditNote)}
+                      >
+                        <Mail size={15} /> Saada
+                      </Button>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            ) : null}
             <section className="payment-history">
               <div className="section-heading">
                 <div>
@@ -1087,6 +1235,22 @@ export default function FinancePage({
                         {payment.reference ? (
                           <small>Viide: {payment.reference}</small>
                         ) : null}
+                        {payment.documents?.length ? (
+                          <div className="payment-documents">
+                            {payment.documents.map((document) => (
+                              <button
+                                type="button"
+                                key={document.id}
+                                disabled={Boolean(documentBusy)}
+                                onClick={() => previewPaymentDocument(document)}
+                              >
+                                <FileCheck2 size={14} />
+                                {document.fileName}
+                                {documentBusy === document.id ? "…" : ""}
+                              </button>
+                            ))}
+                          </div>
+                        ) : null}
                       </div>
                       <div className="payment-list__actions">
                         <Badge
@@ -1099,24 +1263,41 @@ export default function FinancePage({
                             : "Kinnitatud"}
                         </Badge>
                         {payment.status !== "voided" ? (
-                          <Button
-                            variant="secondary"
-                            onClick={() => {
-                              setVoidPaymentTarget({
-                                ...payment,
-                                invoiceNum:
-                                  selected.num ||
-                                  selected.number ||
-                                  selected.invoiceNumber ||
-                                  "",
-                              });
-                              setSelected(null);
-                              setVoidReason("");
-                              setActionError("");
-                            }}
-                          >
-                            <Ban size={14} /> Tühista
-                          </Button>
+                          <>
+                            <label className={`button button--secondary${uploadBusy === payment.id ? " is-loading" : ""}`}>
+                              <FileUp size={14} />
+                              {uploadBusy === payment.id ? "Lisan…" : "Lisa kinnitus"}
+                              <input
+                                className="sr-only"
+                                type="file"
+                                accept="application/pdf,image/jpeg,image/png,image/webp"
+                                disabled={Boolean(uploadBusy)}
+                                onChange={(event) => {
+                                  const file = event.target.files?.[0];
+                                  event.target.value = "";
+                                  uploadPaymentDocument(payment, file);
+                                }}
+                              />
+                            </label>
+                            <Button
+                              variant="secondary"
+                              onClick={() => {
+                                setVoidPaymentTarget({
+                                  ...payment,
+                                  invoiceNum:
+                                    selected.num ||
+                                    selected.number ||
+                                    selected.invoiceNumber ||
+                                    "",
+                                });
+                                setSelected(null);
+                                setVoidReason("");
+                                setActionError("");
+                              }}
+                            >
+                              <Ban size={14} /> Tühista
+                            </Button>
+                          </>
                         ) : null}
                       </div>
                     </div>
@@ -1402,6 +1583,10 @@ export default function FinancePage({
           </form>
         ) : null}
       </Modal>
+      <DocumentPreviewModal
+        document={documentPreview}
+        onClose={() => setDocumentPreview(null)}
+      />
     </div>
   );
 }

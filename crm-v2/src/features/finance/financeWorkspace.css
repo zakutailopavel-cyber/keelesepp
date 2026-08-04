@@ -72,6 +72,232 @@
   padding: 0 9px;
 }
 
+.payment-list__actions label.button {
+  cursor: pointer;
+  font-size: 0.72rem;
+  min-height: 32px;
+  padding: 0 9px;
+}
+
+.payment-list__actions label.is-loading {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.payment-documents {
+  display: flex !important;
+  flex-wrap: wrap;
+  gap: 6px !important;
+  margin-top: 6px;
+}
+
+.payment-documents button {
+  max-width: 260px;
+  border: 1px solid #c7dfd8;
+  border-radius: 8px;
+  background: #f1f8f5;
+  color: var(--green);
+  padding: 6px 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.invoice-credit-notes {
+  display: grid;
+  gap: 8px;
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+}
+
+.invoice-credit-notes .section-heading {
+  align-items: center;
+}
+
+.invoice-credit-notes .section-heading h2 {
+  font-size: 1rem;
+}
+
+.invoice-credit-notes > div:last-child {
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  overflow: hidden;
+}
+
+.invoice-credit-notes article {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto auto;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 13px;
+}
+
+.invoice-credit-notes article + article {
+  border-top: 1px solid var(--border);
+}
+
+.invoice-credit-notes article > svg {
+  color: var(--green);
+}
+
+.invoice-credit-notes article > span {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.invoice-credit-notes article small {
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.invoice-credit-notes article .button {
+  min-height: 32px;
+  padding: 0 9px;
+  font-size: 0.72rem;
+}
+
+.financial-audit-card {
+  margin-bottom: 18px;
+}
+
+.financial-audit-card > .section-heading p {
+  margin: 5px 0 0;
+  color: var(--muted);
+}
+
+.financial-audit-filters {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) 230px 170px;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.financial-audit-filters .search-field,
+.financial-audit-filters select,
+.audit-month-input {
+  min-height: 42px;
+}
+
+.audit-month-input {
+  width: 100%;
+  border: 1px solid #d0d5dd;
+  border-radius: 10px;
+  background: #fff;
+  padding: 0 11px;
+  color: var(--navy);
+}
+
+.financial-audit-list {
+  display: grid;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  overflow: hidden;
+}
+
+.financial-audit-list article {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) minmax(180px, auto);
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+}
+
+.financial-audit-list article + article {
+  border-top: 1px solid #eef0f3;
+}
+
+.financial-audit-list article > i {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #f1f8f5;
+  color: var(--green);
+  display: grid;
+  place-items: center;
+}
+
+.financial-audit-list article > div:nth-child(2),
+.financial-audit-list__meta {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.financial-audit-list article span,
+.financial-audit-list article small {
+  color: var(--muted);
+  font-size: 0.74rem;
+  overflow-wrap: anywhere;
+}
+
+.financial-audit-list__meta {
+  justify-items: end;
+  text-align: right;
+}
+
+.financial-audit-list__meta strong {
+  font-family: Manrope, sans-serif;
+}
+
+.financial-audit-more {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.financial-audit-more .button {
+  min-height: 36px;
+}
+
+.modal--financial-document {
+  width: min(1100px, 100%);
+}
+
+.modal--financial-document .modal__body {
+  padding: 0;
+  background: #eef1f4;
+}
+
+.financial-document-preview {
+  min-height: min(72vh, 820px);
+  display: grid;
+  place-items: center;
+}
+
+.financial-document-preview iframe {
+  width: 100%;
+  height: min(72vh, 820px);
+  border: 0;
+  background: #fff;
+}
+
+.financial-document-preview img {
+  max-width: 100%;
+  max-height: min(72vh, 820px);
+  object-fit: contain;
+}
+
+.document-loading {
+  min-height: 320px;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 10px;
+  color: var(--muted);
+}
+
 @media (max-width: 560px) {
   .invoice-lines article {
     grid-template-columns: auto minmax(0, 1fr) auto;
@@ -81,5 +307,51 @@
   .invoice-lines article .badge {
     grid-column: 2 / -1;
     justify-self: start;
+  }
+
+  .invoice-credit-notes article {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .invoice-credit-notes article .button {
+    grid-column: 2 / -1;
+    width: 100%;
+  }
+
+  .payment-list__actions {
+    align-items: stretch;
+    grid-column: 2 / -1;
+    flex-wrap: wrap;
+  }
+
+  .payment-list__actions .button,
+  .payment-list__actions label.button {
+    flex: 1;
+  }
+
+  .financial-audit-filters,
+  .financial-audit-list article {
+    grid-template-columns: 1fr;
+  }
+
+  .financial-audit-list article > i {
+    display: none;
+  }
+
+  .financial-audit-list__meta {
+    justify-items: start;
+    text-align: left;
+  }
+
+  .financial-audit-more {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .modal--financial-document .modal__body,
+  .financial-document-preview,
+  .financial-document-preview iframe {
+    min-height: 0;
+    height: calc(100vh - 150px);
   }
 }

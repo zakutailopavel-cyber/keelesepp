@@ -25,6 +25,10 @@ const {
   creditNoteFileName,
 } = require("./credit-note-document");
 const {
+  buildInvoicePdf,
+  invoiceFileName,
+} = require("./invoice-document");
+const {
   buildLessonInvoiceLines,
   centsToAmount,
   creditAfterApplication,
@@ -3897,6 +3901,21 @@ async function creditNoteDocumentData(creditNoteId) {
   return { creditNote, invoice, student };
 }
 
+async function invoicePdf(invoiceId) {
+  const invoice = await loadInvoice(invoiceId);
+  const student = await loadInvoiceStudent(invoice);
+  const content = await buildInvoicePdf({
+    invoice,
+    student,
+    paymentDetails: PAYMENT_DETAILS,
+  });
+  return {
+    invoice,
+    content,
+    filename: invoiceFileName(invoice),
+  };
+}
+
 async function creditNotePdf(creditNoteId) {
   const data = await creditNoteDocumentData(creditNoteId);
   const content = await buildCreditNotePdf({
@@ -4782,6 +4801,17 @@ exports.invoiceApi = functions
   }
 
   try {
+    if (path === "/pdf") {
+      await requireAdminUser(req);
+      const result = await invoicePdf(req.body?.invoiceId);
+      res.json({
+        invoiceId: result.invoice.id,
+        filename: result.filename,
+        contentType: "application/pdf",
+        contentBase64: result.content.toString("base64"),
+      });
+      return;
+    }
     if (path === "/credit-note/pdf" || path === "/credit-note/send") {
       const actor = await requireAdminUser(req);
       if (path === "/credit-note/pdf") {

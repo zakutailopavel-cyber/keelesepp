@@ -137,9 +137,22 @@ export const financeApi = {
       requestId: financeRequestId('overpayment'),
     });
   },
+  attachPaymentDocument(paymentId, document) {
+    return post('/payments/documents', {
+      paymentId,
+      storagePath: document.storagePath,
+      fileName: document.fileName,
+      contentType: document.contentType,
+      size: document.size,
+      requestId: document.requestId,
+    });
+  },
 };
 
 export const invoiceDeliveryApi = {
   send(invoiceId) { return postInvoice('/send', { invoiceId }); },
   remind(invoiceId) { return postInvoice('/remind', { invoiceId }); },
+  pdf(invoiceId) { return postInvoice('/pdf', { invoiceId }); },
+  creditNotePdf(creditNoteId) { return postInvoice('/credit-note/pdf', { creditNoteId }); },
+  sendCreditNote(creditNoteId) { return postInvoice('/credit-note/send', { creditNoteId }); },
 };
