@@ -44,6 +44,23 @@ export function normalizeSubmission(id, data = {}, submissionKind) {
   };
 }
 
+export function normalizeWorksheetAssignment(id, data = {}) {
+  return {
+    id,
+    ...data,
+    studentId: data.studentId || '',
+    studentName: data.studentName || '',
+    title: data.lessonTitle || data.worksheetData?.meta?.title || 'Tööleht',
+    status: data.status || 'new',
+    assignedAt: timestampValue(data.assignedAt),
+    completedAt: timestampValue(data.completedAt),
+    reviewedAt: timestampValue(data.reviewedAt),
+    answers: data.answers || {},
+    errorLog: data.errorLog || [],
+    worksheetData: data.worksheetData || { meta: {}, blocks: [] },
+  };
+}
+
 async function listCollectionByStudentIds(db, collectionName, studentIds, submissionKind) {
   const snapshots = await Promise.all(chunksOfTen(studentIds).map((ids) => getDocs(query(
     collection(db, collectionName),
@@ -74,6 +91,16 @@ export const homeworkService = {
     ]);
     return [...worksheets.filter((item) => item.status === 'done' || item.reviewStatus === 'reviewed'), ...exercises]
       .sort((a, b) => String(b.completedAt).localeCompare(String(a.completedAt)));
+  },
+  async listWorksheetAssignmentsByStudentIds(studentIds = []) {
+    if (!studentIds.length) return [];
+    const { db } = requireFirebaseClient();
+    const snapshots = await Promise.all(chunksOfTen(studentIds).map((ids) => getDocs(query(
+      collection(db, 'worksheetAssignments'),
+      where('studentId', 'in', ids),
+    ))));
+    return snapshots.flatMap((snapshot) => snapshot.docs.map((item) => normalizeWorksheetAssignment(item.id, item.data())))
+      .sort((a, b) => String(b.assignedAt).localeCompare(String(a.assignedAt)));
   },
   async create(data) {
     const { db } = requireFirebaseClient();
@@ -127,5 +154,31 @@ export const homeworkService = {
     });
     await batch.commit();
     return { ...submission, ...payload };
+  },
+  async submitWorksheet({ assignmentId, answers, score, errorLog }) {
+    if (!assignmentId) throw new Error('Töölehte ei leitud.');
+    const { db } = requireFirebaseClient();
+    const completedAt = new Date().toISOString();
+    const payload = {
+      status: 'done',
+      answers: answers || {},
+      score: score || null,
+      errorLog: (errorLog || []).slice(0, 20),
+      completedAt,
+      seenByTeacher: false,
+      updatedAt: completedAt,
+    };
+    await updateDoc(doc(db, 'worksheetAssignments', assignmentId), payload);
+    return payload;
+  },
+  async saveSelfAssessment({ assignmentId, difficulty, comment }) {
+    const value = Number(difficulty);
+    if (!assignmentId) throw new Error('Töölehte ei leitud.');
+    if (!Number.isInteger(value) || value < 1 || value > 5) throw new Error('Vali raskusaste.');
+    const { db } = requireFirebaseClient();
+    const submittedAt = new Date().toISOString();
+    const selfAssessment = { difficulty: value, comment: String(comment || '').trim(), submittedAt };
+    await updateDoc(doc(db, 'worksheetAssignments', assignmentId), { selfAssessment, updatedAt: submittedAt });
+    return selfAssessment;
   },
 };

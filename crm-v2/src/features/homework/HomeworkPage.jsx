@@ -5,6 +5,7 @@ import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { homeworkService, studentsService } from '../../services/firebase/index.js';
 import { hasAnyRole, ROLES } from '../../utils/roles.js';
+import WorksheetPlayer from './WorksheetPlayer.jsx';
 
 const blank = { studentId: '', task: '', due: new Date().toISOString().slice(0, 10) };
 const emptyReview = { teacherGrade: '', teacherFeedback: '' };
@@ -54,6 +55,7 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
   const [modal, setModal] = useState(false);
   const [form, setForm] = useState(blank);
   const [reviewing, setReviewing] = useState(null);
+  const [playing, setPlaying] = useState(null);
   const [review, setReview] = useState(emptyReview);
   const [saving, setSaving] = useState(false);
   const [actionError, setActionError] = useState('');
@@ -64,15 +66,17 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
       ? await studentRepository.list({ status: 'active', pageSize: 500, exhaustive: true, ...(teacherOnly ? { scopeTeacherUid: user.uid } : {}) })
       : { items: await studentRepository.listOwned(user.uid) };
     const studentIds = studentResult.items.map((item) => item.id);
-    const [homework, submissions] = await Promise.all([
+    const [homework, submissions, assignments] = await Promise.all([
       repository.listByStudentIds(studentIds),
       repository.listSubmissionsByStudentIds(studentIds),
+      staff ? Promise.resolve([]) : repository.listWorksheetAssignmentsByStudentIds(studentIds),
     ]);
     const studentNames = new Map(studentResult.items.map((student) => [student.id, student.name]));
     return {
       homework,
       students: studentResult,
       submissions: submissions.map((item) => ({ ...item, studentName: item.studentName || studentNames.get(item.studentId) || 'Õpilane' })),
+      assignments: assignments.map((item) => ({ ...item, studentName: item.studentName || studentNames.get(item.studentId) || 'Õpilane' })),
     };
   }, [repository, staff, studentRepository, teacherOnly, user.uid]);
 
@@ -84,6 +88,9 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
     `${item.studentName} ${item.title}`.toLocaleLowerCase('et').includes(query.toLocaleLowerCase('et'))
     && (!staff || reviewStatus === 'all' || item.reviewStatus === reviewStatus)
   )), [state.data, query, reviewStatus, staff]);
+  const assignments = useMemo(() => (state.data?.assignments || []).filter((item) => (
+    item.status !== 'done' && `${item.studentName} ${item.title}`.toLocaleLowerCase('et').includes(query.toLocaleLowerCase('et'))
+  )), [state.data, query]);
 
   if (state.loading) return <LoadingState label="Laen kodutöid…" />;
   if (state.error) return <ErrorState message={state.error.message} onRetry={state.reload} />;
@@ -138,6 +145,14 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
       <div className="list-toolbar"><div className="search-field"><Search size={18} /><input aria-label="Otsi kodutööd" placeholder="Otsi õpilast või ülesannet" value={query} onChange={(event) => setQuery(event.target.value)} /></div><Select aria-label="Kodutöö staatus" value={status} onChange={(event) => setStatus(event.target.value)}><option value="all">Kõik ülesanded</option><option value="open">Pooleli</option><option value="done">Tehtud</option></Select></div>
     </Card>
 
+    {!staff ? <Card className="list-card assigned-worksheet-card">
+      <div className="homework-card-heading"><div><span className="eyebrow">Töölehed</span><h2>Määratud töölehed</h2></div><Badge tone={assignments.length ? 'info' : 'neutral'}>{assignments.length}</Badge></div>
+      {assignments.length ? <div className="assigned-worksheet-list">{assignments.map((assignment) => {
+        const overdue = assignment.dueDate && assignment.dueDate < new Date().toISOString().slice(0, 10);
+        return <button key={assignment.id} onClick={() => setPlaying(assignment)}><i><FileText size={20} /></i><span><strong>{assignment.title}</strong><small>{assignment.subject || 'Õppetöö'}{assignment.level ? ` · ${assignment.level}` : ''}{assignment.dueDate ? ` · Tähtaeg ${assignment.dueDate}` : ''}</small></span><Badge tone={overdue ? 'danger' : 'info'}>{overdue ? 'Hilinenud' : 'Alustamata'}</Badge><Eye size={18} /></button>;
+      })}</div> : <EmptyState title="Kõik töölehed on tehtud" description="Uued õpetaja määratud töölehed ilmuvad siia." />}
+    </Card> : null}
+
     <div className="homework-grid">
       <Card className="list-card homework-task-card">
         <div className="homework-card-heading"><div><span className="eyebrow">Ülesanded</span><h2>Kodutööd</h2></div><Badge tone="neutral">{filtered.length}</Badge></div>
@@ -171,5 +186,6 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
         {staff ? <section className="submission-feedback"><h3>Õpetaja tagasiside</h3><div className="submission-grade"><Select id="teacher-grade" label="Hinne 1–5" value={review.teacherGrade} onChange={(event) => setReview({ ...review, teacherGrade: event.target.value })}><option value="">Hindeta</option>{[1, 2, 3, 4, 5].map((grade) => <option key={grade} value={grade}>{grade}</option>)}</Select><Star size={21} /></div><label className="textarea-field"><span>Kommentaar õpilasele</span><textarea aria-label="Kommentaar õpilasele" rows="5" value={review.teacherFeedback} onChange={(event) => setReview({ ...review, teacherFeedback: event.target.value })} placeholder="Mis läks hästi ja mida järgmisel korral parandada?" /></label></section> : reviewing.reviewStatus === 'reviewed' ? <section className="returned-feedback"><div><MessageSquare size={20} /><strong>Õpetaja tagasiside</strong>{reviewing.teacherGrade ? <Badge tone="success">Hinne {reviewing.teacherGrade}</Badge> : null}</div><p>{reviewing.teacherFeedback || 'Õpetaja jättis tööle hinde ilma kommentaarita.'}</p><small>{reviewing.reviewedByName ? `${reviewing.reviewedByName} · ` : ''}{formatDate(reviewing.reviewedAt)}</small></section> : <section className="submission-waiting"><Clock3 size={20} /><p>Õpetaja ei ole tööle veel tagasisidet saatnud.</p></section>}
       </div> : null}
     </Modal>
+    {playing ? <WorksheetPlayer assignment={playing} repository={repository} readOnly={!hasAnyRole(user.roles, [ROLES.STUDENT])} onClose={() => setPlaying(null)} onSubmitted={state.reload} /> : null}
   </div>;
 }

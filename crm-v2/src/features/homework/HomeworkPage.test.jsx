@@ -17,15 +17,18 @@ const completedWork = {
   reviewStatus: 'pending',
 };
 
-function repositories(submissions = [completedWork]) {
+function repositories(submissions = [completedWork], assignments = []) {
   return {
     repository: {
       listByStudentIds: vi.fn().mockResolvedValue([{ id: 'homework-1', studentId: 'student-1', studentName: 'Mari', task: 'Õpi sõnad', status: 'Ootel', due: '2026-08-10' }]),
       listSubmissionsByStudentIds: vi.fn().mockResolvedValue(submissions),
+      listWorksheetAssignmentsByStudentIds: vi.fn().mockResolvedValue(assignments),
       create: vi.fn().mockResolvedValue({ id: 'new-homework' }),
       setStatus: vi.fn().mockResolvedValue(undefined),
       remove: vi.fn().mockResolvedValue(undefined),
       reviewSubmission: vi.fn().mockResolvedValue(undefined),
+      submitWorksheet: vi.fn().mockResolvedValue(undefined),
+      saveSelfAssessment: vi.fn().mockResolvedValue(undefined),
     },
     studentRepository: {
       list: vi.fn().mockResolvedValue({ items: [{ id: 'student-1', name: 'Mari' }] }),
@@ -76,5 +79,32 @@ describe('HomeworkPage', () => {
     expect(screen.queryByRole('button', { name: 'Kustuta' })).not.toBeInTheDocument();
     expect(data.studentRepository.listOwned).toHaveBeenCalledWith('student-user-1');
     expect(data.studentRepository.list).not.toHaveBeenCalled();
+  });
+
+  it('lets a student complete and submit an assigned worksheet in CRM v2', async () => {
+    const assignment = {
+      id: 'assignment-1', studentId: 'student-1', studentName: 'Mari', title: 'Pere tööleht', status: 'new', subject: 'Eesti keel', level: 'A1', dueDate: '2026-08-10', answers: {},
+      worksheetData: { blocks: [
+        { id: 'fill-1', type: 'fill', instruction: 'Täida lünk', text: 'Minu [ema] nimi on Mari.' },
+        { id: 'choice-1', type: 'choice', questions: [{ q: 'Kus Mari elab?', opts: ['Tallinnas', 'Tartus'], correct: 0 }] },
+      ] },
+    };
+    const data = repositories([], [assignment]);
+    renderPage({ uid: 'student-user-1', displayName: 'Mari', roles: ['student'] }, data);
+
+    fireEvent.click(await screen.findByRole('button', { name: /Pere tööleht/ }));
+    const dialog = screen.getByRole('dialog', { name: 'Pere tööleht' });
+    fireEvent.change(within(dialog).getByLabelText('Lünk 1'), { target: { value: 'ema' } });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Tallinnas' }));
+    fireEvent.click(within(dialog).getByRole('button', { name: /Esita tööleht/ }));
+
+    await waitFor(() => expect(data.repository.submitWorksheet).toHaveBeenCalledWith({
+      assignmentId: 'assignment-1',
+      answers: { 'fill-1_0': 'ema', 'choice-1_0': 0 },
+      score: { correct: 2, total: 2, pct: 100 },
+      errorLog: [],
+    }));
+    expect(dialog).toHaveTextContent('100% · 2/2 õiget');
+    expect(data.repository.listWorksheetAssignmentsByStudentIds).toHaveBeenCalledWith(['student-1']);
   });
 });

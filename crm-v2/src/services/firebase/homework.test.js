@@ -91,4 +91,24 @@ describe('homeworkService submissions', () => {
     await expect(homeworkService.reviewSubmission({ submission, teacherGrade: '', teacherFeedback: ' ', user: { uid: 'teacher-1' } })).rejects.toThrow('Lisa hinne või tagasiside');
     expect(firestore.batch.commit).not.toHaveBeenCalled();
   });
+
+  it('loads open worksheet assignments and preserves their worksheet data', async () => {
+    firestore.getDocs.mockResolvedValue({ docs: [{ id: 'assignment-1', data: () => ({ studentId: 'student-1', lessonTitle: 'Pere tööleht', status: 'new', worksheetData: { blocks: [{ id: 'fill-1', type: 'fill' }] } }) }] });
+    await expect(homeworkService.listWorksheetAssignmentsByStudentIds(['student-1'])).resolves.toEqual([
+      expect.objectContaining({ id: 'assignment-1', title: 'Pere tööleht', status: 'new', worksheetData: { blocks: [{ id: 'fill-1', type: 'fill' }] } }),
+    ]);
+  });
+
+  it('submits answers on the original assignment and flags them for teacher review', async () => {
+    await homeworkService.submitWorksheet({ assignmentId: 'assignment-1', answers: { 'fill-1_0': 'ema' }, score: { correct: 1, total: 1, pct: 100 }, errorLog: [] });
+    expect(firestore.updateDoc).toHaveBeenCalledWith('firebase-db:worksheetAssignments:assignment-1', expect.objectContaining({
+      status: 'done', answers: { 'fill-1_0': 'ema' }, score: { correct: 1, total: 1, pct: 100 }, seenByTeacher: false,
+    }));
+  });
+
+  it('stores a bounded student self-assessment on the same assignment', async () => {
+    await expect(homeworkService.saveSelfAssessment({ assignmentId: 'assignment-1', difficulty: '4', comment: 'Lugemine oli raske.' })).resolves.toMatchObject({ difficulty: 4, comment: 'Lugemine oli raske.' });
+    expect(firestore.updateDoc).toHaveBeenCalledWith('firebase-db:worksheetAssignments:assignment-1', expect.objectContaining({ selfAssessment: expect.objectContaining({ difficulty: 4 }) }));
+    await expect(homeworkService.saveSelfAssessment({ assignmentId: 'assignment-1', difficulty: '7', comment: '' })).rejects.toThrow('raskusaste');
+  });
 });
