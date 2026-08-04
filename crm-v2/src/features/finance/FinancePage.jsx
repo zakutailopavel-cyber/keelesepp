@@ -580,6 +580,7 @@ export default function FinancePage({
           canRegisterPayment ? (
             <>
               <Link className="button button--secondary" to="/finance/payroll"><Landmark size={17} /> Palgaarvestus</Link>
+              <Link className="button button--secondary" to="/finance/expenses"><ReceiptText size={17} /> Kulud</Link>
               <Button disabled={!students.length} onClick={() => openForecast()}>
                 <TrendingUp size={17} /> Seadista prognoos
               </Button>

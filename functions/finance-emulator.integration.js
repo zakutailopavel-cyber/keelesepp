@@ -256,6 +256,86 @@ async function staffOperationsRequest(token, path, payload = {}) {
   return { status: response.status, body };
 }
 
+test("expenses are admin-only and preserve corrections, voids, documents, and audit history", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const adminToken = await createAdminToken();
+  const createId = "emulator_expense_create_0001";
+  const payload = {
+    expenseDate: "2026-08-04",
+    category: "software",
+    description: "Video lesson software",
+    amount: 24.4,
+    vatAmount: 4.4,
+    paymentMethod: "card",
+    requestId: createId,
+  };
+  const created = await financeRequest(adminToken, "/expenses", payload);
+  assert.equal(created.status, 201, JSON.stringify(created.body));
+  assert.equal(created.body.expense.amountCents, 2440);
+  assert.equal(created.body.expense.netAmountCents, 2000);
+
+  const repeated = await financeRequest(adminToken, "/expenses", payload);
+  assert.equal(repeated.status, 200, JSON.stringify(repeated.body));
+  assert.equal(repeated.body.idempotent, true);
+
+  const correctionId = "emulator_expense_correction_0001";
+  const corrected = await financeRequest(adminToken, "/expenses/correct", {
+    ...payload,
+    expenseId: createId,
+    amount: 30,
+    vatAmount: 5,
+    reason: "Corrected receipt total",
+    requestId: correctionId,
+  });
+  assert.equal(corrected.status, 201, JSON.stringify(corrected.body));
+  assert.equal(corrected.body.expense.correctsExpenseId, createId);
+  assert.equal((await db.collection("expenses").doc(createId).get()).data().status, "corrected");
+
+  const documentId = "emulator_expense_document_0001";
+  const attached = await financeRequest(adminToken, "/expenses/documents", {
+    expenseId: correctionId,
+    requestId: documentId,
+    storagePath: `financial/expenses/${correctionId}/${documentId}`,
+    fileName: "receipt.pdf",
+    contentType: "application/pdf",
+    size: 1024,
+  });
+  assert.equal(attached.status, 201, JSON.stringify(attached.body));
+  assert.equal(attached.body.expense.documentCount, 1);
+
+  const voided = await financeRequest(adminToken, "/expenses/void", {
+    expenseId: correctionId,
+    reason: "Duplicate accounting entry",
+    requestId: "emulator_expense_void_0001",
+  });
+  assert.equal(voided.status, 201, JSON.stringify(voided.body));
+  assert.equal(voided.body.expense.status, "voided");
+
+  const audits = await Promise.all([
+    createId,
+    correctionId,
+    documentId,
+    "emulator_expense_void_0001",
+  ].map((id) => db.collection("financialAudit").doc(id).get()));
+  assert.ok(audits.every((snapshot) => snapshot.exists));
+
+  const directWrite = await firestoreDocumentRequest(
+    adminToken,
+    "PATCH",
+    "expenses/browser-forged-expense",
+    { fields: { status: { stringValue: "active" } } },
+  );
+  assert.equal(directWrite.status, 403, JSON.stringify(directWrite.body));
+
+  const teacherToken = await createUserToken("expense-teacher@example.com");
+  const teacherUid = tokenUid(teacherToken);
+  await db.collection("users").doc(teacherUid).set({ role: "teacher", displayName: "Expense Teacher" });
+  const forbiddenRead = await firestoreDocumentRequest(teacherToken, "GET", `expenses/${createId}`);
+  assert.equal(forbiddenRead.status, 403, JSON.stringify(forbiddenRead.body));
+});
+
 test("self-registration cannot forge staff roles and disabled accounts are rejected", async () => {
   requireSafeEmulatorEnvironment();
   if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });

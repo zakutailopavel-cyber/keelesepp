@@ -796,6 +796,11 @@ service cloud.firestore {
       allow create, update, delete: if false;
     }
 
+    match /expenses/{expenseId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
     match /paymentLineAllocations/{allocationId} {
       allow read: if isAdmin();
       allow create, update, delete: if false;

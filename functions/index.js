@@ -29,6 +29,7 @@ const {
   invoiceFileName,
 } = require("./invoice-document");
 const { invoiceNumberingPlan } = require("./invoice-numbering-core");
+const { expenseDocumentRecord, expenseRecord } = require("./expenses-core");
 const {
   buildLessonInvoiceLines,
   centsToAmount,
@@ -5017,6 +5018,233 @@ exports.invoiceApi = functions
   }
   });
 
+async function createExpense({ actor, values, requestId }) {
+  const mutationId = cleanRequestId(requestId);
+  const normalized = expenseRecord(values);
+  const signature = crypto.createHash("sha256").update(JSON.stringify(normalized)).digest("hex");
+  const expenseRef = db.collection("expenses").doc(mutationId);
+  const auditRef = db.collection("financialAudit").doc(mutationId);
+  const actorData = actorSnapshot(actor);
+  const nowIso = new Date().toISOString();
+
+  return db.runTransaction(async transaction => {
+    const existing = await transaction.get(expenseRef);
+    if (existing.exists) {
+      if (existing.data().creationSignature !== signature) {
+        throw httpError(409, "requestId already used for a different expense");
+      }
+      return { expense: { id: existing.id, ...existing.data() }, idempotent: true };
+    }
+    const expense = {
+      ...normalized,
+      currency: "EUR",
+      status: "active",
+      documents: [],
+      documentCount: 0,
+      creationSignature: signature,
+      createdAt: nowIso,
+      createdBy: actorData,
+      updatedAt: nowIso,
+      requestId: mutationId,
+    };
+    transaction.create(expenseRef, expense);
+    transaction.create(auditRef, {
+      entityType: "expense",
+      entityId: expenseRef.id,
+      action: "expense.created",
+      expenseId: expenseRef.id,
+      expenseDate: normalized.expenseDate,
+      category: normalized.category,
+      amountCents: normalized.amountCents,
+      amount: normalized.amount,
+      vatAmountCents: normalized.vatAmountCents,
+      vatAmount: normalized.vatAmount,
+      actor: actorData,
+      reason: normalized.description,
+      createdAt: nowIso,
+      requestId: mutationId,
+    });
+    return { expense: { id: expenseRef.id, ...expense }, idempotent: false };
+  });
+}
+
+async function correctExpense({ actor, expenseId, values, reason, requestId }) {
+  const mutationId = cleanRequestId(requestId);
+  const sourceId = String(expenseId || "").trim();
+  if (!sourceId) throw httpError(400, "expenseId required");
+  const cleanReason = cleanText(reason, 500);
+  if (!cleanReason) throw httpError(400, "Correction reason required");
+  const normalized = expenseRecord(values);
+  const signature = crypto.createHash("sha256").update(JSON.stringify({ sourceId, normalized, reason: cleanReason })).digest("hex");
+  const sourceRef = db.collection("expenses").doc(sourceId);
+  const replacementRef = db.collection("expenses").doc(mutationId);
+  const auditRef = db.collection("financialAudit").doc(mutationId);
+  const actorData = actorSnapshot(actor);
+  const nowIso = new Date().toISOString();
+
+  return db.runTransaction(async transaction => {
+    const [existingReplacement, sourceSnap] = await Promise.all([
+      transaction.get(replacementRef),
+      transaction.get(sourceRef),
+    ]);
+    if (existingReplacement.exists) {
+      if (existingReplacement.data().creationSignature !== signature || existingReplacement.data().correctsExpenseId !== sourceId) {
+        throw httpError(409, "requestId already used for a different expense correction");
+      }
+      return { expense: { id: existingReplacement.id, ...existingReplacement.data() }, idempotent: true };
+    }
+    if (!sourceSnap.exists) throw httpError(404, "Expense not found");
+    const source = sourceSnap.data();
+    if (source.status !== "active") throw httpError(409, "Only an active expense can be corrected");
+
+    const replacement = {
+      ...normalized,
+      currency: "EUR",
+      status: "active",
+      documents: [],
+      documentCount: 0,
+      correctsExpenseId: sourceId,
+      correctionReason: cleanReason,
+      creationSignature: signature,
+      createdAt: nowIso,
+      createdBy: actorData,
+      updatedAt: nowIso,
+      requestId: mutationId,
+    };
+    transaction.update(sourceRef, {
+      status: "corrected",
+      correctedAt: nowIso,
+      correctedBy: actorData,
+      correctedByExpenseId: mutationId,
+      correctionReason: cleanReason,
+      updatedAt: nowIso,
+    });
+    transaction.create(replacementRef, replacement);
+    transaction.create(auditRef, {
+      entityType: "expense",
+      entityId: sourceId,
+      action: "expense.corrected",
+      expenseId: sourceId,
+      replacementExpenseId: mutationId,
+      previous: {
+        expenseDate: source.expenseDate || "",
+        category: source.category || "",
+        description: source.description || "",
+        amountCents: Number(source.amountCents) || 0,
+        vatAmountCents: Number(source.vatAmountCents) || 0,
+      },
+      current: normalized,
+      actor: actorData,
+      reason: cleanReason,
+      signature,
+      createdAt: nowIso,
+      requestId: mutationId,
+    });
+    return { expense: { id: replacementRef.id, ...replacement }, idempotent: false };
+  });
+}
+
+async function voidExpense({ actor, expenseId, reason, requestId }) {
+  const mutationId = cleanRequestId(requestId);
+  const cleanExpenseId = String(expenseId || "").trim();
+  if (!cleanExpenseId) throw httpError(400, "expenseId required");
+  const cleanReason = cleanText(reason, 500);
+  if (!cleanReason) throw httpError(400, "Void reason required");
+  const signature = crypto.createHash("sha256").update(JSON.stringify({ expenseId: cleanExpenseId, reason: cleanReason })).digest("hex");
+  const expenseRef = db.collection("expenses").doc(cleanExpenseId);
+  const auditRef = db.collection("financialAudit").doc(mutationId);
+  const actorData = actorSnapshot(actor);
+  const nowIso = new Date().toISOString();
+
+  return db.runTransaction(async transaction => {
+    const [auditSnap, expenseSnap] = await Promise.all([
+      transaction.get(auditRef),
+      transaction.get(expenseRef),
+    ]);
+    if (auditSnap.exists) {
+      if (auditSnap.data().signature !== signature || auditSnap.data().action !== "expense.voided") {
+        throw httpError(409, "requestId already used for a different financial mutation");
+      }
+      return { expense: { id: expenseSnap.id, ...expenseSnap.data() }, idempotent: true };
+    }
+    if (!expenseSnap.exists) throw httpError(404, "Expense not found");
+    if (expenseSnap.data().status !== "active") throw httpError(409, "Only an active expense can be voided");
+    transaction.update(expenseRef, {
+      status: "voided",
+      voidedAt: nowIso,
+      voidedBy: actorData,
+      voidReason: cleanReason,
+      updatedAt: nowIso,
+    });
+    transaction.create(auditRef, {
+      entityType: "expense",
+      entityId: cleanExpenseId,
+      action: "expense.voided",
+      expenseId: cleanExpenseId,
+      actor: actorData,
+      reason: cleanReason,
+      signature,
+      createdAt: nowIso,
+      requestId: mutationId,
+    });
+    return { expense: { id: expenseSnap.id, ...expenseSnap.data(), status: "voided", voidedAt: nowIso, voidedBy: actorData, voidReason: cleanReason, updatedAt: nowIso }, idempotent: false };
+  });
+}
+
+async function attachExpenseDocument({ actor, expenseId, document, requestId }) {
+  const mutationId = cleanRequestId(requestId);
+  const cleanExpenseId = String(expenseId || "").trim();
+  const nowIso = new Date().toISOString();
+  const normalized = expenseDocumentRecord({
+    expenseId: cleanExpenseId,
+    documentId: mutationId,
+    ...document,
+    uploadedAt: nowIso,
+  });
+  const signature = crypto.createHash("sha256").update(JSON.stringify(normalized)).digest("hex");
+  const expenseRef = db.collection("expenses").doc(cleanExpenseId);
+  const auditRef = db.collection("financialAudit").doc(mutationId);
+  const actorData = actorSnapshot(actor);
+
+  return db.runTransaction(async transaction => {
+    const [auditSnap, expenseSnap] = await Promise.all([
+      transaction.get(auditRef),
+      transaction.get(expenseRef),
+    ]);
+    if (auditSnap.exists) {
+      if (auditSnap.data().signature !== signature || auditSnap.data().action !== "expense.document_attached") {
+        throw httpError(409, "requestId already used for a different expense document");
+      }
+      return { expense: { id: expenseSnap.id, ...expenseSnap.data() }, document: normalized, idempotent: true };
+    }
+    if (!expenseSnap.exists) throw httpError(404, "Expense not found");
+    const expense = expenseSnap.data();
+    if (expense.status !== "active") throw httpError(409, "Documents can only be added to an active expense");
+    const documents = Array.isArray(expense.documents) ? expense.documents : [];
+    if (documents.length >= 20) throw httpError(409, "Expense already has the maximum number of documents");
+    if (documents.some(item => item.id === mutationId)) throw httpError(409, "Document already attached");
+    const nextDocuments = [...documents, { ...normalized, uploadedBy: actorData }];
+    transaction.update(expenseRef, {
+      documents: nextDocuments,
+      documentCount: nextDocuments.length,
+      updatedAt: nowIso,
+    });
+    transaction.create(auditRef, {
+      entityType: "expense",
+      entityId: cleanExpenseId,
+      action: "expense.document_attached",
+      expenseId: cleanExpenseId,
+      document: normalized,
+      actor: actorData,
+      reason: normalized.fileName,
+      signature,
+      createdAt: nowIso,
+      requestId: mutationId,
+    });
+    return { expense: { id: expenseSnap.id, ...expense, documents: nextDocuments, documentCount: nextDocuments.length, updatedAt: nowIso }, document: normalized, idempotent: false };
+  });
+}
+
 // ── API: transactional payment register ──────────────────────
 // Payment and invoice aggregates are changed in one transaction. Every
 // mutation also creates an immutable financialAudit document.
@@ -5040,6 +5268,47 @@ exports.financeApi = functions.https.onRequest(async (req, res) => {
       return;
     }
     const actor = await requireAdminUser(req);
+    if (req.path === "/expenses") {
+      const result = await createExpense({ actor, values: req.body, requestId: req.body?.requestId });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/expenses/correct") {
+      const result = await correctExpense({
+        actor,
+        expenseId: req.body?.expenseId,
+        values: req.body,
+        reason: req.body?.reason,
+        requestId: req.body?.requestId,
+      });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/expenses/void") {
+      const result = await voidExpense({
+        actor,
+        expenseId: req.body?.expenseId,
+        reason: req.body?.reason,
+        requestId: req.body?.requestId,
+      });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/expenses/documents") {
+      const result = await attachExpenseDocument({
+        actor,
+        expenseId: req.body?.expenseId,
+        document: {
+          storagePath: req.body?.storagePath,
+          fileName: req.body?.fileName,
+          contentType: req.body?.contentType,
+          size: req.body?.size,
+        },
+        requestId: req.body?.requestId,
+      });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
     if (req.path === "/tariffs") {
       const result = await createTariffVersion({
         actor,

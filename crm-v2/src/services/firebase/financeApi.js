@@ -39,6 +39,37 @@ async function postInvoice(path, body) {
 }
 
 export const financeApi = {
+  createExpense(values) {
+    return post('/expenses', {
+      ...values,
+      requestId: values.requestId || financeRequestId('expense'),
+    });
+  },
+  correctExpense(expenseId, values, reason) {
+    return post('/expenses/correct', {
+      ...values,
+      expenseId,
+      reason,
+      requestId: values.requestId || financeRequestId('expense_correction'),
+    });
+  },
+  voidExpense(expenseId, reason) {
+    return post('/expenses/void', {
+      expenseId,
+      reason,
+      requestId: financeRequestId('expense_void'),
+    });
+  },
+  attachExpenseDocument(expenseId, document) {
+    return post('/expenses/documents', {
+      expenseId,
+      storagePath: document.storagePath,
+      fileName: document.fileName,
+      contentType: document.contentType,
+      size: document.size,
+      requestId: document.requestId,
+    });
+  },
   createInvoiceFromLessons(values) {
     return post('/invoices/from-lessons', {
       studentId: values.studentId,

@@ -89,6 +89,12 @@ service firebase.storage {
       allow update, delete: if false;
     }
 
+    match /financial/expenses/{expenseId}/{documentId} {
+      allow read: if accountingAdmin();
+      allow create: if accountingAdmin() && safePaymentOrder();
+      allow update, delete: if false;
+    }
+
     match /{allPaths=**} {
       allow read, write: if false;
     }
