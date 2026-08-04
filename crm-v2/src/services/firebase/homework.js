@@ -40,8 +40,35 @@ export function normalizeSubmission(id, data = {}, submissionKind) {
     reviewStatus: data.reviewStatus || (data.reviewedAt || data.teacherFeedback || data.teacherGrade ? 'reviewed' : 'pending'),
     reviewedAt: timestampValue(data.reviewedAt),
     reviewedByName: data.reviewedByName || '',
+    annotations: Array.isArray(data.annotations) ? data.annotations : [],
     source: data,
   };
+}
+
+export function sanitizeSubmissionAnnotations(annotations = []) {
+  if (!Array.isArray(annotations)) throw new Error('Paranduste vorming on vigane.');
+  if (annotations.length > 100) throw new Error('Ühele tööle saab lisada kuni 100 parandust.');
+  return annotations.map((item, index) => {
+    const start = Number(item?.start);
+    const end = Number(item?.end);
+    const blockId = String(item?.blockId || '').trim().slice(0, 180);
+    const selectedText = String(item?.selectedText || '').slice(0, 1000);
+    const parandus = String(item?.parandus || '').trim().slice(0, 1000);
+    const selgitus = String(item?.selgitus || '').trim().slice(0, 2000);
+    if (!blockId || !Number.isInteger(start) || !Number.isInteger(end) || start < 0 || end <= start || !selectedText) throw new Error(`Parandus ${index + 1} on vigane.`);
+    if (!parandus && !selgitus) throw new Error(`Lisa parandusele ${index + 1} õige variant või selgitus.`);
+    return {
+      id: String(item?.id || `${Date.now()}_${index}`).slice(0, 180),
+      blockId,
+      start,
+      end,
+      selectedText,
+      parandus,
+      selgitus,
+      createdAt: timestampValue(item?.createdAt) || new Date().toISOString(),
+      dismissed: Boolean(item?.dismissed),
+    };
+  });
 }
 
 export function normalizeWorksheetAssignment(id, data = {}) {
@@ -154,6 +181,32 @@ export const homeworkService = {
     });
     await batch.commit();
     return { ...submission, ...payload };
+  },
+  async saveSubmissionAnnotations({ submission, annotations, user }) {
+    if (!submission?.id || !['worksheet', 'exercise'].includes(submission.submissionKind)) throw new Error('Parandatavat tööd ei leitud.');
+    if (!user?.uid) throw new Error('Õpetaja kasutajat ei leitud.');
+    const collectionName = submission.submissionKind === 'worksheet' ? 'worksheetAssignments' : 'exerciseResults';
+    const sanitized = sanitizeSubmissionAnnotations(annotations);
+    const { db } = requireFirebaseClient();
+    const updatedAt = new Date().toISOString();
+    const batch = writeBatch(db);
+    batch.set(doc(db, collectionName, submission.id), { annotations: sanitized, seenByTeacher: true, updatedAt }, { merge: true });
+    batch.set(doc(collection(db, 'activityLog')), {
+      type: 'homework.annotations_updated',
+      label: `${submission.title || 'Õpilase töö'} parandused uuendatud`,
+      byUid: user.uid,
+      byName: user.displayName || user.email || 'Õpetaja',
+      createdAt: updatedAt,
+      date: updatedAt.slice(0, 10),
+      meta: {
+        submissionId: submission.id,
+        submissionKind: submission.submissionKind,
+        studentId: submission.studentId || '',
+        count: sanitized.length,
+      },
+    });
+    await batch.commit();
+    return sanitized;
   },
   async submitWorksheet({ assignmentId, answers, score, errorLog }) {
     if (!assignmentId) throw new Error('Töölehte ei leitud.');

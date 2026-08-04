@@ -7,6 +7,8 @@ import { homeworkService, studentsService } from '../../services/firebase/index.
 import { hasAnyRole, ROLES } from '../../utils/roles.js';
 import WorksheetPlayer from './WorksheetPlayer.jsx';
 import ExercisePlayer from './ExercisePlayer.jsx';
+import TextAnnotationEditor from './TextAnnotationEditor.jsx';
+import { submissionWritingFields } from './annotations.js';
 
 const blank = { studentId: '', task: '', due: new Date().toISOString().slice(0, 10) };
 const emptyReview = { teacherGrade: '', teacherFeedback: '' };
@@ -148,6 +150,12 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
     }
   };
 
+  const saveAnnotations = async (annotations) => {
+    const saved = await repository.saveSubmissionAnnotations({ submission: reviewing, annotations, user });
+    setReviewing((current) => current ? { ...current, annotations: saved } : current);
+    return saved;
+  };
+
   return <div className="page-content">
     <PageHeader eyebrow="Õppetöö" title="Kodutööd" description={staff ? 'Ülesanded, esitused, hindamine ja tagasiside ühes vaates.' : 'Sinu ülesanded, tulemused ja õpetaja tagasiside.'} actions={staff ? <Button onClick={() => setModal(true)}><Plus size={18} /> Uus kodutöö</Button> : null} />
     {success ? <div className="success-notice" role="status">{success}<button onClick={() => setSuccess('')}>×</button></div> : null}
@@ -195,6 +203,7 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
         <div className="submission-review__hero"><div><span className="eyebrow">{reviewing.submissionKind === 'worksheet' ? 'Tööleht' : 'Interaktiivne harjutus'}</span><strong>{reviewing.studentName}</strong><small>Esitatud {formatDate(reviewing.completedAt)}</small></div><div>{reviewing.percentage != null ? <b>{reviewing.percentage}%</b> : <ClipboardCheck size={28} />}{reviewing.score?.total ? <small>{reviewing.score.correct}/{reviewing.score.total} õiget</small> : null}</div></div>
         {reviewing.selfAssessment ? <section className="submission-self"><strong>Õpilase enesehinnang</strong><p>{reviewing.selfAssessment.difficulty ? `Raskus: ${reviewing.selfAssessment.difficulty}. ` : ''}{reviewing.selfAssessment.comment || 'Kommentaari ei lisatud.'}</p></section> : null}
         <section><h3>Õpilase vastused</h3><AnswerList answers={reviewing.answers} /></section>
+        <TextAnnotationEditor fields={submissionWritingFields(reviewing)} annotations={reviewing.annotations || []} editable={staff} onChange={saveAnnotations} />
         {Array.isArray(reviewing.errorLog) && reviewing.errorLog.length ? <section><h3>Automaatselt tuvastatud vead</h3><div className="submission-errors">{reviewing.errorLog.map((error, index) => <p key={index}>{readableValue(error)}</p>)}</div></section> : null}
         {staff ? <section className="submission-feedback"><h3>Õpetaja tagasiside</h3><div className="submission-grade"><Select id="teacher-grade" label="Hinne 1–5" value={review.teacherGrade} onChange={(event) => setReview({ ...review, teacherGrade: event.target.value })}><option value="">Hindeta</option>{[1, 2, 3, 4, 5].map((grade) => <option key={grade} value={grade}>{grade}</option>)}</Select><Star size={21} /></div><label className="textarea-field"><span>Kommentaar õpilasele</span><textarea aria-label="Kommentaar õpilasele" rows="5" value={review.teacherFeedback} onChange={(event) => setReview({ ...review, teacherFeedback: event.target.value })} placeholder="Mis läks hästi ja mida järgmisel korral parandada?" /></label></section> : reviewing.reviewStatus === 'reviewed' ? <section className="returned-feedback"><div><MessageSquare size={20} /><strong>Õpetaja tagasiside</strong>{reviewing.teacherGrade ? <Badge tone="success">Hinne {reviewing.teacherGrade}</Badge> : null}</div><p>{reviewing.teacherFeedback || 'Õpetaja jättis tööle hinde ilma kommentaarita.'}</p><small>{reviewing.reviewedByName ? `${reviewing.reviewedByName} · ` : ''}{formatDate(reviewing.reviewedAt)}</small></section> : <section className="submission-waiting"><Clock3 size={20} /><p>Õpetaja ei ole tööle veel tagasisidet saatnud.</p></section>}
       </div> : null}

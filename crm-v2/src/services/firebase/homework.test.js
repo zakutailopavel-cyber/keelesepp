@@ -17,7 +17,7 @@ const firestore = vi.hoisted(() => ({
 vi.mock('firebase/firestore', () => firestore);
 vi.mock('./client.js', () => ({ requireFirebaseClient: () => ({ db: 'firebase-db' }) }));
 
-import { homeworkService, normalizeSubmission } from './homework.js';
+import { homeworkService, normalizeSubmission, sanitizeSubmissionAnnotations } from './homework.js';
 
 describe('homeworkService submissions', () => {
   beforeEach(() => {
@@ -37,6 +37,14 @@ describe('homeworkService submissions', () => {
       reviewStatus: 'pending',
     });
     expect(normalizeSubmission('worksheet-1', { score: null }, 'worksheet').percentage).toBeNull();
+    expect(normalizeSubmission('worksheet-1', { annotations: [{ id: 'note-1' }] }, 'worksheet').annotations).toEqual([{ id: 'note-1' }]);
+  });
+
+  it('sanitizes bounded legacy-compatible annotations', () => {
+    expect(sanitizeSubmissionAnnotations([{ id: 'note-1', blockId: 'writing', start: 5, end: 9, selectedText: 'pere', parandus: ' perekond ', selgitus: '', createdAt: '2026-08-04T10:00:00.000Z' }])).toEqual([
+      { id: 'note-1', blockId: 'writing', start: 5, end: 9, selectedText: 'pere', parandus: 'perekond', selgitus: '', createdAt: '2026-08-04T10:00:00.000Z', dismissed: false },
+    ]);
+    expect(() => sanitizeSubmissionAnnotations([{ blockId: '', start: 2, end: 1, selectedText: '' }])).toThrow('vigane');
   });
 
   it('loads completed worksheets and exercise results in ten-student query chunks', async () => {
@@ -82,6 +90,25 @@ describe('homeworkService submissions', () => {
       type: 'homework.reviewed',
       byUid: 'teacher-1',
       meta: { submissionId: 'worksheet-1', submissionKind: 'worksheet', studentId: 'student-1', teacherGrade: 5 },
+    });
+    expect(firestore.batch.commit).toHaveBeenCalledOnce();
+  });
+
+  it('atomically saves text annotations and an audit event', async () => {
+    const annotations = [{ id: 'note-1', blockId: 'writing', start: 5, end: 9, selectedText: 'pere', parandus: 'perekond', selgitus: 'Täpsusta sõna.', createdAt: '2026-08-04T10:00:00.000Z', dismissed: false }];
+    await expect(homeworkService.saveSubmissionAnnotations({
+      submission: { id: 'worksheet-1', submissionKind: 'worksheet', studentId: 'student-1', title: 'Pere tööleht' },
+      annotations,
+      user: { uid: 'teacher-1', displayName: 'Õpetaja' },
+    })).resolves.toEqual(annotations);
+    expect(firestore.batch.set).toHaveBeenCalledTimes(2);
+    expect(firestore.batch.set.mock.calls[0]).toEqual([
+      'firebase-db:worksheetAssignments:worksheet-1',
+      expect.objectContaining({ annotations, seenByTeacher: true }),
+      { merge: true },
+    ]);
+    expect(firestore.batch.set.mock.calls[1][1]).toMatchObject({
+      type: 'homework.annotations_updated', byUid: 'teacher-1', meta: { submissionId: 'worksheet-1', submissionKind: 'worksheet', studentId: 'student-1', count: 1 },
     });
     expect(firestore.batch.commit).toHaveBeenCalledOnce();
   });

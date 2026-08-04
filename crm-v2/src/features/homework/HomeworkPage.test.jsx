@@ -27,6 +27,7 @@ function repositories(submissions = [completedWork], assignments = [], homeworkI
       setStatus: vi.fn().mockResolvedValue(undefined),
       remove: vi.fn().mockResolvedValue(undefined),
       reviewSubmission: vi.fn().mockResolvedValue(undefined),
+      saveSubmissionAnnotations: vi.fn().mockImplementation(async ({ annotations }) => annotations),
       submitWorksheet: vi.fn().mockResolvedValue(undefined),
       saveSelfAssessment: vi.fn().mockResolvedValue(undefined),
       getExercise: vi.fn().mockResolvedValue({ id: 'exercise-1', title: 'Tegusõnad', type: 'fill', text: 'Ma [lähen] kooli.' }),
@@ -69,7 +70,7 @@ describe('HomeworkPage', () => {
   });
 
   it('shows returned feedback to a student without staff actions', async () => {
-    const reviewed = { ...completedWork, reviewStatus: 'reviewed', teacherGrade: 4, teacherFeedback: 'Harjuta veel käändeid.', reviewedAt: '2026-08-04T10:00:00.000Z', reviewedByName: 'Õpetaja' };
+    const reviewed = { ...completedWork, reviewStatus: 'reviewed', teacherGrade: 4, teacherFeedback: 'Harjuta veel käändeid.', reviewedAt: '2026-08-04T10:00:00.000Z', reviewedByName: 'Õpetaja', annotations: [{ id: 'note-1', blockId: 'first', start: 5, end: 8, selectedText: 'ema', parandus: 'ema nimi', selgitus: 'Täpsusta väljendit.', createdAt: '2026-08-04T10:00:00.000Z', dismissed: false }] };
     const data = repositories([reviewed]);
     renderPage({ uid: 'student-user-1', displayName: 'Mari', roles: ['student'] }, data);
 
@@ -77,6 +78,8 @@ describe('HomeworkPage', () => {
     const dialog = screen.getByRole('dialog', { name: 'Pere tööleht' });
     expect(dialog).toHaveTextContent('Harjuta veel käändeid.');
     expect(dialog).toHaveTextContent('Hinne 4');
+    expect(dialog).toHaveTextContent('ema nimi');
+    expect(dialog).toHaveTextContent('Täpsusta väljendit.');
     expect(screen.queryByRole('button', { name: 'Uus kodutöö' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Kustuta' })).not.toBeInTheDocument();
     expect(data.studentRepository.listOwned).toHaveBeenCalledWith('student-user-1');
