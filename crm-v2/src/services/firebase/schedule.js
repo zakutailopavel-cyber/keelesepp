@@ -68,6 +68,8 @@ export const scheduleService = {
     const { db } = requireFirebaseClient();
     const value = payload(data, current);
     delete value.id;
+    delete value.occurrenceDate;
+    delete value.occurrenceId;
     await updateDoc(doc(db, 'schedule', id), value);
     return normalize(id, value);
   },
