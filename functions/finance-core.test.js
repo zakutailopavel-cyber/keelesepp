@@ -274,6 +274,32 @@ test("financial period review blocks unbilled lessons, unmatched bank money, and
   assert.equal(snapshot.summary.blockingIssueCount, 3);
 });
 
+test("financial period issues include readable lesson identity instead of only a Firestore ID", () => {
+  const snapshot = financialPeriodReviewSnapshot({
+    month: "2026-07",
+    lessons: [{
+      id: "opaque-firestore-id",
+      date: "2026-07-14",
+      time: "17:30",
+      status: "Toimunud",
+      studentName: "Nicole Smirnova",
+      teacher: "Pavel Zakutailo",
+    }],
+  });
+  const issue = snapshot.issues.find(item => item.type === "unbilled_lesson");
+  assert.deepEqual(issue, {
+    type: "unbilled_lesson",
+    severity: "attention",
+    entityId: "opaque-firestore-id",
+    detail: "Nicole Smirnova",
+    entityKind: "lesson",
+    entityLabel: "Nicole Smirnova",
+    entityDate: "2026-07-14",
+    entityTime: "17:30",
+    entityTeacher: "Pavel Zakutailo",
+  });
+});
+
 test("financial period accepts an unapplied bank balance recorded as a student advance", () => {
   const snapshot = financialPeriodReviewSnapshot({
     month: "2026-07",

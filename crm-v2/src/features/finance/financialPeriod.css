@@ -139,6 +139,17 @@
   padding: 5px 7px;
   text-overflow: ellipsis;
 }
+.financial-period__issue-identity {
+  min-width: 230px;
+}
+.financial-period__issue-identity > strong {
+  font-size: 13px;
+}
+.financial-period__issue-identity code {
+  justify-self: start;
+  margin-top: 2px;
+  max-width: 230px;
+}
 .financial-period__empty {
   align-items: center;
   border: 1px dashed #d0d5dd;
@@ -184,9 +195,15 @@
     align-items: start;
     grid-template-columns: auto 1fr;
   }
-  .financial-period__issues code,
   .financial-period__issues .badge {
     grid-column: 2;
     justify-self: start;
+  }
+  .financial-period__issue-identity {
+    grid-column: 2;
+    min-width: 0;
+  }
+  .financial-period__issue-identity code {
+    grid-column: auto;
   }
 }

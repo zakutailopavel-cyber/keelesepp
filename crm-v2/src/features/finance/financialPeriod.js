@@ -91,6 +91,34 @@ export function financialPeriodLabel(month) {
   }).format(new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, 1)));
 }
 
+const technicalDetail = /^(invoice|lesson|snapshot|ledger|payments|lines):/i;
+const readableDate = (value) => {
+  const match = String(value || "").match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!match) return String(value || "");
+  return new Intl.DateTimeFormat("et-EE", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(`${match[0]}T12:00:00.000Z`));
+};
+
+export function financialIssueIdentity(issue = {}) {
+  const fallbackDetail = issue.detail && !technicalDetail.test(issue.detail)
+    ? issue.detail
+    : "";
+  const label = issue.entityLabel || fallbackDetail || "Objekt määramata";
+  const meta = [
+    readableDate(issue.entityDate),
+    issue.entityTime,
+    issue.entityTeacher,
+    Number.isFinite(Number(issue.entityAmountCents))
+      ? `${(Number(issue.entityAmountCents) / 100).toLocaleString("et-EE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`
+      : "",
+  ].filter(Boolean).join(" · ");
+  return { label, meta, id: issue.entityId || "" };
+}
+
 function csvCell(value) {
   const source = String(value ?? "");
   return /[;"\n]/.test(source) ? `"${source.replace(/"/g, '""')}"` : source;
@@ -117,13 +145,18 @@ export function financialPeriodCsv(snapshot) {
     ["Ettemaksed EUR", amount(summary.bankAdvanceCents)],
     ["Blokeerivaid erinevusi", summary.blockingIssueCount || 0],
     [],
-    ["Tase", "Probleem", "Objekt", "Detail"],
-    ...(snapshot?.issues || []).map((issue) => [
-      issue.severity,
-      financialIssue[issue.type]?.[0] || issue.type,
-      issue.entityId,
-      issue.detail,
-    ]),
+    ["Tase", "Probleem", "Objekt", "Andmed", "Tehniline ID", "Detail"],
+    ...(snapshot?.issues || []).map((issue) => {
+      const identity = financialIssueIdentity(issue);
+      return [
+        issue.severity,
+        financialIssue[issue.type]?.[0] || issue.type,
+        identity.label,
+        identity.meta,
+        identity.id,
+        issue.detail,
+      ];
+    }),
   ];
   return `\uFEFF${rows.map((row) => row.map(csvCell).join(";")).join("\n")}`;
 }

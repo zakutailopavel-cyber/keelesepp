@@ -49,18 +49,41 @@ describe('ParentsPage', () => {
     expect(await screen.findByRole('status')).toHaveTextContent('salvestati');
   });
 
-  it('links an existing unassigned student from an explicit selection dialog', async () => {
+  it('shows linked children and lets an administrator add several children without closing the manager', async () => {
     const data = repositories();
     const user = { uid: 'admin-1', displayName: 'Admin', roles: ['admin'] };
     renderPage(user, data);
     await screen.findByText('Mari Ema');
     const card = screen.getByText('Mari Ema').closest('.parent-card');
-    fireEvent.click(within(card).getByRole('button', { name: /Seo õpilane/ }));
-    const dialog = screen.getByRole('dialog', { name: 'Seo õpilane: Mari Ema' });
+    fireEvent.click(within(card).getByRole('button', { name: /Lisa laps/ }));
+    const dialog = screen.getByRole('dialog', { name: 'Lisa laps: Mari Ema' });
+    expect(within(dialog).getByText('Juba lisatud lapsed')).toBeInTheDocument();
+    expect(within(dialog).getAllByText('Mari').length).toBeGreaterThan(0);
     const jaanRow = within(dialog).getByText('Jaan').closest('section');
-    fireEvent.click(within(jaanRow).getByRole('button', { name: 'Seo' }));
+    fireEvent.click(within(jaanRow).getByRole('button', { name: 'Lisa' }));
 
     await waitFor(() => expect(data.repository.linkStudent).toHaveBeenCalledWith(parents[0], students[1], user));
+    expect(screen.getByRole('dialog', { name: 'Lisa laps: Mari Ema' })).toBeInTheDocument();
+    expect(await screen.findByRole('status')).toHaveTextContent('lisati lapsevanema laste hulka');
+  });
+
+  it('can create a new child from any parent even when the name was not in registration', async () => {
+    const data = repositories();
+    const user = { uid: 'admin-1', displayName: 'Admin', roles: ['admin'] };
+    renderPage(user, data);
+    await screen.findByText('Mari Ema');
+    const card = screen.getByText('Mari Ema').closest('.parent-card');
+    fireEvent.click(within(card).getByRole('button', { name: /Lisa laps/ }));
+    fireEvent.click(within(screen.getByRole('dialog', { name: 'Lisa laps: Mari Ema' })).getByRole('button', { name: /Loo uus lapse kaart/ }));
+    const dialog = screen.getByRole('dialog', { name: 'Loo õpilase kaart: Mari Ema' });
+    fireEvent.change(within(dialog).getByLabelText('Lapse nimi'), { target: { value: 'Kati' } });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Loo ja seo' }));
+    await waitFor(() => expect(data.repository.createMissingStudent).toHaveBeenCalledWith(
+      parents[0],
+      expect.objectContaining({ name: 'Kati', teacherUid: 'teacher-1', teacher: 'Õpetaja' }),
+      students,
+      user,
+    ));
   });
 
   it('creates a missing requested child only after an administrator selects a directory teacher', async () => {

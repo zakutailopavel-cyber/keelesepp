@@ -12,6 +12,7 @@ import { Badge, Button, Card, Input } from "../../components/ui/index.js";
 import { displayDate } from "./finance.js";
 import {
   financialIssue,
+  financialIssueIdentity,
   financialPeriodCsv,
   financialPeriodLabel,
   previousIsoMonth,
@@ -226,6 +227,7 @@ export default function FinancialPeriodPanel({
                   issue.type,
                   issue.detail,
                 ];
+                const identity = financialIssueIdentity(issue);
                 return (
                   <article key={`${issue.type}-${issue.entityId}-${index}`}>
                     <CircleAlert size={18} />
@@ -233,7 +235,11 @@ export default function FinancialPeriodPanel({
                       <strong>{content[0]}</strong>
                       <small>{content[1]}</small>
                     </span>
-                    <code>{issue.entityId || "—"}</code>
+                    <span className="financial-period__issue-identity">
+                      <strong>{identity.label}</strong>
+                      {identity.meta ? <small>{identity.meta}</small> : null}
+                      {identity.id ? <code title="Tehniline ID">ID: {identity.id}</code> : null}
+                    </span>
                     <Badge tone={issueTone[issue.severity] || "neutral"}>
                       {issueLevel[issue.severity] || issue.severity}
                     </Badge>

@@ -216,6 +216,32 @@ describe('FinancePage', () => {
     expect(await screen.findByRole('status')).toHaveTextContent('kontrollituks märgitud');
   });
 
+  it('shows who a financial-period issue belongs to instead of presenting only its internal ID', async () => {
+    const financeRepository = {
+      previewFinancialPeriod: vi.fn().mockResolvedValue({ snapshot: {
+        month: '2026-07',
+        canReview: false,
+        summary: { lessonCount: 1, unbilledLessonCount: 1, blockingIssueCount: 1, warningCount: 0 },
+        issues: [{
+          severity: 'attention',
+          type: 'unbilled_lesson',
+          entityId: 'opaque-firestore-id',
+          detail: 'Nicole Smirnova',
+          entityLabel: 'Nicole Smirnova',
+          entityDate: '2026-07-14',
+          entityTime: '17:30',
+          entityTeacher: 'Pavel Zakutailo',
+        }],
+      } }),
+    };
+    renderPage(financeRepository);
+    await screen.findByText('Finantsperioodi võrdlus');
+    fireEvent.click(screen.getByRole('button', { name: /Kontrolli kuu/ }));
+    expect(await screen.findByText('Nicole Smirnova')).toBeInTheDocument();
+    expect(screen.getByText('14.07.2026 · 17:30 · Pavel Zakutailo')).toBeInTheDocument();
+    expect(screen.getByText('ID: opaque-firestore-id')).toBeInTheDocument();
+  });
+
   it('applies an available student advance to an open invoice', async () => {
     const financeRepository = { applyPayerCredit: vi.fn().mockResolvedValue({}) };
     renderPage(financeRepository, undefined, { credits: [{ id: 'credit-1', studentId: 'student-1', studentName: 'Sofia Tamm', payerName: 'Maarika Tamm', availableAmountCents: 3000, status: 'open', createdAt: '2026-08-03' }] });

@@ -207,6 +207,12 @@ function financialPeriodReviewSnapshot({
   const invoiceById = new Map(
     invoiceList.filter(item => item?.id).map(item => [String(item.id), item]),
   );
+  const paymentById = new Map(
+    paymentList.filter(item => item?.id).map(item => [String(item.id), item]),
+  );
+  const bankById = new Map(
+    bankList.filter(item => item?.id).map(item => [String(item.id), item]),
+  );
   const lessonById = new Map(
     lessonList.filter(item => item?.id).map(item => [String(item.id), item]),
   );
@@ -234,12 +240,56 @@ function financialPeriodReviewSnapshot({
     paymentsByInvoice.get(invoiceId).push(payment);
   });
   const issues = [];
+  const issueEntity = entityId => {
+    const id = String(entityId || "");
+    const lesson = lessonById.get(id);
+    if (lesson) {
+      return {
+        entityKind: "lesson",
+        entityLabel: String(lesson.studentName || lesson.groupName || "Õpilane määramata"),
+        entityDate: String(lesson.date || ""),
+        entityTime: String(lesson.time || lesson.startTime || ""),
+        entityTeacher: String(lesson.teacher || lesson.teacherName || ""),
+      };
+    }
+    const invoice = invoiceById.get(id);
+    if (invoice) {
+      const number = invoice.num || invoice.number || invoice.invoiceNumber || "";
+      const person = invoice.studentName || invoice.payerName || invoice.parentName || "";
+      return {
+        entityKind: "invoice",
+        entityLabel: [number ? `Arve ${number}` : "Arve", person].filter(Boolean).join(" · "),
+        entityDate: String(invoice.date || invoice.issuedAt || invoice.createdAt || ""),
+        entityAmountCents: invoiceAmountCents(invoice),
+      };
+    }
+    const payment = paymentById.get(id);
+    if (payment) {
+      return {
+        entityKind: "payment",
+        entityLabel: String(payment.studentName || payment.payerName || "Makse"),
+        entityDate: String(payment.paidAt || payment.createdAt || ""),
+        entityAmountCents: paymentNetAmountCents(payment),
+      };
+    }
+    const bank = bankById.get(id);
+    if (bank) {
+      return {
+        entityKind: "bank_transaction",
+        entityLabel: String(bank.payerName || bank.description || "Pangalaekumine"),
+        entityDate: String(bank.paidAt || bank.date || bank.createdAt || ""),
+        entityAmountCents: nonNegativeCents(bank, "amountCents", "amount"),
+      };
+    }
+    return {};
+  };
   const addIssue = (type, severity, entityId, detail) => {
     issues.push({
       type,
       severity,
       entityId: String(entityId || ""),
       detail: String(detail || "").slice(0, 300),
+      ...issueEntity(entityId),
     });
   };
   const lineOwners = new Map();
