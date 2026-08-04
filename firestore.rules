@@ -52,6 +52,12 @@ service cloud.firestore {
       return signedIn() && userRole(uid()) == 'teacher';
     }
 
+    function financialDateOpen(value) {
+      return !(value is string)
+        || !value.matches('^\\d{4}-\\d{2}-\\d{2}$')
+        || !exists(/databases/$(database)/documents/financialLockedDates/$(value));
+    }
+
     function teacherName(userId) {
       return hasUserDoc(userId)
         ? get(userPath(userId)).data.get('displayName', '')
@@ -704,8 +710,12 @@ service cloud.firestore {
 
     match /lessons/{lessonId} {
       allow read: if isAdmin() || teacherCanRead(resource.data) || ownsStudent(resource.data.studentId);
-      allow create: if (isAdmin() || teacherCanCreate(request.resource.data)) && createsNoLessonPackageSource();
+      allow create: if (isAdmin() || teacherCanCreate(request.resource.data))
+        && createsNoLessonPackageSource()
+        && financialDateOpen(request.resource.data.get('date', ''));
       allow update: if (isAdmin() || teacherCanUpdate(resource.data, request.resource.data))
+        && financialDateOpen(resource.data.get('date', ''))
+        && financialDateOpen(request.resource.data.get('date', ''))
         && !changesLessonBillingSource()
         && !changesLessonPackageSource()
         && (
@@ -722,6 +732,7 @@ service cloud.firestore {
           )
         );
       allow delete: if (isAdmin() || teacherCanRead(resource.data))
+        && financialDateOpen(resource.data.get('date', ''))
         && (
           !resource.data.keys().hasAny(['invoiceId'])
           || resource.data.invoiceId == ''
@@ -758,14 +769,18 @@ service cloud.firestore {
 
     match /invoices/{invoiceId} {
       allow read: if isStaff() || isFinance() || ownsInvoice(resource.data);
-      allow create: if isStaff();
+      allow create: if isStaff() && financialDateOpen(request.resource.data.get('date', ''));
       allow update: if (
           isAdmin()
           && !changesInvoiceFinancialSource()
+          && financialDateOpen(resource.data.get('date', ''))
+          && financialDateOpen(request.resource.data.get('date', ''))
         )
         || (
           isStaff()
           && !changesInvoiceFinancialSource()
+          && financialDateOpen(resource.data.get('date', ''))
+          && financialDateOpen(request.resource.data.get('date', ''))
           && !request.resource.data.diff(resource.data).affectedKeys().hasAny([
             'paidAmountCents',
             'paidAmount',
@@ -781,6 +796,7 @@ service cloud.firestore {
           ])
         );
       allow delete: if isAdmin()
+        && financialDateOpen(resource.data.get('date', ''))
         && (
           !resource.data.keys().hasAny(['paymentCount'])
           || resource.data.paymentCount == 0
@@ -822,6 +838,26 @@ service cloud.firestore {
     }
 
     match /financialPeriodReviews/{reviewId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
+    match /financialPeriodExports/{exportId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
+    match /financialPeriodClosures/{closureId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
+    match /financialPeriodCorrections/{correctionId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
+    match /financialLockedDates/{dateId} {
       allow read: if isAdmin();
       allow create, update, delete: if false;
     }

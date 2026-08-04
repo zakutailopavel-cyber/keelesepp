@@ -379,6 +379,12 @@ export default function FinancePage({
     financeRepository.previewFinancialPeriod(month);
   const reviewFinancialPeriod = (month) =>
     financeRepository.reviewFinancialPeriod(month);
+  const generateFinancialPeriodExport = (month) =>
+    financeRepository.generateFinancialPeriodExport(month);
+  const closeFinancialPeriod = (month, reason) =>
+    financeRepository.closeFinancialPeriod(month, reason);
+  const createFinancialPeriodCorrection = (values) =>
+    financeRepository.createFinancialPeriodCorrection(values);
   const applyPayerCredit = (creditId, invoiceId, amount, note) =>
     financeRepository.applyPayerCredit(creditId, invoiceId, amount, note);
   const refundPayerCredit = (creditId, refund) =>
@@ -423,7 +429,9 @@ export default function FinancePage({
     try {
       setDocumentPreview(await deliveryRepository.creditNotePdf(creditNote.id));
     } catch (error) {
-      setActionError(error.message || "Kreeditarve eelvaate avamine ebaõnnestus.");
+      setActionError(
+        error.message || "Kreeditarve eelvaate avamine ebaõnnestus.",
+      );
     } finally {
       setDocumentBusy("");
     }
@@ -458,10 +466,16 @@ export default function FinancePage({
     setUploadBusy(payment.id);
     setActionError("");
     try {
-      const result = await documentRepository.upload(payment.id, file, financeRepository);
+      const result = await documentRepository.upload(
+        payment.id,
+        file,
+        financeRepository,
+      );
       setPayments((current) => ({
         ...current,
-        items: current.items.map((item) => item.id === payment.id ? result.payment : item),
+        items: current.items.map((item) =>
+          item.id === payment.id ? result.payment : item,
+        ),
       }));
       setSuccess(`Makse kinnitus „${file.name}“ lisati.`);
     } catch (error) {
@@ -579,9 +593,16 @@ export default function FinancePage({
         actions={
           canRegisterPayment ? (
             <>
-              <Link className="button button--secondary" to="/finance/payroll"><Landmark size={17} /> Palgaarvestus</Link>
-              <Link className="button button--secondary" to="/finance/expenses"><ReceiptText size={17} /> Kulud</Link>
-              <Button disabled={!students.length} onClick={() => openForecast()}>
+              <Link className="button button--secondary" to="/finance/payroll">
+                <Landmark size={17} /> Palgaarvestus
+              </Link>
+              <Link className="button button--secondary" to="/finance/expenses">
+                <ReceiptText size={17} /> Kulud
+              </Link>
+              <Button
+                disabled={!students.length}
+                onClick={() => openForecast()}
+              >
                 <TrendingUp size={17} /> Seadista prognoos
               </Button>
             </>
@@ -671,10 +692,15 @@ export default function FinancePage({
           periods={periods}
           onPreview={previewFinancialPeriod}
           onReview={reviewFinancialPeriod}
+          onExport={generateFinancialPeriodExport}
+          onClose={closeFinancialPeriod}
+          onCorrection={createFinancialPeriodCorrection}
           onReload={state.reload}
         />
       ) : null}
-      {canRegisterPayment ? <FinancialAuditPanel entries={auditEntries} /> : null}
+      {canRegisterPayment ? (
+        <FinancialAuditPanel entries={auditEntries} />
+      ) : null}
       {canRegisterPayment ? (
         <InvoiceNumberingPanel
           invoices={invoices}
@@ -1083,7 +1109,8 @@ export default function FinancePage({
                 <span>
                   <strong>Arvenumber on parandatud</strong>
                   <small>
-                    Eelmine number {selected.previousInvoiceNumbers.at(-1)} · uus number {selected.num}
+                    Eelmine number {selected.previousInvoiceNumbers.at(-1)} ·
+                    uus number {selected.num}
                   </small>
                 </span>
                 {selected.correctedInvoiceDeliveryRequired ? (
@@ -1208,14 +1235,18 @@ export default function FinancePage({
                       <span>
                         <strong>{creditNote.num || "Kreeditarve"}</strong>
                         <small>
-                          {displayDate(creditNote.date || creditNote.createdAt)} · {creditNote.reason || "Parandus"}
+                          {displayDate(creditNote.date || creditNote.createdAt)}{" "}
+                          · {creditNote.reason || "Parandus"}
                         </small>
                       </span>
                       <b>
-                        -{money(Math.abs(
-                          Number(creditNote.amountCents)
-                            || Math.round(Number(creditNote.amount || 0) * 100),
-                        ))}
+                        -
+                        {money(
+                          Math.abs(
+                            Number(creditNote.amountCents) ||
+                              Math.round(Number(creditNote.amount || 0) * 100),
+                          ),
+                        )}
                       </b>
                       <Button
                         variant="secondary"
@@ -1302,9 +1333,13 @@ export default function FinancePage({
                         </Badge>
                         {payment.status !== "voided" ? (
                           <>
-                            <label className={`button button--secondary${uploadBusy === payment.id ? " is-loading" : ""}`}>
+                            <label
+                              className={`button button--secondary${uploadBusy === payment.id ? " is-loading" : ""}`}
+                            >
                               <FileUp size={14} />
-                              {uploadBusy === payment.id ? "Lisan…" : "Lisa kinnitus"}
+                              {uploadBusy === payment.id
+                                ? "Lisan…"
+                                : "Lisa kinnitus"}
                               <input
                                 className="sr-only"
                                 type="file"

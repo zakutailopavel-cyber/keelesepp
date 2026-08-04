@@ -30,6 +30,7 @@ const {
 } = require("./invoice-document");
 const { invoiceNumberingPlan } = require("./invoice-numbering-core");
 const { expenseDocumentRecord, expenseRecord } = require("./expenses-core");
+const { accountantExportArchive, periodCloseProjection } = require("./period-close-core");
 const {
   buildLessonInvoiceLines,
   centsToAmount,
@@ -361,6 +362,13 @@ function cleanRequestId(value) {
 
 function cleanText(value, maxLength = 500) {
   return String(value || "").trim().slice(0, maxLength);
+}
+
+async function assertFinancialDateOpen(transaction, value) {
+  const date = validIsoDate(String(value || "").slice(0, 10), "financial date");
+  const lockSnap = await transaction.get(db.collection("financialLockedDates").doc(date));
+  if (lockSnap.exists) throw httpError(409, `Financial period ${date.slice(0, 7)} is closed`);
+  return date;
 }
 
 async function createTariffVersion({
@@ -893,6 +901,7 @@ async function syncLessonPackageConsumption({
     const state = stateSnap.exists ? stateSnap.data() : {};
     const completed = lesson.status === "Toimunud";
     const lessonDate = validIsoDate(lesson.date, "lesson date");
+    await assertFinancialDateOpen(transaction, lessonDate);
     const requestRecord = result => ({
       lessonId: cleanLessonId,
       creationSignature: signature,
@@ -1307,6 +1316,9 @@ async function createLessonInvoice({
       if (!lesson) throw httpError(409, `Lesson ${id} is not currently billable`);
       return lesson;
     });
+    for (const date of [...new Set([todayIso, ...selectedLessons.map(lesson => lesson.date)])]) {
+      await assertFinancialDateOpen(transaction, date);
+    }
     const lessonPrice = Number(student.lessonPrice) || 0;
     const tariffAssignments = tariffAssignmentsSnap.docs
       .map(doc => ({ id: doc.id, ...doc.data() }));
@@ -1496,6 +1508,7 @@ async function setLessonBillingDisposition({
       : null;
     const studentSnap = studentRef ? await transaction.get(studentRef) : null;
     if (studentRef && !studentSnap.exists) throw httpError(409, "Lesson student not found");
+    await assertFinancialDateOpen(transaction, lesson.date);
 
     const lessonPatch = {
       billingDispositionReason: cleanReason,
@@ -1815,6 +1828,7 @@ async function refundPayerCredit({
     if (!creditSnap.exists) throw httpError(404, "Payer credit not found");
     const credit = creditSnap.data();
     const creditPatch = creditAfterRefund(credit, amountCents, nowIso);
+    await assertFinancialDateOpen(transaction, refundDate);
     const refund = {
       creditId: cleanCreditId,
       payerKey: credit.payerKey || "",
@@ -1942,6 +1956,8 @@ async function createInvoiceLessonCreditNote({
         "Credit would create an overpayment; void or refund the excess payment first",
       );
     }
+    await assertFinancialDateOpen(transaction, line.date || lesson.date);
+    await assertFinancialDateOpen(transaction, todayIso);
 
     const nextSequence = (Number(counterSnap.data()?.seq) || 0) + 1;
     const creditNoteNum = `KN-${todayIso.slice(0, 4)}-${String(nextSequence).padStart(3, "0")}`;
@@ -2088,6 +2104,7 @@ async function recordInvoicePayment({ actor, invoiceId, amount, paidAt, method, 
     if (!invoiceSnap.exists) throw httpError(404, "Invoice not found");
     const invoice = invoiceSnap.data();
     const payments = await activeInvoicePayments(transaction, invoiceRef.id);
+    await assertFinancialDateOpen(transaction, paymentDate);
     const payment = {
       invoiceId: invoiceRef.id,
       invoiceNum: invoice.num || "",
@@ -2189,6 +2206,10 @@ async function attachPaymentDocument({
     if (payment.status === "voided") {
       throw httpError(409, "Cannot attach a document to a voided payment");
     }
+    await assertFinancialDateOpen(
+      transaction,
+      String(payment.paidAt || payment.createdAt || nowIso).slice(0, 10),
+    );
 
     const documents = Array.isArray(payment.documents) ? payment.documents : [];
     if (documents.length >= 20) {
@@ -2343,6 +2364,7 @@ async function savePaymentLineAllocation({
       reason: cleanReason,
       previousAllocation,
     });
+    await assertFinancialDateOpen(transaction, cleanEffectiveDate);
     const allocation = {
       paymentId: payment.id,
       invoiceId: invoice.id,
@@ -2425,7 +2447,9 @@ async function savePaymentLineAllocation({
 
 async function previewFinancialPeriod({ month }) {
   const reviewMonth = validIsoMonth(month);
-  const [invoiceSnap, paymentSnap, bankSnap, creditSnap, lessonSnap, lineAllocationSnap] =
+  const [invoiceSnap, paymentSnap, bankSnap, creditSnap, lessonSnap, lineAllocationSnap,
+    periodSnap, workSessionSnap, expenseSnap, creditApplicationSnap, refundSnap,
+    correctionSnap, exportSnap] =
     await Promise.all([
       db.collection("invoices").get(),
       db.collection("payments").get(),
@@ -2433,18 +2457,45 @@ async function previewFinancialPeriod({ month }) {
       db.collection("payerCredits").get(),
       db.collection("lessons").get(),
       db.collection("paymentLineAllocations").get(),
+      db.collection("financialPeriods").doc(reviewMonth).get(),
+      db.collection("workSessions").get(),
+      db.collection("expenses").get(),
+      db.collection("creditApplications").get(),
+      db.collection("refunds").get(),
+      db.collection("financialPeriodCorrections").get(),
+      db.collection("financialPeriodExports").where("month", "==", reviewMonth).get(),
     ]);
   const withIds = snapshot => snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  const data = {
+    invoices: withIds(invoiceSnap),
+    payments: withIds(paymentSnap),
+    bankTransactions: withIds(bankSnap),
+    payerCredits: withIds(creditSnap),
+    lessons: withIds(lessonSnap),
+    paymentLineAllocations: withIds(lineAllocationSnap),
+    workSessions: withIds(workSessionSnap),
+    expenses: withIds(expenseSnap),
+    creditApplications: withIds(creditApplicationSnap),
+    refunds: withIds(refundSnap),
+    corrections: withIds(correctionSnap),
+  };
+  const exports = withIds(exportSnap).sort((a, b) => String(b.generatedAt || "").localeCompare(String(a.generatedAt || "")));
+  const latestExport = exports[0] || null;
+  const closeSnapshot = periodCloseProjection({
+    month: reviewMonth,
+    period: periodSnap.exists ? periodSnap.data() : {},
+    ...data,
+    latestExport,
+  });
+  const { evidence: _billingEvidence, ...billingSnapshot } = closeSnapshot.billing;
   return {
-    snapshot: financialPeriodReviewSnapshot({
-      month: reviewMonth,
-      invoices: withIds(invoiceSnap),
-      payments: withIds(paymentSnap),
-      bankTransactions: withIds(bankSnap),
-      payerCredits: withIds(creditSnap),
-      lessons: withIds(lessonSnap),
-      paymentLineAllocations: withIds(lineAllocationSnap),
-    }),
+    snapshot: billingSnapshot,
+    closeSnapshot: {
+      ...closeSnapshot,
+      billing: billingSnapshot,
+      evidence: undefined,
+    },
+    latestExport,
   };
 }
 
@@ -2498,6 +2549,12 @@ async function repairInvoiceNumbering({ actor, reason, expectedFingerprint, requ
     }
     if (!plan.replacementCount) throw httpError(409, "No duplicate invoice numbers require repair");
     if (plan.replacementCount > 100) throw httpError(409, "Too many duplicate invoices for one repair");
+
+    for (const date of [...new Set(plan.replacements
+      .map(replacement => invoiceById.get(replacement.invoiceId)?.date)
+      .filter(value => /^\d{4}-\d{2}-\d{2}$/.test(String(value || ""))))]) {
+      await assertFinancialDateOpen(transaction, date);
+    }
 
     plan.replacements.forEach(replacement => {
       const invoice = invoiceById.get(replacement.invoiceId);
@@ -2688,6 +2745,266 @@ async function reviewFinancialPeriod({ actor, month, requestId }) {
   });
 }
 
+async function periodCloseData(transaction, month) {
+  const reads = [
+    transaction.get(db.collection("financialPeriods").doc(month)),
+    transaction.get(db.collection("invoices")),
+    transaction.get(db.collection("payments")),
+    transaction.get(db.collection("bankTransactions")),
+    transaction.get(db.collection("payerCredits")),
+    transaction.get(db.collection("lessons")),
+    transaction.get(db.collection("paymentLineAllocations")),
+    transaction.get(db.collection("workSessions")),
+    transaction.get(db.collection("expenses")),
+    transaction.get(db.collection("creditApplications")),
+    transaction.get(db.collection("refunds")),
+    transaction.get(db.collection("financialPeriodCorrections")),
+    transaction.get(db.collection("financialPeriodExports").where("month", "==", month)),
+  ];
+  const [periodSnap, invoiceSnap, paymentSnap, bankSnap, creditSnap, lessonSnap,
+    allocationSnap, workSessionSnap, expenseSnap, applicationSnap, refundSnap,
+    correctionSnap, exportSnap] = await Promise.all(reads);
+  const withIds = snapshot => snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  const exports = withIds(exportSnap).sort((a, b) => String(b.generatedAt || "").localeCompare(String(a.generatedAt || "")));
+  return {
+    period: periodSnap.exists ? periodSnap.data() : {},
+    data: {
+      invoices: withIds(invoiceSnap),
+      payments: withIds(paymentSnap),
+      bankTransactions: withIds(bankSnap),
+      payerCredits: withIds(creditSnap),
+      lessons: withIds(lessonSnap),
+      paymentLineAllocations: withIds(allocationSnap),
+      workSessions: withIds(workSessionSnap),
+      expenses: withIds(expenseSnap),
+      creditApplications: withIds(applicationSnap),
+      refunds: withIds(refundSnap),
+      corrections: withIds(correctionSnap),
+    },
+    latestExport: exports[0] || null,
+  };
+}
+
+async function generateFinancialPeriodExport({ actor, month, requestId }) {
+  const exportMonth = validIsoMonth(month);
+  const mutationId = cleanRequestId(requestId);
+  const exportRef = db.collection("financialPeriodExports").doc(mutationId);
+  const periodRef = db.collection("financialPeriods").doc(exportMonth);
+  const auditRef = db.collection("financialAudit").doc(mutationId);
+  const actorData = actorSnapshot(actor);
+  const nowIso = new Date().toISOString();
+
+  return db.runTransaction(async transaction => {
+    const existing = await transaction.get(exportRef);
+    if (existing.exists) {
+      if (existing.data().month !== exportMonth) throw httpError(409, "requestId already used for another export");
+      return { export: { id: existing.id, ...existing.data() }, idempotent: true };
+    }
+    const loaded = await periodCloseData(transaction, exportMonth);
+    const projection = periodCloseProjection({ month: exportMonth, period: loaded.period, ...loaded.data, latestExport: loaded.latestExport, nowIso });
+    if (!projection.canGenerateExport) {
+      throw httpError(409, "Period review, payroll, expenses, or supporting documents are not ready");
+    }
+    let archive;
+    try {
+      archive = accountantExportArchive({ projection, data: loaded.data, requestId: mutationId, actor: actorData, nowIso });
+    } catch (error) {
+      throw httpError(409, error.message);
+    }
+    transaction.create(exportRef, archive);
+    transaction.set(periodRef, {
+      month: exportMonth,
+      latestExportId: mutationId,
+      latestExportFingerprint: archive.evidenceFingerprint,
+      latestExportAt: nowIso,
+      latestExportBy: actorData,
+      updatedAt: nowIso,
+    }, { merge: true });
+    transaction.create(auditRef, {
+      entityType: "financial_period_export",
+      entityId: mutationId,
+      action: "financial_period.export_archived",
+      month: exportMonth,
+      exportId: mutationId,
+      evidenceFingerprint: archive.evidenceFingerprint,
+      rowCount: archive.rowCount,
+      actor: actorData,
+      reason: "Accountant export generated and archived",
+      createdAt: nowIso,
+      requestId: mutationId,
+    });
+    return { export: { id: mutationId, ...archive }, idempotent: false };
+  });
+}
+
+function periodDates(month) {
+  const [year, number] = validIsoMonth(month).split("-").map(Number);
+  const count = new Date(Date.UTC(year, number, 0)).getUTCDate();
+  return Array.from({ length: count }, (_, index) => `${month}-${String(index + 1).padStart(2, "0")}`);
+}
+
+async function closeFinancialPeriod({ actor, month, reason, requestId }) {
+  const closeMonth = validIsoMonth(month);
+  const mutationId = cleanRequestId(requestId);
+  const cleanReason = cleanText(reason, 500);
+  if (!cleanReason) throw httpError(400, "Close reason required");
+  const closureRef = db.collection("financialPeriodClosures").doc(mutationId);
+  const periodRef = db.collection("financialPeriods").doc(closeMonth);
+  const auditRef = db.collection("financialAudit").doc(mutationId);
+  const actorData = actorSnapshot(actor);
+  const nowIso = new Date().toISOString();
+
+  return db.runTransaction(async transaction => {
+    const existing = await transaction.get(closureRef);
+    if (existing.exists) {
+      if (existing.data().month !== closeMonth || existing.data().reason !== cleanReason) {
+        throw httpError(409, "requestId already used for another period close");
+      }
+      return { closure: { id: existing.id, ...existing.data() }, idempotent: true };
+    }
+    const loaded = await periodCloseData(transaction, closeMonth);
+    if (loaded.period.status === "closed") throw httpError(409, "Financial period is already closed");
+    const projection = periodCloseProjection({ month: closeMonth, period: loaded.period, ...loaded.data, latestExport: loaded.latestExport, nowIso });
+    if (!projection.canClose) {
+      throw httpError(409, "Period cannot close until review, payroll, expenses, documents, and archived export all match");
+    }
+    const closure = {
+      month: closeMonth,
+      status: "closed",
+      reason: cleanReason,
+      reviewId: loaded.period.lastReviewId || "",
+      reviewFingerprint: projection.billingFingerprint,
+      exportId: loaded.latestExport.id,
+      exportFingerprint: loaded.latestExport.evidenceFingerprint,
+      evidenceFingerprint: projection.evidenceFingerprint,
+      summary: projection.summary,
+      openingBalances: projection.evidence.openingBalances,
+      closingBalances: projection.evidence.closingBalances,
+      closedAt: nowIso,
+      closedBy: actorData,
+      requestId: mutationId,
+    };
+    transaction.create(closureRef, closure);
+    transaction.set(periodRef, {
+      month: closeMonth,
+      status: "closed",
+      closureId: mutationId,
+      closedAt: nowIso,
+      closedBy: actorData,
+      closeReason: cleanReason,
+      closingEvidenceFingerprint: projection.evidenceFingerprint,
+      closingExportId: loaded.latestExport.id,
+      openingBalances: closure.openingBalances,
+      closingBalances: closure.closingBalances,
+      closeSummary: projection.summary,
+      updatedAt: nowIso,
+    }, { merge: true });
+    periodDates(closeMonth).forEach(date => transaction.create(db.collection("financialLockedDates").doc(date), {
+      date,
+      month: closeMonth,
+      closureId: mutationId,
+      lockedAt: nowIso,
+      lockedBy: actorData,
+    }));
+    transaction.create(auditRef, {
+      entityType: "financial_period",
+      entityId: closeMonth,
+      action: "financial_period.closed",
+      month: closeMonth,
+      closureId: mutationId,
+      reviewId: closure.reviewId,
+      exportId: closure.exportId,
+      evidenceFingerprint: closure.evidenceFingerprint,
+      openingBalances: closure.openingBalances,
+      closingBalances: closure.closingBalances,
+      summary: closure.summary,
+      actor: actorData,
+      reason: cleanReason,
+      createdAt: nowIso,
+      requestId: mutationId,
+    });
+    return { closure: { id: mutationId, ...closure }, idempotent: false };
+  });
+}
+
+function signedMoneyCents(value, label, { allowZero = true } = {}) {
+  const normalized = String(value ?? "").trim().replace(",", ".");
+  if (!/^-?\d+(?:\.\d{1,2})?$/.test(normalized)) throw httpError(400, `Valid ${label} required`);
+  const result = Math.round(Number(normalized) * 100);
+  if ((!allowZero && result === 0) || Math.abs(result) > 100000000) throw httpError(400, `${label} is outside the allowed range`);
+  return result;
+}
+
+async function createFinancialPeriodCorrection({ actor, sourceMonth, effectiveDate, type, description, amountDelta, vatDelta, sourceEntityId, reason, requestId }) {
+  const mutationId = cleanRequestId(requestId);
+  const cleanSourceMonth = validIsoMonth(sourceMonth);
+  const cleanEffectiveDate = validIsoDate(effectiveDate, "effectiveDate");
+  if (cleanEffectiveDate.slice(0, 7) <= cleanSourceMonth) throw httpError(400, "Correction date must be after the closed source month");
+  const cleanType = String(type || "").trim();
+  if (!["expense", "invoice", "payment", "payroll", "other"].includes(cleanType)) throw httpError(400, "Valid correction type required");
+  const cleanDescription = cleanText(description, 500);
+  const cleanReason = cleanText(reason, 500);
+  if (!cleanDescription || !cleanReason) throw httpError(400, "Correction description and reason required");
+  const amountDeltaCents = signedMoneyCents(amountDelta || 0, "correction amount");
+  const vatDeltaCents = signedMoneyCents(vatDelta || 0, "correction VAT");
+  if (amountDeltaCents === 0 && vatDeltaCents === 0) throw httpError(400, "Correction must change an amount or VAT");
+  const correctionRef = db.collection("financialPeriodCorrections").doc(mutationId);
+  const sourcePeriodRef = db.collection("financialPeriods").doc(cleanSourceMonth);
+  const auditRef = db.collection("financialAudit").doc(mutationId);
+  const actorData = actorSnapshot(actor);
+  const nowIso = new Date().toISOString();
+  const signature = crypto.createHash("sha256").update(JSON.stringify({ cleanSourceMonth, cleanEffectiveDate, cleanType, cleanDescription, amountDeltaCents, vatDeltaCents, sourceEntityId: cleanText(sourceEntityId, 160), cleanReason })).digest("hex");
+
+  return db.runTransaction(async transaction => {
+    const [existing, sourcePeriodSnap] = await Promise.all([
+      transaction.get(correctionRef),
+      transaction.get(sourcePeriodRef),
+    ]);
+    if (existing.exists) {
+      if (existing.data().signature !== signature) throw httpError(409, "requestId already used for another correction");
+      return { correction: { id: existing.id, ...existing.data() }, idempotent: true };
+    }
+    if (!sourcePeriodSnap.exists || sourcePeriodSnap.data().status !== "closed") throw httpError(409, "Source financial period is not closed");
+    await assertFinancialDateOpen(transaction, cleanEffectiveDate);
+    const correction = {
+      sourceMonth: cleanSourceMonth,
+      sourceClosureId: sourcePeriodSnap.data().closureId || "",
+      effectiveDate: cleanEffectiveDate,
+      type: cleanType,
+      description: cleanDescription,
+      amountDeltaCents,
+      amountDelta: amountDeltaCents / 100,
+      vatDeltaCents,
+      vatDelta: vatDeltaCents / 100,
+      sourceEntityId: cleanText(sourceEntityId, 160),
+      reason: cleanReason,
+      status: "active",
+      signature,
+      createdAt: nowIso,
+      createdBy: actorData,
+      requestId: mutationId,
+    };
+    transaction.create(correctionRef, correction);
+    transaction.create(auditRef, {
+      entityType: "financial_period_correction",
+      entityId: mutationId,
+      action: "financial_period.correction_created",
+      sourceMonth: cleanSourceMonth,
+      effectiveDate: cleanEffectiveDate,
+      type: cleanType,
+      amountDeltaCents,
+      vatDeltaCents,
+      sourceEntityId: correction.sourceEntityId,
+      actor: actorData,
+      reason: cleanReason,
+      signature,
+      createdAt: nowIso,
+      requestId: mutationId,
+    });
+    return { correction: { id: mutationId, ...correction }, idempotent: false };
+  });
+}
+
 async function resetInvoicePayments({ actor, invoiceId, reason, requestId }) {
   const mutationId = cleanRequestId(requestId);
   const invoiceRef = db.collection("invoices").doc(String(invoiceId || ""));
@@ -2711,6 +3028,11 @@ async function resetInvoicePayments({ actor, invoiceId, reason, requestId }) {
         "Source-linked payments must be voided individually so the bank transaction or payer credit can be restored",
       );
     }
+    const affectedDates = [...new Set([
+      invoice.date,
+      ...activePayments.map(payment => String(payment.paidAt || payment.createdAt || "").slice(0, 10)),
+    ].filter(value => /^\d{4}-\d{2}-\d{2}$/.test(String(value || ""))))];
+    for (const date of affectedDates) await assertFinancialDateOpen(transaction, date);
 
     activePayments.forEach(payment => {
       transaction.set(db.collection("payments").doc(payment.id), {
@@ -2902,6 +3224,10 @@ async function allocateBankTransaction({
       : [];
     if (legacyPaymentSnaps.some(snap => snap.exists)) {
       throw httpError(409, "Bank row was already recorded by the previous reconciliation flow");
+    }
+    await assertFinancialDateOpen(transaction, transactionDate);
+    for (const date of [...new Set(lessonSnaps.map(snap => snap.data()?.date))]) {
+      await assertFinancialDateOpen(transaction, date);
     }
 
     const bankTransaction = {
@@ -3411,6 +3737,11 @@ async function voidSinglePayment({ actor, paymentId, reason, requestId }) {
         restoredCreditPatch.originalAmountCents = originalAmountCents;
         restoredCreditPatch.originalAmount = centsToAmount(restoredCreditPatch.originalAmountCents);
       }
+      await assertFinancialDateOpen(
+        transaction,
+        String(payment.paidAt || payment.createdAt || lesson.date || nowIso).slice(0, 10),
+      );
+      await assertFinancialDateOpen(transaction, lesson.date);
       transaction.set(paymentRef, {
         status: "voided",
         voidedAt: nowIso,
@@ -3560,6 +3891,10 @@ async function voidSinglePayment({ actor, paymentId, reason, requestId }) {
 
     const amountCents = paymentNetAmountCents(payment);
     if (amountCents <= 0) throw httpError(409, "Payment amount is invalid");
+    await assertFinancialDateOpen(
+      transaction,
+      String(payment.paidAt || payment.createdAt || nowIso).slice(0, 10),
+    );
     const voidedPayment = {
       ...payment,
       status: "voided",
@@ -4494,6 +4829,7 @@ async function reviewWorkSession({ actor, sessionId, decision, reason = "", hour
     if (before.approvalStatus !== "pending") {
       throw httpError(409, "Session was already reviewed; adjust it before a new review");
     }
+    await assertFinancialDateOpen(transaction, before.startedDate || before.startedAt);
 
     let rateCents = Number(before.hourlyRateCents || 0);
     if (decision === "approve") {
@@ -4547,6 +4883,7 @@ async function adjustWorkSession({ actor, sessionId, startedAt, endedAt, breakMi
     const sessionSnap = await transaction.get(sessionRef);
     if (!sessionSnap.exists) throw httpError(404, "Work session not found");
     const before = sessionSnap.data();
+    await assertFinancialDateOpen(transaction, before.startedDate || before.startedAt);
     let openPointerSnap = null;
     if (before.status === "open") {
       openPointerSnap = await transaction.get(openWorkSessionRef(before.staffUid));
@@ -5035,6 +5372,7 @@ async function createExpense({ actor, values, requestId }) {
       }
       return { expense: { id: existing.id, ...existing.data() }, idempotent: true };
     }
+    await assertFinancialDateOpen(transaction, normalized.expenseDate);
     const expense = {
       ...normalized,
       currency: "EUR",
@@ -5096,6 +5434,8 @@ async function correctExpense({ actor, expenseId, values, reason, requestId }) {
     if (!sourceSnap.exists) throw httpError(404, "Expense not found");
     const source = sourceSnap.data();
     if (source.status !== "active") throw httpError(409, "Only an active expense can be corrected");
+    await assertFinancialDateOpen(transaction, source.expenseDate);
+    if (normalized.expenseDate !== source.expenseDate) await assertFinancialDateOpen(transaction, normalized.expenseDate);
 
     const replacement = {
       ...normalized,
@@ -5169,6 +5509,7 @@ async function voidExpense({ actor, expenseId, reason, requestId }) {
     }
     if (!expenseSnap.exists) throw httpError(404, "Expense not found");
     if (expenseSnap.data().status !== "active") throw httpError(409, "Only an active expense can be voided");
+    await assertFinancialDateOpen(transaction, expenseSnap.data().expenseDate);
     transaction.update(expenseRef, {
       status: "voided",
       voidedAt: nowIso,
@@ -5220,6 +5561,7 @@ async function attachExpenseDocument({ actor, expenseId, document, requestId }) 
     if (!expenseSnap.exists) throw httpError(404, "Expense not found");
     const expense = expenseSnap.data();
     if (expense.status !== "active") throw httpError(409, "Documents can only be added to an active expense");
+    await assertFinancialDateOpen(transaction, expense.expenseDate);
     const documents = Array.isArray(expense.documents) ? expense.documents : [];
     if (documents.length >= 20) throw httpError(409, "Expense already has the maximum number of documents");
     if (documents.some(item => item.id === mutationId)) throw httpError(409, "Document already attached");
@@ -5462,6 +5804,41 @@ exports.financeApi = functions.https.onRequest(async (req, res) => {
       const result = await reviewFinancialPeriod({
         actor,
         month: req.body?.month,
+        requestId: req.body?.requestId,
+      });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/financial-periods/export") {
+      const result = await generateFinancialPeriodExport({
+        actor,
+        month: req.body?.month,
+        requestId: req.body?.requestId,
+      });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/financial-periods/close") {
+      const result = await closeFinancialPeriod({
+        actor,
+        month: req.body?.month,
+        reason: req.body?.reason,
+        requestId: req.body?.requestId,
+      });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/financial-periods/corrections") {
+      const result = await createFinancialPeriodCorrection({
+        actor,
+        sourceMonth: req.body?.sourceMonth,
+        effectiveDate: req.body?.effectiveDate,
+        type: req.body?.type,
+        description: req.body?.description,
+        amountDelta: req.body?.amountDelta,
+        vatDelta: req.body?.vatDelta,
+        sourceEntityId: req.body?.sourceEntityId,
+        reason: req.body?.reason,
         requestId: req.body?.requestId,
       });
       res.status(result.idempotent ? 200 : 201).json(result);

@@ -234,7 +234,7 @@ test("monthly review validates the active exact payment allocation version", () 
   });
   assert.equal(valid.canReview, true);
   assert.equal(valid.scope, "billing_control_v2");
-  assert.equal(valid.dataVersion, 2);
+  assert.equal(valid.dataVersion, 3);
 });
 
 test("financial period review blocks unbilled lessons, unmatched bank money, and missing payment evidence", () => {

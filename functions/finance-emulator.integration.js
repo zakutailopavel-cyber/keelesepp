@@ -1322,6 +1322,90 @@ test("monthly financial review is server-verified, versioned, idempotent, and im
   assert.equal(clientOverwrite.status, 403, JSON.stringify(clientOverwrite.body));
 });
 
+test("a reviewed month exports, closes, locks historical writes, and accepts dated corrections", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const token = await createAdminToken();
+  const month = "2024-02";
+
+  const review = await financeRequest(token, "/financial-periods/review", {
+    month,
+    requestId: "period_close_review_0001",
+  });
+  assert.equal(review.status, 201, JSON.stringify(review.body));
+  assert.equal(review.body.review.summary.blockingIssueCount, 0);
+
+  const exported = await financeRequest(token, "/financial-periods/export", {
+    month,
+    requestId: "period_close_export_0001",
+  });
+  assert.equal(exported.status, 201, JSON.stringify(exported.body));
+  assert.equal(exported.body.export.status, "archived");
+  assert.equal(exported.body.export.evidenceFingerprint.length, 64);
+
+  const closed = await financeRequest(token, "/financial-periods/close", {
+    month,
+    reason: "Emulator accounting close",
+    requestId: "period_close_success_0001",
+  });
+  assert.equal(closed.status, 201, JSON.stringify(closed.body));
+  assert.equal(closed.body.closure.status, "closed");
+
+  const [periodSnap, closureSnap, firstLockSnap, lastLockSnap] = await Promise.all([
+    db.collection("financialPeriods").doc(month).get(),
+    db.collection("financialPeriodClosures").doc("period_close_success_0001").get(),
+    db.collection("financialLockedDates").doc("2024-02-01").get(),
+    db.collection("financialLockedDates").doc("2024-02-29").get(),
+  ]);
+  assert.equal(periodSnap.data().status, "closed");
+  assert.equal(closureSnap.data().exportId, "period_close_export_0001");
+  assert.equal(firstLockSnap.data().month, month);
+  assert.equal(lastLockSnap.data().month, month);
+
+  const browserLessonWrite = await firestoreDocumentRequest(
+    token,
+    "PATCH",
+    "lessons/period-close-forged-lesson",
+    {
+      fields: {
+        date: { stringValue: "2024-02-12" },
+        status: { stringValue: "Toimunud" },
+        studentId: { stringValue: "period-close-student" },
+        studentName: { stringValue: "Closed History Student" },
+      },
+    },
+  );
+  assert.equal(browserLessonWrite.status, 403, JSON.stringify(browserLessonWrite.body));
+
+  const trustedExpenseWrite = await financeRequest(token, "/expenses", {
+    expenseDate: "2024-02-12",
+    category: "software",
+    description: "Must not rewrite closed history",
+    amount: 10,
+    vatAmount: 0,
+    paymentMethod: "card",
+    requestId: "period_close_blocked_expense_0001",
+  });
+  assert.equal(trustedExpenseWrite.status, 409, JSON.stringify(trustedExpenseWrite.body));
+  assert.match(trustedExpenseWrite.body.error, /is closed/);
+
+  const correction = await financeRequest(token, "/financial-periods/corrections", {
+    sourceMonth: month,
+    effectiveDate: "2026-08-04",
+    type: "expense",
+    description: "Late receipt correction",
+    amountDelta: "10.00",
+    vatDelta: "0.00",
+    reason: "Received after the historical period was closed",
+    requestId: "period_close_correction_0001",
+  });
+  assert.equal(correction.status, 201, JSON.stringify(correction.body));
+  assert.equal(correction.body.correction.sourceMonth, month);
+  assert.equal(correction.body.correction.effectiveDate, "2026-08-04");
+  assert.equal(correction.body.correction.amountDeltaCents, 1000);
+});
+
 test("versioned tariffs and assignments price invoice lines by lesson date", async () => {
   requireSafeEmulatorEnvironment();
   if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });

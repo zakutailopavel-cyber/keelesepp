@@ -104,9 +104,8 @@ const readableDate = (value) => {
 };
 
 export function financialIssueIdentity(issue = {}) {
-  const fallbackDetail = issue.detail && !technicalDetail.test(issue.detail)
-    ? issue.detail
-    : "";
+  const fallbackDetail =
+    issue.detail && !technicalDetail.test(issue.detail) ? issue.detail : "";
   const label = issue.entityLabel || fallbackDetail || "Objekt määramata";
   const meta = [
     readableDate(issue.entityDate),
@@ -115,7 +114,9 @@ export function financialIssueIdentity(issue = {}) {
     Number.isFinite(Number(issue.entityAmountCents))
       ? `${(Number(issue.entityAmountCents) / 100).toLocaleString("et-EE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`
       : "",
-  ].filter(Boolean).join(" · ");
+  ]
+    .filter(Boolean)
+    .join(" · ");
   return { label, meta, id: issue.entityId || "" };
 }
 
@@ -158,5 +159,169 @@ export function financialPeriodCsv(snapshot) {
       ];
     }),
   ];
+  return `\uFEFF${rows.map((row) => row.map(csvCell).join(";")).join("\n")}`;
+}
+
+export function accountantExportCsv(archive) {
+  const registers = archive?.registers || {};
+  const rows = [
+    ["KeeleSepp raamatupidamise eksport", archive?.month || ""],
+    ["Ekspordi ID", archive?.id || archive?.requestId || ""],
+    ["Tõendi fingerprint", archive?.evidenceFingerprint || ""],
+    ["Loodud", archive?.generatedAt || ""],
+    [],
+  ];
+  const section = (title, headers, values) => {
+    rows.push([title], headers, ...values, []);
+  };
+  section(
+    "ARVED",
+    ["ID", "Number", "Kuupäev", "Õpilane", "Summa EUR", "Olek"],
+    (registers.invoices || []).map((item) => [
+      item.id,
+      item.number,
+      item.date,
+      item.studentName,
+      amount(item.amountCents),
+      item.status,
+    ]),
+  );
+  section(
+    "MAKSED",
+    [
+      "ID",
+      "Arve ID",
+      "Kuupäev",
+      "Maksja",
+      "Summa EUR",
+      "Viis",
+      "Olek",
+      "Dokumendi ID-d",
+      "Dokumendid",
+      "Dokumentide teed",
+    ],
+    (registers.payments || []).map((item) => [
+      item.id,
+      item.invoiceId,
+      item.paidAt,
+      item.payerName,
+      amount(item.amountCents),
+      item.method,
+      item.status,
+      (item.documents || []).map((document) => document.id).join(", "),
+      (item.documents || []).map((document) => document.fileName).join(", "),
+      (item.documents || []).map((document) => document.storagePath).join(", "),
+    ]),
+  );
+  section(
+    "PANK",
+    [
+      "ID",
+      "Kuupäev",
+      "Maksja",
+      "Viide",
+      "Summa EUR",
+      "Jaotatud EUR",
+      "Ettemaks EUR",
+    ],
+    (registers.bankTransactions || []).map((item) => [
+      item.id,
+      item.paidAt,
+      item.payerName,
+      item.reference,
+      amount(item.amountCents),
+      amount(item.allocatedAmountCents),
+      amount(item.unappliedAmountCents),
+    ]),
+  );
+  section(
+    "TUNNID",
+    ["ID", "Kuupäev", "Õpilane või grupp", "Õpetaja", "Arvestus", "Arve ID"],
+    (registers.lessons || []).map((item) => [
+      item.id,
+      item.date,
+      item.studentName,
+      item.teacherName,
+      item.billingStatus,
+      item.invoiceId,
+    ]),
+  );
+  section(
+    "KULUD",
+    [
+      "ID",
+      "Kuupäev",
+      "Kategooria",
+      "Kirjeldus",
+      "Summa EUR",
+      "KM EUR",
+      "Neto EUR",
+      "Makseviis",
+      "Dokumendid",
+    ],
+    (registers.expenses || []).map((item) => [
+      item.id,
+      item.expenseDate,
+      item.category,
+      item.description,
+      amount(item.amountCents),
+      amount(item.vatAmountCents),
+      amount(item.netAmountCents),
+      item.paymentMethod,
+      (item.documents || [])
+        .map((document) => `${document.fileName} [${document.id}]`)
+        .join(" | "),
+    ]),
+  );
+  section(
+    "PALGAARVESTUS",
+    [
+      "ID",
+      "Töötaja UID",
+      "Nimi",
+      "Algus",
+      "Lõpp",
+      "Minutid",
+      "Olek",
+      "Tunnitasu EUR",
+      "Tasu EUR",
+    ],
+    (registers.payroll || []).map((item) => [
+      item.id,
+      item.staffUid,
+      item.staffName,
+      item.startedAt,
+      item.endedAt,
+      item.durationMinutes,
+      item.approvalStatus,
+      amount(item.hourlyRateCents),
+      amount(item.payAmountCents),
+    ]),
+  );
+  section(
+    "PARANDUSED",
+    [
+      "ID",
+      "Kuupäev",
+      "Liik",
+      "Kirjeldus",
+      "Summa muutus EUR",
+      "KM muutus EUR",
+      "Lähtekuu",
+      "Lähteobjekt",
+      "Põhjus",
+    ],
+    (registers.corrections || []).map((item) => [
+      item.id,
+      item.effectiveDate,
+      item.type,
+      item.description,
+      amount(item.amountDeltaCents),
+      amount(item.vatDeltaCents),
+      item.sourceMonth,
+      item.sourceEntityId,
+      item.reason,
+    ]),
+  );
   return `\uFEFF${rows.map((row) => row.map(csvCell).join(";")).join("\n")}`;
 }

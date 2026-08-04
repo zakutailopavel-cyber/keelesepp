@@ -574,6 +574,86 @@ function financialPeriodReviewSnapshot({
     (sum, transaction) => sum + nonNegativeCents(transaction, "unappliedAmountCents", "unappliedAmount"),
     0,
   );
+  const relevantPayments = activePayments.filter(payment =>
+    periodInvoiceIds.has(String(payment.invoiceId || ""))
+    || recordMonth(payment?.paidAt || payment?.createdAt) === reviewMonth,
+  );
+  const relevantAllocationIds = new Set(
+    relevantPayments.map(payment => String(payment.lineAllocationId || "")).filter(Boolean),
+  );
+  const evidence = {
+    invoices: periodInvoices.map(invoice => ({
+      id: String(invoice.id || ""),
+      number: String(invoice.num || invoice.number || invoice.invoiceNumber || ""),
+      date: String(invoice.date || invoice.issuedAt || invoice.createdAt || ""),
+      amountCents: invoiceAmountCents(invoice),
+      paidAmountCents: nonNegativeCents(invoice, "paidAmountCents", "paidAmount"),
+      status: String(invoice.status || ""),
+      correctedLessonIds: (invoice.correctedLessonIds || []).map(String).sort(),
+      lines: (Array.isArray(invoice.lines) ? invoice.lines : []).map(line => ({
+        lessonId: String(line?.lessonId || ""),
+        date: String(line?.date || ""),
+        amountCents: nonNegativeCents(line || {}, "amountCents", "amount"),
+      })),
+    })).sort((a, b) => a.id.localeCompare(b.id)),
+    payments: relevantPayments.map(payment => ({
+      id: String(payment.id || ""),
+      invoiceId: String(payment.invoiceId || ""),
+      lessonId: String(payment.lessonId || ""),
+      paidAt: String(payment.paidAt || payment.createdAt || ""),
+      amountCents: paymentNetAmountCents(payment),
+      status: String(payment.status || ""),
+      bankTransactionId: String(payment.bankTransactionId || ""),
+      sourceCreditId: String(payment.sourceCreditId || ""),
+      lineAllocationId: String(payment.lineAllocationId || ""),
+      lineAllocationVersion: Number(payment.lineAllocationVersion) || 0,
+    })).sort((a, b) => a.id.localeCompare(b.id)),
+    bankTransactions: periodBanks.map(transaction => ({
+      id: String(transaction.id || ""),
+      paidAt: String(transaction.paidAt || transaction.date || transaction.createdAt || ""),
+      amountCents: nonNegativeCents(transaction, "amountCents", "amount"),
+      allocatedAmountCents: nonNegativeCents(transaction, "allocatedAmountCents", "allocatedAmount"),
+      unappliedAmountCents: nonNegativeCents(transaction, "unappliedAmountCents", "unappliedAmount"),
+      status: String(transaction.status || ""),
+    })).sort((a, b) => a.id.localeCompare(b.id)),
+    lessons: periodLessons.map(lesson => ({
+      id: String(lesson.id || ""),
+      date: String(lesson.date || ""),
+      status: String(lesson.status || ""),
+      billingStatus: String(lesson.billingStatus || ""),
+      invoiceId: String(lesson.invoiceId || ""),
+      directPaymentId: String(lesson.directPaymentId || ""),
+      packageConsumptionStatus: String(lesson.packageConsumptionStatus || ""),
+    })).sort((a, b) => a.id.localeCompare(b.id)),
+    paymentLineAllocations: allocationList
+      .filter(allocation => relevantAllocationIds.has(String(allocation.id || "")))
+      .map(allocation => ({
+        id: String(allocation.id || ""),
+        paymentId: String(allocation.paymentId || ""),
+        invoiceId: String(allocation.invoiceId || ""),
+        version: Number(allocation.version) || 0,
+        effectiveDate: String(allocation.effectiveDate || ""),
+        allocatedAmountCents: nonNegativeCents(allocation, "allocatedAmountCents", "allocatedAmount"),
+        unallocatedAmountCents: nonNegativeCents(allocation, "unallocatedAmountCents", "unallocatedAmount"),
+        lines: (Array.isArray(allocation.lines) ? allocation.lines : []).map(line => ({
+          lessonId: String(line?.lessonId || ""),
+          allocatedAmountCents: Math.max(0, Number(line?.allocatedAmountCents) || 0),
+        })),
+      }))
+      .sort((a, b) => a.id.localeCompare(b.id)),
+    payerCredits: creditList
+      .filter(credit => periodBanks.some(bank => String(credit.bankTransactionId || "") === String(bank.id || "")))
+      .map(credit => ({
+        id: String(credit.id || ""),
+        bankTransactionId: String(credit.bankTransactionId || ""),
+        originalAmountCents: nonNegativeCents(credit, "originalAmountCents", "originalAmount"),
+        availableAmountCents: nonNegativeCents(credit, "availableAmountCents", "availableAmount"),
+        appliedAmountCents: nonNegativeCents(credit, "appliedAmountCents", "appliedAmount"),
+        refundedAmountCents: nonNegativeCents(credit, "refundedAmountCents", "refundedAmount"),
+        status: String(credit.status || ""),
+      }))
+      .sort((a, b) => a.id.localeCompare(b.id)),
+  };
   const summary = {
     invoiceCount: periodInvoices.length,
     issuedCents,
@@ -595,10 +675,11 @@ function financialPeriodReviewSnapshot({
   return {
     month: reviewMonth,
     scope: "billing_control_v2",
-    dataVersion: 2,
+    dataVersion: 3,
     canReview: blockingIssues.length === 0,
     summary,
     issues,
+    evidence,
   };
 }
 

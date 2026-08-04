@@ -38,6 +38,12 @@
 .financial-period__reviewed .badge {
   margin-left: auto;
 }
+.financial-period__reviewed.is-closed {
+  background: #eef4ff;
+  border-color: #c7d7fe;
+  color: #3538cd;
+}
+.financial-period__reviewed.is-closed small { color: #6172f3; }
 .financial-period__metrics {
   display: grid;
   gap: 12px;
@@ -167,6 +173,71 @@
 .financial-period__empty p {
   margin: 0;
 }
+.period-close {
+  border-top: 1px solid var(--border);
+  display: grid;
+  gap: 16px;
+  padding-top: 20px;
+}
+.period-close .section-heading { margin: 0; }
+.period-close__checklist {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+.period-close__checklist article {
+  align-items: start;
+  border: 1px solid;
+  border-radius: 13px;
+  display: grid;
+  gap: 9px;
+  grid-template-columns: auto 1fr;
+  padding: 13px;
+}
+.period-close__checklist article > span { display: grid; gap: 4px; }
+.period-close__checklist article strong { font-size: 13px; line-height: 1.3; }
+.period-close__checklist article small { color: var(--muted); font-size: 11px; line-height: 1.4; }
+.period-close__checklist article .badge { grid-column: 2; justify-self: start; }
+.period-close__checklist .is-ready { background: #f0fdf4; border-color: #bbf7d0; }
+.period-close__checklist .is-ready > svg { color: #079455; }
+.period-close__checklist .has-blocker { background: #fff7ed; border-color: #fed7aa; }
+.period-close__checklist .has-blocker > svg { color: #c2410c; }
+.period-close__totals {
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  display: grid;
+  gap: 1px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  overflow: hidden;
+}
+.period-close__totals > span {
+  background: #fff;
+  display: grid;
+  gap: 4px;
+  grid-template-columns: auto 1fr;
+  padding: 14px;
+}
+.period-close__totals svg { color: var(--green); grid-row: 1/4; }
+.period-close__totals small, .period-close__totals em { color: var(--muted); font-size: 11px; font-style: normal; }
+.period-close__totals strong { font: 800 1.15rem Manrope, sans-serif; }
+.period-close__actions {
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  padding: 15px;
+}
+.period-close__actions.is-closed { background: #eef4ff; border-color: #c7d7fe; }
+.period-close__actions > div { align-items: center; display: flex; gap: 10px; }
+.period-close__actions > div:first-child > svg { color: var(--green); flex: 0 0 auto; }
+.period-close__actions span { display: grid; gap: 3px; }
+.period-close__actions small { color: var(--muted); }
+.period-close__form { display: grid; gap: 16px; }
+.period-close__form .form-hint { margin: 0; }
 @media (max-width: 900px) {
   .financial-period__heading,
   .financial-period__result {
@@ -179,6 +250,10 @@
   .financial-period__metrics {
     grid-template-columns: 1fr 1fr;
   }
+  .period-close__checklist { grid-template-columns: 1fr 1fr; }
+  .period-close__totals { grid-template-columns: 1fr 1fr; }
+  .period-close__actions { align-items: stretch; flex-direction: column; }
+  .period-close__actions > div:last-child { flex-wrap: wrap; }
 }
 @media (max-width: 560px) {
   .financial-period__controls,
@@ -191,6 +266,8 @@
   .financial-period__metrics {
     grid-template-columns: 1fr;
   }
+  .period-close__checklist, .period-close__totals { grid-template-columns: 1fr; }
+  .period-close__actions > div:last-child { align-items: stretch; flex-direction: column; }
   .financial-period__issues article {
     align-items: start;
     grid-template-columns: auto 1fr;
