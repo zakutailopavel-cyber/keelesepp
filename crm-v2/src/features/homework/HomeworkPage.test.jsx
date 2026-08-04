@@ -17,10 +17,10 @@ const completedWork = {
   reviewStatus: 'pending',
 };
 
-function repositories(submissions = [completedWork], assignments = []) {
+function repositories(submissions = [completedWork], assignments = [], homeworkItems = [{ id: 'homework-1', studentId: 'student-1', studentName: 'Mari', task: 'Õpi sõnad', status: 'Ootel', due: '2026-08-10' }]) {
   return {
     repository: {
-      listByStudentIds: vi.fn().mockResolvedValue([{ id: 'homework-1', studentId: 'student-1', studentName: 'Mari', task: 'Õpi sõnad', status: 'Ootel', due: '2026-08-10' }]),
+      listByStudentIds: vi.fn().mockResolvedValue(homeworkItems),
       listSubmissionsByStudentIds: vi.fn().mockResolvedValue(submissions),
       listWorksheetAssignmentsByStudentIds: vi.fn().mockResolvedValue(assignments),
       create: vi.fn().mockResolvedValue({ id: 'new-homework' }),
@@ -29,6 +29,8 @@ function repositories(submissions = [completedWork], assignments = []) {
       reviewSubmission: vi.fn().mockResolvedValue(undefined),
       submitWorksheet: vi.fn().mockResolvedValue(undefined),
       saveSelfAssessment: vi.fn().mockResolvedValue(undefined),
+      getExercise: vi.fn().mockResolvedValue({ id: 'exercise-1', title: 'Tegusõnad', type: 'fill', text: 'Ma [lähen] kooli.' }),
+      submitExerciseResult: vi.fn().mockResolvedValue(undefined),
     },
     studentRepository: {
       list: vi.fn().mockResolvedValue({ items: [{ id: 'student-1', name: 'Mari' }] }),
@@ -106,5 +108,35 @@ describe('HomeworkPage', () => {
     }));
     expect(dialog).toHaveTextContent('100% · 2/2 õiget');
     expect(data.repository.listWorksheetAssignmentsByStudentIds).toHaveBeenCalledWith(['student-1']);
+  });
+
+  it('opens an assigned exercise and stores the result without leaving CRM v2', async () => {
+    const exerciseHomework = { id: 'homework-exercise', studentId: 'student-1', studentName: 'Mari', task: 'Tegusõnad', status: 'Ootel', due: '2026-08-10', isExercise: true, exerciseId: 'exercise-1', exerciseTitle: 'Tegusõnad' };
+    const data = repositories([], [], [exerciseHomework]);
+    const user = { uid: 'student-user-1', displayName: 'Mari', roles: ['student'] };
+    renderPage(user, data);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Alusta harjutust Tegusõnad' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Tegusõnad' });
+    fireEvent.change(within(dialog).getByLabelText('Lünk 1'), { target: { value: 'lähen' } });
+    fireEvent.click(within(dialog).getByRole('button', { name: /Esita tulemus/ }));
+
+    await waitFor(() => expect(data.repository.submitExerciseResult).toHaveBeenCalledWith({
+      exercise: { id: 'exercise-1', title: 'Tegusõnad', type: 'fill', text: 'Ma [lähen] kooli.' },
+      homework: exerciseHomework,
+      result: { answers: { 0: 'lähen' }, correct: 1, total: 1 },
+      user,
+    }));
+    expect(dialog).toHaveTextContent('100% · 1/1 õiget');
+    expect(data.repository.getExercise).toHaveBeenCalledWith('exercise-1');
+  });
+
+  it('does not let a student manually reopen a completed exercise homework', async () => {
+    const completedExercise = { id: 'homework-exercise', studentId: 'student-1', studentName: 'Mari', task: 'Tegusõnad', status: 'Tehtud', isExercise: true, exerciseId: 'exercise-1', exerciseTitle: 'Tegusõnad' };
+    const data = repositories([], [], [completedExercise]);
+    renderPage({ uid: 'student-user-1', displayName: 'Mari', roles: ['student'] }, data);
+    await screen.findByText('Tegusõnad');
+    expect(screen.queryByRole('button', { name: /Märgi pooleliolevaks/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Alusta harjutust/ })).not.toBeInTheDocument();
   });
 });

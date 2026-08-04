@@ -1,4 +1,4 @@
-import { addDoc, collection, deleteDoc, doc, getDocs, query, updateDoc, where, writeBatch } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, query, updateDoc, where, writeBatch } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
 
 function chunksOfTen(values = []) {
@@ -180,5 +180,41 @@ export const homeworkService = {
     const selfAssessment = { difficulty: value, comment: String(comment || '').trim(), submittedAt };
     await updateDoc(doc(db, 'worksheetAssignments', assignmentId), { selfAssessment, updatedAt: submittedAt });
     return selfAssessment;
+  },
+  async getExercise(id) {
+    if (!id) throw new Error('Harjutuse viide puudub.');
+    const { db } = requireFirebaseClient();
+    const snapshot = await getDoc(doc(db, 'exercises', id));
+    if (!snapshot.exists()) throw new Error('Harjutust ei leitud.');
+    return { id: snapshot.id, ...snapshot.data() };
+  },
+  async submitExerciseResult({ exercise, homework, result, user }) {
+    if (!exercise?.id || !homework?.studentId) throw new Error('Harjutuse seos õpilasega puudub.');
+    const correct = Number(result?.correct);
+    const total = Number(result?.total);
+    const hasScore = Number.isFinite(correct) && Number.isFinite(total) && total > 0;
+    const { db } = requireFirebaseClient();
+    const completedAt = new Date().toISOString();
+    const batch = writeBatch(db);
+    const resultReference = doc(collection(db, 'exerciseResults'));
+    const payload = {
+      studentId: homework.studentId,
+      studentName: homework.studentName || '',
+      exerciseId: exercise.id,
+      exerciseTitle: exercise.title || homework.exerciseTitle || 'Harjutus',
+      exerciseType: exercise.type || '',
+      homeworkId: homework.id,
+      score: hasScore ? { correct, total } : null,
+      pct: hasScore ? Math.round((correct / total) * 100) : null,
+      result: result || {},
+      completedAt,
+      createdAt: completedAt,
+      completedBy: user.uid,
+      reviewStatus: 'pending',
+    };
+    batch.set(resultReference, payload);
+    batch.set(doc(db, 'homework', homework.id), { status: 'Tehtud', submittedAt: completedAt, updatedAt: completedAt }, { merge: true });
+    await batch.commit();
+    return { id: resultReference.id || '', ...payload };
   },
 };

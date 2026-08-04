@@ -1,4 +1,4 @@
-import { CheckCircle2, ClipboardCheck, Clock3, Eye, FileText, MessageSquare, Plus, Search, Star, Trash2 } from 'lucide-react';
+import { CheckCircle2, ClipboardCheck, Clock3, Eye, FileText, MessageSquare, PlayCircle, Plus, Search, Star, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal, PageHeader, Select } from '../../components/ui/index.js';
@@ -6,6 +6,7 @@ import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { homeworkService, studentsService } from '../../services/firebase/index.js';
 import { hasAnyRole, ROLES } from '../../utils/roles.js';
 import WorksheetPlayer from './WorksheetPlayer.jsx';
+import ExercisePlayer from './ExercisePlayer.jsx';
 
 const blank = { studentId: '', task: '', due: new Date().toISOString().slice(0, 10) };
 const emptyReview = { teacherGrade: '', teacherFeedback: '' };
@@ -49,6 +50,7 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
   const staff = hasAnyRole(user.roles, [ROLES.ADMIN, ROLES.TEACHER]);
   const teacherOnly = hasAnyRole(user.roles, [ROLES.TEACHER]) && !hasAnyRole(user.roles, [ROLES.ADMIN]);
   const canMarkHomework = staff || hasAnyRole(user.roles, [ROLES.STUDENT]);
+  const studentRole = hasAnyRole(user.roles, [ROLES.STUDENT]);
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState('all');
   const [reviewStatus, setReviewStatus] = useState('pending');
@@ -56,6 +58,8 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
   const [form, setForm] = useState(blank);
   const [reviewing, setReviewing] = useState(null);
   const [playing, setPlaying] = useState(null);
+  const [playingExercise, setPlayingExercise] = useState(null);
+  const [loadingExercise, setLoadingExercise] = useState('');
   const [review, setReview] = useState(emptyReview);
   const [saving, setSaving] = useState(false);
   const [actionError, setActionError] = useState('');
@@ -121,6 +125,14 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
     setActionError('');
   };
 
+  const openExercise = async (homework) => {
+    setLoadingExercise(homework.id);
+    setActionError('');
+    try { setPlayingExercise({ homework, exercise: await repository.getExercise(homework.exerciseId) }); }
+    catch (error) { setActionError(error.message || 'Harjutuse avamine ebaõnnestus.'); }
+    finally { setLoadingExercise(''); }
+  };
+
   const saveReview = async () => {
     setSaving(true);
     setActionError('');
@@ -159,10 +171,11 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
         {filtered.length ? <div className="task-list">{filtered.map((item) => {
           const done = item.status === 'Tehtud';
           const overdue = !done && item.due && item.due < new Date().toISOString().slice(0, 10);
+          const exerciseTask = Boolean(item.isExercise && item.exerciseId);
           return <article className={done ? 'task-row is-done' : 'task-row'} key={item.id}>
-            {canMarkHomework ? <button className="task-check" aria-label={done ? 'Märgi pooleliolevaks' : 'Märgi tehtuks'} onClick={async () => { await repository.setStatus(item.id, done ? 'Ootel' : 'Tehtud'); await state.reload(); }}>{done ? <CheckCircle2 /> : <Clock3 />}</button> : <span className="task-check">{done ? <CheckCircle2 /> : <Clock3 />}</span>}
-            <div><strong>{item.task}</strong><span>{item.studentName || 'Õpilane'}</span></div>
-            <div className="task-due"><Badge tone={done ? 'success' : overdue ? 'danger' : 'neutral'}>{done ? 'Tehtud' : `Tähtaeg ${item.due || '—'}`}</Badge>{staff ? <button className="text-button danger" aria-label="Kustuta" onClick={async () => { if (window.confirm('Kas kustutada kodutöö?')) { await repository.remove(item.id); await state.reload(); } }}><Trash2 size={17} /></button> : null}</div>
+            {exerciseTask && !staff ? studentRole && !done ? <button className="task-check exercise-launch" aria-label={`Alusta harjutust ${item.exerciseTitle || item.task}`} disabled={loadingExercise === item.id} onClick={() => openExercise(item)}>{loadingExercise === item.id ? <span className="button__spinner" /> : <PlayCircle />}</button> : <span className="task-check">{done ? <CheckCircle2 /> : <PlayCircle />}</span> : canMarkHomework ? <button className="task-check" aria-label={done ? 'Märgi pooleliolevaks' : 'Märgi tehtuks'} onClick={async () => { await repository.setStatus(item.id, done ? 'Ootel' : 'Tehtud'); await state.reload(); }}>{done ? <CheckCircle2 /> : <Clock3 />}</button> : <span className="task-check">{done ? <CheckCircle2 /> : <Clock3 />}</span>}
+            <div><strong>{item.task}</strong><span>{item.studentName || 'Õpilane'}{exerciseTask ? ' · Interaktiivne harjutus' : ''}</span></div>
+            <div className="task-due">{exerciseTask ? <Badge tone="info">Harjutus</Badge> : null}<Badge tone={done ? 'success' : overdue ? 'danger' : 'neutral'}>{done ? 'Tehtud' : `Tähtaeg ${item.due || '—'}`}</Badge>{staff ? <button className="text-button danger" aria-label="Kustuta" onClick={async () => { if (window.confirm('Kas kustutada kodutöö?')) { await repository.remove(item.id); await state.reload(); } }}><Trash2 size={17} /></button> : null}</div>
           </article>;
         })}</div> : <EmptyState title="Kodutöid ei leitud" description={staff ? 'Lisa esimene ülesanne või muuda filtrit.' : 'Praegu ei ole siin ühtegi ülesannet.'} />}
       </Card>
@@ -187,5 +200,6 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
       </div> : null}
     </Modal>
     {playing ? <WorksheetPlayer assignment={playing} repository={repository} readOnly={!hasAnyRole(user.roles, [ROLES.STUDENT])} onClose={() => setPlaying(null)} onSubmitted={state.reload} /> : null}
+    {playingExercise ? <ExercisePlayer exercise={playingExercise.exercise} homework={playingExercise.homework} repository={repository} user={user} onClose={() => setPlayingExercise(null)} onCompleted={state.reload} /> : null}
   </div>;
 }

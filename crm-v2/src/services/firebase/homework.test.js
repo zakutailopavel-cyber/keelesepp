@@ -5,6 +5,7 @@ const firestore = vi.hoisted(() => ({
   collection: vi.fn((_db, name) => name),
   deleteDoc: vi.fn(),
   doc: vi.fn((...parts) => parts.join(':')),
+  getDoc: vi.fn(),
   getDocs: vi.fn(),
   query: vi.fn((name, ...constraints) => ({ name, constraints })),
   updateDoc: vi.fn(),
@@ -110,5 +111,22 @@ describe('homeworkService submissions', () => {
     await expect(homeworkService.saveSelfAssessment({ assignmentId: 'assignment-1', difficulty: '4', comment: 'Lugemine oli raske.' })).resolves.toMatchObject({ difficulty: 4, comment: 'Lugemine oli raske.' });
     expect(firestore.updateDoc).toHaveBeenCalledWith('firebase-db:worksheetAssignments:assignment-1', expect.objectContaining({ selfAssessment: expect.objectContaining({ difficulty: 4 }) }));
     await expect(homeworkService.saveSelfAssessment({ assignmentId: 'assignment-1', difficulty: '7', comment: '' })).rejects.toThrow('raskusaste');
+  });
+
+  it('loads an assigned exercise and atomically stores its result', async () => {
+    firestore.getDoc.mockResolvedValue({ exists: () => true, id: 'exercise-1', data: () => ({ title: 'Tegusõnad', type: 'fill', text: 'Ma [lähen].' }) });
+    await expect(homeworkService.getExercise('exercise-1')).resolves.toMatchObject({ id: 'exercise-1', title: 'Tegusõnad' });
+
+    firestore.batch.set.mockClear();
+    await homeworkService.submitExerciseResult({
+      exercise: { id: 'exercise-1', title: 'Tegusõnad', type: 'fill' },
+      homework: { id: 'homework-1', studentId: 'student-1', studentName: 'Mari' },
+      result: { answers: { 0: 'lähen' }, correct: 1, total: 1 },
+      user: { uid: 'student-user-1' },
+    });
+    expect(firestore.batch.set).toHaveBeenCalledTimes(2);
+    expect(firestore.batch.set.mock.calls[0][1]).toMatchObject({ studentId: 'student-1', exerciseId: 'exercise-1', homeworkId: 'homework-1', score: { correct: 1, total: 1 }, pct: 100, reviewStatus: 'pending' });
+    expect(firestore.batch.set.mock.calls[1]).toEqual(['firebase-db:homework:homework-1', expect.objectContaining({ status: 'Tehtud' }), { merge: true }]);
+    expect(firestore.batch.commit).toHaveBeenCalledOnce();
   });
 });
