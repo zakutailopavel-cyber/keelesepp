@@ -2,6 +2,7 @@ export { authService } from './auth.js';
 export { financeApi } from './financeApi.js';
 export { getFirebaseClient, isFirebaseConfigured } from './client.js';
 export { invoicesService } from './invoices.js';
+export { libraryService } from './library.js';
 export { homeworkService } from './homework.js';
 export { lessonsService } from './lessons.js';
 export { messagesService } from './messages.js';

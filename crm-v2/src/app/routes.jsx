@@ -5,6 +5,7 @@ import LoginPage from '../features/auth/LoginPage.jsx';
 import CalendarPage from '../features/calendar/CalendarPage.jsx';
 import FinancePage from '../features/finance/FinancePage.jsx';
 import HomeworkPage from '../features/homework/HomeworkPage.jsx';
+import LibraryPage from '../features/library/LibraryPage.jsx';
 import MessagesPage from '../features/messages/MessagesPage.jsx';
 import StudentsPage from '../features/students/StudentsPage.jsx';
 import StudentProfilePage from '../features/students/StudentProfilePage.jsx';
@@ -30,6 +31,7 @@ export default function AppRoutes() {
             <Route path="students" element={<StudentsPage />} />
             <Route path="students/:studentId" element={<StudentProfilePage />} />
             <Route path="calendar" element={<CalendarPage />} />
+            <Route path="library" element={<LibraryPage />} />
           </Route>
           <Route element={<ProtectedRoute roles={[ROLES.ADMIN]} />}><Route path="teachers" element={<TeachersPage />} /><Route path="teachers/:teacherId" element={<TeacherProfilePage />} /><Route path="settings" element={<SettingsPage />} /></Route>
           <Route path="homework" element={<HomeworkPage />} />

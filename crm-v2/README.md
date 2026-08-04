@@ -24,6 +24,9 @@ instead of initializing Firebase or crashing.
 allowlist for route presentation. Firestore rules and Cloud Functions remain the
 authoritative permission boundary.
 
+`VITE_LEGACY_CRM_URL` keeps links to material tools that have not yet been
+migrated on the existing production host instead of pointing them at Vercel.
+
 ## Commands
 
 ```bash
@@ -102,6 +105,8 @@ CRM v2 currently includes:
 - homework creation, completion, filtering and deletion;
 - student-linked conversations with sending and unread counters;
 - account, role and Firebase connection settings.
+- a staff-only learning-library route that unifies `curriculumLessons` and
+  `exercises` with searchable subject, level/age and curriculum/topic folders.
 
 ## Migration and deployment status
 
@@ -118,6 +123,8 @@ The isolated preview is available at
 ## Known limitations
 
 - The legacy CRM is still the production source of truth outside Students.
+- Material editing, assignment and classroom publishing still open the existing
+  legacy tools while those workflows are migrated into the v2 feature modules.
 - Teacher read enforcement is deliberately off until the role-based production
   smoke test is complete; its rollback endpoint remains available.
 - React Router 7.18.2 is pinned. The current npm advisory affects React Server
