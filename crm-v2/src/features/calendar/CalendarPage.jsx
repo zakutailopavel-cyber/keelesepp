@@ -1,5 +1,6 @@
 import { CalendarDays, ChevronLeft, ChevronRight, Pencil, Plus, Search, XCircle } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal, PageHeader, Select } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
@@ -30,9 +31,10 @@ function LessonButton({ item, compact = false, onClick }) {
 
 export default function CalendarPage({ scheduleRepository = scheduleService, studentRepository = studentsService }) {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   const [anchor, setAnchor] = useState(toIsoDate());
   const [view, setView] = useState('week');
-  const [filters, setFilters] = useState({ search: '', teacher: '', student: '' });
+  const [filters, setFilters] = useState(() => ({ search: '', teacher: searchParams.get('teacher') || '', student: searchParams.get('student') || '' }));
   const [modal, setModal] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(blankLesson());
