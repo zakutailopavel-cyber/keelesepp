@@ -30,11 +30,11 @@ retries are possible, and represented in an immutable audit trail.
 | 2. Bank allocation | Normalized bank transactions, one transaction split across invoices, residual payer credits | Done in PR #4 |
 | 3. Credit and corrections | Apply payer credits to invoices; void one payment and restore its source without touching unrelated payments | Done in PR #5 |
 | 4. Lesson billing | Link invoice lines to exact lessons and cancellation rules; prevent double billing | Done |
-| 5. Tariffs and packages | Versioned prices, group/individual packages, discounts, family/employer/Töötukassa payer models | In progress |
-| 6. Teacher payroll | Rate history, delivered hours, group rules, substitutions, bonuses, payroll review and lock | Planned |
-| 7. Expenses and suppliers | Expense categories, supplier invoices, receipts, VAT metadata, recurring costs | Planned |
-| 8. Period close | Monthly reconciliation checklist, locked periods, correction entries, opening/closing balances | In progress |
-| 9. Accounting export | Accountant-ready CSV/API export, attachments, payment and invoice ledgers | In progress |
+| 5. Tariffs and packages | Package ledger exists; tariff UI and tariff expansion are deferred because the owner does not need tariffs | Partial / deferred |
+| 6. Teacher payroll | Server-owned work time, rates, activity evidence, approval/rejection, corrections and monthly payroll review | Done |
+| 7. Expenses | Expense categories, receipts, VAT metadata and audited corrections; suppliers intentionally omitted for this language school | Done |
+| 8. Period close | Monthly reconciliation checklist, locked periods, correction entries, opening/closing balances | Done |
+| 9. Accounting export | Archived accountant CSV, attachments, payment/invoice/bank/lesson/payroll/expense/correction ledgers | Done (v1) |
 | 10. Financial analytics | Cash flow, aged debt, revenue by course/group, margin after payroll and expenses | Planned |
 
 ## Stage 3 — definition of done
@@ -174,7 +174,7 @@ A period can be closed only when:
 - invoice balances match active payment allocations;
 - payment reversals and refunds are resolved;
 - teacher payroll is approved;
-- supplier expenses and supporting documents are attached;
+- active school expenses have supporting documents attached;
 - an accountant export has been generated and archived.
 
 After close, changes are made through dated correction entries rather than by
@@ -239,10 +239,14 @@ the browser: Financial Core independently re-reads the authoritative collections
 month with errors or unresolved decisions, and creates an append-only
 `financialPeriodReviews` version plus a latest-review pointer and financial audit entry.
 
-This slice intentionally uses `reviewed`, not `closed`. It does not lock old records until dated
-correction entries, approved payroll, supplier expenses and archived accountant exports exist.
-The next Stage 8 slice should add those dependencies, an explicit pre-close checklist and a
-server guard that blocks direct historical mutations while accepting dated corrections.
+The final Stage 8/9 slice adds the real close. A month can close only after it has ended, the exact
+canonical review fingerprint is current, payroll is resolved, every active expense has evidence,
+and the archived export fingerprint matches the same source records. Closing stores receivable and
+payer-credit opening/closing balances and creates server-owned locks for every date in the month.
+Cloud Functions and Firestore Rules reject ordinary historical mutations on those dates. Later
+errors use append-only `financialPeriodCorrections` dated in an open period. The archived v1 export
+contains stable-ID registers for invoices, payments and documents, bank rows, lessons, expenses and
+receipts, payroll and corrections, with a bounded Firestore archive size.
 
 ## Cross-cutting technical work
 

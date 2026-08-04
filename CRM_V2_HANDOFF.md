@@ -182,50 +182,57 @@ KeeleSepp CRM v2 заменяет старую CRM по модулям, без �
 - исправление создаёт новую связанную запись, исходная становится `corrected`; аннулирование переводит запись в `voided`, физического удаления нет;
 - создание, исправление, аннулирование и прикрепление документа выполняются только trusted Cloud Function и получают immutable `financialAudit` entry;
 - прямые клиентские create/update/delete для `expenses` запрещены правилами Firestore, доступ к реестру и файлам сейчас admin-only.
+- месячная сверка теперь использует canonical fingerprint конкретных уроков, счетов, платежей, банковских строк, распределений и авансов, а не только итоговых сумм;
+- закрытие месяца доступно только после окончания месяца, актуальной сверки, решения всех payroll-записей, документов у активных расходов и совпадающего архивного экспорта;
+- бухгалтерский архив включает реестры счетов, платежей и платёжных документов, банковских операций, уроков, расходов и чеков, payroll и датированных поправок со стабильными ID;
+- при закрытии сохраняются opening/closing balances по дебиторской задолженности и авансам, summary и evidence fingerprint;
+- каждый день закрытого месяца получает server-owned lock; обычные изменения уроков, счетов, платежей, возвратов, банковских распределений, payroll и расходов блокируются и Cloud Functions, и Firestore Rules;
+- поздняя ошибка оформляется append-only записью `financialPeriodCorrections` с датой в следующем открытом периоде; исходный архив и история не переписываются;
+- архив ограничен безопасным размером Firestore-документа, повторное закрытие месяца запрещено.
 
 ## 4. Последнее опубликованное изменение
 
-Коммит: `d8c7817 feat: add audited expense register`
+Функциональный коммит: `35a9202 feat: close and archive financial periods`
+
+Исправление после emulator CI: `fe0e86d fix: unify financial period fingerprints`
 
 В нём:
 
-- admin-only маршрут `/finance/expenses` и вход из страницы финансов;
-- простой реестр без поставщиков: дата, категория, описание, gross/VAT/net, способ оплаты и заметка;
-- месячный фильтр, поиск, четыре итоговые карточки и responsive-таблица;
-- приватные чеки PDF/JPEG/PNG/WebP в Firebase Storage;
-- trusted HTTP API для create/correct/void/document attachment;
-- идемпотентные server mutations и immutable financial audit;
-- исправление новой связанной записью и аннулирование без удаления истории;
-- Firestore/Storage rules и unit/component/full-emulator test coverage.
+- UI checklist закрытия месяца и opening/closing balances;
+- trusted API `financial-periods/export`, `financial-periods/close` и `financial-periods/corrections`;
+- архивный CSV по бухгалтерским реестрам и supporting documents;
+- exact canonical evidence fingerprint, меняющийся даже при замене ID операции на другую с той же суммой;
+- server-owned lock каждой даты закрытого месяца;
+- блокировка исторических мутаций в Functions и Firestore Rules;
+- append-only поправка в открытый период без переписывания закрытой истории;
+- unit, component и полный emulator regression test.
 
-Предыдущий функциональный коммит: `0fdf689 feat: add audited payroll workspace`.
+Предыдущий функциональный коммит: `d8c7817 feat: add audited expense register`.
 
-Публикация проверена:
+Состояние публикации:
 
-- GitHub `main` содержит `d8c7817`;
-- Vercel production отдаёт новый bundle;
-- Firebase Functions, Firestore rules и Storage rules успешно задеплоены 04.08.2026;
-- GitHub Actions `CRM v2` и `Financial Core emulator` для `d8c7817` завершились успешно;
-- production `/finance/expenses` показывает новый реестр, месячные итоги, фильтр и корректное пустое состояние;
-- production-форма `Lisa kulu` содержит только согласованные поля и не содержит поставщика;
-- production-проверка была read-only: форма открыта и закрыта, финансовые данные не изменялись.
+- GitHub `main` содержит `fe0e86d`;
+- Firebase Functions и Firestore Rules успешно задеплоены 04.08.2026, включая новый `financeApi`;
+- GitHub Actions `Financial Core emulator` run `30945254785` завершился успешно; сценарий review → export → close → locked write rejection → dated correction прошёл;
+- frontend локально полностью проверен и собирается, но Vercel не принял новый deploy из-за лимита Free plan `more than 100 deployments per day`;
+- последний Vercel production bundle пока остаётся на `d8c7817`, поэтому новый UI закрытия месяца ещё не виден на production;
+- после сброса лимита повторить deploy `keelesepp-crm-v2` из корня репозитория с project root `crm-v2`, затем выполнить только read-only production preview; реальные месяцы ради smoke test не закрывать.
 
 Последняя полная проверка:
 
 ```text
-CRM v2: 56 test files, 227 tests passed
-Functions: 86 tests passed
-Financial Core emulator (CI): passed
+CRM v2: 56 test files, 228 tests passed
+Functions: 90 tests passed
+Financial Core emulator: 20 integration tests passed in CI
 ESLint: passed
 Vite production build: passed
 Firestore rules compilation: passed
-Storage rules compilation: passed
 git diff --check: passed
 ```
 
 ## 5. Состояние локального рабочего дерева
 
-Блок расходов опубликован и больше не является незакоммиченной работой. Отслеживаемых локальных изменений после `d8c7817` нет, кроме обновления этого handoff-файла до следующего docs-коммита.
+Финансовое закрытие, экспорт и locks закоммичены в `35a9202` + `fe0e86d`. Отслеживаемых локальных изменений после них нет, кроме обновления этого handoff-файла до следующего docs-коммита. Пользовательские `* 2.*` файлы не тронуты.
 
 ### Пользовательские файлы, которые нельзя случайно коммитить
 
@@ -241,29 +248,13 @@ git diff --check: passed
 
 ## 6. Что осталось — приоритетный порядок
 
-### P1. Настоящее закрытие периода
+### P0. Выпустить frontend закрытия периода после сброса Vercel quota
 
-Текущая месячная сверка — reviewed snapshot, а не жёсткий бухгалтерский lock.
-
-Нужно:
-
-- checklist payroll + expenses + invoices + payments + bank;
-- lock месяца;
-- dated correction entries после lock;
-- opening/closing balances;
-- архив evidence/export;
-- запрет обычных мутаций закрытого периода на сервере.
-
-### P1. Бухгалтерский экспорт
-
-- invoice register;
-- payment/bank register;
-- lesson-to-invoice evidence;
-- advances/refunds;
-- payroll;
-- expenses/VAT;
-- attachments/evidence manifest;
-- стабильные ID и UTF-8 CSV/XLSX либо согласованный API.
+- не переписывать блок: код уже в `main`, tests/CI зелёные, Firebase backend опубликован;
+- повторить production deploy проекта `keelesepp-crm-v2` после снятия дневного лимита;
+- проверить, что `/finance` показывает checklist, totals, export и close actions;
+- production smoke test только read-only: выбрать прошлый месяц и нажать `Kontrolli kuu`;
+- не нажимать `Loo ja arhiveeri eksport` и `Sulge kuu` на реальных данных без осознанного решения владельца.
 
 ### P2. Финансовая аналитика
 
@@ -340,6 +331,7 @@ npx firebase-tools deploy --only functions,firestore:rules,storage --project kee
 - Firebase client bundle остаётся самым большим build chunk.
 - React Router закреплён на версии, выбранной с учётом известных advisory; не менять вслепую.
 - Локальный полный Firebase emulator требует Java. На машине владельца Java сейчас нет, но тот же сценарий успешно проходит в GitHub Actions; не устанавливать системную Java попутно без отдельной необходимости.
+- На 04.08.2026 Vercel Free plan исчерпал дневной лимит `more than 100 deployments per day`. Это единственный блокер публикации frontend-коммитов `35a9202`/`fe0e86d`; не путать его с ошибкой сборки.
 
 ## 10. Как продолжить новому агенту
 
@@ -347,6 +339,7 @@ npx firebase-tools deploy --only functions,firestore:rules,storage --project kee
 2. Выполнить `git status --short` и сохранить все пользовательские изменения.
 3. Прочитать `ARCHITECTURE.md`, `FINANCIAL_CORE_ROADMAP.md` и нужный раздел `crm-v2/ACCEPTANCE.md`.
 4. Не трогать Live Classroom и тарифы.
-5. Начать с настоящего закрытия финансового периода: checklist, lock, dated corrections и архив evidence.
-6. Довести один блок до тестов, production и записи в этот handoff-файл.
-7. После каждого крупного релиза обновлять разделы 4–6 и новый HEAD-коммит.
+5. Сначала проверить Vercel quota и выпустить уже готовый frontend закрытия периода; код блока не переделывать.
+6. После production-проверки перейти к финансовой аналитике: cash flow, aged debt, margin, forecast vs actual и drill-down.
+7. Довести один блок до тестов, production и записи в этот handoff-файл.
+8. После каждого крупного релиза обновлять разделы 4–6 и новый HEAD-коммит.
