@@ -30,6 +30,17 @@ checks. Do not archive or edit an active learner during a smoke test.
 - Confirm the teacher field cannot be reassigned in create or edit forms.
 - Confirm legacy short and full teacher names resolve to the same teacher scope.
 
+## Student
+
+- Sign in with a student test account and confirm `/` resolves to `/student`.
+- Confirm only profiles explicitly linked through `linkedUserId` or `studentUid`
+  appear; similarly named or matching-email profiles must not be inferred.
+- Confirm upcoming lessons, pending homework, reviewed submissions, progress and
+  invoice balance match the linked profile.
+- Confirm Homework and Messages open from the student dashboard.
+- Sign in with an unlinked student test account and confirm the safe linking
+  instruction appears without exposing another learner's data.
+
 ## Responsive and keyboard
 
 - Repeat the list and profile smoke test at 390 px and 768 px widths.

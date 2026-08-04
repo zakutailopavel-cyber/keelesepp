@@ -95,4 +95,22 @@ describe('students service pagination', () => {
       .rejects.toMatchObject({ code: 'students/teacher-not-resolved' });
     expect(addDoc).not.toHaveBeenCalled();
   });
+
+  it('loads a student cabinet only from explicit self ownership fields', async () => {
+    getDocs
+      .mockResolvedValueOnce({ docs: [
+        { id: 'student-self', data: () => ({ name: 'Mari', linkedUserId: 'user-1', active: true }) },
+        { id: 'archived', data: () => ({ name: 'Vana', linkedUserId: 'user-1', active: false }) },
+      ] })
+      .mockResolvedValueOnce({ docs: [
+        { id: 'student-self', data: () => ({ name: 'Mari', studentUid: 'user-1', active: true }) },
+      ] });
+
+    await expect(studentsService.listSelf('user-1')).resolves.toEqual([
+      expect.objectContaining({ id: 'student-self', name: 'Mari' }),
+    ]);
+    expect(where).toHaveBeenCalledWith('linkedUserId', '==', 'user-1');
+    expect(where).toHaveBeenCalledWith('studentUid', '==', 'user-1');
+    expect(where).not.toHaveBeenCalledWith('linkedParentId', '==', 'user-1');
+  });
 });

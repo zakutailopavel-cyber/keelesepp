@@ -12,6 +12,7 @@ import ParentsPage from '../features/parents/ParentsPage.jsx';
 import ParentDashboardPage from '../features/parents/ParentDashboardPage.jsx';
 import StudentsPage from '../features/students/StudentsPage.jsx';
 import StudentProfilePage from '../features/students/StudentProfilePage.jsx';
+import StudentDashboardPage from '../features/students/StudentDashboardPage.jsx';
 import TeachersPage from '../features/teachers/TeachersPage.jsx';
 import TeacherProfilePage from '../features/teachers/TeacherProfilePage.jsx';
 import SettingsPage from '../features/settings/SettingsPage.jsx';
@@ -42,6 +43,7 @@ export default function AppRoutes() {
           <Route path="homework" element={<HomeworkPage />} />
           <Route path="messages" element={<MessagesPage />} />
           <Route element={<ProtectedRoute roles={[ROLES.PARENT]} />}><Route path="parent" element={<ParentDashboardPage />} /></Route>
+          <Route element={<ProtectedRoute roles={[ROLES.STUDENT]} />}><Route path="student" element={<StudentDashboardPage />} /></Route>
           <Route element={<ProtectedRoute roles={[ROLES.ADMIN, ROLES.FINANCE]} />}><Route path="finance" element={<FinancePage />} /></Route>
         </Route>
       </Route>

@@ -6,5 +6,6 @@ describe('application navigation roles', () => {
     expect(navigation.find((item) => item.to === '/groups')?.roles).toEqual(['admin', 'teacher']);
     expect(navigation.find((item) => item.to === '/parents')?.roles).toEqual(['admin', 'teacher']);
     expect(navigation.find((item) => item.to === '/parent')?.roles).toEqual(['parent']);
+    expect(navigation.find((item) => item.to === '/student')?.roles).toEqual(['student']);
   });
 });

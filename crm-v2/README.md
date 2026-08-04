@@ -116,6 +116,9 @@ CRM v2 currently includes:
   and Firebase Authentication accounts are never deleted;
 - a parent home dashboard based only on explicitly owned student records, with
   children, upcoming lessons, pending homework, invoice balance and message links;
+- a dedicated student home dashboard based only on `linkedUserId`/`studentUid`,
+  with profile progress, upcoming and completed lessons, homework, reviewed work,
+  invoice balance and message links;
 - homework creation, completion, filtering and deletion;
 - in-app preview of assigned library materials and PDF/image attachments from
   the student homework view, with assignment snapshots as a resilient fallback;

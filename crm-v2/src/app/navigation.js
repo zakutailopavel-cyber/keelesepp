@@ -1,9 +1,10 @@
-import { BookOpen, CalendarDays, CircleDollarSign, HeartHandshake, Layers3, LibraryBig, LayoutDashboard, MessageSquareText, Settings, UserRoundCog, Users } from 'lucide-react';
+import { BookOpen, CalendarDays, CircleDollarSign, GraduationCap, HeartHandshake, Layers3, LibraryBig, LayoutDashboard, MessageSquareText, Settings, UserRoundCog, Users } from 'lucide-react';
 import { ROLES } from '../utils/roles.js';
 
 export const navigation = [
   { to: '/', label: 'Ülevaade', icon: LayoutDashboard, end: true, roles: [ROLES.ADMIN, ROLES.TEACHER, ROLES.FINANCE] },
   { to: '/parent', label: 'Minu pere', icon: HeartHandshake, roles: [ROLES.PARENT] },
+  { to: '/student', label: 'Minu õpingud', icon: GraduationCap, roles: [ROLES.STUDENT] },
   { to: '/students', label: 'Õpilased', icon: Users, roles: [ROLES.ADMIN, ROLES.TEACHER] },
   { to: '/calendar', label: 'Kalender', icon: CalendarDays, roles: [ROLES.ADMIN, ROLES.TEACHER] },
   { to: '/groups', label: 'Grupid', icon: Layers3, roles: [ROLES.ADMIN, ROLES.TEACHER] },
