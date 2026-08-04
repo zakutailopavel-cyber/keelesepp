@@ -36,7 +36,7 @@ export function normalizeStudent(id, data = {}) {
     level: cleanText(data.level),
     targetLevel: cleanText(data.targetLevel),
     subject: cleanText(data.subject) || 'Eesti keel',
-    teacher: cleanText(data.teacher),
+    teacher: canonicalTeacherName(cleanText(data.teacher)),
     active: data.active !== false,
     skillMap: data.skillMap && typeof data.skillMap === 'object' ? data.skillMap : {},
   };
@@ -203,6 +203,7 @@ export const studentsService = {
       contactNotes: data.contactNotes || '',
       createdAt: new Date().toISOString().slice(0, 10),
     };
+    payload.teacher = canonicalTeacherName(payload.teacher);
     payload.teacherUid = teacherUid;
     const reference = await addDoc(collection(db, 'students'), payload);
     return normalizeStudent(reference.id, payload);
@@ -210,6 +211,7 @@ export const studentsService = {
   async update(id, data) {
     const { db } = requireFirebaseClient();
     const payload = { ...pickStudentFields(data), updatedAt: new Date().toISOString().slice(0, 10) };
+    if ('teacher' in payload) payload.teacher = canonicalTeacherName(payload.teacher);
     const current = await this.getById(id);
     if ('teacher' in payload) {
       payload.teacherUid = current?.teacherUid && isSameTeacher(current.teacher, payload.teacher)

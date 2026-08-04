@@ -1,5 +1,6 @@
 import { collection, doc, getDocs, query, updateDoc, where, writeBatch } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
+import { canonicalTeacherName } from '../../utils/teachers.js';
 
 function timestampValue(value) {
   if (value?.toDate) return value.toDate().toISOString();
@@ -16,7 +17,7 @@ export function normalizeMessage(id, data = {}) {
     ...data,
     studentId: data.studentId || '',
     studentName: data.studentName || 'Vestlus',
-    teacher: data.teacher || '',
+    teacher: canonicalTeacherName(data.teacher),
     text: String(data.text || ''),
     fromUid: data.fromUid || '',
     fromName: data.fromName || 'Kasutaja',
@@ -56,7 +57,7 @@ export const messagesService = {
     const value = {
       studentId,
       studentName,
-      teacher: String(data.teacher || '').trim(),
+      teacher: canonicalTeacherName(data.teacher),
       text,
       fromUid: user.uid,
       fromName: user.displayName || user.email || 'Kasutaja',

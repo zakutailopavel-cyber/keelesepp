@@ -27,6 +27,23 @@ describe('students list states', () => {
     expect(await screen.findAllByText('Mari Maas')).not.toHaveLength(0);
   });
 
+  it('merges legacy spellings into one teacher name and one filter option', async () => {
+    renderPage({ list: async () => ({
+      items: [
+        { id: 's1', name: 'Mari', teacher: 'Pavel', active: true },
+        { id: 's2', name: 'Jaan', teacher: 'Pavel Zakutailo', active: true },
+        { id: 's3', name: 'Kati', teacher: 'Elizaveta', active: true },
+      ],
+      cursor: null,
+      hasMore: false,
+    }) });
+    const teacherFilter = await screen.findByLabelText('Õpetaja');
+    expect(within(teacherFilter).getAllByRole('option', { name: 'Pavel Zakutailo' })).toHaveLength(1);
+    expect(within(teacherFilter).getAllByRole('option', { name: 'Yelyzaveta Lukiianchuk' })).toHaveLength(1);
+    expect(screen.queryByText(/^Pavel$/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^Elizaveta$/)).not.toBeInTheDocument();
+  });
+
   it('can continue when a filtered first page contains no matches', async () => {
     const service = {
       list: vi.fn()

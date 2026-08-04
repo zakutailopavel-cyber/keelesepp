@@ -28,6 +28,10 @@ describe('messagesService', () => {
     });
   });
 
+  it('uses the canonical teacher name in conversations', () => {
+    expect(normalizeMessage('message-1', { teacher: 'Pavel' }).teacher).toBe('Pavel Zakutailo');
+  });
+
   it('loads only owned student conversations in Firestore query chunks', async () => {
     firestore.getDocs.mockImplementation(async ({ constraints }) => ({ docs: constraints[0].value.map((studentId) => ({ id: `message-${studentId}`, data: () => ({ studentId, studentName: studentId, text: 'Tere', createdAt: studentId }) })) }));
     const result = await messagesService.listByStudentIds(Array.from({ length: 11 }, (_, index) => `student-${index + 1}`));

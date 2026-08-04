@@ -9,6 +9,12 @@ describe('students service mapping', () => {
     expect(normalizeStudent('legacy', { name: 'Jaan' }).active).toBe(true);
   });
 
+  it('shows legacy teacher spellings as one canonical person', () => {
+    expect(normalizeStudent('short', { teacher: 'Pavel' }).teacher).toBe('Pavel Zakutailo');
+    expect(normalizeStudent('long', { teacher: 'Pavel Zakutailo' }).teacher).toBe('Pavel Zakutailo');
+    expect(normalizeStudent('old-spelling', { teacher: 'Elizaveta' }).teacher).toBe('Yelyzaveta Lukiianchuk');
+  });
+
   it('scopes a teacher to their own students across legacy aliases', () => {
     expect(matchesStudentFilters({ teacher: 'Pavel' }, { scopeTeacher: 'Pavel Zakutailo' })).toBe(true);
     expect(matchesStudentFilters({ teacher: 'Jelena' }, { scopeTeacher: 'Pavel Zakutailo' })).toBe(false);

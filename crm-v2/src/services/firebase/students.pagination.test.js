@@ -76,7 +76,7 @@ describe('students service pagination', () => {
 
     expect(addDoc).toHaveBeenCalledWith(
       expect.anything(),
-      expect.objectContaining({ teacher: 'Pavel', teacherUid: 'teacher-pavel' }),
+      expect.objectContaining({ teacher: 'Pavel Zakutailo', teacherUid: 'teacher-pavel' }),
     );
     expect(created).toMatchObject({ id: 'student-new', teacherUid: 'teacher-pavel' });
   });

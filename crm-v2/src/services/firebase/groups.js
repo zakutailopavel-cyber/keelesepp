@@ -1,6 +1,6 @@
 import { collection, doc, getDocs, writeBatch } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
-import { isSameTeacher } from '../../utils/teachers.js';
+import { canonicalTeacherName, isSameTeacher } from '../../utils/teachers.js';
 
 const DAYS = new Set(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']);
 
@@ -37,7 +37,7 @@ export function normalizeGroup(id, data = {}) {
     id,
     ...data,
     name: clean(data.name),
-    teacher: clean(data.teacher),
+    teacher: canonicalTeacherName(clean(data.teacher)),
     teacherUid: clean(data.teacherUid),
     subject: clean(data.subject) || 'Eesti keel',
     level: clean(data.level) || 'A1',

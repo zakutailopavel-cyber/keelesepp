@@ -1,8 +1,9 @@
 import { addDoc, collection, doc, getDocs, query, updateDoc, where } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
+import { canonicalTeacherName } from '../../utils/teachers.js';
 
-function normalize(id, data = {}) {
-  return { id, status: 'Planeeritud', duration: 60, ...data };
+export function normalizeScheduleEvent(id, data = {}) {
+  return { id, status: 'Planeeritud', duration: 60, ...data, teacher: canonicalTeacherName(data.teacher) };
 }
 
 function sort(items) {
@@ -16,6 +17,7 @@ function payload(data, current = {}) {
   return {
     ...current,
     ...data,
+    teacher: canonicalTeacherName(data.teacher || current.teacher),
     date,
     day: data.day || current.day || ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][new Date(`${date}T12:00:00`).getDay()],
     time: String(data.time || current.time || '09:00'),
@@ -51,18 +53,18 @@ export const scheduleService = {
     const { db } = requireFirebaseClient();
     const reference = collection(db, 'schedule');
     const snapshot = await getDocs(filters.teacherUid ? query(reference, where('teacherUid', '==', filters.teacherUid)) : reference);
-    return sort(snapshot.docs.map((item) => normalize(item.id, item.data())));
+    return sort(snapshot.docs.map((item) => normalizeScheduleEvent(item.id, item.data())));
   },
   async listByStudent(studentId) {
     const { db } = requireFirebaseClient();
     const snapshot = await getDocs(query(collection(db, 'schedule'), where('studentId', '==', studentId)));
-    return sort(snapshot.docs.map((item) => normalize(item.id, item.data())));
+    return sort(snapshot.docs.map((item) => normalizeScheduleEvent(item.id, item.data())));
   },
   async create(data) {
     const { db } = requireFirebaseClient();
     const value = { ...payload(data), createdAt: data.date, createdAtIso: new Date().toISOString() };
     const reference = await addDoc(collection(db, 'schedule'), value);
-    return normalize(reference.id, value);
+    return normalizeScheduleEvent(reference.id, value);
   },
   async update(id, data, current = {}) {
     const { db } = requireFirebaseClient();
@@ -71,7 +73,7 @@ export const scheduleService = {
     delete value.occurrenceDate;
     delete value.occurrenceId;
     await updateDoc(doc(db, 'schedule', id), value);
-    return normalize(id, value);
+    return normalizeScheduleEvent(id, value);
   },
   async cancel(id, current = {}) {
     return this.update(id, { status: 'Tühistatud' }, current);

@@ -36,6 +36,10 @@ describe('groupsService', () => {
     });
   });
 
+  it('uses one canonical name for legacy teacher spellings', () => {
+    expect(normalizeGroup('group-1', { name: 'A1', teacher: 'Jelena' }).teacher).toBe('Elena Zakutailo');
+  });
+
   it('keeps a teacher inside UID scope while supporting legacy teacher names', async () => {
     firestore.getDocs.mockResolvedValue({ docs: [
       { id: 'group-1', data: () => ({ name: 'UID grupp', teacherUid: 'teacher-1', teacher: 'Õpetaja' }) },

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Button, Input, Modal, Select } from '../../components/ui/index.js';
 import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
+import { canonicalTeacherName } from '../../utils/teachers.js';
 import { STUDENT_LEVELS } from './studentOptions.js';
 
 const emptyForm = { name: '', parentName: '', email: '', phone: '', level: 'A1', targetLevel: 'B1', subject: 'Eesti keel', grade: '', group: '', teacher: '', active: true };
@@ -21,7 +22,9 @@ export default function StudentForm({ open, student, teachers = [], canAssignTea
 
   useEffect(() => {
     if (open) {
-      setValues(student ? { ...emptyForm, ...student } : { ...emptyForm, teacher: defaultTeacher });
+      setValues(student
+        ? { ...emptyForm, ...student, teacher: canonicalTeacherName(student.teacher) }
+        : { ...emptyForm, teacher: canonicalTeacherName(defaultTeacher) });
       setErrors({});
       setSubmitError('');
     }
