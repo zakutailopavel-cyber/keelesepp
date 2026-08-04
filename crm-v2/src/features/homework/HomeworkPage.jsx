@@ -9,6 +9,8 @@ import WorksheetPlayer from './WorksheetPlayer.jsx';
 import ExercisePlayer from './ExercisePlayer.jsx';
 import TextAnnotationEditor from './TextAnnotationEditor.jsx';
 import { submissionWritingFields } from './annotations.js';
+import MaterialPreview from '../library/MaterialPreview.jsx';
+import { buildLibraryItems } from '../library/libraryModel.js';
 
 const blank = { studentId: '', task: '', due: new Date().toISOString().slice(0, 10) };
 const emptyReview = { teacherGrade: '', teacherFeedback: '' };
@@ -62,6 +64,8 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
   const [playing, setPlaying] = useState(null);
   const [playingExercise, setPlayingExercise] = useState(null);
   const [loadingExercise, setLoadingExercise] = useState('');
+  const [previewingMaterial, setPreviewingMaterial] = useState(null);
+  const [loadingMaterial, setLoadingMaterial] = useState('');
   const [review, setReview] = useState(emptyReview);
   const [saving, setSaving] = useState(false);
   const [actionError, setActionError] = useState('');
@@ -135,6 +139,25 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
     finally { setLoadingExercise(''); }
   };
 
+  const openMaterial = async (homework) => {
+    setLoadingMaterial(homework.id);
+    setActionError('');
+    try {
+      const source = await repository.getAssignedMaterial(homework);
+      const [item] = buildLibraryItems([source], []);
+      setPreviewingMaterial({
+        ...item,
+        title: item?.title || homework.task || 'Õppematerjal',
+        description: item?.description || homework.note || '',
+        source,
+      });
+    } catch (error) {
+      setActionError(error.message || 'Materjali eelvaate avamine ebaõnnestus.');
+    } finally {
+      setLoadingMaterial('');
+    }
+  };
+
   const saveReview = async () => {
     setSaving(true);
     setActionError('');
@@ -180,10 +203,11 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
           const done = item.status === 'Tehtud';
           const overdue = !done && item.due && item.due < new Date().toISOString().slice(0, 10);
           const exerciseTask = Boolean(item.isExercise && item.exerciseId);
+          const materialTask = Boolean(!exerciseTask && (item.sourceId || item.attachments?.length || item.fileUrl));
           return <article className={done ? 'task-row is-done' : 'task-row'} key={item.id}>
             {exerciseTask && !staff ? studentRole && !done ? <button className="task-check exercise-launch" aria-label={`Alusta harjutust ${item.exerciseTitle || item.task}`} disabled={loadingExercise === item.id} onClick={() => openExercise(item)}>{loadingExercise === item.id ? <span className="button__spinner" /> : <PlayCircle />}</button> : <span className="task-check">{done ? <CheckCircle2 /> : <PlayCircle />}</span> : canMarkHomework ? <button className="task-check" aria-label={done ? 'Märgi pooleliolevaks' : 'Märgi tehtuks'} onClick={async () => { await repository.setStatus(item.id, done ? 'Ootel' : 'Tehtud'); await state.reload(); }}>{done ? <CheckCircle2 /> : <Clock3 />}</button> : <span className="task-check">{done ? <CheckCircle2 /> : <Clock3 />}</span>}
             <div><strong>{item.task}</strong><span>{item.studentName || 'Õpilane'}{exerciseTask ? ' · Interaktiivne harjutus' : ''}</span></div>
-            <div className="task-due">{exerciseTask ? <Badge tone="info">Harjutus</Badge> : null}<Badge tone={done ? 'success' : overdue ? 'danger' : 'neutral'}>{done ? 'Tehtud' : `Tähtaeg ${item.due || '—'}`}</Badge>{staff ? <button className="text-button danger" aria-label="Kustuta" onClick={async () => { if (window.confirm('Kas kustutada kodutöö?')) { await repository.remove(item.id); await state.reload(); } }}><Trash2 size={17} /></button> : null}</div>
+            <div className="task-due">{exerciseTask ? <Badge tone="info">Harjutus</Badge> : null}{materialTask ? <button className="task-preview-button" aria-label={`Eelvaade: ${item.task}`} disabled={loadingMaterial === item.id} onClick={() => openMaterial(item)}>{loadingMaterial === item.id ? <span className="button__spinner" /> : <Eye size={16} />}<span>Eelvaade</span></button> : null}<Badge tone={done ? 'success' : overdue ? 'danger' : 'neutral'}>{done ? 'Tehtud' : `Tähtaeg ${item.due || '—'}`}</Badge>{staff ? <button className="text-button danger" aria-label="Kustuta" onClick={async () => { if (window.confirm('Kas kustutada kodutöö?')) { await repository.remove(item.id); await state.reload(); } }}><Trash2 size={17} /></button> : null}</div>
           </article>;
         })}</div> : <EmptyState title="Kodutöid ei leitud" description={staff ? 'Lisa esimene ülesanne või muuda filtrit.' : 'Praegu ei ole siin ühtegi ülesannet.'} />}
       </Card>
@@ -210,5 +234,6 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
     </Modal>
     {playing ? <WorksheetPlayer assignment={playing} repository={repository} readOnly={!hasAnyRole(user.roles, [ROLES.STUDENT])} onClose={() => setPlaying(null)} onSubmitted={state.reload} /> : null}
     {playingExercise ? <ExercisePlayer exercise={playingExercise.exercise} homework={playingExercise.homework} repository={repository} user={user} onClose={() => setPlayingExercise(null)} onCompleted={state.reload} /> : null}
+    {previewingMaterial ? <MaterialPreview item={previewingMaterial} onClose={() => setPreviewingMaterial(null)} /> : null}
   </div>;
 }

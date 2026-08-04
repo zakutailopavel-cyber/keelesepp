@@ -31,6 +31,7 @@ function repositories(submissions = [completedWork], assignments = [], homeworkI
       submitWorksheet: vi.fn().mockResolvedValue(undefined),
       saveSelfAssessment: vi.fn().mockResolvedValue(undefined),
       getExercise: vi.fn().mockResolvedValue({ id: 'exercise-1', title: 'Tegusõnad', type: 'fill', text: 'Ma [lähen] kooli.' }),
+      getAssignedMaterial: vi.fn().mockResolvedValue({ id: 'material-1', title: 'Perekonna materjal', type: 'material', description: 'Loe materjali.', files: [{ name: 'pere.pdf', url: 'https://files.example/pere.pdf', type: 'application/pdf' }] }),
       submitExerciseResult: vi.fn().mockResolvedValue(undefined),
     },
     studentRepository: {
@@ -132,6 +133,31 @@ describe('HomeworkPage', () => {
     }));
     expect(dialog).toHaveTextContent('100% · 1/1 õiget');
     expect(data.repository.getExercise).toHaveBeenCalledWith('exercise-1');
+  });
+
+  it('previews an assigned PDF inside CRM v2 without downloading it', async () => {
+    const materialHomework = {
+      id: 'homework-material',
+      studentId: 'student-1',
+      studentName: 'Mari',
+      task: 'Perekonna materjal',
+      status: 'Ootel',
+      due: '2026-08-10',
+      sourceType: 'curriculum',
+      sourceId: 'material-1',
+      fileUrl: 'https://files.example/pere.pdf',
+      fileName: 'pere.pdf',
+      attachments: [{ name: 'pere.pdf', url: 'https://files.example/pere.pdf', type: 'application/pdf' }],
+    };
+    const data = repositories([], [], [materialHomework]);
+    renderPage({ uid: 'student-user-1', displayName: 'Mari', roles: ['student'] }, data);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Eelvaade: Perekonna materjal' }));
+
+    await waitFor(() => expect(data.repository.getAssignedMaterial).toHaveBeenCalledWith(materialHomework));
+    const dialog = await screen.findByRole('dialog', { name: 'Eelvaade: Perekonna materjal' });
+    expect(within(dialog).getByTitle('PDF: pere.pdf')).toHaveAttribute('src', 'https://files.example/pere.pdf#toolbar=0&navpanes=0');
+    expect(within(dialog).queryByRole('link', { name: /laadi/i })).not.toBeInTheDocument();
   });
 
   it('does not let a student manually reopen a completed exercise homework', async () => {

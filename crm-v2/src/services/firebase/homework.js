@@ -10,6 +10,35 @@ function timestampValue(value) {
   return value || '';
 }
 
+function assignmentFiles(homework = {}) {
+  const files = Array.isArray(homework.attachments) ? [...homework.attachments] : [];
+  if (homework.fileUrl && !files.some((file) => (file?.url || file?.downloadUrl) === homework.fileUrl)) {
+    files.push({ name: homework.fileName || 'Õppematerjal', url: homework.fileUrl });
+  }
+  return files.filter((file) => file && (file.url || file.downloadUrl));
+}
+
+function mergeFiles(sourceFiles = [], fallbackFiles = []) {
+  const unique = new Map();
+  [...sourceFiles, ...fallbackFiles].forEach((file) => {
+    const key = file?.url || file?.downloadUrl || file?.storagePath || file?.name;
+    if (key) unique.set(key, file);
+  });
+  return [...unique.values()];
+}
+
+function assignmentFallback(homework, files) {
+  return {
+    id: homework.sourceId || `homework-${homework.id || 'material'}`,
+    title: homework.task || homework.fileName || 'Õppematerjal',
+    description: homework.note || '',
+    type: 'material',
+    subject: homework.subject || '',
+    level: homework.level || '',
+    files,
+  };
+}
+
 export function normalizeSubmission(id, data = {}, submissionKind) {
   const rawScore = data.score;
   const score = rawScore && typeof rawScore === 'object'
@@ -240,6 +269,29 @@ export const homeworkService = {
     const snapshot = await getDoc(doc(db, 'exercises', id));
     if (!snapshot.exists()) throw new Error('Harjutust ei leitud.');
     return { id: snapshot.id, ...snapshot.data() };
+  },
+  async getAssignedMaterial(homework) {
+    if (!homework?.id) throw new Error('Määratud materjali ei leitud.');
+    const files = assignmentFiles(homework);
+    if (!homework.sourceId) {
+      if (!files.length) throw new Error('Materjali viide ja eelvaate fail puuduvad.');
+      return assignmentFallback(homework, files);
+    }
+
+    const { db } = requireFirebaseClient();
+    const collectionName = homework.sourceType === 'exercise' ? 'exercises' : 'curriculumLessons';
+    try {
+      const snapshot = await getDoc(doc(db, collectionName, homework.sourceId));
+      if (snapshot.exists()) {
+        const source = { id: snapshot.id, ...snapshot.data() };
+        return { ...source, files: mergeFiles(source.files, files) };
+      }
+    } catch (error) {
+      if (!files.length) throw error;
+    }
+
+    if (files.length) return assignmentFallback(homework, files);
+    throw new Error('Õppematerjali sisu ei leitud.');
   },
   async submitExerciseResult({ exercise, homework, result, user }) {
     if (!exercise?.id || !homework?.studentId) throw new Error('Harjutuse seos õpilasega puudub.');

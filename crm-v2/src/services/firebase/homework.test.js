@@ -156,4 +156,41 @@ describe('homeworkService submissions', () => {
     expect(firestore.batch.set.mock.calls[1]).toEqual(['firebase-db:homework:homework-1', expect.objectContaining({ status: 'Tehtud' }), { merge: true }]);
     expect(firestore.batch.commit).toHaveBeenCalledOnce();
   });
+
+  it('loads an assigned library material and keeps its assignment file snapshot', async () => {
+    firestore.getDoc.mockResolvedValue({
+      exists: () => true,
+      id: 'material-1',
+      data: () => ({ title: 'Perekonna materjal', type: 'material', files: [{ name: 'Pilt', url: 'https://files.example/pere.png' }] }),
+    });
+    const homework = {
+      id: 'homework-material',
+      sourceType: 'curriculum',
+      sourceId: 'material-1',
+      task: 'Perekonna materjal',
+      attachments: [{ name: 'PDF', url: 'https://files.example/pere.pdf' }],
+    };
+
+    await expect(homeworkService.getAssignedMaterial(homework)).resolves.toMatchObject({
+      id: 'material-1',
+      title: 'Perekonna materjal',
+      files: [
+        { name: 'Pilt', url: 'https://files.example/pere.png' },
+        { name: 'PDF', url: 'https://files.example/pere.pdf' },
+      ],
+    });
+    expect(firestore.getDoc).toHaveBeenCalledWith('firebase-db:curriculumLessons:material-1');
+  });
+
+  it('uses the assigned file snapshot when the original material is unavailable', async () => {
+    firestore.getDoc.mockRejectedValue(new Error('offline'));
+    const homework = { id: 'homework-material', sourceId: 'deleted-material', sourceType: 'curriculum', task: 'Perekonna materjal', fileName: 'pere.pdf', fileUrl: 'https://files.example/pere.pdf' };
+
+    await expect(homeworkService.getAssignedMaterial(homework)).resolves.toMatchObject({
+      title: 'Perekonna materjal',
+      type: 'material',
+      files: [{ name: 'pere.pdf', url: 'https://files.example/pere.pdf' }],
+    });
+    expect(firestore.getDoc).toHaveBeenCalledWith('firebase-db:curriculumLessons:deleted-material');
+  });
 });
