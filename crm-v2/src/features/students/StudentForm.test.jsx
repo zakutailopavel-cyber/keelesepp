@@ -30,9 +30,11 @@ describe('student form business options', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Salvesta' }));
     expect(await screen.findByText('Nimi on kohustuslik.')).toBeInTheDocument();
+    expect(screen.getByLabelText('Õpilase nimi *')).toHaveFocus();
     expect(onSubmit).not.toHaveBeenCalled();
 
     fireEvent.change(screen.getByLabelText('Õpilase nimi *'), { target: { value: 'Mari' } });
+    expect(screen.queryByText('Nimi on kohustuslik.')).not.toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('E-post'), { target: { value: 'not-an-email' } });
     fireEvent.change(screen.getByLabelText('Telefon'), { target: { value: '123' } });
     fireEvent.click(screen.getByRole('button', { name: 'Salvesta' }));

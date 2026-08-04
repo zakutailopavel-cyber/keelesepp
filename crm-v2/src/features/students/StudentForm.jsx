@@ -30,12 +30,25 @@ export default function StudentForm({ open, student, teachers = [], canAssignTea
     }
   }, [defaultTeacher, open, student]);
 
-  const change = (event) => setValues((current) => ({ ...current, [event.target.name]: event.target.value }));
+  const change = (event) => {
+    const { name, value } = event.target;
+    setValues((current) => ({ ...current, [name]: value }));
+    setErrors((current) => {
+      if (!current[name]) return current;
+      const next = { ...current };
+      delete next[name];
+      return next;
+    });
+  };
   const submit = async (event) => {
     event.preventDefault();
     const nextErrors = validate(values);
     setErrors(nextErrors);
-    if (Object.keys(nextErrors).length) return;
+    const firstInvalidField = Object.keys(nextErrors)[0];
+    if (firstInvalidField) {
+      event.currentTarget.elements.namedItem(firstInvalidField)?.focus();
+      return;
+    }
     setSubmitting(true); setSubmitError('');
     try { await onSubmit(values); onClose(); } catch (error) { setSubmitError(firebaseErrorMessage(error)); } finally { setSubmitting(false); }
   };
