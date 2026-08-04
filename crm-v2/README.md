@@ -114,7 +114,10 @@ CRM v2 currently includes:
 - staff-only material uploads to Firebase Storage with progress, validation,
   cancel cleanup and direct PDF/image preview from the saved `files` field;
 - creation and editing of legacy-compatible interactive exercises for fill,
-  choice, writing, word-order, matching, reading and translation workflows.
+  choice, writing, word-order, matching, reading and translation workflows;
+- the complete legacy worksheet block set: instructions, blanks, choices,
+  reading, writing, matching, word order, tables, uploaded images, dialogues,
+  error correction and sentence transformation.
 
 ## Migration and deployment status
 
@@ -131,8 +134,8 @@ The isolated preview is available at
 ## Known limitations
 
 - The legacy CRM is still the production source of truth outside Students.
-- Advanced worksheet blocks and classroom publishing still open the existing
-  legacy tools while those workflows are migrated into the v2 feature modules.
+- Classroom publishing still opens the existing legacy tool while that live
+  teaching workflow is migrated into the v2 feature modules.
 - Teacher read enforcement is deliberately off until the role-based production
   smoke test is complete; its rollback endpoint remains available.
 - React Router 7.18.2 is pinned. The current npm advisory affects React Server

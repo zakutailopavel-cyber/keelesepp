@@ -54,7 +54,7 @@ function QuestionList({ questions = [] }) {
 
 function PreviewBlock({ block, index }) {
   const heading = block.instruction || block.title || `Ülesanne ${index + 1}`;
-  if (block.type === 'image') return safeUrl(block.imageUrl || block.url) ? <section className="preview-block"><h3>{heading}</h3><img src={safeUrl(block.imageUrl || block.url)} alt={block.alt || heading} /></section> : null;
+  if (block.type === 'image') return safeUrl(block.imageUrl || block.url) ? <section className="preview-block"><h3>{heading}</h3><img src={safeUrl(block.imageUrl || block.url)} alt={block.alt || block.caption || heading} />{block.caption ? <p>{block.caption}</p> : null}</section> : null;
   if (block.type === 'fill') return <section className="preview-block"><h3>{heading}</h3><FillText text={block.text} /></section>;
   if (block.type === 'choice') return <section className="preview-block"><h3>{heading}</h3><QuestionList questions={block.questions} /></section>;
   if (block.type === 'reading') return <section className="preview-block"><h3>{heading}</h3><p className="preview-passage">{block.passage || block.text}</p><QuestionList questions={block.questions} /></section>;
@@ -64,9 +64,9 @@ function PreviewBlock({ block, index }) {
   if (block.type === 'table') { const headers = block.headers || []; const rows = Math.max(Number(block.rows) || 0, 1); return <section className="preview-block"><h3>{heading}</h3><div className="preview-table-wrap"><table><thead><tr>{headers.map((header, column) => <th key={`${header}-${column}`}>{header}</th>)}</tr></thead><tbody>{Array.from({ length: rows }, (_, row) => <tr key={row}>{headers.map((_, column) => <td key={column}>{block.cellData?.[`${row},${column}`] || block.cellData?.[`${row + 1},${column}`] || ''}</td>)}</tr>)}</tbody></table></div></section>; }
   if (block.type === 'dialogue') return <section className="preview-block"><h3>{heading}</h3><div className="preview-dialogue">{(block.lines || []).map((line, lineIndex) => <p key={lineIndex}><strong>{line.speaker}:</strong> {line.text}</p>)}</div></section>;
   if (block.type === 'error_correction') return <section className="preview-block"><h3>{heading}</h3>{(block.sentences || []).map((sentence, sentenceIndex) => <p key={sentenceIndex}><s>{sentence.wrong}</s> → <strong>{sentence.correct || '…'}</strong></p>)}</section>;
-  if (block.type === 'transformation') return <section className="preview-block"><h3>{heading}</h3>{(block.sentences || []).map((sentence, sentenceIndex) => <p key={sentenceIndex}>{typeof sentence === 'string' ? sentence : `${sentence.from || ''} → ${sentence.to || ''}`}</p>)}</section>;
+  if (block.type === 'transformation') return <section className="preview-block"><h3>{heading}</h3>{block.example?.from || block.example?.to ? <p><strong>Näide:</strong> {block.example?.from || '…'} → {block.example?.to || '…'}</p> : null}{(block.sentences || []).map((sentence, sentenceIndex) => <p key={sentenceIndex}>{typeof sentence === 'string' ? sentence : `${sentence.from || ''} → ${sentence.to || ''}`}</p>)}</section>;
   if (block.type === 'translate') return <section className="preview-block"><h3>{heading}</h3><div className="preview-pairs">{(block.items || block.pairs || []).map((pair, pairIndex) => <div key={pairIndex}><span>{pair.from || pair.l}</span><b>→</b><span>{pair.to || pair.r}</span></div>)}</div></section>;
-  return <section className="preview-block"><h3>{heading}</h3><p>{block.text || block.body || block.task || block.description || 'Sisu puudub.'}</p></section>;
+  return <section className="preview-block"><h3>{heading}</h3><p>{block.content || block.text || block.body || block.task || block.description || 'Sisu puudub.'}</p></section>;
 }
 
 function FilePreview({ file }) {

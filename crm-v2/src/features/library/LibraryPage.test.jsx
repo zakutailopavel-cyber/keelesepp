@@ -7,7 +7,7 @@ import LibraryPage from './LibraryPage.jsx';
 const data = {
   curriculumLessons: [
     { id: 'lesson-1', title: 'Pere tunnikava', description: 'Tund perest', subject: 'Eesti keel', level: 'A1', topic: 'Minu pere' },
-    { id: 'worksheet-1', title: 'Pere tööleht', subject: 'Eesti keel', level: 'A1', topic: 'Minu pere', worksheetData: { blocks: [{ type: 'fill', text: 'Minu [ema] nimi on Mari.' }] }, files: [{ name: 'Pere.pdf', url: 'https://files.example/Pere.pdf' }, { name: 'Perepilt.png', url: 'https://files.example/Perepilt.png' }] },
+    { id: 'worksheet-1', title: 'Pere tööleht', subject: 'Eesti keel', level: 'A1', topic: 'Minu pere', worksheetData: { blocks: [{ type: 'text', content: 'Loe juhis tähelepanelikult.' }, { type: 'fill', text: 'Minu [ema] nimi on Mari.' }] }, files: [{ name: 'Pere.pdf', url: 'https://files.example/Pere.pdf' }, { name: 'Perepilt.png', url: 'https://files.example/Perepilt.png' }] },
   ],
   exercises: [
     { id: 'exercise-1', title: 'Family match', subject: 'Inglise keel', level: 'A1', topic: 'My family', type: 'match' },
@@ -84,6 +84,7 @@ describe('LibraryPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Eelvaade' }));
 
     expect(screen.getByRole('dialog', { name: 'Eelvaade: Pere tööleht' })).toHaveTextContent('Minu ema nimi on Mari.');
+    expect(screen.getByRole('dialog', { name: 'Eelvaade: Pere tööleht' })).toHaveTextContent('Loe juhis tähelepanelikult.');
     expect(screen.getByTitle('PDF: Pere.pdf')).toHaveAttribute('src', 'https://files.example/Pere.pdf#toolbar=0&navpanes=0');
     expect(screen.getByRole('img', { name: 'Perepilt.png' })).toHaveAttribute('src', 'https://files.example/Perepilt.png');
     expect(screen.queryByText(/Laadi alla/i)).not.toBeInTheDocument();
@@ -102,7 +103,7 @@ describe('LibraryPage', () => {
     fireEvent.click(editor.getByRole('button', { name: 'Lisa esimene ülesanne' }));
     fireEvent.change(editor.getByLabelText('Ülesande tüüp'), { target: { value: 'fill' } });
     fireEvent.change(editor.getByLabelText('Juhis või alapealkiri'), { target: { value: 'Täida lüngad' } });
-    fireEvent.change(editor.getByLabelText('Sisu'), { target: { value: 'Hommikul ma [ärkan].' } });
+    fireEvent.change(editor.getByLabelText('Tekst koos vastustega'), { target: { value: 'Hommikul ma [ärkan].' } });
     const pdf = new globalThis.File(['pdf'], 'Uus.pdf', { type: 'application/pdf' });
     fireEvent.change(editor.getByLabelText('Lisa materjali failid'), { target: { files: [pdf] } });
     await waitFor(() => expect(editor.getByText('Uus.pdf')).toBeInTheDocument());
@@ -162,5 +163,23 @@ describe('LibraryPage', () => {
     const editor = within(screen.getByRole('dialog', { name: 'Muuda harjutust: Family match' }));
     expect(editor.getByLabelText('Harjutuse tüüp')).toBeDisabled();
     expect(editor.getByRole('heading', { name: 'Sobita paarid' })).toBeInTheDocument();
+  });
+
+  it('builds an advanced worksheet block in the legacy schema', async () => {
+    const { repository } = renderPage();
+    await screen.findByRole('button', { name: /Eesti keel.*2 materjali/ });
+    fireEvent.click(screen.getByRole('button', { name: 'Loo materjal' }));
+    const editor = within(screen.getByRole('dialog', { name: 'Loo õppematerjal' }));
+    fireEvent.change(editor.getByLabelText('Pealkiri *'), { target: { value: 'Sõnapaarid' } });
+    fireEvent.change(editor.getByLabelText('Materjali tüüp'), { target: { value: 'worksheet' } });
+    fireEvent.change(editor.getByLabelText('Õppeaine *'), { target: { value: 'Inglise keel' } });
+    fireEvent.click(editor.getByRole('button', { name: 'Lisa esimene ülesanne' }));
+    fireEvent.change(editor.getByLabelText('Ülesande tüüp'), { target: { value: 'match' } });
+    fireEvent.change(editor.getByLabelText('Paarid'), { target: { value: 'ema | mother\nisa | father' } });
+    fireEvent.click(editor.getByRole('button', { name: 'Salvesta' }));
+
+    await waitFor(() => expect(repository.saveMaterial).toHaveBeenCalledWith(expect.objectContaining({
+      values: expect.objectContaining({ blocks: [expect.objectContaining({ type: 'match', pairs: [{ l: 'ema', r: 'mother' }, { l: 'isa', r: 'father' }] })] }),
+    })));
   });
 });

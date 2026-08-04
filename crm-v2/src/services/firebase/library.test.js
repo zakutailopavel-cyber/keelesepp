@@ -210,4 +210,24 @@ describe('libraryService', () => {
     });
     expect(firestore.batch.set.mock.calls[0][1]).toMatchObject({ type: exerciseType, ...expected });
   });
+
+  it('preserves every supported advanced worksheet block in the legacy schema', async () => {
+    const blocks = [
+      { id: 'text', type: 'text', content: 'Juhis' },
+      { id: 'choice', type: 'choice', questions: [{ q: 'Pealinn?', opts: ['Tallinn', 'Tartu'], correct: 0 }] },
+      { id: 'reading', type: 'reading', passage: 'Mari elab Tallinnas.', questions: [] },
+      { id: 'match', type: 'match', pairs: [{ l: 'ema', r: 'mother' }] },
+      { id: 'order', type: 'order', sentence: 'Ma õpin eesti keelt' },
+      { id: 'table', type: 'table', headers: ['Sõna', 'Tõlge'], rows: 4 },
+      { id: 'image', type: 'image', imageUrl: 'https://files.example/pilt.png', caption: 'Pilt' },
+      { id: 'dialogue', type: 'dialogue', lines: [{ speaker: 'A', text: 'Tere!' }, { speaker: 'B', text: '[vastus]' }] },
+      { id: 'error', type: 'error_correction', sentences: [{ wrong: 'Ma lähen eile.', correct: 'Ma läksin eile.' }] },
+      { id: 'transform', type: 'transformation', example: { from: 'Ma lähen.', to: 'Ma ei lähe.' }, sentences: ['Ta töötab.'] },
+    ];
+    await libraryService.saveMaterial({
+      values: { title: 'Täielik tööleht', materialType: 'worksheet', subject: 'Eesti keel', blocks },
+      user: { uid: 'teacher-1', roles: ['teacher'] },
+    });
+    expect(firestore.batch.set.mock.calls[0][1]).toMatchObject({ worksheetData: { blocks } });
+  });
 });

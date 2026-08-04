@@ -61,6 +61,35 @@ function exerciseContent(values, type) {
   throw new Error('Tundmatu harjutuse tüüp.');
 }
 
+function validateWorksheetBlocks(blocks) {
+  for (const block of blocks) {
+    if (block.type === 'text' && !String(block.content || block.text || '').trim()) throw new Error('Täida tekstiploki sisu.');
+    if (block.type === 'fill' && !/\[[^\]]+\]/.test(String(block.text || ''))) throw new Error('Märgi lünkharjutuse vastus nurksulgudega.');
+    if (block.type === 'writing' && !String(block.task || '').trim()) throw new Error('Täida kirjutamisülesande sisu.');
+    if (block.type === 'order' && String(block.sentence || '').trim().split(/\s+/).length < 2) throw new Error('Täida sõnade järjestamise lause.');
+    if (['choice', 'reading'].includes(block.type)) {
+      const questions = block.questions || [];
+      if (block.type === 'choice' && !questions.length) throw new Error('Lisa valikvastuste plokki vähemalt üks küsimus.');
+      if (block.type === 'reading' && !String(block.passage || '').trim()) throw new Error('Täida lugemistekst.');
+      if (questions.some((question) => {
+        const options = question.opts || question.options || [];
+        const correct = Number(question.correct) || 0;
+        return !String(question.q || question.question || '').trim() || options.filter((option) => String(option || '').trim()).length < 2 || correct < 0 || correct >= options.length || !String(options[correct] || '').trim();
+      })) throw new Error('Täida küsimus, vähemalt kaks vastust ja vali õige vastus.');
+    }
+    if (block.type === 'match' && (!(block.pairs || []).length || block.pairs.some((pair) => !String(pair.l || '').trim() || !String(pair.r || '').trim()))) throw new Error('Täida sobitamise paarid.');
+    if (block.type === 'dialogue' && (!(block.lines || []).length || block.lines.some((line) => !String(line.speaker || '').trim() || !String(line.text || '').trim()))) throw new Error('Täida dialoogi read.');
+    if (block.type === 'error_correction' && (!(block.sentences || []).length || block.sentences.some((sentence) => !String(sentence.wrong || '').trim() || !String(sentence.correct || '').trim()))) throw new Error('Täida vigased ja õiged laused.');
+    if (block.type === 'transformation' && (!(block.sentences || []).length || block.sentences.some((sentence) => !String(sentence || '').trim()))) throw new Error('Täida muudetavad laused.');
+    if (block.type === 'table' && !(block.headers || []).some((header) => String(header || '').trim())) throw new Error('Lisa tabelile vähemalt üks veerg.');
+    if (block.type === 'image') {
+      let imageUrl;
+      try { imageUrl = new globalThis.URL(String(block.imageUrl || '')); } catch { throw new Error('Lisa pildiplokile korrektne pildi URL.'); }
+      if (!['https:', 'http:'].includes(imageUrl.protocol)) throw new Error('Lisa pildiplokile korrektne pildi URL.');
+    }
+  }
+}
+
 export const libraryService = {
   async list() {
     const { db } = requireFirebaseClient();
@@ -184,11 +213,7 @@ export const libraryService = {
     if (materialType === 'worksheet' || materialType === 'test') {
       const blocks = Array.isArray(values.blocks) ? values.blocks : [];
       if (!blocks.length) throw new Error('Lisa vähemalt üks töölehe ülesanne.');
-      const incomplete = blocks.some((block) => (
-        (['text', 'fill'].includes(block.type) && !String(block.text || '').trim())
-        || (block.type === 'writing' && !String(block.task || '').trim())
-      ));
-      if (incomplete) throw new Error('Täida iga lisatud ülesande sisu.');
+      validateWorksheetBlocks(blocks);
       payload.worksheetData = {
         meta: { title, subject, level: payload.level, topic: payload.topic },
         blocks,
