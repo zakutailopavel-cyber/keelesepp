@@ -107,7 +107,8 @@ CRM v2 currently includes:
 - account, role and Firebase connection settings.
 - a staff-only learning-library route that unifies `curriculumLessons` and
   `exercises` with searchable subject, level/age and curriculum/topic folders,
-  plus UID-scoped multi-student assignment and activity logging.
+  plus UID-scoped multi-student assignment, activity logging and in-app previews
+  for structured worksheets, exercises, images and PDF files.
 
 ## Migration and deployment status
 

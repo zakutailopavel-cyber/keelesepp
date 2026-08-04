@@ -7,7 +7,7 @@ import LibraryPage from './LibraryPage.jsx';
 const data = {
   curriculumLessons: [
     { id: 'lesson-1', title: 'Pere tunnikava', description: 'Tund perest', subject: 'Eesti keel', level: 'A1', topic: 'Minu pere' },
-    { id: 'worksheet-1', title: 'Pere tööleht', subject: 'Eesti keel', level: 'A1', topic: 'Minu pere', worksheetData: { blocks: [{ type: 'fill' }] } },
+    { id: 'worksheet-1', title: 'Pere tööleht', subject: 'Eesti keel', level: 'A1', topic: 'Minu pere', worksheetData: { blocks: [{ type: 'fill', text: 'Minu [ema] nimi on Mari.' }] }, files: [{ name: 'Pere.pdf', url: 'https://files.example/Pere.pdf' }, { name: 'Perepilt.png', url: 'https://files.example/Perepilt.png' }] },
   ],
   exercises: [
     { id: 'exercise-1', title: 'Family match', subject: 'Inglise keel', level: 'A1', topic: 'My family', type: 'match' },
@@ -67,5 +67,18 @@ describe('LibraryPage', () => {
       note: 'Tee lõpuni',
       user,
     }));
+  });
+
+  it('previews worksheet content and PDF without a download action', async () => {
+    renderPage();
+    await screen.findByRole('button', { name: /Eesti keel.*2 materjali/ });
+    fireEvent.change(screen.getByLabelText('Otsi õppevara'), { target: { value: 'tööleht' } });
+    fireEvent.click(screen.getByRole('button', { name: /Pere tööleht/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Eelvaade' }));
+
+    expect(screen.getByRole('dialog', { name: 'Eelvaade: Pere tööleht' })).toHaveTextContent('Minu ema nimi on Mari.');
+    expect(screen.getByTitle('PDF: Pere.pdf')).toHaveAttribute('src', 'https://files.example/Pere.pdf#toolbar=0&navpanes=0');
+    expect(screen.getByRole('img', { name: 'Perepilt.png' })).toHaveAttribute('src', 'https://files.example/Perepilt.png');
+    expect(screen.queryByText(/Laadi alla/i)).not.toBeInTheDocument();
   });
 });
