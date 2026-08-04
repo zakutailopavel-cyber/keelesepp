@@ -103,7 +103,8 @@ CRM v2 currently includes:
 - finance overview with invoice search, status filters and balances;
 - teacher directory with current student and schedule workload;
 - homework creation, completion, filtering and deletion;
-- student-linked conversations with sending and unread counters;
+- student-linked conversations with teacher/owner scoping, atomic audited
+  sending, unread counters and automatic read-state updates;
 - account, role and Firebase connection settings.
 - a staff-only learning-library route that unifies `curriculumLessons` and
   `exercises` with searchable subject, level/age and curriculum/topic folders,
