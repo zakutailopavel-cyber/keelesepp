@@ -79,6 +79,7 @@ flags such as `isAdmin` or profile role arrays do not grant staff access.
 - `invoices` — administrator-only financial summary;
 - `homework` — assignments, deadlines and completion state;
 - `messages` — student-linked conversations;
+- `groups` — group membership, weekly lesson templates and per-student lesson assignments;
 - `securityMigrations/teacherUidV1` — UID backfill and read-enforcement state.
 
 The service preserves existing collection names and legacy field meanings. New
@@ -102,6 +103,9 @@ CRM v2 currently includes:
 - week calendar with lesson creation, conflict prevention and cancellation;
 - finance overview with invoice search, status filters and balances;
 - teacher directory with current student and schedule workload;
+- staff group directory with administrator-managed membership, weekly lesson
+  templates, teacher scoping, group events in the shared calendar and
+  occurrence-level attendance marking for every assigned student;
 - homework creation, completion, filtering and deletion;
 - in-app preview of assigned library materials and PDF/image attachments from
   the student homework view, with assignment snapshots as a resilient fallback;
@@ -116,6 +120,8 @@ CRM v2 currently includes:
   text, fill-in-the-blank and writing blocks with auditable Firebase writes;
 - staff-only material uploads to Firebase Storage with progress, validation,
   cancel cleanup and direct PDF/image preview from the saved `files` field;
+- assignment of any library item to the authoritative member list of a whole
+  group while preserving the existing per-student homework and worksheet records;
 - creation and editing of legacy-compatible interactive exercises for fill,
   choice, writing, word-order, matching, reading and translation workflows;
 - the complete legacy worksheet block set: instructions, blanks, choices,

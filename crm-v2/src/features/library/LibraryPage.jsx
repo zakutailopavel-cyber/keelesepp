@@ -15,7 +15,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal, PageHeader, Select } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
-import { libraryService, studentsService } from '../../services/firebase/index.js';
+import { groupsService, libraryService, studentsService } from '../../services/firebase/index.js';
 import { legacyUrl } from '../../utils/legacyUrls.js';
 import { ROLES } from '../../utils/roles.js';
 import {
@@ -43,32 +43,44 @@ const typeIcons = {
 const pathFields = { subject: 'libSubject', stage: 'libStage', topic: 'libTopic' };
 const defaultRepository = libraryService;
 const defaultStudentRepository = studentsService;
+const defaultGroupRepository = groupsService;
 
 function readPath(params) {
   return Object.fromEntries(Object.entries(pathFields).map(([field, parameter]) => [field, params.get(parameter) || '']));
 }
 
-function AssignmentModal({ item, user, repository, studentRepository, onClose, onAssigned }) {
+function AssignmentModal({ item, user, repository, studentRepository, groupRepository, onClose, onAssigned }) {
   const [query, setQuery] = useState('');
   const [selectedIds, setSelectedIds] = useState([]);
+  const [selectedGroup, setSelectedGroup] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [note, setNote] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const teacherOnly = user.roles.includes(ROLES.TEACHER) && !user.roles.includes(ROLES.ADMIN);
-  const state = useAsyncData(() => studentRepository.list({
-    status: 'active',
-    pageSize: 500,
-    exhaustive: true,
-    ...(teacherOnly ? { scopeTeacherUid: user.uid } : {}),
-  }), [studentRepository, teacherOnly, user.uid]);
-  const students = state.data?.items?.filter((student) => student.active && !student.convertedToParent) || [];
+  const state = useAsyncData(async () => {
+    const [studentResult, groups] = await Promise.all([
+      studentRepository.list({ status: 'active', pageSize: 500, exhaustive: true, ...(teacherOnly ? { scopeTeacherUid: user.uid } : {}) }),
+      groupRepository.list(teacherOnly ? { teacherUid: user.uid, teacherName: user.displayName } : {}),
+    ]);
+    return { students: studentResult.items, groups };
+  }, [groupRepository, studentRepository, teacherOnly, user.displayName, user.uid]);
+  const students = state.data?.students?.filter((student) => student.active && !student.convertedToParent) || [];
+  const studentGroups = state.data?.groups || [];
   const visibleStudents = students.filter((student) => `${student.name} ${student.subject} ${student.level} ${student.group || ''}`.toLocaleLowerCase('et').includes(query.toLocaleLowerCase('et')));
   const toggle = (studentId) => setSelectedIds((current) => current.includes(studentId) ? current.filter((id) => id !== studentId) : [...current, studentId]);
   const selectVisible = () => {
     const visibleIds = visibleStudents.map((student) => student.id);
     const allSelected = visibleIds.length && visibleIds.every((id) => selectedIds.includes(id));
     setSelectedIds((current) => allSelected ? current.filter((id) => !visibleIds.includes(id)) : [...new Set([...current, ...visibleIds])]);
+  };
+  const selectGroup = (groupId) => {
+    setSelectedGroup(groupId);
+    const group = studentGroups.find((item) => item.id === groupId);
+    if (group) {
+      const visibleStudentIds = new Set(students.map((student) => student.id));
+      setSelectedIds((group.students || []).filter((studentId) => visibleStudentIds.has(studentId)));
+    }
   };
   const assign = async () => {
     if (!selectedIds.length) return;
@@ -98,6 +110,7 @@ function AssignmentModal({ item, user, repository, studentRepository, onClose, o
         {state.loading ? <LoadingState label="Laen õpilasi…" /> : state.error ? <ErrorState message={state.error.message} onRetry={state.reload} /> : (
           <>
             <div className="assignment-list-head"><strong>Õpilased ({selectedIds.length} valitud)</strong><Button variant="secondary" onClick={selectVisible}>{visibleStudents.length && visibleStudents.every((student) => selectedIds.includes(student.id)) ? 'Tühista nähtavad' : 'Vali nähtavad'}</Button></div>
+            {studentGroups.length ? <Select id="assignment-group" label="Vali terve grupp" value={selectedGroup} onChange={(event) => selectGroup(event.target.value)}><option value="">Vali õpilased eraldi</option>{studentGroups.map((group) => <option value={group.id} key={group.id}>{group.name} · {(group.students || []).length} õpilast</option>)}</Select> : null}
             <div className="search-field"><Search size={17} /><input aria-label="Otsi õpilast määramiseks" placeholder="Otsi nime, aine või taseme järgi" value={query} onChange={(event) => setQuery(event.target.value)} /></div>
             <div className="assignment-students">
               {visibleStudents.map((student) => (
@@ -116,7 +129,7 @@ function AssignmentModal({ item, user, repository, studentRepository, onClose, o
   );
 }
 
-export default function LibraryPage({ repository = defaultRepository, studentRepository = defaultStudentRepository }) {
+export default function LibraryPage({ repository = defaultRepository, studentRepository = defaultStudentRepository, groupRepository = defaultGroupRepository }) {
   const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [query, setQuery] = useState('');
@@ -230,7 +243,7 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
       {previewing ? <MaterialPreview item={previewing} onClose={() => setPreviewing(null)} /> : null}
       {editing !== undefined ? <MaterialEditor item={editing} repository={repository} user={user} onClose={() => setEditing(undefined)} onSaved={(result) => { setEditing(undefined); setSuccess(`„${result.title}” ${result.created ? 'loodi' : 'salvestati'}.`); state.reload(); }} /> : null}
       {exerciseEditing !== undefined ? <ExerciseEditor item={exerciseEditing} repository={repository} user={user} onClose={() => setExerciseEditing(undefined)} onSaved={(result) => { setExerciseEditing(undefined); setSuccess(`Harjutus „${result.title}” ${result.created ? 'loodi' : 'salvestati'}.`); state.reload(); }} /> : null}
-      {assigning ? <AssignmentModal item={assigning} user={user} repository={repository} studentRepository={studentRepository} onClose={() => setAssigning(null)} onAssigned={(count) => { setAssigning(null); setSuccess(`„${assigning.title}” määrati ${count} õpilasele.`); }} /> : null}
+      {assigning ? <AssignmentModal item={assigning} user={user} repository={repository} studentRepository={studentRepository} groupRepository={groupRepository} onClose={() => setAssigning(null)} onAssigned={(count) => { setAssigning(null); setSuccess(`„${assigning.title}” määrati ${count} õpilasele.`); }} /> : null}
     </div>
   );
 }

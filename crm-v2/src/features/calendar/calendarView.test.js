@@ -1,4 +1,4 @@
-import { datesForView, eventOccursOn, filterCalendarEvents, occurrencesForDates, startOfWeek } from './calendarView.js';
+import { datesForView, eventOccursOn, filterCalendarEvents, groupCalendarEvents, occurrencesForDates, startOfWeek } from './calendarView.js';
 
 describe('calendar view helpers', () => {
   it('builds Monday-based week and six-week month grids', () => {
@@ -18,5 +18,13 @@ describe('calendar view helpers', () => {
     const events = [{ id: 'one', studentId: 's1', studentName: 'Mari', teacherUid: 't1', teacher: 'Pavel' }];
     expect(filterCalendarEvents(events, { teacher: 't1', student: 's1', search: 'mari' })).toHaveLength(1);
     expect(filterCalendarEvents(events, { search: 'Karl' })).toHaveLength(0);
+  });
+
+  it('expands legacy group lessons and respects per-student lesson selection', () => {
+    const events = groupCalendarEvents([{ id: 'group-1', name: 'A1 õhturühm', teacher: 'Õpetaja', teacherUid: 'teacher-1', students: ['student-1', 'student-2'], studentLessonMap: { 'student-1': ['lesson-1'], 'student-2': [] }, lessons: [{ id: 'lesson-1', day: 'Tue', time: '17:30', startDate: '2026-08-04' }] }]);
+    expect(events).toEqual([expect.objectContaining({ id: 'group:group-1:lesson-1', isGroup: true, studentName: 'A1 õhturühm', studentIds: ['student-1'], recurring: true })]);
+    expect(filterCalendarEvents(events, { student: 'student-1' })).toHaveLength(1);
+    expect(filterCalendarEvents(events, { student: 'student-2' })).toHaveLength(0);
+    expect(occurrencesForDates(events, ['2026-08-04'])).toHaveLength(1);
   });
 });

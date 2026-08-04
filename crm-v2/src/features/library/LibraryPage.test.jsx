@@ -23,10 +23,11 @@ function renderPage() {
     uploadFile: vi.fn().mockResolvedValue({ name: 'Uus.pdf', url: 'https://files.example/Uus.pdf', size: 1200, type: 'application/pdf', storagePath: 'curriculum/Uus.pdf' }),
     deleteUploadedFile: vi.fn().mockResolvedValue(undefined),
   };
-  const studentRepository = { list: vi.fn().mockResolvedValue({ items: [{ id: 'student-1', name: 'Mari', subject: 'Eesti keel', level: 'A1', active: true }] }) };
+  const studentRepository = { list: vi.fn().mockResolvedValue({ items: [{ id: 'student-1', name: 'Mari', subject: 'Eesti keel', level: 'A1', group: 'A1 õhturühm', active: true }, { id: 'student-2', name: 'Jaan', subject: 'Eesti keel', level: 'A1', group: 'A1 õhturühm', active: true }] }) };
+  const groupRepository = { list: vi.fn().mockResolvedValue([{ id: 'group-1', name: 'A1 õhturühm', students: ['student-1', 'student-2'] }]) };
   const user = { uid: 'teacher-1', displayName: 'Õpetaja', roles: ['teacher'] };
-  render(<MemoryRouter><AuthContext.Provider value={{ user }}><LibraryPage repository={repository} studentRepository={studentRepository} /></AuthContext.Provider></MemoryRouter>);
-  return { repository, studentRepository, user };
+  render(<MemoryRouter><AuthContext.Provider value={{ user }}><LibraryPage repository={repository} studentRepository={studentRepository} groupRepository={groupRepository} /></AuthContext.Provider></MemoryRouter>);
+  return { repository, studentRepository, groupRepository, user };
 }
 
 describe('LibraryPage', () => {
@@ -74,6 +75,21 @@ describe('LibraryPage', () => {
       note: 'Tee lõpuni',
       user,
     }));
+  });
+
+  it('selects every student in a group when assigning a material', async () => {
+    const { repository } = renderPage();
+    await screen.findByRole('button', { name: /Eesti keel.*2 materjali/ });
+    fireEvent.change(screen.getByLabelText('Otsi õppevara'), { target: { value: 'tööleht' } });
+    fireEvent.click(screen.getByRole('button', { name: /Pere tööleht/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Määra õpilastele' }));
+
+    fireEvent.change(await screen.findByLabelText('Vali terve grupp'), { target: { value: 'group-1' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Määra 2 õpilasele' }));
+
+    await waitFor(() => expect(repository.assign).toHaveBeenCalledWith(expect.objectContaining({
+      students: [expect.objectContaining({ id: 'student-1' }), expect.objectContaining({ id: 'student-2' })],
+    })));
   });
 
   it('previews worksheet content and PDF without a download action', async () => {

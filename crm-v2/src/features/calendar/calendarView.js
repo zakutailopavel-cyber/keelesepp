@@ -44,11 +44,38 @@ export function occurrencesForDates(events, dates) {
     .sort((left, right) => `${left.occurrenceDate} ${left.time}`.localeCompare(`${right.occurrenceDate} ${right.time}`, 'et'));
 }
 
+export function groupCalendarEvents(groups = []) {
+  return groups.flatMap((group) => (group.lessons || []).map((lesson) => {
+    const studentIds = (group.students || []).filter((studentId) => {
+      const selected = group.studentLessonMap?.[studentId];
+      return Array.isArray(selected) ? selected.includes(lesson.id) : true;
+    });
+    return {
+      id: `group:${group.id}:${lesson.id}`,
+      groupId: group.id,
+      groupLessonId: lesson.id,
+      isGroup: true,
+      studentName: group.name,
+      studentIds,
+      teacher: group.teacher || 'Õpetaja määramata',
+      teacherUid: group.teacherUid || '',
+      date: lesson.date || '',
+      day: lesson.day || 'Mon',
+      time: lesson.time || '09:00',
+      duration: Number(lesson.duration) || 60,
+      status: lesson.status || 'Planeeritud',
+      recurring: lesson.recurring !== false,
+      startDate: lesson.startDate || toIsoDate(),
+      attendance: lesson.attendance || {},
+    };
+  }));
+}
+
 export function filterCalendarEvents(events, filters = {}) {
   const query = String(filters.search || '').trim().toLocaleLowerCase('et');
   return events.filter((event) => {
     if (filters.teacher && event.teacherUid !== filters.teacher && event.teacher !== filters.teacher) return false;
-    if (filters.student && event.studentId !== filters.student) return false;
+    if (filters.student && event.studentId !== filters.student && !(event.studentIds || []).includes(filters.student)) return false;
     if (query && !`${event.studentName || ''} ${event.teacher || ''}`.toLocaleLowerCase('et').includes(query)) return false;
     return true;
   });
