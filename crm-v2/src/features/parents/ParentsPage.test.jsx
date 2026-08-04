@@ -20,9 +20,12 @@ function repositories() {
       updateCrm: vi.fn().mockResolvedValue(undefined),
       markReviewed: vi.fn().mockResolvedValue(undefined),
       linkStudent: vi.fn().mockResolvedValue(undefined),
+      createMissingStudent: vi.fn().mockResolvedValue(undefined),
+      mergeDuplicates: vi.fn().mockResolvedValue({ duplicateCount: 1, reassignedStudentCount: 0 }),
     },
     studentRepository: { list: vi.fn().mockResolvedValue({ items: students }) },
     invoiceRepository: { list: vi.fn().mockResolvedValue([{ id: 'invoice-1', studentId: 'student-1', amount: 40, paidAmount: 10 }]) },
+    teacherRepository: { list: vi.fn().mockResolvedValue([{ id: 'teacher-1', name: 'Õpetaja' }]) },
   };
 }
 
@@ -60,6 +63,26 @@ describe('ParentsPage', () => {
     await waitFor(() => expect(data.repository.linkStudent).toHaveBeenCalledWith(parents[0], students[1], user));
   });
 
+  it('creates a missing requested child only after an administrator selects a directory teacher', async () => {
+    const data = repositories();
+    const user = { uid: 'admin-1', displayName: 'Admin', roles: ['admin'] };
+    renderPage(user, data);
+    await screen.findAllByText('Teine Vanem');
+    const queue = screen.getByText('Uued registreeringud').closest('.parent-review-queue');
+    fireEvent.click(within(queue).getByRole('button', { name: 'Loo kaart' }));
+    const dialog = screen.getByRole('dialog', { name: 'Loo õpilase kaart: Teine Vanem' });
+    expect(within(dialog).getByLabelText('Lapse nimi')).toHaveValue('Karl');
+    expect(within(dialog).getByLabelText('Õpetaja')).toHaveValue('teacher-1');
+    fireEvent.change(within(dialog).getByLabelText('Sihttase'), { target: { value: 'A2' } });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Loo ja seo' }));
+    await waitFor(() => expect(data.repository.createMissingStudent).toHaveBeenCalledWith(
+      parents[1],
+      expect.objectContaining({ name: 'Karl', teacherUid: 'teacher-1', teacher: 'Õpetaja', targetLevel: 'A2' }),
+      students,
+      user,
+    ));
+  });
+
   it('shows a teacher only parents linked to teacher-scoped students and no finance or admin actions', async () => {
     const data = repositories();
     renderPage({ uid: 'teacher-1', displayName: 'Õpetaja', roles: ['teacher'] }, data);
@@ -67,6 +90,7 @@ describe('ParentsPage', () => {
     expect(screen.queryByText('Teine Vanem')).not.toBeInTheDocument();
     expect(data.studentRepository.list).toHaveBeenCalledWith(expect.objectContaining({ scopeTeacherUid: 'teacher-1' }));
     expect(data.invoiceRepository.list).not.toHaveBeenCalled();
+    expect(data.teacherRepository.list).not.toHaveBeenCalled();
     expect(screen.queryByText('Tasumata jääk')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Muuda/ })).not.toBeInTheDocument();
   });

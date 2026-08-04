@@ -109,6 +109,11 @@ CRM v2 currently includes:
 - parent directory with teacher-scoped visibility, administrator-only CRM
   contact editing, registration review, explicit child linking and
   administrator-only linked invoice balances;
+- administrator-only creation of a missing child card from a parent registration
+  with mandatory teacher UID selection and strict active-name duplicate blocking;
+- exact-email parent duplicate detection and reversible Firestore profile merging:
+  secondary profiles are archived, only explicit child UID links are repointed,
+  and Firebase Authentication accounts are never deleted;
 - a parent home dashboard based only on explicitly owned student records, with
   children, upcoming lessons, pending homework, invoice balance and message links;
 - homework creation, completion, filtering and deletion;

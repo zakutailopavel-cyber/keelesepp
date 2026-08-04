@@ -1,5 +1,5 @@
 import { invoiceBalanceCents } from '../students/studentFinance.js';
-import { parentReviewKey, splitChildNames } from '../../services/firebase/parents.js';
+import { normalizedParentEmail, parentReviewKey, splitChildNames } from '../../services/firebase/parents.js';
 
 const normalize = (value) => String(value || '').trim().toLocaleLowerCase('et');
 
@@ -49,4 +49,36 @@ export function filterParentRows(rows, { query = '', status = 'all' } = {}) {
     return [row.parent.displayName, row.parent.email, row.parent.phone, row.parent.parentContactOwner, row.parent.parentContactNotes, ...row.requestedNames, ...row.children.map((child) => `${child.name} ${child.teacher} ${child.subject}`)]
       .some((value) => normalize(value).includes(needle));
   });
+}
+
+export function exactParentDuplicateClusters(parents = [], students = []) {
+  const groups = new Map();
+  parents.filter((parent) => parent.active !== false).forEach((parent) => {
+    const email = normalizedParentEmail(parent.email);
+    if (!email) return;
+    if (!groups.has(email)) groups.set(email, []);
+    groups.get(email).push(parent);
+  });
+  const explicitLinks = new Map();
+  students.forEach((student) => {
+    const parentId = student.linkedParentId || student.parentUid || student.guardianUid || '';
+    if (parentId) explicitLinks.set(parentId, (explicitLinks.get(parentId) || 0) + 1);
+  });
+  const score = (parent) => (
+    (explicitLinks.get(parent.id) || 0) * 100
+    + (parent.parentReviewStatus === 'checked' ? 20 : 0)
+    + ['displayName', 'phone', 'childName', 'parentContactNotes', 'parentContactOwner'].filter((field) => String(parent[field] || '').trim()).length
+  );
+  return [...groups.entries()].filter(([, items]) => items.length > 1).map(([email, items]) => {
+    const ordered = [...items].sort((left, right) => score(right) - score(left) || String(left.id).localeCompare(String(right.id)));
+    const primary = ordered[0];
+    return {
+      key: email,
+      email,
+      primary,
+      duplicates: ordered.slice(1),
+      parents: ordered,
+      linkedStudentCount: ordered.reduce((sum, parent) => sum + (explicitLinks.get(parent.id) || 0), 0),
+    };
+  }).sort((left, right) => left.email.localeCompare(right.email, 'et', { sensitivity: 'base' }));
 }
