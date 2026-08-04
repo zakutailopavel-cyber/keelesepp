@@ -40,6 +40,12 @@ export function AuthProvider({ children, service = authService }) {
       }
     },
     signOut: () => service.signOut(),
+    updateProfile: async (values) => {
+      const user = await service.updateProfile(values);
+      setState((current) => ({ ...current, user, error: null }));
+      return user;
+    },
+    sendPasswordReset: () => service.sendPasswordReset(),
   }), [configured, service, state]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

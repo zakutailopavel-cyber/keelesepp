@@ -1,11 +1,12 @@
 import {
   GoogleAuthProvider,
   onAuthStateChanged,
+  sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
 } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { getFirebaseClient, requireFirebaseClient } from './client.js';
 import { normalizeRoles } from '../../utils/roles.js';
 
@@ -38,6 +39,15 @@ async function enrichUser(firebaseUser) {
     profile,
     roles: normalizeRoles(profile, tokenResult.claims, { email: firebaseUser.email }),
   };
+}
+
+export function normalizeOwnProfileInput(values = {}) {
+  const displayName = String(values.displayName || '').trim();
+  const phone = String(values.phone || '').trim();
+  if (!displayName) throw new Error('Nimi on kohustuslik.');
+  if (displayName.length > 160) throw new Error('Nimi võib olla kuni 160 märki.');
+  if (phone.length > 40 || (phone && phone.replace(/\D/g, '').length < 5)) throw new Error('Kontrolli telefoninumbrit.');
+  return { displayName, phone };
 }
 
 export const authService = {
@@ -82,5 +92,19 @@ export const authService = {
   async signOut() {
     const { auth } = requireFirebaseClient();
     await signOut(auth);
+  },
+  async updateProfile(values) {
+    const { auth, db } = requireFirebaseClient();
+    if (!auth.currentUser) throw new Error('Kasutajaseanss on aegunud. Logi uuesti sisse.');
+    const payload = { ...normalizeOwnProfileInput(values), updatedAt: new Date().toISOString() };
+    await setDoc(doc(db, 'users', auth.currentUser.uid), payload, { merge: true });
+    return enrichUser(auth.currentUser);
+  },
+  async sendPasswordReset() {
+    const { auth } = requireFirebaseClient();
+    const email = auth.currentUser?.email;
+    if (!email) throw new Error('Konto e-posti aadressi ei leitud.');
+    await sendPasswordResetEmail(auth, email);
+    return email;
   },
 };

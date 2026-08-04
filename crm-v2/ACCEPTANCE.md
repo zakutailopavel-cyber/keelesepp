@@ -41,6 +41,23 @@ checks. Do not archive or edit an active learner during a smoke test.
 - Sign in with an unlinked student test account and confirm the safe linking
   instruction appears without exposing another learner's data.
 
+## Finance forecast
+
+- As an administrator, open Finance and save a lesson price and weekly lesson
+  count for a test student.
+- Confirm weekly, average monthly (`weekly × 52 / 12`) and annual totals update.
+- Confirm the student's legacy `lessonPrice` and `weeklyLessons` fields match the
+  saved plan; do not change an existing versioned tariff during this check.
+- As a finance-role test account, confirm the forecast is visible but editing is
+  unavailable and the full Students collection is not queried.
+
+## Account settings
+
+- For each role, open Settings and update the current account's name or phone.
+- Confirm e-mail, UID and roles are read-only.
+- Send a password reset link and confirm it targets the signed-in account's
+  e-mail address.
+
 ## Responsive and keyboard
 
 - Repeat the list and profile smoke test at 390 px and 768 px widths.

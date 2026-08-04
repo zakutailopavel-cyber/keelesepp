@@ -77,6 +77,9 @@ flags such as `isAdmin` or profile role arrays do not grant staff access.
 - `schedule` — student schedule entries;
 - `lessons` — completed lesson history and progress evidence;
 - `invoices` — administrator-only financial summary;
+- `studentRevenuePlans` — finance-safe student name, lesson price and weekly
+  volume projection; readable by administrator and finance roles, writable only
+  by administrators;
 - `homework` — assignments, deadlines and completion state;
 - `messages` — student-linked conversations;
 - `groups` — group membership, weekly lesson templates and per-student lesson assignments;
@@ -102,6 +105,9 @@ CRM v2 currently includes:
 - a real-data dashboard with upcoming lessons and attention queues;
 - week calendar with lesson creation, conflict prevention and cancellation;
 - finance overview with invoice search, status filters and balances;
+- per-student lesson price and weekly lesson planning with weekly, average
+  monthly and annual revenue forecasts; the legacy `lessonPrice` fallback is
+  updated atomically while versioned tariffs remain authoritative for billing;
 - teacher directory with current student and schedule workload;
 - staff group directory with administrator-managed membership, weekly lesson
   templates, teacher scoping, group events in the shared calendar and
@@ -125,6 +131,8 @@ CRM v2 currently includes:
 - student-linked conversations with teacher/owner scoping, atomic audited
   sending, unread counters and automatic read-state updates;
 - account, role and Firebase connection settings.
+- self-service account contact editing and current-session password reset links
+  for every authenticated role, without exposing role or e-mail mutation;
 - a staff-only learning-library route that unifies `curriculumLessons` and
   `exercises` with searchable subject, level/age and curriculum/topic folders,
   plus UID-scoped multi-student assignment, activity logging and in-app previews

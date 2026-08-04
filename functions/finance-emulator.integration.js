@@ -100,6 +100,17 @@ test("finance role can read invoices without gaining student or mutation access"
       name: "Private Student",
       active: true,
     }),
+    db.collection("studentRevenuePlans").doc("finance-private-student").set({
+      studentId: "finance-private-student",
+      studentName: "Private Student",
+      lessonPriceCents: 2500,
+      weeklyLessons: 2,
+      currency: "EUR",
+      active: true,
+      updatedAt: "2026-08-04T12:00:00.000Z",
+      updatedBy: "Admin",
+      updatedByUid: "seed-admin",
+    }),
   ]);
 
   const invoiceList = await firestoreQueryRequest(financeToken, "invoices");
@@ -113,6 +124,18 @@ test("finance role can read invoices without gaining student or mutation access"
   );
   assert.equal(studentRead.status, 403, JSON.stringify(studentRead.body));
 
+  const forecastList = await firestoreQueryRequest(financeToken, "studentRevenuePlans");
+  assert.equal(forecastList.status, 200, JSON.stringify(forecastList.body));
+  assert.ok(forecastList.body.some(item => item.document?.name.endsWith("/studentRevenuePlans/finance-private-student")));
+
+  const forecastMutation = await firestoreDocumentRequest(
+    financeToken,
+    "PATCH",
+    "studentRevenuePlans/finance-private-student?updateMask.fieldPaths=weeklyLessons",
+    { fields: { weeklyLessons: { integerValue: "3" } } },
+  );
+  assert.equal(forecastMutation.status, 403, JSON.stringify(forecastMutation.body));
+
   const invoiceMutation = await firestoreDocumentRequest(
     financeToken,
     "PATCH",
@@ -120,6 +143,27 @@ test("finance role can read invoices without gaining student or mutation access"
     { fields: { status: { stringValue: "Makstud" } } },
   );
   assert.equal(invoiceMutation.status, 403, JSON.stringify(invoiceMutation.body));
+
+  const adminToken = await createAdminToken();
+  const adminForecastWrite = await firestoreDocumentRequest(
+    adminToken,
+    "PATCH",
+    "studentRevenuePlans/admin-forecast-student",
+    {
+      fields: {
+        studentId: { stringValue: "admin-forecast-student" },
+        studentName: { stringValue: "Admin Forecast Student" },
+        lessonPriceCents: { integerValue: "3000" },
+        weeklyLessons: { doubleValue: 1.5 },
+        currency: { stringValue: "EUR" },
+        active: { booleanValue: true },
+        updatedAt: { stringValue: "2026-08-04T12:00:00.000Z" },
+        updatedBy: { stringValue: "Admin" },
+        updatedByUid: { stringValue: tokenUid(adminToken) },
+      },
+    },
+  );
+  assert.equal(adminForecastWrite.status, 200, JSON.stringify(adminForecastWrite.body));
 });
 
 async function firestoreDocumentRequest(token, method, documentPath, body) {

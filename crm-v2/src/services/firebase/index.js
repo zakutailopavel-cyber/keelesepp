@@ -8,6 +8,7 @@ export { homeworkService } from './homework.js';
 export { lessonsService } from './lessons.js';
 export { messagesService } from './messages.js';
 export { paymentsService } from './payments.js';
+export { revenuePlansService } from './revenuePlans.js';
 export { parentsService } from './parents.js';
 export { scheduleService } from './schedule.js';
 export { studentsService } from './students.js';

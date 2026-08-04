@@ -31,3 +31,21 @@ export function displayDate(value) {
   const date = raw instanceof Date ? raw : new Date(String(raw).length === 10 ? `${raw}T12:00:00` : raw);
   return Number.isNaN(date.getTime()) ? String(raw) : new Intl.DateTimeFormat('et-EE', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(date);
 }
+
+export function revenueForecast(plans = []) {
+  const rows = plans.filter((plan) => plan.active !== false && Number(plan.lessonPriceCents) > 0 && Number(plan.weeklyLessons) > 0).map((plan) => {
+    const weeklyCents = Math.round(Number(plan.lessonPriceCents) * Number(plan.weeklyLessons));
+    return {
+      ...plan,
+      weeklyCents,
+      monthlyCents: Math.round(weeklyCents * 52 / 12),
+      annualCents: weeklyCents * 52,
+    };
+  }).sort((left, right) => right.monthlyCents - left.monthlyCents || left.studentName.localeCompare(right.studentName, 'et'));
+  return {
+    rows,
+    weeklyCents: rows.reduce((sum, row) => sum + row.weeklyCents, 0),
+    monthlyCents: rows.reduce((sum, row) => sum + row.monthlyCents, 0),
+    annualCents: rows.reduce((sum, row) => sum + row.annualCents, 0),
+  };
+}

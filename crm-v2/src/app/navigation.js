@@ -16,4 +16,4 @@ export const navigation = [
   { to: '/messages', label: 'Sõnumid', icon: MessageSquareText, roles: [ROLES.ADMIN, ROLES.TEACHER, ROLES.STUDENT, ROLES.PARENT] },
 ];
 
-export const settingsNavigation = { to: '/settings', label: 'Seaded', icon: Settings, roles: [ROLES.ADMIN] };
+export const settingsNavigation = { to: '/settings', label: 'Seaded', icon: Settings, roles: Object.values(ROLES) };

@@ -39,7 +39,8 @@ export default function AppRoutes() {
             <Route path="library" element={<LibraryPage />} />
             <Route path="parents" element={<ParentsPage />} />
           </Route>
-          <Route element={<ProtectedRoute roles={[ROLES.ADMIN]} />}><Route path="teachers" element={<TeachersPage />} /><Route path="teachers/:teacherId" element={<TeacherProfilePage />} /><Route path="settings" element={<SettingsPage />} /></Route>
+          <Route element={<ProtectedRoute roles={[ROLES.ADMIN]} />}><Route path="teachers" element={<TeachersPage />} /><Route path="teachers/:teacherId" element={<TeacherProfilePage />} /></Route>
+          <Route path="settings" element={<SettingsPage />} />
           <Route path="homework" element={<HomeworkPage />} />
           <Route path="messages" element={<MessagesPage />} />
           <Route element={<ProtectedRoute roles={[ROLES.PARENT]} />}><Route path="parent" element={<ParentDashboardPage />} /></Route>

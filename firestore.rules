@@ -856,6 +856,47 @@ service cloud.firestore {
       allow create, update, delete: if false;
     }
 
+    match /studentRevenuePlans/{studentId} {
+      allow read: if isAdmin() || isFinance();
+      allow create, update: if isAdmin()
+        && request.resource.data.keys().hasOnly([
+          'studentId',
+          'studentName',
+          'lessonPriceCents',
+          'weeklyLessons',
+          'currency',
+          'active',
+          'updatedAt',
+          'updatedBy',
+          'updatedByUid'
+        ])
+        && request.resource.data.keys().hasAll([
+          'studentId',
+          'studentName',
+          'lessonPriceCents',
+          'weeklyLessons',
+          'currency',
+          'active',
+          'updatedAt',
+          'updatedByUid'
+        ])
+        && request.resource.data.studentId == studentId
+        && request.resource.data.studentName is string
+        && request.resource.data.studentName.size() > 0
+        && request.resource.data.studentName.size() <= 160
+        && request.resource.data.lessonPriceCents is int
+        && request.resource.data.lessonPriceCents > 0
+        && request.resource.data.lessonPriceCents <= 1000000
+        && request.resource.data.weeklyLessons is number
+        && request.resource.data.weeklyLessons >= 0.5
+        && request.resource.data.weeklyLessons <= 50
+        && request.resource.data.currency == 'EUR'
+        && request.resource.data.active == true
+        && request.resource.data.updatedAt is string
+        && request.resource.data.updatedByUid == uid();
+      allow delete: if isAdmin();
+    }
+
     match /packageProducts/{productId} {
       allow read: if isAdmin();
       allow create, update, delete: if false;
