@@ -31,6 +31,7 @@ import { useAsyncData } from "../../hooks/useAsyncData.js";
 import {
   bankTransactionsService,
   financeApi,
+  financialPeriodsService,
   invoiceDeliveryApi,
   invoicesService,
   lessonsService,
@@ -51,6 +52,7 @@ import {
 } from "./finance.js";
 import LessonAccountingPanel from "./LessonAccountingPanel.jsx";
 import BankReconciliationPanel from "./BankReconciliationPanel.jsx";
+import FinancialPeriodPanel from "./FinancialPeriodPanel.jsx";
 import "./financeWorkspace.css";
 
 const money = (value) =>
@@ -111,11 +113,12 @@ export default function FinancePage({
   studentRepository = studentsService,
   lessonRepository = lessonsService,
   bankRepository = bankTransactionsService,
+  periodRepository = financialPeriodsService,
 }) {
   const { user } = useAuth();
   const canRegisterPayment = hasAnyRole(user.roles, [ROLES.ADMIN]);
   const state = useAsyncData(async () => {
-    const [invoices, plans, students, lessons, bankTransactions] =
+    const [invoices, plans, students, lessons, bankTransactions, periods] =
       await Promise.all([
         invoiceRepository.list(),
         planRepository.list(),
@@ -130,6 +133,7 @@ export default function FinancePage({
           ? lessonRepository.listForBilling()
           : Promise.resolve([]),
         canRegisterPayment ? bankRepository.list() : Promise.resolve([]),
+        canRegisterPayment ? periodRepository.list() : Promise.resolve([]),
       ]);
     return {
       invoices,
@@ -137,6 +141,7 @@ export default function FinancePage({
       students: students.items,
       lessons,
       bankTransactions,
+      periods,
     };
   }, [
     bankRepository,
@@ -144,6 +149,7 @@ export default function FinancePage({
     invoiceRepository,
     lessonRepository,
     planRepository,
+    periodRepository,
     studentRepository,
   ]);
   const [query, setQuery] = useState("");
@@ -309,6 +315,10 @@ export default function FinancePage({
   };
   const allocateBankTransaction = (transaction) =>
     financeRepository.allocateBankTransaction(transaction);
+  const previewFinancialPeriod = (month) =>
+    financeRepository.previewFinancialPeriod(month);
+  const reviewFinancialPeriod = (month) =>
+    financeRepository.reviewFinancialPeriod(month);
   const deliverInvoice = async (mode) => {
     setDeliveryBusy(mode);
     setActionError("");
@@ -357,7 +367,8 @@ export default function FinancePage({
   if (state.loading) return <LoadingState label="Laen finantsandmeid…" />;
   if (state.error)
     return <ErrorState message={state.error.message} onRetry={state.reload} />;
-  const { invoices, plans, students, lessons, bankTransactions } = state.data;
+  const { invoices, plans, students, lessons, bankTransactions, periods } =
+    state.data;
   const forecast = revenueForecast(plans);
   const paid = invoices.reduce((sum, item) => sum + invoicePaidCents(item), 0);
   const balance = invoices.reduce(
@@ -447,6 +458,14 @@ export default function FinancePage({
           students={students}
           transactions={bankTransactions}
           onAllocate={allocateBankTransaction}
+          onReload={state.reload}
+        />
+      ) : null}
+      {canRegisterPayment ? (
+        <FinancialPeriodPanel
+          periods={periods}
+          onPreview={previewFinancialPeriod}
+          onReview={reviewFinancialPeriod}
           onReload={state.reload}
         />
       ) : null}

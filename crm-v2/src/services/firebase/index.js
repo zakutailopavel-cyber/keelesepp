@@ -1,6 +1,7 @@
 export { authService } from './auth.js';
 export { bankTransactionsService } from './bankTransactions.js';
 export { financeApi, invoiceDeliveryApi } from './financeApi.js';
+export { financialPeriodsService } from './financialPeriods.js';
 export { getFirebaseClient, isFirebaseConfigured } from './client.js';
 export { groupsService } from './groups.js';
 export { invoicesService } from './invoices.js';

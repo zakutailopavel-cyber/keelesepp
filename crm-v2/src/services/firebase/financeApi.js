@@ -94,6 +94,15 @@ export const financeApi = {
       requestId: transaction.requestId || financeRequestId('bank'),
     });
   },
+  previewFinancialPeriod(month) {
+    return post('/financial-periods/preview', { month });
+  },
+  reviewFinancialPeriod(month) {
+    return post('/financial-periods/review', {
+      month,
+      requestId: financeRequestId(`period_${month}`),
+    });
+  },
 };
 
 export const invoiceDeliveryApi = {

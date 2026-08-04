@@ -2405,6 +2405,31 @@ async function savePaymentLineAllocation({
   });
 }
 
+async function previewFinancialPeriod({ month }) {
+  const reviewMonth = validIsoMonth(month);
+  const [invoiceSnap, paymentSnap, bankSnap, creditSnap, lessonSnap, lineAllocationSnap] =
+    await Promise.all([
+      db.collection("invoices").get(),
+      db.collection("payments").get(),
+      db.collection("bankTransactions").get(),
+      db.collection("payerCredits").get(),
+      db.collection("lessons").get(),
+      db.collection("paymentLineAllocations").get(),
+    ]);
+  const withIds = snapshot => snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  return {
+    snapshot: financialPeriodReviewSnapshot({
+      month: reviewMonth,
+      invoices: withIds(invoiceSnap),
+      payments: withIds(paymentSnap),
+      bankTransactions: withIds(bankSnap),
+      payerCredits: withIds(creditSnap),
+      lessons: withIds(lessonSnap),
+      paymentLineAllocations: withIds(lineAllocationSnap),
+    }),
+  };
+}
+
 async function reviewFinancialPeriod({ actor, month, requestId }) {
   const reviewMonth = validIsoMonth(month);
   const mutationId = cleanRequestId(requestId);
@@ -2428,6 +2453,7 @@ async function reviewFinancialPeriod({ actor, month, requestId }) {
       invoiceSnap,
       paymentSnap,
       bankSnap,
+      creditSnap,
       lessonSnap,
       lineAllocationSnap,
     ] = await Promise.all([
@@ -2435,6 +2461,7 @@ async function reviewFinancialPeriod({ actor, month, requestId }) {
       transaction.get(db.collection("invoices")),
       transaction.get(db.collection("payments")),
       transaction.get(db.collection("bankTransactions")),
+      transaction.get(db.collection("payerCredits")),
       transaction.get(db.collection("lessons")),
       transaction.get(db.collection("paymentLineAllocations")),
     ]);
@@ -2444,6 +2471,7 @@ async function reviewFinancialPeriod({ actor, month, requestId }) {
       invoices: withIds(invoiceSnap),
       payments: withIds(paymentSnap),
       bankTransactions: withIds(bankSnap),
+      payerCredits: withIds(creditSnap),
       lessons: withIds(lessonSnap),
       paymentLineAllocations: withIds(lineAllocationSnap),
     });
@@ -4954,6 +4982,11 @@ exports.financeApi = functions.https.onRequest(async (req, res) => {
         requestId: req.body?.requestId,
       });
       res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/financial-periods/preview") {
+      const result = await previewFinancialPeriod({ month: req.body?.month });
+      res.json(result);
       return;
     }
     if (req.path === "/financial-periods/review") {

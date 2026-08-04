@@ -190,6 +190,7 @@ function financialPeriodReviewSnapshot({
   invoices = [],
   payments = [],
   bankTransactions = [],
+  payerCredits = [],
   lessons = [],
   paymentLineAllocations = [],
 } = {}) {
@@ -197,6 +198,7 @@ function financialPeriodReviewSnapshot({
   const invoiceList = Array.isArray(invoices) ? invoices : [];
   const paymentList = Array.isArray(payments) ? payments : [];
   const bankList = Array.isArray(bankTransactions) ? bankTransactions : [];
+  const creditList = Array.isArray(payerCredits) ? payerCredits : [];
   const lessonList = Array.isArray(lessons) ? lessons : [];
   const allocationList = Array.isArray(paymentLineAllocations) ? paymentLineAllocations : [];
   const allocationById = new Map(
@@ -207,6 +209,11 @@ function financialPeriodReviewSnapshot({
   );
   const lessonById = new Map(
     lessonList.filter(item => item?.id).map(item => [String(item.id), item]),
+  );
+  const creditByBankTransaction = new Map(
+    creditList
+      .filter(item => item?.bankTransactionId)
+      .map(item => [String(item.bankTransactionId), item]),
   );
   const periodLessons = lessonList.filter(lesson => recordMonth(lesson?.date) === reviewMonth);
   const periodLessonIds = new Set(periodLessons.map(lesson => String(lesson.id || "")).filter(Boolean));
@@ -481,6 +488,7 @@ function financialPeriodReviewSnapshot({
   const periodBanks = bankList.filter(transaction =>
     recordMonth(transaction?.paidAt || transaction?.createdAt) === reviewMonth,
   );
+  let bankAdvanceCents = 0;
   periodBanks.forEach(transaction => {
     const amountCents = nonNegativeCents(transaction, "amountCents", "amount");
     const allocatedCents = nonNegativeCents(transaction, "allocatedAmountCents", "allocatedAmount");
@@ -493,7 +501,12 @@ function financialPeriodReviewSnapshot({
         `amount:${amountCents};allocated:${allocatedCents};unapplied:${unappliedCents}`,
       );
     } else if (unappliedCents > 0) {
-      addIssue("bank_unapplied", "attention", transaction.id, `unapplied:${unappliedCents}`);
+      const credit = creditByBankTransaction.get(String(transaction.id || ""));
+      const advanceCents = credit
+        ? nonNegativeCents(credit, "originalAmountCents", "originalAmount")
+        : 0;
+      if (advanceCents === unappliedCents) bankAdvanceCents += advanceCents;
+      else addIssue("bank_unapplied", "attention", transaction.id, `unapplied:${unappliedCents}`);
     }
   });
 
@@ -519,6 +532,7 @@ function financialPeriodReviewSnapshot({
     bankTransactionCount: periodBanks.length,
     bankReceivedCents,
     bankUnappliedCents,
+    bankAdvanceCents,
     lessonCount: periodLessons.length,
     exactLessonLinkCount: exactLessonIds.size,
     unbilledLessonCount,

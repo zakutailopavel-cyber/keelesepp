@@ -81,6 +81,19 @@ checks. Do not archive or edit an active learner during a smoke test.
 - Sign in with a non-administrator finance account and confirm bank transactions,
   student profiles and import controls are not queried or displayed.
 
+## Monthly financial review
+
+- Select the previous month and run the financial-period check; confirm lesson,
+  invoice, payment, bank and advance totals match the underlying records.
+- Confirm an unbilled lesson, broken invoice link or unexplained bank balance is
+  listed with a concrete correction hint and blocks the review action.
+- Confirm an overpayment backed by a `payerCredits` record is reported as an
+  advance and does not block the month by itself.
+- Export the report and open the UTF-8 semicolon CSV in a spreadsheet; confirm
+  totals and issue rows are readable without manual column splitting.
+- Resolve blocking differences, rerun the check and mark the month reviewed;
+  confirm `financialPeriods/{YYYY-MM}` stores a new review version and audit link.
+
 ## Account settings
 
 - For each role, open Settings and update the current account's name or phone.

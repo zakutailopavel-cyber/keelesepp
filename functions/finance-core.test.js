@@ -274,6 +274,30 @@ test("financial period review blocks unbilled lessons, unmatched bank money, and
   assert.equal(snapshot.summary.blockingIssueCount, 3);
 });
 
+test("financial period accepts an unapplied bank balance recorded as a student advance", () => {
+  const snapshot = financialPeriodReviewSnapshot({
+    month: "2026-07",
+    bankTransactions: [{
+      id: "bank-advance",
+      paidAt: "2026-07-04",
+      amountCents: 5000,
+      allocatedAmountCents: 3000,
+      unappliedAmountCents: 2000,
+    }],
+    payerCredits: [{
+      id: "credit-advance",
+      bankTransactionId: "bank-advance",
+      originalAmountCents: 2000,
+      availableAmountCents: 2000,
+      status: "open",
+    }],
+  });
+  assert.equal(snapshot.canReview, true);
+  assert.equal(snapshot.summary.bankAdvanceCents, 2000);
+  assert.equal(snapshot.summary.bankUnappliedCents, 2000);
+  assert.equal(snapshot.issues.some(issue => issue.type === "bank_unapplied"), false);
+});
+
 test("financial period accepts an audited lesson payment without an invoice", () => {
   const snapshot = financialPeriodReviewSnapshot({
     month: "2026-07",

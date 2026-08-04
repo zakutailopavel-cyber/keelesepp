@@ -118,6 +118,9 @@ CRM v2 currently includes:
 - administrator bank-statement CSV import with automatic invoice matching,
   idempotent transaction allocation, partial-payment handling and student
   advances for any unapplied balance;
+- administrator monthly financial review that reconciles lessons, invoice lines,
+  payments, bank transactions and audited student advances, blocks confirmation
+  on unresolved differences and exports an Excel-friendly CSV report;
 - teacher directory with current student and schedule workload;
 - staff group directory with administrator-managed membership, weekly lesson
   templates, teacher scoping, group events in the shared calendar and

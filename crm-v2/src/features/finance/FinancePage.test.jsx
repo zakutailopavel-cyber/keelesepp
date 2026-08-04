@@ -18,16 +18,17 @@ const invoice = {
   lines: [{ lessonId: 'lesson-1', date: '2026-07-30', description: 'Keeletund 2026-07-30', amountCents: 12000 }],
 };
 
-function renderPage(financeRepository = { recordPayment: vi.fn().mockResolvedValue({}), createInvoiceFromLessons: vi.fn().mockResolvedValue({}), setLessonBillingDisposition: vi.fn().mockResolvedValue({}), creditInvoiceLessonLine: vi.fn().mockResolvedValue({}), allocateBankTransaction: vi.fn().mockResolvedValue({}) }, deliveryRepository = { send: vi.fn().mockResolvedValue({}), remind: vi.fn().mockResolvedValue({}) }) {
+function renderPage(financeRepository = { recordPayment: vi.fn().mockResolvedValue({}), createInvoiceFromLessons: vi.fn().mockResolvedValue({}), setLessonBillingDisposition: vi.fn().mockResolvedValue({}), creditInvoiceLessonLine: vi.fn().mockResolvedValue({}), allocateBankTransaction: vi.fn().mockResolvedValue({}), previewFinancialPeriod: vi.fn().mockResolvedValue({ snapshot: { month: '2026-07', canReview: true, summary: {}, issues: [] } }), reviewFinancialPeriod: vi.fn().mockResolvedValue({}) }, deliveryRepository = { send: vi.fn().mockResolvedValue({}), remind: vi.fn().mockResolvedValue({}) }) {
   const invoiceRepository = { list: vi.fn().mockResolvedValue([invoice]) };
   const paymentRepository = { listByInvoice: vi.fn().mockResolvedValue([{ id: 'payment-1', amountCents: 4000, paidAt: '2026-08-03', method: 'bank', status: 'active' }]) };
   const planRepository = { list: vi.fn().mockResolvedValue([{ id: 'student-1', studentId: 'student-1', studentName: 'Sofia Tamm', lessonPriceCents: 2500, weeklyLessons: 2, active: true }]), save: vi.fn().mockResolvedValue({}) };
   const studentRepository = { list: vi.fn().mockResolvedValue({ items: [{ id: 'student-1', name: 'Sofia Tamm', lessonPrice: 25, weeklyLessons: 2, active: true }] }) };
   const lessonRepository = { listForBilling: vi.fn().mockResolvedValue([{ id: 'lesson-1', studentId: 'student-1', studentName: 'Sofia Tamm', date: '2026-08-02', status: 'Toimunud' }]) };
   const bankRepository = { list: vi.fn().mockResolvedValue([]) };
+  const periodRepository = { list: vi.fn().mockResolvedValue([]) };
   const user = { uid: 'admin-1', displayName: 'Admin', roles: ['admin'] };
-  render(<MemoryRouter><AuthContext.Provider value={{ user }}><FinancePage invoiceRepository={invoiceRepository} paymentRepository={paymentRepository} financeRepository={financeRepository} deliveryRepository={deliveryRepository} planRepository={planRepository} studentRepository={studentRepository} lessonRepository={lessonRepository} bankRepository={bankRepository} /></AuthContext.Provider></MemoryRouter>);
-  return { financeRepository, deliveryRepository, invoiceRepository, paymentRepository, planRepository, studentRepository, lessonRepository, bankRepository, user };
+  render(<MemoryRouter><AuthContext.Provider value={{ user }}><FinancePage invoiceRepository={invoiceRepository} paymentRepository={paymentRepository} financeRepository={financeRepository} deliveryRepository={deliveryRepository} planRepository={planRepository} studentRepository={studentRepository} lessonRepository={lessonRepository} bankRepository={bankRepository} periodRepository={periodRepository} /></AuthContext.Provider></MemoryRouter>);
+  return { financeRepository, deliveryRepository, invoiceRepository, paymentRepository, planRepository, studentRepository, lessonRepository, bankRepository, periodRepository, user };
 }
 
 describe('FinancePage', () => {
@@ -131,13 +132,45 @@ describe('FinancePage', () => {
     expect(await screen.findByRole('status')).toHaveTextContent('edukalt seotud');
   });
 
+  it('previews a reconciled month and records its financial review', async () => {
+    const snapshot = {
+      month: '2026-07',
+      canReview: true,
+      summary: {
+        lessonCount: 4,
+        unbilledLessonCount: 0,
+        invoiceCount: 2,
+        issuedCents: 10000,
+        bankReceivedCents: 10000,
+        bankTransactionCount: 2,
+        blockingIssueCount: 0,
+        warningCount: 0,
+        bankAdvanceCents: 0,
+      },
+      issues: [],
+    };
+    const financeRepository = {
+      previewFinancialPeriod: vi.fn().mockResolvedValue({ snapshot }),
+      reviewFinancialPeriod: vi.fn().mockResolvedValue({ review: { month: '2026-07' } }),
+    };
+    renderPage(financeRepository);
+    await screen.findByText('Finantsperioodi võrdlus');
+    fireEvent.click(screen.getByRole('button', { name: /Kontrolli kuu/ }));
+    expect(await screen.findByText('Kuu andmed on omavahel kooskõlas')).toBeInTheDocument();
+    expect(financeRepository.previewFinancialPeriod).toHaveBeenCalledWith(expect.stringMatching(/^\d{4}-\d{2}$/));
+    fireEvent.click(screen.getByRole('button', { name: /Märgi kontrollituks/ }));
+    await waitFor(() => expect(financeRepository.reviewFinancialPeriod).toHaveBeenCalled());
+    expect(await screen.findByRole('status')).toHaveTextContent('kontrollituks märgitud');
+  });
+
   it('lets finance view the limited forecast projection without loading student profiles', async () => {
     const user = { uid: 'finance-1', displayName: 'Finants', roles: ['finance'] };
     const invoiceRepository = { list: vi.fn().mockResolvedValue([]) };
     const planRepository = { list: vi.fn().mockResolvedValue([{ id: 'student-1', studentId: 'student-1', studentName: 'Sofia Tamm', lessonPriceCents: 2500, weeklyLessons: 2, active: true }]) };
     const studentRepository = { list: vi.fn() };
     const bankRepository = { list: vi.fn() };
-    render(<MemoryRouter><AuthContext.Provider value={{ user }}><FinancePage invoiceRepository={invoiceRepository} paymentRepository={{}} financeRepository={{}} planRepository={planRepository} studentRepository={studentRepository} bankRepository={bankRepository} /></AuthContext.Provider></MemoryRouter>);
+    const periodRepository = { list: vi.fn() };
+    render(<MemoryRouter><AuthContext.Provider value={{ user }}><FinancePage invoiceRepository={invoiceRepository} paymentRepository={{}} financeRepository={{}} planRepository={planRepository} studentRepository={studentRepository} bankRepository={bankRepository} periodRepository={periodRepository} /></AuthContext.Provider></MemoryRouter>);
 
     expect(await screen.findByText('Planeeritud tunnitulu')).toBeInTheDocument();
     expect(screen.getByText('Sofia Tamm')).toBeInTheDocument();
@@ -145,5 +178,6 @@ describe('FinancePage', () => {
     expect(screen.queryByRole('button', { name: 'Muuda' })).not.toBeInTheDocument();
     expect(studentRepository.list).not.toHaveBeenCalled();
     expect(bankRepository.list).not.toHaveBeenCalled();
+    expect(periodRepository.list).not.toHaveBeenCalled();
   });
 });
