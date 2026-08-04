@@ -5,22 +5,22 @@ checks. Do not archive or edit an active learner during a smoke test.
 
 ## Verification status — 4 August 2026
 
-- Automated release gate is green: 57 CRM test files / 229 tests, 94 Functions
+- Automated release gate is green: 57 CRM test files / 230 tests, 94 Functions
   tests, ESLint, Vite production build, Firestore Rules compilation and the full
   isolated financial emulator suite.
 - Read-only production QA with the existing `teacher, admin` session passed for
   the Students list and one student profile at 390 px and 768 px: no horizontal
   page overflow was detected.
 - The student modal focuses its close button, closes with Escape and restores
-  focus to `Lisa õpilane`. The required-name error is linked to the field with
-  `aria-describedby` and `aria-invalid`.
+  focus to `Lisa õpilane`. Field errors are linked through `aria-describedby`
+  and `aria-invalid` and announced through an alert live region.
 - A separate teacher-only, student, parent and finance session was not available
   during this run. Strict `teacherUid` read enforcement therefore remains off;
   do not enable it until the role checks below pass with real dedicated accounts.
-- Production frontend is still on UI commit `d8c7817` because Vercel rejected
-  later deploys at the Free-plan daily deployment limit. The newer period-close
-  and analytics UI is verified by tests/build but still needs a production deploy
-  and read-only visual smoke test after the quota resets.
+- Production now serves the same `index-CiZjI8b8.js` asset produced by the green
+  local build. The published bundle contains the period-close and financial
+  analytics UI. Keep close/export actions read-only on real accounting periods;
+  destructive close smoke checks still belong in an isolated test period.
 
 ## Anonymous and routing
 

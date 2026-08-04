@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import Button from './Button.jsx';
 import Input from './Input.jsx';
 import Modal from './Modal.jsx';
+import Select from './Select.jsx';
 
 describe('shared UI safety and accessibility', () => {
   it('does not submit a form unless the button explicitly opts in', () => {
@@ -15,7 +16,14 @@ describe('shared UI safety and accessibility', () => {
     render(<Input label="E-post" name="email" error="Kontrolli aadressi" />);
     const input = screen.getByLabelText('E-post');
     expect(input).toHaveAttribute('aria-describedby', 'email-error');
-    expect(screen.getByText('Kontrolli aadressi')).toHaveAttribute('id', 'email-error');
+    expect(screen.getByRole('alert')).toHaveAttribute('id', 'email-error');
+  });
+
+  it('announces a select error and associates it with the control', () => {
+    render(<Select label="Tase" name="level" error="Vali tase"><option value="">Määramata</option></Select>);
+    const select = screen.getByLabelText('Tase');
+    expect(select).toHaveAttribute('aria-describedby', 'level-error');
+    expect(screen.getByRole('alert')).toHaveTextContent('Vali tase');
   });
 
   it('moves focus into a modal and closes it with Escape', () => {

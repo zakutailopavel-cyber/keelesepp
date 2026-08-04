@@ -210,7 +210,7 @@ KeeleSepp CRM v2 заменяет старую CRM по модулям, без �
 - drill-down от задолженности к исходному счёту;
 - unit/component/full-emulator test coverage.
 
-Предыдущий опубликованный UI-коммит на Vercel: `d8c7817 feat: add audited expense register`.
+Предыдущий UI-коммит до снятия quota-блокера: `d8c7817 feat: add audited expense register`.
 
 Состояние публикации:
 
@@ -218,14 +218,14 @@ KeeleSepp CRM v2 заменяет старую CRM по модулям, без �
 - Firebase `financeApi` с закрытием периода и аналитикой, а также Firestore Rules успешно задеплоены 04.08.2026;
 - GitHub Actions `CRM v2` run `30946649775` и `Financial Core emulator` run `30946649492` завершились успешно;
 - emulator проверяет review → export → close → locked write rejection → dated correction и read-only analytics endpoint;
-- frontend локально полностью проверен и собирается, но Vercel не принял новый deploy из-за лимита Free plan `more than 100 deployments per day`;
-- последний Vercel production bundle пока остаётся на `d8c7817`, поэтому UI закрытия месяца и аналитики ещё не видны на production;
-- после сброса лимита повторить deploy `keelesepp-crm-v2` из корня репозитория с project root `crm-v2`, затем выполнить только read-only production preview; реальные месяцы ради smoke test не закрывать.
+- Vercel deployment `dpl_HdfDScttgKYqjMxXwgpnMxcNHQEb` опубликован 04.08.2026 в 23:10 Europe/Tallinn и имеет статус `Ready` с alias `https://keelesepp-crm-v2.vercel.app`;
+- production отдаёт `index-CiZjI8b8.js`, совпадающий с asset-хэшем повторной зелёной локальной сборки; в bundle подтверждены строки `Sulge kuu`, `Finantsanalüütika` и `Rahavoog`;
+- UI закрытия месяца и аналитики теперь опубликован; production smoke должен оставаться read-only, реальные месяцы ради проверки не закрывать.
 
 Последняя полная проверка:
 
 ```text
-CRM v2: 57 test files, 229 tests passed
+CRM v2: 57 test files, 230 tests passed
 Functions: 94 tests passed
 Financial Core emulator: 20 integration tests passed in CI
 ESLint: passed
@@ -239,9 +239,9 @@ Read-only production QA 04.08.2026:
 - в Chrome доступна только совмещённая роль `teacher, admin`; отдельных teacher/student/parent/finance сессий нет;
 - `/students` и одна карточка ученика проверены на 390 px и 768 px, horizontal overflow отсутствует;
 - модальное окно добавления ученика получает фокус, закрывается Escape и возвращает фокус на `Lisa õpilane`;
-- обязательное имя помечается `aria-invalid` и связано с текстом ошибки через `aria-describedby`;
+- ошибки общих Input/Select помечаются `aria-invalid`, связаны через `aria-describedby` и после accessibility-fix объявляются как `role="alert"`;
 - strict teacher read enforcement намеренно не включён, потому что совмещённая admin-сессия не доказывает отсутствие утечки в teacher-only роли;
-- production `/finance` всё ещё показывает bundle `d8c7817`; backend закрытия и аналитики уже опубликован, но новый UI ждёт сброса Vercel quota.
+- production shell, список и карточка ученика проверялись уже на опубликованном asset `index-CiZjI8b8.js`; bundle закрытия и аналитики подтверждён на основном домене.
 
 ## 5. Состояние локального рабочего дерева
 
@@ -261,13 +261,12 @@ Read-only production QA 04.08.2026:
 
 ## 6. Что осталось — приоритетный порядок
 
-### P0. Выпустить frontend закрытия периода после сброса Vercel quota
+### P0. Frontend закрытия периода — опубликован
 
-- не переписывать блок: код уже в `main`, tests/CI зелёные, Firebase backend опубликован;
-- повторить production deploy проекта `keelesepp-crm-v2` после снятия дневного лимита;
-- проверить, что `/finance` показывает checklist, totals, export и close actions;
-- production smoke test только read-only: выбрать прошлый месяц и нажать `Kontrolli kuu`;
-- не нажимать `Loo ja arhiveeri eksport` и `Sulge kuu` на реальных данных без осознанного решения владельца.
+- deployment `dpl_HdfDScttgKYqjMxXwgpnMxcNHQEb` имеет production alias и статус `Ready`;
+- опубликованный JS совпадает с зелёной локальной сборкой и содержит period-close/analytics UI;
+- при следующем осознанном finance smoke можно только выбрать прошлый месяц и нажать `Kontrolli kuu`;
+- не нажимать `Loo ja arhiveeri eksport` и `Sulge kuu` на реальных данных без отдельного решения владельца.
 
 ### P2. Teacher-scope release gate
 
@@ -283,7 +282,7 @@ Read-only production QA 04.08.2026:
 - 390 px и 768 px для списка/карточки ученика проверены 04.08.2026, overflow отсутствует;
 - keyboard/Escape/focus return для формы ученика проверены 04.08.2026;
 - desktop admin finance/settings прочитаны без ошибок загрузки;
-- повторить responsive/keyboard smoke для нового period-close/analytics bundle после Vercel deploy;
+- выполнить targeted responsive/keyboard smoke непосредственно для длинных блоков period-close/analytics;
 - понятные empty/error states;
 - проверить console errors;
 - расширенный фактический чек-лист находится в `crm-v2/ACCEPTANCE.md`.
@@ -338,7 +337,7 @@ npx firebase-tools deploy --only functions,firestore:rules,storage --project kee
 - Firebase client bundle остаётся самым большим build chunk.
 - React Router закреплён на версии, выбранной с учётом известных advisory; не менять вслепую.
 - Локальный полный Firebase emulator требует Java. На машине владельца Java сейчас нет, но тот же сценарий успешно проходит в GitHub Actions; не устанавливать системную Java попутно без отдельной необходимости.
-- На 04.08.2026 Vercel Free plan исчерпал дневной лимит `more than 100 deployments per day`. Это единственный блокер публикации frontend-коммитов `35a9202`/`fe0e86d`; не путать его с ошибкой сборки.
+- 04.08.2026 Vercel Free plan временно возвращал `more than 100 deployments per day`, но production deployment `dpl_HdfDScttgKYqjMxXwgpnMxcNHQEb` позже успешно получил основной alias. Это больше не активный release blocker.
 
 ## 10. Как продолжить новому агенту
 
@@ -346,7 +345,7 @@ npx firebase-tools deploy --only functions,firestore:rules,storage --project kee
 2. Выполнить `git status --short` и сохранить все пользовательские изменения.
 3. Прочитать `ARCHITECTURE.md`, `FINANCIAL_CORE_ROADMAP.md` и нужный раздел `crm-v2/ACCEPTANCE.md`.
 4. Не трогать Live Classroom и тарифы.
-5. Сначала проверить Vercel quota и выпустить уже готовый frontend закрытия периода; код блока не переделывать.
-6. После production-проверки провести role-based teacher-scope release gate и финальный responsive/keyboard QA.
+5. Не передеплоивать закрытие периода без новой причины: опубликованный bundle уже совпадает с зелёной локальной сборкой.
+6. Провести role-based teacher-scope release gate и targeted responsive/keyboard QA длинных финансовых блоков.
 7. Довести один блок до тестов, production и записи в этот handoff-файл.
 8. После каждого крупного релиза обновлять разделы 4–6 и новый HEAD-коммит.

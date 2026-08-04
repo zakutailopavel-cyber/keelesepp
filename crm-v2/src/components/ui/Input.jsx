@@ -5,7 +5,7 @@ export default function Input({ label, error, id, className = '', ...props }) {
     <div className={`field ${className}`}>
       {label ? <label className="field__label" htmlFor={inputId}>{label}</label> : null}
       <input id={inputId} className={error ? 'is-invalid' : ''} aria-invalid={Boolean(error)} aria-describedby={errorId} {...props} />
-      {error ? <span id={errorId} className="field__error">{error}</span> : null}
+      {error ? <span id={errorId} className="field__error" role="alert">{error}</span> : null}
     </div>
   );
 }
