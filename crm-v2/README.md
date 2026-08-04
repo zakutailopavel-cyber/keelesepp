@@ -115,6 +115,9 @@ CRM v2 currently includes:
   lesson records, so the same occurrence cannot silently be invoiced twice;
 - invoice lesson-line details, audited credit-note corrections, transactional
   payment registration and invoice/reminder delivery from the v2 workspace;
+- administrator bank-statement CSV import with automatic invoice matching,
+  idempotent transaction allocation, partial-payment handling and student
+  advances for any unapplied balance;
 - teacher directory with current student and schedule workload;
 - staff group directory with administrator-managed membership, weekly lesson
   templates, teacher scoping, group events in the shared calendar and

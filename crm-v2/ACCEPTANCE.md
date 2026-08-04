@@ -66,6 +66,21 @@ checks. Do not archive or edit an active learner during a smoke test.
   remains, a credit note is created and the balance is recalculated.
 - Send the invoice and an overdue reminder to a dedicated test recipient.
 
+## Bank reconciliation
+
+- As an administrator, import a CSV statement with date, positive amount, payer,
+  reference and transaction ID columns; confirm outgoing rows are skipped.
+- Confirm a unique invoice number or payment reference selects the open invoice
+  automatically, while an ambiguous row remains unselected for manual review.
+- Allocate an exact payment and confirm one bank transaction, one payment and the
+  recalculated invoice balance are committed together.
+- Allocate a partial payment and an overpayment; confirm the partial invoice stays
+  open and the excess becomes an advance for the selected student.
+- Import the same file again and confirm the same external transaction is marked
+  as already imported rather than creating another payment.
+- Sign in with a non-administrator finance account and confirm bank transactions,
+  student profiles and import controls are not queried or displayed.
+
 ## Account settings
 
 - For each role, open Settings and update the current account's name or phone.

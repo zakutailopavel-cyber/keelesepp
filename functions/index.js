@@ -2597,6 +2597,7 @@ async function allocateBankTransaction({
   note,
 }) {
   const mutationId = cleanRequestId(requestId);
+  const cleanExternalId = cleanText(externalId, 160);
   const normalized = normalizeBankDistribution(amount, allocations, lessonAllocations);
   const sortedAllocations = [...normalized.invoiceAllocations]
     .sort((a, b) => a.invoiceId.localeCompare(b.invoiceId));
@@ -2606,7 +2607,7 @@ async function allocateBankTransaction({
     amountCents: normalized.transactionAmountCents,
     allocations: sortedAllocations,
     lessonAllocations: sortedLessonAllocations,
-    externalId: cleanText(externalId, 160),
+    externalId: cleanExternalId,
     paidAt: String(paidAt || ""),
     payerName: cleanText(payerName, 200),
     creditStudentId: cleanText(creditStudentId, 160),
@@ -2637,6 +2638,21 @@ async function allocateBankTransaction({
         throw httpError(409, "requestId already used for a different bank transaction");
       }
       return { bankTransaction: { id: existing.id, ...existing.data() }, idempotent: true };
+    }
+    if (cleanExternalId) {
+      const duplicateExternal = await transaction.get(
+        db.collection("bankTransactions").where("externalId", "==", cleanExternalId).limit(1),
+      );
+      if (!duplicateExternal.empty) {
+        const duplicate = duplicateExternal.docs[0];
+        if (duplicate.data().signature !== signature) {
+          throw httpError(409, "Bank transaction externalId was already imported with different data");
+        }
+        return {
+          bankTransaction: { id: duplicate.id, ...duplicate.data() },
+          idempotent: true,
+        };
+      }
     }
 
     const invoiceRefs = sortedAllocations.map(allocation => db.collection("invoices").doc(allocation.invoiceId));
@@ -2712,7 +2728,7 @@ async function allocateBankTransaction({
     }
 
     const bankTransaction = {
-      externalId: cleanText(externalId, 160),
+      externalId: cleanExternalId,
       paidAt: transactionDate,
       payerName: cleanPayerName,
       payerKey: payerKey(cleanPayerName),
@@ -2767,7 +2783,7 @@ async function allocateBankTransaction({
         note: cleanNote || "Allocated bank transaction",
         status: "active",
         bankTransactionId: mutationId,
-        bankExternalId: cleanText(externalId, 160),
+        bankExternalId: cleanExternalId,
         allocationIndex: index,
         createdAt: nowIso,
         createdBy: actorData,
@@ -2809,7 +2825,7 @@ async function allocateBankTransaction({
         note: cleanNote || "Direct lesson payment without invoice",
         status: "active",
         bankTransactionId: mutationId,
-        bankExternalId: cleanText(externalId, 160),
+        bankExternalId: cleanExternalId,
         allocationIndex: sortedAllocations.length + index,
         allocationMethod: "direct_lesson_v1",
         createdAt: nowIso,

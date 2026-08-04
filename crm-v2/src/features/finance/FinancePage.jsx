@@ -29,6 +29,7 @@ import {
 } from "../../components/ui/index.js";
 import { useAsyncData } from "../../hooks/useAsyncData.js";
 import {
+  bankTransactionsService,
   financeApi,
   invoiceDeliveryApi,
   invoicesService,
@@ -49,6 +50,7 @@ import {
   validatePayment,
 } from "./finance.js";
 import LessonAccountingPanel from "./LessonAccountingPanel.jsx";
+import BankReconciliationPanel from "./BankReconciliationPanel.jsx";
 import "./financeWorkspace.css";
 
 const money = (value) =>
@@ -108,26 +110,36 @@ export default function FinancePage({
   planRepository = revenuePlansService,
   studentRepository = studentsService,
   lessonRepository = lessonsService,
+  bankRepository = bankTransactionsService,
 }) {
   const { user } = useAuth();
   const canRegisterPayment = hasAnyRole(user.roles, [ROLES.ADMIN]);
   const state = useAsyncData(async () => {
-    const [invoices, plans, students, lessons] = await Promise.all([
-      invoiceRepository.list(),
-      planRepository.list(),
-      canRegisterPayment
-        ? studentRepository.list({
-            status: "active",
-            pageSize: 500,
-            exhaustive: true,
-          })
-        : Promise.resolve({ items: [] }),
-      canRegisterPayment
-        ? lessonRepository.listForBilling()
-        : Promise.resolve([]),
-    ]);
-    return { invoices, plans, students: students.items, lessons };
+    const [invoices, plans, students, lessons, bankTransactions] =
+      await Promise.all([
+        invoiceRepository.list(),
+        planRepository.list(),
+        canRegisterPayment
+          ? studentRepository.list({
+              status: "active",
+              pageSize: 500,
+              exhaustive: true,
+            })
+          : Promise.resolve({ items: [] }),
+        canRegisterPayment
+          ? lessonRepository.listForBilling()
+          : Promise.resolve([]),
+        canRegisterPayment ? bankRepository.list() : Promise.resolve([]),
+      ]);
+    return {
+      invoices,
+      plans,
+      students: students.items,
+      lessons,
+      bankTransactions,
+    };
   }, [
+    bankRepository,
     canRegisterPayment,
     invoiceRepository,
     lessonRepository,
@@ -295,6 +307,8 @@ export default function FinancePage({
     setSuccess("Tunni arvestus salvestati.");
     await state.reload();
   };
+  const allocateBankTransaction = (transaction) =>
+    financeRepository.allocateBankTransaction(transaction);
   const deliverInvoice = async (mode) => {
     setDeliveryBusy(mode);
     setActionError("");
@@ -343,7 +357,7 @@ export default function FinancePage({
   if (state.loading) return <LoadingState label="Laen finantsandmeid…" />;
   if (state.error)
     return <ErrorState message={state.error.message} onRetry={state.reload} />;
-  const { invoices, plans, students, lessons } = state.data;
+  const { invoices, plans, students, lessons, bankTransactions } = state.data;
   const forecast = revenueForecast(plans);
   const paid = invoices.reduce((sum, item) => sum + invoicePaidCents(item), 0);
   const balance = invoices.reduce(
@@ -427,6 +441,15 @@ export default function FinancePage({
           onSetDisposition={setLessonDisposition}
         />
       ) : null}
+      {canRegisterPayment ? (
+        <BankReconciliationPanel
+          invoices={invoices}
+          students={students}
+          transactions={bankTransactions}
+          onAllocate={allocateBankTransaction}
+          onReload={state.reload}
+        />
+      ) : null}
       <Card className="revenue-forecast-card">
         <div className="section-heading">
           <div>
@@ -444,7 +467,8 @@ export default function FinancePage({
         </div>
         <p className="form-hint">
           Keskmine kuu = nädalaplaan × 52 / 12. Prognoos ei arvesta puudumisi
-          ega pühi. Arvete summa arvutatakse tegelikult arvestatud tundide järgi.
+          ega pühi. Arvete summa arvutatakse tegelikult arvestatud tundide
+          järgi.
         </p>
         {forecast.rows.length ? (
           <div className="forecast-table-wrap">
@@ -650,8 +674,8 @@ export default function FinancePage({
           onSubmit={saveForecast}
         >
           <p className="form-hint form-grid__wide">
-            Hind salvestatakse õpilase väljale <code>lessonPrice</code> ning seda
-            kasutatakse tunniarvestuses ja uute arvete loomisel.
+            Hind salvestatakse õpilase väljale <code>lessonPrice</code> ning
+            seda kasutatakse tunniarvestuses ja uute arvete loomisel.
           </p>
           {actionError ? (
             <div className="action-error form-grid__wide" role="alert">

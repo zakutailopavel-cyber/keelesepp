@@ -18,15 +18,16 @@ const invoice = {
   lines: [{ lessonId: 'lesson-1', date: '2026-07-30', description: 'Keeletund 2026-07-30', amountCents: 12000 }],
 };
 
-function renderPage(financeRepository = { recordPayment: vi.fn().mockResolvedValue({}), createInvoiceFromLessons: vi.fn().mockResolvedValue({}), setLessonBillingDisposition: vi.fn().mockResolvedValue({}), creditInvoiceLessonLine: vi.fn().mockResolvedValue({}) }, deliveryRepository = { send: vi.fn().mockResolvedValue({}), remind: vi.fn().mockResolvedValue({}) }) {
+function renderPage(financeRepository = { recordPayment: vi.fn().mockResolvedValue({}), createInvoiceFromLessons: vi.fn().mockResolvedValue({}), setLessonBillingDisposition: vi.fn().mockResolvedValue({}), creditInvoiceLessonLine: vi.fn().mockResolvedValue({}), allocateBankTransaction: vi.fn().mockResolvedValue({}) }, deliveryRepository = { send: vi.fn().mockResolvedValue({}), remind: vi.fn().mockResolvedValue({}) }) {
   const invoiceRepository = { list: vi.fn().mockResolvedValue([invoice]) };
   const paymentRepository = { listByInvoice: vi.fn().mockResolvedValue([{ id: 'payment-1', amountCents: 4000, paidAt: '2026-08-03', method: 'bank', status: 'active' }]) };
   const planRepository = { list: vi.fn().mockResolvedValue([{ id: 'student-1', studentId: 'student-1', studentName: 'Sofia Tamm', lessonPriceCents: 2500, weeklyLessons: 2, active: true }]), save: vi.fn().mockResolvedValue({}) };
   const studentRepository = { list: vi.fn().mockResolvedValue({ items: [{ id: 'student-1', name: 'Sofia Tamm', lessonPrice: 25, weeklyLessons: 2, active: true }] }) };
   const lessonRepository = { listForBilling: vi.fn().mockResolvedValue([{ id: 'lesson-1', studentId: 'student-1', studentName: 'Sofia Tamm', date: '2026-08-02', status: 'Toimunud' }]) };
+  const bankRepository = { list: vi.fn().mockResolvedValue([]) };
   const user = { uid: 'admin-1', displayName: 'Admin', roles: ['admin'] };
-  render(<MemoryRouter><AuthContext.Provider value={{ user }}><FinancePage invoiceRepository={invoiceRepository} paymentRepository={paymentRepository} financeRepository={financeRepository} deliveryRepository={deliveryRepository} planRepository={planRepository} studentRepository={studentRepository} lessonRepository={lessonRepository} /></AuthContext.Provider></MemoryRouter>);
-  return { financeRepository, deliveryRepository, invoiceRepository, paymentRepository, planRepository, studentRepository, lessonRepository, user };
+  render(<MemoryRouter><AuthContext.Provider value={{ user }}><FinancePage invoiceRepository={invoiceRepository} paymentRepository={paymentRepository} financeRepository={financeRepository} deliveryRepository={deliveryRepository} planRepository={planRepository} studentRepository={studentRepository} lessonRepository={lessonRepository} bankRepository={bankRepository} /></AuthContext.Provider></MemoryRouter>);
+  return { financeRepository, deliveryRepository, invoiceRepository, paymentRepository, planRepository, studentRepository, lessonRepository, bankRepository, user };
 }
 
 describe('FinancePage', () => {
@@ -107,17 +108,42 @@ describe('FinancePage', () => {
     await waitFor(() => expect(repositories.financeRepository.creditInvoiceLessonLine).toHaveBeenCalledWith('invoice-1', 'lesson-1', 'Tund sisestati ekslikult'));
   });
 
+  it('imports a bank CSV and allocates an automatically matched payment', async () => {
+    const financeRepository = {
+      recordPayment: vi.fn(),
+      setLessonBillingDisposition: vi.fn(),
+      createInvoiceFromLessons: vi.fn(),
+      creditInvoiceLessonLine: vi.fn(),
+      allocateBankTransaction: vi.fn().mockResolvedValue({ bankTransaction: { id: 'bank-1' } }),
+    };
+    renderPage(financeRepository);
+    await screen.findByText('Pangaväljavõtte võrdlus');
+    const file = {
+      name: 'lhv.csv',
+      text: vi.fn().mockResolvedValue('Kuupäev;Maksja;Selgitus;Summa;Tehingu ID\n03.08.2026;Maarika Tamm;Arve KS-101;80,00;TX-101'),
+    };
+    fireEvent.change(document.querySelector('input[type="file"]'), { target: { files: [file] } });
+    expect(await screen.findByText('Leitud automaatselt')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Seo valitud maksed/ }));
+    await waitFor(() => expect(financeRepository.allocateBankTransaction).toHaveBeenCalledWith(expect.objectContaining({
+      invoiceId: 'invoice-1', studentId: 'student-1', allocationCents: 8000, amountCents: 8000,
+    })));
+    expect(await screen.findByRole('status')).toHaveTextContent('edukalt seotud');
+  });
+
   it('lets finance view the limited forecast projection without loading student profiles', async () => {
     const user = { uid: 'finance-1', displayName: 'Finants', roles: ['finance'] };
     const invoiceRepository = { list: vi.fn().mockResolvedValue([]) };
     const planRepository = { list: vi.fn().mockResolvedValue([{ id: 'student-1', studentId: 'student-1', studentName: 'Sofia Tamm', lessonPriceCents: 2500, weeklyLessons: 2, active: true }]) };
     const studentRepository = { list: vi.fn() };
-    render(<MemoryRouter><AuthContext.Provider value={{ user }}><FinancePage invoiceRepository={invoiceRepository} paymentRepository={{}} financeRepository={{}} planRepository={planRepository} studentRepository={studentRepository} /></AuthContext.Provider></MemoryRouter>);
+    const bankRepository = { list: vi.fn() };
+    render(<MemoryRouter><AuthContext.Provider value={{ user }}><FinancePage invoiceRepository={invoiceRepository} paymentRepository={{}} financeRepository={{}} planRepository={planRepository} studentRepository={studentRepository} bankRepository={bankRepository} /></AuthContext.Provider></MemoryRouter>);
 
     expect(await screen.findByText('Planeeritud tunnitulu')).toBeInTheDocument();
     expect(screen.getByText('Sofia Tamm')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Seadista prognoos/ })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Muuda' })).not.toBeInTheDocument();
     expect(studentRepository.list).not.toHaveBeenCalled();
+    expect(bankRepository.list).not.toHaveBeenCalled();
   });
 });

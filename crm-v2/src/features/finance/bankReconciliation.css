@@ -1,0 +1,158 @@
+.bank-reconciliation {
+  display: grid;
+  gap: 22px;
+}
+.bank-reconciliation__heading {
+  align-items: flex-start;
+}
+.bank-reconciliation__heading p {
+  color: var(--text-muted);
+  margin: 6px 0 0;
+  max-width: 720px;
+}
+.bank-reconciliation__metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.bank-reconciliation__metrics > span {
+  align-items: center;
+  background: var(--surface-subtle, #f6f8fb);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  color: var(--text-muted);
+  display: flex;
+  gap: 9px;
+  padding: 15px;
+}
+.bank-reconciliation__metrics svg {
+  color: var(--primary);
+}
+.bank-reconciliation__metrics strong {
+  color: var(--text);
+  margin-left: auto;
+}
+.bank-reconciliation__metrics .has-attention {
+  background: #fffbeb;
+  border-color: #f5d992;
+}
+.bank-import-preview {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+}
+.bank-import-preview__title,
+.bank-import-preview__footer {
+  align-items: center;
+  background: var(--surface-subtle, #f8fafc);
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  padding: 14px 16px;
+}
+.bank-import-preview__title > div {
+  display: grid;
+  gap: 3px;
+}
+.bank-import-preview__title span,
+.bank-import-preview__footer > span {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+.bank-import-preview .action-error {
+  border-radius: 0;
+  margin: 0;
+}
+.bank-import-preview .action-error span {
+  display: block;
+}
+.bank-import-table-wrap {
+  overflow: auto;
+}
+.bank-import-table {
+  border-collapse: collapse;
+  min-width: 1040px;
+  width: 100%;
+}
+.bank-import-table th,
+.bank-import-table td {
+  border-bottom: 1px solid var(--border);
+  padding: 12px;
+  text-align: left;
+  vertical-align: middle;
+}
+.bank-import-table th {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.bank-import-table td > strong,
+.bank-import-table td > small {
+  display: block;
+}
+.bank-import-table td > small {
+  color: var(--text-muted);
+  font-size: 12px;
+  margin-top: 4px;
+  max-width: 260px;
+}
+.bank-import-table .field {
+  min-width: 190px;
+}
+.bank-import-table tr.has-error {
+  background: #fff7f7;
+}
+.bank-row-error {
+  color: var(--danger, #b42318) !important;
+}
+.bank-history {
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+}
+.bank-history .section-heading h3 {
+  font-size: 20px;
+  margin: 2px 0 0;
+}
+.bank-history__list {
+  display: grid;
+}
+.bank-history__list article {
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  display: grid;
+  gap: 12px;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  padding: 13px 2px;
+}
+.bank-history__list article:last-child {
+  border-bottom: 0;
+}
+.bank-history__list article > svg {
+  color: var(--primary);
+}
+.bank-history__list article > span {
+  display: grid;
+  gap: 3px;
+}
+.bank-history__list article small {
+  color: var(--text-muted);
+}
+@media (max-width: 800px) {
+  .bank-reconciliation__metrics {
+    grid-template-columns: 1fr;
+  }
+  .bank-reconciliation__heading,
+  .bank-import-preview__title,
+  .bank-import-preview__footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .bank-history__list article {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+  .bank-history__list .badge {
+    grid-column: 2/4;
+    justify-self: start;
+  }
+}

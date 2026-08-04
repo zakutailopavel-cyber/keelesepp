@@ -76,6 +76,24 @@ export const financeApi = {
       requestId: payment.requestId || financeRequestId('payment'),
     });
   },
+  allocateBankTransaction(transaction) {
+    const amount = Number(transaction.amountCents) / 100;
+    const allocationAmount = Number(transaction.allocationCents) / 100;
+    return post('/bank-transactions/allocate', {
+      externalId: transaction.externalId || '',
+      paidAt: transaction.paidAt,
+      payerName: transaction.payerName || '',
+      creditStudentId: transaction.studentId || '',
+      reference: transaction.reference || '',
+      amount,
+      allocations: transaction.invoiceId && allocationAmount > 0
+        ? [{ invoiceId: transaction.invoiceId, amount: allocationAmount }]
+        : [],
+      lessonAllocations: [],
+      note: transaction.note || 'Pangaväljavõttest imporditud makse',
+      requestId: transaction.requestId || financeRequestId('bank'),
+    });
+  },
 };
 
 export const invoiceDeliveryApi = {
