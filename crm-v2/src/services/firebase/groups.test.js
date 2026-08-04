@@ -93,6 +93,7 @@ describe('groupsService', () => {
       'student-1_2026-08-04': { status: 'coming', by: 'teacher-1' },
     });
     expect(firestore.batch.set.mock.calls[0][1]).toMatchObject({ lessons: [expect.objectContaining({ attendance: expect.objectContaining({ 'student-1_2026-08-04': expect.objectContaining({ status: 'coming' }) }) })] });
-    expect(firestore.batch.set.mock.calls[1][1]).toMatchObject({ type: 'group.attendance_updated', meta: expect.objectContaining({ occurrenceDate: '2026-08-04', studentId: 'student-1' }) });
+    expect(firestore.batch.set.mock.calls[1][1]).toMatchObject({ studentId: 'student-1', status: 'Toimunud', accountingSource: 'crm_v2' });
+    expect(firestore.batch.set.mock.calls[2][1]).toMatchObject({ type: 'group.attendance_updated', meta: expect.objectContaining({ occurrenceDate: '2026-08-04', studentId: 'student-1' }) });
   });
 });

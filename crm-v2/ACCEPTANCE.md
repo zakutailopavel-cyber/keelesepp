@@ -46,10 +46,25 @@ checks. Do not archive or edit an active learner during a smoke test.
 - As an administrator, open Finance and save a lesson price and weekly lesson
   count for a test student.
 - Confirm weekly, average monthly (`weekly × 52 / 12`) and annual totals update.
-- Confirm the student's legacy `lessonPrice` and `weeklyLessons` fields match the
-  saved plan; do not change an existing versioned tariff during this check.
+- Confirm the student's `lessonPrice` and `weeklyLessons` fields match the saved
+  values and are used for both the forecast and new lesson invoices.
 - As a finance-role test account, confirm the forecast is visible but editing is
   unavailable and the full Students collection is not queried.
+
+## Lesson accounting and invoices
+
+- Mark an individual calendar occurrence completed and confirm exactly one
+  `lessons` record with `accountingSource: crm_v2` is created.
+- Mark group attendance and confirm each learner receives only their own dated
+  accounting record; clearing a non-invoiced attendance mark removes it.
+- In Finance, confirm completed lessons are grouped by student and use the
+  lesson price stored on that student's card.
+- Select a subset of lessons, create an invoice and confirm those lesson IDs are
+  linked to exactly one immutable invoice.
+- Open the invoice and confirm every lesson date and amount is visible.
+- Credit one mistaken lesson line with a reason and confirm the original invoice
+  remains, a credit note is created and the balance is recalculated.
+- Send the invoice and an overdue reminder to a dedicated test recipient.
 
 ## Account settings
 

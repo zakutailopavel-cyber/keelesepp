@@ -4,7 +4,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal, PageHeader, Select } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
-import { groupsService, scheduleService, studentsService } from '../../services/firebase/index.js';
+import { groupsService, lessonsService, scheduleService, studentsService } from '../../services/firebase/index.js';
 import { hasScheduleConflict } from '../../services/firebase/schedule.js';
 import { ROLES } from '../../utils/roles.js';
 import { datesForView, filterCalendarEvents, groupCalendarEvents, occurrencesForDates, shiftDate, toIsoDate } from './calendarView.js';
@@ -29,7 +29,7 @@ function LessonButton({ item, compact = false, onClick }) {
   return <button className={`lesson-chip ${compact ? 'lesson-chip--compact' : ''}`} onClick={() => onClick(item)}><time>{item.time}</time><strong>{item.studentName || 'Õpilane'}</strong>{compact ? null : <small>{item.teacher || 'Õpetaja'} · {item.duration} min</small>}</button>;
 }
 
-export default function CalendarPage({ scheduleRepository = scheduleService, studentRepository = studentsService, groupRepository = groupsService }) {
+export default function CalendarPage({ scheduleRepository = scheduleService, studentRepository = studentsService, groupRepository = groupsService, lessonRepository = lessonsService }) {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const [anchor, setAnchor] = useState(toIsoDate());
@@ -47,15 +47,20 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
     scheduleRepository.list(teacherOnly ? { teacherUid: user.uid } : {}),
     studentRepository.list({ status: 'active', pageSize: 500, exhaustive: true, ...(teacherOnly ? { scopeTeacherUid: user.uid } : {}) }),
     groupRepository.list(teacherOnly ? { teacherUid: user.uid, teacherName: user.displayName } : {}),
-  ]), [groupRepository, scheduleRepository, studentRepository, teacherOnly, user.displayName, user.uid]);
+    lessonRepository.listForCalendar(teacherOnly ? { teacherUid: user.uid } : {}),
+  ]), [groupRepository, lessonRepository, scheduleRepository, studentRepository, teacherOnly, user.displayName, user.uid]);
   const dates = useMemo(() => datesForView(anchor, view), [anchor, view]);
 
   if (state.loading) return <LoadingState label="Laen kalendrit…" />;
   if (state.error) return <ErrorState message={state.error.message} onRetry={state.reload} />;
-  const [scheduleEvents, students, groups] = state.data;
+  const [scheduleEvents, students, groups, lessonRecords] = state.data;
   const events = [...scheduleEvents, ...groupCalendarEvents(groups)];
   const filteredEvents = filterCalendarEvents(events, filters);
-  const occurrences = occurrencesForDates(filteredEvents, dates);
+  const completedByOccurrence = new Map(lessonRecords.filter((lesson) => lesson.scheduleId && lesson.date).map((lesson) => [`${lesson.scheduleId}:${lesson.date}`, lesson]));
+  const occurrences = occurrencesForDates(filteredEvents, dates).map((item) => {
+    const completed = item.isGroup ? null : completedByOccurrence.get(`${item.id}:${item.occurrenceDate}`);
+    return completed ? { ...item, status: completed.status || 'Toimunud', lessonRecordId: completed.id } : item;
+  });
   const teachers = [...new Map(events.filter((item) => item.teacher).map((item) => [item.teacherUid || item.teacher, { id: item.teacherUid || item.teacher, name: item.teacher }])).values()].sort((a, b) => a.name.localeCompare(b.name, 'et'));
 
   const navigatePeriod = (direction) => setAnchor((current) => view === 'month' ? shiftMonth(current, direction) : shiftDate(current, direction * (view === 'week' ? 7 : 1)));
@@ -73,7 +78,8 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
     setAttendanceSaving(studentId);
     setActionError('');
     try {
-      const attendance = await groupRepository.setAttendance(attendanceGroup, attendanceEvent.groupLessonId, attendanceEvent.occurrenceDate, studentId, status, user);
+      const student = students.items.find((item) => item.id === studentId);
+      const attendance = await groupRepository.setAttendance(attendanceGroup, attendanceEvent.groupLessonId, attendanceEvent.occurrenceDate, studentId, status, user, student?.name || '');
       setAttendanceEvent((current) => current ? { ...current, attendance } : current);
       await state.reload();
     } catch (error) {
@@ -102,6 +108,13 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
     try { await scheduleRepository.cancel(editing.id, editing); setModal(false); setEditing(null); await state.reload(); }
     catch (error) { setActionError(error.message); } finally { setSaving(false); }
   };
+  const completeLesson = async () => {
+    if (!editing || editing.lessonRecordId) return;
+    setSaving(true); setActionError('');
+    try { await lessonRepository.completeFromSchedule(editing, user); setModal(false); setEditing(null); await state.reload(); }
+    catch (error) { setActionError(error.message || 'Tunni arvestamine ebaõnnestus.'); }
+    finally { setSaving(false); }
+  };
 
   return <div className="page-content">
     <PageHeader eyebrow="Planeerimine" title="Kalender" description="Päeva-, nädala- ja kuuvaade koos filtrite ning konfliktikontrolliga." actions={<Button onClick={() => openCreate()}><Plus size={18} /> Lisa tund</Button>} />
@@ -114,7 +127,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
       {view === 'month' ? <div className="month-grid">{dates.map((date) => { const daily = occurrences.filter((item) => item.occurrenceDate === date); const inMonth = date.slice(0, 7) === anchor.slice(0, 7); return <section className={`${date === toIsoDate() ? 'is-today ' : ''}${inMonth ? '' : 'is-outside'}`} key={date}><button className="month-day" onClick={() => { setAnchor(date); setView('day'); }}>{date.slice(-2)}</button><div>{daily.slice(0, 3).map((item) => <LessonButton compact item={item} onClick={openEvent} key={item.occurrenceId} />)}{daily.length > 3 ? <button className="more-lessons" onClick={() => { setAnchor(date); setView('day'); }}>+{daily.length - 3} veel</button> : null}</div></section>; })}</div> : null}
       {!occurrences.length && view !== 'day' ? <EmptyState title="Valitud perioodil tunde ei ole" description="Lisa tund või muuda filtreid." action={<CalendarDays size={28} />} /> : null}
     </Card>
-    <Modal open={modal} title={editing ? 'Muuda tundi' : 'Uus tund'} onClose={closeModal} footer={<>{editing ? <Button variant="danger" disabled={saving} onClick={cancelLesson}><XCircle size={17} /> Tühista tund</Button> : null}<span className="modal__footer-spacer" /><Button variant="secondary" onClick={closeModal}>Loobu</Button><Button loading={saving} type="submit" form="lesson-form">{editing ? 'Salvesta muudatused' : 'Salvesta tund'}</Button></>}><form id="lesson-form" className="form-grid" onSubmit={submit}><Select className="form-grid__wide" label="Õpilane" value={form.studentId} onChange={(event) => setForm({ ...form, studentId: event.target.value })} required><option value="">Vali õpilane</option>{students.items.map((student) => <option value={student.id} key={student.id}>{student.name} · {student.teacher}</option>)}</Select><Input label="Kuupäev" type="date" value={form.date} onChange={(event) => setForm({ ...form, date: event.target.value })} required /><Input label="Kellaaeg" type="time" value={form.time} onChange={(event) => setForm({ ...form, time: event.target.value })} required /><Input label="Kestus minutites" type="number" min="5" step="5" value={form.duration} onChange={(event) => setForm({ ...form, duration: event.target.value })} required />{editing ? <Select label="Staatus" value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value })}><option>Planeeritud</option><option>Toimunud</option><option>Tühistatud</option></Select> : <label className="checkbox-field"><input type="checkbox" checked={form.recurring} onChange={(event) => setForm({ ...form, recurring: event.target.checked })} /><span>Kordub igal nädalal</span></label>}{editing?.recurring ? <p className="form-grid__wide form-hint">Korduva tunni muutmine rakendub kogu sarjale.</p> : null}</form></Modal>
+    <Modal open={modal} title={editing ? 'Muuda tundi' : 'Uus tund'} onClose={closeModal} footer={<>{editing && !editing.lessonRecordId ? <Button variant="secondary" disabled={saving} onClick={completeLesson}><CalendarDays size={17} /> Märgi toimunuks</Button> : null}{editing?.lessonRecordId ? <Badge tone="success">Tund arvestatud</Badge> : null}{editing ? <Button variant="danger" disabled={saving || Boolean(editing.lessonRecordId)} onClick={cancelLesson}><XCircle size={17} /> Tühista tund</Button> : null}<span className="modal__footer-spacer" /><Button variant="secondary" onClick={closeModal}>Loobu</Button><Button loading={saving} type="submit" form="lesson-form">{editing ? 'Salvesta muudatused' : 'Salvesta tund'}</Button></>}><form id="lesson-form" className="form-grid" onSubmit={submit}><Select className="form-grid__wide" label="Õpilane" value={form.studentId} onChange={(event) => setForm({ ...form, studentId: event.target.value })} required><option value="">Vali õpilane</option>{students.items.map((student) => <option value={student.id} key={student.id}>{student.name} · {student.teacher}</option>)}</Select><Input label="Kuupäev" type="date" value={form.date} onChange={(event) => setForm({ ...form, date: event.target.value })} required /><Input label="Kellaaeg" type="time" value={form.time} onChange={(event) => setForm({ ...form, time: event.target.value })} required /><Input label="Kestus minutites" type="number" min="5" step="5" value={form.duration} onChange={(event) => setForm({ ...form, duration: event.target.value })} required />{editing ? <Select label="Staatus" value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value })}><option>Planeeritud</option><option>Toimunud</option><option>Tühistatud</option></Select> : <label className="checkbox-field"><input type="checkbox" checked={form.recurring} onChange={(event) => setForm({ ...form, recurring: event.target.checked })} /><span>Kordub igal nädalal</span></label>}{editing?.recurring ? <p className="form-grid__wide form-hint">Korduva tunni muutmine rakendub kogu sarjale.</p> : null}</form></Modal>
     <Modal open={Boolean(attendanceEvent)} title={`Kohalolu: ${attendanceEvent?.studentName || ''}`} onClose={() => !attendanceSaving && setAttendanceEvent(null)} className="modal--attendance" footer={<Button variant="secondary" disabled={Boolean(attendanceSaving)} onClick={() => setAttendanceEvent(null)}>Valmis</Button>}>
       {attendanceEvent ? <div className="attendance-sheet"><header><div><span>Kuupäev</span><strong>{new Date(`${attendanceEvent.occurrenceDate}T12:00:00`).toLocaleDateString('et-EE', { weekday: 'long', day: 'numeric', month: 'long' })}</strong></div><div><span>Kellaaeg</span><strong>{attendanceEvent.time}</strong></div></header>{attendanceStudents.length ? <div>{attendanceStudents.map((student) => {
         const key = `${student.id}_${attendanceEvent.occurrenceDate}`;

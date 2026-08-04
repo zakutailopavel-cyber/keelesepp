@@ -1,0 +1,73 @@
+.invoice-lines {
+  display: grid;
+  gap: 8px;
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+}
+
+.invoice-lines .section-heading {
+  align-items: center;
+}
+
+.invoice-lines .section-heading h2 {
+  font-size: 1rem;
+}
+
+.invoice-lines > div:last-child {
+  display: grid;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  overflow: hidden;
+}
+
+.invoice-lines article {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 11px;
+  padding: 11px 13px;
+}
+
+.invoice-lines article + article {
+  border-top: 1px solid var(--border);
+}
+
+.invoice-lines article > svg {
+  color: var(--green);
+}
+
+.invoice-lines article > span {
+  display: grid;
+  gap: 2px;
+}
+
+.invoice-lines article small {
+  color: var(--muted);
+}
+
+.invoice-lines article .button {
+  min-height: 34px;
+  padding: 0 10px;
+  font-size: 0.75rem;
+}
+
+.invoice-lines article.is-corrected {
+  opacity: 0.58;
+  background: #f8fafc;
+}
+
+.invoice-lines article.is-corrected b {
+  text-decoration: line-through;
+}
+
+@media (max-width: 560px) {
+  .invoice-lines article {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .invoice-lines article .button,
+  .invoice-lines article .badge {
+    grid-column: 2 / -1;
+    justify-self: start;
+  }
+}

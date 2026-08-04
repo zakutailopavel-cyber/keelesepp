@@ -1277,9 +1277,12 @@ function selectBillableLessons(lessons = [], lessonsSinceInvoice) {
     .sort((a, b) => `${a.date || ""}:${a.id || ""}`.localeCompare(`${b.date || ""}:${b.id || ""}`));
   const explicit = candidates.filter(lesson =>
     lesson.billingStatus === "unbilled"
-    || lesson.billingStatus === "late_cancel_billable",
+    || lesson.billingStatus === "late_cancel_billable"
+    || lesson.accountingSource === "crm_v2",
   );
-  const legacy = candidates.filter(lesson => !lesson.billingStatus);
+  const legacy = candidates.filter(lesson =>
+    !lesson.billingStatus && lesson.accountingSource !== "crm_v2",
+  );
   const legacyCount = lessonsSinceInvoice === undefined || lessonsSinceInvoice === null
     ? legacy.length
     : Math.max(0, (Number(lessonsSinceInvoice) || 0) - explicit.length);

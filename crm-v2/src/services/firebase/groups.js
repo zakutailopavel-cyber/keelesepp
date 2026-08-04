@@ -74,6 +74,10 @@ function nextLessonId() {
   return globalThis.crypto?.randomUUID?.() || `gl-${Date.now()}`;
 }
 
+function attendanceLessonId(groupId, lessonId, occurrenceDate, studentId) {
+  return `group_${groupId}_${lessonId}_${occurrenceDate}_${studentId}`.replace(/[^A-Za-z0-9_-]/g, '_').slice(0, 240);
+}
+
 export const groupsService = {
   async list(filters = {}) {
     const { db } = requireFirebaseClient();
@@ -193,7 +197,7 @@ export const groupsService = {
     await batch.commit();
   },
 
-  async setAttendance(group, lessonId, occurrenceDate, studentId, status, user) {
+  async setAttendance(group, lessonId, occurrenceDate, studentId, status, user, studentName = '') {
     requireStaff(user);
     if (!group?.id || !lessonId || !studentId || !/^\d{4}-\d{2}-\d{2}$/.test(occurrenceDate || '')) throw new Error('Kohalolu seos on vigane.');
     if (!['coming', 'absent', 'warned', 'clear'].includes(status)) throw new Error('Kohalolu olek on vigane.');
@@ -217,7 +221,29 @@ export const groupsService = {
     if (!found) throw new Error('Grupi tunniaega ei leitud.');
     const { db } = requireFirebaseClient();
     const batch = writeBatch(db);
-    batch.set(doc(db, 'groups', group.id), { lessons, updatedAt: new Date().toISOString() }, { merge: true });
+    const updatedAt = new Date().toISOString();
+    batch.set(doc(db, 'groups', group.id), { lessons, updatedAt }, { merge: true });
+    const accountingRef = doc(db, 'lessons', attendanceLessonId(group.id, lessonId, occurrenceDate, studentId));
+    if (status === 'clear') batch.delete(accountingRef);
+    else batch.set(accountingRef, {
+      groupId: group.id,
+      groupName: group.name || '',
+      groupLessonId: lessonId,
+      occurrenceDate,
+      studentId,
+      studentName: clean(studentName),
+      teacher: canonicalTeacherName(group.teacher || user.displayName),
+      teacherUid: group.teacherUid || user.uid,
+      subject: group.subject || 'Eesti keel',
+      date: occurrenceDate,
+      time: (group.lessons || []).find((lesson) => lesson.id === lessonId)?.time || '',
+      duration: Math.max(5, Number((group.lessons || []).find((lesson) => lesson.id === lessonId)?.duration) || 60),
+      status: status === 'coming' ? 'Toimunud' : status === 'warned' ? 'Puudus_p' : 'Puudus_eta',
+      accountingSource: 'crm_v2',
+      createdAt: updatedAt,
+      createdByUid: user.uid,
+      createdByName: user.displayName || user.email || '',
+    }, { merge: true });
     activity(batch, db, 'group.attendance_updated', `${group.name || 'Grupi'} kohalolu uuendatud`, group, user, { lessonId, occurrenceDate, studentId, status });
     await batch.commit();
     return updatedAttendance;

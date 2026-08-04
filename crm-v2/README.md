@@ -106,8 +106,15 @@ CRM v2 currently includes:
 - week calendar with lesson creation, conflict prevention and cancellation;
 - finance overview with invoice search, status filters and balances;
 - per-student lesson price and weekly lesson planning with weekly, average
-  monthly and annual revenue forecasts; the legacy `lessonPrice` fallback is
-  updated atomically while versioned tariffs remain authoritative for billing;
+  monthly and annual revenue forecasts; the same student price is stored in
+  `lessonPrice` for invoice creation and compatibility with the existing data;
+- administrator lesson accounting that groups completed, not-yet-invoiced
+  lessons by student, calculates totals from the student's lesson price and
+  creates immutable lesson-line invoices through the transactional finance API;
+- calendar completion and group attendance now create deterministic CRM v2
+  lesson records, so the same occurrence cannot silently be invoiced twice;
+- invoice lesson-line details, audited credit-note corrections, transactional
+  payment registration and invoice/reminder delivery from the v2 workspace;
 - teacher directory with current student and schedule workload;
 - staff group directory with administrator-managed membership, weekly lesson
   templates, teacher scoping, group events in the shared calendar and

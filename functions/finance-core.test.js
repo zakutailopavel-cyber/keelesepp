@@ -728,6 +728,14 @@ test("legacy lesson counter limits migration billing to the newest unlinked less
   assert.deepEqual(selected.map(lesson => lesson.id), ["explicit", "recent-b"]);
 });
 
+test("CRM v2 lesson records are explicit even when the legacy counter is zero", () => {
+  const selected = selectBillableLessons([
+    { id: "legacy", date: "2026-08-01", status: "Toimunud" },
+    { id: "crm-v2", date: "2026-08-02", status: "Toimunud", accountingSource: "crm_v2" },
+  ], 0);
+  assert.deepEqual(selected.map(lesson => lesson.id), ["crm-v2"]);
+});
+
 test("late cancellation is billable and uses a dedicated invoice description", () => {
   const lesson = {
     id: "late-cancel",
