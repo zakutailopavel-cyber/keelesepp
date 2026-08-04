@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { vi } from 'vitest';
 import { AuthContext } from '../../app/AuthContext.jsx';
@@ -15,7 +15,7 @@ const data = {
 };
 
 function renderPage() {
-  const repository = { list: vi.fn().mockResolvedValue(data), assign: vi.fn().mockResolvedValue({ count: 1 }) };
+  const repository = { list: vi.fn().mockResolvedValue(data), assign: vi.fn().mockResolvedValue({ count: 1 }), saveMaterial: vi.fn().mockResolvedValue({ id: 'material-1', title: 'Uus materjal', created: true }) };
   const studentRepository = { list: vi.fn().mockResolvedValue({ items: [{ id: 'student-1', name: 'Mari', subject: 'Eesti keel', level: 'A1', active: true }] }) };
   const user = { uid: 'teacher-1', displayName: 'Õpetaja', roles: ['teacher'] };
   render(<MemoryRouter><AuthContext.Provider value={{ user }}><LibraryPage repository={repository} studentRepository={studentRepository} /></AuthContext.Provider></MemoryRouter>);
@@ -80,5 +80,44 @@ describe('LibraryPage', () => {
     expect(screen.getByTitle('PDF: Pere.pdf')).toHaveAttribute('src', 'https://files.example/Pere.pdf#toolbar=0&navpanes=0');
     expect(screen.getByRole('img', { name: 'Perepilt.png' })).toHaveAttribute('src', 'https://files.example/Perepilt.png');
     expect(screen.queryByText(/Laadi alla/i)).not.toBeInTheDocument();
+  });
+
+  it('creates a structured material in CRM v2 and reloads the library', async () => {
+    const { repository, user } = renderPage();
+    await screen.findByRole('button', { name: /Eesti keel.*2 materjali/ });
+    fireEvent.click(screen.getByRole('button', { name: 'Loo materjal' }));
+    const editor = within(screen.getByRole('dialog', { name: 'Loo õppematerjal' }));
+    fireEvent.change(editor.getByLabelText('Pealkiri *'), { target: { value: 'Uus materjal' } });
+    fireEvent.change(editor.getByLabelText('Materjali tüüp'), { target: { value: 'worksheet' } });
+    fireEvent.change(editor.getByLabelText('Õppeaine *'), { target: { value: 'Eesti keel' } });
+    fireEvent.change(editor.getByLabelText('Tase või vanus'), { target: { value: 'A2' } });
+    fireEvent.change(editor.getByLabelText('Teema'), { target: { value: 'Igapäevaelu' } });
+    fireEvent.click(editor.getByRole('button', { name: 'Lisa esimene ülesanne' }));
+    fireEvent.change(editor.getByLabelText('Ülesande tüüp'), { target: { value: 'fill' } });
+    fireEvent.change(editor.getByLabelText('Juhis või alapealkiri'), { target: { value: 'Täida lüngad' } });
+    fireEvent.change(editor.getByLabelText('Sisu'), { target: { value: 'Hommikul ma [ärkan].' } });
+    fireEvent.click(editor.getByRole('button', { name: 'Salvesta' }));
+
+    expect(await screen.findByRole('status')).toHaveTextContent('„Uus materjal” loodi.');
+    expect(repository.saveMaterial).toHaveBeenCalledWith(expect.objectContaining({
+      item: null,
+      user,
+      values: expect.objectContaining({ title: 'Uus materjal', materialType: 'worksheet', subject: 'Eesti keel', blocks: [expect.objectContaining({ type: 'fill', text: 'Hommikul ma [ärkan].' })] }),
+    }));
+    expect(repository.list).toHaveBeenCalledTimes(2);
+  });
+
+  it('opens existing curriculum material for editing while preserving its type', async () => {
+    const { repository } = renderPage();
+    await screen.findByRole('button', { name: /Eesti keel.*2 materjali/ });
+    fireEvent.change(screen.getByLabelText('Otsi õppevara'), { target: { value: 'tunnikava' } });
+    fireEvent.click(screen.getByRole('button', { name: /Pere tunnikava/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Muuda' }));
+    const editor = within(screen.getByRole('dialog', { name: 'Muuda: Pere tunnikava' }));
+    expect(editor.getByLabelText('Materjali tüüp')).toBeDisabled();
+    fireEvent.change(editor.getByLabelText('Kirjeldus *'), { target: { value: 'Uuendatud tund perest' } });
+    repository.saveMaterial.mockResolvedValueOnce({ id: 'lesson-1', title: 'Pere tunnikava', created: false });
+    fireEvent.click(editor.getByRole('button', { name: 'Salvesta' }));
+    expect(await screen.findByRole('status')).toHaveTextContent('„Pere tunnikava” salvestati.');
   });
 });

@@ -78,7 +78,8 @@ function FilePreview({ file }) {
 
 export default function MaterialPreview({ item, onClose }) {
   const source = item.source || {};
-  const blocks = source.worksheetData?.blocks?.length ? source.worksheetData.blocks : item.kind === 'exercise' ? [source] : lessonPlanBlocks(source);
+  const structuredBlocks = source.worksheetData?.blocks?.length ? source.worksheetData.blocks : item.kind === 'exercise' ? [source] : lessonPlanBlocks(source);
+  const blocks = structuredBlocks.length ? structuredBlocks : item.description ? [{ id: 'description', type: 'text', title: 'Sisu', text: item.description }] : [];
   const files = materialFiles(source);
   return (
     <Modal open title={`Eelvaade: ${item.title}`} onClose={onClose} className="modal--preview">

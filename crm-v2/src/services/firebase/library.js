@@ -101,4 +101,71 @@ export const libraryService = {
     await batch.commit();
     return { count: students.length, mode: assignmentMode };
   },
+  async saveMaterial({ item = null, values, user }) {
+    const title = String(values.title || '').trim();
+    const subject = String(values.subject || '').trim();
+    const description = String(values.description || '').trim();
+    if (!title) throw new Error('Sisesta materjali pealkiri.');
+    if (!subject) throw new Error('Sisesta õppeaine.');
+
+    const { db } = requireFirebaseClient();
+    const batch = writeBatch(db);
+    const now = new Date().toISOString();
+    const materialType = values.materialType || item?.type || 'material';
+    const legacyType = materialType === 'homework' ? 'hw' : materialType === 'worksheet' ? 'material' : materialType;
+    const payload = {
+      title,
+      type: legacyType,
+      description,
+      subject,
+      level: String(values.level || '').trim(),
+      topic: String(values.topic || '').trim(),
+      order: Number(values.order) || 0,
+      updatedAt: now,
+    };
+
+    if (materialType === 'worksheet' || materialType === 'test') {
+      const blocks = Array.isArray(values.blocks) ? values.blocks : [];
+      if (!blocks.length) throw new Error('Lisa vähemalt üks töölehe ülesanne.');
+      const incomplete = blocks.some((block) => (
+        (['text', 'fill'].includes(block.type) && !String(block.text || '').trim())
+        || (block.type === 'writing' && !String(block.task || '').trim())
+      ));
+      if (incomplete) throw new Error('Täida iga lisatud ülesande sisu.');
+      payload.worksheetData = {
+        meta: { title, subject, level: payload.level, topic: payload.topic },
+        blocks,
+      };
+    }
+    if (!['worksheet', 'test'].includes(materialType) && !description) throw new Error('Sisesta materjali kirjeldus või sisu.');
+    if (materialType === 'test') payload.examPart = values.examPart || item?.source?.examPart || 'üldine';
+
+    const materialRef = item?.sourceId
+      ? doc(db, 'curriculumLessons', item.sourceId)
+      : doc(collection(db, 'curriculumLessons'));
+    const created = !item?.sourceId;
+    if (created) {
+      batch.set(materialRef, {
+        ...payload,
+        files: [],
+        authorUid: user.uid,
+        authorName: user.displayName || user.email || '',
+        createdAt: now.slice(0, 10),
+      });
+    } else {
+      batch.set(materialRef, payload, { merge: true });
+    }
+    batch.set(doc(collection(db, 'activityLog')), {
+      type: created ? 'learning_material.created' : 'learning_material.updated',
+      label: created ? 'Õppematerjal loodud' : 'Õppematerjal muudetud',
+      meta: { sourceId: item?.sourceId || materialRef.id || '', materialType, title },
+      byUid: user.uid,
+      byName: user.displayName || user.email || '',
+      byRole: user.roles?.[0] || '',
+      createdAt: now,
+      date: now.slice(0, 10),
+    });
+    await batch.commit();
+    return { id: item?.sourceId || materialRef.id || '', title, created };
+  },
 };

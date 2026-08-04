@@ -70,4 +70,43 @@ describe('libraryService', () => {
     });
     expect(firestore.batch.commit).toHaveBeenCalledOnce();
   });
+
+  it('creates a legacy-compatible worksheet and an audit event', async () => {
+    const user = { uid: 'teacher-1', displayName: 'Õpetaja', roles: ['teacher'] };
+    await expect(libraryService.saveMaterial({
+      values: {
+        title: 'Pere tööleht',
+        materialType: 'worksheet',
+        subject: 'Eesti keel',
+        level: 'A1',
+        topic: 'Pere',
+        description: 'Lünkharjutus',
+        blocks: [{ id: 'block-1', type: 'fill', text: 'Minu [ema].' }],
+      },
+      user,
+    })).resolves.toMatchObject({ title: 'Pere tööleht', created: true });
+
+    expect(firestore.batch.set).toHaveBeenCalledTimes(2);
+    expect(firestore.batch.set.mock.calls[0][1]).toMatchObject({
+      title: 'Pere tööleht',
+      type: 'material',
+      authorUid: 'teacher-1',
+      worksheetData: { meta: { title: 'Pere tööleht', subject: 'Eesti keel', level: 'A1', topic: 'Pere' }, blocks: [{ id: 'block-1', type: 'fill', text: 'Minu [ema].' }] },
+    });
+    expect(firestore.batch.set.mock.calls[1][1]).toMatchObject({ type: 'learning_material.created', byUid: 'teacher-1' });
+  });
+
+  it('updates an existing material with merge semantics', async () => {
+    const item = { sourceId: 'lesson-1', type: 'lesson', source: { type: 'lesson' } };
+    await libraryService.saveMaterial({
+      item,
+      values: { title: 'Muudetud tund', materialType: 'lesson', subject: 'Eesti keel', description: 'Uus kirjeldus' },
+      user: { uid: 'admin-1', email: 'admin@example.com', roles: ['admin'] },
+    });
+
+    expect(firestore.doc).toHaveBeenCalledWith('firebase-db', 'curriculumLessons', 'lesson-1');
+    expect(firestore.batch.set.mock.calls[0][1]).toMatchObject({ title: 'Muudetud tund', type: 'lesson', description: 'Uus kirjeldus' });
+    expect(firestore.batch.set.mock.calls[0][2]).toEqual({ merge: true });
+    expect(firestore.batch.set.mock.calls[1][1]).toMatchObject({ type: 'learning_material.updated' });
+  });
 });

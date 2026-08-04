@@ -28,6 +28,7 @@ import {
   pathDimension,
 } from './libraryModel.js';
 import MaterialPreview from './MaterialPreview.jsx';
+import MaterialEditor from './MaterialEditor.jsx';
 
 const typeIcons = {
   lesson: Presentation,
@@ -122,6 +123,7 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
   const [selected, setSelected] = useState(null);
   const [assigning, setAssigning] = useState(null);
   const [previewing, setPreviewing] = useState(null);
+  const [editing, setEditing] = useState(undefined);
   const [success, setSuccess] = useState('');
   const state = useAsyncData(() => repository.list(), [repository]);
   const path = useMemo(() => readPath(searchParams), [searchParams]);
@@ -166,7 +168,7 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
         eyebrow="Õppetöö"
         title="Õppevara"
         description="Tunnikavad, töölehed ja harjutused olemasolevast KeeleSepa andmebaasist."
-        actions={<a className="button button--primary" href={legacyUrl('/haldus-worksheet/')}><Sparkles size={17} /> Loo materjal</a>}
+        actions={<Button onClick={() => setEditing(null)}><Sparkles size={17} /> Loo materjal</Button>}
       />
       {success ? <div className="success-notice" role="status">{success}<button aria-label="Sulge teade" onClick={() => setSuccess('')}>×</button></div> : null}
       <Card className="library-toolbar">
@@ -219,11 +221,12 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
         open={Boolean(selected)}
         title={selected?.title || 'Õppematerjal'}
         onClose={() => setSelected(null)}
-        footer={<><a className="button button--secondary" href={legacyUrl(selected?.kind === 'exercise' ? `/haldus-exercises/?exercise=${encodeURIComponent(selected.sourceId)}` : '/haldus-exercises/')}>Ava töövahend <ArrowRight size={16} /></a><Button variant="secondary" onClick={() => { setPreviewing(selected); setSelected(null); }}>Eelvaade</Button><Button onClick={() => { setAssigning(selected); setSelected(null); }}>Määra õpilastele</Button></>}
+        footer={<><a className="button button--secondary" href={legacyUrl(selected?.kind === 'exercise' ? `/haldus-exercises/?exercise=${encodeURIComponent(selected.sourceId)}` : '/haldus-exercises/')}>Ava töövahend <ArrowRight size={16} /></a>{selected?.kind === 'curriculum' ? <Button variant="secondary" onClick={() => { setEditing(selected); setSelected(null); }}>Muuda</Button> : null}<Button variant="secondary" onClick={() => { setPreviewing(selected); setSelected(null); }}>Eelvaade</Button><Button onClick={() => { setAssigning(selected); setSelected(null); }}>Määra õpilastele</Button></>}
       >
         {selected ? <div className="library-detail"><Badge tone={LIBRARY_TYPES[selected.type]?.tone}>{selected.typeLabel}</Badge><p>{selected.description || 'Materjalil ei ole kirjeldust.'}</p><dl><div><dt>Õppeaine</dt><dd>{selected.subject || '—'}</dd></div><div><dt>Tase või vanus</dt><dd>{selected.level || selected.ageGroup || '—'}</dd></div><div><dt>Teema</dt><dd>{selected.curriculum || selected.topic || '—'}</dd></div><div><dt>Andmeallikas</dt><dd>{selected.kind === 'exercise' ? 'Harjutused' : 'Õppekava'}</dd></div></dl></div> : null}
       </Modal>
       {previewing ? <MaterialPreview item={previewing} onClose={() => setPreviewing(null)} /> : null}
+      {editing !== undefined ? <MaterialEditor item={editing} repository={repository} user={user} onClose={() => setEditing(undefined)} onSaved={(result) => { setEditing(undefined); setSuccess(`„${result.title}” ${result.created ? 'loodi' : 'salvestati'}.`); state.reload(); }} /> : null}
       {assigning ? <AssignmentModal item={assigning} user={user} repository={repository} studentRepository={studentRepository} onClose={() => setAssigning(null)} onAssigned={(count) => { setAssigning(null); setSuccess(`„${assigning.title}” määrati ${count} õpilasele.`); }} /> : null}
     </div>
   );
