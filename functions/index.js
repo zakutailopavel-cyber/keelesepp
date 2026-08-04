@@ -88,6 +88,7 @@ const SUPER_ADMIN_EMAILS = new Set(
 );
 const DEFAULT_ALLOWED_ORIGINS = [
   "https://keelesepp.vercel.app",
+  "https://keelesepp-crm-v2.vercel.app",
   "https://epkoolitus.ee",
   "https://www.epkoolitus.ee",
   "http://localhost:3000",
