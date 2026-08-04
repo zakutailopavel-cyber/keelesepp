@@ -30,7 +30,11 @@ const {
 } = require("./invoice-document");
 const { invoiceNumberingPlan } = require("./invoice-numbering-core");
 const { expenseDocumentRecord, expenseRecord } = require("./expenses-core");
-const { accountantExportArchive, periodCloseProjection } = require("./period-close-core");
+const {
+  accountantExportArchive,
+  billingFingerprint,
+  periodCloseProjection,
+} = require("./period-close-core");
 const {
   buildLessonInvoiceLines,
   centsToAmount,
@@ -2689,15 +2693,7 @@ async function reviewFinancialPeriod({ actor, month, requestId }) {
     }
     const previous = periodSnap.exists ? periodSnap.data() : {};
     const reviewVersion = Math.max(0, Number(previous.reviewVersion) || 0) + 1;
-    const fingerprint = crypto
-      .createHash("sha256")
-      .update(JSON.stringify({
-        month: snapshot.month,
-        scope: snapshot.scope,
-        summary: snapshot.summary,
-        issues: snapshot.issues,
-      }))
-      .digest("hex");
+    const fingerprint = billingFingerprint(snapshot);
     const review = {
       month: reviewMonth,
       status: "reviewed",
