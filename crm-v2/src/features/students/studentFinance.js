@@ -15,7 +15,7 @@ export function isInvoiceOverdue(invoice = {}, today = new Date()) {
   if (invoiceBalanceCents(invoice) <= 0) return false;
   if (invoice.status === 'overdue' || invoice.paymentStatus === 'overdue') return true;
   if (['Makstud', 'Tühistatud', 'paid', 'cancelled'].includes(invoice.status)) return false;
-  const dueDate = String(invoice.dueDate || invoice.paymentDueDate || '').slice(0, 10);
+  const dueDate = String(invoice.due || invoice.dueDate || invoice.paymentDueDate || '').slice(0, 10);
   const todayIso = (today instanceof Date ? today : new Date()).toISOString().slice(0, 10);
   return /^\d{4}-\d{2}-\d{2}$/.test(dueDate) && dueDate < todayIso;
 }

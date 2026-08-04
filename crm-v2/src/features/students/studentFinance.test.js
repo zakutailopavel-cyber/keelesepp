@@ -8,6 +8,7 @@ describe('legacy invoice summary', () => {
 
   it('recognizes an unpaid legacy invoice after its due date', () => {
     const today = new Date('2026-08-03T12:00:00Z');
+    expect(isInvoiceOverdue({ status: 'Ootel', amount: 80, due: '2026-08-01' }, today)).toBe(true);
     expect(isInvoiceOverdue({ status: 'Ootel', amount: 80, dueDate: '2026-08-01' }, today)).toBe(true);
     expect(isInvoiceOverdue({ status: 'Makstud', amount: 80, dueDate: '2026-08-01' }, today)).toBe(false);
   });
