@@ -66,6 +66,7 @@ KeeleSepp CRM v2 заменяет старую CRM по модулям, без �
 
 - `functions/index.js` — HTTP/trigger/scheduled Cloud Functions.
 - `functions/finance-core.js` — чистая финансовая бизнес-логика.
+- `functions/expenses-core.js` — нормализация сумм расходов и проверка метаданных чеков.
 - `functions/staff-operations-core.js` — рабочее время, ставки и payroll-расчёты.
 - `firestore.rules` и `storage.rules` — серверные границы доступа.
 
@@ -173,47 +174,58 @@ KeeleSepp CRM v2 заменяет старую CRM по модулям, без �
 - approve/reject с обязательной ставкой или причиной;
 - аудируемое исправление начала, конца, перерыва и примечания возвращает запись на повторное подтверждение;
 - сотрудники с одной только activity evidence остаются видимыми, но activity явно не считается основанием для зарплаты.
+- admin-only workspace `/finance/expenses` для простого реестра расходов языковой школы;
+- у расхода есть дата, категория, описание, сумма, отдельная сумма VAT, способ оплаты и необязательная заметка;
+- поставщики, договоры и каталог контрагентов намеренно не добавлены: владелец подтвердил, что школе нужен только блок расходов;
+- итоги выбранного месяца показывают gross, VAT, net и количество документов только по активным записям;
+- PDF/JPEG/PNG/WebP чек до 10 MB сохраняется в приватном Storage-пути, привязанном к стабильному expense ID;
+- исправление создаёт новую связанную запись, исходная становится `corrected`; аннулирование переводит запись в `voided`, физического удаления нет;
+- создание, исправление, аннулирование и прикрепление документа выполняются только trusted Cloud Function и получают immutable `financialAudit` entry;
+- прямые клиентские create/update/delete для `expenses` запрещены правилами Firestore, доступ к реестру и файлам сейчас admin-only.
 
 ## 4. Последнее опубликованное изменение
 
-Коммит: `0fdf689 feat: add audited payroll workspace`
+Коммит: `d8c7817 feat: add audited expense register`
 
 В нём:
 
-- admin-only маршрут `/finance/payroll` и вход из страницы финансов;
-- месячная группировка work sessions и program activity по staff UID;
-- totals по pending/approved времени и утверждённой сумме;
-- настройка будущей hourly rate через trusted API;
-- approve/reject с фиксированным snapshot ставки и суммы;
-- `Paranda` для аудируемого исправления времени, перерыва, заметки и обязательной причины;
-- повторное подтверждение после исправления;
-- component/projection tests и responsive payroll styles.
+- admin-only маршрут `/finance/expenses` и вход из страницы финансов;
+- простой реестр без поставщиков: дата, категория, описание, gross/VAT/net, способ оплаты и заметка;
+- месячный фильтр, поиск, четыре итоговые карточки и responsive-таблица;
+- приватные чеки PDF/JPEG/PNG/WebP в Firebase Storage;
+- trusted HTTP API для create/correct/void/document attachment;
+- идемпотентные server mutations и immutable financial audit;
+- исправление новой связанной записью и аннулирование без удаления истории;
+- Firestore/Storage rules и unit/component/full-emulator test coverage.
 
-Предыдущий функциональный коммит: `fa80172 feat: support multiple parent children and readable finance issues` (`Lisa laps` + readable financial-period issues).
+Предыдущий функциональный коммит: `0fdf689 feat: add audited payroll workspace`.
 
 Публикация проверена:
 
-- GitHub `main` содержит `0fdf689`;
+- GitHub `main` содержит `d8c7817`;
 - Vercel production отдаёт новый bundle;
-- Firebase Functions успешно задеплоены 04.08.2026;
-- production `/parents`: modal `Lisa laps: …` показывает текущих детей и кнопку `Loo uus lapse kaart`;
-- production `/finance`: июльская сверка показывает понятные строки вроде имени/группы, даты и преподавателя, а ID — ниже;
-- production `/finance/payroll`: отображаются реальные сотрудники, месячная activity evidence, ставки и пустые состояния; форма ставки проверена без сохранения;
-- production-проверка была read-only, детей и финансовые данные не изменяли.
+- Firebase Functions, Firestore rules и Storage rules успешно задеплоены 04.08.2026;
+- GitHub Actions `CRM v2` и `Financial Core emulator` для `d8c7817` завершились успешно;
+- production `/finance/expenses` показывает новый реестр, месячные итоги, фильтр и корректное пустое состояние;
+- production-форма `Lisa kulu` содержит только согласованные поля и не содержит поставщика;
+- production-проверка была read-only: форма открыта и закрыта, финансовые данные не изменялись.
 
 Последняя полная проверка:
 
 ```text
-CRM v2: 54 test files, 222 tests passed
-Functions: 83 tests passed
+CRM v2: 56 test files, 227 tests passed
+Functions: 86 tests passed
+Financial Core emulator (CI): passed
 ESLint: passed
 Vite production build: passed
+Firestore rules compilation: passed
+Storage rules compilation: passed
 git diff --check: passed
 ```
 
 ## 5. Состояние локального рабочего дерева
 
-Payroll-блок опубликован и больше не является незакоммиченной работой. Отслеживаемых локальных изменений после `0fdf689` нет, кроме обновления этого handoff-файла до следующего docs-коммита.
+Блок расходов опубликован и больше не является незакоммиченной работой. Отслеживаемых локальных изменений после `d8c7817` нет, кроме обновления этого handoff-файла до следующего docs-коммита.
 
 ### Пользовательские файлы, которые нельзя случайно коммитить
 
@@ -228,15 +240,6 @@ Payroll-блок опубликован и больше не является н
 Не использовать `git add .` в грязном дереве. Добавлять только точный список файлов.
 
 ## 6. Что осталось — приоритетный порядок
-
-### P0. Расходы и поставщики
-
-- категории расходов;
-- поставщик и supplier invoice;
-- дата, сумма, VAT metadata;
-- чек/документ в Storage;
-- recurring costs;
-- исправление/void только через audit, без удаления истории.
 
 ### P1. Настоящее закрытие периода
 
@@ -325,7 +328,7 @@ git status --short
 Firebase Functions:
 
 ```bash
-npx firebase-tools deploy --only functions --project keelesepp-5136b --non-interactive
+npx firebase-tools deploy --only functions,firestore:rules,storage --project keelesepp-5136b --non-interactive
 ```
 
 После push дождаться нового Vercel bundle и проверить production в авторизованной сессии. Для финансовых smoke checks сначала использовать только preview/read-only действия. Любую тестовую запись делать только на явно тестовых данных.
@@ -336,6 +339,7 @@ npx firebase-tools deploy --only functions --project keelesepp-5136b --non-inter
 - Trigger `syncScheduleToGoogle` и функция расположены в разных регионах (`europe-west3` trigger / `us-central1` function). Это создаёт потенциальные cross-region hops; перенос региона требует отдельного плана.
 - Firebase client bundle остаётся самым большим build chunk.
 - React Router закреплён на версии, выбранной с учётом известных advisory; не менять вслепую.
+- Локальный полный Firebase emulator требует Java. На машине владельца Java сейчас нет, но тот же сценарий успешно проходит в GitHub Actions; не устанавливать системную Java попутно без отдельной необходимости.
 
 ## 10. Как продолжить новому агенту
 
@@ -343,6 +347,6 @@ npx firebase-tools deploy --only functions --project keelesepp-5136b --non-inter
 2. Выполнить `git status --short` и сохранить все пользовательские изменения.
 3. Прочитать `ARCHITECTURE.md`, `FINANCIAL_CORE_ROADMAP.md` и нужный раздел `crm-v2/ACCEPTANCE.md`.
 4. Не трогать Live Classroom и тарифы.
-5. Начать с отдельного модуля расходов и поставщиков.
+5. Начать с настоящего закрытия финансового периода: checklist, lock, dated corrections и архив evidence.
 6. Довести один блок до тестов, production и записи в этот handoff-файл.
 7. После каждого крупного релиза обновлять разделы 4–6 и новый HEAD-коммит.
