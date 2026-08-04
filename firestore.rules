@@ -40,6 +40,10 @@ service cloud.firestore {
       return superAdmin() || (signedIn() && userRole(uid()) == 'admin');
     }
 
+    function isFinance() {
+      return signedIn() && userRole(uid()) == 'finance';
+    }
+
     function isStaff() {
       return isAdmin() || (signedIn() && userRole(uid()) == 'teacher');
     }
@@ -753,7 +757,7 @@ service cloud.firestore {
     }
 
     match /invoices/{invoiceId} {
-      allow read: if isStaff() || ownsInvoice(resource.data);
+      allow read: if isStaff() || isFinance() || ownsInvoice(resource.data);
       allow create: if isStaff();
       allow update: if (
           isAdmin()

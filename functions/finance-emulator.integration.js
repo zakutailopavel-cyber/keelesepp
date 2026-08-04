@@ -76,6 +76,52 @@ async function createUserToken(email) {
   return body.idToken;
 }
 
+test("finance role can read invoices without gaining student or mutation access", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const financeToken = await createUserToken("finance-reader@example.com");
+  const financeUid = tokenUid(financeToken);
+
+  await Promise.all([
+    db.collection("users").doc(financeUid).set({
+      role: "finance",
+      displayName: "Finance Reader",
+      email: "finance-reader@example.com",
+    }),
+    db.collection("invoices").doc("finance-readable-invoice").set({
+      num: "KS-FINANCE-1",
+      studentId: "finance-private-student",
+      amountCents: 10000,
+      balanceDueCents: 10000,
+      status: "Ootel",
+    }),
+    db.collection("students").doc("finance-private-student").set({
+      name: "Private Student",
+      active: true,
+    }),
+  ]);
+
+  const invoiceList = await firestoreQueryRequest(financeToken, "invoices");
+  assert.equal(invoiceList.status, 200, JSON.stringify(invoiceList.body));
+  assert.ok(invoiceList.body.some(item => item.document?.name.endsWith("/invoices/finance-readable-invoice")));
+
+  const studentRead = await firestoreDocumentRequest(
+    financeToken,
+    "GET",
+    "students/finance-private-student",
+  );
+  assert.equal(studentRead.status, 403, JSON.stringify(studentRead.body));
+
+  const invoiceMutation = await firestoreDocumentRequest(
+    financeToken,
+    "PATCH",
+    "invoices/finance-readable-invoice?updateMask.fieldPaths=status",
+    { fields: { status: { stringValue: "Makstud" } } },
+  );
+  assert.equal(invoiceMutation.status, 403, JSON.stringify(invoiceMutation.body));
+});
+
 async function firestoreDocumentRequest(token, method, documentPath, body) {
   const response = await fetch(
     `http://${FIRESTORE_EMULATOR}/v1/projects/${PROJECT_ID}/databases/(default)/documents/${documentPath}`,
