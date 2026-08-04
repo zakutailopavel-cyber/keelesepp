@@ -8,6 +8,7 @@ import {
   Eye,
   FileCheck2,
   FileUp,
+  Landmark,
   Mail,
   ReceiptText,
   RotateCcw,
@@ -577,9 +578,12 @@ export default function FinancePage({
         description="Reaalne ülevaade laekumistest, võlgadest ja prognoositavast tulust."
         actions={
           canRegisterPayment ? (
-            <Button disabled={!students.length} onClick={() => openForecast()}>
-              <TrendingUp size={17} /> Seadista prognoos
-            </Button>
+            <>
+              <Link className="button button--secondary" to="/finance/payroll"><Landmark size={17} /> Palgaarvestus</Link>
+              <Button disabled={!students.length} onClick={() => openForecast()}>
+                <TrendingUp size={17} /> Seadista prognoos
+              </Button>
+            </>
           ) : null
         }
       />

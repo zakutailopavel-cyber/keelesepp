@@ -9,6 +9,7 @@ import GroupsPage from '../features/groups/GroupsPage.jsx';
 import LibraryPage from '../features/library/LibraryPage.jsx';
 import MessagesPage from '../features/messages/MessagesPage.jsx';
 import ParentsPage from '../features/parents/ParentsPage.jsx';
+import PayrollPage from '../features/payroll/PayrollPage.jsx';
 import ParentDashboardPage from '../features/parents/ParentDashboardPage.jsx';
 import StudentsPage from '../features/students/StudentsPage.jsx';
 import StudentProfilePage from '../features/students/StudentProfilePage.jsx';
@@ -46,6 +47,7 @@ export default function AppRoutes() {
           <Route element={<ProtectedRoute roles={[ROLES.PARENT]} />}><Route path="parent" element={<ParentDashboardPage />} /></Route>
           <Route element={<ProtectedRoute roles={[ROLES.STUDENT]} />}><Route path="student" element={<StudentDashboardPage />} /></Route>
           <Route element={<ProtectedRoute roles={[ROLES.ADMIN, ROLES.FINANCE]} />}><Route path="finance" element={<FinancePage />} /></Route>
+          <Route element={<ProtectedRoute roles={[ROLES.ADMIN]} />}><Route path="finance/payroll" element={<PayrollPage />} /></Route>
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

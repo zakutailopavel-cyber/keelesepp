@@ -1,0 +1,165 @@
+.payroll-page {
+  max-width: 1500px;
+}
+
+.payroll-toolbar {
+  align-items: center;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: minmax(260px, 1fr) 190px auto;
+}
+
+.payroll-toolbar .field {
+  margin: 0;
+}
+
+.payroll-staff-list {
+  display: grid;
+  gap: 18px;
+}
+
+.payroll-staff {
+  overflow: hidden;
+  padding: 0;
+}
+
+.payroll-staff > header {
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: 14px;
+  padding: 20px 22px;
+}
+
+.payroll-staff > header > span {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.payroll-staff > header > span strong {
+  font-size: 1.05rem;
+}
+
+.payroll-staff > header > span small {
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.payroll-staff > header > div:last-child {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.payroll-staff-summary {
+  background: var(--border);
+  border-bottom: 1px solid var(--border);
+  display: grid;
+  gap: 1px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.payroll-staff-summary > span {
+  background: var(--surface);
+  display: grid;
+  gap: 4px;
+  padding: 16px 22px;
+}
+
+.payroll-staff-summary small,
+.payroll-reason {
+  color: var(--muted);
+}
+
+.payroll-table th,
+.payroll-table td {
+  white-space: nowrap;
+}
+
+.payroll-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.payroll-actions .button {
+  font-size: 0.78rem;
+  padding: 8px 10px;
+}
+
+.payroll-reason {
+  display: block;
+  margin-top: 4px;
+  max-width: 220px;
+  white-space: normal;
+}
+
+.payroll-review-form {
+  display: grid;
+  gap: 16px;
+}
+
+.payroll-review-form dl {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, 1fr);
+  margin: 0;
+}
+
+.payroll-review-form dl div {
+  background: #f8fafc;
+  border-radius: 12px;
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+}
+
+.payroll-review-form dt {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.payroll-review-form dd {
+  font-weight: 700;
+  margin: 0;
+}
+
+@media (max-width: 900px) {
+  .payroll-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .payroll-staff-summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .payroll-staff > header {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .payroll-staff > header > div:last-child {
+    justify-content: space-between;
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .payroll-review-form dl {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 540px) {
+  .payroll-staff-summary {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .payroll-staff > header > div:last-child,
+  .payroll-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
