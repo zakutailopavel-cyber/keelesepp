@@ -12,15 +12,17 @@ checks. Do not archive or edit an active learner during a smoke test.
   the Students list and one student profile at 390 px and 768 px: no horizontal
   page overflow was detected.
 - The student modal focuses its close button, closes with Escape and restores
-  focus to `Lisa õpilane`. Field errors are linked through `aria-describedby`
-  and `aria-invalid` and announced through an alert live region.
+  focus to `Lisa õpilane`. In `main`, field errors are linked through
+  `aria-describedby` and `aria-invalid` and announced through an alert live
+  region; the alert-role patch still awaits the next allowed Vercel deploy.
 - A separate teacher-only, student, parent and finance session was not available
   during this run. Strict `teacherUid` read enforcement therefore remains off;
   do not enable it until the role checks below pass with real dedicated accounts.
 - Production now serves the same `index-CiZjI8b8.js` asset produced by the green
   local build. The published bundle contains the period-close and financial
-  analytics UI. Keep close/export actions read-only on real accounting periods;
-  destructive close smoke checks still belong in an isolated test period.
+  analytics UI. The later accessibility build is `index-CHKrUCRf.js`, but Vercel
+  rejected its deployment at the daily Free-plan limit. Keep close/export actions
+  read-only on real periods; destructive checks belong in an isolated test period.
 
 ## Anonymous and routing
 

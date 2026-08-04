@@ -196,7 +196,9 @@ KeeleSepp CRM v2 заменяет старую CRM по модулям, без �
 
 ## 4. Последнее опубликованное изменение
 
-Функциональный коммит: `b279117 feat: add financial management analytics`
+Последний функциональный коммит: `7f7df11 fix: announce field validation errors`
+
+Последний крупный финансовый коммит: `b279117 feat: add financial management analytics`
 
 Предыдущие финансовые коммиты: `35a9202 feat: close and archive financial periods` и `fe0e86d fix: unify financial period fingerprints`.
 
@@ -216,11 +218,12 @@ KeeleSepp CRM v2 заменяет старую CRM по модулям, без �
 
 - GitHub `main` содержит `b279117`;
 - Firebase `financeApi` с закрытием периода и аналитикой, а также Firestore Rules успешно задеплоены 04.08.2026;
-- GitHub Actions `CRM v2` run `30946649775` и `Financial Core emulator` run `30946649492` завершились успешно;
+- GitHub Actions для `7f7df11`: `CRM v2` run `30947808077` и `Financial Core emulator` run `30947811966` завершились успешно;
 - emulator проверяет review → export → close → locked write rejection → dated correction и read-only analytics endpoint;
 - Vercel deployment `dpl_HdfDScttgKYqjMxXwgpnMxcNHQEb` опубликован 04.08.2026 в 23:10 Europe/Tallinn и имеет статус `Ready` с alias `https://keelesepp-crm-v2.vercel.app`;
 - production отдаёт `index-CiZjI8b8.js`, совпадающий с asset-хэшем повторной зелёной локальной сборки; в bundle подтверждены строки `Sulge kuu`, `Finantsanalüütika` и `Rahavoog`;
-- UI закрытия месяца и аналитики теперь опубликован; production smoke должен оставаться read-only, реальные месяцы ради проверки не закрывать.
+- UI закрытия месяца и аналитики теперь опубликован; production smoke должен оставаться read-only, реальные месяцы ради проверки не закрывать;
+- accessibility-fix `7f7df11` собирается в `index-CHKrUCRf.js`, но его ручной deploy снова отклонён лимитом `api-deployments-free-per-day`; это не откатывает уже опубликованные финансовые блоки.
 
 Последняя полная проверка:
 
@@ -239,7 +242,7 @@ Read-only production QA 04.08.2026:
 - в Chrome доступна только совмещённая роль `teacher, admin`; отдельных teacher/student/parent/finance сессий нет;
 - `/students` и одна карточка ученика проверены на 390 px и 768 px, horizontal overflow отсутствует;
 - модальное окно добавления ученика получает фокус, закрывается Escape и возвращает фокус на `Lisa õpilane`;
-- ошибки общих Input/Select помечаются `aria-invalid`, связаны через `aria-describedby` и после accessibility-fix объявляются как `role="alert"`;
+- ошибки общих Input/Select помечаются `aria-invalid`, связаны через `aria-describedby`; в `main` (`7f7df11`) они также объявляются как `role="alert"`, production deploy этого небольшого фикса ожидает сброса quota;
 - strict teacher read enforcement намеренно не включён, потому что совмещённая admin-сессия не доказывает отсутствие утечки в teacher-only роли;
 - production shell, список и карточка ученика проверялись уже на опубликованном asset `index-CiZjI8b8.js`; bundle закрытия и аналитики подтверждён на основном домене.
 
@@ -286,6 +289,7 @@ Read-only production QA 04.08.2026:
 - понятные empty/error states;
 - проверить console errors;
 - расширенный фактический чек-лист находится в `crm-v2/ACCEPTANCE.md`.
+- после сброса Vercel quota опубликовать уже зелёный `7f7df11` и повторно проверить live-region ошибки полей на production.
 
 ### Последним: Live Classroom
 
@@ -337,7 +341,7 @@ npx firebase-tools deploy --only functions,firestore:rules,storage --project kee
 - Firebase client bundle остаётся самым большим build chunk.
 - React Router закреплён на версии, выбранной с учётом известных advisory; не менять вслепую.
 - Локальный полный Firebase emulator требует Java. На машине владельца Java сейчас нет, но тот же сценарий успешно проходит в GitHub Actions; не устанавливать системную Java попутно без отдельной необходимости.
-- 04.08.2026 Vercel Free plan временно возвращал `more than 100 deployments per day`, но production deployment `dpl_HdfDScttgKYqjMxXwgpnMxcNHQEb` позже успешно получил основной alias. Это больше не активный release blocker.
+- 04.08.2026 production deployment `dpl_HdfDScttgKYqjMxXwgpnMxcNHQEb` успешно получил основной alias и уже содержит финансовые блоки. Следующий deploy `7f7df11` был отклонён `more than 100 deployments per day`; quota сейчас блокирует только доставку нового accessibility-fix, а не period-close/analytics.
 
 ## 10. Как продолжить новому агенту
 
