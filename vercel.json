@@ -6,6 +6,11 @@
       "permanent": false
     },
     {
+      "source": "/haldus/",
+      "destination": "https://crm.epkoolitus.ee",
+      "permanent": false
+    },
+    {
       "source": "/haldus/:path*",
       "destination": "https://crm.epkoolitus.ee",
       "permanent": false
