@@ -1,4 +1,4 @@
-import { BookOpen, CalendarDays, CircleDollarSign, GraduationCap, HeartHandshake, Layers3, LibraryBig, LayoutDashboard, MessageSquareText, Settings, UserRoundCog, Users } from 'lucide-react';
+import { BookOpen, CalendarDays, CircleDollarSign, GraduationCap, HeartHandshake, Layers3, LibraryBig, LayoutDashboard, MessageSquareText, Settings, UserRoundCog, Users, Video } from 'lucide-react';
 import { ROLES } from '../utils/roles.js';
 
 export const navigation = [
@@ -10,6 +10,7 @@ export const navigation = [
   { to: '/groups', label: 'Grupid', icon: Layers3, roles: [ROLES.ADMIN, ROLES.TEACHER] },
   { to: '/parents', label: 'Lapsevanemad', icon: HeartHandshake, roles: [ROLES.ADMIN, ROLES.TEACHER] },
   { to: '/library', label: 'Õppevara', icon: LibraryBig, roles: [ROLES.ADMIN, ROLES.TEACHER] },
+  { to: '/live-classroom', label: 'Live Classroom', icon: Video, roles: [ROLES.ADMIN, ROLES.TEACHER] },
   { to: '/teachers', label: 'Õpetajad', icon: UserRoundCog, roles: [ROLES.ADMIN] },
   { to: '/homework', label: 'Kodutööd', icon: BookOpen, roles: [ROLES.ADMIN, ROLES.TEACHER, ROLES.STUDENT, ROLES.PARENT] },
   { to: '/finance', label: 'Finantsid', icon: CircleDollarSign, roles: [ROLES.ADMIN, ROLES.FINANCE] },
