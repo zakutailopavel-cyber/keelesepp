@@ -8,6 +8,7 @@ import ExpensesPage from '../features/expenses/ExpensesPage.jsx';
 import HomeworkPage from '../features/homework/HomeworkPage.jsx';
 import GroupsPage from '../features/groups/GroupsPage.jsx';
 import LibraryPage from '../features/library/LibraryPage.jsx';
+import LiveClassroomPage from '../features/live-classroom/LiveClassroomPage.jsx';
 import MessagesPage from '../features/messages/MessagesPage.jsx';
 import ParentsPage from '../features/parents/ParentsPage.jsx';
 import PayrollPage from '../features/payroll/PayrollPage.jsx';
@@ -40,6 +41,7 @@ export default function AppRoutes() {
             <Route path="groups" element={<GroupsPage />} />
             <Route path="library" element={<LibraryPage />} />
             <Route path="parents" element={<ParentsPage />} />
+            <Route path="live-classroom" element={<LiveClassroomPage />} />
           </Route>
           <Route element={<ProtectedRoute roles={[ROLES.ADMIN]} />}><Route path="teachers" element={<TeachersPage />} /><Route path="teachers/:teacherId" element={<TeacherProfilePage />} /></Route>
           <Route path="settings" element={<SettingsPage />} />
