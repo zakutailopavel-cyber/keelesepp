@@ -1,8 +1,10 @@
-import { CheckCircle2, Database, KeyRound, Save, ShieldCheck, UserRound } from 'lucide-react';
+import { CheckCircle2, Database, KeyRound, Save, ShieldAlert, ShieldCheck, UserRound } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, Input, PageHeader } from '../../components/ui/index.js';
 import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
+import { hasAnyRole, ROLES } from '../../utils/roles.js';
+import { teacherScopeMigrationApi } from '../../services/firebase/teacherScopeMigrationApi.js';
 
 function initialProfile(user) {
   return {
@@ -18,6 +20,10 @@ export default function SettingsPage() {
   const [resetting, setResetting] = useState(false);
   const [success, setSuccess] = useState('');
   const [actionError, setActionError] = useState('');
+  const [migrationPreview, setMigrationPreview] = useState(null);
+  const [migrationLoading, setMigrationLoading] = useState(false);
+  const [migrationError, setMigrationError] = useState('');
+  const isAdmin = hasAnyRole(user.roles, [ROLES.ADMIN]);
 
   const save = async (event) => {
     event.preventDefault();
@@ -49,6 +55,19 @@ export default function SettingsPage() {
     }
   };
 
+  const previewTeacherScopeMigration = async () => {
+    setMigrationLoading(true);
+    setMigrationError('');
+    try {
+      const result = await teacherScopeMigrationApi.preview();
+      setMigrationPreview(result);
+    } catch (error) {
+      setMigrationError(firebaseErrorMessage(error, 'Preview käivitamine ebaõnnestus.'));
+    } finally {
+      setMigrationLoading(false);
+    }
+  };
+
   return <div className="page-content">
     <PageHeader eyebrow="Konto" title="Seaded" description="Sinu kontaktandmed, ligipääs ja konto turvalisus." />
     {success ? <div className="success-notice" role="status">{success}<button aria-label="Sulge teade" onClick={() => setSuccess('')}>×</button></div> : null}
@@ -61,6 +80,8 @@ export default function SettingsPage() {
       <Card><div className="settings-icon"><KeyRound /></div><h2>Turvalisus</h2><p className="settings-copy">Parooli ei kuvata ega muudeta CRM-is otse. Firebase saadab turvalise taastamislingi ainult sinu praeguse konto e-posti aadressile.</p><Button variant="secondary" loading={resetting} onClick={resetPassword}>Saada parooli taastamise link</Button></Card>
 
       <Card><div className="settings-icon"><Database /></div><h2>Firebase</h2><div className="integration-row"><div><strong>Andmebaasi ühendus</strong><span>Autentimine ja Firestore</span></div><Badge tone={configured ? 'success' : 'danger'}>{configured ? 'Ühendatud' : 'Seadistamata'}</Badge></div><div className="integration-row"><div><strong>Ligipääsureeglid</strong><span>Rollipõhine kaitse</span></div><CheckCircle2 size={20} color="#067647" /></div></Card>
+
+      {isAdmin ? <Card><div className="settings-icon"><ShieldAlert /></div><h2>Teacher-scope migratsioon (diagnostika)</h2><p className="settings-copy">Ajutine admin-tööriist: kontrollib, kas õpetajate andmed on valmis range teacherUid-põhise ligipääsu jaoks. Preview ei muuda midagi.</p><Button variant="secondary" loading={migrationLoading} onClick={previewTeacherScopeMigration}>Preview</Button>{migrationError ? <p className="form-hint" role="alert">{migrationError}</p> : null}{migrationPreview ? <pre className="mono" style={{ whiteSpace: 'pre-wrap', fontSize: '12px', marginTop: '12px' }}>{JSON.stringify(migrationPreview, null, 2)}</pre> : null}</Card> : null}
     </section>
   </div>;
 }
