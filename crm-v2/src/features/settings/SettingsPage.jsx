@@ -23,6 +23,10 @@ export default function SettingsPage() {
   const [migrationPreview, setMigrationPreview] = useState(null);
   const [migrationLoading, setMigrationLoading] = useState(false);
   const [migrationError, setMigrationError] = useState('');
+  const [migrationApplyResult, setMigrationApplyResult] = useState(null);
+  const [migrationApplyLoading, setMigrationApplyLoading] = useState(false);
+  const [migrationEnforceResult, setMigrationEnforceResult] = useState(null);
+  const [migrationEnforceLoading, setMigrationEnforceLoading] = useState(false);
   const isAdmin = hasAnyRole(user.roles, [ROLES.ADMIN]);
 
   const save = async (event) => {
@@ -68,6 +72,34 @@ export default function SettingsPage() {
     }
   };
 
+  const applyTeacherScopeMigration = async () => {
+    if (!window.confirm('Käivitada teacherUid backfill? See kirjutab õpilaste/tundide/tunniplaani kirjeid.')) return;
+    setMigrationApplyLoading(true);
+    setMigrationError('');
+    try {
+      const result = await teacherScopeMigrationApi.apply();
+      setMigrationApplyResult(result);
+    } catch (error) {
+      setMigrationError(firebaseErrorMessage(error, 'Apply käivitamine ebaõnnestus.'));
+    } finally {
+      setMigrationApplyLoading(false);
+    }
+  };
+
+  const enforceTeacherScopeMigration = async () => {
+    if (!window.confirm('Lülitada sisse range teacherUid-põhine ligipääsupiirang? Õpetajad näevad edaspidi ainult oma õpilasi.')) return;
+    setMigrationEnforceLoading(true);
+    setMigrationError('');
+    try {
+      const result = await teacherScopeMigrationApi.enforce();
+      setMigrationEnforceResult(result);
+    } catch (error) {
+      setMigrationError(firebaseErrorMessage(error, 'Enforce käivitamine ebaõnnestus.'));
+    } finally {
+      setMigrationEnforceLoading(false);
+    }
+  };
+
   return <div className="page-content">
     <PageHeader eyebrow="Konto" title="Seaded" description="Sinu kontaktandmed, ligipääs ja konto turvalisus." />
     {success ? <div className="success-notice" role="status">{success}<button aria-label="Sulge teade" onClick={() => setSuccess('')}>×</button></div> : null}
@@ -81,7 +113,7 @@ export default function SettingsPage() {
 
       <Card><div className="settings-icon"><Database /></div><h2>Firebase</h2><div className="integration-row"><div><strong>Andmebaasi ühendus</strong><span>Autentimine ja Firestore</span></div><Badge tone={configured ? 'success' : 'danger'}>{configured ? 'Ühendatud' : 'Seadistamata'}</Badge></div><div className="integration-row"><div><strong>Ligipääsureeglid</strong><span>Rollipõhine kaitse</span></div><CheckCircle2 size={20} color="#067647" /></div></Card>
 
-      {isAdmin ? <Card><div className="settings-icon"><ShieldAlert /></div><h2>Teacher-scope migratsioon (diagnostika)</h2><p className="settings-copy">Ajutine admin-tööriist: kontrollib, kas õpetajate andmed on valmis range teacherUid-põhise ligipääsu jaoks. Preview ei muuda midagi.</p><Button variant="secondary" loading={migrationLoading} onClick={previewTeacherScopeMigration}>Preview</Button>{migrationError ? <p className="form-hint" role="alert">{migrationError}</p> : null}{migrationPreview ? <pre className="mono" style={{ whiteSpace: 'pre-wrap', fontSize: '12px', marginTop: '12px' }}>{JSON.stringify(migrationPreview, null, 2)}</pre> : null}</Card> : null}
+      {isAdmin ? <Card><div className="settings-icon"><ShieldAlert /></div><h2>Teacher-scope migratsioon (diagnostika)</h2><p className="settings-copy">Ajutine admin-tööriist: kontrollib, kas õpetajate andmed on valmis range teacherUid-põhise ligipääsu jaoks, käivitab backfilli ja lülitab range kontrolli sisse. Rollback on olemas serveris.</p><div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}><Button variant="secondary" loading={migrationLoading} onClick={previewTeacherScopeMigration}>Preview</Button><Button variant="secondary" loading={migrationApplyLoading} onClick={applyTeacherScopeMigration}>Rakenda (apply)</Button><Button variant="secondary" loading={migrationEnforceLoading} onClick={enforceTeacherScopeMigration}>Luba range piirang (enforce)</Button></div>{migrationError ? <p className="form-hint" role="alert">{migrationError}</p> : null}{migrationPreview ? <pre className="mono" style={{ whiteSpace: 'pre-wrap', fontSize: '12px', marginTop: '12px' }}>{JSON.stringify(migrationPreview, null, 2)}</pre> : null}{migrationApplyResult ? <pre className="mono" style={{ whiteSpace: 'pre-wrap', fontSize: '12px', marginTop: '12px' }}>{JSON.stringify(migrationApplyResult, null, 2)}</pre> : null}{migrationEnforceResult ? <pre className="mono" style={{ whiteSpace: 'pre-wrap', fontSize: '12px', marginTop: '12px' }}>{JSON.stringify(migrationEnforceResult, null, 2)}</pre> : null}</Card> : null}
     </section>
   </div>;
 }
