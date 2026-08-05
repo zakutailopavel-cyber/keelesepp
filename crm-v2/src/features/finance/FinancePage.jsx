@@ -103,7 +103,7 @@ const invoiceOverpaidCents = (invoice) =>
       : Math.round(Number(invoice?.overpaidAmount || 0) * 100),
   );
 
-function paymentDraft(invoice) {
+const financeSections = [{ id: "tunniarvestus", label: "Tunniarvestus" }, { id: "pangauhildus", label: "Pangaühildus" }, { id: "avansid", label: "Avansid" }, { id: "perioodid", label: "Perioodid" }, { id: "audit", label: "Audit" }, { id: "numeratsioon", label: "Numeratsioon" }, { id: "tuluprognoos", label: "Tuluprognoos" }, { id: "arved", label: "Arved" }]; function FinanceQuickNav() { const scrollToSection = (event, id) => { event.preventDefault(); document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" }); }; return <nav className="finance-quicknav" aria-label="Finantsi kiirnavigatsioon">{financeSections.map((section) => <a key={section.id} href={"#" + section.id} onClick={(event) => scrollToSection(event, section.id)}>{section.label}</a>)}</nav>; } function paymentDraft(invoice) {
   return {
     amount: (invoiceBalanceCents(invoice) / 100).toFixed(2),
     paidAt: today(),
@@ -667,62 +667,52 @@ export default function FinancePage({
           onPreview={previewFinancialAnalytics}
           onOpenInvoice={(invoiceId) => {
             const invoice = invoices.find((item) => item.id === invoiceId);
-            if (invoice) openInvoice(invoice);
-          }}
-        />
-      ) : null}
-      {canRegisterPayment ? (
-        <LessonAccountingPanel
+            if (invoice) openInvoice(invoice); }} /> ) : null} {canRegisterPayment ? <FinanceQuickNav /> : null} {canRegisterPayment ? ( <div id="tunniarvestus"><LessonAccountingPanel
           lessons={lessons}
           students={students}
           plans={plans}
           onCreateInvoice={createLessonInvoice}
-          onSetDisposition={setLessonDisposition}
-        />
+          onSetDisposition={setLessonDisposition} /></div>
       ) : null}
       {canRegisterPayment ? (
-        <BankReconciliationPanel
+        <div id="pangauhildus"><BankReconciliationPanel
           invoices={invoices}
           students={students}
           transactions={bankTransactions}
           onAllocate={allocateBankTransaction}
-          onReload={state.reload}
-        />
+          onReload={state.reload} /></div>
       ) : null}
       {canRegisterPayment ? (
-        <AdvanceManagementPanel
+        <div id="avansid"><AdvanceManagementPanel
           credits={credits}
           refunds={refunds}
           invoices={invoices}
           onApply={applyPayerCredit}
           onRefund={refundPayerCredit}
-          onReload={state.reload}
-        />
+          onReload={state.reload} /></div>
       ) : null}
       {canRegisterPayment ? (
-        <FinancialPeriodPanel
+        <div id="perioodid"><FinancialPeriodPanel
           periods={periods}
           onPreview={previewFinancialPeriod}
           onReview={reviewFinancialPeriod}
           onExport={generateFinancialPeriodExport}
           onClose={closeFinancialPeriod}
           onCorrection={createFinancialPeriodCorrection}
-          onReload={state.reload}
-        />
+          onReload={state.reload} /></div>
       ) : null}
       {canRegisterPayment ? (
-        <FinancialAuditPanel entries={auditEntries} />
+        <div id="audit"><FinancialAuditPanel entries={auditEntries} /></div>
       ) : null}
       {canRegisterPayment ? (
-        <InvoiceNumberingPanel
+        <div id="numeratsioon"><InvoiceNumberingPanel
           invoices={invoices}
           onPreview={previewInvoiceNumbering}
           onRepair={repairInvoiceNumbering}
           onReload={state.reload}
-          onOpenInvoice={openInvoice}
-        />
+          onOpenInvoice={openInvoice} /></div>
       ) : null}
-      <Card className="revenue-forecast-card">
+      <Card id="tuluprognoos" className="revenue-forecast-card">
         <div className="section-heading">
           <div>
             <span className="eyebrow">Tuluprognoos</span>
@@ -797,7 +787,7 @@ export default function FinancePage({
           />
         )}
       </Card>
-      <Card className="list-card finance-list">
+      <Card id="arved" className="list-card finance-list">
         <div className="list-toolbar">
           <div className="search-field">
             <Search size={18} />
