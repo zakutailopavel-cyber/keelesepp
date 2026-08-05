@@ -1,3 +1,49 @@
+
+.finance-quicknav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: -6px 0 4px;
+}
+
+.finance-quicknav a {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--navy);
+  background: #fff;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.finance-quicknav a:hover {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+#tunniarvestus,
+#pangauhildus,
+#avansid,
+#perioodid,
+#audit,
+#numeratsioon,
+#tuluprognoos,
+#arved {
+  scroll-margin-top: 16px;
+}
+
+@media (max-width: 560px) {
+  .finance-quicknav {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
+  }
+}
 .invoice-lines {
   display: grid;
   gap: 8px;
