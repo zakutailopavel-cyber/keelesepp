@@ -49,7 +49,7 @@ describe('student profile access and real data sections', () => {
   it('shows a clear empty finance state when the student has no invoices', async () => {
     renderProfile();
     expect(await screen.findByText('Õpilasel ei ole veel arveid')).toBeInTheDocument();
-    expect(screen.getByText('0,00 €')).toBeInTheDocument();
+    expect(screen.getAllByText('0,00 €')).toHaveLength(3);
   });
 
   it('blocks a teacher from another teacher’s student before loading related data', async () => {
