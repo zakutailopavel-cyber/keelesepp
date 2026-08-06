@@ -1,9 +1,10 @@
-import { GraduationCap, LogOut, Menu, Search, X } from 'lucide-react';
+import { GraduationCap, LogOut, Menu, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet } from 'react-router-dom';
 import { navigation, settingsNavigation } from '../../app/navigation.js';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { hasAnyRole } from '../../utils/roles.js';
+import GlobalStudentSearch from './GlobalStudentSearch.jsx';
 import IconButton from '../ui/IconButton.jsx';
 
 function initials(name) {
@@ -12,20 +13,10 @@ function initials(name) {
 
 export default function AppShell() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [globalSearch, setGlobalSearch] = useState('');
   const { user, signOut } = useAuth();
-  const navigate = useNavigate();
   const visibleNavigation = useMemo(() => navigation.filter((item) => hasAnyRole(user.roles, item.roles)), [user.roles]);
   const showSettings = hasAnyRole(user.roles, settingsNavigation.roles);
   const canSearchStudents = hasAnyRole(user.roles, ['admin', 'teacher']);
-
-  const submitSearch = (event) => {
-    event.preventDefault();
-    const search = globalSearch.trim();
-    if (!search) return;
-    navigate(`/students?search=${encodeURIComponent(search)}`);
-    setGlobalSearch('');
-  };
 
   return (
     <div className="app-shell">
@@ -56,7 +47,7 @@ export default function AppShell() {
       <main className="main-area">
         <header className="topbar">
           <IconButton className="mobile-only" label="Ava menüü" onClick={() => setMenuOpen(true)}><Menu size={21} /></IconButton>
-          {canSearchStudents ? <form className="search-box" role="search" onSubmit={submitSearch}><Search size={18} /><input aria-label="Otsi õpilast" placeholder="Otsi õpilast…" value={globalSearch} onChange={(event) => setGlobalSearch(event.target.value)} /></form> : null}
+          {canSearchStudents ? <GlobalStudentSearch user={user} /> : null}
         </header>
         <Outlet />
       </main>
