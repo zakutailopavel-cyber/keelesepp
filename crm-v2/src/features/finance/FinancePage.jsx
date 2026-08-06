@@ -588,7 +588,7 @@ export default function FinancePage({
     : [];
 
   return (
-    <div className="page-content" data-active-finance-section={activeFinanceSection}>
+    <div className="page-content" data-active-finance-section={canRegisterPayment ? activeFinanceSection : undefined}>
       <PageHeader
         eyebrow="Finantsid"
         title="Arved ja maksed"
