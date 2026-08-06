@@ -20,21 +20,18 @@ import TeachersPage from '../features/teachers/TeachersPage.jsx';
 import TeacherProfilePage from '../features/teachers/TeacherProfilePage.jsx';
 import SettingsPage from '../features/settings/SettingsPage.jsx';
 import ProtectedRoute from './ProtectedRoute.jsx';
-import { ROLES } from '../utils/roles.js';
 import HomePage from './HomePage.jsx';
-
-const staffRoles = [ROLES.ADMIN, ROLES.TEACHER];
-const allRoles = Object.values(ROLES);
+import { ACCESS } from './accessPolicy.js';
 
 export default function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/forbidden" element={<ForbiddenPage />} />
-      <Route element={<ProtectedRoute roles={allRoles} />}>
+      <Route element={<ProtectedRoute roles={ACCESS.ALL_AUTHENTICATED} />}>
         <Route element={<AppShell />}>
           <Route index element={<HomePage />} />
-          <Route element={<ProtectedRoute roles={staffRoles} />}>
+          <Route element={<ProtectedRoute roles={ACCESS.STAFF} />}>
             <Route path="students" element={<StudentsPage />} />
             <Route path="students/:studentId" element={<StudentProfilePage />} />
             <Route path="calendar" element={<CalendarPage />} />
@@ -43,14 +40,26 @@ export default function AppRoutes() {
             <Route path="parents" element={<ParentsPage />} />
             <Route path="live-classroom" element={<LiveClassroomPage />} />
           </Route>
-          <Route element={<ProtectedRoute roles={[ROLES.ADMIN]} />}><Route path="teachers" element={<TeachersPage />} /><Route path="teachers/:teacherId" element={<TeacherProfilePage />} /></Route>
+          <Route element={<ProtectedRoute roles={ACCESS.ADMIN} />}>
+            <Route path="teachers" element={<TeachersPage />} />
+            <Route path="teachers/:teacherId" element={<TeacherProfilePage />} />
+          </Route>
           <Route path="settings" element={<SettingsPage />} />
           <Route path="homework" element={<HomeworkPage />} />
           <Route path="messages" element={<MessagesPage />} />
-          <Route element={<ProtectedRoute roles={[ROLES.PARENT]} />}><Route path="parent" element={<ParentDashboardPage />} /></Route>
-          <Route element={<ProtectedRoute roles={[ROLES.STUDENT]} />}><Route path="student" element={<StudentDashboardPage />} /></Route>
-          <Route element={<ProtectedRoute roles={[ROLES.ADMIN, ROLES.FINANCE]} />}><Route path="finance" element={<FinanceWorkspacePage />} /></Route>
-          <Route element={<ProtectedRoute roles={[ROLES.ADMIN]} />}><Route path="finance/payroll" element={<PayrollPage />} /><Route path="finance/expenses" element={<ExpensesPage />} /></Route>
+          <Route element={<ProtectedRoute roles={ACCESS.PARENT} />}>
+            <Route path="parent" element={<ParentDashboardPage />} />
+          </Route>
+          <Route element={<ProtectedRoute roles={ACCESS.STUDENT} />}>
+            <Route path="student" element={<StudentDashboardPage />} />
+          </Route>
+          <Route element={<ProtectedRoute roles={ACCESS.FINANCE} />}>
+            <Route path="finance" element={<FinanceWorkspacePage />} />
+          </Route>
+          <Route element={<ProtectedRoute roles={ACCESS.ADMIN} />}>
+            <Route path="finance/payroll" element={<PayrollPage />} />
+            <Route path="finance/expenses" element={<ExpensesPage />} />
+          </Route>
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
