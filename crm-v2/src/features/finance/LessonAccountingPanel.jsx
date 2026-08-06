@@ -3,8 +3,9 @@ import {
   FilePlus2,
   ReceiptText,
   TriangleAlert,
+  UserRound,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Badge,
   Button,
@@ -19,6 +20,7 @@ import {
   defaultInvoiceDue,
   lessonAccountingRows,
 } from "./lessonAccounting.js";
+import "./studentInvoiceCreator.css";
 
 const money = (cents) =>
   new Intl.NumberFormat("et-EE", { style: "currency", currency: "EUR" }).format(
@@ -53,6 +55,7 @@ export default function LessonAccountingPanel({
     () => new Map(students.map((student) => [student.id, student])),
     [students],
   );
+  const [creatorStudentId, setCreatorStudentId] = useState("");
   const [invoiceRow, setInvoiceRow] = useState(null);
   const [selectedIds, setSelectedIds] = useState([]);
   const [invoiceForm, setInvoiceForm] = useState({
@@ -69,6 +72,18 @@ export default function LessonAccountingPanel({
   const [error, setError] = useState("");
   const totalLessons = rows.reduce((sum, row) => sum + row.lessons.length, 0);
   const totalCents = rows.reduce((sum, row) => sum + row.amountCents, 0);
+  const creatorRow =
+    rows.find((row) => row.student.id === creatorStudentId) || null;
+
+  useEffect(() => {
+    if (!rows.length) {
+      setCreatorStudentId("");
+      return;
+    }
+    if (!rows.some((row) => row.student.id === creatorStudentId)) {
+      setCreatorStudentId(rows[0].student.id);
+    }
+  }, [creatorStudentId, rows]);
 
   const openInvoice = (row) => {
     setInvoiceRow(row);
@@ -166,6 +181,67 @@ export default function LessonAccountingPanel({
         mida ei ole veel arvele lisatud. Summa arvutatakse õpilase tunni hinna
         järgi.
       </p>
+
+      <section className="student-invoice-creator" aria-labelledby="student-invoice-creator-title">
+        <div className="student-invoice-creator__intro">
+          <span className="student-invoice-creator__icon" aria-hidden="true">
+            <UserRound size={22} />
+          </span>
+          <div>
+            <span className="eyebrow">Uus arve</span>
+            <h3 id="student-invoice-creator-title">Loo õpilasele arve</h3>
+            <p>
+              Vali õpilane ja ava arve koostaja. Arvele saab lisada tema
+              läbiviidud, kuid veel arveldamata tunnid.
+            </p>
+          </div>
+        </div>
+        <div className="student-invoice-creator__selection">
+          <Select
+            label="Õpilane"
+            value={creatorStudentId}
+            disabled={!rows.length}
+            onChange={(event) => setCreatorStudentId(event.target.value)}
+          >
+            {!rows.length ? (
+              <option value="">Arveldamata tunde ei ole</option>
+            ) : null}
+            {rows.map((row) => (
+              <option key={row.student.id} value={row.student.id}>
+                {row.student.name}
+              </option>
+            ))}
+          </Select>
+          <div className="student-invoice-creator__summary" aria-live="polite">
+            {creatorRow ? (
+              <>
+                <span>
+                  <strong>{creatorRow.lessons.length}</strong> tundi
+                </span>
+                <span>•</span>
+                <span>
+                  <strong>
+                    {creatorRow.lessonPriceCents
+                      ? money(creatorRow.amountCents)
+                      : "Hind puudub"}
+                  </strong>
+                </span>
+              </>
+            ) : (
+              <span>Uued tunnid ilmuvad siia pärast nende toimumist.</span>
+            )}
+          </div>
+        </div>
+        <div className="student-invoice-creator__action">
+          <Button
+            disabled={!creatorRow || !creatorRow.lessonPriceCents}
+            onClick={() => creatorRow && openInvoice(creatorRow)}
+          >
+            <FilePlus2 size={17} /> Loo arve
+          </Button>
+        </div>
+      </section>
+
       {rows.length ? (
         <div className="billing-student-list">
           {rows.map((row) => (
