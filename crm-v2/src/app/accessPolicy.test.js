@@ -47,6 +47,13 @@ describe('role acceptance policy', () => {
     });
   });
 
+  it('protects the dashboard from parent and student roles', () => {
+    expect(ROUTE_ACCESS['/']).toBe(ACCESS.DASHBOARD);
+    expect(ACCESS.DASHBOARD).toEqual([ROLES.ADMIN, ROLES.TEACHER, ROLES.FINANCE]);
+    expect(canAccess(ROLES.PARENT, '/')).toBe(false);
+    expect(canAccess(ROLES.STUDENT, '/')).toBe(false);
+  });
+
   it('keeps sensitive finance and staff routes out of teacher access', () => {
     expect(ACCESS.FINANCE).not.toContain(ROLES.TEACHER);
     expect(ACCESS.ADMIN).not.toContain(ROLES.TEACHER);
