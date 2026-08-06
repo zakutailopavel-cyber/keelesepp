@@ -1,0 +1,50 @@
+.calendar-filter-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  grid-column: 1 / -1;
+  padding-top: 4px;
+  color: var(--text-muted, #667085);
+}
+
+.calendar-filter-summary strong {
+  color: var(--text-primary, #182230);
+}
+
+.day-empty {
+  display: grid;
+  place-items: center;
+  gap: 6px;
+  min-height: 88px;
+  width: 100%;
+  border: 1px dashed var(--border-color, #d0d5dd);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text-muted, #667085);
+  font: inherit;
+  cursor: pointer;
+}
+
+.day-empty:hover,
+.day-empty:focus-visible {
+  border-color: var(--color-primary, #3157d5);
+  color: var(--color-primary, #3157d5);
+  background: color-mix(in srgb, var(--color-primary, #3157d5) 6%, white);
+}
+
+.day-empty span {
+  font-size: .8rem;
+  font-weight: 700;
+}
+
+@media (max-width: 720px) {
+  .calendar-filter-summary {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .calendar-filter-summary .button {
+    width: 100%;
+  }
+}
