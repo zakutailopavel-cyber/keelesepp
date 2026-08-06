@@ -1,7 +1,8 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { vi } from 'vitest';
 import CalendarPage from './CalendarPage.jsx';
+import { toIsoDate } from './calendarView.js';
 
 vi.mock('../../app/AuthContext.jsx', () => ({
   useAuth: () => ({ user: { uid: 'admin-1', displayName: 'Admin', roles: ['admin'] } }),
@@ -27,7 +28,7 @@ function repositories({ events = [] } = {}) {
     },
     lessonRepository: {
       listForCalendar: vi.fn().mockResolvedValue([]),
-      completeFromSchedule: vi.fn(),
+      completeFromSchedule: vi.fn().mockResolvedValue({ id: 'lesson-1' }),
     },
   };
 }
@@ -70,5 +71,34 @@ describe('calendar filtering UX', () => {
 
     expect(screen.getByRole('heading', { name: 'Uus tund' })).toBeInTheDocument();
     expect(screen.getByLabelText('Õpilane')).toBeInTheDocument();
+  });
+
+  it('completes an individual lesson directly from the weekly calendar', async () => {
+    const today = toIsoDate();
+    const props = renderCalendar({
+      events: [{
+        id: 'schedule-1',
+        studentId: 's1',
+        studentName: 'Mari Maas',
+        teacher: 'Pavel',
+        teacherUid: 't1',
+        date: today,
+        startDate: today,
+        time: '10:00',
+        duration: 60,
+        recurring: false,
+        status: 'Planeeritud',
+      }],
+    });
+
+    const action = await screen.findByRole('button', { name: 'Märgi toimunuks: Mari Maas' });
+    fireEvent.click(action);
+
+    await waitFor(() => expect(props.lessonRepository.completeFromSchedule).toHaveBeenCalledTimes(1));
+    expect(props.lessonRepository.completeFromSchedule).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'schedule-1', studentId: 's1', occurrenceDate: today }),
+      expect.objectContaining({ uid: 'admin-1' }),
+    );
+    await waitFor(() => expect(props.scheduleRepository.list).toHaveBeenCalledTimes(2));
   });
 });
