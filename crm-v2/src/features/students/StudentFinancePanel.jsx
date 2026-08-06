@@ -1,6 +1,6 @@
 import { ArrowRight, CalendarClock, CircleCheck, Clock3, ReceiptText, WalletCards } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Badge, Button, Card, EmptyState } from "../../components/ui/index.js";
+import { Badge, Card, EmptyState } from "../../components/ui/index.js";
 import { invoiceBalanceCents, isInvoiceOverdue } from "./studentFinance.js";
 import "./studentFinancePanel.css";
 
@@ -70,58 +70,26 @@ export default function StudentFinancePanel({ student, invoices = [] }) {
       </div>
 
       <div className="student-finance-metrics">
-        <div>
-          <span><ReceiptText size={18} /> Arveid</span>
-          <strong>{money(issuedCents)}</strong>
-          <small>{sorted.length} arvet kokku</small>
-        </div>
-        <div>
-          <span><CircleCheck size={18} /> Makstud</span>
-          <strong>{money(paidCents)}</strong>
-          <small>registreeritud laekumised</small>
-        </div>
-        <div>
-          <span><WalletCards size={18} /> Tasumata</span>
-          <strong>{money(balanceCents)}</strong>
-          <small>{overdueCount} tähtaja ületanud</small>
-        </div>
-        <div>
-          <span><CalendarClock size={18} /> Järgmine tähtaeg</span>
-          <strong>{dateLabel(nextDue)}</strong>
-          <small>{nextDue ? "avatud arvete põhjal" : "avatud arveid ei ole"}</small>
-        </div>
+        <div><span><ReceiptText size={18} /> Arveid</span><strong>{money(issuedCents)}</strong><small>{sorted.length} arvet kokku</small></div>
+        <div><span><CircleCheck size={18} /> Makstud</span><strong>{money(paidCents)}</strong><small>registreeritud laekumised</small></div>
+        <div><span><WalletCards size={18} /> Tasumata</span><strong>{money(balanceCents)}</strong><small>{overdueCount} tähtaja ületanud</small></div>
+        <div><span><CalendarClock size={18} /> Järgmine tähtaeg</span><strong>{dateLabel(nextDue)}</strong><small>{nextDue ? "avatud arvete põhjal" : "avatud arveid ei ole"}</small></div>
       </div>
 
       {sorted.length ? (
         <div className="student-invoice-history">
-          <div className="student-invoice-history__head">
-            <span>Arve</span><span>Kuupäev</span><span>Summa</span><span>Jääk</span><span>Staatus</span>
-          </div>
+          <div className="student-invoice-history__head"><span>Arve</span><span>Kuupäev</span><span>Summa</span><span>Jääk</span><span>Staatus</span></div>
           {sorted.slice(0, 12).map((invoice) => {
             const status = statusMeta(invoice);
-            return (
-              <div key={invoice.id || invoiceNumber(invoice)}>
-                <strong>{invoiceNumber(invoice)}</strong>
-                <span>{dateLabel(invoice.date || invoice.createdAt)}</span>
-                <span>{money(invoiceAmountCents(invoice))}</span>
-                <span>{money(invoiceBalanceCents(invoice))}</span>
-                <Badge tone={status.tone}>{status.label}</Badge>
-              </div>
-            );
+            return <div key={invoice.id || invoiceNumber(invoice)}><strong>{invoiceNumber(invoice)}</strong><span>{dateLabel(invoice.date || invoice.createdAt)}</span><span>{money(invoiceAmountCents(invoice))}</span><span>{money(invoiceBalanceCents(invoice))}</span><Badge tone={status.tone}>{status.label}</Badge></div>;
           })}
         </div>
       ) : (
-        <EmptyState
-          title="Õpilasel ei ole veel arveid"
-          description="Uue arve saab luua finantside tunniarvestuse vaates."
-          action={<Clock3 size={28} />}
-        />
+        <EmptyState title="Õpilasel ei ole veel arveid" description="Uue arve saab luua finantside tunniarvestuse vaates." action={<Clock3 size={28} />} />
       )}
 
       <div className="student-finance-panel__footer">
-        <Button variant="secondary" as={Link} to="/finance">
-          Ava kogu finantsvaade <ArrowRight size={17} />
-        </Button>
+        <Link className="button button--secondary" to="/finance">Ava kogu finantsvaade <ArrowRight size={17} /></Link>
         <small>{student?.name || "Õpilane"} finantsandmed uuendatakse koos profiiliga.</small>
       </div>
     </Card>
