@@ -1,5 +1,4 @@
-
-.finance-quicknav {
+.finance-quicknav-card { margin: 18px 0; } .finance-quicknav {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
