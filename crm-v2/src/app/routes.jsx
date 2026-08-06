@@ -3,7 +3,7 @@ import AppShell from '../components/layout/AppShell.jsx';
 import ForbiddenPage from '../features/auth/ForbiddenPage.jsx';
 import LoginPage from '../features/auth/LoginPage.jsx';
 import CalendarPage from '../features/calendar/CalendarPage.jsx';
-import FinancePage from '../features/finance/FinancePage.jsx';
+import FinanceWorkspacePage from '../features/finance/FinanceWorkspacePage.jsx';
 import ExpensesPage from '../features/expenses/ExpensesPage.jsx';
 import HomeworkPage from '../features/homework/HomeworkPage.jsx';
 import GroupsPage from '../features/groups/GroupsPage.jsx';
@@ -49,7 +49,7 @@ export default function AppRoutes() {
           <Route path="messages" element={<MessagesPage />} />
           <Route element={<ProtectedRoute roles={[ROLES.PARENT]} />}><Route path="parent" element={<ParentDashboardPage />} /></Route>
           <Route element={<ProtectedRoute roles={[ROLES.STUDENT]} />}><Route path="student" element={<StudentDashboardPage />} /></Route>
-          <Route element={<ProtectedRoute roles={[ROLES.ADMIN, ROLES.FINANCE]} />}><Route path="finance" element={<FinancePage />} /></Route>
+          <Route element={<ProtectedRoute roles={[ROLES.ADMIN, ROLES.FINANCE]} />}><Route path="finance" element={<FinanceWorkspacePage />} /></Route>
           <Route element={<ProtectedRoute roles={[ROLES.ADMIN]} />}><Route path="finance/payroll" element={<PayrollPage />} /><Route path="finance/expenses" element={<ExpensesPage />} /></Route>
         </Route>
       </Route>
