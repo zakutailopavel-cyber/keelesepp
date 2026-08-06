@@ -1,0 +1,100 @@
+.global-student-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: min(520px, 100%);
+  padding: 0 12px;
+  border: 1px solid var(--border-color, #dfe3ea);
+  border-radius: 14px;
+  background: var(--surface-raised, #fff);
+}
+
+.global-student-search:focus-within {
+  border-color: var(--color-primary, #3157d5);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary, #3157d5) 16%, transparent);
+}
+
+.global-student-search input {
+  width: 100%;
+  min-height: 44px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font: inherit;
+}
+
+.global-student-search__clear {
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.global-student-search__popover {
+  position: absolute;
+  z-index: 50;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  overflow: hidden;
+  border: 1px solid var(--border-color, #dfe3ea);
+  border-radius: 14px;
+  background: var(--surface-raised, #fff);
+  box-shadow: 0 18px 48px rgba(16, 24, 40, 0.16);
+}
+
+.global-student-search__popover > p {
+  margin: 0;
+  padding: 16px;
+  color: var(--text-muted, #667085);
+}
+
+.global-student-search__popover ul {
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+}
+
+.global-student-search__popover li button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.global-student-search__popover li[aria-selected='true'] button,
+.global-student-search__popover li button:hover,
+.global-student-search__popover li button:focus-visible {
+  background: color-mix(in srgb, var(--color-primary, #3157d5) 9%, white);
+  outline: none;
+}
+
+.global-student-search__popover span {
+  display: grid;
+  gap: 2px;
+}
+
+.global-student-search__popover small {
+  color: var(--text-muted, #667085);
+}
+
+@media (max-width: 720px) {
+  .global-student-search {
+    width: 100%;
+  }
+
+  .global-student-search__popover {
+    position: fixed;
+    top: 72px;
+    left: 12px;
+    right: 12px;
+  }
+}
