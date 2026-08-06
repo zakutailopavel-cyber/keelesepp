@@ -9,8 +9,8 @@ import { scheduleService } from '../../services/firebase/schedule.js';
 import { studentsService } from '../../services/firebase/students.js';
 import { ROLES } from '../../utils/roles.js';
 import { canonicalTeacherName, isSameTeacher } from '../../utils/teachers.js';
+import StudentFinancePanel from './StudentFinancePanel.jsx';
 import StudentForm from './StudentForm.jsx';
-import { studentFinancialSummary } from './studentFinance.js';
 import { LEGACY_TEACHERS } from './studentOptions.js';
 import { studentValueLabel } from '../../utils/studentPrivacy.js';
 import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
@@ -45,7 +45,6 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
   }, [canAssignTeacher, canViewFinance, invoiceApi, lessonApi, scheduleApi, studentApi, studentId, teacherScope]);
 
   useEffect(() => { load(); }, [load]);
-  const financial = useMemo(() => studentFinancialSummary(state.invoices), [state.invoices]);
   const progress = useMemo(() => Object.entries(state.student?.skillMap || {}).sort((a, b) => b[1] - a[1]).slice(0, 8), [state.student]);
 
   if (state.loading) return <div className="page-content"><Card><LoadingState label="Laen õpilase profiili…" /></Card></div>;
@@ -61,7 +60,8 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
       <PageHeader eyebrow={student.active ? 'Aktiivne õpilane' : 'Arhiveeritud'} title={student.name} description={`${student.subject || 'Õppeaine määramata'} · ${student.level || 'tase määramata'} → ${student.targetLevel || 'sihttase määramata'}`} actions={<Button variant="secondary" onClick={() => setEditing(true)}><Pencil size={17} /> Muuda</Button>} />
       <div className="profile-grid">
         <Card><h2>Põhiandmed</h2><dl className="detail-list"><div><dt>Lapsevanem</dt><dd>{studentValueLabel(student, 'parentName')}</dd></div><div><dt>E-post</dt><dd>{studentValueLabel(student, 'email')}</dd></div><div><dt>Telefon</dt><dd>{studentValueLabel(student, 'phone')}</dd></div><div><dt>Õpetaja</dt><dd>{student.hiddenFields?.teacher ? 'Peidetud' : canonicalTeacherName(student.teacher) || 'Määramata'}</dd></div><div><dt>Rühm</dt><dd>{student.group || '—'}</dd></div><div><dt>Klass</dt><dd>{student.grade || '—'}</dd></div></dl></Card>
-        {canViewFinance ? <Card><h2>Finantsseis</h2><div className="financial-summary"><strong>{(financial.balanceCents / 100).toLocaleString('et-EE', { style: 'currency', currency: 'EUR' })}</strong><span>Tasumata jääk</span></div><p>{financial.overdue ? <Badge tone="danger">{financial.overdue} tähtaja ületanud arvet</Badge> : <Badge tone="success">Tähtaja ületanud arveid ei ole</Badge>}</p><small>{state.invoices.length} arvet kokku</small></Card> : null}
+        <Card><h2>Õppeülevaade</h2><dl className="detail-list"><div><dt>Tase</dt><dd>{student.level || '—'}</dd></div><div><dt>Sihttase</dt><dd>{student.targetLevel || '—'}</dd></div><div><dt>Õppeaine</dt><dd>{student.subject || '—'}</dd></div><div><dt>Tunde kokku</dt><dd>{state.lessons.length}</dd></div><div><dt>Graafikukirjeid</dt><dd>{state.schedule.length}</dd></div></dl></Card>
+        {canViewFinance ? <StudentFinancePanel student={student} invoices={state.invoices} /> : null}
         <Card className="profile-wide"><h2>Graafik</h2>{state.schedule.length ? <div className="simple-list">{state.schedule.slice(0, 8).map((item) => <div key={item.id}><div><strong>{item.date || `Iganädalane · ${item.day || 'päev määramata'}`} · {item.time || 'kellaaeg määramata'}</strong><span>{item.teacher || student.teacher || 'Õpetaja määramata'}</span></div><Badge tone={item.status === 'Tühistatud' ? 'neutral' : 'info'}>{item.status || 'Planeeritud'}</Badge></div>)}</div> : <EmptyState title="Graafikut ei ole veel lisatud" />}</Card>
         <Card className="profile-wide"><h2>Viimased tunnid</h2>{state.lessons.length ? <div className="simple-list">{state.lessons.slice(0, 6).map((lesson) => <div key={lesson.id}><div><strong>{lesson.date || 'Kuupäev puudub'} · {lesson.time || ''}</strong><span>{lesson.subject || student.subject}</span></div><Badge tone={lesson.status === 'Tühistatud' ? 'neutral' : 'info'}>{lesson.status || 'Toimunud'}</Badge></div>)}</div> : <EmptyState title="Tunde ei leitud" />}</Card>
         <Card className="profile-wide"><h2>Progress</h2>{progress.length ? <div className="progress-list">{progress.map(([skill, score]) => <div key={skill}><span>{skill}</span><div><i style={{ width: `${Math.max(0, Math.min(100, Number(score) || 0))}%` }} /></div><strong>{score}%</strong></div>)}</div> : <EmptyState title="Oskuste tulemusi ei ole veel salvestatud" />}</Card>
