@@ -20,6 +20,7 @@ import {
   defaultInvoiceDue,
   lessonAccountingRows,
 } from "./lessonAccounting.js";
+import BatchInvoicePanel from "./BatchInvoicePanel.jsx";
 import "./studentInvoiceCreator.css";
 
 const money = (cents) =>
@@ -181,6 +182,8 @@ export default function LessonAccountingPanel({
         mida ei ole veel arvele lisatud. Summa arvutatakse õpilase tunni hinna
         järgi.
       </p>
+
+      <BatchInvoicePanel rows={rows} onCreateInvoice={onCreateInvoice} />
 
       <section className="student-invoice-creator" aria-labelledby="student-invoice-creator-title">
         <div className="student-invoice-creator__intro">
