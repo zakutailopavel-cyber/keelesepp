@@ -1,0 +1,37 @@
+.lesson-chip-wrap,
+.agenda-lesson-wrap {
+  display: grid;
+  gap: 6px;
+}
+
+.lesson-chip-wrap .lesson-chip,
+.agenda-lesson-wrap .agenda-lesson {
+  width: 100%;
+}
+
+.quick-attendance-action {
+  width: 100%;
+  justify-content: center;
+  min-height: 34px;
+  font-size: 0.82rem;
+}
+
+.agenda-lesson-wrap {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.agenda-lesson-wrap .quick-attendance-action {
+  width: auto;
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .agenda-lesson-wrap {
+    grid-template-columns: 1fr;
+  }
+
+  .agenda-lesson-wrap .quick-attendance-action {
+    width: 100%;
+  }
+}
