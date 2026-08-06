@@ -103,7 +103,7 @@ const invoiceOverpaidCents = (invoice) =>
       : Math.round(Number(invoice?.overpaidAmount || 0) * 100),
   );
 
-const financeSections = [{ id: "tunniarvestus", label: "Tunniarvestus" }, { id: "pangauhildus", label: "Pangaühildus" }, { id: "avansid", label: "Avansid" }, { id: "perioodid", label: "Perioodid" }, { id: "audit", label: "Audit" }, { id: "numeratsioon", label: "Numeratsioon" }, { id: "tuluprognoos", label: "Tuluprognoos" }, { id: "arved", label: "Arved" }]; function FinanceQuickNav() { const scrollToSection = (event, id) => { event.preventDefault(); document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" }); }; return <Card className="finance-quicknav-card"><nav className="finance-quicknav" aria-label="Finantsi kiirnavigatsioon">{financeSections.map((section) => <a key={section.id} href={"#" + section.id} onClick={(event) => scrollToSection(event, section.id)}>{section.label}</a>)}</nav></Card>; } function paymentDraft(invoice) {
+const financeSections = [{ id: "tunniarvestus", label: "Tunniarvestus" }, { id: "pangauhildus", label: "Pangaühildus" }, { id: "avansid", label: "Avansid" }, { id: "perioodid", label: "Perioodid" }, { id: "audit", label: "Audit" }, { id: "numeratsioon", label: "Numeratsioon" }, { id: "tuluprognoos", label: "Tuluprognoos" }, { id: "arved", label: "Arved" }]; function FinanceQuickNav({ active, onSelect }) { return <Card className="finance-quicknav-card"><nav className="finance-quicknav" aria-label="Finantsi kiirnavigatsioon">{financeSections.map((section) => <a key={section.id} href={"#" + section.id} className={section.id === active ? "is-active" : undefined} onClick={(event) => { event.preventDefault(); onSelect(section.id); }}>{section.label}</a>)}</nav></Card>; } function paymentDraft(invoice) {
   return {
     amount: (invoiceBalanceCents(invoice) / 100).toFixed(2),
     paidAt: today(),
@@ -199,7 +199,7 @@ export default function FinancePage({
     auditRepository,
     studentRepository,
   ]);
-  const [query, setQuery] = useState("");
+  const [activeFinanceSection, setActiveFinanceSection] = useState("tunniarvestus"); const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
   const [selected, setSelected] = useState(null);
   const [payments, setPayments] = useState({
@@ -588,7 +588,7 @@ export default function FinancePage({
     : [];
 
   return (
-    <div className="page-content">
+    <div className="page-content" data-active-finance-section={activeFinanceSection}>
       <PageHeader
         eyebrow="Finantsid"
         title="Arved ja maksed"
@@ -667,7 +667,7 @@ export default function FinancePage({
           onPreview={previewFinancialAnalytics}
           onOpenInvoice={(invoiceId) => {
             const invoice = invoices.find((item) => item.id === invoiceId);
-            if (invoice) openInvoice(invoice); }} /> ) : null} {canRegisterPayment ? <FinanceQuickNav /> : null} {canRegisterPayment ? ( <div id="tunniarvestus"><LessonAccountingPanel
+            if (invoice) openInvoice(invoice); }} /> ) : null} {canRegisterPayment ? <FinanceQuickNav active={activeFinanceSection} onSelect={setActiveFinanceSection} /> : null} {canRegisterPayment ? ( <div id="tunniarvestus"><LessonAccountingPanel
           lessons={lessons}
           students={students}
           plans={plans}
