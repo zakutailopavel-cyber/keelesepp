@@ -1,0 +1,96 @@
+.finance-workspace-nav-card {
+  margin-bottom: 20px;
+}
+
+.finance-workspace-nav {
+  display: grid;
+  gap: 18px;
+}
+
+.finance-workspace-nav__group {
+  display: grid;
+  gap: 10px;
+}
+
+.finance-workspace-nav__group header {
+  display: grid;
+  gap: 3px;
+}
+
+.finance-workspace-nav__group header strong {
+  color: var(--text-primary, #182230);
+  font-size: 0.95rem;
+}
+
+.finance-workspace-nav__group header span {
+  color: var(--text-muted, #667085);
+  font-size: 0.82rem;
+}
+
+.finance-workspace-nav__group > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.finance-workspace-nav__group button {
+  min-height: 40px;
+  padding: 9px 14px;
+  border: 1px solid var(--border-color, #e4e7ec);
+  border-radius: 12px;
+  color: var(--text-primary, #182230);
+  background: var(--surface-raised, #fff);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.finance-workspace-nav__group button:hover {
+  border-color: color-mix(in srgb, var(--color-primary, #3157d5) 35%, var(--border-color, #e4e7ec));
+  background: color-mix(in srgb, var(--color-primary, #3157d5) 6%, white);
+}
+
+.finance-workspace-nav__group button.is-active {
+  border-color: var(--color-primary, #3157d5);
+  color: var(--color-primary, #3157d5);
+  background: color-mix(in srgb, var(--color-primary, #3157d5) 10%, white);
+  box-shadow: 0 6px 18px rgba(32, 48, 92, 0.08);
+}
+
+.finance-workspace-nav__group--advanced {
+  padding-top: 14px;
+  border-top: 1px solid var(--border-color, #e4e7ec);
+}
+
+.finance-workspace-nav__group--advanced button {
+  color: var(--text-muted, #667085);
+  background: var(--surface-subtle, #f8fafc);
+}
+
+.finance-workspace-nav__group button:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--color-primary, #3157d5) 28%, transparent);
+  outline-offset: 2px;
+}
+
+@media (min-width: 980px) {
+  .finance-workspace-nav {
+    grid-template-columns: 1.35fr 1fr;
+    align-items: start;
+  }
+
+  .finance-workspace-nav__group--advanced {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 640px) {
+  .finance-workspace-nav__group > div {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .finance-workspace-nav__group button {
+    width: 100%;
+    text-align: left;
+  }
+}
