@@ -30,7 +30,9 @@ export default function AppRoutes() {
       <Route path="/forbidden" element={<ForbiddenPage />} />
       <Route element={<ProtectedRoute roles={ACCESS.ALL_AUTHENTICATED} />}>
         <Route element={<AppShell />}>
-          <Route index element={<HomePage />} />
+          <Route element={<ProtectedRoute roles={ACCESS.DASHBOARD} />}>
+            <Route index element={<HomePage />} />
+          </Route>
           <Route element={<ProtectedRoute roles={ACCESS.STAFF} />}>
             <Route path="students" element={<StudentsPage />} />
             <Route path="students/:studentId" element={<StudentProfilePage />} />
