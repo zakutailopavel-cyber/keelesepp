@@ -1,0 +1,54 @@
+.student-profile-tabs {
+  display: flex;
+  gap: 8px;
+  margin: 20px 0;
+  padding: 6px;
+  overflow-x: auto;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 16px;
+  background: var(--surface-subtle, #f8fafc);
+}
+
+.student-profile-tabs button {
+  flex: 0 0 auto;
+  min-height: 42px;
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 12px;
+  color: var(--text-muted, #667085);
+  background: transparent;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.student-profile-tabs button:hover {
+  color: var(--text-primary, #182230);
+  background: color-mix(in srgb, var(--color-primary, #3157d5) 7%, white);
+}
+
+.student-profile-tabs button.is-active {
+  color: var(--color-primary, #3157d5);
+  background: var(--surface-raised, #fff);
+  box-shadow: 0 6px 18px rgba(32, 48, 92, 0.08);
+}
+
+.student-profile-tabs button:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--color-primary, #3157d5) 30%, transparent);
+  outline-offset: 2px;
+}
+
+.student-profile-tab-panel {
+  min-width: 0;
+}
+
+@media (max-width: 640px) {
+  .student-profile-tabs {
+    margin-inline: -4px;
+    border-radius: 14px;
+  }
+
+  .student-profile-tabs button {
+    padding-inline: 14px;
+  }
+}
