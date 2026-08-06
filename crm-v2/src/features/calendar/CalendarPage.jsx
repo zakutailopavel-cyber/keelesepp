@@ -8,7 +8,9 @@ import { groupsService, lessonsService, scheduleService, studentsService } from 
 import { hasScheduleConflict } from '../../services/firebase/schedule.js';
 import { ROLES } from '../../utils/roles.js';
 import { datesForView, filterCalendarEvents, groupCalendarEvents, occurrencesForDates, shiftDate, toIsoDate } from './calendarView.js';
+import QuickAttendanceAction from './QuickAttendanceAction.jsx';
 import './calendarUx.css';
+import './quickAttendance.css';
 
 const blankLesson = () => ({ studentId: '', date: toIsoDate(), time: '09:00', duration: 60, recurring: false, status: 'Planeeritud' });
 const viewLabels = { day: 'Päev', week: 'Nädal', month: 'Kuu' };
@@ -27,8 +29,17 @@ function periodLabel(anchor, view, dates) {
   return `${first} – ${last}`;
 }
 
-function LessonButton({ item, compact = false, onClick }) {
-  return <button className={`lesson-chip ${compact ? 'lesson-chip--compact' : ''}`} onClick={() => onClick(item)}><time>{item.time}</time><strong>{item.studentName || 'Õpilane'}</strong>{compact ? null : <small>{item.teacher || 'Õpetaja'} · {item.duration} min</small>}</button>;
+function LessonButton({ item, compact = false, onClick, onComplete, completing }) {
+  return (
+    <div className={`lesson-chip-wrap ${compact ? 'lesson-chip-wrap--compact' : ''}`}>
+      <button className={`lesson-chip ${compact ? 'lesson-chip--compact' : ''}`} onClick={() => onClick(item)}>
+        <time>{item.time}</time>
+        <strong>{item.studentName || 'Õpilane'}</strong>
+        {compact ? null : <small>{item.teacher || 'Õpetaja'} · {item.duration} min</small>}
+      </button>
+      {compact ? null : <QuickAttendanceAction item={item} saving={completing} onComplete={onComplete} />}
+    </div>
+  );
 }
 
 export default function CalendarPage({ scheduleRepository = scheduleService, studentRepository = studentsService, groupRepository = groupsService, lessonRepository = lessonsService }) {
@@ -41,6 +52,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(blankLesson());
   const [saving, setSaving] = useState(false);
+  const [quickCompleting, setQuickCompleting] = useState('');
   const [actionError, setActionError] = useState('');
   const [attendanceEvent, setAttendanceEvent] = useState(null);
   const [attendanceSaving, setAttendanceSaving] = useState('');
@@ -119,6 +131,19 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
     catch (error) { setActionError(error.message || 'Tunni arvestamine ebaõnnestus.'); }
     finally { setSaving(false); }
   };
+  const quickCompleteLesson = async (item) => {
+    if (!item || quickCompleting) return;
+    setQuickCompleting(item.occurrenceId || item.id);
+    setActionError('');
+    try {
+      await lessonRepository.completeFromSchedule(item, user);
+      await state.reload();
+    } catch (error) {
+      setActionError(error.message || 'Tunni arvestamine ebaõnnestus.');
+    } finally {
+      setQuickCompleting('');
+    }
+  };
 
   return <div className="page-content">
     <PageHeader eyebrow="Planeerimine" title="Kalender" description="Päeva-, nädala- ja kuuvaade koos filtrite ning konfliktikontrolliga." actions={<Button onClick={() => openCreate()}><Plus size={18} /> Lisa tund</Button>} />
@@ -131,9 +156,9 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
     </Card>
     <Card className="calendar-card">
       <div className="calendar-toolbar"><div className="calendar-toolbar__nav"><Button variant="secondary" aria-label="Eelmine periood" onClick={() => navigatePeriod(-1)}><ChevronLeft size={17} /></Button><Button variant="secondary" onClick={() => setAnchor(toIsoDate())}>Täna</Button><Button variant="secondary" aria-label="Järgmine periood" onClick={() => navigatePeriod(1)}><ChevronRight size={17} /></Button></div><strong>{periodLabel(anchor, view, dates)}</strong><div className="view-switcher">{Object.entries(viewLabels).map(([value, label]) => <button aria-pressed={view === value} className={view === value ? 'active' : ''} key={value} onClick={() => setView(value)}>{label}</button>)}</div></div>
-      {view === 'day' ? <div className="day-agenda"><header><div><span className="eyebrow">{new Date(`${anchor}T12:00:00`).toLocaleDateString('et-EE', { weekday: 'long' })}</span><h2>{new Date(`${anchor}T12:00:00`).toLocaleDateString('et-EE', { day: 'numeric', month: 'long' })}</h2></div><Button variant="secondary" onClick={() => openCreate(anchor)}><Plus size={16} /> Lisa sellele päevale</Button></header>{occurrences.length ? occurrences.map((item) => <button className="agenda-lesson" key={item.occurrenceId} onClick={() => openEvent(item)}><time>{item.time}</time><div><strong>{item.studentName}</strong><span>{item.isGroup ? 'Grupp · ' : ''}{item.teacher} · {item.duration} min</span></div><Badge tone={item.isGroup ? 'success' : item.status === 'Toimunud' ? 'success' : 'info'}>{item.isGroup ? 'Grupp' : item.status}</Badge><Pencil size={16} /></button>) : <EmptyState title="Sellel päeval tunde ei ole" action={<Button onClick={() => openCreate(anchor)}><Plus size={17} /> Lisa tund</Button>} />}</div> : null}
-      {view === 'week' ? <div className="week-grid">{dates.map((date) => { const daily = occurrences.filter((item) => item.occurrenceDate === date); return <section className={date === toIsoDate() ? 'is-today' : ''} key={date}><header><span>{new Date(`${date}T12:00:00`).toLocaleDateString('et-EE', { weekday: 'short' })}</span><strong>{date.slice(-2)}</strong></header><div>{daily.map((item) => <LessonButton item={item} onClick={openEvent} key={item.occurrenceId} />)}{!daily.length ? <button className="day-empty" aria-label={`Lisa tund ${date}`} onClick={() => openCreate(date)}><Plus size={18} /><span>Lisa tund</span></button> : null}</div></section>; })}</div> : null}
-      {view === 'month' ? <div className="month-grid">{dates.map((date) => { const daily = occurrences.filter((item) => item.occurrenceDate === date); const inMonth = date.slice(0, 7) === anchor.slice(0, 7); return <section className={`${date === toIsoDate() ? 'is-today ' : ''}${inMonth ? '' : 'is-outside'}`} key={date}><button className="month-day" onClick={() => { setAnchor(date); setView('day'); }}>{date.slice(-2)}</button><div>{daily.slice(0, 3).map((item) => <LessonButton compact item={item} onClick={openEvent} key={item.occurrenceId} />)}{daily.length > 3 ? <button className="more-lessons" onClick={() => { setAnchor(date); setView('day'); }}>+{daily.length - 3} veel</button> : null}</div></section>; })}</div> : null}
+      {view === 'day' ? <div className="day-agenda"><header><div><span className="eyebrow">{new Date(`${anchor}T12:00:00`).toLocaleDateString('et-EE', { weekday: 'long' })}</span><h2>{new Date(`${anchor}T12:00:00`).toLocaleDateString('et-EE', { day: 'numeric', month: 'long' })}</h2></div><Button variant="secondary" onClick={() => openCreate(anchor)}><Plus size={16} /> Lisa sellele päevale</Button></header>{occurrences.length ? occurrences.map((item) => <div className="agenda-lesson-wrap" key={item.occurrenceId}><button className="agenda-lesson" onClick={() => openEvent(item)}><time>{item.time}</time><div><strong>{item.studentName}</strong><span>{item.isGroup ? 'Grupp · ' : ''}{item.teacher} · {item.duration} min</span></div><Badge tone={item.isGroup ? 'success' : item.status === 'Toimunud' ? 'success' : 'info'}>{item.isGroup ? 'Grupp' : item.status}</Badge><Pencil size={16} /></button><QuickAttendanceAction item={item} saving={quickCompleting === (item.occurrenceId || item.id)} onComplete={quickCompleteLesson} /></div>) : <EmptyState title="Sellel päeval tunde ei ole" action={<Button onClick={() => openCreate(anchor)}><Plus size={17} /> Lisa tund</Button>} />}</div> : null}
+      {view === 'week' ? <div className="week-grid">{dates.map((date) => { const daily = occurrences.filter((item) => item.occurrenceDate === date); return <section className={date === toIsoDate() ? 'is-today' : ''} key={date}><header><span>{new Date(`${date}T12:00:00`).toLocaleDateString('et-EE', { weekday: 'short' })}</span><strong>{date.slice(-2)}</strong></header><div>{daily.map((item) => <LessonButton item={item} onClick={openEvent} onComplete={quickCompleteLesson} completing={quickCompleting === (item.occurrenceId || item.id)} key={item.occurrenceId} />)}{!daily.length ? <button className="day-empty" aria-label={`Lisa tund ${date}`} onClick={() => openCreate(date)}><Plus size={18} /><span>Lisa tund</span></button> : null}</div></section>; })}</div> : null}
+      {view === 'month' ? <div className="month-grid">{dates.map((date) => { const daily = occurrences.filter((item) => item.occurrenceDate === date); const inMonth = date.slice(0, 7) === anchor.slice(0, 7); return <section className={`${date === toIsoDate() ? 'is-today ' : ''}${inMonth ? '' : 'is-outside'}`} key={date}><button className="month-day" onClick={() => { setAnchor(date); setView('day'); }}>{date.slice(-2)}</button><div>{daily.slice(0, 3).map((item) => <LessonButton compact item={item} onClick={openEvent} onComplete={quickCompleteLesson} completing={false} key={item.occurrenceId} />)}{daily.length > 3 ? <button className="more-lessons" onClick={() => { setAnchor(date); setView('day'); }}>+{daily.length - 3} veel</button> : null}</div></section>; })}</div> : null}
       {!occurrences.length && view !== 'day' ? <EmptyState title={hasActiveFilters ? 'Filtritele vastavaid tunde ei leitud' : 'Valitud perioodil tunde ei ole'} description={hasActiveFilters ? 'Tühjenda filtrid või muuda otsingut.' : 'Lisa tund või liigu teise perioodi.'} action={hasActiveFilters ? <Button variant="secondary" onClick={resetFilters}>Tühjenda filtrid</Button> : <CalendarDays size={28} />} /> : null}
     </Card>
     <Modal open={modal} title={editing ? 'Muuda tundi' : 'Uus tund'} onClose={closeModal} footer={<>{editing && !editing.lessonRecordId ? <Button variant="secondary" disabled={saving} onClick={completeLesson}><CalendarDays size={17} /> Märgi toimunuks</Button> : null}{editing?.lessonRecordId ? <Badge tone="success">Tund arvestatud</Badge> : null}{editing ? <Button variant="danger" disabled={saving || Boolean(editing.lessonRecordId)} onClick={cancelLesson}><XCircle size={17} /> Tühista tund</Button> : null}<span className="modal__footer-spacer" /><Button variant="secondary" onClick={closeModal}>Loobu</Button><Button loading={saving} type="submit" form="lesson-form">{editing ? 'Salvesta muudatused' : 'Salvesta tund'}</Button></>}><form id="lesson-form" className="form-grid" onSubmit={submit}><Select className="form-grid__wide" label="Õpilane" value={form.studentId} onChange={(event) => setForm({ ...form, studentId: event.target.value })} required><option value="">Vali õpilane</option>{students.items.map((student) => <option value={student.id} key={student.id}>{student.name} · {student.teacher}</option>)}</Select><Input label="Kuupäev" type="date" value={form.date} onChange={(event) => setForm({ ...form, date: event.target.value })} required /><Input label="Kellaaeg" type="time" value={form.time} onChange={(event) => setForm({ ...form, time: event.target.value })} required /><Input label="Kestus minutites" type="number" min="5" step="5" value={form.duration} onChange={(event) => setForm({ ...form, duration: event.target.value })} required />{editing ? <Select label="Staatus" value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value })}><option>Planeeritud</option><option>Toimunud</option><option>Tühistatud</option></Select> : <label className="checkbox-field"><input type="checkbox" checked={form.recurring} onChange={(event) => setForm({ ...form, recurring: event.target.checked })} /><span>Kordub igal nädalal</span></label>}{editing?.recurring ? <p className="form-grid__wide form-hint">Korduva tunni muutmine rakendub kogu sarjale.</p> : null}</form></Modal>
