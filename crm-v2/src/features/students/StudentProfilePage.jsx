@@ -7,13 +7,21 @@ import { invoicesService } from '../../services/firebase/invoices.js';
 import { lessonsService } from '../../services/firebase/lessons.js';
 import { scheduleService } from '../../services/firebase/schedule.js';
 import { studentsService } from '../../services/firebase/students.js';
+import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
 import { ROLES } from '../../utils/roles.js';
+import { studentValueLabel } from '../../utils/studentPrivacy.js';
 import { canonicalTeacherName, isSameTeacher } from '../../utils/teachers.js';
 import StudentFinancePanel from './StudentFinancePanel.jsx';
 import StudentForm from './StudentForm.jsx';
 import { LEGACY_TEACHERS } from './studentOptions.js';
-import { studentValueLabel } from '../../utils/studentPrivacy.js';
-import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
+import './studentProfileTabs.css';
+
+const PROFILE_TABS = [
+  { id: 'overview', label: 'Ülevaade' },
+  { id: 'schedule', label: 'Tunniplaan' },
+  { id: 'learning', label: 'Õppetöö' },
+  { id: 'finance', label: 'Finantsid', financeOnly: true },
+];
 
 export default function StudentProfilePage({ studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, actor }) {
   const { studentId } = useParams();
@@ -25,12 +33,16 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
   const [state, setState] = useState({ loading: true, error: null, forbidden: false, student: null, lessons: [], invoices: [], schedule: [] });
   const [editing, setEditing] = useState(false);
   const [notice, setNotice] = useState('');
+  const [activeTab, setActiveTab] = useState('overview');
 
   const load = useCallback(async () => {
     setState((current) => ({ ...current, loading: true, error: null }));
     try {
       const student = await studentApi.getById(studentId);
-      if (!student) { setState({ loading: false, error: null, forbidden: false, student: null, lessons: [], invoices: [], schedule: [] }); return; }
+      if (!student) {
+        setState({ loading: false, error: null, forbidden: false, student: null, lessons: [], invoices: [], schedule: [] });
+        return;
+      }
       if (!canAssignTeacher && !isSameTeacher(student.teacher, teacherScope)) {
         setState({ loading: false, error: null, forbidden: true, student: null, lessons: [], invoices: [], schedule: [] });
         return;
@@ -41,31 +53,72 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
         canViewFinance ? invoiceApi.listByStudent(studentId) : Promise.resolve([]),
       ]);
       setState({ loading: false, error: null, forbidden: false, student, lessons, invoices, schedule });
-    } catch (error) { setState((current) => ({ ...current, loading: false, error: new Error(firebaseErrorMessage(error)) })); }
+    } catch (error) {
+      setState((current) => ({ ...current, loading: false, error: new Error(firebaseErrorMessage(error)) }));
+    }
   }, [canAssignTeacher, canViewFinance, invoiceApi, lessonApi, scheduleApi, studentApi, studentId, teacherScope]);
 
   useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    if (!canViewFinance && activeTab === 'finance') setActiveTab('overview');
+  }, [activeTab, canViewFinance]);
+
   const progress = useMemo(() => Object.entries(state.student?.skillMap || {}).sort((a, b) => b[1] - a[1]).slice(0, 8), [state.student]);
+  const visibleTabs = PROFILE_TABS.filter((tab) => !tab.financeOnly || canViewFinance);
 
   if (state.loading) return <div className="page-content"><Card><LoadingState label="Laen õpilase profiili…" /></Card></div>;
   if (state.error) return <div className="page-content"><Card><ErrorState message={state.error.message} onRetry={load} /></Card></div>;
   if (state.forbidden) return <div className="page-content"><Card><ErrorState title="Ligipääs puudub" message="Õpilane ei ole määratud sinu õpetajakontole." /></Card></div>;
   if (!state.student) return <div className="page-content"><Card><EmptyState title="Õpilast ei leitud" action={<Link className="button button--secondary" to="/students">Tagasi nimekirja</Link>} /></Card></div>;
+
   const { student } = state;
+  const tabPanelId = `student-profile-panel-${activeTab}`;
 
   return (
     <div className="page-content">
       <Link className="back-link" to="/students"><ArrowLeft size={17} /> Kõik õpilased</Link>
       {notice ? <div className="success-notice" role="status">{notice}<button onClick={() => setNotice('')} aria-label="Sulge teade">×</button></div> : null}
       <PageHeader eyebrow={student.active ? 'Aktiivne õpilane' : 'Arhiveeritud'} title={student.name} description={`${student.subject || 'Õppeaine määramata'} · ${student.level || 'tase määramata'} → ${student.targetLevel || 'sihttase määramata'}`} actions={<Button variant="secondary" onClick={() => setEditing(true)}><Pencil size={17} /> Muuda</Button>} />
-      <div className="profile-grid">
-        <Card><h2>Põhiandmed</h2><dl className="detail-list"><div><dt>Lapsevanem</dt><dd>{studentValueLabel(student, 'parentName')}</dd></div><div><dt>E-post</dt><dd>{studentValueLabel(student, 'email')}</dd></div><div><dt>Telefon</dt><dd>{studentValueLabel(student, 'phone')}</dd></div><div><dt>Õpetaja</dt><dd>{student.hiddenFields?.teacher ? 'Peidetud' : canonicalTeacherName(student.teacher) || 'Määramata'}</dd></div><div><dt>Rühm</dt><dd>{student.group || '—'}</dd></div><div><dt>Klass</dt><dd>{student.grade || '—'}</dd></div></dl></Card>
-        <Card><h2>Õppeülevaade</h2><dl className="detail-list"><div><dt>Tase</dt><dd>{student.level || '—'}</dd></div><div><dt>Sihttase</dt><dd>{student.targetLevel || '—'}</dd></div><div><dt>Õppeaine</dt><dd>{student.subject || '—'}</dd></div><div><dt>Tunde kokku</dt><dd>{state.lessons.length}</dd></div><div><dt>Graafikukirjeid</dt><dd>{state.schedule.length}</dd></div></dl></Card>
-        {canViewFinance ? <StudentFinancePanel student={student} invoices={state.invoices} /> : null}
-        <Card className="profile-wide"><h2>Graafik</h2>{state.schedule.length ? <div className="simple-list">{state.schedule.slice(0, 8).map((item) => <div key={item.id}><div><strong>{item.date || `Iganädalane · ${item.day || 'päev määramata'}`} · {item.time || 'kellaaeg määramata'}</strong><span>{item.teacher || student.teacher || 'Õpetaja määramata'}</span></div><Badge tone={item.status === 'Tühistatud' ? 'neutral' : 'info'}>{item.status || 'Planeeritud'}</Badge></div>)}</div> : <EmptyState title="Graafikut ei ole veel lisatud" />}</Card>
-        <Card className="profile-wide"><h2>Viimased tunnid</h2>{state.lessons.length ? <div className="simple-list">{state.lessons.slice(0, 6).map((lesson) => <div key={lesson.id}><div><strong>{lesson.date || 'Kuupäev puudub'} · {lesson.time || ''}</strong><span>{lesson.subject || student.subject}</span></div><Badge tone={lesson.status === 'Tühistatud' ? 'neutral' : 'info'}>{lesson.status || 'Toimunud'}</Badge></div>)}</div> : <EmptyState title="Tunde ei leitud" />}</Card>
-        <Card className="profile-wide"><h2>Progress</h2>{progress.length ? <div className="progress-list">{progress.map(([skill, score]) => <div key={skill}><span>{skill}</span><div><i style={{ width: `${Math.max(0, Math.min(100, Number(score) || 0))}%` }} /></div><strong>{score}%</strong></div>)}</div> : <EmptyState title="Oskuste tulemusi ei ole veel salvestatud" />}</Card>
+
+      <nav className="student-profile-tabs" role="tablist" aria-label="Õpilase profiili jaotised">
+        {visibleTabs.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            role="tab"
+            id={`student-profile-tab-${tab.id}`}
+            aria-selected={activeTab === tab.id}
+            aria-controls={`student-profile-panel-${tab.id}`}
+            className={activeTab === tab.id ? 'is-active' : ''}
+            onClick={() => setActiveTab(tab.id)}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </nav>
+
+      <div id={tabPanelId} role="tabpanel" aria-labelledby={`student-profile-tab-${activeTab}`} className="student-profile-tab-panel">
+        {activeTab === 'overview' ? (
+          <div className="profile-grid">
+            <Card><h2>Põhiandmed</h2><dl className="detail-list"><div><dt>Lapsevanem</dt><dd>{studentValueLabel(student, 'parentName')}</dd></div><div><dt>E-post</dt><dd>{studentValueLabel(student, 'email')}</dd></div><div><dt>Telefon</dt><dd>{studentValueLabel(student, 'phone')}</dd></div><div><dt>Õpetaja</dt><dd>{student.hiddenFields?.teacher ? 'Peidetud' : canonicalTeacherName(student.teacher) || 'Määramata'}</dd></div><div><dt>Rühm</dt><dd>{student.group || '—'}</dd></div><div><dt>Klass</dt><dd>{student.grade || '—'}</dd></div></dl></Card>
+            <Card><h2>Õppeülevaade</h2><dl className="detail-list"><div><dt>Tase</dt><dd>{student.level || '—'}</dd></div><div><dt>Sihttase</dt><dd>{student.targetLevel || '—'}</dd></div><div><dt>Õppeaine</dt><dd>{student.subject || '—'}</dd></div><div><dt>Tunde kokku</dt><dd>{state.lessons.length}</dd></div><div><dt>Graafikukirjeid</dt><dd>{state.schedule.length}</dd></div></dl></Card>
+          </div>
+        ) : null}
+
+        {activeTab === 'schedule' ? (
+          <Card><h2>Tunniplaan</h2>{state.schedule.length ? <div className="simple-list">{state.schedule.slice(0, 12).map((item) => <div key={item.id}><div><strong>{item.date || `Iganädalane · ${item.day || 'päev määramata'}`} · {item.time || 'kellaaeg määramata'}</strong><span>{item.teacher || student.teacher || 'Õpetaja määramata'}</span></div><Badge tone={item.status === 'Tühistatud' ? 'neutral' : 'info'}>{item.status || 'Planeeritud'}</Badge></div>)}</div> : <EmptyState title="Tunniplaani ei ole veel lisatud" description="Uus tund lisatakse kalendri kaudu." />}</Card>
+        ) : null}
+
+        {activeTab === 'learning' ? (
+          <div className="profile-grid">
+            <Card className="profile-wide"><h2>Viimased tunnid</h2>{state.lessons.length ? <div className="simple-list">{state.lessons.slice(0, 10).map((lesson) => <div key={lesson.id}><div><strong>{lesson.date || 'Kuupäev puudub'} · {lesson.time || ''}</strong><span>{lesson.subject || student.subject}</span></div><Badge tone={lesson.status === 'Tühistatud' ? 'neutral' : 'info'}>{lesson.status || 'Toimunud'}</Badge></div>)}</div> : <EmptyState title="Tunde ei leitud" />}</Card>
+            <Card className="profile-wide"><h2>Areng</h2>{progress.length ? <div className="progress-list">{progress.map(([skill, score]) => <div key={skill}><span>{skill}</span><div><i style={{ width: `${Math.max(0, Math.min(100, Number(score) || 0))}%` }} /></div><strong>{score}%</strong></div>)}</div> : <EmptyState title="Oskuste tulemusi ei ole veel salvestatud" />}</Card>
+          </div>
+        ) : null}
+
+        {activeTab === 'finance' && canViewFinance ? <StudentFinancePanel student={student} invoices={state.invoices} /> : null}
       </div>
+
       <StudentForm open={editing} student={student} teachers={[...new Set([...LEGACY_TEACHERS, canonicalTeacherName(student.teacher)].filter(Boolean))]} canAssignTeacher={canAssignTeacher} defaultTeacher={teacherScope} onClose={() => setEditing(false)} onSubmit={async (values) => { const safeValues = canAssignTeacher ? values : { ...values, teacher: student.teacher || teacherScope }; await studentApi.update(student.id, safeValues); await load(); setNotice('Õpilase andmed on salvestatud.'); }} />
     </div>
   );
