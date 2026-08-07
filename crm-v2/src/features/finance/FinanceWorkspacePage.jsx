@@ -2,6 +2,7 @@ import { useState } from 'react';
 import FinancePage from './FinancePage.jsx';
 import ManualInvoiceDialog from './ManualInvoiceDialog.jsx';
 import './manualInvoice.css';
+import './financeStagingSimplify.css';
 
 export default function FinanceWorkspacePage(props) {
   const [financePageKey, setFinancePageKey] = useState(0);
