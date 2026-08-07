@@ -1,22 +1,13 @@
 {
-  "redirects": [
+  "rewrites": [
     {
       "source": "/haldus",
-      "destination": "https://crm.epkoolitus.ee",
-      "permanent": false
+      "destination": "/haldus.html"
     },
     {
       "source": "/haldus/",
-      "destination": "https://crm.epkoolitus.ee",
-      "permanent": false
+      "destination": "/haldus.html"
     },
-    {
-      "source": "/haldus/:path*",
-      "destination": "https://crm.epkoolitus.ee",
-      "permanent": false
-    }
-  ],
-  "rewrites": [
     {
       "source": "/live-classroom",
       "destination": "/live-classroom.html"
