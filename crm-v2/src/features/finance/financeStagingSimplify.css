@@ -1,0 +1,34 @@
+.page-content[data-active-finance-section] > .financial-analytics {
+  display: none;
+}
+
+.page-content[data-active-finance-section="perioodid"] > .financial-analytics {
+  display: block;
+}
+
+/* The lesson screen already has batch controls and per-student rows.
+   Keep a single path to invoice lessons instead of rendering a third duplicate creator. */
+.student-invoice-creator {
+  display: none;
+}
+
+.finance-quicknav-card {
+  margin-top: 12px;
+  margin-bottom: 16px;
+}
+
+.finance-quicknav {
+  gap: 6px;
+}
+
+.finance-quicknav a {
+  min-height: 36px;
+  padding: 6px 11px;
+  font-size: 0.78rem;
+}
+
+@media (max-width: 720px) {
+  .metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
