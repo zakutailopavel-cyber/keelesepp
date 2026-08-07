@@ -58,11 +58,14 @@ export default function ManualInvoiceDialog({ onCreated }) {
     [form.studentId, students],
   );
 
-  const close = () => {
-    if (saving) return;
+  const resetAndClose = () => {
     setOpen(false);
     setError('');
     setForm(emptyForm());
+  };
+
+  const close = () => {
+    if (!saving) resetAndClose();
   };
 
   const submit = async (event) => {
@@ -77,7 +80,7 @@ export default function ManualInvoiceDialog({ onCreated }) {
     try {
       const result = await manualInvoiceApi.create(form);
       const invoice = result.invoice;
-      close();
+      resetAndClose();
       await onCreated?.(invoice);
     } catch (requestError) {
       setError(requestError.message || 'Arve loomine ebaõnnestus.');
