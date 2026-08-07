@@ -73,6 +73,14 @@ function cleanRequestId(value) {
   return requestId;
 }
 
+async function listInvoiceStudents() {
+  const snap = await db.collection('students').where('status', '==', 'active').get();
+  return snap.docs
+    .map((doc) => ({ id: doc.id, name: String(doc.data()?.name || '').trim() }))
+    .filter((student) => student.name)
+    .sort((left, right) => left.name.localeCompare(right.name, 'et'));
+}
+
 async function createManualInvoice({ actor, values, requestId }) {
   let input;
   try {
@@ -161,6 +169,10 @@ const manualInvoiceApi = functions.https.onRequest(async (req, res) => {
   }
   try {
     const actor = await requireFinanceUser(req);
+    if (req.path === '/students') {
+      res.status(200).json({ students: await listInvoiceStudents() });
+      return;
+    }
     if (req.path !== '/create') {
       res.status(404).json({ error: 'Not found' });
       return;
@@ -176,4 +188,4 @@ const manualInvoiceApi = functions.https.onRequest(async (req, res) => {
   }
 });
 
-module.exports = { manualInvoiceApi, createManualInvoice };
+module.exports = { manualInvoiceApi, createManualInvoice, listInvoiceStudents };
