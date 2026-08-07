@@ -44,6 +44,10 @@ export const manualInvoiceApi = {
     const result = await post('/automation-preview');
     return result.preview || null;
   },
+  async refreshAutomationPreview() {
+    const result = await post('/automation-preview/refresh');
+    return result.preview || null;
+  },
   create(values) {
     return post('/create', {
       studentId: values.studentId,
