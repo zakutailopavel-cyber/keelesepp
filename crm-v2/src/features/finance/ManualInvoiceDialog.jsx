@@ -1,7 +1,6 @@
 import { Plus } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Button, Input, Modal, Select } from '../../components/ui/index.js';
-import { studentsService } from '../../services/firebase/index.js';
 import { manualInvoiceApi } from '../../services/firebase/manualInvoiceApi.js';
 
 function nextDueDate() {
@@ -33,14 +32,13 @@ export default function ManualInvoiceDialog({ onCreated }) {
     if (!open || students.length || loadingStudents) return;
     let active = true;
     setLoadingStudents(true);
-    studentsService
-      .list({ status: 'active', pageSize: 500, exhaustive: true })
-      .then((result) => {
+    manualInvoiceApi
+      .listStudents()
+      .then((items) => {
         if (!active) return;
-        const items = [...(result?.items || [])].sort((a, b) =>
+        setStudents([...items].sort((a, b) =>
           String(a.name || '').localeCompare(String(b.name || ''), 'et'),
-        );
-        setStudents(items);
+        ));
       })
       .catch((requestError) => {
         if (active) setError(requestError.message || 'Õpilaste laadimine ebaõnnestus.');
