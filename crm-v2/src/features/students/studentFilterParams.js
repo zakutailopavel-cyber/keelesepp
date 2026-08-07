@@ -16,7 +16,7 @@ export function studentFiltersFromParams(searchParams) {
 }
 
 export function studentFiltersToParams(filters) {
-  const params = new URLSearchParams();
+  const params = new globalThis.URLSearchParams();
   FILTER_KEYS.forEach((key) => {
     const value = String(filters[key] ?? '').trim();
     if (value && value !== DEFAULT_STUDENT_FILTERS[key]) params.set(key, value);

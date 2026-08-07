@@ -8,11 +8,11 @@ import {
 
 describe('student filter URL helpers', () => {
   it('uses stable defaults for an empty URL', () => {
-    expect(studentFiltersFromParams(new URLSearchParams())).toEqual(DEFAULT_STUDENT_FILTERS);
+    expect(studentFiltersFromParams(new globalThis.URLSearchParams())).toEqual(DEFAULT_STUDENT_FILTERS);
   });
 
   it('restores every supported filter from URL parameters', () => {
-    const params = new URLSearchParams({
+    const params = new globalThis.URLSearchParams({
       search: 'mari',
       status: 'archived',
       level: 'B2',

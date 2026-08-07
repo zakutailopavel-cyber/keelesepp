@@ -1,0 +1,34 @@
+.finance-workspace-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 0 16px;
+}
+
+.finance-workspace-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--border-color, #d9dfdc);
+  border-radius: 12px;
+  background: var(--surface, #fff);
+}
+
+.finance-workspace-notice button {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+}
+
+@media (max-width: 720px) {
+  .finance-workspace-actions {
+    justify-content: stretch;
+  }
+
+  .finance-workspace-actions > * {
+    width: 100%;
+  }
+}
