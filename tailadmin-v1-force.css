@@ -1,0 +1,50 @@
+@import url('/tailadmin-v1.css');
+
+/* Loaded through the existing dashboard CSS chain. Important declarations keep
+   the TailAdmin visual tokens authoritative even though legacy haldus.css loads
+   its base rules later in the cascade. */
+:root{
+  --ks-bg:var(--ta-bg)!important;
+  --ks-surface:var(--ta-surface)!important;
+  --ks-surface-soft:var(--ta-surface-soft)!important;
+  --ks-border:var(--ta-border)!important;
+  --ks-border-strong:var(--ta-border-strong)!important;
+  --ks-text:var(--ta-text)!important;
+  --ks-text-muted:var(--ta-muted)!important;
+  --ks-navy:var(--ta-brand)!important;
+  --ks-navy-soft:var(--ta-brand-hover)!important;
+  --ks-pine:var(--ta-brand)!important;
+  --ks-pine-dark:var(--ta-brand-hover)!important;
+  --ks-amber:var(--ta-brand)!important;
+  --ks-amber-dark:var(--ta-brand-hover)!important;
+  --ks-radius-sm:var(--ta-radius-sm)!important;
+  --ks-radius-md:var(--ta-radius-md)!important;
+  --ks-radius-lg:var(--ta-radius-lg)!important;
+  --ks-shadow-sm:var(--ta-shadow-sm)!important;
+  --ks-shadow-md:var(--ta-shadow-md)!important;
+  --ks-focus:0 0 0 3px rgba(70,95,255,.14)!important;
+}
+
+html,body{background:var(--ta-bg)!important;color:var(--ta-text)!important}
+h1,h2,h3{font-family:"IBM Plex Sans",system-ui,sans-serif!important;color:var(--ta-text)!important;font-weight:700!important;letter-spacing:-.025em!important}
+
+#desktop-sidebar,#mobile-sidebar{background:var(--ta-sidebar)!important;border-color:rgba(255,255,255,.08)!important;box-shadow:none!important}
+#desktop-sidebar{width:290px!important}
+#desktop-sidebar .sidebar-link,#mobile-sidebar .sidebar-link{border-radius:8px!important;color:#d0d5dd!important;font-weight:600!important}
+#desktop-sidebar .sidebar-link:hover,#mobile-sidebar .sidebar-link:hover{background:rgba(255,255,255,.07)!important;color:#fff!important}
+#desktop-sidebar .sidebar-link.active,#mobile-sidebar .sidebar-link.active{background:rgba(70,95,255,.18)!important;color:#fff!important;box-shadow:none!important}
+#desktop-sidebar .sidebar-link.active i,#mobile-sidebar .sidebar-link.active i{color:#8098ff!important}
+#mobile-header{background:rgba(255,255,255,.97)!important;border-bottom:1px solid var(--ta-border)!important;box-shadow:var(--ta-shadow-sm)!important}
+
+.card{border-color:var(--ta-border)!important;border-radius:var(--ta-radius-md)!important;box-shadow:var(--ta-shadow-sm)!important}
+.btn{border-radius:8px!important;box-shadow:none!important}
+.btn-dark,.btn-pine,.btn-amber{background:var(--ta-brand)!important;color:#fff!important}
+.btn-dark:hover,.btn-pine:hover,.btn-amber:hover{background:var(--ta-brand-hover)!important}
+
+.table-shell{border-color:var(--ta-border)!important;border-radius:var(--ta-radius-md)!important;box-shadow:var(--ta-shadow-sm)!important}
+th{background:#f9fafb!important;color:#475467!important;border-bottom-color:var(--ta-border)!important}
+td{border-bottom-color:#eaecf0!important}
+tbody tr:hover{background:#f9fafb!important}
+
+.spinner{border-color:#e4e7ec!important;border-top-color:var(--ta-brand)!important}
+.level-fill{background:linear-gradient(90deg,var(--ta-brand),#8098ff)!important}
