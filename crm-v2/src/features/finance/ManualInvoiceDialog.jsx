@@ -23,16 +23,28 @@ export default function ManualInvoiceDialog({ onCreated }) {
   const [form, setForm] = useState(emptyForm);
 
   useEffect(() => {
-    if (!open || students.length || loadingStudents) return;
+    if (!open || students.length) return undefined;
     let active = true;
     setLoadingStudents(true);
     setError('');
+
     manualInvoiceApi.listStudents()
-      .then((items) => active && setStudents([...items].sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'et'))))
-      .catch((requestError) => active && setError(requestError.message || 'Õpilaste laadimine ebaõnnestus.'))
-      .finally(() => active && setLoadingStudents(false));
-    return () => { active = false; };
-  }, [loadingStudents, open, students.length]);
+      .then((items) => {
+        if (!active) return;
+        setStudents([...items].sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'et')));
+      })
+      .catch((requestError) => {
+        if (!active) return;
+        setError(requestError.message || 'Õpilaste laadimine ebaõnnestus.');
+      })
+      .finally(() => {
+        if (active) setLoadingStudents(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [open, students.length]);
 
   const selectedStudent = useMemo(() => students.find((student) => student.id === form.studentId), [form.studentId, students]);
   const filteredStudents = useMemo(() => {
