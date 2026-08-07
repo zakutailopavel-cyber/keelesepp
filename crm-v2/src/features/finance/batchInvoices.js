@@ -9,6 +9,19 @@ export function currentBillingMonth(date = new Date()) {
   return `${year}-${month}`;
 }
 
+export function previousBillingMonth(date = new Date()) {
+  const previous = new Date(date.getFullYear(), date.getMonth() - 1, 1, 12);
+  return currentBillingMonth(previous);
+}
+
+export function defaultAutomaticBillingMonth(date = new Date()) {
+  // Automatic period billing must operate on a completed month. Using the
+  // current month produces partial invoices and makes a scheduled run on the
+  // 10th especially surprising, so the previous calendar month is the safe
+  // default. An administrator can still select another month explicitly.
+  return previousBillingMonth(date);
+}
+
 export function lessonBelongsToMonth(lesson, month) {
   const normalizedMonth = normalizeMonth(month);
   return Boolean(normalizedMonth && String(lesson?.date || '').startsWith(`${normalizedMonth}-`));
