@@ -8,8 +8,11 @@ const ALLOWED_ROLES = new Set(['admin', 'finance']);
 const DEFAULT_ALLOWED_ORIGINS = new Set([
   'https://keelesepp.vercel.app',
   'https://keelesepp-crm-v2.vercel.app',
+  'https://keelesepp-5136b.web.app',
+  'https://keelesepp-5136b.firebaseapp.com',
   'https://epkoolitus.ee',
   'https://www.epkoolitus.ee',
+  'https://crm.epkoolitus.ee',
   'http://localhost:3000',
   'http://localhost:5173',
 ]);
