@@ -40,6 +40,10 @@ export const manualInvoiceApi = {
     const result = await post('/students');
     return result.students || [];
   },
+  async automationPreview() {
+    const result = await post('/automation-preview');
+    return result.preview || null;
+  },
   create(values) {
     return post('/create', {
       studentId: values.studentId,
