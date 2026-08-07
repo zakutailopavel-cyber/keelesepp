@@ -5,6 +5,7 @@ const { manualInvoiceInput, manualInvoiceRecord } = require('./manual-invoice-co
 
 const db = admin.firestore();
 const ALLOWED_ROLES = new Set(['admin', 'finance']);
+const SUPER_ADMIN_EMAILS = new Set(['zakutailo.pavel@gmail.com']);
 const DEFAULT_ALLOWED_ORIGINS = new Set([
   'https://keelesepp.vercel.app',
   'https://keelesepp-crm-v2.vercel.app',
@@ -37,7 +38,7 @@ function httpError(status, message) {
 function sendError(res, error) {
   const status = error.status || 500;
   if (status >= 500) console.error('Manual invoice error:', error);
-  res.status(status).json({ error: status >= 500 ? 'Internal error' : error.message });
+  res.status(status).json({ error: status >= 500 ? 'Sisemine viga' : error.message });
 }
 
 async function requireFinanceUser(req) {
@@ -52,19 +53,25 @@ async function requireFinanceUser(req) {
   }
   const profileSnap = await db.collection('users').doc(decoded.uid).get();
   const profile = profileSnap.exists ? profileSnap.data() : {};
-  if (profile.disabled === true || profile.status === 'disabled') throw httpError(403, 'Account disabled');
+  if (profile.disabled === true || profile.status === 'disabled') throw httpError(403, 'Konto on keelatud');
+
+  const email = String(decoded.email || '').trim().toLowerCase();
   const roles = new Set([
-    ...(Array.isArray(profile.roles) ? profile.roles : []),
     profile.role,
     ...(Array.isArray(decoded.roles) ? decoded.roles : []),
     decoded.role,
-  ].filter(Boolean).map(String));
+  ].filter(Boolean).map((role) => String(role).trim().toLowerCase()));
+
+  // Keep server authorization aligned with crm-v2/src/utils/roles.js.
+  // The designated super-admin email receives the canonical admin role.
+  if (SUPER_ADMIN_EMAILS.has(email)) roles.add('admin');
+
   if (![...roles].some((role) => ALLOWED_ROLES.has(role))) {
-    throw httpError(403, 'Finance or administrator access required');
+    throw httpError(403, 'Sul puudub arvete loomise õigus');
   }
   return {
     uid: decoded.uid,
-    email: String(decoded.email || '').toLowerCase(),
+    email,
     name: profile.displayName || decoded.name || decoded.email || '',
     role: [...roles].sort().join(','),
   };
@@ -77,11 +84,26 @@ function cleanRequestId(value) {
 }
 
 async function listInvoiceStudents() {
-  const snap = await db.collection('students').where('status', '==', 'active').get();
-  return snap.docs
-    .map((doc) => ({ id: doc.id, name: String(doc.data()?.name || '').trim() }))
-    .filter((student) => student.name)
-    .sort((left, right) => left.name.localeCompare(right.name, 'et'));
+  // CRM has both newer `status: active` and legacy `active: true` student records.
+  // Query both shapes and merge by document id so the manual invoice picker works
+  // with the real historical dataset instead of silently hiding older students.
+  const [statusSnap, activeSnap] = await Promise.all([
+    db.collection('students').where('status', '==', 'active').get(),
+    db.collection('students').where('active', '==', true).get(),
+  ]);
+  const byId = new Map();
+  [...statusSnap.docs, ...activeSnap.docs].forEach((doc) => {
+    const data = doc.data() || {};
+    const name = String(data.name || '').trim();
+    if (!name) return;
+    byId.set(doc.id, {
+      id: doc.id,
+      name,
+      parentName: String(data.parentName || data.guardianName || '').trim(),
+      payerName: String(data.payerName || data.companyName || data.parentName || data.guardianName || name).trim(),
+    });
+  });
+  return [...byId.values()].sort((left, right) => left.name.localeCompare(right.name, 'et'));
 }
 
 async function createManualInvoice({ actor, values, requestId }) {
