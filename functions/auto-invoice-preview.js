@@ -2,10 +2,35 @@ const functions = require('firebase-functions/v1');
 const admin = require('firebase-admin');
 
 const db = admin.firestore();
+const SETTINGS_REF = db.collection('automationSettings').doc('monthlyInvoices');
+const PREVIEW_REF = db.collection('automationPreviews').doc('monthlyInvoices');
+
+const DEFAULT_SETTINGS = Object.freeze({
+  enabled: false,
+  invoiceDay: 1,
+  dueDay: 10,
+  mode: 'preview_only',
+});
 
 function previousBillingMonth(date = new Date()) {
   const target = new Date(date.getFullYear(), date.getMonth() - 1, 1, 12);
   return `${target.getFullYear()}-${String(target.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function normalizedAutomaticInvoiceSettings(data = {}) {
+  const invoiceDay = Math.min(28, Math.max(1, Number(data.invoiceDay) || DEFAULT_SETTINGS.invoiceDay));
+  const dueDay = Math.min(28, Math.max(1, Number(data.dueDay) || DEFAULT_SETTINGS.dueDay));
+  return {
+    enabled: data.enabled === true,
+    invoiceDay,
+    dueDay,
+    mode: data.enabled === true && data.mode === 'automatic' ? 'automatic' : 'preview_only',
+  };
+}
+
+async function loadAutomaticInvoiceSettings() {
+  const snap = await SETTINGS_REF.get();
+  return normalizedAutomaticInvoiceSettings(snap.exists ? snap.data() : DEFAULT_SETTINGS);
 }
 
 function lessonIsBillable(lesson = {}) {
@@ -29,7 +54,8 @@ function selectBillableLessons(lessons = [], student = {}) {
     .sort((left, right) => `${left.date || ''}:${left.id || ''}`.localeCompare(`${right.date || ''}:${right.id || ''}`));
 }
 
-async function buildAutomaticInvoicePreview(month = previousBillingMonth()) {
+async function buildAutomaticInvoicePreview(month = previousBillingMonth(), settingsOverride = null) {
+  const settings = settingsOverride || await loadAutomaticInvoiceSettings();
   const [studentsSnap, plansSnap, lessonsSnap] = await Promise.all([
     db.collection('students').get(),
     db.collection('studentRevenuePlans').get(),
@@ -71,6 +97,7 @@ async function buildAutomaticInvoicePreview(month = previousBillingMonth()) {
   return {
     month,
     mode: 'preview_only',
+    settings,
     ready,
     blocked,
     totals: {
@@ -88,15 +115,22 @@ const automaticInvoicePreview = functions
   .pubsub.schedule('15 6 * * *')
   .timeZone('Europe/Tallinn')
   .onRun(async () => {
-    const preview = await buildAutomaticInvoicePreview();
-    await db.collection('automationPreviews').doc('monthlyInvoices').set(preview, { merge: false });
-    console.log('Automatic invoice preview generated', preview.totals);
+    const settings = await loadAutomaticInvoiceSettings();
+    const preview = await buildAutomaticInvoicePreview(previousBillingMonth(), settings);
+    await PREVIEW_REF.set(preview, { merge: false });
+    console.log('Automatic invoice preview generated', {
+      enabled: settings.enabled,
+      mode: settings.mode,
+      totals: preview.totals,
+    });
     return null;
   });
 
 module.exports = {
   automaticInvoicePreview,
   buildAutomaticInvoicePreview,
+  loadAutomaticInvoiceSettings,
+  normalizedAutomaticInvoiceSettings,
   previousBillingMonth,
   lessonIsBillable,
   selectBillableLessons,
