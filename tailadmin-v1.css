@@ -1,0 +1,116 @@
+:root {
+  --ta-brand:#465fff;
+  --ta-brand-hover:#3641f5;
+  --ta-brand-soft:#eef2ff;
+  --ta-brand-border:#c7d2fe;
+  --ta-bg:#f9fafb;
+  --ta-surface:#ffffff;
+  --ta-surface-soft:#f8fafc;
+  --ta-border:#e4e7ec;
+  --ta-border-strong:#d0d5dd;
+  --ta-text:#101828;
+  --ta-muted:#667085;
+  --ta-sidebar:#101828;
+  --ta-sidebar-muted:#98a2b3;
+  --ta-success:#12b76a;
+  --ta-warning:#f79009;
+  --ta-danger:#f04438;
+  --ta-radius-sm:8px;
+  --ta-radius-md:12px;
+  --ta-radius-lg:16px;
+  --ta-shadow-sm:0 1px 2px rgba(16,24,40,.04);
+  --ta-shadow-md:0 4px 12px rgba(16,24,40,.08);
+}
+
+html,body{background:var(--ta-bg);color:var(--ta-text)}
+body{font-family:"IBM Plex Sans",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+h1,h2,h3{font-family:"IBM Plex Sans",system-ui,sans-serif;color:var(--ta-text);font-weight:700;letter-spacing:-.025em}
+
+/* TailAdmin-style navigation shell for CRM v1 */
+#desktop-sidebar,#mobile-sidebar{background:var(--ta-sidebar)!important;border-color:rgba(255,255,255,.08)!important;box-shadow:none!important}
+#desktop-sidebar{width:290px!important}
+#desktop-sidebar .sidebar-link,#mobile-sidebar .sidebar-link{
+  min-height:44px;
+  padding:10px 12px;
+  border-radius:8px;
+  color:#d0d5dd;
+  font-size:.88rem;
+  font-weight:600;
+  transition:background-color .15s ease,color .15s ease,transform .15s ease;
+}
+#desktop-sidebar .sidebar-link:hover,#mobile-sidebar .sidebar-link:hover{background:rgba(255,255,255,.07);color:#fff;transform:translateX(1px)}
+#desktop-sidebar .sidebar-link.active,#mobile-sidebar .sidebar-link.active{
+  background:rgba(70,95,255,.18);
+  color:#fff;
+  box-shadow:none;
+}
+#desktop-sidebar .sidebar-link.active i,#mobile-sidebar .sidebar-link.active i{color:#8098ff}
+
+#mobile-header{background:rgba(255,255,255,.97)!important;border-bottom:1px solid var(--ta-border)!important;box-shadow:var(--ta-shadow-sm)!important;backdrop-filter:blur(10px)}
+
+/* Re-map legacy KeeleSepp tokens so existing components inherit the new system */
+:root{
+  --ks-bg:var(--ta-bg);
+  --ks-surface:var(--ta-surface);
+  --ks-surface-soft:var(--ta-surface-soft);
+  --ks-border:var(--ta-border);
+  --ks-border-strong:var(--ta-border-strong);
+  --ks-text:var(--ta-text);
+  --ks-text-muted:var(--ta-muted);
+  --ks-navy:var(--ta-brand);
+  --ks-navy-soft:var(--ta-brand-hover);
+  --ks-pine:var(--ta-brand);
+  --ks-pine-dark:var(--ta-brand-hover);
+  --ks-amber:var(--ta-brand);
+  --ks-amber-dark:var(--ta-brand-hover);
+  --ks-radius-sm:var(--ta-radius-sm);
+  --ks-radius-md:var(--ta-radius-md);
+  --ks-radius-lg:var(--ta-radius-lg);
+  --ks-shadow-sm:var(--ta-shadow-sm);
+  --ks-shadow-md:var(--ta-shadow-md);
+  --ks-focus:0 0 0 3px rgba(70,95,255,.14);
+}
+
+.card{border-color:var(--ta-border);border-radius:var(--ta-radius-md);box-shadow:var(--ta-shadow-sm)}
+.card:hover{border-color:#d0d5dd}
+.card-interactive:hover{box-shadow:var(--ta-shadow-md);transform:translateY(-1px)}
+
+.btn{border-radius:8px;font-weight:600;box-shadow:none}
+.btn:hover{transform:none;box-shadow:none}
+.btn-dark,.btn-pine,.btn-amber{background:var(--ta-brand);color:#fff}
+.btn-dark:hover,.btn-pine:hover,.btn-amber:hover{background:var(--ta-brand-hover)}
+.btn-ghost{background:#fff;color:#344054;border-color:var(--ta-border-strong)!important}
+.btn-ghost:hover{background:#f9fafb;border-color:#98a2b3!important}
+
+input,select,textarea{border-radius:8px!important;border-color:var(--ta-border-strong)!important;background:#fff!important;color:var(--ta-text)!important}
+input:focus,select:focus,textarea:focus{border-color:#8098ff!important;box-shadow:0 0 0 3px rgba(70,95,255,.12)!important}
+
+.table-shell{border-color:var(--ta-border);border-radius:var(--ta-radius-md);box-shadow:var(--ta-shadow-sm)}
+th{background:#f9fafb;color:#475467;border-bottom-color:var(--ta-border)}
+td{border-bottom-color:#eaecf0}
+tbody tr:hover{background:#f9fafb}
+
+.badge{border-radius:999px;font-weight:600}
+.badge-info{background:#eef4ff;color:#3538cd;border-color:#c7d7fe}
+.badge-success{background:#ecfdf3;color:#027a48;border-color:#abefc6}
+.badge-warning{background:#fffaeb;color:#b54708;border-color:#fedf89}
+.badge-danger{background:#fef3f2;color:#b42318;border-color:#fecdca}
+
+.spinner{border-color:#e4e7ec;border-top-color:var(--ta-brand)}
+.level-fill{background:linear-gradient(90deg,var(--ta-brand),#8098ff)}
+
+/* Utility classes heavily used by the legacy JSX */
+.bg-white{background-color:#fff!important}
+.bg-gray-50,.bg-slate-50{background-color:#f9fafb!important}
+.text-gray-500,.text-slate-500{color:var(--ta-muted)!important}
+.border-gray-100,.border-gray-200,.border-slate-200{border-color:var(--ta-border)!important}
+.shadow-sm{box-shadow:var(--ta-shadow-sm)!important}
+
+@media(min-width:768px){
+  body:has(#desktop-sidebar) main{background:var(--ta-bg)}
+}
+
+@media(max-width:767px){
+  body{background:var(--ta-bg)}
+  .card{border-radius:12px}
+}
