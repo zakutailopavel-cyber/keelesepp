@@ -2,23 +2,37 @@ import { requireFirebaseClient } from './client.js';
 import { financeRequestId } from './financeApi.js';
 
 const defaultBaseUrl = 'https://us-central1-keelesepp-5136b.cloudfunctions.net/manualInvoiceApi';
+const REQUEST_TIMEOUT_MS = 12000;
 
 async function post(path, body = {}) {
   const { auth } = requireFirebaseClient();
   if (!auth.currentUser) throw new Error('Aktiivne kasutajaseanss puudub. Logi uuesti sisse.');
   const token = await auth.currentUser.getIdToken();
   const baseUrl = String(import.meta.env.VITE_MANUAL_INVOICE_API_URL || defaultBaseUrl).replace(/\/$/, '');
-  const response = await globalThis.fetch(`${baseUrl}${path}`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(body),
-  });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.error || 'Finantspäring ebaõnnestus.');
-  return data;
+  const controller = new AbortController();
+  const timeoutId = globalThis.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+  try {
+    const response = await globalThis.fetch(`${baseUrl}${path}`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || 'Finantspäring ebaõnnestus.');
+    return data;
+  } catch (error) {
+    if (error?.name === 'AbortError') {
+      throw new Error('Finantsteenus ei vastanud õigel ajal. Proovi uuesti.');
+    }
+    throw error;
+  } finally {
+    globalThis.clearTimeout(timeoutId);
+  }
 }
 
 export const manualInvoiceApi = {
