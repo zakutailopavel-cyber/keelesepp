@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import AutomaticInvoiceStatus from './AutomaticInvoiceStatus.jsx';
 import FinancePage from './FinancePage.jsx';
 import ManualInvoiceDialog from './ManualInvoiceDialog.jsx';
 import './manualInvoice.css';
@@ -18,6 +19,7 @@ export default function FinanceWorkspacePage(props) {
       <div className="finance-workspace-actions">
         <ManualInvoiceDialog onCreated={handleManualInvoiceCreated} />
       </div>
+      <AutomaticInvoiceStatus />
       {notice ? (
         <div className="finance-workspace-notice" role="status">
           <span>{notice}</span>
