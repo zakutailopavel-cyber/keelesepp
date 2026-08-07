@@ -62,8 +62,6 @@ async function requireFinanceUser(req) {
     decoded.role,
   ].filter(Boolean).map((role) => String(role).trim().toLowerCase()));
 
-  // Keep server authorization aligned with crm-v2/src/utils/roles.js.
-  // The designated super-admin email receives the canonical admin role.
   if (SUPER_ADMIN_EMAILS.has(email)) roles.add('admin');
 
   if (![...roles].some((role) => ALLOWED_ROLES.has(role))) {
@@ -84,9 +82,6 @@ function cleanRequestId(value) {
 }
 
 async function listInvoiceStudents() {
-  // CRM has both newer `status: active` and legacy `active: true` student records.
-  // Query both shapes and merge by document id so the manual invoice picker works
-  // with the real historical dataset instead of silently hiding older students.
   const [statusSnap, activeSnap] = await Promise.all([
     db.collection('students').where('status', '==', 'active').get(),
     db.collection('students').where('active', '==', true).get(),
@@ -104,6 +99,23 @@ async function listInvoiceStudents() {
     });
   });
   return [...byId.values()].sort((left, right) => left.name.localeCompare(right.name, 'et'));
+}
+
+async function getAutomaticInvoicePreview() {
+  const snap = await db.collection('automationPreviews').doc('monthlyInvoices').get();
+  if (!snap.exists) return null;
+  const data = snap.data() || {};
+  return {
+    month: data.month || '',
+    mode: data.mode || 'preview_only',
+    totals: data.totals || { invoices: 0, lessons: 0, amountCents: 0, blocked: 0 },
+    blocked: Array.isArray(data.blocked) ? data.blocked.map((item) => ({
+      studentId: item.studentId || '',
+      studentName: item.studentName || 'Õpilane',
+      reason: item.reason || 'Kontroll vajalik',
+    })) : [],
+    generatedAt: data.generatedAt || '',
+  };
 }
 
 async function createManualInvoice({ actor, values, requestId }) {
@@ -125,9 +137,7 @@ async function createManualInvoice({ actor, values, requestId }) {
   return db.runTransaction(async (transaction) => {
     const existing = await transaction.get(invoiceRef);
     if (existing.exists) {
-      if (existing.data().creationSignature !== signature) {
-        throw httpError(409, 'requestId already used for a different invoice');
-      }
+      if (existing.data().creationSignature !== signature) throw httpError(409, 'requestId already used for a different invoice');
       return { invoice: { id: existing.id, ...existing.data() }, idempotent: true };
     }
 
@@ -152,31 +162,13 @@ async function createManualInvoice({ actor, values, requestId }) {
     }
     if (!invoiceNum) throw httpError(409, 'Invoice counter requires numbering repair');
 
-    const invoice = manualInvoiceRecord({
-      input,
-      student: studentSnap.data(),
-      invoiceNum,
-      nowIso,
-      actor,
-      requestId: mutationId,
-      signature,
-    });
+    const invoice = manualInvoiceRecord({ input, student: studentSnap.data(), invoiceNum, nowIso, actor, requestId: mutationId, signature });
     transaction.create(invoiceRef, invoice);
     transaction.set(counterRef, { seq: nextSequence, updatedAt: nowIso }, { merge: true });
     transaction.create(auditRef, {
-      entityType: 'invoice',
-      entityId: mutationId,
-      action: 'invoice.created_manual',
-      invoiceId: mutationId,
-      invoiceNum,
-      studentId: input.studentId,
-      studentName: invoice.studentName,
-      amountCents: input.amountCents,
-      amount: input.amount,
-      actor,
-      reason: input.note || input.description,
-      createdAt: nowIso,
-      requestId: mutationId,
+      entityType: 'invoice', entityId: mutationId, action: 'invoice.created_manual', invoiceId: mutationId, invoiceNum,
+      studentId: input.studentId, studentName: invoice.studentName, amountCents: input.amountCents, amount: input.amount,
+      actor, reason: input.note || input.description, createdAt: nowIso, requestId: mutationId,
     });
     return { invoice: { id: mutationId, ...invoice }, idempotent: false };
   });
@@ -198,19 +190,19 @@ const manualInvoiceApi = functions.https.onRequest(async (req, res) => {
       res.status(200).json({ students: await listInvoiceStudents() });
       return;
     }
+    if (req.path === '/automation-preview') {
+      res.status(200).json({ preview: await getAutomaticInvoicePreview() });
+      return;
+    }
     if (req.path !== '/create') {
       res.status(404).json({ error: 'Not found' });
       return;
     }
-    const result = await createManualInvoice({
-      actor,
-      values: req.body || {},
-      requestId: req.body?.requestId,
-    });
+    const result = await createManualInvoice({ actor, values: req.body || {}, requestId: req.body?.requestId });
     res.status(result.idempotent ? 200 : 201).json(result);
   } catch (error) {
     sendError(res, error);
   }
 });
 
-module.exports = { manualInvoiceApi, createManualInvoice, listInvoiceStudents };
+module.exports = { manualInvoiceApi, createManualInvoice, listInvoiceStudents, getAutomaticInvoicePreview };
