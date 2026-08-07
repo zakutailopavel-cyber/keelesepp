@@ -1,3 +1,5 @@
+@import url('/tailadmin-v1-force.css');
+
 /* Student list and profile polish. Uses existing markup and preserves all React logic. */
 
 .fade-in:has(input[placeholder*="Otsi"]):has(select){
