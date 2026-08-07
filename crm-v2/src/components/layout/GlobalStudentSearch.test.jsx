@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
-import { vi } from 'vitest';
+import { afterEach, beforeEach, vi } from 'vitest';
 import GlobalStudentSearch from './GlobalStudentSearch.jsx';
 
 function LocationProbe() {
