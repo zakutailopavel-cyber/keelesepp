@@ -5,29 +5,47 @@ import IconButton from './IconButton.jsx';
 export default function Modal({ open, title, children, footer, onClose, className = '' }) {
   const titleId = useId();
   const modalRef = useRef(null);
+  const onCloseRef = useRef(onClose);
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
     if (!open) return undefined;
     const previousFocus = document.activeElement;
     const focusableSelector = 'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href]';
     const focusable = () => [...(modalRef.current?.querySelectorAll(focusableSelector) || [])];
-    focusable()[0]?.focus();
+
+    // Initial focus belongs to the first useful form control, not the close button.
+    const initialFocus = modalRef.current?.querySelector('input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled])');
+    initialFocus?.focus();
+
     const handleKeyDown = (event) => {
-      if (event.key === 'Escape') { onClose(); return; }
+      if (event.key === 'Escape') {
+        onCloseRef.current?.();
+        return;
+      }
       if (event.key !== 'Tab') return;
       const items = focusable();
       if (!items.length) return;
       const first = items[0];
       const last = items.at(-1);
-      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
-      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     };
+
     document.addEventListener('keydown', handleKeyDown);
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
       previousFocus?.focus?.();
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
   return (
