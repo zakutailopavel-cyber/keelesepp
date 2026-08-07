@@ -1,4 +1,4 @@
-import { Bot, CircleAlert, Play, RefreshCw } from 'lucide-react';
+import { Bot, CircleAlert, RefreshCw } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Badge, Button, Card } from '../../components/ui/index.js';
 import { manualInvoiceApi } from '../../services/firebase/manualInvoiceApi.js';
@@ -8,6 +8,19 @@ const money = (cents) => new Intl.NumberFormat('et-EE', {
   style: 'currency',
   currency: 'EUR',
 }).format(Number(cents || 0) / 100);
+
+const dateTime = (value) => {
+  if (!value) return '';
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return '';
+  return parsed.toLocaleString('et-EE', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
 
 export default function AutomaticInvoiceStatus() {
   const [preview, setPreview] = useState(null);
@@ -27,7 +40,7 @@ export default function AutomaticInvoiceStatus() {
     }
   };
 
-  const runPreview = async () => {
+  const recalculate = async () => {
     setRunning(true);
     setError('');
     try {
@@ -57,9 +70,12 @@ export default function AutomaticInvoiceStatus() {
           {!loading && error ? <span className="automatic-invoice-status__error">{error}</span> : null}
           {!loading && !error && !preview ? <span>Eelvaadet ei ole veel loodud.</span> : null}
           {!loading && preview ? (
-            <span>
-              {preview.month}: <strong>{totals.invoices || 0}</strong> arvet · <strong>{totals.lessons || 0}</strong> tundi · <strong>{money(totals.amountCents)}</strong>
-            </span>
+            <>
+              <span>
+                {preview.month}: <strong>{totals.invoices || 0}</strong> arvet · <strong>{totals.lessons || 0}</strong> tundi · <strong>{money(totals.amountCents)}</strong>
+              </span>
+              {preview.generatedAt ? <small>Arvutatud {dateTime(preview.generatedAt)}</small> : null}
+            </>
           ) : null}
         </div>
       </div>
@@ -69,11 +85,8 @@ export default function AutomaticInvoiceStatus() {
             <CircleAlert size={16} /> {preview.blocked.length} vajab parandamist
           </span>
         ) : null}
-        <Button variant="secondary" disabled={loading || running} onClick={load}>
-          <RefreshCw size={16} /> Värskenda
-        </Button>
-        <Button disabled={loading || running} loading={running} onClick={runPreview}>
-          <Play size={16} /> Arvuta praegu
+        <Button variant="secondary" disabled={loading || running} loading={running} onClick={recalculate}>
+          <RefreshCw size={16} /> Arvuta uuesti
         </Button>
       </div>
     </Card>
