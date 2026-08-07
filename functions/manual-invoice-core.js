@@ -1,3 +1,17 @@
+const INVOICE_DETAILS = Object.freeze({
+  company: 'E&P Koolitus OÜ',
+  regCode: '17270880',
+  address: 'Harju maakond, Saue vald, Laagri alevik, Nõlvaku põik 3b, 76401',
+  email: 'zakutailo.pavel@gmail.com',
+  iban: 'EE917700771011885682',
+  bank: 'LHV Pank AS',
+  swift: 'LHVBEE22',
+  paymentDueDay: 10,
+  paymentDueRule: 'monthly_10',
+  lateFeePerDay: '0.0%',
+  issuer: 'Pavel Zakutailo',
+});
+
 function cleanText(value, maxLength = 500) {
   return String(value || '').trim().slice(0, maxLength);
 }
@@ -43,13 +57,25 @@ function manualInvoiceRecord({ input, student, invoiceNum, nowIso, actor, reques
   const parentEmail = student.parentEmail || student.contactEmail || student.guardianEmail || '';
   const payerName = student.payerName || student.companyName || parentName || student.name || '';
   const payerEmail = student.payerEmail || parentEmail || student.email || '';
+  const payerRegCode = student.payerRegCode || student.companyRegCode || '';
+  const payerAddress = student.payerAddress || student.companyAddress || student.address || '';
   return {
     num: invoiceNum,
     status: 'Ootel',
     date: nowIso.slice(0, 10),
     due: input.due,
-    paymentDueRule: 'manual',
+    paymentDueRule: INVOICE_DETAILS.paymentDueRule,
+    paymentDueDay: INVOICE_DETAILS.paymentDueDay,
+    lateFeePerDay: INVOICE_DETAILS.lateFeePerDay,
     paymentReference: invoiceNum,
+    sellerName: INVOICE_DETAILS.company,
+    sellerRegCode: INVOICE_DETAILS.regCode,
+    sellerAddress: INVOICE_DETAILS.address,
+    sellerEmail: INVOICE_DETAILS.email,
+    sellerIban: INVOICE_DETAILS.iban,
+    sellerBank: INVOICE_DETAILS.bank,
+    sellerSwift: INVOICE_DETAILS.swift,
+    issuer: INVOICE_DETAILS.issuer,
     invoiceTargetType: 'student',
     studentId: input.studentId,
     studentName: student.name || '—',
@@ -62,6 +88,8 @@ function manualInvoiceRecord({ input, student, invoiceNum, nowIso, actor, reques
     payerName,
     payerEmail,
     payerEmailLower: String(payerEmail).trim().toLowerCase(),
+    payerRegCode,
+    payerAddress,
     amountCents: input.amountCents,
     amount: input.amount,
     paidAmountCents: 0,
@@ -107,4 +135,4 @@ function manualInvoiceRecord({ input, student, invoiceNum, nowIso, actor, reques
   };
 }
 
-module.exports = { manualInvoiceInput, manualInvoiceRecord };
+module.exports = { INVOICE_DETAILS, manualInvoiceInput, manualInvoiceRecord };
