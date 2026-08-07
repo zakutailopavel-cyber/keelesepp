@@ -2,6 +2,7 @@ const functions = require('firebase-functions/v1');
 const admin = require('firebase-admin');
 const crypto = require('crypto');
 const { manualInvoiceInput, manualInvoiceRecord } = require('./manual-invoice-core');
+const { buildAutomaticInvoicePreview } = require('./auto-invoice-preview');
 
 const db = admin.firestore();
 const ALLOWED_ROLES = new Set(['admin', 'finance']);
@@ -101,10 +102,8 @@ async function listInvoiceStudents() {
   return [...byId.values()].sort((left, right) => left.name.localeCompare(right.name, 'et'));
 }
 
-async function getAutomaticInvoicePreview() {
-  const snap = await db.collection('automationPreviews').doc('monthlyInvoices').get();
-  if (!snap.exists) return null;
-  const data = snap.data() || {};
+function publicAutomaticInvoicePreview(data) {
+  if (!data) return null;
   return {
     month: data.month || '',
     mode: data.mode || 'preview_only',
@@ -116,6 +115,22 @@ async function getAutomaticInvoicePreview() {
     })) : [],
     generatedAt: data.generatedAt || '',
   };
+}
+
+async function getAutomaticInvoicePreview() {
+  const snap = await db.collection('automationPreviews').doc('monthlyInvoices').get();
+  return snap.exists ? publicAutomaticInvoicePreview(snap.data() || {}) : null;
+}
+
+async function refreshAutomaticInvoicePreview(actor) {
+  const preview = await buildAutomaticInvoicePreview();
+  const refreshed = {
+    ...preview,
+    refreshedManually: true,
+    refreshedBy: actor,
+  };
+  await db.collection('automationPreviews').doc('monthlyInvoices').set(refreshed, { merge: false });
+  return publicAutomaticInvoicePreview(refreshed);
 }
 
 async function createManualInvoice({ actor, values, requestId }) {
@@ -194,6 +209,10 @@ const manualInvoiceApi = functions.https.onRequest(async (req, res) => {
       res.status(200).json({ preview: await getAutomaticInvoicePreview() });
       return;
     }
+    if (req.path === '/automation-preview/refresh') {
+      res.status(200).json({ preview: await refreshAutomaticInvoicePreview(actor) });
+      return;
+    }
     if (req.path !== '/create') {
       res.status(404).json({ error: 'Not found' });
       return;
@@ -205,4 +224,10 @@ const manualInvoiceApi = functions.https.onRequest(async (req, res) => {
   }
 });
 
-module.exports = { manualInvoiceApi, createManualInvoice, listInvoiceStudents, getAutomaticInvoicePreview };
+module.exports = {
+  manualInvoiceApi,
+  createManualInvoice,
+  listInvoiceStudents,
+  getAutomaticInvoicePreview,
+  refreshAutomaticInvoicePreview,
+};
