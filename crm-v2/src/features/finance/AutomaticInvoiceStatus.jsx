@@ -1,4 +1,4 @@
-import { Bot, CircleAlert, RefreshCw } from 'lucide-react';
+import { Bot, CircleAlert, Play, RefreshCw } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Badge, Button, Card } from '../../components/ui/index.js';
 import { manualInvoiceApi } from '../../services/firebase/manualInvoiceApi.js';
@@ -12,6 +12,7 @@ const money = (cents) => new Intl.NumberFormat('et-EE', {
 export default function AutomaticInvoiceStatus() {
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [running, setRunning] = useState(false);
   const [error, setError] = useState('');
 
   const load = async () => {
@@ -23,6 +24,18 @@ export default function AutomaticInvoiceStatus() {
       setError(nextError.message || 'Automaatarvete eelvaadet ei saanud laadida.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const runPreview = async () => {
+    setRunning(true);
+    setError('');
+    try {
+      setPreview(await manualInvoiceApi.refreshAutomationPreview());
+    } catch (nextError) {
+      setError(nextError.message || 'Automaatarvete eelvaadet ei saanud uuendada.');
+    } finally {
+      setRunning(false);
     }
   };
 
@@ -56,8 +69,11 @@ export default function AutomaticInvoiceStatus() {
             <CircleAlert size={16} /> {preview.blocked.length} vajab parandamist
           </span>
         ) : null}
-        <Button variant="secondary" disabled={loading} onClick={load}>
+        <Button variant="secondary" disabled={loading || running} onClick={load}>
           <RefreshCw size={16} /> Värskenda
+        </Button>
+        <Button disabled={loading || running} loading={running} onClick={runPreview}>
+          <Play size={16} /> Arvuta praegu
         </Button>
       </div>
     </Card>
