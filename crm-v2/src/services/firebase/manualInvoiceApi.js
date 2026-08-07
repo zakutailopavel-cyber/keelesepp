@@ -3,7 +3,7 @@ import { financeRequestId } from './financeApi.js';
 
 const defaultBaseUrl = 'https://us-central1-keelesepp-5136b.cloudfunctions.net/manualInvoiceApi';
 
-async function post(path, body) {
+async function post(path, body = {}) {
   const { auth } = requireFirebaseClient();
   if (!auth.currentUser) throw new Error('Aktiivne kasutajaseanss puudub. Logi uuesti sisse.');
   const token = await auth.currentUser.getIdToken();
@@ -17,11 +17,15 @@ async function post(path, body) {
     body: JSON.stringify(body),
   });
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.error || 'Arve loomine ebaõnnestus.');
+  if (!response.ok) throw new Error(data.error || 'Finantspäring ebaõnnestus.');
   return data;
 }
 
 export const manualInvoiceApi = {
+  async listStudents() {
+    const result = await post('/students');
+    return result.students || [];
+  },
   create(values) {
     return post('/create', {
       studentId: values.studentId,
