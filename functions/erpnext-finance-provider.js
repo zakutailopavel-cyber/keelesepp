@@ -99,7 +99,7 @@ function salesInvoicePayload({ customerName, dueDate, postingDate, lines, billin
     due_date: isoDate(dueDate, 'dueDate'),
     posting_date: isoDate(postingDate || new Date().toISOString().slice(0, 10), 'postingDate'),
     items: invoiceItems(lines, env),
-    remarks: cleanText(note, 1000),
+    remarks: cleanText(note || lines?.[0]?.description || '', 1000),
     custom_keelesepp_billing_key: required('billingKey', billingKey),
     custom_keelesepp_student_id: cleanText(studentId, 140),
   };
@@ -295,10 +295,22 @@ function createErpNextFinanceProvider({ client, env = process.env } = {}) {
       summary.count += 1;
       summary.total += invoice.grandTotal;
       summary.outstanding += invoice.outstandingAmount;
-      summary.paid += invoice.paidAmount;
-      summary[invoice.paymentStatus] = (summary[invoice.paymentStatus] || 0) + 1;
+      summary.paidAmount += invoice.paidAmount;
+      if (invoice.paymentStatus === 'paid') summary.paidCount += 1;
+      if (invoice.paymentStatus === 'unpaid') summary.unpaidCount += 1;
+      if (invoice.paymentStatus === 'partial') summary.partialCount += 1;
+      if (invoice.paymentStatus === 'overdue') summary.overdueCount += 1;
       return summary;
-    }, { count: 0, total: 0, outstanding: 0, paid: 0, paidCount: 0, unpaid: 0, partial: 0, overdue: 0 });
+    }, {
+      count: 0,
+      total: 0,
+      outstanding: 0,
+      paidAmount: 0,
+      paidCount: 0,
+      unpaidCount: 0,
+      partialCount: 0,
+      overdueCount: 0,
+    });
     return {
       provider: 'erpnext',
       connected: Boolean(user),
