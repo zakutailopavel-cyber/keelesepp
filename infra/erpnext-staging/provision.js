@@ -8,8 +8,9 @@ const adminUser = process.env.FRAPPE_ADMIN_USER || 'Administrator';
 const adminPassword = process.env.FRAPPE_ADMIN_PASSWORD || 'admin';
 const companyName = process.env.ERPNEXT_COMPANY || 'E&P Koolitus OÜ';
 const integrationEmail = process.env.ERPNEXT_INTEGRATION_USER || 'keelesepp-integration@example.invalid';
+const customerGroupName = process.env.ERPNEXT_CUSTOMER_GROUP || 'KeeleSepp Customers';
+const territoryName = process.env.ERPNEXT_TERRITORY || 'Estonia';
 const envFile = process.argv[2] || path.resolve(process.cwd(), '.erpnext-staging.env');
-const INTEGRATION_ROLES = ['Accounts Manager', 'Accounts User', 'Sales Manager', 'Sales User'];
 
 function encode(value) {
   return encodeURIComponent(String(value));
@@ -72,17 +73,13 @@ async function create(cookie, doctype, doc) {
   return payload.data;
 }
 
-async function update(cookie, doctype, name, patch) {
-  const { payload } = await request(`/api/resource/${encode(doctype)}/${encode(name)}`, {
-    method: 'PUT',
-    body: patch,
-    cookie,
-  });
+async function get(cookie, doctype, name) {
+  const { payload } = await request(`/api/resource/${encode(doctype)}/${encode(name)}`, { cookie });
   return payload.data;
 }
 
-async function get(cookie, doctype, name) {
-  const { payload } = await request(`/api/resource/${encode(doctype)}/${encode(name)}`, { cookie });
+async function update(cookie, doctype, name, patch) {
+  const { payload } = await request(`/api/resource/${encode(doctype)}/${encode(name)}`, { method: 'PUT', body: patch, cookie });
   return payload.data;
 }
 
@@ -140,6 +137,24 @@ async function ensureBaseFixtures(cookie) {
     })),
   });
 
+  fixtures.push({
+    doctype: 'Customer Group',
+    ...(await ensureOne(cookie, 'Customer Group', [['Customer Group', 'name', '=', customerGroupName]], {
+      customer_group_name: customerGroupName,
+      parent_customer_group: 'All Customer Groups',
+      is_group: 0,
+    })),
+  });
+
+  fixtures.push({
+    doctype: 'Territory',
+    ...(await ensureOne(cookie, 'Territory', [['Territory', 'name', '=', territoryName]], {
+      territory_name: territoryName,
+      parent_territory: 'All Territories',
+      is_group: 0,
+    })),
+  });
+
   return fixtures;
 }
 
@@ -191,6 +206,7 @@ async function ensureCustomFields(cookie) {
 }
 
 async function ensureIntegrationUser(cookie) {
+  const requiredRoles = ['Accounts Manager', 'Accounts User', 'Sales Manager', 'Sales User'];
   const existing = await list(cookie, 'User', [['User', 'name', '=', integrationEmail]], ['name', 'api_key']);
   if (!existing[0]) {
     await create(cookie, 'User', {
@@ -200,39 +216,30 @@ async function ensureIntegrationUser(cookie) {
       enabled: 1,
       send_welcome_email: 0,
       user_type: 'System User',
-      roles: INTEGRATION_ROLES.map((role) => ({ role })),
+      roles: requiredRoles.map((role) => ({ role })),
     });
-  }
-
-  const current = await get(cookie, 'User', integrationEmail);
-  const currentRoles = new Set((current.roles || []).map((row) => row.role).filter(Boolean));
-  const missingRoles = INTEGRATION_ROLES.filter((role) => !currentRoles.has(role));
-
-  if (missingRoles.length || current.user_type !== 'System User' || current.enabled !== 1) {
-    const mergedRoles = [
-      ...(current.roles || []).map((row) => ({ role: row.role })).filter((row) => row.role),
-      ...missingRoles.map((role) => ({ role })),
-    ];
+  } else {
+    const current = await get(cookie, 'User', integrationEmail);
+    const currentRoles = new Set((current.roles || []).map((row) => row.role).filter(Boolean));
+    const mergedRoles = [...new Set([...currentRoles, ...requiredRoles])];
     await update(cookie, 'User', integrationEmail, {
       enabled: 1,
       user_type: 'System User',
-      roles: mergedRoles,
+      roles: mergedRoles.map((role) => ({ role })),
     });
   }
 
-  const repaired = await get(cookie, 'User', integrationEmail);
-  const repairedRoles = new Set((repaired.roles || []).map((row) => row.role).filter(Boolean));
-  const stillMissing = INTEGRATION_ROLES.filter((role) => !repairedRoles.has(role));
-  if (stillMissing.length) {
-    throw new Error(`Integration user is missing required roles after repair: ${stillMissing.join(', ')}`);
-  }
+  const verified = await get(cookie, 'User', integrationEmail);
+  const verifiedRoles = new Set((verified.roles || []).map((row) => row.role).filter(Boolean));
+  const missingRoles = requiredRoles.filter((role) => !verifiedRoles.has(role));
+  if (missingRoles.length) throw new Error(`Integration user missing roles after update: ${missingRoles.join(', ')}`);
 
   const generated = await call(cookie, 'frappe.core.doctype.user.user.generate_keys', { user: integrationEmail });
   const user = await get(cookie, 'User', integrationEmail);
   const apiKey = generated?.api_key || user.api_key;
   const apiSecret = generated?.api_secret;
   if (!apiKey || !apiSecret) throw new Error('Frappe did not return integration API credentials');
-  return { apiKey, apiSecret, roles: INTEGRATION_ROLES };
+  return { apiKey, apiSecret, roles: requiredRoles };
 }
 
 function writeEnv(credentials) {
@@ -242,8 +249,8 @@ function writeEnv(credentials) {
     ['FRAPPE_API_KEY', credentials.apiKey],
     ['FRAPPE_API_SECRET', credentials.apiSecret],
     ['ERPNEXT_COMPANY', companyName],
-    ['ERPNEXT_CUSTOMER_GROUP', 'All Customer Groups'],
-    ['ERPNEXT_TERRITORY', 'All Territories'],
+    ['ERPNEXT_CUSTOMER_GROUP', customerGroupName],
+    ['ERPNEXT_TERRITORY', territoryName],
     ['ERPNEXT_LESSON_ITEM_CODE', 'KEELESEPP-LESSON'],
   ];
   const lines = entries.map(([key, value]) => `${key}=${shellQuote(value)}`);
@@ -270,6 +277,8 @@ async function main() {
     customFields: fields,
     integrationUser: integrationEmail,
     integrationRoles: credentials.roles,
+    customerGroup: customerGroupName,
+    territory: territoryName,
     envFile,
   }, null, 2));
 }

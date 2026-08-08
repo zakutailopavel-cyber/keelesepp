@@ -4,8 +4,8 @@ const crypto = require('crypto');
 const { createFrappeClientFromEnv } = require('./frappe-client');
 
 const DEFAULT_ITEM_CODE = 'KEELESEPP-LESSON';
-const DEFAULT_CUSTOMER_GROUP = 'All Customer Groups';
-const DEFAULT_TERRITORY = 'All Territories';
+const DEFAULT_CUSTOMER_GROUP = 'KeeleSepp Customers';
+const DEFAULT_TERRITORY = 'Estonia';
 
 function required(name, value) {
   const clean = String(value || '').trim();
@@ -174,8 +174,6 @@ function createErpNextFinanceProvider({ client, env = process.env } = {}) {
     if (Number(invoice.docstatus) === 1) return { invoice: normalizeInvoice(invoice), idempotent: true };
     if (Number(invoice.docstatus) === 2) throw new Error(`Sales Invoice ${name} is cancelled`);
 
-    // frappe.client.submit is a standard server-side document submission path.
-    // Keep submission server-side so React never receives ERPNext credentials.
     const result = await frappe.call('frappe.client.submit', { doc: invoice });
     const submitted = result.message || result.data || await frappe.get('Sales Invoice', name);
     return { invoice: normalizeInvoice(submitted), idempotent: false };
