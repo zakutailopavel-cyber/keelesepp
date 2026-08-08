@@ -10,6 +10,7 @@ LOG_FILE="${TUNNEL_DIR}/cloudflared.log"
 PID_FILE="${TUNNEL_DIR}/cloudflared.pid"
 URL_FILE="${TUNNEL_DIR}/public-url.txt"
 FIREBASE_ENV="${REPO_ROOT}/functions/.env.${PROJECT_ID}"
+LOCAL_ORIGIN="${FRAPPE_LOCAL_ORIGIN:-http://127.0.0.1:8080}"
 
 if [ ! -f "${ENV_FILE}" ]; then
   echo "Missing ${ENV_FILE}. Run run-live-smoke.sh first." >&2
@@ -29,6 +30,14 @@ set -a
 source "${ENV_FILE}"
 set +a
 
+printf 'Checking local ERPNext origin... '
+if ! curl -fsS --connect-timeout 3 --max-time 10 "${LOCAL_ORIGIN}/api/method/ping" >/dev/null; then
+  echo "failed" >&2
+  echo "ERPNext is not reachable at ${LOCAL_ORIGIN}. Keep Docker Desktop running and verify the local staging first." >&2
+  exit 1
+fi
+echo "ok"
+
 mkdir -p "${TUNNEL_DIR}"
 if [ -f "${PID_FILE}" ]; then
   old_pid="$(cat "${PID_FILE}" 2>/dev/null || true)"
@@ -39,7 +48,11 @@ if [ -f "${PID_FILE}" ]; then
 fi
 
 : > "${LOG_FILE}"
-nohup cloudflared tunnel --url "${FRAPPE_BASE_URL:-http://localhost:8080}" >"${LOG_FILE}" 2>&1 &
+nohup cloudflared tunnel \
+  --url "${LOCAL_ORIGIN}" \
+  --http-host-header "localhost" \
+  --no-autoupdate \
+  >"${LOG_FILE}" 2>&1 &
 tunnel_pid=$!
 echo "${tunnel_pid}" > "${PID_FILE}"
 
@@ -54,7 +67,7 @@ for attempt in $(seq 1 60); do
   if ! kill -0 "${tunnel_pid}" 2>/dev/null; then
     echo
     echo "cloudflared exited before a tunnel URL was created:" >&2
-    tail -n 40 "${LOG_FILE}" >&2
+    tail -n 60 "${LOG_FILE}" >&2
     exit 1
   fi
   printf '.'
@@ -64,15 +77,40 @@ done
 if [ -z "${public_url}" ]; then
   echo
   echo "Timed out waiting for Cloudflare Quick Tunnel URL." >&2
-  tail -n 40 "${LOG_FILE}" >&2
+  tail -n 60 "${LOG_FILE}" >&2
   exit 1
 fi
 
 echo "${public_url}" > "${URL_FILE}"
-if ! curl -fsS "${public_url}/api/method/ping" >/dev/null; then
-  echo "Tunnel exists but ERPNext ping failed: ${public_url}" >&2
+printf 'Waiting for ERPNext through public tunnel'
+public_ready=0
+last_status=''
+for attempt in $(seq 1 45); do
+  if curl -fsS --connect-timeout 5 --max-time 15 "${public_url}/api/method/ping" >/dev/null 2>&1; then
+    public_ready=1
+    echo
+    break
+  fi
+  last_status="$(curl -sS -o /dev/null -w '%{http_code}' --connect-timeout 5 --max-time 15 "${public_url}/api/method/ping" 2>/dev/null || true)"
+  if ! kill -0 "${tunnel_pid}" 2>/dev/null; then
+    echo
+    echo "cloudflared stopped while waiting for the public ERPNext endpoint." >&2
+    tail -n 80 "${LOG_FILE}" >&2
+    exit 1
+  fi
+  printf '.'
+  sleep 2
+done
+
+if [ "${public_ready}" -ne 1 ]; then
+  echo
+  echo "Tunnel URL was created but ERPNext never became reachable through it. Last HTTP status: ${last_status:-unknown}" >&2
+  echo "Cloudflared log:" >&2
+  tail -n 80 "${LOG_FILE}" >&2
   exit 1
 fi
+
+echo "Public ERPNext bridge is healthy: ${public_url}"
 
 cleanup_env() {
   rm -f "${FIREBASE_ENV}"
