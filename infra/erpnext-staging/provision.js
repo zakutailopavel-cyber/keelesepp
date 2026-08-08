@@ -9,6 +9,7 @@ const adminPassword = process.env.FRAPPE_ADMIN_PASSWORD || 'admin';
 const companyName = process.env.ERPNEXT_COMPANY || 'E&P Koolitus OÜ';
 const integrationEmail = process.env.ERPNEXT_INTEGRATION_USER || 'keelesepp-integration@example.invalid';
 const envFile = process.argv[2] || path.resolve(process.cwd(), '.erpnext-staging.env');
+const INTEGRATION_ROLES = ['Accounts Manager', 'Accounts User', 'Sales Manager', 'Sales User'];
 
 function encode(value) {
   return encodeURIComponent(String(value));
@@ -68,6 +69,15 @@ async function list(cookie, doctype, filters = [], fields = ['name']) {
 
 async function create(cookie, doctype, doc) {
   const { payload } = await request(`/api/resource/${encode(doctype)}`, { method: 'POST', body: doc, cookie });
+  return payload.data;
+}
+
+async function update(cookie, doctype, name, patch) {
+  const { payload } = await request(`/api/resource/${encode(doctype)}/${encode(name)}`, {
+    method: 'PUT',
+    body: patch,
+    cookie,
+  });
   return payload.data;
 }
 
@@ -190,11 +200,31 @@ async function ensureIntegrationUser(cookie) {
       enabled: 1,
       send_welcome_email: 0,
       user_type: 'System User',
-      roles: [
-        { role: 'Accounts Manager' },
-        { role: 'Sales Manager' },
-      ],
+      roles: INTEGRATION_ROLES.map((role) => ({ role })),
     });
+  }
+
+  const current = await get(cookie, 'User', integrationEmail);
+  const currentRoles = new Set((current.roles || []).map((row) => row.role).filter(Boolean));
+  const missingRoles = INTEGRATION_ROLES.filter((role) => !currentRoles.has(role));
+
+  if (missingRoles.length || current.user_type !== 'System User' || current.enabled !== 1) {
+    const mergedRoles = [
+      ...(current.roles || []).map((row) => ({ role: row.role })).filter((row) => row.role),
+      ...missingRoles.map((role) => ({ role })),
+    ];
+    await update(cookie, 'User', integrationEmail, {
+      enabled: 1,
+      user_type: 'System User',
+      roles: mergedRoles,
+    });
+  }
+
+  const repaired = await get(cookie, 'User', integrationEmail);
+  const repairedRoles = new Set((repaired.roles || []).map((row) => row.role).filter(Boolean));
+  const stillMissing = INTEGRATION_ROLES.filter((role) => !repairedRoles.has(role));
+  if (stillMissing.length) {
+    throw new Error(`Integration user is missing required roles after repair: ${stillMissing.join(', ')}`);
   }
 
   const generated = await call(cookie, 'frappe.core.doctype.user.user.generate_keys', { user: integrationEmail });
@@ -202,7 +232,7 @@ async function ensureIntegrationUser(cookie) {
   const apiKey = generated?.api_key || user.api_key;
   const apiSecret = generated?.api_secret;
   if (!apiKey || !apiSecret) throw new Error('Frappe did not return integration API credentials');
-  return { apiKey, apiSecret };
+  return { apiKey, apiSecret, roles: INTEGRATION_ROLES };
 }
 
 function writeEnv(credentials) {
@@ -239,6 +269,7 @@ async function main() {
     item,
     customFields: fields,
     integrationUser: integrationEmail,
+    integrationRoles: credentials.roles,
     envFile,
   }, null, 2));
 }
