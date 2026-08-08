@@ -6,6 +6,7 @@ const { createFrappeClientFromEnv } = require('./frappe-client');
 const DEFAULT_ITEM_CODE = 'KEELESEPP-LESSON';
 const DEFAULT_CUSTOMER_GROUP = 'KeeleSepp Customers';
 const DEFAULT_TERRITORY = 'Estonia';
+const DEFAULT_CURRENCY = 'EUR';
 
 function required(name, value) {
   const clean = String(value || '').trim();
@@ -45,12 +46,17 @@ function payerCustomerName(payer) {
   return required('payer name', payer?.name || payer?.companyName || payer?.parentName);
 }
 
+function transactionCurrency(env = process.env) {
+  return cleanText(env.ERPNEXT_CURRENCY || DEFAULT_CURRENCY, 12) || DEFAULT_CURRENCY;
+}
+
 function customerPayload(payer, env = process.env) {
   return {
     customer_name: payerCustomerName(payer),
     customer_type: payer?.isCompany ? 'Company' : 'Individual',
     customer_group: cleanText(env.ERPNEXT_CUSTOMER_GROUP || DEFAULT_CUSTOMER_GROUP, 140),
     territory: cleanText(env.ERPNEXT_TERRITORY || DEFAULT_TERRITORY, 140),
+    default_currency: transactionCurrency(env),
     ...(payer?.email ? { custom_keelesepp_payer_email: cleanText(payer.email, 180) } : {}),
     ...(payer?.regCode ? { tax_id: cleanText(payer.regCode, 80) } : {}),
     ...(payer?.id ? { custom_keelesepp_payer_id: cleanText(payer.id, 140) } : {}),
@@ -75,6 +81,8 @@ function salesInvoicePayload({ customerName, dueDate, postingDate, lines, billin
   return {
     customer: required('customerName', customerName),
     company,
+    currency: transactionCurrency(env),
+    conversion_rate: 1,
     due_date: isoDate(dueDate, 'dueDate'),
     posting_date: isoDate(postingDate || new Date().toISOString().slice(0, 10), 'postingDate'),
     items: invoiceItems(lines, env),
@@ -224,6 +232,7 @@ function createErpNextFinanceProvider({ client, env = process.env } = {}) {
       connected: Boolean(user),
       user,
       company: cleanText(env.ERPNEXT_COMPANY, 180),
+      currency: transactionCurrency(env),
       mode: cleanText(env.FINANCE_PROVIDER || 'firebase', 40),
     };
   }
@@ -248,4 +257,5 @@ module.exports = {
   normalizePayment,
   salesInvoicePayload,
   stableBillingKey,
+  transactionCurrency,
 };
