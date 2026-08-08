@@ -1,0 +1,197 @@
+'use strict';
+
+const fs = require('fs');
+const path = require('path');
+
+const baseUrl = String(process.env.FRAPPE_BASE_URL || 'http://localhost:8080').replace(/\/$/, '');
+const adminUser = process.env.FRAPPE_ADMIN_USER || 'Administrator';
+const adminPassword = process.env.FRAPPE_ADMIN_PASSWORD || 'admin';
+const companyName = process.env.ERPNEXT_COMPANY || 'E&P Koolitus OÜ';
+const integrationEmail = process.env.ERPNEXT_INTEGRATION_USER || 'keelesepp-integration@example.invalid';
+const envFile = process.argv[2] || path.resolve(process.cwd(), '.erpnext-staging.env');
+
+function encode(value) {
+  return encodeURIComponent(String(value));
+}
+
+function parseCookies(headers) {
+  const values = typeof headers.getSetCookie === 'function'
+    ? headers.getSetCookie()
+    : [headers.get('set-cookie')].filter(Boolean);
+  return values.map((value) => String(value).split(';', 1)[0]).filter(Boolean).join('; ');
+}
+
+async function request(pathname, { method = 'GET', body, form, cookie = '' } = {}) {
+  const headers = { Accept: 'application/json' };
+  let requestBody;
+  if (cookie) headers.Cookie = cookie;
+  if (form) {
+    headers['Content-Type'] = 'application/x-www-form-urlencoded';
+    requestBody = new URLSearchParams(form).toString();
+  } else if (body !== undefined) {
+    headers['Content-Type'] = 'application/json';
+    requestBody = JSON.stringify(body);
+  }
+
+  const response = await fetch(`${baseUrl}${pathname}`, { method, headers, body: requestBody });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const message = payload.exception || payload.message || payload._server_messages || `${method} ${pathname} failed (${response.status})`;
+    throw new Error(String(message));
+  }
+  return { payload, response };
+}
+
+async function login() {
+  const { payload, response } = await request('/api/method/login', {
+    method: 'POST',
+    form: { usr: adminUser, pwd: adminPassword },
+  });
+  const cookie = parseCookies(response.headers);
+  if (!cookie) throw new Error('Frappe login succeeded but no session cookie was returned');
+  return { cookie, payload };
+}
+
+async function list(cookie, doctype, filters = [], fields = ['name']) {
+  const query = new URLSearchParams({
+    filters: JSON.stringify(filters),
+    fields: JSON.stringify(fields),
+    limit_page_length: '10',
+  });
+  const { payload } = await request(`/api/resource/${encode(doctype)}?${query}`, { cookie });
+  return payload.data || [];
+}
+
+async function create(cookie, doctype, doc) {
+  const { payload } = await request(`/api/resource/${encode(doctype)}`, { method: 'POST', body: doc, cookie });
+  return payload.data;
+}
+
+async function get(cookie, doctype, name) {
+  const { payload } = await request(`/api/resource/${encode(doctype)}/${encode(name)}`, { cookie });
+  return payload.data;
+}
+
+async function call(cookie, method, args = {}) {
+  const { payload } = await request(`/api/method/${method}`, { method: 'POST', body: args, cookie });
+  return payload.message;
+}
+
+async function ensureOne(cookie, doctype, filters, payload) {
+  const existing = await list(cookie, doctype, filters, ['name']);
+  if (existing[0]) return { name: existing[0].name, created: false };
+  const created = await create(cookie, doctype, payload);
+  return { name: created.name, created: true };
+}
+
+async function ensureCompany(cookie) {
+  return ensureOne(cookie, 'Company', [['Company', 'name', '=', companyName]], {
+    company_name: companyName,
+    abbr: 'EPK',
+    default_currency: 'EUR',
+    country: 'Estonia',
+  });
+}
+
+async function ensureItem(cookie) {
+  return ensureOne(cookie, 'Item', [['Item', 'item_code', '=', 'KEELESEPP-LESSON']], {
+    item_code: 'KEELESEPP-LESSON',
+    item_name: 'KeeleSepp lesson',
+    item_group: 'All Item Groups',
+    stock_uom: 'Nos',
+    is_stock_item: 0,
+    disabled: 0,
+  });
+}
+
+const customFields = [
+  ['Customer', 'custom_keelesepp_payer_id', 'KeeleSepp payer ID', 'Data', 1],
+  ['Customer', 'custom_keelesepp_payer_email', 'KeeleSepp payer email', 'Data', 0],
+  ['Sales Invoice', 'custom_keelesepp_billing_key', 'KeeleSepp billing key', 'Data', 1],
+  ['Sales Invoice', 'custom_keelesepp_student_id', 'KeeleSepp student ID', 'Data', 0],
+  ['Sales Invoice Item', 'custom_keelesepp_lesson_id', 'KeeleSepp lesson ID', 'Data', 0],
+];
+
+async function ensureCustomFields(cookie) {
+  const results = [];
+  for (const [dt, fieldname, label, fieldtype, unique] of customFields) {
+    const result = await ensureOne(cookie, 'Custom Field', [
+      ['Custom Field', 'dt', '=', dt],
+      ['Custom Field', 'fieldname', '=', fieldname],
+    ], {
+      dt,
+      fieldname,
+      label,
+      fieldtype,
+      unique,
+      no_copy: 1,
+    });
+    results.push({ dt, fieldname, ...result });
+  }
+  return results;
+}
+
+async function ensureIntegrationUser(cookie) {
+  const existing = await list(cookie, 'User', [['User', 'name', '=', integrationEmail]], ['name', 'api_key']);
+  if (!existing[0]) {
+    await create(cookie, 'User', {
+      email: integrationEmail,
+      first_name: 'KeeleSepp',
+      last_name: 'Integration',
+      enabled: 1,
+      send_welcome_email: 0,
+      user_type: 'System User',
+      roles: [
+        { role: 'Accounts Manager' },
+        { role: 'Sales Manager' },
+      ],
+    });
+  }
+
+  const generated = await call(cookie, 'frappe.core.doctype.user.user.generate_keys', { user: integrationEmail });
+  const user = await get(cookie, 'User', integrationEmail);
+  const apiKey = generated?.api_key || user.api_key;
+  const apiSecret = generated?.api_secret;
+  if (!apiKey || !apiSecret) throw new Error('Frappe did not return integration API credentials');
+  return { apiKey, apiSecret };
+}
+
+function writeEnv(credentials) {
+  const lines = [
+    'FINANCE_PROVIDER=erpnext',
+    `FRAPPE_BASE_URL=${baseUrl}`,
+    `FRAPPE_API_KEY=${credentials.apiKey}`,
+    `FRAPPE_API_SECRET=${credentials.apiSecret}`,
+    `ERPNEXT_COMPANY=${companyName}`,
+    'ERPNEXT_CUSTOMER_GROUP=All Customer Groups',
+    'ERPNEXT_TERRITORY=All Territories',
+    'ERPNEXT_LESSON_ITEM_CODE=KEELESEPP-LESSON',
+    '',
+  ];
+  fs.writeFileSync(envFile, lines.join('\n'), { mode: 0o600 });
+  fs.chmodSync(envFile, 0o600);
+}
+
+async function main() {
+  const { cookie } = await login();
+  const company = await ensureCompany(cookie);
+  const item = await ensureItem(cookie);
+  const fields = await ensureCustomFields(cookie);
+  const credentials = await ensureIntegrationUser(cookie);
+  writeEnv(credentials);
+
+  console.log(JSON.stringify({
+    ok: true,
+    baseUrl,
+    company,
+    item,
+    customFields: fields,
+    integrationUser: integrationEmail,
+    envFile,
+  }, null, 2));
+}
+
+main().catch((error) => {
+  console.error(`ERPNext staging provision failed: ${error.message}`);
+  process.exitCode = 1;
+});
