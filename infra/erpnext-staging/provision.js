@@ -21,6 +21,10 @@ function parseCookies(headers) {
   return values.map((value) => String(value).split(';', 1)[0]).filter(Boolean).join('; ');
 }
 
+function shellQuote(value) {
+  return `'${String(value).replace(/'/g, `'\\''`)}'`;
+}
+
 async function request(pathname, { method = 'GET', body, form, cookie = '' } = {}) {
   const headers = { Accept: 'application/json' };
   let requestBody;
@@ -202,17 +206,18 @@ async function ensureIntegrationUser(cookie) {
 }
 
 function writeEnv(credentials) {
-  const lines = [
-    'FINANCE_PROVIDER=erpnext',
-    `FRAPPE_BASE_URL=${baseUrl}`,
-    `FRAPPE_API_KEY=${credentials.apiKey}`,
-    `FRAPPE_API_SECRET=${credentials.apiSecret}`,
-    `ERPNEXT_COMPANY=${companyName}`,
-    'ERPNEXT_CUSTOMER_GROUP=All Customer Groups',
-    'ERPNEXT_TERRITORY=All Territories',
-    'ERPNEXT_LESSON_ITEM_CODE=KEELESEPP-LESSON',
-    '',
+  const entries = [
+    ['FINANCE_PROVIDER', 'erpnext'],
+    ['FRAPPE_BASE_URL', baseUrl],
+    ['FRAPPE_API_KEY', credentials.apiKey],
+    ['FRAPPE_API_SECRET', credentials.apiSecret],
+    ['ERPNEXT_COMPANY', companyName],
+    ['ERPNEXT_CUSTOMER_GROUP', 'All Customer Groups'],
+    ['ERPNEXT_TERRITORY', 'All Territories'],
+    ['ERPNEXT_LESSON_ITEM_CODE', 'KEELESEPP-LESSON'],
   ];
+  const lines = entries.map(([key, value]) => `${key}=${shellQuote(value)}`);
+  lines.push('');
   fs.writeFileSync(envFile, lines.join('\n'), { mode: 0o600 });
   fs.chmodSync(envFile, 0o600);
 }
