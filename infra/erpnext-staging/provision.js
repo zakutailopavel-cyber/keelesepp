@@ -84,6 +84,51 @@ async function ensureOne(cookie, doctype, filters, payload) {
   return { name: created.name, created: true };
 }
 
+async function ensureBaseFixtures(cookie) {
+  const fixtures = [];
+
+  fixtures.push({
+    doctype: 'Warehouse Type',
+    ...(await ensureOne(cookie, 'Warehouse Type', [['Warehouse Type', 'name', '=', 'Transit']], {
+      name: 'Transit',
+    })),
+  });
+
+  fixtures.push({
+    doctype: 'UOM',
+    ...(await ensureOne(cookie, 'UOM', [['UOM', 'name', '=', 'Nos']], {
+      uom_name: 'Nos',
+      must_be_whole_number: 1,
+    })),
+  });
+
+  fixtures.push({
+    doctype: 'Item Group',
+    ...(await ensureOne(cookie, 'Item Group', [['Item Group', 'name', '=', 'All Item Groups']], {
+      item_group_name: 'All Item Groups',
+      is_group: 1,
+    })),
+  });
+
+  fixtures.push({
+    doctype: 'Customer Group',
+    ...(await ensureOne(cookie, 'Customer Group', [['Customer Group', 'name', '=', 'All Customer Groups']], {
+      customer_group_name: 'All Customer Groups',
+      is_group: 1,
+    })),
+  });
+
+  fixtures.push({
+    doctype: 'Territory',
+    ...(await ensureOne(cookie, 'Territory', [['Territory', 'name', '=', 'All Territories']], {
+      territory_name: 'All Territories',
+      is_group: 1,
+    })),
+  });
+
+  return fixtures;
+}
+
 async function ensureCompany(cookie) {
   return ensureOne(cookie, 'Company', [['Company', 'name', '=', companyName]], {
     company_name: companyName,
@@ -174,6 +219,7 @@ function writeEnv(credentials) {
 
 async function main() {
   const { cookie } = await login();
+  const baseFixtures = await ensureBaseFixtures(cookie);
   const company = await ensureCompany(cookie);
   const item = await ensureItem(cookie);
   const fields = await ensureCustomFields(cookie);
@@ -183,6 +229,7 @@ async function main() {
   console.log(JSON.stringify({
     ok: true,
     baseUrl,
+    baseFixtures,
     company,
     item,
     customFields: fields,
