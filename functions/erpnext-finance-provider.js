@@ -119,6 +119,36 @@ function normalizeInvoice(invoice) {
   };
 }
 
+function invoicePaymentStatus(invoice, today = new Date().toISOString().slice(0, 10)) {
+  const total = Number(invoice?.grand_total || invoice?.rounded_total || 0);
+  const outstanding = Math.max(0, Number(invoice?.outstanding_amount || 0));
+  if (Number(invoice?.docstatus || 0) === 2) return 'cancelled';
+  if (outstanding <= 0 && total > 0) return 'paid';
+  if (invoice?.due_date && invoice.due_date < today) return 'overdue';
+  if (outstanding > 0 && outstanding < total) return 'partial';
+  return 'unpaid';
+}
+
+function normalizeInvoiceOverview(invoice) {
+  const grandTotal = Number(invoice?.grand_total || invoice?.rounded_total || 0);
+  const outstandingAmount = Math.max(0, Number(invoice?.outstanding_amount || 0));
+  return {
+    id: invoice?.name || '',
+    number: invoice?.name || '',
+    customer: invoice?.customer || '',
+    studentId: invoice?.custom_keelesepp_student_id || '',
+    postingDate: invoice?.posting_date || '',
+    dueDate: invoice?.due_date || '',
+    grandTotal,
+    outstandingAmount,
+    paidAmount: Math.max(0, grandTotal - outstandingAmount),
+    paymentStatus: invoicePaymentStatus(invoice),
+    status: invoice?.status || '',
+    remarks: invoice?.remarks || '',
+    billingKey: invoice?.custom_keelesepp_billing_key || '',
+  };
+}
+
 function normalizePayment(payment) {
   if (!payment) return null;
   return {
@@ -164,6 +194,24 @@ function createErpNextFinanceProvider({ client, env = process.env } = {}) {
     });
     if (rows.length > 1) throw new Error(`ERPNext has duplicate invoices for billing key ${key}`);
     return rows[0] || null;
+  }
+
+  async function listInvoices({ limit = 200 } = {}) {
+    const company = required('ERPNEXT_COMPANY', env.ERPNEXT_COMPANY);
+    const rows = await frappe.list('Sales Invoice', {
+      fields: [
+        'name', 'status', 'docstatus', 'customer', 'grand_total', 'rounded_total',
+        'outstanding_amount', 'posting_date', 'due_date', 'remarks',
+        'custom_keelesepp_billing_key', 'custom_keelesepp_student_id',
+      ],
+      filters: [
+        ['Sales Invoice', 'company', '=', company],
+        ['Sales Invoice', 'docstatus', '!=', 2],
+      ],
+      limit,
+      orderBy: 'posting_date desc',
+    });
+    return rows.map(normalizeInvoiceOverview);
   }
 
   async function createInvoiceDraft({ payer, studentId, month, lessonIds = [], manualRequestId = '', dueDate, postingDate, lines, note = '' }) {
@@ -239,7 +287,18 @@ function createErpNextFinanceProvider({ client, env = process.env } = {}) {
   }
 
   async function status() {
-    const user = await frappe.whoAmI();
+    const [user, invoices] = await Promise.all([
+      frappe.whoAmI(),
+      listInvoices({ limit: 200 }),
+    ]);
+    const totals = invoices.reduce((summary, invoice) => {
+      summary.count += 1;
+      summary.total += invoice.grandTotal;
+      summary.outstanding += invoice.outstandingAmount;
+      summary.paid += invoice.paidAmount;
+      summary[invoice.paymentStatus] = (summary[invoice.paymentStatus] || 0) + 1;
+      return summary;
+    }, { count: 0, total: 0, outstanding: 0, paid: 0, paidCount: 0, unpaid: 0, partial: 0, overdue: 0 });
     return {
       provider: 'erpnext',
       connected: Boolean(user),
@@ -248,11 +307,14 @@ function createErpNextFinanceProvider({ client, env = process.env } = {}) {
       currency: transactionCurrency(env),
       sellingPriceList: sellingPriceList(env),
       mode: cleanText(env.FINANCE_PROVIDER || 'firebase', 40),
+      invoices,
+      totals,
     };
   }
 
   return {
     status,
+    listInvoices,
     ensureCustomer,
     findCustomerByPayerId,
     findInvoiceByBillingKey,
@@ -266,8 +328,10 @@ module.exports = {
   createErpNextFinanceProvider,
   customerPayload,
   invoiceItems,
+  invoicePaymentStatus,
   money,
   normalizeInvoice,
+  normalizeInvoiceOverview,
   normalizePayment,
   salesInvoicePayload,
   sellingPriceList,
