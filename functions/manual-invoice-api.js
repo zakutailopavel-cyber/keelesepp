@@ -3,6 +3,13 @@ const admin = require('firebase-admin');
 const crypto = require('crypto');
 const { manualInvoiceInput, manualInvoiceRecord } = require('./manual-invoice-core');
 const { buildAutomaticInvoicePreview } = require('./auto-invoice-preview');
+const { createErpNextFinanceProvider } = require('./erpnext-finance-provider');
+const {
+  erpNextConfiguration,
+  erpNextManualInvoiceView,
+  financeProviderName,
+  payerIdentity,
+} = require('./finance-provider-router');
 
 const db = admin.firestore();
 const ALLOWED_ROLES = new Set(['admin', 'finance']);
@@ -133,7 +140,7 @@ async function refreshAutomaticInvoicePreview(actor) {
   return publicAutomaticInvoicePreview(refreshed);
 }
 
-async function createManualInvoice({ actor, values, requestId }) {
+async function createFirebaseManualInvoice({ actor, values, requestId }) {
   let input;
   try {
     input = manualInvoiceInput(values);
@@ -153,7 +160,7 @@ async function createManualInvoice({ actor, values, requestId }) {
     const existing = await transaction.get(invoiceRef);
     if (existing.exists) {
       if (existing.data().creationSignature !== signature) throw httpError(409, 'requestId already used for a different invoice');
-      return { invoice: { id: existing.id, ...existing.data() }, idempotent: true };
+      return { invoice: { id: existing.id, ...existing.data() }, idempotent: true, provider: 'firebase' };
     }
 
     const [studentSnap, counterSnap, dateLockSnap] = await Promise.all([
@@ -183,10 +190,150 @@ async function createManualInvoice({ actor, values, requestId }) {
     transaction.create(auditRef, {
       entityType: 'invoice', entityId: mutationId, action: 'invoice.created_manual', invoiceId: mutationId, invoiceNum,
       studentId: input.studentId, studentName: invoice.studentName, amountCents: input.amountCents, amount: input.amount,
-      actor, reason: input.note || input.description, createdAt: nowIso, requestId: mutationId,
+      actor, reason: input.note || input.description, createdAt: nowIso, requestId: mutationId, provider: 'firebase',
     });
-    return { invoice: { id: mutationId, ...invoice }, idempotent: false };
+    return { invoice: { id: mutationId, ...invoice }, idempotent: false, provider: 'firebase' };
   });
+}
+
+async function claimErpNextMutation({ mutationId, signature, input, actor, nowIso }) {
+  const integrationRef = db.collection('financeIntegrations').doc(mutationId);
+  const studentRef = db.collection('students').doc(input.studentId);
+  const dateLockRef = db.collection('financialLockedDates').doc(nowIso.slice(0, 10));
+
+  return db.runTransaction(async (transaction) => {
+    const [existing, studentSnap, dateLockSnap] = await Promise.all([
+      transaction.get(integrationRef),
+      transaction.get(studentRef),
+      transaction.get(dateLockRef),
+    ]);
+    if (!studentSnap.exists) throw httpError(404, 'Student not found');
+    if (dateLockSnap.exists) throw httpError(409, `Financial period ${nowIso.slice(0, 7)} is closed`);
+
+    if (existing.exists) {
+      const data = existing.data() || {};
+      if (data.creationSignature !== signature) throw httpError(409, 'requestId already used for a different invoice');
+      if (data.status === 'completed' && data.invoice) {
+        return { completed: true, invoice: data.invoice, student: studentSnap.data() };
+      }
+      if (data.status === 'pending') throw httpError(409, 'Invoice creation is already in progress');
+    }
+
+    transaction.set(integrationRef, {
+      type: 'manual_invoice',
+      provider: 'erpnext',
+      status: 'pending',
+      studentId: input.studentId,
+      amountCents: input.amountCents,
+      creationSignature: signature,
+      requestId: mutationId,
+      actor,
+      startedAt: nowIso,
+      updatedAt: nowIso,
+    }, { merge: false });
+    return { completed: false, student: studentSnap.data() };
+  });
+}
+
+async function createErpNextManualInvoice({ actor, values, requestId, env = process.env, provider }) {
+  let input;
+  try {
+    input = manualInvoiceInput(values);
+  } catch (error) {
+    throw httpError(400, error.message);
+  }
+  const config = erpNextConfiguration(env);
+  if (!config.configured) throw httpError(503, `ERPNext finance is not configured: ${config.missing.join(', ')}`);
+
+  const mutationId = cleanRequestId(requestId);
+  const signature = crypto.createHash('sha256').update(JSON.stringify(input)).digest('hex');
+  const nowIso = new Date().toISOString();
+  const claimed = await claimErpNextMutation({ mutationId, signature, input, actor, nowIso });
+  if (claimed.completed) return { invoice: claimed.invoice, idempotent: true, provider: 'erpnext' };
+
+  const integrationRef = db.collection('financeIntegrations').doc(mutationId);
+  const auditRef = db.collection('financialAudit').doc(`erpnext_${mutationId}`);
+  const erp = provider || createErpNextFinanceProvider({ env });
+  const payer = payerIdentity(input.studentId, claimed.student);
+
+  try {
+    const draft = await erp.createInvoiceDraft({
+      payer,
+      studentId: input.studentId,
+      month: nowIso.slice(0, 7),
+      lessonIds: [],
+      manualRequestId: mutationId,
+      dueDate: input.due,
+      postingDate: nowIso.slice(0, 10),
+      lines: [{ description: input.description, amount: input.amount }],
+      note: input.note,
+    });
+    const submitted = draft.invoice?.docstatus === 1
+      ? { invoice: draft.invoice, idempotent: true }
+      : await erp.submitInvoice(draft.invoice.id);
+    const invoice = erpNextManualInvoiceView({
+      invoice: submitted.invoice,
+      input,
+      studentId: input.studentId,
+      student: claimed.student,
+      payer,
+      actor,
+      billingKey: draft.billingKey,
+      requestId: mutationId,
+      nowIso,
+    });
+
+    await db.runTransaction(async (transaction) => {
+      const current = await transaction.get(integrationRef);
+      if (!current.exists || current.data()?.creationSignature !== signature) {
+        throw httpError(409, 'ERPNext integration lock changed during invoice creation');
+      }
+      transaction.set(integrationRef, {
+        ...current.data(),
+        status: 'completed',
+        invoice,
+        erpNextInvoiceId: invoice.externalInvoiceId,
+        billingKey: draft.billingKey,
+        completedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }, { merge: false });
+      transaction.set(auditRef, {
+        entityType: 'invoice', entityId: invoice.externalInvoiceId, action: 'invoice.created_manual',
+        invoiceId: invoice.externalInvoiceId, invoiceNum: invoice.num, studentId: input.studentId,
+        studentName: invoice.studentName, amountCents: input.amountCents, amount: input.amount,
+        actor, reason: input.note || input.description, createdAt: nowIso, requestId: mutationId,
+        provider: 'erpnext', billingKey: draft.billingKey,
+      }, { merge: false });
+    });
+
+    return {
+      invoice,
+      idempotent: Boolean(draft.idempotent && submitted.idempotent),
+      provider: 'erpnext',
+    };
+  } catch (error) {
+    await integrationRef.set({
+      status: 'failed',
+      error: String(error?.message || error).slice(0, 500),
+      updatedAt: new Date().toISOString(),
+    }, { merge: true }).catch(() => {});
+    throw error;
+  }
+}
+
+async function createManualInvoice(args) {
+  const provider = financeProviderName(args.env || process.env);
+  if (provider === 'erpnext') return createErpNextManualInvoice(args);
+  return createFirebaseManualInvoice(args);
+}
+
+async function financeProviderStatus(env = process.env) {
+  const provider = financeProviderName(env);
+  if (provider === 'firebase') return { provider, configured: true, connected: true };
+  const config = erpNextConfiguration(env);
+  if (!config.configured) return { provider, configured: false, connected: false, missing: config.missing };
+  const status = await createErpNextFinanceProvider({ env }).status();
+  return { ...status, configured: true };
 }
 
 const manualInvoiceApi = functions.https.onRequest(async (req, res) => {
@@ -203,6 +350,10 @@ const manualInvoiceApi = functions.https.onRequest(async (req, res) => {
     const actor = await requireFinanceUser(req);
     if (req.path === '/students') {
       res.status(200).json({ students: await listInvoiceStudents() });
+      return;
+    }
+    if (req.path === '/provider-status') {
+      res.status(200).json({ status: await financeProviderStatus() });
       return;
     }
     if (req.path === '/automation-preview') {
@@ -227,6 +378,9 @@ const manualInvoiceApi = functions.https.onRequest(async (req, res) => {
 module.exports = {
   manualInvoiceApi,
   createManualInvoice,
+  createFirebaseManualInvoice,
+  createErpNextManualInvoice,
+  financeProviderStatus,
   listInvoiceStudents,
   getAutomaticInvoicePreview,
   refreshAutomaticInvoicePreview,
