@@ -27,6 +27,16 @@ function shellQuote(value) {
   return `'${String(value).replace(/'/g, `'\\''`)}'`;
 }
 
+function currentFiscalYear() {
+  const now = new Date();
+  const year = now.getUTCFullYear();
+  return {
+    yearName: String(year),
+    startDate: `${year}-01-01`,
+    endDate: `${year}-12-31`,
+  };
+}
+
 async function request(pathname, { method = 'GET', body, form, cookie = '' } = {}) {
   const headers = { Accept: 'application/json' };
   let requestBody;
@@ -167,6 +177,51 @@ async function ensureCompany(cookie) {
   });
 }
 
+async function ensureFiscalYear(cookie) {
+  const fiscal = currentFiscalYear();
+  let existing = await list(cookie, 'Fiscal Year', [
+    ['Fiscal Year', 'year_start_date', '<=', new Date().toISOString().slice(0, 10)],
+    ['Fiscal Year', 'year_end_date', '>=', new Date().toISOString().slice(0, 10)],
+  ], ['name', 'year_start_date', 'year_end_date', 'disabled']);
+
+  let fiscalYear;
+  if (existing[0]) {
+    fiscalYear = existing[0];
+    if (Number(fiscalYear.disabled || 0) === 1) {
+      fiscalYear = await update(cookie, 'Fiscal Year', fiscalYear.name, { disabled: 0 });
+    }
+  } else {
+    fiscalYear = await create(cookie, 'Fiscal Year', {
+      year: fiscal.yearName,
+      year_start_date: fiscal.startDate,
+      year_end_date: fiscal.endDate,
+      disabled: 0,
+      companies: [{ company: companyName }],
+    });
+  }
+
+  const full = await get(cookie, 'Fiscal Year', fiscalYear.name);
+  const companies = new Set((full.companies || []).map((row) => row.company).filter(Boolean));
+  if (!companies.has(companyName)) {
+    full.companies = [...companies, companyName].map((company) => ({ company }));
+    fiscalYear = await update(cookie, 'Fiscal Year', full.name, {
+      disabled: 0,
+      companies: full.companies,
+    });
+  }
+
+  await update(cookie, 'Global Defaults', 'Global Defaults', {
+    current_fiscal_year: fiscalYear.name,
+    default_company: companyName,
+  });
+
+  return {
+    name: fiscalYear.name,
+    startDate: full.year_start_date || fiscal.startDate,
+    endDate: full.year_end_date || fiscal.endDate,
+  };
+}
+
 async function ensureItem(cookie) {
   return ensureOne(cookie, 'Item', [['Item', 'item_code', '=', 'KEELESEPP-LESSON']], {
     item_code: 'KEELESEPP-LESSON',
@@ -263,6 +318,7 @@ async function main() {
   const { cookie } = await login();
   const baseFixtures = await ensureBaseFixtures(cookie);
   const company = await ensureCompany(cookie);
+  const fiscalYear = await ensureFiscalYear(cookie);
   const item = await ensureItem(cookie);
   const fields = await ensureCustomFields(cookie);
   const credentials = await ensureIntegrationUser(cookie);
@@ -273,6 +329,7 @@ async function main() {
     baseUrl,
     baseFixtures,
     company,
+    fiscalYear,
     item,
     customFields: fields,
     integrationUser: integrationEmail,
