@@ -40,6 +40,10 @@ export const manualInvoiceApi = {
     const result = await post('/students');
     return result.students || [];
   },
+  async providerStatus() {
+    const result = await post('/provider-status');
+    return result.status || null;
+  },
   async automationPreview() {
     const result = await post('/automation-preview');
     return result.preview || null;
