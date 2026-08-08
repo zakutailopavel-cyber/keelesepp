@@ -7,6 +7,7 @@ const DEFAULT_ITEM_CODE = 'KEELESEPP-LESSON';
 const DEFAULT_CUSTOMER_GROUP = 'KeeleSepp Customers';
 const DEFAULT_TERRITORY = 'Estonia';
 const DEFAULT_CURRENCY = 'EUR';
+const DEFAULT_SELLING_PRICE_LIST = 'Standard Selling';
 
 function required(name, value) {
   const clean = String(value || '').trim();
@@ -50,6 +51,10 @@ function transactionCurrency(env = process.env) {
   return cleanText(env.ERPNEXT_CURRENCY || DEFAULT_CURRENCY, 12) || DEFAULT_CURRENCY;
 }
 
+function sellingPriceList(env = process.env) {
+  return cleanText(env.ERPNEXT_SELLING_PRICE_LIST || DEFAULT_SELLING_PRICE_LIST, 140) || DEFAULT_SELLING_PRICE_LIST;
+}
+
 function customerPayload(payer, env = process.env) {
   return {
     customer_name: payerCustomerName(payer),
@@ -66,23 +71,31 @@ function customerPayload(payer, env = process.env) {
 function invoiceItems(lines, env = process.env) {
   if (!Array.isArray(lines) || lines.length === 0) throw new Error('invoice lines are required');
   const itemCode = cleanText(env.ERPNEXT_LESSON_ITEM_CODE || DEFAULT_ITEM_CODE, 140);
-  return lines.map((line, index) => ({
-    item_code: cleanText(line.itemCode || itemCode, 140),
-    item_name: cleanText(line.description || line.itemName || `KeeleSepp lesson ${index + 1}`, 220),
-    description: cleanText(line.description || line.itemName || `KeeleSepp lesson ${index + 1}`, 1000),
-    qty: Number(line.qty || 1),
-    rate: money(line.amount ?? line.rate, `line ${index + 1} amount`),
-    ...(line.lessonId ? { custom_keelesepp_lesson_id: cleanText(line.lessonId, 140) } : {}),
-  }));
+  return lines.map((line, index) => {
+    const rate = money(line.amount ?? line.rate, `line ${index + 1} amount`);
+    return {
+      item_code: cleanText(line.itemCode || itemCode, 140),
+      item_name: cleanText(line.description || line.itemName || `KeeleSepp lesson ${index + 1}`, 220),
+      description: cleanText(line.description || line.itemName || `KeeleSepp lesson ${index + 1}`, 1000),
+      qty: Number(line.qty || 1),
+      rate,
+      price_list_rate: rate,
+      ...(line.lessonId ? { custom_keelesepp_lesson_id: cleanText(line.lessonId, 140) } : {}),
+    };
+  });
 }
 
 function salesInvoicePayload({ customerName, dueDate, postingDate, lines, billingKey, studentId, note }, env = process.env) {
   const company = required('ERPNEXT_COMPANY', env.ERPNEXT_COMPANY);
+  const currency = transactionCurrency(env);
   return {
     customer: required('customerName', customerName),
     company,
-    currency: transactionCurrency(env),
+    currency,
     conversion_rate: 1,
+    selling_price_list: sellingPriceList(env),
+    price_list_currency: currency,
+    plc_conversion_rate: 1,
     due_date: isoDate(dueDate, 'dueDate'),
     posting_date: isoDate(postingDate || new Date().toISOString().slice(0, 10), 'postingDate'),
     items: invoiceItems(lines, env),
@@ -233,6 +246,7 @@ function createErpNextFinanceProvider({ client, env = process.env } = {}) {
       user,
       company: cleanText(env.ERPNEXT_COMPANY, 180),
       currency: transactionCurrency(env),
+      sellingPriceList: sellingPriceList(env),
       mode: cleanText(env.FINANCE_PROVIDER || 'firebase', 40),
     };
   }
@@ -256,6 +270,7 @@ module.exports = {
   normalizeInvoice,
   normalizePayment,
   salesInvoicePayload,
+  sellingPriceList,
   stableBillingKey,
   transactionCurrency,
 };
