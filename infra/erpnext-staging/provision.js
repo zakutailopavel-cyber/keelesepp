@@ -10,6 +10,8 @@ const companyName = process.env.ERPNEXT_COMPANY || 'E&P Koolitus OÜ';
 const integrationEmail = process.env.ERPNEXT_INTEGRATION_USER || 'keelesepp-integration@example.invalid';
 const customerGroupName = process.env.ERPNEXT_CUSTOMER_GROUP || 'KeeleSepp Customers';
 const territoryName = process.env.ERPNEXT_TERRITORY || 'Estonia';
+const currency = process.env.ERPNEXT_CURRENCY || 'EUR';
+const sellingPriceListName = process.env.ERPNEXT_SELLING_PRICE_LIST || 'KeeleSepp Selling EUR';
 const envFile = process.argv[2] || path.resolve(process.cwd(), '.erpnext-staging.env');
 
 function encode(value) {
@@ -169,12 +171,14 @@ async function ensureBaseFixtures(cookie) {
 }
 
 async function ensureCompany(cookie) {
-  return ensureOne(cookie, 'Company', [['Company', 'name', '=', companyName]], {
+  const result = await ensureOne(cookie, 'Company', [['Company', 'name', '=', companyName]], {
     company_name: companyName,
     abbr: 'EPK',
-    default_currency: 'EUR',
+    default_currency: currency,
     country: 'Estonia',
   });
+  await update(cookie, 'Company', result.name, { default_currency: currency });
+  return result;
 }
 
 async function ensureFiscalYear(cookie) {
@@ -213,6 +217,7 @@ async function ensureFiscalYear(cookie) {
   await update(cookie, 'Global Defaults', 'Global Defaults', {
     current_fiscal_year: fiscalYear.name,
     default_company: companyName,
+    default_currency: currency,
   });
 
   return {
@@ -220,6 +225,33 @@ async function ensureFiscalYear(cookie) {
     startDate: full.year_start_date || fiscal.startDate,
     endDate: full.year_end_date || fiscal.endDate,
   };
+}
+
+async function ensureSellingPriceList(cookie) {
+  const existing = await list(cookie, 'Price List', [['Price List', 'name', '=', sellingPriceListName]], ['name']);
+  let created = false;
+  if (!existing[0]) {
+    await create(cookie, 'Price List', {
+      price_list_name: sellingPriceListName,
+      currency,
+      selling: 1,
+      buying: 0,
+      enabled: 1,
+    });
+    created = true;
+  } else {
+    await update(cookie, 'Price List', sellingPriceListName, {
+      currency,
+      selling: 1,
+      buying: 0,
+      enabled: 1,
+    });
+  }
+  const verified = await get(cookie, 'Price List', sellingPriceListName);
+  if (verified.currency !== currency || Number(verified.selling || 0) !== 1 || Number(verified.enabled || 0) !== 1) {
+    throw new Error(`Selling Price List ${sellingPriceListName} is not active in ${currency}`);
+  }
+  return { name: sellingPriceListName, currency, created };
 }
 
 async function ensureItem(cookie) {
@@ -306,6 +338,8 @@ function writeEnv(credentials) {
     ['ERPNEXT_COMPANY', companyName],
     ['ERPNEXT_CUSTOMER_GROUP', customerGroupName],
     ['ERPNEXT_TERRITORY', territoryName],
+    ['ERPNEXT_CURRENCY', currency],
+    ['ERPNEXT_SELLING_PRICE_LIST', sellingPriceListName],
     ['ERPNEXT_LESSON_ITEM_CODE', 'KEELESEPP-LESSON'],
   ];
   const lines = entries.map(([key, value]) => `${key}=${shellQuote(value)}`);
@@ -319,6 +353,7 @@ async function main() {
   const baseFixtures = await ensureBaseFixtures(cookie);
   const company = await ensureCompany(cookie);
   const fiscalYear = await ensureFiscalYear(cookie);
+  const priceList = await ensureSellingPriceList(cookie);
   const item = await ensureItem(cookie);
   const fields = await ensureCustomFields(cookie);
   const credentials = await ensureIntegrationUser(cookie);
@@ -330,12 +365,14 @@ async function main() {
     baseFixtures,
     company,
     fiscalYear,
+    priceList,
     item,
     customFields: fields,
     integrationUser: integrationEmail,
     integrationRoles: credentials.roles,
     customerGroup: customerGroupName,
     territory: territoryName,
+    currency,
     envFile,
   }, null, 2));
 }
