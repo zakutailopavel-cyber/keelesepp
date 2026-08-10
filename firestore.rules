@@ -590,6 +590,7 @@ service cloud.firestore {
           'level',
           'targetLevel',
           'teacher',
+          'teacherUid',
           'active',
           'packageTotal',
           'packageUsed',
@@ -617,7 +618,19 @@ service cloud.firestore {
         && request.resource.data.name.size() <= 160
         && request.resource.data.active == true
         && request.resource.data.packageTotal == 0
-        && request.resource.data.packageUsed == 0;
+        && request.resource.data.packageUsed == 0
+        && (
+          !('teacherUid' in request.resource.data)
+          || request.resource.data.teacherUid == ''
+          || (
+            hasUserDoc(request.resource.data.teacherUid)
+            && userRole(request.resource.data.teacherUid) == 'teacher'
+            && sameTeacherName(
+              request.resource.data.get('teacher', ''),
+              teacherName(request.resource.data.teacherUid)
+            )
+          )
+        );
     }
 
     function safeSelfUserFields() {
