@@ -560,12 +560,14 @@ function AuthScreen({onLogin}) {
   const [parentTeacher,setParentTeacher] = useState('Pavel');
   const [code,setCode]   = useState('');
   const [studentCardId,setStudentCardId] = useState('');
+  const [acceptedTerms,setAcceptedTerms] = useState(false);
   const [err,setErr]     = useState('');
   const [info,setInfo]   = useState('');
   const [busy,setBusy]   = useState(false);
-  const reset = m=>{setMode(m);setErr('');setInfo('');setPass('');setPass2('');};
+  const reset = m=>{setMode(m);setErr('');setInfo('');setPass('');setPass2('');setAcceptedTerms(false);};
 
   const googleLogin = async()=>{
+    if(mode==='register'&&!acceptedTerms){setErr('Konto loomiseks nõustu kasutustingimustega.');return;}
     setErr('');setBusy(true);
     try{
       const res=await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
@@ -582,7 +584,7 @@ function AuthScreen({onLogin}) {
         onLogin(profile);
       }
       else{
-        const ud={role:'parent',displayName:u.displayName,email:u.email,childName:'',preferredTeacher:'Pavel',createdAt:today()};
+        const ud={role:'parent',displayName:u.displayName,email:u.email,childName:'',preferredTeacher:'Pavel',createdAt:today(),termsAcceptedAt:new Date().toISOString(),termsVersion:'2025-08-10'};
         await db.collection('users').doc(u.uid).set(ud);
         try{
           await ensureParentStudentRecords(u, {uid:u.uid,...ud});
@@ -624,11 +626,12 @@ function AuthScreen({onLogin}) {
     if(pass!==pass2){setErr('Paroolid ei ühti');return;}
     if(pass.length<6){setErr('Parool peab olema vähemalt 6 tähemärki');return;}
     if(!['parent','student'].includes(role)){setErr('Õpetaja ja administraatori kontod loob administraator.');return;}
+    if(!acceptedTerms){setErr('Konto loomiseks nõustu kasutustingimustega.');return;}
     setErr('');setBusy(true);
     try{
       const res=await auth.createUserWithEmailAndPassword(email,pass);
       await res.user.updateProfile({displayName:name});
-      const ud={role,displayName:name,email,childName:role==='parent'?child:'',preferredTeacher:role==='parent'?parentTeacher:'',createdAt:today()};
+      const ud={role,displayName:name,email,childName:role==='parent'?child:'',preferredTeacher:role==='parent'?parentTeacher:'',createdAt:today(),termsAcceptedAt:new Date().toISOString(),termsVersion:'2025-08-10'};
       await db.collection('users').doc(res.user.uid).set(ud);
       try{
         if(ud.role==='student'){
@@ -740,6 +743,14 @@ function AuthScreen({onLogin}) {
             </>}
           </>}
         </div>
+
+        {mode==='register'&&(
+          <label style={{display:'flex',alignItems:'flex-start',gap:10,fontSize:'.78rem',lineHeight:1.45,color:'#42536A',marginBottom:14,textAlign:'left'}}>
+            <input type="checkbox" checked={acceptedTerms} onChange={e=>setAcceptedTerms(e.target.checked)}
+              style={{width:18,height:18,marginTop:1,flex:'0 0 auto',accentColor:'#2F5D50'}}/>
+            <span>Olen läbi lugenud ja nõustun <a href="/tingimused/" target="_blank" rel="noopener noreferrer" style={{color:'#2F5D50',fontWeight:700}}>kasutustingimustega</a> ning olen tutvunud <a href="/privaatsus/" target="_blank" rel="noopener noreferrer" style={{color:'#2F5D50',fontWeight:700}}>privaatsuspoliitikaga</a>.</span>
+          </label>
+        )}
 
         {err&&<div style={{background:'#fee2e2',color:'#991b1b',borderRadius:10,padding:'10px 14px',fontSize:'.84rem',marginBottom:14}}>{err}</div>}
         {info&&<div style={{background:'#dcfce7',color:'#166534',borderRadius:10,padding:'10px 14px',fontSize:'.84rem',marginBottom:14}}>{info}</div>}
