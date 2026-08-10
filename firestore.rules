@@ -629,8 +629,29 @@ service cloud.firestore {
         'phone',
         'updatedAt',
         'parentReviewStatus',
-        'parentReviewKey'
-      ]);
+        'parentReviewKey',
+        'termsAcceptedAt',
+        'termsVersion'
+      ])
+        && validTermsAcceptance(request.resource.data);
+    }
+
+    function validTermsAcceptance(data) {
+      return (
+          !('termsAcceptedAt' in data)
+          || (
+            data.termsAcceptedAt is string
+            && data.termsAcceptedAt.size() >= 10
+            && data.termsAcceptedAt.size() <= 40
+          )
+        )
+        && (
+          !('termsVersion' in data)
+          || (
+            data.termsVersion is string
+            && data.termsVersion.matches('^\\d{4}-\\d{2}-\\d{2}$')
+          )
+        );
     }
 
     function safeSelfUserCreate() {
@@ -645,7 +666,9 @@ service cloud.firestore {
           'createdAt',
           'updatedAt',
           'parentReviewStatus',
-          'parentReviewKey'
+          'parentReviewKey',
+          'termsAcceptedAt',
+          'termsVersion'
         ])
         && request.resource.data.keys().hasAll([
           'role',
@@ -659,7 +682,8 @@ service cloud.firestore {
         && request.resource.data.displayName.size() <= 160
         && request.resource.data.email is string
         && request.resource.data.email.size() > 0
-        && request.resource.data.email.size() <= 320;
+        && request.resource.data.email.size() <= 320
+        && validTermsAcceptance(request.resource.data);
     }
 
     match /users/{userId} {

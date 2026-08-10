@@ -613,7 +613,10 @@ function AuthScreen({onLogin}) {
         }
         onLogin(profile);
       }
-      else onLogin({uid:res.user.uid,displayName:res.user.displayName||email,email,role:'parent'});
+      else{
+        await auth.signOut();
+        setErr('Konto profiil puudub. Palun võta ühendust kooli administraatoriga.');
+      }
     }catch(e){
       const m={'auth/user-not-found':'Kasutajat ei leitud','auth/wrong-password':'Vale parool','auth/invalid-credential':'Vale e-post või parool'};
       setErr(m[e.code]||e.message);
@@ -630,9 +633,14 @@ function AuthScreen({onLogin}) {
     setErr('');setBusy(true);
     try{
       const res=await auth.createUserWithEmailAndPassword(email,pass);
-      await res.user.updateProfile({displayName:name});
       const ud={role,displayName:name,email,childName:role==='parent'?child:'',preferredTeacher:role==='parent'?parentTeacher:'',createdAt:today(),termsAcceptedAt:new Date().toISOString(),termsVersion:'2025-08-10'};
-      await db.collection('users').doc(res.user.uid).set(ud);
+      try{
+        await res.user.updateProfile({displayName:name});
+        await db.collection('users').doc(res.user.uid).set(ud);
+      }catch(profileError){
+        await res.user.delete().catch(()=>null);
+        throw profileError;
+      }
       try{
         if(ud.role==='student'){
           // 1. If student provided their card ID — link directly

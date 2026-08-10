@@ -355,6 +355,8 @@ test("self-registration cannot forge staff roles and disabled accounts are rejec
         childName: { stringValue: "" },
         preferredTeacher: { stringValue: "Pavel" },
         createdAt: { stringValue: "2026-08-03" },
+        termsAcceptedAt: { stringValue: "2026-08-10T08:35:00.000Z" },
+        termsVersion: { stringValue: "2025-08-10" },
       },
     },
   );
