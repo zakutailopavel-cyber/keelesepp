@@ -115,6 +115,7 @@ window.addEventListener('load', function(){
 window.__haldusConfigureBabel();
 </script>
 <script src="/haldus-shared.js"></script>
+<script src="/initial-assessment-core.js"></script>
 <script src="/staff-time-core.js"></script>
 <script src="/accounting-ledger-core.js"></script>
 <script src="/bank-statement-core.js"></script>
@@ -6056,6 +6057,144 @@ function SkillMapWidget({student, isTeacher, user}) {
   );
 }
 
+// ── ESMASE HINDAMISE KAART ────────────────────────────────────
+function StudentInitialAssessment({student,user,canManage,notify}) {
+  const core=window.InitialAssessmentCore;
+  const [assessment,setAssessment]=React.useState(null);
+  const [loading,setLoading]=React.useState(true);
+  const [editing,setEditing]=React.useState(false);
+  const [draft,setDraft]=React.useState(null);
+  const [saving,setSaving]=React.useState(false);
+  const [section,setSection]=React.useState('grammar');
+  const [error,setError]=React.useState('');
+
+  React.useEffect(()=>{
+    if(!student?.id) return;
+    setLoading(true); setError(''); setEditing(false); setDraft(null);
+    return db.collection('studentInitialAssessments').doc(student.id).onSnapshot(doc=>{
+      setAssessment(doc.exists?{id:doc.id,...doc.data()}:null);
+      setLoading(false);
+    },err=>{
+      console.warn('initial assessment listener:',err);
+      setError('Hindamise andmeid ei õnnestunud laadida.');
+      setLoading(false);
+    });
+  },[student?.id]);
+
+  const startCreate=()=>{
+    setDraft(core.buildInitialAssessment(student,user));
+    setEditing(true);
+  };
+  const startEdit=()=>{
+    setDraft(core.normalizeAssessment(assessment,student,user,assessment?.updatedAt));
+    setEditing(true);
+  };
+  const cancelEdit=()=>{setEditing(false);setDraft(null);setError('');};
+  const saveAssessment=async()=>{
+    setSaving(true); setError('');
+    try{
+      const payload=core.normalizeAssessment(draft,student,user);
+      await db.collection('studentInitialAssessments').doc(student.id).set(payload,{merge:false});
+      setEditing(false); setDraft(null);
+      notify&&notify('✓ Esmane hindamine salvestatud');
+    }catch(err){
+      console.error('initial assessment save:',err);
+      setError('Salvestamine ebaõnnestus. Kontrolli õigusi ja proovi uuesti.');
+    }finally{setSaving(false);}
+  };
+
+  const current=editing?draft:assessment;
+  const updateField=(key,value)=>setDraft(prev=>({...prev,[key]:value}));
+  const updateRow=(key,index,field,value)=>setDraft(prev=>({
+    ...prev,
+    [key]:prev[key].map((row,i)=>i===index?{
+      ...row,
+      [field]:value,
+      ...(field==='score'?{status:core.statusForScore(value)}:{})
+    }:row)
+  }));
+  const addRow=(key)=>setDraft(prev=>({
+    ...prev,
+    [key]:[...prev[key],{id:`custom_${Date.now()}`,name:'Uus teema',score:null,status:'not_tested',priority:'medium',comment:''}]
+  }));
+  const removeRow=(key,index)=>setDraft(prev=>({...prev,[key]:prev[key].filter((_,i)=>i!==index)}));
+  const listValue=key=>(draft?.[key]||[]).join('\n');
+  const setListValue=(key,value)=>updateField(key,value.split('\n'));
+  const statusMeta=value=>core.STATUSES[value]||core.STATUSES.not_tested;
+  const inputStyle={width:'100%',padding:'9px 10px',border:'1px solid #d8dee7',borderRadius:9,background:'#fff',font:'inherit',color:'#1C2B3A'};
+
+  const AssessmentRows=({dataKey,allowPriority=true})=>{
+    const rows=current?.[dataKey]||[];
+    return <div style={{display:'grid',gap:10,overflowX:'auto',paddingBottom:4}}>
+      {rows.map((row,index)=>{
+        const meta=statusMeta(row.status);
+        return <div key={row.id||index} style={{display:'grid',gridTemplateColumns:'minmax(180px,1.5fr) 92px minmax(150px,1fr) minmax(130px,1fr) minmax(180px,1.4fr) auto',gap:10,alignItems:'center',padding:12,border:'1px solid rgba(28,43,58,.08)',borderRadius:12,background:'#fff',minWidth:allowPriority?930:780}}>
+          {editing
+            ?<input value={row.name||''} onChange={e=>updateRow(dataKey,index,'name',e.target.value)} style={inputStyle} aria-label="Teema nimi"/>
+            :<strong style={{fontSize:'.86rem'}}>{row.name}</strong>}
+          {editing
+            ?<input type="number" min="0" max="100" placeholder="—" value={row.score===null||typeof row.score==='undefined'?'':row.score} onChange={e=>updateRow(dataKey,index,'score',e.target.value===''?null:e.target.value)} style={inputStyle} aria-label={`${row.name} tulemus`}/>
+            :<span style={{fontWeight:800,color:row.score===null||typeof row.score==='undefined'?'#94a3b8':'#1C2B3A'}}>{row.score===null||typeof row.score==='undefined'?'—':`${row.score}%`}</span>}
+          {editing
+            ?<select value={row.status||'not_tested'} onChange={e=>updateRow(dataKey,index,'status',e.target.value)} style={inputStyle}>{Object.entries(core.STATUSES).map(([key,item])=><option key={key} value={key}>{item.label}</option>)}</select>
+            :<span className="badge" style={{background:meta.bg,color:meta.color,justifySelf:'start'}}>{meta.label}</span>}
+          {allowPriority&&(editing
+            ?<select value={row.priority||'medium'} onChange={e=>updateRow(dataKey,index,'priority',e.target.value)} style={inputStyle}>{Object.entries(core.PRIORITIES).map(([key,item])=><option key={key} value={key}>{item.label}</option>)}</select>
+            :<span style={{fontSize:'.78rem',color:'#42536A'}}>{core.PRIORITIES[row.priority]?.label||'—'}</span>)}
+          {!allowPriority&&<span/>}
+          {editing
+            ?<input value={row.comment||''} onChange={e=>updateRow(dataKey,index,'comment',e.target.value)} placeholder="Kommentaar" style={inputStyle}/>
+            :<span style={{fontSize:'.8rem',color:'#42536A'}}>{row.comment||'Kommentaar puudub'}</span>}
+          {editing&&<button type="button" onClick={()=>removeRow(dataKey,index)} className="btn btn-red btn-sm" title="Kustuta teema"><i className="fa-solid fa-trash"/></button>}
+        </div>;
+      })}
+      {editing&&<button type="button" onClick={()=>addRow(dataKey)} className="btn btn-ghost btn-sm" style={{justifySelf:'start'}}><i className="fa-solid fa-plus"/> Lisa teema</button>}
+    </div>;
+  };
+
+  if(loading) return <div className="card" style={{padding:32,textAlign:'center',color:'#42536A'}}>Laadin esmast hindamist…</div>;
+  if(!assessment&&!editing) return <div className="card" style={{padding:36,textAlign:'center'}}>
+    <div style={{width:54,height:54,borderRadius:16,background:'#E8F3EE',color:'#2F5D50',display:'grid',placeItems:'center',margin:'0 auto 14px',fontSize:'1.3rem'}}><i className="fa-solid fa-clipboard-check"/></div>
+    <h3 style={{marginBottom:7}}>Esmast hindamist ei ole veel tehtud</h3>
+    <p style={{color:'#42536A',fontSize:'.88rem',maxWidth:520,margin:'0 auto 18px'}}>Lisa õppija lähtetase, sihttase, oskuste tulemused ja järgmise õppeperioodi fookus.</p>
+    {canManage&&<button onClick={startCreate} className="btn btn-pine"><i className="fa-solid fa-plus"/> Loo hindamine</button>}
+    {error&&<div style={{color:'#b42318',marginTop:14}}>{error}</div>}
+  </div>;
+
+  const overall=statusMeta(current?.overallStatus);
+  return <div style={{display:'grid',gap:16}}>
+    <div className="card" style={{padding:24}}>
+      <div style={{display:'flex',justifyContent:'space-between',gap:14,flexWrap:'wrap',alignItems:'flex-start'}}>
+        <div><div style={{fontSize:'.72rem',fontWeight:800,color:'#2F5D50',textTransform:'uppercase',letterSpacing:'.08em'}}>Õppija lähtepunkt</div><h3 style={{fontSize:'1.3rem',marginTop:4}}>Esmane hindamine</h3></div>
+        <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+          {!editing&&canManage&&<button onClick={startEdit} className="btn btn-dark btn-sm"><i className="fa-solid fa-pen"/> Muuda</button>}
+          {editing&&<><button onClick={cancelEdit} disabled={saving} className="btn btn-ghost btn-sm">Tühista</button><button onClick={saveAssessment} disabled={saving} className="btn btn-pine btn-sm"><i className="fa-solid fa-floppy-disk"/> {saving?'Salvestan…':'Salvesta'}</button></>}
+        </div>
+      </div>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))',gap:12,marginTop:20}}>
+        {[['assessmentDate','Hindamise kuupäev','date'],['currentLevel','Praegune tase','text'],['targetLevel','Sihttase','text']].map(([key,label,type])=><label key={key} style={{padding:14,background:'#f8fafc',borderRadius:12,fontSize:'.78rem',color:'#42536A'}}>{label}{editing?<input type={type} value={current?.[key]||''} onChange={e=>updateField(key,e.target.value)} style={{...inputStyle,marginTop:7}}/>:<strong style={{display:'block',color:'#1C2B3A',fontSize:'1rem',marginTop:5}}>{current?.[key]||'Määramata'}</strong>}</label>)}
+        <label style={{padding:14,background:overall.bg,borderRadius:12,fontSize:'.78rem',color:overall.color}}>Üldseis{editing?<select value={current?.overallStatus||'needs_work'} onChange={e=>updateField('overallStatus',e.target.value)} style={{...inputStyle,marginTop:7}}>{Object.entries(core.STATUSES).filter(([key])=>key!=='not_tested').map(([key,item])=><option key={key} value={key}>{item.label}</option>)}</select>:<strong style={{display:'block',fontSize:'1rem',marginTop:5}}>{overall.label}</strong>}</label>
+      </div>
+      {error&&<div style={{color:'#b42318',marginTop:14}}>{error}</div>}
+    </div>
+
+    <div className="card" style={{padding:20}}>
+      <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:16}}>{[['grammar','Grammatika'],['vocabulary','Sõnavara'],['skills','Keeleoskused']].map(([key,label])=><button key={key} onClick={()=>setSection(key)} className={`btn btn-sm ${section===key?'btn-dark':'btn-ghost'}`}>{label}</button>)}</div>
+      <div style={{fontSize:'.74rem',color:'#64748b',marginBottom:12}}>Tulemus 0% tähendab kontrollitud, kuid lahendamata ülesannet. Kriips tähendab, et teemat ei ole hinnatud.</div>
+      {section==='grammar'&&<AssessmentRows dataKey="grammarData"/>}
+      {section==='vocabulary'&&<AssessmentRows dataKey="vocabularyData"/>}
+      {section==='skills'&&<AssessmentRows dataKey="skillsData" allowPriority={false}/>}
+    </div>
+
+    <div className="card" style={{padding:24,display:'grid',gap:18}}>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(260px,1fr))',gap:16}}>
+        {[['strengths','Tugevused'],['developmentAreas','Arengukohad']].map(([key,label])=><div key={key}><h4 style={{marginBottom:9}}>{label}</h4>{editing?<textarea rows="6" value={listValue(key)} onChange={e=>setListValue(key,e.target.value)} placeholder="Üks punkt igale reale" style={{...inputStyle,resize:'vertical'}}/>:<ul style={{margin:0,paddingLeft:20,color:'#42536A'}}>{(current?.[key]||[]).length?(current[key].map((item,i)=><li key={i} style={{marginBottom:6}}>{item}</li>)):<li>Andmed puuduvad</li>}</ul>}</div>)}
+      </div>
+      <div><h4 style={{marginBottom:9}}>Õppefookus</h4>{editing?<textarea rows="5" value={current?.learningFocus||''} onChange={e=>updateField('learningFocus',e.target.value)} style={{...inputStyle,resize:'vertical'}}/>:<p style={{margin:0,color:'#42536A',whiteSpace:'pre-wrap'}}>{current?.learningFocus||'Õppefookus ei ole veel määratud.'}</p>}</div>
+    </div>
+  </div>;
+}
+
 // ── ÕPILASE KAART ─────────────────────────────────────────────
 function StudentCard({user,currentStu,stuLessons,liveLessons=[],stuHw,stuInv,isAdmin,setSelStu,setEditStu,toggleStudentActive,convertStudentToParent,
   hwTask,setHwTask,hwDue,setHwDue,hwFiles,setHwFiles,addHw,toggleHw,deleteHw,removeHwFile,
@@ -6072,6 +6211,7 @@ function StudentCard({user,currentStu,stuLessons,liveLessons=[],stuHw,stuInv,isA
   const [paymentChoices,setPaymentChoices] = React.useState({});
   const [copiedPaymentKey,setCopiedPaymentKey] = React.useState('');
   const [exerciseResults,setExerciseResults] = React.useState([]);
+  const [profileTab,setProfileTab] = React.useState('overview');
   const currentBillableLessons = billableLessonsForStudent(stuLessons,currentStu);
   const currentTariffAssignment=tariffAssignmentForDate(tariffAssignments,currentStu.id,today());
   const invoiceDraft = invoiceDraftForStudent(
@@ -6113,6 +6253,8 @@ function StudentCard({user,currentStu,stuLessons,liveLessons=[],stuHw,stuInv,isA
       });
     return unsub;
   },[currentStu?.id]);
+
+  React.useEffect(()=>setProfileTab('overview'),[currentStu?.id]);
 
   const copyPaymentValue = async(key,value)=>{
     const ok = await copyText(value);
@@ -6209,6 +6351,14 @@ function StudentCard({user,currentStu,stuLessons,liveLessons=[],stuHw,stuInv,isA
         </div>
       </div>
 
+      <div className="card" style={{padding:8,display:'flex',gap:6,flexWrap:'wrap'}}>
+        <button onClick={()=>setProfileTab('overview')} className={`btn btn-sm ${profileTab==='overview'?'btn-dark':'btn-ghost'}`}><i className="fa-solid fa-chart-line"/> Ülevaade</button>
+        <button onClick={()=>setProfileTab('assessment')} className={`btn btn-sm ${profileTab==='assessment'?'btn-dark':'btn-ghost'}`}><i className="fa-solid fa-clipboard-check"/> Esmane hindamine</button>
+      </div>
+
+      {profileTab==='assessment'&&<StudentInitialAssessment student={currentStu} user={user} canManage={canManage} notify={notify}/>}
+
+      {profileTab==='overview'&&<React.Fragment>
       <SkillMapWidget student={currentStu} isTeacher={canManage} user={user}/>
 
       <AssignedWorksheetsWidget student={currentStu} canManage={canManage} notify={notify}/>
@@ -6633,6 +6783,7 @@ function StudentCard({user,currentStu,stuLessons,liveLessons=[],stuHw,stuInv,isA
           </div>
         </div>
       )}
+      </React.Fragment>}
     </div>
   );
 }

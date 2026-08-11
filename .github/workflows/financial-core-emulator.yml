@@ -13,6 +13,9 @@ on:
       - "haldus-calendar-v3.html"
       - "haldus-calendar.html"
       - "haldus-shared.js"
+      - "initial-assessment-core.js"
+      - "initial-assessment-core.test.js"
+      - "initial-assessment-ui.test.js"
       - "staff-activity.js"
       - "staff-time-core.js"
       - "staff-time-core.test.js"
@@ -42,6 +45,9 @@ on:
       - "haldus.html"
       - "tingimused.html"
       - "terms-registration-ui.test.js"
+      - "initial-assessment-core.js"
+      - "initial-assessment-core.test.js"
+      - "initial-assessment-ui.test.js"
       - ".github/workflows/financial-core-emulator.yml"
   workflow_dispatch:
 
@@ -68,7 +74,7 @@ jobs:
       - name: Run unit tests
         run: npm test --prefix functions
       - name: Run CRM, accounting, calendar, learning library and Live Classroom tests
-        run: node --test haldus-quality.test.js calendar-core.test.js learning-library-core.test.js live-classroom-core.test.js staff-activity.test.js staff-time-core.test.js accounting-ledger-core.test.js teacher-scope-ui.test.js terms-registration-ui.test.js
+        run: node --test haldus-quality.test.js calendar-core.test.js learning-library-core.test.js live-classroom-core.test.js staff-activity.test.js staff-time-core.test.js accounting-ledger-core.test.js teacher-scope-ui.test.js terms-registration-ui.test.js initial-assessment-core.test.js initial-assessment-ui.test.js
       - name: Check browser JavaScript syntax
         run: |
           node --check haldus-quality.js
@@ -79,6 +85,7 @@ jobs:
           node --check staff-activity.js
           node --check staff-time-core.js
           node --check accounting-ledger-core.js
+          node --check initial-assessment-core.js
       - name: Run finance transaction integration tests
         run: >-
           npx --yes firebase-tools@15.22.3 emulators:exec

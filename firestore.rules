@@ -153,6 +153,77 @@ service cloud.firestore {
         );
     }
 
+    function validInitialAssessment(data, studentId) {
+      return data is map
+        && data.keys().hasOnly([
+          'studentId',
+          'assessmentDate',
+          'currentLevel',
+          'targetLevel',
+          'overallStatus',
+          'grammarData',
+          'vocabularyData',
+          'skillsData',
+          'strengths',
+          'developmentAreas',
+          'learningFocus',
+          'createdAt',
+          'updatedAt',
+          'createdByUid',
+          'createdByName',
+          'updatedByUid',
+          'updatedByName',
+          'version'
+        ])
+        && data.keys().hasAll([
+          'studentId',
+          'assessmentDate',
+          'currentLevel',
+          'targetLevel',
+          'overallStatus',
+          'grammarData',
+          'vocabularyData',
+          'skillsData',
+          'strengths',
+          'developmentAreas',
+          'learningFocus',
+          'createdAt',
+          'updatedAt',
+          'createdByUid',
+          'createdByName',
+          'updatedByUid',
+          'updatedByName',
+          'version'
+        ])
+        && data.studentId == studentId
+        && data.assessmentDate is string
+        && data.assessmentDate.size() <= 10
+        && data.currentLevel is string
+        && data.currentLevel.size() <= 40
+        && data.targetLevel is string
+        && data.targetLevel.size() <= 40
+        && data.overallStatus in ['needs_work', 'developing', 'near_target', 'target_reached']
+        && data.grammarData is list
+        && data.grammarData.size() <= 60
+        && data.vocabularyData is list
+        && data.vocabularyData.size() <= 60
+        && data.skillsData is list
+        && data.skillsData.size() <= 20
+        && data.strengths is list
+        && data.strengths.size() <= 30
+        && data.developmentAreas is list
+        && data.developmentAreas.size() <= 30
+        && data.learningFocus is string
+        && data.learningFocus.size() <= 6000
+        && data.createdAt is string
+        && data.updatedAt is string
+        && data.createdByUid is string
+        && data.createdByName is string
+        && data.updatedByUid is string
+        && data.updatedByName is string
+        && data.version == 1;
+    }
+
     function liveClassroomPath(classroomId) {
       return /databases/$(database)/documents/liveClassrooms/$(classroomId);
     }
@@ -734,6 +805,38 @@ service cloud.firestore {
             'skillMapUpdatedAt',
             'skillMapLastUpdated'
           ])
+        );
+      allow delete: if isAdmin();
+    }
+
+    match /studentInitialAssessments/{studentId} {
+      allow read: if isAdmin()
+        || (
+          isTeacher()
+          && exists(studentPath(studentId))
+          && teacherCanRead(studentDoc(studentId))
+        )
+        || ownsStudent(studentId);
+      allow create: if validInitialAssessment(request.resource.data, studentId)
+        && (
+          isAdmin()
+          || (
+            isTeacher()
+            && exists(studentPath(studentId))
+            && teacherCanRead(studentDoc(studentId))
+          )
+        );
+      allow update: if validInitialAssessment(request.resource.data, studentId)
+        && request.resource.data.studentId == resource.data.studentId
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.createdByUid == resource.data.createdByUid
+        && (
+          isAdmin()
+          || (
+            isTeacher()
+            && exists(studentPath(studentId))
+            && teacherCanRead(studentDoc(studentId))
+          )
         );
       allow delete: if isAdmin();
     }
