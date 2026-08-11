@@ -82,6 +82,16 @@ studentInitialAssessments/tatjana-kobasova
 - отдельные проверки первичного оценивания: 7/7 успешно;
 - полная production-проверка прав выполняется GitHub Actions через Firebase Emulator.
 
+## Публикация
+
+- функциональный коммит: `2f65779 feat: add student initial assessments`;
+- коммит отправлен в `main` 11 августа 2026 года;
+- Firestore Rules скомпилированы и опубликованы в проект `keelesepp-5136b`;
+- GitHub Actions `Financial Core emulator`, run `31465965238`: успешно;
+- Vercel production deployment `dpl_DAcUf5kxXPNhTqVVYosPAu1YNWCG`: `Ready`;
+- production alias: `https://keelesepp.vercel.app/haldus`;
+- production smoke-test подтвердил загрузку страницы без runtime/error overlay, наличие `InitialAssessmentCore` и 20 грамматических тем.
+
 ## Дальнейшее развитие
 
 Следующий отдельный модуль может сравнивать зафиксированное первичное оценивание с текущими контрольными точками прогресса. Не следует автоматически менять этот снимок после каждого урока или вычислять CEFR только из процента.
