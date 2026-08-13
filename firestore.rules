@@ -141,16 +141,22 @@ service cloud.firestore {
       return get(studentPath(studentId)).data;
     }
 
+    function ownsStudentProfile(studentId, student) {
+      return signedIn()
+        && (
+          studentId == uid()
+          || student.get('linkedUserId', '') == uid()
+          || student.get('studentUid', '') == uid()
+          || student.get('linkedParentId', '') == uid()
+          || student.get('parentUid', '') == uid()
+          || student.get('guardianUid', '') == uid()
+        );
+    }
+
     function ownsStudent(studentId) {
       return signedIn()
         && exists(studentPath(studentId))
-        && (
-          studentDoc(studentId).linkedUserId == uid()
-          || studentDoc(studentId).studentUid == uid()
-          || studentDoc(studentId).linkedParentId == uid()
-          || studentDoc(studentId).parentUid == uid()
-          || studentDoc(studentId).guardianUid == uid()
-        );
+        && ownsStudentProfile(studentId, studentDoc(studentId));
     }
 
     function validInitialAssessment(data, studentId) {
@@ -780,7 +786,10 @@ service cloud.firestore {
     }
 
     match /students/{studentId} {
-      allow read: if isAdmin() || teacherCanRead(resource.data) || ownsStudent(studentId);
+      // List queries must be provable from the candidate document itself. Calling
+      // ownsStudent(studentId) here performs a get() and makes an otherwise safe
+      // `where('linkedUserId', '==', uid)` query fail as permission-denied.
+      allow read: if isAdmin() || teacherCanRead(resource.data) || ownsStudentProfile(studentId, resource.data);
       allow create: if isAdmin() || teacherCanCreate(request.resource.data) || createsOwnStudent();
       allow update: if (
           isAdmin()

@@ -3,11 +3,14 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 
 const html=fs.readFileSync('haldus.html','utf8');
+const rules=fs.readFileSync('firestore.rules','utf8');
 
 test('student and parent bootstrap uses explicit ownership queries',()=>{
   assert.match(html,/const ownershipFields=\['linkedUserId','studentUid','linkedParentId','parentUid','guardianUid'\]/);
   assert.match(html,/db\.collection\('students'\)\.where\(field,'==',user\.uid\)/);
   assert.match(html,/studentsByQuery\.forEach\(items=>items\.forEach\(student=>merged\.set\(student\.id,student\)\)\)/);
+  assert.match(rules,/function ownsStudentProfile\(studentId, student\)/);
+  assert.match(rules,/allow read: if isAdmin\(\) \|\| teacherCanRead\(resource\.data\) \|\| ownsStudentProfile\(studentId, resource\.data\)/);
 });
 
 test('non-staff data subscriptions are constrained to owned student ids',()=>{
