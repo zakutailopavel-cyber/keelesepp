@@ -224,6 +224,156 @@ async function firestoreQueryRequest(token, collectionId, teacherUid) {
   return { status: response.status, body: await response.json().catch(() => ({})) };
 }
 
+async function firestoreFieldQueryRequest(token, collectionId, fieldPath, op, value) {
+  const response = await fetch(
+    `http://${FIRESTORE_EMULATOR}/v1/projects/${PROJECT_ID}/databases/(default)/documents:runQuery`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        structuredQuery: {
+          from: [{ collectionId }],
+          where: {
+            fieldFilter: {
+              field: { fieldPath },
+              op,
+              value,
+            },
+          },
+        },
+      }),
+    },
+  );
+  return { status: response.status, body: await response.json().catch(() => ({})) };
+}
+
+test("student portal reads only its linked profile, lessons, and unpaid invoices", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const studentToken = await createUserToken("yana-scope@example.com");
+  const outsiderToken = await createUserToken("student-outsider@example.com");
+  const studentUid = tokenUid(studentToken);
+  const outsiderUid = tokenUid(outsiderToken);
+
+  await Promise.all([
+    db.collection("users").doc(studentUid).set({
+      role: "student",
+      displayName: "Yana Scope",
+      email: "yana-scope@example.com",
+    }),
+    db.collection("users").doc(outsiderUid).set({
+      role: "student",
+      displayName: "Student Outsider",
+      email: "student-outsider@example.com",
+    }),
+    db.collection("students").doc(studentUid).set({
+      name: "Yana Scope",
+      email: "yana-scope@example.com",
+      linkedUserId: studentUid,
+      studentUid,
+      active: true,
+    }),
+    db.collection("students").doc(outsiderUid).set({
+      name: "Student Outsider",
+      email: "student-outsider@example.com",
+      linkedUserId: outsiderUid,
+      studentUid: outsiderUid,
+      active: true,
+    }),
+    db.collection("lessons").doc("yana-lesson-2026-08-12").set({
+      studentId: studentUid,
+      studentName: "Yana Scope",
+      date: "2026-08-12",
+      duration: 60,
+      status: "Toimunud",
+    }),
+    db.collection("lessons").doc("outsider-private-lesson").set({
+      studentId: outsiderUid,
+      studentName: "Student Outsider",
+      date: "2026-08-12",
+      duration: 60,
+      status: "Toimunud",
+    }),
+    db.collection("invoices").doc("yana-unpaid-invoice").set({
+      studentId: studentUid,
+      studentName: "Yana Scope",
+      num: "KS-2026-060",
+      amount: 40,
+      status: "Ootel",
+      due: "2026-09-10",
+    }),
+    db.collection("invoices").doc("outsider-private-invoice").set({
+      studentId: outsiderUid,
+      studentName: "Student Outsider",
+      num: "KS-PRIVATE",
+      amount: 99,
+      status: "Ootel",
+      due: "2026-09-10",
+    }),
+  ]);
+
+  const unscopedStudents = await firestoreQueryRequest(studentToken, "students");
+  assert.equal(unscopedStudents.status, 403, JSON.stringify(unscopedStudents.body));
+  const ownedStudents = await firestoreFieldQueryRequest(
+    studentToken,
+    "students",
+    "linkedUserId",
+    "EQUAL",
+    { stringValue: studentUid },
+  );
+  assert.equal(ownedStudents.status, 200, JSON.stringify(ownedStudents.body));
+  assert.deepEqual(
+    ownedStudents.body.filter(item => item.document).map(item => item.document.name.split("/").pop()),
+    [studentUid],
+  );
+
+  const unscopedLessons = await firestoreQueryRequest(studentToken, "lessons");
+  assert.equal(unscopedLessons.status, 403, JSON.stringify(unscopedLessons.body));
+  const ownedLessons = await firestoreFieldQueryRequest(
+    studentToken,
+    "lessons",
+    "studentId",
+    "IN",
+    { arrayValue: { values: [{ stringValue: studentUid }] } },
+  );
+  assert.equal(ownedLessons.status, 200, JSON.stringify(ownedLessons.body));
+  assert.deepEqual(
+    ownedLessons.body.filter(item => item.document).map(item => item.document.name.split("/").pop()),
+    ["yana-lesson-2026-08-12"],
+  );
+
+  const ownedInvoices = await firestoreFieldQueryRequest(
+    studentToken,
+    "invoices",
+    "studentId",
+    "IN",
+    { arrayValue: { values: [{ stringValue: studentUid }] } },
+  );
+  assert.equal(ownedInvoices.status, 200, JSON.stringify(ownedInvoices.body));
+  const invoice = ownedInvoices.body.find(item => item.document)?.document;
+  assert.equal(invoice?.fields?.num?.stringValue, "KS-2026-060");
+  assert.equal(invoice?.fields?.amount?.integerValue, "40");
+  assert.equal(invoice?.fields?.status?.stringValue, "Ootel");
+  assert.equal(invoice?.fields?.due?.stringValue, "2026-09-10");
+
+  const foreignLesson = await firestoreDocumentRequest(
+    studentToken,
+    "GET",
+    "lessons/outsider-private-lesson",
+  );
+  assert.equal(foreignLesson.status, 403, JSON.stringify(foreignLesson.body));
+  const foreignInvoice = await firestoreDocumentRequest(
+    studentToken,
+    "GET",
+    "invoices/outsider-private-invoice",
+  );
+  assert.equal(foreignInvoice.status, 403, JSON.stringify(foreignInvoice.body));
+});
+
 async function financeRequest(token, path, payload) {
   const response = await fetch(
     `http://${FUNCTIONS_EMULATOR}/${PROJECT_ID}/us-central1/financeApi${path}`,

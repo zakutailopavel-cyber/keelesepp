@@ -11831,6 +11831,7 @@ function App() {
     if(!user) return;
     const mapDocs = snapshot => snapshot.docs.map(doc=>({id:doc.id,...doc.data()}));
     const userIsAdmin = hasUserRole(user,'admin') || normalizeText(user?.email)==='zakutailo.pavel@gmail.com';
+    const userIsStaff = hasUserRole(user,'teacher') || userIsAdmin;
     const teacherScoped = teacherScopeReadEnforced && hasUserRole(user,'teacher') && !userIsAdmin;
     const scopedCollection = name => teacherScoped
       ? db.collection(name).where('teacherUid','==',user.uid)
@@ -11839,36 +11840,50 @@ function App() {
       console.warn(`${name} listener failed:`,error);
       setter([]);
     };
-    const u1=scopedCollection('students').onSnapshot(s=>setStu(mapDocs(s)),scopedError('Students',setStu));
-	    const u2=scopedCollection('lessons').onSnapshot(s=>setLes(mapDocs(s)),scopedError('Lessons',setLes));
-	    const u3=db.collection('homework').onSnapshot(s=>setHw(s.docs.map(d=>({id:d.id,...d.data()}))));
-	    const u4=scopedCollection('schedule').onSnapshot(s=>setSch(mapDocs(s)),scopedError('Schedule',setSch));
-	    const u6=db.collection('messages').onSnapshot(s=>setMessages(s.docs.map(d=>({id:d.id,...d.data()}))));
-    const u7=db.collection('groups').onSnapshot(
-      s=>setGroups(s.docs.map(d=>({id:d.id,...d.data()}))),
-      err=>{console.warn('Groups listener failed:',err);setGroups([]);}
-    );
-    const u8=db.collection('tasks').onSnapshot(
-      s=>setTasks(s.docs.map(d=>({id:d.id,...d.data()}))),
-      err=>{console.warn('Tasks listener failed:',err);setTasks([]);}
-    );
-    const u9=db.collection('users').onSnapshot(
-      s=>{
-        const usersList = s.docs.map(d=>({id:d.id,...d.data()}));
-        setAllUsers(usersList);
-        setStaffMembers(usersList.filter(member=>hasUserRole(member,'teacher')||hasUserRole(member,'admin')));
-      },
-      err=>{console.warn('Users listener failed:',err);setAllUsers([]);setStaffMembers([]);}
-    );
-    const u10=db.collection('activityLog').onSnapshot(
-      s=>setActivityLog(s.docs.map(d=>({id:d.id,...d.data()}))),
-      err=>{console.warn('Activity log listener failed:',err);setActivityLog([]);}
-    );
-    const u11=db.collection('worksheetAssignments').onSnapshot(
-      s=>setAllWsAssignments(s.docs.map(d=>({id:d.id,...d.data()}))),
-      err=>{console.warn('Worksheet assignments listener failed:',err);setAllWsAssignments([]);}
-    );
-	    return()=>{u1();u2();u3();u4();u6();u7();u8();u9();u10();u11();};
+    const unsubs=[];
+    if(userIsStaff){
+      unsubs.push(scopedCollection('students').onSnapshot(s=>setStu(mapDocs(s)),scopedError('Students',setStu)));
+      unsubs.push(scopedCollection('lessons').onSnapshot(s=>setLes(mapDocs(s)),scopedError('Lessons',setLes)));
+      unsubs.push(db.collection('homework').onSnapshot(s=>setHw(mapDocs(s)),scopedError('Homework',setHw)));
+      unsubs.push(scopedCollection('schedule').onSnapshot(s=>setSch(mapDocs(s)),scopedError('Schedule',setSch)));
+      unsubs.push(db.collection('messages').onSnapshot(s=>setMessages(mapDocs(s)),scopedError('Messages',setMessages)));
+      unsubs.push(db.collection('groups').onSnapshot(s=>setGroups(mapDocs(s)),scopedError('Groups',setGroups)));
+      unsubs.push(db.collection('tasks').onSnapshot(s=>setTasks(mapDocs(s)),scopedError('Tasks',setTasks)));
+      unsubs.push(db.collection('users').onSnapshot(
+        s=>{
+          const usersList=mapDocs(s);
+          setAllUsers(usersList);
+          setStaffMembers(usersList.filter(member=>hasUserRole(member,'teacher')||hasUserRole(member,'admin')));
+        },
+        err=>{console.warn('Users listener failed:',err);setAllUsers([]);setStaffMembers([]);}
+      ));
+      unsubs.push(db.collection('activityLog').onSnapshot(s=>setActivityLog(mapDocs(s)),scopedError('Activity log',setActivityLog)));
+      unsubs.push(db.collection('worksheetAssignments').onSnapshot(s=>setAllWsAssignments(mapDocs(s)),scopedError('Worksheet assignments',setAllWsAssignments)));
+    }else{
+      // Firestore does not filter forbidden documents from an unscoped query.
+      // Build the family/student scope first; dependent collections subscribe below by studentId.
+      const ownershipFields=['linkedUserId','studentUid','linkedParentId','parentUid','guardianUid'];
+      const studentsByQuery=new Map();
+      const pushOwnedStudents=()=>{
+        const merged=new Map();
+        studentsByQuery.forEach(items=>items.forEach(student=>merged.set(student.id,student)));
+        setStu([...merged.values()]);
+      };
+      ownershipFields.forEach(field=>{
+        const query=db.collection('students').where(field,'==',user.uid);
+        unsubs.push(query.onSnapshot(snapshot=>{
+          studentsByQuery.set(field,mapDocs(snapshot));
+          pushOwnedStudents();
+        },error=>{
+          console.warn(`Students listener failed (${field}):`,error);
+          studentsByQuery.set(field,[]);
+          pushOwnedStudents();
+        }));
+      });
+      setLes([]);setHw([]);setSch([]);setMessages([]);setAllWsAssignments([]);
+      setGroups([]);setTasks([]);setAllUsers([]);setStaffMembers([]);setActivityLog([]);
+    }
+	    return()=>unsubs.forEach(unsub=>unsub&&unsub());
 	  },[user,teacherScopeReadEnforced]);
 
   const notify=msg=>{setNotif(msg);setTimeout(()=>setNotif(''),3500);};
@@ -12039,6 +12054,47 @@ function App() {
 	    if(isStudentUser) return ownStudents.length ? ownStudents : visibleStudents.filter(s=>normalizeText(s.name)===userName);
 	    return visibleStudents.filter(s=>normalizeText(s.name)===userName);
 	  },[user,students,isAdmin,isParentUser,isStudentUser]);
+
+  const ownedStudentIds=useMemo(()=>[...new Set(myStudents.map(student=>student.id).filter(Boolean))],[myStudents]);
+  const ownedStudentIdsKey=ownedStudentIds.join('|');
+
+  useEffect(()=>{
+    if(!user||isStaff) return undefined;
+    const collections=[
+      ['lessons',setLes],
+      ['homework',setHw],
+      ['schedule',setSch],
+      ['messages',setMessages],
+      ['worksheetAssignments',setAllWsAssignments]
+    ];
+    if(!ownedStudentIds.length){
+      collections.forEach(([,setter])=>setter([]));
+      return undefined;
+    }
+    const chunks=[];
+    for(let index=0;index<ownedStudentIds.length;index+=10) chunks.push(ownedStudentIds.slice(index,index+10));
+    const unsubs=[];
+    collections.forEach(([name,setter])=>{
+      const docsByQuery=new Map();
+      const pushMerged=()=>{
+        const merged=new Map();
+        docsByQuery.forEach(items=>items.forEach(item=>merged.set(item.id,item)));
+        setter([...merged.values()]);
+      };
+      chunks.forEach((ids,index)=>{
+        const query=db.collection(name).where('studentId','in',ids);
+        unsubs.push(query.onSnapshot(snapshot=>{
+          docsByQuery.set(index,snapshot.docs.map(doc=>({id:doc.id,...doc.data()})));
+          pushMerged();
+        },error=>{
+          console.warn(`${name} listener failed (student scope ${index}):`,error);
+          docsByQuery.set(index,[]);
+          pushMerged();
+        }));
+      });
+    });
+    return()=>unsubs.forEach(unsub=>unsub&&unsub());
+  },[user?.uid,isStaff,ownedStudentIdsKey]);
 
 	  useEffect(()=>{
 	    if(!user){setInv([]);return;}
