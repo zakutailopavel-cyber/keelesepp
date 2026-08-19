@@ -16,6 +16,8 @@ test('student roster exposes scoped filters without changing the database worksp
   assert.match(html,/Paketijääk olemas/);
   assert.match(html,/Lähtesta filtrid/);
   assert.match(html,/students=\{myStudents\}/);
+  assert.match(html,/teacher:canonicalTeacherName\(row\.teacher\)/);
+  assert.match(html,/\.map\(\(row,index\)=>\(\{\.\.\.row,index:index\+1\}\)\)/);
 });
 
 test('current filtered student selection can be exported to Word, PDF, and Excel',()=>{
@@ -24,5 +26,5 @@ test('current filtered student selection can be exported to Word, PDF, and Excel
   assert.match(html,/StudentExportCore\.downloadPdf\(visibleRows,metadata\)/);
   assert.match(html,/StudentExportCore\.downloadExcel\(visibleRows,metadata\)/);
   assert.match(html,/Filtrid ja väljavõte kasutavad ainult praegu nähtavaid õpilasi/);
-  assert.match(shared,/KeeleSepp CRM · 19\.08\.2026\.5/);
+  assert.match(shared,/KeeleSepp CRM · 19\.08\.2026\.6/);
 });

@@ -3639,7 +3639,8 @@ function StudentsList({students,lessons,isAdmin,search,setSearch,stuFilter,setSt
   const [packageFilter,setPackageFilter]=React.useState('all');
   const [sortMode,setSortMode]=React.useState('name_asc');
   const [exportBusy,setExportBusy]=React.useState('');
-  const exportRows=React.useMemo(()=>StudentExportCore.buildStudentExportRows({students,lessons,packageSummary:legacyPackageSummary}),[students,lessons]);
+  const exportRows=React.useMemo(()=>StudentExportCore.buildStudentExportRows({students,lessons,packageSummary:legacyPackageSummary})
+    .map(row=>({...row,teacher:canonicalTeacherName(row.teacher)})),[students,lessons]);
   const optionsFor=key=>[...new Set(exportRows.map(row=>row[key]).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'et'));
   const teacherOptions=React.useMemo(()=>optionsFor('teacher'),[exportRows]);
   const subjectOptions=React.useMemo(()=>optionsFor('subject'),[exportRows]);
@@ -3665,7 +3666,8 @@ function StudentsList({students,lessons,isAdmin,search,setSearch,stuFilter,setSt
         if(sortMode==='level') return (levelRank[a.level]??99)-(levelRank[b.level]??99)||a.name.localeCompare(b.name,'et');
         if(sortMode==='lessons') return b.completedLessons-a.completedLessons||a.name.localeCompare(b.name,'et');
         return a.name.localeCompare(b.name,'et');
-      });
+      })
+      .map((row,index)=>({...row,index:index+1}));
   },[exportRows,search,stuFilter,teacherFilter,subjectFilter,levelFilter,gradeFilter,groupFilter,lessonFilter,packageFilter,sortMode]);
   const studentById=React.useMemo(()=>new Map(students.map(student=>[student.id,student])),[students]);
   const visibleStudents=visibleRows.map(row=>studentById.get(row.id)).filter(Boolean);
@@ -3746,7 +3748,7 @@ function StudentsList({students,lessons,isAdmin,search,setSearch,stuFilter,setSt
               <div style={{display:'flex',justifyContent:'space-between',marginBottom:14}}>
                 <div>
                   <div style={{fontWeight:700,fontSize:'.98rem'}}>{s.name}</div>
-                  <div style={{fontSize:'.75rem',color:'#42536A',marginTop:2}}>{s.level} → {s.targetLevel}{isAdmin&&<span style={{color:'#2F5D50',marginLeft:6}}>· {s.teacher}</span>}{s.subject&&<span style={{color:'#42536A',marginLeft:6}}>· {s.subject}</span>}{s.grade&&<span style={{color:'#C9882A',marginLeft:6}}>· {s.grade}</span>}</div>
+                  <div style={{fontSize:'.75rem',color:'#42536A',marginTop:2}}>{s.level} → {s.targetLevel}{isAdmin&&<span style={{color:'#2F5D50',marginLeft:6}}>· {canonicalTeacherName(s.teacher)}</span>}{s.subject&&<span style={{color:'#42536A',marginLeft:6}}>· {s.subject}</span>}{s.grade&&<span style={{color:'#C9882A',marginLeft:6}}>· {s.grade}</span>}</div>
                 </div>
                 <div style={{textAlign:'right'}}>
                   <div style={{fontSize:'1.2rem',fontWeight:700,color:'#C9882A'}}>{done.length?avg(done.map(l=>l.grade))+'★':'—'}</div>
