@@ -245,3 +245,14 @@ Read-only проверка production выявила:
 - `finance-admin-completion.test.js` — наличие защищённого маршрута и вызова из v1.
 
 Проверки: backend 100/100, CRM v1 127/127, JSX успешно скомпилирован. Команда `node --test` из корня не является корректным общим запуском, потому что захватывает Vitest-файлы CRM v2 через Node test runner; v1 и v2 следует проверять их собственными командами.
+
+## Production-результат
+
+- `staffOperationsApi` и интерфейс `.4` опубликованы;
+- первый smoke-test обнаружил отсутствующий локальный набор `studentIds` в проверке счетов; регрессия исправлена отдельным коммитом до выполнения миграции;
+- production preview после исправления показал `Kadunud õpilase tunnid = 0`, `Grupiseos puudu = 12`, `Sidumata arved = 0`;
+- массовая операция точных совпадений выполнена из административной CRM;
+- 12 уроков получили существующие `groupId`, корректный `groupName`, `isGroup = true` и `lessonAudienceType = group`;
+- для всех 12 изменений созданы отдельные записи `activityLog`;
+- итоговый production preview показывает `Kadunud õpilase tunnid = 0` и `Grupiseos puudu = 0`;
+- повторная read-only сверка Firestore подтвердила 12 связанных уроков, 12 записей аудита и 0 неполных групповых связей.
