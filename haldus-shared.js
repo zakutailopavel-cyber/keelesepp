@@ -174,15 +174,25 @@
     const existingByUid = existingByLink.empty
       ? await db.collection('students').where('studentUid','==',authUser.uid).limit(1).get()
       : null;
+    const existingByArray = existingByLink.empty && existingByUid?.empty
+      ? await db.collection('students').where('linkedUserIds','array-contains',authUser.uid).limit(1).get()
+      : null;
     const existingDoc = !existingByLink.empty
       ? existingByLink.docs[0]
-      : (!existingByUid?.empty ? existingByUid.docs[0] : null);
-    if(existingDoc) return;
+      : (!existingByUid?.empty ? existingByUid.docs[0] : (!existingByArray?.empty ? existingByArray.docs[0] : null));
+    if(existingDoc){
+      const data = existingDoc.data() || {};
+      if(data.mergedIntoStudentId){
+        const canonical = await db.collection('students').doc(data.mergedIntoStudentId).get();
+        if(canonical.exists) return;
+      }else return;
+    }
     const teacher = canonicalTeacherName(profile.preferredTeacher || profile.teacher || '');
     const teacherUid = await teacherUidFromDirectory(teacher);
     await db.collection('students').add({
       linkedUserId: authUser.uid,
       studentUid: authUser.uid,
+      linkedUserIds:[authUser.uid],
       isSelfStudent:true,
       name,
       email,
@@ -217,8 +227,12 @@
     const parentEmail = profile.email || authUser.email || '';
     const preferredTeacher = canonicalTeacherName(profile.preferredTeacher || 'Pavel');
     const preferredTeacherUid = await teacherUidFromDirectory(preferredTeacher);
-    const existingSnap = await db.collection('students').where('linkedParentId','==',authUser.uid).get();
-    const existingProfiles = new Set(existingSnap.docs.map(doc => studentProfileKey({
+    const [existingSnap,existingArraySnap] = await Promise.all([
+      db.collection('students').where('linkedParentId','==',authUser.uid).get(),
+      db.collection('students').where('linkedParentIds','array-contains',authUser.uid).get()
+    ]);
+    const existingDocs = new Map([...existingSnap.docs,...existingArraySnap.docs].map(doc=>[doc.id,doc]));
+    const existingProfiles = new Set([...existingDocs.values()].map(doc => studentProfileKey({
       ...doc.data(),
       parentEmail,
       parentName:parentDisplayName,
@@ -242,6 +256,7 @@
 
       await db.collection('students').add({
         linkedParentId: authUser.uid,
+        linkedParentIds:[authUser.uid],
         parentName: parentDisplayName,
         parentEmail,
         name: label || 'Õpilane',

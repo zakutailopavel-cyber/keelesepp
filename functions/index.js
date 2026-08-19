@@ -87,6 +87,14 @@ const {
 } = require("./staff-operations-core");
 const { collectTrustedRoles, isDisabledProfile } = require("./auth-core");
 const { planTeacherScopeBackfill } = require("./teacher-scope-core");
+const {
+  mergeGroupStudentReferences,
+  normalizedStudentMergeInput,
+  parentAccountIds,
+  studentAccountIds,
+  studentMergeOwnership,
+  uniqueIds,
+} = require("./student-merge-core");
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -5198,6 +5206,393 @@ async function refreshOperationalAlerts({ actor = null } = {}) {
   };
 }
 
+const STUDENT_REFERENCE_COLLECTIONS = [
+  "lessons",
+  "homework",
+  "schedule",
+  "messages",
+  "worksheetAssignments",
+  "exerciseResults",
+  "invoices",
+  "liveClassrooms",
+  "studentPackages",
+  "studentTariffAssignments",
+  "payments",
+  "paymentLineAllocations",
+  "payerCredits",
+];
+const STUDENT_ID_DOCUMENT_COLLECTIONS = [
+  "studentInitialAssessments",
+  "studentRevenuePlans",
+];
+
+async function getStudentMergeCandidates(input) {
+  let normalized;
+  try {
+    normalized = normalizedStudentMergeInput(input);
+  } catch (error) {
+    throw httpError(400, error.message);
+  }
+  const ids = [normalized.primaryStudentId, ...normalized.duplicateStudentIds];
+  const snapshots = await db.getAll(...ids.map(id => db.collection("students").doc(id)));
+  const missingIds = snapshots.filter(snapshot => !snapshot.exists).map(snapshot => snapshot.id);
+  if (missingIds.length) {
+    const error = httpError(404, "Student profile not found");
+    error.details = { missingIds };
+    throw error;
+  }
+  const students = snapshots.map(snapshot => ({ id: snapshot.id, ...snapshot.data() }));
+  const primary = students[0];
+  if (primary.active === false && primary.mergedIntoStudentId) {
+    throw httpError(409, "The selected primary profile is already archived");
+  }
+  const invalidDuplicates = students.slice(1).filter(student =>
+    student.mergedIntoStudentId && student.mergedIntoStudentId !== primary.id
+  );
+  if (invalidDuplicates.length) {
+    const error = httpError(409, "A duplicate is already linked to another primary profile");
+    error.details = { duplicateIds: invalidDuplicates.map(student => student.id) };
+    throw error;
+  }
+  const userSnapshots = await db.getAll(...ids.map(id => db.collection("users").doc(id)));
+  const userDocumentIds = userSnapshots.filter(snapshot => snapshot.exists).map(snapshot => snapshot.id);
+  return { ...normalized, students, primary, duplicates: students.slice(1), userDocumentIds };
+}
+
+async function studentMergePlan(input) {
+  const candidates = await getStudentMergeCandidates(input);
+  const duplicateIds = candidates.duplicateStudentIds;
+  const ownership = studentMergeOwnership(candidates.students, candidates.userDocumentIds);
+  const documents = [];
+  for (const collectionName of STUDENT_REFERENCE_COLLECTIONS) {
+    for (let index = 0; index < duplicateIds.length; index += 10) {
+      const ids = duplicateIds.slice(index, index + 10);
+      const snapshot = await db.collection(collectionName).where("studentId", "in", ids).get();
+      snapshot.docs.forEach(doc => documents.push({ collectionName, id: doc.id }));
+    }
+  }
+  const groupsById = new Map();
+  for (const duplicateId of duplicateIds) {
+    const snapshot = await db.collection("groups").where("students", "array-contains", duplicateId).get();
+    snapshot.docs.forEach(doc => groupsById.set(doc.id, { id: doc.id, ...doc.data() }));
+  }
+  const singletonDocuments = [];
+  for (const collectionName of STUDENT_ID_DOCUMENT_COLLECTIONS) {
+    const primarySnapshot = await db.collection(collectionName).doc(candidates.primaryStudentId).get();
+    let primaryWillExist = primarySnapshot.exists;
+    for (const duplicateId of duplicateIds) {
+      const sourceSnapshot = await db.collection(collectionName).doc(duplicateId).get();
+      if (sourceSnapshot.exists) {
+        singletonDocuments.push({
+          collectionName,
+          sourceId: duplicateId,
+          copyToPrimary: !primaryWillExist,
+          conflict: primaryWillExist,
+        });
+        primaryWillExist = true;
+      }
+    }
+  }
+  const counts = documents.reduce((result, document) => {
+    result[document.collectionName] = (result[document.collectionName] || 0) + 1;
+    return result;
+  }, {});
+  return {
+    ...candidates,
+    ownership,
+    documents,
+    groups: [...groupsById.values()],
+    singletonDocuments,
+    publicPlan: {
+      primary: {
+        id: candidates.primary.id,
+        name: candidates.primary.name || "",
+        email: candidates.primary.email || candidates.primary.parentEmail || "",
+      },
+      duplicates: candidates.duplicates.map(student => ({
+        id: student.id,
+        name: student.name || "",
+        email: student.email || student.parentEmail || "",
+      })),
+      linkedStudentAccountCount: ownership.linkedUserIds.length,
+      linkedParentAccountCount: ownership.linkedParentIds.length,
+      dependentDocumentCounts: counts,
+      groupCount: groupsById.size,
+      copiedProfileDocumentCount: singletonDocuments.filter(item => item.copyToPrimary).length,
+      profileConflictCount: singletonDocuments.filter(item => item.conflict).length,
+      totalReferenceCount: documents.length + groupsById.size + singletonDocuments.length,
+    },
+  };
+}
+
+async function previewStudentMerge(input) {
+  const plan = await studentMergePlan(input);
+  return plan.publicPlan;
+}
+
+async function applyStudentMerge({ actor, primaryStudentId, duplicateStudentIds, requestId }) {
+  const mutationId = cleanRequestId(requestId);
+  let normalizedInput;
+  try {
+    normalizedInput = normalizedStudentMergeInput({ primaryStudentId, duplicateStudentIds });
+  } catch (error) {
+    throw httpError(400, error.message);
+  }
+  const operationRef = db.collection("studentMergeOperations").doc(mutationId);
+  const existing = await operationRef.get();
+  if (existing.exists) {
+    const data = existing.data();
+    if (data.primaryStudentId !== normalizedInput.primaryStudentId
+      || JSON.stringify(data.duplicateStudentIds || []) !== JSON.stringify(normalizedInput.duplicateStudentIds)) {
+      throw httpError(409, "requestId already used for another student merge");
+    }
+    if (data.status === "complete") return { ...data.result, idempotent: true };
+  }
+
+  const plan = await studentMergePlan(normalizedInput);
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+  await operationRef.set({
+    status: "running",
+    primaryStudentId: plan.primaryStudentId,
+    duplicateStudentIds: plan.duplicateStudentIds,
+    preview: plan.publicPlan,
+    startedAt: existing.exists ? existing.data().startedAt || nowIso : nowIso,
+    updatedAt: nowIso,
+    actor: actorData,
+  }, { merge: true });
+
+  try {
+    const writes = plan.documents.map(document => ({
+      type: "set",
+      ref: db.collection(document.collectionName).doc(document.id),
+      data: {
+        studentId: plan.primaryStudentId,
+        studentName: plan.primary.name || "",
+        mergedFromStudentIds: FieldValue.arrayUnion(...plan.duplicateStudentIds),
+        mergedStudentAt: nowIso,
+        mergedStudentBy: actorData,
+      },
+      options: { merge: true },
+    }));
+    plan.groups.forEach(group => {
+      writes.push({
+        type: "set",
+        ref: db.collection("groups").doc(group.id),
+        data: {
+          ...mergeGroupStudentReferences(group, plan.primaryStudentId, plan.duplicateStudentIds),
+          mergedStudentAt: nowIso,
+        },
+        options: { merge: true },
+      });
+    });
+    for (const item of plan.singletonDocuments.filter(document => document.copyToPrimary)) {
+      const source = await db.collection(item.collectionName).doc(item.sourceId).get();
+      if (!source.exists) continue;
+      writes.push({
+        type: "set",
+        ref: db.collection(item.collectionName).doc(plan.primaryStudentId),
+        data: {
+          ...source.data(),
+          studentId: plan.primaryStudentId,
+          copiedFromStudentId: item.sourceId,
+          mergedStudentAt: nowIso,
+        },
+        options: { merge: true },
+      });
+    }
+    if (writes.length) await commitInChunks(writes);
+
+    const primaryRef = db.collection("students").doc(plan.primaryStudentId);
+    await db.runTransaction(async transaction => {
+      const operationSnapshot = await transaction.get(operationRef);
+      if (operationSnapshot.data()?.status === "complete") return;
+      transaction.set(primaryRef, {
+        linkedUserIds: plan.ownership.linkedUserIds,
+        linkedParentIds: plan.ownership.linkedParentIds,
+        mergedDuplicateIds: FieldValue.arrayUnion(...plan.duplicateStudentIds),
+        active: true,
+        mergedAt: nowIso,
+        mergedBy: actorData,
+        updatedAt: nowIso,
+      }, { merge: true });
+      plan.duplicates.forEach(duplicate => {
+        transaction.set(db.collection("students").doc(duplicate.id), {
+          active: false,
+          mergedIntoStudentId: plan.primaryStudentId,
+          mergedIntoStudentName: plan.primary.name || "",
+          mergedAt: nowIso,
+          mergedBy: actorData,
+          updatedAt: nowIso,
+        }, { merge: true });
+      });
+      const result = {
+        ...plan.publicPlan,
+        operationId: mutationId,
+        completedAt: nowIso,
+      };
+      transaction.set(operationRef, {
+        status: "complete",
+        result,
+        completedAt: nowIso,
+        updatedAt: nowIso,
+      }, { merge: true });
+      transaction.set(db.collection("activityLog").doc(`student-merge-${mutationId}`), {
+        type: "student.duplicates_merged",
+        action: "student.duplicates_merged",
+        studentId: plan.primaryStudentId,
+        studentName: plan.primary.name || "",
+        duplicateStudentIds: plan.duplicateStudentIds,
+        linkedUserIds: plan.ownership.linkedUserIds,
+        linkedParentIds: plan.ownership.linkedParentIds,
+        actor: actorData,
+        createdAt: nowIso,
+        operationId: mutationId,
+      });
+    });
+    return { ...plan.publicPlan, operationId: mutationId, completedAt: nowIso, idempotent: false };
+  } catch (error) {
+    await operationRef.set({ status: "failed", error: cleanText(error.message, 500), updatedAt: new Date().toISOString() }, { merge: true });
+    throw error;
+  }
+}
+
+async function mergeParentAccounts({ actor, primaryParentId, duplicateParentIds, requestId, preview = false }) {
+  const primaryId = cleanText(primaryParentId, 180);
+  const duplicateIds = uniqueIds(duplicateParentIds).filter(id => id !== primaryId);
+  if (!primaryId || !duplicateIds.length) throw httpError(400, "Primary parent and duplicate accounts required");
+  const allParentIds = [primaryId, ...duplicateIds];
+  const userSnapshots = await db.getAll(...allParentIds.map(id => db.collection("users").doc(id)));
+  const missingIds = userSnapshots.filter(snapshot => !snapshot.exists).map(snapshot => snapshot.id);
+  if (missingIds.length) {
+    const error = httpError(404, "Parent account not found");
+    error.details = { missingIds };
+    throw error;
+  }
+  const studentsById = new Map();
+  for (const parentId of allParentIds) {
+    for (const field of ["linkedParentId", "parentUid", "guardianUid"]) {
+      const snapshot = await db.collection("students").where(field, "==", parentId).get();
+      snapshot.docs.forEach(doc => studentsById.set(doc.id, { id: doc.id, ...doc.data() }));
+    }
+    const arraySnapshot = await db.collection("students").where("linkedParentIds", "array-contains", parentId).get();
+    arraySnapshot.docs.forEach(doc => studentsById.set(doc.id, { id: doc.id, ...doc.data() }));
+  }
+  const publicPlan = { primaryParentId: primaryId, duplicateParentIds: duplicateIds, studentProfileCount: studentsById.size };
+  if (preview) return publicPlan;
+  const mutationId = cleanRequestId(requestId);
+  const operationRef = db.collection("parentMergeOperations").doc(mutationId);
+  const previous = await operationRef.get();
+  if (previous.exists) {
+    const previousData = previous.data() || {};
+    if (previousData.primaryParentId !== primaryId
+      || JSON.stringify(previousData.duplicateParentIds || []) !== JSON.stringify(duplicateIds)) {
+      throw httpError(409, "requestId already used for another parent merge");
+    }
+    if (previousData.status === "complete") return { ...previousData.result, idempotent: true };
+  }
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+  const writes = [...studentsById.values()].map(student => ({
+    type: "set",
+    ref: db.collection("students").doc(student.id),
+    data: {
+      linkedParentId: primaryId,
+      parentUid: primaryId,
+      linkedParentIds: uniqueIds([parentAccountIds(student), allParentIds]),
+      updatedAt: nowIso,
+    },
+    options: { merge: true },
+  }));
+  duplicateIds.forEach(parentId => writes.push({
+    type: "set",
+    ref: db.collection("users").doc(parentId),
+    data: { active: false, mergedIntoParentId: primaryId, parentMergedAt: nowIso, parentMergedBy: actorData },
+    options: { merge: true },
+  }));
+  writes.push({
+    type: "set",
+    ref: db.collection("users").doc(primaryId),
+    data: { mergedDuplicateParentIds: FieldValue.arrayUnion(...duplicateIds), parentMergedAt: nowIso, parentMergedBy: actorData },
+    options: { merge: true },
+  });
+  await operationRef.set({ status: "running", ...publicPlan, actor: actorData, startedAt: nowIso });
+  await commitInChunks(writes);
+  const result = { ...publicPlan, operationId: mutationId, completedAt: nowIso };
+  await operationRef.set({ status: "complete", result, completedAt: nowIso, updatedAt: nowIso }, { merge: true });
+  return { ...result, idempotent: false };
+}
+
+async function studentOwnershipBackfill({ actor, apply = false }) {
+  const [studentSnapshot, userSnapshot] = await Promise.all([
+    db.collection("students").get(),
+    db.collection("users").get(),
+  ]);
+  const userIds = new Set(userSnapshot.docs.map(doc => doc.id));
+  const students = new Map(studentSnapshot.docs.map(doc => [doc.id, { id: doc.id, ...doc.data() }]));
+  const ownershipByPrimary = new Map();
+  const unresolved = [];
+  const targetFor = student => {
+    if (!student.mergedIntoStudentId) return student.id;
+    const target = students.get(student.mergedIntoStudentId);
+    if (!target) {
+      unresolved.push({ studentId: student.id, missingPrimaryStudentId: student.mergedIntoStudentId });
+      return "";
+    }
+    return target.id;
+  };
+  students.forEach(student => {
+    const targetId = targetFor(student);
+    if (!targetId) return;
+    const current = ownershipByPrimary.get(targetId) || { linkedUserIds: [], linkedParentIds: [] };
+    current.linkedUserIds = uniqueIds([
+      current.linkedUserIds,
+      studentAccountIds(student),
+      userIds.has(student.id) ? student.id : "",
+    ]);
+    current.linkedParentIds = uniqueIds([current.linkedParentIds, parentAccountIds(student)]);
+    ownershipByPrimary.set(targetId, current);
+  });
+  const patches = [];
+  ownershipByPrimary.forEach((ownership, studentId) => {
+    const student = students.get(studentId) || {};
+    const sameUsers = JSON.stringify(uniqueIds(student.linkedUserIds).sort()) === JSON.stringify([...ownership.linkedUserIds].sort());
+    const sameParents = JSON.stringify(uniqueIds(student.linkedParentIds).sort()) === JSON.stringify([...ownership.linkedParentIds].sort());
+    if (!sameUsers || !sameParents) patches.push({ studentId, ...ownership });
+  });
+  const result = {
+    studentCount: students.size,
+    patchCount: patches.length,
+    unresolvedCount: unresolved.length,
+    unresolved: unresolved.slice(0, 100),
+    patches: apply ? undefined : patches.slice(0, 100),
+  };
+  if (!apply || !patches.length) return result;
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+  await commitInChunks(patches.map(patch => ({
+    type: "set",
+    ref: db.collection("students").doc(patch.studentId),
+    data: {
+      linkedUserIds: patch.linkedUserIds,
+      linkedParentIds: patch.linkedParentIds,
+      ownershipBackfilledAt: nowIso,
+      ownershipBackfilledBy: actorData,
+      updatedAt: nowIso,
+    },
+    options: { merge: true },
+  })));
+  await db.collection("securityMigrations").doc("studentOwnershipV2").set({
+    version: 2,
+    status: unresolved.length ? "applied_with_warnings" : "complete",
+    appliedAt: nowIso,
+    appliedBy: actorData,
+    patchCount: patches.length,
+    unresolved,
+  }, { merge: true });
+  return { ...result, appliedAt: nowIso };
+}
+
 exports.staffOperationsApi = functions.https.onRequest(async (req, res) => {
   applyCors(req, res);
   if (req.method === "OPTIONS") { res.status(204).send(""); return; }
@@ -5264,6 +5659,50 @@ exports.staffOperationsApi = functions.https.onRequest(async (req, res) => {
     }
     if (req.path === "/assistant/refresh") {
       res.json(await refreshOperationalAlerts({ actor }));
+      return;
+    }
+    if (req.path === "/students/merge/preview") {
+      res.json(await previewStudentMerge({
+        primaryStudentId: req.body?.primaryStudentId,
+        duplicateStudentIds: req.body?.duplicateStudentIds,
+      }));
+      return;
+    }
+    if (req.path === "/students/merge") {
+      const result = await applyStudentMerge({
+        actor,
+        primaryStudentId: req.body?.primaryStudentId,
+        duplicateStudentIds: req.body?.duplicateStudentIds,
+        requestId: req.body?.requestId,
+      });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/parents/merge/preview") {
+      res.json(await mergeParentAccounts({
+        actor,
+        primaryParentId: req.body?.primaryParentId,
+        duplicateParentIds: req.body?.duplicateParentIds,
+        preview: true,
+      }));
+      return;
+    }
+    if (req.path === "/parents/merge") {
+      const result = await mergeParentAccounts({
+        actor,
+        primaryParentId: req.body?.primaryParentId,
+        duplicateParentIds: req.body?.duplicateParentIds,
+        requestId: req.body?.requestId,
+      });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/students/ownership/preview") {
+      res.json(await studentOwnershipBackfill({ actor, apply: false }));
+      return;
+    }
+    if (req.path === "/students/ownership/apply") {
+      res.json(await studentOwnershipBackfill({ actor, apply: true }));
       return;
     }
     res.status(404).json({ error: "Not found" });

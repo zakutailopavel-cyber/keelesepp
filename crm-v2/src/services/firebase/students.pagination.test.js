@@ -104,6 +104,9 @@ describe('students service pagination', () => {
       ] })
       .mockResolvedValueOnce({ docs: [
         { id: 'student-self', data: () => ({ name: 'Mari', studentUid: 'user-1', active: true }) },
+      ] })
+      .mockResolvedValueOnce({ docs: [
+        { id: 'student-self', data: () => ({ name: 'Mari', linkedUserIds: ['user-1'], active: true }) },
       ] });
 
     await expect(studentsService.listSelf('user-1')).resolves.toEqual([
@@ -111,6 +114,7 @@ describe('students service pagination', () => {
     ]);
     expect(where).toHaveBeenCalledWith('linkedUserId', '==', 'user-1');
     expect(where).toHaveBeenCalledWith('studentUid', '==', 'user-1');
+    expect(where).toHaveBeenCalledWith('linkedUserIds', 'array-contains', 'user-1');
     expect(where).not.toHaveBeenCalledWith('linkedParentId', '==', 'user-1');
   });
 });

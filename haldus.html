@@ -194,12 +194,10 @@ const teacherMatches = (a, b) => {
 const isOwnStudentRecord = (student, profile) => {
   if(!student || !profile) return false;
   const uid = profile.uid || profile.id || '';
-  const linkedUid = student.linkedUserId || student.studentUid || '';
-  const linkedParentUid = student.linkedParentId || student.parentUid || student.guardianUid || '';
-  if(uid && linkedUid===uid) return true;
-  if(student.isSelfStudent && normalizeText(student.email) && normalizeText(student.email)===normalizeText(profile.email)) return true;
-  if(uid && linkedParentUid===uid && normalizeText(student.name)===normalizeText(profile.displayName)) return true;
-  return false;
+  if(!uid) return false;
+  const studentAccountIds = [student.linkedUserId,student.studentUid,...(Array.isArray(student.linkedUserIds)?student.linkedUserIds:[])].filter(Boolean);
+  const parentAccountIds = [student.linkedParentId,student.parentUid,student.guardianUid,...(Array.isArray(student.linkedParentIds)?student.linkedParentIds:[])].filter(Boolean);
+  return student.id===uid || studentAccountIds.includes(uid) || parentAccountIds.includes(uid);
 };
 const money = value => {
   const n = Number(value)||0;
@@ -4054,13 +4052,14 @@ function StudentsDatabaseView({
   filteredStudents,lessons,invoices,isAdmin,search,setSearch,stuFilter,setStuFilter,
   groupFilter,setGroupFilter,groupOptions,contactFilter,setContactFilter,studentSort,setStudentSort,openStudent,setEditStu,user,
   nName,setNName,nParentName,setNParentName,nEmail,setNEmail,nPhone,setNPhone,nLevel,setNLevel,nTarget,setNTarget,
-  nSubject,setNSubject,nGrade,setNGrade,nGroup,setNGroup,nPkg,setNPkg,nTeach,setNTeach,addStudent,mergeStudentDuplicates,groupStudents,ungroupStudent
+  nSubject,setNSubject,nGrade,setNGrade,nGroup,setNGroup,nPkg,setNPkg,nTeach,setNTeach,addStudent,mergeStudentDuplicates,repairStudentOwnershipLinks,groupStudents,ungroupStudent
 }) {
   const [showAddForm,setShowAddForm] = React.useState(false);
   const [groupMode,setGroupMode] = React.useState('table');
   const [teacherFocus,setTeacherFocus] = React.useState('');
   const [groupingMode,setGroupingMode] = React.useState(false);
   const [selectedForGroup,setSelectedForGroup] = React.useState([]);
+  const [mergePrimaryByGroup,setMergePrimaryByGroup] = React.useState({});
 
   const toggleSelectForGroup = (student) => {
     setSelectedForGroup(prev=>
@@ -4170,12 +4169,21 @@ function StudentsDatabaseView({
                     className="btn btn-pine">
                     ✓ Grupeeri ({selectedForGroup.length})
                   </button>
+                  <button
+                    disabled={selectedForGroup.length<2}
+                    onClick={async()=>{await mergeStudentDuplicates(selectedForGroup);setGroupingMode(false);setSelectedForGroup([]);}}
+                    className="btn btn-amber">
+                    Ühenda duplikaadid
+                  </button>
                   <button onClick={()=>{setGroupingMode(false);setSelectedForGroup([]);}} className="btn btn-ghost">Tühista</button>
                 </div>
               : <button onClick={()=>setGroupingMode(true)} className="btn btn-ghost">
-                  <i className="fa-solid fa-layer-group"/> Grupeeri
+                  <i className="fa-solid fa-layer-group"/> Vali kaardid
                 </button>
           )}
+          {isAdmin&&<button onClick={repairStudentOwnershipLinks} className="btn btn-ghost">
+            <i className="fa-solid fa-link"/> Kontrolli kontoseoseid
+          </button>}
           <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍 Otsi nime, õpetajat, e-posti…" style={{width:280,padding:'9px 14px'}}/>
           <select value={studentSort} onChange={e=>setStudentSort(e.target.value)} style={{width:'auto'}}>
             <option value="name_asc">Sort: nimi A-Z</option>
@@ -4282,17 +4290,26 @@ function StudentsDatabaseView({
             <span className="badge" style={{background:'#fef3c7',color:'#92400e'}}>{duplicateGroups.length} gruppi</span>
           </div>
           <div style={{display:'flex',flexDirection:'column',gap:8,marginTop:12}}>
-            {duplicateGroups.slice(0,8).map(group=>(
-              <div key={studentProfileKey(group[0])} style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:10,flexWrap:'wrap',background:'#fff',border:'1px solid rgba(146,64,14,.16)',borderRadius:12,padding:12}}>
+            {duplicateGroups.slice(0,8).map(group=>{
+              const groupKey=studentProfileKey(group[0]);
+              const primaryId=mergePrimaryByGroup[groupKey]||group[0].id;
+              return <div key={groupKey} style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:10,flexWrap:'wrap',background:'#fff',border:'1px solid rgba(146,64,14,.16)',borderRadius:12,padding:12}}>
                 <div>
                   <strong>{group[0].name||'Nimi puudub'}</strong>
                   <span style={{color:'#42536A'}}> · {group[0].subject||'Õppeaine puudub'} · {group[0].teacher||'Õpetaja puudub'} · {group.length} kirjet</span>
                 </div>
-                <button onClick={()=>mergeStudentDuplicates(group)} className="btn btn-amber btn-sm">
-                  Ühenda
-                </button>
-              </div>
-            ))}
+                <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
+                  <label style={{fontSize:'.72rem',fontWeight:800,color:'#42536A'}}>Põhikaart
+                    <select value={primaryId} onChange={event=>setMergePrimaryByGroup(previous=>({...previous,[groupKey]:event.target.value}))} style={{marginLeft:6,width:'auto'}}>
+                      {group.map(student=><option key={student.id} value={student.id}>{student.name||'Nimi puudub'} · {student.email||student.parentEmail||student.id}</option>)}
+                    </select>
+                  </label>
+                  <button onClick={()=>mergeStudentDuplicates(group,primaryId)} className="btn btn-amber btn-sm">
+                    Kontrolli ja ühenda
+                  </button>
+                </div>
+              </div>;
+            })}
           </div>
         </div>
       )}
@@ -11862,15 +11879,22 @@ function App() {
     }else{
       // Firestore does not filter forbidden documents from an unscoped query.
       // Build the family/student scope first; dependent collections subscribe below by studentId.
-      const ownershipFields=['linkedUserId','studentUid','linkedParentId','parentUid','guardianUid'];
+      const ownershipQueries=[
+        ['linkedUserId',db.collection('students').where('linkedUserId','==',user.uid)],
+        ['studentUid',db.collection('students').where('studentUid','==',user.uid)],
+        ['linkedUserIds',db.collection('students').where('linkedUserIds','array-contains',user.uid)],
+        ['linkedParentId',db.collection('students').where('linkedParentId','==',user.uid)],
+        ['parentUid',db.collection('students').where('parentUid','==',user.uid)],
+        ['guardianUid',db.collection('students').where('guardianUid','==',user.uid)],
+        ['linkedParentIds',db.collection('students').where('linkedParentIds','array-contains',user.uid)]
+      ];
       const studentsByQuery=new Map();
       const pushOwnedStudents=()=>{
         const merged=new Map();
         studentsByQuery.forEach(items=>items.forEach(student=>merged.set(student.id,student)));
         setStu([...merged.values()]);
       };
-      ownershipFields.forEach(field=>{
-        const query=db.collection('students').where(field,'==',user.uid);
+      ownershipQueries.forEach(([field,query])=>{
         unsubs.push(query.onSnapshot(snapshot=>{
           studentsByQuery.set(field,mapDocs(snapshot));
           pushOwnedStudents();
@@ -12028,31 +12052,7 @@ function App() {
     };
     if(hasUserRole(user,'teacher')) return isAdmin?visibleStudents:visibleStudents.filter(s=>canonicalTeacherName(s.teacher)===canonicalTeacherName(user.displayName));
     if(isAdmin) return visibleStudents;
-    const userEmail = normalizeText(user.email);
-    const userName = normalizeText(user.displayName);
-    const ownStudents = visibleStudents.filter(s=>{
-      if(isOwnStudentRecord(s,user)) return true;
-      if(isStudentUser && userEmail && normalizeText(s.email)===userEmail) return true;
-      if(isStudentUser && !isParentUser && userName && normalizeText(s.name)===userName) return true;
-      return false;
-    });
-    if(isParentUser){
-      const linkedNames = parseLinkedNames(user.childName);
-      const parentName = normalizeText(user.displayName);
-      const childStudents = visibleStudents.filter(s=>{
-        const studentName = normalizeText(s.name);
-        const parentEmail = normalizeText(s.parentEmail || s.contactEmail || s.guardianEmail);
-        const studentParentName = normalizeText(s.parentName || s.guardianName);
-        const linkedParentId = s.linkedParentId || s.parentUid || s.guardianUid || '';
-        const parentMatched = linkedParentId===user.uid ||
-          (!!userEmail && parentEmail===userEmail) ||
-          (!!parentName && studentParentName===parentName);
-        return parentMatched || (linkedNames.includes(studentName) && parentMatched);
-      });
-      return uniqueStudents([...ownStudents,...childStudents]);
-    }
-	    if(isStudentUser) return ownStudents.length ? ownStudents : visibleStudents.filter(s=>normalizeText(s.name)===userName);
-	    return visibleStudents.filter(s=>normalizeText(s.name)===userName);
+    return uniqueStudents(visibleStudents.filter(s=>isOwnStudentRecord(s,user)));
 	  },[user,students,isAdmin,isParentUser,isStudentUser]);
 
   const ownedStudentIds=useMemo(()=>[...new Set(myStudents.map(student=>student.id).filter(Boolean))],[myStudents]);
@@ -12359,6 +12359,22 @@ function App() {
       throw error;
     }
   },[]);
+  const repairStudentOwnershipLinks=useCallback(async()=>{
+    if(!isAdmin){notify('⚠ Ainult administraator saab kontoseoseid parandada');return;}
+    try{
+      const preview=await staffOperationsApiPost('/students/ownership/preview',{});
+      if(!preview.patchCount){
+        notify('✓ Kõik õpilaste ja lapsevanemate kontoseosed on korras');
+        return;
+      }
+      if(!window.confirm(`Leiti ${preview.patchCount} õpilasekaarti, mille UID-seosed vajavad täiendamist. Katkiseid põhikaardi viiteid: ${preview.unresolvedCount||0}. Lisada puuduvad seosed? Ühtegi kaarti ei kustutata ega ühendata nime järgi.`)) return;
+      const result=await staffOperationsApiPost('/students/ownership/apply',{});
+      notify(`✓ Kontoseosed parandatud: ${result.patchCount||0} kaarti`);
+    }catch(error){
+      console.error('Student ownership repair failed:',error);
+      notify(`⚠ Kontoseoseid ei saanud parandada: ${error.message||error}`);
+    }
+  },[isAdmin,notify]);
 
   const addStudentForParent=useCallback(async(data)=>{
     if(!user?.uid) return;
@@ -12370,6 +12386,7 @@ function App() {
       parentEmail:user.email||'',
       linkedParentId:user.uid,
       parentUid:user.uid,
+      linkedParentIds:[user.uid],
       teacher,
       teacherUid,
       level:data.level||'A1',
@@ -12409,6 +12426,7 @@ function App() {
     const data = {
       linkedUserId:user.uid,
       studentUid:user.uid,
+      linkedUserIds:[user.uid],
       isSelfStudent:true,
       parentAsStudent:true,
       name:user.displayName||user.email||'Õpilane',
@@ -12519,6 +12537,7 @@ function App() {
       await window._db.collection('students').doc(chosen.id).update({
         linkedParentId:parent.id,
         parentUid:parent.id,
+        linkedParentIds:firebase.firestore.FieldValue.arrayUnion(parent.id),
         parentName:parent.displayName||'',
         parentEmail:parent.email||'',
         updatedAt:new Date().toISOString()
@@ -12593,6 +12612,7 @@ function App() {
       const linkPatch = {
         linkedUserId:docId,
         studentUid:docId,
+        linkedUserIds:firebase.firestore.FieldValue.arrayUnion(docId),
         isSelfStudent:true,
         parentAsStudent:true,
         updatedAt:now
@@ -12620,106 +12640,24 @@ function App() {
 
   const mergeParentDuplicates=useCallback(async(row)=>{
     if(!isAdmin){notify('⚠ Ainult administraator saab duplikaate ühendada');return;}
-    const primary = row?.parent;
-    if(!primary?.id){notify('⚠ Põhikonto puudub');return;}
-    const duplicateParents = (row.duplicateParents||[]).filter(parent=>parent?.id&&parent.id!==primary.id);
-    const allParents = [primary,...duplicateParents];
-    const parentIds = new Set(allParents.map(parent=>parent.id).filter(Boolean));
-    const parentEmails = new Set(allParents.map(parent=>normalizeText(parent.email)).filter(Boolean));
-    const parentNames = new Set(allParents.map(parent=>normalizeText(parent.displayName)).filter(Boolean));
-    const childNames = new Set([
-      ...allParents.flatMap(parent=>parseLinkedNames(parent.childName)),
-      ...(row.rawNames||[]).map(name=>normalizeText(name)),
-      ...(row.linkedChildren||[]).map(student=>normalizeText(student.name))
-    ].filter(Boolean));
-    const hiddenParentCards = students.filter(student=>{
-      if(student.active===false || student.convertedToParent) return false;
-      const studentName = normalizeText(student.name);
-      const studentEmail = normalizeText(student.email);
-      const studentParentEmail = normalizeText(student.parentEmail || student.contactEmail || student.guardianEmail);
-      const studentParentName = normalizeText(student.parentName || student.guardianName);
-      return parentNames.has(studentName) || parentEmails.has(studentEmail) ||
-        (!!studentParentEmail && parentEmails.has(studentParentEmail)) ||
-        (!!studentParentName && parentNames.has(studentParentName));
-    });
-    if(!duplicateParents.length && !hiddenParentCards.length){
-      notify('Duplikaate pole ühendada');
-      return;
-    }
-    if(!window.confirm(`Ühendada ${duplicateParents.length} lapsevanema duplikaati ja ${hiddenParentCards.length} vale õpilase kaarti profiiliga ${primary.displayName||primary.email}?`)) return;
+    const allParents = [row?.parent,...(row?.duplicateParents||[])].filter(parent=>parent?.id);
+    if(allParents.length<2){notify('Duplikaate pole ühendada');return;}
+    const options=allParents.map((parent,index)=>`${index+1}. ${parent.displayName||parent.email||parent.id} · ${parent.email||parent.id}`).join('\n');
+    const selectedIndex=parseInt(window.prompt(`Vali põhikonto number. Kõik teised sisselogimised jäävad lastega seotuks:\n${options}`,'1')||'0')-1;
+    const primary=allParents[selectedIndex];
+    if(!primary){notify('⚠ Põhikontot ei valitud');return;}
+    const duplicateParents=allParents.filter(parent=>parent.id!==primary.id);
     try{
-      const best = field => allParents.map(parent=>parent?.[field]).filter(Boolean).sort((a,b)=>String(b).length-String(a).length)[0] || '';
-      const bestName = best('displayName') || primary.displayName || '';
-      const bestEmail = best('email') || primary.email || '';
-      const bestPhone = best('phone') || best('parentPhone') || primary.phone || primary.parentPhone || '';
-      const batch = db.batch();
-      batch.set(db.collection('users').doc(primary.id),{
-        displayName:bestName,
-        email:bestEmail,
-        phone:bestPhone,
-        parentPhone:bestPhone,
-        childName:[...childNames].join(', '),
-        parentReviewStatus:'checked',
-        parentReviewKey:[...childNames].join('|'),
-        mergedDuplicateParentIds:duplicateParents.map(parent=>parent.id),
-        parentMergedAt:new Date().toISOString(),
-        parentMergedBy:user?.displayName||user?.email||''
-      },{merge:true});
-      duplicateParents.forEach(parent=>{
-        batch.set(db.collection('users').doc(parent.id),{
-          active:false,
-          mergedIntoParentId:primary.id,
-          mergedIntoParentName:bestName,
-          parentReviewStatus:'merged',
-          parentMergedAt:new Date().toISOString(),
-          parentMergedBy:user?.displayName||user?.email||''
-        },{merge:true});
-      });
-      students.forEach(student=>{
-        if(!student?.id || student.active===false) return;
-        const linkedParentId = student.linkedParentId || student.parentUid || student.guardianUid || '';
-        const studentName = normalizeText(student.name);
-        const studentEmail = normalizeText(student.email);
-        const studentParentEmail = normalizeText(student.parentEmail || student.contactEmail || student.guardianEmail);
-        const studentParentName = normalizeText(student.parentName || student.guardianName);
-        const looksLikeParentCard = parentNames.has(studentName) || parentEmails.has(studentEmail);
-        const belongsToParent = parentIds.has(linkedParentId) ||
-          (!!studentParentEmail && parentEmails.has(studentParentEmail)) ||
-          (!!studentParentName && parentNames.has(studentParentName)) ||
-          childNames.has(studentName);
-        if(looksLikeParentCard){
-          batch.set(db.collection('students').doc(student.id),{
-            active:false,
-            convertedToParent:true,
-            mergedIntoParentId:primary.id,
-            archivedAt:new Date().toISOString()
-          },{merge:true});
-          return;
-        }
-        if(belongsToParent){
-          batch.set(db.collection('students').doc(student.id),{
-            linkedParentId:primary.id,
-            parentUid:primary.id,
-            parentName:bestName,
-            parentEmail:bestEmail,
-            phone:student.phone || bestPhone,
-            updatedAt:new Date().toISOString()
-          },{merge:true});
-        }
-      });
-      await batch.commit();
-      await logActivity('parent.duplicates_merged','Lapsevanema duplikaadid ühendati',{
-        parentUid:primary.id,
-        parentName:bestName,
-        duplicateCount:duplicateParents.length,
-        hiddenStudentCount:hiddenParentCards.length
-      });
-      notify('✓ Lapsevanema duplikaadid ühendatud');
+      const payload={primaryParentId:primary.id,duplicateParentIds:duplicateParents.map(parent=>parent.id)};
+      const preview=await staffOperationsApiPost('/parents/merge/preview',payload);
+      if(!window.confirm(`Ühendada ${duplicateParents.length} kontot? Seotud õpilasekaarte: ${preview.studentProfileCount}. Kõik olemasolevad sisselogimised säilitavad ligipääsu.`)) return;
+      await staffOperationsApiPost('/parents/merge',{...payload,requestId:financeRequestId('parent-merge')});
+      notify('✓ Lapsevanema kontod ühendatud; kõik sisselogimised töötavad edasi');
     }catch(err){
       console.error('Parent merge failed:',err);
-      notify('⚠ Duplikaate ei saanud ühendada');
+      notify(`⚠ Duplikaate ei saanud ühendada: ${err.message||err}`);
     }
-  },[isAdmin,students,user,logActivity,notify]);
+  },[isAdmin,notify]);
 
   const groupStudents=useCallback(async(students)=>{
     if(!isAdmin){notify('⚠ Ainult admin saab grupeerida');return;}
@@ -12741,94 +12679,30 @@ function App() {
     notify('✓ Eemaldatud grupist');
   },[isAdmin]);
 
-  const mergeStudentDuplicates=useCallback(async(group)=>{
+  const mergeStudentDuplicates=useCallback(async(group,selectedPrimaryId)=>{
     if(!isAdmin){notify('⚠ Ainult administraator saab duplikaate ühendada');return;}
     const candidates = (group||[]).filter(student=>student?.id);
     if(candidates.length<2){notify('Duplikaate pole ühendada');return;}
-    const lessonCount = student => lessons.filter(lesson=>lesson.studentId===student.id || normalizeText(lesson.studentName)===normalizeText(student.name)).length;
-    const invoiceCount = student => invoices.filter(inv=>inv.studentId===student.id || normalizeText(inv.studentName)===normalizeText(student.name)).length;
-    const score = student =>
-      lessonCount(student)*4 + invoiceCount(student)*3 +
-      ['parentName','parentEmail','phone','group','grade','contactNotes'].reduce((sum,field)=>sum+(student[field]?1:0),0) +
-      (parseInt(student.packageTotal)||0) + (parseInt(student.packageUsed)||0);
-    const primary = [...candidates].sort((a,b)=>score(b)-score(a))[0];
+    let primary = candidates.find(student=>student.id===selectedPrimaryId) || null;
+    if(!primary){
+      const options=candidates.map((student,index)=>`${index+1}. ${student.name||'Nimi puudub'} · ${student.email||student.parentEmail||student.id}`).join('\n');
+      const selectedIndex=parseInt(window.prompt(`Vali põhikaart number:\n${options}`,'1')||'0')-1;
+      primary=candidates[selectedIndex]||null;
+    }
+    if(!primary){notify('⚠ Põhikaarti ei valitud');return;}
     const duplicates = candidates.filter(student=>student.id!==primary.id);
-    if(!window.confirm(`Ühendada ${duplicates.length} duplikaati õpilasega ${primary.name}?`)) return;
     try{
-      const best = field => candidates.map(student=>student?.[field]).filter(Boolean).sort((a,b)=>String(b).length-String(a).length)[0] || '';
-      const duplicateIds = new Set(duplicates.map(student=>student.id));
-      const duplicateNames = new Set(duplicates.map(student=>normalizeText(student.name)).filter(Boolean));
-      const primaryName = best('name') || primary.name || '';
-      const batch = db.batch();
-      batch.set(db.collection('students').doc(primary.id),{
-        name:primaryName,
-        parentName:best('parentName') || best('guardianName') || primary.parentName || '',
-        parentEmail:best('parentEmail') || best('contactEmail') || best('guardianEmail') || primary.parentEmail || '',
-        phone:best('phone') || primary.phone || '',
-        group:best('group') || primary.group || '',
-        grade:best('grade') || primary.grade || '',
-        subject:best('subject') || primary.subject || 'Eesti keel',
-        teacher:best('teacher') || primary.teacher || '',
-        level:best('level') || primary.level || 'A1',
-        targetLevel:best('targetLevel') || primary.targetLevel || 'B1',
-        packageTotal:Math.max(...candidates.map(student=>parseInt(student.packageTotal)||0),0),
-        packageUsed:Math.max(...candidates.map(student=>parseInt(student.packageUsed)||0),0),
-        mergedDuplicateIds:[...new Set([...(primary.mergedDuplicateIds||[]),...duplicates.map(student=>student.id)])],
-        mergedAt:new Date().toISOString(),
-        mergedBy:user?.displayName||user?.email||'',
-        active:true
-      },{merge:true});
-      lessons.forEach(lesson=>{
-        if(!lesson?.id) return;
-        if(duplicateIds.has(lesson.studentId) || duplicateNames.has(normalizeText(lesson.studentName))){
-          batch.set(db.collection('lessons').doc(lesson.id),{
-            studentId:primary.id,
-            studentName:primaryName,
-            mergedStudentAt:new Date().toISOString()
-          },{merge:true});
-        }
-      });
-      homework.forEach(item=>{
-        if(!item?.id) return;
-        if(duplicateIds.has(item.studentId) || duplicateNames.has(normalizeText(item.studentName))){
-          batch.set(db.collection('homework').doc(item.id),{
-            studentId:primary.id,
-            studentName:primaryName,
-            mergedStudentAt:new Date().toISOString()
-          },{merge:true});
-        }
-      });
-      invoices.forEach(inv=>{
-        if(!inv?.id) return;
-        if(duplicateIds.has(inv.studentId) || duplicateNames.has(normalizeText(inv.studentName))){
-          batch.set(db.collection('invoices').doc(inv.id),{
-            studentId:primary.id,
-            studentName:primaryName,
-            mergedStudentAt:new Date().toISOString()
-          },{merge:true});
-        }
-      });
-      duplicates.forEach(student=>{
-        batch.set(db.collection('students').doc(student.id),{
-          active:false,
-          mergedIntoStudentId:primary.id,
-          mergedIntoStudentName:primaryName,
-          mergedAt:new Date().toISOString(),
-          mergedBy:user?.displayName||user?.email||''
-        },{merge:true});
-      });
-      await batch.commit();
-      await logActivity('student.duplicates_merged','Õpilase duplikaadid ühendati',{
-        studentId:primary.id,
-        studentName:primaryName,
-        duplicateCount:duplicates.length
-      });
-      notify('✓ Õpilase duplikaadid ühendatud');
+      const payload={primaryStudentId:primary.id,duplicateStudentIds:duplicates.map(student=>student.id)};
+      const preview=await staffOperationsApiPost('/students/merge/preview',payload);
+      const counts=Object.entries(preview.dependentDocumentCounts||{}).map(([name,count])=>`${name}: ${count}`).join(', ')||'seotud kirjeid ei ole';
+      if(!window.confirm(`Põhikaart: ${primary.name||primary.id}\nArhiveeritavaid duplikaate: ${duplicates.length}\nÜleviidavad andmed: ${counts}\nÕpilase kontosid: ${preview.linkedStudentAccountCount}, lapsevanema kontosid: ${preview.linkedParentAccountCount}.\n\nÜhendada?`)) return;
+      const result=await staffOperationsApiPost('/students/merge',{...payload,requestId:financeRequestId('student-merge')});
+      notify(`✓ Kaardid ühendatud: ${result.totalReferenceCount||0} seotud kirjet viidi põhikaardile`);
     }catch(err){
       console.error('Student merge failed:',err);
-      notify('⚠ Õpilaste duplikaate ei saanud ühendada');
+      notify(`⚠ Õpilaste duplikaate ei saanud ühendada: ${err.message||err}`);
     }
-  },[isAdmin,lessons,homework,invoices,user,logActivity,notify]);
+  },[isAdmin,notify]);
 
   // ACTIONS
   const addStudent=useCallback(async()=>{
@@ -14968,6 +14842,7 @@ function App() {
             setNTeach={setNTeach}
             addStudent={addStudent}
             mergeStudentDuplicates={mergeStudentDuplicates}
+            repairStudentOwnershipLinks={repairStudentOwnershipLinks}
             groupStudents={groupStudents}
             ungroupStudent={ungroupStudent}
           />}

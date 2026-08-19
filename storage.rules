@@ -37,9 +37,11 @@ service firebase.storage {
         && (
           firestore.get(/databases/(default)/documents/students/$(studentId)).data.linkedUserId == request.auth.uid
           || firestore.get(/databases/(default)/documents/students/$(studentId)).data.studentUid == request.auth.uid
+          || firestore.get(/databases/(default)/documents/students/$(studentId)).data.get('linkedUserIds', []).hasAny([request.auth.uid])
           || firestore.get(/databases/(default)/documents/students/$(studentId)).data.linkedParentId == request.auth.uid
           || firestore.get(/databases/(default)/documents/students/$(studentId)).data.parentUid == request.auth.uid
           || firestore.get(/databases/(default)/documents/students/$(studentId)).data.guardianUid == request.auth.uid
+          || firestore.get(/databases/(default)/documents/students/$(studentId)).data.get('linkedParentIds', []).hasAny([request.auth.uid])
         );
     }
 

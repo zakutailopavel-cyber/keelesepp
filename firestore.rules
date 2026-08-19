@@ -147,9 +147,11 @@ service cloud.firestore {
           studentId == uid()
           || student.get('linkedUserId', '') == uid()
           || student.get('studentUid', '') == uid()
+          || student.get('linkedUserIds', []).hasAny([uid()])
           || student.get('linkedParentId', '') == uid()
           || student.get('parentUid', '') == uid()
           || student.get('guardianUid', '') == uid()
+          || student.get('linkedParentIds', []).hasAny([uid()])
         );
     }
 
@@ -636,9 +638,11 @@ service cloud.firestore {
         'teacher',
         'linkedUserId',
         'studentUid',
+        'linkedUserIds',
         'linkedParentId',
         'parentUid',
-        'guardianUid'
+        'guardianUid',
+        'linkedParentIds'
       ]);
     }
 
@@ -647,16 +651,20 @@ service cloud.firestore {
         && (
           request.resource.data.get('linkedUserId', '') == uid()
           || request.resource.data.get('studentUid', '') == uid()
+          || request.resource.data.get('linkedUserIds', []).hasAny([uid()])
           || request.resource.data.get('linkedParentId', '') == uid()
           || request.resource.data.get('parentUid', '') == uid()
           || request.resource.data.get('guardianUid', '') == uid()
+          || request.resource.data.get('linkedParentIds', []).hasAny([uid()])
         )
         && request.resource.data.keys().hasOnly([
           'linkedUserId',
           'studentUid',
+          'linkedUserIds',
           'linkedParentId',
           'parentUid',
           'guardianUid',
+          'linkedParentIds',
           'isSelfStudent',
           'parentAsStudent',
           'name',

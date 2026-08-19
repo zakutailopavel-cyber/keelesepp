@@ -127,16 +127,28 @@ export const studentsService = {
   async listSelf(uid) {
     if (!uid) return [];
     const { db } = requireFirebaseClient();
-    const fields = ['linkedUserId', 'studentUid'];
-    const snapshots = await Promise.all(fields.map((field) => getDocs(query(collection(db, 'students'), where(field, '==', uid)))));
+    const constraints = [
+      where('linkedUserId', '==', uid),
+      where('studentUid', '==', uid),
+      where('linkedUserIds', 'array-contains', uid),
+    ];
+    const snapshots = await Promise.all(constraints.map((constraint) => getDocs(query(collection(db, 'students'), constraint))));
     const unique = new Map();
     snapshots.forEach((snapshot) => snapshot.docs.forEach((item) => unique.set(item.id, normalizeStudent(item.id, item.data()))));
     return sortStudents([...unique.values()].filter((student) => student.active && !student.convertedToParent));
   },
   async listOwned(uid) {
     const { db } = requireFirebaseClient();
-    const fields = ['linkedUserId', 'studentUid', 'linkedParentId', 'parentUid', 'guardianUid'];
-    const snapshots = await Promise.all(fields.map((field) => getDocs(query(collection(db, 'students'), where(field, '==', uid)))));
+    const constraints = [
+      where('linkedUserId', '==', uid),
+      where('studentUid', '==', uid),
+      where('linkedUserIds', 'array-contains', uid),
+      where('linkedParentId', '==', uid),
+      where('parentUid', '==', uid),
+      where('guardianUid', '==', uid),
+      where('linkedParentIds', 'array-contains', uid),
+    ];
+    const snapshots = await Promise.all(constraints.map((constraint) => getDocs(query(collection(db, 'students'), constraint))));
     const unique = new Map();
     snapshots.forEach((snapshot) => snapshot.docs.forEach((item) => unique.set(item.id, normalizeStudent(item.id, item.data()))));
     return sortStudents([...unique.values()]);
