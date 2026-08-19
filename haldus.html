@@ -7059,9 +7059,236 @@ function PaymentLineAllocationModal({invoice,payment,currentAllocation,allocatio
   );
 }
 
-const ADMIN_FINANCE_SECTIONS=['invoices','reconciliation','accounting'];
+const EXPENSE_CATEGORY_LABELS={
+  rent:'Rent',advertising:'Reklaam',software:'Tarkvara',learning_materials:'Õppematerjalid',
+  bank_fees:'Pangatasud',taxes:'Maksud',office:'Kontor',travel:'Sõidukulud',other:'Muu'
+};
 
-function FinanceWorkspaceNav({section,setSection,invoices=[],bankTransactions=[]}) {
+function ExpensesView({expenses=[],notify}) {
+  const [month,setMonth]=React.useState(()=>today().slice(0,7));
+  const [form,setForm]=React.useState({expenseDate:today(),category:'learning_materials',description:'',amount:'',vatRate:'0',paymentMethod:'bank',note:''});
+  const [busy,setBusy]=React.useState('');
+  const rows=React.useMemo(()=>(expenses||[])
+    .filter(expense=>String(expense.expenseDate||'').slice(0,7)===month)
+    .sort((a,b)=>String(b.expenseDate||'').localeCompare(String(a.expenseDate||''))),[expenses,month]);
+  const activeRows=rows.filter(expense=>expense.status==='active');
+  const totals=activeRows.reduce((sum,expense)=>({
+    gross:sum.gross+(Number(expense.amountCents)||0),
+    vat:sum.vat+(Number(expense.vatAmountCents)||0),
+    net:sum.net+(Number(expense.netAmountCents)||0)
+  }),{gross:0,vat:0,net:0});
+  const cents=value=>`${(Number(value||0)/100).toFixed(2)} €`;
+  const vatAmount=React.useMemo(()=>{
+    const amount=Number(String(form.amount).replace(',','.'))||0;
+    const rate=Number(form.vatRate)||0;
+    return rate>0?Math.round((amount*rate/(100+rate))*100)/100:0;
+  },[form.amount,form.vatRate]);
+  const patchForm=patch=>setForm(current=>({...current,...patch}));
+  const addExpense=async()=>{
+    if(busy) return;
+    if(!form.expenseDate||!form.description.trim()||!(Number(String(form.amount).replace(',','.'))>0)){
+      notify('⚠ Täida kuupäev, kirjeldus ja summa');return;
+    }
+    setBusy('create');
+    try{
+      await financeApiPost('/expenses',{
+        expenseDate:form.expenseDate,category:form.category,description:form.description.trim(),
+        amount:Number(String(form.amount).replace(',','.')),vatAmount,paymentMethod:form.paymentMethod,
+        note:form.note.trim(),requestId:financeRequestId('expense')
+      });
+      patchForm({description:'',amount:'',note:''});
+      notify('✓ Kulu lisatud');
+    }catch(error){notify(`⚠ Kulu lisamine ebaõnnestus: ${error.message||error}`);}
+    finally{setBusy('');}
+  };
+  const correctExpense=async expense=>{
+    const description=window.prompt('Parandatud kirjeldus',expense.description||'');
+    if(description===null) return;
+    const amount=window.prompt('Parandatud summa (€)',String(Number(expense.amount)||((Number(expense.amountCents)||0)/100)));
+    if(amount===null) return;
+    const vat=window.prompt('Parandatud käibemaksu summa (€)',String(Number(expense.vatAmount)||((Number(expense.vatAmountCents)||0)/100)));
+    if(vat===null) return;
+    const reason=window.prompt('Paranduse põhjus','Andmete täpsustamine');
+    if(!reason?.trim()) return;
+    setBusy(`correct-${expense.id}`);
+    try{
+      await financeApiPost('/expenses/correct',{
+        expenseId:expense.id,expenseDate:expense.expenseDate,category:expense.category,
+        description:description.trim(),amount:Number(String(amount).replace(',','.')),
+        vatAmount:Number(String(vat).replace(',','.')),paymentMethod:expense.paymentMethod||'bank',
+        note:expense.note||'',reason:reason.trim(),requestId:financeRequestId('expensecorrect')
+      });
+      notify('✓ Loodi parandatud kulukirje; algne jäi ajalukku');
+    }catch(error){notify(`⚠ Kulu parandamine ebaõnnestus: ${error.message||error}`);}
+    finally{setBusy('');}
+  };
+  const voidExpense=async expense=>{
+    const reason=window.prompt('Tühistamise põhjus','Vale kulukirje');
+    if(!reason?.trim()) return;
+    setBusy(`void-${expense.id}`);
+    try{
+      await financeApiPost('/expenses/void',{expenseId:expense.id,reason:reason.trim(),requestId:financeRequestId('expensevoid')});
+      notify('✓ Kulu tühistatud; ajalugu säilib');
+    }catch(error){notify(`⚠ Kulu tühistamine ebaõnnestus: ${error.message||error}`);}
+    finally{setBusy('');}
+  };
+  const uploadReceipt=async(expense,file,input)=>{
+    if(!file||!storage) return;
+    const extension=String(file.name||'').toLowerCase().split('.').pop();
+    const inferred={pdf:'application/pdf',jpg:'image/jpeg',jpeg:'image/jpeg',png:'image/png',webp:'image/webp'}[extension]||'';
+    const contentType=String(file.type||inferred).toLowerCase();
+    if(!['application/pdf','image/jpeg','image/png','image/webp'].includes(contentType)||file.size<=0||file.size>10*1024*1024){
+      notify('⚠ Tšekk peab olema PDF, JPG, PNG või WebP ja kuni 10 MB');if(input) input.value='';return;
+    }
+    const requestId=financeRequestId('expensedoc');
+    const storagePath=`financial/expenses/${expense.id}/${requestId}`;
+    setBusy(`doc-${expense.id}`);
+    try{
+      await storage.ref().child(storagePath).put(file,{contentType,customMetadata:{kind:'expense_receipt',expenseId:expense.id,documentId:requestId}});
+      await financeApiPost('/expenses/documents',{expenseId:expense.id,storagePath,fileName:String(file.name||'Tšekk').slice(0,180),contentType,size:file.size,requestId});
+      notify('✓ Tšekk lisatud');
+    }catch(error){notify(`⚠ Tšeki lisamine ebaõnnestus: ${error.message||error}`);}
+    finally{setBusy('');if(input) input.value='';}
+  };
+  const openDocument=async document=>{
+    try{window.open(await storage.ref().child(document.storagePath).getDownloadURL(),'_blank','noopener,noreferrer');}
+    catch(error){notify(`⚠ Faili ei saanud avada: ${error.message||error}`);}
+  };
+  return <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:18}}>
+    <div style={{display:'flex',justifyContent:'space-between',gap:12,alignItems:'flex-end',flexWrap:'wrap'}}>
+      <div><h1 style={{fontSize:'1.7rem'}}>Kulud</h1><p style={{color:'#64748b',fontSize:'.86rem',marginTop:3}}>Keelekooli kulud, tšekid ja paranduste ajalugu.</p></div>
+      <input type="month" value={month} onChange={event=>setMonth(event.target.value)} style={{width:170,fontWeight:700}}/>
+    </div>
+    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))',gap:12}}>
+      {[['Kulusid',activeRows.length],['Kokku',cents(totals.gross)],['Käibemaks',cents(totals.vat)],['Netosumma',cents(totals.net)]].map(([label,value])=><div key={label} className="card" style={{padding:16}}><div style={{fontSize:'.7rem',fontWeight:800,color:'#64748b',textTransform:'uppercase'}}>{label}</div><div style={{fontSize:'1.4rem',fontWeight:800,marginTop:6}}>{value}</div></div>)}
+    </div>
+    <div className="card" style={{padding:18}}>
+      <h2 style={{fontSize:'1.05rem'}}>Lisa kulu</h2>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))',gap:10,marginTop:12}}>
+        <input type="date" value={form.expenseDate} onChange={event=>patchForm({expenseDate:event.target.value})}/>
+        <select value={form.category} onChange={event=>patchForm({category:event.target.value})}>{Object.entries(EXPENSE_CATEGORY_LABELS).map(([id,label])=><option key={id} value={id}>{label}</option>)}</select>
+        <input value={form.description} onChange={event=>patchForm({description:event.target.value})} placeholder="Kirjeldus"/>
+        <input type="number" min="0.01" step="0.01" value={form.amount} onChange={event=>patchForm({amount:event.target.value})} placeholder="Summa koos KM-ga (€)"/>
+        <select value={form.vatRate} onChange={event=>patchForm({vatRate:event.target.value})}><option value="0">KM 0%</option><option value="9">KM 9%</option><option value="13">KM 13%</option><option value="24">KM 24%</option></select>
+        <select value={form.paymentMethod} onChange={event=>patchForm({paymentMethod:event.target.value})}><option value="bank">Pangaülekanne</option><option value="card">Kaart</option><option value="cash">Sularaha</option><option value="other">Muu</option></select>
+      </div>
+      <div style={{display:'flex',justifyContent:'space-between',gap:12,alignItems:'center',marginTop:12,flexWrap:'wrap'}}><span style={{fontSize:'.76rem',color:'#64748b'}}>Arvestatud KM: <strong>{vatAmount.toFixed(2)} €</strong></span><button className="btn btn-pine" onClick={addExpense} disabled={Boolean(busy)}>{busy==='create'?'Salvestan…':'Lisa kulu'}</button></div>
+    </div>
+    <div className="card" style={{overflow:'hidden'}}>
+      {rows.map(expense=><div key={expense.id} style={{padding:'14px 16px',borderTop:'1px solid rgba(28,43,58,.08)',display:'flex',justifyContent:'space-between',gap:14,alignItems:'center',flexWrap:'wrap',opacity:expense.status==='active'?1:.58}}>
+        <div style={{minWidth:220,flex:1}}><div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}><strong>{expense.description}</strong><span className="badge" style={{background:expense.status==='active'?'#ecfdf5':'#f3f4f6',color:expense.status==='active'?'#166534':'#64748b'}}>{expense.status==='active'?'Aktiivne':expense.status==='corrected'?'Parandatud':'Tühistatud'}</span></div><div style={{fontSize:'.74rem',color:'#64748b',marginTop:4}}>{fmtDate(expense.expenseDate)} · {EXPENSE_CATEGORY_LABELS[expense.category]||expense.category} · KM {cents(expense.vatAmountCents)}</div></div>
+        <strong style={{fontSize:'1rem'}}>{cents(expense.amountCents)}</strong>
+        <div style={{display:'flex',gap:6,alignItems:'center',flexWrap:'wrap'}}>
+          {(expense.documents||[]).map(document=><button key={document.id} className="btn btn-ghost btn-sm" onClick={()=>openDocument(document)}><i className="fa-solid fa-eye"/> {document.fileName||'Tšekk'}</button>)}
+          {expense.status==='active'&&<label className="btn btn-ghost btn-sm" style={{cursor:'pointer'}}><i className="fa-solid fa-paperclip"/> {busy===`doc-${expense.id}`?'Laadin…':'Lisa tšekk'}<input type="file" accept=".pdf,image/jpeg,image/png,image/webp" hidden onChange={event=>uploadReceipt(expense,event.target.files?.[0],event.target)}/></label>}
+          {expense.status==='active'&&<button className="btn btn-ghost btn-sm" onClick={()=>correctExpense(expense)} disabled={Boolean(busy)}>Paranda</button>}
+          {expense.status==='active'&&<button className="btn btn-ghost btn-sm" style={{color:'#991b1b'}} onClick={()=>voidExpense(expense)} disabled={Boolean(busy)}>Tühista</button>}
+        </div>
+      </div>)}
+      {rows.length===0&&<div style={{padding:34,textAlign:'center',color:'#94a3b8'}}>Selles kuus kulusid pole.</div>}
+    </div>
+  </div>;
+}
+
+function DataQualityView({notify}) {
+  const [data,setData]=React.useState(null);
+  const [busy,setBusy]=React.useState('');
+  const [selections,setSelections]=React.useState({});
+  const [accountSearch,setAccountSearch]=React.useState('');
+  const refresh=React.useCallback(async()=>{
+    setBusy('refresh');
+    try{setData(await staffOperationsApiPost('/data-quality/preview',{}));}
+    catch(error){notify(`⚠ Kontroll ebaõnnestus: ${error.message||error}`);}
+    finally{setBusy('');}
+  },[]);
+  React.useEffect(()=>{refresh();},[]);
+  const pick=(key,value)=>setSelections(current=>({...current,[key]:value}));
+  const relink=async(type,item)=>{
+    const studentId=selections[`${type}-${item.id}`];
+    if(!studentId){notify('⚠ Vali õige õpilane');return;}
+    if(!window.confirm('Kas seod selle kirje täpselt valitud õpilasega?')) return;
+    setBusy(`${type}-${item.id}`);
+    try{await staffOperationsApiPost('/data-quality/relink',{entityType:type,entityId:item.id,studentId,requestId:financeRequestId('datarelink')});notify('✓ Seos parandatud ja logitud');await refresh();}
+    catch(error){notify(`⚠ Seost ei saanud parandada: ${error.message||error}`);setBusy('');}
+  };
+  const correctDue=async invoice=>{
+    const due=window.prompt(`Arve ${invoice.number||invoice.id} uus tähtaeg`,invoice.date||today());
+    if(!due) return;
+    const reason=window.prompt('Paranduse põhjus','Tähtaeg oli varasem kui arve kuupäev');
+    if(!reason?.trim()) return;
+    setBusy(`due-${invoice.id}`);
+    try{await staffOperationsApiPost('/data-quality/invoice-due',{invoiceId:invoice.id,due,reason:reason.trim(),requestId:financeRequestId('invoiceduefix')});notify('✓ Arve tähtaeg parandatud');await refresh();}
+    catch(error){notify(`⚠ Tähtaega ei saanud parandada: ${error.message||error}`);setBusy('');}
+  };
+  const linkAccount=async account=>{
+    const studentId=selections[`account-student-${account.uid}`];
+    const relationship=selections[`account-role-${account.uid}`]||'parent';
+    if(!studentId){notify('⚠ Vali laps või õpilane');return;}
+    setBusy(`account-${account.uid}`);
+    try{await staffOperationsApiPost('/accounts/link',{uid:account.uid,studentId,relationship,requestId:financeRequestId('accountlink')});notify('✓ Konto seoti valitud õpilasega');await refresh();}
+    catch(error){notify(`⚠ Kontot ei saanud siduda: ${error.message||error}`);setBusy('');}
+  };
+  const changeAccountStatus=async account=>{
+    const disabled=!account.disabled;
+    const reason=window.prompt(disabled?'Konto peatamise põhjus':'Konto taastamise põhjus',disabled?'Vale või dubleeritud konto':'Konto seos on kontrollitud');
+    if(!reason?.trim()) return;
+    if(disabled&&!window.confirm('Konto ei saa pärast peatamist sisse logida. Andmeid ei kustutata. Jätkan?')) return;
+    setBusy(`status-${account.uid}`);
+    try{await staffOperationsApiPost('/accounts/status',{uid:account.uid,disabled,reason:reason.trim(),requestId:financeRequestId('accountstatus')});notify(disabled?'✓ Konto peatatud':'✓ Konto taastatud');await refresh();}
+    catch(error){notify(`⚠ Konto olekut ei saanud muuta: ${error.message||error}`);setBusy('');}
+  };
+  const mergeGroup=async group=>{
+    const primaryStudentId=selections[`duplicate-${group.kind}-${group.key}`]||group.students[0]?.id;
+    const duplicateStudentIds=group.students.map(student=>student.id).filter(id=>id!==primaryStudentId);
+    if(!primaryStudentId||!duplicateStudentIds.length) return;
+    const preview=await staffOperationsApiPost('/students/merge/preview',{primaryStudentId,duplicateStudentIds});
+    if(!window.confirm(`Põhikaart: ${preview.primary?.name||primaryStudentId}. Ühendan ${duplicateStudentIds.length} duplikaati ja ${preview.totalReferenceCount||0} seotud kirjet. Jätkan?`)) return;
+    setBusy(`duplicate-${group.key}`);
+    try{await staffOperationsApiPost('/students/merge',{primaryStudentId,duplicateStudentIds,requestId:financeRequestId('studentmerge')});notify('✓ Duplikaadid ühendatud');await refresh();}
+    catch(error){notify(`⚠ Duplikaate ei saanud ühendada: ${error.message||error}`);setBusy('');}
+  };
+  if(!data) return <div className="card" style={{padding:30,textAlign:'center'}}><i className="fa-solid fa-spinner fa-spin"/> Kontrollin andmeid…</div>;
+  const accountQuery=normalizeText(accountSearch);
+  const visibleAccounts=(data.accounts||[]).filter(account=>!accountQuery||normalizeText(`${account.displayName} ${account.email} ${account.uid}`).includes(accountQuery));
+  const issueSelect=(key)=><select value={selections[key]||''} onChange={event=>pick(key,event.target.value)} style={{minWidth:220}}><option value="">Vali täpne õpilane…</option>{(data.students||[]).map(student=><option key={student.id} value={student.id}>{student.name||'Nimeta'} · {student.email||student.id}</option>)}</select>;
+  return <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:18}}>
+    <div style={{display:'flex',justifyContent:'space-between',gap:12,alignItems:'flex-end',flexWrap:'wrap'}}><div><h1 style={{fontSize:'1.7rem'}}>Andmete parandamine</h1><p style={{color:'#64748b',fontSize:'.86rem',marginTop:3}}>Seosed parandatakse ainult valitud ID järgi, mitte nime oletades.</p></div><button className="btn btn-pine" onClick={refresh} disabled={busy==='refresh'}><i className={`fa-solid ${busy==='refresh'?'fa-spinner fa-spin':'fa-rotate'}`}/> Kontrolli uuesti</button></div>
+    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(170px,1fr))',gap:10}}>{[['Sidumata tunnid',data.summary.orphanLessonCount],['Sidumata arved',data.summary.orphanInvoiceCount],['Valed tähtajad',data.summary.invalidInvoiceDateCount],['Sidumata kontod',data.summary.unlinkedAccountCount],['Duplikaadigrupid',data.summary.duplicateGroupCount]].map(([label,value])=><div key={label} className="card" style={{padding:15}}><div style={{fontSize:'.68rem',fontWeight:800,color:'#64748b',textTransform:'uppercase'}}>{label}</div><div style={{fontSize:'1.5rem',fontWeight:800,marginTop:5,color:value?'#991b1b':'#166534'}}>{value}</div></div>)}</div>
+    {[['lesson','Sidumata tunnid',data.orphanLessons||[]],['invoice','Sidumata arved',data.orphanInvoices||[]]].map(([type,title,items])=>items.length>0&&<div key={type} className="card" style={{overflow:'hidden'}}><div style={{padding:15,fontWeight:800}}>{title}</div>{items.map(item=><div key={item.id} style={{padding:'12px 15px',borderTop:'1px solid rgba(28,43,58,.08)',display:'flex',gap:10,alignItems:'center',flexWrap:'wrap'}}><div style={{minWidth:210,flex:1}}><strong>{item.number||item.studentName||'Nimeta kirje'}</strong><div style={{fontSize:'.7rem',color:'#64748b',marginTop:3}}>{item.date||'Kuupäev puudub'} · ID {item.id} · vana studentId {item.studentId||'puudub'}</div></div>{issueSelect(`${type}-${item.id}`)}<button className="btn btn-pine btn-sm" disabled={busy===`${type}-${item.id}`} onClick={()=>relink(type,item)}>Seo õpilasega</button></div>)}</div>)}
+    {(data.invalidInvoiceDates||[]).length>0&&<div className="card" style={{overflow:'hidden'}}><div style={{padding:15,fontWeight:800}}>Valed arvetähtajad</div>{data.invalidInvoiceDates.map(invoice=><div key={invoice.id} style={{padding:'12px 15px',borderTop:'1px solid rgba(28,43,58,.08)',display:'flex',justifyContent:'space-between',gap:10,alignItems:'center',flexWrap:'wrap'}}><div><strong>{invoice.number||invoice.id} · {invoice.studentName||'Maksja määramata'}</strong><div style={{fontSize:'.72rem',color:'#991b1b',marginTop:3}}>Arve {fmtDate(invoice.date)} · tähtaeg {fmtDate(invoice.due)}</div></div><button className="btn btn-amber btn-sm" onClick={()=>correctDue(invoice)}>Paranda tähtaeg</button></div>)}</div>}
+    {(data.duplicateGroups||[]).length>0&&<div className="card" style={{overflow:'hidden'}}><div style={{padding:15,fontWeight:800}}>Võimalikud õpilaste duplikaadid</div>{data.duplicateGroups.map(group=><div key={`${group.kind}-${group.key}`} style={{padding:'12px 15px',borderTop:'1px solid rgba(28,43,58,.08)',display:'flex',gap:10,alignItems:'center',flexWrap:'wrap'}}><div style={{minWidth:210,flex:1}}><strong>{group.kind==='email'?'Sama e-post':'Sama nimi'}: {group.key}</strong><div style={{fontSize:'.72rem',color:'#64748b',marginTop:3}}>{group.students.map(student=>student.name||student.id).join(' · ')}</div></div><select value={selections[`duplicate-${group.kind}-${group.key}`]||group.students[0]?.id||''} onChange={event=>pick(`duplicate-${group.kind}-${group.key}`,event.target.value)}>{group.students.map(student=><option key={student.id} value={student.id}>Põhikaart: {student.name||student.id}</option>)}</select><button className="btn btn-amber btn-sm" onClick={()=>mergeGroup(group)}>Kontrolli ja ühenda</button></div>)}</div>}
+    <div className="card" style={{overflow:'hidden'}}><div style={{padding:15,display:'flex',justifyContent:'space-between',gap:10,alignItems:'center',flexWrap:'wrap'}}><div><strong>Firebase kontod</strong><div style={{fontSize:'.72rem',color:'#64748b',marginTop:3}}>Näed rolli, finantsõigust ja kõiki seotud lapsi.</div></div><input value={accountSearch} onChange={event=>setAccountSearch(event.target.value)} placeholder="Otsi nime, e-posti või UID järgi…" style={{maxWidth:340}}/></div>{visibleAccounts.map(account=><div key={account.uid} style={{padding:'12px 15px',borderTop:'1px solid rgba(28,43,58,.08)',display:'flex',gap:10,alignItems:'center',flexWrap:'wrap',opacity:account.disabled?.58:1}}><div style={{minWidth:230,flex:1}}><div style={{display:'flex',gap:6,alignItems:'center',flexWrap:'wrap'}}><strong>{account.displayName||account.email||'Nimeta konto'}</strong><span className="badge" style={{background:account.financeAccess?'#dcfce7':'#f3f4f6',color:account.financeAccess?'#166534':'#64748b'}}>Finants: {account.financeAccess?'jah':'ei'}</span>{account.disabled&&<span className="badge" style={{background:'#fee2e2',color:'#991b1b'}}>Peatatud</span>}</div><div style={{fontSize:'.7rem',color:'#64748b',marginTop:3}}>{account.email||'E-post puudub'} · roll {account.role||'määramata'} · UID {account.uid}</div><div style={{fontSize:'.72rem',color:'#42536A',marginTop:4}}>Lapsed: {account.links?.length?account.links.map(link=>`${link.studentName||link.studentId} (${link.relationship==='parent'?'lapsevanem':'õpilane'})`).join(', '):'seos puudub'}</div></div>{issueSelect(`account-student-${account.uid}`)}<select value={selections[`account-role-${account.uid}`]||'parent'} onChange={event=>pick(`account-role-${account.uid}`,event.target.value)}><option value="parent">Lapsevanem</option><option value="student">Õpilane</option></select><button className="btn btn-pine btn-sm" onClick={()=>linkAccount(account)}>Lisa seos</button><button className="btn btn-ghost btn-sm" style={{color:account.disabled?'#166534':'#991b1b'}} onClick={()=>changeAccountStatus(account)}>{account.disabled?'Taasta':'Peata'}</button></div>)}{visibleAccounts.length===0&&<div style={{padding:30,textAlign:'center',color:'#94a3b8'}}>Kontosid ei leitud.</div>}</div>
+  </div>;
+}
+
+function FinancialPeriodClosurePanel({month,notify,onReviewed}) {
+  const [preview,setPreview]=React.useState(null);
+  const [busy,setBusy]=React.useState('');
+  const load=React.useCallback(async()=>{
+    if(!/^\d{4}-\d{2}$/.test(month)) return;
+    setBusy('preview');
+    try{setPreview(await financeApiPost('/financial-periods/preview',{month}));}
+    catch(error){notify(`⚠ Perioodi kontroll ebaõnnestus: ${error.message||error}`);}
+    finally{setBusy('');}
+  },[month]);
+  React.useEffect(()=>{load();},[month]);
+  const review=async()=>{setBusy('review');try{await financeApiPost('/financial-periods/review',{month,requestId:financeRequestId('periodreview')});notify('✓ Kuu finantskontroll kinnitatud');if(onReviewed) await onReviewed(month);await load();}catch(error){notify(`⚠ Kontrolli ei saanud kinnitada: ${error.message||error}`);}finally{setBusy('');}};
+  const downloadExport=exportData=>{
+    const blob=new Blob([JSON.stringify(exportData,null,2)],{type:'application/json;charset=utf-8'});const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=`keelesepp-raamatupidamine-${month}.json`;document.body.appendChild(link);link.click();link.remove();URL.revokeObjectURL(url);
+  };
+  const generateExport=async()=>{setBusy('export');try{const result=await financeApiPost('/financial-periods/export',{month,requestId:financeRequestId('periodexport')});downloadExport(result.export);notify('✓ Raamatupidamise eksport arhiveeritud ja alla laaditud');await load();}catch(error){notify(`⚠ Eksporti ei saanud luua: ${error.message||error}`);}finally{setBusy('');}};
+  const closePeriod=async()=>{const reason=window.prompt('Kuu sulgemise põhjus','Kuu kontrollitud ja raamatupidamiseks valmis');if(!reason?.trim()) return;if(!window.confirm(`Sulgen perioodi ${month}. Selle kuu finantskirjed lukustatakse. Jätkan?`)) return;setBusy('close');try{await financeApiPost('/financial-periods/close',{month,reason:reason.trim(),requestId:financeRequestId('periodclose')});notify('✓ Finantskuu suletud');await load();}catch(error){notify(`⚠ Kuud ei saanud sulgeda: ${error.message||error}`);}finally{setBusy('');}};
+  const correction=async()=>{const sourceMonth=month;const effectiveDate=window.prompt('Paranduse kuupäev avatud perioodis',today());if(!effectiveDate) return;const type=window.prompt('Liik: expense, invoice, payment, payroll või other','expense');if(!type) return;const description=window.prompt('Paranduse kirjeldus','');if(!description?.trim()) return;const amountDelta=window.prompt('Summa muutus (€), kasuta miinusmärki vajadusel','0');if(amountDelta===null) return;const vatDelta=window.prompt('Käibemaksu muutus (€)','0');if(vatDelta===null) return;const reason=window.prompt('Põhjus','Suletud perioodi parandus');if(!reason?.trim()) return;setBusy('correction');try{await financeApiPost('/financial-periods/corrections',{sourceMonth,effectiveDate,type:type.trim(),description:description.trim(),amountDelta,vatDelta,reason:reason.trim(),requestId:financeRequestId('periodcorrection')});notify('✓ Parandus kirjendati avatud perioodi');await load();}catch(error){notify(`⚠ Parandust ei saanud luua: ${error.message||error}`);}finally{setBusy('');}};
+  if(!preview) return <div className="card" style={{padding:28,textAlign:'center'}}><i className="fa-solid fa-spinner fa-spin"/> Laadin sulgemiskontrolli…</div>;
+  const close=preview.closeSnapshot||{};const summary=close.summary||{};const labels={period_finished:'Kuu on lõppenud',financial_review:'Finantskontroll kehtib',payroll:'Tööaeg ja töötasu kontrollitud',expenses:'Kuludel on tõendid',export:'Eksport vastab andmetele'};
+  return <div style={{display:'flex',flexDirection:'column',gap:14}}><div className="card" style={{padding:18,background:close.alreadyClosed?'#f0fdf4':'#fff'}}><div style={{display:'flex',justifyContent:'space-between',gap:12,alignItems:'center',flexWrap:'wrap'}}><div><div style={{fontSize:'.7rem',fontWeight:800,textTransform:'uppercase',color:close.alreadyClosed?'#166534':'#42536A'}}>{close.alreadyClosed?'Periood on suletud':'Kuu sulgemine'}</div><div style={{fontSize:'1.3rem',fontWeight:800,marginTop:4}}>{month}</div><div style={{fontSize:'.74rem',color:'#64748b',marginTop:4}}>{summary.expenseCount||0} kulu · {centsForUi(summary.expenseAmountCents)} € · töötasu {centsForUi(summary.payrollPayCents)} €</div></div><button className="btn btn-ghost btn-sm" onClick={load} disabled={busy==='preview'}><i className="fa-solid fa-rotate"/> Uuenda</button></div></div><div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(190px,1fr))',gap:10}}>{(close.checklist||[]).map(item=><div key={item.id} className="card" style={{padding:14,border:`1px solid ${item.ready?'rgba(22,101,52,.2)':'rgba(153,27,27,.2)'}`}}><div style={{fontWeight:800,fontSize:'.8rem'}}><i className={`fa-solid ${item.ready?'fa-circle-check':'fa-circle-exclamation'}`} style={{color:item.ready?'#166534':'#991b1b',marginRight:6}}/>{labels[item.id]||item.id}</div>{!item.ready&&<div style={{fontSize:'.7rem',color:'#991b1b',marginTop:4}}>{item.count||1} probleemi</div>}</div>)}</div><div className="card" style={{padding:16,display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>{!close.alreadyClosed&&<button className="btn btn-ghost" onClick={review} disabled={Boolean(busy)||!(close.billing?.canReview)}>1. Kinnita kontroll</button>}{!close.alreadyClosed&&<button className="btn btn-amber" onClick={generateExport} disabled={Boolean(busy)||!close.canGenerateExport}>2. Loo eksport</button>}{!close.alreadyClosed&&<button className="btn btn-pine" onClick={closePeriod} disabled={Boolean(busy)||!close.canClose}>3. Sulge kuu</button>}{close.alreadyClosed&&<button className="btn btn-amber" onClick={correction} disabled={Boolean(busy)}>Lisa auditeeritud parandus</button>}<span style={{fontSize:'.72rem',color:'#64748b'}}>Suletud perioodi vanu kirjeid ei kirjutata üle.</span></div></div>;
+}
+
+const centsForUi=value=>(Number(value||0)/100).toFixed(2);
+
+const ADMIN_FINANCE_SECTIONS=['invoices','reconciliation','expenses','accounting','data-quality'];
+
+function FinanceWorkspaceNav({section,setSection,invoices=[],bankTransactions=[],expenses=[]}) {
   const unpaidBalance=invoices
     .filter(invoice=>invoice.status==='Ootel')
     .reduce((sum,invoice)=>sum+invoiceFinancialSummary(invoice).balance,0);
@@ -7084,10 +7311,24 @@ function FinanceWorkspaceNav({section,setSection,invoices=[],bankTransactions=[]
       badge:bankAttention>0?`${bankAttention} kontrollida`:''
     },
     {
+      id:'expenses',
+      icon:'fa-receipt',
+      label:'Kulud',
+      description:'Kulud, käibemaks ja tšekid',
+      badge:expenses.filter(expense=>expense.status==='active'&&String(expense.expenseDate||'').slice(0,7)===today().slice(0,7)).length||''
+    },
+    {
       id:'accounting',
       icon:'fa-book',
       label:'Raamatupidamine',
       description:'Kontrolli seoseid ja kinnita kuu',
+      badge:''
+    },
+    {
+      id:'data-quality',
+      icon:'fa-link',
+      label:'Andmete parandamine',
+      description:'Kontod, duplikaadid ja valed seosed',
       badge:''
     }
   ];
@@ -7585,7 +7826,7 @@ function InvoicesView({invoices,payments,paymentLineAllocations=[],myStudents,pa
     <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:20}}>
       <h1 style={{fontSize:'1.7rem'}}>Arved</h1>
 
-      {isAdmin&&(
+      {false&&isAdmin&&(
         <CollapsibleCard id="invoice-tariffs" title="Tariifide versioonid"
           subtitle="Uus hind loob uue versiooni. Varasemad arved ja tariifid ei muutu."
           badge={availableTariffs.length}>
@@ -7941,7 +8182,7 @@ function InvoicesView({invoices,payments,paymentLineAllocations=[],myStudents,pa
 	                      : 'Jäta summa tühjaks, kui tahad kasutada automaatset arvestust.'}
 	                  </div>
 	                </div>
-	                {isAdmin&&invoiceTargetType==='student'&&selectedInvoiceStudent&&(
+	                {false&&isAdmin&&invoiceTargetType==='student'&&selectedInvoiceStudent&&(
 	                  <div style={{padding:'12px',borderRadius:12,background:'#fff',border:'1px solid rgba(47,93,80,.14)',display:'flex',flexDirection:'column',gap:10}}>
 	                    <div style={{display:'flex',justifyContent:'space-between',gap:10,alignItems:'flex-start',flexWrap:'wrap'}}>
 	                      <div>
@@ -8973,7 +9214,7 @@ function PaymentAllocationQueuePanel({queue,onOpen,onConfirmBatch,batchBusy}) {
   );
 }
 
-function AccountingRegisterView({invoices,payments,paymentLineAllocations,bankTransactions,payerCredits,lessons,financialPeriods,reviewFinancialPeriod,savePaymentLineAllocation,openInvoices,openReconciliation,openPaymentDocument,voidPayment}) {
+function AccountingRegisterView({invoices,payments,paymentLineAllocations,bankTransactions,payerCredits,lessons,financialPeriods,reviewFinancialPeriod,savePaymentLineAllocation,openInvoices,openReconciliation,openPaymentDocument,voidPayment,notify}) {
   const [month,setMonth]=React.useState(()=>today().slice(0,7));
   const [registerMode,setRegisterMode]=React.useState('invoices');
   const [status,setStatus]=React.useState('all');
@@ -9087,8 +9328,10 @@ function AccountingRegisterView({invoices,payments,paymentLineAllocations,bankTr
               :registerMode==='lessons'
                 ?'Tundide ja maksete täpne kontroll'
                 :registerMode==='allocations'
-                  ?'Maksete täpse tunnijaotuse tööjärjekord'
-                  :'Kuu finantskontroll ja kinnitatud kontrollversioon'}
+                ?'Maksete täpse tunnijaotuse tööjärjekord'
+                  :registerMode==='control'
+                    ?'Kuu finantskontroll ja kinnitatud kontrollversioon'
+                    :'Raamatupidamise eksport, kuu lukustamine ja parandused'}
           </p>
         </div>
         <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
@@ -9121,6 +9364,10 @@ function AccountingRegisterView({invoices,payments,paymentLineAllocations,bankTr
             <span className="badge" style={{marginLeft:4,background:'#fee2e2',color:'#991b1b'}}>{periodControl.summary.blockingIssueCount}</span>
           )}
         </button>
+        <button onClick={()=>setRegisterMode('closure')} className={registerMode==='closure'?'btn btn-dark btn-sm':'btn btn-ghost btn-sm'}>
+          <i className="fa-solid fa-lock"/> Kuu sulgemine
+          {period?.status==='closed'&&<span className="badge" style={{marginLeft:4,background:'#dcfce7',color:'#166534'}}>Suletud</span>}
+        </button>
       </div>
 
       <div className="card" style={{padding:16,background:'#1C2B3A',color:'#fff'}}>
@@ -9133,7 +9380,9 @@ function AccountingRegisterView({invoices,payments,paymentLineAllocations,bankTr
               ?'Tunnid kuuluvad perioodi toimumise kuupäeva järgi. Iga rida kontrollib tunni ID-d, arverida, makseid, paketikatet ja allesjäänud summat.'
               :registerMode==='allocations'
                 ?'Süsteem pakub jaotust ainult aktiivse makse, arve muutumatute tunniridade ja allesjäänud summade põhjal. Ettepanek ei muutu finantskirjeks enne administraatori kinnitust.'
-                :'Kuu kontroll ühendab tundide finantsotsused, arveread, aktiivsed maksekirjed ja pangatehingute jaotuse. Kinnitamine loob muutumatu serveripoolse kontrollversiooni.'}
+                :registerMode==='control'
+                  ?'Kuu kontroll ühendab tundide finantsotsused, arveread, aktiivsed maksekirjed ja pangatehingute jaotuse. Kinnitamine loob muutumatu serveripoolse kontrollversiooni.'
+                  :'Sulgemine kontrollib lisaks kuludokumente ja töötasu, arhiveerib raamatupidamise ekspordi ning lukustab perioodi finantskuupäevad.'}
         </div>
       </div>
 
@@ -9278,6 +9527,7 @@ function AccountingRegisterView({invoices,payments,paymentLineAllocations,bankTr
         openInvoices={openInvoices}
         openReconciliation={openReconciliation}
         openLessonRegister={()=>setRegisterMode('lessons')}/>}
+      {registerMode==='closure'&&<FinancialPeriodClosurePanel month={month} notify={notify}/>}
       {allocationDraft&&(
         <PaymentLineAllocationModal
           invoice={allocationDraft.invoice}
@@ -11724,6 +11974,7 @@ function App() {
   const [bankTransactions,setBankTransactions] = useState([]);
   const [payerCredits,setPayerCredits] = useState([]);
   const [financialPeriods,setFinancialPeriods] = useState([]);
+  const [expenses,setExpenses] = useState([]);
   const [tariffs,setTariffs] = useState([]);
   const [tariffAssignments,setTariffAssignments] = useState([]);
   const [packageProducts,setPackageProducts] = useState([]);
@@ -11982,6 +12233,7 @@ function App() {
       setPayments([]);setBankTransactions([]);setPayerCredits([]);
       setPaymentLineAllocations([]);
       setFinancialPeriods([]);
+      setExpenses([]);
       setTariffs([]);setTariffAssignments([]);
       setPackageProducts([]);setStudentPackages([]);setPackageLedger([]);
       return;
@@ -12006,6 +12258,10 @@ function App() {
       snap=>setFinancialPeriods(snap.docs.map(doc=>({id:doc.id,...doc.data()}))),
       err=>{console.warn('Financial periods listener failed:',err);setFinancialPeriods([]);}
     );
+    const unsubscribeExpenses=db.collection('expenses').orderBy('expenseDate','desc').onSnapshot(
+      snap=>setExpenses(snap.docs.map(doc=>({id:doc.id,...doc.data()}))),
+      err=>{console.warn('Expenses listener failed:',err);setExpenses([]);}
+    );
     const unsubscribeTariffs=db.collection('tariffs').onSnapshot(
       snap=>setTariffs(snap.docs.map(doc=>({id:doc.id,...doc.data()}))),
       err=>{console.warn('Tariffs listener failed:',err);setTariffs([]);}
@@ -12027,7 +12283,7 @@ function App() {
       err=>{console.warn('Package ledger listener failed:',err);setPackageLedger([]);}
     );
     return()=>{
-      unsubscribePayments();unsubscribePaymentLineAllocations();unsubscribeBankTransactions();unsubscribePayerCredits();unsubscribeFinancialPeriods();
+      unsubscribePayments();unsubscribePaymentLineAllocations();unsubscribeBankTransactions();unsubscribePayerCredits();unsubscribeFinancialPeriods();unsubscribeExpenses();
       unsubscribeTariffs();unsubscribeTariffAssignments();
       unsubscribePackageProducts();unsubscribeStudentPackages();unsubscribePackageLedger();
     };
@@ -14853,7 +15109,8 @@ function App() {
             section={financeSection}
             setSection={setFinanceSection}
             invoices={scopedInvoices}
-            bankTransactions={bankTransactions}/>}
+            bankTransactions={bankTransactions}
+            expenses={expenses}/>}
 
 	          {((tab==='invoices'&&isStaff&&!isAdmin)||(tab==='finance'&&isAdmin&&financeSection==='invoices'))&&<InvoicesView invoices={scopedInvoices} payments={payments} paymentLineAllocations={paymentLineAllocations} myStudents={myStudents} parents={scopedParents}
 	            schedule={schedule} students={students} lessons={lessons} isAdmin={isAdmin}
@@ -14873,6 +15130,10 @@ function App() {
             applyPayerCredit={applyPayerCredit}
             refundPayerCredit={refundPayerCredit}/>}
 
+          {tab==='finance'&&isAdmin&&financeSection==='expenses'&&<ExpensesView expenses={expenses} notify={notify}/>}
+
+          {tab==='finance'&&isAdmin&&financeSection==='data-quality'&&<DataQualityView notify={notify}/>}
+
           {tab==='finance'&&isAdmin&&financeSection==='accounting'&&<AccountingRegisterView
             invoices={invoices}
             payments={payments}
@@ -14885,6 +15146,7 @@ function App() {
             savePaymentLineAllocation={savePaymentLineAllocation}
             openPaymentDocument={openPaymentDocument}
             voidPayment={voidPayment}
+            notify={notify}
             openInvoices={()=>setFinanceSection('invoices')}
             openReconciliation={()=>setFinanceSection('reconciliation')}/>}
 

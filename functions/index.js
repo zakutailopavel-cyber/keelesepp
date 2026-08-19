@@ -5593,6 +5593,345 @@ async function studentOwnershipBackfill({ actor, apply = false }) {
   return { ...result, appliedAt: nowIso };
 }
 
+function normalizedIdentity(value) {
+  return String(value || "")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9@]+/g, " ")
+    .trim();
+}
+
+async function listFirebaseAuthUsers() {
+  const users = [];
+  let pageToken;
+  do {
+    const page = await admin.auth().listUsers(1000, pageToken);
+    users.push(...page.users);
+    pageToken = page.pageToken;
+  } while (pageToken);
+  return users;
+}
+
+async function previewDataQuality() {
+  const [studentSnap, lessonSnap, invoiceSnap, userSnap, authUsers] = await Promise.all([
+    db.collection("students").get(),
+    db.collection("lessons").get(),
+    db.collection("invoices").get(),
+    db.collection("users").get(),
+    listFirebaseAuthUsers(),
+  ]);
+  const records = snapshot => snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  const students = records(studentSnap);
+  const lessons = records(lessonSnap);
+  const invoices = records(invoiceSnap);
+  const userProfiles = new Map(records(userSnap).map(profile => [profile.id, profile]));
+  const studentIds = new Set(students.map(student => student.id));
+  const accountLinks = new Map();
+  students.forEach(student => {
+    studentAccountIds(student).forEach(uid => {
+      const links = accountLinks.get(uid) || [];
+      links.push({ studentId: student.id, studentName: student.name || "", relationship: "student" });
+      accountLinks.set(uid, links);
+    });
+    parentAccountIds(student).forEach(uid => {
+      const links = accountLinks.get(uid) || [];
+      links.push({ studentId: student.id, studentName: student.name || "", relationship: "parent" });
+      accountLinks.set(uid, links);
+    });
+  });
+  const orphanLessons = lessons.filter(lesson => !lesson.studentId || !studentIds.has(lesson.studentId)).map(lesson => ({
+    id: lesson.id,
+    studentId: lesson.studentId || "",
+    studentName: lesson.studentName || lesson.name || "",
+    date: lesson.date || lesson.lessonDate || "",
+    teacher: lesson.teacher || "",
+    status: lesson.status || "",
+  }));
+  const orphanInvoices = invoices.filter(invoice => {
+    if (invoice.invoiceTargetType === "parent") return false;
+    return !invoice.studentId || !studentIds.has(invoice.studentId);
+  }).map(invoice => ({
+    id: invoice.id,
+    number: invoice.num || invoice.number || "",
+    studentId: invoice.studentId || "",
+    studentName: invoice.studentName || "",
+    date: invoice.date || "",
+    due: invoice.due || "",
+    amount: Number(invoice.amount) || (Number(invoice.amountCents) || 0) / 100,
+    status: invoice.status || "",
+  }));
+  const invalidInvoiceDates = invoices.filter(invoice =>
+    /^\d{4}-\d{2}-\d{2}$/.test(String(invoice.date || ""))
+      && /^\d{4}-\d{2}-\d{2}$/.test(String(invoice.due || ""))
+      && invoice.due < invoice.date
+  ).map(invoice => ({
+    id: invoice.id,
+    number: invoice.num || invoice.number || "",
+    studentId: invoice.studentId || "",
+    studentName: invoice.studentName || "",
+    date: invoice.date,
+    due: invoice.due,
+  }));
+  const accounts = authUsers.map(authUser => {
+    const profile = userProfiles.get(authUser.uid) || {};
+    const roles = [...collectTrustedRoles(profile, authUser.customClaims || {})];
+    return {
+      uid: authUser.uid,
+      email: authUser.email || profile.email || "",
+      displayName: authUser.displayName || profile.displayName || profile.name || "",
+      disabled: authUser.disabled === true || profile.disabled === true,
+      role: profile.role || "",
+      roles: uniqueIds([roles, profile.roles]),
+      financeAccess: roles.includes("admin") || SUPER_ADMIN_EMAILS.has(String(authUser.email || "").toLowerCase()),
+      links: accountLinks.get(authUser.uid) || [],
+      createdAt: authUser.metadata?.creationTime || "",
+      lastSignInAt: authUser.metadata?.lastSignInTime || "",
+    };
+  });
+  const unlinkedAccounts = accounts.filter(account => {
+    if (account.links.length || account.disabled) return false;
+    if (account.roles.some(role => STAFF_ROLES.has(role))) return false;
+    return account.role === "student" || account.role === "parent" || account.roles.includes("student") || account.roles.includes("parent");
+  });
+  const duplicateGroups = [];
+  const collectDuplicates = (kind, keyFor) => {
+    const groups = new Map();
+    students.filter(student => student.active !== false).forEach(student => {
+      const key = keyFor(student);
+      if (!key) return;
+      const group = groups.get(key) || [];
+      group.push({ id: student.id, name: student.name || "", email: student.email || student.contactEmail || "" });
+      groups.set(key, group);
+    });
+    groups.forEach((items, key) => {
+      if (items.length > 1) duplicateGroups.push({ kind, key, students: items });
+    });
+  };
+  collectDuplicates("email", student => normalizedIdentity(student.email || student.contactEmail));
+  collectDuplicates("name", student => normalizedIdentity(student.name));
+  return {
+    generatedAt: new Date().toISOString(),
+    students: students.filter(student => student.active !== false).map(student => ({
+      id: student.id,
+      name: student.name || "",
+      email: student.email || student.contactEmail || "",
+      linkedUserIds: studentAccountIds(student),
+      linkedParentIds: parentAccountIds(student),
+    })),
+    orphanLessons,
+    orphanInvoices,
+    invalidInvoiceDates,
+    unlinkedAccounts,
+    accounts,
+    duplicateGroups,
+    summary: {
+      orphanLessonCount: orphanLessons.length,
+      orphanInvoiceCount: orphanInvoices.length,
+      invalidInvoiceDateCount: invalidInvoiceDates.length,
+      unlinkedAccountCount: unlinkedAccounts.length,
+      duplicateGroupCount: duplicateGroups.length,
+    },
+  };
+}
+
+async function relinkDataQualityRecord({ actor, entityType, entityId, studentId, requestId }) {
+  const mutationId = cleanRequestId(requestId);
+  const type = String(entityType || "").trim();
+  const collectionName = type === "lesson" ? "lessons" : type === "invoice" ? "invoices" : "";
+  if (!collectionName) throw httpError(400, "Valid entityType required");
+  const cleanEntityId = cleanText(entityId, 180);
+  const cleanStudentId = cleanText(studentId, 180);
+  if (!cleanEntityId || !cleanStudentId) throw httpError(400, "Exact entity and student IDs required");
+  const entityRef = db.collection(collectionName).doc(cleanEntityId);
+  const studentRef = db.collection("students").doc(cleanStudentId);
+  const auditRef = db.collection("activityLog").doc(`data-link-${mutationId}`);
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+  return db.runTransaction(async transaction => {
+    const [existingAudit, entitySnap, studentSnap] = await Promise.all([
+      transaction.get(auditRef),
+      transaction.get(entityRef),
+      transaction.get(studentRef),
+    ]);
+    if (existingAudit.exists) return { idempotent: true, entityId: cleanEntityId, studentId: cleanStudentId };
+    if (!entitySnap.exists) throw httpError(404, "Record not found");
+    if (!studentSnap.exists || studentSnap.data().active === false) throw httpError(404, "Active student profile not found");
+    const entity = entitySnap.data();
+    if (type === "lesson" && entity.date) await assertFinancialDateOpen(transaction, entity.date);
+    if (type === "invoice" && entity.date) await assertFinancialDateOpen(transaction, entity.date);
+    const previousStudentId = entity.studentId || "";
+    transaction.set(entityRef, {
+      studentId: cleanStudentId,
+      studentName: studentSnap.data().name || "",
+      dataLinkCorrectedAt: nowIso,
+      dataLinkCorrectedBy: actorData,
+      dataLinkCorrectionId: mutationId,
+      previousStudentId,
+      updatedAt: nowIso,
+    }, { merge: true });
+    transaction.create(auditRef, {
+      type: `${type}.student_link_corrected`,
+      action: `${type}.student_link_corrected`,
+      entityType: type,
+      entityId: cleanEntityId,
+      previousStudentId,
+      studentId: cleanStudentId,
+      studentName: studentSnap.data().name || "",
+      actor: actorData,
+      createdAt: nowIso,
+      requestId: mutationId,
+    });
+    return { idempotent: false, entityId: cleanEntityId, studentId: cleanStudentId };
+  });
+}
+
+async function correctInvoiceDueDate({ actor, invoiceId, due, reason, requestId }) {
+  const mutationId = cleanRequestId(requestId);
+  const cleanInvoiceId = cleanText(invoiceId, 180);
+  const cleanDue = validIsoDate(due, "due");
+  const cleanReason = cleanText(reason, 500);
+  if (!cleanInvoiceId || !cleanReason) throw httpError(400, "Invoice and correction reason required");
+  const invoiceRef = db.collection("invoices").doc(cleanInvoiceId);
+  const auditRef = db.collection("financialAudit").doc(mutationId);
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+  return db.runTransaction(async transaction => {
+    const [auditSnap, invoiceSnap] = await Promise.all([transaction.get(auditRef), transaction.get(invoiceRef)]);
+    if (auditSnap.exists) return { invoice: { id: invoiceSnap.id, ...invoiceSnap.data() }, idempotent: true };
+    if (!invoiceSnap.exists) throw httpError(404, "Invoice not found");
+    const invoice = invoiceSnap.data();
+    await assertFinancialDateOpen(transaction, invoice.date || cleanDue);
+    if (invoice.date && cleanDue < invoice.date) throw httpError(400, "Due date cannot be before invoice date");
+    const history = [...(Array.isArray(invoice.dueDateHistory) ? invoice.dueDateHistory : []), {
+      from: invoice.due || "",
+      to: cleanDue,
+      reason: cleanReason,
+      correctedAt: nowIso,
+      correctedBy: actorData,
+      requestId: mutationId,
+    }].slice(-20);
+    transaction.update(invoiceRef, { due: cleanDue, dueDateHistory: history, updatedAt: nowIso });
+    transaction.create(auditRef, {
+      entityType: "invoice",
+      entityId: cleanInvoiceId,
+      action: "invoice.due_date_corrected",
+      previousDue: invoice.due || "",
+      due: cleanDue,
+      actor: actorData,
+      reason: cleanReason,
+      createdAt: nowIso,
+      requestId: mutationId,
+    });
+    return { invoice: { id: cleanInvoiceId, ...invoice, due: cleanDue, dueDateHistory: history }, idempotent: false };
+  });
+}
+
+async function linkAccountToStudent({ actor, uid, studentId, relationship, requestId }) {
+  const mutationId = cleanRequestId(requestId);
+  const cleanUid = cleanText(uid, 180);
+  const cleanStudentId = cleanText(studentId, 180);
+  const cleanRelationship = String(relationship || "").trim();
+  if (!cleanUid || !cleanStudentId || !["student", "parent"].includes(cleanRelationship)) {
+    throw httpError(400, "Exact account, student, and relationship required");
+  }
+  let authUser;
+  try { authUser = await admin.auth().getUser(cleanUid); } catch (error) { throw httpError(404, "Firebase account not found"); }
+  const studentRef = db.collection("students").doc(cleanStudentId);
+  const userRef = db.collection("users").doc(cleanUid);
+  const auditRef = db.collection("activityLog").doc(`account-link-${mutationId}`);
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+  return db.runTransaction(async transaction => {
+    const [auditSnap, studentSnap, userSnap] = await Promise.all([
+      transaction.get(auditRef), transaction.get(studentRef), transaction.get(userRef),
+    ]);
+    if (auditSnap.exists) return { uid: cleanUid, studentId: cleanStudentId, relationship: cleanRelationship, idempotent: true };
+    if (!studentSnap.exists || studentSnap.data().active === false) throw httpError(404, "Active student profile not found");
+    const student = studentSnap.data();
+    const profile = userSnap.exists ? userSnap.data() : {};
+    const existingRole = String(profile.role || "").toLowerCase();
+    const profileRoles = uniqueIds([existingRole, profile.studentRole === true ? "student" : "", cleanRelationship]);
+    const nextRole = STAFF_ROLES.has(existingRole) ? existingRole : existingRole || cleanRelationship;
+    const studentPatch = cleanRelationship === "student" ? {
+      linkedUserIds: uniqueIds([studentAccountIds(student), cleanUid]),
+      linkedUserId: student.linkedUserId || cleanUid,
+      studentUid: student.studentUid || cleanUid,
+    } : {
+      linkedParentIds: uniqueIds([parentAccountIds(student), cleanUid]),
+      linkedParentId: student.linkedParentId || cleanUid,
+      parentUid: student.parentUid || cleanUid,
+    };
+    transaction.set(studentRef, { ...studentPatch, accountLinkedAt: nowIso, accountLinkedBy: actorData, updatedAt: nowIso }, { merge: true });
+    transaction.set(userRef, {
+      uid: cleanUid,
+      email: authUser.email || profile.email || "",
+      displayName: authUser.displayName || profile.displayName || profile.name || "",
+      role: nextRole,
+      roles: profileRoles,
+      linkedStudentIds: FieldValue.arrayUnion(cleanStudentId),
+      accountLinkedAt: nowIso,
+      accountLinkedBy: actorData,
+      updatedAt: nowIso,
+    }, { merge: true });
+    transaction.create(auditRef, {
+      type: "account.student_linked",
+      action: "account.student_linked",
+      uid: cleanUid,
+      email: authUser.email || "",
+      studentId: cleanStudentId,
+      studentName: student.name || "",
+      relationship: cleanRelationship,
+      actor: actorData,
+      createdAt: nowIso,
+      requestId: mutationId,
+    });
+    return { uid: cleanUid, studentId: cleanStudentId, relationship: cleanRelationship, idempotent: false };
+  });
+}
+
+async function setAccountDisabled({ actor, uid, disabled, reason, requestId }) {
+  const mutationId = cleanRequestId(requestId);
+  const cleanUid = cleanText(uid, 180);
+  const nextDisabled = disabled === true;
+  const cleanReason = cleanText(reason, 500);
+  if (!cleanUid || !cleanReason) throw httpError(400, "Account and reason required");
+  if (cleanUid === actor.decoded.uid) throw httpError(409, "You cannot disable your own account");
+  const auditRef = db.collection("activityLog").doc(`account-status-${mutationId}`);
+  const existingAudit = await auditRef.get();
+  if (existingAudit.exists) {
+    const data = existingAudit.data();
+    if (data.uid !== cleanUid || data.disabled !== nextDisabled) throw httpError(409, "requestId already used for another account change");
+    return { uid: cleanUid, disabled: nextDisabled, idempotent: true };
+  }
+  let authUser;
+  try { authUser = await admin.auth().getUser(cleanUid); } catch (error) { throw httpError(404, "Firebase account not found"); }
+  if (SUPER_ADMIN_EMAILS.has(String(authUser.email || "").toLowerCase())) throw httpError(409, "Super administrator account cannot be disabled here");
+  await admin.auth().updateUser(cleanUid, { disabled: nextDisabled });
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+  await db.collection("users").doc(cleanUid).set({
+    disabled: nextDisabled,
+    active: !nextDisabled,
+    accountStatusChangedAt: nowIso,
+    accountStatusChangedBy: actorData,
+    accountStatusReason: cleanReason,
+    updatedAt: nowIso,
+  }, { merge: true });
+  await auditRef.create({
+    type: nextDisabled ? "account.disabled" : "account.enabled",
+    action: nextDisabled ? "account.disabled" : "account.enabled",
+    uid: cleanUid,
+    email: authUser.email || "",
+    disabled: nextDisabled,
+    actor: actorData,
+    reason: cleanReason,
+    createdAt: nowIso,
+    requestId: mutationId,
+  });
+  return { uid: cleanUid, disabled: nextDisabled, idempotent: false };
+}
+
 exports.staffOperationsApi = functions.https.onRequest(async (req, res) => {
   applyCors(req, res);
   if (req.method === "OPTIONS") { res.status(204).send(""); return; }
@@ -5703,6 +6042,53 @@ exports.staffOperationsApi = functions.https.onRequest(async (req, res) => {
     }
     if (req.path === "/students/ownership/apply") {
       res.json(await studentOwnershipBackfill({ actor, apply: true }));
+      return;
+    }
+    if (req.path === "/data-quality/preview") {
+      res.json(await previewDataQuality());
+      return;
+    }
+    if (req.path === "/data-quality/relink") {
+      const result = await relinkDataQualityRecord({
+        actor,
+        entityType: req.body?.entityType,
+        entityId: req.body?.entityId,
+        studentId: req.body?.studentId,
+        requestId: req.body?.requestId,
+      });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/data-quality/invoice-due") {
+      const result = await correctInvoiceDueDate({
+        actor,
+        invoiceId: req.body?.invoiceId,
+        due: req.body?.due,
+        reason: req.body?.reason,
+        requestId: req.body?.requestId,
+      });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/accounts/link") {
+      const result = await linkAccountToStudent({
+        actor,
+        uid: req.body?.uid,
+        studentId: req.body?.studentId,
+        relationship: req.body?.relationship,
+        requestId: req.body?.requestId,
+      });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/accounts/status") {
+      res.json(await setAccountDisabled({
+        actor,
+        uid: req.body?.uid,
+        disabled: req.body?.disabled === true,
+        reason: req.body?.reason,
+        requestId: req.body?.requestId,
+      }));
       return;
     }
     res.status(404).json({ error: "Not found" });
