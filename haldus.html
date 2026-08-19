@@ -122,6 +122,7 @@ window.__haldusConfigureBabel();
 <script src="/calendar-core.js"></script>
 <script src="/live-classroom-core.js"></script>
 <script src="/haldus-quality.js"></script>
+<script src="/student-export-core.js"></script>
 <script src="/haldus-programs.js"></script>
 <script src="/annotations-manager.js"></script>
 <script type="text/babel" data-presets="haldus-react">
@@ -144,6 +145,7 @@ const {
   scheduleEventOccursOnDate,
   dataQualitySummary
 } = window.HaldusQuality;
+const StudentExportCore = window.StudentExportCore;
 const {
   historicalActivitySummary
 } = window.StaffTimeCore;
@@ -3627,24 +3629,107 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
 
 
 // ── ÕPILASTE NIMEKIRI ─────────────────────────────────────────
-function StudentsList({filteredStudents,lessons,isAdmin,search,setSearch,stuFilter,setStuFilter,setSelStu}) {
+function StudentsList({students,lessons,isAdmin,search,setSearch,stuFilter,setStuFilter,setSelStu,user,notify}) {
+  const [teacherFilter,setTeacherFilter]=React.useState('all');
+  const [subjectFilter,setSubjectFilter]=React.useState('all');
+  const [levelFilter,setLevelFilter]=React.useState('all');
+  const [gradeFilter,setGradeFilter]=React.useState('all');
+  const [groupFilter,setGroupFilter]=React.useState('all');
+  const [lessonFilter,setLessonFilter]=React.useState('all');
+  const [packageFilter,setPackageFilter]=React.useState('all');
+  const [sortMode,setSortMode]=React.useState('name_asc');
+  const [exportBusy,setExportBusy]=React.useState('');
+  const exportRows=React.useMemo(()=>StudentExportCore.buildStudentExportRows({students,lessons,packageSummary:legacyPackageSummary}),[students,lessons]);
+  const optionsFor=key=>[...new Set(exportRows.map(row=>row[key]).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'et'));
+  const teacherOptions=React.useMemo(()=>optionsFor('teacher'),[exportRows]);
+  const subjectOptions=React.useMemo(()=>optionsFor('subject'),[exportRows]);
+  const levelOptions=React.useMemo(()=>optionsFor('level'),[exportRows]);
+  const gradeOptions=React.useMemo(()=>optionsFor('grade'),[exportRows]);
+  const groupOptions=React.useMemo(()=>optionsFor('group'),[exportRows]);
+  const visibleRows=React.useMemo(()=>{
+    const query=normalizeText(search);
+    const levelRank=LEVELS.reduce((result,level,index)=>({...result,[level]:index}),{});
+    return exportRows
+      .filter(row=>stuFilter==='active'?row.status==='Aktiivne':stuFilter==='inactive'?row.status==='Arhiveeritud':true)
+      .filter(row=>!query||normalizeText([row.name,row.email,row.phone,row.parentName,row.parentEmail,row.teacher,row.subject,row.grade,row.group].join(' ')).includes(query))
+      .filter(row=>teacherFilter==='all'||row.teacher===teacherFilter)
+      .filter(row=>subjectFilter==='all'||row.subject===subjectFilter)
+      .filter(row=>levelFilter==='all'||row.level===levelFilter)
+      .filter(row=>gradeFilter==='all'||row.grade===gradeFilter)
+      .filter(row=>groupFilter==='all'||row.group===groupFilter)
+      .filter(row=>lessonFilter==='all'||(lessonFilter==='with'?row.completedLessons>0:row.completedLessons===0))
+      .filter(row=>packageFilter==='all'||(packageFilter==='available'?row.packageRemaining>0:packageFilter==='empty'?row.packageTotal>0&&row.packageRemaining===0:row.packageTotal===0))
+      .sort((a,b)=>{
+        if(sortMode==='name_desc') return b.name.localeCompare(a.name,'et');
+        if(sortMode==='teacher') return a.teacher.localeCompare(b.teacher,'et')||a.name.localeCompare(b.name,'et');
+        if(sortMode==='level') return (levelRank[a.level]??99)-(levelRank[b.level]??99)||a.name.localeCompare(b.name,'et');
+        if(sortMode==='lessons') return b.completedLessons-a.completedLessons||a.name.localeCompare(b.name,'et');
+        return a.name.localeCompare(b.name,'et');
+      });
+  },[exportRows,search,stuFilter,teacherFilter,subjectFilter,levelFilter,gradeFilter,groupFilter,lessonFilter,packageFilter,sortMode]);
+  const studentById=React.useMemo(()=>new Map(students.map(student=>[student.id,student])),[students]);
+  const visibleStudents=visibleRows.map(row=>studentById.get(row.id)).filter(Boolean);
+  const activeFilterCount=[search,stuFilter!=='active'&&stuFilter,teacherFilter!=='all'&&teacherFilter,subjectFilter!=='all'&&subjectFilter,levelFilter!=='all'&&levelFilter,gradeFilter!=='all'&&gradeFilter,groupFilter!=='all'&&groupFilter,lessonFilter!=='all'&&lessonFilter,packageFilter!=='all'&&packageFilter,sortMode!=='name_asc'&&sortMode].filter(Boolean).length;
+  const resetFilters=()=>{setSearch('');setStuFilter('active');setTeacherFilter('all');setSubjectFilter('all');setLevelFilter('all');setGradeFilter('all');setGroupFilter('all');setLessonFilter('all');setPackageFilter('all');setSortMode('name_asc');};
+  const labelFor=(value,options)=>options.find(option=>option.value===value)?.label||value;
+  const filterSummary=()=>[
+    stuFilter==='active'?'Aktiivsed':stuFilter==='inactive'?'Arhiveeritud':'Kõik staatused',
+    search&&`otsing „${search}”`,
+    teacherFilter!=='all'&&`õpetaja ${teacherFilter}`,
+    subjectFilter!=='all'&&`aine ${subjectFilter}`,
+    levelFilter!=='all'&&`tase ${levelFilter}`,
+    gradeFilter!=='all'&&`klass ${gradeFilter}`,
+    groupFilter!=='all'&&`grupp ${groupFilter}`,
+    lessonFilter!=='all'&&labelFor(lessonFilter,[{value:'with',label:'toimunud tundidega'},{value:'without',label:'ilma toimunud tundideta'}]),
+    packageFilter!=='all'&&labelFor(packageFilter,[{value:'available',label:'paketijääk olemas'},{value:'empty',label:'pakett kasutatud'},{value:'none',label:'pakett puudub'}]),
+  ].filter(Boolean).join(' · ');
+  const exportSelection=async format=>{
+    if(!visibleRows.length){notify('⚠ Eksporditavaid õpilasi pole');return;}
+    setExportBusy(format);
+    const generatedAt=new Date();
+    const metadata={generatedAt:generatedAt.toISOString(),generatedAtLabel:generatedAt.toLocaleString('et-EE'),generatedBy:user?.displayName||user?.email||'KeeleSepp',filterSummary:filterSummary()};
+    try{
+      if(format==='word') StudentExportCore.downloadWord(visibleRows,metadata);
+      if(format==='pdf') await StudentExportCore.downloadPdf(visibleRows,metadata);
+      if(format==='excel') await StudentExportCore.downloadExcel(visibleRows,metadata);
+      notify(`✓ ${visibleRows.length} õpilase väljavõte laaditi alla`);
+    }catch(error){notify(`⚠ Väljavõtet ei saanud luua: ${error.message||error}`);}
+    finally{setExportBusy('');}
+  };
+  const selectStyle={width:'100%',minWidth:0,padding:'9px 11px',fontSize:'.76rem'};
   return(
     <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:20}}>
-      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:12}}>
-        <h1 style={{fontSize:'1.7rem'}}>Minu õpilased <span style={{fontSize:'1rem',fontFamily:'IBM Plex Sans',fontWeight:400,color:'#42536A'}}>({filteredStudents.length})</span></h1>
-        <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍 Otsi…" style={{width:200,padding:'9px 14px'}}/>
-          <select value={stuFilter} onChange={e=>setStuFilter(e.target.value)} style={{width:'auto'}}>
-            <option value="active">Aktiivsed</option>
-            <option value="all">Kõik</option>
-            <option value="inactive">Arhiveeritud</option>
-          </select>
+      <div className="card" style={{padding:20,display:'flex',flexDirection:'column',gap:14}}>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:12}}>
+          <div><h1 style={{fontSize:'1.7rem'}}>Minu õpilased <span style={{fontSize:'1rem',fontFamily:'IBM Plex Sans',fontWeight:400,color:'#42536A'}}>({visibleStudents.length})</span></h1><div style={{fontSize:'.72rem',color:'#64748b',marginTop:3}}>Filtrid ja väljavõte kasutavad ainult praegu nähtavaid õpilasi.</div></div>
+          <div style={{display:'flex',gap:8,flexWrap:'wrap',flex:1,justifyContent:'flex-end'}}>
+            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍 Otsi nime, kontakti või õpetajat…" style={{width:'min(100%,310px)',padding:'9px 14px'}}/>
+            <select value={stuFilter} onChange={e=>setStuFilter(e.target.value)} style={{width:'auto'}}><option value="active">Aktiivsed</option><option value="all">Kõik</option><option value="inactive">Arhiveeritud</option></select>
+          </div>
+        </div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(145px,1fr))',gap:8}}>
+          {isAdmin&&<select value={teacherFilter} onChange={e=>setTeacherFilter(e.target.value)} style={selectStyle}><option value="all">Kõik õpetajad</option>{teacherOptions.map(value=><option key={value} value={value}>{value}</option>)}</select>}
+          <select value={subjectFilter} onChange={e=>setSubjectFilter(e.target.value)} style={selectStyle}><option value="all">Kõik õppeained</option>{subjectOptions.map(value=><option key={value} value={value}>{value}</option>)}</select>
+          <select value={levelFilter} onChange={e=>setLevelFilter(e.target.value)} style={selectStyle}><option value="all">Kõik tasemed</option>{levelOptions.map(value=><option key={value} value={value}>{value}</option>)}</select>
+          <select value={gradeFilter} onChange={e=>setGradeFilter(e.target.value)} style={selectStyle}><option value="all">Kõik klassid</option>{gradeOptions.map(value=><option key={value} value={value}>{value}</option>)}</select>
+          <select value={groupFilter} onChange={e=>setGroupFilter(e.target.value)} style={selectStyle}><option value="all">Kõik grupid</option>{groupOptions.map(value=><option key={value} value={value}>{value}</option>)}</select>
+          <select value={lessonFilter} onChange={e=>setLessonFilter(e.target.value)} style={selectStyle}><option value="all">Kõik tundide järgi</option><option value="with">Toimunud tundidega</option><option value="without">Ilma toimunud tundideta</option></select>
+          <select value={packageFilter} onChange={e=>setPackageFilter(e.target.value)} style={selectStyle}><option value="all">Kõik pakettide järgi</option><option value="available">Paketijääk olemas</option><option value="empty">Pakett kasutatud</option><option value="none">Pakett puudub</option></select>
+          <select value={sortMode} onChange={e=>setSortMode(e.target.value)} style={selectStyle}><option value="name_asc">Nimi A–Z</option><option value="name_desc">Nimi Z–A</option><option value="teacher">Õpetaja järgi</option><option value="level">Taseme järgi</option><option value="lessons">Tundide arvu järgi</option></select>
+        </div>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:10,flexWrap:'wrap',paddingTop:12,borderTop:'1px solid rgba(28,43,58,.08)'}}>
+          <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}><span className="badge" style={{background:'#eef7f4',color:'#166534'}}>{visibleRows.length} õpilast väljavõttes</span>{activeFilterCount>0&&<button className="btn btn-ghost btn-sm" onClick={resetFilters}><i className="fa-solid fa-filter-circle-xmark"/> Lähtesta filtrid ({activeFilterCount})</button>}</div>
+          <div style={{display:'flex',gap:7,flexWrap:'wrap'}}>
+            <button className="btn btn-ghost btn-sm" disabled={Boolean(exportBusy)||!visibleRows.length} onClick={()=>exportSelection('word')}><i className={`fa-solid ${exportBusy==='word'?'fa-spinner fa-spin':'fa-file-word'}`}/> Word</button>
+            <button className="btn btn-ghost btn-sm" disabled={Boolean(exportBusy)||!visibleRows.length} onClick={()=>exportSelection('pdf')}><i className={`fa-solid ${exportBusy==='pdf'?'fa-spinner fa-spin':'fa-file-pdf'}`}/> PDF</button>
+            <button className="btn btn-pine btn-sm" disabled={Boolean(exportBusy)||!visibleRows.length} onClick={()=>exportSelection('excel')}><i className={`fa-solid ${exportBusy==='excel'?'fa-spinner fa-spin':'fa-file-excel'}`}/> Excel</button>
+          </div>
         </div>
       </div>
       <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(290px,1fr))',gap:14}}>
-        {filteredStudents.map(s=>{
-          const done=lessons.filter(l=>{
-            const matchesStudent = (l.studentId===s.id||l.studentName?.toLowerCase()===s.name?.toLowerCase())&&l.status==='Toimunud';
+        {visibleStudents.map(s=>{
+          const done=StudentExportCore.studentLessons(s,lessons).filter(l=>{
+            const matchesStudent=l.status==='Toimunud';
             if(!matchesStudent) return false;
             if(isAdmin) return true;
             return canonicalTeacherName(l.teacher)===canonicalTeacherName(s.teacher);
@@ -3682,7 +3767,7 @@ function StudentsList({filteredStudents,lessons,isAdmin,search,setSearch,stuFilt
             </div>
           );
         })}
-        {filteredStudents.length===0&&<div style={{gridColumn:'1/-1',textAlign:'center',padding:'48px 0',color:'#42536A'}}>{search?`"${search}" ei leitud`:'Õpilasi pole lisatud.'}</div>}
+        {visibleStudents.length===0&&<div style={{gridColumn:'1/-1',textAlign:'center',padding:'48px 0',color:'#42536A'}}>{search?`"${search}" ei leitud`:'Valitud filtritele vastavaid õpilasi pole.'}</div>}
       </div>
     </div>
   );
@@ -15032,8 +15117,8 @@ function App() {
             taskCategory={taskCategory} setTaskCategory={setTaskCategory}
             addTask={addTask} toggleTask={toggleTask} deleteTask={deleteTask} replyTask={replyTask} markTaskRepliesSeen={markTaskRepliesSeen} isAdmin={isAdmin}/>}
 
-          {tab==='students'&&isStaff&&!selStu&&<StudentsList filteredStudents={filteredStudents} lessons={lessons} isAdmin={canAssignTeacher}
-            search={search} setSearch={setSearch} stuFilter={stuFilter} setStuFilter={setStuFilter} setSelStu={setSelStu}/>}
+          {tab==='students'&&isStaff&&!selStu&&<StudentsList students={myStudents} lessons={lessons} isAdmin={canAssignTeacher}
+            search={search} setSearch={setSearch} stuFilter={stuFilter} setStuFilter={setStuFilter} setSelStu={setSelStu} user={user} notify={notify}/>}
 
           {tab==='students'&&isParentUser&&!selStu&&<ParentChildrenView
             user={user} myStudents={myStudents} isAdmin={isAdmin}
