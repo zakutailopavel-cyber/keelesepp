@@ -155,5 +155,9 @@ linkedParentIds[] — все Firebase Auth UID родителей/предста
 - CRM v2 production build: успешно;
 - Firestore Rules и Storage Rules скомпилированы и опубликованы Firebase;
 - `staffOperationsApi` опубликован в `us-central1`.
+- основной функциональный коммит `08a8bc7 fix: canonicalize student account ownership` отправлен в `main`;
+- production-страница `https://www.epkoolitus.ee/haldus/` получила новый интерфейс;
+- production backfill UID-связей применён из административной CRM; повторный preview не нашёл карточек, требующих обновления;
+- production preview существующей группы дублей успешно дошёл до финального подтверждения; тест был отменён на этом шаге, поэтому реальные карточки учеников в ходе smoke-test не объединялись.
 
 Live Classroom в эту работу не включён согласно текущему приоритету проекта.
