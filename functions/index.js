@@ -5623,6 +5623,7 @@ async function previewDataQuality() {
   const invoices = records(invoiceSnap);
   const groups = records(groupSnap);
   const userProfiles = new Map(records(userSnap).map(profile => [profile.id, profile]));
+  const studentIds = new Set(students.map(student => student.id));
   const accountLinks = new Map();
   students.forEach(student => {
     studentAccountIds(student).forEach(uid => {
