@@ -31,6 +31,10 @@ const {
 const { invoiceNumberingPlan } = require("./invoice-numbering-core");
 const { expenseDocumentRecord, expenseRecord } = require("./expenses-core");
 const {
+  classifyLessonDataQuality,
+  normalizedIdentity,
+} = require("./data-quality-core");
+const {
   accountantExportArchive,
   billingFingerprint,
   periodCloseProjection,
@@ -5593,15 +5597,6 @@ async function studentOwnershipBackfill({ actor, apply = false }) {
   return { ...result, appliedAt: nowIso };
 }
 
-function normalizedIdentity(value) {
-  return String(value || "")
-    .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9@]+/g, " ")
-    .trim();
-}
-
 async function listFirebaseAuthUsers() {
   const users = [];
   let pageToken;
@@ -5614,10 +5609,11 @@ async function listFirebaseAuthUsers() {
 }
 
 async function previewDataQuality() {
-  const [studentSnap, lessonSnap, invoiceSnap, userSnap, authUsers] = await Promise.all([
+  const [studentSnap, lessonSnap, invoiceSnap, groupSnap, userSnap, authUsers] = await Promise.all([
     db.collection("students").get(),
     db.collection("lessons").get(),
     db.collection("invoices").get(),
+    db.collection("groups").get(),
     db.collection("users").get(),
     listFirebaseAuthUsers(),
   ]);
@@ -5625,8 +5621,8 @@ async function previewDataQuality() {
   const students = records(studentSnap);
   const lessons = records(lessonSnap);
   const invoices = records(invoiceSnap);
+  const groups = records(groupSnap);
   const userProfiles = new Map(records(userSnap).map(profile => [profile.id, profile]));
-  const studentIds = new Set(students.map(student => student.id));
   const accountLinks = new Map();
   students.forEach(student => {
     studentAccountIds(student).forEach(uid => {
@@ -5640,13 +5636,24 @@ async function previewDataQuality() {
       accountLinks.set(uid, links);
     });
   });
-  const orphanLessons = lessons.filter(lesson => !lesson.studentId || !studentIds.has(lesson.studentId)).map(lesson => ({
+  const lessonQuality = classifyLessonDataQuality({ lessons, students, groups });
+  const lessonSummary = lesson => ({
     id: lesson.id,
     studentId: lesson.studentId || "",
     studentName: lesson.studentName || lesson.name || "",
+    groupId: lesson.groupId || "",
+    groupName: lesson.groupName || "",
     date: lesson.date || lesson.lessonDate || "",
     teacher: lesson.teacher || "",
     status: lesson.status || "",
+  });
+  const orphanLessons = lessonQuality.orphanLessons.map(lessonSummary);
+  const groupLessonsNeedingLink = lessonQuality.groupLessonsNeedingLink.map(lesson => ({
+    ...lessonSummary(lesson),
+    suggestedGroupId: lesson.suggestedGroupId || "",
+    suggestedGroupName: lesson.suggestedGroupName || "",
+    exactGroupMatch: lesson.exactGroupMatch === true,
+    groupMatchCount: lesson.groupMatchCount || 0,
   }));
   const orphanInvoices = invoices.filter(invoice => {
     if (invoice.invoiceTargetType === "parent") return false;
@@ -5719,7 +5726,14 @@ async function previewDataQuality() {
       linkedUserIds: studentAccountIds(student),
       linkedParentIds: parentAccountIds(student),
     })),
+    groups: groups.filter(group => group.active !== false).map(group => ({
+      id: group.id,
+      name: group.name || "",
+      teacher: group.teacher || "",
+      studentCount: Array.isArray(group.students) ? group.students.length : 0,
+    })),
     orphanLessons,
+    groupLessonsNeedingLink,
     orphanInvoices,
     invalidInvoiceDates,
     unlinkedAccounts,
@@ -5727,12 +5741,69 @@ async function previewDataQuality() {
     duplicateGroups,
     summary: {
       orphanLessonCount: orphanLessons.length,
+      groupLessonLinkCount: groupLessonsNeedingLink.length,
+      linkedGroupLessonCount: lessonQuality.linkedGroupLessonCount,
       orphanInvoiceCount: orphanInvoices.length,
       invalidInvoiceDateCount: invalidInvoiceDates.length,
       unlinkedAccountCount: unlinkedAccounts.length,
       duplicateGroupCount: duplicateGroups.length,
     },
   };
+}
+
+async function linkDataQualityGroupLesson({ actor, lessonId, groupId, requestId }) {
+  const mutationId = cleanRequestId(requestId);
+  const cleanLessonId = cleanText(lessonId, 180);
+  const cleanGroupId = cleanText(groupId, 180);
+  if (!cleanLessonId || !cleanGroupId) throw httpError(400, "Exact lesson and group IDs required");
+  const lessonRef = db.collection("lessons").doc(cleanLessonId);
+  const groupRef = db.collection("groups").doc(cleanGroupId);
+  const auditRef = db.collection("activityLog").doc(`group-lesson-link-${mutationId}`);
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+  return db.runTransaction(async transaction => {
+    const [existingAudit, lessonSnap, groupSnap] = await Promise.all([
+      transaction.get(auditRef),
+      transaction.get(lessonRef),
+      transaction.get(groupRef),
+    ]);
+    if (existingAudit.exists) return { idempotent: true, lessonId: cleanLessonId, groupId: cleanGroupId };
+    if (!lessonSnap.exists) throw httpError(404, "Lesson not found");
+    if (!groupSnap.exists || groupSnap.data().active === false) throw httpError(404, "Active group not found");
+    const lesson = lessonSnap.data();
+    const group = groupSnap.data();
+    const currentGroupId = String(lesson.groupId || "").trim();
+    if (currentGroupId && currentGroupId !== cleanGroupId) throw httpError(409, "Lesson is already linked to another group");
+    const lessonGroupName = lesson.groupName || lesson.studentName || lesson.name || "";
+    if (normalizedIdentity(lessonGroupName) !== normalizedIdentity(group.name)) {
+      throw httpError(409, "Lesson and group names must match exactly");
+    }
+    if (lesson.date) await assertFinancialDateOpen(transaction, lesson.date);
+    transaction.set(lessonRef, {
+      groupId: cleanGroupId,
+      groupName: group.name || "",
+      isGroup: true,
+      lessonAudienceType: "group",
+      groupLinkCorrectedAt: nowIso,
+      groupLinkCorrectedBy: actorData,
+      groupLinkCorrectionId: mutationId,
+      previousGroupId: currentGroupId,
+      updatedAt: nowIso,
+    }, { merge: true });
+    transaction.create(auditRef, {
+      type: "lesson.group_link_corrected",
+      action: "lesson.group_link_corrected",
+      entityType: "lesson",
+      entityId: cleanLessonId,
+      previousGroupId: currentGroupId,
+      groupId: cleanGroupId,
+      groupName: group.name || "",
+      actor: actorData,
+      createdAt: nowIso,
+      requestId: mutationId,
+    });
+    return { idempotent: false, lessonId: cleanLessonId, groupId: cleanGroupId, groupName: group.name || "" };
+  });
 }
 
 async function relinkDataQualityRecord({ actor, entityType, entityId, studentId, requestId }) {
@@ -6054,6 +6125,16 @@ exports.staffOperationsApi = functions.https.onRequest(async (req, res) => {
         entityType: req.body?.entityType,
         entityId: req.body?.entityId,
         studentId: req.body?.studentId,
+        requestId: req.body?.requestId,
+      });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/data-quality/group-lesson") {
+      const result = await linkDataQualityGroupLesson({
+        actor,
+        lessonId: req.body?.lessonId,
+        groupId: req.body?.groupId,
         requestId: req.body?.requestId,
       });
       res.status(result.idempotent ? 200 : 201).json(result);

@@ -27,10 +27,12 @@ test('data correction center uses exact protected account and record operations'
   assert.match(html,/function DataQualityView/);
   assert.match(html,/staffOperationsApiPost\('\/data-quality\/preview'/);
   assert.match(html,/staffOperationsApiPost\('\/data-quality\/relink'/);
+  assert.match(html,/staffOperationsApiPost\('\/data-quality\/group-lesson'/);
   assert.match(html,/staffOperationsApiPost\('\/accounts\/link'/);
   assert.match(html,/staffOperationsApiPost\('\/accounts\/status'/);
   assert.match(html,/mitte nime oletades/);
   assert.match(backend,/if \(req\.path === "\/data-quality\/preview"\)/);
+  assert.match(backend,/if \(req\.path === "\/data-quality\/group-lesson"\)/);
   assert.match(backend,/if \(req\.path === "\/accounts\/link"\)/);
   assert.match(backend,/listFirebaseAuthUsers/);
 });
