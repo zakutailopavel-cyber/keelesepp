@@ -1100,6 +1100,42 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // Personal codes used for annual tax declarations are intentionally kept
+    // outside ordinary student/user profiles. They are visible only to admins.
+    match /taxPersonProfiles/{profileId} {
+      allow read: if isAdmin();
+      allow create, update: if isAdmin()
+        && request.resource.data.keys().hasOnly([
+          'entityType',
+          'entityId',
+          'displayName',
+          'personalCode',
+          'updatedAt',
+          'updatedByUid',
+          'updatedByName'
+        ])
+        && request.resource.data.keys().hasAll([
+          'entityType',
+          'entityId',
+          'displayName',
+          'personalCode',
+          'updatedAt',
+          'updatedByUid'
+        ])
+        && request.resource.data.entityType in ['student', 'user', 'payer']
+        && request.resource.data.entityId is string
+        && request.resource.data.entityId.size() > 0
+        && request.resource.data.entityId.size() <= 320
+        && request.resource.data.displayName is string
+        && request.resource.data.displayName.size() > 0
+        && request.resource.data.displayName.size() <= 160
+        && request.resource.data.personalCode is string
+        && request.resource.data.personalCode.matches('^[0-9]{11}$')
+        && request.resource.data.updatedAt is string
+        && request.resource.data.updatedByUid == uid();
+      allow delete: if false;
+    }
+
     match /packageProducts/{productId} {
       allow read: if isAdmin();
       allow create, update, delete: if false;

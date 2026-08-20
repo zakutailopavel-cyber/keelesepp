@@ -16,11 +16,12 @@ test('finance workspace exposes the complete administrator workflow',()=>{
   assert.match(html,/label:'Maksete sobitamine',\s+description:'Impordi pank ja jaga laekumised'/);
   assert.match(html,/label:'Kulud',\s+description:'Kulud, käibemaks ja tšekid'/);
   assert.match(html,/label:'Raamatupidamine',\s+description:'Kontrolli seoseid ja kinnita kuu'/);
+  assert.match(html,/label:'Maksud ja aruanded',\s+description:'INF 3 ja kooli maksuprofiil'/);
   assert.match(html,/label:'Andmete parandamine',\s+description:'Kontod, duplikaadid ja valed seosed'/);
 });
 
 test('legacy administrator finance routes resolve inside the unified workspace',()=>{
-  assert.match(html,/const ADMIN_FINANCE_SECTIONS=\['invoices','reconciliation','expenses','accounting','data-quality'\]/);
+  assert.match(html,/const ADMIN_FINANCE_SECTIONS=\['invoices','reconciliation','expenses','accounting','tax-reports','data-quality'\]/);
   assert.match(html,/if\(isAdmin&&ADMIN_FINANCE_SECTIONS\.includes\(t\)\)/);
   assert.match(html,/setFinanceSection\(tab\);\s+setTab\('finance'\)/);
 });
@@ -31,5 +32,15 @@ test('role boundaries keep teacher and parent invoice views separate',()=>{
   assert.match(html,/tab==='finance'&&isAdmin&&financeSection==='accounting'/);
   assert.match(html,/tab==='finance'&&isAdmin&&financeSection==='reconciliation'/);
   assert.match(html,/tab==='finance'&&isAdmin&&financeSection==='expenses'/);
+  assert.match(html,/tab==='finance'&&isAdmin&&financeSection==='tax-reports'/);
   assert.match(html,/tab==='finance'&&isAdmin&&financeSection==='data-quality'/);
+});
+
+test('finance invoice and expense lists provide search and practical filters',()=>{
+  assert.match(html,/const \[invoiceSearch,setInvoiceSearch\]/);
+  assert.match(html,/const \[invoiceMonth,setInvoiceMonth\]/);
+  assert.match(html,/const \[invoicePartyFilter,setInvoicePartyFilter\]/);
+  assert.match(html,/Otsi arve numbrit, maksjat, õppijat või selgitust/);
+  assert.match(html,/Otsi kirjeldust, märkust või tšekki/);
+  assert.match(html,/Kõik kategooriad/);
 });
