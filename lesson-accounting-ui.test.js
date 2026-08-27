@@ -20,6 +20,12 @@ test("lesson journal uses the protected idempotent server operation", () => {
   assert.match(functionsSource, /action: "lesson\.deleted"/);
 });
 
+test("lesson journal resolves merged students by stable id and exposes the server reason", () => {
+  assert.match(html, /const stu=resolveStudentRecord\(students,modalEv\)/);
+  assert.match(html, /lessonJournalErrorGuidance\(err\?\.message\|\|err\)/);
+  assert.doesNotMatch(html, /const stu=students\.find\(s=>s\.name\.toLowerCase\(\)===modalEv\.studentName\.toLowerCase\(\)\)/);
+});
+
 test("calendar keeps absence states and exposes quick completion", () => {
   assert.match(html, /quickCompleteLesson=\{quickCompleteLesson\}/);
   assert.match(html, /Märgi toimunuks/);

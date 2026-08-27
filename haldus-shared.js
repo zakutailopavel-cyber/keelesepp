@@ -1,5 +1,5 @@
 (function(){
-  const APP_VERSION  = 'KeeleSepp CRM · 27.08.2026.2';
+  const APP_VERSION  = 'KeeleSepp CRM · 27.08.2026.3';
   const LEVELS   = ['Eelkool','A1','A2','B1','B2','C1'];
   const TEACHERS = ['Pavel','Jelena','Elizaveta','Angelina'];
   const STAFF_ALIASES = {
@@ -61,6 +61,48 @@
     normalizeText(student?.subject || 'Eesti keel'),
     normalizeText(canonicalTeacherName(student?.teacher || ''))
   ].join('|');
+  const resolveStudentRecord = (students,record={}) => {
+    const list=Array.isArray(students)?students:[];
+    const recordId=String(record?.studentId||record?.id||'').trim();
+    const byId=recordId?list.find(student=>student.id===recordId):null;
+    if(byId?.mergedIntoStudentId){
+      const primary=list.find(student=>student.id===byId.mergedIntoStudentId);
+      return primary&&!primary.mergedIntoStudentId?primary:null;
+    }
+    if(byId) return byId;
+    const name=normalizeText(record?.studentName||record?.name);
+    if(!name) return null;
+    const activeMatches=list.filter(student=>
+      student.active!==false
+      && !student.mergedIntoStudentId
+      && normalizeText(student.name)===name
+    );
+    return activeMatches.length===1?activeMatches[0]:null;
+  };
+  const lessonJournalErrorGuidance = value => {
+    const original=String(value||'').trim();
+    const error=normalizeText(original);
+    if(!error) return 'Päeviku salvestamine ei õnnestunud. Proovi uuesti.';
+    if(error.includes('schedule entry belongs to another student')){
+      return 'Tund on seotud teise või ühendatud õpilasekaardiga. Uuenda lehte ja ava tund uuesti.';
+    }
+    if(error.includes('student not found')||error.includes('registered student')){
+      return 'Õpilase põhikaarti ei leitud. Kontrolli tunni seost õpilasega.';
+    }
+    if(error.includes('billed lesson basis cannot be changed')){
+      return 'Arveldatud tunni õpilast, kuupäeva või staatust ei saa päevikust muuta.';
+    }
+    if(error.includes('financial period')&&error.includes('closed')){
+      return 'Selle kuu finantsperiood on suletud. Muudatus tuleb teha paranduskandena.';
+    }
+    if(error.includes('lesson belongs to another teacher')){
+      return 'See tund kuulub teisele õpetajale. Kontrolli tunni õpetajat.';
+    }
+    if(error.includes('inline lesson attachments are too large')){
+      return 'Lisatud failid on liiga suured. Eemalda failid või lisa väiksemad failid.';
+    }
+    return original.slice(0,300);
+  };
   const parseLinkedNames = value =>
     String(value || '')
       .split(/[,\n;|]+/)
@@ -300,6 +342,8 @@
     normalizeText,
     studentIdentityKey,
     studentProfileKey,
+    resolveStudentRecord,
+    lessonJournalErrorGuidance,
     parseLinkedNames,
     canonicalTeacherName,
     canonicalTeacherKey,

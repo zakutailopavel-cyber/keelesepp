@@ -7260,6 +7260,11 @@ exports.financeApi = functions.https.onRequest(async (req, res) => {
     }
     res.status(404).json({ error: "Not found" });
   } catch (e) {
+    console.warn("financeApi request rejected", {
+      path: req.path,
+      status: e.status || 500,
+      error: String(e.message || e).slice(0, 500),
+    });
     sendError(res, e);
   }
 });
