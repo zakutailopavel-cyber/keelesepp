@@ -5,6 +5,7 @@ const {
   generateTimeSlots,
   quickLessonSlot,
   eventOccursOnDate,
+  eventsForDate,
   findScheduleConflicts,
   scheduleConflictWarning,
   layoutDayEvents,
@@ -49,6 +50,22 @@ test('legacy dated and recurring events remain visible without migration',()=>{
   assert.equal(eventOccursOnDate({day:'Wed',recurring:true,startDate:'2026-07-01'},'2026-07-29'),true);
   assert.equal(eventOccursOnDate({day:'Wed',recurring:true,startDate:'2026-08-01'},'2026-07-29'),false);
   assert.equal(eventOccursOnDate({day:'Wed',recurring:true,startDate:'2026-07-01',excludedDates:['2026-07-29']},'2026-07-29'),false);
+});
+
+test('one completed recurring occurrence does not complete the whole series',()=>{
+  const series={
+    id:'series-one',studentId:'student-one',studentName:'Student One',
+    recurring:true,startDate:'2026-08-03',day:'Mon',time:'10:00',status:'Planeeritud',
+    occurrenceStatuses:{
+      '2026-08-10':{status:'Toimunud',lessonEntryId:'lesson-one'}
+    }
+  };
+  const completed=eventsForDate([series],'2026-08-10')[0];
+  const future=eventsForDate([series],'2026-08-17')[0];
+  assert.equal(completed.status,'Toimunud');
+  assert.equal(completed.lessonEntryId,'lesson-one');
+  assert.equal(future.status,'Planeeritud');
+  assert.equal(future.lessonEntryId||'','');
 });
 
 test('overlapping teacher and student bookings are reported',()=>{

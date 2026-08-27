@@ -90,6 +90,13 @@ const {
   workDurationMinutes,
 } = require("./staff-operations-core");
 const { collectTrustedRoles, isDisabledProfile } = require("./auth-core");
+const {
+  lessonCompletionCounterDelta,
+  lessonMutationSignature,
+  normalizedLessonStatus,
+  scheduleStatusForLesson,
+  stableLessonDocumentId,
+} = require("./lesson-record-core");
 const { planTeacherScopeBackfill } = require("./teacher-scope-core");
 const {
   mergeGroupStudentReferences,
@@ -915,6 +922,9 @@ async function syncLessonPackageConsumption({
     }
     if (!lessonSnap.exists) throw httpError(404, "Lesson not found");
     const lesson = lessonSnap.data();
+    if (!lessonActorCanWrite(actor, { lesson })) {
+      throw httpError(403, "Lesson belongs to another teacher");
+    }
     const state = stateSnap.exists ? stateSnap.data() : {};
     const completed = lesson.status === "Toimunud";
     const lessonDate = validIsoDate(lesson.date, "lesson date");
@@ -1251,6 +1261,371 @@ async function syncLessonPackageConsumption({
       },
     };
     transaction.create(requestRef, requestRecord(result));
+    return { ...result, idempotent: false };
+  });
+}
+
+function lessonActorCanWrite(actor, { lesson = {}, schedule = {}, student = {} } = {}) {
+  if (isSuperAdmin(actor.decoded) || actor.roles.has("admin")) return true;
+  const actorUid = String(actor.decoded.uid || "");
+  const assignedUids = [lesson.teacherUid, schedule.teacherUid, student.teacherUid]
+    .map(value => String(value || "").trim())
+    .filter(Boolean);
+  if (assignedUids.length) return assignedUids.includes(actorUid);
+  const actorName = String(actor.profile.displayName || actor.decoded.name || "").trim().toLowerCase();
+  const teacherNames = [lesson.teacher, schedule.teacher, student.teacher]
+    .map(value => String(value || "").trim().toLowerCase())
+    .filter(Boolean);
+  return Boolean(actorName) && teacherNames.some(name =>
+    name === actorName || name === actorName.split(" ")[0] || actorName === name.split(" ")[0]
+  );
+}
+
+function cleanLessonJournalInput(values = {}) {
+  const date = validIsoDate(values.date, "lesson date");
+  const status = normalizedLessonStatus(values.status);
+  const duration = Math.round(Number(values.duration) || 0);
+  if (duration < 15 || duration > 480) throw httpError(400, "Lesson duration must be between 15 and 480 minutes");
+  const studentId = String(values.studentId || "").trim();
+  if (!studentId || studentId === "ext" || values.isGroup) {
+    throw httpError(409, "Individual lesson must reference a registered student");
+  }
+  const attachments = (Array.isArray(values.attachments) ? values.attachments : [])
+    .slice(0, 20)
+    .map(item => ({
+      url: cleanText(item?.url, 2000000),
+      name: cleanText(item?.name, 180),
+      type: cleanText(item?.type, 160),
+      size: Math.max(0, Number(item?.size) || 0),
+      uploadedAt: cleanText(item?.uploadedAt, 60),
+      ...(item?.inline ? { inline: true } : {}),
+    }))
+    .filter(item => item.url || item.name);
+  const inlinePayloadSize = attachments
+    .filter(item => item.inline || String(item.url || "").startsWith("data:"))
+    .reduce((sum, item) => sum + String(item.url || "").length, 0);
+  if (inlinePayloadSize > 800000) throw httpError(413, "Inline lesson attachments are too large");
+  const primary = attachments[0] || {};
+  return {
+    studentId,
+    studentName: cleanText(values.studentName, 180),
+    groupId: cleanText(values.groupId, 180),
+    groupName: cleanText(values.groupName, 180),
+    sourceKey: cleanText(values.sourceKey, 500),
+    scheduleId: cleanText(values.scheduleId, 500),
+    scheduleTime: cleanText(values.scheduleTime, 20),
+    date,
+    topic: cleanText(values.topic, 300),
+    grade: status === "Toimunud" ? Math.max(0, Math.min(5, Number(values.grade) || 0)) : 0,
+    duration,
+    status,
+    comment: cleanText(values.comment, 4000),
+    newWords: cleanText(values.newWords, 4000),
+    grammar: cleanText(values.grammar, 4000),
+    covered: cleanText(values.covered, 4000),
+    nextNotes: cleanText(values.nextNotes, 4000),
+    teacher: cleanText(values.teacher, 180),
+    teacherUid: cleanText(values.teacherUid, 180),
+    requestedStudentPackageId: cleanText(values.requestedStudentPackageId, 180),
+    fileUrl: cleanText(primary.url || values.fileUrl, 2000000),
+    fileName: cleanText(primary.name || values.fileName, 180),
+    attachmentUrl: cleanText(primary.url || values.attachmentUrl, 2000000),
+    attachmentName: cleanText(primary.name || values.attachmentName, 180),
+    attachmentType: cleanText(primary.type || values.attachmentType, 160),
+    attachmentSize: Math.max(0, Number(primary.size || values.attachmentSize) || 0),
+    attachment: primary.url || primary.name ? primary : null,
+    attachments,
+  };
+}
+
+async function saveLessonJournal({ actor, lessonId, scheduleId, sourceKey, values, requestId }) {
+  const mutationId = cleanRequestId(requestId);
+  const input = cleanLessonJournalInput({ ...values, scheduleId: scheduleId || values?.scheduleId });
+  const cleanScheduleId = String(scheduleId || input.scheduleId || "").trim();
+  const cleanSourceKey = String(sourceKey || input.sourceKey || "").trim();
+  const requestedLessonId = String(lessonId || "").trim();
+  const resolvedLessonId = requestedLessonId || (
+    cleanScheduleId || cleanSourceKey
+      ? stableLessonDocumentId({ scheduleId: cleanScheduleId || cleanSourceKey, occurrenceDate: input.date, studentId: input.studentId })
+      : `journal_${mutationId}`
+  );
+  if (resolvedLessonId.includes("/")) throw httpError(400, "Invalid lessonId");
+  const signature = lessonMutationSignature({
+    lessonId: resolvedLessonId,
+    scheduleId: cleanScheduleId || cleanSourceKey,
+    lesson: input,
+  });
+  const requestRef = db.collection("lessonJournalRequests").doc(mutationId);
+  const lessonRef = db.collection("lessons").doc(resolvedLessonId);
+  const studentRef = db.collection("students").doc(input.studentId);
+  const scheduleRef = cleanScheduleId ? db.collection("schedule").doc(cleanScheduleId) : null;
+  const packagesQuery = db.collection("studentPackages").where("studentId", "==", input.studentId);
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+
+  const saved = await db.runTransaction(async transaction => {
+    const [requestSnap, lessonSnap, studentSnap, scheduleSnap, packagesSnap] = await Promise.all([
+      transaction.get(requestRef),
+      transaction.get(lessonRef),
+      transaction.get(studentRef),
+      scheduleRef ? transaction.get(scheduleRef) : Promise.resolve(null),
+      transaction.get(packagesQuery),
+    ]);
+    if (requestSnap.exists) {
+      if (requestSnap.data().creationSignature !== signature) {
+        throw httpError(409, "requestId already used for another lesson update");
+      }
+      return { ...(requestSnap.data().result || {}), idempotent: true };
+    }
+    if (!studentSnap.exists) throw httpError(404, "Student not found");
+    const previous = lessonSnap.exists ? lessonSnap.data() : {};
+    const student = studentSnap.data();
+    const schedule = scheduleSnap?.exists ? scheduleSnap.data() : {};
+    if (requestedLessonId && !lessonSnap.exists) throw httpError(404, "Lesson not found");
+    if (cleanScheduleId && !scheduleSnap?.exists) throw httpError(404, "Schedule entry not found");
+    if (schedule.studentId && schedule.studentId !== input.studentId) {
+      throw httpError(409, "Schedule entry belongs to another student");
+    }
+    if (!lessonActorCanWrite(actor, { lesson: previous, schedule, student })) {
+      throw httpError(403, "Lesson belongs to another teacher");
+    }
+    const protectedBilling = String(previous.invoiceId || "").trim()
+      || ["invoiced", "paid_directly", "free", "written_off", "credited"].includes(previous.billingStatus);
+    if (protectedBilling && (
+      previous.studentId !== input.studentId
+      || previous.date !== input.date
+      || previous.status !== input.status
+    )) {
+      throw httpError(409, "Billed lesson basis cannot be changed");
+    }
+    await assertFinancialDateOpen(transaction, input.date);
+    if (previous.date && previous.date !== input.date) await assertFinancialDateOpen(transaction, previous.date);
+
+    const ledgerManaged = !packagesSnap.empty
+      || previous.packageAccountingSource === "package_ledger_v1";
+    const counterDelta = ledgerManaged
+      ? 0
+      : lessonCompletionCounterDelta(previous.status, input.status);
+    const nextBillingStatus = protectedBilling
+      ? previous.billingStatus || ""
+      : input.status === "Toimunud" ? "unbilled" : "";
+    const lesson = {
+      ...input,
+      scheduleId: cleanScheduleId,
+      sourceKey: cleanSourceKey,
+      teacher: input.teacher || schedule.teacher || student.teacher || actorData.name,
+      teacherUid: input.teacherUid || schedule.teacherUid || student.teacherUid || actor.decoded.uid,
+      billingStatus: nextBillingStatus,
+      accountingSource: "lesson_journal_v2",
+      submittedAt: nowIso,
+      submittedAtIso: nowIso,
+      updatedAt: nowIso,
+      updatedBy: actorData,
+      ...(lessonSnap.exists ? {} : { createdAt: nowIso, createdBy: actorData }),
+      ...(ledgerManaged ? {
+        packageAccountingSource: "package_ledger_v1",
+        packageConsumptionStatus: "pending",
+        packageSyncError: "",
+      } : {}),
+    };
+    transaction.set(lessonRef, lesson, { merge: true });
+    if (scheduleRef) {
+      const scheduleStatus = scheduleStatusForLesson(input.status);
+      const schedulePatch = schedule.recurring && !schedule.date
+        ? {
+            occurrenceStatuses: {
+              ...(schedule.occurrenceStatuses || {}),
+              [input.date]: {
+                status: scheduleStatus,
+                lessonEntryId: resolvedLessonId,
+                updatedAt: nowIso,
+              },
+            },
+            lessonUpdatedAt: nowIso,
+          }
+        : {
+            status: scheduleStatus,
+            lessonEntryId: resolvedLessonId,
+            lessonOccurrenceDate: input.date,
+            lessonUpdatedAt: nowIso,
+          };
+      transaction.set(scheduleRef, schedulePatch, { merge: true });
+    }
+    if (counterDelta !== 0) {
+      transaction.set(studentRef, {
+        packageUsed: Math.max(0, (Number(student.packageUsed) || 0) + counterDelta),
+        lessonsSinceInvoice: Math.max(0, (Number(student.lessonsSinceInvoice) || 0) + counterDelta),
+        lessonAccountingUpdatedAt: nowIso,
+      }, { merge: true });
+    }
+    const result = {
+      lesson: { id: resolvedLessonId, ...previous, ...lesson },
+      lessonId: resolvedLessonId,
+      scheduleId: cleanScheduleId,
+      scheduleStatus: scheduleStatusForLesson(input.status),
+      counterDelta,
+      ledgerManaged,
+    };
+    const requestResult = {
+      lessonId: resolvedLessonId,
+      scheduleId: cleanScheduleId,
+      scheduleStatus: result.scheduleStatus,
+      counterDelta,
+      ledgerManaged,
+    };
+    transaction.create(requestRef, {
+      creationSignature: signature,
+      requestId: mutationId,
+      actor: actorData,
+      createdAt: nowIso,
+      result: requestResult,
+    });
+    return { ...result, idempotent: false };
+  });
+
+  if (!saved.lesson) {
+    const lessonSnap = await lessonRef.get();
+    if (!lessonSnap.exists) throw httpError(409, "Saved lesson no longer exists");
+    saved.lesson = { id: lessonSnap.id, ...lessonSnap.data() };
+  }
+  if (saved.ledgerManaged) {
+    try {
+      const packageResult = await syncLessonPackageConsumption({
+        actor,
+        lessonId: saved.lessonId,
+        requestId: `${mutationId}_package`,
+      });
+      const lessonFields = packageResult.lessonFields || {};
+      return {
+        ...saved,
+        lesson: { ...saved.lesson, ...lessonFields },
+        packageSync: packageResult,
+      };
+    } catch (error) {
+      const message = cleanText(error.message || "Package sync failed", 500);
+      await lessonRef.set({
+        packageAccountingSource: "package_ledger_v1",
+        packageConsumptionStatus: "needs_attention",
+        packageSyncError: message,
+        packageSyncedAt: nowIso,
+      }, { merge: true });
+      return {
+        ...saved,
+        lesson: {
+          ...saved.lesson,
+          packageAccountingSource: "package_ledger_v1",
+          packageConsumptionStatus: "needs_attention",
+          packageSyncError: message,
+        },
+        packageSync: { status: "needs_attention", reason: message },
+      };
+    }
+  }
+  return saved;
+}
+
+async function deleteLessonJournal({ actor, lessonId, requestId }) {
+  const mutationId = cleanRequestId(requestId);
+  const cleanLessonId = String(lessonId || "").trim();
+  if (!cleanLessonId || cleanLessonId.includes("/")) throw httpError(400, "Valid lessonId required");
+  const signature = crypto.createHash("sha256")
+    .update(JSON.stringify({ action: "lesson.delete", lessonId: cleanLessonId }))
+    .digest("hex");
+  const lessonRef = db.collection("lessons").doc(cleanLessonId);
+  const requestRef = db.collection("lessonJournalRequests").doc(mutationId);
+  const auditRef = db.collection("financialAudit").doc(mutationId);
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+
+  return db.runTransaction(async transaction => {
+    const [requestSnap, lessonSnap] = await Promise.all([
+      transaction.get(requestRef),
+      transaction.get(lessonRef),
+    ]);
+    if (requestSnap.exists) {
+      if (requestSnap.data().creationSignature !== signature) {
+        throw httpError(409, "requestId already used for another lesson operation");
+      }
+      return { ...(requestSnap.data().result || {}), idempotent: true };
+    }
+    if (!lessonSnap.exists) throw httpError(404, "Lesson not found");
+    const lesson = lessonSnap.data();
+    const studentRef = lesson.studentId && lesson.studentId !== "ext"
+      ? db.collection("students").doc(lesson.studentId)
+      : null;
+    const scheduleRef = lesson.scheduleId
+      ? db.collection("schedule").doc(lesson.scheduleId)
+      : null;
+    const [studentSnap, scheduleSnap] = await Promise.all([
+      studentRef ? transaction.get(studentRef) : Promise.resolve(null),
+      scheduleRef ? transaction.get(scheduleRef) : Promise.resolve(null),
+    ]);
+    const student = studentSnap?.exists ? studentSnap.data() : {};
+    const schedule = scheduleSnap?.exists ? scheduleSnap.data() : {};
+    if (!lessonActorCanWrite(actor, { lesson, schedule, student })) {
+      throw httpError(403, "Lesson belongs to another teacher");
+    }
+    if (lesson.invoiceId || lesson.billingStatus) {
+      throw httpError(409, "Lesson has a financial status and cannot be deleted");
+    }
+    if (["consumed", "needs_attention"].includes(lesson.packageConsumptionStatus)) {
+      throw httpError(409, "Lesson package movement must be resolved before deletion");
+    }
+    await assertFinancialDateOpen(transaction, lesson.date);
+
+    const counterDelta = lesson.status === "Toimunud"
+      && lesson.packageAccountingSource !== "package_ledger_v1"
+      ? -1
+      : 0;
+    if (studentRef && studentSnap?.exists && counterDelta) {
+      transaction.set(studentRef, {
+        packageUsed: Math.max(0, (Number(student.packageUsed) || 0) + counterDelta),
+        lessonsSinceInvoice: Math.max(0, (Number(student.lessonsSinceInvoice) || 0) + counterDelta),
+        lessonAccountingUpdatedAt: nowIso,
+      }, { merge: true });
+    }
+    if (scheduleRef && scheduleSnap?.exists) {
+      if (schedule.recurring && !schedule.date && lesson.date) {
+        const occurrenceStatuses = { ...(schedule.occurrenceStatuses || {}) };
+        delete occurrenceStatuses[lesson.date];
+        transaction.set(scheduleRef, { occurrenceStatuses, lessonUpdatedAt: nowIso }, { merge: true });
+      } else if (!schedule.lessonEntryId || schedule.lessonEntryId === cleanLessonId) {
+        transaction.set(scheduleRef, {
+          status: "Planeeritud",
+          lessonEntryId: "",
+          lessonOccurrenceDate: "",
+          lessonUpdatedAt: nowIso,
+        }, { merge: true });
+      }
+    }
+    transaction.delete(lessonRef);
+    const result = {
+      deleted: true,
+      lessonId: cleanLessonId,
+      scheduleId: lesson.scheduleId || "",
+      counterDelta,
+    };
+    transaction.create(auditRef, {
+      entityType: "lesson",
+      entityId: cleanLessonId,
+      action: "lesson.deleted",
+      studentId: lesson.studentId || "",
+      studentName: lesson.studentName || "",
+      lessonDate: lesson.date || "",
+      lessonStatus: lesson.status || "",
+      scheduleId: lesson.scheduleId || "",
+      actor: actorData,
+      reason: "Unbilled diary entry deleted",
+      createdAt: nowIso,
+      requestId: mutationId,
+    });
+    transaction.create(requestRef, {
+      creationSignature: signature,
+      requestId: mutationId,
+      actor: actorData,
+      createdAt: nowIso,
+      result,
+    });
     return { ...result, idempotent: false };
   });
 }
@@ -6538,6 +6913,29 @@ exports.financeApi = functions.https.onRequest(async (req, res) => {
   }
 
   try {
+    if (req.path === "/lessons/journal") {
+      const actor = await requireStaffUser(req);
+      const result = await saveLessonJournal({
+        actor,
+        lessonId: req.body?.lessonId,
+        scheduleId: req.body?.scheduleId,
+        sourceKey: req.body?.sourceKey,
+        values: req.body?.lesson,
+        requestId: req.body?.requestId,
+      });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/lessons/journal/delete") {
+      const actor = await requireStaffUser(req);
+      const result = await deleteLessonJournal({
+        actor,
+        lessonId: req.body?.lessonId,
+        requestId: req.body?.requestId,
+      });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
     if (req.path === "/lessons/package-consumption/sync") {
       const actor = await requireStaffUser(req);
       const result = await syncLessonPackageConsumption({

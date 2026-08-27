@@ -1768,7 +1768,7 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
                     {l.status==='Toimunud'?l.grade:'—'}
                   </div>
                   <div style={{flex:1,minWidth:0}}>
-                    <div style={{fontWeight:600,fontSize:'.88rem',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{l.topic}</div>
+                    <div style={{fontWeight:600,fontSize:'.88rem',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{l.topic||'Tund'}</div>
                     <div style={{fontSize:'.75rem',color:'#42536A'}}>{l.studentName} · {fmtDate(l.date)}</div>
                   </div>
                   <div style={{fontSize:'.75rem',color:'#42536A',flexShrink:0}}>{l.teacher}</div>
@@ -2594,12 +2594,15 @@ function StuSearch({value, onChange, onPick, students, placeholder}) {
 function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilterT,
   schStu,setSchStu,schDate,setSchDate,schTime,setSchTime,schTeach,setSchTeach,
   schRecurring,setSchRecurring,addSchedule,openScheduleEditor,delSchedule,markAttendance,openStudent,
-  db,notify,logActivity,students,staffMembers=[],setSelStu,setTab,tariffAssignments=[]}) {
+  quickCompleteLesson,db,notify,logActivity,students,staffMembers=[],setSelStu,setTab,tariffAssignments=[]}) {
 
   const [showCanceled,setShowCanceled] = React.useState(true);
   const [weekOffset,setWeekOffset]     = React.useState(0);
-  const [viewMode,setViewMode]         = React.useState('week'); // 'month' | 'week' | 'day'
-  const [selectedDay,setSelectedDay]   = React.useState(null);  // iso string for day view
+  const [isCompactSchedule,setIsCompactSchedule] = React.useState(() =>
+    typeof window!=='undefined'&&Boolean(window.matchMedia?.('(max-width: 767px)').matches)
+  );
+  const [viewMode,setViewMode]         = React.useState(()=>isCompactSchedule?'day':'week'); // 'month' | 'week' | 'day'
+  const [selectedDay,setSelectedDay]   = React.useState(()=>isCompactSchedule?today():null);  // iso string for day view
   const [monthAnchor,setMonthAnchor]   = React.useState(today());
   // Popup creation (Google-style)
   const [createPopup,setCreatePopup]   = React.useState(null);  // {x,y,day,slot,anchorEl}
@@ -2616,6 +2619,25 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
   const [dragEv,setDragEv]   = React.useState(null);
   const [dragOver,setDragOver] = React.useState(null);
   const [dragging,setDragging] = React.useState(false);
+
+  React.useEffect(()=>{
+    if(typeof window==='undefined'||!window.matchMedia) return undefined;
+    const media=window.matchMedia('(max-width: 767px)');
+    const sync=()=>setIsCompactSchedule(media.matches);
+    sync();
+    if(media.addEventListener) media.addEventListener('change',sync);
+    else media.addListener(sync);
+    return()=>{
+      if(media.removeEventListener) media.removeEventListener('change',sync);
+      else media.removeListener(sync);
+    };
+  },[]);
+
+  React.useEffect(()=>{
+    if(!isCompactSchedule||viewMode!=='week') return;
+    setSelectedDay(current=>current||today());
+    setViewMode('day');
+  },[isCompactSchedule]);
 
   const canManage = user.role==='teacher' || user.role==='admin';
   const teacherUidForName = React.useCallback(teacherName=>{
@@ -2678,6 +2700,25 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
     };
   },[dayViewDate]);
 
+  const mobileWeekDays = React.useMemo(()=>{
+    const anchor=new Date(`${dayViewDate}T12:00:00`);
+    const day=anchor.getDay();
+    const monday=new Date(anchor);
+    monday.setDate(anchor.getDate()+(day===0?-6:1-day));
+    return Array.from({length:7},(_,index)=>{
+      const date=new Date(monday);
+      date.setDate(monday.getDate()+index);
+      const iso=toLocalISODate(date);
+      return {
+        iso,
+        short:['E','T','K','N','R','L','P'][index],
+        day:date.getDate(),
+        isToday:iso===today(),
+        selected:iso===dayViewDate
+      };
+    });
+  },[dayViewDate]);
+
   const monthDays = React.useMemo(()=>calendarMonthGrid(monthAnchor),[monthAnchor]);
   const monthTitle = React.useMemo(()=>calendarMonthLabel(monthAnchor),[monthAnchor]);
 
@@ -2698,6 +2739,7 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
           day:lesson.day||'Mon',time:lesson.time||'09:00',duration:lesson.duration||60,
           status:lesson.status||'Planeeritud',recurring:lesson.recurring!==false,
           startDate:lesson.startDate||today(),attendance:lesson.attendance||{},
+          occurrenceStatuses:lesson.occurrenceStatuses||{},
           students:assignedStudents,groupMembers:assignedStudents
         };
       })
@@ -2758,39 +2800,45 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
 
   // ── Week stats ────────────────────────────────────────────────
   const weekStats = React.useMemo(()=>{
-    let total=0,done=0,canceled=0,planned=0,revenue=0;
+    let total=0,done=0,canceled=0,absent=0,planned=0,revenue=0;
     occupiedSlots.forEach(slot=>{
       weekDays.forEach(day=>{
         eventsForDaySlot(slot,day.iso).forEach(ev=>{
           total++;
           if(ev.status==='Toimunud') done++;
           else if(ev.status==='Tühistatud') canceled++;
+          else if(['Puudus_p','Puudus_eta'].includes(ev.status)) absent++;
           else planned++;
           const stu=students.find(s=>s.id===ev.studentId||normalizeText(s.name)===normalizeText(ev.studentName));
           const assignment=tariffAssignmentForDate(tariffAssignments,stu?.id,day.iso);
-          revenue+=Math.max(0,Number(assignment?.unitPrice)||Number(stu?.lessonPrice)||0);
+          if(['Planeeritud','Nihutatud','Toimunud'].includes(ev.status||'Planeeritud')){
+            revenue+=Math.max(0,Number(assignment?.unitPrice)||Number(stu?.lessonPrice)||0);
+          }
         });
       });
     });
-    return {total,done,canceled,planned,revenue};
+    return {total,done,canceled,absent,planned,revenue};
   },[occupiedSlots,weekDays,students,tariffAssignments]);
 
   const monthStats = React.useMemo(()=>{
-    let total=0,done=0,canceled=0,planned=0,revenue=0;
+    let total=0,done=0,canceled=0,absent=0,planned=0,revenue=0;
     monthDays.filter(day=>day.inMonth).forEach(day=>{
       eventsOnDate(day.iso).forEach(event=>{
         total++;
         if(event.status==='Toimunud') done++;
         else if(event.status==='Tühistatud') canceled++;
+        else if(['Puudus_p','Puudus_eta'].includes(event.status)) absent++;
         else planned++;
         const student=students.find(item=>
           item.id===event.studentId||normalizeText(item.name)===normalizeText(event.studentName)
         );
         const assignment=tariffAssignmentForDate(tariffAssignments,student?.id,day.iso);
-        revenue+=Math.max(0,Number(assignment?.unitPrice)||Number(student?.lessonPrice)||0);
+        if(['Planeeritud','Nihutatud','Toimunud'].includes(event.status||'Planeeritud')){
+          revenue+=Math.max(0,Number(assignment?.unitPrice)||Number(student?.lessonPrice)||0);
+        }
       });
     });
-    return {total,done,canceled,planned,revenue};
+    return {total,done,canceled,absent,planned,revenue};
   },[monthDays,eventsOnDate,students,tariffAssignments]);
 
   // ── Planner rows ──────────────────────────────────────────────
@@ -2816,6 +2864,10 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
     });
     return keys.size;
   },[viewMode,monthDays,dayViewObj.iso,weekDays,eventsOnDate,filteredSch]);
+
+  const todayPendingLessons = React.useMemo(()=>
+    eventsOnDate(today()).filter(event=>!event.isGroup&&event.status==='Planeeritud')
+  ,[eventsOnDate]);
 
   const plannerTeacher = React.useMemo(()=>{
     if(isAdmin&&filterT&&filterT!=="Kõik") return canonicalTeacherName(filterT);
@@ -3053,6 +3105,8 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
           {isDayView&&<span>{slot} – {calendarAddMinutes(slot,dur)} · {dur}min</span>}
           {(isAdmin&&(filterT==='Kõik'||!filterT))&&!isDayView&&<span style={{fontWeight:600,opacity:.75}}>{ev.teacher}</span>}
           {st==="Toimunud"&&<span style={{color:'#166534',fontWeight:700}}>✓</span>}
+          {st==='Puudus_p'&&<span style={{color:'#A96E1A',fontWeight:700}}>Hoiatatud puudumine</span>}
+          {st==='Puudus_eta'&&<span style={{color:'#991b1b',fontWeight:700}}>Teatamata puudumine</span>}
           {st==='Nihutatud'&&<span style={{color:'#C9882A',fontWeight:600}}>Nihut.</span>}
           {st==='Tühistatud'&&<span style={{color:'#dc2626',fontWeight:600}}>Tüh.</span>}
         </div>
@@ -3061,6 +3115,16 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
           <div style={{marginTop:2,fontSize:".72rem",color:"#42536A"}}>
             {ev.teacher&&<span>Õp. {ev.teacher}</span>}
           </div>
+        )}
+
+        {canManage&&!ev.isGroup&&st==='Planeeritud'&&dayIso<=today()&&quickCompleteLesson&&(
+          <button type="button" className="calendar-quick-complete"
+            onClick={async event=>{
+              event.stopPropagation();
+              await quickCompleteLesson({...ev,occurrenceDate:dayIso});
+            }}>
+            <i className="fa-solid fa-check"/> Märgi toimunuks
+          </button>
         )}
 
         {!canManage&&linkedStu&&ev.id&&st!=="Tühistatud"&&(
@@ -3116,7 +3180,7 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
     <div className="fade-in" style={{display:"flex",flexDirection:"column",gap:14}}>
 
       {/* ── Header ── */}
-      <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",flexWrap:"wrap",gap:10}}>
+      <div className="calendar-header" style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",flexWrap:"wrap",gap:10}}>
         <div>
           <h1 style={{fontSize:"1.7rem"}}>Tunniplaan</h1>
           <div style={{fontSize:".84rem",color:"#42536A",marginTop:3,display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
@@ -3131,6 +3195,7 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
               <span style={{color:"#d1d5db"}}>·</span>
               <strong>{weekStats.total} tundi</strong>
               {weekStats.done>0&&<span style={{color:'#166534'}}>· {weekStats.done} toimunud</span>}
+              {weekStats.absent>0&&<span style={{color:'#A96E1A'}}>· {weekStats.absent} puudumist</span>}
               {weekStats.canceled>0&&<span style={{color:'#dc2626'}}>· {weekStats.canceled} tüh.</span>}
               {weekStats.revenue>0&&<span style={{color:'#2F5D50',fontWeight:600}}>· {weekStats.revenue}€</span>}
             </>}
@@ -3140,7 +3205,7 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
             )}
           </div>
         </div>
-        <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
+        <div className="calendar-controls" style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
           {/* View toggle */}
           <div style={{display:"flex",background:"rgba(28,43,58,.07)",borderRadius:10,padding:3,gap:2}}>
             {[['month','Kuu'],['week','Nädal'],['day','Päev']].map(([v,l])=>(
@@ -3177,6 +3242,19 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
             <button onClick={goToNextDay} className="btn btn-ghost btn-sm">Järgmine päev →</button>
           </>}
         </div>
+      </div>
+
+      <div className="calendar-mobile-days" aria-label="Vali nädalapäev">
+        {mobileWeekDays.map(day=>(
+          <button key={day.iso} type="button"
+            onClick={()=>{setSelectedDay(day.iso);setViewMode('day');}}
+            className={day.selected?'is-selected':''}
+            aria-label={new Date(`${day.iso}T12:00:00`).toLocaleDateString('et-EE',{weekday:'long',day:'numeric',month:'long'})}
+            aria-pressed={day.selected}>
+            <span>{day.short}</span>
+            <strong className={day.isToday?'is-today':''}>{day.day}</strong>
+          </button>
+        ))}
       </div>
 
       {/* ── Teacher pills ── */}
@@ -3286,13 +3364,13 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
       )}
 
       {/* ── Main area ── */}
-      <div style={{display:"flex",gap:14,alignItems:"flex-start"}}>
+      <div className="calendar-layout" style={{display:"flex",gap:14,alignItems:"flex-start"}}>
 
         {/* ── Calendar ── */}
-        <div style={{flex:1,minWidth:0}}>
+        <div className="calendar-main" style={{flex:1,minWidth:0}}>
           <div className="card" style={{overflow:"hidden"}}>
             <div className="scroll" style={{overflowX:"auto"}}>
-              <div style={{minWidth:viewMode==='day'?400:720}}>
+              <div className={viewMode==='day'?'calendar-grid-inner is-day':'calendar-grid-inner'} style={{minWidth:viewMode==='day'?400:720}}>
 
                 {/* ── MONTH VIEW ── */}
                 {viewMode==='month'&&<>
@@ -3508,7 +3586,7 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
 
         {/* ── Sidebar ── */}
         {canManage&&(
-          <div style={{width:260,flexShrink:0,display:"flex",flexDirection:"column",gap:12}}>
+          <div className="calendar-aside" style={{width:260,flexShrink:0,display:"flex",flexDirection:"column",gap:12}}>
 
             {/* Week stats */}
             <div className="card" style={{padding:16}}>
@@ -3527,10 +3605,13 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
                       done:dayEvs.filter(e=>e.status==='Toimunud').length,
                       planned:dayEvs.filter(e=>e.status==='Planeeritud').length,
                       canceled:dayEvs.filter(e=>e.status==='Tühistatud').length,
+                      absent:dayEvs.filter(e=>['Puudus_p','Puudus_eta'].includes(e.status)).length,
                       revenue:dayEvs.reduce((sum,ev)=>{
                         const stu=students.find(s=>s.id===ev.studentId||normalizeText(s.name)===normalizeText(ev.studentName));
                         const assignment=tariffAssignmentForDate(tariffAssignments,stu?.id,dayViewObj.iso);
-                        return sum+Math.max(0,Number(assignment?.unitPrice)||Number(stu?.lessonPrice)||0);
+                        return sum+(['Planeeritud','Nihutatud','Toimunud'].includes(ev.status||'Planeeritud')
+                          ?Math.max(0,Number(assignment?.unitPrice)||Number(stu?.lessonPrice)||0)
+                          :0);
                       },0)
                     }
                   : weekStats;
@@ -3538,8 +3619,9 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
                   {l:'Tunde kokku',v:stats.total,c:'#1C2B3A'},
                   {l:'Toimunud',v:stats.done,c:'#166534'},
                   {l:'Planeeritud',v:stats.planned,c:'#1d4ed8'},
+                  {l:'Puudumised',v:stats.absent||0,c:'#A96E1A'},
                   {l:'Tühistatud',v:stats.canceled,c:'#dc2626'},
-                  {l:'Tulu',v:stats.revenue+'€',c:'#2F5D50'},
+                  {l:'Planeeritud tulu',v:stats.revenue+'€',c:'#2F5D50'},
                 ].map(s=>(
                   <div key={s.l} style={{display:"flex",justifyContent:"space-between",alignItems:"center",
                     padding:"5px 0",borderBottom:"0.5px solid rgba(28,43,58,.06)"}}>
@@ -3549,6 +3631,29 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
                 ));
               })()}
             </div>
+
+            {quickCompleteLesson&&todayPendingLessons.length>0&&(
+              <div className="card" style={{padding:16}}>
+                <div style={{fontSize:".66rem",fontWeight:800,color:"#9ca3af",textTransform:"uppercase",letterSpacing:".1em",marginBottom:10}}>
+                  Tänased lõpetamata tunnid
+                </div>
+                <div style={{display:'flex',flexDirection:'column',gap:7}}>
+                  {todayPendingLessons.slice(0,12).map(event=>(
+                    <div key={`today-${event.id}`} style={{display:'grid',gridTemplateColumns:'1fr auto',gap:8,alignItems:'center',padding:'7px 0',borderBottom:'1px solid rgba(28,43,58,.06)'}}>
+                      <div style={{minWidth:0}}>
+                        <div style={{fontSize:'.76rem',fontWeight:800,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{event.studentName}</div>
+                        <div style={{fontSize:'.66rem',color:'#64748b'}}>{event.time||'—'} · {event.duration||60} min</div>
+                      </div>
+                      <button type="button" className="calendar-quick-complete" style={{marginTop:0}}
+                        onClick={()=>quickCompleteLesson({...event,occurrenceDate:today()})}
+                        title="Märgi tund toimunuks">
+                        <i className="fa-solid fa-check"/>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Spikker */}
             <div className="card" style={{padding:16}}>
@@ -6721,7 +6826,7 @@ function StudentCard({user,currentStu,stuLessons,liveLessons=[],stuHw,stuInv,isA
                   </div>
                   <div style={{flex:1,minWidth:0}}>
                     <div style={{display:'flex',justifyContent:'space-between',gap:6,marginBottom:3}}>
-                      <span style={{fontWeight:600,fontSize:'.88rem',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{l.topic}</span>
+                      <span style={{fontWeight:600,fontSize:'.88rem',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{l.topic||'Tund'}</span>
                       <div style={{display:'flex',alignItems:'center',gap:6,flexShrink:0}}>
                         <span className="badge" style={{background:b.bg,color:b.c,fontSize:'.68rem'}}>{b.t}</span>
                         {billingMeta&&<span className="badge" style={{background:billingMeta.bg,color:billingMeta.color,fontSize:'.68rem'}}>{billingMeta.label}</span>}
@@ -8975,9 +9080,10 @@ function InvoicesView({invoices,payments,paymentLineAllocations=[],myStudents,pa
 
 // ── TUNNI MODAL ───────────────────────────────────────────────
 // ── ACCOUNTING INVOICE REGISTER ───────────────────────────────
-function LessonPaymentRegisterPanel({month,lessons,invoices,payments,paymentLineAllocations,openInvoices,openReconciliation,voidPayment}) {
+function LessonPaymentRegisterPanel({month,lessons,invoices,payments,paymentLineAllocations,students=[],tariffAssignments=[],openInvoices,openReconciliation,voidPayment,addInvoice,updateLessonBillingDisposition}) {
   const [status,setStatus]=React.useState('all');
   const [search,setSearch]=React.useState('');
+  const [actionBusy,setActionBusy]=React.useState('');
   const register=React.useMemo(()=>lessonPaymentRegister({
     lessons,
     invoices,
@@ -8997,8 +9103,23 @@ function LessonPaymentRegisterPanel({month,lessons,invoices,payments,paymentLine
     });
   },[register.rows,status,search]);
   const moneyCents=value=>`${accountingAmount(value).toFixed(2)} €`;
+  const expectedCentsForRow=React.useCallback(row=>{
+    if(row.amountCents) return row.amountCents;
+    if(row.status!=='unbilled') return 0;
+    const student=students.find(item=>item.id===row.studentId);
+    const assignment=tariffAssignmentForDate(tariffAssignments,row.studentId,row.date);
+    return Math.round(Math.max(0,Number(assignment?.unitPrice)||Number(student?.lessonPrice)||0)*100);
+  },[students,tariffAssignments]);
+  const unbilledExpectedCents=visibleRows
+    .filter(row=>row.status==='unbilled')
+    .reduce((sum,row)=>sum+expectedCentsForRow(row),0);
   const downloadCsv=()=>{
-    const csv=lessonPaymentRegisterCsv({...register,rows:visibleRows});
+    const csv=lessonPaymentRegisterCsv({...register,rows:visibleRows.map(row=>{
+      const expectedCents=expectedCentsForRow(row);
+      return row.status==='unbilled'&&expectedCents
+        ?{...row,amountCents:expectedCents,balanceCents:expectedCents,pricingEstimate:true}
+        :row;
+    })});
     const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
     const url=URL.createObjectURL(blob);
     const link=document.createElement('a');
@@ -9008,6 +9129,19 @@ function LessonPaymentRegisterPanel({month,lessons,invoices,payments,paymentLine
     link.click();
     link.remove();
     URL.revokeObjectURL(url);
+  };
+  const createLessonInvoice=async row=>{
+    if(!addInvoice||!row?.studentId||!row?.lessonId) return;
+    if(!window.confirm(`Koostan ${row.studentName} tunnile ${fmtDate(row.date)} eraldi arve. Jätkan?`)) return;
+    setActionBusy(`invoice-${row.lessonId}`);
+    try{ await addInvoice(row.studentId,{lessonIds:[row.lessonId]}); }
+    finally{ setActionBusy(''); }
+  };
+  const decideLessonBilling=async(row,nextStatus)=>{
+    if(!updateLessonBillingDisposition||!row?.lessonId) return;
+    setActionBusy(`${nextStatus}-${row.lessonId}`);
+    try{ await updateLessonBillingDisposition(row.lessonId,nextStatus); }
+    finally{ setActionBusy(''); }
   };
   const statusMeta={
     paid:{bg:'#dcfce7',color:'#166534'},
@@ -9028,7 +9162,7 @@ function LessonPaymentRegisterPanel({month,lessons,invoices,payments,paymentLine
     {label:'Makstud',value:register.summary.paidCount+register.summary.directPaidCount,note:moneyCents(register.summary.paidCents),color:'#166534'},
     {label:'Osaliselt',value:register.summary.partialCount,note:'makse katab osa tunni hinnast',color:'#92400e'},
     {label:'Arvel · tasumata',value:register.summary.invoicedUnpaidCount,note:`jääk koos osalistega ${moneyCents(register.summary.balanceCents)}`,color:'#991b1b'},
-    {label:'Arveldamata',value:register.summary.unbilledCount,note:'vajavad arveotsust',color:'#9a3412'},
+    {label:'Arveldamata',value:register.summary.unbilledCount,note:unbilledExpectedCents?`eeldatav ${moneyCents(unbilledExpectedCents)}`:'hind vajab määramist',color:'#9a3412'},
     {label:'Paketist kaetud',value:register.summary.packageCount,note:'eraldi paketiliikumine',color:'#1d4ed8'}
   ];
   return(
@@ -9100,10 +9234,10 @@ function LessonPaymentRegisterPanel({month,lessons,invoices,payments,paymentLine
           <button onClick={downloadCsv} className="btn btn-pine btn-sm"><i className="fa-solid fa-file-csv"/> Ekspordi tunnid</button>
         </div>
         <div style={{overflowX:'auto'}}>
-          <table style={{width:'100%',borderCollapse:'collapse',minWidth:1100}}>
+          <table style={{width:'100%',borderCollapse:'collapse',minWidth:1300}}>
             <thead>
               <tr style={{background:'#F9F8F6',fontSize:'.66rem',textTransform:'uppercase',letterSpacing:'.05em',color:'#64748b'}}>
-                {['Kuupäev','Õpilane / tund','Arve','Hind','Kaetud','Jääk','Makse','Seose täpsus','Staatus'].map(label=>(
+                {['Kuupäev','Õpilane / tund','Arve','Hind','Kaetud','Jääk','Makse','Seose täpsus','Staatus','Toimingud'].map(label=>(
                   <th key={label} style={{padding:'10px 11px',textAlign:['Hind','Kaetud','Jääk'].includes(label)?'right':'left'}}>{label}</th>
                 ))}
               </tr>
@@ -9111,6 +9245,14 @@ function LessonPaymentRegisterPanel({month,lessons,invoices,payments,paymentLine
             <tbody>
               {visibleRows.map(row=>{
                 const meta=statusMeta[row.status]||statusMeta.not_billable;
+                const isAbsence=['Puudus_p','Puudus_eta'].includes(row.lessonStatus);
+                const canInvoice=row.status==='unbilled'&&(
+                  row.lessonStatus==='Toimunud'||row.rawLesson?.billingStatus==='late_cancel_billable'
+                );
+                const rowBusy=actionBusy.endsWith(`-${row.lessonId}`);
+                const expectedCents=expectedCentsForRow(row);
+                const displayAmountCents=row.amountCents||expectedCents;
+                const displayBalanceCents=row.balanceCents||(row.status==='unbilled'?expectedCents:0);
                 return(
                   <tr key={row.lessonId} style={{borderTop:'1px solid rgba(28,43,58,.07)',fontSize:'.76rem'}}>
                     <td style={{padding:'11px',verticalAlign:'top',whiteSpace:'nowrap'}}>{fmtDate(row.date)}</td>
@@ -9123,9 +9265,13 @@ function LessonPaymentRegisterPanel({month,lessons,invoices,payments,paymentLine
                       <div style={{fontWeight:700}}>{row.invoiceNum||'—'}</div>
                       {row.invoiceId&&<div title={row.invoiceId} style={{fontFamily:'monospace',fontSize:'.62rem',color:'#94a3b8',marginTop:3,maxWidth:120,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{row.invoiceId}</div>}
                     </td>
-                    <td style={{padding:'11px',verticalAlign:'top',textAlign:'right',fontFamily:'monospace',fontWeight:700}}>{row.amountCents?moneyCents(row.amountCents):'—'}</td>
+                    <td style={{padding:'11px',verticalAlign:'top',textAlign:'right',fontFamily:'monospace',fontWeight:700}}>
+                      {displayAmountCents?moneyCents(displayAmountCents):'—'}
+                      {row.status==='unbilled'&&displayAmountCents>0&&<div style={{fontFamily:'inherit',fontSize:'.6rem',color:'#64748b'}}>eeldatav</div>}
+                      {row.status==='unbilled'&&!displayAmountCents&&<div style={{fontFamily:'inherit',fontSize:'.6rem',color:'#991b1b'}}>hind puudub</div>}
+                    </td>
                     <td style={{padding:'11px',verticalAlign:'top',textAlign:'right',fontFamily:'monospace',fontWeight:700,color:'#166534'}}>{row.paidCents?moneyCents(row.paidCents):'—'}</td>
-                    <td style={{padding:'11px',verticalAlign:'top',textAlign:'right',fontFamily:'monospace',fontWeight:700,color:row.balanceCents?'#991b1b':'#42536A'}}>{row.balanceCents?moneyCents(row.balanceCents):'—'}</td>
+                    <td style={{padding:'11px',verticalAlign:'top',textAlign:'right',fontFamily:'monospace',fontWeight:700,color:displayBalanceCents?'#991b1b':'#42536A'}}>{displayBalanceCents?moneyCents(displayBalanceCents):'—'}</td>
                     <td style={{padding:'11px',verticalAlign:'top'}}>
                       {row.paymentAllocations.length>0
                         ? <div>
@@ -9167,11 +9313,33 @@ function LessonPaymentRegisterPanel({month,lessons,invoices,payments,paymentLine
                     <td style={{padding:'11px',verticalAlign:'top'}}>
                       <span className="badge" style={{background:meta.bg,color:meta.color}}>{lessonPaymentStatusLabel(row.status)}</span>
                     </td>
+                    <td style={{padding:'11px',verticalAlign:'top',minWidth:190}}>
+                      {row.status==='unbilled'?(
+                        <div style={{display:'flex',gap:5,flexWrap:'wrap'}}>
+                          {canInvoice&&(
+                            <button type="button" className="btn btn-pine btn-sm"
+                              disabled={rowBusy||!row.studentId}
+                              onClick={()=>createLessonInvoice(row)}
+                              title={!row.studentId?'Õpilase ID puudub — paranda esmalt andmeseos':''}>
+                              {actionBusy===`invoice-${row.lessonId}`?<i className="fa-solid fa-spinner fa-spin"/>:<i className="fa-solid fa-file-invoice"/>} Arve
+                            </button>
+                          )}
+                          {isAbsence&&row.rawLesson?.billingStatus!=='late_cancel_billable'&&(
+                            <button type="button" className="btn btn-amber btn-sm" disabled={rowBusy}
+                              onClick={()=>decideLessonBilling(row,'late_cancel_billable')}>Tasuline</button>
+                          )}
+                          <button type="button" className="btn btn-ghost btn-sm" disabled={rowBusy}
+                            onClick={()=>decideLessonBilling(row,isAbsence?'cancelled_on_time':'free')}>Tasuta</button>
+                          <button type="button" className="btn btn-ghost btn-sm" disabled={rowBusy}
+                            onClick={()=>decideLessonBilling(row,'written_off')}>Kanna maha</button>
+                        </div>
+                      ):<span style={{color:'#94a3b8'}}>—</span>}
+                    </td>
                   </tr>
                 );
               })}
               {visibleRows.length===0&&(
-                <tr><td colSpan="9" style={{padding:34,textAlign:'center',color:'#94a3b8'}}>Selles perioodis sobivaid tunde ei ole.</td></tr>
+                <tr><td colSpan="10" style={{padding:34,textAlign:'center',color:'#94a3b8'}}>Selles perioodis sobivaid tunde ei ole.</td></tr>
               )}
             </tbody>
           </table>
@@ -9491,7 +9659,7 @@ function PaymentAllocationQueuePanel({queue,onOpen,onConfirmBatch,batchBusy}) {
   );
 }
 
-function AccountingRegisterView({invoices,payments,paymentLineAllocations,bankTransactions,payerCredits,lessons,financialPeriods,reviewFinancialPeriod,savePaymentLineAllocation,openInvoices,openReconciliation,openPaymentDocument,voidPayment,notify}) {
+function AccountingRegisterView({invoices,payments,paymentLineAllocations,bankTransactions,payerCredits,lessons,students,tariffAssignments,financialPeriods,reviewFinancialPeriod,savePaymentLineAllocation,openInvoices,openReconciliation,openPaymentDocument,voidPayment,addInvoice,updateLessonBillingDisposition,notify}) {
   const [month,setMonth]=React.useState(()=>today().slice(0,7));
   const [registerMode,setRegisterMode]=React.useState('invoices');
   const [status,setStatus]=React.useState('all');
@@ -9787,9 +9955,13 @@ function AccountingRegisterView({invoices,payments,paymentLineAllocations,bankTr
         invoices={invoices}
         payments={payments}
         paymentLineAllocations={paymentLineAllocations}
+        students={students}
+        tariffAssignments={tariffAssignments}
         openInvoices={openInvoices}
         openReconciliation={openReconciliation}
-        voidPayment={voidPayment}/>}
+        voidPayment={voidPayment}
+        addInvoice={addInvoice}
+        updateLessonBillingDisposition={updateLessonBillingDisposition}/>}
       {registerMode==='allocations'&&(
         <PaymentAllocationQueuePanel
           queue={allocationQueue}
@@ -11151,27 +11323,16 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
       :isOccurrenceException
         ?"Kustuta see erand ja taasta sarja algne tund?"
         :"Kustuta tund kalendrist täielikult?")) return;
-    const linkedLessonSnap = await db.collection("lessons").where("scheduleId","==",modalEv.id).limit(1).get();
+    const linkedLessonSnap = await db.collection("lessons").where("scheduleId","==",modalEv.id).get();
     if(!linkedLessonSnap.empty){
-      const linkedLessonDoc = linkedLessonSnap.docs[0];
-      const linkedLessonData = linkedLessonDoc.data();
-      if(linkedLessonData.packageConsumptionStatus==="consumed"){
-        notify("⚠ Paketist maha arvestatud tundi ei saa kustutada. Muuda päeviku staatus esmalt puudumiseks.");
+      if(linkedLessonSnap.size>1){
+        notify("⚠ Sarjal on mitu päevikukannet. Säilita ajalugu ja tühista sari kustutamise asemel.");
         return;
       }
-      await linkedLessonDoc.ref.delete();
-      if(linkedLessonData.studentId && linkedLessonData.studentId!=="ext" && linkedLessonData.status==="Toimunud"){
-        if(linkedLessonData.packageAccountingSource!=="package_ledger_v1"){
-          const studentRef = db.collection("students").doc(linkedLessonData.studentId);
-          const studentSnap = await studentRef.get();
-          const lastInvoiceAt = studentSnap.data()?.lastInvoiceAt || "";
-          const patch = {packageUsed:firebase.firestore.FieldValue.increment(-1)};
-          if(!lastInvoiceAt || String(linkedLessonData.date||"") >= String(lastInvoiceAt)){
-            patch.lessonsSinceInvoice = firebase.firestore.FieldValue.increment(-1);
-          }
-          await studentRef.update(patch);
-        }
-      }
+      const linkedLessonDoc = linkedLessonSnap.docs[0];
+      const linkedLessonData = linkedLessonDoc.data();
+      const deleted=await deleteLesson({id:linkedLessonDoc.id,...linkedLessonData});
+      if(!deleted) return;
     }
     if(isOccurrenceException){
       const batch=db.batch();
@@ -11533,7 +11694,7 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
               <div style={{fontSize:".76rem",fontWeight:700,color:"#42536A",textTransform:"uppercase",letterSpacing:".08em",marginBottom:2}}>
                 📝 Päeviku kanne
               </div>
-              <input value={lTopic} onChange={e=>setLTopic(e.target.value)} placeholder="Tunni teema *"/>
+              <input value={lTopic} onChange={e=>setLTopic(e.target.value)} placeholder="Tunni teema (valikuline)"/>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
                 <select value={lStatus} onChange={e=>setLStatus(e.target.value)} disabled={Boolean(modalEv.billingStatus||modalEv.invoiceId)}>
                   <option value="Toimunud">✓ Toimunud</option>
@@ -13431,6 +13592,46 @@ function App() {
     notify(shouldClear?'✓ Kohalolu märge eemaldatud':status==='coming'?'✓ Osalemine märgitud':status==='warned'?'✓ Hoiatus märgitud':'✓ Puudumine märgitud');
   },[user,groups]);
 
+  const quickCompleteLesson=useCallback(async event=>{
+    if(!event?.id||event.isGroup) return false;
+    const student=students.find(item=>item.id===event.studentId)
+      ||students.find(item=>normalizeText(item.name)===normalizeText(event.studentName));
+    if(!student?.id){notify('⚠ Õpilase kaarti ei leitud. Ava tund ja paranda seos.');return false;}
+    const lessonDate=event.occurrenceDate||event.date||today();
+    try{
+      const result=await financeApiPost('/lessons/journal',{
+        scheduleId:event.id,
+        lesson:{
+          studentId:student.id,
+          studentName:student.name,
+          scheduleId:event.id,
+          scheduleTime:event.time||'',
+          topic:'',grade:0,duration:Number(event.duration)||60,status:'Toimunud',comment:'',
+          newWords:'',grammar:'',covered:'',nextNotes:'',date:lessonDate,
+          teacher:event.teacher||student.teacher||user.displayName,
+          teacherUid:event.teacherUid||student.teacherUid||teacherUidForName(event.teacher||student.teacher||user.displayName),
+          attachments:[],requestedStudentPackageId:''
+        },
+        requestId:financeRequestId('quicklesson')
+      });
+      if(result?.lesson){
+        setLes(prev=>[result.lesson,...prev.filter(lesson=>lesson.id!==result.lesson.id)]);
+      }
+      await logActivity('lesson.quick_completed','Tund märgiti kalendrist toimunuks',{
+        lessonId:result?.lessonId||'',scheduleId:event.id,studentId:student.id,studentName:student.name,date:lessonDate
+      });
+      const packageStatus=result?.packageSync?.status;
+      notify(packageStatus==='needs_attention'
+        ?'✓ Tund märgitud · ⚠ pakett vajab tähelepanu'
+        :'✓ Tund märgitud toimunuks');
+      return true;
+    }catch(error){
+      console.error('Quick lesson completion failed:',error);
+      notify(`⚠ Tundi ei saanud lõpetada: ${error.message||error}`);
+      return false;
+    }
+  },[students,user,teacherUidForName,logActivity,notify]);
+
   const sendTeacherMessage=useCallback(async(student,text)=>{
     if(!student){notify('⚠ Õpilast ei leitud');return;}
     if(!text?.trim()){notify('⚠ Kirjuta sõnum');return;}
@@ -13570,7 +13771,7 @@ function App() {
   },[isAdmin]);
 
   const saveLesson=useCallback(async()=>{
-    if(!modalEv||!lTopic.trim()){notify('⚠ Sisesta tunni teema');return;}
+    if(!modalEv) return;
     const stu=students.find(s=>s.name.toLowerCase()===modalEv.studentName.toLowerCase());
     const now=new Date();
     const selectedLessonFiles = Array.isArray(lessonFile) ? lessonFile : (lessonFile ? [lessonFile] : []);
@@ -13639,7 +13840,7 @@ function App() {
       studentId:stu?stu.id:'ext',studentName:modalEv.studentName,
       scheduleId: modalEv.id||'',
       scheduleTime: modalEv.time||'',
-      topic:lTopic,grade:lStatus==='Toimunud'?parseInt(lGrade):0,
+      topic:String(lTopic||'').trim(),grade:lStatus==='Toimunud'?parseInt(lGrade):0,
       duration:parseInt(lDur),status:lStatus,comment:lComment,
       newWords:lNewWords||'',grammar:lGrammar||'',covered:lCovered||'',nextNotes:lNextNotes||'',
       date:modalEv.occurrenceDate||modalEv.date||today(),submittedAt:now.toLocaleString('et-EE'),teacher:user.displayName,
@@ -13694,80 +13895,98 @@ function App() {
       lessonPayload.attachment = preservedPrimary;
       lessonPayload.attachments = preservedAttachments;
     }
+    if(!stu?.id&&!modalEv.isGroup){
+      notify('⚠ Vali registreeritud õpilane. Nime järgi tund enam ei salvestu.');
+      return;
+    }
     const wasExistingLesson = !!existingLessonRef;
     let savedLessonId = existingLessonRef?.id || '';
-    if(existingLessonRef){
-      await existingLessonRef.update(lessonPayload);
-    }else{
-      const createdLessonRef = await db.collection('lessons').add({
-        ...lessonPayload,
-        createdAt: today()
+    let savedLessonIds = [];
+    let savedLesson = null;
+    let packageSyncMessage = '';
+    if(modalEv.isGroup){
+      const assignedIds=modalEv.students||modalEv.groupMembers||[];
+      const attendance=modalEv.attendance||{};
+      const groupStudents=assignedIds.map(studentId=>students.find(student=>student.id===studentId)).filter(Boolean);
+      const marked=groupStudents.map(student=>{
+        const attendanceStatus=attendance[`${student.id}_${lessonPayload.date}`]?.status||'';
+        const status=attendanceStatus==='coming'?'Toimunud':attendanceStatus==='warned'?'Puudus_p':attendanceStatus==='absent'?'Puudus_eta':'';
+        return {student,status};
+      }).filter(item=>item.status);
+      if(!marked.length){
+        notify('⚠ Märgi grupis vähemalt ühe õpilase kohalolu.');
+        return;
+      }
+      const results=[];
+      for(const item of marked){
+        const requestId=financeRequestId('grouplesson');
+        const result=await financeApiPost('/lessons/journal',{
+          sourceKey:`group:${modalEv.groupId}:${modalEv.groupLessonId}`,
+          lesson:{
+            ...lessonPayload,
+            studentId:item.student.id,
+            studentName:item.student.name,
+            teacherUid:modalEv.teacherUid||item.student.teacherUid||teacherUidForName(modalEv.teacher||user.displayName),
+            status:item.status,
+            grade:item.status==='Toimunud'?lessonPayload.grade:0,
+            groupId:modalEv.groupId||'',
+            groupName:modalEv.studentName||'',
+            sourceKey:`group:${modalEv.groupId}:${modalEv.groupLessonId}`,
+            isGroup:false
+          },
+          requestId
+        });
+        if(result?.lesson) results.push(result.lesson);
+      }
+      if(results.length){
+        setLes(prev=>[...results,...prev.filter(lesson=>!results.some(saved=>saved.id===lesson.id))]);
+        savedLesson=results[0];
+        savedLessonId=savedLesson.id;
+        savedLessonIds=results.map(item=>item.id);
+      }
+      const group=groups.find(item=>item.id===modalEv.groupId);
+      if(group){
+        const nextGroupLessons=(group.lessons||[]).map(lesson=>{
+          if(lesson.id!==modalEv.groupLessonId) return lesson;
+          const updatedAt=new Date().toISOString();
+          return lesson.recurring!==false&&!lesson.date
+            ?{
+                ...lesson,
+                occurrenceStatuses:{
+                  ...(lesson.occurrenceStatuses||{}),
+                  [lessonPayload.date]:{status:'Toimunud',updatedAt}
+                },
+                updatedAt
+              }
+            :{...lesson,status:'Toimunud',updatedAt};
+        });
+        await db.collection('groups').doc(group.id).update({lessons:nextGroupLessons,updatedAt:new Date().toISOString()});
+      }
+      await logActivity('lesson.group_recorded','Grupitund kanti õpilaste päevikutesse',{
+        groupId:modalEv.groupId||'',groupName:modalEv.studentName||'',lessonIds:results.map(item=>item.id),studentCount:results.length
       });
-      savedLessonId = createdLessonRef.id;
-    }
-    const savedLesson = {id:savedLessonId,...lessonPayload};
-    setLes(prev=>[savedLesson,...prev.filter(l=>l.id!==savedLessonId)]);
-    await logActivity(wasExistingLesson?'lesson.updated':'lesson.created', wasExistingLesson?'Tunni kanne uuendati':'Tunni kanne lisati', {
-      studentId:stu?.id||'',
-      studentName:modalEv.studentName,
-      lessonId:savedLessonId,
-      hasFile:Array.isArray(lessonPayload.attachments)&&lessonPayload.attachments.length>0
-    });
-
-    if(modalEv.id){
-      const scheduleStatus = lStatus==='Toimunud' ? 'Toimunud' : 'Planeeritud';
-      await db.collection('schedule').doc(modalEv.id).update({status:scheduleStatus});
-    }
-
-    let packageSyncMessage='';
-    const ledgerManaged=Boolean(
-      stu
-      && (
-        (studentPackages||[]).some(studentPackage=>studentPackage.studentId===stu.id)
-        || existingLessonData?.packageAccountingSource==='package_ledger_v1'
-      )
-    );
-    if(stu&&ledgerManaged){
-      try{
-        const packageSync=await financeApiPost('/lessons/package-consumption/sync',{
-          lessonId:savedLessonId,
-          requestId:financeRequestId('lessonpackage')
-        });
-        if(packageSync?.lessonFields){
-          setLes(prev=>prev.map(lesson=>lesson.id===savedLessonId?{...lesson,...packageSync.lessonFields}:lesson));
-        }
-        if(packageSync?.status==='consumed'){
-          packageSyncMessage=` · paketis ${packageSync.balanceAfter??'—'} tundi`;
-        }else if(packageSync?.status==='restored'){
-          packageSyncMessage=` · paketikrediit tagastatud`;
-        }else if(packageSync?.status==='needs_attention'){
-          packageSyncMessage=` · ⚠ paketikrediit vajab tähelepanu`;
-        }
-      }catch(err){
-        console.error('Lesson package sync failed:',err);
-        packageSyncMessage=' · ⚠ paketi arvestus vajab kordust';
-      }
-    }
-
-    if(stu&&!ledgerManaged){
-      const wasCounted = existingLessonData?.status==='Toimunud';
-      const isCounted = lStatus==='Toimunud';
-      if(!existingLessonRef && isCounted){
-        await db.collection('students').doc(stu.id).update({
-          packageUsed:firebase.firestore.FieldValue.increment(1),
-          lessonsSinceInvoice:firebase.firestore.FieldValue.increment(1)
-        });
-      }else if(existingLessonRef && !wasCounted && isCounted){
-        await db.collection('students').doc(stu.id).update({
-          packageUsed:firebase.firestore.FieldValue.increment(1),
-          lessonsSinceInvoice:firebase.firestore.FieldValue.increment(1)
-        });
-      }else if(existingLessonRef && wasCounted && !isCounted){
-        await db.collection('students').doc(stu.id).update({
-          packageUsed:firebase.firestore.FieldValue.increment(-1),
-          lessonsSinceInvoice:firebase.firestore.FieldValue.increment(-1)
-        });
-      }
+      packageSyncMessage=` · ${results.length} õpilase päevikus`;
+    }else{
+      const result=await financeApiPost('/lessons/journal',{
+        lessonId:existingLessonRef?.id||'',
+        scheduleId:modalEv.id||lessonPayload.scheduleId||'',
+        lesson:lessonPayload,
+        requestId:financeRequestId('lessonjournal')
+      });
+      savedLesson=result?.lesson||{id:result?.lessonId||savedLessonId,...lessonPayload};
+      savedLessonId=savedLesson.id;
+      savedLessonIds=[savedLessonId];
+      setLes(prev=>[savedLesson,...prev.filter(lesson=>lesson.id!==savedLessonId)]);
+      const packageSync=result?.packageSync;
+      if(packageSync?.status==='consumed') packageSyncMessage=` · paketis ${packageSync.balanceAfter??'—'} tundi`;
+      else if(packageSync?.status==='restored') packageSyncMessage=' · paketikrediit tagastatud';
+      else if(packageSync?.status==='needs_attention') packageSyncMessage=' · ⚠ paketikrediit vajab tähelepanu';
+      await logActivity(wasExistingLesson?'lesson.updated':'lesson.created', wasExistingLesson?'Tunni kanne uuendati':'Tunni kanne lisati', {
+        studentId:stu.id,
+        studentName:stu.name,
+        lessonId:savedLessonId,
+        hasFile:Array.isArray(lessonPayload.attachments)&&lessonPayload.attachments.length>0
+      });
     }
 
     setLTopic('');setLComment('');setLNewWords('');setLGrammar('');setLCovered('');setLNextNotes('');setLessonFile([]);setModalEv(null);
@@ -13775,7 +13994,7 @@ function App() {
     if(selectedLessonFiles.length){
       const filesToUpload = [...selectedLessonFiles];
       const baseAttachments = [...(lessonPayload.attachments||[])];
-      const targetLessonId = savedLessonId;
+      const targetLessonIds = savedLessonIds.length?savedLessonIds:[savedLessonId].filter(Boolean);
       notify(`⏳ ${filesToUpload.length} faili laetakse taustal...`);
       setTimeout(async()=>{
         const uploadedResults = await Promise.allSettled(filesToUpload.map(file=>uploadLessonFile(file)));
@@ -13800,8 +14019,9 @@ function App() {
           updatedAt:new Date().toISOString()
         };
         try{
-          await db.collection('lessons').doc(targetLessonId).update(attachmentUpdate);
-          setLes(prev=>prev.map(lesson=>lesson.id===targetLessonId?{...lesson,...attachmentUpdate}:lesson));
+          await Promise.all(targetLessonIds.map(targetLessonId=>db.collection('lessons').doc(targetLessonId).update(attachmentUpdate)));
+          const targetIdSet=new Set(targetLessonIds);
+          setLes(prev=>prev.map(lesson=>targetIdSet.has(lesson.id)?{...lesson,...attachmentUpdate}:lesson));
           notify(`✓ ${uploadedAttachments.length} faili lisatud päevikusse`);
         }catch(err){
           console.error('Lesson attachment save failed:',err);
@@ -13809,7 +14029,7 @@ function App() {
         }
       },0);
     }
-  },[modalEv,lTopic,lGrade,lStatus,lComment,lDur,lessonFile,students,lessons,studentPackages,user,logActivity,notify,teacherUidForName]);
+  },[modalEv,lTopic,lGrade,lStatus,lComment,lDur,lessonFile,students,lessons,groups,user,logActivity,notify,teacherUidForName]);
 
   const addHw=useCallback(async()=>{
     if(!selStu||!hwTask.trim()){notify('⚠ Sisesta ülesanne');return;}
@@ -13992,24 +14212,19 @@ function App() {
       return false;
     }
     if(!window.confirm('Kustuta see päeviku sissekanne?')) return false;
-    await db.collection('lessons').doc(lesson.id).delete();
-    if(lesson.studentId && lesson.studentId!=='ext' && lesson.status==='Toimunud'){
-      if(lesson.packageAccountingSource!=='package_ledger_v1'){
-        const studentRef = db.collection('students').doc(lesson.studentId);
-        const studentSnap = await studentRef.get();
-        const lastInvoiceAt = studentSnap.data()?.lastInvoiceAt || '';
-        const patch = {packageUsed:firebase.firestore.FieldValue.increment(-1)};
-        if(!lastInvoiceAt || String(lesson.date||'') >= String(lastInvoiceAt)){
-          patch.lessonsSinceInvoice = firebase.firestore.FieldValue.increment(-1);
-        }
-        await studentRef.update(patch);
-      }
+    try{
+      await financeApiPost('/lessons/journal/delete',{
+        lessonId:lesson.id,
+        requestId:financeRequestId('lessondelete')
+      });
+      setLes(prev=>prev.filter(item=>item.id!==lesson.id));
+      notify('✓ Tunni sissekanne kustutatud ja kalender taastatud');
+      return true;
+    }catch(error){
+      console.error('Lesson deletion failed:',error);
+      notify(`⚠ Tundi ei saanud kustutada: ${error.message||error}`);
+      return false;
     }
-    if(lesson.scheduleId){
-      await db.collection('schedule').doc(lesson.scheduleId).update({status:'Planeeritud'});
-    }
-    notify('✓ Tunni sissekanne kustutatud');
-    return true;
   },[notify]);
 
   const openLessonEditor=useCallback(async(lesson)=>{
@@ -15281,6 +15496,7 @@ function App() {
             schTime={schTime} setSchTime={setSchTime} schTeach={schTeach} setSchTeach={setSchTeach}
             schRecurring={schRecurring} setSchRecurring={setSchRecurring}
             addSchedule={addSchedule} openScheduleEditor={openScheduleEditor} delSchedule={delSchedule} markAttendance={markAttendance}
+            quickCompleteLesson={quickCompleteLesson}
             db={db} notify={notify} logActivity={logActivity} students={students} staffMembers={staffMembers} setSelStu={setSelStu} setTab={setTab}
             openStudent={(student)=>{setSelStu(student);setTab('students');}} tariffAssignments={tariffAssignments}/>}
 
@@ -15433,11 +15649,15 @@ function App() {
             bankTransactions={bankTransactions}
             payerCredits={payerCredits}
             lessons={lessons}
+            students={students}
+            tariffAssignments={tariffAssignments}
             financialPeriods={financialPeriods}
             reviewFinancialPeriod={reviewFinancialPeriod}
             savePaymentLineAllocation={savePaymentLineAllocation}
             openPaymentDocument={openPaymentDocument}
             voidPayment={voidPayment}
+            addInvoice={addInvoice}
+            updateLessonBillingDisposition={updateLessonBillingDisposition}
             notify={notify}
             openInvoices={()=>setFinanceSection('invoices')}
             openReconciliation={()=>setFinanceSection('reconciliation')}/>}

@@ -110,7 +110,21 @@
   };
 
   const eventsForDate=(events,dateIso)=>
-    (events||[]).filter(event=>eventOccursOnDate(event,dateIso));
+    (events||[])
+      .filter(event=>eventOccursOnDate(event,dateIso))
+      .map(event=>{
+        const occurrence=event?.occurrenceStatuses?.[dateIso];
+        if(!occurrence) return event;
+        const status=typeof occurrence==='string'?occurrence:occurrence.status;
+        return {
+          ...event,
+          ...(status?{status}:{}),
+          occurrenceDate:dateIso,
+          lessonEntryId:typeof occurrence==='object'&&occurrence.lessonEntryId
+            ?occurrence.lessonEntryId
+            :event.lessonEntryId||''
+        };
+      });
 
   const eventInterval=(event,dateIso)=>{
     if(!eventOccursOnDate(event,dateIso)) return null;

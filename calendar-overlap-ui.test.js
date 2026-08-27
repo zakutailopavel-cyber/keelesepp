@@ -23,3 +23,21 @@ test('student planner quick add keeps the student and exposes editable date and 
   assert.doesNotMatch(html,/weekDays\[0\]\?\.iso\|\|today\(\),TIMES\[2\]\|\|'09:00'/);
   assert.doesNotMatch(html,/onMouseEnter=.*openCreatePopup/);
 });
+
+test('mobile schedule opens a usable day view and moves the planner below the calendar',()=>{
+  const css=fs.readFileSync(require.resolve('./haldus.css'),'utf8');
+  assert.match(html,/isCompactSchedule\?'day':'week'/);
+  assert.match(html,/className="calendar-mobile-days"/);
+  assert.match(html,/className="calendar-layout"/);
+  assert.match(html,/className="calendar-aside"/);
+  assert.match(css,/\.calendar-layout\{flex-direction:column!important/);
+  assert.match(css,/\.calendar-grid-inner\.is-day\{min-width:0!important/);
+  assert.match(css,/\.calendar-aside\{width:100%!important/);
+});
+
+test('a completed calendar lesson can be saved without entering a topic',()=>{
+  assert.match(html,/placeholder="Tunni teema \(valikuline\)"/);
+  assert.match(html,/if\(!modalEv\) return;/);
+  assert.match(html,/topic:String\(lTopic\|\|''\)\.trim\(\)/);
+  assert.doesNotMatch(html,/if\(!modalEv\|\|!lTopic\.trim\(\)\)/);
+});

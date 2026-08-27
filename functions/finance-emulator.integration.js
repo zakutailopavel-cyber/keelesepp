@@ -406,6 +406,123 @@ async function staffOperationsRequest(token, path, payload = {}) {
   return { status: response.status, body };
 }
 
+test("lesson journal is stable across retries and keeps calendar and counters in sync", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const teacherToken = await createUserToken("lesson-journal-teacher@example.com");
+  const teacherUid = tokenUid(teacherToken);
+  const studentId = "lesson-journal-student";
+  const scheduleId = "lesson-journal-schedule";
+  await Promise.all([
+    db.collection("users").doc(teacherUid).set({
+      role: "teacher",
+      displayName: "Journal Teacher",
+      email: "lesson-journal-teacher@example.com",
+    }),
+    db.collection("students").doc(studentId).set({
+      name: "Journal Student",
+      teacher: "Journal Teacher",
+      teacherUid,
+      packageUsed: 0,
+      lessonsSinceInvoice: 0,
+      lessonPrice: 40,
+      active: true,
+    }),
+    db.collection("schedule").doc(scheduleId).set({
+      studentId,
+      studentName: "Journal Student",
+      teacher: "Journal Teacher",
+      teacherUid,
+      date: "2026-08-26",
+      time: "10:00",
+      duration: 60,
+      status: "Planeeritud",
+    }),
+  ]);
+  const lesson = {
+    studentId,
+    studentName: "Journal Student",
+    scheduleId,
+    scheduleTime: "10:00",
+    date: "2026-08-26",
+    duration: 60,
+    status: "Toimunud",
+    topic: "",
+    grade: 0,
+    teacher: "Journal Teacher",
+    teacherUid,
+  };
+  const firstPayload = {
+    scheduleId,
+    lesson,
+    requestId: "emulator_lesson_journal_0001",
+  };
+  const first = await financeRequest(teacherToken, "/lessons/journal", firstPayload);
+  assert.equal(first.status, 201, JSON.stringify(first.body));
+  assert.equal(first.body.lesson.status, "Toimunud");
+  assert.equal(first.body.lesson.topic, "");
+
+  const retry = await financeRequest(teacherToken, "/lessons/journal", firstPayload);
+  assert.equal(retry.status, 200, JSON.stringify(retry.body));
+  assert.equal(retry.body.lessonId, first.body.lessonId);
+
+  const secondRequest = await financeRequest(teacherToken, "/lessons/journal", {
+    ...firstPayload,
+    requestId: "emulator_lesson_journal_0002",
+  });
+  assert.equal(secondRequest.status, 201, JSON.stringify(secondRequest.body));
+  assert.equal(secondRequest.body.lessonId, first.body.lessonId);
+  assert.equal(secondRequest.body.counterDelta, 0);
+
+  let [lessonSnap, scheduleSnap, studentSnap] = await Promise.all([
+    db.collection("lessons").doc(first.body.lessonId).get(),
+    db.collection("schedule").doc(scheduleId).get(),
+    db.collection("students").doc(studentId).get(),
+  ]);
+  assert.equal(lessonSnap.data().billingStatus, "unbilled");
+  assert.equal(scheduleSnap.data().status, "Toimunud");
+  assert.equal(studentSnap.data().lessonsSinceInvoice, 1);
+  assert.equal(studentSnap.data().packageUsed, 1);
+
+  const absence = await financeRequest(teacherToken, "/lessons/journal", {
+    lessonId: first.body.lessonId,
+    scheduleId,
+    lesson: { ...lesson, status: "Puudus_p" },
+    requestId: "emulator_lesson_journal_0003",
+  });
+  assert.equal(absence.status, 201, JSON.stringify(absence.body));
+  [lessonSnap, scheduleSnap, studentSnap] = await Promise.all([
+    db.collection("lessons").doc(first.body.lessonId).get(),
+    db.collection("schedule").doc(scheduleId).get(),
+    db.collection("students").doc(studentId).get(),
+  ]);
+  assert.equal(lessonSnap.data().status, "Puudus_p");
+  assert.equal(lessonSnap.data().billingStatus, "");
+  assert.equal(scheduleSnap.data().status, "Puudus_p");
+  assert.equal(studentSnap.data().lessonsSinceInvoice, 0);
+  assert.equal(studentSnap.data().packageUsed, 0);
+
+  const deletePayload = {
+    lessonId: first.body.lessonId,
+    requestId: "emulator_lesson_journal_delete_0001",
+  };
+  const deleted = await financeRequest(teacherToken, "/lessons/journal/delete", deletePayload);
+  assert.equal(deleted.status, 201, JSON.stringify(deleted.body));
+  assert.equal(deleted.body.deleted, true);
+  const deleteRetry = await financeRequest(teacherToken, "/lessons/journal/delete", deletePayload);
+  assert.equal(deleteRetry.status, 200, JSON.stringify(deleteRetry.body));
+  assert.equal(deleteRetry.body.idempotent, true);
+  [lessonSnap, scheduleSnap, studentSnap] = await Promise.all([
+    db.collection("lessons").doc(first.body.lessonId).get(),
+    db.collection("schedule").doc(scheduleId).get(),
+    db.collection("students").doc(studentId).get(),
+  ]);
+  assert.equal(lessonSnap.exists, false);
+  assert.equal(scheduleSnap.data().status, "Planeeritud");
+  assert.equal(studentSnap.data().lessonsSinceInvoice, 0);
+});
+
 test("expenses are admin-only and preserve corrections, voids, documents, and audit history", async () => {
   requireSafeEmulatorEnvironment();
   if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });

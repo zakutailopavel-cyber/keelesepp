@@ -42,3 +42,12 @@ test('tariff controls are hidden while historical pricing data remains untouched
   assert.match(html,/\{false&&isAdmin&&invoiceTargetType==='student'&&selectedInvoiceStudent&&\(/);
   assert.match(backend,/if \(req\.path === "\/tariffs"\)/);
 });
+
+test('unbilled lessons can be resolved directly from the accounting register',()=>{
+  assert.match(html,/createLessonInvoice/);
+  assert.match(html,/addInvoice\(row\.studentId,\{lessonIds:\[row\.lessonId\]\}\)/);
+  assert.match(html,/decideLessonBilling\(row,'late_cancel_billable'\)/);
+  assert.match(html,/decideLessonBilling\(row,isAbsence\?'cancelled_on_time':'free'\)/);
+  assert.match(html,/decideLessonBilling\(row,'written_off'\)/);
+  assert.match(html,/updateLessonBillingDisposition=\{updateLessonBillingDisposition\}/);
+});
