@@ -180,7 +180,10 @@ const {
   eventsForDate:calendarEventsForDate,
   eventOccursOnDate:calendarEventOccursOnDate,
   findScheduleConflicts,
+  scheduleConflictRows,
   scheduleConflictWarning,
+  googleCalendarErrorGuidance,
+  googleCalendarReconnectRequired,
   layoutDayEvents:calendarLayoutDayEvents,
   monthGrid:calendarMonthGrid,
   monthLabel:calendarMonthLabel,
@@ -2619,6 +2622,7 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
   const [dragEv,setDragEv]   = React.useState(null);
   const [dragOver,setDragOver] = React.useState(null);
   const [dragging,setDragging] = React.useState(false);
+  const [highlightedConflict,setHighlightedConflict] = React.useState(null);
 
   React.useEffect(()=>{
     if(typeof window==='undefined'||!window.matchMedia) return undefined;
@@ -2847,23 +2851,27 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
     [filteredSch,weekDays]
   );
 
-  const visibleConflictCount = React.useMemo(()=>{
+  const visibleConflictRows = React.useMemo(()=>{
     const dates=viewMode==='month'
       ?monthDays.filter(day=>day.inMonth).map(day=>day.iso)
       :viewMode==='day'
         ?[dayViewObj.iso]
         :weekDays.map(day=>day.iso);
-    const keys=new Set();
-    dates.forEach(dateIso=>{
-      eventsOnDate(dateIso).forEach(event=>{
-        findScheduleConflicts(filteredSch,event,dateIso,{excludeId:event.id}).forEach(conflict=>{
-          const pair=[event.id,conflict.event.id].sort().join('|');
-          keys.add(`${dateIso}|${pair}`);
-        });
-      });
-    });
-    return keys.size;
-  },[viewMode,monthDays,dayViewObj.iso,weekDays,eventsOnDate,filteredSch]);
+    return scheduleConflictRows(filteredSch,dates);
+  },[viewMode,monthDays,dayViewObj.iso,weekDays,filteredSch]);
+  const visibleConflictCount=visibleConflictRows.length;
+
+  const focusConflict=React.useCallback(row=>{
+    if(!row?.date||!row?.eventIds?.length) return;
+    setHighlightedConflict({date:row.date,eventIds:row.eventIds,key:row.key});
+    setSelectedDay(row.date);
+    setViewMode('day');
+    setTimeout(()=>{
+      const target=[...document.querySelectorAll('[data-calendar-event-id]')]
+        .find(element=>row.eventIds.includes(element.getAttribute('data-calendar-event-id')));
+      target?.scrollIntoView?.({behavior:'smooth',block:'center'});
+    },120);
+  },[]);
 
   const todayPendingLessons = React.useMemo(()=>
     eventsOnDate(today()).filter(event=>!event.isGroup&&event.status==='Planeeritud')
@@ -3052,9 +3060,12 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
     const conflicts=findScheduleConflicts(filteredSch,ev,dayIso,{excludeId:ev.id});
     const isExternal=ev.source==='gcal';
     const canMove=canManage&&!isExternal&&!ev.isGroup;
+    const isConflictHighlighted=highlightedConflict?.date===dayIso
+      &&highlightedConflict.eventIds?.includes(String(ev.id));
 
     return(
       <div key={ev.id+dayIso}
+        data-calendar-event-id={String(ev.id)}
         draggable={canMove}
         onDragStart={e=>{e.stopPropagation();handleDragStart(e,ev,dayIso,slot);}}
         onDragEnd={handleDragEnd}
@@ -3071,6 +3082,7 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
           opacity:isDraggingThis?.3:st==="Tühistatud"?.5:1,
           userSelect:'none',transition:"background .12s",
           position:"relative",
+          boxShadow:isConflictHighlighted?'0 0 0 3px rgba(220,38,38,.42), 0 5px 18px rgba(220,38,38,.18)':undefined,
           ...(isDayView?{minHeight:height,display:"flex",flexDirection:"column",gap:2}:{})
         }}
         onMouseEnter={e=>{if(canManage&&!isDraggingThis)e.currentTarget.style.background=tc.hover;}}
@@ -3099,7 +3111,7 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
           {!ev.date&&<span style={{opacity:.5}}>↻</span>}
           {isExternal&&<span title="Imporditud Google Calendarist">G</span>}
           {!isExternal&&ev.gcalSyncStatus==='synced'&&<span title="Google Calendariga sünkroonitud" style={{color:'#166534',fontWeight:800}}>G✓</span>}
-          {!isExternal&&ev.gcalSyncStatus==='error'&&<span title={ev.gcalSyncError||'Google Calendari viga'} style={{color:'#dc2626',fontWeight:800}}>G!</span>}
+          {!isExternal&&ev.gcalSyncStatus==='error'&&<span title={googleCalendarErrorGuidance(ev.gcalSyncError)||'Google Calendari sünkroonimine vajab tähelepanu'} style={{color:'#dc2626',fontWeight:800}}>G!</span>}
           {!isExternal&&ev.gcalSyncStatus==='queued'&&<span title="Google Calendarisse saatmise ootel" style={{color:'#C9882A',fontWeight:800}}>G…</span>}
           {conflicts.length>0&&<span title="Kalendris on kattuv tund" style={{color:'#dc2626',fontWeight:800}}>⚠</span>}
           {isDayView&&<span>{slot} – {calendarAddMinutes(slot,dur)} · {dur}min</span>}
@@ -3201,7 +3213,10 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
             </>}
             {viewMode==='day'&&<span style={{fontWeight:600,color:dayViewObj.isToday?'#C9882A':'#1C2B3A'}}>{dayViewObj.label}</span>}
             {visibleConflictCount>0&&(
-              <span style={{color:'#dc2626',fontWeight:700}}>· ⚠ {visibleConflictCount} kattuvust</span>
+              <button type="button" onClick={()=>focusConflict(visibleConflictRows[0])}
+                style={{border:'none',background:'transparent',padding:0,color:'#dc2626',fontWeight:700,cursor:'pointer',fontFamily:'inherit',fontSize:'inherit'}}>
+                · ⚠ {visibleConflictCount} kattuvust · näita esimest
+              </button>
             )}
           </div>
         </div>
@@ -3631,6 +3646,42 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
                 ));
               })()}
             </div>
+
+            {visibleConflictRows.length>0&&(
+              <div className="card" style={{padding:16,border:'1px solid rgba(220,38,38,.2)'}}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:8,marginBottom:10}}>
+                  <div style={{fontSize:'.66rem',fontWeight:800,color:'#991b1b',textTransform:'uppercase',letterSpacing:'.1em'}}>
+                    Ajaplaani konfliktid
+                  </div>
+                  <span className="badge" style={{background:'#fee2e2',color:'#991b1b'}}>{visibleConflictRows.length}</span>
+                </div>
+                <div className="scroll" style={{display:'flex',flexDirection:'column',gap:8,maxHeight:320,overflowY:'auto'}}>
+                  {visibleConflictRows.slice(0,30).map(row=>{
+                    const reason=row.reasons.includes('teacher')&&row.reasons.includes('student')
+                      ?'Õpetaja ja õpilane on topelt'
+                      :row.reasons.includes('teacher')
+                        ?'Õpetaja on samal ajal kahes tunnis'
+                        :'Õpilasel on kaks tundi korraga';
+                    return(
+                      <button key={row.key} type="button" onClick={()=>focusConflict(row)}
+                        style={{display:'grid',gridTemplateColumns:'1fr auto',gap:8,textAlign:'left',padding:'9px 10px',borderRadius:10,border:'1px solid rgba(220,38,38,.14)',background:highlightedConflict?.key===row.key?'#fff1f2':'#fff',cursor:'pointer',fontFamily:'inherit'}}>
+                        <span style={{minWidth:0}}>
+                          <strong style={{display:'block',fontSize:'.76rem',color:'#1C2B3A'}}>
+                            {fmtDate(row.date)} · {row.first?.time||'—'}
+                          </strong>
+                          <span style={{display:'block',fontSize:'.7rem',color:'#42536A',overflow:'hidden',textOverflow:'ellipsis'}}>
+                            {row.first?.studentName||'Tund'} ↔ {row.second?.studentName||'Tund'}
+                          </span>
+                          <span style={{display:'block',fontSize:'.65rem',color:'#991b1b',marginTop:2}}>{reason}</span>
+                        </span>
+                        <span style={{fontSize:'.68rem',fontWeight:800,color:'#991b1b',alignSelf:'center'}}>Näita →</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                {visibleConflictRows.length>30&&<div style={{fontSize:'.68rem',color:'#64748b',marginTop:8}}>Veel {visibleConflictRows.length-30} konflikti. Kitsenda vaadet päeva või õpetaja järgi.</div>}
+              </div>
+            )}
 
             {quickCompleteLesson&&todayPendingLessons.length>0&&(
               <div className="card" style={{padding:16}}>
@@ -12226,14 +12277,21 @@ function GCalSettings({user,notify}) {
   const [lastPush,setLastPush] = React.useState(null);
   const [lastPushError,setLastPushError] = React.useState('');
   const [syncing,setSyncing] = React.useState(false);
+  const [connecting,setConnecting] = React.useState(false);
+  const [statusError,setStatusError] = React.useState('');
   const [detailsOpen,setDetailsOpen] = React.useState(false);
   const FUNCTIONS_BASE = 'https://us-central1-keelesepp-5136b.cloudfunctions.net/gcalApi';
 
   React.useEffect(()=>{
     if(!user?.uid) return;
     authFetch(`${FUNCTIONS_BASE}/gcal/status?uid=${user.uid}`)
-      .then(r=>r.json())
+      .then(async r=>{
+        const data=await r.json();
+        if(!r.ok) throw new Error(data.error||'Google Calendari olekut ei õnnestunud kontrollida');
+        return data;
+      })
       .then(d=>{
+        setStatusError('');
         setStatus(d.connected?'connected':'disconnected');
         setLastSync(d.lastSyncAt||null);
         setLastCount(Number(d.lastSyncCount||0));
@@ -12247,14 +12305,26 @@ function GCalSettings({user,notify}) {
         setLastPush(d.lastPushAt||null);
         setLastPushError(d.lastPushError||'');
       })
-      .catch(()=>setStatus('disconnected'));
+      .catch(error=>{
+        setStatus('disconnected');
+        setStatusError(String(error?.message||'Google Calendari olekut ei õnnestunud kontrollida'));
+      });
   },[user?.uid]);
 
   const connect = async()=>{
-    const r = await authFetch(`${FUNCTIONS_BASE}/gcal/auth-url?uid=${user.uid}`);
-    const d = await r.json();
-    if(!r.ok) throw new Error(d.error||'Google Calendar ühendamine ebaõnnestus');
-    window.location.href = d.url;
+    setConnecting(true);
+    try{
+      const r = await authFetch(`${FUNCTIONS_BASE}/gcal/auth-url?uid=${user.uid}`);
+      const d = await r.json();
+      if(!r.ok) throw new Error(d.error||'Google Calendar ühendamine ebaõnnestus');
+      setStatusError('');
+      window.location.href = d.url;
+    }catch(error){
+      const message=googleCalendarErrorGuidance(error?.message)||'Google Calendar ühendamine ebaõnnestus. Proovi uuesti.';
+      setStatusError(message);
+      notify(`⚠ ${message}`);
+      setConnecting(false);
+    }
   };
 
   const sync = async()=>{
@@ -12275,12 +12345,13 @@ function GCalSettings({user,notify}) {
       setLastCancelled(Number(d.cancelled||0));
       setLastExceptions(Number(d.exceptions||0));
       setLastError('');
+      setStatusError('');
       if(d.pushed) setLastPush(new Date().toISOString());
       setLastPushError(d.pushFailed?'Mõnda muudatust ei õnnestunud Google Calendarisse saata.':'');
     }catch(e){
       const message=String(e?.message||'Sünkroonimine ebaõnnestus').slice(0,500);
       setLastError(message);
-      notify(`⚠ ${message}`);
+      notify(`⚠ ${googleCalendarErrorGuidance(message)||message}`);
     }
     setSyncing(false);
   };
@@ -12295,6 +12366,10 @@ function GCalSettings({user,notify}) {
     setStatus('disconnected');
     notify('✓ Google Calendar ühendus eemaldatud');
   };
+
+  const activeError=lastPushError||lastError||statusError;
+  const friendlyError=googleCalendarErrorGuidance(activeError);
+  const reconnectRequired=googleCalendarReconnectRequired(activeError);
 
   return(
     <div className="card" style={{padding:'14px 18px',marginTop:16}}>
@@ -12325,19 +12400,19 @@ function GCalSettings({user,notify}) {
         </div>
         <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
           {status==='disconnected'&&(
-            <button onClick={connect} className="btn btn-pine btn-sm">
-              Ühenda kalender
+            <button onClick={connect} disabled={connecting} className="btn btn-pine btn-sm">
+              {connecting?'Ühendan…':'Ühenda kalender'}
             </button>
           )}
           {status==='connected'&&(
             <>
-              {requiresWriteConsent&&(
-                <button onClick={connect} className="btn btn-amber btn-sm">
-                  Luba kahesuunaline sync
+              {(requiresWriteConsent||reconnectRequired)&&(
+                <button onClick={connect} disabled={connecting} className="btn btn-amber btn-sm">
+                  {connecting?'Ühendan…':reconnectRequired?'Ühenda uuesti':'Luba kahesuunaline sync'}
                 </button>
               )}
               <button onClick={sync} disabled={syncing} className="btn btn-pine btn-sm">
-                {syncing?'Sünkroonin…':'Sünkrooni'}
+                {syncing?'Sünkroonin…':activeError&&!reconnectRequired?'Proovi uuesti':'Sünkrooni'}
               </button>
               <button onClick={()=>setDetailsOpen(open=>!open)} className="btn btn-ghost btn-sm">
                 {detailsOpen?'Peida':'Seaded'} <i className={`fa-solid fa-chevron-${detailsOpen?'up':'down'}`}/>
@@ -12346,6 +12421,12 @@ function GCalSettings({user,notify}) {
           )}
         </div>
       </div>
+
+      {status==='disconnected'&&friendlyError&&(
+        <div style={{marginTop:10,padding:'9px 11px',borderRadius:10,background:'#fff7ed',color:'#9a3412',fontSize:'.76rem'}}>
+          {friendlyError}
+        </div>
+      )}
 
       {status==='connected'&&detailsOpen&&(
         <div style={{marginTop:12,paddingTop:12,borderTop:'1px solid rgba(28,43,58,.08)',display:'flex',justifyContent:'space-between',gap:12,alignItems:'center',flexWrap:'wrap'}}>
@@ -12359,8 +12440,7 @@ function GCalSettings({user,notify}) {
             {lastRemoved>0&&<> Google’ist eemaldatud sündmusi koristati kalendrist {lastRemoved}.</>}
             {lastCancelled>0&&<> Google’is kustutatud KeeleSepa tunde märgiti tühistatuks {lastCancelled}.</>}
             {lastPush&&<> Viimane saatmine Google’isse: {new Date(lastPush).toLocaleString('et-EE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}.</>}
-            {lastError&&<div style={{marginTop:5,color:'#991b1b'}}>Viimane viga: {lastError}</div>}
-            {lastPushError&&<div style={{marginTop:5,color:'#991b1b'}}>Google’isse saatmise viga: {lastPushError}</div>}
+            {friendlyError&&<div style={{marginTop:5,color:'#991b1b'}}>Vajab tegevust: {friendlyError}</div>}
           </div>
           <button onClick={disconnect} className="btn btn-ghost btn-sm" style={{color:'#dc2626'}}>
             Eemalda ühendus

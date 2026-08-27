@@ -7,7 +7,10 @@ const {
   eventOccursOnDate,
   eventsForDate,
   findScheduleConflicts,
+  scheduleConflictRows,
   scheduleConflictWarning,
+  googleCalendarErrorGuidance,
+  googleCalendarReconnectRequired,
   layoutDayEvents,
   monthGrid,
   shiftMonth,
@@ -80,6 +83,27 @@ test('overlapping teacher and student bookings are reported',()=>{
 
   const studentConflict=findScheduleConflicts(existing,{...candidate,teacher:'Jelena',studentId:'student-1'},'2026-07-29');
   assert.deepEqual(studentConflict[0].reasons,['student']);
+});
+
+test('conflict queue keeps one actionable row per pair and ignores cancellations',()=>{
+  const events=[
+    {id:'one',date:'2026-08-27',time:'10:00',duration:60,teacher:'Pavel',studentId:'a',studentName:'Anna'},
+    {id:'two',date:'2026-08-27',time:'10:30',duration:60,teacher:'Pavel',studentId:'b',studentName:'Boris'},
+    {id:'cancelled',date:'2026-08-27',time:'10:15',duration:60,teacher:'Pavel',studentId:'c',studentName:'Cancelled',status:'Tühistatud'}
+  ];
+  const rows=scheduleConflictRows(events,['2026-08-27']);
+  assert.equal(rows.length,1);
+  assert.equal(rows[0].key,'2026-08-27|one|two');
+  assert.deepEqual(rows[0].eventIds,['one','two']);
+  assert.deepEqual(rows[0].reasons,['teacher']);
+  assert.deepEqual(findScheduleConflicts(events,events[2],'2026-08-27'),[]);
+});
+
+test('Google Calendar errors become useful guidance without exposing raw codes',()=>{
+  assert.match(googleCalendarErrorGuidance('invalid_request'),/kontrolli õpilast, kuupäeva ja kellaaega/);
+  assert.match(googleCalendarErrorGuidance('invalid_grant'),/Ühenda kalender uuesti/);
+  assert.equal(googleCalendarReconnectRequired('invalid_grant'),true);
+  assert.equal(googleCalendarReconnectRequired('invalid_request'),false);
 });
 
 test('overlap warning confirms the save and explains who is double-booked',()=>{

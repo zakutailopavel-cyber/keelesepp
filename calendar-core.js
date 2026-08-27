@@ -149,6 +149,7 @@
   };
 
   const findScheduleConflicts=(events,candidate,dateIso,options={})=>{
+    if(candidate?.status==='Tühistatud') return [];
     const interval=eventInterval(candidate,dateIso);
     if(!interval) return [];
     const excludeId=options.excludeId||candidate.id||'';
@@ -161,6 +162,74 @@
       if(sameStudent(event,candidate)) reasons.push('student');
       return reasons.length?[{event,reasons,date:dateIso,overlapStart:Math.max(interval.start,other.start),overlapEnd:Math.min(interval.end,other.end)}]:[];
     });
+  };
+
+  const scheduleConflictRows=(events,dates=[])=>{
+    const rows=[];
+    const seen=new Set();
+    [...new Set((dates||[]).map(value=>String(value||'').trim()).filter(Boolean))].forEach(dateIso=>{
+      eventsForDate(events,dateIso)
+        .filter(event=>event?.id&&event.status!=='Tühistatud')
+        .forEach(event=>{
+          findScheduleConflicts(events,event,dateIso,{excludeId:event.id}).forEach(conflict=>{
+            const other=conflict.event;
+            if(!other?.id) return;
+            const ids=[String(event.id),String(other.id)].sort();
+            const key=`${dateIso}|${ids.join('|')}`;
+            if(seen.has(key)) return;
+            seen.add(key);
+            const ordered=[event,other].sort((left,right)=>
+              String(left.time||'').localeCompare(String(right.time||''))
+              ||String(left.studentName||'').localeCompare(String(right.studentName||''))
+            );
+            rows.push({
+              key,
+              date:dateIso,
+              first:ordered[0],
+              second:ordered[1],
+              eventIds:ids,
+              reasons:[...new Set(conflict.reasons||[])],
+              overlapStart:conflict.overlapStart,
+              overlapEnd:conflict.overlapEnd,
+            });
+          });
+        });
+    });
+    return rows.sort((left,right)=>
+      left.date.localeCompare(right.date)
+      ||String(left.first?.time||'').localeCompare(String(right.first?.time||''))
+      ||left.key.localeCompare(right.key)
+    );
+  };
+
+  const googleCalendarErrorGuidance=value=>{
+    const original=String(value||'').trim();
+    const error=normalize(original);
+    if(!error) return '';
+    if(error.includes('invalid_grant')||error.includes('unauthorized')||error.includes('token has been expired')||error.includes('login required')){
+      return 'Google Calendari ühendus on aegunud. Ühenda kalender uuesti.';
+    }
+    if(error.includes('insufficient')||error.includes('forbidden')||error.includes('permission')){
+      return 'Google Calendaril puudub sündmuste muutmise luba. Kinnita kahesuunalise sünkroonimise luba uuesti.';
+    }
+    if(error.includes('invalid_request')||error.includes('invalid value')||error.includes('bad request')){
+      return 'Google Calendar lükkas tunni andmed tagasi. Ava tund, kontrolli õpilast, kuupäeva ja kellaaega ning vajuta „Sünkrooni“.';
+    }
+    if(error.includes('rate limit')||error.includes('quota')||error.includes('too many requests')){
+      return 'Google Calendar on ajutiselt hõivatud. Proovi mõne minuti pärast uuesti.';
+    }
+    if(error.includes('not found')||error.includes('gone')){
+      return 'Google Calendari sündmust enam ei leitud. Käivita sünkroonimine, et seos taastada.';
+    }
+    return original.slice(0,300);
+  };
+
+  const googleCalendarReconnectRequired=value=>{
+    const error=normalize(value);
+    return Boolean(error)&&[
+      'invalid_grant','unauthorized','token has been expired','login required',
+      'insufficient','forbidden','permission'
+    ].some(marker=>error.includes(marker));
   };
 
   const scheduleConflictWarning=(conflicts,action='Tund salvestati')=>{
@@ -354,7 +423,10 @@
     eventsForDate,
     eventInterval,
     findScheduleConflicts,
+    scheduleConflictRows,
     scheduleConflictWarning,
+    googleCalendarErrorGuidance,
+    googleCalendarReconnectRequired,
     layoutDayEvents,
     monthGrid,
     shiftMonth,

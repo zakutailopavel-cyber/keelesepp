@@ -7365,7 +7365,7 @@ exports.gcalApi = functions.https.onRequest(async (req, res) => {
         ? await flushCalendarSyncOutbox(uid, connection)
         : { deleted: 0, failed: 0 };
       const pushed = calendarConnectionCanWrite(connection)
-        ? await backfillScheduleToGoogle(uid, connection)
+        ? await backfillScheduleToGoogle(uid, connection, { force: true })
         : { synced: 0, skipped: 0, failed: 0 };
       res.json({
         success: true,

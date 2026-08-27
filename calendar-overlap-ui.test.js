@@ -3,6 +3,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 
 const html=fs.readFileSync(require.resolve('./haldus.html'),'utf8');
+const functionsSource=fs.readFileSync(require.resolve('./functions/index.js'),'utf8');
 
 test('calendar creation and rescheduling no longer return early on overlaps',()=>{
   assert.doesNotMatch(html,/Tundi ei lisatud: .* kattuv tund/);
@@ -40,4 +41,19 @@ test('a completed calendar lesson can be saved without entering a topic',()=>{
   assert.match(html,/if\(!modalEv\) return;/);
   assert.match(html,/topic:String\(lTopic\|\|''\)\.trim\(\)/);
   assert.doesNotMatch(html,/if\(!modalEv\|\|!lTopic\.trim\(\)\)/);
+});
+
+test('calendar exposes an actionable queue for visible schedule conflicts',()=>{
+  assert.match(html,/scheduleConflictRows\(filteredSch,dates\)/);
+  assert.match(html,/Ajaplaani konfliktid/);
+  assert.match(html,/onClick=\{\(\)=>focusConflict\(row\)\}/);
+  assert.match(html,/data-calendar-event-id/);
+  assert.match(html,/Näita →/);
+});
+
+test('Google Calendar errors are translated and manual sync retries failed lessons',()=>{
+  assert.match(html,/googleCalendarErrorGuidance\(activeError\)/);
+  assert.match(html,/reconnectRequired\?'Ühenda uuesti'/);
+  assert.match(html,/activeError&&!reconnectRequired\?'Proovi uuesti'/);
+  assert.match(functionsSource,/backfillScheduleToGoogle\(uid, connection, \{ force: true \}\)/);
 });
