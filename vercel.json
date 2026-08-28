@@ -49,6 +49,14 @@
       "destination": "/tasemetest.html"
     },
     {
+      "source": "/oppekavad",
+      "destination": "/oppekavad.html"
+    },
+    {
+      "source": "/oppekavad/",
+      "destination": "/oppekavad.html"
+    },
+    {
       "source": "/privaatsus",
       "destination": "/privaatsus.html"
     },
@@ -121,6 +129,24 @@
     },
     {
       "source": "/tasemetest/",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/html; charset=utf-8"
+        }
+      ]
+    },
+    {
+      "source": "/oppekavad",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/html; charset=utf-8"
+        }
+      ]
+    },
+    {
+      "source": "/oppekavad/",
       "headers": [
         {
           "key": "Content-Type",

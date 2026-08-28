@@ -126,6 +126,7 @@ window.__haldusConfigureBabel();
 <script src="/student-export-core.js"></script>
 <script src="/tax-report-core.js"></script>
 <script src="/haldus-programs.js"></script>
+<script src="/haldus-curriculum-data.js"></script>
 <script src="/annotations-manager.js"></script>
 <script type="text/babel" data-presets="haldus-react">
 const {useState,useEffect,useRef,useCallback,useMemo} = React;
@@ -1941,83 +1942,218 @@ function TasksView({user,tasks,staffMembers,taskTitle,setTaskTitle,taskAssignee,
 
 // ── ÕPPEKAVAD ────────────────────────────────────────────────
 function ProgramsView() {
-  const programs = window.HaldusPrograms || [];
-  const [levelFilter,setLevelFilter] = React.useState('all');
-  const [subjectFilter,setSubjectFilter] = React.useState('all');
-  const visiblePrograms = programs.filter(program=>
-    (levelFilter==='all' || program.level===levelFilter) &&
-    (subjectFilter==='all' || (program.subjects||[]).includes(subjectFilter))
-  );
+  const curriculum=window.HaldusCurriculum||{languages:[],stats:{}};
+  const [languageFilter,setLanguageFilter]=React.useState('all');
+  const [levelFilter,setLevelFilter]=React.useState('all');
+  const [query,setQuery]=React.useState('');
+  const [openLevels,setOpenLevels]=React.useState({});
+  const [openTopics,setOpenTopics]=React.useState({});
+  const [preview,setPreview]=React.useState(null);
+  const normalizedQuery=normalizeText(query);
+  const allLevels=(curriculum.languages||[]).flatMap(language=>(language.levels||[]).map(level=>({language,level})));
+  const levelCodes=[...new Set(allLevels.map(item=>item.level.code))];
+  const topicMatches=(topic,level,language)=>{
+    if(!normalizedQuery)return true;
+    const haystack=[
+      language.title,level.code,level.name,level.description,topic.name,
+      ...(topic.vocab||[]).flatMap(item=>[item.word,item.translation]),
+      ...(topic.lessons||[]).map(lesson=>lesson.goal)
+    ].join(' ');
+    return normalizeText(haystack).includes(normalizedQuery);
+  };
+  const visibleLevels=allLevels.map(item=>({
+    ...item,
+    topics:(item.level.topics||[]).filter(topic=>topicMatches(topic,item.level,item.language))
+  })).filter(item=>(
+    (languageFilter==='all'||item.language.id===languageFilter) &&
+    (levelFilter==='all'||item.level.code===levelFilter) &&
+    (!normalizedQuery||item.topics.length>0||normalizeText(`${item.language.title} ${item.level.name} ${item.level.description}`).includes(normalizedQuery))
+  ));
+  const toggleLevel=key=>setOpenLevels(previous=>({...previous,[key]:!previous[key]}));
+  const toggleTopic=key=>setOpenTopics(previous=>({...previous,[key]:!previous[key]}));
+
+  React.useEffect(()=>{
+    if(!preview)return undefined;
+    const closeOnEscape=event=>{if(event.key==='Escape')setPreview(null);};
+    document.addEventListener('keydown',closeOnEscape);
+    return()=>document.removeEventListener('keydown',closeOnEscape);
+  },[preview]);
 
   return(
-    <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:22}}>
-      <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:14,flexWrap:'wrap'}}>
+    <div className="fade-in curriculum-workspace">
+      <section className="curriculum-hero">
         <div>
-          <h1 style={{fontSize:'1.7rem'}}>Õppekavad</h1>
-          <div style={{color:'#42536A',fontSize:'.88rem',marginTop:4}}>
-            Programmid tasemete ja õppeainete kaupa. Nähtav kõigile töötajatele.
-          </div>
+          <div className="curriculum-eyebrow">ÕPETAJA TÖÖRIIST</div>
+          <h1>Õppekavad ja tunnistsenaariumid</h1>
+          <p>Metoodiline sisu eesti ja inglise keele õpetamiseks: tasemed, teemad, kaks valmis tunnikava iga teema kohta ning aktiivne sõnavara.</p>
         </div>
-        <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-          <select value={levelFilter} onChange={e=>setLevelFilter(e.target.value)} style={{width:'auto'}}>
-            <option value="all">Kõik tasemed</option>
-            {LEVELS.map(level=><option key={level} value={level}>{level}</option>)}
-          </select>
-          <select value={subjectFilter} onChange={e=>setSubjectFilter(e.target.value)} style={{width:'auto'}}>
-            <option value="all">Kõik ained</option>
-            {SUBJECTS.map(subject=><option key={subject} value={subject}>{subject}</option>)}
-          </select>
-        </div>
-      </div>
+        <a className="btn btn-ghost" href="/oppekavad/" target="_blank" rel="noopener">
+          <i className="fa-solid fa-arrow-up-right-from-square"/> Avalik vaade
+        </a>
+      </section>
 
-      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))',gap:16}}>
-        {visiblePrograms.map(program=>(
-          <div key={program.level} className="card" style={{padding:22,display:'flex',flexDirection:'column',gap:16}}>
-            <div style={{display:'flex',justifyContent:'space-between',gap:12,alignItems:'flex-start'}}>
-              <div>
-                <span className="badge" style={{background:'rgba(201,136,42,.12)',color:'#A96E1A',marginBottom:10}}>
-                  {program.level}
-                </span>
-                <h2 style={{fontSize:'1.25rem',marginTop:8}}>{program.title}</h2>
-                <div style={{fontSize:'.82rem',color:'#42536A',marginTop:5}}>{program.audience}</div>
-              </div>
-              <span className="badge" style={{background:'rgba(47,93,80,.12)',color:'#2F5D50'}}>
-                {(program.subjects||[]).join(' · ')}
-              </span>
-            </div>
-
-            <div style={{fontSize:'.88rem',color:'#42536A',lineHeight:1.55}}>{program.goal}</div>
-
-            <div>
-              <div style={{fontSize:'.74rem',fontWeight:800,color:'#42536A',letterSpacing:'.08em',textTransform:'uppercase',marginBottom:8}}>Moodulid</div>
-              <div style={{display:'flex',flexDirection:'column',gap:7}}>
-                {(program.modules||[]).map(module=>(
-                  <div key={module} style={{display:'flex',gap:8,alignItems:'flex-start',fontSize:'.84rem',color:'#1C2B3A'}}>
-                    <i className="fa-solid fa-check" style={{color:'#2F5D50',marginTop:3,fontSize:'.72rem'}}/>
-                    <span>{module}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <div style={{fontSize:'.74rem',fontWeight:800,color:'#42536A',letterSpacing:'.08em',textTransform:'uppercase',marginBottom:8}}>Tulemus</div>
-              <div style={{display:'flex',flexWrap:'wrap',gap:7}}>
-                {(program.outcomes||[]).map((outcome,index)=>(
-                  <span key={outcome?.id||outcome||index} className="badge" style={{background:'#F9F8F6',color:'#42536A',border:'1px solid rgba(28,43,58,.08)'}}>
-                    {typeof outcome==='string'?outcome:outcome?.label}
-                  </span>
-                ))}
-              </div>
-            </div>
+      <section className="curriculum-stats" aria-label="Õppekavade maht">
+        {[
+          ['Tasemed',curriculum.stats?.levels||0,'fa-layer-group'],
+          ['Teemad',curriculum.stats?.topics||0,'fa-book-open'],
+          ['Tunnikavad',curriculum.stats?.lessons||0,'fa-list-check'],
+          ['Sõnavara',curriculum.stats?.vocabulary||0,'fa-language']
+        ].map(([label,value,icon])=>(
+          <div className="curriculum-stat" key={label}>
+            <i className={`fa-solid ${icon}`}/><div><strong>{value}</strong><span>{label}</span></div>
           </div>
         ))}
-        {visiblePrograms.length===0&&(
-          <div className="card" style={{gridColumn:'1/-1',padding:34,textAlign:'center',color:'#42536A'}}>
-            Õppekava ei leitud.
-          </div>
+      </section>
+
+      <section className="card curriculum-filters" aria-label="Õppekavade filtrid">
+        <div className="curriculum-language-tabs" role="group" aria-label="Keel">
+          {[
+            ['all','Kõik'],['est','Eesti keel'],['eng','English']
+          ].map(([value,label])=>(
+            <button key={value} type="button" className={languageFilter===value?'active':''} onClick={()=>setLanguageFilter(value)}>{label}</button>
+          ))}
+        </div>
+        <label className="curriculum-search">
+          <i className="fa-solid fa-magnifying-glass"/>
+          <input value={query} onChange={event=>setQuery(event.target.value)} placeholder="Otsi teemat, sõna või tunni eesmärki…"/>
+        </label>
+        <select value={levelFilter} onChange={event=>setLevelFilter(event.target.value)} aria-label="Tase">
+          <option value="all">Kõik tasemed</option>
+          {levelCodes.map(level=><option key={level} value={level}>{level}</option>)}
+        </select>
+        {(query||languageFilter!=='all'||levelFilter!=='all')&&(
+          <button type="button" className="btn btn-ghost btn-sm" onClick={()=>{setQuery('');setLanguageFilter('all');setLevelFilter('all');}}>Lähtesta</button>
         )}
+      </section>
+
+      <div className="curriculum-results-note">
+        <span>{visibleLevels.length} taset</span>
+        <span>{visibleLevels.reduce((sum,item)=>sum+item.topics.length,0)} teemat</span>
+        <span>Metoodiline sisu: RU</span>
       </div>
+
+      <section className="curriculum-levels">
+        {visibleLevels.map(({language,level,topics})=>{
+          const levelKey=`${language.id}-${level.code}`;
+          const isOpen=Boolean(openLevels[levelKey]||normalizedQuery);
+          return(
+            <article className={`card curriculum-level ${isOpen?'open':''}`} key={levelKey}>
+              <button type="button" className="curriculum-level-head" onClick={()=>toggleLevel(levelKey)} aria-expanded={isOpen}>
+                <span className={`curriculum-level-code ${language.id}`}>{level.code}</span>
+                <span className="curriculum-level-title">
+                  <span className="curriculum-level-meta">{language.title}{level.gradeTag?` · ${level.gradeTag}`:''}</span>
+                  <strong>{level.name}</strong>
+                  <small>{level.description}</small>
+                </span>
+                <span className="curriculum-level-count">{topics.length} teemat</span>
+                <i className={`fa-solid fa-chevron-${isOpen?'up':'down'}`}/>
+              </button>
+
+              {isOpen&&(
+                <div className="curriculum-level-body">
+                  <div className="curriculum-level-stats">
+                    {(level.stats||[]).map(item=><span key={`${item.label}-${item.value}`}><small>{item.label}</small><strong>{item.value}</strong></span>)}
+                  </div>
+                  <div className="curriculum-overview-grid">
+                    {(level.sections||[]).map(section=>(
+                      <div className="curriculum-overview" key={section.title}>
+                        <h3>{section.title}</h3>
+                        <ul>{section.items.map(item=><li key={item}>{item}</li>)}</ul>
+                      </div>
+                    ))}
+                    {(level.examAlignment||level.schoolAlignment)&&(
+                      <div className="curriculum-alignment">
+                        <h3>Seos õppe ja eksamitega</h3>
+                        {level.examAlignment&&<p>{level.examAlignment}</p>}
+                        {level.schoolAlignment&&<p>{level.schoolAlignment}</p>}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="curriculum-topic-list">
+                    {topics.map(topic=>{
+                      const topicKey=`${levelKey}-${topic.id}`;
+                      const topicOpen=Boolean(openTopics[topicKey]);
+                      return(
+                        <article className={`curriculum-topic ${topicOpen?'open':''}`} key={topic.id}>
+                          <div className="curriculum-topic-head">
+                            <div>
+                              <span className="curriculum-topic-number">{level.code} · {String((level.topics||[]).indexOf(topic)+1).padStart(2,'0')}</span>
+                              <h3>{topic.name}</h3>
+                              <p>{topic.lessons.length} tunnikava · {topic.vocab.length} sõna</p>
+                            </div>
+                            <div className="curriculum-topic-actions">
+                              <button type="button" className="btn btn-ghost btn-sm" onClick={()=>setPreview({language,level,topic})}><i className="fa-regular fa-eye"/> Eelvaade</button>
+                              <button type="button" className="btn btn-pine btn-sm" onClick={()=>toggleTopic(topicKey)} aria-expanded={topicOpen}>{topicOpen?'Sulge':'Ava teema'}</button>
+                            </div>
+                          </div>
+                          {topicOpen&&(
+                            <div className="curriculum-topic-body">
+                              <div className="curriculum-lessons">
+                                {topic.lessons.map((lesson,index)=>(
+                                  <section className="curriculum-lesson" key={`${topic.id}-${index}`}>
+                                    <div className="curriculum-lesson-head"><span>{lesson.number}</span><strong>{lesson.goal}</strong></div>
+                                    <ol>
+                                      {lesson.steps.map((step,stepIndex)=>(
+                                        <li key={`${step.title}-${stepIndex}`}>
+                                          <span>{stepIndex+1}</span>
+                                          <div><strong>{step.title}{step.duration?` · ${step.duration}`:''}</strong>{step.content.map((line,lineIndex)=><p key={lineIndex}>{line}</p>)}</div>
+                                        </li>
+                                      ))}
+                                    </ol>
+                                    <div className="curriculum-lesson-notes">
+                                      {lesson.materials&&<p><strong>Materjalid</strong>{lesson.materials}</p>}
+                                      {lesson.assessment&&<p><strong>Hindamine</strong>{lesson.assessment}</p>}
+                                      {lesson.ageNote&&<p><strong>Kohandamine</strong>{lesson.ageNote}</p>}
+                                    </div>
+                                  </section>
+                                ))}
+                              </div>
+                              <div className="curriculum-vocab">
+                                <h4>Aktiivne sõnavara</h4>
+                                <div>{topic.vocab.map(item=><a key={item.word} href={item.dictionaryUrl} target="_blank" rel="noopener"><strong>{item.word}</strong><span>{item.translation}</span></a>)}</div>
+                              </div>
+                            </div>
+                          )}
+                        </article>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </article>
+          );
+        })}
+        {visibleLevels.length===0&&(
+          <div className="card curriculum-empty"><i className="fa-solid fa-magnifying-glass"/><h2>Õppekava ei leitud</h2><p>Muuda otsingut või lähtesta filtrid.</p></div>
+        )}
+      </section>
+
+      {preview&&(
+        <div className="modal-overlay curriculum-preview-overlay" role="presentation" onMouseDown={event=>{if(event.target===event.currentTarget)setPreview(null);}}>
+          <section className="curriculum-preview" role="dialog" aria-modal="true" aria-labelledby="curriculum-preview-title">
+            <header>
+              <div><span>{preview.language.title} · {preview.level.code}</span><h2 id="curriculum-preview-title">{preview.topic.name}</h2><p>Materjali eelvaade — midagi ei laadita alla.</p></div>
+              <button type="button" className="icon-btn" onClick={()=>setPreview(null)} aria-label="Sulge"><i className="fa-solid fa-xmark"/></button>
+            </header>
+            <div className="curriculum-preview-content">
+              <section>
+                <h3>Tundide eesmärgid</h3>
+                {preview.topic.lessons.map((lesson,index)=><div className="curriculum-preview-goal" key={index}><span>{lesson.number}</span><p>{lesson.goal}</p></div>)}
+              </section>
+              <section>
+                <h3>Aktiivne sõnavara</h3>
+                <div className="curriculum-preview-vocab">{preview.topic.vocab.map(item=><span key={item.word}><strong>{item.word}</strong><small>{item.translation}</small></span>)}</div>
+              </section>
+              <section>
+                <h3>Tunni ülesehitus</h3>
+                <ol className="curriculum-preview-steps">{preview.topic.lessons[0]?.steps.map((step,index)=><li key={index}><span>{index+1}</span><div><strong>{step.title}</strong><small>{step.duration}</small></div></li>)}</ol>
+              </section>
+            </div>
+            <footer><button type="button" className="btn btn-pine" onClick={()=>{const key=`${preview.language.id}-${preview.level.code}-${preview.topic.id}`;setOpenLevels(previous=>({...previous,[`${preview.language.id}-${preview.level.code}`]:true}));setOpenTopics(previous=>({...previous,[key]:true}));setPreview(null);}}>Ava täielik tunnikava</button></footer>
+          </section>
+        </div>
+      )}
     </div>
   );
 }

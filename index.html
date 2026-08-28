@@ -224,6 +224,12 @@ footer a:hover{color:var(--amber)}
 .level-b{background:linear-gradient(135deg,var(--pine),#234a3f);color:#fff;border-radius:var(--r);padding:42px 38px;display:flex;align-items:center;justify-content:space-between;gap:26px;flex-wrap:wrap;box-shadow:var(--sh)}
 .level-b h2{color:#fff;font-size:clamp(1.35rem,2.5vw,1.85rem);margin-bottom:7px}
 .level-b p{color:rgba(255,255,255,.85);max-width:460px}
+.prog-teaser{display:grid;grid-template-columns:.9fr 1.1fr;gap:34px;align-items:center;padding:34px;border:1px solid var(--line);border-radius:20px;background:linear-gradient(135deg,#fff,#f5f1e9);box-shadow:var(--sh)}
+.prog-teaser p{margin:12px 0 20px;color:var(--ink-s)}
+.prog-metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.prog-metric{padding:18px;border:1px solid var(--line);border-radius:13px;background:rgba(255,255,255,.85)}
+.prog-metric strong{display:block;font-family:"Fraunces",serif;font-size:1.7rem}.prog-metric span{font-size:.78rem;color:var(--ink-s)}
+@media(max-width:760px){.prog-teaser{grid-template-columns:1fr;padding:24px}.prog-metrics{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
@@ -236,6 +242,7 @@ footer a:hover{color:var(--amber)}
     <nav aria-label="Peamenüü">
       <ul class="nav-l" id="nav">
         <li><a href="#kursused">Kursused</a></li>
+        <li><a href="/oppekavad/">Õppekavad</a></li>
         <li><a href="/tasemetest/">Tasemetest</a></li>
         <li><a href="#opetajad">Õpetajad</a></li>
         <li><a href="#arvustused">Arvustused</a></li>
@@ -263,6 +270,7 @@ footer a:hover{color:var(--amber)}
       <p class="lead">Kursused tasemetel A1–C1 professionaalsete õpetajatega. Paindlik tunniplaan, eksami ettevalmistus ja õppematerjalid hinna sees.</p>
       <div class="hero-act">
         <a class="btn btn-p" href="#kursused">Tutvu kursustega</a>
+        <a class="btn btn-g" href="/oppekavad/">Vaata õppekavasid</a>
         <a class="btn btn-g" href="/tasemetest/">Tee tasemetest</a>
         <a class="btn btn-g" href="#registreeru">Registreeru kursusele</a>
       </div>
@@ -485,6 +493,26 @@ footer a:hover{color:var(--amber)}
         <div class="ccard-f"><div class="ccard-p">al. 20 € <small>/ h</small></div><a class="btn btn-g" href="#registreeru">Registreeru</a></div>
       </article>
 
+    </div>
+  </div>
+</section>
+
+<!-- ██ ÕPPEKAVAD ███████████████████████████████████████████ -->
+<section class="sec">
+  <div class="w">
+    <div class="prog-teaser">
+      <div>
+        <p class="eye">Selge õpitee</p>
+        <h2>Vaata, mida igal tasemel päriselt õpitakse</h2>
+        <p>KeeleSepa programmid seovad teemad, grammatika, aktiivse sõnavara ja osaoskused üheks järjepidevaks õpiteeks.</p>
+        <a class="btn btn-pine" href="/oppekavad/">Tutvu õppekavadega →</a>
+      </div>
+      <div class="prog-metrics" aria-label="Õppekavade maht">
+        <div class="prog-metric"><strong>11</strong><span>tasemeprogrammi</span></div>
+        <div class="prog-metric"><strong>79</strong><span>teemaplokki</span></div>
+        <div class="prog-metric"><strong>158</strong><span>tunnikava</span></div>
+        <div class="prog-metric"><strong>632</strong><span>aktiivset sõna</span></div>
+      </div>
     </div>
   </div>
 </section>
@@ -760,6 +788,7 @@ footer a:hover{color:var(--amber)}
         <h3>Kiirviited</h3>
         <ul>
           <li><a href="#kursused">Kursused</a></li>
+          <li><a href="/oppekavad/">Õppekavad</a></li>
           <li><a href="#opetajad">Õpetajad</a></li>
           <li><a href="#arvustused">Arvustused</a></li>
           <li><a href="#registreeru">Registreeru</a></li>

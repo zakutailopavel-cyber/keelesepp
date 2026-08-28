@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /haldus
+Disallow: /live-classroom
 
 Sitemap: https://epkoolitus.ee/sitemap.xml
