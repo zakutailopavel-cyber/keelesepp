@@ -15594,6 +15594,7 @@ function App() {
     ...(isStaff?[{id:'tasks',icon:'fa-list-check',label:'Ülesanded',
       badge:scopedTasks.filter(t=>t.status!=='done').length}]:[]),
     ...(isStaff?[{id:'learning_library',icon:'fa-book-open',label:'Õppevara',isExternal:true,href:'/haldus-exercises/'}]:[]),
+    ...(isStaff?[{id:'programs',icon:'fa-route',label:'Õppekavad'}]:[]),
     {id:'students', icon:'fa-graduation-cap',label:isStaff?'Minu õpilased':isParentUser&&hasStudyProfile?'Minu lapsed / õpingud':isParentUser?'Minu lapsed':'Minu progress',
       badge:isStaff?unseenWsCount:0},
     ...(isStaff?[{id:'groups',icon:'fa-layer-group',label:'Grupid'}]:[]),
@@ -15813,6 +15814,8 @@ function App() {
             groupStudents={groupStudents}
             ungroupStudent={ungroupStudent}
           />}
+
+          {tab==='programs'&&isStaff&&<ProgramsView/>}
 
           {tab==='invoices'&&!isStaff&&<ParentInvoicesView invoices={scopedInvoices} printInvoice={printInvoice} submitParentPayment={submitParentPayment}/>}
 

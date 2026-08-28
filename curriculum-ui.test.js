@@ -11,6 +11,8 @@ const vercel=JSON.parse(fs.readFileSync('vercel.json','utf8'));
 test('v1 CRM loads detailed curriculum data and provides search plus preview',()=>{
   assert.match(haldus,/src="\/haldus-curriculum-data\.js"/);
   assert.match(haldus,/Õppekavad ja tunnistsenaariumid/);
+  assert.match(haldus,/\{id:'programs',icon:'fa-route',label:'Õppekavad'\}/);
+  assert.match(haldus,/tab==='programs'&&isStaff&&<ProgramsView\/>/);
   assert.match(haldus,/Otsi teemat, sõna või tunni eesmärki/);
   assert.match(haldus,/Materjali eelvaade — midagi ei laadita alla/);
   assert.match(haldus,/Ava täielik tunnikava/);
