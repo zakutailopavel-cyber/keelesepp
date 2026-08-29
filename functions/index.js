@@ -1306,6 +1306,23 @@ function cleanLessonJournalInput(values = {}) {
     .reduce((sum, item) => sum + String(item.url || "").length, 0);
   if (inlinePayloadSize > 800000) throw httpError(413, "Inline lesson attachments are too large");
   const primary = attachments[0] || {};
+  const curriculumLanguageId = cleanText(values.curriculumLanguageId, 10);
+  const curriculumSubject = cleanText(values.curriculumSubject, 80);
+  const curriculumLevel = cleanText(values.curriculumLevel, 20).toUpperCase();
+  const curriculumTopicId = cleanText(values.curriculumTopicId, 180);
+  const curriculumTopicName = cleanText(values.curriculumTopicName, 300);
+  const curriculumLessonIndex = Math.max(0, Math.min(20, Math.round(Number(values.curriculumLessonIndex) || 0)));
+  const curriculumLessonGoal = cleanText(values.curriculumLessonGoal, 1200);
+  if (curriculumTopicId) {
+    if (!['est', 'eng'].includes(curriculumLanguageId)) throw httpError(400, "Invalid curriculum language");
+    if (!['Eesti keel', 'Inglise keel'].includes(curriculumSubject)) throw httpError(400, "Invalid curriculum subject");
+    if (!/^[ABC][12]$/.test(curriculumLevel)) throw httpError(400, "Invalid curriculum level");
+    if (!curriculumTopicName || !curriculumLessonGoal) throw httpError(400, "Incomplete curriculum lesson link");
+    if ((curriculumLanguageId === 'est' && curriculumSubject !== 'Eesti keel')
+      || (curriculumLanguageId === 'eng' && curriculumSubject !== 'Inglise keel')) {
+      throw httpError(400, "Curriculum language and subject do not match");
+    }
+  }
   return {
     studentId,
     studentName: cleanText(values.studentName, 180),
@@ -1324,6 +1341,13 @@ function cleanLessonJournalInput(values = {}) {
     grammar: cleanText(values.grammar, 4000),
     covered: cleanText(values.covered, 4000),
     nextNotes: cleanText(values.nextNotes, 4000),
+    curriculumLanguageId,
+    curriculumSubject,
+    curriculumLevel,
+    curriculumTopicId,
+    curriculumTopicName,
+    curriculumLessonIndex,
+    curriculumLessonGoal,
     teacher: cleanText(values.teacher, 180),
     teacherUid: cleanText(values.teacherUid, 180),
     requestedStudentPackageId: cleanText(values.requestedStudentPackageId, 180),

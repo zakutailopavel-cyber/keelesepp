@@ -127,6 +127,7 @@ window.__haldusConfigureBabel();
 <script src="/tax-report-core.js"></script>
 <script src="/haldus-programs.js"></script>
 <script src="/haldus-curriculum-data.js"></script>
+<script src="/curriculum-workflow-core.js"></script>
 <script src="/annotations-manager.js"></script>
 <script type="text/babel" data-presets="haldus-react">
 const {useState,useEffect,useRef,useCallback,useMemo} = React;
@@ -1941,16 +1942,38 @@ function TasksView({user,tasks,staffMembers,taskTitle,setTaskTitle,taskAssignee,
 }
 
 // ── ÕPPEKAVAD ────────────────────────────────────────────────
-function ProgramsView() {
+function ProgramsView({db,user,students=[],lessons=[],notify,logActivity}) {
   const curriculum=window.HaldusCurriculum||{languages:[],stats:{}};
+  const workflow=window.CurriculumWorkflow;
   const [languageFilter,setLanguageFilter]=React.useState('all');
   const [levelFilter,setLevelFilter]=React.useState('all');
   const [query,setQuery]=React.useState('');
   const [openLevels,setOpenLevels]=React.useState({});
   const [openTopics,setOpenTopics]=React.useState({});
   const [preview,setPreview]=React.useState(null);
+  const [action,setAction]=React.useState(null);
+  const [actionStudentId,setActionStudentId]=React.useState('');
+  const [actionLessonIndex,setActionLessonIndex]=React.useState(0);
+  const [actionDue,setActionDue]=React.useState('');
+  const [actionBusy,setActionBusy]=React.useState('');
+  const [createdMaterialId,setCreatedMaterialId]=React.useState('');
   const normalizedQuery=normalizeText(query);
   const allLevels=(curriculum.languages||[]).flatMap(language=>(language.levels||[]).map(level=>({language,level})));
+  const curriculumCatalog=React.useMemo(()=>workflow?workflow.flattenCurriculum(curriculum):[],[workflow,curriculum]);
+  const activeStudents=React.useMemo(()=>(students||[]).filter(student=>student.active!==false&&!student.mergedIntoStudentId).sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'et')),[students]);
+  const actionItem=React.useMemo(()=>{
+    if(!action)return null;
+    return curriculumCatalog.find(item=>item.topicId===action.topic.id&&item.lessonIndex===Number(actionLessonIndex))||null;
+  },[action,actionLessonIndex,curriculumCatalog]);
+  const actionStudent=activeStudents.find(student=>student.id===actionStudentId)||null;
+  const actionStudentValidation=actionItem&&actionStudent&&workflow
+    ?workflow.validateStudentMatch(actionItem,actionStudent)
+    :{ok:false,errors:actionStudent?['Õppekava kontroll ei ole saadaval.']:['Vali õpilane.']};
+  const actionProgress=React.useMemo(()=>{
+    if(!workflow||!actionStudent)return null;
+    const studentLessons=(lessons||[]).filter(lesson=>lesson.studentId===actionStudent.id);
+    return workflow.calculateProgress(curriculum,actionStudent,studentLessons);
+  },[workflow,curriculum,actionStudent,lessons]);
   const levelCodes=[...new Set(allLevels.map(item=>item.level.code))];
   const topicMatches=(topic,level,language)=>{
     if(!normalizedQuery)return true;
@@ -1971,6 +1994,62 @@ function ProgramsView() {
   ));
   const toggleLevel=key=>setOpenLevels(previous=>({...previous,[key]:!previous[key]}));
   const toggleTopic=key=>setOpenTopics(previous=>({...previous,[key]:!previous[key]}));
+  const openAction=({language,level,topic})=>{
+    const subject=workflow?.SUBJECT_BY_LANGUAGE?.[language.id]||language.title;
+    const matching=activeStudents.find(student=>workflow?.canonicalSubject(student.subject)===subject&&String(student.level||'').toUpperCase()===level.code)
+      ||activeStudents.find(student=>workflow?.canonicalSubject(student.subject)===subject)
+      ||activeStudents[0];
+    setAction({language,level,topic});
+    setActionStudentId(matching?.id||'');
+    setActionLessonIndex(0);
+    setActionDue('');
+    setCreatedMaterialId('');
+  };
+  const runAction=async(type)=>{
+    if(!workflow||!actionItem){notify('⚠ Õppekava andmed ei ole saadaval');return;}
+    if((type==='plan'||type==='homework')&&!actionStudentValidation.ok){notify(`⚠ ${actionStudentValidation.errors.join(' ')}`);return;}
+    setActionBusy(type);
+    try{
+      if(type==='plan'){
+        const plan=workflow.buildCurriculumPlan(actionItem,user);
+        await db.collection('students').doc(actionStudent.id).update({curriculumPlan:plan,curriculumPlanUpdatedAt:new Date().toISOString()});
+        if(logActivity) await logActivity('curriculum.plan_assigned','Õpilasele määrati õpiteema',{studentId:actionStudent.id,studentName:actionStudent.name,curriculumTopicId:actionItem.topicId,curriculumLessonIndex:actionItem.lessonIndex});
+        notify(`✓ ${actionStudent.name}: õpiteema määratud`);
+      }
+      if(type==='material'){
+        const record=workflow.buildMaterialRecord(actionItem,user);
+        const validation=workflow.validateMaterialLevel(record);
+        if(!validation.ok) throw new Error(validation.errors.join(' '));
+        const existing=await db.collection('curriculumLessons').where('sourceKey','==',record.sourceKey).limit(1).get();
+        if(!existing.empty){
+          setCreatedMaterialId(existing.docs[0].id);
+          notify('ℹ See tunnimaterjal on õppevaras juba olemas');
+        }else{
+          const ref=await db.collection('curriculumLessons').add(record);
+          setCreatedMaterialId(ref.id);
+          if(logActivity) await logActivity('curriculum.material_created','Õppekavast loodi õppematerjal',{materialId:ref.id,curriculumTopicId:actionItem.topicId,curriculumLessonIndex:actionItem.lessonIndex});
+          notify('✓ Tunnimaterjal lisatud õppevarasse');
+        }
+      }
+      if(type==='homework'){
+        const record=workflow.buildHomeworkRecord(actionItem,actionStudent,user,actionDue);
+        const existing=await db.collection('homework').where('studentId','==',actionStudent.id).get();
+        const duplicate=existing.docs.some(doc=>doc.data().sourceKey===record.sourceKey&&doc.data().status!=='Tehtud');
+        if(duplicate){
+          notify('ℹ Sama õppekava kodutöö on sellel õpilasel juba ootel');
+        }else{
+          const ref=await db.collection('homework').add(record);
+          if(logActivity) await logActivity('curriculum.homework_assigned','Õppekavast määrati kodutöö',{homeworkId:ref.id,studentId:actionStudent.id,studentName:actionStudent.name,curriculumTopicId:actionItem.topicId,curriculumLessonIndex:actionItem.lessonIndex});
+          notify(`✓ Kodutöö saadetud: ${actionStudent.name}`);
+        }
+      }
+    }catch(error){
+      console.error('Curriculum action failed:',error);
+      notify(`⚠ ${error?.message||'Toiming ebaõnnestus'}`);
+    }finally{
+      setActionBusy('');
+    }
+  };
 
   React.useEffect(()=>{
     if(!preview)return undefined;
@@ -1987,9 +2066,6 @@ function ProgramsView() {
           <h1>Õppekavad ja tunnistsenaariumid</h1>
           <p>Metoodiline sisu eesti ja inglise keele õpetamiseks: tasemed, teemad, kaks valmis tunnikava iga teema kohta ning aktiivne sõnavara.</p>
         </div>
-        <a className="btn btn-ghost" href="/oppekavad/" target="_blank" rel="noopener">
-          <i className="fa-solid fa-arrow-up-right-from-square"/> Avalik vaade
-        </a>
       </section>
 
       <section className="curriculum-stats" aria-label="Õppekavade maht">
@@ -2084,6 +2160,7 @@ function ProgramsView() {
                             </div>
                             <div className="curriculum-topic-actions">
                               <button type="button" className="btn btn-ghost btn-sm" onClick={()=>setPreview({language,level,topic})}><i className="fa-regular fa-eye"/> Eelvaade</button>
+                              <button type="button" className="btn btn-amber btn-sm" onClick={()=>openAction({language,level,topic})}><i className="fa-solid fa-wand-magic-sparkles"/> Kasuta õppetöös</button>
                               <button type="button" className="btn btn-pine btn-sm" onClick={()=>toggleTopic(topicKey)} aria-expanded={topicOpen}>{topicOpen?'Sulge':'Ava teema'}</button>
                             </div>
                           </div>
@@ -2128,6 +2205,64 @@ function ProgramsView() {
           <div className="card curriculum-empty"><i className="fa-solid fa-magnifying-glass"/><h2>Õppekava ei leitud</h2><p>Muuda otsingut või lähtesta filtrid.</p></div>
         )}
       </section>
+
+      {action&&(
+        <div className="modal-overlay curriculum-action-overlay" role="presentation" onMouseDown={event=>{if(event.target===event.currentTarget&&!actionBusy)setAction(null);}}>
+          <section className="curriculum-action-modal" role="dialog" aria-modal="true" aria-labelledby="curriculum-action-title">
+            <header>
+              <div>
+                <span>{action.language.title} · {action.level.code}</span>
+                <h2 id="curriculum-action-title">{action.topic.name}</h2>
+                <p>Seo teema õpilase, õppematerjali ja kodutööga.</p>
+              </div>
+              <button type="button" className="icon-btn" onClick={()=>setAction(null)} disabled={Boolean(actionBusy)} aria-label="Sulge"><i className="fa-solid fa-xmark"/></button>
+            </header>
+            <div className="curriculum-action-body">
+              <label>
+                <span>Õpilane</span>
+                <select value={actionStudentId} onChange={event=>setActionStudentId(event.target.value)}>
+                  <option value="">Vali õpilane</option>
+                  {activeStudents.map(student=><option key={student.id} value={student.id}>{student.name} · {student.subject||'aine puudub'} · {student.level||'tase puudub'}</option>)}
+                </select>
+              </label>
+              <label>
+                <span>Tunnikava</span>
+                <select value={actionLessonIndex} onChange={event=>setActionLessonIndex(Number(event.target.value))}>
+                  {(action.topic.lessons||[]).map((lesson,index)=><option key={index} value={index}>{lesson.number} · {lesson.goal}</option>)}
+                </select>
+              </label>
+              {actionItem&&(
+                <div className="curriculum-action-summary">
+                  <strong>{actionItem.lessonGoal}</strong>
+                  <span>{actionItem.vocab.length} sõna · {actionItem.steps.length} etappi</span>
+                </div>
+              )}
+              {actionStudent&&actionStudentValidation.ok&&actionProgress&&(
+                <div className="curriculum-action-summary">
+                  <strong>{actionStudent.name}: {actionProgress.completedLessons}/{actionProgress.totalLessons} tunnikava tehtud</strong>
+                  <span>Praegune progress {actionProgress.percent}% · {actionStudent.subject} {actionStudent.level}</span>
+                </div>
+              )}
+              {actionStudent&&!actionStudentValidation.ok&&(
+                <div className="curriculum-action-summary" style={{background:'#FFF4E8',borderColor:'#F0C895',color:'#8A4B12'}}>
+                  <strong>Kontrolli õpilase kaarti</strong>
+                  <span>{actionStudentValidation.errors.join(' ')}</span>
+                </div>
+              )}
+              <label>
+                <span>Kodutöö tähtaeg <small>(valikuline)</small></span>
+                <input type="date" value={actionDue} onChange={event=>setActionDue(event.target.value)}/>
+              </label>
+              <div className="curriculum-action-buttons">
+                <button type="button" className="btn btn-dark" disabled={!actionStudentValidation.ok||Boolean(actionBusy)} onClick={()=>runAction('plan')}><i className="fa-solid fa-route"/> {actionBusy==='plan'?'Salvestan…':'Määra õpiteemaks'}</button>
+                <button type="button" className="btn btn-pine" disabled={Boolean(actionBusy)} onClick={()=>runAction('material')}><i className="fa-solid fa-book-open"/> {actionBusy==='material'?'Loon…':'Lisa õppevarasse'}</button>
+                <button type="button" className="btn btn-amber" disabled={!actionStudentValidation.ok||Boolean(actionBusy)} onClick={()=>runAction('homework')}><i className="fa-solid fa-paper-plane"/> {actionBusy==='homework'?'Saadan…':'Saada kodutöö'}</button>
+              </div>
+              {createdMaterialId&&<a className="curriculum-action-library-link" href={`/haldus-exercises/?libSubject=${encodeURIComponent(actionItem?.subject||'')}&libStage=${encodeURIComponent(actionItem?.level||'')}&libTopic=${encodeURIComponent(actionItem?.topicName||'')}`} target="_blank" rel="noopener"><i className="fa-solid fa-arrow-up-right-from-square"/> Ava loodud materjal õppevaras</a>}
+            </div>
+          </section>
+        </div>
+      )}
 
       {preview&&(
         <div className="modal-overlay curriculum-preview-overlay" role="presentation" onMouseDown={event=>{if(event.target===event.currentTarget)setPreview(null);}}>
@@ -6594,12 +6729,46 @@ function StudentInitialAssessment({student,user,canManage,notify}) {
   </div>;
 }
 
+function CurriculumProgressCard({student,lessons=[],canManage,openPrograms}){
+  const workflow=window.CurriculumWorkflow;
+  const progress=React.useMemo(()=>workflow?workflow.calculateProgress(window.HaldusCurriculum||{},student,lessons):null,[workflow,student,lessons]);
+  if(!progress||!progress.totalLessons)return null;
+  const plan=student.curriculumPlan||null;
+  const next=progress.nextItem;
+  return(
+    <div className="card" style={{padding:24}}>
+      <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:14,flexWrap:'wrap'}}>
+        <div>
+          <div style={{fontSize:'.7rem',fontWeight:900,color:'#2F5D50',letterSpacing:'.09em',textTransform:'uppercase',marginBottom:6}}>Õppekava progress</div>
+          <h3>{progress.subject} · {progress.level}</h3>
+          <div style={{fontSize:'.79rem',color:'#607086',marginTop:5}}>{progress.completedLessons}/{progress.totalLessons} tunnikava · {progress.completedTopics}/{progress.totalTopics} teemat lõpetatud</div>
+        </div>
+        <strong style={{fontSize:'1.45rem',color:'#2F5D50'}}>{progress.percent}%</strong>
+      </div>
+      <div style={{height:9,borderRadius:999,background:'#E7ECEF',overflow:'hidden',margin:'15px 0'}}><div style={{height:'100%',width:`${progress.percent}%`,borderRadius:999,background:'linear-gradient(90deg,#2F5D50,#56A58B)'}}/></div>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))',gap:10}}>
+        <div style={{padding:'12px 13px',borderRadius:11,background:'#F9F8F6',border:'1px solid rgba(28,43,58,.08)'}}>
+          <div style={{fontSize:'.66rem',fontWeight:800,color:'#718096',textTransform:'uppercase',marginBottom:5}}>Määratud õpiteema</div>
+          <div style={{fontSize:'.82rem',fontWeight:800}}>{plan?.topicName||'Ei ole eraldi määratud'}</div>
+          {plan?.lessonGoal&&<div style={{fontSize:'.72rem',color:'#607086',lineHeight:1.45,marginTop:4}}>{plan.lessonGoal}</div>}
+        </div>
+        <div style={{padding:'12px 13px',borderRadius:11,background:'#F3FAF7',border:'1px solid #CBE3DA'}}>
+          <div style={{fontSize:'.66rem',fontWeight:800,color:'#35715F',textTransform:'uppercase',marginBottom:5}}>Järgmine soovitus</div>
+          <div style={{fontSize:'.82rem',fontWeight:800}}>{next?`${next.topicName} · ${next.lessonNumber}`:'Tase on läbitud'}</div>
+          {next?.lessonGoal&&<div style={{fontSize:'.72rem',color:'#557568',lineHeight:1.45,marginTop:4}}>{next.lessonGoal}</div>}
+        </div>
+      </div>
+      {canManage&&openPrograms&&<button type="button" onClick={openPrograms} className="btn btn-pine btn-sm" style={{marginTop:13}}><i className="fa-solid fa-route"/> Ava õppekava</button>}
+    </div>
+  );
+}
+
 // ── ÕPILASE KAART ─────────────────────────────────────────────
 function StudentCard({user,currentStu,stuLessons,liveLessons=[],stuHw,stuInv,isAdmin,setSelStu,setEditStu,toggleStudentActive,convertStudentToParent,
   hwTask,setHwTask,hwDue,setHwDue,hwFiles,setHwFiles,addHw,toggleHw,deleteHw,removeHwFile,
   invAmt,setInvAmt,invDesc,setInvDesc,invRef,setInvRef,invDue,setInvDue,addInvoice,markPaid,unmarkPaid,deleteInvoice,printInvoice,submitParentPayment,resetParentPayment,updateInvoiceReference,updateInvoiceDue,sendInvoiceEmail,sendInvoiceReminder,invoiceEmailBusy,deleteLesson,openLessonEditor,
   schDate,setSchDate,schTime,setSchTime,schTeach,setSchTeach,schRecurring,setSchRecurring,addStudentSchedule,canAssignTeacher,
-  stuMessages,teacherMessage,setTeacherMessage,sendTeacherMessage,notify,setAssignWsLesson,tariffAssignments=[]}) {
+  stuMessages,teacherMessage,setTeacherMessage,sendTeacherMessage,notify,setAssignWsLesson,openPrograms,tariffAssignments=[]}) {
   if(!currentStu) return <div style={{textAlign:'center',padding:60,color:'#42536A'}}>Õpilane ei leitud.</div>;
   const done=stuLessons.filter(l=>l.status==='Toimunud');
   const pct=levelPct(currentStu.level,currentStu.targetLevel);
@@ -6759,6 +6928,8 @@ function StudentCard({user,currentStu,stuLessons,liveLessons=[],stuHw,stuInv,isA
 
       {profileTab==='overview'&&<React.Fragment>
       <SkillMapWidget student={currentStu} isTeacher={canManage} user={user}/>
+
+      <CurriculumProgressCard student={currentStu} lessons={stuLessons} canManage={canManage} openPrograms={openPrograms}/>
 
       <AssignedWorksheetsWidget student={currentStu} canManage={canManage} notify={notify}/>
 
@@ -11316,6 +11487,38 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
   };
   const lessonDate = modalEv.occurrenceDate||modalEv.date||today();
   const lessonStudent = resolveStudentRecord(students,modalEv);
+  const curriculumWorkflow=window.CurriculumWorkflow;
+  const curriculumLessonOptions=React.useMemo(()=>{
+    if(!curriculumWorkflow)return [];
+    const catalog=curriculumWorkflow.flattenCurriculum(window.HaldusCurriculum||{});
+    return curriculumWorkflow.catalogForStudent(catalog,lessonStudent||{});
+  },[curriculumWorkflow,lessonStudent?.id,lessonStudent?.subject,lessonStudent?.level]);
+  const selectedCurriculumKey=modalEv.curriculumTopicId
+    ?`${modalEv.curriculumTopicId}:${Math.max(0,Number(modalEv.curriculumLessonIndex)||0)}`
+    :'';
+  const applyCurriculumLesson=event=>{
+    const selected=curriculumLessonOptions.find(item=>item.key===event.target.value)||null;
+    if(!selected){
+      setModalEv(previous=>({...previous,curriculumLanguageId:'',curriculumSubject:'',curriculumLevel:'',curriculumTopicId:'',curriculumTopicName:'',curriculumLessonIndex:0,curriculumLessonGoal:''}));
+      return;
+    }
+    const vocabulary=selected.vocab.map(item=>item.word).join(', ');
+    const closingStep=selected.steps[selected.steps.length-1];
+    const homework=(closingStep?.content||[]).join(' ');
+    setModalEv(previous=>({...previous,
+      curriculumLanguageId:selected.languageId,
+      curriculumSubject:selected.subject,
+      curriculumLevel:selected.level,
+      curriculumTopicId:selected.topicId,
+      curriculumTopicName:selected.topicName,
+      curriculumLessonIndex:selected.lessonIndex,
+      curriculumLessonGoal:selected.lessonGoal
+    }));
+    setLTopic(selected.topicName);
+    setLNewWords(previous=>previous||vocabulary);
+    setLCovered(previous=>previous||selected.lessonGoal);
+    setLNextNotes(previous=>previous||homework);
+  };
   const lessonPackageOptions = React.useMemo(
     ()=>(studentPackages||[])
       .filter(studentPackage=>
@@ -11878,6 +12081,16 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
               <div style={{fontSize:".76rem",fontWeight:700,color:"#42536A",textTransform:"uppercase",letterSpacing:".08em",marginBottom:2}}>
                 📝 Päeviku kanne
               </div>
+              {curriculumLessonOptions.length>0&&(
+                <label style={{display:'grid',gap:5,padding:'11px 12px',borderRadius:11,background:'#F3FAF7',border:'1px solid #CBE3DA'}}>
+                  <span style={{fontSize:'.72rem',fontWeight:800,color:'#2F5D50'}}>Õppekava teema</span>
+                  <select value={selectedCurriculumKey} onChange={applyCurriculumLesson}>
+                    <option value="">Vaba teema · õppekavaga sidumata</option>
+                    {curriculumLessonOptions.map(item=><option key={item.key} value={item.key}>{item.level} · {item.topicName} · {item.lessonNumber}</option>)}
+                  </select>
+                  <small style={{color:'#557568',fontSize:'.68rem'}}>Valik täidab teema, sõnavara, tunni eesmärgi ja järgmise ülesande. Kõiki välju saab muuta.</small>
+                </label>
+              )}
               <input value={lTopic} onChange={e=>setLTopic(e.target.value)} placeholder="Tunni teema (valikuline)"/>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
                 <select value={lStatus} onChange={e=>setLStatus(e.target.value)} disabled={Boolean(modalEv.billingStatus||modalEv.invoiceId)}>
@@ -14055,6 +14268,13 @@ function App() {
       topic:String(lTopic||'').trim(),grade:lStatus==='Toimunud'?parseInt(lGrade):0,
       duration:parseInt(lDur),status:lStatus,comment:lComment,
       newWords:lNewWords||'',grammar:lGrammar||'',covered:lCovered||'',nextNotes:lNextNotes||'',
+      curriculumLanguageId:modalEv.curriculumLanguageId||'',
+      curriculumSubject:modalEv.curriculumSubject||'',
+      curriculumLevel:modalEv.curriculumLevel||'',
+      curriculumTopicId:modalEv.curriculumTopicId||'',
+      curriculumTopicName:modalEv.curriculumTopicName||'',
+      curriculumLessonIndex:Math.max(0,Number(modalEv.curriculumLessonIndex)||0),
+      curriculumLessonGoal:modalEv.curriculumLessonGoal||'',
       date:modalEv.occurrenceDate||modalEv.date||today(),submittedAt:now.toLocaleString('et-EE'),teacher:user.displayName,
       teacherUid:modalEv.teacherUid||stu?.teacherUid||teacherUidForName(modalEv.teacher||user.displayName),
       updatedAt: now.toISOString(),
@@ -15744,7 +15964,7 @@ function App() {
             schDate={schDate} setSchDate={setSchDate} schTime={schTime} setSchTime={setSchTime} schTeach={schTeach} setSchTeach={setSchTeach}
             schRecurring={schRecurring} setSchRecurring={setSchRecurring} addStudentSchedule={addStudentSchedule} canAssignTeacher={canAssignTeacher}
             stuMessages={stuMessages} teacherMessage={teacherMessage} setTeacherMessage={setTeacherMessage} sendTeacherMessage={sendTeacherMessage}
-            notify={notify} setAssignWsLesson={setAssignWsLesson} tariffAssignments={tariffAssignments}/>}
+            notify={notify} setAssignWsLesson={setAssignWsLesson} openPrograms={()=>{setSelStu(null);setTab('programs');}} tariffAssignments={tariffAssignments}/>}
 
           {tab==='groups'&&isStaff&&<GroupsView groups={groups} students={canAssignTeacher?students:myStudents} isAdmin={canAssignTeacher}
             setSelStu={setSelStu} setTab={setTab}
@@ -15815,7 +16035,7 @@ function App() {
             ungroupStudent={ungroupStudent}
           />}
 
-          {tab==='programs'&&isStaff&&<ProgramsView/>}
+          {tab==='programs'&&isStaff&&<ProgramsView db={db} user={user} students={students} lessons={lessons} notify={notify} logActivity={logActivity}/>}
 
           {tab==='invoices'&&!isStaff&&<ParentInvoicesView invoices={scopedInvoices} printInvoice={printInvoice} submitParentPayment={submitParentPayment}/>}
 

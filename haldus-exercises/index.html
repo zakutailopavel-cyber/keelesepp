@@ -32,6 +32,7 @@
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <script src="/learning-library-core.js"></script>
+<script src="/curriculum-workflow-core.js"></script>
 <script src="/live-classroom-core.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -1617,6 +1618,12 @@ function CurriculumView({lessons,isTeacher,user,notify,onPreviewWorksheet,onCond
   const topics=subject?[...new Set([...(subject.topics||[]),...lessons.filter(l=>l.subject===subject.key&&l.level===nav.level&&!l.examPart).map(l=>l.topic).filter(Boolean)])]:[];
 
   const saveLesson=async data=>{
+    const validation=window.CurriculumWorkflow?.validateMaterialLevel(data);
+    if(validation&&!validation.ok){
+      window.alert('Materjali ei salvestatud:\n\n'+validation.errors.join('\n'));
+      return;
+    }
+    if(validation?.warnings?.length&&!window.confirm('Kontrolli enne salvestamist:\n\n'+validation.warnings.join('\n')+'\n\nKas salvestada siiski?')) return;
     if(data.id){await db.collection('curriculumLessons').doc(data.id).update({...data});}
     else{await db.collection('curriculumLessons').add({...data,authorUid:user.uid,authorName:user.displayName||user.email||'',createdAt:today()});}
     notify('✓ Salvestatud');setModal(null);
