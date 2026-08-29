@@ -3110,7 +3110,7 @@ function WorksheetPreviewModal({lesson,onClose,onConduct}) {
   };
 
   const renderBlock=(block,idx)=>{
-    const BTLABELS={fill:'Täida lünk',choice:'Vali vastus',writing:'Kirjutamine',match:'Sobita paarid',order:'Järjesta sõnad',table:'Tabel',text:'Tekst',reading:'Lugemistekst',image:'Pilt'};
+    const BTLABELS={fill:'Täida lünk',choice:'Vali vastus',writing:'Kirjutamine',match:'Sobita paarid',order:'Järjesta sõnad',table:'Tabel',text:'Tekst',reading:'Lugemistekst',image:'Pilt',dialogue:'Dialoog',diagram:'Skeem',comic:'Koomiks',error_correction:'Leia viga',transformation:'Muuda lauset'};
     const label=block.label||BTLABELS[block.type]||block.type;
 
     const renderContent=()=>{
@@ -3165,6 +3165,12 @@ function WorksheetPreviewModal({lesson,onClose,onConduct}) {
           ))}</tbody>
         </table>
       );
+      if(block.type==='diagram'){
+        const palette={pine:['#E7F1ED','#205A4B'],gold:['#FFF1D9','#9A5B13'],blue:['#E8F0FF','#315A91'],rose:['#FCE7F3','#9D174D'],slate:['#EEF1F5','#42536A']};
+        const nodes=(block.nodes||[]).map((node,i)=>{const p=palette[node.color]||palette.pine;return <div key={i} style={{flex:1,minWidth:110,padding:'10px 11px',borderRadius:9,border:'1px solid rgba(28,43,58,.1)',background:p[0],color:p[1],fontSize:'.8rem',fontWeight:700,textAlign:'center'}}>{node.text||`Samm ${i+1}`}</div>;});
+        return <div><div style={{fontWeight:800,marginBottom:9}}>{block.title}</div>{block.layout==='flow'?<div style={{display:'flex',alignItems:'center',gap:7,flexWrap:'wrap'}}>{nodes.map((node,i)=><React.Fragment key={i}>{node}{i<nodes.length-1&&<span style={{color:'#C9882A',fontWeight:900}}>→</span>}</React.Fragment>)}</div>:<div style={{display:'grid',gridTemplateColumns:'repeat(2,minmax(0,1fr))',gap:8}}><div style={{gridColumn:'1/-1',justifySelf:'center',background:'#1C2B3A',color:'#fff',borderRadius:block.layout==='cycle'?999:9,padding:'8px 18px',fontWeight:800,fontSize:'.8rem'}}>{block.centerText||'Põhiteema'}</div>{nodes}</div>}</div>;
+      }
+      if(block.type==='comic')return <div><div style={{fontWeight:800,marginBottom:9}}>{block.title}</div><div style={{display:'grid',gridTemplateColumns:'repeat(2,minmax(0,1fr))',gap:9}}>{(block.panels||[]).map((panel,i)=><div key={i} style={{border:'1px solid rgba(28,43,58,.14)',borderRadius:11,background:'#F9F8F6',padding:10,minHeight:135}}><div style={{fontSize:'.62rem',textTransform:'uppercase',letterSpacing:'.08em',color:'#7A7167',fontWeight:700}}>{i+1}. {panel.scene||'Stseen'}</div>{panel.imageUrl?<img src={panel.imageUrl} alt="" style={{width:'100%',height:90,objectFit:'cover',borderRadius:7,marginTop:6}}/>:<div style={{fontSize:'1.8rem',margin:'8px 0 4px'}}>{panel.emoji||'🙂'}</div>}<div style={{fontSize:'.68rem',fontWeight:800,color:'#42536A'}}>{panel.character||'Tegelane'}</div><div style={{background:'#fff',border:'1px solid rgba(28,43,58,.14)',borderRadius:10,padding:'7px 9px',marginTop:6,fontSize:'.78rem',lineHeight:1.4}}>{panel.text||'...'}</div>{panel.caption&&<div style={{fontSize:'.64rem',color:'#A96E1A',fontWeight:700,marginTop:6}}>{panel.caption}</div>}</div>)}</div></div>;
       return null;
     };
 

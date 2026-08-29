@@ -152,6 +152,7 @@ textarea{resize:vertical;line-height:1.45;}
 .img-resize-handle{position:absolute;right:4px;bottom:4px;width:18px;height:18px;background:#2F5D50;border-radius:4px;cursor:se-resize;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s;z-index:10;touch-action:none;}
 .img-resizable-wrap:hover .img-resize-handle{opacity:.9;}
 .img-resize-handle::after{content:'⤡';color:#fff;font-size:.7rem;line-height:1;}
+.diagram-view{display:flex;flex-direction:column;gap:10px}.diagram-title,.comic-title{font-weight:800;font-size:.92rem;color:#1C2B3A}.diagram-flow{display:flex;align-items:stretch;gap:7px;flex-wrap:wrap}.diagram-node{flex:1;min-width:118px;padding:11px 12px;border-radius:10px;border:1px solid rgba(28,43,58,.1);font-size:.82rem;font-weight:700;text-align:center;display:flex;align-items:center;justify-content:center;min-height:52px}.diagram-arrow{align-self:center;color:#C9882A;font-weight:900}.diagram-cycle{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.diagram-cycle-center{grid-column:1/-1;justify-self:center;background:#1C2B3A;color:#fff;border-radius:999px;padding:8px 18px;font-weight:800;font-size:.82rem}.diagram-mindmap{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;align-items:stretch}.diagram-mindmap .diagram-center{grid-column:1/-1;justify-self:center;background:#1C2B3A;color:#fff;border-radius:10px;padding:10px 22px;font-weight:800}.comic-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.comic-panel{border:1px solid rgba(28,43,58,.14);border-radius:12px;background:linear-gradient(145deg,#fff,#F4F1EA);padding:11px;min-height:145px;display:flex;flex-direction:column;position:relative;overflow:hidden}.comic-scene{font-size:.62rem;text-transform:uppercase;letter-spacing:.08em;color:#7A7167;font-weight:700}.comic-character{font-size:2rem;line-height:1;margin:8px 0 5px}.comic-name{font-size:.7rem;font-weight:800;color:#42536A}.comic-bubble{background:#fff;border:1px solid rgba(28,43,58,.14);border-radius:12px;padding:8px 10px;margin-top:6px;font-size:.8rem;line-height:1.4;position:relative;flex:1}.comic-bubble:before{content:'';position:absolute;left:14px;top:-6px;width:10px;height:10px;background:#fff;border-left:1px solid rgba(28,43,58,.14);border-top:1px solid rgba(28,43,58,.14);transform:rotate(45deg)}.comic-caption{font-size:.66rem;color:#A96E1A;font-weight:700;margin-top:7px}.insert-picker{padding:8px 10px 10px;border-top:1px dashed rgba(28,43,58,.1);display:grid;grid-template-columns:1fr 1fr;gap:5px}.insert-picker button{border:1px solid rgba(28,43,58,.1);background:#F9F8F6;border-radius:7px;padding:6px;font-family:inherit;font-size:.68rem;font-weight:700;color:#42536A;cursor:pointer}.insert-picker button:hover{border-color:#2F5D50;color:#2F5D50}.history-actions{display:flex;gap:5px;margin-bottom:8px}.history-actions .btn{flex:1;justify-content:center}.history-actions .btn:disabled{opacity:.4;cursor:not-allowed}
 
 /* Prefill banner */
 .prefill-banner{background:linear-gradient(90deg,rgba(201,136,42,.12),rgba(201,136,42,.06));border:1px solid rgba(201,136,42,.3);border-radius:10px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;gap:9px;font-size:.8rem;color:#A96E1A;font-weight:600;}
@@ -160,7 +161,7 @@ textarea{resize:vertical;line-height:1.45;}
 
 @media(max-width:760px){
   .hdr{height:auto;min-height:56px;padding:9px 12px;align-items:flex-start;gap:8px;flex-wrap:wrap}.hdr>div:first-child span{display:none}.hdr>div:last-child{width:100%;overflow-x:auto;padding-bottom:2px}.hdr>div:last-child .btn,.hdr>div:last-child a{white-space:nowrap;flex-shrink:0}
-  .workspace{display:flex;flex-direction:column;height:auto;min-height:calc(100vh - 100px);overflow:visible}.left-panel{overflow:visible;border-right:0;border-bottom:1px solid rgba(28,43,58,.1)}.left-scroll{max-height:none;overflow:visible}.right-panel{overflow:visible;padding:12px 8px 28px;align-items:stretch}.toolbar-row{overflow-x:auto;justify-content:flex-start}.toolbar-row span{display:none}.a4-sheet{min-height:900px;padding:28px 20px}.sheet-hdr{flex-direction:column}.a4-page-break{width:100%}.sav-body>div[style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr!important}.sav-foot{flex-wrap:wrap}.sav-foot .btn{flex:1;justify-content:center}.status-options{grid-template-columns:1fr}.left-tabs{overflow-x:auto}.ltab{min-width:76px;white-space:nowrap}
+  .workspace{display:flex;flex-direction:column;height:auto;min-height:calc(100vh - 100px);overflow:visible}.left-panel{overflow:visible;border-right:0;border-bottom:1px solid rgba(28,43,58,.1)}.left-scroll{max-height:none;overflow:visible}.right-panel{overflow:visible;padding:12px 8px 28px;align-items:stretch}.toolbar-row{overflow-x:auto;justify-content:flex-start}.toolbar-row span{display:none}.a4-sheet{min-height:900px;padding:28px 20px}.sheet-hdr{flex-direction:column}.a4-page-break{width:100%}.sav-body>div[style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr!important}.sav-foot{flex-wrap:wrap}.sav-foot .btn{flex:1;justify-content:center}.status-options{grid-template-columns:1fr}.left-tabs{overflow-x:auto}.ltab{min-width:76px;white-space:nowrap}.comic-grid,.diagram-cycle,.diagram-mindmap{grid-template-columns:1fr}.diagram-flow{flex-direction:column}.diagram-arrow{transform:rotate(90deg)}
 }
 
 @media print{
@@ -175,7 +176,7 @@ textarea{resize:vertical;line-height:1.45;}
 
 <script src="/haldus-shared.js"></script>
 <script src="/curriculum-workflow-core.js"></script>
-<script src="/worksheet-workflow-core.js?v=20260829.5"></script>
+<script src="/worksheet-workflow-core.js?v=20260829.6"></script>
 <script type="text/babel">
 const {useState,useEffect,useRef,useMemo,useCallback} = React;
 const auth=window._auth, db=window._db, storage=window._storage;
@@ -214,6 +215,8 @@ const BTYPES=[
   {key:'reading',          label:'Lugemistekst',     icon:'fa-book-open-reader', color:'#be185d',bg:'rgba(190,24,93,.1)'},
   {key:'image',            label:'Pilt',             icon:'fa-image',            color:'#0f766e',bg:'rgba(15,118,110,.1)'},
   {key:'dialogue',         label:'Dialoog',          icon:'fa-comments',         color:'#0369a1',bg:'rgba(3,105,161,.1)'},
+  {key:'diagram',          label:'Skeem',             icon:'fa-diagram-project',  color:'#0f766e',bg:'rgba(15,118,110,.1)'},
+  {key:'comic',            label:'Koomiks',           icon:'fa-masks-theater',    color:'#b45309',bg:'rgba(180,83,9,.1)'},
   {key:'error_correction', label:'Leia viga',        icon:'fa-spell-check',      color:'#dc2626',bg:'rgba(220,38,38,.1)'},
   {key:'transformation',   label:'Muuda lauset',     icon:'fa-right-left',       color:'#7c3aed',bg:'rgba(124,58,237,.1)'},
 ];
@@ -231,6 +234,8 @@ const mkBlock=type=>{
   if(type==='reading')          return{...base,passage:'Sisesta lugemistekst...',questions:[{q:'',opts:['','','',''],correct:0}]};
   if(type==='image')            return{...base,caption:''};
   if(type==='dialogue')         return{...base,lines:[{speaker:'A',text:'Tere! Kuidas laheb?'},{speaker:'B',text:'[vastus]'},{speaker:'A',text:'[vastus]'}]};
+  if(type==='diagram')          return{...base,title:'Kuidas protsess toimub?',layout:'flow',centerText:'Põhiteema',nodes:[{text:'Esimene samm',color:'pine'},{text:'Teine samm',color:'gold'},{text:'Tulemus',color:'blue'}]};
+  if(type==='comic')            return{...base,title:'Lühike olukord',style:'storyboard',panels:[{character:'Anna',emoji:'🙂',scene:'Kool',text:'Tere! Kas sa aitad mind?',caption:'Algus'},{character:'Mark',emoji:'🤔',scene:'Kool',text:'Jah, muidugi.',caption:'Lahendus'}]};
   if(type==='error_correction') return{...base,sentences:[{wrong:'Ma lahen eile poodi.',correct:'Ma laksin eile poodi.'}]};
   if(type==='transformation')   return{...base,example:{from:'Ma lahen poodi.',to:'Ma ei lahe poodi.'},sentences:['Ta tootab koolis.','Me elame Tallinnas.','Nad raagivad eesti keelt.']};
   return base;
@@ -433,6 +438,62 @@ function TransformationEd({b,upd}){
   </>);
 }
 
+const VISUAL_COLORS={pine:{background:'#E7F1ED',color:'#205A4B'},gold:{background:'#FFF1D9',color:'#9A5B13'},blue:{background:'#E8F0FF',color:'#315A91'},rose:{background:'#FCE7F3',color:'#9D174D'},slate:{background:'#EEF1F5',color:'#42536A'}};
+
+function DiagramView({block}){
+  const nodes=(block.nodes||[]).filter(node=>node&&node.text!==undefined);
+  const node=(item,index)=><div key={index} className="diagram-node" style={VISUAL_COLORS[item.color]||VISUAL_COLORS.pine}><span>{item.text||`Samm ${index+1}`}</span></div>;
+  return <div className="diagram-view">
+    {block.title&&<div className="diagram-title">{block.title}</div>}
+    {block.layout==='cycle'?<div className="diagram-cycle"><div className="diagram-cycle-center">{block.centerText||'Põhiteema'}</div>{nodes.map(node)}</div>
+      :block.layout==='mindmap'?<div className="diagram-mindmap"><div className="diagram-center">{block.centerText||'Põhiteema'}</div>{nodes.map(node)}</div>
+      :<div className="diagram-flow">{nodes.map((item,index)=><React.Fragment key={index}>{node(item,index)}{index<nodes.length-1&&<span className="diagram-arrow">→</span>}</React.Fragment>)}</div>}
+  </div>;
+}
+
+function ComicView({block}){
+  return <div>
+    {block.title&&<div className="comic-title" style={{marginBottom:9}}>{block.title}</div>}
+    <div className="comic-grid">{(block.panels||[]).map((panel,index)=><div className="comic-panel" key={index}>
+      <div className="comic-scene">{index+1}. {panel.scene||'Stseen'}</div>
+      {panel.imageUrl?<img src={panel.imageUrl} alt="" style={{width:'100%',height:100,objectFit:'cover',borderRadius:8,marginTop:7}}/>:<div className="comic-character" aria-hidden="true">{panel.emoji||'🙂'}</div>}
+      <div className="comic-name">{panel.character||'Tegelane'}</div>
+      <div className="comic-bubble">{panel.text||'...'}</div>
+      {panel.caption&&<div className="comic-caption">{panel.caption}</div>}
+    </div>)}</div>
+  </div>;
+}
+
+function DiagramEd({b,upd}){
+  const nodes=b.nodes||[];
+  const updateNode=(index,patch)=>upd({nodes:nodes.map((node,i)=>i===index?{...node,...patch}:node)});
+  return <>
+    <div className="field-lbl">Skeemi pealkiri</div><input value={b.title||''} onChange={e=>upd({title:e.target.value})} placeholder="Kuidas protsess toimub?"/>
+    <div className="field-lbl">Skeemi tüüp</div><select value={b.layout||'flow'} onChange={e=>upd({layout:e.target.value})}><option value="flow">Protsess — sammud noolega</option><option value="cycle">Tsükkel — keskne teema</option><option value="mindmap">Mõttekaart — harud</option></select>
+    {(b.layout==='cycle'||b.layout==='mindmap')&&<><div className="field-lbl">Keskne mõiste</div><input value={b.centerText||''} onChange={e=>upd({centerText:e.target.value})} placeholder="Põhiteema"/></>}
+    <div className="field-lbl">Skeemi osad</div>
+    {nodes.map((item,index)=><div key={index} style={{display:'grid',gridTemplateColumns:'1fr 82px auto',gap:5,marginBottom:5}}><input value={item.text||''} onChange={e=>updateNode(index,{text:e.target.value})} placeholder={`Osa ${index+1}`}/><select value={item.color||'pine'} onChange={e=>updateNode(index,{color:e.target.value})} title="Värv"><option value="pine">Roheline</option><option value="gold">Kuldne</option><option value="blue">Sinine</option><option value="rose">Roosa</option><option value="slate">Hall</option></select><button className="bi-btn del" onClick={()=>upd({nodes:nodes.filter((_,i)=>i!==index)})} disabled={nodes.length<=2} title="Eemalda"><i className="fa-solid fa-trash"/></button></div>)}
+    <button className="btn btn-ghost btn-sm" style={{width:'100%',justifyContent:'center'}} onClick={()=>upd({nodes:[...nodes,{text:'Uus osa',color:'pine'}]})}><i className="fa-solid fa-plus"/> Lisa osa</button>
+  </>;
+}
+
+function ComicEd({b,upd}){
+  const panels=b.panels||[];
+  const updatePanel=(index,patch)=>upd({panels:panels.map((panel,i)=>i===index?{...panel,...patch}:panel)});
+  return <>
+    <div className="field-lbl">Koomiksi pealkiri</div><input value={b.title||''} onChange={e=>upd({title:e.target.value})} placeholder="Lühike olukord"/>
+    <div className="field-lbl">Kaadrid</div>
+    {panels.map((panel,index)=><div key={index} style={{padding:9,border:'1px solid rgba(28,43,58,.1)',borderRadius:9,background:'#F9F8F6',marginBottom:8}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}><strong style={{fontSize:'.72rem'}}>Kaader {index+1}</strong>{panels.length>1&&<button className="bi-btn del" onClick={()=>upd({panels:panels.filter((_,i)=>i!==index)})}><i className="fa-solid fa-trash"/></button>}</div>
+      <div style={{display:'grid',gridTemplateColumns:'58px 1fr 1fr',gap:5,marginBottom:5}}><input value={panel.emoji||''} onChange={e=>updatePanel(index,{emoji:e.target.value})} placeholder="🙂" title="Tegelase ikoon"/><input value={panel.character||''} onChange={e=>updatePanel(index,{character:e.target.value})} placeholder="Tegelase nimi"/><input value={panel.scene||''} onChange={e=>updatePanel(index,{scene:e.target.value})} placeholder="Koht / stseen"/></div>
+      <textarea value={panel.text||''} onChange={e=>updatePanel(index,{text:e.target.value})} rows={2} placeholder="Kõnemulli tekst..." style={{marginBottom:5}}/>
+      <input value={panel.caption||''} onChange={e=>updatePanel(index,{caption:e.target.value})} placeholder="Kaadri märkus (valikuline)"/>
+      <div className="field-lbl">Illustratsioon (valikuline)</div><ImgUploader value={panel.imageUrl||''} onChange={imageUrl=>updatePanel(index,{imageUrl})}/>
+    </div>)}
+    <button className="btn btn-ghost btn-sm" style={{width:'100%',justifyContent:'center'}} onClick={()=>upd({panels:[...panels,{character:'Tegelane',emoji:'🙂',scene:'Uus stseen',text:'...',caption:''}]})}><i className="fa-solid fa-plus"/> Lisa kaader</button>
+  </>;
+}
+
 function BlockEditor({block,onChange,meta,notify}){
   const upd=p=>onChange({...block,...p});
   const[refineNote,setRefineNote]=useState(block.aiRefineNote||'');
@@ -473,6 +534,8 @@ function BlockEditor({block,onChange,meta,notify}){
         {block.type==='reading'         &&<ReadingEd         b={block} upd={upd}/>}
         {block.type==='image'           &&<ImageEd           b={block} upd={upd}/>}
         {block.type==='dialogue'        &&<DialogueEd        b={block} upd={upd}/>}
+        {block.type==='diagram'         &&<DiagramEd         b={block} upd={upd}/>}
+        {block.type==='comic'           &&<ComicEd           b={block} upd={upd}/>}
         {block.type==='error_correction'&&<ErrorCorrectionEd b={block} upd={upd}/>}
         {block.type==='transformation'  &&<TransformationEd  b={block} upd={upd}/>}
       </div>
@@ -539,6 +602,8 @@ function PreviewBlock({block,index,onChange}){
     if(block.type==='order'){const words=useMemo(()=>(block.sentence||'').split(' ').filter(Boolean).sort(()=>Math.random()-.5),[block.id,block.sentence]);return<div><div className="order-chips">{words.map((w,i)=><span key={i} className="order-chip">{w}</span>)}</div><div className="order-ans">Kirjuta õige järjestus: ___________________________________________________</div></div>;}
     if(block.type==='table'){const cd=block.cellData||{};return<table className="ws-tbl"><thead><tr>{(block.headers||[]).map((h,i)=><th key={i}>{h||`Veerg ${i+1}`}</th>)}</tr></thead><tbody>{Array.from({length:block.rows||4}).map((_,ri)=>(<tr key={ri}>{(block.headers||[]).filter(Boolean).map((_,ci)=><td key={ci}>{cd[ri+','+ci]||''}</td>)}</tr>))}</tbody></table>;}
     if(block.type==='reading')return<div><div className="pb-passage">{block.passage}</div>{(block.questions||[]).map((q,qi)=>(<div key={qi} style={{marginBottom:10}}><div className="ch-q">{qi+1}. {q.q||'Küsimus...'}</div><div className="ch-opts">{q.opts.filter(Boolean).map((o,oi)=>(<div key={oi} className="ch-opt"><div className="ch-circle"/><span>{o}</span></div>))}</div></div>))}</div>;
+    if(block.type==='diagram')return<DiagramView block={block}/>;
+    if(block.type==='comic')return<ComicView block={block}/>;
     if(block.type==='dialogue'){
       const lns=block.lines||[];
       return(<div style={{border:'1px solid rgba(28,43,58,.1)',borderRadius:8,overflow:'hidden'}}>
@@ -804,7 +869,7 @@ async function genAI(prompt, subject, level, didacticCtx={}){
   // If no template, allow all types including new ones
   const allowedTypes=template
     ? template.blockTypes
-    : ['fill','choice','match','order','writing','table','text','reading','dialogue','error_correction','transformation'];
+    : ['fill','choice','match','order','writing','table','text','reading','dialogue','diagram','comic','error_correction','transformation'];
 
   const cefrBlock=`
 == CEFR TASE: ${cefr.label} ==
@@ -861,6 +926,8 @@ Tagasta AINULT puhas JSON (ilma markdown koodiplokita):
     {"type":"table","instruction":"Täida tabel.","headers":["Sõna","Tüüp","Näide"],"rows":5},
     {"type":"reading","instruction":"Loe ja vasta.","passage":"Lugemistekst...","questions":[{"q":"?","opts":["a","b","c"],"correct":0}]},
     {"type":"dialogue","instruction":"Koosta dialoog.","lines":[{"speaker":"A","text":"Tere! Kuidas läheb?"},{"speaker":"B","text":"[vastus]"},{"speaker":"A","text":"[vastus]"}]},
+    {"type":"diagram","instruction":"Uuri skeemi.","title":"Protsessi pealkiri","layout":"flow","centerText":"Põhiteema","nodes":[{"text":"Esimene samm","color":"pine"},{"text":"Teine samm","color":"gold"},{"text":"Tulemus","color":"blue"}]},
+    {"type":"comic","instruction":"Loe koomiksit.","title":"Olukord","panels":[{"character":"Anna","emoji":"🙂","scene":"Kool","text":"Tere!","caption":"Algus"},{"character":"Mark","emoji":"🤔","scene":"Kool","text":"Tere! Kuidas läheb?","caption":"Jätk"}]},
     {"type":"error_correction","instruction":"Leia ja paranda viga.","sentences":[{"wrong":"Vale lause vigaga.","correct":"Õige lause."}]},
     {"type":"transformation","instruction":"Muuda lause vastavalt näitele.","example":{"from":"Ma lähen poodi.","to":"Ma ei lähe poodi."},"sentences":["Lause 1.","Lause 2.","Lause 3."]}
   ]
@@ -940,6 +1007,8 @@ text: {"type":"text","content":"...","bold":false}
 table: {"type":"table","instruction":"...","headers":["a","b"],"rows":5}
 reading: {"type":"reading","instruction":"...","passage":"...","questions":[{"q":"?","opts":["a","b","c"],"correct":0}]}
 dialogue: {"type":"dialogue","instruction":"...","lines":[{"speaker":"A","text":"..."},{"speaker":"B","text":"[vastus]"}]}
+diagram: {"type":"diagram","instruction":"...","title":"...","layout":"flow","centerText":"...","nodes":[{"text":"...","color":"pine"}]}
+comic: {"type":"comic","instruction":"...","title":"...","panels":[{"character":"...","emoji":"🙂","scene":"...","text":"...","caption":"..."}]}
 error_correction: {"type":"error_correction","instruction":"...","sentences":[{"wrong":"...","correct":"..."}]}
 transformation: {"type":"transformation","instruction":"...","example":{"from":"...","to":"..."},"sentences":["...","..."]}`;
 
@@ -979,8 +1048,8 @@ function buildHTML(meta,blocks){
   const shuffleArr=arr=>[...arr].sort(()=>Math.random()-.5);
   let num=0;
   const renderBlock=b=>{
-    const BT_LABELS={fill:'Täida lünk',choice:'Vali vastus',writing:'Kirjutamine',match:'Sobita paarid',order:'Järjesta sõnad',table:'Tabel',text:'Tekst / juhis',reading:'Lugemistekst',image:'Pilt',dialogue:'Dialoog',error_correction:'Leia viga',transformation:'Muuda lauset'};
-    const BT_COLORS={fill:'#1d4ed8',choice:'#6d28d9',writing:'#A96E1A',match:'#047857',order:'#2F5D50',table:'#0e7490',text:'#718096',reading:'#0e7490',image:'#6d28d9',dialogue:'#0369a1',error_correction:'#dc2626',transformation:'#7c3aed'};
+    const BT_LABELS={fill:'Täida lünk',choice:'Vali vastus',writing:'Kirjutamine',match:'Sobita paarid',order:'Järjesta sõnad',table:'Tabel',text:'Tekst / juhis',reading:'Lugemistekst',image:'Pilt',dialogue:'Dialoog',diagram:'Skeem',comic:'Koomiks',error_correction:'Leia viga',transformation:'Muuda lauset'};
+    const BT_COLORS={fill:'#1d4ed8',choice:'#6d28d9',writing:'#A96E1A',match:'#047857',order:'#2F5D50',table:'#0e7490',text:'#718096',reading:'#0e7490',image:'#6d28d9',dialogue:'#0369a1',diagram:'#0f766e',comic:'#b45309',error_correction:'#dc2626',transformation:'#7c3aed'};
     if(!BT_LABELS[b.type])return'';
     num++;
     const color=BT_COLORS[b.type]||'#718096';
@@ -996,6 +1065,17 @@ function buildHTML(meta,blocks){
     else if(b.type==='table'){const cd=b.cellData||{};inner=`<table style="width:100%;border-collapse:collapse;font-size:12.5px"><thead><tr>${(b.headers||[]).map(h=>`<th style="background:#f0f0f0;padding:7px 9px;border:1px solid #ccc;text-align:left;font-weight:700">${escapeHtml(h)}</th>`).join('')}</tr></thead><tbody>${Array.from({length:b.rows||4}).map((_,ri)=>`<tr>${(b.headers||[]).filter(Boolean).map((_,ci)=>`<td style="padding:6px 9px;border:1px solid #ccc;height:28px">${escapeHtml(cd[ri+','+ci]||'')}</td>`).join('')}</tr>`).join('')}</tbody></table>`;}
     else if(b.type==='reading'){inner=`<div style="background:#f7f7f5;border:1px solid #ddd;border-radius:6px;padding:11px 14px;margin-bottom:12px;font-size:12.5px;line-height:1.65;white-space:pre-wrap">${escapeHtml(b.passage||'')}</div>${(b.questions||[]).map((q,qi)=>`<div style="margin-bottom:10px"><div style="font-weight:700;font-size:13px;margin-bottom:5px">${qi+1}. ${escapeHtml(q.q||'')}</div>${(q.opts||[]).filter(Boolean).map(o=>`<div style="display:flex;align-items:center;gap:8px;margin:3px 0 3px 14px;font-size:12.5px"><span style="width:12px;height:12px;border-radius:50%;border:1.5px solid #1C2B3A;display:inline-block;flex-shrink:0"></span><span>${escapeHtml(o)}</span></div>`).join('')}</div>`).join('')}`;}
     else if(b.type==='dialogue'){const lns=b.lines||[];inner=`<div style="border:1px solid rgba(28,43,58,.15);border-radius:8px;overflow:hidden">${lns.map((line,i)=>{const isA=line.speaker==='A'||line.speaker==='Õpetaja';const parts=(line.text||'').split(/(\[[^\]]*\])/g);const hasBlank=parts.some(p=>p.startsWith('['));return`<div style="display:flex;align-items:flex-start;gap:10px;padding:8px 13px;background:${isA?'#F9F8F6':'#fff'};border-bottom:${i<lns.length-1?'1px solid rgba(28,43,58,.07)':'none'}"><span style="font-size:11px;font-weight:700;color:${isA?'#2F5D50':'#1d4ed8'};min-width:65px;flex-shrink:0;padding-top:2px">${escapeHtml(line.speaker||'')}:</span><span style="font-size:12.5px;color:#1C2B3A;flex:1">${hasBlank?parts.map(p=>p.startsWith('[')?`<span style="display:inline-block;min-width:80px;border-bottom:1.5px solid #1C2B3A;margin:0 2px">&nbsp;</span>`:escapeHtml(p)).join(''):escapeHtml(line.text||'')}</span></div>`;}).join('')}</div>`;}
+    else if(b.type==='diagram'){
+      const palette={pine:['#E7F1ED','#205A4B'],gold:['#FFF1D9','#9A5B13'],blue:['#E8F0FF','#315A91'],rose:['#FCE7F3','#9D174D'],slate:['#EEF1F5','#42536A']};
+      const nodes=(b.nodes||[]).map((node,i)=>{const p=palette[node.color]||palette.pine;return`<div style="flex:1;min-width:110px;padding:10px 11px;border-radius:9px;border:1px solid #d7dce1;background:${p[0]};color:${p[1]};font-size:12px;font-weight:700;text-align:center">${escapeHtml(node.text||`Samm ${i+1}`)}</div>`;});
+      const title=b.title?`<div style="font-size:13px;font-weight:800;margin-bottom:10px">${escapeHtml(b.title)}</div>`:'';
+      if(b.layout==='cycle')inner=title+`<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px"><div style="grid-column:1/-1;justify-self:center;background:#1C2B3A;color:#fff;border-radius:999px;padding:7px 18px;font-size:12px;font-weight:800">${escapeHtml(b.centerText||'Põhiteema')}</div>${nodes.join('')}</div>`;
+      else if(b.layout==='mindmap')inner=title+`<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px"><div style="grid-column:1/-1;justify-self:center;background:#1C2B3A;color:#fff;border-radius:9px;padding:9px 20px;font-size:12px;font-weight:800">${escapeHtml(b.centerText||'Põhiteema')}</div>${nodes.join('')}</div>`;
+      else inner=title+`<div style="display:flex;align-items:center;gap:7px">${nodes.map((node,i)=>node+(i<nodes.length-1?'<span style="color:#C9882A;font-weight:900">&#x2192;</span>':'')).join('')}</div>`;
+    }
+    else if(b.type==='comic'){
+      inner=(b.title?`<div style="font-size:13px;font-weight:800;margin-bottom:9px">${escapeHtml(b.title)}</div>`:'')+`<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:9px">${(b.panels||[]).map((panel,i)=>{const src=safeUrl(panel.imageUrl);return`<div style="border:1px solid #d7dce1;border-radius:10px;background:#F9F8F6;padding:10px;min-height:130px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:#7A7167;font-weight:700">${i+1}. ${escapeHtml(panel.scene||'Stseen')}</div>${src?`<img src="${src}" style="width:100%;height:90px;object-fit:cover;border-radius:7px;margin-top:6px"/>`:`<div style="font-size:28px;line-height:1;margin:8px 0 5px">${escapeHtml(panel.emoji||'🙂')}</div>`}<div style="font-size:10px;font-weight:800;color:#42536A">${escapeHtml(panel.character||'Tegelane')}</div><div style="background:#fff;border:1px solid #d7dce1;border-radius:10px;padding:7px 9px;margin-top:6px;font-size:11.5px;line-height:1.4">${escapeHtml(panel.text||'...')}</div>${panel.caption?`<div style="font-size:9.5px;color:#A96E1A;font-weight:700;margin-top:6px">${escapeHtml(panel.caption)}</div>`:''}</div>`;}).join('')}</div>`;
+    }
     else if(b.type==='error_correction'){inner=(b.sentences||[]).map((s,i)=>`<div style="margin-bottom:12px;display:flex;align-items:flex-start;gap:9px"><span style="font-size:11px;font-weight:800;color:#dc2626;min-width:20px;padding-top:2px">${i+1}.</span><div style="flex:1"><div style="font-size:12.5px;color:#7A7167;text-decoration:line-through;margin-bottom:5px">${escapeHtml(s.wrong||'')}</div><div style="display:flex;align-items:center;gap:7px"><span style="font-size:11px;color:#7A7167;flex-shrink:0">Parandus:</span><div style="flex:1;border-bottom:1.5px solid #1C2B3A;min-height:20px"></div></div></div></div>`).join('');}
     else if(b.type==='transformation'){const ex=b.example;inner=(ex?`<div style="padding:8px 12px;border-radius:7px;background:#F0EEE9;border:1px solid rgba(28,43,58,.12);margin-bottom:14px;font-size:12.5px;display:flex;align-items:center;gap:9px;flex-wrap:wrap"><span style="color:#7A7167;font-size:11px;font-weight:700">NÄIDE:</span><span>${escapeHtml(ex.from||'')}</span><span style="color:#C9882A;font-size:1rem">&#x2192;</span><span style="color:#2F5D50;font-weight:600">${escapeHtml(ex.to||'')}</span></div>`:'')+(b.sentences||[]).map((s,i)=>`<div style="margin-bottom:10px;display:flex;align-items:flex-start;gap:9px"><span style="font-size:11px;font-weight:700;color:#718096;min-width:20px;padding-top:2px;flex-shrink:0">${i+1}.</span><div style="flex:1"><div style="font-size:12.5px;color:#1C2B3A;margin-bottom:5px">${escapeHtml(s)}</div><div style="border-bottom:1px solid rgba(28,43,58,.2);min-height:20px"></div></div></div>`).join('');}
     let imgTop='',imgBot='';
@@ -1256,6 +1336,8 @@ function estimateBlockHeight(block){
     case 'reading':return 220+(block.questions||[]).length*90;
     case 'table':return 70+(block.rows||4)*34;
     case 'image':return 240;
+    case 'diagram':return 180+(block.nodes||[]).length*18;
+    case 'comic':return 170+Math.ceil((block.panels||[]).length/2)*150;
     default:return 90;
   }
 }
@@ -1310,6 +1392,10 @@ function App(){
   const[toast,setToast]=useState('');
   const[dragId,setDragId]=useState(null);
   const[dragOver,setDragOver]=useState(null);
+  const[insertAfterId,setInsertAfterId]=useState(null);
+  const[historyRev,setHistoryRev]=useState(0);
+  const pastRef=useRef([]);
+  const futureRef=useRef([]);
   const[showSave,setShowSave]=useState(false);
   const quality=useMemo(()=>workflow?.analyzeWorksheet(meta,blocks)||{ready:false,passed:0,total:0,percent:0,checks:[]},[workflow,meta,blocks]);
   const worksheetSignature=useMemo(()=>JSON.stringify({meta,blocks}),[meta,blocks]);
@@ -1352,14 +1438,33 @@ function App(){
     try{localStorage.removeItem(WS_DRAFT_KEY);}catch(e){}
   };
 
-  const addBlock=type=>{const b=mkBlock(type);setBlocks(p=>[...p,b]);setActiveId(b.id);setTab('build');};
-  const updBlock=(id,data)=>setBlocks(p=>p.map(b=>b.id===id?data:b));
-  const delBlock=id=>{setBlocks(p=>p.filter(b=>b.id!==id));if(activeId===id)setActiveId(null);};
-  const moveBlock=(id,dir)=>setBlocks(p=>{const i=p.findIndex(b=>b.id===id);if(dir===-1&&i===0||dir===1&&i===p.length-1)return p;const a=[...p];[a[i],a[i+dir]]=[a[i+dir],a[i]];return a;});
+  const cloneBlocks=value=>JSON.parse(JSON.stringify(value||[]));
+  const commitBlocks=updater=>{
+    const next=typeof updater==='function'?updater(blocks):updater;
+    if(next===blocks||JSON.stringify(next)===JSON.stringify(blocks))return;
+    pastRef.current=[...pastRef.current.slice(-39),cloneBlocks(blocks)];
+    futureRef.current=[];
+    setBlocks(next);setHistoryRev(r=>r+1);
+  };
+  const undoBlocks=()=>{
+    const previous=pastRef.current.pop();if(!previous)return;
+    futureRef.current=[cloneBlocks(blocks),...futureRef.current.slice(0,39)];
+    setBlocks(previous);if(activeId&&!previous.some(b=>b.id===activeId))setActiveId(previous[0]?.id||null);setInsertAfterId(null);setHistoryRev(r=>r+1);
+  };
+  const redoBlocks=()=>{
+    const next=futureRef.current.shift();if(!next)return;
+    pastRef.current=[...pastRef.current.slice(-39),cloneBlocks(blocks)];
+    setBlocks(next);setInsertAfterId(null);setHistoryRev(r=>r+1);
+  };
+  const addBlock=(type,afterId=null)=>{const b=mkBlock(type);commitBlocks(p=>{if(!afterId)return[...p,b];const index=p.findIndex(x=>x.id===afterId);const next=[...p];next.splice(index<0?p.length:index+1,0,b);return next;});setActiveId(b.id);setInsertAfterId(null);setTab('build');};
+  const updBlock=(id,data)=>commitBlocks(p=>p.map(b=>b.id===id?data:b));
+  const delBlock=id=>{commitBlocks(p=>p.filter(b=>b.id!==id));if(activeId===id)setActiveId(null);if(insertAfterId===id)setInsertAfterId(null);};
+  const duplicateBlock=id=>{const source=blocks.find(b=>b.id===id);if(!source)return;const copy={...cloneBlocks([source])[0],id:uid(),label:source.label?source.label+' (koopia)':''};commitBlocks(p=>{const index=p.findIndex(b=>b.id===id);const next=[...p];next.splice(index+1,0,copy);return next;});setActiveId(copy.id);setInsertAfterId(null);notify('✓ Plokk dubleeritud');};
+  const moveBlock=(id,dir)=>commitBlocks(p=>{const i=p.findIndex(b=>b.id===id);if(dir===-1&&i===0||dir===1&&i===p.length-1)return p;const a=[...p];[a[i],a[i+dir]]=[a[i+dir],a[i]];return a;});
 
   const onDragStart=(e,id)=>{setDragId(id);e.dataTransfer.effectAllowed='move';};
   const onDragOver=(e,id)=>{e.preventDefault();setDragOver(id);};
-  const onDrop=(e,targetId)=>{e.preventDefault();if(!dragId||dragId===targetId)return;setBlocks(p=>{const from=p.findIndex(b=>b.id===dragId);const to=p.findIndex(b=>b.id===targetId);const a=[...p];const[item]=a.splice(from,1);a.splice(to,0,item);return a;});setDragId(null);setDragOver(null);};
+  const onDrop=(e,targetId)=>{e.preventDefault();if(!dragId||dragId===targetId)return;commitBlocks(p=>{const from=p.findIndex(b=>b.id===dragId);const to=p.findIndex(b=>b.id===targetId);const a=[...p];const[item]=a.splice(from,1);a.splice(to,0,item);return a;});setDragId(null);setDragOver(null);};
   const onDragEnd=()=>{setDragId(null);setDragOver(null);};
 
   const applyTemplate=templateId=>{
@@ -1367,7 +1472,7 @@ function App(){
     try{
       const built=window.WorksheetWorkflow.buildTemplate(templateId,{subject:meta.subject,level:meta.level,topic:meta.topic||'Teema'});
       const nextBlocks=built.blocks.map(block=>({...block,id:uid()}));
-      setBlocks(nextBlocks);setActiveId(nextBlocks[0]?.id||null);
+      commitBlocks(nextBlocks);setActiveId(nextBlocks[0]?.id||null);
       setMeta(current=>({...current,title:built.title}));setTab('build');notify('✓ Mall lisatud — kohanda näidistekst enda tunni järgi.');
     }catch(e){notify('Viga: '+e.message);}
   };
@@ -1379,7 +1484,7 @@ function App(){
       if(r.title)setMeta(m=>({...m,title:r.title}));
       const nb=(r.blocks||[]).map(b=>({...mkBlock(b.type),...b,id:uid()}));
       if(!nb.length)throw new Error('AI ei genereerinud ühtegi blokki.');
-      setBlocks(nb);setActiveId(nb[0].id);setTab('build');notify('✓ Tööleht genereeritud!');
+      commitBlocks(nb);setActiveId(nb[0].id);setTab('build');notify('✓ Tööleht genereeritud!');
     }catch(e){notify('Viga: '+(e.message||'Genereerimine ebaõnnestus'));}setAiLoading(false);
   };
 
@@ -1395,7 +1500,7 @@ function App(){
       if(r.title)setMeta(m=>({...m,title:r.title}));
       const nb=(r.blocks||[]).map(b=>({...mkBlock(b.type),...b,id:uid()}));
       if(!nb.length)throw new Error('AI ei genereerinud ühtegi blokki.');
-      setBlocks(nb);setActiveId(nb[0].id);setTab('build');notify('✓ Tööleht EKI sõnavaraga genereeritud!');
+      commitBlocks(nb);setActiveId(nb[0].id);setTab('build');notify('✓ Tööleht EKI sõnavaraga genereeritud!');
     }catch(e){notify('Viga: '+(e.message||'Genereerimine ebaõnnestus'));}setAiLoading(false);
   };
 
@@ -1585,6 +1690,11 @@ function App(){
             {/* BUILD TAB */}
             {tab==='build'&&(
               <div>
+                <div className="history-actions" data-history-revision={historyRev}>
+                  <button type="button" className="btn btn-ghost btn-sm" onClick={undoBlocks} disabled={!pastRef.current.length} title="Võta viimane muudatus tagasi"><i className="fa-solid fa-rotate-left"/> Võta tagasi</button>
+                  <button type="button" className="btn btn-ghost btn-sm" onClick={redoBlocks} disabled={!futureRef.current.length} title="Taasta tagasi võetud muudatus"><i className="fa-solid fa-rotate-right"/> Tee uuesti</button>
+                  <button type="button" className="btn btn-ghost btn-sm" onClick={()=>{setActiveId(null);setInsertAfterId(null);}} disabled={!blocks.length} title="Sulge kõik plokid"><i className="fa-solid fa-down-left-and-up-right-to-center"/> Sulge</button>
+                </div>
                 <div style={{fontSize:'.66rem',fontWeight:700,color:'#7A7167',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:7}}>Lisa plokk</div>
                 <div className="btype-grid">
                   {BTYPES.map(bt=>(<button key={bt.key} className="btype-btn" onClick={()=>addBlock(bt.key)}><div className="btype-icon" style={{background:bt.bg}}><i className={'fa-solid '+bt.icon} style={{color:bt.color}}/></div>{bt.label}</button>))}
@@ -1612,14 +1722,19 @@ function App(){
                               {block.type==='table'&&(block.headers||[]).join(', ')}
                               {block.type==='reading'&&(block.passage||'').slice(0,35)+'...'}
                               {block.type==='image'&&(block.caption||'Pilt')}
+                              {block.type==='diagram'&&(block.title||`${block.nodes?.length||0} osa`)}
+                              {block.type==='comic'&&(block.title||`${block.panels?.length||0} kaadrit`)}
                             </span>
                             <div className="bi-actions" onClick={e=>e.stopPropagation()}>
+                              <button className="bi-btn" onClick={()=>setInsertAfterId(insertAfterId===block.id?null:block.id)} title="Lisa plokk selle järele"><i className="fa-solid fa-plus"/></button>
+                              <button className="bi-btn" onClick={()=>duplicateBlock(block.id)} title="Dubleeri"><i className="fa-solid fa-copy"/></button>
                               <button className="bi-btn" onClick={()=>moveBlock(block.id,-1)} title="Üles"><i className="fa-solid fa-chevron-up"/></button>
                               <button className="bi-btn" onClick={()=>moveBlock(block.id,1)} title="Alla"><i className="fa-solid fa-chevron-down"/></button>
                               <button className="bi-btn del" onClick={()=>delBlock(block.id)} title="Kustuta"><i className="fa-solid fa-trash"/></button>
                             </div>
                           </div>
                           {isActive&&<div onClick={e=>e.stopPropagation()}><BlockEditor block={block} onChange={data=>updBlock(block.id,data)} meta={meta} notify={notify}/></div>}
+                          {insertAfterId===block.id&&<div className="insert-picker" onClick={e=>e.stopPropagation()}>{BTYPES.map(type=><button type="button" key={type.key} onClick={()=>addBlock(type.key,block.id)}><i className={'fa-solid '+type.icon} style={{color:type.color,marginRight:5}}/>{type.label}</button>)}</div>}
                         </div>
                       );
                     })}

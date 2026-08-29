@@ -47,3 +47,16 @@ test('worksheet saves immutable versions and only publishes quality checked work
   assert.match(worksheet,/worksheetVersion:savedWorksheetVersion\|\|1/);
   assert.match(worksheet,/Salvesta uus versioon/);
 });
+
+test('worksheet builder supports diagrams, comics and faster block operations',()=>{
+  assert.match(worksheet,/key:'diagram'.*label:'Skeem'/);
+  assert.match(worksheet,/key:'comic'.*label:'Koomiks'/);
+  assert.match(worksheet,/function DiagramEd/);
+  assert.match(worksheet,/function ComicEd/);
+  assert.match(worksheet,/function DiagramView/);
+  assert.match(worksheet,/function ComicView/);
+  assert.match(worksheet,/const duplicateBlock=/);
+  assert.match(worksheet,/const undoBlocks=/);
+  assert.match(worksheet,/const redoBlocks=/);
+  assert.match(worksheet,/className="insert-picker"/);
+});

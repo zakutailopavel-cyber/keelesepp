@@ -5715,8 +5715,8 @@ function WorksheetPlayer({assignment, onClose, onSubmit, canAnnotate=false, canD
     setScore(sc);setSubmitted(true);setSubmitting(false);
   };
   const done = submitted;
-  const TYPE_COLORS={fill:'#1d4ed8',choice:'#6d28d9',writing:'#A96E1A',match:'#047857',order:'#2F5D50',text:'#718096',image:'#6d28d9',dialogue:'#0369a1',error_correction:'#dc2626',transformation:'#7c3aed',reading:'#0e7490',table:'#0e7490'};
-  const TYPE_LABELS={fill:'Täida lünk',choice:'Vali vastus',writing:'Kirjutamine',match:'Sobita paarid',order:'Järjesta sõnad',text:'Tekst / juhis',image:'Pilt',dialogue:'Dialoog',error_correction:'Leia viga',transformation:'Muuda lauset',reading:'Lugemistekst',table:'Tabel'};
+  const TYPE_COLORS={fill:'#1d4ed8',choice:'#6d28d9',writing:'#A96E1A',match:'#047857',order:'#2F5D50',text:'#718096',image:'#6d28d9',dialogue:'#0369a1',diagram:'#0f766e',comic:'#b45309',error_correction:'#dc2626',transformation:'#7c3aed',reading:'#0e7490',table:'#0e7490'};
+  const TYPE_LABELS={fill:'Täida lünk',choice:'Vali vastus',writing:'Kirjutamine',match:'Sobita paarid',order:'Järjesta sõnad',text:'Tekst / juhis',image:'Pilt',dialogue:'Dialoog',diagram:'Skeem',comic:'Koomiks',error_correction:'Leia viga',transformation:'Muuda lauset',reading:'Lugemistekst',table:'Tabel'};
   const renderBlock=(block,gi)=>{
     const num=gi+1;
     return(<div key={block.id} style={{background:'#fff',borderRadius:14,padding:'18px 20px',border:'0.5px solid rgba(28,43,58,.09)'}}>
@@ -5727,6 +5727,12 @@ function WorksheetPlayer({assignment, onClose, onSubmit, canAnnotate=false, canD
       </div>
       {block.type==='text'&&<p style={{fontSize:'.9rem',lineHeight:1.65,color:'#1C2B3A',fontWeight:block.bold?700:400,whiteSpace:'pre-wrap'}}>{block.content}</p>}
       {block.type==='image'&&block.imageUrl&&<div style={{textAlign:'center'}}><img src={block.imageUrl} style={{maxWidth:'100%',maxHeight:260,objectFit:'contain',borderRadius:8}} alt=""/>{block.caption&&<div style={{fontSize:'.74rem',color:'#718096',marginTop:4,fontStyle:'italic'}}>{block.caption}</div>}</div>}
+      {block.type==='diagram'&&(()=>{
+        const palette={pine:['#E7F1ED','#205A4B'],gold:['#FFF1D9','#9A5B13'],blue:['#E8F0FF','#315A91'],rose:['#FCE7F3','#9D174D'],slate:['#EEF1F5','#42536A']};
+        const nodes=(block.nodes||[]).map((node,i)=>{const p=palette[node.color]||palette.pine;return <div key={i} style={{flex:1,minWidth:110,padding:'11px 12px',borderRadius:10,border:'1px solid rgba(28,43,58,.1)',background:p[0],color:p[1],fontSize:'.82rem',fontWeight:700,textAlign:'center'}}>{node.text||`Samm ${i+1}`}</div>;});
+        return <div><div style={{fontWeight:800,fontSize:'.92rem',marginBottom:9}}>{block.title}</div>{block.layout==='flow'?<div style={{display:'flex',alignItems:'center',gap:7,flexWrap:'wrap'}}>{nodes.map((node,i)=><React.Fragment key={i}>{node}{i<nodes.length-1&&<span style={{color:'#C9882A',fontWeight:900}}>→</span>}</React.Fragment>)}</div>:<div style={{display:'grid',gridTemplateColumns:'repeat(2,minmax(0,1fr))',gap:8}}><div style={{gridColumn:'1/-1',justifySelf:'center',background:'#1C2B3A',color:'#fff',borderRadius:block.layout==='cycle'?999:9,padding:'8px 18px',fontWeight:800,fontSize:'.82rem'}}>{block.centerText||'Põhiteema'}</div>{nodes}</div>}</div>;
+      })()}
+      {block.type==='comic'&&<div><div style={{fontWeight:800,fontSize:'.92rem',marginBottom:9}}>{block.title}</div><div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(190px,1fr))',gap:9}}>{(block.panels||[]).map((panel,i)=><div key={i} style={{border:'1px solid rgba(28,43,58,.14)',borderRadius:12,background:'linear-gradient(145deg,#fff,#F4F1EA)',padding:11,minHeight:145}}><div style={{fontSize:'.62rem',textTransform:'uppercase',letterSpacing:'.08em',color:'#7A7167',fontWeight:700}}>{i+1}. {panel.scene||'Stseen'}</div>{panel.imageUrl?<img src={panel.imageUrl} alt="" style={{width:'100%',height:105,objectFit:'cover',borderRadius:8,marginTop:7}}/>:<div style={{fontSize:'2rem',lineHeight:1,margin:'8px 0 5px'}}>{panel.emoji||'🙂'}</div>}<div style={{fontSize:'.7rem',fontWeight:800,color:'#42536A'}}>{panel.character||'Tegelane'}</div><div style={{background:'#fff',border:'1px solid rgba(28,43,58,.14)',borderRadius:12,padding:'8px 10px',marginTop:6,fontSize:'.8rem',lineHeight:1.4}}>{panel.text||'...'}</div>{panel.caption&&<div style={{fontSize:'.66rem',color:'#A96E1A',fontWeight:700,marginTop:7}}>{panel.caption}</div>}</div>)}</div></div>}
       {block.type==='fill'&&(()=>{
         const parts=parseFill(block.text||'');
         return<div style={{fontSize:'.95rem',lineHeight:2.8}}>{parts.map((p,pi)=>{

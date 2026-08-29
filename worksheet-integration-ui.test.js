@@ -24,3 +24,12 @@ test('worksheet version history is staff readable and append only',()=>{
   assert.match(rules,/allow read, create: if isStaff\(\)/);
   assert.match(rules,/allow update, delete: if false/);
 });
+
+test('visual worksheet blocks are visible in library preview and student player',()=>{
+  assert.match(library,/diagram:'Skeem',comic:'Koomiks'/);
+  assert.match(library,/block\.type==='diagram'/);
+  assert.match(library,/block\.type==='comic'/);
+  assert.match(crm,/diagram:'Skeem',comic:'Koomiks'/);
+  assert.match(crm,/block\.type==='diagram'/);
+  assert.match(crm,/block\.type==='comic'/);
+});
