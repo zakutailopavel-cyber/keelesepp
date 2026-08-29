@@ -31,3 +31,19 @@ test('AI generation uses subject-specific CEFR profiles through C2',()=>{
   assert.match(worksheet,/EKI sõnavara on saadaval ainult eesti keele töölehtedele/);
   assert.match(worksheet,/C2:\{/);
 });
+
+test('worksheet builder protects unfinished work and offers teaching templates',()=>{
+  assert.match(worksheet,/worksheet-workflow-core\.js/);
+  assert.match(worksheet,/WS_DRAFT_KEY='keelesepp_ws_autodraft_v1'/);
+  assert.match(worksheet,/Taastasime automaatselt sinu salvestamata töö/);
+  assert.match(worksheet,/tab==='templates'/);
+  assert.match(worksheet,/WorksheetWorkflow\.buildTemplate/);
+});
+
+test('worksheet saves immutable versions and only publishes quality checked work',()=>{
+  assert.match(worksheet,/db\.collection\('worksheetVersions'\)\.doc/);
+  assert.match(worksheet,/WorksheetWorkflow\?\.buildVersionFields/);
+  assert.match(worksheet,/worksheetStatus==='published'&&!finalQuality\?\.ready/);
+  assert.match(worksheet,/worksheetVersion:savedWorksheetVersion\|\|1/);
+  assert.match(worksheet,/Salvesta uus versioon/);
+});

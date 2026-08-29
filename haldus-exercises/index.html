@@ -3095,6 +3095,19 @@ function WorksheetPreviewModal({lesson,onClose,onConduct}) {
   }
 
   const{meta={},blocks=[]}=ws;
+  const openWorksheetEditor=()=>{
+    const curriculum=lesson.curriculumTopicId?{
+      languageId:lesson.curriculumLanguageId||'',subject:lesson.curriculumSubject||lesson.subject||'',level:lesson.curriculumLevel||lesson.level||'',
+      topicId:lesson.curriculumTopicId,topicName:lesson.curriculumTopicName||lesson.topic||'',lessonIndex:Number(lesson.curriculumLessonIndex)||0,
+      lessonGoal:lesson.curriculumLessonGoal||'',sourceVersion:lesson.curriculumSourceVersion||''
+    }:null;
+    localStorage.setItem('ws_prefill',JSON.stringify({
+      lessonId:lesson.id,worksheetStatus:lesson.worksheetStatus||'published',openTab:'build',
+      meta:{...meta,title:meta.title||lesson.title||'Tööleht',subject:meta.subject||lesson.subject||'Eesti keel',level:meta.level||lesson.level||'B1',topic:meta.topic||lesson.topic||''},
+      blocks, curriculum
+    }));
+    window.open('/haldus-worksheet/?edit='+encodeURIComponent(lesson.id),'_blank','noopener');
+  };
 
   const renderBlock=(block,idx)=>{
     const BTLABELS={fill:'Täida lünk',choice:'Vali vastus',writing:'Kirjutamine',match:'Sobita paarid',order:'Järjesta sõnad',table:'Tabel',text:'Tekst',reading:'Lugemistekst',image:'Pilt'};
@@ -3180,12 +3193,12 @@ function WorksheetPreviewModal({lesson,onClose,onConduct}) {
         <div className="ws-prev-head">
           <div>
             <div style={{color:'#fff',fontWeight:700,fontSize:'.95rem'}}>{lesson.title}</div>
-            <div style={{color:'rgba(255,255,255,.45)',fontSize:'.75rem'}}>{lesson.subject} · {lesson.level} · {lesson.topic}</div>
+            <div style={{color:'rgba(255,255,255,.45)',fontSize:'.75rem'}}>{lesson.subject} · {lesson.level} · {lesson.topic} · v{lesson.worksheetVersion||1} · {lesson.worksheetStatus==='draft'?'Mustand':lesson.worksheetStatus==='reviewed'?'Kontrollitud':'Avaldatud'}</div>
           </div>
           <div style={{display:'flex',gap:8,alignItems:'center'}}>
-            <a href="/haldus-worksheet/" style={{color:'rgba(255,255,255,.6)',fontSize:'.76rem',textDecoration:'none',padding:'5px 10px',border:'1px solid rgba(255,255,255,.15)',borderRadius:7}}>
+            <button type="button" onClick={openWorksheetEditor} style={{color:'rgba(255,255,255,.75)',fontSize:'.76rem',padding:'5px 10px',border:'1px solid rgba(255,255,255,.15)',borderRadius:7,background:'transparent',cursor:'pointer',fontFamily:'inherit'}}>
               <i className="fa-solid fa-pen"/> Muuda
-            </a>
+            </button>
             <button onClick={()=>{
               const{meta={},blocks=[]}=ws;
               // build HTML inline (same logic as worksheet page)

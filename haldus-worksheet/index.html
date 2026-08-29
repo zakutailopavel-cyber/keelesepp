@@ -156,10 +156,11 @@ textarea{resize:vertical;line-height:1.45;}
 /* Prefill banner */
 .prefill-banner{background:linear-gradient(90deg,rgba(201,136,42,.12),rgba(201,136,42,.06));border:1px solid rgba(201,136,42,.3);border-radius:10px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;gap:9px;font-size:.8rem;color:#A96E1A;font-weight:600;}
 .prefill-banner-content{flex:1;min-width:0}.prefill-banner-content span{display:block}.prefill-banner-content small{display:block;margin-top:3px;color:#7A7167;font-weight:500;line-height:1.35}.prefill-banner-actions{display:flex;gap:6px;margin-top:8px}.quality-card{background:#fff;border:1px solid rgba(28,43,58,.1);border-radius:10px;padding:11px 12px;margin-bottom:10px}.quality-card-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;font-size:.76rem;font-weight:800}.quality-score{padding:3px 7px;border-radius:999px;background:#E7F4EE;color:#2F5D50;font-size:.68rem}.quality-score.warn{background:#FFF4E8;color:#9A5B13}.quality-checks{display:grid;gap:4px}.quality-check{display:flex;align-items:center;gap:7px;font-size:.72rem;color:#6B7280}.quality-check.ok{color:#2F5D50}.quality-check i{width:13px;text-align:center}
+.template-list{display:grid;gap:8px}.template-card{width:100%;display:flex;align-items:flex-start;gap:10px;padding:11px;border:1px solid rgba(28,43,58,.1);border-radius:10px;background:#fff;text-align:left;cursor:pointer;font-family:inherit;color:#1C2B3A;transition:all .13s}.template-card:hover{border-color:#2F5D50;background:rgba(47,93,80,.04);transform:translateY(-1px)}.template-icon{width:34px;height:34px;border-radius:9px;background:rgba(47,93,80,.1);color:#2F5D50;display:flex;align-items:center;justify-content:center;flex-shrink:0}.template-card strong{display:block;font-size:.8rem}.template-card small{display:block;font-size:.68rem;line-height:1.35;color:#718096;margin-top:3px}.draft-banner{background:#EEF4FF;border:1px solid #BDD2F6;color:#315A91;border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:.76rem;line-height:1.4}.status-options{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.status-option{padding:9px;border:1.5px solid rgba(28,43,58,.1);border-radius:9px;background:#fff;cursor:pointer;text-align:left;font-family:inherit}.status-option.active{border-color:#2F5D50;background:rgba(47,93,80,.07)}.status-option strong{font-size:.75rem;display:block}.status-option small{font-size:.64rem;line-height:1.3;color:#718096;display:block;margin-top:2px}
 
 @media(max-width:760px){
   .hdr{height:auto;min-height:56px;padding:9px 12px;align-items:flex-start;gap:8px;flex-wrap:wrap}.hdr>div:first-child span{display:none}.hdr>div:last-child{width:100%;overflow-x:auto;padding-bottom:2px}.hdr>div:last-child .btn,.hdr>div:last-child a{white-space:nowrap;flex-shrink:0}
-  .workspace{display:flex;flex-direction:column;height:auto;min-height:calc(100vh - 100px);overflow:visible}.left-panel{overflow:visible;border-right:0;border-bottom:1px solid rgba(28,43,58,.1)}.left-scroll{max-height:none;overflow:visible}.right-panel{overflow:visible;padding:12px 8px 28px;align-items:stretch}.toolbar-row{overflow-x:auto;justify-content:flex-start}.toolbar-row span{display:none}.a4-sheet{min-height:900px;padding:28px 20px}.sheet-hdr{flex-direction:column}.a4-page-break{width:100%}.sav-body>div[style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr!important}.sav-foot{flex-wrap:wrap}.sav-foot .btn{flex:1;justify-content:center}
+  .workspace{display:flex;flex-direction:column;height:auto;min-height:calc(100vh - 100px);overflow:visible}.left-panel{overflow:visible;border-right:0;border-bottom:1px solid rgba(28,43,58,.1)}.left-scroll{max-height:none;overflow:visible}.right-panel{overflow:visible;padding:12px 8px 28px;align-items:stretch}.toolbar-row{overflow-x:auto;justify-content:flex-start}.toolbar-row span{display:none}.a4-sheet{min-height:900px;padding:28px 20px}.sheet-hdr{flex-direction:column}.a4-page-break{width:100%}.sav-body>div[style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr!important}.sav-foot{flex-wrap:wrap}.sav-foot .btn{flex:1;justify-content:center}.status-options{grid-template-columns:1fr}.left-tabs{overflow-x:auto}.ltab{min-width:76px;white-space:nowrap}
 }
 
 @media print{
@@ -174,6 +175,7 @@ textarea{resize:vertical;line-height:1.45;}
 
 <script src="/haldus-shared.js"></script>
 <script src="/curriculum-workflow-core.js"></script>
+<script src="/worksheet-workflow-core.js?v=20260829.5"></script>
 <script type="text/babel">
 const {useState,useEffect,useRef,useMemo,useCallback} = React;
 const auth=window._auth, db=window._db, storage=window._storage;
@@ -189,6 +191,15 @@ const _prefill=(()=>{
     if(raw){localStorage.removeItem('ws_prefill');return JSON.parse(raw);}
   }catch(e){}
   return null;
+})();
+const WS_DRAFT_KEY='keelesepp_ws_autodraft_v1';
+const _autosavedDraft=(()=>{
+  if(_prefill)return null;
+  try{
+    const raw=localStorage.getItem(WS_DRAFT_KEY);
+    const parsed=raw?JSON.parse(raw):null;
+    return parsed?.meta&&Array.isArray(parsed?.blocks)?parsed:null;
+  }catch(e){return null;}
 })();
 
 // ── CONSTANTS ─────────────────────────────────────────────────
@@ -999,7 +1010,7 @@ function buildHTML(meta,blocks){
 }
 
 // ── SAVE MODAL ────────────────────────────────────────────────
-function SaveModal({meta,blocks,user,source,quality,onClose,notify}){
+function SaveModal({meta,blocks,user,source,quality,lessonId,initialStatus,onSaved,onClose,notify}){
   const SUBJECTS=['Eesti keel','Inglise keel','Matemaatika'];
   const LEVELS_BY_SUBJECT={'Eesti keel':['A1','A2','B1','B2','C1','C2'],'Inglise keel':['A1','A2','B1','B2','C1','C2'],'Matemaatika':Array.from({length:12},(_,i)=>i+1+'. klass')};
   const[subject,setSubject]=useState(meta.subject||'Eesti keel');
@@ -1013,6 +1024,7 @@ function SaveModal({meta,blocks,user,source,quality,onClose,notify}){
   const[selectedLessonId,setSelectedLessonId]=useState('');
   const[topicMode,setTopicMode]=useState('existing');
   const[lessonMode,setLessonMode]=useState('existing');
+  const[worksheetStatus,setWorksheetStatus]=useState(window.WorksheetWorkflow?.normalizeStatus(initialStatus||'draft')||'draft');
   const[allTopics,setAllTopics]=useState([]);
   const levels=LEVELS_BY_SUBJECT[subject]||[];
   useEffect(()=>{
@@ -1033,7 +1045,7 @@ function SaveModal({meta,blocks,user,source,quality,onClose,notify}){
     if(!topic||topicMode==='new')return;
     db.collection('curriculumLessons').where('subject','==',subject).where('level','==',level).where('topic','==',topic).get().then(snap=>{
       const docs=snap.docs.map(d=>({id:d.id,...d.data()}));setLessons(docs);
-      const linkedSource=source?docs.find(doc=>doc.sourceKey===`curriculum:${source.topicId}:${Number(source.lessonIndex)||0}`):null;
+      const linkedSource=lessonId?docs.find(doc=>doc.id===lessonId):(source?docs.find(doc=>doc.sourceKey===`curriculum:${source.topicId}:${Number(source.lessonIndex)||0}`):null);
       if(linkedSource){setSelectedLessonId(linkedSource.id);setLessonMode('existing');}
       else if(source){setSelectedLessonId('');setLessonMode('new');}
       else if(docs.length>0){setSelectedLessonId(docs[0].id);setLessonMode('existing');}
@@ -1044,6 +1056,7 @@ function SaveModal({meta,blocks,user,source,quality,onClose,notify}){
   const finalMeta={...meta,subject,level,topic:finalTopic};
   const finalQuality=window.CurriculumWorkflow?.analyzeWorksheet(finalMeta,blocks)||quality;
   const[savedLessonId,setSavedLessonId]=useState('');
+  const[savedWorksheetVersion,setSavedWorksheetVersion]=useState(0);
   const[step,setStep]=useState('save'); // 'save' | 'assign'
   const[students,setStudents]=useState([]);
   const[selStudents,setSelStudents]=useState([]);
@@ -1076,21 +1089,47 @@ function SaveModal({meta,blocks,user,source,quality,onClose,notify}){
   const save=async()=>{
     if(!finalTopic){alert('Vali teema või sisesta uus teema nimi');return;}setSaving(true);
     try{
+      if(worksheetStatus==='published'&&!finalQuality?.ready)throw new Error('Avaldamiseks peab tööleht läbima kõik kvaliteedikontrolli punktid. Salvesta see mustandina või täienda sisu.');
       const record={title:finalMeta.title||'Tööleht',type:'material',description:'',subject,level,topic:finalTopic,...sourceFields};
       const validation=window.CurriculumWorkflow?.validateMaterialLevel(record);
       if(validation&&!validation.ok)throw new Error(validation.errors.join(' '));
-      const worksheetFields={worksheetData:{meta:finalMeta,blocks},worksheetQuality:{percent:finalQuality?.percent||0,checkedAt:new Date().toISOString()},...sourceFields,updatedAt:new Date().toISOString()};
-      let lid=selectedLessonId;
-      if(lessonMode==='existing'&&selectedLessonId){
-        await db.collection('curriculumLessons').doc(selectedLessonId).update(worksheetFields);
-        notify('✓ Tööleht lisatud olemasolevale kirjele!');
-      }else{
-        const ref=await db.collection('curriculumLessons').add({...record,examPart:null,...worksheetFields,files:[],order:Number(source?.lessonIndex)||0,authorUid:user?.uid||'',authorName:user?.displayName||user?.email||'',createdAt:new Date().toISOString().split('T')[0]});
-        lid=ref.id;
-        notify('✓ Tööleht salvestatud uue kirjena!');
-      }
+      const now=new Date().toISOString();
+      const worksheetData={meta:finalMeta,blocks};
+      const worksheetQuality={percent:finalQuality?.percent||0,checkedAt:now,checks:finalQuality?.checks||[]};
+      const isExisting=lessonMode==='existing'&&selectedLessonId;
+      const lessonRef=isExisting?db.collection('curriculumLessons').doc(selectedLessonId):db.collection('curriculumLessons').doc();
+      let nextVersion=1;
+      await db.runTransaction(async tx=>{
+        const snap=isExisting?await tx.get(lessonRef):null;
+        const current=snap?.exists?snap.data():{};
+        const legacyPublished=!current.worksheetStatus&&Array.isArray(current.worksheetData?.blocks)&&current.worksheetData.blocks.length>0;
+        const currentVersion=Number(current.worksheetVersion)||(legacyPublished?1:0);
+        nextVersion=window.WorksheetWorkflow?.nextVersion(currentVersion)||1;
+        const worksheetFields=window.WorksheetWorkflow?.buildVersionFields({status:worksheetStatus,version:nextVersion,worksheetData,worksheetQuality,now})||{worksheetData,worksheetQuality,worksheetStatus,worksheetVersion:nextVersion,updatedAt:now};
+        if(legacyPublished){
+          if(worksheetStatus!=='published')Object.assign(worksheetFields,{publishedWorksheetData:current.worksheetData,publishedWorksheetQuality:current.worksheetQuality||{},publishedWorksheetVersion:1,publishedAt:current.updatedAt||current.createdAt||now});
+          const legacyVersionRef=db.collection('worksheetVersions').doc(`${lessonRef.id}_v1`);
+          const legacyMeta=current.worksheetData?.meta||{title:current.title,subject:current.subject,level:current.level,topic:current.topic};
+          const legacyVersionRecord=window.WorksheetWorkflow?.buildVersionRecord({lessonId:lessonRef.id,status:'published',version:1,worksheetData:current.worksheetData,worksheetQuality:current.worksheetQuality||{},meta:legacyMeta,sourceFields,user:{uid:current.authorUid||'',displayName:current.authorName||'Legacy'},now:current.updatedAt||current.createdAt||now})||{lessonId:lessonRef.id,version:1,status:'published',worksheetData:current.worksheetData,createdAt:current.updatedAt||now};
+          tx.set(legacyVersionRef,legacyVersionRecord);
+        }
+        const base=isExisting?{}:{...record,examPart:null,files:[],order:Number(source?.lessonIndex)||0,authorUid:user?.uid||'',authorName:user?.displayName||user?.email||'',createdAt:now.split('T')[0]};
+        tx.set(lessonRef,{...base,...worksheetFields,...sourceFields},{merge:true});
+        const versionRef=db.collection('worksheetVersions').doc(`${lessonRef.id}_v${nextVersion}`);
+        const versionRecord=window.WorksheetWorkflow?.buildVersionRecord({lessonId:lessonRef.id,status:worksheetStatus,version:nextVersion,worksheetData,worksheetQuality,meta:finalMeta,sourceFields,user,now})||{lessonId:lessonRef.id,version:nextVersion,status:worksheetStatus,worksheetData,worksheetQuality,createdAt:now,createdBy:user?.uid||''};
+        tx.set(versionRef,versionRecord);
+      });
+      const lid=lessonRef.id;
       setSavedLessonId(lid);
-      setStep('assign');
+      setSavedWorksheetVersion(nextVersion);
+      onSaved?.({lessonId:lid,version:nextVersion,status:worksheetStatus});
+      if(worksheetStatus==='published'){
+        notify(`✓ Töölehe versioon ${nextVersion} avaldatud!`);
+        setStep('assign');
+      }else{
+        notify(`✓ Versioon ${nextVersion} salvestatud: ${window.WorksheetWorkflow?.STATUSES?.[worksheetStatus]?.label||worksheetStatus}`);
+        onClose();
+      }
     }catch(e){notify('Viga: '+(e.message||'Salvestamine ebaõnnestus'));}setSaving(false);
   };
 
@@ -1106,6 +1145,8 @@ function SaveModal({meta,blocks,user,source,quality,onClose,notify}){
         lessonTitle:finalMeta.title||'Tööleht',
         subject,level,topic:finalTopic,
         worksheetData:{meta:finalMeta,blocks},
+        worksheetVersion:savedWorksheetVersion||1,
+        worksheetStatus:'published',
         worksheetQuality:{percent:finalQuality?.percent||0,checkedAt:new Date().toISOString()},
         ...sourceFields,
         studentId:sid,
@@ -1130,6 +1171,13 @@ function SaveModal({meta,blocks,user,source,quality,onClose,notify}){
         <div className="sav-body">
           <div style={{padding:'10px 13px',borderRadius:10,background:'rgba(47,93,80,.08)',border:'0.5px solid rgba(47,93,80,.2)',fontSize:'.84rem',fontWeight:600,color:'#2F5D50'}}>📄 {meta.title||'Tööleht'} · {blocks.length} plokki</div>
           <div style={{padding:'9px 12px',borderRadius:9,background:finalQuality?.ready?'#E7F4EE':'#FFF4E8',color:finalQuality?.ready?'#2F5D50':'#9A5B13',fontSize:'.78rem',fontWeight:700}}>{finalQuality?.ready?'✓ Tööleht läbis kvaliteedikontrolli':`⚠ Kvaliteedikontroll: ${finalQuality?.passed||0}/${finalQuality?.total||0}`}</div>
+          <div>
+            <div className="field-lbl">Olek</div>
+            <div className="status-options">
+              {Object.entries(window.WorksheetWorkflow?.STATUSES||{}).map(([key,item])=><button type="button" key={key} className={'status-option'+(worksheetStatus===key?' active':'')} onClick={()=>setWorksheetStatus(key)}><strong>{item.label}</strong><small>{item.description}</small></button>)}
+            </div>
+            {worksheetStatus==='published'&&!finalQuality?.ready&&<div style={{fontSize:'.7rem',color:'#9A5B13',marginTop:6}}>Avaldamiseks täida kõik kvaliteedikontrolli punktid.</div>}
+          </div>
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
             <div><div className="field-lbl">Õppeaine</div><select value={subject} onChange={e=>{setSubject(e.target.value);setLevel(LEVELS_BY_SUBJECT[e.target.value]?.[0]||'');}}>{SUBJECTS.map(s=><option key={s}>{s}</option>)}</select></div>
             <div><div className="field-lbl">Tase</div><select value={level} onChange={e=>setLevel(e.target.value)}>{levels.map(l=><option key={l}>{l}</option>)}</select></div>
@@ -1185,7 +1233,7 @@ function SaveModal({meta,blocks,user,source,quality,onClose,notify}){
         <div className="sav-foot">
           <button onClick={onClose} className="btn btn-ghost">{step==='assign'?'Jäta määramata':'Tühista'}</button>
           {step==='save'
-            ?<button onClick={save} disabled={saving||(!finalTopic)} className="btn btn-green">{saving?'Salvestab…':lessonMode==='existing'&&selectedLessonId?'✓ Lisa olemasolevale':'✓ Loo uus kirje'}</button>
+            ?<button onClick={save} disabled={saving||(!finalTopic)||(worksheetStatus==='published'&&!finalQuality?.ready)} className="btn btn-green">{saving?'Salvestab…':worksheetStatus==='published'?'✓ Avalda':'✓ Salvesta '+(window.WorksheetWorkflow?.STATUSES?.[worksheetStatus]?.label||'')}</button>
             :<button onClick={assign} disabled={assigning} className="btn btn-green" style={{background:'#2563eb'}}>
               {assigning?'Määran…':selStudents.length?'📤 Määra '+selStudents.length+' õpilasele →':'Jäta määramata →'}
             </button>
@@ -1240,10 +1288,13 @@ function App(){
   const workflow=window.CurriculumWorkflow;
 
   // ── prefill from Õppekava "Muuda" button ──
-  const[meta,setMeta]=useState(_prefill?.meta||{title:'Uus tööleht',subject:'Eesti keel',level:'B1',topic:'',name:true,score:true,date:true});
-  const[blocks,setBlocks]=useState(()=>(_prefill?.blocks||[]).map(b=>({...b,id:b.id||uid()})));
-  const[activeId,setActiveId]=useState(_prefill?.blocks?.[0]?.id||null);
+  const emptyMeta={title:'Uus tööleht',subject:'Eesti keel',level:'B1',topic:'',name:true,score:true,date:true};
+  const initialState=_prefill||_autosavedDraft||{meta:emptyMeta,blocks:[]};
+  const[meta,setMeta]=useState(initialState.meta||emptyMeta);
+  const[blocks,setBlocks]=useState(()=>(initialState.blocks||[]).map(b=>({...b,id:b.id||uid()})));
+  const[activeId,setActiveId]=useState(initialState.blocks?.[0]?.id||null);
   const[prefillLessonId]=useState(_prefill?.lessonId||null); // remember which lesson we're editing
+  const[draftRestored,setDraftRestored]=useState(Boolean(_autosavedDraft));
 
   const[tab,setTab]=useState(_prefill?.openTab||'build');
   const[aiPrompt,setAiPrompt]=useState(_prefill?.ai?.prompt||'');
@@ -1261,6 +1312,8 @@ function App(){
   const[dragOver,setDragOver]=useState(null);
   const[showSave,setShowSave]=useState(false);
   const quality=useMemo(()=>workflow?.analyzeWorksheet(meta,blocks)||{ready:false,passed:0,total:0,percent:0,checks:[]},[workflow,meta,blocks]);
+  const worksheetSignature=useMemo(()=>JSON.stringify({meta,blocks}),[meta,blocks]);
+  const[lastSavedSignature,setLastSavedSignature]=useState(()=>_autosavedDraft?'':JSON.stringify({meta:initialState.meta||emptyMeta,blocks:initialState.blocks||[]}));
 
   const notify=msg=>{setToast(msg);setTimeout(()=>setToast(''),3200);};
 
@@ -1280,6 +1333,25 @@ function App(){
     return u;
   },[]);
 
+  useEffect(()=>{
+    if(!authDone||worksheetSignature===lastSavedSignature)return;
+    const timer=setTimeout(()=>{
+      try{localStorage.setItem(WS_DRAFT_KEY,JSON.stringify({meta,blocks,savedAt:new Date().toISOString()}));}catch(e){}
+    },700);
+    return()=>clearTimeout(timer);
+  },[authDone,worksheetSignature,lastSavedSignature,meta,blocks]);
+
+  const markSaved=()=>{
+    setLastSavedSignature(worksheetSignature);
+    setDraftRestored(false);
+    try{localStorage.removeItem(WS_DRAFT_KEY);}catch(e){}
+  };
+  const discardDraft=()=>{
+    if(!window.confirm('Kas eemaldada taastatud mustand ja alustada tühjalt lehelt?'))return;
+    setMeta(emptyMeta);setBlocks([]);setActiveId(null);setDraftRestored(false);
+    try{localStorage.removeItem(WS_DRAFT_KEY);}catch(e){}
+  };
+
   const addBlock=type=>{const b=mkBlock(type);setBlocks(p=>[...p,b]);setActiveId(b.id);setTab('build');};
   const updBlock=(id,data)=>setBlocks(p=>p.map(b=>b.id===id?data:b));
   const delBlock=id=>{setBlocks(p=>p.filter(b=>b.id!==id));if(activeId===id)setActiveId(null);};
@@ -1290,24 +1362,13 @@ function App(){
   const onDrop=(e,targetId)=>{e.preventDefault();if(!dragId||dragId===targetId)return;setBlocks(p=>{const from=p.findIndex(b=>b.id===dragId);const to=p.findIndex(b=>b.id===targetId);const a=[...p];const[item]=a.splice(from,1);a.splice(to,0,item);return a;});setDragId(null);setDragOver(null);};
   const onDragEnd=()=>{setDragId(null);setDragOver(null);};
 
-  // Quick-save back to same lesson (when opened via "Muuda")
-  const quickSave=async()=>{
-    if(!prefillLessonId){setShowSave(true);return;}
+  const applyTemplate=templateId=>{
+    if(blocks.length&&!window.confirm('Mall asendab praegused plokid. Kas jätkata?'))return;
     try{
-      const validation=workflow?.validateMaterialLevel({
-        title:meta.title,subject:meta.subject,level:meta.level,description:'',
-        curriculumSubject:_prefill?.curriculum?.subject,
-        curriculumLevel:_prefill?.curriculum?.level,
-        curriculumTopicId:_prefill?.curriculum?.topicId,
-        curriculumTopicName:_prefill?.curriculum?.topicName
-      });
-      if(validation&&!validation.ok)throw new Error(validation.errors.join(' '));
-      await db.collection('curriculumLessons').doc(prefillLessonId).update({
-        worksheetData:{meta,blocks},
-        worksheetQuality:{percent:quality.percent,checkedAt:new Date().toISOString()},
-        updatedAt:new Date().toISOString()
-      });
-      notify('✓ Tööleht salvestatud õppekavasse!');
+      const built=window.WorksheetWorkflow.buildTemplate(templateId,{subject:meta.subject,level:meta.level,topic:meta.topic||'Teema'});
+      const nextBlocks=built.blocks.map(block=>({...block,id:uid()}));
+      setBlocks(nextBlocks);setActiveId(nextBlocks[0]?.id||null);
+      setMeta(current=>({...current,title:built.title}));setTab('build');notify('✓ Mall lisatud — kohanda näidistekst enda tunni järgi.');
     }catch(e){notify('Viga: '+e.message);}
   };
 
@@ -1342,6 +1403,7 @@ function App(){
   const exportDL=()=>{const b=new Blob([buildHTML(meta,blocks)],{type:'text/html'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=(meta.title||'tööleht')+'.html';a.click();notify('✓ Allalaaditud!');};
 
   if(!authDone)return<div style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh'}}><div className="sp-dark"/></div>;
+  if(!workflow||!window.WorksheetWorkflow)return<div style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh',padding:20}}><div className="meta-box" style={{maxWidth:460,textAlign:'center'}}><h2 style={{marginBottom:8}}>Töölehe koostaja ei käivitunud</h2><p style={{fontSize:'.84rem',color:'#718096',lineHeight:1.5,marginBottom:12}}>Vajalik töölehe moodul ei laadinud. Värskenda lehte; sinu pooleliolev töö on brauseris alles.</p><button className="btn btn-pine" onClick={()=>window.location.reload()}>Proovi uuesti</button></div></div>;
 
   const activeBlock=blocks.find(b=>b.id===activeId);
 
@@ -1358,9 +1420,7 @@ function App(){
         <div style={{display:'flex',gap:8,alignItems:'center'}}>
           <a href="/haldus-exercises" style={{color:'rgba(255,255,255,.45)',fontSize:'.76rem',textDecoration:'none',padding:'5px 10px',border:'1px solid rgba(255,255,255,.12)',borderRadius:7}}>← Õppekava</a>
           <button onClick={exportPrint} className="btn btn-ghost btn-sm" style={{color:'#fff',borderColor:'rgba(255,255,255,.18)'}}><i className="fa-solid fa-print"/> Prindi / PDF</button>
-          {prefillLessonId
-            ?<button onClick={quickSave} className="btn btn-green btn-sm"><i className="fa-solid fa-floppy-disk"/> Salvesta muudatused</button>
-            :<button onClick={()=>setShowSave(true)} className="btn btn-green btn-sm"><i className="fa-solid fa-floppy-disk"/> Salvesta</button>}
+          <button onClick={()=>setShowSave(true)} className="btn btn-green btn-sm"><i className="fa-solid fa-floppy-disk"/> {prefillLessonId?'Salvesta uus versioon':'Salvesta'}</button>
           <button onClick={exportDL} className="btn btn-gold btn-sm"><i className="fa-solid fa-download"/> Laadi alla</button>
         </div>
       </header>
@@ -1370,6 +1430,7 @@ function App(){
         <div className="left-panel">
           <div className="left-tabs">
             <button className={'ltab'+(tab==='build'?' active':'')} onClick={()=>setTab('build')}><i className="fa-solid fa-layer-group"/> Koosta</button>
+            <button className={'ltab'+(tab==='templates'?' active':'')} onClick={()=>setTab('templates')}><i className="fa-solid fa-clone"/> Mallid</button>
             <button className={'ltab'+(tab==='ai'?' active':'')} onClick={()=>setTab('ai')}><i className="fa-solid fa-wand-magic-sparkles"/> AI</button>
             <button className={'ltab'+(tab==='meta'?' active':'')} onClick={()=>setTab('meta')}><i className="fa-solid fa-sliders"/> Seaded</button>
           </div>
@@ -1386,11 +1447,19 @@ function App(){
                 </div>
               </div>
             )}
+            {draftRestored&&tab==='build'&&<div className="draft-banner"><strong>✓ Taastasime automaatselt sinu salvestamata töö.</strong><div style={{marginTop:4}}>Mustand jääb sellesse brauserisse kuni töölehe salvestamiseni.</div><button type="button" className="btn btn-ghost btn-sm" onClick={discardDraft} style={{marginTop:7}}>Alusta tühjalt</button></div>}
 
             {tab==='build'&&(
               <div className="quality-card">
                 <div className="quality-card-head"><span><i className="fa-solid fa-shield-check"/> Töölehe kvaliteet</span><span className={'quality-score'+(quality.ready?'':' warn')}>{quality.passed}/{quality.total}</span></div>
                 <div className="quality-checks">{quality.checks.map(check=><div key={check.key} className={'quality-check'+(check.ok?' ok':'')}><i className={'fa-solid '+(check.ok?'fa-circle-check':'fa-circle-exclamation')}/><span>{check.label}</span></div>)}</div>
+              </div>
+            )}
+
+            {tab==='templates'&&(
+              <div>
+                <div className="meta-box"><div className="meta-lbl">Kiirmallid</div><div style={{fontSize:'.74rem',color:'#718096',lineHeight:1.45}}>Vali tunni eesmärgile sobiv struktuur. Kõik näidistekstid jäävad pärast lisamist vabalt muudetavaks.</div></div>
+                <div className="template-list">{(window.WorksheetWorkflow?.TEMPLATES||[]).map(template=><button type="button" className="template-card" key={template.id} onClick={()=>applyTemplate(template.id)}><span className="template-icon"><i className={'fa-solid '+template.icon}/></span><span><strong>{meta.subject==='Inglise keel'?template.titleEn:template.titleEt}</strong><small>{template.description} · {template.types.length} tüüpi ülesandeid</small></span></button>)}</div>
               </div>
             )}
 
@@ -1564,7 +1633,7 @@ function App(){
         {/* RIGHT PANEL — A4 PREVIEW */}
         <div className="right-panel">
           <div className="toolbar-row">
-            <span style={{fontSize:'.74rem',color:'#7A7167',marginRight:'auto'}}>{blocks.length} plokki{prefillLessonId?' · muutmisrežiim':''}</span>
+            <span style={{fontSize:'.74rem',color:'#7A7167',marginRight:'auto'}}>{blocks.length} plokki{worksheetSignature!==lastSavedSignature?' · mustand salvestub automaatselt':' · salvestatud'}</span>
             <button onClick={exportPrint} className="btn btn-ghost btn-sm"><i className="fa-solid fa-print"/> Prindi / PDF</button>
             <button onClick={exportDL} className="btn btn-pine btn-sm"><i className="fa-solid fa-download"/> Laadi alla (.html)</button>
           </div>
@@ -1575,7 +1644,7 @@ function App(){
         </div>
       </div>
 
-      {showSave&&<SaveModal meta={meta} blocks={blocks} user={user} source={_prefill?.curriculum||null} quality={quality} onClose={()=>setShowSave(false)} notify={notify}/>}
+      {showSave&&<SaveModal meta={meta} blocks={blocks} user={user} source={_prefill?.curriculum||null} quality={quality} lessonId={prefillLessonId} initialStatus={_prefill?.worksheetStatus||(prefillLessonId?'published':'draft')} onSaved={markSaved} onClose={()=>setShowSave(false)} notify={notify}/>}
     </div>
   );
 }

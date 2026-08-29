@@ -94,6 +94,7 @@ window.addEventListener('load', function(){
     if(typeof window.AccountingLedgerCore === 'undefined') missing.push('Accounting Ledger Core');
     if(typeof window.BankStatementCore === 'undefined') missing.push('Bank Statement Core');
     if(typeof window.TaxReportCore === 'undefined') missing.push('Tax Report Core');
+    if(typeof window.WorksheetWorkflow === 'undefined') missing.push('Worksheet Workflow');
 
     var root = document.getElementById('root');
     if(!root) return;
@@ -128,6 +129,7 @@ window.__haldusConfigureBabel();
 <script src="/haldus-programs.js"></script>
 <script src="/haldus-curriculum-data.js"></script>
 <script src="/curriculum-workflow-core.js"></script>
+<script src="/worksheet-workflow-core.js?v=20260829.5"></script>
 <script src="/annotations-manager.js"></script>
 <script type="text/babel" data-presets="haldus-react">
 const {useState,useEffect,useRef,useCallback,useMemo} = React;
@@ -5372,15 +5374,19 @@ function AssignWorksheetModal({lesson, students, user, onClose, notify}) {
   React.useEffect(()=>{
     if(!isPicker) return;
     db.collection('curriculumLessons').limit(200).get()
-      .then(snap=>setCurrLessons(snap.docs.map(d=>({id:d.id,...d.data()})).filter(l=>l.worksheetData?.blocks?.length).sort((a,b)=>(a.subject||'').localeCompare(b.subject||'')||(a.level||'').localeCompare(b.level||'')||(a.title||'').localeCompare(b.title||''))))
+      .then(snap=>setCurrLessons(snap.docs.map(d=>({id:d.id,...d.data()})).filter(l=>window.WorksheetWorkflow?.isAssignableWorksheet(l)??l.worksheetData?.blocks?.length).sort((a,b)=>(a.subject||'').localeCompare(b.subject||'')||(a.level||'').localeCompare(b.level||'')||(a.title||'').localeCompare(b.title||''))))
       .catch(()=>{});
   },[isPicker]);
   const effectiveLesson = pickedLesson || lesson;
+  const effectiveSnapshot = window.WorksheetWorkflow
+    ? window.WorksheetWorkflow.assignmentDataFor(effectiveLesson)
+    : {worksheetData:effectiveLesson.worksheetData||null,worksheetVersion:effectiveLesson.worksheetVersion||1,worksheetStatus:'published'};
   const toggle = sid => setSel(p => p.includes(sid) ? p.filter(x=>x!==sid) : [...p, sid]);
   const active = students.filter(s => s.active !== false);
   const save = async () => {
     if(!sel.length){alert('Vali vähemalt üks õpilane');return;}
     if(isPicker&&!pickedLesson){alert('Vali tööleht');return;}
+    if(!effectiveSnapshot){alert('Õpilasele saab määrata ainult avaldatud töölehe. Ava tööleht, lõpeta kvaliteedikontroll ja vali olek „Avaldatud“.');return;}
     setSaving(true);
     const batch = db.batch();
     sel.forEach(sid => {
@@ -5388,11 +5394,13 @@ function AssignWorksheetModal({lesson, students, user, onClose, notify}) {
       const ref = db.collection('worksheetAssignments').doc();
       batch.set(ref, {
         lessonId: effectiveLesson.id||'',
-        lessonTitle: effectiveLesson.title||'',
-        subject: effectiveLesson.subject||'',
-        level: effectiveLesson.level||'',
-        topic: effectiveLesson.topic||'',
-        worksheetData: effectiveLesson.worksheetData||null,
+        lessonTitle: effectiveSnapshot.worksheetData?.meta?.title||effectiveLesson.title||'',
+        subject: effectiveSnapshot.worksheetData?.meta?.subject||effectiveLesson.subject||'',
+        level: effectiveSnapshot.worksheetData?.meta?.level||effectiveLesson.level||'',
+        topic: effectiveSnapshot.worksheetData?.meta?.topic||effectiveLesson.topic||'',
+        worksheetData: effectiveSnapshot.worksheetData,
+        worksheetVersion: effectiveSnapshot.worksheetVersion,
+        worksheetStatus: effectiveSnapshot.worksheetStatus,
         studentId: sid,
         studentName: st?.name||'',
         assignedBy: user.uid,
@@ -5442,7 +5450,7 @@ function AssignWorksheetModal({lesson, students, user, onClose, notify}) {
                     <div style={{width:32,height:32,borderRadius:8,background:'rgba(47,93,80,.1)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontSize:'.85rem'}}>📄</div>
                     <div style={{flex:1,minWidth:0}}>
                       <div style={{fontWeight:700,fontSize:'.88rem',color:'#1C2B3A',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{l.title}</div>
-                      <div style={{fontSize:'.72rem',color:'#718096',marginTop:2}}>{l.subject} · {l.level}{l.topic?' · '+l.topic:''}</div>
+                      <div style={{fontSize:'.72rem',color:'#718096',marginTop:2}}>{l.subject} · {l.level}{l.topic?' · '+l.topic:''} · v{l.publishedWorksheetVersion||l.worksheetVersion||1}</div>
                     </div>
                     <span style={{fontSize:'.72rem',color:'#2F5D50',fontWeight:700,flexShrink:0}}>Vali →</span>
                   </button>

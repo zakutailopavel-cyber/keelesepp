@@ -1525,6 +1525,13 @@ service cloud.firestore {
       allow write: if isStaff();
     }
 
+    // Immutable worksheet snapshots keep published assignments stable while
+    // teachers continue editing newer drafts in curriculumLessons.
+    match /worksheetVersions/{versionId} {
+      allow read, create: if isStaff();
+      allow update, delete: if false;
+    }
+
     match /exercises/{exerciseId} {
       allow read: if signedIn();
       allow write: if isStaff();
