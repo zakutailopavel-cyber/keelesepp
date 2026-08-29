@@ -2050,6 +2050,18 @@ function ProgramsView({db,user,students=[],lessons=[],notify,logActivity}) {
       setActionBusy('');
     }
   };
+  const openWorksheetBuilder=()=>{
+    if(!workflow||!actionItem){notify('⚠ Õppekava andmed ei ole saadaval');return;}
+    try{
+      const prefill=workflow.buildWorksheetPrefill(actionItem);
+      localStorage.setItem('ws_prefill',JSON.stringify(prefill));
+      window.open('/haldus-worksheet/?source=curriculum','_blank','noopener');
+      notify('✓ Töölehe alus avati uues aknas');
+    }catch(error){
+      console.error('Worksheet prefill failed:',error);
+      notify(`⚠ ${error?.message||'Töölehe loomine ebaõnnestus'}`);
+    }
+  };
 
   React.useEffect(()=>{
     if(!preview)return undefined;
@@ -2255,6 +2267,7 @@ function ProgramsView({db,user,students=[],lessons=[],notify,logActivity}) {
               </label>
               <div className="curriculum-action-buttons">
                 <button type="button" className="btn btn-dark" disabled={!actionStudentValidation.ok||Boolean(actionBusy)} onClick={()=>runAction('plan')}><i className="fa-solid fa-route"/> {actionBusy==='plan'?'Salvestan…':'Määra õpiteemaks'}</button>
+                <button type="button" className="btn btn-amber" disabled={Boolean(actionBusy)} onClick={openWorksheetBuilder}><i className="fa-solid fa-file-pen"/> Loo tööleht</button>
                 <button type="button" className="btn btn-pine" disabled={Boolean(actionBusy)} onClick={()=>runAction('material')}><i className="fa-solid fa-book-open"/> {actionBusy==='material'?'Loon…':'Lisa õppevarasse'}</button>
                 <button type="button" className="btn btn-amber" disabled={!actionStudentValidation.ok||Boolean(actionBusy)} onClick={()=>runAction('homework')}><i className="fa-solid fa-paper-plane"/> {actionBusy==='homework'?'Saadan…':'Saada kodutöö'}</button>
               </div>

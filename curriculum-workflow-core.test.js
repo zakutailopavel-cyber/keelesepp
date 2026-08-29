@@ -55,3 +55,29 @@ test('student progress is derived from completed linked lessons without migratio
   assert.equal(progress.completedTopics,1);
   assert.equal(progress.nextItem.topicId,'est-a1-02');
 });
+
+test('curriculum lesson opens as an editable worksheet starter with exact ownership',()=>{
+  const item=workflow.flattenCurriculum(curriculum)[0];
+  const prefill=workflow.buildWorksheetPrefill(item);
+  assert.equal(prefill.sourceKey,'curriculum:est-a1-01:0');
+  assert.equal(prefill.curriculum.topicId,'est-a1-01');
+  assert.equal(prefill.meta.subject,'Eesti keel');
+  assert.equal(prefill.meta.level,'A1');
+  assert.equal(prefill.meta.topic,item.topicName);
+  assert.equal(prefill.blocks.length,4);
+  assert.equal(prefill.blocks[1].type,'match');
+  assert.deepEqual(prefill.blocks[1].pairs[0],{l:item.vocab[0].word,r:item.vocab[0].translation});
+  assert.match(prefill.ai.sourceText,/Tunni käik:/);
+  assert.equal(prefill.ai.lessonType,'kinnistamine');
+});
+
+test('worksheet quality gate detects incomplete work and accepts curriculum starter',()=>{
+  const incomplete=workflow.analyzeWorksheet({title:'Uus tööleht',subject:'Eesti keel',level:'A1'},[]);
+  assert.equal(incomplete.ready,false);
+  assert.ok(incomplete.checks.some(check=>!check.ok));
+  const item=workflow.flattenCurriculum(curriculum)[0];
+  const prefill=workflow.buildWorksheetPrefill(item);
+  const quality=workflow.analyzeWorksheet(prefill.meta,prefill.blocks);
+  assert.equal(quality.ready,true);
+  assert.equal(quality.percent,100);
+});

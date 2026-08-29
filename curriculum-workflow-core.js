@@ -100,6 +100,113 @@
     ].filter(Boolean).join('\n\n');
   };
 
+  const worksheetLanguage=item=>item?.languageId==='eng'||canonicalSubject(item?.subject)==='Inglise keel'?'eng':'est';
+  const worksheetCopy=(language,key,values={})=>{
+    const copy={
+      est:{
+        intro:'Tunni eesmärk',vocabInstruction:'Sobita sõna ja tõlge.',tableInstruction:'Täienda sõnavara tabelit näitelausega.',
+        tableHeaders:['Sõna','Tõlge','Näitelause'],writingInstruction:'Kasuta uut sõnavara iseseisvalt.',
+        writingTask:`Kirjuta teemal „${values.topic||''}”. Kasuta vähemalt ${values.wordCount||3} aktiivset sõna.`,
+        aiExtra:'Koosta metoodiliselt terviklik tööleht. Säilita tunni eesmärk, kasuta aktiivset sõnavara ja lisa selged vastusevõtmed suletud ülesannetele.'
+      },
+      eng:{
+        intro:'Lesson goal',vocabInstruction:'Match each word with its translation.',tableInstruction:'Complete the vocabulary table with an example sentence.',
+        tableHeaders:['Word','Translation','Example sentence'],writingInstruction:'Use the new vocabulary independently.',
+        writingTask:`Write about “${values.topic||''}”. Use at least ${values.wordCount||3} active words.`,
+        aiExtra:'Create a coherent, classroom-ready worksheet in English. Keep the lesson goal, use the active vocabulary, and include clear answer keys for closed tasks.'
+      }
+    };
+    return copy[language]?.[key]||copy.est[key]||'';
+  };
+
+  function buildWorksheetPrefill(item){
+    if(!item?.topicId) throw new Error('Curriculum item is required');
+    const language=worksheetLanguage(item);
+    const vocab=(item.vocab||[]).filter(entry=>text(entry?.word)&&text(entry?.translation));
+    const pairLimit=item.level==='A1'?5:item.level==='A2'?7:8;
+    const pairs=vocab.slice(0,pairLimit).map(entry=>({l:text(entry.word),r:text(entry.translation)}));
+    const tableWords=vocab.slice(0,Math.min(6,Math.max(3,vocab.length)));
+    const cellData={};
+    tableWords.forEach((entry,index)=>{
+      cellData[`${index},0`]=text(entry.word);
+      cellData[`${index},1`]=text(entry.translation);
+    });
+    const wordCount=['A1','A2'].includes(item.level)?3:5;
+    const writingLines=item.level==='A1'?5:item.level==='A2'?7:10;
+    const sourceText=materialDescription(item);
+    return {
+      sourceType:'curriculum_workspace',
+      sourceKey:`curriculum:${item.topicId}:${item.lessonIndex}`,
+      openTab:'build',
+      curriculum:{
+        languageId:item.languageId,
+        subject:item.subject,
+        level:item.level,
+        topicId:item.topicId,
+        topicName:item.topicName,
+        lessonIndex:Number(item.lessonIndex)||0,
+        lessonGoal:item.lessonGoal||'',
+        sourceVersion:item.sourceVersion||''
+      },
+      meta:{
+        title:`${item.topicName} — ${item.lessonNumber}`,
+        subject:item.subject,
+        level:item.level,
+        topic:item.topicName,
+        name:true,
+        score:true,
+        date:true
+      },
+      blocks:[
+        {
+          type:'text',instruction:'',size:'full',imageUrl:'',imagePos:'top',label:'',bold:true,
+          content:`${worksheetCopy(language,'intro')}: ${item.lessonGoal||item.topicName}`
+        },
+        {
+          type:'match',instruction:worksheetCopy(language,'vocabInstruction'),size:'full',imageUrl:'',imagePos:'top',label:'',
+          pairs:pairs.length>=2?pairs:[{l:'',r:''},{l:'',r:''}]
+        },
+        {
+          type:'table',instruction:worksheetCopy(language,'tableInstruction'),size:'full',imageUrl:'',imagePos:'top',label:'',
+          headers:worksheetCopy(language,'tableHeaders'),rows:Math.max(3,tableWords.length),cellData
+        },
+        {
+          type:'writing',instruction:worksheetCopy(language,'writingInstruction'),size:'full',imageUrl:'',imagePos:'top',label:'',
+          task:worksheetCopy(language,'writingTask',{topic:item.topicName,wordCount}),lines:writingLines
+        }
+      ],
+      ai:{
+        prompt:`${item.topicName}: ${item.lessonGoal}`,
+        lessonType:'kinnistamine',
+        phase:'harjutamine',
+        blockCount:5,
+        extraInstr:worksheetCopy(language,'aiExtra'),
+        sourceText
+      }
+    };
+  }
+
+  function analyzeWorksheet(meta={},blocks=[]){
+    const list=Array.isArray(blocks)?blocks:[];
+    const interactiveTypes=new Set(['fill','choice','writing','match','order','reading','dialogue','error_correction','transformation']);
+    const hasAnswerKey=list.some(block=>(
+      (block.type==='fill'&&/\[[^\]]+\]/.test(text(block.text)))||
+      (block.type==='match'&&(block.pairs||[]).some(pair=>text(pair?.l)&&text(pair?.r)))||
+      (['choice','reading'].includes(block.type)&&(block.questions||[]).some(question=>Number.isInteger(question?.correct)))||
+      (block.type==='error_correction'&&(block.sentences||[]).some(sentence=>text(sentence?.correct)))||
+      (block.type==='transformation'&&text(block.example?.to))
+    ));
+    const checks=[
+      {key:'title',label:'Selge pealkiri',ok:Boolean(text(meta.title)&&normalize(meta.title)!=='uus tööleht')},
+      {key:'placement',label:'Aine, tase ja teema',ok:Boolean(canonicalSubject(meta.subject)&&text(meta.level)&&text(meta.topic))},
+      {key:'structure',label:'Vähemalt 3 sisublokki',ok:list.length>=3},
+      {key:'activity',label:'Õpilase aktiivne ülesanne',ok:list.some(block=>interactiveTypes.has(block.type))},
+      {key:'answers',label:'Kontrollitav vastusevõti',ok:hasAnswerKey}
+    ];
+    const passed=checks.filter(check=>check.ok).length;
+    return {ready:passed===checks.length,passed,total:checks.length,percent:Math.round(passed/checks.length*100),checks};
+  }
+
   function buildMaterialRecord(item,user={},at=new Date().toISOString()){
     if(!item?.topicId) throw new Error('Curriculum item is required');
     return {
@@ -229,6 +336,8 @@
     buildCurriculumPlan,
     buildMaterialRecord,
     buildHomeworkRecord,
+    buildWorksheetPrefill,
+    analyzeWorksheet,
     explicitContentLevels,
     validateMaterialLevel,
     calculateProgress

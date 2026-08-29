@@ -155,6 +155,12 @@ textarea{resize:vertical;line-height:1.45;}
 
 /* Prefill banner */
 .prefill-banner{background:linear-gradient(90deg,rgba(201,136,42,.12),rgba(201,136,42,.06));border:1px solid rgba(201,136,42,.3);border-radius:10px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;gap:9px;font-size:.8rem;color:#A96E1A;font-weight:600;}
+.prefill-banner-content{flex:1;min-width:0}.prefill-banner-content span{display:block}.prefill-banner-content small{display:block;margin-top:3px;color:#7A7167;font-weight:500;line-height:1.35}.prefill-banner-actions{display:flex;gap:6px;margin-top:8px}.quality-card{background:#fff;border:1px solid rgba(28,43,58,.1);border-radius:10px;padding:11px 12px;margin-bottom:10px}.quality-card-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;font-size:.76rem;font-weight:800}.quality-score{padding:3px 7px;border-radius:999px;background:#E7F4EE;color:#2F5D50;font-size:.68rem}.quality-score.warn{background:#FFF4E8;color:#9A5B13}.quality-checks{display:grid;gap:4px}.quality-check{display:flex;align-items:center;gap:7px;font-size:.72rem;color:#6B7280}.quality-check.ok{color:#2F5D50}.quality-check i{width:13px;text-align:center}
+
+@media(max-width:760px){
+  .hdr{height:auto;min-height:56px;padding:9px 12px;align-items:flex-start;gap:8px;flex-wrap:wrap}.hdr>div:first-child span{display:none}.hdr>div:last-child{width:100%;overflow-x:auto;padding-bottom:2px}.hdr>div:last-child .btn,.hdr>div:last-child a{white-space:nowrap;flex-shrink:0}
+  .workspace{display:flex;flex-direction:column;height:auto;min-height:calc(100vh - 100px);overflow:visible}.left-panel{overflow:visible;border-right:0;border-bottom:1px solid rgba(28,43,58,.1)}.left-scroll{max-height:none;overflow:visible}.right-panel{overflow:visible;padding:12px 8px 28px;align-items:stretch}.toolbar-row{overflow-x:auto;justify-content:flex-start}.toolbar-row span{display:none}.a4-sheet{min-height:900px;padding:28px 20px}.sheet-hdr{flex-direction:column}.a4-page-break{width:100%}.sav-body>div[style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr!important}.sav-foot{flex-wrap:wrap}.sav-foot .btn{flex:1;justify-content:center}
+}
 
 @media print{
   .ws-toolbar,.ws-sidebar,.tab-bar,.top-bar{display:none!important;}
@@ -167,6 +173,7 @@ textarea{resize:vertical;line-height:1.45;}
 <div id="root"><div style="display:flex;align-items:center;justify-content:center;min-height:100vh"><div class="sp-dark"></div></div></div>
 
 <script src="/haldus-shared.js"></script>
+<script src="/curriculum-workflow-core.js"></script>
 <script type="text/babel">
 const {useState,useEffect,useRef,useMemo,useCallback} = React;
 const auth=window._auth, db=window._db, storage=window._storage;
@@ -694,8 +701,35 @@ const CEFR_PROFILES={
     writingHint:'Kirjutage analüütiline essee, ülevaade või ametlik kiri. Nõuab stiilitunnet.',
     avoid:'Väldi: lihtsaid grammatikaharjutusi, ilmselgeid vastuseid, A/B taseme ülesandeid.',
     goodExample:'Error correction näide: keeruka lause stiililine ebakoht (ametlik sõna mitteametlikus kontekstis).'
+  },
+  C2:{
+    label:'C2 — Meisterlik',
+    vocab:'Täielik, täpne ja idiomaatiline sõnavara. Registri, stiili ja tähendusvarjundite teadlik valik.',
+    grammar:'Kõik struktuurid, sh haruldased konstruktsioonid. Rõhk loomulikkusel, sidususel, retoorikal ja registril.',
+    sentenceLen:'Vaba ja eesmärgipärane lausepikkus. Keerukas süntaks peab jääma selgeks.',
+    textLen:'Reading: 300–450 sõna autentset teksti. Writing: 250–350 sõna.',
+    fillHint:'Testi registrit, kollokatsioone ja peeneid tähendusvarjundeid, mitte mehaanilist vormi.',
+    choiceHint:'Kõik variandid võivad olla grammatilised; ainult üks peab olema kontekstis ja stiilis täpne.',
+    matchHint:'Seo väited, retoorilised võtted, implikatsioonid ja stiililised funktsioonid.',
+    orderHint:'Taasta keeruka lõigu loogiline ja retooriline ülesehitus.',
+    writingHint:'Nõua žanritundlikku, nüansirikast ja veenvat teksti.',
+    avoid:'Väldi madalama taseme drillharjutusi ja üheselt aimatavaid vastuseid.',
+    goodExample:'Võrdle kahte registrit ja põhjenda, kuidas sõnavalik muudab teksti mõju.'
   }
 };
+
+const ENGLISH_CEFR_PROFILES={
+  A1:{label:'A1 — Beginner',vocab:'Use only very common everyday English: family, home, food, numbers, routines.',grammar:'Present simple, be, have got, can, basic questions and negatives.',sentenceLen:'3–7 words per sentence.',textLen:'Reading: 4–6 short sentences. Writing: 2–4 sentences.',fillHint:'One clear high-frequency word per gap.',choiceHint:'Options must be visibly distinct and unambiguous.',matchHint:'Up to 5 word-to-translation pairs.',orderHint:'A natural 3–5 word English sentence.',writingHint:'Give a model and useful words; ask for 2–4 sentences.',avoid:'Avoid idioms, passive voice, perfect tenses and long clauses.',goodExample:'Fill: “My name [is] Anna. I [live] in Tallinn.”'},
+  A2:{label:'A2 — Elementary',vocab:'Common everyday English for work, travel, shopping, hobbies and health.',grammar:'Present and past simple, going to, comparatives, countable and uncountable nouns.',sentenceLen:'5–10 words per sentence.',textLen:'Reading: 7–10 sentences. Writing: 5–7 sentences.',fillHint:'Test a clear verb form, preposition or common phrase in context.',choiceHint:'Use four plausible but level-appropriate options.',matchHint:'6–8 word, phrase or situation pairs.',orderHint:'A 5–8 word sentence with natural English word order.',writingHint:'Provide structure and ask for 5–7 connected sentences.',avoid:'Avoid advanced conditionals, dense phrasal verbs and academic language.',goodExample:'Fill: “Yesterday I [went] to the shop and [bought] some bread.”'},
+  B1:{label:'B1 — Intermediate',vocab:'Broader everyday and semi-abstract vocabulary: opinions, feelings, plans and work.',grammar:'Present perfect, past continuous, first and second conditional, relative clauses, modals.',sentenceLen:'8–14 words per sentence.',textLen:'Reading: 120–180 words. Writing: 90–130 words.',fillHint:'Test tense choice, collocation, preposition or linking word in meaningful context.',choiceHint:'Distractors may be grammatical but only one fits the meaning.',matchHint:'8–10 definitions, situations, collocations or reactions.',orderHint:'A 7–11 word sentence with a clause or adverbial.',writingHint:'Ask for a connected account or opinion with reasons.',avoid:'Avoid trivial recognition tasks and obvious clues.',goodExample:'Fill: “If I [had] more time, I [would learn] another language.”'},
+  B2:{label:'B2 — Upper-intermediate',vocab:'Wide abstract, professional and idiomatic vocabulary with common collocations.',grammar:'Full tense system, passive voice, reported speech, mixed conditionals, participle clauses.',sentenceLen:'10–18 words per sentence.',textLen:'Reading: 180–260 words. Writing: 160–220 words.',fillHint:'Test nuanced collocations, register and complex grammar in context.',choiceHint:'Several options may be grammatical; one must be contextually precise.',matchHint:'10+ cause-effect, claim-evidence or paraphrase links.',orderHint:'Use a complex sentence or coherent paragraph sequence.',writingHint:'Require a structured argument, report, review or formal message.',avoid:'Avoid mechanical drills without comprehension.',goodExample:'Choose the collocation that best fits the author’s attitude.'},
+  C1:{label:'C1 — Advanced',vocab:'Precise, flexible, academic and idiomatic vocabulary with register awareness.',grammar:'All structures with emphasis on style, cohesion, emphasis and natural usage.',sentenceLen:'Flexible complex syntax, usually 15+ words where appropriate.',textLen:'Reading: 250–380 words. Writing: 220–300 words.',fillHint:'Test register, implication, advanced collocations and discourse markers.',choiceHint:'Test stance, inference, tone and subtle meaning.',matchHint:'Link arguments, counterarguments, rhetorical functions and evidence.',orderHint:'Restore cohesion in a complex paragraph or passage.',writingHint:'Require genre-appropriate analytical or persuasive writing.',avoid:'Avoid B-level grammar drills and obvious answers.',goodExample:'Identify which wording best preserves the writer’s cautious stance.'},
+  C2:{label:'C2 — Proficient',vocab:'Highly precise, idiomatic and stylistically controlled English across registers.',grammar:'Unrestricted grammar with focus on rhetorical effect, subtlety and naturalness.',sentenceLen:'Fully flexible; complexity must serve clarity and effect.',textLen:'Reading: 350–500 authentic words. Writing: 280–380 words.',fillHint:'Test fine semantic distinctions, rare collocations and stylistic fit.',choiceHint:'All options may be correct in isolation; only one fits meaning, tone and register.',matchHint:'Link implicit claims, rhetorical strategies and nuanced interpretations.',orderHint:'Restore the logic and rhetoric of a sophisticated passage.',writingHint:'Require nuanced, genre-sensitive and compelling writing.',avoid:'Avoid predictable exercises and lower-level form practice.',goodExample:'Compare two near-synonyms and explain their different pragmatic effects.'}
+};
+
+const getCefrProfile=(subject,level)=>subject==='Inglise keel'
+  ?(ENGLISH_CEFR_PROFILES[level]||ENGLISH_CEFR_PROFILES.B1)
+  :(CEFR_PROFILES[level]||CEFR_PROFILES.B1);
 
 // ── VOCABULARY ────────────────────────────────────────────────
 function getVocabForLevel(level){
@@ -751,7 +785,10 @@ async function genAI(prompt, subject, level, didacticCtx={}){
   const{lessonType='',phase='',wordList='',blockCount=4,extraInstr='',sourceText='',imageBase64='',imageType=''}=didacticCtx;
 
   const template=lessonType&&phase&&DIDACTIC_TEMPLATES?(DIDACTIC_TEMPLATES[lessonType]||{})[phase]:null;
-  const cefr=CEFR_PROFILES[level]||CEFR_PROFILES['B1'];
+  const targetSubject=subject==='Inglise keel'?'Inglise keel':'Eesti keel';
+  const targetLanguage=targetSubject==='Inglise keel'?'INGLISE':'EESTI';
+  const teacherLanguage=targetSubject==='Inglise keel'?'inglise':'eesti';
+  const cefr=getCefrProfile(targetSubject,level);
 
   // If no template, allow all types including new ones
   const allowedTypes=template
@@ -792,7 +829,7 @@ ${sourceText}
 Kasuta selle teksti sisu, tegelasi, sündmusi ja sõnavara ülesannetes.
 == LÄHTETEKST LÕPP ==`:'';
 
-  const sys=`Sa oled kogenud eesti keele õpetaja ja didaktika ekspert. Sinu ülesanne on genereerida KÕRGE KVALITEEDIGA tööleht JSON-ina.
+  const sys=`Sa oled kogenud ${teacherLanguage} keele õpetaja ja didaktika ekspert. Sinu ülesanne on genereerida KÕRGE KVALITEEDIGA tööleht JSON-ina.
 
 ${cefrBlock}
 ${didacticBlock}
@@ -806,7 +843,7 @@ Tagasta AINULT puhas JSON (ilma markdown koodiplokita):
   "blocks": [
     {"type":"fill","instruction":"Täida lüngad õige sõnavormiga.","text":"Lause [vastus] tekst [vastus2]."},
     {"type":"choice","instruction":"Vali õige variant.","questions":[{"q":"Küsimus?","opts":["a","b","c","d"],"correct":0}]},
-    {"type":"match","instruction":"Sobita paarid.","pairs":[{"l":"eesti sõna","r":"vene tõlge"}]},
+    {"type":"match","instruction":"Sobita paarid.","pairs":[{"l":"õpitava keele sõna","r":"vene tõlge"}]},
     {"type":"order","instruction":"Koosta õige lause.","sentence":"sõnad õiges järjekorras"},
     {"type":"writing","instruction":"Kirjuta tekst.","task":"Ülesande kirjeldus.","lines":8},
     {"type":"text","content":"Juhis või selgitus.","bold":false},
@@ -821,7 +858,7 @@ Tagasta AINULT puhas JSON (ilma markdown koodiplokita):
 == KVALITEEDINÕUDED ==
 1. TÄPSELT ${blockCount} blokki — ei rohkem, ei vähem.
 2. Iga blokk peab olema SISULISELT ERINEV — ära korda sama grammatilist struktuuri.
-3. Kõik tekstid EESTI KEELES. Match paarid: vasakul eesti, paremal VENE tõlge.
+3. Kõik õpilasele nähtavad tekstid ${targetLanguage} KEELES. Match paarid: vasakul õpitav keel, paremal VENE tõlge.
 4. Järgi CEFR taseme nõudeid ABSOLUUTSELT — see on kõige tähtsam!
 5. Ülesanded peavad olema AUTENTSED — ei tohi tunduda kui robot tegi.
 6. Fill-lüngad: [sõna] süntaks, üks või kaks lünka lauses.
@@ -857,7 +894,10 @@ ${extraInstr?'9. ERISOOV: '+extraInstr:''}`;
 
 // ── REGENERATE SINGLE BLOCK ─────────────────────────────────────
 async function regenBlock(block, refineNote, meta){
-  const cefr=CEFR_PROFILES[meta?.level]||CEFR_PROFILES['B1'];
+  const targetSubject=meta?.subject==='Inglise keel'?'Inglise keel':'Eesti keel';
+  const teacherLanguage=targetSubject==='Inglise keel'?'inglise':'eesti';
+  const targetLanguage=targetSubject==='Inglise keel'?'inglise':'eesti';
+  const cefr=getCefrProfile(targetSubject,meta?.level);
   const cefrBlock=`
 == CEFR TASE: ${cefr.label} ==
 SÕNAVARA: ${cefr.vocab}
@@ -866,7 +906,7 @@ LAUSE PIKKUS: ${cefr.sentenceLen}
 VÄLDI: ${cefr.avoid}
 == TASE LÕPP ==`;
 
-  const sys=`Sa oled kogenud eesti keele õpetaja. Sinu ülesanne on luua ÜKS ülesande plokk JSON-ina, mis asendab olemasoleva ploki.
+  const sys=`Sa oled kogenud ${teacherLanguage} keele õpetaja. Sinu ülesanne on luua ÜKS ülesande plokk JSON-ina, mis asendab olemasoleva ploki. Kõik õpilasele nähtavad tekstid peavad olema ${targetLanguage} keeles.
 
 ${cefrBlock}
 
@@ -959,13 +999,14 @@ function buildHTML(meta,blocks){
 }
 
 // ── SAVE MODAL ────────────────────────────────────────────────
-function SaveModal({meta,blocks,user,onClose,notify}){
+function SaveModal({meta,blocks,user,source,quality,onClose,notify}){
   const SUBJECTS=['Eesti keel','Inglise keel','Matemaatika'];
-  const LEVELS_BY_SUBJECT={'Eesti keel':['A1','A2','B1','B2','C1'],'Inglise keel':['A1','A2','B1','B2','C1','C2'],'Matemaatika':Array.from({length:12},(_,i)=>i+1+'. klass')};
+  const LEVELS_BY_SUBJECT={'Eesti keel':['A1','A2','B1','B2','C1','C2'],'Inglise keel':['A1','A2','B1','B2','C1','C2'],'Matemaatika':Array.from({length:12},(_,i)=>i+1+'. klass')};
   const[subject,setSubject]=useState(meta.subject||'Eesti keel');
   const[level,setLevel]=useState(meta.level||'B1');
-  const[topic,setTopic]=useState('');
-  const[newTopic,setNewTopic]=useState('');
+  const sourceTopic=meta.topic||source?.topicName||'';
+  const[topic,setTopic]=useState(sourceTopic);
+  const[newTopic,setNewTopic]=useState(sourceTopic);
   const[saving,setSaving]=useState(false);
   const[loading,setLoading]=useState(false);
   const[lessons,setLessons]=useState([]);
@@ -980,7 +1021,11 @@ function SaveModal({meta,blocks,user,onClose,notify}){
       const docs=snap.docs.map(d=>({id:d.id,...d.data()}));
       const topics=[...new Set(docs.map(d=>d.topic).filter(Boolean))].sort();
       setAllTopics(topics);
-      if(topics.length>0){setTopic(topics[0]);setTopicMode('existing');}else setTopicMode('new');
+      const preferred=topics.find(candidate=>candidate.toLocaleLowerCase('et-EE')===sourceTopic.toLocaleLowerCase('et-EE'));
+      if(preferred){setTopic(preferred);setTopicMode('existing');}
+      else if(sourceTopic){setNewTopic(sourceTopic);setTopicMode('new');setLessonMode('new');}
+      else if(topics.length>0){setTopic(topics[0]);setTopicMode('existing');}
+      else setTopicMode('new');
       setLoading(false);
     }).catch(()=>setLoading(false));
   },[subject,level]);
@@ -988,10 +1033,16 @@ function SaveModal({meta,blocks,user,onClose,notify}){
     if(!topic||topicMode==='new')return;
     db.collection('curriculumLessons').where('subject','==',subject).where('level','==',level).where('topic','==',topic).get().then(snap=>{
       const docs=snap.docs.map(d=>({id:d.id,...d.data()}));setLessons(docs);
-      if(docs.length>0){setSelectedLessonId(docs[0].id);setLessonMode('existing');}else setLessonMode('new');
+      const linkedSource=source?docs.find(doc=>doc.sourceKey===`curriculum:${source.topicId}:${Number(source.lessonIndex)||0}`):null;
+      if(linkedSource){setSelectedLessonId(linkedSource.id);setLessonMode('existing');}
+      else if(source){setSelectedLessonId('');setLessonMode('new');}
+      else if(docs.length>0){setSelectedLessonId(docs[0].id);setLessonMode('existing');}
+      else setLessonMode('new');
     });
   },[topic,topicMode,subject,level]);
   const finalTopic=topicMode==='new'?newTopic.trim():topic;
+  const finalMeta={...meta,subject,level,topic:finalTopic};
+  const finalQuality=window.CurriculumWorkflow?.analyzeWorksheet(finalMeta,blocks)||quality;
   const[savedLessonId,setSavedLessonId]=useState('');
   const[step,setStep]=useState('save'); // 'save' | 'assign'
   const[students,setStudents]=useState([]);
@@ -1009,16 +1060,32 @@ function SaveModal({meta,blocks,user,onClose,notify}){
   },[step]);
 
   const toggleStu=sid=>setSelStudents(p=>p.includes(sid)?p.filter(x=>x!==sid):[...p,sid]);
+  const sourceFields=source?{
+    sourceType:'curriculum_workspace',
+    sourceKey:`curriculum:${source.topicId}:${Number(source.lessonIndex)||0}`,
+    curriculumLanguageId:source.languageId||'',
+    curriculumSubject:source.subject||'',
+    curriculumLevel:source.level||'',
+    curriculumTopicId:source.topicId||'',
+    curriculumTopicName:source.topicName||'',
+    curriculumLessonIndex:Number(source.lessonIndex)||0,
+    curriculumLessonGoal:source.lessonGoal||'',
+    curriculumSourceVersion:source.sourceVersion||''
+  }:{};
 
   const save=async()=>{
     if(!finalTopic){alert('Vali teema või sisesta uus teema nimi');return;}setSaving(true);
     try{
+      const record={title:finalMeta.title||'Tööleht',type:'material',description:'',subject,level,topic:finalTopic,...sourceFields};
+      const validation=window.CurriculumWorkflow?.validateMaterialLevel(record);
+      if(validation&&!validation.ok)throw new Error(validation.errors.join(' '));
+      const worksheetFields={worksheetData:{meta:finalMeta,blocks},worksheetQuality:{percent:finalQuality?.percent||0,checkedAt:new Date().toISOString()},...sourceFields,updatedAt:new Date().toISOString()};
       let lid=selectedLessonId;
       if(lessonMode==='existing'&&selectedLessonId){
-        await db.collection('curriculumLessons').doc(selectedLessonId).update({worksheetData:{meta,blocks},updatedAt:new Date().toISOString()});
+        await db.collection('curriculumLessons').doc(selectedLessonId).update(worksheetFields);
         notify('✓ Tööleht lisatud olemasolevale kirjele!');
       }else{
-        const ref=await db.collection('curriculumLessons').add({title:meta.title||'Tööleht',type:'material',description:'',subject,level,topic:finalTopic,examPart:null,worksheetData:{meta,blocks},files:[],order:0,authorUid:user?.uid||'',authorName:user?.displayName||user?.email||'',createdAt:new Date().toISOString().split('T')[0],updatedAt:new Date().toISOString()});
+        const ref=await db.collection('curriculumLessons').add({...record,examPart:null,...worksheetFields,files:[],order:Number(source?.lessonIndex)||0,authorUid:user?.uid||'',authorName:user?.displayName||user?.email||'',createdAt:new Date().toISOString().split('T')[0]});
         lid=ref.id;
         notify('✓ Tööleht salvestatud uue kirjena!');
       }
@@ -1036,9 +1103,11 @@ function SaveModal({meta,blocks,user,onClose,notify}){
       const ref=db.collection('worksheetAssignments').doc();
       batch.set(ref,{
         lessonId:savedLessonId||'',
-        lessonTitle:meta.title||'Tööleht',
+        lessonTitle:finalMeta.title||'Tööleht',
         subject,level,topic:finalTopic,
-        worksheetData:{meta,blocks},
+        worksheetData:{meta:finalMeta,blocks},
+        worksheetQuality:{percent:finalQuality?.percent||0,checkedAt:new Date().toISOString()},
+        ...sourceFields,
         studentId:sid,
         studentName:st?.name||'',
         assignedBy:user?.uid||'',
@@ -1060,6 +1129,7 @@ function SaveModal({meta,blocks,user,onClose,notify}){
         <div className="sav-head"><h2 style={{fontSize:'1rem',fontWeight:800}}>💾 Salvesta õppekavasse</h2><button onClick={onClose} className="btn btn-ghost btn-sm">✕</button></div>
         <div className="sav-body">
           <div style={{padding:'10px 13px',borderRadius:10,background:'rgba(47,93,80,.08)',border:'0.5px solid rgba(47,93,80,.2)',fontSize:'.84rem',fontWeight:600,color:'#2F5D50'}}>📄 {meta.title||'Tööleht'} · {blocks.length} plokki</div>
+          <div style={{padding:'9px 12px',borderRadius:9,background:finalQuality?.ready?'#E7F4EE':'#FFF4E8',color:finalQuality?.ready?'#2F5D50':'#9A5B13',fontSize:'.78rem',fontWeight:700}}>{finalQuality?.ready?'✓ Tööleht läbis kvaliteedikontrolli':`⚠ Kvaliteedikontroll: ${finalQuality?.passed||0}/${finalQuality?.total||0}`}</div>
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
             <div><div className="field-lbl">Õppeaine</div><select value={subject} onChange={e=>{setSubject(e.target.value);setLevel(LEVELS_BY_SUBJECT[e.target.value]?.[0]||'');}}>{SUBJECTS.map(s=><option key={s}>{s}</option>)}</select></div>
             <div><div className="field-lbl">Tase</div><select value={level} onChange={e=>setLevel(e.target.value)}>{levels.map(l=><option key={l}>{l}</option>)}</select></div>
@@ -1167,6 +1237,7 @@ function PagedSheet({meta,blocks,onChangeBlock}){
 function App(){
   const[user,setUser]=useState(null);
   const[authDone,setAuthDone]=useState(false);
+  const workflow=window.CurriculumWorkflow;
 
   // ── prefill from Õppekava "Muuda" button ──
   const[meta,setMeta]=useState(_prefill?.meta||{title:'Uus tööleht',subject:'Eesti keel',level:'B1',topic:'',name:true,score:true,date:true});
@@ -1174,14 +1245,14 @@ function App(){
   const[activeId,setActiveId]=useState(_prefill?.blocks?.[0]?.id||null);
   const[prefillLessonId]=useState(_prefill?.lessonId||null); // remember which lesson we're editing
 
-  const[tab,setTab]=useState('build');
-  const[aiPrompt,setAiPrompt]=useState('');
-  const[aiLessonType,setAiLessonType]=useState('');
-  const[aiPhase,setAiPhase]=useState('');
-  const[aiBlockCount,setAiBlockCount]=useState(4);
-  const[aiExtraInstr,setAiExtraInstr]=useState('');
-  const[aiSourceMode,setAiSourceMode]=useState(''); // ''|'text'|'image'
-  const[aiSourceText,setAiSourceText]=useState('');
+  const[tab,setTab]=useState(_prefill?.openTab||'build');
+  const[aiPrompt,setAiPrompt]=useState(_prefill?.ai?.prompt||'');
+  const[aiLessonType,setAiLessonType]=useState(_prefill?.ai?.lessonType||'');
+  const[aiPhase,setAiPhase]=useState(_prefill?.ai?.phase||'');
+  const[aiBlockCount,setAiBlockCount]=useState(_prefill?.ai?.blockCount||4);
+  const[aiExtraInstr,setAiExtraInstr]=useState(_prefill?.ai?.extraInstr||'');
+  const[aiSourceMode,setAiSourceMode]=useState(_prefill?.ai?.sourceText?'text':''); // ''|'text'|'image'
+  const[aiSourceText,setAiSourceText]=useState(_prefill?.ai?.sourceText||'');
   const[aiImageBase64,setAiImageBase64]=useState('');
   const[aiImageType,setAiImageType]=useState('');
   const[aiLoading,setAiLoading]=useState(false);
@@ -1189,6 +1260,7 @@ function App(){
   const[dragId,setDragId]=useState(null);
   const[dragOver,setDragOver]=useState(null);
   const[showSave,setShowSave]=useState(false);
+  const quality=useMemo(()=>workflow?.analyzeWorksheet(meta,blocks)||{ready:false,passed:0,total:0,percent:0,checks:[]},[workflow,meta,blocks]);
 
   const notify=msg=>{setToast(msg);setTimeout(()=>setToast(''),3200);};
 
@@ -1222,7 +1294,19 @@ function App(){
   const quickSave=async()=>{
     if(!prefillLessonId){setShowSave(true);return;}
     try{
-      await db.collection('curriculumLessons').doc(prefillLessonId).update({worksheetData:{meta,blocks},updatedAt:new Date().toISOString()});
+      const validation=workflow?.validateMaterialLevel({
+        title:meta.title,subject:meta.subject,level:meta.level,description:'',
+        curriculumSubject:_prefill?.curriculum?.subject,
+        curriculumLevel:_prefill?.curriculum?.level,
+        curriculumTopicId:_prefill?.curriculum?.topicId,
+        curriculumTopicName:_prefill?.curriculum?.topicName
+      });
+      if(validation&&!validation.ok)throw new Error(validation.errors.join(' '));
+      await db.collection('curriculumLessons').doc(prefillLessonId).update({
+        worksheetData:{meta,blocks},
+        worksheetQuality:{percent:quality.percent,checkedAt:new Date().toISOString()},
+        updatedAt:new Date().toISOString()
+      });
       notify('✓ Tööleht salvestatud õppekavasse!');
     }catch(e){notify('Viga: '+e.message);}
   };
@@ -1240,6 +1324,7 @@ function App(){
 
   const runVocabAI=async()=>{
     if(!aiPrompt.trim()){notify('Kirjuta tunni teema');return;}
+    if(meta.subject!=='Eesti keel'){notify('EKI sõnavara on saadaval ainult eesti keele töölehtedele');return;}
     if(!window._vocab){notify('Sõnavara pole veel laetud, oota hetk...');return;}
     setAiLoading(true);
     try{
@@ -1294,7 +1379,18 @@ function App(){
             {_prefill&&tab==='build'&&(
               <div className="prefill-banner">
                 <i className="fa-solid fa-pen-to-square"/>
-                <span>Avatud: <strong>{_prefill.meta?.title||'tund'}</strong> · {_prefill.blocks?.length||0} plokki eeltäidetud</span>
+                <div className="prefill-banner-content">
+                  <span>Avatud: <strong>{_prefill.meta?.title||'tund'}</strong> · {_prefill.blocks?.length||0} plokki eeltäidetud</span>
+                  {_prefill.curriculum&&<small>{_prefill.curriculum.subject} · {_prefill.curriculum.level} · {_prefill.curriculum.lessonGoal}</small>}
+                  {_prefill.ai&&<div className="prefill-banner-actions"><button type="button" className="btn btn-gold btn-sm" onClick={()=>setTab('ai')}><i className="fa-solid fa-wand-magic-sparkles"/> Täienda AI-ga</button></div>}
+                </div>
+              </div>
+            )}
+
+            {tab==='build'&&(
+              <div className="quality-card">
+                <div className="quality-card-head"><span><i className="fa-solid fa-shield-check"/> Töölehe kvaliteet</span><span className={'quality-score'+(quality.ready?'':' warn')}>{quality.passed}/{quality.total}</span></div>
+                <div className="quality-checks">{quality.checks.map(check=><div key={check.key} className={'quality-check'+(check.ok?' ok':'')}><i className={'fa-solid '+(check.ok?'fa-circle-check':'fa-circle-exclamation')}/><span>{check.label}</span></div>)}</div>
               </div>
             )}
 
@@ -1369,7 +1465,7 @@ function App(){
                   </div>
                   <div style={{display:'flex',alignItems:'center',gap:8,marginTop:2}}>
                     <div className="ai-lvl-btns" style={{flex:1}}>
-                      {['A1','A2','B1','B2','C1'].map(l=>(
+                      {['A1','A2','B1','B2','C1','C2'].map(l=>(
                         <button key={l} className={'ai-lvl'+(meta.level===l?' active':'')} onClick={()=>setMeta(m=>({...m,level:l}))}>{l}</button>
                       ))}
                     </div>
@@ -1384,11 +1480,11 @@ function App(){
                     <button onClick={runAI} disabled={aiLoading} className="btn btn-pine" style={{flex:1,justifyContent:'center',background:'#C9882A',color:'#fff'}}>
                       {aiLoading?<><div className="sp" style={{marginRight:6}}/> Genereerib...</>:<><i className="fa-solid fa-bolt"/> Genereeri</>}
                     </button>
-                    <button onClick={runVocabAI} disabled={aiLoading} className="btn btn-pine" style={{flex:1,justifyContent:'center',background:'#2F5D50',color:'#fff'}} title="Kasuta EKI sõnavara">
+                    <button onClick={runVocabAI} disabled={aiLoading||meta.subject!=='Eesti keel'} className="btn btn-pine" style={{flex:1,justifyContent:'center',background:'#2F5D50',color:'#fff'}} title={meta.subject==='Eesti keel'?'Kasuta EKI sõnavara':'EKI sõnavara on ainult eesti keele jaoks'}>
                       {aiLoading?<><div className="sp" style={{marginRight:6}}/> Genereerib...</>:<><i className="fa-solid fa-book"/> + Sõnavara</>}
                     </button>
                   </div>
-                  <div style={{fontSize:'.68rem',color:'rgba(255,255,255,.35)',marginTop:6,textAlign:'center'}}>{window._vocab?'✓ EKI sõnavara laetud (10 564 sõna)':'⏳ Sõnavara laeb...'}</div>
+                  <div style={{fontSize:'.68rem',color:'rgba(255,255,255,.35)',marginTop:6,textAlign:'center'}}>{meta.subject!=='Eesti keel'?'English CEFR profile active':window._vocab?'✓ EKI sõnavara laetud (10 564 sõna)':'⏳ Sõnavara laeb...'}</div>
                 </div>
                 <button onClick={()=>setTab('build')} className="btn btn-ghost" style={{width:'100%',justifyContent:'center'}}><i className="fa-solid fa-layer-group"/> Koosta käsitsi</button>
               </div>
@@ -1479,7 +1575,7 @@ function App(){
         </div>
       </div>
 
-      {showSave&&<SaveModal meta={meta} blocks={blocks} user={user} onClose={()=>setShowSave(false)} notify={notify}/>}
+      {showSave&&<SaveModal meta={meta} blocks={blocks} user={user} source={_prefill?.curriculum||null} quality={quality} onClose={()=>setShowSave(false)} notify={notify}/>}
     </div>
   );
 }

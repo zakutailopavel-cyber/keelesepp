@@ -19,6 +19,9 @@ test('v1 CRM loads detailed curriculum data and provides search plus preview',()
   assert.match(haldus,/Ava täielik tunnikava/);
   assert.match(haldus,/Kasuta õppetöös/);
   assert.match(haldus,/Määra õpiteemaks/);
+  assert.match(haldus,/Loo tööleht/);
+  assert.match(haldus,/localStorage\.setItem\('ws_prefill'/);
+  assert.match(haldus,/buildWorksheetPrefill\(actionItem\)/);
   assert.match(haldus,/Lisa õppevarasse/);
   assert.match(haldus,/Saada kodutöö/);
   assert.match(haldus,/Õppekava teema/);
