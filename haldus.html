@@ -129,7 +129,8 @@ window.__haldusConfigureBabel();
 <script src="/haldus-programs.js"></script>
 <script src="/haldus-curriculum-data.js"></script>
 <script src="/curriculum-workflow-core.js"></script>
-<script src="/worksheet-workflow-core.js?v=20260829.5"></script>
+<script src="/worksheet-workflow-core.js?v=20260829.7"></script>
+<script src="/worksheet-interactive-core.js?v=20260829.7"></script>
 <script src="/annotations-manager.js"></script>
 <script type="text/babel" data-presets="haldus-react">
 const {useState,useEffect,useRef,useCallback,useMemo} = React;
@@ -5497,6 +5498,54 @@ function AssignWorksheetModal({lesson, students, user, onClose, notify}) {
 }
 
 // ── WORKSHEET PLAYER ───────────────────────────────────────────
+const worksheetVisualEqual=(value,expected)=>String(value??'').trim().toLocaleLowerCase('et-EE')===String(expected??'').trim().toLocaleLowerCase('et-EE');
+const initialComicOrder=block=>Array.from({length:(block?.panels||[]).length},(_,index)=>index).reverse();
+
+function VisualConnectTask({block,answers,setAns,done}){
+  const pairs=block.pairs||[];
+  const markerBase=('connect_'+(block.id||'task')).replace(/[^a-zA-Z0-9_-]/g,'');
+  const rightOrder=React.useMemo(()=>Array.from({length:pairs.length},(_,index)=>index).reverse(),[block.id,pairs.length]);
+  const[activeLeft,setActiveLeft]=React.useState(null);
+  const[lines,setLines]=React.useState([]);
+  const wrapRef=React.useRef(null),leftRefs=React.useRef([]),rightRefs=React.useRef([]);
+  const measure=React.useCallback(()=>{
+    const host=wrapRef.current;if(!host)return;const root=host.getBoundingClientRect();
+    const next=[];
+    pairs.forEach((pair,leftIndex)=>{
+      const target=Number(answers[block.id+'_'+leftIndex]);
+      if(!Number.isInteger(target)||!leftRefs.current[leftIndex]||!rightRefs.current[target])return;
+      const a=leftRefs.current[leftIndex].getBoundingClientRect(),b=rightRefs.current[target].getBoundingClientRect();
+      next.push({leftIndex,target,x1:a.right-root.left,y1:a.top+a.height/2-root.top,x2:b.left-root.left,y2:b.top+b.height/2-root.top});
+    });setLines(next);
+  },[answers,block.id,pairs.length]);
+  React.useLayoutEffect(()=>{measure();const onResize=()=>measure();window.addEventListener('resize',onResize);return()=>window.removeEventListener('resize',onResize);},[measure]);
+  const chooseRight=target=>{if(done||activeLeft===null)return;setAns(block.id+'_'+activeLeft,target);setActiveLeft(null);setTimeout(measure,0);};
+  return <div ref={wrapRef} style={{position:'relative',display:'grid',gridTemplateColumns:'1fr minmax(54px,20%) 1fr',gap:8,alignItems:'stretch',padding:'4px 0'}}>
+    <svg aria-hidden="true" style={{position:'absolute',inset:0,width:'100%',height:'100%',pointerEvents:'none',overflow:'visible',zIndex:1}}><defs>{[['active','#C9882A'],['correct','#166534'],['wrong','#dc2626']].map(([name,color])=><marker key={name} id={markerBase+'_'+name} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill={color}/></marker>)}</defs>{lines.map(line=>{const correct=line.target===line.leftIndex;const state=done?(correct?'correct':'wrong'):'active',color=done?(correct?'#166534':'#dc2626'):'#C9882A';return <line key={line.leftIndex} x1={line.x1} y1={line.y1} x2={line.x2-5} y2={line.y2} stroke={color} strokeWidth="2.5" markerEnd={`url(#${markerBase}_${state})`}/>;})}</svg>
+    <div style={{display:'flex',flexDirection:'column',gap:8,zIndex:2}}>{pairs.map((pair,index)=>{const selected=activeLeft===index;const target=Number(answers[block.id+'_'+index]);const wrong=done&&Number.isInteger(target)&&target!==index;return <button type="button" key={index} ref={el=>leftRefs.current[index]=el} disabled={done} onClick={()=>setActiveLeft(index)} style={{minHeight:44,padding:'8px 10px',borderRadius:9,border:`2px solid ${wrong?'#dc2626':selected?'#C9882A':'rgba(28,43,58,.14)'}`,background:selected?'#FFF7E8':'#fff',fontFamily:'inherit',fontSize:'.82rem',fontWeight:700,textAlign:'left',cursor:done?'default':'pointer'}}>{index+1}. {pair.l}</button>;})}</div>
+    <div style={{zIndex:0,display:'flex',alignItems:'center',justifyContent:'center',color:'#B0A898',fontSize:'.72rem',textAlign:'center'}}>{activeLeft===null?'Vali vasak element':'Vali õige vaste →'}</div>
+    <div style={{display:'flex',flexDirection:'column',gap:8,zIndex:2}}>{rightOrder.map((originalIndex,displayIndex)=>{const pair=pairs[originalIndex];const used=Object.keys(answers).some(key=>key.startsWith(block.id+'_')&&Number(answers[key])===originalIndex);return <button type="button" key={originalIndex} ref={el=>rightRefs.current[originalIndex]=el} disabled={done||activeLeft===null} onClick={()=>chooseRight(originalIndex)} style={{minHeight:44,padding:'8px 10px',borderRadius:9,border:`2px solid ${used?'#C9882A':'rgba(28,43,58,.14)'}`,background:used?'#FFF7E8':'#fff',fontFamily:'inherit',fontSize:'.82rem',fontWeight:700,textAlign:'left',cursor:done||activeLeft===null?'default':'pointer'}}>{String.fromCharCode(65+displayIndex)}. {pair?.r}</button>;})}</div>
+  </div>;
+}
+
+function InteractiveComicTask({block,answers,setAns,done}){
+  const panels=block.panels||[],key=block.id+'_order';
+  const order=answers[key]||initialComicOrder(block);
+  const shown=block.taskMode==='order'?order.map(index=>({panel:panels[index],originalIndex:index})):panels.map((panel,index)=>({panel,originalIndex:index}));
+  const move=(index,dir)=>{const next=[...order],to=index+dir;if(to<0||to>=next.length)return;[next[index],next[to]]=[next[to],next[index]];setAns(key,next);};
+  return <div><div style={{fontWeight:800,fontSize:'.92rem',marginBottom:9}}>{block.title}</div><div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(190px,1fr))',gap:9}}>{shown.map(({panel,originalIndex},index)=>{
+    const answerKey=block.id+'_panel_'+originalIndex,val=answers[answerKey]||'',correct=worksheetVisualEqual(val,panel?.text),orderCorrect=originalIndex===index,needsReply=block.taskMode==='complete'&&panel?.blank!==false;
+    return <div key={originalIndex} style={{border:`1.5px solid ${done&&block.taskMode==='order'?(orderCorrect?'#166534':'#dc2626'):'rgba(28,43,58,.14)'}`,borderRadius:12,background:'linear-gradient(145deg,#fff,#F4F1EA)',padding:11,minHeight:145}}>
+      <div style={{fontSize:'.62rem',textTransform:'uppercase',letterSpacing:'.08em',color:'#7A7167',fontWeight:700}}>{index+1}. {panel?.scene||'Stseen'}</div>
+      {panel?.imageUrl?<img src={panel.imageUrl} alt="" style={{width:'100%',height:105,objectFit:'cover',borderRadius:8,marginTop:7}}/>:<div style={{fontSize:'2rem',lineHeight:1,margin:'8px 0 5px'}}>{panel?.emoji||'🙂'}</div>}
+      <div style={{fontSize:'.7rem',fontWeight:800,color:'#42536A'}}>{panel?.character||'Tegelane'}</div>
+      {needsReply?<div><input value={val} disabled={done} onChange={event=>setAns(answerKey,event.target.value)} placeholder="Kirjuta repiik..." style={{width:'100%',padding:'8px 10px',marginTop:7,borderRadius:9,border:`1.5px solid ${done?(correct?'#166534':'#dc2626'):'rgba(28,43,58,.14)'}`,fontFamily:'inherit',fontSize:'.8rem'}}/>{done&&!correct&&<div style={{fontSize:'.68rem',color:'#166534',marginTop:4}}>{panel?.text}</div>}</div>:<div style={{background:'#fff',border:'1px solid rgba(28,43,58,.14)',borderRadius:12,padding:'8px 10px',marginTop:6,fontSize:'.8rem',lineHeight:1.4}}>{panel?.text||'...'}</div>}
+      {panel?.caption&&<div style={{fontSize:'.66rem',color:'#A96E1A',fontWeight:700,marginTop:7}}>{panel.caption}</div>}
+      {block.taskMode==='order'&&!done&&<div style={{display:'flex',gap:5,marginTop:8}}><button type="button" onClick={()=>move(index,-1)} disabled={index===0} style={{flex:1,padding:5,borderRadius:7,border:'1px solid rgba(28,43,58,.12)',background:'#fff',cursor:'pointer'}}>←</button><button type="button" onClick={()=>move(index,1)} disabled={index===shown.length-1} style={{flex:1,padding:5,borderRadius:7,border:'1px solid rgba(28,43,58,.12)',background:'#fff',cursor:'pointer'}}>→</button></div>}
+    </div>;
+  })}</div></div>;
+}
+
 function WorksheetPlayer({assignment, onClose, onSubmit, canAnnotate=false, canDismissAnnotations=false, notify}) {
   const ws = assignment.worksheetData;
   const blocks = ws?.blocks||[];
@@ -5662,6 +5711,8 @@ function WorksheetPlayer({assignment, onClose, onSubmit, canAnnotate=false, canD
         (b.questions||[]).forEach((q,qi)=>{total++;if(answers[b.id+'_'+qi]===q.correct)correct++;});
       } else if(b.type==='match'){
         (b.pairs||[]).forEach((pair,pi)=>{total++;if(answers[b.id+'_'+pi]===pair.r)correct++;});
+      } else if(['connect','image_label','diagram','comic'].includes(b.type)){
+        const visual=window.WorksheetInteractiveCore?.scoreBlock(b,answers)||{correct:0,total:0};correct+=visual.correct;total+=visual.total;
       }
     });
     return total>0?{correct,total,pct:Math.round(correct/total*100)}:null;
@@ -5699,6 +5750,8 @@ function WorksheetPlayer({assignment, onClose, onSubmit, canAnnotate=false, canD
               correct:pair.l+' → '+pair.r, given:pair.l+' → '+(val||'(vastamata)')});
           }
         });
+      } else if(['connect','image_label','diagram','comic'].includes(b.type)){
+        const visual=window.WorksheetInteractiveCore?.scoreBlock(b,answers)||{errors:[]};visual.errors.forEach(error=>errors.push({...error,blockLabel:b.label||b.instruction||TYPE_LABELS?.[b.type]||b.type}));
       }
     });
     return errors.slice(0,20); // max 20 errors stored
@@ -5715,8 +5768,8 @@ function WorksheetPlayer({assignment, onClose, onSubmit, canAnnotate=false, canD
     setScore(sc);setSubmitted(true);setSubmitting(false);
   };
   const done = submitted;
-  const TYPE_COLORS={fill:'#1d4ed8',choice:'#6d28d9',writing:'#A96E1A',match:'#047857',order:'#2F5D50',text:'#718096',image:'#6d28d9',dialogue:'#0369a1',diagram:'#0f766e',comic:'#b45309',error_correction:'#dc2626',transformation:'#7c3aed',reading:'#0e7490',table:'#0e7490'};
-  const TYPE_LABELS={fill:'Täida lünk',choice:'Vali vastus',writing:'Kirjutamine',match:'Sobita paarid',order:'Järjesta sõnad',text:'Tekst / juhis',image:'Pilt',dialogue:'Dialoog',diagram:'Skeem',comic:'Koomiks',error_correction:'Leia viga',transformation:'Muuda lauset',reading:'Lugemistekst',table:'Tabel'};
+  const TYPE_COLORS={fill:'#1d4ed8',choice:'#6d28d9',writing:'#A96E1A',match:'#047857',connect:'#0f766e',order:'#2F5D50',text:'#718096',image:'#6d28d9',image_label:'#be185d',dialogue:'#0369a1',diagram:'#0f766e',comic:'#b45309',error_correction:'#dc2626',transformation:'#7c3aed',reading:'#0e7490',table:'#0e7490'};
+  const TYPE_LABELS={fill:'Täida lünk',choice:'Vali vastus',writing:'Kirjutamine',match:'Sobita paarid',connect:'Ühenda nooltega',order:'Järjesta sõnad',text:'Tekst / juhis',image:'Pilt',image_label:'Märgi pilt',dialogue:'Dialoog',diagram:'Skeem',comic:'Koomiks',error_correction:'Leia viga',transformation:'Muuda lauset',reading:'Lugemistekst',table:'Tabel'};
   const renderBlock=(block,gi)=>{
     const num=gi+1;
     return(<div key={block.id} style={{background:'#fff',borderRadius:14,padding:'18px 20px',border:'0.5px solid rgba(28,43,58,.09)'}}>
@@ -5727,12 +5780,14 @@ function WorksheetPlayer({assignment, onClose, onSubmit, canAnnotate=false, canD
       </div>
       {block.type==='text'&&<p style={{fontSize:'.9rem',lineHeight:1.65,color:'#1C2B3A',fontWeight:block.bold?700:400,whiteSpace:'pre-wrap'}}>{block.content}</p>}
       {block.type==='image'&&block.imageUrl&&<div style={{textAlign:'center'}}><img src={block.imageUrl} style={{maxWidth:'100%',maxHeight:260,objectFit:'contain',borderRadius:8}} alt=""/>{block.caption&&<div style={{fontSize:'.74rem',color:'#718096',marginTop:4,fontStyle:'italic'}}>{block.caption}</div>}</div>}
+      {block.type==='connect'&&<VisualConnectTask block={block} answers={answers} setAns={setAns} done={done}/>}
+      {block.type==='image_label'&&<div><div style={{textAlign:'center'}}>{block.imageUrl?<div style={{position:'relative',display:'inline-block',maxWidth:'100%'}}><img src={block.imageUrl} alt="" style={{display:'block',maxWidth:'100%',maxHeight:330,objectFit:'contain',borderRadius:9}}/>{(block.items||[]).map((item,i)=><span key={i} style={{position:'absolute',left:`${item.x??50}%`,top:`${item.y??50}%`,transform:'translate(-50%,-50%)',width:26,height:26,borderRadius:'50%',background:'#1C2B3A',color:'#fff',border:'2px solid #fff',boxShadow:'0 2px 8px rgba(0,0,0,.25)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'.65rem',fontWeight:800}}>{i+1}</span>)}</div>:<div style={{height:140,border:'1px dashed rgba(28,43,58,.2)',borderRadius:9,paddingTop:58,color:'#B0A898'}}>Pilt puudub</div>}</div>{block.caption&&<div style={{fontSize:'.76rem',color:'#718096',marginTop:7}}>{block.caption}</div>}{block.showWordBank!==false&&<div style={{display:'flex',gap:6,flexWrap:'wrap',marginTop:8}}>{(block.items||[]).map((item,i)=><span key={i} style={{padding:'5px 10px',border:'1px solid rgba(28,43,58,.14)',borderRadius:8,background:'#F9F8F6',fontSize:'.78rem'}}>{item.answer}</span>)}</div>}<div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(190px,1fr))',gap:7,marginTop:10}}>{(block.items||[]).map((item,i)=>{const key=block.id+'_label_'+i,val=answers[key]||'',correct=worksheetVisualEqual(val,item.answer);return <label key={i} style={{display:'flex',alignItems:'center',gap:7}}><strong>{i+1}.</strong><input value={val} disabled={done} onChange={e=>setAns(key,e.target.value)} placeholder="Nimetus..." style={{width:'100%',padding:'8px 10px',borderRadius:8,border:`1.5px solid ${done?(correct?'#166534':'#dc2626'):'rgba(28,43,58,.14)'}`,fontFamily:'inherit',fontSize:'.84rem'}}/>{done&&<span style={{fontSize:'.72rem',color:correct?'#166534':'#dc2626',fontWeight:800}}>{correct?'✓':item.answer}</span>}</label>;})}</div></div>}
       {block.type==='diagram'&&(()=>{
         const palette={pine:['#E7F1ED','#205A4B'],gold:['#FFF1D9','#9A5B13'],blue:['#E8F0FF','#315A91'],rose:['#FCE7F3','#9D174D'],slate:['#EEF1F5','#42536A']};
-        const nodes=(block.nodes||[]).map((node,i)=>{const p=palette[node.color]||palette.pine;return <div key={i} style={{flex:1,minWidth:110,padding:'11px 12px',borderRadius:10,border:'1px solid rgba(28,43,58,.1)',background:p[0],color:p[1],fontSize:'.82rem',fontWeight:700,textAlign:'center'}}>{node.text||`Samm ${i+1}`}</div>;});
+        const nodes=(block.nodes||[]).map((node,i)=>{const p=palette[node.color]||palette.pine,key=block.id+'_node_'+i,val=answers[key]||'',correct=worksheetVisualEqual(val,node.text);return <div key={i} style={{flex:1,minWidth:110,padding:'11px 12px',borderRadius:10,border:`1.5px solid ${done&&node.blank?(correct?'#166534':'#dc2626'):'rgba(28,43,58,.1)'}`,background:p[0],color:p[1],fontSize:'.82rem',fontWeight:700,textAlign:'center'}}>{node.blank?<div><input value={val} disabled={done} onChange={e=>setAns(key,e.target.value)} placeholder="Täida..." style={{width:'100%',padding:'6px 8px',borderRadius:7,border:'1px solid rgba(28,43,58,.18)',fontFamily:'inherit',fontSize:'.8rem',textAlign:'center'}}/>{done&&!correct&&<div style={{fontSize:'.68rem',color:'#166534',marginTop:4}}>{node.text}</div>}</div>:(node.text||`Samm ${i+1}`)}</div>;});
         return <div><div style={{fontWeight:800,fontSize:'.92rem',marginBottom:9}}>{block.title}</div>{block.layout==='flow'?<div style={{display:'flex',alignItems:'center',gap:7,flexWrap:'wrap'}}>{nodes.map((node,i)=><React.Fragment key={i}>{node}{i<nodes.length-1&&<span style={{color:'#C9882A',fontWeight:900}}>→</span>}</React.Fragment>)}</div>:<div style={{display:'grid',gridTemplateColumns:'repeat(2,minmax(0,1fr))',gap:8}}><div style={{gridColumn:'1/-1',justifySelf:'center',background:'#1C2B3A',color:'#fff',borderRadius:block.layout==='cycle'?999:9,padding:'8px 18px',fontWeight:800,fontSize:'.82rem'}}>{block.centerText||'Põhiteema'}</div>{nodes}</div>}</div>;
       })()}
-      {block.type==='comic'&&<div><div style={{fontWeight:800,fontSize:'.92rem',marginBottom:9}}>{block.title}</div><div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(190px,1fr))',gap:9}}>{(block.panels||[]).map((panel,i)=><div key={i} style={{border:'1px solid rgba(28,43,58,.14)',borderRadius:12,background:'linear-gradient(145deg,#fff,#F4F1EA)',padding:11,minHeight:145}}><div style={{fontSize:'.62rem',textTransform:'uppercase',letterSpacing:'.08em',color:'#7A7167',fontWeight:700}}>{i+1}. {panel.scene||'Stseen'}</div>{panel.imageUrl?<img src={panel.imageUrl} alt="" style={{width:'100%',height:105,objectFit:'cover',borderRadius:8,marginTop:7}}/>:<div style={{fontSize:'2rem',lineHeight:1,margin:'8px 0 5px'}}>{panel.emoji||'🙂'}</div>}<div style={{fontSize:'.7rem',fontWeight:800,color:'#42536A'}}>{panel.character||'Tegelane'}</div><div style={{background:'#fff',border:'1px solid rgba(28,43,58,.14)',borderRadius:12,padding:'8px 10px',marginTop:6,fontSize:'.8rem',lineHeight:1.4}}>{panel.text||'...'}</div>{panel.caption&&<div style={{fontSize:'.66rem',color:'#A96E1A',fontWeight:700,marginTop:7}}>{panel.caption}</div>}</div>)}</div></div>}
+      {block.type==='comic'&&<InteractiveComicTask block={block} answers={answers} setAns={setAns} done={done}/>}
       {block.type==='fill'&&(()=>{
         const parts=parseFill(block.text||'');
         return<div style={{fontSize:'.95rem',lineHeight:2.8}}>{parts.map((p,pi)=>{

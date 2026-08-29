@@ -60,3 +60,15 @@ test('worksheet builder supports diagrams, comics and faster block operations',(
   assert.match(worksheet,/const redoBlocks=/);
   assert.match(worksheet,/className="insert-picker"/);
 });
+
+test('worksheet builder creates auto-checkable visual tasks',()=>{
+  assert.match(worksheet,/key:'image_label'.*label:'Märgi pilt'/);
+  assert.match(worksheet,/key:'connect'.*label:'Ühenda nooltega'/);
+  assert.match(worksheet,/function ImageLabelEd/);
+  assert.match(worksheet,/function ConnectEd/);
+  assert.match(worksheet,/Vali all märgis ja klõpsa pildil selle õigesse kohta/);
+  assert.match(worksheet,/const placeMarker=event/);
+  assert.match(worksheet,/Õpilane täidab selle osa/);
+  assert.match(worksheet,/Pane kaadrid õigesse järjekorda/);
+  assert.match(worksheet,/Õpilane täiendab seda repiiki/);
+});

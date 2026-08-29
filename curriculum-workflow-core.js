@@ -188,11 +188,15 @@
 
   function analyzeWorksheet(meta={},blocks=[]){
     const list=Array.isArray(blocks)?blocks:[];
-    const interactiveTypes=new Set(['fill','choice','writing','match','order','reading','dialogue','error_correction','transformation']);
+    const interactiveTypes=new Set(['fill','choice','writing','match','connect','order','reading','dialogue','image_label','diagram','comic','error_correction','transformation']);
     const hasAnswerKey=list.some(block=>(
       (block.type==='fill'&&/\[[^\]]+\]/.test(text(block.text)))||
       (block.type==='match'&&(block.pairs||[]).some(pair=>text(pair?.l)&&text(pair?.r)))||
+      (block.type==='connect'&&(block.pairs||[]).some(pair=>text(pair?.l)&&text(pair?.r)))||
       (['choice','reading'].includes(block.type)&&(block.questions||[]).some(question=>Number.isInteger(question?.correct)))||
+      (block.type==='image_label'&&(block.items||[]).some(item=>text(item?.answer)))||
+      (block.type==='diagram'&&(block.nodes||[]).some(node=>node?.blank&&text(node?.text)))||
+      (block.type==='comic'&&((block.taskMode==='complete'&&(block.panels||[]).some(panel=>panel?.blank!==false&&text(panel?.text)))||(block.taskMode==='order'&&(block.panels||[]).length>1)))||
       (block.type==='error_correction'&&(block.sentences||[]).some(sentence=>text(sentence?.correct)))||
       (block.type==='transformation'&&text(block.example?.to))
     ));

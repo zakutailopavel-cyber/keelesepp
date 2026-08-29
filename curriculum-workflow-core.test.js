@@ -81,3 +81,14 @@ test('worksheet quality gate detects incomplete work and accepts curriculum star
   assert.equal(quality.ready,true);
   assert.equal(quality.percent,100);
 });
+
+test('interactive visual blocks satisfy activity and answer-key quality checks',()=>{
+  const quality=workflow.analyzeWorksheet({title:'Visuaalne kordamine',subject:'Eesti keel',level:'A2',topic:'Kehaosad'},[
+    {type:'image_label',items:[{answer:'pea',x:50,y:20}]},
+    {type:'diagram',nodes:[{text:'Tulemus',blank:true}]},
+    {type:'comic',taskMode:'order',panels:[{text:'Algus'},{text:'Lõpp'}]}
+  ]);
+  assert.equal(quality.checks.find(check=>check.key==='activity').ok,true);
+  assert.equal(quality.checks.find(check=>check.key==='answers').ok,true);
+  assert.equal(quality.ready,true);
+});

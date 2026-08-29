@@ -33,3 +33,15 @@ test('visual worksheet blocks are visible in library preview and student player'
   assert.match(crm,/block\.type==='diagram'/);
   assert.match(crm,/block\.type==='comic'/);
 });
+
+test('student player draws connections and scores all interactive visual answers',()=>{
+  assert.match(crm,/worksheet-interactive-core\.js/);
+  assert.match(crm,/function VisualConnectTask/);
+  assert.match(crm,/markerEnd=\{`url\(#\$\{markerBase\}_\$\{state\}\)`\}/);
+  assert.match(crm,/function InteractiveComicTask/);
+  assert.match(crm,/WorksheetInteractiveCore\?\.scoreBlock/);
+  assert.match(crm,/block\.type==='image_label'/);
+  assert.match(crm,/block\.type==='connect'/);
+  assert.match(library,/image_label:'Märgi pilt'/);
+  assert.match(library,/connect:'Ühenda nooltega'/);
+});
