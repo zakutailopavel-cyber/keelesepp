@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-labelledby="title desc">
+  <title id="title">Cartoon person for body-part exercises</title>
+  <desc id="desc">A friendly full-body character on a light background.</desc>
+  <rect width="800" height="600" rx="36" fill="#F6F3EC"/>
+  <circle cx="400" cy="122" r="72" fill="#F4C9A8" stroke="#1C2B3A" stroke-width="10"/>
+  <path d="M342 112c12-58 105-75 132-10-34-15-83-15-132 10Z" fill="#49372E"/>
+  <circle cx="375" cy="124" r="7" fill="#1C2B3A"/><circle cx="426" cy="124" r="7" fill="#1C2B3A"/>
+  <path d="M378 156c15 14 31 14 46 0" fill="none" stroke="#A95745" stroke-width="7" stroke-linecap="round"/>
+  <path d="M322 235c0-43 35-78 78-78s78 35 78 78v173H322Z" fill="#2F5D50" stroke="#1C2B3A" stroke-width="10"/>
+  <path d="M323 247 234 354M477 247l89 107" fill="none" stroke="#F4C9A8" stroke-width="35" stroke-linecap="round"/>
+  <circle cx="228" cy="360" r="24" fill="#F4C9A8" stroke="#1C2B3A" stroke-width="8"/>
+  <circle cx="572" cy="360" r="24" fill="#F4C9A8" stroke="#1C2B3A" stroke-width="8"/>
+  <path d="M353 407 332 545M447 407l21 138" fill="none" stroke="#42536A" stroke-width="43" stroke-linecap="round"/>
+  <path d="M294 554h77M429 554h77" fill="none" stroke="#1C2B3A" stroke-width="24" stroke-linecap="round"/>
+  <path d="M354 200c30 19 61 19 92 0" fill="none" stroke="#F8E6B6" stroke-width="12" stroke-linecap="round"/>
+</svg>

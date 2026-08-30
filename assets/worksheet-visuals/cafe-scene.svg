@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520" role="img" aria-labelledby="title desc">
+  <title id="title">Cartoon cafe conversation</title>
+  <desc id="desc">A customer and a server speaking across a cafe counter.</desc>
+  <rect width="800" height="520" rx="34" fill="#FFF7E8"/>
+  <path d="M0 390h800v130H0Z" fill="#E9D9BF"/>
+  <rect x="92" y="294" width="616" height="126" rx="18" fill="#C9882A" stroke="#1C2B3A" stroke-width="10"/>
+  <circle cx="230" cy="172" r="60" fill="#F3C5A3" stroke="#1C2B3A" stroke-width="9"/>
+  <path d="M176 161c12-56 94-72 114-7-33-17-72-14-114 7Z" fill="#4B352D"/>
+  <path d="M150 304c6-80 155-80 161 0" fill="#2F5D50" stroke="#1C2B3A" stroke-width="10"/>
+  <circle cx="570" cy="172" r="60" fill="#F3C5A3" stroke="#1C2B3A" stroke-width="9"/>
+  <path d="M516 156c18-63 106-61 115 8-38-23-78-24-115-8Z" fill="#B26C4D"/>
+  <path d="M489 304c6-80 155-80 161 0" fill="#5E78A8" stroke="#1C2B3A" stroke-width="10"/>
+  <rect x="360" y="318" width="82" height="58" rx="12" fill="#fff" stroke="#1C2B3A" stroke-width="8"/>
+  <path d="M442 332h22c24 0 24 31 0 31h-22" fill="none" stroke="#1C2B3A" stroke-width="8"/>
+  <path d="M375 296c-12-22 17-28 4-52M406 296c-12-22 17-28 4-52" fill="none" stroke="#A5AFC0" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="210" cy="178" r="6" fill="#1C2B3A"/><circle cx="250" cy="178" r="6" fill="#1C2B3A"/><circle cx="550" cy="178" r="6" fill="#1C2B3A"/><circle cx="590" cy="178" r="6" fill="#1C2B3A"/>
+</svg>

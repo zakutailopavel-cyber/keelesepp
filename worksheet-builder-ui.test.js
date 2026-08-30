@@ -34,10 +34,22 @@ test('AI generation uses subject-specific CEFR profiles through C2',()=>{
 
 test('worksheet builder protects unfinished work and offers teaching templates',()=>{
   assert.match(worksheet,/worksheet-workflow-core\.js/);
+  assert.match(worksheet,/worksheet-visual-library\.js/);
   assert.match(worksheet,/WS_DRAFT_KEY='keelesepp_ws_autodraft_v1'/);
   assert.match(worksheet,/Taastasime automaatselt sinu salvestamata töö/);
   assert.match(worksheet,/tab==='templates'/);
   assert.match(worksheet,/WorksheetWorkflow\.buildTemplate/);
+});
+
+test('worksheet builder offers a filtered visual preset bank without replacing current blocks',()=>{
+  assert.match(worksheet,/Visuaalsete ülesannete pank/);
+  assert.match(worksheet,/Otsi visuaalset ülesannet/);
+  assert.match(worksheet,/Lapsed 7–10/);
+  assert.match(worksheet,/Noored 11–17/);
+  assert.match(worksheet,/Täiskasvanud/);
+  assert.match(worksheet,/window\.WorksheetVisualLibrary\.buildPreset/);
+  assert.match(worksheet,/commitBlocks\(current=>\[\.\.\.current,nextBlock\]\)/);
+  assert.match(worksheet,/Lisa töölehele/);
 });
 
 test('worksheet saves immutable versions and only publishes quality checked work',()=>{

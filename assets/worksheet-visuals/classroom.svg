@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520" role="img" aria-labelledby="title desc">
+  <title id="title">Cartoon classroom</title>
+  <desc id="desc">A classroom with a board, desk, chair, lamp and door.</desc>
+  <rect width="800" height="520" rx="34" fill="#F7F4EC"/>
+  <rect x="72" y="74" width="392" height="222" rx="16" fill="#315A4C" stroke="#1C2B3A" stroke-width="10"/>
+  <path d="M116 130h205M116 174h275M116 218h165" stroke="#E7F0E9" stroke-width="12" stroke-linecap="round" opacity=".85"/>
+  <rect x="568" y="66" width="150" height="354" rx="8" fill="#C9882A" stroke="#1C2B3A" stroke-width="10"/>
+  <circle cx="686" cy="242" r="11" fill="#1C2B3A"/>
+  <path d="M0 424h800" stroke="#1C2B3A" stroke-width="12"/>
+  <path d="M164 353h346l42 98H122Z" fill="#D9A86C" stroke="#1C2B3A" stroke-width="10" stroke-linejoin="round"/>
+  <path d="M166 450v45M508 450v45" stroke="#1C2B3A" stroke-width="14" stroke-linecap="round"/>
+  <path d="M288 336v-84c0-48 71-48 71 0v84" fill="none" stroke="#1C2B3A" stroke-width="12"/>
+  <path d="M267 336h114" stroke="#F0B941" stroke-width="24" stroke-linecap="round"/>
+  <path d="M610 462h92M636 462V344h40v118" fill="#5E78A8" stroke="#1C2B3A" stroke-width="10" stroke-linejoin="round"/>
+  <circle cx="100" cy="388" r="30" fill="#E99E8D"/><path d="M70 388h60" stroke="#1C2B3A" stroke-width="8"/>
+</svg>

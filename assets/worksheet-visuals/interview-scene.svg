@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520" role="img" aria-labelledby="title desc">
+  <title id="title">Cartoon job interview</title>
+  <desc id="desc">Two adults in a friendly job interview.</desc>
+  <rect width="800" height="520" rx="34" fill="#EEF4FF"/>
+  <rect x="72" y="54" width="250" height="150" rx="18" fill="#fff" stroke="#1C2B3A" stroke-width="9"/>
+  <path d="M118 102h158M118 140h105" stroke="#5E78A8" stroke-width="11" stroke-linecap="round"/>
+  <circle cx="242" cy="278" r="58" fill="#F1C4A4" stroke="#1C2B3A" stroke-width="9"/>
+  <path d="M192 262c15-58 92-59 103 5-34-20-69-21-103-5Z" fill="#45332A"/>
+  <path d="M164 438c8-107 150-107 158 0" fill="#2F5D50" stroke="#1C2B3A" stroke-width="10"/>
+  <circle cx="560" cy="278" r="58" fill="#E6B691" stroke="#1C2B3A" stroke-width="9"/>
+  <path d="M510 263c10-65 103-65 108 6-35-20-71-22-108-6Z" fill="#7A4E37"/>
+  <path d="M482 438c8-107 150-107 158 0" fill="#5E78A8" stroke="#1C2B3A" stroke-width="10"/>
+  <rect x="322" y="384" width="160" height="90" rx="14" fill="#D9A86C" stroke="#1C2B3A" stroke-width="9"/>
+  <rect x="365" y="337" width="76" height="60" rx="8" fill="#fff" stroke="#1C2B3A" stroke-width="7"/>
+  <path d="M380 355h46M380 373h30" stroke="#C9882A" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="222" cy="283" r="6" fill="#1C2B3A"/><circle cx="260" cy="283" r="6" fill="#1C2B3A"/><circle cx="540" cy="283" r="6" fill="#1C2B3A"/><circle cx="578" cy="283" r="6" fill="#1C2B3A"/>
+</svg>
