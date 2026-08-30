@@ -142,7 +142,7 @@ const {
   SUBJECTS, GRADES:SHARED_GRADES, LESSON_DURATIONS,
   PAYMENT_METHODS, PAYMENT_DETAILS, CONTACT_STATUSES,
   DAYS_SHORT, DAYS_ID, DAYS_FULL, TIMES,
-  normalizeText, studentIdentityKey, studentProfileKey, resolveStudentRecord, lessonJournalErrorGuidance, parseLinkedNames, canonicalTeacherName, teacherUidFromDirectory,
+  normalizeText, studentIdentityKey, studentProfileKey, duplicateStudentGroups, resolveStudentRecord, lessonJournalErrorGuidance, parseLinkedNames, canonicalTeacherName, teacherUidFromDirectory,
   levelPct, avg, fmtDate, toLocalISODate, today, pkgLeft, copyText, authFetch,
   hasUserRole, withUserRoles,
   ensureStudentRecord, ensureParentStudentRecords
@@ -659,35 +659,25 @@ function AuthScreen({onLogin}) {
           if(studentCardId){
             const cardSnap = await db.collection('students').doc(studentCardId).get();
             if(cardSnap.exists){
-              await db.collection('students').doc(studentCardId).update({
+              const cardData=cardSnap.data()||{};
+              const targetStudentId=cardData.mergedIntoStudentId||studentCardId;
+              await db.collection('students').doc(targetStudentId).set({
                 studentUid: res.user.uid,
                 linkedUserId: res.user.uid,
-                email: email||cardSnap.data().email||'',
-                updatedAt: today()
-              });
-              console.log('Linked by ID to card:', studentCardId);
+                linkedUserIds:firebase.firestore.FieldValue.arrayUnion(res.user.uid),
+                email: email||cardData.email||'',
+                updatedAt: today(),
+                accountLinkSource:'student-card-id'
+              },{merge:true});
+              console.log('Linked by ID to card:', targetStudentId);
             } else {
               // ID not found — create new
               await ensureStudentRecord(res.user, ud);
             }
           } else {
-            // 2. Try to find existing card by email or name
-            const existingByEmail = email ? await db.collection('students').where('email','==',email).limit(1).get() : {empty:true};
-            const existingByName = name ? await db.collection('students').where('name','==',name.trim()).limit(1).get() : {empty:true};
-            const existingDoc = (!existingByEmail.empty && existingByEmail.docs[0])
-              || (!existingByName.empty && existingByName.docs[0])
-              || null;
-            if(existingDoc){
-              await db.collection('students').doc(existingDoc.id).update({
-                studentUid: res.user.uid,
-                linkedUserId: res.user.uid,
-                email: email||existingDoc.data().email||'',
-                updatedAt: today()
-              });
-              console.log('Auto-linked to existing card:', existingDoc.id);
-            } else {
-              await ensureStudentRecord(res.user, ud);
-            }
+            // Link only by a unique exact e-mail/UID match. A name alone is not
+            // safe because two real students can have the same name.
+            await ensureStudentRecord(res.user, ud);
           }
         } else {
           await ensureStudentRecord(res.user, ud);
@@ -4741,20 +4731,7 @@ function StudentsDatabaseView({
     active:{bg:'#dcfce7',c:'#166534',t:'Aktiivne õpilane'}
   };
   const duplicateGroups = React.useMemo(()=>{
-    const grouped = filteredStudents.reduce((acc,student)=>{
-      if(student.active===false) return acc;
-      if(student.convertedToParent) return acc;
-      if(student.mergedIntoStudentId) return acc;
-      if(student.mergedAt && student.mergedIntoStudentName) return acc;
-      if(student.groupId) return acc; // already grouped with other subjects — not a duplicate
-      if(!normalizeText(student.name)) return acc;
-      const key = studentProfileKey(student);
-      if(!key) return acc;
-      if(!acc[key]) acc[key]=[];
-      acc[key].push(student);
-      return acc;
-    },{});
-    return Object.values(grouped).filter(group=>group.length>1);
+    return duplicateStudentGroups(filteredStudents.filter(student=>!student.convertedToParent));
   },[filteredStudents]);
   return(
     <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:20}}>
@@ -4901,20 +4878,20 @@ function StudentsDatabaseView({
           </div>
           <div style={{display:'flex',flexDirection:'column',gap:8,marginTop:12}}>
             {duplicateGroups.slice(0,8).map(group=>{
-              const groupKey=studentProfileKey(group[0]);
-              const primaryId=mergePrimaryByGroup[groupKey]||group[0].id;
+              const groupKey=group.key;
+              const primaryId=mergePrimaryByGroup[groupKey]||group.students[0].id;
               return <div key={groupKey} style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:10,flexWrap:'wrap',background:'#fff',border:'1px solid rgba(146,64,14,.16)',borderRadius:12,padding:12}}>
                 <div>
-                  <strong>{group[0].name||'Nimi puudub'}</strong>
-                  <span style={{color:'#42536A'}}> · {group[0].subject||'Õppeaine puudub'} · {group[0].teacher||'Õpetaja puudub'} · {group.length} kirjet</span>
+                  <div style={{display:'flex',gap:7,alignItems:'center',flexWrap:'wrap'}}><strong>{group.students.map(student=>student.name||'Nimi puudub').join(' ↔ ')}</strong><span className="badge" style={{background:group.confidence==='high'?'#fee2e2':group.confidence==='medium'?'#fef3c7':'#e0f2fe',color:group.confidence==='high'?'#991b1b':group.confidence==='medium'?'#92400e':'#075985'}}>{group.confidence==='high'?'Tugev vaste':group.confidence==='medium'?'Tõenäoline':'Kontrolli'}</span></div>
+                  <div style={{color:'#42536A',fontSize:'.76rem',marginTop:4}}>{group.reasons.join(' · ')} · {group.students.length} kirjet</div>
                 </div>
                 <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
                   <label style={{fontSize:'.72rem',fontWeight:800,color:'#42536A'}}>Põhikaart
                     <select value={primaryId} onChange={event=>setMergePrimaryByGroup(previous=>({...previous,[groupKey]:event.target.value}))} style={{marginLeft:6,width:'auto'}}>
-                      {group.map(student=><option key={student.id} value={student.id}>{student.name||'Nimi puudub'} · {student.email||student.parentEmail||student.id}</option>)}
+                      {group.students.map(student=><option key={student.id} value={student.id}>{student.name||'Nimi puudub'} · {student.email||student.parentEmail||student.id}</option>)}
                     </select>
                   </label>
-                  <button onClick={()=>mergeStudentDuplicates(group,primaryId)} className="btn btn-amber btn-sm">
+                  <button onClick={()=>mergeStudentDuplicates(group.students,primaryId)} className="btn btn-amber btn-sm">
                     Kontrolli ja ühenda
                   </button>
                 </div>
@@ -8107,11 +8084,12 @@ function DataQualityView({notify}) {
     catch(error){notify(`⚠ Konto olekut ei saanud muuta: ${error.message||error}`);setBusy('');}
   };
   const mergeGroup=async group=>{
-    const primaryStudentId=selections[`duplicate-${group.kind}-${group.key}`]||group.students[0]?.id;
+    const primaryStudentId=selections[`duplicate-${group.key}`]||group.students[0]?.id;
     const duplicateStudentIds=group.students.map(student=>student.id).filter(id=>id!==primaryStudentId);
     if(!primaryStudentId||!duplicateStudentIds.length) return;
     const preview=await staffOperationsApiPost('/students/merge/preview',{primaryStudentId,duplicateStudentIds});
-    if(!window.confirm(`Põhikaart: ${preview.primary?.name||primaryStudentId}. Ühendan ${duplicateStudentIds.length} duplikaati ja ${preview.totalReferenceCount||0} seotud kirjet. Jätkan?`)) return;
+    const conflictText=(preview.profileConflicts||[]).length?`\nErinevad profiiliväljad säilitatakse ajaloos: ${preview.profileConflicts.map(item=>item.field).join(', ')}.`:'';
+    if(!window.confirm(`Põhikaart: ${preview.primary?.name||primaryStudentId}. Ühendan ${duplicateStudentIds.length} duplikaati ja ${preview.totalReferenceCount||0} seotud kirjet. Kontaktid, nimekujud ja algsete kaartide väljad säilitatakse.${conflictText}\n\nJätkan?`)) return;
     setBusy(`duplicate-${group.key}`);
     try{await staffOperationsApiPost('/students/merge',{primaryStudentId,duplicateStudentIds,requestId:financeRequestId('studentmerge')});notify('✓ Duplikaadid ühendatud');await refresh();}
     catch(error){notify(`⚠ Duplikaate ei saanud ühendada: ${error.message||error}`);setBusy('');}
@@ -8128,7 +8106,7 @@ function DataQualityView({notify}) {
     {(data.groupLessonsNeedingLink||[]).length>0&&<div className="card" style={{overflow:'hidden',border:'1px solid rgba(180,83,9,.22)'}}><div style={{padding:15,display:'flex',justifyContent:'space-between',gap:10,alignItems:'center',flexWrap:'wrap'}}><div><strong>Grupitunnid ilma groupId-ta</strong><div style={{fontSize:'.72rem',color:'#64748b',marginTop:3}}>Need ei ole kadunud õpilaste tunnid. Seos lisatakse grupiga ja õpilase ID-d ei muudeta.</div></div>{(data.groupLessonsNeedingLink||[]).some(item=>item.exactGroupMatch&&item.suggestedGroupId)&&<button className="btn btn-amber btn-sm" disabled={Boolean(busy)} onClick={linkExactGroupLessons}>Seo kõik täpsed vasted</button>}</div>{data.groupLessonsNeedingLink.map(item=><div key={item.id} style={{padding:'12px 15px',borderTop:'1px solid rgba(28,43,58,.08)',display:'flex',gap:10,alignItems:'center',flexWrap:'wrap'}}><div style={{minWidth:210,flex:1}}><div style={{display:'flex',gap:7,alignItems:'center',flexWrap:'wrap'}}><strong>{item.studentName||item.groupName||'Nimeta grupitund'}</strong>{item.exactGroupMatch&&<span className="badge" style={{background:'#fffbeb',color:'#92400e'}}>Täpne grupivaste</span>}</div><div style={{fontSize:'.7rem',color:'#64748b',marginTop:3}}>{item.date||'Kuupäev puudub'} · {item.teacher||'Õpetaja puudub'} · ID {item.id}</div></div>{groupSelect(item)}<button className="btn btn-amber btn-sm" disabled={Boolean(busy)} onClick={()=>linkGroupLesson(item)}>Seo grupiga</button></div>)}</div>}
     {[['lesson','Tõesti sidumata individuaaltunnid',data.orphanLessons||[]],['invoice','Sidumata arved',data.orphanInvoices||[]]].map(([type,title,items])=>items.length>0&&<div key={type} className="card" style={{overflow:'hidden'}}><div style={{padding:15,fontWeight:800}}>{title}</div>{items.map(item=><div key={item.id} style={{padding:'12px 15px',borderTop:'1px solid rgba(28,43,58,.08)',display:'flex',gap:10,alignItems:'center',flexWrap:'wrap'}}><div style={{minWidth:210,flex:1}}><strong>{item.number||item.studentName||'Nimeta kirje'}</strong><div style={{fontSize:'.7rem',color:'#64748b',marginTop:3}}>{item.date||'Kuupäev puudub'} · ID {item.id} · vana studentId {item.studentId||'puudub'}</div></div>{issueSelect(`${type}-${item.id}`)}<button className="btn btn-pine btn-sm" disabled={busy===`${type}-${item.id}`} onClick={()=>relink(type,item)}>Seo õpilasega</button></div>)}</div>)}
     {(data.invalidInvoiceDates||[]).length>0&&<div className="card" style={{overflow:'hidden'}}><div style={{padding:15,fontWeight:800}}>Valed arvetähtajad</div>{data.invalidInvoiceDates.map(invoice=><div key={invoice.id} style={{padding:'12px 15px',borderTop:'1px solid rgba(28,43,58,.08)',display:'flex',justifyContent:'space-between',gap:10,alignItems:'center',flexWrap:'wrap'}}><div><strong>{invoice.number||invoice.id} · {invoice.studentName||'Maksja määramata'}</strong><div style={{fontSize:'.72rem',color:'#991b1b',marginTop:3}}>Arve {fmtDate(invoice.date)} · tähtaeg {fmtDate(invoice.due)}</div></div><button className="btn btn-amber btn-sm" onClick={()=>correctDue(invoice)}>Paranda tähtaeg</button></div>)}</div>}
-    {(data.duplicateGroups||[]).length>0&&<div className="card" style={{overflow:'hidden'}}><div style={{padding:15,fontWeight:800}}>Võimalikud õpilaste duplikaadid</div>{data.duplicateGroups.map(group=><div key={`${group.kind}-${group.key}`} style={{padding:'12px 15px',borderTop:'1px solid rgba(28,43,58,.08)',display:'flex',gap:10,alignItems:'center',flexWrap:'wrap'}}><div style={{minWidth:210,flex:1}}><strong>{group.kind==='email'?'Sama e-post':'Sama nimi'}: {group.key}</strong><div style={{fontSize:'.72rem',color:'#64748b',marginTop:3}}>{group.students.map(student=>student.name||student.id).join(' · ')}</div></div><select value={selections[`duplicate-${group.kind}-${group.key}`]||group.students[0]?.id||''} onChange={event=>pick(`duplicate-${group.kind}-${group.key}`,event.target.value)}>{group.students.map(student=><option key={student.id} value={student.id}>Põhikaart: {student.name||student.id}</option>)}</select><button className="btn btn-amber btn-sm" onClick={()=>mergeGroup(group)}>Kontrolli ja ühenda</button></div>)}</div>}
+    {(data.duplicateGroups||[]).length>0&&<div className="card" style={{overflow:'hidden'}}><div style={{padding:15,fontWeight:800}}>Võimalikud õpilaste duplikaadid</div>{data.duplicateGroups.map(group=><div key={group.key} style={{padding:'12px 15px',borderTop:'1px solid rgba(28,43,58,.08)',display:'flex',gap:10,alignItems:'center',flexWrap:'wrap'}}><div style={{minWidth:240,flex:1}}><div style={{display:'flex',gap:7,alignItems:'center',flexWrap:'wrap'}}><strong>{group.students.map(student=>student.name||student.id).join(' ↔ ')}</strong><span className="badge" style={{background:group.confidence==='high'?'#fee2e2':group.confidence==='medium'?'#fef3c7':'#e0f2fe',color:group.confidence==='high'?'#991b1b':group.confidence==='medium'?'#92400e':'#075985'}}>{group.confidence==='high'?'Tugev vaste':group.confidence==='medium'?'Tõenäoline':'Kontrolli'}</span></div><div style={{fontSize:'.72rem',color:'#64748b',marginTop:4}}>{(group.reasons||[]).map(reason=>reason.label).join(' · ')}</div></div><select value={selections[`duplicate-${group.key}`]||group.students[0]?.id||''} onChange={event=>pick(`duplicate-${group.key}`,event.target.value)}>{group.students.map(student=><option key={student.id} value={student.id}>Põhikaart: {student.name||student.id} · {student.email||student.parentEmail||student.id}</option>)}</select><button className="btn btn-amber btn-sm" onClick={()=>mergeGroup(group)}>Kontrolli ja ühenda</button></div>)}</div>}
     <div className="card" style={{overflow:'hidden'}}><div style={{padding:15,display:'flex',justifyContent:'space-between',gap:10,alignItems:'center',flexWrap:'wrap'}}><div><strong>Firebase kontod</strong><div style={{fontSize:'.72rem',color:'#64748b',marginTop:3}}>{showAllAccounts?'Näed kõiki kontosid, rolle, finantsõigust ja seotud lapsi.':'Näidatakse ainult kontosid, millel puudub õpilase või lapse seos.'}</div></div><div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}><button className="btn btn-ghost btn-sm" onClick={()=>setShowAllAccounts(value=>!value)}>{showAllAccounts?'Näita ainult sidumata':'Näita kõiki kontosid'}</button><input value={accountSearch} onChange={event=>setAccountSearch(event.target.value)} placeholder="Otsi nime, e-posti või UID järgi…" style={{maxWidth:340}}/></div></div>{visibleAccounts.map(account=><div key={account.uid} style={{padding:'12px 15px',borderTop:'1px solid rgba(28,43,58,.08)',display:'flex',gap:10,alignItems:'center',flexWrap:'wrap',opacity:account.disabled?.58:1}}><div style={{minWidth:230,flex:1}}><div style={{display:'flex',gap:6,alignItems:'center',flexWrap:'wrap'}}><strong>{account.displayName||account.email||'Nimeta konto'}</strong><span className="badge" style={{background:account.financeAccess?'#dcfce7':'#f3f4f6',color:account.financeAccess?'#166534':'#64748b'}}>Finants: {account.financeAccess?'jah':'ei'}</span>{account.disabled&&<span className="badge" style={{background:'#fee2e2',color:'#991b1b'}}>Peatatud</span>}</div><div style={{fontSize:'.7rem',color:'#64748b',marginTop:3}}>{account.email||'E-post puudub'} · roll {account.role||'määramata'} · UID {account.uid}</div><div style={{fontSize:'.72rem',color:'#42536A',marginTop:4}}>Lapsed: {account.links?.length?account.links.map(link=>`${link.studentName||link.studentId} (${link.relationship==='parent'?'lapsevanem':'õpilane'})`).join(', '):'seos puudub'}</div></div>{issueSelect(`account-student-${account.uid}`)}<select value={selections[`account-role-${account.uid}`]||'parent'} onChange={event=>pick(`account-role-${account.uid}`,event.target.value)}><option value="parent">Lapsevanem</option><option value="student">Õpilane</option></select><button className="btn btn-pine btn-sm" onClick={()=>linkAccount(account)}>Lisa seos</button><button className="btn btn-ghost btn-sm" style={{color:account.disabled?'#166534':'#991b1b'}} onClick={()=>changeAccountStatus(account)}>{account.disabled?'Taasta':'Peata'}</button></div>)}{visibleAccounts.length===0&&<div style={{padding:30,textAlign:'center',color:'#94a3b8'}}>Kontosid ei leitud.</div>}</div>
   </div>;
 }
@@ -13665,6 +13643,14 @@ function App() {
     if(!user?.uid) return;
     const teacher=canonicalTeacherName(data.teacher||'Pavel');
     const teacherUid=teacherUidForName(teacher)||await teacherUidFromDirectory(teacher);
+    const candidate={id:'__new_parent_child__',name:data.name,parentName:user.displayName||'',parentEmail:user.email||'',linkedParentId:user.uid,linkedParentIds:[user.uid],teacher,level:data.level||'A1',subject:data.subject||'Eesti keel',active:true};
+    const possibleGroup=duplicateStudentGroups([...students,candidate]).find(group=>group.students.some(student=>student.id==='__new_parent_child__'));
+    const existingStudent=(possibleGroup?.students||[]).find(student=>student.id!=='__new_parent_child__');
+    if(existingStudent){
+      setSelStu(existingStudent);setTab('students');
+      notify(`✓ ${existingStudent.name||data.name} kaart on juba olemas; uut duplikaati ei loodud`);
+      return;
+    }
     const ref = await db.collection('students').add({
       name:data.name,
       parentName:user.displayName||'',
@@ -13695,7 +13681,7 @@ function App() {
     await db.collection('users').doc(user.uid).update({childName:existing});
     await logActivity('student.created','Lapsevanem lisas lapse',{studentId:ref.id,studentName:data.name});
     notify('✓ Laps '+data.name+' lisatud!');
-  },[user,logActivity,teacherUidForName]);
+  },[user,students,logActivity,teacherUidForName]);
 
   const addSelfStudentForParent=useCallback(async()=>{
     if(!user?.uid) return;
@@ -13980,7 +13966,8 @@ function App() {
       const payload={primaryStudentId:primary.id,duplicateStudentIds:duplicates.map(student=>student.id)};
       const preview=await staffOperationsApiPost('/students/merge/preview',payload);
       const counts=Object.entries(preview.dependentDocumentCounts||{}).map(([name,count])=>`${name}: ${count}`).join(', ')||'seotud kirjeid ei ole';
-      if(!window.confirm(`Põhikaart: ${primary.name||primary.id}\nArhiveeritavaid duplikaate: ${duplicates.length}\nÜleviidavad andmed: ${counts}\nÕpilase kontosid: ${preview.linkedStudentAccountCount}, lapsevanema kontosid: ${preview.linkedParentAccountCount}.\n\nÜhendada?`)) return;
+      const profileConflicts=(preview.profileConflicts||[]).map(item=>item.field).join(', ');
+      if(!window.confirm(`Põhikaart: ${primary.name||primary.id}\nArhiveeritavaid duplikaate: ${duplicates.length}\nÜleviidavad andmed: ${counts}\nÕpilase kontosid: ${preview.linkedStudentAccountCount}, lapsevanema kontosid: ${preview.linkedParentAccountCount}.\nSäilitatavad nimekujud: ${(preview.preservedAliases?.names||[]).join(', ')||'—'}\n${profileConflicts?`Erinevad väljad (${profileConflicts}) säilitatakse põhikaardi ühendamisajaloos.\n`:''}\nÜhendada?`)) return;
       const result=await staffOperationsApiPost('/students/merge',{...payload,requestId:financeRequestId('student-merge')});
       notify(`✓ Kaardid ühendatud: ${result.totalReferenceCount||0} seotud kirjet viidi põhikaardile`);
     }catch(err){
@@ -13997,7 +13984,7 @@ function App() {
       name:nName,
       parentName:nParentName,
       parentEmail:nEmail,
-      email:'',
+      email:nEmail,
       subject:nSubject,
       teacher:t
     };
@@ -14006,7 +13993,15 @@ function App() {
       notify(`⚠ Selline õpilase profiil on juba olemas: ${duplicate.name} · ${duplicate.subject||'Eesti keel'} · ${duplicate.teacher||'õpetaja puudub'}`);
       return;
     }
-    const ref = await db.collection('students').add({name:nName,parentName:nParentName,level:nLevel,targetLevel:nTarget,teacher:t,teacherUid:teacherUidForName(t),phone:nPhone,email:nEmail,active:true,packageTotal:parseInt(nPkg)||0,packageUsed:0,subject:nSubject,grade:nGrade,group:nGroup,contactStatus:'new',contactOwner:user?.displayName||'',contactLastAt:'',contactNotes:'',createdAt:today()});
+    const newCandidate={id:'__new_student__',...candidate,level:nLevel,targetLevel:nTarget,phone:nPhone,active:true};
+    const possibleGroup=duplicateStudentGroups([...students,newCandidate]).find(group=>group.students.some(student=>student.id==='__new_student__'));
+    const possibleStudents=(possibleGroup?.students||[]).filter(student=>student.id!=='__new_student__');
+    if(possibleStudents.length){
+      const names=possibleStudents.map(student=>`${student.name||'Nimeta'} (${student.email||student.parentEmail||student.teacher||student.id})`).join(', ');
+      const reasons=(possibleGroup.reasons||[]).join(', ');
+      if(!window.confirm(`Võimalik duplikaat: ${names}.\nKokkulangevused: ${reasons}.\n\nKontrolli olemasolevat kaarti. Loo uus kaart ainult siis, kui tegemist on kindlasti teise inimesega.`)) return;
+    }
+    const ref = await db.collection('students').add({name:nName,parentName:nParentName,level:nLevel,targetLevel:nTarget,teacher:t,teacherUid:teacherUidForName(t),phone:nPhone,email:nEmail,active:true,packageTotal:parseInt(nPkg)||0,packageUsed:0,subject:nSubject,grade:nGrade,group:nGroup,contactStatus:'new',contactOwner:user?.displayName||'',contactLastAt:'',contactNotes:'',createdAt:today(),duplicateCreationOverride:possibleStudents.length>0,potentialDuplicateIds:possibleStudents.map(student=>student.id)});
     await logActivity('student.created','Lisati õpilane',{studentId:ref.id,studentName:nName,teacher:t});
     setNName('');setNParentName('');setNPhone('');setNEmail('');setNGroup('');
     notify('✓ Õpilane '+nName+' lisatud!');

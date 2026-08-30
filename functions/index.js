@@ -100,6 +100,8 @@ const {
 const { planTeacherScopeBackfill } = require("./teacher-scope-core");
 const { planTeacherFutureScheduleClear } = require("./schedule-clear-core");
 const {
+  findStudentDuplicateGroups,
+  mergeStudentProfileData,
   mergeGroupStudentReferences,
   normalizedStudentMergeInput,
   parentAccountIds,
@@ -5667,6 +5669,7 @@ async function studentMergePlan(input) {
   const candidates = await getStudentMergeCandidates(input);
   const duplicateIds = candidates.duplicateStudentIds;
   const ownership = studentMergeOwnership(candidates.students, candidates.userDocumentIds);
+  const profileData = mergeStudentProfileData(candidates.primary, candidates.duplicates);
   const documents = [];
   for (const collectionName of STUDENT_REFERENCE_COLLECTIONS) {
     for (let index = 0; index < duplicateIds.length; index += 10) {
@@ -5724,8 +5727,16 @@ async function studentMergePlan(input) {
       groupCount: groupsById.size,
       copiedProfileDocumentCount: singletonDocuments.filter(item => item.copyToPrimary).length,
       profileConflictCount: singletonDocuments.filter(item => item.conflict).length,
+      preservedProfileCount: profileData.snapshots.length,
+      profileConflicts: profileData.conflicts,
+      preservedAliases: {
+        names: profileData.patch.nameAliases,
+        emails: profileData.patch.emailAliases,
+        phones: profileData.patch.phoneAliases,
+      },
       totalReferenceCount: documents.length + groupsById.size + singletonDocuments.length,
     },
+    profileData,
   };
 }
 
@@ -5812,8 +5823,10 @@ async function applyStudentMerge({ actor, primaryStudentId, duplicateStudentIds,
       const operationSnapshot = await transaction.get(operationRef);
       if (operationSnapshot.data()?.status === "complete") return;
       transaction.set(primaryRef, {
+        ...plan.profileData.patch,
         linkedUserIds: plan.ownership.linkedUserIds,
         linkedParentIds: plan.ownership.linkedParentIds,
+        profileConflictFields: plan.profileData.conflicts.map(conflict => conflict.field),
         mergedDuplicateIds: FieldValue.arrayUnion(...plan.duplicateStudentIds),
         active: true,
         mergedAt: nowIso,
@@ -6102,22 +6115,7 @@ async function previewDataQuality() {
     if (account.roles.some(role => STAFF_ROLES.has(role))) return false;
     return account.role === "student" || account.role === "parent" || account.roles.includes("student") || account.roles.includes("parent");
   });
-  const duplicateGroups = [];
-  const collectDuplicates = (kind, keyFor) => {
-    const groups = new Map();
-    students.filter(student => student.active !== false).forEach(student => {
-      const key = keyFor(student);
-      if (!key) return;
-      const group = groups.get(key) || [];
-      group.push({ id: student.id, name: student.name || "", email: student.email || student.contactEmail || "" });
-      groups.set(key, group);
-    });
-    groups.forEach((items, key) => {
-      if (items.length > 1) duplicateGroups.push({ kind, key, students: items });
-    });
-  };
-  collectDuplicates("email", student => normalizedIdentity(student.email || student.contactEmail));
-  collectDuplicates("name", student => normalizedIdentity(student.name));
+  const duplicateGroups = findStudentDuplicateGroups(students);
   return {
     generatedAt: new Date().toISOString(),
     students: students.filter(student => student.active !== false).map(student => ({

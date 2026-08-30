@@ -1,5 +1,5 @@
 (function(){
-  const APP_VERSION  = 'KeeleSepp CRM · 30.08.2026.10';
+  const APP_VERSION  = 'KeeleSepp CRM · 30.08.2026.11';
   const LEVELS   = ['Eelkool','A1','A2','B1','B2','C1'];
   const TEACHERS = ['Pavel','Jelena','Elizaveta','Angelina'];
   const STAFF_ALIASES = {
@@ -61,6 +61,56 @@
     normalizeText(student?.subject || 'Eesti keel'),
     normalizeText(canonicalTeacherName(student?.teacher || ''))
   ].join('|');
+  const duplicateIdentityText = value => String(value||'').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^\p{L}\p{N}@+]+/gu,' ').trim().replace(/\s+/g,' ');
+  const duplicateStudentGroups = students => {
+    const active=(students||[]).filter(student=>student?.id&&student.active!==false&&!student.mergedIntoStudentId);
+    const details=student=>{
+      const name=duplicateIdentityText(student.name);
+      const tokens=name.split(' ').filter(Boolean);
+      const values=list=>[...new Set(list.map(value=>String(value||'').trim().toLowerCase()).filter(Boolean))];
+      return {
+        name,tokens,first:tokens[0]||'',teacher:duplicateIdentityText(student.teacher),
+        subject:duplicateIdentityText(student.subject||'Eesti keel'),level:duplicateIdentityText(student.level),
+        emails:values([student.email,student.contactEmail,student.studentEmail]),
+        parentEmails:values([student.parentEmail,student.guardianEmail]),
+        userIds:values([student.linkedUserId,student.studentUid,...(student.linkedUserIds||[])]),
+        parentIds:values([student.linkedParentId,student.parentUid,student.guardianUid,...(student.linkedParentIds||[])]),
+        groupId:String(student.groupId||'').trim()
+      };
+    };
+    const overlap=(left,right)=>left.some(value=>right.includes(value));
+    const pairs=[];
+    for(let leftIndex=0;leftIndex<active.length;leftIndex+=1){
+      for(let rightIndex=leftIndex+1;rightIndex<active.length;rightIndex+=1){
+        const left=active[leftIndex],right=active[rightIndex],a=details(left),b=details(right);
+        if(a.groupId&&a.groupId===b.groupId) continue;
+        const exactName=Boolean(a.name)&&a.name===b.name;
+        const nameVariant=Boolean(a.first)&&a.first===b.first&&(a.tokens.length===1||b.tokens.length===1)&&a.name!==b.name;
+        const sameStudentAccount=overlap(a.userIds,b.userIds);
+        const sameEmail=overlap(a.emails,b.emails);
+        const sameParent=overlap(a.parentIds,b.parentIds)||overlap(a.parentEmails,b.parentEmails);
+        let score=0;const reasons=[];const add=(points,label)=>{score+=points;reasons.push(label);};
+        if(sameStudentAccount) add(120,'Sama õpilase konto');
+        if(sameEmail&&(exactName||nameVariant)) add(90,'Sama e-post');
+        if(exactName) add(45,'Sama nimi'); else if(nameVariant) add(25,'Lühike ja täielik nimekuju');
+        if((exactName||nameVariant)&&sameParent) add(45,'Sama lapsevanem');
+        if((exactName||nameVariant)&&a.teacher&&a.teacher===b.teacher) add(6,'Sama õpetaja');
+        if((exactName||nameVariant)&&a.subject&&a.subject===b.subject) add(6,'Sama õppeaine');
+        if((exactName||nameVariant)&&a.level&&a.level===b.level) add(3,'Sama tase');
+        if(score>=35) pairs.push({leftId:left.id,rightId:right.id,score,reasons});
+      }
+    }
+    const parent=new Map(active.map(student=>[student.id,student.id]));
+    const root=id=>{let current=id;while(parent.get(current)!==current) current=parent.get(current);return current;};
+    pairs.forEach(pair=>{const left=root(pair.leftId),right=root(pair.rightId);if(left!==right) parent.set(right,left);});
+    const groups=new Map();
+    pairs.forEach(pair=>{const key=root(pair.leftId);if(!groups.has(key)) groups.set(key,{ids:new Set(),pairs:[]});groups.get(key).ids.add(pair.leftId);groups.get(key).ids.add(pair.rightId);groups.get(key).pairs.push(pair);});
+    const byId=new Map(active.map(student=>[student.id,student]));
+    return [...groups.values()].map(group=>{
+      const score=Math.max(...group.pairs.map(pair=>pair.score));
+      return {key:[...group.ids].sort().join('-'),score,confidence:score>=90?'high':score>=55?'medium':'review',reasons:[...new Set(group.pairs.flatMap(pair=>pair.reasons))],students:[...group.ids].map(id=>byId.get(id))};
+    }).sort((left,right)=>right.score-left.score);
+  };
   const resolveStudentRecord = (students,record={}) => {
     const list=Array.isArray(students)?students:[];
     const recordId=String(record?.studentId||record?.id||'').trim();
@@ -229,6 +279,29 @@
         if(canonical.exists) return;
       }else return;
     }
+    const emailCandidates=new Map();
+    if(email){
+      const emailQueries=await Promise.all(['email','contactEmail','studentEmail'].map(field=>
+        db.collection('students').where(field,'==',email).limit(3).get().catch(()=>null)
+      ));
+      emailQueries.filter(Boolean).forEach(snapshot=>snapshot.docs.forEach(doc=>{
+        const data=doc.data()||{};
+        if(data.active!==false&&!data.mergedIntoStudentId) emailCandidates.set(doc.id,doc);
+      }));
+    }
+    if(emailCandidates.size===1){
+      const candidate=[...emailCandidates.values()][0];
+      const data=candidate.data()||{};
+      await candidate.ref.set({
+        linkedUserId:authUser.uid,
+        studentUid:authUser.uid,
+        linkedUserIds:firebase.firestore.FieldValue.arrayUnion(authUser.uid),
+        email:data.email||email,
+        accountLinkedAt:new Date().toISOString(),
+        accountLinkSource:'exact-email'
+      },{merge:true});
+      return;
+    }
     const teacher = canonicalTeacherName(profile.preferredTeacher || profile.teacher || '');
     const teacherUid = await teacherUidFromDirectory(teacher);
     await db.collection('students').add({
@@ -251,6 +324,8 @@
       group:'',
       registrationSource:hasUserRole(profile,'parent')?'parent-as-student':'self-service',
       profileStatus:'new',
+      potentialDuplicateIds:[...emailCandidates.keys()],
+      duplicateReviewRequired:emailCandidates.size>1,
       contactStatus:'new',
       contactOwner:'',
       contactLastAt:'',
@@ -342,6 +417,7 @@
     normalizeText,
     studentIdentityKey,
     studentProfileKey,
+    duplicateStudentGroups,
     resolveStudentRecord,
     lessonJournalErrorGuidance,
     parseLinkedNames,
