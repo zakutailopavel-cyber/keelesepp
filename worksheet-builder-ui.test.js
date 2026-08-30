@@ -19,7 +19,16 @@ test('worksheet builder has a visible quality gate and responsive editing layout
   assert.match(worksheet,/Töölehe kvaliteet/);
   assert.match(worksheet,/Tööleht läbis kvaliteedikontrolli/);
   assert.match(worksheet,/@media\(max-width:760px\)/);
-  assert.match(worksheet,/\.workspace\{display:flex;flex-direction:column/);
+  assert.match(worksheet,/\.workspace,\.workspace\.panel-collapsed\{display:flex;flex-direction:column/);
+});
+
+test('worksheet builder uses a modern focused workspace shell',()=>{
+  assert.match(worksheet,/className="hdr-brand"/);
+  assert.match(worksheet,/className="brand-mark"/);
+  assert.match(worksheet,/panelCollapsed\?' panel-collapsed'/);
+  assert.match(worksheet,/className="quality-progress"/);
+  assert.match(worksheet,/Reaalaja eelvaade/);
+  assert.match(worksheet,/Peida tööriistad/);
 });
 
 test('AI generation uses subject-specific CEFR profiles through C2',()=>{

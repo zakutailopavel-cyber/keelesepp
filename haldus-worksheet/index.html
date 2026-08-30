@@ -160,9 +160,25 @@ textarea{resize:vertical;line-height:1.45;}
 .prefill-banner-content{flex:1;min-width:0}.prefill-banner-content span{display:block}.prefill-banner-content small{display:block;margin-top:3px;color:#7A7167;font-weight:500;line-height:1.35}.prefill-banner-actions{display:flex;gap:6px;margin-top:8px}.quality-card{background:#fff;border:1px solid rgba(28,43,58,.1);border-radius:10px;padding:11px 12px;margin-bottom:10px}.quality-card-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;font-size:.76rem;font-weight:800}.quality-score{padding:3px 7px;border-radius:999px;background:#E7F4EE;color:#2F5D50;font-size:.68rem}.quality-score.warn{background:#FFF4E8;color:#9A5B13}.quality-checks{display:grid;gap:4px}.quality-check{display:flex;align-items:center;gap:7px;font-size:.72rem;color:#6B7280}.quality-check.ok{color:#2F5D50}.quality-check i{width:13px;text-align:center}
 .template-list{display:grid;gap:8px}.template-card{width:100%;display:flex;align-items:flex-start;gap:10px;padding:11px;border:1px solid rgba(28,43,58,.1);border-radius:10px;background:#fff;text-align:left;cursor:pointer;font-family:inherit;color:#1C2B3A;transition:all .13s}.template-card:hover{border-color:#2F5D50;background:rgba(47,93,80,.04);transform:translateY(-1px)}.template-icon{width:34px;height:34px;border-radius:9px;background:rgba(47,93,80,.1);color:#2F5D50;display:flex;align-items:center;justify-content:center;flex-shrink:0}.template-card strong{display:block;font-size:.8rem}.template-card small{display:block;font-size:.68rem;line-height:1.35;color:#718096;margin-top:3px}.template-mode-tabs{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:9px}.template-mode-tabs button{padding:8px;border:1px solid rgba(28,43,58,.1);border-radius:8px;background:#fff;color:#718096;font-family:inherit;font-size:.72rem;font-weight:800;cursor:pointer}.template-mode-tabs button.active{background:#1C2B3A;color:#fff;border-color:#1C2B3A}.visual-filters{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}.visual-filters .wide{grid-column:1/-1}.visual-filters input,.visual-filters select{font-size:.72rem;padding:7px 8px}.visual-count{font-size:.67rem;color:#718096;margin:2px 0 7px}.visual-card{position:relative}.visual-card .template-icon{background:var(--visual-bg,rgba(47,93,80,.1));color:var(--visual-color,#2F5D50)}.visual-card-copy{min-width:0;flex:1}.visual-badges{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}.visual-badge{font-size:.58rem;font-weight:800;padding:2px 6px;border-radius:999px;background:#F2F4F7;color:#5F6D80}.visual-add{font-size:.62rem;font-weight:800;color:#2F5D50;margin-top:6px}.visual-empty{padding:22px 12px;border:1px dashed rgba(28,43,58,.16);border-radius:10px;text-align:center;color:#718096;font-size:.74rem;line-height:1.45}.draft-banner{background:#EEF4FF;border:1px solid #BDD2F6;color:#315A91;border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:.76rem;line-height:1.4}.status-options{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.status-option{padding:9px;border:1.5px solid rgba(28,43,58,.1);border-radius:9px;background:#fff;cursor:pointer;text-align:left;font-family:inherit}.status-option.active{border-color:#2F5D50;background:rgba(47,93,80,.07)}.status-option strong{font-size:.75rem;display:block}.status-option small{font-size:.64rem;line-height:1.3;color:#718096;display:block;margin-top:2px}
 
+/* Modern workspace shell */
+:root{--ws-ink:#142238;--ws-muted:#66758A;--ws-border:#DDE3EA;--ws-canvas:#E9EDF2;--ws-surface:#FFFFFF;--ws-soft:#F6F8FA;--ws-pine:#226B5B;--ws-gold:#D99A32;--ws-blue:#3467D6}
+body{background:var(--ws-canvas);color:var(--ws-ink)}
+.hdr{height:72px;padding:0 22px;background:rgba(15,27,45,.97);box-shadow:none;border-bottom:1px solid rgba(255,255,255,.08);backdrop-filter:blur(14px)}
+.hdr-brand,.hdr-actions{display:flex;align-items:center}.hdr-brand{gap:12px;min-width:0}.hdr-actions{gap:8px}.brand-mark{width:38px;height:38px;border-radius:12px;background:linear-gradient(145deg,#F3B34C,#D88C23);display:grid;place-items:center;color:#fff;font-size:1rem;box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
+.hdr-copy{display:flex;flex-direction:column;min-width:0}.hdr-copy .logo{font-size:1.12rem;line-height:1.1}.hdr-context{font-size:.68rem;color:rgba(255,255,255,.5);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.hdr-context strong{color:rgba(255,255,255,.78);font-weight:600}.save-state{display:flex;align-items:center;gap:6px;padding:6px 9px;border-radius:999px;background:rgba(255,255,255,.07);color:rgba(255,255,255,.72);font-size:.68rem;font-weight:700;white-space:nowrap}.save-state i{font-size:.5rem;color:#67D2A8}.save-state.unsaved i{color:#F5B84B}
+.hdr .btn,.hdr .hdr-back{min-height:36px;border-radius:10px;padding:7px 12px}.hdr-back{display:inline-flex;align-items:center;gap:6px;color:rgba(255,255,255,.65);font-size:.72rem;text-decoration:none;border:1px solid rgba(255,255,255,.12);white-space:nowrap}.hdr-back:hover{background:rgba(255,255,255,.07);color:#fff}
+.workspace{grid-template-columns:372px minmax(0,1fr);height:calc(100vh - 72px);background:var(--ws-canvas)}.workspace.panel-collapsed{grid-template-columns:minmax(0,1fr)}.workspace.panel-collapsed .left-panel{display:none}
+.left-panel{background:var(--ws-soft);border-right:1px solid var(--ws-border)}.left-tabs{padding:10px 10px 0;gap:5px;border:0;background:var(--ws-soft)}.ltab{padding:9px 7px;border:1px solid transparent;border-radius:10px;color:var(--ws-muted);font-size:.72rem}.ltab:hover{background:#fff;border-color:var(--ws-border);color:var(--ws-ink)}.ltab.active{background:#fff;color:var(--ws-ink);border-color:var(--ws-border);box-shadow:0 1px 2px rgba(20,34,56,.05)}
+.left-scroll{padding:12px 14px 28px;scrollbar-color:#C6CED8 transparent;scrollbar-width:thin}.section-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:2px 0 9px}.section-heading strong{font-size:.7rem;text-transform:uppercase;letter-spacing:.09em;color:#526176}.section-heading small{font-size:.62rem;color:#97A3B2}
+.quality-card{border-color:var(--ws-border);border-radius:14px;padding:13px 14px;box-shadow:0 1px 2px rgba(20,34,56,.04)}.quality-card-head{font-size:.78rem}.quality-progress{height:6px;border-radius:999px;background:#E8EDF2;overflow:hidden;margin:-1px 0 10px}.quality-progress span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--ws-pine),#54B494);transition:width .2s}.quality-summary{font-size:.66rem;color:var(--ws-muted);margin-top:8px;padding-top:8px;border-top:1px solid #EDF0F3}
+.btype-grid{gap:8px;margin-bottom:18px}.btype-btn{min-height:44px;padding:8px 10px;border:1px solid var(--ws-border);border-radius:12px;font-size:.73rem;box-shadow:0 1px 1px rgba(20,34,56,.02)}.btype-btn:hover{border-color:#91B8AE;background:#F3FAF7;transform:translateY(-1px)}.btype-icon{width:28px;height:28px;border-radius:9px}
+.history-actions{padding:5px;background:#E9EDF2;border-radius:12px;gap:4px}.history-actions .btn{border:0;background:transparent;min-height:32px}.history-actions .btn:not(:disabled):hover{background:#fff}.block-item{border:1px solid var(--ws-border);border-radius:13px;margin-bottom:8px;box-shadow:0 1px 2px rgba(20,34,56,.025);overflow:hidden}.block-item:hover{border-color:#B7C2CF}.block-item.active{border-color:#70A697;box-shadow:0 0 0 3px rgba(34,107,91,.09)}.bi-head{min-height:48px;padding:10px 11px}.bi-tag{border-radius:7px;padding:3px 7px}.bi-actions{opacity:.25;transition:opacity .12s}.block-item:hover .bi-actions,.block-item.active .bi-actions{opacity:1}.bi-btn{width:25px;height:25px;display:grid;place-items:center;padding:0;border-radius:7px}.block-editor{padding:14px 12px 15px;background:#FBFCFD;border-top:1px solid #E8EDF2}.field-lbl{color:#657287;margin-top:12px}.block-editor input,.block-editor textarea,.block-editor select,.meta-box input,.meta-box textarea,.meta-box select,.visual-filters input,.visual-filters select{background:#fff;border-color:#D8E0E8;min-height:38px}.block-editor input:focus,.block-editor textarea:focus,.block-editor select:focus,.meta-box input:focus,.meta-box textarea:focus,.meta-box select:focus,.visual-filters input:focus,.visual-filters select:focus{border-color:#5C9C8B;box-shadow:0 0 0 3px rgba(34,107,91,.09)}
+.meta-box,.template-card{border-color:var(--ws-border);border-radius:14px;box-shadow:0 1px 2px rgba(20,34,56,.03)}.template-card{padding:13px}.template-card:hover{border-color:#8FB8AD;background:#F7FBF9;box-shadow:0 4px 12px rgba(20,34,56,.06)}.template-mode-tabs{padding:4px;background:#E9EDF2;border-radius:12px}.template-mode-tabs button{border:0;border-radius:9px;background:transparent;min-height:36px}.template-mode-tabs button.active{background:#fff;color:var(--ws-ink);box-shadow:0 1px 3px rgba(20,34,56,.1)}
+.right-panel{padding:20px 28px 46px;background:radial-gradient(circle at 50% 0,#F4F6F8 0,var(--ws-canvas) 48%);align-items:center}.toolbar-row{min-height:44px;margin-bottom:14px;padding:6px 7px 6px 12px;border:1px solid var(--ws-border);border-radius:13px;background:rgba(255,255,255,.88);box-shadow:0 4px 16px rgba(20,34,56,.05);backdrop-filter:blur(10px);position:sticky;top:0;z-index:20}.preview-heading{margin-right:auto;display:flex;align-items:center;gap:9px}.preview-heading i{color:var(--ws-pine)}.preview-heading strong{display:block;font-size:.75rem}.preview-heading small{display:block;color:var(--ws-muted);font-size:.62rem;margin-top:1px}.preview-panel-toggle{border:0!important;background:#EEF3F7!important}.a4-wrap{filter:none}.a4-sheet{border:1px solid #D9E0E7;border-radius:4px;box-shadow:0 12px 40px rgba(20,34,56,.12)}.a4-page-break{background:transparent;height:42px}.a4-page-break-label{background:#DDE3EA;padding:4px 10px;border-radius:999px;color:#68778B}
+.btn{border-radius:10px;min-height:36px}.btn-pine{background:var(--ws-pine)}.btn-gold{background:var(--ws-gold)}.btn-green{background:#2F9D62}.toast{top:82px;border:1px solid rgba(255,255,255,.08);box-shadow:0 12px 30px rgba(20,34,56,.24)}
+
 @media(max-width:760px){
-  .hdr{height:auto;min-height:56px;padding:9px 12px;align-items:flex-start;gap:8px;flex-wrap:wrap}.hdr>div:first-child span{display:none}.hdr>div:last-child{width:100%;overflow-x:auto;padding-bottom:2px}.hdr>div:last-child .btn,.hdr>div:last-child a{white-space:nowrap;flex-shrink:0}
-  .workspace{display:flex;flex-direction:column;height:auto;min-height:calc(100vh - 100px);overflow:visible}.left-panel{overflow:visible;border-right:0;border-bottom:1px solid rgba(28,43,58,.1)}.left-scroll{max-height:none;overflow:visible}.right-panel{overflow:visible;padding:12px 8px 28px;align-items:stretch}.toolbar-row{overflow-x:auto;justify-content:flex-start}.toolbar-row span{display:none}.a4-sheet{min-height:900px;padding:28px 20px}.sheet-hdr{flex-direction:column}.a4-page-break{width:100%}.sav-body>div[style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr!important}.sav-foot{flex-wrap:wrap}.sav-foot .btn{flex:1;justify-content:center}.status-options{grid-template-columns:1fr}.left-tabs{overflow-x:auto}.ltab{min-width:76px;white-space:nowrap}.comic-grid,.diagram-cycle,.diagram-mindmap{grid-template-columns:1fr}.diagram-flow{flex-direction:column}.diagram-arrow{transform:rotate(90deg)}.visual-filters{grid-template-columns:1fr}
+  .hdr{height:auto;min-height:62px;padding:9px 10px;align-items:center;gap:8px;flex-wrap:wrap}.brand-mark{width:34px;height:34px}.hdr-context{display:none}.hdr-actions{width:100%;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}.hdr-actions::-webkit-scrollbar{display:none}.hdr-actions .btn,.hdr-actions a,.save-state{white-space:nowrap;flex-shrink:0}.save-state{order:-1}.workspace,.workspace.panel-collapsed{display:flex;flex-direction:column;height:auto;min-height:calc(100vh - 110px);overflow:visible}.workspace.panel-collapsed .left-panel{display:flex}.left-panel{overflow:visible;border-right:0;border-bottom:1px solid var(--ws-border)}.left-scroll{max-height:none;overflow:visible}.right-panel{overflow:visible;padding:12px 8px 28px;align-items:stretch}.toolbar-row{overflow-x:auto;justify-content:flex-start;position:static}.preview-heading{min-width:120px}.preview-heading small{display:none}.preview-panel-toggle{display:none!important}.a4-sheet{min-height:900px;padding:28px 20px;border-radius:2px}.sheet-hdr{flex-direction:column}.a4-page-break{width:100%}.sav-body>div[style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr!important}.sav-foot{flex-wrap:wrap}.sav-foot .btn{flex:1;justify-content:center}.status-options{grid-template-columns:1fr}.left-tabs{overflow-x:auto;padding:8px 8px 0}.ltab{min-width:82px;white-space:nowrap}.comic-grid,.diagram-cycle,.diagram-mindmap{grid-template-columns:1fr}.diagram-flow{flex-direction:column}.diagram-arrow{transform:rotate(90deg)}.visual-filters{grid-template-columns:1fr}.bi-actions{opacity:1}.toast{top:120px}
 }
 
 @media print{
@@ -177,8 +193,8 @@ textarea{resize:vertical;line-height:1.45;}
 
 <script src="/haldus-shared.js"></script>
 <script src="/curriculum-workflow-core.js"></script>
-<script src="/worksheet-workflow-core.js?v=20260830.8"></script>
-<script src="/worksheet-visual-library.js?v=20260830.8"></script>
+<script src="/worksheet-workflow-core.js?v=20260830.9"></script>
+<script src="/worksheet-visual-library.js?v=20260830.9"></script>
 <script type="text/babel">
 const {useState,useEffect,useRef,useMemo,useCallback} = React;
 const auth=window._auth, db=window._db, storage=window._storage;
@@ -1461,6 +1477,7 @@ function App(){
   const[dragOver,setDragOver]=useState(null);
   const[insertAfterId,setInsertAfterId]=useState(null);
   const[historyRev,setHistoryRev]=useState(0);
+  const[panelCollapsed,setPanelCollapsed]=useState(false);
   const pastRef=useRef([]);
   const futureRef=useRef([]);
   const[showSave,setShowSave]=useState(false);
@@ -1600,20 +1617,24 @@ function App(){
       {toast&&<div className="toast">{toast}</div>}
 
       <header className="hdr">
-        <div style={{display:'flex',alignItems:'center',gap:14}}>
-          <div className="logo">Keele<span>Sepp</span></div>
-          <span style={{color:'rgba(255,255,255,.3)',fontSize:'.76rem'}}>Töölehtede koostaja</span>
+        <div className="hdr-brand">
+          <div className="brand-mark"><i className="fa-solid fa-file-pen"/></div>
+          <div className="hdr-copy">
+            <div className="logo">Keele<span>Sepp</span></div>
+            <div className="hdr-context"><strong>Töölehe koostaja</strong>{meta.title?` · ${meta.title}`:''}</div>
+          </div>
           {prefillLessonId&&<span style={{fontSize:'.72rem',padding:'3px 9px',background:'rgba(201,136,42,.25)',color:'#F5C97A',borderRadius:6,fontWeight:700}}>✏️ Muutmisrežiim</span>}
         </div>
-        <div style={{display:'flex',gap:8,alignItems:'center'}}>
-          <a href="/haldus-exercises" style={{color:'rgba(255,255,255,.45)',fontSize:'.76rem',textDecoration:'none',padding:'5px 10px',border:'1px solid rgba(255,255,255,.12)',borderRadius:7}}>← Õppekava</a>
+        <div className="hdr-actions">
+          <div className={'save-state'+(worksheetSignature!==lastSavedSignature?' unsaved':'')}><i className="fa-solid fa-circle"/> {worksheetSignature!==lastSavedSignature?'Mustand':'Salvestatud'}</div>
+          <a href="/haldus-exercises" className="hdr-back"><i className="fa-solid fa-arrow-left"/> Õppekava</a>
           <button onClick={exportPrint} className="btn btn-ghost btn-sm" style={{color:'#fff',borderColor:'rgba(255,255,255,.18)'}}><i className="fa-solid fa-print"/> Prindi / PDF</button>
           <button onClick={()=>setShowSave(true)} className="btn btn-green btn-sm"><i className="fa-solid fa-floppy-disk"/> {prefillLessonId?'Salvesta uus versioon':'Salvesta'}</button>
           <button onClick={exportDL} className="btn btn-gold btn-sm"><i className="fa-solid fa-download"/> Laadi alla</button>
         </div>
       </header>
 
-      <div className="workspace">
+      <div className={'workspace'+(panelCollapsed?' panel-collapsed':'')}>
         {/* LEFT PANEL */}
         <div className="left-panel">
           <div className="left-tabs">
@@ -1640,7 +1661,9 @@ function App(){
             {tab==='build'&&(
               <div className="quality-card">
                 <div className="quality-card-head"><span><i className="fa-solid fa-shield-check"/> Töölehe kvaliteet</span><span className={'quality-score'+(quality.ready?'':' warn')}>{quality.passed}/{quality.total}</span></div>
+                <div className="quality-progress" aria-label={`Kvaliteet ${quality.percent}%`}><span style={{width:`${quality.percent}%`}}/></div>
                 <div className="quality-checks">{quality.checks.map(check=><div key={check.key} className={'quality-check'+(check.ok?' ok':'')}><i className={'fa-solid '+(check.ok?'fa-circle-check':'fa-circle-exclamation')}/><span>{check.label}</span></div>)}</div>
+                <div className="quality-summary">{quality.ready?'Valmis kontrollimiseks ja avaldamiseks.':'Paranda märgitud punktid enne avaldamist.'}</div>
               </div>
             )}
 
@@ -1793,14 +1816,14 @@ function App(){
                   <button type="button" className="btn btn-ghost btn-sm" onClick={redoBlocks} disabled={!futureRef.current.length} title="Taasta tagasi võetud muudatus"><i className="fa-solid fa-rotate-right"/> Tee uuesti</button>
                   <button type="button" className="btn btn-ghost btn-sm" onClick={()=>{setActiveId(null);setInsertAfterId(null);}} disabled={!blocks.length} title="Sulge kõik plokid"><i className="fa-solid fa-down-left-and-up-right-to-center"/> Sulge</button>
                 </div>
-                <div style={{fontSize:'.66rem',fontWeight:700,color:'#7A7167',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:7}}>Lisa plokk</div>
+                <div className="section-heading"><strong><i className="fa-solid fa-square-plus"/> Lisa plokk</strong><small>Klõpsa lisamiseks</small></div>
                 <div className="btype-grid">
                   {BTYPES.map(bt=>(<button key={bt.key} className="btype-btn" onClick={()=>addBlock(bt.key)}><div className="btype-icon" style={{background:bt.bg}}><i className={'fa-solid '+bt.icon} style={{color:bt.color}}/></div>{bt.label}</button>))}
                 </div>
                 {blocks.length===0
                   ?<div className="empty-bld"><i className="fa-solid fa-layer-group"/><p style={{fontSize:'.78rem'}}>Lisa plokke ülal</p></div>
                   :<div>
-                    <div style={{fontSize:'.66rem',fontWeight:700,color:'#7A7167',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:6}}>Plokid ({blocks.length}) — lohista järjekorra muutmiseks</div>
+                    <div className="section-heading"><strong>Plokid ({blocks.length})</strong><small>Lohista järjestamiseks</small></div>
                     {blocks.map((block,idx)=>{
                       const bt=BT[block.type];const isActive=activeId===block.id;
                       return(
@@ -1848,7 +1871,8 @@ function App(){
         {/* RIGHT PANEL — A4 PREVIEW */}
         <div className="right-panel">
           <div className="toolbar-row">
-            <span style={{fontSize:'.74rem',color:'#7A7167',marginRight:'auto'}}>{blocks.length} plokki{worksheetSignature!==lastSavedSignature?' · mustand salvestub automaatselt':' · salvestatud'}</span>
+            <div className="preview-heading"><i className="fa-regular fa-file-lines"/><div><strong>Reaalaja eelvaade</strong><small>A4 · {blocks.length} plokki</small></div></div>
+            <button type="button" className="btn btn-ghost btn-sm preview-panel-toggle" onClick={()=>setPanelCollapsed(value=>!value)} title={panelCollapsed?'Näita tööriistu':'Peida tööriistad'}><i className={'fa-solid '+(panelCollapsed?'fa-eye':'fa-eye-slash')}/> {panelCollapsed?'Näita tööriistu':'Peida tööriistad'}</button>
             <button onClick={exportPrint} className="btn btn-ghost btn-sm"><i className="fa-solid fa-print"/> Prindi / PDF</button>
             <button onClick={exportDL} className="btn btn-pine btn-sm"><i className="fa-solid fa-download"/> Laadi alla (.html)</button>
           </div>
