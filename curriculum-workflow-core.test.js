@@ -56,6 +56,40 @@ test('student progress is derived from completed linked lessons without migratio
   assert.equal(progress.nextItem.topicId,'est-a1-02');
 });
 
+test('student journey combines lessons, homework and created materials without changing source records',()=>{
+  const student={id:'student-1',subject:'Eesti keel',level:'A1',curriculumPlan:{topicId:'est-a1-02',lessonIndex:0}};
+  const lessons=[
+    {studentId:'student-1',status:'Toimunud',curriculumTopicId:'est-a1-01',curriculumLessonIndex:0},
+    {studentId:'student-1',status:'Toimunud',curriculumTopicId:'est-a1-01',curriculumLessonIndex:1},
+    {studentId:'other',status:'Toimunud',curriculumTopicId:'est-a1-02',curriculumLessonIndex:0}
+  ];
+  const homework=[
+    {studentId:'student-1',status:'Ootel',curriculumTopicId:'est-a1-02',curriculumLessonIndex:0},
+    {studentId:'student-1',status:'Tehtud',curriculumTopicId:'est-a1-01',curriculumLessonIndex:0}
+  ];
+  const materials=[
+    {type:'material',curriculumTopicId:'est-a1-02',curriculumLessonIndex:0},
+    {type:'worksheet',curriculumTopicId:'est-a1-02',curriculumLessonIndex:0}
+  ];
+  const journey=workflow.buildStudentJourney(curriculum,student,lessons,homework,materials);
+  assert.equal(journey.valid,true);
+  assert.equal(journey.completedLessons,2);
+  assert.equal(journey.completedTopics,1);
+  assert.equal(journey.pendingHomework,1);
+  assert.equal(journey.materialCount,2);
+  assert.equal(journey.nextItem.key,'est-a1-02:0');
+  assert.equal(journey.nextItem.planned,true);
+  assert.equal(journey.nextItem.pendingHomeworkCount,1);
+  assert.equal(journey.nextItem.worksheetCount,1);
+});
+
+test('student journey stays unavailable until subject and CEFR level are explicit',()=>{
+  const journey=workflow.buildStudentJourney(curriculum,{id:'student-1',subject:'Eesti keel',level:''},[],[],[]);
+  assert.equal(journey.valid,false);
+  assert.equal(journey.items.length,0);
+  assert.equal(journey.nextItem,null);
+});
+
 test('curriculum lesson opens as an editable worksheet starter with exact ownership',()=>{
   const item=workflow.flattenCurriculum(curriculum)[0];
   const prefill=workflow.buildWorksheetPrefill(item);

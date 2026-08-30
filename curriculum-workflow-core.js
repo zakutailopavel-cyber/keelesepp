@@ -330,6 +330,79 @@
     };
   }
 
+  function buildStudentJourney(curriculum,student={},lessons=[],homework=[],materials=[]){
+    const catalog=catalogForStudent(flattenCurriculum(curriculum),student);
+    const lessonRows=(lessons||[]).filter(lesson=>lesson.studentId===student.id&&lesson.curriculumTopicId);
+    const completedKeys=new Set(lessonRows
+      .filter(lesson=>lesson.status==='Toimunud')
+      .map(lesson=>`${lesson.curriculumTopicId}:${Math.max(0,Number(lesson.curriculumLessonIndex)||0)}`));
+    const plannedKey=student.curriculumPlan?.topicId
+      ?`${student.curriculumPlan.topicId}:${Math.max(0,Number(student.curriculumPlan.lessonIndex)||0)}`
+      :'';
+    const homeworkByKey=new Map();
+    (homework||[]).filter(item=>item.studentId===student.id&&item.curriculumTopicId).forEach(item=>{
+      const key=`${item.curriculumTopicId}:${Math.max(0,Number(item.curriculumLessonIndex)||0)}`;
+      const rows=homeworkByKey.get(key)||[];
+      rows.push(item);
+      homeworkByKey.set(key,rows);
+    });
+    const materialsByKey=new Map();
+    (materials||[]).filter(item=>item.curriculumTopicId).forEach(item=>{
+      const key=`${item.curriculumTopicId}:${Math.max(0,Number(item.curriculumLessonIndex)||0)}`;
+      const rows=materialsByKey.get(key)||[];
+      rows.push(item);
+      materialsByKey.set(key,rows);
+    });
+    const doneHomeworkStatuses=new Set(['tehtud','valmis','completed','done']);
+    const items=catalog.map(item=>{
+      const homeworkRows=homeworkByKey.get(item.key)||[];
+      const materialRows=materialsByKey.get(item.key)||[];
+      const completed=completedKeys.has(item.key);
+      return {
+        ...item,
+        completed,
+        planned:item.key===plannedKey&&!completed,
+        homeworkCount:homeworkRows.length,
+        pendingHomeworkCount:homeworkRows.filter(row=>!doneHomeworkStatuses.has(normalize(row.status))).length,
+        materialCount:materialRows.length,
+        worksheetCount:materialRows.filter(row=>row.type==='worksheet'||row.sourceType==='worksheet_builder').length
+      };
+    });
+    const topics=[];
+    items.forEach(item=>{
+      let topic=topics.find(row=>row.topicId===item.topicId);
+      if(!topic){
+        topic={topicId:item.topicId,topicName:item.topicName,topicIndex:item.topicIndex,items:[],completedLessons:0,totalLessons:0,percent:0,completed:false,active:false};
+        topics.push(topic);
+      }
+      topic.items.push(item);
+      topic.totalLessons+=1;
+      if(item.completed) topic.completedLessons+=1;
+      if(item.planned) topic.active=true;
+    });
+    topics.forEach(topic=>{
+      topic.percent=topic.totalLessons?Math.round(topic.completedLessons/topic.totalLessons*100):0;
+      topic.completed=topic.totalLessons>0&&topic.completedLessons===topic.totalLessons;
+    });
+    const nextItem=items.find(item=>item.planned)||items.find(item=>!item.completed)||null;
+    return {
+      subject:items[0]?.subject||canonicalSubject(student.subject),
+      level:items[0]?.level||text(student.level),
+      valid:items.length>0,
+      items,
+      topics,
+      totalLessons:items.length,
+      completedLessons:items.filter(item=>item.completed).length,
+      totalTopics:topics.length,
+      completedTopics:topics.filter(topic=>topic.completed).length,
+      percent:items.length?Math.round(items.filter(item=>item.completed).length/items.length*100):0,
+      pendingHomework:items.reduce((sum,item)=>sum+item.pendingHomeworkCount,0),
+      materialCount:items.reduce((sum,item)=>sum+item.materialCount,0),
+      plannedKey,
+      nextItem
+    };
+  }
+
   return {
     SUBJECT_BY_LANGUAGE,
     canonicalSubject,
@@ -344,6 +417,7 @@
     analyzeWorksheet,
     explicitContentLevels,
     validateMaterialLevel,
-    calculateProgress
+    calculateProgress,
+    buildStudentJourney
   };
 });

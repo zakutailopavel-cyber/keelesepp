@@ -1935,7 +1935,7 @@ function TasksView({user,tasks,staffMembers,taskTitle,setTaskTitle,taskAssignee,
 }
 
 // ── ÕPPEKAVAD ────────────────────────────────────────────────
-function ProgramsView({db,user,students=[],lessons=[],notify,logActivity}) {
+function ProgramsView({db,user,students=[],lessons=[],homework=[],initialStudentId='',notify,logActivity}) {
   const curriculum=window.HaldusCurriculum||{languages:[],stats:{}};
   const workflow=window.CurriculumWorkflow;
   const [languageFilter,setLanguageFilter]=React.useState('all');
@@ -1950,10 +1950,16 @@ function ProgramsView({db,user,students=[],lessons=[],notify,logActivity}) {
   const [actionDue,setActionDue]=React.useState('');
   const [actionBusy,setActionBusy]=React.useState('');
   const [createdMaterialId,setCreatedMaterialId]=React.useState('');
+  const [journeyStudentId,setJourneyStudentId]=React.useState(initialStudentId||'');
+  const [journeyMaterials,setJourneyMaterials]=React.useState([]);
   const normalizedQuery=normalizeText(query);
   const allLevels=(curriculum.languages||[]).flatMap(language=>(language.levels||[]).map(level=>({language,level})));
   const curriculumCatalog=React.useMemo(()=>workflow?workflow.flattenCurriculum(curriculum):[],[workflow,curriculum]);
   const activeStudents=React.useMemo(()=>(students||[]).filter(student=>student.active!==false&&!student.mergedIntoStudentId).sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'et')),[students]);
+  const journeyStudent=activeStudents.find(student=>student.id===journeyStudentId)||null;
+  const journey=React.useMemo(()=>workflow&&journeyStudent
+    ?workflow.buildStudentJourney(curriculum,journeyStudent,lessons,homework,journeyMaterials)
+    :null,[workflow,curriculum,journeyStudent,lessons,homework,journeyMaterials]);
   const actionItem=React.useMemo(()=>{
     if(!action)return null;
     return curriculumCatalog.find(item=>item.topicId===action.topic.id&&item.lessonIndex===Number(actionLessonIndex))||null;
@@ -1987,16 +1993,31 @@ function ProgramsView({db,user,students=[],lessons=[],notify,logActivity}) {
   ));
   const toggleLevel=key=>setOpenLevels(previous=>({...previous,[key]:!previous[key]}));
   const toggleTopic=key=>setOpenTopics(previous=>({...previous,[key]:!previous[key]}));
-  const openAction=({language,level,topic})=>{
+  const openAction=({language,level,topic},{studentId='',lessonIndex=0}={})=>{
     const subject=workflow?.SUBJECT_BY_LANGUAGE?.[language.id]||language.title;
-    const matching=activeStudents.find(student=>workflow?.canonicalSubject(student.subject)===subject&&String(student.level||'').toUpperCase()===level.code)
+    const matching=activeStudents.find(student=>student.id===studentId)
+      ||activeStudents.find(student=>workflow?.canonicalSubject(student.subject)===subject&&String(student.level||'').toUpperCase()===level.code)
       ||activeStudents.find(student=>workflow?.canonicalSubject(student.subject)===subject)
       ||activeStudents[0];
     setAction({language,level,topic});
     setActionStudentId(matching?.id||'');
-    setActionLessonIndex(0);
+    setActionLessonIndex(Math.max(0,Number(lessonIndex)||0));
     setActionDue('');
     setCreatedMaterialId('');
+  };
+  const openJourneyItem=item=>{
+    if(!item)return;
+    const language=(curriculum.languages||[]).find(row=>row.id===item.languageId);
+    const level=(language?.levels||[]).find(row=>row.code===item.level);
+    const topic=(level?.topics||[]).find(row=>row.id===item.topicId);
+    if(!language||!level||!topic){notify('⚠ Tunnikava ei leitud');return;}
+    const levelKey=`${language.id}-${level.code}`;
+    const topicKey=`${levelKey}-${topic.id}`;
+    setLanguageFilter(language.id);
+    setLevelFilter(level.code);
+    setOpenLevels(previous=>({...previous,[levelKey]:true}));
+    setOpenTopics(previous=>({...previous,[topicKey]:true}));
+    openAction({language,level,topic},{studentId:journeyStudent?.id||'',lessonIndex:item.lessonIndex});
   };
   const runAction=async(type)=>{
     if(!workflow||!actionItem){notify('⚠ Õppekava andmed ei ole saadaval');return;}
@@ -2063,6 +2084,20 @@ function ProgramsView({db,user,students=[],lessons=[],notify,logActivity}) {
     return()=>document.removeEventListener('keydown',closeOnEscape);
   },[preview]);
 
+  React.useEffect(()=>{
+    if(initialStudentId)setJourneyStudentId(initialStudentId);
+  },[initialStudentId]);
+
+  React.useEffect(()=>{
+    if(!db)return undefined;
+    return db.collection('curriculumLessons').limit(500).onSnapshot(snapshot=>{
+      setJourneyMaterials(snapshot.docs.map(doc=>({id:doc.id,...doc.data()})));
+    },error=>{
+      console.warn('Curriculum material journey listener failed:',error);
+      setJourneyMaterials([]);
+    });
+  },[db]);
+
   return(
     <div className="fade-in curriculum-workspace">
       <section className="curriculum-hero">
@@ -2084,6 +2119,69 @@ function ProgramsView({db,user,students=[],lessons=[],notify,logActivity}) {
             <i className={`fa-solid ${icon}`}/><div><strong>{value}</strong><span>{label}</span></div>
           </div>
         ))}
+      </section>
+
+      <section className="card curriculum-journey" aria-label="Õpilase õpitee">
+        <header className="curriculum-journey-head">
+          <div>
+            <span className="curriculum-journey-eyebrow">ÕPILASE ÕPITEE</span>
+            <h2>Programm, progress ja järgmine tund ühes vaates</h2>
+            <p>Vali õpilane, et näha tehtud tunnikavasid, ootel kodutöid, loodud materjale ja järgmist soovitust.</p>
+          </div>
+          <label>
+            <span>Õpilane</span>
+            <select value={journeyStudentId} onChange={event=>setJourneyStudentId(event.target.value)}>
+              <option value="">Vali õpilane…</option>
+              {activeStudents.map(student=><option key={student.id} value={student.id}>{student.name} · {student.subject||'aine puudub'} · {student.level||'tase puudub'}</option>)}
+            </select>
+          </label>
+        </header>
+
+        {!journeyStudent&&(
+          <div className="curriculum-journey-empty"><i className="fa-solid fa-user-graduate"/><div><strong>Alusta õpilase valimisest</strong><span>Õppekava ise jääb allpool sirvitavaks ka ilma õpilast valimata.</span></div></div>
+        )}
+
+        {journeyStudent&&journey&&!journey.valid&&(
+          <div className="curriculum-journey-warning"><i className="fa-solid fa-triangle-exclamation"/><div><strong>{journeyStudent.name}: õpiteed ei saa veel koostada</strong><span>Õpilase kaardil peab olema aineks Eesti keel või Inglise keel ning tasemeks A1–C2.</span></div></div>
+        )}
+
+        {journeyStudent&&journey?.valid&&(
+          <div className="curriculum-journey-body">
+            <div className="curriculum-journey-overview">
+              <div className="curriculum-journey-identity">
+                <span>{journey.subject} · {journey.level}</span>
+                <strong>{journeyStudent.name}</strong>
+                <div className="curriculum-journey-progress"><span style={{width:`${journey.percent}%`}}/></div>
+                <small>{journey.percent}% programmist · {journey.completedLessons}/{journey.totalLessons} tunnikava</small>
+              </div>
+              <div className="curriculum-journey-metrics">
+                <div><strong>{journey.completedTopics}/{journey.totalTopics}</strong><span>teemat läbitud</span></div>
+                <div><strong>{journey.pendingHomework}</strong><span>kodutööd ootel</span></div>
+                <div><strong>{journey.materialCount}</strong><span>materjali loodud</span></div>
+              </div>
+              <div className="curriculum-next-card">
+                <span>{journey.nextItem?.planned?'PRAEGU MÄÄRATUD':'JÄRGMINE SOOVITUS'}</span>
+                {journey.nextItem?<React.Fragment>
+                  <strong>{journey.nextItem.topicName}</strong>
+                  <p>{journey.nextItem.lessonNumber} · {journey.nextItem.lessonGoal}</p>
+                  <div className="curriculum-next-evidence">
+                    {journey.nextItem.materialCount>0&&<small><i className="fa-solid fa-book-open"/> {journey.nextItem.materialCount} materjali</small>}
+                    {journey.nextItem.pendingHomeworkCount>0&&<small><i className="fa-solid fa-hourglass-half"/> kodutöö ootel</small>}
+                    {journey.nextItem.worksheetCount>0&&<small><i className="fa-solid fa-file-pen"/> tööleht valmis</small>}
+                  </div>
+                  <button type="button" className="btn btn-dark btn-sm" onClick={()=>openJourneyItem(journey.nextItem)}><i className="fa-solid fa-arrow-right"/> Ava järgmine tunnikava</button>
+                </React.Fragment>:<React.Fragment><strong>Programm on läbitud</strong><p>Kõik selle taseme tunnikavad on seotud toimunud tundidega.</p></React.Fragment>}
+              </div>
+            </div>
+            <div className="curriculum-roadmap" aria-label="Teemade edenemine">
+              {journey.topics.map((topic,index)=><button type="button" key={topic.topicId} className={`curriculum-roadmap-topic ${topic.completed?'completed':topic.active?'active':''}`} onClick={()=>openJourneyItem(topic.items.find(item=>!item.completed)||topic.items[0])}>
+                <span className="curriculum-roadmap-index">{topic.completed?<i className="fa-solid fa-check"/>:index+1}</span>
+                <span className="curriculum-roadmap-copy"><strong>{topic.topicName}</strong><small>{topic.completedLessons}/{topic.totalLessons} tunnikava · {topic.percent}%</small></span>
+                <span className="curriculum-roadmap-lessons">{topic.items.map(item=><i key={item.key} title={item.lessonNumber} className={item.completed?'done':item.planned?'planned':''}/>)}</span>
+              </button>)}
+            </div>
+          </div>
+        )}
       </section>
 
       <section className="card curriculum-filters" aria-label="Õppekavade filtrid">
@@ -2110,7 +2208,7 @@ function ProgramsView({db,user,students=[],lessons=[],notify,logActivity}) {
       <div className="curriculum-results-note">
         <span>{visibleLevels.length} taset</span>
         <span>{visibleLevels.reduce((sum,item)=>sum+item.topics.length,0)} teemat</span>
-        <span>Metoodiline sisu: RU</span>
+        <span>Metoodiline lähtekeel: vene keel</span>
       </div>
 
       <section className="curriculum-levels">
@@ -12952,6 +13050,7 @@ function App() {
   const [loading,setLoading]   = useState(true);
   const [bootError,setBootError] = useState('');
   const [tab,setTab]           = useState('dashboard');
+  const [programStudentId,setProgramStudentId] = useState('');
   const [financeSection,setFinanceSection] = useState('invoices');
   const [selStu,setSelStu]     = useState(null);
   const [editStu,setEditStu]   = useState(null);
@@ -16118,7 +16217,7 @@ function App() {
             schDate={schDate} setSchDate={setSchDate} schTime={schTime} setSchTime={setSchTime} schTeach={schTeach} setSchTeach={setSchTeach}
             schRecurring={schRecurring} setSchRecurring={setSchRecurring} addStudentSchedule={addStudentSchedule} canAssignTeacher={canAssignTeacher}
             stuMessages={stuMessages} teacherMessage={teacherMessage} setTeacherMessage={setTeacherMessage} sendTeacherMessage={sendTeacherMessage}
-            notify={notify} setAssignWsLesson={setAssignWsLesson} openPrograms={()=>{setSelStu(null);setTab('programs');}} tariffAssignments={tariffAssignments}/>}
+            notify={notify} setAssignWsLesson={setAssignWsLesson} openPrograms={()=>{setProgramStudentId(currentStu?.id||'');setSelStu(null);setTab('programs');}} tariffAssignments={tariffAssignments}/>}
 
           {tab==='groups'&&isStaff&&<GroupsView groups={groups} students={canAssignTeacher?students:myStudents} isAdmin={canAssignTeacher}
             setSelStu={setSelStu} setTab={setTab}
@@ -16189,7 +16288,7 @@ function App() {
             ungroupStudent={ungroupStudent}
           />}
 
-          {tab==='programs'&&isStaff&&<ProgramsView db={db} user={user} students={students} lessons={lessons} notify={notify} logActivity={logActivity}/>}
+          {tab==='programs'&&isStaff&&<ProgramsView db={db} user={user} students={students} lessons={lessons} homework={homework} initialStudentId={programStudentId} notify={notify} logActivity={logActivity}/>}
 
           {tab==='invoices'&&!isStaff&&<ParentInvoicesView invoices={scopedInvoices} printInvoice={printInvoice} submitParentPayment={submitParentPayment}/>}
 

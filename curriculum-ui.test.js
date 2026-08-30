@@ -26,9 +26,15 @@ test('v1 CRM loads detailed curriculum data and provides search plus preview',()
   assert.match(haldus,/Saada kodutöö/);
   assert.match(haldus,/Õppekava teema/);
   assert.match(haldus,/function CurriculumProgressCard/);
+  assert.match(haldus,/ÕPILASE ÕPITEE/);
+  assert.match(haldus,/buildStudentJourney\(curriculum,journeyStudent,lessons,homework,journeyMaterials\)/);
+  assert.match(haldus,/Ava järgmine tunnikava/);
+  assert.match(haldus,/initialStudentId=\{programStudentId\}/);
+  assert.match(haldus,/Metoodiline lähtekeel: vene keel/);
   assert.match(haldus,/validateStudentMatch/);
   assert.match(css,/\.curriculum-preview-overlay/);
   assert.match(css,/\.curriculum-lessons/);
+  assert.match(css,/\.curriculum-roadmap-topic/);
 });
 
 test('curriculum links survive the lesson API and material level is validated',()=>{
