@@ -98,6 +98,7 @@ const {
   stableLessonDocumentId,
 } = require("./lesson-record-core");
 const { planTeacherScopeBackfill } = require("./teacher-scope-core");
+const { planTeacherFutureScheduleClear } = require("./schedule-clear-core");
 const {
   mergeGroupStudentReferences,
   normalizedStudentMergeInput,
@@ -6403,6 +6404,149 @@ async function setAccountDisabled({ actor, uid, disabled, reason, requestId }) {
   return { uid: cleanUid, disabled: nextDisabled, idempotent: false };
 }
 
+async function teacherFutureScheduleClearPlan({ actor, fromDate, operationId = "preview" }) {
+  const cleanFromDate = validIsoDate(fromDate, "fromDate");
+  const actorData = actorSnapshot(actor);
+  const [scheduleSnap, groupsSnap] = await Promise.all([
+    db.collection("schedule").get(),
+    db.collection("groups").get(),
+  ]);
+  const records = snapshot => snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  return planTeacherFutureScheduleClear({
+    schedule: records(scheduleSnap),
+    groups: records(groupsSnap),
+    teacherUid: actorData.uid,
+    teacherName: actorData.name,
+    fromDate: cleanFromDate,
+    nowIso: new Date().toISOString(),
+    operationId,
+  });
+}
+
+function publicTeacherFutureScheduleClearPlan(plan) {
+  return {
+    fromDate: plan.fromDate,
+    teacherName: plan.teacherName,
+    summary: plan.summary,
+  };
+}
+
+async function applyTeacherFutureScheduleClear({ actor, fromDate, requestId, confirmed }) {
+  if (confirmed !== true) throw httpError(400, "Explicit confirmation required");
+  const mutationId = cleanRequestId(requestId);
+  const cleanFromDate = validIsoDate(fromDate, "fromDate");
+  const actorData = actorSnapshot(actor);
+  const auditRef = db.collection("activityLog").doc(`schedule-future-clear-${mutationId}`);
+  const existingAudit = await auditRef.get();
+  if (existingAudit.exists) {
+    const audit = existingAudit.data();
+    if (audit.fromDate !== cleanFromDate || audit.actor?.uid !== actorData.uid) {
+      throw httpError(409, "requestId already used for another schedule operation");
+    }
+    return { ...(audit.result || {}), idempotent: true };
+  }
+
+  const preview = await teacherFutureScheduleClearPlan({
+    actor,
+    fromDate: cleanFromDate,
+    operationId: mutationId,
+  });
+  const nowIso = new Date().toISOString();
+  const actualKinds = { cancel_single: 0, cancel_series: 0, truncate_series: 0 };
+  let scheduleCount = 0;
+  let groupLessonCount = 0;
+  let groupDocumentCount = 0;
+
+  const applyScheduleRecord = async item => db.runTransaction(async transaction => {
+    const ref = db.collection("schedule").doc(item.id);
+    const snap = await transaction.get(ref);
+    if (!snap.exists) return null;
+    const currentPlan = planTeacherFutureScheduleClear({
+      schedule: [{ id: snap.id, ...snap.data() }],
+      groups: [],
+      teacherUid: actorData.uid,
+      teacherName: actorData.name,
+      fromDate: cleanFromDate,
+      nowIso,
+      operationId: mutationId,
+    });
+    const current = currentPlan.schedulePatches[0];
+    if (!current) return null;
+    transaction.update(ref, current.patch);
+    return current.kind;
+  });
+  for (let index = 0; index < preview.schedulePatches.length; index += 10) {
+    const kinds = await Promise.all(preview.schedulePatches.slice(index, index + 10).map(applyScheduleRecord));
+    kinds.filter(Boolean).forEach(kind => {
+      scheduleCount += 1;
+      actualKinds[kind] = (actualKinds[kind] || 0) + 1;
+    });
+  }
+
+  for (const item of preview.groupPatches) {
+    const changed = await db.runTransaction(async transaction => {
+      const ref = db.collection("groups").doc(item.id);
+      const snap = await transaction.get(ref);
+      if (!snap.exists) return 0;
+      const currentPlan = planTeacherFutureScheduleClear({
+        schedule: [],
+        groups: [{ id: snap.id, ...snap.data() }],
+        teacherUid: actorData.uid,
+        teacherName: actorData.name,
+        fromDate: cleanFromDate,
+        nowIso,
+        operationId: mutationId,
+      });
+      const current = currentPlan.groupPatches[0];
+      if (!current) return 0;
+      transaction.update(ref, {
+        lessons: current.lessons,
+        futureScheduleClearedAt: nowIso,
+        futureScheduleClearedFrom: cleanFromDate,
+        futureScheduleClearedByUid: actorData.uid,
+        futureScheduleClearOperationId: mutationId,
+        updatedAt: nowIso,
+      });
+      return current.changedLessonCount;
+    });
+    if (changed > 0) {
+      groupDocumentCount += 1;
+      groupLessonCount += changed;
+    }
+  }
+
+  const summary = {
+    scheduleCount,
+    groupLessonCount,
+    groupDocumentCount,
+    totalCount: scheduleCount + groupLessonCount,
+    externalGoogleCount: preview.summary.externalGoogleCount,
+    cancelledSingleCount: actualKinds.cancel_single || 0,
+    cancelledSeriesCount: actualKinds.cancel_series || 0,
+    truncatedSeriesCount: actualKinds.truncate_series || 0,
+  };
+  const result = {
+    fromDate: cleanFromDate,
+    teacherName: actorData.name,
+    summary,
+    completedAt: nowIso,
+    operationId: mutationId,
+  };
+  await auditRef.create({
+    type: "schedule.future_cleared",
+    action: "schedule.future_cleared",
+    label: "Tulevane tunniplaan eemaldati alates valitud nädalast",
+    fromDate: cleanFromDate,
+    actor: actorData,
+    summary,
+    result,
+    createdAt: nowIso,
+    date: nowIso.slice(0, 10),
+    operationId: mutationId,
+  });
+  return { ...result, idempotent: false };
+}
+
 exports.staffOperationsApi = functions.https.onRequest(async (req, res) => {
   applyCors(req, res);
   if (req.method === "OPTIONS") { res.status(204).send(""); return; }
@@ -6434,6 +6578,23 @@ exports.staffOperationsApi = functions.https.onRequest(async (req, res) => {
         pageInstanceId: req.body?.pageInstanceId,
         area: req.body?.area,
       }));
+      return;
+    }
+    if (req.path === "/schedule/clear-future/preview") {
+      const actor = await requireStaffUser(req);
+      const plan = await teacherFutureScheduleClearPlan({ actor, fromDate: req.body?.fromDate });
+      res.json(publicTeacherFutureScheduleClearPlan(plan));
+      return;
+    }
+    if (req.path === "/schedule/clear-future/apply") {
+      const actor = await requireStaffUser(req);
+      const result = await applyTeacherFutureScheduleClear({
+        actor,
+        fromDate: req.body?.fromDate,
+        requestId: req.body?.requestId,
+        confirmed: req.body?.confirmed,
+      });
+      res.status(result.idempotent ? 200 : 201).json(result);
       return;
     }
     const actor = await requireAdminUser(req);

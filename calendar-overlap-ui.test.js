@@ -57,3 +57,15 @@ test('Google Calendar errors are translated and manual sync retries failed lesso
   assert.match(html,/activeError&&!reconnectRequired\?'Proovi uuesti'/);
   assert.match(functionsSource,/backfillScheduleToGoogle\(uid, connection, \{ force: true \}\)/);
 });
+
+test('teacher can preview and safely clear only their future schedule from the visible week',()=>{
+  assert.match(html,/Eemalda minu tunnid alates \$\{clearFromLabel\}/);
+  assert.match(html,/\/schedule\/clear-future\/preview/);
+  assert.match(html,/\/schedule\/clear-future\/apply/);
+  assert.match(html,/Varasem ajalugu jääb alles/);
+  assert.match(html,/Toimunud tunnid, arved ja maksed ei muutu/);
+  assert.match(html,/setShowCanceled\(false\)/);
+  assert.match(functionsSource,/req\.path === "\/schedule\/clear-future\/preview"/);
+  assert.match(functionsSource,/req\.path === "\/schedule\/clear-future\/apply"/);
+  assert.match(functionsSource,/schedule\.future_cleared/);
+});
