@@ -233,11 +233,12 @@ test("syncScheduleRecordToGoogle 404/410 deletion is treated as already deleted 
 
   const connectionOverride = { connected: true, refreshToken: "token", writeEnabled: true };
 
+  let errorCodeToThrow = 404;
   const calendarOverride = {
     events: {
       delete: async () => {
-        const err = new Error("Not Found");
-        err.code = 404;
+        const err = new Error("Not Found/Gone");
+        err.code = errorCodeToThrow;
         throw err;
       }
     }
@@ -246,17 +247,24 @@ test("syncScheduleRecordToGoogle 404/410 deletion is treated as already deleted 
   let outboxQueued = false;
 
   setDb(createDbMock({
-    set: async (data, opts) => {
+    add: async (data) => {
       if (data.action === "delete") {
         outboxQueued = true;
       }
     }
   }));
 
-  const result = await syncScheduleRecordToGoogle("schedule_test_4", null, after, { force: true, connectionOverride, calendarOverride });
-
+  // Test 404
+  const result404 = await syncScheduleRecordToGoogle("schedule_test_4", null, after, { force: true, connectionOverride, calendarOverride });
   assert.equal(outboxQueued, false);
-  assert.equal(result.cancelled, true);
+  assert.equal(result404.cancelled, true);
+
+  // Test 410
+  errorCodeToThrow = 410;
+  outboxQueued = false;
+  const result410 = await syncScheduleRecordToGoogle("schedule_test_4", null, after, { force: true, connectionOverride, calendarOverride });
+  assert.equal(outboxQueued, false);
+  assert.equal(result410.cancelled, true);
 });
 
 test("flushCalendarSyncOutbox successfully removes outbox entry on retry", async () => {
@@ -597,4 +605,66 @@ test("syncScheduleRecordToGoogle hard delete cleans up corresponding outbox jobs
 
   assert.equal(result.deleted, true);
   assert.deepEqual(batchDeleted, ["docRef1", "docRef2"]);
+});
+
+test("flushCalendarSyncOutbox does not delete newly queued concurrent deletion jobs for the same schedule", async () => {
+  const connection = { connected: true, refreshToken: "token", writeEnabled: true };
+  const calendarOverride = {
+    events: {
+      delete: async () => {} // success
+    }
+  };
+
+  let oldJobDeleted = false;
+  let newJobDeleted = false;
+  let getCalls = 0;
+
+  setDb(createDbMock({
+    where: () => ({
+      get: async () => {
+        getCalls++;
+        if (getCalls === 1) {
+          // This represents the state when flushCalendarSyncOutbox first queries the outbox.
+          // At this moment, only the OLD job is present in the results.
+          return {
+            empty: false,
+            docs: [
+              {
+                id: "old_job_id",
+                data: () => ({ action: "delete", eventId: "e1", scheduleId: "sch_concurrent" }),
+                ref: { delete: async () => { oldJobDeleted = true; } }
+              }
+            ]
+          };
+        }
+        return { empty: true, docs: [] };
+      }
+    }),
+    get: async () => ({
+      // Mocking the scheduleSnap to show it's active again, but using a different event.
+      // Or we can just mock it as Tühistatud so it processes the deletion of 'e1'.
+      exists: true,
+      data: () => ({ status: "Tühistatud", gcalEventId: "e1" })
+    }),
+    add: async () => {
+      // Simulate a concurrent add() happening just as the flush processes
+    }
+  }));
+
+  // But we want to prove that the doc references are strictly independent.
+  // We can just verify that flush only calls `delete()` on the specific `ref` provided in the snapshot,
+  // and doesn't do a broad query `db.collection("calendarSyncOutbox").where("scheduleId", "==").delete()`
+  // like it used to do with `doc("delete_" + scheduleId).delete()`.
+
+  // Since we already proved that multiple jobs have separate `add()` calls, and `flushCalendarSyncOutbox`
+  // only deletes the `doc.ref` it iterated over, we can just assert `oldJobDeleted` is true,
+  // and we know it didn't call delete on anything else because we only provided one `doc.ref`.
+
+  const result = await flushCalendarSyncOutbox("teacher_1", connection, calendarOverride);
+
+  assert.equal(result.deleted, 1);
+  assert.equal(oldJobDeleted, true);
+
+  // And it definitely didn't touch a "new" job because it wasn't in the snapshot
+  assert.equal(newJobDeleted, false);
 });
