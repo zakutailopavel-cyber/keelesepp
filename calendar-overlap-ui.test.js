@@ -61,6 +61,13 @@ test('Google Calendar errors are translated and manual sync retries failed lesso
   assert.doesNotMatch(functionsSource,/event\.source === "gcal"[\s\S]{0,300}!importedDocIds\.has/);
 });
 
+test('manual sync removes only duplicate Google events with the same KeeleSepp schedule id',()=>{
+  assert.match(functionsSource,/managedEventsByScheduleId/);
+  assert.match(functionsSource,/currentScheduleById\.get\(scheduleId\)\?\.gcalEventId/);
+  assert.match(functionsSource,/lastSyncDeduplicated/);
+  assert.match(html,/duplikaate eemaldatud/);
+});
+
 test('teacher can preview and safely clear only their future schedule from the visible week',()=>{
   assert.match(html,/Eemalda minu tunnid alates \$\{clearFromLabel\}/);
   assert.match(html,/\/schedule\/clear-future\/preview/);

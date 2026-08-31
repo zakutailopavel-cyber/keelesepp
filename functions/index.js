@@ -7786,6 +7786,8 @@ exports.gcalApi = functions.https.onRequest(async (req, res) => {
         lastSyncRemoved: gcal.lastSyncRemoved || 0,
         lastSyncCancelled: gcal.lastSyncCancelled || 0,
         lastSyncExceptions: gcal.lastSyncExceptions || 0,
+        lastSyncDeduplicated: gcal.lastSyncDeduplicated || 0,
+        lastSyncDeduplicationFailed: gcal.lastSyncDeduplicationFailed || 0,
         lastSyncError: gcal.lastSyncError || "",
         lastPushAt: gcal.lastPushAt || null,
         lastPushError: gcal.lastPushError || "",
@@ -7890,7 +7892,7 @@ async function syncTeacherCalendar(uid, tokens) {
     && recurringMastersByGoogleId.has(event.recurringEventId)
     && googleOriginalOccurrenceDate(event, APP_TIME_ZONE)
   );
-  const events = [
+  let events = [
     ...expandedEvents.filter(event => !(
       event.recurringEventId && recurringMastersByGoogleId.has(event.recurringEventId)
     )),
@@ -7916,6 +7918,43 @@ async function syncTeacherCalendar(uid, tokens) {
       .filter(item => item.gcalEventId)
       .map(item => [String(item.gcalEventId), item]),
   );
+  let deduplicated = 0;
+  let deduplicationFailed = 0;
+  if (calendarConnectionCanWrite(tokens)) {
+    const managedEventsByScheduleId = new Map();
+    events.forEach(event => {
+      const scheduleId = managedGoogleScheduleId(event);
+      if (!scheduleId) return;
+      if (!managedEventsByScheduleId.has(scheduleId)) managedEventsByScheduleId.set(scheduleId, []);
+      managedEventsByScheduleId.get(scheduleId).push(event);
+    });
+    const removedDuplicateEventIds = new Set();
+    for (const [scheduleId, candidates] of managedEventsByScheduleId.entries()) {
+      if (candidates.length < 2) continue;
+      const linkedGoogleId = String(currentScheduleById.get(scheduleId)?.gcalEventId || "");
+      const keep = candidates.find(event => String(event.id || "") === linkedGoogleId)
+        || [...candidates].sort((left, right) => String(left.id || "").localeCompare(String(right.id || "")))[0];
+      for (const duplicate of candidates) {
+        if (duplicate === keep || !duplicate.id) continue;
+        try {
+          await calendar.events.delete({ calendarId: "primary", eventId: duplicate.id });
+          removedDuplicateEventIds.add(String(duplicate.id));
+          deduplicated++;
+        } catch (error) {
+          if (isGoogleGoneError(error)) {
+            removedDuplicateEventIds.add(String(duplicate.id));
+            deduplicated++;
+          } else {
+            deduplicationFailed++;
+            console.warn(`Could not remove duplicate Google event ${duplicate.id} for ${scheduleId}:`, error.message);
+          }
+        }
+      }
+    }
+    if (removedDuplicateEventIds.size) {
+      events = events.filter(event => !removedDuplicateEventIds.has(String(event.id || "")));
+    }
+  }
   const studentsById = new Map();
   const studentsByName = new Map(); // normalizedName -> [{...student}]
   for (const doc of studentsSnap.docs) {
@@ -8127,12 +8166,14 @@ async function syncTeacherCalendar(uid, tokens) {
     lastSyncRemoved: removed,
     lastSyncCancelled: cancelled,
     lastSyncExceptions: exceptions,
+    lastSyncDeduplicated: deduplicated,
+    lastSyncDeduplicationFailed: deduplicationFailed,
     lastSyncError: "",
   };
   await saveCalendarConnection(uid, syncMetadata);
 
-  console.log(`Synced ${synced} events for teacher ${teacherName}, including ${exceptions} native exceptions, skipped ${skipped}, explicitly removed ${removed}, explicitly cancelled ${cancelled}`);
-  return { synced, skipped, removed, cancelled, exceptions };
+  console.log(`Synced ${synced} events for teacher ${teacherName}, including ${exceptions} native exceptions, skipped ${skipped}, explicitly removed ${removed}, explicitly cancelled ${cancelled}, deduplicated ${deduplicated}, duplicate cleanup failures ${deduplicationFailed}`);
+  return { synced, skipped, removed, cancelled, exceptions, deduplicated, deduplicationFailed };
 }
 
 async function updateCalendarPushMetadata(uid, { error = "" } = {}) {
