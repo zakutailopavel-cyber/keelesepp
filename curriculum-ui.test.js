@@ -28,6 +28,9 @@ test('v1 CRM loads detailed curriculum data and provides search plus preview',()
   assert.match(haldus,/function CurriculumProgressCard/);
   assert.match(haldus,/ÕPILASE ÕPITEE/);
   assert.match(haldus,/buildStudentJourney\(curriculum,journeyStudent,lessons,homework,journeyMaterials\)/);
+  assert.match(haldus,/buildCurriculumResults\(curriculum,journeyStudent,worksheetAssignments,journeyMaterials\)/);
+  assert.match(haldus,/TULEMUSED JA TAGASISIDE/);
+  assert.match(haldus,/Vaata tulemust/);
   assert.match(haldus,/Ava järgmine tunnikava/);
   assert.match(haldus,/initialStudentId=\{programStudentId\}/);
   assert.match(haldus,/Metoodiline lähtekeel: vene keel/);
@@ -41,7 +44,7 @@ test('curriculum links survive the lesson API and material level is validated',(
   assert.match(haldus,/curriculumTopicId:modalEv\.curriculumTopicId/);
   assert.match(backend,/const curriculumTopicId = cleanText\(values\.curriculumTopicId/);
   assert.match(backend,/Incomplete curriculum lesson link/);
-  assert.match(library,/src="\/curriculum-workflow-core\.js"/);
+  assert.match(library,/src="\/curriculum-workflow-core\.js(?:\?v=[^"]+)?"/);
   assert.match(library,/validateMaterialLevel\(data\)/);
   assert.match(library,/Materjali ei salvestatud/);
 });

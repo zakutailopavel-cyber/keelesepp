@@ -90,6 +90,29 @@ test('student journey stays unavailable until subject and CEFR level are explici
   assert.equal(journey.nextItem,null);
 });
 
+test('curriculum results link explicit and legacy assignments without mixing students',()=>{
+  const student={id:'student-1',subject:'Eesti keel',level:'A1'};
+  const materials=[
+    {id:'material-legacy',sourceKey:'curriculum:est-a1-02:1',curriculumTopicId:'est-a1-02',curriculumLessonIndex:1}
+  ];
+  const assignments=[
+    {id:'done-1',studentId:'student-1',status:'done',score:{pct:80},errorLog:[{type:'fill'}],seenByTeacher:false,curriculumTopicId:'est-a1-01',curriculumLessonIndex:0,completedAt:'2026-08-30T10:00:00.000Z'},
+    {id:'legacy-1',studentId:'student-1',status:'new',lessonId:'material-legacy',assignedAt:'2026-08-29T10:00:00.000Z'},
+    {id:'other',studentId:'student-2',status:'done',score:{pct:100},curriculumTopicId:'est-a1-01',curriculumLessonIndex:0},
+    {id:'wrong-level',studentId:'student-1',status:'done',curriculumTopicId:'est-b1-01',curriculumLessonIndex:0}
+  ];
+  const results=workflow.buildCurriculumResults(curriculum,student,assignments,materials);
+  assert.equal(results.assigned,2);
+  assert.equal(results.completed,1);
+  assert.equal(results.pending,1);
+  assert.equal(results.needsReview,1);
+  assert.equal(results.averageScore,80);
+  assert.equal(results.retry.length,1);
+  assert.equal(results.unmatched,1);
+  assert.equal(results.recent[0].id,'done-1');
+  assert.equal(results.byKey.get('est-a1-02:1')[0].id,'legacy-1');
+});
+
 test('curriculum lesson opens as an editable worksheet starter with exact ownership',()=>{
   const item=workflow.flattenCurriculum(curriculum)[0];
   const prefill=workflow.buildWorksheetPrefill(item);

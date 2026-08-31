@@ -403,6 +403,70 @@
     };
   }
 
+  function curriculumKeyFromRecord(record={},materialsById=new Map()){
+    const linkedMaterial=text(record.lessonId)?materialsById.get(text(record.lessonId)):null;
+    const source=record.curriculumTopicId?record:(linkedMaterial||record);
+    const sourceKey=text(source.sourceKey||record.sourceKey);
+    const sourceMatch=sourceKey.match(/^curriculum:([^:]+):(\d+)$/);
+    const topicId=text(source.curriculumTopicId)||(sourceMatch?.[1]||'');
+    if(!topicId)return '';
+    const lessonIndex=source.curriculumLessonIndex!==undefined
+      ?Math.max(0,Number(source.curriculumLessonIndex)||0)
+      :Math.max(0,Number(sourceMatch?.[2])||0);
+    return `${topicId}:${lessonIndex}`;
+  }
+
+  function buildCurriculumResults(curriculum,student={},assignments=[],materials=[]){
+    const catalog=catalogForStudent(flattenCurriculum(curriculum),student);
+    const catalogByKey=new Map(catalog.map(item=>[item.key,item]));
+    const materialsById=new Map((materials||[]).filter(item=>item?.id).map(item=>[String(item.id),item]));
+    const studentRows=(assignments||[]).filter(row=>row.studentId===student.id);
+    const linked=[];
+    let unmatched=0;
+    studentRows.forEach(row=>{
+      const key=curriculumKeyFromRecord(row,materialsById);
+      const item=catalogByKey.get(key);
+      if(!item){
+        if(key)unmatched+=1;
+        return;
+      }
+      const scorePct=Number(row.score?.pct);
+      const score=Number.isFinite(scorePct)?Math.max(0,Math.min(100,Math.round(scorePct))):null;
+      linked.push({
+        ...row,
+        curriculumKey:key,
+        curriculumItem:item,
+        scorePct:score,
+        done:row.status==='done',
+        needsReview:row.status==='done'&&row.seenByTeacher===false,
+        errorCount:Array.isArray(row.errorLog)?row.errorLog.length:0
+      });
+    });
+    linked.sort((a,b)=>String(b.completedAt||b.assignedAt||'').localeCompare(String(a.completedAt||a.assignedAt||'')));
+    const completed=linked.filter(row=>row.done);
+    const scored=completed.filter(row=>row.scorePct!==null);
+    const byKey=new Map();
+    linked.forEach(row=>{
+      const rows=byKey.get(row.curriculumKey)||[];
+      rows.push(row);
+      byKey.set(row.curriculumKey,rows);
+    });
+    const retry=completed.filter(row=>row.errorCount>0||(row.scorePct!==null&&row.scorePct<70));
+    return {
+      valid:catalog.length>0,
+      linked,
+      recent:linked.slice(0,8),
+      byKey,
+      assigned:linked.length,
+      completed:completed.length,
+      pending:linked.filter(row=>!row.done).length,
+      needsReview:linked.filter(row=>row.needsReview).length,
+      averageScore:scored.length?Math.round(scored.reduce((sum,row)=>sum+row.scorePct,0)/scored.length):null,
+      retry,
+      unmatched
+    };
+  }
+
   return {
     SUBJECT_BY_LANGUAGE,
     canonicalSubject,
@@ -418,6 +482,7 @@
     explicitContentLevels,
     validateMaterialLevel,
     calculateProgress,
-    buildStudentJourney
+    buildStudentJourney,
+    buildCurriculumResults
   };
 });

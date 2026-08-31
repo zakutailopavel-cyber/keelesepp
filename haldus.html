@@ -47,7 +47,7 @@ window.__haldusConfigureBabel = function(){
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="/haldus.css">
+<link rel="stylesheet" href="/haldus.css?v=20260831.13">
 </head>
 <body>
 <div id="root"><div style="display:flex;align-items:center;justify-content:center;min-height:100vh"><div class="spinner"></div></div></div>
@@ -128,8 +128,8 @@ window.__haldusConfigureBabel();
 <script src="/tax-report-core.js"></script>
 <script src="/haldus-programs.js"></script>
 <script src="/haldus-curriculum-data.js"></script>
-<script src="/curriculum-workflow-core.js"></script>
-<script src="/worksheet-workflow-core.js?v=20260830.9"></script>
+<script src="/curriculum-workflow-core.js?v=20260831.13"></script>
+<script src="/worksheet-workflow-core.js?v=20260831.13"></script>
 <script src="/worksheet-interactive-core.js?v=20260830.9"></script>
 <script src="/annotations-manager.js"></script>
 <script type="text/babel" data-presets="haldus-react">
@@ -1935,7 +1935,7 @@ function TasksView({user,tasks,staffMembers,taskTitle,setTaskTitle,taskAssignee,
 }
 
 // ── ÕPPEKAVAD ────────────────────────────────────────────────
-function ProgramsView({db,user,students=[],lessons=[],homework=[],initialStudentId='',notify,logActivity}) {
+function ProgramsView({db,user,students=[],lessons=[],homework=[],worksheetAssignments=[],initialStudentId='',notify,logActivity}) {
   const curriculum=window.HaldusCurriculum||{languages:[],stats:{}};
   const workflow=window.CurriculumWorkflow;
   const [languageFilter,setLanguageFilter]=React.useState('all');
@@ -1952,6 +1952,7 @@ function ProgramsView({db,user,students=[],lessons=[],homework=[],initialStudent
   const [createdMaterialId,setCreatedMaterialId]=React.useState('');
   const [journeyStudentId,setJourneyStudentId]=React.useState(initialStudentId||'');
   const [journeyMaterials,setJourneyMaterials]=React.useState([]);
+  const [journeyResult,setJourneyResult]=React.useState(null);
   const normalizedQuery=normalizeText(query);
   const allLevels=(curriculum.languages||[]).flatMap(language=>(language.levels||[]).map(level=>({language,level})));
   const curriculumCatalog=React.useMemo(()=>workflow?workflow.flattenCurriculum(curriculum):[],[workflow,curriculum]);
@@ -1960,6 +1961,9 @@ function ProgramsView({db,user,students=[],lessons=[],homework=[],initialStudent
   const journey=React.useMemo(()=>workflow&&journeyStudent
     ?workflow.buildStudentJourney(curriculum,journeyStudent,lessons,homework,journeyMaterials)
     :null,[workflow,curriculum,journeyStudent,lessons,homework,journeyMaterials]);
+  const journeyResults=React.useMemo(()=>workflow&&journeyStudent
+    ?workflow.buildCurriculumResults(curriculum,journeyStudent,worksheetAssignments,journeyMaterials)
+    :null,[workflow,curriculum,journeyStudent,worksheetAssignments,journeyMaterials]);
   const actionItem=React.useMemo(()=>{
     if(!action)return null;
     return curriculumCatalog.find(item=>item.topicId===action.topic.id&&item.lessonIndex===Number(actionLessonIndex))||null;
@@ -2018,6 +2022,16 @@ function ProgramsView({db,user,students=[],lessons=[],homework=[],initialStudent
     setOpenLevels(previous=>({...previous,[levelKey]:true}));
     setOpenTopics(previous=>({...previous,[topicKey]:true}));
     openAction({language,level,topic},{studentId:journeyStudent?.id||'',lessonIndex:item.lessonIndex});
+  };
+  const openJourneyResult=async result=>{
+    setJourneyResult(result);
+    if(result?.needsReview&&result?.id){
+      try{
+        await db.collection('worksheetAssignments').doc(result.id).update({seenByTeacher:true});
+      }catch(error){
+        console.warn('Curriculum result review marker failed:',error);
+      }
+    }
   };
   const runAction=async(type)=>{
     if(!workflow||!actionItem){notify('⚠ Õppekava andmed ei ole saadaval');return;}
@@ -2126,7 +2140,7 @@ function ProgramsView({db,user,students=[],lessons=[],homework=[],initialStudent
           <div>
             <span className="curriculum-journey-eyebrow">ÕPILASE ÕPITEE</span>
             <h2>Programm, progress ja järgmine tund ühes vaates</h2>
-            <p>Vali õpilane, et näha tehtud tunnikavasid, ootel kodutöid, loodud materjale ja järgmist soovitust.</p>
+            <p>Vali õpilane, et näha tehtud tunnikavasid, töölehtede tulemusi, ootel kodutöid, loodud materjale ja järgmist soovitust.</p>
           </div>
           <label>
             <span>Õpilane</span>
@@ -2158,6 +2172,7 @@ function ProgramsView({db,user,students=[],lessons=[],homework=[],initialStudent
                 <div><strong>{journey.completedTopics}/{journey.totalTopics}</strong><span>teemat läbitud</span></div>
                 <div><strong>{journey.pendingHomework}</strong><span>kodutööd ootel</span></div>
                 <div><strong>{journey.materialCount}</strong><span>materjali loodud</span></div>
+                <div><strong>{journeyResults?.completed||0}/{journeyResults?.assigned||0}</strong><span>töölehte esitatud</span></div>
               </div>
               <div className="curriculum-next-card">
                 <span>{journey.nextItem?.planned?'PRAEGU MÄÄRATUD':'JÄRGMINE SOOVITUS'}</span>
@@ -2180,6 +2195,40 @@ function ProgramsView({db,user,students=[],lessons=[],homework=[],initialStudent
                 <span className="curriculum-roadmap-lessons">{topic.items.map(item=><i key={item.key} title={item.lessonNumber} className={item.completed?'done':item.planned?'planned':''}/>)}</span>
               </button>)}
             </div>
+            <section className="curriculum-results" aria-label="Töölehtede tulemused">
+              <header>
+                <div>
+                  <span>TULEMUSED JA TAGASISIDE</span>
+                  <h3>Töölehed õppekava kontekstis</h3>
+                  <p>Iga tulemus on seotud täpse teema ja tunnikavaga. Õpilase teiste ainete või tasemete tulemusi siin ei näidata.</p>
+                </div>
+                <div className="curriculum-result-summary">
+                  <span><strong>{journeyResults?.averageScore===null?'—':`${journeyResults?.averageScore}%`}</strong> keskmine</span>
+                  <span className={journeyResults?.needsReview?'attention':''}><strong>{journeyResults?.needsReview||0}</strong> üle vaatamata</span>
+                  <span><strong>{journeyResults?.pending||0}</strong> ootel</span>
+                </div>
+              </header>
+              {journeyResults?.recent?.length?(
+                <div className="curriculum-result-list">
+                  {journeyResults.recent.map(result=><article key={result.id} className={result.needsReview?'unseen':''}>
+                    <span className={`curriculum-result-icon ${result.done?'done':'pending'}`}><i className={`fa-solid ${result.done?'fa-check':'fa-hourglass-half'}`}/></span>
+                    <div className="curriculum-result-copy">
+                      <strong>{result.lessonTitle||result.curriculumItem.lessonNumber}</strong>
+                      <span>{result.curriculumItem.topicName} · {result.curriculumItem.lessonNumber}{result.completedAt?` · ${new Date(result.completedAt).toLocaleDateString('et-EE')}`:''}</span>
+                      {result.errorCount>0&&<small><i className="fa-solid fa-triangle-exclamation"/> {result.errorCount} vastust vajab kordamist</small>}
+                    </div>
+                    <div className="curriculum-result-score">
+                      <strong>{result.scorePct===null?(result.done?'Esitatud':'Ootel'):`${result.scorePct}%`}</strong>
+                      <span>{result.needsReview?'UUS TULEMUS':result.done?'kontrollitud':'määratud'}</span>
+                    </div>
+                    {result.done&&result.worksheetData?.blocks?.length>0&&<button type="button" className="btn btn-ghost btn-sm" onClick={()=>openJourneyResult(result)}><i className="fa-regular fa-eye"/> Vaata tulemust</button>}
+                  </article>)}
+                </div>
+              ):(
+                <div className="curriculum-result-empty"><i className="fa-solid fa-chart-line"/><div><strong>Tulemusi veel ei ole</strong><span>Loo selle programmi tunnikavast tööleht ja määra see õpilasele — tulemus ilmub pärast esitamist siia automaatselt.</span></div></div>
+              )}
+              {journeyResults?.retry?.length>0&&<div className="curriculum-retry-note"><i className="fa-solid fa-rotate-right"/><span><strong>{journeyResults.retry.length} töölehte vajab kordamist.</strong> Alla 70% tulemus või tuvastatud vead on esile tõstetud.</span></div>}
+            </section>
           </div>
         )}
       </section>
@@ -2393,6 +2442,7 @@ function ProgramsView({db,user,students=[],lessons=[],homework=[],initialStudent
           </section>
         </div>
       )}
+      {journeyResult&&<WorksheetPlayer assignment={journeyResult} onClose={()=>setJourneyResult(null)} onSubmit={async()=>{}} canAnnotate={true} notify={notify}/>}
     </div>
   );
 }
@@ -5554,6 +5604,7 @@ function AssignWorksheetModal({lesson, students, user, onClose, notify}) {
         worksheetData: effectiveSnapshot.worksheetData,
         worksheetVersion: effectiveSnapshot.worksheetVersion,
         worksheetStatus: effectiveSnapshot.worksheetStatus,
+        ...(effectiveSnapshot.curriculumFields||{}),
         studentId: sid,
         studentName: st?.name||'',
         assignedBy: user.uid,
@@ -16288,7 +16339,7 @@ function App() {
             ungroupStudent={ungroupStudent}
           />}
 
-          {tab==='programs'&&isStaff&&<ProgramsView db={db} user={user} students={students} lessons={lessons} homework={homework} initialStudentId={programStudentId} notify={notify} logActivity={logActivity}/>}
+          {tab==='programs'&&isStaff&&<ProgramsView db={db} user={user} students={students} lessons={lessons} homework={homework} worksheetAssignments={allWsAssignments} initialStudentId={programStudentId} notify={notify} logActivity={logActivity}/>}
 
           {tab==='invoices'&&!isStaff&&<ParentInvoicesView invoices={scopedInvoices} printInvoice={printInvoice} submitParentPayment={submitParentPayment}/>}
 

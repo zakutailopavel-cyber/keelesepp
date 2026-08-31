@@ -84,6 +84,27 @@
   const normalizeStatus=value=>STATUSES[value]?value:'draft';
   const nextVersion=value=>Math.max(0,Number(value)||0)+1;
   const hasBlocks=data=>Array.isArray(data?.blocks)&&data.blocks.length>0;
+  function curriculumFieldsFor(lesson={}){
+    const sourceKey=text(lesson.sourceKey);
+    const sourceMatch=sourceKey.match(/^curriculum:([^:]+):(\d+)$/);
+    const topicId=text(lesson.curriculumTopicId)||(sourceMatch?.[1]||'');
+    if(!topicId)return {};
+    const lessonIndex=lesson.curriculumLessonIndex!==undefined
+      ?Math.max(0,Number(lesson.curriculumLessonIndex)||0)
+      :Math.max(0,Number(sourceMatch?.[2])||0);
+    return {
+      sourceType:text(lesson.sourceType)||'curriculum_workspace',
+      sourceKey:sourceKey||`curriculum:${topicId}:${lessonIndex}`,
+      curriculumLanguageId:text(lesson.curriculumLanguageId),
+      curriculumSubject:text(lesson.curriculumSubject||lesson.subject),
+      curriculumLevel:text(lesson.curriculumLevel||lesson.level),
+      curriculumTopicId:topicId,
+      curriculumTopicName:text(lesson.curriculumTopicName||lesson.topic),
+      curriculumLessonIndex:lessonIndex,
+      curriculumLessonGoal:text(lesson.curriculumLessonGoal),
+      curriculumSourceVersion:text(lesson.curriculumSourceVersion)
+    };
+  }
   function isAssignableWorksheet(lesson={}){
     if(hasBlocks(lesson.publishedWorksheetData)) return true;
     if(!lesson.worksheetStatus) return hasBlocks(lesson.worksheetData);
@@ -95,7 +116,8 @@
     return {
       worksheetData:clone(legacy?lesson.worksheetData:(lesson.publishedWorksheetData||lesson.worksheetData)),
       worksheetVersion:Number(legacy?(lesson.worksheetVersion||1):(lesson.publishedWorksheetVersion||lesson.worksheetVersion||1)),
-      worksheetStatus:'published'
+      worksheetStatus:'published',
+      curriculumFields:curriculumFieldsFor(lesson)
     };
   }
   function buildVersionFields({status,version,worksheetData,worksheetQuality,now}){
@@ -111,5 +133,5 @@
     return {lessonId:text(lessonId),version:Number(version)||1,status:normalizeStatus(status),title:text(meta.title)||'Tööleht',subject:text(meta.subject),level:text(meta.level),topic:text(meta.topic),worksheetData:clone(worksheetData),worksheetQuality:clone(worksheetQuality||{}),...clone(sourceFields||{}),createdAt:at,createdBy:text(user.uid),createdByName:text(user.displayName||user.email)};
   }
 
-  return {STATUSES,TEMPLATES,buildTemplate,normalizeStatus,nextVersion,isAssignableWorksheet,assignmentDataFor,buildVersionFields,buildVersionRecord};
+  return {STATUSES,TEMPLATES,buildTemplate,normalizeStatus,nextVersion,curriculumFieldsFor,isAssignableWorksheet,assignmentDataFor,buildVersionFields,buildVersionRecord};
 });

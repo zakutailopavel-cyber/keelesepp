@@ -22,6 +22,17 @@ test('only a published worksheet is assignable while legacy data remains compati
   assert.equal(workflow.assignmentDataFor({worksheetStatus:'published',worksheetVersion:3,publishedWorksheetVersion:2,publishedWorksheetData:data}).worksheetVersion,2);
 });
 
+test('assigned worksheet keeps exact curriculum ownership from a material',()=>{
+  const data={meta:{title:'Tervitused'},blocks:[{type:'writing'}]};
+  const snapshot=workflow.assignmentDataFor({
+    worksheetStatus:'published',publishedWorksheetData:data,
+    sourceKey:'curriculum:est-a1-01:1',subject:'Eesti keel',level:'A1',topic:'Tervitused'
+  });
+  assert.equal(snapshot.curriculumFields.curriculumTopicId,'est-a1-01');
+  assert.equal(snapshot.curriculumFields.curriculumLessonIndex,1);
+  assert.equal(snapshot.curriculumFields.curriculumSubject,'Eesti keel');
+});
+
 test('publishing creates immutable version fields and a published snapshot',()=>{
   const worksheetData={meta:{title:'Pere'},blocks:[{type:'match',pairs:[{l:'pere',r:'family'}]}]};
   const fields=workflow.buildVersionFields({status:'published',version:4,worksheetData,worksheetQuality:{percent:100},now:'2026-08-29T12:00:00.000Z'});

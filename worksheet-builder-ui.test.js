@@ -5,7 +5,7 @@ const fs=require('node:fs');
 const worksheet=fs.readFileSync('haldus-worksheet/index.html','utf8');
 
 test('worksheet builder accepts curriculum prefill and keeps ownership when saving',()=>{
-  assert.match(worksheet,/src="\/curriculum-workflow-core\.js"/);
+  assert.match(worksheet,/src="\/curriculum-workflow-core\.js(?:\?v=[^"]+)?"/);
   assert.match(worksheet,/_prefill\?\.ai\?\.prompt/);
   assert.match(worksheet,/Täienda AI-ga/);
   assert.match(worksheet,/sourceType:'curriculum_workspace'/);
