@@ -27,11 +27,16 @@ test('v1 CRM loads detailed curriculum data and provides search plus preview',()
   assert.match(haldus,/Õppekava teema/);
   assert.match(haldus,/function CurriculumProgressCard/);
   assert.match(haldus,/ÕPILASE ÕPITEE/);
-  assert.match(haldus,/buildStudentJourney\(curriculum,journeyStudent,lessons,homework,journeyMaterials\)/);
+  assert.match(haldus,/buildStudentJourney\(curriculum,journeyStudent,lessons,homework,journeyMaterials,journeyEvents\)/);
   assert.match(haldus,/buildCurriculumResults\(curriculum,journeyStudent,worksheetAssignments,journeyMaterials\)/);
   assert.match(haldus,/TULEMUSED JA TAGASISIDE/);
   assert.match(haldus,/Määra kordamiseks/);
   assert.match(haldus,/buildRetryAssignment\(result,user\)/);
+  assert.match(haldus,/Käsitsi arvestatud tunnikavad/);
+  assert.match(haldus,/Arvesta varem läbituks/);
+  assert.match(haldus,/Tühista käsitsi arvestus/);
+  assert.match(haldus,/buildCurriculumProgressEvent/);
+  assert.match(haldus,/collection\('curriculumProgressEvents'\)/);
   assert.match(haldus,/Ava järgmine tunnikava/);
   assert.match(haldus,/initialStudentId=\{programStudentId\}/);
   assert.match(haldus,/Metoodiline lähtekeel: vene keel/);
@@ -39,6 +44,16 @@ test('v1 CRM loads detailed curriculum data and provides search plus preview',()
   assert.match(css,/\.curriculum-preview-overlay/);
   assert.match(css,/\.curriculum-lessons/);
   assert.match(css,/\.curriculum-roadmap-topic/);
+  assert.match(css,/\.curriculum-history/);
+  assert.match(css,/\.curriculum-manual-credit/);
+});
+
+test('manual curriculum progress is an immutable audited collection',()=>{
+  const rules=fs.readFileSync('firestore.rules','utf8');
+  assert.match(rules,/match \/curriculumProgressEvents\/\{eventId\}/);
+  assert.match(rules,/request\.resource\.data\.actorUid == uid\(\)/);
+  assert.match(rules,/request\.resource\.data\.action in \['credit_awarded', 'credit_revoked'\]/);
+  assert.match(rules,/allow update, delete: if false/);
 });
 
 test('curriculum links survive the lesson API and material level is validated',()=>{

@@ -90,6 +90,21 @@ test('student journey stays unavailable until subject and CEFR level are explici
   assert.equal(journey.nextItem,null);
 });
 
+test('manual curriculum credits are append-only events and revocation restores progress',()=>{
+  const student={id:'student-1',name:'Student',subject:'Eesti keel',level:'A1'};
+  const item=workflow.flattenCurriculum(curriculum)[0];
+  const award=workflow.buildCurriculumProgressEvent({action:'credit_awarded',item,student,user:{uid:'teacher-1',displayName:'Teacher'},reason:'Varem läbitud teises koolis',creditId:'credit-1'},'2026-08-31T10:00:00.000Z');
+  const active=workflow.buildStudentJourney(curriculum,student,[],[],[],[award]);
+  assert.equal(active.completedLessons,1);
+  assert.equal(active.manualCreditCount,1);
+  assert.equal(active.items[0].completionSource,'manual');
+  const revoke=workflow.buildCurriculumProgressEvent({action:'credit_revoked',item,student,user:{uid:'teacher-1',displayName:'Teacher'},reason:'Zачёт внесён ошибочно',creditId:'credit-1'},'2026-08-31T11:00:00.000Z');
+  const revoked=workflow.buildStudentJourney(curriculum,student,[],[],[],[award,revoke]);
+  assert.equal(revoked.completedLessons,0);
+  assert.equal(revoked.manualCreditCount,0);
+  assert.equal(revoked.history.length,2);
+});
+
 test('curriculum results link explicit and legacy assignments without mixing students',()=>{
   const student={id:'student-1',subject:'Eesti keel',level:'A1'};
   const materials=[

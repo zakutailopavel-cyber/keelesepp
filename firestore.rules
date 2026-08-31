@@ -1520,6 +1520,19 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
 
+    match /curriculumProgressEvents/{eventId} {
+      allow read: if isStaff() || ownsStudent(resource.data.studentId);
+      allow create: if isStaff()
+        && request.resource.data.studentId is string
+        && request.resource.data.studentId.size() > 0
+        && request.resource.data.actorUid == uid()
+        && request.resource.data.action in ['credit_awarded', 'credit_revoked']
+        && request.resource.data.reason is string
+        && request.resource.data.reason.size() >= 5
+        && request.resource.data.reason.size() <= 500;
+      allow update, delete: if false;
+    }
+
     match /curriculumLessons/{lessonId} {
       allow read: if signedIn();
       allow write: if isStaff();

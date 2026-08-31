@@ -47,7 +47,7 @@ window.__haldusConfigureBabel = function(){
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="/haldus.css?v=20260831.14">
+<link rel="stylesheet" href="/haldus.css?v=20260831.15">
 </head>
 <body>
 <div id="root"><div style="display:flex;align-items:center;justify-content:center;min-height:100vh"><div class="spinner"></div></div></div>
@@ -128,8 +128,8 @@ window.__haldusConfigureBabel();
 <script src="/tax-report-core.js"></script>
 <script src="/haldus-programs.js"></script>
 <script src="/haldus-curriculum-data.js"></script>
-<script src="/curriculum-workflow-core.js?v=20260831.14"></script>
-<script src="/worksheet-workflow-core.js?v=20260831.14"></script>
+<script src="/curriculum-workflow-core.js?v=20260831.15"></script>
+<script src="/worksheet-workflow-core.js?v=20260831.15"></script>
 <script src="/worksheet-interactive-core.js?v=20260830.9"></script>
 <script src="/annotations-manager.js"></script>
 <script type="text/babel" data-presets="haldus-react">
@@ -1954,14 +1954,15 @@ function ProgramsView({db,user,students=[],lessons=[],homework=[],worksheetAssig
   const [journeyMaterials,setJourneyMaterials]=React.useState([]);
   const [journeyResult,setJourneyResult]=React.useState(null);
   const [journeyRetryBusy,setJourneyRetryBusy]=React.useState('');
+  const [journeyEvents,setJourneyEvents]=React.useState([]);
   const normalizedQuery=normalizeText(query);
   const allLevels=(curriculum.languages||[]).flatMap(language=>(language.levels||[]).map(level=>({language,level})));
   const curriculumCatalog=React.useMemo(()=>workflow?workflow.flattenCurriculum(curriculum):[],[workflow,curriculum]);
   const activeStudents=React.useMemo(()=>(students||[]).filter(student=>student.active!==false&&!student.mergedIntoStudentId).sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'et')),[students]);
   const journeyStudent=activeStudents.find(student=>student.id===journeyStudentId)||null;
   const journey=React.useMemo(()=>workflow&&journeyStudent
-    ?workflow.buildStudentJourney(curriculum,journeyStudent,lessons,homework,journeyMaterials)
-    :null,[workflow,curriculum,journeyStudent,lessons,homework,journeyMaterials]);
+    ?workflow.buildStudentJourney(curriculum,journeyStudent,lessons,homework,journeyMaterials,journeyEvents)
+    :null,[workflow,curriculum,journeyStudent,lessons,homework,journeyMaterials,journeyEvents]);
   const journeyResults=React.useMemo(()=>workflow&&journeyStudent
     ?workflow.buildCurriculumResults(curriculum,journeyStudent,worksheetAssignments,journeyMaterials)
     :null,[workflow,curriculum,journeyStudent,worksheetAssignments,journeyMaterials]);
@@ -1976,8 +1977,14 @@ function ProgramsView({db,user,students=[],lessons=[],homework=[],worksheetAssig
   const actionProgress=React.useMemo(()=>{
     if(!workflow||!actionStudent)return null;
     const studentLessons=(lessons||[]).filter(lesson=>lesson.studentId===actionStudent.id);
+    if(actionStudent.id===journeyStudent?.id){
+      return workflow.buildStudentJourney(curriculum,actionStudent,studentLessons,[],[],journeyEvents);
+    }
     return workflow.calculateProgress(curriculum,actionStudent,studentLessons);
-  },[workflow,curriculum,actionStudent,lessons]);
+  },[workflow,curriculum,actionStudent,journeyStudent,journeyEvents,lessons]);
+  const actionJourneyItem=actionItem&&actionStudent?.id===journeyStudent?.id
+    ?journey?.items?.find(item=>item.key===actionItem.key)||null
+    :null;
   const levelCodes=[...new Set(allLevels.map(item=>item.level.code))];
   const topicMatches=(topic,level,language)=>{
     if(!normalizedQuery)return true;
@@ -2049,6 +2056,26 @@ function ProgramsView({db,user,students=[],lessons=[],homework=[],worksheetAssig
       notify(`⚠ ${error?.message||'Kordustöö määramine ebaõnnestus'}`);
     }finally{
       setJourneyRetryBusy('');
+    }
+  };
+  const changeManualCredit=async revoke=>{
+    if(!actionItem||!actionStudent||actionStudent.id!==journeyStudent?.id){notify('⚠ Vali õpitee kaardilt sama õpilane');return;}
+    const reason=window.prompt(revoke?'Miks käsitsi antud arvestus tühistatakse?':'Miks võib selle tunnikava lugeda varem läbituks?');
+    if(reason===null)return;
+    if(String(reason).trim().length<5){notify('⚠ Põhjus peab sisaldama vähemalt 5 tähemärki');return;}
+    setActionBusy(revoke?'credit-revoke':'credit-award');
+    try{
+      const ref=db.collection('curriculumProgressEvents').doc();
+      const creditId=revoke?actionJourneyItem?.manualCredit?.creditId||actionJourneyItem?.manualCredit?.id:ref.id;
+      const record=workflow.buildCurriculumProgressEvent({action:revoke?'credit_revoked':'credit_awarded',item:actionItem,student:actionStudent,user,reason,creditId});
+      await ref.set(record);
+      if(logActivity)await logActivity(revoke?'curriculum.credit_revoked':'curriculum.credit_awarded',revoke?'Õppekava käsitsi arvestus tühistati':'Tunnikava arvestati varem läbituks',{studentId:actionStudent.id,studentName:actionStudent.name,curriculumTopicId:actionItem.topicId,curriculumLessonIndex:actionItem.lessonIndex,creditId,reason:String(reason).trim()});
+      notify(revoke?'✓ Käsitsi arvestus tühistatud':'✓ Tunnikava arvestatud varem läbituks');
+    }catch(error){
+      console.error('Curriculum credit change failed:',error);
+      notify(`⚠ ${error?.message||'Õppekava arvestuse muutmine ebaõnnestus'}`);
+    }finally{
+      setActionBusy('');
     }
   };
   const runAction=async(type)=>{
@@ -2130,6 +2157,16 @@ function ProgramsView({db,user,students=[],lessons=[],homework=[],worksheetAssig
     });
   },[db]);
 
+  React.useEffect(()=>{
+    if(!db||!journeyStudentId){setJourneyEvents([]);return undefined;}
+    return db.collection('curriculumProgressEvents').where('studentId','==',journeyStudentId).onSnapshot(snapshot=>{
+      setJourneyEvents(snapshot.docs.map(doc=>({id:doc.id,...doc.data()})));
+    },error=>{
+      console.warn('Curriculum progress history listener failed:',error);
+      setJourneyEvents([]);
+    });
+  },[db,journeyStudentId]);
+
   return(
     <div className="fade-in curriculum-workspace">
       <section className="curriculum-hero">
@@ -2210,7 +2247,7 @@ function ProgramsView({db,user,students=[],lessons=[],homework=[],worksheetAssig
               {journey.topics.map((topic,index)=><button type="button" key={topic.topicId} className={`curriculum-roadmap-topic ${topic.completed?'completed':topic.active?'active':''}`} onClick={()=>openJourneyItem(topic.items.find(item=>!item.completed)||topic.items[0])}>
                 <span className="curriculum-roadmap-index">{topic.completed?<i className="fa-solid fa-check"/>:index+1}</span>
                 <span className="curriculum-roadmap-copy"><strong>{topic.topicName}</strong><small>{topic.completedLessons}/{topic.totalLessons} tunnikava · {topic.percent}%</small></span>
-                <span className="curriculum-roadmap-lessons">{topic.items.map(item=><i key={item.key} title={item.lessonNumber} className={item.completed?'done':item.planned?'planned':''}/>)}</span>
+                <span className="curriculum-roadmap-lessons">{topic.items.map(item=><i key={item.key} title={`${item.lessonNumber}${item.completionSource==='manual'?' · käsitsi arvestatud':item.completionSource==='lesson'?' · toimunud tund':''}`} className={item.completionSource==='manual'?'manual':item.completed?'done':item.planned?'planned':''}/>)}</span>
               </button>)}
             </div>
             <section className="curriculum-results" aria-label="Töölehtede tulemused">
@@ -2249,6 +2286,13 @@ function ProgramsView({db,user,students=[],lessons=[],homework=[],worksheetAssig
                 <div className="curriculum-result-empty"><i className="fa-solid fa-chart-line"/><div><strong>Tulemusi veel ei ole</strong><span>Loo selle programmi tunnikavast tööleht ja määra see õpilasele — tulemus ilmub pärast esitamist siia automaatselt.</span></div></div>
               )}
               {journeyResults?.retry?.length>0&&<div className="curriculum-retry-note"><i className="fa-solid fa-rotate-right"/><span><strong>{journeyResults.retry.length} töölehte vajab kordamist.</strong> Alla 70% tulemus või tuvastatud vead on esile tõstetud.</span></div>}
+            </section>
+            <section className="curriculum-history" aria-label="Õppekava ajalugu">
+              <header><div><span>ÕPPEKAVA AJALUGU</span><h3>Käsitsi arvestatud tunnikavad</h3></div><strong>{journey.manualCreditCount}</strong></header>
+              {journey.history.length?journey.history.slice(0,8).map(event=><div className="curriculum-history-row" key={event.id||`${event.creditId}-${event.createdAt}`}>
+                <i className={`fa-solid ${event.action==='credit_awarded'?'fa-circle-check':'fa-rotate-left'}`}/>
+                <div><strong>{event.item?.topicName||event.curriculumTopicName} · {event.item?.lessonNumber||`Tund ${Number(event.curriculumLessonIndex||0)+1}`}</strong><span>{event.action==='credit_awarded'?'Arvestatud varem läbituks':'Käsitsi arvestus tühistatud'} · {event.actorName||'—'} · {event.createdAt?new Date(event.createdAt).toLocaleString('et-EE'):''}</span><small>{event.reason}</small></div>
+              </div>):<div className="curriculum-history-empty">Käsitsi arvestusi ei ole. Toimunud tunnid jäävad põhiliseks progressi tõendiks.</div>}
             </section>
           </div>
         )}
@@ -2432,6 +2476,13 @@ function ProgramsView({db,user,students=[],lessons=[],homework=[],worksheetAssig
                 <button type="button" className="btn btn-pine" disabled={Boolean(actionBusy)} onClick={()=>runAction('material')}><i className="fa-solid fa-book-open"/> {actionBusy==='material'?'Loon…':'Lisa õppevarasse'}</button>
                 <button type="button" className="btn btn-amber" disabled={!actionStudentValidation.ok||Boolean(actionBusy)} onClick={()=>runAction('homework')}><i className="fa-solid fa-paper-plane"/> {actionBusy==='homework'?'Saadan…':'Saada kodutöö'}</button>
               </div>
+              {actionStudent?.id===journeyStudent?.id&&actionJourneyItem&&(
+                actionJourneyItem.completionSource==='lesson'
+                  ?<div className="curriculum-manual-credit complete"><i className="fa-solid fa-circle-check"/><span><strong>Tunnikava on läbitud päris tunniga</strong>Seda tõendit ei saa õppekava vaatest tühistada.</span></div>
+                  :actionJourneyItem.completionSource==='manual'
+                    ?<button type="button" className="curriculum-manual-credit revoke" disabled={Boolean(actionBusy)} onClick={()=>changeManualCredit(true)}><i className="fa-solid fa-rotate-left"/><span><strong>{actionBusy==='credit-revoke'?'Tühistan…':'Tühista käsitsi arvestus'}</strong>Põhjus ja autor jäävad ajalukku.</span></button>
+                    :<button type="button" className="curriculum-manual-credit" disabled={!actionStudentValidation.ok||Boolean(actionBusy)} onClick={()=>changeManualCredit(false)}><i className="fa-solid fa-award"/><span><strong>{actionBusy==='credit-award'?'Salvestan…':'Arvesta varem läbituks'}</strong>Kasuta ainult tõendatud varasema õppe korral; põhjus on kohustuslik.</span></button>
+              )}
               {createdMaterialId&&<a className="curriculum-action-library-link" href={`/haldus-exercises/?libSubject=${encodeURIComponent(actionItem?.subject||'')}&libStage=${encodeURIComponent(actionItem?.level||'')}&libTopic=${encodeURIComponent(actionItem?.topicName||'')}`} target="_blank" rel="noopener"><i className="fa-solid fa-arrow-up-right-from-square"/> Ava loodud materjal õppevaras</a>}
             </div>
           </section>

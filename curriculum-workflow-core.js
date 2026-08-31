@@ -330,12 +330,58 @@
     };
   }
 
-  function buildStudentJourney(curriculum,student={},lessons=[],homework=[],materials=[]){
+  function buildCurriculumProgressEvent({action,item,student,user={},reason='',creditId=''},at=new Date().toISOString()){
+    if(!['credit_awarded','credit_revoked'].includes(action))throw new Error('Unsupported curriculum progress action');
+    if(!item?.topicId||!student?.id)throw new Error('Curriculum item and student are required');
+    const cleanReason=text(reason);
+    if(cleanReason.length<5)throw new Error('Reason must contain at least 5 characters');
+    const stableCreditId=text(creditId);
+    if(action==='credit_revoked'&&!stableCreditId)throw new Error('Credit id is required for revocation');
+    return {
+      action,
+      creditId:stableCreditId,
+      studentId:student.id,
+      studentName:text(student.name),
+      curriculumLanguageId:item.languageId,
+      curriculumSubject:item.subject,
+      curriculumLevel:item.level,
+      curriculumTopicId:item.topicId,
+      curriculumTopicName:item.topicName,
+      curriculumLessonIndex:Number(item.lessonIndex)||0,
+      curriculumLessonGoal:item.lessonGoal||'',
+      reason:cleanReason,
+      actorUid:text(user.uid),
+      actorName:text(user.displayName||user.email),
+      createdAt:at
+    };
+  }
+
+  function buildCurriculumHistory(curriculum,student={},events=[]){
+    const catalog=catalogForStudent(flattenCurriculum(curriculum),student);
+    const catalogByKey=new Map(catalog.map(item=>[item.key,item]));
+    const rows=(events||[]).filter(event=>event.studentId===student.id).slice().sort((a,b)=>String(a.createdAt||'').localeCompare(String(b.createdAt||'')));
+    const activeCredits=new Map();
+    rows.forEach(event=>{
+      const key=`${event.curriculumTopicId}:${Math.max(0,Number(event.curriculumLessonIndex)||0)}`;
+      if(!catalogByKey.has(key))return;
+      if(event.action==='credit_awarded')activeCredits.set(text(event.creditId||event.id),{...event,key,item:catalogByKey.get(key)});
+      if(event.action==='credit_revoked')activeCredits.delete(text(event.creditId));
+    });
+    return {
+      activeCredits,
+      activeKeys:new Set([...activeCredits.values()].map(event=>event.key)),
+      events:rows.slice().reverse().map(event=>({...event,item:catalogByKey.get(`${event.curriculumTopicId}:${Math.max(0,Number(event.curriculumLessonIndex)||0)}`)||null}))
+    };
+  }
+
+  function buildStudentJourney(curriculum,student={},lessons=[],homework=[],materials=[],progressEvents=[]){
     const catalog=catalogForStudent(flattenCurriculum(curriculum),student);
     const lessonRows=(lessons||[]).filter(lesson=>lesson.studentId===student.id&&lesson.curriculumTopicId);
-    const completedKeys=new Set(lessonRows
+    const lessonCompletedKeys=new Set(lessonRows
       .filter(lesson=>lesson.status==='Toimunud')
       .map(lesson=>`${lesson.curriculumTopicId}:${Math.max(0,Number(lesson.curriculumLessonIndex)||0)}`));
+    const history=buildCurriculumHistory(curriculum,student,progressEvents);
+    const completedKeys=new Set([...lessonCompletedKeys,...history.activeKeys]);
     const plannedKey=student.curriculumPlan?.topicId
       ?`${student.curriculumPlan.topicId}:${Math.max(0,Number(student.curriculumPlan.lessonIndex)||0)}`
       :'';
@@ -361,6 +407,8 @@
       return {
         ...item,
         completed,
+        completionSource:lessonCompletedKeys.has(item.key)?'lesson':history.activeKeys.has(item.key)?'manual':'',
+        manualCredit:[...history.activeCredits.values()].find(event=>event.key===item.key)||null,
         planned:item.key===plannedKey&&!completed,
         homeworkCount:homeworkRows.length,
         pendingHomeworkCount:homeworkRows.filter(row=>!doneHomeworkStatuses.has(normalize(row.status))).length,
@@ -398,6 +446,8 @@
       percent:items.length?Math.round(items.filter(item=>item.completed).length/items.length*100):0,
       pendingHomework:items.reduce((sum,item)=>sum+item.pendingHomeworkCount,0),
       materialCount:items.reduce((sum,item)=>sum+item.materialCount,0),
+      manualCreditCount:history.activeCredits.size,
+      history:history.events,
       plannedKey,
       nextItem
     };
@@ -483,6 +533,8 @@
     explicitContentLevels,
     validateMaterialLevel,
     calculateProgress,
+    buildCurriculumProgressEvent,
+    buildCurriculumHistory,
     buildStudentJourney,
     buildCurriculumResults
   };
