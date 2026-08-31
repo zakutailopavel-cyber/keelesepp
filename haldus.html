@@ -13075,14 +13075,9 @@ function GCalSettings({user,notify}) {
   };
 
   const previewSyncRecovery = async()=>{
-    if(!lastSync) return;
     setRecovering(true);
     try{
-      const syncTime=new Date(lastSync).getTime();
-      if(!Number.isFinite(syncTime)) throw new Error('Viimase sünkroonimise aeg puudub');
-      const fromIso=new Date(syncTime-45*1000).toISOString();
-      const toIso=new Date(syncTime+45*1000).toISOString();
-      const preview=await staffOperationsApiPost('/schedule/sync-recovery/preview',{fromIso,toIso});
+      const preview=await staffOperationsApiPost('/schedule/sync-recovery/latest-preview',{});
       setRecoveryPreview(preview);
       setDetailsOpen(true);
       if(!preview.count) notify('Taastatavaid tunde sellest sünkroonimisest ei leitud');
@@ -13196,6 +13191,11 @@ function GCalSettings({user,notify}) {
               Eemalda ühendus
             </button>
           </div>
+          {!recoveryPreview&&(
+            <button onClick={previewSyncRecovery} disabled={recovering} className="btn btn-ghost btn-sm" style={{marginTop:10}}>
+              {recovering?'Kontrollin…':'Kontrolli ekslikult tühistatud tunde'}
+            </button>
+          )}
           {recoveryPreview&&(
             <div style={{marginTop:12,padding:'12px 14px',border:'1px solid #f59e0b',background:'#fffbeb',borderRadius:12}}>
               <div style={{fontWeight:800,color:'#92400e'}}>Kontrollitud taastamine: {recoveryPreview.count} tundi</div>

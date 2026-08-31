@@ -6575,6 +6575,32 @@ async function previewScheduleSyncRecovery({ actor, fromIso, toIso }) {
   };
 }
 
+async function previewLatestScheduleSyncRecovery({ actor }) {
+  const actorData = actorSnapshot(actor);
+  const cutoffIso = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const snap = await db.collection("schedule").get();
+  const latestCancelledAt = snap.docs.map(doc => doc.data()).filter(item =>
+    item.gcalSyncStatus === "deleted_in_google"
+      && String(item.gcalDeletedInGoogleAt || "") >= cutoffIso
+      && teacherOwnsRecord(item, actorData.uid, actorData.name)
+  ).map(item => String(item.gcalDeletedInGoogleAt || "")).sort().pop();
+  if (!latestCancelledAt) {
+    return {
+      fromIso: "",
+      toIso: "",
+      teacherName: actorData.name,
+      count: 0,
+      items: [],
+    };
+  }
+  const incidentTime = new Date(latestCancelledAt).getTime();
+  return previewScheduleSyncRecovery({
+    actor,
+    fromIso: new Date(incidentTime - 45 * 1000).toISOString(),
+    toIso: new Date(incidentTime + 45 * 1000).toISOString(),
+  });
+}
+
 async function applyScheduleSyncRecovery({ actor, fromIso, toIso, requestId, confirmed }) {
   if (confirmed !== true) throw httpError(400, "Explicit confirmation required");
   const mutationId = cleanRequestId(requestId);
@@ -6687,6 +6713,11 @@ exports.staffOperationsApi = functions.https.onRequest(async (req, res) => {
         fromIso: req.body?.fromIso,
         toIso: req.body?.toIso,
       }));
+      return;
+    }
+    if (req.path === "/schedule/sync-recovery/latest-preview") {
+      const actor = await requireStaffUser(req);
+      res.json(await previewLatestScheduleSyncRecovery({ actor }));
       return;
     }
     if (req.path === "/schedule/sync-recovery/apply") {
