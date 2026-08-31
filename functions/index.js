@@ -6579,12 +6579,13 @@ async function previewLatestScheduleSyncRecovery({ actor }) {
   const actorData = actorSnapshot(actor);
   const cutoffIso = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
   const snap = await db.collection("schedule").get();
-  const latestCancelledAt = snap.docs.map(doc => doc.data()).filter(item =>
+  const cancelledTimes = snap.docs.map(doc => doc.data()).filter(item =>
     item.gcalSyncStatus === "deleted_in_google"
       && String(item.gcalDeletedInGoogleAt || "") >= cutoffIso
       && teacherOwnsRecord(item, actorData.uid, actorData.name)
-  ).map(item => String(item.gcalDeletedInGoogleAt || "")).sort().pop();
-  if (!latestCancelledAt) {
+  ).map(item => new Date(String(item.gcalDeletedInGoogleAt || "")).getTime())
+    .filter(Number.isFinite).sort((left, right) => left - right);
+  if (!cancelledTimes.length) {
     return {
       fromIso: "",
       toIso: "",
@@ -6593,11 +6594,18 @@ async function previewLatestScheduleSyncRecovery({ actor }) {
       items: [],
     };
   }
-  const incidentTime = new Date(latestCancelledAt).getTime();
+  const clusters = [];
+  cancelledTimes.forEach(time => {
+    const current = clusters[clusters.length - 1];
+    if (!current || time - current[current.length - 1] > 90 * 1000) clusters.push([time]);
+    else current.push(time);
+  });
+  const incident = clusters.sort((left, right) => right.length - left.length
+    || right[right.length - 1] - left[left.length - 1])[0];
   return previewScheduleSyncRecovery({
     actor,
-    fromIso: new Date(incidentTime - 45 * 1000).toISOString(),
-    toIso: new Date(incidentTime + 45 * 1000).toISOString(),
+    fromIso: new Date(incident[0] - 5 * 1000).toISOString(),
+    toIso: new Date(incident[incident.length - 1] + 5 * 1000).toISOString(),
   });
 }
 
