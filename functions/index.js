@@ -7892,12 +7892,18 @@ async function syncTeacherCalendar(uid, tokens) {
     && recurringMastersByGoogleId.has(event.recurringEventId)
     && googleOriginalOccurrenceDate(event, APP_TIME_ZONE)
   );
-  let events = [
+  let events = [...new Map([
     ...expandedEvents.filter(event => !(
       event.recurringEventId && recurringMastersByGoogleId.has(event.recurringEventId)
     )),
     ...recurringMastersByGoogleId.values(),
-  ];
+    ...compactEvents.filter(event =>
+      !event.recurringEventId
+        && !event.recurrence
+        && event.status !== "cancelled"
+        && isKeeleSeppManagedGoogleEvent(event)
+    ),
+  ].filter(event => event?.id).map(event => [String(event.id), event])).values()];
   let synced = 0;
   let skipped = 0;
   let exceptions = 0;

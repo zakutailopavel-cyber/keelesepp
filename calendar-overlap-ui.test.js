@@ -71,6 +71,7 @@ test('manual sync removes only duplicate Google events with the same KeeleSepp s
   assert.match(functionsSource,/managedGoogleScheduleId\(event\) === scheduleId/);
   assert.match(functionsSource,/activeManagedScheduleIds/);
   assert.match(functionsSource,/!activeManagedScheduleIds\.has\(doc\.id\)/);
+  assert.match(functionsSource,/compactEvents\.filter\(event =>\s*!event\.recurringEventId/);
   assert.match(html,/duplikaate eemaldatud/);
 });
 
