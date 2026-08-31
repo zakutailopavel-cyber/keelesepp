@@ -8120,6 +8120,9 @@ async function syncTeacherCalendar(uid, tokens) {
   // unavailable; absence alone must never delete a KeeleSepp record.
   const syncWindowStart = localDate(new Date(), APP_TIME_ZONE);
   const syncWindowEnd = localDate(new Date(timeMax), APP_TIME_ZONE);
+  const activeManagedScheduleIds = new Set(
+    events.map(managedGoogleScheduleId).filter(Boolean),
+  );
   const importedSnap = await db.collection("schedule").where("teacherUid", "==", uid).get();
   const staleDocs = importedSnap.docs.filter(doc => {
     const event = doc.data();
@@ -8141,6 +8144,7 @@ async function syncTeacherCalendar(uid, tokens) {
   const managedStaleDocs = importedSnap.docs.filter(doc => {
     const event = doc.data();
     return event.source === "keelesepp"
+      && !activeManagedScheduleIds.has(doc.id)
       && shouldApplyExplicitGoogleDeletion(event, deletedGoogleEventIds, {
         windowStart: syncWindowStart,
         windowEnd: syncWindowEnd,
