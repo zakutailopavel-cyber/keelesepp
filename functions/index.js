@@ -6552,7 +6552,8 @@ async function previewScheduleSyncRecovery({ actor, fromIso, toIso }) {
   const snap = await db.collection("schedule").get();
   const items = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(item => {
     const cancelledAt = String(item.gcalDeletedInGoogleAt || "");
-    return item.gcalSyncStatus === "deleted_in_google"
+    return item.status === "Tühistatud"
+      && !item.gcalSyncRecoveredAt
       && cancelledAt >= window.fromIso
       && cancelledAt <= window.toIso
       && teacherOwnsRecord(item, actorData.uid, actorData.name);
@@ -6580,7 +6581,8 @@ async function previewLatestScheduleSyncRecovery({ actor }) {
   const cutoffIso = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
   const snap = await db.collection("schedule").get();
   const cancelledTimes = snap.docs.map(doc => doc.data()).filter(item =>
-    item.gcalSyncStatus === "deleted_in_google"
+    item.status === "Tühistatud"
+      && !item.gcalSyncRecoveredAt
       && String(item.gcalDeletedInGoogleAt || "") >= cutoffIso
       && teacherOwnsRecord(item, actorData.uid, actorData.name)
   ).map(item => new Date(String(item.gcalDeletedInGoogleAt || "")).getTime())

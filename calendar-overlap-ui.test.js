@@ -79,7 +79,8 @@ test('the exact sync incident can be recovered without reopening intentionally c
   assert.match(functionsSource,/req\.path === "\/schedule\/sync-recovery\/preview"/);
   assert.match(functionsSource,/req\.path === "\/schedule\/sync-recovery\/latest-preview"/);
   assert.match(functionsSource,/req\.path === "\/schedule\/sync-recovery\/apply"/);
-  assert.match(functionsSource,/item\.gcalSyncStatus === "deleted_in_google"/);
+  assert.match(functionsSource,/item\.status === "Tühistatud"/);
+  assert.match(functionsSource,/!item\.gcalSyncRecoveredAt/);
   assert.match(functionsSource,/gcalSyncRecoveredAt/);
   assert.match(functionsSource,/schedule\.sync_recovered/);
   assert.match(html,/Kontrolli ekslikult tühistatud tunde/);
