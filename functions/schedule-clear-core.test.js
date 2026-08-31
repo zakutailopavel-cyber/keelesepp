@@ -88,5 +88,29 @@ test("teacher clear plan includes owned individual and group lessons without tou
     cancelledSingleCount: 1,
     cancelledSeriesCount: 0,
     truncatedSeriesCount: 1,
+    cancelledExternalGoogleCount: 0,
   });
+});
+
+test("future clear can explicitly suppress and remove owned Google events", () => {
+  const plan = planTeacherFutureScheduleClear({
+    teacherUid: "teacher-pavel",
+    teacherName: "Pavel Zakutailo",
+    fromDate: "2026-08-31",
+    includeExternalGoogle: true,
+    schedule: [{
+      id: "google-own",
+      teacherUid: "teacher-pavel",
+      source: "gcal",
+      gcalEventId: "google-event-1",
+      date: "2026-09-03",
+      status: "Planeeritud",
+    }],
+  });
+  assert.equal(plan.schedulePatches.length, 1);
+  assert.equal(plan.schedulePatches[0].kind, "cancel_external_google");
+  assert.equal(plan.schedulePatches[0].patch.gcalImportSuppressed, true);
+  assert.equal(plan.summary.totalCount, 1);
+  assert.equal(plan.summary.externalGoogleCount, 1);
+  assert.equal(plan.summary.cancelledExternalGoogleCount, 1);
 });

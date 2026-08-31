@@ -71,6 +71,8 @@ const {
 const {
   GOOGLE_SCOPE_EVENTS_OWNED,
   hasCalendarWriteScope,
+  normalizeCalendarName,
+  extractCalendarStudentName,
   scheduleToGoogleEvent,
   scheduleSyncFingerprint,
   managedGoogleScheduleId,
@@ -81,6 +83,8 @@ const {
   managedGoogleOccurrenceExceptionId,
   googleOccurrenceExceptionSchedule,
   googleNativeExclusionState,
+  explicitlyDeletedGoogleEventIds,
+  shouldApplyExplicitGoogleDeletion,
 } = require("./calendar-sync-core");
 const {
   buildOperationalAlerts,
@@ -98,7 +102,7 @@ const {
   stableLessonDocumentId,
 } = require("./lesson-record-core");
 const { planTeacherScopeBackfill } = require("./teacher-scope-core");
-const { planTeacherFutureScheduleClear } = require("./schedule-clear-core");
+const { planTeacherFutureScheduleClear, teacherOwnsRecord } = require("./schedule-clear-core");
 const {
   findStudentDuplicateGroups,
   mergeStudentProfileData,
@@ -4992,36 +4996,6 @@ function localTime(date, timeZone) {
   return `${parts.hour}:${parts.minute}`;
 }
 
-// Normalize name for matching: "Maria Mägi" → "maria magi"
-function normalizeName(str) {
-  return (str || "")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9\s]/g, "")
-    .trim();
-}
-
-// Extract student name from calendar event title
-// Formats supported:
-//   "Занятие — Hanna Skoryk"
-//   "Tund - Maria Mägi"
-//   "Eesti keel / Anna (A2)"
-//   "Anna Ivanova eesti keel"
-function extractStudentName(title) {
-  if (!title) return null;
-  // Pattern: dash/em-dash separator
-  const dashMatch = title.match(/[—–-]\s*([A-ZÕÄÖÜ][a-zõäöüšž]+(?:\s+[A-ZÕÄÖÜ][a-zõäöüšž]+)*)/u);
-  if (dashMatch) return dashMatch[1].trim();
-  // Pattern: "Занятие X" or "Tund X"
-  const lessonMatch = title.match(/(?:Занятие|Tund|Õppetund|Lesson)\s+([A-ZÕÄÖÜ][a-zõäöüšž]+(?:\s+[A-ZÕÄÖÜ][a-zõäöüšž]+)*)/u);
-  if (lessonMatch) return lessonMatch[1].trim();
-  // Pattern: starts with two capitalized words = "FirstName LastName ..."
-  const nameMatch = title.match(/^([A-ZÕÄÖÜ][a-zõäöüšž]+\s+[A-ZÕÄÖÜ][a-zõäöüšž]+)/u);
-  if (nameMatch) return nameMatch[1].trim();
-  return null;
-}
-
 // (findStudentByName удалена: поиск по имени теперь идёт по кэшу,
 // собираемому один раз за прогон в syncTeacherCalendar)
 
@@ -5075,7 +5049,7 @@ function gcalEventToSchedule(event, teacher, studentId, studentName, teacherUid)
     gcalEtag:     event.etag || "",
     title:        event.summary || "",
     studentId:    studentId || "",
-    studentName:  studentName || extractStudentName(event.summary) || "",
+    studentName:  studentName || extractCalendarStudentName(event.summary) || "",
     teacher:      teacher || "",
     teacherFull:  teacher || "",
     teacherUid:   teacherUid || "",
@@ -6402,7 +6376,7 @@ async function setAccountDisabled({ actor, uid, disabled, reason, requestId }) {
   return { uid: cleanUid, disabled: nextDisabled, idempotent: false };
 }
 
-async function teacherFutureScheduleClearPlan({ actor, fromDate, operationId = "preview" }) {
+async function teacherFutureScheduleClearPlan({ actor, fromDate, operationId = "preview", includeExternalGoogle = false }) {
   const cleanFromDate = validIsoDate(fromDate, "fromDate");
   const actorData = actorSnapshot(actor);
   const [scheduleSnap, groupsSnap] = await Promise.all([
@@ -6418,6 +6392,7 @@ async function teacherFutureScheduleClearPlan({ actor, fromDate, operationId = "
     fromDate: cleanFromDate,
     nowIso: new Date().toISOString(),
     operationId,
+    includeExternalGoogle,
   });
 }
 
@@ -6429,7 +6404,7 @@ function publicTeacherFutureScheduleClearPlan(plan) {
   };
 }
 
-async function applyTeacherFutureScheduleClear({ actor, fromDate, requestId, confirmed }) {
+async function applyTeacherFutureScheduleClear({ actor, fromDate, requestId, confirmed, includeExternalGoogle = false }) {
   if (confirmed !== true) throw httpError(400, "Explicit confirmation required");
   const mutationId = cleanRequestId(requestId);
   const cleanFromDate = validIsoDate(fromDate, "fromDate");
@@ -6448,9 +6423,10 @@ async function applyTeacherFutureScheduleClear({ actor, fromDate, requestId, con
     actor,
     fromDate: cleanFromDate,
     operationId: mutationId,
+    includeExternalGoogle,
   });
   const nowIso = new Date().toISOString();
-  const actualKinds = { cancel_single: 0, cancel_series: 0, truncate_series: 0 };
+  const actualKinds = { cancel_single: 0, cancel_series: 0, truncate_series: 0, cancel_external_google: 0 };
   let scheduleCount = 0;
   let groupLessonCount = 0;
   let groupDocumentCount = 0;
@@ -6467,18 +6443,22 @@ async function applyTeacherFutureScheduleClear({ actor, fromDate, requestId, con
       fromDate: cleanFromDate,
       nowIso,
       operationId: mutationId,
+      includeExternalGoogle,
     });
     const current = currentPlan.schedulePatches[0];
     if (!current) return null;
     transaction.update(ref, current.patch);
-    return current.kind;
+    return { kind: current.kind, schedule: { id: snap.id, ...snap.data() } };
   });
   for (let index = 0; index < preview.schedulePatches.length; index += 10) {
-    const kinds = await Promise.all(preview.schedulePatches.slice(index, index + 10).map(applyScheduleRecord));
-    kinds.filter(Boolean).forEach(kind => {
+    const changes = await Promise.all(preview.schedulePatches.slice(index, index + 10).map(applyScheduleRecord));
+    for (const change of changes.filter(Boolean)) {
       scheduleCount += 1;
-      actualKinds[kind] = (actualKinds[kind] || 0) + 1;
-    });
+      actualKinds[change.kind] = (actualKinds[change.kind] || 0) + 1;
+      if (change.kind === "cancel_external_google") {
+        await queueGoogleEventDeletion(change.schedule.id, change.schedule, "Teacher cleared future schedule in KeeleSepp");
+      }
+    }
   }
 
   for (const item of preview.groupPatches) {
@@ -6522,13 +6502,22 @@ async function applyTeacherFutureScheduleClear({ actor, fromDate, requestId, con
     cancelledSingleCount: actualKinds.cancel_single || 0,
     cancelledSeriesCount: actualKinds.cancel_series || 0,
     truncatedSeriesCount: actualKinds.truncate_series || 0,
+    cancelledExternalGoogleCount: actualKinds.cancel_external_google || 0,
   };
+  let googleDeletion = { deleted: 0, failed: 0 };
+  if (summary.cancelledExternalGoogleCount > 0) {
+    const connection = await loadCalendarConnection(actorData.uid, { migrateLegacy: true });
+    if (calendarConnectionCanWrite(connection)) {
+      googleDeletion = await flushCalendarSyncOutbox(actorData.uid, connection);
+    }
+  }
   const result = {
     fromDate: cleanFromDate,
     teacherName: actorData.name,
     summary,
     completedAt: nowIso,
     operationId: mutationId,
+    googleDeletion,
   };
   await auditRef.create({
     type: "schedule.future_cleared",
@@ -6540,6 +6529,97 @@ async function applyTeacherFutureScheduleClear({ actor, fromDate, requestId, con
     result,
     createdAt: nowIso,
     date: nowIso.slice(0, 10),
+    operationId: mutationId,
+  });
+  return { ...result, idempotent: false };
+}
+
+function scheduleSyncRecoveryWindow(fromIso, toIso) {
+  const from = new Date(String(fromIso || ""));
+  const to = new Date(String(toIso || ""));
+  if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime()) || to <= from) {
+    throw httpError(400, "Valid recovery time window required");
+  }
+  if (to.getTime() - from.getTime() > 15 * 60 * 1000) {
+    throw httpError(400, "Recovery time window cannot exceed 15 minutes");
+  }
+  return { fromIso: from.toISOString(), toIso: to.toISOString() };
+}
+
+async function previewScheduleSyncRecovery({ actor, fromIso, toIso }) {
+  const window = scheduleSyncRecoveryWindow(fromIso, toIso);
+  const actorData = actorSnapshot(actor);
+  const snap = await db.collection("schedule").get();
+  const items = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(item => {
+    const cancelledAt = String(item.gcalDeletedInGoogleAt || "");
+    return item.gcalSyncStatus === "deleted_in_google"
+      && cancelledAt >= window.fromIso
+      && cancelledAt <= window.toIso
+      && teacherOwnsRecord(item, actorData.uid, actorData.name);
+  }).sort((left, right) => String(left.date || left.startDate || "").localeCompare(String(right.date || right.startDate || ""))
+    || String(left.time || "").localeCompare(String(right.time || "")));
+  return {
+    ...window,
+    teacherName: actorData.name,
+    count: items.length,
+    items: items.map(item => ({
+      id: item.id,
+      studentId: String(item.studentId || ""),
+      studentName: String(item.studentName || ""),
+      date: String(item.date || item.startDate || ""),
+      day: String(item.day || ""),
+      time: String(item.time || ""),
+      recurring: Boolean(item.recurring),
+      cancelledAt: String(item.gcalDeletedInGoogleAt || ""),
+    })),
+  };
+}
+
+async function applyScheduleSyncRecovery({ actor, fromIso, toIso, requestId, confirmed }) {
+  if (confirmed !== true) throw httpError(400, "Explicit confirmation required");
+  const mutationId = cleanRequestId(requestId);
+  const actorData = actorSnapshot(actor);
+  const auditRef = db.collection("activityLog").doc(`schedule-sync-recovery-${mutationId}`);
+  const existingAudit = await auditRef.get();
+  if (existingAudit.exists) return { ...(existingAudit.data().result || {}), idempotent: true };
+  const preview = await previewScheduleSyncRecovery({ actor, fromIso, toIso });
+  const recoveredAt = new Date().toISOString();
+  for (let offset = 0; offset < preview.items.length; offset += 300) {
+    const batch = db.batch();
+    preview.items.slice(offset, offset + 300).forEach(item => {
+      batch.set(db.collection("schedule").doc(item.id), {
+        status: "Planeeritud",
+        gcalEventId: FieldValue.delete(),
+        gcalEtag: FieldValue.delete(),
+        gcalSyncHash: FieldValue.delete(),
+        gcalSyncAttemptHash: FieldValue.delete(),
+        gcalDeletedInGoogleAt: FieldValue.delete(),
+        gcalSyncStatus: "queued",
+        gcalSyncError: "",
+        gcalSyncRecoveredAt: recoveredAt,
+        gcalSyncRecoveredByUid: actorData.uid,
+        gcalSyncRecoveryOperationId: mutationId,
+        updatedAtIso: recoveredAt,
+      }, { merge: true });
+    });
+    await batch.commit();
+  }
+  const result = {
+    fromIso: preview.fromIso,
+    toIso: preview.toIso,
+    count: preview.count,
+    items: preview.items,
+    recoveredAt,
+    operationId: mutationId,
+  };
+  await auditRef.create({
+    type: "schedule.sync_recovered",
+    action: "schedule.sync_recovered",
+    label: "Google Calendar sünkroonimisel ekslikult tühistatud tunnid taastati",
+    actor: actorData,
+    result,
+    createdAt: recoveredAt,
+    date: recoveredAt.slice(0, 10),
     operationId: mutationId,
   });
   return { ...result, idempotent: false };
@@ -6580,7 +6660,11 @@ exports.staffOperationsApi = functions.https.onRequest(async (req, res) => {
     }
     if (req.path === "/schedule/clear-future/preview") {
       const actor = await requireStaffUser(req);
-      const plan = await teacherFutureScheduleClearPlan({ actor, fromDate: req.body?.fromDate });
+      const plan = await teacherFutureScheduleClearPlan({
+        actor,
+        fromDate: req.body?.fromDate,
+        includeExternalGoogle: req.body?.includeExternalGoogle === true,
+      });
       res.json(publicTeacherFutureScheduleClearPlan(plan));
       return;
     }
@@ -6589,6 +6673,28 @@ exports.staffOperationsApi = functions.https.onRequest(async (req, res) => {
       const result = await applyTeacherFutureScheduleClear({
         actor,
         fromDate: req.body?.fromDate,
+        requestId: req.body?.requestId,
+        confirmed: req.body?.confirmed,
+        includeExternalGoogle: req.body?.includeExternalGoogle === true,
+      });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/schedule/sync-recovery/preview") {
+      const actor = await requireStaffUser(req);
+      res.json(await previewScheduleSyncRecovery({
+        actor,
+        fromIso: req.body?.fromIso,
+        toIso: req.body?.toIso,
+      }));
+      return;
+    }
+    if (req.path === "/schedule/sync-recovery/apply") {
+      const actor = await requireStaffUser(req);
+      const result = await applyScheduleSyncRecovery({
+        actor,
+        fromIso: req.body?.fromIso,
+        toIso: req.body?.toIso,
         requestId: req.body?.requestId,
         confirmed: req.body?.confirmed,
       });
@@ -7548,13 +7654,13 @@ exports.gcalApi = functions.https.onRequest(async (req, res) => {
         res.status(404).json({ error: "Google Calendar not connected" });
         return;
       }
-      const result = await syncTeacherCalendar(uid, connection);
       const outbox = calendarConnectionCanWrite(connection)
         ? await flushCalendarSyncOutbox(uid, connection)
         : { deleted: 0, failed: 0 };
       const pushed = calendarConnectionCanWrite(connection)
         ? await backfillScheduleToGoogle(uid, connection, { force: true })
         : { synced: 0, skipped: 0, failed: 0 };
+      const result = await syncTeacherCalendar(uid, connection);
       res.json({
         success: true,
         synced: result.synced,
@@ -7704,6 +7810,7 @@ async function syncTeacherCalendar(uid, tokens) {
     showDeleted: true,
     maxResults: 500,
   });
+  const deletedGoogleEventIds = explicitlyDeletedGoogleEventIds(compactEvents);
 
   const recurringMastersByGoogleId = new Map();
   compactEvents
@@ -7751,7 +7858,6 @@ async function syncTeacherCalendar(uid, tokens) {
   let synced = 0;
   let skipped = 0;
   let exceptions = 0;
-  const importedDocIds = new Set();
 
   // Один запрос студентов на весь прогон вместо чтения на каждое событие
   // (раньше: doc.get() на каждый student:ID + полный скан коллекции на каждый
@@ -7763,22 +7869,33 @@ async function syncTeacherCalendar(uid, tokens) {
   const currentScheduleById = new Map(
     currentScheduleSnap.docs.map(doc => [doc.id, { id: doc.id, ...doc.data() }]),
   );
+  const currentScheduleByGoogleId = new Map(
+    currentScheduleSnap.docs
+      .map(doc => ({ id: doc.id, ...doc.data() }))
+      .filter(item => item.gcalEventId)
+      .map(item => [String(item.gcalEventId), item]),
+  );
   const studentsById = new Map();
   const studentsByName = new Map(); // normalizedName -> [{...student}]
   for (const doc of studentsSnap.docs) {
     const s = { id: doc.id, ...doc.data() };
     studentsById.set(doc.id, s);
-    const key = normalizeName(s.name);
-    if (key) {
-      if (!studentsByName.has(key)) studentsByName.set(key, []);
-      studentsByName.get(key).push(s);
-    }
+    [...new Set([s.name, ...(Array.isArray(s.nameAliases) ? s.nameAliases : [])]
+      .map(normalizeCalendarName).filter(Boolean))].forEach(key => {
+        if (!studentsByName.has(key)) studentsByName.set(key, []);
+        studentsByName.get(key).push(s);
+      });
   }
   const findCachedStudentByName = (name) => {
-    const candidates = studentsByName.get(normalizeName(name)) || [];
+    const candidates = studentsByName.get(normalizeCalendarName(name)) || [];
     if (!candidates.length) return null;
-    const normTeacher = normalizeName(teacherName);
-    return candidates.find(s => normTeacher && normalizeName(s.teacher || "") === normTeacher) || candidates[0];
+    const normTeacher = normalizeCalendarName(teacherName);
+    const teacherMatches = candidates.filter(s =>
+      normTeacher && normalizeCalendarName(s.teacher || "") === normTeacher
+    );
+    if (teacherMatches.length === 1) return teacherMatches[0];
+    if (teacherMatches.length > 1) return null;
+    return candidates.length === 1 ? candidates[0] : null;
   };
 
   const nativeDatesBySeries = new Map();
@@ -7797,6 +7914,14 @@ async function syncTeacherCalendar(uid, tokens) {
   const nativeWindowEnd = localDate(new Date(exceptionTimeMax), APP_TIME_ZONE);
 
   for (const event of events) {
+    const managedScheduleId = managedGoogleScheduleId(event);
+    const targetScheduleId = managedScheduleId || `gcal_${event.id}`;
+    const existingSchedule = currentScheduleById.get(targetScheduleId)
+      || currentScheduleByGoogleId.get(String(event.id || ""));
+    if (existingSchedule?.gcalImportSuppressed) {
+      skipped++;
+      continue;
+    }
     // Try to find student ID in event description
     // Format: student:STUDENT_ID anywhere in description
     const description = event.description || "";
@@ -7810,9 +7935,15 @@ async function syncTeacherCalendar(uid, tokens) {
       student = studentsById.get(studentIdFromDesc) || null;
     }
 
+    // Preserve a previously verified link even when the event title was later
+    // shortened, translated or otherwise changed in Google Calendar.
+    if (!student && existingSchedule?.studentId) {
+      student = studentsById.get(String(existingSchedule.studentId)) || null;
+    }
+
     // Fallback: try to extract name from title (legacy support)
     if (!student) {
-      const studentName = extractStudentName(event.summary || "");
+      const studentName = extractCalendarStudentName(event.summary || "");
       if (studentName) {
         student = findCachedStudentByName(studentName);
       }
@@ -7830,9 +7961,8 @@ async function syncTeacherCalendar(uid, tokens) {
     );
     if (!scheduleData?.time) { skipped++; continue; }
 
-    const managedScheduleId = managedGoogleScheduleId(event);
     const docRef = db.collection("schedule").doc(
-      managedScheduleId || `gcal_${event.id}`,
+      targetScheduleId,
     );
     if (managedScheduleId) {
       if (scheduleData.recurring) {
@@ -7859,7 +7989,6 @@ async function syncTeacherCalendar(uid, tokens) {
       }
     }
     scheduleWrites.push({ ref: docRef, data: scheduleData });
-    importedDocIds.add(docRef.id);
     synced++;
   }
 
@@ -7885,7 +8014,6 @@ async function syncTeacherCalendar(uid, tokens) {
     }
     const docRef = db.collection("schedule").doc(exceptionId);
     scheduleWrites.push({ ref: docRef, data: scheduleData });
-    importedDocIds.add(exceptionId);
     synced++;
     exceptions++;
   }
@@ -7898,26 +8026,22 @@ async function syncTeacherCalendar(uid, tokens) {
     await batch.commit();
   }
 
-  // Reconcile the same forward-looking window so deleted Google events do not
-  // remain forever in KeeleSepp. Historical lessons are intentionally kept.
+  // Reconcile only explicit Google cancellation tombstones. An event missing
+  // from this import can be unmatched, outside the page/window or temporarily
+  // unavailable; absence alone must never delete a KeeleSepp record.
   const syncWindowStart = localDate(new Date(), APP_TIME_ZONE);
   const syncWindowEnd = localDate(new Date(timeMax), APP_TIME_ZONE);
   const importedSnap = await db.collection("schedule").where("teacherUid", "==", uid).get();
   const staleDocs = importedSnap.docs.filter(doc => {
     const event = doc.data();
-    const reconciliationDate = event.gcalNativeException
-      ? event.originalOccurrenceDate
-      : event.date;
-    const reconciliationStart = event.gcalNativeException
-      ? nativeWindowStart
-      : syncWindowStart;
-    const reconciliationEnd = event.gcalNativeException
-      ? nativeWindowEnd
-      : syncWindowEnd;
     return event.source === "gcal"
-      && reconciliationDate >= reconciliationStart
-      && reconciliationDate <= reconciliationEnd
-      && !importedDocIds.has(doc.id);
+      && !event.gcalImportSuppressed
+      && shouldApplyExplicitGoogleDeletion(event, deletedGoogleEventIds, {
+        windowStart: syncWindowStart,
+        windowEnd: syncWindowEnd,
+        nativeWindowStart,
+        nativeWindowEnd,
+      });
   });
   for (let offset = 0; offset < staleDocs.length; offset += 400) {
     const deleteBatch = db.batch();
@@ -7927,13 +8051,13 @@ async function syncTeacherCalendar(uid, tokens) {
   const removed = staleDocs.length;
   const managedStaleDocs = importedSnap.docs.filter(doc => {
     const event = doc.data();
-    const scheduleDate = event.date || event.startDate || "";
-    const isForwardLooking = event.recurring
-      || (scheduleDate >= syncWindowStart && scheduleDate <= syncWindowEnd);
     return event.source === "keelesepp"
-      && Boolean(event.gcalEventId)
-      && isForwardLooking
-      && !importedDocIds.has(doc.id);
+      && shouldApplyExplicitGoogleDeletion(event, deletedGoogleEventIds, {
+        windowStart: syncWindowStart,
+        windowEnd: syncWindowEnd,
+        nativeWindowStart,
+        nativeWindowEnd,
+      });
   });
   for (let offset = 0; offset < managedStaleDocs.length; offset += 400) {
     const cancelBatch = db.batch();
@@ -7966,7 +8090,7 @@ async function syncTeacherCalendar(uid, tokens) {
   };
   await saveCalendarConnection(uid, syncMetadata);
 
-  console.log(`Synced ${synced} events for teacher ${teacherName}, including ${exceptions} native exceptions, skipped ${skipped}, removed ${removed}, cancelled ${cancelled}`);
+  console.log(`Synced ${synced} events for teacher ${teacherName}, including ${exceptions} native exceptions, skipped ${skipped}, explicitly removed ${removed}, explicitly cancelled ${cancelled}`);
   return { synced, skipped, removed, cancelled, exceptions };
 }
 
@@ -8179,7 +8303,7 @@ async function syncScheduleRecordToGoogle(
 }
 
 function calendarTeacherKey(value) {
-  const first = normalizeName(value).split(/\s+/)[0] || "";
+  const first = normalizeCalendarName(value).split(/\s+/)[0] || "";
   return {
     yelyzaveta: "elizaveta",
     elizaveta: "elizaveta",
@@ -8276,11 +8400,11 @@ exports.syncAllCalendars = functions.pubsub
     console.log(`Syncing ${connected.size} connected teachers`);
     for (const [uid, connection] of connected.entries()) {
       try {
-        await syncTeacherCalendar(uid, connection);
         if (calendarConnectionCanWrite(connection)) {
           await flushCalendarSyncOutbox(uid, connection);
           await backfillScheduleToGoogle(uid, connection);
         }
+        await syncTeacherCalendar(uid, connection);
       } catch (e) {
         console.error(`Sync failed for ${uid}:`, e.message);
         const message = String(e.message || "Sync failed").slice(0, 500);

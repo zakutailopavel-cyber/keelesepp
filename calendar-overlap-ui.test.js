@@ -56,6 +56,9 @@ test('Google Calendar errors are translated and manual sync retries failed lesso
   assert.match(html,/reconnectRequired\?'Ühenda uuesti'/);
   assert.match(html,/activeError&&!reconnectRequired\?'Proovi uuesti'/);
   assert.match(functionsSource,/backfillScheduleToGoogle\(uid, connection, \{ force: true \}\)/);
+  assert.ok(functionsSource.indexOf('backfillScheduleToGoogle(uid, connection, { force: true })')<functionsSource.indexOf('const result = await syncTeacherCalendar(uid, connection)'));
+  assert.match(functionsSource,/shouldApplyExplicitGoogleDeletion/);
+  assert.doesNotMatch(functionsSource,/event\.source === "gcal"[\s\S]{0,300}!importedDocIds\.has/);
 });
 
 test('teacher can preview and safely clear only their future schedule from the visible week',()=>{
@@ -65,7 +68,17 @@ test('teacher can preview and safely clear only their future schedule from the v
   assert.match(html,/Varasem ajalugu jääb alles/);
   assert.match(html,/Toimunud tunnid, arved ja maksed ei muutu/);
   assert.match(html,/setShowCanceled\(false\)/);
+  assert.match(html,/includeExternalGoogle:true/);
+  assert.match(html,/seotud sündmust eemaldatakse ka Google Calendarist/);
   assert.match(functionsSource,/req\.path === "\/schedule\/clear-future\/preview"/);
   assert.match(functionsSource,/req\.path === "\/schedule\/clear-future\/apply"/);
   assert.match(functionsSource,/schedule\.future_cleared/);
+});
+
+test('the exact sync incident can be recovered without reopening intentionally cleared lessons',()=>{
+  assert.match(functionsSource,/req\.path === "\/schedule\/sync-recovery\/preview"/);
+  assert.match(functionsSource,/req\.path === "\/schedule\/sync-recovery\/apply"/);
+  assert.match(functionsSource,/item\.gcalSyncStatus === "deleted_in_google"/);
+  assert.match(functionsSource,/gcalSyncRecoveredAt/);
+  assert.match(functionsSource,/schedule\.sync_recovered/);
 });

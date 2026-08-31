@@ -20,6 +20,28 @@ function scopeList(value) {
   return String(value || "").split(/\s+/).map(item => item.trim()).filter(Boolean);
 }
 
+function normalizeCalendarName(value) {
+  return String(value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function extractCalendarStudentName(title) {
+  if (!title) return null;
+  const word = "[\\p{L}][\\p{L}\\p{M}'’.-]*";
+  const name = `${word}(?:\\s+${word}){0,3}`;
+  const dashMatch = String(title).match(new RegExp(`[—–-]\\s*(${name})`, "u"));
+  if (dashMatch) return dashMatch[1].trim();
+  const lessonMatch = String(title).match(new RegExp(`(?:Занятие|Урок|Tund|Õppetund|Lesson)\\s+(${name})`, "iu"));
+  if (lessonMatch) return lessonMatch[1].trim();
+  const plainMatch = String(title).trim().match(new RegExp(`^(${name})$`, "u"));
+  return plainMatch ? plainMatch[1].trim() : null;
+}
+
 function hasCalendarWriteScope(value) {
   const scopes = new Set(scopeList(value));
   return scopes.has(GOOGLE_SCOPE_EVENTS)
@@ -287,11 +309,36 @@ function isGoogleGoneError(error) {
   return status === 404 || status === 410;
 }
 
+function explicitlyDeletedGoogleEventIds(events = []) {
+  return new Set((Array.isArray(events) ? events : [])
+    .filter(event => event?.status === "cancelled" && event?.id && !event?.recurringEventId)
+    .map(event => String(event.id)));
+}
+
+function shouldApplyExplicitGoogleDeletion(schedule = {}, deletedIds = new Set(), {
+  windowStart = "",
+  windowEnd = "",
+  nativeWindowStart = "",
+  nativeWindowEnd = "",
+} = {}) {
+  const eventId = String(schedule.gcalEventId || "").trim();
+  if (!eventId || !deletedIds?.has(eventId)) return false;
+  const date = schedule.gcalNativeException
+    ? String(schedule.originalOccurrenceDate || "")
+    : String(schedule.date || schedule.startDate || "");
+  const start = schedule.gcalNativeException ? nativeWindowStart : windowStart;
+  const end = schedule.gcalNativeException ? nativeWindowEnd : windowEnd;
+  if (!date || !start || !end) return false;
+  return date >= start && date <= end;
+}
+
 module.exports = {
   GOOGLE_SCOPE_EVENTS,
   GOOGLE_SCOPE_EVENTS_OWNED,
   GOOGLE_SCOPE_CALENDAR,
   scopeList,
+  normalizeCalendarName,
+  extractCalendarStudentName,
   hasCalendarWriteScope,
   localDateTime,
   addLocalMinutes,
@@ -306,4 +353,6 @@ module.exports = {
   managedGoogleScheduleId,
   isKeeleSeppManagedGoogleEvent,
   isGoogleGoneError,
+  explicitlyDeletedGoogleEventIds,
+  shouldApplyExplicitGoogleDeletion,
 };

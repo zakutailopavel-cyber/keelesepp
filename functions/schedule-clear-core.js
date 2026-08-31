@@ -34,7 +34,7 @@ function futureRecordInScope(record = {}, fromDate = "") {
 }
 
 function futureScheduleClearPatch(record = {}, fromDate = "", options = {}) {
-  if (!futureRecordInScope(record, fromDate) || String(record.source || "") === "gcal") return null;
+  if (!futureRecordInScope(record, fromDate)) return null;
   const nowIso = String(options.nowIso || new Date().toISOString());
   const metadata = {
     futureScheduleClearedAt: nowIso,
@@ -43,6 +43,19 @@ function futureScheduleClearPatch(record = {}, fromDate = "", options = {}) {
     futureScheduleClearOperationId: String(options.operationId || ""),
     updatedAtIso: nowIso,
   };
+  if (String(record.source || "") === "gcal") {
+    if (!options.includeExternalGoogle) return null;
+    return {
+      kind: "cancel_external_google",
+      patch: {
+        ...metadata,
+        status: "Tühistatud",
+        canceledAt: nowIso.slice(0, 10),
+        gcalImportSuppressed: true,
+        gcalImportSuppressedAt: nowIso,
+      },
+    };
+  }
   const date = String(record.date || "");
   if (date) {
     return {
@@ -82,16 +95,16 @@ function planTeacherFutureScheduleClear({
   fromDate = "",
   nowIso = new Date().toISOString(),
   operationId = "preview",
+  includeExternalGoogle = false,
 } = {}) {
   if (!validIsoDate(fromDate)) throw new Error("Valid fromDate required");
-  const options = { teacherUid, nowIso, operationId };
+  const options = { teacherUid, nowIso, operationId, includeExternalGoogle };
   const schedulePatches = [];
   let externalGoogleCount = 0;
   (schedule || []).forEach(record => {
     if (!record?.id || !teacherOwnsRecord(record, teacherUid, teacherName)) return;
     if (String(record.source || "") === "gcal") {
       if (futureRecordInScope(record, fromDate)) externalGoogleCount += 1;
-      return;
     }
     const change = futureScheduleClearPatch(record, fromDate, options);
     if (change) schedulePatches.push({ id: String(record.id), ...change });
@@ -139,6 +152,7 @@ function planTeacherFutureScheduleClear({
       cancelledSingleCount: kindCounts.cancel_single || 0,
       cancelledSeriesCount: kindCounts.cancel_series || 0,
       truncatedSeriesCount: kindCounts.truncate_series || 0,
+      cancelledExternalGoogleCount: kindCounts.cancel_external_google || 0,
     },
   };
 }

@@ -5,6 +5,8 @@ const assert = require("node:assert/strict");
 const {
   GOOGLE_SCOPE_EVENTS_OWNED,
   hasCalendarWriteScope,
+  normalizeCalendarName,
+  extractCalendarStudentName,
   addLocalMinutes,
   googleRecurrenceExcludedDates,
   googleOriginalOccurrenceDate,
@@ -16,6 +18,8 @@ const {
   managedGoogleScheduleId,
   isKeeleSeppManagedGoogleEvent,
   isGoogleGoneError,
+  explicitlyDeletedGoogleEventIds,
+  shouldApplyExplicitGoogleDeletion,
 } = require("./calendar-sync-core");
 
 test("write access is enabled only for Google Calendar write scopes", () => {
@@ -25,6 +29,14 @@ test("write access is enabled only for Google Calendar write scopes", () => {
     "openid",
     "https://www.googleapis.com/auth/calendar.events",
   ]), true);
+});
+
+test("calendar student names support one-word, accented and Cyrillic titles", () => {
+  assert.equal(normalizeCalendarName("  Jekaterina ŠMIRNOVA! "), "jekaterina smirnova");
+  assert.equal(normalizeCalendarName("Людмила"), "людмила");
+  assert.equal(extractCalendarStudentName("Ljudmila"), "Ljudmila");
+  assert.equal(extractCalendarStudentName("Урок — Людмила Иванова"), "Людмила Иванова");
+  assert.equal(extractCalendarStudentName("Занятие Дмитрий"), "Дмитрий");
 });
 
 test("local lesson end time can cross midnight without changing timezone semantics", () => {
@@ -257,4 +269,29 @@ test("managed origin ids are validated and Google deletion errors are idempotent
   }), "");
   assert.equal(isGoogleGoneError({ response: { status: 410 } }), true);
   assert.equal(isGoogleGoneError({ code: 403 }), false);
+});
+
+test("calendar reconciliation acts only on an explicit Google tombstone", () => {
+  const deletedIds = explicitlyDeletedGoogleEventIds([
+    { id: "still-active", status: "confirmed" },
+    { id: "deleted-one", status: "cancelled" },
+    { id: "cancelled-occurrence", status: "cancelled", recurringEventId: "series-one" },
+  ]);
+  const options = { windowStart: "2026-08-31", windowEnd: "2026-10-30" };
+  assert.equal(shouldApplyExplicitGoogleDeletion({
+    gcalEventId: "still-active",
+    date: "2026-09-01",
+  }, deletedIds, options), false);
+  assert.equal(shouldApplyExplicitGoogleDeletion({
+    gcalEventId: "unreturned-or-unmatched",
+    date: "2026-09-01",
+  }, deletedIds, options), false);
+  assert.equal(shouldApplyExplicitGoogleDeletion({
+    gcalEventId: "deleted-one",
+    date: "2026-09-01",
+  }, deletedIds, options), true);
+  assert.equal(shouldApplyExplicitGoogleDeletion({
+    gcalEventId: "deleted-one",
+    date: "2027-01-01",
+  }, deletedIds, options), false);
 });
