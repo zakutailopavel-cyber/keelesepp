@@ -20,7 +20,57 @@ const {
   isGoogleGoneError,
   explicitlyDeletedGoogleEventIds,
   shouldApplyExplicitGoogleDeletion,
+  truncateUtf8Safe,
 } = require("./calendar-sync-core");
+
+test("truncateUtf8Safe correctly truncates long descriptions safely without breaking multibyte characters", () => {
+  const shortText = "Lühike tekst";
+  assert.equal(truncateUtf8Safe(shortText, 8192), shortText);
+
+  const emojiText = "Õpetaja märkmed: 😀😀😀";
+  // One 😀 is 4 bytes.
+  // Bytes: Õ(2) p(1) e(1) t(1) a(1) j(1) a(1)  (1) m(1) ä(2) r(1) k(1) m(1) e(1) d(1) :(1)  (1) = 19 bytes
+  // 😀(4) 😀(4) 😀(4) = 12 bytes
+  // Total = 31 bytes
+  const buf = Buffer.from(emojiText, "utf8");
+  assert.equal(buf.length, 31);
+
+  // Truncating before the emojis
+  assert.equal(truncateUtf8Safe(emojiText, 19), "Õpetaja märkmed: ");
+  // Truncating in the middle of an emoji drops it safely
+  assert.equal(truncateUtf8Safe(emojiText, 21), "Õpetaja märkmed: ");
+  assert.equal(truncateUtf8Safe(emojiText, 22), "Õpetaja märkmed: ");
+  assert.equal(truncateUtf8Safe(emojiText, 23), "Õpetaja märkmed: 😀");
+
+  // Cyrillic
+  const cyrillic = "Занятие"; // 14 bytes
+  assert.equal(truncateUtf8Safe(cyrillic, 5), "За"); // "З"(2) "а"(2) -> 4 bytes
+});
+
+test("scheduleToGoogleEvent does not produce UNTIL if endDate is earlier than startDate", () => {
+  const eventValid = scheduleToGoogleEvent("series_valid", {
+    studentId: "s1",
+    date: "2026-08-01",
+    time: "10:00",
+    duration: 60,
+    day: "Sat",
+    recurring: true,
+    endDate: "2026-08-15"
+  });
+  assert.match(eventValid.recurrence[0], /UNTIL=20260815T215959Z/);
+
+  const eventInvalid = scheduleToGoogleEvent("series_invalid", {
+    studentId: "s2",
+    date: "2026-08-15",
+    time: "10:00",
+    duration: 60,
+    day: "Sat",
+    recurring: true,
+    endDate: "2026-08-01"
+  });
+  // Should still create event but omit UNTIL
+  assert.equal(eventInvalid.recurrence[0].includes("UNTIL"), false);
+});
 
 test("write access is enabled only for Google Calendar write scopes", () => {
   assert.equal(hasCalendarWriteScope("https://www.googleapis.com/auth/calendar.readonly"), false);

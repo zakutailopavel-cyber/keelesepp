@@ -237,6 +237,20 @@ function googleNativeExclusionState({
   };
 }
 
+function truncateUtf8Safe(text, maxBytes) {
+  const str = String(text || "");
+  const buf = Buffer.from(str, "utf8");
+  if (buf.length <= maxBytes) return str;
+  // Slice to maxBytes, but remove trailing invalid UTF-8 bytes
+  // If the last byte is part of a multi-byte sequence and not the end,
+  // converting to string will result in a replacement character \uFFFD.
+  let truncated = buf.slice(0, maxBytes).toString("utf8");
+  if (truncated.endsWith("\uFFFD")) {
+    truncated = truncated.slice(0, -1);
+  }
+  return truncated;
+}
+
 function scheduleToGoogleEvent(scheduleId, schedule, timeZone = "Europe/Tallinn") {
   if (!schedule || schedule.status === "Tühistatud") return null;
   const date = recurrenceStartDate(schedule);
@@ -251,11 +265,16 @@ function scheduleToGoogleEvent(scheduleId, schedule, timeZone = "Europe/Tallinn"
     keeleseppStudentId: String(schedule.studentId),
     keeleseppVersion: "1",
   };
-  const description = [
-    `student:${schedule.studentId}`,
-    `KeeleSepp schedule:${scheduleId}`,
-    schedule.notes || schedule.comment || "",
-  ].filter(Boolean).join("\n");
+
+  const header = `student:${schedule.studentId}\nKeeleSepp schedule:${scheduleId}`;
+  const headerBytes = Buffer.from(header, "utf8").length;
+  // Google Calendar limit is 8192 bytes. Leave 10 bytes for safety and newlines.
+  const maxNotesBytes = Math.max(0, 8192 - headerBytes - 10);
+  const notesText = schedule.notes || schedule.comment || "";
+  const truncatedNotes = truncateUtf8Safe(notesText, maxNotesBytes);
+
+  const description = [header, truncatedNotes].filter(Boolean).join("\n");
+
   const event = {
     summary: `KeeleSepp — ${String(schedule.studentName || "Õpilane").trim()}`,
     description,
@@ -269,9 +288,15 @@ function scheduleToGoogleEvent(scheduleId, schedule, timeZone = "Europe/Tallinn"
     const recurrenceDay = DAY_TO_RRULE[schedule.day];
     if (!recurrenceDay) return null;
     const parts = [`RRULE:FREQ=WEEKLY`, `BYDAY=${recurrenceDay}`];
-    if (/^\d{4}-\d{2}-\d{2}$/.test(String(schedule.endDate || ""))) {
-      parts.push(`UNTIL=${String(schedule.endDate).replaceAll("-", "")}T215959Z`);
+
+    const endDateStr = String(schedule.endDate || "");
+    if (/^\d{4}-\d{2}-\d{2}$/.test(endDateStr)) {
+      // Validate endDate is not before startDate
+      if (endDateStr >= date) {
+        parts.push(`UNTIL=${endDateStr.replaceAll("-", "")}T215959Z`);
+      }
     }
+
     const excludedTime = String(time).replace(":", "");
     event.recurrence = [
       parts.join(";"),
@@ -355,4 +380,5 @@ module.exports = {
   isGoogleGoneError,
   explicitlyDeletedGoogleEventIds,
   shouldApplyExplicitGoogleDeletion,
+  truncateUtf8Safe,
 };

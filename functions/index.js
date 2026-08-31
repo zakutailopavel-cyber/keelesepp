@@ -8274,7 +8274,7 @@ async function syncScheduleRecordToGoogle(
   scheduleId,
   before,
   after,
-  { force = false, connectionOverride = null, calendarOverride = null } = {},
+  { force = false, retryErrors = false, connectionOverride = null, calendarOverride = null } = {},
 ) {
   const schedule = after || before;
   if (!schedule || schedule.source === "gcal" || schedule.isGroup) {
@@ -8309,11 +8309,10 @@ async function syncScheduleRecordToGoogle(
   }
 
   const syncHash = scheduleSyncFingerprint(scheduleId, after, APP_TIME_ZONE);
-  if (!force && (
-    after.gcalSyncHash === syncHash
-    || (after.gcalSyncAttemptHash === syncHash && after.gcalSyncStatus === "error")
-  )) {
-    return { skipped: "already_synchronized" };
+  const isErrorMatch = after.gcalSyncAttemptHash === syncHash && after.gcalSyncStatus === "error";
+  if (!force) {
+    if (after.gcalSyncHash === syncHash && after.gcalSyncStatus !== "error") return { skipped: "already_synchronized" };
+    if (isErrorMatch && !retryErrors) return { skipped: "already_synchronized" };
   }
   if (!calendarConnectionCanWrite(connection)) return { skipped: "write_consent_required" };
 
@@ -8340,7 +8339,9 @@ async function syncScheduleRecordToGoogle(
             eventId: after.gcalEventId,
           });
         } catch (error) {
-          if (!isGoogleGoneError(error)) throw error;
+          if (!isGoogleGoneError(error)) {
+            await queueGoogleEventDeletion(scheduleId, after, error.message || "Google deletion failed during cancellation");
+          }
         }
       }
       await scheduleRef.set({
@@ -8372,7 +8373,7 @@ async function syncScheduleRecordToGoogle(
     if (!googleEvent) {
       const existingManagedEvents = await listGoogleCalendarEvents(calendar, {
         calendarId: "primary",
-        q: `KeeleSepp schedule:${scheduleId}`,
+        privateExtendedProperty: `keeleseppScheduleId=${scheduleId}`,
         showDeleted: false,
         singleEvents: false,
         maxResults: 25,
@@ -8434,7 +8435,7 @@ function calendarTeacherKey(value) {
   }[first] || first;
 }
 
-async function backfillScheduleToGoogle(uid, connection, { force = false } = {}) {
+async function backfillScheduleToGoogle(uid, connection, { force = false, retryErrors = false } = {}) {
   if (!calendarConnectionCanWrite(connection)) return { synced: 0, skipped: 0, failed: 0 };
   const [scheduleSnap, userSnap] = await Promise.all([
     db.collection("schedule").get(),
@@ -8473,7 +8474,7 @@ async function backfillScheduleToGoogle(uid, connection, { force = false } = {})
       doc.id,
       null,
       schedule,
-      { force, connectionOverride: connection, calendarOverride: calendar },
+      { force, retryErrors, connectionOverride: connection, calendarOverride: calendar },
     );
     if (result.synced || result.cancelled) synced++;
     else if (result.error) failed++;
@@ -8522,7 +8523,7 @@ exports.syncAllCalendars = functions.pubsub
       try {
         if (calendarConnectionCanWrite(connection)) {
           await flushCalendarSyncOutbox(uid, connection);
-          await backfillScheduleToGoogle(uid, connection);
+          await backfillScheduleToGoogle(uid, connection, { retryErrors: true });
         }
         await syncTeacherCalendar(uid, connection);
       } catch (e) {
@@ -8554,6 +8555,8 @@ exports.sendInvoicePaymentReminders = functions
   });
 
 // ── SCHEDULED: rule-based owner assistant ───────────────────
+module.exports.syncScheduleRecordToGoogle = syncScheduleRecordToGoogle;
+
 // This monitor deliberately does not call an external AI provider. It keeps
 // student, payroll and finance data inside the Firebase project.
 exports.refreshSchoolAssistant = functions
