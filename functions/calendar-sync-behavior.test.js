@@ -101,7 +101,15 @@ test("syncScheduleRecordToGoogle calls events.patch and not events.insert if lis
   let patchCalled = false;
   let insertCalled = false;
 
-  setDb(createDbMock());
+  let setCalledWithEventId = null;
+
+  setDb(createDbMock({
+    set: async (data, opts) => {
+      if (data.gcalEventId) {
+        setCalledWithEventId = data.gcalEventId;
+      }
+    }
+  }));
 
   const after = {
     teacherUid: "teacher_1",
@@ -158,6 +166,7 @@ test("syncScheduleRecordToGoogle calls events.patch and not events.insert if lis
   assert.equal(patchCalled, true);
   assert.equal(insertCalled, false);
   assert.equal(result.eventId, "existing_managed_event_id");
+  assert.equal(setCalledWithEventId, "existing_managed_event_id");
 });
 
 test("syncScheduleRecordToGoogle soft deletion failure queues to outbox instead of throwing", async () => {
@@ -287,7 +296,8 @@ test("flushCalendarSyncOutbox successfully removes outbox entry on retry", async
   assert.equal(docDeleted, true);
 });
 
-test("flushCalendarSyncOutbox discards stale queued deletion if lesson is restored", async () => {
+
+test("flushCalendarSyncOutbox Scenario A: restored lesson uses same event -> removes outbox, no delete", async () => {
   const connection = { connected: true, refreshToken: "token", writeEnabled: true };
   let deleteApiCalled = false;
   const calendarOverride = {
@@ -313,16 +323,170 @@ test("flushCalendarSyncOutbox discards stale queued deletion if lesson is restor
       })
     }),
     get: async () => ({
-      // Mocking the scheduleSnap to show it's active again
       exists: true,
-      data: () => ({ status: "Planeeritud" }) // NOT Tühistatud
+      data: () => ({ status: "Planeeritud", gcalEventId: "stale-event" })
+    })
+  }));
+
+  const result = await flushCalendarSyncOutbox("teacher_1", connection, calendarOverride);
+
+  assert.equal(result.deleted, 0); // Didn't delete from Google
+  assert.equal(result.failed, 0);
+  assert.equal(deleteApiCalled, false);
+  assert.equal(docDeleted, true); // Stale entry should be deleted
+});
+
+test("flushCalendarSyncOutbox Scenario B: restored lesson uses DIFFERENT event -> deletes orphan", async () => {
+  const connection = { connected: true, refreshToken: "token", writeEnabled: true };
+  let deleteApiCalledId = null;
+  const calendarOverride = {
+    events: {
+      delete: async ({ eventId }) => { deleteApiCalledId = eventId; }
+    }
+  };
+
+  let docDeleted = false;
+
+  setDb(createDbMock({
+    where: () => ({
+      get: async () => ({
+        empty: false,
+        docs: [{
+          data: () => ({
+            action: "delete",
+            eventId: "orphan-event",
+            scheduleId: "schedule_restored"
+          }),
+          ref: { delete: async () => { docDeleted = true; } }
+        }]
+      })
+    }),
+    get: async () => ({
+      exists: true,
+      data: () => ({ status: "Planeeritud", gcalEventId: "new-event" })
+    })
+  }));
+
+  const result = await flushCalendarSyncOutbox("teacher_1", connection, calendarOverride);
+
+  assert.equal(result.deleted, 1);
+  assert.equal(deleteApiCalledId, "orphan-event");
+  assert.equal(docDeleted, true);
+});
+
+test("flushCalendarSyncOutbox Scenario C: restored lesson has NO event yet -> defers outbox", async () => {
+  const connection = { connected: true, refreshToken: "token", writeEnabled: true };
+  let deleteApiCalled = false;
+  const calendarOverride = {
+    events: {
+      delete: async () => { deleteApiCalled = true; }
+    }
+  };
+
+  let docDeleted = false;
+
+  setDb(createDbMock({
+    where: () => ({
+      get: async () => ({
+        empty: false,
+        docs: [{
+          data: () => ({
+            action: "delete",
+            eventId: "in-progress-event",
+            scheduleId: "schedule_restored"
+          }),
+          ref: { delete: async () => { docDeleted = true; } }
+        }]
+      })
+    }),
+    get: async () => ({
+      exists: true,
+      data: () => ({ status: "Planeeritud" }) // No gcalEventId yet
     })
   }));
 
   const result = await flushCalendarSyncOutbox("teacher_1", connection, calendarOverride);
 
   assert.equal(result.deleted, 0);
-  assert.equal(result.failed, 0);
   assert.equal(deleteApiCalled, false);
-  assert.equal(docDeleted, true); // Stale entry should be deleted
+  assert.equal(docDeleted, false); // Defers (does not delete)
+});
+
+test("flushCalendarSyncOutbox Scenario D: check-then-delete race invalidates hash to force sync", async () => {
+  const connection = { connected: true, refreshToken: "token", writeEnabled: true };
+  const calendarOverride = {
+    events: {
+      delete: async () => { return { data: {} }; } // Success
+    }
+  };
+
+  let scheduleUpdated = null;
+  let docDeleted = false;
+
+  setDb(createDbMock({
+    where: () => ({
+      get: async () => ({
+        empty: false,
+        docs: [{
+          data: () => ({
+            action: "delete",
+            eventId: "race-event",
+            scheduleId: "schedule_race"
+          }),
+          ref: { delete: async () => { docDeleted = true; } }
+        }]
+      })
+    }),
+    get: async () => ({
+      exists: true,
+      // For Scenario D, we simulate that after Google deletion succeeds,
+      // the schedule is active and has the SAME eventId (meaning it was restored).
+      data: () => ({ status: "Planeeritud", gcalEventId: "race-event" }),
+      ref: {
+        set: async (data) => { scheduleUpdated = data; }
+      }
+    })
+  }));
+
+  // We need to override the first get to simulate the TOCTOU.
+  // The first read (before delete) sees it as Tühistatud.
+  // The second read (after delete) sees it as Planeeritud.
+  let readCount = 0;
+  setDb(createDbMock({
+    where: () => ({
+      get: async () => ({
+        empty: false,
+        docs: [{
+          data: () => ({
+            action: "delete",
+            eventId: "race-event",
+            scheduleId: "schedule_race"
+          }),
+          ref: { delete: async () => { docDeleted = true; } }
+        }]
+      })
+    }),
+    get: async () => {
+      readCount++;
+      if (readCount === 1) {
+        return { exists: true, data: () => ({ status: "Tühistatud" }) };
+      }
+      return {
+        exists: true,
+        data: () => ({ status: "Planeeritud", gcalEventId: "race-event" }),
+        ref: {
+          set: async (data) => { scheduleUpdated = data; }
+        }
+      };
+    }
+  }));
+
+  const result = await flushCalendarSyncOutbox("teacher_1", connection, calendarOverride);
+
+  assert.equal(result.deleted, 1);
+  assert.equal(docDeleted, true);
+  // It should have invalidated the hash and cleared the eventId
+  assert.equal(scheduleUpdated.gcalSyncStatus, "queued");
+  assert.ok(scheduleUpdated.hasOwnProperty("gcalEventId")); // Value is FieldValue.delete(), but property exists in the mock payload passed to set
+  assert.ok(scheduleUpdated.hasOwnProperty("gcalSyncHash"));
 });

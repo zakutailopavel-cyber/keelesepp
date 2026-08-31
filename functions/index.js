@@ -8248,30 +8248,42 @@ async function flushCalendarSyncOutbox(uid, connection, calendarOverride = null)
     if (entry.action !== "delete" || !entry.eventId) continue;
 
     // Verify current schedule state to prevent stale deletion (race condition fix)
+    let shouldDefer = false;
     if (entry.scheduleId) {
       const scheduleSnap = await db.collection("schedule").doc(entry.scheduleId).get();
       if (scheduleSnap.exists) {
         const scheduleData = scheduleSnap.data();
         if (scheduleData.status !== "Tühistatud") {
-          // The lesson was restored or became active again.
-          // Discard this stale outbox deletion request.
-          await doc.ref.delete();
-          continue;
+          // The lesson is active again.
+          if (scheduleData.gcalEventId === entry.eventId) {
+            // Scenario A: current schedule uses THIS event.
+            // DO NOT delete from Google, but remove the stale outbox job.
+            await doc.ref.delete();
+            continue;
+          } else if (scheduleData.gcalEventId) {
+            // Scenario B: current schedule uses a DIFFERENT event.
+            // This queued event is an obsolete orphan. It SHOULD be deleted.
+          } else {
+            // Scenario C: current schedule has no gcalEventId yet.
+            // Sync may be in progress. Defer this outbox job.
+            shouldDefer = true;
+          }
         }
       }
     }
 
+    if (shouldDefer) continue;
+
+    let successfulDeletion = false;
     try {
       await calendar.events.delete({
         calendarId: entry.calendarId || "primary",
         eventId: entry.eventId,
       });
-      await doc.ref.delete();
-      deleted++;
+      successfulDeletion = true;
     } catch (error) {
       if (isGoogleGoneError(error)) {
-        await doc.ref.delete();
-        deleted++;
+        successfulDeletion = true;
       } else {
         failed++;
         await doc.ref.set({
@@ -8279,6 +8291,29 @@ async function flushCalendarSyncOutbox(uid, connection, calendarOverride = null)
           lastAttemptAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         }, { merge: true });
+      }
+    }
+
+    if (successfulDeletion) {
+      await doc.ref.delete();
+      deleted++;
+
+      // Scenario D: Check-then-delete race
+      // Ensure the lesson wasn't restored between our initial read and the successful deletion.
+      if (entry.scheduleId) {
+        const postDeleteSnap = await db.collection("schedule").doc(entry.scheduleId).get();
+        if (postDeleteSnap.exists) {
+          const postDeleteData = postDeleteSnap.data();
+          if (postDeleteData.status !== "Tühistatud" && postDeleteData.gcalEventId === entry.eventId) {
+            // The event we just deleted is actively linked. We must mark it for re-sync.
+            await postDeleteSnap.ref.set({
+              gcalEventId: FieldValue.delete(),
+              gcalSyncHash: FieldValue.delete(), // Invalidate hash to force a new sync
+              gcalSyncStatus: "queued",
+              gcalSyncUpdatedAt: new Date().toISOString(),
+            }, { merge: true });
+          }
+        }
       }
     }
   }
