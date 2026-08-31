@@ -7922,7 +7922,16 @@ async function syncTeacherCalendar(uid, tokens) {
   let deduplicationFailed = 0;
   if (calendarConnectionCanWrite(tokens)) {
     const managedEventsByScheduleId = new Map();
-    events.forEach(event => {
+    const dedupeCandidates = [...new Map([
+      ...events,
+      ...compactEvents.filter(event =>
+        !event.recurringEventId
+          && !event.recurrence
+          && event.status !== "cancelled"
+          && isKeeleSeppManagedGoogleEvent(event)
+      ),
+    ].filter(event => event?.id).map(event => [String(event.id), event])).values()];
+    dedupeCandidates.forEach(event => {
       const scheduleId = managedGoogleScheduleId(event);
       if (!scheduleId) return;
       if (!managedEventsByScheduleId.has(scheduleId)) managedEventsByScheduleId.set(scheduleId, []);

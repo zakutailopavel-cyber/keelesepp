@@ -63,6 +63,8 @@ test('Google Calendar errors are translated and manual sync retries failed lesso
 
 test('manual sync removes only duplicate Google events with the same KeeleSepp schedule id',()=>{
   assert.match(functionsSource,/managedEventsByScheduleId/);
+  assert.match(functionsSource,/dedupeCandidates/);
+  assert.match(functionsSource,/\.\.\.compactEvents\.filter/);
   assert.match(functionsSource,/currentScheduleById\.get\(scheduleId\)\?\.gcalEventId/);
   assert.match(functionsSource,/lastSyncDeduplicated/);
   assert.match(html,/duplikaate eemaldatud/);
