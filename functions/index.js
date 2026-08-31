@@ -8360,11 +8360,30 @@ async function syncScheduleRecordToGoogle(
       }
     }
     if (!googleEvent) {
-      const response = await calendar.events.insert({
+      const existingManagedEvents = await listGoogleCalendarEvents(calendar, {
         calendarId: "primary",
-        requestBody,
-      });
-      googleEvent = response.data;
+        q: `KeeleSepp schedule:${scheduleId}`,
+        showDeleted: false,
+        singleEvents: false,
+        maxResults: 25,
+      }, 1);
+      const existingManagedEvent = existingManagedEvents.find(event =>
+        managedGoogleScheduleId(event) === scheduleId
+      );
+      if (existingManagedEvent?.id) {
+        const response = await calendar.events.patch({
+          calendarId: "primary",
+          eventId: existingManagedEvent.id,
+          requestBody,
+        });
+        googleEvent = response.data;
+      } else {
+        const response = await calendar.events.insert({
+          calendarId: "primary",
+          requestBody,
+        });
+        googleEvent = response.data;
+      }
     }
 
     await scheduleRef.set({
