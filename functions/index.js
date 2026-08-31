@@ -8222,7 +8222,7 @@ function calendarConnectionCanWrite(connection) {
 
 async function queueGoogleEventDeletion(scheduleId, schedule, reason) {
   if (!schedule?.gcalEventId || !schedule?.teacherUid) return;
-  await db.collection("calendarSyncOutbox").doc(`delete_${scheduleId}`).set({
+  await db.collection("calendarSyncOutbox").add({
     action: "delete",
     scheduleId,
     teacherUid: schedule.teacherUid,
@@ -8231,7 +8231,7 @@ async function queueGoogleEventDeletion(scheduleId, schedule, reason) {
     reason: String(reason || "Deferred Google Calendar deletion").slice(0, 300),
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-  }, { merge: true });
+  });
 }
 
 async function flushCalendarSyncOutbox(uid, connection, calendarOverride = null) {
@@ -8347,7 +8347,15 @@ async function syncScheduleRecordToGoogle(
         calendarId: schedule.gcalCalId || "primary",
         eventId: schedule.gcalEventId,
       });
-      await db.collection("calendarSyncOutbox").doc(`delete_${scheduleId}`).delete();
+      const staleOutboxSnap = await db.collection("calendarSyncOutbox")
+        .where("scheduleId", "==", scheduleId)
+        .where("eventId", "==", schedule.gcalEventId)
+        .get();
+      if (!staleOutboxSnap.empty) {
+        const batch = db.batch();
+        staleOutboxSnap.docs.forEach(doc => batch.delete(doc.ref));
+        await batch.commit();
+      }
       await updateCalendarPushMetadata(uid);
       return { deleted: true };
     } catch (error) {
