@@ -19,9 +19,13 @@ test('v1 CRM loads detailed curriculum data and provides search plus preview',()
   assert.match(haldus,/Ava täielik tunnikava/);
   assert.match(haldus,/Kasuta õppetöös/);
   assert.match(haldus,/Määra õpiteemaks/);
-  assert.match(haldus,/Loo tööleht/);
+  assert.match(haldus,/Kiire tööleht/);
+  assert.match(haldus,/Ülesannete stuudio/);
+  assert.match(haldus,/16 tüüpi · visuaalid · AI · automaatkontroll/);
+  assert.match(haldus,/taskCapabilities=\['Lüngad'/);
+  assert.match(haldus,/buildWorksheetPrefill\(actionItem,\{creationMode\}\)/);
+  assert.match(haldus,/openWorksheetBuilder\(mode\.id\)/);
   assert.match(haldus,/localStorage\.setItem\('ws_prefill'/);
-  assert.match(haldus,/buildWorksheetPrefill\(actionItem\)/);
   assert.match(haldus,/Lisa õppevarasse/);
   assert.match(haldus,/Saada kodutöö/);
   assert.match(haldus,/Õppekava teema/);
@@ -46,6 +50,8 @@ test('v1 CRM loads detailed curriculum data and provides search plus preview',()
   assert.match(css,/\.curriculum-roadmap-topic/);
   assert.match(css,/\.curriculum-history/);
   assert.match(css,/\.curriculum-manual-credit/);
+  assert.match(css,/\.curriculum-task-studio/);
+  assert.match(css,/\.curriculum-lesson-create/);
 });
 
 test('manual curriculum progress is an immutable audited collection',()=>{

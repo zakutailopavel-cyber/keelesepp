@@ -192,8 +192,8 @@ body{background:var(--ws-canvas);color:var(--ws-ink)}
 <div id="root"><div style="display:flex;align-items:center;justify-content:center;min-height:100vh"><div class="sp-dark"></div></div></div>
 
 <script src="/haldus-shared.js"></script>
-<script src="/curriculum-workflow-core.js?v=20260831.16"></script>
-<script src="/worksheet-workflow-core.js?v=20260831.16"></script>
+<script src="/curriculum-workflow-core.js?v=20260831.17"></script>
+<script src="/worksheet-workflow-core.js?v=20260831.17"></script>
 <script src="/worksheet-visual-library.js?v=20260830.9"></script>
 <script type="text/babel">
 const {useState,useEffect,useRef,useMemo,useCallback} = React;
@@ -1456,7 +1456,7 @@ function App(){
   const[draftRestored,setDraftRestored]=useState(Boolean(_autosavedDraft));
 
   const[tab,setTab]=useState(_prefill?.openTab||'build');
-  const[templateMode,setTemplateMode]=useState('lesson');
+  const[templateMode,setTemplateMode]=useState(_prefill?.templateMode||'lesson');
   const[visualSearch,setVisualSearch]=useState('');
   const[visualSubject,setVisualSubject]=useState((initialState.meta||emptyMeta).subject||'Eesti keel');
   const[visualLevel,setVisualLevel]=useState((initialState.meta||emptyMeta).level||'B1');

@@ -47,7 +47,7 @@ window.__haldusConfigureBabel = function(){
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="/haldus.css?v=20260831.16">
+<link rel="stylesheet" href="/haldus.css?v=20260831.17">
 </head>
 <body>
 <div id="root"><div style="display:flex;align-items:center;justify-content:center;min-height:100vh"><div class="spinner"></div></div></div>
@@ -128,8 +128,8 @@ window.__haldusConfigureBabel();
 <script src="/tax-report-core.js"></script>
 <script src="/haldus-programs.js"></script>
 <script src="/haldus-curriculum-data.js"></script>
-<script src="/curriculum-workflow-core.js?v=20260831.16"></script>
-<script src="/worksheet-workflow-core.js?v=20260831.16"></script>
+<script src="/curriculum-workflow-core.js?v=20260831.17"></script>
+<script src="/worksheet-workflow-core.js?v=20260831.17"></script>
 <script src="/worksheet-interactive-core.js?v=20260830.9"></script>
 <script src="/annotations-manager.js"></script>
 <script type="text/babel" data-presets="haldus-react">
@@ -1985,6 +1985,8 @@ function ProgramsView({db,user,students=[],lessons=[],homework=[],worksheetAssig
   const actionJourneyItem=actionItem&&actionStudent?.id===journeyStudent?.id
     ?journey?.items?.find(item=>item.key===actionItem.key)||null
     :null;
+  const taskCreationModes=workflow?.TASK_CREATION_MODES||[];
+  const taskCapabilities=['Lüngad','Valikvastused','Kirjutamine','Sobitamine','Nooled','Järjestamine','Tabelid','Lugemine','Pildid','Pildi märkimine','Dialoogid','Skeemid','Koomiksid','Vigade parandamine','Lause muutmine','AI'];
   const levelCodes=[...new Set(allLevels.map(item=>item.level.code))];
   const topicMatches=(topic,level,language)=>{
     if(!normalizedQuery)return true;
@@ -2123,13 +2125,14 @@ function ProgramsView({db,user,students=[],lessons=[],homework=[],worksheetAssig
       setActionBusy('');
     }
   };
-  const openWorksheetBuilder=()=>{
+  const openWorksheetBuilder=(creationMode='guided')=>{
     if(!workflow||!actionItem){notify('⚠ Õppekava andmed ei ole saadaval');return;}
     try{
-      const prefill=workflow.buildWorksheetPrefill(actionItem);
+      const prefill=workflow.buildWorksheetPrefill(actionItem,{creationMode});
       localStorage.setItem('ws_prefill',JSON.stringify(prefill));
-      window.open('/haldus-worksheet/?source=curriculum','_blank','noopener');
-      notify('✓ Töölehe alus avati uues aknas');
+      window.open(`/haldus-worksheet/?source=curriculum&mode=${encodeURIComponent(creationMode)}`,'_blank','noopener');
+      const modeLabel=taskCreationModes.find(mode=>mode.id===creationMode)?.title||'Ülesanne';
+      notify(`✓ ${modeLabel} avati uues aknas`);
     }catch(error){
       console.error('Worksheet prefill failed:',error);
       notify(`⚠ ${error?.message||'Töölehe loomine ebaõnnestus'}`);
@@ -2400,6 +2403,11 @@ function ProgramsView({db,user,students=[],lessons=[],homework=[],worksheetAssig
                                       {lesson.assessment&&<p><strong>Hindamine</strong>{lesson.assessment}</p>}
                                       {lesson.ageNote&&<p><strong>Kohandamine</strong>{lesson.ageNote}</p>}
                                     </div>
+                                    <button type="button" className="curriculum-lesson-create" onClick={()=>openAction({language,level,topic},{lessonIndex:index})}>
+                                      <i className="fa-solid fa-square-plus"/>
+                                      <span><strong>Loo ülesanne</strong><small>16 tüüpi · visuaalid · AI · automaatkontroll</small></span>
+                                      <i className="fa-solid fa-arrow-right"/>
+                                    </button>
                                   </section>
                                 ))}
                               </div>
@@ -2430,7 +2438,7 @@ function ProgramsView({db,user,students=[],lessons=[],homework=[],worksheetAssig
               <div>
                 <span>{action.language.title} · {action.level.code}</span>
                 <h2 id="curriculum-action-title">{action.topic.name}</h2>
-                <p>Seo teema õpilase, õppematerjali ja kodutööga.</p>
+                <p>Loo ülesanne või seo teema õpilase, õppematerjali ja kodutööga.</p>
               </div>
               <button type="button" className="icon-btn" onClick={()=>setAction(null)} disabled={Boolean(actionBusy)} aria-label="Sulge"><i className="fa-solid fa-xmark"/></button>
             </header>
@@ -2454,6 +2462,21 @@ function ProgramsView({db,user,students=[],lessons=[],homework=[],worksheetAssig
                   <span>{actionItem.vocab.length} sõna · {actionItem.steps.length} etappi</span>
                 </div>
               )}
+              <section className="curriculum-task-studio" aria-labelledby="curriculum-task-studio-title">
+                <div className="curriculum-task-studio-head">
+                  <span><i className="fa-solid fa-pen-ruler"/></span>
+                  <div><strong id="curriculum-task-studio-title">Ülesannete stuudio</strong><small>Vali algusviis. Kõik variandid jäävad seotuks selle tunnikava ja tasemega.</small></div>
+                </div>
+                <div className="curriculum-task-modes">
+                  {taskCreationModes.map(mode=><button type="button" className="curriculum-task-mode" key={mode.id} disabled={Boolean(actionBusy)} onClick={()=>openWorksheetBuilder(mode.id)}>
+                    <i className={`fa-solid ${mode.icon}`}/><span><strong>{mode.title}</strong><small>{mode.description}</small></span><i className="fa-solid fa-arrow-up-right-from-square"/>
+                  </button>)}
+                </div>
+                <div className="curriculum-task-capabilities" aria-label="Saadaolevad ülesandetüübid">
+                  {taskCapabilities.map(capability=><span key={capability}>{capability}</span>)}
+                </div>
+                <p className="curriculum-task-note"><i className="fa-solid fa-circle-info"/> Pärast kontrollimist saad ülesande avaldada, määrata korraga mitmele õpilasele ning vaadata tulemusi nende õpiteel.</p>
+              </section>
               {actionStudent&&actionStudentValidation.ok&&actionProgress&&(
                 <div className="curriculum-action-summary">
                   <strong>{actionStudent.name}: {actionProgress.completedLessons}/{actionProgress.totalLessons} tunnikava tehtud</strong>
@@ -2472,7 +2495,7 @@ function ProgramsView({db,user,students=[],lessons=[],homework=[],worksheetAssig
               </label>
               <div className="curriculum-action-buttons">
                 <button type="button" className="btn btn-dark" disabled={!actionStudentValidation.ok||Boolean(actionBusy)} onClick={()=>runAction('plan')}><i className="fa-solid fa-route"/> {actionBusy==='plan'?'Salvestan…':'Määra õpiteemaks'}</button>
-                <button type="button" className="btn btn-amber" disabled={Boolean(actionBusy)} onClick={openWorksheetBuilder}><i className="fa-solid fa-file-pen"/> Loo tööleht</button>
+                <button type="button" className="btn btn-amber" disabled={Boolean(actionBusy)} onClick={()=>openWorksheetBuilder('guided')}><i className="fa-solid fa-file-pen"/> Kiire tööleht</button>
                 <button type="button" className="btn btn-pine" disabled={Boolean(actionBusy)} onClick={()=>runAction('material')}><i className="fa-solid fa-book-open"/> {actionBusy==='material'?'Loon…':'Lisa õppevarasse'}</button>
                 <button type="button" className="btn btn-amber" disabled={!actionStudentValidation.ok||Boolean(actionBusy)} onClick={()=>runAction('homework')}><i className="fa-solid fa-paper-plane"/> {actionBusy==='homework'?'Saadan…':'Saada kodutöö'}</button>
               </div>

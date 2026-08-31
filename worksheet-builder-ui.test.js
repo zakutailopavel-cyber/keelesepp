@@ -12,6 +12,7 @@ test('worksheet builder accepts curriculum prefill and keeps ownership when savi
   assert.match(worksheet,/curriculumTopicId:source\.topicId/);
   assert.match(worksheet,/docs\.find\(doc=>doc\.sourceKey===`curriculum:/);
   assert.match(worksheet,/validateMaterialLevel\(record\)/);
+  assert.match(worksheet,/useState\(_prefill\?\.templateMode\|\|'lesson'\)/);
 });
 
 test('worksheet builder has a visible quality gate and responsive editing layout',()=>{

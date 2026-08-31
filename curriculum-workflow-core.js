@@ -101,6 +101,12 @@
   };
 
   const worksheetLanguage=item=>item?.languageId==='eng'||canonicalSubject(item?.subject)==='Inglise keel'?'eng':'est';
+  const TASK_CREATION_MODES=[
+    {id:'guided',icon:'fa-wand-magic-sparkles',title:'Valmis alus',description:'Eesmärk, sõnavara, tabel ja kirjutamisülesanne on juba täidetud.'},
+    {id:'blank',icon:'fa-layer-group',title:'Koosta käsitsi',description:'Alusta tühjalt ja vali kõik plokid ise.'},
+    {id:'visual',icon:'fa-shapes',title:'Visuaalne ülesanne',description:'Pildid, märgistus, skeemid, seosed ja koomiksid.'},
+    {id:'ai',icon:'fa-bolt',title:'Genereeri AI-ga',description:'Tunni eesmärk, sõnavara ja sisu lähevad generaatorisse kaasa.'}
+  ];
   const worksheetCopy=(language,key,values={})=>{
     const copy={
       est:{
@@ -119,8 +125,9 @@
     return copy[language]?.[key]||copy.est[key]||'';
   };
 
-  function buildWorksheetPrefill(item){
+  function buildWorksheetPrefill(item,options={}){
     if(!item?.topicId) throw new Error('Curriculum item is required');
+    const creationMode=TASK_CREATION_MODES.some(mode=>mode.id===text(options.creationMode))?text(options.creationMode):'guided';
     const language=worksheetLanguage(item);
     const vocab=(item.vocab||[]).filter(entry=>text(entry?.word)&&text(entry?.translation));
     const pairLimit=item.level==='A1'?5:item.level==='A2'?7:8;
@@ -134,10 +141,12 @@
     const wordCount=['A1','A2'].includes(item.level)?3:5;
     const writingLines=item.level==='A1'?5:item.level==='A2'?7:10;
     const sourceText=materialDescription(item);
-    return {
+    const prefill={
       sourceType:'curriculum_workspace',
       sourceKey:`curriculum:${item.topicId}:${item.lessonIndex}`,
       openTab:'build',
+      templateMode:'lesson',
+      creationMode,
       curriculum:{
         languageId:item.languageId,
         subject:item.subject,
@@ -184,6 +193,17 @@
         sourceText
       }
     };
+    if(creationMode==='blank') prefill.blocks=[];
+    if(creationMode==='visual'){
+      prefill.blocks=[];
+      prefill.openTab='templates';
+      prefill.templateMode='visual';
+    }
+    if(creationMode==='ai'){
+      prefill.blocks=[];
+      prefill.openTab='ai';
+    }
+    return prefill;
   }
 
   function analyzeWorksheet(meta={},blocks=[]){
@@ -528,6 +548,7 @@
     buildCurriculumPlan,
     buildMaterialRecord,
     buildHomeworkRecord,
+    TASK_CREATION_MODES,
     buildWorksheetPrefill,
     analyzeWorksheet,
     explicitContentLevels,

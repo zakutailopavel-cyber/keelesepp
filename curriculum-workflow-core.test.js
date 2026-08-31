@@ -143,6 +143,24 @@ test('curriculum lesson opens as an editable worksheet starter with exact owners
   assert.equal(prefill.ai.lessonType,'kinnistamine');
 });
 
+test('curriculum task studio opens the same lesson in four safe creation modes',()=>{
+  const item=workflow.flattenCurriculum(curriculum)[0];
+  assert.deepEqual(workflow.TASK_CREATION_MODES.map(mode=>mode.id),['guided','blank','visual','ai']);
+  const blank=workflow.buildWorksheetPrefill(item,{creationMode:'blank'});
+  assert.equal(blank.creationMode,'blank');
+  assert.equal(blank.openTab,'build');
+  assert.equal(blank.blocks.length,0);
+  const visual=workflow.buildWorksheetPrefill(item,{creationMode:'visual'});
+  assert.equal(visual.openTab,'templates');
+  assert.equal(visual.templateMode,'visual');
+  assert.equal(visual.blocks.length,0);
+  const ai=workflow.buildWorksheetPrefill(item,{creationMode:'ai'});
+  assert.equal(ai.openTab,'ai');
+  assert.equal(ai.blocks.length,0);
+  assert.equal(ai.curriculum.topicId,item.topicId);
+  assert.match(ai.ai.sourceText,/Tunni käik:/);
+});
+
 test('worksheet quality gate detects incomplete work and accepts curriculum starter',()=>{
   const incomplete=workflow.analyzeWorksheet({title:'Uus tööleht',subject:'Eesti keel',level:'A1'},[]);
   assert.equal(incomplete.ready,false);
