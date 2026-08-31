@@ -120,6 +120,41 @@
       curriculumFields:curriculumFieldsFor(lesson)
     };
   }
+  function buildRetryAssignment(assignment={},user={},at=new Date().toISOString()){
+    if(!assignment.id||assignment.status!=='done'||!hasBlocks(assignment.worksheetData)){
+      throw new Error('Only a completed worksheet can be reassigned');
+    }
+    const retryNumber=Math.max(0,Number(assignment.retryNumber)||0)+1;
+    return {
+      lessonId:text(assignment.lessonId),
+      lessonTitle:text(assignment.lessonTitle)||'Tööleht',
+      subject:text(assignment.subject),
+      level:text(assignment.level),
+      topic:text(assignment.topic),
+      worksheetData:clone(assignment.worksheetData),
+      worksheetVersion:Number(assignment.worksheetVersion)||1,
+      worksheetStatus:'published',
+      worksheetQuality:clone(assignment.worksheetQuality||{}),
+      ...curriculumFieldsFor(assignment),
+      studentId:text(assignment.studentId),
+      studentName:text(assignment.studentName),
+      assignedBy:text(user.uid),
+      assignedByName:text(user.displayName||user.email),
+      assignedAt:at,
+      dueDate:'',
+      note:`Kordamine: ${text(assignment.lessonTitle)||'tööleht'}`,
+      status:'new',
+      score:null,
+      completedAt:null,
+      answers:{},
+      seenByTeacher:true,
+      retryOfAssignmentId:text(assignment.id),
+      retryRootAssignmentId:text(assignment.retryRootAssignmentId||assignment.retryOfAssignmentId||assignment.id),
+      retryNumber,
+      retryErrorCount:Array.isArray(assignment.errorLog)?assignment.errorLog.length:0,
+      previousScorePct:Number.isFinite(Number(assignment.score?.pct))?Math.round(Number(assignment.score.pct)):null
+    };
+  }
   function buildVersionFields({status,version,worksheetData,worksheetQuality,now}){
     const normalized=normalizeStatus(status);
     const at=text(now)||new Date().toISOString();
@@ -133,5 +168,5 @@
     return {lessonId:text(lessonId),version:Number(version)||1,status:normalizeStatus(status),title:text(meta.title)||'Tööleht',subject:text(meta.subject),level:text(meta.level),topic:text(meta.topic),worksheetData:clone(worksheetData),worksheetQuality:clone(worksheetQuality||{}),...clone(sourceFields||{}),createdAt:at,createdBy:text(user.uid),createdByName:text(user.displayName||user.email)};
   }
 
-  return {STATUSES,TEMPLATES,buildTemplate,normalizeStatus,nextVersion,curriculumFieldsFor,isAssignableWorksheet,assignmentDataFor,buildVersionFields,buildVersionRecord};
+  return {STATUSES,TEMPLATES,buildTemplate,normalizeStatus,nextVersion,curriculumFieldsFor,isAssignableWorksheet,assignmentDataFor,buildRetryAssignment,buildVersionFields,buildVersionRecord};
 });

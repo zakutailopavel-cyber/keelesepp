@@ -439,7 +439,8 @@
         scorePct:score,
         done:row.status==='done',
         needsReview:row.status==='done'&&row.seenByTeacher===false,
-        errorCount:Array.isArray(row.errorLog)?row.errorLog.length:0
+        errorCount:Array.isArray(row.errorLog)?row.errorLog.length:0,
+        needsRetry:row.status==='done'&&((Array.isArray(row.errorLog)&&row.errorLog.length>0)||(score!==null&&score<70))
       });
     });
     linked.sort((a,b)=>String(b.completedAt||b.assignedAt||'').localeCompare(String(a.completedAt||a.assignedAt||'')));
@@ -451,7 +452,7 @@
       rows.push(row);
       byKey.set(row.curriculumKey,rows);
     });
-    const retry=completed.filter(row=>row.errorCount>0||(row.scorePct!==null&&row.scorePct<70));
+    const retry=completed.filter(row=>row.needsRetry);
     return {
       valid:catalog.length>0,
       linked,

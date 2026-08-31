@@ -30,7 +30,8 @@ test('v1 CRM loads detailed curriculum data and provides search plus preview',()
   assert.match(haldus,/buildStudentJourney\(curriculum,journeyStudent,lessons,homework,journeyMaterials\)/);
   assert.match(haldus,/buildCurriculumResults\(curriculum,journeyStudent,worksheetAssignments,journeyMaterials\)/);
   assert.match(haldus,/TULEMUSED JA TAGASISIDE/);
-  assert.match(haldus,/Vaata tulemust/);
+  assert.match(haldus,/Määra kordamiseks/);
+  assert.match(haldus,/buildRetryAssignment\(result,user\)/);
   assert.match(haldus,/Ava järgmine tunnikava/);
   assert.match(haldus,/initialStudentId=\{programStudentId\}/);
   assert.match(haldus,/Metoodiline lähtekeel: vene keel/);

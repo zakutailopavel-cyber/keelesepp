@@ -33,6 +33,19 @@ test('assigned worksheet keeps exact curriculum ownership from a material',()=>{
   assert.equal(snapshot.curriculumFields.curriculumSubject,'Eesti keel');
 });
 
+test('retry assignment preserves ownership and starts a clean auditable attempt',()=>{
+  const original={id:'assignment-1',lessonId:'material-1',lessonTitle:'Tervitused',subject:'Eesti keel',level:'A1',topic:'Tervitused',status:'done',worksheetData:{meta:{title:'Tervitused'},blocks:[{type:'fill',text:'[Tere]'}]},studentId:'student-1',studentName:'Student',score:{pct:55},errorLog:[{type:'fill'}],sourceKey:'curriculum:est-a1-01:0'};
+  const retry=workflow.buildRetryAssignment(original,{uid:'teacher-1',displayName:'Teacher'},'2026-08-31T12:00:00.000Z');
+  assert.equal(retry.studentId,'student-1');
+  assert.equal(retry.curriculumTopicId,'est-a1-01');
+  assert.equal(retry.retryOfAssignmentId,'assignment-1');
+  assert.equal(retry.retryNumber,1);
+  assert.equal(retry.previousScorePct,55);
+  assert.equal(retry.status,'new');
+  assert.deepEqual(retry.answers,{});
+  assert.equal(retry.score,null);
+});
+
 test('publishing creates immutable version fields and a published snapshot',()=>{
   const worksheetData={meta:{title:'Pere'},blocks:[{type:'match',pairs:[{l:'pere',r:'family'}]}]};
   const fields=workflow.buildVersionFields({status:'published',version:4,worksheetData,worksheetQuality:{percent:100},now:'2026-08-29T12:00:00.000Z'});

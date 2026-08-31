@@ -47,7 +47,7 @@ window.__haldusConfigureBabel = function(){
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="/haldus.css?v=20260831.13">
+<link rel="stylesheet" href="/haldus.css?v=20260831.14">
 </head>
 <body>
 <div id="root"><div style="display:flex;align-items:center;justify-content:center;min-height:100vh"><div class="spinner"></div></div></div>
@@ -128,8 +128,8 @@ window.__haldusConfigureBabel();
 <script src="/tax-report-core.js"></script>
 <script src="/haldus-programs.js"></script>
 <script src="/haldus-curriculum-data.js"></script>
-<script src="/curriculum-workflow-core.js?v=20260831.13"></script>
-<script src="/worksheet-workflow-core.js?v=20260831.13"></script>
+<script src="/curriculum-workflow-core.js?v=20260831.14"></script>
+<script src="/worksheet-workflow-core.js?v=20260831.14"></script>
 <script src="/worksheet-interactive-core.js?v=20260830.9"></script>
 <script src="/annotations-manager.js"></script>
 <script type="text/babel" data-presets="haldus-react">
@@ -1953,6 +1953,7 @@ function ProgramsView({db,user,students=[],lessons=[],homework=[],worksheetAssig
   const [journeyStudentId,setJourneyStudentId]=React.useState(initialStudentId||'');
   const [journeyMaterials,setJourneyMaterials]=React.useState([]);
   const [journeyResult,setJourneyResult]=React.useState(null);
+  const [journeyRetryBusy,setJourneyRetryBusy]=React.useState('');
   const normalizedQuery=normalizeText(query);
   const allLevels=(curriculum.languages||[]).flatMap(language=>(language.levels||[]).map(level=>({language,level})));
   const curriculumCatalog=React.useMemo(()=>workflow?workflow.flattenCurriculum(curriculum):[],[workflow,curriculum]);
@@ -2031,6 +2032,23 @@ function ProgramsView({db,user,students=[],lessons=[],homework=[],worksheetAssig
       }catch(error){
         console.warn('Curriculum result review marker failed:',error);
       }
+    }
+  };
+  const retryJourneyResult=async result=>{
+    const existing=(worksheetAssignments||[]).find(row=>row.studentId===result.studentId&&row.retryOfAssignmentId===result.id&&row.status!=='done');
+    if(existing){notify('ℹ Selle tulemuse kordustöö on juba ootel');return;}
+    if(!window.confirm(`Määra „${result.lessonTitle||'Tööleht'}” õpilasele uuesti?`))return;
+    setJourneyRetryBusy(result.id);
+    try{
+      const record=window.WorksheetWorkflow.buildRetryAssignment(result,user);
+      const ref=await db.collection('worksheetAssignments').add(record);
+      if(logActivity)await logActivity('curriculum.worksheet_retry_assigned','Õppekava tööleht määrati kordamiseks',{assignmentId:ref.id,retryOfAssignmentId:result.id,studentId:result.studentId,studentName:result.studentName,curriculumTopicId:result.curriculumItem?.topicId||result.curriculumTopicId});
+      notify(`✓ Kordustöö määratud: ${result.studentName}`);
+    }catch(error){
+      console.error('Curriculum worksheet retry failed:',error);
+      notify(`⚠ ${error?.message||'Kordustöö määramine ebaõnnestus'}`);
+    }finally{
+      setJourneyRetryBusy('');
     }
   };
   const runAction=async(type)=>{
@@ -2221,7 +2239,10 @@ function ProgramsView({db,user,students=[],lessons=[],homework=[],worksheetAssig
                       <strong>{result.scorePct===null?(result.done?'Esitatud':'Ootel'):`${result.scorePct}%`}</strong>
                       <span>{result.needsReview?'UUS TULEMUS':result.done?'kontrollitud':'määratud'}</span>
                     </div>
-                    {result.done&&result.worksheetData?.blocks?.length>0&&<button type="button" className="btn btn-ghost btn-sm" onClick={()=>openJourneyResult(result)}><i className="fa-regular fa-eye"/> Vaata tulemust</button>}
+                    <div className="curriculum-result-actions">
+                      {result.done&&result.worksheetData?.blocks?.length>0&&<button type="button" className="btn btn-ghost btn-sm" onClick={()=>openJourneyResult(result)}><i className="fa-regular fa-eye"/> Vaata</button>}
+                      {result.needsRetry&&<button type="button" className="btn btn-amber btn-sm" disabled={Boolean(journeyRetryBusy)} onClick={()=>retryJourneyResult(result)}><i className="fa-solid fa-rotate-right"/> {journeyRetryBusy===result.id?'Määran…':'Määra kordamiseks'}</button>}
+                    </div>
                   </article>)}
                 </div>
               ):(

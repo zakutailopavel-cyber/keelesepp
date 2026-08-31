@@ -26,5 +26,5 @@ test('current filtered student selection can be exported to Word, PDF, and Excel
   assert.match(html,/StudentExportCore\.downloadPdf\(visibleRows,metadata\)/);
   assert.match(html,/StudentExportCore\.downloadExcel\(visibleRows,metadata\)/);
   assert.match(html,/Filtrid ja väljavõte kasutavad ainult praegu nähtavaid õpilasi/);
-  assert.match(shared,/KeeleSepp CRM · 31\.08\.2026\.13/);
+  assert.match(shared,/KeeleSepp CRM · 31\.08\.2026\.14/);
 });
