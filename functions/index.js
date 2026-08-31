@@ -8246,6 +8246,21 @@ async function flushCalendarSyncOutbox(uid, connection, calendarOverride = null)
   for (const doc of snap.docs) {
     const entry = doc.data();
     if (entry.action !== "delete" || !entry.eventId) continue;
+
+    // Verify current schedule state to prevent stale deletion (race condition fix)
+    if (entry.scheduleId) {
+      const scheduleSnap = await db.collection("schedule").doc(entry.scheduleId).get();
+      if (scheduleSnap.exists) {
+        const scheduleData = scheduleSnap.data();
+        if (scheduleData.status !== "Tühistatud") {
+          // The lesson was restored or became active again.
+          // Discard this stale outbox deletion request.
+          await doc.ref.delete();
+          continue;
+        }
+      }
+    }
+
     try {
       await calendar.events.delete({
         calendarId: entry.calendarId || "primary",
@@ -8555,8 +8570,6 @@ exports.sendInvoicePaymentReminders = functions
   });
 
 // ── SCHEDULED: rule-based owner assistant ───────────────────
-module.exports.syncScheduleRecordToGoogle = syncScheduleRecordToGoogle;
-
 // This monitor deliberately does not call an external AI provider. It keeps
 // student, payroll and finance data inside the Firebase project.
 exports.refreshSchoolAssistant = functions
