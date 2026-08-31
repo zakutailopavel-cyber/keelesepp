@@ -8222,7 +8222,7 @@ function calendarConnectionCanWrite(connection) {
 
 async function queueGoogleEventDeletion(scheduleId, schedule, reason) {
   if (!schedule?.gcalEventId || !schedule?.teacherUid) return;
-  await db.collection("calendarSyncOutbox").doc(`delete_${scheduleId}`).set({
+  await db.collection("calendarSyncOutbox").add({
     action: "delete",
     scheduleId,
     teacherUid: schedule.teacherUid,
@@ -8231,7 +8231,7 @@ async function queueGoogleEventDeletion(scheduleId, schedule, reason) {
     reason: String(reason || "Deferred Google Calendar deletion").slice(0, 300),
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-  }, { merge: true });
+  });
 }
 
 async function flushCalendarSyncOutbox(uid, connection, calendarOverride = null) {
@@ -8246,17 +8246,44 @@ async function flushCalendarSyncOutbox(uid, connection, calendarOverride = null)
   for (const doc of snap.docs) {
     const entry = doc.data();
     if (entry.action !== "delete" || !entry.eventId) continue;
+
+    // Verify current schedule state to prevent stale deletion (race condition fix)
+    let shouldDefer = false;
+    if (entry.scheduleId) {
+      const scheduleSnap = await db.collection("schedule").doc(entry.scheduleId).get();
+      if (scheduleSnap.exists) {
+        const scheduleData = scheduleSnap.data();
+        if (scheduleData.status !== "Tühistatud") {
+          // The lesson is active again.
+          if (scheduleData.gcalEventId === entry.eventId) {
+            // Scenario A: current schedule uses THIS event.
+            // DO NOT delete from Google, but remove the stale outbox job.
+            await doc.ref.delete();
+            continue;
+          } else if (scheduleData.gcalEventId) {
+            // Scenario B: current schedule uses a DIFFERENT event.
+            // This queued event is an obsolete orphan. It SHOULD be deleted.
+          } else {
+            // Scenario C: current schedule has no gcalEventId yet.
+            // Sync may be in progress. Defer this outbox job.
+            shouldDefer = true;
+          }
+        }
+      }
+    }
+
+    if (shouldDefer) continue;
+
+    let successfulDeletion = false;
     try {
       await calendar.events.delete({
         calendarId: entry.calendarId || "primary",
         eventId: entry.eventId,
       });
-      await doc.ref.delete();
-      deleted++;
+      successfulDeletion = true;
     } catch (error) {
       if (isGoogleGoneError(error)) {
-        await doc.ref.delete();
-        deleted++;
+        successfulDeletion = true;
       } else {
         failed++;
         await doc.ref.set({
@@ -8264,6 +8291,29 @@ async function flushCalendarSyncOutbox(uid, connection, calendarOverride = null)
           lastAttemptAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         }, { merge: true });
+      }
+    }
+
+    if (successfulDeletion) {
+      await doc.ref.delete();
+      deleted++;
+
+      // Scenario D: Check-then-delete race
+      // Ensure the lesson wasn't restored between our initial read and the successful deletion.
+      if (entry.scheduleId) {
+        const postDeleteSnap = await db.collection("schedule").doc(entry.scheduleId).get();
+        if (postDeleteSnap.exists) {
+          const postDeleteData = postDeleteSnap.data();
+          if (postDeleteData.status !== "Tühistatud" && postDeleteData.gcalEventId === entry.eventId) {
+            // The event we just deleted is actively linked. We must mark it for re-sync.
+            await postDeleteSnap.ref.set({
+              gcalEventId: FieldValue.delete(),
+              gcalSyncHash: FieldValue.delete(), // Invalidate hash to force a new sync
+              gcalSyncStatus: "queued",
+              gcalSyncUpdatedAt: new Date().toISOString(),
+            }, { merge: true });
+          }
+        }
       }
     }
   }
@@ -8274,7 +8324,7 @@ async function syncScheduleRecordToGoogle(
   scheduleId,
   before,
   after,
-  { force = false, connectionOverride = null, calendarOverride = null } = {},
+  { force = false, retryErrors = false, connectionOverride = null, calendarOverride = null } = {},
 ) {
   const schedule = after || before;
   if (!schedule || schedule.source === "gcal" || schedule.isGroup) {
@@ -8297,7 +8347,15 @@ async function syncScheduleRecordToGoogle(
         calendarId: schedule.gcalCalId || "primary",
         eventId: schedule.gcalEventId,
       });
-      await db.collection("calendarSyncOutbox").doc(`delete_${scheduleId}`).delete();
+      const staleOutboxSnap = await db.collection("calendarSyncOutbox")
+        .where("scheduleId", "==", scheduleId)
+        .where("eventId", "==", schedule.gcalEventId)
+        .get();
+      if (!staleOutboxSnap.empty) {
+        const batch = db.batch();
+        staleOutboxSnap.docs.forEach(doc => batch.delete(doc.ref));
+        await batch.commit();
+      }
       await updateCalendarPushMetadata(uid);
       return { deleted: true };
     } catch (error) {
@@ -8309,11 +8367,10 @@ async function syncScheduleRecordToGoogle(
   }
 
   const syncHash = scheduleSyncFingerprint(scheduleId, after, APP_TIME_ZONE);
-  if (!force && (
-    after.gcalSyncHash === syncHash
-    || (after.gcalSyncAttemptHash === syncHash && after.gcalSyncStatus === "error")
-  )) {
-    return { skipped: "already_synchronized" };
+  const isErrorMatch = after.gcalSyncAttemptHash === syncHash && after.gcalSyncStatus === "error";
+  if (!force) {
+    if (after.gcalSyncHash === syncHash && after.gcalSyncStatus !== "error") return { skipped: "already_synchronized" };
+    if (isErrorMatch && !retryErrors) return { skipped: "already_synchronized" };
   }
   if (!calendarConnectionCanWrite(connection)) return { skipped: "write_consent_required" };
 
@@ -8340,7 +8397,9 @@ async function syncScheduleRecordToGoogle(
             eventId: after.gcalEventId,
           });
         } catch (error) {
-          if (!isGoogleGoneError(error)) throw error;
+          if (!isGoogleGoneError(error)) {
+            await queueGoogleEventDeletion(scheduleId, after, error.message || "Google deletion failed during cancellation");
+          }
         }
       }
       await scheduleRef.set({
@@ -8372,7 +8431,7 @@ async function syncScheduleRecordToGoogle(
     if (!googleEvent) {
       const existingManagedEvents = await listGoogleCalendarEvents(calendar, {
         calendarId: "primary",
-        q: `KeeleSepp schedule:${scheduleId}`,
+        privateExtendedProperty: `keeleseppScheduleId=${scheduleId}`,
         showDeleted: false,
         singleEvents: false,
         maxResults: 25,
@@ -8434,7 +8493,7 @@ function calendarTeacherKey(value) {
   }[first] || first;
 }
 
-async function backfillScheduleToGoogle(uid, connection, { force = false } = {}) {
+async function backfillScheduleToGoogle(uid, connection, { force = false, retryErrors = false } = {}) {
   if (!calendarConnectionCanWrite(connection)) return { synced: 0, skipped: 0, failed: 0 };
   const [scheduleSnap, userSnap] = await Promise.all([
     db.collection("schedule").get(),
@@ -8473,7 +8532,7 @@ async function backfillScheduleToGoogle(uid, connection, { force = false } = {})
       doc.id,
       null,
       schedule,
-      { force, connectionOverride: connection, calendarOverride: calendar },
+      { force, retryErrors, connectionOverride: connection, calendarOverride: calendar },
     );
     if (result.synced || result.cancelled) synced++;
     else if (result.error) failed++;
@@ -8522,7 +8581,7 @@ exports.syncAllCalendars = functions.pubsub
       try {
         if (calendarConnectionCanWrite(connection)) {
           await flushCalendarSyncOutbox(uid, connection);
-          await backfillScheduleToGoogle(uid, connection);
+          await backfillScheduleToGoogle(uid, connection, { retryErrors: true });
         }
         await syncTeacherCalendar(uid, connection);
       } catch (e) {
