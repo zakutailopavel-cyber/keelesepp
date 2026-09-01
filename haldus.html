@@ -116,7 +116,7 @@ window.addEventListener('load', function(){
 <script>
 window.__haldusConfigureBabel();
 </script>
-<script src="/haldus-shared.js"></script>
+<script src="/haldus-shared.js?v=20260901.2"></script>
 <script src="/initial-assessment-core.js"></script>
 <script src="/staff-time-core.js"></script>
 <script src="/accounting-ledger-core.js"></script>
@@ -144,6 +144,7 @@ const {
   DAYS_SHORT, DAYS_ID, DAYS_FULL, TIMES,
   normalizeText, studentIdentityKey, studentProfileKey, duplicateStudentGroups, resolveStudentRecord, lessonJournalErrorGuidance, parseLinkedNames, canonicalTeacherName, teacherUidFromDirectory,
   levelPct, avg, fmtDate, toLocalISODate, today, pkgLeft, copyText, authFetch,
+  uploadContentType, validateUploadFile, uploadErrorGuidance,
   hasUserRole, withUserRoles,
   ensureStudentRecord, ensureParentStudentRecords
 } = window.HaldusShared;
@@ -7223,7 +7224,7 @@ function CurriculumProgressCard({student,lessons=[],canManage,openPrograms}){
 
 // ── ÕPILASE KAART ─────────────────────────────────────────────
 function StudentCard({user,currentStu,stuLessons,liveLessons=[],stuHw,stuInv,isAdmin,setSelStu,setEditStu,toggleStudentActive,convertStudentToParent,
-  hwTask,setHwTask,hwDue,setHwDue,hwFiles,setHwFiles,addHw,toggleHw,deleteHw,removeHwFile,
+  hwTask,setHwTask,hwDue,setHwDue,hwFiles,setHwFiles,hwBusy,addHw,toggleHw,deleteHw,removeHwFile,
   invAmt,setInvAmt,invDesc,setInvDesc,invRef,setInvRef,invDue,setInvDue,addInvoice,markPaid,unmarkPaid,deleteInvoice,printInvoice,submitParentPayment,resetParentPayment,updateInvoiceReference,updateInvoiceDue,sendInvoiceEmail,sendInvoiceReminder,invoiceEmailBusy,deleteLesson,openLessonEditor,
   schDate,setSchDate,schTime,setSchTime,schTeach,setSchTeach,schRecurring,setSchRecurring,addStudentSchedule,canAssignTeacher,
   stuMessages,teacherMessage,setTeacherMessage,sendTeacherMessage,notify,setAssignWsLesson,openPrograms,tariffAssignments=[]}) {
@@ -7523,11 +7524,11 @@ function StudentCard({user,currentStu,stuLessons,liveLessons=[],stuHw,stuInv,isA
                   <i className="fa-solid fa-paperclip" style={{marginRight:6}}/>
                   {hwFiles.length ? (hwFiles.length===1 ? hwFiles[0].name : `${hwFiles.length} faili valitud`) : 'Lisa failid kodutööle'}
                 </span>
-                <input type="file" multiple onChange={e=>setHwFiles(Array.from(e.target.files||[]))} style={{display:'none'}}/>
+                <input type="file" multiple disabled={hwBusy} accept="image/*,.heic,.heif,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.odt,.ods,.odp,.txt,.csv,.rtf,audio/*,video/*" onChange={e=>setHwFiles(Array.from(e.target.files||[]))} style={{display:'none'}}/>
               </label>
               <div style={{display:'flex',gap:8}}>
-                <input type="date" value={hwDue} onChange={e=>setHwDue(e.target.value)} style={{flex:1}}/>
-                <button onClick={addHw} className="btn btn-pine btn-sm">Saada</button>
+                <input type="date" value={hwDue} onChange={e=>setHwDue(e.target.value)} disabled={hwBusy} style={{flex:1}}/>
+                <button onClick={addHw} disabled={hwBusy} className="btn btn-pine btn-sm"><i className={`fa-solid ${hwBusy?'fa-spinner fa-spin':'fa-paper-plane'}`}/> {hwBusy?'Laen failid…':'Saada'}</button>
               </div>
             </div>
           )}
@@ -13418,6 +13419,7 @@ function App() {
   const [hwTask,setHwTask] = useState('');
   const [hwDue,setHwDue]   = useState('');
   const [hwFiles,setHwFiles] = useState([]);
+  const [hwBusy,setHwBusy] = useState(false);
   const [teacherMessage,setTeacherMessage] = useState('');
   // Staff tasks
   const [taskTitle,setTaskTitle] = useState('');
@@ -15016,33 +15018,59 @@ function App() {
   },[modalEv,lTopic,lGrade,lStatus,lComment,lDur,lessonFile,students,lessons,groups,user,logActivity,notify,teacherUidForName]);
 
   const addHw=useCallback(async()=>{
+    if(hwBusy) return;
     if(!selStu||!hwTask.trim()){notify('⚠ Sisesta ülesanne');return;}
-    const attachments = [];
-    if(hwFiles.length){
-      if(!storage){notify('⚠ Failide üleslaadimine pole saadaval');return;}
-      notify(`⏳ Laen üles ${hwFiles.length} faili...`);
-      for(const file of hwFiles){
-        try{
-          const safeName = file.name.replace(/[^\w.\-]+/g,'_');
-          const fileRef = storage.ref().child(`homework/${selStu.id}/${Date.now()}_${safeName}`);
-          await fileRef.put(file);
-          const url = await fileRef.getDownloadURL();
-          attachments.push({url, name:file.name, size:file.size||0});
-        }catch(err){
-          console.warn('HW file upload failed:', err);
-          notify(`⚠ Faili "${file.name}" üleslaadmine ebaõnnestus`);
+    const files=[...hwFiles];
+    if(files.length&&!storage){notify('⚠ Failide üleslaadimine pole saadaval');return;}
+    const checkedFiles=files.map(file=>({file,validation:validateUploadFile(file)}));
+    const invalid=checkedFiles.find(item=>!item.validation.ok);
+    if(invalid){notify(`⚠ ${invalid.validation.error}`);return;}
+    setHwBusy(true);
+    const ref=db.collection('homework').doc();
+    let uploaded=[];
+    let homeworkSaved=false;
+    try{
+      if(checkedFiles.length){
+        notify(`⏳ Laen üles ${checkedFiles.length} faili...`);
+        const results=await Promise.allSettled(checkedFiles.map(async({file,validation},index)=>{
+          const safeName=(file.name||'fail').replace(/[^\w.\-]+/g,'_')||'fail';
+          const path=`homework/${selStu.id}/${ref.id}_${index+1}_${safeName}`;
+          const fileRef=storage.ref().child(path);
+          await fileRef.put(file,{contentType:validation.contentType,customMetadata:{kind:'homework_attachment',studentId:selStu.id,homeworkId:ref.id}});
+          return {path,url:await fileRef.getDownloadURL(),name:file.name||safeName,type:validation.contentType,size:file.size||0,uploadedAt:new Date().toISOString()};
+        }));
+        uploaded=results.filter(result=>result.status==='fulfilled').map(result=>result.value);
+        const failed=results.find(result=>result.status==='rejected');
+        if(failed){
+          const failedIndex=results.indexOf(failed);
+          const failedName=checkedFiles[failedIndex]?.file?.name||'Fail';
+          const error=new Error(uploadErrorGuidance(failed.reason,failedName));
+          error.cause=failed.reason;
+          throw error;
         }
       }
+      const primary=uploaded[0]||null;
+      await ref.set({
+        studentId:selStu.id,studentName:selStu.name,task:hwTask.trim(),due:hwDue,
+        status:'Ootel',date:today(),
+        fileUrl:primary?.url||'',fileName:primary?.name||'',attachments:uploaded
+      });
+      homeworkSaved=true;
+      try{
+        await logActivity('homework.created','Lisati kodutöö',{studentId:selStu.id,studentName:selStu.name,homeworkId:ref.id,hasFile:uploaded.length>0,fileCount:uploaded.length});
+      }catch(logError){console.warn('Homework activity log failed:',logError);}
+      setHwTask('');setHwDue('');setHwFiles([]);
+      notify(uploaded.length?`✓ Kodutöö saadetud ${uploaded.length} failiga!`:'✓ Kodutöö saadetud!');
+    }catch(err){
+      console.error('Homework creation failed:',err?.cause||err);
+      if(!homeworkSaved&&uploaded.length&&storage){
+        await Promise.allSettled(uploaded.map(item=>storage.ref().child(item.path).delete()));
+      }
+      notify(`⚠ ${err?.message||'Kodutöö saatmine ebaõnnestus. Proovi uuesti.'}`);
+    }finally{
+      setHwBusy(false);
     }
-    const primary = attachments[0] || null;
-    const ref = await db.collection('homework').add({
-      studentId:selStu.id, studentName:selStu.name, task:hwTask, due:hwDue,
-      status:'Ootel', date:today(),
-      fileUrl:primary?.url||'', fileName:primary?.name||'', attachments
-    });
-    await logActivity('homework.created','Lisati kodutöö',{studentId:selStu.id,studentName:selStu.name,homeworkId:ref.id,hasFile:attachments.length>0});
-    setHwTask('');setHwDue('');setHwFiles([]);notify('✓ Kodutöö saadetud!');
-  },[selStu,hwTask,hwDue,hwFiles,logActivity]);
+  },[selStu,hwTask,hwDue,hwFiles,hwBusy,logActivity,notify]);
 
   const toggleHw=useCallback(async(id,cur)=>await db.collection('homework').doc(id).update({status:cur==='Tehtud'?'Ootel':'Tehtud'}),[]);
 
@@ -15050,8 +15078,8 @@ function App() {
     if(!hw?.id) return;
     const attachments = Array.isArray(hw.attachments) ? [...hw.attachments] : (hw.fileUrl?[{url:hw.fileUrl,name:hw.fileName||''}]:[]);
     const target = attachments[attachmentIndex??0];
-    if(target?.url&&storage){
-      try{ await storage.refFromURL(target.url).delete(); }catch(e){ console.warn('HW file delete skipped:', e); }
+    if((target?.path||target?.url)&&storage){
+      try{ target.path ? await storage.ref().child(target.path).delete() : await storage.refFromURL(target.url).delete(); }catch(e){ console.warn('HW file delete skipped:', e); }
     }
     const nextAttachments = attachments.filter((_,i)=>i!==(attachmentIndex??0));
     const primary = nextAttachments[0]||null;
@@ -15067,8 +15095,9 @@ function App() {
   const deleteHw=useCallback(async(hw)=>{
     if(!hw?.id) return;
     if(!window.confirm('Kustuta kodutöö?')) return;
-    if(hw.fileUrl&&storage){
-      try{ await storage.refFromURL(hw.fileUrl).delete(); }catch(e){ console.warn('Homework file delete skipped:', e); }
+    const attachments=Array.isArray(hw.attachments)&&hw.attachments.length?hw.attachments:(hw.fileUrl?[{url:hw.fileUrl}]:[]);
+    if(attachments.length&&storage){
+      await Promise.allSettled(attachments.map(item=>item.path?storage.ref().child(item.path).delete():storage.refFromURL(item.url).delete()));
     }
     await db.collection('homework').doc(hw.id).delete();
     await logActivity('homework.deleted','Kustutati kodutöö',{homeworkId:hw.id,studentId:hw.studentId,studentName:hw.studentName});
@@ -16507,7 +16536,7 @@ function App() {
             user={user} currentStu={currentStu} stuLessons={stuLessons} liveLessons={studentLiveLessons} stuHw={stuHw} stuInv={stuInv}
             isAdmin={canAssignTeacher} setSelStu={setSelStu} toggleStudentActive={toggleStudentActive}
             convertStudentToParent={convertStudentToParent}
-            hwTask={hwTask} setHwTask={setHwTask} hwDue={hwDue} setHwDue={setHwDue} hwFiles={hwFiles} setHwFiles={setHwFiles} addHw={addHw} toggleHw={toggleHw} deleteHw={deleteHw} removeHwFile={removeHwFile}
+            hwTask={hwTask} setHwTask={setHwTask} hwDue={hwDue} setHwDue={setHwDue} hwFiles={hwFiles} setHwFiles={setHwFiles} hwBusy={hwBusy} addHw={addHw} toggleHw={toggleHw} deleteHw={deleteHw} removeHwFile={removeHwFile}
             invAmt={invAmt} setInvAmt={setInvAmt} invDesc={invDesc} setInvDesc={setInvDesc}
             invRef={invRef} setInvRef={setInvRef} invDue={invDue} setInvDue={setInvDue}
             addInvoice={addInvoice} markPaid={markPaid} unmarkPaid={unmarkPaid} deleteInvoice={deleteInvoice} printInvoice={printInvoice} submitParentPayment={submitParentPayment} resetParentPayment={resetParentPayment} updateInvoiceReference={updateInvoiceReference} updateInvoiceDue={updateInvoiceDue}

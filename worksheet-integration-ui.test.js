@@ -59,7 +59,7 @@ test('media tasks render end to end and voice files stay scoped to the student',
   assert.match(library,/voice_recording:'Häälsalvestus'/);
   assert.match(storageRules,/match \/worksheet-submissions\/\{studentId\}\/\{assignmentId\}\/\{fileName\}/);
   assert.match(storageRules,/allow read: if staff\(\) \|\| ownsStudent\(studentId\)/);
-  assert.match(storageRules,/request\.resource\.contentType\.matches\('\^audio\/'\)/);
+  assert.match(storageRules,/request\.resource\.contentType\.matches\('\^audio\/\.\*\$'\)/);
   assert.match(crm,/Worksheet submit failed/);
   assert.match(crm,/finally\{\s*setSubmitting\(false\)/);
 });

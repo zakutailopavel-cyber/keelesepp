@@ -1,5 +1,5 @@
 (function(){
-  const APP_VERSION  = 'KeeleSepp CRM · 01.09.2026.1';
+  const APP_VERSION  = 'KeeleSepp CRM · 01.09.2026.2';
   const LEVELS   = ['Eelkool','A1','A2','B1','B2','C1'];
   const TEACHERS = ['Pavel','Jelena','Elizaveta','Angelina'];
   const STAFF_ALIASES = {
@@ -51,6 +51,39 @@
   });
 
   const normalizeText = value => (value || '').trim().toLowerCase();
+  const UPLOAD_MAX_BYTES = 20 * 1024 * 1024;
+  const uploadContentTypeAllowed = value => /^(?:(?:image|text|audio|video)\/[a-z0-9.+-]+|application\/(?:pdf|msword|vnd\.[a-z0-9.+-]+))$/i.test(String(value||'').trim());
+  const uploadContentType = file => {
+    const declared=String(file?.type||'').trim().toLowerCase();
+    if(uploadContentTypeAllowed(declared)) return declared;
+    const extension=(String(file?.name||'').toLowerCase().match(/\.([a-z0-9]+)$/)||[])[1]||'';
+    return ({
+      png:'image/png',jpg:'image/jpeg',jpeg:'image/jpeg',gif:'image/gif',webp:'image/webp',svg:'image/svg+xml',heic:'image/heic',heif:'image/heif',
+      pdf:'application/pdf',doc:'application/msword',docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      xls:'application/vnd.ms-excel',xlsx:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      ppt:'application/vnd.ms-powerpoint',pptx:'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      odt:'application/vnd.oasis.opendocument.text',ods:'application/vnd.oasis.opendocument.spreadsheet',odp:'application/vnd.oasis.opendocument.presentation',
+      txt:'text/plain',csv:'text/csv',rtf:'text/rtf',
+      mp3:'audio/mpeg',m4a:'audio/mp4',wav:'audio/wav',ogg:'audio/ogg',webm:'audio/webm',
+      mp4:'video/mp4',mov:'video/quicktime',m4v:'video/x-m4v'
+    })[extension]||'';
+  };
+  const validateUploadFile = (file,maxBytes=UPLOAD_MAX_BYTES) => {
+    if(!file) return {ok:false,error:'Fail puudub.',contentType:''};
+    const size=Number(file.size)||0;
+    if(size<=0) return {ok:false,error:`Fail „${file.name||'Fail'}“ on tühi.`,contentType:''};
+    if(size>=maxBytes) return {ok:false,error:`Fail „${file.name||'Fail'}“ on suurem kui 20 MB.`,contentType:''};
+    const contentType=uploadContentType(file);
+    if(!contentType) return {ok:false,error:`Failitüüpi „${file.name||'Fail'}“ ei toetata.`,contentType:''};
+    return {ok:true,error:'',contentType};
+  };
+  const uploadErrorGuidance = (error,fileName='Fail') => {
+    const code=String(error?.code||'').toLowerCase();
+    if(code.includes('unauthorized')) return `Faili „${fileName}“ laadimine blokeeriti õiguste tõttu. Uuenda lehte ja proovi uuesti.`;
+    if(code.includes('retry-limit')) return `Faili „${fileName}“ laadimine võttis liiga kaua. Kontrolli internetiühendust ja proovi uuesti.`;
+    if(code.includes('canceled')) return `Faili „${fileName}“ laadimine katkestati.`;
+    return `Faili „${fileName}“ ei õnnestunud üles laadida.`;
+  };
   const studentIdentityKey = student => [
     normalizeText(student?.name),
     normalizeText(student?.parentEmail || student?.contactEmail || student?.guardianEmail || student?.email),
@@ -415,6 +448,11 @@
     DAYS_FULL,
     TIMES,
     normalizeText,
+    UPLOAD_MAX_BYTES,
+    uploadContentTypeAllowed,
+    uploadContentType,
+    validateUploadFile,
+    uploadErrorGuidance,
     studentIdentityKey,
     studentProfileKey,
     duplicateStudentGroups,

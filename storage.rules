@@ -49,7 +49,8 @@ service firebase.storage {
       return request.resource == null
         || (
           request.resource.size < 20 * 1024 * 1024
-          && request.resource.contentType.matches('^(image/|application/pdf|text/|audio/|video/|application/vnd\\.|application/msword)')
+          && request.resource.contentType is string
+          && request.resource.contentType.matches('^(image/.*|application/pdf|text/.*|audio/.*|video/.*|application/vnd\\..*|application/msword)$')
         );
     }
 
@@ -76,7 +77,8 @@ service firebase.storage {
         && request.resource != null
         && request.resource.size > 0
         && request.resource.size <= 20 * 1024 * 1024
-        && request.resource.contentType.matches('^audio/');
+        && request.resource.contentType is string
+        && request.resource.contentType.matches('^audio/.*$');
       allow update, delete: if false;
     }
 
