@@ -31,7 +31,9 @@ const {
 const { invoiceNumberingPlan } = require("./invoice-numbering-core");
 const { expenseDocumentRecord, expenseRecord } = require("./expenses-core");
 const {
+  classifyAccountIntegrity,
   classifyLessonDataQuality,
+  classifyStudentOwnedRecords,
   normalizedIdentity,
 } = require("./data-quality-core");
 const {
@@ -5996,12 +5998,14 @@ async function listFirebaseAuthUsers() {
 }
 
 async function previewDataQuality() {
-  const [studentSnap, lessonSnap, invoiceSnap, groupSnap, userSnap, authUsers] = await Promise.all([
+  const [studentSnap, lessonSnap, invoiceSnap, groupSnap, userSnap, homeworkSnap, worksheetAssignmentSnap, authUsers] = await Promise.all([
     db.collection("students").get(),
     db.collection("lessons").get(),
     db.collection("invoices").get(),
     db.collection("groups").get(),
     db.collection("users").get(),
+    db.collection("homework").get(),
+    db.collection("worksheetAssignments").get(),
     listFirebaseAuthUsers(),
   ]);
   const records = snapshot => snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -6009,7 +6013,8 @@ async function previewDataQuality() {
   const lessons = records(lessonSnap);
   const invoices = records(invoiceSnap);
   const groups = records(groupSnap);
-  const userProfiles = new Map(records(userSnap).map(profile => [profile.id, profile]));
+  const userProfileRecords = records(userSnap);
+  const userProfiles = new Map(userProfileRecords.map(profile => [profile.id, profile]));
   const studentIds = new Set(students.map(student => student.id));
   const accountLinks = new Map();
   students.forEach(student => {
@@ -6068,6 +6073,28 @@ async function previewDataQuality() {
     date: invoice.date,
     due: invoice.due,
   }));
+  const orphanHomework = classifyStudentOwnedRecords({ records: records(homeworkSnap), students }).map(item => ({
+    id: item.id,
+    studentId: item.studentId || "",
+    studentName: item.studentName || "",
+    date: item.date || item.createdAt || "",
+    due: item.due || "",
+    title: item.task || item.title || "",
+    status: item.status || "",
+  }));
+  const orphanWorksheetAssignments = classifyStudentOwnedRecords({ records: records(worksheetAssignmentSnap), students }).map(item => ({
+    id: item.id,
+    studentId: item.studentId || "",
+    studentName: item.studentName || "",
+    date: item.assignedAt || item.createdAt || "",
+    title: item.title || item.worksheetTitle || item.materialTitle || "",
+    status: item.status || "",
+  }));
+  const accountIntegrity = classifyAccountIntegrity({
+    students,
+    userProfiles: userProfileRecords,
+    authUsers: authUsers.map(user => ({ uid: user.uid, email: user.email || "" })),
+  });
   const accounts = authUsers.map(authUser => {
     const profile = userProfiles.get(authUser.uid) || {};
     const roles = [...collectTrustedRoles(profile, authUser.customClaims || {})];
@@ -6108,18 +6135,27 @@ async function previewDataQuality() {
     orphanLessons,
     groupLessonsNeedingLink,
     orphanInvoices,
+    orphanHomework,
+    orphanWorksheetAssignments,
     invalidInvoiceDates,
     unlinkedAccounts,
     accounts,
     duplicateGroups,
+    ...accountIntegrity,
     summary: {
       orphanLessonCount: orphanLessons.length,
       groupLessonLinkCount: groupLessonsNeedingLink.length,
       linkedGroupLessonCount: lessonQuality.linkedGroupLessonCount,
       orphanInvoiceCount: orphanInvoices.length,
+      orphanHomeworkCount: orphanHomework.length,
+      orphanWorksheetAssignmentCount: orphanWorksheetAssignments.length,
       invalidInvoiceDateCount: invalidInvoiceDates.length,
       unlinkedAccountCount: unlinkedAccounts.length,
       duplicateGroupCount: duplicateGroups.length,
+      missingAuthLinkCount: accountIntegrity.missingAuthLinks.length,
+      studentAccountConflictCount: accountIntegrity.studentAccountConflicts.length,
+      orphanUserProfileCount: accountIntegrity.orphanUserProfiles.length,
+      brokenProfileStudentLinkCount: accountIntegrity.brokenProfileStudentLinks.length,
     },
   };
 }
@@ -6182,7 +6218,12 @@ async function linkDataQualityGroupLesson({ actor, lessonId, groupId, requestId 
 async function relinkDataQualityRecord({ actor, entityType, entityId, studentId, requestId }) {
   const mutationId = cleanRequestId(requestId);
   const type = String(entityType || "").trim();
-  const collectionName = type === "lesson" ? "lessons" : type === "invoice" ? "invoices" : "";
+  const collectionName = {
+    lesson: "lessons",
+    invoice: "invoices",
+    homework: "homework",
+    worksheetAssignment: "worksheetAssignments",
+  }[type] || "";
   if (!collectionName) throw httpError(400, "Valid entityType required");
   const cleanEntityId = cleanText(entityId, 180);
   const cleanStudentId = cleanText(studentId, 180);

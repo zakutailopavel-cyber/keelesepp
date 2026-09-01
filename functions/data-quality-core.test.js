@@ -1,6 +1,10 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { classifyLessonDataQuality } = require("./data-quality-core");
+const {
+  classifyAccountIntegrity,
+  classifyLessonDataQuality,
+  classifyStudentOwnedRecords,
+} = require("./data-quality-core");
 
 test("legacy ext lessons with one exact group name are separated from orphan student lessons", () => {
   const result = classifyLessonDataQuality({
@@ -46,4 +50,39 @@ test("similar names are not guessed and duplicate exact group names remain unres
   assert.equal(result.groupLessonsNeedingLink[0].id, "ambiguous");
   assert.equal(result.groupLessonsNeedingLink[0].suggestedGroupId, "");
   assert.deepEqual(result.orphanLessons.map(lesson => lesson.id), ["similar-only"]);
+});
+
+test("student-owned records are orphaned only by a missing exact student id", () => {
+  const result = classifyStudentOwnedRecords({
+    students: [{ id: "student-1", name: "Mari" }],
+    records: [
+      { id: "valid", studentId: "student-1", studentName: "Wrong name is harmless" },
+      { id: "missing", studentId: "deleted-student", studentName: "Mari" },
+      { id: "empty", studentName: "Mari" },
+    ],
+  });
+  assert.deepEqual(result.map(record => record.id), ["missing", "empty"]);
+});
+
+test("account integrity separates parent families from conflicting student logins", () => {
+  const result = classifyAccountIntegrity({
+    students: [
+      { id: "student-a", name: "Milan", linkedUserIds: ["student-login"], linkedParentIds: ["parent-login", "missing-parent"] },
+      { id: "student-b", name: "Milan Grozovski", linkedUserId: "student-login", linkedParentId: "parent-login" },
+    ],
+    authUsers: [
+      { uid: "student-login", email: "milan@example.com" },
+      { uid: "parent-login", email: "parent@example.com" },
+    ],
+    userProfiles: [
+      { id: "student-login", email: "milan@example.com", linkedStudentIds: ["student-a", "deleted-student"] },
+      { id: "firestore-only", email: "old@example.com", role: "student" },
+    ],
+  });
+
+  assert.equal(result.studentAccountConflicts.length, 1);
+  assert.deepEqual(result.studentAccountConflicts[0].students.map(student => student.id), ["student-a", "student-b"]);
+  assert.deepEqual(result.missingAuthLinks.map(link => link.uid), ["missing-parent"]);
+  assert.deepEqual(result.orphanUserProfiles.map(profile => profile.uid), ["firestore-only"]);
+  assert.deepEqual(result.brokenProfileStudentLinks.map(link => link.studentId), ["deleted-student"]);
 });

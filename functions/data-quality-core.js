@@ -72,7 +72,106 @@ function classifyLessonDataQuality({ lessons = [], students = [], groups = [] } 
   };
 }
 
+function classifyStudentOwnedRecords({ records = [], students = [] } = {}) {
+  const studentIds = new Set(students.map(student => String(student.id || "").trim()).filter(Boolean));
+  return records.filter(record => {
+    const studentId = String(record.studentId || "").trim();
+    return !studentId || !studentIds.has(studentId);
+  });
+}
+
+function cleanIds(values) {
+  return [...new Set(values.flatMap(value => Array.isArray(value) ? value : [value])
+    .map(value => String(value || "").trim())
+    .filter(Boolean))];
+}
+
+function studentLoginIds(student = {}) {
+  return cleanIds([student.linkedUserIds, student.linkedUserId, student.studentUid]);
+}
+
+function studentParentIds(student = {}) {
+  return cleanIds([student.linkedParentIds, student.linkedParentId, student.parentUid, student.guardianUid]);
+}
+
+function classifyAccountIntegrity({ students = [], userProfiles = [], authUsers = [] } = {}) {
+  const activeStudents = students.filter(student => student.active !== false);
+  const studentsById = new Map(activeStudents.map(student => [String(student.id || ""), student]));
+  const authIds = new Set(authUsers.map(user => String(user.uid || user.id || "").trim()).filter(Boolean));
+  const userProfilesById = new Map(userProfiles.map(profile => [String(profile.id || profile.uid || "").trim(), profile]));
+  const studentLinksByUid = new Map();
+  const missingAuthLinks = [];
+
+  activeStudents.forEach(student => {
+    studentLoginIds(student).forEach(uid => {
+      const links = studentLinksByUid.get(uid) || [];
+      links.push({ studentId: student.id, studentName: student.name || "", relationship: "student" });
+      studentLinksByUid.set(uid, links);
+      if (!authIds.has(uid)) missingAuthLinks.push({
+        uid,
+        studentId: student.id,
+        studentName: student.name || "",
+        relationship: "student",
+      });
+    });
+    studentParentIds(student).forEach(uid => {
+      if (!authIds.has(uid)) missingAuthLinks.push({
+        uid,
+        studentId: student.id,
+        studentName: student.name || "",
+        relationship: "parent",
+      });
+    });
+  });
+
+  const studentAccountConflicts = [...studentLinksByUid.entries()]
+    .filter(([, links]) => links.length > 1)
+    .map(([uid, links]) => ({
+      uid,
+      email: userProfilesById.get(uid)?.email || authUsers.find(user => String(user.uid || user.id) === uid)?.email || "",
+      students: links.map(link => ({
+        id: link.studentId,
+        name: link.studentName,
+        email: studentsById.get(link.studentId)?.email || studentsById.get(link.studentId)?.contactEmail || "",
+      })),
+    }));
+
+  const orphanUserProfiles = userProfiles
+    .filter(profile => {
+      const uid = String(profile.id || profile.uid || "").trim();
+      return uid && !authIds.has(uid) && profile.disabled !== true && profile.active !== false;
+    })
+    .map(profile => ({
+      uid: String(profile.id || profile.uid || "").trim(),
+      email: profile.email || "",
+      displayName: profile.displayName || profile.name || "",
+      role: profile.role || "",
+    }));
+
+  const brokenProfileStudentLinks = [];
+  userProfiles.forEach(profile => {
+    const uid = String(profile.id || profile.uid || "").trim();
+    cleanIds([profile.linkedStudentIds, profile.studentIds, profile.studentId]).forEach(studentId => {
+      if (!studentsById.has(studentId)) brokenProfileStudentLinks.push({
+        uid,
+        email: profile.email || "",
+        displayName: profile.displayName || profile.name || "",
+        studentId,
+      });
+    });
+  });
+
+  return {
+    missingAuthLinks,
+    studentAccountConflicts,
+    orphanUserProfiles,
+    brokenProfileStudentLinks,
+  };
+}
+
 module.exports = {
+  classifyAccountIntegrity,
   classifyLessonDataQuality,
+  classifyStudentOwnedRecords,
   normalizedIdentity,
 };
