@@ -393,7 +393,7 @@ function financialPeriodReviewSnapshot({
       || nonNegativeCents(lesson, "directPaymentAmountCents", "directPaymentAmount") !== amountCents
     ) {
       addIssue("direct_lesson_payment_invalid", "error", payment.id, `lesson:${lessonId}`);
-    } else {
+    } else if (periodLessonIds.has(lessonId)) {
       exactLessonIds.add(lessonId);
     }
   });

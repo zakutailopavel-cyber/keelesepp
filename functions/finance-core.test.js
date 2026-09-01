@@ -361,6 +361,42 @@ test("financial period accepts an audited lesson payment without an invoice", ()
   assert.equal(snapshot.issues.length, 0);
 });
 
+test("financial period exact lesson count excludes prior-month lessons paid directly this month", () => {
+  const snapshot = financialPeriodReviewSnapshot({
+    month: "2026-09",
+    lessons: [{
+      id: "lesson-direct-prior-month",
+      date: "2026-07-26",
+      status: "Toimunud",
+      billingStatus: "paid_directly",
+      directPaymentId: "payment-direct-september",
+      directPaymentAmountCents: 2500,
+      studentId: "student-a",
+    }],
+    payments: [{
+      id: "payment-direct-september",
+      kind: "direct_lesson",
+      lessonId: "lesson-direct-prior-month",
+      studentId: "student-a",
+      amountCents: 2500,
+      paidAt: "2026-09-01",
+      status: "active",
+      bankTransactionId: "bank-direct-september",
+    }],
+    bankTransactions: [{
+      id: "bank-direct-september",
+      paidAt: "2026-09-01",
+      amountCents: 2500,
+      allocatedAmountCents: 2500,
+      unappliedAmountCents: 0,
+    }],
+  });
+  assert.equal(snapshot.summary.lessonCount, 0);
+  assert.equal(snapshot.summary.paymentCount, 1);
+  assert.equal(snapshot.summary.exactLessonLinkCount, 0);
+  assert.equal(snapshot.issues.length, 0);
+});
+
 test("legacy lesson evidence remains visible without blocking a migration-safe review", () => {
   const snapshot = financialPeriodReviewSnapshot({
     month: "2026-07",
