@@ -1,5 +1,5 @@
 (function(){
-  const APP_VERSION  = 'KeeleSepp CRM · 01.09.2026.3';
+  const APP_VERSION  = 'KeeleSepp CRM · 01.09.2026.4';
   const LEVELS   = ['Eelkool','A1','A2','B1','B2','C1'];
   const TEACHERS = ['Pavel','Jelena','Elizaveta','Angelina'];
   const STAFF_ALIASES = {
@@ -290,147 +290,31 @@
     return Array.from(roles);
   };
 
+  const ACCOUNT_BOOTSTRAP_URL = 'https://us-central1-keelesepp-5136b.cloudfunctions.net/staffOperationsApi/accounts/bootstrap';
+  async function bootstrapAccountRecords(authUser,options={}){
+    if(!authUser) return {status:'not_required',linkedStudentIds:[],reviews:[]};
+    const response=await authFetch(ACCOUNT_BOOTSTRAP_URL,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({includeSelfStudent:options.includeSelfStudent===true})
+    });
+    const data=await response.json().catch(()=>({}));
+    if(!response.ok) throw new Error(data.error||'Konto sidumist ei õnnestunud kontrollida.');
+    return data;
+  }
+
   async function ensureStudentRecord(authUser, profile){
     if(!authUser || !hasUserRole(profile,'student')) return;
-    const db = window._db;
-    const name = profile.displayName || authUser.displayName || authUser.email || 'Õpilane';
-    const email = profile.email || authUser.email || '';
-    const existingByLink = await db.collection('students').where('linkedUserId','==',authUser.uid).limit(1).get();
-    const existingByUid = existingByLink.empty
-      ? await db.collection('students').where('studentUid','==',authUser.uid).limit(1).get()
-      : null;
-    const existingByArray = existingByLink.empty && existingByUid?.empty
-      ? await db.collection('students').where('linkedUserIds','array-contains',authUser.uid).limit(1).get()
-      : null;
-    const existingDoc = !existingByLink.empty
-      ? existingByLink.docs[0]
-      : (!existingByUid?.empty ? existingByUid.docs[0] : (!existingByArray?.empty ? existingByArray.docs[0] : null));
-    if(existingDoc){
-      const data = existingDoc.data() || {};
-      if(data.mergedIntoStudentId){
-        const canonical = await db.collection('students').doc(data.mergedIntoStudentId).get();
-        if(canonical.exists) return;
-      }else return;
-    }
-    const emailCandidates=new Map();
-    if(email){
-      const emailQueries=await Promise.all(['email','contactEmail','studentEmail'].map(field=>
-        db.collection('students').where(field,'==',email).limit(3).get().catch(()=>null)
-      ));
-      emailQueries.filter(Boolean).forEach(snapshot=>snapshot.docs.forEach(doc=>{
-        const data=doc.data()||{};
-        if(data.active!==false&&!data.mergedIntoStudentId) emailCandidates.set(doc.id,doc);
-      }));
-    }
-    if(emailCandidates.size===1){
-      const candidate=[...emailCandidates.values()][0];
-      const data=candidate.data()||{};
-      await candidate.ref.set({
-        linkedUserId:authUser.uid,
-        studentUid:authUser.uid,
-        linkedUserIds:firebase.firestore.FieldValue.arrayUnion(authUser.uid),
-        email:data.email||email,
-        accountLinkedAt:new Date().toISOString(),
-        accountLinkSource:'exact-email'
-      },{merge:true});
-      return;
-    }
-    const teacher = canonicalTeacherName(profile.preferredTeacher || profile.teacher || '');
-    const teacherUid = await teacherUidFromDirectory(teacher);
-    await db.collection('students').add({
-      linkedUserId: authUser.uid,
-      studentUid: authUser.uid,
-      linkedUserIds:[authUser.uid],
-      isSelfStudent:true,
-      name,
-      email,
-      phone:'',
-      level:'A1',
-      targetLevel:'B1',
-      teacher,
-      teacherUid,
-      active:true,
-      packageTotal:0,
-      packageUsed:0,
-      subject:'Eesti keel',
-      grade:hasUserRole(profile,'parent')?'Täiskasvanu':'',
-      group:'',
-      registrationSource:hasUserRole(profile,'parent')?'parent-as-student':'self-service',
-      profileStatus:'new',
-      potentialDuplicateIds:[...emailCandidates.keys()],
-      duplicateReviewRequired:emailCandidates.size>1,
-      contactStatus:'new',
-      contactOwner:'',
-      contactLastAt:'',
-      contactNotes:'',
-      createdAt:today()
-    });
+    const result=await bootstrapAccountRecords(authUser);
+    if(profile&&result){profile.accountLinkStatus=result.status;profile.accountLinkReviewCount=result.reviews?.length||0;}
+    return result;
   }
 
   async function ensureParentStudentRecords(authUser, profile){
     if(!authUser || !hasUserRole(profile,'parent')) return;
-    const db = window._db;
-    const linkedNames = parseLinkedNames(profile.childName);
-    if(linkedNames.length===0) return;
-
-    const parentDisplayName = profile.displayName || authUser.displayName || profile.email || authUser.email || 'Lapsevanem';
-    const parentEmail = profile.email || authUser.email || '';
-    const preferredTeacher = canonicalTeacherName(profile.preferredTeacher || 'Pavel');
-    const preferredTeacherUid = await teacherUidFromDirectory(preferredTeacher);
-    const [existingSnap,existingArraySnap] = await Promise.all([
-      db.collection('students').where('linkedParentId','==',authUser.uid).get(),
-      db.collection('students').where('linkedParentIds','array-contains',authUser.uid).get()
-    ]);
-    const existingDocs = new Map([...existingSnap.docs,...existingArraySnap.docs].map(doc=>[doc.id,doc]));
-    const existingProfiles = new Set([...existingDocs.values()].map(doc => studentProfileKey({
-      ...doc.data(),
-      parentEmail,
-      parentName:parentDisplayName,
-      teacher:doc.data().teacher || preferredTeacher
-    })));
-
-    for(const childName of linkedNames){
-      const label = childName
-        .split(' ')
-        .filter(Boolean)
-        .map(part => part.charAt(0).toUpperCase() + part.slice(1))
-        .join(' ');
-      const candidateProfile = studentProfileKey({
-        name:label || 'Õpilane',
-        parentName:parentDisplayName,
-        parentEmail,
-        subject:'Eesti keel',
-        teacher:preferredTeacher
-      });
-      if(existingProfiles.has(candidateProfile)) continue;
-
-      await db.collection('students').add({
-        linkedParentId: authUser.uid,
-        linkedParentIds:[authUser.uid],
-        parentName: parentDisplayName,
-        parentEmail,
-        name: label || 'Õpilane',
-        email:'',
-        phone:'',
-        level:'A1',
-        targetLevel:'A2',
-        teacher:preferredTeacher,
-        teacherUid:preferredTeacherUid,
-        active:true,
-        packageTotal:0,
-        packageUsed:0,
-        subject:'Eesti keel',
-        grade:'',
-        group:'',
-        registrationSource:'parent-self-service',
-        profileStatus:'new',
-        contactStatus:'new',
-        contactOwner:preferredTeacher,
-        contactLastAt:'',
-        contactNotes:'Loodud lapsevanema konto registreerimisel',
-        createdAt:today()
-      });
-    }
+    const result=await bootstrapAccountRecords(authUser);
+    if(profile&&result){profile.accountLinkStatus=result.status;profile.accountLinkReviewCount=result.reviews?.length||0;}
+    return result;
   }
 
   window.HaldusShared = {
@@ -474,6 +358,7 @@
     getUserRoles,
     hasUserRole,
     withUserRoles,
+    bootstrapAccountRecords,
     ensureStudentRecord,
     ensureParentStudentRecords
   };

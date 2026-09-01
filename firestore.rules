@@ -646,78 +646,6 @@ service cloud.firestore {
       ]);
     }
 
-    function createsOwnStudent() {
-      return signedIn()
-        && (
-          request.resource.data.get('linkedUserId', '') == uid()
-          || request.resource.data.get('studentUid', '') == uid()
-          || request.resource.data.get('linkedUserIds', []).hasAny([uid()])
-          || request.resource.data.get('linkedParentId', '') == uid()
-          || request.resource.data.get('parentUid', '') == uid()
-          || request.resource.data.get('guardianUid', '') == uid()
-          || request.resource.data.get('linkedParentIds', []).hasAny([uid()])
-        )
-        && request.resource.data.keys().hasOnly([
-          'linkedUserId',
-          'studentUid',
-          'linkedUserIds',
-          'linkedParentId',
-          'parentUid',
-          'guardianUid',
-          'linkedParentIds',
-          'isSelfStudent',
-          'parentAsStudent',
-          'name',
-          'parentName',
-          'parentEmail',
-          'email',
-          'phone',
-          'level',
-          'targetLevel',
-          'teacher',
-          'teacherUid',
-          'active',
-          'packageTotal',
-          'packageUsed',
-          'subject',
-          'grade',
-          'group',
-          'registrationSource',
-          'profileStatus',
-          'contactStatus',
-          'contactOwner',
-          'contactLastAt',
-          'contactNotes',
-          'createdAt',
-          'updatedAt'
-        ])
-        && request.resource.data.keys().hasAll([
-          'name',
-          'active',
-          'packageTotal',
-          'packageUsed',
-          'createdAt'
-        ])
-        && request.resource.data.name is string
-        && request.resource.data.name.size() > 0
-        && request.resource.data.name.size() <= 160
-        && request.resource.data.active == true
-        && request.resource.data.packageTotal == 0
-        && request.resource.data.packageUsed == 0
-        && (
-          !('teacherUid' in request.resource.data)
-          || request.resource.data.teacherUid == ''
-          || (
-            hasUserDoc(request.resource.data.teacherUid)
-            && userRole(request.resource.data.teacherUid) == 'teacher'
-            && sameTeacherName(
-              request.resource.data.get('teacher', ''),
-              teacherName(request.resource.data.teacherUid)
-            )
-          )
-        );
-    }
-
     function safeSelfUserFields() {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
         'displayName',
@@ -798,7 +726,9 @@ service cloud.firestore {
       // ownsStudent(studentId) here performs a get() and makes an otherwise safe
       // `where('linkedUserId', '==', uid)` query fail as permission-denied.
       allow read: if isAdmin() || teacherCanRead(resource.data) || ownsStudentProfile(studentId, resource.data);
-      allow create: if isAdmin() || teacherCanCreate(request.resource.data) || createsOwnStudent();
+      // Student and parent onboarding is performed by the protected server
+      // bootstrap so an old cached browser cannot create duplicate cards.
+      allow create: if isAdmin() || teacherCanCreate(request.resource.data);
       allow update: if (
           isAdmin()
           && !changesStudentTariffSource()

@@ -97,6 +97,12 @@ const {
 } = require("./staff-operations-core");
 const { collectTrustedRoles, isDisabledProfile } = require("./auth-core");
 const {
+  normalizeEmail: normalizeAccountEmail,
+  normalizeName: normalizeAccountName,
+  planParentChildBootstrap,
+  planStudentAccountBootstrap,
+} = require("./account-bootstrap-core");
+const {
   lessonCompletionCounterDelta,
   lessonMutationSignature,
   normalizedLessonStatus,
@@ -5997,8 +6003,201 @@ async function listFirebaseAuthUsers() {
   return users;
 }
 
+function accountBootstrapKey(...values) {
+  return crypto.createHash("sha256").update(values.map(value => String(value || "")).join("\n")).digest("hex").slice(0, 24);
+}
+
+function accountChildNames(value) {
+  return [...new Set(String(value || "").split(/[,\n;|]+/).map(name => name.trim()).filter(Boolean))];
+}
+
+function accountTeacherDirectoryKey(value) {
+  const first = String(value || "").trim().toLowerCase().split(/\s+/)[0] || "";
+  return ({ jelena: "elena", elena: "elena", elizaveta: "yelyzaveta", yelyzaveta: "yelyzaveta", angelina: "anhelina", anhelina: "anhelina" })[first] || first;
+}
+
+async function bootstrapCurrentAccount({ decoded, profile, includeSelfStudent = false }) {
+  if (isDisabledProfile(profile)) throw httpError(403, "Account disabled");
+  const roles = collectTrustedRoles(profile, decoded);
+  const isStudent = roles.has("student");
+  const isParent = roles.has("parent");
+  if (!isStudent && !isParent) return { status: "not_required", linkedStudentIds: [], reviews: [] };
+  const shouldBootstrapStudent = isStudent || (isParent && includeSelfStudent === true);
+
+  const uid = decoded.uid;
+  const email = normalizeAccountEmail(decoded.email || profile.email || "");
+  const emailVerified = decoded.email_verified === true;
+  const displayName = cleanText(profile.displayName || decoded.name || email || "Õpilane", 180);
+  const childNames = accountChildNames(profile.childName);
+  const [studentSnap, directorySnap] = await Promise.all([
+    db.collection("students").get(),
+    db.collection("securityConfig").doc("teacherDirectoryV1").get(),
+  ]);
+  const students = studentSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  const preferredTeacher = cleanText(profile.preferredTeacher || profile.teacher || (isParent ? "Pavel" : ""), 180);
+  const teacherUid = String(directorySnap.data()?.teachers?.[accountTeacherDirectoryKey(preferredTeacher)] || "");
+  const plans = [];
+  if (shouldBootstrapStudent) plans.push({ relationship: "student", ...planStudentAccountBootstrap({ uid, email, emailVerified, displayName, students }) });
+  if (isParent) planParentChildBootstrap({ uid, email, emailVerified, childNames, students }).forEach(plan => plans.push({ relationship: "parent", ...plan }));
+
+  const fingerprint = accountBootstrapKey(uid, [...roles].sort().join(","), childNames.map(name => name.toLowerCase()).sort().join("|"), email, includeSelfStudent ? "self" : "family");
+  const auditRef = db.collection("activityLog").doc(`account-bootstrap-${fingerprint}`);
+  const nowIso = new Date().toISOString();
+  const linkedStudentIds = [];
+  const createdStudentIds = [];
+  const reviews = [];
+  const batch = db.batch();
+
+  plans.forEach(plan => {
+    if (plan.status === "review") {
+      const reviewId = accountBootstrapKey(uid, plan.relationship, plan.childName || "", plan.reason);
+      reviews.push({ id: reviewId, relationship: plan.relationship, reason: plan.reason, childName: plan.childName || "", candidates: plan.candidates || [] });
+      batch.set(db.collection("accountLinkReviews").doc(reviewId), {
+        uid,
+        email,
+        displayName,
+        relationship: plan.relationship,
+        childName: plan.childName || "",
+        reason: plan.reason,
+        candidates: plan.candidates || [],
+        candidateStudentIds: (plan.candidates || []).map(candidate => candidate.id),
+        status: "pending",
+        firstDetectedAt: nowIso,
+        lastDetectedAt: nowIso,
+        updatedAt: nowIso,
+      }, { merge: true });
+      return;
+    }
+
+    let studentId = plan.studentId || "";
+    if (plan.status === "create") {
+      studentId = plan.relationship === "student"
+        ? `self_${uid}`
+        : `parent_${uid}_${accountBootstrapKey(plan.childName || plan.student?.name).slice(0, 12)}`;
+      const student = plan.student || {};
+      batch.set(db.collection("students").doc(studentId), {
+        ...(plan.relationship === "student" ? {
+          linkedUserId: uid,
+          studentUid: uid,
+          linkedUserIds: [uid],
+          isSelfStudent: true,
+          name: student.name || displayName,
+          email,
+          targetLevel: "B1",
+          grade: isParent ? "Täiskasvanu" : "",
+          registrationSource: isParent ? "parent-as-student" : "self-service-server",
+        } : {
+          linkedParentId: uid,
+          parentUid: uid,
+          linkedParentIds: [uid],
+          parentName: displayName,
+          parentEmail: email,
+          name: student.name || plan.childName || "Õpilane",
+          email: "",
+          targetLevel: "A2",
+          grade: "",
+          registrationSource: "parent-self-service-server",
+        }),
+        phone: "",
+        level: "A1",
+        teacher: preferredTeacher,
+        teacherUid,
+        active: true,
+        packageTotal: 0,
+        packageUsed: 0,
+        subject: "Eesti keel",
+        group: "",
+        profileStatus: "new",
+        contactStatus: "new",
+        contactOwner: preferredTeacher,
+        contactLastAt: "",
+        contactNotes: "Loodud kaitstud konto sidumise käigus",
+        accountLinkSource: plan.source,
+        accountLinkedAt: nowIso,
+        createdAt: nowIso.slice(0, 10),
+        updatedAt: nowIso,
+      }, { merge: true });
+      createdStudentIds.push(studentId);
+    } else if (plan.status === "link") {
+      batch.set(db.collection("students").doc(studentId), plan.relationship === "student" ? {
+        linkedUserId: uid,
+        studentUid: uid,
+        linkedUserIds: FieldValue.arrayUnion(uid),
+        ...(email ? { email } : {}),
+        accountLinkSource: plan.source,
+        accountLinkedAt: nowIso,
+        updatedAt: nowIso,
+      } : {
+        linkedParentId: uid,
+        parentUid: uid,
+        linkedParentIds: FieldValue.arrayUnion(uid),
+        parentName: displayName,
+        parentEmail: email,
+        accountLinkSource: plan.source,
+        accountLinkedAt: nowIso,
+        updatedAt: nowIso,
+      }, { merge: true });
+    }
+    if (studentId) linkedStudentIds.push(studentId);
+  });
+
+  const uniqueStudentIds = uniqueIds(linkedStudentIds);
+  batch.set(db.collection("users").doc(uid), {
+    ...(uniqueStudentIds.length ? { linkedStudentIds: FieldValue.arrayUnion(...uniqueStudentIds) } : {}),
+    accountLinkStatus: reviews.length ? "pending_review" : "linked",
+    accountLinkReviewCount: reviews.length,
+    accountBootstrapAt: nowIso,
+    updatedAt: nowIso,
+  }, { merge: true });
+  batch.set(auditRef, {
+    type: "account.bootstrap",
+    action: "account.bootstrap",
+    uid,
+    email,
+    roles: [...roles].sort(),
+    linkedStudentIds: uniqueStudentIds,
+    createdStudentIds,
+    reviewIds: reviews.map(review => review.id),
+    createdAt: nowIso,
+    fingerprint,
+  }, { merge: false });
+  await batch.commit();
+  const pendingReviewSnap = await db.collection("accountLinkReviews").where("uid", "==", uid).get();
+  const linkedPlans = plans.filter(plan => plan.status !== "review" && plan.studentId || plan.status === "create");
+  const linkedIds = new Set(uniqueStudentIds);
+  const resolvedAt = new Date().toISOString();
+  const reviewBatch = db.batch();
+  let resolvedReviewCount = 0;
+  pendingReviewSnap.docs.forEach(doc => {
+    const review = doc.data();
+    if (review.status !== "pending") return;
+    const candidateMatch = (review.candidateStudentIds || []).some(id => linkedIds.has(id));
+    const studentLinked = review.relationship === "student" && linkedPlans.some(plan => plan.relationship === "student");
+    const parentNameLinked = review.relationship === "parent" && linkedPlans.some(plan =>
+      plan.relationship === "parent" && normalizeAccountName(plan.childName) === normalizeAccountName(review.childName)
+    );
+    if (!candidateMatch && !studentLinked && !parentNameLinked) return;
+    resolvedReviewCount += 1;
+    reviewBatch.set(doc.ref, {
+      status: "resolved",
+      resolution: "bootstrap_exact_match",
+      resolvedAt,
+      resolvedStudentIds: uniqueStudentIds,
+      updatedAt: resolvedAt,
+    }, { merge: true });
+  });
+  if (resolvedReviewCount) await reviewBatch.commit();
+  return {
+    status: reviews.length ? "pending_review" : "linked",
+    linkedStudentIds: uniqueStudentIds,
+    createdStudentIds,
+    reviews,
+    resolvedReviewCount,
+  };
+}
+
 async function previewDataQuality() {
-  const [studentSnap, lessonSnap, invoiceSnap, groupSnap, userSnap, homeworkSnap, worksheetAssignmentSnap, authUsers] = await Promise.all([
+  const [studentSnap, lessonSnap, invoiceSnap, groupSnap, userSnap, homeworkSnap, worksheetAssignmentSnap, accountReviewSnap, authUsers] = await Promise.all([
     db.collection("students").get(),
     db.collection("lessons").get(),
     db.collection("invoices").get(),
@@ -6006,6 +6205,7 @@ async function previewDataQuality() {
     db.collection("users").get(),
     db.collection("homework").get(),
     db.collection("worksheetAssignments").get(),
+    db.collection("accountLinkReviews").where("status", "==", "pending").get(),
     listFirebaseAuthUsers(),
   ]);
   const records = snapshot => snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -6117,6 +6317,7 @@ async function previewDataQuality() {
     return account.role === "student" || account.role === "parent" || account.roles.includes("student") || account.roles.includes("parent");
   });
   const duplicateGroups = findStudentDuplicateGroups(students);
+  const pendingAccountReviews = records(accountReviewSnap);
   return {
     generatedAt: new Date().toISOString(),
     students: students.filter(student => student.active !== false).map(student => ({
@@ -6141,6 +6342,7 @@ async function previewDataQuality() {
     unlinkedAccounts,
     accounts,
     duplicateGroups,
+    pendingAccountReviews,
     ...accountIntegrity,
     summary: {
       orphanLessonCount: orphanLessons.length,
@@ -6156,6 +6358,7 @@ async function previewDataQuality() {
       studentAccountConflictCount: accountIntegrity.studentAccountConflicts.length,
       orphanUserProfileCount: accountIntegrity.orphanUserProfiles.length,
       brokenProfileStudentLinkCount: accountIntegrity.brokenProfileStudentLinks.length,
+      pendingAccountReviewCount: pendingAccountReviews.length,
     },
   };
 }
@@ -6327,7 +6530,7 @@ async function linkAccountToStudent({ actor, uid, studentId, relationship, reque
   const auditRef = db.collection("activityLog").doc(`account-link-${mutationId}`);
   const nowIso = new Date().toISOString();
   const actorData = actorSnapshot(actor);
-  return db.runTransaction(async transaction => {
+  const result = await db.runTransaction(async transaction => {
     const [auditSnap, studentSnap, userSnap] = await Promise.all([
       transaction.get(auditRef), transaction.get(studentRef), transaction.get(userRef),
     ]);
@@ -6371,8 +6574,46 @@ async function linkAccountToStudent({ actor, uid, studentId, relationship, reque
       createdAt: nowIso,
       requestId: mutationId,
     });
-    return { uid: cleanUid, studentId: cleanStudentId, relationship: cleanRelationship, idempotent: false };
+    return { uid: cleanUid, studentId: cleanStudentId, studentName: student.name || "", relationship: cleanRelationship, idempotent: false };
   });
+  const pendingReviews = await db.collection("accountLinkReviews").where("uid", "==", cleanUid).get();
+  const resolvedAt = new Date().toISOString();
+  const reviewBatch = db.batch();
+  let resolvedReviewCount = 0;
+  pendingReviews.docs.forEach(doc => {
+    const review = doc.data();
+    if (review.status !== "pending" || review.relationship !== cleanRelationship) return;
+    const candidateMatch = (review.candidateStudentIds || []).includes(cleanStudentId);
+    const nameMatch = cleanRelationship === "parent"
+      && String(review.childName || "").trim().toLowerCase() === String(result.studentName || "").trim().toLowerCase();
+    if (cleanRelationship === "student" || candidateMatch || nameMatch) {
+      resolvedReviewCount += 1;
+      reviewBatch.set(doc.ref, {
+        status: "resolved",
+        resolvedAt,
+        resolvedBy: actorData,
+        resolvedStudentId: cleanStudentId,
+        resolutionRequestId: mutationId,
+        updatedAt: resolvedAt,
+      }, { merge: true });
+    }
+  });
+  if (resolvedReviewCount) await reviewBatch.commit();
+  const remainingReviewCount = pendingReviews.docs.filter(doc => {
+    const review = doc.data();
+    if (review.status !== "pending") return false;
+    if (review.relationship !== cleanRelationship) return true;
+    const candidateMatch = (review.candidateStudentIds || []).includes(cleanStudentId);
+    const nameMatch = cleanRelationship === "parent"
+      && String(review.childName || "").trim().toLowerCase() === String(result.studentName || "").trim().toLowerCase();
+    return !(cleanRelationship === "student" || candidateMatch || nameMatch);
+  }).length;
+  await userRef.set({
+    accountLinkStatus: remainingReviewCount ? "pending_review" : "linked",
+    accountLinkReviewCount: remainingReviewCount,
+    updatedAt: resolvedAt,
+  }, { merge: true });
+  return { ...result, resolvedReviewCount };
 }
 
 async function setAccountDisabled({ actor, uid, disabled, reason, requestId }) {
@@ -6710,6 +6951,14 @@ exports.staffOperationsApi = functions.https.onRequest(async (req, res) => {
     return;
   }
   try {
+    if (req.path === "/accounts/bootstrap") {
+      const decoded = await requireFirebaseUser(req);
+      const profileSnap = await db.collection("users").doc(decoded.uid).get();
+      if (!profileSnap.exists) throw httpError(409, "Account profile is not ready");
+      const result = await bootstrapCurrentAccount({ decoded, profile: profileSnap.data(), includeSelfStudent: req.body?.includeSelfStudent === true });
+      res.status(result.createdStudentIds?.length ? 201 : 200).json(result);
+      return;
+    }
     if (req.path === "/clock-in") {
       const actor = await requireStaffUser(req);
       const result = await clockInStaff({ actor, note: req.body?.note });
@@ -6907,6 +7156,27 @@ exports.staffOperationsApi = functions.https.onRequest(async (req, res) => {
         requestId: req.body?.requestId,
       });
       res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/accounts/bootstrap-admin") {
+      const targetUid = cleanText(req.body?.uid, 180);
+      if (!targetUid) throw httpError(400, "Account uid required");
+      let authUser;
+      try { authUser = await admin.auth().getUser(targetUid); } catch (error) { throw httpError(404, "Firebase account not found"); }
+      const profileSnap = await db.collection("users").doc(targetUid).get();
+      if (!profileSnap.exists) throw httpError(404, "Account profile not found");
+      const result = await bootstrapCurrentAccount({
+        decoded: {
+          uid: targetUid,
+          email: authUser.email || "",
+          email_verified: authUser.emailVerified === true,
+          name: authUser.displayName || "",
+          ...(authUser.customClaims || {}),
+        },
+        profile: profileSnap.data(),
+        includeSelfStudent: req.body?.includeSelfStudent === true,
+      });
+      res.status(result.createdStudentIds?.length ? 201 : 200).json(result);
       return;
     }
     if (req.path === "/accounts/status") {

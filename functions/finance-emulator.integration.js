@@ -839,7 +839,7 @@ test("student writes keep teachers inside their assigned scope", async () => {
       },
     },
   );
-  assert.equal(parentOwnedCreate.status, 200, JSON.stringify(parentOwnedCreate.body));
+  assert.equal(parentOwnedCreate.status, 403, JSON.stringify(parentOwnedCreate.body));
 
   const selfStudentCreate = await firestoreDocumentRequest(
     parentToken,
@@ -874,7 +874,7 @@ test("student writes keep teachers inside their assigned scope", async () => {
       },
     },
   );
-  assert.equal(selfStudentCreate.status, 200, JSON.stringify(selfStudentCreate.body));
+  assert.equal(selfStudentCreate.status, 403, JSON.stringify(selfStudentCreate.body));
 
   const forgedPackageCreate = await firestoreDocumentRequest(
     parentToken,

@@ -116,7 +116,7 @@ window.addEventListener('load', function(){
 <script>
 window.__haldusConfigureBabel();
 </script>
-<script src="/haldus-shared.js?v=20260901.3"></script>
+<script src="/haldus-shared.js?v=20260901.4"></script>
 <script src="/initial-assessment-core.js"></script>
 <script src="/staff-time-core.js"></script>
 <script src="/accounting-ledger-core.js"></script>
@@ -572,7 +572,6 @@ function AuthScreen({onLogin}) {
   const [child,setChild] = useState('');
   const [parentTeacher,setParentTeacher] = useState('Pavel');
   const [code,setCode]   = useState('');
-  const [studentCardId,setStudentCardId] = useState('');
   const [acceptedTerms,setAcceptedTerms] = useState(false);
   const [err,setErr]     = useState('');
   const [info,setInfo]   = useState('');
@@ -650,36 +649,14 @@ function AuthScreen({onLogin}) {
       try{
         await res.user.updateProfile({displayName:name});
         await db.collection('users').doc(res.user.uid).set(ud);
+        await res.user.sendEmailVerification().catch(error=>console.warn('Verification email was not sent:',error));
       }catch(profileError){
         await res.user.delete().catch(()=>null);
         throw profileError;
       }
       try{
         if(ud.role==='student'){
-          // 1. If student provided their card ID — link directly
-          if(studentCardId){
-            const cardSnap = await db.collection('students').doc(studentCardId).get();
-            if(cardSnap.exists){
-              const cardData=cardSnap.data()||{};
-              const targetStudentId=cardData.mergedIntoStudentId||studentCardId;
-              await db.collection('students').doc(targetStudentId).set({
-                studentUid: res.user.uid,
-                linkedUserId: res.user.uid,
-                linkedUserIds:firebase.firestore.FieldValue.arrayUnion(res.user.uid),
-                email: email||cardData.email||'',
-                updatedAt: today(),
-                accountLinkSource:'student-card-id'
-              },{merge:true});
-              console.log('Linked by ID to card:', targetStudentId);
-            } else {
-              // ID not found — create new
-              await ensureStudentRecord(res.user, ud);
-            }
-          } else {
-            // Link only by a unique exact e-mail/UID match. A name alone is not
-            // safe because two real students can have the same name.
-            await ensureStudentRecord(res.user, ud);
-          }
+          await ensureStudentRecord(res.user, ud);
         } else {
           await ensureStudentRecord(res.user, ud);
           await ensureParentStudentRecords(res.user, ud);
@@ -744,14 +721,9 @@ function AuthScreen({onLogin}) {
                 {TEACHERS.map(t=><option key={t} value={t}>Õpetaja: {t}</option>)}
               </select>
             </>}
-            {role==='student'&&<>
-              <input value={studentCardId} onChange={e=>setStudentCardId(e.target.value.trim())}
-                placeholder="Õpilase ID (valikuline — kui sul on olemas)"
-                style={{fontFamily:'monospace',fontSize:'.85rem'}}/>
-              {studentCardId&&<div style={{fontSize:'.75rem',color:'#2F5D50',padding:'4px 8px',background:'rgba(47,93,80,.08)',borderRadius:8}}>
-                ✓ Konto seotakse olemasoleva õpilase kaardiga
-              </div>}
-            </>}
+            {role==='student'&&<div style={{fontSize:'.75rem',color:'#2F5D50',padding:'8px 10px',background:'rgba(47,93,80,.08)',borderRadius:8,textAlign:'left'}}>
+              Konto seotakse automaatselt ühe täpse e-posti vastega. Ebaselge vaste saadetakse administraatorile kontrollimiseks.
+            </div>}
           </>}
         </div>
 
@@ -964,6 +936,13 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
           {new Date().toLocaleDateString('et-EE',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
         </div>
       </div>
+
+      {user.accountLinkStatus==='pending_review'&&(
+        <div className="card" style={{padding:18,border:'1px solid rgba(180,83,9,.24)',background:'#fffbeb',display:'flex',gap:12,alignItems:'flex-start'}}>
+          <i className="fa-solid fa-user-shield" style={{color:'#b45309',marginTop:3}}/>
+          <div><strong style={{color:'#92400e'}}>Konto seost kontrollitakse</strong><div style={{fontSize:'.78rem',color:'#78350f',marginTop:4,lineHeight:1.5}}>Leidsime võimaliku olemasoleva õpilasekaardi ega loonud duplikaati. Administraator kinnitab õige seose; teise õpilase andmeid sulle ei näidata.</div></div>
+        </div>
+      )}
 
       {(unreadMessages||[]).length>0&&(
         <div className="card" style={{padding:20,border:'1px solid rgba(47,93,80,.25)',background:'#f0fdf9'}}>
@@ -8398,6 +8377,14 @@ function DataQualityView({notify,standalone=false}) {
     try{await staffOperationsApiPost('/accounts/link',{uid:account.uid,studentId,relationship,requestId:financeRequestId('accountlink')});notify('✓ Konto seoti valitud õpilasega');await refresh();}
     catch(error){notify(`⚠ Kontot ei saanud siduda: ${error.message||error}`);setBusy('');}
   };
+  const linkPendingReview=async review=>{
+    const studentId=selections[`review-${review.id}`]||review.candidates?.[0]?.id||'';
+    if(!studentId){notify('⚠ Vali õige õpilane');return;}
+    if(!window.confirm(`Kas seod konto ${review.email||review.uid} täpselt valitud õpilasega?`)) return;
+    setBusy(`review-${review.id}`);
+    try{await staffOperationsApiPost('/accounts/link',{uid:review.uid,studentId,relationship:review.relationship,requestId:financeRequestId('accountreviewlink')});notify('✓ Registreerimise konflikt lahendatud');await refresh();}
+    catch(error){notify(`⚠ Kontot ei saanud siduda: ${error.message||error}`);setBusy('');}
+  };
   const changeAccountStatus=async account=>{
     const disabled=!account.disabled;
     const reason=window.prompt(disabled?'Konto peatamise põhjus':'Konto taastamise põhjus',disabled?'Vale või dubleeritud konto':'Konto seos on kontrollitud');
@@ -8425,19 +8412,21 @@ function DataQualityView({notify,standalone=false}) {
   const visibleOrphanInvoices=(data.orphanInvoices||[]).filter(matchesIssue);
   const visibleOrphanHomework=(data.orphanHomework||[]).filter(matchesIssue);
   const visibleOrphanWorksheetAssignments=(data.orphanWorksheetAssignments||[]).filter(matchesIssue);
-  const criticalIssueCount=Number(data.summary.orphanLessonCount||0)+Number(data.summary.orphanInvoiceCount||0)+Number(data.summary.orphanHomeworkCount||0)+Number(data.summary.orphanWorksheetAssignmentCount||0)+Number(data.summary.unlinkedAccountCount||0)+Number(data.summary.studentAccountConflictCount||0)+Number(data.summary.missingAuthLinkCount||0);
+  const criticalIssueCount=Number(data.summary.orphanLessonCount||0)+Number(data.summary.orphanInvoiceCount||0)+Number(data.summary.orphanHomeworkCount||0)+Number(data.summary.orphanWorksheetAssignmentCount||0)+Number(data.summary.unlinkedAccountCount||0)+Number(data.summary.studentAccountConflictCount||0)+Number(data.summary.missingAuthLinkCount||0)+Number(data.summary.pendingAccountReviewCount||0);
   const reviewIssueCount=Number(data.summary.groupLessonLinkCount||0)+Number(data.summary.invalidInvoiceDateCount||0)+Number(data.summary.duplicateGroupCount||0)+Number(data.summary.orphanUserProfileCount||0)+Number(data.summary.brokenProfileStudentLinkCount||0);
   const totalIssueCount=criticalIssueCount+reviewIssueCount;
   const accountQuery=normalizeText(accountSearch);
   const accountPool=(showAllAccounts||accountQuery)?(data.accounts||[]):(data.unlinkedAccounts||[]);
   const visibleAccounts=accountPool.filter(account=>!accountQuery||normalizeText(`${account.displayName} ${account.email} ${account.uid}`).includes(accountQuery));
+  const reviewReasonLabel=reason=>({email_multiple_students:'Ühe e-postiga leiti mitu kaarti',student_has_another_login:'Kaardil on juba teine sisselogimine',email_not_verified:'E-post ei ole veel kinnitatud',parent_email_not_verified:'Lapsevanema e-post ei ole veel kinnitatud',parent_uid_multiple_children_with_same_name:'Sama nimega on seotud mitu last',parent_email_and_name_multiple_students:'Sama lapse ja e-postiga leiti mitu kaarti',parent_child_name_variant:'Lapse lühike ja täielik nimekuju võivad olla sama isik',uid_multiple_students:'Üks konto viitab mitmele kaardile'})[reason]||'Seos vajab käsitsi kontrolli';
   const issueSelect=(key)=><select value={selections[key]||''} onChange={event=>pick(key,event.target.value)} style={{minWidth:220}}><option value="">Vali täpne õpilane…</option>{(data.students||[]).map(student=><option key={student.id} value={student.id}>{student.name||'Nimeta'} · {student.email||student.id}</option>)}</select>;
   const groupSelect=(item)=><select value={selections[`group-lesson-${item.id}`]||item.suggestedGroupId||''} onChange={event=>pick(`group-lesson-${item.id}`,event.target.value)} style={{minWidth:220}}><option value="">Vali täpne grupp…</option>{(data.groups||[]).map(group=><option key={group.id} value={group.id}>{group.name||'Nimeta grupp'} · {group.studentCount||0} õpilast</option>)}</select>;
   return <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:18}}>
     <div style={{display:'flex',justifyContent:'space-between',gap:12,alignItems:'flex-end',flexWrap:'wrap'}}><div><h1 style={{fontSize:'1.7rem'}}>{standalone?'CRM töökindlus':'Andmete parandamine'}</h1><p style={{color:'#64748b',fontSize:'.86rem',marginTop:3}}>Üks kontroll kontodele, duplikaatidele, tundidele, arvetele ja õppesisule. Seosed parandatakse ainult valitud ID järgi, mitte nime oletades.</p></div><button className="btn btn-pine" onClick={refresh} disabled={busy==='refresh'}><i className={`fa-solid ${busy==='refresh'?'fa-spinner fa-spin':'fa-rotate'}`}/> Kontrolli uuesti</button></div>
     <div className="card" style={{padding:18,background:totalIssueCount?'linear-gradient(135deg,#fff7ed,#fff)':'linear-gradient(135deg,#ecfdf5,#fff)',border:`1px solid ${totalIssueCount?'rgba(194,65,12,.18)':'rgba(22,101,52,.18)'}`}}><div style={{display:'flex',justifyContent:'space-between',gap:16,alignItems:'center',flexWrap:'wrap'}}><div><div style={{fontSize:'.7rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'.08em',color:totalIssueCount?'#9a3412':'#166534'}}>Süsteemi seisund</div><div style={{fontSize:'1.35rem',fontWeight:800,marginTop:5}}>{totalIssueCount?`${totalIssueCount} kirjet vajab tähelepanu`:'Kõik kontrollitud seosed on korras'}</div><div style={{fontSize:'.76rem',color:'#64748b',marginTop:5}}>Kriitilised {criticalIssueCount} · käsitsi kontrollida {reviewIssueCount} · kontroll {fmtDate(data.generatedAt)}</div></div><div style={{display:'flex',gap:8,flexWrap:'wrap'}}><span className="badge" style={{background:criticalIssueCount?'#fee2e2':'#dcfce7',color:criticalIssueCount?'#991b1b':'#166534'}}>Kriitilised {criticalIssueCount}</span><span className="badge" style={{background:reviewIssueCount?'#fef3c7':'#dcfce7',color:reviewIssueCount?'#92400e':'#166534'}}>Kontroll {reviewIssueCount}</span></div></div></div>
     <div className="card" style={{padding:14}}><input value={issueSearch} onChange={event=>setIssueSearch(event.target.value)} placeholder="Otsi probleemi nime, õpilase, e-posti või ID järgi…"/></div>
-    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(155px,1fr))',gap:10}}>{[['Kadunud tunnid',data.summary.orphanLessonCount,'#991b1b'],['Grupiseos puudu',data.summary.groupLessonLinkCount,'#b45309'],['Sidumata arved',data.summary.orphanInvoiceCount,'#991b1b'],['Kodutööd',data.summary.orphanHomeworkCount,'#991b1b'],['Töölehed',data.summary.orphanWorksheetAssignmentCount,'#991b1b'],['Kontod',data.summary.unlinkedAccountCount,'#991b1b'],['Kontokonfliktid',data.summary.studentAccountConflictCount,'#991b1b'],['Duplikaadid',data.summary.duplicateGroupCount,'#b45309']].map(([label,value,issueColor])=><div key={label} className="card" style={{padding:15}}><div style={{fontSize:'.68rem',fontWeight:800,color:'#64748b',textTransform:'uppercase'}}>{label}</div><div style={{fontSize:'1.5rem',fontWeight:800,marginTop:5,color:value?issueColor:'#166534'}}>{value||0}</div></div>)}</div>
+    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(155px,1fr))',gap:10}}>{[['Kadunud tunnid',data.summary.orphanLessonCount,'#991b1b'],['Grupiseos puudu',data.summary.groupLessonLinkCount,'#b45309'],['Sidumata arved',data.summary.orphanInvoiceCount,'#991b1b'],['Kodutööd',data.summary.orphanHomeworkCount,'#991b1b'],['Töölehed',data.summary.orphanWorksheetAssignmentCount,'#991b1b'],['Kontod',data.summary.unlinkedAccountCount,'#991b1b'],['Uued kontrollid',data.summary.pendingAccountReviewCount,'#991b1b'],['Kontokonfliktid',data.summary.studentAccountConflictCount,'#991b1b'],['Duplikaadid',data.summary.duplicateGroupCount,'#b45309']].map(([label,value,issueColor])=><div key={label} className="card" style={{padding:15}}><div style={{fontSize:'.68rem',fontWeight:800,color:'#64748b',textTransform:'uppercase'}}>{label}</div><div style={{fontSize:'1.5rem',fontWeight:800,marginTop:5,color:value?issueColor:'#166534'}}>{value||0}</div></div>)}</div>
+    {(data.pendingAccountReviews||[]).filter(matchesIssue).length>0&&<div className="card" style={{overflow:'hidden',border:'1px solid rgba(153,27,27,.2)'}}><div style={{padding:15}}><strong>Uue registreerimise vaste vajab kinnitamist</strong><div style={{fontSize:'.72rem',color:'#64748b',marginTop:3}}>Süsteem ei loonud kahtlast uut õpilasekaarti. Vali olemasolev kaart ainult siis, kui isik on kindlasti sama.</div></div>{data.pendingAccountReviews.filter(matchesIssue).map(review=><div key={review.id} style={{padding:'12px 15px',borderTop:'1px solid rgba(28,43,58,.08)',display:'flex',gap:10,alignItems:'center',flexWrap:'wrap'}}><div style={{minWidth:230,flex:1}}><strong>{review.displayName||review.childName||review.email||'Uus konto'}</strong><div style={{fontSize:'.7rem',color:'#991b1b',marginTop:3}}>{review.email||'E-post puudub'} · {review.relationship==='parent'?'lapsevanem':'õpilane'} · {reviewReasonLabel(review.reason)}</div></div><select value={selections[`review-${review.id}`]||review.candidates?.[0]?.id||''} onChange={event=>pick(`review-${review.id}`,event.target.value)} style={{minWidth:220}}><option value="">Vali täpne õpilane…</option>{(data.students||[]).map(student=><option key={student.id} value={student.id}>{student.name||'Nimeta'} · {student.email||student.id}</option>)}</select><button className="btn btn-pine btn-sm" disabled={busy===`review-${review.id}`} onClick={()=>linkPendingReview(review)}>Kinnita seos</button></div>)}</div>}
     {(data.groupLessonsNeedingLink||[]).length>0&&<div className="card" style={{overflow:'hidden',border:'1px solid rgba(180,83,9,.22)'}}><div style={{padding:15,display:'flex',justifyContent:'space-between',gap:10,alignItems:'center',flexWrap:'wrap'}}><div><strong>Grupitunnid ilma groupId-ta</strong><div style={{fontSize:'.72rem',color:'#64748b',marginTop:3}}>Need ei ole kadunud õpilaste tunnid. Seos lisatakse grupiga ja õpilase ID-d ei muudeta.</div></div>{(data.groupLessonsNeedingLink||[]).some(item=>item.exactGroupMatch&&item.suggestedGroupId)&&<button className="btn btn-amber btn-sm" disabled={Boolean(busy)} onClick={linkExactGroupLessons}>Seo kõik täpsed vasted</button>}</div>{data.groupLessonsNeedingLink.map(item=><div key={item.id} style={{padding:'12px 15px',borderTop:'1px solid rgba(28,43,58,.08)',display:'flex',gap:10,alignItems:'center',flexWrap:'wrap'}}><div style={{minWidth:210,flex:1}}><div style={{display:'flex',gap:7,alignItems:'center',flexWrap:'wrap'}}><strong>{item.studentName||item.groupName||'Nimeta grupitund'}</strong>{item.exactGroupMatch&&<span className="badge" style={{background:'#fffbeb',color:'#92400e'}}>Täpne grupivaste</span>}</div><div style={{fontSize:'.7rem',color:'#64748b',marginTop:3}}>{item.date||'Kuupäev puudub'} · {item.teacher||'Õpetaja puudub'} · ID {item.id}</div></div>{groupSelect(item)}<button className="btn btn-amber btn-sm" disabled={Boolean(busy)} onClick={()=>linkGroupLesson(item)}>Seo grupiga</button></div>)}</div>}
     {[
       ['lesson','Tõesti sidumata individuaaltunnid',visibleOrphanLessons],
@@ -14061,7 +14050,6 @@ function App() {
   const addStudentForParent=useCallback(async(data)=>{
     if(!user?.uid) return;
     const teacher=canonicalTeacherName(data.teacher||'Pavel');
-    const teacherUid=teacherUidForName(teacher)||await teacherUidFromDirectory(teacher);
     const candidate={id:'__new_parent_child__',name:data.name,parentName:user.displayName||'',parentEmail:user.email||'',linkedParentId:user.uid,linkedParentIds:[user.uid],teacher,level:data.level||'A1',subject:data.subject||'Eesti keel',active:true};
     const possibleGroup=duplicateStudentGroups([...students,candidate]).find(group=>group.students.some(student=>student.id==='__new_parent_child__'));
     const existingStudent=(possibleGroup?.students||[]).find(student=>student.id!=='__new_parent_child__');
@@ -14070,36 +14058,14 @@ function App() {
       notify(`✓ ${existingStudent.name||data.name} kaart on juba olemas; uut duplikaati ei loodud`);
       return;
     }
-    const ref = await db.collection('students').add({
-      name:data.name,
-      parentName:user.displayName||'',
-      parentEmail:user.email||'',
-      linkedParentId:user.uid,
-      parentUid:user.uid,
-      linkedParentIds:[user.uid],
-      teacher,
-      teacherUid,
-      level:data.level||'A1',
-      targetLevel:data.targetLevel||'B1',
-      subject:data.subject||'Eesti keel',
-      grade:data.grade||'',
-      group:'',
-      phone:'',
-      email:'',
-      active:true,
-      packageTotal:0,
-      packageUsed:0,
-      contactStatus:'new',
-      contactOwner:'',
-      contactLastAt:'',
-      contactNotes:'',
-      createdAt:today()
-    });
     // Update parent's childName
-    const existing = user.childName ? user.childName+', '+data.name : data.name;
-    await db.collection('users').doc(user.uid).update({childName:existing});
-    await logActivity('student.created','Lapsevanem lisas lapse',{studentId:ref.id,studentName:data.name});
-    notify('✓ Laps '+data.name+' lisatud!');
+    try{
+      const existing = user.childName ? user.childName+', '+data.name : data.name;
+      await db.collection('users').doc(user.uid).update({childName:existing,preferredTeacher:teacher,updatedAt:new Date().toISOString()});
+      const result=await window.HaldusShared.bootstrapAccountRecords(auth.currentUser);
+      if(result.status==='pending_review') notify('✓ Lapse andmed saadeti administraatorile seose kontrollimiseks');
+      else notify('✓ Laps '+data.name+' lisatud!');
+    }catch(error){console.error('Protected child creation failed:',error);notify('⚠ Lapse lisamine ebaõnnestus. Proovi uuesti.');}
   },[user,students,logActivity,teacherUidForName]);
 
   const addSelfStudentForParent=useCallback(async()=>{
@@ -14111,41 +14077,11 @@ function App() {
       notify('✓ Sinu õpilase kaart on juba olemas');
       return;
     }
-    const teacher = canonicalTeacherName(user.preferredTeacher || user.teacher || 'Pavel');
-    const teacherUid = teacherUidForName(teacher)||await teacherUidFromDirectory(teacher);
-    const data = {
-      linkedUserId:user.uid,
-      studentUid:user.uid,
-      linkedUserIds:[user.uid],
-      isSelfStudent:true,
-      parentAsStudent:true,
-      name:user.displayName||user.email||'Õpilane',
-      email:user.email||'',
-      phone:user.phone||user.parentPhone||'',
-      level:'A1',
-      targetLevel:'B1',
-      teacher,
-      teacherUid,
-      active:true,
-      packageTotal:0,
-      packageUsed:0,
-      subject:'Eesti keel',
-      grade:'Täiskasvanu',
-      group:'',
-      registrationSource:'parent-self-student',
-      profileStatus:'new',
-      contactStatus:'new',
-      contactOwner:teacher,
-      contactLastAt:'',
-      contactNotes:'Lapsevanem lisas enda õpingud',
-      createdAt:today()
-    };
-    const ref = await db.collection('students').add(data);
-    const created = {id:ref.id,...data};
-    await logActivity('student.self_created','Lapsevanem lisas enda õpingud',{studentId:ref.id,studentName:data.name});
-    setSelStu(created);
-    setTab('students');
-    notify('✓ Sinu õpilase kaart loodud');
+    try{
+      const result=await window.HaldusShared.bootstrapAccountRecords(auth.currentUser,{includeSelfStudent:true});
+      if(result.status==='pending_review') notify('✓ Võimalik olemasolev kaart saadeti administraatorile kontrollimiseks');
+      else notify('✓ Sinu õpilase kaart loodud');
+    }catch(error){console.error('Protected self-student creation failed:',error);notify('⚠ Õpilase kaardi loomine ebaõnnestus. Proovi uuesti.');}
   },[user,students,logActivity,notify,teacherUidForName]);
 
   const deleteStudentForParent=useCallback(async(student)=>{
@@ -14163,10 +14099,7 @@ function App() {
   const createMissingParentStudents=useCallback(async(parent)=>{
     if(!parent?.id){notify('⚠ Lapsevanema konto puudub');return;}
     try{
-      await ensureParentStudentRecords(
-        {uid:parent.id,displayName:parent.displayName,email:parent.email},
-        {...parent,uid:parent.id,role:'parent'}
-      );
+      const result=await staffOperationsApiPost('/accounts/bootstrap-admin',{uid:parent.id});
       await logActivity('parent.student_sync','Lapsevanema õpilase kaart kontrolliti',{
         parentUid:parent.id,
         parentName:parent.displayName||'',
@@ -14179,7 +14112,7 @@ function App() {
         parentReviewedAt:new Date().toISOString(),
         parentReviewedBy:user?.displayName||user?.email||''
       },{merge:true});
-      notify('✓ Õpilase kaart kontrollitud / loodud');
+      notify(result.status==='pending_review'?'✓ Seos saadeti töökindluse keskusesse kontrollimiseks':'✓ Õpilase kaart kontrollitud / loodud');
     }catch(err){
       console.error('Parent student sync failed:',err);
       notify('⚠ Õpilast ei saanud luua');

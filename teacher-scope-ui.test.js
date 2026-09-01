@@ -20,10 +20,12 @@ test('legacy write paths persist stable teacher ownership', () => {
   const main = source('haldus.html');
   const calendar = source('haldus-calendar-v3.html');
   const shared = source('haldus-shared.js');
+  const functions = source('functions/index.js');
   assert.match(main, /teacherUid:teacherUidForName\(t\)/);
   assert.match(main, /teacherUid:modalEv\.teacherUid\|\|stu\?\.teacherUid/);
   assert.match(main, /resolveTeacherUid=\{teacherUidForName\}/);
   assert.match(calendar, /teacherUid=await resolveTeacherUid\(t,user\)/);
   assert.match(shared, /teacherUidFromDirectory/);
-  assert.match(shared, /teacherUid:preferredTeacherUid/);
+  assert.match(functions, /teacherUid,/);
+  assert.match(functions, /teacherDirectoryV1/);
 });

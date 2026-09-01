@@ -6,6 +6,7 @@ const fs = require("node:fs");
 
 const html = fs.readFileSync("haldus.html", "utf8");
 const backend = fs.readFileSync("functions/index.js", "utf8");
+const rules = fs.readFileSync("firestore.rules", "utf8");
 
 test("administrator has one top-level CRM reliability center", () => {
   assert.match(html, /id:'reliability',icon:'fa-heart-pulse',label:'Töökindlus'/);
@@ -34,4 +35,15 @@ test("new reliability repairs still use exact protected ids and audit", () => {
   assert.match(backend, /if \(!cleanEntityId \|\| !cleanStudentId\) throw httpError\(400, "Exact entity and student IDs required"\)/);
   assert.match(backend, /transaction\.create\(auditRef/);
   assert.match(html, /Neid viiteid ei eemaldata automaatselt/);
+});
+
+test("ambiguous registrations enter the reliability queue instead of creating a duplicate", () => {
+  assert.match(backend, /req\.path === "\/accounts\/bootstrap"/);
+  assert.match(backend, /accountLinkReviews/);
+  assert.match(backend, /pendingAccountReviews/);
+  assert.match(html, /Uue registreerimise vaste vajab kinnitamist/);
+  assert.match(html, /Süsteem ei loonud kahtlast uut õpilasekaarti/);
+  assert.match(rules, /allow create: if isAdmin\(\) \|\| teacherCanCreate\(request\.resource\.data\)/);
+  assert.doesNotMatch(rules, /createsOwnStudent/);
+  assert.match(backend, /req\.path === "\/accounts\/bootstrap-admin"/);
 });

@@ -22,12 +22,12 @@ test("new student creation warns about probable duplicates and records an explic
   assert.match(html, /potentialDuplicateIds:possibleStudents\.map/);
 });
 
-test("student registration links by stable UID, card id, or unique email but never by name alone", () => {
+test("student registration delegates safe UID and email linking to the protected bootstrap endpoint", () => {
   const registration = html.slice(html.indexOf("const register = async()=>"), html.indexOf("const forgot = async()=>"));
-  assert.match(registration, /accountLinkSource:'student-card-id'/);
   assert.match(registration, /await ensureStudentRecord\(res\.user, ud\)/);
   assert.doesNotMatch(registration, /where\('name','=='/);
-  assert.match(shared, /accountLinkSource:'exact-email'/);
+  assert.match(shared, /staffOperationsApi\/accounts\/bootstrap/);
+  assert.doesNotMatch(shared, /collection\('students'\)\.add/);
 });
 
 test("protected merge preview exposes preserved aliases and profile conflicts", () => {
