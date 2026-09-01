@@ -47,7 +47,7 @@ window.__haldusConfigureBabel = function(){
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="/haldus.css?v=20260831.17">
+<link rel="stylesheet" href="/haldus.css?v=20260901.1">
 </head>
 <body>
 <div id="root"><div style="display:flex;align-items:center;justify-content:center;min-height:100vh"><div class="spinner"></div></div></div>
@@ -128,9 +128,9 @@ window.__haldusConfigureBabel();
 <script src="/tax-report-core.js"></script>
 <script src="/haldus-programs.js"></script>
 <script src="/haldus-curriculum-data.js"></script>
-<script src="/curriculum-workflow-core.js?v=20260831.17"></script>
-<script src="/worksheet-workflow-core.js?v=20260831.17"></script>
-<script src="/worksheet-interactive-core.js?v=20260830.9"></script>
+<script src="/curriculum-workflow-core.js?v=20260901.1"></script>
+<script src="/worksheet-workflow-core.js?v=20260901.1"></script>
+<script src="/worksheet-interactive-core.js?v=20260901.1"></script>
 <script src="/annotations-manager.js"></script>
 <script type="text/babel" data-presets="haldus-react">
 const {useState,useEffect,useRef,useCallback,useMemo} = React;
@@ -5845,6 +5845,70 @@ function InteractiveComicTask({block,answers,setAns,done}){
   })}</div></div>;
 }
 
+function LimitedAudio({src,maxPlays=99}){
+  const ref=React.useRef(null),limit=Number(maxPlays)||99,[plays,setPlays]=React.useState(0),[blocked,setBlocked]=React.useState(false);
+  const onPlay=()=>{if(limit>=99)return;if(plays>=limit){ref.current?.pause();if(ref.current)ref.current.currentTime=0;setBlocked(true);return;}setPlays(value=>value+1);};
+  if(!src)return <div style={{padding:10,borderRadius:8,background:'#FFF7E8',color:'#A96E1A',fontSize:'.78rem'}}>Helifail puudub.</div>;
+  return <div><audio ref={ref} src={src} controls preload="metadata" onPlay={onPlay} style={{width:'100%'}}/>{limit<99&&<div style={{fontSize:'.7rem',color:blocked?'#dc2626':'#718096',marginTop:3}}>{blocked?'Kuulamiste arv on täis.':`Kuulamisi: ${Math.min(plays,limit)} / ${limit}`}</div>}</div>;
+}
+
+function VoiceRecordingTask({block,assignment,answers,setAns,done}){
+  const answerKey=block.id+'_voice',saved=answers[answerKey]||null,maxSeconds=Math.max(10,Number(block.maxSeconds)||90);
+  const[recording,setRecording]=React.useState(false),[busy,setBusy]=React.useState(false),[seconds,setSeconds]=React.useState(0),[error,setError]=React.useState('');
+  const recorderRef=React.useRef(null),streamRef=React.useRef(null),timerRef=React.useRef(null),chunksRef=React.useRef([]),fileRef=React.useRef(null);
+  const stopTracks=()=>{streamRef.current?.getTracks?.().forEach(track=>track.stop());streamRef.current=null;};
+  React.useEffect(()=>()=>{clearInterval(timerRef.current);try{if(recorderRef.current?.state==='recording')recorderRef.current.stop();}catch(e){}stopTracks();},[]);
+  const upload=async(blob,fileName)=>{
+    const user=auth.currentUser;
+    if(!user)throw new Error('Palun logi uuesti sisse.');
+    const safeName=String(fileName||'voice.webm').replace(/[^a-zA-Z0-9._-]+/g,'_');
+    const studentId=String(assignment.studentId||'').replace(/[^a-zA-Z0-9_-]+/g,'_');
+    const assignmentId=String(assignment.id||'').replace(/[^a-zA-Z0-9_-]+/g,'_');
+    if(!studentId||!assignmentId)throw new Error('Ülesande seos õpilasega puudub.');
+    const path=`worksheet-submissions/${studentId}/${assignmentId}/${Date.now()}_${safeName}`;
+    const target=storage.ref().child(path);
+    await target.put(blob,{contentType:blob.type||'audio/webm',customMetadata:{kind:'worksheet_voice',studentId,assignmentId,blockId:String(block.id||'')}});
+    const url=await target.getDownloadURL();
+    setAns(answerKey,{url,path,mimeType:blob.type||'audio/webm',durationSeconds:seconds||null,uploadedAt:new Date().toISOString()});
+  };
+  const stop=()=>{if(recorderRef.current?.state==='recording')recorderRef.current.stop();};
+  const start=async()=>{
+    setError('');setSeconds(0);chunksRef.current=[];
+    try{
+      if(!navigator.mediaDevices?.getUserMedia||typeof MediaRecorder==='undefined')throw new Error('Brauser ei toeta helisalvestust. Lisa helifail käsitsi.');
+      const stream=await navigator.mediaDevices.getUserMedia({audio:true});streamRef.current=stream;
+      const recorder=new MediaRecorder(stream);recorderRef.current=recorder;
+      recorder.ondataavailable=event=>{if(event.data?.size)chunksRef.current.push(event.data);};
+      recorder.onstop=async()=>{
+        clearInterval(timerRef.current);setRecording(false);stopTracks();
+        const blob=new Blob(chunksRef.current,{type:recorder.mimeType||'audio/webm'});
+        if(!blob.size){setError('Salvestus jäi tühjaks. Proovi uuesti.');return;}
+        setBusy(true);try{await upload(blob,'voice.webm');}catch(uploadError){console.error('Voice upload failed:',uploadError);setError(uploadError.message||'Salvestuse laadimine ebaõnnestus.');}setBusy(false);
+      };
+      recorder.start();setRecording(true);
+      timerRef.current=setInterval(()=>setSeconds(value=>{const next=value+1;if(next>=maxSeconds)setTimeout(stop,0);return Math.min(next,maxSeconds);}),1000);
+    }catch(startError){stopTracks();setRecording(false);setError(startError.message||'Mikrofoni avamine ebaõnnestus.');}
+  };
+  const uploadFile=async file=>{
+    if(!file)return;if(!file.type.startsWith('audio/')){setError('Vali helifail.');return;}if(file.size>20*1024*1024){setError('Helifail on liiga suur (max 20 MB).');return;}
+    setBusy(true);setError('');try{await upload(file,file.name);}catch(uploadError){console.error('Voice file upload failed:',uploadError);setError(uploadError.message||'Faili laadimine ebaõnnestus.');}setBusy(false);
+  };
+  return <div style={{padding:14,border:'1px solid rgba(220,38,38,.18)',borderRadius:11,background:'rgba(220,38,38,.035)'}}>
+    <div style={{fontWeight:750,fontSize:'.9rem',marginBottom:6}}>{block.prompt||'Salvesta oma suuline vastus.'}</div>
+    {block.referenceText&&<div style={{fontSize:'.8rem',lineHeight:1.5,color:'#718096',whiteSpace:'pre-wrap',marginBottom:10}}>{block.referenceText}</div>}
+    {saved?.url?<div><audio src={saved.url} controls preload="metadata" style={{width:'100%'}}/>{!done&&<button type="button" onClick={()=>setAns(answerKey,null)} style={{marginTop:6,border:'none',background:'transparent',color:'#dc2626',fontFamily:'inherit',fontSize:'.74rem',fontWeight:700,cursor:'pointer'}}>Salvesta uuesti</button>}</div>:<div>
+      <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
+        <button type="button" disabled={busy||done} onClick={recording?stop:start} style={{padding:'9px 14px',borderRadius:9,border:'none',background:recording?'#dc2626':'#1C2B3A',color:'#fff',fontFamily:'inherit',fontWeight:800,cursor:'pointer'}}><i className={`fa-solid ${recording?'fa-stop':'fa-microphone'}`}/> {recording?'Peata':'Alusta salvestust'}</button>
+        <button type="button" disabled={busy||recording||done} onClick={()=>fileRef.current?.click()} style={{padding:'9px 13px',borderRadius:9,border:'1px solid rgba(28,43,58,.14)',background:'#fff',fontFamily:'inherit',fontWeight:700,cursor:'pointer'}}>Lisa helifail</button>
+        <input ref={fileRef} type="file" accept="audio/*" style={{display:'none'}} onChange={event=>uploadFile(event.target.files?.[0])}/>
+        <span style={{fontSize:'.75rem',color:recording?'#dc2626':'#718096',fontWeight:recording?800:500}}>{busy?'Laeb üles…':recording?`${seconds} / ${maxSeconds} s`:`kuni ${maxSeconds} s`}</span>
+      </div>
+      {recording&&<div style={{height:5,borderRadius:999,background:'rgba(220,38,38,.12)',marginTop:10,overflow:'hidden'}}><div style={{height:'100%',width:`${Math.min(100,seconds/maxSeconds*100)}%`,background:'#dc2626',transition:'width 1s linear'}}/></div>}
+    </div>}
+    {error&&<div style={{fontSize:'.74rem',color:'#dc2626',marginTop:8}}>{error}</div>}
+  </div>;
+}
+
 function WorksheetPlayer({assignment, onClose, onSubmit, canAnnotate=false, canDismissAnnotations=false, notify}) {
   const ws = assignment.worksheetData;
   const blocks = ws?.blocks||[];
@@ -6010,7 +6074,7 @@ function WorksheetPlayer({assignment, onClose, onSubmit, canAnnotate=false, canD
         (b.questions||[]).forEach((q,qi)=>{total++;if(answers[b.id+'_'+qi]===q.correct)correct++;});
       } else if(b.type==='match'){
         (b.pairs||[]).forEach((pair,pi)=>{total++;if(answers[b.id+'_'+pi]===pair.r)correct++;});
-      } else if(['connect','image_label','diagram','comic'].includes(b.type)){
+      } else if(['connect','image_label','diagram','comic','true_false','multi_select','dictation','audio','video'].includes(b.type)){
         const visual=window.WorksheetInteractiveCore?.scoreBlock(b,answers)||{correct:0,total:0};correct+=visual.correct;total+=visual.total;
       }
     });
@@ -6049,7 +6113,7 @@ function WorksheetPlayer({assignment, onClose, onSubmit, canAnnotate=false, canD
               correct:pair.l+' → '+pair.r, given:pair.l+' → '+(val||'(vastamata)')});
           }
         });
-      } else if(['connect','image_label','diagram','comic'].includes(b.type)){
+      } else if(['connect','image_label','diagram','comic','true_false','multi_select','dictation','audio','video'].includes(b.type)){
         const visual=window.WorksheetInteractiveCore?.scoreBlock(b,answers)||{errors:[]};visual.errors.forEach(error=>errors.push({...error,blockLabel:b.label||b.instruction||TYPE_LABELS?.[b.type]||b.type}));
       }
     });
@@ -6057,18 +6121,26 @@ function WorksheetPlayer({assignment, onClose, onSubmit, canAnnotate=false, canD
   };
   const handleSubmit = async()=>{
     setSubmitting(true);
-    const sc=calcScore();
-    const errorLog=calcErrorLog();
-    await onSubmit(assignment.id,answers,sc,errorLog);
-    // Auto-update skillMap if assignment has skills_to_update from AI
-    if(sc&&assignment.skillsToUpdate?.length) {
-      await updateSkillMapFromResult(assignment.studentId, assignment.skillsToUpdate, sc);
+    try{
+      const sc=calcScore();
+      const errorLog=calcErrorLog();
+      await onSubmit(assignment.id,answers,sc,errorLog);
+      setScore(sc);setSubmitted(true);
+      // Auto-update skillMap if assignment has skills_to_update from AI
+      if(sc&&assignment.skillsToUpdate?.length) {
+        try{await updateSkillMapFromResult(assignment.studentId, assignment.skillsToUpdate, sc);}
+        catch(skillError){console.warn('Skill map update skipped:',skillError);}
+      }
+    }catch(error){
+      console.error('Worksheet submit failed:',error);
+      notify&&notify('⚠ Töölehe esitamine ebaõnnestus. Proovi uuesti.');
+    }finally{
+      setSubmitting(false);
     }
-    setScore(sc);setSubmitted(true);setSubmitting(false);
   };
   const done = submitted;
-  const TYPE_COLORS={fill:'#1d4ed8',choice:'#6d28d9',writing:'#A96E1A',match:'#047857',connect:'#0f766e',order:'#2F5D50',text:'#718096',image:'#6d28d9',image_label:'#be185d',dialogue:'#0369a1',diagram:'#0f766e',comic:'#b45309',error_correction:'#dc2626',transformation:'#7c3aed',reading:'#0e7490',table:'#0e7490'};
-  const TYPE_LABELS={fill:'Täida lünk',choice:'Vali vastus',writing:'Kirjutamine',match:'Sobita paarid',connect:'Ühenda nooltega',order:'Järjesta sõnad',text:'Tekst / juhis',image:'Pilt',image_label:'Märgi pilt',dialogue:'Dialoog',diagram:'Skeem',comic:'Koomiks',error_correction:'Leia viga',transformation:'Muuda lauset',reading:'Lugemistekst',table:'Tabel'};
+  const TYPE_COLORS={fill:'#1d4ed8',choice:'#6d28d9',true_false:'#0e7490',multi_select:'#7c3aed',dictation:'#be185d',audio:'#0369a1',video:'#b45309',voice_recording:'#dc2626',writing:'#A96E1A',match:'#047857',connect:'#0f766e',order:'#2F5D50',text:'#718096',image:'#6d28d9',image_label:'#be185d',dialogue:'#0369a1',diagram:'#0f766e',comic:'#b45309',error_correction:'#dc2626',transformation:'#7c3aed',reading:'#0e7490',table:'#0e7490'};
+  const TYPE_LABELS={fill:'Täida lünk',choice:'Vali vastus',true_false:'Tõene või väär',multi_select:'Mitu õiget',dictation:'Dikteerimine',audio:'Kuulamisülesanne',video:'Videoülesanne',voice_recording:'Häälsalvestus',writing:'Kirjutamine',match:'Sobita paarid',connect:'Ühenda nooltega',order:'Järjesta sõnad',text:'Tekst / juhis',image:'Pilt',image_label:'Märgi pilt',dialogue:'Dialoog',diagram:'Skeem',comic:'Koomiks',error_correction:'Leia viga',transformation:'Muuda lauset',reading:'Lugemistekst',table:'Tabel'};
   const renderBlock=(block,gi)=>{
     const num=gi+1;
     return(<div key={block.id} style={{background:'#fff',borderRadius:14,padding:'18px 20px',border:'0.5px solid rgba(28,43,58,.09)'}}>
@@ -6117,6 +6189,11 @@ function WorksheetPlayer({assignment, onClose, onSubmit, canAnnotate=false, canD
           </div>;
         })}
       </div>}
+      {block.type==='true_false'&&<div style={{display:'flex',flexDirection:'column',gap:8}}>{(block.statements||[]).map((statement,index)=>{const key=block.id+'_tf_'+index,value=answers[key];return <div key={index} style={{padding:10,borderRadius:9,border:'1px solid rgba(28,43,58,.1)',background:'#F9F8F6'}}><div style={{fontWeight:700,fontSize:'.88rem',marginBottom:7}}>{index+1}. {statement.text}</div><div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:7}}>{[[true,'Tõene'],[false,'Väär']].map(([option,label])=>{const selected=value===option,correct=done&&option===Boolean(statement.correct),wrong=done&&selected&&!correct;return <button type="button" key={label} disabled={done} onClick={()=>setAns(key,option)} style={{padding:'8px 10px',borderRadius:8,border:`1.5px solid ${correct?'#166534':wrong?'#dc2626':selected?'#C9882A':'rgba(28,43,58,.13)'}`,background:correct?'rgba(22,101,52,.08)':wrong?'rgba(220,38,38,.07)':selected?'#FFF7E8':'#fff',color:correct?'#166534':wrong?'#dc2626':'#1C2B3A',fontFamily:'inherit',fontWeight:700,cursor:done?'default':'pointer'}}>{label}{correct?' ✓':wrong?' ✗':''}</button>;})}</div></div>;})}</div>}
+      {block.type==='multi_select'&&<div style={{display:'flex',flexDirection:'column',gap:12}}>{(block.questions||[]).map((question,qi)=>{const key=block.id+'_multi_'+qi,selected=Array.isArray(answers[key])?answers[key]:[],toggle=index=>setAns(key,selected.includes(index)?selected.filter(item=>item!==index):[...selected,index]);return <div key={qi}><div style={{fontWeight:700,fontSize:'.9rem',marginBottom:7}}>{qi+1}. {question.q}</div>{(question.opts||[]).filter(Boolean).map((option,oi)=>{const chosen=selected.includes(oi),isCorrect=(question.correct||[]).includes(oi),showCorrect=done&&isCorrect,showWrong=done&&chosen&&!isCorrect;return <button type="button" key={oi} disabled={done} onClick={()=>toggle(oi)} style={{display:'flex',alignItems:'center',gap:9,width:'100%',textAlign:'left',padding:'9px 12px',borderRadius:9,border:`1.5px solid ${showCorrect?'#166534':showWrong?'#dc2626':chosen?'#C9882A':'rgba(28,43,58,.12)'}`,background:showCorrect?'rgba(22,101,52,.08)':showWrong?'rgba(220,38,38,.07)':chosen?'#FFF7E8':'#fff',fontFamily:'inherit',fontSize:'.86rem',marginBottom:6,cursor:done?'default':'pointer'}}><span style={{width:15,height:15,borderRadius:3,border:'1.5px solid currentColor',display:'grid',placeItems:'center',fontSize:'.65rem'}}>{chosen?'✓':''}</span>{option}{showCorrect&&!chosen?' ✓':''}{showWrong?' ✗':''}</button>;})}</div>;})}</div>}
+      {block.type==='dictation'&&<div><LimitedAudio src={block.audioUrl} maxPlays={block.maxPlays}/><div style={{display:'flex',flexDirection:'column',gap:8,marginTop:10}}>{(block.sentences||[]).map((sentence,index)=>{const key=block.id+'_dictation_'+index,value=answers[key]||'',correct=done&&window.WorksheetInteractiveCore?.normalizeDictation(value)===window.WorksheetInteractiveCore?.normalizeDictation(sentence.text);return <div key={index}><label style={{display:'block',fontSize:'.72rem',fontWeight:800,color:'#718096',marginBottom:4}}>Lause {index+1}</label><input value={value} disabled={done} onChange={event=>setAns(key,event.target.value)} placeholder="Kirjuta kuuldu..." style={{width:'100%',padding:'9px 11px',borderRadius:8,border:`1.5px solid ${done?(correct?'#166534':'#dc2626'):'rgba(28,43,58,.12)'}`,fontFamily:'inherit',fontSize:'.88rem'}}/>{done&&!correct&&<div style={{fontSize:'.75rem',color:'#166534',marginTop:3}}>{sentence.text}</div>}</div>;})}</div></div>}
+      {(block.type==='audio'||block.type==='video')&&<div>{block.title&&<div style={{fontWeight:800,fontSize:'.92rem',marginBottom:8}}>{block.title}</div>}{block.type==='video'?(block.videoUrl?<video src={block.videoUrl} controls preload="metadata" style={{width:'100%',maxHeight:360,borderRadius:9,background:'#111',marginBottom:10}}/>:<div style={{padding:10,borderRadius:8,background:'#FFF7E8',color:'#A96E1A',fontSize:'.78rem'}}>Videofail puudub.</div>):<LimitedAudio src={block.audioUrl}/>} {block.caption&&<div style={{fontSize:'.78rem',color:'#718096',margin:'6px 0 10px'}}>{block.caption}</div>}{(block.questions||[]).map((question,qi)=>{const key=block.id+'_media_'+qi,selected=answers[key];return <div key={qi} style={{marginTop:10}}><div style={{fontWeight:700,fontSize:'.88rem',marginBottom:6}}>{qi+1}. {question.q}</div>{(question.opts||[]).filter(Boolean).map((option,oi)=>{const correct=done&&oi===question.correct,wrong=done&&oi===selected&&oi!==question.correct;return <button type="button" key={oi} disabled={done} onClick={()=>setAns(key,oi)} style={{display:'block',width:'100%',textAlign:'left',padding:'9px 12px',borderRadius:9,border:`1.5px solid ${correct?'#166534':wrong?'#dc2626':selected===oi?'#C9882A':'rgba(28,43,58,.12)'}`,background:correct?'rgba(22,101,52,.08)':wrong?'rgba(220,38,38,.07)':selected===oi?'#FFF7E8':'#fff',fontFamily:'inherit',fontSize:'.86rem',marginBottom:5,cursor:done?'default':'pointer'}}>{option}{correct?' ✓':wrong?' ✗':''}</button>;})}</div>;})}{done&&block.type==='audio'&&block.showTranscriptAfterSubmit!==false&&block.transcript&&<details style={{marginTop:11}}><summary style={{fontSize:'.78rem',fontWeight:800,cursor:'pointer',color:'#2F5D50'}}>Näita transkripti</summary><div style={{padding:10,marginTop:6,borderRadius:8,background:'#F9F8F6',fontSize:'.84rem',lineHeight:1.55,whiteSpace:'pre-wrap'}}>{block.transcript}</div></details>}</div>}
+      {block.type==='voice_recording'&&<VoiceRecordingTask block={block} assignment={assignment} answers={answers} setAns={setAns} done={done}/>}
       {block.type==='match'&&<div>
         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:10}}>
           <div>{(block.pairs||[]).map((p,i)=><div key={i} style={{padding:'6px 10px',border:'1px solid rgba(28,43,58,.12)',borderRadius:7,fontSize:'.86rem',marginBottom:5,background:'#F9F8F6'}}>{i+1}. {p.l}</div>)}</div>

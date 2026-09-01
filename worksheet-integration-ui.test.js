@@ -5,6 +5,7 @@ const fs=require('node:fs');
 const crm=fs.readFileSync('haldus.html','utf8');
 const library=fs.readFileSync('haldus-exercises/index.html','utf8');
 const rules=fs.readFileSync('firestore.rules','utf8');
+const storageRules=fs.readFileSync('storage.rules','utf8');
 
 test('CRM assignment picker exposes only published worksheet snapshots',()=>{
   assert.match(crm,/worksheet-workflow-core\.js/);
@@ -44,4 +45,21 @@ test('student player draws connections and scores all interactive visual answers
   assert.match(crm,/block\.type==='connect'/);
   assert.match(library,/image_label:'Märgi pilt'/);
   assert.match(library,/connect:'Ühenda nooltega'/);
+});
+
+test('media tasks render end to end and voice files stay scoped to the student',()=>{
+  assert.match(crm,/function LimitedAudio/);
+  assert.match(crm,/function VoiceRecordingTask/);
+  assert.match(crm,/navigator\.mediaDevices\?\.getUserMedia/);
+  assert.match(crm,/worksheet-submissions\/\$\{studentId\}\/\$\{assignmentId\}/);
+  assert.match(crm,/block\.type==='true_false'/);
+  assert.match(crm,/block\.type==='multi_select'/);
+  assert.match(crm,/block\.type==='dictation'/);
+  assert.match(crm,/block\.type==='audio'\|\|block\.type==='video'/);
+  assert.match(library,/voice_recording:'Häälsalvestus'/);
+  assert.match(storageRules,/match \/worksheet-submissions\/\{studentId\}\/\{assignmentId\}\/\{fileName\}/);
+  assert.match(storageRules,/allow read: if staff\(\) \|\| ownsStudent\(studentId\)/);
+  assert.match(storageRules,/request\.resource\.contentType\.matches\('\^audio\/'\)/);
+  assert.match(crm,/Worksheet submit failed/);
+  assert.match(crm,/finally\{\s*setSubmitting\(false\)/);
 });

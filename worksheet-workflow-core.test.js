@@ -9,8 +9,17 @@ test('worksheet templates provide editable, checkable language tasks',()=>{
     assert.equal(built.subject,'Inglise keel');
     assert.ok(built.title.includes('Family'));
     assert.ok(built.blocks.length>=2);
-    assert.ok(built.blocks.some(block=>['match','fill','choice','reading','transformation'].includes(block.type)));
+    assert.ok(built.blocks.some(block=>['match','fill','choice','reading','transformation','audio','dictation','voice_recording'].includes(block.type)));
   }
+});
+
+test('listening and speaking templates create editable media tasks',()=>{
+  const listening=workflow.buildTemplate('listening',{subject:'Eesti keel',level:'A2',topic:'Pere'});
+  assert.deepEqual(listening.blocks.map(block=>block.type),['audio','dictation','multi_select']);
+  assert.equal(listening.blocks[0].showTranscriptAfterSubmit,true);
+  const speaking=workflow.buildTemplate('speaking',{subject:'Inglise keel',level:'B1',topic:'Travel'});
+  assert.equal(speaking.blocks[1].type,'voice_recording');
+  assert.equal(speaking.blocks[1].maxSeconds,90);
 });
 
 test('only a published worksheet is assignable while legacy data remains compatible',()=>{

@@ -192,9 +192,9 @@ body{background:var(--ws-canvas);color:var(--ws-ink)}
 <div id="root"><div style="display:flex;align-items:center;justify-content:center;min-height:100vh"><div class="sp-dark"></div></div></div>
 
 <script src="/haldus-shared.js"></script>
-<script src="/curriculum-workflow-core.js?v=20260831.17"></script>
-<script src="/worksheet-workflow-core.js?v=20260831.17"></script>
-<script src="/worksheet-visual-library.js?v=20260830.9"></script>
+<script src="/curriculum-workflow-core.js?v=20260901.1"></script>
+<script src="/worksheet-workflow-core.js?v=20260901.1"></script>
+<script src="/worksheet-visual-library.js?v=20260901.1"></script>
 <script type="text/babel">
 const {useState,useEffect,useRef,useMemo,useCallback} = React;
 const auth=window._auth, db=window._db, storage=window._storage;
@@ -225,6 +225,12 @@ const _autosavedDraft=(()=>{
 const BTYPES=[
   {key:'fill',             label:'Taida lunk',      icon:'fa-pen-line',         color:'#1d4ed8',bg:'rgba(29,78,216,.1)'},
   {key:'choice',           label:'Vali vastus',      icon:'fa-list-check',       color:'#6d28d9',bg:'rgba(109,40,217,.1)'},
+  {key:'true_false',       label:'Tõene või väär',   icon:'fa-toggle-on',        color:'#0e7490',bg:'rgba(14,116,144,.1)'},
+  {key:'multi_select',     label:'Mitu õiget',       icon:'fa-square-check',     color:'#7c3aed',bg:'rgba(124,58,237,.1)'},
+  {key:'dictation',        label:'Dikteerimine',     icon:'fa-headphones',       color:'#be185d',bg:'rgba(190,24,93,.1)'},
+  {key:'audio',            label:'Kuulamisülesanne', icon:'fa-volume-high',      color:'#0369a1',bg:'rgba(3,105,161,.1)'},
+  {key:'video',            label:'Videoülesanne',    icon:'fa-circle-play',      color:'#b45309',bg:'rgba(180,83,9,.1)'},
+  {key:'voice_recording',  label:'Häälsalvestus',    icon:'fa-microphone-lines', color:'#dc2626',bg:'rgba(220,38,38,.1)'},
   {key:'writing',          label:'Kirjutamine',      icon:'fa-pen-nib',          color:'#A96E1A',bg:'rgba(169,110,26,.1)'},
   {key:'match',            label:'Sobita paarid',    icon:'fa-link',             color:'#047857',bg:'rgba(4,120,87,.1)'},
   {key:'connect',          label:'Ühenda nooltega',  icon:'fa-bezier-curve',     color:'#0f766e',bg:'rgba(15,118,110,.1)'},
@@ -246,6 +252,12 @@ const mkBlock=type=>{
   const base={id:uid(),type,instruction:'',size:'full',imageUrl:'',imagePos:'top',label:''};
   if(type==='fill')             return{...base,text:'Mina [elan] Tallinnas ja [töötan] koolis.'};
   if(type==='choice')           return{...base,questions:[{q:'Mis on Eesti pealinn?',opts:['Tallinn','Tartu','Pärnu','Narva'],correct:0}]};
+  if(type==='true_false')       return{...base,statements:[{text:'Tallinn on Eesti pealinn.',correct:true},{text:'Tartu asub Soomes.',correct:false}]};
+  if(type==='multi_select')     return{...base,questions:[{q:'Vali kõik Eesti linnad.',opts:['Tallinn','Läänemeri','Tartu','Soome'],correct:[0,2]}]};
+  if(type==='dictation')        return{...base,audioUrl:'',sentences:[{text:'Tere hommikust.'}],maxPlays:3};
+  if(type==='audio')            return{...base,title:'Kuulamistekst',audioUrl:'',transcript:'',showTranscriptAfterSubmit:true,questions:[{q:'Kes räägib?',opts:['Mari','Jüri','Õpetaja','Õpilane'],correct:0}]};
+  if(type==='video')            return{...base,title:'Videoülesanne',videoUrl:'',caption:'',questions:[{q:'Kus tegevus toimub?',opts:['Koolis','Kodus','Pargis','Poes'],correct:0}]};
+  if(type==='voice_recording')  return{...base,prompt:'Räägi endast 30–60 sekundit.',maxSeconds:90,referenceText:''};
   if(type==='writing')          return{...base,task:'Kirjuta lühike tekst teemal "Minu pere" (50-80 sona).',lines:8};
   if(type==='match')            return{...base,pairs:[{l:'koer',r:'собака'},{l:'kass',r:'кошка'},{l:'lind',r:'птица'},{l:'kala',r:'рыба'}]};
   if(type==='connect')          return{...base,pairs:[{l:'koer',r:'собака'},{l:'kass',r:'кошка'},{l:'lind',r:'птица'}]};
@@ -301,6 +313,40 @@ function ImgUploader({value,onChange}){
   );
 }
 
+function MediaUploader({value,onChange,kind='audio'}){
+  const ref=useRef();
+  const[busy,setBusy]=useState(false);
+  const[err,setErr]=useState('');
+  const accept=kind==='video'?'video/*':'audio/*';
+  const maxMb=kind==='video'?20:12;
+  const handle=async file=>{
+    if(!file)return;
+    if(!file.type.startsWith(kind+'/')){setErr(kind==='video'?'Vali videofail.':'Vali helifail.');return;}
+    if(file.size>maxMb*1024*1024){setErr(`Fail on liiga suur (max ${maxMb} MB).`);return;}
+    setBusy(true);setErr('');
+    try{
+      const safeName=file.name.replace(/[^a-zA-Z0-9._-]+/g,'_');
+      const fileRef=storage.ref(`worksheet/${Date.now()}_${safeName}`);
+      await fileRef.put(file,{contentType:file.type});
+      onChange(await fileRef.getDownloadURL());
+    }catch(error){
+      console.error('Worksheet media upload failed:',error);
+      setErr('Faili laadimine ebaõnnestus. Kontrolli ühendust ja proovi uuesti.');
+    }
+    setBusy(false);
+  };
+  return <div>
+    <div className="img-upload" onClick={()=>!busy&&ref.current?.click()} style={{minHeight:84}}>
+      <input ref={ref} type="file" accept={accept} onChange={event=>handle(event.target.files?.[0])}/>
+      {busy?<div style={{padding:'10px 0',textAlign:'center'}}><div className="sp-dark" style={{margin:'0 auto 6px'}}/><div style={{fontSize:'.72rem',color:'#7A7167'}}>Laeb faili...</div></div>
+        :<div><i className={`fa-solid ${kind==='video'?'fa-video':'fa-wave-square'}`} style={{fontSize:'1.35rem',color:value?'#2F5D50':'#B0A898',marginBottom:5,display:'block'}}/><div style={{fontSize:'.75rem',color:'#1C2B3A',fontWeight:700}}>{value?'Asenda fail':'Lisa '+(kind==='video'?'video':'helifail')}</div><div style={{fontSize:'.67rem',color:'#7A7167',marginTop:2}}>Kuni {maxMb} MB</div></div>}
+    </div>
+    {value&&(kind==='video'?<video src={value} controls preload="metadata" style={{width:'100%',maxHeight:180,marginTop:7,borderRadius:8,background:'#111'}}/>:<audio src={value} controls preload="metadata" style={{width:'100%',marginTop:7}}/>)}
+    {err&&<div style={{fontSize:'.72rem',color:'#dc2626',marginTop:5}}>{err}</div>}
+    {value&&<button type="button" onClick={()=>{onChange('');setErr('');}} style={{background:'none',border:'none',color:'#dc2626',cursor:'pointer',fontSize:'.72rem',marginTop:4}}><i className="fa-solid fa-trash"/> Eemalda fail</button>}
+  </div>;
+}
+
 // ── BLOCK EDITORS ─────────────────────────────────────────────
 function FillEd({b,upd}){return(<><div className="field-lbl">Tekst (vastused nurksulgudes [vastus])</div><textarea value={b.text} onChange={e=>upd({text:e.target.value})} rows={4} placeholder="Ma [elan] Tallinnas."/><div style={{fontSize:'.7rem',color:'#718096',marginTop:4,padding:'5px 7px',background:'rgba(29,78,216,.06)',borderRadius:6}}>Süntaks: <code>Ma [elan] koolis.</code></div></>);}
 
@@ -321,6 +367,60 @@ function ChoiceEd({b,upd}){
   ))}
   <button onClick={()=>upd({questions:[...qs,{q:'',opts:['','','',''],correct:0}]})} className="btn btn-ghost btn-sm" style={{width:'100%'}}><i className="fa-solid fa-plus"/> Lisa küsimus</button></>);
 }
+
+function TrueFalseEd({b,upd}){
+  const statements=b.statements||[];
+  const update=(index,patch)=>upd({statements:statements.map((item,i)=>i===index?{...item,...patch}:item)});
+  return <>
+    <div className="field-lbl">Väited ja õiged vastused</div>
+    {statements.map((statement,index)=><div key={index} style={{padding:8,marginBottom:7,border:'1px solid rgba(28,43,58,.1)',borderRadius:8,background:'#F9F8F6'}}>
+      <div style={{display:'flex',gap:6,marginBottom:6}}><input value={statement.text||''} onChange={event=>update(index,{text:event.target.value})} placeholder={`Väide ${index+1}`}/><button className="bi-btn del" onClick={()=>upd({statements:statements.filter((_,i)=>i!==index)})} disabled={statements.length<=1}><i className="fa-solid fa-trash"/></button></div>
+      <div className="size-btns"><button className={'size-btn'+(statement.correct===true?' active':'')} onClick={()=>update(index,{correct:true})}>Tõene</button><button className={'size-btn'+(statement.correct===false?' active':'')} onClick={()=>update(index,{correct:false})}>Väär</button></div>
+    </div>)}
+    <button className="btn btn-ghost btn-sm" style={{width:'100%',justifyContent:'center'}} onClick={()=>upd({statements:[...statements,{text:'Uus väide',correct:true}]})}><i className="fa-solid fa-plus"/> Lisa väide</button>
+  </>;
+}
+
+function MultiSelectEd({b,upd}){
+  const questions=b.questions||[];
+  const updateQuestion=(index,patch)=>upd({questions:questions.map((question,i)=>i===index?{...question,...patch}:question)});
+  const toggleCorrect=(question,index)=>{
+    const current=Array.isArray(question.correct)?question.correct:[];
+    return current.includes(index)?current.filter(item=>item!==index):[...current,index].sort((a,c)=>a-c);
+  };
+  return <>
+    <div className="field-lbl">Küsimused (märgi kõik õiged variandid)</div>
+    {questions.map((question,qi)=><div key={qi} style={{padding:9,marginBottom:8,border:'1px solid rgba(28,43,58,.1)',borderRadius:8,background:'#F9F8F6'}}>
+      <div style={{display:'flex',gap:6,marginBottom:6}}><input value={question.q||''} onChange={event=>updateQuestion(qi,{q:event.target.value})} placeholder={`Küsimus ${qi+1}`}/><button className="bi-btn del" onClick={()=>upd({questions:questions.filter((_,i)=>i!==qi)})} disabled={questions.length<=1}><i className="fa-solid fa-trash"/></button></div>
+      {(question.opts||[]).map((option,oi)=><label key={oi} style={{display:'flex',gap:6,alignItems:'center',marginBottom:4}}><input type="checkbox" checked={(question.correct||[]).includes(oi)} onChange={()=>updateQuestion(qi,{correct:toggleCorrect(question,oi)})} style={{width:14,height:14}}/><input value={option} onChange={event=>updateQuestion(qi,{opts:question.opts.map((item,i)=>i===oi?event.target.value:item)})} placeholder={`Variant ${oi+1}`}/></label>)}
+    </div>)}
+    <button className="btn btn-ghost btn-sm" style={{width:'100%',justifyContent:'center'}} onClick={()=>upd({questions:[...questions,{q:'',opts:['','','',''],correct:[0]}]})}><i className="fa-solid fa-plus"/> Lisa küsimus</button>
+  </>;
+}
+
+function MediaQuestionsEd({b,upd}){
+  const questions=b.questions||[];
+  const updateQuestion=(index,patch)=>upd({questions:questions.map((question,i)=>i===index?{...question,...patch}:question)});
+  return <>
+    <div className="field-lbl">Kontrollküsimused</div>
+    {questions.map((question,qi)=><div key={qi} style={{padding:9,marginBottom:8,border:'1px solid rgba(28,43,58,.1)',borderRadius:8,background:'#F9F8F6'}}>
+      <div style={{display:'flex',gap:6,marginBottom:6}}><input value={question.q||''} onChange={event=>updateQuestion(qi,{q:event.target.value})} placeholder={`Küsimus ${qi+1}`}/><button className="bi-btn del" onClick={()=>upd({questions:questions.filter((_,i)=>i!==qi)})} disabled={questions.length<=1}><i className="fa-solid fa-trash"/></button></div>
+      {(question.opts||[]).map((option,oi)=><label key={oi} style={{display:'flex',gap:6,alignItems:'center',marginBottom:4}}><input type="radio" checked={question.correct===oi} onChange={()=>updateQuestion(qi,{correct:oi})} style={{width:14,height:14}}/><input value={option} onChange={event=>updateQuestion(qi,{opts:question.opts.map((item,i)=>i===oi?event.target.value:item)})} placeholder={`Variant ${oi+1}`}/></label>)}
+    </div>)}
+    <button className="btn btn-ghost btn-sm" style={{width:'100%',justifyContent:'center'}} onClick={()=>upd({questions:[...questions,{q:'',opts:['','','',''],correct:0}]})}><i className="fa-solid fa-plus"/> Lisa küsimus</button>
+  </>;
+}
+
+function DictationEd({b,upd}){
+  const sentences=b.sentences||[];
+  return <><div className="field-lbl">Helifail</div><MediaUploader kind="audio" value={b.audioUrl||''} onChange={audioUrl=>upd({audioUrl})}/><div className="field-lbl">Lubatud kuulamiste arv</div><select value={b.maxPlays||3} onChange={event=>upd({maxPlays:+event.target.value})}><option value={1}>1 kord</option><option value={2}>2 korda</option><option value={3}>3 korda</option><option value={99}>Piiramata</option></select><div className="field-lbl">Õiged laused</div>{sentences.map((sentence,index)=><div key={index} style={{display:'flex',gap:6,marginBottom:5}}><input value={sentence.text||''} onChange={event=>upd({sentences:sentences.map((item,i)=>i===index?{...item,text:event.target.value}:item)})} placeholder={`Lause ${index+1}`}/><button className="bi-btn del" onClick={()=>upd({sentences:sentences.filter((_,i)=>i!==index)})} disabled={sentences.length<=1}><i className="fa-solid fa-trash"/></button></div>)}<button className="btn btn-ghost btn-sm" style={{width:'100%',justifyContent:'center'}} onClick={()=>upd({sentences:[...sentences,{text:''}]})}><i className="fa-solid fa-plus"/> Lisa lause</button></>;
+}
+
+function AudioEd({b,upd}){return <><div className="field-lbl">Pealkiri</div><input value={b.title||''} onChange={event=>upd({title:event.target.value})}/><div className="field-lbl">Helifail</div><MediaUploader kind="audio" value={b.audioUrl||''} onChange={audioUrl=>upd({audioUrl})}/><div className="field-lbl">Transkript (õpilane näeb pärast esitamist)</div><textarea rows={4} value={b.transcript||''} onChange={event=>upd({transcript:event.target.value})}/><label style={{display:'flex',gap:7,alignItems:'center',fontSize:'.75rem',margin:'7px 0 10px'}}><input type="checkbox" checked={b.showTranscriptAfterSubmit!==false} onChange={event=>upd({showTranscriptAfterSubmit:event.target.checked})}/> Näita transkripti pärast esitamist</label><MediaQuestionsEd b={b} upd={upd}/></>}
+
+function VideoEd({b,upd}){return <><div className="field-lbl">Pealkiri</div><input value={b.title||''} onChange={event=>upd({title:event.target.value})}/><div className="field-lbl">Videofail</div><MediaUploader kind="video" value={b.videoUrl||''} onChange={videoUrl=>upd({videoUrl})}/><div className="field-lbl">Video kirjeldus</div><textarea rows={2} value={b.caption||''} onChange={event=>upd({caption:event.target.value})}/><MediaQuestionsEd b={b} upd={upd}/></>}
+
+function VoiceRecordingEd({b,upd}){return <><div className="field-lbl">Rääkimisülesanne</div><textarea rows={3} value={b.prompt||''} onChange={event=>upd({prompt:event.target.value})}/><div className="field-lbl">Maksimaalne pikkus</div><select value={b.maxSeconds||90} onChange={event=>upd({maxSeconds:+event.target.value})}><option value={30}>30 sekundit</option><option value={60}>60 sekundit</option><option value={90}>90 sekundit</option><option value={180}>3 minutit</option><option value={300}>5 minutit</option></select><div className="field-lbl">Abitekst või näidis (valikuline)</div><textarea rows={3} value={b.referenceText||''} onChange={event=>upd({referenceText:event.target.value})}/></>}
 
 function WritingEd({b,upd}){return(<><div className="field-lbl">Ülesande kirjeldus</div><textarea value={b.task} onChange={e=>upd({task:e.target.value})} rows={3}/><div className="field-lbl">Ridade arv: {b.lines||6}</div><input type="range" min={2} max={20} value={b.lines||6} onChange={e=>upd({lines:+e.target.value})} style={{width:'100%'}}/></>);}
 
@@ -591,6 +691,12 @@ function BlockEditor({block,onChange,meta,notify}){
       <div style={{marginTop:8,paddingTop:8,borderTop:'0.5px solid rgba(28,43,58,.07)'}}>
         {block.type==='fill'            &&<FillEd            b={block} upd={upd}/>}
         {block.type==='choice'          &&<ChoiceEd          b={block} upd={upd}/>}
+        {block.type==='true_false'      &&<TrueFalseEd       b={block} upd={upd}/>}
+        {block.type==='multi_select'    &&<MultiSelectEd     b={block} upd={upd}/>}
+        {block.type==='dictation'       &&<DictationEd       b={block} upd={upd}/>}
+        {block.type==='audio'           &&<AudioEd           b={block} upd={upd}/>}
+        {block.type==='video'           &&<VideoEd           b={block} upd={upd}/>}
+        {block.type==='voice_recording' &&<VoiceRecordingEd  b={block} upd={upd}/>}
         {block.type==='writing'         &&<WritingEd         b={block} upd={upd}/>}
         {block.type==='match'           &&<MatchEd           b={block} upd={upd}/>}
         {block.type==='order'           &&<OrderEd           b={block} upd={upd}/>}
@@ -664,6 +770,11 @@ function PreviewBlock({block,index,onChange}){
     if(block.type==='text')return<p className="pb-text" style={{fontWeight:block.bold?700:400,fontSize:block.bold?'1rem':'.9rem',whiteSpace:'pre-wrap'}}>{block.content||<span style={{color:'#C0B8B0',fontStyle:'italic'}}>Tekst puudub</span>}</p>;
     if(block.type==='fill')return<div className="fill-line">{parseFill(block.text||'').map((p,i)=>p.t==='text'?<span key={i}>{p.v}</span>:<span key={i} className="fill-blank">&nbsp;</span>)}</div>;
     if(block.type==='choice')return(block.questions||[]).map((q,qi)=>(<div key={qi} style={{marginBottom:10}}><div className="ch-q">{qi+1}. {q.q||'Küsimus...'}</div><div className="ch-opts">{q.opts.filter(Boolean).map((o,oi)=>(<div key={oi} className="ch-opt"><div className="ch-circle"/><span>{o}</span></div>))}</div></div>));
+    if(block.type==='true_false')return<div>{(block.statements||[]).map((statement,i)=><div key={i} style={{display:'grid',gridTemplateColumns:'1fr auto auto',gap:8,alignItems:'center',padding:'8px 0',borderBottom:'1px solid rgba(28,43,58,.08)'}}><span>{i+1}. {statement.text||'Väide...'}</span><span className="ch-opt"><span className="ch-circle"/> Tõene</span><span className="ch-opt"><span className="ch-circle"/> Väär</span></div>)}</div>;
+    if(block.type==='multi_select')return<div>{(block.questions||[]).map((q,qi)=><div key={qi} style={{marginBottom:10}}><div className="ch-q">{qi+1}. {q.q||'Küsimus...'}</div><div className="ch-opts">{(q.opts||[]).filter(Boolean).map((option,oi)=><div key={oi} className="ch-opt"><span style={{width:13,height:13,border:'1.5px solid #1C2B3A',borderRadius:3,display:'inline-block'}}/><span>{option}</span></div>)}</div></div>)}</div>;
+    if(block.type==='dictation')return<div>{block.audioUrl?<audio src={block.audioUrl} controls preload="metadata" style={{width:'100%',marginBottom:10}}/>:<div className="visual-mode-note">Helifail puudub</div>}{(block.sentences||[]).map((_,i)=><div key={i} style={{height:31,borderBottom:'1px solid rgba(28,43,58,.22)',paddingTop:6,color:'#B0A898',fontSize:'.74rem'}}>{i+1}.</div>)}</div>;
+    if(block.type==='audio'||block.type==='video')return<div>{block.title&&<div className="ch-q" style={{marginBottom:7}}>{block.title}</div>}{block.type==='video'?(block.videoUrl?<video src={block.videoUrl} controls preload="metadata" style={{width:'100%',maxHeight:260,borderRadius:8,background:'#111',marginBottom:9}}/>:<div className="visual-mode-note">Videofail puudub</div>):(block.audioUrl?<audio src={block.audioUrl} controls preload="metadata" style={{width:'100%',marginBottom:9}}/>:<div className="visual-mode-note">Helifail puudub</div>)}{(block.questions||[]).map((q,qi)=><div key={qi} style={{marginBottom:9}}><div className="ch-q">{qi+1}. {q.q}</div><div className="ch-opts">{(q.opts||[]).filter(Boolean).map((option,oi)=><div key={oi} className="ch-opt"><div className="ch-circle"/><span>{option}</span></div>)}</div></div>)}</div>;
+    if(block.type==='voice_recording')return<div style={{padding:14,border:'1px dashed rgba(220,38,38,.3)',borderRadius:10,background:'rgba(220,38,38,.04)'}}><div style={{fontWeight:700,marginBottom:6}}><i className="fa-solid fa-microphone-lines" style={{color:'#dc2626',marginRight:7}}/> {block.prompt}</div>{block.referenceText&&<div style={{fontSize:'.8rem',color:'#718096',whiteSpace:'pre-wrap',marginBottom:7}}>{block.referenceText}</div>}<div style={{fontSize:'.72rem',color:'#7A7167'}}>Õpilane saab salvestada kuni {block.maxSeconds||90} sekundit või lisada helifaili.</div></div>;
     if(block.type==='writing')return<div><div className="wr-task">{block.task}</div>{Array.from({length:block.lines||6}).map((_,i)=><div key={i} className="wr-line"/>)}</div>;
     if(block.type==='match'){const shuffledRight=useMemo(()=>[...(block.pairs||[])].sort(()=>Math.random()-.5),[block.id,JSON.stringify((block.pairs||[]).map(p=>p.r))]);return<div><div className="match-cols"><div>{(block.pairs||[]).map((p,i)=><div key={i} className="match-item">{i+1}. {p.l}</div>)}</div><div>{shuffledRight.map((p,i)=><div key={i} className="match-item">{String.fromCharCode(65+i)}. {p.r}</div>)}</div></div><div className="match-answer-row">{(block.pairs||[]).map((_,i)=><span key={i} className="match-ans">{i+1} — ___</span>)}</div></div>;}
     if(block.type==='order'){const words=useMemo(()=>(block.sentence||'').split(' ').filter(Boolean).sort(()=>Math.random()-.5),[block.id,block.sentence]);return<div><div className="order-chips">{words.map((w,i)=><span key={i} className="order-chip">{w}</span>)}</div><div className="order-ans">Kirjuta õige järjestus: ___________________________________________________</div></div>;}
@@ -938,7 +1049,7 @@ async function genAI(prompt, subject, level, didacticCtx={}){
   // If no template, allow all types including new ones
   const allowedTypes=template
     ? template.blockTypes
-    : ['fill','choice','match','connect','order','writing','table','text','reading','image_label','dialogue','diagram','comic','error_correction','transformation'];
+    : ['fill','choice','true_false','multi_select','dictation','audio','video','voice_recording','match','connect','order','writing','table','text','reading','image_label','dialogue','diagram','comic','error_correction','transformation'];
 
   const cefrBlock=`
 == CEFR TASE: ${cefr.label} ==
@@ -988,6 +1099,12 @@ Tagasta AINULT puhas JSON (ilma markdown koodiplokita):
   "blocks": [
     {"type":"fill","instruction":"Täida lüngad õige sõnavormiga.","text":"Lause [vastus] tekst [vastus2]."},
     {"type":"choice","instruction":"Vali õige variant.","questions":[{"q":"Küsimus?","opts":["a","b","c","d"],"correct":0}]},
+    {"type":"true_false","instruction":"Märgi, kas väide on tõene või väär.","statements":[{"text":"Kontrollitav väide.","correct":true}]},
+    {"type":"multi_select","instruction":"Vali kõik õiged vastused.","questions":[{"q":"Küsimus?","opts":["a","b","c","d"],"correct":[0,2]}]},
+    {"type":"dictation","instruction":"Kuula ja kirjuta laused.","audioUrl":"","maxPlays":3,"sentences":[{"text":"Õige lause."}]},
+    {"type":"audio","instruction":"Kuula ja vasta.","title":"Kuulamistekst","audioUrl":"","transcript":"","showTranscriptAfterSubmit":true,"questions":[{"q":"Küsimus?","opts":["a","b","c","d"],"correct":0}]},
+    {"type":"video","instruction":"Vaata ja vasta.","title":"Videoülesanne","videoUrl":"","caption":"","questions":[{"q":"Küsimus?","opts":["a","b","c","d"],"correct":0}]},
+    {"type":"voice_recording","instruction":"Salvesta oma vastus.","prompt":"Räägi etteantud teemal.","maxSeconds":90,"referenceText":""},
     {"type":"match","instruction":"Sobita paarid.","pairs":[{"l":"õpitava keele sõna","r":"vene tõlge"}]},
     {"type":"connect","instruction":"Ühenda seotud mõisted nooltega.","pairs":[{"l":"vasak mõiste","r":"õige vaste"}]},
     {"type":"order","instruction":"Koosta õige lause.","sentence":"sõnad õiges järjekorras"},
@@ -1121,8 +1238,8 @@ function buildHTML(meta,blocks){
   const shuffleArr=arr=>[...arr].sort(()=>Math.random()-.5);
   let num=0;
   const renderBlock=b=>{
-    const BT_LABELS={fill:'Täida lünk',choice:'Vali vastus',writing:'Kirjutamine',match:'Sobita paarid',connect:'Ühenda nooltega',order:'Järjesta sõnad',table:'Tabel',text:'Tekst / juhis',reading:'Lugemistekst',image:'Pilt',image_label:'Märgi pilt',dialogue:'Dialoog',diagram:'Skeem',comic:'Koomiks',error_correction:'Leia viga',transformation:'Muuda lauset'};
-    const BT_COLORS={fill:'#1d4ed8',choice:'#6d28d9',writing:'#A96E1A',match:'#047857',connect:'#0f766e',order:'#2F5D50',table:'#0e7490',text:'#718096',reading:'#0e7490',image:'#6d28d9',image_label:'#be185d',dialogue:'#0369a1',diagram:'#0f766e',comic:'#b45309',error_correction:'#dc2626',transformation:'#7c3aed'};
+    const BT_LABELS={fill:'Täida lünk',choice:'Vali vastus',true_false:'Tõene või väär',multi_select:'Mitu õiget',dictation:'Dikteerimine',audio:'Kuulamisülesanne',video:'Videoülesanne',voice_recording:'Häälsalvestus',writing:'Kirjutamine',match:'Sobita paarid',connect:'Ühenda nooltega',order:'Järjesta sõnad',table:'Tabel',text:'Tekst / juhis',reading:'Lugemistekst',image:'Pilt',image_label:'Märgi pilt',dialogue:'Dialoog',diagram:'Skeem',comic:'Koomiks',error_correction:'Leia viga',transformation:'Muuda lauset'};
+    const BT_COLORS={fill:'#1d4ed8',choice:'#6d28d9',true_false:'#0e7490',multi_select:'#7c3aed',dictation:'#be185d',audio:'#0369a1',video:'#b45309',voice_recording:'#dc2626',writing:'#A96E1A',match:'#047857',connect:'#0f766e',order:'#2F5D50',table:'#0e7490',text:'#718096',reading:'#0e7490',image:'#6d28d9',image_label:'#be185d',dialogue:'#0369a1',diagram:'#0f766e',comic:'#b45309',error_correction:'#dc2626',transformation:'#7c3aed'};
     if(!BT_LABELS[b.type])return'';
     num++;
     const color=BT_COLORS[b.type]||'#718096';
@@ -1132,6 +1249,11 @@ function buildHTML(meta,blocks){
     else if(b.type==='image'){const src=safeUrl(b.imageUrl);const width=safeWidth(b.imgWidth);inner=src?`<div style="text-align:center"><img src="${src}" style="max-width:${width?width+'px':'100%'};max-height:220px;object-fit:contain;border-radius:6px"/>${b.caption?`<div style="font-size:11px;color:#718096;margin-top:4px;font-style:italic">${escapeHtml(b.caption)}</div>`:''}</div>`:'';}
     else if(b.type==='fill'){const parts=parseFillPdf(b.text||'');inner=`<div style="font-size:13px;line-height:2.6">${parts.map(p=>p.t==='text'?escapeHtml(p.v):`<span style="display:inline-block;min-width:80px;border-bottom:1.5px solid #1C2B3A;margin:0 3px">&nbsp;</span>`).join('')}</div>`;}
     else if(b.type==='choice'){inner=(b.questions||[]).map((q,qi)=>`<div style="margin-bottom:10px"><div style="font-weight:700;font-size:13px;margin-bottom:5px">${qi+1}. ${escapeHtml(q.q||'')}</div>${(q.opts||[]).filter(Boolean).map(o=>`<div style="display:flex;align-items:center;gap:8px;margin:3px 0 3px 14px;font-size:12.5px"><span style="width:12px;height:12px;border-radius:50%;border:1.5px solid #1C2B3A;display:inline-block;flex-shrink:0"></span><span>${escapeHtml(o)}</span></div>`).join('')}</div>`).join('');}
+    else if(b.type==='true_false'){inner=(b.statements||[]).map((statement,index)=>`<div style="display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;padding:7px 0;border-bottom:1px solid #ddd;font-size:12.5px"><span>${index+1}. ${escapeHtml(statement.text||'')}</span><span>○ Tõene</span><span>○ Väär</span></div>`).join('');}
+    else if(b.type==='multi_select'){inner=(b.questions||[]).map((q,qi)=>`<div style="margin-bottom:10px"><div style="font-weight:700;font-size:13px;margin-bottom:5px">${qi+1}. ${escapeHtml(q.q||'')}</div>${(q.opts||[]).filter(Boolean).map(option=>`<div style="display:flex;align-items:center;gap:8px;margin:3px 0 3px 14px;font-size:12.5px"><span style="width:12px;height:12px;border:1.5px solid #1C2B3A;border-radius:2px;display:inline-block"></span><span>${escapeHtml(option)}</span></div>`).join('')}</div>`).join('');}
+    else if(b.type==='dictation'){const media=safeUrl(b.audioUrl);inner=`${media?`<div style="font-size:11px;color:#0369a1;margin-bottom:8px">Kuula digitaalses töölehes: ${escapeHtml(media)}</div>`:'<div style="font-size:11px;color:#999;margin-bottom:8px">Helifail puudub.</div>'}${(b.sentences||[]).map((_,index)=>`<div style="height:30px;border-bottom:1px solid #ccc;padding-top:7px;font-size:11px;color:#888">${index+1}.</div>`).join('')}`;}
+    else if(b.type==='audio'||b.type==='video'){const media=safeUrl(b.type==='video'?b.videoUrl:b.audioUrl);inner=`${b.title?`<div style="font-weight:800;font-size:13px;margin-bottom:6px">${escapeHtml(b.title)}</div>`:''}${media?`<div style="font-size:11px;color:#0369a1;margin-bottom:9px">${b.type==='video'?'Vaata':'Kuula'} digitaalses töölehes: ${escapeHtml(media)}</div>`:'<div style="font-size:11px;color:#999;margin-bottom:8px">Meediafail puudub.</div>'}${(b.questions||[]).map((q,qi)=>`<div style="margin-bottom:9px"><div style="font-weight:700;font-size:12.5px">${qi+1}. ${escapeHtml(q.q||'')}</div>${(q.opts||[]).filter(Boolean).map(option=>`<div style="margin:3px 0 0 14px;font-size:12px">○ ${escapeHtml(option)}</div>`).join('')}</div>`).join('')}`;}
+    else if(b.type==='voice_recording'){inner=`<div style="padding:11px 13px;border:1px dashed #dc2626;border-radius:8px;background:#fff7f7"><div style="font-size:13px;font-weight:700;margin-bottom:5px">${escapeHtml(b.prompt||'Räägi etteantud teemal.')}</div>${b.referenceText?`<div style="font-size:11.5px;color:#718096;white-space:pre-wrap">${escapeHtml(b.referenceText)}</div>`:''}<div style="font-size:11px;color:#7A7167;margin-top:6px">Digitaalses töölehes saab salvestada kuni ${Number(b.maxSeconds)||90} sekundit.</div></div>`;}
     else if(b.type==='writing'){inner=`<div style="font-size:13px;line-height:1.5;margin-bottom:10px">${escapeHtml(b.task||'')}</div>${Array.from({length:b.lines||6}).map(()=>`<div style="height:26px;border-bottom:1px solid #ccc;margin-bottom:2px"></div>`).join('')}`;}
     else if(b.type==='match'){const sh=shuffleArr(b.pairs||[]);inner=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:10px"><div>${(b.pairs||[]).map((p,i)=>`<div style="padding:5px 9px;border:1px solid #ccc;border-radius:5px;font-size:12.5px;margin-bottom:5px">${i+1}. ${escapeHtml(p.l||'')}</div>`).join('')}</div><div>${sh.map((p,i)=>`<div style="padding:5px 9px;border:1px solid #ccc;border-radius:5px;font-size:12.5px;margin-bottom:5px">${String.fromCharCode(65+i)}. ${escapeHtml(p.r||'')}</div>`).join('')}</div></div><div style="display:flex;flex-wrap:wrap;gap:7px">${(b.pairs||[]).map((_,i)=>`<span style="padding:2px 9px;border:1px solid #ccc;border-radius:4px;font-size:12px">${i+1} — ___</span>`).join('')}</div>`;}
     else if(b.type==='connect'){const right=[...(b.pairs||[])].reverse();inner=`<div style="display:grid;grid-template-columns:1fr 46px 1fr;gap:8px;align-items:center"><div>${(b.pairs||[]).map((p,i)=>`<div style="padding:7px 9px;border:1px solid #ccc;border-radius:7px;font-size:12px;margin-bottom:6px">${i+1}. ${escapeHtml(p.l||'')}</div>`).join('')}</div><div style="text-align:center;color:#C9882A;font-size:18px;line-height:2.25">${(b.pairs||[]).map(()=>'&#x2192;<br>').join('')}</div><div>${right.map((p,i)=>`<div style="padding:7px 9px;border:1px solid #ccc;border-radius:7px;font-size:12px;margin-bottom:6px">${String.fromCharCode(65+i)}. ${escapeHtml(p.r||'')}</div>`).join('')}</div></div>`;}
@@ -1404,6 +1526,12 @@ function estimateBlockHeight(block){
   switch(block.type){
     case 'fill':return Math.max(80,(block.text||'').length*0.6+60);
     case 'choice':return 60+(block.questions||[]).length*90;
+    case 'true_false':return 60+(block.statements||[]).length*48;
+    case 'multi_select':return 70+(block.questions||[]).length*110;
+    case 'dictation':return 90+(block.sentences||[]).length*34;
+    case 'audio':return 125+(block.questions||[]).length*90;
+    case 'video':return 300+(block.questions||[]).length*90;
+    case 'voice_recording':return 145;
     case 'match':return 60+(block.pairs||[]).length*40;
     case 'order':return 140;
     case 'writing':return 70+(block.lines||6)*30;

@@ -208,12 +208,15 @@
 
   function analyzeWorksheet(meta={},blocks=[]){
     const list=Array.isArray(blocks)?blocks:[];
-    const interactiveTypes=new Set(['fill','choice','writing','match','connect','order','reading','dialogue','image_label','diagram','comic','error_correction','transformation']);
+    const interactiveTypes=new Set(['fill','choice','true_false','multi_select','dictation','audio','video','voice_recording','writing','match','connect','order','reading','dialogue','image_label','diagram','comic','error_correction','transformation']);
     const hasAnswerKey=list.some(block=>(
       (block.type==='fill'&&/\[[^\]]+\]/.test(text(block.text)))||
       (block.type==='match'&&(block.pairs||[]).some(pair=>text(pair?.l)&&text(pair?.r)))||
       (block.type==='connect'&&(block.pairs||[]).some(pair=>text(pair?.l)&&text(pair?.r)))||
-      (['choice','reading'].includes(block.type)&&(block.questions||[]).some(question=>Number.isInteger(question?.correct)))||
+      (['choice','reading','audio','video'].includes(block.type)&&(block.questions||[]).some(question=>Number.isInteger(question?.correct)))||
+      (block.type==='true_false'&&(block.statements||[]).some(statement=>typeof statement?.correct==='boolean'))||
+      (block.type==='multi_select'&&(block.questions||[]).some(question=>Array.isArray(question?.correct)&&question.correct.length>0))||
+      (block.type==='dictation'&&(block.sentences||[]).some(sentence=>text(sentence?.text)))||
       (block.type==='image_label'&&(block.items||[]).some(item=>text(item?.answer)))||
       (block.type==='diagram'&&(block.nodes||[]).some(node=>node?.blank&&text(node?.text)))||
       (block.type==='comic'&&((block.taskMode==='complete'&&(block.panels||[]).some(panel=>panel?.blank!==false&&text(panel?.text)))||(block.taskMode==='order'&&(block.panels||[]).length>1)))||

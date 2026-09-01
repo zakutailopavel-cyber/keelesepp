@@ -94,3 +94,16 @@ test('worksheet builder creates auto-checkable visual tasks',()=>{
   assert.match(worksheet,/Pane kaadrid õigesse järjekorda/);
   assert.match(worksheet,/Õpilane täiendab seda repiiki/);
 });
+
+test('worksheet builder supports listening, video, dictation and speaking tasks',()=>{
+  for(const type of ['true_false','multi_select','dictation','audio','video','voice_recording']){
+    assert.match(worksheet,new RegExp(`key:'${type}'`));
+  }
+  assert.match(worksheet,/function MediaUploader/);
+  assert.match(worksheet,/function TrueFalseEd/);
+  assert.match(worksheet,/function MultiSelectEd/);
+  assert.match(worksheet,/function DictationEd/);
+  assert.match(worksheet,/function VoiceRecordingEd/);
+  assert.match(worksheet,/showTranscriptAfterSubmit/);
+  assert.match(worksheet,/accept=\{accept\}/);
+});

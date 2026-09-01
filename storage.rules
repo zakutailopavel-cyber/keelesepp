@@ -70,6 +70,16 @@ service firebase.storage {
       allow write: if staff() && safeContent();
     }
 
+    match /worksheet-submissions/{studentId}/{assignmentId}/{fileName} {
+      allow read: if staff() || ownsStudent(studentId);
+      allow create: if (staff() || ownsStudent(studentId))
+        && request.resource != null
+        && request.resource.size > 0
+        && request.resource.size <= 20 * 1024 * 1024
+        && request.resource.contentType.matches('^audio/');
+      allow update, delete: if false;
+    }
+
     match /curriculum/{fileName} {
       allow read: if signedIn();
       allow write: if staff() && safeContent();

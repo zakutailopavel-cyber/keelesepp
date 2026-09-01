@@ -15,12 +15,12 @@
     goal:'Lesson goal',vocabulary:'Vocabulary practice',grammar:'Grammar practice',reading:'Reading comprehension',review:'Review and check',communication:'Communication',
     match:'Match each word with its meaning.',table:'Add an example sentence for each word.',write:'Use the target language in your own sentences.',
     fill:'Complete each sentence with the correct form.',transform:'Rewrite the sentences following the example.',read:'Read the text and answer the questions.',
-    choose:'Choose the correct answer.',dialogue:'Complete the dialogue and practise it with a partner.',reflect:'Write a short answer using the lesson vocabulary.'
+    choose:'Choose the correct answer.',dialogue:'Complete the dialogue and practise it with a partner.',reflect:'Write a short answer using the lesson vocabulary.',listen:'Listen and answer the questions.',speak:'Record your spoken answer.'
   }:{
     goal:'Tunni eesmärk',vocabulary:'Sõnavara harjutus',grammar:'Grammatika harjutus',reading:'Lugemisülesanne',review:'Kordamine ja kontroll',communication:'Suhtlusülesanne',
     match:'Sobita sõna ja tähendus.',table:'Lisa iga sõna juurde näitelause.',write:'Kasuta õpitavat keelt oma lausetes.',
     fill:'Täida lüngad õige vormiga.',transform:'Muuda lauseid näidise järgi.',read:'Loe tekst läbi ja vasta küsimustele.',
-    choose:'Vali õige vastus.',dialogue:'Täienda dialoogi ja harjuta seda paarilisega.',reflect:'Kirjuta lühike vastus, kasutades tunni sõnavara.'
+    choose:'Vali õige vastus.',dialogue:'Täienda dialoogi ja harjuta seda paarilisega.',reflect:'Kirjuta lühike vastus, kasutades tunni sõnavara.',listen:'Kuula ja vasta küsimustele.',speak:'Salvesta oma suuline vastus.'
   };
 
   const TEMPLATES=[
@@ -28,7 +28,9 @@
     {id:'grammar',icon:'fa-pen-ruler',titleEt:'Grammatika kinnistamine',titleEn:'Grammar practice',description:'Reegel, lüngad ja lausete muutmine.',types:['text','fill','transformation']},
     {id:'reading',icon:'fa-book-open-reader',titleEt:'Lugemine ja mõistmine',titleEn:'Reading comprehension',description:'Lugemistekst, kontrollküsimused ja avatud vastus.',types:['reading','writing']},
     {id:'review',icon:'fa-list-check',titleEt:'Kordamine ja kontroll',titleEn:'Review and check',description:'Mitut oskust ühendav kontrollitav tööleht.',types:['match','fill','choice','writing']},
-    {id:'communication',icon:'fa-comments',titleEt:'Suhtlus ja dialoog',titleEn:'Communication and dialogue',description:'Dialoog, valikülesanne ja isiklik vastus.',types:['dialogue','choice','writing']}
+    {id:'communication',icon:'fa-comments',titleEt:'Suhtlus ja dialoog',titleEn:'Communication and dialogue',description:'Dialoog, valikülesanne ja isiklik vastus.',types:['dialogue','choice','writing']},
+    {id:'listening',icon:'fa-headphones',titleEt:'Kuulamine ja dikteerimine',titleEn:'Listening and dictation',description:'Helifail, mõistmisküsimused ja dikteerimine.',types:['audio','dictation','multi_select']},
+    {id:'speaking',icon:'fa-microphone-lines',titleEt:'Suuline vastus',titleEn:'Speaking response',description:'Ettevalmistus, häälsalvestus ja eneseanalüüs.',types:['text','voice_recording','writing']}
   ];
 
   const baseBlock=(type,instruction)=>({type,instruction,size:'full',imageUrl:'',imagePos:'top',label:''});
@@ -76,6 +78,20 @@
         {...baseBlock('dialogue',c.dialogue),lines:english?[{speaker:'A',text:'Hello! Can I ask you a question?'},{speaker:'B',text:'[answer]'},{speaker:'A',text:'Thank you!'}]:[{speaker:'A',text:'Tere! Kas ma võin sinult midagi küsida?'},{speaker:'B',text:'[vastus]'},{speaker:'A',text:'Aitäh!'}]},
         {...baseBlock('choice',c.choose),questions:[{q:english?'Which reply is polite and appropriate?':'Milline vastus on viisakas ja sobiv?',opts:english?['Yes, of course.','Never.','Go away.','I do not listen.']:['Jah, muidugi.','Mitte kunagi.','Mine ära.','Ma ei kuula.'],correct:0}]},
         {...baseBlock('writing',c.reflect),task:english?`Write your own short dialogue about “${topic}”.`:`Kirjuta oma lühike dialoog teemal „${topic}”.`,lines:writingLines}
+      ];
+    }else if(templateId==='listening'){
+      title=`${english?'Listening practice':'Kuulamisharjutus'}: ${topic}`;
+      blocks=[
+        {...baseBlock('audio',c.listen),title:english?'Listening text':'Kuulamistekst',audioUrl:'',transcript:'',showTranscriptAfterSubmit:true,questions:[{q:english?'What is the main idea?':'Mis on kuulamisteksti põhiidee?',opts:english?['Answer A','Answer B','Answer C','Answer D']:['Vastus A','Vastus B','Vastus C','Vastus D'],correct:0}]},
+        {...baseBlock('dictation',english?'Listen and write the sentence.':'Kuula ja kirjuta lause.'),audioUrl:'',maxPlays:3,sentences:[{text:english?'Add the correct sentence here.':'Lisa siia õige lause.'}]},
+        {...baseBlock('multi_select',english?'Choose all correct statements.':'Vali kõik õiged väited.'),questions:[{q:english?'Which statements are correct?':'Millised väited on õiged?',opts:english?['Statement A','Statement B','Statement C','Statement D']:['Väide A','Väide B','Väide C','Väide D'],correct:[0,2]}]}
+      ];
+    }else if(templateId==='speaking'){
+      title=`${english?'Speaking response':'Suuline vastus'}: ${topic}`;
+      blocks=[
+        {...baseBlock('text',''),content:`${c.goal}: ${topic}`,bold:true},
+        {...baseBlock('voice_recording',c.speak),prompt:english?`Speak about “${topic}” for 30–60 seconds.`:`Räägi teemal „${topic}” 30–60 sekundit.`,maxSeconds:90,referenceText:''},
+        {...baseBlock('writing',c.reflect),task:english?'Write two things that went well and one thing to improve.':'Kirjuta kaks asja, mis läksid hästi, ja üks asi, mida parandada.',lines:5}
       ];
     }else throw new Error('Unknown worksheet template');
     return {...common,title,blocks:clone(blocks)};

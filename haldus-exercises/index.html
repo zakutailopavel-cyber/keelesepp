@@ -32,12 +32,12 @@
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <script src="/learning-library-core.js"></script>
-<script src="/curriculum-workflow-core.js?v=20260831.17"></script>
-<script src="/worksheet-workflow-core.js?v=20260831.17"></script>
+<script src="/curriculum-workflow-core.js?v=20260901.1"></script>
+<script src="/worksheet-workflow-core.js?v=20260901.1"></script>
 <script src="/live-classroom-core.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="/haldus.css?v=20260831.17">
+<link rel="stylesheet" href="/haldus.css?v=20260901.1">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'IBM Plex Sans',sans-serif;background:#EEECE7;color:#1C2B3A;min-height:100vh;}
@@ -3112,7 +3112,7 @@ function WorksheetPreviewModal({lesson,onClose,onConduct}) {
   };
 
   const renderBlock=(block,idx)=>{
-    const BTLABELS={fill:'Täida lünk',choice:'Vali vastus',writing:'Kirjutamine',match:'Sobita paarid',connect:'Ühenda nooltega',order:'Järjesta sõnad',table:'Tabel',text:'Tekst',reading:'Lugemistekst',image:'Pilt',image_label:'Märgi pilt',dialogue:'Dialoog',diagram:'Skeem',comic:'Koomiks',error_correction:'Leia viga',transformation:'Muuda lauset'};
+    const BTLABELS={fill:'Täida lünk',choice:'Vali vastus',true_false:'Tõene või väär',multi_select:'Mitu õiget',dictation:'Dikteerimine',audio:'Kuulamisülesanne',video:'Videoülesanne',voice_recording:'Häälsalvestus',writing:'Kirjutamine',match:'Sobita paarid',connect:'Ühenda nooltega',order:'Järjesta sõnad',table:'Tabel',text:'Tekst',reading:'Lugemistekst',image:'Pilt',image_label:'Märgi pilt',dialogue:'Dialoog',diagram:'Skeem',comic:'Koomiks',error_correction:'Leia viga',transformation:'Muuda lauset'};
     const label=block.label||BTLABELS[block.type]||block.type;
 
     const renderContent=()=>{
@@ -3136,6 +3136,11 @@ function WorksheetPreviewModal({lesson,onClose,onConduct}) {
           ))}
         </div>
       );
+      if(block.type==='true_false') return <div>{(block.statements||[]).map((statement,index)=><div key={index} style={{display:'grid',gridTemplateColumns:'1fr auto auto',gap:9,padding:'7px 0',borderBottom:'1px solid rgba(28,43,58,.08)',fontSize:'.84rem'}}><span>{index+1}. {statement.text}</span><span>○ Tõene</span><span>○ Väär</span></div>)}</div>;
+      if(block.type==='multi_select') return <div>{(block.questions||[]).map((question,qi)=><div key={qi} style={{marginBottom:9}}><div className="ws-choice-q">{qi+1}. {question.q}</div>{(question.opts||[]).filter(Boolean).map((option,oi)=><div key={oi} className="ws-choice-opt"><span style={{width:13,height:13,border:'1.5px solid #1C2B3A',borderRadius:3}}/><span>{option}</span></div>)}</div>)}</div>;
+      if(block.type==='dictation') return <div>{block.audioUrl?<audio src={block.audioUrl} controls preload="metadata" style={{width:'100%',marginBottom:8}}/>:<div style={{fontSize:'.78rem',color:'#A96E1A'}}>Helifail puudub.</div>}{(block.sentences||[]).map((_,index)=><div key={index} style={{height:29,borderBottom:'1px solid rgba(28,43,58,.18)',paddingTop:6,fontSize:'.72rem',color:'#718096'}}>{index+1}.</div>)}</div>;
+      if(block.type==='audio'||block.type==='video') return <div>{block.title&&<div style={{fontWeight:800,marginBottom:7}}>{block.title}</div>}{block.type==='video'?(block.videoUrl?<video src={block.videoUrl} controls preload="metadata" style={{width:'100%',maxHeight:260,borderRadius:8,background:'#111',marginBottom:8}}/>:<div style={{fontSize:'.78rem',color:'#A96E1A'}}>Videofail puudub.</div>):(block.audioUrl?<audio src={block.audioUrl} controls preload="metadata" style={{width:'100%',marginBottom:8}}/>:<div style={{fontSize:'.78rem',color:'#A96E1A'}}>Helifail puudub.</div>)}{(block.questions||[]).map((question,qi)=><div key={qi} style={{marginTop:8}}><div className="ws-choice-q">{qi+1}. {question.q}</div>{(question.opts||[]).filter(Boolean).map((option,oi)=><div key={oi} className="ws-choice-opt"><div className="ws-circle"/><span>{option}</span></div>)}</div>)}</div>;
+      if(block.type==='voice_recording') return <div style={{padding:11,border:'1px dashed rgba(220,38,38,.3)',borderRadius:9,background:'rgba(220,38,38,.04)'}}><div style={{fontWeight:700,fontSize:'.86rem'}}><i className="fa-solid fa-microphone-lines" style={{color:'#dc2626',marginRight:6}}/> {block.prompt}</div>{block.referenceText&&<div style={{fontSize:'.76rem',color:'#718096',marginTop:5,whiteSpace:'pre-wrap'}}>{block.referenceText}</div>}</div>;
       if(block.type==='writing') return(
         <div>
           <div className="ws-wr-task">{block.task}</div>

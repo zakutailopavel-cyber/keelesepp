@@ -182,3 +182,16 @@ test('interactive visual blocks satisfy activity and answer-key quality checks',
   assert.equal(quality.checks.find(check=>check.key==='answers').ok,true);
   assert.equal(quality.ready,true);
 });
+
+test('media and multi-answer tasks satisfy activity and answer-key checks',()=>{
+  const meta={title:'Kuulamine',subject:'Eesti keel',level:'A2',topic:'Pere'};
+  const blocks=[
+    {type:'audio',audioUrl:'https://example.test/audio.mp3',questions:[{q:'Kes räägib?',opts:['Mari','Jüri'],correct:0}]},
+    {type:'multi_select',questions:[{q:'Vali õiged.',opts:['A','B','C'],correct:[0,2]}]},
+    {type:'voice_recording',prompt:'Räägi endast.'}
+  ];
+  const result=workflow.analyzeWorksheet(meta,blocks);
+  assert.equal(result.checks.find(check=>check.key==='activity').ok,true);
+  assert.equal(result.checks.find(check=>check.key==='answers').ok,true);
+  assert.equal(result.ready,true);
+});
