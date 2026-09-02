@@ -1505,7 +1505,7 @@ service cloud.firestore {
       return data is map
         && data.keys().hasAll(['type', 'updatedByUid'])
         && data.updatedByUid == uid()
-        && data.type in ['stroke', 'shape', 'text', 'note']
+        && data.type in ['stroke', 'shape', 'text', 'note', 'image', 'pdf']
         && (
           data.type != 'stroke'
           || (
@@ -1556,7 +1556,137 @@ service cloud.firestore {
             && data.text.size() <= 2000
             && data.color is string
           )
+        )
+        && (
+          data.type != 'image'
+          || (
+            data.keys().hasOnly(['type', 'x', 'y', 'w', 'h', 'url', 'storagePath', 'rotation', 'locked', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId', 'revision'])
+            && data.x is number && data.y is number
+            && data.w is number && data.h is number
+            && data.w > 0 && data.h > 0 && data.w <= 100000 && data.h <= 100000
+            && data.url is string && data.url.size() > 0 && data.url.size() <= 2000
+            && data.url.matches('^https://.*')
+            && (!('storagePath' in data) || (data.storagePath is string && data.storagePath.size() <= 1000))
+            && (!('rotation' in data) || (data.rotation is number && data.rotation >= -360000 && data.rotation <= 360000))
+            && (!('locked' in data) || data.locked is bool)
+          )
+        )
+        && (
+          data.type != 'pdf'
+          || (
+            data.keys().hasOnly(['type', 'x', 'y', 'w', 'h', 'url', 'storagePath', 'name', 'rotation', 'locked', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId', 'revision'])
+            && data.x is number && data.y is number
+            && data.w is number && data.h is number
+            && data.w > 0 && data.h > 0 && data.w <= 100000 && data.h <= 100000
+            && data.url is string && data.url.size() > 0 && data.url.size() <= 2000
+            && data.url.matches('^https://.*')
+            && (!('storagePath' in data) || (data.storagePath is string && data.storagePath.size() <= 1000))
+            && (!('name' in data) || (data.name is string && data.name.size() <= 300))
+            && (!('rotation' in data) || (data.rotation is number && data.rotation >= -360000 && data.rotation <= 360000))
+            && (!('locked' in data) || data.locked is bool)
+          )
         );
+    }
+
+    // Lesson-scoped board pages live alongside the one persistent board
+    // above: same student, same access rule, but their own subcollection so
+    // the always-on canvas is never touched by lesson-page reads/writes.
+    // Creating/completing pages is a teaching action (staff only); anyone
+    // with board access can still read them and draw on their elements,
+    // same as the persistent board.
+    function whiteboardStaffAction(studentId) {
+      return isAdmin() || (isTeacher() && whiteboardAccessAllowed(studentId));
+    }
+
+    function whiteboardElementCreateAllowed(studentId, data) {
+      return whiteboardAccessAllowed(studentId)
+        && validWhiteboardElement(data)
+        && (
+          !(data.type in ['image', 'pdf'])
+          || whiteboardStaffAction(studentId)
+        );
+    }
+
+    function whiteboardMaterialSourceUnchanged(before, after) {
+      return after.type == before.type
+        && after.get('url', '') == before.get('url', '')
+        && after.get('storagePath', '') == before.get('storagePath', '')
+        && after.get('name', '') == before.get('name', '');
+    }
+
+    function whiteboardMaterialLockTransitionAllowed(before, after) {
+      return before.get('locked', false) != true
+        || (
+          after.get('locked', false) == false
+          && after.x == before.x
+          && after.y == before.y
+          && after.w == before.w
+          && after.h == before.h
+          && after.get('rotation', 0) == before.get('rotation', 0)
+        );
+    }
+
+    function whiteboardElementUpdateAllowed(studentId, before, after) {
+      return whiteboardAccessAllowed(studentId)
+        && validWhiteboardElement(after)
+        && after.type == before.type
+        && (
+          !(after.type in ['image', 'pdf'])
+          || (
+            whiteboardMaterialSourceUnchanged(before, after)
+            && whiteboardMaterialLockTransitionAllowed(before, after)
+          )
+        );
+    }
+
+    function whiteboardElementDeleteAllowed(studentId, data) {
+      return whiteboardAccessAllowed(studentId)
+        && data.get('locked', false) != true;
+    }
+
+    function lessonPagePath(studentId, pageId) {
+      return /databases/$(database)/documents/whiteboards/$(studentId)/lessonPages/$(pageId);
+    }
+
+    function lessonPageWritable(studentId, pageId) {
+      return whiteboardAccessAllowed(studentId)
+        && exists(lessonPagePath(studentId, pageId))
+        && get(lessonPagePath(studentId, pageId)).data.isSnapshot != true;
+    }
+
+    function snapshotPageAcceptsInitialElements(studentId, pageId) {
+      return whiteboardStaffAction(studentId)
+        && exists(lessonPagePath(studentId, pageId))
+        && get(lessonPagePath(studentId, pageId)).data.isSnapshot == true
+        && get(lessonPagePath(studentId, pageId)).data.status == 'active';
+    }
+
+    function validLessonPage(data) {
+      return data is map
+        && data.keys().hasOnly([
+          'title', 'order', 'status', 'isSnapshot', 'snapshotOf',
+          'createdAt', 'updatedAt', 'updatedByUid', 'updatedByName'
+        ])
+        && data.keys().hasAll([
+          'title', 'order', 'status', 'isSnapshot', 'snapshotOf',
+          'createdAt', 'updatedAt', 'updatedByUid', 'updatedByName'
+        ])
+        && data.title is string && data.title.size() > 0 && data.title.size() <= 200
+        && data.order is int && data.order > 0 && data.order <= 1000000
+        && data.status in ['active', 'completed']
+        && data.isSnapshot is bool
+        && (
+          (data.isSnapshot == true
+            && data.snapshotOf is string
+            && data.snapshotOf.size() > 0
+            && data.snapshotOf.size() <= 200)
+          || (data.isSnapshot == false && data.snapshotOf == null)
+        )
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp
+        && data.updatedByUid == uid()
+        && data.updatedByName is string
+        && data.updatedByName.size() <= 160;
     }
 
     match /whiteboards/{studentId} {
@@ -1578,8 +1708,46 @@ service cloud.firestore {
 
       match /elements/{elementId} {
         allow read: if whiteboardAccessAllowed(studentId);
-        allow create, update: if whiteboardAccessAllowed(studentId) && validWhiteboardElement(request.resource.data);
-        allow delete: if whiteboardAccessAllowed(studentId);
+        allow create: if whiteboardElementCreateAllowed(studentId, request.resource.data);
+        allow update: if whiteboardElementUpdateAllowed(studentId, resource.data, request.resource.data);
+        allow delete: if whiteboardElementDeleteAllowed(studentId, resource.data);
+      }
+
+      match /lessonPages/{pageId} {
+        allow read: if whiteboardAccessAllowed(studentId);
+        allow create: if whiteboardStaffAction(studentId)
+          && validLessonPage(request.resource.data)
+          && request.resource.data.status == 'active';
+        allow update: if whiteboardStaffAction(studentId)
+          && validLessonPage(request.resource.data)
+          && request.resource.data.createdAt == resource.data.createdAt
+          && request.resource.data.isSnapshot == resource.data.isSnapshot
+          && request.resource.data.snapshotOf == resource.data.snapshotOf
+          && (resource.data.status != 'completed' || request.resource.data.status == 'completed');
+        // Completed lesson records and snapshots are historical evidence.
+        allow delete: if whiteboardStaffAction(studentId) && resource.data.status != 'completed';
+
+        match /elements/{elementId} {
+          allow read: if whiteboardAccessAllowed(studentId);
+          // A snapshot accepts one staff-authored initial copy while its
+          // parent page is active. Once the parent becomes completed, the
+          // element set is immutable, even through a direct page URL.
+          allow create: if (
+              lessonPageWritable(studentId, pageId)
+              && whiteboardElementCreateAllowed(studentId, request.resource.data)
+            )
+            || (
+              snapshotPageAcceptsInitialElements(studentId, pageId)
+              && validWhiteboardElement(request.resource.data)
+            );
+          allow update: if lessonPageWritable(studentId, pageId)
+            && whiteboardElementUpdateAllowed(studentId, resource.data, request.resource.data);
+          allow delete: if (
+              lessonPageWritable(studentId, pageId)
+              && whiteboardElementDeleteAllowed(studentId, resource.data)
+            )
+            || snapshotPageAcceptsInitialElements(studentId, pageId);
+        }
       }
     }
 

@@ -12,6 +12,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
 <script src="/whiteboard-core.js?v=20260902.1"></script>
 <style>
 :root{
@@ -102,9 +103,37 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
 /* ── Empty state ─────────────────────────────────────*/
 .empty-hint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;color:var(--muted);font-size:.92rem;text-align:center;padding:40px}
 
+/* ── Page bar (lesson boards) ─────────────────────────*/
+.page-bar{display:flex;align-items:center;gap:6px;padding:8px 16px;background:#fff;border-bottom:1px solid var(--line);overflow-x:auto;flex-shrink:0}
+.page-tab{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;border:1.5px solid var(--line);background:#fff;font-size:.78rem;font-weight:600;white-space:nowrap;color:var(--muted)}
+.page-tab.active{border-color:var(--amber);color:var(--ink);background:rgba(201,136,42,.08)}
+.page-tab .status-dot{width:6px;height:6px;border-radius:50%;background:#2F5D50;display:inline-block}
+.page-bar .sep2{width:1px;height:20px;background:var(--line);margin:0 4px;flex-shrink:0}
+
+/* ── Material modal ───────────────────────────────────*/
+.modal-backdrop{position:fixed;inset:0;background:rgba(28,43,58,.55);z-index:90;display:flex;align-items:center;justify-content:center;padding:24px}
+.modal-card{background:#FBFAF8;border-radius:18px;width:560px;max-width:100%;max-height:82vh;display:flex;flex-direction:column;box-shadow:0 32px 80px rgba(0,0,0,.3);overflow:hidden}
+.modal-head{display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid var(--line)}
+.modal-head h3{flex:1;font-size:1.05rem}
+.modal-tabs{display:flex;gap:6px;padding:10px 18px 0}
+.modal-tab{padding:7px 12px;border-radius:8px 8px 0 0;border:1.5px solid var(--line);border-bottom:none;background:#fff;font-size:.8rem;font-weight:600;color:var(--muted)}
+.modal-tab.active{color:var(--ink);background:#FBFAF8;border-color:var(--amber)}
+.modal-body{padding:16px 18px;overflow-y:auto;flex:1}
+.material-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.material-card{border:1.5px solid var(--line);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:6px;cursor:pointer;text-align:left;background:#fff}
+.material-card:hover{border-color:var(--amber)}
+.material-card img{width:100%;height:80px;object-fit:cover;border-radius:6px;background:#eee}
+.material-card .t{font-size:.78rem;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.material-card .m{font-size:.7rem;color:var(--muted)}
+
+/* ── PDF preview overlay ──────────────────────────────*/
+#pdf-preview-overlay{position:fixed;inset:0;background:rgba(28,43,58,.8);z-index:100;display:flex;flex-direction:column;padding:24px}
+
 @media (max-width:760px){
   .side-panel{width:calc(100% - 32px)}
   .board-title{max-width:120px}
+  .modal-card{width:100%}
+  .material-grid{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -145,12 +174,15 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
   const MIN_POINT_DIST = 2.5; // world-space px between sampled pen points
   const MAX_TEXT_LEN = 4000;
   const MAX_NOTE_LEN = 2000;
+  const MAX_MATERIAL_MB = 18; // storage.rules' safeContent() caps at 20MB; stay under it
 
   const state = {
     authUser:null, profile:null, isStaff:false, isAdmin:false,
     teacherScopeReadEnforced:false,
     students:[], studentId:'', studentName:'',
-    boardSession:0, // bumped on every openBoard() call, even re-opening the same student
+    activePageId:null, // null = the one persistent board; otherwise a whiteboards/{sid}/lessonPages/{id}
+    lessonPages:[], lessonPagesUnsub:null,
+    boardSession:0, // bumped on every openBoard()/switchPage() call, even re-opening the same board
     elementsMap:new Map(), elementOrder:[], // local mirror of the elements subcollection
     selectedId:null,
     tool:'select', color:'#1C2B3A', strokeWidth:3, noteColor:NOTE_COLORS[0],
@@ -167,7 +199,25 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
   function isStaffProfile(p){ return p && (p.role==='teacher'||p.role==='admin'); }
   function uid4(){ return 'el'+Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4); }
   function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-  function elementsCol(sid){ return db.collection('whiteboards').doc(sid).collection('elements'); }
+  function safeMaterialUrl(value){
+    const raw = String(value||'').trim();
+    if(!/^https:\/\//i.test(raw)) return '';
+    try{
+      const parsed = new URL(raw);
+      return parsed.protocol==='https:' ? parsed.href : '';
+    }catch(_err){
+      return '';
+    }
+  }
+  // pageId is null/undefined for the one persistent per-student board, or a
+  // whiteboards/{sid}/lessonPages/{pageId} id for a lesson-scoped page —
+  // each page is fully isolated with its own elements subcollection, so a
+  // lesson page can never touch the permanent board's documents.
+  function elementsCol(sid, pageId){
+    const base = db.collection('whiteboards').doc(sid);
+    return pageId ? base.collection('lessonPages').doc(pageId).collection('elements') : base.collection('elements');
+  }
+  function lessonPagesCol(sid){ return db.collection('whiteboards').doc(sid).collection('lessonPages'); }
   function elementsList(){ return state.elementOrder.map(id=>state.elementsMap.get(id)).filter(Boolean); }
 
   // ── AUTH ────────────────────────────────────────────
@@ -183,15 +233,17 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
       await loadStudents();
       renderShell();
 
-      const requestedId = new URLSearchParams(location.search).get('student');
+      const params = new URLSearchParams(location.search);
+      const requestedId = params.get('student');
+      const requestedPage = params.get('page');
       if(requestedId){
         const match = state.students.find(s=>s.id===requestedId);
-        if(match){ openBoard(match.id, match.name); return; }
+        if(match){ openBoard(match.id, match.name); if(requestedPage) switchPage(requestedPage); return; }
         showEmptyHint('Sul pole sellele õpilasele juurdepääsu või kaarti ei leitud.');
         return;
       }
       if(!state.isStaff){
-        if(state.students.length>=1){ openBoard(state.students[0].id, state.students[0].name); }
+        if(state.students.length>=1){ openBoard(state.students[0].id, state.students[0].name); if(requestedPage) switchPage(requestedPage); }
         else { showEmptyHint('Õpilase kaarti ei leitud. Palu õpetajal see siduda.'); }
       }
     }catch(err){
@@ -263,6 +315,7 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
         <div class="spacer"></div>
         <a class="btn sm" href="/haldus/"><i class="fa-solid fa-arrow-left"></i> CRM</a>
       </div>
+      <div class="page-bar" id="page-bar" style="display:none"></div>
       <div class="workspace">
         <div class="canvas-wrap tool-select" id="canvas-wrap">
           <svg id="board" xmlns="http://www.w3.org/2000/svg"><g id="board-g"></g></svg>
@@ -339,6 +392,8 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
     else if(el.type==='shape'){ f.shape=el.shape; f.x=el.x; f.y=el.y; f.w=el.w; f.h=el.h; f.strokeWidth=el.strokeWidth; }
     else if(el.type==='text'){ f.x=el.x; f.y=el.y; f.w=el.w; f.h=el.h; f.text=el.text; f.fontSize=el.fontSize; }
     else if(el.type==='note'){ f.x=el.x; f.y=el.y; f.w=el.w; f.h=el.h; f.text=el.text; }
+    else if(el.type==='image'){ delete f.color; f.x=el.x; f.y=el.y; f.w=el.w; f.h=el.h; f.url=el.url; f.storagePath=el.storagePath||''; f.rotation=el.rotation||0; f.locked=!!el.locked; }
+    else if(el.type==='pdf'){ delete f.color; f.x=el.x; f.y=el.y; f.w=el.w; f.h=el.h; f.url=el.url; f.storagePath=el.storagePath||''; f.name=el.name||''; f.rotation=el.rotation||0; f.locked=!!el.locked; }
     return JSON.parse(JSON.stringify(f));
   }
   function writePayload(fields){
@@ -373,8 +428,11 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
     }
 
     if(state.elementsUnsub){ state.elementsUnsub(); state.elementsUnsub=null; }
+    if(state.lessonPagesUnsub){ state.lessonPagesUnsub(); state.lessonPagesUnsub=null; }
     state.studentId = studentId;
     state.studentName = studentName || '';
+    state.activePageId = null; // opening a student always lands on the persistent board
+    state.lessonPages = [];
     // Bumped on EVERY open, even re-opening the same student — this is
     // what lets us tell a stale async callback from a previous open of
     // this exact board apart from a callback that belongs to right now.
@@ -392,13 +450,15 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
     document.getElementById('save-status').style.display='flex';
     showEmptyHint('Laadin tahvlit…');
     renderElements();
+    renderPageBar();
 
     const url = new URL(location.href);
     url.searchParams.set('student', studentId);
+    url.searchParams.delete('page');
     history.replaceState(null, '', url);
 
     const boundStudentId = studentId; // guards against a stale listener from a previous board
-    state.elementsUnsub = elementsCol(studentId).onSnapshot(snapshot=>{
+    state.elementsUnsub = elementsCol(studentId, null).onSnapshot(snapshot=>{
       if(boundStudentId !== state.studentId || boundSession !== state.boardSession) return;
       snapshot.docChanges().forEach(change=>applyDocChange(boundStudentId, boundSession, change));
       updateSaveStatus('saved');
@@ -409,6 +469,232 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
     });
 
     migrateLegacyIfNeeded(studentId);
+    subscribeLessonPages(studentId);
+  }
+
+  // ── LESSON PAGES (Block 2 start): separate boards for individual lessons,
+  // kept fully apart from the one persistent board above (own subcollection,
+  // never touched by migrateLegacyIfNeeded or the permanent board's undo
+  // history). Switching pages reuses the exact same session-guard pattern
+  // as switching students — boardSession is bumped on every page switch
+  // too, so a stale async callback from a previous page can never land on
+  // the wrong one.
+  function subscribeLessonPages(studentId){
+    if(state.lessonPagesUnsub){ state.lessonPagesUnsub(); state.lessonPagesUnsub=null; }
+    state.lessonPages = [];
+    const boundStudentId = studentId;
+    state.lessonPagesUnsub = lessonPagesCol(studentId).onSnapshot(snap=>{
+      if(boundStudentId !== state.studentId) return;
+      state.lessonPages = snap.docs.map(d=>({id:d.id, ...d.data()})).sort((a,b)=>(a.order||0)-(b.order||0));
+      renderPageBar();
+    }, err=>{
+      console.error('lesson pages listen failed', err);
+    });
+  }
+
+  function switchPage(pageId){
+    pageId = pageId || null;
+    if(!state.studentId || state.activePageId===pageId) return;
+    if(state.interacting && state.drag){ finalizeInteraction(); }
+    if(state.elementsUnsub){ state.elementsUnsub(); state.elementsUnsub=null; }
+    state.activePageId = pageId;
+    state.boardSession++;
+    const boundSession = state.boardSession;
+    const boundStudentId = state.studentId;
+    const boundPageId = pageId;
+    state.elementsMap = new Map();
+    state.elementOrder = [];
+    state.selectedId = null;
+    state.history = []; state.future = [];
+    state.pendingElementUpdates = new Map();
+    state.view = {x:0,y:0,scale:1};
+    showEmptyHint('Laadin lehte…');
+    renderElements();
+    renderPageBar();
+
+    const url = new URL(location.href);
+    if(pageId) url.searchParams.set('page', pageId); else url.searchParams.delete('page');
+    history.replaceState(null, '', url);
+
+    state.elementsUnsub = elementsCol(boundStudentId, boundPageId).onSnapshot(snapshot=>{
+      if(boundStudentId !== state.studentId || boundSession !== state.boardSession) return;
+      snapshot.docChanges().forEach(change=>applyDocChange(boundStudentId, boundSession, change));
+      updateSaveStatus('saved');
+      updateEmptyHintVisibility();
+      renderElements();
+    }, err=>{
+      console.error('elements listen failed', err);
+    });
+  }
+
+  function renderPageBar(){
+    const bar = document.getElementById('page-bar');
+    if(!bar) return;
+    if(!state.studentId){ bar.style.display='none'; return; }
+    bar.style.display='flex';
+    const lessonPages = state.lessonPages.filter(p=>!p.isSnapshot);
+    const activePage = lessonPages.find(p=>p.id===state.activePageId) || null;
+    const completionDisabled = !activePage || activePage.status==='completed';
+    const tabs = [
+      `<button class="page-tab ${!state.activePageId?'active':''}" data-page=""><i class="fa-solid fa-infinity"></i> Püsiv tahvel</button>`,
+      ...lessonPages.map(p=>`<button class="page-tab ${state.activePageId===p.id?'active':''}" data-page="${p.id}">${p.status==='completed'?'<span class="status-dot" title="Lõpetatud"></span>':''}${escapeHtml(p.title||'Leht')}</button>`)
+    ];
+    bar.innerHTML = tabs.join('') + `
+      <div class="sep2"></div>
+      <button class="btn sm" id="page-prev" title="Eelmine leht"><i class="fa-solid fa-chevron-left"></i></button>
+      <button class="btn sm" id="page-next" title="Järgmine leht"><i class="fa-solid fa-chevron-right"></i></button>
+      ${state.isStaff?`
+      <button class="btn sm" id="page-new"><i class="fa-solid fa-plus"></i> Uus leht</button>
+      <button class="btn sm" id="page-dup" ${!state.activePageId?'disabled':''}><i class="fa-regular fa-copy"></i> Duplikeeri</button>
+      <button class="btn sm" id="page-complete" ${completionDisabled?'disabled':''}><i class="fa-solid fa-flag-checkered"></i> ${activePage?.status==='completed'?'Lõpetatud':'Lõpeta tund'}</button>
+      `:''}
+    `;
+    bar.querySelectorAll('[data-page]').forEach(btn=>{
+      btn.addEventListener('click',()=>switchPage(btn.dataset.page||null));
+    });
+    document.getElementById('page-prev').addEventListener('click',()=>goAdjacentPage(-1));
+    document.getElementById('page-next').addEventListener('click',()=>goAdjacentPage(1));
+    document.getElementById('page-new')?.addEventListener('click',handleNewPage);
+    document.getElementById('page-dup')?.addEventListener('click',handleDuplicatePage);
+    document.getElementById('page-complete')?.addEventListener('click',handleCompleteAndSnapshot);
+  }
+
+  function goAdjacentPage(dir){
+    const pages = state.lessonPages.filter(p=>!p.isSnapshot);
+    if(!pages.length) return;
+    const idx = pages.findIndex(p=>p.id===state.activePageId);
+    const nextIdx = idx===-1 ? (dir>0?0:pages.length-1) : (idx+dir+pages.length)%pages.length;
+    switchPage(pages[nextIdx].id);
+  }
+
+  async function createLessonPage(opts){
+    opts = opts||{};
+    const sid = state.studentId;
+    if(!sid) return null;
+    const order = state.lessonPages.length ? Math.max(...state.lessonPages.map(p=>p.order||0))+1 : 1;
+    const title = opts.title || ('Leht '+(state.lessonPages.filter(p=>!p.isSnapshot).length+1));
+    const doc = {
+      title, order,
+      status:opts.status || 'active',
+      isSnapshot: !!opts.isSnapshot,
+      snapshotOf: opts.snapshotOf || null,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedByUid: state.authUser.uid,
+      updatedByName: state.profile.displayName || state.profile.email || ''
+    };
+    try{
+      const ref = await lessonPagesCol(sid).add(doc);
+      return ref.id;
+    }catch(err){
+      console.error('create lesson page failed', err);
+      alert('Uue lehe loomine ebaõnnestus. Proovi uuesti.');
+      return null;
+    }
+  }
+
+  async function handleNewPage(){
+    const id = await createLessonPage({});
+    if(id) switchPage(id);
+  }
+
+  async function copyElementsToPage(studentId, sourceSnapshot, targetPageId){
+    const docs = Array.isArray(sourceSnapshot?.docs) ? sourceSnapshot.docs : [];
+    for(let start=0; start<docs.length; start+=400){
+      const batch = db.batch();
+      docs.slice(start,start+400).forEach(doc=>{
+        // A copy is a new write by the current actor. Rebuild the bounded
+        // visual payload instead of copying stale audit fields from whoever
+        // last edited the source element.
+        batch.set(
+          elementsCol(studentId, targetPageId).doc(doc.id),
+          writePayload(visualFields(doc.data()))
+        );
+      });
+      await batch.commit();
+    }
+  }
+
+  async function removeIncompleteLessonPage(studentId, pageId){
+    if(!studentId || !pageId) return;
+    try{
+      const snap = await elementsCol(studentId, pageId).get();
+      const docs = Array.isArray(snap?.docs) ? snap.docs : [];
+      for(let start=0; start<docs.length; start+=400){
+        const batch = db.batch();
+        docs.slice(start,start+400).forEach(doc=>batch.delete(doc.ref));
+        await batch.commit();
+      }
+      await lessonPagesCol(studentId).doc(pageId).delete();
+    }catch(cleanupErr){
+      console.warn('incomplete lesson page cleanup failed', cleanupErr);
+    }
+  }
+
+  async function handleDuplicatePage(){
+    if(!state.activePageId){ alert('Püsiv tahvel ei ole leht, mida dubleerida — vali enne mõni õppetunni leht.'); return; }
+    const srcPage = state.lessonPages.find(p=>p.id===state.activePageId);
+    const srcSid = state.studentId, srcPageId = state.activePageId;
+    let newId = null;
+    try{
+      const snap = await elementsCol(srcSid, srcPageId).get();
+      newId = await createLessonPage({title:(srcPage?.title||'Leht')+' (koopia)'});
+      if(!newId) return;
+      await copyElementsToPage(srcSid, snap, newId);
+      switchPage(newId);
+    }catch(err){
+      console.error('duplicate page failed', err);
+      await removeIncompleteLessonPage(srcSid, newId);
+      alert('Lehe dubleerimine ebaõnnestus. Proovi uuesti.');
+    }
+  }
+
+  // Whiteboard-native stand-in for "automatic snapshot after lesson
+  // completion": freezes the current lesson page's elements into a new,
+  // separate isSnapshot page (so later edits to the live page never change
+  // the historical record) and marks the source page completed. Kept
+  // inside the whiteboard itself rather than hooking into the calendar's
+  // lesson-completion flow (functions/lesson-record-core.js), which this
+  // round of work deliberately does not touch.
+  async function handleCompleteAndSnapshot(){
+    if(!state.activePageId){ alert('Vali enne mõni õppetunni leht.'); return; }
+    const srcPage = state.lessonPages.find(p=>p.id===state.activePageId);
+    if(!srcPage || srcPage.isSnapshot) return;
+    if(srcPage.status==='completed'){
+      alert('See tunnileht on juba lõpetatud.');
+      return;
+    }
+    const srcSid = state.studentId, srcPageId = state.activePageId;
+    let snapId = null;
+    try{
+      const snap = await elementsCol(srcSid, srcPageId).get();
+      // Snapshot stays active only while its initial immutable element set is
+      // copied. Firestore rules freeze it as soon as status becomes completed.
+      snapId = await createLessonPage({title:(srcPage.title||'Leht')+' — snapshot', isSnapshot:true, snapshotOf:srcPageId});
+      if(!snapId) return;
+      await copyElementsToPage(srcSid, snap, snapId);
+      const completedAt = firebase.firestore.FieldValue.serverTimestamp();
+      const completedBy = state.profile.displayName || state.profile.email || '';
+      const batch = db.batch();
+      batch.set(lessonPagesCol(srcSid).doc(snapId), {
+        status:'completed',
+        updatedAt:completedAt,
+        updatedByUid:state.authUser.uid,
+        updatedByName:completedBy
+      }, {merge:true});
+      batch.set(lessonPagesCol(srcSid).doc(srcPageId), {
+        status:'completed',
+        updatedAt:completedAt,
+        updatedByUid:state.authUser.uid,
+        updatedByName:completedBy
+      }, {merge:true});
+      await batch.commit();
+      alert('Tunni leht märgitud lõpetatuks ja hetkeseis salvestati snapshotina.');
+    }catch(err){
+      console.error('complete+snapshot failed', err);
+      await removeIncompleteLessonPage(srcSid, snapId);
+      alert('Snapshoti loomine ebaõnnestus. Proovi uuesti.');
+    }
   }
 
   function applyDocChange(sid, session, change){
@@ -542,17 +828,17 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
     await waitForPendingHistoryWrites();
     const action = state.history.pop();
     if(!action) return;
-    const sid = state.studentId, session = state.boardSession;
+    const sid = state.studentId, session = state.boardSession, pageId = state.activePageId;
     updateSaveStatus('saving');
     try{
       if(action.op==='create'){
-        await elementsCol(sid).doc(action.id).delete();
+        await elementsCol(sid, pageId).doc(action.id).delete();
         if(sid===state.studentId && session===state.boardSession) removeLocalElement(action.id);
       } else if(action.op==='delete'){
-        await elementsCol(sid).doc(action.id).set(writePayload(action.before));
+        await elementsCol(sid, pageId).doc(action.id).set(writePayload(action.before));
         if(sid===state.studentId && session===state.boardSession) addLocalElement(action.id, action.before);
       } else if(action.op==='update'){
-        await elementsCol(sid).doc(action.id).set(writePayload(action.before));
+        await elementsCol(sid, pageId).doc(action.id).set(writePayload(action.before));
         if(sid===state.studentId && session===state.boardSession) addLocalElement(action.id, action.before);
       } else if(action.op==='clear'){
         // Multi-document write: only touch local state after every batch
@@ -561,7 +847,7 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
         let batch = db.batch();
         let count = 0;
         for(const item of action.items){
-          batch.set(elementsCol(sid).doc(item.id), writePayload(item.data));
+          batch.set(elementsCol(sid, pageId).doc(item.id), writePayload(item.data));
           count++;
           if(count%400===0){ await batch.commit(); batch=db.batch(); }
         }
@@ -581,7 +867,7 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
       if(sid===state.studentId && session===state.boardSession){
         state.history.push(action); // put it back so the user can retry
         updateSaveStatus('error');
-        if(action.op==='clear') await resyncFromFirestore(sid, session);
+        if(action.op==='clear') await resyncFromFirestore(sid, session, pageId);
       }
     }
   }
@@ -589,23 +875,23 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
   async function redo(){
     const action = state.future.pop();
     if(!action) return;
-    const sid = state.studentId, session = state.boardSession;
+    const sid = state.studentId, session = state.boardSession, pageId = state.activePageId;
     updateSaveStatus('saving');
     try{
       if(action.op==='create'){
-        await elementsCol(sid).doc(action.id).set(writePayload(action.after));
+        await elementsCol(sid, pageId).doc(action.id).set(writePayload(action.after));
         if(sid===state.studentId && session===state.boardSession) addLocalElement(action.id, action.after);
       } else if(action.op==='delete'){
-        await elementsCol(sid).doc(action.id).delete();
+        await elementsCol(sid, pageId).doc(action.id).delete();
         if(sid===state.studentId && session===state.boardSession) removeLocalElement(action.id);
       } else if(action.op==='update'){
-        await elementsCol(sid).doc(action.id).set(writePayload(action.after));
+        await elementsCol(sid, pageId).doc(action.id).set(writePayload(action.after));
         if(sid===state.studentId && session===state.boardSession) addLocalElement(action.id, action.after);
       } else if(action.op==='clear'){
         let batch = db.batch();
         let count = 0;
         for(const item of action.items){
-          batch.delete(elementsCol(sid).doc(item.id));
+          batch.delete(elementsCol(sid, pageId).doc(item.id));
           count++;
           if(count%400===0){ await batch.commit(); batch=db.batch(); }
         }
@@ -621,7 +907,7 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
       if(sid===state.studentId && session===state.boardSession){
         state.future.push(action); // put it back so the user can retry
         updateSaveStatus('error');
-        if(action.op==='clear') await resyncFromFirestore(sid, session);
+        if(action.op==='clear') await resyncFromFirestore(sid, session, pageId);
       }
     }
   }
@@ -654,6 +940,10 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
       <div class="tool-divider"></div>
       <button class="tool-btn" id="btn-color" title="Värv"><span class="color-dot active" id="color-swatch" style="background:${state.color};border-color:${state.color==='#ffffff'?'#ccc':'transparent'}"></span></button>
       <button class="tool-btn" id="btn-delete" title="Kustuta valitu (Delete)"><i class="fa-solid fa-trash"></i></button>
+      ${state.isStaff?`
+      <div class="tool-divider"></div>
+      <button class="tool-btn" id="btn-material" title="Lisa materjal (pilt/PDF)"><i class="fa-solid fa-image"></i></button>
+      `:''}
       <div class="tool-divider"></div>
       <button class="tool-btn" id="btn-clear" title="Tühjenda tahvel"><i class="fa-solid fa-broom"></i></button>
     `;
@@ -665,6 +955,7 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
     document.getElementById('btn-delete').addEventListener('click',deleteSelected);
     document.getElementById('btn-clear').addEventListener('click',clearBoard);
     document.getElementById('btn-color').addEventListener('click',toggleColorPopover);
+    document.getElementById('btn-material')?.addEventListener('click',openMaterialModal);
   }
 
   function setTool(id){
@@ -710,16 +1001,16 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
   async function applyStyleToSelection(){
     if(!state.selectedId) return;
     const el = state.elementsMap.get(state.selectedId);
-    if(!el) return;
+    if(!el || el.type==='image' || el.type==='pdf') return; // color/width tool doesn't apply to materials
     const before = visualFields(el);
     if('color' in el) el.color = state.color;
     if('strokeWidth' in el) el.strokeWidth = state.strokeWidth;
     const after = visualFields(el);
     renderElements(); // optimistic paint only — history/confirmation happen after Firestore agrees
-    const sid = state.studentId, session = state.boardSession, id = el.id;
+    const sid = state.studentId, session = state.boardSession, pageId = state.activePageId, id = el.id;
     updateSaveStatus('saving');
     try{
-      await elementsCol(sid).doc(id).set(writePayload(after));
+      await elementsCol(sid, pageId).doc(id).set(writePayload(after));
       if(sid===state.studentId && session===state.boardSession){
         state.pendingElementUpdates.delete(id);
         addLocalElement(id, after);
@@ -830,7 +1121,9 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
     svg.addEventListener('pointerleave', e=>{ if(!panStart) handlePointerUp(e); });
     svg.addEventListener('dblclick', e=>{
       const hit=hitTest(screenToWorld(e.clientX,e.clientY));
-      if(!hit || (hit.type!=='text'&&hit.type!=='note')) return;
+      if(!hit) return;
+      if(hit.type==='pdf'){ e.preventDefault(); openPdfPreview(hit); return; }
+      if(hit.type!=='text'&&hit.type!=='note') return;
       e.preventDefault();
       state.selectedId=hit.id;
       renderElements();
@@ -855,8 +1148,14 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
       const hit = hitTest(p);
       if(hit){
         state.selectedId = hit.id;
-        state.drag = {mode:'move', id:hit.id, startX:p.x, startY:p.y, before:visualFields(hit), orig:JSON.parse(JSON.stringify(hit))};
-        state.interacting = true;
+        // A locked material stays selectable (so its lock icon can be
+        // clicked to unlock it) but is not draggable.
+        if(!hit.locked){
+          state.drag = {mode:'move', id:hit.id, startX:p.x, startY:p.y, before:visualFields(hit), orig:JSON.parse(JSON.stringify(hit))};
+          state.interacting = true;
+        } else {
+          state.drag = null;
+        }
       } else {
         state.selectedId = null;
         state.drag = null;
@@ -866,7 +1165,7 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
     }
     if(tool==='eraser'){
       const hit = hitTest(p);
-      if(hit) deleteElementById(hit.id);
+      if(hit && !hit.locked) deleteElementById(hit.id);
       return;
     }
     if(elementsList().length >= MAX_ELEMENTS){
@@ -941,6 +1240,13 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
       el.w = Math.max(20, orig.w + (p.x - state.drag.startX));
       el.h = Math.max(20, orig.h + (p.y - state.drag.startY));
       renderElements();
+    } else if(state.drag.mode==='rotate'){
+      const orig = state.drag.orig;
+      const cx = orig.x+orig.w/2, cy = orig.y+orig.h/2;
+      let deg = Math.atan2(p.y-cy, p.x-cx)*180/Math.PI + 90;
+      deg = Math.round(deg/5)*5; // snap every 5° so aligning with the board is easy
+      el.rotation = ((deg%360)+360)%360;
+      renderElements();
     }
   }
 
@@ -950,6 +1256,7 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
     const el = state.elementsMap.get(id);
     const sid = state.studentId;
     const session = state.boardSession;
+    const pageId = state.activePageId;
     state.drag = null;
     state.interacting = false;
 
@@ -960,14 +1267,14 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
     if(!el){ renderElements(); return; }
 
     const isCreate = mode==='draw-pen' || mode==='draw-shape';
-    const isUpdate = mode==='move' || mode==='resize';
+    const isUpdate = mode==='move' || mode==='resize' || mode==='rotate';
     if(!isCreate && !isUpdate){ renderElements(); return; }
 
     const after = visualFields(el);
     updateSaveStatus('saving');
     renderElements(); // optimistic paint only — pushAction happens after Firestore confirms
 
-    elementsCol(sid).doc(id).set(writePayload(after))
+    elementsCol(sid, pageId).doc(id).set(writePayload(after))
       .then(()=>{
         // The Firestore write itself always completes for the board it was
         // sent to — only what we do to *local* state/UI afterwards is
@@ -1022,7 +1329,7 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
       const el = list[i];
       if(el.type==='stroke'){
         for(const pt of el.points){ if(Math.hypot(pt[0]-p.x, pt[1]-p.y) < 10) return el; }
-      } else if(el.type==='shape' || el.type==='text' || el.type==='note'){
+      } else if(el.type==='shape' || el.type==='text' || el.type==='note' || el.type==='image' || el.type==='pdf'){
         const pad = 4;
         if(p.x>=el.x-pad && p.x<=el.x+el.w+pad && p.y>=el.y-pad && p.y<=el.y+el.h+pad) return el;
       }
@@ -1032,15 +1339,15 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
 
   function deleteElementById(id){
     const el = state.elementsMap.get(id);
-    if(!el) return;
+    if(!el || el.locked) return;
     const before = visualFields(el);
-    const sid = state.studentId, session = state.boardSession;
+    const sid = state.studentId, session = state.boardSession, pageId = state.activePageId;
     removeLocalElement(id);
     renderElements(); // optimistic paint only — history/confirmation happen after Firestore agrees
     updateSaveStatus('saving');
     const task=(async()=>{
     try{
-      await elementsCol(sid).doc(id).delete();
+      await elementsCol(sid, pageId).doc(id).delete();
       if(sid===state.studentId && session===state.boardSession){
         pushAction({op:'delete', id, before});
         updateSaveStatus('saved');
@@ -1064,15 +1371,17 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
 
   function deleteSelected(){
     if(!state.selectedId) return;
+    const el = state.elementsMap.get(state.selectedId);
+    if(el && el.locked) return;
     deleteElementById(state.selectedId);
   }
 
-  async function resyncFromFirestore(sid, session){
+  async function resyncFromFirestore(sid, session, pageId){
     // Used when a batched write (clear / undo-clear / redo-clear) may have
     // partially failed: local optimistic state could disagree with what
     // Firestore actually persisted, so re-read the subcollection as truth.
     try{
-      const snap = await elementsCol(sid).get();
+      const snap = await elementsCol(sid, pageId).get();
       if(sid!==state.studentId || session!==state.boardSession) return;
       state.elementsMap = new Map();
       state.elementOrder = [];
@@ -1086,20 +1395,28 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
   }
 
   async function clearBoard(){
-    const items = elementsList().map(el=>({id:el.id, data:visualFields(el)}));
-    if(!items.length) return;
-    if(!confirm('Tühjendada kogu tahvel? Seda ei saa tagasi võtta.')) return;
-    const sid = state.studentId, session = state.boardSession;
+    const allElements = elementsList();
+    const items = allElements.filter(el=>!el.locked).map(el=>({id:el.id, data:visualFields(el)}));
+    const lockedCount = allElements.length-items.length;
+    if(!items.length){
+      if(lockedCount) alert('Kõik tahvli elemendid on lukustatud. Ava lukk enne kustutamist.');
+      return;
+    }
+    const prompt = lockedCount
+      ? `Kustutada kõik ${items.length} lukustamata elementi? ${lockedCount} lukustatud elementi jääb alles.`
+      : 'Tühjendada kogu tahvel? Seda ei saa tagasi võtta.';
+    if(!confirm(prompt)) return;
+    const sid = state.studentId, session = state.boardSession, pageId = state.activePageId;
     items.forEach(item=>removeLocalElement(item.id));
     state.selectedId = null;
     renderElements(); // optimistic paint only — history/confirmation happen after every batch succeeds
-    showEmptyHint('Tühi tahvel. Vali tööriist vasakult ja alusta joonistamist, kirjutamist või lisa märkmeid.');
+    updateEmptyHintVisibility();
     updateSaveStatus('saving');
     try{
       let batch = db.batch();
       let count = 0;
       for(const item of items){
-        batch.delete(elementsCol(sid).doc(item.id));
+        batch.delete(elementsCol(sid, pageId).doc(item.id));
         count++;
         if(count%400===0){ await batch.commit(); batch=db.batch(); }
       }
@@ -1116,7 +1433,7 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
         // "board is empty" state could be wrong either way, so re-read
         // instead of recording a clear Undo would have nothing real to
         // invert.
-        await resyncFromFirestore(sid, session);
+        await resyncFromFirestore(sid, session, pageId);
       }
     }
   }
@@ -1131,6 +1448,7 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
     // of whatever board happens to be open when they click away.
     const editorSid = state.studentId;
     const editorSession = state.boardSession;
+    const editorPageId = state.activePageId;
     const svg = document.getElementById('board');
     const rect = svg.getBoundingClientRect();
     const screenX = rect.left + state.view.x + el.x*state.view.scale;
@@ -1175,7 +1493,7 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
         // resulting local UI update is gated on that board still being
         // the one currently open.
         try{
-          await elementsCol(editorSid).doc(id).delete();
+          await elementsCol(editorSid, editorPageId).doc(id).delete();
           if(stillCurrent()){
             removeLocalElement(id);
             pushAction({op:'delete', id, before});
@@ -1197,7 +1515,7 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
         updateSaveStatus('saving');
       }
       try{
-        await elementsCol(editorSid).doc(id).set(writePayload(after));
+        await elementsCol(editorSid, editorPageId).doc(id).set(writePayload(after));
         if(stillCurrent()){
           // Same reasoning as finalizeInteraction(): our write just became
           // the truth for this element, so any older queued remote update
@@ -1344,6 +1662,65 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
       group.appendChild(fo);
       return group;
     }
+    if(el.type==='image'){
+      const g = document.createElementNS(SVG_NS,'g');
+      if(el.rotation) g.setAttribute('transform', `rotate(${el.rotation} ${el.x+el.w/2} ${el.y+el.h/2})`);
+      const url = safeMaterialUrl(el.url);
+      if(url){
+        const img = document.createElementNS(SVG_NS,'image');
+        img.setAttributeNS('http://www.w3.org/1999/xlink','href', url);
+        img.setAttribute('href', url);
+        img.setAttribute('x',el.x); img.setAttribute('y',el.y);
+        img.setAttribute('width',el.w); img.setAttribute('height',el.h);
+        img.setAttribute('preserveAspectRatio','none');
+        g.appendChild(img);
+      } else {
+        const invalid = document.createElementNS(SVG_NS,'rect');
+        invalid.setAttribute('x',el.x); invalid.setAttribute('y',el.y);
+        invalid.setAttribute('width',el.w); invalid.setAttribute('height',el.h);
+        invalid.setAttribute('fill','#FEE2E2'); invalid.setAttribute('stroke','#dc2626');
+        g.appendChild(invalid);
+        const label = document.createElementNS(SVG_NS,'text');
+        label.setAttribute('x',el.x+10); label.setAttribute('y',el.y+24);
+        label.setAttribute('fill','#991B1B'); label.setAttribute('font-size','13');
+        label.textContent='Vigane pildi URL';
+        g.appendChild(label);
+      }
+      const border = document.createElementNS(SVG_NS,'rect');
+      border.setAttribute('x',el.x); border.setAttribute('y',el.y);
+      border.setAttribute('width',el.w); border.setAttribute('height',el.h);
+      border.setAttribute('fill','none'); border.setAttribute('stroke','rgba(28,43,58,.15)');
+      g.appendChild(border);
+      if(el.locked){
+        const lock = document.createElementNS(SVG_NS,'text');
+        lock.setAttribute('x',el.x+8); lock.setAttribute('y',el.y+20);
+        lock.setAttribute('font-size','16'); lock.textContent='🔒';
+        g.appendChild(lock);
+      }
+      return g;
+    }
+    if(el.type==='pdf'){
+      // No local rendering library for PDFs — placed as a clickable card
+      // (dblclick opens an in-browser preview, see openPdfPreview) rather
+      // than rasterizing the file, which this pass doesn't attempt.
+      const g = document.createElementNS(SVG_NS,'g');
+      if(el.rotation) g.setAttribute('transform', `rotate(${el.rotation} ${el.x+el.w/2} ${el.y+el.h/2})`);
+      const r = document.createElementNS(SVG_NS,'rect');
+      r.setAttribute('x',el.x); r.setAttribute('y',el.y);
+      r.setAttribute('width',el.w); r.setAttribute('height',el.h);
+      r.setAttribute('rx',10);
+      r.setAttribute('fill','#FBFAF8'); r.setAttribute('stroke','#dc2626'); r.setAttribute('stroke-width',1.4);
+      g.appendChild(r);
+      const fo = document.createElementNS(SVG_NS,'foreignObject');
+      fo.setAttribute('x',el.x+8); fo.setAttribute('y',el.y+8);
+      fo.setAttribute('width',Math.max(10,el.w-16)); fo.setAttribute('height',Math.max(10,el.h-16));
+      const div = document.createElement('div');
+      div.style.cssText = "font-family:'IBM Plex Sans',sans-serif;font-size:12px;color:#1C2B3A;display:flex;flex-direction:column;gap:5px;height:100%;justify-content:center;align-items:center;text-align:center;overflow:hidden";
+      div.innerHTML = `<i class="fa-solid fa-file-pdf" style="font-size:20px;color:#dc2626"></i><div style="font-weight:700;word-break:break-word;max-height:2.6em;overflow:hidden">${escapeHtml(el.name||'Dokument.pdf')}</div><div style="font-size:10px;color:#42536A">${el.locked?'🔒 ':''}2x klõps — eelvaade</div>`;
+      fo.appendChild(div);
+      g.appendChild(fo);
+      return g;
+    }
     return null;
   }
 
@@ -1362,7 +1739,9 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
     box.setAttribute('width',bounds.w); box.setAttribute('height',bounds.h);
     g.appendChild(box);
 
-    if(el.type!=='stroke'){
+    const isMaterial = el.type==='image' || el.type==='pdf';
+
+    if(el.type!=='stroke' && !el.locked){
       const handle = document.createElementNS(SVG_NS,'circle');
       handle.setAttribute('class','handle');
       handle.setAttribute('cx', el.x+el.w); handle.setAttribute('cy', el.y+el.h); handle.setAttribute('r',6);
@@ -1375,7 +1754,307 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
       g.appendChild(handle);
     }
 
+    if(isMaterial && !el.locked){
+      const rotateHandle = document.createElementNS(SVG_NS,'circle');
+      rotateHandle.setAttribute('class','handle');
+      rotateHandle.setAttribute('cx', el.x+el.w/2); rotateHandle.setAttribute('cy', el.y-20); rotateHandle.setAttribute('r',6);
+      rotateHandle.style.cursor='grab';
+      rotateHandle.addEventListener('pointerdown', e=>{
+        e.stopPropagation();
+        state.drag = {mode:'rotate', id:el.id, before:visualFields(el), orig:JSON.parse(JSON.stringify(el))};
+        state.interacting = true;
+      });
+      g.appendChild(rotateHandle);
+    }
+
+    if(isMaterial){
+      const lockBtn = document.createElementNS(SVG_NS,'g');
+      lockBtn.style.cursor = 'pointer';
+      const lockBg = document.createElementNS(SVG_NS,'circle');
+      lockBg.setAttribute('cx', el.x); lockBg.setAttribute('cy', el.y-20); lockBg.setAttribute('r',10);
+      lockBg.setAttribute('fill', el.locked?'#C9882A':'#fff');
+      lockBg.setAttribute('stroke','#C9882A'); lockBg.setAttribute('stroke-width',1.4);
+      lockBtn.appendChild(lockBg);
+      const lockIcon = document.createElementNS(SVG_NS,'text');
+      lockIcon.setAttribute('x', el.x); lockIcon.setAttribute('y', el.y-16);
+      lockIcon.setAttribute('text-anchor','middle'); lockIcon.setAttribute('font-size','11');
+      lockIcon.textContent = el.locked ? '🔒' : '🔓';
+      lockBtn.appendChild(lockIcon);
+      lockBtn.addEventListener('pointerdown', e=>{ e.stopPropagation(); e.preventDefault(); });
+      lockBtn.addEventListener('click', e=>{ e.stopPropagation(); toggleElementLock(el.id); });
+      g.appendChild(lockBtn);
+    }
+
     return g;
+  }
+
+  async function toggleElementLock(id){
+    const el = state.elementsMap.get(id);
+    if(!el) return;
+    const before = visualFields(el);
+    el.locked = !el.locked;
+    const after = visualFields(el);
+    renderElements();
+    const sid = state.studentId, session = state.boardSession, pageId = state.activePageId;
+    updateSaveStatus('saving');
+    try{
+      await elementsCol(sid, pageId).doc(id).set(writePayload(after));
+      if(sid===state.studentId && session===state.boardSession){
+        state.pendingElementUpdates.delete(id);
+        addLocalElement(id, after);
+        pushAction({op:'update', id, before, after});
+        renderElements();
+        updateSaveStatus('saved');
+      }
+    }catch(err){
+      console.error('lock toggle failed', err);
+      if(sid===state.studentId && session===state.boardSession){
+        addLocalElement(id, before);
+        renderElements();
+        updateSaveStatus('error');
+      }
+    }
+  }
+
+  // ── PDF PREVIEW OVERLAY ──────────────────────────────
+  // Renders the PDF inline in an <iframe> (browsers show their native PDF
+  // viewer for that MIME type) so it can be read without downloading it.
+  function openPdfPreview(el){
+    const url = safeMaterialUrl(el.url);
+    if(!url){
+      alert('PDF-i aadress ei ole turvaline või on vigane.');
+      return;
+    }
+    document.getElementById('pdf-preview-overlay')?.remove();
+    const overlay = document.createElement('div');
+    overlay.id = 'pdf-preview-overlay';
+    overlay.innerHTML = `
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+        <div style="color:#fff;font-weight:700;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(el.name||'Dokument.pdf')}</div>
+        <a class="btn sm" id="pdf-preview-open" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-up-right-from-square"></i> Ava uues aknas</a>
+        <button class="btn sm" id="pdf-preview-close"><i class="fa-solid fa-xmark"></i> Sulge</button>
+      </div>
+      <iframe id="pdf-preview-frame" style="flex:1;border:none;border-radius:12px;background:#fff" title="PDF eelvaade"></iframe>`;
+    document.body.appendChild(overlay);
+    document.getElementById('pdf-preview-open').href = url;
+    document.getElementById('pdf-preview-frame').src = url;
+    document.getElementById('pdf-preview-close').addEventListener('click',()=>overlay.remove());
+    overlay.addEventListener('click', e=>{ if(e.target===overlay) overlay.remove(); });
+  }
+
+  // ── MATERIALS (Block 1): upload images/PDFs onto the board, or insert an
+  // existing image already used in Õppevara (exercises) / a worksheet's
+  // content blocks. Staff-only — gated both here and in the toolbar render.
+  const storage = firebase.storage();
+
+  function centerOfView(){
+    const rect = document.getElementById('board').getBoundingClientRect();
+    return screenToWorld(rect.left+rect.width/2, rect.top+rect.height/2);
+  }
+
+  function insertMaterialElement({url, storagePath, name, isPdf}){
+    if(!state.studentId) return;
+    const materialUrl = safeMaterialUrl(url);
+    if(!materialUrl){
+      alert('Materjali aadress peab olema turvaline HTTPS-link.');
+      return;
+    }
+    if(elementsList().length >= MAX_ELEMENTS){
+      alert('Tahvel on täis (max '+MAX_ELEMENTS+' elementi). Kustuta midagi enne jätkamist.');
+      return;
+    }
+    const center = centerOfView();
+    const w = isPdf?220:280, h = isPdf?100:200;
+    const id = uid4();
+    const el = isPdf
+      ? {id, type:'pdf', x:center.x-w/2, y:center.y-h/2, w, h, url:materialUrl, storagePath:storagePath||'', name:name||'Dokument.pdf', rotation:0, locked:false}
+      : {id, type:'image', x:center.x-w/2, y:center.y-h/2, w, h, url:materialUrl, storagePath:storagePath||'', rotation:0, locked:false};
+    addLocalElement(id, el);
+    setTool('select'); // setTool() clears selection — set it below, after switching tools
+    state.selectedId = id;
+    renderElements();
+    const sid = state.studentId, session = state.boardSession, pageId = state.activePageId;
+    updateSaveStatus('saving');
+    elementsCol(sid, pageId).doc(id).set(writePayload(visualFields(el)))
+      .then(()=>{
+        if(sid!==state.studentId || session!==state.boardSession) return;
+        pushAction({op:'create', id, after:visualFields(el)});
+        updateSaveStatus('saved');
+        updateEmptyHintVisibility();
+      })
+      .catch(err=>{
+        console.error('material insert failed', err);
+        if(sid!==state.studentId || session!==state.boardSession) return;
+        removeLocalElement(id);
+        renderElements();
+        updateSaveStatus('error');
+        alert('Materjali lisamine ebaõnnestus. Proovi uuesti.');
+      });
+  }
+
+  function materialContentType(file, ext, isPdf){
+    if(isPdf) return 'application/pdf';
+    if((file.type||'').startsWith('image/')) return file.type;
+    return ({
+      png:'image/png', jpg:'image/jpeg', jpeg:'image/jpeg', gif:'image/gif',
+      webp:'image/webp', svg:'image/svg+xml'
+    })[ext] || '';
+  }
+
+  async function uploadMaterialFile(file){
+    const ext = (file.name.split('.').pop()||'').toLowerCase();
+    const isPdf = file.type==='application/pdf' || ext==='pdf';
+    const isImage = (file.type||'').startsWith('image/') || ['png','jpg','jpeg','gif','webp','svg'].includes(ext);
+    if(!isPdf && !isImage){ alert('Palun vali pilt (JPG/PNG/…) või PDF-fail.'); return; }
+    if(file.size > MAX_MATERIAL_MB*1024*1024){ alert('Fail on liiga suur (max '+MAX_MATERIAL_MB+' MB).'); return; }
+    const path = `whiteboards/${state.studentId}/materials/${Date.now()}_${file.name}`;
+    const statusEl = document.getElementById('material-upload-status');
+    if(statusEl) statusEl.textContent = 'Üleslaadimine…';
+    try{
+      const ref = storage.ref(path);
+      const contentType = materialContentType(file, ext, isPdf);
+      await ref.put(file, {contentType});
+      const url = await ref.getDownloadURL();
+      insertMaterialElement({url, storagePath:path, name:file.name, isPdf});
+      closeMaterialModal();
+    }catch(err){
+      console.error('material upload failed', err);
+      if(statusEl) statusEl.textContent = '';
+      alert('Faili üleslaadimine ebaõnnestus. Proovi uuesti.');
+    }
+  }
+
+  function closeMaterialModal(){
+    document.getElementById('material-modal')?.remove();
+  }
+
+  function openMaterialModal(){
+    closeMaterialModal();
+    const backdrop = document.createElement('div');
+    backdrop.className = 'modal-backdrop';
+    backdrop.id = 'material-modal';
+    backdrop.innerHTML = `
+      <div class="modal-card">
+        <div class="modal-head">
+          <h3>Lisa materjal</h3>
+          <button class="btn sm" id="material-close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-tabs">
+          <button class="modal-tab active" data-tab="upload">Laadi üles</button>
+          <button class="modal-tab" data-tab="oppevara">Õppevara</button>
+          <button class="modal-tab" data-tab="worksheet">Töölehed</button>
+        </div>
+        <div class="modal-body" id="material-body"></div>
+      </div>`;
+    document.body.appendChild(backdrop);
+    backdrop.addEventListener('click', e=>{ if(e.target===backdrop) closeMaterialModal(); });
+    document.getElementById('material-close').addEventListener('click', closeMaterialModal);
+    backdrop.querySelectorAll('.modal-tab').forEach(tab=>{
+      tab.addEventListener('click', ()=>{
+        backdrop.querySelectorAll('.modal-tab').forEach(t=>t.classList.toggle('active', t===tab));
+        renderMaterialTab(tab.dataset.tab);
+      });
+    });
+    renderMaterialTab('upload');
+  }
+
+  function renderMaterialTab(tab){
+    const body = document.getElementById('material-body');
+    if(!body) return;
+    if(tab==='upload'){
+      body.innerHTML = `
+        <p style="color:#42536A;font-size:.84rem;margin:0 0 12px">Vali pilt (JPG/PNG/…) või PDF-fail. Fail salvestatakse selle õpilase tahvli juurde.</p>
+        <input type="file" id="material-file-input" accept="image/*,application/pdf">
+        <div id="material-upload-status" style="margin-top:10px;font-size:.8rem;color:#42536A"></div>`;
+      document.getElementById('material-file-input').addEventListener('change', e=>{
+        const file = e.target.files && e.target.files[0];
+        if(file) uploadMaterialFile(file);
+      });
+      return;
+    }
+    if(tab==='oppevara'){
+      body.innerHTML = `<div style="color:#42536A;font-size:.84rem">Laadin Õppevara…</div>`;
+      loadOppevaraList(body);
+      return;
+    }
+    if(tab==='worksheet'){
+      body.innerHTML = `<div style="color:#42536A;font-size:.84rem">Laadin töölehtede pilte…</div>`;
+      loadWorksheetImages(body);
+      return;
+    }
+  }
+
+  async function loadOppevaraList(body){
+    try{
+      const snap = await db.collection('exercises').orderBy('title').limit(40).get();
+      const cards = [];
+      snap.forEach(doc=>{
+        const data = doc.data();
+        const files = Array.isArray(data.files) ? data.files : [];
+        files.forEach((f,idx)=>{
+          if(!f || !f.url) return;
+          const url = safeMaterialUrl(f.url);
+          if(!url) return;
+          const ext = (f.name||'').split('.').pop().toLowerCase();
+          const isPdf = ext==='pdf' || (f.type||'').includes('pdf');
+          const isImage = ['png','jpg','jpeg','gif','webp'].includes(ext) || (f.type||'').startsWith('image/');
+          if(!isPdf && !isImage) return;
+          cards.push({title:data.title||'Nimetu', url, name:f.name||data.title, isPdf, isImage, key:doc.id+'-'+idx});
+        });
+      });
+      if(!cards.length){ body.innerHTML = `<div style="color:#42536A;font-size:.84rem">Sobivaid pilte/PDF-e ei leitud.</div>`; return; }
+      body.innerHTML = `<div class="material-grid">${cards.map(c=>`
+        <button class="material-card" data-key="${escapeHtml(c.key)}">
+          ${c.isImage?`<img src="${escapeHtml(c.url)}" loading="lazy">`:`<div style="height:80px;display:flex;align-items:center;justify-content:center;background:#f4f2ee;border-radius:6px"><i class="fa-solid fa-file-pdf" style="font-size:26px;color:#dc2626"></i></div>`}
+          <div class="t">${escapeHtml(c.title)}</div>
+          <div class="m">${escapeHtml(c.name||'')}</div>
+        </button>`).join('')}</div>`;
+      body.querySelectorAll('.material-card').forEach((btn,i)=>{
+        btn.addEventListener('click', ()=>{
+          const c = cards[i];
+          insertMaterialElement({url:c.url, storagePath:'', name:c.name, isPdf:c.isPdf});
+          closeMaterialModal();
+        });
+      });
+    }catch(err){
+      console.error('load oppevara failed', err);
+      body.innerHTML = `<div style="color:#42536A;font-size:.84rem">Õppevara ei õnnestunud laadida.</div>`;
+    }
+  }
+
+  async function loadWorksheetImages(body){
+    // Worksheets have no flat page-image/PDF export (haldus-worksheet only
+    // supports browser print-to-PDF, not an in-app rasterization) — so this
+    // surfaces the individual images used inside each worksheet's content
+    // blocks rather than a single flattened page per worksheet.
+    try{
+      const snap = await db.collection('curriculumLessons').orderBy('updatedAt','desc').limit(30).get();
+      const cards = [];
+      snap.forEach(doc=>{
+        const data = doc.data();
+        const blocks = (data.worksheetData && Array.isArray(data.worksheetData.blocks)) ? data.worksheetData.blocks : [];
+        blocks.forEach((b,idx)=>{
+          const url = b && safeMaterialUrl(b.imageUrl);
+          if(url) cards.push({title:data.title||data.name||'Tööleht', url, key:doc.id+'-'+idx});
+        });
+      });
+      if(!cards.length){ body.innerHTML = `<div style="color:#42536A;font-size:.84rem">Sobivaid pilte ei leitud. (Töölehti saab tervikuna eksportida ainult printimise/PDF-ina — see vaade näitab ainult lehtedel kasutatud pilte.)</div>`; return; }
+      body.innerHTML = `<p style="color:#42536A;font-size:.78rem;margin:0 0 10px">Näitab töölehtede sees kasutatud pilte, mitte tervet lehte (töölehe tervikeksporti pole veel).</p><div class="material-grid">${cards.map(c=>`
+        <button class="material-card" data-key="${escapeHtml(c.key)}">
+          <img src="${escapeHtml(c.url)}" loading="lazy">
+          <div class="t">${escapeHtml(c.title)}</div>
+        </button>`).join('')}</div>`;
+      body.querySelectorAll('.material-card').forEach((btn,i)=>{
+        btn.addEventListener('click', ()=>{
+          const c = cards[i];
+          insertMaterialElement({url:c.url, storagePath:'', name:c.title, isPdf:false});
+          closeMaterialModal();
+        });
+      });
+    }catch(err){
+      console.error('load worksheet images failed', err);
+      body.innerHTML = `<div style="color:#42536A;font-size:.84rem">Töölehtede pilte ei õnnestunud laadida.</div>`;
+    }
   }
 
 })();
