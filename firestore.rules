@@ -1480,6 +1480,109 @@ service cloud.firestore {
       allow write: if isStaff();
     }
 
+    // One persistent canvas per student. Admin always has access. A teacher
+    // may open a board only for a student they own (same teacherUid scoping
+    // rule used everywhere else once the migration flag is enforced, with
+    // the same permissive name-matching fallback during migration). The
+    // linked student/parent can always reach their own board.
+    //
+    // Each drawn object is its OWN document in the elements subcollection —
+    // whiteboards/{studentId}/elements/{elementId} — so two people editing
+    // different objects at once can never overwrite each other; only two
+    // simultaneous edits to the SAME object fall back to Firestore's normal
+    // last-write-wins, which is the deliberately simple model here (no CRDT).
+    function whiteboardAccessAllowed(studentId) {
+      return isAdmin()
+        || (isTeacher() && exists(studentPath(studentId)) && teacherCanRead(studentDoc(studentId)))
+        || ownsStudent(studentId);
+    }
+
+    // Firestore rules cannot cheaply validate every point in a stroke's
+    // point list, so this caps the point count and overall shape of each
+    // element type; per-point numeric shape is left to the client plus
+    // Firestore's own per-document size ceiling.
+    function validWhiteboardElement(data) {
+      return data is map
+        && data.keys().hasAll(['type', 'updatedByUid'])
+        && data.updatedByUid == uid()
+        && data.type in ['stroke', 'shape', 'text', 'note']
+        && (
+          data.type != 'stroke'
+          || (
+            data.keys().hasOnly(['type', 'points', 'color', 'strokeWidth', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId', 'revision'])
+            && data.points is list
+            && data.points.size() > 0
+            && data.points.size() <= 800
+            && data.color is string
+            && data.strokeWidth is number
+            && data.strokeWidth > 0
+            && data.strokeWidth <= 40
+          )
+        )
+        && (
+          data.type != 'shape'
+          || (
+            data.keys().hasOnly(['type', 'shape', 'x', 'y', 'w', 'h', 'color', 'strokeWidth', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId', 'revision'])
+            && data.shape in ['rect', 'ellipse', 'line', 'arrow']
+            && data.x is number && data.y is number
+            && data.w is number && data.h is number
+            && data.color is string
+            && data.strokeWidth is number
+            && data.strokeWidth > 0
+            && data.strokeWidth <= 40
+          )
+        )
+        && (
+          data.type != 'text'
+          || (
+            data.keys().hasOnly(['type', 'x', 'y', 'w', 'h', 'text', 'color', 'fontSize', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId', 'revision'])
+            && data.x is number && data.y is number
+            && data.w is number && data.h is number
+            && data.text is string
+            && data.text.size() <= 4000
+            && data.color is string
+            && data.fontSize is number
+            && data.fontSize > 0
+            && data.fontSize <= 96
+          )
+        )
+        && (
+          data.type != 'note'
+          || (
+            data.keys().hasOnly(['type', 'x', 'y', 'w', 'h', 'text', 'color', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId', 'revision'])
+            && data.x is number && data.y is number
+            && data.w is number && data.h is number
+            && data.text is string
+            && data.text.size() <= 2000
+            && data.color is string
+          )
+        );
+    }
+
+    match /whiteboards/{studentId} {
+      // The parent document holds board metadata (schemaVersion, updatedAt)
+      // and, only for boards created before the element-subcollection
+      // migration, a legacy `elements` array kept around for one-time,
+      // idempotent migration on first open — not deleted automatically.
+      allow read: if whiteboardAccessAllowed(studentId);
+      allow create, update: if whiteboardAccessAllowed(studentId)
+        && request.resource.data.updatedByUid == uid()
+        && request.resource.data.keys().hasOnly([
+          'schemaVersion', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId', 'elements'
+        ])
+        && (
+          !('elements' in request.resource.data)
+          || (request.resource.data.elements is list && request.resource.data.elements.size() <= 800)
+        );
+      allow delete: if isAdmin();
+
+      match /elements/{elementId} {
+        allow read: if whiteboardAccessAllowed(studentId);
+        allow create, update: if whiteboardAccessAllowed(studentId) && validWhiteboardElement(request.resource.data);
+        allow delete: if whiteboardAccessAllowed(studentId);
+      }
+    }
+
     match /oauthStates/{stateId} {
       allow read, write: if false;
     }
