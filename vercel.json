@@ -41,6 +41,14 @@
       "destination": "/haldus-worksheet/index.html"
     },
     {
+      "source": "/haldus-whiteboard",
+      "destination": "/haldus-whiteboard/index.html"
+    },
+    {
+      "source": "/haldus-whiteboard/",
+      "destination": "/haldus-whiteboard/index.html"
+    },
+    {
       "source": "/tasemetest",
       "destination": "/tasemetest.html"
     },
@@ -103,6 +111,24 @@
     },
     {
       "source": "/haldus-worksheet/",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/html; charset=utf-8"
+        }
+      ]
+    },
+    {
+      "source": "/haldus-whiteboard",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/html; charset=utf-8"
+        }
+      ]
+    },
+    {
+      "source": "/haldus-whiteboard/",
       "headers": [
         {
           "key": "Content-Type",

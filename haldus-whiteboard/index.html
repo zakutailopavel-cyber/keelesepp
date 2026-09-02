@@ -1,0 +1,1342 @@
+<!doctype html>
+<html lang="et">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>KeeleSepp — Tahvel</title>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<style>
+:root{
+  --ink:#1C2B3A; --pine:#2F5D50; --amber:#C9882A; --bg:#F4F2EE;
+  --line:rgba(28,43,58,.12); --muted:#42536A;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;font-family:'IBM Plex Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink)}
+h1,h2,h3{font-family:'Fraunces',Georgia,serif;font-weight:600;margin:0}
+button{font-family:inherit;cursor:pointer}
+#app{height:100%;display:flex;flex-direction:column}
+.spinner{width:34px;height:34px;border-radius:50%;border:3px solid rgba(28,43,58,.12);border-top-color:var(--amber);animation:spin .8s linear infinite;margin:auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-shell{height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;color:var(--muted)}
+
+/* ── Topbar ─────────────────────────────────────────── */
+.topbar{height:56px;flex-shrink:0;display:flex;align-items:center;gap:14px;padding:0 16px;background:#fff;border-bottom:1px solid var(--line);z-index:20}
+.brand{font-family:'Fraunces',Georgia,serif;font-size:1.2rem;font-weight:600;white-space:nowrap}
+.brand span{color:var(--amber)}
+.topbar .sep{width:1px;height:24px;background:var(--line)}
+.board-title{font-weight:700;font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}
+.save-status{font-size:.74rem;color:var(--muted);display:flex;align-items:center;gap:6px;white-space:nowrap}
+.save-dot{width:7px;height:7px;border-radius:50%;background:#9ca3af;flex-shrink:0}
+.save-dot.saved{background:#2F5D50}
+.save-dot.saving{background:var(--amber);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.topbar .spacer{flex:1}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border-radius:9px;border:1.5px solid var(--line);background:#fff;color:var(--ink);font-size:.82rem;font-weight:600;text-decoration:none}
+.btn:hover{border-color:var(--amber)}
+.btn.primary{background:var(--ink);color:#fff;border-color:var(--ink)}
+.btn.primary:hover{background:#13202c}
+.btn.sm{padding:6px 10px;font-size:.76rem}
+
+/* ── Layout ─────────────────────────────────────────── */
+.workspace{flex:1;display:flex;min-height:0;position:relative}
+.canvas-wrap{flex:1;position:relative;overflow:hidden;background:
+  radial-gradient(circle,rgba(28,43,58,.14) 1px,transparent 1px) 0 0/22px 22px, #FBFAF8}
+svg#board{width:100%;height:100%;display:block;touch-action:none}
+.canvas-wrap.tool-pen svg#board,.canvas-wrap.tool-eraser svg#board{cursor:crosshair}
+.canvas-wrap.tool-rect svg#board,.canvas-wrap.tool-ellipse svg#board,.canvas-wrap.tool-arrow svg#board,.canvas-wrap.tool-line svg#board{cursor:crosshair}
+.canvas-wrap.tool-text svg#board,.canvas-wrap.tool-note svg#board{cursor:text}
+.canvas-wrap.tool-select svg#board{cursor:default}
+.canvas-wrap.panning svg#board{cursor:grabbing}
+
+/* ── Left toolbar ───────────────────────────────────── */
+.toolbar{position:absolute;left:16px;top:16px;bottom:16px;width:52px;background:#fff;border:1px solid var(--line);border-radius:16px;display:flex;flex-direction:column;align-items:center;padding:10px 0;gap:4px;box-shadow:0 8px 24px rgba(28,43,58,.08);z-index:15;overflow-y:auto}
+.tool-btn{width:38px;height:38px;border-radius:10px;border:none;background:transparent;color:var(--muted);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+.tool-btn:hover{background:rgba(28,43,58,.06)}
+.tool-btn.active{background:var(--amber);color:#fff}
+.tool-divider{width:28px;height:1px;background:var(--line);margin:4px 0;flex-shrink:0}
+.color-dot{width:22px;height:22px;border-radius:50%;border:2px solid transparent;flex-shrink:0}
+.color-dot.active{border-color:var(--ink)}
+
+/* ── Right panel (student picker for staff) ───────────*/
+.side-panel{position:absolute;right:16px;top:16px;width:280px;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 8px 24px rgba(28,43,58,.08);z-index:15;max-height:calc(100% - 32px);display:flex;flex-direction:column;overflow:hidden}
+.side-panel .head{padding:14px 16px 10px;border-bottom:1px solid var(--line)}
+.side-panel .head input{width:100%;padding:8px 10px;border-radius:9px;border:1.5px solid var(--line);font-size:.84rem;font-family:inherit}
+.side-panel .list{overflow-y:auto;padding:6px}
+.side-panel .item{display:flex;flex-direction:column;gap:1px;padding:9px 10px;border-radius:9px;cursor:pointer}
+.side-panel .item:hover{background:rgba(201,136,42,.08)}
+.side-panel .item.active{background:rgba(47,93,80,.1)}
+.side-panel .item .name{font-weight:700;font-size:.86rem}
+.side-panel .item .meta{font-size:.72rem;color:var(--muted)}
+.panel-toggle{position:absolute;right:16px;top:16px;z-index:16}
+
+/* ── Zoom controls ─────────────────────────────────── */
+.zoom-controls{position:absolute;right:16px;bottom:16px;background:#fff;border:1px solid var(--line);border-radius:12px;display:flex;align-items:center;box-shadow:0 8px 24px rgba(28,43,58,.08);z-index:15;overflow:hidden}
+.zoom-controls button{width:36px;height:36px;border:none;background:transparent;color:var(--ink);font-size:.9rem}
+.zoom-controls button:hover{background:rgba(28,43,58,.06)}
+.zoom-controls .pct{font-size:.76rem;font-weight:700;width:48px;text-align:center;color:var(--muted)}
+
+/* ── Stroke width popover ─────────────────────────────*/
+.width-pop{position:absolute;left:60px;top:0;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px;box-shadow:0 8px 24px rgba(28,43,58,.1);z-index:20}
+.width-pop input[type=range]{width:120px}
+
+/* ── SVG element helpers ──────────────────────────────*/
+.el-selected{outline:none}
+.selection-box{fill:none;stroke:var(--amber);stroke-width:1.4;stroke-dasharray:5 4;pointer-events:none}
+.handle{fill:#fff;stroke:var(--amber);stroke-width:1.6;cursor:nwse-resize}
+
+/* ── Text/note edit overlay ───────────────────────────*/
+.edit-overlay{position:absolute;z-index:30;background:transparent;border:2px solid var(--amber);border-radius:6px;padding:4px 6px;font-family:'IBM Plex Sans',sans-serif;resize:none;outline:none;line-height:1.35}
+
+/* ── Auth screen ───────────────────────────────────────*/
+.auth-shell{height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1C2B3A 0%,#2F5D50 100%)}
+.auth-card{background:#FBFAF8;border-radius:24px;padding:40px 36px;max-width:420px;width:90%;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,.3)}
+
+/* ── Empty state ─────────────────────────────────────*/
+.empty-hint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;color:var(--muted);font-size:.92rem;text-align:center;padding:40px}
+
+@media (max-width:760px){
+  .side-panel{width:calc(100% - 32px)}
+  .board-title{max-width:120px}
+}
+</style>
+</head>
+<body>
+<div id="app" class="loading-shell"><div class="spinner"></div><div>Tahvel laadib…</div></div>
+
+<script>
+(function(){
+  firebase.initializeApp({
+    apiKey:"AIzaSyAp8emBOh1fIqv72k_O5hkLkXVkfBt1al4",
+    authDomain:"keelesepp-5136b.firebaseapp.com",
+    projectId:"keelesepp-5136b",
+    storageBucket:"keelesepp-5136b.firebasestorage.app",
+    messagingSenderId:"674098517935",
+    appId:"1:674098517935:web:e73d04a4ada67874da015a"
+  });
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+  const app = document.getElementById('app');
+  const clientId = Math.random().toString(36).slice(2,10);
+
+  // ── ARCHITECTURE ──────────────────────────────────────
+  // Each board element is its own document:
+  //   whiteboards/{studentId}/elements/{elementId}
+  // The parent whiteboards/{studentId} document holds only board metadata
+  // (schemaVersion, updatedAt) plus, for boards created before this release,
+  // a legacy `elements` array that gets migrated into the subcollection the
+  // first time the board is opened. Per-element documents mean two people
+  // editing different objects at once can never clobber each other — only
+  // concurrent edits to the SAME element rely on Firestore's normal
+  // last-write-wins, which is the deliberately simple model asked for here
+  // (no CRDT).
+
+  const COLORS = ['#1C2B3A','#2F5D50','#C9882A','#dc2626','#2563eb','#7c3aed','#ffffff'];
+  const NOTE_COLORS = ['#FEF3C7','#DCFCE7','#DBEAFE','#FCE7F3','#EDE9FE','#FFEDD5'];
+  const MAX_ELEMENTS = 800; // client-side soft cap; not enforced server-side (see firestore.rules note)
+  const MAX_POINTS_PER_STROKE = 800;
+  const MIN_POINT_DIST = 2.5; // world-space px between sampled pen points
+  const MAX_TEXT_LEN = 4000;
+  const MAX_NOTE_LEN = 2000;
+
+  const state = {
+    authUser:null, profile:null, isStaff:false, isAdmin:false,
+    teacherScopeReadEnforced:false,
+    students:[], studentId:'', studentName:'',
+    boardSession:0, // bumped on every openBoard() call, even re-opening the same student
+    elementsMap:new Map(), elementOrder:[], // local mirror of the elements subcollection
+    selectedId:null,
+    tool:'select', color:'#1C2B3A', strokeWidth:3, noteColor:NOTE_COLORS[0],
+    view:{x:0,y:0,scale:1},
+    history:[], future:[], // operation logs: {op:'create'|'delete'|'update'|'clear', ...}
+    elementsUnsub:null,
+    interacting:false, // true while a local pointer gesture is in progress
+    pendingElementUpdates:new Map(), // id -> latest remote doc data seen while interacting with that id
+    drag:null,
+    renderQueued:false
+  };
+
+  function isStaffProfile(p){ return p && (p.role==='teacher'||p.role==='admin'); }
+  function uid4(){ return 'el'+Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4); }
+  function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function elementsCol(sid){ return db.collection('whiteboards').doc(sid).collection('elements'); }
+  function elementsList(){ return state.elementOrder.map(id=>state.elementsMap.get(id)).filter(Boolean); }
+
+  // ── AUTH ────────────────────────────────────────────
+  auth.onAuthStateChanged(async user=>{
+    if(!user){ renderAuthRequired(); return; }
+    state.authUser = user;
+    try{
+      const snap = await db.collection('users').doc(user.uid).get();
+      state.profile = {uid:user.uid, email:user.email, displayName:user.displayName||user.email, ...(snap.exists?snap.data():{})};
+      state.isStaff = isStaffProfile(state.profile);
+      state.isAdmin = state.profile.role==='admin' || (state.profile.email||'').toLowerCase()==='zakutailo.pavel@gmail.com';
+      await loadTeacherScopeFlag();
+      await loadStudents();
+      renderShell();
+
+      const requestedId = new URLSearchParams(location.search).get('student');
+      if(requestedId){
+        const match = state.students.find(s=>s.id===requestedId);
+        if(match){ openBoard(match.id, match.name); return; }
+        showEmptyHint('Sul pole sellele õpilasele juurdepääsu või kaarti ei leitud.');
+        return;
+      }
+      if(!state.isStaff){
+        if(state.students.length>=1){ openBoard(state.students[0].id, state.students[0].name); }
+        else { showEmptyHint('Õpilase kaarti ei leitud. Palu õpetajal see siduda.'); }
+      }
+    }catch(err){
+      console.error(err);
+      renderError('Tahvlit ei õnnestunud laadida. Proovi lehte värskendada.');
+    }
+  });
+
+  async function loadTeacherScopeFlag(){
+    try{
+      const snap = await db.collection('securityMigrations').doc('teacherUidV1').get();
+      state.teacherScopeReadEnforced = snap.exists && snap.data()?.readEnforced===true;
+    }catch(err){
+      state.teacherScopeReadEnforced = false;
+    }
+  }
+
+  function renderAuthRequired(){
+    app.className='auth-shell';
+    app.innerHTML = `
+      <div class="auth-card">
+        <div style="font-family:'Fraunces',Georgia,serif;font-size:1.9rem;font-weight:600;margin-bottom:8px">Keele<span style="color:#C9882A">Sepp</span></div>
+        <div style="color:#42536A;margin-bottom:22px">Tahvel kasutab sama kontot nagu KeeleSepp CRM.</div>
+        <a class="btn primary" href="/haldus/" style="width:100%;justify-content:center;box-sizing:border-box">Ava KeeleSepp CRM</a>
+      </div>`;
+  }
+  function renderError(msg){
+    app.className='loading-shell';
+    app.innerHTML = `<div style="text-align:center;max-width:420px"><h2 style="margin-bottom:10px">Viga</h2><p style="color:#42536A">${escapeHtml(msg)}</p><a class="btn" href="/haldus/" style="margin-top:14px">Tagasi CRM-i</a></div>`;
+  }
+
+  async function loadStudents(){
+    if(state.isStaff){
+      const teacherScoped = state.teacherScopeReadEnforced && !state.isAdmin;
+      const query = teacherScoped
+        ? db.collection('students').where('teacherUid','==',state.authUser.uid)
+        : db.collection('students');
+      const snap = await query.get();
+      state.students = snap.docs.map(d=>({id:d.id,...d.data()})).filter(s=>s.active!==false)
+        .sort((a,b)=>(a.name||'').localeCompare(b.name||'','et'));
+      return;
+    }
+    // Every relation the main CRM recognises between a signed-in account and
+    // a student card: direct student login, or parent linked by any of the
+    // legacy singular fields or the newer array fields.
+    const equalityFields = ['linkedUserId','studentUid','linkedParentId','parentUid','guardianUid'];
+    const arrayFields = ['linkedUserIds','linkedParentIds'];
+    const queries = [
+      ...equalityFields.map(f=>db.collection('students').where(f,'==',state.authUser.uid)),
+      ...arrayFields.map(f=>db.collection('students').where(f,'array-contains',state.authUser.uid))
+    ];
+    const results = await Promise.allSettled(queries.map(q=>q.get()));
+    const byId = new Map();
+    results.forEach(r=>{ if(r.status==='fulfilled') r.value.docs.forEach(d=>byId.set(d.id,{id:d.id,...d.data()})); });
+    state.students = Array.from(byId.values()).filter(s=>s.active!==false);
+  }
+
+  // ── SHELL ───────────────────────────────────────────
+  function renderShell(){
+    app.className='';
+    app.innerHTML = `
+      <div class="topbar">
+        <div class="brand">Keele<span>Sepp</span> Tahvel</div>
+        <div class="sep"></div>
+        <div class="board-title" id="board-title">${state.isStaff? 'Vali õpilane →' : 'Laadin…'}</div>
+        <div class="save-status" id="save-status" style="display:none">
+          <span class="save-dot" id="save-dot"></span><span id="save-label">Salvestatud</span>
+        </div>
+        <div class="spacer"></div>
+        <a class="btn sm" href="/haldus/"><i class="fa-solid fa-arrow-left"></i> CRM</a>
+      </div>
+      <div class="workspace">
+        <div class="canvas-wrap tool-select" id="canvas-wrap">
+          <svg id="board" xmlns="http://www.w3.org/2000/svg"><g id="board-g"></g></svg>
+          <div class="empty-hint" id="empty-hint" style="display:none"></div>
+        </div>
+        ${state.isStaff? `
+        <button class="btn panel-toggle sm" id="panel-toggle" style="display:none"><i class="fa-solid fa-users"></i></button>
+        <div class="side-panel" id="side-panel">
+          <div class="head"><input id="student-search" placeholder="Otsi õpilast…" autocomplete="off"></div>
+          <div class="list" id="student-list"></div>
+        </div>` : ''}
+        <div class="toolbar" id="toolbar"></div>
+        <div class="zoom-controls" id="zoom-controls">
+          <button id="zoom-out"><i class="fa-solid fa-minus"></i></button>
+          <span class="pct" id="zoom-pct">100%</span>
+          <button id="zoom-in"><i class="fa-solid fa-plus"></i></button>
+          <button id="zoom-fit" title="Sobita"><i class="fa-solid fa-expand"></i></button>
+        </div>
+      </div>`;
+
+    renderToolbar();
+    if(state.isStaff){ renderStudentList(); bindStudentSearch(); }
+    bindCanvasEvents();
+    bindZoomControls();
+    updateSaveStatus('idle');
+  }
+
+  function showEmptyHint(text){
+    const hint = document.getElementById('empty-hint');
+    if(!hint) return;
+    hint.textContent = text;
+    hint.style.display='flex';
+  }
+  function hideEmptyHint(){
+    const hint = document.getElementById('empty-hint');
+    if(hint) hint.style.display='none';
+  }
+  function updateEmptyHintVisibility(){
+    if(!state.studentId) return;
+    if(elementsList().length===0) showEmptyHint('Tühi tahvel. Vali tööriist vasakult ja alusta joonistamist, kirjutamist või lisa märkmeid.');
+    else hideEmptyHint();
+  }
+
+  // ── STUDENT PICKER ──────────────────────────────────
+  function renderStudentList(filter){
+    const list = document.getElementById('student-list');
+    if(!list) return;
+    const q = (filter||'').toLowerCase();
+    const items = state.students.filter(s=>!q || (s.name||'').toLowerCase().includes(q));
+    list.innerHTML = items.map(s=>`
+      <div class="item ${s.id===state.studentId?'active':''}" data-id="${s.id}" data-name="${escapeHtml(s.name||'')}">
+        <div class="name">${escapeHtml(s.name||'Nimetu')}</div>
+        <div class="meta">${escapeHtml(s.subject||'')}${s.teacher?' · '+escapeHtml(s.teacher):''}</div>
+      </div>`).join('') || `<div style="padding:14px;color:#42536A;font-size:.82rem">Õpilasi ei leitud.</div>`;
+    list.querySelectorAll('.item').forEach(el=>{
+      el.addEventListener('click',()=>openBoard(el.dataset.id, el.dataset.name));
+    });
+  }
+
+  function bindStudentSearch(){
+    const input = document.getElementById('student-search');
+    if(!input) return;
+    input.addEventListener('input', e=>renderStudentList(e.target.value));
+  }
+
+  // ── FIELD (DE)SERIALIZATION ──────────────────────────
+  // "Visual" fields are the plain, JSON-safe subset of an element that
+  // Undo/Redo snapshots and Firestore writes both use. Bookkeeping fields
+  // (updatedAt, updatedByUid, lastClientId, revision) are added separately
+  // by writePayload() at write time and are never part of an undo snapshot.
+  function visualFields(el){
+    const f = {type:el.type, color:el.color};
+    if(el.type==='stroke'){ f.points=el.points; f.strokeWidth=el.strokeWidth; }
+    else if(el.type==='shape'){ f.shape=el.shape; f.x=el.x; f.y=el.y; f.w=el.w; f.h=el.h; f.strokeWidth=el.strokeWidth; }
+    else if(el.type==='text'){ f.x=el.x; f.y=el.y; f.w=el.w; f.h=el.h; f.text=el.text; f.fontSize=el.fontSize; }
+    else if(el.type==='note'){ f.x=el.x; f.y=el.y; f.w=el.w; f.h=el.h; f.text=el.text; }
+    return JSON.parse(JSON.stringify(f));
+  }
+  function writePayload(fields){
+    return {
+      ...fields,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedByUid: state.authUser.uid,
+      updatedByName: state.profile.displayName || state.profile.email || '',
+      lastClientId: clientId,
+      revision: firebase.firestore.FieldValue.increment(1)
+    };
+  }
+
+  function addLocalElement(id, fields){
+    state.elementsMap.set(id, {...fields, id});
+    if(!state.elementOrder.includes(id)) state.elementOrder.push(id);
+  }
+  function removeLocalElement(id){
+    state.elementsMap.delete(id);
+    state.elementOrder = state.elementOrder.filter(x=>x!==id);
+    if(state.selectedId===id) state.selectedId=null;
+  }
+
+  // ── BOARD LOAD ────────────────────────────────────────
+  function openBoard(studentId, studentName){
+    // If a gesture on the previous board is still mid-flight (rare — the
+    // side panel is behind pointer-captured SVG while actively drawing),
+    // finalize it against the OLD student/session before switching so
+    // nothing is silently dropped or written to the wrong board.
+    if(state.interacting && state.drag && state.studentId){
+      finalizeInteraction();
+    }
+
+    if(state.elementsUnsub){ state.elementsUnsub(); state.elementsUnsub=null; }
+    state.studentId = studentId;
+    state.studentName = studentName || '';
+    // Bumped on EVERY open, even re-opening the same student — this is
+    // what lets us tell a stale async callback from a previous open of
+    // this exact board apart from a callback that belongs to right now.
+    state.boardSession++;
+    const boundSession = state.boardSession;
+    state.elementsMap = new Map();
+    state.elementOrder = [];
+    state.selectedId = null;
+    state.history = []; state.future = [];
+    state.pendingElementUpdates = new Map();
+    state.view = {x:0,y:0,scale:1};
+    const titleEl = document.getElementById('board-title');
+    if(titleEl) titleEl.textContent = state.studentName ? state.studentName+' — tahvel' : 'Tahvel';
+    if(state.isStaff) renderStudentList(document.getElementById('student-search')?.value);
+    document.getElementById('save-status').style.display='flex';
+    showEmptyHint('Laadin tahvlit…');
+    renderElements();
+
+    const url = new URL(location.href);
+    url.searchParams.set('student', studentId);
+    history.replaceState(null, '', url);
+
+    const boundStudentId = studentId; // guards against a stale listener from a previous board
+    state.elementsUnsub = elementsCol(studentId).onSnapshot(snapshot=>{
+      if(boundStudentId !== state.studentId || boundSession !== state.boardSession) return;
+      snapshot.docChanges().forEach(change=>applyDocChange(boundStudentId, boundSession, change));
+      updateSaveStatus('saved');
+      updateEmptyHintVisibility();
+      renderElements();
+    }, err=>{
+      console.error('elements listen failed', err);
+    });
+
+    migrateLegacyIfNeeded(studentId);
+  }
+
+  function applyDocChange(sid, session, change){
+    if(sid !== state.studentId || session !== state.boardSession) return;
+    const id = change.doc.id;
+
+    if(change.type==='removed'){
+      if(state.drag && state.drag.id===id){ return; } // don't yank an element out from under an active drag
+      removeLocalElement(id);
+      return;
+    }
+
+    const data = change.doc.data();
+    const isEcho = data.lastClientId === clientId;
+
+    // Actively interacting with this exact element locally — never let a
+    // remote snapshot (including our own not-yet-confirmed echo) overwrite
+    // what the user is dragging right now. Queue it and re-check after.
+    if(state.drag && state.drag.id===id){
+      state.pendingElementUpdates.set(id, data);
+      return;
+    }
+    // An echo of our own write only means "already reflected locally, skip
+    // it" when we ALREADY have this element in the map — i.e. it's the
+    // confirmation of something we just wrote during THIS open of the
+    // board. On initial hydration after reopening a board (elementsMap
+    // freshly cleared), our own past elements still arrive tagged with our
+    // clientId, and skipping them here would leave a board that exists in
+    // Firestore looking empty in the UI. Those must still be loaded.
+    if(isEcho && state.elementsMap.has(id)){
+      return;
+    }
+    addLocalElement(id, data);
+  }
+
+  function flushPendingElementUpdatesExcept(excludeId){
+    // Apply any queued remote snapshot for an id OTHER than the one whose
+    // local write is about to be confirmed by its own caller. In practice
+    // pendingElementUpdates only ever holds an entry for state.drag.id (see
+    // applyDocChange's guard), so this is normally a no-op — but it stays
+    // generic rather than assuming that invariant forever.
+    state.pendingElementUpdates.forEach((data,id)=>{
+      if(id===excludeId) return;
+      if(!(state.drag && state.drag.id===id)) addLocalElement(id, data);
+    });
+    Array.from(state.pendingElementUpdates.keys()).forEach(id=>{
+      if(id!==excludeId) state.pendingElementUpdates.delete(id);
+    });
+  }
+
+  // ── MIGRATION: legacy whiteboards/{studentId}.elements[] ────────────────
+  // Idempotent by construction: every legacy element resolves to the same
+  // Firestore document id on every run (its own `id` field, or a
+  // position-based `legacy-{index}` fallback for elements that never had
+  // one — position is stable because the legacy array itself is never
+  // reordered or mutated). Re-running this after a partial failure just
+  // re-writes the same docs; it can never create duplicates. schemaVersion
+  // is only stamped once every legacy element has been confirmed written —
+  // if any batch throws, the whole migration (not just the failed part)
+  // simply retries from the top on the next open.
+  async function migrateLegacyIfNeeded(studentId){
+    try{
+      const parentRef = db.collection('whiteboards').doc(studentId);
+      const parentSnap = await parentRef.get();
+      if(!parentSnap.exists) return;
+      const data = parentSnap.data();
+      if(data.schemaVersion===2) return;
+      const legacy = Array.isArray(data.elements) ? data.elements : [];
+
+      if(legacy.length){
+        let batch = db.batch();
+        let count = 0;
+        for(let i=0;i<legacy.length;i++){
+          const item = legacy[i];
+          if(!item || !item.type) continue;
+          const id = item.id || ('legacy-'+i);
+          const fields = visualFields(item);
+          batch.set(elementsCol(studentId).doc(id), writePayload(fields), {merge:true});
+          count++;
+          if(count%400===0){ await batch.commit(); batch=db.batch(); }
+        }
+        await batch.commit(); // if this throws, we never reach the schemaVersion write below
+      }
+
+      // Stamped only now, as the current user, so this write always passes
+      // the `updatedByUid == uid()` rule regardless of who saved the board
+      // last (fixes a permission-denied when e.g. a student saved last and
+      // a teacher is the one running the migration).
+      await parentRef.set({
+        schemaVersion:2,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedByUid: state.authUser.uid,
+        updatedByName: state.profile.displayName || state.profile.email || '',
+        lastClientId: clientId
+      }, {merge:true});
+    }catch(err){
+      console.warn('legacy board migration incomplete, will retry on next open:', err);
+    }
+  }
+
+  function updateSaveStatus(kind){
+    const dot = document.getElementById('save-dot');
+    const label = document.getElementById('save-label');
+    if(!dot||!label) return;
+    dot.className = 'save-dot' + (kind==='saving'?' saving':kind==='saved'?' saved':'');
+    label.textContent = kind==='saving'?'Salvestan…':kind==='error'?'Salvestamine ebaõnnestus':kind==='saved'?'Salvestatud':'—';
+  }
+
+  // ── UNDO / REDO (per-element operation log, local to this client) ───────
+  // Each history entry describes ONE Firestore-level operation on ONE
+  // element. Undo inverts exactly that operation on that element; it never
+  // touches anything created or changed by someone else in the meantime.
+  function pushAction(action){
+    state.history.push(action);
+    if(state.history.length>60) state.history.shift();
+    state.future = [];
+  }
+
+  async function undo(){
+    const action = state.history.pop();
+    if(!action) return;
+    const sid = state.studentId, session = state.boardSession;
+    updateSaveStatus('saving');
+    try{
+      if(action.op==='create'){
+        await elementsCol(sid).doc(action.id).delete();
+        if(sid===state.studentId && session===state.boardSession) removeLocalElement(action.id);
+      } else if(action.op==='delete'){
+        await elementsCol(sid).doc(action.id).set(writePayload(action.before));
+        if(sid===state.studentId && session===state.boardSession) addLocalElement(action.id, action.before);
+      } else if(action.op==='update'){
+        await elementsCol(sid).doc(action.id).set(writePayload(action.before));
+        if(sid===state.studentId && session===state.boardSession) addLocalElement(action.id, action.before);
+      } else if(action.op==='clear'){
+        // Multi-document write: only touch local state after every batch
+        // has been confirmed, so a failure partway through can't leave the
+        // UI showing restored items Firestore never actually got.
+        let batch = db.batch();
+        let count = 0;
+        for(const item of action.items){
+          batch.set(elementsCol(sid).doc(item.id), writePayload(item.data));
+          count++;
+          if(count%400===0){ await batch.commit(); batch=db.batch(); }
+        }
+        await batch.commit();
+        if(sid===state.studentId && session===state.boardSession) action.items.forEach(item=>addLocalElement(item.id, item.data));
+      }
+      if(sid===state.studentId && session===state.boardSession){
+        state.future.push(action);
+        state.selectedId=null; renderElements(); updateSaveStatus('saved');
+      }
+      // If the board was switched mid-flight, the Firestore change above
+      // still happened for the OLD board — that's fine and intentional —
+      // but this action's local history bookkeeping is simply dropped
+      // rather than pushed into whatever board is open now.
+    }catch(err){
+      console.error('undo failed', err);
+      if(sid===state.studentId && session===state.boardSession){
+        state.history.push(action); // put it back so the user can retry
+        updateSaveStatus('error');
+        if(action.op==='clear') await resyncFromFirestore(sid, session);
+      }
+    }
+  }
+
+  async function redo(){
+    const action = state.future.pop();
+    if(!action) return;
+    const sid = state.studentId, session = state.boardSession;
+    updateSaveStatus('saving');
+    try{
+      if(action.op==='create'){
+        await elementsCol(sid).doc(action.id).set(writePayload(action.after));
+        if(sid===state.studentId && session===state.boardSession) addLocalElement(action.id, action.after);
+      } else if(action.op==='delete'){
+        await elementsCol(sid).doc(action.id).delete();
+        if(sid===state.studentId && session===state.boardSession) removeLocalElement(action.id);
+      } else if(action.op==='update'){
+        await elementsCol(sid).doc(action.id).set(writePayload(action.after));
+        if(sid===state.studentId && session===state.boardSession) addLocalElement(action.id, action.after);
+      } else if(action.op==='clear'){
+        let batch = db.batch();
+        let count = 0;
+        for(const item of action.items){
+          batch.delete(elementsCol(sid).doc(item.id));
+          count++;
+          if(count%400===0){ await batch.commit(); batch=db.batch(); }
+        }
+        await batch.commit();
+        if(sid===state.studentId && session===state.boardSession) action.items.forEach(item=>removeLocalElement(item.id));
+      }
+      if(sid===state.studentId && session===state.boardSession){
+        state.history.push(action);
+        state.selectedId=null; renderElements(); updateSaveStatus('saved');
+      }
+    }catch(err){
+      console.error('redo failed', err);
+      if(sid===state.studentId && session===state.boardSession){
+        state.future.push(action); // put it back so the user can retry
+        updateSaveStatus('error');
+        if(action.op==='clear') await resyncFromFirestore(sid, session);
+      }
+    }
+  }
+
+  // ── TOOLBAR ─────────────────────────────────────────
+  const TOOLS = [
+    {id:'select', icon:'fa-arrow-pointer', title:'Vali (V)'},
+    {id:'pen', icon:'fa-pen', title:'Pliiats (P)'},
+    {id:'eraser', icon:'fa-eraser', title:'Kustutaja (E)'},
+    null,
+    {id:'rect', icon:'fa-square', title:'Ristkülik (R)'},
+    {id:'ellipse', icon:'fa-circle', title:'Ellips (O)'},
+    {id:'line', icon:'fa-slash', title:'Joon (L)'},
+    {id:'arrow', icon:'fa-arrow-right', title:'Nool (A)'},
+    null,
+    {id:'text', icon:'fa-font', title:'Tekst (T)'},
+    {id:'note', icon:'fa-note-sticky', title:'Märkmepaber (N)'},
+  ];
+
+  function renderToolbar(){
+    const bar = document.getElementById('toolbar');
+    bar.innerHTML = TOOLS.map(t=>{
+      if(t===null) return '<div class="tool-divider"></div>';
+      return `<button class="tool-btn ${state.tool===t.id?'active':''}" data-tool="${t.id}" title="${t.title}"><i class="fa-solid ${t.icon}"></i></button>`;
+    }).join('') + `
+      <div class="tool-divider"></div>
+      <button class="tool-btn" id="btn-undo" title="Tagasi (Cmd+Z)"><i class="fa-solid fa-rotate-left"></i></button>
+      <button class="tool-btn" id="btn-redo" title="Edasi (Cmd+Shift+Z)"><i class="fa-solid fa-rotate-right"></i></button>
+      <div class="tool-divider"></div>
+      <button class="tool-btn" id="btn-color" title="Värv"><span class="color-dot active" id="color-swatch" style="background:${state.color};border-color:${state.color==='#ffffff'?'#ccc':'transparent'}"></span></button>
+      <button class="tool-btn" id="btn-delete" title="Kustuta valitu (Delete)"><i class="fa-solid fa-trash"></i></button>
+      <div class="tool-divider"></div>
+      <button class="tool-btn" id="btn-clear" title="Tühjenda tahvel"><i class="fa-solid fa-broom"></i></button>
+    `;
+    bar.querySelectorAll('[data-tool]').forEach(btn=>{
+      btn.addEventListener('click',()=>setTool(btn.dataset.tool));
+    });
+    document.getElementById('btn-undo').addEventListener('click',undo);
+    document.getElementById('btn-redo').addEventListener('click',redo);
+    document.getElementById('btn-delete').addEventListener('click',deleteSelected);
+    document.getElementById('btn-clear').addEventListener('click',clearBoard);
+    document.getElementById('btn-color').addEventListener('click',toggleColorPopover);
+  }
+
+  function setTool(id){
+    state.tool = id;
+    state.selectedId = null;
+    document.getElementById('canvas-wrap').className = 'canvas-wrap tool-'+id;
+    renderToolbar();
+    renderElements();
+  }
+
+  function toggleColorPopover(){
+    let pop = document.getElementById('color-pop');
+    if(pop){ pop.remove(); return; }
+    pop = document.createElement('div');
+    pop.className='width-pop';
+    pop.id='color-pop';
+    const palette = state.tool==='note' ? NOTE_COLORS : COLORS;
+    pop.innerHTML = `
+      <div style="display:flex;gap:6px;flex-wrap:wrap;max-width:150px">
+        ${palette.map(c=>`<span class="color-dot ${((state.tool==='note'?state.noteColor:state.color)===c)?'active':''}" data-c="${c}" style="background:${c};border:1.5px solid ${c==='#ffffff'?'#ccc':'transparent'};cursor:pointer"></span>`).join('')}
+      </div>
+      ${state.tool!=='note'?`<label style="font-size:.72rem;color:#42536A;display:flex;flex-direction:column;gap:4px">Joone paksus
+        <input type="range" min="1" max="14" value="${state.strokeWidth}" id="width-range">
+      </label>`:''}
+    `;
+    document.getElementById('toolbar').appendChild(pop);
+    pop.querySelectorAll('[data-c]').forEach(dot=>{
+      dot.addEventListener('click',()=>{
+        if(state.tool==='note') state.noteColor = dot.dataset.c;
+        else { state.color = dot.dataset.c; applyStyleToSelection(); }
+        pop.remove();
+        renderToolbar();
+      });
+    });
+    const range = document.getElementById('width-range');
+    if(range) range.addEventListener('input', e=>{ state.strokeWidth = Number(e.target.value); applyStyleToSelection(); });
+  }
+
+  async function applyStyleToSelection(){
+    if(!state.selectedId) return;
+    const el = state.elementsMap.get(state.selectedId);
+    if(!el) return;
+    const before = visualFields(el);
+    if('color' in el) el.color = state.color;
+    if('strokeWidth' in el) el.strokeWidth = state.strokeWidth;
+    const after = visualFields(el);
+    renderElements(); // optimistic paint only — history/confirmation happen after Firestore agrees
+    const sid = state.studentId, session = state.boardSession, id = el.id;
+    updateSaveStatus('saving');
+    try{
+      await elementsCol(sid).doc(id).set(writePayload(after));
+      if(sid===state.studentId && session===state.boardSession){
+        state.pendingElementUpdates.delete(id);
+        addLocalElement(id, after);
+        pushAction({op:'update', id, before, after});
+        renderElements();
+        updateSaveStatus('saved');
+      }
+    }catch(err){
+      console.error('style save failed', err);
+      if(sid===state.studentId && session===state.boardSession){
+        // Firestore never got this change — put the color/width back and
+        // do NOT record an update Undo would have nothing real to invert.
+        const pending = state.pendingElementUpdates.get(id);
+        if(pending){ addLocalElement(id, pending); state.pendingElementUpdates.delete(id); }
+        else { addLocalElement(id, before); }
+        renderElements();
+        updateSaveStatus('error');
+      }
+    }
+  }
+
+  // ── COORDINATE HELPERS ──────────────────────────────
+  function screenToWorld(sx, sy){
+    const rect = document.getElementById('board').getBoundingClientRect();
+    return {
+      x: (sx - rect.left - state.view.x) / state.view.scale,
+      y: (sy - rect.top - state.view.y) / state.view.scale
+    };
+  }
+
+  function applyViewTransform(){
+    const g = document.getElementById('board-g');
+    if(g) g.setAttribute('transform', `translate(${state.view.x},${state.view.y}) scale(${state.view.scale})`);
+    const pct = document.getElementById('zoom-pct');
+    if(pct) pct.textContent = Math.round(state.view.scale*100)+'%';
+  }
+
+  function bindZoomControls(){
+    document.getElementById('zoom-in').addEventListener('click',()=>zoomBy(1.2));
+    document.getElementById('zoom-out').addEventListener('click',()=>zoomBy(1/1.2));
+    document.getElementById('zoom-fit').addEventListener('click',()=>{ state.view={x:0,y:0,scale:1}; applyViewTransform(); });
+  }
+  function zoomBy(factor){
+    const rect = document.getElementById('board').getBoundingClientRect();
+    const cx = rect.width/2, cy = rect.height/2;
+    const wx = (cx - state.view.x)/state.view.scale, wy = (cy - state.view.y)/state.view.scale;
+    state.view.scale = Math.max(.2, Math.min(3, state.view.scale*factor));
+    state.view.x = cx - wx*state.view.scale;
+    state.view.y = cy - wy*state.view.scale;
+    applyViewTransform();
+  }
+
+  // ── CANVAS INTERACTION ──────────────────────────────
+  function bindCanvasEvents(){
+    const svg = document.getElementById('board');
+    const wrap = document.getElementById('canvas-wrap');
+    let spaceDown = false;
+    let panStart = null;
+
+    window.addEventListener('keydown', e=>{
+      if(e.code==='Space' && !spaceDown){ spaceDown=true; wrap.classList.add('panning'); }
+      if((e.key==='Delete'||e.key==='Backspace') && state.selectedId && document.activeElement.tagName!=='TEXTAREA'){
+        e.preventDefault(); deleteSelected();
+      }
+      if((e.metaKey||e.ctrlKey) && e.key==='z' && !e.shiftKey){ e.preventDefault(); undo(); }
+      if((e.metaKey||e.ctrlKey) && (e.key==='Z' || (e.key==='z'&&e.shiftKey))){ e.preventDefault(); redo(); }
+      const shortcuts = {v:'select',p:'pen',e:'eraser',r:'rect',o:'ellipse',l:'line',a:'arrow',t:'text',n:'note'};
+      if(!e.metaKey && !e.ctrlKey && document.activeElement.tagName!=='TEXTAREA' && document.activeElement.tagName!=='INPUT'){
+        const k=e.key.toLowerCase();
+        if(shortcuts[k]) setTool(shortcuts[k]);
+      }
+    });
+    window.addEventListener('keyup', e=>{
+      if(e.code==='Space'){ spaceDown=false; wrap.classList.remove('panning'); }
+    });
+
+    svg.addEventListener('wheel', e=>{
+      e.preventDefault();
+      if(e.ctrlKey || e.metaKey){
+        zoomBy(e.deltaY<0 ? 1.08 : 1/1.08);
+      } else {
+        state.view.x -= e.deltaX; state.view.y -= e.deltaY;
+        applyViewTransform();
+      }
+    }, {passive:false});
+
+    svg.addEventListener('pointerdown', e=>{
+      if(e.button===1 || spaceDown){
+        panStart = {sx:e.clientX, sy:e.clientY, vx:state.view.x, vy:state.view.y};
+        svg.setPointerCapture(e.pointerId);
+        return;
+      }
+      handlePointerDown(e);
+    });
+    svg.addEventListener('pointermove', e=>{
+      if(panStart){
+        state.view.x = panStart.vx + (e.clientX-panStart.sx);
+        state.view.y = panStart.vy + (e.clientY-panStart.sy);
+        applyViewTransform();
+        return;
+      }
+      handlePointerMove(e);
+    });
+    svg.addEventListener('pointerup', e=>{
+      if(panStart){ panStart=null; return; }
+      handlePointerUp(e);
+    });
+    svg.addEventListener('pointerleave', e=>{ if(!panStart) handlePointerUp(e); });
+  }
+
+  function handlePointerDown(e){
+    if(!state.studentId) return;
+    const p = screenToWorld(e.clientX, e.clientY);
+    const tool = state.tool;
+
+    if(tool==='select'){
+      const hit = hitTest(p);
+      if(hit){
+        state.selectedId = hit.id;
+        state.drag = {mode:'move', id:hit.id, startX:p.x, startY:p.y, before:visualFields(hit), orig:JSON.parse(JSON.stringify(hit))};
+        state.interacting = true;
+      } else {
+        state.selectedId = null;
+        state.drag = null;
+      }
+      renderElements();
+      return;
+    }
+    if(tool==='eraser'){
+      const hit = hitTest(p);
+      if(hit) deleteElementById(hit.id);
+      return;
+    }
+    if(elementsList().length >= MAX_ELEMENTS){
+      alert('Tahvel on täis (max '+MAX_ELEMENTS+' elementi). Kustuta midagi enne jätkamist.');
+      return;
+    }
+    if(tool==='pen'){
+      state.interacting = true;
+      const id = uid4();
+      const el = {id, type:'stroke', points:[[p.x,p.y]], color:state.color, strokeWidth:state.strokeWidth};
+      addLocalElement(id, el);
+      state.drag = {mode:'draw-pen', id};
+      renderElements();
+      return;
+    }
+    if(['rect','ellipse','line','arrow'].includes(tool)){
+      state.interacting = true;
+      const id = uid4();
+      const el = {id, type:'shape', shape:tool, x:p.x, y:p.y, w:0, h:0, color:state.color, strokeWidth:state.strokeWidth};
+      addLocalElement(id, el);
+      state.drag = {mode:'draw-shape', id, startX:p.x, startY:p.y};
+      renderElements();
+      return;
+    }
+    if(tool==='text'){
+      const id = uid4();
+      const el = {id, type:'text', x:p.x, y:p.y, w:220, h:40, text:'', color:state.color, fontSize:18};
+      addLocalElement(id, el);
+      renderElements();
+      openTextEditor(el, true);
+      return;
+    }
+    if(tool==='note'){
+      const id = uid4();
+      const el = {id, type:'note', x:p.x, y:p.y, w:180, h:140, text:'', color:state.noteColor};
+      addLocalElement(id, el);
+      renderElements();
+      openTextEditor(el, true);
+      return;
+    }
+  }
+
+  function handlePointerMove(e){
+    if(!state.drag) return;
+    const p = screenToWorld(e.clientX, e.clientY);
+    const el = state.elementsMap.get(state.drag.id);
+    if(!el) return;
+
+    if(state.drag.mode==='draw-pen'){
+      const last = el.points[el.points.length-1];
+      const dist = last ? Math.hypot(p.x-last[0], p.y-last[1]) : Infinity;
+      if(dist >= MIN_POINT_DIST && el.points.length < MAX_POINTS_PER_STROKE){
+        el.points.push([p.x,p.y]);
+        renderElements();
+      }
+    } else if(state.drag.mode==='draw-shape'){
+      el.x = Math.min(state.drag.startX, p.x);
+      el.y = Math.min(state.drag.startY, p.y);
+      el.w = Math.abs(p.x - state.drag.startX);
+      el.h = Math.abs(p.y - state.drag.startY);
+      renderElements();
+    } else if(state.drag.mode==='move'){
+      const dx = p.x - state.drag.startX, dy = p.y - state.drag.startY;
+      const orig = state.drag.orig;
+      if(el.type==='stroke'){ el.points = orig.points.map(pt=>[pt[0]+dx, pt[1]+dy]); }
+      else { el.x = orig.x + dx; el.y = orig.y + dy; }
+      renderElements();
+    } else if(state.drag.mode==='resize'){
+      const orig = state.drag.orig;
+      el.w = Math.max(20, orig.w + (p.x - state.drag.startX));
+      el.h = Math.max(20, orig.h + (p.y - state.drag.startY));
+      renderElements();
+    }
+  }
+
+  function finalizeInteraction(){
+    if(!state.drag) return;
+    const {mode, id, before} = state.drag;
+    const el = state.elementsMap.get(id);
+    const sid = state.studentId;
+    const session = state.boardSession;
+    state.drag = null;
+    state.interacting = false;
+
+    // Any queued remote update for an id OTHER than the one we're about to
+    // finalize is unrelated and safe to apply now.
+    flushPendingElementUpdatesExcept(id);
+
+    if(!el){ renderElements(); return; }
+
+    const isCreate = mode==='draw-pen' || mode==='draw-shape';
+    const isUpdate = mode==='move' || mode==='resize';
+    if(!isCreate && !isUpdate){ renderElements(); return; }
+
+    const after = visualFields(el);
+    updateSaveStatus('saving');
+    renderElements(); // optimistic paint only — pushAction happens after Firestore confirms
+
+    elementsCol(sid).doc(id).set(writePayload(after))
+      .then(()=>{
+        // The Firestore write itself always completes for the board it was
+        // sent to — only what we do to *local* state/UI afterwards is
+        // gated. sid alone isn't enough: reopening the SAME student is a
+        // new session, and a callback from the old session has no business
+        // touching the new one's history/elementsMap either.
+        if(sid!==state.studentId || session!==state.boardSession) return;
+        // Our own write just confirmed `after` as the truth for this
+        // element. Any remote snapshot queued while we were dragging was,
+        // by definition, from before that write landed — applying it now
+        // would roll the UI back to a stale position, so it's discarded
+        // instead of flushed. Undo/Redo history only learns about this
+        // operation now that Firestore has actually accepted it.
+        state.pendingElementUpdates.delete(id);
+        addLocalElement(id, after);
+        if(isCreate) pushAction({op:'create', id, after});
+        else pushAction({op:'update', id, before, after});
+        renderElements();
+        updateSaveStatus('saved');
+      })
+      .catch(err=>{
+        console.error(isCreate?'create failed':'update failed', err);
+        if(sid!==state.studentId || session!==state.boardSession) return;
+        if(isCreate){
+          // Firestore never saw this element — it must not linger on the
+          // board, and Undo must never learn about a create that didn't
+          // happen.
+          removeLocalElement(id);
+          const pending = state.pendingElementUpdates.get(id);
+          if(pending){ addLocalElement(id, pending); state.pendingElementUpdates.delete(id); }
+        } else {
+          // Firestore never got the new position/size — restore whatever
+          // it actually last confirmed (a newer remote snapshot if one
+          // arrived, otherwise the position before this drag started).
+          const pending = state.pendingElementUpdates.get(id);
+          if(pending){ addLocalElement(id, pending); state.pendingElementUpdates.delete(id); }
+          else { addLocalElement(id, before); }
+        }
+        renderElements();
+        updateEmptyHintVisibility();
+        updateSaveStatus('error');
+      });
+  }
+
+  function handlePointerUp(){
+    finalizeInteraction();
+  }
+
+  function hitTest(p){
+    const list = elementsList();
+    for(let i=list.length-1;i>=0;i--){
+      const el = list[i];
+      if(el.type==='stroke'){
+        for(const pt of el.points){ if(Math.hypot(pt[0]-p.x, pt[1]-p.y) < 10) return el; }
+      } else if(el.type==='shape' || el.type==='text' || el.type==='note'){
+        const pad = 4;
+        if(p.x>=el.x-pad && p.x<=el.x+el.w+pad && p.y>=el.y-pad && p.y<=el.y+el.h+pad) return el;
+      }
+    }
+    return null;
+  }
+
+  async function deleteElementById(id){
+    const el = state.elementsMap.get(id);
+    if(!el) return;
+    const before = visualFields(el);
+    const sid = state.studentId, session = state.boardSession;
+    removeLocalElement(id);
+    renderElements(); // optimistic paint only — history/confirmation happen after Firestore agrees
+    updateSaveStatus('saving');
+    try{
+      await elementsCol(sid).doc(id).delete();
+      if(sid===state.studentId && session===state.boardSession){
+        pushAction({op:'delete', id, before});
+        updateSaveStatus('saved');
+        updateEmptyHintVisibility();
+      }
+    }catch(err){
+      console.error('delete failed', err);
+      if(sid===state.studentId && session===state.boardSession){
+        // The delete never actually happened — restore the optimistically
+        // removed element so the UI matches reality again, and don't record
+        // a delete Undo would have nothing real to invert.
+        addLocalElement(id, before);
+        renderElements();
+        updateEmptyHintVisibility();
+        updateSaveStatus('error');
+      }
+    }
+  }
+
+  function deleteSelected(){
+    if(!state.selectedId) return;
+    deleteElementById(state.selectedId);
+  }
+
+  async function resyncFromFirestore(sid, session){
+    // Used when a batched write (clear / undo-clear / redo-clear) may have
+    // partially failed: local optimistic state could disagree with what
+    // Firestore actually persisted, so re-read the subcollection as truth.
+    try{
+      const snap = await elementsCol(sid).get();
+      if(sid!==state.studentId || session!==state.boardSession) return;
+      state.elementsMap = new Map();
+      state.elementOrder = [];
+      snap.forEach(doc=>addLocalElement(doc.id, doc.data()));
+      state.selectedId = null;
+      renderElements();
+      updateEmptyHintVisibility();
+    }catch(err){
+      console.warn('resync after batch failure also failed:', err);
+    }
+  }
+
+  async function clearBoard(){
+    const items = elementsList().map(el=>({id:el.id, data:visualFields(el)}));
+    if(!items.length) return;
+    if(!confirm('Tühjendada kogu tahvel? Seda ei saa tagasi võtta.')) return;
+    const sid = state.studentId, session = state.boardSession;
+    items.forEach(item=>removeLocalElement(item.id));
+    state.selectedId = null;
+    renderElements(); // optimistic paint only — history/confirmation happen after every batch succeeds
+    showEmptyHint('Tühi tahvel. Vali tööriist vasakult ja alusta joonistamist, kirjutamist või lisa märkmeid.');
+    updateSaveStatus('saving');
+    try{
+      let batch = db.batch();
+      let count = 0;
+      for(const item of items){
+        batch.delete(elementsCol(sid).doc(item.id));
+        count++;
+        if(count%400===0){ await batch.commit(); batch=db.batch(); }
+      }
+      await batch.commit();
+      if(sid===state.studentId && session===state.boardSession){
+        pushAction({op:'clear', items});
+        updateSaveStatus('saved');
+      }
+    }catch(err){
+      console.error('clear failed', err);
+      if(sid===state.studentId && session===state.boardSession){
+        updateSaveStatus('error');
+        // Some deletes may have landed and others not — the optimistic
+        // "board is empty" state could be wrong either way, so re-read
+        // instead of recording a clear Undo would have nothing real to
+        // invert.
+        await resyncFromFirestore(sid, session);
+      }
+    }
+  }
+
+  // ── TEXT/NOTE EDITOR OVERLAY ─────────────────────────
+  function openTextEditor(el, isNew){
+    const before = isNew ? null : visualFields(el);
+    // Captured now, at editor-open time — not at commit/blur time — so
+    // that if the user switches boards while this editor is still open,
+    // the eventual blur still targets the board it was opened on instead
+    // of whatever board happens to be open when they click away.
+    const editorSid = state.studentId;
+    const editorSession = state.boardSession;
+    const svg = document.getElementById('board');
+    const rect = svg.getBoundingClientRect();
+    const screenX = rect.left + state.view.x + el.x*state.view.scale;
+    const screenY = rect.top + state.view.y + el.y*state.view.scale;
+    const ta = document.createElement('textarea');
+    ta.className = 'edit-overlay';
+    ta.value = el.text||'';
+    ta.maxLength = el.type==='note' ? MAX_NOTE_LEN : MAX_TEXT_LEN;
+    ta.style.left = screenX+'px';
+    ta.style.top = screenY+'px';
+    ta.style.width = (el.w*state.view.scale)+'px';
+    ta.style.height = (el.h*state.view.scale)+'px';
+    ta.style.fontSize = (el.type==='note'?15:(el.fontSize||18))*state.view.scale+'px';
+    ta.style.color = el.type==='note' ? '#1C2B3A' : el.color;
+    ta.style.background = el.type==='note' ? el.color : 'transparent';
+    document.body.appendChild(ta);
+    ta.focus();
+    let committed = false;
+    async function commit(){
+      if(committed) return;
+      committed = true;
+      const maxLen = el.type==='note' ? MAX_NOTE_LEN : MAX_TEXT_LEN;
+      el.text = ta.value.slice(0, maxLen);
+      ta.remove();
+      const id = el.id;
+      const stillCurrent = () => editorSid===state.studentId && editorSession===state.boardSession;
+
+      if(!el.text.trim() && el.type==='text'){
+        if(isNew){
+          // This element was never written to Firestore, so there's
+          // nothing server-side to undo — just drop the local optimistic
+          // placeholder, and only if its board is still the one showing.
+          if(stillCurrent()){ removeLocalElement(id); renderElements(); }
+          return;
+        }
+        // An existing text box was cleared to empty — delete it. The write
+        // always targets the board this editor was opened on; only the
+        // resulting local UI update is gated on that board still being
+        // the one currently open.
+        try{
+          await elementsCol(editorSid).doc(id).delete();
+          if(stillCurrent()){
+            removeLocalElement(id);
+            pushAction({op:'delete', id, before});
+            renderElements();
+            updateEmptyHintVisibility();
+            updateSaveStatus('saved');
+          }
+        }catch(err){
+          console.error('delete failed', err);
+          if(stillCurrent()) updateSaveStatus('error');
+        }
+        return;
+      }
+
+      const after = visualFields(el);
+      if(stillCurrent()){
+        addLocalElement(id, after);
+        renderElements();
+        updateSaveStatus('saving');
+      }
+      try{
+        await elementsCol(editorSid).doc(id).set(writePayload(after));
+        if(stillCurrent()){
+          // Same reasoning as finalizeInteraction(): our write just became
+          // the truth for this element, so any older queued remote update
+          // for it is discarded rather than applied over it.
+          state.pendingElementUpdates.delete(id);
+          addLocalElement(id, after);
+          if(isNew) pushAction({op:'create', id, after});
+          else pushAction({op:'update', id, before, after});
+          renderElements();
+          updateSaveStatus('saved');
+          updateEmptyHintVisibility();
+        }
+      }catch(err){
+        console.error('text save failed', err);
+        if(stillCurrent()){
+          const pending = state.pendingElementUpdates.get(id);
+          if(isNew){
+            // Firestore never saw this element — it must not linger as a
+            // ghost object on the board, and Undo must never learn about a
+            // create that didn't actually happen.
+            removeLocalElement(id);
+            if(pending){ addLocalElement(id, pending); state.pendingElementUpdates.delete(id); }
+          } else if(pending){
+            addLocalElement(id, pending);
+            state.pendingElementUpdates.delete(id);
+          } else {
+            addLocalElement(id, before);
+          }
+          renderElements();
+          updateEmptyHintVisibility();
+          updateSaveStatus('error');
+        }
+      }
+    }
+    ta.addEventListener('blur', commit);
+    ta.addEventListener('keydown', e=>{ if(e.key==='Escape'){ e.preventDefault(); ta.blur(); } });
+  }
+
+  // ── RENDER ELEMENTS ──────────────────────────────────
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+  function renderElements(){
+    const g = document.getElementById('board-g');
+    if(!g) return;
+    g.innerHTML = '';
+    elementsList().forEach(el=>{
+      const node = renderElement(el);
+      if(node) g.appendChild(node);
+    });
+    if(state.selectedId){
+      const el = state.elementsMap.get(state.selectedId);
+      if(el) g.appendChild(renderSelection(el));
+    }
+    applyViewTransform();
+  }
+
+  function renderElement(el){
+    if(el.type==='stroke'){
+      const path = document.createElementNS(SVG_NS,'path');
+      const d = el.points.map((pt,i)=>(i===0?'M':'L')+pt[0]+','+pt[1]).join(' ');
+      path.setAttribute('d', d);
+      path.setAttribute('stroke', el.color);
+      path.setAttribute('stroke-width', el.strokeWidth);
+      path.setAttribute('fill','none');
+      path.setAttribute('stroke-linecap','round');
+      path.setAttribute('stroke-linejoin','round');
+      return path;
+    }
+    if(el.type==='shape'){
+      if(el.shape==='rect'){
+        const r = document.createElementNS(SVG_NS,'rect');
+        r.setAttribute('x',el.x); r.setAttribute('y',el.y);
+        r.setAttribute('width',el.w); r.setAttribute('height',el.h);
+        r.setAttribute('rx',6);
+        r.setAttribute('stroke',el.color); r.setAttribute('stroke-width',el.strokeWidth); r.setAttribute('fill','none');
+        return r;
+      }
+      if(el.shape==='ellipse'){
+        const e = document.createElementNS(SVG_NS,'ellipse');
+        e.setAttribute('cx',el.x+el.w/2); e.setAttribute('cy',el.y+el.h/2);
+        e.setAttribute('rx',el.w/2); e.setAttribute('ry',el.h/2);
+        e.setAttribute('stroke',el.color); e.setAttribute('stroke-width',el.strokeWidth); e.setAttribute('fill','none');
+        return e;
+      }
+      if(el.shape==='line' || el.shape==='arrow'){
+        const l = document.createElementNS(SVG_NS,'line');
+        l.setAttribute('x1',el.x); l.setAttribute('y1',el.y+el.h);
+        l.setAttribute('x2',el.x+el.w); l.setAttribute('y2',el.y);
+        l.setAttribute('stroke',el.color); l.setAttribute('stroke-width',el.strokeWidth);
+        if(el.shape==='arrow'){
+          const defs = document.getElementById('arrow-defs') || (()=>{ const d=document.createElementNS(SVG_NS,'defs'); d.id='arrow-defs'; document.getElementById('board-g').appendChild(d); return d; })();
+          const markerId = 'arrowhead-'+el.id;
+          let marker = document.getElementById(markerId);
+          if(!marker){
+            marker = document.createElementNS(SVG_NS,'marker');
+            marker.id = markerId;
+            marker.setAttribute('markerWidth','10'); marker.setAttribute('markerHeight','10');
+            marker.setAttribute('refX','8'); marker.setAttribute('refY','5');
+            marker.setAttribute('orient','auto');
+            const arrowPath = document.createElementNS(SVG_NS,'path');
+            arrowPath.setAttribute('d','M0,0 L10,5 L0,10 Z');
+            arrowPath.setAttribute('fill', el.color);
+            marker.appendChild(arrowPath);
+            defs.appendChild(marker);
+          } else {
+            marker.querySelector('path')?.setAttribute('fill', el.color);
+          }
+          l.setAttribute('marker-end', `url(#${markerId})`);
+        }
+        return l;
+      }
+    }
+    if(el.type==='text'){
+      const t = document.createElementNS(SVG_NS,'text');
+      t.setAttribute('x',el.x); t.setAttribute('y',el.y+(el.fontSize||18));
+      t.setAttribute('fill', el.color);
+      t.setAttribute('font-size', el.fontSize||18);
+      t.setAttribute('font-family',"'IBM Plex Sans',sans-serif");
+      t.setAttribute('font-weight','600');
+      (el.text||'').split('\n').forEach((line,i)=>{
+        const tspan = document.createElementNS(SVG_NS,'tspan');
+        tspan.setAttribute('x', el.x);
+        tspan.setAttribute('dy', i===0?0:(el.fontSize||18)*1.25);
+        tspan.textContent = line;
+        t.appendChild(tspan);
+      });
+      return t;
+    }
+    if(el.type==='note'){
+      const group = document.createElementNS(SVG_NS,'g');
+      const r = document.createElementNS(SVG_NS,'rect');
+      r.setAttribute('x',el.x); r.setAttribute('y',el.y);
+      r.setAttribute('width',el.w); r.setAttribute('height',el.h);
+      r.setAttribute('rx',10);
+      r.setAttribute('fill',el.color);
+      r.setAttribute('stroke','rgba(28,43,58,.12)');
+      group.appendChild(r);
+      const fo = document.createElementNS(SVG_NS,'foreignObject');
+      fo.setAttribute('x',el.x+10); fo.setAttribute('y',el.y+10);
+      fo.setAttribute('width',Math.max(10,el.w-20)); fo.setAttribute('height',Math.max(10,el.h-20));
+      const div = document.createElement('div');
+      div.style.cssText = "font-family:'IBM Plex Sans',sans-serif;font-size:14px;color:#1C2B3A;white-space:pre-wrap;word-break:break-word;line-height:1.4";
+      div.textContent = el.text||'';
+      fo.appendChild(div);
+      group.appendChild(fo);
+      return group;
+    }
+    return null;
+  }
+
+  function renderSelection(el){
+    const g = document.createElementNS(SVG_NS,'g');
+    let bounds;
+    if(el.type==='stroke'){
+      const xs = el.points.map(p=>p[0]), ys = el.points.map(p=>p[1]);
+      bounds = {x:Math.min(...xs)-8, y:Math.min(...ys)-8, w:Math.max(...xs)-Math.min(...xs)+16, h:Math.max(...ys)-Math.min(...ys)+16};
+    } else {
+      bounds = {x:el.x-6, y:el.y-6, w:el.w+12, h:el.h+12};
+    }
+    const box = document.createElementNS(SVG_NS,'rect');
+    box.setAttribute('class','selection-box');
+    box.setAttribute('x',bounds.x); box.setAttribute('y',bounds.y);
+    box.setAttribute('width',bounds.w); box.setAttribute('height',bounds.h);
+    g.appendChild(box);
+
+    if(el.type!=='stroke'){
+      const handle = document.createElementNS(SVG_NS,'circle');
+      handle.setAttribute('class','handle');
+      handle.setAttribute('cx', el.x+el.w); handle.setAttribute('cy', el.y+el.h); handle.setAttribute('r',6);
+      handle.addEventListener('pointerdown', e=>{
+        e.stopPropagation();
+        const start = screenToWorld(e.clientX,e.clientY);
+        state.drag = {mode:'resize', id:el.id, startX:start.x, startY:start.y, before:visualFields(el), orig:JSON.parse(JSON.stringify(el))};
+        state.interacting = true;
+      });
+      g.appendChild(handle);
+    }
+
+    if(el.type==='text' || el.type==='note'){
+      box.addEventListener('dblclick', ()=>openTextEditor(el, false));
+    }
+    return g;
+  }
+
+})();
+</script>
+</body>
+</html>

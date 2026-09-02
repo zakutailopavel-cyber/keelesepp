@@ -7338,6 +7338,11 @@ function StudentCard({user,currentStu,stuLessons,liveLessons=[],stuHw,stuInv,isA
   style={{background:'rgba(14,116,144,.12)',color:'#0e7490',border:'1px solid rgba(14,116,144,.2)'}}>
   🗺 Oskuste kaart
 </button>
+              <button onClick={()=>window.open('/haldus-whiteboard/?student='+currentStu.id,'_blank')}
+  className="btn btn-sm"
+  style={{background:'rgba(201,136,42,.12)',color:'#A96E1A',border:'1px solid rgba(201,136,42,.2)'}}>
+  🖊 Ava tahvel
+</button>
               {isAdmin&&(
                 <button onClick={()=>convertStudentToParent(currentStu)} className="btn btn-amber btn-sm">
                   <i className="fa-solid fa-user-shield"/> Tee lapsevanemaks
@@ -16344,6 +16349,7 @@ function App() {
     {id:'dashboard',icon:'fa-chart-pie',label:'Töölaud',badge:unreadMessages.length},
     {id:'calendar', icon:'fa-calendar-days',label:'Tunniplaan'},
     {id:'live_classroom',icon:'fa-display',label:'Live Classroom',isExternal:true,href:'/live-classroom/'},
+    {id:'whiteboard',icon:'fa-note-sticky',label:'Tahvel',isExternal:true,href:'/haldus-whiteboard/'},
     ...(isStaff?[{id:'tasks',icon:'fa-list-check',label:'Ülesanded',
       badge:scopedTasks.filter(t=>t.status!=='done').length}]:[]),
     ...(isStaff?[{id:'learning_library',icon:'fa-book-open',label:'Õppevara',isExternal:true,href:'/haldus-exercises/'}]:[]),
