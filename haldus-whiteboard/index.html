@@ -12,6 +12,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script src="/whiteboard-core.js?v=20260902.1"></script>
 <style>
 :root{
   --ink:#1C2B3A; --pine:#2F5D50; --amber:#C9882A; --bg:#F4F2EE;
@@ -83,7 +84,7 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
 .zoom-controls .pct{font-size:.76rem;font-weight:700;width:48px;text-align:center;color:var(--muted)}
 
 /* ── Stroke width popover ─────────────────────────────*/
-.width-pop{position:absolute;left:60px;top:0;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px;box-shadow:0 8px 24px rgba(28,43,58,.1);z-index:20}
+.width-pop{position:fixed;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px;box-shadow:0 8px 24px rgba(28,43,58,.16);z-index:60}
 .width-pop input[type=range]{width:120px}
 
 /* ── SVG element helpers ──────────────────────────────*/
@@ -158,6 +159,7 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
     elementsUnsub:null,
     interacting:false, // true while a local pointer gesture is in progress
     pendingElementUpdates:new Map(), // id -> latest remote doc data seen while interacting with that id
+    pendingHistoryWrites:new Set(), // eraser/delete writes that Undo must wait for
     drag:null,
     renderQueued:false
   };
@@ -341,7 +343,7 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
   }
   function writePayload(fields){
     return {
-      ...fields,
+      ...WhiteboardCore.persistElement(fields),
       updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
       updatedByUid: state.authUser.uid,
       updatedByName: state.profile.displayName || state.profile.email || '',
@@ -351,7 +353,7 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
   }
 
   function addLocalElement(id, fields){
-    state.elementsMap.set(id, {...fields, id});
+    state.elementsMap.set(id, {...WhiteboardCore.hydrateElement(fields), id});
     if(!state.elementOrder.includes(id)) state.elementOrder.push(id);
   }
   function removeLocalElement(id){
@@ -525,7 +527,19 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
     state.future = [];
   }
 
+  function trackHistoryWrite(promise){
+    state.pendingHistoryWrites.add(promise);
+    promise.finally(()=>state.pendingHistoryWrites.delete(promise));
+    return promise;
+  }
+
+  async function waitForPendingHistoryWrites(){
+    if(!state.pendingHistoryWrites.size) return;
+    await Promise.allSettled(Array.from(state.pendingHistoryWrites));
+  }
+
   async function undo(){
+    await waitForPendingHistoryWrites();
     const action = state.history.pop();
     if(!action) return;
     const sid = state.studentId, session = state.boardSession;
@@ -628,6 +642,7 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
   ];
 
   function renderToolbar(){
+    document.getElementById('color-pop')?.remove();
     const bar = document.getElementById('toolbar');
     bar.innerHTML = TOOLS.map(t=>{
       if(t===null) return '<div class="tool-divider"></div>';
@@ -675,7 +690,11 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
         <input type="range" min="1" max="14" value="${state.strokeWidth}" id="width-range">
       </label>`:''}
     `;
-    document.getElementById('toolbar').appendChild(pop);
+    document.body.appendChild(pop);
+    const trigger=document.getElementById('btn-color').getBoundingClientRect();
+    pop.style.position='fixed';
+    pop.style.left=Math.min(trigger.right+8,window.innerWidth-180)+'px';
+    pop.style.top=Math.max(8,Math.min(trigger.top,window.innerHeight-pop.offsetHeight-8))+'px';
     pop.querySelectorAll('[data-c]').forEach(dot=>{
       dot.addEventListener('click',()=>{
         if(state.tool==='note') state.noteColor = dot.dataset.c;
@@ -684,7 +703,7 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
         renderToolbar();
       });
     });
-    const range = document.getElementById('width-range');
+    const range = pop.querySelector('#width-range');
     if(range) range.addEventListener('input', e=>{ state.strokeWidth = Number(e.target.value); applyStyleToSelection(); });
   }
 
@@ -809,6 +828,22 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
       handlePointerUp(e);
     });
     svg.addEventListener('pointerleave', e=>{ if(!panStart) handlePointerUp(e); });
+    svg.addEventListener('dblclick', e=>{
+      const hit=hitTest(screenToWorld(e.clientX,e.clientY));
+      if(!hit || (hit.type!=='text'&&hit.type!=='note')) return;
+      e.preventDefault();
+      state.selectedId=hit.id;
+      renderElements();
+      openTextEditor(hit,false);
+    });
+  }
+
+  function scheduleTextEditor(el,isNew){
+    const sid=state.studentId, session=state.boardSession;
+    requestAnimationFrame(()=>{
+      if(sid!==state.studentId||session!==state.boardSession||!state.elementsMap.has(el.id)) return;
+      openTextEditor(el,isNew);
+    });
   }
 
   function handlePointerDown(e){
@@ -857,19 +892,21 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
       return;
     }
     if(tool==='text'){
+      e.preventDefault();
       const id = uid4();
       const el = {id, type:'text', x:p.x, y:p.y, w:220, h:40, text:'', color:state.color, fontSize:18};
       addLocalElement(id, el);
       renderElements();
-      openTextEditor(el, true);
+      scheduleTextEditor(el,true);
       return;
     }
     if(tool==='note'){
+      e.preventDefault();
       const id = uid4();
       const el = {id, type:'note', x:p.x, y:p.y, w:180, h:140, text:'', color:state.noteColor};
       addLocalElement(id, el);
       renderElements();
-      openTextEditor(el, true);
+      scheduleTextEditor(el,true);
       return;
     }
   }
@@ -993,7 +1030,7 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
     return null;
   }
 
-  async function deleteElementById(id){
+  function deleteElementById(id){
     const el = state.elementsMap.get(id);
     if(!el) return;
     const before = visualFields(el);
@@ -1001,6 +1038,7 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
     removeLocalElement(id);
     renderElements(); // optimistic paint only — history/confirmation happen after Firestore agrees
     updateSaveStatus('saving');
+    const task=(async()=>{
     try{
       await elementsCol(sid).doc(id).delete();
       if(sid===state.studentId && session===state.boardSession){
@@ -1020,6 +1058,8 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
         updateSaveStatus('error');
       }
     }
+    })();
+    return trackHistoryWrite(task);
   }
 
   function deleteSelected(){
@@ -1083,6 +1123,7 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
 
   // ── TEXT/NOTE EDITOR OVERLAY ─────────────────────────
   function openTextEditor(el, isNew){
+    document.querySelector('.edit-overlay')?.blur();
     const before = isNew ? null : visualFields(el);
     // Captured now, at editor-open time — not at commit/blur time — so
     // that if the user switches boards while this editor is still open,
@@ -1096,8 +1137,12 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
     const screenY = rect.top + state.view.y + el.y*state.view.scale;
     const ta = document.createElement('textarea');
     ta.className = 'edit-overlay';
+    ta.dataset.elementId=el.id;
+    ta.setAttribute('aria-label',el.type==='note'?'Märkme tekst':'Tahvli tekst');
+    ta.placeholder=el.type==='note'?'Kirjuta märkus…':'Kirjuta tekst…';
     ta.value = el.text||'';
     ta.maxLength = el.type==='note' ? MAX_NOTE_LEN : MAX_TEXT_LEN;
+    ta.style.position = 'fixed';
     ta.style.left = screenX+'px';
     ta.style.top = screenY+'px';
     ta.style.width = (el.w*state.view.scale)+'px';
@@ -1117,7 +1162,7 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
       const id = el.id;
       const stillCurrent = () => editorSid===state.studentId && editorSession===state.boardSession;
 
-      if(!el.text.trim() && el.type==='text'){
+      if(!el.text.trim()){
         if(isNew){
           // This element was never written to Firestore, so there's
           // nothing server-side to undo — just drop the local optimistic
@@ -1330,9 +1375,6 @@ svg#board{width:100%;height:100%;display:block;touch-action:none}
       g.appendChild(handle);
     }
 
-    if(el.type==='text' || el.type==='note'){
-      box.addEventListener('dblclick', ()=>openTextEditor(el, false));
-    }
     return g;
   }
 
