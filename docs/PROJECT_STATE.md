@@ -14,15 +14,7 @@ This branch intentionally does **not** deploy to production, change Firestore ru
 
 ## Verified repository context
 
-The current main branch already contains:
-
-- detailed curriculum data in `haldus-curriculum-data.js`;
-- curriculum workflow helpers in `curriculum-workflow-core.js`;
-- curriculum/program UI and student journey in CRM v1;
-- learning library and worksheet generation;
-- lesson completion/accounting flow;
-- Live Classroom curriculum summary integration;
-- whiteboard materials and lesson pages from main commit `98de072`.
+The current main branch already contains detailed curriculum data, curriculum workflow helpers, curriculum/program UI, student journey, learning library, worksheet generation, lesson completion/accounting, Live Classroom curriculum summaries and whiteboard lesson pages.
 
 Open PRs observed before starting this branch were finance/calendar focused (`#71`, `#72`, `#74`) and did not overlap the adaptive lesson foundation files.
 
@@ -30,88 +22,74 @@ Open PRs observed before starting this branch were finance/calendar focused (`#7
 
 ### Agent handoff rule
 
-Added root `AGENTS.md`.
-
-The repository now explicitly requires agents to:
-
-- verify current main/open PRs before work;
-- avoid autonomous merge/production changes;
-- update `docs/PROJECT_STATE.md` after substantial changes;
-- update architecture-specific docs when contracts change;
-- leave one explicit next safe step.
+Added root `AGENTS.md` requiring agents to verify fresh main/open PRs, avoid autonomous merge/production changes, update `docs/PROJECT_STATE.md` after substantial work and leave one explicit next safe step.
 
 ### Adaptive lesson decision core
 
-Added `adaptive-lesson-core.js`.
+Added `adaptive-lesson-core.js` with pure functions for diagnostic scoring, initial route recommendation, stage route adjustment, skill-specific mastery, vocabulary evidence, progression decisions, teacher handoff and blueprint validation.
 
-Pure functions currently support:
-
-- diagnostic scoring;
-- initial `support` / `core` / `advanced` route recommendation;
-- route changes between lesson stages;
-- mastery calculation only from assessed skills;
-- weak/strong skill detection;
-- word-level vocabulary status;
-- progression vs targeted-review decision;
-- teacher handoff generation;
-- adaptive blueprint validation.
-
-Important contract: attendance/completion is not mastery.
-
-### Automated core tests
-
-Added `adaptive-lesson-core.test.js` covering:
-
-- all three initial routes;
-- previous mastery blending;
-- stage-level route changes;
-- skill-specific mastery;
-- critical skill progression block despite high average;
-- exact vocabulary review;
-- teacher handoff;
-- all-three-routes blueprint requirement.
+Important contract: **attendance/completion is not mastery**.
 
 ### Reference adaptive lesson
 
 Added `adaptive-lessons/est-b1-city-problem-solving.js`.
 
-Reference lesson:
+Reference lesson characteristics:
 
 - subject: Estonian;
 - level: B1;
 - category: city/services;
-- lesson: problem solving in the city;
 - duration: 60 min;
 - 12 lesson-specific vocabulary items;
-- diagnostic;
-- vocabulary stage;
+- short diagnostic;
+- vocabulary activation;
 - language/grammar stage;
 - speaking transfer stage;
 - exit/handoff stage;
-- support/core/advanced route in every stage;
+- `support` / `core` / `advanced` route inside every stage;
 - differentiated homework;
 - explicit mastery policy.
 
-The reference lesson is intentionally not injected into `haldus-curriculum-data.js` yet.
+The reference lesson is intentionally not injected into the generated curriculum dataset yet.
+
+### Teacher prototype
+
+Added `haldus-adaptive-lesson/index.html` as a read-only/local-state teacher prototype.
+
+The prototype currently allows a teacher to:
+
+- see the goal and lesson placement;
+- score the initial diagnostic;
+- receive a recommended route;
+- override the recommendation manually;
+- move between lesson stages;
+- see route-specific teacher instructions and tasks;
+- enter stage result, attempts and hint count;
+- receive a recommendation to move to support/core/advanced for the next stage;
+- enter only actually assessed mastery skills;
+- generate a final teacher handoff locally.
+
+The page explicitly states that the session does not save to Firestore. It is not linked into the existing Programs view yet and has not been deployed.
+
+### Tests
+
+Added:
+
+- `adaptive-lesson-core.test.js` — decision-core tests;
+- `adaptive-lesson-ui.test.js` — static contract checks for the teacher prototype and reference blueprint.
 
 ### Architecture documentation
 
-Added `docs/ADAPTIVE_LESSON_SYSTEM.md` defining:
-
-- pedagogical contract;
-- route semantics;
-- vocabulary evidence model;
-- mastery model;
-- teacher handoff;
-- safe integration order;
-- proposed (not implemented) persistence model.
+Added `docs/ADAPTIVE_LESSON_SYSTEM.md` defining the pedagogical contract, route semantics, vocabulary evidence, mastery model, handoff, proposed persistence model and safe integration order.
 
 ## Files changed/added
 
 - `AGENTS.md`
 - `adaptive-lesson-core.js`
 - `adaptive-lesson-core.test.js`
+- `adaptive-lesson-ui.test.js`
 - `adaptive-lessons/est-b1-city-problem-solving.js`
+- `haldus-adaptive-lesson/index.html`
 - `docs/ADAPTIVE_LESSON_SYSTEM.md`
 - `docs/PROJECT_STATE.md`
 
@@ -119,31 +97,34 @@ Added `docs/ADAPTIVE_LESSON_SYSTEM.md` defining:
 
 None in Firestore or production.
 
-The branch introduces only an in-repository JavaScript blueprint schema and pure calculation contracts. Proposed future collections are documentation only.
+The branch introduces only repository-side JavaScript blueprint/decision contracts and a local-state prototype. Proposed future collections remain documentation only.
 
 ## Safety and known limitations
 
 - No production deployment was performed.
-- No Firebase/Firestore write was performed.
+- No Firebase/Firestore write or rules change was performed.
 - No external paid API was called.
 - No migration was run.
-- Existing curriculum lessons are unchanged.
-- Existing CRM UI does not yet render/run the adaptive blueprint.
-- Adaptive evidence is not yet persisted.
+- Existing curriculum, calendar, finance and Live Classroom behavior is unchanged.
+- Adaptive evidence is not persisted yet.
+- The prototype uses a placeholder prototype student for local handoff output.
+- Exact vocabulary evidence entry is supported by the core but is not yet exposed as teacher controls in the prototype UI.
 - Route thresholds are foundation defaults and should later be configurable per lesson/category.
-- The example lesson still requires teacher review before being treated as a school-wide canonical B1 lesson.
+- The reference B1 lesson still requires teacher review before school-wide canonical use.
 
 ## Verification
 
 - The authored `adaptive-lesson-core.js` and `adaptive-lesson-core.test.js` were executed with Node's built-in test runner: **8/8 tests passed, 0 failed**.
 - Direct `git clone`/checkout from GitHub inside the execution container could not be performed because that container had no DNS/network access to `github.com`.
 - Therefore the 8/8 result verifies the exact authored core/test contents, but is not claimed as a full-repository checkout or complete root test suite.
-- Draft PR `#77` is open against `main`; no merge was performed.
+- `adaptive-lesson-ui.test.js` has been added but has **not** been executed in a real repository checkout in this session; no green claim is made for it yet.
+- GitHub returned no PR workflow runs yet for the latest prototype commit at the time checked.
+- Draft PR `#77` remains open against `main`; no merge was performed.
 
 ## Unfinished work
 
-The foundation is not yet visible to teachers inside CRM. A real teacher cannot yet launch the reference lesson from the Programs view and record evidence through the interface.
+The prototype is not yet connected to an actual selected student or existing Programs view. It does not save evidence, vocabulary mastery or handoff records.
 
 ## Next safe step
 
-Add a **read-only teacher preview/run prototype** for the single reference adaptive lesson in CRM v1, using the pure core for route recommendations and local in-session state only. Do not add Firestore persistence until the interaction model has been reviewed.
+Review the teacher interaction model, then connect the prototype to **one selected CRM student and one reference lesson in read-only mode**. Continue using local session state; do not add Firestore persistence until the workflow is accepted.
