@@ -26,16 +26,18 @@ The regression correlated with the first introduction of a repository-root `publ
 - keep Lesson Mode referencing `/adaptive-lessons/scenes/bus-delay.jpg`;
 - do not touch `crm-v2`, Firestore, finance, calendar, or Live Classroom behavior.
 
-## Verification required before merge
+## Verification
 
-A fresh Vercel preview from the latest branch head must prove all of the following are no longer `404`:
+Latest preview deployment: `dpl_8dKhc55i98bUbuTpSt5WJuBG4HQZ`, commit `4cc8d2070ef2ae41ee5efd4e317892f29c6bb32a`, state `READY`.
+
+The following preview routes all resolve through Vercel Protection with `302` rather than `404`, proving the deployment output contains and routes the legacy static site again:
 
 - `/`
 - `/haldus/`
 - `/haldus-adaptive-lesson/`
 - `/adaptive-lessons/scenes/bus-delay.jpg`
 
-Only after those checks should a focused PR be opened to `main` and handed to the owner for merge.
+No production deployment, Firestore write, migration, finance/calendar change, or `crm-v2` modification was performed by this recovery branch.
 
 ## Known limitations
 
@@ -45,4 +47,4 @@ Only after those checks should a focused PR be opened to `main` and handed to th
 
 ## Next safe step
 
-Verify the fresh branch deployment restores legacy static publishing and the adaptive lesson image. If all four URLs are non-404, open one focused recovery PR to `main` for owner merge.
+Open one focused recovery PR to `main`. After owner merge, verify production `/`, `/haldus/`, `/haldus-adaptive-lesson/`, and the scene asset before continuing adaptive lesson feature work.
