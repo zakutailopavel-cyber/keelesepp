@@ -24,6 +24,7 @@
 })();
 </script>
 <script src="/staff-activity.js"></script>
+<script src="/haldus-programs.js"></script>
 <script src="/learning-profile-core.js"></script>
 <style>
 :root{--cream:#f4efe5;--paper:#fffdf8;--navy:#172a3d;--muted:#6f7782;--gold:#b9822b;--green:#2d6957;--green-soft:#edf5f1;--amber:#a96e1a;--amber-soft:#fff7e8;--red:#9b2c2c;--red-soft:#fff0ee;--line:#e7dfd2;--shadow:0 18px 44px rgba(48,39,28,.09)}
@@ -43,11 +44,10 @@
   const app=document.getElementById('app');
   const select=document.getElementById('student-select');
   const state={user:null,students:[],rooms:[],selectedId:'',loading:false};
-  const SKILL_LABELS={
-    A1_GREET:'Tervimine ja tutvustamine',A1_NUMBERS:'Arvud 1–100',A1_COLORS:'Värvid ja kujud',A1_FAMILY_BASIC:'Perekond — põhisõnad',A1_PRESENT_BASIC:'Olevik — ma/sa/ta',A1_NOMINATIV:'Nimetav kääne',A1_READ_WORDS:'Üksikute sõnade lugemine',A1_WRITE_NAME:'Enda andmete kirjutamine',A1_FOOD_BASIC:'Toit — põhisõnad',A1_SIMPLE_Q:'Lihtsad küsimused',
-    A2_VOCAB_ROUTINE:'Igapäevaelu sõnavara',A2_PRESENT_FULL:'Olevik — kõik pöörded',A2_PAST_BASIC:'Lihtminevik — põhivormid',A2_WORD_ORDER:'Sõnajärg lauses',A2_OSASTAV:'Osastav kääne',A2_ILLATIIV:'Sisseütlev kääne',A2_NEGATION:'Eitus lauses',A2_QUESTIONS:'Küsimuste moodustamine',A2_READ_TEXT:'Lühiteksti mõistmine',A2_WRITE_TEXT:'Lühiteksti kirjutamine',A2_DIALOGUE:'Lihtne dialoog',A2_TIME_EXPR:'Ajaväljendid',
-    B1_PAST_TYPES:'Mineviku ajad',B1_CONDITIONAL:'Tingiv kõneviis',B1_RELATIVE:'Põimlause',B1_KAANDED_ADV:'Käänded — edasijõudnud',B1_PASSIVE:'Umbisikuline tegumood',B1_READ_MEDIUM:'Keskmise teksti mõistmine',B1_WRITE_PARA:'Lõigu kirjutamine',B1_SPEAK_DESC:'Kirjeldamine ja jutustamine',B1_VOCAB_TOPIC:'Teemapõhine sõnavara',B1_INTONATION:'Kuulamine ja järeldamine'
-  };
+  const SKILL_LABELS=Object.values(window.HaldusSkillCatalog||{}).flat().reduce((result,skill)=>{
+    if(skill&&skill.id) result[skill.id]=skill.name||skill.id;
+    return result;
+  },{});
 
   const esc=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   const fmtDate=value=>{
