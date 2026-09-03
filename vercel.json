@@ -57,10 +57,6 @@
       "destination": "/haldus-adaptive-lesson/index.html"
     },
     {
-      "source": "/adaptive-lessons/scenes/:path*",
-      "destination": "/public/adaptive-lessons/scenes/:path*"
-    },
-    {
       "source": "/tasemetest",
       "destination": "/tasemetest.html"
     },
