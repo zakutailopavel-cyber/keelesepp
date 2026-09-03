@@ -1,33 +1,13 @@
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
-
 const page=fs.readFileSync('haldus-adaptive-lesson/index.html','utf8');
 const lesson=fs.readFileSync('adaptive-lessons/est-b1-city-problem-solving.js','utf8');
-
-test('adaptive lesson prototype loads pure core and reference lesson',()=>{
-  assert.match(page,/src="\/adaptive-lesson-core\.js"/);
-  assert.match(page,/src="\/adaptive-lessons\/est-b1-city-problem-solving\.js"/);
-  assert.match(page,/kohalik sessioon · ei salvesta Firestore'i/);
-});
-
-test('teacher can switch all three adaptive routes and stages',()=>{
-  assert.match(page,/routeNames=\{support:/);
-  assert.match(page,/data-route/);
-  assert.match(page,/data-stage/);
-  assert.match(page,/recommendStageAdjustment/);
-  assert.match(page,/Soovita järgmist rada/);
-});
-
-test('prototype keeps unassessed mastery fields empty instead of forcing zero',()=>{
-  assert.match(page,/if\(input\.value!==''\)mastery\[input\.dataset\.mastery\]=Number\(input\.value\)/);
-  assert.match(page,/Tühi väli ≠ 0/);
-});
-
-test('reference lesson contains diagnostic and support core advanced variants',()=>{
-  assert.match(lesson,/diagnostic:\{/);
-  assert.match(lesson,/support:\{/);
-  assert.match(lesson,/core:\{/);
-  assert.match(lesson,/advanced:\{/);
-  assert.match(lesson,/masteryPolicy:\{/);
-});
+test('v4 loads adaptive assets',()=>{assert.match(page,/adaptive-lesson-core\.js/);assert.match(page,/est-b1-city-problem-solving\.js/);});
+test('v4 uses focused two-zone desktop layout and drawer tools',()=>{assert.match(page,/grid-template-columns:185px minmax\(0,1fr\)/);assert.match(page,/class="drawer"/);assert.match(page,/id="words-btn"/);assert.doesNotMatch(page,/Praegused sõnad/);});
+test('v4 keeps simple semantic teacher judgement',()=>{assert.match(page,/data-judge="help"/);assert.match(page,/data-judge="ok"/);assert.match(page,/data-judge="easy"/);assert.match(page,/Vajab abi/);assert.match(page,/Sai hakkama/);assert.match(page,/Liiga kerge/);});
+test('v4 hides methodology until requested',()=>{assert.match(page,/class="method hidden"/);assert.match(page,/Õpetaja abi/);assert.doesNotMatch(page,/Etapi tulemus %/);assert.doesNotMatch(page,/Katseid/);assert.doesNotMatch(page,/Vihjeid/);});
+test('v4 has dedicated mobile compact layout',()=>{assert.match(page,/@media\(max-width:760px\)/);assert.match(page,/\.stage b,\.stage small\{display:none\}/);assert.match(page,/\.judge small\{display:none\}/);});
+test('vocabulary evidence remains available in drawer',()=>{assert.match(page,/renderWords/);assert.match(page,/data-word/);assert.match(page,/state\.vocab\[w\.id\]/);});
+test('missing mastery values stay absent',()=>{assert.match(page,/if\(i\.value!==''\)mastery\[i\.dataset\.mastery\]=Number\(i\.value\)/);assert.match(page,/class="summary hidden"/);});
+test('reference lesson keeps all adaptive variants',()=>{assert.match(lesson,/diagnostic:\{/);assert.match(lesson,/support:\{/);assert.match(lesson,/core:\{/);assert.match(lesson,/advanced:\{/);assert.match(lesson,/masteryPolicy:\{/);});
