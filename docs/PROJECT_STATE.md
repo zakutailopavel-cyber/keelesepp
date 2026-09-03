@@ -4,7 +4,7 @@ Last verified: 2026-09-03, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
 Verified main commit before this work: `98de072978e1ee8f2c1853bd6df37cabf6ed16b8` (`feat(whiteboard): add materials and lesson pages (#76)`)
 Active branch: `agent/adaptive-lesson-foundation`
-PR: not opened yet at the time of this state entry
+Draft PR: `#77 Adaptive lesson foundation`
 
 ## Current objective
 
@@ -135,7 +135,10 @@ The branch introduces only an in-repository JavaScript blueprint schema and pure
 
 ## Verification
 
-Automated test execution must be recorded here after the branch is checked out and tests are run. Do not mark tests green based only on code inspection.
+- The authored `adaptive-lesson-core.js` and `adaptive-lesson-core.test.js` were executed with Node's built-in test runner: **8/8 tests passed, 0 failed**.
+- Direct `git clone`/checkout from GitHub inside the execution container could not be performed because that container had no DNS/network access to `github.com`.
+- Therefore the 8/8 result verifies the exact authored core/test contents, but is not claimed as a full-repository checkout or complete root test suite.
+- Draft PR `#77` is open against `main`; no merge was performed.
 
 ## Unfinished work
 
