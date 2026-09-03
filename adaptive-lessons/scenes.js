@@ -12,6 +12,8 @@
     }
   };
 
+  // lesson-scenes/** is intentionally public-read in Firebase Storage rules.
+  // The images are non-sensitive teaching assets; staff-only writes remain protected.
   Object.values(registry).forEach(scene=>{ scene.src=storageUrl(scene.storagePath); });
 
   const bindings={
