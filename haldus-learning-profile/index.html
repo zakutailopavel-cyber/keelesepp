@@ -43,7 +43,7 @@
   const db=window._db,auth=window._auth,core=window.KeeleSeppLearningProfileCore;
   const app=document.getElementById('app');
   const select=document.getElementById('student-select');
-  const state={user:null,students:[],rooms:[],selectedId:'',loading:false};
+  const state={user:null,students:[],rooms:[],selectedId:'',loading:false,isAdmin:false,teacherScopeReadEnforced:false};
   const SKILL_LABELS=Object.values(window.HaldusSkillCatalog||{}).flat().reduce((result,skill)=>{
     if(skill&&skill.id) result[skill.id]=skill.name||skill.id;
     return result;
@@ -86,7 +86,9 @@
   async function loadRooms(studentId){
     state.loading=true;app.innerHTML='<div class="loading"><div class="spinner"></div></div>';
     try{
-      const snap=await db.collection('liveClassrooms').where('studentId','==',studentId).get();
+      let query=db.collection('liveClassrooms').where('studentId','==',studentId);
+      if(!state.isAdmin) query=query.where('teacherUid','==',state.user.uid);
+      const snap=await query.get();
       state.rooms=snap.docs.map(doc=>({id:doc.id,...doc.data()}));
       renderProfile();
     }catch(error){
@@ -107,10 +109,24 @@
     if(!fb){app.innerHTML='<div class="error">Palun logi esmalt KeeleSepp CRM-i sisse.</div>';return;}
     const userSnap=await db.collection('users').doc(fb.uid).get();
     state.user=userSnap.exists?{uid:fb.uid,email:fb.email,...userSnap.data()}:{uid:fb.uid,email:fb.email};
-    const isStaff=['teacher','admin'].includes(state.user.role)||state.user.email==='zakutailo.pavel@gmail.com';
+    state.isAdmin=state.user.role==='admin'||state.user.email==='zakutailo.pavel@gmail.com';
+    const isStaff=state.isAdmin||state.user.role==='teacher';
     if(!isStaff){app.innerHTML='<div class="error">Õppimisprofiili õpetajavaade on ainult töötajatele.</div>';select.disabled=true;return;}
     try{
-      const snap=await db.collection('students').get();
+      if(!state.isAdmin){
+        try{
+          const migration=await db.collection('securityMigrations').doc('teacherUidV1').get();
+          state.teacherScopeReadEnforced=migration.exists&&migration.data()?.readEnforced===true;
+        }catch(error){
+          console.warn('Teacher scope rollout state unavailable',error);
+          state.teacherScopeReadEnforced=false;
+        }
+      }
+      const teacherScoped=state.teacherScopeReadEnforced&&!state.isAdmin;
+      const studentQuery=teacherScoped
+        ? db.collection('students').where('teacherUid','==',fb.uid)
+        : db.collection('students');
+      const snap=await studentQuery.get();
       state.students=snap.docs.map(doc=>({id:doc.id,...doc.data()})).filter(student=>student.active!==false).sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'et'));
       select.innerHTML='<option value="">— Vali õpilane —</option>'+state.students.map(student=>`<option value="${esc(student.id)}">${esc(student.name||'Nimetu')}${student.level?` (${esc(student.level)})`:''}</option>`).join('');
       const requested=new URLSearchParams(location.search).get('studentId');
