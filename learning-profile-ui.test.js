@@ -9,15 +9,22 @@ test('Learning Profile is a read-only staff surface',()=>{
   assert.match(source,/src="\/learning-profile-core\.js"/);
   assert.match(source,/src="\/haldus-programs\.js"/);
   assert.match(source,/src="\/staff-activity\.js"/);
-  assert.match(source,/\['teacher','admin'\]\.includes\(state\.user\.role\)/);
+  assert.match(source,/const isStaff=state\.isAdmin\|\|state\.user\.role==='teacher'/);
   assert.doesNotMatch(source,/db\.collection\([^)]*\)\.doc\([^)]*\)\.(?:set|update|delete)\s*\(/);
   assert.doesNotMatch(source,/db\.collection\([^)]*\)\.add\s*\(/);
 });
 
-test('Learning Profile reads exact student summaries instead of attendance as mastery',()=>{
-  assert.match(source,/collection\('liveClassrooms'\)\.where\('studentId','==',studentId\)\.get\(\)/);
+test('Learning Profile reads structured summaries instead of attendance as mastery',()=>{
+  assert.match(source,/db\.collection\('liveClassrooms'\)\.where\('studentId','==',studentId\)/);
+  assert.match(source,/if\(!state\.isAdmin\) query=query\.where\('teacherUid','==',state\.user\.uid\)/);
   assert.match(source,/buildLearningProfile\(\{student,rooms:state\.rooms/);
   assert.match(source,/pelk tunni staatus ei lähe tõendiks/);
+});
+
+test('Learning Profile respects teacherUid rollout for student lists',()=>{
+  assert.match(source,/collection\('securityMigrations'\)\.doc\('teacherUidV1'\)\.get\(\)/);
+  assert.match(source,/state\.teacherScopeReadEnforced=migration\.exists&&migration\.data\(\)\?\.readEnforced===true/);
+  assert.match(source,/db\.collection\('students'\)\.where\('teacherUid','==',fb\.uid\)/);
 });
 
 test('Learning Profile exposes teacher decision support without claiming curriculum recommendation',()=>{
