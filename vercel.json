@@ -49,6 +49,18 @@
       "destination": "/haldus-whiteboard/index.html"
     },
     {
+      "source": "/haldus-adaptive-lesson",
+      "destination": "/haldus-adaptive-lesson/index.html"
+    },
+    {
+      "source": "/haldus-adaptive-lesson/",
+      "destination": "/haldus-adaptive-lesson/index.html"
+    },
+    {
+      "source": "/adaptive-lessons/scenes/:path*",
+      "destination": "/public/adaptive-lessons/scenes/:path*"
+    },
+    {
       "source": "/tasemetest",
       "destination": "/tasemetest.html"
     },
@@ -129,6 +141,24 @@
     },
     {
       "source": "/haldus-whiteboard/",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/html; charset=utf-8"
+        }
+      ]
+    },
+    {
+      "source": "/haldus-adaptive-lesson",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/html; charset=utf-8"
+        }
+      ]
+    },
+    {
+      "source": "/haldus-adaptive-lesson/",
       "headers": [
         {
           "key": "Content-Type",
