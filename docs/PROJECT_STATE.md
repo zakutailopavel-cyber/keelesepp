@@ -45,4 +45,4 @@ Only after those checks should a focused PR be opened to `main` and handed to th
 
 ## Next safe step
 
-Move the active branch ref to the commit that removes root `public/`, verify the fresh branch deployment restores legacy static publishing and the adaptive lesson image, then open one focused routing/static-layout recovery PR to `main`.
+Verify the fresh branch deployment restores legacy static publishing and the adaptive lesson image. If all four URLs are non-404, open one focused recovery PR to `main` for owner merge.
