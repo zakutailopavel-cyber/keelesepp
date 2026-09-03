@@ -41,6 +41,7 @@ Modified files:
 - `staff-activity.js` — classifies the new surface as `learning-profile`;
 - `staff-activity.test.js` — includes the new staff surface and area classification;
 - `vercel.json` — stable `/haldus-learning-profile` routes with and without a trailing slash;
+- `.github/workflows/financial-core-emulator.yml` — includes Learning Profile tests and syntax verification in repository CI;
 - this project-state document.
 
 ### Data contract
@@ -81,7 +82,9 @@ Targeted local Node verification was executed for the changed Learning Profile c
 
 The tests cover missing evidence, deterministic skill bands, summary normalization without invented scores, canonical `skillMap`, student-specific evidence ordering, attendance/mastery separation, achieved-vs-next-goal separation, no direct Firestore write path, teacher-scoped reads, shared skill labels, inline JavaScript parsing and Vercel routing.
 
-The full repository test suite was **not** executed in this tool environment; do not treat the targeted 15/15 result as a full-suite result.
+GitHub Actions run **#195** (`Financial Core emulator`, head `b6e7b51dd8feeb6bb6dd3875d671f71b5a43e89d`) completed successfully. Its required steps all passed, including Functions unit tests, the CRM/accounting/calendar/learning/Live Classroom test bundle with the new Learning Profile tests, browser JavaScript syntax checks, and finance emulator integration tests.
+
+The final documentation-only commit after that successful CI run changes no executable code. The full local root suite was not run separately in the tool environment; the successful GitHub workflow is the repository-wide verification for this branch.
 
 ## Manual verification still required
 
@@ -115,9 +118,9 @@ Draft PR #83 remains separate from #85. It only tightens desktop Lesson Mode den
 
 ## Vercel / production state
 
-Earlier work encountered Vercel deployment rate limiting. A production deployment containing the newest learning routes has not been verified during this slice.
+Vercel checks on the PR head continue to report `Deployment rate limited — retry in 24 hours` for both `keelesepp` and `keelesepp-crm-v2`. This is a deployment-quota limitation, not a test or code failure.
 
-Do not claim `/haldus-learning-profile/` is live on `crm.epkoolitus.ee` until a new production deployment is explicitly verified after merge.
+A production deployment containing the newest learning routes has not been verified during this slice. Do not claim `/haldus-learning-profile/` is live on `crm.epkoolitus.ee` until a new production deployment is explicitly verified after merge.
 
 ## Safety / unchanged areas
 
@@ -148,4 +151,4 @@ PR #85:
 
 ## Next safe step
 
-**Manually review PR #85 in the authenticated local browser flow. If the read-only Learning Profile is correct for both administrator and teacher scope, merge only #85; then begin release slice 2: adaptive Learning Session + append-only evidence persistence for the single reference lesson, without automatic mastery writes.**
+**Manually review PR #85 in the authenticated local browser flow. If the read-only Learning Profile is correct for administrator scope and the available teacher scope, merge only #85; then begin release slice 2: adaptive Learning Session + append-only evidence persistence for the single reference lesson, without automatic mastery writes.**
