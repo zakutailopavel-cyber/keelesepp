@@ -28,7 +28,7 @@ The regression correlated with the first introduction of a repository-root `publ
 
 ## Verification required before merge
 
-A fresh Vercel preview from `agent/adaptive-lesson-route-fix` must prove all of the following are no longer `404`:
+A fresh Vercel preview from the latest branch head must prove all of the following are no longer `404`:
 
 - `/`
 - `/haldus/`
@@ -45,4 +45,4 @@ Only after those checks should a focused PR be opened to `main` and handed to th
 
 ## Next safe step
 
-Verify the fresh branch deployment restores legacy static publishing and the adaptive lesson image, then open one focused routing/static-layout recovery PR to `main`.
+Move the active branch ref to the commit that removes root `public/`, verify the fresh branch deployment restores legacy static publishing and the adaptive lesson image, then open one focused routing/static-layout recovery PR to `main`.
