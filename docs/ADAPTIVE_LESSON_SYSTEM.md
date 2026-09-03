@@ -30,12 +30,6 @@ The live lesson is a **focus mode**, not a CRM dashboard.
 
 When a lesson is running, normal CRM navigation, reports, settings and unrelated management controls must disappear from the primary screen. The teacher should not need to understand the adaptive algorithm.
 
-Desktop Lesson Mode has only three persistent zones:
-
-1. compact lesson stages on the left;
-2. one current teaching activity in the large centre workspace;
-3. a small current-vocabulary/tool strip on the right.
-
 The top bar contains only essential context: lesson, student, elapsed time, a small current-route indicator and lesson finish action.
 
 ### One activity at a time
@@ -50,6 +44,31 @@ The centre of the screen must visually dominate. It answers only:
 - what happens next.
 
 Long stage descriptions, analytics, summaries and permanent recommendation panels do not belong in the live flow.
+
+### The shell is stable; the workspace is not
+
+Lesson Mode must not force every phase into one permanent card/scene layout. The stable shell is only:
+
+1. essential top context;
+2. compact phase navigation;
+3. the current activity workspace;
+4. progressive teacher tools;
+5. lesson finish action.
+
+The current workspace changes according to pedagogical purpose. Supported target workspace types are:
+
+- `diagnostic`;
+- `vocabulary`;
+- `controlled_practice`;
+- `scene`;
+- `roleplay`;
+- `transfer`;
+- `assessment`;
+- `summary`.
+
+A scene/image is one Content Engine tool, not a universal requirement. Vocabulary activation may use word cards; controlled practice may use sentence building; roleplay may use role cards; transfer should deliberately introduce a materially new situation.
+
+The full contract and roadmap live in `docs/KEELESEPP_CORE_BLUEPRINT.md`.
 
 ### Teacher judgement
 
@@ -71,7 +90,31 @@ Detailed mastery entry is only available in the final lesson summary. An unasses
 
 ### Vocabulary during the lesson
 
-Only the first 5–6 active words should be visible by default. The full list is one click away. A teacher may mark exact words as difficult or known; unmarked vocabulary remains unassessed.
+Only the vocabulary relevant to the current activity should dominate the workspace. The full lesson list remains one click away. A teacher may mark exact words as difficult or known; unmarked vocabulary remains unassessed.
+
+## Scene contract
+
+Reusable lesson scenes are non-sensitive teaching assets and may live in Firebase Storage behind stable `sceneId` metadata.
+
+A scene should contain:
+
+- stable `sceneId`;
+- stable Storage path;
+- alt text;
+- pedagogical purpose;
+- optional target/focus vocabulary IDs.
+
+Final lesson visuals must not use emoji placeholders.
+
+A scene should support the intended language output without revealing an answer that the current phase is supposed to diagnose or assess. In particular:
+
+- diagnostic visuals must not contain the target answer or an obvious textual cue;
+- Support may expose more visual/verbal scaffolding;
+- Core should remove unnecessary answer cues;
+- Advanced should increase independence and/or transfer demand;
+- transfer requires a materially changed context rather than simply repeating the same scene.
+
+The same scene may be reused across route variants of one communicative activity when the task changes but the context remains pedagogically valid. It should not be reused across the entire lesson merely because it exists.
 
 ## Required lesson blueprint
 
@@ -86,6 +129,7 @@ Every adaptive lesson should contain:
 - diagnostic items;
 - at least three teaching stages;
 - all three routes inside every stage;
+- workspace type for each activity/phase;
 - checkpoint/scoring rule where appropriate;
 - homework variants;
 - mastery policy;
@@ -97,9 +141,11 @@ The lesson must be autonomous enough that a qualified teacher who did not author
 
 Vocabulary belongs to the concrete lesson, not only the broad topic. Each item should have a stable id and may contain word/phrase, translation, example and later a dictionary link or grammar note.
 
-Only skills actually assessed should receive mastery values. Supported foundation dimensions are vocabulary, grammar, reading, listening, speaking and writing. Missing evidence is not failure.
+Only skills actually assessed should receive mastery values. Supported foundation dimensions are vocabulary, grammar, reading, listening, speaking and writing. Transfer may be tracked as a lesson-defined cross-skill evidence dimension where appropriate. Missing evidence is not failure.
 
 A high overall average must not automatically allow progression when a lesson-defined critical skill remains below threshold.
+
+The existing `students.skillMap` remains the canonical current skill-mastery projection. Adaptive sessions should add evidence and update that projection through a validated persistence boundary rather than creating a competing mastery source.
 
 ## Route recommendation
 
@@ -111,9 +157,21 @@ The pure core keeps deterministic numerical functions for diagnostic/stage evide
 
 The lesson goal and CEFR placement never change because of the route.
 
+Target evolution is per-skill/per-phase routing. For example, vocabulary may run on Advanced while speaking remains Support inside the same B1 lesson.
+
+## Learning Session and evidence
+
+The target runtime boundary is a dedicated **Learning Session** connecting student, teacher, lesson blueprint, curriculum goal IDs, current phase, route-by-skill and evidence.
+
+The session must keep pedagogical state separate from schedule/accounting status. Completion does not by itself produce mastery.
+
+Evidence should explain why mastery changed and should include the relevant phase/activity, skills, route, teacher judgement/task result and support used. Completed evidence should be append-only or correction-only rather than silently rewritten.
+
+The complete proposed contracts are defined in `docs/KEELESEPP_CORE_BLUEPRINT.md`. No production persistence schema is created merely by documenting that target.
+
 ## Teacher handoff
 
-At lesson end the system must create a compact educational handoff containing student/lesson identity, final route, assessed mastery, weak skills, exact vocabulary needing review, teacher note, recommended next action and next lesson when known.
+At lesson end the system must create a compact educational handoff containing student/lesson identity, final route context, assessed mastery, weak skills, exact vocabulary needing review, teacher note, recommended next action and next lesson/goal when known.
 
 ## Reference implementation
 
@@ -123,16 +181,19 @@ At lesson end the system must create a compact educational handoff containing st
 
 `haldus-adaptive-lesson/index.html` is the current focused Lesson Mode prototype. It keeps session state local and does not write to Firestore.
 
+`adaptive-lessons/scenes.js` resolves stable scene metadata and Firebase Storage URLs for the current reference lesson.
+
 ## Integration boundary
 
 Do not replace curriculum, lesson accounting or Live Classroom in one change. Safe order:
 
 1. prove the blueprint and decision model;
-2. prove focused Lesson Mode;
-3. connect one selected CRM student and one reference lesson read-only;
-4. add dedicated adaptive session/evidence persistence after UX approval;
-5. project final summary into the curriculum journey;
-6. migrate selected curriculum lessons only after the vertical flow is stable.
+2. prove focused Lesson Mode and phase-specific workspaces;
+3. expose one selected student's Learning Profile read-only;
+4. add dedicated adaptive session/evidence persistence after the profile/read model is accepted;
+5. project final summary into the existing canonical `students.skillMap` through validated rules/transactions;
+6. connect curriculum goal recommendations;
+7. migrate selected curriculum lessons only after the vertical flow is stable.
 
 Calendar and finance continue using their existing lesson status. Pedagogical mastery remains separate.
 
@@ -142,6 +203,8 @@ Calendar and finance continue using their existing lesson status. Pedagogical ma
 - the current task is visually dominant;
 - unrelated CRM navigation is absent while teaching;
 - technical scoring is hidden from the live flow;
+- the workspace changes with the pedagogical phase instead of forcing one layout on the whole lesson;
+- images/scenes appear only where they support the task and do not reveal diagnostic/assessment answers;
 - support can change without changing CEFR/category;
 - missing skill scores are not converted to zero;
 - vocabulary review identifies exact words;

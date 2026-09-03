@@ -1,50 +1,129 @@
 # KeeleSepp Project State
 
-Last verified: 2026-09-03, Europe/Tallinn
+Last verified: 2026-09-04, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
-Verified main commit: `1450a18dff97766fbb611c45f239f5358f08427a` (`Restore legacy static deployment after adaptive scene asset (#81)`)
-Active branch: `agent/adaptive-lesson-scenes-v2`
-Open draft PR: `#82 Adaptive Lesson scene rendering v2`
+Verified main commit: `8cb8da11de4b4883e6ebcac28ba437578cf3875b` (`Adaptive Lesson scene rendering v2 (#82)`)
+Active architecture branch: `agent/core-blueprint-v1`
+Open UI draft PR: `#83 Tighten Adaptive Lesson desktop layout`
 
 ## Current objective
 
-Finish the adaptive Lesson Mode scene system in the first/legacy KeeleSepp CRM. `crm-v2` remains separate and is not part of this work.
+Stop broad feature expansion and define the learning core before adding more teacher-facing modules.
 
-## Implemented on PR #82
+The agreed product core is five connected engines:
 
-- `haldus-adaptive-lesson/index.html` renders lesson scenes dynamically instead of hardcoding one image;
-- `adaptive-lessons/scenes.js` maps task/stage IDs to scene metadata (`src`, `alt`, pedagogical `purpose`);
-- the current reference scene is embedded directly in `scenes.js` as a JPEG data URI so Safari does not need a second protected Vercel request for the image;
-- missing or failed images show a clean fallback instead of Safari's broken-image icon;
-- mobile header/stage layout was adjusted so lesson content no longer scrolls underneath the sticky header;
-- Support/Core/Advanced route logic and teacher judgement controls remain unchanged.
+1. Curriculum Engine — what to learn next;
+2. Adaptive Engine — how much support/challenge is appropriate now;
+3. Lesson Mode — which teaching workspace the teacher uses now;
+4. Content Engine — tasks, vocabulary, scenes, prompts and variants;
+5. Learning Profile — current mastery projection plus the evidence that explains it.
 
-## Scene asset incident and final delivery strategy
+The engines are connected by a proposed `LearningSession` runtime contract. Full target contracts, screen map and release roadmap are documented in `docs/KEELESEPP_CORE_BLUEPRINT.md`.
 
-The first repository-hosted scene JPEG was truncated, and a later valid external JPEG still failed in mobile Safari on protected Vercel previews because the image was a separate subresource request.
+`crm-v2` remains separate and is not part of this work.
 
-The preview screenshot confirmed the fallback rendered cleanly, proving the UI path was correct but external asset delivery remained unreliable.
+## Current adaptive lesson implementation on main
 
-To remove that dependency, the bus-delay illustration is now embedded in `adaptive-lessons/scenes.js` as `data:image/jpeg;base64,...`. The embedded source is a locally validated 360 x 238 RGB JPEG. The obsolete external JPG and temporary staging marker files were removed from PR #82.
+PR #82 is merged.
 
-This is an intentional reliability choice for the current prototype/reference lesson. When the scene library grows, move production assets to a dedicated public object-storage/CDN path rather than embedding many large scenes in one JavaScript file.
+- `haldus-adaptive-lesson/index.html` is the focused adaptive Lesson Mode prototype;
+- `adaptive-lessons/est-b1-city-problem-solving.js` is the reference B1 lesson;
+- `adaptive-lessons/scenes.js` resolves stable `sceneId` metadata to Firebase Storage URLs;
+- reusable lesson scenes live under `lesson-scenes/**` in Firebase Storage;
+- `storage.rules` allows public read for non-sensitive lesson scene assets and restricts writes to staff;
+- Support/Core/Advanced route logic and simple teacher judgement controls remain in place;
+- the current Lesson Mode still keeps session state local and does not persist adaptive session/evidence data to Firestore.
 
-## Verification still required
+## Verified scene delivery
 
-Verify the newest Vercel preview after the inline-scene commit:
+The owner manually deployed the current `storage.rules` to Firebase project `keelesepp-5136b` and uploaded the reference asset to:
 
-- `/haldus-adaptive-lesson/` returns 200;
-- the browser renders the scene without any separate `/adaptive-lessons/scenes/*.jpg` request;
-- mobile Safari shows the full illustration rather than the fallback;
-- header, stage strip, task card, judge buttons and floating controls do not overlap.
+`lesson-scenes/est-b1-city-problem-solving-01/bus-delay-01.jpg`
+
+The direct Firebase Storage media URL was manually verified in desktop Chrome and rendered the illustration successfully after the current public-read rule was deployed.
+
+The owner also verified the merged #82 Lesson Mode locally from `origin/main` via `python3 -m http.server 8080`; the reference scene loaded from Firebase Storage inside Lesson Mode.
+
+## Desktop density work
+
+Draft PR #83 (`agent/adaptive-lesson-desktop-density`) changes only desktop Lesson Mode density:
+
+- narrower stage sidebar;
+- smaller outer spacing;
+- scene capped around 390 px / 42vh;
+- `object-fit: contain` to avoid artwork cropping;
+- tighter expected-answer and judgement blocks;
+- mobile layout intentionally unchanged.
+
+The owner manually verified the PR #83 branch locally and confirmed the denser screen allows the task, scene, expected answer and teacher judgement controls to remain visible together on a typical desktop viewport.
+
+PR #83 remains separate from this architecture documentation work.
+
+## Product decision: phase-specific workspaces
+
+The current single scene/card pattern is not the final Lesson Mode architecture.
+
+Only the Lesson Mode shell stays stable. The central teaching tool must change with the pedagogical phase. Target workspace types are:
+
+- diagnostic;
+- vocabulary;
+- controlled practice;
+- scene;
+- roleplay;
+- transfer;
+- assessment;
+- summary.
+
+A large illustration is optional. Diagnostic/assessment visuals must not reveal the answer; vocabulary and controlled practice may use completely different tools; transfer must materially change context.
+
+See `docs/ADAPTIVE_LESSON_SYSTEM.md` and `docs/KEELESEPP_CORE_BLUEPRINT.md`.
+
+## Learning Profile decision
+
+`students.skillMap` remains the canonical current skill-mastery projection already used by the platform. The new Learning Profile must not introduce a second competing current-skill truth.
+
+Target evolution is:
+
+- current projection: existing `students.skillMap`;
+- future exact vocabulary projection where needed;
+- append-only adaptive session evidence explaining why projections change;
+- teacher-facing read model combining current mastery, recent evidence, review vocabulary and next recommendations.
+
+No new persistence collections or Firestore writes are introduced by the blueprint PR.
+
+## Vercel state / current limitation
+
+The owner encountered Vercel deployment rate limiting while merging #82. `crm.epkoolitus.ee` was still observed on the earlier production deployment from #81 during this work, so new #82 routes could not be relied on through production Vercel immediately.
+
+Local HTTP serving plus Firebase Storage was used to verify the learning UI without waiting for a new Vercel deployment.
+
+Do not claim #82 is live on the production domain until a new production deployment is explicitly verified.
 
 ## Safety / unchanged areas
 
-- no Firestore writes or schema changes;
+This blueprint work changes documentation only.
+
+- no Firestore schema or rules changes;
+- no database migration;
+- no production deploy;
 - no finance/calendar/Live Classroom changes;
 - no `crm-v2` changes;
-- no production deployment until owner explicitly merges PR #82.
+- no AI/paid external calls;
+- PR #83 UI work remains independent.
+
+## Core roadmap order
+
+1. Core contracts / blueprint review;
+2. Learning Profile MVP as a read-only teacher surface using existing `students.skillMap`;
+3. adaptive session + append-only evidence persistence for one reference lesson;
+4. phase-specific Lesson Mode workspace renderer;
+5. deterministic per-skill Adaptive Engine v1;
+6. curriculum goal/prerequisite graph for the selected vertical slice;
+7. Teacher Home vertical flow;
+8. Lesson Builder + Content normalization;
+9. AI-assisted content generation only after the core loop is stable;
+10. scale/analytics after multiple lessons use the same contracts.
 
 ## Next safe step
 
-Verify the latest preview for PR #82 on mobile Safari. If the full embedded scene renders correctly, update PR verification notes and ask the owner to merge only #82.
+Review and approve `docs/KEELESEPP_CORE_BLUEPRINT.md`. If accepted, implement **Learning Profile MVP as a read-only teacher surface** using the existing `students.skillMap` and available historical learning evidence, without adding new mastery writes in the same slice.
