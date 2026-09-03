@@ -91,3 +91,20 @@ test('attendance without lessonSummary is not promoted to learning evidence',()=
   assert.equal(profile.summary.evidenceCount,0);
   assert.deepEqual(profile.recentEvidence,[]);
 });
+
+test('recent achieved goals stay context and do not become automatic next-goal recommendations',()=>{
+  const profile=buildLearningProfile({
+    student:{id:'student-1',skillMap:{}},
+    rooms:[{
+      id:'room-1',
+      studentId:'student-1',
+      endedAt:'2026-09-03T10:00:00Z',
+      lessonSummary:{
+        curriculumGoalIds:['goal-achieved'],
+        curriculumGoalLabels:['Küsib viisakalt abi']
+      }
+    }]
+  });
+  assert.deepEqual(profile.recommendations.recentGoalIds,['goal-achieved']);
+  assert.deepEqual(profile.recommendations.nextGoalIds,[]);
+});
