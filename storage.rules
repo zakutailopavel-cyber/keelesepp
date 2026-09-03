@@ -97,6 +97,14 @@ service firebase.storage {
       allow write: if (staff() || ownsStudent(studentId)) && safeContent();
     }
 
+    // Reusable illustrations for adaptive lessons. These are non-sensitive
+    // teaching assets, so learners may load them without Firebase Auth. Only
+    // staff can create, replace or delete scene files.
+    match /lesson-scenes/{allPaths=**} {
+      allow read: if true;
+      allow write: if staff() && safeContent();
+    }
+
     // Images/PDFs uploaded directly onto a student's whiteboard. Uploading
     // material is a teacher/admin action; linked students and parents may
     // read the resulting object but cannot replace or delete it in Storage.
