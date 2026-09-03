@@ -7,129 +7,262 @@
 <script src="/adaptive-lesson-core.js"></script>
 <script src="/adaptive-lessons/est-b1-city-problem-solving.js"></script>
 <style>
-:root{--bg:#f5f3ef;--panel:#fff;--ink:#1c2b3a;--muted:#667482;--line:#ddd8cf;--brand:#2f5d50;--accent:#c9882a;--soft:#eef3f1;--danger:#9b3b34}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.top{background:var(--ink);color:#fff;padding:18px 24px;display:flex;align-items:center;gap:16px}.top h1{font-size:1.05rem;margin:0}.top .tag{font-size:.75rem;padding:5px 9px;border:1px solid rgba(255,255,255,.25);border-radius:999px;color:#dce4e8}.layout{max-width:1220px;margin:0 auto;padding:24px;display:grid;grid-template-columns:300px 1fr;gap:20px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:0 8px 28px rgba(28,43,58,.05)}.side{padding:18px;position:sticky;top:18px;align-self:start}.main{padding:22px}.eyebrow{text-transform:uppercase;letter-spacing:.08em;font-weight:800;font-size:.68rem;color:var(--brand)}h2,h3{margin:6px 0 10px}.muted{color:var(--muted)}.goal{background:var(--soft);border-left:4px solid var(--brand);padding:13px 14px;border-radius:8px;margin:12px 0}.route-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}.route{border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px;text-align:left;cursor:pointer}.route.active{border:2px solid var(--accent);padding:9px;background:#fffaf2}.route strong{display:block}.route small{color:var(--muted)}.step-list{display:grid;gap:8px;margin-top:14px}.step{border:1px solid var(--line);border-radius:10px;padding:10px;cursor:pointer}.step.active{border-color:var(--brand);background:var(--soft)}.badge{display:inline-flex;padding:4px 8px;border-radius:999px;background:#eee;font-size:.72rem;font-weight:700}.badge.support{background:#eef6e9}.badge.core{background:#e9f1f7}.badge.advanced{background:#f4ecfa}.section{border-top:1px solid var(--line);padding-top:18px;margin-top:18px}.task{padding:11px 12px;border:1px solid var(--line);border-radius:10px;margin:8px 0;background:#fff}.teacher{background:#fff8e9;border:1px solid #ead8ae;padding:12px;border-radius:10px;margin:10px 0}.vocab{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.word{border:1px solid var(--line);border-radius:9px;padding:9px}.word b{display:block}.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:end}.field{display:grid;gap:5px}.field label{font-size:.75rem;color:var(--muted);font-weight:700}.field input,.field select,.field textarea{border:1px solid var(--line);border-radius:8px;padding:9px;background:#fff}.field input{width:95px}.btn{border:0;background:var(--brand);color:#fff;border-radius:9px;padding:10px 14px;font-weight:800;cursor:pointer}.btn.secondary{background:#fff;color:var(--ink);border:1px solid var(--line)}.recommend{margin-top:12px;padding:12px;border-radius:10px;background:var(--soft)}.handoff{white-space:pre-wrap;background:#1f2b36;color:#e9eff3;padding:14px;border-radius:10px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.78rem;min-height:90px}.warning{color:var(--danger);font-weight:700}.mastery-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}@media(max-width:850px){.layout{grid-template-columns:1fr}.side{position:static}.route-grid,.mastery-grid,.vocab{grid-template-columns:1fr}.field input{width:100%}}
+:root{
+  --nav:#10263a;--nav2:#17344d;--bg:#f4f6f8;--panel:#fff;--ink:#172638;--muted:#66778a;--line:#dfe5eb;
+  --blue:#1769e8;--blue-soft:#edf5ff;--green:#2f8a4b;--green-soft:#edf8f0;--amber:#d98a18;--amber-soft:#fff7e7;
+  --purple:#7c46c7;--purple-soft:#f6f0ff;--red:#e44747;--shadow:0 8px 24px rgba(22,38,56,.06)
+}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);background:var(--bg)}button,input,textarea{font:inherit}button{cursor:pointer}
+.shell{min-height:100vh;display:grid;grid-template-columns:92px minmax(0,1fr)}
+.rail{background:linear-gradient(180deg,var(--nav),#0d2132);color:#fff;display:flex;flex-direction:column;align-items:center;padding:16px 10px;gap:12px;position:sticky;top:0;height:100vh;z-index:20}
+.logo{font-weight:900;font-size:.82rem;margin:4px 0 18px}.logo span{color:#f1b84b}.rail-item{width:72px;min-height:64px;border:0;background:transparent;color:#dbe5ed;border-radius:12px;display:grid;place-items:center;gap:3px;font-size:.66rem}.rail-item b{font-size:1.25rem}.rail-item.active,.rail-item:hover{background:rgba(255,255,255,.11);color:#fff}.rail-spacer{flex:1}
+.app{min-width:0}.topbar{height:64px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 22px;gap:14px;position:sticky;top:0;z-index:15}.crumb{font-weight:850;font-size:1.05rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.level-chip{background:#eee9ff;color:#6440b8;border-radius:8px;padding:6px 8px;font-size:.78rem;font-weight:900}.top-actions{margin-left:auto;display:flex;gap:10px}.outline,.danger{border:1px solid var(--line);background:#fff;border-radius:9px;padding:9px 13px;font-weight:800;color:var(--ink)}.danger{background:var(--red);color:#fff;border-color:var(--red)}
+.lesson-head{background:#fff;border-bottom:1px solid var(--line);padding:14px 22px;display:grid;grid-template-columns:190px minmax(300px,1fr) 155px 245px;gap:18px;align-items:center}.head-block{min-height:58px;border-right:1px solid var(--line);padding-right:16px}.head-block:last-child{border-right:0}.label{font-size:.68rem;color:var(--muted);font-weight:800;margin-bottom:5px}.student{display:flex;align-items:center;gap:10px}.avatar{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#edd8b7,#c78d57);font-size:1.35rem}.student strong{display:block}.linkish{font-size:.72rem;color:var(--blue);font-weight:800}.goal-text{font-size:.83rem;line-height:1.42}.metric{font-size:1rem;font-weight:900}.metric small{display:block;color:var(--green);font-size:.7rem;margin-top:4px}.route-pill{display:inline-flex;align-items:center;gap:7px;padding:8px 11px;border-radius:9px;font-weight:850;font-size:.82rem;background:var(--blue-soft);color:#1356bd;border:1px solid #cfe1ff}.change-route{margin-top:7px;font-size:.72rem;color:var(--muted)}
+.workspace{display:grid;grid-template-columns:255px minmax(520px,1fr) 300px;min-height:calc(100vh - 137px)}
+.steps{background:#fff;border-right:1px solid var(--line);padding:20px 14px}.steps h3,.right h3{font-size:.9rem;margin:0 0 14px}.step-list{display:grid;gap:7px}.step{display:grid;grid-template-columns:32px 1fr;gap:9px;align-items:center;padding:10px;border:1px solid transparent;border-radius:11px;background:#fff;text-align:left;color:var(--ink)}.step:hover{background:#f7f9fb}.step.active{background:var(--blue-soft);border-color:#a9ccff}.step-num{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;border:1px solid #cfd7df;font-size:.72rem;font-weight:900;background:#fff}.step.active .step-num{background:var(--blue);border-color:var(--blue);color:#fff}.step b{font-size:.78rem;display:block}.step small{font-size:.68rem;color:var(--muted)}.handoff-note{margin-top:18px;background:var(--amber-soft);border:1px solid #f2d593;border-radius:10px;padding:11px;font-size:.72rem;line-height:1.4}.handoff-note b{display:block;margin-bottom:4px}
+.center{padding:22px 28px;min-width:0}.stage-title{display:flex;align-items:center;gap:10px}.stage-title h1{font-size:1.45rem;margin:0}.question-count{background:var(--blue-soft);color:#175ab8;border-radius:999px;padding:5px 9px;font-size:.72rem;font-weight:850}.sub{color:var(--muted);font-size:.8rem;margin:7px 0 14px}.progress{height:8px;background:#e8edf2;border-radius:99px;overflow:hidden;margin-bottom:20px}.progress>span{display:block;height:100%;background:var(--blue);border-radius:99px;transition:.25s}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:18px}.prompt{font-size:1rem;font-weight:900;margin-bottom:7px}.situation{font-size:.83rem;color:#34475a;margin-bottom:15px}.lesson-scene{display:grid;grid-template-columns:250px minmax(0,1fr);gap:16px}.scene{min-height:180px;border-radius:12px;background:linear-gradient(145deg,#dbe9f4,#b6d1df);position:relative;overflow:hidden;display:flex;align-items:flex-end;justify-content:center;padding:15px}.scene:before{content:"🚌";font-size:5rem;position:absolute;left:18px;bottom:55px;filter:saturate(.85)}.scene:after{content:"🧑‍🏫  ↔  🧑";font-size:2.25rem;position:relative;z-index:2}.answer-box{display:grid;gap:10px}.expected,.teacher-tip,.hint{border-radius:10px;padding:12px;font-size:.8rem;line-height:1.45}.expected{background:var(--blue-soft);border:1px solid #bcd6ff}.teacher-tip{background:var(--amber-soft);border:1px solid #f0d394}.hint{background:#fafbfc;border:1px solid var(--line)}.hint summary{font-weight:800;cursor:pointer}
+.eval-title{text-align:center;margin:17px 0 8px;font-weight:900}.eval-sub{text-align:center;color:var(--muted);font-size:.75rem;margin-bottom:10px}.eval-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.eval{min-height:88px;border-radius:11px;border:1px solid var(--line);background:#fff;padding:12px;text-align:center}.eval b{display:block;margin-bottom:5px}.eval small{color:var(--muted)}.eval.help{background:#fff9ed;border-color:#edc76b}.eval.ok{background:#f0f9f2;border-color:#8fcca0}.eval.easy{background:#f8f2ff;border-color:#bf9de6}.eval.selected{box-shadow:0 0 0 3px rgba(23,105,232,.12);transform:translateY(-1px)}
+.nav-row{display:flex;justify-content:space-between;gap:12px;margin-top:16px}.primary{border:0;background:var(--blue);color:#fff;border-radius:9px;padding:10px 15px;font-weight:850}.secondary{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:9px;padding:10px 15px;font-weight:850}.recommendation{margin-top:16px;background:var(--blue-soft);border:1px solid #bcd5ff;border-radius:11px;padding:11px 13px;font-size:.78rem}.recommendation b{display:block;margin-bottom:3px}
+.stage-view{display:none}.stage-view.active{display:block}.task-list{display:grid;gap:10px}.task-item{padding:14px;border:1px solid var(--line);background:#fff;border-radius:11px;line-height:1.4;font-size:.84rem}.teacher-instruction{padding:12px;border-radius:10px;background:var(--amber-soft);border:1px solid #efd291;font-size:.8rem;margin-bottom:12px}.success{padding:12px;border-radius:10px;background:var(--green-soft);border:1px solid #b9ddc2;font-size:.8rem;margin-top:12px}.stage-eval{margin-top:16px}.stage-eval .eval-grid{max-width:800px}
+.right{background:#f7f9fb;border-left:1px solid var(--line);padding:16px}.right-card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow)}.vocab-list{display:grid}.vword{display:grid;grid-template-columns:28px 1fr auto;align-items:center;gap:7px;padding:9px 2px;border-bottom:1px solid #eef1f4;font-size:.75rem}.vword:last-child{border-bottom:0}.vword b{display:block}.vword small{display:block;color:var(--muted);font-size:.66rem}.vmark{border:0;border-radius:7px;background:#f2f5f7;padding:5px 7px}.vmark.weak{background:#fff1ec}.vmark.known{background:#edf8f0}.tools{display:grid}.tool{border:0;border-bottom:1px solid #edf0f3;background:#fff;text-align:left;padding:10px 4px;font-size:.75rem;color:var(--ink)}.tool:last-child{border-bottom:0}.autosave{font-size:.67rem;color:var(--muted);text-align:center;padding:7px}.autosave span{color:var(--green)}
+.summary-strip{display:grid;grid-template-columns:1fr 1fr 1.35fr;gap:0;margin-top:18px;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}.summary-cell{padding:12px;border-right:1px solid var(--line);font-size:.72rem}.summary-cell:last-child{border-right:0}.summary-cell b{display:block;margin-bottom:5px}.mini-stats{display:flex;gap:12px;flex-wrap:wrap}.mini-stats span{white-space:nowrap}.mastery-panel{margin-top:16px}.mastery-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.field{display:grid;gap:5px}.field label{font-size:.7rem;font-weight:800;color:var(--muted)}.field input,.field textarea{border:1px solid var(--line);border-radius:8px;padding:9px;background:#fff}.field textarea{resize:vertical}.handoff{white-space:pre-wrap;background:#162839;color:#eaf1f7;padding:13px;border-radius:10px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.72rem;min-height:90px;margin-top:10px}.hidden{display:none!important}
+@media(max-width:1200px){.workspace{grid-template-columns:220px minmax(470px,1fr)}.right{grid-column:1/-1;border-left:0;border-top:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr;gap:12px}.right-card{margin:0}.lesson-head{grid-template-columns:180px 1fr 140px}.lesson-head .head-block:last-child{grid-column:1/-1;border-top:1px solid var(--line);padding-top:10px}}
+@media(max-width:850px){.shell{grid-template-columns:1fr}.rail{display:none}.topbar{padding:0 14px}.lesson-head{grid-template-columns:1fr;padding:12px 14px}.head-block{border-right:0;border-bottom:1px solid var(--line);padding:0 0 10px}.workspace{display:block}.steps{border-right:0;border-bottom:1px solid var(--line)}.step-list{display:flex;overflow-x:auto}.step{min-width:185px}.center{padding:16px}.right{display:block}.right-card{margin-bottom:12px}.lesson-scene{grid-template-columns:1fr}.scene{min-height:140px}.eval-grid,.mastery-grid{grid-template-columns:1fr}.top-actions .outline{display:none}}
 </style>
 </head>
 <body>
-<header class="top"><strong>Keele<span style="color:#d6a24d">Sepp</span></strong><h1>Adaptiivse tunni prototüüp</h1><span class="tag">kohalik sessioon · ei salvesta Firestore'i</span></header>
-<div class="layout">
-  <aside class="panel side">
-    <div class="eyebrow">Õpetaja töölaud</div>
-    <h3 id="side-title">—</h3>
-    <div class="muted" id="side-meta"></div>
-    <div class="route-grid" id="route-buttons"></div>
-    <div class="step-list" id="step-list"></div>
-  </aside>
-  <main class="panel main">
-    <div class="eyebrow" id="category"></div>
-    <h2 id="title"></h2>
-    <div class="goal" id="goal"></div>
+<div class="shell">
+  <nav class="rail" aria-label="KeeleSepp">
+    <div class="logo">Keele<span>Sepp</span></div>
+    <button class="rail-item"><b>⌂</b><span>Avaleht</span></button>
+    <button class="rail-item"><b>♙</b><span>Õpilased</span></button>
+    <button class="rail-item"><b>▣</b><span>Tunnid</span></button>
+    <button class="rail-item active"><b>▤</b><span>Programmid</span></button>
+    <button class="rail-item"><b>▱</b><span>Materjalid</span></button>
+    <button class="rail-item"><b>⌁</b><span>Aruanded</span></button>
+    <div class="rail-spacer"></div>
+    <button class="rail-item"><b>⚙</b><span>Seaded</span></button>
+  </nav>
 
-    <section id="diagnostic-box">
-      <h3>0. Kiirdiagnostika</h3>
-      <p class="muted" id="diagnostic-instruction"></p>
-      <div id="diagnostic-items"></div>
-      <div class="controls" style="margin-top:12px">
-        <button class="btn" id="diagnostic-calc">Arvuta soovitus</button>
-        <div class="field"><label>Eelmise tunni mastery %</label><input id="previous-mastery" type="number" min="0" max="100" placeholder="—"></div>
+  <div class="app">
+    <header class="topbar">
+      <span class="level-chip">B1</span>
+      <div class="crumb"><span id="category"></span> › Tund: <span id="title"></span></div>
+      <div class="top-actions"><button class="outline" id="guide-btn">▤ Kuva juhend</button><button class="danger" id="end-btn">⊕ Lõpeta tund</button></div>
+    </header>
+
+    <section class="lesson-head">
+      <div class="head-block">
+        <div class="student"><div class="avatar">👩</div><div><div class="label">Õpilane</div><strong>Prototüübi õpilane</strong><span class="linkish">Vaata profiili</span></div></div>
       </div>
-      <div id="diagnostic-result" class="recommend">Sisesta diagnostika tulemused. Õpetaja võib soovituse alati käsitsi muuta.</div>
+      <div class="head-block"><div class="label">Eesmärk</div><div class="goal-text" id="goal"></div></div>
+      <div class="head-block"><div class="label">Kestus</div><div class="metric"><span id="duration"></span> min<small id="elapsed">Aeg läinud: 0 min</small></div></div>
+      <div class="head-block"><div class="label">Praegune rada</div><div class="route-pill" id="route-pill">🔵 Standard (Põhirada)</div><div class="change-route">Rada muutub automaatselt, õpetaja võib seda alati muuta.</div></div>
     </section>
 
-    <section class="section" id="stage-box"></section>
+    <div class="workspace">
+      <aside class="steps">
+        <h3>Tunni etapid</h3>
+        <div class="step-list" id="step-list"></div>
+        <div class="handoff-note"><b>Handoff järgmisele õpetajale</b>Soovitused ja märkmed koostatakse tunni lõpus automaatselt.</div>
+      </aside>
 
-    <section class="section">
-      <h3>Õpetaja hinnang pärast tundi</h3>
-      <p class="muted">Sisesta ainult päriselt hinnatud oskused. Tühi väli ≠ 0.</p>
-      <div class="mastery-grid" id="mastery-inputs"></div>
-      <div class="field" style="margin-top:10px"><label>Märkus järgmisele õpetajale</label><textarea id="teacher-notes" rows="3" placeholder="Näiteks: vajab enne vaba rääkimist lausemalle"></textarea></div>
-      <div class="controls" style="margin-top:12px"><button class="btn" id="build-handoff">Koosta handoff</button><button class="btn secondary" id="reset-session">Alusta uuesti</button></div>
-      <div class="handoff" id="handoff-output" style="margin-top:12px">Handoff tekib siia.</div>
-    </section>
-  </main>
+      <main class="center">
+        <section id="diagnostic-view" class="stage-view active">
+          <div class="stage-title"><h1>0. Diagnostika</h1><span class="question-count" id="diag-count"></span></div>
+          <div class="sub">Lühike kontroll sobiva lähteraja valimiseks. Õpetaja hindab vastust ühe puudutusega.</div>
+          <div class="progress"><span id="diag-progress"></span></div>
+          <div class="card">
+            <div class="prompt" id="diag-prompt"></div>
+            <div class="situation" id="diag-context"></div>
+            <div class="lesson-scene">
+              <div class="scene" aria-label="Linnas abi küsimise illustratsioon"></div>
+              <div class="answer-box">
+                <div class="expected"><b>Oodatav vastus / näide</b><div id="diag-expected"></div></div>
+                <div class="teacher-tip"><b>Märkus õpetajale</b><div id="diag-tip">Kuula eelkõige seda, kas õpilane jõuab kommunikatiivse eesmärgini. Ära paranda vastust enne hindamist.</div></div>
+                <details class="hint"><summary>💡 Näita vihjet (kui vaja)</summary><div style="margin-top:8px" id="diag-hint"></div></details>
+              </div>
+            </div>
+          </div>
+          <div class="eval-title">Kuidas õpilane vastas?</div>
+          <div class="eval-sub">Vali hinnang. Süsteem arvutab soovituse ise.</div>
+          <div class="eval-grid" id="diag-eval">
+            <button class="eval help" data-diag-eval="help"><b>🤔 Vajab abi</b><small>Ei saa veel iseseisvalt hakkama</small></button>
+            <button class="eval ok" data-diag-eval="ok"><b>✅ Sai hakkama</b><small>Õige või väikeste vigadega</small></button>
+            <button class="eval easy" data-diag-eval="easy"><b>⭐ Liiga kerge</b><small>Vastab kiiresti ja kindlalt</small></button>
+          </div>
+          <div class="nav-row"><button class="secondary" id="diag-prev">← Eelmine küsimus</button><button class="primary" id="diag-next">Järgmine küsimus →</button></div>
+          <div class="summary-strip">
+            <div class="summary-cell"><b>Diagnostika edenemine</b><span id="diag-summary-progress">0 / 5 hinnatud</span></div>
+            <div class="summary-cell"><b>Praegune kokkuvõte</b><div class="mini-stats" id="diag-stats"></div></div>
+            <div class="summary-cell"><b>Soovitus pärast diagnostikat</b><div id="diag-recommend">🎯 Hinda vähemalt üks vastus.</div></div>
+          </div>
+        </section>
+
+        <section id="lesson-stage-view" class="stage-view">
+          <div class="stage-title"><h1 id="stage-title"></h1><span class="question-count" id="stage-route"></span></div>
+          <div class="sub" id="stage-checkpoint"></div>
+          <div class="progress"><span id="stage-progress"></span></div>
+          <div id="stage-instruction" class="teacher-instruction"></div>
+          <div class="task-list" id="stage-tasks"></div>
+          <div id="stage-success" class="success hidden"></div>
+          <div class="stage-eval">
+            <div class="eval-title">Kuidas see etapp läks?</div>
+            <div class="eval-sub">Pole vaja sisestada protsente, katseid ega vihjete arvu.</div>
+            <div class="eval-grid">
+              <button class="eval help" data-stage-eval="help"><b>🤔 Vajab abi</b><small>Järgmises etapis rohkem tuge</small></button>
+              <button class="eval ok" data-stage-eval="ok"><b>✅ Sai hakkama</b><small>Jätka praegusel raskusel</small></button>
+              <button class="eval easy" data-stage-eval="easy"><b>⭐ Liiga kerge</b><small>Järgmises etapis vähem tuge</small></button>
+            </div>
+          </div>
+          <div class="recommendation" id="stage-recommend"><b>Soovitus</b>Vali etapi lõpus üks kolmest hinnangust.</div>
+          <div class="nav-row"><button class="secondary" id="stage-prev">← Eelmine etapp</button><button class="primary" id="stage-next">Järgmine etapp →</button></div>
+        </section>
+
+        <section class="mastery-panel hidden" id="mastery-panel">
+          <div class="card">
+            <h2 style="margin-top:0">Tunni kokkuvõte</h2>
+            <p class="sub">Detailne mastery on õpetaja jaoks sekundaarne. Täida ainult oskused, mida päriselt hindasid; tühi väli ei tähenda nulli.</p>
+            <div class="mastery-grid" id="mastery-inputs"></div>
+            <div class="field" style="margin-top:12px"><label>Märkus järgmisele õpetajale</label><textarea id="teacher-notes" rows="3" placeholder="Näiteks: vajab enne vaba rääkimist lausemalle"></textarea></div>
+            <div class="nav-row"><button class="secondary" id="reset-session">Alusta uuesti</button><button class="primary" id="build-handoff">Koosta handoff</button></div>
+            <div class="handoff" id="handoff-output">Handoff tekib siia.</div>
+          </div>
+        </section>
+      </main>
+
+      <aside class="right">
+        <div class="right-card">
+          <h3>Sõnavara – aktiivne <span class="question-count" id="vocab-count" style="float:right"></span></h3>
+          <div class="vocab-list" id="vocab-list"></div>
+          <button class="secondary" style="width:100%;margin-top:10px" id="show-all-vocab">Ava kogu sõnavara</button>
+        </div>
+        <div class="right-card">
+          <h3>Tööriistad õpetajale</h3>
+          <div class="tools">
+            <button class="tool">▣ Näita kogu tunni materjale</button>
+            <button class="tool">▤ Prindi / salvesta leht</button>
+            <button class="tool" id="note-tool">☑ Lisa märkus</button>
+            <button class="tool">▱ Ava tööleht</button>
+          </div>
+        </div>
+        <div class="autosave">Kohalik prototüüp · <span>●</span> ei salvesta Firestore'i</div>
+      </aside>
+    </div>
+  </div>
 </div>
 <script>
 (function(){
   const core=window.AdaptiveLessonCore;
   const lesson=window.KeeleSeppAdaptiveLessons?.['est-b1-city-problem-solving-01'];
   if(!core||!lesson){document.body.innerHTML='<p style="padding:30px">Adaptive lesson assets did not load.</p>';return;}
-  const state={route:'core',stageIndex:0,diagnosticScores:{},vocabEvidence:{}};
   const $=id=>document.getElementById(id);
-  const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-  const routeNames={support:'🟢 Tugi',core:'🔵 Põhirada',advanced:'🟣 Edasijõudnu'};
+  const esc=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  const routeNames={support:'🟢 Toega',core:'🔵 Standard (Põhirada)',advanced:'🟣 Edasijõudnu'};
+  const state={route:'core',diagIndex:0,diagRatings:{},stageIndex:0,stageRatings:{},vocabStatus:{},startedAt:Date.now()};
 
-  $('title').textContent=lesson.title;
-  $('side-title').textContent=lesson.title;
-  $('side-meta').textContent=`${lesson.subject} · ${lesson.cefrLevel} · ${lesson.durationMinutes} min`;
-  $('category').textContent=lesson.category;
-  $('goal').innerHTML=`<b>Eesmärk:</b> ${escapeHtml(lesson.goal)}`;
-  $('diagnostic-instruction').textContent=lesson.diagnostic.instruction;
+  $('category').textContent=lesson.category;$('title').textContent=lesson.title;$('goal').textContent=lesson.goal;$('duration').textContent=lesson.durationMinutes;$('vocab-count').textContent=lesson.vocabulary.length;
 
-  function renderRoutes(){
-    $('route-buttons').innerHTML=core.ROUTES.map(route=>`<button class="route ${state.route===route?'active':''}" data-route="${route}"><strong>${routeNames[route]}</strong><small>${route==='support'?'rohkem tuge':route==='core'?'oodatud raskus':'vähem tuge + transfer'}</small></button>`).join('');
-    document.querySelectorAll('[data-route]').forEach(btn=>btn.onclick=()=>{state.route=btn.dataset.route;renderRoutes();renderStage();});
+  function routeForRating(current,rating){
+    if(rating==='help')return current==='advanced'?'core':'support';
+    if(rating==='easy')return current==='support'?'core':'advanced';
+    return current;
   }
+  function renderRoute(){ $('route-pill').textContent=routeNames[state.route]; $('stage-route').textContent=routeNames[state.route]; }
+  function updateElapsed(){const mins=Math.max(0,Math.floor((Date.now()-state.startedAt)/60000));$('elapsed').textContent=`Aeg läinud: ${mins} min`;}
+  setInterval(updateElapsed,30000);updateElapsed();
 
   function renderSteps(){
-    $('step-list').innerHTML=lesson.stages.map((stage,index)=>`<div class="step ${index===state.stageIndex?'active':''}" data-stage="${index}"><b>${escapeHtml(stage.title)}</b><div class="muted">${stage.minutes||'—'} min · ${escapeHtml(stage.skill||'')}</div></div>`).join('');
-    document.querySelectorAll('[data-stage]').forEach(el=>el.onclick=()=>{state.stageIndex=Number(el.dataset.stage);renderSteps();renderStage();});
+    const items=[{title:'0. Diagnostika',minutes:lesson.diagnostic.durationMinutes,skill:'lähterada'},...lesson.stages];
+    $('step-list').innerHTML=items.map((s,i)=>`<button class="step ${i===state.stageIndex?'active':''}" data-step="${i}"><span class="step-num">${i+1}</span><span><b>${esc(s.title)}</b><small>${esc(s.minutes||'—')} min${s.skill?' · '+esc(s.skill):''}</small></span></button>`).join('');
+    document.querySelectorAll('[data-step]').forEach(btn=>btn.onclick=()=>{state.stageIndex=Number(btn.dataset.step);renderCurrentStage();});
   }
 
+  function diagnosticCounts(){
+    const vals=Object.values(state.diagRatings);return {rated:vals.length,help:vals.filter(v=>v==='help').length,ok:vals.filter(v=>v==='ok').length,easy:vals.filter(v=>v==='easy').length};
+  }
+  function recommendedDiagnosticRoute(){
+    const c=diagnosticCounts();
+    if(!c.rated)return 'core';
+    const score=c.ok+2*c.easy;
+    const max=2*c.rated;
+    const pct=Math.round(score/max*100);
+    if(pct<=45)return 'support';
+    if(pct>=85&&c.help===0)return 'advanced';
+    return 'core';
+  }
   function renderDiagnostic(){
-    $('diagnostic-items').innerHTML=lesson.diagnostic.items.map((item,index)=>`<div class="task"><b>${index+1}. ${escapeHtml(item.prompt)}</b><div class="muted">Oodatav: ${escapeHtml(item.expected)}</div><div class="field" style="margin-top:7px"><label>Punktid 0–${item.max}</label><input type="number" min="0" max="${item.max}" step="1" value="${state.diagnosticScores[item.id]??''}" data-diag="${item.id}"></div></div>`).join('');
-    document.querySelectorAll('[data-diag]').forEach(input=>input.oninput=()=>{state.diagnosticScores[input.dataset.diag]=input.value===''?null:Number(input.value);});
+    const item=lesson.diagnostic.items[state.diagIndex];const c=diagnosticCounts();
+    $('diag-count').textContent=`Küsimus ${state.diagIndex+1} / ${lesson.diagnostic.items.length}`;
+    $('diag-progress').style.width=`${(state.diagIndex+1)/lesson.diagnostic.items.length*100}%`;
+    $('diag-prompt').textContent=item.prompt;
+    $('diag-context').textContent=state.diagIndex===1?'Situatsioon: õpilane vajab võõralt inimeselt abi.':'Vasta ilma ettevalmistuseta. Õpetaja kuulab esmalt tervet vastust.';
+    $('diag-expected').textContent=item.expected;
+    $('diag-hint').textContent=item.expected.split(/[/.]/)[0];
+    document.querySelectorAll('[data-diag-eval]').forEach(btn=>btn.classList.toggle('selected',state.diagRatings[item.id]===btn.dataset.diagEval));
+    $('diag-prev').disabled=state.diagIndex===0;$('diag-prev').style.opacity=state.diagIndex===0?'.45':'1';
+    $('diag-next').textContent=state.diagIndex===lesson.diagnostic.items.length-1?'Alusta põhitundi →':'Järgmine küsimus →';
+    $('diag-summary-progress').textContent=`${c.rated} / ${lesson.diagnostic.items.length} hinnatud`;
+    $('diag-stats').innerHTML=`<span>✅ ${c.ok}</span><span>🤔 ${c.help}</span><span>⭐ ${c.easy}</span>`;
+    const rec=recommendedDiagnosticRoute();$('diag-recommend').innerHTML=`🎯 <b>${routeNames[rec]}</b> sobib praeguste vastuste põhjal.${c.rated<lesson.diagnostic.items.length?' Soovitus täpsustub diagnostika lõpuks.':''}`;
   }
-
-  function renderStage(){
-    const stage=lesson.stages[state.stageIndex];
-    const variant=stage.routes[state.route]||{};
-    const tasks=variant.tasks||[];
-    const vocabBlock=stage.id==='stage-1-vocabulary'?`<div class="vocab">${lesson.vocabulary.map(word=>`<div class="word"><b>${escapeHtml(word.word)}</b><span>${escapeHtml(word.translation)}</span><div class="muted">${escapeHtml(word.example||'')}</div></div>`).join('')}</div>`:'';
-    $('stage-box').innerHTML=`
-      <div class="controls"><div><div class="eyebrow">Praegune etapp</div><h3>${escapeHtml(stage.title)}</h3></div><span class="badge ${state.route}">${routeNames[state.route]}</span></div>
-      ${stage.checkpoint?`<p class="muted"><b>Kontrollpunkt:</b> ${escapeHtml(stage.checkpoint)}</p>`:''}
-      ${variant.teacherInstruction?`<div class="teacher"><b>Õpetajale:</b> ${escapeHtml(variant.teacherInstruction)}</div>`:''}
-      ${vocabBlock}
-      <div>${tasks.map((task,index)=>`<div class="task"><b>${index+1}</b> · ${escapeHtml(task)}</div>`).join('')}</div>
-      ${variant.supportTools?.length?`<p class="muted"><b>Lubatud tugi:</b> ${variant.supportTools.map(escapeHtml).join(', ')}</p>`:''}
-      ${variant.success?`<div class="goal"><b>Edu kriteerium:</b> ${escapeHtml(variant.success)}</div>`:''}
-      <div class="controls" style="margin-top:14px">
-        <div class="field"><label>Etapi tulemus %</label><input id="stage-score" type="number" min="0" max="100"></div>
-        <div class="field"><label>Katseid</label><input id="stage-attempts" type="number" min="1" value="1"></div>
-        <div class="field"><label>Vihjeid</label><input id="stage-hints" type="number" min="0" value="0"></div>
-        <button class="btn secondary" id="stage-recommend">Soovita järgmist rada</button>
-      </div>
-      <div id="stage-recommendation" class="recommend">Rada võib muutuda igal etapil. Õpilane ei saa püsivat silti.</div>`;
-    $('stage-recommend').onclick=()=>{
-      const score=Number($('stage-score').value||0),attempts=Number($('stage-attempts').value||1),hintCount=Number($('stage-hints').value||0);
-      const recommendation=core.recommendStageAdjustment({currentRoute:state.route,stagePercent:score,attempts,hintCount});
-      $('stage-recommendation').innerHTML=`Soovitus: <b>${routeNames[recommendation.route]}</b>. ${escapeHtml(recommendation.reason)} <button class="btn" id="apply-route" style="margin-left:8px;padding:6px 9px">Rakenda</button>`;
-      $('apply-route').onclick=()=>{state.route=recommendation.route;renderRoutes();renderStage();};
-    };
-  }
-
-  function renderMastery(){
-    $('mastery-inputs').innerHTML=core.SKILLS.map(skill=>`<div class="field"><label>${skill}</label><input data-mastery="${skill}" type="number" min="0" max="100" placeholder="—"></div>`).join('');
-  }
-
-  $('diagnostic-calc').onclick=()=>{
-    const scored=lesson.diagnostic.items.map(item=>({score:state.diagnosticScores[item.id],max:item.max})).filter(row=>row.score!==null&&row.score!==undefined);
-    const result=core.scoreDiagnostic(scored);
-    const previous=$('previous-mastery').value===''?null:Number($('previous-mastery').value);
-    const recommendation=core.recommendRoute({diagnosticPercent:result.percent,previousMastery:previous,confidence:result.count<lesson.diagnostic.items.length?'low':'normal'});
-    $('diagnostic-result').innerHTML=`Diagnostika: <b>${result.earned}/${result.possible} (${result.percent}%)</b>. Soovitus: <b>${routeNames[recommendation.route]}</b>. <button class="btn" id="apply-diagnostic" style="margin-left:8px;padding:6px 9px">Rakenda</button>`;
-    $('apply-diagnostic').onclick=()=>{state.route=recommendation.route;renderRoutes();renderStage();};
+  document.querySelectorAll('[data-diag-eval]').forEach(btn=>btn.onclick=()=>{const item=lesson.diagnostic.items[state.diagIndex];state.diagRatings[item.id]=btn.dataset.diagEval;renderDiagnostic();});
+  $('diag-prev').onclick=()=>{if(state.diagIndex>0){state.diagIndex--;renderDiagnostic();}};
+  $('diag-next').onclick=()=>{
+    if(state.diagIndex<lesson.diagnostic.items.length-1){state.diagIndex++;renderDiagnostic();return;}
+    state.route=recommendedDiagnosticRoute();state.stageIndex=1;renderCurrentStage();
   };
 
+  function renderStage(){
+    const idx=state.stageIndex-1;const stage=lesson.stages[idx];const variant=stage.routes[state.route]||{};
+    $('stage-title').textContent=stage.title;$('stage-checkpoint').textContent=stage.checkpoint||'Tööta kommunikatiivse eesmärgi suunas.';
+    $('stage-progress').style.width=`${(state.stageIndex)/(lesson.stages.length)*100}%`;
+    $('stage-instruction').innerHTML=`<b>Õpetajale:</b> ${esc(variant.teacherInstruction||'Jälgi ülesande täitmist ja kohanda toe hulka.')}`;
+    $('stage-tasks').innerHTML=(variant.tasks||[]).map((task,i)=>`<div class="task-item"><b>${i+1}.</b> ${esc(task)}</div>`).join('');
+    $('stage-success').classList.toggle('hidden',!variant.success);$('stage-success').innerHTML=variant.success?`<b>Edu kriteerium:</b> ${esc(variant.success)}`:'';
+    document.querySelectorAll('[data-stage-eval]').forEach(btn=>btn.classList.toggle('selected',state.stageRatings[stage.id]===btn.dataset.stageEval));
+    const existing=state.stageRatings[stage.id];
+    if(existing){const next=routeForRating(state.route,existing);$('stage-recommend').innerHTML=`<b>Soovitus järgmiseks etapiks</b>${routeNames[next]} — ${existing==='help'?'anna rohkem tuge ja hoia eesmärk samana.':existing==='easy'?'vähenda tuge ja lisa iseseisvust.':'praegune raskus sobib.'}`;}
+    else $('stage-recommend').innerHTML='<b>Soovitus</b>Vali etapi lõpus üks kolmest hinnangust.';
+    $('stage-prev').disabled=state.stageIndex<=1;$('stage-prev').style.opacity=state.stageIndex<=1?'.45':'1';
+    $('stage-next').textContent=state.stageIndex===lesson.stages.length?'Tunni kokkuvõte →':'Järgmine etapp →';
+  }
+  document.querySelectorAll('[data-stage-eval]').forEach(btn=>btn.onclick=()=>{
+    const stage=lesson.stages[state.stageIndex-1];state.stageRatings[stage.id]=btn.dataset.stageEval;
+    const next=routeForRating(state.route,btn.dataset.stageEval);state.route=next;renderRoute();renderStage();
+  });
+  $('stage-prev').onclick=()=>{if(state.stageIndex>1){state.stageIndex--;renderCurrentStage();}};
+  $('stage-next').onclick=()=>{if(state.stageIndex<lesson.stages.length){state.stageIndex++;renderCurrentStage();}else{showSummary();}};
+
+  function renderCurrentStage(){
+    $('diagnostic-view').classList.toggle('active',state.stageIndex===0);
+    $('lesson-stage-view').classList.toggle('active',state.stageIndex>0);
+    $('mastery-panel').classList.add('hidden');
+    renderSteps();renderRoute();
+    if(state.stageIndex===0)renderDiagnostic();else renderStage();
+  }
+
+  function renderVocabulary(){
+    $('vocab-list').innerHTML=lesson.vocabulary.slice(0,6).map(word=>`<div class="vword"><span>🔊</span><span><b>${esc(word.word)}</b><small>${esc(word.translation)}</small></span><button class="vmark ${state.vocabStatus[word.id]||''}" data-vocab="${word.id}" title="Märgi sõna">${state.vocabStatus[word.id]==='weak'?'!':state.vocabStatus[word.id]==='known'?'✓':'○'}</button></div>`).join('');
+    document.querySelectorAll('[data-vocab]').forEach(btn=>btn.onclick=()=>{const cur=state.vocabStatus[btn.dataset.vocab];state.vocabStatus[btn.dataset.vocab]=cur==='weak'?'known':cur==='known'?'':'weak';renderVocabulary();});
+  }
+  $('show-all-vocab').onclick=()=>{const currently=$('vocab-list').dataset.all==='1';$('vocab-list').dataset.all=currently?'0':'1';$('vocab-list').innerHTML=(currently?lesson.vocabulary.slice(0,6):lesson.vocabulary).map(word=>`<div class="vword"><span>🔊</span><span><b>${esc(word.word)}</b><small>${esc(word.translation)}</small></span><button class="vmark ${state.vocabStatus[word.id]||''}" data-vocab="${word.id}">${state.vocabStatus[word.id]==='weak'?'!':state.vocabStatus[word.id]==='known'?'✓':'○'}</button></div>`).join('');document.querySelectorAll('[data-vocab]').forEach(btn=>btn.onclick=()=>{const cur=state.vocabStatus[btn.dataset.vocab];state.vocabStatus[btn.dataset.vocab]=cur==='weak'?'known':cur==='known'?'':'weak';renderVocabulary();});};
+
+  function renderMastery(){ $('mastery-inputs').innerHTML=core.SKILLS.map(skill=>`<div class="field"><label>${skill}</label><input data-mastery="${skill}" type="number" min="0" max="100" placeholder="—"></div>`).join(''); }
+  function showSummary(){ $('diagnostic-view').classList.remove('active');$('lesson-stage-view').classList.remove('active');$('mastery-panel').classList.remove('hidden');renderSteps(); }
   $('build-handoff').onclick=()=>{
-    const mastery={};
-    document.querySelectorAll('[data-mastery]').forEach(input=>{if(input.value!=='')mastery[input.dataset.mastery]=Number(input.value);});
-    const handoff=core.buildTeacherHandoff({lesson:{key:lesson.id,title:lesson.title},student:{id:'prototype-student',name:'Prototüübi õpilane'},route:state.route,mastery,vocabulary:[],notes:$('teacher-notes').value});
+    const mastery={};document.querySelectorAll('[data-mastery]').forEach(input=>{if(input.value!=='')mastery[input.dataset.mastery]=Number(input.value);});
+    const vocabulary=lesson.vocabulary.map(word=>({word:word.word,status:state.vocabStatus[word.id]||'unassessed'})).filter(row=>row.status!=='unassessed');
+    const handoff=core.buildTeacherHandoff({lesson:{key:lesson.id,title:lesson.title},student:{id:'prototype-student',name:'Prototüübi õpilane'},route:state.route,mastery,vocabulary,notes:$('teacher-notes').value});
     $('handoff-output').textContent=JSON.stringify(handoff,null,2);
   };
   $('reset-session').onclick=()=>location.reload();
+  $('note-tool').onclick=()=>{$('teacher-notes').focus();showSummary();};
+  $('end-btn').onclick=showSummary;
+  $('guide-btn').onclick=()=>alert(lesson.teacherBrief?.principle||'Muuda toe hulka, mitte tunni eesmärki.');
 
-  renderRoutes();renderSteps();renderDiagnostic();renderStage();renderMastery();
+  renderSteps();renderRoute();renderDiagnostic();renderVocabulary();renderMastery();
 })();
 </script>
 </body>
