@@ -134,7 +134,8 @@
         focusSkillIds:focusSkills.map(skill=>skill.id),
         cautionSkillIds:cautionSkills.map(skill=>skill.id),
         reviewVocabularyIds:[],
-        nextGoalIds:recentGoalIds,
+        nextGoalIds:[],
+        recentGoalIds,
         recentGoalLabels,
         recentSkillIds
       }
