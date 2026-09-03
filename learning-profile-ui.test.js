@@ -7,6 +7,7 @@ const source=fs.readFileSync(path.join(__dirname,'haldus-learning-profile/index.
 
 test('Learning Profile is a read-only staff surface',()=>{
   assert.match(source,/src="\/learning-profile-core\.js"/);
+  assert.match(source,/src="\/haldus-programs\.js"/);
   assert.match(source,/src="\/staff-activity\.js"/);
   assert.match(source,/\['teacher','admin'\]\.includes\(state\.user\.role\)/);
   assert.doesNotMatch(source,/\.update\s*\(/);
@@ -26,4 +27,8 @@ test('Learning Profile exposes teacher decision support without claiming curricu
   assert.match(source,/Tugevad oskused/);
   assert.match(source,/Hiljutine õppimistõendus/);
   assert.match(source,/ei anna piisavat alust järgmise õppekava eesmärgi automaatseks valimiseks/);
+});
+
+test('Learning Profile uses the existing shared skill catalog for labels',()=>{
+  assert.match(source,/Object\.values\(window\.HaldusSkillCatalog\|\|\{\}\)\.flat\(\)/);
 });
