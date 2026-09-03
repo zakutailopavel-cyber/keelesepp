@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="et">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KeeleSepp · Adaptiivne tund</title>
+<script src="/adaptive-lesson-core.js"></script>
+<script src="/adaptive-lessons/est-b1-city-problem-solving.js"></script>
+<style>
+:root{--bg:#f5f3ef;--panel:#fff;--ink:#1c2b3a;--muted:#667482;--line:#ddd8cf;--brand:#2f5d50;--accent:#c9882a;--soft:#eef3f1;--danger:#9b3b34}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.top{background:var(--ink);color:#fff;padding:18px 24px;display:flex;align-items:center;gap:16px}.top h1{font-size:1.05rem;margin:0}.top .tag{font-size:.75rem;padding:5px 9px;border:1px solid rgba(255,255,255,.25);border-radius:999px;color:#dce4e8}.layout{max-width:1220px;margin:0 auto;padding:24px;display:grid;grid-template-columns:300px 1fr;gap:20px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:0 8px 28px rgba(28,43,58,.05)}.side{padding:18px;position:sticky;top:18px;align-self:start}.main{padding:22px}.eyebrow{text-transform:uppercase;letter-spacing:.08em;font-weight:800;font-size:.68rem;color:var(--brand)}h2,h3{margin:6px 0 10px}.muted{color:var(--muted)}.goal{background:var(--soft);border-left:4px solid var(--brand);padding:13px 14px;border-radius:8px;margin:12px 0}.route-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}.route{border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px;text-align:left;cursor:pointer}.route.active{border:2px solid var(--accent);padding:9px;background:#fffaf2}.route strong{display:block}.route small{color:var(--muted)}.step-list{display:grid;gap:8px;margin-top:14px}.step{border:1px solid var(--line);border-radius:10px;padding:10px;cursor:pointer}.step.active{border-color:var(--brand);background:var(--soft)}.badge{display:inline-flex;padding:4px 8px;border-radius:999px;background:#eee;font-size:.72rem;font-weight:700}.badge.support{background:#eef6e9}.badge.core{background:#e9f1f7}.badge.advanced{background:#f4ecfa}.section{border-top:1px solid var(--line);padding-top:18px;margin-top:18px}.task{padding:11px 12px;border:1px solid var(--line);border-radius:10px;margin:8px 0;background:#fff}.teacher{background:#fff8e9;border:1px solid #ead8ae;padding:12px;border-radius:10px;margin:10px 0}.vocab{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.word{border:1px solid var(--line);border-radius:9px;padding:9px}.word b{display:block}.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:end}.field{display:grid;gap:5px}.field label{font-size:.75rem;color:var(--muted);font-weight:700}.field input,.field select,.field textarea{border:1px solid var(--line);border-radius:8px;padding:9px;background:#fff}.field input{width:95px}.btn{border:0;background:var(--brand);color:#fff;border-radius:9px;padding:10px 14px;font-weight:800;cursor:pointer}.btn.secondary{background:#fff;color:var(--ink);border:1px solid var(--line)}.recommend{margin-top:12px;padding:12px;border-radius:10px;background:var(--soft)}.handoff{white-space:pre-wrap;background:#1f2b36;color:#e9eff3;padding:14px;border-radius:10px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.78rem;min-height:90px}.warning{color:var(--danger);font-weight:700}.mastery-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}@media(max-width:850px){.layout{grid-template-columns:1fr}.side{position:static}.route-grid,.mastery-grid,.vocab{grid-template-columns:1fr}.field input{width:100%}}
+</style>
+</head>
+<body>
+<header class="top"><strong>Keele<span style="color:#d6a24d">Sepp</span></strong><h1>Adaptiivse tunni prototüüp</h1><span class="tag">kohalik sessioon · ei salvesta Firestore'i</span></header>
+<div class="layout">
+  <aside class="panel side">
+    <div class="eyebrow">Õpetaja töölaud</div>
+    <h3 id="side-title">—</h3>
+    <div class="muted" id="side-meta"></div>
+    <div class="route-grid" id="route-buttons"></div>
+    <div class="step-list" id="step-list"></div>
+  </aside>
+  <main class="panel main">
+    <div class="eyebrow" id="category"></div>
+    <h2 id="title"></h2>
+    <div class="goal" id="goal"></div>
+
+    <section id="diagnostic-box">
+      <h3>0. Kiirdiagnostika</h3>
+      <p class="muted" id="diagnostic-instruction"></p>
+      <div id="diagnostic-items"></div>
+      <div class="controls" style="margin-top:12px">
+        <button class="btn" id="diagnostic-calc">Arvuta soovitus</button>
+        <div class="field"><label>Eelmise tunni mastery %</label><input id="previous-mastery" type="number" min="0" max="100" placeholder="—"></div>
+      </div>
+      <div id="diagnostic-result" class="recommend">Sisesta diagnostika tulemused. Õpetaja võib soovituse alati käsitsi muuta.</div>
+    </section>
+
+    <section class="section" id="stage-box"></section>
+
+    <section class="section">
+      <h3>Õpetaja hinnang pärast tundi</h3>
+      <p class="muted">Sisesta ainult päriselt hinnatud oskused. Tühi väli ≠ 0.</p>
+      <div class="mastery-grid" id="mastery-inputs"></div>
+      <div class="field" style="margin-top:10px"><label>Märkus järgmisele õpetajale</label><textarea id="teacher-notes" rows="3" placeholder="Näiteks: vajab enne vaba rääkimist lausemalle"></textarea></div>
+      <div class="controls" style="margin-top:12px"><button class="btn" id="build-handoff">Koosta handoff</button><button class="btn secondary" id="reset-session">Alusta uuesti</button></div>
+      <div class="handoff" id="handoff-output" style="margin-top:12px">Handoff tekib siia.</div>
+    </section>
+  </main>
+</div>
+<script>
+(function(){
+  const core=window.AdaptiveLessonCore;
+  const lesson=window.KeeleSeppAdaptiveLessons?.['est-b1-city-problem-solving-01'];
+  if(!core||!lesson){document.body.innerHTML='<p style="padding:30px">Adaptive lesson assets did not load.</p>';return;}
+  const state={route:'core',stageIndex:0,diagnosticScores:{},vocabEvidence:{}};
+  const $=id=>document.getElementById(id);
+  const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  const routeNames={support:'🟢 Tugi',core:'🔵 Põhirada',advanced:'🟣 Edasijõudnu'};
+
+  $('title').textContent=lesson.title;
+  $('side-title').textContent=lesson.title;
+  $('side-meta').textContent=`${lesson.subject} · ${lesson.cefrLevel} · ${lesson.durationMinutes} min`;
+  $('category').textContent=lesson.category;
+  $('goal').innerHTML=`<b>Eesmärk:</b> ${escapeHtml(lesson.goal)}`;
+  $('diagnostic-instruction').textContent=lesson.diagnostic.instruction;
+
+  function renderRoutes(){
+    $('route-buttons').innerHTML=core.ROUTES.map(route=>`<button class="route ${state.route===route?'active':''}" data-route="${route}"><strong>${routeNames[route]}</strong><small>${route==='support'?'rohkem tuge':route==='core'?'oodatud raskus':'vähem tuge + transfer'}</small></button>`).join('');
+    document.querySelectorAll('[data-route]').forEach(btn=>btn.onclick=()=>{state.route=btn.dataset.route;renderRoutes();renderStage();});
+  }
+
+  function renderSteps(){
+    $('step-list').innerHTML=lesson.stages.map((stage,index)=>`<div class="step ${index===state.stageIndex?'active':''}" data-stage="${index}"><b>${escapeHtml(stage.title)}</b><div class="muted">${stage.minutes||'—'} min · ${escapeHtml(stage.skill||'')}</div></div>`).join('');
+    document.querySelectorAll('[data-stage]').forEach(el=>el.onclick=()=>{state.stageIndex=Number(el.dataset.stage);renderSteps();renderStage();});
+  }
+
+  function renderDiagnostic(){
+    $('diagnostic-items').innerHTML=lesson.diagnostic.items.map((item,index)=>`<div class="task"><b>${index+1}. ${escapeHtml(item.prompt)}</b><div class="muted">Oodatav: ${escapeHtml(item.expected)}</div><div class="field" style="margin-top:7px"><label>Punktid 0–${item.max}</label><input type="number" min="0" max="${item.max}" step="1" value="${state.diagnosticScores[item.id]??''}" data-diag="${item.id}"></div></div>`).join('');
+    document.querySelectorAll('[data-diag]').forEach(input=>input.oninput=()=>{state.diagnosticScores[input.dataset.diag]=input.value===''?null:Number(input.value);});
+  }
+
+  function renderStage(){
+    const stage=lesson.stages[state.stageIndex];
+    const variant=stage.routes[state.route]||{};
+    const tasks=variant.tasks||[];
+    const vocabBlock=stage.id==='stage-1-vocabulary'?`<div class="vocab">${lesson.vocabulary.map(word=>`<div class="word"><b>${escapeHtml(word.word)}</b><span>${escapeHtml(word.translation)}</span><div class="muted">${escapeHtml(word.example||'')}</div></div>`).join('')}</div>`:'';
+    $('stage-box').innerHTML=`
+      <div class="controls"><div><div class="eyebrow">Praegune etapp</div><h3>${escapeHtml(stage.title)}</h3></div><span class="badge ${state.route}">${routeNames[state.route]}</span></div>
+      ${stage.checkpoint?`<p class="muted"><b>Kontrollpunkt:</b> ${escapeHtml(stage.checkpoint)}</p>`:''}
+      ${variant.teacherInstruction?`<div class="teacher"><b>Õpetajale:</b> ${escapeHtml(variant.teacherInstruction)}</div>`:''}
+      ${vocabBlock}
+      <div>${tasks.map((task,index)=>`<div class="task"><b>${index+1}</b> · ${escapeHtml(task)}</div>`).join('')}</div>
+      ${variant.supportTools?.length?`<p class="muted"><b>Lubatud tugi:</b> ${variant.supportTools.map(escapeHtml).join(', ')}</p>`:''}
+      ${variant.success?`<div class="goal"><b>Edu kriteerium:</b> ${escapeHtml(variant.success)}</div>`:''}
+      <div class="controls" style="margin-top:14px">
+        <div class="field"><label>Etapi tulemus %</label><input id="stage-score" type="number" min="0" max="100"></div>
+        <div class="field"><label>Katseid</label><input id="stage-attempts" type="number" min="1" value="1"></div>
+        <div class="field"><label>Vihjeid</label><input id="stage-hints" type="number" min="0" value="0"></div>
+        <button class="btn secondary" id="stage-recommend">Soovita järgmist rada</button>
+      </div>
+      <div id="stage-recommendation" class="recommend">Rada võib muutuda igal etapil. Õpilane ei saa püsivat silti.</div>`;
+    $('stage-recommend').onclick=()=>{
+      const score=Number($('stage-score').value||0),attempts=Number($('stage-attempts').value||1),hintCount=Number($('stage-hints').value||0);
+      const recommendation=core.recommendStageAdjustment({currentRoute:state.route,stagePercent:score,attempts,hintCount});
+      $('stage-recommendation').innerHTML=`Soovitus: <b>${routeNames[recommendation.route]}</b>. ${escapeHtml(recommendation.reason)} <button class="btn" id="apply-route" style="margin-left:8px;padding:6px 9px">Rakenda</button>`;
+      $('apply-route').onclick=()=>{state.route=recommendation.route;renderRoutes();renderStage();};
+    };
+  }
+
+  function renderMastery(){
+    $('mastery-inputs').innerHTML=core.SKILLS.map(skill=>`<div class="field"><label>${skill}</label><input data-mastery="${skill}" type="number" min="0" max="100" placeholder="—"></div>`).join('');
+  }
+
+  $('diagnostic-calc').onclick=()=>{
+    const scored=lesson.diagnostic.items.map(item=>({score:state.diagnosticScores[item.id],max:item.max})).filter(row=>row.score!==null&&row.score!==undefined);
+    const result=core.scoreDiagnostic(scored);
+    const previous=$('previous-mastery').value===''?null:Number($('previous-mastery').value);
+    const recommendation=core.recommendRoute({diagnosticPercent:result.percent,previousMastery:previous,confidence:result.count<lesson.diagnostic.items.length?'low':'normal'});
+    $('diagnostic-result').innerHTML=`Diagnostika: <b>${result.earned}/${result.possible} (${result.percent}%)</b>. Soovitus: <b>${routeNames[recommendation.route]}</b>. <button class="btn" id="apply-diagnostic" style="margin-left:8px;padding:6px 9px">Rakenda</button>`;
+    $('apply-diagnostic').onclick=()=>{state.route=recommendation.route;renderRoutes();renderStage();};
+  };
+
+  $('build-handoff').onclick=()=>{
+    const mastery={};
+    document.querySelectorAll('[data-mastery]').forEach(input=>{if(input.value!=='')mastery[input.dataset.mastery]=Number(input.value);});
+    const handoff=core.buildTeacherHandoff({lesson:{key:lesson.id,title:lesson.title},student:{id:'prototype-student',name:'Prototüübi õpilane'},route:state.route,mastery,vocabulary:[],notes:$('teacher-notes').value});
+    $('handoff-output').textContent=JSON.stringify(handoff,null,2);
+  };
+  $('reset-session').onclick=()=>location.reload();
+
+  renderRoutes();renderSteps();renderDiagnostic();renderStage();renderMastery();
+})();
+</script>
+</body>
+</html>
