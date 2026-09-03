@@ -31,4 +31,6 @@ The first desktop verification gate after merge is:
 4. open `https://crm.epkoolitus.ee/haldus-adaptive-lesson/` and verify the scene renders;
 5. only after desktop is stable, continue mobile Safari polish.
 
+The uploader now includes direct navigation back to the legacy CRM and to Lesson Mode, and explicitly explains the production-origin authentication requirement.
+
 CRM v2 is not part of this workstream.
