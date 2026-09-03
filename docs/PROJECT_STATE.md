@@ -3,73 +3,78 @@
 Last verified: 2026-09-03, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
 Verified main commit: `d1ec40a40ccbe13153100f9d28c0b3d2cfeac0c3` (`Adaptive lesson foundation (#77)`)
-Active branch: `agent/adaptive-lesson-teacher-ui`
-Draft PR: `#79 Adaptive lesson focused Lesson Mode`
+Parent UI branch: `agent/adaptive-lesson-teacher-ui` / draft PR #79
+Active branch: `agent/adaptive-lesson-scenes`
 
 ## Current objective
 
-Make the adaptive lesson feel like a focused KeeleSepp teaching product rather than a generic SaaS dashboard, with purposeful illustrated teaching scenes and a separate compact mobile interaction model.
-
-No Firestore, finance, calendar, curriculum generation or Live Classroom behavior is changed in this branch.
+Integrate purposeful KeeleSepp cartoon/caricature scenes into adaptive lessons without changing Firestore, finance, calendar, Live Classroom or production student data.
 
 ## Work completed
 
-### Lesson Mode v4
+### Lesson Mode v4 inherited
 
-Rebuilt `haldus-adaptive-lesson/index.html` around owner feedback from real desktop/mobile screenshots.
+The branch inherits the KeeleSepp branded Lesson Mode from `agent/adaptive-lesson-teacher-ui`: compact stages, dominant current activity, vocabulary drawer, hidden methodology, semantic judgements (`Vajab abi / Sai hakkama / Liiga kerge`) and compact mobile mode.
 
-Key changes:
+### Real lesson scene asset added
 
-- KeeleSepp visual language: cream background, dark navy, gold accents, serif display typography and quieter cards;
-- desktop reduced from three permanent teaching columns to two persistent zones: compact stages + one central activity;
-- vocabulary no longer occupies a permanent right column;
-- `Sõnad` opens vocabulary in a drawer only when needed;
-- `Veel` opens goal/methodical guidance on demand;
-- current activity remains visually dominant;
-- expected answer is quieter than the student task;
-- semantic teacher judgement remains `Vajab abi / Sai hakkama / Liiga kerge`;
-- detailed mastery remains only in the final summary;
-- mobile layout is explicitly compact rather than a wrapped desktop grid.
+The approved delayed-bus cartoon was converted to a compact repository asset and committed at:
 
-### Lesson scene direction approved
+- `public/adaptive-lessons/scenes/bus-delay.jpg`
 
-Owner approved a full narrative cartoon/caricature treatment instead of emoji placeholder art. `docs/LESSON_SCENE_STANDARD.md` now defines the reusable visual and pedagogical contract.
+The binary was added through the Git data/blob API, not as base64 embedded in HTML.
 
-The approved direction uses expressive believable characters, real-life context, environmental clues, soft KeeleSepp-compatible colors and a wide scene that actively supports speaking/problem-solving. One scene should normally serve support/core/advanced routes; difficulty changes through instructions and scaffolding.
+### Lesson Mode scene wired
 
-A reference delayed-bus scene was generated during design review. It is currently a conversation design asset, not yet a repository-hosted production asset. Do not claim the emoji placeholder has been replaced until the image is stored through an approved repository/storage path and wired into Lesson Mode.
+`haldus-adaptive-lesson/index.html` now renders the repository-backed JPG through a real `<img>` instead of the previous emoji collage.
 
-### Adaptive behavior retained
+Rendering contract:
 
-Teacher judgement still moves one step toward support/advanced or keeps the current route. CEFR/category never changes because of the route. Vocabulary can still be marked difficult/known and passed to local handoff generation.
+- desktop: wide `16/7` scene area;
+- mobile: `4/3` scene area;
+- `object-fit: cover` with centered crop;
+- meaningful Estonian `alt` text;
+- rounded border and quiet shadow consistent with KeeleSepp UI.
 
-## Files changed in PR #79
+The current reference page still uses one scene for all activities. This is deliberate for the first vertical proof; per-activity scene metadata is the next data-model step.
 
+### Scene standard
+
+`docs/LESSON_SCENE_STANDARD.md` defines the approved visual/pedagogical standard: narrative educational cartoon/caricature scenes, believable people and emotions, useful environmental clues, KeeleSepp-compatible palette, no production emoji placeholders, and normally one scene reused across support/core/advanced routes with difficulty changed through scaffolding.
+
+## Files changed on this branch
+
+- `public/adaptive-lessons/scenes/bus-delay.jpg`
 - `haldus-adaptive-lesson/index.html`
-- `adaptive-lesson-ui.test.js`
-- `docs/ADAPTIVE_LESSON_SYSTEM.md`
-- `docs/LESSON_SCENE_STANDARD.md`
 - `docs/PROJECT_STATE.md`
+
+Inherited but not newly changed here:
+
+- `docs/LESSON_SCENE_STANDARD.md`
+- `docs/ADAPTIVE_LESSON_SYSTEM.md`
+- `adaptive-lesson-ui.test.js`
 
 ## Data/schema changes
 
-None. Session state remains local-only and the student remains a prototype placeholder. A future lesson blueprint should support a stable scene record (`id`, asset reference, `alt`, pedagogical purpose and optional focus vocabulary IDs).
+None. No Firestore collection/rule/migration change.
+
+Future lesson data should support a stable scene record with at least `id`, asset reference, `alt`, pedagogical purpose and optional focus vocabulary IDs.
 
 ## Verification
 
-- PR #79 remains draft.
-- V4 UI was manually reviewed by the owner on desktop; visual direction is improving but emoji placeholder scenes were rejected.
-- The narrative cartoon/caricature scene direction was explicitly approved by the owner.
-- No production deploy, Firebase write, migration or paid external API integration was performed.
+- JPG blob creation succeeded in GitHub and was committed into the branch tree.
+- `haldus-adaptive-lesson/index.html` now references `/adaptive-lessons/scenes/bus-delay.jpg`.
+- No production deployment or database write was performed.
+- A fresh Vercel preview/manual browser check is still required for this branch head.
 
 ## Known limitations
 
-- current Lesson Mode code still renders emoji placeholder art; approved generated reference scene is not yet repository-hosted;
-- no real selected CRM student yet;
-- no adaptive evidence persistence yet;
-- vocabulary audio/material actions are not connected;
-- semantic route thresholds still need pedagogical validation before persistence.
+- one scene is currently reused for every activity in the reference lesson rather than selected from activity metadata;
+- no real CRM student is connected;
+- no adaptive evidence persistence;
+- vocabulary audio/material actions are not wired;
+- scene-generation workflow is not automated yet.
 
 ## Next safe step
 
-Add a repository/storage-backed lesson-scene asset path and wire the approved delayed-bus illustration into the reference lesson, with responsive rendering and alt text; keep persistence and CRM-student integration out of that change.
+Verify the fresh Vercel preview on desktop and phone. If the asset renders correctly, add per-activity `scene` metadata to the reference lesson blueprint and make Lesson Mode select the scene from lesson data instead of a hardcoded path.
