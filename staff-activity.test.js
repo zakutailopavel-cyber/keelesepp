@@ -12,6 +12,7 @@ test('all staff work surfaces load the same active-time tracker',()=>{
     'haldus-calendar.html',
     'haldus-calendar-v3.html',
     'haldus-exercises/index.html',
+    'haldus-learning-profile/index.html',
     'haldus-skillmap/index.html',
     'haldus-worksheet/index.html',
     'live-classroom.html'
@@ -28,4 +29,9 @@ test('tracker pauses for hidden or idle windows and sends no interaction content
   assert.match(tracker,/JSON\.stringify\(\{pageInstanceId,area\}\)/);
   assert.doesNotMatch(tracker,/event\.target\.value/);
   assert.doesNotMatch(tracker,/screenX|screenY|clientX|clientY/);
+});
+
+test('Learning Profile is tracked separately from the legacy skill editor',()=>{
+  assert.match(tracker,/haldus-learning-profile'\)\) return 'learning-profile'/);
+  assert.match(tracker,/haldus-skillmap'\)\) return 'skill-map'/);
 });
