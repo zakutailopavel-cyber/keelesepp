@@ -13,32 +13,29 @@ Finish the adaptive Lesson Mode scene system in the first/legacy KeeleSepp CRM. 
 ## Implemented on PR #82
 
 - `haldus-adaptive-lesson/index.html` renders lesson scenes dynamically instead of hardcoding one image;
-- `adaptive-lessons/scenes.js` maps task/stage IDs to scene metadata (`src`, `version`, `alt`, pedagogical `purpose`);
+- `adaptive-lessons/scenes.js` maps task/stage IDs to scene metadata (`src`, `alt`, pedagogical `purpose`);
+- the current reference scene is embedded directly in `scenes.js` as a JPEG data URI so Safari does not need a second protected Vercel request for the image;
 - missing or failed images show a clean fallback instead of Safari's broken-image icon;
 - mobile header/stage layout was adjusted so lesson content no longer scrolls underneath the sticky header;
-- Support/Core/Advanced route logic and teacher judgement controls remain unchanged;
-- replacement scene lives at `adaptive-lessons/scenes/bus-delay-v2.jpg`.
+- Support/Core/Advanced route logic and teacher judgement controls remain unchanged.
 
-## Scene asset incident and fix
+## Scene asset incident and final delivery strategy
 
-The first `bus-delay-v2.jpg` committed on PR #82 was truncated. Safari displayed only a thin top strip and filled the remainder of the scene area grey.
+The first repository-hosted scene JPEG was truncated, and a later valid external JPEG still failed in mobile Safari on protected Vercel previews because the image was a separate subresource request.
 
-A replacement JPEG was validated locally before upload:
+The preview screenshot confirmed the fallback rendered cleanly, proving the UI path was correct but external asset delivery remained unreliable.
 
-- dimensions: 480 x 317;
-- format: JPEG, RGB;
-- Pillow decode/verify: successful;
-- local size: 23,584 bytes.
+To remove that dependency, the bus-delay illustration is now embedded in `adaptive-lessons/scenes.js` as `data:image/jpeg;base64,...`. The embedded source is a locally validated 360 x 238 RGB JPEG. The obsolete external JPG and temporary staging marker files were removed from PR #82.
 
-The validated binary was uploaded as Git blob `f375325d09176e055de400b6bf0c981990e2f1da` and committed on the PR branch as `710bb8c84786a1a73be85082ad5c1b29fbfbe0b0` (`fix(adaptive): replace truncated lesson scene JPEG`).
+This is an intentional reliability choice for the current prototype/reference lesson. When the scene library grows, move production assets to a dedicated public object-storage/CDN path rather than embedding many large scenes in one JavaScript file.
 
 ## Verification still required
 
-Wait for the Vercel preview for commit `710bb8c...` to become READY, then verify:
+Verify the newest Vercel preview after the inline-scene commit:
 
 - `/haldus-adaptive-lesson/` returns 200;
-- `/adaptive-lessons/scenes/bus-delay-v2.jpg?v=2` returns a complete JPEG with expected content length;
-- mobile Safari renders the full scene rather than a grey block;
+- the browser renders the scene without any separate `/adaptive-lessons/scenes/*.jpg` request;
+- mobile Safari shows the full illustration rather than the fallback;
 - header, stage strip, task card, judge buttons and floating controls do not overlap.
 
 ## Safety / unchanged areas
@@ -50,4 +47,4 @@ Wait for the Vercel preview for commit `710bb8c...` to become READY, then verify
 
 ## Next safe step
 
-Verify the new preview deployment for commit `710bb8c...`. If the scene renders correctly on mobile Safari, update PR #82 verification notes and ask the owner to merge only #82.
+Verify the latest preview for PR #82 on mobile Safari. If the full embedded scene renders correctly, update PR verification notes and ask the owner to merge only #82.
