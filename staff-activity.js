@@ -33,6 +33,7 @@
     if(path.startsWith('/live-classroom')) return 'live-classroom';
     if(path.startsWith('/haldus-exercises')) return 'learning-library';
     if(path.startsWith('/haldus-worksheet')) return 'worksheet';
+    if(path.startsWith('/haldus-learning-profile')) return 'learning-profile';
     if(path.startsWith('/haldus-skillmap')) return 'skill-map';
     if(path.includes('calendar')) return 'calendar';
     return 'crm';
