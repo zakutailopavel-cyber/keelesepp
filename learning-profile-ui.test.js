@@ -32,3 +32,11 @@ test('Learning Profile exposes teacher decision support without claiming curricu
 test('Learning Profile uses the existing shared skill catalog for labels',()=>{
   assert.match(source,/Object\.values\(window\.HaldusSkillCatalog\|\|\{\}\)\.flat\(\)/);
 });
+
+test('Learning Profile inline scripts parse as JavaScript',()=>{
+  const inlineScripts=[...source.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)]
+    .map(match=>match[1].trim())
+    .filter(Boolean);
+  assert.ok(inlineScripts.length>=2);
+  inlineScripts.forEach(script=>assert.doesNotThrow(()=>new Function(script)));
+});
