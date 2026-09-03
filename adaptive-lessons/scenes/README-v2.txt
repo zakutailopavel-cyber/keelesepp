@@ -1,0 +1,1 @@
+Temporary marker for validated v2 scene asset upload. The binary scene is replaced in a follow-up commit after local decode verification.
