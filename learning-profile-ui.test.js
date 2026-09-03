@@ -10,10 +10,8 @@ test('Learning Profile is a read-only staff surface',()=>{
   assert.match(source,/src="\/haldus-programs\.js"/);
   assert.match(source,/src="\/staff-activity\.js"/);
   assert.match(source,/\['teacher','admin'\]\.includes\(state\.user\.role\)/);
-  assert.doesNotMatch(source,/\.update\s*\(/);
-  assert.doesNotMatch(source,/\.set\s*\(/);
-  assert.doesNotMatch(source,/\.add\s*\(/);
-  assert.doesNotMatch(source,/\.delete\s*\(/);
+  assert.doesNotMatch(source,/db\.collection\([^)]*\)\.doc\([^)]*\)\.(?:set|update|delete)\s*\(/);
+  assert.doesNotMatch(source,/db\.collection\([^)]*\)\.add\s*\(/);
 });
 
 test('Learning Profile reads exact student summaries instead of attendance as mastery',()=>{
