@@ -130,7 +130,7 @@ async function authorizedStudent(actor, studentId) {
       || (!teacherUid && teacherNameMatches(student.teacher, actor.name));
     if (!assigned) throw httpError(403, 'Student is outside teacher scope');
   }
-  return { id: snap.id, ...student };
+  return { ...student, id: snap.id };
 }
 
 function serializeValue(value) {
