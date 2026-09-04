@@ -4,7 +4,7 @@ Last verified: 2026-09-04, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
 Verified main commit: `cfc6fcf55bc3ac737c406650641a26e0f896956b` (`Learning Profile: project adaptive evidence read-only (#87)`)
 Active branch: `agent/phase-specific-lesson-workspaces`
-Active PR: `#88 Lesson Mode: phase-specific workspaces` (draft; automated gate green, owner visual gate pending)
+Active PR: `#88 Lesson Mode: phase-specific workspaces` (draft; final optimistic-feedback CI gate running)
 Independent open PR: `#83 Tighten Adaptive Lesson desktop layout`
 
 ## Current objective
@@ -37,11 +37,11 @@ No Firestore or Storage rule deploy was needed for #86/#87.
 
 ## Problem confirmed in production
 
-The persisted Lesson Mode loop works, but the live teaching UX still uses one universal activity card. Diagnostic, vocabulary, grammar practice, roleplay, transfer and assessment therefore look almost identical and the same bus scene appears where it is pedagogically irrelevant.
+The persisted Lesson Mode loop works, but the live teaching UX still used one universal activity card. Diagnostic, vocabulary, grammar practice, roleplay, transfer and assessment therefore looked almost identical and the same bus scene appeared where it was pedagogically irrelevant.
 
-The production screenshot also confirmed answer leakage in diagnostic: the bus scene contains `hilineb` while the task asks the learner to produce the same target language.
+The production screenshot also confirmed answer leakage in diagnostic: the bus scene contained `hilineb` while the task asked the learner to produce the same target language.
 
-This is an architectural renderer problem, not a content-copy problem.
+This was an architectural renderer problem, not a content-copy problem.
 
 ## Release slice 4 — phase-specific Lesson Mode workspaces
 
@@ -94,6 +94,21 @@ Stable lesson/stage/task IDs remain unchanged so persisted evidence keeps its me
 
 The old universal/default scene behavior is removed from the workspace core. Images are now a content tool rather than a permanent layout requirement.
 
+### Optimistic evidence feedback
+
+Owner browser testing confirmed that persistence worked but button selection felt slow because the visible state waited for the Firebase Function round-trip.
+
+The final #88 interaction fix keeps the trusted API unchanged but makes feedback immediate:
+
+- teacher judgement selection and adaptive route are applied locally before the network request;
+- vocabulary weak/known selection is highlighted locally before the network request;
+- header status distinguishes idle active session (`Valmis`) from a pending save (`Salvestan…`);
+- on successful API confirmation the optimistic state remains and status becomes `Salvestatud`;
+- on API failure the previous judgement/route or vocabulary mark is restored and the existing error is shown;
+- judgement/navigation is guarded while a judgement write is pending to avoid a route/evidence race.
+
+This is optimistic rendering only. Evidence is still acknowledged as persisted only after `learningSessionApi` confirms the request.
+
 ## Persistence and data invariants
 
 This branch does not change the Learning Session persistence boundary.
@@ -131,22 +146,32 @@ Changed:
 
 ## Verification status
 
-GitHub Actions `Financial Core emulator` run **#219** completed successfully on implementation head `96c243a78aa9eec6b1b22a7e11bbf43de2c89af9`.
+Earlier implementation gate: GitHub Actions `Financial Core emulator` run **#219** completed successfully on head `96c243a78aa9eec6b1b22a7e11bbf43de2c89af9`.
 
-Green automated gates:
+That green run covered:
 
 - Functions unit tests;
-- root CRM/accounting/calendar/learning tests including `lesson-workspace-core.test.js` and updated `learning-session-ui.test.js`;
+- root CRM/accounting/calendar/learning tests including `lesson-workspace-core.test.js` and Lesson Mode UI contracts;
 - browser JavaScript syntax checks including `lesson-workspace-core.js`;
 - existing Auth/Firestore/Functions emulator integration suite.
 
-Still required before #88 can leave draft:
+Owner local browser review on 2026-09-04 confirmed:
 
-- owner browser review confirming diagnostic, vocabulary, controlled practice, roleplay, transfer and assessment are visually/functionally distinct;
-- owner check that diagnostic no longer shows the answer-bearing bus scene;
-- owner check that persisted judgement/vocabulary evidence still saves for a real student.
+- diagnostic has no answer-bearing bus scene;
+- vocabulary uses word cards;
+- controlled practice uses a separate sentence/pattern layout;
+- roleplay uses separate learner/teacher role cards;
+- assessment uses a separate low-scaffold final challenge;
+- a real student Learning Session resumes correctly;
+- vocabulary evidence saves successfully and reports `Sõnavara hinnang salvestatud.`;
+- the new workspace approach works overall;
+- the remaining observed UX issue was noticeable button-save latency.
 
-Vercel Preview for the latest #88 head is currently queued on the Hobby account, so no preview `READY` claim is made.
+That latency fix is implemented with regression tests in the latest branch head. Final GitHub Actions run **#223** is the release gate for the optimistic-feedback change and is currently in progress.
+
+Transfer is covered deterministically by `lesson-workspace-core.test.js`: `stage-3-speaking-transfer-1` resolves to a distinct `transfer` model whose prompt/rule differ materially from roleplay. A final owner visual transfer check is useful but no longer blocks the architectural contract if the final automated gate stays green.
+
+Vercel preview builds for recent #88 commits have been queued on the account; no latest-preview `READY` claim is made here.
 
 ## Known limits
 
@@ -174,4 +199,4 @@ Vercel Preview for the latest #88 head is currently queued on the Hobby account,
 
 ## Next safe step
 
-**Owner visually reviews #88 in a local/preview browser. If the workspace distinctions and persistence behavior are correct, mark #88 ready for review and merge. After merge, implement deterministic per-skill Adaptive Engine v1. Keep `students.skillMap` writes and curriculum-goal automation out of that next slice.**
+**Wait for final #88 optimistic-feedback CI to turn green. Then mark #88 ready for review. Owner merges it. After merge, implement deterministic per-skill Adaptive Engine v1 against the stable activity/workspace boundaries. Keep `students.skillMap` writes and curriculum-goal automation out of that next slice.**
