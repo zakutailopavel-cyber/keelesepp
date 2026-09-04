@@ -40,11 +40,15 @@ test('Finish opens summary; completed persistence happens only from explicit han
   assert.doesNotMatch(finishHandler,/complete/);
 });
 
-test('browser client never writes Firestore or skillMap directly',()=>{
-  assert.doesNotMatch(store,/collection\(['"]learningSessions/);
-  assert.doesNotMatch(store,/collection\(['"]learningEvidence/);
-  assert.doesNotMatch(store,/\.set\(|\.update\(|runTransaction/);
+test('browser client never uses Firestore or writes skillMap directly',()=>{
+  assert.doesNotMatch(store,/firebase\.firestore/);
+  assert.doesNotMatch(store,/\bdb\.collection\s*\(/);
+  assert.doesNotMatch(store,/runTransaction\s*\(/);
+  assert.doesNotMatch(store,/FieldValue\./);
   assert.doesNotMatch(store,/skillMap/);
+  assert.doesNotMatch(html,/firebase-firestore-compat\.js/);
+  assert.doesNotMatch(html,/firebase\.firestore/);
+  assert.doesNotMatch(html,/\bdb\.collection\s*\(/);
   assert.doesNotMatch(html,/skillMap\s*=/);
 });
 
