@@ -4,7 +4,7 @@ Last verified: 2026-09-04, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
 Verified main commit: `858f25278f853e2262ad2d5a79ef8f7c8eb0e6bd` (`Adaptive Engine v1: per-skill Lesson Mode routes (#89)`)
 Active branch: `agent/curriculum-goal-graph-v1`
-Active PR: `#90 Curriculum Engine v1: B1 goal and prerequisite graph` (merge-ready after green GitHub CI; no production deploy)
+Active PR: `#90 Curriculum Engine v1: B1 goal and prerequisite graph` (merge-ready after green GitHub CI; no production deploy from this branch)
 Independent open PR: `#83 Tighten Adaptive Lesson desktop layout`
 
 ## Current objective
@@ -34,12 +34,18 @@ The unused Vercel project `keelesepp-crm-v2` was disconnected from GitHub on 202
 
 ### Firebase Functions
 
-Owner previously deployed production `learningSessionApi` and `learningProfileEvidenceApi` for the #86/#87 persistence/profile slices.
+Owner selectively deployed the merged-main #89 `learningSessionApi` to production project `keelesepp-5136b` on 2026-09-04 using Node.js 22 runtime. Firebase CLI reported:
 
-#89 later changed `learningSessionApi` to make per-skill route transitions server-authoritative. That updated Function has **not been freshly verified as deployed in production** in this project-state record. Therefore:
+- `functions[learningSessionApi(us-central1)] Successful update operation.`
+- `Deploy complete!`
 
-- #89 browser/web code is on Vercel production;
-- do not claim the complete per-skill persistence loop is production-verified until the updated `learningSessionApi` is selectively deployed and smoke-tested.
+The production Function URL remained:
+
+`https://us-central1-keelesepp-5136b.cloudfunctions.net/learningSessionApi`
+
+No Firestore/storage rules or schema migration was deployed as part of this rollout.
+
+The web client for #89 is already on Vercel production. A real-student Lesson Mode smoke test has been started and the session loads/saves successfully, but the independent per-skill route divergence still needs one explicit visual confirmation in the teacher drawer before calling the full per-skill persistence loop production-verified.
 
 No Firebase schema/rules migration is required by #90.
 
@@ -201,15 +207,15 @@ Vercel preview status on the executable head reports `Deployment rate limited â€
 
 ## Deployment boundary
 
-### #89 server rollout still pending verification
+### #89 server rollout
 
-Before claiming per-skill adaptation fully live in production:
+Completed on 2026-09-04:
 
-1. selectively deploy the current main `learningSessionApi`;
-2. verify Function update/health;
-3. smoke-test one authenticated real-student session and confirm independent route changes persist.
+1. merged-main `learningSessionApi` selectively deployed to `keelesepp-5136b`;
+2. Firebase reported a successful Node.js 22 update;
+3. production Lesson Mode opens/saves for the real student used in the smoke test.
 
-The #89 Vercel web deployment is already READY.
+Remaining manual gate: trigger a teacher judgement on one skill and visually confirm that the teacher drawer shows a divergent persisted route, for example Vocabulary Support while Grammar/Speaking remain Core.
 
 ### #90 rollout after owner merge
 
@@ -241,4 +247,4 @@ The #89 Vercel web deployment is already READY.
 
 ## Next safe step
 
-Owner merges #90 after review. Separately, selectively deploy the merged-main `learningSessionApi` from #89 before claiming the per-skill persistence loop production-complete. After #90 merge, start Teacher Home / Today as the next bounded product slice.
+Owner merges #90 after review. After the merge, verify the normal Vercel production build and start Teacher Home / Today as the next bounded product slice. The remaining #89 manual gate is only the explicit visual confirmation of divergent persisted per-skill routes in production.
