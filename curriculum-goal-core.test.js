@@ -2,6 +2,7 @@ const test=require('node:test');
 const assert=require('node:assert/strict');
 const core=require('./curriculum-goal-core.js');
 const graph=require('./curriculum-goals/b1-city.js');
+const lesson=require('./adaptive-lessons/est-b1-city-problem-solving.js');
 
 const goals=graph.goals;
 
@@ -15,6 +16,13 @@ test('B1 city graph is internally valid and uses stable goal ids',()=>{
     'EST_B1_CITY_SOLVE_PROBLEM',
     'EST_B1_CITY_TRANSFER'
   ]);
+});
+
+test('reference lesson stores the same stable goal id used by the graph',()=>{
+  assert.deepEqual(lesson.curriculumGoalIds,['EST_B1_CITY_SOLVE_PROBLEM']);
+  const goal=goals.find(item=>item.id===lesson.curriculumGoalIds[0]);
+  assert.ok(goal);
+  assert.ok(goal.lessonBlueprintIds.includes(lesson.id));
 });
 
 test('reference lesson maps exactly to the integrated problem-solving goal',()=>{
