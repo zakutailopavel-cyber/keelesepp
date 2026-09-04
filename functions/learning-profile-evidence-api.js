@@ -6,6 +6,8 @@ const db = admin.firestore();
 const SUPER_ADMIN_EMAIL = 'zakutailo.pavel@gmail.com';
 const DEFAULT_LIMIT = 60;
 const MAX_LIMIT = 100;
+const MAX_SESSION_LIMIT = 24;
+const ROUTES = new Set(['support', 'core', 'advanced']);
 const ALLOWED_ORIGINS = new Set([
   'https://keelesepp.vercel.app',
   'https://epkoolitus.ee',
@@ -46,6 +48,17 @@ function cleanList(values, maxItems = 20, maxLength = 120) {
     .map((value) => clean(value, maxLength))
     .filter(Boolean)))
     .slice(0, maxItems);
+}
+
+function cleanRouteBySkill(value) {
+  const result = {};
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return result;
+  Object.entries(value).slice(0, 60).forEach(([rawSkillId, rawRoute]) => {
+    const skillId = clean(rawSkillId, 120);
+    const route = clean(rawRoute, 20);
+    if (skillId && ROUTES.has(route)) result[skillId] = route;
+  });
+  return result;
 }
 
 function cleanLimit(value) {
@@ -160,6 +173,10 @@ function projectSession(doc) {
     curriculumGoalIds: cleanList(data.curriculumGoalIds, 20, 160),
     cefrLevel: clean(data.cefrLevel, 20),
     status: clean(data.status, 30),
+    currentIndex: Number.isInteger(Number(data.currentIndex)) ? Number(data.currentIndex) : null,
+    currentPhaseId: clean(data.currentPhaseId, 100),
+    currentActivityId: clean(data.currentActivityId, 140),
+    routeBySkill: cleanRouteBySkill(data.routeBySkill),
     teacherNote: clean(data.teacherNote, 3000),
     handoffText: clean(handoffText, 6000),
     startedAt: data.startedAt || null,
@@ -175,20 +192,37 @@ function selectLatestEvidence(items, limit = DEFAULT_LIMIT) {
     .slice(0, bounded);
 }
 
+function selectProfileSessions(items, limit = MAX_SESSION_LIMIT) {
+  const byId = new Map();
+  (Array.isArray(items) ? items : []).forEach((item) => {
+    if (!item) return;
+    const projected = item.data ? projectSession(item) : projectSession(item);
+    if (projected.id) byId.set(projected.id, projected);
+  });
+  return [...byId.values()]
+    .sort((left, right) => timestampMillis(right.updatedAt || right.completedAt || right.startedAt)
+      - timestampMillis(left.updatedAt || left.completedAt || left.startedAt))
+    .slice(0, Math.max(1, Math.min(MAX_SESSION_LIMIT, Number(limit) || MAX_SESSION_LIMIT)));
+}
+
 async function loadProfileEvidence(actor, body) {
   const student = await authorizedStudent(actor, body.studentId);
   const limit = cleanLimit(body.limit);
-  const snap = await db.collection('learningEvidence').where('studentId', '==', student.id).get();
-  const selected = selectLatestEvidence(snap.docs.map(projectEvidence), limit);
+  const evidenceSnap = await db.collection('learningEvidence').where('studentId', '==', student.id).get();
+  const selected = selectLatestEvidence(evidenceSnap.docs.map(projectEvidence), limit);
   const sessionIds = cleanList(selected.map((item) => item.sessionId), MAX_LIMIT, 160);
-  let sessions = [];
+
+  const activeSnap = await db.collection('learningSessions').where('studentId', '==', student.id).get();
+  const activeDocs = activeSnap.docs.filter((item) => clean(item.data()?.status, 30) === 'active');
+
+  let evidenceSessionDocs = [];
   if (sessionIds.length) {
     const refs = sessionIds.map((id) => db.collection('learningSessions').doc(id));
-    const sessionSnaps = await db.getAll(...refs);
-    sessions = sessionSnaps
-      .filter((item) => item.exists && clean(item.data()?.studentId, 120) === student.id)
-      .map(projectSession);
+    evidenceSessionDocs = (await db.getAll(...refs))
+      .filter((item) => item.exists && clean(item.data()?.studentId, 120) === student.id);
   }
+
+  const sessions = selectProfileSessions([...activeDocs, ...evidenceSessionDocs]);
   return {
     student: {
       id: student.id,
@@ -217,10 +251,12 @@ module.exports = {
   learningProfileEvidenceApi,
   _test: {
     cleanLimit,
+    cleanRouteBySkill,
     teacherNameMatches,
     timestampMillis,
     projectEvidence,
     projectSession,
     selectLatestEvidence,
+    selectProfileSessions,
   },
 };
