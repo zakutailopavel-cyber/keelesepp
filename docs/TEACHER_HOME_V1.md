@@ -1,6 +1,6 @@
 # Teacher Home / Today v1
 
-Status: implementation in PR #91.
+Status: #91 and #92 merged; Start Lesson vocabulary extension is implemented in PR #93.
 
 ## Purpose
 
@@ -17,7 +17,7 @@ The page is a read-only projection. It does not become a new source of schedule,
 
 `/haldus-teacher-home/`
 
-The first release is intentionally separate from `haldus.html`. PR #78 still touches the large legacy CRM file, so #91 avoids creating an unrelated conflict there. A later integration can add the Teacher Home link to the main CRM navigation after that independent work is resolved.
+PR #92 adds a staff-only `Õpetaja täna →` quick entry from the legacy CRM without editing the large `haldus.html`, because independent PR #78 still conflicts there.
 
 ## Data flow
 
@@ -53,15 +53,21 @@ Missing evidence is rendered as missing/unknown. It is never converted to `0`.
 
 ## Primary action rules
 
-Teacher Home does not invent a lesson implementation for every curriculum goal.
+Teacher Home does not invent a lesson implementation for every curriculum goal. It uses a bounded goal-to-blueprint registry.
 
 Current deterministic rules:
 
-- active session using `est-b1-city-problem-solving-01` -> **Jätka tundi**;
-- next Curriculum Goal `EST_B1_CITY_SOLVE_PROBLEM` -> **Alusta tundi**;
-- every other supported/unsupported context -> **Ava õppimisprofiil**.
+- active supported session `est-b1-city-vocabulary-01` -> **Jätka tundi** with explicit `lessonId`;
+- active supported session `est-b1-city-problem-solving-01` -> **Jätka tundi** with explicit `lessonId`;
+- next Curriculum Goal `EST_B1_CITY_VOCAB` -> **Alusta tundi** using `est-b1-city-vocabulary-01`;
+- next Curriculum Goal `EST_B1_CITY_SOLVE_PROBLEM` -> **Alusta tundi** using `est-b1-city-problem-solving-01`;
+- every other context -> **Ava õppimisprofiil**.
 
-The page therefore cannot accidentally route an arbitrary goal into the only adaptive lesson blueprint that exists today.
+The Lesson Mode URL therefore carries both stable identities:
+
+`/haldus-adaptive-lesson/?studentId=<studentId>&lessonId=<lessonBlueprintId>`
+
+Unsupported goal IDs never fall through into an arbitrary lesson.
 
 ## Adaptive session read projection
 
@@ -90,6 +96,8 @@ Unchanged invariants:
 - no finance/calendar mutation is introduced;
 - no crm-v2 work is included.
 
+For PR #93, `learningSessionApi` additionally owns the trusted lesson identity for each allowed blueprint: title, CEFR level and curriculum goal IDs are selected server-side and cannot be replaced by browser-supplied metadata.
+
 ## Performance boundary
 
 The first release intentionally performs bounded per-student learning-context loads only for unique students who appear in the selected teacher day. It is not a school-wide analytics page.
@@ -102,28 +110,34 @@ Required release gate:
 
 - pure `teacher-home-core.js` tests;
 - read-only UI contract tests;
-- existing Learning Profile/Curriculum/Adaptive tests;
-- Functions unit tests for sanitized active-session projection;
-- emulator integration proving an active zero-evidence session is returned with `routeBySkill` and cannot bypass student authorization;
+- vocabulary blueprint contract tests;
+- multi-blueprint Lesson Mode selection tests;
+- Functions unit tests for trusted lesson registry;
+- emulator integration proving both supported lessons can start/resume while unsupported lesson IDs are rejected;
+- emulator integration proving client-supplied lesson title/CEFR/goal IDs cannot forge persisted lesson identity;
+- existing active zero-evidence session and per-skill route authorization tests;
 - browser JavaScript syntax checks;
 - existing CRM/accounting/calendar test suite remains green.
 
 ## Rollout
 
-PR #91 changes both static web code and `learningProfileEvidenceApi`.
+For #93, static web code and `learningSessionApi` change.
 
 After owner merge and explicit production approval:
 
-1. selectively deploy `learningProfileEvidenceApi` from merged `main`;
-2. verify the Function still returns historical evidence plus a zero-evidence active session;
-3. let the normal primary `keelesepp` Vercel main deployment publish `/haldus-teacher-home/`;
-4. smoke-test one real teacher day and one student with a persisted divergent `routeBySkill`;
-5. do not deploy or reconnect `keelesepp-crm-v2`.
+1. selectively deploy `learningSessionApi` from merged `main`;
+2. let the normal primary `keelesepp` Vercel main deployment publish the new blueprint and routing;
+3. open Teacher Home for a B1 learner whose next goal is `EST_B1_CITY_VOCAB`;
+4. verify `Alusta tundi` opens `est-b1-city-vocabulary-01` with the correct student;
+5. record at least one vocabulary judgement/word mark;
+6. finish with a vocabulary score and handoff;
+7. return to Teacher Home and verify the persisted learning context;
+8. do not deploy or reconnect `keelesepp-crm-v2`.
 
 ## Known limits
 
 - the Curriculum Goal graph still covers only the B1 city/services vertical slice;
-- Adaptive persistence still supports only `est-b1-city-problem-solving-01`;
-- not every next curriculum goal has a Lesson Mode blueprint, so unsupported goals open Learning Profile;
-- Teacher Home is not yet linked from the large legacy `haldus.html` navigation because independent PR #78 still modifies that file;
+- Lesson Mode now has two supported blueprints: vocabulary activation and full problem solving;
+- `EST_B1_CITY_EXPLAIN_PROBLEM`, `EST_B1_CITY_ASK_HELP` and `EST_B1_CITY_TRANSFER` still do not have dedicated blueprints, so those recommendations open Learning Profile;
+- the legacy CRM uses the #92 quick entry rather than a permanent sidebar item while independent PR #78 remains unresolved;
 - no automatic mastery or goal-achievement projection is introduced.
