@@ -54,36 +54,36 @@ test('multi-skill effective route uses the most supportive required route',()=>{
   assert.equal(_test.routeForSkills({grammar:'advanced'},['grammar','speaking'],'core'),'core');
 });
 
-test('per-skill route patch is bounded to affected skills and deterministic judgement transitions',()=>{
+test('server computes the full per-skill transition patch independently of the browser',()=>{
   const current={grammar:'support',speaking:'core',vocabulary:'advanced'};
-  const patch=_test.cleanPerSkillRoutePatch(
-    {grammar:'core',speaking:'advanced'},
-    ['grammar','speaking'],
-    current,
-    'too_easy',
-    'core'
+  assert.deepEqual(
+    _test.perSkillTransitionPatch(current,['grammar','speaking'],'too_easy','core'),
+    {grammar:'core',speaking:'advanced'}
   );
-  assert.deepEqual(patch,{grammar:'core',speaking:'advanced'});
+  assert.deepEqual(
+    _test.perSkillTransitionPatch(current,['vocabulary','grammar'],'needs_help','core'),
+    {vocabulary:'core',grammar:'support'}
+  );
+});
+
+test('optional browser per-skill patch may only confirm the server-computed transition',()=>{
+  const expected={grammar:'core',speaking:'advanced'};
+  assert.deepEqual(
+    _test.cleanPerSkillRoutePatch({grammar:'core',speaking:'advanced'},expected),
+    expected
+  );
+  assert.deepEqual(_test.cleanPerSkillRoutePatch(undefined,expected),{},'legacy clients may omit the patch');
   assert.throws(()=>_test.cleanPerSkillRoutePatch(
     {grammar:'advanced',speaking:'advanced'},
-    ['grammar','speaking'],
-    current,
-    'too_easy',
-    'core'
+    expected
   ),/Invalid per-skill route transition/);
   assert.throws(()=>_test.cleanPerSkillRoutePatch(
     {grammar:'core',speaking:'advanced',vocabulary:'support'},
-    ['grammar','speaking'],
-    current,
-    'too_easy',
-    'core'
+    expected
   ),/unrelated skill/);
   assert.throws(()=>_test.cleanPerSkillRoutePatch(
     {grammar:'core'},
-    ['grammar','speaking'],
-    current,
-    'too_easy',
-    'core'
+    expected
   ),/cover every affected skill/);
 });
 
