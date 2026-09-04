@@ -160,31 +160,32 @@ test('recent achieved goals stay context and do not become automatic next-goal r
   assert.deepEqual(profile.recommendations.nextGoalIds,[]);
 });
 
-test('active adaptive goal is not promoted to completed prerequisite evidence',()=>{
+test('active adaptive target is visible even before the first evidence event and is not achieved',()=>{
   const profile=buildLearningProfile({
     student:{id:'student-1',skillMap:{}},
-    adaptiveEvidence:[{
-      id:'ev-active',studentId:'student-1',sessionId:'active-session',createdAt:'2026-09-04T10:00:00Z',kind:'teacher_judgement',skillIds:['speaking']
-    }],
+    adaptiveEvidence:[],
     learningSessions:[{
-      id:'active-session',status:'active',lessonBlueprintId:'est-b1-city-problem-solving-01',curriculumGoalIds:['EST_B1_CITY_SOLVE_PROBLEM']
+      id:'active-session',studentId:'student-1',status:'active',startedAt:'2026-09-04T10:00:00Z',lessonBlueprintId:'est-b1-city-problem-solving-01',curriculumGoalIds:['EST_B1_CITY_SOLVE_PROBLEM']
     }]
   });
   assert.deepEqual(profile.recommendations.completedGoalIds,[]);
   assert.deepEqual(profile.recommendations.activeGoalIds,['EST_B1_CITY_SOLVE_PROBLEM']);
+  assert.deepEqual(profile.recommendations.recentTargetGoalIds,['EST_B1_CITY_SOLVE_PROBLEM']);
   assert.deepEqual(profile.recommendations.recentLessonBlueprintIds,['est-b1-city-problem-solving-01']);
 });
 
-test('completed adaptive goal is available as prerequisite evidence and no longer active',()=>{
+test('completed adaptive session target does not become prerequisite achievement merely because lesson ended',()=>{
   const profile=buildLearningProfile({
     student:{id:'student-1',skillMap:{}},
     adaptiveEvidence:[{
       id:'ev-complete',studentId:'student-1',sessionId:'done-session',createdAt:'2026-09-04T10:00:00Z',kind:'summary_score',skillIds:['speaking'],taskResult:72
     }],
     learningSessions:[{
-      id:'done-session',status:'completed',lessonBlueprintId:'est-b1-city-problem-solving-01',curriculumGoalIds:['EST_B1_CITY_SOLVE_PROBLEM']
+      id:'done-session',studentId:'student-1',status:'completed',completedAt:'2026-09-04T10:05:00Z',lessonBlueprintId:'est-b1-city-problem-solving-01',curriculumGoalIds:['EST_B1_CITY_SOLVE_PROBLEM']
     }]
   });
-  assert.deepEqual(profile.recommendations.completedGoalIds,['EST_B1_CITY_SOLVE_PROBLEM']);
+  assert.deepEqual(profile.recommendations.completedGoalIds,[]);
   assert.deepEqual(profile.recommendations.activeGoalIds,[]);
+  assert.deepEqual(profile.recommendations.recentTargetGoalIds,['EST_B1_CITY_SOLVE_PROBLEM']);
+  assert.deepEqual(profile.recommendations.recentLessonBlueprintIds,['est-b1-city-problem-solving-01']);
 });
