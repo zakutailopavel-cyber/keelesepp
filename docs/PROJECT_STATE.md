@@ -4,7 +4,7 @@ Last verified: 2026-09-04, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
 Verified main commit: `cfc6fcf55bc3ac737c406650641a26e0f896956b` (`Learning Profile: project adaptive evidence read-only (#87)`)
 Active branch: `agent/phase-specific-lesson-workspaces`
-Active PR: `#88 Lesson Mode: phase-specific workspaces` (draft; final optimistic-feedback CI gate running)
+Active PR: `#88 Lesson Mode: phase-specific workspaces` — merge-ready after green CI and owner browser review
 Independent open PR: `#83 Tighten Adaptive Lesson desktop layout`
 
 ## Current objective
@@ -37,7 +37,7 @@ No Firestore or Storage rule deploy was needed for #86/#87.
 
 ## Problem confirmed in production
 
-The persisted Lesson Mode loop works, but the live teaching UX still used one universal activity card. Diagnostic, vocabulary, grammar practice, roleplay, transfer and assessment therefore looked almost identical and the same bus scene appeared where it was pedagogically irrelevant.
+The persisted Lesson Mode loop worked, but the live teaching UX still used one universal activity card. Diagnostic, vocabulary, grammar practice, roleplay, transfer and assessment therefore looked almost identical and the same bus scene appeared where it was pedagogically irrelevant.
 
 The production screenshot also confirmed answer leakage in diagnostic: the bus scene contained `hilineb` while the task asked the learner to produce the same target language.
 
@@ -146,14 +146,23 @@ Changed:
 
 ## Verification status
 
-Earlier implementation gate: GitHub Actions `Financial Core emulator` run **#219** completed successfully on head `96c243a78aa9eec6b1b22a7e11bbf43de2c89af9`.
+GitHub Actions `Financial Core emulator` run **#223** completed successfully on executable head `bed67dffae2c76559c944086a8dfa10d6e69303d` after the optimistic-feedback fix.
 
-That green run covered:
+Final green gates:
 
 - Functions unit tests;
-- root CRM/accounting/calendar/learning tests including `lesson-workspace-core.test.js` and Lesson Mode UI contracts;
+- root CRM/accounting/calendar/learning tests including `lesson-workspace-core.test.js` and optimistic Lesson Mode UI regression contracts;
 - browser JavaScript syntax checks including `lesson-workspace-core.js`;
 - existing Auth/Firestore/Functions emulator integration suite.
+
+The optimistic UI regression coverage verifies:
+
+- judgement local selection and route update occur before the network request;
+- failed judgement persistence restores the previous rating and route;
+- vocabulary local weak/known selection occurs before the network request;
+- failed vocabulary persistence restores the previous word mark;
+- active and pending-save statuses are distinct;
+- existing no-direct-Firestore and append-only persistence boundaries remain intact.
 
 Owner local browser review on 2026-09-04 confirmed:
 
@@ -165,13 +174,11 @@ Owner local browser review on 2026-09-04 confirmed:
 - a real student Learning Session resumes correctly;
 - vocabulary evidence saves successfully and reports `Sõnavara hinnang salvestatud.`;
 - the new workspace approach works overall;
-- the remaining observed UX issue was noticeable button-save latency.
+- the only reported interaction issue was button-save latency, now addressed by the final optimistic-feedback implementation.
 
-That latency fix is implemented with regression tests in the latest branch head. Final GitHub Actions run **#223** is the release gate for the optimistic-feedback change and is currently in progress.
+Transfer is covered deterministically by `lesson-workspace-core.test.js`: `stage-3-speaking-transfer-1` resolves to a distinct `transfer` model whose prompt/rule differ materially from roleplay.
 
-Transfer is covered deterministically by `lesson-workspace-core.test.js`: `stage-3-speaking-transfer-1` resolves to a distinct `transfer` model whose prompt/rule differ materially from roleplay. A final owner visual transfer check is useful but no longer blocks the architectural contract if the final automated gate stays green.
-
-Vercel preview builds for recent #88 commits have been queued on the account; no latest-preview `READY` claim is made here.
+The commit after the green executable head is documentation-only and does not change runtime behavior.
 
 ## Known limits
 
@@ -189,7 +196,7 @@ Vercel preview builds for recent #88 commits have been queued on the account; no
 2. Learning Profile MVP — merged #85;
 3. Learning Session + append-only evidence — merged #86;
 4. Learning Profile evidence projection — merged #87 and deployed;
-5. phase-specific Lesson Mode workspaces — current #88;
+5. phase-specific Lesson Mode workspaces — #88 ready for owner merge;
 6. deterministic per-skill Adaptive Engine v1;
 7. curriculum goal/prerequisite graph;
 8. Teacher Home vertical flow;
@@ -199,4 +206,4 @@ Vercel preview builds for recent #88 commits have been queued on the account; no
 
 ## Next safe step
 
-**Wait for final #88 optimistic-feedback CI to turn green. Then mark #88 ready for review. Owner merges it. After merge, implement deterministic per-skill Adaptive Engine v1 against the stable activity/workspace boundaries. Keep `students.skillMap` writes and curriculum-goal automation out of that next slice.**
+**Owner merges #88. After merge, start deterministic per-skill Adaptive Engine v1 against the stable activity/workspace boundaries. Keep automatic `students.skillMap` writes and curriculum-goal automation out of that next slice.**
