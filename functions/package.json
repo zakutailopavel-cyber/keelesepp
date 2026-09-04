@@ -6,7 +6,7 @@
     "shell": "firebase functions:shell",
     "start": "npm run shell",
     "test": "node --test",
-    "test:emulator": "node --test --test-concurrency=1 finance-emulator.integration.js learning-session-emulator.integration.js",
+    "test:emulator": "node --test --test-concurrency=1 finance-emulator.integration.js learning-session-emulator.integration.js learning-profile-evidence-emulator.integration.js",
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log"
   },

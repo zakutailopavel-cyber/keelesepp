@@ -7,18 +7,35 @@ const source=fs.readFileSync(path.join(__dirname,'haldus-learning-profile/index.
 
 test('Learning Profile is a read-only staff surface',()=>{
   assert.match(source,/src="\/learning-profile-core\.js"/);
+  assert.match(source,/src="\/learning-profile-evidence-store\.js"/);
   assert.match(source,/src="\/haldus-programs\.js"/);
   assert.match(source,/src="\/staff-activity\.js"/);
   assert.match(source,/const isStaff=state\.isAdmin\|\|state\.user\.role==='teacher'/);
   assert.doesNotMatch(source,/db\.collection\([^)]*\)\.doc\([^)]*\)\.(?:set|update|delete)\s*\(/);
   assert.doesNotMatch(source,/db\.collection\([^)]*\)\.add\s*\(/);
+  assert.doesNotMatch(source,/db\.collection\(['"]learningEvidence['"]\)/);
+  assert.doesNotMatch(source,/db\.collection\(['"]learningSessions['"]\)/);
 });
 
-test('Learning Profile reads structured summaries instead of attendance as mastery',()=>{
+test('Learning Profile reads Live Classroom summaries and trusted Adaptive Lesson evidence',()=>{
   assert.match(source,/db\.collection\('liveClassrooms'\)\.where\('studentId','==',studentId\)/);
   assert.match(source,/if\(!state\.isAdmin\) query=query\.where\('teacherUid','==',state\.user\.uid\)/);
-  assert.match(source,/buildLearningProfile\(\{student,rooms:state\.rooms/);
-  assert.match(source,/pelk tunni staatus ei lähe tõendiks/);
+  assert.match(source,/evidenceStore\.load\(studentId,\{limit:60\}\)/);
+  assert.match(source,/buildLearningProfile\(\{student,rooms:state\.rooms,adaptiveEvidence:state\.adaptiveEvidence,learningSessions:state\.learningSessions/);
+  assert.match(source,/Adaptive Lessoni append-only evidence/);
+});
+
+test('Learning Profile degrades to existing data when adaptive evidence API is unavailable',()=>{
+  assert.match(source,/Promise\.allSettled\(\[livePromise,adaptivePromise\]\)/);
+  assert.match(source,/Adaptive Lessoni värske tõendus ei ole praegu kättesaadav/);
+  assert.match(source,/else renderProfile\(\)/);
+});
+
+test('Learning Profile keeps adaptive evidence separate from canonical mastery',()=>{
+  assert.match(source,/80% või kõrgem ainult kanonilises students\.skillMapis/);
+  assert.match(source,/see ei muuda skillMapi/);
+  assert.match(source,/See vaade ei kirjuta Firestore’i ega muuda students\.skillMapi/);
+  assert.match(source,/Korda:/);
 });
 
 test('Learning Profile respects teacherUid rollout for student lists',()=>{
@@ -36,6 +53,11 @@ test('Learning Profile exposes teacher decision support without claiming curricu
 
 test('Learning Profile uses the existing shared skill catalog for labels',()=>{
   assert.match(source,/Object\.values\(window\.HaldusSkillCatalog\|\|\{\}\)\.flat\(\)/);
+});
+
+test('Learning Profile login CTA works with the local static server',()=>{
+  assert.match(source,/href="\/haldus\.html"/);
+  assert.match(source,/Ava CRM ja logi sisse/);
 });
 
 test('Learning Profile inline scripts parse as JavaScript',()=>{
