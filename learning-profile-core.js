@@ -56,6 +56,7 @@
       source:'live_classroom_summary',
       title:cleanText(room.title||room.lessonTitle||'Lõpetatud tund',160),
       teacherName:cleanText(room.teacherName||room.teacher||'',120),
+      lessonBlueprintId:cleanText(room.lessonBlueprintId||'',160),
       completedAt,
       completedAtMillis:timestampMillis(completedAt),
       teacherComment:cleanText(summary.teacherComment||'',600),
@@ -86,6 +87,7 @@
       source:'adaptive_lesson_evidence',
       title:cleanText(session.lessonTitle||event.lessonTitle||'Adaptive Lesson',180),
       teacherName:cleanText(session.teacherName||event.teacherName||'',160),
+      lessonBlueprintId:cleanText(session.lessonBlueprintId||event.lessonBlueprintId||'',160),
       completedAt:createdAt,
       completedAtMillis:timestampMillis(createdAt),
       teacherComment:cleanText(event.note||'',800),
@@ -152,22 +154,36 @@
       .map(normalizeSummaryEvidence)
       .filter(Boolean);
 
-    const sessionMap=Object.fromEntries((Array.isArray(learningSessions)?learningSessions:[])
-      .filter(item=>item&&item.id)
-      .map(item=>[item.id,item]));
+    const sessions=(Array.isArray(learningSessions)?learningSessions:[])
+      .filter(item=>item&&item.id&&(!student.id||!item.studentId||item.studentId===student.id));
+    const sessionMap=Object.fromEntries(sessions.map(item=>[item.id,item]));
     const adaptive=(Array.isArray(adaptiveEvidence)?adaptiveEvidence:[])
       .filter(item=>!student.id||item?.studentId===student.id)
       .map(item=>normalizeAdaptiveEvidence(item,sessionMap))
       .filter(Boolean);
 
+    const allEvidence=[...liveEvidence,...adaptive].sort((a,b)=>b.completedAtMillis-a.completedAtMillis);
     const limit=Math.max(1,Math.min(20,Number(recentLimit)||6));
-    const recentEvidence=[...liveEvidence,...adaptive]
-      .sort((a,b)=>b.completedAtMillis-a.completedAtMillis)
-      .slice(0,limit);
+    const recentEvidence=allEvidence.slice(0,limit);
 
     const recentSkillIds=unique(recentEvidence.flatMap(item=>item.skillIds));
     const recentGoalIds=unique(recentEvidence.flatMap(item=>item.goalIds));
     const recentGoalLabels=unique(recentEvidence.flatMap(item=>item.goalLabels));
+    const orderedSessions=[...sessions].sort((a,b)=>timestampMillis(b.updatedAt||b.completedAt||b.startedAt)-timestampMillis(a.updatedAt||a.completedAt||a.startedAt));
+    const recentLessonBlueprintIds=unique([
+      ...orderedSessions.map(item=>cleanText(item.lessonBlueprintId,160)).filter(Boolean),
+      ...allEvidence.map(item=>item.lessonBlueprintId).filter(Boolean)
+    ]);
+    const recentTargetGoalIds=unique(orderedSessions.flatMap(item=>unique(item.curriculumGoalIds).map(id=>cleanText(id,160)).filter(Boolean)));
+
+    // Only structured completed Live Classroom goals are achievement evidence today.
+    // Adaptive session curriculumGoalIds describe what the session targets; completing a session is not mastery.
+    const completedGoalIds=unique(liveEvidence.flatMap(item=>item.goalIds));
+    const completedGoalSet=new Set(completedGoalIds);
+    const activeGoalIds=unique(orderedSessions
+      .filter(item=>item.status==='active')
+      .flatMap(item=>unique(item.curriculumGoalIds).map(id=>cleanText(id,160)).filter(Boolean)))
+      .filter(id=>!completedGoalSet.has(id));
     const reviewVocabularyIds=latestVocabularyReviewIds(adaptive);
 
     const assessedCount=skills.length;
@@ -204,8 +220,12 @@
         cautionSkillIds:cautionSkills.map(skill=>skill.id),
         reviewVocabularyIds,
         nextGoalIds:[],
+        completedGoalIds,
+        activeGoalIds,
+        recentTargetGoalIds,
         recentGoalIds,
         recentGoalLabels,
+        recentLessonBlueprintIds,
         recentSkillIds
       }
     };

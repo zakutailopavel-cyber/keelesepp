@@ -1,6 +1,6 @@
 # KeeleSepp Adaptive Lesson System v1
 
-Status: foundation + persisted Learning Session/evidence loop + Learning Profile projection + phase-specific Lesson Mode + per-skill Adaptive Engine v1 in PR #89
+Status: foundation + persisted Learning Session/evidence loop + Learning Profile projection + phase-specific Lesson Mode + per-skill Adaptive Engine v1 merged in #89 + Curriculum Goal graph v1 in PR #90
 
 ## Purpose
 
@@ -206,6 +206,7 @@ Every mature adaptive lesson should contain:
 
 - immutable lesson id;
 - subject, CEFR/category and duration;
+- stable curriculum goal IDs;
 - teacher-facing goal and measurable success criteria;
 - prerequisites;
 - lesson-specific vocabulary;
@@ -256,6 +257,29 @@ Word-level vocabulary marks remain evidence but do not automatically change the 
 
 The complete deterministic contract is in `docs/PER_SKILL_ADAPTIVE_ENGINE_V1.md`.
 
+## Curriculum goal recommendation
+
+Curriculum Engine and Adaptive Engine have separate jobs:
+
+- Curriculum Engine chooses **what goal should be learned next**;
+- Adaptive Engine chooses **how much support/challenge the current activity needs**.
+
+PR #90 introduces the first bounded goal graph for B1 `Linn ja teenused`. Goals have stable IDs, prerequisite edges, next-goal edges, success criteria and canonical `HaldusSkillCatalog` skill references.
+
+The reference lesson is bound to `EST_B1_CITY_SOLVE_PROBLEM`. New Learning Sessions therefore carry a stable curriculum target instead of only a free-text topic/title.
+
+Recommendation rules are deterministic and explainable. Learning Profile shows the selected stable goal, prerequisite state and relevant canonical skill evidence.
+
+Critical distinction:
+
+- active/completed Adaptive Learning Session goal IDs are session **targets**;
+- session completion alone does not mark a goal achieved;
+- only explicit structured achieved-goal evidence may satisfy a curriculum prerequisite.
+
+Legacy lesson/topic mapping exists only to bridge existing records into stable goal context. It must not be interpreted as mastery evidence.
+
+The full contract is in `docs/CURRICULUM_GOAL_GRAPH_V1.md`.
+
 ## Learning Session and evidence
 
 A dedicated Learning Session is the persisted runtime boundary for the reference lesson.
@@ -264,6 +288,7 @@ It connects:
 
 - student and teacher identity;
 - lesson blueprint identity;
+- stable curriculum target IDs;
 - current phase/activity/index;
 - current effective route and `routeBySkill` context;
 - evidence count and assessed skill IDs;
@@ -314,9 +339,12 @@ Learning Profile combines:
 
 - canonical `students.skillMap`;
 - structured Live Classroom summaries;
-- append-only Adaptive Lesson evidence.
+- append-only Adaptive Lesson evidence/session context;
+- read-only Curriculum Goal graph recommendation where that graph exists.
 
 It may surface recent exact words needing review, but evidence does not automatically become mastery.
+
+The profile keeps achieved goals separate from Adaptive session target goals before passing prerequisite evidence to Curriculum Engine.
 
 Direct browser reads of the private adaptive evidence/session collections remain denied.
 
@@ -334,18 +362,21 @@ A resumed session restores persisted `routeBySkill`. Existing sessions that have
 
 The teacher explicitly creates the handoff. Only entered summary scores become `summary_score` evidence. Blank skills stay absent.
 
-The completed session retains the teacher note/handoff for later read-side use.
+The completed session retains the teacher note/handoff for later read-side use. Session completion does not automatically satisfy a Curriculum Goal prerequisite.
 
 ## Reference implementation
 
-- `adaptive-lessons/est-b1-city-problem-solving.js` — first B1 reference blueprint; includes explicit workspace and evidence-skill metadata.
+- `adaptive-lessons/est-b1-city-problem-solving.js` — first B1 reference blueprint; includes workspace/evidence-skill metadata and stable curriculum goal binding.
 - `adaptive-lesson-core.js` — original pure diagnostic/mastery/handoff logic.
 - `adaptive-skill-engine.js` — pure deterministic per-skill route engine.
+- `curriculum-goal-core.js` — pure deterministic goal-graph validation and recommendation engine.
+- `curriculum-goals/b1-city.js` — first stable B1 city/services goal/prerequisite graph.
 - `lesson-workspace-core.js` — pure phase/workspace projection and route-aware view-model logic.
 - `learning-session-core.js` — pure Learning Session/evidence normalization helpers.
 - `learning-session-store.js` — authenticated browser client for persistence.
 - `functions/learning-session-api.js` — trusted session/evidence and per-skill-route writer.
 - `learning-profile-evidence-store.js` + `functions/learning-profile-evidence-api.js` — trusted adaptive-evidence read projection.
+- `haldus-learning-profile/index.html` — read-only Learning Profile including explainable Curriculum Engine v1 projection.
 - `haldus-adaptive-lesson/index.html` — focused live teaching shell with phase-specific and per-skill route-aware workspaces.
 - `adaptive-lessons/scenes.js` — exact scene metadata registry; no universal Lesson Mode background.
 
@@ -361,8 +392,8 @@ Safe evolution:
 4. persist Learning Session/evidence — done;
 5. project adaptive evidence into Learning Profile — done;
 6. phase-specific workspace renderer — done in #88;
-7. deterministic per-skill Adaptive Engine v1 — current PR #89;
-8. curriculum goal/prerequisite graph;
+7. deterministic per-skill Adaptive Engine v1 — done in #89;
+8. curriculum goal/prerequisite graph — current PR #90;
 9. Teacher Home vertical flow;
 10. normalize Lesson Builder/Content Engine around stable activity IDs;
 11. AI-assisted generation only after the deterministic loop is stable.
@@ -386,11 +417,14 @@ Safe evolution:
 - completed sessions reject new evidence;
 - missing skill scores are not converted to zero;
 - `students.skillMap` is not silently changed;
+- stable Curriculum Goals use explicit prerequisite/next-goal edges;
+- Learning Profile can explain why a supported goal is recommended next;
+- Adaptive session completion does not silently mark Curriculum Goal mastery;
 - Learning Profile can show append-only evidence/context;
 - existing curriculum lessons remain working;
-- automated tests cover decision, workspace, persistence and read-side boundaries;
+- automated tests cover decision, workspace, persistence, curriculum and read-side boundaries;
 - project state is updated after each substantial slice.
 
 ## Known current limitation
 
-The legacy reference blueprint still uses Core task positions as stable activity slots. Route variants with different numbers of activities are therefore not yet fully normalized. The later Content Engine normalization slice must introduce stable activity IDs shared across all route variants before broad lesson-authoring/migration.
+The Curriculum Goal graph covers only the first B1 city/services vertical slice. The legacy reference blueprint also still uses Core task positions as stable activity slots. Route variants with different numbers of activities are therefore not yet fully normalized. The later Content Engine normalization slice must introduce stable activity IDs shared across all route variants before broad lesson-authoring/migration.

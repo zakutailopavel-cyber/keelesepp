@@ -35,6 +35,8 @@ test('Learning Profile keeps adaptive evidence separate from canonical mastery',
   assert.match(source,/80% või kõrgem ainult kanonilises students\.skillMapis/);
   assert.match(source,/see ei muuda skillMapi/);
   assert.match(source,/See vaade ei kirjuta Firestore’i ega muuda students\.skillMapi/);
+  assert.match(source,/Adaptive tunni lõpetamine üksi ei märgi õpieesmärki saavutatuks/);
+  assert.match(source,/Puuduv oskusetõend ei võrdu nulliga/);
   assert.match(source,/Korda:/);
 });
 
@@ -44,15 +46,45 @@ test('Learning Profile respects teacherUid rollout for student lists',()=>{
   assert.match(source,/db\.collection\('students'\)\.where\('teacherUid','==',fb\.uid\)/);
 });
 
-test('Learning Profile exposes teacher decision support without claiming curriculum recommendation',()=>{
-  assert.match(source,/Mida korrata järgmisena/);
-  assert.match(source,/Tugevad oskused/);
-  assert.match(source,/Hiljutine õppimistõendus/);
-  assert.match(source,/ei anna piisavat alust järgmise õppekava eesmärgi automaatseks valimiseks/);
+test('Learning Profile loads the bounded Curriculum Engine graph',()=>{
+  assert.match(source,/src="\/curriculum-goal-core\.js"/);
+  assert.match(source,/src="\/curriculum-goals\/b1-city\.js"/);
+  assert.match(source,/window\.KeeleSeppCurriculumGoalCore/);
+  assert.match(source,/window\.KeeleSeppCurriculumGoalsB1City/);
+});
+
+test('Curriculum recommendation uses achieved goals as prerequisites and active target goals as current context',()=>{
+  assert.match(source,/achievedGoalIds:profile\.recommendations\.completedGoalIds/);
+  assert.match(source,/currentGoalIds:profile\.recommendations\.activeGoalIds/);
+  assert.doesNotMatch(source,/achievedGoalIds:profile\.recommendations\.recentGoalIds/);
+  assert.match(source,/recentLessonBlueprintIds\[0\]/);
+});
+
+test('explicit B1 session context can explain the active graph even when the student profile level differs',()=>{
+  assert.match(source,/const explicitGraphContext=/);
+  assert.match(source,/activeGoalIds\.some\(id=>graphIds\.has\(id\)\)/);
+  assert.match(source,/lessonBlueprintIds\.includes\(recentBlueprintId\)/);
+  assert.match(source,/if\(profile\.currentLevel!==goalGraph\.level&&!explicitGraphContext\) return null/);
+});
+
+test('Learning Profile explains the stable next curriculum goal instead of hiding the decision',()=>{
+  assert.match(source,/Järgmine õppekava eesmärk/);
+  assert.match(source,/Deterministlik Curriculum Engine v1/);
+  assert.match(source,/explainRecommendationEt\(recommendation,GOAL_INDEX\)/);
+  assert.match(source,/Prerequisite eesmärgid/);
+  assert.match(source,/Kriitilised oskused/);
+  assert.match(source,/goal\.id/);
+});
+
+test('Learning Profile keeps a bounded evidence-based fallback outside the supported B1 graph',()=>{
+  assert.match(source,/Selle taseme jaoks ei ole Curriculum Goal graph veel kirjeldatud/);
+  assert.match(source,/Alusta sõnavara kordamisest/);
+  assert.match(source,/Alusta tähelepanu vajavatest oskustest/);
 });
 
 test('Learning Profile uses the existing shared skill catalog for labels',()=>{
   assert.match(source,/Object\.values\(window\.HaldusSkillCatalog\|\|\{\}\)\.flat\(\)/);
+  assert.match(source,/SKILL_LABELS\[id\]/);
 });
 
 test('Learning Profile login CTA works with the local static server',()=>{
