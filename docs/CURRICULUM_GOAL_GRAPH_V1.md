@@ -1,6 +1,6 @@
 # Curriculum Goal Graph v1
 
-Status: PR #90 implementation slice for the selected B1 `Linn ja teenused` vertical flow.
+Status: B1 `Linn ja teenused` goal graph merged in #90; Teacher Home consumes it through #91/#92; PR #93 binds the first vocabulary goal to a dedicated Lesson Mode blueprint.
 
 ## Purpose
 
@@ -71,17 +71,35 @@ The first five stable goals are:
 
 The graph reuses canonical B1 skill IDs from `HaldusSkillCatalog`, especially `B1_VOCAB_TOPIC` and `B1_SPEAK_DESC`. It does not add parallel skill-map IDs.
 
-## Reference lesson binding
+## Lesson blueprint bindings
 
-`adaptive-lessons/est-b1-city-problem-solving.js` now stores:
+The graph may bind a goal to one or more stable Lesson Mode blueprints. A binding means the system has a concrete teaching implementation for that goal; it does not mean the goal is achieved.
+
+Current dedicated bindings:
+
+```text
+EST_B1_CITY_VOCAB
+  -> est-b1-city-vocabulary-01
+
+EST_B1_CITY_SOLVE_PROBLEM
+  -> est-b1-city-problem-solving-01
+```
+
+The blueprints themselves declare the same stable targets:
 
 ```js
+// adaptive-lessons/est-b1-city-vocabulary.js
+curriculumGoalIds:['EST_B1_CITY_VOCAB']
+
+// adaptive-lessons/est-b1-city-problem-solving.js
 curriculumGoalIds:['EST_B1_CITY_SOLVE_PROBLEM']
 ```
 
-This allows new Learning Sessions to persist a stable curriculum target instead of only a lesson title/topic.
+This allows Learning Sessions to persist stable curriculum targets instead of only lesson title/topic text and lets Teacher Home route `Alusta tundi` to the correct supported blueprint.
 
-The goal graph also keeps a legacy mapping from blueprint `est-b1-city-problem-solving-01` and the previous topic/title strings. Legacy mapping is context only; it is not mastery evidence.
+`EST_B1_CITY_EXPLAIN_PROBLEM`, `EST_B1_CITY_ASK_HELP` and `EST_B1_CITY_TRANSFER` currently have no dedicated blueprint. Teacher Home must therefore open Learning Profile for those goals rather than inventing a lesson mapping.
+
+The graph also keeps legacy topic/title mappings for transition context. Legacy mapping is context only; it is not mastery evidence.
 
 ## Recommendation order
 
@@ -112,9 +130,9 @@ Today, Learning Profile treats structured Live Classroom summary goal IDs as ach
 
 This preserves the existing core rule: lesson attendance/completion is not mastery.
 
-## Learning Profile projection
+## Learning Profile and Teacher Home projection
 
-For supported B1 context, Learning Profile now shows a read-only `Järgmine õppekava eesmärk` card containing:
+For supported B1 context, Learning Profile shows a read-only `Järgmine õppekava eesmärk` card containing:
 
 - stable goal title and ID;
 - state: ready / active / blocked;
@@ -123,39 +141,48 @@ For supported B1 context, Learning Profile now shows a read-only `Järgmine õpp
 - critical skill status from canonical `students.skillMap`;
 - exact vocabulary review evidence when useful.
 
+Teacher Home consumes that same recommendation. It may start a Lesson Mode only when the goal has an explicit supported blueprint binding. The current bounded map is:
+
+- `EST_B1_CITY_VOCAB` -> `est-b1-city-vocabulary-01`;
+- `EST_B1_CITY_SOLVE_PROBLEM` -> `est-b1-city-problem-solving-01`.
+
+An unsupported goal remains explainable in Learning Profile but does not get forced into a wrong lesson.
+
 The UI may use explicit B1 Learning Session/blueprint context even if the student's broad profile level field has not yet been updated. This keeps an already-started curriculum target explainable without silently changing the student's CEFR level.
 
 For levels/units without a defined graph, the existing evidence-based fallback remains in place.
 
 ## Safety boundaries
 
-This slice adds no:
+This work adds no:
 
 - Firestore schema migration;
 - Firestore rule change;
 - automatic `students.skillMap` write;
 - automatic CEFR-level change;
 - automatic goal-achievement write;
-- production deployment;
 - finance/calendar/crm-v2/Live Classroom behavior change.
+
+The trusted `learningSessionApi` owns the persisted title/CEFR/goal identity for the supported blueprints, so a browser cannot forge a different curriculum target while starting one of them.
 
 ## Verification contract
 
 Automated coverage must prove:
 
 - graph validity and cycle rejection;
-- exact reference-lesson binding;
+- exact blueprint-to-goal bindings;
 - deterministic entry/successor/transfer recommendations;
 - missing skill evidence stays unknown;
 - active adaptive target is not achieved;
 - completed adaptive session target is not achieved merely because the lesson ended;
 - Learning Profile passes only explicit achieved goals as prerequisite evidence;
+- Teacher Home starts only explicitly bound goals;
+- unsupported goals remain profile fallbacks;
+- trusted persistence cannot be given forged goal metadata by the browser;
 - Learning Profile remains read-only;
 - browser scripts parse;
 - existing learning/CRM test bundle remains green.
 
 ## Known limit
 
-Curriculum Goal graph v1 covers only one B1 city/services vertical slice. It is deliberately not a broad migration of every existing curriculum topic.
-
-The next roadmap slice is Teacher Home / `Today`, which can consume Curriculum Engine recommendations together with Learning Profile and Lesson Mode. Broad Lesson Builder/content normalization follows after that.
+Curriculum Goal graph v1 covers only one B1 city/services vertical slice. Two of its goals now have dedicated Lesson Mode blueprints. The intermediate explain/help goals and final transfer goal still need their own teaching implementations or later Lesson Builder/content normalization before they can become direct `Alusta tundi` actions.
