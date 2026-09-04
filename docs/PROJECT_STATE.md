@@ -4,7 +4,7 @@ Last verified: 2026-09-04, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
 Verified main commit: `e2935a3d2a8e0868fcae4418eb82a63b5007b249` (`Lesson Mode: phase-specific workspaces (#88)`)
 Active branch: `agent/per-skill-adaptive-engine-v1`
-Active PR: `#89 Adaptive Engine v1: per-skill Lesson Mode routes` (draft; CI gate running)
+Active PR: `#89 Adaptive Engine v1: per-skill Lesson Mode routes` (merge-ready after green GitHub CI; no production deploy)
 Independent open PR: `#83 Tighten Adaptive Lesson desktop layout`
 
 ## Current objective
@@ -41,7 +41,7 @@ No production deployment has been performed from #89.
 
 ### Problem
 
-The persisted session already had `routeBySkill`, but live Lesson Mode still behaved primarily as if there were one global route. That means a learner could not reliably be, for example:
+The persisted session already had `routeBySkill`, but live Lesson Mode still behaved primarily as if there were one global route. That meant a learner could not reliably be, for example:
 
 - Vocabulary Advanced;
 - Grammar Core;
@@ -155,25 +155,31 @@ Changed:
 
 ## Verification status
 
-Automated gate for #89 is currently running in GitHub Actions.
+GitHub Actions `Financial Core emulator` run **#228** completed successfully on head `775a3b04d21ea79c41673f9160d7cc3d8657e0ef`.
 
-The test contract now includes:
+All release-gate steps passed:
 
-- pure independent per-skill transitions;
-- multi-skill most-supportive route selection;
-- server-authoritative transition computation;
-- legacy client compatibility when `nextRouteBySkill` is omitted;
-- rejection of unrelated/invalid browser route patches;
-- navigation does not invent a new skill route;
-- persisted Vocabulary/Grammar/Speaking routes can diverge in one emulator session;
-- vocabulary marks do not silently change adaptive route state;
-- append-only/idempotent evidence behavior remains intact;
-- `students.skillMap` remains unchanged;
-- Lesson Mode restores and uses `routeBySkill`;
-- optimistic per-skill UI rollback on save failure;
-- browser JavaScript syntax checks.
+- Functions dependencies install;
+- Functions unit tests;
+- root CRM/accounting/calendar/learning suite, including the new `adaptive-skill-engine.test.js` and updated Lesson Mode UI contracts;
+- browser JavaScript syntax checks, including `adaptive-skill-engine.js`;
+- Auth/Firestore/Functions emulator integration.
 
-Do not mark #89 ready or claim it green until the current GitHub Actions run completes successfully.
+The emulator integration specifically proved in one persisted session that:
+
+- navigation to Speaking did not invent a Speaking route;
+- a legacy judgement request without `nextRouteBySkill` still changed Vocabulary Core -> Support on the server;
+- Grammar and Speaking routes could then diverge independently;
+- a multi-skill judgement changed Grammar Support -> Core and Speaking Core -> Advanced in one event;
+- Vocabulary remained Support and unrelated to that change;
+- a vocabulary word mark did not silently change the adaptive route map;
+- append-only evidence count/idempotency remained correct;
+- direct browser Firestore evidence writes remained denied;
+- `students.skillMap` was unchanged after session completion.
+
+Commits after the green executable head are documentation-only and do not change runtime behavior.
+
+Vercel preview checks on the latest branch head report **`Deployment rate limited — retry in 24 hours`** for both KeeleSepp projects. This is an account deployment-quota condition, not a failing code/build test. No Vercel production deployment is claimed.
 
 ## Deployment boundary
 
@@ -202,7 +208,7 @@ Do not deploy production from this branch without owner approval.
 3. Learning Session + append-only evidence — merged #86;
 4. Learning Profile evidence projection — merged #87 and deployed;
 5. phase-specific Lesson Mode workspaces — merged #88;
-6. deterministic per-skill Adaptive Engine v1 — current #89;
+6. deterministic per-skill Adaptive Engine v1 — #89 merge-ready;
 7. curriculum goal/prerequisite graph;
 8. Teacher Home vertical flow;
 9. Lesson Builder + stable activity/content normalization;
@@ -211,4 +217,4 @@ Do not deploy production from this branch without owner approval.
 
 ## Next safe step
 
-Finish #89's automated gate and owner browser review. If both pass, mark #89 ready for owner merge. After merge and explicit rollout approval, deploy Function first and web second. Then begin the curriculum goal/prerequisite graph as the next bounded slice; keep automatic mastery writes out of that work.
+Owner merges #89. After merge and explicit rollout approval, deploy `learningSessionApi` first and web second, then smoke-test one authenticated real-student session. After production verification, begin the curriculum goal/prerequisite graph as the next bounded slice; keep automatic mastery writes out of that work.
