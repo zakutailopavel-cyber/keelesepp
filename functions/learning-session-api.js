@@ -1,5 +1,6 @@
 const functions = require('firebase-functions/v1');
 const admin = require('firebase-admin');
+const { FieldValue } = require('firebase-admin/firestore');
 
 if (!admin.apps.length) admin.initializeApp();
 const db = admin.firestore();
@@ -189,7 +190,7 @@ async function startOrResume(actor, body) {
   if (active) return { session: sessionResponse(active), resumed: true };
 
   const ref = db.collection('learningSessions').doc();
-  const now = admin.firestore.FieldValue.serverTimestamp();
+  const now = FieldValue.serverTimestamp();
   const currentRoute = cleanRoute(body.currentRoute || 'core');
   const currentIndex = cleanIndex(body.currentIndex || 0);
   const skillIds = cleanList(body.skillIds, 20, 120);
@@ -243,7 +244,7 @@ async function saveProgress(actor, body) {
     currentActivityId: clean(body.currentActivityId, 140),
     currentRoute,
     routeBySkill: mergeRouteBySkill(session.routeBySkill, skillIds, currentRoute),
-    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp(),
   };
   await ref.update(update);
   const updated = await ref.get();
@@ -276,7 +277,7 @@ async function appendTeacherEvidence(actor, body, kind) {
     const eventSkillIds = kind === 'vocabulary_mark'
       ? cleanList(['vocabulary', ...skillIds], 20, 120)
       : skillIds;
-    const now = admin.firestore.FieldValue.serverTimestamp();
+    const now = FieldValue.serverTimestamp();
     const evidence = {
       schemaVersion: 1,
       sessionId: sessionSnap.id,
@@ -334,7 +335,7 @@ async function completeSession(actor, body) {
       if (snap.exists) assertSameEvidenceIdentity(snap.data(), session, sessionSnap.id);
     });
 
-    const now = admin.firestore.FieldValue.serverTimestamp();
+    const now = FieldValue.serverTimestamp();
     const addedSkills = [];
     let addedEvidence = 0;
     scoreEntries.forEach((entry, index) => {
