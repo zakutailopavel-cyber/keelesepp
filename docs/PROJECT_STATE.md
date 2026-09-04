@@ -2,14 +2,14 @@
 
 Last verified: 2026-09-04, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
-Verified main commit: `e2935a3d2a8e0868fcae4418eb82a63b5007b249` (`Lesson Mode: phase-specific workspaces (#88)`)
-Active branch: `agent/per-skill-adaptive-engine-v1`
-Active PR: `#89 Adaptive Engine v1: per-skill Lesson Mode routes` (merge-ready after green GitHub CI; no production deploy)
+Verified main commit: `858f25278f853e2262ad2d5a79ef8f7c8eb0e6bd` (`Adaptive Engine v1: per-skill Lesson Mode routes (#89)`)
+Active branch: `agent/curriculum-goal-graph-v1`
+Active PR: `#90 Curriculum Engine v1: B1 goal and prerequisite graph` (draft while final CI/review runs)
 Independent open PR: `#83 Tighten Adaptive Lesson desktop layout`
 
 ## Current objective
 
-Execute the Core Blueprint as bounded vertical slices.
+Execute the Core Blueprint as bounded vertical slices and keep the deterministic learning loop explainable before broad curriculum/AI expansion.
 
 Merged learning foundation:
 
@@ -17,204 +17,223 @@ Merged learning foundation:
 2. Learning Profile read-only MVP — #85;
 3. Learning Session + append-only evidence persistence — #86;
 4. Learning Profile evidence projection — #87;
-5. phase-specific Lesson Mode workspaces — #88.
+5. phase-specific Lesson Mode workspaces — #88;
+6. deterministic per-skill Adaptive Engine v1 — #89.
 
-Current release slice: deterministic per-skill Adaptive Engine v1 for the single B1 reference lesson.
+Current release slice: Curriculum Goal / prerequisite graph v1 for one B1 `Linn ja teenused` vertical flow.
 
-`crm-v2`, finance, calendar and Live Classroom remain outside this slice.
+`crm-v2`, finance, calendar and unrelated Live Classroom behavior remain outside this slice.
 
-## Last verified production state
+## Production state
 
-Before #88/#89, owner explicitly approved and verified the #86/#87 rollout:
+### Vercel
 
-- Vercel production served `crm.epkoolitus.ee` from main at `cfc6fcf...`;
-- Firebase Functions `learningSessionApi` and `learningProfileEvidenceApi` were selectively deployed to project `keelesepp-5136b`, region `us-central1`;
-- Learning Profile loaded real student data;
-- Lesson Mode opened/resumed a persisted real-student Learning Session;
-- vocabulary evidence persistence was manually confirmed.
+Primary project `keelesepp` is connected to GitHub and the production deployment for main commit `858f252...` (#89) is `READY`.
 
-#88 is now merged into main at `e2935a3d...`, but no post-#88 production deployment is claimed in this document without a fresh deployment verification.
+The unused Vercel project `keelesepp-crm-v2` was disconnected from GitHub on 2026-09-04. Its historical deployments remain, but future GitHub commits should no longer trigger duplicate crm-v2 builds. The active legacy CRM remains the only project in the current development/deployment flow.
 
-No production deployment has been performed from #89.
+### Firebase Functions
 
-## Release slice 6 — deterministic per-skill Adaptive Engine v1
+Owner previously deployed production `learningSessionApi` and `learningProfileEvidenceApi` for the #86/#87 persistence/profile slices.
 
-### Problem
+#89 later changed `learningSessionApi` to make per-skill route transitions server-authoritative. That updated Function has **not been freshly verified as deployed in production** in this project-state record. Therefore:
 
-The persisted session already had `routeBySkill`, but live Lesson Mode still behaved primarily as if there were one global route. That meant a learner could not reliably be, for example:
+- #89 browser/web code is on Vercel production;
+- do not claim the complete per-skill persistence loop is production-verified until the updated `learningSessionApi` is selectively deployed and smoke-tested.
 
-- Vocabulary Advanced;
-- Grammar Core;
-- Speaking Support;
+No Firebase schema/rules migration is required by #90.
 
-inside the same B1 lesson.
+## Release slice 7 — Curriculum Goal graph v1 (#90)
 
-The route state also had to remain evidence-driven: simply navigating to a new activity must not overwrite a skill route.
+### Purpose
 
-### New pure engine
+Curriculum Engine answers **what should be learned next**. Adaptive Engine answers **how much support/challenge the current activity needs**.
 
-New file: `adaptive-skill-engine.js`.
+The first Curriculum Engine slice adds stable goal identities and prerequisite/next-goal edges without creating another mastery source.
 
-It deterministically owns:
+### Pure goal engine
 
-- route/judgement normalization;
-- one-step Support/Core/Advanced transitions;
-- independent transitions for every skill affected by the current activity;
-- preservation of unrelated skill routes;
-- effective route selection for multi-skill activities;
-- bounded browser route patches.
+New `curriculum-goal-core.js` owns deterministic:
 
-Rules:
+- goal normalization;
+- graph validation;
+- duplicate/reference/self-reference checks;
+- prerequisite-cycle detection;
+- canonical skillMap evidence normalization;
+- legacy lesson/topic mapping;
+- prerequisite readiness;
+- next-goal recommendation;
+- human-readable Estonian recommendation explanation.
 
-- `needs_help`: Advanced -> Core -> Support;
-- `managed`: no route change;
-- `too_easy`: Support -> Core -> Advanced.
+Missing skill evidence remains `unknown`, not `0`.
 
-For a multi-skill task, the visible workspace uses the most supportive route required by the affected skills.
+### First bounded graph
 
-Example:
+New `curriculum-goals/b1-city.js` defines graph `EST_B1_CITY_SERVICES_V1`:
 
-- Grammar Support + Speaking Core;
-- teacher marks the grammar+speaking activity `too_easy`;
-- Grammar becomes Core;
-- Speaking becomes Advanced;
-- the activity's effective next route is Core;
-- an unrelated Vocabulary route remains unchanged.
+```text
+EST_B1_CITY_VOCAB
+  ├─> EST_B1_CITY_EXPLAIN_PROBLEM ─┐
+  └─> EST_B1_CITY_ASK_HELP ────────┤
+                                    v
+                         EST_B1_CITY_SOLVE_PROBLEM
+                                    |
+                                    v
+                         EST_B1_CITY_TRANSFER
+```
 
-### Lesson Mode integration
+The graph reuses canonical existing B1 skill IDs from `HaldusSkillCatalog`, especially:
 
-`haldus-adaptive-lesson/index.html` now:
+- `B1_VOCAB_TOPIC`;
+- `B1_SPEAK_DESC`.
 
-- loads `adaptive-skill-engine.js`;
-- restores persisted `routeBySkill` when the session resumes;
-- treats missing skill-route state as Core fallback, not failure;
-- derives the current workspace route from the current activity's evidence skill IDs;
-- applies judgement optimistically to the affected skills only;
-- sends `nextRouteBySkill` to the trusted API;
-- reconciles with the authoritative session returned by the API;
-- restores the previous route map on persistence failure;
-- exposes current skill routes in the teacher drawer and handoff context.
+It does not create parallel mastery fields.
 
-Existing phase-specific workspaces and optimistic save feedback from #88 are preserved.
+### Reference lesson binding
 
-### Trusted Function behavior
+`adaptive-lessons/est-b1-city-problem-solving.js` now declares:
 
-`functions/learning-session-api.js` is server-authoritative for adaptive transitions.
+```js
+curriculumGoalIds:['EST_B1_CITY_SOLVE_PROBLEM']
+```
 
-For `teacher_judgement` it now:
+New Learning Sessions can therefore persist a stable curriculum target instead of relying only on title/topic strings.
 
-1. reads persisted `routeBySkill`;
-2. computes the deterministic per-skill transition from affected skills + canonical judgement;
-3. optionally validates a browser `nextRouteBySkill` patch against the server result;
-4. writes the server-computed route map in the same transaction as append-only evidence.
+The graph also keeps legacy blueprint/topic/title mapping for older records. Legacy mapping is context only and must not be interpreted as mastery.
 
-This keeps old/cached clients compatible: a client may omit `nextRouteBySkill` and the Function still computes the correct per-skill transition.
+### Goal-state boundary
 
-The browser cannot use the patch to modify an unrelated skill or skip multiple support steps.
+The following states are deliberately separate:
 
-### Navigation and vocabulary evidence
+- target goal — what a session teaches;
+- active goal — target of an active session;
+- achieved goal — explicit structured achievement evidence;
+- completed session — the lesson/session ended.
 
-`progress`/navigation still updates current index/phase/activity/effective route, but no longer mutates `routeBySkill`.
+A completed Adaptive Lesson does **not** automatically satisfy a curriculum prerequisite.
 
-Exact vocabulary weak/known marks remain append-only evidence but do not silently change the whole vocabulary adaptive route. Teacher judgement is the explicit route-change signal in v1.
+Current Learning Profile uses structured Live Classroom summary goal IDs as achieved-goal evidence because that existing flow explicitly records selected curriculum outcomes. Adaptive session `curriculumGoalIds` remain target/current context until a separate validated goal-achievement projection exists.
+
+This preserves the core invariant: lesson completion is not mastery.
+
+### Learning Profile projection
+
+`haldus-learning-profile/index.html` now loads the bounded Curriculum Engine and B1 graph.
+
+For supported B1 context it shows `Järgmine õppekava eesmärk` with:
+
+- stable goal title and ID;
+- ready / active / blocked state;
+- deterministic explanation;
+- prerequisite goal state;
+- canonical critical-skill evidence from `students.skillMap`;
+- exact vocabulary review evidence when useful.
+
+The profile passes only explicit achieved goals as prerequisite evidence and active Adaptive targets as current-goal context.
+
+An explicit B1 session/blueprint context may still be explained when the broad student profile level field differs, without silently changing the student's CEFR level.
+
+For levels/units without a graph, the existing evidence-based fallback remains.
 
 ### Data invariants
 
 Unchanged:
 
-- `students.skillMap` remains the canonical current mastery projection;
-- #89 does not write `students.skillMap`;
-- adaptive route state is not mastery;
-- missing route state is not zero or failure;
-- `learningSessionApi` remains the trusted writer;
-- direct browser Firestore writes remain unavailable;
-- teacher judgements / vocabulary marks / summary scores remain append-only evidence;
-- request-id idempotency remains required;
-- completed sessions reject new evidence;
-- no Firestore rules/schema migration is introduced.
+- `students.skillMap` is the canonical current mastery projection;
+- #90 does not write `students.skillMap`;
+- missing evidence is not failure/zero;
+- Adaptive `routeBySkill` is runtime support state, not mastery;
+- session completion is not goal achievement;
+- no direct browser Firestore write is introduced;
+- no Firestore rules/schema migration is introduced;
+- no production deployment is performed from #90;
+- no finance/calendar/crm-v2 behavior change is included.
 
-## Files in #89
+## Files in #90
 
 New:
 
-- `adaptive-skill-engine.js`
-- `adaptive-skill-engine.test.js`
-- `docs/PER_SKILL_ADAPTIVE_ENGINE_V1.md`
+- `curriculum-goal-core.js`
+- `curriculum-goal-core.test.js`
+- `curriculum-goals/b1-city.js`
+- `docs/CURRICULUM_GOAL_GRAPH_V1.md`
 
 Changed:
 
-- `haldus-adaptive-lesson/index.html`
-- `learning-session-store.js`
-- `learning-session-ui.test.js`
-- `functions/learning-session-api.js`
-- `functions/learning-session-api.test.js`
-- `functions/learning-session-emulator.integration.js`
+- `adaptive-lessons/est-b1-city-problem-solving.js`
+- `learning-profile-core.js`
+- `learning-profile-core.test.js`
+- `haldus-learning-profile/index.html`
+- `learning-profile-ui.test.js`
 - `.github/workflows/financial-core-emulator.yml`
 - `docs/ADAPTIVE_LESSON_SYSTEM.md`
 - this file.
 
-## Verification status
+## Verification target for #90
 
-GitHub Actions `Financial Core emulator` run **#228** completed successfully on head `775a3b04d21ea79c41673f9160d7cc3d8657e0ef`.
+Required green gate before Ready for review:
 
-All release-gate steps passed:
+- Curriculum Goal graph unit tests;
+- existing Learning Profile core/UI tests;
+- full root CRM/accounting/calendar/learning test bundle;
+- browser JavaScript syntax for the new goal engine/graph;
+- existing Firebase Auth/Firestore/Functions emulator integration;
+- self-review confirming no mastery/write/security boundary regression.
 
-- Functions dependencies install;
-- Functions unit tests;
-- root CRM/accounting/calendar/learning suite, including the new `adaptive-skill-engine.test.js` and updated Lesson Mode UI contracts;
-- browser JavaScript syntax checks, including `adaptive-skill-engine.js`;
-- Auth/Firestore/Functions emulator integration.
+Specific contracts tested include:
 
-The emulator integration specifically proved in one persisted session that:
+- graph validity and cycle rejection;
+- stable reference lesson goal binding;
+- deterministic entry/successor/transfer recommendation;
+- missing critical-skill evidence remains unknown;
+- active Adaptive target is visible even before the first evidence event;
+- active target is not achieved;
+- completed Adaptive session target is not achieved merely because the session ended;
+- UI passes `completedGoalIds` as prerequisite evidence and `activeGoalIds` as current context;
+- Learning Profile stays read-only.
 
-- navigation to Speaking did not invent a Speaking route;
-- a legacy judgement request without `nextRouteBySkill` still changed Vocabulary Core -> Support on the server;
-- Grammar and Speaking routes could then diverge independently;
-- a multi-skill judgement changed Grammar Support -> Core and Speaking Core -> Advanced in one event;
-- Vocabulary remained Support and unrelated to that change;
-- a vocabulary word mark did not silently change the adaptive route map;
-- append-only evidence count/idempotency remained correct;
-- direct browser Firestore evidence writes remained denied;
-- `students.skillMap` was unchanged after session completion.
-
-Commits after the green executable head are documentation-only and do not change runtime behavior.
-
-Vercel preview checks on the latest branch head report **`Deployment rate limited — retry in 24 hours`** for both KeeleSepp projects. This is an account deployment-quota condition, not a failing code/build test. No Vercel production deployment is claimed.
+Exact final GitHub Actions run/result must be recorded after the latest executable head completes.
 
 ## Deployment boundary
 
-#89 changes both the trusted Function and the browser client. After owner merge and explicit production approval, rollout order must be:
+### #89 server rollout still pending verification
 
-1. selectively deploy the updated `learningSessionApi` first;
-2. verify Function health/backward compatibility;
-3. deploy the Vercel/web main build;
-4. smoke-test one authenticated real-student session and confirm independent route changes persist.
+Before claiming per-skill adaptation fully live in production:
 
-Do not deploy production from this branch without owner approval.
+1. selectively deploy the current main `learningSessionApi`;
+2. verify Function update/health;
+3. smoke-test one authenticated real-student session and confirm independent route changes persist.
+
+The #89 Vercel web deployment is already READY.
+
+### #90 rollout after owner merge
+
+#90 itself is static/pure client/data logic and adds no Function/rule migration. After owner merge, normal main Vercel deployment is sufficient for the Curriculum Goal graph UI/code. Do not deploy from the agent branch.
 
 ## Known limits
 
-- adaptive persistence still supports only `est-b1-city-problem-solving-01`;
-- one teacher judgement currently applies the same judgement signal to every skill mapped to that activity; skill routes still transition independently from their own starting routes;
-- there is no automatic mastery projection from evidence to `students.skillMap`;
-- there is no curriculum next-goal/prerequisite graph yet;
+- Adaptive persistence still supports only the reference lesson `est-b1-city-problem-solving-01`;
+- Curriculum Goal graph v1 covers only one B1 city/services vertical slice;
+- there is no automatic goal-achievement projection from Adaptive evidence yet;
+- there is no automatic mastery projection from Adaptive evidence to `students.skillMap`;
+- one teacher judgement currently applies the same signal to all skills mapped to an activity, though routes transition independently;
 - route variants cannot safely have arbitrary different activity counts until Content Engine normalization introduces stable cross-route activity identities;
-- PR #83 touches the same Lesson Mode HTML for desktop density and must stay independent from #89.
+- PR #83 remains independent and touches Lesson Mode desktop density.
 
 ## Core roadmap
 
 1. Core Blueprint — merged #84;
 2. Learning Profile MVP — merged #85;
 3. Learning Session + append-only evidence — merged #86;
-4. Learning Profile evidence projection — merged #87 and deployed;
+4. Learning Profile evidence projection — merged #87;
 5. phase-specific Lesson Mode workspaces — merged #88;
-6. deterministic per-skill Adaptive Engine v1 — #89 merge-ready;
-7. curriculum goal/prerequisite graph;
-8. Teacher Home vertical flow;
+6. deterministic per-skill Adaptive Engine v1 — merged #89;
+7. Curriculum Goal / prerequisite graph — active #90;
+8. Teacher Home / Today vertical flow;
 9. Lesson Builder + stable activity/content normalization;
 10. AI-assisted content generation after the deterministic loop is stable;
 11. scale/analytics after multiple lessons share the same contracts.
 
 ## Next safe step
 
-Owner merges #89. After merge and explicit rollout approval, deploy `learningSessionApi` first and web second, then smoke-test one authenticated real-student session. After production verification, begin the curriculum goal/prerequisite graph as the next bounded slice; keep automatic mastery writes out of that work.
+Finish #90 CI/self-review and move the PR to Ready for review. Owner merges it. Separately, selectively deploy the merged-main `learningSessionApi` from #89 before claiming the per-skill persistence loop production-complete. After #90 is merged, start Teacher Home / Today as the next bounded product slice.
