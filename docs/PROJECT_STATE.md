@@ -4,6 +4,7 @@ Last verified: 2026-09-04, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
 Verified main commit: `4bb573bbfca7bba8b47cb6af2051d7aba5d494de` (`Learning Session MVP: append-only adaptive evidence (#86)`)
 Active branch: `agent/learning-profile-evidence`
+Open PR: `#87 Learning Profile: project adaptive evidence read-only` — ready after green CI
 Independent open UI draft PR: `#83 Tighten Adaptive Lesson desktop layout`
 
 ## Current objective
@@ -16,7 +17,7 @@ Merged foundation:
 2. Learning Profile read-only MVP — #85;
 3. Learning Session + append-only evidence persistence — #86.
 
-Current release slice connects the new Adaptive Lesson evidence back into Learning Profile without automatic mastery writes.
+Release slice 3 connects the new Adaptive Lesson evidence back into Learning Profile without automatic mastery writes.
 
 The agreed product core remains five connected engines:
 
@@ -51,6 +52,8 @@ The Function validates:
 - bounded evidence result size.
 
 It returns only a bounded projection of fields required by Learning Profile plus minimal session context. Historical evidence from a previous teacher remains visible to the current authorized teacher for that assigned student.
+
+Student identity is path-authoritative: a stored `students/{id}.id` field cannot shadow the actual Firestore document ID. The same hardening is applied to `learningSessionApi`. When evidence references a session, session context is returned only if that session belongs to the selected student.
 
 `firestore.rules` is unchanged.
 
@@ -127,6 +130,8 @@ Changed:
 - `learning-profile-ui.test.js` — read-only / no direct evidence Firestore access / fallback contracts;
 - `functions/main.js` — exports `learningProfileEvidenceApi`;
 - `functions/package.json` — adds profile-evidence emulator integration;
+- `functions/learning-session-api.js` — makes the Firestore document path authoritative for student identity;
+- `functions/learning-session-emulator.integration.js` — verifies stored-ID shadowing cannot redirect a session;
 - `.github/workflows/financial-core-emulator.yml` — runs the new store/core/UI/API/integration coverage;
 - this project-state document.
 
@@ -137,20 +142,22 @@ Changed:
 - no new evidence/session mutation endpoint;
 - no automatic `students.skillMap` update;
 - unrelated teachers are denied by the trusted read API;
+- Firestore document path is authoritative for student identity in both learning read/write boundaries;
+- joined session context must match the selected student;
 - response size is bounded;
 - direct client reads of private evidence remain denied in emulator verification;
 - attendance alone still does not become mastery evidence.
 
-## Verification gate
+## Verification status
 
-Required checks for this branch:
+GitHub Actions `Financial Core emulator` on the final implementation head completed successfully.
 
-- Functions unit tests including profile-evidence API projection;
-- root learning/core/UI tests including the authenticated evidence client;
-- browser JavaScript syntax checks;
-- emulator integration proving teacher scope, newest-first evidence projection, bounded results, direct client-read denial and unchanged `students.skillMap`.
+Verified gates:
 
-Do not claim this slice green until the current branch's GitHub Actions run completes successfully.
+- Functions unit tests, including profile-evidence API projection — green;
+- root CRM/accounting/calendar/learning tests, including authenticated evidence client/core/UI contracts — green;
+- browser JavaScript syntax checks — green;
+- emulator integrations — green, including teacher scope, newest-first/bounded evidence, stored-ID shadowing, cross-student session isolation, direct client-read denial, Learning Session identity hardening and unchanged `students.skillMap`.
 
 ## Production / external services
 
@@ -178,7 +185,7 @@ Vercel production is not changed or verified by this work.
 1. Core Blueprint — merged #84;
 2. Learning Profile MVP — merged #85;
 3. Learning Session + append-only evidence persistence — merged #86;
-4. Learning Profile evidence projection — current release slice;
+4. Learning Profile evidence projection — implemented and green in #87;
 5. phase-specific Lesson Mode workspace renderer;
 6. deterministic per-skill Adaptive Engine v1;
 7. curriculum goal/prerequisite graph for the selected vertical slice;
@@ -189,4 +196,4 @@ Vercel production is not changed or verified by this work.
 
 ## Next safe step
 
-**Finish this branch with green unit/root/browser/emulator CI and owner review/merge. After merge, begin the phase-specific Lesson Mode workspace renderer on top of the now-connected session -> evidence -> profile loop. Keep automatic `skillMap` projection out of that UI slice.**
+**Owner reviews/merges #87. After merge, begin the phase-specific Lesson Mode workspace renderer on top of the now-connected session -> evidence -> profile loop. Keep automatic `skillMap` projection out of that UI slice.**
