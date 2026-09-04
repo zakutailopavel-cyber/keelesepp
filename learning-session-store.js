@@ -17,12 +17,18 @@
 
     const requestedStudentId=clean(studentId,120);
     const endpoint=clean(apiUrl||globalThis.KEELESEPP_LEARNING_SESSION_API_URL||DEFAULT_API,500);
+    const pendingRequestIds=new Map();
     let mode='preview';
     let sessionData=null;
     let studentData=null;
 
     const status=(next,message='')=>{mode=next;onStatus({mode:next,message,sessionId:sessionData?.id||''});};
     const currentItem=index=>items[Math.max(0,Math.min(items.length-1,Number(index)||0))]||{};
+    const retryRequestId=(key,prefix)=>{
+      if(!pendingRequestIds.has(key)) pendingRequestIds.set(key,requestId(prefix));
+      return pendingRequestIds.get(key);
+    };
+    const clearRetryRequestId=key=>pendingRequestIds.delete(key);
 
     async function waitForAuth(){
       if(auth.currentUser) return auth.currentUser;
@@ -114,9 +120,10 @@
       const item=currentItem(index);
       const mapped=core.mapUiJudgement(judgement);
       if(!mapped) throw new Error('Tundmatu õpetaja hinnang.');
+      const retryKey=`judge:${sessionData.id}:${item.id||index}:${mapped}:${route}:${nextRoute}`;
       try{
         const result=await post('judge',{
-          requestId:requestId('judge'),
+          requestId:retryRequestId(retryKey,'judge'),
           sessionId:sessionData.id,
           currentIndex:index,
           phaseId:core.phaseIdForItem(item)||'diagnostic',
@@ -127,6 +134,7 @@
           teacherJudgement:mapped,
           note:''
         });
+        clearRetryRequestId(retryKey);
         status('saved',result.idempotent?'Tõend oli juba salvestatud.':'Õpetaja hinnang salvestatud tõendina.');
         return snapshot();
       }catch(error){status('error',error.message);throw error;}
@@ -135,9 +143,10 @@
     async function recordVocabulary({index=0,route='core',wordId='',mark=''}={}){
       if(!sessionData||sessionData.status!=='active') return snapshot();
       const item=currentItem(index);
+      const retryKey=`vocab:${sessionData.id}:${item.id||index}:${clean(wordId,120)}:${clean(mark,20)}:${route}`;
       try{
         await post('vocabulary',{
-          requestId:requestId('vocab'),
+          requestId:retryRequestId(retryKey,'vocab'),
           sessionId:sessionData.id,
           currentIndex:index,
           phaseId:core.phaseIdForItem(item)||'diagnostic',
@@ -148,6 +157,7 @@
           wordId,
           mark
         });
+        clearRetryRequestId(retryKey);
         status('saved','Sõnavara tõend salvestatud.');
         return snapshot();
       }catch(error){status('error',error.message);throw error;}
@@ -159,15 +169,17 @@
         status('completed','Õppimissessioon on juba lõpetatud.');
         return snapshot();
       }
+      const retryKey=`complete:${sessionData.id}`;
       try{
         await post('complete',{
-          requestId:requestId('complete'),
+          requestId:retryRequestId(retryKey,'complete'),
           sessionId:sessionData.id,
           route,
           scores:core.normalizeSummaryScores(scores),
           teacherNote,
           handoffText
         });
+        clearRetryRequestId(retryKey);
         status('completed','Õppimissessioon lõpetatud. Tõendid on säilitatud.');
         return snapshot();
       }catch(error){status('error',error.message);throw error;}
