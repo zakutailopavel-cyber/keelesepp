@@ -160,7 +160,8 @@ function mergeRouteBySkill(current, skillIds, route) {
 function applyRouteBySkillPatch(current, patch) {
   const output = { ...(current && typeof current === 'object' ? current : {}) };
   for (const [skillId, route] of Object.entries(patch && typeof patch === 'object' ? patch : {})) {
-    if (ROUTES.has(route) && clean(skillId, 120)) output[clean(skillId, 120)] = route;
+    const id = clean(skillId, 120);
+    if (id && ROUTES.has(route)) output[id] = route;
   }
   return output;
 }
@@ -182,21 +183,30 @@ function routeForSkills(routeBySkill, skillIds, fallback = 'core') {
     .sort((left, right) => ROUTE_RANK[left] - ROUTE_RANK[right])[0];
 }
 
-function cleanPerSkillRoutePatch(input, allowedSkillIds, currentRouteBySkill, judgement, fallbackRoute) {
-  if (!input || typeof input !== 'object' || Array.isArray(input)) return {};
-  const allowed = cleanList(allowedSkillIds, 20, 120);
-  const allowedSet = new Set(allowed);
+function perSkillTransitionPatch(currentRouteBySkill, skillIds, judgement, fallbackRoute = 'core') {
+  const safeFallback = ROUTES.has(fallbackRoute) ? fallbackRoute : 'core';
+  const patch = {};
+  for (const skillId of cleanList(skillIds, 20, 120)) {
+    const currentRoute = ROUTES.has(currentRouteBySkill?.[skillId]) ? currentRouteBySkill[skillId] : safeFallback;
+    patch[skillId] = transitionRoute(currentRoute, judgement);
+  }
+  return patch;
+}
+
+function cleanPerSkillRoutePatch(input, expectedPatch) {
+  if (input === undefined || input === null) return {};
+  if (typeof input !== 'object' || Array.isArray(input)) throw httpError(400, 'Per-skill route patch must be an object');
+  const expected = expectedPatch && typeof expectedPatch === 'object' ? expectedPatch : {};
+  const expectedKeys = Object.keys(expected);
   const patch = {};
   for (const [rawSkillId, rawRoute] of Object.entries(input)) {
     const skillId = clean(rawSkillId, 120);
-    if (!allowedSet.has(skillId)) throw httpError(400, 'Per-skill route patch contains an unrelated skill');
+    if (!Object.prototype.hasOwnProperty.call(expected, skillId)) throw httpError(400, 'Per-skill route patch contains an unrelated skill');
     const requestedRoute = cleanRoute(rawRoute);
-    const currentRoute = ROUTES.has(currentRouteBySkill?.[skillId]) ? currentRouteBySkill[skillId] : fallbackRoute;
-    const expectedRoute = transitionRoute(currentRoute, judgement);
-    if (requestedRoute !== expectedRoute) throw httpError(400, `Invalid per-skill route transition for ${skillId}`);
+    if (requestedRoute !== expected[skillId]) throw httpError(400, `Invalid per-skill route transition for ${skillId}`);
     patch[skillId] = requestedRoute;
   }
-  if (Object.keys(patch).length && allowed.some((skillId) => patch[skillId] === undefined)) {
+  if (Object.keys(patch).length && expectedKeys.some((skillId) => patch[skillId] === undefined)) {
     throw httpError(400, 'Per-skill route patch must cover every affected skill');
   }
   return patch;
@@ -230,7 +240,7 @@ async function startOrResume(actor, body) {
     })
     .sort((left, right) => {
       const l = left.data().updatedAt?.toMillis?.() || left.data().startedAt?.toMillis?.() || 0;
-      const r = right.data().updatedAt?.toMillis?.() || right.data.startedAt?.toMillis?.() || 0;
+      const r = right.data().updatedAt?.toMillis?.() || right.data().startedAt?.toMillis?.() || 0;
       return r - l;
     })[0];
   if (active) return { session: sessionResponse(active), resumed: true };
@@ -321,18 +331,17 @@ async function appendTeacherEvidence(actor, body, kind) {
     const eventSkillIds = kind === 'vocabulary_mark'
       ? cleanList(['vocabulary', ...skillIds], 20, 120)
       : skillIds;
-    const explicitPatch = kind === 'teacher_judgement'
-      ? cleanPerSkillRoutePatch(body.nextRouteBySkill, eventSkillIds, session.routeBySkill, teacherJudgement, route)
+    const serverPatch = kind === 'teacher_judgement'
+      ? perSkillTransitionPatch(session.routeBySkill, eventSkillIds, teacherJudgement, route)
       : {};
-    const hasExplicitPatch = Object.keys(explicitPatch).length > 0;
+    if (kind === 'teacher_judgement') cleanPerSkillRoutePatch(body.nextRouteBySkill, serverPatch);
+
     const nextRouteBySkill = kind === 'vocabulary_mark'
       ? { ...(session.routeBySkill && typeof session.routeBySkill === 'object' ? session.routeBySkill : {}) }
-      : hasExplicitPatch
-        ? applyRouteBySkillPatch(session.routeBySkill, explicitPatch)
-        : mergeRouteBySkill(session.routeBySkill, eventSkillIds, legacyNextRoute);
+      : applyRouteBySkillPatch(session.routeBySkill, serverPatch);
     const effectiveNextRoute = kind === 'vocabulary_mark'
       ? route
-      : hasExplicitPatch
+      : Object.keys(serverPatch).length
         ? routeForSkills(nextRouteBySkill, eventSkillIds, legacyNextRoute)
         : legacyNextRoute;
 
@@ -480,6 +489,7 @@ module.exports = {
     applyRouteBySkillPatch,
     transitionRoute,
     routeForSkills,
+    perSkillTransitionPatch,
     cleanPerSkillRoutePatch,
     mergeAssessedSkills,
     assertSameEvidenceIdentity,
