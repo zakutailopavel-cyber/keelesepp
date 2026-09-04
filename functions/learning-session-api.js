@@ -5,7 +5,18 @@ const { FieldValue } = require('firebase-admin/firestore');
 if (!admin.apps.length) admin.initializeApp();
 const db = admin.firestore();
 const SUPER_ADMIN_EMAIL = 'zakutailo.pavel@gmail.com';
-const REFERENCE_LESSON_ID = 'est-b1-city-problem-solving-01';
+const SUPPORTED_LESSONS = Object.freeze({
+  'est-b1-city-problem-solving-01': Object.freeze({
+    title: 'Probleemi lahendamine linnas',
+    curriculumGoalIds: Object.freeze(['EST_B1_CITY_SOLVE_PROBLEM']),
+    cefrLevel: 'B1',
+  }),
+  'est-b1-city-vocabulary-01': Object.freeze({
+    title: 'Linnaprobleemide põhisõnavara',
+    curriculumGoalIds: Object.freeze(['EST_B1_CITY_VOCAB']),
+    cefrLevel: 'B1',
+  }),
+});
 const ROUTES = new Set(['support', 'core', 'advanced']);
 const ROUTE_RANK = { support: 0, core: 1, advanced: 2 };
 const JUDGEMENTS = new Set(['needs_help', 'managed', 'too_easy']);
@@ -50,6 +61,18 @@ function cleanList(values, maxItems = 20, maxLength = 120) {
     .map((value) => clean(value, maxLength))
     .filter(Boolean)))
     .slice(0, maxItems);
+}
+
+function supportedLesson(value) {
+  const id = clean(value, 160);
+  const config = SUPPORTED_LESSONS[id];
+  if (!config) throw httpError(400, 'Unsupported adaptive lesson');
+  return {
+    id,
+    title: config.title,
+    curriculumGoalIds: [...config.curriculumGoalIds],
+    cefrLevel: config.cefrLevel,
+  };
 }
 
 function cleanRoute(value) {
@@ -227,8 +250,8 @@ function assertSameEvidenceIdentity(existing, session, sessionId) {
 
 async function startOrResume(actor, body) {
   const student = await authorizedStudent(actor, body.studentId);
-  const lessonBlueprintId = clean(body.lessonBlueprintId, 160);
-  if (lessonBlueprintId !== REFERENCE_LESSON_ID) throw httpError(400, 'This release slice supports only the reference adaptive lesson');
+  const lessonConfig = supportedLesson(body.lessonBlueprintId);
+  const lessonBlueprintId = lessonConfig.id;
 
   const snap = await db.collection('learningSessions').where('teacherUid', '==', actor.uid).get();
   const active = snap.docs
@@ -257,9 +280,9 @@ async function startOrResume(actor, body) {
     teacherUid: actor.uid,
     teacherName: actor.name,
     lessonBlueprintId,
-    lessonTitle: clean(body.lessonTitle, 180) || 'Probleemi lahendamine linnas',
-    curriculumGoalIds: cleanList(body.curriculumGoalIds, 20, 160),
-    cefrLevel: clean(body.cefrLevel, 20),
+    lessonTitle: lessonConfig.title,
+    curriculumGoalIds: lessonConfig.curriculumGoalIds,
+    cefrLevel: lessonConfig.cefrLevel,
     status: 'active',
     currentIndex,
     currentPhaseId: clean(body.currentPhaseId, 100) || 'diagnostic',
@@ -404,6 +427,7 @@ async function completeSession(actor, body) {
     });
 
     const now = FieldValue.serverTimestamp();
+    const summaryPhaseId = clean(session.currentPhaseId, 100) || 'summary';
     const addedSkills = [];
     let addedEvidence = 0;
     scoreEntries.forEach((entry, index) => {
@@ -414,7 +438,7 @@ async function completeSession(actor, body) {
         studentId: session.studentId,
         teacherUid: session.teacherUid,
         lessonBlueprintId: session.lessonBlueprintId,
-        phaseId: 'stage-4-exit',
+        phaseId: summaryPhaseId,
         activityId: `summary-${entry.skillId}`,
         skillIds: [entry.skillId],
         vocabularyIds: [],
@@ -479,6 +503,7 @@ const learningSessionApi = functions.https.onRequest(async (req, res) => {
 module.exports = {
   learningSessionApi,
   _test: {
+    supportedLesson,
     cleanList,
     cleanRoute,
     cleanIndex,

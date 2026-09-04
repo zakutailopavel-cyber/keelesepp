@@ -7,6 +7,22 @@ const admin=require('firebase-admin');
 if(!admin.apps.length) admin.initializeApp({projectId:'demo-keelesepp-learning-unit'});
 const { _test }=require('./learning-session-api');
 
+test('trusted lesson registry accepts only supported adaptive blueprints',()=>{
+  assert.deepEqual(_test.supportedLesson('est-b1-city-problem-solving-01'),{
+    id:'est-b1-city-problem-solving-01',
+    title:'Probleemi lahendamine linnas',
+    curriculumGoalIds:['EST_B1_CITY_SOLVE_PROBLEM'],
+    cefrLevel:'B1',
+  });
+  assert.deepEqual(_test.supportedLesson('est-b1-city-vocabulary-01'),{
+    id:'est-b1-city-vocabulary-01',
+    title:'Linnaprobleemide põhisõnavara',
+    curriculumGoalIds:['EST_B1_CITY_VOCAB'],
+    cefrLevel:'B1',
+  });
+  assert.throws(()=>_test.supportedLesson('forged-lesson'),/Unsupported adaptive lesson/);
+});
+
 test('request ids are bounded and reject unsafe values',()=>{
   assert.equal(_test.cleanRequestId('judge_learning_0001'),'judge_learning_0001');
   assert.throws(()=>_test.cleanRequestId('short'),/requestId/);

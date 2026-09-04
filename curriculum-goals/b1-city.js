@@ -21,7 +21,7 @@
         'kasutab vähemalt 8 teemapõhist sõna arusaadavas kontekstis',
         'seostab probleemi sobiva sõna või väljendiga ilma vastust ette näitava mudelita'
       ],
-      lessonBlueprintIds:[],
+      lessonBlueprintIds:['est-b1-city-vocabulary-01'],
       legacyTopics:['Linn ja teenused'],
       legacyTitles:['Linnaprobleemide sõnavara','Kohad linnas ja tegevused']
     },

@@ -62,17 +62,38 @@ test('latest active adaptive session carries the persisted per-skill routes',()=
   assert.deepEqual(summary.activeSession.routeBySkill,{vocabulary:'support',grammar:'core',speaking:'advanced'});
 });
 
-test('supported active lesson resumes, supported recommendation starts, otherwise profile opens',()=>{
+test('supported active lesson resumes with explicit blueprint id',()=>{
   assert.deepEqual(core.actionForStudent('student 1',{
     activeSession:{lessonBlueprintId:core.REFERENCE_LESSON_ID}
   }),{
     kind:'lesson',
     label:'Jätka tundi',
-    href:'/haldus-adaptive-lesson/?studentId=student%201'
+    href:'/haldus-adaptive-lesson/?studentId=student%201&lessonId=est-b1-city-problem-solving-01'
   });
-  assert.equal(core.actionForStudent('student-2',{
+  assert.deepEqual(core.actionForStudent('student 2',{
+    activeSession:{lessonBlueprintId:core.VOCAB_LESSON_ID}
+  }),{
+    kind:'lesson',
+    label:'Jätka tundi',
+    href:'/haldus-adaptive-lesson/?studentId=student%202&lessonId=est-b1-city-vocabulary-01'
+  });
+});
+
+test('supported curriculum goals start their own bounded Lesson Mode blueprint',()=>{
+  assert.deepEqual(core.actionForStudent('student-1',{
+    recommendation:{goal:{id:core.VOCAB_GOAL_ID}}
+  }),{
+    kind:'lesson',
+    label:'Alusta tundi',
+    href:'/haldus-adaptive-lesson/?studentId=student-1&lessonId=est-b1-city-vocabulary-01'
+  });
+  assert.deepEqual(core.actionForStudent('student-2',{
     recommendation:{goal:{id:core.REFERENCE_GOAL_ID}}
-  }).label,'Alusta tundi');
+  }),{
+    kind:'lesson',
+    label:'Alusta tundi',
+    href:'/haldus-adaptive-lesson/?studentId=student-2&lessonId=est-b1-city-problem-solving-01'
+  });
   assert.equal(core.actionForStudent('student-3',{
     recommendation:{goal:{id:'ANOTHER_GOAL'}}
   }).label,'Ava õppimisprofiil');
@@ -89,7 +110,7 @@ test('today cards join schedule to student and learning context without inventin
     learningByStudent:{
       s1:{
         profile:{attention:[],recommendations:{reviewVocabularyIds:['rike']},recentEvidence:[]},
-        recommendation:{status:'ready',goal:{id:core.REFERENCE_GOAL_ID,title:'Lahendab linnaprobleemi'}},
+        recommendation:{status:'ready',goal:{id:core.VOCAB_GOAL_ID,title:'Linnaprobleemide põhisõnavara aktiveerimine'}},
       }
     }
   });
@@ -98,6 +119,7 @@ test('today cards join schedule to student and learning context without inventin
   assert.equal(cards[0].endTime,'14:45');
   assert.deepEqual(cards[0].summary.reviewWords,['rike']);
   assert.equal(cards[0].primaryAction.label,'Alusta tundi');
+  assert.match(cards[0].primaryAction.href,/lessonId=est-b1-city-vocabulary-01/);
   assert.equal(cards[1].studentId,'');
   assert.equal(cards[1].primaryAction,null);
   assert.equal(cards[1].studentName,'Legacy Student');

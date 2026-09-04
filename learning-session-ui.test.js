@@ -7,6 +7,7 @@ const html=fs.readFileSync('haldus-adaptive-lesson/index.html','utf8');
 const store=fs.readFileSync('learning-session-store.js','utf8');
 const workspaceCore=fs.readFileSync('lesson-workspace-core.js','utf8');
 const lesson=require('./adaptive-lessons/est-b1-city-problem-solving.js');
+const vocabLesson=require('./adaptive-lessons/est-b1-city-vocabulary.js');
 
 function inlineScripts(source){
   return [...source.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)]
@@ -21,6 +22,16 @@ test('Lesson Mode loads Learning Session, workspace and per-skill adaptive cores
   assert.match(html,/\/lesson-workspace-core\.js/);
   assert.match(html,/\/adaptive-skill-engine\.js/);
   assert.doesNotMatch(html,/firebase-firestore-compat\.js/);
+});
+
+test('Lesson Mode loads both supported blueprints and selects the requested lessonId',()=>{
+  assert.match(html,/\/adaptive-lessons\/est-b1-city-problem-solving\.js/);
+  assert.match(html,/\/adaptive-lessons\/est-b1-city-vocabulary\.js/);
+  assert.match(html,/DEFAULT_LESSON_ID='est-b1-city-problem-solving-01'/);
+  assert.match(html,/URLSearchParams\(location\.search\)\.get\('lessonId'\)/);
+  assert.match(html,/KeeleSeppAdaptiveLessons\?\.\[requestedLessonId\]/);
+  assert.equal(vocabLesson.id,'est-b1-city-vocabulary-01');
+  assert.deepEqual(vocabLesson.curriculumGoalIds,['EST_B1_CITY_VOCAB']);
 });
 
 test('Lesson Mode persists only when a studentId is supplied and otherwise preserves preview mode',()=>{
@@ -41,6 +52,13 @@ test('Finish opens summary; completed persistence happens only from explicit han
   assert.match(html,/\$\('handoff-btn'\)\.onclick=async\(\)=>/);
   const finishHandler=(html.match(/\$\('finish'\)\.onclick=([^;]+);/)||[])[1]||'';
   assert.doesNotMatch(finishHandler,/complete/);
+});
+
+test('summary fields are derived from lesson evidence skills instead of hardcoding three skills',()=>{
+  assert.match(html,/function summarySkillIds\(\)/);
+  assert.match(html,/lesson\.diagnostic\?\.items/);
+  assert.match(html,/lesson\.stages/);
+  assert.match(html,/summarySkillIds\(\)\.reduce/);
 });
 
 test('browser client never uses Firestore or writes skillMap directly',()=>{
