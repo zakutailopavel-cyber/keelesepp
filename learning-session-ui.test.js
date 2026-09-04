@@ -103,6 +103,44 @@ test('diagnostic and assessment keep answer model hidden until teacher explicitl
   assert.match(workspaceCore,/showExpectedInitially:false/);
 });
 
+test('teacher judgement updates UI before network confirmation and rolls back on failure',()=>{
+  const start=html.indexOf("document.querySelectorAll('[data-judge]')");
+  const end=html.indexOf("$('prev').onclick",start);
+  const handler=html.slice(start,end);
+  const optimisticRating=handler.indexOf('state.ratings[item.id]=j');
+  const optimisticRoute=handler.indexOf('state.route=nextRoute');
+  const savingStatus=handler.indexOf("showSavingStatus('Õpetaja hinnangu salvestamine…')");
+  const request=handler.indexOf('await sessionStore.recordJudgement');
+  assert.ok(optimisticRating>=0&&optimisticRating<request);
+  assert.ok(optimisticRoute>=0&&optimisticRoute<request);
+  assert.ok(savingStatus>=0&&savingStatus<request);
+  assert.match(handler,/previousRating=state\.ratings\[item\.id\]/);
+  assert.match(handler,/previousRoute=state\.route/);
+  assert.match(handler,/delete state\.ratings\[item\.id\]/);
+  assert.match(handler,/state\.route=previousRoute/);
+});
+
+test('vocabulary mark highlights immediately and restores previous mark when persistence fails',()=>{
+  const start=html.indexOf('function renderWords');
+  const end=html.indexOf('function renderMore',start);
+  const handler=html.slice(start,end);
+  const optimisticMark=handler.indexOf('state.vocab[wordId]=mark');
+  const savingStatus=handler.indexOf("showSavingStatus('Sõnavara tõendi salvestamine…')");
+  const request=handler.indexOf('await sessionStore.recordVocabulary');
+  assert.ok(optimisticMark>=0&&optimisticMark<request);
+  assert.ok(savingStatus>=0&&savingStatus<request);
+  assert.match(handler,/previousMark=state\.vocab\[wordId\]/);
+  assert.match(handler,/delete state\.vocab\[wordId\]/);
+  assert.match(handler,/state\.vocab\[wordId\]=previousMark/);
+  assert.match(html,/\.word button\.selected/);
+  assert.match(html,/syncWordButtons\(wordId,mark,true\)/);
+});
+
+test('active session and pending save have distinct status labels',()=>{
+  assert.match(html,/active:'Valmis'/);
+  assert.match(html,/saving:'Salvestan…'/);
+});
+
 test('inline Lesson Mode scripts parse as JavaScript',()=>{
   const scripts=inlineScripts(html);
   assert.ok(scripts.length>=2);
