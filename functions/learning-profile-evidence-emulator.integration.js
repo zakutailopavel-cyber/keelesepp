@@ -71,6 +71,7 @@ test("Learning Profile evidence API exposes scoped adaptive evidence without cha
     db.collection("users").doc(teacherUid).set({ role: "teacher", displayName: "Pavel" }),
     db.collection("users").doc(outsiderUid).set({ role: "teacher", displayName: "Other Teacher" }),
     db.collection("students").doc(studentId).set({
+      id: "shadowed-student-id-must-not-win",
       name: "Profile Evidence Student",
       active: true,
       teacher: "Pavel",
@@ -117,7 +118,7 @@ test("Learning Profile evidence API exposes scoped adaptive evidence without cha
 
   const response = await postProfileEvidence(teacherToken, { studentId, limit: 10 });
   assert.equal(response.status, 200, JSON.stringify(response.body));
-  assert.equal(response.body.student.id, studentId);
+  assert.equal(response.body.student.id, studentId, "Firestore document id must override any stored id field");
   assert.deepEqual(response.body.evidence.map((item) => item.id), ["profile_ev_new", "profile_ev_old"]);
   assert.equal(response.body.sessions.length, 1);
   assert.equal(response.body.sessions[0].id, sessionId);
