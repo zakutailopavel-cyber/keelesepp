@@ -13,6 +13,7 @@
     cefrLevel:'B1',
     category:'Linn ja teenused',
     title:'Probleemi lahendamine linnas',
+    curriculumGoalIds:['EST_B1_CITY_SOLVE_PROBLEM'],
     durationMinutes:60,
     goal:'Õpilane oskab selgitada linnas tekkinud probleemi, küsida abi ning pakkuda vähemalt üht lahendust viisakas ja arusaadavas eesti keeles.',
     successCriteria:[
