@@ -1,6 +1,7 @@
 const functions = require('firebase-functions/v1');
 const admin = require('firebase-admin');
 
+if (!admin.apps.length) admin.initializeApp();
 const db = admin.firestore();
 const SUPER_ADMIN_EMAIL = 'zakutailo.pavel@gmail.com';
 const REFERENCE_LESSON_ID = 'est-b1-city-problem-solving-01';
@@ -211,7 +212,7 @@ async function startOrResume(actor, body) {
   return { session: sessionResponse(created), resumed: false };
 }
 
-async function getActiveSession(actor, transaction, sessionId) {
+async function getSession(actor, transaction, sessionId) {
   const id = clean(sessionId, 160);
   if (!id) throw httpError(400, 'sessionId required');
   const ref = db.collection('learningSessions').doc(id);
@@ -223,7 +224,7 @@ async function getActiveSession(actor, transaction, sessionId) {
 }
 
 async function saveProgress(actor, body) {
-  const { ref, snap, session } = await getActiveSession(actor, null, body.sessionId);
+  const { ref, session } = await getSession(actor, null, body.sessionId);
   if (session.status !== 'active') throw httpError(409, 'Learning session is not active');
   const currentRoute = cleanRoute(body.currentRoute || session.currentRoute || 'core');
   const skillIds = cleanList(body.skillIds, 20, 120);
@@ -236,17 +237,18 @@ async function saveProgress(actor, body) {
     updatedAt: admin.firestore.FieldValue.serverTimestamp(),
   };
   await ref.update(update);
-  return { session: serializeValue({ id: snap.id, ...session, ...update }) };
+  const updated = await ref.get();
+  return { session: sessionResponse(updated) };
 }
 
 async function appendTeacherEvidence(actor, body, kind) {
   const requestId = cleanRequestId(body.requestId);
   const evidenceRef = db.collection('learningEvidence').doc(requestId);
-  return db.runTransaction(async (transaction) => {
+  const result = await db.runTransaction(async (transaction) => {
     const existingEvidence = await transaction.get(evidenceRef);
-    const { ref: sessionRef, snap: sessionSnap, session } = await getActiveSession(actor, transaction, body.sessionId);
+    const { ref: sessionRef, snap: sessionSnap, session } = await getSession(actor, transaction, body.sessionId);
     if (existingEvidence.exists) {
-      return { session: sessionResponse(sessionSnap), evidenceId: existingEvidence.id, idempotent: true };
+      return { sessionId: sessionSnap.id, evidenceId: existingEvidence.id, idempotent: true };
     }
     if (session.status !== 'active') throw httpError(409, 'Learning session is not active');
 
@@ -284,72 +286,74 @@ async function appendTeacherEvidence(actor, body, kind) {
       createdAtIso: new Date().toISOString(),
     };
     transaction.create(evidenceRef, evidence);
-    const evidenceCount = (Number(session.evidenceCount) || 0) + 1;
     const update = {
       currentIndex: cleanIndex(body.currentIndex),
       currentPhaseId: clean(body.phaseId, 100),
       currentActivityId: clean(body.activityId, 140),
       currentRoute: nextRoute,
       routeBySkill: mergeRouteBySkill(session.routeBySkill, eventSkillIds, nextRoute),
-      evidenceCount,
+      evidenceCount: (Number(session.evidenceCount) || 0) + 1,
       assessedSkillIds: mergeAssessedSkills(session.assessedSkillIds, eventSkillIds),
       lastEvidenceAt: now,
       updatedAt: now,
     };
     transaction.update(sessionRef, update);
-    return {
-      session: serializeValue({ id: sessionSnap.id, ...session, ...update }),
-      evidenceId: evidenceRef.id,
-      idempotent: false,
-    };
+    return { sessionId: sessionSnap.id, evidenceId: evidenceRef.id, idempotent: false };
   });
+  const updated = await db.collection('learningSessions').doc(result.sessionId).get();
+  return { session: sessionResponse(updated), evidenceId: result.evidenceId, idempotent: result.idempotent };
 }
 
 async function completeSession(actor, body) {
   const requestId = cleanRequestId(body.requestId);
   const scores = normalizeScores(body.scores || {});
-  return db.runTransaction(async (transaction) => {
-    const { ref: sessionRef, snap: sessionSnap, session } = await getActiveSession(actor, transaction, body.sessionId);
-    if (session.status === 'completed') return { session: sessionResponse(sessionSnap), idempotent: true };
+  const result = await db.runTransaction(async (transaction) => {
+    const { ref: sessionRef, snap: sessionSnap, session } = await getSession(actor, transaction, body.sessionId);
+    if (session.status === 'completed') return { sessionId: sessionSnap.id, idempotent: true };
     if (session.status !== 'active') throw httpError(409, 'Only an active learning session can be completed');
 
     const route = cleanRoute(body.route || session.currentRoute || 'core');
+    const scoreEntries = Object.entries(scores).map(([skillId, taskResult]) => ({
+      skillId,
+      taskResult,
+      ref: db.collection('learningEvidence').doc(`${requestId}_${skillId}`),
+    }));
+    const existingEvidence = [];
+    for (const entry of scoreEntries) existingEvidence.push(await transaction.get(entry.ref));
+
     const now = admin.firestore.FieldValue.serverTimestamp();
     const addedSkills = [];
     let addedEvidence = 0;
-    for (const [skillId, taskResult] of Object.entries(scores)) {
-      const evidenceId = `${requestId}_${skillId}`;
-      const evidenceRef = db.collection('learningEvidence').doc(evidenceId);
-      const existing = await transaction.get(evidenceRef);
-      if (existing.exists) continue;
-      transaction.create(evidenceRef, {
+    scoreEntries.forEach((entry, index) => {
+      if (existingEvidence[index].exists) return;
+      transaction.create(entry.ref, {
         schemaVersion: 1,
         sessionId: sessionSnap.id,
         studentId: session.studentId,
         teacherUid: session.teacherUid,
         lessonBlueprintId: session.lessonBlueprintId,
         phaseId: 'stage-4-exit',
-        activityId: `summary-${skillId}`,
-        skillIds: [skillId],
+        activityId: `summary-${entry.skillId}`,
+        skillIds: [entry.skillId],
         vocabularyIds: [],
         route,
-        taskResult,
+        taskResult: entry.taskResult,
         source: 'teacher',
         kind: 'summary_score',
         note: '',
         createdAt: now,
         createdAtIso: new Date().toISOString(),
       });
-      addedSkills.push(skillId);
+      addedSkills.push(entry.skillId);
       addedEvidence += 1;
-    }
+    });
 
     const handoff = {
       schemaVersion: 1,
       text: clean(body.handoffText, 6000),
       generatedAtIso: new Date().toISOString(),
     };
-    const update = {
+    transaction.update(sessionRef, {
       status: 'completed',
       currentPhaseId: 'summary',
       currentActivityId: 'summary',
@@ -360,10 +364,11 @@ async function completeSession(actor, body) {
       handoff,
       completedAt: now,
       updatedAt: now,
-    };
-    transaction.update(sessionRef, update);
-    return { session: serializeValue({ id: sessionSnap.id, ...session, ...update }), idempotent: false };
+    });
+    return { sessionId: sessionSnap.id, idempotent: false };
   });
+  const updated = await db.collection('learningSessions').doc(result.sessionId).get();
+  return { session: sessionResponse(updated), idempotent: result.idempotent };
 }
 
 async function handleAction(actor, body) {
