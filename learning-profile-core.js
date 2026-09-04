@@ -56,6 +56,7 @@
       source:'live_classroom_summary',
       title:cleanText(room.title||room.lessonTitle||'Lõpetatud tund',160),
       teacherName:cleanText(room.teacherName||room.teacher||'',120),
+      lessonBlueprintId:cleanText(room.lessonBlueprintId||'',160),
       completedAt,
       completedAtMillis:timestampMillis(completedAt),
       teacherComment:cleanText(summary.teacherComment||'',600),
@@ -86,6 +87,7 @@
       source:'adaptive_lesson_evidence',
       title:cleanText(session.lessonTitle||event.lessonTitle||'Adaptive Lesson',180),
       teacherName:cleanText(session.teacherName||event.teacherName||'',160),
+      lessonBlueprintId:cleanText(session.lessonBlueprintId||event.lessonBlueprintId||'',160),
       completedAt:createdAt,
       completedAtMillis:timestampMillis(createdAt),
       teacherComment:cleanText(event.note||'',800),
@@ -160,14 +162,23 @@
       .map(item=>normalizeAdaptiveEvidence(item,sessionMap))
       .filter(Boolean);
 
+    const allEvidence=[...liveEvidence,...adaptive].sort((a,b)=>b.completedAtMillis-a.completedAtMillis);
     const limit=Math.max(1,Math.min(20,Number(recentLimit)||6));
-    const recentEvidence=[...liveEvidence,...adaptive]
-      .sort((a,b)=>b.completedAtMillis-a.completedAtMillis)
-      .slice(0,limit);
+    const recentEvidence=allEvidence.slice(0,limit);
 
     const recentSkillIds=unique(recentEvidence.flatMap(item=>item.skillIds));
     const recentGoalIds=unique(recentEvidence.flatMap(item=>item.goalIds));
     const recentGoalLabels=unique(recentEvidence.flatMap(item=>item.goalLabels));
+    const recentLessonBlueprintIds=unique(allEvidence.map(item=>item.lessonBlueprintId).filter(Boolean));
+    const completedGoalIds=unique([
+      ...liveEvidence.flatMap(item=>item.goalIds),
+      ...adaptive.filter(item=>item.sessionStatus==='completed').flatMap(item=>item.goalIds)
+    ]);
+    const completedGoalSet=new Set(completedGoalIds);
+    const activeGoalIds=unique(adaptive
+      .filter(item=>item.sessionStatus==='active')
+      .flatMap(item=>item.goalIds))
+      .filter(id=>!completedGoalSet.has(id));
     const reviewVocabularyIds=latestVocabularyReviewIds(adaptive);
 
     const assessedCount=skills.length;
@@ -204,8 +215,11 @@
         cautionSkillIds:cautionSkills.map(skill=>skill.id),
         reviewVocabularyIds,
         nextGoalIds:[],
+        completedGoalIds,
+        activeGoalIds,
         recentGoalIds,
         recentGoalLabels,
+        recentLessonBlueprintIds,
         recentSkillIds
       }
     };
