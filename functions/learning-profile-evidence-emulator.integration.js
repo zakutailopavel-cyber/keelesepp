@@ -65,6 +65,7 @@ test("Learning Profile evidence API exposes scoped adaptive evidence without cha
   const outsiderUid = tokenUid(outsiderToken);
   const studentId = "profile-evidence-student-001";
   const sessionId = "profile-evidence-session-001";
+  const crossStudentSessionId = "profile-evidence-cross-student-session";
   const beforeSkillMap = { vocabulary: 64, speaking: 58 };
 
   await Promise.all([
@@ -92,8 +93,16 @@ test("Learning Profile evidence API exposes scoped adaptive evidence without cha
       handoff: { text: "Start with rike, then speaking transfer." },
       completedAt: admin.firestore.Timestamp.fromDate(new Date("2026-09-04T10:05:00Z")),
     }),
+    db.collection("learningSessions").doc(crossStudentSessionId).set({
+      studentId: "another-student",
+      teacherUid,
+      teacherName: "Pavel",
+      lessonTitle: "Must not leak into selected student profile",
+      status: "completed",
+      handoff: { text: "Private context for another student." },
+    }),
     db.collection("learningEvidence").doc("profile_ev_old").set({
-      sessionId, studentId, teacherUid,
+      sessionId: crossStudentSessionId, studentId, teacherUid,
       lessonBlueprintId: "est-b1-city-problem-solving-01",
       phaseId: "vocabulary", activityId: "word-rike",
       skillIds: ["vocabulary"], vocabularyIds: ["rike"],
@@ -120,10 +129,11 @@ test("Learning Profile evidence API exposes scoped adaptive evidence without cha
   assert.equal(response.status, 200, JSON.stringify(response.body));
   assert.equal(response.body.student.id, studentId, "Firestore document id must override any stored id field");
   assert.deepEqual(response.body.evidence.map((item) => item.id), ["profile_ev_new", "profile_ev_old"]);
-  assert.equal(response.body.sessions.length, 1);
+  assert.equal(response.body.sessions.length, 1, "cross-student session context must be excluded even if an evidence row is malformed");
   assert.equal(response.body.sessions[0].id, sessionId);
   assert.equal(response.body.sessions[0].lessonTitle, "Probleemi lahendamine linnas");
   assert.equal(response.body.sessions[0].handoffText, "Start with rike, then speaking transfer.");
+  assert.ok(response.body.sessions.every((item) => item.studentId === studentId));
 
   const limited = await postProfileEvidence(teacherToken, { studentId, limit: 1 });
   assert.equal(limited.status, 200, JSON.stringify(limited.body));
