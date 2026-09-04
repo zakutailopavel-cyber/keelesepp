@@ -5,6 +5,7 @@ const vm=require('node:vm');
 
 const html=fs.readFileSync('haldus-adaptive-lesson/index.html','utf8');
 const store=fs.readFileSync('learning-session-store.js','utf8');
+const workspaceCore=fs.readFileSync('lesson-workspace-core.js','utf8');
 const lesson=require('./adaptive-lessons/est-b1-city-problem-solving.js');
 
 function inlineScripts(source){
@@ -13,10 +14,11 @@ function inlineScripts(source){
     .filter(Boolean);
 }
 
-test('Lesson Mode loads Learning Session core/store and Firebase Auth only',()=>{
+test('Lesson Mode loads Learning Session and phase-specific workspace cores with Firebase Auth only',()=>{
   assert.match(html,/firebase-auth-compat\.js/);
   assert.match(html,/\/learning-session-core\.js/);
   assert.match(html,/\/learning-session-store\.js/);
+  assert.match(html,/\/lesson-workspace-core\.js/);
   assert.doesNotMatch(html,/firebase-firestore-compat\.js/);
 });
 
@@ -62,14 +64,81 @@ test('persistence client authenticates requests and reuses idempotency ids after
   assert.match(store,/clearRetryRequestId\(retryKey\)/);
 });
 
-test('reference diagnostic tasks explicitly map to evidence skills',()=>{
+test('reference diagnostic tasks explicitly map to evidence skills and workspace type',()=>{
   assert.equal(lesson.id,'est-b1-city-problem-solving-01');
+  assert.equal(lesson.diagnostic.workspaceType,'diagnostic');
   assert.equal(lesson.diagnostic.items.length,5);
   lesson.diagnostic.items.forEach(item=>{
     assert.ok(Array.isArray(item.skillIds),item.id);
     assert.ok(item.skillIds.length>0,item.id);
   });
   assert.deepEqual(lesson.diagnostic.items.find(item=>item.id==='d4').skillIds,['grammar','speaking']);
+});
+
+test('reference lesson declares different workspace types by pedagogical phase',()=>{
+  assert.equal(lesson.stages[0].workspaceType,'vocabulary');
+  assert.equal(lesson.stages[1].workspaceType,'controlled_practice');
+  assert.equal(lesson.stages[2].workspaceType,'roleplay');
+  assert.deepEqual(lesson.stages[2].taskWorkspaceTypes.slice(0,2),['roleplay','transfer']);
+  assert.equal(lesson.stages[3].workspaceType,'assessment');
+});
+
+test('Lesson Mode renders dedicated workspace families instead of one universal scene card',()=>{
+  for(const type of ['diagnostic','vocabulary','controlled_practice','roleplay','transfer','assessment']){
+    assert.match(html,new RegExp(`data-workspace=\\"${type}\\"`),type);
+  }
+  assert.match(html,/renderDiagnostic/);
+  assert.match(html,/renderVocabulary/);
+  assert.match(html,/renderPractice/);
+  assert.match(html,/renderRoleplay/);
+  assert.match(html,/renderTransfer/);
+  assert.match(html,/renderAssessment/);
+  assert.match(workspaceCore,/type!==['"]scene['"]/);
+  assert.doesNotMatch(workspaceCore,/scenes\?\.default/);
+});
+
+test('diagnostic and assessment keep answer model hidden until teacher explicitly opens control',()=>{
+  assert.match(html,/model\.type==='diagnostic'\|\|model\.type==='assessment'/);
+  assert.match(html,/expected-box.*classList\.toggle\('hidden'/s);
+  assert.match(workspaceCore,/showExpectedInitially:false/);
+});
+
+test('teacher judgement updates UI before network confirmation and rolls back on failure',()=>{
+  const start=html.indexOf("document.querySelectorAll('[data-judge]')");
+  const end=html.indexOf("$('prev').onclick",start);
+  const handler=html.slice(start,end);
+  const optimisticRating=handler.indexOf('state.ratings[item.id]=j');
+  const optimisticRoute=handler.indexOf('state.route=nextRoute');
+  const savingStatus=handler.indexOf("showSavingStatus('Õpetaja hinnangu salvestamine…')");
+  const request=handler.indexOf('await sessionStore.recordJudgement');
+  assert.ok(optimisticRating>=0&&optimisticRating<request);
+  assert.ok(optimisticRoute>=0&&optimisticRoute<request);
+  assert.ok(savingStatus>=0&&savingStatus<request);
+  assert.match(handler,/previousRating=state\.ratings\[item\.id\]/);
+  assert.match(handler,/previousRoute=state\.route/);
+  assert.match(handler,/delete state\.ratings\[item\.id\]/);
+  assert.match(handler,/state\.route=previousRoute/);
+});
+
+test('vocabulary mark highlights immediately and restores previous mark when persistence fails',()=>{
+  const start=html.indexOf('function renderWords');
+  const end=html.indexOf('function renderMore',start);
+  const handler=html.slice(start,end);
+  const optimisticMark=handler.indexOf('state.vocab[wordId]=mark');
+  const savingStatus=handler.indexOf("showSavingStatus('Sõnavara tõendi salvestamine…')");
+  const request=handler.indexOf('await sessionStore.recordVocabulary');
+  assert.ok(optimisticMark>=0&&optimisticMark<request);
+  assert.ok(savingStatus>=0&&savingStatus<request);
+  assert.match(handler,/previousMark=state\.vocab\[wordId\]/);
+  assert.match(handler,/delete state\.vocab\[wordId\]/);
+  assert.match(handler,/state\.vocab\[wordId\]=previousMark/);
+  assert.match(html,/\.word button\.selected/);
+  assert.match(html,/syncWordButtons\(wordId,mark,true\)/);
+});
+
+test('active session and pending save have distinct status labels',()=>{
+  assert.match(html,/active:'Valmis'/);
+  assert.match(html,/saving:'Salvestan…'/);
 });
 
 test('inline Lesson Mode scripts parse as JavaScript',()=>{
