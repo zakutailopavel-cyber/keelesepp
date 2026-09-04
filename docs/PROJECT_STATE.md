@@ -2,14 +2,14 @@
 
 Last verified: 2026-09-04, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
-Verified main commit: `0bdde51307fcbc31f849778e4056fbe12203aac1` (`docs: define KeeleSepp Core Blueprint v1` / merged PR #84)
-Active branch: `agent/learning-profile-mvp`
-Open draft PR: `#85 Learning Profile MVP: read-only teacher snapshot`
+Verified main commit: `62e0ec02dc6be358360a528b226777da3af5974f` (`Learning Profile MVP: read-only teacher snapshot (#85)`)
+Active branch: `agent/learning-session-evidence`
+Open draft PR: `#86 Learning Session MVP: append-only adaptive evidence`
 Independent open UI draft PR: `#83 Tighten Adaptive Lesson desktop layout`
 
 ## Current objective
 
-Execute the Core Blueprint in bounded vertical slices instead of adding unrelated teacher-facing features.
+Execute the Core Blueprint as bounded vertical slices. Release slice 1 (Learning Profile read-only MVP) is merged in #85. Release slice 2 now implements durable adaptive Learning Session state plus append-only evidence for the single reference lesson.
 
 The agreed product core remains five connected engines:
 
@@ -19,128 +19,150 @@ The agreed product core remains five connected engines:
 4. Content Engine — tasks, vocabulary, scenes, prompts and variants;
 5. Learning Profile — current mastery projection plus evidence explaining it.
 
-The engines are connected by the target `LearningSession` runtime contract documented in `docs/KEELESEPP_CORE_BLUEPRINT.md`.
-
 `crm-v2` remains separate and is not part of this work.
 
-## Release slice 1 — Learning Profile MVP
+## Release slice 2 — Learning Session + append-only evidence
 
-Draft PR #85 implements the first Core Blueprint release slice as a **read-only teacher surface**.
+PR #86 implements persistence for `est-b1-city-problem-solving-01` without automatic mastery writes.
 
-New files:
+### New runtime/data boundary
 
-- `learning-profile-core.js` — pure deterministic Learning Profile read model;
-- `learning-profile-core.test.js` — projection/evidence contract tests;
-- `haldus-learning-profile/index.html` — teacher-facing Learning Profile;
-- `learning-profile-ui.test.js` — read-only/security/UI contract tests;
-- `learning-profile-routing.test.js` — Vercel route contract;
-- `docs/LEARNING_PROFILE_MVP.md` — implementation boundary and manual review instructions.
+Two additive Firestore collections are written only by the trusted Cloud Function:
 
-Modified files:
+- `learningSessions/{sessionId}` — current pedagogical runtime and final handoff;
+- `learningEvidence/{requestId}` — append-only observation/evidence events.
 
-- `staff-activity.js` — classifies the new surface as `learning-profile`;
-- `staff-activity.test.js` — includes the new staff surface and area classification;
-- `vercel.json` — stable `/haldus-learning-profile` routes with and without a trailing slash;
-- `.github/workflows/financial-core-emulator.yml` — includes Learning Profile tests and syntax verification in repository CI;
+There are no new client Firestore grants for these collections. Browser clients remain denied by default because no Firestore rule matches these paths.
+
+`students.skillMap` remains the canonical current mastery projection and is deliberately **not changed** by release slice 2.
+
+### Trusted API
+
+New Function: `learningSessionApi` in `functions/learning-session-api.js`.
+
+Supported actions:
+
+- `start_or_resume`;
+- `progress`;
+- `judge`;
+- `vocabulary`;
+- `complete`.
+
+Security/invariants:
+
+- Firebase ID token required;
+- only teacher/admin staff accepted;
+- ordinary teachers are limited to assigned students (`teacherUid`, with the existing narrow legacy teacher-name fallback only where the UID is absent);
+- this slice accepts only the reference B1 lesson ID;
+- judgement/vocabulary evidence uses stable request IDs for retry idempotency;
+- evidence is added only while a session is active;
+- no evidence update/delete endpoint exists;
+- progress/navigation is not counted as evidence;
+- completion does not update `students.skillMap`.
+
+### Lesson Mode integration
+
+`haldus-adaptive-lesson/index.html` now:
+
+- initializes Firebase Auth only for Learning Session API authentication;
+- reads optional `studentId` from the URL;
+- stays in Preview without `studentId`;
+- starts/resumes a persisted session when a real student and authenticated staff user are available;
+- restores the saved activity index/route after reopen;
+- persists teacher `Vajab abi / Sai hakkama / Liiga kerge` judgements as evidence;
+- persists exact vocabulary weak/known marks as evidence;
+- persists navigation/progress separately from evidence;
+- keeps `Lõpeta tund` as a move to summary only;
+- completes the persisted session only on explicit handoff action;
+- creates final `summary_score` evidence only for nonblank, explicitly assessed skills.
+
+The diagnostic tasks in `adaptive-lessons/est-b1-city-problem-solving.js` now declare explicit `skillIds`, avoiding guessed diagnostic skill attribution.
+
+### New/changed files
+
+New:
+
+- `learning-session-core.js`
+- `learning-session-core.test.js`
+- `learning-session-store.js`
+- `learning-session-ui.test.js`
+- `functions/learning-session-api.js`
+- `functions/learning-session-api.test.js`
+- `functions/learning-session-emulator.integration.js`
+- `docs/LEARNING_SESSION_EVIDENCE_MVP.md`
+
+Changed:
+
+- `functions/main.js` — exports `learningSessionApi`;
+- `functions/package.json` — emulator test script runs finance + Learning Session integration sequentially;
+- `haldus-adaptive-lesson/index.html` — persistence wiring;
+- `adaptive-lessons/est-b1-city-problem-solving.js` — diagnostic evidence skill mapping;
+- `.github/workflows/financial-core-emulator.yml` — Learning Session tests/syntax/integration coverage;
+- `docs/ADAPTIVE_LESSON_SYSTEM.md` — persisted session/evidence contract;
 - this project-state document.
 
-### Data contract
+`firestore.rules` is unchanged by design.
 
-`students.skillMap` remains the canonical current skill-mastery projection. The Learning Profile does not introduce another current mastery store and does not write to `skillMap`.
+## Evidence semantics
 
-The current read model combines:
+Current event kinds:
 
-- current `students.skillMap` values;
-- canonical skill labels from `haldus-programs.js` / `HaldusSkillCatalog`;
-- structured historical `liveClassrooms.lessonSummary` evidence where available;
-- teacher comments, achieved curriculum goal IDs/labels, affected skill IDs and homework from those summaries.
+- `teacher_judgement`;
+- `vocabulary_mark`;
+- `summary_score`.
 
-A completed lesson without `lessonSummary` is not promoted to evidence. Attendance remains separate from mastery.
+Each event records the session/student/teacher/lesson identity, phase/activity, relevant skills, optional exact vocabulary IDs, route, evidence payload and timestamps.
 
-Recently achieved goals remain historical context. They are deliberately **not** copied to `nextGoalIds`; automatic next-goal selection waits for the Curriculum Goal / prerequisite graph.
+Missing assessment remains missing. Explicit `0` remains a real score of zero.
 
-### Teacher authorization boundary
+A repeated judgement/vocabulary request with the same request ID is idempotent and does not increase `evidenceCount` twice.
 
-The new page adds no Firestore write operation and does not change `firestore.rules`.
+## Verification status
 
-Teacher reads follow the existing platform boundaries:
+Added automated checks cover:
 
-- student lists observe `securityMigrations/teacherUidV1.readEnforced` and use `students.teacherUid == auth.uid` when teacher-scope enforcement is active;
-- non-admin Live Classroom evidence queries include both selected `studentId` and `teacherUid == auth.uid`, matching the current `liveClassrooms` read rule;
-- administrators keep the broader read projection already permitted by existing rules.
+- pure Learning Session/evidence normalization and validation;
+- no invented score for missing summary assessments;
+- browser Lesson Mode persistence hooks and no direct Firestore writes;
+- explicit diagnostic skill mapping;
+- trusted API input validation;
+- emulator teacher-scope denial for an unrelated teacher;
+- start/resume behavior;
+- progress without evidence inflation;
+- idempotent teacher judgement evidence;
+- exact vocabulary evidence;
+- direct browser Firestore evidence write denial;
+- summary completion evidence;
+- unchanged `students.skillMap` before/after the session;
+- rejection of new evidence after completion.
 
-This fixes an implementation risk found during review: querying Live Classroom history only by `studentId` would be valid for administrators but could be rejected for ordinary teachers by the existing rule boundary.
+GitHub Actions `Financial Core emulator` for PR #86 is the required integration gate. At the time of this state update the new run is queued/pending; do not claim green CI until the run completes successfully.
 
-## Verification completed for PR #85
+## Production / external services
 
-Targeted local Node verification was executed for the changed Learning Profile contracts:
+No production deployment has been performed.
 
-- `node --test learning-profile-core.test.js` — **7/7 passed**;
-- `node --test learning-profile-ui.test.js` — **6/6 passed**;
-- `node --test learning-profile-routing.test.js` — **2/2 passed**;
-- combined targeted run — **15/15 passed**, 0 failed.
+This PR adds a new Cloud Function export, but `learningSessionApi` is not available in production until an owner-approved Firebase Functions deployment occurs after merge/review.
 
-The tests cover missing evidence, deterministic skill bands, summary normalization without invented scores, canonical `skillMap`, student-specific evidence ordering, attendance/mastery separation, achieved-vs-next-goal separation, no direct Firestore write path, teacher-scoped reads, shared skill labels, inline JavaScript parsing and Vercel routing.
+No production Firestore migration/rules deployment is required for this slice because browser clients are not granted direct access to the new collections.
 
-GitHub Actions run **#195** (`Financial Core emulator`, head `b6e7b51dd8feeb6bb6dd3875d671f71b5a43e89d`) completed successfully. Its required steps all passed, including Functions unit tests, the CRM/accounting/calendar/learning/Live Classroom test bundle with the new Learning Profile tests, browser JavaScript syntax checks, and finance emulator integration tests.
+Vercel production is not changed or verified by this work.
 
-The final documentation-only commit after that successful CI run changes no executable code. The full local root suite was not run separately in the tool environment; the successful GitHub workflow is the repository-wide verification for this branch.
+## Known limits
 
-## Manual verification still required
-
-Before merging #85, the owner should locally verify the authenticated browser flow:
-
-1. serve the branch using the existing local HTTP workflow;
-2. open `/haldus-learning-profile/` as an administrator;
-3. select a learner with `skillMap` data and confirm current strengths/attention skills render;
-4. select a learner with a structured Live Classroom summary and confirm evidence renders;
-5. verify teacher-scoped access with a normal teacher account if available;
-6. confirm `/haldus-skillmap/` remains a separate manual editor and merely opening Learning Profile changes no data.
-
-No production deployment is required for this review.
-
-## Adaptive Lesson state on main
-
-PR #82 is merged.
-
-- `haldus-adaptive-lesson/index.html` is the focused adaptive Lesson Mode prototype;
-- `adaptive-lessons/est-b1-city-problem-solving.js` is the reference B1 lesson;
-- `adaptive-lessons/scenes.js` resolves stable scene metadata to Firebase Storage URLs;
-- reusable lesson scenes live under `lesson-scenes/**` in Firebase Storage;
-- Support/Core/Advanced teacher judgement logic remains in place;
-- adaptive session/evidence data is still local-only and is not persisted to Firestore.
-
-The owner previously verified the reference Firebase Storage scene and Lesson Mode locally.
-
-## Independent desktop-density work
-
-Draft PR #83 remains separate from #85. It only tightens desktop Lesson Mode density and was manually approved visually by the owner. Do not mix its UI changes into Learning Profile work.
-
-## Vercel / production state
-
-Vercel checks on the PR head continue to report `Deployment rate limited — retry in 24 hours` for both `keelesepp` and `keelesepp-crm-v2`. This is a deployment-quota limitation, not a test or code failure.
-
-A production deployment containing the newest learning routes has not been verified during this slice. Do not claim `/haldus-learning-profile/` is live on `crm.epkoolitus.ee` until a new production deployment is explicitly verified after merge.
-
-## Safety / unchanged areas
-
-PR #85:
-
-- adds no Firestore schema or rules change;
-- adds no database migration;
-- performs no production deployment;
-- adds no mastery write;
-- changes no finance/calendar behavior;
-- changes no Live Classroom write path;
-- changes no `crm-v2` code;
-- makes no paid external call;
-- leaves PR #83 independent.
+- Learning Profile #85 does not yet read the new `learningEvidence` collection; it still projects existing `students.skillMap` plus prior Live Classroom summary evidence.
+- No automatic mastery projection into `students.skillMap` exists in this slice.
+- No evidence correction/review event exists yet.
+- No automatic next curriculum goal recommendation exists.
+- Only the B1 city/problem-solving reference lesson is accepted by the persistence API.
+- Lesson Mode still uses the current general activity-card renderer; specialized phase workspaces are the next roadmap slice.
+- PR #83 independently changes desktop Lesson Mode density and may need rebasing/closing after #86 because both touch the same HTML file. Do not silently mix it into #86.
 
 ## Core roadmap
 
 1. Core Blueprint — merged in #84;
-2. Learning Profile MVP read model — implemented in draft PR #85;
-3. adaptive Learning Session + append-only evidence persistence for one reference lesson;
+2. Learning Profile MVP — merged in #85;
+3. Learning Session + append-only evidence persistence — implemented in draft PR #86, CI gate pending;
 4. phase-specific Lesson Mode workspace renderer;
 5. deterministic per-skill Adaptive Engine v1;
 6. curriculum goal/prerequisite graph for the selected vertical slice;
@@ -151,4 +173,4 @@ PR #85:
 
 ## Next safe step
 
-**Manually review PR #85 in the authenticated local browser flow. If the read-only Learning Profile is correct for administrator scope and the available teacher scope, merge only #85; then begin release slice 2: adaptive Learning Session + append-only evidence persistence for the single reference lesson, without automatic mastery writes.**
+**Finish PR #86 verification: require green root/unit/emulator CI, review its final diff for scope/security, then owner reviews/merges #86. After merge, begin release slice 3: phase-specific Lesson Mode workspace renderer on top of the persisted session contract. Do not add automatic `skillMap` projection to that UI slice.**
