@@ -105,6 +105,20 @@ Teacher judgements, vocabulary marks, progress and explicit completion still use
 
 No new Firestore reads/writes are added. `students.skillMap` remains unchanged by Lesson Mode.
 
+### Responsive evidence controls
+
+Teacher judgement and vocabulary marking use optimistic UI feedback while retaining the same trusted persistence boundary:
+
+1. the selected button/word mark is reflected immediately in local UI state;
+2. a distinct `Salvestan…` status shows that server confirmation is pending;
+3. the existing authenticated/idempotent Learning Session API request runs unchanged;
+4. success leaves the optimistic state in place and changes status to `Salvestatud`;
+5. failure restores the previous local selection/route and shows the persistence error.
+
+This does **not** acknowledge evidence before the server confirms it. It only removes avoidable visual latency between a teacher click and the interface response.
+
+While a judgement save is pending, navigation/judgement controls are temporarily guarded so the route cannot race ahead of the evidence write. Vocabulary buttons for the current word are likewise guarded until confirmation or rollback.
+
 ## Scene policy
 
 Images are opt-in, not default.
@@ -126,6 +140,9 @@ Required automated checks:
 - no universal scene fallback;
 - browser UI contains dedicated workspace renderers;
 - persistence calls remain intact;
+- judgement selection/route update happens before its network request and has rollback coverage;
+- vocabulary mark selection happens before its network request and has rollback coverage;
+- active-session and pending-save statuses are visibly distinct;
 - browser code still has no Firestore write path;
 - inline Lesson Mode JavaScript parses;
 - existing Functions/root/emulator suite remains green.
