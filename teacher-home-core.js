@@ -6,6 +6,13 @@
   const ROUTES=new Set(['support','core','advanced']);
   const REFERENCE_LESSON_ID='est-b1-city-problem-solving-01';
   const REFERENCE_GOAL_ID='EST_B1_CITY_SOLVE_PROBLEM';
+  const VOCAB_LESSON_ID='est-b1-city-vocabulary-01';
+  const VOCAB_GOAL_ID='EST_B1_CITY_VOCAB';
+  const LESSON_BY_GOAL=Object.freeze({
+    [VOCAB_GOAL_ID]:VOCAB_LESSON_ID,
+    [REFERENCE_GOAL_ID]:REFERENCE_LESSON_ID,
+  });
+  const SUPPORTED_LESSON_IDS=new Set(Object.values(LESSON_BY_GOAL));
 
   const clean=(value,max=240)=>String(value??'').replace(/\s+/g,' ').trim().slice(0,max);
   const normalize=value=>clean(value,200)
@@ -148,15 +155,23 @@
     };
   }
 
+  function lessonHref(studentId,lessonId){
+    const id=clean(studentId,120);
+    const blueprintId=clean(lessonId,160);
+    if(!id||!SUPPORTED_LESSON_IDS.has(blueprintId)) return '';
+    return `/haldus-adaptive-lesson/?studentId=${encodeURIComponent(id)}&lessonId=${encodeURIComponent(blueprintId)}`;
+  }
+
   function actionForStudent(studentId,summary){
     const id=clean(studentId,120);
     if(!id) return null;
     const active=summary?.activeSession;
-    if(active?.lessonBlueprintId===REFERENCE_LESSON_ID){
-      return {kind:'lesson',label:'Jätka tundi',href:`/haldus-adaptive-lesson/?studentId=${encodeURIComponent(id)}`};
+    if(active&&SUPPORTED_LESSON_IDS.has(active.lessonBlueprintId)){
+      return {kind:'lesson',label:'Jätka tundi',href:lessonHref(id,active.lessonBlueprintId)};
     }
-    if(summary?.recommendation?.goal?.id===REFERENCE_GOAL_ID){
-      return {kind:'lesson',label:'Alusta tundi',href:`/haldus-adaptive-lesson/?studentId=${encodeURIComponent(id)}`};
+    const recommendedLessonId=LESSON_BY_GOAL[summary?.recommendation?.goal?.id]||'';
+    if(recommendedLessonId){
+      return {kind:'lesson',label:'Alusta tundi',href:lessonHref(id,recommendedLessonId)};
     }
     return {kind:'profile',label:'Ava õppimisprofiil',href:`/haldus-learning-profile/?studentId=${encodeURIComponent(id)}`};
   }
@@ -188,6 +203,9 @@
   return {
     REFERENCE_LESSON_ID,
     REFERENCE_GOAL_ID,
+    VOCAB_LESSON_ID,
+    VOCAB_GOAL_ID,
+    LESSON_BY_GOAL,
     clean,
     teacherMatches,
     filterTeacherEvents,
@@ -196,6 +214,7 @@
     latestActiveSession,
     latestEvidence,
     learningSummary,
+    lessonHref,
     actionForStudent,
     buildTodayCards,
   };
