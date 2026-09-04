@@ -4,11 +4,13 @@ const { _test } = require('./learning-profile-evidence-api');
 
 const {
   cleanLimit,
+  cleanRouteBySkill,
   teacherNameMatches,
   timestampMillis,
   projectEvidence,
   projectSession,
   selectLatestEvidence,
+  selectProfileSessions,
 } = _test;
 
 test('profile evidence limit is bounded and rejects invalid input', () => {
@@ -53,7 +55,7 @@ test('profile evidence projection exposes learning fields without arbitrary sess
   assert.equal(projected.secretField, undefined);
 });
 
-test('session projection exposes bounded teacher handoff context', () => {
+test('session projection exposes bounded teacher handoff and per-skill runtime context', () => {
   const projected = projectSession({
     id: 'session-1',
     data: () => ({
@@ -62,13 +64,27 @@ test('session projection exposes bounded teacher handoff context', () => {
       teacherName: 'Pavel',
       lessonTitle: 'Probleemi lahendamine linnas',
       curriculumGoalIds: ['goal-1'],
-      status: 'completed',
+      status: 'active',
+      currentIndex: 6,
+      currentPhaseId: 'vocabulary',
+      currentActivityId: 'word-rike',
+      routeBySkill: { vocabulary: 'support', grammar: 'core', speaking: 'advanced', bad: 'extreme' },
       handoff: { text: 'Start with vocabulary review.' },
       internalField: 'must not leak',
     }),
   });
   assert.equal(projected.handoffText, 'Start with vocabulary review.');
+  assert.equal(projected.currentIndex, 6);
+  assert.deepEqual(projected.routeBySkill, { vocabulary: 'support', grammar: 'core', speaking: 'advanced' });
   assert.equal(projected.internalField, undefined);
+});
+
+test('routeBySkill cleaning never projects unsupported route values', () => {
+  assert.deepEqual(cleanRouteBySkill({ vocabulary: 'support', speaking: 'fast', grammar: 'core' }), {
+    vocabulary: 'support',
+    grammar: 'core',
+  });
+  assert.deepEqual(cleanRouteBySkill(null), {});
 });
 
 test('latest evidence is sorted newest first before the limit is applied', () => {
@@ -79,4 +95,14 @@ test('latest evidence is sorted newest first before the limit is applied', () =>
   ], 2);
   assert.deepEqual(selected.map((item) => item.id), ['new', 'mid']);
   assert.ok(timestampMillis(selected[0].createdAt) > timestampMillis(selected[1].createdAt));
+});
+
+test('profile session projection deduplicates evidence-linked and active-session copies', () => {
+  const selected = selectProfileSessions([
+    { id: 'same', studentId: 'student-1', status: 'active', updatedAt: '2026-09-04T10:00:00Z', routeBySkill: { vocabulary: 'support' } },
+    { id: 'old', studentId: 'student-1', status: 'completed', updatedAt: '2026-09-03T10:00:00Z' },
+    { id: 'same', studentId: 'student-1', status: 'active', updatedAt: '2026-09-04T10:00:00Z', routeBySkill: { vocabulary: 'support' } },
+  ]);
+  assert.deepEqual(selected.map(item => item.id), ['same', 'old']);
+  assert.deepEqual(selected[0].routeBySkill, { vocabulary: 'support' });
 });

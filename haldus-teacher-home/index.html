@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="et">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KeeleSepp · Õpetaja täna</title>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script>
+(function(){
+  if(!firebase.apps.length){
+    firebase.initializeApp({
+      apiKey:"AIzaSyAp8emBOh1fIqv72k_O5hkLkXVkfBt1al4",
+      authDomain:"keelesepp-5136b.firebaseapp.com",
+      projectId:"keelesepp-5136b",
+      storageBucket:"keelesepp-5136b.firebasestorage.app",
+      messagingSenderId:"674098517935",
+      appId:"1:674098517935:web:e73d04a4ada67874da015a"
+    });
+  }
+  window._db=firebase.firestore();
+  window._auth=firebase.auth();
+})();
+</script>
+<script src="/staff-activity.js"></script>
+<script src="/calendar-core.js"></script>
+<script src="/haldus-programs.js"></script>
+<script src="/learning-profile-core.js"></script>
+<script src="/learning-profile-evidence-store.js"></script>
+<script src="/curriculum-goal-core.js"></script>
+<script src="/curriculum-goals/b1-city.js"></script>
+<script src="/teacher-home-core.js"></script>
+<style>
+:root{--cream:#f4efe5;--paper:#fffdf8;--navy:#172a3d;--muted:#6f7782;--gold:#b9822b;--green:#2d6957;--green-soft:#edf5f1;--amber:#9b681e;--amber-soft:#fff5e2;--red:#9b2c2c;--red-soft:#fff0ee;--blue:#416b92;--blue-soft:#edf4fa;--line:#e7dfd2;--shadow:0 16px 42px rgba(48,39,28,.08)}
+*{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--navy);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.top{height:64px;background:var(--paper);border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 24px;gap:16px;position:sticky;top:0;z-index:20}.brand{font-family:Georgia,serif;font-size:1.36rem;font-weight:850}.brand span{color:var(--gold)}.top a{color:var(--muted);text-decoration:none;font-size:.78rem;font-weight:780}.top a.active{color:var(--navy)}.spacer{flex:1}.scope-pill{font-size:.67rem;font-weight:850;text-transform:uppercase;letter-spacing:.06em;background:var(--green-soft);color:var(--green);padding:7px 10px;border-radius:999px}.page{max-width:1220px;margin:0 auto;padding:28px 24px 70px}.day-head{background:var(--navy);color:white;border-radius:24px;padding:25px 28px;box-shadow:var(--shadow);display:grid;grid-template-columns:1.5fr repeat(3,minmax(120px,.5fr));gap:13px;align-items:stretch}.day-main h1{font-family:Georgia,serif;font-size:2rem;margin:3px 0 5px}.eyebrow{font-size:.67rem;font-weight:850;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.5)}.day-date{font-size:.8rem;color:rgba(255,255,255,.58)}.metric{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08);border-radius:15px;padding:14px;display:flex;flex-direction:column;justify-content:center}.metric b{font-size:1.6rem}.metric span{font-size:.66rem;color:rgba(255,255,255,.52);margin-top:4px}.day-nav{display:flex;gap:8px;align-items:center;margin:16px 0 18px}.day-nav button,.refresh{border:1px solid var(--line);background:var(--paper);color:var(--navy);border-radius:11px;padding:9px 12px;font:inherit;font-size:.75rem;font-weight:800;cursor:pointer}.day-nav .today{background:var(--navy);color:#fff;border-color:var(--navy)}.day-nav .refresh{margin-left:auto}.warning{font-size:.76rem;line-height:1.45;background:var(--amber-soft);border:1px solid #ecd6b0;color:#76511d;border-radius:13px;padding:11px 13px;margin-bottom:14px}.list{display:grid;gap:13px}.lesson{background:var(--paper);border:1px solid var(--line);border-radius:20px;box-shadow:0 10px 28px rgba(48,39,28,.05);display:grid;grid-template-columns:115px minmax(0,1fr) 210px;overflow:hidden}.time{padding:20px;border-right:1px solid var(--line);background:#faf6ee}.time b{display:block;font-size:1.35rem;font-family:Georgia,serif}.time span{font-size:.7rem;color:var(--muted)}.lesson-main{padding:19px 21px}.student-row{display:flex;gap:12px;align-items:flex-start}.student-row h2{font-family:Georgia,serif;font-size:1.22rem;margin:0}.meta{font-size:.73rem;color:var(--muted);margin-top:4px}.status{margin-left:auto;font-size:.63rem;font-weight:850;padding:5px 8px;border-radius:999px;background:#f1ece4;color:#6b655d}.learning-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:15px}.mini{border:1px solid var(--line);border-radius:13px;padding:11px 12px;min-height:82px}.mini.goal{background:#fcf8ef}.mini b{display:block;font-size:.67rem;text-transform:uppercase;letter-spacing:.05em;color:#847a6d;margin-bottom:6px}.mini strong{font-size:.79rem}.mini p{font-size:.73rem;color:#5d6874;line-height:1.4;margin:4px 0 0}.chips{display:flex;gap:5px;flex-wrap:wrap}.chip{font-size:.63rem;font-weight:780;padding:5px 7px;border-radius:999px;background:#f1ece4;color:#536171}.chip.focus{background:var(--red-soft);color:var(--red)}.chip.review{background:var(--amber-soft);color:var(--amber)}.chip.route-support{background:var(--red-soft);color:var(--red)}.chip.route-core{background:var(--blue-soft);color:var(--blue)}.chip.route-advanced{background:var(--green-soft);color:var(--green)}.actions{padding:18px;border-left:1px solid var(--line);display:flex;flex-direction:column;justify-content:center;gap:9px}.btn{display:block;text-align:center;text-decoration:none;border-radius:12px;padding:11px 12px;font-size:.76rem;font-weight:850}.btn.primary{background:var(--navy);color:white}.btn.secondary{border:1px solid var(--line);color:var(--navy);background:#fff}.disabled{font-size:.72rem;line-height:1.45;color:var(--muted);background:#f6f2eb;border-radius:11px;padding:10px}.empty,.error,.loading{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:48px;text-align:center;color:var(--muted);box-shadow:var(--shadow)}.error{color:var(--red)}.spinner{width:32px;height:32px;border:3px solid #ded6ca;border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px}@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:900px){.page{padding:18px 12px 50px}.top{padding:0 12px}.scope-pill{display:none}.day-head{grid-template-columns:1fr 1fr 1fr}.day-main{grid-column:1/-1}.lesson{grid-template-columns:90px 1fr}.actions{grid-column:1/-1;border-left:0;border-top:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr}.learning-grid{grid-template-columns:1fr}}
+@media(max-width:560px){.top a:not(.active){display:none}.day-head{grid-template-columns:1fr}.day-main{grid-column:auto}.lesson{grid-template-columns:1fr}.time{border-right:0;border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:baseline}.actions{grid-template-columns:1fr}.student-row{display:block}.status{display:inline-block;margin:8px 0 0}}
+</style>
+</head>
+<body>
+<header class="top"><div class="brand">Keele<span>Sepp</span></div><a href="/haldus.html">Haldus</a><a class="active" href="/haldus-teacher-home/">Õpetaja täna</a><a href="/haldus-learning-profile/">Õppimisprofiil</a><div class="spacer"></div><div class="scope-pill">Read-only õpetaja töölaud</div></header>
+<main class="page">
+  <section id="hero" class="day-head"><div class="day-main"><div class="eyebrow">Õpetaja töölaud</div><h1>Täna</h1><div class="day-date">Laen päevaplaani…</div></div><div class="metric"><b>—</b><span>tundi</span></div><div class="metric"><b>—</b><span>õpilast</span></div><div class="metric"><b>—</b><span>vajab tähelepanu</span></div></section>
+  <div class="day-nav"><button id="prev-day" type="button">← Eelmine</button><button id="today" class="today" type="button">Täna</button><button id="next-day" type="button">Järgmine →</button><button id="refresh" class="refresh" type="button">Värskenda</button></div>
+  <section id="app"><div class="loading"><div class="spinner"></div>Laen tänaseid tunde…</div></section>
+</main>
+<script>
+(function(){
+  const db=window._db,auth=window._auth;
+  const calendar=window.CalendarCore;
+  const profileCore=window.KeeleSeppLearningProfileCore;
+  const evidenceStore=window.KeeleSeppLearningProfileEvidenceStore.create({auth});
+  const goalCore=window.KeeleSeppCurriculumGoalCore;
+  const goalGraph=window.KeeleSeppCurriculumGoalsB1City;
+  const homeCore=window.KeeleSeppTeacherHomeCore;
+  const GOALS=goalGraph?.goals||[];
+  const GOAL_IDS=new Set(GOALS.map(goal=>goal.id));
+  const GOAL_INDEX=goalCore?.goalIndex?goalCore.goalIndex(GOALS):{};
+  const app=document.getElementById('app');
+  const hero=document.getElementById('hero');
+  const state={user:null,isAdmin:false,teacherScopeReadEnforced:false,dateIso:'',schedule:[],studentsById:{},learningByStudent:{},loading:false};
+  const SKILL_LABELS=Object.values(window.HaldusSkillCatalog||{}).flat().reduce((result,skill)=>{if(skill?.id) result[skill.id]=skill.name||skill.id;return result;},{});
+  const esc=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  const routeLabel=value=>({support:'Tugi',core:'Põhirada',advanced:'Edasijõudnu'})[value]||value;
+  const routeSkillLabel=id=>({vocabulary:'Sõnavara',grammar:'Grammatika',speaking:'Rääkimine',reading:'Lugemine',listening:'Kuulamine',writing:'Kirjutamine'})[id]||SKILL_LABELS[id]||profileCore.humanizeSkillId(id);
+  const statusLabel=value=>({ready:'Valmis',in_progress:'Aktiivne',blocked:'Eeltingimus puudub',complete:'Läbitud'})[value]||value||'';
+  const dateLabel=iso=>{const date=calendar.parseLocalDate(iso);return date?new Intl.DateTimeFormat('et-EE',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(date):iso;};
+  const shiftDate=(iso,days)=>{const date=calendar.parseLocalDate(iso)||new Date();date.setDate(date.getDate()+days);return calendar.toLocalISODate(date);};
+  const isToday=()=>state.dateIso===calendar.toLocalISODate(new Date());
+
+  function setDate(iso){
+    state.dateIso=iso;
+    const url=new URL(location.href);url.searchParams.set('date',iso);history.replaceState(null,'',url);
+    loadDay();
+  }
+
+  function curriculumRecommendation(profile,sessions){
+    if(!goalCore||!GOALS.length||profile.subject!==goalGraph.subject) return null;
+    const explicitSession=(sessions||[]).find(session=>session&&(session.lessonBlueprintId===homeCore.REFERENCE_LESSON_ID||(session.curriculumGoalIds||[]).some(id=>GOAL_IDS.has(id))));
+    const explicitGraphContext=Boolean(explicitSession);
+    const level=explicitSession?.cefrLevel||profile.currentLevel;
+    if(level!==goalGraph.level&&!explicitGraphContext) return null;
+    const recentBlueprintId=explicitSession?.lessonBlueprintId||profile.recommendations.recentLessonBlueprintIds?.[0]||'';
+    const recommendation=goalCore.recommendNextGoal({
+      goals:GOALS,
+      level:goalGraph.level,
+      subject:goalGraph.subject,
+      achievedGoalIds:profile.recommendations.completedGoalIds,
+      currentGoalIds:profile.recommendations.activeGoalIds,
+      skillMap:profile.skillMap,
+      legacyContext:{lessonBlueprintId:recentBlueprintId,level:goalGraph.level,subject:goalGraph.subject}
+    });
+    if(recommendation?.goal) recommendation.explanation=goalCore.explainRecommendationEt(recommendation,GOAL_INDEX);
+    return recommendation;
+  }
+
+  async function readSchedule(){
+    let snap;
+    if(!state.isAdmin&&state.teacherScopeReadEnforced) snap=await db.collection('schedule').where('teacherUid','==',state.user.uid).get();
+    else snap=await db.collection('schedule').get();
+    state.schedule=snap.docs.map(doc=>({id:doc.id,...doc.data()}));
+  }
+
+  async function readStudents(studentIds){
+    const pairs=await Promise.all(studentIds.map(async id=>{
+      try{const snap=await db.collection('students').doc(id).get();return snap.exists?[id,{id:snap.id,...snap.data()}]:[id,null];}
+      catch(error){console.warn('Student unavailable',id,error);return [id,null];}
+    }));
+    state.studentsById=Object.fromEntries(pairs.filter(([,student])=>student));
+  }
+
+  async function loadStudentLearning(studentId){
+    const student=state.studentsById[studentId];
+    if(!student) return {warning:'Õpilase profiili ei saanud laadida.'};
+    const livePromise=(async()=>{
+      let query=db.collection('liveClassrooms').where('studentId','==',studentId);
+      if(!state.isAdmin) query=query.where('teacherUid','==',state.user.uid);
+      const snap=await query.get();
+      return snap.docs.map(doc=>({id:doc.id,...doc.data()}));
+    })();
+    const adaptivePromise=evidenceStore.load(studentId,{limit:30});
+    const [liveResult,adaptiveResult]=await Promise.allSettled([livePromise,adaptivePromise]);
+    const rooms=liveResult.status==='fulfilled'?liveResult.value:[];
+    const evidence=adaptiveResult.status==='fulfilled'?adaptiveResult.value.evidence:[];
+    const sessions=adaptiveResult.status==='fulfilled'?adaptiveResult.value.sessions:[];
+    const profile=profileCore.buildLearningProfile({student,rooms,adaptiveEvidence:evidence,learningSessions:sessions,skillLabels:SKILL_LABELS,recentLimit:6});
+    const ownSessions=sessions.filter(session=>state.isAdmin?session.teacherUid===state.user.uid||!session.teacherUid:session.teacherUid===state.user.uid||!session.teacherUid);
+    const recommendation=curriculumRecommendation(profile,sessions);
+    const warnings=[];
+    if(liveResult.status==='rejected') warnings.push('Live Classroomi kokkuvõtted pole saadaval.');
+    if(adaptiveResult.status==='rejected') warnings.push('Adaptive Lessoni tõendid pole saadaval.');
+    return {profile,recommendation,sessions:ownSessions,evidence,warning:warnings.join(' ')};
+  }
+
+  function renderHero(cards){
+    const studentCount=new Set(cards.map(card=>card.studentId).filter(Boolean)).size;
+    const attentionCount=cards.filter(card=>card.summary.attention.length||card.summary.reviewWords.length).length;
+    hero.innerHTML=`<div class="day-main"><div class="eyebrow">Õpetaja töölaud</div><h1>${isToday()?'Täna':esc(dateLabel(state.dateIso))}</h1><div class="day-date">${esc(dateLabel(state.dateIso))}${state.user?.name?` · ${esc(state.user.name)}`:''}</div></div><div class="metric"><b>${cards.length}</b><span>tundi</span></div><div class="metric"><b>${studentCount}</b><span>õpilast</span></div><div class="metric"><b>${attentionCount}</b><span>vajab tähelepanu</span></div>`;
+  }
+
+  function renderRoutes(summary){
+    const routes=summary.activeSession?.routeBySkill||{};
+    const entries=Object.entries(routes);
+    if(!entries.length) return '<p>Aktiivset oskusepõhist rada ei ole veel salvestatud.</p>';
+    return `<div class="chips">${entries.map(([id,route])=>`<span class="chip route-${esc(route)}">${esc(routeSkillLabel(id))}: ${esc(routeLabel(route))}</span>`).join('')}</div>`;
+  }
+
+  function renderNeeds(summary){
+    const chips=[];
+    summary.attention.forEach(skill=>chips.push(`<span class="chip focus">${esc(skill.label)}${skill.score===null?'':` ${esc(skill.score)}%`}</span>`));
+    summary.reviewWords.forEach(word=>chips.push(`<span class="chip review">Korda: ${esc(word)}</span>`));
+    return chips.length?`<div class="chips">${chips.join('')}</div>`:'<p>Praegu ei ole alla 70% kanonilist oskust ega viimase tõendi kordamissõna.</p>';
+  }
+
+  function renderCard(card){
+    const summary=card.summary;
+    const recommendation=summary.recommendation;
+    const evidence=summary.latestEvidence;
+    const actions=card.studentId
+      ?`${card.primaryAction?`<a class="btn primary" href="${esc(card.primaryAction.href)}">${esc(card.primaryAction.label)}</a>`:''}<a class="btn secondary" href="${esc(card.profileHref)}">Õppimisprofiil</a>`
+      :'<div class="disabled">Sellel pärandkalendri kirjel puudub stabiilne studentId. Õppimisprofiili ega adaptiivset tundi ei avata nime põhjal.</div>';
+    return `<article class="lesson"><div class="time"><b>${esc(card.time||'—')}</b><span>${card.endTime?`kuni ${esc(card.endTime)}`:`${esc(card.duration)} min`}</span></div><div class="lesson-main"><div class="student-row"><div><h2>${esc(card.studentName)}</h2><div class="meta">${card.level?`${esc(card.level)} · `:''}${esc(card.title)}</div></div>${card.status?`<span class="status">${esc(card.status)}</span>`:''}</div>${summary.warning?`<div class="warning">${esc(summary.warning)}</div>`:''}<div class="learning-grid"><div class="mini"><b>Viimane tõend</b>${evidence?`<strong>${esc(evidence.title)}</strong><p>${evidence.source==='adaptive_lesson_evidence'?'Adaptive Lesson':'Struktureeritud õppimistõend'}</p>`:'<p>Struktureeritud õppimistõend puudub. Seda ei käsitleta nullina.</p>'}</div><div class="mini"><b>Mida korrata</b>${renderNeeds(summary)}</div><div class="mini goal"><b>Järgmine õppekava eesmärk</b>${recommendation?.goal?`<strong>${esc(recommendation.goal.title)}</strong><p>${esc(statusLabel(recommendation.status))} · ${esc(recommendation.goal.id)}</p>`:'<p>Selle õpilase kontekstile ei ole veel toetatud eesmärgigraafi soovitust.</p>'}</div><div class="mini"><b>Oskusepõhised rajad</b>${renderRoutes(summary)}</div></div></div><div class="actions">${actions}</div></article>`;
+  }
+
+  function render(cards,globalWarnings=[]){
+    renderHero(cards);
+    if(!cards.length){app.innerHTML=`${globalWarnings.length?`<div class="warning">${esc(globalWarnings.join(' '))}</div>`:''}<div class="empty">Sellel päeval ei ole sinu kalendris aktiivseid KeeleSepa tunde.</div>`;return;}
+    app.innerHTML=`${globalWarnings.length?`<div class="warning">${esc(globalWarnings.join(' '))}</div>`:''}<div class="list">${cards.map(renderCard).join('')}</div>`;
+  }
+
+  async function loadDay(){
+    if(!state.user||state.loading) return;
+    state.loading=true;app.innerHTML='<div class="loading"><div class="spinner"></div>Laen päevaplaani ja õppimiskonteksti…</div>';
+    const globalWarnings=[];
+    try{
+      await readSchedule();
+      const occurrences=calendar.eventsForDate(state.schedule,state.dateIso);
+      const owned=homeCore.filterTeacherEvents(occurrences,state.user);
+      const ids=[...new Set(owned.map(event=>homeCore.clean(event.studentId,120)).filter(Boolean))];
+      await readStudents(ids);
+      const contexts=await Promise.all(ids.map(async id=>[id,await loadStudentLearning(id)]));
+      state.learningByStudent=Object.fromEntries(contexts);
+      const cards=homeCore.buildTodayCards({events:occurrences,actor:state.user,studentsById:state.studentsById,learningByStudent:state.learningByStudent});
+      render(cards,globalWarnings);
+    }catch(error){
+      console.error(error);app.innerHTML=`<div class="error">Õpetaja päevaplaani laadimine ebaõnnestus. ${esc(error.message||'')}</div>`;
+    }finally{state.loading=false;}
+  }
+
+  document.getElementById('prev-day').addEventListener('click',()=>setDate(shiftDate(state.dateIso,-1)));
+  document.getElementById('next-day').addEventListener('click',()=>setDate(shiftDate(state.dateIso,1)));
+  document.getElementById('today').addEventListener('click',()=>setDate(calendar.toLocalISODate(new Date())));
+  document.getElementById('refresh').addEventListener('click',()=>loadDay());
+
+  auth.onAuthStateChanged(async fb=>{
+    if(!fb){app.innerHTML='<div class="error">Palun logi esmalt KeeleSepp CRM-i sisse. <a href="/haldus.html">Ava CRM</a></div>';return;}
+    try{
+      const userSnap=await db.collection('users').doc(fb.uid).get();
+      const raw=userSnap.exists?userSnap.data():{};
+      const email=String(fb.email||'').toLowerCase();
+      state.isAdmin=raw.role==='admin'||email==='zakutailo.pavel@gmail.com';
+      if(!state.isAdmin&&raw.role!=='teacher'){app.innerHTML='<div class="error">Õpetaja töölaud on ainult töötajatele.</div>';return;}
+      state.user={uid:fb.uid,email:fb.email,name:raw.displayName||raw.name||fb.displayName||fb.email,role:state.isAdmin?'admin':'teacher'};
+      if(!state.isAdmin){
+        try{const migration=await db.collection('securityMigrations').doc('teacherUidV1').get();state.teacherScopeReadEnforced=migration.exists&&migration.data()?.readEnforced===true;}
+        catch(error){console.warn('Teacher scope rollout state unavailable',error);state.teacherScopeReadEnforced=false;}
+      }
+      const requested=new URLSearchParams(location.search).get('date');
+      state.dateIso=/^\d{4}-\d{2}-\d{2}$/.test(requested||'')?requested:calendar.toLocalISODate(new Date());
+      await loadDay();
+    }catch(error){console.error(error);app.innerHTML=`<div class="error">Õpetaja töölaua avamine ebaõnnestus. ${esc(error.message||'')}</div>`;}
+  });
+})();
+</script>
+</body>
+</html>

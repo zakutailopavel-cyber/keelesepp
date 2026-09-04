@@ -65,6 +65,7 @@ test("Learning Profile evidence API exposes scoped adaptive evidence without cha
   const outsiderUid = tokenUid(outsiderToken);
   const studentId = "profile-evidence-student-001";
   const sessionId = "profile-evidence-session-001";
+  const activeSessionId = "profile-evidence-active-zero-evidence";
   const crossStudentSessionId = "profile-evidence-cross-student-session";
   const beforeSkillMap = { vocabulary: 64, speaking: 58 };
 
@@ -92,6 +93,22 @@ test("Learning Profile evidence API exposes scoped adaptive evidence without cha
       teacherNote: "Repeat vocabulary before transfer.",
       handoff: { text: "Start with rike, then speaking transfer." },
       completedAt: admin.firestore.Timestamp.fromDate(new Date("2026-09-04T10:05:00Z")),
+    }),
+    db.collection("learningSessions").doc(activeSessionId).set({
+      studentId,
+      teacherUid,
+      teacherName: "Pavel",
+      lessonBlueprintId: "est-b1-city-problem-solving-01",
+      lessonTitle: "Probleemi lahendamine linnas",
+      curriculumGoalIds: ["EST_B1_CITY_SOLVE_PROBLEM"],
+      cefrLevel: "B1",
+      status: "active",
+      currentIndex: 6,
+      currentPhaseId: "vocabulary",
+      currentActivityId: "word-rike",
+      routeBySkill: { vocabulary: "support", grammar: "core", speaking: "advanced" },
+      startedAt: admin.firestore.Timestamp.fromDate(new Date("2026-09-04T10:06:00Z")),
+      updatedAt: admin.firestore.Timestamp.fromDate(new Date("2026-09-04T10:06:30Z")),
     }),
     db.collection("learningSessions").doc(crossStudentSessionId).set({
       studentId: "another-student",
@@ -129,15 +146,20 @@ test("Learning Profile evidence API exposes scoped adaptive evidence without cha
   assert.equal(response.status, 200, JSON.stringify(response.body));
   assert.equal(response.body.student.id, studentId, "Firestore document id must override any stored id field");
   assert.deepEqual(response.body.evidence.map((item) => item.id), ["profile_ev_new", "profile_ev_old"]);
-  assert.equal(response.body.sessions.length, 1, "cross-student session context must be excluded even if an evidence row is malformed");
-  assert.equal(response.body.sessions[0].id, sessionId);
-  assert.equal(response.body.sessions[0].lessonTitle, "Probleemi lahendamine linnas");
-  assert.equal(response.body.sessions[0].handoffText, "Start with rike, then speaking transfer.");
+  assert.equal(response.body.sessions.length, 2, "active zero-evidence session and valid evidence-linked session should be projected");
+  assert.equal(response.body.sessions[0].id, activeSessionId, "active zero-evidence session should be visible immediately after start");
+  assert.deepEqual(response.body.sessions[0].routeBySkill, { vocabulary: "support", grammar: "core", speaking: "advanced" });
+  assert.equal(response.body.sessions[0].currentIndex, 6);
+  assert.equal(response.body.sessions[1].id, sessionId);
+  assert.equal(response.body.sessions[1].lessonTitle, "Probleemi lahendamine linnas");
+  assert.equal(response.body.sessions[1].handoffText, "Start with rike, then speaking transfer.");
   assert.ok(response.body.sessions.every((item) => item.studentId === studentId));
+  assert.ok(response.body.sessions.every((item) => item.id !== crossStudentSessionId), "cross-student session context must be excluded even if an evidence row is malformed");
 
   const limited = await postProfileEvidence(teacherToken, { studentId, limit: 1 });
   assert.equal(limited.status, 200, JSON.stringify(limited.body));
   assert.deepEqual(limited.body.evidence.map((item) => item.id), ["profile_ev_new"]);
+  assert.ok(limited.body.sessions.some((item) => item.id === activeSessionId), "active session must not disappear when evidence limit is small");
 
   const directRead = await directFirestoreRead(teacherToken, `learningEvidence/profile_ev_new`);
   assert.equal(directRead.status, 403, JSON.stringify(directRead.body));
