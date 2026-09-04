@@ -154,9 +154,9 @@
       .map(normalizeSummaryEvidence)
       .filter(Boolean);
 
-    const sessionMap=Object.fromEntries((Array.isArray(learningSessions)?learningSessions:[])
-      .filter(item=>item&&item.id)
-      .map(item=>[item.id,item]));
+    const sessions=(Array.isArray(learningSessions)?learningSessions:[])
+      .filter(item=>item&&item.id&&(!student.id||!item.studentId||item.studentId===student.id));
+    const sessionMap=Object.fromEntries(sessions.map(item=>[item.id,item]));
     const adaptive=(Array.isArray(adaptiveEvidence)?adaptiveEvidence:[])
       .filter(item=>!student.id||item?.studentId===student.id)
       .map(item=>normalizeAdaptiveEvidence(item,sessionMap))
@@ -169,15 +169,20 @@
     const recentSkillIds=unique(recentEvidence.flatMap(item=>item.skillIds));
     const recentGoalIds=unique(recentEvidence.flatMap(item=>item.goalIds));
     const recentGoalLabels=unique(recentEvidence.flatMap(item=>item.goalLabels));
-    const recentLessonBlueprintIds=unique(allEvidence.map(item=>item.lessonBlueprintId).filter(Boolean));
-    const completedGoalIds=unique([
-      ...liveEvidence.flatMap(item=>item.goalIds),
-      ...adaptive.filter(item=>item.sessionStatus==='completed').flatMap(item=>item.goalIds)
+    const orderedSessions=[...sessions].sort((a,b)=>timestampMillis(b.updatedAt||b.completedAt||b.startedAt)-timestampMillis(a.updatedAt||a.completedAt||a.startedAt));
+    const recentLessonBlueprintIds=unique([
+      ...orderedSessions.map(item=>cleanText(item.lessonBlueprintId,160)).filter(Boolean),
+      ...allEvidence.map(item=>item.lessonBlueprintId).filter(Boolean)
     ]);
+    const recentTargetGoalIds=unique(orderedSessions.flatMap(item=>unique(item.curriculumGoalIds).map(id=>cleanText(id,160)).filter(Boolean)));
+
+    // Only structured completed Live Classroom goals are achievement evidence today.
+    // Adaptive session curriculumGoalIds describe what the session targets; completing a session is not mastery.
+    const completedGoalIds=unique(liveEvidence.flatMap(item=>item.goalIds));
     const completedGoalSet=new Set(completedGoalIds);
-    const activeGoalIds=unique(adaptive
-      .filter(item=>item.sessionStatus==='active')
-      .flatMap(item=>item.goalIds))
+    const activeGoalIds=unique(orderedSessions
+      .filter(item=>item.status==='active')
+      .flatMap(item=>unique(item.curriculumGoalIds).map(id=>cleanText(id,160)).filter(Boolean)))
       .filter(id=>!completedGoalSet.has(id));
     const reviewVocabularyIds=latestVocabularyReviewIds(adaptive);
 
@@ -217,6 +222,7 @@
         nextGoalIds:[],
         completedGoalIds,
         activeGoalIds,
+        recentTargetGoalIds,
         recentGoalIds,
         recentGoalLabels,
         recentLessonBlueprintIds,
