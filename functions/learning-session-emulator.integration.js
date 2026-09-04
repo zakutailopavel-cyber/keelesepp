@@ -73,7 +73,7 @@ function actionBase(sessionId, requestId) {
   };
 }
 
-test("Learning Session API persists append-only evidence without changing skillMap", async () => {
+test("Learning Session API persists independent per-skill routes and append-only evidence without changing skillMap", async () => {
   requireSafeEmulatorEnvironment();
   if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
   const db = admin.firestore();
@@ -130,6 +130,7 @@ test("Learning Session API persists append-only evidence without changing skillM
   assert.equal(started.body.session.status, "active");
   assert.equal(started.body.session.studentId, studentId, "Firestore document id must override any stored student id field");
   assert.equal(started.body.session.evidenceCount, 0);
+  assert.deepEqual(started.body.session.routeBySkill, { vocabulary: "core" });
 
   const resumed = await postLearning(teacherToken, {
     action: "start_or_resume",
@@ -159,7 +160,11 @@ test("Learning Session API persists append-only evidence without changing skillM
   assert.equal(progress.status, 200, JSON.stringify(progress.body));
   assert.equal(progress.body.session.currentIndex, 1);
   assert.equal(progress.body.session.evidenceCount, 0);
+  assert.equal(progress.body.session.routeBySkill.speaking, undefined, "navigation must not invent an adaptive speaking route");
+  assert.equal(progress.body.session.routeBySkill.vocabulary, "core");
 
+  // Legacy/cached clients may omit nextRouteBySkill. The server must still compute
+  // the deterministic vocabulary transition from its own persisted route state.
   const judgeBody = {
     action: "judge",
     ...actionBase(sessionId, "judge_learning_0001"),
@@ -170,6 +175,7 @@ test("Learning Session API persists append-only evidence without changing skillM
   assert.equal(judged.body.idempotent, false);
   assert.equal(judged.body.session.evidenceCount, 1);
   assert.equal(judged.body.session.currentRoute, "support");
+  assert.equal(judged.body.session.routeBySkill.vocabulary, "support");
   assert.ok(judged.body.session.assessedSkillIds.includes("vocabulary"));
 
   const judgedRetry = await postLearning(teacherToken, judgeBody);
@@ -177,15 +183,84 @@ test("Learning Session API persists append-only evidence without changing skillM
   assert.equal(judgedRetry.body.idempotent, true);
   assert.equal(judgedRetry.body.session.evidenceCount, 1);
 
+  const grammarHelp = await postLearning(teacherToken, {
+    action: "judge",
+    sessionId,
+    requestId: "judge_learning_grammar_help",
+    currentIndex: 7,
+    phaseId: "stage-2-language",
+    activityId: "stage-2-language-0",
+    skillIds: ["grammar"],
+    route: "core",
+    nextRoute: "support",
+    nextRouteBySkill: { grammar: "support" },
+    teacherJudgement: "needs_help",
+  });
+  assert.equal(grammarHelp.status, 200, JSON.stringify(grammarHelp.body));
+  assert.equal(grammarHelp.body.session.evidenceCount, 2);
+  assert.equal(grammarHelp.body.session.routeBySkill.vocabulary, "support");
+  assert.equal(grammarHelp.body.session.routeBySkill.grammar, "support");
+
+  const speakingManaged = await postLearning(teacherToken, {
+    action: "judge",
+    sessionId,
+    requestId: "judge_learning_speaking_managed",
+    currentIndex: 1,
+    phaseId: "diagnostic",
+    activityId: "d2",
+    skillIds: ["speaking"],
+    route: "core",
+    nextRoute: "core",
+    nextRouteBySkill: { speaking: "core" },
+    teacherJudgement: "managed",
+  });
+  assert.equal(speakingManaged.status, 200, JSON.stringify(speakingManaged.body));
+  assert.equal(speakingManaged.body.session.evidenceCount, 3);
+  assert.equal(speakingManaged.body.session.routeBySkill.grammar, "support");
+  assert.equal(speakingManaged.body.session.routeBySkill.speaking, "core");
+
+  const multiSkill = await postLearning(teacherToken, {
+    action: "judge",
+    sessionId,
+    requestId: "judge_learning_multiskill_easy",
+    currentIndex: 3,
+    phaseId: "diagnostic",
+    activityId: "d4",
+    skillIds: ["grammar", "speaking"],
+    route: "support",
+    nextRoute: "core",
+    nextRouteBySkill: { grammar: "core", speaking: "advanced" },
+    teacherJudgement: "too_easy",
+  });
+  assert.equal(multiSkill.status, 200, JSON.stringify(multiSkill.body));
+  assert.equal(multiSkill.body.session.evidenceCount, 4);
+  assert.deepEqual(multiSkill.body.session.routeBySkill, {
+    vocabulary: "support",
+    grammar: "core",
+    speaking: "advanced",
+  });
+  assert.equal(multiSkill.body.session.currentRoute, "core", "multi-skill task uses the most supportive affected route");
+
   const vocabulary = await postLearning(teacherToken, {
     action: "vocabulary",
-    ...actionBase(sessionId, "vocab_learning_0001"),
+    sessionId,
+    requestId: "vocab_learning_0001",
+    currentIndex: 5,
+    phaseId: "stage-1-vocabulary",
+    activityId: "stage-1-vocabulary-0",
+    skillIds: ["vocabulary"],
+    route: "support",
     nextRoute: "support",
     wordId: "rike",
     mark: "weak",
   });
   assert.equal(vocabulary.status, 200, JSON.stringify(vocabulary.body));
-  assert.equal(vocabulary.body.session.evidenceCount, 2);
+  assert.equal(vocabulary.body.session.evidenceCount, 5);
+  assert.deepEqual(vocabulary.body.session.routeBySkill, {
+    vocabulary: "support",
+    grammar: "core",
+    speaking: "advanced",
+  }, "word-level evidence must not silently change adaptive routes");
 
   const directWrite = await directFirestoreWrite(teacherToken, "learningEvidence/direct-client-write", {
     sessionId: { stringValue: sessionId },
@@ -198,20 +273,25 @@ test("Learning Session API persists append-only evidence without changing skillM
     action: "complete",
     sessionId,
     requestId: "complete_learning_0001",
-    route: "support",
+    route: "advanced",
     scores: { vocabulary: 72, grammar: "", speaking: 61 },
     teacherNote: "Korda viisakat abipalvet.",
     handoffText: "Vocabulary 72, speaking 61. Start next lesson with targeted review.",
   });
   assert.equal(completed.status, 200, JSON.stringify(completed.body));
   assert.equal(completed.body.session.status, "completed");
-  assert.equal(completed.body.session.evidenceCount, 4);
+  assert.equal(completed.body.session.evidenceCount, 7);
   assert.ok(completed.body.session.assessedSkillIds.includes("speaking"));
+  assert.deepEqual(completed.body.session.routeBySkill, {
+    vocabulary: "support",
+    grammar: "core",
+    speaking: "advanced",
+  });
 
   const evidenceSnap = await db.collection("learningEvidence").where("sessionId", "==", sessionId).get();
-  assert.equal(evidenceSnap.size, 4);
+  assert.equal(evidenceSnap.size, 7);
   const evidence = evidenceSnap.docs.map((doc) => doc.data());
-  assert.equal(evidence.filter((item) => item.kind === "teacher_judgement").length, 1);
+  assert.equal(evidence.filter((item) => item.kind === "teacher_judgement").length, 4);
   assert.equal(evidence.filter((item) => item.kind === "vocabulary_mark").length, 1);
   assert.equal(evidence.filter((item) => item.kind === "summary_score").length, 2);
   assert.ok(evidence.every((item) => item.source === "teacher"));
