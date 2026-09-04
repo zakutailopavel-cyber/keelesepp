@@ -4,7 +4,7 @@ Last verified: 2026-09-04, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
 Verified main commit: `ed6fdb3b38068b8c9187cb0259d17fef3db66291` (`Curriculum Engine v1: B1 goal and prerequisite graph (#90)`)
 Active branch: `agent/teacher-home-today-v1`
-Active PR: `#91 Teacher Home v1: Today learning flow` (draft while final CI/review runs)
+Active PR: `#91 Teacher Home v1: Today learning flow` (merge-ready after green GitHub CI; no production deploy from this branch)
 Independent open learning/UI PR: `#83 Tighten Adaptive Lesson desktop layout`
 Independent legacy CRM PR touching `haldus.html`: `#78 fix(crm): show retry state when reliability data fails to load`
 
@@ -35,6 +35,8 @@ Primary project `keelesepp` remains the only active GitHub-connected Vercel proj
 The unused project `keelesepp-crm-v2` was disconnected from GitHub on 2026-09-04 so pushes no longer create duplicate v2 builds.
 
 The #89 web client was verified on production before #90. #90 is merged into `main`, but this state file does not claim its final production deployment until that exact main deployment is freshly verified.
+
+The current #91 branch preview status reports `Deployment rate limited — retry in 24 hours`. This is the Vercel Hobby build-quota condition, not a GitHub test/build failure.
 
 ### Firebase Functions
 
@@ -152,22 +154,34 @@ Changed:
 - `.github/workflows/financial-core-emulator.yml`
 - this file.
 
-## Verification target for #91
+## Verification status for #91
 
-Required green gate before Ready for review:
+GitHub Actions `Financial Core emulator` run **#256** completed successfully on executable head `0f787e5c7064df2abde1cc7bc2e031ef35476eb6`.
 
+All release-gate steps passed:
+
+- Functions dependencies install;
 - Functions unit tests;
 - Teacher Home pure core tests;
 - Teacher Home read-only UI contract tests;
 - full existing CRM/accounting/calendar/learning root suite;
 - browser JavaScript syntax checks;
-- Firebase Auth/Firestore/Functions emulator integration;
-- explicit emulator proof that an authorized zero-evidence active session is visible with sanitized `routeBySkill`;
-- outsider remains denied;
+- Auth/Firestore/Functions emulator integration;
+- cleanup/post steps.
+
+The emulator integration specifically proved that:
+
+- an authorized active session with zero evidence is returned immediately;
+- the active session exposes sanitized `routeBySkill` plus bounded current activity/index context;
+- an outsider remains denied;
 - malformed cross-student session context remains excluded;
+- reducing the evidence limit does not hide the active session;
+- direct browser reads of private learning evidence remain denied;
 - `students.skillMap` remains unchanged.
 
-GitHub Actions run #256 is the current executable-head gate while this document is being updated. Do not mark #91 Ready until the latest executable head completes successfully.
+Commits after executable head `0f787e5c...` are documentation-only and do not change runtime behavior.
+
+Vercel preview status on the latest branch head reports `Deployment rate limited — retry in 24 hours`. This is an account build-quota condition, not a failing code/CI result.
 
 ## Deployment boundary
 
@@ -204,11 +218,11 @@ Do not deploy production from the branch.
 5. phase-specific Lesson Mode workspaces — merged #88;
 6. deterministic per-skill Adaptive Engine v1 — merged #89;
 7. Curriculum Goal / prerequisite graph — merged #90;
-8. Teacher Home / Today vertical flow — active #91;
+8. Teacher Home / Today vertical flow — #91 merge-ready;
 9. Lesson Builder + stable activity/content normalization;
 10. AI-assisted content generation after the deterministic loop is stable;
 11. scale/analytics after multiple lessons share the same contracts.
 
 ## Next safe step
 
-Finish #91 CI/self-review and move the PR to Ready for review. Owner merges it. After merge and explicit rollout approval, deploy `learningProfileEvidenceApi` first and web second, then smoke-test Teacher Home. Only after that begin Lesson Builder / stable activity-content normalization.
+Owner merges #91. After merge and explicit rollout approval, deploy `learningProfileEvidenceApi` first and web second, then smoke-test Teacher Home. Only after that begin Lesson Builder / stable activity-content normalization.
