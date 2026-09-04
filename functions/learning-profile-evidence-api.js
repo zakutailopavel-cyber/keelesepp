@@ -185,7 +185,9 @@ async function loadProfileEvidence(actor, body) {
   if (sessionIds.length) {
     const refs = sessionIds.map((id) => db.collection('learningSessions').doc(id));
     const sessionSnaps = await db.getAll(...refs);
-    sessions = sessionSnaps.filter((item) => item.exists).map(projectSession);
+    sessions = sessionSnaps
+      .filter((item) => item.exists && clean(item.data()?.studentId, 120) === student.id)
+      .map(projectSession);
   }
   return {
     student: {
