@@ -115,12 +115,13 @@
       }catch(error){status('error',error.message);throw error;}
     }
 
-    async function recordJudgement({index=0,route='core',judgement='',nextRoute=route}={}){
+    async function recordJudgement({index=0,route='core',judgement='',nextRoute=route,nextRouteBySkill={}}={}){
       if(!sessionData||sessionData.status!=='active') return snapshot();
       const item=currentItem(index);
       const mapped=core.mapUiJudgement(judgement);
       if(!mapped) throw new Error('Tundmatu õpetaja hinnang.');
-      const retryKey=`judge:${sessionData.id}:${item.id||index}:${mapped}:${route}:${nextRoute}`;
+      const routePatch=Object.fromEntries(Object.entries(nextRouteBySkill||{}).sort(([left],[right])=>left.localeCompare(right)));
+      const retryKey=`judge:${sessionData.id}:${item.id||index}:${mapped}:${route}:${nextRoute}:${JSON.stringify(routePatch)}`;
       try{
         const result=await post('judge',{
           requestId:retryRequestId(retryKey,'judge'),
@@ -131,6 +132,7 @@
           skillIds:core.skillIdsForItem({lesson,item}),
           route,
           nextRoute,
+          nextRouteBySkill:routePatch,
           teacherJudgement:mapped,
           note:''
         });
