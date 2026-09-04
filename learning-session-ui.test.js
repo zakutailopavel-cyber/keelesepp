@@ -48,12 +48,14 @@ test('browser client never writes Firestore or skillMap directly',()=>{
   assert.doesNotMatch(html,/skillMap\s*=/);
 });
 
-test('persistence client authenticates requests and uses idempotency request ids',()=>{
+test('persistence client authenticates requests and reuses idempotency ids after ambiguous failures',()=>{
   assert.match(store,/getIdToken\(\)/);
   assert.match(store,/Authorization.*Bearer/);
-  assert.match(store,/requestId\('judge'\)/);
-  assert.match(store,/requestId\('vocab'\)/);
-  assert.match(store,/requestId\('complete'\)/);
+  assert.match(store,/pendingRequestIds=new Map\(\)/);
+  assert.match(store,/retryRequestId\(retryKey,'judge'\)/);
+  assert.match(store,/retryRequestId\(retryKey,'vocab'\)/);
+  assert.match(store,/retryRequestId\(retryKey,'complete'\)/);
+  assert.match(store,/clearRetryRequestId\(retryKey\)/);
 });
 
 test('reference diagnostic tasks explicitly map to evidence skills',()=>{
