@@ -57,6 +57,14 @@
       "destination": "/haldus-adaptive-lesson/index.html"
     },
     {
+      "source": "/haldus-learning-profile",
+      "destination": "/haldus-learning-profile/index.html"
+    },
+    {
+      "source": "/haldus-learning-profile/",
+      "destination": "/haldus-learning-profile/index.html"
+    },
+    {
       "source": "/tasemetest",
       "destination": "/tasemetest.html"
     },
@@ -155,6 +163,24 @@
     },
     {
       "source": "/haldus-adaptive-lesson/",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/html; charset=utf-8"
+        }
+      ]
+    },
+    {
+      "source": "/haldus-learning-profile",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/html; charset=utf-8"
+        }
+      ]
+    },
+    {
+      "source": "/haldus-learning-profile/",
       "headers": [
         {
           "key": "Content-Type",

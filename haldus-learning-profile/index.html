@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="et">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KeeleSepp · Õppimisprofiil</title>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script>
+(function(){
+  if(!firebase.apps.length){
+    firebase.initializeApp({
+      apiKey:"AIzaSyAp8emBOh1fIqv72k_O5hkLkXVkfBt1al4",
+      authDomain:"keelesepp-5136b.firebaseapp.com",
+      projectId:"keelesepp-5136b",
+      storageBucket:"keelesepp-5136b.firebasestorage.app",
+      messagingSenderId:"674098517935",
+      appId:"1:674098517935:web:e73d04a4ada67874da015a"
+    });
+  }
+  window._db=firebase.firestore();
+  window._auth=firebase.auth();
+})();
+</script>
+<script src="/staff-activity.js"></script>
+<script src="/haldus-programs.js"></script>
+<script src="/learning-profile-core.js"></script>
+<style>
+:root{--cream:#f4efe5;--paper:#fffdf8;--navy:#172a3d;--muted:#6f7782;--gold:#b9822b;--green:#2d6957;--green-soft:#edf5f1;--amber:#a96e1a;--amber-soft:#fff7e8;--red:#9b2c2c;--red-soft:#fff0ee;--line:#e7dfd2;--shadow:0 18px 44px rgba(48,39,28,.09)}
+*{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--navy);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.top{height:64px;background:var(--paper);border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 24px;gap:14px;position:sticky;top:0;z-index:20}.brand{font-family:Georgia,serif;font-size:1.35rem;font-weight:800}.brand span{color:var(--gold)}.top a{color:var(--muted);text-decoration:none;font-size:.78rem;font-weight:750}.spacer{flex:1}.read-only{font-size:.68rem;font-weight:850;letter-spacing:.06em;text-transform:uppercase;background:var(--green-soft);color:var(--green);padding:7px 10px;border-radius:999px}.page{max-width:1160px;margin:0 auto;padding:28px 24px 70px}.head{display:flex;gap:18px;align-items:flex-end;margin-bottom:18px}.head h1{font-family:Georgia,serif;font-size:1.8rem;margin:0}.head p{color:var(--muted);font-size:.84rem;margin:5px 0 0;max-width:680px}.selector{margin-left:auto;display:grid;gap:5px;min-width:260px}.selector label{font-size:.66rem;font-weight:850;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}select{border:1px solid var(--line);border-radius:11px;padding:10px 12px;background:#fff;color:var(--navy);font:inherit}.empty,.error{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:48px;text-align:center;color:var(--muted);box-shadow:var(--shadow)}.error{color:var(--red)}.hero{background:var(--navy);color:#fff;border-radius:22px;padding:24px 26px;box-shadow:var(--shadow);display:grid;grid-template-columns:1.5fr repeat(4,minmax(105px,.55fr));gap:12px;align-items:stretch;margin-bottom:16px}.hero-main{padding-right:12px}.eyebrow{font-size:.66rem;letter-spacing:.09em;text-transform:uppercase;font-weight:850;color:rgba(255,255,255,.48)}.hero h2{font-family:Georgia,serif;margin:6px 0 5px;font-size:1.55rem}.meta{font-size:.78rem;color:rgba(255,255,255,.55)}.metric{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:14px 12px;display:flex;flex-direction:column;justify-content:center}.metric b{font-size:1.55rem}.metric span{font-size:.66rem;color:rgba(255,255,255,.5);margin-top:4px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.card{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:0 10px 28px rgba(48,39,28,.055)}.card.wide{grid-column:1/-1}.card-head{display:flex;align-items:center;gap:10px;margin-bottom:14px}.badge{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-weight:900;background:#f1eadf;color:var(--gold)}.card h3{margin:0;font-family:Georgia,serif;font-size:1.08rem}.card-sub{font-size:.72rem;color:var(--muted);margin-top:2px}.skill-list{display:grid;gap:9px}.skill{border:1px solid var(--line);border-radius:13px;padding:12px 13px}.skill-row{display:flex;gap:10px;align-items:center}.skill-name{font-size:.84rem;font-weight:800;flex:1}.skill-id{font-size:.62rem;color:#a09a91;margin-top:2px}.score{font-size:.78rem;font-weight:900}.bar{height:6px;background:#eee8df;border-radius:999px;overflow:hidden;margin-top:8px}.bar span{display:block;height:100%;border-radius:999px}.focus .bar span{background:var(--red)}.caution .bar span{background:var(--amber)}.strong .bar span{background:var(--green)}.developing .bar span{background:#5276a0}.focus{background:var(--red-soft)}.caution{background:var(--amber-soft)}.strong{background:var(--green-soft)}.placeholder{font-size:.8rem;color:var(--muted);padding:12px 0;line-height:1.5}.evidence-list{display:grid;gap:10px}.evidence{border:1px solid var(--line);border-radius:14px;padding:14px}.evidence-top{display:flex;gap:12px;align-items:flex-start}.evidence-title{font-weight:850;font-size:.85rem}.evidence-date{margin-left:auto;color:var(--muted);font-size:.68rem;white-space:nowrap}.evidence-comment{font-size:.79rem;line-height:1.45;color:#4f5c69;margin-top:8px}.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}.chip{font-size:.65rem;font-weight:750;padding:5px 8px;background:#f1ece4;border-radius:999px;color:#536171}.next-box{background:linear-gradient(135deg,#f7f1e6,#fffdf8);border:1px solid #eadbc3;border-radius:14px;padding:14px}.next-box strong{display:block;margin-bottom:7px}.next-box p{font-size:.79rem;color:#5e6874;line-height:1.45;margin:0}.note{font-size:.68rem;color:#8a8176;margin-top:10px}.loading{min-height:320px;display:grid;place-items:center}.spinner{width:34px;height:34px;border:3px solid #ded6ca;border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:900px){.hero{grid-template-columns:1fr 1fr 1fr}.hero-main{grid-column:1/-1}.grid{grid-template-columns:1fr}.card.wide{grid-column:auto}.head{display:block}.selector{margin-top:15px;min-width:0}.page{padding:18px 12px 50px}.top{padding:0 12px}.read-only{display:none}}
+</style>
+</head>
+<body>
+<header class="top"><div class="brand">Keele<span>Sepp</span></div><a href="/haldus/">Haldus</a><a href="/haldus-skillmap/">Oskuste kaart</a><div class="spacer"></div><div class="read-only">Read-only õppimisprofiil</div></header>
+<main class="page">
+  <div class="head"><div><h1>Õpilase õppimisprofiil</h1><p>Üks õpetaja vaade sellele, mida me õpilase kohta päriselt teame: olemasolev skillMap, tähelepanu vajavad oskused ja lõpetatud tundide tõenduspõhised kokkuvõtted.</p></div><div class="selector"><label for="student-select">Õpilane</label><select id="student-select"><option value="">— Vali õpilane —</option></select></div></div>
+  <section id="app"><div class="empty">Vali õpilane, et avada tema õppimisprofiil.</div></section>
+</main>
+<script>
+(function(){
+  const db=window._db,auth=window._auth,core=window.KeeleSeppLearningProfileCore;
+  const app=document.getElementById('app');
+  const select=document.getElementById('student-select');
+  const state={user:null,students:[],rooms:[],selectedId:'',loading:false,isAdmin:false,teacherScopeReadEnforced:false};
+  const SKILL_LABELS=Object.values(window.HaldusSkillCatalog||{}).flat().reduce((result,skill)=>{
+    if(skill&&skill.id) result[skill.id]=skill.name||skill.id;
+    return result;
+  },{});
+
+  const esc=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  const fmtDate=value=>{
+    const ms=core.timestampMillis(value); if(!ms) return 'Kuupäev puudub';
+    return new Intl.DateTimeFormat('et-EE',{day:'2-digit',month:'2-digit',year:'numeric'}).format(new Date(ms));
+  };
+  const skillCard=(skill,kind)=>`<div class="skill ${kind}"><div class="skill-row"><div><div class="skill-name">${esc(skill.label)}</div><div class="skill-id">${esc(skill.id)}</div></div><div class="score">${skill.score}%</div></div><div class="bar"><span style="width:${skill.score}%"></span></div></div>`;
+  const renderList=(items,kind,empty)=>items.length?`<div class="skill-list">${items.map(item=>skillCard(item,kind)).join('')}</div>`:`<div class="placeholder">${esc(empty)}</div>`;
+
+  function renderProfile(){
+    const student=state.students.find(item=>item.id===state.selectedId);
+    if(!student){app.innerHTML='<div class="empty">Vali õpilane, et avada tema õppimisprofiil.</div>';return;}
+    const profile=core.buildLearningProfile({student,rooms:state.rooms,skillLabels:SKILL_LABELS,recentLimit:6});
+    const attention=profile.attention;
+    const recentGoals=profile.recommendations.recentGoalLabels.slice(0,5);
+    const evidence=profile.recentEvidence;
+    app.innerHTML=`
+      <section class="hero">
+        <div class="hero-main"><div class="eyebrow">Õppimisprofiil</div><h2>${esc(profile.studentName)}</h2><div class="meta">${esc(profile.subject)}${profile.currentLevel?` · ${esc(profile.currentLevel)}`:''}${profile.teacher?` · õpetaja ${esc(profile.teacher)}`:''}</div></div>
+        <div class="metric"><b>${profile.summary.average===null?'—':profile.summary.average+'%'}</b><span>hinnatud oskuste keskmine</span></div>
+        <div class="metric"><b>${profile.summary.assessedCount}</b><span>hinnatud oskust</span></div>
+        <div class="metric"><b>${profile.summary.focusCount+profile.summary.cautionCount}</b><span>vajab tähelepanu</span></div>
+        <div class="metric"><b>${profile.summary.evidenceCount}</b><span>hiljutist kokkuvõtet</span></div>
+      </section>
+      <div class="grid">
+        <section class="card"><div class="card-head"><div class="badge">!</div><div><h3>Mida korrata järgmisena</h3><div class="card-sub">Otsene vaade skillMapi madalamatele tulemustele</div></div></div>${attention.length?`<div class="skill-list">${attention.map(item=>skillCard(item,item.status)).join('')}</div>`:'<div class="placeholder">SkillMapis ei ole praegu oskusi, mis jääksid alla 70%. See ei tähenda automaatselt, et kõik oskused on hinnatud.</div>'}</section>
+        <section class="card"><div class="card-head"><div class="badge">+</div><div><h3>Tugevad oskused</h3><div class="card-sub">80% või kõrgem olemasolevas kanonilises skillMapis</div></div></div>${renderList(profile.strongSkills.slice(0,6),'strong','Tugevaid oskusi ei ole veel skillMapis kinnitatud.')}</section>
+        <section class="card wide"><div class="card-head"><div class="badge">E</div><div><h3>Hiljutine õppimistõendus</h3><div class="card-sub">Ainult lõpetatud Live Classroomi kokkuvõtted; pelk tunni staatus ei lähe tõendiks</div></div></div>
+          ${evidence.length?`<div class="evidence-list">${evidence.map(item=>`<article class="evidence"><div class="evidence-top"><div><div class="evidence-title">${esc(item.title)}</div>${item.teacherName?`<div class="card-sub">Õpetaja: ${esc(item.teacherName)}</div>`:''}</div><div class="evidence-date">${esc(fmtDate(item.completedAt))}</div></div>${item.teacherComment?`<div class="evidence-comment">${esc(item.teacherComment)}</div>`:''}${item.goalLabels.length?`<div class="chips">${item.goalLabels.map(label=>`<span class="chip">${esc(label)}</span>`).join('')}</div>`:''}${item.skillIds.length?`<div class="chips">${item.skillIds.map(id=>`<span class="chip">${esc(SKILL_LABELS[id]||core.humanizeSkillId(id))}</span>`).join('')}</div>`:''}${item.nextHomework?`<div class="evidence-comment"><strong>Kodutöö:</strong> ${esc(item.nextHomework)}</div>`:''}</article>`).join('')}</div>`:'<div class="placeholder">Selle õpilase kohta ei leitud veel struktureeritud tunni kokkuvõtteid. Süsteem ei muuda tavalist kohalolekut õppimistõendiks.</div>'}
+        </section>
+        <section class="card"><div class="card-head"><div class="badge">G</div><div><h3>Viimati saavutatud eesmärgid</h3><div class="card-sub">Kontekst järgmisele õpetajale, mitte automaatne “järgmine eesmärk”</div></div></div>${recentGoals.length?`<div class="chips">${recentGoals.map(label=>`<span class="chip">${esc(label)}</span>`).join('')}</div>`:'<div class="placeholder">Struktureeritud eesmärke ei ole veel varasemates kokkuvõtetes.</div>'}</section>
+        <section class="card"><div class="card-head"><div class="badge">→</div><div><h3>Järgmine suund</h3><div class="card-sub">Release slice 1 piir: ainult tõlgendatav read model</div></div></div><div class="next-box"><strong>${attention.length?'Alusta tähelepanu vajavatest oskustest':'Kogu järgmises tunnis uut tõendit'}</strong><p>${attention.length?`Kõigepealt kontrolli ${esc(attention[0].label)}. Seejärel otsusta Lesson Mode'is, kas vaja on Support, Core või Advanced rada.`:'Praegune profiil ei anna piisavat alust järgmise õppekava eesmärgi automaatseks valimiseks. Curriculum Goal graph lisatakse eraldi release slice’is.'}</p></div><div class="note">See vaade ei kirjuta Firestore’i ega muuda skillMapi.</div></section>
+      </div>`;
+  }
+
+  async function loadRooms(studentId){
+    state.loading=true;app.innerHTML='<div class="loading"><div class="spinner"></div></div>';
+    try{
+      let query=db.collection('liveClassrooms').where('studentId','==',studentId);
+      if(!state.isAdmin) query=query.where('teacherUid','==',state.user.uid);
+      const snap=await query.get();
+      state.rooms=snap.docs.map(doc=>({id:doc.id,...doc.data()}));
+      renderProfile();
+    }catch(error){
+      console.error(error);state.rooms=[];
+      app.innerHTML=`<div class="error">Õppimistõendi laadimine ebaõnnestus. ${esc(error.message||'')}</div>`;
+    }finally{state.loading=false;}
+  }
+
+  select.addEventListener('change',event=>{
+    state.selectedId=event.target.value;
+    const url=new URL(location.href);
+    if(state.selectedId) url.searchParams.set('studentId',state.selectedId); else url.searchParams.delete('studentId');
+    history.replaceState(null,'',url);
+    if(state.selectedId) loadRooms(state.selectedId); else renderProfile();
+  });
+
+  auth.onAuthStateChanged(async fb=>{
+    if(!fb){app.innerHTML='<div class="error">Palun logi esmalt KeeleSepp CRM-i sisse.</div>';return;}
+    const userSnap=await db.collection('users').doc(fb.uid).get();
+    state.user=userSnap.exists?{uid:fb.uid,email:fb.email,...userSnap.data()}:{uid:fb.uid,email:fb.email};
+    state.isAdmin=state.user.role==='admin'||state.user.email==='zakutailo.pavel@gmail.com';
+    const isStaff=state.isAdmin||state.user.role==='teacher';
+    if(!isStaff){app.innerHTML='<div class="error">Õppimisprofiili õpetajavaade on ainult töötajatele.</div>';select.disabled=true;return;}
+    try{
+      if(!state.isAdmin){
+        try{
+          const migration=await db.collection('securityMigrations').doc('teacherUidV1').get();
+          state.teacherScopeReadEnforced=migration.exists&&migration.data()?.readEnforced===true;
+        }catch(error){
+          console.warn('Teacher scope rollout state unavailable',error);
+          state.teacherScopeReadEnforced=false;
+        }
+      }
+      const teacherScoped=state.teacherScopeReadEnforced&&!state.isAdmin;
+      const studentQuery=teacherScoped
+        ? db.collection('students').where('teacherUid','==',fb.uid)
+        : db.collection('students');
+      const snap=await studentQuery.get();
+      state.students=snap.docs.map(doc=>({id:doc.id,...doc.data()})).filter(student=>student.active!==false).sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'et'));
+      select.innerHTML='<option value="">— Vali õpilane —</option>'+state.students.map(student=>`<option value="${esc(student.id)}">${esc(student.name||'Nimetu')}${student.level?` (${esc(student.level)})`:''}</option>`).join('');
+      const requested=new URLSearchParams(location.search).get('studentId');
+      if(requested&&state.students.some(student=>student.id===requested)){state.selectedId=requested;select.value=requested;loadRooms(requested);}else renderProfile();
+    }catch(error){console.error(error);app.innerHTML=`<div class="error">Õpilaste laadimine ebaõnnestus. ${esc(error.message||'')}</div>`;}
+  });
+})();
+</script>
+</body>
+</html>

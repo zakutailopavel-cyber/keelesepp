@@ -29,6 +29,12 @@ on:
       - "haldus-exercises/**"
       - "learning-library-core.js"
       - "learning-library-core.test.js"
+      - "haldus-learning-profile/**"
+      - "learning-profile-core.js"
+      - "learning-profile-core.test.js"
+      - "learning-profile-ui.test.js"
+      - "learning-profile-routing.test.js"
+      - "vercel.json"
       - "live-classroom.html"
       - "live-classroom.css"
       - "live-classroom.js"
@@ -50,6 +56,12 @@ on:
       - "initial-assessment-core.test.js"
       - "initial-assessment-ui.test.js"
       - "student-portal-scope-ui.test.js"
+      - "haldus-learning-profile/**"
+      - "learning-profile-core.js"
+      - "learning-profile-core.test.js"
+      - "learning-profile-ui.test.js"
+      - "learning-profile-routing.test.js"
+      - "vercel.json"
       - ".github/workflows/financial-core-emulator.yml"
   workflow_dispatch:
 
@@ -76,12 +88,13 @@ jobs:
       - name: Run unit tests
         run: npm test --prefix functions
       - name: Run CRM, accounting, calendar, learning library and Live Classroom tests
-        run: node --test haldus-quality.test.js calendar-core.test.js learning-library-core.test.js live-classroom-core.test.js staff-activity.test.js staff-time-core.test.js accounting-ledger-core.test.js teacher-scope-ui.test.js terms-registration-ui.test.js initial-assessment-core.test.js initial-assessment-ui.test.js student-portal-scope-ui.test.js
+        run: node --test haldus-quality.test.js calendar-core.test.js learning-library-core.test.js live-classroom-core.test.js staff-activity.test.js staff-time-core.test.js accounting-ledger-core.test.js teacher-scope-ui.test.js terms-registration-ui.test.js initial-assessment-core.test.js initial-assessment-ui.test.js student-portal-scope-ui.test.js learning-profile-core.test.js learning-profile-ui.test.js learning-profile-routing.test.js
       - name: Check browser JavaScript syntax
         run: |
           node --check haldus-quality.js
           node --check calendar-core.js
           node --check learning-library-core.js
+          node --check learning-profile-core.js
           node --check live-classroom-core.js
           node --check live-classroom.js
           node --check staff-activity.js
