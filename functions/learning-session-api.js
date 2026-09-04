@@ -7,6 +7,7 @@ const db = admin.firestore();
 const SUPER_ADMIN_EMAIL = 'zakutailo.pavel@gmail.com';
 const REFERENCE_LESSON_ID = 'est-b1-city-problem-solving-01';
 const ROUTES = new Set(['support', 'core', 'advanced']);
+const ROUTE_RANK = { support: 0, core: 1, advanced: 2 };
 const JUDGEMENTS = new Set(['needs_help', 'managed', 'too_easy']);
 const ALLOWED_ACTIONS = new Set(['start_or_resume', 'progress', 'judge', 'vocabulary', 'complete']);
 const ALLOWED_ORIGINS = new Set([
@@ -156,6 +157,51 @@ function mergeRouteBySkill(current, skillIds, route) {
   return output;
 }
 
+function applyRouteBySkillPatch(current, patch) {
+  const output = { ...(current && typeof current === 'object' ? current : {}) };
+  for (const [skillId, route] of Object.entries(patch && typeof patch === 'object' ? patch : {})) {
+    if (ROUTES.has(route) && clean(skillId, 120)) output[clean(skillId, 120)] = route;
+  }
+  return output;
+}
+
+function transitionRoute(currentRoute, judgement) {
+  const route = ROUTES.has(currentRoute) ? currentRoute : 'core';
+  if (!JUDGEMENTS.has(judgement)) throw httpError(400, 'Invalid teacherJudgement');
+  if (judgement === 'managed') return route;
+  if (judgement === 'needs_help') return route === 'advanced' ? 'core' : 'support';
+  return route === 'support' ? 'core' : 'advanced';
+}
+
+function routeForSkills(routeBySkill, skillIds, fallback = 'core') {
+  const safeFallback = ROUTES.has(fallback) ? fallback : 'core';
+  const ids = cleanList(skillIds, 20, 120);
+  if (!ids.length) return safeFallback;
+  return ids
+    .map((skillId) => ROUTES.has(routeBySkill?.[skillId]) ? routeBySkill[skillId] : safeFallback)
+    .sort((left, right) => ROUTE_RANK[left] - ROUTE_RANK[right])[0];
+}
+
+function cleanPerSkillRoutePatch(input, allowedSkillIds, currentRouteBySkill, judgement, fallbackRoute) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) return {};
+  const allowed = cleanList(allowedSkillIds, 20, 120);
+  const allowedSet = new Set(allowed);
+  const patch = {};
+  for (const [rawSkillId, rawRoute] of Object.entries(input)) {
+    const skillId = clean(rawSkillId, 120);
+    if (!allowedSet.has(skillId)) throw httpError(400, 'Per-skill route patch contains an unrelated skill');
+    const requestedRoute = cleanRoute(rawRoute);
+    const currentRoute = ROUTES.has(currentRouteBySkill?.[skillId]) ? currentRouteBySkill[skillId] : fallbackRoute;
+    const expectedRoute = transitionRoute(currentRoute, judgement);
+    if (requestedRoute !== expectedRoute) throw httpError(400, `Invalid per-skill route transition for ${skillId}`);
+    patch[skillId] = requestedRoute;
+  }
+  if (Object.keys(patch).length && allowed.some((skillId) => patch[skillId] === undefined)) {
+    throw httpError(400, 'Per-skill route patch must cover every affected skill');
+  }
+  return patch;
+}
+
 function mergeAssessedSkills(current, skillIds) {
   return cleanList([...(Array.isArray(current) ? current : []), ...cleanList(skillIds, 20, 120)], 60, 120);
 }
@@ -184,7 +230,7 @@ async function startOrResume(actor, body) {
     })
     .sort((left, right) => {
       const l = left.data().updatedAt?.toMillis?.() || left.data().startedAt?.toMillis?.() || 0;
-      const r = right.data().updatedAt?.toMillis?.() || right.data().startedAt?.toMillis?.() || 0;
+      const r = right.data().updatedAt?.toMillis?.() || right.data.startedAt?.toMillis?.() || 0;
       return r - l;
     })[0];
   if (active) return { session: sessionResponse(active), resumed: true };
@@ -237,13 +283,11 @@ async function saveProgress(actor, body) {
   const { ref, session } = await getSession(actor, null, body.sessionId);
   if (session.status !== 'active') throw httpError(409, 'Learning session is not active');
   const currentRoute = cleanRoute(body.currentRoute || session.currentRoute || 'core');
-  const skillIds = cleanList(body.skillIds, 20, 120);
   const update = {
     currentIndex: cleanIndex(body.currentIndex),
     currentPhaseId: clean(body.currentPhaseId, 100),
     currentActivityId: clean(body.currentActivityId, 140),
     currentRoute,
-    routeBySkill: mergeRouteBySkill(session.routeBySkill, skillIds, currentRoute),
     updatedAt: FieldValue.serverTimestamp(),
   };
   await ref.update(update);
@@ -264,7 +308,7 @@ async function appendTeacherEvidence(actor, body, kind) {
     if (session.status !== 'active') throw httpError(409, 'Learning session is not active');
 
     const route = cleanRoute(body.route || session.currentRoute || 'core');
-    const nextRoute = cleanRoute(body.nextRoute || route);
+    const legacyNextRoute = cleanRoute(body.nextRoute || route);
     const skillIds = cleanList(body.skillIds, 20, 120);
     const vocabularyIds = kind === 'vocabulary_mark' ? cleanList([body.wordId], 1, 120) : [];
     let teacherJudgement = clean(body.teacherJudgement, 30);
@@ -277,6 +321,21 @@ async function appendTeacherEvidence(actor, body, kind) {
     const eventSkillIds = kind === 'vocabulary_mark'
       ? cleanList(['vocabulary', ...skillIds], 20, 120)
       : skillIds;
+    const explicitPatch = kind === 'teacher_judgement'
+      ? cleanPerSkillRoutePatch(body.nextRouteBySkill, eventSkillIds, session.routeBySkill, teacherJudgement, route)
+      : {};
+    const hasExplicitPatch = Object.keys(explicitPatch).length > 0;
+    const nextRouteBySkill = kind === 'vocabulary_mark'
+      ? { ...(session.routeBySkill && typeof session.routeBySkill === 'object' ? session.routeBySkill : {}) }
+      : hasExplicitPatch
+        ? applyRouteBySkillPatch(session.routeBySkill, explicitPatch)
+        : mergeRouteBySkill(session.routeBySkill, eventSkillIds, legacyNextRoute);
+    const effectiveNextRoute = kind === 'vocabulary_mark'
+      ? route
+      : hasExplicitPatch
+        ? routeForSkills(nextRouteBySkill, eventSkillIds, legacyNextRoute)
+        : legacyNextRoute;
+
     const now = FieldValue.serverTimestamp();
     const evidence = {
       schemaVersion: 1,
@@ -301,8 +360,8 @@ async function appendTeacherEvidence(actor, body, kind) {
       currentIndex: cleanIndex(body.currentIndex),
       currentPhaseId: clean(body.phaseId, 100),
       currentActivityId: clean(body.activityId, 140),
-      currentRoute: nextRoute,
-      routeBySkill: mergeRouteBySkill(session.routeBySkill, eventSkillIds, nextRoute),
+      currentRoute: effectiveNextRoute,
+      routeBySkill: nextRouteBySkill,
       evidenceCount: (Number(session.evidenceCount) || 0) + 1,
       assessedSkillIds: mergeAssessedSkills(session.assessedSkillIds, eventSkillIds),
       lastEvidenceAt: now,
@@ -418,6 +477,10 @@ module.exports = {
     normalizeScores,
     teacherNameMatches,
     mergeRouteBySkill,
+    applyRouteBySkillPatch,
+    transitionRoute,
+    routeForSkills,
+    cleanPerSkillRoutePatch,
     mergeAssessedSkills,
     assertSameEvidenceIdentity,
   },
