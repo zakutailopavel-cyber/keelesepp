@@ -35,6 +35,7 @@ test('Learning Profile keeps adaptive evidence separate from canonical mastery',
   assert.match(source,/80% või kõrgem ainult kanonilises students\.skillMapis/);
   assert.match(source,/see ei muuda skillMapi/);
   assert.match(source,/See vaade ei kirjuta Firestore’i ega muuda students\.skillMapi/);
+  assert.match(source,/Adaptive tunni lõpetamine üksi ei märgi õpieesmärki saavutatuks/);
   assert.match(source,/Puuduv oskusetõend ei võrdu nulliga/);
   assert.match(source,/Korda:/);
 });
@@ -52,11 +53,18 @@ test('Learning Profile loads the bounded Curriculum Engine graph',()=>{
   assert.match(source,/window\.KeeleSeppCurriculumGoalsB1City/);
 });
 
-test('Curriculum recommendation uses completed goals as prerequisites and active goals as current context',()=>{
+test('Curriculum recommendation uses achieved goals as prerequisites and active target goals as current context',()=>{
   assert.match(source,/achievedGoalIds:profile\.recommendations\.completedGoalIds/);
   assert.match(source,/currentGoalIds:profile\.recommendations\.activeGoalIds/);
   assert.doesNotMatch(source,/achievedGoalIds:profile\.recommendations\.recentGoalIds/);
   assert.match(source,/recentLessonBlueprintIds\[0\]/);
+});
+
+test('explicit B1 session context can explain the active graph even when the student profile level differs',()=>{
+  assert.match(source,/const explicitGraphContext=/);
+  assert.match(source,/activeGoalIds\.some\(id=>graphIds\.has\(id\)\)/);
+  assert.match(source,/lessonBlueprintIds\.includes\(recentBlueprintId\)/);
+  assert.match(source,/if\(profile\.currentLevel!==goalGraph\.level&&!explicitGraphContext\) return null/);
 });
 
 test('Learning Profile explains the stable next curriculum goal instead of hiding the decision',()=>{
