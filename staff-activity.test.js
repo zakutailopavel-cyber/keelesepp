@@ -14,6 +14,7 @@ test('all staff work surfaces load the same active-time tracker',()=>{
     'haldus-exercises/index.html',
     'haldus-learning-profile/index.html',
     'haldus-skillmap/index.html',
+    'haldus-teacher-home/index.html',
     'haldus-worksheet/index.html',
     'live-classroom.html'
   ].forEach(file=>{
@@ -31,7 +32,18 @@ test('tracker pauses for hidden or idle windows and sends no interaction content
   assert.doesNotMatch(tracker,/screenX|screenY|clientX|clientY/);
 });
 
-test('Learning Profile is tracked separately from the legacy skill editor',()=>{
+test('Learning Profile, Teacher Home and the legacy skill editor have separate activity areas',()=>{
+  assert.match(tracker,/haldus-teacher-home'\)\) return 'teacher-home'/);
   assert.match(tracker,/haldus-learning-profile'\)\) return 'learning-profile'/);
   assert.match(tracker,/haldus-skillmap'\)\) return 'skill-map'/);
+});
+
+test('verified staff get a direct Teacher Home entry on the legacy CRM home',()=>{
+  assert.match(tracker,/TEACHER_HOME_PATH = '\/haldus-teacher-home\/'/);
+  assert.match(tracker,/path === '\/haldus' \|\| path === '\/haldus\.html'/);
+  assert.match(tracker,/entry\.id = TEACHER_HOME_ENTRY_ID/);
+  assert.match(tracker,/entry\.href = TEACHER_HOME_PATH/);
+  assert.match(tracker,/entry\.textContent = 'Õpetaja täna →'/);
+  assert.match(tracker,/if\(isStaffProfile\(profile\)\)\{\s*ensureTeacherHomeEntry\(\);/);
+  assert.match(tracker,/removeTeacherHomeEntry\(\);\s*if\(!user\) return;/);
 });

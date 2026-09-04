@@ -7,6 +7,8 @@
   const API_BASE = 'https://us-central1-keelesepp-5136b.cloudfunctions.net/staffOperationsApi';
   const SUPER_ADMIN_EMAIL = 'zakutailo.pavel@gmail.com';
   const ACTIVITY_EVENTS = ['pointerdown','keydown','scroll','touchstart'];
+  const TEACHER_HOME_PATH = '/haldus-teacher-home/';
+  const TEACHER_HOME_ENTRY_ID = 'keelesepp-teacher-home-entry';
   let stopCurrentTracker = function(){};
 
   const pageInstanceId = (window.crypto && typeof window.crypto.randomUUID === 'function')
@@ -28,11 +30,56 @@
       || String(profile && profile.email || '').trim().toLowerCase() === SUPER_ADMIN_EMAIL;
   };
 
+  const currentPath = () => String(window.location.pathname || '/').replace(/\/+$/,'') || '/';
+
+  const isLegacyHaldusHome = () => {
+    const path = currentPath();
+    return path === '/haldus' || path === '/haldus.html';
+  };
+
+  const removeTeacherHomeEntry = () => {
+    const existing = document.getElementById(TEACHER_HOME_ENTRY_ID);
+    if(existing) existing.remove();
+  };
+
+  const ensureTeacherHomeEntry = () => {
+    if(!isLegacyHaldusHome()) return;
+    if(document.getElementById(TEACHER_HOME_ENTRY_ID)) return;
+    const entry = document.createElement('a');
+    entry.id = TEACHER_HOME_ENTRY_ID;
+    entry.href = TEACHER_HOME_PATH;
+    entry.textContent = 'Õpetaja täna →';
+    entry.setAttribute('aria-label','Ava õpetaja tänane töölaud');
+    entry.title = 'Tänased tunnid, õppimiskontekst ja Lesson Mode';
+    Object.assign(entry.style,{
+      position:'fixed',
+      right:'18px',
+      bottom:'18px',
+      zIndex:'2147483000',
+      display:'inline-flex',
+      alignItems:'center',
+      justifyContent:'center',
+      minHeight:'44px',
+      padding:'0 16px',
+      borderRadius:'999px',
+      background:'#172a3d',
+      color:'#ffffff',
+      textDecoration:'none',
+      fontFamily:'IBM Plex Sans,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',
+      fontSize:'13px',
+      fontWeight:'700',
+      letterSpacing:'.01em',
+      boxShadow:'0 12px 30px rgba(23,42,61,.22)'
+    });
+    document.body.appendChild(entry);
+  };
+
   const activityArea = () => {
-    const path = String(window.location.pathname || '/').replace(/\/+$/,'') || '/';
+    const path = currentPath();
     if(path.startsWith('/live-classroom')) return 'live-classroom';
     if(path.startsWith('/haldus-exercises')) return 'learning-library';
     if(path.startsWith('/haldus-worksheet')) return 'worksheet';
+    if(path.startsWith('/haldus-teacher-home')) return 'teacher-home';
     if(path.startsWith('/haldus-learning-profile')) return 'learning-profile';
     if(path.startsWith('/haldus-skillmap')) return 'skill-map';
     if(path.includes('calendar')) return 'calendar';
@@ -131,11 +178,15 @@
     auth.onAuthStateChanged(async user=>{
       stopCurrentTracker();
       stopCurrentTracker = function(){};
+      removeTeacherHomeEntry();
       if(!user) return;
       try{
         const profileSnap = await db.collection('users').doc(user.uid).get();
         const profile = {email:user.email,...(profileSnap.exists?profileSnap.data():{})};
-        if(isStaffProfile(profile)) stopCurrentTracker = startTracker(user);
+        if(isStaffProfile(profile)){
+          ensureTeacherHomeEntry();
+          stopCurrentTracker = startTracker(user);
+        }
       }catch(error){
         console.warn('Staff activity tracker could not verify the profile:',error);
       }
@@ -145,7 +196,8 @@
   window.KeeleSeppStaffActivity = {
     heartbeatIntervalMs:HEARTBEAT_INTERVAL_MS,
     idleTimeoutMs:IDLE_TIMEOUT_MS,
-    pageInstanceId
+    pageInstanceId,
+    teacherHomePath:TEACHER_HOME_PATH
   };
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded',boot,{once:true});
   else boot();
