@@ -4,7 +4,7 @@ Last verified: 2026-09-04, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
 Verified main commit: `858f25278f853e2262ad2d5a79ef8f7c8eb0e6bd` (`Adaptive Engine v1: per-skill Lesson Mode routes (#89)`)
 Active branch: `agent/curriculum-goal-graph-v1`
-Active PR: `#90 Curriculum Engine v1: B1 goal and prerequisite graph` (draft while final CI/review runs)
+Active PR: `#90 Curriculum Engine v1: B1 goal and prerequisite graph` (merge-ready after green GitHub CI; no production deploy)
 Independent open PR: `#83 Tighten Adaptive Lesson desktop layout`
 
 ## Current objective
@@ -169,20 +169,22 @@ Changed:
 - `docs/ADAPTIVE_LESSON_SYSTEM.md`
 - this file.
 
-## Verification target for #90
+## Verification status for #90
 
-Required green gate before Ready for review:
+GitHub Actions `Financial Core emulator` run **#246** completed successfully on executable head `cdeb1e7c79ac07ed00334fbe7074a447e454bf4d`.
 
-- Curriculum Goal graph unit tests;
-- existing Learning Profile core/UI tests;
-- full root CRM/accounting/calendar/learning test bundle;
-- browser JavaScript syntax for the new goal engine/graph;
-- existing Firebase Auth/Firestore/Functions emulator integration;
-- self-review confirming no mastery/write/security boundary regression.
+All release-gate steps passed:
 
-Specific contracts tested include:
+- Functions dependency install;
+- Functions unit tests;
+- full root CRM/accounting/calendar/learning test bundle, including `curriculum-goal-core.test.js` and updated Learning Profile contracts;
+- browser JavaScript syntax checks for `curriculum-goal-core.js` and `curriculum-goals/b1-city.js`;
+- existing Auth/Firestore/Functions emulator integration;
+- cleanup/post steps.
 
-- graph validity and cycle rejection;
+Specific verified contracts include:
+
+- graph validity and prerequisite-cycle rejection;
 - stable reference lesson goal binding;
 - deterministic entry/successor/transfer recommendation;
 - missing critical-skill evidence remains unknown;
@@ -190,9 +192,12 @@ Specific contracts tested include:
 - active target is not achieved;
 - completed Adaptive session target is not achieved merely because the session ended;
 - UI passes `completedGoalIds` as prerequisite evidence and `activeGoalIds` as current context;
-- Learning Profile stays read-only.
+- Learning Profile stays read-only;
+- existing learning/CRM and emulator integration remain green.
 
-Exact final GitHub Actions run/result must be recorded after the latest executable head completes.
+The commit after executable head `cdeb1e7c...` only records this verification in documentation and does not change runtime behavior.
+
+Vercel preview status on the executable head reports `Deployment rate limited — retry in 24 hours`. This is the current Hobby build-quota condition, not a failing code/test result. Since `keelesepp-crm-v2` is disconnected from GitHub, only the primary Vercel project now reports this preview status. No production deployment was performed from #90.
 
 ## Deployment boundary
 
@@ -228,7 +233,7 @@ The #89 Vercel web deployment is already READY.
 4. Learning Profile evidence projection — merged #87;
 5. phase-specific Lesson Mode workspaces — merged #88;
 6. deterministic per-skill Adaptive Engine v1 — merged #89;
-7. Curriculum Goal / prerequisite graph — active #90;
+7. Curriculum Goal / prerequisite graph — #90 merge-ready;
 8. Teacher Home / Today vertical flow;
 9. Lesson Builder + stable activity/content normalization;
 10. AI-assisted content generation after the deterministic loop is stable;
@@ -236,4 +241,4 @@ The #89 Vercel web deployment is already READY.
 
 ## Next safe step
 
-Finish #90 CI/self-review and move the PR to Ready for review. Owner merges it. Separately, selectively deploy the merged-main `learningSessionApi` from #89 before claiming the per-skill persistence loop production-complete. After #90 is merged, start Teacher Home / Today as the next bounded product slice.
+Owner merges #90 after review. Separately, selectively deploy the merged-main `learningSessionApi` from #89 before claiming the per-skill persistence loop production-complete. After #90 merge, start Teacher Home / Today as the next bounded product slice.
