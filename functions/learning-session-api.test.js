@@ -37,7 +37,54 @@ test('legacy teacher aliases are narrow and deterministic',()=>{
 
 test('routeBySkill and assessed-skill merges deduplicate stable ids',()=>{
   assert.deepEqual(_test.mergeRouteBySkill({vocabulary:'core'},['grammar','grammar'],'support'),{vocabulary:'core',grammar:'support'});
+  assert.deepEqual(_test.applyRouteBySkillPatch({vocabulary:'core'},{grammar:'support'}),{vocabulary:'core',grammar:'support'});
   assert.deepEqual(_test.mergeAssessedSkills(['vocabulary'],['grammar','vocabulary']),['vocabulary','grammar']);
+});
+
+test('trusted route transition moves one step from each skill own route',()=>{
+  assert.equal(_test.transitionRoute('advanced','needs_help'),'core');
+  assert.equal(_test.transitionRoute('core','needs_help'),'support');
+  assert.equal(_test.transitionRoute('support','too_easy'),'core');
+  assert.equal(_test.transitionRoute('core','too_easy'),'advanced');
+  assert.equal(_test.transitionRoute('advanced','managed'),'advanced');
+});
+
+test('multi-skill effective route uses the most supportive required route',()=>{
+  assert.equal(_test.routeForSkills({grammar:'core',speaking:'support'},['grammar','speaking'],'advanced'),'support');
+  assert.equal(_test.routeForSkills({grammar:'advanced'},['grammar','speaking'],'core'),'core');
+});
+
+test('per-skill route patch is bounded to affected skills and deterministic judgement transitions',()=>{
+  const current={grammar:'support',speaking:'core',vocabulary:'advanced'};
+  const patch=_test.cleanPerSkillRoutePatch(
+    {grammar:'core',speaking:'advanced'},
+    ['grammar','speaking'],
+    current,
+    'too_easy',
+    'core'
+  );
+  assert.deepEqual(patch,{grammar:'core',speaking:'advanced'});
+  assert.throws(()=>_test.cleanPerSkillRoutePatch(
+    {grammar:'advanced',speaking:'advanced'},
+    ['grammar','speaking'],
+    current,
+    'too_easy',
+    'core'
+  ),/Invalid per-skill route transition/);
+  assert.throws(()=>_test.cleanPerSkillRoutePatch(
+    {grammar:'core',speaking:'advanced',vocabulary:'support'},
+    ['grammar','speaking'],
+    current,
+    'too_easy',
+    'core'
+  ),/unrelated skill/);
+  assert.throws(()=>_test.cleanPerSkillRoutePatch(
+    {grammar:'core'},
+    ['grammar','speaking'],
+    current,
+    'too_easy',
+    'core'
+  ),/cover every affected skill/);
 });
 
 test('idempotent evidence must belong to the same session identity',()=>{
