@@ -2,19 +2,19 @@
 
 Last verified: 2026-09-04, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
-Verified main commit: `8468e425f032430e88b694da5b250be17431ee23` (`Teacher Home v1: Today learning flow (#91)`)
-Active branch: `agent/teacher-home-entry-v1`
-Active work: add a direct staff entry from legacy CRM to Teacher Home without touching `haldus.html` while independent PR #78 remains open.
-Independent open learning/UI PR: `#83 Tighten Adaptive Lesson desktop layout`
+Verified main commit: `afa35ef3cd19aac7f08c1228a32c0303ddd5bc1e` (`Teacher Home: add direct staff entry from legacy CRM (#92)`)
+Active branch: `agent/start-lesson-vocab-v1`
+Active PR: `#93 Start Lesson flow: add B1 city vocabulary Lesson Mode`
+Independent open learning/UI PR: `#83 Tighten Adaptive Lesson desktop layout` (old draft, currently conflicts with fresh main)
 Independent legacy CRM PR: `#78 fix(crm): show retry state when reliability data fails to load` (old draft, currently conflicts with fresh main)
 
 ## Current objective
 
 Finish the teacher's real end-to-end path before starting Lesson Builder:
 
-`Haldus -> Õpetaja täna -> scheduled student -> Alusta/Jätka tundi -> Lesson Mode -> evidence/handoff -> next student`
+`Haldus -> Õpetaja täna -> scheduled student -> Alusta/Jätka tundi -> correct Lesson Mode -> evidence/handoff -> Teacher Home`
 
-The deterministic learning foundation is already merged:
+Merged deterministic foundation:
 
 1. Core Blueprint — #84;
 2. Learning Profile read-only MVP — #85;
@@ -23,109 +23,162 @@ The deterministic learning foundation is already merged:
 5. phase-specific Lesson Mode workspaces — #88;
 6. deterministic per-skill Adaptive Engine v1 — #89;
 7. Curriculum Goal / prerequisite graph v1 — #90;
-8. Teacher Home / Today v1 — #91.
+8. Teacher Home / Today v1 — #91;
+9. direct staff entry from legacy CRM to Teacher Home — #92.
 
-Do not start Lesson Builder until the Teacher Home entry and production smoke loop are complete.
+Do not start Lesson Builder until PR #93 is merged, rolled out and the real start/finish loop is manually verified.
 
-## Production state
+## Production state before #93
 
 ### Vercel
 
 Primary project `keelesepp` is the only active GitHub-connected Vercel project in this development flow.
 
-`keelesepp-crm-v2` was disconnected from GitHub on 2026-09-04 so pushes no longer create duplicate v2 builds.
+`keelesepp-crm-v2` remains disconnected from GitHub.
 
-Production deployment for merged main commit `8468e425...` (#91) was verified `READY`. `/haldus-teacher-home/` returned HTTP 200 from production.
+Production deployment for merged main commit `afa35ef3...` (#92) was verified `READY`.
+
+The owner opened `/haldus-teacher-home/` in production and the page successfully loaded the real teacher day: 7 scheduled lessons / 7 students. A real B1 card for Hanna Skoryk showed next goal `EST_B1_CITY_VOCAB` (`Linnaprobleemide põhisõnavara aktiveerimine`). Because that goal had no Lesson Mode blueprint before #93, the correct fallback action was still `Ava õppimisprofiil`. This observation defines the current gap.
 
 ### Firebase Functions
 
-Merged #89 `learningSessionApi` was selectively deployed to production project `keelesepp-5136b` with Node.js 22 and the owner previously provided terminal proof of a successful update.
+Merged #89 `learningSessionApi` was selectively deployed to production project `keelesepp-5136b` with Node.js 22 and earlier terminal proof showed a successful update.
 
-#91 changes `learningProfileEvidenceApi`. The owner reports that the selective merged-main deploy has now been performed, but this repository handoff does not independently claim the function rollout as verified until the production Teacher Home smoke test confirms the new active-session projection.
+The owner reports that merged #91 `learningProfileEvidenceApi` has also been selectively deployed. The production Teacher Home successfully loaded the real daily queue after that step, but this file does not claim additional function internals beyond the observed UI behavior.
 
-No Firestore/storage rules or schema migration is required for #91 or the Teacher Home entry slice.
+No Firestore/Storage rule or schema migration is required for #93.
 
-## Teacher Home v1 contract
+## Current slice — #93 Start Lesson vocabulary flow
 
-Route: `/haldus-teacher-home/`
+### Problem
 
-Teacher Home is read-only and projects today's teaching queue using:
+Curriculum Engine correctly recommends the first graph goal `EST_B1_CITY_VOCAB`, but Teacher Home could not start a lesson for it because only `EST_B1_CITY_SOLVE_PROBLEM` had a Lesson Mode blueprint.
 
-- `schedule` scoped to the signed-in teacher;
-- exact `studentId` joins;
-- canonical `students.skillMap`;
-- structured Live Classroom summaries;
-- trusted Adaptive evidence/session context from `learningProfileEvidenceApi`;
-- Curriculum Engine v1 recommendations where the B1 city graph applies.
+### New vocabulary blueprint
 
-Primary action contract:
+New stable blueprint:
 
-- active supported Adaptive session -> `Jätka tundi`;
-- supported next goal `EST_B1_CITY_SOLVE_PROBLEM` -> `Alusta tundi`;
-- unsupported context -> `Ava õppimisprofiil`.
+`est-b1-city-vocabulary-01`
 
-An arbitrary curriculum goal must never be forced into the only Adaptive Lesson blueprint that exists today.
+Bound curriculum goal:
 
-## Current slice — direct Teacher Home entry
+`EST_B1_CITY_VOCAB`
 
-Because old draft PR #78 still modifies `haldus.html`, this slice deliberately avoids editing the large legacy React file.
+The 60-minute B1 lesson contains:
 
-`staff-activity.js`, which is already loaded by the legacy CRM and other staff work surfaces, now owns a bounded staff-only quick entry on the legacy CRM home:
+- answer-safe diagnostic vocabulary checks;
+- vocabulary-native activation;
+- lexical/collocation controlled practice;
+- communicative roleplay plus a changed transfer situation;
+- final vocabulary-only assessment;
+- Support/Core/Advanced variants with the same stable task-slot count;
+- exact difficult/known word evidence;
+- explicit vocabulary score + teacher handoff.
 
-- only authenticated `admin` / `teacher` / super-admin staff profiles receive the entry;
-- only `/haldus` and `/haldus.html` render it;
-- the entry links directly to `/haldus-teacher-home/`;
-- sign-out removes the entry;
-- Teacher Home is tracked as its own staff activity area (`teacher-home`);
-- no schedule, mastery, finance or calendar data is mutated.
+All routes keep the same B1 learning goal. They vary support/challenge only.
 
-This is a safe integration path while #78 remains independent. A later cleanup may move the same entry into the native React navigation after #78 is resolved, but that is not required for the end-to-end teaching loop to work.
+### Teacher Home routing
 
-## Data and pedagogy invariants
+Teacher Home now uses a bounded goal -> blueprint map:
 
-Unchanged:
+- `EST_B1_CITY_VOCAB` -> `est-b1-city-vocabulary-01`;
+- `EST_B1_CITY_SOLVE_PROBLEM` -> `est-b1-city-problem-solving-01`.
 
-- `students.skillMap` remains the canonical current mastery projection;
-- missing evidence is unknown, never zero;
-- Adaptive `routeBySkill` is runtime support/challenge state, not mastery;
-- session completion is not curriculum goal achievement;
-- no automatic CEFR change;
-- no automatic Adaptive evidence -> `students.skillMap` write;
-- no direct browser reads of private `learningSessions` / `learningEvidence` collections;
-- no finance/calendar/crm-v2 work in the learning slices.
+Supported start/resume links explicitly carry both identities:
+
+`/haldus-adaptive-lesson/?studentId=<studentId>&lessonId=<lessonBlueprintId>`
+
+Active supported sessions get `Jätka tundi`; supported recommended goals get `Alusta tundi`; unsupported goals still open Learning Profile.
+
+### Lesson Mode selection
+
+`haldus-adaptive-lesson/index.html` loads the bounded supported blueprint registry and selects the requested `lessonId`.
+
+Unknown lesson IDs do not silently fall back to a different lesson; the teacher sees a controlled unsupported-lesson message.
+
+For backward compatibility only, a direct old Lesson Mode URL without `lessonId` still defaults to `est-b1-city-problem-solving-01`.
+
+The Summary screen derives score fields from skills actually targeted by the selected lesson, so the new vocabulary lesson shows vocabulary rather than irrelevant grammar/speaking score fields.
+
+### Trusted persistence
+
+`learningSessionApi` now has an explicit allowlist for the two supported lesson blueprints.
+
+For an allowed blueprint, the server owns the persisted:
+
+- lesson title;
+- CEFR level;
+- curriculum goal IDs.
+
+Browser-supplied metadata cannot forge those identities.
+
+Summary evidence uses the actual final session phase instead of the old reference-lesson-only `stage-4-exit` hardcode.
+
+Existing invariants remain unchanged:
+
+- Firebase Admin SDK performs private collection writes;
+- browser does not write `learningSessions` / `learningEvidence` directly;
+- evidence remains append-only/idempotent;
+- `students.skillMap` is not written by this slice;
+- session completion is not goal achievement.
 
 ## Verification status
 
-#91 executable CI gate completed green before merge, including Functions tests, Teacher Home core/UI tests, browser syntax checks and Auth/Firestore/Functions emulator integration.
+Executable head: `cd14a0d7b445a151074fb33cbc7ab8cabf89ac91`.
 
-The current Teacher Home entry slice must pass before Ready for review:
+GitHub Actions `Financial Core emulator` run #262 completed successfully on that executable head.
 
-- `staff-activity.test.js`;
-- full existing root CRM/calendar/learning test bundle through the repository workflow;
-- browser JavaScript syntax checks;
-- no modification to `haldus.html`;
-- production deployment only after owner merge.
+The green gate covers:
 
-## Manual production gates still required
+- Functions unit tests including trusted supported-lesson registry;
+- existing CRM/accounting/calendar/learning root suite;
+- new `adaptive-vocabulary-lesson.test.js` blueprint contract;
+- Teacher Home goal/lesson start-resume routing;
+- multi-blueprint Lesson Mode selection and browser syntax;
+- Auth/Firestore/Functions emulator integration;
+- vocabulary session start + resume;
+- rejection of an unsupported lesson ID;
+- server replacement of forged client title/CEFR/curriculum-goal metadata with canonical lesson metadata;
+- coexistence with the existing problem-solving session;
+- existing per-skill route/evidence/idempotency/skillMap boundaries.
 
-1. Open legacy `haldus.html` as a staff user and confirm the `Õpetaja täna` quick entry is visible after this slice is merged/deployed.
-2. Open Teacher Home and confirm today's real scheduled student appears.
-3. Confirm the student's active Adaptive session can show persisted divergent per-skill routes.
-4. Use `Alusta tundi` or `Jätka tundi` to open Lesson Mode with the correct `studentId`.
-5. Record one teacher judgement/evidence event, return to Teacher Home/Profile, and confirm the context persists.
-6. Complete a lesson and confirm handoff/history remain available before moving to the next student.
+Commits after executable head are documentation-only.
 
-Only after these gates pass should Lesson Builder begin.
+## Deployment boundary for #93
+
+After owner merge and explicit production approval:
+
+1. selectively deploy merged-main `learningSessionApi` to project `keelesepp-5136b`;
+2. verify the normal primary `keelesepp` Vercel main deployment;
+3. do not deploy Firestore/Storage rules or schema changes;
+4. keep `keelesepp-crm-v2` disconnected.
+
+Do not deploy the Function from the PR branch.
+
+## Manual production gate after #93 merge
+
+Use a real B1 student whose next goal is `EST_B1_CITY_VOCAB` (the observed Hanna card is a suitable smoke target if still current):
+
+1. open `Haldus -> Õpetaja täna`;
+2. confirm the card shows `Alusta tundi` instead of `Ava õppimisprofiil`;
+3. click it and verify the correct student + `Linnaprobleemide põhisõnavara` Lesson Mode opens;
+4. record one teacher judgement and one exact word mark;
+5. confirm persisted state/status;
+6. finish the lesson with a vocabulary score and handoff;
+7. return to Teacher Home / Learning Profile and verify context remains visible;
+8. confirm `students.skillMap` was not silently rewritten by the adaptive runtime.
+
+Only after this gate passes should Lesson Builder begin.
 
 ## Known limits
 
-- Curriculum Goal graph v1 covers only one B1 city/services vertical slice.
-- Adaptive persistence currently supports only `est-b1-city-problem-solving-01`.
-- Not every curriculum goal has a Lesson Mode blueprint.
-- Teacher Home is not school-wide analytics; it is a bounded daily teaching queue.
-- PR #78 remains an independent reliability fix and currently conflicts with fresh main.
-- PR #83 remains independent from this slice.
+- Curriculum Goal graph v1 still covers only one B1 city/services vertical slice.
+- Dedicated Lesson Mode blueprints exist for `EST_B1_CITY_VOCAB` and `EST_B1_CITY_SOLVE_PROBLEM` only.
+- `EST_B1_CITY_EXPLAIN_PROBLEM`, `EST_B1_CITY_ASK_HELP` and `EST_B1_CITY_TRANSFER` still fall back to Learning Profile.
+- Blueprints currently use Core task positions as stable activity slots; route variants therefore need equal task counts until activity/content normalization is introduced.
+- Teacher Home is a bounded daily teaching queue, not school-wide analytics.
+- #78 and #83 remain independent old drafts and should not be mixed into #93.
 
 ## Next safe step
 
-Finish CI/review for `agent/teacher-home-entry-v1`, owner merges it, verify the Vercel main deployment, then execute the six manual production gates above. Do not begin Lesson Builder before that loop is confirmed end to end.
+Finish #93 review, owner merges it, deploy merged-main `learningSessionApi`, verify Vercel main, then execute the eight-step production smoke gate above. Lesson Builder remains blocked until that end-to-end teaching loop succeeds.
