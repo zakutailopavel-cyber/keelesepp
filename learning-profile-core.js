@@ -63,7 +63,46 @@
       goalIds,
       goalLabels,
       skillIds,
+      vocabularyIds:[],
+      route:'',
+      teacherJudgement:'',
+      taskResult:null,
+      kind:'lesson_summary',
+      phaseId:'',
+      activityId:'',
+      sessionStatus:'completed',
+      handoffText:'',
       summaryVersion:Number(room.summaryVersion||1)||1
+    };
+  };
+
+  const normalizeAdaptiveEvidence=(event,sessionMap={})=>{
+    if(!event||typeof event!=='object') return null;
+    const session=sessionMap[event.sessionId]||{};
+    const createdAt=event.createdAt||event.createdAtIso||session.completedAt||session.updatedAt||session.startedAt||null;
+    const taskResult=event.taskResult===null||event.taskResult===undefined||event.taskResult===''?null:clampScore(event.taskResult);
+    return {
+      id:cleanText(event.id||'',160),
+      source:'adaptive_lesson_evidence',
+      title:cleanText(session.lessonTitle||event.lessonTitle||'Adaptive Lesson',180),
+      teacherName:cleanText(session.teacherName||event.teacherName||'',160),
+      completedAt:createdAt,
+      completedAtMillis:timestampMillis(createdAt),
+      teacherComment:cleanText(event.note||'',800),
+      nextHomework:'',
+      goalIds:unique(session.curriculumGoalIds).map(id=>cleanText(id,160)).filter(Boolean),
+      goalLabels:[],
+      skillIds:unique(event.skillIds).map(id=>cleanText(id,120)).filter(Boolean),
+      vocabularyIds:unique(event.vocabularyIds).map(id=>cleanText(id,120)).filter(Boolean),
+      route:cleanText(event.route||'',20),
+      teacherJudgement:cleanText(event.teacherJudgement||'',30),
+      taskResult,
+      kind:cleanText(event.kind||'learning_evidence',40),
+      phaseId:cleanText(event.phaseId||'',100),
+      activityId:cleanText(event.activityId||'',140),
+      sessionStatus:cleanText(session.status||'',30),
+      handoffText:cleanText(session.handoffText||'',6000),
+      summaryVersion:1
     };
   };
 
@@ -77,7 +116,22 @@
     },{});
   };
 
-  const buildLearningProfile=({student={},rooms=[],skillLabels={},recentLimit=6}={})=>{
+  const latestVocabularyReviewIds=evidence=>{
+    const seen=new Set();
+    const review=[];
+    [...(Array.isArray(evidence)?evidence:[])]
+      .sort((a,b)=>(b.completedAtMillis||0)-(a.completedAtMillis||0))
+      .forEach(item=>{
+        (item.vocabularyIds||[]).forEach(wordId=>{
+          if(seen.has(wordId)) return;
+          seen.add(wordId);
+          if(item.teacherJudgement==='needs_help') review.push(wordId);
+        });
+      });
+    return review;
+  };
+
+  const buildLearningProfile=({student={},rooms=[],adaptiveEvidence=[],learningSessions=[],skillLabels={},recentLimit=6}={})=>{
     const skillMap=normalizeSkillMap(student.skillMap);
     const skills=Object.entries(skillMap)
       .map(([id,score])=>({
@@ -93,16 +147,28 @@
     const strongSkills=skills.filter(skill=>skill.status==='strong').sort((a,b)=>b.score-a.score);
     const developingSkills=skills.filter(skill=>skill.status==='developing');
 
-    const recentEvidence=(Array.isArray(rooms)?rooms:[])
+    const liveEvidence=(Array.isArray(rooms)?rooms:[])
       .filter(room=>!student.id||room?.studentId===student.id)
       .map(normalizeSummaryEvidence)
-      .filter(Boolean)
+      .filter(Boolean);
+
+    const sessionMap=Object.fromEntries((Array.isArray(learningSessions)?learningSessions:[])
+      .filter(item=>item&&item.id)
+      .map(item=>[item.id,item]));
+    const adaptive=(Array.isArray(adaptiveEvidence)?adaptiveEvidence:[])
+      .filter(item=>!student.id||item?.studentId===student.id)
+      .map(item=>normalizeAdaptiveEvidence(item,sessionMap))
+      .filter(Boolean);
+
+    const limit=Math.max(1,Math.min(20,Number(recentLimit)||6));
+    const recentEvidence=[...liveEvidence,...adaptive]
       .sort((a,b)=>b.completedAtMillis-a.completedAtMillis)
-      .slice(0,Math.max(1,Math.min(20,Number(recentLimit)||6)));
+      .slice(0,limit);
 
     const recentSkillIds=unique(recentEvidence.flatMap(item=>item.skillIds));
     const recentGoalIds=unique(recentEvidence.flatMap(item=>item.goalIds));
     const recentGoalLabels=unique(recentEvidence.flatMap(item=>item.goalLabels));
+    const reviewVocabularyIds=latestVocabularyReviewIds(adaptive);
 
     const assessedCount=skills.length;
     const average=assessedCount?Math.round(skills.reduce((sum,skill)=>sum+skill.score,0)/assessedCount):null;
@@ -123,17 +189,20 @@
         cautionCount:cautionSkills.length,
         strongCount:strongSkills.length,
         developingCount:developingSkills.length,
-        evidenceCount:recentEvidence.length
+        evidenceCount:recentEvidence.length,
+        adaptiveEvidenceCount:adaptive.length,
+        liveSummaryCount:liveEvidence.length
       },
       focusSkills,
       cautionSkills,
       strongSkills,
       attention,
       recentEvidence,
+      adaptiveEvidence:adaptive,
       recommendations:{
         focusSkillIds:focusSkills.map(skill=>skill.id),
         cautionSkillIds:cautionSkills.map(skill=>skill.id),
-        reviewVocabularyIds:[],
+        reviewVocabularyIds,
         nextGoalIds:[],
         recentGoalIds,
         recentGoalLabels,
@@ -148,7 +217,9 @@
     humanizeSkillId,
     timestampMillis,
     normalizeSummaryEvidence,
+    normalizeAdaptiveEvidence,
     normalizeSkillMap,
+    latestVocabularyReviewIds,
     buildLearningProfile
   };
 });
