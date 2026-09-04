@@ -1,6 +1,6 @@
 # KeeleSepp Adaptive Lesson System v1
 
-Status: foundation + persisted Learning Session/evidence loop + Learning Profile projection + phase-specific Lesson Mode workspace slice in PR #88
+Status: foundation + persisted Learning Session/evidence loop + Learning Profile projection + phase-specific Lesson Mode + per-skill Adaptive Engine v1 in PR #89
 
 ## Purpose
 
@@ -22,7 +22,7 @@ Each adaptive lesson has one shared goal and three routes inside the same CEFR/c
 
 These routes are not CEFR levels. A B1 lesson remains B1 on all routes. The route changes support, independence and transfer demand, not the programme level.
 
-A learner is never permanently labelled by one result. Support may change after every meaningful task and, later, independently by skill.
+A learner is never permanently labelled by one result. Support may change after every meaningful task and independently by skill. The active Learning Session may therefore hold Vocabulary Advanced, Grammar Core and Speaking Support at the same time.
 
 ## Teacher UX contract — Lesson Mode
 
@@ -68,7 +68,7 @@ Canonical workspace types:
 - `assessment`;
 - `summary`.
 
-The phase-specific renderer in PR #88 is the first implementation of this contract for the B1 city/problem-solving reference lesson.
+The phase-specific renderer merged in #88 is the first implementation of this contract for the B1 city/problem-solving reference lesson.
 
 Current reference mapping:
 
@@ -82,7 +82,7 @@ Current reference mapping:
 
 `scene` remains available for an activity with an exact relevant visual, but an image is no longer a permanent part of every workspace.
 
-The implementation details and acceptance gate are in `docs/LESSON_WORKSPACES_MVP.md`.
+The workspace implementation details are in `docs/LESSON_WORKSPACES_MVP.md`.
 
 ## Workspace semantics
 
@@ -97,7 +97,7 @@ Rules:
 - no word bank unless the diagnostic explicitly measures supported performance;
 - teacher may reveal the check answer only after the response.
 
-The previous universal bus scene violated this contract because it visibly contained `hilineb` during a task asking the learner to produce that language. PR #88 removes the universal scene from diagnostic.
+The previous universal bus scene violated this contract because it visibly contained `hilineb` during a task asking the learner to produce that language. #88 removed the universal scene from diagnostic.
 
 ### Vocabulary
 
@@ -230,19 +230,31 @@ Supported foundation mastery dimensions are vocabulary, grammar, reading, listen
 
 Only skills actually assessed should receive mastery values. Missing evidence is not failure.
 
-`students.skillMap` remains the canonical current mastery projection. Adaptive sessions currently add evidence first; the Learning Profile displays that evidence without silently rewriting `skillMap`.
+`students.skillMap` remains the canonical current mastery projection. Adaptive sessions add evidence and adaptive route state first; the Learning Profile displays evidence without silently rewriting `skillMap`.
 
 A separately validated projection boundary is required before adaptive evidence may update canonical mastery.
 
-## Route recommendation
+## Per-skill route recommendation
 
-Current teacher-facing route semantics:
+`learningSessions.routeBySkill` is adaptive runtime state, not mastery.
 
-- needs help -> move toward Support;
-- managed -> keep current route;
-- too easy -> move toward Advanced.
+A skill with no route yet uses Core as a bounded fallback. Missing route state does not mean Support and is not a zero score.
 
-The target next implementation slice is deterministic per-skill Adaptive Engine v1, where vocabulary may be Advanced while speaking remains Support inside the same B1 lesson.
+Teacher judgement moves each affected skill one bounded step from that skill's own current route:
+
+- `needs_help`: Advanced -> Core -> Support;
+- `managed`: keep the current skill route;
+- `too_easy`: Support -> Core -> Advanced.
+
+Unrelated skill routes stay unchanged.
+
+For a multi-skill activity, the visible workspace uses the most supportive route required by the affected skills. Example: Grammar Core + Speaking Support renders the activity on Support. This avoids removing scaffolding required by one skill simply because another skill is stronger.
+
+Navigation may change which route is visible because a new activity targets different skills, but navigation is not evidence and must not mutate `routeBySkill`.
+
+Word-level vocabulary marks remain evidence but do not automatically change the whole vocabulary route. Teacher judgement remains the explicit adaptive route signal in v1.
+
+The complete deterministic contract is in `docs/PER_SKILL_ADAPTIVE_ENGINE_V1.md`.
 
 ## Learning Session and evidence
 
@@ -253,7 +265,7 @@ It connects:
 - student and teacher identity;
 - lesson blueprint identity;
 - current phase/activity/index;
-- current route and `routeBySkill` context;
+- current effective route and `routeBySkill` context;
 - evidence count and assessed skill IDs;
 - final teacher note/handoff;
 - active/completed state.
@@ -288,7 +300,9 @@ Browser Lesson Mode does not receive direct Firestore write permission for `lear
 - request-id idempotency;
 - active session state.
 
-Firebase Admin SDK performs writes.
+For per-skill adaptation, the Function is authoritative: it computes the expected per-skill transition from persisted `routeBySkill`, affected skill IDs and canonical teacher judgement. A browser-supplied `nextRouteBySkill` is only a consistency check. Legacy clients may omit it and still receive the same server-computed transition.
+
+Firebase Admin SDK performs writes. The browser cannot use a route patch to change unrelated skills or skip multiple route steps.
 
 The Firestore student document path is authoritative for identity; a stored `id` field cannot redirect session ownership.
 
@@ -312,6 +326,8 @@ Opening Lesson Mode with `?studentId=<id>` and an authenticated staff user start
 
 Without `studentId`, Lesson Mode stays in Preview and remains non-persistent.
 
+A resumed session restores persisted `routeBySkill`. Existing sessions that have only some skill keys remain valid; missing skills use Core until teacher evidence changes them.
+
 ## Lesson close and handoff
 
 `Lõpeta tund` opens Summary; it does not mark mastery or complete persistence by itself.
@@ -322,15 +338,16 @@ The completed session retains the teacher note/handoff for later read-side use.
 
 ## Reference implementation
 
-- `adaptive-lessons/est-b1-city-problem-solving.js` — first B1 reference blueprint; now includes explicit workspace metadata.
+- `adaptive-lessons/est-b1-city-problem-solving.js` — first B1 reference blueprint; includes explicit workspace and evidence-skill metadata.
 - `adaptive-lesson-core.js` — original pure diagnostic/mastery/handoff logic.
+- `adaptive-skill-engine.js` — pure deterministic per-skill route engine.
 - `lesson-workspace-core.js` — pure phase/workspace projection and route-aware view-model logic.
 - `learning-session-core.js` — pure Learning Session/evidence normalization helpers.
 - `learning-session-store.js` — authenticated browser client for persistence.
-- `functions/learning-session-api.js` — trusted session/evidence writer.
+- `functions/learning-session-api.js` — trusted session/evidence and per-skill-route writer.
 - `learning-profile-evidence-store.js` + `functions/learning-profile-evidence-api.js` — trusted adaptive-evidence read projection.
-- `haldus-adaptive-lesson/index.html` — focused live teaching shell with phase-specific workspace renderers.
-- `adaptive-lessons/scenes.js` — exact scene metadata registry; no longer a universal Lesson Mode background.
+- `haldus-adaptive-lesson/index.html` — focused live teaching shell with phase-specific and per-skill route-aware workspaces.
+- `adaptive-lessons/scenes.js` — exact scene metadata registry; no universal Lesson Mode background.
 
 ## Integration boundary
 
@@ -343,8 +360,8 @@ Safe evolution:
 3. expose Learning Profile read-only — done;
 4. persist Learning Session/evidence — done;
 5. project adaptive evidence into Learning Profile — done;
-6. phase-specific workspace renderer — current PR #88;
-7. deterministic per-skill Adaptive Engine v1;
+6. phase-specific workspace renderer — done in #88;
+7. deterministic per-skill Adaptive Engine v1 — current PR #89;
 8. curriculum goal/prerequisite graph;
 9. Teacher Home vertical flow;
 10. normalize Lesson Builder/Content Engine around stable activity IDs;
@@ -360,6 +377,9 @@ Safe evolution:
 - diagnostic and assessment do not leak answers;
 - images appear only when they materially support the activity;
 - Support/Core/Advanced change scaffolding without changing CEFR;
+- vocabulary, grammar and speaking may hold different adaptive routes in one session;
+- multi-skill activities use the most supportive required affected-skill route;
+- navigation does not invent or overwrite adaptive skill routes;
 - teacher judgements and exact vocabulary marks persist for a real student;
 - repeated evidence requests are idempotent;
 - navigation does not create evidence;

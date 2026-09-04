@@ -14,11 +14,12 @@ function inlineScripts(source){
     .filter(Boolean);
 }
 
-test('Lesson Mode loads Learning Session and phase-specific workspace cores with Firebase Auth only',()=>{
+test('Lesson Mode loads Learning Session, workspace and per-skill adaptive cores with Firebase Auth only',()=>{
   assert.match(html,/firebase-auth-compat\.js/);
   assert.match(html,/\/learning-session-core\.js/);
   assert.match(html,/\/learning-session-store\.js/);
   assert.match(html,/\/lesson-workspace-core\.js/);
+  assert.match(html,/\/adaptive-skill-engine\.js/);
   assert.doesNotMatch(html,/firebase-firestore-compat\.js/);
 });
 
@@ -64,6 +65,12 @@ test('persistence client authenticates requests and reuses idempotency ids after
   assert.match(store,/clearRetryRequestId\(retryKey\)/);
 });
 
+test('judgement persistence includes the deterministic per-skill route patch',()=>{
+  assert.match(store,/nextRouteBySkill=\{\}/);
+  assert.match(store,/nextRouteBySkill:routePatch/);
+  assert.match(store,/JSON\.stringify\(routePatch\)/);
+});
+
 test('reference diagnostic tasks explicitly map to evidence skills and workspace type',()=>{
   assert.equal(lesson.id,'est-b1-city-problem-solving-01');
   assert.equal(lesson.diagnostic.workspaceType,'diagnostic');
@@ -103,20 +110,31 @@ test('diagnostic and assessment keep answer model hidden until teacher explicitl
   assert.match(workspaceCore,/showExpectedInitially:false/);
 });
 
-test('teacher judgement updates UI before network confirmation and rolls back on failure',()=>{
+test('Lesson Mode derives current workspace route from routeBySkill, not one permanent global route',()=>{
+  assert.match(html,/routeBySkill:\{\}/);
+  assert.match(html,/function itemSkillIds/);
+  assert.match(html,/skillEngine\.routeForSkills/);
+  assert.match(html,/skillEngine\.normalizeRouteBySkill\(snap\.session\.routeBySkill/);
+  assert.match(html,/syncRoute\(items\[state\.index\],'core'\)/);
+  assert.match(html,/Oskusepõhised rajad/);
+});
+
+test('teacher judgement updates per-skill UI before network confirmation and rolls back on failure',()=>{
   const start=html.indexOf("document.querySelectorAll('[data-judge]')");
   const end=html.indexOf("$('prev').onclick",start);
   const handler=html.slice(start,end);
-  const optimisticRating=handler.indexOf('state.ratings[item.id]=j');
-  const optimisticRoute=handler.indexOf('state.route=nextRoute');
+  const decision=handler.indexOf('skillEngine.applyJudgement');
+  const optimisticMap=handler.indexOf('state.routeBySkill=decision.routeBySkill');
+  const optimisticRoute=handler.indexOf('state.route=decision.effectiveAfter');
   const savingStatus=handler.indexOf("showSavingStatus('Õpetaja hinnangu salvestamine…')");
   const request=handler.indexOf('await sessionStore.recordJudgement');
-  assert.ok(optimisticRating>=0&&optimisticRating<request);
+  assert.ok(decision>=0&&decision<request);
+  assert.ok(optimisticMap>=0&&optimisticMap<request);
   assert.ok(optimisticRoute>=0&&optimisticRoute<request);
   assert.ok(savingStatus>=0&&savingStatus<request);
-  assert.match(handler,/previousRating=state\.ratings\[item\.id\]/);
-  assert.match(handler,/previousRoute=state\.route/);
-  assert.match(handler,/delete state\.ratings\[item\.id\]/);
+  assert.match(handler,/previousRouteBySkill=\{\.\.\.state\.routeBySkill\}/);
+  assert.match(handler,/nextRouteBySkill:decision\.nextBySkill/);
+  assert.match(handler,/state\.routeBySkill=previousRouteBySkill/);
   assert.match(handler,/state\.route=previousRoute/);
 });
 

@@ -37,7 +37,54 @@ test('legacy teacher aliases are narrow and deterministic',()=>{
 
 test('routeBySkill and assessed-skill merges deduplicate stable ids',()=>{
   assert.deepEqual(_test.mergeRouteBySkill({vocabulary:'core'},['grammar','grammar'],'support'),{vocabulary:'core',grammar:'support'});
+  assert.deepEqual(_test.applyRouteBySkillPatch({vocabulary:'core'},{grammar:'support'}),{vocabulary:'core',grammar:'support'});
   assert.deepEqual(_test.mergeAssessedSkills(['vocabulary'],['grammar','vocabulary']),['vocabulary','grammar']);
+});
+
+test('trusted route transition moves one step from each skill own route',()=>{
+  assert.equal(_test.transitionRoute('advanced','needs_help'),'core');
+  assert.equal(_test.transitionRoute('core','needs_help'),'support');
+  assert.equal(_test.transitionRoute('support','too_easy'),'core');
+  assert.equal(_test.transitionRoute('core','too_easy'),'advanced');
+  assert.equal(_test.transitionRoute('advanced','managed'),'advanced');
+});
+
+test('multi-skill effective route uses the most supportive required route',()=>{
+  assert.equal(_test.routeForSkills({grammar:'core',speaking:'support'},['grammar','speaking'],'advanced'),'support');
+  assert.equal(_test.routeForSkills({grammar:'advanced'},['grammar','speaking'],'core'),'core');
+});
+
+test('server computes the full per-skill transition patch independently of the browser',()=>{
+  const current={grammar:'support',speaking:'core',vocabulary:'advanced'};
+  assert.deepEqual(
+    _test.perSkillTransitionPatch(current,['grammar','speaking'],'too_easy','core'),
+    {grammar:'core',speaking:'advanced'}
+  );
+  assert.deepEqual(
+    _test.perSkillTransitionPatch(current,['vocabulary','grammar'],'needs_help','core'),
+    {vocabulary:'core',grammar:'support'}
+  );
+});
+
+test('optional browser per-skill patch may only confirm the server-computed transition',()=>{
+  const expected={grammar:'core',speaking:'advanced'};
+  assert.deepEqual(
+    _test.cleanPerSkillRoutePatch({grammar:'core',speaking:'advanced'},expected),
+    expected
+  );
+  assert.deepEqual(_test.cleanPerSkillRoutePatch(undefined,expected),{},'legacy clients may omit the patch');
+  assert.throws(()=>_test.cleanPerSkillRoutePatch(
+    {grammar:'advanced',speaking:'advanced'},
+    expected
+  ),/Invalid per-skill route transition/);
+  assert.throws(()=>_test.cleanPerSkillRoutePatch(
+    {grammar:'core',speaking:'advanced',vocabulary:'support'},
+    expected
+  ),/unrelated skill/);
+  assert.throws(()=>_test.cleanPerSkillRoutePatch(
+    {grammar:'core'},
+    expected
+  ),/cover every affected skill/);
 });
 
 test('idempotent evidence must belong to the same session identity',()=>{
