@@ -1,6 +1,6 @@
 # KeeleSepp Adaptive Lesson System v1
 
-Status: foundation + focused Lesson Mode prototype
+Status: foundation + focused Lesson Mode prototype + Learning Session/evidence persistence slice
 
 ## Purpose
 
@@ -30,7 +30,7 @@ The live lesson is a **focus mode**, not a CRM dashboard.
 
 When a lesson is running, normal CRM navigation, reports, settings and unrelated management controls must disappear from the primary screen. The teacher should not need to understand the adaptive algorithm.
 
-The top bar contains only essential context: lesson, student, elapsed time, a small current-route indicator and lesson finish action.
+The top bar contains only essential context: lesson, student, elapsed time, a small current-route indicator, persistence status and lesson finish action.
 
 ### One activity at a time
 
@@ -78,6 +78,8 @@ The primary adaptive input is deliberately simple:
 - **Sai hakkama / Managed** — keep the current support level;
 - **Liiga kerge / Too easy** — reduce scaffolding and increase independence/transfer.
 
+The canonical persisted evidence values are `needs_help`, `managed` and `too_easy`.
+
 The system may calculate numerical evidence internally, but percentage, attempts, hint counters and mastery tables must not dominate the live teaching screen.
 
 A route change should be communicated as a short transient notice, not a permanent analytics block.
@@ -91,6 +93,8 @@ Detailed mastery entry is only available in the final lesson summary. An unasses
 ### Vocabulary during the lesson
 
 Only the vocabulary relevant to the current activity should dominate the workspace. The full lesson list remains one click away. A teacher may mark exact words as difficult or known; unmarked vocabulary remains unassessed.
+
+For the reference persisted flow, exact difficult/known marks create `vocabulary_mark` evidence events rather than immediately changing mastery.
 
 ## Scene contract
 
@@ -126,7 +130,7 @@ Every adaptive lesson should contain:
 - prerequisites;
 - lesson-specific vocabulary;
 - language/grammar focus;
-- diagnostic items;
+- diagnostic items with explicit evidence skill mapping where persisted;
 - at least three teaching stages;
 - all three routes inside every stage;
 - workspace type for each activity/phase;
@@ -145,7 +149,7 @@ Only skills actually assessed should receive mastery values. Supported foundatio
 
 A high overall average must not automatically allow progression when a lesson-defined critical skill remains below threshold.
 
-The existing `students.skillMap` remains the canonical current skill-mastery projection. Adaptive sessions should add evidence and update that projection through a validated persistence boundary rather than creating a competing mastery source.
+The existing `students.skillMap` remains the canonical current skill-mastery projection. Adaptive sessions add evidence first. A later, separately validated projection boundary may update `skillMap`; release slice 2 intentionally does not.
 
 ## Route recommendation
 
@@ -161,25 +165,85 @@ Target evolution is per-skill/per-phase routing. For example, vocabulary may run
 
 ## Learning Session and evidence
 
-The target runtime boundary is a dedicated **Learning Session** connecting student, teacher, lesson blueprint, curriculum goal IDs, current phase, route-by-skill and evidence.
+A dedicated **Learning Session** is now the persisted runtime boundary for the single reference lesson.
 
-The session must keep pedagogical state separate from schedule/accounting status. Completion does not by itself produce mastery.
+The session connects:
 
-Evidence should explain why mastery changed and should include the relevant phase/activity, skills, route, teacher judgement/task result and support used. Completed evidence should be append-only or correction-only rather than silently rewritten.
+- student and teacher identity;
+- lesson blueprint identity;
+- current phase/activity/index;
+- current route and `routeBySkill` context;
+- evidence count and assessed skill IDs;
+- final teacher note and handoff;
+- active/completed state.
 
-The complete proposed contracts are defined in `docs/KEELESEPP_CORE_BLUEPRINT.md`. No production persistence schema is created merely by documenting that target.
+The session remains pedagogical state. It is separate from schedule/accounting lesson status. Completion does not by itself produce mastery.
+
+### Evidence semantics
+
+`learningEvidence` explains what was actually observed. Current persisted evidence kinds are:
+
+- `teacher_judgement`;
+- `vocabulary_mark`;
+- `summary_score`.
+
+Each event records session/student/teacher/lesson identity, phase/activity, relevant skills, optional exact vocabulary IDs, current route, evidence payload and timestamp.
+
+Navigation/progress is not evidence and does not increase evidence count.
+
+Evidence is append-only in this slice. There is no browser or API update/delete action for an evidence event. Once the session is completed, new evidence additions are rejected.
+
+### Trusted persistence boundary
+
+Browser Lesson Mode does not receive direct Firestore write permission for `learningSessions` or `learningEvidence`.
+
+`learning-session-store.js` authenticates to the HTTPS Cloud Function `learningSessionApi`. The function validates:
+
+- Firebase ID token;
+- teacher/admin role;
+- teacher/student scope;
+- supported reference lesson;
+- route/index/input bounds;
+- request-id idempotency;
+- active session state.
+
+The Firebase Admin SDK performs the writes. Unmatched Firestore paths remain client-denied. This keeps the append-only evidence invariant server-side and avoids a broad client-write rule surface.
+
+The full release-slice contract is documented in `docs/LEARNING_SESSION_EVIDENCE_MVP.md`.
+
+### Start / resume
+
+When Lesson Mode is opened with `?studentId=<id>` and an authenticated staff account, the API starts or resumes the active session for the same teacher + student + reference lesson.
+
+Without `studentId`, Lesson Mode stays in Preview and preserves the non-persistent prototype workflow.
+
+### Lesson close
+
+`Lõpeta tund` only opens the summary. It does not mark mastery or persist a completed session by itself.
+
+The teacher explicitly creates the handoff. Only entered summary scores become `summary_score` evidence; blank skill fields stay absent. Then the session becomes completed.
+
+`students.skillMap` is not modified in this release slice.
 
 ## Teacher handoff
 
-At lesson end the system must create a compact educational handoff containing student/lesson identity, final route context, assessed mastery, weak skills, exact vocabulary needing review, teacher note, recommended next action and next lesson/goal when known.
+At lesson end the system creates a compact educational handoff containing student/lesson context, explicit final scores when provided, exact vocabulary marked for review and the teacher note.
+
+The persisted session keeps this handoff for later read-side integration. Automatic next curriculum-goal selection is still deferred.
 
 ## Reference implementation
 
-`adaptive-lessons/est-b1-city-problem-solving.js` is the first B1 reference blueprint.
+`adaptive-lessons/est-b1-city-problem-solving.js` is the first B1 reference blueprint and now includes explicit diagnostic `skillIds` for persisted evidence.
 
-`adaptive-lesson-core.js` provides pure decision/mastery/handoff logic.
+`adaptive-lesson-core.js` provides the original pure decision/mastery/handoff logic.
 
-`haldus-adaptive-lesson/index.html` is the current focused Lesson Mode prototype. It keeps session state local and does not write to Firestore.
+`learning-session-core.js` provides pure Learning Session/evidence normalization and validation helpers.
+
+`learning-session-store.js` is the authenticated browser client for the trusted persistence API.
+
+`functions/learning-session-api.js` owns server-side staff scope, idempotency, session mutation and append-only evidence writes.
+
+`haldus-adaptive-lesson/index.html` connects teacher judgements, progress, vocabulary marks and explicit final summary to the persistence client while preserving Preview mode.
 
 `adaptive-lessons/scenes.js` resolves stable scene metadata and Firebase Storage URLs for the current reference lesson.
 
@@ -187,13 +251,14 @@ At lesson end the system must create a compact educational handoff containing st
 
 Do not replace curriculum, lesson accounting or Live Classroom in one change. Safe order:
 
-1. prove the blueprint and decision model;
-2. prove focused Lesson Mode and phase-specific workspaces;
-3. expose one selected student's Learning Profile read-only;
-4. add dedicated adaptive session/evidence persistence after the profile/read model is accepted;
-5. project final summary into the existing canonical `students.skillMap` through validated rules/transactions;
-6. connect curriculum goal recommendations;
-7. migrate selected curriculum lessons only after the vertical flow is stable.
+1. prove the blueprint and decision model — done;
+2. prove focused Lesson Mode shell — done;
+3. expose one selected student's Learning Profile read-only — done in PR #85;
+4. add dedicated adaptive session/evidence persistence for one reference lesson — release slice 2;
+5. build phase-specific Lesson Mode workspace renderer on top of the persisted session contract;
+6. project evidence into the existing canonical `students.skillMap` only through a separately validated policy/transaction boundary;
+7. connect curriculum goal recommendations;
+8. migrate selected curriculum lessons only after the vertical flow is stable.
 
 Calendar and finance continue using their existing lesson status. Pedagogical mastery remains separate.
 
@@ -206,9 +271,13 @@ Calendar and finance continue using their existing lesson status. Pedagogical ma
 - the workspace changes with the pedagogical phase instead of forcing one layout on the whole lesson;
 - images/scenes appear only where they support the task and do not reveal diagnostic/assessment answers;
 - support can change without changing CEFR/category;
+- progress alone does not create learning evidence;
+- teacher judgements and exact vocabulary marks are persisted as evidence for a real student;
+- repeated evidence requests are idempotent;
+- a completed session rejects new evidence;
 - missing skill scores are not converted to zero;
-- vocabulary review identifies exact words;
-- the next teacher receives an actionable handoff;
+- `students.skillMap` is not silently changed by the evidence collection slice;
+- the next teacher can eventually receive an actionable persisted handoff;
 - existing curriculum lessons continue working unchanged;
-- automated tests cover the decision core and Lesson Mode contract;
+- automated tests cover the decision core, Lesson Mode contract and persistence boundary;
 - project state is updated after every substantial implementation step.
