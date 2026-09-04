@@ -98,6 +98,54 @@ test("Learning Session API persists independent per-skill routes and append-only
     }),
   ]);
 
+  const vocabularyStarted = await postLearning(teacherToken, {
+    action: "start_or_resume",
+    studentId,
+    lessonBlueprintId: "est-b1-city-vocabulary-01",
+    lessonTitle: "FORGED CLIENT TITLE",
+    curriculumGoalIds: ["FORGED_CLIENT_GOAL"],
+    cefrLevel: "C2",
+    currentIndex: 0,
+    currentPhaseId: "diagnostic",
+    currentActivityId: "vocab-d1",
+    currentRoute: "core",
+    skillIds: ["vocabulary"],
+  });
+  assert.equal(vocabularyStarted.status, 200, JSON.stringify(vocabularyStarted.body));
+  assert.equal(vocabularyStarted.body.resumed, false);
+  assert.equal(vocabularyStarted.body.session.lessonBlueprintId, "est-b1-city-vocabulary-01");
+  assert.equal(vocabularyStarted.body.session.lessonTitle, "Linnaprobleemide põhisõnavara");
+  assert.deepEqual(vocabularyStarted.body.session.curriculumGoalIds, ["EST_B1_CITY_VOCAB"]);
+  assert.equal(vocabularyStarted.body.session.cefrLevel, "B1");
+  assert.deepEqual(vocabularyStarted.body.session.routeBySkill, { vocabulary: "core" });
+
+  const vocabularyResumed = await postLearning(teacherToken, {
+    action: "start_or_resume",
+    studentId,
+    lessonBlueprintId: "est-b1-city-vocabulary-01",
+    lessonTitle: "Another client title",
+    curriculumGoalIds: ["ANOTHER_CLIENT_GOAL"],
+    cefrLevel: "A1",
+    currentIndex: 0,
+    currentPhaseId: "diagnostic",
+    currentActivityId: "vocab-d1",
+    currentRoute: "core",
+    skillIds: ["vocabulary"],
+  });
+  assert.equal(vocabularyResumed.status, 200, JSON.stringify(vocabularyResumed.body));
+  assert.equal(vocabularyResumed.body.resumed, true);
+  assert.equal(vocabularyResumed.body.session.id, vocabularyStarted.body.session.id);
+
+  const unsupportedStart = await postLearning(teacherToken, {
+    action: "start_or_resume",
+    studentId,
+    lessonBlueprintId: "forged-adaptive-lesson",
+    currentIndex: 0,
+    currentRoute: "core",
+    skillIds: ["vocabulary"],
+  });
+  assert.equal(unsupportedStart.status, 400, JSON.stringify(unsupportedStart.body));
+
   const outsiderStart = await postLearning(outsiderToken, {
     action: "start_or_resume",
     studentId,
