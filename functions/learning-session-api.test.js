@@ -39,3 +39,11 @@ test('routeBySkill and assessed-skill merges deduplicate stable ids',()=>{
   assert.deepEqual(_test.mergeRouteBySkill({vocabulary:'core'},['grammar','grammar'],'support'),{vocabulary:'core',grammar:'support'});
   assert.deepEqual(_test.mergeAssessedSkills(['vocabulary'],['grammar','vocabulary']),['vocabulary','grammar']);
 });
+
+test('idempotent evidence must belong to the same session identity',()=>{
+  const session={studentId:'student-1',teacherUid:'teacher-1',lessonBlueprintId:'lesson-1'};
+  const same={sessionId:'session-1',studentId:'student-1',teacherUid:'teacher-1',lessonBlueprintId:'lesson-1'};
+  assert.doesNotThrow(()=>_test.assertSameEvidenceIdentity(same,session,'session-1'));
+  assert.throws(()=>_test.assertSameEvidenceIdentity({...same,sessionId:'session-2'},session,'session-1'),/different learning evidence/);
+  assert.throws(()=>_test.assertSameEvidenceIdentity({...same,teacherUid:'teacher-2'},session,'session-1'),/different learning evidence/);
+});
