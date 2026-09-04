@@ -57,6 +57,7 @@
       {id:'problem-reason-solution',label:'Probleem → põhjus → lahendus',patterns:['Probleem on selles, et ...','See juhtus, sest ...','Seetõttu võiks ...']}
     ],
     diagnostic:{
+      workspaceType:'diagnostic',
       durationMinutes:7,
       instruction:'Näita olukordi ükshaaval. Ära paranda enne diagnostika lõppu.',
       items:[
@@ -72,6 +73,7 @@
       {
         id:'stage-1-vocabulary',
         title:'1. Sõnavara aktiveerimine',
+        workspaceType:'vocabulary',
         minutes:13,
         skill:'vocabulary',
         checkpoint:'10 punkti. 0–5 → tugi; 6–8 → põhi; 9–10 ilma vihjeta → edasijõudnu.',
@@ -108,6 +110,7 @@
       {
         id:'stage-2-language',
         title:'2. Probleemi selgitamine ja abi küsimine',
+        workspaceType:'controlled_practice',
         minutes:15,
         skill:'grammar',
         checkpoint:'Hinda 5 lauset: arusaadavus, viisakus, konstruktsioon, sõnajärg, põhjus-tagajärg.',
@@ -144,6 +147,8 @@
       {
         id:'stage-3-speaking-transfer',
         title:'3. Rollimäng ja ülekanne uude olukorda',
+        workspaceType:'roleplay',
+        taskWorkspaceTypes:['roleplay','transfer','roleplay'],
         minutes:18,
         skill:'speaking',
         checkpoint:'0–100: ülesande täitmine 40%, arusaadavus 25%, aktiivne sõnavara 20%, keeleline korrektsus 15%.',
@@ -178,6 +183,7 @@
       {
         id:'stage-4-exit',
         title:'4. Lõppkontroll ja handoff',
+        workspaceType:'assessment',
         minutes:7,
         skill:'speaking',
         routes:{
