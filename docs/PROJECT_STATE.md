@@ -4,7 +4,7 @@ Last verified: 2026-09-04, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
 Verified main commit: `cfc6fcf55bc3ac737c406650641a26e0f896956b` (`Learning Profile: project adaptive evidence read-only (#87)`)
 Active branch: `agent/phase-specific-lesson-workspaces`
-Active PR: `#88 Lesson Mode: phase-specific workspaces` (draft until final CI/review)
+Active PR: `#88 Lesson Mode: phase-specific workspaces` (draft; automated gate green, owner visual gate pending)
 Independent open PR: `#83 Tighten Adaptive Lesson desktop layout`
 
 ## Current objective
@@ -126,23 +126,27 @@ Changed:
 - `haldus-adaptive-lesson/index.html`
 - `learning-session-ui.test.js`
 - `.github/workflows/financial-core-emulator.yml`
-- `docs/ADAPTIVE_LESSON_SYSTEM.md` (must record implementation state before completion)
+- `docs/ADAPTIVE_LESSON_SYSTEM.md`
 - this file.
 
-## Verification gate
+## Verification status
 
-Required before #88 can leave draft:
+GitHub Actions `Financial Core emulator` run **#219** completed successfully on implementation head `96c243a78aa9eec6b1b22a7e11bbf43de2c89af9`.
 
-- `lesson-workspace-core.test.js` green;
-- existing Learning Session core/UI tests green;
-- root CRM/accounting/calendar/learning suite green;
-- browser syntax checks green;
-- existing Functions unit/emulator integrations green;
-- manual browser check that at least diagnostic, vocabulary, controlled practice, roleplay, transfer and assessment are visually/functionally distinct;
-- manual check that diagnostic no longer shows the answer-bearing bus scene;
-- manual check that persisted judgement/vocabulary evidence still saves for a real student.
+Green automated gates:
 
-Do not claim #88 complete until final GitHub Actions is green.
+- Functions unit tests;
+- root CRM/accounting/calendar/learning tests including `lesson-workspace-core.test.js` and updated `learning-session-ui.test.js`;
+- browser JavaScript syntax checks including `lesson-workspace-core.js`;
+- existing Auth/Firestore/Functions emulator integration suite.
+
+Still required before #88 can leave draft:
+
+- owner browser review confirming diagnostic, vocabulary, controlled practice, roleplay, transfer and assessment are visually/functionally distinct;
+- owner check that diagnostic no longer shows the answer-bearing bus scene;
+- owner check that persisted judgement/vocabulary evidence still saves for a real student.
+
+Vercel Preview for the latest #88 head is currently queued on the Hobby account, so no preview `READY` claim is made.
 
 ## Known limits
 
@@ -170,4 +174,4 @@ Do not claim #88 complete until final GitHub Actions is green.
 
 ## Next safe step
 
-**Finish #88 with green CI and owner visual review. After merge, implement deterministic per-skill Adaptive Engine v1 against the stable activity/workspace boundaries. Keep `students.skillMap` writes and curriculum-goal automation out of that next slice.**
+**Owner visually reviews #88 in a local/preview browser. If the workspace distinctions and persistence behavior are correct, mark #88 ready for review and merge. After merge, implement deterministic per-skill Adaptive Engine v1. Keep `students.skillMap` writes and curriculum-goal automation out of that next slice.**
