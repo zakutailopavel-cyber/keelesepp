@@ -78,18 +78,24 @@
   }
 
   function curriculumRecommendation(profile){
-    if(!goalCore||!GOALS.length||profile.currentLevel!==goalGraph.level||profile.subject!==goalGraph.subject) return null;
+    if(!goalCore||!GOALS.length||profile.subject!==goalGraph.subject) return null;
+    const graphIds=new Set(GOALS.map(goal=>goal.id));
+    const recentBlueprintId=profile.recommendations.recentLessonBlueprintIds[0]||'';
+    const explicitGraphContext=profile.recommendations.activeGoalIds.some(id=>graphIds.has(id))
+      ||profile.recommendations.completedGoalIds.some(id=>graphIds.has(id))
+      ||GOALS.some(goal=>goal.lessonBlueprintIds.includes(recentBlueprintId));
+    if(profile.currentLevel!==goalGraph.level&&!explicitGraphContext) return null;
     return goalCore.recommendNextGoal({
       goals:GOALS,
-      level:profile.currentLevel,
-      subject:profile.subject,
+      level:goalGraph.level,
+      subject:goalGraph.subject,
       achievedGoalIds:profile.recommendations.completedGoalIds,
       currentGoalIds:profile.recommendations.activeGoalIds,
       skillMap:profile.skillMap,
       legacyContext:{
-        lessonBlueprintId:profile.recommendations.recentLessonBlueprintIds[0]||'',
-        level:profile.currentLevel,
-        subject:profile.subject
+        lessonBlueprintId:recentBlueprintId,
+        level:goalGraph.level,
+        subject:goalGraph.subject
       }
     });
   }
@@ -136,8 +142,8 @@
           ${state.evidenceWarning?`<div class="warning">${esc(state.evidenceWarning)}</div>`:''}
           ${evidence.length?`<div class="evidence-list">${evidence.map(renderEvidence).join('')}</div>`:'<div class="placeholder">Selle õpilase kohta ei leitud veel struktureeritud õppimistõendeid. Tavaline kohalolek ei muutu automaatselt mastery tõendiks.</div>'}
         </section>
-        <section class="card"><div class="card-head"><div class="badge">G</div><div><h3>Viimati saavutatud eesmärgid</h3><div class="card-sub">Kontekst järgmisele õpetajale; ainult lõpetatud struktureeritud tõend võib täita prerequisite’i</div></div></div>${recentGoals.length?`<div class="chips">${recentGoals.map(label=>`<span class="chip">${esc(label)}</span>`).join('')}</div>`:'<div class="placeholder">Struktureeritud eesmärke ei ole veel varasemates kokkuvõtetes.</div>'}</section>
-        <section class="card"><div class="card-head"><div class="badge">→</div><div><h3>Järgmine õppekava eesmärk</h3><div class="card-sub">Deterministlik Curriculum Engine v1 · põhjendus ja prerequisite’id on nähtavad</div></div></div>${nextDirection}<div class="note">Soovitus on read-only. See vaade ei kirjuta Firestore’i ega muuda students.skillMapi. Puuduv oskusetõend ei võrdu nulliga.</div></section>
+        <section class="card"><div class="card-head"><div class="badge">G</div><div><h3>Viimati saavutatud eesmärgid</h3><div class="card-sub">Kontekst järgmisele õpetajale; ainult struktureeritud saavutatud eesmärgi tõend võib täita prerequisite’i</div></div></div>${recentGoals.length?`<div class="chips">${recentGoals.map(label=>`<span class="chip">${esc(label)}</span>`).join('')}</div>`:'<div class="placeholder">Struktureeritud eesmärke ei ole veel varasemates kokkuvõtetes.</div>'}</section>
+        <section class="card"><div class="card-head"><div class="badge">→</div><div><h3>Järgmine õppekava eesmärk</h3><div class="card-sub">Deterministlik Curriculum Engine v1 · põhjendus ja prerequisite’id on nähtavad</div></div></div>${nextDirection}<div class="note">Soovitus on read-only. See vaade ei kirjuta Firestore’i ega muuda students.skillMapi. Adaptive tunni lõpetamine üksi ei märgi õpieesmärki saavutatuks. Puuduv oskusetõend ei võrdu nulliga.</div></section>
       </div>`;
   }
 
