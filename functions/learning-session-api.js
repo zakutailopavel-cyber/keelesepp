@@ -145,8 +145,8 @@ function sessionResponse(doc) {
   return serializeValue({ id: doc.id, ...doc.data() });
 }
 
-function canAccessSession(actor, session) {
-  return actor.isAdmin || session.teacherUid === actor.uid;
+function canMutateSession(actor, session) {
+  return session.teacherUid === actor.uid;
 }
 
 function mergeRouteBySkill(current, skillIds, route) {
@@ -157,6 +157,15 @@ function mergeRouteBySkill(current, skillIds, route) {
 
 function mergeAssessedSkills(current, skillIds) {
   return cleanList([...(Array.isArray(current) ? current : []), ...cleanList(skillIds, 20, 120)], 60, 120);
+}
+
+function assertSameEvidenceIdentity(existing, session, sessionId) {
+  if (existing.sessionId !== sessionId
+    || existing.studentId !== session.studentId
+    || existing.teacherUid !== session.teacherUid
+    || existing.lessonBlueprintId !== session.lessonBlueprintId) {
+    throw httpError(409, 'requestId is already used for different learning evidence');
+  }
 }
 
 async function startOrResume(actor, body) {
@@ -219,7 +228,7 @@ async function getSession(actor, transaction, sessionId) {
   const snap = transaction ? await transaction.get(ref) : await ref.get();
   if (!snap.exists) throw httpError(404, 'Learning session not found');
   const session = snap.data();
-  if (!canAccessSession(actor, session)) throw httpError(403, 'Learning session is outside teacher scope');
+  if (!canMutateSession(actor, session)) throw httpError(403, 'Learning session belongs to a different teacher');
   return { ref, snap, session };
 }
 
@@ -248,6 +257,7 @@ async function appendTeacherEvidence(actor, body, kind) {
     const existingEvidence = await transaction.get(evidenceRef);
     const { ref: sessionRef, snap: sessionSnap, session } = await getSession(actor, transaction, body.sessionId);
     if (existingEvidence.exists) {
+      assertSameEvidenceIdentity(existingEvidence.data(), session, sessionSnap.id);
       return { sessionId: sessionSnap.id, evidenceId: existingEvidence.id, idempotent: true };
     }
     if (session.status !== 'active') throw httpError(409, 'Learning session is not active');
@@ -320,6 +330,9 @@ async function completeSession(actor, body) {
     }));
     const existingEvidence = [];
     for (const entry of scoreEntries) existingEvidence.push(await transaction.get(entry.ref));
+    existingEvidence.forEach((snap, index) => {
+      if (snap.exists) assertSameEvidenceIdentity(snap.data(), session, sessionSnap.id);
+    });
 
     const now = admin.firestore.FieldValue.serverTimestamp();
     const addedSkills = [];
@@ -405,5 +418,6 @@ module.exports = {
     teacherNameMatches,
     mergeRouteBySkill,
     mergeAssessedSkills,
+    assertSameEvidenceIdentity,
   },
 };
