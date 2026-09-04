@@ -2,9 +2,9 @@
 
 Last verified: 2026-09-04, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
-Verified main commit: `cfc6fcf55bc3ac737c406650641a26e0f896956b` (`Learning Profile: project adaptive evidence read-only (#87)`)
-Active branch: `agent/phase-specific-lesson-workspaces`
-Active PR: `#88 Lesson Mode: phase-specific workspaces` — merge-ready after green CI and owner browser review
+Verified main commit: `e2935a3d2a8e0868fcae4418eb82a63b5007b249` (`Lesson Mode: phase-specific workspaces (#88)`)
+Active branch: `agent/per-skill-adaptive-engine-v1`
+Active PR: `#89 Adaptive Engine v1: per-skill Lesson Mode routes` (draft; CI gate running)
 Independent open PR: `#83 Tighten Adaptive Lesson desktop layout`
 
 ## Current objective
@@ -16,179 +16,184 @@ Merged learning foundation:
 1. Core Blueprint — #84;
 2. Learning Profile read-only MVP — #85;
 3. Learning Session + append-only evidence persistence — #86;
-4. Learning Profile evidence projection — #87.
+4. Learning Profile evidence projection — #87;
+5. phase-specific Lesson Mode workspaces — #88.
 
-Current release slice: phase-specific Lesson Mode workspaces for the single B1 reference lesson.
+Current release slice: deterministic per-skill Adaptive Engine v1 for the single B1 reference lesson.
 
 `crm-v2`, finance, calendar and Live Classroom remain outside this slice.
 
-## Production state before this branch
+## Last verified production state
 
-Owner merged #87 and explicitly approved the rollout.
+Before #88/#89, owner explicitly approved and verified the #86/#87 rollout:
 
-Verified production rollout on 2026-09-04:
-
-- Vercel production for `main` commit `cfc6fcf...` reached `READY` and serves `crm.epkoolitus.ee`;
+- Vercel production served `crm.epkoolitus.ee` from main at `cfc6fcf...`;
 - Firebase Functions `learningSessionApi` and `learningProfileEvidenceApi` were selectively deployed to project `keelesepp-5136b`, region `us-central1`;
-- `https://crm.epkoolitus.ee/haldus-learning-profile/` loads real student data without the staged-rollout evidence warning;
-- `https://crm.epkoolitus.ee/haldus-adaptive-lesson/?studentId=<id>` opens a persisted Learning Session for a real student and shows the authenticated student name plus saved-session status.
+- Learning Profile loaded real student data;
+- Lesson Mode opened/resumed a persisted real-student Learning Session;
+- vocabulary evidence persistence was manually confirmed.
 
-No Firestore or Storage rule deploy was needed for #86/#87.
+#88 is now merged into main at `e2935a3d...`, but no post-#88 production deployment is claimed in this document without a fresh deployment verification.
 
-## Problem confirmed in production
+No production deployment has been performed from #89.
 
-The persisted Lesson Mode loop worked, but the live teaching UX still used one universal activity card. Diagnostic, vocabulary, grammar practice, roleplay, transfer and assessment therefore looked almost identical and the same bus scene appeared where it was pedagogically irrelevant.
+## Release slice 6 — deterministic per-skill Adaptive Engine v1
 
-The production screenshot also confirmed answer leakage in diagnostic: the bus scene contained `hilineb` while the task asked the learner to produce the same target language.
+### Problem
 
-This was an architectural renderer problem, not a content-copy problem.
+The persisted session already had `routeBySkill`, but live Lesson Mode still behaved primarily as if there were one global route. That means a learner could not reliably be, for example:
 
-## Release slice 4 — phase-specific Lesson Mode workspaces
+- Vocabulary Advanced;
+- Grammar Core;
+- Speaking Support;
 
-New pure browser-independent core: `lesson-workspace-core.js`.
+inside the same B1 lesson.
 
-It owns:
+The route state also had to remain evidence-driven: simply navigating to a new activity must not overwrite a skill route.
 
-- stable activity-plan projection for the current reference lesson;
-- route-variant lookup;
-- workspace-type resolution;
-- route-specific vocabulary scaffolding;
-- controlled-practice pattern scaffolding;
-- roleplay/transfer view-model construction;
-- explicit scene lookup without a universal `scenes.default` fallback.
+### New pure engine
 
-Supported workspace contract:
+New file: `adaptive-skill-engine.js`.
 
-- `diagnostic`;
-- `vocabulary`;
-- `controlled_practice`;
-- `scene`;
-- `roleplay`;
-- `transfer`;
-- `assessment`;
-- `summary`.
+It deterministically owns:
 
-### Reference lesson mapping
+- route/judgement normalization;
+- one-step Support/Core/Advanced transitions;
+- independent transitions for every skill affected by the current activity;
+- preservation of unrelated skill routes;
+- effective route selection for multi-skill activities;
+- bounded browser route patches.
 
-`adaptive-lessons/est-b1-city-problem-solving.js` now declares:
+Rules:
 
-- diagnostic -> `diagnostic`;
-- stage 1 -> `vocabulary`;
-- stage 2 -> `controlled_practice`;
-- stage 3 -> `roleplay`, second Core task -> `transfer`;
-- stage 4 -> `assessment`.
+- `needs_help`: Advanced -> Core -> Support;
+- `managed`: no route change;
+- `too_easy`: Support -> Core -> Advanced.
 
-Stable lesson/stage/task IDs remain unchanged so persisted evidence keeps its meaning.
+For a multi-skill task, the visible workspace uses the most supportive route required by the affected skills.
 
-### Lesson Mode UI
+Example:
 
-`haldus-adaptive-lesson/index.html` now has dedicated renderers:
+- Grammar Support + Speaking Core;
+- teacher marks the grammar+speaking activity `too_easy`;
+- Grammar becomes Core;
+- Speaking becomes Advanced;
+- the activity's effective next route is Core;
+- an unrelated Vocabulary route remains unchanged.
 
-- Diagnostic: high-focus prompt, no scene, answer model hidden until teacher control;
-- Vocabulary: route-aware word-card grid rather than a scene;
-- Controlled practice: task area + sentence/pattern builder view;
-- Roleplay: separate student and teacher role cards with route-aware steps;
-- Transfer: explicitly new-context workspace with prior answer model removed;
-- Assessment: clean final challenge with criteria but no answer model before performance;
-- Scene: retained as an opt-in workspace for an activity with an exact visual asset.
+### Lesson Mode integration
 
-The old universal/default scene behavior is removed from the workspace core. Images are now a content tool rather than a permanent layout requirement.
+`haldus-adaptive-lesson/index.html` now:
 
-### Optimistic evidence feedback
+- loads `adaptive-skill-engine.js`;
+- restores persisted `routeBySkill` when the session resumes;
+- treats missing skill-route state as Core fallback, not failure;
+- derives the current workspace route from the current activity's evidence skill IDs;
+- applies judgement optimistically to the affected skills only;
+- sends `nextRouteBySkill` to the trusted API;
+- reconciles with the authoritative session returned by the API;
+- restores the previous route map on persistence failure;
+- exposes current skill routes in the teacher drawer and handoff context.
 
-Owner browser testing confirmed that persistence worked but button selection felt slow because the visible state waited for the Firebase Function round-trip.
+Existing phase-specific workspaces and optimistic save feedback from #88 are preserved.
 
-The final #88 interaction fix keeps the trusted API unchanged but makes feedback immediate:
+### Trusted Function behavior
 
-- teacher judgement selection and adaptive route are applied locally before the network request;
-- vocabulary weak/known selection is highlighted locally before the network request;
-- header status distinguishes idle active session (`Valmis`) from a pending save (`Salvestan…`);
-- on successful API confirmation the optimistic state remains and status becomes `Salvestatud`;
-- on API failure the previous judgement/route or vocabulary mark is restored and the existing error is shown;
-- judgement/navigation is guarded while a judgement write is pending to avoid a route/evidence race.
+`functions/learning-session-api.js` is server-authoritative for adaptive transitions.
 
-This is optimistic rendering only. Evidence is still acknowledged as persisted only after `learningSessionApi` confirms the request.
+For `teacher_judgement` it now:
 
-## Persistence and data invariants
+1. reads persisted `routeBySkill`;
+2. computes the deterministic per-skill transition from affected skills + canonical judgement;
+3. optionally validates a browser `nextRouteBySkill` patch against the server result;
+4. writes the server-computed route map in the same transaction as append-only evidence.
 
-This branch does not change the Learning Session persistence boundary.
+This keeps old/cached clients compatible: a client may omit `nextRouteBySkill` and the Function still computes the correct per-skill transition.
 
-Still unchanged:
+The browser cannot use the patch to modify an unrelated skill or skip multiple support steps.
 
-- `learningSessionApi` is the trusted writer;
-- teacher judgements create append-only `teacher_judgement` evidence;
-- exact word marks create append-only `vocabulary_mark` evidence;
-- navigation/progress is not evidence;
-- explicit summary scores create `summary_score` evidence;
-- blank skill scores remain absent, not zero;
+### Navigation and vocabulary evidence
+
+`progress`/navigation still updates current index/phase/activity/effective route, but no longer mutates `routeBySkill`.
+
+Exact vocabulary weak/known marks remain append-only evidence but do not silently change the whole vocabulary adaptive route. Teacher judgement is the explicit route-change signal in v1.
+
+### Data invariants
+
+Unchanged:
+
+- `students.skillMap` remains the canonical current mastery projection;
+- #89 does not write `students.skillMap`;
+- adaptive route state is not mastery;
+- missing route state is not zero or failure;
+- `learningSessionApi` remains the trusted writer;
+- direct browser Firestore writes remain unavailable;
+- teacher judgements / vocabulary marks / summary scores remain append-only evidence;
+- request-id idempotency remains required;
 - completed sessions reject new evidence;
-- `students.skillMap` is not written by this slice;
-- browser Lesson Mode has no direct Firestore write path.
+- no Firestore rules/schema migration is introduced.
 
-No Firestore rules/schema migration is introduced.
-
-## Files in current slice
+## Files in #89
 
 New:
 
-- `lesson-workspace-core.js`
-- `lesson-workspace-core.test.js`
-- `docs/LESSON_WORKSPACES_MVP.md`
+- `adaptive-skill-engine.js`
+- `adaptive-skill-engine.test.js`
+- `docs/PER_SKILL_ADAPTIVE_ENGINE_V1.md`
 
 Changed:
 
-- `adaptive-lessons/est-b1-city-problem-solving.js`
 - `haldus-adaptive-lesson/index.html`
+- `learning-session-store.js`
 - `learning-session-ui.test.js`
+- `functions/learning-session-api.js`
+- `functions/learning-session-api.test.js`
+- `functions/learning-session-emulator.integration.js`
 - `.github/workflows/financial-core-emulator.yml`
 - `docs/ADAPTIVE_LESSON_SYSTEM.md`
 - this file.
 
 ## Verification status
 
-GitHub Actions `Financial Core emulator` run **#223** completed successfully on executable head `bed67dffae2c76559c944086a8dfa10d6e69303d` after the optimistic-feedback fix.
+Automated gate for #89 is currently running in GitHub Actions.
 
-Final green gates:
+The test contract now includes:
 
-- Functions unit tests;
-- root CRM/accounting/calendar/learning tests including `lesson-workspace-core.test.js` and optimistic Lesson Mode UI regression contracts;
-- browser JavaScript syntax checks including `lesson-workspace-core.js`;
-- existing Auth/Firestore/Functions emulator integration suite.
+- pure independent per-skill transitions;
+- multi-skill most-supportive route selection;
+- server-authoritative transition computation;
+- legacy client compatibility when `nextRouteBySkill` is omitted;
+- rejection of unrelated/invalid browser route patches;
+- navigation does not invent a new skill route;
+- persisted Vocabulary/Grammar/Speaking routes can diverge in one emulator session;
+- vocabulary marks do not silently change adaptive route state;
+- append-only/idempotent evidence behavior remains intact;
+- `students.skillMap` remains unchanged;
+- Lesson Mode restores and uses `routeBySkill`;
+- optimistic per-skill UI rollback on save failure;
+- browser JavaScript syntax checks.
 
-The optimistic UI regression coverage verifies:
+Do not mark #89 ready or claim it green until the current GitHub Actions run completes successfully.
 
-- judgement local selection and route update occur before the network request;
-- failed judgement persistence restores the previous rating and route;
-- vocabulary local weak/known selection occurs before the network request;
-- failed vocabulary persistence restores the previous word mark;
-- active and pending-save statuses are distinct;
-- existing no-direct-Firestore and append-only persistence boundaries remain intact.
+## Deployment boundary
 
-Owner local browser review on 2026-09-04 confirmed:
+#89 changes both the trusted Function and the browser client. After owner merge and explicit production approval, rollout order must be:
 
-- diagnostic has no answer-bearing bus scene;
-- vocabulary uses word cards;
-- controlled practice uses a separate sentence/pattern layout;
-- roleplay uses separate learner/teacher role cards;
-- assessment uses a separate low-scaffold final challenge;
-- a real student Learning Session resumes correctly;
-- vocabulary evidence saves successfully and reports `Sõnavara hinnang salvestatud.`;
-- the new workspace approach works overall;
-- the only reported interaction issue was button-save latency, now addressed by the final optimistic-feedback implementation.
+1. selectively deploy the updated `learningSessionApi` first;
+2. verify Function health/backward compatibility;
+3. deploy the Vercel/web main build;
+4. smoke-test one authenticated real-student session and confirm independent route changes persist.
 
-Transfer is covered deterministically by `lesson-workspace-core.test.js`: `stage-3-speaking-transfer-1` resolves to a distinct `transfer` model whose prompt/rule differ materially from roleplay.
-
-The commit after the green executable head is documentation-only and does not change runtime behavior.
+Do not deploy production from this branch without owner approval.
 
 ## Known limits
 
-- reference persistence still supports only `est-b1-city-problem-solving-01`;
-- the legacy lesson blueprint still uses Core task positions as stable activity slots, so route variants cannot yet safely have arbitrary different activity counts;
-- no drag-and-drop task authoring or automatic answer checking yet;
-- no student-facing adaptive runner yet;
-- no automatic mastery projection;
-- no automatic curriculum next-goal graph;
-- PR #83 touches the same Lesson Mode HTML for density and must not be silently merged into #88.
+- adaptive persistence still supports only `est-b1-city-problem-solving-01`;
+- one teacher judgement currently applies the same judgement signal to every skill mapped to that activity; skill routes still transition independently from their own starting routes;
+- there is no automatic mastery projection from evidence to `students.skillMap`;
+- there is no curriculum next-goal/prerequisite graph yet;
+- route variants cannot safely have arbitrary different activity counts until Content Engine normalization introduces stable cross-route activity identities;
+- PR #83 touches the same Lesson Mode HTML for desktop density and must stay independent from #89.
 
 ## Core roadmap
 
@@ -196,14 +201,14 @@ The commit after the green executable head is documentation-only and does not ch
 2. Learning Profile MVP — merged #85;
 3. Learning Session + append-only evidence — merged #86;
 4. Learning Profile evidence projection — merged #87 and deployed;
-5. phase-specific Lesson Mode workspaces — #88 ready for owner merge;
-6. deterministic per-skill Adaptive Engine v1;
+5. phase-specific Lesson Mode workspaces — merged #88;
+6. deterministic per-skill Adaptive Engine v1 — current #89;
 7. curriculum goal/prerequisite graph;
 8. Teacher Home vertical flow;
 9. Lesson Builder + stable activity/content normalization;
-10. AI-assisted content generation after the core loop is stable;
+10. AI-assisted content generation after the deterministic loop is stable;
 11. scale/analytics after multiple lessons share the same contracts.
 
 ## Next safe step
 
-**Owner merges #88. After merge, start deterministic per-skill Adaptive Engine v1 against the stable activity/workspace boundaries. Keep automatic `students.skillMap` writes and curriculum-goal automation out of that next slice.**
+Finish #89's automated gate and owner browser review. If both pass, mark #89 ready for owner merge. After merge and explicit rollout approval, deploy Function first and web second. Then begin the curriculum goal/prerequisite graph as the next bounded slice; keep automatic mastery writes out of that work.
