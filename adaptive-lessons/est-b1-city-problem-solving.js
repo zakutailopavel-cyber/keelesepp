@@ -60,11 +60,11 @@
       durationMinutes:7,
       instruction:'Näita olukordi ükshaaval. Ära paranda enne diagnostika lõppu.',
       items:[
-        {id:'d1',max:1,prompt:'Ütle eesti keeles: «Автобус опаздывает».',expected:'Buss hilineb.'},
-        {id:'d2',max:1,prompt:'Küsi viisakalt võõralt inimeselt abi.',expected:'Kas te saaksite mind aidata? või samaväärne.'},
-        {id:'d3',max:1,prompt:'Sa ei leia raudteejaama. Ütle probleem ühe lausega.',expected:'Ma ei leia raudteejaama / Ma eksisin ära.'},
-        {id:'d4',max:1,prompt:'Küsi, kuidas minna kesklinna.',expected:'Kuidas ma saan kesklinna? / Kuidas kesklinna minna?'},
-        {id:'d5',max:1,prompt:'Paku üks lahendus: buss ei tule.',expected:'Võime minna jalgsi / võtta takso / oodata järgmist bussi.'}
+        {id:'d1',max:1,skillIds:['vocabulary'],prompt:'Ütle eesti keeles: «Автобус опаздывает».',expected:'Buss hilineb.'},
+        {id:'d2',max:1,skillIds:['speaking'],prompt:'Küsi viisakalt võõralt inimeselt abi.',expected:'Kas te saaksite mind aidata? või samaväärne.'},
+        {id:'d3',max:1,skillIds:['speaking'],prompt:'Sa ei leia raudteejaama. Ütle probleem ühe lausega.',expected:'Ma ei leia raudteejaama / Ma eksisin ära.'},
+        {id:'d4',max:1,skillIds:['grammar','speaking'],prompt:'Küsi, kuidas minna kesklinna.',expected:'Kuidas ma saan kesklinna? / Kuidas kesklinna minna?'},
+        {id:'d5',max:1,skillIds:['speaking'],prompt:'Paku üks lahendus: buss ei tule.',expected:'Võime minna jalgsi / võtta takso / oodata järgmist bussi.'}
       ],
       routeThresholds:{support:'0–2',core:'3–4',advanced:'5'}
     },
