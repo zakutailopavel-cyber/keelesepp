@@ -1,6 +1,6 @@
 # KeeleSepp Adaptive Lesson System v1
 
-Status: foundation + persisted Learning Session/evidence loop + Learning Profile projection + phase-specific Lesson Mode + per-skill Adaptive Engine v1 merged in #89 + Curriculum Goal graph v1 in PR #90
+Status: foundation + persisted Learning Session/evidence loop + Learning Profile projection + phase-specific Lesson Mode + per-skill Adaptive Engine + Curriculum Goal graph + Teacher Home flow are merged through #92. PR #93 adds the second supported Lesson Mode blueprint for the first vocabulary goal.
 
 ## Purpose
 
@@ -22,7 +22,7 @@ Each adaptive lesson has one shared goal and three routes inside the same CEFR/c
 
 These routes are not CEFR levels. A B1 lesson remains B1 on all routes. The route changes support, independence and transfer demand, not the programme level.
 
-A learner is never permanently labelled by one result. Support may change after every meaningful task and independently by skill. The active Learning Session may therefore hold Vocabulary Advanced, Grammar Core and Speaking Support at the same time.
+A learner is never permanently labelled by one result. Support may change after every meaningful task and independently by skill. One active Learning Session may therefore hold Vocabulary Advanced, Grammar Core and Speaking Support at the same time.
 
 ## Teacher UX contract — Lesson Mode
 
@@ -55,8 +55,6 @@ Technical scoring and long analytics must not dominate the live screen.
 
 ### Stable shell, variable workspace
 
-A lesson is not one screen repeated with different text.
-
 Canonical workspace types:
 
 - `diagnostic`;
@@ -68,19 +66,19 @@ Canonical workspace types:
 - `assessment`;
 - `summary`.
 
-The phase-specific renderer merged in #88 is the first implementation of this contract for the B1 city/problem-solving reference lesson.
+The shell is shared by the supported blueprints. The lesson blueprint decides which workspace is used for each stable activity slot.
 
-Current reference mapping:
+Current mappings include:
 
 - diagnostic -> `diagnostic`;
 - vocabulary activation -> `vocabulary`;
-- problem/language formulation -> `controlled_practice`;
-- first speaking activity -> `roleplay`;
-- second speaking activity -> `transfer`;
-- exit task -> `assessment`;
+- lexical/language formulation -> `controlled_practice`;
+- communicative activity -> `roleplay`;
+- materially changed context -> `transfer`;
+- final evidence task -> `assessment`;
 - explicit lesson close -> `summary`.
 
-`scene` remains available for an activity with an exact relevant visual, but an image is no longer a permanent part of every workspace.
+`scene` is used only when an exact relevant visual materially supports the target output. There is no universal scene fallback.
 
 The workspace implementation details are in `docs/LESSON_WORKSPACES_MVP.md`.
 
@@ -97,8 +95,6 @@ Rules:
 - no word bank unless the diagnostic explicitly measures supported performance;
 - teacher may reveal the check answer only after the response.
 
-The previous universal bus scene violated this contract because it visibly contained `hilineb` during a task asking the learner to produce that language. #88 removed the universal scene from diagnostic.
-
 ### Vocabulary
 
 Purpose: activate/recall lesson-specific vocabulary.
@@ -114,13 +110,13 @@ Rules:
 
 ### Controlled practice
 
-Purpose: practise language form/function with controlled scaffolding.
+Purpose: practise language form/function or lexical combinations with controlled scaffolding.
 
 Rules:
 
-- sentence/function/pattern structure may be visible on Support/Core;
-- Advanced removes unnecessary language templates;
-- this workspace should support construction/reformulation rather than pretending every task is a scene.
+- patterns may be visible on Support/Core;
+- Advanced removes unnecessary templates;
+- the learner must construct/reformulate rather than only recognise an answer.
 
 ### Scene
 
@@ -143,17 +139,17 @@ Rules:
 - Support may expose conversational steps;
 - Core exposes the goal with minimal structure;
 - Advanced may introduce a complication and require negotiation/justification;
-- teacher should respond in role rather than read a static answer model.
+- teacher responds in role rather than reading a static answer model.
 
 ### Transfer
 
-Purpose: prove that the skill transfers to a materially changed context.
+Purpose: prove that the target skill or vocabulary transfers to a materially changed context.
 
 Rules:
 
-- new situation must differ from the practised situation;
+- new situation differs from the practised situation;
 - previous answer model is hidden;
-- the learner must apply the same target function without merely copying the previous response;
+- the learner applies the same target without copying the previous response;
 - Support may expose process steps, but not the solution itself.
 
 ### Assessment
@@ -174,6 +170,7 @@ Purpose: finish the pedagogical session and create a teacher handoff.
 Rules:
 
 - detailed mastery entry belongs here, not in the live task workspace;
+- summary fields are derived from skills actually targeted by the selected lesson;
 - blank skill fields remain absent;
 - teacher note/handoff is explicit;
 - session completion does not itself mean mastery.
@@ -194,12 +191,6 @@ Canonical persisted values:
 
 A route change is a teaching decision, not a CEFR change.
 
-## Methodical help
-
-Teacher instructions, success criteria, examples and methodological notes use progressive disclosure.
-
-Diagnostic and assessment keep the check answer hidden until the teacher explicitly opens the control after the learner has responded.
-
 ## Required lesson blueprint
 
 Every mature adaptive lesson should contain:
@@ -210,11 +201,11 @@ Every mature adaptive lesson should contain:
 - teacher-facing goal and measurable success criteria;
 - prerequisites;
 - lesson-specific vocabulary;
-- language/grammar focus;
+- language/lexical/grammar focus where relevant;
 - diagnostic items with evidence skill mapping;
 - teaching stages;
 - all route variants;
-- stable activity/task IDs;
+- stable activity/task slots;
 - explicit workspace type for each activity/phase;
 - checkpoint/scoring rule where appropriate;
 - homework variants;
@@ -222,6 +213,32 @@ Every mature adaptive lesson should contain:
 - handoff requirements.
 
 The lesson must be autonomous enough for a qualified teacher who did not author it.
+
+## Supported blueprints in PR #93
+
+### `est-b1-city-vocabulary-01`
+
+Curriculum target: `EST_B1_CITY_VOCAB` — `Linnaprobleemide põhisõnavara aktiveerimine`.
+
+Purpose: activate the core city/service/problem vocabulary before the learner is expected to explain and solve a full city problem.
+
+It contains:
+
+- answer-safe vocabulary diagnostic;
+- vocabulary-native activation workspace;
+- lexical/collocation controlled practice;
+- roleplay plus a genuinely changed transfer situation;
+- final vocabulary-only assessment;
+- Support/Core/Advanced variants with the same stable task-slot count;
+- vocabulary-only summary score field plus handoff.
+
+### `est-b1-city-problem-solving-01`
+
+Curriculum target: `EST_B1_CITY_SOLVE_PROBLEM`.
+
+Purpose: combine problem explanation, help-seeking and solution proposal into one B1 communication task.
+
+This remains the broader reference lesson and continues to target vocabulary, grammar and speaking evidence where explicitly assessed.
 
 ## Vocabulary and mastery
 
@@ -231,7 +248,7 @@ Supported foundation mastery dimensions are vocabulary, grammar, reading, listen
 
 Only skills actually assessed should receive mastery values. Missing evidence is not failure.
 
-`students.skillMap` remains the canonical current mastery projection. Adaptive sessions add evidence and adaptive route state first; the Learning Profile displays evidence without silently rewriting `skillMap`.
+`students.skillMap` remains the canonical current mastery projection. Adaptive sessions add evidence and adaptive route state first; Learning Profile displays evidence without silently rewriting `skillMap`.
 
 A separately validated projection boundary is required before adaptive evidence may update canonical mastery.
 
@@ -249,9 +266,7 @@ Teacher judgement moves each affected skill one bounded step from that skill's o
 
 Unrelated skill routes stay unchanged.
 
-For a multi-skill activity, the visible workspace uses the most supportive route required by the affected skills. Example: Grammar Core + Speaking Support renders the activity on Support. This avoids removing scaffolding required by one skill simply because another skill is stronger.
-
-Navigation may change which route is visible because a new activity targets different skills, but navigation is not evidence and must not mutate `routeBySkill`.
+For a multi-skill activity, the visible workspace uses the most supportive route required by the affected skills. Navigation may change which route is visible because the next activity targets different skills, but navigation is not evidence and must not mutate `routeBySkill`.
 
 Word-level vocabulary marks remain evidence but do not automatically change the whole vocabulary route. Teacher judgement remains the explicit adaptive route signal in v1.
 
@@ -264,11 +279,9 @@ Curriculum Engine and Adaptive Engine have separate jobs:
 - Curriculum Engine chooses **what goal should be learned next**;
 - Adaptive Engine chooses **how much support/challenge the current activity needs**.
 
-PR #90 introduces the first bounded goal graph for B1 `Linn ja teenused`. Goals have stable IDs, prerequisite edges, next-goal edges, success criteria and canonical `HaldusSkillCatalog` skill references.
+The B1 `Linn ja teenused` graph has stable IDs, prerequisite edges, next-goal edges, success criteria and canonical skill references.
 
-The reference lesson is bound to `EST_B1_CITY_SOLVE_PROBLEM`. New Learning Sessions therefore carry a stable curriculum target instead of only a free-text topic/title.
-
-Recommendation rules are deterministic and explainable. Learning Profile shows the selected stable goal, prerequisite state and relevant canonical skill evidence.
+PR #93 binds the first goal `EST_B1_CITY_VOCAB` to `est-b1-city-vocabulary-01`, while `EST_B1_CITY_SOLVE_PROBLEM` remains bound to `est-b1-city-problem-solving-01`.
 
 Critical distinction:
 
@@ -282,7 +295,7 @@ The full contract is in `docs/CURRICULUM_GOAL_GRAPH_V1.md`.
 
 ## Learning Session and evidence
 
-A dedicated Learning Session is the persisted runtime boundary for the reference lesson.
+A dedicated Learning Session is the persisted runtime boundary for supported adaptive lessons.
 
 It connects:
 
@@ -307,9 +320,7 @@ Current append-only evidence kinds:
 
 Each event keeps session/student/teacher/lesson identity, phase/activity, relevant skills, optional vocabulary IDs, route, evidence payload and timestamp.
 
-Navigation/progress is not evidence.
-
-Once a session is completed, new evidence additions are rejected.
+Navigation/progress is not evidence. Once a session is completed, new evidence additions are rejected.
 
 ### Trusted persistence boundary
 
@@ -320,12 +331,22 @@ Browser Lesson Mode does not receive direct Firestore write permission for `lear
 - Firebase ID token;
 - teacher/admin role;
 - teacher/student scope;
-- supported reference lesson;
+- supported lesson allowlist;
 - route/index/input bounds;
 - request-id idempotency;
 - active session state.
 
-For per-skill adaptation, the Function is authoritative: it computes the expected per-skill transition from persisted `routeBySkill`, affected skill IDs and canonical teacher judgement. A browser-supplied `nextRouteBySkill` is only a consistency check. Legacy clients may omit it and still receive the same server-computed transition.
+PR #93 makes the server authoritative for supported lesson identity. For each allowed blueprint the Function owns:
+
+- canonical lesson title;
+- canonical CEFR level;
+- canonical curriculum goal IDs.
+
+Browser-supplied title, CEFR or curriculum goal metadata cannot forge a persisted lesson target.
+
+For per-skill adaptation, the Function remains authoritative: it computes the expected transition from persisted `routeBySkill`, affected skill IDs and canonical teacher judgement. A browser-supplied `nextRouteBySkill` is only a consistency check.
+
+Summary evidence now records the active session's actual final phase rather than assuming one hard-coded reference-lesson exit phase.
 
 Firebase Admin SDK performs writes. The browser cannot use a route patch to change unrelated skills or skip multiple route steps.
 
@@ -348,11 +369,22 @@ The profile keeps achieved goals separate from Adaptive session target goals bef
 
 Direct browser reads of the private adaptive evidence/session collections remain denied.
 
-## Start / resume
+## Start / resume from Teacher Home
 
-Opening Lesson Mode with `?studentId=<id>` and an authenticated staff user starts or resumes the active session for teacher + student + reference lesson.
+Teacher Home maps only explicitly supported Curriculum Goals to explicitly supported Lesson Mode blueprints.
 
-Without `studentId`, Lesson Mode stays in Preview and remains non-persistent.
+Current mapping:
+
+- `EST_B1_CITY_VOCAB` -> `est-b1-city-vocabulary-01`;
+- `EST_B1_CITY_SOLVE_PROBLEM` -> `est-b1-city-problem-solving-01`.
+
+Lesson Mode opens as:
+
+`/haldus-adaptive-lesson/?studentId=<id>&lessonId=<lessonBlueprintId>`
+
+The page loads the bounded blueprint registry and selects the requested `lessonId`. An unknown `lessonId` shows a controlled unsupported-lesson screen instead of silently running the wrong lesson.
+
+For backward compatibility, opening Lesson Mode without `lessonId` still selects `est-b1-city-problem-solving-01`. Without `studentId`, Lesson Mode stays in Preview and remains non-persistent.
 
 A resumed session restores persisted `routeBySkill`. Existing sessions that have only some skill keys remain valid; missing skills use Core until teacher evidence changes them.
 
@@ -366,18 +398,20 @@ The completed session retains the teacher note/handoff for later read-side use. 
 
 ## Reference implementation
 
-- `adaptive-lessons/est-b1-city-problem-solving.js` — first B1 reference blueprint; includes workspace/evidence-skill metadata and stable curriculum goal binding.
+- `adaptive-lessons/est-b1-city-vocabulary.js` — vocabulary activation blueprint for `EST_B1_CITY_VOCAB`.
+- `adaptive-lessons/est-b1-city-problem-solving.js` — broader B1 problem-solving blueprint for `EST_B1_CITY_SOLVE_PROBLEM`.
 - `adaptive-lesson-core.js` — original pure diagnostic/mastery/handoff logic.
 - `adaptive-skill-engine.js` — pure deterministic per-skill route engine.
 - `curriculum-goal-core.js` — pure deterministic goal-graph validation and recommendation engine.
-- `curriculum-goals/b1-city.js` — first stable B1 city/services goal/prerequisite graph.
+- `curriculum-goals/b1-city.js` — stable B1 city/services goal/prerequisite graph and blueprint bindings.
 - `lesson-workspace-core.js` — pure phase/workspace projection and route-aware view-model logic.
 - `learning-session-core.js` — pure Learning Session/evidence normalization helpers.
 - `learning-session-store.js` — authenticated browser client for persistence.
-- `functions/learning-session-api.js` — trusted session/evidence and per-skill-route writer.
+- `functions/learning-session-api.js` — trusted supported-lesson/session/evidence and per-skill-route writer.
 - `learning-profile-evidence-store.js` + `functions/learning-profile-evidence-api.js` — trusted adaptive-evidence read projection.
-- `haldus-learning-profile/index.html` — read-only Learning Profile including explainable Curriculum Engine v1 projection.
-- `haldus-adaptive-lesson/index.html` — focused live teaching shell with phase-specific and per-skill route-aware workspaces.
+- `haldus-learning-profile/index.html` — read-only Learning Profile including Curriculum Engine projection.
+- `haldus-teacher-home/index.html` + `teacher-home-core.js` — daily teacher flow and bounded start/resume routing.
+- `haldus-adaptive-lesson/index.html` — focused live teaching shell selecting a supported blueprint by stable `lessonId`.
 - `adaptive-lessons/scenes.js` — exact scene metadata registry; no universal Lesson Mode background.
 
 ## Integration boundary
@@ -386,45 +420,43 @@ Do not replace curriculum, accounting/calendar status or Live Classroom in one c
 
 Safe evolution:
 
-1. prove blueprint/decision model — done;
-2. prove focused Lesson Mode shell — done;
-3. expose Learning Profile read-only — done;
-4. persist Learning Session/evidence — done;
-5. project adaptive evidence into Learning Profile — done;
-6. phase-specific workspace renderer — done in #88;
-7. deterministic per-skill Adaptive Engine v1 — done in #89;
-8. curriculum goal/prerequisite graph — current PR #90;
-9. Teacher Home vertical flow;
-10. normalize Lesson Builder/Content Engine around stable activity IDs;
-11. AI-assisted generation only after the deterministic loop is stable.
+1. blueprint/decision model — done;
+2. focused Lesson Mode shell — done;
+3. Learning Profile read-only — done;
+4. Learning Session/evidence persistence — done;
+5. adaptive evidence projection — done;
+6. phase-specific workspaces — done;
+7. deterministic per-skill Adaptive Engine — done;
+8. curriculum goal/prerequisite graph — done;
+9. Teacher Home vertical flow — done through #92;
+10. first next-goal -> dedicated Lesson Mode launch — PR #93;
+11. normalize Lesson Builder/Content Engine around stable activity IDs only after this E2E flow is verified;
+12. AI-assisted generation only after the deterministic loop is stable.
 
 ## Acceptance criteria before broad curriculum migration
 
-- teacher can run the reference lesson without author context;
+- teacher can open Teacher Home and start the curriculum-recommended supported lesson;
+- supported Lesson Mode is selected by stable blueprint ID rather than an arbitrary browser payload;
+- teacher can run each supported lesson without author context;
 - current activity is visually dominant;
 - unrelated CRM navigation is absent;
-- technical scoring is hidden from live flow;
 - workspace changes with pedagogical purpose;
 - diagnostic and assessment do not leak answers;
 - images appear only when they materially support the activity;
 - Support/Core/Advanced change scaffolding without changing CEFR;
-- vocabulary, grammar and speaking may hold different adaptive routes in one session;
-- multi-skill activities use the most supportive required affected-skill route;
+- vocabulary, grammar and speaking may hold different adaptive routes where a lesson targets them;
 - navigation does not invent or overwrite adaptive skill routes;
 - teacher judgements and exact vocabulary marks persist for a real student;
 - repeated evidence requests are idempotent;
-- navigation does not create evidence;
 - completed sessions reject new evidence;
 - missing skill scores are not converted to zero;
 - `students.skillMap` is not silently changed;
 - stable Curriculum Goals use explicit prerequisite/next-goal edges;
-- Learning Profile can explain why a supported goal is recommended next;
 - Adaptive session completion does not silently mark Curriculum Goal mastery;
-- Learning Profile can show append-only evidence/context;
 - existing curriculum lessons remain working;
-- automated tests cover decision, workspace, persistence, curriculum and read-side boundaries;
+- automated tests cover decision, workspace, persistence, curriculum, Teacher Home routing and read-side boundaries;
 - project state is updated after each substantial slice.
 
 ## Known current limitation
 
-The Curriculum Goal graph covers only the first B1 city/services vertical slice. The legacy reference blueprint also still uses Core task positions as stable activity slots. Route variants with different numbers of activities are therefore not yet fully normalized. The later Content Engine normalization slice must introduce stable activity IDs shared across all route variants before broad lesson-authoring/migration.
+The Curriculum Goal graph covers only the first B1 city/services vertical slice. Dedicated Lesson Mode blueprints now exist for `EST_B1_CITY_VOCAB` and `EST_B1_CITY_SOLVE_PROBLEM`; the intermediate explain/help goals and final transfer goal still fall back to Learning Profile. Blueprints still use Core task positions as stable activity slots, so all route variants in the new vocabulary lesson deliberately keep equal task counts. The later Content Engine normalization slice must introduce route-independent stable activity IDs before broad authoring/migration.
