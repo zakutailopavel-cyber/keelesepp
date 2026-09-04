@@ -88,6 +88,7 @@ test("Learning Session API persists append-only evidence without changing skillM
     db.collection("users").doc(teacherUid).set({ role: "teacher", displayName: "Pavel", email: "learning-teacher@example.com" }),
     db.collection("users").doc(outsiderUid).set({ role: "teacher", displayName: "Other Teacher", email: "learning-outsider@example.com" }),
     db.collection("students").doc(studentId).set({
+      id: "shadowed-student-id-must-not-win",
       name: "Learning Student",
       active: true,
       teacher: "Pavel",
@@ -127,6 +128,7 @@ test("Learning Session API persists append-only evidence without changing skillM
   assert.equal(started.body.resumed, false);
   const sessionId = started.body.session.id;
   assert.equal(started.body.session.status, "active");
+  assert.equal(started.body.session.studentId, studentId, "Firestore document id must override any stored student id field");
   assert.equal(started.body.session.evidenceCount, 0);
 
   const resumed = await postLearning(teacherToken, {
