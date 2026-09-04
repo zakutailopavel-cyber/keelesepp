@@ -46,6 +46,7 @@ test('normalizeSummaryEvidence reads live classroom summary v2 without inventing
   assert.deepEqual(evidence.goalIds,['goal-1']);
   assert.deepEqual(evidence.goalLabels,['Küsib viisakalt abi']);
   assert.equal(evidence.teacherComment,'Speaking still needs support.');
+  assert.equal(evidence.sessionStatus,'completed');
   assert.equal('score' in evidence,false);
 });
 
@@ -54,10 +55,11 @@ test('normalizeAdaptiveEvidence joins session context without promoting it to ma
     id:'ev-1',sessionId:'session-1',studentId:'student-1',createdAt:'2026-09-04T10:00:00Z',
     kind:'summary_score',skillIds:['speaking'],taskResult:61,route:'support'
   },{
-    'session-1':{lessonTitle:'Probleemi lahendamine linnas',teacherName:'Pavel',status:'completed',curriculumGoalIds:['goal-1']}
+    'session-1':{lessonBlueprintId:'est-b1-city-problem-solving-01',lessonTitle:'Probleemi lahendamine linnas',teacherName:'Pavel',status:'completed',curriculumGoalIds:['goal-1']}
   });
   assert.equal(evidence.source,'adaptive_lesson_evidence');
   assert.equal(evidence.title,'Probleemi lahendamine linnas');
+  assert.equal(evidence.lessonBlueprintId,'est-b1-city-problem-solving-01');
   assert.equal(evidence.taskResult,61);
   assert.deepEqual(evidence.goalIds,['goal-1']);
   assert.equal('mastery' in evidence,false);
@@ -139,7 +141,7 @@ test('attendance without lessonSummary is not promoted to learning evidence',()=
   assert.deepEqual(profile.recentEvidence,[]);
 });
 
-test('recent achieved goals stay context and do not become automatic next-goal recommendations',()=>{
+test('recent achieved goals stay context and do not become automatic next-goal recommendations inside profile core',()=>{
   const profile=buildLearningProfile({
     student:{id:'student-1',skillMap:{}},
     rooms:[{
@@ -153,5 +155,36 @@ test('recent achieved goals stay context and do not become automatic next-goal r
     }]
   });
   assert.deepEqual(profile.recommendations.recentGoalIds,['goal-achieved']);
+  assert.deepEqual(profile.recommendations.completedGoalIds,['goal-achieved']);
+  assert.deepEqual(profile.recommendations.activeGoalIds,[]);
   assert.deepEqual(profile.recommendations.nextGoalIds,[]);
+});
+
+test('active adaptive goal is not promoted to completed prerequisite evidence',()=>{
+  const profile=buildLearningProfile({
+    student:{id:'student-1',skillMap:{}},
+    adaptiveEvidence:[{
+      id:'ev-active',studentId:'student-1',sessionId:'active-session',createdAt:'2026-09-04T10:00:00Z',kind:'teacher_judgement',skillIds:['speaking']
+    }],
+    learningSessions:[{
+      id:'active-session',status:'active',lessonBlueprintId:'est-b1-city-problem-solving-01',curriculumGoalIds:['EST_B1_CITY_SOLVE_PROBLEM']
+    }]
+  });
+  assert.deepEqual(profile.recommendations.completedGoalIds,[]);
+  assert.deepEqual(profile.recommendations.activeGoalIds,['EST_B1_CITY_SOLVE_PROBLEM']);
+  assert.deepEqual(profile.recommendations.recentLessonBlueprintIds,['est-b1-city-problem-solving-01']);
+});
+
+test('completed adaptive goal is available as prerequisite evidence and no longer active',()=>{
+  const profile=buildLearningProfile({
+    student:{id:'student-1',skillMap:{}},
+    adaptiveEvidence:[{
+      id:'ev-complete',studentId:'student-1',sessionId:'done-session',createdAt:'2026-09-04T10:00:00Z',kind:'summary_score',skillIds:['speaking'],taskResult:72
+    }],
+    learningSessions:[{
+      id:'done-session',status:'completed',lessonBlueprintId:'est-b1-city-problem-solving-01',curriculumGoalIds:['EST_B1_CITY_SOLVE_PROBLEM']
+    }]
+  });
+  assert.deepEqual(profile.recommendations.completedGoalIds,['EST_B1_CITY_SOLVE_PROBLEM']);
+  assert.deepEqual(profile.recommendations.activeGoalIds,[]);
 });
