@@ -26,6 +26,8 @@
 <script src="/staff-activity.js"></script>
 <script src="/calendar-core.js"></script>
 <script src="/haldus-programs.js"></script>
+<script src="/haldus-curriculum-data.js"></script>
+<script src="/curriculum-workflow-core.js?v=20260905.1"></script>
 <script src="/learning-profile-core.js"></script>
 <script src="/learning-profile-evidence-store.js"></script>
 <script src="/curriculum-goal-core.js"></script>
@@ -51,6 +53,8 @@
   const calendar=window.CalendarCore;
   const profileCore=window.KeeleSeppLearningProfileCore;
   const evidenceStore=window.KeeleSeppLearningProfileEvidenceStore.create({auth});
+  const curriculum=window.HaldusCurriculum;
+  const curriculumWorkflow=window.CurriculumWorkflow;
   const goalCore=window.KeeleSeppCurriculumGoalCore;
   const goalGraph=window.KeeleSeppCurriculumGoalsB1City;
   const homeCore=window.KeeleSeppTeacherHomeCore;
@@ -64,32 +68,27 @@
   const esc=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   const routeLabel=value=>({support:'Tugi',core:'Põhirada',advanced:'Edasijõudnu'})[value]||value;
   const routeSkillLabel=id=>({vocabulary:'Sõnavara',grammar:'Grammatika',speaking:'Rääkimine',reading:'Lugemine',listening:'Kuulamine',writing:'Kirjutamine'})[id]||SKILL_LABELS[id]||profileCore.humanizeSkillId(id);
-  const statusLabel=value=>({ready:'Valmis',in_progress:'Aktiivne',blocked:'Eeltingimus puudub',complete:'Läbitud'})[value]||value||'';
   const dateLabel=iso=>{const date=calendar.parseLocalDate(iso);return date?new Intl.DateTimeFormat('et-EE',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(date):iso;};
   const shiftDate=(iso,days)=>{const date=calendar.parseLocalDate(iso)||new Date();date.setDate(date.getDate()+days);return calendar.toLocalISODate(date);};
   const isToday=()=>state.dateIso===calendar.toLocalISODate(new Date());
 
-  function setDate(iso){
-    state.dateIso=iso;
-    const url=new URL(location.href);url.searchParams.set('date',iso);history.replaceState(null,'',url);
-    loadDay();
-  }
+  function setDate(iso){state.dateIso=iso;const url=new URL(location.href);url.searchParams.set('date',iso);history.replaceState(null,'',url);loadDay();}
 
-  function curriculumRecommendation(profile,sessions){
+  function adaptiveRecommendation(profile,sessions){
     if(!goalCore||!GOALS.length||profile.subject!==goalGraph.subject) return null;
-    const explicitSession=(sessions||[]).find(session=>session&&(session.lessonBlueprintId===homeCore.REFERENCE_LESSON_ID||(session.curriculumGoalIds||[]).some(id=>GOAL_IDS.has(id))));
-    const explicitGraphContext=Boolean(explicitSession);
-    const level=explicitSession?.cefrLevel||profile.currentLevel;
-    if(level!==goalGraph.level&&!explicitGraphContext) return null;
-    const recentBlueprintId=explicitSession?.lessonBlueprintId||profile.recommendations.recentLessonBlueprintIds?.[0]||'';
+    const explicitSession=(sessions||[]).find(session=>session&&(
+      [homeCore.REFERENCE_LESSON_ID,homeCore.VOCAB_LESSON_ID].includes(session.lessonBlueprintId)
+      ||(session.curriculumGoalIds||[]).some(id=>GOAL_IDS.has(id))
+    ));
+    if(!explicitSession) return null;
+    const level=explicitSession.cefrLevel||profile.currentLevel;
+    if(level!==goalGraph.level) return null;
     const recommendation=goalCore.recommendNextGoal({
-      goals:GOALS,
-      level:goalGraph.level,
-      subject:goalGraph.subject,
+      goals:GOALS,level:goalGraph.level,subject:goalGraph.subject,
       achievedGoalIds:profile.recommendations.completedGoalIds,
       currentGoalIds:profile.recommendations.activeGoalIds,
       skillMap:profile.skillMap,
-      legacyContext:{lessonBlueprintId:recentBlueprintId,level:goalGraph.level,subject:goalGraph.subject}
+      legacyContext:{lessonBlueprintId:explicitSession.lessonBlueprintId||'',level:goalGraph.level,subject:goalGraph.subject}
     });
     if(recommendation?.goal) recommendation.explanation=goalCore.explainRecommendationEt(recommendation,GOAL_INDEX);
     return recommendation;
@@ -110,15 +109,34 @@
     state.studentsById=Object.fromEntries(pairs.filter(([,student])=>student));
   }
 
-  async function loadStudentLearning(studentId){
+  const chunkIds=(ids,size=10)=>{const chunks=[];for(let i=0;i<ids.length;i+=size)chunks.push(ids.slice(i,i+size));return chunks;};
+  async function readCurriculumRows(studentIds){
+    const wanted=new Set(studentIds);
+    const result=Object.fromEntries(studentIds.map(id=>[id,{lessons:[],progressEvents:[],warning:''}]));
+    const warnings=[];
+    try{
+      let lessonDocs=[];
+      if(!state.isAdmin&&state.teacherScopeReadEnforced){
+        const snap=await db.collection('lessons').where('teacherUid','==',state.user.uid).get();
+        lessonDocs=snap.docs;
+      }else{
+        const snaps=await Promise.all(chunkIds(studentIds).map(ids=>db.collection('lessons').where('studentId','in',ids).get()));
+        lessonDocs=snaps.flatMap(snap=>snap.docs);
+      }
+      lessonDocs.forEach(doc=>{const row={id:doc.id,...doc.data()};if(wanted.has(row.studentId))result[row.studentId].lessons.push(row);});
+    }catch(error){console.warn('Curriculum lessons unavailable',error);warnings.push('Õppekava tunniajalugu pole saadaval.');}
+    try{
+      const snaps=await Promise.all(chunkIds(studentIds).map(ids=>db.collection('curriculumProgressEvents').where('studentId','in',ids).get()));
+      snaps.flatMap(snap=>snap.docs).forEach(doc=>{const row={id:doc.id,...doc.data()};if(wanted.has(row.studentId))result[row.studentId].progressEvents.push(row);});
+    }catch(error){console.warn('Curriculum progress events unavailable',error);warnings.push('Õppekava käsitsi arvestus pole saadaval.');}
+    if(warnings.length) Object.values(result).forEach(row=>{row.warning=warnings.join(' ');});
+    return result;
+  }
+
+  async function loadStudentLearning(studentId,curriculumRows={}){
     const student=state.studentsById[studentId];
     if(!student) return {warning:'Õpilase profiili ei saanud laadida.'};
-    const livePromise=(async()=>{
-      let query=db.collection('liveClassrooms').where('studentId','==',studentId);
-      if(!state.isAdmin) query=query.where('teacherUid','==',state.user.uid);
-      const snap=await query.get();
-      return snap.docs.map(doc=>({id:doc.id,...doc.data()}));
-    })();
+    const livePromise=(async()=>{let query=db.collection('liveClassrooms').where('studentId','==',studentId);if(!state.isAdmin)query=query.where('teacherUid','==',state.user.uid);const snap=await query.get();return snap.docs.map(doc=>({id:doc.id,...doc.data()}));})();
     const adaptivePromise=evidenceStore.load(studentId,{limit:30});
     const [liveResult,adaptiveResult]=await Promise.allSettled([livePromise,adaptivePromise]);
     const rooms=liveResult.status==='fulfilled'?liveResult.value:[];
@@ -126,11 +144,16 @@
     const sessions=adaptiveResult.status==='fulfilled'?adaptiveResult.value.sessions:[];
     const profile=profileCore.buildLearningProfile({student,rooms,adaptiveEvidence:evidence,learningSessions:sessions,skillLabels:SKILL_LABELS,recentLimit:6});
     const ownSessions=sessions.filter(session=>state.isAdmin?session.teacherUid===state.user.uid||!session.teacherUid:session.teacherUid===state.user.uid||!session.teacherUid);
-    const recommendation=curriculumRecommendation(profile,sessions);
+    let curriculumJourney=null;
     const warnings=[];
+    if(curriculum&&curriculumWorkflow?.buildStudentJourney){
+      try{curriculumJourney=curriculumWorkflow.buildStudentJourney(curriculum,student,curriculumRows.lessons||[],[],[],curriculumRows.progressEvents||[]);}
+      catch(error){console.warn('Curriculum journey unavailable',studentId,error);warnings.push('Õppekava järgmise tunni arvutus ebaõnnestus.');}
+    }else warnings.push('Õppekava andmed pole saadaval.');
+    if(curriculumRows.warning) warnings.push(curriculumRows.warning);
     if(liveResult.status==='rejected') warnings.push('Live Classroomi kokkuvõtted pole saadaval.');
     if(adaptiveResult.status==='rejected') warnings.push('Adaptive Lessoni tõendid pole saadaval.');
-    return {profile,recommendation,sessions:ownSessions,evidence,warning:warnings.join(' ')};
+    return {profile,recommendation:adaptiveRecommendation(profile,sessions),curriculumJourney,sessions:ownSessions,evidence,warning:warnings.join(' ')};
   }
 
   function renderHero(cards){
@@ -138,77 +161,53 @@
     const attentionCount=cards.filter(card=>card.summary.attention.length||card.summary.reviewWords.length).length;
     hero.innerHTML=`<div class="day-main"><div class="eyebrow">Õpetaja töölaud</div><h1>${isToday()?'Täna':esc(dateLabel(state.dateIso))}</h1><div class="day-date">${esc(dateLabel(state.dateIso))}${state.user?.name?` · ${esc(state.user.name)}`:''}</div></div><div class="metric"><b>${cards.length}</b><span>tundi</span></div><div class="metric"><b>${studentCount}</b><span>õpilast</span></div><div class="metric"><b>${attentionCount}</b><span>vajab tähelepanu</span></div>`;
   }
-
-  function renderRoutes(summary){
-    const routes=summary.activeSession?.routeBySkill||{};
-    const entries=Object.entries(routes);
-    if(!entries.length) return '<p>Aktiivset oskusepõhist rada ei ole veel salvestatud.</p>';
-    return `<div class="chips">${entries.map(([id,route])=>`<span class="chip route-${esc(route)}">${esc(routeSkillLabel(id))}: ${esc(routeLabel(route))}</span>`).join('')}</div>`;
+  function renderRoutes(summary){const entries=Object.entries(summary.activeSession?.routeBySkill||{});if(!entries.length)return '<p>Aktiivset oskusepõhist rada ei ole veel salvestatud.</p>';return `<div class="chips">${entries.map(([id,route])=>`<span class="chip route-${esc(route)}">${esc(routeSkillLabel(id))}: ${esc(routeLabel(route))}</span>`).join('')}</div>`;}
+  function renderNeeds(summary){const chips=[];summary.attention.forEach(skill=>chips.push(`<span class="chip focus">${esc(skill.label)}${skill.score===null?'':` ${esc(skill.score)}%`}</span>`));summary.reviewWords.forEach(word=>chips.push(`<span class="chip review">Korda: ${esc(word)}</span>`));return chips.length?`<div class="chips">${chips.join('')}</div>`:'<p>Praegu ei ole alla 70% kanonilist oskust ega viimase tõendi kordamissõna.</p>';}
+  function renderCurriculumNext(summary){
+    const next=summary.curriculumNext;
+    const journey=summary.curriculumJourney;
+    if(next) return `<strong>${esc(next.topicName)}</strong><p>${esc(next.lessonNumber||`Tund ${next.lessonIndex+1}`)} · ${esc(next.lessonGoal||'Eesmärk puudub')}</p>`;
+    if(journey?.valid&&journey.totalLessons>0&&journey.completedLessons===journey.totalLessons) return '<p>Õppekava kõik tunnikavad on läbitud.</p>';
+    return '<p>Õpilase aine ja taseme põhjal ei saanud järgmist päris õppekava tundi määrata.</p>';
   }
-
-  function renderNeeds(summary){
-    const chips=[];
-    summary.attention.forEach(skill=>chips.push(`<span class="chip focus">${esc(skill.label)}${skill.score===null?'':` ${esc(skill.score)}%`}</span>`));
-    summary.reviewWords.forEach(word=>chips.push(`<span class="chip review">Korda: ${esc(word)}</span>`));
-    return chips.length?`<div class="chips">${chips.join('')}</div>`:'<p>Praegu ei ole alla 70% kanonilist oskust ega viimase tõendi kordamissõna.</p>';
-  }
-
   function renderCard(card){
-    const summary=card.summary;
-    const recommendation=summary.recommendation;
-    const evidence=summary.latestEvidence;
-    const actions=card.studentId
-      ?`${card.primaryAction?`<a class="btn primary" href="${esc(card.primaryAction.href)}">${esc(card.primaryAction.label)}</a>`:''}<a class="btn secondary" href="${esc(card.profileHref)}">Õppimisprofiil</a>`
-      :'<div class="disabled">Sellel pärandkalendri kirjel puudub stabiilne studentId. Õppimisprofiili ega adaptiivset tundi ei avata nime põhjal.</div>';
-    return `<article class="lesson"><div class="time"><b>${esc(card.time||'—')}</b><span>${card.endTime?`kuni ${esc(card.endTime)}`:`${esc(card.duration)} min`}</span></div><div class="lesson-main"><div class="student-row"><div><h2>${esc(card.studentName)}</h2><div class="meta">${card.level?`${esc(card.level)} · `:''}${esc(card.title)}</div></div>${card.status?`<span class="status">${esc(card.status)}</span>`:''}</div>${summary.warning?`<div class="warning">${esc(summary.warning)}</div>`:''}<div class="learning-grid"><div class="mini"><b>Viimane tõend</b>${evidence?`<strong>${esc(evidence.title)}</strong><p>${evidence.source==='adaptive_lesson_evidence'?'Adaptive Lesson':'Struktureeritud õppimistõend'}</p>`:'<p>Struktureeritud õppimistõend puudub. Seda ei käsitleta nullina.</p>'}</div><div class="mini"><b>Mida korrata</b>${renderNeeds(summary)}</div><div class="mini goal"><b>Järgmine õppekava eesmärk</b>${recommendation?.goal?`<strong>${esc(recommendation.goal.title)}</strong><p>${esc(statusLabel(recommendation.status))} · ${esc(recommendation.goal.id)}</p>`:'<p>Selle õpilase kontekstile ei ole veel toetatud eesmärgigraafi soovitust.</p>'}</div><div class="mini"><b>Oskusepõhised rajad</b>${renderRoutes(summary)}</div></div></div><div class="actions">${actions}</div></article>`;
+    const summary=card.summary;const evidence=summary.latestEvidence;
+    const actions=card.studentId?`${card.primaryAction?`<a class="btn primary" href="${esc(card.primaryAction.href)}">${esc(card.primaryAction.label)}</a>`:''}<a class="btn secondary" href="${esc(card.profileHref)}">Õppimisprofiil</a>`:'<div class="disabled">Sellel pärandkalendri kirjel puudub stabiilne studentId. Õppimisprofiili ega adaptiivset tundi ei avata nime põhjal.</div>';
+    return `<article class="lesson"><div class="time"><b>${esc(card.time||'—')}</b><span>${card.endTime?`kuni ${esc(card.endTime)}`:`${esc(card.duration)} min`}</span></div><div class="lesson-main"><div class="student-row"><div><h2>${esc(card.studentName)}</h2><div class="meta">${card.level?`${esc(card.level)} · `:''}${esc(card.title)}</div></div>${card.status?`<span class="status">${esc(card.status)}</span>`:''}</div>${summary.warning?`<div class="warning">${esc(summary.warning)}</div>`:''}<div class="learning-grid"><div class="mini"><b>Viimane tõend</b>${evidence?`<strong>${esc(evidence.title)}</strong><p>${evidence.source==='adaptive_lesson_evidence'?'Adaptive Lesson':'Struktureeritud õppimistõend'}</p>`:'<p>Struktureeritud õppimistõend puudub. Seda ei käsitleta nullina.</p>'}</div><div class="mini"><b>Mida korrata</b>${renderNeeds(summary)}</div><div class="mini goal"><b>Järgmine õppekava tund</b>${renderCurriculumNext(summary)}</div><div class="mini"><b>Oskusepõhised rajad</b>${renderRoutes(summary)}</div></div></div><div class="actions">${actions}</div></article>`;
   }
-
-  function render(cards,globalWarnings=[]){
-    renderHero(cards);
-    if(!cards.length){app.innerHTML=`${globalWarnings.length?`<div class="warning">${esc(globalWarnings.join(' '))}</div>`:''}<div class="empty">Sellel päeval ei ole sinu kalendris aktiivseid KeeleSepa tunde.</div>`;return;}
-    app.innerHTML=`${globalWarnings.length?`<div class="warning">${esc(globalWarnings.join(' '))}</div>`:''}<div class="list">${cards.map(renderCard).join('')}</div>`;
-  }
+  function render(cards,globalWarnings=[]){renderHero(cards);if(!cards.length){app.innerHTML=`${globalWarnings.length?`<div class="warning">${esc(globalWarnings.join(' '))}</div>`:''}<div class="empty">Sellel päeval ei ole sinu kalendris aktiivseid KeeleSepa tunde.</div>`;return;}app.innerHTML=`${globalWarnings.length?`<div class="warning">${esc(globalWarnings.join(' '))}</div>`:''}<div class="list">${cards.map(renderCard).join('')}</div>`;}
 
   async function loadDay(){
-    if(!state.user||state.loading) return;
+    if(!state.user||state.loading)return;
     state.loading=true;app.innerHTML='<div class="loading"><div class="spinner"></div>Laen päevaplaani ja õppimiskonteksti…</div>';
-    const globalWarnings=[];
     try{
       await readSchedule();
       const occurrences=calendar.eventsForDate(state.schedule,state.dateIso);
       const owned=homeCore.filterTeacherEvents(occurrences,state.user);
       const ids=[...new Set(owned.map(event=>homeCore.clean(event.studentId,120)).filter(Boolean))];
       await readStudents(ids);
-      const contexts=await Promise.all(ids.map(async id=>[id,await loadStudentLearning(id)]));
+      const curriculumByStudent=await readCurriculumRows(ids);
+      const contexts=await Promise.all(ids.map(async id=>[id,await loadStudentLearning(id,curriculumByStudent[id]||{})]));
       state.learningByStudent=Object.fromEntries(contexts);
       const cards=homeCore.buildTodayCards({events:occurrences,actor:state.user,studentsById:state.studentsById,learningByStudent:state.learningByStudent});
-      render(cards,globalWarnings);
-    }catch(error){
-      console.error(error);app.innerHTML=`<div class="error">Õpetaja päevaplaani laadimine ebaõnnestus. ${esc(error.message||'')}</div>`;
-    }finally{state.loading=false;}
+      render(cards);
+    }catch(error){console.error(error);app.innerHTML=`<div class="error">Õpetaja päevaplaani laadimine ebaõnnestus. ${esc(error.message||'')}</div>`;}
+    finally{state.loading=false;}
   }
 
   document.getElementById('prev-day').addEventListener('click',()=>setDate(shiftDate(state.dateIso,-1)));
   document.getElementById('next-day').addEventListener('click',()=>setDate(shiftDate(state.dateIso,1)));
   document.getElementById('today').addEventListener('click',()=>setDate(calendar.toLocalISODate(new Date())));
   document.getElementById('refresh').addEventListener('click',()=>loadDay());
-
   auth.onAuthStateChanged(async fb=>{
     if(!fb){app.innerHTML='<div class="error">Palun logi esmalt KeeleSepp CRM-i sisse. <a href="/haldus.html">Ava CRM</a></div>';return;}
     try{
-      const userSnap=await db.collection('users').doc(fb.uid).get();
-      const raw=userSnap.exists?userSnap.data():{};
-      const email=String(fb.email||'').toLowerCase();
+      const userSnap=await db.collection('users').doc(fb.uid).get();const raw=userSnap.exists?userSnap.data():{};const email=String(fb.email||'').toLowerCase();
       state.isAdmin=raw.role==='admin'||email==='zakutailo.pavel@gmail.com';
       if(!state.isAdmin&&raw.role!=='teacher'){app.innerHTML='<div class="error">Õpetaja töölaud on ainult töötajatele.</div>';return;}
       state.user={uid:fb.uid,email:fb.email,name:raw.displayName||raw.name||fb.displayName||fb.email,role:state.isAdmin?'admin':'teacher'};
-      if(!state.isAdmin){
-        try{const migration=await db.collection('securityMigrations').doc('teacherUidV1').get();state.teacherScopeReadEnforced=migration.exists&&migration.data()?.readEnforced===true;}
-        catch(error){console.warn('Teacher scope rollout state unavailable',error);state.teacherScopeReadEnforced=false;}
-      }
-      const requested=new URLSearchParams(location.search).get('date');
-      state.dateIso=/^\d{4}-\d{2}-\d{2}$/.test(requested||'')?requested:calendar.toLocalISODate(new Date());
-      await loadDay();
+      if(!state.isAdmin){try{const migration=await db.collection('securityMigrations').doc('teacherUidV1').get();state.teacherScopeReadEnforced=migration.exists&&migration.data()?.readEnforced===true;}catch(error){console.warn('Teacher scope rollout state unavailable',error);state.teacherScopeReadEnforced=false;}}
+      const requested=new URLSearchParams(location.search).get('date');state.dateIso=/^\d{4}-\d{2}-\d{2}$/.test(requested||'')?requested:calendar.toLocalISODate(new Date());await loadDay();
     }catch(error){console.error(error);app.innerHTML=`<div class="error">Õpetaja töölaua avamine ebaõnnestus. ${esc(error.message||'')}</div>`;}
   });
 })();

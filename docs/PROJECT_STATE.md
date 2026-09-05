@@ -1,20 +1,20 @@
 # KeeleSepp Project State
 
-Last verified: 2026-09-04, Europe/Tallinn
+Last verified: 2026-09-05, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
-Verified main commit: `afa35ef3cd19aac7f08c1228a32c0303ddd5bc1e` (`Teacher Home: add direct staff entry from legacy CRM (#92)`)
-Active branch: `agent/start-lesson-vocab-v1`
-Active PR: `#93 Start Lesson flow: add B1 city vocabulary Lesson Mode`
-Independent open learning/UI PR: `#83 Tighten Adaptive Lesson desktop layout` (old draft, currently conflicts with fresh main)
-Independent legacy CRM PR: `#78 fix(crm): show retry state when reliability data fails to load` (old draft, currently conflicts with fresh main)
+Verified main commit before this workstream: `da4874ccda92f04f797cf5e31be1920a99573f05` (`Start Lesson flow: add B1 city vocabulary Lesson Mode (#93)`)
+Active workstream: `agent/teacher-home-real-curriculum-v1`
+Independent old drafts: `#83 Tighten Adaptive Lesson desktop layout`, `#78 reliability retry state` — keep separate.
 
 ## Current objective
 
-Finish the teacher's real end-to-end path before starting Lesson Builder:
+Finish the teacher's real end-to-end path before Lesson Builder:
 
-`Haldus -> Õpetaja täna -> scheduled student -> Alusta/Jätka tundi -> correct Lesson Mode -> evidence/handoff -> Teacher Home`
+`Haldus -> Õpetaja täna -> scheduled student -> REAL curriculum next lesson -> correct Lesson Mode -> evidence/handoff -> Teacher Home`
 
-Merged deterministic foundation:
+The critical rule is now explicit: **the real student curriculum is the source of truth for the next curriculum lesson. A pilot adaptive goal graph must never replace it.**
+
+## Merged deterministic foundation
 
 1. Core Blueprint — #84;
 2. Learning Profile read-only MVP — #85;
@@ -24,161 +24,98 @@ Merged deterministic foundation:
 6. deterministic per-skill Adaptive Engine v1 — #89;
 7. Curriculum Goal / prerequisite graph v1 — #90;
 8. Teacher Home / Today v1 — #91;
-9. direct staff entry from legacy CRM to Teacher Home — #92.
+9. direct staff entry from legacy CRM to Teacher Home — #92;
+10. B1 city vocabulary Lesson Mode + bounded multi-blueprint support — #93.
 
-Do not start Lesson Builder until PR #93 is merged, rolled out and the real start/finish loop is manually verified.
-
-## Production state before #93
+## Production state before this workstream
 
 ### Vercel
 
-Primary project `keelesepp` is the only active GitHub-connected Vercel project in this development flow.
+Primary project `keelesepp` is the only active GitHub-connected Vercel project in this flow. `keelesepp-crm-v2` remains disconnected.
 
-`keelesepp-crm-v2` remains disconnected from GitHub.
-
-Production deployment for merged main commit `afa35ef3...` (#92) was verified `READY`.
-
-The owner opened `/haldus-teacher-home/` in production and the page successfully loaded the real teacher day: 7 scheduled lessons / 7 students. A real B1 card for Hanna Skoryk showed next goal `EST_B1_CITY_VOCAB` (`Linnaprobleemide põhisõnavara aktiveerimine`). Because that goal had no Lesson Mode blueprint before #93, the correct fallback action was still `Ava õppimisprofiil`. This observation defines the current gap.
+Production deployment for merged main `da4874cc...` (#93) was verified `READY`.
 
 ### Firebase Functions
 
-Merged #89 `learningSessionApi` was selectively deployed to production project `keelesepp-5136b` with Node.js 22 and earlier terminal proof showed a successful update.
+The owner selectively deployed merged-main `learningProfileEvidenceApi` and `learningSessionApi` to project `keelesepp-5136b`. Terminal proof for `learningSessionApi` showed `Successful update operation` and `Deploy complete!` on Node.js 22.
 
-The owner reports that merged #91 `learningProfileEvidenceApi` has also been selectively deployed. The production Teacher Home successfully loaded the real daily queue after that step, but this file does not claim additional function internals beyond the observed UI behavior.
+No Firestore/Storage rule or schema deployment is part of the current Teacher Home source-of-truth slice.
 
-No Firestore/Storage rule or schema migration is required for #93.
+## Production bug found during real smoke
 
-## Current slice — #93 Start Lesson vocabulary flow
+Robert (`Eesti keel · B1`) exposed an architectural mismatch:
 
-### Problem
+- real curriculum workspace: next topic `Образование и учёба`;
+- next lesson: `Урок 1`;
+- goal: `Школа и обучение: tund, õpetaja, kodutöö, hinne`;
+- Teacher Home incorrectly showed the pilot goal `EST_B1_CITY_VOCAB` and an `Alusta tundi` button for the B1 city vocabulary Lesson Mode.
 
-Curriculum Engine correctly recommends the first graph goal `EST_B1_CITY_VOCAB`, but Teacher Home could not start a lesson for it because only `EST_B1_CITY_SOLVE_PROBLEM` had a Lesson Mode blueprint.
+Root cause: Teacher Home loaded `curriculum-goals/b1-city.js` and used the pilot graph as a generic B1 recommendation source instead of calculating the student's real curriculum journey.
 
-### New vocabulary blueprint
+## Current slice — real curriculum source of truth
 
-New stable blueprint:
+Teacher Home now follows the existing legacy curriculum contract:
 
-`est-b1-city-vocabulary-01`
+`HaldusCurriculum -> CurriculumWorkflow.buildStudentJourney(...) -> nextItem`
 
-Bound curriculum goal:
+It reads only the data required to calculate progress for today's students:
 
-`EST_B1_CITY_VOCAB`
+- lesson journal rows with curriculum identifiers;
+- `curriculumProgressEvents` manual credits.
 
-The 60-minute B1 lesson contains:
+`homework` and material counts are not required to select `nextItem`, so Teacher Home does not add unrelated reads for them in this slice.
 
-- answer-safe diagnostic vocabulary checks;
-- vocabulary-native activation;
-- lexical/collocation controlled practice;
-- communicative roleplay plus a changed transfer situation;
-- final vocabulary-only assessment;
-- Support/Core/Advanced variants with the same stable task-slot count;
-- exact difficult/known word evidence;
-- explicit vocabulary score + teacher handoff.
+The UI renders `curriculumNext` as:
 
-All routes keep the same B1 learning goal. They vary support/challenge only.
+- topic name;
+- lesson number;
+- exact lesson goal.
 
-### Teacher Home routing
+The B1 city goal graph is gated by explicit trusted adaptive session context. Generic `Eesti keel + B1` is no longer enough to activate it.
 
-Teacher Home now uses a bounded goal -> blueprint map:
+## Action boundary
 
-- `EST_B1_CITY_VOCAB` -> `est-b1-city-vocabulary-01`;
-- `EST_B1_CITY_SOLVE_PROBLEM` -> `est-b1-city-problem-solving-01`.
+Priority:
 
-Supported start/resume links explicitly carry both identities:
+1. trusted active supported Adaptive Lesson -> `Jätka tundi`;
+2. real next curriculum item with a future explicit Lesson Mode binding -> `Alusta tundi`;
+3. otherwise -> safe Learning Profile fallback.
 
-`/haldus-adaptive-lesson/?studentId=<studentId>&lessonId=<lessonBlueprintId>`
+At this slice there is intentionally no fake binding from Robert's `est-b1-01:0` lesson to the B1 city pilot. Therefore Robert must not receive a city `Alusta tundi` action.
 
-Active supported sessions get `Jätka tundi`; supported recommended goals get `Alusta tundi`; unsupported goals still open Learning Profile.
+## Invariants
 
-### Lesson Mode selection
+- `students.skillMap` remains canonical and is not written by Teacher Home;
+- missing evidence is unknown, never zero;
+- Adaptive evidence remains append-only;
+- completed session != achieved curriculum goal;
+- Teacher Home remains read-only;
+- no finance/calendar/Live Classroom mutation;
+- no crm-v2 work;
+- #78/#83 remain independent.
 
-`haldus-adaptive-lesson/index.html` loads the bounded supported blueprint registry and selects the requested `lessonId`.
+## Local verification before push
 
-Unknown lesson IDs do not silently fall back to a different lesson; the teacher sees a controlled unsupported-lesson message.
+Targeted local gate passed:
 
-For backward compatibility only, a direct old Lesson Mode URL without `lessonId` still defaults to `est-b1-city-problem-solving-01`.
+- Teacher Home core behavior;
+- Teacher Home UI contract;
+- Robert real-curriculum regression;
+- active supported session resume;
+- missing curriculum/evidence boundary;
+- inline JavaScript parsing.
 
-The Summary screen derives score fields from skills actually targeted by the selected lesson, so the new vocabulary lesson shows vocabulary rather than irrelevant grammar/speaking score fields.
+The workstream is pushed only after the local gate; GitHub CI then provides the repository-wide gate before owner merge.
 
-### Trusted persistence
+## Manual gate after merge
 
-`learningSessionApi` now has an explicit allowlist for the two supported lesson blueprints.
-
-For an allowed blueprint, the server owns the persisted:
-
-- lesson title;
-- CEFR level;
-- curriculum goal IDs.
-
-Browser-supplied metadata cannot forge those identities.
-
-Summary evidence uses the actual final session phase instead of the old reference-lesson-only `stage-4-exit` hardcode.
-
-Existing invariants remain unchanged:
-
-- Firebase Admin SDK performs private collection writes;
-- browser does not write `learningSessions` / `learningEvidence` directly;
-- evidence remains append-only/idempotent;
-- `students.skillMap` is not written by this slice;
-- session completion is not goal achievement.
-
-## Verification status
-
-Executable head: `cd14a0d7b445a151074fb33cbc7ab8cabf89ac91`.
-
-GitHub Actions `Financial Core emulator` run #262 completed successfully on that executable head.
-
-The green gate covers:
-
-- Functions unit tests including trusted supported-lesson registry;
-- existing CRM/accounting/calendar/learning root suite;
-- new `adaptive-vocabulary-lesson.test.js` blueprint contract;
-- Teacher Home goal/lesson start-resume routing;
-- multi-blueprint Lesson Mode selection and browser syntax;
-- Auth/Firestore/Functions emulator integration;
-- vocabulary session start + resume;
-- rejection of an unsupported lesson ID;
-- server replacement of forged client title/CEFR/curriculum-goal metadata with canonical lesson metadata;
-- coexistence with the existing problem-solving session;
-- existing per-skill route/evidence/idempotency/skillMap boundaries.
-
-Commits after executable head are documentation-only.
-
-## Deployment boundary for #93
-
-After owner merge and explicit production approval:
-
-1. selectively deploy merged-main `learningSessionApi` to project `keelesepp-5136b`;
-2. verify the normal primary `keelesepp` Vercel main deployment;
-3. do not deploy Firestore/Storage rules or schema changes;
-4. keep `keelesepp-crm-v2` disconnected.
-
-Do not deploy the Function from the PR branch.
-
-## Manual production gate after #93 merge
-
-Use a real B1 student whose next goal is `EST_B1_CITY_VOCAB` (the observed Hanna card is a suitable smoke target if still current):
-
-1. open `Haldus -> Õpetaja täna`;
-2. confirm the card shows `Alusta tundi` instead of `Ava õppimisprofiil`;
-3. click it and verify the correct student + `Linnaprobleemide põhisõnavara` Lesson Mode opens;
-4. record one teacher judgement and one exact word mark;
-5. confirm persisted state/status;
-6. finish the lesson with a vocabulary score and handoff;
-7. return to Teacher Home / Learning Profile and verify context remains visible;
-8. confirm `students.skillMap` was not silently rewritten by the adaptive runtime.
-
-Only after this gate passes should Lesson Builder begin.
-
-## Known limits
-
-- Curriculum Goal graph v1 still covers only one B1 city/services vertical slice.
-- Dedicated Lesson Mode blueprints exist for `EST_B1_CITY_VOCAB` and `EST_B1_CITY_SOLVE_PROBLEM` only.
-- `EST_B1_CITY_EXPLAIN_PROBLEM`, `EST_B1_CITY_ASK_HELP` and `EST_B1_CITY_TRANSFER` still fall back to Learning Profile.
-- Blueprints currently use Core task positions as stable activity slots; route variants therefore need equal task counts until activity/content normalization is introduced.
-- Teacher Home is a bounded daily teaching queue, not school-wide analytics.
-- #78 and #83 remain independent old drafts and should not be mixed into #93.
+1. open `Haldus -> Õpetaja täna` in production;
+2. inspect Robert;
+3. verify `Образование и учёба` / `Урок 1` / `Школа и обучение: tund, õpetaja, kodutöö, hinne`;
+4. verify Teacher Home does not substitute `EST_B1_CITY_VOCAB`;
+5. verify an existing active supported Adaptive Lesson can still show `Jätka tundi`;
+6. verify no curriculum/mastery state changes merely by opening the screen.
 
 ## Next safe step
 
-Finish #93 review, owner merges it, deploy merged-main `learningSessionApi`, verify Vercel main, then execute the eight-step production smoke gate above. Lesson Builder remains blocked until that end-to-end teaching loop succeeds.
+After the real curriculum projection passes the manual gate, implement an explicit binding and Lesson Mode for the first real curriculum lesson. Only after the complete real curriculum -> Lesson Mode -> evidence/handoff loop works should Lesson Builder start.
