@@ -1,8 +1,9 @@
 (function(root,factory){
-  const api=factory();
+  const bindings=typeof module==='object'&&module.exports?require('./functions/curriculum-lesson-bindings.js'):root.KeeleSeppCurriculumLessonBindings;
+  const api=factory(bindings);
   if(typeof module==='object'&&module.exports) module.exports=api;
   if(root) root.KeeleSeppTeacherHomeCore=api;
-})(typeof window!=='undefined'?window:globalThis,function(){
+})(typeof window!=='undefined'?window:globalThis,function(bindings){
   const ROUTES=new Set(['support','core','advanced']);
   const REFERENCE_LESSON_ID='est-b1-city-problem-solving-01';
   const REFERENCE_GOAL_ID='EST_B1_CITY_SOLVE_PROBLEM';
@@ -12,7 +13,7 @@
     [VOCAB_GOAL_ID]:VOCAB_LESSON_ID,
     [REFERENCE_GOAL_ID]:REFERENCE_LESSON_ID,
   });
-  const SUPPORTED_LESSON_IDS=new Set(Object.values(LESSON_BY_GOAL));
+  const SUPPORTED_LESSON_IDS=new Set([...Object.values(LESSON_BY_GOAL),bindings?.SCHOOL.lessonBlueprintId].filter(Boolean));
 
   const clean=(value,max=240)=>String(value??'').replace(/\s+/g,' ').trim().slice(0,max);
   const normalize=value=>clean(value,200).toLocaleLowerCase('et-EE').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
@@ -115,7 +116,7 @@
         key:clean(next.key,180),
         topicId:clean(next.topicId,160),
         topicName:clean(next.topicName,240),
-        lessonIndex:Math.max(0,Number(next.lessonIndex)||0),
+        lessonIndex:Number.isInteger(next.lessonIndex)&&next.lessonIndex>=0?next.lessonIndex:null,
         lessonNumber:clean(next.lessonNumber,100),
         lessonGoal:clean(next.lessonGoal,500),
         subject:clean(next.subject,100),
@@ -129,6 +130,7 @@
     const recommendation=normalizeRecommendation(context.recommendation);
     const curriculumJourney=normalizeCurriculumJourney(context.curriculumJourney);
     const activeSession=latestActiveSession(context.sessions);
+    const completed=(context.sessions||[]).filter(session=>session?.status==='completed').sort((a,b)=>timestampMillis(b.completedAt||b.updatedAt)-timestampMillis(a.completedAt||a.updatedAt))[0];
     const evidence=latestEvidence(context.evidence||profile.recentEvidence);
     const reviewWords=Array.isArray(profile.recommendations?.reviewVocabularyIds)
       ?profile.recommendations.reviewVocabularyIds.map(value=>clean(value,80)).filter(Boolean).slice(0,4)
@@ -137,12 +139,13 @@
       ?profile.attention.slice(0,3).map(item=>({id:clean(item.id,120),label:clean(item.label||item.id,160),score:Number.isFinite(Number(item.score))?Number(item.score):null,status:clean(item.status,30)}))
       :[];
     return {
+      latestHandoff:completed?{lessonTitle:clean(completed.lessonTitle,180),text:clean(completed.handoffText||completed.handoff?.text||completed.teacherNote,6000),completedAt:completed.completedAt||null}:null,
       recommendation,
       curriculumJourney,
       curriculumNext:curriculumJourney?.nextItem||null,
       reviewWords,
       attention,
-      latestEvidence:evidence?{title:clean(evidence.title||evidence.lessonTitle||evidence.kind||'Õppimistõend',180),completedAt:evidence.completedAt||evidence.createdAt||null,source:clean(evidence.source,60)}:null,
+      latestEvidence:evidence?{title:clean(evidence.title||evidence.lessonTitle||(context.sessions||[]).find(session=>session.id===evidence.sessionId)?.lessonTitle||evidence.kind||'Õppimistõend',180),completedAt:evidence.completedAt||evidence.createdAt||null,source:clean(evidence.lessonBlueprintId?'adaptive_lesson_evidence':evidence.source,60)}:null,
       activeSession:activeSession?{id:clean(activeSession.id,160),lessonBlueprintId:clean(activeSession.lessonBlueprintId,160),lessonTitle:clean(activeSession.lessonTitle,180),routeBySkill:sanitizeRouteBySkill(activeSession.routeBySkill)}:null,
       warning:clean(context.warning,400),
     };
@@ -160,11 +163,9 @@
     if(active&&SUPPORTED_LESSON_IDS.has(active.lessonBlueprintId)){
       return {kind:'lesson',label:'Jätka tundi',href:lessonHref(id,active.lessonBlueprintId)};
     }
-    // A pilot Curriculum Goal recommendation must never start a lesson unless the
-    // real curriculum item is explicitly bound to that Lesson Mode blueprint.
-    // No real curriculum -> Lesson Mode binding exists yet, so unsupported real
-    // next lessons correctly fall back to Learning Profile instead of substituting
-    // the B1 city pilot.
+    const binding=summary?.curriculumJourney?.valid&&!summary.warning
+      ?bindings?.forCurriculumItem(summary.curriculumNext):null;
+    if(binding) return {kind:'lesson',label:'Alusta tundi',href:lessonHref(id,binding.lessonBlueprintId)};
     return {kind:'profile',label:'Ava õppimisprofiil',href:`/haldus-learning-profile/?studentId=${encodeURIComponent(id)}`};
   }
   function buildTodayCards({events=[],actor=null,studentsById={},learningByStudent={}}={}){

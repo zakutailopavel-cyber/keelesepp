@@ -110,3 +110,10 @@ test('idempotent evidence must belong to the same session identity',()=>{
   assert.throws(()=>_test.assertSameEvidenceIdentity({...same,sessionId:'session-2'},session,'session-1'),/different learning evidence/);
   assert.throws(()=>_test.assertSameEvidenceIdentity({...same,teacherUid:'teacher-2'},session,'session-1'),/different learning evidence/);
 });
+
+test('school registry owns the real curriculum identity',()=>{
+  assert.deepEqual(_test.supportedLesson('est-b1-school-learning-01'),{
+    id:'est-b1-school-learning-01',title:'Kool ja õppimine',cefrLevel:'B1',
+    curriculumLessonKey:'est-b1-01:0',curriculumGoalIds:['EST_B1_SCHOOL_LEARNING_01']
+  });
+});

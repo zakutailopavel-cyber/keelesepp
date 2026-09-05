@@ -4,8 +4,11 @@ const { FieldValue } = require('firebase-admin/firestore');
 
 if (!admin.apps.length) admin.initializeApp();
 const db = admin.firestore();
+const curriculumBindings = require('./curriculum-lesson-bindings.js');
+const school = curriculumBindings.SCHOOL;
 const SUPER_ADMIN_EMAIL = 'zakutailo.pavel@gmail.com';
 const SUPPORTED_LESSONS = Object.freeze({
+  [school.lessonBlueprintId]: Object.freeze({title:school.title,cefrLevel:school.level,curriculumGoalIds:school.curriculumGoalIds,curriculumLessonKey:school.key}),
   'est-b1-city-problem-solving-01': Object.freeze({
     title: 'Probleemi lahendamine linnas',
     curriculumGoalIds: Object.freeze(['EST_B1_CITY_SOLVE_PROBLEM']),
@@ -69,6 +72,7 @@ function supportedLesson(value) {
   if (!config) throw httpError(400, 'Unsupported adaptive lesson');
   return {
     id,
+    ...(config.curriculumLessonKey?{curriculumLessonKey:config.curriculumLessonKey}:{}),
     title: config.title,
     curriculumGoalIds: [...config.curriculumGoalIds],
     cefrLevel: config.cefrLevel,
@@ -266,7 +270,16 @@ async function startOrResume(actor, body) {
       const r = right.data().updatedAt?.toMillis?.() || right.data().startedAt?.toMillis?.() || 0;
       return r - l;
     })[0];
-  if (active) return { session: sessionResponse(active), resumed: true };
+  if (active) {
+    const evidence = await db.collection('learningEvidence').where('sessionId','==',active.id).get();
+    const vocabularyMarks = {};
+    evidence.docs.map(doc=>doc.data()).filter(event=>event.kind==='vocabulary_mark')
+      .sort((a,b)=>(a.createdAt?.toMillis?.()||0)-(b.createdAt?.toMillis?.()||0))
+      .forEach(event=>(event.vocabularyIds||[]).forEach(id=>{
+        vocabularyMarks[id]=event.teacherJudgement==='needs_help'?'weak':'known';
+      }));
+    return { session: sessionResponse(active), resumed: true, vocabularyMarks };
+  }
 
   const ref = db.collection('learningSessions').doc();
   const now = FieldValue.serverTimestamp();
@@ -281,6 +294,7 @@ async function startOrResume(actor, body) {
     teacherName: actor.name,
     lessonBlueprintId,
     lessonTitle: lessonConfig.title,
+    ...(lessonConfig.curriculumLessonKey?{curriculumLessonKey:lessonConfig.curriculumLessonKey}:{}),
     curriculumGoalIds: lessonConfig.curriculumGoalIds,
     cefrLevel: lessonConfig.cefrLevel,
     status: 'active',
@@ -375,6 +389,7 @@ async function appendTeacherEvidence(actor, body, kind) {
       studentId: session.studentId,
       teacherUid: session.teacherUid,
       lessonBlueprintId: session.lessonBlueprintId,
+      ...(session.curriculumLessonKey?{curriculumLessonKey:session.curriculumLessonKey}:{}),
       phaseId: clean(body.phaseId, 100),
       activityId: clean(body.activityId, 140),
       skillIds: eventSkillIds,
@@ -438,6 +453,7 @@ async function completeSession(actor, body) {
         studentId: session.studentId,
         teacherUid: session.teacherUid,
         lessonBlueprintId: session.lessonBlueprintId,
+        ...(session.curriculumLessonKey?{curriculumLessonKey:session.curriculumLessonKey}:{}),
         phaseId: summaryPhaseId,
         activityId: `summary-${entry.skillId}`,
         skillIds: [entry.skillId],

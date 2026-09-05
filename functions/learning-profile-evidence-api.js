@@ -146,6 +146,7 @@ function projectEvidence(doc) {
     studentId: clean(data.studentId, 120),
     teacherUid: clean(data.teacherUid, 160),
     lessonBlueprintId: clean(data.lessonBlueprintId, 160),
+    ...(data.curriculumLessonKey?{curriculumLessonKey:clean(data.curriculumLessonKey,180)}:{}),
     phaseId: clean(data.phaseId, 100),
     activityId: clean(data.activityId, 140),
     skillIds: cleanList(data.skillIds, 20, 120),
@@ -169,6 +170,7 @@ function projectSession(doc) {
     teacherUid: clean(data.teacherUid, 160),
     teacherName: clean(data.teacherName, 160),
     lessonBlueprintId: clean(data.lessonBlueprintId, 160),
+    ...(data.curriculumLessonKey?{curriculumLessonKey:clean(data.curriculumLessonKey,180)}:{}),
     lessonTitle: clean(data.lessonTitle, 180),
     curriculumGoalIds: cleanList(data.curriculumGoalIds, 20, 160),
     cefrLevel: clean(data.cefrLevel, 20),
@@ -213,7 +215,7 @@ async function loadProfileEvidence(actor, body) {
   const sessionIds = cleanList(selected.map((item) => item.sessionId), MAX_LIMIT, 160);
 
   const activeSnap = await db.collection('learningSessions').where('studentId', '==', student.id).get();
-  const activeDocs = activeSnap.docs.filter((item) => clean(item.data()?.status, 30) === 'active');
+  const activeDocs = activeSnap.docs.filter((item) => ['active','completed'].includes(clean(item.data()?.status, 30)));
 
   let evidenceSessionDocs = [];
   if (sessionIds.length) {

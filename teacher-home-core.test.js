@@ -59,7 +59,7 @@ test('generic pilot curriculum goal never substitutes the real curriculum next l
   assert.equal(summary.curriculumNext.topicName,'Образование и учёба');
   assert.match(summary.curriculumNext.lessonGoal,/tund, õpetaja, kodutöö, hinne/);
   const action=core.actionForStudent('student-1',summary);
-  assert.equal(action.label,'Ava õppimisprofiil');
+  assert.equal(action.label,'Alusta tundi');
   assert.doesNotMatch(action.href,/est-b1-city-vocabulary-01/);
 });
 

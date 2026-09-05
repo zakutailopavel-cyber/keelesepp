@@ -84,7 +84,7 @@
     const explicitGraphContext=profile.recommendations.activeGoalIds.some(id=>graphIds.has(id))
       ||profile.recommendations.completedGoalIds.some(id=>graphIds.has(id))
       ||GOALS.some(goal=>goal.lessonBlueprintIds.includes(recentBlueprintId));
-    if(profile.currentLevel!==goalGraph.level&&!explicitGraphContext) return null;
+    if(!explicitGraphContext) return null;
     return goalCore.recommendNextGoal({
       goals:GOALS,
       level:goalGraph.level,
@@ -114,7 +114,7 @@
       return `<div class="next-box"><div class="chips"><span class="chip ${goalStatusClass(recommendation.status)}">${esc(goalStatusLabel(recommendation.status))}</span>${recommendation.reasonCodes.includes('legacy_context_match')?'<span class="chip">legacy mapping</span>':''}</div><strong>${esc(goal.title)}</strong><div class="goal-id">${esc(goal.id)}</div><p>${esc(explanation)}</p>${prerequisiteChips?`<div class="goal-section"><b>Prerequisite eesmärgid</b><div class="chips">${prerequisiteChips}</div></div>`:''}${critical?`<div class="goal-section"><b>Kriitilised oskused</b><div class="chips">${critical}</div></div>`:''}${reviewWords.length?`<div class="goal-section"><b>Sõnavara kordamiseks</b><div class="chips">${reviewWords.map(word=>`<span class="chip needs-help">${esc(word)}</span>`).join('')}</div></div>`:''}</div>`;
     }
     const nextTitle=reviewWords.length?'Alusta sõnavara kordamisest':attention.length?'Alusta tähelepanu vajavatest oskustest':'Kogu järgmises tunnis uut tõendit';
-    const nextText=reviewWords.length?`Kontrolli kõigepealt sõnu ${reviewWords.map(esc).join(', ')}. Need on viimase Adaptive Lessoni tõendi järgi veel kordamist vajavad; see ei muuda skillMapi.`:attention.length?`Kõigepealt kontrolli ${esc(attention[0].label)}. Seejärel otsusta Lesson Mode'is, kas vaja on Support, Core või Advanced rada.`:'Selle taseme jaoks ei ole Curriculum Goal graph veel kirjeldatud. Kasuta olemasolevat skillMapi ja õppimistõendit õpetaja otsuse toena.';
+    const nextText=reviewWords.length?`Kontrolli kõigepealt sõnu ${reviewWords.map(esc).join(', ')}. Need on viimase Adaptive Lessoni tõendi järgi veel kordamist vajavad; see ei muuda skillMapi.`:attention.length?`Kõigepealt kontrolli ${esc(attention[0].label)}. Seejärel otsusta Lesson Mode'is, kas vaja on Support, Core või Advanced rada.`:'Selle tunni jaoks ei ole eraldi eesmärgigraafi. Õppekava järgmise tunni leiad õpetaja töölaualt. Kasuta olemasolevat skillMapi ja õppimistõendit õpetaja otsuse toena.';
     return `<div class="next-box"><strong>${nextTitle}</strong><p>${nextText}</p></div>`;
   }
 
@@ -126,6 +126,7 @@
     const recentGoals=profile.recommendations.recentGoalLabels.slice(0,5);
     const reviewWords=profile.recommendations.reviewVocabularyIds.slice(0,8);
     const evidence=profile.recentEvidence;
+    const handoffs=state.learningSessions.filter(session=>session.status==='completed'&&(session.handoffText||session.teacherNote)).slice(0,3);
     const nextDirection=renderNextDirection(profile,reviewWords,attention);
     app.innerHTML=`
       <section class="hero">
@@ -136,6 +137,7 @@
         <div class="metric"><b>${profile.summary.evidenceCount}</b><span>hiljutist tõendit</span></div>
       </section>
       <div class="grid">
+        ${handoffs.length?`<section class="card wide"><h3>Viimaste tundide handoff</h3>${handoffs.map(session=>`<article class="evidence"><strong>${esc(session.lessonTitle)}</strong><p style="white-space:pre-wrap">${esc(session.handoffText||session.teacherNote)}</p></article>`).join('')}<a href="/haldus-teacher-home/">Tagasi õpetaja töölauale</a></section>`:''}
         <section class="card"><div class="card-head"><div class="badge">!</div><div><h3>Mida korrata järgmisena</h3><div class="card-sub">skillMap + viimase Adaptive Lessoni sõnavaratõendid, ilma mastery ümberkirjutamiseta</div></div></div>${attention.length?`<div class="skill-list">${attention.map(item=>skillCard(item,item.status)).join('')}</div>`:'<div class="placeholder">SkillMapis ei ole praegu oskusi, mis jääksid alla 70%. See ei tähenda automaatselt, et kõik oskused on hinnatud.</div>'}${reviewWords.length?`<div class="chips">${reviewWords.map(word=>`<span class="chip needs-help">Korda: ${esc(word)}</span>`).join('')}</div>`:''}</section>
         <section class="card"><div class="card-head"><div class="badge">+</div><div><h3>Tugevad oskused</h3><div class="card-sub">80% või kõrgem ainult kanonilises students.skillMapis</div></div></div>${renderList(profile.strongSkills.slice(0,6),'strong','Tugevaid oskusi ei ole veel skillMapis kinnitatud.')}</section>
         <section class="card wide"><div class="card-head"><div class="badge">E</div><div><h3>Hiljutine õppimistõendus</h3><div class="card-sub">Live Classroomi struktureeritud kokkuvõtted + Adaptive Lessoni append-only evidence</div></div></div>
