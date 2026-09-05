@@ -21,6 +21,7 @@
     let mode='preview';
     let sessionData=null;
     let studentData=null;
+    let vocabularyMarks={};
 
     const status=(next,message='')=>{mode=next;onStatus({mode:next,message,sessionId:sessionData?.id||''});};
     const currentItem=index=>items[Math.max(0,Math.min(items.length-1,Number(index)||0))]||{};
@@ -63,6 +64,7 @@
     function snapshot(){
       return {
         mode,
+        vocabularyMarks:{...vocabularyMarks},
         persistent:Boolean(sessionData),
         session:sessionData?{...sessionData}:null,
         student:studentData?{...studentData}:null
@@ -89,6 +91,7 @@
           currentRoute:initialRoute,
           skillIds:core.skillIdsForItem({lesson,item})
         });
+        vocabularyMarks=Object.fromEntries(Object.entries(result.vocabularyMarks||{}).filter(([id,mark])=>lesson.vocabulary?.some(word=>word.id===id)&&['weak','known'].includes(mark)));
         studentData={id:result.session.studentId,name:result.session.studentName};
         status(result.resumed?'restored':'active',result.resumed?'Jätkame varem alustatud õppimissessiooni.':'Õppimissessioon salvestatakse.');
         return snapshot();

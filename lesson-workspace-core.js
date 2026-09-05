@@ -138,7 +138,7 @@
     if(type==='controlled_practice') return {...base,patterns:practicePatterns(lesson),showPatterns:route(currentRoute)!=='advanced'};
     if(type==='roleplay') return {...base,studentRole:prompt,teacherRole:instruction,steps:roleplaySteps(currentRoute),showScene:false};
     if(type==='transfer') return {...base,newSituation:prompt,rule:'Uus olukord: ära näita eelmise ülesande vastust ega lahendust.',steps:route(currentRoute)==='support'?['Mõista uut olukorda','Sõnasta probleem','Küsi abi','Paku lahendus']:[]};
-    if(type==='assessment') return {...base,criteria:list(lesson?.successCriteria).slice(0,4).map(value=>clean(value,300)),showExpectedInitially:false,rule:'Lõppkontrollis ei näidata vastusemudelit enne sooritust.'};
+    if(type==='assessment') return {...base,criteria:list(stageFor(lesson,item)?.successCriteria||lesson?.successCriteria).slice(0,4).map(value=>clean(value,300)),showExpectedInitially:false,rule:'Lõppkontrollis ei näidata vastusemudelit enne sooritust.'};
     return {...base,showScene:type==='scene'};
   }
 

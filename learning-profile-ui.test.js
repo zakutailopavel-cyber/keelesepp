@@ -64,7 +64,7 @@ test('explicit B1 session context can explain the active graph even when the stu
   assert.match(source,/const explicitGraphContext=/);
   assert.match(source,/activeGoalIds\.some\(id=>graphIds\.has\(id\)\)/);
   assert.match(source,/lessonBlueprintIds\.includes\(recentBlueprintId\)/);
-  assert.match(source,/if\(profile\.currentLevel!==goalGraph\.level&&!explicitGraphContext\) return null/);
+  assert.match(source,/if\(!explicitGraphContext\) return null/);
 });
 
 test('Learning Profile explains the stable next curriculum goal instead of hiding the decision',()=>{
@@ -77,7 +77,7 @@ test('Learning Profile explains the stable next curriculum goal instead of hidin
 });
 
 test('Learning Profile keeps a bounded evidence-based fallback outside the supported B1 graph',()=>{
-  assert.match(source,/Selle taseme jaoks ei ole Curriculum Goal graph veel kirjeldatud/);
+  assert.match(source,/Selle tunni jaoks ei ole eraldi eesmärgigraafi/);
   assert.match(source,/Alusta sõnavara kordamisest/);
   assert.match(source,/Alusta tähelepanu vajavatest oskustest/);
 });

@@ -354,3 +354,78 @@ test("Learning Session API persists independent per-skill routes and append-only
   });
   assert.equal(afterCompleteJudge.status, 409, JSON.stringify(afterCompleteJudge.body));
 });
+test('real school curriculum traverses browser store, trusted persistence, profile and Teacher Home', async()=>{
+  requireSafeEmulatorEnvironment();
+  if(!admin.apps.length) admin.initializeApp({projectId:PROJECT_ID});
+  const db=admin.firestore();
+  const token=await createUserToken('real-school-teacher@example.com');
+  const uid=tokenUid(token), studentId='real-school-test-only';
+  const original={name:'Robert fixture',subject:'Eesti keel',level:'B1',teacherUid:uid,skillMap:{vocabulary:64}};
+  await db.collection('users').doc(uid).set({role:'teacher',displayName:'School Teacher'});
+  await db.collection('students').doc(studentId).set(original);
+  const lesson=require('../adaptive-lessons/est-b1-school-learning');
+  const items=require('../lesson-workspace-core').buildItems(lesson);
+  const engine=require('../adaptive-skill-engine');
+  const storeModule=require('../learning-session-store');
+  const home=require('../teacher-home-core');
+  const curriculum=require('../haldus-curriculum-data');
+  const workflow=require('../curriculum-workflow-core');
+  const profileCore=require('../learning-profile-core');
+  const auth={currentUser:{getIdToken:async()=>token}};
+  const apiUrl=`http://${FUNCTIONS_EMULATOR}/${PROJECT_ID}/us-central1/learningSessionApi`;
+  const create=()=>storeModule.create({auth,lesson,items,studentId,apiUrl});
+  let store=create();
+  const initial=await store.init();
+  const id=initial.session.id;
+  assert.equal(initial.session.curriculumLessonKey,'est-b1-01:0');
+  assert.deepEqual(initial.session.curriculumGoalIds,['EST_B1_SCHOOL_LEARNING_01']);
+  for(let index=0;index<items.length;index++){
+    const item=items[index];
+    const before=store.snapshot().session.routeBySkill;
+    const skill=item.skillIds[0];
+    const judgement=index<3?({vocabulary:'easy',grammar:'ok',speaking:'help'})[skill]:'ok';
+    const decision=engine.applyJudgement({routeBySkill:before,skillIds:item.skillIds,judgement,fallback:'core'});
+    await store.saveProgress({index,route:decision.effectiveBefore});
+    assert.deepEqual(store.snapshot().session.routeBySkill,before,'navigation never writes skill routes');
+    await store.recordJudgement({index,route:decision.effectiveBefore,judgement,nextRoute:decision.effectiveAfter,nextRouteBySkill:decision.nextBySkill});
+    if(item.stageId==='school-vocabulary'&&item.taskIndex===0) await store.recordVocabulary({index,route:'advanced',wordId:'hinne',mark:'weak'});
+    if(index===4){
+      store=create();
+      const restored=await store.init();
+      assert.equal(restored.session.id,id);
+      assert.equal(restored.session.currentIndex,4);
+      assert.deepEqual(restored.vocabularyMarks,{hinne:'weak'});
+      assert.deepEqual(restored.session.routeBySkill,{vocabulary:'advanced',grammar:'core',speaking:'support'});
+    }
+  }
+  const handoff='Kool ja õppimine. Korda sõna hinne; rääkimisel anna mõtlemisaega.';
+  await store.complete({route:'support',scores:{vocabulary:80,grammar:'',speaking:60},teacherNote:'Uue kursuse vestlus vajab kordamist.',handoffText:handoff});
+  assert.equal(store.snapshot().session.status,'completed');
+  const read=async()=>{
+    const response=await fetch(`http://${FUNCTIONS_EMULATOR}/${PROJECT_ID}/us-central1/learningProfileEvidenceApi`,{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({studentId})});
+    assert.equal(response.status,200);return response.json();
+  };
+  const result=await read();
+  const completed=result.sessions.find(s=>s.id===id);
+  assert.equal(completed.handoffText,handoff);
+  assert.equal(completed.curriculumLessonKey,'est-b1-01:0');
+  assert.ok(result.evidence.every(e=>e.curriculumLessonKey==='est-b1-01:0'));
+  const scores=result.evidence.filter(e=>e.kind==='summary_score');
+  assert.deepEqual(scores.map(e=>e.skillIds[0]).sort(),['speaking','vocabulary']);
+  const journey=workflow.buildStudentJourney(curriculum,original,[],[],[],[]);
+  const profile=profileCore.buildLearningProfile({student:original,adaptiveEvidence:result.evidence,learningSessions:result.sessions});
+  const summary=home.learningSummary({curriculumJourney:journey,profile,sessions:result.sessions,evidence:result.evidence});
+  assert.equal(summary.latestHandoff.text,handoff);
+  assert.equal(summary.activeSession,null);
+  assert.equal(summary.curriculumNext.key,'est-b1-01:0');
+  assert.deepEqual(profile.recommendations.completedGoalIds,[]);
+  assert.ok(profile.recommendations.reviewVocabularyIds.includes('hinne'));
+  assert.deepEqual((await db.collection('students').doc(studentId).get()).data(),original);
+  const rejected=await postLearning(token,{...actionBase(id,'school_after_completed'),action:'judge',teacherJudgement:'managed'});
+  assert.equal(rejected.status,409);
+  // A handoff with all score fields blank must still reach the read side.
+  store=create();await store.init();
+  await store.complete({scores:{},teacherNote:'Vaatlus ilma hindeta.',handoffText:'Jätka diagnostikaga.'});
+  const blank=await read();
+  assert.ok(blank.sessions.some(s=>s.id===store.snapshot().session.id&&s.handoffText==='Jätka diagnostikaga.'));
+});

@@ -460,3 +460,17 @@ Safe evolution:
 ## Known current limitation
 
 The Curriculum Goal graph covers only the first B1 city/services vertical slice. Dedicated Lesson Mode blueprints now exist for `EST_B1_CITY_VOCAB` and `EST_B1_CITY_SOLVE_PROBLEM`; the intermediate explain/help goals and final transfer goal still fall back to Learning Profile. Blueprints still use Core task positions as stable activity slots, so all route variants in the new vocabulary lesson deliberately keep equal task counts. The later Content Engine normalization slice must introduce route-independent stable activity IDs before broad authoring/migration.
+## Real curriculum slice after #94 (2026-09-05)
+
+The current workstream supersedes the generic goal-based Teacher Home start mapping described
+above. The exact legacy item `est-b1-01:0` (`Образование и учёба / Урок 1`) now maps explicitly
+to `est-b1-school-learning-01`, with separate vocabulary, grammar and speaking route/assessment
+slots. The shared binding and server allowlist own this identity; B1 alone is insufficient.
+Teacher Home still resumes trusted supported active sessions first and keeps other items on
+Learning Profile fallback. Profile also requires explicit city context for city recommendations.
+
+Completed handoffs are exposed even without scores, and completion offers explicit return links.
+An additive school `curriculumLessonKey` is preserved in trusted sessions and evidence. Neither
+completion nor this identity grants curriculum credit or writes canonical mastery. Both learning
+Functions require reviewed selective deployment; no rules deployment or migration is introduced.
+See `docs/REAL_CURRICULUM_LESSON_MODE_V1.md` and `docs/PROJECT_STATE.md` for verified status and gate.
