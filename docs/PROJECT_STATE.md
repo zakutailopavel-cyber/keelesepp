@@ -4,7 +4,7 @@ Last verified: 2026-09-05, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
 Verified main: `fe459ffe6243109fa2f1f2879dc6348ca7ac344c` — merged #94, Teacher Home real curriculum
 Active branch: `codex/real-curriculum-lesson-mode-v1`
-PR: draft pending creation (updated after push)
+PR: draft #95 — https://github.com/zakutailopavel-cyber/keelesepp/pull/95
 
 ## Outcome
 
