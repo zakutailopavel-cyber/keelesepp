@@ -15,10 +15,7 @@
   const SUPPORTED_LESSON_IDS=new Set(Object.values(LESSON_BY_GOAL));
 
   const clean=(value,max=240)=>String(value??'').replace(/\s+/g,' ').trim().slice(0,max);
-  const normalize=value=>clean(value,200)
-    .toLocaleLowerCase('et-EE')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g,'');
+  const normalize=value=>clean(value,200).toLocaleLowerCase('et-EE').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 
   const aliasKey=value=>{
     const first=normalize(value).split(/\s+/)[0]||'';
@@ -38,11 +35,7 @@
     return Boolean(actorName&&eventName&&actorName===eventName);
   }
 
-  const cancelledStatus=value=>{
-    const status=normalize(value);
-    return ['tuhistatud','cancelled','canceled'].includes(status);
-  };
-
+  const cancelledStatus=value=>['tuhistatud','cancelled','canceled'].includes(normalize(value));
   const timeMinutes=value=>{
     const match=clean(value,10).match(/^(\d{1,2}):(\d{2})$/);
     if(!match) return null;
@@ -51,19 +44,16 @@
     if(hours<0||hours>23||minutes<0||minutes>59) return null;
     return hours*60+minutes;
   };
-
   const formatMinutes=value=>{
     const minutes=Math.max(0,Math.min(24*60,Math.round(Number(value)||0)));
     if(minutes===24*60) return '24:00';
     return `${String(Math.floor(minutes/60)).padStart(2,'0')}:${String(minutes%60).padStart(2,'0')}`;
   };
-
   function lessonEnd(event){
     const start=timeMinutes(event?.time);
     if(start===null) return '';
     return formatMinutes(start+Math.max(5,Number(event?.duration)||60));
   }
-
   function filterTeacherEvents(events,actor){
     return (Array.isArray(events)?events:[])
       .filter(event=>event&&!cancelledStatus(event.status)&&teacherMatches(event,actor))
@@ -75,7 +65,6 @@
         return a-b||clean(left.studentName,160).localeCompare(clean(right.studentName,160),'et');
       });
   }
-
   function sanitizeRouteBySkill(value){
     const result={};
     if(!value||typeof value!=='object'||Array.isArray(value)) return result;
@@ -86,7 +75,6 @@
     });
     return result;
   }
-
   const timestampMillis=value=>{
     if(!value) return 0;
     if(typeof value.toMillis==='function') return value.toMillis();
@@ -95,73 +83,76 @@
     const parsed=Date.parse(value);
     return Number.isFinite(parsed)?parsed:0;
   };
-
   function latestActiveSession(sessions){
     return (Array.isArray(sessions)?sessions:[])
       .filter(session=>session&&clean(session.status,30)==='active')
       .sort((left,right)=>timestampMillis(right.updatedAt||right.startedAt)-timestampMillis(left.updatedAt||left.startedAt))[0]||null;
   }
-
   function latestEvidence(evidence){
     return (Array.isArray(evidence)?evidence:[])
       .filter(Boolean)
       .sort((left,right)=>timestampMillis(right.completedAt||right.createdAt)-timestampMillis(left.completedAt||left.createdAt))[0]||null;
   }
-
   function normalizeRecommendation(value){
     if(!value||typeof value!=='object'||!value.goal) return null;
     return {
       status:clean(value.status,40),
-      goal:{
-        id:clean(value.goal.id,160),
-        title:clean(value.goal.title,240),
-      },
+      goal:{id:clean(value.goal.id,160),title:clean(value.goal.title,240)},
       explanation:clean(value.explanation||value.reason||'',800),
     };
   }
-
+  function normalizeCurriculumJourney(value){
+    if(!value||typeof value!=='object') return null;
+    const next=value.nextItem;
+    return {
+      valid:value.valid===true,
+      completedLessons:Math.max(0,Number(value.completedLessons)||0),
+      totalLessons:Math.max(0,Number(value.totalLessons)||0),
+      completedTopics:Math.max(0,Number(value.completedTopics)||0),
+      totalTopics:Math.max(0,Number(value.totalTopics)||0),
+      percent:Math.max(0,Math.min(100,Number(value.percent)||0)),
+      nextItem:next?{
+        key:clean(next.key,180),
+        topicId:clean(next.topicId,160),
+        topicName:clean(next.topicName,240),
+        lessonIndex:Math.max(0,Number(next.lessonIndex)||0),
+        lessonNumber:clean(next.lessonNumber,100),
+        lessonGoal:clean(next.lessonGoal,500),
+        subject:clean(next.subject,100),
+        level:clean(next.level,30),
+        planned:Boolean(next.planned),
+      }:null,
+    };
+  }
   function learningSummary(context={}){
     const profile=context.profile&&typeof context.profile==='object'?context.profile:{};
     const recommendation=normalizeRecommendation(context.recommendation);
+    const curriculumJourney=normalizeCurriculumJourney(context.curriculumJourney);
     const activeSession=latestActiveSession(context.sessions);
     const evidence=latestEvidence(context.evidence||profile.recentEvidence);
     const reviewWords=Array.isArray(profile.recommendations?.reviewVocabularyIds)
       ?profile.recommendations.reviewVocabularyIds.map(value=>clean(value,80)).filter(Boolean).slice(0,4)
       :[];
     const attention=Array.isArray(profile.attention)
-      ?profile.attention.slice(0,3).map(item=>({
-        id:clean(item.id,120),
-        label:clean(item.label||item.id,160),
-        score:Number.isFinite(Number(item.score))?Number(item.score):null,
-        status:clean(item.status,30),
-      }))
+      ?profile.attention.slice(0,3).map(item=>({id:clean(item.id,120),label:clean(item.label||item.id,160),score:Number.isFinite(Number(item.score))?Number(item.score):null,status:clean(item.status,30)}))
       :[];
     return {
       recommendation,
+      curriculumJourney,
+      curriculumNext:curriculumJourney?.nextItem||null,
       reviewWords,
       attention,
-      latestEvidence:evidence?{
-        title:clean(evidence.title||evidence.lessonTitle||evidence.kind||'Õppimistõend',180),
-        completedAt:evidence.completedAt||evidence.createdAt||null,
-        source:clean(evidence.source,60),
-      }:null,
-      activeSession:activeSession?{
-        id:clean(activeSession.id,160),
-        lessonBlueprintId:clean(activeSession.lessonBlueprintId,160),
-        lessonTitle:clean(activeSession.lessonTitle,180),
-        routeBySkill:sanitizeRouteBySkill(activeSession.routeBySkill),
-      }:null,
+      latestEvidence:evidence?{title:clean(evidence.title||evidence.lessonTitle||evidence.kind||'Õppimistõend',180),completedAt:evidence.completedAt||evidence.createdAt||null,source:clean(evidence.source,60)}:null,
+      activeSession:activeSession?{id:clean(activeSession.id,160),lessonBlueprintId:clean(activeSession.lessonBlueprintId,160),lessonTitle:clean(activeSession.lessonTitle,180),routeBySkill:sanitizeRouteBySkill(activeSession.routeBySkill)}:null,
       warning:clean(context.warning,400),
     };
   }
-
   function lessonHref(studentId,lessonId){
     const id=clean(studentId,120);
     const blueprintId=clean(lessonId,160);
     if(!id||!SUPPORTED_LESSON_IDS.has(blueprintId)) return '';
     return `/haldus-adaptive-lesson/?studentId=${encodeURIComponent(id)}&lessonId=${encodeURIComponent(blueprintId)}`;
   }
-
   function actionForStudent(studentId,summary){
     const id=clean(studentId,120);
     if(!id) return null;
@@ -169,13 +160,13 @@
     if(active&&SUPPORTED_LESSON_IDS.has(active.lessonBlueprintId)){
       return {kind:'lesson',label:'Jätka tundi',href:lessonHref(id,active.lessonBlueprintId)};
     }
-    const recommendedLessonId=LESSON_BY_GOAL[summary?.recommendation?.goal?.id]||'';
-    if(recommendedLessonId){
-      return {kind:'lesson',label:'Alusta tundi',href:lessonHref(id,recommendedLessonId)};
-    }
+    // A pilot Curriculum Goal recommendation must never start a lesson unless the
+    // real curriculum item is explicitly bound to that Lesson Mode blueprint.
+    // No real curriculum -> Lesson Mode binding exists yet, so unsupported real
+    // next lessons correctly fall back to Learning Profile instead of substituting
+    // the B1 city pilot.
     return {kind:'profile',label:'Ava õppimisprofiil',href:`/haldus-learning-profile/?studentId=${encodeURIComponent(id)}`};
   }
-
   function buildTodayCards({events=[],actor=null,studentsById={},learningByStudent={}}={}){
     const visible=filterTeacherEvents(events,actor);
     return visible.map(event=>{
@@ -184,38 +175,19 @@
       const context=studentId&&learningByStudent&&learningByStudent[studentId]?learningByStudent[studentId]:{};
       const summary=learningSummary(context);
       return {
-        eventId:clean(event.id,160),
-        studentId,
+        eventId:clean(event.id,160),studentId,
         studentName:clean(student?.name||student?.fullName||event.studentName||'Õpilane',160),
         level:clean(student?.level||student?.cefrLevel||event.level,30),
-        time:clean(event.time,10),
-        endTime:lessonEnd(event),
-        duration:Math.max(5,Number(event.duration)||60),
-        title:clean(event.title||event.subject||'Tund',180),
-        status:clean(event.status,60),
-        summary,
+        time:clean(event.time,10),endTime:lessonEnd(event),duration:Math.max(5,Number(event.duration)||60),
+        title:clean(event.title||event.subject||'Tund',180),status:clean(event.status,60),summary,
         primaryAction:actionForStudent(studentId,summary),
         profileHref:studentId?`/haldus-learning-profile/?studentId=${encodeURIComponent(studentId)}`:'',
       };
     });
   }
-
   return {
-    REFERENCE_LESSON_ID,
-    REFERENCE_GOAL_ID,
-    VOCAB_LESSON_ID,
-    VOCAB_GOAL_ID,
-    LESSON_BY_GOAL,
-    clean,
-    teacherMatches,
-    filterTeacherEvents,
-    lessonEnd,
-    sanitizeRouteBySkill,
-    latestActiveSession,
-    latestEvidence,
-    learningSummary,
-    lessonHref,
-    actionForStudent,
-    buildTodayCards,
+    REFERENCE_LESSON_ID,REFERENCE_GOAL_ID,VOCAB_LESSON_ID,VOCAB_GOAL_ID,LESSON_BY_GOAL,
+    clean,teacherMatches,filterTeacherEvents,lessonEnd,sanitizeRouteBySkill,latestActiveSession,latestEvidence,
+    normalizeCurriculumJourney,learningSummary,lessonHref,actionForStudent,buildTodayCards,
   };
 });
