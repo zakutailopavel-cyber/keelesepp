@@ -47,3 +47,29 @@ test("ambiguous registrations enter the reliability queue instead of creating a 
   assert.doesNotMatch(rules, /createsOwnStudent/);
   assert.match(backend, /req\.path === "\/accounts\/bootstrap-admin"/);
 });
+
+const component = html.slice(
+  html.indexOf("function DataQualityView("),
+  html.indexOf("const ADMIN_FINANCE_SECTIONS="),
+);
+
+test("reliability preview success still stores data and keeps the loading state for first paint", () => {
+  assert.match(component, /try\{setData\(await staffOperationsApiPost\('\/data-quality\/preview',\{\}\)\);\}/);
+  assert.match(component, /Kontrollin andmeid…/);
+});
+
+test("reliability preview failure renders an error card with retry instead of an infinite spinner", () => {
+  assert.match(component, /const \[error,setError\]=React\.useState\(''\);/);
+  assert.match(component, /catch\(error\)\{setError\(error\.message\|\|String\(error\)\);notify\(/);
+  const errorGuard = component.indexOf("if(!data&&error) return");
+  const spinnerGuard = component.indexOf("if(!data) return");
+  assert.ok(errorGuard >= 0, "error state render must exist");
+  assert.ok(spinnerGuard > errorGuard, "error card must render before the spinner guard");
+  assert.match(component, /Proovi uuesti/);
+});
+
+test("retry re-runs the preview request and a success replaces the error state", () => {
+  const errorCard = component.slice(component.indexOf("if(!data&&error) return"), component.indexOf("if(!data) return"));
+  assert.match(errorCard, /onClick=\{refresh\}/);
+  assert.match(component, /setBusy\('refresh'\);setError\(''\);/);
+});
