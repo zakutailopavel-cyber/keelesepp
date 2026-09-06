@@ -1,7 +1,8 @@
 # Normalized Activity Contract v1
 
-Status: implemented on `agent/lesson-builder-activity-contract`, based on main
-`6d045cfcc32d93fccb91dd5b5b639aa6701cb436`. No production rollout in this workstream.
+Status: COMPLETED in merged PR #98, main `b23dabc989be3aad1989de98f4c1234cfdc20e4a`.
+Production Vercel READY; post-merge non-mutating smoke passed.
+The subsequent local editor is documented in [LESSON_BUILDER_AUTHORING_UI_V1.md](LESSON_BUILDER_AUTHORING_UI_V1.md).
 
 ## Boundary and identity
 

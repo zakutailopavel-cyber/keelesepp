@@ -2,12 +2,12 @@
 
 Last verified: 2026-09-06, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
-Verified main: `6d045cfcc32d93fccb91dd5b5b639aa6701cb436` — merged #97, production teaching loop ACCEPTED
-Current implementation branch: `agent/lesson-builder-activity-contract`
+Verified main: `b23dabc989be3aad1989de98f4c1234cfdc20e4a` — #98 merged; production Vercel READY; real teaching loop ACCEPTED
+Current implementation branch: `agent/lesson-builder-authoring-ui-v1`
 
 ## Current objective
 
-Lesson Builder v1 — Normalized Activity Contract: introduce a pure normalization boundary with pinned task IDs and an existing Lesson Mode/session/evidence vertical proof. No visual Builder UI in this slice.
+Lesson Builder v1 — Authoring & Validation UI: a local draft editor for normalized activities, validated JSON import/export and nonpersistent preview through the current Lesson Mode. Cloud publication and student assignment are outside this slice.
 
 The merged path is:
 
@@ -17,14 +17,15 @@ PR #94 switched Teacher Home to the real curriculum source. PR #95 then bound th
 
 ## Verified repository state
 
-Current remote `main` is `6d045cfcc32d93fccb91dd5b5b639aa6701cb436`.
+Current remote `main` is `b23dabc989be3aad1989de98f4c1234cfdc20e4a`.
 
 Merged on current `main`:
 
 - #94 `fix(learning): use real curriculum in Teacher Home`;
 - #95 `Real Curriculum Lesson Mode v1: school lesson to evidence and handoff`;
 - #96 `docs: reconcile project state after PR 95 merge`;
-- #97 `docs: accept real curriculum production teaching loop`.
+- #97 `docs: accept real curriculum production teaching loop`;
+- #98 `Lesson Builder v1 — Normalized Activity Contract` — merged, COMPLETED.
 
 Independent open PRs remain separate and must not be mixed into the learning rollout:
 
@@ -34,7 +35,7 @@ Independent open PRs remain separate and must not be mixed into the learning rol
 - #72 Frappe/ERPNext spike — finance staging;
 - #71 finance staging stabilization — open.
 
-Current GitHub `main` is authoritative. Open PR file lists were checked: no changed-file overlap with this activity-contract slice. #83 currently changes only `adaptive-lessons/scenes.js`, which is untouched.
+Current GitHub `main` is authoritative. Open PR file lists were checked: no changed-file overlap with this authoring UI slice. #83 currently changes only `adaptive-lessons/scenes.js`, which is untouched.
 
 ## Real Curriculum Lesson Mode v1
 
@@ -76,7 +77,23 @@ Known extended-glob noise from #95 remains unchanged: three stale `adaptive-less
 
 ## Production state
 
-At the preceding acceptance audit, Vercel production for `6a31ecd8...` was verified **READY**. That verified deployment was `dpl_FBbT2oSExETZnA45S7u6rKEM3wYS` from the primary GitHub-connected `keelesepp` project.
+Production Vercel is **READY** for main `b23dabc989be3aad1989de98f4c1234cfdc20e4a`:
+`dpl_C6jfXFxJ8DMVfxCfT9Ks6MLpyepA`, primary GitHub-connected `keelesepp` project.
+
+Post-#98 smoke on 2026-09-06:
+
+- authenticated `crm.epkoolitus.ee/haldus-teacher-home/` loaded Robert's correct school lesson and existing handoff;
+- nonstudent Lesson Mode loaded `est-b1-school-learning-01`; Next moved between activities;
+- browser warning/error logs were empty for both pages;
+- Vercel production error/fatal log query returned no matching entries in the inspected
+  `12:36:58.432Z–13:36:58.432Z` window; this is bounded log coverage;
+- production binding, blueprint, activity contract and workspace scripts matched main byte-for-byte;
+- the downloaded client modules correctly resolved saved `currentActivityId=school-d-vocabulary`
+  from the existing pre-smoke snapshot. This is an ID compatibility check, **not** a newly created
+  or resumed live student session. Robert's accepted session is already completed.
+
+Smoke result: **PASS within this non-mutating scope**. No new student evidence, sessions, handoffs,
+Firebase operations or deployment were performed.
 
 Authenticated production source downloads verified both Functions against main after the
 2026-09-06 recovery of a stale-source redeployment:
@@ -126,67 +143,71 @@ not PASS or FAIL, and the owner explicitly accepted it as a non-blocking follow-
 The first real curriculum production teaching loop is **ACCEPTED**. This rollout no longer
 blocks Lesson Builder. No Firebase or Vercel deployment is needed for this documentation update.
 
-## Lesson Builder boundary
+## Normalized Activity Contract v1 — COMPLETED
 
-Lesson Builder / Content Engine normalization is no longer blocked by this rollout.
+PR **#98 is merged** on current main and its production Vercel deployment is READY.
+The contract pins school task IDs, adapts legacy strings, preserves all three routes and restores
+sessions by activity ID before legacy index fallback. Missing saved IDs fail visibly. The exact
+contract remains in [NORMALIZED_ACTIVITY_CONTRACT_V1.md](NORMALIZED_ACTIVITY_CONTRACT_V1.md).
+The existing real curriculum teaching acceptance above remains ACCEPTED.
 
-The next planned workstream is `Lesson Builder v1 — Normalized Activity Contract`: stable activity IDs first, with future-compatible fields for response modes (including voice), assets/visuals, progression rules and collaboration/debate, without implementing all feature families in one PR.
+## Current implementation — Authoring & Validation UI v1
 
-## Current implementation work — Normalized Activity Contract v1
+Branch: `agent/lesson-builder-authoring-ui-v1`.
+Draft PR: [#99 — Lesson Builder v1 — Authoring & Validation UI](https://github.com/zakutailopavel-cyber/keelesepp/pull/99).
+Owner merge required before production rollout.
 
-Branch: `agent/lesson-builder-activity-contract`.
-Draft PR: **#98 — Lesson Builder v1 — Normalized Activity Contract**.
-Owner review/merge is pending.
+Implemented:
 
-Completed:
-
-- pure `activity-contract-core.js` normalizes legacy strings and explicit `{id,prompt}` task objects;
-- minimal runtime contract: schemaVersion/id/phaseId/skillIds/workspaceType/routes, inert optional
-  responseMode/assets/progression/collaboration/evaluation metadata;
-- explicit route task ID sets are validated and joined by identity rather than position;
-- school lesson pins all existing task IDs without changing teaching material;
-- workspace projection supplies existing item IDs to unchanged Learning Session/evidence code;
-- Lesson Mode resumes by persisted currentActivityId first; only ID-less legacy records use index;
-- a removed persisted activity ID blocks resume rather than silently selecting a different task;
-- both city blueprints remain legacy strings with unchanged identities and workspace models.
+- `/haldus-lesson-builder/`, linked from Teacher Home;
+- new local draft or copy of the school lesson; all 12 reference IDs and route content retained;
+- activity list, immutable ID, title, phaseId, skillIds and workspaceType editing;
+- Support/Core/Advanced prompt, expected answer and teacher instruction;
+- reorder by pinned ID; add allocates a UUID once, independent of prompt or route;
+- validation through `activity-contract-core`, plus authoring bounds, required prompts and safe context metadata;
+- explicit local save/restore, validated JSON import/export, errors before save/preview;
+- sessionStorage snapshot preview using the current Lesson Mode workspace contract;
+- preview ignores any supplied studentId, never publishes the draft or creates student evidence.
 
 Changed files:
 
-- `activity-contract-core.js` and `activity-contract-core.test.js`;
-- `.github/workflows/financial-core-emulator.yml` (new contract suite and path triggers);
-- `lesson-workspace-core.js`;
-- `haldus-adaptive-lesson/index.html` (script dependency and resume lookup only; no layout changes);
-- `adaptive-lessons/est-b1-school-learning.js` (explicit task objects; unchanged prompts);
-- `docs/NORMALIZED_ACTIVITY_CONTRACT_V1.md`;
-- `docs/ADAPTIVE_LESSON_SYSTEM.md`, `docs/KEELESEPP_CORE_BLUEPRINT.md`, this state file.
+- `lesson-authoring-core.js`, `lesson-authoring-core.test.js`, `lesson-authoring-preview.js`;
+- `haldus-lesson-builder/index.html`, `haldus-lesson-builder/app.js`, `haldus-lesson-builder/style.css`;
+- `lesson-workspace-core.js`, `haldus-adaptive-lesson/index.html`, `haldus-teacher-home/index.html`;
+- `vercel.json`, `.github/workflows/financial-core-emulator.yml`;
+- this file, `docs/LESSON_BUILDER_AUTHORING_UI_V1.md`, `docs/NORMALIZED_ACTIVITY_CONTRACT_V1.md`,
+  `docs/ADAPTIVE_LESSON_SYSTEM.md`.
 
 Validation:
 
-- selected adaptive/workspace/learning-session/real-curriculum suite: **70/70 passed**, including
-  **9 new normalization contract tests**;
-- Functions learning-session API tests: **12/12 passed** using the existing installed dependencies;
-  initial isolated worktree invocation lacked firebase-admin; no package/source change was needed;
-- exact workspace-model comparison with unchanged main: **123/123 equal** (41 activities × 3 routes);
-- isolated JSDOM full HTML Preview navigation: school **12**, city vocabulary **15**, city problem
-  solving **14** activities rendered, with no captured script errors or production API requests;
-- browser UMD modules loaded in actual HTML dependency order;
-- legacy `adaptive-lesson-ui.test.js`: **5/8 passed, 3 failed**, the same stale asset/layout/summary
-  regex assertions reproduced against unchanged baseline code. These are not claimed as passing;
-- `git diff --check` passed. No Firebase emulator or production lesson writes in this workstream.
+- CI-selected CRM/learning tests: **242/242 passed**, including **10 authoring tests**;
+- Functions unit tests: **157/157 passed**, using existing installed dependencies; no Function source changed;
+- reference preview workspace parity: **36/36 models equal** (12 activities × 3 routes);
+- isolated DOM navigation of existing school/city vocabulary/city problem-solving: **12/15/14**
+  activities rendered, no captured script errors or API requests;
+- isolated authored preview with a supplied studentId: all 12 activities, preview judgements and
+  summary exercised; **0 token requests, 0 API requests, 0 script errors**; HTML content escaped;
+- actual Chrome editor: empty save rejected; school copied, title edited, activity reordered,
+  saved and restored after reload; iframe Lesson Mode followed the edited order; console errors absent;
+- browser JavaScript syntax checks and `git diff --check`: **PASS**; CI result will be linked in the PR.
 
-Data/security: no changes to Functions, Firestore schemas/rules/indexes, student data, skillMap,
-credits, evidence payloads or authorization. Optional capabilities are inert JSON metadata, not
-executable rules or asset-loading permission. Existing answer-hiding and escaped rendering remain.
+Data/security: one draft in browser localStorage (`keelesepp.lesson-authoring.v1`), temporary preview
+snapshot in same-tab sessionStorage, optional user-downloaded JSON. No Firestore objects, rules,
+indexes, migrations, Functions, evidence payloads, skillMap, mastery, credit or authorization changes.
+The editor is a public local authoring tool, not an authenticated cloud content service. Other users
+of the same browser profile/origin can access its local draft; do not store private student data in it.
+Imported markup is escaped; durations are bounded numeric values; optional future metadata stays inert.
 
-Known limitations: legacy string task identity still depends on frozen order; future editing must
-pin IDs before insertion/reordering. Deleting an in-use ID needs a separate versioning policy.
-No Builder UI, voice, AI, collaboration engine or publication service exists in v1. Nested optional
-metadata semantics and authorization are deferred to their consuming feature boundaries.
+Limitations: one saved draft per browser origin; no cloud backup, publication, assignment, draft library,
+activity deletion/versioning or asset authoring. A new save replaces the prior local draft; export JSON
+for separate copies. Reference vocabulary/pattern/phase context is copied but not edited in this UI.
+Preview is a snapshot and must be reopened after edits. Existing Lesson Mode teaching scaffolds are
+retained. Preview does not prove a cloud publication or live-session authoring flow.
 
-No manual production deployment, paid API call, Firebase operation or PR merge is part of this work.
-GitHub reads/push and draft PR creation are the external development operations.
+No Firebase operation, production deploy, paid API call or PR merge is part of this workstream.
+Automatic GitHub/Vercel preview is permitted; production only after owner merge.
 
 ## Next safe step
 
-Review and merge the Normalized Activity Contract v1 draft PR by owner decision before starting
-Lesson Builder authoring/validation UI. The production vocabulary-mark follow-up remains non-blocking.
+Owner review of the Authoring & Validation UI draft PR and its preview, then owner merge if accepted.
+The genuine-lesson vocabulary-mark follow-up remains non-blocking.

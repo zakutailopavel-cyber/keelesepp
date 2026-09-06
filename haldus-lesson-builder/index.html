@@ -1,0 +1,11 @@
+<!doctype html><html lang="et"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>KeeleSepp · Tunni koostaja</title>
+<link rel="stylesheet" href="/haldus-lesson-builder/style.css">
+<script defer src="/functions/curriculum-lesson-bindings.js"></script><script defer src="/adaptive-lessons/est-b1-school-learning.js"></script><script defer src="/activity-contract-core.js"></script><script defer src="/lesson-authoring-core.js"></script><script defer src="/haldus-lesson-builder/app.js"></script></head>
+<body><header><a class="brand" href="/haldus-teacher-home/">Keele<span>Sepp</span></a><span>Tunni koostaja</span><a href="/haldus-teacher-home/">Õpetaja töölaud</a></header>
+<main><div class="intro"><div><p class="eyebrow">TUNNI MUSTAND</p><h1>Koosta tund, tegevus korraga.</h1><p>Muuda ülesandeid ja kolme raskusrada. Mustand salvestatakse ainult sellesse brauserisse. See ei muuda õpilaste andmeid ega avaldatud tunde.</p></div><div class="start"><button id="new">Uus tund</button><button id="school">Kopeeri koolitund</button><label class="file">Impordi JSON<input id="import" type="file" accept="application/json,.json"></label></div></div>
+<div class="toolbar"><label class="lesson-title">Tunni pealkiri<input id="lesson-title" maxlength="180"></label><span id="save-state" role="status">Salvestamata</span><button id="save" class="primary">Salvesta mustand</button><button id="export">Ekspordi JSON</button><button id="preview">Vaata tundi</button></div>
+<section id="errors" class="errors" role="alert" hidden></section>
+<div class="layout"><aside><div class="list-head"><h2>Tegevused <span id="total"></span></h2><button id="add">+ Lisa</button></div><ol id="activities"></ol></aside>
+<section id="editor" aria-label="Tegevuse redaktor"><p>Lisa esimene tegevus või kopeeri koolitund.</p></section></div>
+<section id="preview-panel" hidden><div class="list-head"><h2>Tunni eelvaade</h2><button id="close-preview">Sulge eelvaade</button></div><p>Eelvaade ei loo õppimissessiooni ega salvesta hinnanguid. Muudetud mustandi nägemiseks ava eelvaade uuesti.</p><iframe id="preview-frame" title="Lesson Mode eelvaade"></iframe></section>
+</main></body></html>
