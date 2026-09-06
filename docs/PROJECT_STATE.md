@@ -154,7 +154,8 @@ The existing real curriculum teaching acceptance above remains ACCEPTED.
 ## Current implementation — Authoring & Validation UI v1
 
 Branch: `agent/lesson-builder-authoring-ui-v1`.
-Draft PR: to be linked after creation; owner merge required before production rollout.
+Draft PR: [#99 — Lesson Builder v1 — Authoring & Validation UI](https://github.com/zakutailopavel-cyber/keelesepp/pull/99).
+Owner merge required before production rollout.
 
 Implemented:
 
