@@ -8,9 +8,8 @@ On 2026-09-05 the production browser route `https://crm.epkoolitus.ee/haldus.htm
 `Образование и учёба → Урок 1 → Школа и обучение: tund, õpetaja, kodutöö, hinne`.
 
 The card had `Ava õppimisprofiil`, no city lesson launch and no `EST_B1_CITY_VOCAB` substitution.
-This verifies the visible #94 regression. No lesson was started and no test assessment was
-written to Robert. Existing active-session resume and write boundaries were tested locally,
-not claimed as separately observed production events.
+This verifies the visible #94 regression. At that initial entry check no lesson was started and no test assessment was
+written to Robert. Subsequent genuine production acceptance is recorded below.
 
 ## Immutable binding
 
@@ -81,12 +80,44 @@ real curriculum → browser store → all activities → distinct skill routes �
 It verifies unchanged student data, no achieved-goal invention, post-completion write rejection,
 and a second handoff with no scores. Existing suites cover authorization and idempotency.
 
-Production persistence for this new blueprint requires owner-authorized deployment of **both**
-`learningSessionApi` and `learningProfileEvidenceApi`. No Firestore/Storage rule deployment is needed.
-Deploy the two functions from the reviewed change before exposing the new frontend launch,
-then owner-merge the frontend PR. Do not merge and claim production completion with the old
-server allowlist: it will reject the school blueprint.
+## Production teaching acceptance — ACCEPTED
 
-The agent has not deployed either function and has not merged the PR. After authorized rollout,
-run one real taught session and verify the saved handoff/evidence on production. Lesson Builder
-remains deferred until this production teaching loop is accepted.
+On 2026-09-06 the owner confirmed that the recorded results belong to a genuine Robert lesson
+and accepted the main production teaching loop. Read-only production verification found:
+
+- completed session: `kJkHMe21CzXUqpN5NgrA`;
+- status: `completed`; completedAt: `2026-09-06T08:43:12.101Z`;
+- curriculumLessonKey: `est-b1-01:0`; lessonBlueprintId: `est-b1-school-learning-01`;
+- 14 persisted `teacher_judgement` events and 3 `summary_score` events (17 total);
+- summary scores: Vocabulary **50**, Grammar **74**, Speaking **70**;
+- persisted routeBySkill: vocabulary **advanced**, grammar **advanced**, speaking **advanced**;
+- explicit handoff and teacher note `Väga` persisted;
+- the same scored handoff is visible in Learning Profile and Robert's Teacher Home card;
+- `learningSessionApi` and `learningProfileEvidenceApi` returned HTTP **200**;
+- no Functions errors were found in inspected flow logs;
+- the full student document, including `students.skillMap`, is unchanged against the pre-smoke snapshot;
+- lesson journal and `curriculumProgressEvents` remain unchanged; no automatic mastery, credit
+  or advancement to lesson 2 was created.
+
+Earlier session `dDF13J9b4k4ME3oe01h2` is a separate completed technical attempt with one judgement
+and an unscored handoff. It was not reset, overwritten or confused with the genuine scored session.
+Active-session refresh/resume and navigation persistence were verified before completion.
+The audit did not create synthetic judgements, evidence, handoffs or credit.
+
+### Non-blocking follow-up — NOT OBSERVED
+
+**Production vocabulary_mark interaction not yet observed in a genuine lesson; verify opportunistically during the next real lesson.**
+
+No `vocabulary_mark` event exists in this genuine session. It is unknown whether the word-mark
+operation was actually performed; data loss is not established. The current contract supports
+word marks and automated tests cover them. This production interaction is **NOT OBSERVED**,
+not PASS or FAIL, and the owner explicitly accepted it as a non-blocking follow-up.
+
+The first real curriculum production teaching loop is **ACCEPTED**. This rollout no longer
+blocks Lesson Builder. No Firebase or Vercel deployment is needed for this documentation update.
+
+## Next workstream
+
+**Lesson Builder v1 — Normalized Activity Contract**: stable activity IDs and normalized content
+contracts first. This accepted rollout no longer blocks that workstream; implementation is outside
+this documentation-only PR #97. No merge is performed by the agent.
