@@ -81,12 +81,18 @@ real curriculum → browser store → all activities → distinct skill routes �
 It verifies unchanged student data, no achieved-goal invention, post-completion write rejection,
 and a second handoff with no scores. Existing suites cover authorization and idempotency.
 
-Production persistence for this new blueprint requires owner-authorized deployment of **both**
-`learningSessionApi` and `learningProfileEvidenceApi`. No Firestore/Storage rule deployment is needed.
-Deploy the two functions from the reviewed change before exposing the new frontend launch,
-then owner-merge the frontend PR. Do not merge and claim production completion with the old
-server allowlist: it will reject the school blueprint.
+On 2026-09-05 at approximately 23:57 Europe/Tallinn the owner ran an explicitly authorized
+selective Firebase deployment to project `keelesepp-5136b` with `firebase-tools@15.22.3`:
 
-The agent has not deployed either function and has not merged the PR. After authorized rollout,
-run one real taught session and verify the saved handoff/evidence on production. Lesson Builder
-remains deferred until this production teaching loop is accepted.
+`functions:learningSessionApi,functions:learningProfileEvidenceApi`.
+
+Terminal evidence showed `Successful update operation` for both `learningSessionApi(us-central1)`
+and `learningProfileEvidenceApi(us-central1)`, followed by `Deploy complete!`. No Firestore rules,
+Storage rules, indexes, migrations or unrelated Functions were part of that selective command.
+The server rollout gate is therefore closed.
+
+The remaining production acceptance gate is authenticated behavior, not deployment: run one genuine
+school lesson from Teacher Home, save teacher judgement/evidence, complete it with a handoff, confirm
+the handoff in Learning Profile / Teacher Home, and verify that neither `students.skillMap` nor
+curriculum credit changes implicitly. Until that real teaching smoke is observed, do not claim the
+complete production teaching loop is accepted and do not start Lesson Builder implementation.
