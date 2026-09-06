@@ -135,7 +135,7 @@ The next planned workstream is `Lesson Builder v1 — Normalized Activity Contra
 ## Current implementation work — Normalized Activity Contract v1
 
 Branch: `agent/lesson-builder-activity-contract`.
-Draft PR: **Lesson Builder v1 — Normalized Activity Contract**, identified by this exact head branch.
+Draft PR: **#98 — Lesson Builder v1 — Normalized Activity Contract**.
 Owner review/merge is pending.
 
 Completed:
@@ -153,6 +153,7 @@ Completed:
 Changed files:
 
 - `activity-contract-core.js` and `activity-contract-core.test.js`;
+- `.github/workflows/financial-core-emulator.yml` (new contract suite and path triggers);
 - `lesson-workspace-core.js`;
 - `haldus-adaptive-lesson/index.html` (script dependency and resume lookup only; no layout changes);
 - `adaptive-lessons/est-b1-school-learning.js` (explicit task objects; unchanged prompts);
