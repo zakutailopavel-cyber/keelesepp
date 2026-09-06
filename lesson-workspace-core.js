@@ -45,7 +45,10 @@
   }
 
   function buildItems(lesson){
-    return contract.normalizeLesson(lesson).map(activity=>({
+    const activities=lesson?.authoringActivities||contract.normalizeLesson(lesson);
+    const validation=contract.validateActivities(activities);
+    if(!validation.ok)throw new Error(validation.errors.join('; '));
+    return activities.map(activity=>({
       kind:activity.source.kind,stage:activity.source.stage,stageId:activity.phaseId,
       id:activity.id,skillIds:activity.skillIds,title:activity.title,
       ...(activity.source.kind==='stage'?{taskIndex:activity.source.taskIndex}:{context:activity.source.taskIndex===1?'Õpilane vajab võõralt inimeselt abi.':'Lase õpilasel vastata lõpuni ilma parandamata.'}),prompt:activity.routes.core.prompt,

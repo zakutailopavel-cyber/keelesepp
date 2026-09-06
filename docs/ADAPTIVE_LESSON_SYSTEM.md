@@ -1,6 +1,6 @@
 # KeeleSepp Adaptive Lesson System v1
 
-Status: the first real school curriculum production teaching loop is ACCEPTED through merged #97. Normalized Activity Contract v1 is implemented on `agent/lesson-builder-activity-contract` for review; it is not a production deployment.
+Status: the first real school curriculum production teaching loop is ACCEPTED through merged #97. Normalized Activity Contract v1 is COMPLETED through merged #98; production Vercel is READY at b23dabc. The next bounded slice is the local Authoring & Validation UI.
 
 ## Purpose
 
@@ -488,3 +488,21 @@ Missing recorded IDs fail visibly rather than directing new evidence at another 
 semantics, answer visibility, skill routes, evidence kinds, explicit handoff and mastery boundaries
 are unchanged. Response/media/progression/collaboration/evaluation metadata is reserved and inert.
 No Functions deployment or persistence migration is required for this client-side boundary.
+
+
+## Lesson Builder v1 — Authoring & Validation UI
+
+The local editor at `/haldus-lesson-builder/` uses `lesson-authoring-core.js` to validate activities
+through the existing activity contract. IDs are allocated once and cannot be edited; copying the
+reference school lesson pins the existing IDs before reorder. Editing route text does not change ID.
+
+Draft storage is explicitly browser-local, with validated JSON import/export. `lesson-authoring-preview.js`
+reads a temporary same-tab snapshot and creates a preview-only lesson; source indices are regenerated
+from stable IDs. `lesson-workspace-core` projects its normalized activities into the existing Lesson Mode.
+Any preview studentId is ignored. Invalid snapshots fail closed, without falling back to a real lesson.
+No LearningSession, evidence, handoff, skillMap or curriculum credit is persisted by this preview.
+
+The existing trusted lesson registry and persistent teaching flow are unchanged. This slice adds no
+cloud publication, teacher authorization API, migration or Firebase deployment. See
+[LESSON_BUILDER_AUTHORING_UI_V1.md](LESSON_BUILDER_AUTHORING_UI_V1.md) for the draft envelope,
+validation rules, storage limitations and review checks.

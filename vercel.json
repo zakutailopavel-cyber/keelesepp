@@ -1,6 +1,14 @@
 {
   "rewrites": [
     {
+      "source": "/haldus-lesson-builder",
+      "destination": "/haldus-lesson-builder/index.html"
+    },
+    {
+      "source": "/haldus-lesson-builder/",
+      "destination": "/haldus-lesson-builder/index.html"
+    },
+    {
       "source": "/haldus",
       "destination": "/haldus.html"
     },
@@ -98,6 +106,14 @@
     }
   ],
   "headers": [
+    {
+      "source": "/haldus-lesson-builder/",
+      "headers": [{"key": "Content-Type", "value": "text/html; charset=utf-8"}]
+    },
+    {
+      "source": "/haldus-lesson-builder",
+      "headers": [{"key": "Content-Type", "value": "text/html; charset=utf-8"}]
+    },
     {
       "source": "/haldus-exercises",
       "headers": [
