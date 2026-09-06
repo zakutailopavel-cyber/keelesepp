@@ -236,6 +236,12 @@ The teacher may override a decision. The override should be recorded as session 
 
 ### 3.6 Workspace contract
 
+Implementation note (2026-09-06): the concrete v1 normalization boundary is documented in
+[NORMALIZED_ACTIVITY_CONTRACT_V1.md](NORMALIZED_ACTIVITY_CONTRACT_V1.md). It adapts existing
+blueprints without a persistence migration and preserves existing activityId values. The types
+below remain the broader architectural direction; the linked contract specifies implemented fields.
+
+
 Lesson Mode is one shell with multiple specialized workspaces.
 
 ```ts

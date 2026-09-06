@@ -1,6 +1,6 @@
 # KeeleSepp Adaptive Lesson System v1
 
-Status: foundation + persisted Learning Session/evidence loop + Learning Profile projection + phase-specific Lesson Mode + per-skill Adaptive Engine + Curriculum Goal graph + Teacher Home flow are merged through #92. PR #93 adds the second supported Lesson Mode blueprint for the first vocabulary goal.
+Status: the first real school curriculum production teaching loop is ACCEPTED through merged #97. Normalized Activity Contract v1 is implemented on `agent/lesson-builder-activity-contract` for review; it is not a production deployment.
 
 ## Purpose
 
@@ -474,3 +474,17 @@ An additive school `curriculumLessonKey` is preserved in trusted sessions and ev
 completion nor this identity grants curriculum credit or writes canonical mastery. Both learning
 Functions require reviewed selective deployment; no rules deployment or migration is introduced.
 See `docs/REAL_CURRICULUM_LESSON_MODE_V1.md` and `docs/PROJECT_STATE.md` for verified status and gate.
+
+## Normalized Activity Contract v1
+
+`activity-contract-core.js` is the pure adaptation/validation boundary before workspace projection.
+The exact shape and compatibility rules are in [NORMALIZED_ACTIVITY_CONTRACT_V1.md](NORMALIZED_ACTIVITY_CONTRACT_V1.md).
+It keeps the existing activityId/phaseId contract rather than introducing another evidence identity.
+School route tasks now declare pinned `{id,prompt}` objects; legacy city strings remain supported
+with their historical IDs. All structured routes share one ID set and are matched by ID.
+
+Lesson Mode restores an existing currentActivityId before considering legacy index-only records.
+Missing recorded IDs fail visibly rather than directing new evidence at another task. Workspace
+semantics, answer visibility, skill routes, evidence kinds, explicit handoff and mastery boundaries
+are unchanged. Response/media/progression/collaboration/evaluation metadata is reserved and inert.
+No Functions deployment or persistence migration is required for this client-side boundary.

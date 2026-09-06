@@ -2,12 +2,12 @@
 
 Last verified: 2026-09-06, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
-Verified main: `6a31ecd8c86c3e729e1a24a455a42b0151fd8a77` — merged #96, project-state reconciliation after #95
-Current documentation branch: `agent/reconcile-functions-rollout`
+Verified main: `6d045cfcc32d93fccb91dd5b5b639aa6701cb436` — merged #97, production teaching loop ACCEPTED
+Current implementation branch: `agent/lesson-builder-activity-contract`
 
 ## Current objective
 
-Record the ACCEPTED first real curriculum production teaching loop and hand off to Lesson Builder v1 — Normalized Activity Contract.
+Lesson Builder v1 — Normalized Activity Contract: introduce a pure normalization boundary with pinned task IDs and an existing Lesson Mode/session/evidence vertical proof. No visual Builder UI in this slice.
 
 The merged path is:
 
@@ -17,13 +17,14 @@ PR #94 switched Teacher Home to the real curriculum source. PR #95 then bound th
 
 ## Verified repository state
 
-Current remote `main` is `6a31ecd8c86c3e729e1a24a455a42b0151fd8a77`.
+Current remote `main` is `6d045cfcc32d93fccb91dd5b5b639aa6701cb436`.
 
 Merged on current `main`:
 
 - #94 `fix(learning): use real curriculum in Teacher Home`;
 - #95 `Real Curriculum Lesson Mode v1: school lesson to evidence and handoff`;
-- #96 `docs: reconcile project state after PR 95 merge`.
+- #96 `docs: reconcile project state after PR 95 merge`;
+- #97 `docs: accept real curriculum production teaching loop`.
 
 Independent open PRs remain separate and must not be mixed into the learning rollout:
 
@@ -33,7 +34,7 @@ Independent open PRs remain separate and must not be mixed into the learning rol
 - #72 Frappe/ERPNext spike — finance staging;
 - #71 finance staging stabilization — open.
 
-Current GitHub `main` is authoritative. This reconciliation changes documentation only.
+Current GitHub `main` is authoritative. Open PR file lists were checked: no changed-file overlap with this activity-contract slice. #83 currently changes only `adaptive-lessons/scenes.js`, which is untouched.
 
 ## Real Curriculum Lesson Mode v1
 
@@ -75,7 +76,7 @@ Known extended-glob noise from #95 remains unchanged: three stale `adaptive-less
 
 ## Production state
 
-Vercel production for current `main` `6a31ecd8...` is verified **READY**. The active production deployment is `dpl_FBbT2oSExETZnA45S7u6rKEM3wYS` from the primary GitHub-connected `keelesepp` project.
+At the preceding acceptance audit, Vercel production for `6a31ecd8...` was verified **READY**. That verified deployment was `dpl_FBbT2oSExETZnA45S7u6rKEM3wYS` from the primary GitHub-connected `keelesepp` project.
 
 Authenticated production source downloads verified both Functions against main after the
 2026-09-06 recovery of a stale-source redeployment:
@@ -85,7 +86,7 @@ Authenticated production source downloads verified both Functions against main a
 - build: `0d26d420-7f52-4672-badb-9434ce0e7e21`;
 - source hash: `c208808a2d80bfe88674c62a7f86d2a4c24e113a`.
 
-Both deployed handlers match main byte-for-byte. That separately authorized selective deployment
+At that audit both deployed handlers matched the then-current main byte-for-byte. This workstream does not re-deploy or claim a new production revision. That separately authorized selective deployment
 is complete; it grants no permission for further Firebase deployment. No new deployment was
 performed for this acceptance documentation.
 
@@ -131,21 +132,60 @@ Lesson Builder / Content Engine normalization is no longer blocked by this rollo
 
 The next planned workstream is `Lesson Builder v1 — Normalized Activity Contract`: stable activity IDs first, with future-compatible fields for response modes (including voice), assets/visuals, progression rules and collaboration/debate, without implementing all feature families in one PR.
 
-## Current documentation work
+## Current implementation work — Normalized Activity Contract v1
 
-Branch: `agent/reconcile-functions-rollout`.
+Branch: `agent/lesson-builder-activity-contract`.
+Draft PR: **Lesson Builder v1 — Normalized Activity Contract**, identified by this exact head branch.
+Owner review/merge is pending.
+
+Completed:
+
+- pure `activity-contract-core.js` normalizes legacy strings and explicit `{id,prompt}` task objects;
+- minimal runtime contract: schemaVersion/id/phaseId/skillIds/workspaceType/routes, inert optional
+  responseMode/assets/progression/collaboration/evaluation metadata;
+- explicit route task ID sets are validated and joined by identity rather than position;
+- school lesson pins all existing task IDs without changing teaching material;
+- workspace projection supplies existing item IDs to unchanged Learning Session/evidence code;
+- Lesson Mode resumes by persisted currentActivityId first; only ID-less legacy records use index;
+- a removed persisted activity ID blocks resume rather than silently selecting a different task;
+- both city blueprints remain legacy strings with unchanged identities and workspace models.
 
 Changed files:
 
-- `docs/PROJECT_STATE.md`;
-- `docs/REAL_CURRICULUM_LESSON_MODE_V1.md`.
+- `activity-contract-core.js` and `activity-contract-core.test.js`;
+- `lesson-workspace-core.js`;
+- `haldus-adaptive-lesson/index.html` (script dependency and resume lookup only; no layout changes);
+- `adaptive-lessons/est-b1-school-learning.js` (explicit task objects; unchanged prompts);
+- `docs/NORMALIZED_ACTIVITY_CONTRACT_V1.md`;
+- `docs/ADAPTIVE_LESSON_SYSTEM.md`, `docs/KEELESEPP_CORE_BLUEPRINT.md`, this state file.
 
-Purpose: record verified production teaching acceptance and its non-blocking vocabulary-mark follow-up in existing draft PR #97. No new PR or merge. Historical automated test results above were not rerun for this documentation-only change; documentation diff and acceptance consistency were checked.
+Validation:
 
-No application code, Firebase configuration, data, rules or production services are changed by this documentation branch.
+- selected adaptive/workspace/learning-session/real-curriculum suite: **70/70 passed**, including
+  **9 new normalization contract tests**;
+- Functions learning-session API tests: **12/12 passed** using the existing installed dependencies;
+  initial isolated worktree invocation lacked firebase-admin; no package/source change was needed;
+- exact workspace-model comparison with unchanged main: **123/123 equal** (41 activities × 3 routes);
+- isolated JSDOM full HTML Preview navigation: school **12**, city vocabulary **15**, city problem
+  solving **14** activities rendered, with no captured script errors or production API requests;
+- browser UMD modules loaded in actual HTML dependency order;
+- legacy `adaptive-lesson-ui.test.js`: **5/8 passed, 3 failed**, the same stale asset/layout/summary
+  regex assertions reproduced against unchanged baseline code. These are not claimed as passing;
+- `git diff --check` passed. No Firebase emulator or production lesson writes in this workstream.
+
+Data/security: no changes to Functions, Firestore schemas/rules/indexes, student data, skillMap,
+credits, evidence payloads or authorization. Optional capabilities are inert JSON metadata, not
+executable rules or asset-loading permission. Existing answer-hiding and escaped rendering remain.
+
+Known limitations: legacy string task identity still depends on frozen order; future editing must
+pin IDs before insertion/reordering. Deleting an in-use ID needs a separate versioning policy.
+No Builder UI, voice, AI, collaboration engine or publication service exists in v1. Nested optional
+metadata semantics and authorization are deferred to their consuming feature boundaries.
+
+No manual production deployment, paid API call, Firebase operation or PR merge is part of this work.
+GitHub reads/push and draft PR creation are the external development operations.
 
 ## Next safe step
 
-Lesson Builder v1 — Normalized Activity Contract.
-Start it as a separate bounded workstream after this documentation update; do not implement it
-inside PR #97. Verify the non-blocking vocabulary-mark interaction during the next real lesson.
+Review and merge the Normalized Activity Contract v1 draft PR by owner decision before starting
+Lesson Builder authoring/validation UI. The production vocabulary-mark follow-up remains non-blocking.
