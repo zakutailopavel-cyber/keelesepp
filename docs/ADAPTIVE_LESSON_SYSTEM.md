@@ -506,3 +506,19 @@ The existing trusted lesson registry and persistent teaching flow are unchanged.
 cloud publication, teacher authorization API, migration or Firebase deployment. See
 [LESSON_BUILDER_AUTHORING_UI_V1.md](LESSON_BUILDER_AUTHORING_UI_V1.md) for the draft envelope,
 validation rules, storage limitations and review checks.
+
+
+## Ultimate Teacher UX extension (after merged #99)
+
+The local Builder now offers 41 block templates, 9 lesson structures, stable-ID pointer/keyboard
+reorder, duplicate/delete/history, autosave, human phase names and lesson settings.
+`lesson-builder-ux-core.js` owns these authoring operations; `lesson-block-templates.js` is data.
+Optional `draft.authoring` holds presentation and lesson settings keyed by existing activity ID.
+It is not a replacement activity or evidence contract. Older drafts remain readable.
+
+A debounced snapshot uses the existing Lesson Mode item/model pipeline, with selected activity,
+route and student/teacher view. `lesson-authoring-presentation.js` adds 13 escaped, noninteractive
+visual presets only for authored previews. Native registered lessons retain their exact models.
+Preview ignores studentId and never persists session/evidence/handoff; no cloud publication exists.
+Readiness is a local UX checklist and cannot affect student mastery or curriculum credit.
+See [LESSON_BUILDER_UX_V2.md](LESSON_BUILDER_UX_V2.md) for safety, validation and manual QA scope.

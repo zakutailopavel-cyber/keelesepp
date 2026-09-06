@@ -1,7 +1,9 @@
 # Lesson Builder v1 — Authoring & Validation UI
 
 Base: merged #98 / main `b23dabc989be3aad1989de98f4c1234cfdc20e4a`.
-Branch: `agent/lesson-builder-authoring-ui-v1`. This slice is a local authoring tool, not a publication service.
+Status: merged #99 at main `73d43aa9c5a4226ea2a4472c645795d6370e1ff8`.
+This document describes the original v1 storage/preview boundary. Its teacher-facing UX is extended by
+[LESSON_BUILDER_UX_V2.md](LESSON_BUILDER_UX_V2.md); the local-only publication boundary remains.
 
 ## Teacher workflow
 
@@ -58,7 +60,8 @@ Published identity protection and version reconciliation will need a separate se
   at least one of the six supported skills and all three nonempty route prompts up to 3000 characters.
 - Expected answer is optional text up to 3000 characters; teacher instruction up to 4000.
 - Workspace type is one of the existing seven activity types; summary is not an authored activity.
-  All variants retain the activity workspace type. Diagnostic type and `diagnostic` phase must agree.
+  All variants retain the activity workspace type. The Ultimate UX extension permits phase and
+  workspace type to be edited independently, as allowed by the existing normalized contract.
 - Imported context is validated; duration values must be finite numbers from 0 to 240.
   Preview projects only recognized phase fields. Imported markup is rendered as escaped text.
 - JSON text is bounded at 1,000,000 code units, with an additional 1,000,000-byte file-size check in UI.
@@ -87,7 +90,7 @@ must add role checks, immutable versions and trusted validation before drafts ca
 - Main post-#98 production smoke is recorded with its exact scope in PROJECT_STATE.md.
   No student evidence was created for any smoke in this workstream.
 
-## Limitations and next step
+## Original v1 limitations (superseded UX)
 
 One draft per browser origin; export/import is the only transfer/backup mechanism. No deletion UI,
 publication, assignment, cloud draft library, AI, voice, collaboration, assets editor or automatic
@@ -95,5 +98,5 @@ progression. Copied vocabulary, language patterns and phase context are not edit
 Existing Lesson Mode scaffolds remain and may be generic for newly authored material. Preview is
 nonpersistent and is not proof of live publication. In-use activity deletion/versioning remains deferred.
 
-Next safe step: owner review of the draft PR and preview, then owner merge if accepted.
+The current workstream, verification and next safe step are in PROJECT_STATE.md and the UX v2 document.
 Production deployment only after owner merge; no Firebase production deployment is authorized.
