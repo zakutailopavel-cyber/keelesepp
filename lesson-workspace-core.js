@@ -1,8 +1,9 @@
 (function(root,factory){
-  const api=factory();
+  const contract=typeof module==='object'&&module.exports?require('./activity-contract-core.js'):root.KeeleSeppActivityContract;
+  const api=factory(contract);
   if(typeof module==='object'&&module.exports) module.exports=api;
   if(root) root.KeeleSeppLessonWorkspaceCore=api;
-})(typeof window!=='undefined'?window:globalThis,function(){
+})(typeof window!=='undefined'?window:globalThis,function(contract){
   const WORKSPACE_TYPES=['diagnostic','vocabulary','controlled_practice','scene','roleplay','transfer','assessment','summary'];
   const TYPE_SET=new Set(WORKSPACE_TYPES);
   const ROUTES=new Set(['support','core','advanced']);
@@ -33,6 +34,7 @@
   }
 
   function workspaceTypeFor(lesson,item,currentRoute='core'){
+    if(item?.activity) return item.activity.routes[route(currentRoute)].workspaceType;
     if(item?.kind==='diagnostic') return 'diagnostic';
     const stage=stageFor(lesson,item);
     const variant=routeVariant(lesson,item,currentRoute);
@@ -43,38 +45,17 @@
   }
 
   function buildItems(lesson){
-    const items=[];
-    list(lesson?.diagnostic?.items).forEach((entry,index)=>items.push({
-      kind:'diagnostic',
-      stage:0,
-      stageId:'diagnostic',
-      id:entry.id||`diagnostic-${index}`,
-      skillIds:list(entry.skillIds),
-      title:'Diagnostika',
-      prompt:entry.prompt||'',
-      expected:entry.expected||'',
-      context:index===1?'Õpilane vajab võõralt inimeselt abi.':'Lase õpilasel vastata lõpuni ilma parandamata.',
-      method:lesson?.diagnostic?.instruction||'',
-      workspaceType:'diagnostic'
+    return contract.normalizeLesson(lesson).map(activity=>({
+      kind:activity.source.kind,stage:activity.source.stage,stageId:activity.phaseId,
+      id:activity.id,skillIds:activity.skillIds,title:activity.title,
+      ...(activity.source.kind==='stage'?{taskIndex:activity.source.taskIndex}:{context:activity.source.taskIndex===1?'Õpilane vajab võõralt inimeselt abi.':'Lase õpilasel vastata lõpuni ilma parandamata.'}),prompt:activity.routes.core.prompt,
+      expected:activity.routes.core.expected,method:activity.routes.core.teacherInstruction,
+      workspaceType:activity.workspaceType,activity
     }));
-    list(lesson?.stages).forEach((stage,stageIndex)=>{
-      const coreTasks=list(stage?.routes?.core?.tasks);
-      coreTasks.forEach((task,taskIndex)=>items.push({
-        kind:'stage',
-        stage:stageIndex+1,
-        stageId:stage.id,
-        id:`${stage.id}-${taskIndex}`,
-        skillIds:stage.skill?[stage.skill]:[],
-        title:stage.title,
-        taskIndex,
-        prompt:task,
-        workspaceType:workspaceTypeFor(lesson,{kind:'stage',stage:stageIndex+1,stageId:stage.id,taskIndex},'core')
-      }));
-    });
-    return items;
   }
 
   function taskText(lesson,item,currentRoute='core'){
+    if(item?.activity) return clean(item.activity.routes[route(currentRoute)].prompt,3000);
     if(item?.kind==='diagnostic') return clean(item.prompt,3000);
     const variant=routeVariant(lesson,item,currentRoute);
     const tasks=list(variant?.tasks);
@@ -82,6 +63,7 @@
   }
 
   function expectedText(lesson,item,currentRoute='core'){
+    if(item?.activity) return clean(item.activity.routes[route(currentRoute)].expected,3000);
     if(item?.kind==='diagnostic') return clean(item.expected,3000);
     const stage=stageFor(lesson,item);
     const variant=routeVariant(lesson,item,currentRoute);
@@ -89,6 +71,7 @@
   }
 
   function teacherInstruction(lesson,item,currentRoute='core'){
+    if(item?.activity) return clean(item.activity.routes[route(currentRoute)].teacherInstruction,4000);
     if(item?.kind==='diagnostic') return clean(item.method||lesson?.diagnostic?.instruction,4000);
     return clean(routeVariant(lesson,item,currentRoute)?.teacherInstruction||'Kohanda toe hulka, kuid hoia eesmärk sama.',4000);
   }
@@ -153,6 +136,7 @@
     routeVariant,
     workspaceTypeFor,
     buildItems,
+    resolveResumeIndex:contract.resolveResumeIndex,
     taskText,
     expectedText,
     teacherInstruction,
