@@ -7,7 +7,7 @@ Current documentation branch: `agent/reconcile-functions-rollout`
 
 ## Current objective
 
-Close the final authenticated production acceptance gate for the first real curriculum Lesson Mode before starting Lesson Builder.
+Record the ACCEPTED first real curriculum production teaching loop and hand off to Lesson Builder v1 — Normalized Activity Contract.
 
 The merged path is:
 
@@ -77,37 +77,59 @@ Known extended-glob noise from #95 remains unchanged: three stale `adaptive-less
 
 Vercel production for current `main` `6a31ecd8...` is verified **READY**. The active production deployment is `dpl_FBbT2oSExETZnA45S7u6rKEM3wYS` from the primary GitHub-connected `keelesepp` project.
 
-The Firebase Functions rollout required by #95 is now verified from owner-provided terminal evidence.
+Authenticated production source downloads verified both Functions against main after the
+2026-09-06 recovery of a stale-source redeployment:
 
-On 2026-09-05 at approximately 23:57 Europe/Tallinn, after explicit owner authorization, the owner ran a selective Firebase deployment to project `keelesepp-5136b` using `firebase-tools@15.22.3` for exactly:
+- `learningSessionApi`: version **6**, ACTIVE, updated `2026-09-06T08:11:42.471Z`;
+- `learningProfileEvidenceApi`: version **5**, ACTIVE, updated `2026-09-06T08:11:45.569Z`;
+- build: `0d26d420-7f52-4672-badb-9434ce0e7e21`;
+- source hash: `c208808a2d80bfe88674c62a7f86d2a4c24e113a`.
 
-- `functions:learningSessionApi`;
-- `functions:learningProfileEvidenceApi`.
+Both deployed handlers match main byte-for-byte. That separately authorized selective deployment
+is complete; it grants no permission for further Firebase deployment. No new deployment was
+performed for this acceptance documentation.
 
-Terminal output showed `Successful update operation` for both `learningSessionApi(us-central1)` and `learningProfileEvidenceApi(us-central1)`, followed by `Deploy complete!`.
+## Production teaching acceptance — ACCEPTED
 
-No Firestore rules, Storage rules, indexes, migrations, finance, calendar, Live Classroom or unrelated Functions were part of the selective command.
+On 2026-09-06 the owner confirmed that the recorded results belong to a genuine Robert lesson
+and accepted the main production teaching loop. Read-only production verification found:
 
-The previous server-revision uncertainty is therefore closed. The remaining gate is authenticated production behavior, not deployment.
+- completed session: `kJkHMe21CzXUqpN5NgrA`;
+- status: `completed`; completedAt: `2026-09-06T08:43:12.101Z`;
+- curriculumLessonKey: `est-b1-01:0`; lessonBlueprintId: `est-b1-school-learning-01`;
+- 14 persisted `teacher_judgement` events and 3 `summary_score` events (17 total);
+- summary scores: Vocabulary **50**, Grammar **74**, Speaking **70**;
+- persisted routeBySkill: vocabulary **advanced**, grammar **advanced**, speaking **advanced**;
+- explicit handoff and teacher note `Väga` persisted;
+- the same scored handoff is visible in Learning Profile and Robert's Teacher Home card;
+- `learningSessionApi` and `learningProfileEvidenceApi` returned HTTP **200**;
+- no Functions errors were found in inspected flow logs;
+- the full student document, including `students.skillMap`, is unchanged against the pre-smoke snapshot;
+- lesson journal and `curriculumProgressEvents` remain unchanged; no automatic mastery, credit
+  or advancement to lesson 2 was created.
 
-## Manual production acceptance gate
+Earlier session `dDF13J9b4k4ME3oe01h2` is a separate completed technical attempt with one judgement
+and an unscored handoff. It was not reset, overwritten or confused with the genuine scored session.
+Active-session refresh/resume and navigation persistence were verified before completion.
+The audit did not create synthetic judgements, evidence, handoffs or credit.
 
-Before Lesson Builder implementation begins, run one genuine production school lesson through `Alusta tundi` with an authenticated staff account and verify the real write/read loop:
+### Non-blocking follow-up — NOT OBSERVED
 
-1. open Teacher Home and confirm the exact real curriculum next item `est-b1-01:0` launches `est-b1-school-learning-01`;
-2. save at least one teacher judgement and relevant lesson evidence;
-3. complete the lesson with an explicit handoff;
-4. confirm the completed handoff is visible from Learning Profile and/or Teacher Home;
-5. confirm `students.skillMap` was not silently rewritten;
-6. confirm no curriculum mastery/credit or automatic advancement to lesson 2 was invented.
+**Production vocabulary_mark interaction not yet observed in a genuine lesson; verify opportunistically during the next real lesson.**
 
-This smoke is intentionally a genuine teaching acceptance check. Do not create synthetic production evidence on a real student only to satisfy the gate.
+No `vocabulary_mark` event exists in this genuine session. It is unknown whether the word-mark
+operation was actually performed; data loss is not established. The current contract supports
+word marks and automated tests cover them. This production interaction is **NOT OBSERVED**,
+not PASS or FAIL, and the owner explicitly accepted it as a non-blocking follow-up.
+
+The first real curriculum production teaching loop is **ACCEPTED**. This rollout no longer
+blocks Lesson Builder. No Firebase or Vercel deployment is needed for this documentation update.
 
 ## Lesson Builder boundary
 
-Lesson Builder / Content Engine normalization remains blocked only by the authenticated production smoke above.
+Lesson Builder / Content Engine normalization is no longer blocked by this rollout.
 
-After that gate passes, the next planned workstream is `Lesson Builder v1 — Normalized Activity Contract`: stable activity IDs first, with future-compatible fields for response modes (including voice), assets/visuals, progression rules and collaboration/debate, without implementing all feature families in one PR.
+The next planned workstream is `Lesson Builder v1 — Normalized Activity Contract`: stable activity IDs first, with future-compatible fields for response modes (including voice), assets/visuals, progression rules and collaboration/debate, without implementing all feature families in one PR.
 
 ## Current documentation work
 
@@ -118,10 +140,12 @@ Changed files:
 - `docs/PROJECT_STATE.md`;
 - `docs/REAL_CURRICULUM_LESSON_MODE_V1.md`.
 
-Purpose: record the verified selective Firebase Functions rollout and remove the stale statement that the server deployment is still unresolved.
+Purpose: record verified production teaching acceptance and its non-blocking vocabulary-mark follow-up in existing draft PR #97. No new PR or merge. Historical automated test results above were not rerun for this documentation-only change; documentation diff and acceptance consistency were checked.
 
 No application code, Firebase configuration, data, rules or production services are changed by this documentation branch.
 
 ## Next safe step
 
-Run one genuine authenticated production lesson through the complete persistence/handoff path and verify the two invariants: no automatic `students.skillMap` rewrite and no invented curriculum credit. Only after that acceptance smoke passes should Lesson Builder v1 implementation begin.
+Lesson Builder v1 — Normalized Activity Contract.
+Start it as a separate bounded workstream after this documentation update; do not implement it
+inside PR #97. Verify the non-blocking vocabulary-mark interaction during the next real lesson.
