@@ -15,4 +15,4 @@
     });
   }
   root.KeeleSeppResponseView={render};
-})(window);
+})(typeof window!=='undefined'?window:globalThis);

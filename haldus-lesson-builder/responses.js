@@ -7,7 +7,7 @@
     const a=bridge.get().activities.find(a=>a.id===bridge.selected());if(!a)return;
     const panel=document.createElement('section');panel.id='response-editor';panel.className='teacher-fields';
     panel.innerHTML='<h2>Õpilane saab vastata</h2><label class="field">Vastuse vorm<select id="response-mode"><option value="">Ilma vastuseväljata</option></select></label><div id="response-settings"></div><h3>Proovi õpilasena</h3><p class="hint">Proovivastuseid ei salvestata ega saadeta serverisse.</p><div id="response-try"></div>';
-    document.getElementById('editor').append(panel);
+    const editor=document.getElementById('editor'),teacherFields=editor.querySelector('details.teacher-fields');teacherFields?teacherFields.before(panel):editor.append(panel);
     const select=panel.querySelector('select');Object.entries(labels).forEach(([value,text])=>select.add(new Option(text,value)));
     const spec=a.evaluation?.response;select.value=spec?.mode||'';
     select.onchange=()=>{const mode=select.value;if(!mode)return bridge.patchResponse(null);bridge.patchResponse({schemaVersion:1,mode,required:true,...(['single_choice','multiple_choice','gaps'].includes(mode)?{items:[{id:crypto.randomUUID(),label:'Esimene'},{id:crypto.randomUUID(),label:'Teine'}]}:{})});};
