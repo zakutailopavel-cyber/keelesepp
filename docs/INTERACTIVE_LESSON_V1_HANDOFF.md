@@ -55,3 +55,21 @@ Do not describe planned functionality as implemented. No new Function deployed.
 ## Exactly one next safe step
 Implement and test the pure response contract and answer-safe student projection after checking
 existing student ownership mapping; preserve root normalized contract compatibility.
+
+## Implementation checkpoint (supersedes initial not-yet-implemented list)
+Pure `interactive-lesson-core.js` + server copy added: five modes, exact field IDs,
+answer validation, allowlisted student projection, student-only UID mapping (no parent aliases).
+6 new core tests pass; combined normalization/authoring/UX/core run 40/40 pass.
+Builder responses.js mounts on editor render and uses existing undo/commit/autosave boundary.
+Inline interactive preview shares response renderer and is ephemeral. Existing sticky lesson
+preview is still presentation-only: connecting fillable controls there remains outstanding.
+New interactiveLessonApi code and interactiveAssignments direct-deny rule added, NOT DEPLOYED.
+Endpoints: students/list/assign/get/save/submit/review. Assignment pins immutable version,
+strict teacherUid student scope, explicit linked active student account, revision checks.
+New interactive-lesson/ runner/review page implemented but not yet browser/emulator verified.
+Student roster UI replaces manual student ID; listing assignments currently first 50 with notice.
+Cloud publication additionally validates response metadata on server.
+
+Outstanding before ready: emulator lifecycle/security tests, browser test coverage and actual UI
+inspection, regression suite/CI, fix all findings, improve stale local recovery notice and ensure
+account-switch/in-flight-save safety. Draft PR not yet created at this checkpoint.

@@ -71,6 +71,7 @@
     $('up').onclick=()=>move(-1);$('down').onclick=()=>move(1);$('activity-menu').onclick=activityMenu;
     $('simplify').onclick=()=>adapt('support');$('challenge').onclick=()=>adapt('advanced');$('copy-standard').onclick=()=>confirmAction('Asenda toevariandid?','Tavalise taseme tekst kopeeritakse mõlemale teisele tasemele. Muudatuse saab tagasi võtta.',()=>commit(ux.adapt(draft,selected,'all')));
     renderInline();
+    window.dispatchEvent(new Event("keelesepp-editor-rendered"));
   }
   function adapt(r){confirmAction('Loo uus toevariant?','Valitud variant asendatakse tavalise teksti ja ühe lisajuhisega. See ei kasuta tehisintellekti.',()=>{route=r;$('preview-route').value=r;commit(ux.adapt(draft,selected,r));});}
   function renderInline(){if($('prompt-counter')&&current())$('prompt-counter').textContent=current().routes[route].prompt.length+' / 3000';const result=ux.validate(draft),a=current();if(!a)return;const fields={'activity-title':'title',prompt:'prompt-'+route,skills:'skillIds',expected:'expected-'+route,instruction:'teacherInstruction-'+route};for(const [id,key] of Object.entries(fields)){const el=$('error-'+id);if(el){el.textContent=result.errors.find(e=>e.activityId===a.id&&e.field===key)?.message||'';$(id)?.setAttribute('aria-invalid',String(!!el.textContent));}}const minutes=$('error-activity-minutes');if(minutes)minutes.textContent=ux.meta(draft,a.id).minutes<0||ux.meta(draft,a.id).minutes>240?'Sisesta kestus 0–240 minutit.':'';}
@@ -111,5 +112,5 @@
   addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='z'&&!$('modal').open){e.preventDefault();e.shiftKey?redo():undo();}if(e.key==='Escape'&&!$('modal').open){document.body.classList.remove('preview-fullscreen','preview-open','structure-open');resizePreview();}});
   addEventListener('beforeunload',e=>{if(saver.dirty){e.preventDefault();e.returnValue='';}});
   render();
-window.KeeleSeppBuilderBridge={get:()=>ux.copy(draft),replace:next=>{draft=ux.prepare(next);history=ux.history(draft);selected=draft.activities[0]?.id||'';saver.queue(draft);render();},modal:openModal,close:closeModal,confirm:confirmAction};
+window.KeeleSeppBuilderBridge={selected:()=>selected,patchResponse:spec=>{const next=ux.copy(draft),a=next.activities.find(a=>a.id===selected);if(!a)return;a.evaluation={...a.evaluation};if(spec){a.responseMode=spec.mode;a.evaluation.response=spec;}else{delete a.responseMode;delete a.evaluation.response;}commit(next);},get:()=>ux.copy(draft),replace:next=>{draft=ux.prepare(next);history=ux.history(draft);selected=draft.activities[0]?.id||'';saver.queue(draft);render();},modal:openModal,close:closeModal,confirm:confirmAction};
 })();

@@ -26,6 +26,7 @@ function validate(content) {
   let result;
   try {result=contract.validate(content);} catch {throw error(400,'Invalid draft metadata');}
   if(!result.ok)throw error(400,result.errors.slice(0,5).join('; '));
+  try { for(const activity of content.activities) require('./lesson-contract/interactive-lesson-core').responseSpec(activity); } catch(e) { throw error(400,e.message); }
   const keys=new Set(['schemaVersion','kind','id','title','activities','context','authoring']);
   if(Object.keys(content).some(k=>!keys.has(k)))throw error(400,'Unknown draft metadata');
   if(content.authoring){
