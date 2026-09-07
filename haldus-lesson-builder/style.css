@@ -8,3 +8,5 @@
 .drag-handle{touch-action:none;user-select:none}.dragging{user-select:none}
 
 #validation-summary button{font-size:10px;color:var(--red);padding:3px 5px;margin:2px;border-color:#ead3c9;background:#fff9f4}.drag-handle{min-width:22px}
+
+#preview-viewport{margin-inline:auto}

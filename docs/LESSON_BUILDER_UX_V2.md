@@ -124,5 +124,26 @@ History does not persist between reloads; content and IDs do. Incomplete edits n
 save/export and remain protected by the unsaved-change warning. Published identity/version policy
 requires a separate trusted backend workstream. Source/reference lessons are never rewritten.
 
-Next safe step: owner review of the draft PR and verified Vercel preview, then owner merge if accepted.
+Next safe step: complete the two pending real-Chrome JSON file import checks on the draft PR preview.
 No agent merge, production Vercel deploy, Firebase production operation or student-data mutation.
+
+### Vercel preview QA — 2026-09-07
+
+[Draft PR #100](https://github.com/zakutailopavel-cyber/keelesepp/pull/100).
+[Automatic preview](https://keelesepp-git-agent-lesso-6ab58d-zakutailopavel-cybers-projects.vercel.app/haldus-lesson-builder/).
+[CI evidence](https://github.com/zakutailopavel-cyber/keelesepp/actions/runs/34053699747):
+257 CRM + 157 Functions + 10 browser behavior + 25 emulator tests = **449 PASS, 0 FAIL**.
+
+Real Chrome preview: scratch creation, 60-minute lesson template, nine different block templates,
+pointer first-to-fifth and cross-phase reorder, duplicate with new ID, delete/Undo restoring the
+same ID, three route edits, save/reload preserving ten activity IDs/order/content, fullscreen,
+Desktop/Tablet/Mobile and Student/Teacher views verified. Export downloaded a JSON backup.
+Console checks returned no errors. Preview remained local and no real student flow was used;
+isolated browser tests additionally prove zero persistent calls with a forged studentId.
+
+**Manual QA incomplete:** file import roundtrip and malformed-file upload could not be completed
+because Chrome extension file upload returned `Not allowed` (file URL access disabled).
+No extension permissions were changed. Both paths pass the automated DOM tests, but these
+are not a substitute for the requested real-Chrome file-picker check. PR remains draft;
+full Definition of Done is not claimed. Mobile/tablet preview frame centering was refined in
+the final visual polish pass.

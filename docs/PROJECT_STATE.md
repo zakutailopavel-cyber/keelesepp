@@ -1,6 +1,6 @@
 # KeeleSepp Project State
 
-Last verified: 2026-09-06, Europe/Tallinn
+Last verified: 2026-09-07, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
 Verified main: `73d43aa9c5a4226ea2a4472c645795d6370e1ff8` — #99 merged; real teaching loop ACCEPTED
 Current implementation branch: `agent/lesson-builder-ultimate-ui`
@@ -155,7 +155,7 @@ The existing real curriculum teaching acceptance above remains ACCEPTED.
 ## Current implementation — Lesson Builder Ultimate Teacher UX
 
 Base: `73d43aa9c5a4226ea2a4472c645795d6370e1ff8` (#99 merged).
-Branch: `agent/lesson-builder-ultimate-ui`. Requested draft PR: #100 (link after creation).
+Branch: `agent/lesson-builder-ultimate-ui`. Draft PR: [#100](https://github.com/zakutailopavel-cyber/keelesepp/pull/100).
 
 Implemented:
 
@@ -226,5 +226,26 @@ mutation, production Vercel deploy or paid AI call. Emulator tests use the demo 
 
 ## Next safe step
 
-Owner review of the Ultimate Teacher UX draft PR and verified Vercel preview, then owner merge if accepted.
+Complete the two pending real-Chrome JSON file import checks on the draft PR preview.
 The genuine-lesson vocabulary-mark follow-up remains NOT OBSERVED and non-blocking.
+
+### Vercel preview QA — 2026-09-07
+
+[Draft PR #100](https://github.com/zakutailopavel-cyber/keelesepp/pull/100).
+[Automatic preview](https://keelesepp-git-agent-lesso-6ab58d-zakutailopavel-cybers-projects.vercel.app/haldus-lesson-builder/).
+[CI evidence](https://github.com/zakutailopavel-cyber/keelesepp/actions/runs/34053699747):
+257 CRM + 157 Functions + 10 browser behavior + 25 emulator tests = **449 PASS, 0 FAIL**.
+
+Real Chrome preview: scratch creation, 60-minute lesson template, nine different block templates,
+pointer first-to-fifth and cross-phase reorder, duplicate with new ID, delete/Undo restoring the
+same ID, three route edits, save/reload preserving ten activity IDs/order/content, fullscreen,
+Desktop/Tablet/Mobile and Student/Teacher views verified. Export downloaded a JSON backup.
+Console checks returned no errors. Preview remained local and no real student flow was used;
+isolated browser tests additionally prove zero persistent calls with a forged studentId.
+
+**Manual QA incomplete:** file import roundtrip and malformed-file upload could not be completed
+because Chrome extension file upload returned `Not allowed` (file URL access disabled).
+No extension permissions were changed. Both paths pass the automated DOM tests, but these
+are not a substitute for the requested real-Chrome file-picker check. PR remains draft;
+full Definition of Done is not claimed. Mobile/tablet preview frame centering was refined in
+the final visual polish pass.
