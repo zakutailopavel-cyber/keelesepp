@@ -8323,15 +8323,16 @@ function TaxReportsView({students=[],parents=[],invoices=[],payments=[],taxProfi
 
 function DataQualityView({notify,standalone=false}) {
   const [data,setData]=React.useState(null);
+  const [error,setError]=React.useState('');
   const [busy,setBusy]=React.useState('');
   const [selections,setSelections]=React.useState({});
   const [issueSearch,setIssueSearch]=React.useState('');
   const [accountSearch,setAccountSearch]=React.useState('');
   const [showAllAccounts,setShowAllAccounts]=React.useState(false);
   const refresh=React.useCallback(async()=>{
-    setBusy('refresh');
+    setBusy('refresh');setError('');
     try{setData(await staffOperationsApiPost('/data-quality/preview',{}));}
-    catch(error){notify(`⚠ Kontroll ebaõnnestus: ${error.message||error}`);}
+    catch(error){setError(error.message||String(error));notify(`⚠ Kontroll ebaõnnestus: ${error.message||error}`);}
     finally{setBusy('');}
   },[]);
   React.useEffect(()=>{refresh();},[]);
@@ -8410,6 +8411,7 @@ function DataQualityView({notify,standalone=false}) {
     try{await staffOperationsApiPost('/students/merge',{primaryStudentId,duplicateStudentIds,requestId:financeRequestId('studentmerge')});notify('✓ Duplikaadid ühendatud');await refresh();}
     catch(error){notify(`⚠ Duplikaate ei saanud ühendada: ${error.message||error}`);setBusy('');}
   };
+  if(!data&&error) return <div className="card" style={{padding:30,textAlign:'center'}}><i className="fa-solid fa-triangle-exclamation" style={{color:'#b45309'}}/><div style={{fontWeight:700,marginTop:8}}>{standalone?'CRM töökindluse kontroll ei õnnestunud':'Andmete kontroll ei õnnestunud'}</div><div style={{color:'#64748b',fontSize:'.86rem',marginTop:4}}>{error}</div><button className="btn btn-pine" style={{marginTop:12}} onClick={refresh} disabled={busy==='refresh'}><i className={`fa-solid ${busy==='refresh'?'fa-spinner fa-spin':'fa-rotate'}`}/> Proovi uuesti</button></div>;
   if(!data) return <div className="card" style={{padding:30,textAlign:'center'}}><i className="fa-solid fa-spinner fa-spin"/> Kontrollin andmeid…</div>;
   const issueQuery=normalizeText(issueSearch);
   const matchesIssue=item=>!issueQuery||normalizeText(`${item?.number||''} ${item?.title||''} ${item?.studentName||''} ${item?.displayName||''} ${item?.email||''} ${item?.uid||''} ${item?.studentId||''} ${item?.id||''}`).includes(issueQuery);
