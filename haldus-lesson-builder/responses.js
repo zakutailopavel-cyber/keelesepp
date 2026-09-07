@@ -1,6 +1,6 @@
 (function(){
   'use strict';
-  const labels={short_text:'Lühivastus',long_text:'Pikem vastus',single_choice:'Üks õige valik',multiple_choice:'Mitu valikut',gaps:'Täida lüngad'};
+  const labels={short_text:'Lühivastus',long_text:'Pikem vastus',single_choice:'Üks valik',multiple_choice:'Mitu valikut',gaps:'Täida lüngad'};
   function mount(){
     document.getElementById('response-editor')?.remove();
     const bridge=window.KeeleSeppBuilderBridge;if(!bridge)return;
