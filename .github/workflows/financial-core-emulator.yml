@@ -3,6 +3,9 @@ name: Financial Core emulator
 on:
   pull_request:
     paths:
+      - "interactive-lesson*"
+      - "interactive-lesson/**"
+      - "interactive-response-view.js"
       - "firebase.json"
       - "firestore.rules"
       - "storage.rules"
@@ -156,7 +159,7 @@ jobs:
       - name: Run unit tests
         run: npm test --prefix functions
       - name: Run CRM, accounting, calendar and learning tests
-        run: node --test haldus-quality.test.js calendar-core.test.js learning-library-core.test.js live-classroom-core.test.js staff-activity.test.js staff-time-core.test.js accounting-ledger-core.test.js teacher-scope-ui.test.js terms-registration-ui.test.js initial-assessment-core.test.js initial-assessment-ui.test.js student-portal-scope-ui.test.js learning-profile-core.test.js learning-profile-evidence-store.test.js learning-profile-ui.test.js learning-profile-routing.test.js curriculum-goal-core.test.js adaptive-lesson-core.test.js adaptive-vocabulary-lesson.test.js real-curriculum-lesson.test.js adaptive-skill-engine.test.js activity-contract-core.test.js lesson-authoring-core.test.js lesson-builder-ux-core.test.js lesson-workspace-core.test.js learning-session-core.test.js learning-session-ui.test.js teacher-home-core.test.js teacher-home-ui.test.js
+        run: node --test interactive-lesson-core.test.js haldus-quality.test.js calendar-core.test.js learning-library-core.test.js live-classroom-core.test.js staff-activity.test.js staff-time-core.test.js accounting-ledger-core.test.js teacher-scope-ui.test.js terms-registration-ui.test.js initial-assessment-core.test.js initial-assessment-ui.test.js student-portal-scope-ui.test.js learning-profile-core.test.js learning-profile-evidence-store.test.js learning-profile-ui.test.js learning-profile-routing.test.js curriculum-goal-core.test.js adaptive-lesson-core.test.js adaptive-vocabulary-lesson.test.js real-curriculum-lesson.test.js adaptive-skill-engine.test.js activity-contract-core.test.js lesson-authoring-core.test.js lesson-builder-ux-core.test.js lesson-workspace-core.test.js learning-session-core.test.js learning-session-ui.test.js teacher-home-core.test.js teacher-home-ui.test.js
       - name: Install isolated Builder browser test dependencies
         run: npm ci --prefix tests/lesson-builder --ignore-scripts
       - name: Run Builder browser behavior tests
@@ -198,4 +201,4 @@ jobs:
           --only auth,firestore,functions
           --project demo-keelesepp-finance
           --log-verbosity QUIET
-          "npm --prefix functions run test:emulator && node --test functions/lesson-drafts-emulator.integration.js"
+          "npm --prefix functions run test:emulator && node --test functions/lesson-drafts-emulator.integration.js && node --test functions/interactive-lesson-emulator.integration.js"
