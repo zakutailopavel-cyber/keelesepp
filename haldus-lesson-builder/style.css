@@ -10,3 +10,5 @@
 #validation-summary button{font-size:10px;color:var(--red);padding:3px 5px;margin:2px;border-color:#ead3c9;background:#fff9f4}.drag-handle{min-width:22px}
 
 #preview-viewport{margin-inline:auto}
+
+.card-menu{align-self:center;border:0;background:transparent;padding:7px 4px;font-size:20px;color:var(--muted)}.card-menu:hover,.card-menu:focus-visible{background:var(--pale);color:var(--green)}

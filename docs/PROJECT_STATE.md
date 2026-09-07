@@ -249,3 +249,12 @@ No extension permissions were changed. Both paths pass the automated DOM tests, 
 are not a substitute for the requested real-Chrome file-picker check. PR remains draft;
 full Definition of Done is not claimed. Mobile/tablet preview frame centering was refined in
 the final visual polish pass.
+
+### Owner visual review follow-up — 2026-09-07
+
+The owner's screenshot is the production #99 form at epkoolitus.ee; #100 remains a separate
+unmerged Vercel preview. Production was not deployed. UX review added a direct actions menu to
+every structure card, retaining the editor menu and keyboard reorder. Human route labels are
+Vajab tuge / Tavaline tase / Liiga lihtne with small technical subtitles. Browser behavior suite
+now has 11 tests, including targeting an unselected card and duplicating its exact content.
+Eight visual review screenshots are being captured from the actual preview, not production.
