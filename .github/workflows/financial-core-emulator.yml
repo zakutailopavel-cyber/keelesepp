@@ -46,6 +46,7 @@ on:
       - "adaptive-vocabulary-lesson.test.js"
       - "adaptive-skill-engine.js"
       - "adaptive-skill-engine.test.js"
+      - "lesson-cloud-store.js"
       - "lesson-block-templates.js"
       - "lesson-builder-ux-core.js"
       - "lesson-builder-ux-core.test.js"
@@ -106,6 +107,7 @@ on:
       - "adaptive-vocabulary-lesson.test.js"
       - "adaptive-skill-engine.js"
       - "adaptive-skill-engine.test.js"
+      - "lesson-cloud-store.js"
       - "lesson-block-templates.js"
       - "lesson-builder-ux-core.js"
       - "lesson-builder-ux-core.test.js"
@@ -161,6 +163,8 @@ jobs:
         run: npm test --prefix tests/lesson-builder
       - name: Check browser JavaScript syntax
         run: |
+          node --check lesson-cloud-store.js
+          node --check haldus-lesson-builder/cloud.js
           node --check haldus-quality.js
           node --check calendar-core.js
           node --check learning-library-core.js
@@ -194,4 +198,4 @@ jobs:
           --only auth,firestore,functions
           --project demo-keelesepp-finance
           --log-verbosity QUIET
-          "npm --prefix functions run test:emulator"
+          "npm --prefix functions run test:emulator && node --test functions/lesson-drafts-emulator.integration.js"

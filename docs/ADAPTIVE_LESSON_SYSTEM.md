@@ -522,3 +522,8 @@ visual presets only for authored previews. Native registered lessons retain thei
 Preview ignores studentId and never persists session/evidence/handoff; no cloud publication exists.
 Readiness is a local UX checklist and cannot affect student mastery or curriculum credit.
 See [LESSON_BUILDER_UX_V2.md](LESSON_BUILDER_UX_V2.md) for safety, validation and manual QA scope.
+
+Cloud authoring now has a separate trusted draft/publication contract described in
+[LESSON_BUILDER_CLOUD_DRAFTS_V1.md](LESSON_BUILDER_CLOUD_DRAFTS_V1.md). It does not extend the
+LearningSession lesson allowlist or change evidence, skillMap, mastery or credit. Published content
+is immutable and staff-only; future teaching references must pin lessonVersionId.

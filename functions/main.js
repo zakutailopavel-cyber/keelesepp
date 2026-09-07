@@ -5,6 +5,7 @@ const { learningProfileEvidenceApi } = require('./learning-profile-evidence-api'
 
 module.exports = {
   ...existingFunctions,
+  lessonDraftsApi: require('./lesson-drafts-api').lessonDraftsApi,
   manualInvoiceApi,
   learningSessionApi,
   learningProfileEvidenceApi,

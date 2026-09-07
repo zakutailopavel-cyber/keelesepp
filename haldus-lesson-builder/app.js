@@ -111,4 +111,5 @@
   addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='z'&&!$('modal').open){e.preventDefault();e.shiftKey?redo():undo();}if(e.key==='Escape'&&!$('modal').open){document.body.classList.remove('preview-fullscreen','preview-open','structure-open');resizePreview();}});
   addEventListener('beforeunload',e=>{if(saver.dirty){e.preventDefault();e.returnValue='';}});
   render();
+window.KeeleSeppBuilderBridge={get:()=>ux.copy(draft),replace:next=>{draft=ux.prepare(next);history=ux.history(draft);selected=draft.activities[0]?.id||'';saver.queue(draft);render();},modal:openModal,close:closeModal,confirm:confirmAction};
 })();

@@ -275,3 +275,12 @@ The remaining large files should be reduced incrementally:
 5. add a migration tool that can attach stable curriculum ids to legacy topic-only records.
 
 These are bounded extractions, not a request to replace the platform in one release.
+
+## Cloud lesson authoring and publication
+
+`lessonDraftsApi` is the sole writer/reader for browser cloud lesson operations. Teacher-owned mutable
+drafts use optimistic revision transactions. Immutable `lessonVersions` are created atomically with
+a `publishedLessons` current pointer. Firestore client access is denied. Server and browser use
+byte-identical Normalized Activity Contract modules, enforced by tests. Publication is staff-only;
+assignment and LearningSession integration remain out of scope. Future sessions must pin the
+immutable lessonVersionId. See `docs/LESSON_BUILDER_CLOUD_DRAFTS_V1.md`.

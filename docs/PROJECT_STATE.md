@@ -2,12 +2,12 @@
 
 Last verified: 2026-09-07, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
-Verified main: `1232af19599c327fdb2b6449097c3c831752bb08` — #100 merged / COMPLETED; real teaching loop ACCEPTED
-Current documentation branch: `agent/reconcile-lesson-builder-100`
+Verified main: `0b77258e099f4d2f786eda4d21ae261184746f26` — #101 reconciliation merged; real teaching loop ACCEPTED
+Current implementation branch: `agent/lesson-builder-cloud-drafts-v1`
 
 ## Current objective
 
-Cloud Draft Library + Versioning + Publication. Current work is docs-only post-#100 reconciliation; implementation starts only after owner merge of this reconciliation PR.
+Cloud Draft Library v1 — Authenticated Draft Persistence + Immutable Publication Contract. Firebase production rollout requires separate owner permission.
 
 The merged path is:
 
@@ -17,7 +17,7 @@ PR #94 switched Teacher Home to the real curriculum source. PR #95 then bound th
 
 ## Verified repository state
 
-Current remote `main` is `1232af19599c327fdb2b6449097c3c831752bb08`.
+Current remote `main` is `0b77258e099f4d2f786eda4d21ae261184746f26`.
 
 Merged on current `main`:
 
@@ -27,7 +27,8 @@ Merged on current `main`:
 - #97 `docs: accept real curriculum production teaching loop`;
 - #98 `Lesson Builder v1 — Normalized Activity Contract` — merged, COMPLETED;
 - #99 `Lesson Builder v1 — Authoring & Validation UI` — merged;
-- #100 `Lesson Builder Ultimate Teacher UX` — merged / **COMPLETED**.
+- #100 `Lesson Builder Ultimate Teacher UX` — merged / **COMPLETED**;
+- #101 post-merge reconciliation — merged.
 
 Independent open PRs remain separate and must not be mixed into the learning rollout:
 
@@ -260,15 +261,23 @@ and malformed-file upload remain unverified in real Chrome due to the earlier ex
 restriction (automated coverage passes). They are retained as follow-ups, not silently marked PASS.
 The genuine-lesson vocabulary_mark follow-up above remains NOT OBSERVED and non-blocking.
 
-## Reconciliation scope
+## Current cloud draft implementation
 
-Only `docs/PROJECT_STATE.md` changes. No code, API contract, permissions, Firebase, production data,
-publication backend or deployment changes. Other open workstreams remain separate. Eight #100
-visual screenshots and historical preview QA are in `docs/PR100_VISUAL_REVIEW.md`; that file records
-pre-merge evidence, while this state file is authoritative for current status.
+See [LESSON_BUILDER_CLOUD_DRAFTS_V1.md](LESSON_BUILDER_CLOUD_DRAFTS_V1.md) for schema/API/security.
+New Function lessonDraftsApi owns lessonDrafts, lessonVersions and publishedLessons; direct client
+read/write is denied. Revisions prevent stale saves; publication snapshots immutable versions.
+Builder adds explicit cloud save, own library, reopen, duplicate, archive, read-only history and
+publish. LocalStorage remains local recovery. Existing JS lessons and teaching/evidence are untouched.
+
+Open PR intersections: #71 also touches functions/main.js; our only change there is one new export.
+CI workflow is extended to run the new emulator test without changing functions/package.json,
+which overlaps #71/#74. No finance/calendar behavior is included.
+
+Current checks: Functions unit 160/160; browser behavior 13/13. Local emulator startup blocked by
+missing Java runtime; GitHub CI emulator results pending. Shared validator parity enforced by test.
+No production calls/writes/deployments made; preview uses automatic GitHub/Vercel build only.
 
 ## Next safe step
 
-After owner merge of this reconciliation PR, design and implement the bounded cloud
-persistence/publication contract for Cloud Draft Library + Versioning + Publication.
-Do not start that feature before owner merge; do not merge this PR automatically.
+Review the bounded Firebase deployment gate (exact new Function/rules and passing emulator results)
+and obtain explicit owner permission before any Firebase production deploy. Do not merge automatically.

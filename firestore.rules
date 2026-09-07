@@ -1784,6 +1784,11 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // Cloud lesson content is accessed only through the authenticated trusted API.
+    match /lessonDrafts/{id} { allow read, write: if false; }
+    match /lessonVersions/{id} { allow read, write: if false; }
+    match /publishedLessons/{id} { allow read, write: if false; }
+
     match /{document=**} {
       allow read, write: if false;
     }
