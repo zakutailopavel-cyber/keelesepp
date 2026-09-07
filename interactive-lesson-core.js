@@ -7,7 +7,8 @@
   const MODES=['short_text','long_text','single_choice','multiple_choice','gaps'];
   const ROUTES=['support','core','advanced'];
   const object=x=>x!==null&&typeof x==='object'&&!Array.isArray(x);
-  const validId=x=>typeof x==='string'&&/^[a-zA-Z0-9_-]{1,140}$/.test(x);
+  const reserved=x=>['__proto__','constructor','prototype'].includes(x);
+  const validId=x=>!reserved(x)&&typeof x==='string'&&/^[a-zA-Z0-9_-]{1,140}$/.test(x);
   const text=(x,max)=>typeof x==='string'&&x.trim().length>0&&x.length<=max;
   const fail=message=>{throw new Error(message);};
   function responseSpec(activity){
@@ -34,7 +35,7 @@
     if(!lesson||!Array.isArray(lesson.activities))fail('Invalid lesson');
     const seen=new Set();
     return{title:lesson.title,activities:lesson.activities.map(a=>{
-      if(typeof a.id!=='string'||seen.has(a.id))fail('Duplicate activity ID');seen.add(a.id);
+      if(typeof a.id!=='string'||reserved(a.id)||seen.has(a.id))fail('Duplicate activity ID');seen.add(a.id);
       const v=a.routes?.[route];if(!v||typeof v.prompt!=='string')fail('Missing prompt');
       // Deliberate allowlist: never copy evaluation, expected, teacherInstruction or context.
       return{id:a.id,title:a.title,phaseId:a.phaseId,skillIds:[...a.skillIds],prompt:v.prompt,response:responseSpec(a)};
