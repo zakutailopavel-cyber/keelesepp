@@ -24,3 +24,25 @@ test('unknown preview token fails closed with no fallback or API',()=>{const p=p
 test('authored HTML remains escaped in editor and preview',()=>{const d=fixture();d.title='<img src=x onerror=alert(1)>';d.activities[0].routes.core.prompt='<script>alert(1)</script>\n<img src=x>';for(const file of ['haldus-lesson-builder/index.html','haldus-adaptive-lesson/index.html']){const p=page(file,file.includes('adaptive')?'?authoringPreview=aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa&view=student':'',d);try{assert.equal(p.w.document.querySelector('img[src=x]'),null);assert.deepEqual(p.errors,[]);}finally{p.close();}}});
 test('preview device/fullscreen and structure drawers have reversible DOM state',()=>{const p=page('haldus-lesson-builder/index.html','',fixture());try{p.click('show-structure');assert.ok(p.w.document.body.classList.contains('structure-open'));p.click('close-structure');assert.ok(!p.w.document.body.classList.contains('structure-open'));p.click('fullscreen');assert.ok(p.w.document.body.classList.contains('preview-fullscreen'));p.w.document.querySelector('[data-device="mobile"]').click();assert.equal(p.w.document.querySelector('[data-device="mobile"]').getAttribute('aria-pressed'),'true');p.w.dispatchEvent(new p.w.KeyboardEvent('keydown',{key:'Escape'}));assert.ok(!p.w.document.body.classList.contains('preview-fullscreen'));}finally{p.close();}});
 test('each card menu targets that activity and duplication preserves its content',()=>{const p=page('haldus-lesson-builder/index.html','',fixture());try{const target=fixture().activities[3];p.w.document.querySelector('[data-card-menu="'+target.id+'"]').click();p.click('duplicate');p.click('save');const saved=core.parse(p.w.localStorage.getItem('keelesepp.lesson-authoring.v1'));assert.notEqual(saved.activities[4].id,target.id);assert.deepEqual(saved.activities[4].routes,target.routes);assert.equal(p.$('total').textContent,'8');assert.deepEqual(p.errors,[]);}finally{p.close();}});
+test('cloud UI save reopen publish history and stale conflict keep local recovery',async()=>{
+ const p=page('haldus-lesson-builder/index.html','',fixture());try{
+ let record=null,published=0,conflict=false;const calls=[];
+ const auth={currentUser:{uid:'teacher-ui',getIdToken:async()=> 'test-token'},authStateReady:async()=>{}};p.w.firebase.auth=()=>auth;
+ p.w.fetch=async(url,options)=>{const b=JSON.parse(options.body);calls.push(b);let result={};if(conflict&&b.action==='save')return {ok:false,status:409,json:async()=>({error:'Revision conflict'})};
+ if(b.action==='create'){record={id:'draft-server',revision:1,lessonId:'lesson-server',content:{...b.content,id:'draft-server'}};result={draft:record};}
+ if(b.action==='save'){assert.equal(b.revision,record.revision);record={...record,revision:record.revision+1,content:b.content};result={id:record.id,revision:record.revision};}
+ if(b.action==='get')result={draft:record};
+ if(b.action==='list')result={drafts:[{...record,title:record.content.title,status:'active',versionNumber:published}]};
+ if(b.action==='publish'){published++;record.revision++;result={id:record.id,revision:record.revision,publication:{versionNumber:published}};}
+ if(b.action==='history')result={versions:[{id:'lesson-server_v1',versionNumber:1,createdAt:'today'}]};
+ return {ok:true,status:200,json:async()=>JSON.parse(JSON.stringify(result))};};
+ assert.deepEqual(calls,[]);p.click('cloud-save');await pause(20);assert.equal(p.w.KeeleSeppBuilderBridge.get().id,'draft-server');assert.equal(record.revision,1);
+ p.input('lesson-title','Edited');p.click('cloud-save');await pause(20);assert.equal(record.revision,2);
+ p.click('cloud-library');await pause(20);p.w.document.querySelector('[data-cloud-open]').click();p.click('confirm-action');await pause(20);assert.equal(p.$('lesson-title').value,'Edited');
+ p.click('cloud-more');p.click('cloud-publish');p.click('confirm-action');await pause(20);assert.equal(published,1);
+ p.click('cloud-more');p.click('cloud-history');await pause(20);assert.ok(p.w.document.querySelector('[data-version]'));p.click('modal-close');
+ conflict=true;p.input('lesson-title','Unsaved conflict work');p.click('cloud-save');await pause(20);assert.match(p.$('cloud-status').textContent,/Konflikt/);assert.equal(p.$('lesson-title').value,'Unsaved conflict work');assert.equal(record.content.title,'Edited');
+ assert.equal(JSON.parse(p.w.localStorage.getItem('keelesepp.cloud-bindings.v1'))['draft-server'].revision,3);assert.deepEqual(p.errors,[]);
+ }finally{p.close();}
+});
+test('cloud signed out denial leaves local draft intact and makes no request',async()=>{const p=page('haldus-lesson-builder/index.html','',fixture());try{p.w.firebase.auth=()=>({currentUser:null,authStateReady:async()=>{}});p.click('cloud-save');await pause(20);assert.match(p.$('cloud-status').textContent,/Logi/);assert.equal(p.$('total').textContent,'7');assert.deepEqual(p.requests,[]);}finally{p.close();}});

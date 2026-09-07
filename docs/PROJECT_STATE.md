@@ -2,12 +2,13 @@
 
 Last verified: 2026-09-07, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
-Verified main: `1232af19599c327fdb2b6449097c3c831752bb08` — #100 merged / COMPLETED; real teaching loop ACCEPTED
-Current documentation branch: `agent/reconcile-lesson-builder-100`
+Verified main: `0b77258e099f4d2f786eda4d21ae261184746f26` — #101 reconciliation merged; real teaching loop ACCEPTED
+Current implementation branch: `agent/lesson-builder-cloud-drafts-v1`
+Draft PR: [#102](https://github.com/zakutailopavel-cyber/keelesepp/pull/102)
 
 ## Current objective
 
-Cloud Draft Library + Versioning + Publication. Current work is docs-only post-#100 reconciliation; implementation starts only after owner merge of this reconciliation PR.
+Cloud Draft Library v1 — Authenticated Draft Persistence + Immutable Publication Contract. Firebase production rollout requires separate owner permission.
 
 The merged path is:
 
@@ -17,7 +18,7 @@ PR #94 switched Teacher Home to the real curriculum source. PR #95 then bound th
 
 ## Verified repository state
 
-Current remote `main` is `1232af19599c327fdb2b6449097c3c831752bb08`.
+Current remote `main` is `0b77258e099f4d2f786eda4d21ae261184746f26`.
 
 Merged on current `main`:
 
@@ -27,7 +28,8 @@ Merged on current `main`:
 - #97 `docs: accept real curriculum production teaching loop`;
 - #98 `Lesson Builder v1 — Normalized Activity Contract` — merged, COMPLETED;
 - #99 `Lesson Builder v1 — Authoring & Validation UI` — merged;
-- #100 `Lesson Builder Ultimate Teacher UX` — merged / **COMPLETED**.
+- #100 `Lesson Builder Ultimate Teacher UX` — merged / **COMPLETED**;
+- #101 post-merge reconciliation — merged.
 
 Independent open PRs remain separate and must not be mixed into the learning rollout:
 
@@ -214,7 +216,7 @@ Imported metadata is validated, markup escaped, unknown preview tokens fail clos
 is ignored in authoring preview. The student/teacher view switch is local preview presentation,
 not an authentication/security boundary for distributing answer keys.
 
-Limitations: one saved local draft per browser origin, last-writer-wins across tabs, no cloud backup,
+Production #100 limitations until cloud backend rollout: one saved local draft per browser origin, last-writer-wins across tabs, no cloud backup,
 publication, versioning/assignment service or real audio/image upload. Presentation presets do not
 claim an answer interaction engine. Incomplete drafts are not autosaved; unsaved-change warning
 remains until fixed/saved. History is bounded and does not survive reload; saved content/IDs do.
@@ -260,15 +262,36 @@ and malformed-file upload remain unverified in real Chrome due to the earlier ex
 restriction (automated coverage passes). They are retained as follow-ups, not silently marked PASS.
 The genuine-lesson vocabulary_mark follow-up above remains NOT OBSERVED and non-blocking.
 
-## Reconciliation scope
+## Current cloud draft implementation
 
-Only `docs/PROJECT_STATE.md` changes. No code, API contract, permissions, Firebase, production data,
-publication backend or deployment changes. Other open workstreams remain separate. Eight #100
-visual screenshots and historical preview QA are in `docs/PR100_VISUAL_REVIEW.md`; that file records
-pre-merge evidence, while this state file is authoritative for current status.
+See [LESSON_BUILDER_CLOUD_DRAFTS_V1.md](LESSON_BUILDER_CLOUD_DRAFTS_V1.md) for schema/API/security.
+New Function lessonDraftsApi owns lessonDrafts, lessonVersions and publishedLessons; direct client
+read/write is denied. Revisions prevent stale saves; publication snapshots immutable versions.
+Builder adds explicit cloud save, own library, reopen, duplicate, archive, read-only history and
+publish. LocalStorage remains local recovery. Existing JS lessons and teaching/evidence are untouched.
+
+Open PR intersections: #71 also touches functions/main.js; our only change there is one new export.
+CI workflow is extended to run the new emulator test without changing functions/package.json,
+which overlaps #71/#74. No finance/calendar behavior is included.
+
+Verified CI run [34122978854](https://github.com/zakutailopavel-cyber/keelesepp/actions/runs/34122978854): Functions 161/161, CRM/learning 257/257, browser 13/13, existing emulator 25/25, new cloud emulator 14/14 (including parent suite): **470 PASS, 0 FAIL**. Includes explicit existing school-copy validation. Local emulator startup was blocked by missing Java; actual emulator verification ran in GitHub CI. Shared validator parity is enforced by test.
+No production calls/writes/deployments made; preview uses automatic GitHub/Vercel build only.
+
+Changed files in this workstream (18):
+
+- `.github/workflows/financial-core-emulator.yml`, `ARCHITECTURE.md`;
+- `docs/PROJECT_STATE.md`, `docs/LESSON_BUILDER_CLOUD_DRAFTS_V1.md`, `docs/ADAPTIVE_LESSON_SYSTEM.md`;
+- `firestore.rules`, `functions/main.js`, `functions/lesson-drafts-api.js`;
+- `functions/lesson-drafts.test.js`, `functions/lesson-drafts-emulator.integration.js`;
+- `functions/lesson-contract/activity-contract-core.js`, `functions/lesson-contract/lesson-authoring-core.js`;
+- `lesson-cloud-store.js`, `haldus-lesson-builder/cloud.js`, `haldus-lesson-builder/app.js`;
+- `haldus-lesson-builder/index.html`, `haldus-lesson-builder/style.css`, `tests/lesson-builder/ux.test.cjs`.
+
+[Automatic Vercel preview](https://keelesepp-git-agent-lesso-0d47d6-zakutailopavel-cybers-projects.vercel.app/haldus-lesson-builder/) is READY. Real Chrome loaded cloud controls, created a local lesson template and rendered Lesson Mode preview with no console errors/warnings. Cloud create/publish was not invoked against production; authenticated write lifecycle was verified through emulator HTTP and isolated UI tests. Full browser-to-production-cloud smoke remains gated on explicit backend deploy permission.
+
+Firebase gate: only `lessonDraftsApi`; collections `lessonDrafts`, `lessonVersions`, `publishedLessons`; deny all direct client reads/writes; no index changes, migrations or existing teaching data writes. Exact proposed command in cloud contract doc. History represents published versions, not every save revision. Local recovery retains the existing valid-draft-only policy. Ambiguous create/duplicate responses need library inspection before manual retry; there is no automatic retry or idempotency-key mechanism in v1.
 
 ## Next safe step
 
-After owner merge of this reconciliation PR, design and implement the bounded cloud
-persistence/publication contract for Cloud Draft Library + Versioning + Publication.
-Do not start that feature before owner merge; do not merge this PR automatically.
+Review the bounded Firebase deployment gate (exact new Function/rules and passing emulator results)
+and obtain explicit owner permission before any Firebase production deploy. Do not merge automatically.
