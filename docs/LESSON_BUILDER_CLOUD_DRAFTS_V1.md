@@ -79,7 +79,7 @@ copy of JS lessons: existing Copy school lesson remains local until explicit Sav
 
 ## Verification / rollout gate
 
-Verified CI run 34122576802: 160 Functions + 257 CRM + 13 browser + 25 existing emulator + 14 cloud emulator = 469 PASS. A final school-copy validation test is added; final results are recorded in the PR.
+Verified CI run 34122978854: 161 Functions + 257 CRM + 13 browser + 25 existing emulator + 14 cloud emulator = 470 PASS, 0 FAIL. Includes existing school-copy validation. Final implementation head: e9b4c4bd203c3b7199911669552796064d699ba5. Vercel Preview is READY; browser restored the local lesson and exposed cloud controls with no console warnings/errors. Authenticated cloud operations were verified in emulators, not Firebase production.
 No Firebase production deployment, migration, indexes, student evidence, skillMap, mastery,
 credit, curriculumProgressEvents or completed-session mutation is permitted by this code workstream.
 Vercel preview alone cannot enable the cloud backend. Until the Function is deployed, cloud calls

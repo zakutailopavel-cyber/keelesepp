@@ -274,7 +274,7 @@ Open PR intersections: #71 also touches functions/main.js; our only change there
 CI workflow is extended to run the new emulator test without changing functions/package.json,
 which overlaps #71/#74. No finance/calendar behavior is included.
 
-Verified CI run [34122576802](https://github.com/zakutailopavel-cyber/keelesepp/actions/runs/34122576802): Functions 160/160, CRM/learning 257/257, browser 13/13, existing emulator 25/25, new cloud emulator 14/14 (including parent suite): **469 PASS, 0 FAIL**. Final follow-up adds one explicit school-copy validation test. Local emulator startup was blocked by missing Java; actual emulator verification ran in GitHub CI. Shared validator parity is enforced by test.
+Verified CI run [34122978854](https://github.com/zakutailopavel-cyber/keelesepp/actions/runs/34122978854): Functions 161/161, CRM/learning 257/257, browser 13/13, existing emulator 25/25, new cloud emulator 14/14 (including parent suite): **470 PASS, 0 FAIL**. Includes explicit existing school-copy validation. Local emulator startup was blocked by missing Java; actual emulator verification ran in GitHub CI. Shared validator parity is enforced by test.
 No production calls/writes/deployments made; preview uses automatic GitHub/Vercel build only.
 
 Changed files in this workstream (18):
