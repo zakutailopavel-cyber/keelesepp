@@ -2,12 +2,12 @@
 
 Last verified: 2026-09-07, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
-Verified main: `73d43aa9c5a4226ea2a4472c645795d6370e1ff8` — #99 merged; real teaching loop ACCEPTED
-Current implementation branch: `agent/lesson-builder-ultimate-ui`
+Verified main: `1232af19599c327fdb2b6449097c3c831752bb08` — #100 merged / COMPLETED; real teaching loop ACCEPTED
+Current documentation branch: `agent/reconcile-lesson-builder-100`
 
 ## Current objective
 
-Lesson Builder Ultimate Teacher UX: a teacher-facing visual local editor with block/lesson templates, stable-ID reorder, history, autosave, validation and live nonpersistent Lesson Mode preview. Cloud publication and assignment remain out of scope.
+Cloud Draft Library + Versioning + Publication. Current work is docs-only post-#100 reconciliation; implementation starts only after owner merge of this reconciliation PR.
 
 The merged path is:
 
@@ -17,7 +17,7 @@ PR #94 switched Teacher Home to the real curriculum source. PR #95 then bound th
 
 ## Verified repository state
 
-Current remote `main` is `73d43aa9c5a4226ea2a4472c645795d6370e1ff8`.
+Current remote `main` is `1232af19599c327fdb2b6449097c3c831752bb08`.
 
 Merged on current `main`:
 
@@ -26,7 +26,8 @@ Merged on current `main`:
 - #96 `docs: reconcile project state after PR 95 merge`;
 - #97 `docs: accept real curriculum production teaching loop`;
 - #98 `Lesson Builder v1 — Normalized Activity Contract` — merged, COMPLETED;
-- #99 `Lesson Builder v1 — Authoring & Validation UI` — merged.
+- #99 `Lesson Builder v1 — Authoring & Validation UI` — merged;
+- #100 `Lesson Builder Ultimate Teacher UX` — merged / **COMPLETED**.
 
 Independent open PRs remain separate and must not be mixed into the learning rollout:
 
@@ -76,7 +77,7 @@ Verified from PR #95 / its reviewed head:
 
 Known extended-glob noise from #95 remains unchanged: three stale `adaptive-lesson-ui.test.js` assertions reproduce on unchanged main, and one isolated-worktree test required missing `crm-v2/node_modules/jsdom`. These were not represented as passing.
 
-## Production state
+## Production state — current #100 READY; historical teaching baseline below
 
 Last inspected production baseline (post-#98, before #99 merge): Vercel was **READY** for main `b23dabc989be3aad1989de98f4c1234cfdc20e4a`:
 `dpl_C6jfXFxJ8DMVfxCfT9Ks6MLpyepA`, primary GitHub-connected `keelesepp` project.
@@ -152,10 +153,10 @@ sessions by activity ID before legacy index fallback. Missing saved IDs fail vis
 contract remains in [NORMALIZED_ACTIVITY_CONTRACT_V1.md](NORMALIZED_ACTIVITY_CONTRACT_V1.md).
 The existing real curriculum teaching acceptance above remains ACCEPTED.
 
-## Current implementation — Lesson Builder Ultimate Teacher UX
+## Completed implementation — Lesson Builder Ultimate Teacher UX (#100)
 
 Base: `73d43aa9c5a4226ea2a4472c645795d6370e1ff8` (#99 merged).
-Branch: `agent/lesson-builder-ultimate-ui`. Draft PR: [#100](https://github.com/zakutailopavel-cyber/keelesepp/pull/100).
+Merged PR: [#100](https://github.com/zakutailopavel-cyber/keelesepp/pull/100). Implementation is in current main.
 
 Implemented:
 
@@ -192,13 +193,12 @@ Exact changed files:
 Local validation:
 
 - selected CRM/learning suite: **257/257 PASS** (15 new UX core tests, 10 existing authoring tests);
-- isolated browser behavior suite: **10/10 PASS**, with pinned jsdom test dependency;
+- isolated browser behavior suite: **11/11 PASS**, with pinned jsdom test dependency;
 - unchanged Functions unit suite: **157/157 PASS**;
 - existing school/city workspace parity: **123/123 equal**, all 41 activities × three routes;
 - actual Chrome local review at **1440×1000, 1180×820, 834×1000 and 390×844**;
 - actual pointer drag first→fifth across phases, autosave and preview navigation verified;
-- browser syntax and diff checks PASS. Final GitHub CI/emulator and Vercel preview verification
-  are linked in the PR after its creation.
+- browser syntax and diff checks PASS; final implementation CI: **450 PASS** (257 CRM, 157 Functions, 11 DOM, 25 emulator), run 34091652205.
 
 Second UX/visual pass: replaced unreliable native browser drag with pointer-capture reorder;
 removed premature empty-state errors; added inline duration/text errors and prompt counter;
@@ -224,39 +224,51 @@ External operations: GitHub read/push/draft PR and automatic Vercel preview only
 production call/deploy, rules/index/schema changes, student evidence, skillMap or curriculum credit
 mutation, production Vercel deploy or paid AI call. Emulator tests use the demo project only.
 
+## Post-merge production Builder smoke — PASS
+
+Verified on 2026-09-07 at `https://crm.epkoolitus.ee/haldus-lesson-builder/`.
+Vercel production is **READY** for main `1232af19599c327fdb2b6449097c3c831752bb08`:
+`dpl_8hwo41hnZta4ebkLA8BJE7t75pQs`, target production, Git source. Deployment aliases
+include crm.epkoolitus.ee, epkoolitus.ee and www.epkoolitus.ee. No deployment was initiated here.
+
+Actual Chrome verification:
+
+- Builder loaded the new visual interface; the origin initially had no saved draft.
+- 60-minute lesson template created seven activities; diagnostic block template added the eighth.
+- Real pointer drag moved the first activity to fifth across phases; the same eight IDs remained.
+- After the autosave indicator confirmed completion, reload restored all eight IDs and content.
+  A subsequent page reopen restored the reordered list with the original first ID still fifth.
+- Teacher preview showed expected answer and teacher judgement controls; Student preview hid them.
+- Desktop (1100px), Tablet (768px), Mobile (375px) preview frames worked; fullscreen and Next
+  navigation worked. Only local authoring preview was used, without a student binding.
+- Browser warning/error query returned **[]**.
+- Available Vercel production error/fatal log query returned no matching entries for
+  `2026-09-06T08:41:18.994Z–2026-09-07T08:41:18.994Z`. This is bounded coverage, not proof that
+  all historical logs or Firebase runtime logs were inspected.
+
+Six production responses matched current main byte-for-byte: Builder HTML/app.js, Lesson Mode
+HTML, lesson-authoring-core.js, lesson-builder-ux-core.js and learning-session-store.js.
+Re-ran **11/11 browser behavior tests PASS**, including forged-studentId preview with zero
+persistent API/token calls. This validates the matching production code's nonpersistent boundary;
+no direct Firestore before/after audit or browser network trace is claimed. No student session,
+evidence, handoff, skillMap, mastery or curriculum credit was deliberately created or modified.
+All smoke edits were confined to the browser-local draft `Builder post-merge smoke · local only`.
+
+Autosave limitation confirmed: reload before the 700ms save completes may restore the previous
+valid snapshot; the acceptance check waited for the saved indicator. Manual JSON import roundtrip
+and malformed-file upload remain unverified in real Chrome due to the earlier extension file-access
+restriction (automated coverage passes). They are retained as follow-ups, not silently marked PASS.
+The genuine-lesson vocabulary_mark follow-up above remains NOT OBSERVED and non-blocking.
+
+## Reconciliation scope
+
+Only `docs/PROJECT_STATE.md` changes. No code, API contract, permissions, Firebase, production data,
+publication backend or deployment changes. Other open workstreams remain separate. Eight #100
+visual screenshots and historical preview QA are in `docs/PR100_VISUAL_REVIEW.md`; that file records
+pre-merge evidence, while this state file is authoritative for current status.
+
 ## Next safe step
 
-Complete the two pending real-Chrome JSON file import checks on the draft PR preview.
-The genuine-lesson vocabulary-mark follow-up remains NOT OBSERVED and non-blocking.
-
-### Vercel preview QA — 2026-09-07
-
-[Draft PR #100](https://github.com/zakutailopavel-cyber/keelesepp/pull/100).
-[Automatic preview](https://keelesepp-git-agent-lesso-6ab58d-zakutailopavel-cybers-projects.vercel.app/haldus-lesson-builder/).
-[CI evidence](https://github.com/zakutailopavel-cyber/keelesepp/actions/runs/34053699747):
-257 CRM + 157 Functions + 10 browser behavior + 25 emulator tests = **449 PASS, 0 FAIL**.
-
-Real Chrome preview: scratch creation, 60-minute lesson template, nine different block templates,
-pointer first-to-fifth and cross-phase reorder, duplicate with new ID, delete/Undo restoring the
-same ID, three route edits, save/reload preserving ten activity IDs/order/content, fullscreen,
-Desktop/Tablet/Mobile and Student/Teacher views verified. Export downloaded a JSON backup.
-Console checks returned no errors. Preview remained local and no real student flow was used;
-isolated browser tests additionally prove zero persistent calls with a forged studentId.
-
-**Manual QA incomplete:** file import roundtrip and malformed-file upload could not be completed
-because Chrome extension file upload returned `Not allowed` (file URL access disabled).
-No extension permissions were changed. Both paths pass the automated DOM tests, but these
-are not a substitute for the requested real-Chrome file-picker check. PR remains draft;
-full Definition of Done is not claimed. Mobile/tablet preview frame centering was refined in
-the final visual polish pass.
-
-### Owner visual review follow-up — 2026-09-07
-
-The owner's screenshot is the production #99 form at epkoolitus.ee; #100 remains a separate
-unmerged Vercel preview. Production was not deployed. UX review added a direct actions menu to
-every structure card, retaining the editor menu and keyboard reorder. Human route labels are
-Vajab tuge / Tavaline tase / Liiga lihtne with small technical subtitles. Browser behavior suite
-now has 11 tests, including targeting an unselected card and duplicating its exact content.
-Eight visual review screenshots are captured in `docs/screenshots/pr100/` from the actual preview, not production. See `docs/PR100_VISUAL_REVIEW.md`. UX and polish passes are complete for visual owner review; the two manual JSON upload checks remain open.
-
-Visual follow-up CI: 257 CRM + 157 Functions + 11 DOM + 25 emulator = 450 passing tests; run 34091652205. Browser console errors/warnings: none. Additional changed files: `docs/PR100_VISUAL_REVIEW.md` and eight PNGs in `docs/screenshots/pr100/`. No production deployment or student writes.
+After owner merge of this reconciliation PR, design and implement the bounded cloud
+persistence/publication contract for Cloud Draft Library + Versioning + Publication.
+Do not start that feature before owner merge; do not merge this PR automatically.
