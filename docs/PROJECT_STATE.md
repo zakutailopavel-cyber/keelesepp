@@ -2,13 +2,13 @@
 
 Last verified: 2026-09-07, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
-Verified main: `0b77258e099f4d2f786eda4d21ae261184746f26` — #101 reconciliation merged; real teaching loop ACCEPTED
-Current implementation branch: `agent/lesson-builder-cloud-drafts-v1`
-Draft PR: [#102](https://github.com/zakutailopavel-cyber/keelesepp/pull/102)
+Verified main: `d2bf81108c43b0d2a665c8688e6d765429037058` — #102 merged; real teaching loop ACCEPTED
+Current implementation branch: `agent/interactive-lesson-v1`
+Previous PR: [#102](https://github.com/zakutailopavel-cyber/keelesepp/pull/102) — merged. Current draft PR pending.
 
 ## Current objective
 
-Cloud Draft Library v1 — Authenticated Draft Persistence + Immutable Publication Contract. Firebase production rollout requires separate owner permission.
+Interactive Lesson v1 — fillable activities, immutable-version assignment, student answers/resume and teacher review. IN PROGRESS. Owner reported successful #102 Firebase deployment; authenticated production cloud smoke remains unverified. See [living handoff](INTERACTIVE_LESSON_V1_HANDOFF.md) for exact progress and next action. New Firebase rollout requires separate permission.
 
 The merged path is:
 
