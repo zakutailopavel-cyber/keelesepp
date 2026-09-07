@@ -8,12 +8,12 @@ unchanged. Publication does not make teacher answers public or assign a lesson t
 
 - `lessonDrafts/{draftId}`: mutable `content` (existing authoring draft), `schemaVersion:1`,
   server `lessonId`, `ownerUid`, `revision`, `status:active|archived`, `versionNumber`, optional
-  `lastPublishedVersionId`, `createdBy`, `updatedBy`, server `createdAt`, `updatedAt`.
+  `lastPublishedVersionId`, `createdBy`, `updatedBy`, server `createdAt`, `updatedAt`; archive adds `archivedBy`, `archivedAt`.
 - `lessonVersions/{lessonVersionId}`: immutable `content`, `lessonId`, `lessonVersionId`,
   sequential `versionNumber`, `sourceRevision`, `ownerUid`, `createdBy`, server `createdAt`.
   IDs are `<lessonId>_v<zero-padded version number>`; transaction.create prevents overwrite.
 - `publishedLessons/{lessonId}`: trusted current-version pointer and title/owner/update audit.
-  This registry is staff-only, not public anonymous content.
+  Registry preserves createdBy/createdAt and updates updatedBy/updatedAt. It is staff-only, not public anonymous content.
 
 Create assigns new draft and lesson UUIDs on the server; content.id becomes draftId. Activity IDs
 and text are preserved. Duplicate creates new logical draft/lesson IDs, preserving activity IDs
@@ -79,7 +79,7 @@ copy of JS lessons: existing Copy school lesson remains local until explicit Sav
 
 ## Verification / rollout gate
 
-Unit/UI results and actual emulator results are recorded in PROJECT_STATE and the PR.
+Verified CI run 34122576802: 160 Functions + 257 CRM + 13 browser + 25 existing emulator + 14 cloud emulator = 469 PASS. A final school-copy validation test is added; final results are recorded in the PR.
 No Firebase production deployment, migration, indexes, student evidence, skillMap, mastery,
 credit, curriculumProgressEvents or completed-session mutation is permitted by this code workstream.
 Vercel preview alone cannot enable the cloud backend. Until the Function is deployed, cloud calls

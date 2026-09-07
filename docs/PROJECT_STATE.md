@@ -4,6 +4,7 @@ Last verified: 2026-09-07, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
 Verified main: `0b77258e099f4d2f786eda4d21ae261184746f26` — #101 reconciliation merged; real teaching loop ACCEPTED
 Current implementation branch: `agent/lesson-builder-cloud-drafts-v1`
+Draft PR: [#102](https://github.com/zakutailopavel-cyber/keelesepp/pull/102)
 
 ## Current objective
 
@@ -215,7 +216,7 @@ Imported metadata is validated, markup escaped, unknown preview tokens fail clos
 is ignored in authoring preview. The student/teacher view switch is local preview presentation,
 not an authentication/security boundary for distributing answer keys.
 
-Limitations: one saved local draft per browser origin, last-writer-wins across tabs, no cloud backup,
+Production #100 limitations until cloud backend rollout: one saved local draft per browser origin, last-writer-wins across tabs, no cloud backup,
 publication, versioning/assignment service or real audio/image upload. Presentation presets do not
 claim an answer interaction engine. Incomplete drafts are not autosaved; unsaved-change warning
 remains until fixed/saved. History is bounded and does not survive reload; saved content/IDs do.
@@ -273,9 +274,22 @@ Open PR intersections: #71 also touches functions/main.js; our only change there
 CI workflow is extended to run the new emulator test without changing functions/package.json,
 which overlaps #71/#74. No finance/calendar behavior is included.
 
-Current checks: Functions unit 160/160; browser behavior 13/13. Local emulator startup blocked by
-missing Java runtime; GitHub CI emulator results pending. Shared validator parity enforced by test.
+Verified CI run [34122576802](https://github.com/zakutailopavel-cyber/keelesepp/actions/runs/34122576802): Functions 160/160, CRM/learning 257/257, browser 13/13, existing emulator 25/25, new cloud emulator 14/14 (including parent suite): **469 PASS, 0 FAIL**. Final follow-up adds one explicit school-copy validation test. Local emulator startup was blocked by missing Java; actual emulator verification ran in GitHub CI. Shared validator parity is enforced by test.
 No production calls/writes/deployments made; preview uses automatic GitHub/Vercel build only.
+
+Changed files in this workstream (18):
+
+- `.github/workflows/financial-core-emulator.yml`, `ARCHITECTURE.md`;
+- `docs/PROJECT_STATE.md`, `docs/LESSON_BUILDER_CLOUD_DRAFTS_V1.md`, `docs/ADAPTIVE_LESSON_SYSTEM.md`;
+- `firestore.rules`, `functions/main.js`, `functions/lesson-drafts-api.js`;
+- `functions/lesson-drafts.test.js`, `functions/lesson-drafts-emulator.integration.js`;
+- `functions/lesson-contract/activity-contract-core.js`, `functions/lesson-contract/lesson-authoring-core.js`;
+- `lesson-cloud-store.js`, `haldus-lesson-builder/cloud.js`, `haldus-lesson-builder/app.js`;
+- `haldus-lesson-builder/index.html`, `haldus-lesson-builder/style.css`, `tests/lesson-builder/ux.test.cjs`.
+
+[Automatic Vercel preview](https://keelesepp-git-agent-lesso-0d47d6-zakutailopavel-cybers-projects.vercel.app/haldus-lesson-builder/) is READY. Real Chrome loaded cloud controls, created a local lesson template and rendered Lesson Mode preview with no console errors/warnings. Cloud create/publish was not invoked against production; authenticated write lifecycle was verified through emulator HTTP and isolated UI tests. Full browser-to-production-cloud smoke remains gated on explicit backend deploy permission.
+
+Firebase gate: only `lessonDraftsApi`; collections `lessonDrafts`, `lessonVersions`, `publishedLessons`; deny all direct client reads/writes; no index changes, migrations or existing teaching data writes. Exact proposed command in cloud contract doc. History represents published versions, not every save revision. Local recovery retains the existing valid-draft-only policy. Ambiguous create/duplicate responses need library inspection before manual retry; there is no automatic retry or idempotency-key mechanism in v1.
 
 ## Next safe step
 

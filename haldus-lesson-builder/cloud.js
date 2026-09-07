@@ -20,7 +20,7 @@
     await loading;if(!auth.currentUser)throw Object.assign(Error('Logi esmalt KeeleSeppa sisse. Kohalik mustand jääb alles.'),{status:401});
   }
   async function run(action){if(busy)return;busy=true;status('Ühendan…');try{await connect();await action();}catch(e){
-    status(e.status===409?'Konflikt: pilves on uuem versioon. Kohalikud muudatused jäid alles.':e.message);
+    status(e.status===409?'Konflikt: pilveolek ei luba seda muudatust. Kohalik töö jäi alles.':e.message);
     bridge.modal('Pilv ei salvestanud muudatusi',`<p>${esc(e.message)}</p><p>Kohalik mustand jääb alles. Ava pilveversioon teadlikult või salvesta kohalik töö uue koopiana.</p><a href="/haldus.html" target="_blank" rel="noopener">Logi KeeleSeppa sisse</a>`);
   }finally{busy=false;}}
   async function save(asNew=false){
@@ -37,7 +37,7 @@
   function confirm(title,action){bridge.confirm(title,'Praegune kohalik mustand võib asenduda. Vajadusel ekspordi esmalt varukoopia.',()=>run(action));}
   async function library(cursor=''){
     const result=await client.call('list',{...(cursor?{cursor}:{})});
-    const rows=result.drafts.map(d=>`<article class="cloud-row"><div><b>${esc(d.title)}</b><small>r${d.revision} · ${esc(d.status)} · v${d.versionNumber}</small></div><button data-cloud-open="${esc(d.id)}">Ava</button></article>`).join('')||'<p>Sinu pilveraamatukogu on tühi.</p>';
+    const rows=result.drafts.map(d=>`<article class="cloud-row"><div><b>${esc(d.title)}</b><small>r${d.revision} · ${d.status==='archived'?'Arhiveeritud':'Mustand'} · v${d.versionNumber}</small></div><button data-cloud-open="${esc(d.id)}">Ava</button></article>`).join('')||'<p>Sinu pilveraamatukogu on tühi.</p>';
     bridge.modal('Minu tunnid',`<p>Isiklikud mustandid. Avaldamine ei määra tundi õpilasele.</p>${rows}${result.nextCursor?`<button id="cloud-next">Järgmised</button>`:''}`);
     document.querySelectorAll('[data-cloud-open]').forEach(b=>b.onclick=()=>confirm('Ava pilvemustand?',()=>open(b.dataset.cloudOpen)));
     if($('cloud-next'))$('cloud-next').onclick=()=>run(()=>library(result.nextCursor));status('Pilveraamatukogu avatud');
@@ -48,7 +48,7 @@
     bridge.modal('Avaldatud versioonid',`<p>Muutumatud koopiad. Ajalugu on ainult lugemiseks.</p>${result.versions.map(v=>`<article class="cloud-row"><b>Versioon ${v.versionNumber}</b><small>${esc(v.createdAt)}</small><button data-version="${esc(v.id)}">Vaata</button></article>`).join('')||'<p>Avaldatud versioone veel pole.</p>'}${result.nextCursor?'<button id="history-next">Järgmised</button>':''}`);
     document.querySelectorAll('[data-version]').forEach(button=>button.onclick=()=>run(async()=>{
       const {version}=await client.call('version',{draftId:b.id,lessonVersionId:button.dataset.version});
-      bridge.modal('Versioon '+version.versionNumber,`<p>Ainult lugemiseks · ${esc(version.content.title)}</p>${version.content.activities.map(a=>`<article class="cloud-row"><div><b>${esc(a.title)}</b>${['support','core','advanced'].map(r=>`<p><small>${esc(r)}</small><br>${esc(a.routes[r].prompt)}</p>`).join('')}</div></article>`).join('')}`);status('Ajalugu · ainult lugemiseks');
+      bridge.modal('Versioon '+version.versionNumber,`<p>Ainult lugemiseks · ${esc(version.content.title)}</p>${version.content.activities.map(a=>`<article class="cloud-row"><div><b>${esc(a.title)}</b>${['support','core','advanced'].map(r=>`<p><small>${esc(r)}</small><br>${esc(a.routes[r].prompt)}</p>`).join('')}</div></article>`).join('')}<details><summary>Tehnilised andmed · täielik versioon</summary><pre style="white-space:pre-wrap">${esc(JSON.stringify(version,null,2))}</pre></details>`);status('Ajalugu · ainult lugemiseks');
     }));if($('history-next'))$('history-next').onclick=()=>run(()=>history(result.nextCursor));status('Versiooniajalugu avatud');
   }
   $('cloud-save').onclick=()=>run(()=>save());$('cloud-library').onclick=()=>run(()=>library());

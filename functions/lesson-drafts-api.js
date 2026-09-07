@@ -26,7 +26,7 @@ function validate(content) {
   let result;
   try {result=contract.validate(content);} catch {throw error(400,'Invalid draft metadata');}
   if(!result.ok)throw error(400,result.errors.slice(0,5).join('; '));
-  const keys=new Set(['schemaVersion','kind','id','title','activities','context','authoring','sourceLessonId']);
+  const keys=new Set(['schemaVersion','kind','id','title','activities','context','authoring']);
   if(Object.keys(content).some(k=>!keys.has(k)))throw error(400,'Unknown draft metadata');
   if(content.authoring){
     const ids=new Set(content.activities.map(a=>a.id));
@@ -92,14 +92,16 @@ async function execute(actor,body){
     if(action==='save'){
       if(content.id!==snap.id)throw error(400,'Draft identity cannot change');update.content=content;
     }
-    if(action==='archive')update.status='archived';
+    if(action==='archive'){update.status='archived';update.archivedBy=actor.uid;update.archivedAt=now;}
     let publication;
     if(action==='publish'){
       const frozen=validate(record.content),versionNumber=record.versionNumber+1;
       const lessonVersionId=record.lessonId+'_v'+String(versionNumber).padStart(6,'0');
       publication={lessonId:record.lessonId,lessonVersionId,versionNumber};
+      const registryRef=db.collection('publishedLessons').doc(record.lessonId);
+      const registry=await tx.get(registryRef);
       tx.create(db.collection('lessonVersions').doc(lessonVersionId),{schemaVersion:1,...publication,ownerUid:record.ownerUid,createdBy:actor.uid,createdAt:now,sourceRevision:record.revision,content:frozen});
-      tx.set(db.collection('publishedLessons').doc(record.lessonId),{schemaVersion:1,...publication,ownerUid:record.ownerUid,title:frozen.title,updatedBy:actor.uid,updatedAt:now});
+      tx.set(registryRef,{schemaVersion:1,createdBy:registry.data()?.createdBy||actor.uid,createdAt:registry.data()?.createdAt||now,...publication,ownerUid:record.ownerUid,title:frozen.title,updatedBy:actor.uid,updatedAt:now});
       update.versionNumber=versionNumber;update.lastPublishedVersionId=lessonVersionId;
     }
     tx.update(ref,update);
