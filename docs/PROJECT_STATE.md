@@ -257,4 +257,6 @@ unmerged Vercel preview. Production was not deployed. UX review added a direct a
 every structure card, retaining the editor menu and keyboard reorder. Human route labels are
 Vajab tuge / Tavaline tase / Liiga lihtne with small technical subtitles. Browser behavior suite
 now has 11 tests, including targeting an unselected card and duplicating its exact content.
-Eight visual review screenshots are being captured from the actual preview, not production.
+Eight visual review screenshots are captured in `docs/screenshots/pr100/` from the actual preview, not production. See `docs/PR100_VISUAL_REVIEW.md`. UX and polish passes are complete for visual owner review; the two manual JSON upload checks remain open.
+
+Visual follow-up CI: 257 CRM + 157 Functions + 11 DOM + 25 emulator = 450 passing tests; run 34091652205. Browser console errors/warnings: none. Additional changed files: `docs/PR100_VISUAL_REVIEW.md` and eight PNGs in `docs/screenshots/pr100/`. No production deployment or student writes.
