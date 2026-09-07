@@ -14,7 +14,7 @@ function jsonSafe(value, depth=0) {
   if(value===null || typeof value==='string' || typeof value==='boolean') return;
   if(typeof value==='number' && Number.isFinite(value)) return;
   if(!value || typeof value!=='object') throw error(400,'JSON data required');
-  if(Array.isArray(value)){for(const item of value)jsonSafe(item,depth+1);return;}
+  if(Array.isArray(value)){for(const item of value){if(Array.isArray(item))throw error(400,'Nested arrays are not supported by Firestore');jsonSafe(item,depth+1);}return;}
   for(const [key,item] of Object.entries(value)){
     if(['__proto__','constructor','prototype'].includes(key)||key.length>160)throw error(400,'Invalid metadata key');
     jsonSafe(item,depth+1);
