@@ -12,3 +12,5 @@
 #preview-viewport{margin-inline:auto}
 
 .card-menu{align-self:center;border:0;background:transparent;padding:7px 4px;font-size:20px;color:var(--muted)}.card-menu:hover,.card-menu:focus-visible{background:var(--pale);color:var(--green)}
+
+.empty-lesson #preview-viewport,.empty-lesson #refresh-preview,.empty-lesson .device-tabs{display:none}.empty-lesson #preview-state{padding:44px 20px;border:1px dashed var(--line);border-radius:10px;margin:16px 0;text-align:center;font-size:14px;line-height:1.7;background:var(--pale)}
