@@ -23,7 +23,6 @@
       if(typeof a.title!=='string'||!a.title.trim()||a.title.length>180)errors.push(`${label}: lisa pealkiri (kuni 180 märki).`);
       if(!TYPES.includes(a.workspaceType))errors.push(`${label}: vali toetatud tööruum.`);
       if(!Array.isArray(a.skillIds)||!a.skillIds.length||a.skillIds.some(id=>!SKILLS.includes(id)))errors.push(`${label}: vali vähemalt üks toetatud oskus.`);
-      if((a.phaseId==='diagnostic')!==(a.workspaceType==='diagnostic'))errors.push(`${label}: diagnostika tööruumi etapp peab olema diagnostic.`);
       for(const r of ROUTES){const v=a.routes?.[r];if(!v)continue;
         if(typeof v.prompt!=='string'||!v.prompt.trim()||v.prompt.length>3000)errors.push(`${label} / ${r}: lisa ülesanne (kuni 3000 märki).`);
         if(v.workspaceType!==a.workspaceType)errors.push(`${label} / ${r}: tööruum peab vastama tegevusele.`);
@@ -42,6 +41,19 @@
         for(const f of Array.isArray(context.languageFocus)?context.languageFocus:[])if(!f||typeof f.id!=='string'||typeof f.label!=='string'||!Array.isArray(f.patterns)||f.patterns.some(x=>typeof x!=='string'))errors.push('Lausemall on vigane.');
         if(Array.isArray(context.successCriteria)&&context.successCriteria.some(x=>typeof x!=='string'))errors.push('Hindamiskriteeriumid on vigased.');
         for(const p of Array.isArray(context.phases)?context.phases:[])if(!p||typeof p.id!=='string'||typeof p.title!=='string'||(p.minutes!==undefined&&!validMinutes(p.minutes))||(p.successCriteria!==undefined&&(!Array.isArray(p.successCriteria)||p.successCriteria.some(x=>typeof x!=='string'))))errors.push('Etapi taustandmed on vigased.');
+      }
+    }
+    if(draft.authoring!==undefined){
+      const x=draft.authoring,isObject=v=>v&&typeof v==='object'&&!Array.isArray(v);
+      if(!isObject(x)||!isObject(x.lesson)||!isObject(x.activities)||!Array.isArray(x.phases))errors.push('Koostaja seaded on vigased.');
+      else{
+        const l=x.lesson;
+        if(!['A1','A2','B1','B2','C1'].includes(l.cefr)||!validMinutes(l.minutes))errors.push('Tunni tase või kestus on vigane.');
+        for(const key of ['goal','topic','tags','notes','successCriteria'])if(typeof l[key]!=='string'||l[key].length>4000)errors.push('Tunni seadete tekst on vigane.');
+        if(!Array.isArray(l.skills)||l.skills.some(k=>!SKILLS.includes(k)))errors.push('Tunni oskused on vigased.');
+        for(const p of x.phases)if(!p||typeof p.id!=='string'||!p.id||p.id.length>100||typeof p.title!=='string'||!p.title.trim()||p.title.length>180)errors.push('Etapi nimetus on vigane.');
+        const layouts=['native','text','image','cards','questions','comparison','roleplay','dialogue','flashcard','checklist','reading','exam','reflection','teacher'];
+        for(const m of Object.values(x.activities))if(!isObject(m)||!validMinutes(m.minutes)||!layouts.includes(m.layout)||(m.templateId!==undefined&&typeof m.templateId!=='string')||(m.reference!==undefined&&typeof m.reference!=='boolean'))errors.push('Ploki kujundus või kestus on vigane.');
       }
     }
     try{if(JSON.stringify(draft).length>MAX_BYTES)errors.push('Mustand on liiga suur.');}catch{errors.push('Mustand peab olema JSON.');}
@@ -77,10 +89,10 @@
   function parse(raw){if(typeof raw!=='string'||raw.length>MAX_BYTES)throw new Error('Fail on liiga suur.');return checked(JSON.parse(raw));}
   function previewLesson(draft){
     const value=checked(draft),activities=value.activities,phases=[...new Set(activities.filter(a=>a.phaseId!=='diagnostic').map(a=>a.phaseId))];
-    const context=value.context||{};
-    return {id:'authoring-preview-'+value.id,title:value.title,durationMinutes:context.durationMinutes||0,category:'Mustandi eelvaade',
+    const context=value.context||{},settings=value.authoring?.lesson;
+    return {id:'authoring-preview-'+value.id,title:value.title,durationMinutes:settings?.minutes??context.durationMinutes??0,cefrLevel:settings?.cefr||'B1',goal:settings?.goal||'',category:settings?.topic||'Mustandi eelvaade',authoringPresentation:copy(value.authoring?.activities||{}),
       diagnostic:{durationMinutes:context.diagnosticDurationMinutes||0,items:activities.filter(a=>a.phaseId==='diagnostic').map(a=>({id:a.id,skillIds:a.skillIds}))},
-      stages:phases.map(id=>{const p=(context.phases||[]).find(p=>p.id===id);return {id,title:p?.title||id,minutes:p?.minutes||0,...(p?.successCriteria?{successCriteria:copy(p.successCriteria)}:{})};}),vocabulary:Array.isArray(context.vocabulary)?copy(context.vocabulary):[],languageFocus:Array.isArray(context.languageFocus)?copy(context.languageFocus):[],successCriteria:Array.isArray(context.successCriteria)?copy(context.successCriteria):[],
+      stages:phases.map(id=>{const p=(context.phases||[]).find(p=>p.id===id);return {id,title:value.authoring?.phases?.find(p=>p.id===id)?.title||p?.title||id,minutes:value.authoring?activities.filter(a=>a.phaseId===id).reduce((n,a)=>n+(value.authoring.activities[a.id]?.minutes||0),0):p?.minutes||0,...(p?.successCriteria?{successCriteria:copy(p.successCriteria)}:{})};}),vocabulary:Array.isArray(context.vocabulary)?copy(context.vocabulary):[],languageFocus:Array.isArray(context.languageFocus)?copy(context.languageFocus):[],successCriteria:settings?.successCriteria?settings.successCriteria.split('\n').filter(Boolean):Array.isArray(context.successCriteria)?copy(context.successCriteria):[],
       authoringActivities:activities.map(a=>({...a,source:{kind:a.phaseId==='diagnostic'?'diagnostic':'stage',stage:a.phaseId==='diagnostic'?0:phases.indexOf(a.phaseId)+1,taskIndex:activities.filter(b=>b.phaseId===a.phaseId).findIndex(b=>b.id===a.id)}}))};
   }
   return {ROUTES,TYPES,SKILLS,MAX_BYTES,validate,createDraft,fromLesson,addActivity,updateActivity,moveActivity,serialize,parse,previewLesson};

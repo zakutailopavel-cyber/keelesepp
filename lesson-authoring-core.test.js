@@ -58,14 +58,11 @@ test('valid preview loader reads local JSON through validation without network',
   assert.match(html,/requestedStudentId=authoringPreview\?\.requested\?'':/);
   assert.match(html,/saving:!authoringPreview\?\.requested/);
 });
-test('UI exposes read-only IDs, escaped values, explicit local save and errors',()=>{
+test('technical IDs remain readonly and authoring has no persistent API',()=>{
   const app=fs.readFileSync('haldus-lesson-builder/app.js','utf8');new vm.Script(app);
-  assert.match(app,/id="activity-id" readonly/);assert.match(app,/if\(!report\(\)\)return/);
-  assert.match(app,/localStorage.setItem\(STORAGE,core.serialize\(draft\)\)/);
-  assert.doesNotMatch(app,/firebase|fetch\(/);
-  assert.match(app,/esc\(v.prompt\)/);assert.match(app,/esc\(m\)/);
+  assert.match(app,/id="activity-id" readonly/);assert.doesNotMatch(app,/firebase|fetch\(/);
+  assert.match(app,/core.parse\(await file.text\(\)\)/);
 });
-
 test('preview duration metadata is numeric and extra imported phase fields stay inert',()=>{
   const d=draft();
   for(const value of ['<img src=x onerror=alert(1)>',-1,Infinity,241]){

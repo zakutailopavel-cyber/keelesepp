@@ -1,13 +1,13 @@
 # KeeleSepp Project State
 
-Last verified: 2026-09-06, Europe/Tallinn
+Last verified: 2026-09-07, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
-Verified main: `b23dabc989be3aad1989de98f4c1234cfdc20e4a` — #98 merged; production Vercel READY; real teaching loop ACCEPTED
-Current implementation branch: `agent/lesson-builder-authoring-ui-v1`
+Verified main: `73d43aa9c5a4226ea2a4472c645795d6370e1ff8` — #99 merged; real teaching loop ACCEPTED
+Current implementation branch: `agent/lesson-builder-ultimate-ui`
 
 ## Current objective
 
-Lesson Builder v1 — Authoring & Validation UI: a local draft editor for normalized activities, validated JSON import/export and nonpersistent preview through the current Lesson Mode. Cloud publication and student assignment are outside this slice.
+Lesson Builder Ultimate Teacher UX: a teacher-facing visual local editor with block/lesson templates, stable-ID reorder, history, autosave, validation and live nonpersistent Lesson Mode preview. Cloud publication and assignment remain out of scope.
 
 The merged path is:
 
@@ -17,7 +17,7 @@ PR #94 switched Teacher Home to the real curriculum source. PR #95 then bound th
 
 ## Verified repository state
 
-Current remote `main` is `b23dabc989be3aad1989de98f4c1234cfdc20e4a`.
+Current remote `main` is `73d43aa9c5a4226ea2a4472c645795d6370e1ff8`.
 
 Merged on current `main`:
 
@@ -25,7 +25,8 @@ Merged on current `main`:
 - #95 `Real Curriculum Lesson Mode v1: school lesson to evidence and handoff`;
 - #96 `docs: reconcile project state after PR 95 merge`;
 - #97 `docs: accept real curriculum production teaching loop`;
-- #98 `Lesson Builder v1 — Normalized Activity Contract` — merged, COMPLETED.
+- #98 `Lesson Builder v1 — Normalized Activity Contract` — merged, COMPLETED;
+- #99 `Lesson Builder v1 — Authoring & Validation UI` — merged.
 
 Independent open PRs remain separate and must not be mixed into the learning rollout:
 
@@ -77,7 +78,7 @@ Known extended-glob noise from #95 remains unchanged: three stale `adaptive-less
 
 ## Production state
 
-Production Vercel is **READY** for main `b23dabc989be3aad1989de98f4c1234cfdc20e4a`:
+Last inspected production baseline (post-#98, before #99 merge): Vercel was **READY** for main `b23dabc989be3aad1989de98f4c1234cfdc20e4a`:
 `dpl_C6jfXFxJ8DMVfxCfT9Ks6MLpyepA`, primary GitHub-connected `keelesepp` project.
 
 Post-#98 smoke on 2026-09-06:
@@ -151,63 +152,111 @@ sessions by activity ID before legacy index fallback. Missing saved IDs fail vis
 contract remains in [NORMALIZED_ACTIVITY_CONTRACT_V1.md](NORMALIZED_ACTIVITY_CONTRACT_V1.md).
 The existing real curriculum teaching acceptance above remains ACCEPTED.
 
-## Current implementation — Authoring & Validation UI v1
+## Current implementation — Lesson Builder Ultimate Teacher UX
 
-Branch: `agent/lesson-builder-authoring-ui-v1`.
-Draft PR: [#99 — Lesson Builder v1 — Authoring & Validation UI](https://github.com/zakutailopavel-cyber/keelesepp/pull/99).
-Owner merge required before production rollout.
+Base: `73d43aa9c5a4226ea2a4472c645795d6370e1ff8` (#99 merged).
+Branch: `agent/lesson-builder-ultimate-ui`. Draft PR: [#100](https://github.com/zakutailopavel-cyber/keelesepp/pull/100).
 
 Implemented:
 
-- `/haldus-lesson-builder/`, linked from Teacher Home;
-- new local draft or copy of the school lesson; all 12 reference IDs and route content retained;
-- activity list, immutable ID, title, phaseId, skillIds and workspaceType editing;
-- Support/Core/Advanced prompt, expected answer and teacher instruction;
-- reorder by pinned ID; add allocates a UUID once, independent of prompt or route;
-- validation through `activity-contract-core`, plus authoring bounds, required prompts and safe context metadata;
-- explicit local save/restore, validated JSON import/export, errors before save/preview;
-- sessionStorage snapshot preview using the current Lesson Mode workspace contract;
-- preview ignores any supplied studentId, never publishes the draft or creates student evidence.
+- compact teacher-facing desktop structure/editor/preview columns; laptop two-column mode,
+  tablet structure drawer and preview overlay, mobile single-column editor;
+- **41 declarative block templates** across nine subject/lesson categories and **9 lesson templates**;
+- pointer drag handle, insertion indicator, placeholder, cross-phase move, keyboard Alt+Up/Down
+  and Move up/down fallback, preserving stable IDs and variants;
+- duplicate/copy/paste below/move-to/delete/reset, destructive confirmations, reference-copy warning;
+- 50-snapshot Undo/Redo history with grouped typing and keyboard shortcuts;
+- 700 ms local autosave, explicit Save, storage-error and unsaved-change states;
+- human phase names/custom phases, skills, durations, lesson settings, hidden read-only technical details;
+- teacher-friendly support levels, deterministic copy/simplify/challenge helpers (no AI);
+- 450 ms live preview debounce, current activity, route/device/view selection and fullscreen overlay;
+- **13 presentation presets** plus existing renderer, safe text-only image/audio placeholders;
+- inline errors, separate warnings/tips, readiness metric explicitly unrelated to mastery;
+- search/skill/type filters, collapsible phase groups, concise onboarding and JSON backup/restore.
 
-Changed files:
+Exact changed files:
 
-- `lesson-authoring-core.js`, `lesson-authoring-core.test.js`, `lesson-authoring-preview.js`;
-- `haldus-lesson-builder/index.html`, `haldus-lesson-builder/app.js`, `haldus-lesson-builder/style.css`;
-- `lesson-workspace-core.js`, `haldus-adaptive-lesson/index.html`, `haldus-teacher-home/index.html`;
-- `vercel.json`, `.github/workflows/financial-core-emulator.yml`;
-- this file, `docs/LESSON_BUILDER_AUTHORING_UI_V1.md`, `docs/NORMALIZED_ACTIVITY_CONTRACT_V1.md`,
-  `docs/ADAPTIVE_LESSON_SYSTEM.md`.
+- `lesson-block-templates.js`;
+- `lesson-builder-ux-core.js`, `lesson-builder-ux-core.test.js`;
+- `lesson-authoring-presentation.js`;
+- `lesson-authoring-core.js`, `lesson-authoring-core.test.js`;
+- `haldus-lesson-builder/index.html`, `haldus-lesson-builder/app.js`,
+  `haldus-lesson-builder/style.css`, `haldus-lesson-builder/preview.css`;
+- `haldus-adaptive-lesson/index.html`;
+- `tests/lesson-builder/package.json`, `tests/lesson-builder/package-lock.json`,
+  `tests/lesson-builder/ux.test.cjs`;
+- `.github/workflows/financial-core-emulator.yml`;
+- `docs/PROJECT_STATE.md`, `docs/LESSON_BUILDER_AUTHORING_UI_V1.md`,
+  `docs/LESSON_BUILDER_UX_V2.md`, `docs/ADAPTIVE_LESSON_SYSTEM.md`.
 
-Validation:
+Local validation:
 
-- CI-selected CRM/learning tests: **242/242 passed**, including **10 authoring tests**;
-- Functions unit tests: **157/157 passed**, using existing installed dependencies; no Function source changed;
-- reference preview workspace parity: **36/36 models equal** (12 activities × 3 routes);
-- isolated DOM navigation of existing school/city vocabulary/city problem-solving: **12/15/14**
-  activities rendered, no captured script errors or API requests;
-- isolated authored preview with a supplied studentId: all 12 activities, preview judgements and
-  summary exercised; **0 token requests, 0 API requests, 0 script errors**; HTML content escaped;
-- actual Chrome editor: empty save rejected; school copied, title edited, activity reordered,
-  saved and restored after reload; iframe Lesson Mode followed the edited order; console errors absent;
-- browser JavaScript syntax checks and `git diff --check`: **PASS**; CI result will be linked in the PR.
+- selected CRM/learning suite: **257/257 PASS** (15 new UX core tests, 10 existing authoring tests);
+- isolated browser behavior suite: **10/10 PASS**, with pinned jsdom test dependency;
+- unchanged Functions unit suite: **157/157 PASS**;
+- existing school/city workspace parity: **123/123 equal**, all 41 activities × three routes;
+- actual Chrome local review at **1440×1000, 1180×820, 834×1000 and 390×844**;
+- actual pointer drag first→fifth across phases, autosave and preview navigation verified;
+- browser syntax and diff checks PASS. Final GitHub CI/emulator and Vercel preview verification
+  are linked in the PR after its creation.
 
-Data/security: one draft in browser localStorage (`keelesepp.lesson-authoring.v1`), temporary preview
-snapshot in same-tab sessionStorage, optional user-downloaded JSON. No Firestore objects, rules,
-indexes, migrations, Functions, evidence payloads, skillMap, mastery, credit or authorization changes.
-The editor is a public local authoring tool, not an authenticated cloud content service. Other users
-of the same browser profile/origin can access its local draft; do not store private student data in it.
-Imported markup is escaped; durations are bounded numeric values; optional future metadata stays inert.
+Second UX/visual pass: replaced unreliable native browser drag with pointer-capture reorder;
+removed premature empty-state errors; added inline duration/text errors and prompt counter;
+hid teacher controls and the offscreen drawer from student preview; made desktop preview fit the
+side panel; verified responsive editor density, focus styling and device layouts.
 
-Limitations: one saved draft per browser origin; no cloud backup, publication, assignment, draft library,
-activity deletion/versioning or asset authoring. A new save replaces the prior local draft; export JSON
-for separate copies. Reference vocabulary/pattern/phase context is copied but not edited in this UI.
-Preview is a snapshot and must be reopened after edits. Existing Lesson Mode teaching scaffolds are
-retained. Preview does not prove a cloud publication or live-session authoring flow.
+Contracts/data: no new normalized activity contract. Optional `draft.authoring` contains only
+local lesson settings, keyed presentation/duration/template provenance and phase display names.
+Older v1 drafts load without changing IDs. Phase and workspace type can be edited independently
+in authoring (the existing normalized contract already permits this). Preview source indices are
+derived; IDs, routeBySkill and registered teaching/session/evidence/handoff semantics remain intact.
+Imported metadata is validated, markup escaped, unknown preview tokens fail closed, and studentId
+is ignored in authoring preview. The student/teacher view switch is local preview presentation,
+not an authentication/security boundary for distributing answer keys.
 
-No Firebase operation, production deploy, paid API call or PR merge is part of this workstream.
-Automatic GitHub/Vercel preview is permitted; production only after owner merge.
+Limitations: one saved local draft per browser origin, last-writer-wins across tabs, no cloud backup,
+publication, versioning/assignment service or real audio/image upload. Presentation presets do not
+claim an answer interaction engine. Incomplete drafts are not autosaved; unsaved-change warning
+remains until fixed/saved. History is bounded and does not survive reload; saved content/IDs do.
+Reference content is copied, never mutated. JSON exports are the separate lesson backup mechanism.
+
+External operations: GitHub read/push/draft PR and automatic Vercel preview only. No Firebase
+production call/deploy, rules/index/schema changes, student evidence, skillMap or curriculum credit
+mutation, production Vercel deploy or paid AI call. Emulator tests use the demo project only.
 
 ## Next safe step
 
-Owner review of the Authoring & Validation UI draft PR and its preview, then owner merge if accepted.
-The genuine-lesson vocabulary-mark follow-up remains non-blocking.
+Complete the two pending real-Chrome JSON file import checks on the draft PR preview.
+The genuine-lesson vocabulary-mark follow-up remains NOT OBSERVED and non-blocking.
+
+### Vercel preview QA — 2026-09-07
+
+[Draft PR #100](https://github.com/zakutailopavel-cyber/keelesepp/pull/100).
+[Automatic preview](https://keelesepp-git-agent-lesso-6ab58d-zakutailopavel-cybers-projects.vercel.app/haldus-lesson-builder/).
+[CI evidence](https://github.com/zakutailopavel-cyber/keelesepp/actions/runs/34053699747):
+257 CRM + 157 Functions + 10 browser behavior + 25 emulator tests = **449 PASS, 0 FAIL**.
+
+Real Chrome preview: scratch creation, 60-minute lesson template, nine different block templates,
+pointer first-to-fifth and cross-phase reorder, duplicate with new ID, delete/Undo restoring the
+same ID, three route edits, save/reload preserving ten activity IDs/order/content, fullscreen,
+Desktop/Tablet/Mobile and Student/Teacher views verified. Export downloaded a JSON backup.
+Console checks returned no errors. Preview remained local and no real student flow was used;
+isolated browser tests additionally prove zero persistent calls with a forged studentId.
+
+**Manual QA incomplete:** file import roundtrip and malformed-file upload could not be completed
+because Chrome extension file upload returned `Not allowed` (file URL access disabled).
+No extension permissions were changed. Both paths pass the automated DOM tests, but these
+are not a substitute for the requested real-Chrome file-picker check. PR remains draft;
+full Definition of Done is not claimed. Mobile/tablet preview frame centering was refined in
+the final visual polish pass.
+
+### Owner visual review follow-up — 2026-09-07
+
+The owner's screenshot is the production #99 form at epkoolitus.ee; #100 remains a separate
+unmerged Vercel preview. Production was not deployed. UX review added a direct actions menu to
+every structure card, retaining the editor menu and keyboard reorder. Human route labels are
+Vajab tuge / Tavaline tase / Liiga lihtne with small technical subtitles. Browser behavior suite
+now has 11 tests, including targeting an unselected card and duplicating its exact content.
+Eight visual review screenshots are captured in `docs/screenshots/pr100/` from the actual preview, not production. See `docs/PR100_VISUAL_REVIEW.md`. UX and polish passes are complete for visual owner review; the two manual JSON upload checks remain open.
+
+Visual follow-up CI: 257 CRM + 157 Functions + 11 DOM + 25 emulator = 450 passing tests; run 34091652205. Browser console errors/warnings: none. Additional changed files: `docs/PR100_VISUAL_REVIEW.md` and eight PNGs in `docs/screenshots/pr100/`. No production deployment or student writes.

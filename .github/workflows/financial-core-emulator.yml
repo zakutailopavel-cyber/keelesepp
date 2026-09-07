@@ -46,6 +46,11 @@ on:
       - "adaptive-vocabulary-lesson.test.js"
       - "adaptive-skill-engine.js"
       - "adaptive-skill-engine.test.js"
+      - "lesson-block-templates.js"
+      - "lesson-builder-ux-core.js"
+      - "lesson-builder-ux-core.test.js"
+      - "lesson-authoring-presentation.js"
+      - "tests/lesson-builder/**"
       - "lesson-authoring-core.js"
       - "lesson-authoring-core.test.js"
       - "lesson-authoring-preview.js"
@@ -101,6 +106,11 @@ on:
       - "adaptive-vocabulary-lesson.test.js"
       - "adaptive-skill-engine.js"
       - "adaptive-skill-engine.test.js"
+      - "lesson-block-templates.js"
+      - "lesson-builder-ux-core.js"
+      - "lesson-builder-ux-core.test.js"
+      - "lesson-authoring-presentation.js"
+      - "tests/lesson-builder/**"
       - "lesson-authoring-core.js"
       - "lesson-authoring-core.test.js"
       - "lesson-authoring-preview.js"
@@ -144,7 +154,11 @@ jobs:
       - name: Run unit tests
         run: npm test --prefix functions
       - name: Run CRM, accounting, calendar and learning tests
-        run: node --test haldus-quality.test.js calendar-core.test.js learning-library-core.test.js live-classroom-core.test.js staff-activity.test.js staff-time-core.test.js accounting-ledger-core.test.js teacher-scope-ui.test.js terms-registration-ui.test.js initial-assessment-core.test.js initial-assessment-ui.test.js student-portal-scope-ui.test.js learning-profile-core.test.js learning-profile-evidence-store.test.js learning-profile-ui.test.js learning-profile-routing.test.js curriculum-goal-core.test.js adaptive-lesson-core.test.js adaptive-vocabulary-lesson.test.js real-curriculum-lesson.test.js adaptive-skill-engine.test.js activity-contract-core.test.js lesson-authoring-core.test.js lesson-workspace-core.test.js learning-session-core.test.js learning-session-ui.test.js teacher-home-core.test.js teacher-home-ui.test.js
+        run: node --test haldus-quality.test.js calendar-core.test.js learning-library-core.test.js live-classroom-core.test.js staff-activity.test.js staff-time-core.test.js accounting-ledger-core.test.js teacher-scope-ui.test.js terms-registration-ui.test.js initial-assessment-core.test.js initial-assessment-ui.test.js student-portal-scope-ui.test.js learning-profile-core.test.js learning-profile-evidence-store.test.js learning-profile-ui.test.js learning-profile-routing.test.js curriculum-goal-core.test.js adaptive-lesson-core.test.js adaptive-vocabulary-lesson.test.js real-curriculum-lesson.test.js adaptive-skill-engine.test.js activity-contract-core.test.js lesson-authoring-core.test.js lesson-builder-ux-core.test.js lesson-workspace-core.test.js learning-session-core.test.js learning-session-ui.test.js teacher-home-core.test.js teacher-home-ui.test.js
+      - name: Install isolated Builder browser test dependencies
+        run: npm ci --prefix tests/lesson-builder --ignore-scripts
+      - name: Run Builder browser behavior tests
+        run: npm test --prefix tests/lesson-builder
       - name: Check browser JavaScript syntax
         run: |
           node --check haldus-quality.js
@@ -157,6 +171,9 @@ jobs:
           node --check adaptive-lesson-core.js
           node --check adaptive-lessons/est-b1-city-vocabulary.js
           node --check adaptive-skill-engine.js
+          node --check lesson-block-templates.js
+          node --check lesson-builder-ux-core.js
+          node --check lesson-authoring-presentation.js
           node --check lesson-authoring-core.js
           node --check lesson-authoring-preview.js
           node --check haldus-lesson-builder/app.js
