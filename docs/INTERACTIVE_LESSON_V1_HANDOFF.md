@@ -86,6 +86,12 @@ Reconciliation branch `agent/reconcile-interactive-lesson-103` contains only:
 - emulator assertion for both revoked `get` and `list`;
 - current state/handoff documentation.
 
+Reconciliation PR #104, head `0888494fed63bc763cfc29efbc1bc85321737bbf`, is OPEN/DRAFT.
+CI run 34190554235 is PASS: Functions 162/162, CRM/learning 263/263, browser 18/18,
+existing emulator 25/25, cloud emulator 14/14 and interactive emulator 13/13; 0 failures.
+Its Vercel Preview is READY. Anonymous Chrome smoke of `/interactive-lesson/` showed the safe
+sign-in gate and no console warnings/errors. No authenticated production API call was made.
+
 Firebase gate after reconciliation merge: new Function `interactiveLessonApi`; collection
 `interactiveAssignments`; direct client read/write remains denied; no indexes, migrations or
 changes to students, LearningSession, evidence, skillMap, mastery or curriculum progress.

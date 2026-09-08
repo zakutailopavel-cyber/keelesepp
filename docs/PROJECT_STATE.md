@@ -4,7 +4,7 @@ Last verified: 2026-09-08, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
 Verified main: `ea1e8994778afdd6f8330caf50b715a0cd05e0e7` — #103 merged; real teaching loop ACCEPTED
 Current implementation branch: `agent/reconcile-interactive-lesson-103`
-Previous PR: [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) — merged. Reconciliation PR pending.
+Previous PR: [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) — merged. Draft reconciliation PR: [#104](https://github.com/zakutailopavel-cyber/keelesepp/pull/104), CI PASS.
 
 ## Current objective
 
