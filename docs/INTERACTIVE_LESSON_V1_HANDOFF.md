@@ -1,6 +1,6 @@
 # Interactive Lesson v1 — living handoff
 
-Status: IN PROGRESS, not production-ready. This file is updated during implementation;
+Status: MERGED in #103; reconciliation and Firebase rollout remain. This file is updated during implementation;
 PROJECT_STATE.md and fresh GitHub main remain authoritative.
 
 ## Owner objective and constraints
@@ -53,8 +53,8 @@ answers/resume, submit/review, server enforcement, browser flow, CI, preview and
 Do not describe planned functionality as implemented. No new Function deployed.
 
 ## Exactly one next safe step
-Implement and test the pure response contract and answer-safe student projection after checking
-existing student ownership mapping; preserve root normalized contract compatibility.
+Review and merge the small reconciliation PR, then request a separate owner authorization for the
+selective `interactiveLessonApi,firestore:rules` Firebase rollout.
 
 ## Implementation checkpoint (supersedes initial not-yet-implemented list)
 Pure `interactive-lesson-core.js` + server copy added: five modes, exact field IDs,
@@ -70,6 +70,30 @@ New interactive-lesson/ runner/review page implemented but not yet browser/emula
 Student roster UI replaces manual student ID; listing assignments currently first 50 with notice.
 Cloud publication additionally validates response metadata on server.
 
-Outstanding before ready: emulator lifecycle/security tests, browser test coverage and actual UI
-inspection, regression suite/CI, fix all findings, improve stale local recovery notice and ensure
-account-switch/in-flight-save safety. Draft PR not yet created at this checkpoint.
+The earlier outstanding checks were completed before merge. CI run 34154609330 passed 495 checks:
+162 Functions, 263 CRM/learning, 18 browser, 25 existing emulator, 14 cloud-draft emulator and
+13 interactive emulator; 0 failures. Automatic Vercel Preview was READY. Real Chrome verified a
+60-minute template, short-answer configuration, editable inline and sticky Lesson Mode previews,
+and an empty console warning/error query. Preview responses caused no persistence requests.
+
+PR #103 was owner-merged as main `ea1e8994778afdd6f8330caf50b715a0cd05e0e7`. No agent merge or
+Firebase deployment occurred. The new `interactiveLessonApi` and direct-deny rule therefore remain
+inactive in production. Existing #102 `lessonDraftsApi` deployment is owner-reported from screenshot.
+
+Reconciliation branch `agent/reconcile-interactive-lesson-103` contains only:
+- safe local-recovery removal after confirmed save/submit/reload and account-switch clearing;
+- student assignment-list filtering after a student-account link is revoked;
+- emulator assertion for both revoked `get` and `list`;
+- current state/handoff documentation.
+
+Reconciliation PR #104, head `0888494fed63bc763cfc29efbc1bc85321737bbf`, is OPEN/DRAFT.
+CI run 34190554235 is PASS: Functions 162/162, CRM/learning 263/263, browser 18/18,
+existing emulator 25/25, cloud emulator 14/14 and interactive emulator 13/13; 0 failures.
+Its Vercel Preview is READY. Anonymous Chrome smoke of `/interactive-lesson/` showed the safe
+sign-in gate and no console warnings/errors. No authenticated production API call was made.
+
+Firebase gate after reconciliation merge: new Function `interactiveLessonApi`; collection
+`interactiveAssignments`; direct client read/write remains denied; no indexes, migrations or
+changes to students, LearningSession, evidence, skillMap, mastery or curriculum progress.
+Proposed command, NOT EXECUTED:
+`firebase deploy --project keelesepp-5136b --only functions:interactiveLessonApi,firestore:rules`.
