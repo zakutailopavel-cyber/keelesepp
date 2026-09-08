@@ -37,6 +37,21 @@
   function reset(input,id){const d=prepare(input),m=meta(d,id),i=d.activities.findIndex(a=>a.id===id);if(!m.templateId)throw Error('Sellel plokil pole algmalli.');const b=block(m.templateId,id);d.activities[i]=b.activity;d.authoring.activities[id]=b.metadata;return d;}
   function adapt(input,id,route){const d=prepare(input),a=d.activities.find(a=>a.id===id);if(!a)return d;const standard=copy(a.routes.core);if(route==='all'){a.routes.support=copy(standard);a.routes.advanced=copy(standard);}else a.routes[route]={...standard,prompt:standard.prompt+(route==='support'?'\nKasuta märksõnu. Alusta ühest näitest.':'\nPõhjenda oma vastust ja too uus näide.')};return d;}
   function phaseName(d,id){return d.authoring?.phases?.find(p=>p.id===id)?.title||templates.PHASES.find(p=>p[0]===id)?.[1]||d.context?.phases?.find(p=>p.id===id)?.title||id;}
+  const COMPOSER_TYPES={short:'interactive-short',long:'interactive-long',single:'interactive-single',multiple:'interactive-multiple',gaps:'interactive-gaps'};
+  function composeWorksheet(input,text,allocate){
+    if(typeof text!=='string'||typeof allocate!=='function')throw Error('Lisa küsimused, üks ülesanne reale.');
+    const lines=text.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);if(!lines.length)throw Error('Lisa vähemalt üks ülesanne.');if(lines.length>30)throw Error('Korraga saab lisada kuni 30 ülesannet.');
+    let d=prepare(input),last=d.activities.at(-1)?.id||'';const created=[];
+    for(const line of lines){
+      const match=/^(short|long|single|multiple|gaps)\s*:\s*/i.exec(line),kind=(match?.[1]||'short').toLowerCase(),parts=line.slice(match?.[0].length||0).split('|').map(x=>x.trim()),prompt=parts.shift();
+      if(!prompt)throw Error('Igal real peab olema ülesande tekst.');if(prompt.length>3000)throw Error('Ülesande tekst võib olla kuni 3000 märki.');
+      if(['single','multiple'].includes(kind)&&parts.length<2)throw Error('Valikvastusel peab olema vähemalt kaks valikut.');if(kind==='gaps'&&!parts.length)throw Error('Lünkadel peab olema vähemalt üks vastuseväli.');if(parts.some(x=>!x||x.length>300))throw Error('Valikud ja lüngad peavad olema 1–300 märki.');
+      const activityId=allocate(),templateId=COMPOSER_TYPES[kind];d=insert(d,templateId,activityId,last);last=activityId;created.push(activityId);const a=d.activities.find(x=>x.id===activityId);a.title=prompt.slice(0,80);
+      for(const r of core.ROUTES)a.routes[r].prompt=prompt+(r==='support'?'\nVõid kasutada märksõnu ja üht näidet.':r==='advanced'?'\nLisa põhjendus ja üks uus näide.':'');
+      if(parts.length)a.evaluation.response.items=parts.map((label,index)=>({id:'field-'+(index+1),label}));
+    }
+    if(input.activities?.length===0&&(!input.title||input.title==='Uus tund'))d.title='Täidetav tööleht';d.authoring.lesson.skills=[...new Set(d.activities.flatMap(a=>a.skillIds))];return{draft:d,created};
+  }
   function validate(d){
     const errors=[],warnings=[],tips=[],add=(target,message,activityId='',field='')=>target.push({message,activityId,field});
     const schema=core.validate(d);
@@ -68,5 +83,5 @@
   }
   function history(initial,limit=50){let current=copy(initial),past=[],future=[],lastKey='',lastTime=0;return {get:()=>copy(current),get canUndo(){return !!past.length;},get canRedo(){return !!future.length;},commit(next,key='',time=Date.now()){if(JSON.stringify(next)===JSON.stringify(current))return false;if(!key||key!==lastKey||time-lastTime>700){past.push(copy(current));if(past.length>limit)past.shift();}current=copy(next);future=[];lastKey=key;lastTime=time;return true;},undo(){if(past.length){future.push(current);current=past.pop();lastKey='';}return copy(current);},redo(){if(future.length){past.push(current);current=future.pop();lastKey='';}return copy(current);}};}
   function autosave({storage,key,onStatus=()=>{},delay=700,schedule=setTimeout,cancel=clearTimeout}){let timer=null,pending=null,saved='';return {restore(){const raw=storage.getItem(key);if(!raw)return null;const d=prepare(core.parse(raw));saved=JSON.stringify(d);return d;},queue(d){pending=copy(d);cancel(timer);onStatus(JSON.stringify(d)===saved?'saved':'dirty');if(JSON.stringify(d)!==saved)timer=schedule(()=>this.flush(),delay);},flush(){cancel(timer);if(!pending)return true;if(!validate(pending).ok){onStatus('dirty');return false;}try{onStatus('saving');storage.setItem(key,core.serialize(pending));saved=JSON.stringify(pending);onStatus('saved');return true;}catch(e){onStatus('error',e.message);return false;}},get dirty(){return !!pending&&JSON.stringify(pending)!==saved;},dispose(){cancel(timer);}};}
-  return {copy,SKILLS,prepare,meta,block,insert,lessonTemplate,reorder,move,duplicate,remove,paste,reset,adapt,phaseName,validate,history,autosave};
+  return {copy,SKILLS,prepare,meta,block,insert,lessonTemplate,reorder,move,duplicate,remove,paste,reset,adapt,composeWorksheet,phaseName,validate,history,autosave};
 });
