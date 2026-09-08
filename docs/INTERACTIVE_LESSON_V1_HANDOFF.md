@@ -158,4 +158,7 @@ HTTP 200 and available logs showed no error for the inspected reads.
 Current branch `agent/lesson-builder-worksheet-composer-v1` implements a paste-to-worksheet
 productivity slice. Up to 30 lines become stable-ID fillable activities in one undoable operation.
 It supports short/long text, single/multiple choice and gaps with `|`-separated fields. Core tests
-25/25 and Builder/Lesson Mode DOM tests 22/22 pass locally. No Firebase or API change is included.
+44/44 and Builder/Lesson Mode DOM tests 22/22 pass locally. Visual smoke pasted five mixed rows,
+created five fillable cards, rendered the short-answer editor and completed local autosave with no
+console warnings/errors. No Firebase or API change is included. Draft PR #107 is the current review
+surface; do not merge it automatically.
