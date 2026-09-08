@@ -132,8 +132,14 @@ Files in this workstream:
 - core/browser contract tests and project documentation.
 
 No Firebase schema, rules, Functions, production data or deployment is part of this workstream.
-Before handoff completion, run the targeted core/browser suites, open a draft PR and record its
-head/CI/preview status here.
+Draft PR: [#106](https://github.com/zakutailopavel-cyber/keelesepp/pull/106), initial head
+`833c9c271a1df4b208e9544a5d753c2797834e2d`. Vercel Preview is READY. Targeted verification:
+42 normalized/authoring/interactive core tests, 20 Builder/Lesson Mode DOM tests and 4 cloud
+publication validation tests passed. Visual local smoke created the worksheet with five unique
+activities, showed every block as `Täidetav`, opened a required short-answer field in the sticky
+student preview and confirmed the preview status says student data is not saved. The only console
+message was the existing third-party Google FedCM migration warning; no application runtime error
+was observed. The protected Vercel Preview itself requires Vercel login in the isolated browser.
 
 Exactly one next safe step after this PR is reviewed: investigate why a genuinely published lesson
 did not become visible as a student assignment, using the published version, teacher assignment
