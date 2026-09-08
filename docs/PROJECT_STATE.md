@@ -3,12 +3,12 @@
 Last verified: 2026-09-08, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
 Verified main: `ea1e8994778afdd6f8330caf50b715a0cd05e0e7` — #103 merged; real teaching loop ACCEPTED
-Current implementation branch: `agent/reconcile-interactive-lesson-103`
-Previous PR: [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) — merged. Draft reconciliation PR: [#104](https://github.com/zakutailopavel-cyber/keelesepp/pull/104), CI PASS.
+Current implementation branch: `agent/reconcile-interactive-production`
+PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) and [#104](https://github.com/zakutailopavel-cyber/keelesepp/pull/104) are merged. Production reconciliation PR pending.
 
 ## Current objective
 
-Interactive Lesson v1 is merged: fillable activities, immutable-version assignment, student answers/resume and teacher review. It is not production-active until the new Function and rules receive a separately authorized Firebase rollout. This reconciliation closes local-recovery and revoked-account-listing gaps. See [living handoff](INTERACTIVE_LESSON_V1_HANDOFF.md).
+Interactive Lesson v1 is merged and its Firebase backend is deployed: fillable activities, immutable-version assignment, student answers/resume and teacher review. Read-only authenticated production pre-smoke passed. Full acceptance now waits for one genuine teacher-created published lesson and linked student completion. See [living handoff](INTERACTIVE_LESSON_V1_HANDOFF.md).
 
 The merged path is:
 
@@ -295,6 +295,6 @@ Firebase gate: only `lessonDraftsApi`; collections `lessonDrafts`, `lessonVersio
 
 ## Next safe step
 
-Review and merge the bounded #103 reconciliation PR. After merge, obtain explicit owner permission
-for a selective `interactiveLessonApi` plus `firestore:rules` Firebase rollout; then run a genuine
-teacher/student production smoke without changing skillMap, mastery, credit or LearningSession.
+Owner creates/publishes one genuine fillable lesson and assigns it to an already linked student.
+Then perform a read-only acceptance audit while the student saves, resumes and submits and the
+teacher reviews; do not create synthetic answers or change skillMap, mastery, credit or LearningSession.
