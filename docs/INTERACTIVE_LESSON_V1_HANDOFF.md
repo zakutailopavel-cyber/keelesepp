@@ -160,5 +160,5 @@ productivity slice. Up to 30 lines become stable-ID fillable activities in one u
 It supports short/long text, single/multiple choice and gaps with `|`-separated fields. Core tests
 44/44 and Builder/Lesson Mode DOM tests 22/22 pass locally. Visual smoke pasted five mixed rows,
 created five fillable cards, rendered the short-answer editor and completed local autosave with no
-console warnings/errors. No Firebase or API change is included. Draft PR #107 is the current review
-surface; do not merge it automatically.
+console warnings/errors. No Firebase or API change is included. PR #107 was owner-merged as main
+`989696c6cc55983a8af46ed985290fcaaeadb709`; its Vercel production deployment reported READY.
