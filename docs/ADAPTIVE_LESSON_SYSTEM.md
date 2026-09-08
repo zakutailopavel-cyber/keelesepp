@@ -510,7 +510,7 @@ validation rules, storage limitations and review checks.
 
 ## Ultimate Teacher UX extension (after merged #99)
 
-The local Builder now offers 41 block templates, 9 lesson structures, stable-ID pointer/keyboard
+The local Builder now offers 46 block templates, 10 lesson structures, stable-ID pointer/keyboard
 reorder, duplicate/delete/history, autosave, human phase names and lesson settings.
 `lesson-builder-ux-core.js` owns these authoring operations; `lesson-block-templates.js` is data.
 Optional `draft.authoring` holds presentation and lesson settings keyed by existing activity ID.
@@ -527,3 +527,12 @@ Cloud authoring now has a separate trusted draft/publication contract described 
 [LESSON_BUILDER_CLOUD_DRAFTS_V1.md](LESSON_BUILDER_CLOUD_DRAFTS_V1.md). It does not extend the
 LearningSession lesson allowlist or change evidence, skillMap, mastery or credit. Published content
 is immutable and staff-only; future teaching references must pin lessonVersionId.
+
+## Ready fillable templates
+
+Five Builder templates now create the existing Interactive Lesson response contract directly:
+short text, long text, single choice, multiple choice and gaps. A complete 35-minute fillable
+worksheet combines all five. Option and gap IDs are declarative stable values; each inserted block
+still receives its own immutable activity ID. Legacy templates remain unchanged and noninteractive
+until a teacher explicitly configures a response. See
+[LESSON_BUILDER_INTERACTIVE_TEMPLATES_V1.md](LESSON_BUILDER_INTERACTIVE_TEMPLATES_V1.md).

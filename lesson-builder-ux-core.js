@@ -12,7 +12,9 @@
   const meta=(d,id)=>d.authoring?.activities?.[id]||{};
   function block(templateId,id){
     const t=templates.BLOCKS.find(t=>t.id===templateId);if(!t)throw Error('Tundmatu plokk.');
-    return {activity:{schemaVersion:1,id,title:t.title,phaseId:t.phase,skillIds:[t.skill],workspaceType:t.type,routes:Object.fromEntries(core.ROUTES.map(r=>[r,{prompt:t.prompt+(r==='support'?'\nVõid kasutada märksõnu ja üht näidet.':r==='advanced'?'\nLisa põhjendus ja üks uus näide.':''),expected:t.expected,teacherInstruction:t.teacherInstruction,workspaceType:t.type}]))},metadata:{minutes:t.minutes,layout:t.layout,templateId:t.id,reference:false}};
+    const activity={schemaVersion:1,id,title:t.title,phaseId:t.phase,skillIds:[t.skill],workspaceType:t.type,routes:Object.fromEntries(core.ROUTES.map(r=>[r,{prompt:t.prompt+(r==='support'?'\nVõid kasutada märksõnu ja üht näidet.':r==='advanced'?'\nLisa põhjendus ja üks uus näide.':''),expected:t.expected,teacherInstruction:t.teacherInstruction,workspaceType:t.type}]))};
+    if(t.response){activity.responseMode=t.response.mode;activity.evaluation={response:copy(t.response)};}
+    return {activity,metadata:{minutes:t.minutes,layout:t.layout,templateId:t.id,reference:false}};
   }
   function insert(input,templateId,id,afterId){const d=prepare(input),b=block(templateId,id);if(d.activities.some(a=>a.id===id))throw Error('ID on juba kasutusel.');const i=d.activities.findIndex(a=>a.id===afterId);d.activities.splice(i<0?d.activities.length:i+1,0,b.activity);d.authoring.activities[id]=b.metadata;return d;}
   function lessonTemplate(templateId,draftId,allocate){

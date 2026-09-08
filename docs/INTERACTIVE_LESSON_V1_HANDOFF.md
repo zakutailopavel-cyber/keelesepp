@@ -1,6 +1,6 @@
 # Interactive Lesson v1 — living handoff
 
-Status: MERGED and DEPLOYED; genuine teacher/student production acceptance remains. This file is updated during implementation;
+Status: MERGED and DEPLOYED; genuine teacher/student production acceptance remains open. This file is updated during implementation;
 PROJECT_STATE.md and fresh GitHub main remain authoritative.
 
 ## Owner objective and constraints
@@ -107,3 +107,40 @@ console warnings/errors were empty. No assignment, response or student/evidence 
 Exactly one remaining acceptance action: the owner publishes a genuine fillable lesson and assigns
 it to an existing linked student. Audit the real save/resume/submit/review flow read-only. Stop if
 the student lacks a linked active Firebase user; do not invent or migrate an identity during smoke.
+
+## Interactive template workstream — 2026-09-08
+
+Authoritative base main: `c13425af2131c6e33b8d6a5bb3ee4bbcb1e2f20d` (#105 merged).
+Implementation branch: `agent/lesson-builder-interactive-templates-v1`.
+
+The owner successfully saved and published a cloud lesson, but `/interactive-lesson/` still showed
+an empty assignment list. The owner explicitly deferred investigation and asked development to
+continue. Do not report this flow as production accepted, and do not create synthetic assignment
+or student response data. The exact root cause is not established.
+
+Current bounded implementation adds five ready-to-edit Builder blocks using the existing response
+contract: short text, long text, single choice, multiple choice and gaps. Choice and gap field IDs
+are pinned independently of labels, routes, text edits and activity ordering. A 35-minute
+`Täidetav tööleht` whole-lesson template combines all five modes. Existing noninteractive templates
+remain unchanged and can still be made fillable manually.
+
+Files in this workstream:
+
+- `lesson-block-templates.js` — declarative fillable blocks and worksheet;
+- `lesson-builder-ux-core.js` — copies response metadata at the existing template boundary;
+- `haldus-lesson-builder/app.js` — visible `Täidetav` markers;
+- core/browser contract tests and project documentation.
+
+No Firebase schema, rules, Functions, production data or deployment is part of this workstream.
+Draft PR: [#106](https://github.com/zakutailopavel-cyber/keelesepp/pull/106), initial head
+`833c9c271a1df4b208e9544a5d753c2797834e2d`. Vercel Preview is READY. Targeted verification:
+42 normalized/authoring/interactive core tests, 20 Builder/Lesson Mode DOM tests and 4 cloud
+publication validation tests passed. Visual local smoke created the worksheet with five unique
+activities, showed every block as `Täidetav`, opened a required short-answer field in the sticky
+student preview and confirmed the preview status says student data is not saved. The only console
+message was the existing third-party Google FedCM migration warning; no application runtime error
+was observed. The protected Vercel Preview itself requires Vercel login in the isolated browser.
+
+Exactly one next safe step after this PR is reviewed: investigate why a genuinely published lesson
+did not become visible as a student assignment, using the published version, teacher assignment
+request and linked-student identity as read-only evidence before proposing any fix.
