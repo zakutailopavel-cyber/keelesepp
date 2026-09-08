@@ -19,7 +19,12 @@ async function execute(a,b){
   }
   if(b.action==='list'){
     let q=db.collection('interactiveAssignments').where(teacher(a)?'teacherUid':'studentUid','==',a.uid).orderBy(FieldPath.documentId()).limit(50);if(b.cursor)q=q.startAfter(id(b.cursor));
-    const snap=await q.get();return{role:a.role,assignments:snap.docs.map(d=>{const r=d.data();return{id:d.id,title:r.title,status:r.status,revision:r.revision,studentId:r.studentId,lessonVersionId:r.lessonVersionId};}),nextCursor:snap.size===50?snap.docs.at(-1).id:null};
+    const snap=await q.get();let docs=snap.docs;
+    if(a.role==='student'){
+      const students=await db.getAll(...docs.map(d=>db.doc('students/'+id(d.data().studentId))));
+      docs=docs.filter((d,index)=>students[index].exists&&core.studentOwns(a.uid,d.data().studentId,students[index].data()));
+    }
+    return{role:a.role,assignments:docs.map(d=>{const r=d.data();return{id:d.id,title:r.title,status:r.status,revision:r.revision,studentId:r.studentId,lessonVersionId:r.lessonVersionId};}),nextCursor:snap.size===50?snap.docs.at(-1).id:null};
   }
   if(b.action==='assign'){
     if(!teacher(a))fail(403,'Teacher required');

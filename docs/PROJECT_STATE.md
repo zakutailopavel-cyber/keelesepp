@@ -1,14 +1,14 @@
 # KeeleSepp Project State
 
-Last verified: 2026-09-07, Europe/Tallinn
+Last verified: 2026-09-08, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
-Verified main: `d2bf81108c43b0d2a665c8688e6d765429037058` — #102 merged; real teaching loop ACCEPTED
-Current implementation branch: `agent/interactive-lesson-v1`
-Previous PR: [#102](https://github.com/zakutailopavel-cyber/keelesepp/pull/102) — merged. Current draft PR pending.
+Verified main: `ea1e8994778afdd6f8330caf50b715a0cd05e0e7` — #103 merged; real teaching loop ACCEPTED
+Current implementation branch: `agent/reconcile-interactive-lesson-103`
+Previous PR: [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) — merged. Reconciliation PR pending.
 
 ## Current objective
 
-Interactive Lesson v1 — fillable activities, immutable-version assignment, student answers/resume and teacher review. IN PROGRESS. Owner reported successful #102 Firebase deployment; authenticated production cloud smoke remains unverified. See [living handoff](INTERACTIVE_LESSON_V1_HANDOFF.md) for exact progress and next action. New Firebase rollout requires separate permission.
+Interactive Lesson v1 is merged: fillable activities, immutable-version assignment, student answers/resume and teacher review. It is not production-active until the new Function and rules receive a separately authorized Firebase rollout. This reconciliation closes local-recovery and revoked-account-listing gaps. See [living handoff](INTERACTIVE_LESSON_V1_HANDOFF.md).
 
 The merged path is:
 
@@ -18,7 +18,7 @@ PR #94 switched Teacher Home to the real curriculum source. PR #95 then bound th
 
 ## Verified repository state
 
-Current remote `main` is `0b77258e099f4d2f786eda4d21ae261184746f26`.
+Current remote `main` is `ea1e8994778afdd6f8330caf50b715a0cd05e0e7`.
 
 Merged on current `main`:
 
@@ -30,6 +30,8 @@ Merged on current `main`:
 - #99 `Lesson Builder v1 — Authoring & Validation UI` — merged;
 - #100 `Lesson Builder Ultimate Teacher UX` — merged / **COMPLETED**;
 - #101 post-merge reconciliation — merged.
+- #102 Cloud Draft Library v1 — merged; owner-reported selective Firebase rollout completed.
+- #103 Interactive Lesson v1 — merged; CI and automatic Vercel Preview passed, Firebase rollout pending.
 
 Independent open PRs remain separate and must not be mixed into the learning rollout:
 
@@ -293,5 +295,6 @@ Firebase gate: only `lessonDraftsApi`; collections `lessonDrafts`, `lessonVersio
 
 ## Next safe step
 
-Review the bounded Firebase deployment gate (exact new Function/rules and passing emulator results)
-and obtain explicit owner permission before any Firebase production deploy. Do not merge automatically.
+Review and merge the bounded #103 reconciliation PR. After merge, obtain explicit owner permission
+for a selective `interactiveLessonApi` plus `firestore:rules` Firebase rollout; then run a genuine
+teacher/student production smoke without changing skillMap, mastery, credit or LearningSession.
