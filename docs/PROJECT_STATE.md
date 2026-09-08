@@ -2,13 +2,15 @@
 
 Last verified: 2026-09-08, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
-Verified main: `ea1e8994778afdd6f8330caf50b715a0cd05e0e7` — #103 merged; real teaching loop ACCEPTED
-Current implementation branch: `agent/reconcile-interactive-production`
-PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) and [#104](https://github.com/zakutailopavel-cyber/keelesepp/pull/104) are merged. Production reconciliation PR pending.
+Verified main: `c13425af2131c6e33b8d6a5bb3ee4bbcb1e2f20d` — #105 merged; Interactive Lesson backend deployed
+Current implementation branch: `agent/lesson-builder-interactive-templates-v1`
+PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103), [#104](https://github.com/zakutailopavel-cyber/keelesepp/pull/104) and [#105](https://github.com/zakutailopavel-cyber/keelesepp/pull/105) are merged.
 
 ## Current objective
 
-Interactive Lesson v1 is merged and its Firebase backend is deployed: fillable activities, immutable-version assignment, student answers/resume and teacher review. Read-only authenticated production pre-smoke passed. Full acceptance now waits for one genuine teacher-created published lesson and linked student completion. See [living handoff](INTERACTIVE_LESSON_V1_HANDOFF.md).
+Deliver immediately usable fillable authoring templates in the existing Lesson Builder. The bounded slice adds five ready response blocks and one whole fillable worksheet template while preserving the existing normalized activity, publication and student runner contracts. See [living handoff](INTERACTIVE_LESSON_V1_HANDOFF.md).
+
+The owner published a genuine cloud lesson, but the production student assignment library still showed no assignment. Investigation is explicitly deferred by the owner; this observation remains open and Interactive Lesson production acceptance is not claimed.
 
 The merged path is:
 
@@ -18,7 +20,7 @@ PR #94 switched Teacher Home to the real curriculum source. PR #95 then bound th
 
 ## Verified repository state
 
-Current remote `main` is `ea1e8994778afdd6f8330caf50b715a0cd05e0e7`.
+Current remote `main` is `c13425af2131c6e33b8d6a5bb3ee4bbcb1e2f20d`.
 
 Merged on current `main`:
 
@@ -31,7 +33,9 @@ Merged on current `main`:
 - #100 `Lesson Builder Ultimate Teacher UX` — merged / **COMPLETED**;
 - #101 post-merge reconciliation — merged.
 - #102 Cloud Draft Library v1 — merged; owner-reported selective Firebase rollout completed.
-- #103 Interactive Lesson v1 — merged; CI and automatic Vercel Preview passed, Firebase rollout pending.
+- #103 Interactive Lesson v1 — merged; CI and automatic Vercel Preview passed;
+- #104 Interactive Lesson recovery and revoked-account protection — merged;
+- #105 production rollout reconciliation — merged.
 
 Independent open PRs remain separate and must not be mixed into the learning rollout:
 
@@ -293,8 +297,16 @@ Changed files in this workstream (18):
 
 Firebase gate: only `lessonDraftsApi`; collections `lessonDrafts`, `lessonVersions`, `publishedLessons`; deny all direct client reads/writes; no index changes, migrations or existing teaching data writes. Exact proposed command in cloud contract doc. History represents published versions, not every save revision. Local recovery retains the existing valid-draft-only policy. Ambiguous create/duplicate responses need library inspection before manual retry; there is no automatic retry or idempotency-key mechanism in v1.
 
+## Current workstream — Lesson Builder Interactive Templates v1
+
+Branch `agent/lesson-builder-interactive-templates-v1` adds five ready fillable blocks and one
+35-minute fillable worksheet. It reuses the deployed Interactive Lesson response contract and makes
+no Firebase, API, schema or production-data change. Legacy lesson templates keep their behavior.
+See [LESSON_BUILDER_INTERACTIVE_TEMPLATES_V1.md](LESSON_BUILDER_INTERACTIVE_TEMPLATES_V1.md).
+
 ## Next safe step
 
-Owner creates/publishes one genuine fillable lesson and assigns it to an already linked student.
-Then perform a read-only acceptance audit while the student saves, resumes and submits and the
-teacher reviews; do not create synthetic answers or change skillMap, mastery, credit or LearningSession.
+After owner review of this bounded template slice, investigate the missing production assignment
+read-only: trace the published `lessonVersionId`, teacher assignment request and linked student UID
+before changing code or data. Do not create synthetic answers or change skillMap, mastery, credit
+or LearningSession.

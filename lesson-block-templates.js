@@ -45,7 +45,15 @@
     ['reflection','Kontroll','Eneserefleksioon','reflection','speaking','assessment','reflection',3,'Täna oskan …\nMul on veel vaja harjutada …\nMinu järgmine samm on …'],
     ['checkpoint','Kontroll','Õpetaja vahekontroll','assessment','grammar','assessment','teacher',4,'Näita iseseisvalt, kuidas kasutad tänast lausemalli. Selgita oma valikut.']
   ];
-  const BLOCKS=rows.map(([id,category,title,phase,skill,type,layout,minutes,prompt])=>({id,category,title,phase,skill,type,layout,minutes,prompt,teacherInstruction:category==='Kuulamine'?'Esita materjal ise; helifaili üleslaadimist siin ei ole. Hinda vastuse mõtet.':'Anna mõtlemisaega. Hinda sihtoskust ja küsi vajadusel üks täpsustav küsimus.',expected:'Kohanda vastuse näidet oma tunni eesmärgile; aktsepteeri sisuliselt õigeid vastuseid.'}));
+  const response=(mode,items)=>({schemaVersion:1,mode,required:true,...(items?{items}: {})});
+  const interactive=[
+    {id:'interactive-short',category:'Täidetavad ülesanded',title:'Lühike vastus',phase:'practice',skill:'writing',type:'controlled_practice',layout:'text',minutes:5,prompt:'Vasta ühe või kahe lausega.',response:response('short_text')},
+    {id:'interactive-long',category:'Täidetavad ülesanded',title:'Pikem vastus',phase:'practice',skill:'writing',type:'controlled_practice',layout:'text',minutes:10,prompt:'Kirjuta põhjendatud vastus. Lisa vähemalt üks näide.',response:response('long_text')},
+    {id:'interactive-single',category:'Täidetavad ülesanded',title:'Vali üks vastus',phase:'practice',skill:'reading',type:'controlled_practice',layout:'questions',minutes:4,prompt:'Loe küsimus ja vali üks sobiv vastus.',response:response('single_choice',[{id:'choice-a',label:'Esimene vastus'},{id:'choice-b',label:'Teine vastus'},{id:'choice-c',label:'Kolmas vastus'}])},
+    {id:'interactive-multiple',category:'Täidetavad ülesanded',title:'Vali mitu vastust',phase:'practice',skill:'reading',type:'controlled_practice',layout:'checklist',minutes:5,prompt:'Vali kõik sobivad vastused.',response:response('multiple_choice',[{id:'choice-a',label:'Esimene väide'},{id:'choice-b',label:'Teine väide'},{id:'choice-c',label:'Kolmas väide'}])},
+    {id:'interactive-gaps',category:'Täidetavad ülesanded',title:'Täida lüngad',phase:'grammar',skill:'grammar',type:'controlled_practice',layout:'questions',minutes:6,prompt:'Kirjuta igasse lünka sobiv sõna või vorm.',response:response('gaps',[{id:'gap-a',label:'Esimene lünk'},{id:'gap-b',label:'Teine lünk'},{id:'gap-c',label:'Kolmas lünk'}])}
+  ].map(item=>({...item,teacherInstruction:'Kontrolli vastus pärast õpilase saatmist. Kohanda valikud või lüngad enne avaldamist.',expected:'Lisa siia vastusemudel või hindamiskriteeriumid.'}));
+  const BLOCKS=[...interactive,...rows.map(([id,category,title,phase,skill,type,layout,minutes,prompt])=>({id,category,title,phase,skill,type,layout,minutes,prompt,teacherInstruction:category==='Kuulamine'?'Esita materjal ise; helifaili üleslaadimist siin ei ole. Hinda vastuse mõtet.':'Anna mõtlemisaega. Hinda sihtoskust ja küsi vajadusel üks täpsustav küsimus.',expected:'Kohanda vastuse näidet oma tunni eesmärgile; aktsepteeri sisuliselt õigeid vastuseid.'}))];
   const LESSONS=[
     {id:'school45',title:'45 min · koolitund',minutes:45,blocks:['warmup','review','gap','practice','talk','exit','reflection']},
     {id:'language60',title:'60 min · individuaalne keeletund',minutes:60,blocks:['warmup','new-words','gap','practice','roleplay','transfer','assessment']},
@@ -55,7 +63,8 @@
     {id:'exam',title:'Eksamiks valmistumine',minutes:60,blocks:['diagnostic','read','audio-questions','exam-writing','assessment']},
     {id:'revision',title:'Kordamistund',minutes:45,blocks:['review','odd','form','talk','exit','reflection']},
     {id:'conversation',title:'Vestlustund',minutes:45,blocks:['warmup','talk','opinion','debate','reflection']},
-    {id:'diagnostic',title:'Diagnostiline tund',minutes:45,blocks:['diagnostic','read','short-answer','talk','checkpoint']}
+    {id:'diagnostic',title:'Diagnostiline tund',minutes:45,blocks:['diagnostic','read','short-answer','talk','checkpoint']},
+    {id:'worksheet',title:'Täidetav tööleht',minutes:35,blocks:['interactive-short','interactive-single','interactive-multiple','interactive-gaps','interactive-long']}
   ];
   return {PHASES,LAYOUTS,BLOCKS,LESSONS};
 });
