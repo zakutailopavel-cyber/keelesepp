@@ -144,3 +144,18 @@ was observed. The protected Vercel Preview itself requires Vercel login in the i
 Exactly one next safe step after this PR is reviewed: investigate why a genuinely published lesson
 did not become visible as a student assignment, using the published version, teacher assignment
 request and linked-student identity as read-only evidence before proposing any fix.
+
+## Post-#106 update — 2026-09-08
+
+PR #106 merged as main `120e81a133a50cd8b6285def5ac1cc99007e9670`. Read-only production UI
+inspection opened the assignment form and confirmed that `60 min · individuaalne keeletund · v2`
+is available as an immutable published version. The teacher assignment list contains zero records.
+The observed result matches the contract: cloud save and Publish do not create an
+`interactiveAssignments` document; only the separate `Määra õpilasele` action does. No assignment
+was created, no student was selected and no production data was changed. Functions calls returned
+HTTP 200 and available logs showed no error for the inspected reads.
+
+Current branch `agent/lesson-builder-worksheet-composer-v1` implements a paste-to-worksheet
+productivity slice. Up to 30 lines become stable-ID fillable activities in one undoable operation.
+It supports short/long text, single/multiple choice and gaps with `|`-separated fields. Core tests
+25/25 and Builder/Lesson Mode DOM tests 22/22 pass locally. No Firebase or API change is included.
