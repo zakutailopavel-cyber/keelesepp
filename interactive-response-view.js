@@ -14,5 +14,9 @@
       group.append(label);
     });
   }
-  root.KeeleSeppResponseView={render};
+  function renderAssets(container,activity){
+    container.replaceChildren();
+    (activity.assets||[]).forEach(asset=>{const figure=document.createElement('figure'),img=document.createElement('img');figure.className='lesson-image';img.src=asset.url;img.alt=asset.alt;img.loading='lazy';img.referrerPolicy='no-referrer';figure.append(img);if(asset.caption){const caption=document.createElement('figcaption');caption.textContent=asset.caption;figure.append(caption);}container.append(figure);});
+  }
+  root.KeeleSeppResponseView={render,renderAssets};
 })(typeof window!=='undefined'?window:globalThis);

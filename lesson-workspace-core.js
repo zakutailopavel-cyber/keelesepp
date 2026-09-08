@@ -105,6 +105,7 @@
   }
 
   function workspaceModel({lesson,item,currentRoute='core'}={}){
+    const activity=(lesson?.authoringActivities||[]).find(activity=>activity.id===item?.id);
     const type=workspaceTypeFor(lesson,item,currentRoute);
     const prompt=taskText(lesson,item,currentRoute);
     const expected=expectedText(lesson,item,currentRoute);
@@ -117,7 +118,8 @@
       route:route(currentRoute),
       title:item?.title||'',
       stageId:item?.stageId||'',
-      taskIndex:Number(item?.taskIndex)||0
+      taskIndex:Number(item?.taskIndex)||0,
+      assets:activity?.assets||[]
     };
     if(type==='diagnostic') return {...base,showScene:false,showExpectedInitially:false,rule:'Ära anna vastust ega sõnavihjet enne, kui õpilane on lõpetanud.'};
     if(type==='vocabulary') return {...base,words:vocabularyForRoute(lesson,currentRoute),showTranslations:route(currentRoute)==='support'};
