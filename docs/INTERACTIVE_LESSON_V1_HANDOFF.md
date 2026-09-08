@@ -1,6 +1,6 @@
 # Interactive Lesson v1 — living handoff
 
-Status: MERGED in #103; reconciliation and Firebase rollout remain. This file is updated during implementation;
+Status: MERGED and DEPLOYED; genuine teacher/student production acceptance remains. This file is updated during implementation;
 PROJECT_STATE.md and fresh GitHub main remain authoritative.
 
 ## Owner objective and constraints
@@ -53,20 +53,18 @@ answers/resume, submit/review, server enforcement, browser flow, CI, preview and
 Do not describe planned functionality as implemented. No new Function deployed.
 
 ## Exactly one next safe step
-Review and merge the small reconciliation PR, then request a separate owner authorization for the
-selective `interactiveLessonApi,firestore:rules` Firebase rollout.
+Run the genuine teacher/student acceptance described at the end of this document.
 
 ## Implementation checkpoint (supersedes initial not-yet-implemented list)
 Pure `interactive-lesson-core.js` + server copy added: five modes, exact field IDs,
 answer validation, allowlisted student projection, student-only UID mapping (no parent aliases).
 6 new core tests pass; combined normalization/authoring/UX/core run 40/40 pass.
 Builder responses.js mounts on editor render and uses existing undo/commit/autosave boundary.
-Inline interactive preview shares response renderer and is ephemeral. Existing sticky lesson
-preview is still presentation-only: connecting fillable controls there remains outstanding.
-New interactiveLessonApi code and interactiveAssignments direct-deny rule added, NOT DEPLOYED.
+Inline and sticky Lesson Mode previews share the response renderer and remain ephemeral.
+The interactiveLessonApi and interactiveAssignments direct-deny rule are deployed.
 Endpoints: students/list/assign/get/save/submit/review. Assignment pins immutable version,
 strict teacherUid student scope, explicit linked active student account, revision checks.
-New interactive-lesson/ runner/review page implemented but not yet browser/emulator verified.
+The interactive-lesson/ runner/review page is covered by browser and emulator verification.
 Student roster UI replaces manual student ID; listing assignments currently first 50 with notice.
 Cloud publication additionally validates response metadata on server.
 
@@ -76,9 +74,8 @@ The earlier outstanding checks were completed before merge. CI run 34154609330 p
 60-minute template, short-answer configuration, editable inline and sticky Lesson Mode previews,
 and an empty console warning/error query. Preview responses caused no persistence requests.
 
-PR #103 was owner-merged as main `ea1e8994778afdd6f8330caf50b715a0cd05e0e7`. No agent merge or
-Firebase deployment occurred. The new `interactiveLessonApi` and direct-deny rule therefore remain
-inactive in production. Existing #102 `lessonDraftsApi` deployment is owner-reported from screenshot.
+PR #103 was owner-merged as main `ea1e8994778afdd6f8330caf50b715a0cd05e0e7`; PR #104 subsequently
+merged the recovery and revoked-link protections. Production deployment is recorded below.
 
 Reconciliation branch `agent/reconcile-interactive-lesson-103` contains only:
 - safe local-recovery removal after confirmed save/submit/reload and account-switch clearing;
@@ -86,14 +83,27 @@ Reconciliation branch `agent/reconcile-interactive-lesson-103` contains only:
 - emulator assertion for both revoked `get` and `list`;
 - current state/handoff documentation.
 
-Reconciliation PR #104, head `0888494fed63bc763cfc29efbc1bc85321737bbf`, is OPEN/DRAFT.
+Reconciliation PR #104 is merged as `37a6566b95ea85738c105fcbcf7bc99a5b4e2165`.
 CI run 34190554235 is PASS: Functions 162/162, CRM/learning 263/263, browser 18/18,
 existing emulator 25/25, cloud emulator 14/14 and interactive emulator 13/13; 0 failures.
-Its Vercel Preview is READY. Anonymous Chrome smoke of `/interactive-lesson/` showed the safe
-sign-in gate and no console warnings/errors. No authenticated production API call was made.
+Its Vercel Preview was READY. Anonymous Chrome smoke of `/interactive-lesson/` showed the safe
+sign-in gate and no console warnings/errors.
 
-Firebase gate after reconciliation merge: new Function `interactiveLessonApi`; collection
-`interactiveAssignments`; direct client read/write remains denied; no indexes, migrations or
-changes to students, LearningSession, evidence, skillMap, mastery or curriculum progress.
-Proposed command, NOT EXECUTED:
-`firebase deploy --project keelesepp-5136b --only functions:interactiveLessonApi,firestore:rules`.
+Firebase rollout is complete for `interactiveLessonApi` and its rules. Collection
+`interactiveAssignments` remains denied to direct client reads/writes. The rollout required no
+indexes or migrations and did not mutate students, LearningSession, evidence, skillMap, mastery
+or curriculum progress. The owner updated the Function again after #104 merged.
+
+## Production rollout update — 2026-09-08
+PR #104 merged as main `37a6566b95ea85738c105fcbcf7bc99a5b4e2165`. The owner first deployed
+`interactiveLessonApi` plus Firestore rules and then selectively updated `interactiveLessonApi`
+from this final main. The screenshot showed `Successful update operation` and `Deploy complete`.
+Read-only verification confirmed deployed hash `cd1859860ab83438630d6265622091851fb10efc`,
+unauthenticated POST 401, production-origin OPTIONS 204 with no-store/nosniff/CORS headers, and
+no Function errors in available logs. Authenticated Chrome teacher smoke loaded production
+`/interactive-lesson/`, returned the empty assignment library and showed the assignment action;
+console warnings/errors were empty. No assignment, response or student/evidence data was created.
+
+Exactly one remaining acceptance action: the owner publishes a genuine fillable lesson and assigns
+it to an existing linked student. Audit the real save/resume/submit/review flow read-only. Stop if
+the student lacks a linked active Firebase user; do not invent or migrate an identity during smoke.
