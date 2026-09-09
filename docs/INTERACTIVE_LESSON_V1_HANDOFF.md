@@ -162,3 +162,19 @@ It supports short/long text, single/multiple choice and gaps with `|`-separated 
 created five fillable cards, rendered the short-answer editor and completed local autosave with no
 console warnings/errors. No Firebase or API change is included. PR #107 was owner-merged as main
 `989696c6cc55983a8af46ed985290fcaaeadb709`; its Vercel production deployment reported READY.
+
+## Image Block v1 checkpoint — 2026-09-09
+
+Authoritative main is `5f80f588b78bee1bf71303bed6de3d3f39e77e` (#108 merged). Draft PR #109,
+branch `agent/lesson-builder-image-block-v1`, adds the first real visual asset boundary: stable
+image ID, HTTPS URL, required alt text and optional caption. It is edited in Builder, rendered in
+local Lesson Mode preview, included in the allowlisted student projection and validated during
+cloud publication. Legacy activities without assets remain unchanged.
+
+No Firebase Storage, rules, indexes, migration, production assignment, response or evidence is
+part of this slice. Function source changes mean a later production rollout needs explicit owner
+permission for `lessonDraftsApi` and `interactiveLessonApi`. Do not deploy before that gate.
+
+Exactly one next safe step: review and merge draft PR #109 after refreshed CI and Vercel Preview
+pass; then request the two-Function Firebase gate and perform one genuine published-image
+acceptance flow.

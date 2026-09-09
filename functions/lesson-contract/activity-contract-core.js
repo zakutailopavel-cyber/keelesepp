@@ -10,6 +10,23 @@
   const object=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
   const idValid=value=>typeof value==='string'&&value.length>0&&value.length<=140&&value===value.trim()&&!/\s/.test(value);
   const copy=value=>JSON.parse(JSON.stringify(value));
+  function validateAssets(value,path,errors){
+    if(value===undefined)return;
+    if(!Array.isArray(value)){errors.push(`${path}.assets must be an array`);return;}
+    if(value.length>5)errors.push(`${path}.assets may contain at most 5 items`);
+    const ids=new Set();
+    value.forEach((asset,index)=>{
+      const itemPath=`${path}.assets[${index}]`;
+      if(!object(asset)){errors.push(`${itemPath} must be an object`);return;}
+      if(Object.keys(asset).some(key=>!['id','type','url','alt','caption'].includes(key)))errors.push(`${itemPath} contains unknown fields`);
+      if(!idValid(asset.id)||ids.has(asset.id))errors.push(`${itemPath}.id is invalid or duplicated`);
+      ids.add(asset.id);
+      if(asset.type!=='image')errors.push(`${itemPath}.type must be image`);
+      if(typeof asset.url!=='string'||asset.url.length>2000||!/^https:\/\/[^\s]+$/i.test(asset.url))errors.push(`${itemPath}.url must be a valid HTTPS URL`);
+      if(typeof asset.alt!=='string'||!asset.alt.trim()||asset.alt.length>300)errors.push(`${itemPath}.alt must contain 1–300 characters`);
+      if(asset.caption!==undefined&&(typeof asset.caption!=='string'||asset.caption.length>500))errors.push(`${itemPath}.caption must contain at most 500 characters`);
+    });
+  }
   function metadata(source){
     const result={};
     OPTIONAL.forEach(key=>{if(source?.[key]!==undefined) result[key]=copy(source[key]);});
@@ -32,7 +49,7 @@
     if(!Array.isArray(activities)) return {ok:false,errors:['activities must be an array']};
     function checkMeta(value,path){
       if(value.responseMode!==undefined&&(typeof value.responseMode!=='string'||!value.responseMode.trim())) errors.push(`${path}.responseMode must be a nonempty string`);
-      if(value.assets!==undefined&&(!Array.isArray(value.assets)||value.assets.some(asset=>!object(asset)||!idValid(asset.id)))) errors.push(`${path}.assets must contain asset references with ids`);
+      validateAssets(value.assets,path,errors);
       for(const key of ['progression','collaboration','evaluation']) if(value[key]!==undefined&&!object(value[key])) errors.push(`${path}.${key} must be an object`);
     }
     activities.forEach((a,index)=>{

@@ -75,13 +75,26 @@ test('explicit task IDs are required, unique and must match across all routes',(
 
 test('optional capabilities are copied as inert metadata and malformed shapes are rejected',()=>{
   const lesson=clone(school),task=lesson.stages[0].routes.core.tasks[0];
-  Object.assign(task,{responseMode:'spoken',assets:[{id:'future-scene',kind:'image'}],progression:{mode:'teacher'},collaboration:{mode:'pair'},evaluation:{rubricRef:'future-rubric'}});
+  Object.assign(task,{responseMode:'spoken',assets:[{id:'future-scene',type:'image',url:'https://example.com/scene.jpg',alt:'Classroom'}],progression:{mode:'teacher'},collaboration:{mode:'pair'},evaluation:{rubricRef:'future-rubric'}});
   const activity=contract.normalizeLesson(lesson).find(a=>a.id===task.id);
   assert.deepEqual(activity.routes.core.evaluation,task.evaluation);
   assert.equal(activity.responseMode,'spoken');
   activity.assets[0].id='changed';assert.equal(task.assets[0].id,'future-scene');
   task.assets='wrong';assert.throws(()=>contract.normalizeLesson(lesson),/assets/);
   task.assets=[];task.progression='execute code';assert.throws(()=>contract.normalizeLesson(lesson),/progression/);
+});
+
+test('image assets require stable unique IDs, HTTPS URLs and accessible text',()=>{
+  const valid=contract.normalizeLesson(school),activity=valid[0];
+  activity.assets=[{id:'image-1',type:'image',url:'https://images.example/test.jpg',alt:'Õpilased klassiruumis',caption:'Arutage paaris.'}];
+  assert.equal(contract.validateActivities(valid).ok,true);
+  for(const assets of [
+    [{id:'image-1',type:'image',url:'javascript:alert(1)',alt:'Pilt'}],
+    [{id:'image-1',type:'image',url:'https://example.com/a',alt:'Pilt',unknown:true}],
+    [{id:'image-1',type:'image',url:'https://example.com/a',alt:''}],
+    [{id:'same',type:'image',url:'https://example.com/a',alt:'A'},{id:'same',type:'image',url:'https://example.com/b',alt:'B'}],
+    [{id:'image-1',type:'image',url:'https://example.com/a',alt:'A',teacherSecret:'no'}]
+  ]){activity.assets=assets;assert.equal(contract.validateActivities(valid).ok,false);}
 });
 
 test('normalized items retain teacher, word, summary and phase evidence contracts',()=>{

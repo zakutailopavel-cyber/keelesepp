@@ -1,14 +1,17 @@
 # KeeleSepp Project State
 
-Last verified: 2026-09-08, Europe/Tallinn
+Last verified: 2026-09-09, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
-Verified main: `989696c6cc55983a8af46ed985290fcaaeadb709` — #107 merged; worksheet composer available
-Current documentation branch: `agent/reconcile-worksheet-composer-107`
-PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [#107](https://github.com/zakutailopavel-cyber/keelesepp/pull/107) are merged.
+Verified main: `5f80f588b78bee1bf71303bed6de3d3f39e77e` — #108 merged; worksheet composer rollout reconciled
+Current implementation branch: `agent/lesson-builder-image-block-v1`
+PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [#108](https://github.com/zakutailopavel-cyber/keelesepp/pull/108) are merged.
 
 ## Current objective
 
-Worksheet Composer v1 is merged. Teachers can convert a pasted question list into multiple ready fillable activities in one undoable action while preserving the normalized activity, publication and student runner contracts. See [living handoff](INTERACTIVE_LESSON_V1_HANDOFF.md).
+Add the first real visual content block to Lesson Builder: a safe image with stable identity,
+required alternative text and an optional caption, carried through cloud publication and student
+Lesson Mode. See [Image Block v1 contract](LESSON_BUILDER_IMAGE_BLOCK_V1.md) and the
+[living handoff](INTERACTIVE_LESSON_V1_HANDOFF.md).
 
 The owner published a genuine cloud lesson, but the production student assignment library still showed no assignment. Investigation is explicitly deferred by the owner; this observation remains open and Interactive Lesson production acceptance is not claimed.
 
@@ -20,7 +23,7 @@ PR #94 switched Teacher Home to the real curriculum source. PR #95 then bound th
 
 ## Verified repository state
 
-Current remote `main` is `989696c6cc55983a8af46ed985290fcaaeadb709`.
+Current remote `main` is `5f80f588b78bee1bf71303bed6de3d3f39e77e`.
 
 Merged on current `main`:
 
@@ -38,6 +41,7 @@ Merged on current `main`:
 - #105 production rollout reconciliation — merged.
 - #106 ready fillable Lesson Builder templates — merged.
 - #107 bulk worksheet composer — merged; Vercel production deployment READY.
+- #108 worksheet-composer rollout reconciliation — merged; documentation aligned with production.
 
 Independent open PRs remain separate and must not be mixed into the learning rollout:
 
@@ -320,3 +324,27 @@ up to 30 questions and create a mixed fillable worksheet in one action. Prefixes
 choice or gaps response modes; stable activity and field IDs use the existing contracts. Invalid
 input does not change the draft, and Undo removes the whole batch. See
 [LESSON_BUILDER_WORKSHEET_COMPOSER_V1.md](LESSON_BUILDER_WORKSHEET_COMPOSER_V1.md).
+
+## Current workstream — Image Block v1
+
+Branch `agent/lesson-builder-image-block-v1` adds an activity-level image asset with a stable ID,
+HTTPS URL, required alternative text and optional caption. Builder editing, Undo/autosave,
+authoring preview, immutable publication validation and the student runner use the existing
+normalized activity. Unsafe URLs, duplicate asset IDs and unknown fields are rejected. Existing
+activities without assets keep their behavior. No Storage upload, migration or production data is
+included. See [LESSON_BUILDER_IMAGE_BLOCK_V1.md](LESSON_BUILDER_IMAGE_BLOCK_V1.md).
+
+Validation before rebase: normalized/authoring/workspace/session core **43/43**, image
+Builder/Lesson Mode DOM **1/1**, Function contract/publication **6/6**, Functions unit suite
+**163/163**. GitHub CI and automatic Vercel Preview passed on the original PR head; they must pass
+again after the rebase onto current main.
+
+No Firebase or Vercel production deployment was performed. The stricter server-side asset
+validation and student projection change the source of `lessonDraftsApi` and
+`interactiveLessonApi`; deploying them remains a separate Firebase owner gate after merge.
+
+## Next safe step
+
+Owner reviews and merges draft PR #109 after refreshed CI and Preview pass. Then request explicit
+owner permission to deploy only `lessonDraftsApi` and `interactiveLessonApi`, and verify one genuine
+published image lesson before adding upload or asset-library storage.

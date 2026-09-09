@@ -11,6 +11,15 @@
   const validId=x=>!reserved(x)&&typeof x==='string'&&/^[a-zA-Z0-9_-]{1,140}$/.test(x);
   const text=(x,max)=>typeof x==='string'&&x.trim().length>0&&x.length<=max;
   const fail=message=>{throw new Error(message);};
+  function assetSpec(activity){
+    if(activity?.assets===undefined)return [];
+    if(!Array.isArray(activity.assets)||activity.assets.length>5)fail('Invalid lesson assets');
+    const seen=new Set();
+    return activity.assets.map(asset=>{
+      if(!object(asset)||Object.keys(asset).some(k=>!['id','type','url','alt','caption'].includes(k))||!validId(asset.id)||seen.has(asset.id)||asset.type!=='image'||!text(asset.url,2000)||!/^https:\/\/[^\s]+$/i.test(asset.url)||!text(asset.alt,300)||asset.caption!==undefined&&(typeof asset.caption!=='string'||asset.caption.length>500))fail('Invalid lesson asset');
+      seen.add(asset.id);return{id:asset.id,type:'image',url:asset.url,alt:asset.alt,...(asset.caption!==undefined?{caption:asset.caption}:{})};
+    });
+  }
   function responseSpec(activity){
     const spec=activity?.evaluation?.response;
     if(spec===undefined)return null;
@@ -38,7 +47,7 @@
       if(typeof a.id!=='string'||reserved(a.id)||seen.has(a.id))fail('Duplicate activity ID');seen.add(a.id);
       const v=a.routes?.[route];if(!v||typeof v.prompt!=='string')fail('Missing prompt');
       // Deliberate allowlist: never copy evaluation, expected, teacherInstruction or context.
-      return{id:a.id,title:a.title,phaseId:a.phaseId,skillIds:[...a.skillIds],prompt:v.prompt,response:responseSpec(a)};
+      return{id:a.id,title:a.title,phaseId:a.phaseId,skillIds:[...a.skillIds],prompt:v.prompt,assets:assetSpec(a),response:responseSpec(a)};
     })};
   }
   function validateAnswers(lesson,answers,{submit=false,route='core'}={}){
@@ -72,5 +81,5 @@
   function studentOwns(uid,studentId,student){
     return Boolean(uid&&(uid===studentId||student.linkedUserId===uid||student.studentUid===uid||(Array.isArray(student.linkedUserIds)&&student.linkedUserIds.includes(uid))));
   }
-  return{MODES,responseSpec,project,validateAnswers,studentOwns};
+  return{MODES,responseSpec,assetSpec,project,validateAnswers,studentOwns};
 });
