@@ -2,13 +2,13 @@
 
 Last verified: 2026-09-08, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
-Verified main: `120e81a133a50cd8b6285def5ac1cc99007e9670` — #106 merged; ready fillable templates available
-Current implementation branch: `agent/lesson-builder-worksheet-composer-v1`
-PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [#106](https://github.com/zakutailopavel-cyber/keelesepp/pull/106) are merged.
+Verified main: `989696c6cc55983a8af46ed985290fcaaeadb709` — #107 merged; worksheet composer available
+Current documentation branch: `agent/reconcile-worksheet-composer-107`
+PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [#107](https://github.com/zakutailopavel-cyber/keelesepp/pull/107) are merged.
 
 ## Current objective
 
-Deliver faster worksheet authoring in the existing Lesson Builder. The current bounded slice converts a pasted question list into multiple ready fillable activities in one undoable action, while preserving the existing normalized activity, publication and student runner contracts. See [living handoff](INTERACTIVE_LESSON_V1_HANDOFF.md).
+Worksheet Composer v1 is merged. Teachers can convert a pasted question list into multiple ready fillable activities in one undoable action while preserving the normalized activity, publication and student runner contracts. See [living handoff](INTERACTIVE_LESSON_V1_HANDOFF.md).
 
 The owner published a genuine cloud lesson, but the production student assignment library still showed no assignment. Investigation is explicitly deferred by the owner; this observation remains open and Interactive Lesson production acceptance is not claimed.
 
@@ -20,7 +20,7 @@ PR #94 switched Teacher Home to the real curriculum source. PR #95 then bound th
 
 ## Verified repository state
 
-Current remote `main` is `120e81a133a50cd8b6285def5ac1cc99007e9670`.
+Current remote `main` is `989696c6cc55983a8af46ed985290fcaaeadb709`.
 
 Merged on current `main`:
 
@@ -37,6 +37,7 @@ Merged on current `main`:
 - #104 Interactive Lesson recovery and revoked-account protection — merged;
 - #105 production rollout reconciliation — merged.
 - #106 ready fillable Lesson Builder templates — merged.
+- #107 bulk worksheet composer — merged; Vercel production deployment READY.
 
 Independent open PRs remain separate and must not be mixed into the learning rollout:
 
@@ -314,7 +315,7 @@ or LearningSession.
 
 ## Current workstream — Worksheet Composer v1
 
-Branch `agent/lesson-builder-worksheet-composer-v1` adds `Lisa küsimuste loend`: teachers can paste
+Merged PR #107 adds `Lisa küsimuste loend`: teachers can paste
 up to 30 questions and create a mixed fillable worksheet in one action. Prefixes select text,
 choice or gaps response modes; stable activity and field IDs use the existing contracts. Invalid
 input does not change the draft, and Undo removes the whole batch. See
