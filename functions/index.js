@@ -137,6 +137,7 @@ const DEFAULT_ALLOWED_ORIGINS = [
   "https://keelesepp-crm-v2.vercel.app",
   "https://epkoolitus.ee",
   "https://www.epkoolitus.ee",
+  "https://crm.epkoolitus.ee",
   "http://localhost:3000",
   "http://localhost:5173",
   "http://localhost:8080",
