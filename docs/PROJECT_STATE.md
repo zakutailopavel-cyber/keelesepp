@@ -1,19 +1,20 @@
 # KeeleSepp Project State
 
-Last verified: 2026-09-09, Europe/Tallinn
+Last verified: 2026-09-10, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
-Verified main: `568d42e1d1acd044895520612f01934bb4f81d0c` — #109 merged; Image Block v1 deployed
-Current documentation branch: `agent/reconcile-image-block-109`
-PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [#109](https://github.com/zakutailopavel-cyber/keelesepp/pull/109) are merged.
+Verified main: `1f9a16f9a423e78907a0b68b02670f21ba0753ac` — #111 merged; CRM Google Calendar access fixed and production-smoked
+Current implementation branch: `agent/student-assignment-delivery-v1`
+PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [#111](https://github.com/zakutailopavel-cyber/keelesepp/pull/111) are merged.
 
 ## Current objective
 
-Image Block v1 is merged and its two changed Functions are deployed. The remaining production
-acceptance is one genuine teacher-created image lesson through publish, assign and student view.
-See [Image Block v1 contract](LESSON_BUILDER_IMAGE_BLOCK_V1.md) and the
-[living handoff](INTERACTIVE_LESSON_V1_HANDOFF.md).
-
-The owner published a genuine cloud lesson, but the production student assignment library still showed no assignment. Investigation is explicitly deferred by the owner; this observation remains open and Interactive Lesson production acceptance is not claimed.
+Student Assignment Delivery & Completion Reliability is the current bounded workstream. Production
+contains a genuine immutable A2 assignment for Elena Polischuk, assignment
+`8f3cb3b6-9965-4637-9a4d-dd0032550008`, with 32 activities. The earlier empty list was observed
+before the separate assignment action was completed; cloud save and publication alone do not assign
+a lesson. The current implementation makes that handoff explicit, preselects the published version,
+shows student names in the teacher list and uses role-correct status text. Student save/submit remains
+unmodified and must be verified by Elena with her own authenticated account.
 
 The merged path is:
 
@@ -23,7 +24,7 @@ PR #94 switched Teacher Home to the real curriculum source. PR #95 then bound th
 
 ## Verified repository state
 
-Current remote `main` is `568d42e1d1acd044895520612f01934bb4f81d0c`.
+Current remote `main` is `1f9a16f9a423e78907a0b68b02670f21ba0753ac`.
 
 Merged on current `main`:
 
@@ -43,6 +44,8 @@ Merged on current `main`:
 - #107 bulk worksheet composer — merged; Vercel production deployment READY.
 - #108 worksheet-composer rollout reconciliation — merged; documentation aligned with production.
 - #109 Image Block v1 — merged; Vercel production READY and selective Functions rollout complete.
+- #110 Image Block v1 reconciliation — merged.
+- #111 production CRM Functions CORS — merged; selective `gcalApi` deployment and smoke PASS.
 
 Independent open PRs remain separate and must not be mixed into the learning rollout:
 

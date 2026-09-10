@@ -19,12 +19,12 @@ async function execute(a,b){
   }
   if(b.action==='list'){
     let q=db.collection('interactiveAssignments').where(teacher(a)?'teacherUid':'studentUid','==',a.uid).orderBy(FieldPath.documentId()).limit(50);if(b.cursor)q=q.startAfter(id(b.cursor));
-    const snap=await q.get();let docs=snap.docs;
+    const snap=await q.get();let docs=snap.docs;const students=docs.length?await db.getAll(...docs.map(d=>db.doc('students/'+id(d.data().studentId)))):[];
     if(a.role==='student'){
-      const students=await db.getAll(...docs.map(d=>db.doc('students/'+id(d.data().studentId))));
       docs=docs.filter((d,index)=>students[index].exists&&core.studentOwns(a.uid,d.data().studentId,students[index].data()));
     }
-    return{role:a.role,assignments:docs.map(d=>{const r=d.data();return{id:d.id,title:r.title,status:r.status,revision:r.revision,studentId:r.studentId,lessonVersionId:r.lessonVersionId};}),nextCursor:snap.size===50?snap.docs.at(-1).id:null};
+    const studentNameById=new Map(students.filter(s=>s.exists).map(s=>[s.id,s.data().name||s.data().displayName||s.id]));
+    return{role:a.role,assignments:docs.map(d=>{const r=d.data();return{id:d.id,title:r.title,status:r.status,revision:r.revision,studentId:r.studentId,studentName:r.studentName||studentNameById.get(r.studentId)||r.studentId,lessonVersionId:r.lessonVersionId};}),nextCursor:snap.size===50?snap.docs.at(-1).id:null};
   }
   if(b.action==='assign'){
     if(!teacher(a))fail(403,'Teacher required');
@@ -38,7 +38,7 @@ async function execute(a,b){
       if(!core.studentOwns(uid,studentId,s))fail(400,'Student account not linked');
       const us=await tx.get(db.doc('users/'+id(uid)));if(!us.exists||us.data().role!=='student'||us.data().disabled===true||us.data().status==='disabled')fail(400,'Active linked student account required');
       checked(()=>validate(v.content));const projected=checked(()=>core.project(v.content,route));if(!projected.activities.some(x=>x.response))fail(400,'Add a fillable activity before assignment');
-      tx.create(ref,{schemaVersion:1,teacherUid:a.uid,studentUid:uid,studentId,lessonId:v.lessonId,lessonVersionId:versionId,route,title:v.content.title,status:'active',revision:1,answers:{},currentActivityId:projected.activities[0].id,createdBy:a.uid,createdAt:FieldValue.serverTimestamp(),updatedAt:FieldValue.serverTimestamp()});
+      tx.create(ref,{schemaVersion:1,teacherUid:a.uid,studentUid:uid,studentId,studentName:s.name||s.displayName||studentId,lessonId:v.lessonId,lessonVersionId:versionId,route,title:v.content.title,status:'active',revision:1,answers:{},currentActivityId:projected.activities[0].id,createdBy:a.uid,createdAt:FieldValue.serverTimestamp(),updatedAt:FieldValue.serverTimestamp()});
     });return{id:ref.id,revision:1};
   }
   const ref=db.doc('interactiveAssignments/'+id(b.assignmentId));

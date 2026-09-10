@@ -66,7 +66,7 @@
       }
       const result=await client.call(action.slice(6),{draftId:b.id,revision:b.revision});
       if(action==='cloud-duplicate')await open(result.id);
-      else{bind({...b,revision:result.revision});status(result.publication?'Avaldatud · v'+result.publication.versionNumber:'Arhiveeritud');}
+      else{bind({...b,revision:result.revision});if(result.publication){status('Avaldatud · v'+result.publication.versionNumber);bridge.modal('Tund on avaldatud',`<p>Muutumatu versioon ${esc(result.publication.versionNumber)} on valmis õpilasele määramiseks.</p><a class="primary-link" href="/interactive-lesson/?lessonVersionId=${encodeURIComponent(result.publication.lessonVersionId)}">Määra tund õpilasele →</a>`);}else status('Arhiveeritud');}
     });
   });
 })();
