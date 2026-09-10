@@ -165,16 +165,17 @@ console warnings/errors. No Firebase or API change is included. PR #107 was owne
 
 ## Image Block v1 checkpoint — 2026-09-09
 
-Authoritative main is `5f80f588b78bee1bf71303bed6de3d3f39e77e` (#108 merged). Draft PR #109,
-branch `agent/lesson-builder-image-block-v1`, adds the first real visual asset boundary: stable
+Authoritative main is `568d42e1d1acd044895520612f01934bb4f81d0c` (#109 merged). Image Block
+v1 adds the first real visual asset boundary: stable
 image ID, HTTPS URL, required alt text and optional caption. It is edited in Builder, rendered in
 local Lesson Mode preview, included in the allowlisted student projection and validated during
 cloud publication. Legacy activities without assets remain unchanged.
 
-No Firebase Storage, rules, indexes, migration, production assignment, response or evidence is
-part of this slice. Function source changes mean a later production rollout needs explicit owner
-permission for `lessonDraftsApi` and `interactiveLessonApi`. Do not deploy before that gate.
+Vercel production is READY. With explicit owner permission, `lessonDraftsApi` and
+`interactiveLessonApi` were selectively deployed. Both are ACTIVE on source hash
+`b11cbbe423e1e79e63ac87992839e876090a986e`; authenticated access remains required, production
+CORS preflight succeeds and fresh smoke executions contain no runtime error. No Firebase Storage,
+rules, indexes, migration, production assignment, response or evidence changed.
 
-Exactly one next safe step: review and merge draft PR #109 after refreshed CI and Vercel Preview
-pass; then request the two-Function Firebase gate and perform one genuine published-image
-acceptance flow.
+Exactly one next safe step: the owner performs one genuine publish, assign and student-open flow
+with an image activity; audit it read-only before adding upload or asset-library storage.
