@@ -179,3 +179,38 @@ rules, indexes, migration, production assignment, response or evidence changed.
 
 Exactly one next safe step: the owner performs one genuine publish, assign and student-open flow
 with an image activity; audit it read-only before adding upload or asset-library storage.
+
+## Student assignment delivery checkpoint — 2026-09-10
+
+Authoritative main is `1f9a16f9a423e78907a0b68b02670f21ba0753ac`. PR #111 is merged and its
+selective `gcalApi` deployment is production-smoked: the CRM origin now receives the expected CORS
+header, the schedule shows the connected Google Calendar state, the status request returned HTTP 200
+and fresh Function logs contained no runtime error.
+
+The production assignment for Elena Polischuk is real and remains active:
+
+- student card `e0ZrkleHtg0s8sKGlw1r`;
+- Firebase account `363dvwinzHYY8AmxXzOhvtCZek73`, `len.mur86@gmail.com`;
+- assignment `8f3cb3b6-9965-4637-9a4d-dd0032550008`;
+- immutable lesson `A2 igapäevaelu – praktilised ülesanded · v1`;
+- 32 activities; no answers, submit, review or evidence were created during verification.
+
+The earlier empty assignment screen was captured before the separate `Määra õpilasele` action. Cloud
+save and Publish intentionally do not create an assignment. Production teacher/admin verification now
+lists and opens the assignment successfully. A genuine student-login verification is still required;
+do not impersonate Elena or create answers for her.
+
+Branch `agent/student-assignment-delivery-v1` closes the confusing publication-to-assignment handoff:
+
+- successful publication offers a direct `Määra tund õpilasele` action;
+- the immutable version is preselected on the assignment page;
+- assignment is disabled until both version and student are selected;
+- teacher lists use the student name and localized status;
+- teacher open state explains whether answers are pending instead of instructing the teacher to answer;
+- new assignments snapshot `studentName`, while existing assignments resolve it from the student card.
+
+Local verification: interactive core/delivery tests 10/10 and Functions tests 163/163 passed. This
+branch changes `interactiveLessonApi`, so production acceptance requires owner merge, Vercel READY,
+then a selective `firebase deploy --project keelesepp-5136b --only functions:interactiveLessonApi`
+and a real Elena login/open smoke. No rules, indexes, migrations, skillMap, curriculum progress,
+LearningSession or evidence change is included.
