@@ -9,8 +9,8 @@ PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [
 ## Current objective
 
 Legacy Fillable Gaps + In-context Authoring is the current bounded workstream. It repairs already
-published blank-line activities that lack response metadata and lets staff open the exact source block
-in Builder without leaving the assignment page.
+published blank-line activities that lack response metadata, lets staff open the exact source block
+in Builder without leaving the assignment page and adds an intentionally bounded one-activity AI draft.
 
 Production contains a genuine immutable A2 assignment for Elena Polischuk, assignment
 `8f3cb3b6-9965-4637-9a4d-dd0032550008`, with 32 activities. Post-#112 production smoke confirmed the
@@ -115,8 +115,21 @@ for inferred gaps use the existing assignment `answers` map and existing save/su
 preview test values remain nonpersistent. The Function change requires a selective `interactiveLessonApi`
 deployment after merge; Builder and player assets deploy through Vercel.
 
-Validation: interactive contract/UI suite **14/14 PASS**; Functions suite **163/163 PASS**; syntax and
+Validation: interactive and generation contract/UI suite **18/18 PASS**; Functions suite **163/163 PASS**; syntax and
 diff checks PASS.
+
+The same PR adds **Loo üks ülesanne AI-ga** in Builder. The staff-only Vercel endpoint accepts a bounded
+topic, CEFR, learning goal and response mode, calls `claude-haiku-4-5-20251001` with `max_tokens: 700`,
+and returns exactly one tool-structured activity. It permits 10 requests per staff user per 15-minute
+in-memory rate window. The teacher previews the result before inserting it. Insertion creates a new
+stable activity ID, participates in Builder Undo/autosave, and remains an ordinary editable draft until
+the existing explicit save/publish workflow is used. Generated metadata, text sizes, enums, response
+items and gap counts are validated before insertion. No student, evidence, assignment, curriculum or
+Firebase data is written by generation.
+
+AI calls are paid external operations initiated only by the explicit **Loo ülesanne** button. No paid
+generation was executed during development or tests. The endpoint uses the existing `ANTHROPIC_API_KEY`;
+there is no new secret, Firestore rule, index, collection, Function or Firebase deployment.
 
 Exactly one next safe step: owner review/merge, then selective `interactiveLessonApi` deployment and
 production smoke of Elena's two inline fields without saving her data.

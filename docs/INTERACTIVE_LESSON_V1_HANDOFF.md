@@ -19,6 +19,12 @@ contracts remain authoritative; published versions stay immutable. Inferred lega
 this preserves the submission rules of already published lessons while still saving any answers a student
 enters. Explicitly authored modern fields keep their configured required/optional behavior.
 
+The same branch contains a small cost-controlled authoring accelerator: Builder can request exactly one
+Haiku-generated activity, preview it and then insert it as a normal editable block with a fresh stable ID.
+The dedicated Vercel endpoint is staff-only, capped at 700 output tokens and 10 requests per 15-minute
+process window, validates its structured result and makes no Firebase or student-data writes. Generation
+is never automatic; each paid call requires an explicit teacher button press.
+
 Status: MERGED and DEPLOYED; genuine teacher/student production acceptance remains open. This file is updated during implementation;
 PROJECT_STATE.md and fresh GitHub main remain authoritative.
 
