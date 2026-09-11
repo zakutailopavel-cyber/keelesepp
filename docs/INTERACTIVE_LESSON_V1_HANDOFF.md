@@ -6,6 +6,11 @@ Branch `agent/admin-student-preview-v1` adds a staff-only, audited and read-only
 the existing assignment and student projection contracts, never authenticates as the student, hides
 teacher content and leaves all student mutation checks unchanged. See `STAFF_STUDENT_PREVIEW_V1.md`.
 
+Production smoke then showed that the flat 32-button outline pushed real task content below the fold.
+Branch `agent/student-lesson-player-v1` replaces it with a focused sequential player and lets staff use
+response controls as ephemeral test inputs. Preview values remain in page memory only and never call
+save or submit. No backend deployment is required for this follow-up.
+
 Status: MERGED and DEPLOYED; genuine teacher/student production acceptance remains open. This file is updated during implementation;
 PROJECT_STATE.md and fresh GitHub main remain authoritative.
 

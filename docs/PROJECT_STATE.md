@@ -3,17 +3,14 @@
 Last verified: 2026-09-11, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
 Verified main: `1cb67cb215ad9b8cfda7eee7e9df280e1c03700e` — #112 merged; assignment delivery production smoke PASS
-Current implementation branch: `agent/admin-student-preview-v1`
-PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [#112](https://github.com/zakutailopavel-cyber/keelesepp/pull/112) are merged.
+Current implementation branch: `agent/student-lesson-player-v1`
+PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [#113](https://github.com/zakutailopavel-cyber/keelesepp/pull/113) are merged.
 
 ## Current objective
 
-Staff Student Preview v1 is the current bounded workstream. It lets an administrator or the student's
-assigned teacher open the student's interactive assignments using the real student projection without
-signing in as the student. The preview is explicitly labelled and read-only: it cannot create answers,
-submit work, restore the student's browser recovery copy or expose teacher answer material. Starting a
-preview writes `student_preview.started` to `activityLog` with actor and student IDs. Genuine student
-save/submit remains bound to the assigned student's authenticated UID.
+Student Lesson Player v1 is the current bounded workstream. It turns the flat assignment page into a
+focused sequential player and makes staff preview useful for checking real response controls. Staff test
+answers remain ephemeral and genuine student save/submit remains bound to the assigned student's UID.
 
 Production contains a genuine immutable A2 assignment for Elena Polischuk, assignment
 `8f3cb3b6-9965-4637-9a4d-dd0032550008`, with 32 activities. Post-#112 production smoke confirmed the
@@ -52,8 +49,10 @@ Merged on current `main`:
 - #111 production CRM Functions CORS — merged; selective `gcalApi` deployment and smoke PASS.
 - #112 student assignment delivery reliability — merged; selective `interactiveLessonApi` deployment
   and read-only production smoke PASS.
+- #113 staff student preview — merged; Vercel production READY, selective `interactiveLessonApi`
+  deployment and authenticated Elena preview smoke PASS.
 
-## Staff Student Preview v1 — implementation pending review
+## Staff Student Preview v1 — COMPLETED
 
 - Staff chooses **Kontrolli õpilase vaadet**, then a student in their authorized scope.
 - Server returns only that student's assignments and records the preview start in `activityLog`.
@@ -70,8 +69,30 @@ browser and Function JavaScript syntax checks PASS.
 Known limitation: this slice verifies assigned interactive lessons. It does not impersonate a Firebase
 account and does not reproduce private browser state, parent-only pages or third-party integrations.
 
-Exactly one next safe step: owner review of the draft PR, then a selective `interactiveLessonApi`
-deployment and production read-only smoke after merge.
+## Student Lesson Player v1 — implementation pending review
+
+Production review after #113 exposed a presentation defect: all 32 activity buttons appeared before
+the selected activity, pushing the prompt and response below the fold. Staff preview also rendered
+`Vastust pole` instead of response controls, so it could not verify fillable interactions.
+
+The bounded player update provides:
+
+- one focused activity card above the fold;
+- visible prompt and response control;
+- activity number, progress bar and concise `current / total` state;
+- previous/next navigation;
+- collapsed full lesson outline for direct navigation;
+- responsive desktop/mobile presentation;
+- interactive staff test answers held only in page memory, with no save/submit/API path.
+
+No Function, Firestore rule, index, schema or production data change is required. Existing student
+save, resume, submit, assignment IDs and answer validation remain unchanged.
+
+Validation: targeted interactive lesson suite **12/12 PASS**; Functions suite **163/163 PASS**;
+JavaScript syntax and diff checks PASS.
+
+Exactly one next safe step: owner review/merge of the focused player PR, followed by Vercel production
+smoke in staff preview without saving student data.
 
 Independent open PRs remain separate and must not be mixed into the learning rollout:
 
