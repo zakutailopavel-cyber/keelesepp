@@ -30,10 +30,24 @@ test('staff student preview is explicit, audited and read-only',()=>{
   assert.match(app,/role==='student_preview'/);
   assert.match(app,/editable=role==='student'/);
   assert.match(app,/viewAsStudent:true/);
-  assert.match(html,/Vastuseid ei saa salvestada ega saata/);
+  assert.match(html,/Proovivastuseid ei salvestata ega saadeta/);
   assert.match(api,/student_preview\.started/);
   assert.match(api,/if\(!teacher\(a\)\)fail\(403,'Teacher required'\)/);
   assert.match(api,/Student outside teacher scope/);
   assert.match(api,/Preview student mismatch/);
   assert.match(api,/!preview&&teacher\(a\)/);
+});
+
+test('student lesson is a focused sequential player and preview answers stay local',()=>{
+  const html=fs.readFileSync('interactive-lesson/index.html','utf8');
+  const css=fs.readFileSync('interactive-lesson/style.css','utf8');
+  assert.match(html,/id="progress-count"/);
+  assert.match(html,/id="previous"/);
+  assert.match(html,/id="next"/);
+  assert.match(html,/id="outline"/);
+  assert.match(app,/testable=editable\|\|role==='student_preview'/);
+  assert.match(app,/Proovivastus on ainult selles kontrollvaates/);
+  assert.match(app,/\$\('previous'\)\.onclick/);
+  assert.match(app,/\$\('next'\)\.onclick/);
+  assert.match(css,/article\{background:var\(--paper\)/);
 });
