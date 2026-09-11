@@ -148,8 +148,17 @@ name, status and explicit **Ava ülesanded** action. The preview picker labels s
 then presents only that student's lesson cards. Student save/submit behavior and every server contract are
 unchanged.
 
+The focused lesson surface now labels **ÕPETAJA VAADE**, **TURVALINE ÕPILASE VAADE** or the genuine
+student workspace and includes the student name for staff. Activity type is visible. A legacy activity
+without a response contract is described as oral/teacher-led instead of the misleading `Vastust pole`.
+Editing is a contextual action on the activity card, and its Builder dialog uses the full viewport. The
+lesson header, progress, card hierarchy, navigation and teacher guidance received a responsive visual pass.
+
 Data/security impact: presentation only. No Function, Firebase rule, index, schema, assignment, answer,
 evidence or production data change.
+
+Validation: interactive/generation contract and DOM suite **20/20 PASS**; Functions suite **163/163 PASS**;
+JavaScript syntax and diff checks PASS.
 
 Exactly one next safe step: owner review/merge of the assignment-entry UX draft PR, followed by a
 read-only production walkthrough of Elena's card and staff student preview.

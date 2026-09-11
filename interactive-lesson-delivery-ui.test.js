@@ -76,6 +76,18 @@ test('staff assignment entry makes student preview and lesson opening explicit',
   assert.match(css,/\.assignment-card/);
 });
 
+test('focused lesson clearly distinguishes view mode, oral work and contextual editing',()=>{
+  const html=fs.readFileSync('interactive-lesson/index.html','utf8');
+  const css=fs.readFileSync('interactive-lesson/style.css','utf8');
+  assert.match(html,/id="view-mode"/);
+  assert.match(html,/class="activity-toolbar"/);
+  assert.match(app,/ÕPETAJA VAADE/);
+  assert.match(app,/Suuline või õpetaja juhitud/);
+  assert.match(app,/Õpilane ei pea siia midagi kirjutama/);
+  assert.match(css,/Modern focused lesson surface/);
+  assert.match(css,/dialog#edit-dialog\{width:100vw;height:100vh/);
+});
+
 test('legacy blanks render inline and teachers can open the exact block in Builder',()=>{
   const html=fs.readFileSync('interactive-lesson/index.html','utf8');
   assert.match(responseView,/split\(\/_\{3,\}\//);
