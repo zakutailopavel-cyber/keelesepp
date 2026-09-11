@@ -39,7 +39,7 @@ test('teacher assignment list and open view use teacher-facing identity and stat
 
 test('staff student preview is explicit, audited and read-only',()=>{
   const html=fs.readFileSync('interactive-lesson/index.html','utf8');
-  assert.match(app,/Kontrolli õpilase vaadet/);
+  assert.match(app,/Vaata õpilase pilguga/);
   assert.match(app,/api\('previewStart'/);
   assert.match(app,/role==='student_preview'/);
   assert.match(app,/editable=role==='student'/);
@@ -64,6 +64,16 @@ test('student lesson is a focused sequential player and preview answers stay loc
   assert.match(app,/\$\('previous'\)\.onclick/);
   assert.match(app,/\$\('next'\)\.onclick/);
   assert.match(css,/article\{background:var\(--paper\)/);
+});
+
+test('staff assignment entry makes student preview and lesson opening explicit',()=>{
+  const css=fs.readFileSync('interactive-lesson/style.css','utf8');
+  assert.match(app,/Vaata õpilase pilguga/);
+  assert.match(app,/Näita õpilase ülesandeid/);
+  assert.match(app,/Ava ülesanded/);
+  assert.match(app,/assignmentCard\(r,true\)/);
+  assert.match(css,/\.entry-hero/);
+  assert.match(css,/\.assignment-card/);
 });
 
 test('legacy blanks render inline and teachers can open the exact block in Builder',()=>{
