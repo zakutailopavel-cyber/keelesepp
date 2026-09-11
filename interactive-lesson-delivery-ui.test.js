@@ -6,11 +6,24 @@ const app=fs.readFileSync('interactive-lesson/app.js','utf8');
 const cloud=fs.readFileSync('haldus-lesson-builder/cloud.js','utf8');
 const api=fs.readFileSync('functions/interactive-lesson-api.js','utf8');
 const responseView=fs.readFileSync('interactive-response-view.js','utf8');
+const builderHtml=fs.readFileSync('haldus-lesson-builder/index.html','utf8');
+const builderAi=fs.readFileSync('haldus-lesson-builder/ai.js','utf8');
+const generationApi=fs.readFileSync('api/generate-activity.js','utf8');
 
 test('published Builder version hands off directly to preselected assignment',()=>{
   assert.match(cloud,/lessonVersionId=\$\{encodeURIComponent\(result\.publication\.lessonVersionId\)\}/);
   assert.match(app,/get\('lessonVersionId'\)/);
   assert.match(app,/select\.value=requestedVersion/);
+});
+
+test('staff can generate exactly one bounded editable activity',()=>{
+  assert.match(builderHtml,/id="generate-activity"/);
+  assert.match(builderAi,/fetch\('\/api\/generate-activity'/);
+  assert.match(builderAi,/bridge\.insertGenerated\(result\)/);
+  assert.match(generationApi,/claude-haiku-4-5-20251001/);
+  assert.match(generationApi,/max_tokens:700/);
+  assert.match(generationApi,/checkRateLimit\(`activity:\$\{decoded\.uid\}`,10\)/);
+  assert.match(generationApi,/requireStaff\(req\)/);
 });
 
 test('assignment requires both an immutable version and a student',()=>{
