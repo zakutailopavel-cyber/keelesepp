@@ -69,4 +69,6 @@
       else{bind({...b,revision:result.revision});if(result.publication){status('Avaldatud · v'+result.publication.versionNumber);bridge.modal('Tund on avaldatud',`<p>Muutumatu versioon ${esc(result.publication.versionNumber)} on valmis õpilasele määramiseks.</p><a class="primary-link" href="/interactive-lesson/?lessonVersionId=${encodeURIComponent(result.publication.lessonVersionId)}">Määra tund õpilasele →</a>`);}else status('Arhiveeritud');}
     });
   });
+  const params=new URLSearchParams(location.search),requestedDraft=params.get('draftId'),requestedActivity=params.get('activityId');
+  if(requestedDraft)run(async()=>{await open(requestedDraft);if(requestedActivity)bridge.select(requestedActivity);});
 })();

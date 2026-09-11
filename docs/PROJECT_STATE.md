@@ -2,15 +2,15 @@
 
 Last verified: 2026-09-11, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
-Verified main: `1cb67cb215ad9b8cfda7eee7e9df280e1c03700e` — #112 merged; assignment delivery production smoke PASS
-Current implementation branch: `agent/student-lesson-player-v1`
-PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [#113](https://github.com/zakutailopavel-cyber/keelesepp/pull/113) are merged.
+Verified main: `88701b3f568ad707fa39062b83f80ca71b74d9cd` — #114 merged; focused lesson player in production
+Current implementation branch: `agent/inline-assignment-authoring-v1`
+PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [#114](https://github.com/zakutailopavel-cyber/keelesepp/pull/114) are merged.
 
 ## Current objective
 
-Student Lesson Player v1 is the current bounded workstream. It turns the flat assignment page into a
-focused sequential player and makes staff preview useful for checking real response controls. Staff test
-answers remain ephemeral and genuine student save/submit remains bound to the assigned student's UID.
+Legacy Fillable Gaps + In-context Authoring is the current bounded workstream. It repairs already
+published blank-line activities that lack response metadata and lets staff open the exact source block
+in Builder without leaving the assignment page.
 
 Production contains a genuine immutable A2 assignment for Elena Polischuk, assignment
 `8f3cb3b6-9965-4637-9a4d-dd0032550008`, with 32 activities. Post-#112 production smoke confirmed the
@@ -25,7 +25,7 @@ PR #94 switched Teacher Home to the real curriculum source. PR #95 then bound th
 
 ## Verified repository state
 
-Current remote `main` is `1cb67cb215ad9b8cfda7eee7e9df280e1c03700e`.
+Current remote `main` is `88701b3f568ad707fa39062b83f80ca71b74d9cd`.
 
 Merged on current `main`:
 
@@ -51,6 +51,7 @@ Merged on current `main`:
   and read-only production smoke PASS.
 - #113 staff student preview — merged; Vercel production READY, selective `interactiveLessonApi`
   deployment and authenticated Elena preview smoke PASS.
+- #114 focused Student Lesson Player — merged; Vercel production READY.
 
 ## Staff Student Preview v1 — COMPLETED
 
@@ -91,8 +92,34 @@ save, resume, submit, assignment IDs and answer validation remain unchanged.
 Validation: targeted interactive lesson suite **12/12 PASS**; Functions suite **163/163 PASS**;
 JavaScript syntax and diff checks PASS.
 
-Exactly one next safe step: owner review/merge of the focused player PR, followed by Vercel production
-smoke in staff preview without saving student data.
+## Legacy Fillable Gaps + In-context Authoring — implementation pending review
+
+Production inspection of Elena's immutable A2 v1 showed a legacy activity whose prompt contains two
+`___` blanks but whose published content has no `evaluation.response`. The existing renderer therefore
+showed `Vastust pole` and supplied no fields.
+
+The compatibility boundary now infers an optional `gaps` response only when an older activity has no
+explicit response contract and one or more `___` tokens. IDs are deterministic (`legacy-gap-1`, etc.)
+and remain identical across Support/Core/Advanced. The renderer places the inputs directly inside the
+sentences. Normal legacy text without blank tokens remains read-only, and every explicit modern response
+contract remains authoritative. The inferred response stays optional so an old published lesson does not
+gain a new submission requirement; answers entered into the fields are still saved normally.
+
+Teacher/admin view gains **Muuda seda ülesannet**. It opens the full cloud Builder in a same-page dialog,
+loads the exact source draft and selects the current stable activity ID. Saving still uses optimistic
+draft revisions; publishing creates a new immutable version. The already assigned version is not mutated
+or silently repointed.
+
+Data/security impact: no migration or current assignment rewrite. Once deployed, genuine student answers
+for inferred gaps use the existing assignment `answers` map and existing save/submit validation. Staff
+preview test values remain nonpersistent. The Function change requires a selective `interactiveLessonApi`
+deployment after merge; Builder and player assets deploy through Vercel.
+
+Validation: interactive contract/UI suite **14/14 PASS**; Functions suite **163/163 PASS**; syntax and
+diff checks PASS.
+
+Exactly one next safe step: owner review/merge, then selective `interactiveLessonApi` deployment and
+production smoke of Elena's two inline fields without saving her data.
 
 Independent open PRs remain separate and must not be mixed into the learning rollout:
 

@@ -5,6 +5,7 @@ const fs=require('node:fs');
 const app=fs.readFileSync('interactive-lesson/app.js','utf8');
 const cloud=fs.readFileSync('haldus-lesson-builder/cloud.js','utf8');
 const api=fs.readFileSync('functions/interactive-lesson-api.js','utf8');
+const responseView=fs.readFileSync('interactive-response-view.js','utf8');
 
 test('published Builder version hands off directly to preselected assignment',()=>{
   assert.match(cloud,/lessonVersionId=\$\{encodeURIComponent\(result\.publication\.lessonVersionId\)\}/);
@@ -50,4 +51,17 @@ test('student lesson is a focused sequential player and preview answers stay loc
   assert.match(app,/\$\('previous'\)\.onclick/);
   assert.match(app,/\$\('next'\)\.onclick/);
   assert.match(css,/article\{background:var\(--paper\)/);
+});
+
+test('legacy blanks render inline and teachers can open the exact block in Builder',()=>{
+  const html=fs.readFileSync('interactive-lesson/index.html','utf8');
+  assert.match(responseView,/split\(\/_\{3,\}\//);
+  assert.match(responseView,/group\.className='inline-gaps'/);
+  assert.match(app,/\$\('prompt'\)\.hidden=inline/);
+  assert.match(html,/id="edit-activity"/);
+  assert.match(html,/id="edit-dialog"/);
+  assert.match(app,/haldus-lesson-builder\/\?draftId=/);
+  assert.match(app,/\$\('edit-dialog'\)\.showModal\(\)/);
+  assert.match(cloud,/params\.get\('draftId'\)/);
+  assert.match(cloud,/bridge\.select\(requestedActivity\)/);
 });

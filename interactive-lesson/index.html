@@ -18,7 +18,7 @@
     <a id="signin" href="/haldus.html" hidden>Logi sisse</a>
     <section id="list"></section>
     <section id="lesson" hidden>
-      <div class="lesson-heading"><div><p class="eyebrow">INTERAKTIIVNE TUND</p><h2 id="title"></h2></div><div class="progress-copy"><strong id="progress-count"></strong><span id="progress-title"></span></div></div>
+      <div class="lesson-heading"><div><p class="eyebrow">INTERAKTIIVNE TUND</p><h2 id="title"></h2><button id="edit-activity" hidden>Muuda seda ülesannet</button></div><div class="progress-copy"><strong id="progress-count"></strong><span id="progress-title"></span></div></div>
       <progress id="progress" max="1" value="0"></progress>
       <article>
         <p class="activity-number" id="activity-number"></p>
@@ -36,5 +36,6 @@
       <section id="review" hidden><label>Tagasiside<textarea id="review-text" maxlength="10000"></textarea></label><button id="review-save">Saada tagasiside</button></section>
     </section>
   </main>
+  <dialog id="edit-dialog"><div class="edit-bar"><div><strong>Muuda ülesannet</strong><small>Salvesta ja avalda Builderis uus versioon. Praegune määratud versioon jääb muutumatuks.</small></div><button id="edit-close">Sulge</button></div><iframe id="edit-frame" title="Ülesande muutmine"></iframe></dialog>
 </body>
 </html>
