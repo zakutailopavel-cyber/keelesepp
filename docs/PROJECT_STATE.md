@@ -4,6 +4,7 @@ Last verified: 2026-09-11, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
 Verified main: `2747b7f7f23270e27f15686667cd72f36115debb` — #116 merged by owner
 Current implementation branch: `agent/student-assignment-entry-ux`
+Current draft PR: [#117](https://github.com/zakutailopavel-cyber/keelesepp/pull/117)
 PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [#116](https://github.com/zakutailopavel-cyber/keelesepp/pull/116) are merged.
 
 ## Current objective
