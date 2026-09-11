@@ -2,15 +2,16 @@
 
 Last verified: 2026-09-11, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
-Verified main: `152539820e2ef59170125b13b2c35af421fecf75` — #115 merged by owner
-Current implementation branch: `agent/single-activity-ai-v1`
-Current draft PR: [#116](https://github.com/zakutailopavel-cyber/keelesepp/pull/116)
-PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [#115](https://github.com/zakutailopavel-cyber/keelesepp/pull/115) are merged.
+Verified main: `2747b7f7f23270e27f15686667cd72f36115debb` — #116 merged by owner
+Current implementation branch: `agent/student-assignment-entry-ux`
+Current draft PR: [#117](https://github.com/zakutailopavel-cyber/keelesepp/pull/117)
+PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [#116](https://github.com/zakutailopavel-cyber/keelesepp/pull/116) are merged.
 
 ## Current objective
 
-Single Activity AI v1 is the current bounded workstream. It adds an intentionally bounded one-activity
-draft generator to the existing Builder without automatic publication, assignment or student writes.
+Student Assignment Entry UX is the current bounded workstream. It makes the staff path to Elena's real
+assignment self-explanatory: one primary student-view action, a guided student picker and explicit lesson
+cards with student, status and **Ava ülesanded** action.
 
 Production contains a genuine immutable A2 assignment for Elena Polischuk, assignment
 `8f3cb3b6-9965-4637-9a4d-dd0032550008`, with 32 activities. Post-#112 production smoke confirmed the
@@ -134,9 +135,33 @@ AI calls are paid external operations initiated only by the explicit **Loo üles
 generation was executed during development or tests. The endpoint uses the existing `ANTHROPIC_API_KEY`;
 there is no new secret, Firestore rule, index, collection, Function or Firebase deployment.
 
-Exactly one next safe step for the current branch: owner review/merge of the Single Activity AI draft PR;
-then verify one owner-triggered generation in production and inspect its reported token usage. The separate
-#115 selective `interactiveLessonApi` rollout remains an explicit owner-controlled production gate.
+The Single Activity AI slice was merged in #116. Its Vercel check passed; no paid generation was made by
+the agent. The separate #115 selective `interactiveLessonApi` rollout remains an explicit owner-controlled
+production gate.
+
+## Student Assignment Entry UX — implementation pending review
+
+The previous staff landing page presented three equal actions and assignment data as one undifferentiated
+text row. The revised page leads with **Vaata õpilase pilguga**, explains that test inputs are not saved,
+and moves authoring/assignment into secondary controls. Assigned lessons render as cards with the student
+name, status and explicit **Ava ülesanded** action. The preview picker labels step one, requires a student,
+then presents only that student's lesson cards. Student save/submit behavior and every server contract are
+unchanged.
+
+The focused lesson surface now labels **ÕPETAJA VAADE**, **TURVALINE ÕPILASE VAADE** or the genuine
+student workspace and includes the student name for staff. Activity type is visible. A legacy activity
+without a response contract is described as oral/teacher-led instead of the misleading `Vastust pole`.
+Editing is a contextual action on the activity card, and its Builder dialog uses the full viewport. The
+lesson header, progress, card hierarchy, navigation and teacher guidance received a responsive visual pass.
+
+Data/security impact: presentation only. No Function, Firebase rule, index, schema, assignment, answer,
+evidence or production data change.
+
+Validation: interactive/generation contract and DOM suite **20/20 PASS**; Functions suite **163/163 PASS**;
+JavaScript syntax and diff checks PASS.
+
+Exactly one next safe step: owner review/merge of the assignment-entry UX draft PR, followed by a
+read-only production walkthrough of Elena's card and staff student preview.
 
 Independent open PRs remain separate and must not be mixed into the learning rollout:
 
