@@ -1,5 +1,11 @@
 # Interactive Lesson v1 — living handoff
 
+## 2026-09-11 continuation
+
+Branch `agent/admin-student-preview-v1` adds a staff-only, audited and read-only student preview. It uses
+the existing assignment and student projection contracts, never authenticates as the student, hides
+teacher content and leaves all student mutation checks unchanged. See `STAFF_STUDENT_PREVIEW_V1.md`.
+
 Status: MERGED and DEPLOYED; genuine teacher/student production acceptance remains open. This file is updated during implementation;
 PROJECT_STATE.md and fresh GitHub main remain authoritative.
 

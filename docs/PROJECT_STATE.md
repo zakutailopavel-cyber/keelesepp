@@ -1,20 +1,24 @@
 # KeeleSepp Project State
 
-Last verified: 2026-09-10, Europe/Tallinn
+Last verified: 2026-09-11, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
-Verified main: `1f9a16f9a423e78907a0b68b02670f21ba0753ac` — #111 merged; CRM Google Calendar access fixed and production-smoked
-Current implementation branch: `agent/student-assignment-delivery-v1`
-PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [#111](https://github.com/zakutailopavel-cyber/keelesepp/pull/111) are merged.
+Verified main: `1cb67cb215ad9b8cfda7eee7e9df280e1c03700e` — #112 merged; assignment delivery production smoke PASS
+Current implementation branch: `agent/admin-student-preview-v1`
+PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [#112](https://github.com/zakutailopavel-cyber/keelesepp/pull/112) are merged.
 
 ## Current objective
 
-Student Assignment Delivery & Completion Reliability is the current bounded workstream. Production
-contains a genuine immutable A2 assignment for Elena Polischuk, assignment
-`8f3cb3b6-9965-4637-9a4d-dd0032550008`, with 32 activities. The earlier empty list was observed
-before the separate assignment action was completed; cloud save and publication alone do not assign
-a lesson. The current implementation makes that handoff explicit, preselects the published version,
-shows student names in the teacher list and uses role-correct status text. Student save/submit remains
-unmodified and must be verified by Elena with her own authenticated account.
+Staff Student Preview v1 is the current bounded workstream. It lets an administrator or the student's
+assigned teacher open the student's interactive assignments using the real student projection without
+signing in as the student. The preview is explicitly labelled and read-only: it cannot create answers,
+submit work, restore the student's browser recovery copy or expose teacher answer material. Starting a
+preview writes `student_preview.started` to `activityLog` with actor and student IDs. Genuine student
+save/submit remains bound to the assigned student's authenticated UID.
+
+Production contains a genuine immutable A2 assignment for Elena Polischuk, assignment
+`8f3cb3b6-9965-4637-9a4d-dd0032550008`, with 32 activities. Post-#112 production smoke confirmed the
+teacher list, assignment open, all 32 activity steps, current status, CORS and Function requests without
+creating answers or evidence.
 
 The merged path is:
 
@@ -24,7 +28,7 @@ PR #94 switched Teacher Home to the real curriculum source. PR #95 then bound th
 
 ## Verified repository state
 
-Current remote `main` is `1f9a16f9a423e78907a0b68b02670f21ba0753ac`.
+Current remote `main` is `1cb67cb215ad9b8cfda7eee7e9df280e1c03700e`.
 
 Merged on current `main`:
 
@@ -46,6 +50,28 @@ Merged on current `main`:
 - #109 Image Block v1 — merged; Vercel production READY and selective Functions rollout complete.
 - #110 Image Block v1 reconciliation — merged.
 - #111 production CRM Functions CORS — merged; selective `gcalApi` deployment and smoke PASS.
+- #112 student assignment delivery reliability — merged; selective `interactiveLessonApi` deployment
+  and read-only production smoke PASS.
+
+## Staff Student Preview v1 — implementation pending review
+
+- Staff chooses **Kontrolli õpilase vaadet**, then a student in their authorized scope.
+- Server returns only that student's assignments and records the preview start in `activityLog`.
+- Opening an assignment uses the existing student projection and omits `teacherContent`.
+- UI shows a persistent preview banner and provides an explicit exit action.
+- Save, submit, feedback and local student recovery are unavailable in preview mode.
+- Existing server mutations still require `actor.uid === assignment.studentUid`; preview introduces no
+  alternate write path and no student credential/session impersonation.
+- No Firestore rules, indexes, schemas, student records or production data are changed.
+
+Validation on branch: targeted interactive lesson suite **11/11 PASS**; Functions suite **163/163 PASS**;
+browser and Function JavaScript syntax checks PASS.
+
+Known limitation: this slice verifies assigned interactive lessons. It does not impersonate a Firebase
+account and does not reproduce private browser state, parent-only pages or third-party integrations.
+
+Exactly one next safe step: owner review of the draft PR, then a selective `interactiveLessonApi`
+deployment and production read-only smoke after merge.
 
 Independent open PRs remain separate and must not be mixed into the learning rollout:
 
