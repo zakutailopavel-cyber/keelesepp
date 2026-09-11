@@ -4,6 +4,7 @@ Last verified: 2026-09-11, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
 Verified main: `152539820e2ef59170125b13b2c35af421fecf75` — #115 merged by owner
 Current implementation branch: `agent/single-activity-ai-v1`
+Current draft PR: [#116](https://github.com/zakutailopavel-cyber/keelesepp/pull/116)
 PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [#115](https://github.com/zakutailopavel-cyber/keelesepp/pull/115) are merged.
 
 ## Current objective
