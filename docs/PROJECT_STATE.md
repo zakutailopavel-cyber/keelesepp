@@ -2,15 +2,14 @@
 
 Last verified: 2026-09-11, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
-Verified main: `88701b3f568ad707fa39062b83f80ca71b74d9cd` — #114 merged; focused lesson player in production
-Current implementation branch: `agent/inline-assignment-authoring-v1`
-PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [#114](https://github.com/zakutailopavel-cyber/keelesepp/pull/114) are merged.
+Verified main: `152539820e2ef59170125b13b2c35af421fecf75` — #115 merged by owner
+Current implementation branch: `agent/single-activity-ai-v1`
+PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [#115](https://github.com/zakutailopavel-cyber/keelesepp/pull/115) are merged.
 
 ## Current objective
 
-Legacy Fillable Gaps + In-context Authoring is the current bounded workstream. It repairs already
-published blank-line activities that lack response metadata and lets staff open the exact source block
-in Builder without leaving the assignment page.
+Single Activity AI v1 is the current bounded workstream. It adds an intentionally bounded one-activity
+draft generator to the existing Builder without automatic publication, assignment or student writes.
 
 Production contains a genuine immutable A2 assignment for Elena Polischuk, assignment
 `8f3cb3b6-9965-4637-9a4d-dd0032550008`, with 32 activities. Post-#112 production smoke confirmed the
@@ -25,7 +24,7 @@ PR #94 switched Teacher Home to the real curriculum source. PR #95 then bound th
 
 ## Verified repository state
 
-Current remote `main` is `88701b3f568ad707fa39062b83f80ca71b74d9cd`.
+Current remote `main` is `152539820e2ef59170125b13b2c35af421fecf75`.
 
 Merged on current `main`:
 
@@ -52,6 +51,8 @@ Merged on current `main`:
 - #113 staff student preview — merged; Vercel production READY, selective `interactiveLessonApi`
   deployment and authenticated Elena preview smoke PASS.
 - #114 focused Student Lesson Player — merged; Vercel production READY.
+- #115 Legacy Fillable Gaps + In-context Authoring — merged by owner; selective production Function
+  rollout and production smoke are still separate gates.
 
 ## Staff Student Preview v1 — COMPLETED
 
@@ -92,7 +93,7 @@ save, resume, submit, assignment IDs and answer validation remain unchanged.
 Validation: targeted interactive lesson suite **12/12 PASS**; Functions suite **163/163 PASS**;
 JavaScript syntax and diff checks PASS.
 
-## Legacy Fillable Gaps + In-context Authoring — implementation pending review
+## Legacy Fillable Gaps + In-context Authoring — merged in #115
 
 Production inspection of Elena's immutable A2 v1 showed a legacy activity whose prompt contains two
 `___` blanks but whose published content has no `evaluation.response`. The existing renderer therefore
@@ -115,11 +116,26 @@ for inferred gaps use the existing assignment `answers` map and existing save/su
 preview test values remain nonpersistent. The Function change requires a selective `interactiveLessonApi`
 deployment after merge; Builder and player assets deploy through Vercel.
 
-Validation: interactive contract/UI suite **14/14 PASS**; Functions suite **163/163 PASS**; syntax and
+Validation for the merged #115 slice before the AI follow-up: interactive contract/UI suite **14/14 PASS**;
+Functions suite **163/163 PASS**; syntax and
 diff checks PASS.
 
-Exactly one next safe step: owner review/merge, then selective `interactiveLessonApi` deployment and
-production smoke of Elena's two inline fields without saving her data.
+The same PR adds **Loo üks ülesanne AI-ga** in Builder. The staff-only Vercel endpoint accepts a bounded
+topic, CEFR, learning goal and response mode, calls `claude-haiku-4-5-20251001` with `max_tokens: 700`,
+and returns exactly one tool-structured activity. It permits 10 requests per staff user per 15-minute
+in-memory rate window. The teacher previews the result before inserting it. Insertion creates a new
+stable activity ID, participates in Builder Undo/autosave, and remains an ordinary editable draft until
+the existing explicit save/publish workflow is used. Generated metadata, text sizes, enums, response
+items and gap counts are validated before insertion. No student, evidence, assignment, curriculum or
+Firebase data is written by generation.
+
+AI calls are paid external operations initiated only by the explicit **Loo ülesanne** button. No paid
+generation was executed during development or tests. The endpoint uses the existing `ANTHROPIC_API_KEY`;
+there is no new secret, Firestore rule, index, collection, Function or Firebase deployment.
+
+Exactly one next safe step for the current branch: owner review/merge of the Single Activity AI draft PR;
+then verify one owner-triggered generation in production and inspect its reported token usage. The separate
+#115 selective `interactiveLessonApi` rollout remains an explicit owner-controlled production gate.
 
 Independent open PRs remain separate and must not be mixed into the learning rollout:
 
