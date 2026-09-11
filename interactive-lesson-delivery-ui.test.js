@@ -22,3 +22,18 @@ test('teacher assignment list and open view use teacher-facing identity and stat
   assert.match(app,/Õpilane pole veel vastuseid saatnud/);
   assert.match(app,/Õpilase vastused ootavad tagasisidet/);
 });
+
+test('staff student preview is explicit, audited and read-only',()=>{
+  const html=fs.readFileSync('interactive-lesson/index.html','utf8');
+  assert.match(app,/Kontrolli õpilase vaadet/);
+  assert.match(app,/api\('previewStart'/);
+  assert.match(app,/role==='student_preview'/);
+  assert.match(app,/editable=role==='student'/);
+  assert.match(app,/viewAsStudent:true/);
+  assert.match(html,/Vastuseid ei saa salvestada ega saata/);
+  assert.match(api,/student_preview\.started/);
+  assert.match(api,/if\(!teacher\(a\)\)fail\(403,'Teacher required'\)/);
+  assert.match(api,/Student outside teacher scope/);
+  assert.match(api,/Preview student mismatch/);
+  assert.match(api,/!preview&&teacher\(a\)/);
+});

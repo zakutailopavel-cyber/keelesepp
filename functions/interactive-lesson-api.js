@@ -11,6 +11,14 @@ const wire=x=>x?.toDate?x.toDate().toISOString():Array.isArray(x)?x.map(wire):x&
 async function actor(req){const token=(req.get('Authorization')||'').match(/^Bearer (.+)$/i)?.[1];if(!token)fail(401,'Sign in required');let decoded;try{decoded=await admin.auth().verifyIdToken(token,true);}catch{fail(401,'Invalid token');}const p=(await db.doc('users/'+decoded.uid).get()).data();if(!p||p.disabled===true||p.status==='disabled'||!['teacher','admin','student'].includes(p.role))fail(403,'Account not allowed');return{uid:decoded.uid,role:p.role};}
 const teacher=a=>a.role==='teacher'||a.role==='admin';
 function access(a,r){if(a.role==='admin')return;if(teacher(a)&&r.teacherUid===a.uid)return;if(a.role==='student'&&r.studentUid===a.uid)return;fail(403,'Assignment not accessible');}
+async function previewStudent(a,studentId){
+  if(!teacher(a))fail(403,'Teacher required');
+  const sid=id(studentId),snap=await db.doc('students/'+sid).get();
+  if(!snap.exists)fail(404,'Student missing');
+  const student=snap.data();
+  if(a.role!=='admin'&&student.teacherUid!==a.uid)fail(403,'Student outside teacher scope');
+  return{id:sid,name:student.name||student.displayName||sid};
+}
 function checked(fn){try{return fn();}catch(e){fail(400,e.message);}}
 async function execute(a,b){
   if(b.action==='students'){
@@ -25,6 +33,12 @@ async function execute(a,b){
     }
     const studentNameById=new Map(students.filter(s=>s.exists).map(s=>[s.id,s.data().name||s.data().displayName||s.id]));
     return{role:a.role,assignments:docs.map(d=>{const r=d.data();return{id:d.id,title:r.title,status:r.status,revision:r.revision,studentId:r.studentId,studentName:r.studentName||studentNameById.get(r.studentId)||r.studentId,lessonVersionId:r.lessonVersionId};}),nextCursor:snap.size===50?snap.docs.at(-1).id:null};
+  }
+  if(b.action==='previewStart'){
+    const student=await previewStudent(a,b.studentId);
+    const snap=await db.collection('interactiveAssignments').where('studentId','==',student.id).orderBy(FieldPath.documentId()).limit(50).get();
+    await db.collection('activityLog').add({action:'student_preview.started',actorUid:a.uid,actorRole:a.role,studentId:student.id,createdAt:FieldValue.serverTimestamp()});
+    return{role:'student_preview',student,assignments:snap.docs.map(d=>{const r=d.data();return{id:d.id,title:r.title,status:r.status,revision:r.revision,studentId:r.studentId,studentName:r.studentName||student.name,lessonVersionId:r.lessonVersionId};}),nextCursor:snap.size===50?snap.docs.at(-1).id:null};
   }
   if(b.action==='assign'){
     if(!teacher(a))fail(403,'Teacher required');
@@ -47,7 +61,11 @@ async function execute(a,b){
     if(a.role==='student'){const ss=await tx.get(db.doc('students/'+id(r.studentId)));if(!ss.exists||!core.studentOwns(a.uid,r.studentId,ss.data()))fail(403,'Student account link changed');}
     const version=await tx.get(db.doc('lessonVersions/'+id(r.lessonVersionId)));if(!version.exists)fail(404,'Pinned lesson version missing');
     const lesson=version.data().content;
-    if(b.action==='get')return{id:ref.id,...r,lesson:core.project(lesson,r.route),...(teacher(a)?{teacherContent:lesson}:{})};
+    if(b.action==='get'){
+      const preview=b.viewAsStudent===true;
+      if(preview){const student=await previewStudent(a,b.previewStudentId);if(student.id!==r.studentId)fail(403,'Preview student mismatch');}
+      return{id:ref.id,...r,lesson:core.project(lesson,r.route),...(!preview&&teacher(a)?{teacherContent:lesson}:{}),...(preview?{previewMode:true}: {})};
+    }
     if(!Number.isSafeInteger(b.revision)||b.revision!==r.revision)fail(409,'Assignment changed. Reload before saving.');
     let patch;
     if(b.action==='save'||b.action==='submit'){
