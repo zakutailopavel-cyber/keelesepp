@@ -15,7 +15,9 @@ After #114 reached production, Elena's third activity exposed a content compatib
 contains `___` blanks but the immutable v1 content predates `evaluation.response`. Branch
 `agent/inline-assignment-authoring-v1` deterministically adapts those legacy blanks into fillable fields
 and adds an in-page Builder dialog targeted at the exact source draft/activity. Explicit modern response
-contracts remain authoritative; published versions stay immutable.
+contracts remain authoritative; published versions stay immutable. Inferred legacy fields are optional:
+this preserves the submission rules of already published lessons while still saving any answers a student
+enters. Explicitly authored modern fields keep their configured required/optional behavior.
 
 Status: MERGED and DEPLOYED; genuine teacher/student production acceptance remains open. This file is updated during implementation;
 PROJECT_STATE.md and fresh GitHub main remain authoritative.

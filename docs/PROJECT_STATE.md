@@ -98,11 +98,12 @@ Production inspection of Elena's immutable A2 v1 showed a legacy activity whose 
 `___` blanks but whose published content has no `evaluation.response`. The existing renderer therefore
 showed `Vastust pole` and supplied no fields.
 
-The compatibility boundary now infers a required `gaps` response only when an older activity has no
+The compatibility boundary now infers an optional `gaps` response only when an older activity has no
 explicit response contract and one or more `___` tokens. IDs are deterministic (`legacy-gap-1`, etc.)
 and remain identical across Support/Core/Advanced. The renderer places the inputs directly inside the
 sentences. Normal legacy text without blank tokens remains read-only, and every explicit modern response
-contract remains authoritative.
+contract remains authoritative. The inferred response stays optional so an old published lesson does not
+gain a new submission requirement; answers entered into the fields are still saved normally.
 
 Teacher/admin view gains **Muuda seda ülesannet**. It opens the full cloud Builder in a same-page dialog,
 loads the exact source draft and selects the current stable activity ID. Saving still uses optimistic
