@@ -11,6 +11,12 @@ Branch `agent/student-lesson-player-v1` replaces it with a focused sequential pl
 response controls as ephemeral test inputs. Preview values remain in page memory only and never call
 save or submit. No backend deployment is required for this follow-up.
 
+After #114 reached production, Elena's third activity exposed a content compatibility issue: its prompt
+contains `___` blanks but the immutable v1 content predates `evaluation.response`. Branch
+`agent/inline-assignment-authoring-v1` deterministically adapts those legacy blanks into fillable fields
+and adds an in-page Builder dialog targeted at the exact source draft/activity. Explicit modern response
+contracts remain authoritative; published versions stay immutable.
+
 Status: MERGED and DEPLOYED; genuine teacher/student production acceptance remains open. This file is updated during implementation;
 PROJECT_STATE.md and fresh GitHub main remain authoritative.
 

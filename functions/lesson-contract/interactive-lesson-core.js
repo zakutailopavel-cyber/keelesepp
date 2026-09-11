@@ -22,7 +22,10 @@
   }
   function responseSpec(activity){
     const spec=activity?.evaluation?.response;
-    if(spec===undefined)return null;
+    if(spec===undefined){
+      const gapCount=Math.max(0,...ROUTES.map(route=>(String(activity?.routes?.[route]?.prompt||'').match(/_{3,}/g)||[]).length));
+      return gapCount?{schemaVersion:1,mode:'gaps',required:true,items:Array.from({length:gapCount},(_,index)=>({id:'legacy-gap-'+(index+1),label:'Lünk '+(index+1)}))}:null;
+    }
     if(!object(spec)||spec.schemaVersion!==1||!MODES.includes(spec.mode))fail('Invalid response type');
     if(activity.responseMode!==spec.mode)fail('Response mode mismatch');
     const allowed=['schemaVersion','mode','required','items'];
