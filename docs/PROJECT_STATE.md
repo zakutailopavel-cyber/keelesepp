@@ -2,21 +2,21 @@
 
 Last verified: 2026-09-12, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
-Verified main: `b13e11e6c846bdaf708f8ade44b6963ab851c31c`
-Current implementation branch: `agent/quick-builder-question-responses`
-Current draft PR: [#122](https://github.com/zakutailopavel-cyber/keelesepp/pull/122)
+Verified main: `600dfb4d9969090b25dfd0ead2c9013af79d02f9` — #122 merged by owner
+Current implementation branch: `agent/teacher-daily-workflow-reorganization`
+Current draft PR: pending creation
 PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [#116](https://github.com/zakutailopavel-cyber/keelesepp/pull/116) are merged.
 
 ## Current objective
 
-Quick Question Builder is the current bounded workstream. It replaces the syntax-first bulk composer with
-a teacher-facing list of question rows. Every question becomes its own stable activity with its own short
-or long student response control. A pasted list remains available as an optional fast input path.
+Teacher Daily Workflow Reorganization is the current bounded workstream. Teacher Home becomes the clear
+start surface for the four recurring jobs: open today's lesson, prepare a lesson, assign published work,
+and review answers. The legacy CRM sidebar leads with the daily tools and keeps administration and less
+frequent tools inside one collapsible section.
 
-This preserves the existing assignment contract: answers remain keyed by stable activity ID, Undo treats
-the insertion as one action, preview remains nonpersistent, and no Firebase schema or existing immutable
-lesson version changes. The question presentation also removes pasted numeric prefixes before rendering
-its own ordered list, preventing duplicated numbering.
+All previous routes remain reachable. The assignment shortcut opens the existing authenticated assignment
+form directly. This is navigation and presentation only: permissions, lesson contracts and persistence do
+not change.
 
 Production contains a genuine immutable A2 assignment for Elena Polischuk, assignment
 `8f3cb3b6-9965-4637-9a4d-dd0032550008`, with 32 activities. Post-#112 production smoke confirmed the
@@ -31,7 +31,7 @@ PR #94 switched Teacher Home to the real curriculum source. PR #95 then bound th
 
 ## Verified repository state
 
-Current remote `main` is `152539820e2ef59170125b13b2c35af421fecf75`.
+Current remote `main` is `600dfb4d9969090b25dfd0ead2c9013af79d02f9`.
 
 Merged on current `main`:
 
@@ -60,6 +60,10 @@ Merged on current `main`:
 - #114 focused Student Lesson Player — merged; Vercel production READY.
 - #115 Legacy Fillable Gaps + In-context Authoring — merged by owner; selective production Function
   rollout and production smoke are still separate gates.
+- #116 cost-bounded single-activity AI generation — merged.
+- #117 student assignment entry UX — merged.
+- #118–#121 AI authoring recovery fixes — merged.
+- #122 Quick Questions + Answers — merged; every question creates its own activity and response field.
 
 ## Staff Student Preview v1 — COMPLETED
 
@@ -165,9 +169,23 @@ evidence or production data change.
 Validation: interactive/generation contract and DOM suite **20/20 PASS**; Functions suite **163/163 PASS**;
 JavaScript syntax and diff checks PASS.
 
-Exactly one next safe step: after owner merge and production smoke of this bounded question-response
-slice, run a separate System Navigation & Daily Workflow Reorganization workstream that gives teachers
-one clear start screen and task-oriented routes for preparing, assigning, teaching and reviewing work.
+## Teacher Daily Workflow Reorganization — implementation pending review
+
+Teacher Home now presents the daily workflow as four prominent actions: today's lessons, lesson
+preparation, student assignment and answer review. The CRM sidebar keeps the five daily destinations
+visible and places infrequent administration tools in a collapsed **Kõik muud tööriistad** section.
+The assignment shortcut opens the existing authenticated assignment form directly.
+
+No route, permission or persistence contract is removed. The slice changes static navigation and
+presentation only; Functions, Firestore, student records, assignments, answers and evidence are unchanged.
+
+Validation: focused navigation and assignment tests **19/19 PASS**; Lesson Builder browser suite
+**23/23 PASS**. The root suite is **429/433 PASS** on this branch. The same four unrelated failures
+(three stale Adaptive Lesson UI expectations and the whiteboard browser environment test) reproduce on
+clean `main`, where the suite is **426/430 PASS**.
+
+Exactly one next safe step: owner review and merge of the Teacher Daily Workflow draft PR, followed by a
+read-only production walkthrough of all four shortcuts and the collapsed legacy tool menu.
 
 Independent open PRs remain separate and must not be mixed into the learning rollout:
 
@@ -465,8 +483,6 @@ production-origin preflight returned 204 for both. Fresh smoke executions comple
 runtime errors; one concurrent-update audit error was the deploy tool's duplicate update attempt,
 after which the Function became ACTIVE on the intended hash.
 
-## Next safe step
+## Historical Image Block follow-up
 
-Owner creates one genuine image activity, saves and publishes it, assigns the immutable version to
-an existing linked student and opens it in the student runner. Then perform a read-only acceptance
-audit before starting upload or asset-library storage.
+A genuine image activity acceptance walkthrough remains a non-blocking follow-up for the Image Block rollout.

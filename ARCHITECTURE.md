@@ -161,6 +161,12 @@ corrections unsafe.
 
 ### Staff operations
 
+Teacher-facing navigation is task-oriented. `/haldus-teacher-home/` is the daily start surface and links
+the four common actions in order: today's lessons, lesson preparation, student assignment and response
+review. `haldus.html` keeps the complete legacy CRM, but its staff sidebar exposes only daily routes first;
+all administrative and lower-frequency tools remain available in a collapsible section. These links are
+navigation boundaries over existing screens and do not introduce another data store or permission path.
+
 `functions/staff-operations-core.js` owns deterministic work-duration, hourly-rate, payroll and
 operational-alert calculations. `staffOperationsApi` is the only writer for work sessions:
 one server-side pointer per staff member prevents concurrent open shifts, while every transition
