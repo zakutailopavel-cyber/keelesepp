@@ -4,7 +4,7 @@ Last verified: 2026-09-12, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
 Verified main: `b13e11e6c846bdaf708f8ade44b6963ab851c31c`
 Current implementation branch: `agent/quick-builder-question-responses`
-Current draft PR: pending
+Current draft PR: [#122](https://github.com/zakutailopavel-cyber/keelesepp/pull/122)
 PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [#116](https://github.com/zakutailopavel-cyber/keelesepp/pull/116) are merged.
 
 ## Current objective
