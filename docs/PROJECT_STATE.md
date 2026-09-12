@@ -4,7 +4,7 @@ Last verified: 2026-09-12, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
 Verified main: `600dfb4d9969090b25dfd0ead2c9013af79d02f9` — #122 merged by owner
 Current implementation branch: `agent/teacher-daily-workflow-reorganization`
-Current draft PR: pending creation
+Current draft PR: [#123](https://github.com/zakutailopavel-cyber/keelesepp/pull/123)
 PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [#116](https://github.com/zakutailopavel-cyber/keelesepp/pull/116) are merged.
 
 ## Current objective
