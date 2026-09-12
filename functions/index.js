@@ -87,6 +87,7 @@ const {
   googleNativeExclusionState,
   explicitlyDeletedGoogleEventIds,
   shouldApplyExplicitGoogleDeletion,
+  preserveLessonResultDuringGoogleImport,
 } = require("./calendar-sync-core");
 const {
   buildOperationalAlerts,
@@ -8359,7 +8360,7 @@ async function syncTeacherCalendar(uid, tokens) {
     // Skip if no student found
     if (!student) { skipped++; continue; }
 
-    const scheduleData = gcalEventToSchedule(
+    let scheduleData = gcalEventToSchedule(
       { ...event, calendarId: "primary" },
       teacherName,
       student.id,
@@ -8367,6 +8368,8 @@ async function syncTeacherCalendar(uid, tokens) {
       uid,
     );
     if (!scheduleData?.time) { skipped++; continue; }
+
+    scheduleData = preserveLessonResultDuringGoogleImport(scheduleData, existingSchedule || {});
 
     const docRef = db.collection("schedule").doc(
       targetScheduleId,
@@ -8403,7 +8406,7 @@ async function syncTeacherCalendar(uid, tokens) {
     const master = recurringMastersByGoogleId.get(event.recurringEventId);
     const seriesId = managedGoogleScheduleId(master);
     const parent = parentScheduleById.get(seriesId) || currentScheduleById.get(seriesId);
-    const scheduleData = googleOccurrenceExceptionSchedule(
+    let scheduleData = googleOccurrenceExceptionSchedule(
       seriesId,
       parent,
       {
@@ -8419,6 +8422,10 @@ async function syncTeacherCalendar(uid, tokens) {
       skipped++;
       continue;
     }
+    scheduleData = preserveLessonResultDuringGoogleImport(
+      scheduleData,
+      currentScheduleById.get(exceptionId) || {},
+    );
     const docRef = db.collection("schedule").doc(exceptionId);
     scheduleWrites.push({ ref: docRef, data: scheduleData });
     synced++;

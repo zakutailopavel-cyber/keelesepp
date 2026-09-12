@@ -20,8 +20,44 @@ const {
   isGoogleGoneError,
   explicitlyDeletedGoogleEventIds,
   shouldApplyExplicitGoogleDeletion,
+  preserveLessonResultDuringGoogleImport,
   truncateUtf8Safe,
 } = require("./calendar-sync-core");
+
+test("Google import preserves a completed lesson result", () => {
+  const result = preserveLessonResultDuringGoogleImport(
+    { status: "Planeeritud", time: "10:30", title: "Updated in Google" },
+    {
+      status: "Toimunud",
+      lessonEntryId: "lesson-1",
+      lessonOccurrenceDate: "2026-09-12",
+      lessonUpdatedAt: "2026-09-12T10:00:00.000Z",
+    },
+  );
+  assert.equal(result.status, "Toimunud");
+  assert.equal(result.time, "10:30");
+  assert.equal(result.lessonEntryId, "lesson-1");
+});
+
+test("Google import preserves recurring occurrence results without freezing the series", () => {
+  const occurrenceStatuses = {
+    "2026-09-12": { status: "Toimunud", lessonEntryId: "lesson-1" },
+  };
+  const result = preserveLessonResultDuringGoogleImport(
+    { status: "Planeeritud", recurring: true, time: "11:00" },
+    { status: "Planeeritud", occurrenceStatuses },
+  );
+  assert.equal(result.status, "Planeeritud");
+  assert.deepEqual(result.occurrenceStatuses, occurrenceStatuses);
+});
+
+test("Google import still updates an uncompleted planned lesson", () => {
+  const result = preserveLessonResultDuringGoogleImport(
+    { status: "Planeeritud", time: "12:00" },
+    { status: "Planeeritud", time: "11:00" },
+  );
+  assert.deepEqual(result, { status: "Planeeritud", time: "12:00" });
+});
 
 test("truncateUtf8Safe correctly truncates long descriptions safely without breaking multibyte characters", () => {
   const shortText = "Lühike tekst";

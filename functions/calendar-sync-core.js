@@ -357,6 +357,20 @@ function shouldApplyExplicitGoogleDeletion(schedule = {}, deletedIds = new Set()
   return date >= start && date <= end;
 }
 
+const LESSON_RESULT_STATUSES = new Set(["Toimunud", "Puudus_p", "Puudus_eta"]);
+
+function preserveLessonResultDuringGoogleImport(imported = {}, existing = {}) {
+  const result = { ...imported };
+  if (LESSON_RESULT_STATUSES.has(String(existing.status || ""))) {
+    result.status = existing.status;
+  }
+  ["lessonEntryId", "lessonOccurrenceDate", "lessonUpdatedAt", "occurrenceStatuses"]
+    .forEach(field => {
+      if (existing[field] !== undefined) result[field] = existing[field];
+    });
+  return result;
+}
+
 module.exports = {
   GOOGLE_SCOPE_EVENTS,
   GOOGLE_SCOPE_EVENTS_OWNED,
@@ -380,5 +394,6 @@ module.exports = {
   isGoogleGoneError,
   explicitlyDeletedGoogleEventIds,
   shouldApplyExplicitGoogleDeletion,
+  preserveLessonResultDuringGoogleImport,
   truncateUtf8Safe,
 };
