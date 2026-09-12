@@ -20,6 +20,13 @@ test('Teacher Home remains a read-only projection',()=>{
   assert.doesNotMatch(source,/\.batch\(\)|\.runTransaction\(/);
 });
 
+test('Teacher Home exposes the four-step daily workflow without writes',()=>{
+  assert.match(source,/Mida soovid teha\?/);
+  for(const label of ['Vaata tänaseid tunde','Valmista tund','Määra õpilasele','Kontrolli vastuseid']) assert.match(source,new RegExp(label));
+  assert.match(source,/href="\/haldus-lesson-builder\/"/);
+  assert.match(source,/href="\/interactive-lesson\/\?action=assign"/);
+});
+
 test('Teacher Home reads schedule and curriculum progress through existing rollout boundaries',()=>{
   assert.match(source,/collection\('securityMigrations'\)\.doc\('teacherUidV1'\)\.get\(\)/);
   assert.match(source,/collection\('schedule'\)\.where\('teacherUid','==',state\.user\.uid\)/);

@@ -16346,15 +16346,18 @@ function App() {
           ? 'Lapsevanem'
           : 'Õpilane';
   const navItems=[
+    ...(isStaff?[{id:'teacher_today',icon:'fa-sun',label:'Minu tööpäev',isExternal:true,href:'/haldus-teacher-home/',daily:true}]:[]),
     {id:'dashboard',icon:'fa-chart-pie',label:'Töölaud',badge:unreadMessages.length},
-    {id:'calendar', icon:'fa-calendar-days',label:'Tunniplaan'},
+    {id:'calendar', icon:'fa-calendar-days',label:'Tunniplaan',daily:isStaff},
+    ...(isStaff?[{id:'student_work',icon:'fa-clipboard-check',label:'Õpilaste ülesanded',isExternal:true,href:'/interactive-lesson/',daily:true}]:[]),
+    ...(isStaff?[{id:'lesson_builder',icon:'fa-wand-magic-sparkles',label:'Valmista tund',isExternal:true,href:'/haldus-lesson-builder/',daily:true}]:[]),
     {id:'live_classroom',icon:'fa-display',label:'Live Classroom',isExternal:true,href:'/live-classroom/'},
     {id:'whiteboard',icon:'fa-note-sticky',label:'Tahvel',isExternal:true,href:'/haldus-whiteboard/'},
     ...(isStaff?[{id:'tasks',icon:'fa-list-check',label:'Ülesanded',
       badge:scopedTasks.filter(t=>t.status!=='done').length}]:[]),
     ...(isStaff?[{id:'learning_library',icon:'fa-book-open',label:'Õppevara',isExternal:true,href:'/haldus-exercises/'}]:[]),
     ...(isStaff?[{id:'programs',icon:'fa-route',label:'Õppekavad'}]:[]),
-    {id:'students', icon:'fa-graduation-cap',label:isStaff?'Minu õpilased':isParentUser&&hasStudyProfile?'Minu lapsed / õpingud':isParentUser?'Minu lapsed':'Minu progress',
+    {id:'students', icon:'fa-graduation-cap',label:isStaff?'Minu õpilased':isParentUser&&hasStudyProfile?'Minu lapsed / õpingud':isParentUser?'Minu lapsed':'Minu progress',daily:isStaff,
       badge:isStaff?unseenWsCount:0},
     ...(isStaff?[{id:'groups',icon:'fa-layer-group',label:'Grupid'}]:[]),
     ...(isStaff?[{id:'parents',icon:'fa-people-roof',label:'Lapsevanemad',badge:isAdmin?parentAlerts.length:0}]:[]),
@@ -16374,6 +16377,16 @@ function App() {
     ...(!isStaff?[{id:'kabinet',icon:'fa-clipboard-list',label:'Minu töölehed'}]:[]),
   ];
 
+  const renderNavItem=item=>(
+    item.isExternal
+      ? <button key={item.id} onClick={()=>{ window.location.assign(item.href); }} className="sidebar-link" style={{width:'100%'}}>
+          <i className={`fa-solid ${item.icon}`} style={{width:18,textAlign:'center'}}/><span style={{flex:1}}>{item.label}</span><i className="fa-solid fa-arrow-right" style={{fontSize:'.6rem',opacity:.4}}/>
+        </button>
+      : <button key={item.id} onClick={()=>goTab(item.id)} className={`sidebar-link ${tab===item.id?'active':''}`}>
+          <i className={`fa-solid ${item.icon}`} style={{width:18,textAlign:'center'}}/><span style={{flex:1}}>{item.label}</span>{item.badge>0&&<span style={{background:tab===item.id?'rgba(255,255,255,.25)':'#C9882A',color:'#fff',borderRadius:999,fontSize:'.7rem',fontWeight:700,padding:'1px 7px'}}>{item.badge}</span>}
+        </button>
+  );
+
   const Sidebar=()=>(
     <>
       <div style={{borderBottom:'1px solid rgba(255,255,255,.1)',paddingBottom:16,marginBottom:8}}>
@@ -16388,21 +16401,9 @@ function App() {
         {user.displayName}
       </div>
       <nav style={{flex:1,display:'flex',flexDirection:'column',gap:2}}>
-        {navItems.map(item=>(
-          item.isExternal
-            ? <button key={item.id} onClick={()=>{ window.location.assign(item.href); }}
-                className="sidebar-link"
-                style={{width:'100%'}}>
-                <i className={`fa-solid ${item.icon}`} style={{width:18,textAlign:'center'}}/>
-                <span style={{flex:1}}>{item.label}</span>
-                <i className="fa-solid fa-arrow-up-right-from-square" style={{fontSize:'.6rem',opacity:.4}}/>
-              </button>
-            : <button key={item.id} onClick={()=>goTab(item.id)} className={`sidebar-link ${tab===item.id?'active':''}`}>
-                <i className={`fa-solid ${item.icon}`} style={{width:18,textAlign:'center'}}/>
-                <span style={{flex:1}}>{item.label}</span>
-                {item.badge>0&&<span style={{background:tab===item.id?'rgba(255,255,255,.25)':'#C9882A',color:'#fff',borderRadius:999,fontSize:'.7rem',fontWeight:700,padding:'1px 7px'}}>{item.badge}</span>}
-              </button>
-        ))}
+        {isStaff&&<div style={{fontSize:'.61rem',fontWeight:800,letterSpacing:'.1em',color:'rgba(255,255,255,.35)',padding:'8px 14px 5px'}}>IGAPÄEVANE TÖÖ</div>}
+        {(isStaff?navItems.filter(item=>item.daily):navItems).map(renderNavItem)}
+        {isStaff&&<details style={{marginTop:10}}><summary style={{cursor:'pointer',padding:'9px 14px',color:'rgba(255,255,255,.7)',fontSize:'.78rem',fontWeight:700}}>Kõik muud tööriistad</summary><div style={{display:'flex',flexDirection:'column',gap:2,marginTop:4}}>{navItems.filter(item=>!item.daily).map(renderNavItem)}</div></details>}
       </nav>
       <div style={{borderTop:'1px solid rgba(255,255,255,.08)',paddingTop:12,marginTop:8}}>
         <div style={{fontSize:'.64rem',color:'rgba(255,255,255,.32)',padding:'0 14px 8px'}}>

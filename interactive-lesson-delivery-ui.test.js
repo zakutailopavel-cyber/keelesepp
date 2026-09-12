@@ -30,6 +30,11 @@ test('assignment requires both an immutable version and a student',()=>{
   assert.match(app,/button\.disabled=!select\.value\|\|!input\.value/);
 });
 
+test('daily workflow link can open assignment form directly for staff',()=>{
+  assert.match(app,/action=params\.get\('action'\)/);
+  assert.match(app,/action==='assign'/);
+});
+
 test('teacher assignment list and open view use teacher-facing identity and status',()=>{
   assert.match(api,/studentName:r\.studentName\|\|studentNameById\.get\(r\.studentId\)/);
   assert.match(app,/r\.studentName/);
