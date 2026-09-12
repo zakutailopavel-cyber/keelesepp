@@ -1,17 +1,22 @@
 # KeeleSepp Project State
 
-Last verified: 2026-09-11, Europe/Tallinn
+Last verified: 2026-09-12, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
-Verified main: `2747b7f7f23270e27f15686667cd72f36115debb` — #116 merged by owner
-Current implementation branch: `agent/student-assignment-entry-ux`
-Current draft PR: [#117](https://github.com/zakutailopavel-cyber/keelesepp/pull/117)
+Verified main: `b13e11e6c846bdaf708f8ade44b6963ab851c31c`
+Current implementation branch: `agent/quick-builder-question-responses`
+Current draft PR: [#122](https://github.com/zakutailopavel-cyber/keelesepp/pull/122)
 PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [#116](https://github.com/zakutailopavel-cyber/keelesepp/pull/116) are merged.
 
 ## Current objective
 
-Student Assignment Entry UX is the current bounded workstream. It makes the staff path to Elena's real
-assignment self-explanatory: one primary student-view action, a guided student picker and explicit lesson
-cards with student, status and **Ava ülesanded** action.
+Quick Question Builder is the current bounded workstream. It replaces the syntax-first bulk composer with
+a teacher-facing list of question rows. Every question becomes its own stable activity with its own short
+or long student response control. A pasted list remains available as an optional fast input path.
+
+This preserves the existing assignment contract: answers remain keyed by stable activity ID, Undo treats
+the insertion as one action, preview remains nonpersistent, and no Firebase schema or existing immutable
+lesson version changes. The question presentation also removes pasted numeric prefixes before rendering
+its own ordered list, preventing duplicated numbering.
 
 Production contains a genuine immutable A2 assignment for Elena Polischuk, assignment
 `8f3cb3b6-9965-4637-9a4d-dd0032550008`, with 32 activities. Post-#112 production smoke confirmed the
@@ -160,8 +165,9 @@ evidence or production data change.
 Validation: interactive/generation contract and DOM suite **20/20 PASS**; Functions suite **163/163 PASS**;
 JavaScript syntax and diff checks PASS.
 
-Exactly one next safe step: owner review/merge of the assignment-entry UX draft PR, followed by a
-read-only production walkthrough of Elena's card and staff student preview.
+Exactly one next safe step: after owner merge and production smoke of this bounded question-response
+slice, run a separate System Navigation & Daily Workflow Reorganization workstream that gives teachers
+one clear start screen and task-oriented routes for preparing, assigning, teaching and reviewing work.
 
 Independent open PRs remain separate and must not be mixed into the learning rollout:
 

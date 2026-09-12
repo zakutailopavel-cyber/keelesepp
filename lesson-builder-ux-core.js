@@ -52,6 +52,21 @@
     }
     if(input.activities?.length===0&&(!input.title||input.title==='Uus tund'))d.title='Täidetav tööleht';d.authoring.lesson.skills=[...new Set(d.activities.flatMap(a=>a.skillIds))];return{draft:d,created};
   }
+  function composeQuestionList(input,questions,allocate){
+    if(!Array.isArray(questions)||typeof allocate!=='function')throw Error('Lisa vähemalt üks küsimus.');
+    const rows=questions.map(row=>({prompt:String(row?.prompt||'').trim(),mode:row?.mode==='long'?'long':'short'})).filter(row=>row.prompt);
+    if(!rows.length)throw Error('Lisa vähemalt üks küsimus.');
+    if(rows.length>30)throw Error('Korraga saab lisada kuni 30 küsimust.');
+    if(rows.some(row=>row.prompt.length>3000))throw Error('Küsimuse tekst võib olla kuni 3000 märki.');
+    let d=prepare(input),last=d.activities.at(-1)?.id||'';const created=[];
+    for(const row of rows){
+      const activityId=allocate(),templateId=COMPOSER_TYPES[row.mode];d=insert(d,templateId,activityId,last);last=activityId;created.push(activityId);
+      const a=d.activities.find(x=>x.id===activityId);a.title=row.prompt.slice(0,80);
+      for(const r of core.ROUTES)a.routes[r].prompt=row.prompt+(r==='support'?'\nVõid kasutada märksõnu ja üht näidet.':r==='advanced'?'\nLisa põhjendus ja üks uus näide.':'');
+    }
+    if(input.activities?.length===0&&(!input.title||input.title==='Uus tund'))d.title='Küsimused ja vastused';
+    d.authoring.lesson.skills=[...new Set(d.activities.flatMap(a=>a.skillIds))];return{draft:d,created};
+  }
   function validate(d){
     const errors=[],warnings=[],tips=[],add=(target,message,activityId='',field='')=>target.push({message,activityId,field});
     const schema=core.validate(d);
@@ -83,5 +98,5 @@
   }
   function history(initial,limit=50){let current=copy(initial),past=[],future=[],lastKey='',lastTime=0;return {get:()=>copy(current),get canUndo(){return !!past.length;},get canRedo(){return !!future.length;},commit(next,key='',time=Date.now()){if(JSON.stringify(next)===JSON.stringify(current))return false;if(!key||key!==lastKey||time-lastTime>700){past.push(copy(current));if(past.length>limit)past.shift();}current=copy(next);future=[];lastKey=key;lastTime=time;return true;},undo(){if(past.length){future.push(current);current=past.pop();lastKey='';}return copy(current);},redo(){if(future.length){past.push(current);current=future.pop();lastKey='';}return copy(current);}};}
   function autosave({storage,key,onStatus=()=>{},delay=700,schedule=setTimeout,cancel=clearTimeout}){let timer=null,pending=null,saved='';return {restore(){const raw=storage.getItem(key);if(!raw)return null;const d=prepare(core.parse(raw));saved=JSON.stringify(d);return d;},queue(d){pending=copy(d);cancel(timer);onStatus(JSON.stringify(d)===saved?'saved':'dirty');if(JSON.stringify(d)!==saved)timer=schedule(()=>this.flush(),delay);},flush(){cancel(timer);if(!pending)return true;if(!validate(pending).ok){onStatus('dirty');return false;}try{onStatus('saving');storage.setItem(key,core.serialize(pending));saved=JSON.stringify(pending);onStatus('saved');return true;}catch(e){onStatus('error',e.message);return false;}},get dirty(){return !!pending&&JSON.stringify(pending)!==saved;},dispose(){cancel(timer);}};}
-  return {copy,SKILLS,prepare,meta,block,insert,lessonTemplate,reorder,move,duplicate,remove,paste,reset,adapt,composeWorksheet,phaseName,validate,history,autosave};
+  return {copy,SKILLS,prepare,meta,block,insert,lessonTemplate,reorder,move,duplicate,remove,paste,reset,adapt,composeWorksheet,composeQuestionList,phaseName,validate,history,autosave};
 });
