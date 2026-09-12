@@ -2,21 +2,20 @@
 
 Last verified: 2026-09-12, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
-Verified main: `600dfb4d9969090b25dfd0ead2c9013af79d02f9` — #122 merged by owner
-Current implementation branch: `agent/teacher-daily-workflow-reorganization`
-Current draft PR: [#123](https://github.com/zakutailopavel-cyber/keelesepp/pull/123)
+Verified main: `d28ae5288a049f0e2f9807f8509456b363a5bd34` — #123 merged by owner
+Current implementation branch: `agent/calendar-completion-persistence`
+Current draft PR: [#124](https://github.com/zakutailopavel-cyber/keelesepp/pull/124)
 PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [#116](https://github.com/zakutailopavel-cyber/keelesepp/pull/116) are merged.
 
 ## Current objective
 
-Teacher Daily Workflow Reorganization is the current bounded workstream. Teacher Home becomes the clear
-start surface for the four recurring jobs: open today's lesson, prepare a lesson, assign published work,
-and review answers. The legacy CRM sidebar leads with the daily tools and keeps administration and less
-frequent tools inside one collapsible section.
+Calendar Completion Persistence is the current bounded reliability workstream. A completed lesson must
+remain completed after an automatic or manual Google Calendar synchronization.
 
-All previous routes remain reachable. The assignment shortcut opens the existing authenticated assignment
-form directly. This is navigation and presentation only: permissions, lesson contracts and persistence do
-not change.
+The lesson journal already writes the final result to both `lessons` and `schedule`. Google import previously
+merged `status: Planeeritud` back into the same schedule document. The import boundary now preserves
+completed/absence status, lesson linkage and per-date recurring occurrence results while still accepting
+Google-owned time and description changes.
 
 Production contains a genuine immutable A2 assignment for Elena Polischuk, assignment
 `8f3cb3b6-9965-4637-9a4d-dd0032550008`, with 32 activities. Post-#112 production smoke confirmed the
@@ -31,7 +30,7 @@ PR #94 switched Teacher Home to the real curriculum source. PR #95 then bound th
 
 ## Verified repository state
 
-Current remote `main` is `600dfb4d9969090b25dfd0ead2c9013af79d02f9`.
+Current remote `main` is `d28ae5288a049f0e2f9807f8509456b363a5bd34`.
 
 Merged on current `main`:
 
@@ -64,6 +63,24 @@ Merged on current `main`:
 - #117 student assignment entry UX — merged.
 - #118–#121 AI authoring recovery fixes — merged.
 - #122 Quick Questions + Answers — merged; every question creates its own activity and response field.
+- #123 Teacher Daily Workflow Reorganization — merged.
+
+## Calendar Completion Persistence — implementation pending review
+
+Root cause: the trusted lesson journal correctly stores a final lesson result and patches its schedule
+record, but the next Google import regenerated `status: Planeeritud` and merged it into the same document.
+That made completed one-time lessons reappear as unfinished. The same boundary could overwrite a native
+Google occurrence exception.
+
+Google import now preserves `Toimunud`, `Puudus_p`, `Puudus_eta`, the linked lesson entry and recurring
+`occurrenceStatuses`. Planned lessons continue to receive Google changes normally, and completing one date
+of a recurring series does not complete future dates.
+
+Validation: calendar sync and lesson identity tests **22/22 PASS**; calendar/UI/accounting contract tests
+**32/32 PASS**; complete Functions unit suite **166/166 PASS**; JavaScript syntax and diff checks PASS.
+No migration, rule, index or existing record rewrite is required. After owner merge, the changed
+`functions/index.js` requires a selective `gcalApi,syncAllCalendars` deployment because both paths run the
+same import boundary.
 
 ## Staff Student Preview v1 — COMPLETED
 
