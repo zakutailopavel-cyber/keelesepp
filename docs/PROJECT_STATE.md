@@ -4,7 +4,7 @@ Last verified: 2026-09-12, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
 Verified main: `d28ae5288a049f0e2f9807f8509456b363a5bd34` — #123 merged by owner
 Current implementation branch: `agent/calendar-completion-persistence`
-Current draft PR: pending creation
+Current draft PR: [#124](https://github.com/zakutailopavel-cyber/keelesepp/pull/124)
 PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [#116](https://github.com/zakutailopavel-cyber/keelesepp/pull/116) are merged.
 
 ## Current objective
