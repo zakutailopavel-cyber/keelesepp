@@ -219,8 +219,14 @@ Validation: focused navigation and assignment tests **19/19 PASS**; Lesson Build
 clean `main`, where the suite is **426/430 PASS**.
 
 Production navigation confirmed the reorganized daily navigation after #123 merged. Exactly one next safe
-step: run a read-only reliability audit of the two visible Google Calendar rejection indicators before
-deciding whether they represent stale display state, malformed schedule ownership or a synchronization defect.
+step: implement a bounded calendar presentation fix for historical failed pushes and exact self-duplicates,
+while retaining real teacher and student overlap warnings.
+
+The read-only production audit found both visible `G!` records were one-time KeeleSepp lessons from
+8 September whose push failed on 7 September with `invalid_request` and no Google event ID. Current syncs
+are healthy, but past one-time lessons are intentionally excluded from retry. Deniss has no matching imported
+Google record. Martin also has a separate successfully imported Google record for the same student, date and
+time, which creates a false `Martin ↔ Martin` overlap in the current presentation. No record was changed.
 
 Independent open PRs remain separate and must not be mixed into the learning rollout:
 
