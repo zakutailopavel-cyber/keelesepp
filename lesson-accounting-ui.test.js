@@ -35,6 +35,12 @@ test("calendar keeps absence states and exposes quick completion", () => {
   assert.doesNotMatch(html, /const scheduleStatus = lStatus==='Toimunud' \? 'Toimunud' : 'Planeeritud'/);
 });
 
+test("calendar projects existing journal results over stale imported schedule status", () => {
+  assert.match(html, /eventsWithLessonResults:calendarEventsWithLessonResults/);
+  assert.match(html, /calendarEventsWithLessonResults\(calendarEventsForDate\(filteredSch,dayIso\),lessons,dayIso\)/);
+  assert.match(html, /<CalendarView[^>]*schedule=\{schedule\} lessons=\{lessons\}/);
+});
+
 test("group attendance creates student lesson records instead of an external group lesson", () => {
   assert.match(html, /sourceKey:`group:\$\{modalEv\.groupId\}:\$\{modalEv\.groupLessonId\}`/);
   assert.match(html, /studentId:item\.student\.id/);

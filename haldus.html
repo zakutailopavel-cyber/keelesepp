@@ -184,6 +184,7 @@ const {
   quickLessonSlot:calendarQuickLessonSlot,
   dayIdForDate:calendarDayIdForDate,
   eventsForDate:calendarEventsForDate,
+  eventsWithLessonResults:calendarEventsWithLessonResults,
   eventOccursOnDate:calendarEventOccursOnDate,
   findScheduleConflicts,
   scheduleConflictRows,
@@ -3094,7 +3095,7 @@ function StuSearch({value, onChange, onPick, students, placeholder}) {
 }
 
 // ── TUNNIPLAAN ────────────────────────────────────────────────
-function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilterT,
+function CalendarView({user,myStudents,schedule,lessons,groups,isAdmin,filterT,setFilterT,
   schStu,setSchStu,schDate,setSchDate,schTime,setSchTime,schTeach,setSchTeach,
   schRecurring,setSchRecurring,addSchedule,openScheduleEditor,delSchedule,markAttendance,openStudent,
   quickCompleteLesson,db,notify,logActivity,students,staffMembers=[],setSelStu,setTab,tariffAssignments=[]}) {
@@ -3309,9 +3310,9 @@ function CalendarView({user,myStudents,schedule,groups,isAdmin,filterT,setFilter
   },[schedule,groups,myStudents,filterT,showCanceled,canManage,isAdmin,user]);
 
   const eventsOnDate = React.useCallback(
-    dayIso=>calendarEventsForDate(filteredSch,dayIso)
+    dayIso=>calendarEventsWithLessonResults(calendarEventsForDate(filteredSch,dayIso),lessons,dayIso)
       .sort((left,right)=>String(left.time||'').localeCompare(String(right.time||''))),
-    [filteredSch]
+    [filteredSch,lessons]
   );
 
   const eventsForDaySlot = (slot, dayIso) =>
@@ -16464,7 +16465,7 @@ function App() {
             parentAlerts={parentAlerts} createMissingParentStudents={createMissingParentStudents} markParentChecked={markParentChecked}
             newWsResults={newWsResults} markWsSeen={markWsSeen} tariffAssignments={tariffAssignments}/>}
 
-          {tab==='calendar'&&<CalendarView user={user} myStudents={myStudents} schedule={schedule} groups={groups} isAdmin={canAssignTeacher}
+          {tab==='calendar'&&<CalendarView user={user} myStudents={myStudents} schedule={schedule} lessons={lessons} groups={groups} isAdmin={canAssignTeacher}
             filterT={filterT} setFilterT={setFilterT}
             schStu={schStu} setSchStu={setSchStu} schDate={schDate} setSchDate={setSchDate}
             schTime={schTime} setSchTime={setSchTime} schTeach={schTeach} setSchTeach={setSchTeach}
