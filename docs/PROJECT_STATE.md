@@ -2,12 +2,23 @@
 
 Last verified: 2026-09-13, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
-Verified main: `28195c052758efe2153c30eead0ee592132889e7` — #127 merged by owner
-Current implementation branch: `agent/reconcile-calendar-127`
-Current draft PR: [#128](https://github.com/zakutailopavel-cyber/keelesepp/pull/128)
+Verified main: `8f2c256c9a6780b3af7e81af2b1b7132f0bfe89e` — #128 merged by owner
+Current implementation branch: `agent/teacher-home-start-lesson`
+Current draft PR: pending — Teacher Home daily action clarity
 PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [#116](https://github.com/zakutailopavel-cyber/keelesepp/pull/116) are merged.
 
 ## Current objective
+
+Teacher Home Daily Action Clarity is the current bounded workstream. A read-only production audit found
+that a today's-lesson card without a bound Lesson Mode showed two links to the same Learning Profile while
+the workflow copy implied that every card could start a lesson. The update keeps the existing direct
+`Alusta tundi` / `Jätka tundi` action when a trusted adaptive lesson exists, shows one clear
+`Ava õpilase kaart` action otherwise, and retains Learning Profile as a separate secondary action only
+when the primary action actually opens Lesson Mode.
+
+This is presentation-only. It does not create sessions, evidence, assignments, curriculum credit, calendar
+records or Firebase writes. Exactly one next safe step: verify the corrected action hierarchy on Vercel
+Preview before owner merge.
 
 Historical Google Calendar Sync Clarity is merged and production-accepted. Past one-time KeeleSepp
 lessons whose original Google push failed are shown as neutral `G–` records. An exact imported Google
@@ -42,7 +53,7 @@ PR #94 switched Teacher Home to the real curriculum source. PR #95 then bound th
 
 ## Verified repository state
 
-Current remote `main` is `28195c052758efe2153c30eead0ee592132889e7`.
+Current remote `main` is `8f2c256c9a6780b3af7e81af2b1b7132f0bfe89e`.
 
 Merged on current `main`:
 
@@ -80,6 +91,7 @@ Merged on current `main`:
 - #125 Historical Calendar Completion Reconciliation — merged; Vercel production READY and smoke PASS.
 - #126 #125 post-merge documentation reconciliation — merged.
 - #127 Historical Google Calendar Sync Clarity — merged; Vercel production READY and smoke PASS.
+- #128 #127 post-merge documentation reconciliation — merged.
 
 ## Historical Google Calendar Sync Clarity — COMPLETED
 
