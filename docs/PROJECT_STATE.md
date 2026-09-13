@@ -4,7 +4,7 @@ Last verified: 2026-09-13, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
 Verified main: `8f2c256c9a6780b3af7e81af2b1b7132f0bfe89e` — #128 merged by owner
 Current implementation branch: `agent/teacher-home-start-lesson`
-Current draft PR: pending — Teacher Home daily action clarity
+Current draft PR: [#129](https://github.com/zakutailopavel-cyber/keelesepp/pull/129)
 PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [#116](https://github.com/zakutailopavel-cyber/keelesepp/pull/116) are merged.
 
 ## Current objective
