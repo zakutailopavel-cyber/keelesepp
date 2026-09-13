@@ -2,25 +2,24 @@
 
 Last verified: 2026-09-13, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
-Verified main: `e51f31fa2075733aa4c4c9a0eb42945914ba8814` — #129 merged by owner
-Current implementation branch: `agent/teacher-home-prepare-lesson`
-Current draft PR: [#130](https://github.com/zakutailopavel-cyber/keelesepp/pull/130)
+Verified main: `18245de79457dd771ffd0b44b44c210f3b04fdf3` — #130 merged by owner
+Current implementation branch: `agent/reconcile-teacher-home-130`
+Current draft PR: [#131](https://github.com/zakutailopavel-cyber/keelesepp/pull/131)
 PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [#116](https://github.com/zakutailopavel-cyber/keelesepp/pull/116) are merged.
 
 ## Current objective
 
-Teacher Home Curriculum Preparation Bridge is the current bounded workstream. Production smoke after owner
-merge of #129 confirmed that Teacher Home loads two current lessons, uses the corrected workflow text and
-shows one clear profile action for each unbound A1/A2 curriculum lesson. No duplicate action or visible
-runtime failure was observed.
+Teacher Home Curriculum Preparation Bridge is merged and production-accepted. On production main
+`18245de79457dd771ffd0b44b44c210f3b04fdf3`, Teacher Home opened normally and showed the current Vlad A1
+and Ilja A2 lessons. Each unbound curriculum lesson showed `Valmista see tund` plus the secondary student
+profile action. Ilja's action opened Lesson Builder with stable key `est-a2-01:0`.
 
-The new bridge turns an unbound lesson's stable curriculum key into a direct `Valmista see tund` action.
-Lesson Builder resolves that key from the authoritative curriculum bundle, pre-fills title, CEFR, topic and
-goal, then opens the existing lesson-template library. A pre-existing local draft requires confirmation and
-remains recoverable through Undo. No student id or student data is passed to Builder. No session, evidence,
-assignment, curriculum credit, calendar record or Firebase write is created. Vercel Preview confirmed that
-the curriculum-key entry opens the correct A2 metadata and the ten existing lesson templates. Exactly one
-next safe step: owner review and merge #130.
+Builder detected an existing local draft and displayed the required replacement confirmation. The smoke
+cancelled that confirmation, so no local draft was replaced. This verifies the safe recovery boundary while
+leaving the teacher's work unchanged. The production page reported no browser console warnings or errors.
+No session, evidence, assignment, curriculum credit, calendar record, API mutation, Firebase write or
+production data change was created by the smoke. Exactly one next safe step: design a bounded guided
+curriculum starter that reduces template choice and preparation time while preserving explicit teacher review.
 
 Historical Google Calendar Sync Clarity is merged and production-accepted. Past one-time KeeleSepp
 lessons whose original Google push failed are shown as neutral `G–` records. An exact imported Google
@@ -55,7 +54,7 @@ PR #94 switched Teacher Home to the real curriculum source. PR #95 then bound th
 
 ## Verified repository state
 
-Current remote `main` is `e51f31fa2075733aa4c4c9a0eb42945914ba8814`.
+Current remote `main` is `18245de79457dd771ffd0b44b44c210f3b04fdf3`.
 
 Merged on current `main`:
 
@@ -95,8 +94,9 @@ Merged on current `main`:
 - #127 Historical Google Calendar Sync Clarity — merged; Vercel production READY and smoke PASS.
 - #128 #127 post-merge documentation reconciliation — merged.
 - #129 Teacher Home daily action clarity — merged; Vercel production READY and authenticated smoke PASS.
+- #130 Teacher Home Curriculum Preparation Bridge — merged; Vercel production READY and authenticated production smoke PASS.
 
-## Teacher Home Curriculum Preparation Bridge — IN PROGRESS
+## Teacher Home Curriculum Preparation Bridge — COMPLETED
 
 - Unbound real-curriculum lessons receive `Valmista see tund`; a ready or active trusted Lesson Mode keeps
   `Alusta tundi` / `Jätka tundi` unchanged.
@@ -107,6 +107,7 @@ Merged on current `main`:
   JavaScript syntax and diff checks PASS; local and Vercel Preview visual paths PASS for `est-a2-03:0`;
   GitHub/Vercel checks **3/3 PASS**.
 - Data/security impact: browser-only preparation flow; no API call, Firebase change, student write or deploy.
+- Production smoke: Teacher Home, Vlad A1 and Ilja A2 preparation actions, stable curriculum key, existing-draft confirmation and browser console PASS.
 - Known limitation: selecting and tailoring the pedagogical template remains an explicit teacher action.
 
 ## Historical Google Calendar Sync Clarity — COMPLETED
