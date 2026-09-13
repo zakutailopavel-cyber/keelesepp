@@ -126,6 +126,24 @@
         };
       });
 
+  const eventsWithLessonResults=(events,lessons,dateIso)=>{
+    const finalStatuses=new Set(['Toimunud','Puudus_p','Puudus_eta']);
+    const resultByScheduleId=new Map();
+    (lessons||[]).forEach(lesson=>{
+      const scheduleId=String(lesson?.scheduleId||'').trim();
+      if(!scheduleId||String(lesson?.date||'')!==String(dateIso||'')) return;
+      if(!finalStatuses.has(String(lesson?.status||''))) return;
+      const previous=resultByScheduleId.get(scheduleId);
+      const order=value=>String(value?.updatedAt||value?.submittedAtIso||value?.submittedAt||'');
+      if(!previous||order(lesson)>=order(previous)) resultByScheduleId.set(scheduleId,lesson);
+    });
+    return (events||[]).map(event=>{
+      const lesson=resultByScheduleId.get(String(event?.id||''));
+      if(!lesson) return event;
+      return {...event,status:lesson.status,lessonEntryId:lesson.id||event.lessonEntryId||'',occurrenceDate:dateIso};
+    });
+  };
+
   const eventInterval=(event,dateIso)=>{
     if(!eventOccursOnDate(event,dateIso)) return null;
     const start=timeToMinutes(event.time);
@@ -421,6 +439,7 @@
     quickLessonSlot,
     eventOccursOnDate,
     eventsForDate,
+    eventsWithLessonResults,
     eventInterval,
     findScheduleConflicts,
     scheduleConflictRows,

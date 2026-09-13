@@ -2,20 +2,20 @@
 
 Last verified: 2026-09-12, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
-Verified main: `d28ae5288a049f0e2f9807f8509456b363a5bd34` — #123 merged by owner
-Current implementation branch: `agent/calendar-completion-persistence`
-Current draft PR: [#124](https://github.com/zakutailopavel-cyber/keelesepp/pull/124)
+Verified main: `6358e41cd406b46a317dab954fbcab5c1c626ecd` — #124 merged by owner
+Current implementation branch: `agent/calendar-journal-projection`
+Current draft PR: pending
 PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [#116](https://github.com/zakutailopavel-cyber/keelesepp/pull/116) are merged.
 
 ## Current objective
 
-Calendar Completion Persistence is the current bounded reliability workstream. A completed lesson must
-remain completed after an automatic or manual Google Calendar synchronization.
+Historical Calendar Completion Reconciliation is the current bounded reliability workstream. Existing
+lesson-journal results must remain visible even when an older schedule record was already reverted to
+`Planeeritud` before the #124 protection reached production.
 
-The lesson journal already writes the final result to both `lessons` and `schedule`. Google import previously
-merged `status: Planeeritud` back into the same schedule document. The import boundary now preserves
-completed/absence status, lesson linkage and per-date recurring occurrence results while still accepting
-Google-owned time and description changes.
+The #124 import boundary prevents future reversion. This follow-up derives the displayed status from an
+existing final lesson-journal record using exact `scheduleId + date` identity. It does not migrate or write
+production data, create billing records, or apply one recurring occurrence to another date.
 
 Production contains a genuine immutable A2 assignment for Elena Polischuk, assignment
 `8f3cb3b6-9965-4637-9a4d-dd0032550008`, with 32 activities. Post-#112 production smoke confirmed the
@@ -30,7 +30,7 @@ PR #94 switched Teacher Home to the real curriculum source. PR #95 then bound th
 
 ## Verified repository state
 
-Current remote `main` is `d28ae5288a049f0e2f9807f8509456b363a5bd34`.
+Current remote `main` is `6358e41cd406b46a317dab954fbcab5c1c626ecd`.
 
 Merged on current `main`:
 
@@ -64,8 +64,9 @@ Merged on current `main`:
 - #118–#121 AI authoring recovery fixes — merged.
 - #122 Quick Questions + Answers — merged; every question creates its own activity and response field.
 - #123 Teacher Daily Workflow Reorganization — merged.
+- #124 Calendar Completion Persistence — merged; owner deployed `gcalApi` and `syncAllCalendars`.
 
-## Calendar Completion Persistence — implementation pending review
+## Calendar Completion Persistence — COMPLETED
 
 Root cause: the trusted lesson journal correctly stores a final lesson result and patches its schedule
 record, but the next Google import regenerated `status: Planeeritud` and merged it into the same document.
@@ -76,11 +77,22 @@ Google import now preserves `Toimunud`, `Puudus_p`, `Puudus_eta`, the linked les
 `occurrenceStatuses`. Planned lessons continue to receive Google changes normally, and completing one date
 of a recurring series does not complete future dates.
 
-Validation: calendar sync and lesson identity tests **22/22 PASS**; calendar/UI/accounting contract tests
-**32/32 PASS**; complete Functions unit suite **166/166 PASS**; JavaScript syntax and diff checks PASS.
-No migration, rule, index or existing record rewrite is required. After owner merge, the changed
-`functions/index.js` requires a selective `gcalApi,syncAllCalendars` deployment because both paths run the
-same import boundary.
+Validation before merge: calendar sync and lesson identity tests **22/22 PASS**;
+calendar/UI/accounting contract tests **32/32 PASS**; complete Functions unit suite **166/166 PASS**;
+JavaScript syntax and diff checks PASS. The owner merged #124 and selectively deployed `gcalApi` and
+`syncAllCalendars`. A manual production sync returned HTTP 200 and synchronized 77 events without failures.
+The subsequent hourly scheduled syncs completed successfully without Function errors.
+
+## Historical Calendar Completion Reconciliation — implementation pending review
+
+Some schedule documents may already have been reverted before #124 was deployed. Calendar rendering now
+projects an existing final lesson-journal status (`Toimunud`, `Puudus_p`, or `Puudus_eta`) onto the matching
+calendar occurrence using exact `scheduleId + date` identity. A different date or schedule ID cannot match.
+
+This is a read-only presentation reconciliation. It does not update Firestore, create or delete lessons,
+change billing, modify Google Calendar, or require Firebase deployment. Targeted calendar and accounting UI
+tests pass. After owner review and merge, the next safe step is a Vercel production smoke that confirms a
+historical completed occurrence displays its journal result after reload and calendar synchronization.
 
 ## Staff Student Preview v1 — COMPLETED
 

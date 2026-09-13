@@ -6,6 +6,7 @@ const {
   quickLessonSlot,
   eventOccursOnDate,
   eventsForDate,
+  eventsWithLessonResults,
   findScheduleConflicts,
   scheduleConflictRows,
   scheduleConflictWarning,
@@ -69,6 +70,24 @@ test('one completed recurring occurrence does not complete the whole series',()=
   assert.equal(completed.lessonEntryId,'lesson-one');
   assert.equal(future.status,'Planeeritud');
   assert.equal(future.lessonEntryId||'','');
+});
+
+test('lesson journal result repairs an older stale planned calendar projection',()=>{
+  const events=eventsForDate([{id:'schedule-1',date:'2026-09-12',status:'Planeeritud'}],'2026-09-12');
+  const projected=eventsWithLessonResults(events,[{
+    id:'lesson-1',scheduleId:'schedule-1',date:'2026-09-12',status:'Toimunud',updatedAt:'2026-09-12T10:00:00Z'
+  }],'2026-09-12');
+  assert.equal(projected[0].status,'Toimunud');
+  assert.equal(projected[0].lessonEntryId,'lesson-1');
+});
+
+test('lesson journal projection requires exact schedule and date identity',()=>{
+  const events=[{id:'schedule-1',status:'Planeeritud'}];
+  const lessons=[
+    {id:'wrong-date',scheduleId:'schedule-1',date:'2026-09-11',status:'Toimunud'},
+    {id:'wrong-schedule',scheduleId:'schedule-2',date:'2026-09-12',status:'Toimunud'}
+  ];
+  assert.equal(eventsWithLessonResults(events,lessons,'2026-09-12')[0].status,'Planeeritud');
 });
 
 test('overlapping teacher and student bookings are reported',()=>{
