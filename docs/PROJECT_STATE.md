@@ -2,12 +2,23 @@
 
 Last verified: 2026-09-13, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
-Verified main: `e13ca1918c4884c7247f7be4d37578456cf5d07b` — #125 merged by owner
-Current implementation branch: `agent/reconcile-calendar-journal-125`
-Current draft PR: [#126](https://github.com/zakutailopavel-cyber/keelesepp/pull/126)
+Verified main: `28195c052758efe2153c30eead0ee592132889e7` — #127 merged by owner
+Current implementation branch: `agent/reconcile-calendar-127`
+Current draft PR: pending — calendar #127 post-merge reconciliation
 PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [#116](https://github.com/zakutailopavel-cyber/keelesepp/pull/116) are merged.
 
 ## Current objective
+
+Historical Google Calendar Sync Clarity is merged and production-accepted. Past one-time KeeleSepp
+lessons whose original Google push failed are shown as neutral `G–` records. An exact imported Google
+mirror for the same student, teacher and interval is collapsed from presentation and no longer creates a
+false self-conflict. Current and future sync failures remain actionable `G!` records.
+
+Production smoke on main `28195c052758efe2153c30eead0ee592132889e7` confirmed the visible week retains
+five completed lessons after a full reload. Deniss Lazarev and the historical Martin lesson show `G–`;
+the duplicate Martin mirror and `Martin ↔ Martin` conflict are absent. The genuine
+`Anna Krupenya ↔ Dema` overlap remains. No lesson, schedule, billing or Google Calendar record was
+created or changed during the smoke.
 
 Historical Calendar Completion Reconciliation is merged and production-accepted. Existing lesson-journal
 results remain visible even when an older schedule record was already reverted to `Planeeritud` before
@@ -31,7 +42,7 @@ PR #94 switched Teacher Home to the real curriculum source. PR #95 then bound th
 
 ## Verified repository state
 
-Current remote `main` is `e13ca1918c4884c7247f7be4d37578456cf5d07b`.
+Current remote `main` is `28195c052758efe2153c30eead0ee592132889e7`.
 
 Merged on current `main`:
 
@@ -67,6 +78,30 @@ Merged on current `main`:
 - #123 Teacher Daily Workflow Reorganization — merged.
 - #124 Calendar Completion Persistence — merged; owner deployed `gcalApi` and `syncAllCalendars`.
 - #125 Historical Calendar Completion Reconciliation — merged; Vercel production READY and smoke PASS.
+- #126 #125 post-merge documentation reconciliation — merged.
+- #127 Historical Google Calendar Sync Clarity — merged; Vercel production READY and smoke PASS.
+
+## Historical Google Calendar Sync Clarity — COMPLETED
+
+The calendar distinguishes an old, non-actionable push failure from a current failure. A past one-time
+native lesson with `gcalSyncStatus: error` and no Google event ID renders as `G–`; current and recurring
+errors keep the existing actionable `G!` state. When an exact historical imported Google mirror exists
+for the same student, teacher and interval, presentation retains the native KeeleSepp lesson and removes
+only the duplicate mirror. Genuine overlaps continue to appear in the conflict queue.
+
+Validation before merge: targeted calendar and accounting UI suite **28/28 PASS**; JavaScript syntax and
+diff checks PASS; GitHub/Vercel checks PASS. After owner merge, Vercel production for main
+`28195c052758efe2153c30eead0ee592132889e7` became READY. Authenticated production smoke confirmed
+`G–` for Deniss and historical Martin, no duplicate historical Martin card, no false self-conflict, and
+the unchanged genuine Anna Krupenya/Dema conflict. A full reload retained five completed lessons and the
+same corrected presentation. No new application runtime or API errors appeared. The console still emits
+the known Tailwind CDN, in-browser Babel and oversized inline Babel transformation warnings.
+
+Data/security impact: presentation-only. No Firebase Function, Firestore rule, index, migration, lesson,
+schedule, Google Calendar, billing or student data was changed or deployed for #127.
+
+Exactly one next safe step: run a read-only production usability audit of the teacher's daily path and
+choose one bounded high-frequency friction point before making another code change.
 
 ## Calendar Completion Persistence — COMPLETED
 
