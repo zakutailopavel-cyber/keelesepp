@@ -1,21 +1,22 @@
 # KeeleSepp Project State
 
-Last verified: 2026-09-12, Europe/Tallinn
+Last verified: 2026-09-13, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
-Verified main: `6358e41cd406b46a317dab954fbcab5c1c626ecd` — #124 merged by owner
-Current implementation branch: `agent/calendar-journal-projection`
-Current draft PR: [#125](https://github.com/zakutailopavel-cyber/keelesepp/pull/125)
+Verified main: `e13ca1918c4884c7247f7be4d37578456cf5d07b` — #125 merged by owner
+Current implementation branch: `agent/reconcile-calendar-journal-125`
+Current draft PR: pending
 PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [#116](https://github.com/zakutailopavel-cyber/keelesepp/pull/116) are merged.
 
 ## Current objective
 
-Historical Calendar Completion Reconciliation is the current bounded reliability workstream. Existing
-lesson-journal results must remain visible even when an older schedule record was already reverted to
-`Planeeritud` before the #124 protection reached production.
+Historical Calendar Completion Reconciliation is merged and production-accepted. Existing lesson-journal
+results remain visible even when an older schedule record was already reverted to `Planeeritud` before
+the #124 protection reached production.
 
-The #124 import boundary prevents future reversion. This follow-up derives the displayed status from an
-existing final lesson-journal record using exact `scheduleId + date` identity. It does not migrate or write
-production data, create billing records, or apply one recurring occurrence to another date.
+The #124 import boundary prevents future reversion. #125 derives the displayed status from an existing
+final lesson-journal record using exact `scheduleId + date` identity. Production reload retained five
+completed lessons in the visible week. No lesson, billing or Google Calendar record was created or changed
+during the smoke.
 
 Production contains a genuine immutable A2 assignment for Elena Polischuk, assignment
 `8f3cb3b6-9965-4637-9a4d-dd0032550008`, with 32 activities. Post-#112 production smoke confirmed the
@@ -30,7 +31,7 @@ PR #94 switched Teacher Home to the real curriculum source. PR #95 then bound th
 
 ## Verified repository state
 
-Current remote `main` is `6358e41cd406b46a317dab954fbcab5c1c626ecd`.
+Current remote `main` is `e13ca1918c4884c7247f7be4d37578456cf5d07b`.
 
 Merged on current `main`:
 
@@ -65,6 +66,7 @@ Merged on current `main`:
 - #122 Quick Questions + Answers — merged; every question creates its own activity and response field.
 - #123 Teacher Daily Workflow Reorganization — merged.
 - #124 Calendar Completion Persistence — merged; owner deployed `gcalApi` and `syncAllCalendars`.
+- #125 Historical Calendar Completion Reconciliation — merged; Vercel production READY and smoke PASS.
 
 ## Calendar Completion Persistence — COMPLETED
 
@@ -83,7 +85,7 @@ JavaScript syntax and diff checks PASS. The owner merged #124 and selectively de
 `syncAllCalendars`. A manual production sync returned HTTP 200 and synchronized 77 events without failures.
 The subsequent hourly scheduled syncs completed successfully without Function errors.
 
-## Historical Calendar Completion Reconciliation — implementation pending review
+## Historical Calendar Completion Reconciliation — COMPLETED
 
 Some schedule documents may already have been reverted before #124 was deployed. Calendar rendering now
 projects an existing final lesson-journal status (`Toimunud`, `Puudus_p`, or `Puudus_eta`) onto the matching
@@ -91,8 +93,11 @@ calendar occurrence using exact `scheduleId + date` identity. A different date o
 
 This is a read-only presentation reconciliation. It does not update Firestore, create or delete lessons,
 change billing, modify Google Calendar, or require Firebase deployment. Targeted calendar and accounting UI
-tests pass. After owner review and merge, the next safe step is a Vercel production smoke that confirms a
-historical completed occurrence displays its journal result after reload and calendar synchronization.
+tests **35/35 PASS**; GitHub/Vercel checks **3/3 PASS**. After owner merge, Vercel production for main
+`e13ca1918c4884c7247f7be4d37578456cf5d07b` became READY. Real production showed 26 lessons for the visible
+week: five completed, twenty planned and one cancelled. A full reload retained the same five completed
+results. Google Calendar remained connected. No new application runtime error appeared; only the known
+Tailwind CDN and in-browser Babel build warnings remain.
 
 ## Staff Student Preview v1 — COMPLETED
 
@@ -198,7 +203,7 @@ evidence or production data change.
 Validation: interactive/generation contract and DOM suite **20/20 PASS**; Functions suite **163/163 PASS**;
 JavaScript syntax and diff checks PASS.
 
-## Teacher Daily Workflow Reorganization — implementation pending review
+## Teacher Daily Workflow Reorganization — COMPLETED
 
 Teacher Home now presents the daily workflow as four prominent actions: today's lessons, lesson
 preparation, student assignment and answer review. The CRM sidebar keeps the five daily destinations
@@ -213,8 +218,9 @@ Validation: focused navigation and assignment tests **19/19 PASS**; Lesson Build
 (three stale Adaptive Lesson UI expectations and the whiteboard browser environment test) reproduce on
 clean `main`, where the suite is **426/430 PASS**.
 
-Exactly one next safe step: owner review and merge of the Teacher Daily Workflow draft PR, followed by a
-read-only production walkthrough of all four shortcuts and the collapsed legacy tool menu.
+Production navigation confirmed the reorganized daily navigation after #123 merged. Exactly one next safe
+step: run a read-only reliability audit of the two visible Google Calendar rejection indicators before
+deciding whether they represent stale display state, malformed schedule ownership or a synchronization defect.
 
 Independent open PRs remain separate and must not be mixed into the learning rollout:
 
