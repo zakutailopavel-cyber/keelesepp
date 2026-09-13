@@ -4,7 +4,7 @@ Last verified: 2026-09-13, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
 Verified main: `28195c052758efe2153c30eead0ee592132889e7` — #127 merged by owner
 Current implementation branch: `agent/reconcile-calendar-127`
-Current draft PR: pending — calendar #127 post-merge reconciliation
+Current draft PR: [#128](https://github.com/zakutailopavel-cyber/keelesepp/pull/128)
 PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [#116](https://github.com/zakutailopavel-cyber/keelesepp/pull/116) are merged.
 
 ## Current objective
