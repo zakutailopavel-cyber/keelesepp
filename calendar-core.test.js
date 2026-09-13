@@ -7,6 +7,8 @@ const {
   eventOccursOnDate,
   eventsForDate,
   eventsWithLessonResults,
+  isHistoricalCalendarPushError,
+  eventsWithoutHistoricalMirrors,
   findScheduleConflicts,
   scheduleConflictRows,
   scheduleConflictWarning,
@@ -88,6 +90,21 @@ test('lesson journal projection requires exact schedule and date identity',()=>{
     {id:'wrong-schedule',scheduleId:'schedule-2',date:'2026-09-12',status:'Toimunud'}
   ];
   assert.equal(eventsWithLessonResults(events,lessons,'2026-09-12')[0].status,'Planeeritud');
+});
+
+test('past one-time push errors become historical while current errors stay actionable',()=>{
+  const event={source:'keelesepp',gcalSyncStatus:'error',gcalSyncError:'invalid_request'};
+  assert.equal(isHistoricalCalendarPushError(event,'2026-09-08','2026-09-13'),true);
+  assert.equal(isHistoricalCalendarPushError(event,'2026-09-13','2026-09-13'),false);
+  assert.equal(isHistoricalCalendarPushError({...event,recurring:true},'2026-09-08','2026-09-13'),false);
+});
+
+test('exact historical Google mirror is displayed once and does not create a self-conflict',()=>{
+  const native={id:'native',source:'keelesepp',date:'2026-09-08',time:'16:00',duration:60,teacher:'Pavel',studentId:'martin',studentName:'Martin',gcalSyncStatus:'error'};
+  const imported={id:'google',source:'gcal',date:'2026-09-08',time:'16:00',duration:60,teacher:'Pavel',studentId:'martin',studentName:'Martin',gcalSyncStatus:'synced'};
+  assert.deepEqual(eventsWithoutHistoricalMirrors([native,imported],'2026-09-08','2026-09-13').map(event=>event.id),['native']);
+  assert.deepEqual(findScheduleConflicts([native,imported],native,'2026-09-08',{todayIso:'2026-09-13'}),[]);
+  assert.equal(eventsWithoutHistoricalMirrors([native,imported],'2026-09-13','2026-09-13').length,2);
 });
 
 test('overlapping teacher and student bookings are reported',()=>{
