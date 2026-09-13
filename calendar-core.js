@@ -166,6 +166,33 @@
     return Boolean(a&&b&&a===b);
   };
 
+  const isHistoricalCalendarPushError=(event,dateIso,todayIso=toLocalISODate(new Date()))=>
+    event?.source!=='gcal'
+    &&event?.gcalSyncStatus==='error'
+    &&!event?.gcalEventId
+    &&!event?.recurring
+    &&Boolean(dateIso&&todayIso&&dateIso<todayIso);
+
+  const isHistoricalCalendarMirror=(left,right,dateIso,todayIso)=>{
+    const native=left?.source==='gcal'?right:left;
+    const external=left?.source==='gcal'?left:right;
+    if(external?.source!=='gcal'||!isHistoricalCalendarPushError(native,dateIso,todayIso)) return false;
+    const nativeInterval=eventInterval(native,dateIso);
+    const externalInterval=eventInterval(external,dateIso);
+    return sameStudent(native,external)
+      &&sameTeacher(native,external)
+      &&nativeInterval?.start===externalInterval?.start
+      &&nativeInterval?.end===externalInterval?.end;
+  };
+
+  const eventsWithoutHistoricalMirrors=(events,dateIso,todayIso=toLocalISODate(new Date()))=>
+    (events||[]).filter((event,index,list)=>{
+      if(event?.source!=='gcal') return true;
+      return !list.some((candidate,candidateIndex)=>
+        candidateIndex!==index&&isHistoricalCalendarMirror(event,candidate,dateIso,todayIso)
+      );
+    });
+
   const findScheduleConflicts=(events,candidate,dateIso,options={})=>{
     if(candidate?.status==='Tühistatud') return [];
     const interval=eventInterval(candidate,dateIso);
@@ -173,6 +200,7 @@
     const excludeId=options.excludeId||candidate.id||'';
     return (events||[]).flatMap(event=>{
       if(!event||event.id===excludeId||event.status==='Tühistatud') return [];
+      if(isHistoricalCalendarMirror(event,candidate,dateIso,options.todayIso)) return [];
       const other=eventInterval(event,dateIso);
       if(!other||interval.start>=other.end||other.start>=interval.end) return [];
       const reasons=[];
@@ -440,6 +468,8 @@
     eventOccursOnDate,
     eventsForDate,
     eventsWithLessonResults,
+    isHistoricalCalendarPushError,
+    eventsWithoutHistoricalMirrors,
     eventInterval,
     findScheduleConflicts,
     scheduleConflictRows,

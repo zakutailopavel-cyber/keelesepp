@@ -41,6 +41,14 @@ test("calendar projects existing journal results over stale imported schedule st
   assert.match(html, /<CalendarView[^>]*schedule=\{schedule\} lessons=\{lessons\}/);
 });
 
+test("calendar separates historical Google push failures from current errors and collapses exact mirrors", () => {
+  assert.match(html, /isHistoricalCalendarPushError:calendarIsHistoricalPushError/);
+  assert.match(html, /eventsWithoutHistoricalMirrors:calendarEventsWithoutHistoricalMirrors/);
+  assert.match(html, /calendarEventsWithoutHistoricalMirrors\(/);
+  assert.match(html, />G–<\/span>/);
+  assert.match(html, />G!<\/span>/);
+});
+
 test("group attendance creates student lesson records instead of an external group lesson", () => {
   assert.match(html, /sourceKey:`group:\$\{modalEv\.groupId\}:\$\{modalEv\.groupLessonId\}`/);
   assert.match(html, /studentId:item\.student\.id/);

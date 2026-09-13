@@ -185,6 +185,8 @@ const {
   dayIdForDate:calendarDayIdForDate,
   eventsForDate:calendarEventsForDate,
   eventsWithLessonResults:calendarEventsWithLessonResults,
+  isHistoricalCalendarPushError:calendarIsHistoricalPushError,
+  eventsWithoutHistoricalMirrors:calendarEventsWithoutHistoricalMirrors,
   eventOccursOnDate:calendarEventOccursOnDate,
   findScheduleConflicts,
   scheduleConflictRows,
@@ -3310,7 +3312,11 @@ function CalendarView({user,myStudents,schedule,lessons,groups,isAdmin,filterT,s
   },[schedule,groups,myStudents,filterT,showCanceled,canManage,isAdmin,user]);
 
   const eventsOnDate = React.useCallback(
-    dayIso=>calendarEventsWithLessonResults(calendarEventsForDate(filteredSch,dayIso),lessons,dayIso)
+    dayIso=>calendarEventsWithoutHistoricalMirrors(
+      calendarEventsWithLessonResults(calendarEventsForDate(filteredSch,dayIso),lessons,dayIso),
+      dayIso,
+      today()
+    )
       .sort((left,right)=>String(left.time||'').localeCompare(String(right.time||''))),
     [filteredSch,lessons]
   );
@@ -3653,7 +3659,8 @@ function CalendarView({user,myStudents,schedule,lessons,groups,isAdmin,filterT,s
           {!ev.date&&<span style={{opacity:.5}}>↻</span>}
           {isExternal&&<span title="Imporditud Google Calendarist">G</span>}
           {!isExternal&&ev.gcalSyncStatus==='synced'&&<span title="Google Calendariga sünkroonitud" style={{color:'#166534',fontWeight:800}}>G✓</span>}
-          {!isExternal&&ev.gcalSyncStatus==='error'&&<span title={googleCalendarErrorGuidance(ev.gcalSyncError)||'Google Calendari sünkroonimine vajab tähelepanu'} style={{color:'#dc2626',fontWeight:800}}>G!</span>}
+          {!isExternal&&ev.gcalSyncStatus==='error'&&calendarIsHistoricalPushError(ev,dayIso,today())&&<span title="Varasemat tundi ei saadetud Google Calendarisse. Möödunud tund ei vaja uut sünkroonimist." style={{color:'#64748b',fontWeight:700}}>G–</span>}
+          {!isExternal&&ev.gcalSyncStatus==='error'&&!calendarIsHistoricalPushError(ev,dayIso,today())&&<span title={googleCalendarErrorGuidance(ev.gcalSyncError)||'Google Calendari sünkroonimine vajab tähelepanu'} style={{color:'#dc2626',fontWeight:800}}>G!</span>}
           {!isExternal&&ev.gcalSyncStatus==='queued'&&<span title="Google Calendarisse saatmise ootel" style={{color:'#C9882A',fontWeight:800}}>G…</span>}
           {conflicts.length>0&&<span title="Kalendris on kattuv tund" style={{color:'#dc2626',fontWeight:800}}>⚠</span>}
           {isDayView&&<span>{slot} – {calendarAddMinutes(slot,dur)} · {dur}min</span>}
