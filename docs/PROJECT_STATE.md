@@ -4,7 +4,7 @@ Last verified: 2026-09-13, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
 Verified main: `e51f31fa2075733aa4c4c9a0eb42945914ba8814` — #129 merged by owner
 Current implementation branch: `agent/teacher-home-prepare-lesson`
-Current draft PR: pending
+Current draft PR: [#130](https://github.com/zakutailopavel-cyber/keelesepp/pull/130)
 PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [#116](https://github.com/zakutailopavel-cyber/keelesepp/pull/116) are merged.
 
 ## Current objective
