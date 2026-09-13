@@ -74,8 +74,14 @@ test('today cards join schedule to real curriculum context without inventing leg
   assert.equal(cards[0].studentName,'Robert');
   assert.equal(cards[0].endTime,'14:45');
   assert.equal(cards[0].summary.curriculumNext.topicId,'est-b1-01');
-  assert.equal(cards[0].primaryAction.label,'Ava õpilase kaart');
-  assert.equal(cards[0].primaryAction.kind,'profile');
+  assert.equal(cards[0].primaryAction.label,'Valmista see tund');
+  assert.equal(cards[0].primaryAction.kind,'prepare');
+  assert.equal(cards[0].primaryAction.href,'/haldus-lesson-builder/?curriculumLessonKey=est-b1-01%3A0');
   assert.equal(cards[1].studentId,'');
   assert.equal(cards[1].primaryAction,null);
+});
+
+test('curriculum preparation link uses only the stable curriculum lesson key',()=>{
+  assert.equal(core.builderHref({key:'est-a2-03:1',topicName:'Ignored'}),'/haldus-lesson-builder/?curriculumLessonKey=est-a2-03%3A1');
+  assert.equal(core.builderHref({key:''}),'');
 });

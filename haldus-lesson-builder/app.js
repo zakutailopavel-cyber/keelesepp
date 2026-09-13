@@ -7,6 +7,7 @@
   const types={diagnostic:'Diagnostika',vocabulary:'Sõnavaratöö',controlled_practice:'Juhitud harjutus',scene:'Olukord',roleplay:'Rollimäng',transfer:'Uus olukord',assessment:'Kontroll'};
   const icons={diagnostic:'◎',vocabulary:'Aa',controlled_practice:'✎',scene:'▧',roleplay:'☏',transfer:'↗',assessment:'✓'};
   const routes={support:'Vajab tuge',core:'Tavaline tase',advanced:'Liiga lihtne'};
+  const requestedCurriculumKey=new URLSearchParams(location.search).get('curriculumLessonKey')||'';
   let draft=ux.prepare(core.createDraft(uuid('draft'))),selected='',route='core',clipboard=null,collapsed=new Set(),device='desktop',previewToken='',previewTimer=null,dragId='',modalReturn=null;
   const saver=ux.autosave({storage:localStorage,key:STORAGE,onStatus:(status,message)=>{$('save-state').textContent=({saved:'✓ Salvestatud · siin brauseris',saving:'Salvestan…',dirty:'Salvestamata muudatused',error:'Salvestamine ebaõnnestus'})[status];$('save-state').dataset.status=status;if(message)notice('Salvestamine ebaõnnestus. Ekspordi varukoopia. '+message);}});
   try{const restored=saver.restore();if(restored){draft=restored;$('save-state').textContent='✓ Taastatud sellest brauserist';}}catch(e){notice('Varasemat mustandit ei saanud avada. Faili ega salvestust ei kirjutatud üle. '+e.message);}
@@ -14,6 +15,16 @@
   function notice(text){$('notice').hidden=!text;$('notice').textContent=text;}
   function announce(text){$('announcement').textContent=text;}
   function current(){return draft.activities.find(a=>a.id===selected);}
+  function requestedCurriculumItem(){
+    if(!requestedCurriculumKey||!window.CurriculumWorkflow||!window.HaldusCurriculum)return null;
+    return window.CurriculumWorkflow.flattenCurriculum(window.HaldusCurriculum).find(item=>item.key===requestedCurriculumKey)||null;
+  }
+  function startCurriculumLesson(item){
+    const next=ux.curriculumStarter(item,uuid('draft'));
+    const apply=()=>{closeModal();commit(next,{select:''});notice(`Õppekava tunni „${item.topicName}” seaded on täidetud. Vali valmis struktuur.`);library('lessons');};
+    if(draft.activities.length||draft.title!=='Uus tund')confirmAction('Alusta selle õppekava tunni ettevalmistust?',`Praeguse kohaliku kavandi saad Undo abil taastada. Uue tunni teema ja eesmärk täidetakse automaatselt.`,apply);
+    else apply();
+  }
   function commit(next,{key='',select=selected,editor=true}={}){if(!history.commit(next,key))return;draft=history.get();selected=draft.activities.some(a=>a.id===select)?select:draft.activities[0]?.id||'';saver.queue(draft);renderStructure();renderHealth();if(editor)renderEditor();renderTop();schedulePreview();}
   function undo(){draft=history.undo();selected=draft.activities.some(a=>a.id===selected)?selected:draft.activities[0]?.id||'';saver.queue(draft);render();announce('Muudatus võetud tagasi.');}
   function redo(){draft=history.redo();selected=draft.activities.some(a=>a.id===selected)?selected:draft.activities[0]?.id||'';saver.queue(draft);render();announce('Muudatus tehtud uuesti.');}
@@ -119,5 +130,8 @@
   addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='z'&&!$('modal').open){e.preventDefault();e.shiftKey?redo():undo();}if(e.key==='Escape'&&!$('modal').open){document.body.classList.remove('preview-fullscreen','preview-open','structure-open');resizePreview();}});
   addEventListener('beforeunload',e=>{if(saver.dirty){e.preventDefault();e.returnValue='';}});
   render();
+  const curriculumItem=requestedCurriculumItem();
+  if(curriculumItem)setTimeout(()=>startCurriculumLesson(curriculumItem),0);
+  else if(requestedCurriculumKey)notice('Seda õppekava tundi ei leitud. Praegune kohalik kavand jäi muutmata.');
 window.KeeleSeppBuilderBridge={selected:()=>selected,select:id=>{if(draft.activities.some(a=>a.id===id)){selected=id;render();}},insertGenerated:generated=>{const next=ux.copy(draft),id=uuid('act'),after=next.activities.findIndex(a=>a.id===selected),activity={schemaVersion:1,id,title:generated.title,phaseId:generated.phaseId,skillIds:[generated.skillId],workspaceType:generated.workspaceType,routes:Object.fromEntries(core.ROUTES.map(r=>[r,{prompt:generated.routes[r].prompt,expected:generated.expected,teacherInstruction:generated.teacherInstruction,workspaceType:generated.workspaceType}]))};if(generated.response){activity.responseMode=generated.response.mode;activity.evaluation={response:generated.response};}next.activities.splice(after<0?next.activities.length:after+1,0,activity);next.authoring.activities[id]={minutes:generated.minutes,layout:generated.layout,templateId:'ai-single-v1',reference:false};next.authoring.lesson.skills=[...new Set([...(next.authoring.lesson.skills||[]),generated.skillId])];commit(next,{select:id});return id;},patchAssets:assets=>{const next=ux.copy(draft),a=next.activities.find(a=>a.id===selected);if(!a)return;if(assets.length)a.assets=assets;else delete a.assets;commit(next);},patchResponse:spec=>{const next=ux.copy(draft),a=next.activities.find(a=>a.id===selected);if(!a)return;a.evaluation={...a.evaluation};if(spec){a.responseMode=spec.mode;a.evaluation.response=spec;}else{delete a.responseMode;delete a.evaluation.response;}commit(next);},get:()=>ux.copy(draft),replace:next=>{draft=ux.prepare(next);history=ux.history(draft);selected=draft.activities[0]?.id||'';saver.queue(draft);render();},modal:openModal,close:closeModal,confirm:confirmAction};
 })();

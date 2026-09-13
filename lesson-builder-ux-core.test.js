@@ -19,6 +19,16 @@ test('autosave is debounced, restores content, and leaves invalid edits dirty',(
 test('storage errors and malformed import never overwrite last valid draft',()=>{const s=ux.autosave({storage:{getItem:()=>'{bad',setItem:()=>{throw Error('quota');}},key:'test',schedule:()=>0,cancel:()=>{}});assert.throws(()=>s.restore());s.queue(fixture());assert.equal(s.flush(),false);assert.equal(s.dirty,true);assert.throws(()=>core.parse('{bad'));});
 test('adaptation is deterministic and does not change IDs or other routes',()=>{const d=fixture(),id=d.activities[0].id,next=ux.adapt(d,id,'support');assert.equal(next.activities[0].id,id);assert.deepEqual(next.activities[0].routes.core,d.activities[0].routes.core);assert.notEqual(next.activities[0].routes.support.prompt,d.activities[0].routes.support.prompt);});
 test('warnings and tips do not block validation or mutate draft',()=>{const d=fixture();d.authoring.lesson.goal='';d.activities=d.activities.filter(a=>a.workspaceType!=='assessment');d.activities[0].routes.core.teacherInstruction='';const before=JSON.stringify(d),v=ux.validate(d);assert.equal(v.ok,true);assert.ok(v.warnings.length);assert.ok(v.tips.length);assert.equal(v.errors.length,0);assert.equal(JSON.stringify(d),before);d.activities[0].routes.core.prompt='';assert.equal(ux.validate(d).ok,false);});
+
+test('curriculum starter pre-fills lesson metadata without inventing activities',()=>{
+  const draft=ux.curriculumStarter({key:'est-a2-03:0',topicName:'Работа и профессии',lessonNumber:'Урок 1',lessonIndex:0,lessonGoal:'Профессии и обязанности',level:'A2'},'draft-curriculum');
+  assert.equal(draft.title,'Работа и профессии · Урок 1');
+  assert.deepEqual(draft.activities,[]);
+  assert.equal(draft.authoring.lesson.cefr,'A2');
+  assert.equal(draft.authoring.lesson.topic,'Работа и профессии');
+  assert.equal(draft.authoring.lesson.goal,'Профессии и обязанности');
+  assert.equal(draft.authoring.lesson.minutes,60);
+});
 test('all visual layouts escape arbitrary markup and are presentation only',()=>{for(const [layout] of templates.LAYOUTS){const html=presentation.render({prompt:'<img src=x onerror=alert(1)>\nSecond line'},layout);assert.ok(html);assert.ok(!html.includes('<img src=x'));assert.ok(!html.includes('<script'));assert.ok(!html.includes('<input'));}});
 test('question layout removes pasted numbering before creating its own ordered list',()=>{const html=presentation.render({prompt:'1. Esimene küsimus\n2) Teine küsimus'},'questions');assert.match(html,/<li>Esimene küsimus<\/li>/);assert.match(html,/<li>Teine küsimus<\/li>/);assert.doesNotMatch(html,/<li>1\./);});
 test('authoring metadata rejects unsafe layouts, durations and lesson fields',()=>{for(const mutate of [d=>d.authoring.activities[d.activities[0].id].layout='<script>',d=>d.authoring.activities[d.activities[0].id].minutes='5',d=>d.authoring.lesson.cefr='Z9',d=>d.authoring.lesson.goal={},d=>d.authoring.phases=[{id:'x',title:''}]]){const d=fixture();mutate(d);assert.throws(()=>core.serialize(d));}});
