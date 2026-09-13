@@ -74,7 +74,8 @@ test('today cards join schedule to real curriculum context without inventing leg
   assert.equal(cards[0].studentName,'Robert');
   assert.equal(cards[0].endTime,'14:45');
   assert.equal(cards[0].summary.curriculumNext.topicId,'est-b1-01');
-  assert.equal(cards[0].primaryAction.label,'Ava õppimisprofiil');
+  assert.equal(cards[0].primaryAction.label,'Ava õpilase kaart');
+  assert.equal(cards[0].primaryAction.kind,'profile');
   assert.equal(cards[1].studentId,'');
   assert.equal(cards[1].primaryAction,null);
 });

@@ -27,6 +27,11 @@ test('Teacher Home exposes the four-step daily workflow without writes',()=>{
   assert.match(source,/href="\/interactive-lesson\/\?action=assign"/);
 });
 
+test('Teacher Home avoids duplicate profile actions when no ready lesson exists',()=>{
+  assert.match(source,/primaryAction\?\.kind==='profile'/);
+  assert.match(source,/Ava õpilase kaart või alusta valmis tundi/);
+});
+
 test('Teacher Home reads schedule and curriculum progress through existing rollout boundaries',()=>{
   assert.match(source,/collection\('securityMigrations'\)\.doc\('teacherUidV1'\)\.get\(\)/);
   assert.match(source,/collection\('schedule'\)\.where\('teacherUid','==',state\.user\.uid\)/);

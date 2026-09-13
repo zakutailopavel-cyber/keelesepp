@@ -166,7 +166,7 @@
     const binding=summary?.curriculumJourney?.valid&&!summary.warning
       ?bindings?.forCurriculumItem(summary.curriculumNext):null;
     if(binding) return {kind:'lesson',label:'Alusta tundi',href:lessonHref(id,binding.lessonBlueprintId)};
-    return {kind:'profile',label:'Ava õppimisprofiil',href:`/haldus-learning-profile/?studentId=${encodeURIComponent(id)}`};
+    return {kind:'profile',label:'Ava õpilase kaart',href:`/haldus-learning-profile/?studentId=${encodeURIComponent(id)}`};
   }
   function buildTodayCards({events=[],actor=null,studentsById={},learningByStudent={}}={}){
     const visible=filterTeacherEvents(events,actor);
