@@ -4,7 +4,7 @@ Last verified: 2026-09-12, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
 Verified main: `6358e41cd406b46a317dab954fbcab5c1c626ecd` — #124 merged by owner
 Current implementation branch: `agent/calendar-journal-projection`
-Current draft PR: pending
+Current draft PR: [#125](https://github.com/zakutailopavel-cyber/keelesepp/pull/125)
 PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [#116](https://github.com/zakutailopavel-cyber/keelesepp/pull/116) are merged.
 
 ## Current objective
