@@ -156,6 +156,10 @@
     if(!id||!SUPPORTED_LESSON_IDS.has(blueprintId)) return '';
     return `/haldus-adaptive-lesson/?studentId=${encodeURIComponent(id)}&lessonId=${encodeURIComponent(blueprintId)}`;
   }
+  function builderHref(item){
+    const key=clean(item?.key,160);
+    return key?`/haldus-lesson-builder/?curriculumLessonKey=${encodeURIComponent(key)}`:'';
+  }
   function actionForStudent(studentId,summary){
     const id=clean(studentId,120);
     if(!id) return null;
@@ -166,6 +170,9 @@
     const binding=summary?.curriculumJourney?.valid&&!summary.warning
       ?bindings?.forCurriculumItem(summary.curriculumNext):null;
     if(binding) return {kind:'lesson',label:'Alusta tundi',href:lessonHref(id,binding.lessonBlueprintId)};
+    if(summary?.curriculumJourney?.valid&&!summary.warning&&summary.curriculumNext){
+      return {kind:'prepare',label:'Valmista see tund',href:builderHref(summary.curriculumNext)};
+    }
     return {kind:'profile',label:'Ava õpilase kaart',href:`/haldus-learning-profile/?studentId=${encodeURIComponent(id)}`};
   }
   function buildTodayCards({events=[],actor=null,studentsById={},learningByStudent={}}={}){
@@ -189,6 +196,6 @@
   return {
     REFERENCE_LESSON_ID,REFERENCE_GOAL_ID,VOCAB_LESSON_ID,VOCAB_GOAL_ID,LESSON_BY_GOAL,
     clean,teacherMatches,filterTeacherEvents,lessonEnd,sanitizeRouteBySkill,latestActiveSession,latestEvidence,
-    normalizeCurriculumJourney,learningSummary,lessonHref,actionForStudent,buildTodayCards,
+    normalizeCurriculumJourney,learningSummary,lessonHref,builderHref,actionForStudent,buildTodayCards,
   };
 });

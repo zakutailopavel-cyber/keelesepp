@@ -32,6 +32,11 @@ test('Teacher Home avoids duplicate profile actions when no ready lesson exists'
   assert.match(source,/Ava õpilase kaart või alusta valmis tundi/);
 });
 
+test('Teacher Home offers direct preparation for an unbound curriculum lesson',()=>{
+  assert.match(source,/card\.primaryAction/);
+  assert.match(source,/Õpilase kaart/);
+});
+
 test('Teacher Home reads schedule and curriculum progress through existing rollout boundaries',()=>{
   assert.match(source,/collection\('securityMigrations'\)\.doc\('teacherUidV1'\)\.get\(\)/);
   assert.match(source,/collection\('schedule'\)\.where\('teacherUid','==',state\.user\.uid\)/);
