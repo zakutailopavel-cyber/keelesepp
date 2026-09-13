@@ -18,8 +18,9 @@ The new bridge turns an unbound lesson's stable curriculum key into a direct `Va
 Lesson Builder resolves that key from the authoritative curriculum bundle, pre-fills title, CEFR, topic and
 goal, then opens the existing lesson-template library. A pre-existing local draft requires confirmation and
 remains recoverable through Undo. No student id or student data is passed to Builder. No session, evidence,
-assignment, curriculum credit, calendar record or Firebase write is created. Exactly one next safe step:
-verify the Teacher Home to Builder path on Vercel Preview before owner merge.
+assignment, curriculum credit, calendar record or Firebase write is created. Vercel Preview confirmed that
+the curriculum-key entry opens the correct A2 metadata and the ten existing lesson templates. Exactly one
+next safe step: owner review and merge #130.
 
 Historical Google Calendar Sync Clarity is merged and production-accepted. Past one-time KeeleSepp
 lessons whose original Google push failed are shown as neutral `G–` records. An exact imported Google
@@ -103,7 +104,8 @@ Merged on current `main`:
 - Builder pre-fills lesson title, CEFR, topic and goal and immediately opens the existing template library.
 - Existing local work requires confirmation before replacement and remains available through Undo.
 - Validation: focused core/UI/real-curriculum suite **59/59 PASS**; Lesson Builder browser suite **23/23 PASS**;
-  JavaScript syntax and diff checks PASS; local visual path PASS for `est-a2-03:0`.
+  JavaScript syntax and diff checks PASS; local and Vercel Preview visual paths PASS for `est-a2-03:0`;
+  GitHub/Vercel checks **3/3 PASS**.
 - Data/security impact: browser-only preparation flow; no API call, Firebase change, student write or deploy.
 - Known limitation: selecting and tailoring the pedagogical template remains an explicit teacher action.
 
