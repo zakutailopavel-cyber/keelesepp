@@ -1,0 +1,44 @@
+name: temp-crm-v2-baseline-probe
+
+on:
+  push:
+    branches:
+      - agent/visual-worksheet-student-v1
+    paths:
+      - .github/workflows/temp-crm-v2-baseline-probe.yml
+
+permissions:
+  contents: read
+
+jobs:
+  main-baseline-node22:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: crm-v2/package-lock.json
+      - run: npm ci
+        working-directory: crm-v2
+      - run: npm test
+        working-directory: crm-v2
+
+  main-baseline-node24:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: crm-v2/package-lock.json
+      - run: npm ci
+        working-directory: crm-v2
+      - run: npm test
+        working-directory: crm-v2
