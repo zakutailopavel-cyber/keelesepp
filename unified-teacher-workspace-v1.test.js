@@ -8,7 +8,8 @@ test('daily teacher navigation exposes one productive workspace',()=>{
   assert.match(haldus,/label:isStaff\?'Minu tööpäev':'Töölaud'/);
   assert.match(haldus,/id:'students',[^\n]*daily:isStaff/);
   assert.match(haldus,/id:'calendar',[^\n]*daily:isStaff/);
-  assert.match(haldus,/id:'programs'.*label:'Õppeprogramm',daily:true/s);
+  assert.match(haldus,/id:'learning_library'.*label:'Õppevara'.*href:'\/haldus-exercises\/'.*daily:true/s);
+  assert.doesNotMatch(haldus,/id:'programs'.*label:'Õppeprogramm'/s);
   assert.doesNotMatch(haldus,/src="\/haldus-teacher-home\/\?embedded=1"/);
 });
 

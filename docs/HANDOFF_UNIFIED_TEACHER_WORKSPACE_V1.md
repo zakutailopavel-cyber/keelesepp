@@ -4,9 +4,9 @@
 
 - Last checked: 2026-09-14
 - Main: `2ef513a799cce77a8d3593aa8c56f15f7709cbaa`
-- Branch: `codex/unified-teacher-workspace-v1`
-- Head before this documentation update: `27dc6900536b19f160b2c5e467d93ad7aac3fe71`
-- Draft PR: [#146](https://github.com/zakutailopavel-cyber/keelesepp/pull/146)
+- Merged implementation: [#146](https://github.com/zakutailopavel-cyber/keelesepp/pull/146)
+- Current correction branch: `codex/restore-oppevara-primary`
+- Current draft PR: [#147](https://github.com/zakutailopavel-cyber/keelesepp/pull/147)
 
 ## Bounded goal
 
@@ -16,8 +16,11 @@ builder, worksheet builder, classroom and whiteboard. Do not create a new lesson
 
 ## Implemented
 
-- The daily navigation exposes `Minu tööpäev`, `Tunniplaan`, `Valmista tund`, `Õppeprogramm` and
+- The daily navigation exposes `Minu tööpäev`, `Tunniplaan`, `Valmista tund`, `Õppevara` and
   `Minu õpilased` as the primary flow.
+- `Õppevara` is the existing `/haldus-exercises/` application that previously opened separately. The
+  duplicate `Õppeprogramm` sidebar destination was removed; curriculum remains available inside Õppevara
+  and from student-specific actions.
 - Same-origin tools open inside the CRM centre surface with `embedded=1`; duplicate child headers are hidden.
 - Curriculum and library actions open the worksheet builder in that same surface instead of a new tab.
 - A teacher can set a student's current curriculum place with one number. The selected item is stored via
@@ -66,5 +69,5 @@ builder, worksheet builder, classroom and whiteboard. Do not create a new lesson
 
 ## Exactly one next safe step
 
-Verify on the authenticated Vercel preview that curriculum → worksheet stays inside the CRM shell and that
-setting a test student's curriculum number survives reload without creating completion records.
+Verify on PR #147 that the primary `Õppevara` item opens `/haldus-exercises/` inside the CRM shell, then let
+the owner merge the PR.

@@ -638,12 +638,16 @@ A genuine image activity acceptance walkthrough remains a non-blocking follow-up
 ## Current workstream — Unified Teacher Workspace v1
 
 Last checked main on 2026-09-14: `2ef513a799cce77a8d3593aa8c56f15f7709cbaa`.
-Active branch: `codex/unified-teacher-workspace-v1`; draft PR
-[#146](https://github.com/zakutailopavel-cyber/keelesepp/pull/146).
+PR [#146](https://github.com/zakutailopavel-cyber/keelesepp/pull/146) is merged. Follow-up branch
+`codex/restore-oppevara-primary` and draft PR
+[#147](https://github.com/zakutailopavel-cyber/keelesepp/pull/147) restore the existing Õppevara application
+as the primary sidebar destination after user review found the internal catalogue in the wrong position.
 
 Goal: make `haldus.html` the single teacher workspace with one persistent menu/header/profile and no new
 browser tabs in the ordinary curriculum, learning-library and worksheet-authoring flow. The daily routes are
-`Minu tööpäev`, `Tunniplaan`, `Valmista tund`, `Õppeprogramm` and `Minu õpilased`. Existing same-origin tools
+`Minu tööpäev`, `Tunniplaan`, `Valmista tund`, `Õppevara` and `Minu õpilased`. `Õppevara` is the existing
+`/haldus-exercises/` application that formerly opened in a separate tab. The duplicate `Õppeprogramm`
+sidebar destination is removed; curriculum remains inside Õppevara and in student-specific flows. Existing same-origin tools
 render in the CRM centre surface with duplicate child headers hidden. Curriculum and library worksheet
 actions hand navigation back to the parent shell.
 
