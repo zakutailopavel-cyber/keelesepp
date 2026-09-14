@@ -7,6 +7,9 @@ on:
     paths:
       - .github/workflows/temp-interactive-worksheet-pdf-v1.yml
       - scripts/patch_interactive_worksheet_pdf_v1.py
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: write
@@ -48,7 +51,6 @@ jobs:
       - name: Commit generated changes
         shell: bash
         run: |
-          if git diff --quiet && git status --porcelain | grep -q '^??' ; then :; fi
           git config user.name "zakutailopavel-cyber"
           git config user.email "zakutailo.pavel@gmail.com"
           git add haldus-exercises/index.html interactive-worksheet-pdf-v1.test.js
