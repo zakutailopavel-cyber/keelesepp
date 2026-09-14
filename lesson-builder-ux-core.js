@@ -35,6 +35,14 @@
     d.authoring.lesson.topic=String(item.topicName);
     return d;
   }
+  function applyLessonTemplate(input,templateId,draftId,allocate){
+    const source=prepare(input),next=lessonTemplate(templateId,draftId,allocate);
+    next.title=source.title;
+    next.context=copy(source.context||{});
+    next.authoring.lesson={...next.authoring.lesson,...copy(source.authoring.lesson)};
+    next.authoring.lesson.skills=[...new Set(next.activities.flatMap(a=>a.skillIds))];
+    return next;
+  }
   function reorder(input,id,beforeId,phaseId){
     const d=prepare(input),i=d.activities.findIndex(a=>a.id===id);if(i<0||id===beforeId)return d;
     const [a]=d.activities.splice(i,1);if(phaseId)a.phaseId=phaseId;
@@ -108,5 +116,5 @@
   }
   function history(initial,limit=50){let current=copy(initial),past=[],future=[],lastKey='',lastTime=0;return {get:()=>copy(current),get canUndo(){return !!past.length;},get canRedo(){return !!future.length;},commit(next,key='',time=Date.now()){if(JSON.stringify(next)===JSON.stringify(current))return false;if(!key||key!==lastKey||time-lastTime>700){past.push(copy(current));if(past.length>limit)past.shift();}current=copy(next);future=[];lastKey=key;lastTime=time;return true;},undo(){if(past.length){future.push(current);current=past.pop();lastKey='';}return copy(current);},redo(){if(future.length){past.push(current);current=future.pop();lastKey='';}return copy(current);}};}
   function autosave({storage,key,onStatus=()=>{},delay=700,schedule=setTimeout,cancel=clearTimeout}){let timer=null,pending=null,saved='';return {restore(){const raw=storage.getItem(key);if(!raw)return null;const d=prepare(core.parse(raw));saved=JSON.stringify(d);return d;},queue(d){pending=copy(d);cancel(timer);onStatus(JSON.stringify(d)===saved?'saved':'dirty');if(JSON.stringify(d)!==saved)timer=schedule(()=>this.flush(),delay);},flush(){cancel(timer);if(!pending)return true;if(!validate(pending).ok){onStatus('dirty');return false;}try{onStatus('saving');storage.setItem(key,core.serialize(pending));saved=JSON.stringify(pending);onStatus('saved');return true;}catch(e){onStatus('error',e.message);return false;}},get dirty(){return !!pending&&JSON.stringify(pending)!==saved;},dispose(){cancel(timer);}};}
-  return {copy,SKILLS,prepare,meta,block,insert,lessonTemplate,curriculumStarter,reorder,move,duplicate,remove,paste,reset,adapt,composeWorksheet,composeQuestionList,phaseName,validate,history,autosave};
+  return {copy,SKILLS,prepare,meta,block,insert,lessonTemplate,curriculumStarter,applyLessonTemplate,reorder,move,duplicate,remove,paste,reset,adapt,composeWorksheet,composeQuestionList,phaseName,validate,history,autosave};
 });

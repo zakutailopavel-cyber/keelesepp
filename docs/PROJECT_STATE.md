@@ -1,26 +1,27 @@
 # KeeleSepp Project State
 
-Last verified: 2026-09-13, Europe/Tallinn
+Last verified: 2026-09-14, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
-Verified main: `18245de79457dd771ffd0b44b44c210f3b04fdf3` — #130 merged by owner
-Current implementation branch: `agent/reconcile-teacher-home-130`
-Current draft PR: [#131](https://github.com/zakutailopavel-cyber/keelesepp/pull/131)
+Verified main: `c14895e6315fb96c9f58d9b9729d552d03331c73` — #131 merged by owner
+Current implementation branch: `agent/guided-curriculum-starter`
+Current draft PR: [#132](https://github.com/zakutailopavel-cyber/keelesepp/pull/132)
 PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [#116](https://github.com/zakutailopavel-cyber/keelesepp/pull/116) are merged.
 
 ## Current objective
 
-Teacher Home Curriculum Preparation Bridge is merged and production-accepted. On production main
-`18245de79457dd771ffd0b44b44c210f3b04fdf3`, Teacher Home opened normally and showed the current Vlad A1
-and Ilja A2 lessons. Each unbound curriculum lesson showed `Valmista see tund` plus the secondary student
-profile action. Ilja's action opened Lesson Builder with stable key `est-a2-01:0`.
+Guided Curriculum Starter is the current bounded workstream. The roadmap was reconciled against the merged
+product: cloud drafts/publication, interactive student assignments, staff preview, bounded AI generation,
+accepted adaptive evidence and calendar completion already exist. The highest-priority remaining gap is the
+teacher's path from today's curriculum lesson to an editable, student-ready draft.
 
-Builder detected an existing local draft and displayed the required replacement confirmation. The smoke
-cancelled that confirmation, so no local draft was replaced. This verifies the safe recovery boundary while
-leaving the teacher's work unchanged. The production page reported no browser console warnings or errors.
-No session, evidence, assignment, curriculum credit, calendar record, API mutation, Firebase write or
-production data change was created by the smoke. Exactly one next safe step: design a bounded guided
-curriculum starter that reduces template choice and preparation time while preserving explicit teacher review.
+Teacher Home continues to pass only `curriculumLessonKey`. Builder protects an existing local draft, then
+shows three ordinary choices: a recommended 60-minute lesson, a fillable independent worksheet or the full
+template library. Selecting any structure preserves the curriculum title, CEFR, topic, goal and duration while
+allocating new stable activity IDs. Save, publish and assign remain explicit later actions. No Firebase, API,
+student, assignment, evidence, calendar, mastery or credit write is introduced.
 
+Exactly one next safe step: owner review of the guided curriculum starter after automated and visual preview
+verification.
 Historical Google Calendar Sync Clarity is merged and production-accepted. Past one-time KeeleSepp
 lessons whose original Google push failed are shown as neutral `G–` records. An exact imported Google
 mirror for the same student, teacher and interval is collapsed from presentation and no longer creates a
@@ -54,7 +55,7 @@ PR #94 switched Teacher Home to the real curriculum source. PR #95 then bound th
 
 ## Verified repository state
 
-Current remote `main` is `18245de79457dd771ffd0b44b44c210f3b04fdf3`.
+Current remote `main` is `c14895e6315fb96c9f58d9b9729d552d03331c73`.
 
 Merged on current `main`:
 
@@ -95,6 +96,22 @@ Merged on current `main`:
 - #128 #127 post-merge documentation reconciliation — merged.
 - #129 Teacher Home daily action clarity — merged; Vercel production READY and authenticated smoke PASS.
 - #130 Teacher Home Curriculum Preparation Bridge — merged; Vercel production READY and authenticated production smoke PASS.
+- #131 #130 post-merge documentation reconciliation — merged.
+
+## Guided Curriculum Starter — IN PROGRESS
+
+- Reconciled product priorities are in `docs/PRODUCT_ROADMAP.md`: teacher preparation, explicit
+  draft-to-student delivery and reliable student completion are P0.
+- Curriculum entry presents three choices: recommended 60-minute structure, fillable independent work or
+  the full template library.
+- Applying any lesson template preserves curriculum title, CEFR, topic, goal and duration. New activities
+  receive unique stable IDs; the previous browser draft remains recoverable through the existing Undo flow.
+- Validation: focused curriculum/Builder/Teacher Home/session suite **87/87 PASS**; isolated Builder browser
+  suite **24/24 PASS**; JavaScript syntax and diff checks PASS; local visual smoke and console PASS.
+- Data/security impact: browser-only draft construction. No API, Firebase, student, assignment, evidence,
+  calendar, `skillMap`, mastery or curriculum-credit write.
+- Known limitation: the generated template content remains a starting point that the teacher reviews; this
+  slice does not publish or assign automatically.
 
 ## Teacher Home Curriculum Preparation Bridge — COMPLETED
 
