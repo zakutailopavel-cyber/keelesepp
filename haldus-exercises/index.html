@@ -430,6 +430,24 @@ textarea{resize:vertical;line-height:1.5;}
 .ws-passage{background:#F9F8F6;border:1px solid rgba(28,43,58,.1);border-radius:6px;padding:10px 12px;margin-bottom:10px;font-size:.85rem;line-height:1.65;white-space:pre-wrap;}
 .ws-divider{border:none;border-top:1px dashed rgba(28,43,58,.12);margin:16px 0;}
 
+/* FULL-PAGE FILE WORKSHEET PREVIEW */
+.ws-file-preview-box{max-width:1120px;}
+.ws-file-preview-box .ws-prev-body{display:block;padding:22px 20px 44px;background:#D9D7D2;}
+.ws-file-document{width:100%;max-width:980px;margin:0 auto;}
+.ws-file-summary{margin:0 auto 18px;max-width:900px;background:rgba(255,255,255,.88);border:1px solid rgba(28,43,58,.1);border-radius:12px;padding:11px 14px;color:#42536A;font-size:.82rem;line-height:1.5;}
+.ws-file-pages{width:100%;display:flex;flex-direction:column;align-items:center;gap:28px;}
+.ws-file-page{width:min(900px,100%);}
+.ws-file-page-surface{width:100%;background:#fff;border:1px solid rgba(28,43,58,.12);border-radius:6px;overflow:hidden;box-shadow:0 12px 38px rgba(28,43,58,.16);}
+.ws-file-page-image{display:block;width:100%;height:auto;max-height:none;object-fit:contain;background:#fff;}
+.ws-file-page-pdf{display:block;width:100%;height:min(1180px,78vh);min-height:760px;border:0;background:#fff;}
+.ws-file-page-fallback{min-height:360px;display:flex;align-items:center;justify-content:center;padding:32px;background:#fff;}
+.ws-file-page-meta{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 4px 0;color:#607086;font-size:.72rem;line-height:1.35;}
+.ws-file-page-name{min-width:0;overflow-wrap:anywhere;}
+.ws-file-page-name strong{color:#1C2B3A;margin-right:7px;}
+.ws-file-page-download{flex-shrink:0;color:#2F5D50;text-decoration:none;font-weight:800;display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border-radius:7px;}
+.ws-file-page-download:hover{background:rgba(47,93,80,.08);}
+@media(max-width:760px){.ws-file-preview-box .ws-prev-body{padding:12px 8px 28px}.ws-file-pages{gap:18px}.ws-file-page-pdf{min-height:68vh;height:72vh}.ws-file-page-meta{align-items:flex-start;flex-direction:column;gap:4px}.ws-file-page-download{padding-left:0}}
+
 /* ── LESSON BUILDER ──────────────────────────────────────────── */
 .lb-ov{position:fixed;inset:0;background:rgba(28,43,58,.55);display:flex;align-items:center;justify-content:center;padding:12px;z-index:200;backdrop-filter:blur(5px);}
 .lb-box{background:#FBFAF8;border-radius:20px;max-width:720px;width:100%;height:92vh;overflow:hidden;display:flex;flex-direction:column;}
@@ -3415,62 +3433,53 @@ function SearchView({lessons,subjects,onSelectLesson,onClose}) {
 function WorksheetPreviewModal({lesson,onClose,onConduct}) {
   const ws=lesson.worksheetData;
   if(!ws) {
-    // No worksheetData — show files + description preview
-    const buildAndDownload=()=>{
-      const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${lesson.title}</title>
-      <style>body{font-family:Arial,sans-serif;max-width:700px;margin:40px auto;padding:0 40px;color:#1a1a1a;}
-      h1{font-size:1.4rem;margin-bottom:6px;}
-      .meta{color:#666;font-size:.8rem;margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid #1a1a1a;}
-      .desc{font-size:.9rem;line-height:1.6;margin-bottom:20px;}
-      .file-link{display:block;padding:8px 12px;background:#f5f5f5;border-radius:6px;margin-bottom:6px;text-decoration:none;color:#1a1a1a;font-size:.88rem;}
-      </style></head><body>
-      <h1>${lesson.title}</h1>
-      <div class="meta">${lesson.subject||''} · ${lesson.level||''} · ${lesson.topic||''}</div>
-      ${lesson.description?`<div class="desc">${lesson.description}</div>`:''}
-      ${(lesson.files||[]).map(f=>`<a href="${f.url}" class="file-link" target="_blank">📎 ${f.name}</a>`).join('')}
-      </body></html>`;
-      const b=new Blob([html],{type:'text/html'});
-      const a=document.createElement('a');
-      a.href=URL.createObjectURL(b);a.download=lesson.title+'.html';a.click();
+    const files=Array.isArray(lesson.files)?lesson.files:[];
+    const downloadFiles=()=>{
+      files.forEach((file,index)=>{
+        const a=document.createElement('a');
+        a.href=file.url;
+        a.download=file.name||`${lesson.title||'tooleht'}-${index+1}`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      });
     };
     return(
       <div className="ws-prev-ov" onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
-        <div className="ws-prev-box">
+        <div className="ws-prev-box ws-file-preview-box">
           <div className="ws-prev-head">
             <div>
               <div style={{color:'#fff',fontWeight:700,fontSize:'.95rem'}}>{lesson.title}</div>
-              <div style={{color:'rgba(255,255,255,.45)',fontSize:'.75rem'}}>{lesson.subject} · {lesson.level} · {lesson.topic}</div>
+              <div style={{color:'rgba(255,255,255,.45)',fontSize:'.75rem'}}>{lesson.subject} · {lesson.level} · {lesson.topic}{files.length?` · ${files.length} ${files.length===1?'lehekülg/fail':'lehekülge/faili'}`:''}</div>
             </div>
             <div style={{display:'flex',gap:8}}>
-              {(lesson.files||[]).length>0&&<button onClick={buildAndDownload} className="btn btn-gold btn-sm"><i className="fa-solid fa-download"/> Laadi alla</button>}
+              {files.length>0&&<button onClick={downloadFiles} className="btn btn-gold btn-sm"><i className="fa-solid fa-download"/> {files.length>1?`Laadi ${files.length} faili`:'Laadi alla'}</button>}
               <button onClick={onClose} className="btn btn-ghost btn-sm" style={{color:'#fff',borderColor:'rgba(255,255,255,.2)'}}>✕ Sulge</button>
             </div>
           </div>
           <div className="ws-prev-body">
-            <div className="ws-a4" id="ws-prev-content">
-              <div className="ws-sheet-hdr">
-                <div>
-                  <div className="ws-sheet-title">{lesson.title}</div>
-                  <div className="ws-sheet-meta">
-                    {lesson.subject&&<span>📚 {lesson.subject}</span>}
-                    {lesson.level&&<span>📊 {lesson.level}</span>}
-                    {lesson.topic&&<span>💬 {lesson.topic}</span>}
-                  </div>
-                </div>
-              </div>
-              {lesson.description&&<p style={{fontSize:'.9rem',lineHeight:1.6,marginBottom:16,color:'#42536A'}}>{lesson.description}</p>}
-              {(lesson.files||[]).length>0
-                ?<div>{lesson.files.map((f,i)=>{
-                  const ext=(f.name||'').split('.').pop().toLowerCase();
-                  const isImg=['jpg','jpeg','png','gif','webp'].includes(ext);
+            <div className="ws-file-document">
+              {lesson.description&&<div className="ws-file-summary">{lesson.description}</div>}
+              {files.length>0
+                ?<div className="ws-file-pages">{files.map((f,i)=>{
+                  const kind=CurriculumDocumentCore.previewKind(f);
+                  const isPdf=kind==='pdf';
+                  const isImage=kind==='image';
                   return(
-                    <div key={i} style={{marginBottom:12}}>
-                      {isImg&&<img src={f.url} alt={f.name} style={{maxWidth:'100%',maxHeight:300,objectFit:'contain',borderRadius:8,border:'1px solid rgba(28,43,58,.08)',marginBottom:6}}/>}
-                      <FileChip file={f}/>
-                    </div>
+                    <section key={(f.url||f.name||'file')+'-'+i} className="ws-file-page">
+                      <div className="ws-file-page-surface">
+                        {isImage&&<img className="ws-file-page-image" src={f.url} alt={f.name||`Töölehe lehekülg ${i+1}`}/>}
+                        {isPdf&&<iframe className="ws-file-page-pdf" src={f.url+'#view=FitH&toolbar=0&navpanes=0'} title={f.name||`Tööleht ${i+1}`}/>}
+                        {!isImage&&!isPdf&&<div className="ws-file-page-fallback"><FileChip file={f}/></div>}
+                      </div>
+                      <div className="ws-file-page-meta">
+                        <div className="ws-file-page-name"><strong>{isPdf?'PDF-dokument':isImage?`Lehekülg ${i+1}`:`Fail ${i+1}`}</strong>{f.name||'Nimetu fail'}{f.size?` · ${CurriculumDocumentCore.formatBytes(f.size)}`:''}</div>
+                        <a className="ws-file-page-download" href={f.url} download={f.name||''}><i className="fa-solid fa-download"/> Laadi alla</a>
+                      </div>
+                    </section>
                   );
                 })}</div>
-                :<div style={{textAlign:'center',padding:'32px 0',color:'#B0A898',fontSize:'.84rem'}}>
+                :<div style={{textAlign:'center',padding:'42px 0',color:'#718096',fontSize:'.84rem',background:'#fff',borderRadius:12}}>
                   <i className="fa-solid fa-folder-open" style={{fontSize:'1.6rem',marginBottom:8,display:'block',opacity:.3}}/>
                   Failid puuduvad
                 </div>

@@ -55,3 +55,17 @@ test('subject and level cards preview real topics and level navigation uses the 
   assert.match(library,/level:lv,topic:levelTopics\[0\]\|\|''/);
   assert.doesNotMatch(library,/onClick=\{\(\)=>\{const t=topics\[0\]\|\|'';setNav\(\{subject:subject\.key,level:lv,topic:t\}\);\}\}/);
 });
+
+
+test('file-backed worksheet preview renders attachments as full worksheet pages',()=>{
+  const modal=section('function WorksheetPreviewModal({lesson,onClose,onConduct}) {','  const{meta={},blocks=[]}=ws;');
+  assert.match(modal,/className="ws-prev-box ws-file-preview-box"/);
+  assert.match(modal,/className="ws-file-pages"/);
+  assert.match(modal,/CurriculumDocumentCore\.previewKind\(f\)/);
+  assert.match(modal,/className="ws-file-page-image"/);
+  assert.match(modal,/className="ws-file-page-pdf"/);
+  assert.match(modal,/Lehekülg \$\{i\+1\}/);
+  assert.doesNotMatch(modal,/className="ws-a4"/);
+  assert.doesNotMatch(modal,/maxHeight:300/);
+  assert.match(library,/\.ws-file-page-image\{display:block;width:100%;height:auto;max-height:none/);
+});
