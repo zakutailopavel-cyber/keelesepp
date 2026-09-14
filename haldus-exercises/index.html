@@ -3,6 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<script>if(new URLSearchParams(location.search).get('embedded')==='1')document.documentElement.classList.add('embedded-workspace');</script>
+<script>
+window.openTeacherWorkspace=function(href,label){
+  if(document.documentElement.classList.contains('embedded-workspace')&&window.parent!==window){
+    window.parent.postMessage({type:'keelesepp-open-workspace',href:href,label:label||'Tööruum'},location.origin);
+    return;
+  }
+  window.location.assign(href);
+};
+</script>
 <title>KeeleSepp — Õppevara</title>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
@@ -40,6 +50,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="/haldus.css?v=20260901.1">
 <style>
+.embedded-workspace .top-header{display:none!important}.embedded-workspace body{min-height:100vh}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'IBM Plex Sans',sans-serif;background:#EEECE7;color:#1C2B3A;min-height:100vh;}
 
@@ -2487,7 +2498,7 @@ function LearningLibraryView({lessons,exercises,students,isTeacher,onOpenLesson,
         {isTeacher&&<div className="library-actions">
           {depth===0&&<button onClick={addSubject} className="btn btn-ghost"><i className="fa-solid fa-folder-plus"/> Lisa aine</button>}
           <button onClick={onGoCurriculum} className="btn btn-ghost"><i className="fa-solid fa-plus"/> Lisa materjal</button>
-          <button onClick={()=>window.open('/haldus-worksheet/','_blank')} className="btn btn-gold"><i className="fa-solid fa-wand-magic-sparkles"/> Loo AI-tööleht</button>
+          <button onClick={()=>window.openTeacherWorkspace('/haldus-worksheet/','Valmista tööleht')} className="btn btn-gold"><i className="fa-solid fa-wand-magic-sparkles"/> Loo AI-tööleht</button>
         </div>}
       </div>
 
@@ -3396,7 +3407,7 @@ function WorksheetPreviewModal({lesson,onClose,onConduct}) {
       meta:{...meta,title:meta.title||lesson.title||'Tööleht',subject:meta.subject||lesson.subject||'Eesti keel',level:meta.level||lesson.level||'B1',topic:meta.topic||lesson.topic||''},
       blocks, curriculum
     }));
-    window.open('/haldus-worksheet/?edit='+encodeURIComponent(lesson.id),'_blank','noopener');
+    window.openTeacherWorkspace('/haldus-worksheet/?edit='+encodeURIComponent(lesson.id),'Valmista tööleht');
   };
 
   const renderBlock=(block,idx)=>{
@@ -4190,7 +4201,7 @@ function App(){
           </button>
         )}
         {isTeacher&&(
-          <button onClick={()=>window.open('/haldus-worksheet/','_blank')} className="top-tab"
+          <button onClick={()=>window.openTeacherWorkspace('/haldus-worksheet/','Valmista tööleht')} className="top-tab"
             style={{marginLeft:'auto',color:'#A96E1A',borderBottomColor:'transparent',background:'none',border:'none',cursor:'pointer'}}>
             <i className="fa-solid fa-wand-magic-sparkles"/> AI-tööleht
           </button>

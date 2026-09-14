@@ -161,19 +161,23 @@ corrections unsafe.
 
 ### Staff operations
 
-Teacher-facing navigation is task-oriented. `/haldus-teacher-home/` is the daily start surface and links
-the four common actions in order: today's lessons, lesson preparation, student assignment and response
-review. `haldus.html` keeps the complete legacy CRM, but its staff sidebar exposes only daily routes first;
-all administrative and lower-frequency tools remain available in a collapsible section. These links are
-navigation boundaries over existing screens and do not introduce another data store or permission path.
+Teacher-facing navigation is task-oriented. `haldus.html` is the daily start surface and keeps the common
+destinations together: `Minu tööpäev`, `Tunniplaan`, `Minu õpilased` and `Õppeprogramm`, with `Valmista tund`
+alongside them. Administrative and lower-frequency tools remain available in a collapsible section. These
+destinations are views over existing data and do not introduce another data store or permission path.
 
 The authenticated CRM shell is also the teacher-facing visual workspace. Primary daily and authoring
 destinations render in its centre surface while the navigation rail, section header and signed-in profile
-remain visible. Teacher Home and Lesson Builder currently use mounted same-origin embedded surfaces as a
-migration boundary between the inline CRM React application and the independent browser applications.
-Embedded mode removes duplicate chrome and hands known CRM navigation back to the parent shell. It does not
-change Firebase authentication, authorization or persistence. Curriculum preparation keeps the complete
-query, including the stable `curriculumLessonKey`.
+remain visible. Independent same-origin teaching applications render as embedded surfaces inside that
+shell. Embedded mode removes their duplicate header. Child tools can request another same-origin workspace
+through a parent message, so curriculum → worksheet and library → worksheet transitions stay in the centre
+surface instead of opening browser tabs. The shell rejects cross-origin workspace requests. This migration
+boundary does not change Firebase authentication, authorization or persistence. Curriculum preparation
+keeps the complete query, including the stable `curriculumLessonKey`.
+
+The student's manually selected curriculum position reuses `students.curriculumPlan`. A one-based number
+is resolved to an existing stable curriculum item and stored through the existing plan contract. It sets
+the current planned lesson and does not invent completion records for earlier lessons.
 
 The existing Lesson Builder is the canonical authoring surface. Worksheet visual blocks will converge into
 it through the Normalized Activity Contract. A future A4 canvas stores presentation-only grid placement on

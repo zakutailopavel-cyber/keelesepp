@@ -634,3 +634,37 @@ after which the Function became ACTIVE on the intended hash.
 ## Historical Image Block follow-up
 
 A genuine image activity acceptance walkthrough remains a non-blocking follow-up for the Image Block rollout.
+
+## Current workstream — Unified Teacher Workspace v1
+
+Last checked main on 2026-09-14: `2ef513a799cce77a8d3593aa8c56f15f7709cbaa`.
+Active branch: `codex/unified-teacher-workspace-v1`; draft PR
+[#146](https://github.com/zakutailopavel-cyber/keelesepp/pull/146).
+
+Goal: make `haldus.html` the single teacher workspace with one persistent menu/header/profile and no new
+browser tabs in the ordinary curriculum, learning-library and worksheet-authoring flow. The daily routes are
+`Minu tööpäev`, `Tunniplaan`, `Valmista tund`, `Õppeprogramm` and `Minu õpilased`. Existing same-origin tools
+render in the CRM centre surface with duplicate child headers hidden. Curriculum and library worksheet
+actions hand navigation back to the parent shell.
+
+The student curriculum position now has a one-number control. It maps the number to an existing stable
+curriculum item and reuses `students.curriculumPlan` plus `curriculumPlanUpdatedAt`; the existing activity
+logger records `curriculum.position_set`. It sets the planned current lesson without fabricating completion
+history. No new collection, endpoint, Function, Firestore rule, index, Storage object, publication contract
+or data migration is introduced.
+
+Changed files and full continuation details are in
+[HANDOFF_UNIFIED_TEACHER_WORKSPACE_V1.md](HANDOFF_UNIFIED_TEACHER_WORKSPACE_V1.md). Open PR #144 changes only
+the interactive PDF patch workflow/test and has no file overlap with this workstream. PRs #83, #78, #74,
+#72 and #71 are older unrelated workstreams.
+
+Verification: focused navigation/curriculum/worksheet suite **34/34 PASS**, `git diff --check` PASS,
+GitHub `financial-core` PASS (1m26s), Vercel deployment PASS and Vercel preview-comment check PASS. Chrome
+loaded the preview login and embedded learning-library route. Authenticated preview verification is blocked
+because the temporary Vercel hostname is not in Firebase Authentication authorized domains; Google sign-in
+failed at that boundary. No production deploy, Firebase deploy, production data write or paid external call
+was made.
+
+Known limits: embedded tools are still separate HTML runtimes; this is a navigation and visual-shell
+consolidation, not a risky rewrite. The numeric position is a planning pointer rather than proof of earlier
+completion. Exactly one next safe step: run the authenticated Vercel preview smoke described in the handoff.

@@ -7,19 +7,18 @@ const home=fs.readFileSync('haldus-teacher-home/index.html','utf8');
 const builder=fs.readFileSync('haldus-lesson-builder/index.html','utf8');
 const builderCss=fs.readFileSync('haldus-lesson-builder/style.css','utf8');
 
-test('daily home and lesson builder are internal workspace destinations',()=>{
-  assert.match(crm,/id:'teacher_today'.*daily:true/);
+test('daily dashboard and lesson builder are internal workspace destinations',()=>{
+  assert.match(crm,/id:'dashboard'.*daily:isStaff/);
   assert.match(crm,/id:'lesson_builder'.*daily:true/);
-  assert.doesNotMatch(crm,/id:'teacher_today'.*isExternal:true/);
+  assert.doesNotMatch(crm,/id:'dashboard'.*isExternal:true/);
   assert.doesNotMatch(crm,/id:'lesson_builder'.*isExternal:true/);
-  assert.match(crm,/hidden=\{tab!=='teacher_today'\}/);
   assert.match(crm,/hidden=\{tab!=='lesson_builder'\}/);
 });
 
 test('workspace keeps a consistent title and signed-in profile header',()=>{
   assert.match(crm,/aria-label="Kasutaja profiil"/);
   assert.match(crm,/className="workspace-surface-header"/);
-  assert.match(crm,/>Minu tööpäev</);
+  assert.match(crm,/label:isStaff\?'Minu tööpäev':'Töölaud'/);
   assert.match(crm,/>Valmista tund</);
   assert.match(crm,/user\.displayName\|\|user\.email/);
 });
@@ -33,11 +32,11 @@ test('embedded destinations remove duplicate chrome without removing builder act
   assert.match(builder,/id="show-preview"/);
 });
 
-test('embedded workspaces stay mounted so returning does not reload them',()=>{
-  assert.match(crm,/src="\/haldus-teacher-home\/\?embedded=1"/);
+test('embedded tools and lesson builder stay inside the workspace shell',()=>{
+  assert.match(crm,/title=\{embeddedWorkspace\.label\} src=\{embeddedWorkspace\.href\}/);
   assert.match(crm,/useState\('\/haldus-lesson-builder\/\?embedded=1'\)/);
   assert.match(crm,/src=\{builderHref\}/);
-  assert.match(crm,/hidden=\{isStaff&&\(tab==='teacher_today'\|\|tab==='lesson_builder'\)\}/);
+  assert.match(crm,/hidden=\{isStaff&&\(tab==='embedded_workspace'\|\|tab==='lesson_builder'\)\}/);
 });
 
 test('curriculum preparation links keep their context inside the workspace',()=>{

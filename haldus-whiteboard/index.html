@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<script>if(new URLSearchParams(location.search).get('embedded')==='1')document.documentElement.classList.add('embedded-workspace');</script>
 <title>KeeleSepp — Tahvel</title>
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,6 +16,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
 <script src="/whiteboard-core.js?v=20260902.1"></script>
 <style>
+.embedded-workspace .topbar{display:none!important}.embedded-workspace #app{height:100vh}
 :root{
   --ink:#1C2B3A; --pine:#2F5D50; --amber:#C9882A; --bg:#F4F2EE;
   --line:rgba(28,43,58,.12); --muted:#42536A;
