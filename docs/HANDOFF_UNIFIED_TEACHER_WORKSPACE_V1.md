@@ -16,8 +16,11 @@ builder, worksheet builder, classroom and whiteboard. Do not create a new lesson
 
 ## Implemented
 
-- The daily navigation exposes `Minu tööpäev`, `Tunniplaan`, `Valmista tund`, `Õppeprogramm` and
+- The daily navigation exposes `Minu tööpäev`, `Tunniplaan`, `Valmista tund`, `Õppevara` and
   `Minu õpilased` as the primary flow.
+- `Õppevara` is the existing `/haldus-exercises/` application that previously opened separately. The
+  duplicate `Õppeprogramm` sidebar destination was removed; curriculum remains available inside Õppevara
+  and from student-specific actions.
 - Same-origin tools open inside the CRM centre surface with `embedded=1`; duplicate child headers are hidden.
 - Curriculum and library actions open the worksheet builder in that same surface instead of a new tab.
 - A teacher can set a student's current curriculum place with one number. The selected item is stored via

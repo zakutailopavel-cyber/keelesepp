@@ -162,7 +162,7 @@ corrections unsafe.
 ### Staff operations
 
 Teacher-facing navigation is task-oriented. `haldus.html` is the daily start surface and keeps the common
-destinations together: `Minu tööpäev`, `Tunniplaan`, `Minu õpilased` and `Õppeprogramm`, with `Valmista tund`
+destinations together: `Minu tööpäev`, `Tunniplaan`, `Minu õpilased` and `Õppevara`, with `Valmista tund`
 alongside them. Administrative and lower-frequency tools remain available in a collapsible section. These
 destinations are views over existing data and do not introduce another data store or permission path.
 

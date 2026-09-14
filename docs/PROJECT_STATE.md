@@ -643,7 +643,9 @@ Active branch: `codex/unified-teacher-workspace-v1`; draft PR
 
 Goal: make `haldus.html` the single teacher workspace with one persistent menu/header/profile and no new
 browser tabs in the ordinary curriculum, learning-library and worksheet-authoring flow. The daily routes are
-`Minu tööpäev`, `Tunniplaan`, `Valmista tund`, `Õppeprogramm` and `Minu õpilased`. Existing same-origin tools
+`Minu tööpäev`, `Tunniplaan`, `Valmista tund`, `Õppevara` and `Minu õpilased`. `Õppevara` is the existing
+`/haldus-exercises/` application that formerly opened in a separate tab. The duplicate `Õppeprogramm`
+sidebar destination is removed; curriculum remains inside Õppevara and in student-specific flows. Existing same-origin tools
 render in the CRM centre surface with duplicate child headers hidden. Curriculum and library worksheet
 actions hand navigation back to the parent shell.
 

@@ -12,7 +12,8 @@ const vercel=JSON.parse(fs.readFileSync('vercel.json','utf8'));
 test('v1 CRM loads detailed curriculum data and provides search plus preview',()=>{
   assert.match(haldus,/src="\/haldus-curriculum-data\.js"/);
   assert.match(haldus,/Õppekavad ja tunnistsenaariumid/);
-  assert.match(haldus,/\{id:'programs',icon:'fa-route',label:'Õppeprogramm',daily:true\}/);
+  assert.match(haldus,/\{id:'learning_library',icon:'fa-book-open',label:'Õppevara',isExternal:true,href:'\/haldus-exercises\/',daily:true\}/);
+  assert.doesNotMatch(haldus,/\{id:'programs',icon:'fa-route',label:'Õppeprogramm'/);
   assert.match(haldus,/tab==='programs'&&isStaff&&<ProgramsView db=\{db\}/);
   assert.match(haldus,/Otsi teemat, sõna või tunni eesmärki/);
   assert.match(haldus,/Materjali eelvaade — midagi ei laadita alla/);
