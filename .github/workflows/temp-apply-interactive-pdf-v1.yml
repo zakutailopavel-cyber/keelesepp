@@ -6,6 +6,7 @@ on:
       - feat/interactive-worksheet-pdf-v1
     paths:
       - scripts/patch_interactive_worksheet_pdf_v1.py
+      - scripts/pdf-interactive-trigger.txt
 
 permissions:
   contents: write
