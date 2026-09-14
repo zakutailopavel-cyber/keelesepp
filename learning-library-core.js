@@ -25,10 +25,12 @@
     .replace(/[\u0300-\u036f]/g,'')
     .trim();
 
+  const visualWorksheetElements=lesson=>(Array.isArray(lesson?.files)?lesson.files:[])
+    .flatMap(file=>Array.isArray(file?.interactiveOverlay?.elements)?file.interactiveOverlay.elements:[])
+    .filter(element=>['input','textarea','choice','checkbox'].includes(element?.type));
   const hasWorksheet=lesson=>Boolean(
-    lesson?.worksheetData
-    && Array.isArray(lesson.worksheetData.blocks)
-    && lesson.worksheetData.blocks.length
+    (lesson?.worksheetData&&Array.isArray(lesson.worksheetData.blocks)&&lesson.worksheetData.blocks.length)
+    || visualWorksheetElements(lesson).length
   );
 
   const curriculumType=lesson=>{

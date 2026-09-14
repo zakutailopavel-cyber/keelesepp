@@ -2195,7 +2195,12 @@ function AssignLearningItemModal({item,students,user,onClose,notify}){
             topic:item.topic,
             curriculumId:item.curriculumId||'',
             curriculumTitle:item.curriculum||'',
-            worksheetData:item.source.worksheetData,
+            worksheetData:item.source.worksheetData||{meta:{title:item.title,subject:item.subject,level:item.level,topic:item.topic},blocks:[]},
+            files:(item.source.files||[]).map(file=>({
+              name:String(file?.name||'Fail'),url:String(file?.url||''),size:Number(file?.size)||0,type:String(file?.type||''),
+              ...(file?.storagePath?{storagePath:file.storagePath}:{}),
+              ...(Array.isArray(file?.interactiveOverlay?.elements)&&file.interactiveOverlay.elements.length?{interactiveOverlay:file.interactiveOverlay}:{})
+            })).filter(file=>file.url),
             ...(window.WorksheetWorkflow?.curriculumFieldsFor(item.source)||{}),
             studentId,
             studentName:student.name||'',

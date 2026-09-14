@@ -114,6 +114,7 @@ export function normalizeWorksheetAssignment(id, data = {}) {
     answers: data.answers || {},
     errorLog: data.errorLog || [],
     worksheetData: data.worksheetData || { meta: {}, blocks: [] },
+    files: Array.isArray(data.files) ? data.files : [],
   };
 }
 
@@ -236,6 +237,14 @@ export const homeworkService = {
     });
     await batch.commit();
     return sanitized;
+  },
+  async saveWorksheetDraft({ assignmentId, answers }) {
+    if (!assignmentId) throw new Error('Töölehte ei leitud.');
+    const { db } = requireFirebaseClient();
+    const updatedAt = new Date().toISOString();
+    const payload = { status: 'in_progress', answers: answers || {}, updatedAt };
+    await updateDoc(doc(db, 'worksheetAssignments', assignmentId), payload);
+    return payload;
   },
   async submitWorksheet({ assignmentId, answers, score, errorLog }) {
     if (!assignmentId) throw new Error('Töölehte ei leitud.');

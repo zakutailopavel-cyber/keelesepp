@@ -10,14 +10,59 @@ function records(snapshot) {
   return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
 }
 
+const VISUAL_OVERLAY_TYPES = new Set(['word', 'input', 'textarea', 'choice', 'checkbox']);
+
+function boundedText(value, max = 1000) {
+  return String(value ?? '').slice(0, max);
+}
+
+function boundedUnit(value, fallback = 0) {
+  const number = Number(value);
+  return Number.isFinite(number) ? Math.max(0, Math.min(1, number)) : fallback;
+}
+
+function storedInteractiveOverlay(file = {}) {
+  const source = Array.isArray(file?.interactiveOverlay?.elements) ? file.interactiveOverlay.elements : [];
+  const elements = source.slice(0, 250).map((element, index) => {
+    const type = String(element?.type || '');
+    if (!VISUAL_OVERLAY_TYPES.has(type)) return null;
+    const x = boundedUnit(element.x);
+    const y = boundedUnit(element.y);
+    const w = Math.max(0.01, Math.min(1 - x, boundedUnit(element.w, 0.12)));
+    const h = Math.max(0.01, Math.min(1 - y, boundedUnit(element.h, 0.04)));
+    const options = (Array.isArray(element.options) ? element.options : []).slice(0, 20).map((option) => boundedText(option, 250));
+    return {
+      id: boundedText(element.id || `overlay-${index}`, 180),
+      type,
+      x,
+      y,
+      w,
+      h,
+      ...(Number.isInteger(Number(element.page)) && Number(element.page) > 0 ? { page: Number(element.page) } : {}),
+      label: boundedText(element.label, 250),
+      placeholder: boundedText(element.placeholder, 250),
+      text: boundedText(element.text, 500),
+      translation: boundedText(element.translation, 500),
+      lemma: boundedText(element.lemma, 250),
+      options,
+      correctAnswer: boundedText(element.correctAnswer, 1000),
+    };
+  }).filter(Boolean);
+  return elements.length ? { version: 1, elements } : null;
+}
+
 function storedFiles(files = []) {
-  return files.map(({ name, url, size, type, storagePath }) => ({
-    name: String(name || 'Fail'),
-    url: String(url || ''),
-    size: Number(size) || 0,
-    type: String(type || ''),
-    ...(storagePath ? { storagePath } : {}),
-  })).filter((file) => file.url);
+  return files.map(({ name, url, size, type, storagePath, interactiveOverlay }) => {
+    const overlay = storedInteractiveOverlay({ interactiveOverlay });
+    return {
+      name: String(name || 'Fail'),
+      url: String(url || ''),
+      size: Number(size) || 0,
+      type: String(type || ''),
+      ...(storagePath ? { storagePath } : {}),
+      ...(overlay ? { interactiveOverlay: overlay } : {}),
+    };
+  }).filter((file) => file.url);
 }
 
 function exerciseContent(values, type) {
@@ -121,7 +166,11 @@ export const libraryService = {
           topic: item.topic,
           curriculumId: item.curriculumId || '',
           curriculumTitle: item.curriculum || '',
-          worksheetData: item.source.worksheetData,
+          worksheetData: item.source.worksheetData || {
+            meta: { title: item.title, subject: item.subject, level: item.level, topic: item.topic },
+            blocks: [],
+          },
+          files: storedFiles(item.source.files || []),
           studentId: student.id,
           studentName: student.name || '',
           assignedBy: user.uid,

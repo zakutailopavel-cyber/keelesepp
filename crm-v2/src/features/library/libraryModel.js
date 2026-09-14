@@ -17,7 +17,9 @@ const normalize = (value) => String(value || '')
   .trim();
 
 function hasWorksheet(record) {
-  return Boolean(record?.worksheetData?.blocks?.length);
+  const visualFields = (record?.files || []).flatMap((file) => file?.interactiveOverlay?.elements || [])
+    .filter((element) => ['input', 'textarea', 'choice', 'checkbox'].includes(element?.type));
+  return Boolean(record?.worksheetData?.blocks?.length || visualFields.length);
 }
 
 export function curriculumType(record) {
