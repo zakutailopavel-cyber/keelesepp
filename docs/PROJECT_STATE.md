@@ -638,7 +638,8 @@ A genuine image activity acceptance walkthrough remains a non-blocking follow-up
 ## Current workstream — Unified Teacher Workspace v1
 
 Last checked main on 2026-09-14: `2ef513a799cce77a8d3593aa8c56f15f7709cbaa`.
-Active branch: `codex/unified-teacher-workspace-v1`; draft PR pending creation.
+Active branch: `codex/unified-teacher-workspace-v1`; draft PR
+[#146](https://github.com/zakutailopavel-cyber/keelesepp/pull/146).
 
 Goal: make `haldus.html` the single teacher workspace with one persistent menu/header/profile and no new
 browser tabs in the ordinary curriculum, learning-library and worksheet-authoring flow. The daily routes are

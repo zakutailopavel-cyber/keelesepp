@@ -5,7 +5,7 @@
 - Last checked: 2026-09-14
 - Main: `2ef513a799cce77a8d3593aa8c56f15f7709cbaa`
 - Branch: `codex/unified-teacher-workspace-v1`
-- Draft PR: create after the local checks below pass
+- Draft PR: [#146](https://github.com/zakutailopavel-cyber/keelesepp/pull/146)
 
 ## Bounded goal
 
