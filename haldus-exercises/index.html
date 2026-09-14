@@ -1616,7 +1616,7 @@ function CurriculumView({lessons,isTeacher,user,notify,onPreviewWorksheet,onCond
   const level=nav?.level||null;
   const activeTopic=nav?.topic||null;
 
-  const topics=subject?[...new Set([...(subject.topics||[]),...lessons.filter(l=>l.subject===subject.key&&l.level===nav.level&&!l.examPart).map(l=>l.topic).filter(Boolean)])]:[];
+  const topics=subject?[...new Set(lessons.filter(l=>l.subject===subject.key&&l.level===nav.level&&!l.examPart).map(l=>l.topic).filter(Boolean))]:[];
 
   const saveLesson=async data=>{
     const validation=window.CurriculumWorkflow?.validateMaterialLevel(data);
@@ -1697,7 +1697,7 @@ function CurriculumView({lessons,isTeacher,user,notify,onPreviewWorksheet,onCond
                     borderColor:hasMat?subject.cardBorder:'rgba(28,43,58,.09)',
                     background:hasMat?subject.cardBg:'#FAFAF8',
                   }}
-                  onClick={()=>{const t=topics[0]||subject.topics[0]||'';setNav({subject:subject.key,level:lv,topic:t});}}>
+                  onClick={()=>{const t=topics[0]||'';setNav({subject:subject.key,level:lv,topic:t});}}>
                   <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',width:'100%'}}>
                     <span style={{fontSize:'1.4rem',fontWeight:700,color:hasMat?subject.color:'#B0A898'}}>{lv}</span>
                     <span className="lc-cnt" style={{background:hasMat?subject.pillBg:'rgba(28,43,58,.06)',color:hasMat?subject.pillColor:'#AAA098',fontSize:'.68rem'}}>
