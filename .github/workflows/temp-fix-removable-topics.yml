@@ -1,0 +1,52 @@
+name: temp-fix-removable-topics
+
+on:
+  push:
+    branches:
+      - fix/removable-curriculum-topics
+    paths:
+      - .github/workflows/temp-fix-removable-topics.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/removable-curriculum-topics
+          fetch-depth: 0
+      - name: Patch curriculum topic source
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('haldus-exercises/index.html')
+          s = p.read_text(encoding='utf-8')
+          old = "const topics=subject?[...new Set([...(subject.topics||[]),...lessons.filter(l=>l.subject===subject.key&&l.level===nav.level&&!l.examPart).map(l=>l.topic).filter(Boolean)])]:[];"
+          new = "const topics=subject?[...new Set(lessons.filter(l=>l.subject===subject.key&&l.level===nav.level&&!l.examPart).map(l=>l.topic).filter(Boolean))]:[];"
+          if old not in s:
+              raise SystemExit('Expected topics expression not found')
+          s = s.replace(old, new, 1)
+          old2 = "const t=topics[0]||subject.topics[0]||'';"
+          new2 = "const t=topics[0]||'';"
+          if old2 not in s:
+              raise SystemExit('Expected level fallback not found')
+          s = s.replace(old2, new2, 1)
+          p.write_text(s, encoding='utf-8')
+          PY
+      - name: Verify patch
+        shell: bash
+        run: |
+          grep -F "const topics=subject?[...new Set(lessons.filter" haldus-exercises/index.html
+          ! grep -F "subject.topics[0]" haldus-exercises/index.html
+      - name: Commit patch
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add haldus-exercises/index.html
+          git commit -m "fix(curriculum): make empty topics removable"
+          git push origin HEAD:fix/removable-curriculum-topics
