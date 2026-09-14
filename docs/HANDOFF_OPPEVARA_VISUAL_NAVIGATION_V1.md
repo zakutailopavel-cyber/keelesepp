@@ -3,7 +3,7 @@
 Date: 2026-09-14 (Europe/Tallinn)
 Base: `cc8e80f8b410793b15d8661f0c65fe1ba9b2f66c`
 Branch: `codex/oppevara-visual-navigation-v1`
-Draft PR: https://github.com/zakutailopavel-cyber/keelesepp/pulls
+Draft PR: https://github.com/zakutailopavel-cyber/keelesepp/pull/148
 
 ## Result
 
