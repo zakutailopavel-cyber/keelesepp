@@ -1938,6 +1938,8 @@ function ProgramsView({db,user,students=[],lessons=[],homework=[],worksheetAssig
   const [journeyResult,setJourneyResult]=React.useState(null);
   const [journeyRetryBusy,setJourneyRetryBusy]=React.useState('');
   const [journeyEvents,setJourneyEvents]=React.useState([]);
+  const [journeyPosition,setJourneyPosition]=React.useState('');
+  const [journeyPositionBusy,setJourneyPositionBusy]=React.useState(false);
   const normalizedQuery=normalizeText(query);
   const allLevels=(curriculum.languages||[]).flatMap(language=>(language.levels||[]).map(level=>({language,level})));
   const curriculumCatalog=React.useMemo(()=>workflow?workflow.flattenCurriculum(curriculum):[],[workflow,curriculum]);
@@ -1949,6 +1951,13 @@ function ProgramsView({db,user,students=[],lessons=[],homework=[],worksheetAssig
   const journeyResults=React.useMemo(()=>workflow&&journeyStudent
     ?workflow.buildCurriculumResults(curriculum,journeyStudent,worksheetAssignments,journeyMaterials)
     :null,[workflow,curriculum,journeyStudent,worksheetAssignments,journeyMaterials]);
+  React.useEffect(()=>{
+    if(!journey?.valid){setJourneyPosition('');return;}
+    const plannedKey=journeyStudent?.curriculumPlan?.topicId
+      ?`${journeyStudent.curriculumPlan.topicId}:${Math.max(0,Number(journeyStudent.curriculumPlan.lessonIndex)||0)}`:'';
+    const index=Math.max(0,(journey.items||[]).findIndex(item=>item.key===plannedKey||item.key===journey.nextItem?.key));
+    setJourneyPosition(String(index+1));
+  },[journeyStudentId,journey?.nextItem?.key,journey?.totalLessons]);
   const actionItem=React.useMemo(()=>{
     if(!action)return null;
     return curriculumCatalog.find(item=>item.topicId===action.topic.id&&item.lessonIndex===Number(actionLessonIndex))||null;
@@ -2063,6 +2072,21 @@ function ProgramsView({db,user,students=[],lessons=[],homework=[],worksheetAssig
       setActionBusy('');
     }
   };
+  const saveJourneyPosition=async()=>{
+    const position=Math.trunc(Number(journeyPosition));
+    const item=journey?.items?.[position-1];
+    if(!journeyStudent||!item){notify(`⚠ Sisesta tunni number 1–${journey?.totalLessons||0}`);return;}
+    setJourneyPositionBusy(true);
+    try{
+      const plan=workflow.buildCurriculumPlan(item,user);
+      await db.collection('students').doc(journeyStudent.id).update({curriculumPlan:plan,curriculumPlanUpdatedAt:new Date().toISOString()});
+      if(logActivity)await logActivity('curriculum.position_set','Õpilase praegune koht õppeprogrammis määrati käsitsi',{studentId:journeyStudent.id,studentName:journeyStudent.name,curriculumTopicId:item.topicId,curriculumLessonIndex:item.lessonIndex,position});
+      notify(`✓ ${journeyStudent.name}: praegune tund ${position}/${journey.totalLessons}`);
+    }catch(error){
+      console.error('Curriculum position save failed:',error);
+      notify(`⚠ ${error?.message||'Õpilase praegust kohta ei saanud salvestada'}`);
+    }finally{setJourneyPositionBusy(false);}
+  };
   const runAction=async(type)=>{
     if(!workflow||!actionItem){notify('⚠ Õppekava andmed ei ole saadaval');return;}
     if((type==='plan'||type==='homework')&&!actionStudentValidation.ok){notify(`⚠ ${actionStudentValidation.errors.join(' ')}`);return;}
@@ -2113,9 +2137,10 @@ function ProgramsView({db,user,students=[],lessons=[],homework=[],worksheetAssig
     try{
       const prefill=workflow.buildWorksheetPrefill(actionItem,{creationMode});
       localStorage.setItem('ws_prefill',JSON.stringify(prefill));
-      window.open(`/haldus-worksheet/?source=curriculum&mode=${encodeURIComponent(creationMode)}`,'_blank','noopener');
+      window.dispatchEvent(new CustomEvent('keelesepp-open-workspace',{detail:{id:'worksheet_builder',label:'Valmista tööleht',href:`/haldus-worksheet/?source=curriculum&mode=${encodeURIComponent(creationMode)}`}}));
+      setAction(null);
       const modeLabel=taskCreationModes.find(mode=>mode.id===creationMode)?.title||'Ülesanne';
-      notify(`✓ ${modeLabel} avati uues aknas`);
+      notify(`✓ ${modeLabel} avati tööruumis`);
     }catch(error){
       console.error('Worksheet prefill failed:',error);
       notify(`⚠ ${error?.message||'Töölehe loomine ebaõnnestus'}`);
@@ -2214,6 +2239,16 @@ function ProgramsView({db,user,students=[],lessons=[],homework=[],worksheetAssig
                 <div><strong>{journey.pendingHomework}</strong><span>kodutööd ootel</span></div>
                 <div><strong>{journey.materialCount}</strong><span>materjali loodud</span></div>
                 <div><strong>{journeyResults?.completed||0}/{journeyResults?.assigned||0}</strong><span>töölehte esitatud</span></div>
+              </div>
+              <div className="curriculum-next-card">
+                <span>PRAEGUNE KOHT PROGRAMMIS</span>
+                <strong>Üks number kogu programmi kohta</strong>
+                <p>Kui ajalugu pole jõutud täita, märgi lihtsalt, millise tunnini õpilane on jõudnud.</p>
+                <div style={{display:'flex',gap:8,alignItems:'center'}}>
+                  <input type="number" min="1" max={journey.totalLessons} value={journeyPosition} onChange={event=>setJourneyPosition(event.target.value)} aria-label="Praeguse tunni number" style={{width:92,padding:'9px 11px',border:'1px solid rgba(28,43,58,.18)',borderRadius:9,font:'inherit'}}/>
+                  <span style={{fontSize:'.82rem',color:'#718096'}}>/ {journey.totalLessons}</span>
+                  <button type="button" className="btn btn-dark btn-sm" disabled={journeyPositionBusy} onClick={saveJourneyPosition}>{journeyPositionBusy?'Salvestan…':'Määra koht'}</button>
+                </div>
               </div>
               <div className="curriculum-next-card">
                 <span>{journey.nextItem?.planned?'PRAEGU MÄÄRATUD':'JÄRGMINE SOOVITUS'}</span>
@@ -2489,7 +2524,7 @@ function ProgramsView({db,user,students=[],lessons=[],homework=[],worksheetAssig
                     ?<button type="button" className="curriculum-manual-credit revoke" disabled={Boolean(actionBusy)} onClick={()=>changeManualCredit(true)}><i className="fa-solid fa-rotate-left"/><span><strong>{actionBusy==='credit-revoke'?'Tühistan…':'Tühista käsitsi arvestus'}</strong>Põhjus ja autor jäävad ajalukku.</span></button>
                     :<button type="button" className="curriculum-manual-credit" disabled={!actionStudentValidation.ok||Boolean(actionBusy)} onClick={()=>changeManualCredit(false)}><i className="fa-solid fa-award"/><span><strong>{actionBusy==='credit-award'?'Salvestan…':'Arvesta varem läbituks'}</strong>Kasuta ainult tõendatud varasema õppe korral; põhjus on kohustuslik.</span></button>
               )}
-              {createdMaterialId&&<a className="curriculum-action-library-link" href={`/haldus-exercises/?libSubject=${encodeURIComponent(actionItem?.subject||'')}&libStage=${encodeURIComponent(actionItem?.level||'')}&libTopic=${encodeURIComponent(actionItem?.topicName||'')}`} target="_blank" rel="noopener"><i className="fa-solid fa-arrow-up-right-from-square"/> Ava loodud materjal õppevaras</a>}
+              {createdMaterialId&&<button type="button" className="curriculum-action-library-link" onClick={()=>window.dispatchEvent(new CustomEvent('keelesepp-open-workspace',{detail:{id:'learning_library',label:'Õppevara',href:`/haldus-exercises/?libSubject=${encodeURIComponent(actionItem?.subject||'')}&libStage=${encodeURIComponent(actionItem?.level||'')}&libTopic=${encodeURIComponent(actionItem?.topicName||'')}`}}))}><i className="fa-solid fa-book-open"/> Ava loodud materjal õppevaras</button>}
             </div>
           </section>
         </div>
@@ -13371,6 +13406,7 @@ function App() {
   const [loading,setLoading]   = useState(true);
   const [bootError,setBootError] = useState('');
   const [tab,setTab]           = useState('dashboard');
+  const [embeddedWorkspace,setEmbeddedWorkspace] = useState(null);
   const [programStudentId,setProgramStudentId] = useState('');
   const [financeSection,setFinanceSection] = useState('invoices');
   const [selStu,setSelStu]     = useState(null);
@@ -13490,12 +13526,31 @@ function App() {
 
   React.useEffect(()=>{
     const receive=event=>{
-      if(event.origin!==window.location.origin||event.data?.type!=='keelesepp-workspace-navigate') return;
+      if(event.origin!==window.location.origin) return;
+      if(event.data?.type==='keelesepp-open-workspace'){
+        window.dispatchEvent(new CustomEvent('keelesepp-open-workspace',{detail:event.data}));
+        return;
+      }
+      if(event.data?.type!=='keelesepp-workspace-navigate') return;
       workspaceNavigate(event.data.href);
     };
     window.addEventListener('message',receive);
     return()=>window.removeEventListener('message',receive);
   },[workspaceNavigate]);
+
+  React.useEffect(()=>{
+    const open=event=>{
+      const detail=event.detail||{};
+      if(!detail.href)return;
+      const url=new URL(detail.href,window.location.origin);
+      if(url.origin!==window.location.origin)return;
+      url.searchParams.set('embedded','1');
+      setEmbeddedWorkspace({id:detail.id||'workspace',label:detail.label||'Tööruum',href:url.pathname+'?'+url.searchParams.toString()});
+      setTab('embedded_workspace');setSelStu(null);setMobileNav(false);
+    };
+    window.addEventListener('keelesepp-open-workspace',open);
+    return()=>window.removeEventListener('keelesepp-open-workspace',open);
+  },[]);
 
   // AUTH
   useEffect(()=>{
@@ -13624,7 +13679,12 @@ function App() {
   },[]);
   const goTab=t=>{
     const extItem = navItems && navItems.find(i=>i.id===t&&i.isExternal);
-    if(extItem){ window.location.assign(extItem.href); return; }
+    if(extItem){
+      const url=new URL(extItem.href,window.location.origin);
+      url.searchParams.set('embedded','1');
+      setEmbeddedWorkspace({id:extItem.id,label:extItem.label,href:url.pathname+'?'+url.searchParams.toString()});
+      setTab('embedded_workspace');setSelStu(null);setMobileNav(false);return;
+    }
     if(isAdmin&&ADMIN_FINANCE_SECTIONS.includes(t)){
       setFinanceSection(t);
       t='finance';
@@ -16386,17 +16446,15 @@ function App() {
           ? 'Lapsevanem'
           : 'Õpilane';
   const navItems=[
-    ...(isStaff?[{id:'teacher_today',icon:'fa-sun',label:'Minu tööpäev',daily:true}]:[]),
-    {id:'dashboard',icon:'fa-chart-pie',label:'Töölaud',badge:unreadMessages.length},
+    {id:'dashboard',icon:'fa-sun',label:isStaff?'Minu tööpäev':'Töölaud',badge:unreadMessages.length,daily:isStaff},
     {id:'calendar', icon:'fa-calendar-days',label:'Tunniplaan',daily:isStaff},
-    ...(isStaff?[{id:'student_work',icon:'fa-clipboard-check',label:'Õpilaste ülesanded',isExternal:true,href:'/interactive-lesson/',daily:true}]:[]),
     ...(isStaff?[{id:'lesson_builder',icon:'fa-wand-magic-sparkles',label:'Valmista tund',daily:true}]:[]),
     {id:'live_classroom',icon:'fa-display',label:'Live Classroom',isExternal:true,href:'/live-classroom/'},
     {id:'whiteboard',icon:'fa-note-sticky',label:'Tahvel',isExternal:true,href:'/haldus-whiteboard/'},
     ...(isStaff?[{id:'tasks',icon:'fa-list-check',label:'Ülesanded',
       badge:scopedTasks.filter(t=>t.status!=='done').length}]:[]),
     ...(isStaff?[{id:'learning_library',icon:'fa-book-open',label:'Õppevara',isExternal:true,href:'/haldus-exercises/'}]:[]),
-    ...(isStaff?[{id:'programs',icon:'fa-route',label:'Õppekavad'}]:[]),
+    ...(isStaff?[{id:'programs',icon:'fa-route',label:'Õppeprogramm',daily:true}]:[]),
     {id:'students', icon:'fa-graduation-cap',label:isStaff?'Minu õpilased':isParentUser&&hasStudyProfile?'Minu lapsed / õpingud':isParentUser?'Minu lapsed':'Minu progress',daily:isStaff,
       badge:isStaff?unseenWsCount:0},
     ...(isStaff?[{id:'groups',icon:'fa-layer-group',label:'Grupid'}]:[]),
@@ -16419,8 +16477,8 @@ function App() {
 
   const renderNavItem=item=>(
     item.isExternal
-      ? <button key={item.id} onClick={()=>{ window.location.assign(item.href); }} className="sidebar-link" style={{width:'100%'}}>
-          <i className={`fa-solid ${item.icon}`} style={{width:18,textAlign:'center'}}/><span style={{flex:1}}>{item.label}</span><i className="fa-solid fa-arrow-right" style={{fontSize:'.6rem',opacity:.4}}/>
+      ? <button key={item.id} onClick={()=>goTab(item.id)} className={`sidebar-link ${tab==='embedded_workspace'&&embeddedWorkspace?.id===item.id?'active':''}`} style={{width:'100%'}}>
+          <i className={`fa-solid ${item.icon}`} style={{width:18,textAlign:'center'}}/><span style={{flex:1}}>{item.label}</span>
         </button>
       : <button key={item.id} onClick={()=>goTab(item.id)} className={`sidebar-link ${tab===item.id?'active':''}`}>
           <i className={`fa-solid ${item.icon}`} style={{width:18,textAlign:'center'}}/><span style={{flex:1}}>{item.label}</span>{item.badge>0&&<span style={{background:tab===item.id?'rgba(255,255,255,.25)':'#C9882A',color:'#fff',borderRadius:999,fontSize:'.7rem',fontWeight:700,padding:'1px 7px'}}>{item.badge}</span>}
@@ -16486,14 +16544,14 @@ function App() {
           <button onClick={()=>setMobileNav(!mobileNav)} style={{background:'none',border:'none',cursor:'pointer',fontSize:'1.3rem',color:'#1C2B3A',padding:'4px 8px'}}>{mobileNav?'✕':'☰'}</button>
         </div>
 
-        {isStaff&&(
-          <div hidden={tab!=='teacher_today'} className="workspace-surface">
-            <section className="workspace-surface-inner" aria-label="Minu tööpäev">
+        {isStaff&&embeddedWorkspace&&(
+          <div hidden={tab!=='embedded_workspace'} className="workspace-surface">
+            <section className="workspace-surface-inner" aria-label={embeddedWorkspace.label}>
               <header className="workspace-surface-header">
-                <div className="workspace-surface-title"><div>IGAPÄEVANE TÖÖ</div><h1>Minu tööpäev</h1></div>
+                <div className="workspace-surface-title"><div>TÖÖRUUM</div><h1>{embeddedWorkspace.label}</h1></div>
                 <div aria-label="Kasutaja profiil" className="workspace-profile"><span>{String(user.displayName||user.email||'K').trim().charAt(0).toUpperCase()}</span><strong>{user.displayName||user.email}</strong></div>
               </header>
-              <iframe className="workspace-frame" title="Minu tööpäev" src="/haldus-teacher-home/?embedded=1"/>
+              <iframe className="workspace-frame" title={embeddedWorkspace.label} src={embeddedWorkspace.href}/>
             </section>
           </div>
         )}
@@ -16509,7 +16567,7 @@ function App() {
           </div>
         )}
 
-        <div hidden={isStaff&&(tab==='teacher_today'||tab==='lesson_builder')} style={{padding:tab==='calendar'?'20px 24px':tab==='dashboard'&&!isStaff?'18px 28px 28px':'28px',maxWidth:tab==='calendar'?'100%':tab==='dashboard'&&!isStaff?1040:1100,margin:'0 auto'}}>
+        <div hidden={isStaff&&(tab==='embedded_workspace'||tab==='lesson_builder')} style={{padding:tab==='calendar'?'20px 24px':tab==='dashboard'&&!isStaff?'18px 28px 28px':'28px',maxWidth:tab==='calendar'?'100%':tab==='dashboard'&&!isStaff?1040:1100,margin:'0 auto'}}>
           {notif&&<div style={{position:'fixed',top:20,right:20,background:'#1C2B3A',color:'#fff',padding:'12px 20px',borderRadius:12,zIndex:300,fontWeight:600,fontSize:'.9rem',boxShadow:'0 8px 28px rgba(0,0,0,.25)'}}>{notif}</div>}
 
           {tab==='dashboard'&&<Dashboard user={user} myStudents={myStudents} lessons={lessons} schedule={schedule} invoices={scopedInvoices} homework={homework} tasks={scopedTasks} staffMembers={staffMembers}

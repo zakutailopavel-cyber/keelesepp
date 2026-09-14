@@ -17,7 +17,7 @@ test('CRM assignment picker exposes only published worksheet snapshots',()=>{
 test('worksheet library opens the selected material in the editor',()=>{
   assert.match(library,/lessonId:lesson\.id,worksheetStatus:lesson\.worksheetStatus\|\|'published'/);
   assert.match(library,/localStorage\.setItem\('ws_prefill'/);
-  assert.match(library,/window\.open\('\/haldus-worksheet\/\?edit='/);
+  assert.match(library,/window\.openTeacherWorkspace\('\/haldus-worksheet\/\?edit='/);
 });
 
 test('worksheet version history is staff readable and append only',()=>{
