@@ -111,17 +111,16 @@ if s.count(old)!=1: raise SystemExit('test extension anchor mismatch')
 s=s.replace(old,new,1)
 p.write_text(s,encoding='utf-8')
 
-# Document draft-save and teacher review behavior.
+# Document draft-save and teacher review behavior in the current slice section.
 p=ROOT/'docs/PROJECT_STATE.md'
 s=p.read_text(encoding='utf-8')
-old="""student input is stored only in the assignment's existing `answers` map under visual field keys and is
-submitted through the existing worksheet completion contract. This adds no second assignment store and
-keeps legacy structured `worksheetData.blocks` assignments compatible."""
-new="""student input is stored only in the assignment's existing `answers` map under visual field keys. The student
-can explicitly save an `in_progress` draft and later submit through the existing worksheet completion contract;
-the teacher review re-renders the same worksheet page with the submitted answers in place. This adds no second
-assignment store and keeps legacy structured `worksheetData.blocks` assignments compatible."""
-if s.count(old)!=1: raise SystemExit('PROJECT_STATE architecture text anchor mismatch')
+old="""`submitWorksheet` write boundary. Open responses are required for completion but are not auto-scored unless the
+teacher explicitly configured `correctAnswer`; word-translation hotspots remain informational."""
+new="""`submitWorksheet` write boundary. Open responses are required for completion but are not auto-scored unless the
+teacher explicitly configured `correctAnswer`; word-translation hotspots remain informational. Students can
+explicitly save an `in_progress` draft, and teacher review re-renders the same worksheet page with submitted
+answers positioned over the original image."""
+if s.count(old)!=1: raise SystemExit('PROJECT_STATE slice text anchor mismatch')
 s=s.replace(old,new,1)
 p.write_text(s,encoding='utf-8')
 
