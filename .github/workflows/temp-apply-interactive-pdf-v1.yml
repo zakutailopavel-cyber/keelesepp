@@ -1,29 +1,30 @@
-name: temp-apply-interactive-pdf-v1
+name: Temporary complete Interactive Worksheet PDF v1
 
 on:
   push:
     branches:
-      - feat/interactive-worksheet-pdf-v1
+      - fix/interactive-pdf-v1-complete
     paths:
+      - .github/workflows/temp-apply-interactive-pdf-v1.yml
       - scripts/patch_interactive_worksheet_pdf_v1.py
-      - scripts/pdf-interactive-trigger.txt
 
 permissions:
   contents: write
 
 jobs:
-  patch:
+  patch-and-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: feat/interactive-worksheet-pdf-v1
+          ref: fix/interactive-pdf-v1-complete
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
       - name: Apply PDF worksheet patch
-        run: python scripts/patch_interactive_worksheet_pdf_v1.py
-      - name: Add regression test and validate
+        run: python3 scripts/patch_interactive_worksheet_pdf_v1.py
+      - name: Add PDF regression test
         shell: bash
         run: |
           cat > interactive-worksheet-pdf-v1.test.js <<'EOF'
@@ -31,26 +32,35 @@ jobs:
           const assert = require('node:assert/strict');
           const fs = require('node:fs');
           const html = fs.readFileSync('haldus-exercises/index.html','utf8');
-          test('PDF worksheets render locally with PDF.js and support page-aware overlays',()=>{
+          test('PDF worksheets render locally with PDF.js and page-aware overlays',()=>{
             assert.match(html,/pdf\.min\.js/);
             assert.match(html,/pdfjsLib\.getDocument\(file\.url\)/);
             assert.match(html,/page:pageNum/);
             assert.match(html,/visibleElements=elements\.filter/);
             assert.match(html,/pdfPageCount/);
-            assert.match(html,/Muuda interaktiivseks/);
+            assert.match(html,/kind==='pdf'/);
           });
-          test('PDF interaction does not introduce paid AI APIs',()=>{
-            const slice=html.slice(html.indexOf('INTERACTIVE WORKSHEET V1'), html.indexOf('LIVE LESSON HISTORY'));
+          test('PDF worksheet interaction stays free of paid AI APIs',()=>{
+            const start=html.indexOf('INTERACTIVE WORKSHEET V1');
+            const end=html.indexOf('LIVE LESSON HISTORY');
+            const slice=html.slice(start,end>start?end:undefined);
             assert.doesNotMatch(slice,/api\.openai\.com|google vision|deepl api|azure cognitive/i);
           });
           EOF
-          node --test interactive-worksheet-v1.test.js interactive-worksheet-pdf-v1.test.js
-      - name: Commit generated changes
+      - name: Run learning-library regressions
+        run: |
+          node --test interactive-worksheet-v1.test.js interactive-worksheet-pdf-v1.test.js curriculum-document-ui.test.js curriculum-document-core.test.js b1-b2-roadmap.test.js a2-b1-roadmap.test.js
+      - name: Validate generated diff
+        run: |
+          git diff --check
+          grep -q 'pdfjsLib.getDocument(file.url)' haldus-exercises/index.html
+          grep -q 'visibleElements=elements.filter' haldus-exercises/index.html
+      - name: Commit generated application changes
         shell: bash
         run: |
-          git config user.name "zakutailopavel-cyber"
-          git config user.email "zakutailo.pavel@gmail.com"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add haldus-exercises/index.html interactive-worksheet-pdf-v1.test.js
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m "Interactive worksheet PDF v1: page-aware PDF.js overlays"
-          git push origin HEAD:feat/interactive-worksheet-pdf-v1
+          git commit -m "feat: complete interactive PDF worksheet support"
+          git push origin HEAD:fix/interactive-pdf-v1-complete
