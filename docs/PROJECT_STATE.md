@@ -2,22 +2,33 @@
 
 Last verified: 2026-09-14, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
-Verified main: `6b8f88f1ad2e999fc9a45879b9c6c481045790fe` — #132 merged by owner
-Current implementation branch: `agent/remove-summer-courses`
-Current draft PR: [#133](https://github.com/zakutailopavel-cyber/keelesepp/pull/133)
+Verified main: `29f7fd099705300e3d42cd639590ba22f9a0059c` — #133 merged by owner
+Current implementation branch: `agent/unified-workspace-navigation-v1`
+Current draft PR: [#134](https://github.com/zakutailopavel-cyber/keelesepp/pull/134)
 PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [#116](https://github.com/zakutailopavel-cyber/keelesepp/pull/116) are merged.
 
 ## Current objective
 
-Expired Summer Courses Removal is the current bounded workstream. The public homepage no longer advertises
-summer 2026 registration: the seasonal section, its unused styles and the two related registration-form
-references are removed. The ordinary Estonian and English course catalogue and registration path remain
-unchanged. No Firebase, API, CRM, student, lesson, calendar or production-data write is introduced.
+Unified Teacher Workspace v1 is the current bounded workstream. The authenticated CRM keeps its navigation
+rail, section title and signed-in profile visible while Teacher Home and Lesson Builder appear in the centre.
+Both same-origin surfaces remain mounted after authentication, so switching away and back does not reload the
+page or discard in-memory Builder state. Embedded mode removes duplicate chrome while preserving Builder Save,
+Preview and Undo/Redo. Curriculum preparation keeps the complete `curriculumLessonKey` query.
 
-Validation: HTML structure and diff checks PASS; local browser smoke PASS. The homepage loads, the ordinary
-course catalogue follows the hero directly, the registration form remains present and no summer copy remains.
+Visual acceptance is part of the contract in `docs/UNIFIED_VISUAL_WORKSPACE.md`: consistent app chrome,
+typography, palette, focus states, desktop/tablet/mobile layouts and live browser review are required. The
+existing Lesson Builder remains canonical; Worksheet Builder capabilities converge into it rather than forming
+another authoring system.
 
-Exactly one next safe step: owner review and merge of PR #133, followed by a production homepage smoke.
+Validation: focused CRM/Teacher Home/Builder tests **57/57 PASS**; isolated Builder browser tests **24/24 PASS**;
+diff checks PASS; Vercel Preview READY. Authenticated visual verification on the preview hostname is still a
+manual gate because Google/Firebase sign-in rejected that preview origin.
+
+Data/security impact: navigation and presentation only. Existing Firebase authentication and authorization
+remain authoritative. No Function, Firestore rule, index, schema, student record or production-data write and
+no production deployment.
+
+Exactly one next safe step: owner review plus authenticated visual smoke of PR #134 at desktop and tablet widths.
 Historical Google Calendar Sync Clarity is merged and production-accepted. Past one-time KeeleSepp
 lessons whose original Google push failed are shown as neutral `G–` records. An exact imported Google
 mirror for the same student, teacher and interval is collapsed from presentation and no longer creates a
@@ -51,7 +62,7 @@ PR #94 switched Teacher Home to the real curriculum source. PR #95 then bound th
 
 ## Verified repository state
 
-Current remote `main` is `6b8f88f1ad2e999fc9a45879b9c6c481045790fe`.
+Current remote `main` is `29f7fd099705300e3d42cd639590ba22f9a0059c`.
 
 Merged on current `main`:
 
@@ -94,8 +105,19 @@ Merged on current `main`:
 - #130 Teacher Home Curriculum Preparation Bridge — merged; Vercel production READY and authenticated production smoke PASS.
 - #131 #130 post-merge documentation reconciliation — merged.
 - #132 Guided Curriculum Starter — merged; focused curriculum/Builder/session and browser suites PASS.
+- #133 expired summer course removal — merged; Vercel production rollout is an owner/Vercel gate.
 
-## Expired Summer Courses Removal — IN PROGRESS
+## Unified Teacher Workspace v1 — IN PROGRESS
+
+- `Minu tööpäev` and `Valmista tund` are internal CRM destinations rather than full-page external navigation.
+- Both centre surfaces remain mounted for instant return and Builder in-memory state preservation.
+- Shared section headers retain title and signed-in profile; embedded pages remove duplicate branding only.
+- Curriculum preparation query parameters survive the transition into embedded Builder.
+- Focused tests **57/57 PASS**; Builder browser tests **24/24 PASS**; Vercel Preview READY.
+- Preview Google sign-in rejected the preview hostname, so authenticated desktop/tablet visual acceptance remains open.
+- No Firebase, API, schema, student or production-data change.
+
+## Expired Summer Courses Removal — COMPLETED
 
 - Removes the obsolete `Suvekursused 2026` homepage section and its unused responsive styles.
 - Removes the seasonal benefit-list line and `Suvekursus lapsele` registration option so the public page no

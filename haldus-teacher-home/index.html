@@ -41,6 +41,10 @@
 @media(max-width:900px){.page{padding:18px 12px 50px}.top{padding:0 12px}.scope-pill{display:none}.day-head{grid-template-columns:1fr 1fr 1fr}.day-main{grid-column:1/-1}.lesson{grid-template-columns:90px 1fr}.actions{grid-column:1/-1;border-left:0;border-top:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr}.learning-grid{grid-template-columns:1fr}}
 @media(max-width:900px){.workflow-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:560px){.workflow-grid{grid-template-columns:1fr}.workflow-card{min-height:70px}.top a:not(.active){display:none}.day-head{grid-template-columns:1fr}.day-main{grid-column:auto}.lesson{grid-template-columns:1fr}.time{border-right:0;border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:baseline}.actions{grid-template-columns:1fr}.student-row{display:block}.status{display:inline-block;margin:8px 0 0}}
+body.workspace-embedded .top{display:none}
+body.workspace-embedded .page{max-width:none;padding:22px 24px 70px}
+body.workspace-embedded .day-head{border-radius:18px}
+@media(max-width:900px){body.workspace-embedded .page{padding:14px 12px 50px}}
 </style>
 </head>
 <body>
@@ -53,6 +57,19 @@
 </main>
 <script>
 (function(){
+  const embedded=new URLSearchParams(location.search).get('embedded')==='1';
+  if(embedded) document.body.classList.add('workspace-embedded');
+  document.addEventListener('click',event=>{
+    if(!embedded) return;
+    const link=event.target.closest('a[href]');
+    if(!link||link.target==='_blank'||event.defaultPrevented) return;
+    const url=new URL(link.href,location.href);
+    if(url.origin!==location.origin) return;
+    if(url.pathname==='/haldus.html'||url.pathname==='/haldus/'||url.pathname.startsWith('/haldus-teacher-home')||url.pathname.startsWith('/haldus-lesson-builder')){
+      event.preventDefault();
+      parent.postMessage({type:'keelesepp-workspace-navigate',href:url.pathname+url.search+url.hash},location.origin);
+    }
+  });
   const db=window._db,auth=window._auth;
   const calendar=window.CalendarCore;
   const profileCore=window.KeeleSeppLearningProfileCore;
