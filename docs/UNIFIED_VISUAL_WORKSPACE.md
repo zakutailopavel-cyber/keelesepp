@@ -65,8 +65,11 @@ curriculum query when opened from a daily lesson.
 
 No Firebase Function, rule, index, schema, student data or production deployment is part of this slice.
 
+Status: **production-accepted** on main `73569786de938948a482b8e52f67a6444071c5b4`. Authenticated smoke confirmed
+same-tab navigation, persistent shared chrome and profile, Builder state preservation, and Student/Teacher plus
+Desktop/Tablet/Mobile preview projections. The smoke did not create student responses, evidence or lesson data.
+
 ## Next safe step
 
-After owner review and merge, perform an authenticated production smoke of the unified daily/Builder
-navigation, then implement the first A4 canvas proof in Lesson Builder: text block plus image block with
-drag, resize, 8/12 + 4/12 layout and print preview.
+Implement the first A4 canvas proof in Lesson Builder: text block plus image block with drag, resize,
+`8/12 + 4/12` layout and print preview.
