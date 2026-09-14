@@ -4,7 +4,7 @@ Last verified: 2026-09-14, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
 Verified main: `45a83200ee0bc60454ff19f85700fc0276458b34` — current authoritative main
 Current implementation branch: `agent/curriculum-document-upload-preview-v1`
-Current draft PR: pending
+Current draft PR: [#141](https://github.com/zakutailopavel-cyber/keelesepp/pull/141)
 PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [#116](https://github.com/zakutailopavel-cyber/keelesepp/pull/116) are merged.
 
 ## Current objective
