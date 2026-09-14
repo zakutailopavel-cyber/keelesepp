@@ -135,6 +135,7 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git rm scripts/apply-oppevara-visual-navigation-v1.py .github/workflows/temp-oppevara-visual-navigation-v1.yml
+          sed -i 's/[[:space:]]*$//' docs/HANDOFF_OPPEVARA_VISUAL_NAVIGATION_V1.md
           git add haldus-exercises/index.html oppevara-visual-navigation-v1.test.js docs/PROJECT_STATE.md ARCHITECTURE.md docs/HANDOFF_OPPEVARA_VISUAL_NAVIGATION_V1.md
           git diff --cached --check
           git commit -m 'feat: improve Õppevara visual navigation [oppevara-final]'
