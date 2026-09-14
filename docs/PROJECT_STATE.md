@@ -17,6 +17,7 @@ the left rail. B1/B2 lesson cards show a clickable mini material preview: real `
 their block count and a safe learner-facing fragment, while lessons without worksheet data are explicitly
 labelled as a source task rather than a finished worksheet. The click reuses the existing
 `WorksheetPreviewModal` and stays in the current KeeleSepp workspace.
+Attached image/PDF worksheets are also treated as documents rather than small attachments: image files render as full-size pages and PDFs receive a full-width embedded preview.
 
 Changed files: `haldus-exercises/index.html`, `oppevara-visual-navigation-v1.test.js`,
 `docs/PROJECT_STATE.md`, `ARCHITECTURE.md`, and `docs/HANDOFF_OPPEVARA_VISUAL_NAVIGATION_V1.md`.

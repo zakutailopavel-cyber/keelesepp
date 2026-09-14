@@ -17,6 +17,7 @@ Draft PR: https://github.com/zakutailopavel-cyber/keelesepp/pull/148
   `Töölehe lähteülesanne` and previews only `practice`, `goal`, `description` or `worksheetPrompt`.
 - Clicking the mini preview reuses the existing `WorksheetPreviewModal` in the same workspace.
 - Local preview fixtures cover both a real B1 worksheet and an honest B2 source-task state.
+- File-backed worksheets now render as full-size document pages: each image attachment is a separate large page, while PDF attachments use a full-width embedded document view instead of a tiny file thumbnail inside one artificial A4 sheet.
 
 ## Validation
 
