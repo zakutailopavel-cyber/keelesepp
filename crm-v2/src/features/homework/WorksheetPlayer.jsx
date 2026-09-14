@@ -91,6 +91,12 @@ function VisualWorksheetPage({ page, answers, done, readOnly, onAnswer }) {
   </figure>;
 }
 
+export function VisualWorksheetSubmissionPreview({ files = [], answers = {} }) {
+  const pages = useMemo(() => visualWorksheetPages(files), [files]);
+  if (!pages.length) return null;
+  return <div className="visual-worksheet-pages visual-worksheet-pages--review">{pages.map((page) => <VisualWorksheetPage page={page} answers={answers} done readOnly onAnswer={() => {}} key={`${page.file.url || page.file.name}-${page.fileIndex}`} />)}</div>;
+}
+
 export default function WorksheetPlayer({ assignment, repository, readOnly = false, onClose, onSubmitted }) {
   const blocks = useMemo(() => assignment.worksheetData?.blocks || [], [assignment]);
   const visualPages = useMemo(() => visualWorksheetPages(assignment.files || []), [assignment]);
@@ -98,6 +104,8 @@ export default function WorksheetPlayer({ assignment, repository, readOnly = fal
   const [submitted, setSubmitted] = useState(assignment.status === 'done');
   const [score, setScore] = useState(assignment.score || null);
   const [saving, setSaving] = useState(false);
+  const [savingDraft, setSavingDraft] = useState(false);
+  const [draftSaved, setDraftSaved] = useState(false);
   const [error, setError] = useState('');
   const [difficulty, setDifficulty] = useState(assignment.selfAssessment?.difficulty || '');
   const [comment, setComment] = useState(assignment.selfAssessment?.comment || '');
@@ -109,6 +117,15 @@ export default function WorksheetPlayer({ assignment, repository, readOnly = fal
     total: structuredProgress.total + visualProgress.total,
     complete: structuredProgress.complete && visualProgress.complete,
   }), [structuredProgress, visualProgress]);
+
+  const saveDraft = async () => {
+    setSavingDraft(true); setError('');
+    try {
+      await repository.saveWorksheetDraft({ assignmentId: assignment.id, answers });
+      setDraftSaved(true); onSubmitted?.();
+    } catch (saveError) { setError(saveError.message || 'Töölehe salvestamine ebaõnnestus.'); }
+    finally { setSavingDraft(false); }
+  };
 
   const submit = async () => {
     if (!progress.complete) { setError(`Täida kõik vastused (${progress.answered}/${progress.total}).`); return; }
@@ -133,7 +150,7 @@ export default function WorksheetPlayer({ assignment, repository, readOnly = fal
 
   const hasWork = blocks.length > 0 || visualPages.length > 0;
   const footer = !submitted && !readOnly && hasWork
-    ? <><span className="worksheet-progress">{progress.answered}/{progress.total} vastust</span><Button variant="secondary" onClick={onClose}>Sulge</Button><Button loading={saving} onClick={submit}><Send size={17} /> Esita tööleht</Button></>
+    ? <><span className="worksheet-progress">{progress.answered}/{progress.total} vastust{draftSaved ? ' · Salvestatud' : ''}</span><Button variant="secondary" loading={savingDraft} onClick={saveDraft}>Salvesta</Button><Button variant="secondary" onClick={onClose}>Sulge</Button><Button loading={saving} onClick={submit}><Send size={17} /> Esita tööleht</Button></>
     : <Button variant="secondary" onClick={onClose}>Sulge</Button>;
 
   return <Modal open title={assignment.title} onClose={onClose} className="modal--worksheet" footer={footer}>

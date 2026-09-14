@@ -5,7 +5,7 @@ import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { homeworkService, studentsService } from '../../services/firebase/index.js';
 import { hasAnyRole, ROLES } from '../../utils/roles.js';
-import WorksheetPlayer from './WorksheetPlayer.jsx';
+import WorksheetPlayer, { VisualWorksheetSubmissionPreview } from './WorksheetPlayer.jsx';
 import ExercisePlayer from './ExercisePlayer.jsx';
 import TextAnnotationEditor from './TextAnnotationEditor.jsx';
 import { submissionWritingFields } from './annotations.js';
@@ -226,6 +226,7 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
       {reviewing ? <div className="submission-review">
         <div className="submission-review__hero"><div><span className="eyebrow">{reviewing.submissionKind === 'worksheet' ? 'Tööleht' : 'Interaktiivne harjutus'}</span><strong>{reviewing.studentName}</strong><small>Esitatud {formatDate(reviewing.completedAt)}</small></div><div>{reviewing.percentage != null ? <b>{reviewing.percentage}%</b> : <ClipboardCheck size={28} />}{reviewing.score?.total ? <small>{reviewing.score.correct}/{reviewing.score.total} õiget</small> : null}</div></div>
         {reviewing.selfAssessment ? <section className="submission-self"><strong>Õpilase enesehinnang</strong><p>{reviewing.selfAssessment.difficulty ? `Raskus: ${reviewing.selfAssessment.difficulty}. ` : ''}{reviewing.selfAssessment.comment || 'Kommentaari ei lisatud.'}</p></section> : null}
+        {reviewing.submissionKind === 'worksheet' ? <section><h3>Tööleht vastustega</h3><VisualWorksheetSubmissionPreview files={reviewing.source?.files || []} answers={reviewing.answers || {}} /></section> : null}
         <section><h3>Õpilase vastused</h3><AnswerList answers={reviewing.answers} /></section>
         <TextAnnotationEditor fields={submissionWritingFields(reviewing)} annotations={reviewing.annotations || []} editable={staff} onChange={saveAnnotations} />
         {Array.isArray(reviewing.errorLog) && reviewing.errorLog.length ? <section><h3>Automaatselt tuvastatud vead</h3><div className="submission-errors">{reviewing.errorLog.map((error, index) => <p key={index}>{readableValue(error)}</p>)}</div></section> : null}

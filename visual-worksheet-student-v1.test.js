@@ -7,6 +7,7 @@ const haldus=fs.readFileSync('haldus-exercises/index.html','utf8');
 const library=fs.readFileSync('crm-v2/src/services/firebase/library.js','utf8');
 const homework=fs.readFileSync('crm-v2/src/services/firebase/homework.js','utf8');
 const player=fs.readFileSync('crm-v2/src/features/homework/WorksheetPlayer.jsx','utf8');
+const homeworkPage=fs.readFileSync('crm-v2/src/features/homework/HomeworkPage.jsx','utf8');
 const styles=fs.readFileSync('crm-v2/src/styles/index.css','utf8');
 
 test('visual overlays classify an image material as a worksheet',()=>{
@@ -33,4 +34,11 @@ test('student player renders answer controls on the original image and submits t
   assert.match(player,/element\.type === 'checkbox'/);
   assert.match(player,/repository\.submitWorksheet\(\{ assignmentId: assignment\.id, answers, \.\.\.result \}\)/);
   assert.match(styles,/\.visual-worksheet-layer\{position:absolute;inset:0\}/);
+});
+
+test('visual worksheet supports draft saving and teacher reviews the same page with answers',()=>{
+  assert.match(homework,/async saveWorksheetDraft\(\{ assignmentId, answers \}\)/);
+  assert.match(player,/repository\.saveWorksheetDraft\(\{ assignmentId: assignment\.id, answers \}\)/);
+  assert.match(player,/export function VisualWorksheetSubmissionPreview/);
+  assert.match(homeworkPage,/VisualWorksheetSubmissionPreview files=\{reviewing\.source\?\.files \|\| \[\]\} answers=\{reviewing\.answers \|\| \{\}\}/);
 });

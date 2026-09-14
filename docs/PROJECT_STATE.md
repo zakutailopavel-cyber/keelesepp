@@ -16,7 +16,9 @@ snapshots the image pages and bounded overlay metadata into `worksheetAssignment
 renders the original page image unchanged and places short answer, long answer, choice and checkbox controls at
 the authored percentage coordinates. Answers use the existing assignment `answers` map and existing
 `submitWorksheet` write boundary. Open responses are required for completion but are not auto-scored unless the
-teacher explicitly configured `correctAnswer`; word-translation hotspots remain informational.
+teacher explicitly configured `correctAnswer`; word-translation hotspots remain informational. Students can
+explicitly save an `in_progress` draft, and teacher review re-renders the same worksheet page with submitted
+answers positioned over the original image.
 
 Changed data contract: optional `worksheetAssignments.files[]` snapshot with optional
 `interactiveOverlay: {version:1,elements:[]}`. Existing assignments without `files` are unchanged. No Firestore
