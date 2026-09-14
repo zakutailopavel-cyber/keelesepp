@@ -1,0 +1,11 @@
+const fs=require('fs'),path=require('path'),assert=require('assert');
+const root=__dirname;
+const manifest=JSON.parse(fs.readFileSync(path.join(root,'data/keelesepp-a2-b1-roadmap.json'),'utf8'));
+const modules=manifest.shards.flatMap(p=>JSON.parse(fs.readFileSync(path.join(root,p.replace(/^\//,'')),'utf8')).modules);
+const lessons=modules.flatMap(m=>m.lessons);
+assert.equal(manifest.subject,'Eesti keel');assert.equal(manifest.level,'B1');assert.equal(modules.length,18);assert.equal(lessons.length,90);
+assert.equal(new Set(lessons.map(x=>x.id)).size,90);assert.equal(new Set(lessons.map(x=>x.sourceKey)).size,90);
+for(let n=5;n<=90;n+=5)assert.equal(lessons[n-1].kind,'assessment',`lesson ${n}`);
+const html=fs.readFileSync(path.join(root,'haldus-a2-b1-roadmap/index.html'),'utf8');
+assert.match(html,/level:'B1'/);assert.match(html,/worksheetPrompt:prompt\(m,l\)/);assert.match(html,/collection\('curriculumLessons'\)/);assert.match(html,/merge:true/);
+console.log('A2-B1 roadmap: 18 modules / 90 lessons PASS');
