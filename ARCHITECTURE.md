@@ -175,6 +175,11 @@ surface instead of opening browser tabs. The shell rejects cross-origin workspac
 boundary does not change Firebase authentication, authorization or persistence. Curriculum preparation
 keeps the complete query, including the stable `curriculumLessonKey`.
 
+Inside `haldus-exercises/`, `Õppekavad` is the primary Õppevara landing tab and `Raamatukogu` is the second
+primary tab. An explicit `?tab=library` deep link remains valid. Subject → level → topic navigation and
+worksheet previews stay inside the same authenticated surface and reuse `CurriculumView`, `TopicView` and
+`WorksheetPreviewModal`; this is a presentation/navigation contract only and adds no new persistence model.
+
 The student's manually selected curriculum position reuses `students.curriculumPlan`. A one-based number
 is resolved to an existing stable curriculum item and stored through the existing plan contract. It sets
 the current planned lesson and does not invent completion records for earlier lessons.
