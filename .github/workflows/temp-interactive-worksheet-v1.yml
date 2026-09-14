@@ -1,0 +1,54 @@
+name: temp-interactive-worksheet-v1
+
+on:
+  push:
+    branches:
+      - feat/interactive-worksheet-v1
+    paths:
+      - .github/workflows/temp-interactive-worksheet-v1.yml
+      - scripts/patch_interactive_worksheet_v1.py
+      - scripts/fix_interactive_worksheet_v1.py
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/interactive-worksheet-v1
+      - name: Apply patch
+        run: |
+          python scripts/patch_interactive_worksheet_v1.py
+          python scripts/fix_interactive_worksheet_v1.py
+      - name: Static checks
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('haldus-exercises/index.html').read_text(encoding='utf-8')
+          checks=[
+            'INTERACTIVE WORKSHEET V1',
+            'Muuda interaktiivseks',
+            'interactiveOverlay',
+            'Vene tõlge',
+            'iw-textarea',
+            'onUpdate={next=>setFiles',
+          ]
+          missing=[x for x in checks if x not in s]
+          assert not missing, f'missing markers: {missing}'
+          assert "draft.type==='textarea'?.07:.028" not in s
+          print('static checks passed')
+          PY
+      - name: Commit patched app
+        run: |
+          git config user.name "zakutailopavel-cyber"
+          git config user.email "zakutailo.pavel@gmail.com"
+          git add haldus-exercises/index.html
+          if git diff --cached --quiet; then
+            echo "No patch changes"
+          else
+            git commit -m "Interactive worksheet v1: manual overlays and improved preview"
+            git push origin HEAD:feat/interactive-worksheet-v1
+          fi
