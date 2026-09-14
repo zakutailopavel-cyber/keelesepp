@@ -35,6 +35,7 @@
 <script src="/curriculum-workflow-core.js?v=20260901.1"></script>
 <script src="/worksheet-workflow-core.js?v=20260901.1"></script>
 <script src="/live-classroom-core.js"></script>
+<script src="/curriculum-document-core.js?v=20260914.1"></script>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="/haldus.css?v=20260901.1">
@@ -232,7 +233,7 @@ div:hover>.topic-actions{opacity:1!important;}
 
 /* FILE CHIPS */
 .file-row{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px;}
-.file-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:8px;border:1px solid rgba(28,43,58,.1);background:#F9F8F6;font-size:.76rem;font-weight:600;color:#42536A;cursor:pointer;text-decoration:none;transition:all .12s;}
+.file-chip{display:inline-flex;align-items:center;gap:7px;padding:7px 11px;border-radius:9px;border:1px solid rgba(28,43,58,.1);background:#F9F8F6;font-family:inherit;font-size:.76rem;font-weight:600;color:#42536A;cursor:pointer;text-decoration:none;transition:all .12s;}
 .file-chip:hover{border-color:#C9882A;color:#A96E1A;background:rgba(201,136,42,.06);}
 .fi-ext{width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:.58rem;font-weight:800;color:#fff;flex-shrink:0;}
 
@@ -260,7 +261,20 @@ div:hover>.topic-actions{opacity:1!important;}
 /* UPLOAD ZONE */
 .upload-zone{border:2px dashed rgba(28,43,58,.16);border-radius:12px;padding:22px;text-align:center;cursor:pointer;transition:all .15s;background:rgba(28,43,58,.015);}
 .upload-zone:hover{border-color:#C9882A;background:rgba(201,136,42,.04);}
+.upload-zone.dragging{border-color:#2F5D50;background:rgba(47,93,80,.07);transform:translateY(-1px);}
 .upload-zone input{display:none;}
+.upload-error{margin-top:8px;padding:9px 11px;border-radius:9px;background:#fff1f2;color:#9f1239;font-size:.76rem;font-weight:600;text-align:left;}
+.doc-preview-ov{position:fixed;inset:0;z-index:520;background:rgba(18,30,42,.72);backdrop-filter:blur(7px);display:flex;align-items:center;justify-content:center;padding:18px;}
+.doc-preview-box{width:min(1080px,100%);height:min(820px,94vh);background:#EEECE7;border-radius:20px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.3);}
+.doc-preview-head{background:#1C2B3A;color:#fff;padding:15px 18px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.doc-preview-title{min-width:0;display:flex;align-items:center;gap:10px;}
+.doc-preview-name{font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.doc-preview-meta{font-size:.7rem;color:rgba(255,255,255,.55);margin-top:2px;}
+.doc-preview-actions{display:flex;gap:7px;flex-shrink:0;}
+.doc-preview-body{flex:1;min-height:0;padding:18px;display:flex;align-items:center;justify-content:center;}
+.doc-preview-frame{width:100%;height:100%;border:0;border-radius:12px;background:#fff;}
+.doc-preview-image{max-width:100%;max-height:100%;object-fit:contain;border-radius:12px;box-shadow:0 5px 26px rgba(0,0,0,.12);}
+.doc-preview-fallback{max-width:520px;text-align:center;background:#fff;border-radius:18px;padding:44px 34px;box-shadow:0 5px 26px rgba(0,0,0,.08);}
 
 /* MODAL */
 .modal-ov{position:fixed;inset:0;background:rgba(28,43,58,.5);display:flex;align-items:center;justify-content:center;padding:16px;z-index:200;backdrop-filter:blur(5px);}
@@ -612,7 +626,7 @@ const LOCAL_LIBRARY_PREVIEW=['localhost','127.0.0.1'].includes(window.location.h
   &&new URLSearchParams(window.location.search).get('preview')==='library';
 const PREVIEW_LESSONS=[
   {id:'preview-plan',title:'Minu pere — suhtlustund',subject:'Eesti keel',level:'A1',topic:'Minu pere',type:'lesson',lessonTypeLabel:'Uus teema',builderObjectives:'Õpilane oskab tutvustada oma pereliikmeid ja esitada lihtsaid küsimusi.',builderDuration:60,phaseData:{org:{0:'Tervitus'},harjutamine:{0:'Paaristöö'}}},
-  {id:'preview-sheet',title:'Igapäevased tegevused',subject:'Eesti keel',level:'A2',topic:'Igapäevaelu',type:'hw',description:'Sõnavara ja oleviku kordamise interaktiivne tööleht.',worksheetData:{meta:{title:'Igapäevased tegevused'},blocks:[{id:'b1',type:'fill',text:'Hommikul ma [ärkan] kell seitse.'}]}},
+  {id:'preview-sheet',title:'Igapäevased tegevused',subject:'Eesti keel',level:'A2',topic:'Igapäevaelu',type:'hw',description:'Sõnavara ja oleviku kordamise interaktiivne tööleht.',files:[{name:'naidis-pilt.png',type:'image/png',size:2056,url:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScL9WQAAAABJRU5ErkJggg=='}],worksheetData:{meta:{title:'Igapäevased tegevused'},blocks:[{id:'b1',type:'fill',text:'Hommikul ma [ärkan] kell seitse.'}]}},
   {id:'preview-test',title:'B1 kontrolltöö — reisimine',subject:'Eesti keel',level:'B1',topic:'Reisimine',type:'test',examPart:'kirjutamine',description:'Kontrolltöö lugemise, sõnavara ja kirjutamise ülesannetega.',worksheetData:{meta:{title:'B1 kontrolltöö'},blocks:[{id:'b2',type:'writing',task:'Kirjuta oma viimasest reisist.',lines:6}]}},
   {id:'preview-material',title:'Inglise keele häälduskaardid',subject:'Inglise keel',level:'A1',topic:'Pronunciation',type:'material',description:'Visuaalsed kaardid häälduse harjutamiseks tunnis.',files:[]},
   {id:'preview-homework',title:'Geomeetria kordamine',subject:'Matemaatika',level:'7. klass',topic:'Geomeetria',type:'hw',description:'Kolmnurkade pindala ja ümbermõõdu ülesanded.'}
@@ -682,40 +696,70 @@ const EXT_COLORS={pdf:'#dc2626',docx:'#1d4ed8',doc:'#1d4ed8',xlsx:'#166534',xls:
 // ── UTILS ─────────────────────────────────────────────────────
 function FileChip({file}){
   const ext=(file.name||'').split('.').pop().toLowerCase();
-  return(
-    <a href={file.url} target="_blank" rel="noreferrer" className="file-chip">
+  const[preview,setPreview]=useState(false);
+  return(<>
+    <button type="button" onClick={()=>setPreview(true)} className="file-chip" title="Vaata faili">
       <span className="fi-ext" style={{background:EXT_COLORS[ext]||'#42536A'}}>{ext.slice(0,3).toUpperCase()}</span>
-      <span style={{maxWidth:130,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{file.name}</span>
-      <i className="fa-solid fa-arrow-up-right-from-square" style={{fontSize:'.6rem',opacity:.45,marginLeft:2}}/>
-    </a>
+      <span style={{maxWidth:170,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',textAlign:'left'}}>{file.name}</span>
+      {file.size&&<span style={{fontSize:'.66rem',color:'#8A8176',fontWeight:500}}>{CurriculumDocumentCore.formatBytes(file.size)}</span>}
+      <i className="fa-solid fa-eye" style={{fontSize:'.65rem',opacity:.55,marginLeft:2}}/>
+    </button>
+    {preview&&ReactDOM.createPortal(<DocumentPreviewModal file={file} onClose={()=>setPreview(false)}/>,document.body)}
+  </>);
+}
+
+function DocumentPreviewModal({file,onClose}){
+  const kind=CurriculumDocumentCore.previewKind(file);
+  const ext=CurriculumDocumentCore.extension(file.name).toUpperCase();
+  return(
+    <div className="doc-preview-ov" onClick={e=>{e.stopPropagation();if(e.target===e.currentTarget)onClose();}}>
+      <div className="doc-preview-box" role="dialog" aria-modal="true" aria-label={'Faili eelvaade: '+file.name}>
+        <div className="doc-preview-head">
+          <div className="doc-preview-title"><span className="fi-ext" style={{background:EXT_COLORS[ext.toLowerCase()]||'#42536A'}}>{ext.slice(0,3)}</span><div style={{minWidth:0}}><div className="doc-preview-name">{file.name}</div><div className="doc-preview-meta">{ext}{file.size?' · '+CurriculumDocumentCore.formatBytes(file.size):''}</div></div></div>
+          <div className="doc-preview-actions"><a href={file.url} download={file.name} className="btn btn-gold btn-sm"><i className="fa-solid fa-download"/> Laadi alla</a><button type="button" onClick={onClose} className="btn btn-ghost btn-sm" style={{color:'#fff',borderColor:'rgba(255,255,255,.25)'}}>✕ Sulge</button></div>
+        </div>
+        <div className="doc-preview-body">
+          {kind==='image'&&<img src={file.url} alt={file.name} className="doc-preview-image"/>}
+          {kind==='pdf'&&<iframe src={file.url+'#view=FitH'} title={file.name} className="doc-preview-frame"/>}
+          {kind==='text'&&<iframe src={file.url} title={file.name} className="doc-preview-frame" sandbox=""/>}
+          {kind==='download'&&<div className="doc-preview-fallback"><i className="fa-solid fa-file-arrow-down" style={{fontSize:'3rem',color:'#C9882A',marginBottom:18}}/><h3 style={{fontFamily:'Fraunces',fontSize:'1.35rem',marginBottom:8}}>{file.name}</h3><p style={{color:'#718096',lineHeight:1.55,fontSize:'.86rem',marginBottom:20}}>Wordi ja PowerPointi faile brauser turvaliselt ei kuva. Laadi dokument alla ja ava oma seadmes.</p><a href={file.url} download={file.name} className="btn btn-pine"><i className="fa-solid fa-download"/> Laadi dokument alla</a></div>}
+        </div>
+      </div>
+    </div>
   );
 }
 
 function FileUploader({onUpload,uploading,setUploading}){
   const ref=useRef();
   const[progress,setProgress]=useState(0);
+  const[dragging,setDragging]=useState(false);
+  const[error,setError]=useState('');
+  const[currentName,setCurrentName]=useState('');
   const handle=async files=>{
     if(!files||!files.length)return;
-    setUploading(true);
-    const results=[];
-    for(const file of files){
-      const r=storage.ref(`curriculum/${Date.now()}_${file.name}`);
-      const task=r.put(file);
-      await new Promise((res,rej)=>task.on('state_changed',
-        s=>setProgress(Math.round(s.bytesTransferred/s.totalBytes*100)),rej,
-        async()=>{const url=await r.getDownloadURL();results.push({name:file.name,url,size:file.size,type:file.type});res();}
-      ));
-    }
-    setUploading(false);setProgress(0);onUpload(results);
+    setError('');
+    const selected=Array.from(files);
+    const invalid=selected.map(file=>({file,result:CurriculumDocumentCore.validate(file)})).find(item=>!item.result.ok);
+    if(invalid){setError(invalid.file.name+': '+invalid.result.message);return;}
+    setUploading(true);const results=[];
+    try{
+      for(const file of selected){
+        setCurrentName(file.name);setProgress(0);
+        const r=storage.ref(CurriculumDocumentCore.storagePath(file));
+        const task=r.put(file,{contentType:file.type||undefined});
+        await new Promise((res,rej)=>task.on('state_changed',s=>setProgress(Math.round(s.bytesTransferred/s.totalBytes*100)),rej,async()=>{const url=await r.getDownloadURL();results.push({name:file.name,url,size:file.size,type:file.type,storagePath:r.fullPath});res();}));
+      }
+      onUpload(results);
+    }catch(uploadError){console.error('Curriculum file upload failed:',uploadError);setError('Faili üleslaadimine ebaõnnestus. Kontrolli ühendust ja proovi uuesti.');}
+    finally{setUploading(false);setProgress(0);setCurrentName('');if(ref.current)ref.current.value='';}
   };
-  return(
-    <div className="upload-zone" onDrop={e=>{e.preventDefault();handle(e.dataTransfer.files);}} onDragOver={e=>e.preventDefault()} onClick={()=>ref.current?.click()}>
-      <input ref={ref} type="file" multiple onChange={e=>handle(e.target.files)}/>
-      {uploading
-        ?<div><div className="spinner" style={{margin:'0 auto 8px'}}/><div style={{fontSize:'.8rem',color:'#718096'}}>Laadimine... {progress}%</div></div>
-        :<div><i className="fa-solid fa-cloud-arrow-up" style={{fontSize:'1.5rem',color:'#718096',marginBottom:7,display:'block'}}/><div style={{fontWeight:700,color:'#1C2B3A',marginBottom:3}}>Lohista failid siia</div><div style={{fontSize:'.76rem',color:'#718096'}}>PDF, Word, PPT, pildid, helifailid</div></div>}
+  return(<div>
+    <div className={'upload-zone'+(dragging?' dragging':'')} onDrop={e=>{e.preventDefault();setDragging(false);handle(e.dataTransfer.files);}} onDragEnter={e=>{e.preventDefault();setDragging(true);}} onDragLeave={()=>setDragging(false)} onDragOver={e=>e.preventDefault()} onClick={()=>!uploading&&ref.current?.click()}>
+      <input ref={ref} type="file" multiple accept={CurriculumDocumentCore.ACCEPT} onChange={e=>handle(e.target.files)}/>
+      {uploading?<div><div className="spinner" style={{margin:'0 auto 8px'}}/><div style={{fontWeight:700,fontSize:'.82rem'}}>{currentName}</div><div style={{fontSize:'.76rem',color:'#718096',marginTop:3}}>Laadimine… {progress}%</div><div style={{height:4,background:'rgba(28,43,58,.1)',borderRadius:4,margin:'10px auto 0',maxWidth:260}}><div style={{height:'100%',width:progress+'%',background:'#2F5D50',borderRadius:4}}/></div></div>:<div><i className="fa-solid fa-file-arrow-up" style={{fontSize:'1.55rem',color:'#2F5D50',marginBottom:8,display:'block'}}/><div style={{fontWeight:800,color:'#1C2B3A',marginBottom:4}}>Vali dokument või lohista see siia</div><div style={{fontSize:'.76rem',color:'#718096'}}>PDF, Word, PowerPoint, JPG, PNG või TXT · kuni 20 MB</div><span className="btn btn-pine btn-sm" style={{marginTop:12,pointerEvents:'none'}}><i className="fa-solid fa-folder-open"/> Vali fail</span></div>}
     </div>
-  );
+    {error&&<div className="upload-error"><i className="fa-solid fa-circle-exclamation" style={{marginRight:6}}/>{error}</div>}
+  </div>);
 }
 
 // ── LESSON MODAL ──────────────────────────────────────────────
@@ -3077,10 +3121,7 @@ function WorksheetPreviewModal({lesson,onClose,onConduct}) {
                   return(
                     <div key={i} style={{marginBottom:12}}>
                       {isImg&&<img src={f.url} alt={f.name} style={{maxWidth:'100%',maxHeight:300,objectFit:'contain',borderRadius:8,border:'1px solid rgba(28,43,58,.08)',marginBottom:6}}/>}
-                      <a href={f.url} target="_blank" rel="noreferrer"
-                        style={{display:'inline-flex',alignItems:'center',gap:7,padding:'7px 13px',background:'#F0EEE9',borderRadius:8,textDecoration:'none',color:'#1C2B3A',fontSize:'.84rem',fontWeight:600,border:'1px solid rgba(28,43,58,.1)'}}>
-                        <i className="fa-solid fa-paperclip" style={{fontSize:'.72rem'}}/> {f.name}
-                      </a>
+                      <FileChip file={f}/>
                     </div>
                   );
                 })}</div>
