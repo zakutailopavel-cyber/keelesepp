@@ -2,26 +2,22 @@
 
 Last verified: 2026-09-14, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
-Verified main: `c14895e6315fb96c9f58d9b9729d552d03331c73` — #131 merged by owner
-Current implementation branch: `agent/guided-curriculum-starter`
-Current draft PR: [#132](https://github.com/zakutailopavel-cyber/keelesepp/pull/132)
+Verified main: `6b8f88f1ad2e999fc9a45879b9c6c481045790fe` — #132 merged by owner
+Current implementation branch: `agent/remove-summer-courses`
+Current draft PR: [#133](https://github.com/zakutailopavel-cyber/keelesepp/pull/133)
 PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [#116](https://github.com/zakutailopavel-cyber/keelesepp/pull/116) are merged.
 
 ## Current objective
 
-Guided Curriculum Starter is the current bounded workstream. The roadmap was reconciled against the merged
-product: cloud drafts/publication, interactive student assignments, staff preview, bounded AI generation,
-accepted adaptive evidence and calendar completion already exist. The highest-priority remaining gap is the
-teacher's path from today's curriculum lesson to an editable, student-ready draft.
+Expired Summer Courses Removal is the current bounded workstream. The public homepage no longer advertises
+summer 2026 registration: the seasonal section, its unused styles and the two related registration-form
+references are removed. The ordinary Estonian and English course catalogue and registration path remain
+unchanged. No Firebase, API, CRM, student, lesson, calendar or production-data write is introduced.
 
-Teacher Home continues to pass only `curriculumLessonKey`. Builder protects an existing local draft, then
-shows three ordinary choices: a recommended 60-minute lesson, a fillable independent worksheet or the full
-template library. Selecting any structure preserves the curriculum title, CEFR, topic, goal and duration while
-allocating new stable activity IDs. Save, publish and assign remain explicit later actions. No Firebase, API,
-student, assignment, evidence, calendar, mastery or credit write is introduced.
+Validation: HTML structure and diff checks PASS; local browser smoke PASS. The homepage loads, the ordinary
+course catalogue follows the hero directly, the registration form remains present and no summer copy remains.
 
-Exactly one next safe step: owner review of the guided curriculum starter after automated and visual preview
-verification.
+Exactly one next safe step: owner review and merge of PR #133, followed by a production homepage smoke.
 Historical Google Calendar Sync Clarity is merged and production-accepted. Past one-time KeeleSepp
 lessons whose original Google push failed are shown as neutral `G–` records. An exact imported Google
 mirror for the same student, teacher and interval is collapsed from presentation and no longer creates a
@@ -55,7 +51,7 @@ PR #94 switched Teacher Home to the real curriculum source. PR #95 then bound th
 
 ## Verified repository state
 
-Current remote `main` is `c14895e6315fb96c9f58d9b9729d552d03331c73`.
+Current remote `main` is `6b8f88f1ad2e999fc9a45879b9c6c481045790fe`.
 
 Merged on current `main`:
 
@@ -97,8 +93,19 @@ Merged on current `main`:
 - #129 Teacher Home daily action clarity — merged; Vercel production READY and authenticated smoke PASS.
 - #130 Teacher Home Curriculum Preparation Bridge — merged; Vercel production READY and authenticated production smoke PASS.
 - #131 #130 post-merge documentation reconciliation — merged.
+- #132 Guided Curriculum Starter — merged; focused curriculum/Builder/session and browser suites PASS.
 
-## Guided Curriculum Starter — IN PROGRESS
+## Expired Summer Courses Removal — IN PROGRESS
+
+- Removes the obsolete `Suvekursused 2026` homepage section and its unused responsive styles.
+- Removes the seasonal benefit-list line and `Suvekursus lapsele` registration option so the public page no
+  longer offers a past-season product through a secondary path.
+- Keeps the regular course catalogue, prices, teachers, reviews and registration form unchanged.
+- Validation: HTML landmark/content checks PASS; `git diff --check` PASS; local browser smoke PASS.
+- Data/security impact: static public-page content only. No Firebase, API, authentication, CRM or production
+  data change and no deployment performed.
+
+## Guided Curriculum Starter — COMPLETED
 
 - Reconciled product priorities are in `docs/PRODUCT_ROADMAP.md`: teacher preparation, explicit
   draft-to-student delivery and reliable student completion are P0.
