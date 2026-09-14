@@ -22,13 +22,22 @@ test('every roadmap lesson has authoring fields and each fifth lesson is assessm
   for(let number=5;number<=90;number+=5) assert.equal(lessons[number-1].kind,'assessment',`lesson ${number}`);
 });
 
-test('roadmap manager supports curriculum sync, prompt copy and worksheet attachments',()=>{
+test('roadmap is integrated into the existing B2 curriculum instead of a separate level',()=>{
+  assert.equal(manifest.subject,'Eesti keel');
+  assert.equal(manifest.level,'B2');
   const html=fs.readFileSync(path.join(root,'haldus-b1-b2-roadmap/index.html'),'utf8');
-  assert.match(html,/Sünkrooni Õppekavadesse/);
-  assert.match(html,/Kopeeri prompt/);
-  assert.match(html,/Lisa tööleht/);
+  assert.match(html,/level:'B2'/);
+  assert.match(html,/description:''/);
   assert.match(html,/collection\('curriculumLessons'\)/);
   assert.match(html,/worksheetPrompt:prompt\(m,l\)/);
-  assert.match(html,/FieldValue\.arrayUnion/);
-  assert.match(html,/curriculum\//);
+  assert.match(html,/location\.replace\('\/haldus-exercises\//);
+  assert.doesNotMatch(html,/Kopeeri prompt<\/button>/);
+  assert.doesNotMatch(html,/Lisa tööleht<input/);
+});
+
+test('existing Õppekavad UI already supports worksheet attachments on curriculum lessons',()=>{
+  const html=fs.readFileSync(path.join(root,'haldus-exercises/index.html'),'utf8');
+  assert.match(html,/lesson\.files\?\.length>0/);
+  assert.match(html,/onEdit\(lesson\)/);
+  assert.match(html,/storage\.ref\('curriculum\/'\+Date\.now\(\)\+'_'\+file\.name\)/);
 });
