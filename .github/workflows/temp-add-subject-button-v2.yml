@@ -1,0 +1,33 @@
+name: temp-add-subject-button-v2
+
+on:
+  push:
+    branches:
+      - feat/add-subject-button
+    paths:
+      - .github/workflows/temp-add-subject-button-v2.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/add-subject-button
+      - name: Apply patch
+        run: python3 scripts/temp_patch_add_subject.py
+      - name: Validate
+        run: |
+          grep -q "Lisa aine" haldus-exercises/index.html
+          grep -q "__subjectPlaceholder:true" haldus-exercises/index.html
+          grep -q "subjectDefs.map(s=>{" haldus-exercises/index.html
+      - name: Commit
+        run: |
+          git config user.name "zakutailopavel-cyber"
+          git config user.email "zakutailo.pavel@gmail.com"
+          git add haldus-exercises/index.html
+          git commit -m "Add Lisa aine button to learning library"
+          git push origin feat/add-subject-button
