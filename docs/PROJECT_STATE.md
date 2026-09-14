@@ -2,10 +2,35 @@
 
 Last verified: 2026-09-14, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
-Verified main: `cc8e80f8b410793b15d8661f0c65fe1ba9b2f66c` — authoritative base for this slice
-Current implementation branch: `codex/oppevara-visual-navigation-v1`
-Current draft PR: [https://github.com/zakutailopavel-cyber/keelesepp/pulls](https://github.com/zakutailopavel-cyber/keelesepp/pulls)
+Verified main: `ab69a0e05c0b449a1de36242ffa2e7545b076779` — base for Student Visual Worksheet v1
+Current implementation branch: `agent/visual-worksheet-student-v1`
+Current draft PR: https://github.com/zakutailopavel-cyber/keelesepp/pull/150
 PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [#116](https://github.com/zakutailopavel-cyber/keelesepp/pull/116) are merged.
+
+
+## Student Visual Worksheet v1 — DRAFT
+
+This slice connects the already-merged manual image overlay authoring from #143 to the student assignment flow.
+A curriculum image with answerable `interactiveOverlay` fields is classified as a worksheet; assignment creation
+snapshots the image pages and bounded overlay metadata into `worksheetAssignments`. The student `WorksheetPlayer`
+renders the original page image unchanged and places short answer, long answer, choice and checkbox controls at
+the authored percentage coordinates. Answers use the existing assignment `answers` map and existing
+`submitWorksheet` write boundary. Open responses are required for completion but are not auto-scored unless the
+teacher explicitly configured `correctAnswer`; word-translation hotspots remain informational.
+
+Changed data contract: optional `worksheetAssignments.files[]` snapshot with optional
+`interactiveOverlay: {version:1,elements:[]}`. Existing assignments without `files` are unchanged. No Firestore
+rule, Function, index, migration, financial data, curriculum skill credit or production deployment is included.
+The open PDF overlay PR #144 remains separate; this slice intentionally implements the current PNG/JPG workflow
+without modifying PDF.js authoring.
+
+Validation: PASS — root library/interactive/visual worksheet Node contracts; focused CRM worksheet/homework Vitest; `crm-v2` production build; `git diff --check`.
+
+Known limitation: visual field placement depends on the teacher-authored overlay coordinates; this slice does not
+perform OCR/AI field detection. PDF student rendering remains a follow-up after #144 is reconciled.
+
+Exactly one next safe step: review one real two-page image worksheet in the Vercel preview from teacher assignment
+through student completion and teacher submission view before merge.
 
 
 ## Õppevara Visual Navigation v1 — DRAFT

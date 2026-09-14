@@ -114,6 +114,7 @@ export function normalizeWorksheetAssignment(id, data = {}) {
     answers: data.answers || {},
     errorLog: data.errorLog || [],
     worksheetData: data.worksheetData || { meta: {}, blocks: [] },
+    files: Array.isArray(data.files) ? data.files : [],
   };
 }
 
