@@ -105,3 +105,4 @@ s=s.replace(needle, "              <div className=\"iw-editor-head\">Interaktiiv
 
 p.write_text(s,encoding='utf-8')
 print('patched PDF.js interactive worksheet support')
+# trigger workflow after workflow file exists
