@@ -7,6 +7,7 @@ on:
     paths:
       - .github/workflows/temp-visual-worksheet-student-v1.yml
       - scripts/patch_visual_worksheet_student_review_v1.py
+  workflow_dispatch:
 
 permissions:
   contents: write
