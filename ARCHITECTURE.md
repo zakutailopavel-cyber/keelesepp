@@ -167,6 +167,19 @@ review. `haldus.html` keeps the complete legacy CRM, but its staff sidebar expos
 all administrative and lower-frequency tools remain available in a collapsible section. These links are
 navigation boundaries over existing screens and do not introduce another data store or permission path.
 
+The authenticated CRM shell is also the teacher-facing visual workspace. Primary daily and authoring
+destinations render in its centre surface while the navigation rail, section header and signed-in profile
+remain visible. Teacher Home and Lesson Builder currently use mounted same-origin embedded surfaces as a
+migration boundary between the inline CRM React application and the independent browser applications.
+Embedded mode removes duplicate chrome and hands known CRM navigation back to the parent shell. It does not
+change Firebase authentication, authorization or persistence. Curriculum preparation keeps the complete
+query, including the stable `curriculumLessonKey`.
+
+The existing Lesson Builder is the canonical authoring surface. Worksheet visual blocks will converge into
+it through the Normalized Activity Contract. A future A4 canvas stores presentation-only grid placement on
+the same immutable activity IDs and produces teacher, student and print projections rather than a separate
+lesson schema. See `docs/UNIFIED_VISUAL_WORKSPACE.md`.
+
 `functions/staff-operations-core.js` owns deterministic work-duration, hourly-rate, payroll and
 operational-alert calculations. `staffOperationsApi` is the only writer for work sessions:
 one server-side pointer per staff member prevents concurrent open shifts, while every transition

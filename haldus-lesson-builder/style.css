@@ -30,3 +30,9 @@
 .quick-start-cards small{margin-top:4px;color:var(--muted);font-size:11px;font-weight:400}
 .quick-start-cards strong{padding:5px 8px;border-radius:999px;background:var(--green);color:#fff;font-size:10px}
 @media(max-width:520px){.curriculum-start-context{align-items:flex-start;flex-direction:column}.quick-start-cards button{grid-template-columns:30px 1fr}.quick-start-cards strong{grid-column:2;justify-self:start}}
+
+/* Embedded inside the authenticated KeeleSepp workspace: keep editing actions, remove duplicate branding. */
+body.workspace-embedded .topbar{top:0;height:64px;padding-left:20px}
+body.workspace-embedded .topbar .brand,body.workspace-embedded .topbar .divider{display:none}
+body.workspace-embedded .structure,body.workspace-embedded .preview-panel{top:76px;max-height:calc(100vh - 88px)}
+body.workspace-embedded .workspace-bar{background:var(--bg);border-bottom:1px solid var(--line)}

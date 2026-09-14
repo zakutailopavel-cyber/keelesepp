@@ -1,7 +1,7 @@
 # KeeleSepp Product Roadmap
 
 Last reconciled: 2026-09-14
-Authoritative main at reconciliation: `c14895e6315fb96c9f58d9b9729d552d03331c73`
+Authoritative main at reconciliation: `29f7fd099705300e3d42cd639590ba22f9a0059c`
 
 ## Product outcome
 
@@ -22,11 +22,26 @@ IDs and separate CRM modules must not become navigation tasks for an ordinary te
 
 ## Current product gaps, in priority order
 
+### P0 — One visual workspace
+
+Daily work, student context and lesson preparation must open in the centre of the authenticated KeeleSepp
+shell. The navigation rail, page header and signed-in profile remain visible; primary work never opens a new
+tab or replaces the whole application. Already opened daily and Builder surfaces retain their state when the
+teacher moves between them. This is the current bounded workstream.
+
+### P0 — One visual authoring canvas
+
+The existing Lesson Builder becomes the only teacher-facing authoring product. Add a paged A4 canvas with a
+12-column grid, drag, resize, alignment, page breaks and print preview. Reuse Worksheet Builder block types
+through the Normalized Activity Contract. The same lesson content must project to the teacher canvas, the
+interactive student player and printable A4/PDF without parallel content schemas.
+
 ### P0 — Teacher can prepare today's lesson quickly
 
 Teacher Home must open a guided curriculum starter with a small number of ordinary choices. Curriculum
 metadata must survive template selection. The resulting draft remains editable and requires explicit
-teacher save/publication. This is the current bounded workstream.
+teacher save/publication. The guided starter is implemented; its navigation is now being consolidated into
+the unified workspace.
 
 ### P0 — One visible path from draft to student
 
@@ -45,7 +60,7 @@ nonpersistent. Production defects in this path take priority over new Builder ca
 Add search, filters, recent lessons, duplicate-and-retarget and curriculum-aware recommendations to the cloud
 lesson library. Reuse must create a new logical draft when edited and keep published versions immutable.
 
-### P1 — Visual content quality
+### P1 — Expanded visual content quality
 
 Improve the most-used activity layouts, media placement and mobile readability through a small set of strong
 presets. Add real audio/media only behind the existing asset and authorization boundaries.
@@ -71,5 +86,6 @@ attendance never becomes mastery and no automatic `skillMap`, mastery or curricu
 
 ## Delivery rule
 
-Take one bounded high-frequency friction point at a time. Verify existing tests, preview the real UI and update
-`docs/PROJECT_STATE.md`. Merge remains an owner action. Firebase production changes require a separate gate.
+Take one bounded high-frequency friction point at a time. Verify existing tests, preview the real UI at desktop
+and tablet widths and update `docs/PROJECT_STATE.md`. Visual review is part of acceptance, not optional polish.
+Merge remains an owner action. Firebase production changes require a separate gate.
