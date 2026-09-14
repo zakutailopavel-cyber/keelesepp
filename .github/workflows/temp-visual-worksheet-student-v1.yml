@@ -1,0 +1,81 @@
+name: temp-visual-worksheet-student-v1
+
+on:
+  push:
+    branches:
+      - agent/visual-worksheet-student-v1
+    paths:
+      - .github/workflows/temp-visual-worksheet-student-v1.yml
+      - scripts/patch_visual_worksheet_student_v1.py
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-persist:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/visual-worksheet-student-v1
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Apply Student Visual Worksheet v1 patch
+        env:
+          VISUAL_WORKSHEET_PR_URL: https://github.com/zakutailopavel-cyber/keelesepp/pull/150
+        run: python scripts/patch_visual_worksheet_student_v1.py
+
+      - name: Run root worksheet and library contract tests
+        run: node --test learning-library-core.test.js interactive-worksheet-v1.test.js visual-worksheet-student-v1.test.js
+
+      - name: Install CRM v2 dependencies
+        working-directory: crm-v2
+        run: npm ci
+
+      - name: Run focused CRM v2 tests
+        working-directory: crm-v2
+        run: npm test -- src/features/homework/worksheetPlayer.visual.test.js src/services/firebase/homework.test.js
+
+      - name: Build CRM v2
+        working-directory: crm-v2
+        run: npm run build
+
+      - name: Check whitespace
+        run: git diff --check
+
+      - name: Record validation result
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('docs/PROJECT_STATE.md')
+          s=p.read_text(encoding='utf-8')
+          marker='__VALIDATION_RESULT__'
+          assert marker in s
+          s=s.replace(marker,'PASS — root library/interactive/visual worksheet Node contracts; focused CRM worksheet/homework Vitest; `crm-v2` production build; `git diff --check`.')
+          p.write_text(s,encoding='utf-8')
+          PY
+          git diff --check
+
+      - name: Commit validated product changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            learning-library-core.js \
+            haldus-exercises/index.html \
+            crm-v2/src/features/library/libraryModel.js \
+            crm-v2/src/services/firebase/library.js \
+            crm-v2/src/services/firebase/homework.js \
+            crm-v2/src/features/homework/worksheetPlayer.js \
+            crm-v2/src/features/homework/WorksheetPlayer.jsx \
+            crm-v2/src/styles/index.css \
+            crm-v2/src/features/homework/worksheetPlayer.visual.test.js \
+            visual-worksheet-student-v1.test.js \
+            ARCHITECTURE.md \
+            docs/PROJECT_STATE.md
+          git commit -m "feat: make visual worksheets fillable for students"
+          git push origin HEAD:agent/visual-worksheet-student-v1
