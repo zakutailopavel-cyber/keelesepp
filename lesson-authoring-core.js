@@ -51,9 +51,10 @@
         if(!['A1','A2','B1','B2','C1'].includes(l.cefr)||!validMinutes(l.minutes))errors.push('Tunni tase või kestus on vigane.');
         for(const key of ['goal','topic','tags','notes','successCriteria'])if(typeof l[key]!=='string'||l[key].length>4000)errors.push('Tunni seadete tekst on vigane.');
         if(!Array.isArray(l.skills)||l.skills.some(k=>!SKILLS.includes(k)))errors.push('Tunni oskused on vigased.');
+        if(x.a4!==undefined&&(!isObject(x.a4)||(x.a4.pageCount!==undefined&&(!Number.isSafeInteger(x.a4.pageCount)||x.a4.pageCount<1||x.a4.pageCount>30))||(x.a4.answers!==undefined&&typeof x.a4.answers!=='boolean')||(x.a4.studentName!==undefined&&(typeof x.a4.studentName!=='string'||x.a4.studentName.length>180))||(x.a4.date!==undefined&&(typeof x.a4.date!=='string'||x.a4.date.length>40))))errors.push('A4 töölehe seaded on vigased.');
         for(const p of x.phases)if(!p||typeof p.id!=='string'||!p.id||p.id.length>100||typeof p.title!=='string'||!p.title.trim()||p.title.length>180)errors.push('Etapi nimetus on vigane.');
         const layouts=['native','text','image','cards','questions','comparison','roleplay','dialogue','flashcard','checklist','reading','exam','reflection','teacher'];
-        for(const m of Object.values(x.activities))if(!isObject(m)||!validMinutes(m.minutes)||!layouts.includes(m.layout)||(m.templateId!==undefined&&typeof m.templateId!=='string')||(m.reference!==undefined&&typeof m.reference!=='boolean'))errors.push('Ploki kujundus või kestus on vigane.');
+        for(const m of Object.values(x.activities))if(!isObject(m)||!validMinutes(m.minutes)||!layouts.includes(m.layout)||(m.templateId!==undefined&&typeof m.templateId!=='string')||(m.reference!==undefined&&typeof m.reference!=='boolean')||(m.a4!==undefined&&(!isObject(m.a4)||!Number.isSafeInteger(m.a4.page)||m.a4.page<1||m.a4.page>30||![4,6,8,12].includes(m.a4.span)||!Number.isSafeInteger(m.a4.order)||m.a4.order<0)))errors.push('Ploki kujundus või kestus on vigane.');
       }
     }
     try{if(JSON.stringify(draft).length>MAX_BYTES)errors.push('Mustand on liiga suur.');}catch{errors.push('Mustand peab olema JSON.');}
