@@ -69,3 +69,4 @@ jobs:
           }
           put_file haldus-exercises/index.html "Interactive worksheet PDF v1: page-aware PDF.js overlays"
           put_file interactive-worksheet-pdf-v1.test.js "test: cover PDF interactive worksheets"
+      # push-trigger: contents-write validation
