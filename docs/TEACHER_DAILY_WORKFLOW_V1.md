@@ -28,3 +28,18 @@ immutable lesson version.
 This slice changes static navigation and presentation. It does not change Functions, Firestore rules,
 indexes, collections, student data, assignments, evidence, finance or curriculum progress. Vercel Preview
 is sufficient before owner review. Firebase deployment is not required.
+
+## Guided curriculum preparation
+
+A current unbound curriculum lesson opens Builder with only its stable `curriculumLessonKey`. Builder resolves
+that key locally and protects an existing browser draft before replacement. The first teacher decision is now
+limited to three paths:
+
+1. a recommended editable 60-minute lesson structure;
+2. a short fillable independent worksheet;
+3. the complete existing lesson-template library.
+
+Whichever structure is selected, the curriculum title, CEFR, topic, goal and planned duration remain in the
+new draft. Template activities receive new stable IDs and remain ordinary normalized activities. The teacher
+still reviews, saves, publishes and assigns explicitly. This flow creates no session, evidence, assignment,
+curriculum progress or Firebase write by itself.

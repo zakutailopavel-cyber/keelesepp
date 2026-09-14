@@ -14,6 +14,10 @@ test('Builder accepts a stable curriculum lesson key and opens template choice',
   assert.match(app,/get\('curriculumLessonKey'\)/);
   assert.match(app,/flattenCurriculum\(window\.HaldusCurriculum\)\.find\(item=>item\.key===requestedCurriculumKey\)/);
   assert.match(app,/ux\.curriculumStarter\(item,uuid\('draft'\)\)/);
-  assert.match(app,/library\('lessons'\)/);
+  assert.match(app,/curriculumStartOptions\(item\)/);
+  assert.match(app,/data-quick-template=\"language60\"/);
+  assert.match(app,/data-quick-template=\"worksheet\"/);
+  assert.match(app,/library\('lessons',true\)/);
+  assert.match(app,/ux\.applyLessonTemplate\(draft,templateId/);
   assert.doesNotMatch(app,/studentId.*curriculumStarter/);
 });
