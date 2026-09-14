@@ -658,9 +658,12 @@ Changed files and full continuation details are in
 the interactive PDF patch workflow/test and has no file overlap with this workstream. PRs #83, #78, #74,
 #72 and #71 are older unrelated workstreams.
 
-Verification so far: focused curriculum/workspace suite **29/29 PASS** and `git diff --check` PASS. Browser
-and Vercel preview checks remain pending until the draft PR is created. No production deploy, Firebase
-deploy, production data write or paid external call was made.
+Verification: focused navigation/curriculum/worksheet suite **34/34 PASS**, `git diff --check` PASS,
+GitHub `financial-core` PASS (1m26s), Vercel deployment PASS and Vercel preview-comment check PASS. Chrome
+loaded the preview login and embedded learning-library route. Authenticated preview verification is blocked
+because the temporary Vercel hostname is not in Firebase Authentication authorized domains; Google sign-in
+failed at that boundary. No production deploy, Firebase deploy, production data write or paid external call
+was made.
 
 Known limits: embedded tools are still separate HTML runtimes; this is a navigation and visual-shell
 consolidation, not a risky rewrite. The numeric position is a planning pointer rather than proof of earlier

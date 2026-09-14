@@ -5,6 +5,7 @@
 - Last checked: 2026-09-14
 - Main: `2ef513a799cce77a8d3593aa8c56f15f7709cbaa`
 - Branch: `codex/unified-teacher-workspace-v1`
+- Head before this documentation update: `27dc6900536b19f160b2c5e467d93ad7aac3fe71`
 - Draft PR: [#146](https://github.com/zakutailopavel-cyber/keelesepp/pull/146)
 
 ## Bounded goal
@@ -47,7 +48,13 @@ builder, worksheet builder, classroom and whiteboard. Do not create a new lesson
 
 - Focused curriculum/workspace suite: 29/29 PASS.
 - `git diff --check`: PASS.
-- Browser/Vercel verification must be added after the draft PR preview is ready.
+- GitHub `financial-core` check: PASS (1m26s).
+- Vercel deployment and preview-comment checks: PASS.
+- Preview: `https://keelesepp-git-codex-unifi-ec4ce1-zakutailopavel-cybers-projects.vercel.app/haldus/`.
+- Chrome loaded the preview login and embedded learning-library route. Google preview login is blocked because
+  the temporary Vercel hostname is not in Firebase Authentication authorized domains, so the authenticated
+  centre-workspace flow was not claimed as browser-verified. Browser logs also retain the repository's known
+  in-browser Tailwind/Babel warnings; no new application exception was observed before the auth gate.
 
 ## Known limits
 
@@ -55,7 +62,7 @@ builder, worksheet builder, classroom and whiteboard. Do not create a new lesson
   presentation but does not rewrite them into one React tree.
 - The numeric curriculum place marks the planned current lesson. It deliberately does not claim that all
   earlier lessons were completed.
-- Mobile height and back-navigation need a real preview smoke before review.
+- Authenticated desktop/mobile navigation and back-navigation need a real preview smoke before review.
 
 ## Exactly one next safe step
 
