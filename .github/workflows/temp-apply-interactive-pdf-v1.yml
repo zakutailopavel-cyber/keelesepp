@@ -1,0 +1,55 @@
+name: temp-apply-interactive-pdf-v1
+
+on:
+  push:
+    branches:
+      - feat/interactive-worksheet-pdf-v1
+    paths:
+      - scripts/patch_interactive_worksheet_pdf_v1.py
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/interactive-worksheet-pdf-v1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Apply PDF worksheet patch
+        run: python scripts/patch_interactive_worksheet_pdf_v1.py
+      - name: Add regression test and validate
+        shell: bash
+        run: |
+          cat > interactive-worksheet-pdf-v1.test.js <<'EOF'
+          const test = require('node:test');
+          const assert = require('node:assert/strict');
+          const fs = require('node:fs');
+          const html = fs.readFileSync('haldus-exercises/index.html','utf8');
+          test('PDF worksheets render locally with PDF.js and support page-aware overlays',()=>{
+            assert.match(html,/pdf\.min\.js/);
+            assert.match(html,/pdfjsLib\.getDocument\(file\.url\)/);
+            assert.match(html,/page:pageNum/);
+            assert.match(html,/visibleElements=elements\.filter/);
+            assert.match(html,/pdfPageCount/);
+            assert.match(html,/Muuda interaktiivseks/);
+          });
+          test('PDF interaction does not introduce paid AI APIs',()=>{
+            const slice=html.slice(html.indexOf('INTERACTIVE WORKSHEET V1'), html.indexOf('LIVE LESSON HISTORY'));
+            assert.doesNotMatch(slice,/api\.openai\.com|google vision|deepl api|azure cognitive/i);
+          });
+          EOF
+          node --test interactive-worksheet-v1.test.js interactive-worksheet-pdf-v1.test.js
+      - name: Commit generated changes
+        shell: bash
+        run: |
+          git config user.name "zakutailopavel-cyber"
+          git config user.email "zakutailo.pavel@gmail.com"
+          git add haldus-exercises/index.html interactive-worksheet-pdf-v1.test.js
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Interactive worksheet PDF v1: page-aware PDF.js overlays"
+          git push origin HEAD:feat/interactive-worksheet-pdf-v1
