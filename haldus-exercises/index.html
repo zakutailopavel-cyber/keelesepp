@@ -1616,7 +1616,7 @@ function ExamView({subject,level,lessons,isTeacher,onAdd,onEdit,onDelete}){
 }
 
 // ── TOPIC VIEW ────────────────────────────────────────────────
-function TopicView({subject,level,activeTopic,topics,allLessons,isTeacher,onSelectTopic,onAdd,onEdit,onDelete,onRenameTopic,onDeleteTopic,onAddTopic,onPreviewWorksheet,onConductLesson}){
+function TopicView({subject,level,activeTopic,topics,allLessons,isTeacher,onSelectTopic,onAdd,onEdit,onDelete,onRenameTopic,onDeleteTopic,onAddTopic,onPreviewWorksheet,onConductLesson,onCopyPrompt}){
   const topicLessons=allLessons
     .filter(l=>l.subject===subject.key&&l.level===level&&l.topic===activeTopic&&!l.examPart)
     .sort((a,b)=>(a.order||0)-(b.order||0));
@@ -1763,12 +1763,34 @@ function TopicView({subject,level,activeTopic,topics,allLessons,isTeacher,onSele
                        ):(
                          lesson.description&&<div className="lesson-desc" style={{WebkitLineClamp:2,display:'-webkit-box',WebkitBoxOrient:'vertical',overflow:'hidden'}}>{lesson.description}</div>
                        )}
+                       {lesson.roadmapManaged&&(
+                         <div style={{background:'rgba(47,93,80,.055)',border:'1px solid rgba(47,93,80,.12)',borderRadius:9,padding:'8px 10px',margin:'6px 0',fontSize:'.76rem',lineHeight:1.45,color:'#42536A'}}>
+                           <div style={{display:'flex',gap:5,flexWrap:'wrap',marginBottom:5}}>
+                             {lesson.levelStage&&<span style={{fontSize:'.66rem',fontWeight:800,padding:'2px 7px',borderRadius:999,background:'rgba(47,93,80,.11)',color:'#2F5D50'}}>{lesson.levelStage}</span>}
+                             {lesson.roadmapTag&&<span style={{fontSize:'.66rem',fontWeight:700,padding:'2px 7px',borderRadius:999,background:'rgba(201,136,42,.11)',color:'#A96E1A'}}>{lesson.roadmapTag}</span>}
+                           </div>
+                           {lesson.goal&&<div><strong>Eesmärk:</strong> {lesson.goal}</div>}
+                           {lesson.languageFocus&&<div><strong>Keelefookus:</strong> {lesson.languageFocus}</div>}
+                           {lesson.practice&&<div><strong>Praktika:</strong> {lesson.practice}</div>}
+                           {lesson.successCriteria&&<div><strong>Edu kriteerium:</strong> {lesson.successCriteria}</div>}
+                         </div>
+                       )}
                        {lesson.files?.length>0&&<div className="file-row">{lesson.files.map((f,i)=><FileChip key={i} file={f}/>)}</div>}
                      </div>
                      <div className="lesson-actions">
                        {onPreviewWorksheet&&(
                          <button onClick={()=>onPreviewWorksheet(lesson)} className="btn btn-ghost btn-sm" style={{color:'#2F5D50',borderColor:'rgba(47,93,80,.25)',fontWeight:700}}>
                            <i className="fa-solid fa-eye"/> Ava
+                         </button>
+                       )}
+                       {isTeacher&&lesson.roadmapManaged&&lesson.worksheetPrompt&&onCopyPrompt&&(
+                         <button onClick={()=>onCopyPrompt(lesson.worksheetPrompt)} className="btn btn-ghost btn-sm" style={{color:'#A96E1A',borderColor:'rgba(201,136,42,.28)',fontWeight:700}}>
+                           <i className="fa-solid fa-copy"/> Kopeeri prompt
+                         </button>
+                       )}
+                       {isTeacher&&lesson.roadmapManaged&&(
+                         <button onClick={()=>onEdit(lesson)} className="btn btn-ghost btn-sm" style={{color:'#2F5D50',borderColor:'rgba(47,93,80,.25)',fontWeight:700}}>
+                           <i className="fa-solid fa-paperclip"/> Lisa tööleht
                          </button>
                        )}
                        {lesson.phaseData&&onConductLesson&&(
@@ -1791,7 +1813,15 @@ function TopicView({subject,level,activeTopic,topics,allLessons,isTeacher,onSele
 
 // ── CURRICULUM ────────────────────────────────────────────────
 function CurriculumView({lessons,isTeacher,user,notify,onPreviewWorksheet,onConductLesson}){
-  const[nav,setNav]=useState(null); // null | {subject} | {subject,level,topic}
+  const[nav,setNav]=useState(()=>{
+    const params=new URLSearchParams(window.location.search);
+    const subject=params.get('subject');
+    const level=params.get('level');
+    const topic=params.get('topic');
+    if(!subject)return null;
+    if(!level)return {subject};
+    return {subject,level,topic:topic||''};
+  }); // null | {subject} | {subject,level,topic}
   const[modal,setModal]=useState(null);
 
   const customSubjects=useMemo(()=>lessons.filter(l=>l.__subjectPlaceholder&&l.subject).map(l=>({
@@ -1806,6 +1836,27 @@ function CurriculumView({lessons,isTeacher,user,notify,onPreviewWorksheet,onCond
   const subject=nav?.subject?subjectDefs.find(s=>s.key===nav.subject):null;
   const level=nav?.level||null;
   const activeTopic=nav?.topic||null;
+
+  useEffect(()=>{
+    const url=new URL(window.location.href);
+    url.searchParams.set('tab','curriculum');
+    if(nav?.subject)url.searchParams.set('subject',nav.subject);else url.searchParams.delete('subject');
+    if(nav?.level)url.searchParams.set('level',nav.level);else url.searchParams.delete('level');
+    if(nav?.topic)url.searchParams.set('topic',nav.topic);else url.searchParams.delete('topic');
+    window.history.replaceState({},'',url.pathname+url.search);
+  },[nav]);
+
+  useEffect(()=>{
+    if(LOCAL_LIBRARY_PREVIEW||!isTeacher||subject?.key!=='Eesti keel'||level!=='B2')return;
+    const b2Lessons=lessons.filter(l=>l.subject==='Eesti keel'&&l.level==='B2'&&!l.__subjectPlaceholder);
+    if(b2Lessons.length===0)return;
+    const roadmapCount=b2Lessons.filter(l=>l.roadmapManaged).length;
+    if(roadmapCount>=90)return;
+    const key='keelesepp-b2-roadmap-import-attempt';
+    if(window.sessionStorage.getItem(key))return;
+    window.sessionStorage.setItem(key,'1');
+    window.location.assign('/haldus-b1-b2-roadmap/');
+  },[subject?.key,level,isTeacher,lessons]);
 
   const topics=subject?[...new Set(lessons.filter(l=>l.subject===subject.key&&l.level===nav.level&&!l.examPart).map(l=>l.topic).filter(Boolean))]:[];
 
@@ -1954,6 +2005,11 @@ function CurriculumView({lessons,isTeacher,user,notify,onPreviewWorksheet,onCond
             notify('✓ Teema kustutatud');
           }}
           onPreviewWorksheet={onPreviewWorksheet}
+          onCopyPrompt={text=>{
+            navigator.clipboard.writeText(text)
+              .then(()=>notify('✓ Töölehe prompt kopeeritud'))
+              .catch(()=>notify('⚠ Prompti ei saanud kopeerida'));
+          }}
           onConductLesson={onConductLesson}
         />
       )}
@@ -3930,7 +3986,11 @@ function StatisticsView({allLessons}) {
 function App(){
   const[user,setUser]=useState(LOCAL_LIBRARY_PREVIEW?{uid:'preview',displayName:'Pavel Zakutailo',email:'preview@localhost',role:'admin'}:null);
   const[loading,setLoading]=useState(!LOCAL_LIBRARY_PREVIEW);
-  const[tab,setTab]=useState('library');
+  const[tab,setTab]=useState(()=>{
+    const params=new URLSearchParams(window.location.search);
+    const requested=params.get('tab');
+    return ['library','curriculum','exercises','stats','history'].includes(requested)?requested:'library';
+  });
   const[wsPreview,setWsPreview]=useState(null);
   const[conductLesson,setConductLesson]=useState(null);
   const[showSearch,setShowSearch]=useState(false);
@@ -3947,6 +4007,17 @@ function App(){
 
   const notify=msg=>{setNotif(msg);setTimeout(()=>setNotif(''),3000);};
   const isTeacher=user?.role==='teacher'||user?.role==='admin'||user?.email==='zakutailo.pavel@gmail.com';
+
+  useEffect(()=>{
+    const url=new URL(window.location.href);
+    url.searchParams.set('tab',tab);
+    if(tab!=='curriculum'){
+      url.searchParams.delete('subject');
+      url.searchParams.delete('level');
+      url.searchParams.delete('topic');
+    }
+    window.history.replaceState({},'',url.pathname+url.search);
+  },[tab]);
 
   useEffect(()=>{
     if(LOCAL_LIBRARY_PREVIEW) return;
