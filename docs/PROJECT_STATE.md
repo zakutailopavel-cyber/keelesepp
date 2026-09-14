@@ -2,36 +2,25 @@
 
 Last verified: 2026-09-14, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
-Verified main: `31256ea0ec049973e8fd913b0699861be28b51b2` — current authoritative main
-Current implementation branch: `agent/lesson-builder-a4-canvas-v1`
-Current draft PR: [#140](https://github.com/zakutailopavel-cyber/keelesepp/pull/140)
+Verified main: `45a83200ee0bc60454ff19f85700fc0276458b34` — current authoritative main
+Current implementation branch: `agent/curriculum-document-upload-preview-v1`
+Current draft PR: [#141](https://github.com/zakutailopavel-cyber/keelesepp/pull/141)
 PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [#116](https://github.com/zakutailopavel-cyber/keelesepp/pull/116) are merged.
 
 ## Current objective
 
-Lesson Builder A4 Canvas v1 is the current bounded workstream. It adds a printable visual page mode inside the
-existing Lesson Builder rather than creating another authoring system. The same normalized activities, immutable
-activity IDs, three routes, cloud draft, publication and student projection remain authoritative.
+Curriculum Document Upload & Preview v1 is the current bounded workstream. It upgrades the existing
+`Õppevara → Õppekavad` material flow with pre-upload validation, explicit type/size guidance, filename and
+percentage progress, safe Storage names, readable attachment metadata and same-page previews. PDF, image and
+TXT files render inside KeeleSepp; Word and PowerPoint show a clear download card without sending authenticated
+file URLs to a third-party viewer. Existing topics, materials and attachments remain compatible.
 
-The canvas presents real 210 x 297 mm pages, a teacher-facing block library, inline prompt editing, 12-column
-width controls (`12/12`, `8/12`, `6/12`, `4/12`), pointer drag placement with an insertion marker, extra pages,
-student name/date fields, answer-key toggle and browser Print/PDF. Existing HTTPS image assets render beside
-text, including the requested two-thirds task plus one-third visual layout.
+The existing Storage boundary remains authoritative: authenticated reads, staff-only writes, safe content and
+files below 20 MB. No Function, Firestore rule, Storage rule, index, schema, migration, student record or
+production-data change is included. See [CURRICULUM_DOCUMENT_UPLOAD_PREVIEW_V1.md](CURRICULUM_DOCUMENT_UPLOAD_PREVIEW_V1.md).
 
-A4 placement is optional presentation metadata under `authoring.a4` and
-`authoring.activities[activityId].a4`. Browser and deployed contract copies validate it before local or cloud save.
-No activity ID, Lesson Mode response contract or evidence identity changes. Old drafts without A4 metadata open
-with deterministic full-width placement on page 1.
-
-Validation: focused contract/Builder suite **39/39 PASS**; Cloud Draft server contract **5/5 PASS**; isolated
-Builder browser suite **24/24 PASS**; complete Functions suite **166/166 PASS**; diff check PASS; local visual
-smoke PASS for template creation, A4 opening, inline content, width controls and answer-key rendering.
-
-Data/security impact: presentation metadata only. No Firebase Function behavior, Firestore rule, index, schema,
-student assignment, response, evidence or production-data write. No production deploy.
-
-Exactly one next safe step: owner reviews draft PR #140 and its Vercel Preview using one real cloud draft, then
-merges only after A4 layout, save/reopen and Print/PDF preview are visually accepted.
+Exactly one next safe step: review the automatic Vercel preview with one non-sensitive PDF and one image,
+confirm same-page preview and download, then merge the draft PR if the visual flow is accepted.
 
 Historical Google Calendar Sync Clarity is merged and production-accepted. Past one-time KeeleSepp
 lessons whose original Google push failed are shown as neutral `G–` records. An exact imported Google
