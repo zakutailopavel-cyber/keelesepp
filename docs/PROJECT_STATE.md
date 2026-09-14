@@ -4,7 +4,7 @@ Last verified: 2026-09-14, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
 Verified main: `73569786de938948a482b8e52f67a6444071c5b4` — #134 merged by owner
 Current implementation branch: `agent/lesson-builder-a4-canvas-v1`
-Current draft PR: pending
+Current draft PR: [#140](https://github.com/zakutailopavel-cyber/keelesepp/pull/140)
 PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [#116](https://github.com/zakutailopavel-cyber/keelesepp/pull/116) are merged.
 
 ## Current objective
