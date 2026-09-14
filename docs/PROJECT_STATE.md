@@ -2,7 +2,7 @@
 
 Last verified: 2026-09-14, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
-Verified main: `73569786de938948a482b8e52f67a6444071c5b4` — #134 merged by owner
+Verified main: `31256ea0ec049973e8fd913b0699861be28b51b2` — current authoritative main
 Current implementation branch: `agent/lesson-builder-a4-canvas-v1`
 Current draft PR: [#140](https://github.com/zakutailopavel-cyber/keelesepp/pull/140)
 PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [#116](https://github.com/zakutailopavel-cyber/keelesepp/pull/116) are merged.
@@ -16,22 +16,22 @@ activity IDs, three routes, cloud draft, publication and student projection rema
 The canvas presents real 210 x 297 mm pages, a teacher-facing block library, inline prompt editing, 12-column
 width controls (`12/12`, `8/12`, `6/12`, `4/12`), pointer drag placement with an insertion marker, extra pages,
 student name/date fields, answer-key toggle and browser Print/PDF. Existing HTTPS image assets render beside
-text, so a teacher can make the requested two-thirds task plus one-third visual layout.
+text, including the requested two-thirds task plus one-third visual layout.
 
 A4 placement is optional presentation metadata under `authoring.a4` and
 `authoring.activities[activityId].a4`. Browser and deployed contract copies validate it before local or cloud save.
 No activity ID, Lesson Mode response contract or evidence identity changes. Old drafts without A4 metadata open
 with deterministic full-width placement on page 1.
 
-Validation: focused contract/Builder suite **39/39 PASS**; isolated Builder browser suite **24/24 PASS**; local
-visual smoke PASS for template creation, A4 opening, inline content, width controls and answer-key rendering.
-Final diff and server suites remain the pre-PR gate.
+Validation: focused contract/Builder suite **39/39 PASS**; Cloud Draft server contract **5/5 PASS**; isolated
+Builder browser suite **24/24 PASS**; complete Functions suite **166/166 PASS**; diff check PASS; local visual
+smoke PASS for template creation, A4 opening, inline content, width controls and answer-key rendering.
 
 Data/security impact: presentation metadata only. No Firebase Function behavior, Firestore rule, index, schema,
 student assignment, response, evidence or production-data write. No production deploy.
 
-Exactly one next safe step: owner reviews the draft PR and its Vercel Preview using one real cloud draft, then
-merges only after the A4 layout, save/reopen and Print/PDF preview are visually accepted.
+Exactly one next safe step: owner reviews draft PR #140 and its Vercel Preview using one real cloud draft, then
+merges only after A4 layout, save/reopen and Print/PDF preview are visually accepted.
 
 Historical Google Calendar Sync Clarity is merged and production-accepted. Past one-time KeeleSepp
 lessons whose original Google push failed are shown as neutral `G–` records. An exact imported Google
@@ -66,7 +66,7 @@ PR #94 switched Teacher Home to the real curriculum source. PR #95 then bound th
 
 ## Verified repository state
 
-Current remote `main` is `73569786de938948a482b8e52f67a6444071c5b4`.
+Current remote `main` is `31256ea0ec049973e8fd913b0699861be28b51b2`.
 
 Merged on current `main`:
 
