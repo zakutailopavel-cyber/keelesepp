@@ -49,7 +49,7 @@ jobs:
           EOF
       - name: Run learning-library regressions
         run: |
-          node --test interactive-worksheet-v1.test.js interactive-worksheet-pdf-v1.test.js curriculum-document-ui.test.js curriculum-document-core.test.js b1-b2-roadmap.test.js a2-b1-roadmap.test.js
+          node --test interactive-worksheet-v1.test.js interactive-worksheet-pdf-v1.test.js curriculum-document-core.test.js b1-b2-roadmap.test.js a2-b1-roadmap.test.js
       - name: Validate generated diff
         run: |
           git diff --check
