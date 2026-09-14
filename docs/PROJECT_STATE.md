@@ -2,10 +2,36 @@
 
 Last verified: 2026-09-14, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
-Verified main: `45a83200ee0bc60454ff19f85700fc0276458b34` — current authoritative main
-Current implementation branch: `agent/curriculum-document-upload-preview-v1`
-Current draft PR: [#141](https://github.com/zakutailopavel-cyber/keelesepp/pull/141)
+Verified main: `cc8e80f8b410793b15d8661f0c65fe1ba9b2f66c` — authoritative base for this slice
+Current implementation branch: `codex/oppevara-visual-navigation-v1`
+Current draft PR: [https://github.com/zakutailopavel-cyber/keelesepp/pulls](https://github.com/zakutailopavel-cyber/keelesepp/pulls)
 PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [#116](https://github.com/zakutailopavel-cyber/keelesepp/pull/116) are merged.
+
+
+## Õppevara Visual Navigation v1 — DRAFT
+
+This bounded client-side slice makes `Õppekavad` the first/default Õppevara destination while preserving
+explicit `?tab=library` deep links. Subject cards are compact and preview real curriculum topics; level cards
+show their own real topic examples and navigate using the selected level's first topic. Topic names wrap in
+the left rail. B1/B2 lesson cards show a clickable mini material preview: real `worksheetData.blocks` report
+their block count and a safe learner-facing fragment, while lessons without worksheet data are explicitly
+labelled as a source task rather than a finished worksheet. The click reuses the existing
+`WorksheetPreviewModal` and stays in the current KeeleSepp workspace.
+
+Changed files: `haldus-exercises/index.html`, `oppevara-visual-navigation-v1.test.js`,
+`docs/PROJECT_STATE.md`, `ARCHITECTURE.md`, and `docs/HANDOFF_OPPEVARA_VISUAL_NAVIGATION_V1.md`.
+No Firebase Function, rule, index, schema, migration, production data or paid external API is changed.
+
+Validation:
+- focused Node suite: PASS — required 5-file Node suite
+- `git diff --check`: PASS
+- localhost `LOCAL_LIBRARY_PREVIEW` visual smoke and browser console: PASS — localhost ?preview=library; default Õppekavad, explicit library deep link, B1/B2 mini-preview → WorksheetPreviewModal, no actionable console errors
+
+Known limitation: the runner cannot inspect Pavel's uncommitted Mac working tree, so the described CSS work
+was reproduced as a bounded override layer on the exact `cc8e80f8...` base instead of copying an unavailable
+local diff. Review should therefore compare the automatic Vercel preview with the owner's local visual state.
+
+Exactly one next safe step: review the draft Vercel preview through `Õppekavad → Eesti keel → B1/B2 → teema → töölehe eelvaade` and merge only if the visual result matches the intended local design.
 
 ## Current objective
 
