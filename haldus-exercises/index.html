@@ -152,6 +152,14 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#EEECE7;color:#1C2B3A;min
 .iw-word:hover{background:rgba(255,220,100,.22);outline:1px solid rgba(201,136,42,.45);}
 .iw-checkbox{width:100%;height:100%;display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.82);border-radius:6px;padding:3px 6px;font-size:.78rem;color:#1C2B3A;}
 .iw-checkbox input{width:18px;height:18px;}
+.iw-hotspot{width:100%;height:100%;min-width:30px;min-height:30px;transform:translate(-50%,-50%);border:2px solid #fff;border-radius:999px;background:#2F5D50;color:#fff;box-shadow:0 3px 12px rgba(28,43,58,.34);cursor:pointer;display:grid;place-items:center;font-size:.78rem;line-height:1;}
+.iw-hotspot:hover,.iw-hotspot:focus{background:#C9882A;outline:3px solid rgba(201,136,42,.25);}
+.iw-answer-ov{position:fixed;inset:0;z-index:570;background:rgba(15,28,42,.55);display:flex;align-items:center;justify-content:center;padding:18px;line-height:1.35;}
+.iw-answer-dialog{width:min(520px,100%);background:#fff;border-radius:16px;box-shadow:0 24px 70px rgba(0,0,0,.32);padding:22px;color:#1C2B3A;}
+.iw-answer-dialog h3{margin:0 0 6px;font-family:Fraunces,serif;font-size:1.25rem;}
+.iw-answer-dialog p{margin:0 0 14px;color:#607086;font-size:.88rem;white-space:pre-wrap;}
+.iw-answer-dialog textarea{width:100%;min-height:150px;box-sizing:border-box;border:1px solid rgba(28,43,58,.18);border-radius:10px;padding:10px;font:inherit;color:#1C2B3A;resize:vertical;}
+.iw-answer-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:13px;}
 .iw-correct{box-shadow:0 0 0 2px rgba(22,101,52,.55)!important;}
 .iw-wrong{box-shadow:0 0 0 2px rgba(185,28,28,.5)!important;}
 .iw-editor{width:300px;flex:0 0 300px;background:#fff;border:1px solid rgba(28,43,58,.1);border-radius:14px;box-shadow:0 9px 30px rgba(28,43,58,.1);overflow:hidden;position:sticky;top:18px;line-height:1.35;}
@@ -846,6 +854,7 @@ function DocumentPreviewModal({file,onClose,onUpdate}){
   const[answers,setAnswers]=useState(()=>{try{return JSON.parse(localStorage.getItem(answerStorageKey(file))||'{}')}catch{return {}}});
   const[checked,setChecked]=useState(false);
   const[translation,setTranslation]=useState(null);
+  const[activePrompt,setActivePrompt]=useState(null);
   const[pageNum,setPageNum]=useState(1);
   const[pdfDoc,setPdfDoc]=useState(null);
   const[pdfPageCount,setPdfPageCount]=useState(1);
@@ -901,6 +910,10 @@ function DocumentPreviewModal({file,onClose,onUpdate}){
     if(!editing||!tool||!isInteractiveVisual||(e.target!==sheetRef.current&&e.target.closest?.('.iw-element')))return;
     const rect=sheetRef.current.getBoundingClientRect();
     const x=clamp01((e.clientX-rect.left)/rect.width),y=clamp01((e.clientY-rect.top)/rect.height);
+    if(tool==='modal'){
+      const el={id:interactiveId(),page:pageNum,type:'modal',x,y,w:.04,h:.04,label:'Vastus',prompt:'',placeholder:'Kirjuta oma vastus…',correctAnswer:''};
+      updateElements([...elementsRef.current,el]);setSelectedId(el.id);setTool('');return;
+    }
     sheetRef.current.setPointerCapture?.(e.pointerId);
     setDraft({x,y,w:.001,h:.001,type:tool,pointerId:e.pointerId});
   };
@@ -928,12 +941,13 @@ function DocumentPreviewModal({file,onClose,onUpdate}){
     const active=selectedId===el.id;
     if(editing)return <div key={el.id} className={'iw-element editor'+(active?' active':'')} style={style} onPointerDown={ev=>{ev.stopPropagation();setSelectedId(el.id);}} title={el.type}><span style={{position:'absolute',left:2,top:1,fontSize:9,lineHeight:1,background:'#C9882A',color:'#fff',padding:'2px 3px',borderRadius:3}}>{el.type}</span></div>;
     if(el.type==='word')return <button key={el.id} type="button" className="iw-element iw-word" style={style} onClick={ev=>{const r=ev.currentTarget.getBoundingClientRect();setTranslation({el,left:Math.min(r.left,window.innerWidth-360),top:Math.min(r.bottom+7,window.innerHeight-150)});}} aria-label={'Tõlge: '+(el.text||'sõna')}>{el.text||'sõna'}</button>;
+    if(el.type==='modal')return <button key={el.id} type="button" className="iw-element iw-hotspot" style={style} onClick={()=>setActivePrompt(el)} aria-label={(el.label||'Vastus')+(answers[el.id]?' · vastatud':'')}><i className={answers[el.id]?'fa-solid fa-check':'fa-solid fa-pen'}/></button>;
     if(el.type==='textarea')return <textarea key={el.id} className={'iw-element iw-textarea'+scoreClass(el)} style={style} value={answers[el.id]||''} onChange={e=>setAnswer(el.id,e.target.value)} placeholder={el.placeholder||'Kirjuta siia…'}/>;
     if(el.type==='choice')return <select key={el.id} className={'iw-element iw-choice'+scoreClass(el)} style={style} value={answers[el.id]||''} onChange={e=>setAnswer(el.id,e.target.value)}><option value="">Vali…</option>{(el.options||[]).map((opt,i)=><option value={opt} key={i}>{opt}</option>)}</select>;
     if(el.type==='checkbox')return <label key={el.id} className={'iw-element iw-checkbox'+scoreClass(el)} style={style}><input type="checkbox" checked={Boolean(answers[el.id])} onChange={e=>setAnswer(el.id,e.target.checked)}/><span>{el.label||'Valik'}</span></label>;
     return <input key={el.id} className={'iw-element iw-input'+scoreClass(el)} style={style} value={answers[el.id]||''} onChange={e=>setAnswer(el.id,e.target.value)} placeholder={el.placeholder||''}/>;
   };
-  const tools=[['word','Sõna'],['input','Lühivastus'],['textarea','Pikk vastus'],['choice','Valik'],['checkbox','Märkeruut']];
+  const tools=[['modal','Vastus hüpikaknas'],['word','Sõna'],['input','Lühivastus'],['textarea','Pikk vastus'],['choice','Valik'],['checkbox','Märkeruut']];
   return(
     <div className="doc-preview-ov" onClick={e=>{e.stopPropagation();if(e.target===e.currentTarget)onClose();}}>
       <div className="doc-preview-box interactive-preview" role="dialog" aria-modal="true" aria-label={'Tööleht: '+file.name}>
@@ -962,9 +976,10 @@ function DocumentPreviewModal({file,onClose,onUpdate}){
               <div className="iw-editor-head">Interaktiivne kiht{kind==='pdf'&&<span style={{float:'right',fontSize:'.68rem',color:'#718096'}}>lk {pageNum}</span>}</div>
               <div className="iw-tools">{tools.map(([key,label])=><button type="button" key={key} className={'iw-tool'+(tool===key?' active':'')} onClick={()=>setTool(tool===key?'':key)}>{label}</button>)}</div>
               <div className="iw-editor-body">
-                <div style={{fontSize:'.72rem',color:'#718096',lineHeight:1.45}}>{tool?'Lohista hiirega töölehel ala, kuhu element lisada.':'Vali tööriist ja märgi töölehel ala.'}</div>
+                <div style={{fontSize:'.72rem',color:'#718096',lineHeight:1.45}}>{tool==='modal'?'Klõpsa töölehel küsimuse kõrval. Lisatakse väike vastuse nupp.':tool?'Lohista hiirega töölehel ala, kuhu element lisada.':'Vali tööriist ja märgi töölehel ala.'}</div>
                 {selected&&<>
                   <label>Tüüp<select value={selected.type} onChange={e=>updateSelected({type:e.target.value})}>{tools.map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></label>
+                  {selected.type==='modal'&&<><label>Nupu nimi<input value={selected.label||''} onChange={e=>updateSelected({label:e.target.value})}/></label><label>Küsimus / juhis<textarea rows="3" value={selected.prompt||''} onChange={e=>updateSelected({prompt:e.target.value})}/></label><label>Kohatäide<input value={selected.placeholder||''} onChange={e=>updateSelected({placeholder:e.target.value})}/></label></>}
                   {selected.type==='word'&&<><label>Sõna<input value={selected.text||''} onChange={e=>updateSelected({text:e.target.value})}/></label><label>Vene tõlge<input value={selected.translation||''} onChange={e=>updateSelected({translation:e.target.value})}/></label><label>Algvorm / märkus<input value={selected.lemma||''} onChange={e=>updateSelected({lemma:e.target.value})}/></label></>}
                   {selected.type==='choice'&&<label>Valikud (üks real)<textarea rows="4" value={(selected.options||[]).join('\n')} onChange={e=>updateSelected({options:e.target.value.split('\n').map(v=>v.trim()).filter(Boolean)})}/></label>}
                   {selected.type==='checkbox'&&<label>Silt<input value={selected.label||''} onChange={e=>updateSelected({label:e.target.value})}/></label>}
@@ -982,6 +997,7 @@ function DocumentPreviewModal({file,onClose,onUpdate}){
         </div>
       </div>
       {translation&&<div className="iw-translation" style={{left:translation.left,top:translation.top}} onClick={()=>setTranslation(null)}><strong>{translation.el.text||'Sõna'}</strong><span>{translation.el.translation||'Tõlge puudub'}</span>{translation.el.lemma&&<small>{translation.el.lemma}</small>}<small style={{marginTop:6}}>Klõpsa sulgemiseks</small></div>}
+      {activePrompt&&<div className="iw-answer-ov" role="presentation" onClick={e=>{if(e.target===e.currentTarget)setActivePrompt(null);}}><div className="iw-answer-dialog" role="dialog" aria-modal="true" aria-label={activePrompt.label||'Vastus'}><h3>{activePrompt.label||'Vastus'}</h3>{activePrompt.prompt&&<p>{activePrompt.prompt}</p>}<textarea autoFocus value={answers[activePrompt.id]||''} onChange={e=>setAnswer(activePrompt.id,e.target.value)} placeholder={activePrompt.placeholder||'Kirjuta oma vastus…'}/><div className="iw-answer-actions"><button type="button" className="btn btn-ghost btn-sm" onClick={()=>setActivePrompt(null)}>Tühista</button><button type="button" className="btn btn-pine btn-sm" onClick={()=>setActivePrompt(null)}>Salvesta vastus</button></div></div></div>}
     </div>
   );
 }

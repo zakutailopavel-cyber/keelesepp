@@ -28,9 +28,9 @@ after it merges, confirm the remote CRM v2 CI is green.
 
 Last verified: 2026-09-15, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
-Verified main: `15c015ae1d66d20aa9e84ff5ecc77b2ec03df82b` — CRM v2 CI recovery (#151)
-Current implementation branch: `agent/pdf-worksheet-v1-20260915`
-Current PR: https://github.com/zakutailopavel-cyber/keelesepp/pull/152
+Verified main: `de9a9f31cb16fd3493da130a5ee0ee7893cdacf3` — page-aware PDF worksheet overlays (#152)
+Current implementation branch: `agent/popup-answer-hotspots-20260915`
+Current draft PR: https://github.com/zakutailopavel-cyber/keelesepp/pull/153
 PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [#116](https://github.com/zakutailopavel-cyber/keelesepp/pull/116) are merged.
 
 
@@ -39,6 +39,8 @@ PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [
 This slice replaces the temporary workflow-based PDF experiment from #144 with ordinary application code.
 `haldus-exercises` loads each PDF page through PDF.js into a canvas, provides page navigation, and places
 teacher-authored interactive fields only on their matching page. Image worksheet behaviour is unchanged.
+The new `modal` field is a small click target: the teacher clicks once beside a question, configures its title
+and instruction, and the student writes the answer in a popup rather than in a precisely positioned page field.
 
 Changed files: `haldus-exercises/index.html`, `interactive-worksheet-pdf-v1.test.js`, `ARCHITECTURE.md`, and
 this state document. Changed data contract: `interactiveOverlay.elements[].page` is an optional one-based page
