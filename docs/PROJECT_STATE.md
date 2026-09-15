@@ -30,7 +30,7 @@ Last verified: 2026-09-15, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
 Verified main: `de9a9f31cb16fd3493da130a5ee0ee7893cdacf3` — page-aware PDF worksheet overlays (#152)
 Current implementation branch: `agent/popup-answer-hotspots-20260915`
-Current draft PR: https://github.com/zakutailopavel-cyber/keelesepp/pull/153
+Current draft PR: https://github.com/zakutailopavel-cyber/keelesepp/pull/154
 PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [#116](https://github.com/zakutailopavel-cyber/keelesepp/pull/116) are merged.
 
 
@@ -41,6 +41,8 @@ This slice replaces the temporary workflow-based PDF experiment from #144 with o
 teacher-authored interactive fields only on their matching page. Image worksheet behaviour is unchanged.
 The new `modal` field is a small click target: the teacher clicks once beside a question, configures its title
 and instruction, and the student writes the answer in a popup rather than in a precisely positioned page field.
+The marker now starts as a text button and can be moved by dragging it or resized by dragging visible edge and
+corner handles; the editor no longer requires width and height number entry for this element type.
 
 Changed files: `haldus-exercises/index.html`, `interactive-worksheet-pdf-v1.test.js`, `ARCHITECTURE.md`, and
 this state document. Changed data contract: `interactiveOverlay.elements[].page` is an optional one-based page
