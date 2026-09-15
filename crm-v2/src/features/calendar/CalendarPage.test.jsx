@@ -39,18 +39,22 @@ function renderCalendar(options) {
   return props;
 }
 
+async function waitForEmptyPeriod() {
+  await waitFor(() => expect(screen.getByText((_, element) => element?.classList.contains('calendar-filter-summary') && element.textContent.includes('0 tundi valitud perioodil'))).toBeInTheDocument());
+}
+
 describe('calendar filtering UX', () => {
   it('shows the selected-period count and accessible view state', async () => {
     renderCalendar();
 
-    expect(await screen.findByText(/0 tundi valitud perioodil/)).toBeInTheDocument();
+    await waitForEmptyPeriod();
     expect(screen.getByRole('button', { name: 'Nädal' })).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByRole('button', { name: 'Päev' })).toHaveAttribute('aria-pressed', 'false');
   });
 
   it('offers a clear reset action when filters hide every lesson', async () => {
     renderCalendar();
-    await screen.findByText(/0 tundi valitud perioodil/);
+    await waitForEmptyPeriod();
 
     fireEvent.change(screen.getByLabelText('Otsi kalendrist'), { target: { value: 'puuduv nimi' } });
 
@@ -65,7 +69,7 @@ describe('calendar filtering UX', () => {
 
   it('opens lesson creation from an empty day in the weekly view', async () => {
     renderCalendar();
-    await screen.findByText(/0 tundi valitud perioodil/);
+    await waitForEmptyPeriod();
 
     fireEvent.click(screen.getAllByText('Lisa tund')[0]);
 

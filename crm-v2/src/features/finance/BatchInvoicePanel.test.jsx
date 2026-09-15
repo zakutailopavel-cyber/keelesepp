@@ -24,8 +24,8 @@ describe('BatchInvoicePanel', () => {
     render(<BatchInvoicePanel rows={rows} onCreateInvoice={onCreateInvoice} />);
 
     fireEvent.change(screen.getByLabelText('Arvelduskuu'), { target: { value: '2026-08' } });
-    expect(screen.getByText(/2 arvet/)).toBeInTheDocument();
-    expect(screen.getByText(/3 tundi/)).toBeInTheDocument();
+    const summary = screen.getByText('2', { selector: 'strong' }).parentElement;
+    expect(summary).toHaveTextContent('2 arvet · 3 tundi · 80,00 €');
 
     fireEvent.click(screen.getByRole('button', { name: /Vaata ja loo arved/i }));
     expect(screen.getByText('Mari Maas')).toBeInTheDocument();

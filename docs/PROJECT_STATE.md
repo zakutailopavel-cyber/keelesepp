@@ -1,5 +1,31 @@
 # KeeleSepp Project State
 
+## CRM v2 CI recovery — ready for review
+
+Last verified: 2026-09-15, Europe/Tallinn
+Verified main: `d3a5501adfd0792dbfda8fb11fd54cf0097f1ddb`.
+Implementation branch: `agent/crm-v2-ci-repair-20260915`.
+
+The CRM v2 suite on current main had 29 failing tests. The failures came from
+outdated tests after the Finance workspace navigation and responsive layouts
+were introduced, date-dependent invoice expectations, and form labels whose
+controls had no generated ID. `Input` and `Select` now generate stable React
+IDs when callers do not supply one, restoring label-to-control accessibility.
+The affected tests now follow the visible Finance section navigation and assert
+the current invoice, calendar, student-filter, profile and search behaviour.
+
+Changed files: CRM v2 shared `Input`/`Select`, and focused test suites for
+finance, calendar, student profile/list and global search. No Firebase rules,
+Functions, schema, migrations, production data, deployment or external service
+calls are included.
+
+Validation: PASS — `npm test` (71 files, 285 tests); `npm run build`; `npm run lint`; `git diff --check`.
+
+Known limitation: no production deployment or live-data check was run.
+
+Exactly one next safe step: review the CI-repair branch and open a draft PR;
+after it merges, confirm the remote CRM v2 CI is green.
+
 Last verified: 2026-09-14, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
 Verified main: `ab69a0e05c0b449a1de36242ffa2e7545b076779` — base for Student Visual Worksheet v1

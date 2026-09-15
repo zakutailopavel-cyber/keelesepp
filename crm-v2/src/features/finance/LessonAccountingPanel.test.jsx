@@ -78,9 +78,12 @@ describe("LessonAccountingPanel student invoice creator", () => {
     expect(
       screen.getByRole("heading", { name: "Loo õpilasele arve" }),
     ).toBeInTheDocument();
-    expect(screen.getByLabelText("Õpilane")).toHaveValue("student-1");
-    expect(screen.getByText("1", { selector: "strong" })).toBeInTheDocument();
-    expect(screen.getAllByText("25,00 €").length).toBeGreaterThan(0);
+    expect(screen.getByLabelText("Õpilane")).toHaveValue("student-2");
+    const creator = screen
+      .getByRole("heading", { name: "Loo õpilasele arve" })
+      .closest("section");
+    expect(within(creator).getByText("2", { selector: "strong" })).toBeInTheDocument();
+    expect(within(creator).getByText("60,00 €")).toBeInTheDocument();
   });
 
   it("opens the existing invoice builder for the selected student", async () => {
@@ -110,6 +113,7 @@ describe("LessonAccountingPanel student invoice creator", () => {
       .getByRole("heading", { name: "Loo õpilasele arve" })
       .closest("section");
 
+    fireEvent.change(screen.getByLabelText("Õpilane"), { target: { value: "student-1" } });
     fireEvent.click(within(creator).getByRole("button", { name: "Loo arve" }));
     const dialog = screen.getByRole("dialog", {
       name: "Loo arve: Sofia Tamm",
