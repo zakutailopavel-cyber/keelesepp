@@ -11,6 +11,9 @@ test('PDF worksheets use PDF.js with page-aware interactive overlays', () => {
   assert.match(html, /visibleElements=elements\.filter/);
   assert.match(html, /pdfPageCount/);
   assert.match(html, /Muuda interaktiivseks/);
+  assert.match(html, /Vastus hüpikaknas/);
+  assert.match(html, /setActivePrompt\(el\)/);
+  assert.match(html, /iw-answer-dialog/);
   assert.doesNotMatch(html, /kind==='pdf'&&<iframe/);
 });
 

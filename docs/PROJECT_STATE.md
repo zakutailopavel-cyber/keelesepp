@@ -39,6 +39,8 @@ PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [
 This slice replaces the temporary workflow-based PDF experiment from #144 with ordinary application code.
 `haldus-exercises` loads each PDF page through PDF.js into a canvas, provides page navigation, and places
 teacher-authored interactive fields only on their matching page. Image worksheet behaviour is unchanged.
+The new `modal` field is a small click target: the teacher clicks once beside a question, configures its title
+and instruction, and the student writes the answer in a popup rather than in a precisely positioned page field.
 
 Changed files: `haldus-exercises/index.html`, `interactive-worksheet-pdf-v1.test.js`, `ARCHITECTURE.md`, and
 this state document. Changed data contract: `interactiveOverlay.elements[].page` is an optional one-based page
