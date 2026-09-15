@@ -283,7 +283,8 @@ Visual worksheet assignments may additionally snapshot image or PDF `files` with
 `interactiveOverlay` (`version: 1`, percentage-positioned elements). PDF overlay elements may carry an
 optional one-based `page`; absent legacy values mean page 1. The source document remains immutable;
 an element with `type: "modal"` stores only a small activation marker and opens its response input outside
-the document surface, so authors do not have to align an answer field with a printed line.
+the document surface, so authors do not have to align an answer field with a printed line. Its default square
+can be moved and resized through visible edge and corner handles without changing the printed source document.
 student input is stored only in the assignment's existing `answers` map under visual field keys and is
 submitted through the existing worksheet completion contract. This adds no second assignment store and
 keeps legacy structured `worksheetData.blocks` assignments compatible.

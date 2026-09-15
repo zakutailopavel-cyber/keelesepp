@@ -152,8 +152,12 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#EEECE7;color:#1C2B3A;min
 .iw-word:hover{background:rgba(255,220,100,.22);outline:1px solid rgba(201,136,42,.45);}
 .iw-checkbox{width:100%;height:100%;display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.82);border-radius:6px;padding:3px 6px;font-size:.78rem;color:#1C2B3A;}
 .iw-checkbox input{width:18px;height:18px;}
-.iw-hotspot{width:100%;height:100%;min-width:30px;min-height:30px;transform:translate(-50%,-50%);border:2px solid #fff;border-radius:999px;background:#2F5D50;color:#fff;box-shadow:0 3px 12px rgba(28,43,58,.34);cursor:pointer;display:grid;place-items:center;font-size:.78rem;line-height:1;}
+.iw-hotspot{width:100%;height:100%;border:2px solid #fff;border-radius:8px;background:#2F5D50;color:#fff;box-shadow:0 3px 12px rgba(28,43,58,.34);cursor:pointer;display:grid;place-items:center;padding:5px 7px;font:800 clamp(.64rem,1.6vw,.84rem)/1.15 'IBM Plex Sans',sans-serif;text-align:center;overflow:hidden;}
 .iw-hotspot:hover,.iw-hotspot:focus{background:#C9882A;outline:3px solid rgba(201,136,42,.25);}
+.iw-element.editor.modal-button{background:rgba(47,93,80,.14);border-color:#2F5D50;cursor:move;}
+.iw-element.editor.modal-button .iw-modal-label{position:absolute;inset:0;display:grid;place-items:center;padding:5px;text-align:center;color:#245044;font-size:.7rem;font-weight:800;line-height:1.15;overflow:hidden;}
+.iw-resize-handle{position:absolute;width:11px;height:11px;border:2px solid #fff;border-radius:3px;background:#C9882A;box-shadow:0 1px 3px rgba(28,43,58,.35);z-index:3;}
+.iw-resize-handle.nw{left:0;top:0;transform:translate(-50%,-50%);cursor:nwse-resize}.iw-resize-handle.n{left:50%;top:0;transform:translate(-50%,-50%);cursor:ns-resize}.iw-resize-handle.ne{right:0;top:0;transform:translate(50%,-50%);cursor:nesw-resize}.iw-resize-handle.e{right:0;top:50%;transform:translate(50%,-50%);cursor:ew-resize}.iw-resize-handle.se{right:0;bottom:0;transform:translate(50%,50%);cursor:nwse-resize}.iw-resize-handle.s{left:50%;bottom:0;transform:translate(-50%,50%);cursor:ns-resize}.iw-resize-handle.sw{left:0;bottom:0;transform:translate(-50%,50%);cursor:nesw-resize}.iw-resize-handle.w{left:0;top:50%;transform:translate(-50%,-50%);cursor:ew-resize}
 .iw-answer-ov{position:fixed;inset:0;z-index:570;background:rgba(15,28,42,.55);display:flex;align-items:center;justify-content:center;padding:18px;line-height:1.35;}
 .iw-answer-dialog{width:min(520px,100%);background:#fff;border-radius:16px;box-shadow:0 24px 70px rgba(0,0,0,.32);padding:22px;color:#1C2B3A;}
 .iw-answer-dialog h3{margin:0 0 6px;font-family:Fraunces,serif;font-size:1.25rem;}
@@ -851,6 +855,7 @@ function DocumentPreviewModal({file,onClose,onUpdate}){
   const[tool,setTool]=useState('');
   const[selectedId,setSelectedId]=useState('');
   const[draft,setDraft]=useState(null);
+  const[elementDrag,setElementDrag]=useState(null);
   const[answers,setAnswers]=useState(()=>{try{return JSON.parse(localStorage.getItem(answerStorageKey(file))||'{}')}catch{return {}}});
   const[checked,setChecked]=useState(false);
   const[translation,setTranslation]=useState(null);
@@ -904,26 +909,55 @@ function DocumentPreviewModal({file,onClose,onUpdate}){
   const visibleElements=elements.filter(el=>(Number(el.page)||1)===pageNum);
   const updateElements=next=>{setElements(next);elementsRef.current=next;onUpdate?.({...file,interactiveOverlay:{version:1,elements:next}});};
   const updateSelected=patch=>updateElements(elementsRef.current.map(el=>el.id===selectedId?{...el,...patch}:el));
+  const previewElementPatch=(id,patch)=>{
+    const next=elementsRef.current.map(el=>el.id===id?{...el,...patch}:el);
+    elementsRef.current=next;setElements(next);
+  };
   const removeSelected=()=>{if(!selectedId)return;updateElements(elementsRef.current.filter(el=>el.id!==selectedId));setSelectedId('');};
   const setAnswer=(id,value)=>{setAnswers(prev=>({...prev,[id]:value}));setChecked(false);};
+  const beginElementDrag=(e,el,mode)=>{
+    if(!editing)return;
+    e.preventDefault();e.stopPropagation();
+    const rect=sheetRef.current.getBoundingClientRect();
+    sheetRef.current.setPointerCapture?.(e.pointerId);
+    setSelectedId(el.id);setElementDrag({id:el.id,mode,pointerId:e.pointerId,startX:(e.clientX-rect.left)/rect.width,startY:(e.clientY-rect.top)/rect.height,origin:{x:el.x,y:el.y,w:el.w,h:el.h}});
+  };
   const startDraw=e=>{
     if(!editing||!tool||!isInteractiveVisual||(e.target!==sheetRef.current&&e.target.closest?.('.iw-element')))return;
     const rect=sheetRef.current.getBoundingClientRect();
     const x=clamp01((e.clientX-rect.left)/rect.width),y=clamp01((e.clientY-rect.top)/rect.height);
     if(tool==='modal'){
-      const el={id:interactiveId(),page:pageNum,type:'modal',x,y,w:.04,h:.04,label:'Vastus',prompt:'',placeholder:'Kirjuta oma vastus…',correctAnswer:''};
+      const size=.09;
+      const el={id:interactiveId(),page:pageNum,type:'modal',x:Math.min(x,1-size),y:Math.min(y,1-size),w:size,h:size,label:'Vastan',prompt:'',placeholder:'Kirjuta oma vastus…',correctAnswer:''};
       updateElements([...elementsRef.current,el]);setSelectedId(el.id);setTool('');return;
     }
     sheetRef.current.setPointerCapture?.(e.pointerId);
     setDraft({x,y,w:.001,h:.001,type:tool,pointerId:e.pointerId});
   };
   const moveDraw=e=>{
+    if(elementDrag&&elementDrag.pointerId===e.pointerId){
+      const rect=sheetRef.current.getBoundingClientRect();
+      const dx=(e.clientX-rect.left)/rect.width-elementDrag.startX,dy=(e.clientY-rect.top)/rect.height-elementDrag.startY;
+      const min=.035,mode=elementDrag.mode,origin=elementDrag.origin;
+      let left=origin.x,top=origin.y,right=origin.x+origin.w,bottom=origin.y+origin.h;
+      if(mode==='move'){
+        left=Math.max(0,Math.min(1-origin.w,origin.x+dx));top=Math.max(0,Math.min(1-origin.h,origin.y+dy));
+        right=left+origin.w;bottom=top+origin.h;
+      }else{
+        if(mode.includes('w'))left=Math.max(0,Math.min(right-min,origin.x+dx));
+        if(mode.includes('e'))right=Math.min(1,Math.max(left+min,origin.x+origin.w+dx));
+        if(mode.includes('n'))top=Math.max(0,Math.min(bottom-min,origin.y+dy));
+        if(mode.includes('s'))bottom=Math.min(1,Math.max(top+min,origin.y+origin.h+dy));
+      }
+      previewElementPatch(elementDrag.id,{x:left,y:top,w:right-left,h:bottom-top});return;
+    }
     if(!draft||draft.pointerId!==e.pointerId)return;
     const rect=sheetRef.current.getBoundingClientRect();
     const px=clamp01((e.clientX-rect.left)/rect.width),py=clamp01((e.clientY-rect.top)/rect.height);
     setDraft(d=>({...d,w:px-d.x,h:py-d.y}));
   };
   const finishDraw=e=>{
+    if(elementDrag&&elementDrag.pointerId===e.pointerId){updateElements(elementsRef.current);setElementDrag(null);return;}
     if(!draft||draft.pointerId!==e.pointerId)return;
     const x=draft.w<0?draft.x+draft.w:draft.x,y=draft.h<0?draft.y+draft.h:draft.y;
     const w=Math.max(Math.abs(draft.w),.035),h=Math.max(Math.abs(draft.h),draft.type==='textarea' ? .07 : .028);
@@ -939,9 +973,10 @@ function DocumentPreviewModal({file,onClose,onUpdate}){
   const renderElement=el=>{
     const style={left:(el.x*100)+'%',top:(el.y*100)+'%',width:(el.w*100)+'%',height:(el.h*100)+'%'};
     const active=selectedId===el.id;
+    if(editing&&el.type==='modal')return <div key={el.id} className={'iw-element editor modal-button'+(active?' active':'')} style={style} onPointerDown={ev=>beginElementDrag(ev,el,'move')} title="Lohista nuppu. Suuruse muutmiseks lohista oranže ruute."><span className="iw-modal-label">{el.label||'Vastan'}</span>{['nw','n','ne','e','se','s','sw','w'].map(handle=><span key={handle} className={'iw-resize-handle '+handle} onPointerDown={ev=>beginElementDrag(ev,el,handle)}/>)}</div>;
     if(editing)return <div key={el.id} className={'iw-element editor'+(active?' active':'')} style={style} onPointerDown={ev=>{ev.stopPropagation();setSelectedId(el.id);}} title={el.type}><span style={{position:'absolute',left:2,top:1,fontSize:9,lineHeight:1,background:'#C9882A',color:'#fff',padding:'2px 3px',borderRadius:3}}>{el.type}</span></div>;
     if(el.type==='word')return <button key={el.id} type="button" className="iw-element iw-word" style={style} onClick={ev=>{const r=ev.currentTarget.getBoundingClientRect();setTranslation({el,left:Math.min(r.left,window.innerWidth-360),top:Math.min(r.bottom+7,window.innerHeight-150)});}} aria-label={'Tõlge: '+(el.text||'sõna')}>{el.text||'sõna'}</button>;
-    if(el.type==='modal')return <button key={el.id} type="button" className="iw-element iw-hotspot" style={style} onClick={()=>setActivePrompt(el)} aria-label={(el.label||'Vastus')+(answers[el.id]?' · vastatud':'')}><i className={answers[el.id]?'fa-solid fa-check':'fa-solid fa-pen'}/></button>;
+    if(el.type==='modal')return <button key={el.id} type="button" className="iw-element iw-hotspot" style={style} onClick={()=>setActivePrompt(el)} aria-label={(el.label||'Vastan')+(answers[el.id]?' · vastatud':'')}>{answers[el.id]?'✓ ':''}{el.label||'Vastan'}</button>;
     if(el.type==='textarea')return <textarea key={el.id} className={'iw-element iw-textarea'+scoreClass(el)} style={style} value={answers[el.id]||''} onChange={e=>setAnswer(el.id,e.target.value)} placeholder={el.placeholder||'Kirjuta siia…'}/>;
     if(el.type==='choice')return <select key={el.id} className={'iw-element iw-choice'+scoreClass(el)} style={style} value={answers[el.id]||''} onChange={e=>setAnswer(el.id,e.target.value)}><option value="">Vali…</option>{(el.options||[]).map((opt,i)=><option value={opt} key={i}>{opt}</option>)}</select>;
     if(el.type==='checkbox')return <label key={el.id} className={'iw-element iw-checkbox'+scoreClass(el)} style={style}><input type="checkbox" checked={Boolean(answers[el.id])} onChange={e=>setAnswer(el.id,e.target.checked)}/><span>{el.label||'Valik'}</span></label>;
@@ -985,7 +1020,7 @@ function DocumentPreviewModal({file,onClose,onUpdate}){
                   {selected.type==='checkbox'&&<label>Silt<input value={selected.label||''} onChange={e=>updateSelected({label:e.target.value})}/></label>}
                   {['input','textarea'].includes(selected.type)&&<label>Kohatäide<input value={selected.placeholder||''} onChange={e=>updateSelected({placeholder:e.target.value})}/></label>}
                   {!['word','textarea'].includes(selected.type)&&<label>Õige vastus<input value={selected.correctAnswer||''} onChange={e=>updateSelected({correctAnswer:e.target.value})} placeholder={selected.type==='checkbox'?'true / false':'vastus'}/></label>}
-                  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:7}}><label>Laius %<input type="number" min="2" max="100" value={Math.round(selected.w*100)} onChange={e=>updateSelected({w:Math.max(.02,Math.min(1-selected.x,Number(e.target.value)/100))})}/></label><label>Kõrgus %<input type="number" min="2" max="100" value={Math.round(selected.h*100)} onChange={e=>updateSelected({h:Math.max(.02,Math.min(1-selected.y,Number(e.target.value)/100))})}/></label></div>
+                  {selected.type==='modal'?<div style={{fontSize:'.72rem',color:'#607086',lineHeight:1.45}}>Lohista nuppu selle sees, et seda liigutada. Suuruse muutmiseks lohista oranže ruute nurkades või servadel.</div>:<div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:7}}><label>Laius %<input type="number" min="2" max="100" value={Math.round(selected.w*100)} onChange={e=>updateSelected({w:Math.max(.02,Math.min(1-selected.x,Number(e.target.value)/100))})}/></label><label>Kõrgus %<input type="number" min="2" max="100" value={Math.round(selected.h*100)} onChange={e=>updateSelected({h:Math.max(.02,Math.min(1-selected.y,Number(e.target.value)/100))})}/></label></div>}
                   <button type="button" className="btn btn-sm" style={{background:'#FFF1F2',color:'#9F1239',border:'1px solid #FECDD3'}} onClick={removeSelected}><i className="fa-solid fa-trash"/> Kustuta element</button>
                 </>}
               </div>
