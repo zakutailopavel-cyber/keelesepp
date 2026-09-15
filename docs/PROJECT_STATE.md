@@ -26,12 +26,35 @@ Known limitation: no production deployment or live-data check was run.
 Exactly one next safe step: review the CI-repair branch and open a draft PR;
 after it merges, confirm the remote CRM v2 CI is green.
 
-Last verified: 2026-09-14, Europe/Tallinn
+Last verified: 2026-09-15, Europe/Tallinn
 Repository: `zakutailopavel-cyber/keelesepp`
-Verified main: `ab69a0e05c0b449a1de36242ffa2e7545b076779` — base for Student Visual Worksheet v1
-Current implementation branch: `agent/visual-worksheet-student-v1`
-Current draft PR: https://github.com/zakutailopavel-cyber/keelesepp/pull/150
+Verified main: `15c015ae1d66d20aa9e84ff5ecc77b2ec03df82b` — CRM v2 CI recovery (#151)
+Current implementation branch: `agent/pdf-worksheet-v1-20260915`
+Current PR: https://github.com/zakutailopavel-cyber/keelesepp/pull/152
 PRs [#103](https://github.com/zakutailopavel-cyber/keelesepp/pull/103) through [#116](https://github.com/zakutailopavel-cyber/keelesepp/pull/116) are merged.
+
+
+## Interactive PDF Worksheet v1 — DRAFT
+
+This slice replaces the temporary workflow-based PDF experiment from #144 with ordinary application code.
+`haldus-exercises` loads each PDF page through PDF.js into a canvas, provides page navigation, and places
+teacher-authored interactive fields only on their matching page. Image worksheet behaviour is unchanged.
+
+Changed files: `haldus-exercises/index.html`, `interactive-worksheet-pdf-v1.test.js`, `ARCHITECTURE.md`, and
+this state document. Changed data contract: `interactiveOverlay.elements[].page` is an optional one-based page
+number; legacy elements without it render on page 1. There is no Firestore rule, Function, index, migration,
+production deployment, or document upload in this slice. PDF.js is loaded in the browser from the existing
+CDN-style client dependency model; the PDF content is not sent to an AI service.
+
+Validation: PASS — `node --test interactive-worksheet-v1.test.js interactive-worksheet-pdf-v1.test.js
+visual-worksheet-student-v1.test.js` (8/8); `git diff --check`.
+
+Known limitation: browser verification could reach the production sign-in page but had no authenticated teacher
+session, so a real multi-page PDF authoring and student-review path has not been manually exercised. Rendering
+also depends on the configured PDF.js CDN being available.
+
+Exactly one next safe step: use a non-sensitive multi-page PDF in the PR preview while signed in, verify field
+placement on two pages, and then review the saved assignment and student response without altering real student data.
 
 
 ## Student Visual Worksheet v1 — DRAFT
