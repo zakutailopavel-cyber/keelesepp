@@ -282,6 +282,8 @@ Assignment records copy display metadata for historical readability and also sto
 Visual worksheet assignments may additionally snapshot image or PDF `files` with a bounded
 `interactiveOverlay` (`version: 1`, percentage-positioned elements). PDF overlay elements may carry an
 optional one-based `page`; absent legacy values mean page 1. The source document remains immutable;
+an element with `type: "modal"` stores only a small activation marker and opens its response input outside
+the document surface, so authors do not have to align an answer field with a printed line.
 student input is stored only in the assignment's existing `answers` map under visual field keys and is
 submitted through the existing worksheet completion contract. This adds no second assignment store and
 keeps legacy structured `worksheetData.blocks` assignments compatible.
