@@ -41,6 +41,7 @@ window.openTeacherWorkspace=function(href,label){
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="/learning-library-core.js"></script>
 <script src="/curriculum-workflow-core.js?v=20260901.1"></script>
 <script src="/worksheet-workflow-core.js?v=20260901.1"></script>
@@ -139,7 +140,7 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#EEECE7;color:#1C2B3A;min
 .iw-workspace{min-height:100%;display:flex;align-items:flex-start;justify-content:center;gap:16px;padding:24px;}
 .iw-canvas-shell{flex:1;min-width:0;display:flex;justify-content:center;align-items:flex-start;}
 .iw-sheet{position:relative;width:min(900px,100%);background:#fff;box-shadow:0 18px 55px rgba(28,43,58,.18);border-radius:3px;overflow:hidden;line-height:0;user-select:none;touch-action:none;}
-.iw-sheet>img{display:block;width:100%;height:auto;}
+.iw-sheet>img,.iw-sheet>canvas{display:block;width:100%;height:auto;}
 .iw-layer{position:absolute;inset:0;pointer-events:none;}
 .iw-element{position:absolute;pointer-events:auto;line-height:1.2;font-family:'IBM Plex Sans',sans-serif;box-sizing:border-box;}
 .iw-element.editor{border:2px dashed #C9882A;background:rgba(255,249,235,.18);cursor:move;}
@@ -167,6 +168,11 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#EEECE7;color:#1C2B3A;min
 .iw-translation span{display:block;color:#2F5D50;font-weight:700;margin-bottom:5px;}
 .iw-translation small{display:block;color:#718096;}
 .iw-empty-overlay{position:absolute;left:50%;top:16px;transform:translateX(-50%);background:rgba(28,43,58,.88);color:#fff;border-radius:999px;padding:7px 11px;font-size:.69rem;line-height:1;pointer-events:none;}
+.iw-page-nav{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:9px;padding:3px 5px;color:#fff;font-size:.72rem;font-weight:800;}
+.iw-page-nav button{width:26px;height:26px;border:0;border-radius:6px;background:rgba(255,255,255,.12);color:#fff;cursor:pointer;}
+.iw-page-nav button:disabled{opacity:.35;cursor:default;}
+.iw-pdf-status{position:absolute;left:50%;top:16px;transform:translateX(-50%);z-index:3;background:rgba(28,43,58,.9);color:#fff;border-radius:999px;padding:7px 11px;font-size:.69rem;line-height:1;pointer-events:none;}
+.iw-pdf-error{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:30px;background:#fff;color:#9f1239;font-size:.82rem;line-height:1.5;z-index:3;}
 @media(max-width:900px){.iw-workspace{padding:10px}.iw-editor{position:fixed;left:8px;right:8px;bottom:8px;top:auto;width:auto;max-height:52vh;z-index:555}.iw-editor-body{max-height:28vh}.iw-canvas-shell{width:100%}}
 
 /* LIVE LESSON HISTORY */
@@ -830,7 +836,8 @@ function answerStorageKey(file){
 function DocumentPreviewModal({file,onClose,onUpdate}){
   const kind=CurriculumDocumentCore.previewKind(file);
   const ext=CurriculumDocumentCore.extension(file.name).toUpperCase();
-  const canEdit=kind==='image'&&typeof onUpdate==='function';
+  const isInteractiveVisual=['image','pdf'].includes(kind);
+  const canEdit=isInteractiveVisual&&typeof onUpdate==='function';
   const[elements,setElements]=useState(()=>Array.isArray(file?.interactiveOverlay?.elements)?file.interactiveOverlay.elements:[]);
   const[editing,setEditing]=useState(false);
   const[tool,setTool]=useState('');
@@ -839,17 +846,59 @@ function DocumentPreviewModal({file,onClose,onUpdate}){
   const[answers,setAnswers]=useState(()=>{try{return JSON.parse(localStorage.getItem(answerStorageKey(file))||'{}')}catch{return {}}});
   const[checked,setChecked]=useState(false);
   const[translation,setTranslation]=useState(null);
+  const[pageNum,setPageNum]=useState(1);
+  const[pdfDoc,setPdfDoc]=useState(null);
+  const[pdfPageCount,setPdfPageCount]=useState(1);
+  const[pdfBusy,setPdfBusy]=useState(false);
+  const[pdfError,setPdfError]=useState('');
   const sheetRef=useRef();
+  const pdfCanvasRef=useRef();
   const elementsRef=useRef(elements);
   useEffect(()=>{elementsRef.current=elements;},[elements]);
   useEffect(()=>{try{localStorage.setItem(answerStorageKey(file),JSON.stringify(answers));}catch{}},[answers,file?.url]);
+  useEffect(()=>{
+    if(kind!=='pdf')return;
+    let cancelled=false;
+    setPdfError('');setPdfBusy(true);setPdfDoc(null);setPageNum(1);
+    const lib=window.pdfjsLib;
+    if(!lib){setPdfBusy(false);setPdfError('PDF.js ei laadinud. Värskenda lehte ja proovi uuesti.');return;}
+    lib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    const task=lib.getDocument(file.url);
+    task.promise.then(doc=>{
+      if(cancelled)return;
+      setPdfDoc(doc);setPdfPageCount(doc.numPages||1);setPdfBusy(false);
+    }).catch(error=>{
+      if(cancelled)return;
+      console.error('PDF worksheet load failed:',error);
+      setPdfBusy(false);setPdfError('PDF-i avamine interaktiivses režiimis ebaõnnestus.');
+    });
+    return()=>{cancelled=true;try{task.destroy();}catch{}};
+  },[kind,file.url]);
+  useEffect(()=>{
+    if(kind!=='pdf'||!pdfDoc||!pdfCanvasRef.current)return;
+    let cancelled=false;
+    setPdfBusy(true);setPdfError('');
+    pdfDoc.getPage(pageNum).then(page=>{
+      if(cancelled)return null;
+      const canvas=pdfCanvasRef.current;
+      const viewport=page.getViewport({scale:1.65});
+      canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);
+      return page.render({canvasContext:canvas.getContext('2d',{alpha:false}),viewport}).promise;
+    }).then(()=>{if(!cancelled)setPdfBusy(false);}).catch(error=>{
+      if(cancelled)return;
+      console.error('PDF worksheet page render failed:',error);
+      setPdfBusy(false);setPdfError('PDF-i lehe kuvamine ebaõnnestus.');
+    });
+    return()=>{cancelled=true;};
+  },[kind,pdfDoc,pageNum]);
   const selected=elements.find(el=>el.id===selectedId)||null;
+  const visibleElements=elements.filter(el=>(Number(el.page)||1)===pageNum);
   const updateElements=next=>{setElements(next);elementsRef.current=next;onUpdate?.({...file,interactiveOverlay:{version:1,elements:next}});};
   const updateSelected=patch=>updateElements(elementsRef.current.map(el=>el.id===selectedId?{...el,...patch}:el));
   const removeSelected=()=>{if(!selectedId)return;updateElements(elementsRef.current.filter(el=>el.id!==selectedId));setSelectedId('');};
   const setAnswer=(id,value)=>{setAnswers(prev=>({...prev,[id]:value}));setChecked(false);};
   const startDraw=e=>{
-    if(!editing||!tool||kind!=='image'||e.target!==sheetRef.current&&e.target.closest?.('.iw-element'))return;
+    if(!editing||!tool||!isInteractiveVisual||(e.target!==sheetRef.current&&e.target.closest?.('.iw-element')))return;
     const rect=sheetRef.current.getBoundingClientRect();
     const x=clamp01((e.clientX-rect.left)/rect.width),y=clamp01((e.clientY-rect.top)/rect.height);
     sheetRef.current.setPointerCapture?.(e.pointerId);
@@ -865,7 +914,7 @@ function DocumentPreviewModal({file,onClose,onUpdate}){
     if(!draft||draft.pointerId!==e.pointerId)return;
     const x=draft.w<0?draft.x+draft.w:draft.x,y=draft.h<0?draft.y+draft.h:draft.y;
     const w=Math.max(Math.abs(draft.w),.035),h=Math.max(Math.abs(draft.h),draft.type==='textarea' ? .07 : .028);
-    const el={id:interactiveId(),type:draft.type,x:clamp01(x),y:clamp01(y),w:Math.min(w,1-clamp01(x)),h:Math.min(h,1-clamp01(y)),label:'',placeholder:'',text:'',translation:'',lemma:'',options:['Valik 1','Valik 2'],correctAnswer:''};
+    const el={id:interactiveId(),page:pageNum,type:draft.type,x:clamp01(x),y:clamp01(y),w:Math.min(w,1-clamp01(x)),h:Math.min(h,1-clamp01(y)),label:'',placeholder:'',text:'',translation:'',lemma:'',options:['Valik 1','Valik 2'],correctAnswer:''};
     updateElements([...elementsRef.current,el]);setSelectedId(el.id);setDraft(null);setTool('');
   };
   const scoreClass=el=>{
@@ -889,25 +938,28 @@ function DocumentPreviewModal({file,onClose,onUpdate}){
     <div className="doc-preview-ov" onClick={e=>{e.stopPropagation();if(e.target===e.currentTarget)onClose();}}>
       <div className="doc-preview-box interactive-preview" role="dialog" aria-modal="true" aria-label={'Tööleht: '+file.name}>
         <div className="doc-preview-head">
-          <div className="doc-preview-title"><span className="fi-ext" style={{background:EXT_COLORS[ext.toLowerCase()]||'#42536A'}}>{ext.slice(0,3)}</span><div style={{minWidth:0}}><div className="doc-preview-name">{file.name}</div><div className="doc-preview-meta">{kind==='image'?'Interaktiivne tööleht':ext}{elements.length?' · '+elements.length+' elementi':''}</div></div></div>
+          <div className="doc-preview-title"><span className="fi-ext" style={{background:EXT_COLORS[ext.toLowerCase()]||'#42536A'}}>{ext.slice(0,3)}</span><div style={{minWidth:0}}><div className="doc-preview-name">{file.name}</div><div className="doc-preview-meta">{isInteractiveVisual?'Interaktiivne tööleht':ext}{kind==='pdf'?' · '+pdfPageCount+' lk':''}{elements.length?' · '+elements.length+' elementi':''}</div></div></div>
           <div className="doc-preview-actions iw-toolbar">
-            {kind==='image'&&elements.length>0&&!editing&&<button type="button" className="btn btn-ghost btn-sm" style={{color:'#fff',borderColor:'rgba(255,255,255,.25)'}} onClick={()=>setChecked(v=>!v)}><i className="fa-solid fa-check"/> {checked?'Peida kontroll':'Kontrolli'}</button>}
+            {isInteractiveVisual&&elements.length>0&&!editing&&<button type="button" className="btn btn-ghost btn-sm" style={{color:'#fff',borderColor:'rgba(255,255,255,.25)'}} onClick={()=>setChecked(v=>!v)}><i className="fa-solid fa-check"/> {checked?'Peida kontroll':'Kontrolli'}</button>}
+            {kind==='pdf'&&pdfPageCount>1&&<div className="iw-page-nav"><button type="button" disabled={pageNum<=1} onClick={()=>{setPageNum(page=>Math.max(1,page-1));setSelectedId('');setTranslation(null);}}>‹</button><span>{pageNum} / {pdfPageCount}</span><button type="button" disabled={pageNum>=pdfPageCount} onClick={()=>{setPageNum(page=>Math.min(pdfPageCount,page+1));setSelectedId('');setTranslation(null);}}>›</button></div>}
             {canEdit&&<button type="button" className={'btn btn-ghost btn-sm'+(editing?' active':'')} style={!editing?{color:'#fff',borderColor:'rgba(255,255,255,.25)'}:{}} onClick={()=>{setEditing(v=>!v);setTool('');setSelectedId('');setTranslation(null);}}><i className="fa-solid fa-pen-ruler"/> {editing?'Valmis':'Muuda interaktiivseks'}</button>}
             <a href={file.url} download={file.name} className="btn btn-gold btn-sm"><i className="fa-solid fa-download"/> Laadi alla</a>
             <button type="button" onClick={onClose} className="btn btn-ghost btn-sm" style={{color:'#fff',borderColor:'rgba(255,255,255,.25)'}}>✕ Sulge</button>
           </div>
         </div>
         <div className="doc-preview-body">
-          {kind==='image'&&<div className="iw-workspace">
+          {isInteractiveVisual&&<div className="iw-workspace">
             <div className="iw-canvas-shell">
               <div ref={sheetRef} className="iw-sheet" onPointerDown={startDraw} onPointerMove={moveDraw} onPointerUp={finishDraw}>
-                <img src={file.url} alt={file.name} draggable="false"/>
-                <div className="iw-layer">{elements.map(renderElement)}{draft&&<div className="iw-element editor active" style={{left:((draft.w<0?draft.x+draft.w:draft.x)*100)+'%',top:((draft.h<0?draft.y+draft.h:draft.y)*100)+'%',width:(Math.abs(draft.w)*100)+'%',height:(Math.abs(draft.h)*100)+'%'}}/>}</div>
-                {!editing&&!elements.length&&<div className="iw-empty-overlay">Tööleht · interaktiivseid välju pole veel lisatud</div>}
+                {kind==='image'?<img src={file.url} alt={file.name} draggable="false"/>:<canvas ref={pdfCanvasRef} aria-label={file.name+' leht '+pageNum}/>}
+                {kind==='pdf'&&pdfBusy&&<div className="iw-pdf-status">PDF leht laadib…</div>}
+                {kind==='pdf'&&pdfError&&<div className="iw-pdf-error">{pdfError}</div>}
+                <div className="iw-layer">{visibleElements.map(renderElement)}{draft&&<div className="iw-element editor active" style={{left:((draft.w<0?draft.x+draft.w:draft.x)*100)+'%',top:((draft.h<0?draft.y+draft.h:draft.y)*100)+'%',width:(Math.abs(draft.w)*100)+'%',height:(Math.abs(draft.h)*100)+'%'}}/>}</div>
+                {!editing&&!visibleElements.length&&<div className="iw-empty-overlay">Tööleht · interaktiivseid välju pole veel lisatud</div>}
               </div>
             </div>
             {editing&&<aside className="iw-editor">
-              <div className="iw-editor-head">Interaktiivne kiht</div>
+              <div className="iw-editor-head">Interaktiivne kiht{kind==='pdf'&&<span style={{float:'right',fontSize:'.68rem',color:'#718096'}}>lk {pageNum}</span>}</div>
               <div className="iw-tools">{tools.map(([key,label])=><button type="button" key={key} className={'iw-tool'+(tool===key?' active':'')} onClick={()=>setTool(tool===key?'':key)}>{label}</button>)}</div>
               <div className="iw-editor-body">
                 <div style={{fontSize:'.72rem',color:'#718096',lineHeight:1.45}}>{tool?'Lohista hiirega töölehel ala, kuhu element lisada.':'Vali tööriist ja märgi töölehel ala.'}</div>
@@ -925,7 +977,6 @@ function DocumentPreviewModal({file,onClose,onUpdate}){
               <div className="iw-editor-note">Muudatused lähevad tunni faili külge. Lõpetuseks vajuta tunni aknas <strong>Salvesta</strong>.</div>
             </aside>}
           </div>}
-          {kind==='pdf'&&<iframe src={file.url+'#view=FitH'} title={file.name} className="doc-preview-frame" style={{width:'100%',height:'100%',minHeight:'78vh',border:0}}/>}
           {kind==='text'&&<iframe src={file.url} title={file.name} className="doc-preview-frame" sandbox=""/>}
           {kind==='download'&&<div className="doc-preview-fallback"><i className="fa-solid fa-file-arrow-down" style={{fontSize:'3rem',color:'#C9882A',marginBottom:18}}/><h3 style={{fontFamily:'Fraunces',fontSize:'1.35rem',marginBottom:8}}>{file.name}</h3><p style={{color:'#718096',lineHeight:1.55,fontSize:'.86rem',marginBottom:20}}>Wordi ja PowerPointi faile brauser turvaliselt ei kuva. Laadi dokument alla ja ava oma seadmes.</p><a href={file.url} download={file.name} className="btn btn-pine"><i className="fa-solid fa-download"/> Laadi dokument alla</a></div>}
         </div>

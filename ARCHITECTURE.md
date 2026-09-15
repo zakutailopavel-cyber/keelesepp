@@ -279,8 +279,9 @@ Google eTag preconditions and incremental sync tokens remain separate releases.
 
 Assignment records copy display metadata for historical readability and also store stable
 `sourceId` and `curriculumId` references when available.
-Visual worksheet assignments may additionally snapshot image `files` with a bounded
-`interactiveOverlay` (`version: 1`, percentage-positioned elements). The source image remains immutable;
+Visual worksheet assignments may additionally snapshot image or PDF `files` with a bounded
+`interactiveOverlay` (`version: 1`, percentage-positioned elements). PDF overlay elements may carry an
+optional one-based `page`; absent legacy values mean page 1. The source document remains immutable;
 student input is stored only in the assignment's existing `answers` map under visual field keys and is
 submitted through the existing worksheet completion contract. This adds no second assignment store and
 keeps legacy structured `worksheetData.blocks` assignments compatible.
