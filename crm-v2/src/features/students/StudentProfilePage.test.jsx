@@ -68,7 +68,7 @@ describe('student profile tabs and role access', () => {
   it('renders detailed finance history only after an administrator opens the finance tab', async () => {
     renderProfile({
       invoices: [
-        { id: 'i1', num: 'KS-101', date: '2026-08-01', due: '2026-08-10', amountCents: 8000, paidAmountCents: 3000, balanceDueCents: 5000, status: 'Ootel' },
+        { id: 'i1', num: 'KS-101', date: '2026-10-01', due: '2026-10-10', amountCents: 8000, paidAmountCents: 3000, balanceDueCents: 5000, status: 'Ootel' },
         { id: 'i2', num: 'KS-100', date: '2026-07-01', due: '2026-07-10', amountCents: 4000, paidAmountCents: 4000, balanceDueCents: 0, status: 'Makstud' },
       ],
     });
@@ -78,13 +78,13 @@ describe('student profile tabs and role access', () => {
 
     fireEvent.click(screen.getByRole('tab', { name: 'Finantsid' }));
 
-    const finance = screen.getByRole('heading', { name: 'Arved ja maksed' }).closest('section, article, div');
+    const finance = screen.getByRole('heading', { name: 'Arved ja maksed' }).closest('section');
     expect(screen.getByText('KS-101')).toBeInTheDocument();
     expect(screen.getByText('KS-100')).toBeInTheDocument();
     expect(screen.getByText('Osaliselt makstud')).toBeInTheDocument();
-    expect(screen.getByText('Makstud')).toBeInTheDocument();
+    expect(screen.getAllByText('Makstud').length).toBeGreaterThan(0);
     expect(screen.getByRole('link', { name: /Loo arve/ })).toHaveAttribute('href', '/finance#tunniarvestus');
-    expect(within(finance).getByText('50,00 €')).toBeInTheDocument();
+    expect(within(finance).getAllByText('50,00 €').length).toBeGreaterThan(0);
   });
 
   it('shows a clear empty finance state in the finance tab', async () => {

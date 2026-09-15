@@ -43,7 +43,7 @@ describe('global student search', () => {
     await typeQuery('Mari');
 
     expect(repository.list).toHaveBeenCalledWith(expect.objectContaining({ search: 'Mari', status: 'active', exhaustive: true }));
-    fireEvent.click(await screen.findByRole('button', { name: /Mari Maas/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Mari Maas/ }));
     expect(screen.getByLabelText('current-path')).toHaveTextContent('/students/s1');
   });
 

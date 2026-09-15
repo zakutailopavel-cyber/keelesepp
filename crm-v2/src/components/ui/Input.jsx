@@ -1,5 +1,8 @@
+import { useId } from 'react';
+
 export default function Input({ label, error, id, className = '', ...props }) {
-  const inputId = id || props.name;
+  const generatedId = useId();
+  const inputId = id || props.name || generatedId;
   const errorId = error ? `${inputId}-error` : undefined;
   return (
     <div className={`field ${className}`}>

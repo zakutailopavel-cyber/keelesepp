@@ -23,7 +23,7 @@ function renderPage(financeRepository = { recordPayment: vi.fn().mockResolvedVal
   const paymentRepository = { listByInvoice: vi.fn().mockResolvedValue(options.payments || [{ id: 'payment-1', amountCents: 4000, paidAt: '2026-08-03', method: 'bank', status: 'active' }]) };
   const planRepository = { list: vi.fn().mockResolvedValue([{ id: 'student-1', studentId: 'student-1', studentName: 'Sofia Tamm', lessonPriceCents: 2500, weeklyLessons: 2, active: true }]), save: vi.fn().mockResolvedValue({}) };
   const studentRepository = { list: vi.fn().mockResolvedValue({ items: [{ id: 'student-1', name: 'Sofia Tamm', lessonPrice: 25, weeklyLessons: 2, active: true }] }) };
-  const lessonRepository = { listForBilling: vi.fn().mockResolvedValue([{ id: 'lesson-1', studentId: 'student-1', studentName: 'Sofia Tamm', date: '2026-08-02', status: 'Toimunud' }]) };
+  const lessonRepository = { listForBilling: vi.fn().mockResolvedValue([{ id: 'lesson-2', studentId: 'student-1', studentName: 'Sofia Tamm', date: '2026-08-02', status: 'Toimunud' }]) };
   const bankRepository = { list: vi.fn().mockResolvedValue([]) };
   const periodRepository = { list: vi.fn().mockResolvedValue([]) };
   const creditRepository = { list: vi.fn().mockResolvedValue(options.credits || []), listRefunds: vi.fn().mockResolvedValue(options.refunds || []) };
@@ -35,9 +35,14 @@ function renderPage(financeRepository = { recordPayment: vi.fn().mockResolvedVal
   return { financeRepository, deliveryRepository, invoiceRepository, paymentRepository, planRepository, studentRepository, lessonRepository, bankRepository, periodRepository, creditRepository, creditNoteRepository, auditRepository, documentRepository, user };
 }
 
+async function openFinanceSection(name) {
+  fireEvent.click(await screen.findByRole('link', { name }));
+}
+
 describe('FinancePage', () => {
   it('opens invoice details and shows its payment history', async () => {
     const repositories = renderPage();
+    await openFinanceSection('Arved');
     fireEvent.click(await screen.findByRole('button', { name: 'KS-101' }));
     const dialog = await screen.findByRole('dialog', { name: 'Arve KS-101' });
     expect(dialog).toBeInTheDocument();
@@ -50,6 +55,7 @@ describe('FinancePage', () => {
     renderPage(undefined, undefined, {
       invoices: [{ ...invoice, num: 'KS-2026-042', previousInvoiceNumbers: ['KS-2026-013'] }],
     });
+    await openFinanceSection('Arved');
     fireEvent.click(await screen.findByRole('button', { name: 'KS-2026-042' }));
     const dialog = screen.getByRole('dialog', { name: 'Arve KS-2026-042' });
     expect(within(dialog).getByText(/Eelmine number KS-2026-013/)).toBeInTheDocument();
@@ -60,6 +66,7 @@ describe('FinancePage', () => {
   it('sends a payment through the trusted finance repository', async () => {
     const financeRepository = { recordPayment: vi.fn().mockResolvedValue({}) };
     renderPage(financeRepository);
+    await openFinanceSection('Arved');
     fireEvent.click(await screen.findByRole('button', { name: 'KS-101' }));
     fireEvent.click(screen.getByRole('button', { name: /Registreeri makse/ }));
     fireEvent.change(screen.getByLabelText('Laekunud summa (€)'), { target: { value: '25,50' } });
@@ -92,17 +99,20 @@ describe('FinancePage', () => {
     };
     renderPage(financeRepository);
     await screen.findByText('Arveldamata tunnid');
-    fireEvent.click(screen.getByRole('button', { name: /Loo arve/ }));
+    const creator = screen.getByRole('heading', { name: 'Loo õpilasele arve' }).closest('section');
+    await waitFor(() => expect(within(creator).getByRole('button', { name: 'Loo arve' })).toBeEnabled());
+    fireEvent.click(within(creator).getByRole('button', { name: 'Loo arve' }));
     const dialog = screen.getByRole('dialog', { name: 'Loo arve: Sofia Tamm' });
     fireEvent.click(within(dialog).getByRole('button', { name: /Loo arve/ }));
     await waitFor(() => expect(financeRepository.createInvoiceFromLessons).toHaveBeenCalledWith(expect.objectContaining({
-      studentId: 'student-1', lessonIds: ['lesson-1'], due: expect.stringMatching(/^\d{4}-\d{2}-10$/),
+      studentId: 'student-1', lessonIds: ['lesson-2'], due: expect.stringMatching(/^\d{4}-\d{2}-10$/),
     })));
     expect(await screen.findByRole('status')).toHaveTextContent('KS-2026-201');
   });
 
   it('shows invoice lesson lines and sends the invoice through the delivery API', async () => {
     const repositories = renderPage();
+    await openFinanceSection('Arved');
     fireEvent.click(await screen.findByRole('button', { name: 'KS-101' }));
     const dialog = screen.getByRole('dialog', { name: 'Arve KS-101' });
     expect(within(dialog).getByText('Tunnid ja summad')).toBeInTheDocument();
@@ -116,6 +126,7 @@ describe('FinancePage', () => {
     Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: vi.fn(() => 'blob:invoice-preview') });
     Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: vi.fn() });
     const repositories = renderPage();
+    await openFinanceSection('Arved');
     fireEvent.click(await screen.findByRole('button', { name: 'KS-101' }));
     const invoiceDialog = screen.getByRole('dialog', { name: 'Arve KS-101' });
     fireEvent.click(within(invoiceDialog).getByRole('button', { name: /Eelvaade/ }));
@@ -125,6 +136,7 @@ describe('FinancePage', () => {
 
   it('uploads a payment confirmation through the protected document repository', async () => {
     const repositories = renderPage();
+    await openFinanceSection('Arved');
     fireEvent.click(await screen.findByRole('button', { name: 'KS-101' }));
     const dialog = screen.getByRole('dialog', { name: 'Arve KS-101' });
     const file = new globalThis.File(['payment'], 'maksekorraldus.pdf', { type: 'application/pdf' });
@@ -152,6 +164,7 @@ describe('FinancePage', () => {
 
   it('requires a reason before crediting an immutable invoice lesson line', async () => {
     const repositories = renderPage();
+    await openFinanceSection('Arved');
     fireEvent.click(await screen.findByRole('button', { name: 'KS-101' }));
     fireEvent.click(screen.getByRole('button', { name: /Krediteeri/ }));
     const dialog = screen.getByRole('dialog', { name: 'Krediteeri tunnirida' });
@@ -171,6 +184,7 @@ describe('FinancePage', () => {
       allocateBankTransaction: vi.fn().mockResolvedValue({ bankTransaction: { id: 'bank-1' } }),
     };
     renderPage(financeRepository);
+    await openFinanceSection('Pangaühildus');
     await screen.findByText('Pangaväljavõtte võrdlus');
     const file = {
       name: 'lhv.csv',
@@ -207,6 +221,7 @@ describe('FinancePage', () => {
       reviewFinancialPeriod: vi.fn().mockResolvedValue({ review: { month: '2026-07' } }),
     };
     renderPage(financeRepository);
+    await openFinanceSection('Perioodid');
     await screen.findByText('Finantsperioodi võrdlus');
     fireEvent.click(screen.getByRole('button', { name: /Kontrolli kuu/ }));
     expect(await screen.findByText('Kuu andmed on omavahel kooskõlas')).toBeInTheDocument();
@@ -235,6 +250,7 @@ describe('FinancePage', () => {
       } }),
     };
     renderPage(financeRepository);
+    await openFinanceSection('Perioodid');
     await screen.findByText('Finantsperioodi võrdlus');
     fireEvent.click(screen.getByRole('button', { name: /Kontrolli kuu/ }));
     expect(await screen.findByText('Nicole Smirnova')).toBeInTheDocument();
@@ -245,6 +261,7 @@ describe('FinancePage', () => {
   it('applies an available student advance to an open invoice', async () => {
     const financeRepository = { applyPayerCredit: vi.fn().mockResolvedValue({}) };
     renderPage(financeRepository, undefined, { credits: [{ id: 'credit-1', studentId: 'student-1', studentName: 'Sofia Tamm', payerName: 'Maarika Tamm', availableAmountCents: 3000, status: 'open', createdAt: '2026-08-03' }] });
+    await openFinanceSection('Avansid');
     await screen.findByText('Õpilaste avansid');
     fireEvent.click(screen.getByRole('button', { name: /Kasuta arvel/ }));
     const dialog = screen.getByRole('dialog', { name: 'Kasuta avanssi arvel' });
@@ -255,6 +272,7 @@ describe('FinancePage', () => {
   it('records a payer-credit refund with a mandatory reason', async () => {
     const financeRepository = { refundPayerCredit: vi.fn().mockResolvedValue({}) };
     renderPage(financeRepository, undefined, { credits: [{ id: 'credit-1', studentId: 'student-1', studentName: 'Sofia Tamm', payerName: 'Maarika Tamm', availableAmountCents: 3000, status: 'open', createdAt: '2026-08-03' }] });
+    await openFinanceSection('Avansid');
     await screen.findByText('Õpilaste avansid');
     fireEvent.click(screen.getByRole('button', { name: /Tagasta/ }));
     const dialog = screen.getByRole('dialog', { name: 'Tagasta avanss' });
@@ -268,6 +286,7 @@ describe('FinancePage', () => {
   it('voids an erroneous payment only after a reason is entered', async () => {
     const financeRepository = { voidPayment: vi.fn().mockResolvedValue({}) };
     renderPage(financeRepository);
+    await openFinanceSection('Arved');
     fireEvent.click(await screen.findByRole('button', { name: 'KS-101' }));
     const invoiceDialog = screen.getByRole('dialog', { name: 'Arve KS-101' });
     fireEvent.click(await within(invoiceDialog).findByRole('button', { name: /Tühista/ }));
@@ -280,6 +299,7 @@ describe('FinancePage', () => {
   it('moves an invoice overpayment into the student advance ledger', async () => {
     const financeRepository = { resolveInvoiceOverpayment: vi.fn().mockResolvedValue({}) };
     renderPage(financeRepository, undefined, { invoices: [{ ...invoice, paidAmountCents: 14000, balanceDueCents: 0, overpaidAmountCents: 2000 }] });
+    await openFinanceSection('Arved');
     fireEvent.click(await screen.findByRole('button', { name: 'KS-101' }));
     fireEvent.click(screen.getByRole('button', { name: /Muuda avansiks/ }));
     const dialog = screen.getByRole('dialog', { name: 'Muuda ülemakse avansiks' });

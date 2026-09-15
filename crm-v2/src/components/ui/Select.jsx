@@ -1,5 +1,8 @@
+import { useId } from 'react';
+
 export default function Select({ label, error, id, children, className = '', ...props }) {
-  const selectId = id || props.name;
+  const generatedId = useId();
+  const selectId = id || props.name || generatedId;
   const errorId = error ? `${selectId}-error` : undefined;
   return (
     <div className={`field ${className}`}>

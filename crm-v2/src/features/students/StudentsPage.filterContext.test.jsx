@@ -36,18 +36,18 @@ function renderStudents(initialEntry = '/students', serviceOverrides = {}) {
 
 describe('student list filter context', () => {
   it('restores all filters from the URL', async () => {
-    const service = renderStudents('/students?status=archived&level=B2&teacher=Pavel&sort=teacher&search=mari');
+    const service = renderStudents('/students?status=archived&level=B2&teacher=Pavel%20Zakutailo&sort=teacher&search=mari');
 
     expect(screen.getByLabelText('Staatus')).toHaveValue('archived');
     expect(screen.getByLabelText('Tase')).toHaveValue('B2');
-    expect(screen.getByLabelText('Õpetaja')).toHaveValue('Pavel');
+    await waitFor(() => expect(screen.getByLabelText('Õpetaja')).toHaveValue('Pavel Zakutailo'));
     expect(screen.getByLabelText('Sortimine')).toHaveValue('teacher');
     expect(screen.getByLabelText('Otsi nime, telefoni või e-posti järgi')).toHaveValue('mari');
 
     await waitFor(() => expect(service.list).toHaveBeenCalledWith(expect.objectContaining({
       status: 'archived',
       level: 'B2',
-      teacher: 'Pavel',
+      teacher: 'Pavel Zakutailo',
       sort: 'teacher',
       search: 'mari',
     })));
@@ -55,7 +55,7 @@ describe('student list filter context', () => {
 
   it('writes filter changes to the URL', async () => {
     renderStudents();
-    await screen.findByText('Mari Maas');
+    await screen.findAllByText('Mari Maas');
 
     fireEvent.change(screen.getByLabelText('Tase'), { target: { name: 'level', value: 'C1' } });
 
