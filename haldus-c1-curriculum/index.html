@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="et">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KeeleSepp — C1 õppekava uuendamine</title>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#EEECE7;color:#1C2B3A;font-family:Arial,sans-serif}.card{max-width:600px;margin:12vh auto;background:#fff;border:1px solid #DDD8CF;border-radius:16px;padding:28px;box-shadow:0 10px 35px rgba(28,43,58,.08)}h1{margin:0 0 10px;font-size:1.45rem}p{line-height:1.55;color:#607086}.bar{height:7px;border-radius:99px;background:#EEEAE4;overflow:hidden;margin-top:18px}.bar i{display:block;height:100%;width:20%;background:#2F5D50;animation:load 1.2s ease-in-out infinite alternate}@keyframes load{to{width:100%}}.err{color:#922;background:#FBEAEA;padding:12px;border-radius:9px;margin-top:14px}.done{color:#245044;background:#E7F2ED;padding:12px;border-radius:9px;margin-top:14px}a{color:#2F5D50;font-weight:700}
+</style>
+</head>
+<body><main class="card"><h1>C1 õppekava uuendamine</h1><p id="status">Paigutan 240 akadeemilise tunni C1 programmi olemasoleva <b>Õppevara → Õppekavad → Eesti keel → C1</b> vaatesse.</p><div class="bar" id="bar"><i></i></div><div id="msg"></div></main>
+<script>
+(function(){
+const cfg={apiKey:"AIzaSyAp8emBOh1fIqv72k_O5hkLkXVkfBt1al4",authDomain:"keelesepp-5136b.firebaseapp.com",projectId:"keelesepp-5136b",storageBucket:"keelesepp-5136b.firebasestorage.app",messagingSenderId:"674098517935",appId:"1:674098517935:web:e73d04a4ada67874da015a"};
+if(!firebase.apps.length)firebase.initializeApp(cfg);
+const auth=firebase.auth(),db=firebase.firestore();
+const status=document.getElementById('status'),msg=document.getElementById('msg'),bar=document.getElementById('bar');
+async function loadCurriculum(){
+  const manifest=await fetch('/data/keelesepp-c1-curriculum.json',{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('C1 manifest '+r.status);return r.json()});
+  const parts=await Promise.all(manifest.shards.map(url=>fetch(url,{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error(url+' '+r.status);return r.json()})));
+  return {...manifest,modules:parts.map(part=>part.module)};
+}
+function payload(curriculum,module,lesson,user){
+  return{
+    type:'lesson',title:lesson.title,description:module.description||'',subject:'Eesti keel',level:'C1',
+    topic:String(module.number).padStart(2,'0')+'. '+module.title,order:lesson.number,
+    curriculumId:curriculum.id,curriculumTitle:curriculum.title,sourceKey:lesson.sourceKey,
+    roadmapLessonId:lesson.id,roadmapLessonNumber:lesson.number,
+    roadmapModuleId:module.id,roadmapModuleNumber:module.number,roadmapModuleTitle:module.title,
+    roadmapModuleGoal:module.description||'',roadmapTag:lesson.typeLabel,roadmapKind:lesson.kind,
+    levelStage:'C1',lessonTypeLabel:lesson.typeLabel,goal:lesson.focus,languageFocus:lesson.focus,
+    worksheetPrompt:lesson.prompt,contactHours:lesson.hours,independentHours:module.independentHours,
+    roadmapVersion:curriculum.version,roadmapManaged:true,
+    authorUid:user.uid,authorName:user.displayName||user.email||'',updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+  };
+}
+async function migrate(user){
+  const userDoc=await db.collection('users').doc(user.uid).get();
+  const role=userDoc.exists?userDoc.data().role:'';
+  if(!(role==='admin'||role==='teacher'||(user.email||'').toLowerCase()==='zakutailo.pavel@gmail.com'))throw new Error('Vaja on õpetaja või administraatori õigusi.');
+  const curriculum=await loadCurriculum();
+  const items=curriculum.modules.flatMap(module=>module.lessons.map(lesson=>({module,lesson})));
+  const kinds=items.reduce((counts,item)=>({...counts,[item.lesson.kind]:(counts[item.lesson.kind]||0)+1}),{});
+  if(curriculum.modules.length!==10||items.length!==100||kinds.theme!==70||kinds.grammar!==20||kinds.assessment!==10)throw new Error('C1 andmefaili kontroll ebaõnnestus.');
+  const batch=db.batch();
+  for(const {module,lesson} of items)batch.set(db.collection('curriculumLessons').doc(lesson.id),payload(curriculum,module,lesson,user),{merge:true});
+  await batch.commit();
+  bar.style.display='none';
+  status.innerHTML='Valmis. <b>100 C1 õppetundi</b> on nüüd Õppekavades: 70 teematundi, 20 grammatikatundi ja 10 progressikontrolli.';
+  msg.className='done';msg.textContent='Avan C1 õppekava…';
+  window.sessionStorage.removeItem('keelesepp-c1-curriculum-import-attempt');
+  setTimeout(()=>location.replace('/haldus-exercises/?tab=curriculum&subject=Eesti%20keel&level=C1'),900);
+}
+auth.onAuthStateChanged(user=>{
+  if(!user){bar.style.display='none';status.textContent='Logi esmalt CRM-i sisse.';msg.innerHTML='<a href="/haldus/">Ava CRM</a>';return;}
+  migrate(user).catch(error=>{bar.style.display='none';msg.className='err';msg.textContent='Uuendamine ebaõnnestus: '+error.message;});
+});
+})();
+</script></body></html>
