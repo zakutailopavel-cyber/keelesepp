@@ -1,5 +1,44 @@
 # KeeleSepp Project State
 
+## C1 curriculum 240 academic hours — implementation
+
+Last verified: 2026-09-21, Europe/Tallinn
+Verified main: `3046881f61bbe18fae1b0dbeaa3d540595b5bf8c`.
+Implementation branch: `codex/c1-curriculum-100-lessons`.
+Draft PR: https://github.com/zakutailopavel-cyber/keelesepp/pull/155.
+
+The attached `KeeleSepp_C1_oppekava_240ak_tundi.docx` is now represented as a source-derived C1 roadmap for
+the existing `Õppevara → Õppekavad` flow. It contains 10 ordered modules and 100 ordered two-hour lessons:
+70 thematic lessons, 20 separate grammar lessons and 10 progress checks. Every lesson keeps the exact focus
+and its own full worksheet prompt from the DOCX. The C1 installer reuses `curriculumLessons`; stable IDs and
+merge writes make it idempotent. It does not create a second curriculum store.
+
+The current `CurriculumView`, `TopicView` and `WorksheetPreviewModal` show the C1 type, objective, focus and
+full prompt. `Kasuta prompti` fills the existing `ws_prefill` contract and opens the existing worksheet AI
+workspace. B1/B2 data and flows are unchanged. The C1 level card reports 240 academic hours, 100 lessons and
+10 modules.
+
+Changed files: C1 manifest plus 10 module shards, DOCX extraction script, C1 authenticated installer,
+`haldus-exercises/index.html`, `c1-curriculum.test.js`, `ARCHITECTURE.md`, this state file and
+`docs/C1_CURRICULUM_240.md`. No Functions, rules, indexes, schema migrations, student records, finance, CRM or
+schedule data are changed by the code patch.
+
+Validation: PASS — focused C1 and existing Õppevara/worksheet suites, 37/37 tests; `git diff --check`;
+desktop browser verification of all 10 modules and the thematic, grammar and progress-check lesson flows;
+existing worksheet-builder handoff with the complete prompt; mobile verification at 390 × 844 with no horizontal
+overflow. The complete root Node suite has the same six pre-existing failures on this branch and on clean
+`origin/main` (branch 484/490, baseline 480/486); the four added C1 tests pass and introduce no regression.
+
+Deployment status: Vercel hosted preview is ready and CI is green. The preview requires a separate KeeleSepp
+sign-in on its own origin, so the complete visual flow was verified locally with the same commit. Production data
+has not been installed.
+
+Known gate: repository policy forbids the agent from merging its own PR. Production publication therefore
+requires owner review/merge after the branch and preview are verified.
+
+Exactly one next safe step: owner review/merge PR #155; after the production deployment, open the live C1 view
+once as an authenticated teacher or administrator to run the idempotent installer and verify all 100 records.
+
 ## CRM v2 CI recovery — ready for review
 
 Last verified: 2026-09-15, Europe/Tallinn

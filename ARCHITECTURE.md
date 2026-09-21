@@ -180,6 +180,13 @@ primary tab. An explicit `?tab=library` deep link remains valid. Subject → lev
 worksheet previews stay inside the same authenticated surface and reuse `CurriculumView`, `TopicView` and
 `WorksheetPreviewModal`; this is a presentation/navigation contract only and adds no new persistence model.
 
+The C1 course extends this same contract without a parallel curriculum or worksheet system. Its source-derived
+manifest and ten module shards live under `data/keelesepp-c1-curriculum*.json`; the authenticated idempotent
+installer writes the 100 stable lesson IDs to the existing `curriculumLessons` collection. `theme`, `grammar`
+and `assessment` remain visible lesson metadata, and each lesson retains its own DOCX prompt. `Kasuta prompti`
+passes that prompt through the existing `ws_prefill` boundary into `/haldus-worksheet/`. See
+`docs/C1_CURRICULUM_240.md`.
+
 The student's manually selected curriculum position reuses `students.curriculumPlan`. A one-based number
 is resolved to an existing stable curriculum item and stored through the existing plan contract. It sets
 the current planned lesson and does not invent completion records for earlier lessons.
