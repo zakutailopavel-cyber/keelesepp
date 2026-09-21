@@ -5,7 +5,7 @@
 Last verified: 2026-09-21, Europe/Tallinn
 Verified main: `3046881f61bbe18fae1b0dbeaa3d540595b5bf8c`.
 Implementation branch: `codex/c1-curriculum-100-lessons`.
-PR: pending creation from the verified branch.
+Draft PR: https://github.com/zakutailopavel-cyber/keelesepp/pull/155.
 
 The attached `KeeleSepp_C1_oppekava_240ak_tundi.docx` is now represented as a source-derived C1 roadmap for
 the existing `Õppevara → Õppekavad` flow. It contains 10 ordered modules and 100 ordered two-hour lessons:
@@ -29,13 +29,15 @@ existing worksheet-builder handoff with the complete prompt; mobile verification
 overflow. The complete root Node suite has the same six pre-existing failures on this branch and on clean
 `origin/main` (branch 484/490, baseline 480/486); the four added C1 tests pass and introduce no regression.
 
-Deployment status: GitHub PR and hosted preview pending. Production data has not been installed.
+Deployment status: Vercel hosted preview is ready and CI is green. The preview requires a separate KeeleSepp
+sign-in on its own origin, so the complete visual flow was verified locally with the same commit. Production data
+has not been installed.
 
 Known gate: repository policy forbids the agent from merging its own PR. Production publication therefore
 requires owner review/merge after the branch and preview are verified.
 
-Exactly one next safe step: open the PR and verify its hosted preview; after owner review/merge, open the live C1
-view once as an authenticated teacher or administrator to run the idempotent installer and verify all 100 records.
+Exactly one next safe step: owner review/merge PR #155; after the production deployment, open the live C1 view
+once as an authenticated teacher or administrator to run the idempotent installer and verify all 100 records.
 
 ## CRM v2 CI recovery — ready for review
 
