@@ -47,7 +47,7 @@ window.__haldusConfigureBabel = function(){
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="/haldus.css?v=20260923.2">
+<link rel="stylesheet" href="/haldus.css?v=20260923.3">
 </head>
 <body>
 <div id="root"><div style="display:flex;align-items:center;justify-content:center;min-height:100vh"><div class="spinner"></div></div></div>
@@ -2926,6 +2926,26 @@ function WorkTimeView({user,isAdmin,staffMembers,sessions,programDays,activityLo
       </div>
     </div>
   );
+}
+
+function NotificationCenter({open,items,onClose,onOpen}) {
+  const [filter,setFilter] = React.useState('all');
+  React.useEffect(()=>{if(!open)setFilter('all');},[open]);
+  if(!open) return null;
+  const categories=[...new Set(items.map(item=>item.category))];
+  const visible=filter==='all'?items:items.filter(item=>item.category===filter);
+  const labels={message:'Sõnumid',worksheet:'Tulemused',task:'Ülesanded',invoice:'Arved',calendar:'Kalender',work_time:'Tööaeg',parent:'Lapsevanemad'};
+  return <div className="notification-center-overlay" onMouseDown={event=>{if(event.target===event.currentTarget)onClose();}}>
+    <aside className="notification-center" aria-label="Teavitused">
+      <header><div><span>Töökeskus</span><h2>Teavitused</h2><p>Olulised sündmused kogu KeeleSepast.</p></div><button className="icon-btn" onClick={onClose}><i className="fa-solid fa-xmark"/></button></header>
+      <div className="notification-filter"><button className={filter==='all'?'active':''} onClick={()=>setFilter('all')}>Kõik <b>{items.length}</b></button>{categories.map(category=><button key={category} className={filter===category?'active':''} onClick={()=>setFilter(category)}>{labels[category]||category} <b>{items.filter(item=>item.category===category).length}</b></button>)}</div>
+      <div className="notification-list">
+        {visible.length===0&&<div className="notification-empty"><i className="fa-solid fa-circle-check"/><strong>Kõik on korras</strong><span>Selles jaotises pole tähelepanu vajavaid sündmusi.</span></div>}
+        {visible.map(item=><button key={item.id} className={`notification-item ${item.severity||'info'}`} onClick={()=>onOpen(item)}><span className="notification-icon"><i className={`fa-solid ${item.icon}`}/></span><span className="notification-copy"><strong>{item.title}</strong><span>{item.detail}</span><small>{item.meta||''}</small></span><i className="fa-solid fa-chevron-right"/></button>)}
+      </div>
+      <footer><span>Uuendub automaatselt koos lähteandmetega</span><button className="btn btn-ghost btn-sm" onClick={onClose}>Sulge</button></footer>
+    </aside>
+  </div>;
 }
 
 function SchoolAssistantView({alerts,refresh,goTab}) {
@@ -13426,6 +13446,7 @@ function App() {
     if(p.get('gcal')==='error') return 'error';
     return null;
   });
+  const [notificationCenterOpen,setNotificationCenterOpen] = React.useState(false);
   React.useEffect(()=>{
     if(gcalNotice){
       setTimeout(()=>setGcalNotice(null),5000);
@@ -16463,6 +16484,33 @@ function App() {
     return allWsAssignments.filter(a=>a.status==='done'&&a.seenByTeacher===false&&myIds.has(a.studentId));
   },[allWsAssignments,myStudents,isStaff]);
 
+  const notificationItems = React.useMemo(()=>{
+    const items=[];
+    unreadMessages.forEach(message=>{
+      const student=myStudents.find(item=>item.id===message.studentId)||null;
+      items.push({id:`message:${message.id}`,category:'message',severity:'info',icon:'fa-envelope',title:`Uus sõnum · ${student?.name||message.studentName||'Õpilane'}`,detail:String(message.text||'Uus sõnum').slice(0,120),meta:message.createdAt?new Date(message.createdAt).toLocaleString('et-EE'):'',studentId:student?.id||message.studentId,targetTab:'students'});
+    });
+    newWsResults.forEach(result=>{
+      const student=myStudents.find(item=>item.id===result.studentId)||null;
+      items.push({id:`worksheet:${result.id}`,category:'worksheet',severity:'success',icon:'fa-file-circle-check',title:`Tööleht on valmis · ${student?.name||result.studentName||'Õpilane'}`,detail:result.worksheetTitle||result.title||'Õpilane lõpetas töölehe.',meta:result.completedAt?fmtDate(result.completedAt):'',studentId:student?.id||result.studentId,targetTab:'students'});
+    });
+    if(isStaff) scopedTasks.filter(task=>task.status!=='done'&&task.dueDate&&task.dueDate<today()).forEach(task=>items.push({id:`task:${task.id}`,category:'task',severity:'danger',icon:'fa-list-check',title:'Ülesande tähtaeg on möödas',detail:task.title||'Ülesanne',meta:`Tähtaeg ${fmtDate(task.dueDate)} · ${task.assignedTo||'vastutaja puudub'}`,targetTab:'tasks'}));
+    scopedInvoices.filter(invoice=>invoice.status==='Ootel'&&invoice.due&&invoice.due<today()&&invoiceFinancialSummary(invoice).balance>0).forEach(invoice=>items.push({id:`invoice:${invoice.id}`,category:'invoice',severity:'danger',icon:'fa-file-invoice-dollar',title:`Arve on tähtaja ületanud · ${invoice.studentName||invoice.parentName||'Klient'}`,detail:`Tasuda ${money(invoiceFinancialSummary(invoice).balance)}€`,meta:`Tähtaeg ${fmtDate(invoice.due)}`,studentId:invoice.studentId,targetTab:isAdmin?'finance':'invoices'}));
+    if(isAdmin) parentAlerts.forEach(alert=>items.push({id:`parent:${alert.parent.id}`,category:'parent',severity:'warning',icon:'fa-people-roof',title:'Lapsevanema seos vajab kontrolli',detail:`${alert.parent.displayName||alert.parent.email||'Lapsevanem'} · ${alert.childNames.join(', ')}`,meta:'Õpilase profiil puudub või pole seotud',targetTab:'parents'}));
+    if(isAdmin) assistantAlerts.filter(alert=>alert.active!==false&&['calendar','work_time'].includes(alert.category)).forEach(alert=>items.push({id:`assistant:${alert.id}`,category:alert.category,severity:alert.severity==='critical'?'danger':'warning',icon:alert.category==='calendar'?'fa-calendar-xmark':'fa-stopwatch',title:alert.title,detail:alert.detail,meta:alert.actionLabel||'',targetTab:alert.targetTab||'school_assistant'}));
+    return items.sort((a,b)=>({danger:0,warning:1,info:2,success:3}[a.severity]??4)-({danger:0,warning:1,info:2,success:3}[b.severity]??4));
+  },[unreadMessages,newWsResults,myStudents,isStaff,scopedTasks,scopedInvoices,isAdmin,parentAlerts,assistantAlerts]);
+
+  const openNotification = React.useCallback(item=>{
+    setNotificationCenterOpen(false);
+    if(item.studentId){
+      const student=students.find(candidate=>candidate.id===item.studentId)||myStudents.find(candidate=>candidate.id===item.studentId);
+      if(student){setSelStu(student);setTab('students');return;}
+    }
+    if(item.targetTab==='finance'&&isAdmin)setFinanceSection('invoices');
+    goTab(item.targetTab||'dashboard');
+  },[students,myStudents,isAdmin,goTab]);
+
   if(loading) return <div style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh'}}><div className="spinner"/></div>;
   if(bootError) return (
     <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',padding:20,background:'#F4F2EE'}}>
@@ -16579,6 +16627,7 @@ function App() {
       </aside>
 
       <main style={{flex:1,overflowY:'auto',background:'#F4F2EE'}} className="scroll">
+        <button className="notification-center-trigger" onClick={()=>setNotificationCenterOpen(true)} aria-label={`Teavitused: ${notificationItems.length}`} title="Teavitused"><i className="fa-solid fa-bell"/>{notificationItems.length>0&&<span>{notificationItems.length>99?'99+':notificationItems.length}</span>}</button>
         <div id="mobile-header" style={{display:'none',alignItems:'center',justifyContent:'space-between',padding:'14px 20px',background:'#fff',borderBottom:'1px solid rgba(28,43,58,.08)',position:'sticky',top:0,zIndex:30}}>
           <div style={{fontFamily:'Fraunces,Georgia,serif',fontSize:'1.3rem',fontWeight:600}}>Keele<span style={{color:'#C9882A'}}>Sepp</span></div>
           <button onClick={()=>setMobileNav(!mobileNav)} style={{background:'none',border:'none',cursor:'pointer',fontSize:'1.3rem',color:'#1C2B3A',padding:'4px 8px'}}>{mobileNav?'✕':'☰'}</button>
@@ -16821,6 +16870,7 @@ function App() {
         </div>
       </main>
 
+      <NotificationCenter open={notificationCenterOpen} items={notificationItems} onClose={()=>setNotificationCenterOpen(false)} onOpen={openNotification}/>
       {editStu&&<EditStudentModal student={editStu} onClose={()=>setEditStu(null)} onSave={()=>{setEditStu(null);}} onDelete={()=>{setEditStu(null);setSelStu(null);}} db={db} notify={notify} isAdmin={isAdmin} resolveTeacherUid={teacherUidForName} groupOptions={groupOptions}/>}
       {modalEv&&<LessonModal modalEv={modalEv} setModalEv={setModalEv}
         lTopic={lTopic} setLTopic={setLTopic} lGrade={lGrade} setLGrade={setLGrade}

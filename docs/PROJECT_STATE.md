@@ -1,5 +1,28 @@
 # KeeleSepp Project State
 
+## Unified notification centre v1
+
+Last verified: 2026-09-23, Europe/Tallinn
+Verified main: `6f491da`.
+Implementation branch: `codex/notification-center-v1`.
+
+A global bell now opens one notification drawer across the CRM. It combines unread messages, unseen completed
+worksheets, overdue scoped tasks and invoices, and administrator-only parent-link, calendar and work-time alerts.
+Filters show each source category, severity controls ordering and colour, and every item routes to its source student
+or workflow. Notifications resolve with their source data rather than being copied to a second collection.
+
+Changed files: `haldus.html`, `haldus.css`, `notification-center-ui.test.js`, `ARCHITECTURE.md` and this state file.
+No Firestore rules, Functions, indexes, notification collection, email/push delivery or production data are changed.
+
+Validation: focused notification, Student 360 and task workspace contract tests pass; `git diff --check` passes.
+Authenticated visual owner review is required on the hosted preview.
+
+Known limitation: v1 is an in-app centre and does not persist arbitrary dismissals or send email/push notifications.
+A signal disappears when its source is handled, for example when a message is read or an invoice is paid.
+
+Exactly one next safe step: review the bell, category filters and source navigation with real scoped data on the
+hosted preview, then merge the draft PR if the routing is correct for administrator and teacher roles.
+
 ## Student 360 working hub v1
 
 Last verified: 2026-09-23, Europe/Tallinn

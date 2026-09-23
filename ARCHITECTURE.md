@@ -180,6 +180,11 @@ two projections of the same records; the board adds the backwards-compatible `in
 legacy `open` and `done`. The detail drawer updates task fields with merge writes and keeps replies on the
 existing bounded reply array, so no migration or parallel task store is introduced.
 
+The unified notification centre is another read-only projection rather than a notification database. It combines
+the signed-in user's unread messages, unseen worksheet results, overdue scoped tasks and invoices, plus administrator
+parent-link and operational alerts. Opening an item routes to its source record or workflow; resolving that source
+removes the notification. This keeps permissions and acknowledgement semantics owned by the original collection.
+
 The authenticated CRM shell is also the teacher-facing visual workspace. Primary daily and authoring
 destinations render in its centre surface while the navigation rail, section header and signed-in profile
 remain visible. Independent same-origin teaching applications render as embedded surfaces inside that
