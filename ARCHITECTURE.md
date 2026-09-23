@@ -205,6 +205,11 @@ The student's manually selected curriculum position reuses `students.curriculumP
 is resolved to an existing stable curriculum item and stored through the existing plan contract. It sets
 the current planned lesson and does not invent completion records for earlier lessons.
 
+The student profile is the staff-facing 360-degree projection over existing records. Its attention summary
+derives unpaid invoice balance, pending homework, unread messages, low package balance and missing curriculum
+planning in the browser; quick navigation links to the existing learning, worksheet, message, lesson and finance
+sections. It does not introduce a student summary collection or copy financial and learning history.
+
 The existing Lesson Builder is the canonical authoring surface. Worksheet visual blocks will converge into
 it through the Normalized Activity Contract. A future A4 canvas stores presentation-only grid placement on
 the same immutable activity IDs and produces teacher, student and print projections rather than a separate

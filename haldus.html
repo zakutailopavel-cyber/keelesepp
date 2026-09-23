@@ -47,7 +47,7 @@ window.__haldusConfigureBabel = function(){
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="/haldus.css?v=20260923.1">
+<link rel="stylesheet" href="/haldus.css?v=20260923.2">
 </head>
 <body>
 <div id="root"><div style="display:flex;align-items:center;justify-content:center;min-height:100vh"><div class="spinner"></div></div></div>
@@ -7279,6 +7279,17 @@ function StudentCard({user,currentStu,stuLessons,liveLessons=[],stuHw,stuInv,isA
   );
   const unpaidStudentInvoices = stuInv.filter(inv=>inv.status==='Ootel');
   const unpaidStudentAmount = unpaidStudentInvoices.reduce((sum,inv)=>sum+invoiceFinancialSummary(inv).balance,0);
+  const pendingHomework = stuHw.filter(item=>item.status!=='Tehtud');
+  const unreadStudentMessages = (stuMessages||[]).filter(message=>message.fromUid!==user.uid&&message.read===false);
+  const latestLesson = [...stuLessons].sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')))[0]||null;
+  const attentionItems = [
+    unpaidStudentAmount>0&&{tone:'danger',icon:'fa-file-invoice-dollar',label:`Tasumata ${money(unpaidStudentAmount)}€`,target:'student-finance'},
+    pendingHomework.length>0&&{tone:'warning',icon:'fa-book-open',label:`${pendingHomework.length} kodutööd ootel`,target:'student-homework'},
+    unreadStudentMessages.length>0&&{tone:'info',icon:'fa-envelope',label:`${unreadStudentMessages.length} uut sõnumit`,target:'student-messages'},
+    currentStu.packageTotal>0&&rem<=2&&{tone:'danger',icon:'fa-ticket',label:`Paketis ${rem} tundi`,target:'student-finance'},
+    !currentStu.curriculumPlan&&{tone:'neutral',icon:'fa-route',label:'Õpitee vajab kinnitamist',target:'student-learning'}
+  ].filter(Boolean);
+  const jumpToStudentSection = target=>document.getElementById(target)?.scrollIntoView({behavior:'smooth',block:'start'});
   React.useEffect(()=>{
     if(!currentStu?.id||!user?.uid) return;
     // Mark messages as read when opening student card
@@ -7420,11 +7431,22 @@ function StudentCard({user,currentStu,stuLessons,liveLessons=[],stuHw,stuInv,isA
       {profileTab==='assessment'&&<StudentInitialAssessment student={currentStu} user={user} canManage={canManage} notify={notify}/>}
 
       {profileTab==='overview'&&<React.Fragment>
-      <SkillMapWidget student={currentStu} isTeacher={canManage} user={user}/>
+      <section className="student-360-hub" aria-label="Õpilase töölaud">
+        <div className="student-360-status">
+          <div><span>Õpilase seis</span><strong>{attentionItems.length?`${attentionItems.length} asja vajab tähelepanu`:'Kõik oluline on korras'}</strong><small>{latestLesson?`Viimane tund ${fmtDate(latestLesson.date)} · ${latestLesson.topic||'Tund'}`:'Tunde pole veel lisatud'}</small></div>
+          <div className="student-360-alerts">{attentionItems.length?attentionItems.map(item=><button key={item.label} className={item.tone} onClick={()=>jumpToStudentSection(item.target)}><i className={`fa-solid ${item.icon}`}/><span>{item.label}</span><i className="fa-solid fa-chevron-right"/></button>):<div className="student-360-clear"><i className="fa-solid fa-circle-check"/> Tähelepanu vajavaid kirjeid pole</div>}</div>
+        </div>
+        <nav className="student-360-nav" aria-label="Õpilase jaotised">
+          {[{id:'student-learning',icon:'fa-graduation-cap',label:'Õpitee',meta:currentStu.level||'—'},{id:'student-worksheets',icon:'fa-file-pen',label:'Töölehed',meta:'Materjalid'},{id:'student-messages',icon:'fa-comments',label:'Sõnumid',meta:(stuMessages||[]).length},{id:'student-homework',icon:'fa-book-open',label:'Kodutööd',meta:pendingHomework.length},{id:'student-lessons',icon:'fa-calendar-check',label:'Tunnid',meta:stuLessons.length},{id:'student-finance',icon:'fa-wallet',label:'Finants',meta:unpaidStudentAmount?`${money(unpaidStudentAmount)}€`:'Korras'}].map(item=><button key={item.id} onClick={()=>jumpToStudentSection(item.id)}><i className={`fa-solid ${item.icon}`}/><span><strong>{item.label}</strong><small>{item.meta}</small></span><i className="fa-solid fa-arrow-down"/></button>)}
+        </nav>
+      </section>
+
+      <section id="student-learning" className="student-360-anchor"><SkillMapWidget student={currentStu} isTeacher={canManage} user={user}/>
 
       <CurriculumProgressCard student={currentStu} lessons={stuLessons} canManage={canManage} openPrograms={openPrograms}/>
+      </section>
 
-      <AssignedWorksheetsWidget student={currentStu} canManage={canManage} notify={notify}/>
+      <section id="student-worksheets" className="student-360-anchor"><AssignedWorksheetsWidget student={currentStu} canManage={canManage} notify={notify}/></section>
 
       {done.length>=2&&(
         <div className="card" style={{padding:24}}>
@@ -7433,7 +7455,7 @@ function StudentCard({user,currentStu,stuLessons,liveLessons=[],stuHw,stuInv,isA
         </div>
       )}
 
-      <div className="card" style={{padding:24}}>
+      <div id="student-live-lessons" className="card student-360-anchor" style={{padding:24}}>
         <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:12,flexWrap:'wrap',marginBottom:16}}>
           <div>
             <h3>🎥 Live Classroomi tundide ajalugu</h3>
@@ -7512,7 +7534,7 @@ function StudentCard({user,currentStu,stuLessons,liveLessons=[],stuHw,stuInv,isA
         </div>
       </div>
 
-      <div className="card" style={{padding:24}}>
+      <div id="student-messages" className="card student-360-anchor" style={{padding:24}}>
         <h3 style={{marginBottom:14}}>✉️ Vestlus</h3>
         <div style={{fontSize:'.84rem',color:'#42536A',marginBottom:12}}>
           {!canManage
@@ -7548,7 +7570,7 @@ function StudentCard({user,currentStu,stuLessons,liveLessons=[],stuHw,stuInv,isA
       </div>
 
       <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(320px,1fr))',gap:20}}>
-        <div className="card" style={{padding:24}}>
+        <div id="student-homework" className="card student-360-anchor" style={{padding:24}}>
           <h3 style={{marginBottom:16}}>📝 Kodutööd ({stuHw.length})</h3>
           {canManage&&(
             <div style={{marginBottom:14,display:'flex',flexDirection:'column',gap:8}}>
@@ -7617,7 +7639,7 @@ function StudentCard({user,currentStu,stuLessons,liveLessons=[],stuHw,stuInv,isA
           </div>
         </div>
 
-        <div className="card" style={{padding:24}}>
+        <div id="student-results" className="card student-360-anchor" style={{padding:24}}>
           <h3 style={{marginBottom:16}}>🏅 Harjutuste tulemused ({exerciseResults.length})</h3>
           <div style={{display:'flex',flexDirection:'column',gap:8,maxHeight:260,overflowY:'auto'}} className="scroll">
             {exerciseResults.length===0&&<p style={{color:'#42536A',fontSize:'.85rem',textAlign:'center',padding:'16px 0'}}>Harjutusi pole tehtud.</p>}
@@ -7636,7 +7658,7 @@ function StudentCard({user,currentStu,stuLessons,liveLessons=[],stuHw,stuInv,isA
             ))}
           </div>
         </div>
-        <div className="card" style={{padding:24}}>
+        <div id="student-lessons" className="card student-360-anchor" style={{padding:24}}>
           <h3 style={{marginBottom:16}}>📚 Tunni päevik ({stuLessons.length})</h3>
           {canManage&&(
             <div style={{padding:'14px 14px',borderRadius:14,background:'#F9F8F6',border:'1px solid rgba(28,43,58,.08)',marginBottom:16}}>
@@ -7715,7 +7737,7 @@ function StudentCard({user,currentStu,stuLessons,liveLessons=[],stuHw,stuInv,isA
       </div>
 
       {canManage&&(
-        <div className="card" style={{padding:24}}>
+        <div id="student-finance" className="card student-360-anchor" style={{padding:24}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:14,flexWrap:'wrap',marginBottom:16}}>
             <div>
               <h3>💳 Arved ({stuInv.length})</h3>

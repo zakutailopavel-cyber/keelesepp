@@ -1,5 +1,30 @@
 # KeeleSepp Project State
 
+## Student 360 working hub v1
+
+Last verified: 2026-09-23, Europe/Tallinn
+Verified main: `2b6f881`.
+Implementation branch: `codex/student-360-v1`.
+
+The existing student profile now starts with a compact operational hub. It surfaces unpaid balance, pending
+homework, unread messages, low package balance and missing curriculum planning, and provides direct navigation to
+the existing learning path, worksheets, messages, homework, lesson journal and finance sections. The profile keeps
+the detailed existing tools intact and derives the summary from their current records; it adds no parallel store,
+migration or browser write path.
+
+Changed files: `haldus.html`, `haldus.css`, `student-360-ui.test.js`, `ARCHITECTURE.md` and this state file.
+No Firestore rules, Functions, indexes, financial records or production data are changed.
+
+Validation: focused Student 360 contract tests and existing task workspace tests pass; `git diff --check` passes.
+Authenticated visual owner review is required on the hosted preview.
+
+Known limitation: v1 improves overview and navigation but keeps the existing long detail sections. Upcoming phases
+can introduce attendance workflows, linked internal tasks and a unified notification centre without changing this
+projection contract.
+
+Exactly one next safe step: review the Student 360 hub with a real student on the hosted preview, then merge the
+draft PR if the attention signals and navigation match daily staff work.
+
 ## Ülesanded team workspace — Asana-like v1
 
 Last verified: 2026-09-23, Europe/Tallinn
