@@ -32,10 +32,13 @@ Validation: PASS — focused Õppevara, C1 and worksheet suites, 56/56 tests; `g
 verification of title-to-preview opening, Escape close, explicit rename/open controls, curriculum-to-builder handoff,
 locked existing-record save message and automatic document-name control.
 
+Deployment status: Vercel preview is ready and PR #156 checks are green. No production deployment or write was run.
+
 Known limitation: production UI verification waits for PR review/merge and deployment. Existing near-duplicates with
 different titles or topics are intentionally not guessed or deleted.
 
-Exactly one next safe step: verify the Vercel preview and CI for PR #156 before owner review/merge.
+Exactly one next safe step: owner review/merge PR #156, then repeat the same save action twice in production and
+confirm that the original lesson receives new versions while the curriculum record count stays unchanged.
 
 ## C1 curriculum 240 academic hours — implementation
 
