@@ -1379,9 +1379,27 @@ function cleanLessonJournalInput(values = {}) {
   };
 }
 
-async function saveLessonJournal({ actor, lessonId, scheduleId, sourceKey, values, requestId }) {
+function cleanLessonCompletionInput(value) {
+  if (!value || typeof value !== "object") return null;
+  const attendanceStatus = String(value.attendanceStatus || "coming").trim();
+  if (!["coming", "warned", "absent"].includes(attendanceStatus)) throw httpError(400, "Invalid attendance status");
+  const homeworkTask = cleanText(value.homeworkTask, 2000);
+  const homeworkDue = String(value.homeworkDue || "").trim();
+  if (homeworkDue && !/^\d{4}-\d{2}-\d{2}$/.test(homeworkDue)) throw httpError(400, "Invalid homework due date");
+  const rawPlan = value.nextCurriculumPlan && typeof value.nextCurriculumPlan === "object" ? value.nextCurriculumPlan : null;
+  const nextPlan = rawPlan ? {languageId:cleanText(rawPlan.languageId,10),subject:cleanText(rawPlan.subject,80),level:cleanText(rawPlan.level,20).toUpperCase(),topicId:cleanText(rawPlan.topicId,180),topicName:cleanText(rawPlan.topicName,300),lessonIndex:Math.max(0,Math.min(20,Math.round(Number(rawPlan.lessonIndex)||0))),lessonGoal:cleanText(rawPlan.lessonGoal,1200)} : null;
+  return {attendanceStatus,homeworkTask,homeworkDue,nextPlan:nextPlan?.topicId?nextPlan:null,followUpTitle:cleanText(value.followUpTitle,300)};
+}
+
+async function saveLessonJournal({ actor, lessonId, scheduleId, sourceKey, values, completion, requestId }) {
   const mutationId = cleanRequestId(requestId);
   const input = cleanLessonJournalInput({ ...values, scheduleId: scheduleId || values?.scheduleId });
+  const completionInput = cleanLessonCompletionInput(completion);
+  if (completionInput) {
+    const expectedStatus=completionInput.attendanceStatus==="coming"?"Toimunud":completionInput.attendanceStatus==="warned"?"Puudus_p":"Puudus_eta";
+    if(input.status!==expectedStatus) throw httpError(400,"Attendance and lesson status do not match");
+    if(completionInput.attendanceStatus!=="coming") completionInput.nextPlan=null;
+  }
   const cleanScheduleId = String(scheduleId || input.scheduleId || "").trim();
   const cleanSourceKey = String(sourceKey || input.sourceKey || "").trim();
   const requestedLessonId = String(lessonId || "").trim();
@@ -1395,11 +1413,14 @@ async function saveLessonJournal({ actor, lessonId, scheduleId, sourceKey, value
     lessonId: resolvedLessonId,
     scheduleId: cleanScheduleId || cleanSourceKey,
     lesson: input,
+    completion: completionInput,
   });
   const requestRef = db.collection("lessonJournalRequests").doc(mutationId);
   const lessonRef = db.collection("lessons").doc(resolvedLessonId);
   const studentRef = db.collection("students").doc(input.studentId);
   const scheduleRef = cleanScheduleId ? db.collection("schedule").doc(cleanScheduleId) : null;
+  const homeworkRef = completionInput?.homeworkTask ? db.collection("homework").doc(`lesson-completion-${resolvedLessonId}`) : null;
+  const followUpRef = completionInput?.followUpTitle ? db.collection("tasks").doc(`lesson-follow-up-${resolvedLessonId}`) : null;
   const packagesQuery = db.collection("studentPackages").where("studentId", "==", input.studentId);
   const nowIso = new Date().toISOString();
   const actorData = actorSnapshot(actor);
@@ -1468,10 +1489,13 @@ async function saveLessonJournal({ actor, lessonId, scheduleId, sourceKey, value
         packageConsumptionStatus: "pending",
         packageSyncError: "",
       } : {}),
+      ...(completionInput ? {completionWorkflow:{attendanceStatus:completionInput.attendanceStatus,homeworkId:homeworkRef?.id||"",nextCurriculumPlan:completionInput.nextPlan||null,followUpTaskId:followUpRef?.id||"",completedAt:nowIso,completedBy:actorData}} : {}),
     };
     transaction.set(lessonRef, lesson, { merge: true });
     if (scheduleRef) {
       const scheduleStatus = scheduleStatusForLesson(input.status);
+      const attendanceKey = `${input.studentId}_${input.date}`;
+      const attendancePatch = completionInput ? {attendance:{...(schedule.attendance||{}),[attendanceKey]:{status:completionInput.attendanceStatus,by:actor.decoded.uid,byName:actorData.name,byRole:actorData.role,updatedAt:nowIso}}} : {};
       const schedulePatch = schedule.recurring && !schedule.date
         ? {
             occurrenceStatuses: {
@@ -1483,22 +1507,27 @@ async function saveLessonJournal({ actor, lessonId, scheduleId, sourceKey, value
               },
             },
             lessonUpdatedAt: nowIso,
+            ...attendancePatch,
           }
         : {
             status: scheduleStatus,
             lessonEntryId: resolvedLessonId,
             lessonOccurrenceDate: input.date,
             lessonUpdatedAt: nowIso,
+            ...attendancePatch,
           };
       transaction.set(scheduleRef, schedulePatch, { merge: true });
     }
-    if (counterDelta !== 0) {
+    if (counterDelta !== 0 || completionInput?.nextPlan) {
       transaction.set(studentRef, {
+        ...(completionInput?.nextPlan?{curriculumPlan:{...completionInput.nextPlan,updatedAt:nowIso,updatedByUid:actor.decoded.uid}}:{}),
         packageUsed: Math.max(0, (Number(student.packageUsed) || 0) + counterDelta),
         lessonsSinceInvoice: Math.max(0, (Number(student.lessonsSinceInvoice) || 0) + counterDelta),
         lessonAccountingUpdatedAt: nowIso,
       }, { merge: true });
     }
+    if(homeworkRef) transaction.set(homeworkRef,{studentId:input.studentId,studentName:input.studentName,task:completionInput.homeworkTask,due:completionInput.homeworkDue,status:"Ootel",source:"lesson_completion",lessonId:resolvedLessonId,scheduleId:cleanScheduleId,teacher:lesson.teacher,teacherUid:lesson.teacherUid,createdAt:nowIso,createdByUid:actor.decoded.uid,createdByName:actorData.name},{merge:true});
+    if(followUpRef) transaction.set(followUpRef,{title:completionInput.followUpTitle,assignedTo:lesson.teacher,status:"open",priority:"normal",category:"lesson",dueDate:completionInput.homeworkDue||input.date,studentId:input.studentId,studentName:input.studentName,lessonId:resolvedLessonId,createdAt:nowIso,createdByUid:actor.decoded.uid,createdByName:actorData.name},{merge:true});
     const result = {
       lesson: { id: resolvedLessonId, ...previous, ...lesson },
       lessonId: resolvedLessonId,
@@ -1506,6 +1535,7 @@ async function saveLessonJournal({ actor, lessonId, scheduleId, sourceKey, value
       scheduleStatus: scheduleStatusForLesson(input.status),
       counterDelta,
       ledgerManaged,
+      completion:completionInput?{homeworkId:homeworkRef?.id||"",followUpTaskId:followUpRef?.id||"",nextCurriculumPlan:completionInput.nextPlan||null}:null,
     };
     const requestResult = {
       lessonId: resolvedLessonId,
@@ -7564,6 +7594,7 @@ exports.financeApi = functions.https.onRequest(async (req, res) => {
         scheduleId: req.body?.scheduleId,
         sourceKey: req.body?.sourceKey,
         values: req.body?.lesson,
+        completion: req.body?.completion,
         requestId: req.body?.requestId,
       });
       res.status(result.idempotent ? 200 : 201).json(result);

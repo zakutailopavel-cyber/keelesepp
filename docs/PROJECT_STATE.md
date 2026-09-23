@@ -1,5 +1,33 @@
 # KeeleSepp Project State
 
+## One-click lesson completion
+
+Last verified: 2026-09-23, Europe/Tallinn
+Verified main: `d5c20ce`.
+Implementation branch: `codex/one-click-lesson-completion`.
+
+The single-student lesson modal now has one primary `Lõpeta tund ühe klõpsuga` action. The teacher confirms the
+prefilled attendance, lesson topic and result, optional homework due date, automatically suggested next curriculum
+step and optional internal follow-up. One authenticated lesson-journal request then commits the completed lesson,
+schedule attendance, stable homework, student curriculum pointer and linked task in the same Firestore transaction.
+Existing stable lesson IDs and request IDs make retries idempotent and prevent duplicate homework or follow-up tasks.
+
+Changed files: `haldus.html`, `haldus.css`, `functions/index.js`, `functions/lesson-record-core.js`,
+`functions/lesson-record-core.test.js`, `lesson-one-click-completion.test.js`, `ARCHITECTURE.md` and this state file.
+The existing `lessons`, `schedule`, `students`, `homework`, `tasks` and `lessonJournalRequests` stores are reused;
+no migration, new collection, rules change or production write is included.
+
+Validation: PASS — Functions unit suite 167/167; focused lesson/UI contracts 16/16; Node syntax check and
+`git diff --check`. The new demo-project emulator integration is committed, but its local execution was blocked
+before startup because this host has no Java runtime; GitHub CI remains the integration gate. Authenticated visual
+owner review is required before production deployment.
+
+Known limitation: v1 applies to individual scheduled lessons. Group lessons keep their existing per-student
+attendance workflow because one group click must preserve distinct attendance and package outcomes for each student.
+
+Exactly one next safe step: run the Functions emulator integration and verify one real-looking scheduled lesson in
+the hosted preview before owner review/merge.
+
 ## Unified notification centre v1
 
 Last verified: 2026-09-23, Europe/Tallinn

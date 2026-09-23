@@ -40,7 +40,7 @@ function stableLessonDocumentId({ scheduleId, occurrenceDate, studentId }) {
   return `scheduled_${hash}`;
 }
 
-function lessonMutationSignature({ lessonId, scheduleId, lesson }) {
+function lessonMutationSignature({ lessonId, scheduleId, lesson, completion }) {
   return crypto.createHash("sha256").update(JSON.stringify({
     lessonId: String(lessonId || "").trim(),
     scheduleId: String(scheduleId || "").trim(),
@@ -49,6 +49,7 @@ function lessonMutationSignature({ lessonId, scheduleId, lesson }) {
     status: String(lesson?.status || "").trim(),
     duration: Number(lesson?.duration) || 0,
     topic: String(lesson?.topic || "").trim(),
+    completion: completion || null,
   })).digest("hex");
 }
 
