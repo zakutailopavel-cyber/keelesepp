@@ -47,7 +47,7 @@ window.__haldusConfigureBabel = function(){
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="/haldus.css?v=20260923.3">
+<link rel="stylesheet" href="/haldus.css?v=20260923.4">
 </head>
 <body>
 <div id="root"><div style="display:flex;align-items:center;justify-content:center;min-height:100vh"><div class="spinner"></div></div></div>
@@ -12003,6 +12003,9 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
   const [moveTime,setMoveTime] = React.useState(modalEv.requestedMoveTime||modalEv.time||"09:00");
   const [saving,setSaving]     = React.useState(false);
   const [savingDiary,setSavingDiary] = React.useState(false);
+  const [completionAttendance,setCompletionAttendance] = React.useState('coming');
+  const [completionHomeworkDue,setCompletionHomeworkDue] = React.useState(()=>{const date=new Date();date.setDate(date.getDate()+7);return date.toISOString().slice(0,10);});
+  const [completionFollowUp,setCompletionFollowUp] = React.useState('');
   const [billingBusy,setBillingBusy] = React.useState(false);
   const [seriesScope,setSeriesScope] = React.useState('occurrence');
   const teacherUidForName = React.useCallback(teacherName=>{
@@ -12061,6 +12064,11 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
   const selectedCurriculumKey=modalEv.curriculumTopicId
     ?`${modalEv.curriculumTopicId}:${Math.max(0,Number(modalEv.curriculumLessonIndex)||0)}`
     :'';
+  const nextCurriculumItem=React.useMemo(()=>{
+    if(!selectedCurriculumKey)return null;
+    const index=curriculumLessonOptions.findIndex(item=>item.key===selectedCurriculumKey);
+    return index>=0?curriculumLessonOptions[index+1]||null:null;
+  },[curriculumLessonOptions,selectedCurriculumKey]);
   const applyCurriculumLesson=event=>{
     const selected=curriculumLessonOptions.find(item=>item.key===event.target.value)||null;
     if(!selected){
@@ -12171,6 +12179,19 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
     }finally{
       setSavingDiary(false);
     }
+  };
+  const handleCompleteLesson = async()=>{
+    if(savingDiary)return;
+    if(!String(lTopic||'').trim()){notify('⚠ Lisa tunni teema või vali õppekava tund');return;}
+    if(!String(lCovered||'').trim()){notify('⚠ Kirjuta lühidalt, mida tunnis tehti');return;}
+    setSavingDiary(true);
+    try{
+      const nextPlan=completionAttendance==='coming'&&nextCurriculumItem?{languageId:nextCurriculumItem.languageId,subject:nextCurriculumItem.subject,level:nextCurriculumItem.level,topicId:nextCurriculumItem.topicId,topicName:nextCurriculumItem.topicName,lessonIndex:nextCurriculumItem.lessonIndex,lessonGoal:nextCurriculumItem.lessonGoal}:null;
+      await saveLesson({attendanceStatus:completionAttendance,homeworkTask:String(lNextNotes||'').trim(),homeworkDue:String(lNextNotes||'').trim()?completionHomeworkDue:'',nextCurriculumPlan:nextPlan,followUpTitle:String(completionFollowUp||'').trim()});
+    }catch(err){
+      console.error('One-click lesson completion failed:',err);
+      notify(`⚠ ${lessonJournalErrorGuidance(err?.message||err)}`);
+    }finally{setSavingDiary(false);}
   };
 
   const STATUS_COLOR = {
@@ -12779,6 +12800,16 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
                   ))}
                 </div>
               )}
+              {!isJournalEdit&&!modalEv.isGroup&&<section className="lesson-complete-panel">
+                <header><span><i className="fa-solid fa-wand-magic-sparkles"/></span><div><strong>Ühe klõpsuga lõpetamine</strong><small>Üks kinnitus salvestab päeviku, kohalolu, kodutöö ja järgmise õppekava sammu.</small></div></header>
+                <div className="lesson-complete-grid">
+                  <label><span>Kohalolu</span><select value={completionAttendance} onChange={e=>setCompletionAttendance(e.target.value)}><option value="coming">Osales</option><option value="warned">Puudus · teatas ette</option><option value="absent">Puudus · ei teatanud</option></select></label>
+                  <label><span>Kodutöö tähtaeg</span><input type="date" value={completionHomeworkDue} onChange={e=>setCompletionHomeworkDue(e.target.value)} disabled={!String(lNextNotes||'').trim()}/></label>
+                </div>
+                <div className="lesson-complete-next"><i className="fa-solid fa-route"/><span><strong>Järgmine õppekava samm</strong><small>{nextCurriculumItem?`${nextCurriculumItem.topicName} · ${nextCurriculumItem.lessonGoal}`:'Vali ülal õppekava tund, et järgmine samm liiguks automaatselt.'}</small></span></div>
+                <label className="lesson-complete-followup"><span>Sisemine järeltegevus <small>(valikuline)</small></span><input value={completionFollowUp} onChange={e=>setCompletionFollowUp(e.target.value)} placeholder="nt. Võta vanemaga ühendust"/></label>
+                <button onClick={handleCompleteLesson} disabled={savingDiary} className="btn btn-pine lesson-complete-button"><i className={`fa-solid ${savingDiary?'fa-spinner fa-spin':'fa-circle-check'}`}/> {savingDiary?'Lõpetan tunni...':'Lõpeta tund ühe klõpsuga'}</button>
+              </section>}
               <button onClick={handleSaveLesson} disabled={savingDiary} className="btn btn-dark" style={{width:"100%",padding:13,opacity:savingDiary?.75:1}}>
                 <i className={`fa-solid ${savingDiary?'fa-spinner fa-spin':'fa-floppy-disk'}`}/> {savingDiary?'Salvestan...':'Salvesta päevikusse'}
               </button>
@@ -14868,7 +14899,7 @@ function App() {
     notify(shouldAttend?'✓ Õpilane lisatud sellele grupitunnile':'✓ Õpilane eemaldatud sellest grupitunnist');
   },[isAdmin]);
 
-  const saveLesson=useCallback(async()=>{
+  const saveLesson=useCallback(async(completion=null)=>{
     if(!modalEv) return;
     const stu=resolveStudentRecord(students,modalEv);
     const now=new Date();
@@ -14934,12 +14965,13 @@ function App() {
     };
     let attachments = collectAttachments(modalEv);
     let primaryAttachment = attachments[0] || null;
+    const effectiveStatus=completion?(completion.attendanceStatus==='warned'?'Puudus_p':completion.attendanceStatus==='absent'?'Puudus_eta':'Toimunud'):lStatus;
     const lessonPayload = {
       studentId:stu?stu.id:'ext',studentName:modalEv.studentName,
       scheduleId: modalEv.id||'',
       scheduleTime: modalEv.time||'',
-      topic:String(lTopic||'').trim(),grade:lStatus==='Toimunud'?parseInt(lGrade):0,
-      duration:parseInt(lDur),status:lStatus,comment:lComment,
+      topic:String(lTopic||'').trim(),grade:effectiveStatus==='Toimunud'?parseInt(lGrade):0,
+      duration:parseInt(lDur),status:effectiveStatus,comment:lComment,
       newWords:lNewWords||'',grammar:lGrammar||'',covered:lCovered||'',nextNotes:lNextNotes||'',
       curriculumLanguageId:modalEv.curriculumLanguageId||'',
       curriculumSubject:modalEv.curriculumSubject||'',
@@ -15076,6 +15108,7 @@ function App() {
         lessonId:existingLessonRef?.id||'',
         scheduleId:modalEv.id||lessonPayload.scheduleId||'',
         lesson:lessonPayload,
+        completion,
         requestId:financeRequestId('lessonjournal')
       });
       savedLesson=result?.lesson||{id:result?.lessonId||savedLessonId,...lessonPayload};
@@ -15095,7 +15128,7 @@ function App() {
     }
 
     setLTopic('');setLComment('');setLNewWords('');setLGrammar('');setLCovered('');setLNextNotes('');setLessonFile([]);setModalEv(null);
-    notify(`${existingLessonRef?'✓ Aruanne uuendatud!':'✓ Aruanne salvestatud!'}${packageSyncMessage}`);
+    notify(`${completion?'✓ Tund lõpetatud ühe klõpsuga!':existingLessonRef?'✓ Aruanne uuendatud!':'✓ Aruanne salvestatud!'}${packageSyncMessage}`);
     if(selectedLessonFiles.length){
       const filesToUpload = [...selectedLessonFiles];
       const baseAttachments = [...(lessonPayload.attachments||[])];

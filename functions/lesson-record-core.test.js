@@ -4,6 +4,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const {
   lessonCompletionCounterDelta,
+  lessonMutationSignature,
   scheduleStatusForLesson,
   stableLessonDocumentId,
 } = require("./lesson-record-core");
@@ -26,6 +27,15 @@ test("scheduled lesson id is stable for retries and unique per occurrence", () =
   });
   assert.equal(first, retry);
   assert.notEqual(first, nextWeek);
+});
+
+test("one-click completion details participate in idempotency signature", () => {
+  const base={lessonId:"lesson-1",scheduleId:"schedule-1",lesson:{studentId:"student-1",date:"2026-09-23",status:"Toimunud",duration:60,topic:"Teema"}};
+  const first=lessonMutationSignature({...base,completion:{attendanceStatus:"coming",homeworkTask:"Harjutus 4"}});
+  const retry=lessonMutationSignature({...base,completion:{attendanceStatus:"coming",homeworkTask:"Harjutus 4"}});
+  const changed=lessonMutationSignature({...base,completion:{attendanceStatus:"absent",homeworkTask:"Harjutus 4"}});
+  assert.equal(first,retry);
+  assert.notEqual(first,changed);
 });
 
 test("absence remains an explicit processed calendar status", () => {

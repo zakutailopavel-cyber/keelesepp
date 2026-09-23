@@ -185,6 +185,12 @@ the signed-in user's unread messages, unseen worksheet results, overdue scoped t
 parent-link and operational alerts. Opening an item routes to its source record or workflow; resolving that source
 removes the notification. This keeps permissions and acknowledgement semantics owned by the original collection.
 
+Single-student scheduled lessons use the existing server-owned lesson journal endpoint for one-click completion.
+The optional completion payload extends the same idempotent transaction: it records schedule attendance, creates a
+stable lesson-derived homework record, advances `students.curriculumPlan`, and optionally creates a linked follow-up
+task. The lesson, attendance, homework, plan pointer and follow-up therefore either commit together or not at all;
+package-ledger synchronization remains the existing post-transaction audited workflow.
+
 The authenticated CRM shell is also the teacher-facing visual workspace. Primary daily and authoring
 destinations render in its centre surface while the navigation rail, section header and signed-in profile
 remain visible. Independent same-origin teaching applications render as embedded surfaces inside that
