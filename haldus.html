@@ -47,7 +47,7 @@ window.__haldusConfigureBabel = function(){
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="/haldus.css?v=20260923.4">
+<link rel="stylesheet" href="/haldus.css?v=20260923.5">
 </head>
 <body>
 <div id="root"><div style="display:flex;align-items:center;justify-content:center;min-height:100vh"><div class="spinner"></div></div></div>
@@ -12006,6 +12006,9 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
   const [completionAttendance,setCompletionAttendance] = React.useState('coming');
   const [completionHomeworkDue,setCompletionHomeworkDue] = React.useState(()=>{const date=new Date();date.setDate(date.getDate()+7);return date.toISOString().slice(0,10);});
   const [completionFollowUp,setCompletionFollowUp] = React.useState('');
+  const [schoolCurriculumLessons,setSchoolCurriculumLessons] = React.useState([]);
+  const [curriculumSubjectFilter,setCurriculumSubjectFilter] = React.useState(()=>modalEv.curriculumSubject||'');
+  const [curriculumLevelFilter,setCurriculumLevelFilter] = React.useState(()=>modalEv.curriculumLevel||'');
   const [billingBusy,setBillingBusy] = React.useState(false);
   const [seriesScope,setSeriesScope] = React.useState('occurrence');
   const teacherUidForName = React.useCallback(teacherName=>{
@@ -12056,11 +12059,49 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
   const lessonDate = modalEv.occurrenceDate||modalEv.date||today();
   const lessonStudent = resolveStudentRecord(students,modalEv);
   const curriculumWorkflow=window.CurriculumWorkflow;
-  const curriculumLessonOptions=React.useMemo(()=>{
-    if(!curriculumWorkflow)return [];
-    const catalog=curriculumWorkflow.flattenCurriculum(window.HaldusCurriculum||{});
-    return curriculumWorkflow.catalogForStudent(catalog,lessonStudent||{});
-  },[curriculumWorkflow,lessonStudent?.id,lessonStudent?.subject,lessonStudent?.level]);
+  React.useEffect(()=>{
+    if(curriculumSubjectFilter||!lessonStudent)return;
+    const subject=lessonStudent.subject||lessonStudent.curriculumPlan?.subject||'';
+    const level=lessonStudent.level||lessonStudent.curriculumPlan?.level||'';
+    if(subject)setCurriculumSubjectFilter(subject);
+    if(level)setCurriculumLevelFilter(String(level).toUpperCase());
+  },[lessonStudent?.id,lessonStudent?.subject,lessonStudent?.level]);
+  React.useEffect(()=>{
+    let active=true;
+    db.collection('curriculumLessons').limit(500).get().then(snapshot=>{
+      if(!active)return;
+      const counters={};
+      const records=snapshot.docs.map(doc=>({id:doc.id,...doc.data()})).filter(item=>item.type==='lesson'||item.roadmapManaged||item.curriculumTopicId).sort((a,b)=>
+        String(a.subject||'').localeCompare(String(b.subject||''),'et')||String(a.level||a.levelStage||'').localeCompare(String(b.level||b.levelStage||''),'et')||Number(a.roadmapModuleNumber||0)-Number(b.roadmapModuleNumber||0)||Number(a.order||a.roadmapLessonNumber||0)-Number(b.order||b.roadmapLessonNumber||0)||String(a.title||'').localeCompare(String(b.title||''),'et')
+      ).map(item=>{
+        const subject=item.subject||item.curriculumSubject||'Eesti keel';
+        const level=String(item.level||item.levelStage||item.curriculumLevel||'').toUpperCase();
+        const topicId=item.roadmapModuleId||item.curriculumTopicId||`school-${subject}-${level}-${item.topic||'general'}`;
+        const counterKey=`${subject}:${level}:${topicId}`;
+        const lessonIndex=Number.isFinite(Number(item.curriculumLessonIndex))?Math.max(0,Number(item.curriculumLessonIndex)):counters[counterKey]||0;
+        counters[counterKey]=lessonIndex+1;
+        return {key:`${topicId}:${lessonIndex}`,source:'school',sourceId:item.id,roadmapManaged:Boolean(item.roadmapManaged),languageId:subject==='Inglise keel'?'eng':'est',subject,level,topicId,topicName:item.roadmapModuleTitle||item.curriculumTopicName||item.topic||item.curriculumTitle||'Õppekava',lessonIndex,lessonNumber:item.roadmapLessonNumber?`Tund ${item.roadmapLessonNumber}`:(item.order?`Tund ${item.order}`:'Tund'),lessonTitle:item.title||'',lessonGoal:item.goal||item.languageFocus||item.description||'',steps:Array.isArray(item.steps)?item.steps:[],vocab:Array.isArray(item.vocab)?item.vocab:[]};
+      });
+      setSchoolCurriculumLessons(records);
+    }).catch(error=>console.warn('School curriculum lesson picker failed:',error));
+    return()=>{active=false;};
+  },[db]);
+  const curriculumCatalog=React.useMemo(()=>{
+    if(!curriculumWorkflow)return schoolCurriculumLessons;
+    const builtIn=curriculumWorkflow.flattenCurriculum(window.HaldusCurriculum||{});
+    const schoolKeys=new Set(schoolCurriculumLessons.map(item=>item.key));
+    const managedPairs=new Set(schoolCurriculumLessons.filter(item=>item.roadmapManaged).map(item=>`${item.subject}:${item.level}`));
+    return [...schoolCurriculumLessons,...builtIn.filter(item=>!schoolKeys.has(item.key)&&!managedPairs.has(`${item.subject}:${item.level}`))];
+  },[curriculumWorkflow,schoolCurriculumLessons]);
+  const curriculumSubjects=React.useMemo(()=>[...new Set(curriculumCatalog.map(item=>item.subject).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'et')),[curriculumCatalog]);
+  const curriculumLevels=React.useMemo(()=>[...new Set(curriculumCatalog.filter(item=>!curriculumSubjectFilter||item.subject===curriculumSubjectFilter).map(item=>item.level).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'et')),[curriculumCatalog,curriculumSubjectFilter]);
+  const curriculumLessonOptions=React.useMemo(()=>curriculumCatalog.filter(item=>(!curriculumSubjectFilter||item.subject===curriculumSubjectFilter)&&(!curriculumLevelFilter||item.level===curriculumLevelFilter)),[curriculumCatalog,curriculumSubjectFilter,curriculumLevelFilter]);
+  const curriculumLessonGroups=React.useMemo(()=>curriculumLessonOptions.reduce((groups,item)=>{
+    const label=item.topicName||'Õppekava';
+    const group=groups.find(entry=>entry.label===label);
+    if(group)group.items.push(item);else groups.push({label,items:[item]});
+    return groups;
+  },[]),[curriculumLessonOptions]);
   const selectedCurriculumKey=modalEv.curriculumTopicId
     ?`${modalEv.curriculumTopicId}:${Math.max(0,Number(modalEv.curriculumLessonIndex)||0)}`
     :'';
@@ -12070,7 +12111,7 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
     return index>=0?curriculumLessonOptions[index+1]||null:null;
   },[curriculumLessonOptions,selectedCurriculumKey]);
   const applyCurriculumLesson=event=>{
-    const selected=curriculumLessonOptions.find(item=>item.key===event.target.value)||null;
+    const selected=curriculumCatalog.find(item=>item.key===event.target.value)||null;
     if(!selected){
       setModalEv(previous=>({...previous,curriculumLanguageId:'',curriculumSubject:'',curriculumLevel:'',curriculumTopicId:'',curriculumTopicName:'',curriculumLessonIndex:0,curriculumLessonGoal:''}));
       return;
@@ -12087,7 +12128,9 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
       curriculumLessonIndex:selected.lessonIndex,
       curriculumLessonGoal:selected.lessonGoal
     }));
-    setLTopic(selected.topicName);
+    setCurriculumSubjectFilter(selected.subject);
+    setCurriculumLevelFilter(selected.level);
+    setLTopic(selected.lessonTitle||selected.topicName);
     setLNewWords(previous=>previous||vocabulary);
     setLCovered(previous=>previous||selected.lessonGoal);
     setLNextNotes(previous=>previous||homework);
@@ -12667,16 +12710,18 @@ function LessonModal({modalEv,setModalEv,lTopic,setLTopic,lGrade,setLGrade,
               <div style={{fontSize:".76rem",fontWeight:700,color:"#42536A",textTransform:"uppercase",letterSpacing:".08em",marginBottom:2}}>
                 📝 Päeviku kanne
               </div>
-              {curriculumLessonOptions.length>0&&(
-                <label style={{display:'grid',gap:5,padding:'11px 12px',borderRadius:11,background:'#F3FAF7',border:'1px solid #CBE3DA'}}>
-                  <span style={{fontSize:'.72rem',fontWeight:800,color:'#2F5D50'}}>Õppekava teema</span>
-                  <select value={selectedCurriculumKey} onChange={applyCurriculumLesson}>
-                    <option value="">Vaba teema · õppekavaga sidumata</option>
-                    {curriculumLessonOptions.map(item=><option key={item.key} value={item.key}>{item.level} · {item.topicName} · {item.lessonNumber}</option>)}
-                  </select>
-                  <small style={{color:'#557568',fontSize:'.68rem'}}>Valik täidab teema, sõnavara, tunni eesmärgi ja järgmise ülesande. Kõiki välju saab muuta.</small>
-                </label>
-              )}
+              <div className="lesson-curriculum-picker">
+                <div className="lesson-curriculum-picker-title"><i className="fa-solid fa-school"/><span><strong>Vali tund kooli õppekavast</strong><small>Õppevara → Õppekavad</small></span></div>
+                <div className="lesson-curriculum-picker-filters">
+                  <label><span>Õppeaine</span><select value={curriculumSubjectFilter} onChange={event=>{setCurriculumSubjectFilter(event.target.value);setCurriculumLevelFilter('');}}><option value="">Kõik õppeained</option>{curriculumSubjects.map(subject=><option key={subject} value={subject}>{subject}</option>)}</select></label>
+                  <label><span>Tase</span><select value={curriculumLevelFilter} onChange={event=>setCurriculumLevelFilter(event.target.value)}><option value="">Kõik tasemed</option>{curriculumLevels.map(level=><option key={level} value={level}>{level}</option>)}</select></label>
+                </div>
+                <label className="lesson-curriculum-picker-lesson"><span>Õppekava tund</span><select value={selectedCurriculumKey} onChange={applyCurriculumLesson} disabled={!curriculumLessonOptions.length}>
+                  <option value="">{curriculumLessonOptions.length?'Vaba teema · õppekavaga sidumata':'Õppekava tunde ei leitud'}</option>
+                  {curriculumLessonGroups.map(group=><optgroup key={group.label} label={group.label}>{group.items.map(item=><option key={item.key} value={item.key}>{item.lessonNumber} · {item.lessonTitle||item.lessonGoal}</option>)}</optgroup>)}
+                </select></label>
+                <small>Valik täidab tunni teema, sõnavara, eesmärgi ja järgmise ülesande. Välju saab enne salvestamist muuta.</small>
+              </div>
               <input value={lTopic} onChange={e=>setLTopic(e.target.value)} placeholder="Tunni teema (valikuline)"/>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
                 <select value={lStatus} onChange={e=>setLStatus(e.target.value)} disabled={Boolean(modalEv.billingStatus||modalEv.invoiceId)}>
