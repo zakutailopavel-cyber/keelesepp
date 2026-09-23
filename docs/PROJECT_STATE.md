@@ -1,5 +1,30 @@
 # KeeleSepp Project State
 
+## Ülesanded team workspace — Asana-like v1
+
+Last verified: 2026-09-23, Europe/Tallinn
+Verified main: `bc9ada0`.
+Implementation branch: `codex/asana-tasks-v1`.
+
+The existing staff `Ülesanded` view now provides list and kanban projections, with `Uus`, `Töös` and `Valmis`
+columns, search and the existing status/category filters. A task opens in a focused side drawer where staff can
+rename it, move its status, reassign it, change its deadline, priority and category, and continue the existing
+discussion. Task creation is collapsed into a compact quick-add panel. Existing `open` and `done` records remain
+valid; `in_progress` is additive and all edits use merge writes to the existing `tasks` collection.
+
+Changed files: `haldus.html`, `haldus.css`, `task-workspace-ui.test.js`, `ARCHITECTURE.md` and this state file.
+No Firestore rules, Functions, indexes, schema migration, production data or deployment is included.
+
+Validation: focused task workspace contract tests and staff assistant task tests pass; `git diff --check` passes.
+The local application booted to the sign-in screen without a runtime boot error. Authenticated visual owner review
+will use the hosted preview because browser authentication is origin-specific.
+
+Known limitation: v1 changes stages through the detail drawer rather than drag-and-drop. Subtasks, dependencies
+and notifications are not part of this bounded slice.
+
+Exactly one next safe step: review the hosted preview as an authenticated administrator, then merge the draft PR
+if the board, list and detail drawer match the daily workflow.
+
 ## Õppevara duplicate prevention, worksheet opening and naming
 
 Last verified: 2026-09-23, Europe/Tallinn

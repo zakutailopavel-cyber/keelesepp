@@ -175,6 +175,11 @@ destinations together: `Minu tööpäev`, `Tunniplaan`, `Minu õpilased` and `Õ
 alongside them. Administrative and lower-frequency tools remain available in a collapsible section. These
 destinations are views over existing data and do not introduce another data store or permission path.
 
+`Ülesanded` reuses the existing `tasks` collection as a lightweight team workspace. Its list and board are
+two projections of the same records; the board adds the backwards-compatible `in_progress` status between
+legacy `open` and `done`. The detail drawer updates task fields with merge writes and keeps replies on the
+existing bounded reply array, so no migration or parallel task store is introduced.
+
 The authenticated CRM shell is also the teacher-facing visual workspace. Primary daily and authoring
 destinations render in its centre surface while the navigation rail, section header and signed-in profile
 remain visible. Independent same-origin teaching applications render as embedded surfaces inside that

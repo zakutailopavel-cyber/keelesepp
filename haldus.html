@@ -47,7 +47,7 @@ window.__haldusConfigureBabel = function(){
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="/haldus.css?v=20260901.1">
+<link rel="stylesheet" href="/haldus.css?v=20260923.1">
 </head>
 <body>
 <div id="root"><div style="display:flex;align-items:center;justify-content:center;min-height:100vh"><div class="spinner"></div></div></div>
@@ -1767,16 +1767,19 @@ function Dashboard({user,myStudents,lessons,schedule,invoices,homework,
 
 // ── ÜLESANDED ────────────────────────────────────────────────
 function TasksView({user,tasks,staffMembers,taskTitle,setTaskTitle,taskAssignee,setTaskAssignee,
-  taskDue,setTaskDue,taskPriority,setTaskPriority,taskCategory,setTaskCategory,addTask,toggleTask,deleteTask,replyTask,markTaskRepliesSeen,isAdmin}) {
+  taskDue,setTaskDue,taskPriority,setTaskPriority,taskCategory,setTaskCategory,addTask,updateTask,toggleTask,deleteTask,replyTask,markTaskRepliesSeen,isAdmin}) {
   const [taskFilter,setTaskFilter] = React.useState('open');
   const [taskSearch,setTaskSearch] = React.useState('');
   const [taskReplies,setTaskReplies] = React.useState({});
+  const [taskView,setTaskView] = React.useState('board');
+  const [selectedTaskId,setSelectedTaskId] = React.useState('');
   const taskStaffOptions = [...new Set([
     ...TEACHERS,
     ...(staffMembers||[]).map(member=>member.displayName||member.email),
     user.displayName
   ].filter(Boolean).map(canonicalTeacherName))];
   const categoryLabels = {general:'Üldine',parent:'Lapsevanem',payment:'Arved',lesson:'Tunnid',technical:'Tehniline'};
+  const selectedTask = tasks.find(task=>task.id===selectedTaskId)||null;
   const openTasks = tasks.filter(t=>t.status!=='done');
   const overdueTasks = tasks.filter(t=>t.status!=='done' && t.dueDate && t.dueDate<today());
   const filteredTasks = tasks.filter(task=>{
@@ -1793,12 +1796,35 @@ function TasksView({user,tasks,staffMembers,taskTitle,setTaskTitle,taskAssignee,
       || normalizeText(categoryLabels[task.category]||'').includes(q);
   });
 
+  const sortedTasks = [...filteredTasks].sort((a,b)=>{
+    if((a.status==='done') !== (b.status==='done')) return a.status==='done'?1:-1;
+    if((a.priority==='high') !== (b.priority==='high')) return a.priority==='high'?-1:1;
+    return String(a.dueDate||'9999-12-31').localeCompare(String(b.dueDate||'9999-12-31'));
+  });
+  const statusColumns = [
+    {id:'open',label:'Uus',icon:'fa-inbox',tone:'new'},
+    {id:'in_progress',label:'Töös',icon:'fa-spinner',tone:'progress'},
+    {id:'done',label:'Valmis',icon:'fa-circle-check',tone:'done'}
+  ];
+  const priorityLabel = value=>value==='high'?'Kiire':value==='low'?'Madal':'Tavaline';
+  const TaskCard = ({task})=>{
+    const done=task.status==='done';
+    const overdue=task.dueDate&&task.dueDate<today()&&!done;
+    const unread=task.lastReplyAt&&task.lastReplyByUid!==user.uid&&!(task.lastReplySeenBy||[]).includes(user.uid);
+    return <button className={`tasks-card${overdue?' overdue':''}${done?' done':''}`} onClick={()=>{setSelectedTaskId(task.id);markTaskRepliesSeen(task);}}>
+      <div className="tasks-card-top"><span className={`tasks-priority ${task.priority||'normal'}`}>{priorityLabel(task.priority)}</span>{unread&&<span className="tasks-unread">Uus vastus</span>}</div>
+      <strong>{task.title}</strong>
+      <span className="tasks-category">{categoryLabels[task.category]||'Üldine'}</span>
+      <div className="tasks-card-meta"><span><i className="fa-regular fa-user"/> {task.assignedTo||'Määramata'}</span><span className={overdue?'danger':''}><i className="fa-regular fa-calendar"/> {task.dueDate?fmtDate(task.dueDate):'Tähtaeg puudub'}</span>{(task.replies||[]).length>0&&<span><i className="fa-regular fa-comment"/> {(task.replies||[]).length}</span>}</div>
+    </button>;
+  };
+
   return(
-    <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:24}}>
+    <div className="fade-in tasks-workspace">
       <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:14,flexWrap:'wrap'}}>
         <div>
           <h1 style={{fontSize:'1.7rem'}}>Ülesanded</h1>
-          <div style={{color:'#42536A',fontSize:'.88rem',marginTop:4}}>Tööde nimekiri õpetajatele ja administraatoritele.</div>
+          <div style={{color:'#42536A',fontSize:'.88rem',marginTop:4}}>Planeeri, jaga ja jälgi meeskonna tööd ühes kohas.</div>
         </div>
         <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
           <span className="badge" style={{background:'#dbeafe',color:'#1d4ed8'}}>{openTasks.length} aktiivset</span>
@@ -1806,8 +1832,9 @@ function TasksView({user,tasks,staffMembers,taskTitle,setTaskTitle,taskAssignee,
         </div>
       </div>
 
-      <div className="card" style={{padding:24}}>
-        <h3 style={{marginBottom:14}}>Lisa ülesanne</h3>
+      <details className="card tasks-create">
+        <summary><span><i className="fa-solid fa-plus"/> Uus ülesanne</span><small>Lisa pealkiri, vastutaja ja tähtaeg</small></summary>
+        <div className="tasks-create-body">
         <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))',gap:10,marginBottom:14}}>
           <input value={taskTitle} onChange={e=>setTaskTitle(e.target.value)} placeholder="Mida on vaja teha?"/>
           <select value={taskAssignee} onChange={e=>setTaskAssignee(e.target.value)}>
@@ -1828,39 +1855,39 @@ function TasksView({user,tasks,staffMembers,taskTitle,setTaskTitle,taskAssignee,
           </select>
         </div>
         <button onClick={addTask} className="btn btn-pine" style={{width:'100%'}}><i className="fa-solid fa-plus"/> Lisa ülesanne</button>
-      </div>
+        </div>
+      </details>
 
-      <div className="card" style={{padding:24}}>
-        <div style={{display:'flex',gap:10,alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',marginBottom:16}}>
-          <input value={taskSearch} onChange={e=>setTaskSearch(e.target.value)} placeholder="Otsi ülesannet, inimest või kategooriat..." style={{maxWidth:360}}/>
+      <div className="card tasks-shell">
+        <div className="tasks-toolbar">
+          <label className="tasks-search"><i className="fa-solid fa-magnifying-glass"/><input value={taskSearch} onChange={e=>setTaskSearch(e.target.value)} placeholder="Otsi ülesannet, inimest või kategooriat..."/></label>
           <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
             {[['open','Aktiivsed'],['overdue','Hilinenud'],['done','Tehtud'],['created','Minu loodud'],['all','Kõik']].map(([id,label])=>(
               <button key={id} onClick={()=>setTaskFilter(id)} className={`btn btn-sm ${taskFilter===id?'btn-dark':'btn-ghost'}`}>{label}</button>
             ))}
           </div>
+          <div className="tasks-view-switch" aria-label="Vaate valik"><button className={taskView==='list'?'active':''} onClick={()=>setTaskView('list')} title="Nimekiri"><i className="fa-solid fa-list"/></button><button className={taskView==='board'?'active':''} onClick={()=>setTaskView('board')} title="Tahvel"><i className="fa-solid fa-table-columns"/></button></div>
         </div>
-        <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:16}}>
+        <div className="tasks-category-filters">
           {Object.entries(categoryLabels).map(([id,label])=>(
             <button key={id} onClick={()=>setTaskFilter('cat:'+id)} className={`btn btn-sm ${taskFilter==='cat:'+id?'btn-amber':'btn-ghost'}`}>{label}</button>
           ))}
         </div>
 
-        <div style={{display:'flex',flexDirection:'column',gap:10}}>
+        {taskView==='board'?<div className="tasks-board">
+          {statusColumns.map(column=>{const columnTasks=sortedTasks.filter(task=>(task.status||'open')===column.id);return <section className={`tasks-column ${column.tone}`} key={column.id}><header><span><i className={`fa-solid ${column.icon}`}/> {column.label}</span><b>{columnTasks.length}</b></header><div className="tasks-column-body">{columnTasks.map(task=><TaskCard task={task} key={task.id}/>)}{columnTasks.length===0&&<div className="tasks-column-empty">Selles etapis pole ülesandeid</div>}</div></section>;})}
+        </div>:<div className="tasks-list">
           {filteredTasks.length===0&&<div style={{textAlign:'center',padding:'28px 10px',color:'#42536A'}}>Ülesandeid ei leitud.</div>}
-          {[...filteredTasks].sort((a,b)=>{
-            if((a.status==='done') !== (b.status==='done')) return a.status==='done'?1:-1;
-            return String(a.dueDate||'9999-12-31').localeCompare(String(b.dueDate||'9999-12-31'));
-          }).map(task=>{
+          {sortedTasks.map(task=>{
             const done = task.status==='done';
             const overdue = task.dueDate && task.dueDate<today() && !done;
-            const replies = task.replies||[];
             const unread = task.lastReplyAt && task.lastReplyByUid!==user.uid && !(task.lastReplySeenBy||[]).includes(user.uid);
             const priorityColor = task.priority==='high' ? '#991b1b' : task.priority==='low' ? '#42536A' : '#1d4ed8';
             const priorityBg = task.priority==='high' ? '#fee2e2' : task.priority==='low' ? '#f3f4f6' : '#dbeafe';
             return(
-              <div key={task.id} style={{padding:'13px 14px',borderRadius:12,border:unread?'1px solid #bfdbfe':'1px solid rgba(28,43,58,.08)',background:done?'rgba(243,244,246,.55)':unread?'#eff6ff':overdue?'#fff7ed':'#fff'}}>
+              <div key={task.id} className="tasks-list-row" onClick={()=>{setSelectedTaskId(task.id);markTaskRepliesSeen(task);}} style={{background:done?'rgba(243,244,246,.55)':unread?'#eff6ff':overdue?'#fff7ed':'#fff'}}>
                 <div style={{display:'grid',gridTemplateColumns:'auto 1fr auto',gap:12,alignItems:'center'}}>
-                  <button onClick={()=>toggleTask(task)} title={done?'Märgi aktiivseks':'Märgi tehtuks'} style={{width:32,height:32,borderRadius:999,border:'1.5px solid rgba(28,43,58,.16)',background:done?'#2F5D50':'#fff',color:done?'#fff':'#42536A',cursor:'pointer'}}>
+                  <button onClick={event=>{event.stopPropagation();toggleTask(task);}} title={done?'Märgi aktiivseks':'Märgi tehtuks'} style={{width:32,height:32,borderRadius:999,border:'1.5px solid rgba(28,43,58,.16)',background:done?'#2F5D50':'#fff',color:done?'#fff':'#42536A',cursor:'pointer'}}>
                     <i className={`fa-solid ${done?'fa-check':'fa-circle'}`} style={{fontSize:done?'.8rem':'.55rem'}}/>
                   </button>
                   <div style={{minWidth:0}}>
@@ -1875,44 +1902,24 @@ function TasksView({user,tasks,staffMembers,taskTitle,setTaskTitle,taskAssignee,
                     {overdue&&<span className="badge" style={{background:'#fee2e2',color:'#991b1b'}}>Hilinenud</span>}
                     {done&&<span className="badge" style={{background:'#dcfce7',color:'#166534'}}>Tehtud</span>}
                     {(isAdmin||task.createdByUid===user.uid)&&(
-                      <button onClick={()=>deleteTask(task)} className="btn btn-ghost btn-sm" title="Kustuta"><i className="fa-solid fa-trash"/></button>
+                      <button onClick={event=>{event.stopPropagation();deleteTask(task);}} className="btn btn-ghost btn-sm" title="Kustuta"><i className="fa-solid fa-trash"/></button>
                     )}
                   </div>
                 </div>
 
-                {replies.length>0&&(
-                  <div style={{marginLeft:44,marginTop:10,display:'flex',flexDirection:'column',gap:6}}>
-                    {replies.slice(-3).map(reply=>(
-                      <div key={reply.id||reply.createdAt} style={{padding:'8px 10px',borderRadius:10,background:'#fff',border:'1px solid rgba(28,43,58,.08)'}}>
-                        <div style={{fontSize:'.74rem',fontWeight:800,color:'#42536A',marginBottom:3}}>
-                          {reply.byName||'—'} · {reply.createdAt?new Date(reply.createdAt).toLocaleString('et-EE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):''}
-                        </div>
-                        <div style={{fontSize:'.84rem',color:'#1C2B3A',whiteSpace:'pre-wrap'}}>{reply.text}</div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <div style={{display:'grid',gridTemplateColumns:'1fr auto',gap:8,marginLeft:44,marginTop:10}}>
-                  <input
-                    value={taskReplies[task.id]||''}
-                    onFocus={()=>markTaskRepliesSeen(task)}
-                    onChange={e=>setTaskReplies(prev=>({...prev,[task.id]:e.target.value}))}
-                    placeholder="Vasta ülesandele..."
-                  />
-                  <button onClick={async()=>{
-                    const text = taskReplies[task.id]||'';
-                    await replyTask(task,text);
-                    setTaskReplies(prev=>({...prev,[task.id]:''}));
-                  }} className="btn btn-pine btn-sm">
-                    Vasta
-                  </button>
-                </div>
               </div>
             );
           })}
-        </div>
+        </div>}
       </div>
+      {selectedTask&&<div className="tasks-drawer-overlay" onMouseDown={event=>{if(event.target===event.currentTarget)setSelectedTaskId('');}}><aside className="tasks-drawer" aria-label="Ülesande detailid"><header><div><span>Ülesanne</span><h2>{selectedTask.title}</h2></div><button className="icon-btn" onClick={()=>setSelectedTaskId('')}><i className="fa-solid fa-xmark"/></button></header><div className="tasks-drawer-body">
+        <label><span>Pealkiri</span><input defaultValue={selectedTask.title||''} key={selectedTask.id} onBlur={e=>{const title=e.target.value.trim();if(title&&title!==selectedTask.title)updateTask(selectedTask,{title});}}/></label>
+        <label><span>Etapp</span><select value={selectedTask.status||'open'} onChange={e=>updateTask(selectedTask,{status:e.target.value})}><option value="open">Uus</option><option value="in_progress">Töös</option><option value="done">Valmis</option></select></label>
+        <label><span>Vastutaja</span><select value={selectedTask.assignedTo||''} onChange={e=>updateTask(selectedTask,{assignedTo:e.target.value})}>{taskStaffOptions.map(name=><option key={name} value={name}>{name}</option>)}</select></label>
+        <div className="tasks-drawer-grid"><label><span>Tähtaeg</span><input type="date" value={selectedTask.dueDate||''} onChange={e=>updateTask(selectedTask,{dueDate:e.target.value})}/></label><label><span>Prioriteet</span><select value={selectedTask.priority||'normal'} onChange={e=>updateTask(selectedTask,{priority:e.target.value})}><option value="high">Kiire</option><option value="normal">Tavaline</option><option value="low">Madal</option></select></label></div>
+        <label><span>Kategooria</span><select value={selectedTask.category||'general'} onChange={e=>updateTask(selectedTask,{category:e.target.value})}>{Object.entries(categoryLabels).map(([id,label])=><option key={id} value={id}>{label}</option>)}</select></label>
+        <section className="tasks-activity"><h3>Arutelu <span>{(selectedTask.replies||[]).length}</span></h3><div className="tasks-replies">{(selectedTask.replies||[]).map(reply=><article key={reply.id||reply.createdAt}><b>{reply.byName||'—'}</b><small>{reply.createdAt?new Date(reply.createdAt).toLocaleString('et-EE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):''}</small><p>{reply.text}</p></article>)}{!(selectedTask.replies||[]).length&&<p className="tasks-empty-replies">Kommentaare veel pole.</p>}</div><div className="tasks-reply-box"><textarea value={taskReplies[selectedTask.id]||''} onChange={e=>setTaskReplies(prev=>({...prev,[selectedTask.id]:e.target.value}))} placeholder="Kirjuta kommentaar..."/><button onClick={async()=>{await replyTask(selectedTask,taskReplies[selectedTask.id]||'');setTaskReplies(prev=>({...prev,[selectedTask.id]:''}));}} className="btn btn-pine">Saada</button></div></section>
+      </div><footer><small>Lisas {selectedTask.createdByName||'—'}</small>{(isAdmin||selectedTask.createdByUid===user.uid)&&<button onClick={()=>deleteTask(selectedTask)} className="btn btn-ghost btn-sm"><i className="fa-solid fa-trash"/> Kustuta</button>}</footer></aside></div>}
     </div>
   );
 }
@@ -14498,6 +14505,18 @@ function App() {
     notify(done?'✓ Ülesanne avatud':'✓ Ülesanne tehtud');
   },[user,logActivity]);
 
+  const updateTask=useCallback(async(task,patch)=>{
+    if(!task?.id||!patch||typeof patch!=='object') return;
+    const next={...patch,updatedAt:new Date().toISOString(),updatedByUid:user.uid||'',updatedByName:user.displayName||user.email||''};
+    if(Object.prototype.hasOwnProperty.call(patch,'status')){
+      next.doneAt=patch.status==='done'?today():'';
+      next.doneByUid=patch.status==='done'?(user.uid||''):'';
+      next.doneByName=patch.status==='done'?(user.displayName||user.email||''):'';
+    }
+    await db.collection('tasks').doc(task.id).set(next,{merge:true});
+    await logActivity('task.updated','Uuendati ülesannet',{taskId:task.id,taskTitle:task.title||'',fields:Object.keys(patch).join(',')});
+  },[user,logActivity]);
+
   const replyTask=useCallback(async(task,text)=>{
     if(!task?.id) return;
     const cleanText = String(text||'').trim();
@@ -16598,7 +16617,7 @@ function App() {
             taskTitle={taskTitle} setTaskTitle={setTaskTitle} taskAssignee={taskAssignee} setTaskAssignee={setTaskAssignee}
             taskDue={taskDue} setTaskDue={setTaskDue} taskPriority={taskPriority} setTaskPriority={setTaskPriority}
             taskCategory={taskCategory} setTaskCategory={setTaskCategory}
-            addTask={addTask} toggleTask={toggleTask} deleteTask={deleteTask} replyTask={replyTask} markTaskRepliesSeen={markTaskRepliesSeen} isAdmin={isAdmin}/>}
+            addTask={addTask} updateTask={updateTask} toggleTask={toggleTask} deleteTask={deleteTask} replyTask={replyTask} markTaskRepliesSeen={markTaskRepliesSeen} isAdmin={isAdmin}/>}
 
           {tab==='students'&&isStaff&&!selStu&&<StudentsList students={myStudents} lessons={lessons} isAdmin={canAssignTeacher}
             search={search} setSearch={setSearch} stuFilter={stuFilter} setStuFilter={setStuFilter} setSelStu={setSelStu} user={user} notify={notify}/>}
