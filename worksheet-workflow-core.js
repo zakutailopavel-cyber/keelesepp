@@ -100,6 +100,17 @@
   const normalizeStatus=value=>STATUSES[value]?value:'draft';
   const nextVersion=value=>Math.max(0,Number(value)||0)+1;
   const hasBlocks=data=>Array.isArray(data?.blocks)&&data.blocks.length>0;
+  const GENERIC_TITLES=new Set(['','uus tööleht','tööleht','new worksheet','untitled worksheet','pealkirjata õppematerjal']);
+  function worksheetTitle({currentTitle,topic,lessonTitle,auto=true}={}){
+    const current=text(currentTitle);
+    if(!auto&&!GENERIC_TITLES.has(current.toLocaleLowerCase('et-EE')))return current;
+    return text(lessonTitle)||text(topic)||current||'Tööleht';
+  }
+  function worksheetTargetId({lessonId,selectedLessonId,lessonMode}={}){
+    const locked=text(lessonId);
+    if(locked)return locked;
+    return lessonMode==='existing'?text(selectedLessonId):'';
+  }
   function curriculumFieldsFor(lesson={}){
     const sourceKey=text(lesson.sourceKey);
     const sourceMatch=sourceKey.match(/^curriculum:([^:]+):(\d+)$/);
@@ -184,5 +195,5 @@
     return {lessonId:text(lessonId),version:Number(version)||1,status:normalizeStatus(status),title:text(meta.title)||'Tööleht',subject:text(meta.subject),level:text(meta.level),topic:text(meta.topic),worksheetData:clone(worksheetData),worksheetQuality:clone(worksheetQuality||{}),...clone(sourceFields||{}),createdAt:at,createdBy:text(user.uid),createdByName:text(user.displayName||user.email)};
   }
 
-  return {STATUSES,TEMPLATES,buildTemplate,normalizeStatus,nextVersion,curriculumFieldsFor,isAssignableWorksheet,assignmentDataFor,buildRetryAssignment,buildVersionFields,buildVersionRecord};
+  return {STATUSES,TEMPLATES,buildTemplate,normalizeStatus,nextVersion,worksheetTitle,worksheetTargetId,curriculumFieldsFor,isAssignableWorksheet,assignmentDataFor,buildRetryAssignment,buildVersionFields,buildVersionRecord};
 });

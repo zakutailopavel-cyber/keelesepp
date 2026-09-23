@@ -72,3 +72,15 @@ test('draft updates do not replace the previous published snapshot',()=>{
   assert.equal(Object.hasOwn(fields,'publishedWorksheetData'),false);
   assert.equal(workflow.nextVersion(5),6);
 });
+
+test('an existing curriculum lesson stays the save target even before the picker finishes loading',()=>{
+  assert.equal(workflow.worksheetTargetId({lessonId:'lesson-42',selectedLessonId:'',lessonMode:'new'}),'lesson-42');
+  assert.equal(workflow.worksheetTargetId({selectedLessonId:'lesson-7',lessonMode:'existing'}),'lesson-7');
+  assert.equal(workflow.worksheetTargetId({selectedLessonId:'lesson-7',lessonMode:'new'}),'');
+});
+
+test('worksheet naming follows the selected lesson or topic while preserving an explicit manual title',()=>{
+  assert.equal(workflow.worksheetTitle({currentTitle:'Uus tööleht',topic:'Tervis'}),'Tervis');
+  assert.equal(workflow.worksheetTitle({currentTitle:'Uus tööleht',topic:'Tervis',lessonTitle:'Arsti juures'}),'Arsti juures');
+  assert.equal(workflow.worksheetTitle({currentTitle:'Minu kontrolltöö',topic:'Tervis',auto:false}),'Minu kontrolltöö');
+});

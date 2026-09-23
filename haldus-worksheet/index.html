@@ -1303,6 +1303,8 @@ function SaveModal({meta,blocks,user,source,quality,lessonId,initialStatus,onSav
   const[selectedLessonId,setSelectedLessonId]=useState('');
   const[topicMode,setTopicMode]=useState('existing');
   const[lessonMode,setLessonMode]=useState('existing');
+  const[autoTitle,setAutoTitle]=useState(true);
+  const[documentTitle,setDocumentTitle]=useState(meta.title||'');
   const[worksheetStatus,setWorksheetStatus]=useState(window.WorksheetWorkflow?.normalizeStatus(initialStatus||'draft')||'draft');
   const[allTopics,setAllTopics]=useState([]);
   const levels=LEVELS_BY_SUBJECT[subject]||[];
@@ -1332,7 +1334,12 @@ function SaveModal({meta,blocks,user,source,quality,lessonId,initialStatus,onSav
     });
   },[topic,topicMode,subject,level]);
   const finalTopic=topicMode==='new'?newTopic.trim():topic;
-  const finalMeta={...meta,subject,level,topic:finalTopic};
+  const selectedLesson=lessons.find(lesson=>lesson.id===selectedLessonId)||null;
+  useEffect(()=>{
+    if(!autoTitle)return;
+    setDocumentTitle(window.WorksheetWorkflow?.worksheetTitle({currentTitle:meta.title,topic:finalTopic,lessonTitle:selectedLesson?.title,auto:true})||selectedLesson?.title||finalTopic||meta.title||'Tööleht');
+  },[autoTitle,finalTopic,selectedLessonId]);
+  const finalMeta={...meta,title:documentTitle.trim()||finalTopic||'Tööleht',subject,level,topic:finalTopic};
   const finalQuality=window.CurriculumWorkflow?.analyzeWorksheet(finalMeta,blocks)||quality;
   const[savedLessonId,setSavedLessonId]=useState('');
   const[savedWorksheetVersion,setSavedWorksheetVersion]=useState(0);
@@ -1369,17 +1376,19 @@ function SaveModal({meta,blocks,user,source,quality,lessonId,initialStatus,onSav
     if(!finalTopic){alert('Vali teema või sisesta uus teema nimi');return;}setSaving(true);
     try{
       if(worksheetStatus==='published'&&!finalQuality?.ready)throw new Error('Avaldamiseks peab tööleht läbima kõik kvaliteedikontrolli punktid. Salvesta see mustandina või täienda sisu.');
-      const record={title:finalMeta.title||'Tööleht',type:'material',description:'',subject,level,topic:finalTopic,...sourceFields};
+      const record={title:finalMeta.title||finalTopic||'Tööleht',type:'material',description:'',subject,level,topic:finalTopic,...sourceFields};
       const validation=window.CurriculumWorkflow?.validateMaterialLevel(record);
       if(validation&&!validation.ok)throw new Error(validation.errors.join(' '));
       const now=new Date().toISOString();
       const worksheetData={meta:finalMeta,blocks};
       const worksheetQuality={percent:finalQuality?.percent||0,checkedAt:now,checks:finalQuality?.checks||[]};
-      const isExisting=lessonMode==='existing'&&selectedLessonId;
-      const lessonRef=isExisting?db.collection('curriculumLessons').doc(selectedLessonId):db.collection('curriculumLessons').doc();
+      const targetLessonId=window.WorksheetWorkflow?.worksheetTargetId({lessonId,selectedLessonId,lessonMode})||(lessonId||(lessonMode==='existing'?selectedLessonId:''));
+      const isExisting=Boolean(targetLessonId);
+      const lessonRef=isExisting?db.collection('curriculumLessons').doc(targetLessonId):db.collection('curriculumLessons').doc();
       let nextVersion=1;
       await db.runTransaction(async tx=>{
         const snap=isExisting?await tx.get(lessonRef):null;
+        if(lessonId&&!snap?.exists)throw new Error('Algset õppekava kirjet ei leitud. Uut duplikaati ei loodud.');
         const current=snap?.exists?snap.data():{};
         const legacyPublished=!current.worksheetStatus&&Array.isArray(current.worksheetData?.blocks)&&current.worksheetData.blocks.length>0;
         const currentVersion=Number(current.worksheetVersion)||(legacyPublished?1:0);
@@ -1393,7 +1402,7 @@ function SaveModal({meta,blocks,user,source,quality,lessonId,initialStatus,onSav
           tx.set(legacyVersionRef,legacyVersionRecord);
         }
         const base=isExisting?{}:{...record,examPart:null,files:[],order:Number(source?.lessonIndex)||0,authorUid:user?.uid||'',authorName:user?.displayName||user?.email||'',createdAt:now.split('T')[0]};
-        tx.set(lessonRef,{...base,...worksheetFields,...sourceFields},{merge:true});
+        tx.set(lessonRef,{...base,title:finalMeta.title,topic:finalTopic,...worksheetFields,...sourceFields},{merge:true});
         const versionRef=db.collection('worksheetVersions').doc(`${lessonRef.id}_v${nextVersion}`);
         const versionRecord=window.WorksheetWorkflow?.buildVersionRecord({lessonId:lessonRef.id,status:worksheetStatus,version:nextVersion,worksheetData,worksheetQuality,meta:finalMeta,sourceFields,user,now})||{lessonId:lessonRef.id,version:nextVersion,status:worksheetStatus,worksheetData,worksheetQuality,createdAt:now,createdBy:user?.uid||''};
         tx.set(versionRef,versionRecord);
@@ -1469,11 +1478,21 @@ function SaveModal({meta,blocks,user,source,quality,lessonId,initialStatus,onSav
               :<input value={newTopic} onChange={e=>setNewTopic(e.target.value)} placeholder="Uue teema nimi..." autoFocus/>}
           </div>
           {(topic||newTopic)&&(<div>
-            <div className="field-lbl" style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}><span>2. Kirje</span>{lessons.length>0&&<div style={{display:'flex',gap:5}}><button onClick={()=>setLessonMode('existing')} className={'btn btn-sm '+(lessonMode==='existing'?'btn-pine':'btn-ghost')} style={{fontSize:'.7rem',padding:'2px 8px'}}>Lisa olemasolevale</button><button onClick={()=>setLessonMode('new')} className={'btn btn-sm '+(lessonMode==='new'?'btn-pine':'btn-ghost')} style={{fontSize:'.7rem',padding:'2px 8px'}}>+ Uus kirje</button></div>}</div>
+            <div className="field-lbl" style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}><span>2. Kirje</span>{lessons.length>0&&!lessonId&&<div style={{display:'flex',gap:5}}><button onClick={()=>setLessonMode('existing')} className={'btn btn-sm '+(lessonMode==='existing'?'btn-pine':'btn-ghost')} style={{fontSize:'.7rem',padding:'2px 8px'}}>Lisa olemasolevale</button><button onClick={()=>setLessonMode('new')} className={'btn btn-sm '+(lessonMode==='new'?'btn-pine':'btn-ghost')} style={{fontSize:'.7rem',padding:'2px 8px'}}>+ Uus kirje</button></div>}</div>
             {lessonMode==='existing'&&lessons.length>0
               ?<div style={{display:'flex',flexDirection:'column',gap:5,maxHeight:180,overflowY:'auto'}}>{lessons.map(l=>(<label key={l.id} style={{display:'flex',alignItems:'flex-start',gap:9,padding:'9px 12px',borderRadius:9,border:'1.5px solid '+(selectedLessonId===l.id?'#2F5D50':'rgba(28,43,58,.1)'),background:selectedLessonId===l.id?'rgba(47,93,80,.07)':'#fff',cursor:'pointer'}}><input type="radio" name="lesson" checked={selectedLessonId===l.id} onChange={()=>setSelectedLessonId(l.id)} style={{marginTop:3,flexShrink:0}}/><div><div style={{fontSize:'.85rem',fontWeight:700,color:'#1C2B3A'}}>{l.title}</div>{l.worksheetData&&<div style={{fontSize:'.68rem',color:'#C9882A',marginTop:2}}>⚠️ Tööleht olemas — asendatakse</div>}</div></label>))}</div>
-              :<div style={{padding:'10px 12px',borderRadius:9,background:'rgba(28,43,58,.04)',border:'1px dashed rgba(28,43,58,.15)',fontSize:'.82rem',color:'#7A7167'}}>Luuakse uus kirje teemasse "{finalTopic}"</div>}
+              :lessonId
+                ?<div style={{padding:'10px 12px',borderRadius:9,background:'rgba(47,93,80,.08)',border:'1px solid rgba(47,93,80,.18)',fontSize:'.82rem',color:'#2F5D50'}}>Tööleht salvestatakse tagasi samasse õppekava kirjesse. Uut duplikaati ei looda.</div>
+                :<div style={{padding:'10px 12px',borderRadius:9,background:'rgba(28,43,58,.04)',border:'1px dashed rgba(28,43,58,.15)',fontSize:'.82rem',color:'#7A7167'}}>Luuakse uus kirje teemasse "{finalTopic}"</div>}
           </div>)}
+          <div>
+            <div className="field-lbl">Dokumendi nimi</div>
+            <input value={documentTitle} onChange={e=>{setDocumentTitle(e.target.value);setAutoTitle(false);}} placeholder={finalTopic||'Töölehe nimi'}/>
+            <label style={{display:'flex',alignItems:'center',gap:7,marginTop:7,fontSize:'.74rem',color:'#718096',cursor:'pointer'}}>
+              <input type="checkbox" checked={autoTitle} onChange={e=>setAutoTitle(e.target.checked)} style={{accentColor:'#2F5D50'}}/>
+              Nimeta automaatselt valitud kirje või teema järgi
+            </label>
+          </div>
         </div>
         {step==='assign'&&(
           <div style={{marginTop:12}}>
