@@ -26,6 +26,15 @@ risk, so new behavior must first be extracted behind small tested core modules.
 - URL serialization and recovery of the current folder;
 - conversion of a private material record into a public Live Classroom scene draft.
 
+Before rendering, curriculum records are deduplicated by stable source identity and by normalized
+subject/level/topic/title identity. If equivalent records exist, the published or otherwise richer, newer worksheet
+record wins. This is a presentation and save-safety boundary, not a destructive data migration.
+
+Worksheet editing from Õppevara carries the immutable curriculum lesson ID into the builder. That ID always wins over
+temporary picker state, so saving creates a new worksheet version on the original lesson instead of a second lesson
+document. The displayed document name can be edited explicitly or derived automatically from the selected lesson or
+destination topic; renaming does not rewrite immutable published worksheet-version history.
+
 Folder URLs use `libSubject`, `libStage` and `libTopic`. Other query parameters are preserved.
 When records have `curriculumId`, that immutable id is used as the folder key. Older records
 continue to fall back to their curriculum title or topic and do not need a destructive migration.

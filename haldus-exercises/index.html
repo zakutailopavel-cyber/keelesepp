@@ -298,6 +298,8 @@ div:hover>.topic-actions{opacity:1!important;}
 .lesson-icon{width:42px;height:42px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
 .lesson-body{flex:1;min-width:0;}
 .lesson-title{font-size:.96rem;font-weight:700;margin-bottom:3px;}
+.lesson-title-open{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:left;}
+.lesson-title-open:hover{text-decoration:underline;text-decoration-color:#C9882A;text-underline-offset:3px;}
 .lesson-desc{font-size:.8rem;color:#718096;line-height:1.45;margin-bottom:8px;}
 .lesson-actions{display:flex;gap:6px;flex-shrink:0;align-items:flex-start;}
 
@@ -1833,7 +1835,7 @@ function LessonSheetPreview({lesson,onPreviewWorksheet}){
 }
 
 // ── TOPIC VIEW ────────────────────────────────────────────────
-function TopicView({subject,level,activeTopic,topics,allLessons,isTeacher,onSelectTopic,onAdd,onEdit,onDelete,onRenameTopic,onDeleteTopic,onAddTopic,onPreviewWorksheet,onConductLesson,onCopyPrompt,onUsePrompt}){
+function TopicView({subject,level,activeTopic,topics,allLessons,isTeacher,onSelectTopic,onAdd,onEdit,onDelete,onRenameLesson,onRenameTopic,onDeleteTopic,onAddTopic,onPreviewWorksheet,onConductLesson,onCopyPrompt,onUsePrompt}){
   const topicLessons=allLessons
     .filter(l=>l.subject===subject.key&&l.level===level&&l.topic===activeTopic&&!l.examPart)
     .sort((a,b)=>(a.order||0)-(b.order||0));
@@ -1954,12 +1956,13 @@ function TopicView({subject,level,activeTopic,topics,allLessons,isTeacher,onSele
                </div>
               :topicLessons.map(lesson=>{
                  const lt=LESSON_TYPES[lesson.type]||LESSON_TYPES.lesson;
+                 const hasWorksheet=Boolean(lesson.worksheetData?.blocks?.length||lesson.files?.length);
                  return(
                    <div key={lesson.id} className="lesson-card">
                      <div className="lesson-icon" style={{background:lt.bg}}><i className={'fa-solid '+lt.icon} style={{color:lt.color}}/></div>
                      <div className="lesson-body">
                        <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4,flexWrap:'wrap'}}>
-                         <div className="lesson-title">{lesson.title}</div>
+                         <button type="button" className="lesson-title lesson-title-open" onClick={()=>onPreviewWorksheet?.(lesson)} title="Ava tööleht või kirje">{lesson.title}</button>
                          {lesson.lessonTypeLabel&&<span className={'lesson-type-badge '+(lesson.roadmapKind||'theme')}>{lesson.lessonTypeLabel}</span>}
                          {lesson.builderDuration&&<span style={{fontSize:'.7rem',color:'#B0A898'}}>⏱ {lesson.builderDuration} min</span>}
                        </div>
@@ -1999,7 +2002,7 @@ function TopicView({subject,level,activeTopic,topics,allLessons,isTeacher,onSele
                      <div className="lesson-actions">
                        {onPreviewWorksheet&&(
                          <button onClick={()=>onPreviewWorksheet(lesson)} className="btn btn-ghost btn-sm" style={{color:'#2F5D50',borderColor:'rgba(47,93,80,.25)',fontWeight:700}}>
-                           <i className="fa-solid fa-eye"/> Ava
+                           <i className="fa-solid fa-eye"/> {hasWorksheet?'Ava tööleht':'Ava kirje'}
                          </button>
                        )}
                        {isTeacher&&lesson.roadmapManaged&&lesson.worksheetPrompt&&onCopyPrompt&&(
@@ -2023,6 +2026,7 @@ function TopicView({subject,level,activeTopic,topics,allLessons,isTeacher,onSele
                          </button>
                        )}
                        {isTeacher&&<button onClick={()=>onEdit(lesson)} className="btn btn-ghost btn-sm"><i className="fa-solid fa-pen"/></button>}
+                       {isTeacher&&<button onClick={()=>onRenameLesson(lesson)} className="btn btn-ghost btn-sm" title="Nimeta dokument ümber"><i className="fa-solid fa-font"/> Nimeta</button>}
                        {isTeacher&&<button onClick={()=>onDelete(lesson)} className="btn btn-ghost btn-sm" style={{color:'#dc2626'}}><i className="fa-solid fa-trash"/></button>}
                      </div>
                    </div>
@@ -2110,6 +2114,18 @@ function CurriculumView({lessons,isTeacher,user,notify,onPreviewWorksheet,onCond
     if(!window.confirm('Kustuta "'+lesson.title+'"?'))return;
     await db.collection('curriculumLessons').doc(lesson.id).delete();
     notify('✓ Kustutatud');
+  };
+  const renameLesson=async lesson=>{
+    const title=window.prompt('Dokumendi uus nimi',lesson.title||'');
+    if(title===null)return;
+    const nextTitle=title.trim();
+    if(!nextTitle){notify('⚠ Dokumendi nimi ei tohi olla tühi');return;}
+    const updates={title:nextTitle,updatedAt:new Date().toISOString()};
+    if(lesson.worksheetData){
+      updates.worksheetData={...lesson.worksheetData,meta:{...(lesson.worksheetData.meta||{}),title:nextTitle}};
+    }
+    await db.collection('curriculumLessons').doc(lesson.id).update(updates);
+    notify('✓ Dokument ümber nimetatud');
   };
 
   return(
@@ -2225,6 +2241,7 @@ function CurriculumView({lessons,isTeacher,user,notify,onPreviewWorksheet,onCond
           }}
           onEdit={lesson=>setModal({lesson,topic:lesson.topic,examPart:lesson.examPart||null})}
           onDelete={deleteLesson}
+          onRenameLesson={renameLesson}
           onAddTopic={async newName=>{
             const exists=topics.includes(newName);
             if(exists){notify('See teema on juba olemas');return;}
@@ -2866,7 +2883,7 @@ function LearningLibraryView({lessons,exercises,students,isTeacher,onOpenLesson,
               {item.examPart&&<span>{EXAM_PARTS.find(part=>part.key===item.examPart)?.label||item.examPart}</span>}
             </div>
             <div className="library-card-actions">
-              <button onClick={()=>openItem(item)} className="btn btn-ghost btn-sm"><i className="fa-solid fa-eye"/> Ava</button>
+              <button onClick={()=>openItem(item)} className="btn btn-ghost btn-sm"><i className="fa-solid fa-eye"/> {item.type==='worksheet'?'Ava tööleht':'Ava'}</button>
               {isTeacher&&<button onClick={()=>onAssign(item)} className="btn btn-pine btn-sm"><i className="fa-solid fa-paper-plane"/> Määra</button>}
               {isTeacher&&<button onClick={()=>onClassroom(item)} className="btn btn-ghost btn-sm"><i className="fa-solid fa-display"/> Live tund</button>}
               {item.type==='lesson'&&item.source.phaseData&&<button onClick={()=>onConductLesson(item.source)} className="btn btn-ghost btn-sm"><i className="fa-solid fa-play"/> Vii läbi</button>}
@@ -3579,6 +3596,13 @@ function SearchView({lessons,subjects,onSelectLesson,onClose}) {
 }
 
 function WorksheetPreviewModal({lesson,onClose,onConduct}) {
+  useEffect(()=>{
+    const previous=document.body.style.overflow;
+    const close=event=>{if(event.key==='Escape')onClose();};
+    document.body.style.overflow='hidden';
+    window.addEventListener('keydown',close);
+    return()=>{document.body.style.overflow=previous;window.removeEventListener('keydown',close);};
+  },[onClose]);
   const ws=lesson.worksheetData;
   if(!ws) {
     const files=Array.isArray(lesson.files)?lesson.files:[];
@@ -4296,7 +4320,10 @@ function App(){
           goal:lesson.focus,languageFocus:lesson.focus,worksheetPrompt:lesson.prompt,roadmapVersion:manifest.version,roadmapManaged:true
         })));
       })
-      .then(c1Lessons=>setAllLessons([...PREVIEW_LESSONS,...c1Lessons]))
+      .then(c1Lessons=>{
+        const records=[...PREVIEW_LESSONS,...c1Lessons];
+        setAllLessons(window.LearningLibraryCore?.dedupeCurriculumLessons(records)||records);
+      })
       .catch(error=>console.warn('C1 preview data:',error));
   },[]);
 
@@ -4319,7 +4346,10 @@ function App(){
         error=>{console.warn('Exercises listener:',error);setAllExercises([]);}
       ),
       db.collection('curriculumLessons').onSnapshot(
-        snapshot=>setAllLessons(snapshot.docs.map(doc=>({id:doc.id,...doc.data()}))),
+        snapshot=>{
+          const records=snapshot.docs.map(doc=>({id:doc.id,...doc.data()}));
+          setAllLessons(window.LearningLibraryCore?.dedupeCurriculumLessons(records)||records);
+        },
         error=>{console.warn('Curriculum listener:',error);setAllLessons([]);}
       )
     ];

@@ -1,5 +1,42 @@
 # KeeleSepp Project State
 
+## Õppevara duplicate prevention, worksheet opening and naming
+
+Last verified: 2026-09-23, Europe/Tallinn
+Verified main: `5d66ec40647a69d5ec639e4c4b8a953f992b127d`.
+Implementation branch: `codex/oppevara-dedup-rename`.
+PR: not opened yet.
+
+The production `curriculumLessons` collection was audited read-only before implementation: 306 records, with no
+duplicate stable source keys and no exact duplicate subject/level/topic/title groups. No production documents were
+deleted or modified. The reproducible risk was in worksheet saving: a known curriculum `lessonId` could temporarily
+fall through to the new-record mode while the topic picker was still loading. The save target is now locked to that
+immutable lesson ID and a missing original fails closed instead of creating a replacement document.
+
+`LearningLibraryCore` now collapses repeated stable-source or exact semantic records before both Õppekavad and
+Raamatukogu render them, keeping the richer/newer worksheet. Worksheet cards have explicit `Ava tööleht` / `Ava
+kirje` actions, clickable titles and Escape-to-close preview. Teachers also get a visible `Nimeta` action. Manual
+renaming updates the curriculum record and current worksheet title without rewriting immutable published-version
+history.
+
+The worksheet save dialog now shows a document-name field and enables automatic naming from the selected existing
+lesson or destination topic. Opening a worksheet from a curriculum lesson visibly confirms that it will save back to
+the same entry and will not create a duplicate.
+
+Changed files: `learning-library-core.js`, `learning-library-core.test.js`, `worksheet-workflow-core.js`,
+`worksheet-workflow-core.test.js`, `haldus-exercises/index.html`, `haldus-worksheet/index.html`,
+`oppevara-dedup-rename.test.js`, `ARCHITECTURE.md` and this state file. No Firestore rules, Functions, indexes,
+financial data or production records are changed.
+
+Validation: PASS — focused Õppevara, C1 and worksheet suites, 56/56 tests; `git diff --check`; local desktop browser
+verification of title-to-preview opening, Escape close, explicit rename/open controls, curriculum-to-builder handoff,
+locked existing-record save message and automatic document-name control.
+
+Known limitation: production UI verification waits for PR review/merge and deployment. Existing near-duplicates with
+different titles or topics are intentionally not guessed or deleted.
+
+Exactly one next safe step: open a draft PR and verify its Vercel preview before owner review/merge.
+
 ## C1 curriculum 240 academic hours — implementation
 
 Last verified: 2026-09-21, Europe/Tallinn

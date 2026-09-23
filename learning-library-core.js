@@ -41,6 +41,44 @@
     return 'lesson';
   };
 
+  const curriculumIdentityKeys=lesson=>{
+    const stable=String(lesson?.sourceKey||lesson?.roadmapLessonId||'').trim();
+    const title=normalize(lesson?.title);
+    const semantic=title&&title!=='—'
+      ?['record',lesson?.subject,lesson?.level,lesson?.topic,title].map(normalize).join('|')
+      :'';
+    return [stable?`source:${stable}`:'',semantic,(!stable&&!semantic)?`id:${lesson?.id||''}`:''].filter(Boolean);
+  };
+  const curriculumIdentity=lesson=>curriculumIdentityKeys(lesson)[0]||'';
+  const curriculumRecordScore=lesson=>{
+    const blocks=Array.isArray(lesson?.worksheetData?.blocks)?lesson.worksheetData.blocks.length:0;
+    const files=Array.isArray(lesson?.files)?lesson.files.length:0;
+    const status=lesson?.worksheetStatus==='published'?3:lesson?.worksheetStatus==='reviewed'?2:lesson?.worksheetStatus==='draft'?1:0;
+    const version=Math.max(Number(lesson?.worksheetVersion)||0,Number(lesson?.publishedWorksheetVersion)||0);
+    return [Boolean(blocks||files)?1:0,status,version,String(lesson?.updatedAt||lesson?.createdAt||''),String(lesson?.id||'')];
+  };
+  const compareCurriculumRecords=(a,b)=>{
+    const left=curriculumRecordScore(a);const right=curriculumRecordScore(b);
+    for(let i=0;i<left.length;i++){
+      if(left[i]===right[i])continue;
+      return left[i]>right[i]?1:-1;
+    }
+    return 0;
+  };
+  const dedupeCurriculumLessons=(lessons=[])=>{
+    const unique=[];const keyIndexes=new Map();
+    lessons.filter(Boolean).forEach(lesson=>{
+      const keys=curriculumIdentityKeys(lesson);
+      const index=keys.map(key=>keyIndexes.get(key)).find(value=>value!==undefined);
+      if(index===undefined){
+        const next=unique.length;unique.push(lesson);keys.forEach(key=>keyIndexes.set(key,next));return;
+      }
+      if(compareCurriculumRecords(lesson,unique[index])>0)unique[index]=lesson;
+      keys.forEach(key=>keyIndexes.set(key,index));
+    });
+    return unique;
+  };
+
   const libraryItem=(kind,source)=>{
     const type=kind==='exercise'?'exercise':curriculumType(source);
     const meta=TYPE_META[type]||TYPE_META.material;
@@ -73,7 +111,7 @@
   };
 
   const buildLibraryItems=(lessons=[],exercises=[])=>[
-    ...lessons.filter(item=>item&&!item.__placeholder).map(item=>libraryItem('curriculum',item)),
+    ...dedupeCurriculumLessons(lessons).filter(item=>!item.__placeholder).map(item=>libraryItem('curriculum',item)),
     ...exercises.filter(Boolean).map(item=>libraryItem('exercise',item))
   ];
 
@@ -296,6 +334,8 @@
     normalize,
     hasWorksheet,
     curriculumType,
+    curriculumIdentity,
+    dedupeCurriculumLessons,
     libraryItem,
     buildLibraryItems,
     filterLibraryItems,

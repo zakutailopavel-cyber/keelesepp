@@ -9,9 +9,24 @@ const {
   libraryPathFromSearch,
   searchWithLibraryPath,
   normalizeLibraryPath,
+  dedupeCurriculumLessons,
   classroomSceneDraft,
   assignmentKind
 }=require('./learning-library-core');
+
+test('deduplicates repeated curriculum records and keeps the richer newest worksheet',()=>{
+  const lessons=dedupeCurriculumLessons([
+    {id:'old',sourceKey:'curriculum:topic-1:0',title:'Pere',subject:'Eesti keel',level:'A1',topic:'Pere',updatedAt:'2026-01-01'},
+    {id:'new',sourceKey:'curriculum:topic-1:0',title:'Pere',subject:'Eesti keel',level:'A1',topic:'Pere',worksheetStatus:'published',worksheetVersion:2,worksheetData:{blocks:[{type:'fill'}]},updatedAt:'2026-02-01'},
+    {id:'exact-copy',title:'  PERE ',subject:'Eesti keel',level:'A1',topic:'Pere'},
+    {id:'different-topic',title:'Pere',subject:'Eesti keel',level:'A1',topic:'Sugulased'}
+  ]);
+  assert.deepEqual(lessons.map(item=>item.id),['new','different-topic']);
+  assert.equal(buildLibraryItems([
+    {id:'a',title:'Tervis',subject:'Eesti keel',level:'B1',topic:'Tervis'},
+    {id:'b',title:' tervis ',subject:'Eesti keel',level:'B1',topic:'Tervis'}
+  ],[]).length,1);
+});
 
 test('classifies curriculum records without changing their source data',()=>{
   const worksheet={id:'w1',title:'Minu pere',type:'material',worksheetData:{blocks:[{type:'writing'}]}};
