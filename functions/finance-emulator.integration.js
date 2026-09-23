@@ -537,19 +537,35 @@ test("one-click lesson completion commits attendance, homework, curriculum and f
     db.collection("schedule").doc(scheduleId).set({studentId,studentName:"One Click Student",teacher:"One Click Teacher",teacherUid,date:"2026-09-23",time:"10:00",duration:60,status:"Planeeritud"}),
   ]);
   const payload={scheduleId,lesson:{studentId,studentName:"One Click Student",scheduleId,scheduleTime:"10:00",date:"2026-09-23",duration:60,status:"Toimunud",topic:"Igapäevaelu",grade:5,covered:"Harjutasime suulist väljendust",teacher:"One Click Teacher",teacherUid},completion:{attendanceStatus:"coming",homeworkTask:"Kirjuta viis lauset.",homeworkDue:"2026-09-30",nextCurriculumPlan:{languageId:"est",subject:"Eesti keel",level:"B1",topicId:"topic-2",topicName:"Töö ja õpingud",lessonIndex:1,lessonGoal:"Räägib oma tööst"},followUpTitle:"Saada lisasõnavara"},requestId:"emulator_one_click_completion_0001"};
-  const first=await financeRequest(teacherToken,"/lessons/journal",payload);
-  assert.equal(first.status,201,JSON.stringify(first.body));
-  const lessonId=first.body.lessonId;
-  const [lesson,schedule,student,homework,task]=await Promise.all([db.collection("lessons").doc(lessonId).get(),db.collection("schedule").doc(scheduleId).get(),db.collection("students").doc(studentId).get(),db.collection("homework").doc(`lesson-completion-${lessonId}`).get(),db.collection("tasks").doc(`lesson-follow-up-${lessonId}`).get()]);
-  assert.equal(lesson.data().completionWorkflow.attendanceStatus,"coming");
-  assert.equal(schedule.data().attendance[`${studentId}_2026-09-23`].status,"coming");
-  assert.equal(student.data().curriculumPlan.topicId,"topic-2");
-  assert.equal(homework.data().task,"Kirjuta viis lauset.");
-  assert.equal(task.data().studentId,studentId);
-  const retry=await financeRequest(teacherToken,"/lessons/journal",payload);
-  assert.equal(retry.status,200,JSON.stringify(retry.body));
-  assert.equal((await db.collection("homework").where("lessonId","==",lessonId).get()).size,1);
-  assert.equal((await db.collection("tasks").where("lessonId","==",lessonId).get()).size,1);
+  let lessonId="";
+  try {
+    const first=await financeRequest(teacherToken,"/lessons/journal",payload);
+    assert.equal(first.status,201,JSON.stringify(first.body));
+    lessonId=first.body.lessonId;
+    const [lesson,schedule,student,homework,task]=await Promise.all([db.collection("lessons").doc(lessonId).get(),db.collection("schedule").doc(scheduleId).get(),db.collection("students").doc(studentId).get(),db.collection("homework").doc(`lesson-completion-${lessonId}`).get(),db.collection("tasks").doc(`lesson-follow-up-${lessonId}`).get()]);
+    assert.equal(lesson.data().completionWorkflow.attendanceStatus,"coming");
+    assert.equal(schedule.data().attendance[`${studentId}_2026-09-23`].status,"coming");
+    assert.equal(student.data().curriculumPlan.topicId,"topic-2");
+    assert.equal(homework.data().task,"Kirjuta viis lauset.");
+    assert.equal(task.data().studentId,studentId);
+    const retry=await financeRequest(teacherToken,"/lessons/journal",payload);
+    assert.equal(retry.status,200,JSON.stringify(retry.body));
+    assert.equal((await db.collection("homework").where("lessonId","==",lessonId).get()).size,1);
+    assert.equal((await db.collection("tasks").where("lessonId","==",lessonId).get()).size,1);
+  } finally {
+    const refs=[
+      db.collection("users").doc(teacherUid),
+      db.collection("students").doc(studentId),
+      db.collection("schedule").doc(scheduleId),
+      db.collection("lessonJournalRequests").doc(payload.requestId),
+    ];
+    if (lessonId) refs.push(
+      db.collection("lessons").doc(lessonId),
+      db.collection("homework").doc(`lesson-completion-${lessonId}`),
+      db.collection("tasks").doc(`lesson-follow-up-${lessonId}`),
+    );
+    await Promise.all(refs.map((ref)=>ref.delete()));
+  }
 });
 
 test("expenses are admin-only and preserve corrections, voids, documents, and audit history", async () => {
