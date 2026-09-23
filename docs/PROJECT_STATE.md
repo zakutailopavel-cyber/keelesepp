@@ -12,6 +12,12 @@ step and optional internal follow-up. One authenticated lesson-journal request t
 schedule attendance, stable homework, student curriculum pointer and linked task in the same Firestore transaction.
 Existing stable lesson IDs and request IDs make retries idempotent and prevent duplicate homework or follow-up tasks.
 
+The same modal now includes a school-curriculum picker backed by the existing `curriculumLessons` collection, with
+subject and CEFR-level filters and lessons grouped by curriculum topic. This keeps the full managed C1 roadmap from
+`Õppevara → Õppekavad` authoritative, while retaining the built-in curriculum as a fallback. Selecting a lesson
+prefills the diary topic, vocabulary, goal and next assignment and makes one-click completion advance from that exact
+position. The picker remains available when the student's subject or level is missing instead of silently disappearing.
+
 Changed files: `haldus.html`, `haldus.css`, `functions/index.js`, `functions/lesson-record-core.js`,
 `functions/lesson-record-core.test.js`, `lesson-one-click-completion.test.js`, `ARCHITECTURE.md` and this state file.
 The existing `lessons`, `schedule`, `students`, `homework`, `tasks` and `lessonJournalRequests` stores are reused;

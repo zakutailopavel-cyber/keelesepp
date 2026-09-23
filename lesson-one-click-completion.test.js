@@ -16,6 +16,15 @@ test('lesson modal exposes one primary completion action with prefilled workflow
   assert.match(html,/completion\.attendanceStatus==='warned'\?'Puudus_p'/);
 });
 
+test('lesson modal can select a lesson from the shared school curriculum',()=>{
+  assert.match(html,/Vali tund kooli õppekavast/);
+  assert.match(html,/db\.collection\('curriculumLessons'\)\.limit\(500\)\.get\(\)/);
+  assert.match(html,/curriculumSubjectFilter/);
+  assert.match(html,/curriculumLevelFilter/);
+  assert.match(html,/curriculumLessonGroups\.map/);
+  assert.match(html,/setLTopic\(selected\.lessonTitle\|\|selected\.topicName\)/);
+});
+
 test('completion request is handled in the lesson journal transaction',()=>{
   assert.match(server,/cleanLessonCompletionInput/);
   assert.match(server,/transaction\.set\(lessonRef/);
