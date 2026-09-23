@@ -5,7 +5,7 @@
 Last verified: 2026-09-23, Europe/Tallinn
 Verified main: `5d66ec40647a69d5ec639e4c4b8a953f992b127d`.
 Implementation branch: `codex/oppevara-dedup-rename`.
-PR: not opened yet.
+Draft PR: https://github.com/zakutailopavel-cyber/keelesepp/pull/156.
 
 The production `curriculumLessons` collection was audited read-only before implementation: 306 records, with no
 duplicate stable source keys and no exact duplicate subject/level/topic/title groups. No production documents were
@@ -35,7 +35,7 @@ locked existing-record save message and automatic document-name control.
 Known limitation: production UI verification waits for PR review/merge and deployment. Existing near-duplicates with
 different titles or topics are intentionally not guessed or deleted.
 
-Exactly one next safe step: open a draft PR and verify its Vercel preview before owner review/merge.
+Exactly one next safe step: verify the Vercel preview and CI for PR #156 before owner review/merge.
 
 ## C1 curriculum 240 academic hours — implementation
 
