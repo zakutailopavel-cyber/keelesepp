@@ -18,15 +18,16 @@ The existing `lessons`, `schedule`, `students`, `homework`, `tasks` and `lessonJ
 no migration, new collection, rules change or production write is included.
 
 Validation: PASS — Functions unit suite 167/167; focused lesson/UI contracts 16/16; Node syntax check and
-`git diff --check`. The new demo-project emulator integration is committed, but its local execution was blocked
-before startup because this host has no Java runtime; GitHub CI remains the integration gate. Authenticated visual
-owner review is required before production deployment.
+`git diff --check`. GitHub CI run 35883603985 passed the full Financial Core emulator suite, including the new
+one-click transaction and its retry/idempotency checks. The automatic Vercel preview is ready. Local emulator
+startup remains unavailable on this host because Java is not installed; authenticated visual owner review is still
+required before production deployment.
 
 Known limitation: v1 applies to individual scheduled lessons. Group lessons keep their existing per-student
 attendance workflow because one group click must preserve distinct attendance and package outcomes for each student.
 
-Exactly one next safe step: run the Functions emulator integration and verify one real-looking scheduled lesson in
-the hosted preview before owner review/merge.
+Exactly one next safe step: verify one real-looking scheduled lesson in the authenticated hosted preview before
+owner review/merge.
 
 ## Unified notification centre v1
 
