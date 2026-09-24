@@ -1,5 +1,38 @@
 # KeeleSepp Project State
 
+## Communication Hub v1 foundation — DRAFT
+
+Last verified against main: 2026-09-24, Europe/Tallinn
+Verified main at task start: `e507ce67b16f819d15b5ad68aa41bce2d25444e8`.
+Implementation branch: `agent/communication-hub-foundation`.
+
+CRM v2's existing `Sõnumid` workflow is being converted into a channel-neutral `Kommunikatsioon` foundation
+without replacing the working `messages` collection. Conversation identity is now derived from stable IDs:
+explicit `conversationId` first, then channel-qualified external thread identity, while legacy internal conversations
+continue to use the exact `studentId`. Array position and current sort order are presentation-only and cannot identify
+a conversation.
+
+New internal sends remain legacy-compatible while adding `channel: internal` and `conversationId: studentId`.
+The model can project `facebook` and `instagram` message metadata, but external conversations are deliberately
+read-only in this slice so they cannot be misrouted through the internal sender before a trusted Meta adapter exists.
+
+Changed files: `crm-v2/src/features/messages/MessagesPage.jsx`,
+`crm-v2/src/features/messages/messagesModel.js`, their focused tests,
+`crm-v2/src/services/firebase/messages.js` and its test, `crm-v2/src/app/navigation.js`,
+`ARCHITECTURE.md`, `docs/COMMUNICATION_HUB_V1.md` and this state file.
+
+No Meta API/webhook, token, production deployment, Firestore rule/index change, schema migration or production write
+is included.
+
+Validation: pending branch tests/CI.
+
+Known limitation: Facebook/Instagram ingestion and replies are not connected yet. This PR only establishes the stable
+contract required to add those adapters safely during the CRM v2 refactor.
+
+Exactly one next safe step: validate and merge this foundation; then implement a server-only Meta webhook ingest
+adapter with idempotent `externalMessageId` handling and no production activation until owner review.
+
+
 ## One-click lesson completion
 
 Last verified: 2026-09-23, Europe/Tallinn
