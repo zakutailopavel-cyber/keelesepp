@@ -16,6 +16,12 @@ function initials(name = '') {
   return name.split(/\s+/).filter(Boolean).map((part) => part[0]).join('').slice(0, 2).toLocaleUpperCase('et') || '?';
 }
 
+function channelLabel(channel) {
+  if (channel === 'facebook') return 'Facebook';
+  if (channel === 'instagram') return 'Instagram';
+  return 'KeeleSepp';
+}
+
 export default function MessagesPage({ repository = messagesService, studentRepository = studentsService }) {
   const { user } = useAuth();
   const admin = hasAnyRole(user.roles, [ROLES.ADMIN]);
@@ -42,10 +48,11 @@ export default function MessagesPage({ repository = messagesService, studentRepo
   const students = state.data?.students || [];
   const selectedStudent = students.find((item) => item.id === selected);
   const active = allConversations.find((item) => item.id === selected)
-    || (selectedStudent ? { id: selectedStudent.id, name: selectedStudent.name, teacher: selectedStudent.teacher || '', messages: [], unread: 0 } : conversations[0]);
+    || (selectedStudent ? { id: selectedStudent.id, channel: 'internal', studentId: selectedStudent.id, name: selectedStudent.name, teacher: selectedStudent.teacher || '', messages: [], unread: 0 } : conversations[0]);
   const unreadMessages = active?.messages.filter((message) => !message.read && message.fromUid !== user.uid && !locallyRead.has(message.id)) || [];
   const unreadKey = unreadMessages.map((message) => message.id).join('|');
   const totalUnread = allConversations.reduce((sum, item) => sum + item.unread, 0);
+  const externalConversation = active && active.channel !== 'internal';
 
   useEffect(() => {
     if (!active?.id || !unreadMessages.length) return undefined;
@@ -63,10 +70,11 @@ export default function MessagesPage({ repository = messagesService, studentRepo
 
   const send = async (event) => {
     event.preventDefault();
-    if (!text.trim() || !active) return;
+    if (!text.trim() || !active || externalConversation) return;
+    const studentId = active.studentId || active.id;
     setSending(true); setActionError('');
     try {
-      await repository.send({ studentId: active.id, studentName: active.name, teacher: active.teacher || selectedStudent?.teacher || '', text }, user);
+      await repository.send({ studentId, studentName: active.name, teacher: active.teacher || selectedStudent?.teacher || '', text }, user);
       setText('');
       await state.reload();
     } catch (error) { setActionError(error.message || 'Sõnumi saatmine ebaõnnestus.'); }
@@ -79,21 +87,23 @@ export default function MessagesPage({ repository = messagesService, studentRepo
   };
 
   return <div className="page-content">
-    <PageHeader eyebrow="Suhtlus" title="Sõnumid" description="Vestlused õpilaste ja lapsevanematega." actions={totalUnread ? <Badge tone="info">{totalUnread} lugemata</Badge> : null} />
+    <PageHeader eyebrow="Suhtlus" title="Kommunikatsioon" description="Üks vestlusvaade KeeleSepa sisemistele ja välistele kanalitele." actions={totalUnread ? <Badge tone="info">{totalUnread} lugemata</Badge> : null} />
     {actionError ? <div className="action-error" role="alert">{actionError}<button aria-label="Sulge veateade" onClick={() => setActionError('')}>×</button></div> : null}
     <Card className="messages-shell">
       <aside className="conversation-list">
         <div className="search-field"><Search size={17} /><input aria-label="Otsi vestlust" placeholder="Otsi vestlust" value={query} onChange={(event) => setQuery(event.target.value)} /></div>
         <select className="new-conversation" aria-label="Alusta vestlust" value="" onChange={start}><option value="">+ Alusta uut vestlust</option>{students.map((student) => <option value={student.id} key={student.id}>{student.name}</option>)}</select>
         <div>{conversations.map((item) => <button className={active?.id === item.id ? 'conversation active' : 'conversation'} key={item.id} onClick={() => setSelected(item.id)}>
-          <span className="conversation-avatar">{initials(item.name)}</span><div><strong>{item.name}</strong><small>{item.messages.at(-1)?.text}</small></div>{item.unread ? <b aria-label={`${item.unread} lugemata`}>{item.unread}</b> : <CheckCheck className="conversation-read" size={17} />}
+          <span className="conversation-avatar">{initials(item.name)}</span><div><strong>{item.name}</strong><small>{channelLabel(item.channel)} · {item.messages.at(-1)?.text}</small></div>{item.unread ? <b aria-label={`${item.unread} lugemata`}>{item.unread}</b> : <CheckCheck className="conversation-read" size={17} />}
         </button>)}</div>
         {!conversations.length && query ? <div className="conversation-empty">Vestlusi ei leitud.</div> : null}
       </aside>
       <section className="chat-panel">{active ? <>
-        <header><span className="conversation-avatar">{initials(active.name)}</span><div><strong>{active.name}</strong><small>{active.messages.length} sõnumit{active.teacher ? ` · ${active.teacher}` : ''}</small></div></header>
+        <header><span className="conversation-avatar">{initials(active.name)}</span><div><strong>{active.name}</strong><small>{channelLabel(active.channel)} · {active.messages.length} sõnumit{active.teacher ? ` · ${active.teacher}` : ''}</small></div></header>
         <div className="message-stream" aria-label={`Vestlus: ${active.name}`}>{active.messages.length ? active.messages.map((message) => <div className={message.fromUid === user.uid ? 'message own' : 'message'} key={message.id}><span>{message.fromName}</span><p>{message.text}</p><time>{messageTime(message)}</time></div>) : <EmptyState title="Alusta vestlust" description="Kirjuta esimene sõnum allolevasse väljale." action={<MessageCircle size={28} />} />}</div>
-        <form className="message-composer" onSubmit={send}><textarea aria-label="Sõnum" maxLength="4000" placeholder="Kirjuta sõnum…" rows="2" value={text} onChange={(event) => setText(event.target.value)} /><div><small>{text.length}/4000</small><Button type="submit" loading={sending} disabled={!text.trim()} aria-label="Saada"><Send size={18} /></Button></div></form>
+        {externalConversation
+          ? <div className="message-composer"><small>Facebooki ja Instagrami vastamine aktiveeritakse eraldi serveripoolse Meta ühenduse kaudu. Seda vestlust ei saadeta ekslikult KeeleSepa sisekanalisse.</small></div>
+          : <form className="message-composer" onSubmit={send}><textarea aria-label="Sõnum" maxLength="4000" placeholder="Kirjuta sõnum…" rows="2" value={text} onChange={(event) => setText(event.target.value)} /><div><small>{text.length}/4000</small><Button type="submit" loading={sending} disabled={!text.trim()} aria-label="Saada"><Send size={18} /></Button></div></form>}
       </> : <EmptyState title="Vestlusi veel ei ole" description="Vali õpilane ja alusta esimest vestlust." action={<MessageCircle size={28} />} />}</section>
     </Card>
   </div>;
