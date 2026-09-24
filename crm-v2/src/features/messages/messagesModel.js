@@ -14,10 +14,13 @@ export function messageChannel(message = {}) {
 }
 
 export function conversationIdentity(message = {}) {
-  const explicit = clean(message.conversationId);
-  if (explicit) return explicit;
-
   const channel = messageChannel(message);
+  const explicit = clean(message.conversationId);
+  if (explicit) {
+    if (channel === 'internal' || explicit.startsWith(`${channel}:`)) return explicit;
+    return `${channel}:${explicit}`;
+  }
+
   const studentId = clean(message.studentId);
   if (channel === 'internal' && studentId) return studentId;
 
@@ -44,7 +47,9 @@ export function buildConversations(messages = [], userUid = '', locallyRead = ne
       channel,
       studentId: clean(message.studentId),
       externalThreadId: clean(message.externalThreadId),
-      name: message.studentName || message.externalSenderName || message.fromName || 'Vestlus',
+      name: channel === 'internal'
+        ? (message.studentName || message.fromName || 'Vestlus')
+        : (message.externalSenderName || message.studentName || message.fromName || 'Vestlus'),
       teacher: message.teacher || '',
       messages: [],
       unread: 0,
