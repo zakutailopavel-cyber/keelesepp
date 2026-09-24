@@ -14,7 +14,7 @@ export const navigation = [
   { to: '/teachers', label: 'Õpetajad', icon: UserRoundCog, roles: ACCESS.ADMIN },
   { to: '/homework', label: 'Kodutööd', icon: BookOpen, roles: ACCESS.HOMEWORK },
   { to: '/finance', label: 'Finantsid', icon: CircleDollarSign, roles: ACCESS.FINANCE },
-  { to: '/messages', label: 'Sõnumid', icon: MessageSquareText, roles: ACCESS.MESSAGES },
+  { to: '/messages', label: 'Suhtlus', icon: MessageSquareText, roles: ACCESS.MESSAGES },
 ];
 
 export const settingsNavigation = { to: '/settings', label: 'Seaded', icon: Settings, roles: ACCESS.ALL_AUTHENTICATED };
