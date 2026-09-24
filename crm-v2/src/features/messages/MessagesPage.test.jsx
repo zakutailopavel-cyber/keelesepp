@@ -69,7 +69,7 @@ describe('MessagesPage', () => {
   it('scopes a teacher to assigned students and marks the open conversation read', async () => {
     const data = repositories();
     renderPage({ uid: 'teacher-1', displayName: 'Pavel', roles: ['teacher'] }, data);
-    expect(await screen.findAllByText('Kas tund toimub?')).toHaveLength(2);
+    expect(await screen.findByText('Kas tund toimub?')).toBeInTheDocument();
     expect(data.studentRepository.list).toHaveBeenCalledWith(expect.objectContaining({ scopeTeacherUid: 'teacher-1' }));
     expect(data.repository.listByStudentIds).toHaveBeenCalledWith(['student-1', 'student-2']);
     expect(data.repository.list).not.toHaveBeenCalled();
@@ -109,7 +109,7 @@ describe('MessagesPage', () => {
   it('uses the full message list only for administrators', async () => {
     const data = repositories();
     renderPage({ uid: 'admin-1', displayName: 'Admin', roles: ['admin'] }, data);
-    expect(await screen.findAllByText('Kas tund toimub?')).toHaveLength(2);
+    expect(await screen.findByText('Kas tund toimub?')).toBeInTheDocument();
     expect(data.repository.list).toHaveBeenCalledOnce();
     expect(data.repository.listByStudentIds).not.toHaveBeenCalled();
   });
