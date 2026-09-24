@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import { describe, expect, it, vi } from 'vitest';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import MessagesPage from './MessagesPage.jsx';
-import { buildConversations } from './messagesModel.js';
+import { buildConversations, conversationIdentity } from './messagesModel.js';
 
 const students = [{ id: 'student-1', name: 'Mari Maasikas', teacher: 'Pavel' }, { id: 'student-2', name: 'Karl Kask', teacher: 'Pavel' }];
 const incoming = { id: 'message-1', studentId: 'student-1', studentName: 'Mari Maasikas', teacher: 'Pavel', fromUid: 'parent-1', fromName: 'Mari ema', text: 'Kas tund toimub?', createdAt: '2026-08-04T09:00:00.000Z', read: false };
@@ -37,6 +37,33 @@ describe('MessagesPage', () => {
     expect(result[0].unread).toBe(2);
   });
 
+  it('keeps conversation identity stable when message array order changes', () => {
+    const facebook = {
+      id: 'fb-message-1',
+      channel: 'facebook',
+      conversationId: 'facebook:page-1:thread-99',
+      externalThreadId: 'thread-99',
+      externalSenderName: 'Anna',
+      text: 'Tere',
+      createdAt: '2026-09-24T07:00:00.000Z',
+    };
+    const instagram = {
+      id: 'ig-message-1',
+      channel: 'instagram',
+      externalThreadId: 'thread-44',
+      externalSenderName: 'Marta',
+      text: 'Tere',
+      createdAt: '2026-09-24T08:00:00.000Z',
+    };
+
+    expect(conversationIdentity(facebook)).toBe('facebook:page-1:thread-99');
+    expect(conversationIdentity(instagram)).toBe('instagram:thread-44');
+
+    const forward = buildConversations([facebook, instagram]).map((item) => item.id).sort();
+    const reversed = buildConversations([instagram, facebook]).map((item) => item.id).sort();
+    expect(reversed).toEqual(forward);
+  });
+
   it('scopes a teacher to assigned students and marks the open conversation read', async () => {
     const data = repositories();
     renderPage({ uid: 'teacher-1', displayName: 'Pavel', roles: ['teacher'] }, data);
@@ -58,6 +85,23 @@ describe('MessagesPage', () => {
     fireEvent.click(within(conversation.parentElement).getByRole('button', { name: 'Saada' }));
     await waitFor(() => expect(data.repository.send).toHaveBeenCalledWith({ studentId: 'student-1', studentName: 'Mari Maasikas', teacher: 'Pavel', text: 'Kas tund toimub homme?' }, user));
     expect(data.studentRepository.listOwned).toHaveBeenCalledWith('parent-1');
+  });
+
+  it('shows an external channel without routing replies through the internal sender', async () => {
+    const data = repositories([{
+      ...incoming,
+      id: 'fb-message-1',
+      channel: 'facebook',
+      conversationId: 'facebook:page-1:thread-99',
+      externalThreadId: 'thread-99',
+      externalSenderName: 'Mari ema',
+      createdAt: '2026-09-24T10:00:00.000Z',
+    }]);
+    renderPage({ uid: 'admin-1', displayName: 'Admin', roles: ['admin'] }, data);
+    expect(await screen.findAllByText(/Facebook/)).not.toHaveLength(0);
+    expect(screen.getByText(/Meta ühenduse kaudu/)).toBeInTheDocument();
+    expect(screen.queryByLabelText('Sõnum')).not.toBeInTheDocument();
+    expect(data.repository.send).not.toHaveBeenCalled();
   });
 
   it('uses the full message list only for administrators', async () => {
