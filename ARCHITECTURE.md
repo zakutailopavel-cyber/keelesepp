@@ -358,3 +358,16 @@ a `publishedLessons` current pointer. Firestore client access is denied. Server 
 byte-identical Normalized Activity Contract modules, enforced by tests. Publication is staff-only;
 assignment and LearningSession integration remain out of scope. Future sessions must pin the
 immutable lessonVersionId. See `docs/LESSON_BUILDER_CLOUD_DRAFTS_V1.md`.
+
+## CRM v2 Communication Hub
+
+CRM v2 treats communication as a channel-neutral projection over stable identities. Existing student-linked
+`messages` remain compatible and new internal messages add `channel: internal` plus a stable `conversationId`
+equal to the exact student ID. External Facebook and Instagram records may carry stable `conversationId`,
+`externalThreadId`, `externalMessageId` and sender identifiers. Conversation selection, grouping and React keys
+must never use an array index or current sort position.
+
+The browser Firebase service remains the only client data boundary. External-channel replies are fail-closed until a
+trusted server-side Meta adapter exists; CRM v2 must never route an external thread through the internal student
+message writer. This foundation adds no webhook, Meta credential, migration, Firestore index, rules change or
+production side effect. See `docs/COMMUNICATION_HUB_V1.md`.
