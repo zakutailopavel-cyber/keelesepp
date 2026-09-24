@@ -58,6 +58,8 @@ describe('MessagesPage', () => {
 
     expect(conversationIdentity(facebook)).toBe('facebook:page-1:thread-99');
     expect(conversationIdentity(instagram)).toBe('instagram:thread-44');
+    expect(conversationIdentity({ channel: 'instagram', conversationId: 'shared-thread' })).toBe('instagram:shared-thread');
+    expect(conversationIdentity({ channel: 'facebook', conversationId: 'shared-thread' })).toBe('facebook:shared-thread');
 
     const forward = buildConversations([facebook, instagram]).map((item) => item.id).sort();
     const reversed = buildConversations([instagram, facebook]).map((item) => item.id).sort();
