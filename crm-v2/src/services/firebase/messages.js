@@ -11,10 +11,23 @@ function chunks(values = [], size = 10) {
   return Array.from({ length: Math.ceil(values.length / size) }, (_, index) => values.slice(index * size, index * size + size));
 }
 
+export function normalizeMessageChannel(value) {
+  const raw = String(value || '').trim().toLocaleLowerCase('en');
+  if (raw === 'facebook' || raw === 'messenger' || raw === 'facebook_messenger') return 'facebook';
+  if (raw === 'instagram' || raw === 'instagram_direct' || raw === 'ig') return 'instagram';
+  return 'internal';
+}
+
 export function normalizeMessage(id, data = {}) {
   return {
     id,
     ...data,
+    channel: normalizeMessageChannel(data.channel || data.source),
+    conversationId: String(data.conversationId || '').trim(),
+    externalThreadId: String(data.externalThreadId || '').trim(),
+    externalMessageId: String(data.externalMessageId || '').trim(),
+    externalSenderId: String(data.externalSenderId || '').trim(),
+    externalSenderName: String(data.externalSenderName || '').trim(),
     studentId: data.studentId || '',
     studentName: data.studentName || 'Vestlus',
     teacher: canonicalTeacherName(data.teacher),
@@ -55,6 +68,8 @@ export const messagesService = {
     const { db } = requireFirebaseClient();
     const createdAt = new Date().toISOString();
     const value = {
+      channel: 'internal',
+      conversationId: studentId,
       studentId,
       studentName,
       teacher: canonicalTeacherName(data.teacher),
@@ -79,7 +94,7 @@ export const messagesService = {
       byRole: user.roles?.[0] || '',
       createdAt,
       date: createdAt.slice(0, 10),
-      meta: { messageId: reference.id || '', textLength: text.length },
+      meta: { messageId: reference.id || '', channel: 'internal', conversationId: studentId, textLength: text.length },
     });
     await batch.commit();
     return { id: reference.id, ...value };
