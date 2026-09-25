@@ -79,24 +79,37 @@ function metaSendRequest({
   channel,
   recipientId,
   text,
-  pageId,
-  graphVersion = "v25.0",
+  facebookPageId,
+  instagramAccountId,
+  graphVersion = "v26.0",
 } = {}) {
   if (!CHANNELS.has(channel)) throw new Error("Unsupported Meta channel");
-  const senderPageId = clean(pageId, 300);
   const version = clean(graphVersion, 32).replace(/^\/+|\/+$/g, "");
-  if (!senderPageId) throw new Error("Meta Page ID is required");
   if (!/^v\d+\.\d+$/.test(version)) throw new Error("Invalid Meta Graph API version");
 
   const body = {
-    recipient: { id: recipientId },
-    message: { text },
+    recipient: { id: clean(recipientId, 300) },
+    message: { text: clean(text, 2000) },
   };
-  if (channel === "facebook") body.messaging_type = "RESPONSE";
+  if (!body.recipient.id || !body.message.text) throw new Error("Meta recipient and text are required");
 
+  if (channel === "facebook") {
+    const senderId = clean(facebookPageId, 300);
+    if (!senderId) throw new Error("Facebook Page ID is required");
+    body.messaging_type = "RESPONSE";
+    return {
+      url: `https://graph.facebook.com/${version}/${encodeURIComponent(senderId)}/messages`,
+      body,
+      tokenEnv: "META_PAGE_ACCESS_TOKEN",
+    };
+  }
+
+  const senderId = clean(instagramAccountId, 300);
+  if (!senderId) throw new Error("Instagram account ID is required");
   return {
-    url: `https://graph.facebook.com/${version}/${encodeURIComponent(senderPageId)}/messages`,
+    url: `https://graph.instagram.com/${version}/${encodeURIComponent(senderId)}/messages`,
     body,
+    tokenEnv: "META_INSTAGRAM_ACCESS_TOKEN",
   };
 }
 
