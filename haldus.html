@@ -16616,6 +16616,7 @@ function App() {
     {id:'dashboard',icon:'fa-sun',label:isStaff?'Minu tööpäev':'Töölaud',badge:unreadMessages.length,daily:isStaff},
     {id:'calendar', icon:'fa-calendar-days',label:'Tunniplaan',daily:isStaff},
     ...(isStaff?[{id:'lesson_builder',icon:'fa-wand-magic-sparkles',label:'Valmista tund',daily:true}]:[]),
+    ...(isStaff?[{id:'communication',icon:'fa-comments',label:'Kommunikatsioon',isExternal:true,href:'/haldus-communication/',daily:true,badge:unreadMessages.length}]:[]),
     {id:'live_classroom',icon:'fa-display',label:'Live Classroom',isExternal:true,href:'/live-classroom/'},
     {id:'whiteboard',icon:'fa-note-sticky',label:'Tahvel',isExternal:true,href:'/haldus-whiteboard/'},
     ...(isStaff?[{id:'tasks',icon:'fa-list-check',label:'Ülesanded',
