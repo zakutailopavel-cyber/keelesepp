@@ -47,7 +47,19 @@ no migration, new collection, Firestore index, or rules change is required.
 
 - `GET /webhook` — Meta challenge verification using `META_VERIFY_TOKEN`;
 - `POST /webhook` — HMAC-SHA256 validation using `META_APP_SECRET`, followed by idempotent ingest;
-- `POST /reply` — administrator-authenticated send through Meta Graph API using `META_PAGE_ACCESS_TOKEN`.
+- `POST /reply` — administrator-authenticated send through the channel-specific Meta Send API.
+
+Before any outbound call, the server verifies that the requested channel, conversation ID and recipient match an
+existing inbound Meta message created by the signed webhook. A browser-supplied recipient ID is therefore not enough
+to send a message.
+
+Facebook replies use `https://graph.facebook.com/<version>/<page-id>/messages` with
+`META_PAGE_ACCESS_TOKEN`. Instagram replies use
+`https://graph.instagram.com/<version>/<instagram-account-id>/messages` with
+`META_INSTAGRAM_ACCESS_TOKEN`. The default API version is `v26.0` and can be overridden with
+`META_GRAPH_VERSION`. The known sender assets are pinned to Facebook Page `571647362697524` and Instagram
+account `17841474277841669`; optional non-secret env overrides are `META_FACEBOOK_PAGE_ID` and
+`META_INSTAGRAM_ACCOUNT_ID`.
 
 Inbound document IDs are a deterministic SHA-256 projection of channel plus Meta message ID. Meta retries therefore
 cannot duplicate messages. Provider secrets are Firebase Function secrets and are never returned to CRM v2.
@@ -64,4 +76,19 @@ Required before merge:
 - lint and production build;
 - test proving conversation identity is unchanged when input array order changes;
 - test proving an external conversation uses the Meta API path and cannot use the internal send path;
+- test proving outbound replies fail closed when the recipient is not bound to the signed inbound conversation;
+- test proving Facebook and Instagram use their own sender endpoint/token contract;
 - no production deploy or webhook activation before owner approval.
+
+## Production activation gate
+
+After owner merge and explicit deployment approval, configure these Firebase Function secrets:
+
+- `META_VERIFY_TOKEN`;
+- `META_APP_SECRET`;
+- `META_PAGE_ACCESS_TOKEN`;
+- `META_INSTAGRAM_ACCESS_TOKEN`.
+
+Then deploy only `metaMessagingApi`, verify `GET /webhook` with the Meta challenge, configure the callback and
+message subscriptions in Meta, and run one inbound + outbound smoke test for Facebook and one for Instagram.
+No production Firestore migration or rules/index deployment is required for this workstream.
