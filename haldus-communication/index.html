@@ -30,7 +30,7 @@ body.embedded{background:transparent}.top{height:64px;background:#fff;border-bot
 </head>
 <body>
 <div id="root"></div>
-<script>
+<script type="text/babel" data-presets="react">
 if(new URLSearchParams(location.search).get('embedded')==='1') document.body.classList.add('embedded');
 firebase.initializeApp({
   apiKey:"AIzaSyAp8emBOh1fIqv72k_O5hkLkXVkfBt1al4",
