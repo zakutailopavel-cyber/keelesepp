@@ -10,11 +10,15 @@ const firestore = vi.hoisted(() => ({
   batch: { set: vi.fn(), update: vi.fn(), commit: vi.fn().mockResolvedValue(undefined) },
   writeBatch: vi.fn(),
 }));
+const firebaseClient = vi.hoisted(() => ({
+  auth: { currentUser: { getIdToken: vi.fn().mockResolvedValue('firebase-id-token') } },
+  db: 'firebase-db',
+}));
 
 vi.mock('firebase/firestore', () => firestore);
-vi.mock('./client.js', () => ({ requireFirebaseClient: () => ({ db: 'firebase-db' }) }));
+vi.mock('./client.js', () => ({ requireFirebaseClient: () => firebaseClient }));
 
-import { messagesService, normalizeMessage } from './messages.js';
+import { messagesService, normalizeMessage, normalizeMessageChannel } from './messages.js';
 
 describe('messagesService', () => {
   beforeEach(() => {
@@ -24,7 +28,26 @@ describe('messagesService', () => {
 
   it('normalizes Firestore timestamps and legacy message fields', () => {
     expect(normalizeMessage('message-1', { studentId: 'student-1', text: 'Tere', createdAt: { toDate: () => new Date('2026-08-04T10:00:00.000Z') } })).toMatchObject({
-      id: 'message-1', studentId: 'student-1', studentName: 'Vestlus', text: 'Tere', createdAt: '2026-08-04T10:00:00.000Z', read: false,
+      id: 'message-1', channel: 'internal', conversationId: '', studentId: 'student-1', studentName: 'Vestlus', text: 'Tere', createdAt: '2026-08-04T10:00:00.000Z', read: false,
+    });
+  });
+
+  it('normalizes external channel aliases without using array position as identity', () => {
+    expect(normalizeMessageChannel('messenger')).toBe('facebook');
+    expect(normalizeMessageChannel('IG')).toBe('instagram');
+    expect(normalizeMessage('fb-1', {
+      source: 'facebook_messenger',
+      conversationId: 'facebook:page-1:thread-99',
+      externalThreadId: 'thread-99',
+      externalMessageId: 'mid.123',
+      externalSenderId: 'sender-1',
+    })).toMatchObject({
+      id: 'fb-1',
+      channel: 'facebook',
+      conversationId: 'facebook:page-1:thread-99',
+      externalThreadId: 'thread-99',
+      externalMessageId: 'mid.123',
+      externalSenderId: 'sender-1',
     });
   });
 
@@ -40,14 +63,42 @@ describe('messagesService', () => {
     expect(firestore.where).toHaveBeenCalledWith('studentId', 'in', expect.any(Array));
   });
 
-  it('atomically sends a bounded message and writes an audit event', async () => {
+  it('atomically sends a bounded internal message with stable conversation identity and audit event', async () => {
     const user = { uid: 'teacher-1', displayName: 'Õpetaja', roles: ['teacher'] };
-    await expect(messagesService.send({ studentId: 'student-1', studentName: 'Mari', teacher: 'Õpetaja', text: '  Tere!  ' }, user)).resolves.toMatchObject({ id: 'generated-message', text: 'Tere!', read: false });
+    await expect(messagesService.send({ studentId: 'student-1', studentName: 'Mari', teacher: 'Õpetaja', text: '  Tere!  ' }, user)).resolves.toMatchObject({
+      id: 'generated-message', channel: 'internal', conversationId: 'student-1', text: 'Tere!', read: false,
+    });
     expect(firestore.batch.set).toHaveBeenCalledTimes(2);
-    expect(firestore.batch.set.mock.calls[0][1]).toMatchObject({ studentId: 'student-1', studentName: 'Mari', teacher: 'Õpetaja', text: 'Tere!', fromUid: 'teacher-1', read: false });
-    expect(firestore.batch.set.mock.calls[1][1]).toMatchObject({ type: 'message.sent', studentId: 'student-1', byUid: 'teacher-1' });
+    expect(firestore.batch.set.mock.calls[0][1]).toMatchObject({
+      channel: 'internal', conversationId: 'student-1', studentId: 'student-1', studentName: 'Mari', teacher: 'Õpetaja', text: 'Tere!', fromUid: 'teacher-1', read: false,
+    });
+    expect(firestore.batch.set.mock.calls[1][1]).toMatchObject({
+      type: 'message.sent', studentId: 'student-1', byUid: 'teacher-1', meta: expect.objectContaining({ channel: 'internal', conversationId: 'student-1' }),
+    });
     expect(firestore.batch.commit).toHaveBeenCalledOnce();
     await expect(messagesService.send({ studentId: 'student-1', studentName: 'Mari', text: 'x'.repeat(4001) }, user)).rejects.toThrow('4000');
+  });
+
+  it('sends external replies only through the authenticated Meta endpoint', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      json: vi.fn().mockResolvedValue({ id: 'meta-message-1' }),
+    });
+    await expect(messagesService.sendExternal({
+      channel: 'facebook',
+      conversationId: 'facebook:sender-1',
+      externalSenderId: 'sender-1',
+      text: ' Tere! ',
+    })).resolves.toEqual({ id: 'meta-message-1' });
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://us-central1-keelesepp-5136b.cloudfunctions.net/metaMessagingApi/reply',
+      expect.objectContaining({
+        method: 'POST',
+        headers: expect.objectContaining({ Authorization: 'Bearer firebase-id-token' }),
+        body: JSON.stringify({ channel: 'facebook', conversationId: 'facebook:sender-1', recipientId: 'sender-1', text: 'Tere!' }),
+      }),
+    );
+    fetchMock.mockRestore();
   });
 
   it('marks only unread incoming messages as read', async () => {

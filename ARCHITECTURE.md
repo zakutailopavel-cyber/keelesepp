@@ -358,3 +358,21 @@ a `publishedLessons` current pointer. Firestore client access is denied. Server 
 byte-identical Normalized Activity Contract modules, enforced by tests. Publication is staff-only;
 assignment and LearningSession integration remain out of scope. Future sessions must pin the
 immutable lessonVersionId. See `docs/LESSON_BUILDER_CLOUD_DRAFTS_V1.md`.
+
+## CRM v2 Communication Hub
+
+CRM v2 treats communication as a channel-neutral projection over stable identities. Existing student-linked
+`messages` remain compatible and new internal messages add `channel: internal` plus a stable `conversationId`
+equal to the exact student ID. External Facebook and Instagram records may carry stable `conversationId`,
+`externalThreadId`, `externalMessageId` and sender identifiers. Conversation selection, grouping and React keys
+must never use an array index or current sort position.
+
+The browser Firebase service remains the client data boundary. External-channel replies are sent only by an
+administrator through the authenticated `metaMessagingApi`; CRM v2 never routes an external thread through the
+internal student message writer. The Firebase Function verifies Meta webhook challenges and HMAC-SHA256 signatures,
+uses deterministic inbound document IDs for retry safety, and stores inbound/outbound projections in the existing
+`messages` collection. Outbound replies are additionally bound server-side to a previously ingested signed Meta
+conversation, so a client cannot substitute an arbitrary recipient ID. Facebook uses its Page-scoped Send API with
+`META_PAGE_ACCESS_TOKEN`; Instagram uses its Instagram Send API with `META_INSTAGRAM_ACCESS_TOKEN`.
+`META_VERIFY_TOKEN` and `META_APP_SECRET` are also server-only Firebase Function secrets. No migration, Firestore
+index, or rules change is required. See `docs/COMMUNICATION_HUB_V1.md`.

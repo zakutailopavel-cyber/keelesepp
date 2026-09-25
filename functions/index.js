@@ -122,6 +122,13 @@ const {
   studentMergeOwnership,
   uniqueIds,
 } = require("./student-merge-core");
+const {
+  metaSendRequest,
+  replyInput: normalizeMetaReply,
+  replyMatchesConversation,
+  verifyMetaSignature,
+  webhookMessages,
+} = require("./meta-messaging-core");
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -7942,6 +7949,116 @@ exports.financeApi = functions.https.onRequest(async (req, res) => {
     sendError(res, e);
   }
 });
+
+// Meta Messenger + Instagram adapter. Webhook writes use deterministic IDs,
+// so provider retries cannot duplicate a message. Replies require an admin.
+exports.metaMessagingApi = functions
+  .runWith({ secrets: ["META_PAGE_ACCESS_TOKEN", "META_INSTAGRAM_ACCESS_TOKEN", "META_VERIFY_TOKEN", "META_APP_SECRET"] })
+  .https.onRequest(async (req, res) => {
+    applyCors(req, res);
+    if (req.method === "OPTIONS") { res.status(204).send(""); return; }
+
+    if (req.method === "GET" && req.path === "/webhook") {
+      const mode = String(req.query["hub.mode"] || "");
+      const token = String(req.query["hub.verify_token"] || "");
+      const challenge = String(req.query["hub.challenge"] || "");
+      if (mode === "subscribe" && token && token === process.env.META_VERIFY_TOKEN) {
+        res.status(200).send(challenge);
+      } else {
+        res.status(403).send("Forbidden");
+      }
+      return;
+    }
+
+    if (req.method === "POST" && req.path === "/webhook") {
+      const signature = req.get("X-Hub-Signature-256") || "";
+      if (!verifyMetaSignature({ rawBody: req.rawBody, signature, appSecret: process.env.META_APP_SECRET })) {
+        res.status(401).json({ error: "Invalid Meta signature" });
+        return;
+      }
+      const messages = webhookMessages(req.body);
+      let created = 0;
+      for (const message of messages) {
+        try {
+          await db.collection("messages").doc(message.id).create(message);
+          created += 1;
+        } catch (error) {
+          if (Number(error.code) !== 6 && error.code !== "already-exists") throw error;
+        }
+      }
+      res.status(200).json({ received: messages.length, created });
+      return;
+    }
+
+    if (req.method === "POST" && req.path === "/reply") {
+      try {
+        const actor = await requireAdminUser(req);
+        const input = normalizeMetaReply(req.body);
+
+        // Fail closed: the browser may only reply to a conversation that was
+        // previously ingested and bound by the signed Meta webhook.
+        const conversationSnap = await db.collection("messages")
+          .where("conversationId", "==", input.conversationId)
+          .limit(100)
+          .get();
+        const boundConversation = conversationSnap.docs
+          .map(doc => doc.data())
+          .some(message => replyMatchesConversation(message, input));
+        if (!boundConversation) throw httpError(409, "Meta conversation is not bound to this recipient");
+
+        const requestConfig = metaSendRequest({
+          channel: input.channel,
+          recipientId: input.recipientId,
+          text: input.text,
+          facebookPageId: process.env.META_FACEBOOK_PAGE_ID || "571647362697524",
+          instagramAccountId: process.env.META_INSTAGRAM_ACCOUNT_ID || "17841474277841669",
+          graphVersion: process.env.META_GRAPH_VERSION || "v26.0",
+        });
+        const accessToken = process.env[requestConfig.tokenEnv];
+        if (!accessToken) throw httpError(503, `${input.channel} messaging is not configured`);
+
+        const response = await fetch(requestConfig.url, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+          body: JSON.stringify(requestConfig.body),
+        });
+        const provider = await response.json().catch(() => ({}));
+        if (!response.ok || !provider.message_id) throw httpError(502, "Meta rejected the reply");
+        if (provider.recipient_id && String(provider.recipient_id) !== input.recipientId) {
+          throw httpError(502, "Meta returned an unexpected recipient");
+        }
+
+        const now = new Date().toISOString();
+        const reference = db.collection("messages").doc();
+        const actorData = actorSnapshot(actor);
+        const message = {
+          channel: input.channel,
+          conversationId: input.conversationId,
+          externalThreadId: input.recipientId,
+          externalMessageId: provider.message_id,
+          externalSenderId: input.recipientId,
+          studentId: "",
+          studentName: input.channel === "instagram" ? "Instagrami vestlus" : "Facebooki vestlus",
+          teacher: actorData.name,
+          text: input.text,
+          fromUid: actorData.uid,
+          fromName: actorData.name || actorData.email,
+          fromRole: "admin",
+          createdAt: now,
+          date: now.slice(0, 10),
+          read: true,
+          provider: "meta",
+        };
+        await reference.create(message);
+        res.status(201).json({ id: reference.id, ...message });
+      } catch (error) {
+        sendError(res, error);
+      }
+      return;
+    }
+
+    res.status(404).json({ error: "Not found" });
+  });
 
 // ── API: GET /api/gcal/auth-url ───────────────────────────────
 exports.gcalApi = functions.https.onRequest(async (req, res) => {

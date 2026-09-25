@@ -1,5 +1,53 @@
 # KeeleSepp Project State
 
+## Communication Hub v1 Meta adapter — READY FOR OWNER REVIEW
+
+Last verified against main: 2026-09-25, Europe/Tallinn
+Verified main: `e507ce67b16f819d15b5ad68aa41bce2d25444e8`.
+Implementation branch: `agent/communication-hub-foundation`.
+PR: #162.
+
+CRM v2's existing `Sõnumid` workflow is converted into a channel-neutral `Kommunikatsioon` surface without
+replacing the working `messages` collection. Conversation identity uses stable IDs only: explicit
+`conversationId`, then channel-qualified external thread identity, while legacy internal conversations keep the
+exact `studentId`. Array position and current sort order are presentation-only.
+
+New internal sends remain legacy-compatible and add `channel: internal` plus `conversationId: studentId`.
+The server-only `metaMessagingApi` verifies webhook challenges and HMAC-SHA256 signatures and stores inbound Meta
+messages with deterministic IDs so retries cannot duplicate them. Administrators may reply to external conversations;
+teachers and parents cannot send through the external adapter.
+
+Outbound Meta replies now fail closed. Before any provider call, the Function verifies that channel,
+`conversationId` and recipient match an existing inbound message created by the signed Meta webhook. Facebook uses
+`https://graph.facebook.com/v26.0/<page-id>/messages` with `META_PAGE_ACCESS_TOKEN`. Instagram uses
+`https://graph.instagram.com/v26.0/<instagram-account-id>/messages` with
+`META_INSTAGRAM_ACCESS_TOKEN`. Sender assets are pinned to Facebook Page `571647362697524` and Instagram account
+`17841474277841669`, with non-secret environment overrides available.
+
+Changed files: `functions/meta-messaging-core.js` and its test, `functions/index.js`,
+`crm-v2/src/features/messages/MessagesPage.jsx` and its focused test,
+`crm-v2/src/services/firebase/messages.js`, `crm-v2/src/features/messages/messagesModel.js` and its test,
+`crm-v2/src/app/navigation.js`, `ARCHITECTURE.md`, `docs/COMMUNICATION_HUB_V1.md` and this state file.
+No Firestore migration, rules/index change, or production data rewrite is included.
+
+External setup as of 2026-09-25: Meta app `KeeleSepp CRM` (`2016847882342152`) is restricted to Facebook Page
+`571647362697524` and Instagram account `17841474277841669`. The previously generated Page access token exists
+as a Vercel Production secret only; Firebase Function secrets have not been configured. The Instagram send token,
+webhook callback/subscriptions and Meta app review remain production activation work.
+
+Validation: PASS on code/docs head `cc074b1d0e4188d1417143ff58cca83c0b525062` — GitHub CRM v2 workflow
+#36173652514 PASS; Financial Core emulator #36173652527 PASS; CRM v2 CI #36173652562 PASS including tests, lint and
+production build; Vercel preview READY. Additional focused Meta core run: 6/6 PASS. Branch is not behind main and the
+PR changes only the 12 communication/documentation files listed by the compare check.
+
+Production gate: do not merge or deploy automatically. After the owner manually merges PR #162 and explicitly
+authorizes production activation, configure Firebase Function secrets `META_VERIFY_TOKEN`, `META_APP_SECRET`,
+`META_PAGE_ACCESS_TOKEN`, and `META_INSTAGRAM_ACCESS_TOKEN`; deploy only `metaMessagingApi`; verify the Meta
+challenge; configure Facebook/Instagram message subscriptions; then smoke-test one inbound/outbound conversation per
+channel. No Firestore migration or rules/index deployment is required.
+
+Exactly one next safe step: owner manual review/merge of PR #162.
+
 ## One-click lesson completion
 
 Last verified: 2026-09-23, Europe/Tallinn

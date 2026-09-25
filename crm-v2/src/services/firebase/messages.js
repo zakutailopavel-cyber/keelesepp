@@ -2,6 +2,8 @@ import { collection, doc, getDocs, query, updateDoc, where, writeBatch } from 'f
 import { requireFirebaseClient } from './client.js';
 import { canonicalTeacherName } from '../../utils/teachers.js';
 
+const defaultMetaMessagingUrl = 'https://us-central1-keelesepp-5136b.cloudfunctions.net/metaMessagingApi';
+
 function timestampValue(value) {
   if (value?.toDate) return value.toDate().toISOString();
   return value || '';
@@ -11,10 +13,23 @@ function chunks(values = [], size = 10) {
   return Array.from({ length: Math.ceil(values.length / size) }, (_, index) => values.slice(index * size, index * size + size));
 }
 
+export function normalizeMessageChannel(value) {
+  const raw = String(value || '').trim().toLocaleLowerCase('en');
+  if (raw === 'facebook' || raw === 'messenger' || raw === 'facebook_messenger') return 'facebook';
+  if (raw === 'instagram' || raw === 'instagram_direct' || raw === 'ig') return 'instagram';
+  return 'internal';
+}
+
 export function normalizeMessage(id, data = {}) {
   return {
     id,
     ...data,
+    channel: normalizeMessageChannel(data.channel || data.source),
+    conversationId: String(data.conversationId || '').trim(),
+    externalThreadId: String(data.externalThreadId || '').trim(),
+    externalMessageId: String(data.externalMessageId || '').trim(),
+    externalSenderId: String(data.externalSenderId || '').trim(),
+    externalSenderName: String(data.externalSenderName || '').trim(),
     studentId: data.studentId || '',
     studentName: data.studentName || 'Vestlus',
     teacher: canonicalTeacherName(data.teacher),
@@ -55,6 +70,8 @@ export const messagesService = {
     const { db } = requireFirebaseClient();
     const createdAt = new Date().toISOString();
     const value = {
+      channel: 'internal',
+      conversationId: studentId,
       studentId,
       studentName,
       teacher: canonicalTeacherName(data.teacher),
@@ -79,10 +96,24 @@ export const messagesService = {
       byRole: user.roles?.[0] || '',
       createdAt,
       date: createdAt.slice(0, 10),
-      meta: { messageId: reference.id || '', textLength: text.length },
+      meta: { messageId: reference.id || '', channel: 'internal', conversationId: studentId, textLength: text.length },
     });
     await batch.commit();
     return { id: reference.id, ...value };
+  },
+  async sendExternal({ channel, conversationId, externalSenderId, text }) {
+    const { auth } = requireFirebaseClient();
+    if (!auth.currentUser) throw new Error('Aktiivne kasutajaseanss puudub. Logi uuesti sisse.');
+    const token = await auth.currentUser.getIdToken();
+    const baseUrl = String(import.meta.env.VITE_META_MESSAGING_API_URL || defaultMetaMessagingUrl).replace(/\/$/, '');
+    const response = await globalThis.fetch(`${baseUrl}/reply`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ channel, conversationId, recipientId: externalSenderId, text: String(text || '').trim() }),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || 'Meta vastuse saatmine ebaõnnestus.');
+    return data;
   },
   async markRead(id) {
     const { db } = requireFirebaseClient();
