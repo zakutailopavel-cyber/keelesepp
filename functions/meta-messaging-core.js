@@ -67,4 +67,44 @@ function replyInput(body = {}) {
   return { channel, recipientId, conversationId, text };
 }
 
-module.exports = { messageDocumentId, replyInput, verifyMetaSignature, webhookMessages };
+function replyMatchesConversation(message = {}, input = {}) {
+  return message.provider === "meta"
+    && message.fromRole === "external"
+    && message.channel === input.channel
+    && message.conversationId === input.conversationId
+    && message.externalSenderId === input.recipientId;
+}
+
+function metaSendRequest({
+  channel,
+  recipientId,
+  text,
+  pageId,
+  graphVersion = "v25.0",
+} = {}) {
+  if (!CHANNELS.has(channel)) throw new Error("Unsupported Meta channel");
+  const senderPageId = clean(pageId, 300);
+  const version = clean(graphVersion, 32).replace(/^\/+|\/+$/g, "");
+  if (!senderPageId) throw new Error("Meta Page ID is required");
+  if (!/^v\d+\.\d+$/.test(version)) throw new Error("Invalid Meta Graph API version");
+
+  const body = {
+    recipient: { id: recipientId },
+    message: { text },
+  };
+  if (channel === "facebook") body.messaging_type = "RESPONSE";
+
+  return {
+    url: `https://graph.facebook.com/${version}/${encodeURIComponent(senderPageId)}/messages`,
+    body,
+  };
+}
+
+module.exports = {
+  messageDocumentId,
+  metaSendRequest,
+  replyInput,
+  replyMatchesConversation,
+  verifyMetaSignature,
+  webhookMessages,
+};
