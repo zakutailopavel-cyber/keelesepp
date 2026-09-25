@@ -123,7 +123,9 @@ const {
   uniqueIds,
 } = require("./student-merge-core");
 const {
+  metaSendRequest,
   replyInput: normalizeMetaReply,
+  replyMatchesConversation,
   verifyMetaSignature,
   webhookMessages,
 } = require("./meta-messaging-core");
@@ -7951,7 +7953,7 @@ exports.financeApi = functions.https.onRequest(async (req, res) => {
 // Meta Messenger + Instagram adapter. Webhook writes use deterministic IDs,
 // so provider retries cannot duplicate a message. Replies require an admin.
 exports.metaMessagingApi = functions
-  .runWith({ secrets: ["META_PAGE_ACCESS_TOKEN", "META_VERIFY_TOKEN", "META_APP_SECRET"] })
+  .runWith({ secrets: ["META_PAGE_ACCESS_TOKEN", "META_INSTAGRAM_ACCESS_TOKEN", "META_VERIFY_TOKEN", "META_APP_SECRET"] })
   .https.onRequest(async (req, res) => {
     applyCors(req, res);
     if (req.method === "OPTIONS") { res.status(204).send(""); return; }
@@ -7992,15 +7994,40 @@ exports.metaMessagingApi = functions
       try {
         const actor = await requireAdminUser(req);
         const input = normalizeMetaReply(req.body);
-        const accessToken = process.env.META_PAGE_ACCESS_TOKEN;
-        if (!accessToken) throw httpError(503, "Meta messaging is not configured");
-        const response = await fetch("https://graph.facebook.com/v23.0/me/messages", {
+
+        // Fail closed: the browser may only reply to a conversation that was
+        // previously ingested and bound by the signed Meta webhook.
+        const conversationSnap = await db.collection("messages")
+          .where("conversationId", "==", input.conversationId)
+          .limit(100)
+          .get();
+        const boundConversation = conversationSnap.docs
+          .map(doc => doc.data())
+          .some(message => replyMatchesConversation(message, input));
+        if (!boundConversation) throw httpError(409, "Meta conversation is not bound to this recipient");
+
+        const requestConfig = metaSendRequest({
+          channel: input.channel,
+          recipientId: input.recipientId,
+          text: input.text,
+          facebookPageId: process.env.META_FACEBOOK_PAGE_ID || "571647362697524",
+          instagramAccountId: process.env.META_INSTAGRAM_ACCOUNT_ID || "17841474277841669",
+          graphVersion: process.env.META_GRAPH_VERSION || "v26.0",
+        });
+        const accessToken = process.env[requestConfig.tokenEnv];
+        if (!accessToken) throw httpError(503, `${input.channel} messaging is not configured`);
+
+        const response = await fetch(requestConfig.url, {
           method: "POST",
           headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
-          body: JSON.stringify({ recipient: { id: input.recipientId }, message: { text: input.text } }),
+          body: JSON.stringify(requestConfig.body),
         });
         const provider = await response.json().catch(() => ({}));
         if (!response.ok || !provider.message_id) throw httpError(502, "Meta rejected the reply");
+        if (provider.recipient_id && String(provider.recipient_id) !== input.recipientId) {
+          throw httpError(502, "Meta returned an unexpected recipient");
+        }
+
         const now = new Date().toISOString();
         const reference = db.collection("messages").doc();
         const actorData = actorSnapshot(actor);
