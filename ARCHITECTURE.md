@@ -371,5 +371,8 @@ The browser Firebase service remains the client data boundary. External-channel 
 administrator through the authenticated `metaMessagingApi`; CRM v2 never routes an external thread through the
 internal student message writer. The Firebase Function verifies Meta webhook challenges and HMAC-SHA256 signatures,
 uses deterministic inbound document IDs for retry safety, and stores inbound/outbound projections in the existing
-`messages` collection. `META_VERIFY_TOKEN`, `META_APP_SECRET`, and `META_PAGE_ACCESS_TOKEN` are server-only Firebase
-Function secrets. No migration, Firestore index, or rules change is required. See `docs/COMMUNICATION_HUB_V1.md`.
+`messages` collection. Outbound replies are additionally bound server-side to a previously ingested signed Meta
+conversation, so a client cannot substitute an arbitrary recipient ID. Facebook uses its Page-scoped Send API with
+`META_PAGE_ACCESS_TOKEN`; Instagram uses its Instagram Send API with `META_INSTAGRAM_ACCESS_TOKEN`.
+`META_VERIFY_TOKEN` and `META_APP_SECRET` are also server-only Firebase Function secrets. No migration, Firestore
+index, or rules change is required. See `docs/COMMUNICATION_HUB_V1.md`.
