@@ -13,6 +13,7 @@ function repositories(messages = [incoming]) {
       list: vi.fn().mockResolvedValue(messages),
       listByStudentIds: vi.fn().mockResolvedValue(messages),
       send: vi.fn().mockResolvedValue({ id: 'sent-1' }),
+      sendExternal: vi.fn().mockResolvedValue({ id: 'meta-sent-1' }),
       markConversationRead: vi.fn().mockResolvedValue(1),
     },
     studentRepository: {
@@ -89,7 +90,7 @@ describe('MessagesPage', () => {
     expect(data.studentRepository.listOwned).toHaveBeenCalledWith('parent-1');
   });
 
-  it('shows an external channel without routing replies through the internal sender', async () => {
+  it('lets an administrator reply to an external channel through the Meta adapter', async () => {
     const data = repositories([{
       ...incoming,
       id: 'fb-message-1',
@@ -101,8 +102,14 @@ describe('MessagesPage', () => {
     }]);
     renderPage({ uid: 'admin-1', displayName: 'Admin', roles: ['admin'] }, data);
     expect(await screen.findAllByText(/Facebook/)).not.toHaveLength(0);
-    expect(screen.getByText(/Meta ühenduse kaudu/)).toBeInTheDocument();
-    expect(screen.queryByLabelText('Sõnum')).not.toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Sõnum'), { target: { value: 'Tere Facebookis!' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Saada' }));
+    await waitFor(() => expect(data.repository.sendExternal).toHaveBeenCalledWith({
+      channel: 'facebook',
+      conversationId: 'facebook:page-1:thread-99',
+      externalSenderId: 'thread-99',
+      text: 'Tere Facebookis!',
+    }));
     expect(data.repository.send).not.toHaveBeenCalled();
   });
 

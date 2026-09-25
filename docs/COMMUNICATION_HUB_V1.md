@@ -1,10 +1,10 @@
-# Communication Hub v1 foundation
+# Communication Hub v1
 
 ## Goal
 
 CRM v2 evolves the existing student-linked `messages` workflow into one channel-neutral communication surface.
-The first slice is deliberately compatibility-first: it does not connect Meta, create webhooks, store access tokens,
-or send any external message.
+The compatibility-first foundation is extended by a server-only Meta adapter. The adapter is not active until its
+Firebase Function secrets are configured, the function is deployed, and the callback is verified in Meta.
 
 ## Identity contract
 
@@ -31,28 +31,37 @@ therefore remain distinct conversations.
 `crm-v2/src/features/messages/` owns the channel-neutral conversation projection. Sorting changes presentation only;
 selection and React keys use stable conversation/message IDs.
 
-The current internal composer remains enabled only for `internal` conversations. A projected Facebook or Instagram
-conversation is read-only until the trusted server adapter exists. The UI must fail closed rather than accidentally
-calling the internal student-message writer for an external thread.
+The internal composer continues to use the legacy-compatible Firestore writer. Administrators can reply to Facebook
+and Instagram conversations only through the authenticated `metaMessagingApi/reply` endpoint. Teachers and parents
+cannot send through the external adapter. The UI never routes an external reply through the internal student writer.
 
 ## Firebase boundary
 
-`crm-v2/src/services/firebase/messages.js` remains the only browser Firebase access layer for this feature.
-Existing `messages` records stay compatible. This slice introduces no new collection, Firestore index, rules change,
-migration, production write, or external API call.
+`crm-v2/src/services/firebase/messages.js` remains the browser access layer. Existing `messages` records stay
+compatible. Inbound Meta events and outbound Meta replies are persisted by Firebase Admin in the same collection;
+no migration, new collection, Firestore index, or rules change is required.
 
-## Planned Meta adapter
+## Meta adapter
 
-A later bounded slice may add trusted server-side Meta webhook verification, idempotent inbound ingest, account/page
-mapping and outbound replies. Secrets/tokens must remain server-side. The adapter must translate Meta payloads into
-this stable channel contract and must not expose raw credentials to CRM v2.
+`metaMessagingApi` provides:
+
+- `GET /webhook` — Meta challenge verification using `META_VERIFY_TOKEN`;
+- `POST /webhook` — HMAC-SHA256 validation using `META_APP_SECRET`, followed by idempotent ingest;
+- `POST /reply` — administrator-authenticated send through Meta Graph API using `META_PAGE_ACCESS_TOKEN`.
+
+Inbound document IDs are a deterministic SHA-256 projection of channel plus Meta message ID. Meta retries therefore
+cannot duplicate messages. Provider secrets are Firebase Function secrets and are never returned to CRM v2.
+
+The connected assets are Facebook Page `571647362697524` (`KeeleSepp - õpi meiega.`) and Instagram account
+`17841474277841669` (`keelesepp`). Access is restricted to those current assets, not future pages/accounts.
 
 ## Verification
 
 Required before merge:
 
 - focused CRM v2 message model/service/UI tests;
+- focused Meta signature, webhook projection, idempotency-key and reply validation tests;
 - lint and production build;
 - test proving conversation identity is unchanged when input array order changes;
-- test proving an external conversation cannot use the internal send path;
-- no production deployment or Meta API call.
+- test proving an external conversation uses the Meta API path and cannot use the internal send path;
+- no production deploy or webhook activation before owner approval.

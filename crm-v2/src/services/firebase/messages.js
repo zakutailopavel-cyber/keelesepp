@@ -2,6 +2,8 @@ import { collection, doc, getDocs, query, updateDoc, where, writeBatch } from 'f
 import { requireFirebaseClient } from './client.js';
 import { canonicalTeacherName } from '../../utils/teachers.js';
 
+const defaultMetaMessagingUrl = 'https://us-central1-keelesepp-5136b.cloudfunctions.net/metaMessagingApi';
+
 function timestampValue(value) {
   if (value?.toDate) return value.toDate().toISOString();
   return value || '';
@@ -98,6 +100,20 @@ export const messagesService = {
     });
     await batch.commit();
     return { id: reference.id, ...value };
+  },
+  async sendExternal({ channel, conversationId, externalSenderId, text }) {
+    const { auth } = requireFirebaseClient();
+    if (!auth.currentUser) throw new Error('Aktiivne kasutajaseanss puudub. Logi uuesti sisse.');
+    const token = await auth.currentUser.getIdToken();
+    const baseUrl = String(import.meta.env.VITE_META_MESSAGING_API_URL || defaultMetaMessagingUrl).replace(/\/$/, '');
+    const response = await globalThis.fetch(`${baseUrl}/reply`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ channel, conversationId, recipientId: externalSenderId, text: String(text || '').trim() }),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || 'Meta vastuse saatmine ebaõnnestus.');
+    return data;
   },
   async markRead(id) {
     const { db } = requireFirebaseClient();

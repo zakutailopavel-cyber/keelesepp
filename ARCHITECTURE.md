@@ -367,7 +367,9 @@ equal to the exact student ID. External Facebook and Instagram records may carry
 `externalThreadId`, `externalMessageId` and sender identifiers. Conversation selection, grouping and React keys
 must never use an array index or current sort position.
 
-The browser Firebase service remains the only client data boundary. External-channel replies are fail-closed until a
-trusted server-side Meta adapter exists; CRM v2 must never route an external thread through the internal student
-message writer. This foundation adds no webhook, Meta credential, migration, Firestore index, rules change or
-production side effect. See `docs/COMMUNICATION_HUB_V1.md`.
+The browser Firebase service remains the client data boundary. External-channel replies are sent only by an
+administrator through the authenticated `metaMessagingApi`; CRM v2 never routes an external thread through the
+internal student message writer. The Firebase Function verifies Meta webhook challenges and HMAC-SHA256 signatures,
+uses deterministic inbound document IDs for retry safety, and stores inbound/outbound projections in the existing
+`messages` collection. `META_VERIFY_TOKEN`, `META_APP_SECRET`, and `META_PAGE_ACCESS_TOKEN` are server-only Firebase
+Function secrets. No migration, Firestore index, or rules change is required. See `docs/COMMUNICATION_HUB_V1.md`.

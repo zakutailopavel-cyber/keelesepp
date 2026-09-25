@@ -10,9 +10,13 @@ const firestore = vi.hoisted(() => ({
   batch: { set: vi.fn(), update: vi.fn(), commit: vi.fn().mockResolvedValue(undefined) },
   writeBatch: vi.fn(),
 }));
+const firebaseClient = vi.hoisted(() => ({
+  auth: { currentUser: { getIdToken: vi.fn().mockResolvedValue('firebase-id-token') } },
+  db: 'firebase-db',
+}));
 
 vi.mock('firebase/firestore', () => firestore);
-vi.mock('./client.js', () => ({ requireFirebaseClient: () => ({ db: 'firebase-db' }) }));
+vi.mock('./client.js', () => ({ requireFirebaseClient: () => firebaseClient }));
 
 import { messagesService, normalizeMessage, normalizeMessageChannel } from './messages.js';
 
@@ -73,6 +77,28 @@ describe('messagesService', () => {
     });
     expect(firestore.batch.commit).toHaveBeenCalledOnce();
     await expect(messagesService.send({ studentId: 'student-1', studentName: 'Mari', text: 'x'.repeat(4001) }, user)).rejects.toThrow('4000');
+  });
+
+  it('sends external replies only through the authenticated Meta endpoint', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      json: vi.fn().mockResolvedValue({ id: 'meta-message-1' }),
+    });
+    await expect(messagesService.sendExternal({
+      channel: 'facebook',
+      conversationId: 'facebook:sender-1',
+      externalSenderId: 'sender-1',
+      text: ' Tere! ',
+    })).resolves.toEqual({ id: 'meta-message-1' });
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://us-central1-keelesepp-5136b.cloudfunctions.net/metaMessagingApi/reply',
+      expect.objectContaining({
+        method: 'POST',
+        headers: expect.objectContaining({ Authorization: 'Bearer firebase-id-token' }),
+        body: JSON.stringify({ channel: 'facebook', conversationId: 'facebook:sender-1', recipientId: 'sender-1', text: 'Tere!' }),
+      }),
+    );
+    fetchMock.mockRestore();
   });
 
   it('marks only unread incoming messages as read', async () => {

@@ -70,11 +70,20 @@ export default function MessagesPage({ repository = messagesService, studentRepo
 
   const send = async (event) => {
     event.preventDefault();
-    if (!text.trim() || !active || externalConversation) return;
+    if (!text.trim() || !active || (externalConversation && !admin)) return;
     const studentId = active.studentId || active.id;
     setSending(true); setActionError('');
     try {
-      await repository.send({ studentId, studentName: active.name, teacher: active.teacher || selectedStudent?.teacher || '', text }, user);
+      if (externalConversation) {
+        await repository.sendExternal({
+          channel: active.channel,
+          conversationId: active.id,
+          externalSenderId: active.externalThreadId,
+          text,
+        });
+      } else {
+        await repository.send({ studentId, studentName: active.name, teacher: active.teacher || selectedStudent?.teacher || '', text }, user);
+      }
       setText('');
       await state.reload();
     } catch (error) { setActionError(error.message || 'Sõnumi saatmine ebaõnnestus.'); }
@@ -101,9 +110,9 @@ export default function MessagesPage({ repository = messagesService, studentRepo
       <section className="chat-panel">{active ? <>
         <header><span className="conversation-avatar">{initials(active.name)}</span><div><strong>{active.name}</strong><small>{channelLabel(active.channel)} · {active.messages.length} sõnumit{active.teacher ? ` · ${active.teacher}` : ''}</small></div></header>
         <div className="message-stream" aria-label={`Vestlus: ${active.name}`}>{active.messages.length ? active.messages.map((message) => <div className={message.fromUid === user.uid ? 'message own' : 'message'} key={message.id}><span>{message.fromName}</span><p>{message.text}</p><time>{messageTime(message)}</time></div>) : <EmptyState title="Alusta vestlust" description="Kirjuta esimene sõnum allolevasse väljale." action={<MessageCircle size={28} />} />}</div>
-        {externalConversation
-          ? <div className="message-composer"><small>Facebooki ja Instagrami vastamine aktiveeritakse eraldi serveripoolse Meta ühenduse kaudu. Seda vestlust ei saadeta ekslikult KeeleSepa sisekanalisse.</small></div>
-          : <form className="message-composer" onSubmit={send}><textarea aria-label="Sõnum" maxLength="4000" placeholder="Kirjuta sõnum…" rows="2" value={text} onChange={(event) => setText(event.target.value)} /><div><small>{text.length}/4000</small><Button type="submit" loading={sending} disabled={!text.trim()} aria-label="Saada"><Send size={18} /></Button></div></form>}
+        {externalConversation && !admin
+          ? <div className="message-composer"><small>Facebooki ja Instagrami vestlustele saab vastata administraator.</small></div>
+          : <form className="message-composer" onSubmit={send}><textarea aria-label="Sõnum" maxLength={externalConversation ? 2000 : 4000} placeholder="Kirjuta sõnum…" rows="2" value={text} onChange={(event) => setText(event.target.value)} /><div><small>{text.length}/{externalConversation ? 2000 : 4000}</small><Button type="submit" loading={sending} disabled={!text.trim()} aria-label="Saada"><Send size={18} /></Button></div></form>}
       </> : <EmptyState title="Vestlusi veel ei ole" description="Vali õpilane ja alusta esimest vestlust." action={<MessageCircle size={28} />} />}</section>
     </Card>
   </div>;
