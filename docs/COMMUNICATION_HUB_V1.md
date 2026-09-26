@@ -55,7 +55,7 @@ to send a message.
 
 Facebook replies use `https://graph.facebook.com/<version>/<page-id>/messages` with
 `META_PAGE_ACCESS_TOKEN`. Instagram replies use
-`https://graph.instagram.com/<version>/<instagram-account-id>/messages` with
+`https://graph.facebook.com/<version>/<instagram-account-id>/messages` with
 `META_INSTAGRAM_ACCESS_TOKEN`. The default API version is `v26.0` and can be overridden with
 `META_GRAPH_VERSION`. The known sender assets are pinned to Facebook Page `571647362697524` and Instagram
 account `17841474277841669`; optional non-secret env overrides are `META_FACEBOOK_PAGE_ID` and
