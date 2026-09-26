@@ -2,8 +2,8 @@
 
 ## Communication Hub v1 Meta adapter — PRODUCTION GATE PARTIAL
 
-Last verified against main: 2026-09-25, Europe/Tallinn
-Verified main: `3eeaa2fcd155aeebb34c76bbe3caca7453221cfa`.
+Last verified against main: 2026-09-26, Europe/Tallinn
+Verified main: `d3b428c46e7e55dbfa899ee6b18dc57997a4cbb3`.
 Implementation PR: #162 — merged.
 
 CRM v2's existing `Sõnumid` workflow is converted into a channel-neutral `Kommunikatsioon` surface without
@@ -42,18 +42,20 @@ Validation: PASS on code/docs head `cc074b1d0e4188d1417143ff58cca83c0b525062` �
 production build; Vercel preview READY. Additional focused Meta core run: 6/6 PASS. Branch is not behind main and the
 PR changes only the 12 communication/documentation files listed by the compare check.
 
-Production smoke: Facebook inbound PASS and Facebook outbound PASS through the deployed `/reply` route. The inbound
-message was created from the signed Meta webhook and the reply returned HTTP 201. Instagram subscription diagnostics
-PASS (`messages`, linked account `keelesepp`, Manage Messaging On), but a real inbound message from the owner's
-personal Instagram account did not reach the webhook, so Instagram inbound/outbound smoke remains NOT PASSED.
+Production smoke: Facebook inbound PASS and Facebook outbound PASS through the deployed `/reply` route. Instagram
+tester `pa6an4ik` was explicitly authorized, and two real Instagram inbound messages reached the signed webhook and
+were stored in `messages`, so Instagram inbound is PASS. Instagram outbound through `/reply` is NOT PASSED: the
+deployed Function returns HTTP 502 because its Messenger Page access token is sent to `graph.instagram.com`. Draft
+PR #166 changes only the Instagram send host to `graph.facebook.com`; focused Meta tests are 6/6 PASS and the full
+Functions suite is 173/173 PASS. The fix is not merged or deployed.
 
-Known production blocker: Meta keeps the app in development access until App Review is completed. In this state,
-Facebook/Instagram messaging is limited to app administrators, developers or testers whose eligible accounts are
-connected as Meta requires. Do not describe the channel as public-production ready until App Review is approved and
-both public-account inbound/outbound smokes pass.
+Known production blockers: Instagram outbound still needs PR #166 merged and a selective `metaMessagingApi` deploy.
+Meta also keeps the app in development access until App Review is completed. In this state, Facebook/Instagram
+messaging is limited to app administrators, developers or testers whose eligible accounts are connected as Meta
+requires. Do not describe the channel as public-production ready until App Review is approved and both public-account
+inbound/outbound smokes pass.
 
-Exactly one next safe step: complete Meta App Review for the messaging permissions, then repeat one inbound/outbound
-smoke from a non-role Facebook account and a non-role Instagram account.
+Exactly one next safe step: review and merge PR #166, deploy only `metaMessagingApi`, and repeat Instagram outbound.
 
 ## One-click lesson completion
 
