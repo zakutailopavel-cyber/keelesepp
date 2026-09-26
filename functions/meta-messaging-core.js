@@ -107,7 +107,10 @@ function metaSendRequest({
   const senderId = clean(instagramAccountId, 300);
   if (!senderId) throw new Error("Instagram account ID is required");
   return {
-    url: `https://graph.instagram.com/${version}/${encodeURIComponent(senderId)}/messages`,
+    // Instagram messaging configured through Messenger uses a Facebook Page
+    // access token and the Graph API host, even though the sender is the
+    // linked Instagram professional account.
+    url: `https://graph.facebook.com/${version}/${encodeURIComponent(senderId)}/messages`,
     body,
     tokenEnv: "META_INSTAGRAM_ACCESS_TOKEN",
   };

@@ -91,7 +91,7 @@ test("builds channel-specific Meta send requests", () => {
     facebookPageId: "571647362697524",
     instagramAccountId: "17841474277841669",
   });
-  assert.equal(instagram.url, "https://graph.instagram.com/v26.0/17841474277841669/messages");
+  assert.equal(instagram.url, "https://graph.facebook.com/v26.0/17841474277841669/messages");
   assert.equal(instagram.tokenEnv, "META_INSTAGRAM_ACCESS_TOKEN");
   assert.equal(instagram.body.messaging_type, undefined);
   assert.deepEqual(instagram.body.recipient, { id: "igsid-1" });
