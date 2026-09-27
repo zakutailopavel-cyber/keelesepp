@@ -5,7 +5,7 @@
 Last verified against main: 2026-09-27, Europe/Tallinn.
 Verified main: `989a56b`.
 Implementation branch: `codex/oppevara-usability-fixes`.
-PR: not opened.
+Draft PR: https://github.com/zakutailopavel-cyber/keelesepp/pull/168.
 
 The existing Õppevara interface now distinguishes available curricula from empty planned subjects and levels. Empty
 cards are disabled and labelled `Pole veel valmis`, so teachers cannot mistake English, mathematics or an empty
