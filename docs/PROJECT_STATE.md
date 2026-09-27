@@ -5,7 +5,7 @@
 Last verified against main: 2026-09-27, Europe/Tallinn.
 Verified main: `820c952`.
 Implementation branch: `codex/didactics-library-v1`.
-PR: not opened.
+Draft PR: https://github.com/zakutailopavel-cyber/keelesepp/pull/169.
 
 Õppevara now has a separate `Didaktika` workspace for books, teacher guides, methodology, worksheets, games, cards,
 assessment resources and other reusable staff reference material. Teachers can search title, author, description,
