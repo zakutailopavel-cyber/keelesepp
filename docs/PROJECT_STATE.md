@@ -1,11 +1,40 @@
 # KeeleSepp Project State
 
-## Õppevara usability and readiness guardrails — LOCAL IMPLEMENTATION
+## Didaktika raamatukogu v1 — LOCAL IMPLEMENTATION
 
 Last verified against main: 2026-09-27, Europe/Tallinn.
-Verified main: `989a56b`.
-Implementation branch: `codex/oppevara-usability-fixes`.
-Draft PR: https://github.com/zakutailopavel-cyber/keelesepp/pull/168.
+Verified main: `820c952`.
+Implementation branch: `codex/didactics-library-v1`.
+Draft PR: https://github.com/zakutailopavel-cyber/keelesepp/pull/169.
+
+Õppevara now has a separate `Didaktika` workspace for books, teacher guides, methodology, worksheets, games, cards,
+assessment resources and other reusable staff reference material. Teachers can search title, author, description,
+tags, subject, level and original file name; combine category, subject and language filters; open or download files;
+and edit metadata without mixing reference books into curriculum lesson counts. Large result sets render 60 cards at
+a time.
+
+Batch upload accepts up to 50 PDF, EPUB, Word, PowerPoint, text or image files in one selection, with shared category,
+subject, level, language and tag metadata. Each file may be up to 100 MB. Titles are derived from filenames and remain
+editable. Exact same-name and same-size files already in the collection are rejected. Upload progress is visible; if
+Firestore metadata creation fails after a blob upload, that blob is removed instead of becoming an orphan.
+
+Data contract: metadata uses the new staff-only `didacticLibrary` collection; files use the staff-only
+`didactics/<staffUid>/...` Storage prefix. Changed files: `didactics-library-core.js`, its tests,
+`haldus-exercises/index.html`, `firestore.rules`, `storage.rules`, `ARCHITECTURE.md`, the existing Õppevara tab contract
+test and this state file. No production data, rules or deployment are changed by this branch.
+
+Validation: PASS — focused Õppevara and Didaktika suites, 28/28 tests; `git diff --check`; local Chrome verification
+of the three sample book cards, combined search, four filters, batch-upload modal, metadata fields and responsive
+layout; no browser console errors. Production use is blocked until the owner explicitly approves deployment of both
+Firestore and Storage rules after merge.
+
+Exactly one next safe step: finish focused tests and browser QA, then open a draft PR for authenticated owner review.
+
+## Õppevara usability and readiness guardrails — PRODUCTION VERIFIED
+
+Last verified against main: 2026-09-27, Europe/Tallinn.
+Verified main: `820c952`.
+Implementation PR: #168 — merged.
 
 The existing Õppevara interface now distinguishes available curricula from empty planned subjects and levels. Empty
 cards are disabled and labelled `Pole veel valmis`, so teachers cannot mistake English, mathematics or an empty
@@ -34,8 +63,12 @@ Known limitation: readiness is a presentation guardrail, not an automatic correc
 misnamed topics and incomplete records stay intact and are surfaced for human review; no production record was
 silently renamed or deleted.
 
-Exactly one next safe step: open a preview deployment for authenticated owner review; production publication still
-requires the owner's explicit approval.
+Production verification: the authenticated embedded Õppevara shows the readiness labels, overflow actions and
+recoverable curriculum navigation against the real 327 library records and 21 exercises without browser console
+errors. No production record was changed during verification.
+
+Exactly one next safe step: use the readiness filter to review the records flagged by the presentation guardrail;
+rename or delete content only through a separate owner-approved content-cleanup task.
 
 ## Communication Hub v1 Meta adapter — PRODUCTION GATE PARTIAL
 

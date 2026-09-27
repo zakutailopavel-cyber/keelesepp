@@ -1468,6 +1468,18 @@ service cloud.firestore {
       allow write: if isStaff();
     }
 
+    // Shared staff didactics library. Books and methodical resources are
+    // separate from curriculum lessons so they do not distort course counts.
+    match /didacticLibrary/{materialId} {
+      allow read: if isStaff();
+      allow create: if isStaff()
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.title.size() <= 240
+        && request.resource.data.uploaderUid == uid();
+      allow update, delete: if isStaff();
+    }
+
     // Immutable worksheet snapshots keep published assignments stable while
     // teachers continue editing newer drafts in curriculumLessons.
     match /worksheetVersions/{versionId} {

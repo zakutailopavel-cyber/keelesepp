@@ -44,6 +44,7 @@ window.openTeacherWorkspace=function(href,label){
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="/learning-library-core.js"></script>
 <script src="/oppevara-usability-core.js?v=20260927.1"></script>
+<script src="/didactics-library-core.js?v=20260927.1"></script>
 <script src="/curriculum-workflow-core.js?v=20260901.1"></script>
 <script src="/worksheet-workflow-core.js?v=20260901.1"></script>
 <script src="/live-classroom-core.js"></script>
@@ -89,6 +90,7 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#EEECE7;color:#1C2B3A;min
 .library-type-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
 .library-type-btn{border:1px solid rgba(28,43,58,.1);background:#fff;color:#42536A;border-radius:10px;padding:7px 12px;font-family:inherit;font-size:.77rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;}
 .library-type-btn.active{background:#1C2B3A;color:#fff;border-color:#1C2B3A;}
+.didactics-shell{max-width:1240px;margin:0 auto;padding:30px 28px 64px}.didactics-hero{background:linear-gradient(135deg,#1C2B3A,#2F5D50);color:#fff;border-radius:22px;padding:28px 30px;margin-bottom:18px;display:flex;justify-content:space-between;gap:22px;align-items:flex-start}.didactics-hero h1{font-family:'Fraunces',serif;font-size:2rem;margin:4px 0 8px}.didactics-hero p{color:rgba(255,255,255,.7);max-width:650px;font-size:.87rem;line-height:1.55}.didactics-summary{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}.didactics-summary span{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:5px 10px;font-size:.72rem;font-weight:700}.didactics-toolbar{background:#fff;border:1px solid rgba(28,43,58,.08);border-radius:15px;padding:14px;display:grid;grid-template-columns:minmax(250px,1fr) repeat(3,minmax(140px,190px));gap:9px;margin-bottom:18px}.didactics-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:13px}.didactics-card{background:#fff;border:1px solid rgba(28,43,58,.08);border-radius:16px;padding:17px;display:flex;flex-direction:column;min-height:238px}.didactics-cover{width:44px;height:56px;border-radius:7px;background:linear-gradient(145deg,#F0E7D5,#DFC18E);color:#7A5718;display:flex;align-items:center;justify-content:center;font-size:1.1rem;box-shadow:3px 3px 0 rgba(28,43,58,.08)}.didactics-title{font-size:.98rem;font-weight:800;line-height:1.35;margin:13px 0 4px}.didactics-author{font-size:.77rem;color:#718096;min-height:18px}.didactics-meta{display:flex;gap:5px;flex-wrap:wrap;margin:12px 0}.didactics-meta span{font-size:.68rem;font-weight:700;border-radius:999px;padding:3px 7px;background:#F1F5F3;color:#2F5D50}.didactics-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto}.didactics-drop{border:2px dashed rgba(47,93,80,.25);border-radius:14px;padding:24px;text-align:center;background:#F7FAF8;cursor:pointer}.didactics-drop.dragging{border-color:#2F5D50;background:#EDF5F2}.didactics-file-list{max-height:210px;overflow:auto;display:flex;flex-direction:column;gap:6px}.didactics-file{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;background:#F6F4F0;border-radius:9px;font-size:.76rem}.didactics-progress{height:5px;background:#E5E2DC;border-radius:99px;overflow:hidden;margin-top:5px}.didactics-progress>span{display:block;height:100%;background:#2F5D50}.didactics-edit-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:820px){.didactics-hero{display:block}.didactics-hero .btn{margin-top:16px}.didactics-toolbar{grid-template-columns:1fr 1fr}.didactics-edit-grid{grid-template-columns:1fr}}@media(max-width:560px){.didactics-shell{padding-left:14px;padding-right:14px}.didactics-toolbar{grid-template-columns:1fr}}
 .library-breadcrumbs{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:2px 0 15px;font-size:.79rem;}
 .library-crumb{border:none;background:none;color:#718096;font:inherit;font-weight:700;cursor:pointer;padding:3px 0;}
 .library-crumb:hover{color:#2F5D50;}
@@ -782,6 +784,11 @@ const PREVIEW_LESSONS=[
 const PREVIEW_EXERCISES=[
   {id:'preview-ex-1',title:'Vali õige tegusõna',subject:'Eesti keel',level:'A2',topic:'Igapäevaelu',type:'choice',description:'Lühike valikvastustega harjutus.',questions:[{question:'Ma ___ kooli.',options:['lähen','läheb'],correct:0}]},
   {id:'preview-ex-2',title:'My family — match the words',subject:'Inglise keel',level:'A1',topic:'My family',type:'match',pairs:[{l:'ema',r:'mother'}]}
+];
+const PREVIEW_DIDACTICS=[
+  {id:'didactics-preview-1',title:'Eesti keele õpetamise käsiraamat',author:'Näidisautor',category:'Õpetajaraamat',subject:'Eesti keel',level:'A1–B1',language:'Eesti',tags:['metoodika','rääkimine'],description:'Praktilised võtted keeleõppe tunni kavandamiseks.',file:{name:'opetaja-kasiraamat.pdf',url:'#',size:2400000,type:'application/pdf'},createdAt:'2026-09-01'},
+  {id:'didactics-preview-2',title:'50 sõnavaramängu',author:'KeeleSepp',category:'Mäng',subject:'Eesti keel',level:'A1–B2',language:'Eesti',tags:['sõnavara','mängud'],description:'Kiired mängud individuaal- ja rühmatunniks.',file:{name:'50-sonavaramangu.pdf',url:'#',size:1800000,type:'application/pdf'},createdAt:'2026-09-02'},
+  {id:'didactics-preview-3',title:'Grammar activities for teens',author:'Sample Author',category:'Metoodika',subject:'Inglise keel',level:'A2–B2',language:'Inglise',tags:['grammar','teenagers'],description:'Classroom-ready grammar activities.',file:{name:'grammar-activities.epub',url:'#',size:3100000,type:'application/epub+zip'},createdAt:'2026-09-03'}
 ];
 
 function ReadinessBadge({item,kind='lesson',showIssues=false,hideBadge=false}){
@@ -3217,6 +3224,86 @@ function ExercisesView({exercises,isTeacher,user,notify}){
   );
 }
 
+function DidacticsUploadModal({user,existingItems,onClose,notify}){
+  const inputRef=useRef();
+  const[files,setFiles]=useState([]);const[dragging,setDragging]=useState(false);const[busy,setBusy]=useState(false);const[progress,setProgress]=useState(0);const[error,setError]=useState('');
+  const[category,setCategory]=useState('Raamat');const[subject,setSubject]=useState('Eesti keel');const[level,setLevel]=useState('Kõik tasemed');const[language,setLanguage]=useState('Eesti');const[tags,setTags]=useState('');
+  const choose=list=>{
+    const next=Array.from(list||[]).slice(0,50);const invalid=next.map(file=>({file,result:DidacticsLibraryCore.validateFile(file)})).find(row=>!row.result.ok);
+    if(invalid){setError(invalid.file.name+': '+invalid.result.message);return;}
+    const duplicate=next.find(file=>(existingItems||[]).some(item=>item.file?.name===file.name&&Number(item.file?.size)===Number(file.size)));
+    if(duplicate){setError(duplicate.name+': sama nime ja suurusega fail on juba kogus.');return;}
+    setError('');setFiles(next);
+  };
+  const upload=async()=>{
+    if(!files.length)return;setBusy(true);setError('');let saved=0;
+    try{
+      if(LOCAL_LIBRARY_PREVIEW){await new Promise(resolve=>setTimeout(resolve,450));notify(`✓ Eelvaade: ${files.length} faili lisatud`);onClose();return;}
+      for(let index=0;index<files.length;index++){
+        const file=files[index];const stamp=Date.now()+index;const path=DidacticsLibraryCore.storagePath(user.uid,file.name,stamp);const ref=storage.ref(path);
+        const task=ref.put(file,{contentType:file.type||'application/octet-stream'});
+        await new Promise((resolve,reject)=>task.on('state_changed',snapshot=>{
+          const within=snapshot.totalBytes?snapshot.bytesTransferred/snapshot.totalBytes:0;
+          setProgress(Math.round(((index+within)/files.length)*100));
+        },reject,resolve));
+        const url=await ref.getDownloadURL();const draft=DidacticsLibraryCore.uploadDraft(file,{category,subject,level,language,tags:tags.split(',').map(value=>value.trim()).filter(Boolean)});
+        try{
+          await db.collection('didacticLibrary').add({...draft,file:{name:file.name,url,size:file.size,type:file.type||'',storagePath:path},uploaderUid:user.uid,uploaderName:user.displayName||user.email||'',createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});saved++;
+        }catch(writeError){await ref.delete().catch(()=>{});throw writeError;}
+      }
+      notify(`✓ Didaktika kogusse lisati ${saved} faili`);onClose();
+    }catch(uploadError){console.error('Didactics upload:',uploadError);setError('Üleslaadimine katkes: '+(uploadError.message||'tundmatu viga')+`. Lisatud: ${saved}/${files.length}.`);}
+    finally{setBusy(false);}
+  };
+  return <div className="modal-ov" onClick={event=>{if(event.target===event.currentTarget&&!busy)onClose();}}><div className="modal-box" style={{maxWidth:720}}>
+    <div className="modal-head"><div><div style={{fontWeight:800}}>Lisa raamatud ja didaktilised materjalid</div><div style={{fontSize:'.74rem',color:'#718096',marginTop:3}}>Korraga kuni 50 faili, iga fail kuni 100 MB</div></div><button onClick={onClose} disabled={busy} className="btn btn-ghost btn-sm">✕</button></div>
+    <div className="modal-body">
+      <input ref={inputRef} type="file" multiple accept=".pdf,.epub,.doc,.docx,.ppt,.pptx,.txt,.rtf,.jpg,.jpeg,.png,.webp" hidden onChange={event=>choose(event.target.files)}/>
+      <div className={'didactics-drop'+(dragging?' dragging':'')} onClick={()=>!busy&&inputRef.current?.click()} onDragOver={event=>{event.preventDefault();setDragging(true);}} onDragLeave={()=>setDragging(false)} onDrop={event=>{event.preventDefault();setDragging(false);choose(event.dataTransfer.files);}}>
+        <i className="fa-solid fa-book-open" style={{fontSize:'1.8rem',color:'#2F5D50',marginBottom:8}}/><div style={{fontWeight:800}}>Lohista siia terve raamatute valik</div><div style={{fontSize:'.76rem',color:'#718096',marginTop:4}}>PDF, EPUB, Word, PowerPoint, TXT või pildid</div>
+      </div>
+      {files.length>0&&<div className="didactics-file-list">{files.map((file,index)=><div className="didactics-file" key={file.name+'-'+index}><span><i className="fa-solid fa-file" style={{marginRight:7,color:'#A96E1A'}}/>{file.name}</span><span style={{color:'#718096'}}>{(file.size/1024/1024).toFixed(1)} MB</span></div>)}</div>}
+      <div className="didactics-edit-grid">
+        <label>Kategooria<select value={category} onChange={event=>setCategory(event.target.value)}>{DidacticsLibraryCore.CATEGORIES.map(value=><option key={value}>{value}</option>)}</select></label>
+        <label>Aine<input value={subject} onChange={event=>setSubject(event.target.value)} placeholder="Eesti keel"/></label>
+        <label>Tase / vanus<input value={level} onChange={event=>setLevel(event.target.value)} placeholder="A1–B2 või 7–10 a"/></label>
+        <label>Keel<select value={language} onChange={event=>setLanguage(event.target.value)}>{DidacticsLibraryCore.LANGUAGES.map(value=><option key={value}>{value}</option>)}</select></label>
+      </div>
+      <label>Märksõnad komadega<input value={tags} onChange={event=>setTags(event.target.value)} placeholder="grammatika, mängud, rääkimine"/></label>
+      {busy&&<div><div style={{fontSize:'.76rem',fontWeight:700}}>Laadin… {progress}%</div><div className="didactics-progress"><span style={{width:progress+'%'}}/></div></div>}
+      {error&&<div className="upload-error">{error}</div>}
+    </div>
+    <div className="modal-foot"><button onClick={onClose} disabled={busy} className="btn btn-ghost">Tühista</button><button onClick={upload} disabled={busy||!files.length} className="btn btn-pine"><i className="fa-solid fa-cloud-arrow-up"/> {busy?'Laadin…':files.length?`Lisa ${files.length} faili`:'Vali failid'}</button></div>
+  </div></div>;
+}
+
+function DidacticsEditModal({item,onClose,notify}){
+  const[form,setForm]=useState({...item,tags:(item.tags||[]).join(', ')});const[saving,setSaving]=useState(false);const set=(key,value)=>setForm(previous=>({...previous,[key]:value}));
+  const save=async()=>{if(!form.title.trim())return;setSaving(true);try{if(!LOCAL_LIBRARY_PREVIEW)await db.collection('didacticLibrary').doc(item.id).update({title:form.title.trim(),author:form.author.trim(),description:form.description.trim(),category:form.category,subject:form.subject.trim(),level:form.level.trim(),language:form.language,tags:form.tags.split(',').map(value=>value.trim()).filter(Boolean),updatedAt:new Date().toISOString()});notify(LOCAL_LIBRARY_PREVIEW?'✓ Eelvaade: andmed salvestatud':'✓ Materjali andmed salvestatud');onClose();}catch(error){notify('⚠ Salvestamine ebaõnnestus');}finally{setSaving(false);}};
+  return <div className="modal-ov" onClick={event=>{if(event.target===event.currentTarget)onClose();}}><div className="modal-box" style={{maxWidth:650}}><div className="modal-head"><div style={{fontWeight:800}}>Muuda materjali andmeid</div><button onClick={onClose} className="btn btn-ghost btn-sm">✕</button></div><div className="modal-body">
+    <label>Pealkiri<input value={form.title||''} onChange={event=>set('title',event.target.value)}/></label><div className="didactics-edit-grid"><label>Autor<input value={form.author||''} onChange={event=>set('author',event.target.value)}/></label><label>Kategooria<select value={form.category||'Muu'} onChange={event=>set('category',event.target.value)}>{DidacticsLibraryCore.CATEGORIES.map(value=><option key={value}>{value}</option>)}</select></label><label>Aine<input value={form.subject||''} onChange={event=>set('subject',event.target.value)}/></label><label>Tase / vanus<input value={form.level||''} onChange={event=>set('level',event.target.value)}/></label><label>Keel<select value={form.language||'Eesti'} onChange={event=>set('language',event.target.value)}>{DidacticsLibraryCore.LANGUAGES.map(value=><option key={value}>{value}</option>)}</select></label><label>Märksõnad<input value={form.tags||''} onChange={event=>set('tags',event.target.value)}/></label></div><label>Kirjeldus<textarea rows="4" value={form.description||''} onChange={event=>set('description',event.target.value)}/></label>
+  </div><div className="modal-foot"><button onClick={onClose} className="btn btn-ghost">Tühista</button><button onClick={save} disabled={saving||!form.title?.trim()} className="btn btn-pine">{saving?'Salvestan…':'Salvesta'}</button></div></div></div>;
+}
+
+function DidacticsLibraryView({items,isTeacher,user,notify}){
+  const[query,setQuery]=useState('');const[category,setCategory]=useState('all');const[subject,setSubject]=useState('all');const[language,setLanguage]=useState('all');const[uploadOpen,setUploadOpen]=useState(false);const[editItem,setEditItem]=useState(null);
+  const[visibleLimit,setVisibleLimit]=useState(60);
+  const visible=useMemo(()=>DidacticsLibraryCore.filterItems(items,{query,category,subject,language}),[items,query,category,subject,language]);
+  const displayed=visible.slice(0,visibleLimit);
+  useEffect(()=>setVisibleLimit(60),[query,category,subject,language]);
+  const subjects=useMemo(()=>DidacticsLibraryCore.uniqueValues(items,'subject'),[items]);
+  const deleteItem=async item=>{if(!window.confirm(`Kustuta "${item.title}"? Fail eemaldatakse jäädavalt.`))return;try{if(item.file?.storagePath)await storage.ref(item.file.storagePath).delete().catch(error=>{if(error.code!=='storage/object-not-found')throw error;});await db.collection('didacticLibrary').doc(item.id).delete();notify('✓ Materjal kustutatud');}catch(error){notify('⚠ Kustutamine ebaõnnestus');}};
+  return <div className="didactics-shell">
+    {uploadOpen&&<DidacticsUploadModal user={user} existingItems={items} notify={notify} onClose={()=>setUploadOpen(false)}/>}
+    {editItem&&<DidacticsEditModal item={editItem} notify={notify} onClose={()=>setEditItem(null)}/>}
+    <section className="didactics-hero"><div><div style={{fontSize:'.68rem',letterSpacing:'.12em',fontWeight:800,color:'#DDB66F'}}>ÕPETAJA TEADMUSBAAS</div><h1>Didaktika raamatukogu</h1><p>Raamatud, õpetajaraamatud, metoodika, mängud, hindamisvahendid ja muud materjalid ühes otsitavas kogus.</p><div className="didactics-summary"><span>{items.length} materjali</span><span>{DidacticsLibraryCore.uniqueValues(items,'category').length} kategooriat</span><span>{subjects.length} ainet</span></div></div>{isTeacher&&<button onClick={()=>setUploadOpen(true)} className="btn btn-gold"><i className="fa-solid fa-layer-group"/> Laadi mitu faili</button>}</section>
+    <div className="didactics-toolbar"><div className="library-search"><i className="fa-solid fa-magnifying-glass"/><input value={query} onChange={event=>setQuery(event.target.value)} placeholder="Otsi pealkirja, autorit või märksõna..."/></div><select value={category} onChange={event=>setCategory(event.target.value)}><option value="all">Kõik kategooriad</option>{DidacticsLibraryCore.CATEGORIES.map(value=><option key={value}>{value}</option>)}</select><select value={subject} onChange={event=>setSubject(event.target.value)}><option value="all">Kõik ained</option>{subjects.map(value=><option key={value}>{value}</option>)}</select><select value={language} onChange={event=>setLanguage(event.target.value)}><option value="all">Kõik keeled</option>{DidacticsLibraryCore.LANGUAGES.map(value=><option key={value}>{value}</option>)}</select></div>
+    <div style={{fontSize:'.78rem',color:'#718096',margin:'0 2px 12px'}}>{visible.length} tulemust</div>
+    <div className="didactics-grid">{displayed.map(item=><article key={item.id} className="didactics-card"><div className="didactics-cover"><i className="fa-solid fa-book-open"/></div><div className="didactics-title">{item.title}</div><div className="didactics-author">{item.author||'Autor märkimata'}</div><div className="didactics-meta"><span>{item.category||'Muu'}</span>{item.subject&&<span>{item.subject}</span>}{item.level&&<span>{item.level}</span>}{item.language&&<span>{item.language}</span>}</div>{item.description&&<div style={{fontSize:'.76rem',color:'#607086',lineHeight:1.45,marginBottom:10}}>{item.description}</div>}<div className="didactics-actions">{item.file?.url&&<a href={item.file.url} target="_blank" rel="noreferrer" className="btn btn-pine btn-sm" style={{textDecoration:'none'}}><i className="fa-solid fa-book-open-reader"/> Ava</a>}{item.file?.url&&<a href={item.file.url} download={item.file.name} className="btn btn-ghost btn-sm" style={{textDecoration:'none'}}><i className="fa-solid fa-download"/></a>}{isTeacher&&<button onClick={()=>setEditItem(item)} className="btn btn-ghost btn-sm"><i className="fa-solid fa-pen"/> Muuda</button>}{isTeacher&&<details className="more-actions"><summary className="btn btn-ghost btn-sm" aria-label="Rohkem toiminguid"><i className="fa-solid fa-ellipsis"/></summary><div className="more-actions-menu"><button onClick={()=>deleteItem(item)} className="btn btn-ghost btn-sm" style={{color:'#dc2626'}}><i className="fa-solid fa-trash"/> Kustuta</button></div></details>}</div></article>)}{!visible.length&&<div className="library-empty" style={{gridColumn:'1/-1'}}><i className="fa-solid fa-book-open" style={{fontSize:'2rem',opacity:.25,marginBottom:10}}/><div style={{fontWeight:800}}>Materjale ei leitud</div><div style={{fontSize:'.8rem',marginTop:5}}>{items.length?'Muuda otsingut või filtreid.':'Laadi esimesed raamatud ja metoodilised materjalid.'}</div></div>}</div>
+    {visible.length>displayed.length&&<div style={{display:'flex',justifyContent:'center',marginTop:18}}><button className="btn btn-ghost" onClick={()=>setVisibleLimit(limit=>limit+60)}>Näita veel ({visible.length-displayed.length})</button></div>}
+  </div>;
+}
+
 // ── LOGIN ─────────────────────────────────────────────────────
 function LoginScreen({onLogin}){
   const[email,setEmail]=useState('');const[pass,setPass]=useState('');const[err,setErr]=useState('');const[busy,setBusy]=useState(false);
@@ -4341,13 +4428,14 @@ function App(){
   const[tab,setTab]=useState(()=>{
     const params=new URLSearchParams(window.location.search);
     const requested=params.get('tab');
-    return ['library','curriculum','exercises','stats','history'].includes(requested)?requested:'curriculum';
+    return ['library','curriculum','didactics','exercises','stats','history'].includes(requested)?requested:'curriculum';
   });
   const[wsPreview,setWsPreview]=useState(null);
   const[conductLesson,setConductLesson]=useState(null);
   const[showSearch,setShowSearch]=useState(false);
   const[allLessons,setAllLessons]=useState(LOCAL_LIBRARY_PREVIEW?PREVIEW_LESSONS:[]);
   const[allExercises,setAllExercises]=useState(LOCAL_LIBRARY_PREVIEW?PREVIEW_EXERCISES:[]);
+  const[didactics,setDidactics]=useState(LOCAL_LIBRARY_PREVIEW?PREVIEW_DIDACTICS:[]);
   const[students,setStudents]=useState(LOCAL_LIBRARY_PREVIEW?PREVIEW_STUDENTS:[]);
   const[liveRooms,setLiveRooms]=useState(LOCAL_LIBRARY_PREVIEW?PREVIEW_LIVE_ROOMS:[]);
   const[lessonHistory,setLessonHistory]=useState(LOCAL_LIBRARY_PREVIEW?PREVIEW_LESSON_HISTORY:[]);
@@ -4418,6 +4506,10 @@ function App(){
           setContentLoading(false);
         },
         error=>{console.warn('Curriculum listener:',error);setAllLessons([]);setContentLoading(false);notify('⚠ Õppevara laadimine ebaõnnestus');}
+      ),
+      db.collection('didacticLibrary').orderBy('createdAt','desc').onSnapshot(
+        snapshot=>setDidactics(snapshot.docs.map(doc=>({id:doc.id,...doc.data()}))),
+        error=>{console.warn('Didactics listener:',error);setDidactics([]);}
       )
     ];
     if(isTeacher){
@@ -4555,6 +4647,10 @@ function App(){
           <i className="fa-solid fa-book-open"/> Raamatukogu
           <span className="tab-count">{allLessons.filter(item=>!item.__placeholder).length+allExercises.length}</span>
         </button>
+        <button className={'top-tab'+(tab==='didactics'?' active':'')} onClick={()=>setTab('didactics')}>
+          <i className="fa-solid fa-book-atlas"/> Didaktika
+          <span className="tab-count">{didactics.length}</span>
+        </button>
         <button className={'top-tab'+(tab==='exercises'?' active':'')} onClick={()=>setTab('exercises')}>
           <i className="fa-solid fa-dumbbell"/> Ülesanded
           <span className="tab-count">{allExercises.length}</span>
@@ -4589,6 +4685,7 @@ function App(){
         onGoExercises={()=>setTab('exercises')}
         onConductLesson={setConductLesson}
       />}
+      {!showSearch&&tab==='didactics'&&<DidacticsLibraryView items={didactics} isTeacher={isTeacher} user={user} notify={notify}/>}
       {!showSearch&&tab==='curriculum'&&<CurriculumView lessons={allLessons} isTeacher={isTeacher} user={user} notify={notify} onPreviewWorksheet={setWsPreview} onConductLesson={setConductLesson}/>}
       {!showSearch&&tab==='exercises'&&<ExercisesView exercises={allExercises} isTeacher={isTeacher} user={user} notify={notify}/>}
       {!showSearch&&tab==='stats'&&<StatisticsView allLessons={allLessons}/>}
