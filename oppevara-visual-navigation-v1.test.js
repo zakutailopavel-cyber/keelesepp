@@ -13,7 +13,7 @@ function section(start,end){
 }
 
 test('Õppevara defaults to curriculum while explicit library deep links remain supported',()=>{
-  assert.match(library,/return \['library','curriculum','exercises','stats','history'\]\.includes\(requested\)\?requested:'curriculum';/);
+  assert.match(library,/return \['library','curriculum','didactics','exercises','stats','history'\]\.includes\(requested\)\?requested:'curriculum';/);
   assert.match(library,/params\.get\('tab'\)/);
   assert.match(library,/tab==='library'/);
 });

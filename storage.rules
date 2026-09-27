@@ -54,6 +54,14 @@ service firebase.storage {
         );
     }
 
+    function safeDidacticContent() {
+      return request.resource != null
+        && request.resource.size > 0
+        && request.resource.size <= 100 * 1024 * 1024
+        && request.resource.contentType is string
+        && request.resource.contentType.matches('^(application/pdf|application/epub\\+zip|text/.*|image/.*|application/msword|application/rtf|application/vnd\\.openxmlformats-officedocument\\..*|application/vnd\\.ms-powerpoint)$');
+    }
+
     function safePaymentOrder() {
       return request.resource != null
         && request.resource.size > 0
@@ -85,6 +93,11 @@ service firebase.storage {
     match /curriculum/{fileName} {
       allow read: if signedIn();
       allow write: if staff() && safeContent();
+    }
+
+    match /didactics/{staffUid}/{fileName} {
+      allow read: if staff();
+      allow write: if staff() && staffUid == request.auth.uid && safeDidacticContent();
     }
 
     match /lessons/{studentId}/{fileName} {

@@ -30,6 +30,18 @@ Before rendering, curriculum records are deduplicated by stable source identity 
 subject/level/topic/title identity. If equivalent records exist, the published or otherwise richer, newer worksheet
 record wins. This is a presentation and save-safety boundary, not a destructive data migration.
 
+### Didactics library
+
+Teacher reference books and reusable methodical resources live in the separate `didacticLibrary` collection and
+`didactics/<staffUid>/...` Storage prefix. They do not use `curriculumLessons`, so book uploads cannot change course,
+topic or lesson counts. Only staff may list, upload, edit, download or delete these records and files.
+
+The browser supports batch upload of up to 50 files per selection. Each PDF, EPUB, Office, text or image file is
+limited to 100 MB, receives shared subject/level/language/category metadata and an automatically derived editable
+title. Exact same-name and same-size duplicates are rejected before upload. If metadata creation fails after the blob
+upload, the blob is removed immediately. Search spans title, author, description, tags, subject, level and original
+file name; rendering is incrementally capped at 60 cards for large collections.
+
 Worksheet editing from Õppevara carries the immutable curriculum lesson ID into the builder. That ID always wins over
 temporary picker state, so saving creates a new worksheet version on the original lesson instead of a second lesson
 document. The displayed document name can be edited explicitly or derived automatically from the selected lesson or
