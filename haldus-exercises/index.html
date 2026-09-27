@@ -43,6 +43,7 @@ window.openTeacherWorkspace=function(href,label){
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="/learning-library-core.js"></script>
+<script src="/oppevara-usability-core.js?v=20260927.1"></script>
 <script src="/curriculum-workflow-core.js?v=20260901.1"></script>
 <script src="/worksheet-workflow-core.js?v=20260901.1"></script>
 <script src="/live-classroom-core.js"></script>
@@ -302,6 +303,12 @@ div:hover>.topic-actions{opacity:1!important;}
 .lesson-title-open:hover{text-decoration:underline;text-decoration-color:#C9882A;text-underline-offset:3px;}
 .lesson-desc{font-size:.8rem;color:#718096;line-height:1.45;margin-bottom:8px;}
 .lesson-actions{display:flex;gap:6px;flex-shrink:0;align-items:flex-start;}
+.readiness-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:999px;font-size:.67rem;font-weight:800;line-height:1.2;}
+.readiness-badge.ready{background:#DCFCE7;color:#166534}.readiness-badge.reviewed{background:#DBEAFE;color:#1D4ED8}.readiness-badge.draft{background:#FEF3C7;color:#92400E}.readiness-badge.needs_review{background:#FEE2E2;color:#991B1B}
+.readiness-note{margin-top:7px;padding:7px 9px;border-radius:8px;background:#FFF1F2;color:#9F1239;font-size:.72rem;line-height:1.45;}
+.more-actions{position:relative}.more-actions>summary{list-style:none}.more-actions>summary::-webkit-details-marker{display:none}.more-actions[open]>summary{background:rgba(28,43,58,.08)}
+.more-actions-menu{position:absolute;right:0;top:calc(100% + 5px);z-index:20;background:#fff;border:1px solid rgba(28,43,58,.12);border-radius:10px;padding:5px;min-width:135px;box-shadow:0 10px 30px rgba(28,43,58,.15)}
+.more-actions-menu button{width:100%;justify-content:flex-start}.subj-card.is-empty{cursor:default;filter:saturate(.45);opacity:.72}.subj-card.is-empty:hover{transform:none;box-shadow:none}.level-chip:disabled{cursor:not-allowed}.level-chip:disabled:hover{transform:none;box-shadow:none}
 
 /* FILE CHIPS */
 .file-row{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px;}
@@ -776,6 +783,17 @@ const PREVIEW_EXERCISES=[
   {id:'preview-ex-1',title:'Vali õige tegusõna',subject:'Eesti keel',level:'A2',topic:'Igapäevaelu',type:'choice',description:'Lühike valikvastustega harjutus.',questions:[{question:'Ma ___ kooli.',options:['lähen','läheb'],correct:0}]},
   {id:'preview-ex-2',title:'My family — match the words',subject:'Inglise keel',level:'A1',topic:'My family',type:'match',pairs:[{l:'ema',r:'mother'}]}
 ];
+
+function ReadinessBadge({item,kind='lesson',showIssues=false,hideBadge=false}){
+  const status=window.OppevaraUsabilityCore?.readiness(item,kind)||{key:'ready',label:'Valmis kasutamiseks',issues:[]};
+  return <>
+    {!hideBadge&&<span className={'readiness-badge '+status.key} title={status.issues.join(' · ')}>
+      <i className={'fa-solid '+(status.key==='ready'||status.key==='reviewed'?'fa-circle-check':status.key==='draft'?'fa-pen-ruler':'fa-triangle-exclamation')}/>
+      {status.label}
+    </span>}
+    {showIssues&&status.issues.length>0&&<div className="readiness-note"><strong>Enne kasutamist:</strong> {status.issues.join(' · ')}</div>}
+  </>;
+}
 const PREVIEW_STUDENTS=[
   {id:'preview-st-1',name:'Näidisõpilane A',subject:'Eesti keel',level:'A2',teacher:'Pavel',active:true},
   {id:'preview-st-2',name:'Näidisõpilane B',subject:'Eesti keel',level:'B1',teacher:'Elizaveta',active:true},
@@ -1964,6 +1982,7 @@ function TopicView({subject,level,activeTopic,topics,allLessons,isTeacher,onSele
                        <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4,flexWrap:'wrap'}}>
                          <button type="button" className="lesson-title lesson-title-open" onClick={()=>onPreviewWorksheet?.(lesson)} title="Ava tööleht või kirje">{lesson.title}</button>
                          {lesson.lessonTypeLabel&&<span className={'lesson-type-badge '+(lesson.roadmapKind||'theme')}>{lesson.lessonTypeLabel}</span>}
+                         <ReadinessBadge item={lesson}/>
                          {lesson.builderDuration&&<span style={{fontSize:'.7rem',color:'#B0A898'}}>⏱ {lesson.builderDuration} min</span>}
                        </div>
                        {/* Builder lesson — show objectives + phase summary */}
@@ -1997,6 +2016,7 @@ function TopicView({subject,level,activeTopic,topics,allLessons,isTeacher,onSele
                          </div>
                        )}
                        <LessonSheetPreview lesson={lesson} onPreviewWorksheet={onPreviewWorksheet}/>
+                       <ReadinessBadge item={lesson} showIssues={true} hideBadge={true}/>
                        {lesson.files?.length>0&&<div className="file-row">{lesson.files.map((f,i)=><FileChip key={i} file={f}/>)}</div>}
                      </div>
                      <div className="lesson-actions">
@@ -2027,7 +2047,12 @@ function TopicView({subject,level,activeTopic,topics,allLessons,isTeacher,onSele
                        )}
                        {isTeacher&&<button onClick={()=>onEdit(lesson)} className="btn btn-ghost btn-sm"><i className="fa-solid fa-pen"/></button>}
                        {isTeacher&&<button onClick={()=>onRenameLesson(lesson)} className="btn btn-ghost btn-sm" title="Nimeta dokument ümber"><i className="fa-solid fa-font"/> Nimeta</button>}
-                       {isTeacher&&<button onClick={()=>onDelete(lesson)} className="btn btn-ghost btn-sm" style={{color:'#dc2626'}}><i className="fa-solid fa-trash"/></button>}
+                       {isTeacher&&<details className="more-actions">
+                         <summary className="btn btn-ghost btn-sm" title="Rohkem toiminguid" aria-label="Rohkem toiminguid"><i className="fa-solid fa-ellipsis"/></summary>
+                         <div className="more-actions-menu">
+                           <button onClick={()=>onDelete(lesson)} className="btn btn-ghost btn-sm" style={{color:'#dc2626'}}><i className="fa-solid fa-trash"/> Kustuta</button>
+                         </div>
+                       </details>}
                      </div>
                    </div>
                  );
@@ -2041,7 +2066,7 @@ function TopicView({subject,level,activeTopic,topics,allLessons,isTeacher,onSele
 
 // ── CURRICULUM ────────────────────────────────────────────────
 function CurriculumView({lessons,isTeacher,user,notify,onPreviewWorksheet,onConductLesson}){
-  const[nav,setNav]=useState(()=>{
+  const[nav,setNavState]=useState(()=>{
     const params=new URLSearchParams(window.location.search);
     const subject=params.get('subject');
     const level=params.get('level');
@@ -2051,6 +2076,26 @@ function CurriculumView({lessons,isTeacher,user,notify,onPreviewWorksheet,onCond
     return {subject,level,topic:topic||''};
   }); // null | {subject} | {subject,level,topic}
   const[modal,setModal]=useState(null);
+  const setNav=next=>{
+    setNavState(next);
+    const url=new URL(window.location.href);
+    url.searchParams.set('tab','curriculum');
+    if(next?.subject)url.searchParams.set('subject',next.subject);else url.searchParams.delete('subject');
+    if(next?.level)url.searchParams.set('level',next.level);else url.searchParams.delete('level');
+    if(next?.topic)url.searchParams.set('topic',next.topic);else url.searchParams.delete('topic');
+    window.history.pushState({oppevara:true},'',url.pathname+url.search);
+  };
+
+  useEffect(()=>{
+    const restore=()=>{
+      const params=new URLSearchParams(window.location.search);
+      const nextSubject=params.get('subject');
+      const nextLevel=params.get('level');
+      setNavState(nextSubject?{subject:nextSubject,...(nextLevel?{level:nextLevel,topic:params.get('topic')||''}:{})}:null);
+    };
+    window.addEventListener('popstate',restore);
+    return()=>window.removeEventListener('popstate',restore);
+  },[]);
 
   const customSubjects=useMemo(()=>lessons.filter(l=>l.__subjectPlaceholder&&l.subject).map(l=>({
     key:l.subject,
@@ -2150,10 +2195,14 @@ function CurriculumView({lessons,isTeacher,user,notify,onPreviewWorksheet,onCond
             const subjectLessons=lessons.filter(l=>l.subject===s.key&&!l.__subjectPlaceholder);
             const cnt=subjectLessons.filter(l=>!l.__placeholder).length;
             const subjectTopics=[...new Set(subjectLessons.filter(l=>!l.examPart).map(l=>l.topic).filter(Boolean))];
+            const isAvailable=cnt>0||subjectTopics.length>0;
             return(
-              <div key={s.key} className="subj-card"
+              <div key={s.key} className={'subj-card'+(isAvailable?'':' is-empty')}
                 style={{background:s.cardBg,borderColor:s.cardBorder}}
-                onClick={()=>setNav({subject:s.key})}>
+                role={isAvailable?'button':undefined} tabIndex={isAvailable?0:undefined}
+                aria-disabled={!isAvailable}
+                onKeyDown={e=>{if(isAvailable&&(e.key==='Enter'||e.key===' ')){e.preventDefault();setNav({subject:s.key});}}}
+                onClick={()=>isAvailable&&setNav({subject:s.key})}>
                 <div className="subj-head">
                   <div className="subj-icon-wrap" style={{background:s.iconBg}}>{s.emoji}</div>
                   <div className="subj-name">{s.key}</div>
@@ -2171,8 +2220,8 @@ function CurriculumView({lessons,isTeacher,user,notify,onPreviewWorksheet,onCond
                 </div>
                 <div className="subj-bar" style={{background:s.grad}}/>
                 <div className="subj-foot">
-                  <span className="subj-foot-count">{cnt} kirjet raamatukogus</span>
-                  <span className="subj-foot-link" style={{color:s.color}}>Ava <i className="fa-solid fa-arrow-right" style={{fontSize:'.7rem'}}/></span>
+                  <span className="subj-foot-count">{isAvailable?`${cnt} kirjet raamatukogus`:'Õppesisu lisamisel'}</span>
+                  <span className="subj-foot-link" style={{color:isAvailable?s.color:'#7A7167'}}>{isAvailable?<><span>Ava</span> <i className="fa-solid fa-arrow-right" style={{fontSize:'.7rem'}}/></>:<span>Pole veel valmis</span>}</span>
                 </div>
               </div>
             );
@@ -2194,11 +2243,12 @@ function CurriculumView({lessons,isTeacher,user,notify,onPreviewWorksheet,onCond
               const hasMat=cnt>0||topicCnt>0||examCnt>0;
               return(
                 <button key={lv} className="level-chip"
+                  disabled={!hasMat} aria-disabled={!hasMat}
                   style={{
                     borderColor:hasMat?subject.cardBorder:'rgba(28,43,58,.09)',
                     background:hasMat?subject.cardBg:'#FAFAF8',
                   }}
-                  onClick={()=>setNav({subject:subject.key,level:lv,topic:levelTopics[0]||''})}>
+                  onClick={()=>hasMat&&setNav({subject:subject.key,level:lv,topic:levelTopics[0]||''})}>
                   <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',width:'100%'}}>
                     <span style={{fontSize:'1.4rem',fontWeight:700,color:hasMat?subject.color:'#B0A898'}}>{lv}</span>
                     <span className="lc-cnt" style={{background:hasMat?subject.pillBg:'rgba(28,43,58,.06)',color:hasMat?subject.pillColor:'#AAA098',fontSize:'.68rem'}}>
@@ -2217,7 +2267,7 @@ function CurriculumView({lessons,isTeacher,user,notify,onPreviewWorksheet,onCond
                     {levelTopics.slice(0,3).map(topic=><span key={topic}>{topic}</span>)}
                   </div>}
                   <div style={{fontSize:'.76rem',fontWeight:600,color:hasMat?subject.color:'#C0B8B0',marginTop:'auto',display:'flex',alignItems:'center',gap:4}}>
-                    Ava <i className="fa-solid fa-arrow-right" style={{fontSize:'.62rem'}}/>
+                    {hasMat?'Ava':'Pole veel valmis'} {hasMat&&<i className="fa-solid fa-arrow-right" style={{fontSize:'.62rem'}}/>}
                   </div>
                 </button>
               );
@@ -3054,18 +3104,23 @@ function ExerciseCard({ex,isTeacher,onDelete,students,user,onResult}){
       <div style={{flex:1,minWidth:0}}>
         <div style={{display:'flex',gap:7,alignItems:'center',flexWrap:'wrap',marginBottom:6}}>
           <span className={'badge '+type.badge}><i className={'fa-solid '+type.icon} style={{fontSize:'.68rem'}}/> {type.label}</span>
+          <ReadinessBadge item={ex} kind="exercise"/>
           {ex.level&&<span className="badge" style={{background:'rgba(201,136,42,.1)',color:'#A96E1A'}}>{ex.level}</span>}
           {ex.subject&&<span className="badge" style={{background:'rgba(28,43,58,.06)',color:'#42536A'}}>{ex.subject}</span>}
-          {ex.topic&&<span className="badge" style={{background:'rgba(47,93,80,.09)',color:'#2F5D50'}}>{ex.topic}</span>}
+          {ex.topic&&<span className="badge" style={{background:'rgba(47,93,80,.09)',color:'#2F5D50'}}>Teema: {ex.topic}</span>}
         </div>
         <h3 style={{fontSize:'.95rem',marginBottom:3}}>{ex.title||'Pealkirjata harjutus'}</h3>
         <div style={{fontSize:'.76rem',color:'#718096'}}>Autor: {ex.authorName||'—'} · {fmtDate(ex.createdAt)}</div>
       </div>
       <div style={{display:'flex',gap:5,flexShrink:0}}>
         <button onClick={()=>setOpen(o=>!o)} className="btn btn-ghost btn-sm">{open?'Peida':'Proovi'}</button>
-        {isTeacher&&onDelete&&<button onClick={()=>onDelete(ex)} className="btn btn-ghost btn-sm" style={{color:'#dc2626'}}><i className="fa-solid fa-trash"/></button>}
+        {isTeacher&&onDelete&&<details className="more-actions">
+          <summary className="btn btn-ghost btn-sm" title="Rohkem toiminguid" aria-label="Rohkem toiminguid"><i className="fa-solid fa-ellipsis"/></summary>
+          <div className="more-actions-menu"><button onClick={()=>onDelete(ex)} className="btn btn-ghost btn-sm" style={{color:'#dc2626'}}><i className="fa-solid fa-trash"/> Kustuta</button></div>
+        </details>}
       </div>
     </div>
+    <ReadinessBadge item={ex} kind="exercise" showIssues={true} hideBadge={true}/>
     {open&&<div style={{borderTop:'1px solid rgba(28,43,58,.07)',paddingTop:13}}>
       {ex.type==='fill'&&<FillPlayer exercise={ex} onDone={handleResult}/>}
       {ex.type==='choice'&&<ChoicePlayer exercise={ex} onDone={handleResult}/>}
@@ -3083,16 +3138,18 @@ function ExercisesView({exercises,isTeacher,user,notify}){
   const[search,setSearch]=useState('');
   const[typeFilter,setTypeFilter]=useState('all');
   const[subjectFilter,setSubjectFilter]=useState('all');
+  const[readinessFilter,setReadinessFilter]=useState('all');
 
   const filtered=useMemo(()=>{
     const q=search.toLowerCase();
     return exercises.filter(e=>{
       if(typeFilter!=='all'&&e.type!==typeFilter)return false;
       if(subjectFilter!=='all'&&(e.subject||'Eesti keel')!==subjectFilter)return false;
+      if(readinessFilter!=='all'&&(window.OppevaraUsabilityCore?.readiness(e,'exercise').key||'ready')!==readinessFilter)return false;
       if(!q)return true;
       return(e.title||'').toLowerCase().includes(q)||(e.tags||[]).some(t=>t.toLowerCase().includes(q));
     });
-  },[exercises,typeFilter,subjectFilter,search]);
+  },[exercises,typeFilter,subjectFilter,readinessFilter,search]);
 
   return(
     <div style={{maxWidth:1100,margin:'0 auto',padding:'22px 28px 60px'}}>
@@ -3133,6 +3190,14 @@ function ExercisesView({exercises,isTeacher,user,notify}){
                 <i className={'fa-solid '+v.icon}/> {v.label}
               </button>
             ))}
+            <div style={{width:1,height:22,background:'rgba(28,43,58,.12)',margin:'0 3px'}}/>
+            <select value={readinessFilter} onChange={e=>setReadinessFilter(e.target.value)} aria-label="Valmidus" style={{width:'auto',padding:'7px 10px',fontSize:'.78rem'}}>
+              <option value="all">Kõik valmidused</option>
+              <option value="ready">Valmis kasutamiseks</option>
+              <option value="reviewed">Kontrollitud</option>
+              <option value="draft">Mustand</option>
+              <option value="needs_review">Vajab kontrolli</option>
+            </select>
           </div>
         </div>
         <div style={{marginTop:9,fontSize:'.78rem',color:'#718096'}}>{filtered.length} harjutust</div>
@@ -3141,7 +3206,7 @@ function ExercisesView({exercises,isTeacher,user,notify}){
       <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(420px,1fr))',gap:13}}>
         {filtered.map(ex=>(
           <ExerciseCard key={ex.id} ex={ex} isTeacher={isTeacher} user={user}
-            onDelete={isTeacher?async e=>{if(!window.confirm('Kustuta?'))return;await db.collection('exercises').doc(e.id).delete();notify('✓ Kustutatud');}:null}
+            onDelete={isTeacher?async e=>{if(!window.confirm('Kustuta harjutus "'+(e.title||'Pealkirjata harjutus')+'"? Seda toimingut ei saa tagasi võtta.'))return;await db.collection('exercises').doc(e.id).delete();notify('✓ Kustutatud');}:null}
           />
         ))}
         {filtered.length===0&&<div className="empty" style={{gridColumn:'1/-1'}}>
@@ -4272,6 +4337,7 @@ function StatisticsView({allLessons}) {
 function App(){
   const[user,setUser]=useState(LOCAL_LIBRARY_PREVIEW?{uid:'preview',displayName:'Pavel Zakutailo',email:'preview@localhost',role:'admin'}:null);
   const[loading,setLoading]=useState(!LOCAL_LIBRARY_PREVIEW);
+  const[contentLoading,setContentLoading]=useState(!LOCAL_LIBRARY_PREVIEW);
   const[tab,setTab]=useState(()=>{
     const params=new URLSearchParams(window.location.search);
     const requested=params.get('tab');
@@ -4349,8 +4415,9 @@ function App(){
         snapshot=>{
           const records=snapshot.docs.map(doc=>({id:doc.id,...doc.data()}));
           setAllLessons(window.LearningLibraryCore?.dedupeCurriculumLessons(records)||records);
+          setContentLoading(false);
         },
-        error=>{console.warn('Curriculum listener:',error);setAllLessons([]);}
+        error=>{console.warn('Curriculum listener:',error);setAllLessons([]);setContentLoading(false);notify('⚠ Õppevara laadimine ebaõnnestus');}
       )
     ];
     if(isTeacher){
@@ -4441,6 +4508,7 @@ function App(){
 
   if(loading)return<div style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh'}}><div className="spinner"/></div>;
   if(!user)return<LoginScreen onLogin={setUser}/>;
+  if(contentLoading)return<div style={{display:'flex',flexDirection:'column',gap:12,alignItems:'center',justifyContent:'center',minHeight:'100vh',color:'#718096'}}><div className="spinner"/><div style={{fontSize:'.84rem',fontWeight:700}}>Laadin õppevara…</div></div>;
 
   return(
     <div style={{minHeight:'100vh',background:'#F0EEE9'}}>
