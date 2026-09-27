@@ -1,5 +1,42 @@
 # KeeleSepp Project State
 
+## Õppevara usability and readiness guardrails — LOCAL IMPLEMENTATION
+
+Last verified against main: 2026-09-27, Europe/Tallinn.
+Verified main: `989a56b`.
+Implementation branch: `codex/oppevara-usability-fixes`.
+Draft PR: https://github.com/zakutailopavel-cyber/keelesepp/pull/168.
+
+The existing Õppevara interface now distinguishes available curricula from empty planned subjects and levels. Empty
+cards are disabled and labelled `Pole veel valmis`, so teachers cannot mistake English, mathematics or an empty
+language level for a usable course. Curriculum navigation writes recoverable same-page history and restores its
+subject, level and topic from the URL on browser Back. Standalone loading waits for the first curriculum snapshot
+instead of briefly presenting zero records as real content.
+
+A small pure readiness checker reviews curriculum materials and exercises before presentation. It flags missing
+titles or learning content, the observed test-copy patterns, missing worksheet questions and exercise-type-specific
+required data. Cards show `Valmis kasutamiseks`, `Kontrollitud`, `Mustand` or `Vajab kontrolli`, including the exact
+reason. Exercise filters can isolate those states, and the topic badge is explicitly prefixed with `Teema:` so it is
+not confused with the exercise type. Destructive lesson and exercise actions are moved behind `Rohkem toiminguid`;
+the existing confirmation remains and exercise confirmation now names the record and states that deletion cannot be
+undone.
+
+Changed files: `oppevara-usability-core.js`, its unit test, `oppevara-usability-ui.test.js`,
+`haldus-exercises/index.html` and this state file. No Firestore documents, rules, indexes, Functions, finance data or
+production deployment are changed.
+
+Validation: PASS — focused readiness, UI, visual-navigation and deduplication suites, 20/20 tests; `git diff --check`;
+local Chrome verification of subject and level navigation, readiness labels, overflow actions and browser Back.
+The separate pre-existing `curriculum-ui.test.js` still fails on clean `origin/main` because `haldus.html` does not
+contain its expected `Õppekava teema` string; this branch does not modify that surface.
+
+Known limitation: readiness is a presentation guardrail, not an automatic correction of production content. Existing
+misnamed topics and incomplete records stay intact and are surfaced for human review; no production record was
+silently renamed or deleted.
+
+Exactly one next safe step: open a preview deployment for authenticated owner review; production publication still
+requires the owner's explicit approval.
+
 ## Communication Hub v1 Meta adapter — PRODUCTION GATE PARTIAL
 
 Last verified against main: 2026-09-27, Europe/Tallinn
