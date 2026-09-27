@@ -2,8 +2,8 @@
 
 ## Communication Hub v1 Meta adapter — PRODUCTION GATE PARTIAL
 
-Last verified against main: 2026-09-26, Europe/Tallinn
-Verified main: `d3b428c46e7e55dbfa899ee6b18dc57997a4cbb3`.
+Last verified against main: 2026-09-27, Europe/Tallinn
+Verified main: `40547500dd21b7a8cb46b2e2bbb6665b1da542c9`.
 Implementation PR: #162 — merged.
 
 CRM v2's existing `Sõnumid` workflow is converted into a channel-neutral `Kommunikatsioon` surface without
@@ -19,7 +19,7 @@ teachers and parents cannot send through the external adapter.
 Outbound Meta replies now fail closed. Before any provider call, the Function verifies that channel,
 `conversationId` and recipient match an existing inbound message created by the signed Meta webhook. Facebook uses
 `https://graph.facebook.com/v26.0/<page-id>/messages` with `META_PAGE_ACCESS_TOKEN`. Instagram uses
-`https://graph.instagram.com/v26.0/<instagram-account-id>/messages` with
+`https://graph.facebook.com/v26.0/<instagram-account-id>/messages` with
 `META_INSTAGRAM_ACCESS_TOKEN`. Sender assets are pinned to Facebook Page `571647362697524` and Instagram account
 `17841474277841669`, with non-secret environment overrides available.
 
@@ -29,7 +29,7 @@ Changed files: `functions/meta-messaging-core.js` and its test, `functions/index
 `crm-v2/src/app/navigation.js`, `ARCHITECTURE.md`, `docs/COMMUNICATION_HUB_V1.md` and this state file.
 No Firestore migration, rules/index change, or production data rewrite is included.
 
-Production activation as of 2026-09-25: Meta app `KeeleSepp CRM` (`2016847882342152`) remains restricted to
+Production activation as of 2026-09-27: Meta app `KeeleSepp CRM` (`2016847882342152`) remains restricted to
 Facebook Page `571647362697524` and Instagram account `17841474277841669`. Firebase Function secrets
 `META_VERIFY_TOKEN`, `META_APP_SECRET`, `META_PAGE_ACCESS_TOKEN` and `META_INSTAGRAM_ACCESS_TOKEN` are configured.
 Only `metaMessagingApi` was deployed in project `keelesepp-5136b`; no Firestore rules, indexes, migrations or other
@@ -44,18 +44,25 @@ PR changes only the 12 communication/documentation files listed by the compare c
 
 Production smoke: Facebook inbound PASS and Facebook outbound PASS through the deployed `/reply` route. Instagram
 tester `pa6an4ik` was explicitly authorized, and two real Instagram inbound messages reached the signed webhook and
-were stored in `messages`, so Instagram inbound is PASS. Instagram outbound through `/reply` is NOT PASSED: the
-deployed Function returns HTTP 502 because its Messenger Page access token is sent to `graph.instagram.com`. Draft
-PR #166 changes only the Instagram send host to `graph.facebook.com`; focused Meta tests are 6/6 PASS and the full
-Functions suite is 173/173 PASS. The fix is not merged or deployed.
+were stored in `messages`, so Instagram inbound is PASS. PR #166 is merged in main and the corrected Function was
+selectively deployed with only `metaMessagingApi`; the post-deploy GET `/webhook` challenge returned HTTP 200 with
+the exact challenge. A newly generated permanent Page token was saved as enabled
+`META_INSTAGRAM_ACCESS_TOKEN` version 4. Meta token diagnostics report it as valid, non-expiring, scoped to app
+`2016847882342152`, Page `571647362697524` and Instagram account `17841474277841669`, including
+`instagram_basic` and `instagram_manage_messages`.
 
-Known production blockers: Instagram outbound still needs PR #166 merged and a selective `metaMessagingApi` deploy.
-Meta also keeps the app in development access until App Review is completed. In this state, Facebook/Instagram
-messaging is limited to app administrators, developers or testers whose eligible accounts are connected as Meta
-requires. Do not describe the channel as public-production ready until App Review is approved and both public-account
-inbound/outbound smokes pass.
+Instagram outbound through `/reply` remains NOT PASSED. The confirmed CRM smoke message on 2026-09-27 returned
+HTTP 502 because Meta rejected the provider request. A read-only conversation diagnostic with the same valid token
+returned Meta OAuth error `(#3) Application does not have the capability to make this API call`. This isolates the
+remaining blocker to Meta application capability/access, not the send endpoint, Firebase secret, webhook, or deploy.
 
-Exactly one next safe step: review and merge PR #166, deploy only `metaMessagingApi`, and repeat Instagram outbound.
+Known production blocker: Meta keeps the app in development access until App Review is completed. In this state,
+Facebook/Instagram messaging is limited to app administrators, developers or testers whose eligible accounts are
+connected as Meta requires. Do not describe the Instagram channel as outbound-ready or public-production ready until
+Meta grants the messaging capability and both public-account inbound/outbound smokes pass.
+
+Exactly one next safe step: obtain owner approval to begin Meta App Review for Instagram messaging permissions;
+after approval, repeat one Instagram inbound/outbound smoke from a non-role account.
 
 ## One-click lesson completion
 
