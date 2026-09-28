@@ -88,8 +88,8 @@ export default function LiveClassroomPage({ invitationService = liveLessonInvita
   const activeInvitation = routeInvitation || fallbackInvitation;
 
   useEffect(() => {
-    if (!streamReady || !invitationId) return;
-    if (!requestedInvitation || !isInvitationRouteUsable(requestedInvitation)) {
+    if (!streamReady || !invitationId || !requestedInvitation) return;
+    if (!isInvitationRouteUsable(requestedInvitation)) {
       setSearchParams({}, { replace: true });
     }
   }, [invitationId, requestedInvitation, setSearchParams, streamReady]);
