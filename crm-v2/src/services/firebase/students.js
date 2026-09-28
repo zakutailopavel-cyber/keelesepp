@@ -19,7 +19,7 @@ const PAGE_SIZE = 50;
 const writableFields = [
   'name', 'parentName', 'parentEmail', 'email', 'phone', 'level', 'targetLevel',
   'subject', 'grade', 'group', 'teacher', 'active', 'contactStatus', 'contactOwner',
-  'contactLastAt', 'contactNotes', 'enrollments', 'personId',
+  'contactLastAt', 'contactNotes', 'enrollments', 'personId', 'teacherUids',
 ];
 
 function cleanText(value) { return String(value ?? '').trim(); }
@@ -182,8 +182,9 @@ export function matchesStudentFilters(student, filters = {}) {
   if (filters.status === 'active' && !student.active) return false;
   if (filters.status === 'archived' && student.active) return false;
   if (filters.level && student.level !== filters.level) return false;
-  if (filters.teacher && !isSameTeacher(student.teacher, filters.teacher)) return false;
-  if (filters.scopeTeacher && !isSameTeacher(student.teacher, filters.scopeTeacher)) return false;
+  const enrollmentTeachers = (student.enrollments || []).map((item) => item.teacher).filter(Boolean);
+  if (filters.teacher && ![student.teacher, ...enrollmentTeachers].some((teacher) => isSameTeacher(teacher, filters.teacher))) return false;
+  if (filters.scopeTeacher && ![student.teacher, ...enrollmentTeachers].some((teacher) => isSameTeacher(teacher, filters.scopeTeacher))) return false;
   return true;
 }
 
@@ -230,6 +231,17 @@ export const studentsService = {
   async list(filters = {}) {
     const { db } = requireFirebaseClient();
     const pageSize = Math.max(1, Number(filters.pageSize) || PAGE_SIZE);
+    if (filters.scopeTeacherUid) {
+      const reference = collection(db, 'students');
+      const [legacySnapshot, multiSnapshot] = await Promise.all([
+        getDocs(query(reference, where('teacherUid', '==', filters.scopeTeacherUid))),
+        getDocs(query(reference, where('teacherUids', 'array-contains', filters.scopeTeacherUid))),
+      ]);
+      const unique = new Map();
+      [...legacySnapshot.docs, ...multiSnapshot.docs].forEach((item) => unique.set(item.id, normalizeStudent(item.id, item.data())));
+      const scopedItems = [...unique.values()].filter((student) => matchesStudentFilters(student, filters));
+      return { items: sortStudents(scopedItems, filters.sort), cursor: null, hasMore: false };
+    }
     const exhaustive = filters.exhaustive || filters.sort === 'level' || filters.sort === 'teacher';
     const direction = filters.sort === 'name-desc' ? 'desc' : 'asc';
     let cursor = filters.cursor || null;
@@ -237,9 +249,7 @@ export const studentsService = {
     const items = [];
 
     while (hasMore && (exhaustive || items.length < pageSize)) {
-      const constraints = filters.scopeTeacherUid
-        ? [where('teacherUid', '==', filters.scopeTeacherUid)]
-        : [orderBy('name', direction)];
+      const constraints = [orderBy('name', direction)];
       if (cursor) constraints.push(startAfter(cursor));
       constraints.push(limit(pageSize));
       const snapshot = await getDocs(query(collection(db, 'students'), ...constraints));
@@ -291,6 +301,7 @@ export const studentsService = {
     };
     payload.teacher = canonicalTeacherName(payload.teacher);
     payload.teacherUid = teacherUid;
+    payload.teacherUids = teacherUid ? [teacherUid] : [];
     const reference = await addDoc(collection(db, 'students'), payload);
     return normalizeStudent(reference.id, payload);
   },
@@ -303,6 +314,7 @@ export const studentsService = {
       payload.teacherUid = current?.teacherUid && isSameTeacher(current.teacher, payload.teacher)
         ? current.teacherUid
         : await resolveTeacherUid(db, payload.teacher);
+      payload.teacherUids = payload.teacherUid ? [...new Set([...(current?.teacherUids || []), payload.teacherUid])] : (current?.teacherUids || []);
     }
     const candidate = current ? normalizeStudent(id, { ...current, ...payload }) : null;
     if (
@@ -330,14 +342,8 @@ export const studentsService = {
     const existing = new Map((current.enrollments || []).map((item) => [enrollmentKey(item), item]));
     existing.set(enrollmentKey(nextEnrollment), { ...existing.get(enrollmentKey(nextEnrollment)), ...nextEnrollment });
     const enrollments = [...existing.values()];
-    const payload = { enrollments, updatedAt: new Date().toISOString().slice(0, 10) };
-    if (current.enrollments?.length === 1) Object.assign(payload, {
-      subject: nextEnrollment.subject,
-      teacher: nextEnrollment.teacher,
-      teacherUid: nextEnrollment.teacherUid,
-      level: nextEnrollment.level,
-      targetLevel: nextEnrollment.targetLevel,
-    });
+    const teacherUids = [...new Set(enrollments.map((item) => item.teacherUid).filter(Boolean))];
+    const payload = { enrollments, teacherUids, updatedAt: new Date().toISOString().slice(0, 10) };
     await updateDoc(doc(db, 'students', id), payload);
     return this.getById(id);
   },
@@ -351,7 +357,8 @@ export const studentsService = {
     const updated = normalizedEnrollment({ ...current.enrollments[index], ...patch, teacherUid }, current);
     const enrollments = [...current.enrollments];
     enrollments[index] = updated;
-    const payload = { enrollments, updatedAt: new Date().toISOString().slice(0, 10) };
+    const teacherUids = [...new Set(enrollments.filter((item) => item.active !== false).map((item) => item.teacherUid).filter(Boolean))];
+    const payload = { enrollments, teacherUids, updatedAt: new Date().toISOString().slice(0, 10) };
     if (current.enrollments.length === 1 || enrollmentKey(current.enrollments[index]) === enrollmentKey(normalizedEnrollment(current, current))) {
       Object.assign(payload, {
         subject: updated.subject,
