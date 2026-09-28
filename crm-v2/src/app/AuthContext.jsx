@@ -7,6 +7,7 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children, service = authService }) {
   const configured = isFirebaseConfigured();
   const [state, setState] = useState({ loading: configured, user: null, error: null });
+  const [preview, setPreview] = useState(null);
 
   useEffect(() => {
     if (!configured) return undefined;
@@ -18,6 +19,9 @@ export function AuthProvider({ children, service = authService }) {
 
   const value = useMemo(() => ({
     ...state,
+    user: preview?.user || state.user,
+    adminUser: state.user,
+    preview,
     configured,
     signIn: async (email, password) => {
       setState((current) => ({ ...current, loading: true, error: null }));
@@ -39,14 +43,20 @@ export function AuthProvider({ children, service = authService }) {
         throw error;
       }
     },
-    signOut: () => service.signOut(),
+    signOut: () => { setPreview(null); return service.signOut(); },
+    startPreview: (target) => {
+      if (!state.user?.roles?.includes('admin')) throw new Error('Ainult administraator saab kasutajavaadet avada.');
+      if (!target?.user) throw new Error('Vali kasutaja.');
+      setPreview({ ...target, readOnly: true });
+    },
+    stopPreview: () => setPreview(null),
     updateProfile: async (values) => {
       const user = await service.updateProfile(values);
       setState((current) => ({ ...current, user, error: null }));
       return user;
     },
     sendPasswordReset: () => service.sendPasswordReset(),
-  }), [configured, service, state]);
+  }), [configured, preview, service, state]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

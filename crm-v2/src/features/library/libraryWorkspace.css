@@ -44,7 +44,7 @@
   background: linear-gradient(135deg, #ffffff 0%, #f7faf9 100%);
   border-color: #dce8e4;
   display: grid;
-  grid-template-columns: minmax(280px, 1fr) 210px auto;
+  grid-template-columns: minmax(420px, 2fr) 210px auto;
   gap: 12px;
   margin-bottom: 14px;
   padding: 14px;
@@ -53,6 +53,16 @@
 .library-toolbar .search-field {
   background: #fff;
   min-height: 44px;
+  width: 100%;
+  cursor: text;
+}
+
+.library-toolbar .search-field input {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  height: 42px;
+  background: transparent;
 }
 
 .library-toolbar .field {
@@ -275,6 +285,10 @@
 }
 
 @media (max-width: 1100px) {
+  .library-toolbar { grid-template-columns: minmax(0, 1fr) 210px; }
+  .library-toolbar .search-field { grid-column: 1 / -1; }
+  .library-toolbar__summary { justify-items: start; }
+
   .library-overview {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

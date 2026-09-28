@@ -7,7 +7,7 @@ import { homeworkService, invoicesService, scheduleService, studentsService } fr
 import { ROLES } from '../../utils/roles.js';
 import { invoiceBalanceCents, isInvoiceOverdue } from '../students/studentFinance.js';
 
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => new Intl.DateTimeFormat('sv-SE').format(new Date());
 const todayLabel = () => new Intl.DateTimeFormat('et-EE', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
 const money = (cents) => new Intl.NumberFormat('et-EE', { style: 'currency', currency: 'EUR' }).format(cents / 100);
 const defaultRepositories = {
@@ -51,7 +51,7 @@ async function loadDashboardData(user, repositories) {
   const activeStudents = studentsResult.items.filter((item) => item.active);
   const current = today();
   const upcoming = schedule
-    .filter((item) => item.status !== 'Tühistatud' && (item.date || item.startDate) >= current)
+    .filter((item) => item.status !== 'Tühistatud' && (item.date || item.startDate) === current)
     .slice(0, 6);
   const overdue = invoices.filter(isInvoiceOverdue);
   const openHomework = homework.filter((item) => item.status !== 'Tehtud');
@@ -80,7 +80,7 @@ export default function DashboardPage({
   const metrics = [
     ...(data.canViewLearning ? [
       { label: 'Aktiivsed õpilased', value: data.activeStudents.length, meta: 'õppetöös', icon: GraduationCap, tone: 'green' },
-      { label: 'Järgmised tunnid', value: data.upcoming.length, meta: 'graafikus', icon: CalendarDays, tone: 'blue' },
+      { label: 'Järgmised tunnid', value: data.upcoming.length, meta: 'täna', icon: CalendarDays, tone: 'blue' },
       { label: 'Kodutööd', value: data.openHomework.length, meta: 'ootab lõpetamist', icon: CircleAlert, tone: 'purple' },
     ] : []),
     ...(data.canViewFinance ? [
@@ -141,7 +141,7 @@ export default function DashboardPage({
                   </div>
                 ))}
               </div>
-            ) : <EmptyState title="Järgmisi tunde ei ole" description="Lisa uus tund kalendri vaates." />}
+            ) : <EmptyState title="Täna tunde ei ole" description="Tänaseks ei ole ühtegi planeeritud tundi." />}
           </Card>
         ) : null}
         <Card>

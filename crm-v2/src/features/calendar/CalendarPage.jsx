@@ -29,6 +29,35 @@ function periodLabel(anchor, view, dates) {
   return `${first} – ${last}`;
 }
 
+
+function StudentCombobox({ students, value, onChange }) {
+  const selected = students.find((student) => student.id === value);
+  const [query, setQuery] = useState('');
+  const [open, setOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const inputValue = open ? query : (selected?.name || query);
+
+  const normalized = inputValue.trim().toLocaleLowerCase('et');
+  const matches = students.filter((student) => !normalized || [student.name, student.phone, student.email, student.parentEmail]
+    .filter(Boolean)
+    .some((field) => String(field).toLocaleLowerCase('et').includes(normalized))).slice(0, 20);
+
+  const choose = (student) => {
+    onChange(student.id);
+    setQuery(student.name);
+    setOpen(false);
+  };
+
+  const keyDown = (event) => {
+    if (event.key === 'ArrowDown') { event.preventDefault(); setOpen(true); setActiveIndex((index) => Math.min(index + 1, Math.max(0, matches.length - 1))); }
+    if (event.key === 'ArrowUp') { event.preventDefault(); setOpen(true); setActiveIndex((index) => Math.max(0, index - 1)); }
+    if (event.key === 'Enter' && open && matches.length) { event.preventDefault(); choose(matches[activeIndex] || matches[0]); }
+    if (event.key === 'Escape') setOpen(false);
+  };
+
+  return <label className="student-combobox form-grid__wide"><span className="field__label">Õpilane</span><div className="student-combobox__control"><Search size={17} /><input role="combobox" aria-expanded={open} aria-controls="lesson-student-options" aria-autocomplete="list" placeholder="Kirjuta õpilase nimi…" value={inputValue} onFocus={() => { setQuery(selected?.name || ''); setOpen(true); }} onBlur={() => window.setTimeout(() => setOpen(false), 120)} onKeyDown={keyDown} onChange={(event) => { setQuery(event.target.value); onChange(''); setActiveIndex(0); setOpen(true); }} required /></div>{open ? <div className="student-combobox__options" id="lesson-student-options" role="listbox">{matches.length ? matches.map((student, index) => <button type="button" role="option" aria-selected={student.id === value} className={index === activeIndex ? 'is-active' : ''} key={student.id} onMouseDown={(event) => event.preventDefault()} onClick={() => choose(student)}><strong>{student.name}</strong><small>{[student.teacher, student.phone || student.email].filter(Boolean).join(' · ') || 'Kontakt puudub'}</small></button>) : <div className="student-combobox__empty">Ühtegi õpilast ei leitud.</div>}</div> : null}</label>;
+}
+
 function LessonButton({ item, compact = false, onClick, onComplete, completing }) {
   return (
     <div className={`lesson-chip-wrap ${compact ? 'lesson-chip-wrap--compact' : ''}`}>
@@ -181,7 +210,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
       {view === 'month' ? <div className="month-grid">{dates.map((date) => { const daily = occurrences.filter((item) => item.occurrenceDate === date); const inMonth = date.slice(0, 7) === anchor.slice(0, 7); return <section className={`${date === toIsoDate() ? 'is-today ' : ''}${inMonth ? '' : 'is-outside'}`} key={date}><button className="month-day" onClick={() => { setAnchor(date); setView('day'); }}>{date.slice(-2)}</button><div>{daily.slice(0, 3).map((item) => <LessonButton compact item={item} onClick={openEvent} onComplete={quickCompleteLesson} completing={false} key={item.occurrenceId} />)}{daily.length > 3 ? <button className="more-lessons" onClick={() => { setAnchor(date); setView('day'); }}>+{daily.length - 3} veel</button> : null}</div></section>; })}</div> : null}
       {!occurrences.length && view !== 'day' ? <EmptyState title={hasActiveFilters ? 'Filtritele vastavaid tunde ei leitud' : 'Valitud perioodil tunde ei ole'} description={hasActiveFilters ? 'Tühjenda filtrid või muuda otsingut.' : 'Lisa tund või liigu teise perioodi.'} action={hasActiveFilters ? <Button variant="secondary" onClick={resetFilters}>Tühjenda filtrid</Button> : <CalendarDays size={28} />} /> : null}
     </Card>
-    <Modal open={modal} title={editing ? 'Muuda tundi' : 'Uus tund'} onClose={closeModal} footer={<>{editing && !editing.lessonRecordId ? <Button variant="secondary" disabled={saving} onClick={completeLesson}><CalendarDays size={17} /> Märgi toimunuks</Button> : null}{editing?.lessonRecordId ? <Badge tone="success">Tund arvestatud</Badge> : null}{editing ? <Button variant="danger" disabled={saving || Boolean(editing.lessonRecordId)} onClick={cancelLesson}><XCircle size={17} /> Tühista tund</Button> : null}<span className="modal__footer-spacer" /><Button variant="secondary" onClick={closeModal}>Loobu</Button><Button loading={saving} type="submit" form="lesson-form">{editing ? 'Salvesta muudatused' : 'Salvesta tund'}</Button></>}><form id="lesson-form" className="form-grid" onSubmit={submit}><Select className="form-grid__wide" label="Õpilane" value={form.studentId} onChange={(event) => setForm({ ...form, studentId: event.target.value })} required><option value="">Vali õpilane</option>{students.items.map((student) => <option value={student.id} key={student.id}>{student.name} · {student.teacher}</option>)}</Select><Input label="Kuupäev" type="date" value={form.date} onChange={(event) => setForm({ ...form, date: event.target.value })} required /><Input label="Kellaaeg" type="time" value={form.time} onChange={(event) => setForm({ ...form, time: event.target.value })} required /><Input label="Kestus minutites" type="number" min="5" step="5" value={form.duration} onChange={(event) => setForm({ ...form, duration: event.target.value })} required />{editing ? <Select label="Staatus" value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value })}><option>Planeeritud</option><option>Toimunud</option><option>Tühistatud</option></Select> : <label className="checkbox-field"><input type="checkbox" checked={form.recurring} onChange={(event) => setForm({ ...form, recurring: event.target.checked })} /><span>Kordub igal nädalal</span></label>}{editing?.recurring ? <p className="form-grid__wide form-hint">Korduva tunni muutmine rakendub kogu sarjale.</p> : null}</form></Modal>
+    <Modal open={modal} title={editing ? 'Muuda tundi' : 'Uus tund'} onClose={closeModal} footer={<>{editing && !editing.lessonRecordId ? <Button variant="secondary" disabled={saving} onClick={completeLesson}><CalendarDays size={17} /> Märgi toimunuks</Button> : null}{editing?.lessonRecordId ? <Badge tone="success">Tund arvestatud</Badge> : null}{editing ? <Button variant="danger" disabled={saving || Boolean(editing.lessonRecordId)} onClick={cancelLesson}><XCircle size={17} /> Tühista tund</Button> : null}<span className="modal__footer-spacer" /><Button variant="secondary" onClick={closeModal}>Loobu</Button><Button loading={saving} type="submit" form="lesson-form">{editing ? 'Salvesta muudatused' : 'Salvesta tund'}</Button></>}><form id="lesson-form" className="form-grid" onSubmit={submit}><StudentCombobox students={students.items} value={form.studentId} onChange={(studentId) => setForm({ ...form, studentId })} /><Input label="Kuupäev" type="date" value={form.date} onChange={(event) => setForm({ ...form, date: event.target.value })} required /><Input label="Kellaaeg" type="time" value={form.time} onChange={(event) => setForm({ ...form, time: event.target.value })} required /><Input label="Kestus minutites" type="number" min="5" step="5" value={form.duration} onChange={(event) => setForm({ ...form, duration: event.target.value })} required />{editing ? <Select label="Staatus" value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value })}><option>Planeeritud</option><option>Toimunud</option><option>Tühistatud</option></Select> : <label className="checkbox-field"><input type="checkbox" checked={form.recurring} onChange={(event) => setForm({ ...form, recurring: event.target.checked })} /><span>Kordub igal nädalal</span></label>}{editing?.recurring ? <p className="form-grid__wide form-hint">Korduva tunni muutmine rakendub kogu sarjale.</p> : null}</form></Modal>
     <Modal open={Boolean(attendanceEvent)} title={`Kohalolu: ${attendanceEvent?.studentName || ''}`} onClose={() => !attendanceSaving && setAttendanceEvent(null)} className="modal--attendance" footer={<Button variant="secondary" disabled={Boolean(attendanceSaving)} onClick={() => setAttendanceEvent(null)}>Valmis</Button>}>
       {attendanceEvent ? <div className="attendance-sheet"><header><div><span>Kuupäev</span><strong>{new Date(`${attendanceEvent.occurrenceDate}T12:00:00`).toLocaleDateString('et-EE', { weekday: 'long', day: 'numeric', month: 'long' })}</strong></div><div><span>Kellaaeg</span><strong>{attendanceEvent.time}</strong></div></header>{attendanceStudents.length ? <div>{attendanceStudents.map((student) => {
         const key = `${student.id}_${attendanceEvent.occurrenceDate}`;
