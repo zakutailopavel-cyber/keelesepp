@@ -847,7 +847,20 @@ export default function FinancePage({
                               `#${item.id.slice(0, 6)}`}
                           </button>
                         </td>
-                        <td>{item.studentName || "—"}</td>
+                        <td>
+                          {item.studentId && canRegisterPayment ? (
+                            <Link
+                              className="student-profile-link"
+                              to={`/students/${item.studentId}`}
+                              onClick={(event) => event.stopPropagation()}
+                            >
+                              {item.studentName || "Ava õpilase profiil"}
+                              <ArrowRight size={14} aria-hidden="true" />
+                            </Link>
+                          ) : (
+                            item.studentName || "—"
+                          )}
+                        </td>
                         <td>{displayDate(item.date || item.createdAt)}</td>
                         <td>{displayDate(item.due || item.dueDate)}</td>
                         <td>{money(invoiceAmountCents(item))}</td>
@@ -872,34 +885,45 @@ export default function FinancePage({
               {filtered.map((item) => {
                 const value = invoiceStatus(item);
                 return (
-                  <button
-                    className="finance-mobile-card"
-                    key={item.id}
-                    onClick={() => openInvoice(item)}
-                  >
-                    <div>
-                      <strong>
-                        {item.num ||
-                          item.number ||
-                          item.invoiceNumber ||
-                          `#${item.id.slice(0, 6)}`}
-                      </strong>
-                      <Badge tone={badgeTone(value)}>
-                        {statusLabel[value]}
-                      </Badge>
-                    </div>
-                    <span>{item.studentName || "Õpilane määramata"}</span>
-                    <dl>
+                  <article className="finance-mobile-card" key={item.id}>
+                    <button
+                      className="finance-mobile-card__open"
+                      type="button"
+                      onClick={() => openInvoice(item)}
+                    >
                       <div>
-                        <dt>Summa</dt>
-                        <dd>{money(invoiceAmountCents(item))}</dd>
+                        <strong>
+                          {item.num ||
+                            item.number ||
+                            item.invoiceNumber ||
+                            `#${item.id.slice(0, 6)}`}
+                        </strong>
+                        <Badge tone={badgeTone(value)}>
+                          {statusLabel[value]}
+                        </Badge>
                       </div>
-                      <div>
-                        <dt>Jääk</dt>
-                        <dd>{money(invoiceBalanceCents(item))}</dd>
-                      </div>
-                    </dl>
-                  </button>
+                      <span>{item.studentName || "Õpilane määramata"}</span>
+                      <dl>
+                        <div>
+                          <dt>Summa</dt>
+                          <dd>{money(invoiceAmountCents(item))}</dd>
+                        </div>
+                        <div>
+                          <dt>Jääk</dt>
+                          <dd>{money(invoiceBalanceCents(item))}</dd>
+                        </div>
+                      </dl>
+                    </button>
+                    {item.studentId && canRegisterPayment ? (
+                      <Link
+                        className="student-profile-link finance-mobile-card__student-link"
+                        to={`/students/${item.studentId}`}
+                      >
+                        Ava õpilase profiil
+                        <ArrowRight size={14} aria-hidden="true" />
+                      </Link>
+                    ) : null}
+                  </article>
                 );
               })}
             </div>

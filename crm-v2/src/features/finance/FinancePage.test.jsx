@@ -51,6 +51,19 @@ describe('FinancePage', () => {
     expect(repositories.paymentRepository.listByInvoice).toHaveBeenCalledWith('invoice-1');
   });
 
+  it('links an invoice directly to the student profile without opening invoice details', async () => {
+    renderPage();
+    await openFinanceSection('Arved');
+    const studentLinks = await screen.findAllByRole('link', { name: /Sofia Tamm|Ava õpilase profiil/ });
+    const tableLink = studentLinks.find((link) => link.textContent.includes('Sofia Tamm'));
+    const mobileLink = studentLinks.find((link) => link.textContent.includes('Ava õpilase profiil'));
+
+    expect(tableLink).toHaveAttribute('href', '/students/student-1');
+    expect(mobileLink).toHaveAttribute('href', '/students/student-1');
+    fireEvent.click(tableLink);
+    expect(screen.queryByRole('dialog', { name: 'Arve KS-101' })).not.toBeInTheDocument();
+  });
+
   it('describes corrected invoice delivery without claiming an unsent notice', async () => {
     renderPage(undefined, undefined, {
       invoices: [{ ...invoice, num: 'KS-2026-042', previousInvoiceNumbers: ['KS-2026-013'] }],
