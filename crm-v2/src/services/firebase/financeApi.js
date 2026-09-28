@@ -55,6 +55,19 @@ async function postInvoice(path, body) {
 }
 
 export const financeApi = {
+  previewDataQuality() {
+    return post("/data-quality/preview", {});
+  },
+  previewStudentMerge(primaryStudentId, duplicateStudentIds) {
+    return post("/students/merge/preview", { primaryStudentId, duplicateStudentIds });
+  },
+  mergeStudents(primaryStudentId, duplicateStudentIds) {
+    return post("/students/merge", {
+      primaryStudentId,
+      duplicateStudentIds,
+      requestId: financeRequestId("student_merge"),
+    });
+  },
   createExpense(values) {
     return post("/expenses", {
       ...values,

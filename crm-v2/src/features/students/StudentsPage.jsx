@@ -1,9 +1,10 @@
-import { Archive, ChevronRight, Pencil, Plus, Search } from 'lucide-react';
+import { Archive, ChevronRight, Pencil, Plus, RotateCcw, Search, UsersRound } from 'lucide-react';
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, IconButton, Input, LoadingState, Modal, PageHeader, Select } from '../../components/ui/index.js';
 import { enrollmentKey, groupStudentPeople, studentsService } from '../../services/firebase/students.js';
+import { financeApi } from '../../services/firebase/financeApi.js';
 import { ROLES } from '../../utils/roles.js';
 import { canonicalTeacherName } from '../../utils/teachers.js';
 import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
@@ -87,7 +88,7 @@ function EnrollmentManager({ student, teachers, service, onClose, onChanged }) {
   </Modal>;
 }
 
-export default function StudentsPage({ service = studentsService, actor }) {
+export default function StudentsPage({ service = studentsService, mergeApi = financeApi, actor }) {
   const auth = useContext(AuthContext);
   const currentUser = actor || auth?.user || { roles: [ROLES.ADMIN], displayName: '' };
   const canAssignTeacher = currentUser.roles?.includes(ROLES.ADMIN);
@@ -104,6 +105,7 @@ export default function StudentsPage({ service = studentsService, actor }) {
   const [archiving, setArchiving] = useState(false);
   const [notice, setNotice] = useState('');
   const [actionError, setActionError] = useState('');
+  const [duplicateReview, setDuplicateReview] = useState({ open: false, loading: false, groups: [], selected: null, primaryId: '', preview: null, error: '' });
   const requestId = useRef(0);
 
   useEffect(() => {
@@ -165,17 +167,48 @@ export default function StudentsPage({ service = studentsService, actor }) {
     setNotice(formStudent ? 'Õpilase andmed on salvestatud.' : 'Õpilane on lisatud.');
     await load();
   };
-  const archive = async () => {
+  const setActive = async (active) => {
     setArchiving(true);
     setActionError('');
-    try { await service.archive(archiveTarget.id); setArchiveTarget(null); setNotice('Õpilane on arhiveeritud.'); await load(); }
+    try {
+      const ids = archiveTarget.recordIds?.length ? archiveTarget.recordIds : [archiveTarget.id];
+      await (active ? service.restore(ids) : service.archive(ids));
+      setArchiveTarget(null);
+      setNotice(active ? 'Õpilane on taastatud.' : 'Õpilane on arhiveeritud.');
+      await load();
+    }
     catch (error) { setArchiveTarget(null); setActionError(firebaseErrorMessage(error)); }
     finally { setArchiving(false); }
+  };
+  const openDuplicateReview = async () => {
+    setDuplicateReview({ open: true, loading: true, groups: [], selected: null, primaryId: '', preview: null, error: '' });
+    try {
+      const report = await mergeApi.previewDataQuality();
+      setDuplicateReview((current) => ({ ...current, loading: false, groups: report.duplicateGroups || [] }));
+    } catch (error) { setDuplicateReview((current) => ({ ...current, loading: false, error: firebaseErrorMessage(error) })); }
+  };
+  const previewMerge = async () => {
+    const duplicateIds = duplicateReview.selected.students.map((student) => student.id).filter((id) => id !== duplicateReview.primaryId);
+    setDuplicateReview((current) => ({ ...current, loading: true, error: '' }));
+    try {
+      const preview = await mergeApi.previewStudentMerge(duplicateReview.primaryId, duplicateIds);
+      setDuplicateReview((current) => ({ ...current, loading: false, preview }));
+    } catch (error) { setDuplicateReview((current) => ({ ...current, loading: false, error: firebaseErrorMessage(error) })); }
+  };
+  const mergeDuplicates = async () => {
+    const duplicateIds = duplicateReview.preview.duplicates.map((student) => student.id);
+    setDuplicateReview((current) => ({ ...current, loading: true, error: '' }));
+    try {
+      await mergeApi.mergeStudents(duplicateReview.primaryId, duplicateIds);
+      setDuplicateReview({ open: false, loading: false, groups: [], selected: null, primaryId: '', preview: null, error: '' });
+      setNotice('Duplikaadid on ühendatud ja seotud ajalugu säilitatud.');
+      await load();
+    } catch (error) { setDuplicateReview((current) => ({ ...current, loading: false, error: firebaseErrorMessage(error) })); }
   };
 
   return (
     <div className="page-content">
-      <PageHeader eyebrow="CRM" title="Õpilased" description={state.loading ? 'Laen Firebase andmeid…' : `${people.length} õpilast`} actions={<Button onClick={openCreate}><Plus size={18} /> Lisa õpilane</Button>} />
+      <PageHeader eyebrow="CRM" title="Õpilased" description={state.loading ? 'Laen Firebase andmeid…' : `${people.length} õpilast`} actions={<>{canAssignTeacher ? <Button variant="secondary" onClick={openDuplicateReview}><UsersRound size={18} /> Kontrolli duplikaate</Button> : null}<Button onClick={openCreate}><Plus size={18} /> Lisa õpilane</Button></>} />
       {notice ? <div className="success-notice" role="status">{notice}<button onClick={() => setNotice('')} aria-label="Sulge teade">×</button></div> : null}
       {actionError ? <div className="action-error" role="alert">{actionError}<button onClick={() => setActionError('')} aria-label="Sulge veateade">×</button></div> : null}
       {state.items.length ? <section className="student-directory-summary" aria-label="Õpilaste kokkuvõte"><div><span>Leitud</span><strong>{people.length}</strong></div><div><span>Aktiivsed</span><strong>{activeCount}</strong></div><div><span>Tasemeid</span><strong>{new Set(people.flatMap((student) => (student.enrollments || []).map((enrollment) => enrollment.level)).filter(Boolean)).size}</strong></div>{canAssignTeacher ? <div className={unassignedCount ? 'needs-attention' : ''}><span>Õpetajata</span><strong>{unassignedCount}</strong></div> : null}</section> : null}
@@ -195,17 +228,25 @@ export default function StudentsPage({ service = studentsService, actor }) {
         <Card className="students-card">
           <div className="students-table-wrap">
             <table className="students-table students-table--people"><thead><tr><th>Õpilane</th><th>Õppesuunad</th><th>Staatus</th><th><span className="sr-only">Toimingud</span></th></tr></thead>
-              <tbody>{people.map((student) => <tr key={student.personKey || student.id}><td><Link className="student-identity" {...profileLinkProps(student.id)}><i>{initials(student.name)}</i><span><strong>{student.name || 'Nimetu õpilane'}</strong><small>{student.enrollments?.length || 0} õppesuun{student.enrollments?.length === 1 ? 'd' : 'da'}{canAssignTeacher && student.recordIds?.length > 1 ? ` · ${student.recordIds.length} seotud kirjet` : ''}</small></span></Link></td><td><EnrollmentStack student={student} compact /></td><td><Badge tone={student.active ? 'success' : 'neutral'}>{student.active ? 'Aktiivne' : 'Arhiveeritud'}</Badge></td><td><div className="row-actions">{canAssignTeacher ? <Button variant="secondary" onClick={() => setEnrollmentStudent(student)}>Õppesuunad</Button> : null}<IconButton label={`Muuda ${student.name}`} onClick={() => openEdit(student)}><Pencil size={17} /></IconButton>{student.active ? <IconButton label={`Arhiveeri ${student.name}`} onClick={() => setArchiveTarget(student)}><Archive size={17} /></IconButton> : null}<Link className="icon-button" aria-label={`Ava ${student.name} profiil`} {...profileLinkProps(student.id)}><ChevronRight size={18} /></Link></div></td></tr>)}</tbody>
+              <tbody>{people.map((student) => <tr key={student.personKey || student.id}><td><Link className="student-identity" {...profileLinkProps(student.id)}><i>{initials(student.name)}</i><span><strong>{student.name || 'Nimetu õpilane'}</strong><small>{student.enrollments?.length || 0} õppesuun{student.enrollments?.length === 1 ? 'd' : 'da'}{canAssignTeacher && student.recordIds?.length > 1 ? ` · ${student.recordIds.length} seotud kirjet` : ''}</small></span></Link></td><td><EnrollmentStack student={student} compact /></td><td><Badge tone={student.active ? 'success' : 'neutral'}>{student.active ? 'Aktiivne' : 'Arhiveeritud'}</Badge></td><td><div className="row-actions">{canAssignTeacher ? <Button variant="secondary" onClick={() => setEnrollmentStudent(student)}>Õppesuunad</Button> : null}<IconButton label={`Muuda ${student.name}`} onClick={() => openEdit(student)}><Pencil size={17} /></IconButton>{student.active ? <IconButton label={`Arhiveeri ${student.name}`} onClick={() => setArchiveTarget(student)}><Archive size={17} /></IconButton> : <IconButton label={`Taasta ${student.name}`} onClick={() => setArchiveTarget(student)}><RotateCcw size={17} /></IconButton>}<Link className="icon-button" aria-label={`Ava ${student.name} profiil`} {...profileLinkProps(student.id)}><ChevronRight size={18} /></Link></div></td></tr>)}</tbody>
             </table>
           </div>
-          <div className="students-mobile-list">{people.map((student) => <article className="student-mobile-card" key={student.personKey || student.id}><Link {...profileLinkProps(student.id)}><i className="student-avatar">{initials(student.name)}</i><div><strong>{student.name || 'Nimetu õpilane'}</strong><span>{student.enrollments?.length || 0} õppesuun{student.enrollments?.length === 1 ? 'd' : 'da'}</span></div><ChevronRight size={18} /></Link><EnrollmentStack student={student} /><div className="student-mobile-meta"><Badge tone={student.active ? 'success' : 'neutral'}>{student.active ? 'Aktiivne' : 'Arhiveeritud'}</Badge>{canAssignTeacher && student.recordIds?.length > 1 ? <span>{student.recordIds.length} seotud kirjet</span> : null}</div><div className="row-actions">{canAssignTeacher ? <Button variant="secondary" onClick={() => setEnrollmentStudent(student)}>Õppesuunad</Button> : null}<Button variant="secondary" onClick={() => openEdit(student)}>Muuda</Button>{student.active ? <Button variant="danger" onClick={() => setArchiveTarget(student)}>Arhiveeri</Button> : null}</div></article>)}</div>
+          <div className="students-mobile-list">{people.map((student) => <article className="student-mobile-card" key={student.personKey || student.id}><Link {...profileLinkProps(student.id)}><i className="student-avatar">{initials(student.name)}</i><div><strong>{student.name || 'Nimetu õpilane'}</strong><span>{student.enrollments?.length || 0} õppesuun{student.enrollments?.length === 1 ? 'd' : 'da'}</span></div><ChevronRight size={18} /></Link><EnrollmentStack student={student} /><div className="student-mobile-meta"><Badge tone={student.active ? 'success' : 'neutral'}>{student.active ? 'Aktiivne' : 'Arhiveeritud'}</Badge>{canAssignTeacher && student.recordIds?.length > 1 ? <span>{student.recordIds.length} seotud kirjet</span> : null}</div><div className="row-actions">{canAssignTeacher ? <Button variant="secondary" onClick={() => setEnrollmentStudent(student)}>Õppesuunad</Button> : null}<Button variant="secondary" onClick={() => openEdit(student)}>Muuda</Button>{student.active ? <Button variant="danger" onClick={() => setArchiveTarget(student)}>Arhiveeri</Button> : <Button variant="secondary" onClick={() => setArchiveTarget(student)}>Taasta</Button>}</div></article>)}</div>
           {state.hasMore ? <div className="load-more"><Button variant="secondary" loading={state.loading} onClick={() => load({ append: true })}>Laadi veel</Button></div> : null}
         </Card>
       ) : null}
 
       {enrollmentStudent ? <EnrollmentManager student={enrollmentStudent} teachers={options.teachers} service={service} onClose={() => setEnrollmentStudent(null)} onChanged={async () => { await load(); const fresh = groupStudentPeople((await service.list({ ...filters, scopeTeacher: teacherScope, scopeTeacherUid: canAssignTeacher ? '' : currentUser.uid, pageSize: 500, exhaustive: true })).items).find((item) => item.personKey === enrollmentStudent.personKey); if (fresh) setEnrollmentStudent(fresh); }} /> : null}
       <StudentForm open={formOpen} student={formStudent} teachers={options.teachers} canAssignTeacher={canAssignTeacher} defaultTeacher={teacherScope} onClose={() => setFormOpen(false)} onSubmit={save} />
-      <Modal open={Boolean(archiveTarget)} title="Arhiveeri õpilane" onClose={() => !archiving && setArchiveTarget(null)} footer={<><Button variant="secondary" onClick={() => setArchiveTarget(null)} disabled={archiving}>Loobu</Button><Button variant="danger" loading={archiving} onClick={archive}>Arhiveeri</Button></>}><p>Kas arhiveerida <strong>{archiveTarget?.name}</strong>? Õpilase ajalugu säilib ning kirje märgitakse väljal <code>active</code> mitteaktiivseks.</p></Modal>
+      <Modal open={Boolean(archiveTarget)} title={archiveTarget?.active ? 'Arhiveeri õpilane' : 'Taasta õpilane'} onClose={() => !archiving && setArchiveTarget(null)} footer={<><Button variant="secondary" onClick={() => setArchiveTarget(null)} disabled={archiving}>Loobu</Button><Button variant={archiveTarget?.active ? 'danger' : 'primary'} loading={archiving} onClick={() => setActive(!archiveTarget?.active)}>{archiveTarget?.active ? 'Arhiveeri' : 'Taasta'}</Button></>}><p>Kas {archiveTarget?.active ? 'arhiveerida' : 'taastada'} <strong>{archiveTarget?.name}</strong>? Toiming rakendub kõigile {archiveTarget?.recordIds?.length || 1} seotud kirjele. Õpilase ID-d, õppesuunad ja ajalugu säilivad.</p></Modal>
+      <Modal open={duplicateReview.open} title="Õpilaste duplikaadid" onClose={() => !duplicateReview.loading && setDuplicateReview((current) => ({ ...current, open: false }))} className="modal--enrollments" footer={<Button variant="secondary" disabled={duplicateReview.loading} onClick={() => setDuplicateReview((current) => ({ ...current, open: false }))}>Sulge</Button>}>
+        {duplicateReview.loading ? <LoadingState label="Kontrollin seotud andmeid…" /> : null}
+        {duplicateReview.error ? <p className="form-error" role="alert">{duplicateReview.error}</p> : null}
+        {!duplicateReview.loading && !duplicateReview.groups.length ? <EmptyState title="Duplikaate ei leitud" description="Aktiivsete õpilaste identiteedisignaalid ei viita duplikaatidele." /> : null}
+        {!duplicateReview.selected ? <div className="enrollment-manager__list">{duplicateReview.groups.map((group) => <section className="enrollment-editor" key={group.key}><div className="enrollment-editor__title"><strong>{group.students.map((student) => student.name || student.id).join(' / ')}</strong><Badge tone={group.confidence === 'high' ? 'danger' : 'warning'}>{group.confidence}</Badge></div><p className="form-hint">{group.reasons.map((reason) => reason.label).join(' · ')}</p><Button variant="secondary" onClick={() => setDuplicateReview((current) => ({ ...current, selected: group, primaryId: group.students[0]?.id || '', preview: null, error: '' }))}>Vaata ja ühenda</Button></section>)}</div> : null}
+        {duplicateReview.selected && !duplicateReview.preview ? <section className="enrollment-editor"><p className="form-hint">Vali põhikaart, mille ID jääb alles. Teised kaardid arhiveeritakse alles pärast serveri eelvaadet.</p><Select label="Põhikaart" value={duplicateReview.primaryId} onChange={(event) => setDuplicateReview((current) => ({ ...current, primaryId: event.target.value }))}>{duplicateReview.selected.students.map((student) => <option key={student.id} value={student.id}>{student.name || student.id} · {student.email || student.parentEmail || student.id}</option>)}</Select><div className="enrollment-editor__actions"><Button variant="secondary" onClick={() => setDuplicateReview((current) => ({ ...current, selected: null, primaryId: '' }))}>Tagasi</Button><Button onClick={previewMerge}>Koosta eelvaade</Button></div></section> : null}
+        {duplicateReview.preview ? <section className="enrollment-editor"><p><strong>{duplicateReview.preview.primary.name}</strong> jääb põhikaardiks; {duplicateReview.preview.duplicates.length} duplikaati arhiveeritakse.</p><p className="form-hint">Server seob ümber {duplicateReview.preview.totalReferenceCount} viidet, {duplicateReview.preview.groupCount} gruppi ja säilitab {duplicateReview.preview.preservedProfileCount} profiili hetkepilti. Konflikte: {duplicateReview.preview.profileConflictCount + duplicateReview.preview.profileConflicts.length}.</p><div className="enrollment-editor__actions"><Button variant="secondary" onClick={() => setDuplicateReview((current) => ({ ...current, preview: null }))}>Muuda valikut</Button><Button variant="danger" onClick={mergeDuplicates}>Kinnita ühendamine</Button></div></section> : null}
+      </Modal>
     </div>
   );
 }

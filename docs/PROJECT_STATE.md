@@ -1,5 +1,36 @@
 # KeeleSepp Project State
 
+## CRM v2 student identity and lifecycle — IN PROGRESS
+
+Last verified against main: 2026-09-28, Europe/Tallinn.
+Verified main: `77645f7` (merged PR #182).
+Implementation branch: `feature/edit-student-enrollments-20260928`.
+Pull request: #181.
+
+PR #181 now keeps one displayed child across multiple learning directions and adds complete lifecycle handling. Archive
+and restore update every physical `students` document represented by the person card in one Firestore batch, while
+preserving IDs, enrollments and history. Parent/student-owned lists no longer return archived or parent-converted
+student records. The already existing parent directory remains the admin workflow for manually linking or reassigning
+an existing student to a parent.
+
+Administrators can request the existing server-owned data-quality duplicate scan from the student directory. A merge
+requires choosing the surviving primary ID, reviewing the server preview and confirming separately. The existing
+Financial Core merge moves supported dependent references, preserves aliases/profile snapshots and archives secondary
+records with an audit trail; no browser-side partial merge or production data migration is added.
+
+Changed files: `crm-v2/src/features/students/StudentsPage.jsx`, its focused test,
+`crm-v2/src/services/firebase/students.js`, `crm-v2/src/services/firebase/financeApi.js`, `ARCHITECTURE.md` and this
+state file. Data contracts reused: `students`, parent links, the existing `/data-quality/preview`,
+`/students/merge/preview` and `/students/merge` endpoints, and existing merge audit records.
+
+Validation so far: PASS — focused student/parent suites 43/43, student pagination plus serial finance suites 23/23,
+server duplicate-merge core 7/7, ESLint, production build and `git diff --check`. The full parallel CRM suite reached
+296/298; its only two failures were unrelated five-second finance test timeouts, and that complete finance file passed
+19/19 when rerun outside the saturated full-suite process. No production
+deployment, Firebase rules/index change or production record mutation was performed. The merge remains admin-only and
+requires an explicit preview plus confirmation. Exactly one next safe step: push the updated #181 branch and wait for
+GitHub CI before owner review and merge.
+
 ## CRM v2 final readiness — IN PROGRESS
 
 Last verified against main: 2026-09-28, Europe/Tallinn.

@@ -110,7 +110,7 @@ describe('students list states', () => {
     };
     renderPage(service, { uid: 'admin-1', roles: ['admin'], displayName: 'Admin' });
     await screen.findAllByText('Georg');
-    fireEvent.click(screen.getByRole('button', { name: 'Õppesuunad' }));
+    fireEvent.click(screen.getAllByRole('button', { name: 'Õppesuunad' })[0]);
     const dialog = screen.getByRole('dialog', { name: 'Õppesuunad: Georg' });
     fireEvent.change(within(dialog).getAllByLabelText('Õppeaine')[0], { target: { value: 'Matemaatika' } });
     fireEvent.click(within(dialog).getByRole('button', { name: 'Salvesta õppesuund' }));
@@ -126,7 +126,7 @@ describe('students list states', () => {
   it('requires confirmation before non-destructive archive and refreshes the list', async () => {
     const service = {
       list: vi.fn()
-        .mockResolvedValueOnce({ items: [{ id: 's1', name: 'Mari', teacher: 'Pavel', active: true }], cursor: null, hasMore: false })
+        .mockResolvedValueOnce({ items: [{ id: 's1', personId: 'mari', name: 'Mari', teacher: 'Pavel', active: true }, { id: 's2', personId: 'mari', name: 'Mari', teacher: 'Jelena', active: true }], cursor: null, hasMore: false })
         .mockResolvedValue({ items: [], cursor: null, hasMore: false }),
       archive: vi.fn().mockResolvedValue(undefined),
     };
@@ -138,8 +138,36 @@ describe('students list states', () => {
     const dialog = screen.getByRole('dialog', { name: 'Arhiveeri õpilane' });
     fireEvent.click(within(dialog).getByRole('button', { name: 'Arhiveeri' }));
 
-    await waitFor(() => expect(service.archive).toHaveBeenCalledWith('s1'));
+    await waitFor(() => expect(service.archive).toHaveBeenCalledWith(['s1', 's2']));
     await waitFor(() => expect(service.list).toHaveBeenCalledTimes(2));
     expect(await screen.findByText('Õpilane on arhiveeritud.')).toBeInTheDocument();
+  });
+
+  it('restores every physical record represented by an archived person', async () => {
+    const service = {
+      list: vi.fn().mockResolvedValue({ items: [{ id: 's1', personId: 'mari', name: 'Mari', active: false }, { id: 's2', personId: 'mari', name: 'Mari', active: false }], cursor: null, hasMore: false }),
+      restore: vi.fn().mockResolvedValue(undefined),
+    };
+    renderPage(service);
+    fireEvent.click((await screen.findAllByRole('button', { name: 'Taasta Mari' }))[0]);
+    fireEvent.click(within(screen.getByRole('dialog', { name: 'Taasta õpilane' })).getByRole('button', { name: 'Taasta' }));
+    await waitFor(() => expect(service.restore).toHaveBeenCalledWith(['s1', 's2']));
+  });
+
+  it('previews and confirms a server-owned duplicate merge', async () => {
+    const service = { list: vi.fn().mockResolvedValue({ items: [], cursor: null, hasMore: false }) };
+    const group = { key: 'g1', confidence: 'high', reasons: [{ label: 'Sama e-post' }], students: [{ id: 's1', name: 'Mari', email: 'mari@example.com' }, { id: 's2', name: 'Mari', email: 'mari@example.com' }] };
+    const mergeApi = {
+      previewDataQuality: vi.fn().mockResolvedValue({ duplicateGroups: [group] }),
+      previewStudentMerge: vi.fn().mockResolvedValue({ primary: group.students[0], duplicates: [group.students[1]], totalReferenceCount: 3, groupCount: 1, preservedProfileCount: 1, profileConflictCount: 0, profileConflicts: [] }),
+      mergeStudents: vi.fn().mockResolvedValue({}),
+    };
+    render(<MemoryRouter><StudentsPage service={service} mergeApi={mergeApi} actor={{ uid: 'admin', roles: ['admin'] }} /></MemoryRouter>);
+    fireEvent.click(await screen.findByRole('button', { name: 'Kontrolli duplikaate' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Vaata ja ühenda' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Koosta eelvaade' }));
+    await waitFor(() => expect(mergeApi.previewStudentMerge).toHaveBeenCalledWith('s1', ['s2']));
+    fireEvent.click(await screen.findByRole('button', { name: 'Kinnita ühendamine' }));
+    await waitFor(() => expect(mergeApi.mergeStudents).toHaveBeenCalledWith('s1', ['s2']));
   });
 });

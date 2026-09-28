@@ -10,6 +10,7 @@ import {
   startAfter,
   updateDoc,
   where,
+  writeBatch,
 } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
 import { canonicalTeacherName, isSameTeacher } from '../../utils/teachers.js';
@@ -226,12 +227,12 @@ export const studentsService = {
     const snapshots = await Promise.all(constraints.map((constraint) => getDocs(query(collection(db, 'students'), constraint))));
     const unique = new Map();
     snapshots.forEach((snapshot) => snapshot.docs.forEach((item) => unique.set(item.id, normalizeStudent(item.id, item.data()))));
-    return sortStudents([...unique.values()]);
+    return sortStudents([...unique.values()].filter((student) => student.active && !student.convertedToParent));
   },
   async list(filters = {}) {
     const { db } = requireFirebaseClient();
     const pageSize = Math.max(1, Number(filters.pageSize) || PAGE_SIZE);
-    if (filters.scopeTeacherUid) {
+    if (filters.scopeTeacherUid && filters.exhaustive) {
       const reference = collection(db, 'students');
       const [legacySnapshot, multiSnapshot] = await Promise.all([
         getDocs(query(reference, where('teacherUid', '==', filters.scopeTeacherUid))),
@@ -249,7 +250,9 @@ export const studentsService = {
     const items = [];
 
     while (hasMore && (exhaustive || items.length < pageSize)) {
-      const constraints = [orderBy('name', direction)];
+      const constraints = filters.scopeTeacherUid
+        ? [where('teacherUid', '==', filters.scopeTeacherUid)]
+        : [orderBy('name', direction)];
       if (cursor) constraints.push(startAfter(cursor));
       constraints.push(limit(pageSize));
       const snapshot = await getDocs(query(collection(db, 'students'), ...constraints));
@@ -282,14 +285,9 @@ export const studentsService = {
     const { db } = requireFirebaseClient();
     const teacherUid = await resolveTeacherUid(db, data.teacher);
     const candidate = normalizeStudent('', { ...data, teacherUid, active: true });
-    const possibleDuplicates = await this.list({
-      search: candidate.name,
-      status: 'active',
-      scopeTeacherUid: teacherUid,
-      pageSize: PAGE_SIZE,
-      exhaustive: true,
-    });
-    if (hasDuplicateStudent(possibleDuplicates.items, candidate)) throw new StudentDuplicateError();
+    const duplicateSnapshot = await getDocs(query(collection(db, 'students'), where('teacherUid', '==', teacherUid)));
+    const possibleDuplicates = duplicateSnapshot.docs.map((item) => normalizeStudent(item.id, item.data()));
+    if (hasDuplicateStudent(possibleDuplicates, candidate)) throw new StudentDuplicateError();
     const payload = {
       ...pickStudentFields(data),
       active: true,
@@ -371,7 +369,25 @@ export const studentsService = {
     await updateDoc(doc(db, 'students', recordId), payload);
     return this.getById(recordId);
   },
-  async archive(id) {
-    return this.update(id, { active: false });
+  async setPersonActive(recordIds, active) {
+    const ids = [...new Set((Array.isArray(recordIds) ? recordIds : [recordIds]).map(cleanText).filter(Boolean))];
+    if (!ids.length) throw new Error('Õpilase kirjeid ei leitud.');
+    if (ids.length > 450) throw new Error('Õpilasega on seotud liiga palju kirjeid.');
+    const { db } = requireFirebaseClient();
+    const batch = writeBatch(db);
+    const changedAt = new Date().toISOString();
+    ids.forEach((id) => batch.update(doc(db, 'students', id), {
+      active: Boolean(active),
+      updatedAt: changedAt.slice(0, 10),
+      ...(active ? { restoredAt: changedAt } : { archivedAt: changedAt }),
+    }));
+    await batch.commit();
+    return { recordIds: ids, active: Boolean(active) };
+  },
+  async archive(recordIds) {
+    return this.setPersonActive(recordIds, false);
+  },
+  async restore(recordIds) {
+    return this.setPersonActive(recordIds, true);
   },
 };
