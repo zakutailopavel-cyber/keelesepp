@@ -1,5 +1,25 @@
 # KeeleSepp Project State
 
+## CRM v2 visual foundation — IN PROGRESS
+
+Last verified against main: 2026-09-28, Europe/Tallinn.
+Verified main: `e9bbacf`.
+Implementation branch: `codex/v2-visual-foundation`.
+Draft PR: https://github.com/zakutailopavel-cyber/keelesepp/pull/171.
+
+CRM v2 is receiving a shared visual foundation while v1 remains fully operational. The shared layer changes design
+tokens, application shell, navigation, typography, cards, controls, tables, dialogs, state views and responsive
+behavior. The dashboard is now a deliberate daily command centre with a contextual welcome surface, role-scoped quick
+actions, readable metrics, today's teaching agenda and an attention queue. The direction is a calm modern school
+workspace with a deep navy frame, KeeleSepp green actions, warm restrained highlights and dense but readable working
+surfaces. Existing routes, roles, Firebase data, business logic and v1 files are unchanged.
+
+Validation: PASS for ESLint, production build, focused authentication and shell tests (2/2), the four files affected by
+parallel host-load timeouts rerun serially (31/31), and desktop browser review of the redesigned login surface. The full
+parallel suite reached 282/290; its eight failures were five-second timeouts without assertion failures. No production
+deployment is included. Exactly one next safe step: owner review of PR #171 before expanding the system to feature-level
+layout refinements.
+
 ## Didaktika raamatukogu v1 — LOCAL IMPLEMENTATION
 
 Last verified against main: 2026-09-27, Europe/Tallinn.
