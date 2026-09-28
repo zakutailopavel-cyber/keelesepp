@@ -148,14 +148,50 @@ export const parentsService = {
     const teacherUid = clean(values?.teacherUid);
     const teacher = clean(values?.teacher);
     if (!teacherUid || !teacher) throw new Error('Vali õpilasele õpetaja kasutajate kataloogist.');
-    const duplicate = (existingStudents || []).some((student) => (
-      student.active !== false
-      && !student.convertedToParent
-      && clean(student.name).toLocaleLowerCase('et') === name.toLocaleLowerCase('et')
-    ));
-    if (duplicate) throw new Error('Sama nimega aktiivne õpilase kaart on juba olemas. Seo olemasolev kaart.');
+    const normalizedName = name.toLocaleLowerCase('et');
+    const sameChild = (existingStudents || []).find((student) => {
+      if (student.active === false || student.convertedToParent || clean(student.name).toLocaleLowerCase('et') !== normalizedName) return false;
+      const studentParentId = clean(student.linkedParentId || student.parentUid || student.guardianUid);
+      const studentParentEmail = clean(student.parentEmail).toLocaleLowerCase('et');
+      const studentParentName = clean(student.parentName).toLocaleLowerCase('et');
+      return studentParentId === parent.id
+        || (parent.email && studentParentEmail === clean(parent.email).toLocaleLowerCase('et'))
+        || (parent.displayName && studentParentName === clean(parent.displayName).toLocaleLowerCase('et'));
+    });
 
     const now = new Date().toISOString();
+    if (sameChild) {
+      const enrollment = {
+        id: [clean(values.subject) || 'Eesti keel', teacherUid || teacher].join('|').toLocaleLowerCase('et'),
+        subject: clean(values.subject) || 'Eesti keel',
+        teacher,
+        teacherUid,
+        level: clean(values.level) || 'A1',
+        targetLevel: clean(values.targetLevel) || 'B1',
+        active: true,
+      };
+      const enrollmentMap = new Map((sameChild.enrollments || []).map((item) => [enrollmentKey(item), item]));
+      enrollmentMap.set(enrollmentKey(enrollment), { ...enrollmentMap.get(enrollmentKey(enrollment)), ...enrollment });
+      const { db } = requireFirebaseClient();
+      const batch = writeBatch(db);
+      batch.set(doc(db, 'students', sameChild.id), {
+        linkedParentId: parent.id,
+        parentUid: parent.id,
+        parentName: clean(parent.displayName),
+        parentEmail: clean(parent.email),
+        enrollments: [...enrollmentMap.values()],
+        updatedAt: now,
+      }, { merge: true });
+      batch.set(doc(db, 'users', parent.id), {
+        parentReviewStatus: 'checked',
+        parentReviewKey: parentReviewKey(parent.childName),
+        parentReviewedAt: now,
+        parentReviewedBy: user.displayName || user.email || '',
+      }, { merge: true });
+      writeActivity(batch, db, 'parent.student_enrollment_added', `${name} õppesuunale lisati ${enrollment.subject}`, parent, user, { studentId: sameChild.id, studentName: name, teacherUid, subject: enrollment.subject });
+      await batch.commit();
+      return { id: sameChild.id, ...sameChild, enrollments: [...enrollmentMap.values()], reusedExistingStudent: true };
+    }
     const payload = {
       name,
       parentName: clean(parent.displayName),
