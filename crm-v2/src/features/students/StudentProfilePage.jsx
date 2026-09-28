@@ -1,8 +1,8 @@
-import { ArrowLeft, Pencil } from 'lucide-react';
+import { ArrowLeft, BookOpenCheck, CalendarDays, Pencil, ReceiptText } from 'lucide-react';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { AuthContext } from '../../app/AuthContext.jsx';
-import { Badge, Button, Card, EmptyState, ErrorState, LoadingState, PageHeader } from '../../components/ui/index.js';
+import { Badge, Button, Card, EmptyState, ErrorState, LoadingState } from '../../components/ui/index.js';
 import { invoicesService } from '../../services/firebase/invoices.js';
 import { lessonsService } from '../../services/firebase/lessons.js';
 import { scheduleService } from '../../services/firebase/schedule.js';
@@ -73,12 +73,17 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
 
   const { student } = state;
   const tabPanelId = `student-profile-panel-${activeTab}`;
+  const initials = String(student.name || '?').split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
 
   return (
     <div className="page-content">
       <Link className="back-link" to="/students"><ArrowLeft size={17} /> Kõik õpilased</Link>
       {notice ? <div className="success-notice" role="status">{notice}<button onClick={() => setNotice('')} aria-label="Sulge teade">×</button></div> : null}
-      <PageHeader eyebrow={student.active ? 'Aktiivne õpilane' : 'Arhiveeritud'} title={student.name} description={`${student.subject || 'Õppeaine määramata'} · ${student.level || 'tase määramata'} → ${student.targetLevel || 'sihttase määramata'}`} actions={<Button variant="secondary" onClick={() => setEditing(true)}><Pencil size={17} /> Muuda</Button>} />
+      <header className="student-profile-hero">
+        <div className="student-profile-hero__identity"><i>{initials}</i><span><Badge tone={student.active ? 'success' : 'neutral'}>{student.active ? 'Aktiivne õpilane' : 'Arhiveeritud'}</Badge><h1>{student.name}</h1><p>{student.subject || 'Õppeaine määramata'} · {student.level || 'tase määramata'} → {student.targetLevel || 'sihttase määramata'}</p></span></div>
+        <div className="student-profile-hero__stats"><div><BookOpenCheck size={17} /><span><strong>{state.lessons.length}</strong><small>tundi</small></span></div><div><CalendarDays size={17} /><span><strong>{state.schedule.length}</strong><small>graafikus</small></span></div>{canViewFinance ? <div><ReceiptText size={17} /><span><strong>{state.invoices.length}</strong><small>arvet</small></span></div> : null}</div>
+        <Button variant="secondary" onClick={() => setEditing(true)}><Pencil size={17} /> Muuda andmeid</Button>
+      </header>
 
       <nav className="student-profile-tabs" role="tablist" aria-label="Õpilase profiili jaotised">
         {visibleTabs.map((tab) => (
