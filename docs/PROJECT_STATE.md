@@ -5,7 +5,7 @@
 Last verified against main: 2026-09-28, Europe/Tallinn.
 Verified main: `d0f15d5`.
 Implementation branch: `codex/v2-calendar-experience`.
-Draft PR: pending.
+Draft PR: https://github.com/zakutailopavel-cyber/keelesepp/pull/173.
 
 The calendar now opens with a responsive operational overview for the selected period: total lessons, today's lessons,
 group lessons and completed lessons. The current period has a stronger visual hierarchy, today's column is clearly
@@ -14,7 +14,7 @@ smaller screens. Existing day, week and month views, filters, conflict detection
 completion, group attendance, teacher scoping and Firebase contracts remain unchanged. v1 is unchanged.
 
 Validation: PASS — focused calendar suites 11/11, ESLint, production build and `git diff --check`. No production
-deployment is included. Exactly one next safe step: open the draft PR and wait for GitHub CI.
+deployment is included. Exactly one next safe step: wait for GitHub CI, then owner review of PR #173.
 
 ## CRM v2 student experience — IN PROGRESS
 
