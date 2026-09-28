@@ -1272,6 +1272,43 @@ service cloud.firestore {
           )
         );
       allow delete: if isAdmin();
+
+      match /signals/{signalId} {
+        allow read: if canUseLiveLessonInvitation(invitationId);
+        allow create: if canUseLiveLessonInvitation(invitationId)
+          && request.resource.data.keys().hasOnly([
+            'type',
+            'sessionId',
+            'senderUid',
+            'senderRole',
+            'payload',
+            'createdAt',
+            'createdAtIso'
+          ])
+          && request.resource.data.keys().hasAll([
+            'type',
+            'sessionId',
+            'senderUid',
+            'senderRole',
+            'payload',
+            'createdAt',
+            'createdAtIso'
+          ])
+          && request.resource.data.type in ['offer', 'answer', 'candidate', 'hangup']
+          && request.resource.data.sessionId is string
+          && request.resource.data.sessionId.size() > 0
+          && request.resource.data.sessionId.size() <= 120
+          && request.resource.data.senderUid == uid()
+          && request.resource.data.senderRole in ['teacher', 'student']
+          && liveLessonSignalRoleMatches(invitationId, request.resource.data.senderRole)
+          && request.resource.data.payload is string
+          && request.resource.data.payload.size() <= 64000
+          && request.resource.data.createdAt == request.time
+          && request.resource.data.createdAtIso is string
+          && request.resource.data.createdAtIso.size() <= 40;
+        allow update: if false;
+        allow delete: if isAdmin();
+      }
     }
 
     match /liveClassrooms/{classroomId} {
