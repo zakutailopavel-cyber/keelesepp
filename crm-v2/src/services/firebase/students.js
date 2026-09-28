@@ -10,6 +10,7 @@ import {
   startAfter,
   updateDoc,
   where,
+  writeBatch,
 } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
 import { canonicalTeacherName, isSameTeacher } from '../../utils/teachers.js';
@@ -19,7 +20,7 @@ const PAGE_SIZE = 50;
 const writableFields = [
   'name', 'parentName', 'parentEmail', 'email', 'phone', 'level', 'targetLevel',
   'subject', 'grade', 'group', 'teacher', 'active', 'contactStatus', 'contactOwner',
-  'contactLastAt', 'contactNotes', 'enrollments', 'personId',
+  'contactLastAt', 'contactNotes', 'enrollments', 'personId', 'teacherUids',
 ];
 
 function cleanText(value) { return String(value ?? '').trim(); }
@@ -73,7 +74,9 @@ export function groupStudentPeople(items = []) {
     const enrollmentMap = new Map();
     records.forEach((record) => (record.enrollments || []).forEach((enrollment) => {
       const key = enrollmentKey(enrollment);
-      if (!enrollmentMap.has(key)) enrollmentMap.set(key, enrollment);
+      const current = enrollmentMap.get(key);
+      if (!current) enrollmentMap.set(key, { ...enrollment, sourceRecordIds: [record.id] });
+      else if (!current.sourceRecordIds.includes(record.id)) current.sourceRecordIds.push(record.id);
     }));
     const enrollments = [...enrollmentMap.values()];
     const teachers = [...new Set(enrollments.map((item) => item.teacher).filter(Boolean))];
@@ -180,8 +183,9 @@ export function matchesStudentFilters(student, filters = {}) {
   if (filters.status === 'active' && !student.active) return false;
   if (filters.status === 'archived' && student.active) return false;
   if (filters.level && student.level !== filters.level) return false;
-  if (filters.teacher && !isSameTeacher(student.teacher, filters.teacher)) return false;
-  if (filters.scopeTeacher && !isSameTeacher(student.teacher, filters.scopeTeacher)) return false;
+  const enrollmentTeachers = (student.enrollments || []).map((item) => item.teacher).filter(Boolean);
+  if (filters.teacher && ![student.teacher, ...enrollmentTeachers].some((teacher) => isSameTeacher(teacher, filters.teacher))) return false;
+  if (filters.scopeTeacher && ![student.teacher, ...enrollmentTeachers].some((teacher) => isSameTeacher(teacher, filters.scopeTeacher))) return false;
   return true;
 }
 
@@ -223,11 +227,22 @@ export const studentsService = {
     const snapshots = await Promise.all(constraints.map((constraint) => getDocs(query(collection(db, 'students'), constraint))));
     const unique = new Map();
     snapshots.forEach((snapshot) => snapshot.docs.forEach((item) => unique.set(item.id, normalizeStudent(item.id, item.data()))));
-    return sortStudents([...unique.values()]);
+    return sortStudents([...unique.values()].filter((student) => student.active && !student.convertedToParent));
   },
   async list(filters = {}) {
     const { db } = requireFirebaseClient();
     const pageSize = Math.max(1, Number(filters.pageSize) || PAGE_SIZE);
+    if (filters.scopeTeacherUid && filters.exhaustive) {
+      const reference = collection(db, 'students');
+      const [legacySnapshot, multiSnapshot] = await Promise.all([
+        getDocs(query(reference, where('teacherUid', '==', filters.scopeTeacherUid))),
+        getDocs(query(reference, where('teacherUids', 'array-contains', filters.scopeTeacherUid))),
+      ]);
+      const unique = new Map();
+      [...legacySnapshot.docs, ...multiSnapshot.docs].forEach((item) => unique.set(item.id, normalizeStudent(item.id, item.data())));
+      const scopedItems = [...unique.values()].filter((student) => matchesStudentFilters(student, filters));
+      return { items: sortStudents(scopedItems, filters.sort), cursor: null, hasMore: false };
+    }
     const exhaustive = filters.exhaustive || filters.sort === 'level' || filters.sort === 'teacher';
     const direction = filters.sort === 'name-desc' ? 'desc' : 'asc';
     let cursor = filters.cursor || null;
@@ -270,14 +285,9 @@ export const studentsService = {
     const { db } = requireFirebaseClient();
     const teacherUid = await resolveTeacherUid(db, data.teacher);
     const candidate = normalizeStudent('', { ...data, teacherUid, active: true });
-    const possibleDuplicates = await this.list({
-      search: candidate.name,
-      status: 'active',
-      scopeTeacherUid: teacherUid,
-      pageSize: PAGE_SIZE,
-      exhaustive: true,
-    });
-    if (hasDuplicateStudent(possibleDuplicates.items, candidate)) throw new StudentDuplicateError();
+    const duplicateSnapshot = await getDocs(query(collection(db, 'students'), where('teacherUid', '==', teacherUid)));
+    const possibleDuplicates = duplicateSnapshot.docs.map((item) => normalizeStudent(item.id, item.data()));
+    if (hasDuplicateStudent(possibleDuplicates, candidate)) throw new StudentDuplicateError();
     const payload = {
       ...pickStudentFields(data),
       active: true,
@@ -289,6 +299,7 @@ export const studentsService = {
     };
     payload.teacher = canonicalTeacherName(payload.teacher);
     payload.teacherUid = teacherUid;
+    payload.teacherUids = teacherUid ? [teacherUid] : [];
     const reference = await addDoc(collection(db, 'students'), payload);
     return normalizeStudent(reference.id, payload);
   },
@@ -301,6 +312,7 @@ export const studentsService = {
       payload.teacherUid = current?.teacherUid && isSameTeacher(current.teacher, payload.teacher)
         ? current.teacherUid
         : await resolveTeacherUid(db, payload.teacher);
+      payload.teacherUids = payload.teacherUid ? [...new Set([...(current?.teacherUids || []), payload.teacherUid])] : (current?.teacherUids || []);
     }
     const candidate = current ? normalizeStudent(id, { ...current, ...payload }) : null;
     if (
@@ -322,14 +334,60 @@ export const studentsService = {
   async addEnrollment(id, enrollment) {
     const current = await this.getById(id);
     if (!current) throw new Error('Õpilast ei leitud.');
-    const nextEnrollment = normalizedEnrollment(enrollment, current);
+    const { db } = requireFirebaseClient();
+    const teacherUid = await resolveTeacherUid(db, enrollment.teacher);
+    const nextEnrollment = normalizedEnrollment({ ...enrollment, teacherUid }, current);
     const existing = new Map((current.enrollments || []).map((item) => [enrollmentKey(item), item]));
     existing.set(enrollmentKey(nextEnrollment), { ...existing.get(enrollmentKey(nextEnrollment)), ...nextEnrollment });
-    const { db } = requireFirebaseClient();
-    await updateDoc(doc(db, 'students', id), { enrollments: [...existing.values()], updatedAt: new Date().toISOString().slice(0, 10) });
+    const enrollments = [...existing.values()];
+    const teacherUids = [...new Set(enrollments.map((item) => item.teacherUid).filter(Boolean))];
+    const payload = { enrollments, teacherUids, updatedAt: new Date().toISOString().slice(0, 10) };
+    await updateDoc(doc(db, 'students', id), payload);
     return this.getById(id);
   },
-  async archive(id) {
-    return this.update(id, { active: false });
+  async updateEnrollment(recordId, enrollmentId, patch) {
+    const current = await this.getById(recordId);
+    if (!current) throw new Error('Õpilast ei leitud.');
+    const index = (current.enrollments || []).findIndex((item) => item.id === enrollmentId || enrollmentKey(item) === enrollmentId);
+    if (index < 0) throw new Error('Õppesuunda ei leitud.');
+    const { db } = requireFirebaseClient();
+    const teacherUid = await resolveTeacherUid(db, patch.teacher ?? current.enrollments[index].teacher);
+    const updated = normalizedEnrollment({ ...current.enrollments[index], ...patch, teacherUid }, current);
+    const enrollments = [...current.enrollments];
+    enrollments[index] = updated;
+    const teacherUids = [...new Set(enrollments.filter((item) => item.active !== false).map((item) => item.teacherUid).filter(Boolean))];
+    const payload = { enrollments, teacherUids, updatedAt: new Date().toISOString().slice(0, 10) };
+    if (current.enrollments.length === 1 || enrollmentKey(current.enrollments[index]) === enrollmentKey(normalizedEnrollment(current, current))) {
+      Object.assign(payload, {
+        subject: updated.subject,
+        teacher: updated.teacher,
+        teacherUid: updated.teacherUid,
+        level: updated.level,
+        targetLevel: updated.targetLevel,
+      });
+    }
+    await updateDoc(doc(db, 'students', recordId), payload);
+    return this.getById(recordId);
+  },
+  async setPersonActive(recordIds, active) {
+    const ids = [...new Set((Array.isArray(recordIds) ? recordIds : [recordIds]).map(cleanText).filter(Boolean))];
+    if (!ids.length) throw new Error('Õpilase kirjeid ei leitud.');
+    if (ids.length > 450) throw new Error('Õpilasega on seotud liiga palju kirjeid.');
+    const { db } = requireFirebaseClient();
+    const batch = writeBatch(db);
+    const changedAt = new Date().toISOString();
+    ids.forEach((id) => batch.update(doc(db, 'students', id), {
+      active: Boolean(active),
+      updatedAt: changedAt.slice(0, 10),
+      ...(active ? { restoredAt: changedAt } : { archivedAt: changedAt }),
+    }));
+    await batch.commit();
+    return { recordIds: ids, active: Boolean(active) };
+  },
+  async archive(recordIds) {
+    return this.setPersonActive(recordIds, false);
+  },
+  async restore(recordIds) {
+    return this.setPersonActive(recordIds, true);
   },
 };

@@ -233,6 +233,26 @@ derives unpaid invoice balance, pending homework, unread messages, low package b
 planning in the browser; quick navigation links to the existing learning, worksheet, message, lesson and finance
 sections. It does not introduce a student summary collection or copy financial and learning history.
 
+### Student identity and lifecycle
+
+CRM v2 treats a displayed child as a person projection over one or more legacy `students` documents. Stable
+`personId` is preferred; parent account, parent email or parent name plus the child's normalized name are migration
+fallbacks. Separate subject-teacher combinations are enrollments, not new people. Adding or editing an enrollment
+updates the existing student document and never creates another student card.
+
+Archive and restore apply atomically to every physical student document represented by the person projection. They
+only change lifecycle metadata (`active`, `archivedAt` or `restoredAt`) and preserve document IDs, enrollments and all
+historical references. Parent and student cabinets exclude inactive and converted records. Administrators may link
+or reassign an existing student from the parent directory; that workflow updates the existing records and does not
+create a replacement identity.
+
+Potential duplicates are detected by the Financial Core data-quality preview using student account, student contact,
+normalized name and parent identity signals. Sharing only a parent is not enough to classify siblings as duplicates.
+An administrator must choose the surviving primary ID, inspect the server merge preview and explicitly confirm. The
+server then rewrites supported references, preserves profile snapshots and aliases, archives secondary profiles with
+`mergedIntoStudentId`, and writes an idempotent merge operation and audit trail. The browser never performs a partial
+client-side merge.
+
 The existing Lesson Builder is the canonical authoring surface. Worksheet visual blocks will converge into
 it through the Normalized Activity Contract. A future A4 canvas stores presentation-only grid placement on
 the same immutable activity IDs and produces teacher, student and print projections rather than a separate
