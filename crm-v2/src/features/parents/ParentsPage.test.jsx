@@ -39,6 +39,7 @@ describe('ParentsPage', () => {
     const user = { uid: 'admin-1', displayName: 'Admin', roles: ['admin'] };
     renderPage(user, data);
     await screen.findByText('Mari Ema');
+    expect(screen.getByRole('region', { name: 'Lapsevanemate kokkuvõte' })).toHaveTextContent('Lapsevanemaid2');
     fireEvent.click(screen.getAllByRole('button', { name: /Muuda/ })[0]);
     const dialog = screen.getByRole('dialog', { name: 'Muuda: Mari Ema' });
     fireEvent.change(within(dialog).getByLabelText('Kontakti staatus'), { target: { value: 'called' } });
