@@ -13,8 +13,9 @@ identified, lesson cards have improved interaction and keyboard-focus states, an
 smaller screens. Existing day, week and month views, filters, conflict detection, lesson creation and editing, quick
 completion, group attendance, teacher scoping and Firebase contracts remain unchanged. v1 is unchanged.
 
-Validation: PASS — focused calendar suites 11/11, ESLint, production build and `git diff --check`. No production
-deployment is included. Exactly one next safe step: wait for GitHub CI, then owner review of PR #173.
+Validation: PASS — focused calendar suites 11/11, ESLint, production build, `git diff --check`, GitHub `verify`,
+`security-regression` and Vercel preview checks. No production deployment is included. Exactly one next safe step:
+owner review of PR #173.
 
 ## CRM v2 student experience — IN PROGRESS
 
