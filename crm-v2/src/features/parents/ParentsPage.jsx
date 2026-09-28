@@ -118,7 +118,7 @@ export default function ParentsPage({ repository = parentsService, studentReposi
     try {
       const result = await repository.linkStudent(linkingRow.parent, student, user, { force, relatedStudents: state.data.students });
       setStudentQuery('');
-      setSuccess(`${student.name} seoti lapsevanemaga${result.linkedRecordCount > 1 ? ` (${result.linkedRecordCount} õppekaarti)` : ''}.`);
+      setSuccess(`${student.name} seoti lapsevanemaga${result?.linkedRecordCount > 1 ? ` (${result.linkedRecordCount} õppekaarti)` : ''}.`);
       await state.reload();
     } catch (error) {
       setActionError(error.message || 'Õpilase sidumine ebaõnnestus.');
