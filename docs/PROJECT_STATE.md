@@ -1,5 +1,20 @@
 # KeeleSepp Project State
 
+## CRM v2 student experience — IN PROGRESS
+
+Last verified against main: 2026-09-28, Europe/Tallinn.
+Verified main: `0ddb977`.
+Implementation branch: `codex/v2-student-experience`.
+
+The first feature-level refinement after the shared visual foundation improves the existing student directory and
+student 360 profile without changing their data contracts. The directory adds a compact loaded-result summary,
+recognisable initial avatars and clearer desktop/mobile identity hierarchy. The profile adds a dedicated identity hero,
+status, learning context and role-scoped counts for lessons, schedule entries and invoices. Existing filters, URL state,
+pagination, editing, archive confirmation, teacher scope, finance scope and profile tabs remain intact. v1 is unchanged.
+
+Validation gate: focused student tests, ESLint, production build and GitHub CI. Exactly one next safe step: open a draft
+PR for owner review after all checks pass.
+
 ## CRM v2 visual foundation — IN PROGRESS
 
 Last verified against main: 2026-09-28, Europe/Tallinn.

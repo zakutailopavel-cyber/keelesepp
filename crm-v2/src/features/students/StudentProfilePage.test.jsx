@@ -33,6 +33,9 @@ describe('student profile tabs and role access', () => {
     });
 
     expect(await screen.findByRole('tab', { name: 'Ülevaade' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('heading', { name: 'Mari Maas' })).toBeInTheDocument();
+    expect(screen.getByText('MM')).toBeInTheDocument();
+    expect(screen.getByText('1', { selector: '.student-profile-hero__stats strong' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Põhiandmed' })).toBeInTheDocument();
     expect(screen.queryByText('2026-08-10 · 15:00')).not.toBeInTheDocument();
 

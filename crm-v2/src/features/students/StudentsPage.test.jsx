@@ -25,6 +25,8 @@ describe('students list states', () => {
   it('renders students returned by the service', async () => {
     renderPage({ list: async () => ({ items: [{ id: 's1', name: 'Mari Maas', email: 'mari@example.com', active: true, skillMap: {} }], cursor: null, hasMore: false }) });
     expect(await screen.findAllByText('Mari Maas')).not.toHaveLength(0);
+    expect(screen.getByRole('region', { name: 'Õpilaste kokkuvõte' })).toHaveTextContent('Aktiivsed1');
+    expect(screen.getAllByText('MM').length).toBeGreaterThan(0);
   });
 
   it('merges legacy spellings into one teacher name and one filter option', async () => {
