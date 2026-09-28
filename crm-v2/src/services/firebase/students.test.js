@@ -1,4 +1,4 @@
-import { hasDuplicateStudent, matchesStudentFilters, normalizeStudent, sortStudents, studentProfileKey } from './students.js';
+import { groupStudentPeople, hasDuplicateStudent, matchesStudentFilters, normalizeStudent, sortStudents, studentProfileKey } from './students.js';
 
 describe('students service mapping', () => {
   it('preserves legacy fields and normalizes missing values', () => {
@@ -29,6 +29,24 @@ describe('students service mapping', () => {
     const left = studentProfileKey({ name: ' Mari ', email: 'PARENT@EXAMPLE.COM', parentName: ' Kati ', subject: 'Eesti keel', teacher: 'Pavel' });
     const right = studentProfileKey({ name: 'mari', parentEmail: 'parent@example.com', parentName: 'kati', subject: 'eesti keel', teacher: 'pavel' });
     expect(left).toBe(right);
+  });
+
+  it('groups one child with several subject-teacher records into one person', () => {
+    const grouped = groupStudentPeople([
+      normalizeStudent('s1', { name: 'Mari', linkedParentId: 'p1', subject: 'Eesti keel', teacher: 'Pavel', level: 'A1' }),
+      normalizeStudent('s2', { name: 'Mari', linkedParentId: 'p1', subject: 'Matemaatika', teacher: 'Jelena', level: '6. klass' }),
+    ]);
+    expect(grouped).toHaveLength(1);
+    expect(grouped[0].recordIds).toEqual(['s1', 's2']);
+    expect(grouped[0].enrollments).toHaveLength(2);
+  });
+
+  it('keeps same-name children from different families separate', () => {
+    const grouped = groupStudentPeople([
+      normalizeStudent('s1', { name: 'Mari', linkedParentId: 'p1' }),
+      normalizeStudent('s2', { name: 'Mari', linkedParentId: 'p2' }),
+    ]);
+    expect(grouped).toHaveLength(2);
   });
 
   it('rejects a duplicate identity while excluding the record being edited', () => {
