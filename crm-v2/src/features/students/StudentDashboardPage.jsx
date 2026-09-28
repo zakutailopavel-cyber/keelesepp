@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Card, EmptyState, ErrorState, LoadingState, PageHeader } from '../../components/ui/index.js';
+import PeopleOverview from '../../components/PeopleOverview.jsx';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { homeworkService, invoicesService, lessonsService, scheduleService, studentsService } from '../../services/firebase/index.js';
 import { occurrencesForDates, shiftDate, toIsoDate } from '../calendar/calendarView.js';
@@ -69,7 +70,12 @@ export default function StudentDashboardPage({
 
   return <div className="page-content">
     <PageHeader eyebrow="Minu õpingud" title={`Tere, ${user.displayName || 'õpilane'}!`} description="Sinu tunnid, ülesanded, tulemused ja õppimise edenemine ühes vaates." />
-    <div className="metric-grid"><Card className="metric-card metric-card--green"><div className="metric-card__top"><span>Läbitud tunnid</span><i><GraduationCap size={19} /></i></div><strong>{completedLessons.length}</strong><small>õppeajaloos</small></Card><Card className="metric-card metric-card--blue"><div className="metric-card__top"><span>Lähimad tunnid</span><i><CalendarDays size={19} /></i></div><strong>{upcoming.length}</strong><small>järgmise 28 päeva jooksul</small></Card><Card className="metric-card metric-card--amber"><div className="metric-card__top"><span>Pooleli ülesanded</span><i><BookOpen size={19} /></i></div><strong>{pendingHomework.length}</strong><small>ootab tegemist</small></Card><Card className="metric-card metric-card--purple"><div className="metric-card__top"><span>Tasumata jääk</span><i><WalletCards size={19} /></i></div><strong>{money(balance)}</strong><small>{invoices.length} arvet</small></Card></div>
+    <PeopleOverview label="Õpingute kokkuvõte" eyebrow="Minu töölaud" title="Õppimise hetkeseis" description="Tunnid, ülesanded, tulemused ja arved ühes rahulikus vaates." metrics={[
+      { icon: GraduationCap, label: 'Läbitud tunnid', value: completedLessons.length, hint: 'õppeajaloos' },
+      { icon: CalendarDays, label: 'Lähimad tunnid', value: upcoming.length, hint: '28 päeva jooksul' },
+      { icon: BookOpen, label: 'Pooleli ülesanded', value: pendingHomework.length, hint: 'ootab tegemist' },
+      { icon: WalletCards, label: 'Tasumata jääk', value: money(balance), hint: `${invoices.length} arvet` },
+    ]} />
 
     {!students.length ? <Card><EmptyState title="Õpilase profiil ei ole kontoga seotud" description="Palu administraatoril lisada sinu õpilase kaardile konto UID. Nime või e-posti põhjal profiili automaatselt ei seostata." /></Card> : <div className="student-home-grid">
       <Card><div className="section-heading"><div><span className="eyebrow">Profiil</span><h2>Minu õppeprofiil</h2></div></div><div className="student-home-profiles">{students.map((student) => {

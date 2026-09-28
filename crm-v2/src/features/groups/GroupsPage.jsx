@@ -1,8 +1,9 @@
-import { CalendarClock, Layers3, Plus, Search, Trash2, UserPlus, UsersRound } from 'lucide-react';
+import { CalendarClock, Layers3, Plus, Search, ShieldCheck, Trash2, UserPlus, UsersRound } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal, PageHeader, Select } from '../../components/ui/index.js';
+import PeopleOverview from '../../components/PeopleOverview.jsx';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { groupsService, studentsService, teachersService } from '../../services/firebase/index.js';
 import { ROLES } from '../../utils/roles.js';
@@ -52,6 +53,10 @@ export default function GroupsPage({ repository = groupsService, studentReposito
 
   if (state.loading) return <LoadingState label="Laen gruppe…" />;
   if (state.error) return <ErrorState message={state.error.message} onRetry={state.reload} />;
+
+  const uniqueMemberCount = new Set(state.data.groups.flatMap((group) => group.students)).size;
+  const lessonCount = state.data.groups.reduce((sum, group) => sum + group.lessons.length, 0);
+  const readyGroups = state.data.groups.filter((group) => group.teacherUid && group.students.length && group.lessons.length).length;
 
   const openCreate = () => {
     const teacher = state.data.teachers[0];
@@ -151,9 +156,15 @@ export default function GroupsPage({ repository = groupsService, studentReposito
 
   return <div className="page-content">
     <PageHeader eyebrow="Õppetöö" title="Grupid" description="Grupi koosseis, õpetaja ja iganädalane tunniplaan." actions={admin ? <Button onClick={openCreate}><Plus size={18} /> Lisa grupp</Button> : null} />
+    <PeopleOverview label="Gruppide kokkuvõte" eyebrow="Õppetöö ülevaade" title="Grupid ühes töölauas" description="Koosseisud, tunniajad ja vastutavad õpetajad on kohe nähtavad." metrics={[
+      { icon: Layers3, label: 'Gruppe', value: state.data.groups.length, hint: teacherOnly ? 'sinu tööalas' : 'aktiivses vaates' },
+      { icon: UsersRound, label: 'Õpilasi', value: uniqueMemberCount, hint: 'gruppides' },
+      { icon: CalendarClock, label: 'Tunniaegu', value: lessonCount, hint: 'iganädalaselt' },
+      { icon: ShieldCheck, label: 'Valmis grupid', value: readyGroups, hint: 'õpetaja, koosseis ja aeg' },
+    ]} />
     {success ? <div className="success-notice" role="status">{success}<button aria-label="Sulge teade" onClick={() => setSuccess('')}>×</button></div> : null}
     {actionError ? <div className="action-error" role="alert">{actionError}<button aria-label="Sulge veateade" onClick={() => setActionError('')}>×</button></div> : null}
-    <Card className="group-toolbar"><div className="search-field"><Search size={18} /><input aria-label="Otsi gruppi" placeholder="Otsi grupi, õpetaja või õpilase järgi" value={query} onChange={(event) => setQuery(event.target.value)} /></div><strong>{visibleGroups.length} gruppi</strong></Card>
+    <Card className="group-toolbar people-directory-toolbar"><div className="search-field"><Search size={18} /><input aria-label="Otsi gruppi" placeholder="Otsi grupi, õpetaja või õpilase järgi" value={query} onChange={(event) => setQuery(event.target.value)} /></div><strong>{visibleGroups.length} gruppi</strong></Card>
 
     {visibleGroups.length ? <div className="group-grid">{visibleGroups.map((group) => {
       const members = group.students.map((id) => studentMap.get(id)).filter(Boolean);

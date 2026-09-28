@@ -38,6 +38,7 @@ describe('GroupsPage', () => {
     const user = { uid: 'admin-1', displayName: 'Admin', roles: ['admin'] };
     renderPage(user, data);
     await screen.findByText('A1 õhturühm');
+    expect(screen.getByRole('region', { name: 'Gruppide kokkuvõte' })).toHaveTextContent('Valmis grupid1');
     fireEvent.click(screen.getByRole('button', { name: 'Lisa grupp' }));
     const dialog = screen.getByRole('dialog', { name: 'Uus grupp' });
     fireEvent.change(within(dialog).getByLabelText('Grupi nimi'), { target: { value: 'B1 hommikurühm' } });

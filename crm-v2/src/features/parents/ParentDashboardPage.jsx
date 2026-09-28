@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Card, EmptyState, ErrorState, LoadingState, PageHeader } from '../../components/ui/index.js';
+import PeopleOverview from '../../components/PeopleOverview.jsx';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { homeworkService, invoicesService, scheduleService, studentsService } from '../../services/firebase/index.js';
 import { occurrencesForDates, shiftDate, toIsoDate } from '../calendar/calendarView.js';
@@ -41,7 +42,12 @@ export default function ParentDashboardPage({ studentRepository = studentsServic
 
   return <div className="page-content">
     <PageHeader eyebrow="Minu pere" title={`Tere, ${user.displayName || 'lapsevanem'}!`} description="Laste õppetöö, tunnid ja arved ühes turvalises vaates." />
-    <div className="metric-grid"><Card className="metric-card metric-card--green"><div className="metric-card__top"><span>Õpilasi</span><i><UsersRound size={19} /></i></div><strong>{students.length}</strong><small>kontoga seotud</small></Card><Card className="metric-card metric-card--blue"><div className="metric-card__top"><span>Lähimad tunnid</span><i><CalendarDays size={19} /></i></div><strong>{upcoming.length}</strong><small>järgmise 21 päeva jooksul</small></Card><Card className="metric-card metric-card--amber"><div className="metric-card__top"><span>Pooleli ülesanded</span><i><BookOpen size={19} /></i></div><strong>{pendingHomework.length}</strong><small>ootab tegemist</small></Card><Card className="metric-card metric-card--purple"><div className="metric-card__top"><span>Tasumata jääk</span><i><WalletCards size={19} /></i></div><strong>{money(balance)}</strong><small>{invoices.length} arvet</small></Card></div>
+    <PeopleOverview label="Pere kokkuvõte" eyebrow="Pere töölaud" title="Kõik oluline ühe pilguga" description="Laste tunnid, ülesanded ja arved on turvaliselt koos." metrics={[
+      { icon: UsersRound, label: 'Õpilasi', value: students.length, hint: 'kontoga seotud' },
+      { icon: CalendarDays, label: 'Lähimad tunnid', value: upcoming.length, hint: '21 päeva jooksul' },
+      { icon: BookOpen, label: 'Pooleli ülesanded', value: pendingHomework.length, hint: 'ootab tegemist' },
+      { icon: WalletCards, label: 'Tasumata jääk', value: money(balance), hint: `${invoices.length} arvet` },
+    ]} />
     {!students.length ? <Card><EmptyState title="Õpilase kaarti ei ole kontoga seotud" description="Palu administraatoril siduda lapse olemasolev õpilase kaart sinu kontoga." /></Card> : <div className="parent-home-grid">
       <Card><div className="section-heading"><div><span className="eyebrow">Pere</span><h2>Minu õpilased</h2></div></div><div className="parent-home-students">{students.map((student) => <article key={student.id}><div className="student-mini-avatar">{student.name.split(/\s+/).map((part) => part[0]).join('').slice(0, 2)}</div><span><strong>{student.name}</strong><small>{student.subject || 'Õppeaine puudub'} · {student.level || 'tase puudub'} → {student.targetLevel || '—'}</small><small>Õpetaja: {student.teacher || 'määramata'}</small></span></article>)}</div></Card>
       <Card><div className="section-heading"><div><span className="eyebrow">Kalender</span><h2>Järgmised tunnid</h2></div></div>{upcoming.length ? <div className="simple-list parent-home-lessons">{upcoming.map((lesson) => <div key={lesson.occurrenceId}><div><strong>{new Date(`${lesson.occurrenceDate}T12:00:00`).toLocaleDateString('et-EE', { weekday: 'short', day: 'numeric', month: 'short' })} · {lesson.time}</strong><span>{studentMap.get(lesson.studentId)?.name || lesson.studentName || 'Õpilane'} · {lesson.teacher || 'Õpetaja'}</span></div><Badge tone="info">{lesson.duration || 60} min</Badge></div>)}</div> : <EmptyState title="Lähimaid tunde ei ole" />}</Card>
