@@ -22,26 +22,24 @@ Changed files: `crm-v2/src/app/accessPolicy.js` (+ test; new `ACCESS.LIVE_CLASSR
 `crm-v2/src/services/firebase/liveLessonInvitations.js`, `crm-v2/src/services/firebase/index.js`, `firestore.rules`.
 
 Data contract: new collection `liveLessonInvitations/{invitationId}` with fields `teacherUid, teacherName, studentId,
-studentUid, studentName, title, status (pending|accepted|declined|cancelled), roomKey, createdAt, createdAtIso,
-expiresAt, respondedAt, cancelledAt`. Rules: create only by staff for themselves (`teacherUid == uid()`), only for a
+studentUid, studentName, title, status (pending|accepted|declined|cancelled|closed), roomKey, createdAt, createdAtIso,
+expiresAt, respondedAt, cancelledAt, closedAt`. Rules: create only by staff for themselves (`teacherUid == uid()`), only for a
 student the teacher may invite (`teacherCanInviteStudent`), and only if `studentUid` is that student's own account
 (`studentAccountOwns`: document ID, `linkedUserId`, `studentUid` or `linkedUserIds`). Parent/guardian fields
 (`parentUid`, `linkedParentId(s)`, `guardianUid`) are intentionally NOT accepted, so a parent UID cannot be invited as
 the student; the client (`studentAccountUid`) resolves the target from the same student-only fields. Update: only
 `status/respondedAt/cancelledAt` may change, only from `pending`; the student may accept/decline before `expiresAt`;
-teacher/admin may cancel. Delete: admin only.
+teacher/admin may cancel a pending invitation; the inviting teacher/admin may close an accepted waiting room. Delete: admin only.
 
-Validation: PASS — full CRM v2 suite 75 files / 308 tests, focused live-classroom/overlay/access suites 4 files / 19
-tests, ESLint, production build (`vite build`). NOT run: Firestore rules emulator tests for the new collection.
+Validation before the corrective follow-up: full CRM v2 suite 75 files / 308 tests, focused live-classroom/overlay/access suites 4 files / 19 tests, ESLint and production build PASS. The corrective commit adds dedicated Firestore emulator coverage for parent/student identity, expiry, teacher scope and accepted-room closing; GitHub CI is the verification gate for that added coverage.
 No production deployment, rules deploy, index change or data migration was performed.
 
 Known limits and manual gates: `firestore.rules` changes take effect only after an explicit owner-approved rules
 deploy; expiry is enforced by rules on accept and by the client display, there is no server-side cleanup of expired
 invitations yet; the waiting room is the existing Live Classroom page keyed by `roomKey`, without video.
 
-Unfinished: video/whiteboard/materials inside the room; rules emulator tests; server-side expiry cleanup.
-Exactly one next safe step: add Firestore emulator tests for `liveLessonInvitations` (parent UID rejected, expired
-accept rejected, teacher cannot invite a student outside their scope), then owner review of this draft PR.
+Unfinished: video/whiteboard/materials inside the room; server-side expiry cleanup.
+Exactly one next safe step: wait for the corrective GitHub CI run, then owner review of this draft PR.
 
 ## CRM v2 student identity and lifecycle — IN PROGRESS
 

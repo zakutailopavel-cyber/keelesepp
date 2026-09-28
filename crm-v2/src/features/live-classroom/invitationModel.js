@@ -3,11 +3,16 @@ export const INVITATION_STATUS = Object.freeze({
   ACCEPTED: 'accepted',
   DECLINED: 'declined',
   CANCELLED: 'cancelled',
+  CLOSED: 'closed',
 });
 
 export const ACTIVE_INVITATION_STATUSES = Object.freeze([
   INVITATION_STATUS.PENDING,
   INVITATION_STATUS.ACCEPTED,
+]);
+
+export const DEFAULT_INVITATION_STATUSES = Object.freeze([
+  INVITATION_STATUS.PENDING,
 ]);
 
 const clean = (value) => String(value ?? '').trim();
@@ -21,7 +26,8 @@ export function timestampMillis(value) {
 
 export function normalizeInvitation(id, data = {}, now = Date.now()) {
   const expiresAtMs = timestampMillis(data.expiresAt);
-  const expired = data.status === INVITATION_STATUS.PENDING && Boolean(expiresAtMs) && expiresAtMs <= now;
+  const status = clean(data.status) || INVITATION_STATUS.PENDING;
+  const expired = status === INVITATION_STATUS.PENDING && Boolean(expiresAtMs) && expiresAtMs <= now;
   return {
     id,
     ...data,
@@ -31,11 +37,19 @@ export function normalizeInvitation(id, data = {}, now = Date.now()) {
     studentUid: clean(data.studentUid),
     studentName: clean(data.studentName) || 'Õpilane',
     title: clean(data.title) || 'Õppetund',
-    status: clean(data.status) || INVITATION_STATUS.PENDING,
+    status,
     roomKey: clean(data.roomKey) || id,
     expiresAtMs,
     expired,
   };
+}
+
+export function isInvitationRouteUsable(invitation) {
+  return Boolean(
+    invitation
+    && !invitation.expired
+    && ACTIVE_INVITATION_STATUSES.includes(invitation.status),
+  );
 }
 
 export function studentAccountUid(student = {}) {
@@ -50,9 +64,8 @@ export function eligibleInvitationStudents(students = []) {
     .sort((left, right) => clean(left.name).localeCompare(clean(right.name), 'et', { sensitivity: 'base' }));
 }
 
-export function newestInvitation(invitations = [], statuses = ACTIVE_INVITATION_STATUSES) {
+export function newestInvitation(invitations = [], statuses = DEFAULT_INVITATION_STATUSES) {
   return [...invitations]
     .filter((invitation) => statuses.includes(invitation.status) && !invitation.expired)
     .sort((left, right) => timestampMillis(right.createdAt) - timestampMillis(left.createdAt))[0] || null;
 }
-

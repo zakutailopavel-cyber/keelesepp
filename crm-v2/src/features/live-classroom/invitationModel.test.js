@@ -1,4 +1,4 @@
-import { eligibleInvitationStudents, INVITATION_STATUS, newestInvitation, normalizeInvitation, studentAccountUid } from './invitationModel.js';
+import { eligibleInvitationStudents, INVITATION_STATUS, isInvitationRouteUsable, newestInvitation, normalizeInvitation, studentAccountUid } from './invitationModel.js';
 
 describe('live lesson invitation model', () => {
   it('uses only an explicit student account link', () => {
@@ -21,13 +21,21 @@ describe('live lesson invitation model', () => {
     expect(invitation).toMatchObject({ id: 'invite-1', status: 'pending', expired: true });
   });
 
-  it('selects the newest usable pending invitation', () => {
+  it('selects only a pending invitation by default', () => {
     const invitations = [
       normalizeInvitation('old', { status: 'pending', createdAt: '2026-09-28T10:00:00Z', expiresAt: '2026-09-28T11:00:00Z' }, Date.parse('2026-09-28T10:30:00Z')),
+      normalizeInvitation('accepted', { status: 'accepted', createdAt: '2026-09-28T10:25:00Z', expiresAt: '2026-09-28T10:26:00Z' }, Date.parse('2026-09-28T10:30:00Z')),
       normalizeInvitation('new', { status: 'pending', createdAt: '2026-09-28T10:20:00Z', expiresAt: '2026-09-28T11:00:00Z' }, Date.parse('2026-09-28T10:30:00Z')),
-      normalizeInvitation('declined', { status: 'declined', createdAt: '2026-09-28T10:25:00Z', expiresAt: '2026-09-28T11:00:00Z' }, Date.parse('2026-09-28T10:30:00Z')),
     ];
     expect(newestInvitation(invitations)?.id).toBe('new');
+    expect(isInvitationRouteUsable(invitations[1])).toBe(true);
+  });
+
+  it('does not keep declined, cancelled, closed or expired invitations route-active', () => {
+    const now = Date.parse('2026-09-28T10:30:00Z');
+    expect(isInvitationRouteUsable(normalizeInvitation('declined', { status: 'declined' }, now))).toBe(false);
+    expect(isInvitationRouteUsable(normalizeInvitation('cancelled', { status: 'cancelled' }, now))).toBe(false);
+    expect(isInvitationRouteUsable(normalizeInvitation('closed', { status: 'closed' }, now))).toBe(false);
+    expect(isInvitationRouteUsable(normalizeInvitation('expired', { status: 'pending', expiresAt: '2026-09-28T10:00:00Z' }, now))).toBe(false);
   });
 });
-

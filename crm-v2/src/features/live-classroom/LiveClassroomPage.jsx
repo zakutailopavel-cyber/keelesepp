@@ -5,7 +5,7 @@ import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, PageHeader, Select } from '../../components/ui/index.js';
 import { liveLessonInvitationsService, studentsService } from '../../services/firebase/index.js';
 import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
-import { eligibleInvitationStudents, INVITATION_STATUS, normalizeInvitation } from './invitationModel.js';
+import { eligibleInvitationStudents, INVITATION_STATUS, isInvitationRouteUsable, newestInvitation, normalizeInvitation } from './invitationModel.js';
 import './liveClassroom.css';
 
 const statusLabel = {
@@ -13,6 +13,7 @@ const statusLabel = {
   [INVITATION_STATUS.ACCEPTED]: 'Õpilane liitus',
   [INVITATION_STATUS.DECLINED]: 'Õpilane keeldus',
   [INVITATION_STATUS.CANCELLED]: 'Tühistatud',
+  [INVITATION_STATUS.CLOSED]: 'Suletud',
 };
 
 function WaitingRoom({ invitation, role }) {
@@ -35,12 +36,14 @@ export default function LiveClassroomPage({ invitationService = liveLessonInvita
   const isStaff = user.roles?.some((role) => role === 'admin' || role === 'teacher');
   const [studentsState, setStudentsState] = useState({ loading: isStaff, items: [], error: '' });
   const [invitations, setInvitations] = useState([]);
+  const [streamReady, setStreamReady] = useState(false);
   const [streamError, setStreamError] = useState('');
   const [selectedId, setSelectedId] = useState('');
   const [title, setTitle] = useState('');
   const [search, setSearch] = useState('');
   const [saving, setSaving] = useState('');
   const [actionError, setActionError] = useState('');
+  const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
     if (!isStaff) return undefined;
@@ -52,41 +55,109 @@ export default function LiveClassroomPage({ invitationService = liveLessonInvita
   }, [isStaff, studentRepository, user.roles, user.uid]);
 
   useEffect(() => {
+    setStreamReady(false);
     const subscribe = isStudent ? invitationService.subscribeIncoming : invitationService.subscribeOutgoing;
-    return subscribe.call(invitationService, user.uid, setInvitations, (error) => setStreamError(firebaseErrorMessage(error)));
+    return subscribe.call(
+      invitationService,
+      user.uid,
+      (items) => {
+        setInvitations(items);
+        setStreamReady(true);
+      },
+      (error) => {
+        setStreamError(firebaseErrorMessage(error));
+        setStreamReady(true);
+      },
+    );
   }, [invitationService, isStudent, user.uid]);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   const selectedStudent = studentsState.items.find((student) => student.id === selectedId);
   const visibleStudents = useMemo(() => studentsState.items.filter((student) => `${student.name} ${student.subject} ${student.level}`.toLocaleLowerCase('et').includes(search.toLocaleLowerCase('et'))), [search, studentsState.items]);
-  const normalizedInvitations = invitations.map((item) => normalizeInvitation(item.id, item));
-  const activeInvitation = normalizedInvitations.find((item) => item.id === invitationId)
-    || normalizedInvitations.filter((item) => !item.expired && [INVITATION_STATUS.PENDING, INVITATION_STATUS.ACCEPTED].includes(item.status)).sort((left, right) => right.expiresAtMs - left.expiresAtMs)[0];
+  const normalizedInvitations = useMemo(
+    () => invitations.map((item) => normalizeInvitation(item.id, item, now)),
+    [invitations, now],
+  );
+  const requestedInvitation = normalizedInvitations.find((item) => item.id === invitationId);
+  const routeInvitation = isInvitationRouteUsable(requestedInvitation) ? requestedInvitation : null;
+  const fallbackInvitation = newestInvitation(normalizedInvitations, [INVITATION_STATUS.PENDING]);
+  const activeInvitation = routeInvitation || fallbackInvitation;
+
+  useEffect(() => {
+    if (!streamReady || !invitationId) return;
+    if (!requestedInvitation || !isInvitationRouteUsable(requestedInvitation)) {
+      setSearchParams({}, { replace: true });
+    }
+  }, [invitationId, requestedInvitation, setSearchParams, streamReady]);
 
   const sendInvitation = async () => {
     if (!selectedStudent) { setActionError('Vali õpilane.'); return; }
-    setSaving('create'); setActionError('');
+    setSaving('create');
+    setActionError('');
     try {
       const created = await invitationService.create({ student: selectedStudent, title: title || selectedStudent.subject }, user);
-      setSelectedId(''); setTitle('');
+      setSelectedId('');
+      setTitle('');
       setSearchParams({ invitation: created.id }, { replace: true });
-    } catch (error) { setActionError(firebaseErrorMessage(error)); }
-    finally { setSaving(''); }
+    } catch (error) {
+      setActionError(firebaseErrorMessage(error));
+    } finally {
+      setSaving('');
+    }
   };
 
   const cancel = async () => {
     if (!activeInvitation) return;
-    setSaving('cancel'); setActionError('');
-    try { await invitationService.cancel(activeInvitation.id, user); }
-    catch (error) { setActionError(firebaseErrorMessage(error)); }
-    finally { setSaving(''); }
+    setSaving('cancel');
+    setActionError('');
+    try {
+      await invitationService.cancel(activeInvitation.id, user);
+      setSearchParams({}, { replace: true });
+    } catch (error) {
+      setActionError(firebaseErrorMessage(error));
+    } finally {
+      setSaving('');
+    }
   };
 
-  if (isStudent) return <div className="page-content"><PageHeader eyebrow="Minu tund" title="Live Classroom" description="Sinu privaatne reaalajas tunniruum." />{streamError ? <ErrorState message={streamError} /> : activeInvitation?.status === INVITATION_STATUS.ACCEPTED ? <WaitingRoom invitation={activeInvitation} role="student" /> : <Card><EmptyState title="Aktiivset tundi ei ole" description="Kui õpetaja kutsub sind tundi, ilmub kutse automaatselt sinu kabinetti." /></Card>}</div>;
+  const closeRoom = async () => {
+    if (!activeInvitation) return;
+    setSaving('close');
+    setActionError('');
+    try {
+      await invitationService.close(activeInvitation.id, user);
+      setSearchParams({}, { replace: true });
+    } catch (error) {
+      setActionError(firebaseErrorMessage(error));
+    } finally {
+      setSaving('');
+    }
+  };
+
+  const leaveRoom = () => setSearchParams({}, { replace: true });
+
+  if (isStudent) {
+    return <div className="page-content">
+      <PageHeader eyebrow="Minu tund" title="Live Classroom" description="Sinu privaatne reaalajas tunniruum." />
+      {streamError ? <ErrorState message={streamError} /> : !streamReady ? <LoadingState label="Laen tunnikutset…" /> : activeInvitation?.status === INVITATION_STATUS.ACCEPTED ? <>
+        <WaitingRoom invitation={activeInvitation} role="student" />
+        <div className="live-invitation-toolbar"><Button variant="secondary" onClick={leaveRoom}>Lahku ooteruumist</Button></div>
+      </> : <Card><EmptyState title="Aktiivset tundi ei ole" description="Kui õpetaja kutsub sind tundi, ilmub kutse automaatselt sinu kabinetti." /></Card>}
+    </div>;
+  }
 
   return <div className="page-content">
     <PageHeader eyebrow="Live Classroom v2" title="Alusta tundi" description="Vali õpilane ja saada tema kabinetti reaalajas tunnikutsung." />
     {streamError || actionError ? <div className="action-error" role="alert">{streamError || actionError}</div> : null}
-    {activeInvitation ? <><WaitingRoom invitation={activeInvitation} role="teacher" />{activeInvitation.status === INVITATION_STATUS.PENDING ? <div className="live-invitation-toolbar"><Button variant="danger" loading={saving === 'cancel'} onClick={cancel}><XCircle size={17} /> Tühista kutse</Button></div> : null}</> : <Card className="live-start-card">
+    {activeInvitation ? <>
+      <WaitingRoom invitation={activeInvitation} role="teacher" />
+      {activeInvitation.status === INVITATION_STATUS.PENDING ? <div className="live-invitation-toolbar"><Button variant="danger" loading={saving === 'cancel'} onClick={cancel}><XCircle size={17} /> Tühista kutse</Button></div> : null}
+      {activeInvitation.status === INVITATION_STATUS.ACCEPTED ? <div className="live-invitation-toolbar"><Button variant="secondary" loading={saving === 'close'} onClick={closeRoom}>Lõpeta ooteruum ja alusta uut kutset</Button></div> : null}
+    </> : <Card className="live-start-card">
       <div className="live-start-card__heading"><div className="settings-icon"><Video /></div><div><h2>Kutsu õpilane tundi</h2><p className="settings-copy">Kutse ilmub kohe õpilase KeeleSepp kabinetti. Ainult kontoga seotud õpilased on valitavad.</p></div></div>
       {studentsState.loading ? <LoadingState label="Laen õpilasi…" /> : studentsState.error ? <ErrorState message={studentsState.error} /> : studentsState.items.length ? <div className="live-start-form">
         <div className="search-field"><Search size={18} /><Input aria-label="Otsi õpilast tunniks" placeholder="Otsi õpilast…" value={search} onChange={(event) => setSearch(event.target.value)} /></div>

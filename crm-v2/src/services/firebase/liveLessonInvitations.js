@@ -66,6 +66,7 @@ export const liveLessonInvitationsService = {
       expiresAt: Timestamp.fromMillis(Date.now() + INVITATION_TTL_MS),
       respondedAt: null,
       cancelledAt: null,
+      closedAt: null,
     };
     const batch = writeBatch(db);
     batch.set(reference, payload);
@@ -114,5 +115,18 @@ export const liveLessonInvitationsService = {
       transaction.update(reference, { status: INVITATION_STATUS.CANCELLED, cancelledAt: serverTimestamp() });
     });
   },
-};
 
+  async close(invitationId, user) {
+    if (!user?.uid) throw new Error('Logi uuesti sisse.');
+    const { db } = requireFirebaseClient();
+    const reference = doc(db, 'liveLessonInvitations', invitationId);
+    await runTransaction(db, async (transaction) => {
+      const snapshot = await transaction.get(reference);
+      if (!snapshot.exists()) throw new Error('Tunnikutsungit ei leitud.');
+      const invitation = normalizeInvitation(snapshot.id, snapshot.data());
+      if (invitation.teacherUid !== user.uid && !user.roles?.includes('admin')) throw new Error('Ainult kutse saatnud õpetaja saab ooteruumi lõpetada.');
+      if (invitation.status !== INVITATION_STATUS.ACCEPTED) throw new Error('Ainult vastu võetud ooteruumi saab lõpetada.');
+      transaction.update(reference, { status: INVITATION_STATUS.CLOSED, closedAt: serverTimestamp() });
+    });
+  },
+};

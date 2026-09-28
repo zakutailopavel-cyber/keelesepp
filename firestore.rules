@@ -1176,7 +1176,8 @@ service cloud.firestore {
           'createdAtIso',
           'expiresAt',
           'respondedAt',
-          'cancelledAt'
+          'cancelledAt',
+          'closedAt'
         ])
         && request.resource.data.teacherUid == uid()
         && teacherCanInviteStudent(request.resource.data.studentId)
@@ -1202,7 +1203,8 @@ service cloud.firestore {
         && request.resource.data.expiresAt > request.time
         && request.resource.data.expiresAt <= request.time + duration.value(5, 'm')
         && request.resource.data.respondedAt == null
-        && request.resource.data.cancelledAt == null;
+        && request.resource.data.cancelledAt == null
+        && request.resource.data.closedAt == null;
       allow update: if request.resource.data.teacherUid == resource.data.teacherUid
         && request.resource.data.studentUid == resource.data.studentUid
         && request.resource.data.studentId == resource.data.studentId
@@ -1210,23 +1212,38 @@ service cloud.firestore {
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           'status',
           'respondedAt',
-          'cancelledAt'
+          'cancelledAt',
+          'closedAt'
         ])
-        && resource.data.status == 'pending'
         && (
           (
-            signedIn()
-            && resource.data.studentUid == uid()
-            && request.time < resource.data.expiresAt
-            && request.resource.data.status in ['accepted', 'declined']
-            && request.resource.data.respondedAt == request.time
-            && request.resource.data.cancelledAt == null
+            resource.data.status == 'pending'
+            && (
+              (
+                signedIn()
+                && resource.data.studentUid == uid()
+                && request.time < resource.data.expiresAt
+                && request.resource.data.status in ['accepted', 'declined']
+                && request.resource.data.respondedAt == request.time
+                && request.resource.data.cancelledAt == null
+                && request.resource.data.closedAt == null
+              )
+              || (
+                (isAdmin() || (signedIn() && resource.data.teacherUid == uid()))
+                && request.resource.data.status == 'cancelled'
+                && request.resource.data.cancelledAt == request.time
+                && request.resource.data.respondedAt == null
+                && request.resource.data.closedAt == null
+              )
+            )
           )
           || (
-            (isAdmin() || (signedIn() && resource.data.teacherUid == uid()))
-            && request.resource.data.status == 'cancelled'
-            && request.resource.data.cancelledAt == request.time
-            && request.resource.data.respondedAt == null
+            resource.data.status == 'accepted'
+            && (isAdmin() || (signedIn() && resource.data.teacherUid == uid()))
+            && request.resource.data.status == 'closed'
+            && request.resource.data.respondedAt == resource.data.respondedAt
+            && request.resource.data.cancelledAt == resource.data.cancelledAt
+            && request.resource.data.closedAt == request.time
           )
         );
       allow delete: if isAdmin();
