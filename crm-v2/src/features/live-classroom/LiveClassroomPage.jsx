@@ -3,9 +3,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, PageHeader, Select } from '../../components/ui/index.js';
-import { liveLessonInvitationsService, studentsService } from '../../services/firebase/index.js';
+import { liveLessonCallSignalsService, liveLessonInvitationsService, studentsService } from '../../services/firebase/index.js';
 import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
 import { eligibleInvitationStudents, INVITATION_STATUS, isInvitationRouteUsable, newestInvitation, normalizeInvitation } from './invitationModel.js';
+import LiveLessonCallPanel from './LiveLessonCallPanel.jsx';
 import './liveClassroom.css';
 
 const statusLabel = {
@@ -24,11 +25,17 @@ function WaitingRoom({ invitation, role }) {
     <h2>{invitation.title}</h2>
     <p>{role === 'student' ? `${invitation.teacherName} valmistab tunniruumi ette.` : `${invitation.studentName} ${accepted ? 'võttis kutse vastu.' : 'pole veel vastanud.'}`}</p>
     <Badge tone={accepted ? 'success' : 'info'}>{statusLabel[invitation.status] || invitation.status}</Badge>
-    <div className="live-waiting-room__next"><Clock3 size={18} /><span><strong>Ühenduse sild on loodud</strong><small>Video, mikrofon ja ujuv kõneaken lisatakse järgmises eraldiseisvas PR-is.</small></span></div>
+    <div className="live-waiting-room__next"><Clock3 size={18} /><span><strong>{accepted ? 'Privaatne ruum on valmis' : 'Kutse on saadetud'}</strong><small>{accepted ? 'Video ja mikrofon käivituvad allpool ainult osaleja enda nupuvajutusel.' : 'Kui õpilane võtab kutse vastu, avaneb sama ruum mõlemale.'}</small></span></div>
   </Card>;
 }
 
-export default function LiveClassroomPage({ invitationService = liveLessonInvitationsService, studentRepository = studentsService }) {
+export default function LiveClassroomPage({
+  invitationService = liveLessonInvitationsService,
+  studentRepository = studentsService,
+  callSignalService = liveLessonCallSignalsService,
+  callMediaDevices,
+  callPeerFactory,
+}) {
   const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const invitationId = searchParams.get('invitation') || '';
@@ -139,12 +146,20 @@ export default function LiveClassroomPage({ invitationService = liveLessonInvita
   };
 
   const leaveRoom = () => setSearchParams({}, { replace: true });
+  const callProps = {
+    invitation: activeInvitation,
+    user,
+    signalService: callSignalService,
+    ...(callMediaDevices ? { mediaDevices: callMediaDevices } : {}),
+    ...(callPeerFactory ? { peerFactory: callPeerFactory } : {}),
+  };
 
   if (isStudent) {
     return <div className="page-content">
       <PageHeader eyebrow="Minu tund" title="Live Classroom" description="Sinu privaatne reaalajas tunniruum." />
       {streamError ? <ErrorState message={streamError} /> : !streamReady ? <LoadingState label="Laen tunnikutset…" /> : activeInvitation?.status === INVITATION_STATUS.ACCEPTED ? <>
         <WaitingRoom invitation={activeInvitation} role="student" />
+        <LiveLessonCallPanel {...callProps} role="student" />
         <div className="live-invitation-toolbar"><Button variant="secondary" onClick={leaveRoom}>Lahku ooteruumist</Button></div>
       </> : <Card><EmptyState title="Aktiivset tundi ei ole" description="Kui õpetaja kutsub sind tundi, ilmub kutse automaatselt sinu kabinetti." /></Card>}
     </div>;
@@ -155,6 +170,7 @@ export default function LiveClassroomPage({ invitationService = liveLessonInvita
     {streamError || actionError ? <div className="action-error" role="alert">{streamError || actionError}</div> : null}
     {activeInvitation ? <>
       <WaitingRoom invitation={activeInvitation} role="teacher" />
+      {activeInvitation.status === INVITATION_STATUS.ACCEPTED ? <LiveLessonCallPanel {...callProps} role="teacher" /> : null}
       {activeInvitation.status === INVITATION_STATUS.PENDING ? <div className="live-invitation-toolbar"><Button variant="danger" loading={saving === 'cancel'} onClick={cancel}><XCircle size={17} /> Tühista kutse</Button></div> : null}
       {activeInvitation.status === INVITATION_STATUS.ACCEPTED ? <div className="live-invitation-toolbar"><Button variant="secondary" loading={saving === 'close'} onClick={closeRoom}>Lõpeta ooteruum ja alusta uut kutset</Button></div> : null}
     </> : <Card className="live-start-card">

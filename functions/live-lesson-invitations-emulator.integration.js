@@ -314,3 +314,111 @@ test("the inviting teacher can close an accepted waiting room", async () => {
   ]);
   assert.equal(close.status, 200, JSON.stringify(close.body));
 });
+
+async function firestoreDocumentRequest(token, method, documentPath, body) {
+  const response = await fetch(
+    `http://${FIRESTORE_EMULATOR}/v1/projects/${PROJECT_ID}/databases/(default)/documents/${documentPath}`,
+    {
+      method,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        ...(body ? { "Content-Type": "application/json" } : {}),
+      },
+      ...(body ? { body: JSON.stringify(body) } : {}),
+    },
+  );
+  return { status: response.status, body: await response.json().catch(() => ({})) };
+}
+
+function signalCreateWrite(invitationId, signalId, { type, sessionId, senderUid, senderRole, payload = {} }) {
+  return {
+    update: {
+      name: documentName(`liveLessonInvitations/${invitationId}/signals/${signalId}`),
+      fields: {
+        type: { stringValue: type },
+        sessionId: { stringValue: sessionId },
+        senderUid: { stringValue: senderUid },
+        senderRole: { stringValue: senderRole },
+        payload: { stringValue: JSON.stringify(payload) },
+        createdAtIso: { stringValue: new Date().toISOString() },
+      },
+    },
+    currentDocument: { exists: false },
+    updateTransforms: [
+      { fieldPath: "createdAt", setToServerValue: "REQUEST_TIME" },
+    ],
+  };
+}
+
+test("live lesson call signaling is restricted to the accepted teacher and student", async () => {
+  requireSafeEmulatorEnvironment();
+  const ctx = await seedUsersAndStudents("signals");
+  const created = admin.firestore.Timestamp.fromMillis(Date.now() - 30000);
+  const respondedAt = admin.firestore.Timestamp.fromMillis(Date.now() - 20000);
+  const invitationId = "invite-signals";
+
+  await ctx.db.collection("liveLessonInvitations").doc(invitationId).set({
+    teacherUid: ctx.teacherUid,
+    teacherName: "Invite Teacher",
+    studentId: ctx.ownStudentId,
+    studentUid: ctx.studentUid,
+    studentName: "Invite Student",
+    title: "Accepted invitation",
+    status: "accepted",
+    roomKey: invitationId,
+    createdAt: created,
+    createdAtIso: created.toDate().toISOString(),
+    expiresAt: admin.firestore.Timestamp.fromMillis(Date.now() - 10000),
+    respondedAt,
+    cancelledAt: null,
+    closedAt: null,
+  });
+
+  const teacherOffer = await firestoreCommitRequest(ctx.teacherToken, [
+    signalCreateWrite(invitationId, "offer-1", {
+      type: "offer",
+      sessionId: "session-1",
+      senderUid: ctx.teacherUid,
+      senderRole: "teacher",
+      payload: { type: "offer", sdp: "teacher-sdp" },
+    }),
+  ]);
+  assert.equal(teacherOffer.status, 200, JSON.stringify(teacherOffer.body));
+
+  const studentAnswer = await firestoreCommitRequest(ctx.studentToken, [
+    signalCreateWrite(invitationId, "answer-1", {
+      type: "answer",
+      sessionId: "session-1",
+      senderUid: ctx.studentUid,
+      senderRole: "student",
+      payload: { type: "answer", sdp: "student-sdp" },
+    }),
+  ]);
+  assert.equal(studentAnswer.status, 200, JSON.stringify(studentAnswer.body));
+
+  const parentCandidate = await firestoreCommitRequest(ctx.parentToken, [
+    signalCreateWrite(invitationId, "parent-forged", {
+      type: "candidate",
+      sessionId: "session-1",
+      senderUid: ctx.parentUid,
+      senderRole: "student",
+      payload: { candidate: "forged" },
+    }),
+  ]);
+  assert.equal(parentCandidate.status, 403, JSON.stringify(parentCandidate.body));
+
+  const studentRead = await firestoreDocumentRequest(
+    ctx.studentToken,
+    "GET",
+    `liveLessonInvitations/${invitationId}/signals/offer-1`,
+  );
+  assert.equal(studentRead.status, 200, JSON.stringify(studentRead.body));
+
+  const parentRead = await firestoreDocumentRequest(
+    ctx.parentToken,
+    "GET",
+    `liveLessonInvitations/${invitationId}/signals/offer-1`,
+  );
+  assert.equal(parentRead.status, 403, JSON.stringify(parentRead.body));
+});
+

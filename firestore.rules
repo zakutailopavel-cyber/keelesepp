@@ -187,6 +187,31 @@ service cloud.firestore {
         );
     }
 
+    function liveLessonInvitationPath(invitationId) {
+      return /databases/$(database)/documents/liveLessonInvitations/$(invitationId);
+    }
+
+    function canUseLiveLessonInvitation(invitationId) {
+      return signedIn()
+        && exists(liveLessonInvitationPath(invitationId))
+        && get(liveLessonInvitationPath(invitationId)).data.status == 'accepted'
+        && (
+          get(liveLessonInvitationPath(invitationId)).data.teacherUid == uid()
+          || get(liveLessonInvitationPath(invitationId)).data.studentUid == uid()
+        );
+    }
+
+    function liveLessonSignalRoleMatches(invitationId, role) {
+      return (
+          role == 'teacher'
+          && get(liveLessonInvitationPath(invitationId)).data.teacherUid == uid()
+        )
+        || (
+          role == 'student'
+          && get(liveLessonInvitationPath(invitationId)).data.studentUid == uid()
+        );
+    }
+
     function validInitialAssessment(data, studentId) {
       return data is map
         && data.keys().hasOnly([

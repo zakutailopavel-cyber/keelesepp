@@ -38,7 +38,9 @@ Known limits and manual gates: `firestore.rules` changes take effect only after 
 deploy; expiry is enforced by rules on accept and by the client display, there is no server-side cleanup of expired
 invitations yet; the waiting room is the existing Live Classroom page keyed by `roomKey`, without video.
 
-Unfinished: video/whiteboard/materials inside the room; server-side expiry cleanup.
+Follow-up in the same draft PR: accepted rooms now contain an opt-in browser WebRTC audio/video panel. Signaling is stored only in the invitation's `signals` subcollection, is readable/writable only by that invitation's teacher and student while status is `accepted`, and each fresh call uses a new session ID. Camera/microphone access happens only after the user presses the start/join button. A hangup signal stops both peers and local tracks. Current ICE configuration uses public STUN only; TURN fallback is intentionally still pending for restrictive NAT/firewall networks.
+
+Unfinished: TURN fallback, floating call window, whiteboard/materials inside the room, presence/reconnect hardening, lesson completion integration, server-side expiry cleanup.
 Exactly one next safe step: wait for the corrective GitHub CI run, then owner review of this draft PR.
 
 ## CRM v2 student identity and lifecycle — IN PROGRESS

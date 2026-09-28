@@ -8,8 +8,9 @@ function LocationProbe() {
   return <div data-testid="location">{location.pathname}{location.search}</div>;
 }
 
-function renderPage({ user, invitationService, studentRepository, path = '/live-classroom' }) {
-  return render(<AuthContext.Provider value={{ user }}><MemoryRouter initialEntries={[path]}><LiveClassroomPage invitationService={invitationService} studentRepository={studentRepository} /><LocationProbe /></MemoryRouter></AuthContext.Provider>);
+function renderPage({ user, invitationService, studentRepository, path = '/live-classroom', callSignalService }) {
+  const signals = callSignalService || { subscribe: vi.fn(() => vi.fn()), send: vi.fn().mockResolvedValue(undefined) };
+  return render(<AuthContext.Provider value={{ user }}><MemoryRouter initialEntries={[path]}><LiveClassroomPage invitationService={invitationService} studentRepository={studentRepository} callSignalService={signals} /><LocationProbe /></MemoryRouter></AuthContext.Provider>);
 }
 
 describe('Live Classroom invitation lifecycle', () => {
@@ -32,11 +33,11 @@ describe('Live Classroom invitation lifecycle', () => {
     expect(await screen.findByText('Kontoga seotud õpilasi ei ole')).toBeInTheDocument();
   });
 
-  it('shows the same accepted waiting room to the student when opened by invitation id', async () => {
+  it('shows the accepted room and opt-in video controls to the student', async () => {
     const invitationService = { subscribeIncoming: vi.fn((uid, onChange) => { onChange([{ id: 'invite-1', teacherName: 'Pavel', studentName: 'Mari', title: 'Eesti keel', status: 'accepted', expiresAt: new Date(Date.now() - 60_000).toISOString() }]); return vi.fn(); }) };
     renderPage({ user: { uid: 'student-user-1', displayName: 'Mari', roles: ['student'] }, invitationService, studentRepository: {}, path: '/live-classroom?invitation=invite-1' });
     expect(await screen.findByText('Pavel valmistab tunniruumi ette.')).toBeInTheDocument();
-    expect(screen.getByText('Ühenduse sild on loodud')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Liitu videokõnega/i })).toBeInTheDocument();
   });
 
   it('does not select an old accepted invitation as the teacher default room', async () => {
