@@ -12,8 +12,18 @@ describe('parent model', () => {
 
   it('builds linked children, review gaps and invoice balances', () => {
     const rows = buildParentRows([parent], [{ id: 'student-1', name: 'Mari', linkedParentId: 'parent-1', active: true }], [{ id: 'invoice-1', studentId: 'student-1', amount: 40, paidAmount: 10 }]);
-    expect(rows[0]).toMatchObject({ children: [expect.objectContaining({ id: 'student-1' })], missingNames: [], needsReview: false, balanceCents: 3000 });
+    expect(rows[0]).toMatchObject({ children: [expect.objectContaining({ id: 'student-1', recordIds: ['student-1'] })], missingNames: [], needsReview: false, balanceCents: 3000 });
     expect(filterParentRows(rows, { query: 'mari', status: 'active' })).toHaveLength(1);
+  });
+
+  it('groups several learning records of the same child under one parent child entry', () => {
+    const rows = buildParentRows([parent], [
+      { id: 'student-1', name: 'Mari', linkedParentId: 'parent-1', subject: 'Eesti keel', teacher: 'Pavel', active: true },
+      { id: 'student-2', name: 'Mari', linkedParentId: 'parent-1', subject: 'Matemaatika', teacher: 'Jelena', active: true },
+    ], []);
+    expect(rows[0].children).toHaveLength(1);
+    expect(rows[0].children[0].recordIds).toEqual(['student-1', 'student-2']);
+    expect(rows[0].children[0].enrollments).toHaveLength(2);
   });
 
   it('detects duplicates by exact normalized email only and prefers the explicitly linked profile', () => {
