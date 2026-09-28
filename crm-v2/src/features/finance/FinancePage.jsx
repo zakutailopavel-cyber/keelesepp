@@ -103,7 +103,49 @@ const invoiceOverpaidCents = (invoice) =>
       : Math.round(Number(invoice?.overpaidAmount || 0) * 100),
   );
 
-const financeSections = [{ id: "tunniarvestus", label: "Tunniarvestus" }, { id: "pangauhildus", label: "Pangaühildus" }, { id: "avansid", label: "Avansid" }, { id: "perioodid", label: "Perioodid" }, { id: "audit", label: "Audit" }, { id: "numeratsioon", label: "Numeratsioon" }, { id: "tuluprognoos", label: "Tuluprognoos" }, { id: "arved", label: "Arved" }]; function FinanceQuickNav({ active, onSelect }) { return <Card className="finance-quicknav-card"><nav className="finance-quicknav" aria-label="Finantsi kiirnavigatsioon">{financeSections.map((section) => <a key={section.id} href={"#" + section.id} className={section.id === active ? "is-active" : undefined} onClick={(event) => { event.preventDefault(); onSelect(section.id); }}>{section.label}</a>)}</nav></Card>; } function paymentDraft(invoice) {
+const financeSections = [
+  { id: "tunniarvestus", label: "Tunniarvestus", description: "Arveldamata tunnid ja uued arved" },
+  { id: "pangauhildus", label: "Pangaühildus", description: "Laekumiste sobitamine" },
+  { id: "avansid", label: "Avansid", description: "Ettemaksed ja tagastused" },
+  { id: "perioodid", label: "Perioodid", description: "Kuu kontroll ja sulgemine" },
+  { id: "audit", label: "Audit", description: "Muutmatu finantsajalugu" },
+  { id: "numeratsioon", label: "Numeratsioon", description: "Arvenumbrite kontroll" },
+  { id: "tuluprognoos", label: "Tuluprognoos", description: "Planeeritud tunnitulu" },
+  { id: "arved", label: "Arved", description: "Arvete otsing ja maksed" },
+];
+
+function FinanceQuickNav({ active, onSelect }) {
+  return (
+    <Card className="finance-quicknav-card">
+      <div className="finance-quicknav-heading">
+        <div>
+          <span className="eyebrow">Finantstöölaud</span>
+          <strong>Vali töövoog</strong>
+        </div>
+        <span>Üks vaade korraga hoiab pika finantslehe selge.</span>
+      </div>
+      <nav className="finance-quicknav" aria-label="Finantsi kiirnavigatsioon">
+        {financeSections.map((section) => (
+          <a
+            key={section.id}
+            href={"#" + section.id}
+            aria-label={section.label}
+            className={section.id === active ? "is-active" : undefined}
+            onClick={(event) => {
+              event.preventDefault();
+              onSelect(section.id);
+            }}
+          >
+            <strong>{section.label}</strong>
+            <small>{section.description}</small>
+          </a>
+        ))}
+      </nav>
+    </Card>
+  );
+}
+
+function paymentDraft(invoice) {
   return {
     amount: (invoiceBalanceCents(invoice) / 100).toFixed(2),
     paidAt: today(),
@@ -588,7 +630,7 @@ export default function FinancePage({
     : [];
 
   return (
-    <div className="page-content" data-active-finance-section={canRegisterPayment ? activeFinanceSection : undefined}>
+    <div className="page-content finance-page" data-active-finance-section={canRegisterPayment ? activeFinanceSection : undefined}>
       <PageHeader
         eyebrow="Finantsid"
         title="Arved ja maksed"
@@ -662,12 +704,29 @@ export default function FinancePage({
           <small>{forecast.rows.length} õpilase plaan</small>
         </Card>
       </section>
+      {canRegisterPayment && overdue.length ? (
+        <Card className="finance-attention">
+          <div>
+            <Clock3 size={18} />
+            <span>
+              <strong>{overdue.length} arvet on üle tähtaja.</strong>
+              <small>Vaata võlgu, saada meeldetuletus või registreeri laekumine.</small>
+            </span>
+          </div>
+          <Button variant="secondary" onClick={() => setActiveFinanceSection("arved")}>
+            Ava arved <ArrowRight size={16} />
+          </Button>
+        </Card>
+      ) : null}
+      {canRegisterPayment ? <FinanceQuickNav active={activeFinanceSection} onSelect={setActiveFinanceSection} /> : null}
       {canRegisterPayment ? (
         <FinancialAnalyticsPanel
           onPreview={previewFinancialAnalytics}
           onOpenInvoice={(invoiceId) => {
             const invoice = invoices.find((item) => item.id === invoiceId);
-            if (invoice) openInvoice(invoice); }} /> ) : null} {canRegisterPayment ? <FinanceQuickNav active={activeFinanceSection} onSelect={setActiveFinanceSection} /> : null} {canRegisterPayment ? ( <div id="tunniarvestus"><LessonAccountingPanel
+            if (invoice) openInvoice(invoice); }} /> ) : null}
+      {canRegisterPayment ? (
+        <div id="tunniarvestus"><LessonAccountingPanel
           lessons={lessons}
           students={students}
           plans={plans}
