@@ -111,7 +111,7 @@
 .ws-match ul { list-style: none; padding-left: 0; }
 .ws-match li, .ws-many li { padding: .8mm 0; }
 .ws-match ol li { display: flex; justify-content: space-between; gap: 2mm; align-items: center; }
-.ws-letterbox { width: 8mm; height: 6.5mm; border-bottom: 1px solid var(--ks-line); flex: none; }
+.ws-letterbox { width: 8mm; height: 6.5mm; border-bottom: 1px solid var(--ks-line); flex: none; text-align: center; font-weight: 700; }
 .ws-sel { font: 700 12pt var(--font-body); border: 1px solid rgba(23,58,99,.3); border-radius: 2mm; background: #fff; color: var(--ks-navy); }
 .ws-many li.pick { cursor: pointer; border-radius: 1.5mm; } .ws-many li.pick:hover { background: rgba(23,58,99,.07); }
 .ws-many li.sel { background: rgba(47,125,76,.14); outline: 1px solid var(--ks-green-2); }

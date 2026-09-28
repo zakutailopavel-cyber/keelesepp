@@ -60,10 +60,22 @@ print never shows learner answers), service (load v2 / convert v1 / new; save me
 `worksheetData`; create; validation; uploads), page (load → add block → save; conversion notice; student view check
 per goal; save and load errors). Full suite, ESLint and production build — see PROJECT_STATE.
 
+## Slice 2: homework (assign, student player, teacher review)
+
+- A lesson with `worksheetDoc` is classified as a worksheet in Õppevara (`libraryModel.hasWorksheet`) and assigned with
+  the existing flow; `worksheetAssignments/{id}.worksheetDoc` is a snapshot, so later edits do not change handed-out
+  work.
+- `WorksheetPlayer` dispatches: `worksheetDoc` → `DocWorksheetPlayer` (same Sheet, mode `interactive`, then `review`);
+  otherwise the v1 player.
+- Answers keep the engine keys `${blockId}:${key}`. Voice answers recorded in the browser are uploaded on save/submit
+  (`homeworkService.uploadRecording` → `homework/{studentId}/ws_rec_*`) and the URL replaces the local `blob:` URL.
+- `checkDocument(doc, answers)` → `{ results, perGoal, speak, score }`; `score = { correct, total, pct, perGoal }` is
+  stored on submit; `errorLog` lists up to 20 wrong fields.
+- Teachers see the submitted sheet with marks, recordings and `GoalEvidence` in the Homework review dialog.
+
 ## Not in this slice
 
-1. Assigning a v2 worksheet as homework and the student player / teacher review for `worksheetDoc`
-   (existing assignments snapshot v1 `worksheetData`).
+1. (done in slice 2)
 2. Worksheet as a Live Classroom scene (needs the v2 lesson room; see PR #183 and the Live Classroom roadmap).
 3. Converting generated *image* worksheets into structured documents (manual review queue).
 4. Textbook export (book layout, 300 dpi illustrations).

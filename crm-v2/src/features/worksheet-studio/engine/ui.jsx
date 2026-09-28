@@ -22,7 +22,7 @@ export function Line({ value, onChange, interactive, state, width, label, classN
     <input
       className={`ws-line ${state ? 'is-' + state : ''} ${className}`}
       style={width ? { width } : undefined}
-      value={interactive ? value || '' : ''}
+      value={value || ''}
       readOnly={!interactive}
       tabIndex={interactive ? 0 : -1}
       aria-label={label}

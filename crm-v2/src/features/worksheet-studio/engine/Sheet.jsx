@@ -76,6 +76,7 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
   const showAnswers = mode === 'interactive' || mode === 'review';
   const ctx = (id) => ({
     interactive,
+    review: mode === 'review',
     // answers are only shown to the learner (and in teacher review); print and edit stay blank
     get: (k) => (showAnswers ? answers[`${id}:${k}`] : undefined),
     set: (k, v) => setAnswer?.(`${id}:${k}`, v),

@@ -153,7 +153,7 @@ export const match = {
               <select className={`ws-sel ${ctx.state(`${i}`) ? 'is-' + ctx.state(`${i}`) : ''}`} value={ctx.get(`${i}`) ?? ''} onChange={(e) => ctx.set(`${i}`, e.target.value)} aria-label={`Paar ${i + 1}`}>
                 <option value="">–</option>{right.map((_, k) => <option key={k} value={letter(k)}>{letter(k)}</option>)}
               </select>
-            ) : <span className="ws-letterbox" />}
+            ) : <span className={`ws-letterbox ${ctx.state(`${i}`) ? 'is-' + ctx.state(`${i}`) : ''}`}>{ctx.get(`${i}`) || ''}</span>}
           </li>
         ))}</ol>
         <ul>{right.map((r, k) => <li key={k}><b>{letter(k)}.</b> <Md text={r.text} /></li>)}</ul>
@@ -222,7 +222,7 @@ export const pictures = {
           <Photo img={it.img} aspect={data.aspect} alt={it.caption}>
             {data.mode === 'order' && (
               <input className={`ws-circ ${ctx.state(`${i}`) ? 'is-' + ctx.state(`${i}`) : ''}`} inputMode="numeric" maxLength={2} readOnly={!ctx.interactive} tabIndex={ctx.interactive ? 0 : -1}
-                value={ctx.interactive ? ctx.get(`${i}`) || '' : ''} onChange={(e) => ctx.set(`${i}`, e.target.value.replace(/\D/g, ''))} aria-label={`Number: ${it.caption}`} />
+                value={ctx.get(`${i}`) || ''} onChange={(e) => ctx.set(`${i}`, e.target.value.replace(/\D/g, ''))} aria-label={`Number: ${it.caption}`} />
             )}
           </Photo>
           {data.mode === 'label'

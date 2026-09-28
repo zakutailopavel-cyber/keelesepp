@@ -91,3 +91,10 @@ textarea.ed-input { resize: vertical; }
   .ws-studio .st-zoom { zoom: 1 !important; }
   .ws-studio { height: auto; background: #fff; border-radius: 0; }
 }
+
+/* Structured worksheet inside the homework player and the teacher review dialog */
+.ws-doc-player .st-canvas { background: var(--st-bg); border-radius: 12px; padding: 12px; margin: 14px 20px; overflow: auto; }
+.submission-review .ws-doc-player .st-canvas { margin: 8px 0; }
+.ws-doc-player .st-evidence { margin: 0 20px 16px; max-width: none; }
+.submission-review .ws-doc-player .st-evidence { margin: 0; }
+.modal.modal--worksheet-doc { width: min(1120px, 96vw); max-width: 96vw; }
