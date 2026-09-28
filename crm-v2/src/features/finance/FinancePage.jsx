@@ -110,7 +110,7 @@ const financeSections = [
   { id: "perioodid", label: "Perioodid", description: "Kuu kontroll ja sulgemine" },
   { id: "audit", label: "Audit", description: "Muutmatu finantsajalugu" },
   { id: "numeratsioon", label: "Numeratsioon", description: "Arvenumbrite kontroll" },
-  { id: "tuluprognoos", label: "Tuluprognoos", description: "Planeeritud tunnitulu" },
+  { id: "tuluprognoos", label: "Tuluprognoos", description: "Tunnihinna ja mahu prognoos" },
   { id: "arved", label: "Arved", description: "Arvete otsing ja maksed" },
 ];
 
