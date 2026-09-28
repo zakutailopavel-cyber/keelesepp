@@ -10,7 +10,12 @@ function LocationProbe() {
 
 function renderPage({ user, invitationService, studentRepository, path = '/live-classroom', callSignalService }) {
   const signals = callSignalService || { subscribe: vi.fn(() => vi.fn()), send: vi.fn().mockResolvedValue(undefined) };
-  return render(<AuthContext.Provider value={{ user }}><MemoryRouter initialEntries={[path]}><LiveClassroomPage invitationService={invitationService} studentRepository={studentRepository} callSignalService={signals} /><LocationProbe /></MemoryRouter></AuthContext.Provider>);
+  const presence = {
+    heartbeat: vi.fn().mockResolvedValue(undefined),
+    markOffline: vi.fn().mockResolvedValue(undefined),
+    subscribe: vi.fn((id, onChange) => { onChange([]); return vi.fn(); }),
+  };
+  return render(<AuthContext.Provider value={{ user }}><MemoryRouter initialEntries={[path]}><LiveClassroomPage invitationService={invitationService} studentRepository={studentRepository} callSignalService={signals} callPresenceService={presence} /><LocationProbe /></MemoryRouter></AuthContext.Provider>);
 }
 
 describe('Live Classroom invitation lifecycle', () => {
