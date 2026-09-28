@@ -5,6 +5,7 @@
 Last verified against main: 2026-09-28, Europe/Tallinn.
 Verified main: `e9bbacf`.
 Implementation branch: `codex/v2-visual-foundation`.
+Draft PR: https://github.com/zakutailopavel-cyber/keelesepp/pull/171.
 
 CRM v2 is receiving a shared visual foundation while v1 remains fully operational. This first slice changes only the
 presentation layer: design tokens, application shell, navigation, typography, cards, controls, tables, dialogs, state
@@ -12,9 +13,11 @@ views and responsive behavior. The direction is a calm modern school workspace w
 actions, warm restrained highlights and dense but readable working surfaces. Existing routes, roles, Firebase data,
 business logic and v1 files are unchanged.
 
-Validation gate: production build, complete CRM v2 test suite and browser review at desktop and mobile widths. No
-production deployment is included. Exactly one next safe step: complete the visual and automated checks, then open a
-draft PR for owner review.
+Validation: PASS for ESLint, production build, focused authentication and shell tests (2/2), the four files affected by
+parallel host-load timeouts rerun serially (31/31), and desktop browser review of the redesigned login surface. The full
+parallel suite reached 282/290; its eight failures were five-second timeouts without assertion failures. No production
+deployment is included. Exactly one next safe step: owner review of PR #171 before expanding the system to feature-level
+layout refinements.
 
 ## Didaktika raamatukogu v1 — LOCAL IMPLEMENTATION
 
