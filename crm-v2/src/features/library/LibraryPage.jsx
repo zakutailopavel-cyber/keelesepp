@@ -215,7 +215,7 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
       </section>
 
       <Card className="library-toolbar">
-        <div className="search-field"><Search size={18} /><input aria-label="Otsi õppevara" placeholder="Otsi pealkirja, teema või taseme järgi" value={query} onChange={(event) => setQuery(event.target.value)} /></div>
+        <label className="search-field"><Search size={18} /><input aria-label="Otsi õppevara" placeholder="Otsi pealkirja, teema või taseme järgi" value={query} onChange={(event) => setQuery(event.target.value)} /></label>
         <Select aria-label="Materjali tüüp" value={type} onChange={(event) => setType(event.target.value)}>
           <option value="all">Kõik tüübid</option>
           {Object.entries(LIBRARY_TYPES).map(([value, meta]) => <option value={value} key={value}>{meta.label}</option>)}
