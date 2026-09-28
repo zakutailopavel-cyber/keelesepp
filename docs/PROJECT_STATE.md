@@ -1,5 +1,14 @@
 # KeeleSepp Project State
 
+## CRM v2 finance experience — MERGED
+
+Last verified against main: 2026-09-28, Europe/Tallinn.
+Implementation PR: #175 — merged.
+
+Finance and expenses now use the CRM v2 workspace visual language while preserving the existing trusted finance APIs, roles, Firebase contracts and business rules. The finance page has clearer workflow navigation, an overdue attention state and improved responsive hierarchy; the expenses register now matches the same v2 presentation. v1 is unchanged.
+
+This documentation update also intentionally creates a fresh `main` commit after reconnecting the Vercel Git integration so the current CRM v2 production project can deploy the latest main head.
+
 ## CRM v2 people experience — IN PROGRESS
 
 Last verified against main: 2026-09-28, Europe/Tallinn.
