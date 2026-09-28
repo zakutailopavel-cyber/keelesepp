@@ -1,6 +1,7 @@
-import { Mic, MicOff, PhoneOff, Video, VideoOff } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { Maximize2, Mic, MicOff, Minimize2, PhoneOff, RefreshCw, Video, VideoOff, Wifi, WifiOff } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { liveLessonCallSignalsService } from '../../services/firebase/liveLessonCallSignals.js';
+import { liveLessonPresenceService, presenceIsFresh } from '../../services/firebase/liveLessonPresence.js';
 import { Button, Card } from '../../components/ui/index.js';
 
 const ICE_SERVERS = [
@@ -27,6 +28,7 @@ function signalPayload(signal) {
 function statusText(status, role, teacherReady) {
   if (status === 'connected') return 'Ühendatud';
   if (status === 'connecting') return 'Ühendan…';
+  if (status === 'reconnecting') return 'Ühendus katkes, taastan…';
   if (status === 'waiting') return role === 'teacher' ? 'Ootan õpilast…' : 'Ootan õpetaja kõnet…';
   if (status === 'failed') return 'Ühendus ebaõnnestus';
   if (status === 'ended') return 'Kõne lõpetatud';
@@ -39,6 +41,7 @@ export default function LiveLessonCallPanel({
   role,
   user,
   signalService = liveLessonCallSignalsService,
+  presenceService = liveLessonPresenceService,
   mediaDevices = globalThis.navigator?.mediaDevices,
   peerFactory = defaultPeerFactory,
 }) {
@@ -57,6 +60,20 @@ export default function LiveLessonCallPanel({
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [videoEnabled, setVideoEnabled] = useState(true);
   const [teacherReady, setTeacherReady] = useState(false);
+  const [presence, setPresence] = useState([]);
+  const [presenceNow, setPresenceNow] = useState(() => Date.now());
+  const [floating, setFloating] = useState(false);
+
+  const participant = useMemo(() => ({
+    uid: user.uid,
+    role,
+    displayName: role === 'teacher' ? invitation.teacherName : invitation.studentName,
+  }), [invitation.studentName, invitation.teacherName, role, user.uid]);
+
+  const peerRole = role === 'teacher' ? 'student' : 'teacher';
+  const peerPresence = presence.find((item) => item.role === peerRole);
+  const peerOnline = presenceIsFresh(peerPresence, presenceNow);
+  const peerName = role === 'teacher' ? invitation.studentName : invitation.teacherName;
 
   const attachLocalStream = useCallback((stream) => {
     if (localVideoRef.current) localVideoRef.current.srcObject = stream || null;
@@ -124,7 +141,7 @@ export default function LiveLessonCallPanel({
       if (next === 'connected') setStatus('connected');
       else if (next === 'connecting' || next === 'new') setStatus('connecting');
       else if (next === 'failed') setStatus('failed');
-      else if (next === 'disconnected') setStatus('connecting');
+      else if (next === 'disconnected') setStatus('reconnecting');
       else if (next === 'closed') setStatus('ended');
     };
     return peer;
@@ -185,7 +202,6 @@ export default function LiveLessonCallPanel({
             if (localStreamRef.current) await answerOffer(signal);
             return;
           }
-
           if (signal.type === 'answer' && role === 'teacher') {
             const peer = peerRef.current;
             if (!peer || sessionIdRef.current !== signal.sessionId || peer.remoteDescription) return;
@@ -193,7 +209,6 @@ export default function LiveLessonCallPanel({
             await flushCandidates(signal.sessionId);
             return;
           }
-
           if (signal.type === 'candidate') {
             const peer = peerRef.current;
             if (!peer || sessionIdRef.current !== signal.sessionId || !peer.remoteDescription) {
@@ -203,7 +218,6 @@ export default function LiveLessonCallPanel({
             await peer.addIceCandidate(signalPayload(signal));
             return;
           }
-
           if (signal.type === 'hangup' && (sessionIdRef.current === signal.sessionId || pendingOfferRef.current?.sessionId === signal.sessionId)) {
             pendingOfferRef.current = null;
             setTeacherReady(false);
@@ -218,9 +232,35 @@ export default function LiveLessonCallPanel({
       },
       (nextError) => setError(nextError?.message || 'Videokõne ühendust ei saanud jälgida.'),
     );
-
     return () => unsubscribe?.();
   }, [answerOffer, flushCandidates, invitation.id, resetCall, role, signalService, user.uid]);
+
+  useEffect(() => {
+    let alive = true;
+    const reportPresence = () => presenceService.heartbeat(invitation.id, participant).catch((nextError) => {
+      if (alive) setError(nextError?.message || 'Kohalolekut ei saanud uuendada.');
+    });
+    reportPresence();
+    const heartbeatTimer = window.setInterval(reportPresence, 20_000);
+    const freshnessTimer = window.setInterval(() => setPresenceNow(Date.now()), 5_000);
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') reportPresence();
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    const unsubscribe = presenceService.subscribe(
+      invitation.id,
+      (items) => { if (alive) setPresence(items); },
+      (nextError) => { if (alive) setError(nextError?.message || 'Kohalolekut ei saanud jälgida.'); },
+    );
+    return () => {
+      alive = false;
+      window.clearInterval(heartbeatTimer);
+      window.clearInterval(freshnessTimer);
+      document.removeEventListener('visibilitychange', onVisibility);
+      unsubscribe?.();
+      presenceService.markOffline(invitation.id, participant).catch(() => {});
+    };
+  }, [invitation.id, participant, presenceService]);
 
   useEffect(() => () => {
     closePeer();
@@ -296,13 +336,24 @@ export default function LiveLessonCallPanel({
   };
 
   const connected = status === 'connected';
-  return <Card className="live-call-card">
+  const canReconnect = role === 'teacher' && hasLocalMedia && ['failed', 'reconnecting'].includes(status);
+
+  return <Card className={floating ? 'live-call-card live-call-card--floating' : 'live-call-card'}>
     <div className="live-call-card__header">
       <div>
         <span className="eyebrow">Videokõne</span>
-        <h2>{role === 'teacher' ? invitation.studentName : invitation.teacherName}</h2>
+        <h2>{peerName}</h2>
+        <span className={peerOnline ? 'live-presence is-online' : 'live-presence'}>
+          {peerOnline ? <Wifi size={14} /> : <WifiOff size={14} />}
+          {peerOnline ? `${peerName} on võrgus` : `${peerName} pole hetkel võrgus`}
+        </span>
       </div>
-      <span className={`live-call-status live-call-status--${status}`}>{statusText(status, role, teacherReady)}</span>
+      <div className="live-call-card__header-actions">
+        <span className={`live-call-status live-call-status--${status}`}>{statusText(status, role, teacherReady)}</span>
+        <button type="button" className="live-call-float-toggle" aria-label={floating ? 'Tagasi lehele' : 'Ava ujuvas aknas'} onClick={() => setFloating((value) => !value)}>
+          {floating ? <Maximize2 size={17} /> : <Minimize2 size={17} />}
+        </button>
+      </div>
     </div>
 
     <div className="live-call-stage">
@@ -316,6 +367,7 @@ export default function LiveLessonCallPanel({
     <div className="live-call-controls">
       {!hasLocalMedia && role === 'teacher' ? <Button loading={busy} onClick={startTeacherCall}><Video size={18} /> Käivita video ja mikrofon</Button> : null}
       {!hasLocalMedia && role === 'student' ? <Button loading={busy} onClick={joinStudentCall}><Video size={18} /> Liitu videokõnega</Button> : null}
+      {canReconnect ? <Button loading={busy} onClick={startTeacherCall}><RefreshCw size={18} /> Taasta ühendus</Button> : null}
       {hasLocalMedia ? <>
         <Button variant="secondary" aria-label={audioEnabled ? 'Lülita mikrofon välja' : 'Lülita mikrofon sisse'} onClick={toggleAudio}>{audioEnabled ? <Mic size={18} /> : <MicOff size={18} />}{audioEnabled ? ' Mikrofon sees' : ' Mikrofon väljas'}</Button>
         <Button variant="secondary" aria-label={videoEnabled ? 'Lülita kaamera välja' : 'Lülita kaamera sisse'} onClick={toggleVideo}>{videoEnabled ? <Video size={18} /> : <VideoOff size={18} />}{videoEnabled ? ' Kaamera sees' : ' Kaamera väljas'}</Button>
@@ -323,6 +375,6 @@ export default function LiveLessonCallPanel({
       </> : null}
     </div>
 
-    <p className="live-call-note">Kaamera ja mikrofon käivituvad ainult sinu nupuvajutusel. Ühendus on brauseritevaheline; kui otseühendus pole võrgu tõttu võimalik, jääb tunniruum avatuks ja järgmises etapis lisame TURN-varuühenduse.</p>
+    <p className="live-call-note">Kaamera ja mikrofon käivituvad ainult sinu nupuvajutusel. Ühenduse katkemisel saab õpetaja luua uue WebRTC seansi ilma tunniruumi sulgemata. Praegu kasutame STUN-ühendust; TURN-varuühendus lisatakse enne tootmisväljalaset.</p>
   </Card>;
 }
