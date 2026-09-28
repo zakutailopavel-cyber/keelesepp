@@ -61,14 +61,14 @@ export default function SettingsPage({ parentRepository = parentsService, studen
       if (!parent) return;
       startPreview({ user: { uid: parent.id, email: parent.email || '', displayName: parent.displayName || parent.email || 'Lapsevanem', profile: parent, roles: [ROLES.PARENT] }, label: parent.displayName || parent.email || 'Lapsevanem' });
       window.history.pushState({}, '', '/parent');
-      window.dispatchEvent(new Event('popstate'));
+      window.dispatchEvent(new window.Event('popstate'));
       return;
     }
     const student = supportData.students.find((item) => item.id === supportTarget);
     if (!student) return;
     startPreview({ user: { uid: student.studentUid || student.linkedUserId || `preview-student:${student.id}`, email: student.email || '', displayName: student.name || 'Õpilane', profile: student, roles: [ROLES.STUDENT] }, studentId: student.id, label: student.name || 'Õpilane' });
     window.history.pushState({}, '', '/student');
-    window.dispatchEvent(new Event('popstate'));
+    window.dispatchEvent(new window.Event('popstate'));
   };
 
   const save = async (event) => {
