@@ -19,7 +19,7 @@ function repositories() {
       list: vi.fn().mockResolvedValue(parents),
       updateCrm: vi.fn().mockResolvedValue(undefined),
       markReviewed: vi.fn().mockResolvedValue(undefined),
-      linkStudent: vi.fn().mockResolvedValue(undefined),
+      linkStudent: vi.fn().mockResolvedValue({ linkedRecordCount: 1 }),
       createMissingStudent: vi.fn().mockResolvedValue(undefined),
       mergeDuplicates: vi.fn().mockResolvedValue({ duplicateCount: 1, reassignedStudentCount: 0 }),
     },
@@ -63,9 +63,9 @@ describe('ParentsPage', () => {
     const jaanRow = within(dialog).getByText('Jaan').closest('section');
     fireEvent.click(within(jaanRow).getByRole('button', { name: 'Lisa' }));
 
-    await waitFor(() => expect(data.repository.linkStudent).toHaveBeenCalledWith(parents[0], students[1], user));
+    await waitFor(() => expect(data.repository.linkStudent).toHaveBeenCalledWith(parents[0], students[1], user, expect.objectContaining({ force: false, relatedStudents: students })));
     expect(screen.getByRole('dialog', { name: 'Lisa laps: Mari Ema' })).toBeInTheDocument();
-    expect(await screen.findByRole('status')).toHaveTextContent('lisati lapsevanema laste hulka');
+    expect(await screen.findByRole('status')).toHaveTextContent('seoti lapsevanemaga');
   });
 
   it('can create a new child from any parent even when the name was not in registration', async () => {

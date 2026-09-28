@@ -1,5 +1,6 @@
 import { invoiceBalanceCents } from '../students/studentFinance.js';
 import { normalizedParentEmail, parentReviewKey, splitChildNames } from '../../services/firebase/parents.js';
+import { groupStudentPeople } from '../../services/firebase/students.js';
 
 const normalize = (value) => String(value || '').trim().toLocaleLowerCase('et');
 
@@ -19,12 +20,13 @@ export function invoiceMatchesParent(invoice, parent, children = []) {
   if (parentIds.includes(parent.id)) return true;
   const parentEmail = normalize(parent.email);
   if (parentEmail && [invoice.parentEmailLower, invoice.payerEmailLower, invoice.parentEmail, invoice.payerEmail].some((value) => normalize(value) === parentEmail)) return true;
-  return children.some((student) => invoice.studentId === student.id || (normalize(invoice.studentName) && normalize(invoice.studentName) === normalize(student.name)));
+  return children.some((student) => (student.recordIds || [student.id]).includes(invoice.studentId) || (normalize(invoice.studentName) && normalize(invoice.studentName) === normalize(student.name)));
 }
 
 export function buildParentRows(parents = [], students = [], invoices = []) {
   return parents.map((parent) => {
-    const children = students.filter((student) => student.active !== false && !student.convertedToParent && parentMatchesStudent(parent, student));
+    const childRecords = students.filter((student) => student.active !== false && !student.convertedToParent && parentMatchesStudent(parent, student));
+    const children = groupStudentPeople(childRecords);
     const requestedNames = splitChildNames(parent.childName);
     const linkedNames = new Set(children.map((student) => normalize(student.name)));
     const missingNames = requestedNames.filter((name) => !linkedNames.has(normalize(name)));

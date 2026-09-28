@@ -48,7 +48,7 @@ describe('parentsService', () => {
 
   it('links an existing student and confirms the parent registration in one batch', async () => {
     const parent = { id: 'parent-1', displayName: 'Vanem', email: 'vanem@example.com', childName: 'Mari' };
-    await expect(parentsService.linkStudent(parent, { id: 'student-1', name: 'Jaan' }, admin)).resolves.toEqual({ childName: 'Mari, Jaan' });
+    await expect(parentsService.linkStudent(parent, { id: 'student-1', name: 'Jaan' }, admin)).resolves.toEqual({ childName: 'Mari, Jaan', linkedRecordCount: 1 });
     expect(firestore.batch.set).toHaveBeenCalledTimes(3);
     expect(firestore.batch.set.mock.calls[0]).toEqual(['firebase-db:students:student-1', expect.objectContaining({ linkedParentId: 'parent-1', parentUid: 'parent-1', parentName: 'Vanem' }), { merge: true }]);
     expect(firestore.batch.set.mock.calls[1]).toEqual(['firebase-db:users:parent-1', expect.objectContaining({ childName: 'Mari, Jaan', parentReviewStatus: 'checked', parentReviewKey: 'mari|jaan' }), { merge: true }]);
@@ -71,14 +71,24 @@ describe('parentsService', () => {
     expect(firestore.batch.set.mock.calls[2][1]).toMatchObject({ type: 'parent.student_created', meta: expect.objectContaining({ studentName: 'Karl', teacherUid: 'teacher-1' }) });
   });
 
-  it('refuses a new card when an active student with the exact child name already exists', async () => {
+  it('reuses an existing child in the same family and adds a learning enrollment instead of creating a duplicate card', async () => {
     await expect(parentsService.createMissingStudent(
-      { id: 'parent-1', childName: 'Karl' },
-      { name: 'Karl', teacherUid: 'teacher-1', teacher: 'Õpetaja' },
-      [{ id: 'student-1', name: ' karl ', active: true }],
+      { id: 'parent-1', displayName: 'Vanem', email: 'vanem@example.com', childName: 'Karl' },
+      { name: 'Karl', teacherUid: 'teacher-1', teacher: 'Õpetaja', subject: 'Matemaatika', level: 'A1', targetLevel: 'B1' },
+      [{ id: 'student-1', name: ' karl ', active: true, linkedParentId: 'parent-1', parentEmail: 'vanem@example.com', subject: 'Eesti keel', teacher: 'Õpetaja' }],
       admin,
-    )).rejects.toThrow('Seo olemasolev kaart');
-    expect(firestore.batch.commit).not.toHaveBeenCalled();
+    )).resolves.toMatchObject({ id: 'student-1', reusedExistingStudent: true });
+    expect(firestore.batch.set.mock.calls.some((call) => call[0] === 'firebase-db:students:student-1' && Array.isArray(call[1]?.enrollments))).toBe(true);
+    expect(firestore.batch.commit).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not merge same-name children when the family identity does not match', async () => {
+    await expect(parentsService.createMissingStudent(
+      { id: 'parent-1', displayName: 'Vanem', email: 'vanem@example.com', childName: 'Karl' },
+      { name: 'Karl', teacherUid: 'teacher-1', teacher: 'Õpetaja' },
+      [{ id: 'student-1', name: 'Karl', active: true, linkedParentId: 'parent-2', parentEmail: 'other@example.com' }],
+      admin,
+    )).resolves.toMatchObject({ id: 'generated', name: 'Karl' });
   });
 
   it('archives exact-email duplicate parent documents and repoints only explicit student links', async () => {

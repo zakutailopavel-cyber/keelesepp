@@ -19,12 +19,83 @@ const PAGE_SIZE = 50;
 const writableFields = [
   'name', 'parentName', 'parentEmail', 'email', 'phone', 'level', 'targetLevel',
   'subject', 'grade', 'group', 'teacher', 'active', 'contactStatus', 'contactOwner',
-  'contactLastAt', 'contactNotes',
+  'contactLastAt', 'contactNotes', 'enrollments', 'personId',
 ];
 
 function cleanText(value) { return String(value ?? '').trim(); }
 
+function normalizedEnrollment(value = {}, fallback = {}) {
+  const subject = cleanText(value.subject || fallback.subject) || 'Eesti keel';
+  const teacher = canonicalTeacherName(cleanText(value.teacher || fallback.teacher));
+  const teacherUid = cleanText(value.teacherUid || fallback.teacherUid);
+  const level = cleanText(value.level || fallback.level);
+  const targetLevel = cleanText(value.targetLevel || fallback.targetLevel);
+  return {
+    id: cleanText(value.id) || [subject, teacherUid || teacher, level, targetLevel].join('|').toLocaleLowerCase('et'),
+    subject,
+    teacher,
+    teacherUid,
+    level,
+    targetLevel,
+    active: value.active !== false,
+  };
+}
+
+export function enrollmentKey(value = {}) {
+  const enrollment = normalizedEnrollment(value);
+  return [enrollment.subject, enrollment.teacherUid || enrollment.teacher].map((item) => cleanText(item).toLocaleLowerCase('et')).join('|');
+}
+
+export function studentPersonKey(student = {}) {
+  const name = cleanText(student.name).toLocaleLowerCase('et');
+  const explicitParentId = cleanText(student.linkedParentId || student.parentUid || student.guardianUid);
+  const parentEmail = cleanText(student.parentEmail || student.guardianEmail).toLocaleLowerCase('et');
+  const parentName = cleanText(student.parentName || student.guardianName).toLocaleLowerCase('et');
+  if (cleanText(student.personId)) return `person:${cleanText(student.personId)}`;
+  if (explicitParentId && name) return `parent:${explicitParentId}|name:${name}`;
+  if (parentEmail && name) return `email:${parentEmail}|name:${name}`;
+  if (parentName && name) return `parent-name:${parentName}|name:${name}`;
+  return `record:${cleanText(student.id) || name}`;
+}
+
+export function groupStudentPeople(items = []) {
+  const groups = new Map();
+  items.forEach((source) => {
+    const student = Array.isArray(source?.enrollments) && source.enrollments.length
+      ? source
+      : normalizeStudent(source?.id || '', source || {});
+    const key = studentPersonKey(student);
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(student);
+  });
+  return [...groups.entries()].map(([personKey, records]) => {
+    const primary = records.find((item) => item.active !== false) || records[0];
+    const enrollmentMap = new Map();
+    records.forEach((record) => (record.enrollments || []).forEach((enrollment) => {
+      const key = enrollmentKey(enrollment);
+      if (!enrollmentMap.has(key)) enrollmentMap.set(key, enrollment);
+    }));
+    const enrollments = [...enrollmentMap.values()];
+    const teachers = [...new Set(enrollments.map((item) => item.teacher).filter(Boolean))];
+    const levels = [...new Set(enrollments.map((item) => item.level).filter(Boolean))];
+    const subjects = [...new Set(enrollments.map((item) => item.subject).filter(Boolean))];
+    return {
+      ...primary,
+      personKey,
+      recordIds: records.map((item) => item.id),
+      records,
+      enrollments,
+      teacher: teachers.join(', '),
+      level: levels.length === 1 ? levels[0] : (levels.length ? levels.join(', ') : primary.level),
+      subject: subjects.join(', '),
+    };
+  }).sort((a, b) => a.name.localeCompare(b.name, 'et', { sensitivity: 'base' }));
+}
+
 export function normalizeStudent(id, data = {}) {
+  const legacyEnrollment = normalizedEnrollment(data, data);
+  const sourceEnrollments = Array.isArray(data.enrollments) && data.enrollments.length ? data.enrollments : [legacyEnrollment];
+  const enrollmentMap = new Map(sourceEnrollments.map((item) => { const normalized = normalizedEnrollment(item, data); return [enrollmentKey(normalized), normalized]; }));
   return {
     id,
     ...data,
@@ -37,6 +108,7 @@ export function normalizeStudent(id, data = {}) {
     targetLevel: cleanText(data.targetLevel),
     subject: cleanText(data.subject) || 'Eesti keel',
     teacher: canonicalTeacherName(cleanText(data.teacher)),
+    enrollments: [...enrollmentMap.values()],
     active: data.active !== false,
     skillMap: data.skillMap && typeof data.skillMap === 'object' ? data.skillMap : {},
   };
@@ -245,6 +317,16 @@ export const studentsService = {
       if (hasDuplicateStudent(possibleDuplicates.items, candidate, id)) throw new StudentDuplicateError();
     }
     await updateDoc(doc(db, 'students', id), payload);
+    return this.getById(id);
+  },
+  async addEnrollment(id, enrollment) {
+    const current = await this.getById(id);
+    if (!current) throw new Error('Õpilast ei leitud.');
+    const nextEnrollment = normalizedEnrollment(enrollment, current);
+    const existing = new Map((current.enrollments || []).map((item) => [enrollmentKey(item), item]));
+    existing.set(enrollmentKey(nextEnrollment), { ...existing.get(enrollmentKey(nextEnrollment)), ...nextEnrollment });
+    const { db } = requireFirebaseClient();
+    await updateDoc(doc(db, 'students', id), { enrollments: [...existing.values()], updatedAt: new Date().toISOString().slice(0, 10) });
     return this.getById(id);
   },
   async archive(id) {
