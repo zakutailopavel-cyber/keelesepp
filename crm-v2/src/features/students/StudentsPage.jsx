@@ -3,7 +3,7 @@ import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'r
 import { Link, useSearchParams } from 'react-router-dom';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, IconButton, Input, LoadingState, Modal, PageHeader, Select } from '../../components/ui/index.js';
-import { studentsService } from '../../services/firebase/students.js';
+import { groupStudentPeople, studentsService } from '../../services/firebase/students.js';
 import { ROLES } from '../../utils/roles.js';
 import { canonicalTeacherName } from '../../utils/teachers.js';
 import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
@@ -60,6 +60,8 @@ export default function StudentsPage({ service = studentsService, actor }) {
 
   useEffect(() => { load(); }, [filters, service]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const people = useMemo(() => groupStudentPeople(state.items), [state.items]);
+
   const options = useMemo(() => ({
     teachers: [...new Set([...LEGACY_TEACHERS, ...state.items.map((student) => canonicalTeacherName(student.teacher))].filter(Boolean))].sort((left, right) => left.localeCompare(right, 'et')),
     levels: STUDENT_LEVELS.filter(Boolean),
@@ -75,8 +77,8 @@ export default function StudentsPage({ service = studentsService, actor }) {
   const currentListHref = studentListHref(filters);
   const profileLinkProps = (studentId) => ({ to: `/students/${studentId}`, state: { studentListHref: currentListHref } });
   const initials = (name) => String(name || '?').split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
-  const activeCount = state.items.filter((student) => student.active).length;
-  const unassignedCount = state.items.filter((student) => student.active && !canonicalTeacherName(student.teacher)).length;
+  const activeCount = people.filter((student) => student.records?.some((record) => record.active)).length;
+  const unassignedCount = people.filter((student) => student.active && !(student.enrollments || []).some((enrollment) => canonicalTeacherName(enrollment.teacher))).length;
   const openCreate = () => { setFormStudent(undefined); setFormOpen(true); };
   const openEdit = (student) => { setFormStudent(student); setFormOpen(true); };
   const save = async (values) => {
@@ -96,10 +98,10 @@ export default function StudentsPage({ service = studentsService, actor }) {
 
   return (
     <div className="page-content">
-      <PageHeader eyebrow="CRM" title="Õpilased" description={state.loading ? 'Laen Firebase andmeid…' : `${state.items.length} õpilast`} actions={<Button onClick={openCreate}><Plus size={18} /> Lisa õpilane</Button>} />
+      <PageHeader eyebrow="CRM" title="Õpilased" description={state.loading ? 'Laen Firebase andmeid…' : `${people.length} õpilast`} actions={<Button onClick={openCreate}><Plus size={18} /> Lisa õpilane</Button>} />
       {notice ? <div className="success-notice" role="status">{notice}<button onClick={() => setNotice('')} aria-label="Sulge teade">×</button></div> : null}
       {actionError ? <div className="action-error" role="alert">{actionError}<button onClick={() => setActionError('')} aria-label="Sulge veateade">×</button></div> : null}
-      {state.items.length ? <section className="student-directory-summary" aria-label="Õpilaste kokkuvõte"><div><span>Leitud</span><strong>{state.items.length}</strong></div><div><span>Aktiivsed</span><strong>{activeCount}</strong></div><div><span>Tasemeid</span><strong>{new Set(state.items.map((student) => student.level).filter(Boolean)).size}</strong></div>{canAssignTeacher ? <div className={unassignedCount ? 'needs-attention' : ''}><span>Õpetajata</span><strong>{unassignedCount}</strong></div> : null}</section> : null}
+      {state.items.length ? <section className="student-directory-summary" aria-label="Õpilaste kokkuvõte"><div><span>Leitud</span><strong>{people.length}</strong></div><div><span>Aktiivsed</span><strong>{activeCount}</strong></div><div><span>Tasemeid</span><strong>{new Set(people.flatMap((student) => (student.enrollments || []).map((enrollment) => enrollment.level)).filter(Boolean)).size}</strong></div>{canAssignTeacher ? <div className={unassignedCount ? 'needs-attention' : ''}><span>Õpetajata</span><strong>{unassignedCount}</strong></div> : null}</section> : null}
       <Card className={`filters-card ${canAssignTeacher ? '' : 'filters-card--teacher'}`}>
         <div className="search-field"><Search size={18} /><Input aria-label="Otsi nime, telefoni või e-posti järgi" name="search" placeholder="Otsi nime, telefoni või e-posti järgi…" value={search} onChange={(event) => setSearch(event.target.value)} /></div>
         <Select aria-label="Staatus" name="status" value={filters.status} onChange={setFilter}><option value="">Kõik staatused</option><option value="active">Aktiivsed</option><option value="archived">Arhiveeritud</option></Select>
@@ -116,10 +118,10 @@ export default function StudentsPage({ service = studentsService, actor }) {
         <Card className="students-card">
           <div className="students-table-wrap">
             <table className="students-table"><thead><tr><th>Õpilane</th><th>Tase</th><th>Õpetaja</th><th>Staatus</th><th><span className="sr-only">Toimingud</span></th></tr></thead>
-              <tbody>{state.items.map((student) => <tr key={student.id}><td><Link className="student-identity" {...profileLinkProps(student.id)}><i>{initials(student.name)}</i><span><strong>{student.name || 'Nimetu õpilane'}</strong></span></Link></td><td><Badge tone="info">{student.level || '—'}</Badge></td><td>{student.hiddenFields?.teacher ? 'Peidetud' : canonicalTeacherName(student.teacher) || 'Määramata'}</td><td><Badge tone={student.active ? 'success' : 'neutral'}>{student.active ? 'Aktiivne' : 'Arhiveeritud'}</Badge></td><td><div className="row-actions"><IconButton label={`Muuda ${student.name}`} onClick={() => openEdit(student)}><Pencil size={17} /></IconButton>{student.active ? <IconButton label={`Arhiveeri ${student.name}`} onClick={() => setArchiveTarget(student)}><Archive size={17} /></IconButton> : null}<Link className="icon-button" aria-label={`Ava ${student.name} profiil`} {...profileLinkProps(student.id)}><ChevronRight size={18} /></Link></div></td></tr>)}</tbody>
+              <tbody>{people.map((student) => <tr key={student.personKey || student.id}><td><Link className="student-identity" {...profileLinkProps(student.id)}><i>{initials(student.name)}</i><span><strong>{student.name || 'Nimetu õpilane'}</strong><small>{student.enrollments?.length > 1 ? `${student.enrollments.length} õppesuunad` : student.subject || '—'}</small></span></Link></td><td><Badge tone="info">{student.level || '—'}</Badge></td><td>{student.hiddenFields?.teacher ? 'Peidetud' : student.teacher || 'Määramata'}</td><td><Badge tone={student.active ? 'success' : 'neutral'}>{student.active ? 'Aktiivne' : 'Arhiveeritud'}</Badge></td><td><div className="row-actions"><IconButton label={`Muuda ${student.name}`} onClick={() => openEdit(student)}><Pencil size={17} /></IconButton>{student.active ? <IconButton label={`Arhiveeri ${student.name}`} onClick={() => setArchiveTarget(student)}><Archive size={17} /></IconButton> : null}<Link className="icon-button" aria-label={`Ava ${student.name} profiil`} {...profileLinkProps(student.id)}><ChevronRight size={18} /></Link></div></td></tr>)}</tbody>
             </table>
           </div>
-          <div className="students-mobile-list">{state.items.map((student) => <article className="student-mobile-card" key={student.id}><Link {...profileLinkProps(student.id)}><i className="student-avatar">{initials(student.name)}</i><div><strong>{student.name || 'Nimetu õpilane'}</strong><span>{student.active ? 'Aktiivne' : 'Arhiveeritud'}</span></div><ChevronRight size={18} /></Link><div className="student-mobile-meta"><Badge tone="info">{student.level || '—'}</Badge><span>{student.hiddenFields?.teacher ? 'Õpetaja peidetud' : canonicalTeacherName(student.teacher) || 'Õpetaja määramata'}</span></div><div className="row-actions"><Button variant="secondary" onClick={() => openEdit(student)}>Muuda</Button>{student.active ? <Button variant="danger" onClick={() => setArchiveTarget(student)}>Arhiveeri</Button> : null}</div></article>)}</div>
+          <div className="students-mobile-list">{people.map((student) => <article className="student-mobile-card" key={student.personKey || student.id}><Link {...profileLinkProps(student.id)}><i className="student-avatar">{initials(student.name)}</i><div><strong>{student.name || 'Nimetu õpilane'}</strong><span>{student.active ? 'Aktiivne' : 'Arhiveeritud'}</span></div><ChevronRight size={18} /></Link><div className="student-mobile-meta"><Badge tone="info">{student.level || '—'}</Badge><span>{student.hiddenFields?.teacher ? 'Õpetaja peidetud' : student.teacher || 'Õpetaja määramata'}</span></div><div className="row-actions"><Button variant="secondary" onClick={() => openEdit(student)}>Muuda</Button>{student.active ? <Button variant="danger" onClick={() => setArchiveTarget(student)}>Arhiveeri</Button> : null}</div></article>)}</div>
           {state.hasMore ? <div className="load-more"><Button variant="secondary" loading={state.loading} onClick={() => load({ append: true })}>Laadi veel</Button></div> : null}
         </Card>
       ) : null}
