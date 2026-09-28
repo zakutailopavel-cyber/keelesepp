@@ -1,5 +1,6 @@
 import { collection, doc, getDocs, writeBatch } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
+import { enrollmentKey, studentPersonKey } from './students.js';
 
 function clean(value) {
   return String(value || '').trim();
@@ -101,24 +102,29 @@ export const parentsService = {
     return payload;
   },
 
-  async linkStudent(parent, student, user) {
+  async linkStudent(parent, student, user, options = {}) {
     requireAdmin(user);
     if (!parent?.id || !student?.id) throw new Error('Lapsevanemat või õpilast ei leitud.');
     const existingParentId = student.linkedParentId || student.parentUid || student.guardianUid || '';
-    if (existingParentId && existingParentId !== parent.id) throw new Error('Õpilane on juba seotud teise lapsevanema kontoga.');
+    const force = Boolean(options.force);
+    if (existingParentId && existingParentId !== parent.id && !force) throw new Error('Õpilane on juba seotud teise lapsevanema kontoga.');
+    const relatedStudents = Array.isArray(options.relatedStudents) ? options.relatedStudents : [];
+    const selectedKey = studentPersonKey(student);
+    const samePerson = relatedStudents.filter((item) => item?.id && studentPersonKey(item) === selectedKey);
+    const targets = [...new Map([student, ...samePerson].map((item) => [item.id, item])).values()];
     const childNames = splitChildNames(parent.childName);
     if (!childNames.some((name) => name.toLocaleLowerCase('et') === clean(student.name).toLocaleLowerCase('et'))) childNames.push(clean(student.name));
     const childName = childNames.filter(Boolean).join(', ');
     const linkedAt = new Date().toISOString();
     const { db } = requireFirebaseClient();
     const batch = writeBatch(db);
-    batch.set(doc(db, 'students', student.id), {
+    targets.forEach((target) => batch.set(doc(db, 'students', target.id), {
       linkedParentId: parent.id,
       parentUid: parent.id,
       parentName: parent.displayName || '',
       parentEmail: parent.email || '',
       updatedAt: linkedAt,
-    }, { merge: true });
+    }, { merge: true }));
     batch.set(doc(db, 'users', parent.id), {
       childName,
       parentReviewStatus: 'checked',
@@ -126,9 +132,9 @@ export const parentsService = {
       parentReviewedAt: linkedAt,
       parentReviewedBy: user.displayName || user.email || '',
     }, { merge: true });
-    writeActivity(batch, db, 'parent.student_assigned', `${student.name || 'Õpilane'} seoti lapsevanemaga`, parent, user, { studentId: student.id, studentName: student.name || '' });
+    writeActivity(batch, db, force ? 'parent.student_force_assigned' : 'parent.student_assigned', `${student.name || 'Õpilane'} seoti lapsevanemaga`, parent, user, { studentId: student.id, studentName: student.name || '', linkedRecordCount: targets.length, previousParentId: existingParentId || '' });
     await batch.commit();
-    return { childName };
+    return { childName, linkedRecordCount: targets.length };
   },
 
   async createMissingStudent(parent, values, existingStudents, user) {
