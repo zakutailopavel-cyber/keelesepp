@@ -34,9 +34,11 @@ export default function StudentDashboardPage({
   invoiceRepository = invoicesService,
   lessonRepository = lessonsService,
 }) {
-  const { user } = useAuth();
+  const { user, preview } = useAuth();
   const state = useAsyncData(async () => {
-    const students = await studentRepository.listSelf(user.uid);
+    const students = preview?.studentId
+      ? [await studentRepository.getById(preview.studentId)].filter(Boolean)
+      : await studentRepository.listSelf(user.uid);
     const studentIds = students.map((student) => student.id);
     const [homework, submissions, scheduleLists, invoiceLists, lessonLists] = await Promise.all([
       homeworkRepository.listByStudentIds(studentIds),
@@ -53,7 +55,7 @@ export default function StudentDashboardPage({
       invoices: unique(invoiceLists.flat()),
       lessons: unique(lessonLists.flat()),
     };
-  }, [homeworkRepository, invoiceRepository, lessonRepository, scheduleRepository, studentRepository, user.uid]);
+  }, [homeworkRepository, invoiceRepository, lessonRepository, preview?.studentId, scheduleRepository, studentRepository, user.uid]);
 
   const today = toIsoDate();
   const nextDates = useMemo(() => Array.from({ length: 28 }, (_, index) => shiftDate(today, index)), [today]);
