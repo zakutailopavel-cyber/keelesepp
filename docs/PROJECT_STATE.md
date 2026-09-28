@@ -5,7 +5,7 @@
 Last verified against main: 2026-09-28, Europe/Tallinn.
 Verified main: `3a69994`.
 Implementation branch: `codex/v2-people-experience`.
-Draft PR: pending.
+Draft PR: https://github.com/zakutailopavel-cyber/keelesepp/pull/174.
 
 The groups, teachers and parents directories, teacher profile, student dashboard and parent dashboard now share one
 responsive operational overview component. Each surface presents its role-appropriate counts and workload context
@@ -17,7 +17,7 @@ finance visibility, role scope, Firebase services and route contracts are unchan
 data, rules or deployment are included.
 
 Validation: PASS — focused people and dashboard suites 15/15, ESLint, production build, React structure/accessibility
-review and `git diff --check`. Exactly one next safe step: open a draft PR and wait for GitHub CI.
+review and `git diff --check`. Exactly one next safe step: wait for GitHub CI, then owner review of PR #174.
 
 ## CRM v2 calendar experience — IN PROGRESS
 
