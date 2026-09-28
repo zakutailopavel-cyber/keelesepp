@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, PageHeader, Select } from '../../components/ui/index.js';
-import { liveLessonCallSignalsService, liveLessonInvitationsService, studentsService } from '../../services/firebase/index.js';
+import { liveLessonCallSignalsService, liveLessonInvitationsService, liveLessonPresenceService, studentsService } from '../../services/firebase/index.js';
 import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
 import { eligibleInvitationStudents, INVITATION_STATUS, isInvitationRouteUsable, newestInvitation, normalizeInvitation } from './invitationModel.js';
 import LiveLessonCallPanel from './LiveLessonCallPanel.jsx';
@@ -33,6 +33,7 @@ export default function LiveClassroomPage({
   invitationService = liveLessonInvitationsService,
   studentRepository = studentsService,
   callSignalService = liveLessonCallSignalsService,
+  callPresenceService = liveLessonPresenceService,
   callMediaDevices,
   callPeerFactory,
 }) {
@@ -150,6 +151,7 @@ export default function LiveClassroomPage({
     invitation: activeInvitation,
     user,
     signalService: callSignalService,
+    presenceService: callPresenceService,
     ...(callMediaDevices ? { mediaDevices: callMediaDevices } : {}),
     ...(callPeerFactory ? { peerFactory: callPeerFactory } : {}),
   };
