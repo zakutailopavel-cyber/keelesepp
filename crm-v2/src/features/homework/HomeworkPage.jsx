@@ -2,6 +2,7 @@ import { CheckCircle2, ClipboardCheck, Clock3, Eye, FileText, MessageSquare, Pla
 import { useMemo, useState } from 'react';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal, PageHeader, Select } from '../../components/ui/index.js';
+import PeopleOverview from '../../components/PeopleOverview.jsx';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { homeworkService, studentsService } from '../../services/firebase/index.js';
 import { hasAnyRole, ROLES } from '../../utils/roles.js';
@@ -11,6 +12,7 @@ import TextAnnotationEditor from './TextAnnotationEditor.jsx';
 import { submissionWritingFields } from './annotations.js';
 import MaterialPreview from '../library/MaterialPreview.jsx';
 import { buildLibraryItems } from '../library/libraryModel.js';
+import '../common/finalReadiness.css';
 
 const blank = { studentId: '', task: '', due: new Date().toISOString().slice(0, 10) };
 const emptyReview = { teacherGrade: '', teacherFeedback: '' };
@@ -105,6 +107,10 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
   if (state.loading) return <LoadingState label="Laen kodutöid…" />;
   if (state.error) return <ErrorState message={state.error.message} onRetry={state.reload} />;
   const { students } = state.data;
+  const today = new Date().toISOString().slice(0, 10);
+  const openHomework = state.data.homework.filter((item) => item.status !== 'Tehtud');
+  const overdueHomework = openHomework.filter((item) => item.due && item.due < today);
+  const pendingReviews = state.data.submissions.filter((item) => item.reviewStatus !== 'reviewed');
 
   const submit = async (event) => {
     event.preventDefault();
@@ -181,6 +187,12 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
 
   return <div className="page-content">
     <PageHeader eyebrow="Õppetöö" title="Kodutööd" description={staff ? 'Ülesanded, esitused, hindamine ja tagasiside ühes vaates.' : 'Sinu ülesanded, tulemused ja õpetaja tagasiside.'} actions={staff ? <Button onClick={() => setModal(true)}><Plus size={18} /> Uus kodutöö</Button> : null} />
+    <PeopleOverview label="Kodutööde kokkuvõte" eyebrow={staff ? 'Õppetöö ülevaade' : 'Minu töölaud'} title={staff ? 'Ülesanded ja tagasiside' : 'Minu kodutööd'} description={staff ? 'Pooleliolevad tööd, tähtajad ja kontrollimist ootavad esitused.' : 'Ülesanded, tähtajad ja õpetaja tagasiside ühes vaates.'} metrics={[
+      { icon: ClipboardCheck, label: 'Kõik ülesanded', value: state.data.homework.length, hint: `${students.items.length} õpilast` },
+      { icon: Clock3, label: 'Pooleli', value: openHomework.length, hint: 'ootab tegemist' },
+      { icon: Star, label: 'Hilinenud', value: overdueHomework.length, hint: 'vajab tähelepanu' },
+      { icon: MessageSquare, label: staff ? 'Ootab kontrolli' : 'Tagasisideta', value: pendingReviews.length, hint: `${state.data.submissions.length} esitust kokku` },
+    ]} />
     {success ? <div className="success-notice" role="status">{success}<button onClick={() => setSuccess('')}>×</button></div> : null}
     {actionError ? <div className="action-error" role="alert">{actionError}<button onClick={() => setActionError('')}>×</button></div> : null}
 

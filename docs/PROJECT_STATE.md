@@ -1,5 +1,26 @@
 # KeeleSepp Project State
 
+## CRM v2 final readiness — IN PROGRESS
+
+Last verified against main: 2026-09-28, Europe/Tallinn.
+Verified main: `fcded22`.
+Implementation branch: `codex/v2-final-readiness`.
+Implementation PR: https://github.com/zakutailopavel-cyber/keelesepp/pull/182.
+
+The final UX/readiness pass brings Homework and Settings into the shared v2 workspace language. Homework now has a
+role-aware operational overview for total, open, overdue and unreviewed work; Settings has a concise account, role,
+Firebase and support-access summary. Remaining cards use the same elevation and responsive treatment, long homework
+and submission lists use browser rendering containment, and interactive rows retain visible keyboard focus.
+
+Every CRM v2 navigation route now resolves to an implemented feature; `PlaceholderPage` is not used by the router.
+`docs/CRM_V2_READINESS.md` records the code, verification and controlled-transition gates. Existing business logic,
+roles, Firebase contracts, finance APIs, v1 and production data are unchanged. No deploy or migration is included.
+
+Validation: PASS — Homework and Settings 7/7, ESLint, production build and `git diff --check`. The full parallel suite
+reached 288/295; all seven five-second timeouts then passed in a serial rerun covering the five affected files, 35/35.
+GitHub `verify`, security regression and both Vercel preview checks pass. Exactly one next safe step: owner review and
+merge of PR #182.
+
 ## CRM v2 finance experience — MERGED
 
 Last verified against main: 2026-09-28, Europe/Tallinn.
