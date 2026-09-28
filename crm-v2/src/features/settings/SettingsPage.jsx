@@ -2,11 +2,13 @@ import { CheckCircle2, Database, Eye, KeyRound, Save, ShieldAlert, ShieldCheck, 
 import { useState } from 'react';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, Input, PageHeader, Select } from '../../components/ui/index.js';
+import PeopleOverview from '../../components/PeopleOverview.jsx';
 import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
 import { hasAnyRole, ROLES } from '../../utils/roles.js';
 import { teacherScopeMigrationApi } from '../../services/firebase/teacherScopeMigrationApi.js';
 import { parentsService } from '../../services/firebase/parents.js';
 import { studentsService } from '../../services/firebase/students.js';
+import '../common/finalReadiness.css';
 
 function initialProfile(user) {
   return {
@@ -152,6 +154,12 @@ export default function SettingsPage({ parentRepository = parentsService, studen
 
   return <div className="page-content">
     <PageHeader eyebrow="Konto" title="Seaded" description="Sinu kontaktandmed, ligipääs ja konto turvalisus." />
+    <PeopleOverview label="Konto kokkuvõte" eyebrow="Turvaline konto" title={user.displayName || 'Minu seaded'} description="Profiil, rollid, ühendused ja tugivahendid ühes kontrollitud vaates." metrics={[
+      { icon: UserRound, label: 'Profiil', value: form.displayName ? 'Valmis' : 'Puudulik', hint: form.phone ? 'telefon lisatud' : 'telefon puudub' },
+      { icon: ShieldCheck, label: 'Rollid', value: user.roles.length, hint: user.roles.join(', ') },
+      { icon: Database, label: 'Firebase', value: configured ? 'Ühendatud' : 'Puudub', hint: 'andmed ja autentimine' },
+      { icon: Eye, label: 'Tugivaade', value: isAdmin ? 'Saadaval' : 'Piiratud', hint: isAdmin ? 'administraatorile' : 'vastavalt rollile' },
+    ]} />
     {success ? <div className="success-notice" role="status">{success}<button aria-label="Sulge teade" onClick={() => setSuccess('')}>×</button></div> : null}
     {actionError ? <div className="action-error" role="alert">{actionError}<button aria-label="Sulge veateade" onClick={() => setActionError('')}>×</button></div> : null}
     <section className="settings-grid">

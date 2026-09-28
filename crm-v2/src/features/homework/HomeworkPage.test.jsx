@@ -51,6 +51,7 @@ describe('HomeworkPage', () => {
     const user = { uid: 'teacher-1', displayName: 'Õpetaja', roles: ['teacher'] };
     renderPage(user, data);
 
+    expect(await screen.findByRole('region', { name: 'Kodutööde kokkuvõte' })).toHaveTextContent('Ootab kontrolli1');
     fireEvent.click(await screen.findByRole('button', { name: /Pere tööleht/ }));
     const dialog = screen.getByRole('dialog', { name: 'Pere tööleht' });
     expect(dialog).toHaveTextContent('Minu ema nimi on Mari.');

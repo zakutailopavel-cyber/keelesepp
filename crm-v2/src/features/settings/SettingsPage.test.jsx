@@ -9,6 +9,7 @@ describe('SettingsPage', () => {
     const sendPasswordReset = vi.fn().mockResolvedValue('mari@example.com');
     render(<AuthContext.Provider value={{ user, configured: true, updateProfile, sendPasswordReset }}><SettingsPage /></AuthContext.Provider>);
 
+    expect(screen.getByRole('region', { name: 'Konto kokkuvõte' })).toHaveTextContent('FirebaseÜhendatud');
     fireEvent.change(screen.getByLabelText('Nimi'), { target: { value: ' Mari Tamm ' } });
     fireEvent.change(screen.getByLabelText('Telefon'), { target: { value: '556' } });
     fireEvent.click(screen.getByRole('button', { name: /Salvesta andmed/ }));
