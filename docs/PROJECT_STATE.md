@@ -40,6 +40,8 @@ invitations yet; the waiting room is the existing Live Classroom page keyed by `
 
 Follow-up in the same draft PR: accepted rooms now contain an opt-in browser WebRTC audio/video panel. Signaling is stored only in the invitation's `signals` subcollection, is readable/writable only by that invitation's teacher and student while status is `accepted`, and each fresh call uses a new session ID. Camera/microphone access happens only after the user presses the start/join button. A hangup signal stops both peers and local tracks. Current ICE configuration uses public STUN only; TURN fallback is intentionally still pending for restrictive NAT/firewall networks.
 
+Presence/reconnect/floating follow-up in the same draft PR: accepted participants now heartbeat into an invitation-scoped `presence` subcollection; the UI shows whether the other participant is currently fresh/online, refreshes on tab visibility, and marks itself offline on cleanup when possible. A disconnected/failed teacher peer can issue a fresh WebRTC offer without closing the room, while a student with local media already enabled automatically answers a new offer. The call card can be switched into a compact fixed floating mode within Live Classroom. Firestore rules restrict presence writes to each participant's own UID/role and keep parents/outsiders out.
+
 Unfinished: TURN fallback, floating call window, whiteboard/materials inside the room, presence/reconnect hardening, lesson completion integration, server-side expiry cleanup.
 Exactly one next safe step: wait for the corrective GitHub CI run, then owner review of this draft PR.
 
