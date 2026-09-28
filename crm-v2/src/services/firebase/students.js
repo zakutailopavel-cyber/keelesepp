@@ -73,7 +73,9 @@ export function groupStudentPeople(items = []) {
     const enrollmentMap = new Map();
     records.forEach((record) => (record.enrollments || []).forEach((enrollment) => {
       const key = enrollmentKey(enrollment);
-      if (!enrollmentMap.has(key)) enrollmentMap.set(key, enrollment);
+      const current = enrollmentMap.get(key);
+      if (!current) enrollmentMap.set(key, { ...enrollment, sourceRecordIds: [record.id] });
+      else if (!current.sourceRecordIds.includes(record.id)) current.sourceRecordIds.push(record.id);
     }));
     const enrollments = [...enrollmentMap.values()];
     const teachers = [...new Set(enrollments.map((item) => item.teacher).filter(Boolean))];
@@ -322,12 +324,45 @@ export const studentsService = {
   async addEnrollment(id, enrollment) {
     const current = await this.getById(id);
     if (!current) throw new Error('Õpilast ei leitud.');
-    const nextEnrollment = normalizedEnrollment(enrollment, current);
+    const { db } = requireFirebaseClient();
+    const teacherUid = await resolveTeacherUid(db, enrollment.teacher);
+    const nextEnrollment = normalizedEnrollment({ ...enrollment, teacherUid }, current);
     const existing = new Map((current.enrollments || []).map((item) => [enrollmentKey(item), item]));
     existing.set(enrollmentKey(nextEnrollment), { ...existing.get(enrollmentKey(nextEnrollment)), ...nextEnrollment });
-    const { db } = requireFirebaseClient();
-    await updateDoc(doc(db, 'students', id), { enrollments: [...existing.values()], updatedAt: new Date().toISOString().slice(0, 10) });
+    const enrollments = [...existing.values()];
+    const payload = { enrollments, updatedAt: new Date().toISOString().slice(0, 10) };
+    if (current.enrollments?.length === 1) Object.assign(payload, {
+      subject: nextEnrollment.subject,
+      teacher: nextEnrollment.teacher,
+      teacherUid: nextEnrollment.teacherUid,
+      level: nextEnrollment.level,
+      targetLevel: nextEnrollment.targetLevel,
+    });
+    await updateDoc(doc(db, 'students', id), payload);
     return this.getById(id);
+  },
+  async updateEnrollment(recordId, enrollmentId, patch) {
+    const current = await this.getById(recordId);
+    if (!current) throw new Error('Õpilast ei leitud.');
+    const index = (current.enrollments || []).findIndex((item) => item.id === enrollmentId || enrollmentKey(item) === enrollmentId);
+    if (index < 0) throw new Error('Õppesuunda ei leitud.');
+    const { db } = requireFirebaseClient();
+    const teacherUid = await resolveTeacherUid(db, patch.teacher ?? current.enrollments[index].teacher);
+    const updated = normalizedEnrollment({ ...current.enrollments[index], ...patch, teacherUid }, current);
+    const enrollments = [...current.enrollments];
+    enrollments[index] = updated;
+    const payload = { enrollments, updatedAt: new Date().toISOString().slice(0, 10) };
+    if (current.enrollments.length === 1 || enrollmentKey(current.enrollments[index]) === enrollmentKey(normalizedEnrollment(current, current))) {
+      Object.assign(payload, {
+        subject: updated.subject,
+        teacher: updated.teacher,
+        teacherUid: updated.teacherUid,
+        level: updated.level,
+        targetLevel: updated.targetLevel,
+      });
+    }
+    await updateDoc(doc(db, 'students', recordId), payload);
+    return this.getById(recordId);
   },
   async archive(id) {
     return this.update(id, { active: false });
