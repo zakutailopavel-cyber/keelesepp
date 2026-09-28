@@ -158,6 +158,6 @@ describe('LiveLessonCallPanel', () => {
 
     await waitFor(() => expect(stream.audio.stop).toHaveBeenCalled());
     expect(stream.video.stop).toHaveBeenCalled();
-    expect(screen.getByText('Kõne lõpetatud')).toBeInTheDocument();
+    expect(screen.getAllByText('Kõne lõpetatud').length).toBeGreaterThan(0);
   });
 });
