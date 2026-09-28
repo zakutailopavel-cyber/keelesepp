@@ -422,3 +422,76 @@ test("live lesson call signaling is restricted to the accepted teacher and stude
   assert.equal(parentRead.status, 403, JSON.stringify(parentRead.body));
 });
 
+
+
+function presenceWrite(invitationId, uid, role, online = true) {
+  return {
+    update: {
+      name: documentName(`liveLessonInvitations/${invitationId}/presence/${uid}`),
+      fields: {
+        uid: { stringValue: uid },
+        role: { stringValue: role },
+        displayName: { stringValue: role === "teacher" ? "Invite Teacher" : "Invite Student" },
+        online: { booleanValue: online },
+        lastSeenIso: { stringValue: new Date().toISOString() },
+      },
+    },
+    updateTransforms: [
+      { fieldPath: "lastSeen", setToServerValue: "REQUEST_TIME" },
+    ],
+  };
+}
+
+test("live lesson presence is restricted to each accepted participant", async () => {
+  requireSafeEmulatorEnvironment();
+  const ctx = await seedUsersAndStudents("presence");
+  const invitationId = "invite-presence";
+  const created = admin.firestore.Timestamp.fromMillis(Date.now() - 30000);
+  const respondedAt = admin.firestore.Timestamp.fromMillis(Date.now() - 20000);
+
+  await ctx.db.collection("liveLessonInvitations").doc(invitationId).set({
+    teacherUid: ctx.teacherUid,
+    teacherName: "Invite Teacher",
+    studentId: ctx.ownStudentId,
+    studentUid: ctx.studentUid,
+    studentName: "Invite Student",
+    title: "Accepted invitation",
+    status: "accepted",
+    roomKey: invitationId,
+    createdAt: created,
+    createdAtIso: created.toDate().toISOString(),
+    expiresAt: admin.firestore.Timestamp.fromMillis(Date.now() - 10000),
+    respondedAt,
+    cancelledAt: null,
+    closedAt: null,
+  });
+
+  const teacherPresence = await firestoreCommitRequest(ctx.teacherToken, [
+    presenceWrite(invitationId, ctx.teacherUid, "teacher"),
+  ]);
+  assert.equal(teacherPresence.status, 200, JSON.stringify(teacherPresence.body));
+
+  const studentPresence = await firestoreCommitRequest(ctx.studentToken, [
+    presenceWrite(invitationId, ctx.studentUid, "student"),
+  ]);
+  assert.equal(studentPresence.status, 200, JSON.stringify(studentPresence.body));
+
+  const parentPresence = await firestoreCommitRequest(ctx.parentToken, [
+    presenceWrite(invitationId, ctx.parentUid, "student"),
+  ]);
+  assert.equal(parentPresence.status, 403, JSON.stringify(parentPresence.body));
+
+  const studentReadsTeacher = await firestoreDocumentRequest(
+    ctx.studentToken,
+    "GET",
+    `liveLessonInvitations/${invitationId}/presence/${ctx.teacherUid}`,
+  );
+  assert.equal(studentReadsTeacher.status, 200, JSON.stringify(studentReadsTeacher.body));
+
+  const parentReadsTeacher = await firestoreDocumentRequest(
+    ctx.parentToken,
+    "GET",
+    `liveLessonInvitations/${invitationId}/presence/${ctx.teacherUid}`,
+  );
+  assert.equal(parentReadsTeacher.status, 403, JSON.stringify(parentReadsTeacher.body));
+});
