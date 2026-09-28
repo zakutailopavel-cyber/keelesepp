@@ -91,6 +91,38 @@ describe('students list states', () => {
     await waitFor(() => expect(service.create).toHaveBeenCalledWith(expect.objectContaining({ name: 'Uus Õpilane', teacher: 'Pavel Zakutailo' })));
   });
 
+  it('lets an admin edit and add learning directions without creating another student', async () => {
+    const items = [{
+      id: 's1',
+      name: 'Georg',
+      linkedParentId: 'p1',
+      active: true,
+      subject: 'Eesti keel',
+      level: 'A1',
+      targetLevel: 'A2',
+      teacher: 'Pavel',
+      enrollments: [{ id: 'estonian', subject: 'Eesti keel', level: 'A1', targetLevel: 'A2', teacher: 'Pavel Zakutailo', active: true }],
+    }];
+    const service = {
+      list: vi.fn().mockResolvedValue({ items, cursor: null, hasMore: false }),
+      updateEnrollment: vi.fn().mockResolvedValue(undefined),
+      addEnrollment: vi.fn().mockResolvedValue(undefined),
+    };
+    renderPage(service, { uid: 'admin-1', roles: ['admin'], displayName: 'Admin' });
+    await screen.findAllByText('Georg');
+    fireEvent.click(screen.getByRole('button', { name: 'Õppesuunad' }));
+    const dialog = screen.getByRole('dialog', { name: 'Õppesuunad: Georg' });
+    fireEvent.change(within(dialog).getAllByLabelText('Õppeaine')[0], { target: { value: 'Matemaatika' } });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Salvesta õppesuund' }));
+    await waitFor(() => expect(service.updateEnrollment).toHaveBeenCalledWith('s1', expect.any(String), expect.objectContaining({ subject: 'Matemaatika' })));
+
+    fireEvent.change(within(dialog).getAllByLabelText('Õppeaine')[1], { target: { value: 'Inglise keel' } });
+    fireEvent.change(within(dialog).getAllByLabelText('Õpetaja')[1], { target: { value: 'Yelyzaveta Lukiianchuk' } });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Lisa õppesuund' }));
+    await waitFor(() => expect(service.addEnrollment).toHaveBeenCalledWith('s1', expect.objectContaining({ subject: 'Inglise keel', teacher: 'Yelyzaveta Lukiianchuk' })));
+    expect(service.create).toBeUndefined();
+  });
+
   it('requires confirmation before non-destructive archive and refreshes the list', async () => {
     const service = {
       list: vi.fn()
