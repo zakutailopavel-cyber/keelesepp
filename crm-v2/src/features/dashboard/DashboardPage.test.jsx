@@ -45,6 +45,8 @@ describe('DashboardPage role scoping', () => {
     expect(dataRepositories.invoices.list).not.toHaveBeenCalled();
     expect(screen.queryByText('Laekumata')).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /tähtaja ületanud arvet/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Ava tänane kalender/i })).toHaveAttribute('href', '/calendar');
+    expect(screen.getByRole('region', { name: 'Kiirvalikud' })).toBeInTheDocument();
   });
 
   it('loads only invoice data for a finance user', async () => {
@@ -59,5 +61,7 @@ describe('DashboardPage role scoping', () => {
     expect(dataRepositories.homework.listByStudentIds).not.toHaveBeenCalled();
     expect(screen.queryByText('Aktiivsed õpilased')).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: /tähtaja ületanud arvet/i })).toHaveAttribute('href', '/finance');
+    expect(screen.queryByRole('link', { name: /Ava tänane kalender/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Finantsid.*Arved, maksed ja kontroll/i })).toHaveAttribute('href', '/finance');
   });
 });

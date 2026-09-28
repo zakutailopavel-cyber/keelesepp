@@ -1,13 +1,14 @@
-import { CalendarDays, CircleAlert, GraduationCap, ReceiptText } from 'lucide-react';
+import { ArrowUpRight, BookOpenCheck, CalendarDays, CircleAlert, GraduationCap, MessageSquareText, ReceiptText, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
-import { Badge, Card, EmptyState, ErrorState, LoadingState, PageHeader } from '../../components/ui/index.js';
+import { Badge, Card, EmptyState, ErrorState, LoadingState } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { homeworkService, invoicesService, scheduleService, studentsService } from '../../services/firebase/index.js';
 import { ROLES } from '../../utils/roles.js';
 import { invoiceBalanceCents, isInvoiceOverdue } from '../students/studentFinance.js';
 
 const today = () => new Date().toISOString().slice(0, 10);
+const todayLabel = () => new Intl.DateTimeFormat('et-EE', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
 const money = (cents) => new Intl.NumberFormat('et-EE', { style: 'currency', currency: 'EUR' }).format(cents / 100);
 const defaultRepositories = {
   students: studentsService,
@@ -86,10 +87,28 @@ export default function DashboardPage({
       { label: 'Laekumata', value: money(data.balance), meta: `${data.overdue.length} tähtaja ületanud`, icon: ReceiptText, tone: 'amber' },
     ] : []),
   ];
+  const quickActions = [
+    ...(data.canViewLearning ? [
+      { to: '/calendar', label: 'Tunniplaan', meta: 'Vaata päeva ja lisa tund', icon: CalendarDays },
+      { to: '/students', label: 'Õpilased', meta: 'Profiilid ja õpiteekond', icon: Users },
+      { to: '/library', label: 'Õppevara', meta: 'Valmista järgmine tund', icon: BookOpenCheck },
+      { to: '/messages', label: 'Suhtlus', meta: 'Vestlused ühes kohas', icon: MessageSquareText },
+    ] : []),
+    ...(data.canViewFinance ? [
+      { to: '/finance', label: 'Finantsid', meta: 'Arved, maksed ja kontroll', icon: ReceiptText },
+    ] : []),
+  ];
 
   return (
     <div className="page-content">
-      <PageHeader eyebrow="Ülevaade" title={`Tere, ${user.displayName?.split(' ')[0] || 'tagasi'}`} description="Päeva olulised numbrid ja järgmised tegevused reaalajas." />
+      <section className="dashboard-welcome">
+        <div>
+          <span className="eyebrow">{todayLabel()}</span>
+          <h1>Tere, {user.displayName?.split(' ')[0] || 'tagasi'}</h1>
+          <p>Päeva olulised numbrid, tunnid ja järgmised tegevused ühes rahulikus vaates.</p>
+        </div>
+        {data.canViewLearning ? <Link className="dashboard-welcome__action" to="/calendar"><CalendarDays size={18} /><span><small>Järgmine samm</small><strong>Ava tänane kalender</strong></span><ArrowUpRight size={18} /></Link> : null}
+      </section>
       <section className="metric-grid">
         {metrics.map(({ icon: Icon, ...item }) => (
           <Card as="article" className={`metric-card metric-card--${item.tone}`} key={item.label}>
@@ -97,6 +116,15 @@ export default function DashboardPage({
             <strong>{item.value}</strong>
             <small>{item.meta}</small>
           </Card>
+        ))}
+      </section>
+      <section className="dashboard-quick-actions" aria-label="Kiirvalikud">
+        {quickActions.map(({ to, label, meta, icon: Icon }) => (
+          <Link to={to} key={to}>
+            <i><Icon size={19} /></i>
+            <span><strong>{label}</strong><small>{meta}</small></span>
+            <ArrowUpRight size={16} />
+          </Link>
         ))}
       </section>
       <section className="content-grid">
