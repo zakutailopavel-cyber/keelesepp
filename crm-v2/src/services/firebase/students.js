@@ -60,7 +60,10 @@ export function studentPersonKey(student = {}) {
 
 export function groupStudentPeople(items = []) {
   const groups = new Map();
-  items.forEach((student) => {
+  items.forEach((source) => {
+    const student = Array.isArray(source?.enrollments) && source.enrollments.length
+      ? source
+      : normalizeStudent(source?.id || '', source || {});
     const key = studentPersonKey(student);
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key).push(student);
