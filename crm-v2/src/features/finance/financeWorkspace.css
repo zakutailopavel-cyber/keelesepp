@@ -1,27 +1,123 @@
-.page-content[data-active-finance-section] > #tunniarvestus, .page-content[data-active-finance-section] > #pangauhildus, .page-content[data-active-finance-section] > #avansid, .page-content[data-active-finance-section] > #perioodid, .page-content[data-active-finance-section] > #audit, .page-content[data-active-finance-section] > #numeratsioon, .page-content[data-active-finance-section] > #tuluprognoos, .page-content[data-active-finance-section] > #arved { display: none; } .page-content[data-active-finance-section="tunniarvestus"] > #tunniarvestus, .page-content[data-active-finance-section="pangauhildus"] > #pangauhildus, .page-content[data-active-finance-section="avansid"] > #avansid, .page-content[data-active-finance-section="perioodid"] > #perioodid, .page-content[data-active-finance-section="audit"] > #audit, .page-content[data-active-finance-section="numeratsioon"] > #numeratsioon, .page-content[data-active-finance-section="tuluprognoos"] > #tuluprognoos, .page-content[data-active-finance-section="arved"] > #arved { display: block; } .finance-quicknav a.is-active { background: var(--navy); border-color: var(--navy); color: #fff; } .finance-quicknav-card { margin: 18px 0; } .finance-quicknav {
+.finance-page {
+  max-width: 1500px;
+}
+
+.finance-page > .page-header {
+  margin-bottom: 18px;
+}
+
+.finance-page .metric-grid {
+  margin-bottom: 14px;
+}
+
+.finance-attention {
+  align-items: center;
+  border-color: #f7d9a6;
+  background: linear-gradient(135deg, #fffaf0 0%, #fff 72%);
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 18px;
+  margin: 0 0 16px;
+  padding: 14px 16px;
+}
+
+.finance-attention > div {
+  align-items: flex-start;
+  display: flex;
+  gap: 10px;
+  min-width: 0;
+}
+
+.finance-attention > div > svg {
+  color: #b7791f;
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+.finance-attention span {
+  display: grid;
+  gap: 3px;
+}
+
+.finance-attention small {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.finance-quicknav-heading {
+  align-items: end;
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 14px;
+}
+
+.finance-quicknav-heading > div {
+  display: grid;
+  gap: 4px;
+}
+
+.finance-quicknav-heading strong {
+  color: var(--navy);
+  font-size: 1.02rem;
+}
+
+.finance-quicknav-heading > span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  text-align: right;
+}
+
+.page-content[data-active-finance-section] > #tunniarvestus, .page-content[data-active-finance-section] > #pangauhildus, .page-content[data-active-finance-section] > #avansid, .page-content[data-active-finance-section] > #perioodid, .page-content[data-active-finance-section] > #audit, .page-content[data-active-finance-section] > #numeratsioon, .page-content[data-active-finance-section] > #tuluprognoos, .page-content[data-active-finance-section] > #arved { display: none; } .page-content[data-active-finance-section="tunniarvestus"] > #tunniarvestus, .page-content[data-active-finance-section="pangauhildus"] > #pangauhildus, .page-content[data-active-finance-section="avansid"] > #avansid, .page-content[data-active-finance-section="perioodid"] > #perioodid, .page-content[data-active-finance-section="audit"] > #audit, .page-content[data-active-finance-section="numeratsioon"] > #numeratsioon, .page-content[data-active-finance-section="tuluprognoos"] > #tuluprognoos, .page-content[data-active-finance-section="arved"] > #arved { display: block; } .finance-quicknav a.is-active { background: var(--navy); border-color: var(--navy); color: #fff; } .finance-quicknav-card {
+  margin: 18px 0;
+  padding: 18px;
+}
+
+.finance-quicknav {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 9px;
   margin: 0;
 }
 
 .finance-quicknav a {
-  display: inline-flex;
-  align-items: center;
+  display: grid;
+  gap: 3px;
   border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 7px 14px;
-  font-size: 0.82rem;
-  font-weight: 600;
+  border-radius: 13px;
+  padding: 11px 12px;
   color: var(--navy);
   background: #fff;
   text-decoration: none;
-  white-space: nowrap;
+  min-width: 0;
+  transition: border-color .15s ease, background .15s ease, transform .15s ease;
+}
+
+.finance-quicknav a strong {
+  font-size: 0.79rem;
+  line-height: 1.2;
+}
+
+.finance-quicknav a small {
+  color: var(--muted);
+  font-size: 0.68rem;
+  line-height: 1.3;
 }
 
 .finance-quicknav a:hover {
   border-color: var(--green);
-  color: var(--green);
+  transform: translateY(-1px);
+}
+
+.finance-quicknav a.is-active {
+  background: linear-gradient(145deg, var(--navy), #263d52);
+  border-color: var(--navy);
+  box-shadow: 0 8px 18px rgba(28, 43, 58, .14);
+  color: #fff;
+}
+
+.finance-quicknav a.is-active small {
+  color: rgba(255,255,255,.72);
 }
 
 #tunniarvestus,
@@ -35,12 +131,34 @@
   scroll-margin-top: 16px;
 }
 
-@media (max-width: 560px) {
+@media (max-width: 980px) {
   .finance-quicknav {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 2px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .finance-attention {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .finance-attention .button {
+    width: 100%;
+  }
+
+  .finance-quicknav-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .finance-quicknav-heading > span {
+    text-align: left;
+  }
+
+  .finance-quicknav {
+    grid-template-columns: 1fr;
   }
 }
 .invoice-lines {
