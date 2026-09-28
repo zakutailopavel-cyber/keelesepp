@@ -1,6 +1,5 @@
 import { CheckCircle2, Database, Eye, KeyRound, Save, ShieldAlert, ShieldCheck, UserRound } from 'lucide-react';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, Input, PageHeader, Select } from '../../components/ui/index.js';
 import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
@@ -17,7 +16,6 @@ function initialProfile(user) {
 }
 
 export default function SettingsPage({ parentRepository = parentsService, studentRepository = studentsService }) {
-  const navigate = useNavigate();
   const { user, configured, updateProfile, sendPasswordReset, startPreview } = useAuth();
   const [form, setForm] = useState(() => initialProfile(user));
   const [saving, setSaving] = useState(false);
@@ -62,13 +60,15 @@ export default function SettingsPage({ parentRepository = parentsService, studen
       const parent = supportData.parents.find((item) => item.id === supportTarget);
       if (!parent) return;
       startPreview({ user: { uid: parent.id, email: parent.email || '', displayName: parent.displayName || parent.email || 'Lapsevanem', profile: parent, roles: [ROLES.PARENT] }, label: parent.displayName || parent.email || 'Lapsevanem' });
-      navigate('/parent');
+      window.history.pushState({}, '', '/parent');
+      window.dispatchEvent(new Event('popstate'));
       return;
     }
     const student = supportData.students.find((item) => item.id === supportTarget);
     if (!student) return;
     startPreview({ user: { uid: student.studentUid || student.linkedUserId || `preview-student:${student.id}`, email: student.email || '', displayName: student.name || 'Õpilane', profile: student, roles: [ROLES.STUDENT] }, studentId: student.id, label: student.name || 'Õpilane' });
-    navigate('/student');
+    window.history.pushState({}, '', '/student');
+    window.dispatchEvent(new Event('popstate'));
   };
 
   const save = async (event) => {
