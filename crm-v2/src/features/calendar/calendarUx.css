@@ -158,3 +158,16 @@
   .calendar-overview__metrics { grid-template-columns: 1fr; }
   .calendar-overview__metrics > div { min-height: 58px; }
 }
+
+
+.student-combobox { position: relative; display: grid; gap: 7px; }
+.student-combobox__control { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; border: 1px solid #d6dee7; border-radius: 12px; background: #fff; }
+.student-combobox__control:focus-within { border-color: #55ae9d; box-shadow: 0 0 0 4px rgba(8,126,107,.085); }
+.student-combobox__control svg { flex: 0 0 auto; color: #7b8798; }
+.student-combobox__control input { width: 100%; min-width: 0; height: 42px; border: 0; outline: 0; background: transparent; }
+.student-combobox__options { position: absolute; z-index: 60; top: calc(100% + 6px); left: 0; right: 0; max-height: 270px; overflow: auto; padding: 6px; border: 1px solid #d6dee7; border-radius: 13px; background: #fff; box-shadow: 0 18px 40px rgba(16,35,57,.16); }
+.student-combobox__options button { width: 100%; display: grid; gap: 2px; padding: 10px 11px; border: 0; border-radius: 9px; background: transparent; text-align: left; }
+.student-combobox__options button:hover, .student-combobox__options button.is-active { background: #eef7f4; }
+.student-combobox__options strong { color: #17253a; font-size: .84rem; }
+.student-combobox__options small { color: var(--muted); font-size: .72rem; }
+.student-combobox__empty { padding: 14px 12px; color: var(--muted); font-size: .8rem; text-align: center; }
