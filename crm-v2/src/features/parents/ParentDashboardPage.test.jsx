@@ -19,7 +19,7 @@ describe('ParentDashboardPage', () => {
     expect(await screen.findByRole('heading', { name: 'Tere, Mari Ema!' })).toBeInTheDocument();
     expect(screen.getByText('Õpi sõnad')).toBeInTheDocument();
     expect(screen.getByText(/30,00/)).toBeInTheDocument();
-    expect(screen.getByText(/Õpetaja: Õpetaja/)).toBeInTheDocument();
+    expect(screen.getByText(/Eesti keel · A1 → A2 · Õpetaja/)).toBeInTheDocument();
     expect(studentRepository.listOwned).toHaveBeenCalledWith('parent-1');
     expect(homeworkRepository.listByStudentIds).toHaveBeenCalledWith(['student-1']);
     expect(scheduleRepository.listByStudent).toHaveBeenCalledWith('student-1');
