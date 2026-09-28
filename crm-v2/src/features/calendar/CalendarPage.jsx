@@ -1,5 +1,5 @@
 import { CalendarCheck2, CalendarDays, ChevronLeft, ChevronRight, Clock3, Pencil, Plus, Search, UsersRound, XCircle } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal, PageHeader, Select } from '../../components/ui/index.js';
@@ -32,16 +32,12 @@ function periodLabel(anchor, view, dates) {
 
 function StudentCombobox({ students, value, onChange }) {
   const selected = students.find((student) => student.id === value);
-  const [query, setQuery] = useState(selected?.name || '');
+  const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
+  const inputValue = open ? query : (selected?.name || query);
 
-  useEffect(() => {
-    const next = students.find((student) => student.id === value);
-    setQuery(next?.name || '');
-  }, [students, value]);
-
-  const normalized = query.trim().toLocaleLowerCase('et');
+  const normalized = inputValue.trim().toLocaleLowerCase('et');
   const matches = students.filter((student) => !normalized || [student.name, student.phone, student.email, student.parentEmail]
     .filter(Boolean)
     .some((field) => String(field).toLocaleLowerCase('et').includes(normalized))).slice(0, 20);
@@ -59,7 +55,7 @@ function StudentCombobox({ students, value, onChange }) {
     if (event.key === 'Escape') setOpen(false);
   };
 
-  return <label className="student-combobox form-grid__wide"><span className="field__label">Õpilane</span><div className="student-combobox__control"><Search size={17} /><input role="combobox" aria-expanded={open} aria-controls="lesson-student-options" aria-autocomplete="list" placeholder="Kirjuta õpilase nimi…" value={query} onFocus={() => setOpen(true)} onBlur={() => window.setTimeout(() => setOpen(false), 120)} onKeyDown={keyDown} onChange={(event) => { setQuery(event.target.value); onChange(''); setActiveIndex(0); setOpen(true); }} required /></div>{open ? <div className="student-combobox__options" id="lesson-student-options" role="listbox">{matches.length ? matches.map((student, index) => <button type="button" role="option" aria-selected={student.id === value} className={index === activeIndex ? 'is-active' : ''} key={student.id} onMouseDown={(event) => event.preventDefault()} onClick={() => choose(student)}><strong>{student.name}</strong><small>{[student.teacher, student.phone || student.email].filter(Boolean).join(' · ') || 'Kontakt puudub'}</small></button>) : <div className="student-combobox__empty">Ühtegi õpilast ei leitud.</div>}</div> : null}</label>;
+  return <label className="student-combobox form-grid__wide"><span className="field__label">Õpilane</span><div className="student-combobox__control"><Search size={17} /><input role="combobox" aria-expanded={open} aria-controls="lesson-student-options" aria-autocomplete="list" placeholder="Kirjuta õpilase nimi…" value={inputValue} onFocus={() => { setQuery(selected?.name || ''); setOpen(true); }} onBlur={() => window.setTimeout(() => setOpen(false), 120)} onKeyDown={keyDown} onChange={(event) => { setQuery(event.target.value); onChange(''); setActiveIndex(0); setOpen(true); }} required /></div>{open ? <div className="student-combobox__options" id="lesson-student-options" role="listbox">{matches.length ? matches.map((student, index) => <button type="button" role="option" aria-selected={student.id === value} className={index === activeIndex ? 'is-active' : ''} key={student.id} onMouseDown={(event) => event.preventDefault()} onClick={() => choose(student)}><strong>{student.name}</strong><small>{[student.teacher, student.phone || student.email].filter(Boolean).join(' · ') || 'Kontakt puudub'}</small></button>) : <div className="student-combobox__empty">Ühtegi õpilast ei leitud.</div>}</div> : null}</label>;
 }
 
 function LessonButton({ item, compact = false, onClick, onComplete, completing }) {
