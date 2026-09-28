@@ -30,6 +30,7 @@ import {
 import MaterialPreview from './MaterialPreview.jsx';
 import MaterialEditor from './MaterialEditor.jsx';
 import ExerciseEditor from './ExerciseEditor.jsx';
+import './libraryWorkspace.css';
 
 const typeIcons = {
   lesson: Presentation,
@@ -151,6 +152,9 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
   const searching = Boolean(query.trim()) || type !== 'all';
   const folders = !searching && dimension ? groupLibraryItems(pathItems, dimension) : [];
   const visibleItems = searching || !dimension ? filterLibraryItems(pathItems, { query, type }) : [];
+  const subjectCount = new Set(items.map((item) => item.subject).filter(Boolean)).size;
+  const worksheetCount = items.filter((item) => item.type === 'worksheet').length;
+  const exerciseCount = items.filter((item) => item.kind === 'exercise' || item.type === 'exercise').length;
 
   const changePath = (nextPath) => {
     const next = new globalThis.URLSearchParams(searchParams);
@@ -178,7 +182,7 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
   ];
 
   return (
-    <div className="page-content">
+    <div className="page-content library-page">
       <PageHeader
         eyebrow="Õppetöö"
         title="Õppevara"
@@ -186,13 +190,40 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
         actions={<><Button onClick={() => setEditing(null)}><Sparkles size={17} /> Loo materjal</Button><Button variant="secondary" onClick={() => setExerciseEditing(null)}><Dumbbell size={17} /> Loo harjutus</Button></>}
       />
       {success ? <div className="success-notice" role="status">{success}<button aria-label="Sulge teade" onClick={() => setSuccess('')}>×</button></div> : null}
+
+      <section className="library-overview" aria-label="Õppevara ülevaade">
+        <Card className="library-stat">
+          <span>Materjale</span>
+          <strong>{items.length}</strong>
+          <small>tunnikavad, töölehed ja harjutused</small>
+        </Card>
+        <Card className="library-stat">
+          <span>Õppeaineid</span>
+          <strong>{subjectCount}</strong>
+          <small>aktiivses raamatukogus</small>
+        </Card>
+        <Card className="library-stat">
+          <span>Töölehti</span>
+          <strong>{worksheetCount}</strong>
+          <small>õpilasele määratavad materjalid</small>
+        </Card>
+        <Card className="library-stat">
+          <span>Harjutusi</span>
+          <strong>{exerciseCount}</strong>
+          <small>interaktiivsed ülesanded</small>
+        </Card>
+      </section>
+
       <Card className="library-toolbar">
         <div className="search-field"><Search size={18} /><input aria-label="Otsi õppevara" placeholder="Otsi pealkirja, teema või taseme järgi" value={query} onChange={(event) => setQuery(event.target.value)} /></div>
         <Select aria-label="Materjali tüüp" value={type} onChange={(event) => setType(event.target.value)}>
           <option value="all">Kõik tüübid</option>
           {Object.entries(LIBRARY_TYPES).map(([value, meta]) => <option value={value} key={value}>{meta.label}</option>)}
         </Select>
-        <strong>{visibleItems.length || pathItems.length} materjali</strong>
+        <div className="library-toolbar__summary">
+          <strong>{visibleItems.length || pathItems.length} materjali</strong>
+          <small>{path.topic || path.stage || path.subject ? 'valitud kaustas' : 'praeguses vaates'}</small>
+        </div>
       </Card>
       <nav className="library-breadcrumbs" aria-label="Õppevara asukoht">
         {breadcrumbItems.map((item, index) => (
