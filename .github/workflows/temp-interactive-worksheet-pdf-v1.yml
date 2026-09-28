@@ -45,28 +45,17 @@ jobs:
           });
           EOF
           node --test interactive-worksheet-v1.test.js interactive-worksheet-pdf-v1.test.js
-      - name: Persist generated files via GitHub Contents API
-        env:
-          GH_TOKEN: ${{ github.token }}
-          BRANCH: feat/interactive-worksheet-pdf-v1
+      - name: Persist generated files
         shell: bash
         run: |
           set -euo pipefail
-          put_file () {
-            local path="$1"
-            local message="$2"
-            local sha
-            sha=$(gh api "repos/${GITHUB_REPOSITORY}/contents/${path}?ref=${BRANCH}" --jq '.sha' 2>/dev/null || true)
-            local content
-            content=$(base64 -w 0 "$path")
-            if [ -n "$sha" ]; then
-              gh api --method PUT "repos/${GITHUB_REPOSITORY}/contents/${path}" \
-                -f message="$message" -f content="$content" -f sha="$sha" -f branch="$BRANCH" >/dev/null
-            else
-              gh api --method PUT "repos/${GITHUB_REPOSITORY}/contents/${path}" \
-                -f message="$message" -f content="$content" -f branch="$BRANCH" >/dev/null
-            fi
-          }
-          put_file haldus-exercises/index.html "Interactive worksheet PDF v1: page-aware PDF.js overlays"
-          put_file interactive-worksheet-pdf-v1.test.js "test: cover PDF interactive worksheets"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- haldus-exercises/index.html interactive-worksheet-pdf-v1.test.js
+          if git diff --cached --quiet; then
+            echo "No generated changes to persist."
+            exit 0
+          fi
+          git commit -m "Interactive worksheet PDF v1: persist generated files"
+          git push origin HEAD:feat/interactive-worksheet-pdf-v1
       # retry after draw-guard pattern fix
