@@ -44,6 +44,8 @@ Presence/reconnect/floating follow-up in the same draft PR: accepted participant
 
 Screen sharing follow-up in the same draft PR: the teacher can share a browser-selected screen/window/tab only after the call has started. The implementation uses WebRTC `RTCRtpSender.replaceTrack`, so audio/microphone state is preserved and no separate signaling or Firestore collection is needed. The local preview switches to the shared surface; stopping from KeeleSepp or the browser's native “Stop sharing” control restores the camera track. Reconnect creates the next peer with the active screen track when sharing is still in progress.
 
+Shared whiteboard follow-up in the same draft PR: accepted teacher/student pairs now get an invitation-scoped realtime SVG board with pen, four colors, eraser and teacher-only clear. Every stroke is stored as its own document under `liveLessonInvitations/{invitationId}/whiteboardElements`, reusing the established per-element collaboration model without exposing the general student whiteboard collection. This is intentional: the existing persistent whiteboard grants linked parents access, while a live lesson room must remain private to the invited student and teacher. Firestore rules allow both participants to add strokes, students to erase only their own strokes, and the inviting teacher to erase/clear any stroke; parents and outsiders cannot read or write the live board.
+
 Unfinished: TURN fallback, floating call window, whiteboard/materials inside the room, presence/reconnect hardening, lesson completion integration, server-side expiry cleanup.
 Exactly one next safe step: wait for the corrective GitHub CI run, then owner review of this draft PR.
 

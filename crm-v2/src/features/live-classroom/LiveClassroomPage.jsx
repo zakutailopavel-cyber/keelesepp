@@ -3,10 +3,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, PageHeader, Select } from '../../components/ui/index.js';
-import { liveLessonCallSignalsService, liveLessonInvitationsService, liveLessonPresenceService, studentsService } from '../../services/firebase/index.js';
+import { liveLessonCallSignalsService, liveLessonInvitationsService, liveLessonPresenceService, liveLessonWhiteboardService, studentsService } from '../../services/firebase/index.js';
 import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
 import { eligibleInvitationStudents, INVITATION_STATUS, isInvitationRouteUsable, newestInvitation, normalizeInvitation } from './invitationModel.js';
 import LiveLessonCallPanel from './LiveLessonCallPanel.jsx';
+import LiveLessonWhiteboard from './LiveLessonWhiteboard.jsx';
 import './liveClassroom.css';
 
 const statusLabel = {
@@ -34,6 +35,7 @@ export default function LiveClassroomPage({
   studentRepository = studentsService,
   callSignalService = liveLessonCallSignalsService,
   callPresenceService = liveLessonPresenceService,
+  whiteboardService = liveLessonWhiteboardService,
   callMediaDevices,
   callPeerFactory,
 }) {
@@ -162,6 +164,7 @@ export default function LiveClassroomPage({
       {streamError ? <ErrorState message={streamError} /> : !streamReady ? <LoadingState label="Laen tunnikutset…" /> : activeInvitation?.status === INVITATION_STATUS.ACCEPTED ? <>
         <WaitingRoom invitation={activeInvitation} role="student" />
         <LiveLessonCallPanel {...callProps} role="student" />
+        <LiveLessonWhiteboard invitation={activeInvitation} role="student" user={user} service={whiteboardService} />
         <div className="live-invitation-toolbar"><Button variant="secondary" onClick={leaveRoom}>Lahku ooteruumist</Button></div>
       </> : <Card><EmptyState title="Aktiivset tundi ei ole" description="Kui õpetaja kutsub sind tundi, ilmub kutse automaatselt sinu kabinetti." /></Card>}
     </div>;
@@ -172,7 +175,10 @@ export default function LiveClassroomPage({
     {streamError || actionError ? <div className="action-error" role="alert">{streamError || actionError}</div> : null}
     {activeInvitation ? <>
       <WaitingRoom invitation={activeInvitation} role="teacher" />
-      {activeInvitation.status === INVITATION_STATUS.ACCEPTED ? <LiveLessonCallPanel {...callProps} role="teacher" /> : null}
+      {activeInvitation.status === INVITATION_STATUS.ACCEPTED ? <>
+        <LiveLessonCallPanel {...callProps} role="teacher" />
+        <LiveLessonWhiteboard invitation={activeInvitation} role="teacher" user={user} service={whiteboardService} />
+      </> : null}
       {activeInvitation.status === INVITATION_STATUS.PENDING ? <div className="live-invitation-toolbar"><Button variant="danger" loading={saving === 'cancel'} onClick={cancel}><XCircle size={17} /> Tühista kutse</Button></div> : null}
       {activeInvitation.status === INVITATION_STATUS.ACCEPTED ? <div className="live-invitation-toolbar"><Button variant="secondary" loading={saving === 'close'} onClick={closeRoom}>Lõpeta ooteruum ja alusta uut kutset</Button></div> : null}
     </> : <Card className="live-start-card">

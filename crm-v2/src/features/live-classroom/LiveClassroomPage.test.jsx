@@ -15,7 +15,13 @@ function renderPage({ user, invitationService, studentRepository, path = '/live-
     markOffline: vi.fn().mockResolvedValue(undefined),
     subscribe: vi.fn((id, onChange) => { onChange([]); return vi.fn(); }),
   };
-  return render(<AuthContext.Provider value={{ user }}><MemoryRouter initialEntries={[path]}><LiveClassroomPage invitationService={invitationService} studentRepository={studentRepository} callSignalService={signals} callPresenceService={presence} /><LocationProbe /></MemoryRouter></AuthContext.Provider>);
+  const whiteboard = {
+    subscribe: vi.fn((id, onChange) => { onChange([]); return vi.fn(); }),
+    addStroke: vi.fn().mockResolvedValue('stroke-test'),
+    removeElement: vi.fn().mockResolvedValue(undefined),
+    clear: vi.fn().mockResolvedValue(undefined),
+  };
+  return render(<AuthContext.Provider value={{ user }}><MemoryRouter initialEntries={[path]}><LiveClassroomPage invitationService={invitationService} studentRepository={studentRepository} callSignalService={signals} callPresenceService={presence} whiteboardService={whiteboard} /><LocationProbe /></MemoryRouter></AuthContext.Provider>);
 }
 
 describe('Live Classroom invitation lifecycle', () => {
@@ -43,6 +49,7 @@ describe('Live Classroom invitation lifecycle', () => {
     renderPage({ user: { uid: 'student-user-1', displayName: 'Mari', roles: ['student'] }, invitationService, studentRepository: {}, path: '/live-classroom?invitation=invite-1' });
     expect(await screen.findByText('Pavel valmistab tunniruumi ette.')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Liitu videokõnega/i })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Ühine tahvel' })).toBeInTheDocument();
   });
 
   it('does not select an old accepted invitation as the teacher default room', async () => {

@@ -495,3 +495,102 @@ test("live lesson presence is restricted to each accepted participant", async ()
   );
   assert.equal(parentReadsTeacher.status, 403, JSON.stringify(parentReadsTeacher.body));
 });
+
+
+function whiteboardStrokeWrite(invitationId, elementId, uid, color = "#1C2B3A") {
+  return {
+    update: {
+      name: documentName(`liveLessonInvitations/${invitationId}/whiteboardElements/${elementId}`),
+      fields: {
+        type: { stringValue: "stroke" },
+        points: {
+          arrayValue: {
+            values: [
+              { mapValue: { fields: { x: { doubleValue: 10 }, y: { doubleValue: 20 } } } },
+              { mapValue: { fields: { x: { doubleValue: 40 }, y: { doubleValue: 60 } } } },
+            ],
+          },
+        },
+        color: { stringValue: color },
+        strokeWidth: { doubleValue: 4 },
+        updatedByUid: { stringValue: uid },
+        updatedByName: { stringValue: "Board participant" },
+        lastClientId: { stringValue: `client-${elementId}` },
+        revision: { integerValue: "1" },
+      },
+    },
+    currentDocument: { exists: false },
+    updateTransforms: [
+      { fieldPath: "updatedAt", setToServerValue: "REQUEST_TIME" },
+    ],
+  };
+}
+
+test("live lesson whiteboard is limited to the accepted teacher and student", async () => {
+  requireSafeEmulatorEnvironment();
+  const ctx = await seedUsersAndStudents("whiteboard");
+  const invitationId = "invite-whiteboard";
+  const created = admin.firestore.Timestamp.fromMillis(Date.now() - 30000);
+  const respondedAt = admin.firestore.Timestamp.fromMillis(Date.now() - 20000);
+
+  await ctx.db.collection("liveLessonInvitations").doc(invitationId).set({
+    teacherUid: ctx.teacherUid,
+    teacherName: "Invite Teacher",
+    studentId: ctx.ownStudentId,
+    studentUid: ctx.studentUid,
+    studentName: "Invite Student",
+    title: "Accepted invitation",
+    status: "accepted",
+    roomKey: invitationId,
+    createdAt: created,
+    createdAtIso: created.toDate().toISOString(),
+    expiresAt: admin.firestore.Timestamp.fromMillis(Date.now() - 10000),
+    respondedAt,
+    cancelledAt: null,
+    closedAt: null,
+  });
+
+  const teacherStroke = await firestoreCommitRequest(ctx.teacherToken, [
+    whiteboardStrokeWrite(invitationId, "teacher-stroke", ctx.teacherUid),
+  ]);
+  assert.equal(teacherStroke.status, 200, JSON.stringify(teacherStroke.body));
+
+  const studentStroke = await firestoreCommitRequest(ctx.studentToken, [
+    whiteboardStrokeWrite(invitationId, "student-stroke", ctx.studentUid, "#2563EB"),
+  ]);
+  assert.equal(studentStroke.status, 200, JSON.stringify(studentStroke.body));
+
+  const parentStroke = await firestoreCommitRequest(ctx.parentToken, [
+    whiteboardStrokeWrite(invitationId, "parent-stroke", ctx.parentUid),
+  ]);
+  assert.equal(parentStroke.status, 403, JSON.stringify(parentStroke.body));
+
+  const studentRead = await firestoreDocumentRequest(
+    ctx.studentToken,
+    "GET",
+    `liveLessonInvitations/${invitationId}/whiteboardElements/teacher-stroke`,
+  );
+  assert.equal(studentRead.status, 200, JSON.stringify(studentRead.body));
+
+  const parentRead = await firestoreDocumentRequest(
+    ctx.parentToken,
+    "GET",
+    `liveLessonInvitations/${invitationId}/whiteboardElements/teacher-stroke`,
+  );
+  assert.equal(parentRead.status, 403, JSON.stringify(parentRead.body));
+
+  const studentDeletesTeacher = await firestoreCommitRequest(ctx.studentToken, [
+    { delete: documentName(`liveLessonInvitations/${invitationId}/whiteboardElements/teacher-stroke`) },
+  ]);
+  assert.equal(studentDeletesTeacher.status, 403, JSON.stringify(studentDeletesTeacher.body));
+
+  const teacherDeletesStudent = await firestoreCommitRequest(ctx.teacherToken, [
+    { delete: documentName(`liveLessonInvitations/${invitationId}/whiteboardElements/student-stroke`) },
+  ]);
+  assert.equal(teacherDeletesStudent.status, 200, JSON.stringify(teacherDeletesStudent.body));
+
+  const studentOwnDelete = await firestoreCommitRequest(ctx.studentToken, [
+    { delete: documentName(`liveLessonInvitations/${invitationId}/whiteboardElements/student-own-delete`) },
+  ]);
+  assert.equal(studentOwnDelete.status, 403, "missing documents must not be deletable");
+});

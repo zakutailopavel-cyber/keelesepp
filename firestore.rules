@@ -201,6 +201,60 @@ service cloud.firestore {
         );
     }
 
+    function canReadLiveLessonRoom(invitationId) {
+      return signedIn()
+        && exists(liveLessonInvitationPath(invitationId))
+        && get(liveLessonInvitationPath(invitationId)).data.status in ['accepted', 'closed']
+        && (
+          get(liveLessonInvitationPath(invitationId)).data.teacherUid == uid()
+          || get(liveLessonInvitationPath(invitationId)).data.studentUid == uid()
+        );
+    }
+
+    function validLiveLessonWhiteboardStroke(data) {
+      return data is map
+        && data.keys().hasOnly([
+          'type',
+          'points',
+          'color',
+          'strokeWidth',
+          'updatedAt',
+          'updatedByUid',
+          'updatedByName',
+          'lastClientId',
+          'revision'
+        ])
+        && data.keys().hasAll([
+          'type',
+          'points',
+          'color',
+          'strokeWidth',
+          'updatedAt',
+          'updatedByUid',
+          'updatedByName',
+          'lastClientId',
+          'revision'
+        ])
+        && data.type == 'stroke'
+        && data.points is list
+        && data.points.size() >= 2
+        && data.points.size() <= 800
+        && data.color is string
+        && data.color.size() > 0
+        && data.color.size() <= 32
+        && data.strokeWidth is number
+        && data.strokeWidth > 0
+        && data.strokeWidth <= 40
+        && data.updatedAt == request.time
+        && data.updatedByUid == uid()
+        && data.updatedByName is string
+        && data.updatedByName.size() <= 160
+        && data.lastClientId is string
+        && data.lastClientId.size() > 0
+        && data.lastClientId.size() <= 120
+        && data.revision == 1;
+    }
+
     function liveLessonSignalRoleMatches(invitationId, role) {
       return (
           role == 'teacher'
@@ -1353,6 +1407,18 @@ service cloud.firestore {
             )
           );
         allow delete: if isAdmin();
+      }
+
+      match /whiteboardElements/{elementId} {
+        allow read: if canReadLiveLessonRoom(invitationId);
+        allow create: if canUseLiveLessonInvitation(invitationId)
+          && validLiveLessonWhiteboardStroke(request.resource.data);
+        allow update: if false;
+        allow delete: if canUseLiveLessonInvitation(invitationId)
+          && (
+            resource.data.updatedByUid == uid()
+            || get(liveLessonInvitationPath(invitationId)).data.teacherUid == uid()
+          );
       }
     }
 
