@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { BookOpenCheck, GraduationCap, ShieldCheck } from 'lucide-react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { Button, Card, ErrorState, Input } from '../../components/ui/index.js';
 import { useAuth } from '../../app/AuthContext.jsx';
@@ -48,16 +49,32 @@ export default function LoginPage() {
 
   return (
     <main className="login-page">
-      <Card className="login-card">
-        <span className="eyebrow">KeeleSepp CRM v2</span><h1>Logi sisse</h1><p>Kasuta olemasolevat KeeleSepp Firebase kontot.</p>
-        <form onSubmit={submit}>
-          <Input label="E-post" name="email" type="email" autoComplete="email" required value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} />
-          <Input label="Parool" name="password" type="password" autoComplete="current-password" required value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} />
-          {error ? <p className="form-error" role="alert">{error}</p> : null}
-          <Button type="submit" loading={submitting}>Logi sisse</Button>
-          <Button type="button" variant="secondary" disabled={submitting} onClick={googleSignIn}>Jätka Google’iga</Button>
-        </form>
-      </Card>
+      <section className="login-shell">
+        <div className="login-intro" aria-label="KeeleSepp koolihaldus">
+          <div className="login-brand"><span><GraduationCap size={25} /></span><strong>KeeleSepp</strong></div>
+          <div className="login-intro__copy">
+            <span className="eyebrow">Uus kooli tööruum</span>
+            <h1>Õpetamine ja koolihaldus selges rütmis.</h1>
+            <p>Üks rahulik töölaud õpilaste, tundide, õppematerjalide ja kooli igapäevaste otsuste jaoks.</p>
+          </div>
+          <div className="login-benefits">
+            <span><BookOpenCheck size={18} /> Õppetöö ja haldus ühes vaates</span>
+            <span><ShieldCheck size={18} /> Turvaline rollipõhine ligipääs</span>
+          </div>
+          <small>EP Koolitus · Tallinn</small>
+        </div>
+        <Card className="login-card">
+          <span className="eyebrow">KeeleSepp CRM v2</span><h2>Hea meel sind näha</h2><p>Logi sisse oma olemasoleva KeeleSepp kontoga.</p>
+          <form onSubmit={submit}>
+            <Input label="E-post" name="email" type="email" autoComplete="email" required value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} />
+            <Input label="Parool" name="password" type="password" autoComplete="current-password" required value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} />
+            {error ? <p className="form-error" role="alert">{error}</p> : null}
+            <Button type="submit" loading={submitting}>Logi sisse</Button>
+            <div className="login-divider"><span>või</span></div>
+            <Button type="button" variant="secondary" disabled={submitting} onClick={googleSignIn}>Jätka Google’iga</Button>
+          </form>
+        </Card>
+      </section>
     </main>
   );
 }
