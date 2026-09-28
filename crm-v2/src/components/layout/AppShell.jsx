@@ -1,6 +1,6 @@
 import { GraduationCap, LogOut, Menu, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { navigation, settingsNavigation } from '../../app/navigation.js';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { hasAnyRole } from '../../utils/roles.js';
@@ -13,10 +13,19 @@ function initials(name) {
 
 export default function AppShell() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const { user, signOut, preview, stopPreview } = useAuth();
   const visibleNavigation = useMemo(() => navigation.filter((item) => hasAnyRole(user.roles, item.roles)), [user.roles]);
   const showSettings = hasAnyRole(user.roles, settingsNavigation.roles);
   const canSearchStudents = hasAnyRole(user.roles, ['admin', 'teacher']);
+  const exitPreview = () => { stopPreview(); navigate('/settings'); };
+  const blockPreviewButtons = (event) => {
+    if (!preview?.readOnly) return;
+    if (event.target.closest('button, [role="button"]')) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  };
 
   return (
     <div className="app-shell">
@@ -45,11 +54,12 @@ export default function AppShell() {
       </aside>
 
       <main className="main-area">
+        {preview ? <div className="preview-banner" role="status"><span><strong>Vaatad süsteemi kasutajana: {user.displayName || user.email}</strong><small>Read-only tugivaade · administraatori seanss jääb aktiivseks</small></span><button onClick={exitPreview}>Lõpeta vaade</button></div> : null}
         <header className="topbar">
           <IconButton className="mobile-only" label="Ava menüü" onClick={() => setMenuOpen(true)}><Menu size={21} /></IconButton>
           {canSearchStudents ? <GlobalStudentSearch user={user} /> : null}
         </header>
-        <Outlet />
+        <div className={preview?.readOnly ? 'preview-surface preview-surface--readonly' : 'preview-surface'} onClickCapture={blockPreviewButtons} onSubmitCapture={(event) => { if (preview?.readOnly) { event.preventDefault(); event.stopPropagation(); } }}><Outlet /></div>
       </main>
     </div>
   );
