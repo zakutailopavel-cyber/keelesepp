@@ -3,7 +3,7 @@ import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'r
 import { Link, useSearchParams } from 'react-router-dom';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, IconButton, Input, LoadingState, Modal, PageHeader, Select } from '../../components/ui/index.js';
-import { groupStudentPeople, studentsService } from '../../services/firebase/students.js';
+import { enrollmentKey, groupStudentPeople, studentsService } from '../../services/firebase/students.js';
 import { ROLES } from '../../utils/roles.js';
 import { canonicalTeacherName } from '../../utils/teachers.js';
 import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
@@ -23,6 +23,70 @@ function EnrollmentStack({ student, compact = false }) {
   </div>;
 }
 
+
+function EnrollmentManager({ student, teachers, service, onClose, onChanged }) {
+  const [drafts, setDrafts] = useState(() => Object.fromEntries((student?.enrollments || []).map((item) => [item.id, { ...item }])));
+  const [newEnrollment, setNewEnrollment] = useState({ subject: '', level: 'A1', targetLevel: 'B1', teacher: '', active: true });
+  const [saving, setSaving] = useState('');
+  const [error, setError] = useState('');
+
+  const updateDraft = (id, field, value) => setDrafts((current) => ({ ...current, [id]: { ...current[id], [field]: value } }));
+
+  const saveExisting = async (enrollment) => {
+    const draft = drafts[enrollment.id];
+    if (!draft?.subject?.trim()) { setError('Õppeaine on kohustuslik.'); return; }
+    setSaving(enrollment.id); setError('');
+    try {
+      const recordIds = enrollment.sourceRecordIds?.length ? enrollment.sourceRecordIds : [student.id];
+      await Promise.all(recordIds.map((recordId) => service.updateEnrollment(recordId, enrollmentKey(enrollment), draft)));
+      await onChanged();
+    } catch (err) { setError(firebaseErrorMessage(err)); }
+    finally { setSaving(''); }
+  };
+
+  const add = async () => {
+    if (!newEnrollment.subject.trim()) { setError('Sisesta õppeaine.'); return; }
+    setSaving('new'); setError('');
+    try {
+      await service.addEnrollment(student.id, newEnrollment);
+      setNewEnrollment({ subject: '', level: 'A1', targetLevel: 'B1', teacher: '', active: true });
+      await onChanged();
+    } catch (err) { setError(firebaseErrorMessage(err)); }
+    finally { setSaving(''); }
+  };
+
+  return <Modal open={Boolean(student)} title={student ? `Õppesuunad: ${student.name}` : 'Õppesuunad'} onClose={saving ? () => {} : onClose} className="modal--enrollments" footer={<Button variant="secondary" disabled={Boolean(saving)} onClick={onClose}>Valmis</Button>}>
+    <div className="enrollment-manager">
+      <p className="form-hint">Üks laps võib õppida mitut ainet eri õpetajatega. Muudatus ei loo uut õpilase kaarti ega muuda tema varasemat ajalugu.</p>
+      <div className="enrollment-manager__list">{(student?.enrollments || []).map((enrollment) => {
+        const draft = drafts[enrollment.id] || enrollment;
+        return <section className="enrollment-editor" key={enrollment.id}>
+          <div className="enrollment-editor__title"><strong>{enrollment.subject || 'Õppesuund'}</strong><Badge tone={draft.active !== false ? 'success' : 'neutral'}>{draft.active !== false ? 'Aktiivne' : 'Mitteaktiivne'}</Badge></div>
+          <div className="enrollment-editor__grid">
+            <Input label="Õppeaine" value={draft.subject || ''} onChange={(event) => updateDraft(enrollment.id, 'subject', event.target.value)} />
+            <Select label="Õpetaja" value={draft.teacher || ''} onChange={(event) => updateDraft(enrollment.id, 'teacher', event.target.value)}><option value="">Määramata</option>{teachers.map((teacher) => <option key={teacher} value={teacher}>{teacher}</option>)}</Select>
+            <Select label="Praegune tase" value={draft.level || ''} onChange={(event) => updateDraft(enrollment.id, 'level', event.target.value)}>{STUDENT_LEVELS.map((level) => <option key={level} value={level}>{level || 'Määramata'}</option>)}</Select>
+            <Select label="Sihttase" value={draft.targetLevel || ''} onChange={(event) => updateDraft(enrollment.id, 'targetLevel', event.target.value)}>{STUDENT_LEVELS.map((level) => <option key={level} value={level}>{level || 'Määramata'}</option>)}</Select>
+            <Select label="Staatus" value={draft.active === false ? 'inactive' : 'active'} onChange={(event) => updateDraft(enrollment.id, 'active', event.target.value === 'active')}><option value="active">Aktiivne</option><option value="inactive">Mitteaktiivne</option></Select>
+          </div>
+          <div className="enrollment-editor__actions"><Button loading={saving === enrollment.id} disabled={Boolean(saving)} onClick={() => saveExisting(enrollment)}>Salvesta õppesuund</Button></div>
+        </section>;
+      })}</div>
+      <section className="enrollment-editor enrollment-editor--new">
+        <div className="enrollment-editor__title"><strong>Lisa uus õppesuund</strong></div>
+        <div className="enrollment-editor__grid">
+          <Input label="Õppeaine" value={newEnrollment.subject} onChange={(event) => setNewEnrollment({ ...newEnrollment, subject: event.target.value })} />
+          <Select label="Õpetaja" value={newEnrollment.teacher} onChange={(event) => setNewEnrollment({ ...newEnrollment, teacher: event.target.value })}><option value="">Määramata</option>{teachers.map((teacher) => <option key={teacher} value={teacher}>{teacher}</option>)}</Select>
+          <Select label="Praegune tase" value={newEnrollment.level} onChange={(event) => setNewEnrollment({ ...newEnrollment, level: event.target.value })}>{STUDENT_LEVELS.map((level) => <option key={level} value={level}>{level || 'Määramata'}</option>)}</Select>
+          <Select label="Sihttase" value={newEnrollment.targetLevel} onChange={(event) => setNewEnrollment({ ...newEnrollment, targetLevel: event.target.value })}>{STUDENT_LEVELS.map((level) => <option key={level} value={level}>{level || 'Määramata'}</option>)}</Select>
+        </div>
+        <div className="enrollment-editor__actions"><Button variant="secondary" loading={saving === 'new'} disabled={Boolean(saving)} onClick={add}><Plus size={16} /> Lisa õppesuund</Button></div>
+      </section>
+      {error ? <p className="form-error" role="alert">{error}</p> : null}
+    </div>
+  </Modal>;
+}
+
 export default function StudentsPage({ service = studentsService, actor }) {
   const auth = useContext(AuthContext);
   const currentUser = actor || auth?.user || { roles: [ROLES.ADMIN], displayName: '' };
@@ -36,6 +100,7 @@ export default function StudentsPage({ service = studentsService, actor }) {
   const [formStudent, setFormStudent] = useState(undefined);
   const [formOpen, setFormOpen] = useState(false);
   const [archiveTarget, setArchiveTarget] = useState(null);
+  const [enrollmentStudent, setEnrollmentStudent] = useState(null);
   const [archiving, setArchiving] = useState(false);
   const [notice, setNotice] = useState('');
   const [actionError, setActionError] = useState('');
@@ -130,14 +195,15 @@ export default function StudentsPage({ service = studentsService, actor }) {
         <Card className="students-card">
           <div className="students-table-wrap">
             <table className="students-table students-table--people"><thead><tr><th>Õpilane</th><th>Õppesuunad</th><th>Staatus</th><th><span className="sr-only">Toimingud</span></th></tr></thead>
-              <tbody>{people.map((student) => <tr key={student.personKey || student.id}><td><Link className="student-identity" {...profileLinkProps(student.id)}><i>{initials(student.name)}</i><span><strong>{student.name || 'Nimetu õpilane'}</strong><small>{student.enrollments?.length || 0} õppesuun{student.enrollments?.length === 1 ? 'd' : 'da'}{canAssignTeacher && student.recordIds?.length > 1 ? ` · ${student.recordIds.length} seotud kirjet` : ''}</small></span></Link></td><td><EnrollmentStack student={student} compact /></td><td><Badge tone={student.active ? 'success' : 'neutral'}>{student.active ? 'Aktiivne' : 'Arhiveeritud'}</Badge></td><td><div className="row-actions"><IconButton label={`Muuda ${student.name}`} onClick={() => openEdit(student)}><Pencil size={17} /></IconButton>{student.active ? <IconButton label={`Arhiveeri ${student.name}`} onClick={() => setArchiveTarget(student)}><Archive size={17} /></IconButton> : null}<Link className="icon-button" aria-label={`Ava ${student.name} profiil`} {...profileLinkProps(student.id)}><ChevronRight size={18} /></Link></div></td></tr>)}</tbody>
+              <tbody>{people.map((student) => <tr key={student.personKey || student.id}><td><Link className="student-identity" {...profileLinkProps(student.id)}><i>{initials(student.name)}</i><span><strong>{student.name || 'Nimetu õpilane'}</strong><small>{student.enrollments?.length || 0} õppesuun{student.enrollments?.length === 1 ? 'd' : 'da'}{canAssignTeacher && student.recordIds?.length > 1 ? ` · ${student.recordIds.length} seotud kirjet` : ''}</small></span></Link></td><td><EnrollmentStack student={student} compact /></td><td><Badge tone={student.active ? 'success' : 'neutral'}>{student.active ? 'Aktiivne' : 'Arhiveeritud'}</Badge></td><td><div className="row-actions"><Button variant="secondary" onClick={() => setEnrollmentStudent(student)}>Õppesuunad</Button><IconButton label={`Muuda ${student.name}`} onClick={() => openEdit(student)}><Pencil size={17} /></IconButton>{student.active ? <IconButton label={`Arhiveeri ${student.name}`} onClick={() => setArchiveTarget(student)}><Archive size={17} /></IconButton> : null}<Link className="icon-button" aria-label={`Ava ${student.name} profiil`} {...profileLinkProps(student.id)}><ChevronRight size={18} /></Link></div></td></tr>)}</tbody>
             </table>
           </div>
-          <div className="students-mobile-list">{people.map((student) => <article className="student-mobile-card" key={student.personKey || student.id}><Link {...profileLinkProps(student.id)}><i className="student-avatar">{initials(student.name)}</i><div><strong>{student.name || 'Nimetu õpilane'}</strong><span>{student.enrollments?.length || 0} õppesuun{student.enrollments?.length === 1 ? 'd' : 'da'}</span></div><ChevronRight size={18} /></Link><EnrollmentStack student={student} /><div className="student-mobile-meta"><Badge tone={student.active ? 'success' : 'neutral'}>{student.active ? 'Aktiivne' : 'Arhiveeritud'}</Badge>{canAssignTeacher && student.recordIds?.length > 1 ? <span>{student.recordIds.length} seotud kirjet</span> : null}</div><div className="row-actions"><Button variant="secondary" onClick={() => openEdit(student)}>Muuda</Button>{student.active ? <Button variant="danger" onClick={() => setArchiveTarget(student)}>Arhiveeri</Button> : null}</div></article>)}</div>
+          <div className="students-mobile-list">{people.map((student) => <article className="student-mobile-card" key={student.personKey || student.id}><Link {...profileLinkProps(student.id)}><i className="student-avatar">{initials(student.name)}</i><div><strong>{student.name || 'Nimetu õpilane'}</strong><span>{student.enrollments?.length || 0} õppesuun{student.enrollments?.length === 1 ? 'd' : 'da'}</span></div><ChevronRight size={18} /></Link><EnrollmentStack student={student} /><div className="student-mobile-meta"><Badge tone={student.active ? 'success' : 'neutral'}>{student.active ? 'Aktiivne' : 'Arhiveeritud'}</Badge>{canAssignTeacher && student.recordIds?.length > 1 ? <span>{student.recordIds.length} seotud kirjet</span> : null}</div><div className="row-actions"><Button variant="secondary" onClick={() => setEnrollmentStudent(student)}>Õppesuunad</Button><Button variant="secondary" onClick={() => openEdit(student)}>Muuda</Button>{student.active ? <Button variant="danger" onClick={() => setArchiveTarget(student)}>Arhiveeri</Button> : null}</div></article>)}</div>
           {state.hasMore ? <div className="load-more"><Button variant="secondary" loading={state.loading} onClick={() => load({ append: true })}>Laadi veel</Button></div> : null}
         </Card>
       ) : null}
 
+      {enrollmentStudent ? <EnrollmentManager student={enrollmentStudent} teachers={options.teachers} service={service} onClose={() => setEnrollmentStudent(null)} onChanged={async () => { await load(); const fresh = groupStudentPeople((await service.list({ ...filters, scopeTeacher: teacherScope, scopeTeacherUid: canAssignTeacher ? '' : currentUser.uid, pageSize: 500, exhaustive: true })).items).find((item) => item.personKey === enrollmentStudent.personKey); if (fresh) setEnrollmentStudent(fresh); }} /> : null}
       <StudentForm open={formOpen} student={formStudent} teachers={options.teachers} canAssignTeacher={canAssignTeacher} defaultTeacher={teacherScope} onClose={() => setFormOpen(false)} onSubmit={save} />
       <Modal open={Boolean(archiveTarget)} title="Arhiveeri õpilane" onClose={() => !archiving && setArchiveTarget(null)} footer={<><Button variant="secondary" onClick={() => setArchiveTarget(null)} disabled={archiving}>Loobu</Button><Button variant="danger" loading={archiving} onClick={archive}>Arhiveeri</Button></>}><p>Kas arhiveerida <strong>{archiveTarget?.name}</strong>? Õpilase ajalugu säilib ning kirje märgitakse väljal <code>active</code> mitteaktiivseks.</p></Modal>
     </div>
