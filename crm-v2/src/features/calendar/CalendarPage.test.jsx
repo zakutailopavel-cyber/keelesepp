@@ -48,6 +48,7 @@ describe('calendar filtering UX', () => {
     renderCalendar();
 
     await waitForEmptyPeriod();
+    expect(screen.getByRole('region', { name: 'Kalendri kokkuvõte' })).toHaveTextContent('Perioodil0');
     expect(screen.getByRole('button', { name: 'Nädal' })).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByRole('button', { name: 'Päev' })).toHaveAttribute('aria-pressed', 'false');
   });
@@ -96,6 +97,7 @@ describe('calendar filtering UX', () => {
     });
 
     const action = await screen.findByRole('button', { name: 'Märgi toimunuks: Mari Maas' });
+    expect(screen.getByRole('region', { name: 'Kalendri kokkuvõte' })).toHaveTextContent('Täna1');
     fireEvent.click(action);
 
     await waitFor(() => expect(props.lessonRepository.completeFromSchedule).toHaveBeenCalledTimes(1));

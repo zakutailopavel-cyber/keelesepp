@@ -1,5 +1,21 @@
 # KeeleSepp Project State
 
+## CRM v2 calendar experience — IN PROGRESS
+
+Last verified against main: 2026-09-28, Europe/Tallinn.
+Verified main: `d0f15d5`.
+Implementation branch: `codex/v2-calendar-experience`.
+Draft PR: pending.
+
+The calendar now opens with a responsive operational overview for the selected period: total lessons, today's lessons,
+group lessons and completed lessons. The current period has a stronger visual hierarchy, today's column is clearly
+identified, lesson cards have improved interaction and keyboard-focus states, and the overview collapses cleanly on
+smaller screens. Existing day, week and month views, filters, conflict detection, lesson creation and editing, quick
+completion, group attendance, teacher scoping and Firebase contracts remain unchanged. v1 is unchanged.
+
+Validation: PASS — focused calendar suites 11/11, ESLint, production build and `git diff --check`. No production
+deployment is included. Exactly one next safe step: open the draft PR and wait for GitHub CI.
+
 ## CRM v2 student experience — IN PROGRESS
 
 Last verified against main: 2026-09-28, Europe/Tallinn.
