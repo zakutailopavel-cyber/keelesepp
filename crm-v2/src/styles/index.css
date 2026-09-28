@@ -162,3 +162,17 @@ body:before{content:'';position:fixed;inset:0;pointer-events:none;background:rad
   .parent-child-enrollments>div{grid-template-columns:1fr}
   .parent-child-enrollments small{grid-column:auto}
 }
+
+
+.modal--enrollments{width:min(980px,100%)}
+.enrollment-manager{display:grid;gap:18px}
+.enrollment-manager>.form-hint{margin:0}
+.enrollment-manager__list{display:grid;gap:14px}
+.enrollment-editor{border:1px solid var(--border);border-radius:14px;padding:16px;background:#fff}
+.enrollment-editor--new{background:#f8fbfa;border-style:dashed}
+.enrollment-editor__title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.enrollment-editor__title strong{font:800 .95rem Manrope,sans-serif}
+.enrollment-editor__grid{display:grid;grid-template-columns:minmax(180px,1.2fr) minmax(190px,1fr) repeat(3,minmax(130px,.7fr));gap:12px}
+.enrollment-editor__actions{display:flex;justify-content:flex-end;margin-top:14px}
+@media(max-width:900px){.enrollment-editor__grid{grid-template-columns:1fr 1fr}.enrollment-editor__grid>.field:first-child{grid-column:1/-1}}
+@media(max-width:620px){.modal--enrollments .modal__body{padding:16px}.enrollment-editor__grid{grid-template-columns:1fr}.enrollment-editor__grid>.field:first-child{grid-column:auto}.enrollment-editor__actions .button{width:100%}}
