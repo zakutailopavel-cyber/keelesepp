@@ -33,7 +33,7 @@ jobs:
           const html = fs.readFileSync('haldus-exercises/index.html','utf8');
           test('PDF worksheets render locally with PDF.js and support page-aware overlays',()=>{
             assert.match(html,/pdf\.min\.js/);
-            assert.match(html,/pdfjsLib\.getDocument\(file\.url\)/);
+            assert.match(html,/(?:pdfjsLib|lib)\.getDocument\(file\.url\)/);
             assert.match(html,/page:pageNum/);
             assert.match(html,/visibleElements=elements\.filter/);
             assert.match(html,/pdfPageCount/);
