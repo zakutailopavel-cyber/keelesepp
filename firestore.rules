@@ -1309,6 +1309,51 @@ service cloud.firestore {
         allow update: if false;
         allow delete: if isAdmin();
       }
+
+      match /presence/{presenceId} {
+        allow read: if canUseLiveLessonInvitation(invitationId);
+        allow create, update: if canUseLiveLessonInvitation(invitationId)
+          && presenceId == uid()
+          && request.resource.data.keys().hasOnly([
+            'uid',
+            'role',
+            'displayName',
+            'online',
+            'lastSeen',
+            'lastSeenIso'
+          ])
+          && request.resource.data.keys().hasAll([
+            'uid',
+            'role',
+            'displayName',
+            'online',
+            'lastSeen',
+            'lastSeenIso'
+          ])
+          && request.resource.data.uid == uid()
+          && request.resource.data.role in ['teacher', 'student']
+          && liveLessonSignalRoleMatches(invitationId, request.resource.data.role)
+          && request.resource.data.displayName is string
+          && request.resource.data.displayName.size() <= 160
+          && request.resource.data.online is bool
+          && request.resource.data.lastSeen == request.time
+          && request.resource.data.lastSeenIso is string
+          && request.resource.data.lastSeenIso.size() <= 40
+          && (
+            !exists(/databases/$(database)/documents/liveLessonInvitations/$(invitationId)/presence/$(presenceId))
+            || (
+              request.resource.data.uid == resource.data.uid
+              && request.resource.data.role == resource.data.role
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                'displayName',
+                'online',
+                'lastSeen',
+                'lastSeenIso'
+              ])
+            )
+          );
+        allow delete: if isAdmin();
+      }
     }
 
     match /liveClassrooms/{classroomId} {
