@@ -10,7 +10,7 @@ export const navigation = [
   { to: '/groups', label: 'Grupid', icon: Layers3, roles: ACCESS.STAFF },
   { to: '/parents', label: 'Lapsevanemad', icon: HeartHandshake, roles: ACCESS.STAFF },
   { to: '/library', label: 'Õppevara', icon: LibraryBig, roles: ACCESS.STAFF },
-  { to: '/live-classroom', label: 'Live Classroom', icon: Video, roles: ACCESS.STAFF },
+  { to: '/live-classroom', label: 'Live Classroom', icon: Video, roles: ACCESS.LIVE_CLASSROOM },
   { to: '/teachers', label: 'Õpetajad', icon: UserRoundCog, roles: ACCESS.ADMIN },
   { to: '/homework', label: 'Kodutööd', icon: BookOpen, roles: ACCESS.HOMEWORK },
   { to: '/finance', label: 'Finantsid', icon: CircleDollarSign, roles: ACCESS.FINANCE },

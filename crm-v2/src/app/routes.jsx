@@ -40,6 +40,8 @@ export default function AppRoutes() {
             <Route path="groups" element={<GroupsPage />} />
             <Route path="library" element={<LibraryPage />} />
             <Route path="parents" element={<ParentsPage />} />
+          </Route>
+          <Route element={<ProtectedRoute roles={ACCESS.LIVE_CLASSROOM} />}>
             <Route path="live-classroom" element={<LiveClassroomPage />} />
           </Route>
           <Route element={<ProtectedRoute roles={ACCESS.ADMIN} />}>

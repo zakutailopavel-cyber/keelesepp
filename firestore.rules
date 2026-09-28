@@ -161,6 +161,32 @@ service cloud.firestore {
         && ownsStudentProfile(studentId, studentDoc(studentId));
     }
 
+    function studentAccountOwns(studentId, userId) {
+      return exists(studentPath(studentId))
+        && (
+          studentId == userId
+          || studentDoc(studentId).get('linkedUserId', '') == userId
+          || studentDoc(studentId).get('studentUid', '') == userId
+          || studentDoc(studentId).get('linkedUserIds', []).hasAny([userId])
+        );
+    }
+
+    function teacherCanInviteStudent(studentId) {
+      return isAdmin()
+        || (
+          isTeacher()
+          && exists(studentPath(studentId))
+          && (
+            studentDoc(studentId).get('teacherUid', '') == uid()
+            || studentDoc(studentId).get('teacherUids', []).hasAny([uid()])
+            || (
+              !teacherScopeReadEnforced()
+              && teacherOwnsStudentData(studentDoc(studentId))
+            )
+          )
+        );
+    }
+
     function validInitialAssessment(data, studentId) {
       return data is map
         && data.keys().hasOnly([
@@ -1128,6 +1154,80 @@ service cloud.firestore {
         || (
           ownsStudent(resource.data.studentId)
           && request.resource.data.studentId == resource.data.studentId
+        );
+      allow delete: if isAdmin();
+    }
+
+    match /liveLessonInvitations/{invitationId} {
+      allow read: if isAdmin()
+        || (signedIn() && resource.data.teacherUid == uid())
+        || (signedIn() && resource.data.studentUid == uid());
+      allow create: if isStaff()
+        && request.resource.data.keys().hasOnly([
+          'teacherUid',
+          'teacherName',
+          'studentId',
+          'studentUid',
+          'studentName',
+          'title',
+          'status',
+          'roomKey',
+          'createdAt',
+          'createdAtIso',
+          'expiresAt',
+          'respondedAt',
+          'cancelledAt'
+        ])
+        && request.resource.data.teacherUid == uid()
+        && teacherCanInviteStudent(request.resource.data.studentId)
+        && studentAccountOwns(
+          request.resource.data.studentId,
+          request.resource.data.studentUid
+        )
+        && request.resource.data.teacherName is string
+        && request.resource.data.teacherName.size() > 0
+        && request.resource.data.teacherName.size() <= 160
+        && request.resource.data.studentName is string
+        && request.resource.data.studentName.size() > 0
+        && request.resource.data.studentName.size() <= 160
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.title.size() <= 160
+        && request.resource.data.status == 'pending'
+        && request.resource.data.roomKey == invitationId
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.createdAtIso is string
+        && request.resource.data.createdAtIso.size() <= 40
+        && request.resource.data.expiresAt is timestamp
+        && request.resource.data.expiresAt > request.time
+        && request.resource.data.expiresAt <= request.time + duration.value(5, 'm')
+        && request.resource.data.respondedAt == null
+        && request.resource.data.cancelledAt == null;
+      allow update: if request.resource.data.teacherUid == resource.data.teacherUid
+        && request.resource.data.studentUid == resource.data.studentUid
+        && request.resource.data.studentId == resource.data.studentId
+        && request.resource.data.roomKey == resource.data.roomKey
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'status',
+          'respondedAt',
+          'cancelledAt'
+        ])
+        && resource.data.status == 'pending'
+        && (
+          (
+            signedIn()
+            && resource.data.studentUid == uid()
+            && request.time < resource.data.expiresAt
+            && request.resource.data.status in ['accepted', 'declined']
+            && request.resource.data.respondedAt == request.time
+            && request.resource.data.cancelledAt == null
+          )
+          || (
+            (isAdmin() || (signedIn() && resource.data.teacherUid == uid()))
+            && request.resource.data.status == 'cancelled'
+            && request.resource.data.cancelledAt == request.time
+            && request.resource.data.respondedAt == null
+          )
         );
       allow delete: if isAdmin();
     }

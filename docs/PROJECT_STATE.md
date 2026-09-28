@@ -1,5 +1,48 @@
 # KeeleSepp Project State
 
+## CRM v2 Live Classroom lesson invitations (v1: invitation + lifecycle before joining) — DRAFT PR
+
+Last verified against main: 2026-09-28, Europe/Tallinn.
+Verified main: `8e8bd65` (branch was 0 commits behind `origin/main` at commit time).
+Implementation branch: `agent/live-classroom-invitations-v2`.
+Pull request: draft, opened 2026-09-28 (see GitHub; not merged by the agent).
+
+Scope is deliberately limited to inviting a student and the invitation lifecycle up to entering one shared waiting
+room. Video, whiteboard and lesson materials are NOT part of this PR. A teacher (or admin) opens Live Classroom,
+chooses only a student that has a real student account, and sends an invitation. The student sees the invitation as an
+overlay on any page of the student cabinet (`LessonInvitationOverlay` in `AppShell`) and can accept or decline; the
+teacher can cancel; invitations expire after at most 5 minutes. Accepting brings both into the same waiting room
+(`roomKey` = invitation ID). Student and teacher IDs stored on the invitation are immutable after creation.
+
+Changed files: `crm-v2/src/app/accessPolicy.js` (+ test; new `ACCESS.LIVE_CLASSROOM` = admin, teacher, student),
+`crm-v2/src/app/navigation.js`, `crm-v2/src/app/routes.jsx`, `crm-v2/src/components/layout/AppShell.jsx`,
+`crm-v2/src/features/live-classroom/LiveClassroomPage.jsx` (+ new test), new
+`crm-v2/src/features/live-classroom/invitationModel.js` (+ test), new `liveClassroom.css`, new
+`crm-v2/src/components/layout/LessonInvitationOverlay.jsx` (+ test), new
+`crm-v2/src/services/firebase/liveLessonInvitations.js`, `crm-v2/src/services/firebase/index.js`, `firestore.rules`.
+
+Data contract: new collection `liveLessonInvitations/{invitationId}` with fields `teacherUid, teacherName, studentId,
+studentUid, studentName, title, status (pending|accepted|declined|cancelled), roomKey, createdAt, createdAtIso,
+expiresAt, respondedAt, cancelledAt`. Rules: create only by staff for themselves (`teacherUid == uid()`), only for a
+student the teacher may invite (`teacherCanInviteStudent`), and only if `studentUid` is that student's own account
+(`studentAccountOwns`: document ID, `linkedUserId`, `studentUid` or `linkedUserIds`). Parent/guardian fields
+(`parentUid`, `linkedParentId(s)`, `guardianUid`) are intentionally NOT accepted, so a parent UID cannot be invited as
+the student; the client (`studentAccountUid`) resolves the target from the same student-only fields. Update: only
+`status/respondedAt/cancelledAt` may change, only from `pending`; the student may accept/decline before `expiresAt`;
+teacher/admin may cancel. Delete: admin only.
+
+Validation: PASS — full CRM v2 suite 75 files / 308 tests, focused live-classroom/overlay/access suites 4 files / 19
+tests, ESLint, production build (`vite build`). NOT run: Firestore rules emulator tests for the new collection.
+No production deployment, rules deploy, index change or data migration was performed.
+
+Known limits and manual gates: `firestore.rules` changes take effect only after an explicit owner-approved rules
+deploy; expiry is enforced by rules on accept and by the client display, there is no server-side cleanup of expired
+invitations yet; the waiting room is the existing Live Classroom page keyed by `roomKey`, without video.
+
+Unfinished: video/whiteboard/materials inside the room; rules emulator tests; server-side expiry cleanup.
+Exactly one next safe step: add Firestore emulator tests for `liveLessonInvitations` (parent UID rejected, expired
+accept rejected, teacher cannot invite a student outside their scope), then owner review of this draft PR.
+
 ## CRM v2 student identity and lifecycle — IN PROGRESS
 
 Last verified against main: 2026-09-28, Europe/Tallinn.

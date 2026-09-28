@@ -9,6 +9,7 @@ export { getFirebaseClient, isFirebaseConfigured } from './client.js';
 export { groupsService } from './groups.js';
 export { invoicesService } from './invoices.js';
 export { libraryService } from './library.js';
+export { liveLessonInvitationsService } from './liveLessonInvitations.js';
 export { homeworkService } from './homework.js';
 export { lessonsService } from './lessons.js';
 export { messagesService } from './messages.js';
