@@ -42,6 +42,8 @@ Follow-up in the same draft PR: accepted rooms now contain an opt-in browser Web
 
 Presence/reconnect/floating follow-up in the same draft PR: accepted participants now heartbeat into an invitation-scoped `presence` subcollection; the UI shows whether the other participant is currently fresh/online, refreshes on tab visibility, and marks itself offline on cleanup when possible. A disconnected/failed teacher peer can issue a fresh WebRTC offer without closing the room, while a student with local media already enabled automatically answers a new offer. The call card can be switched into a compact fixed floating mode within Live Classroom. Firestore rules restrict presence writes to each participant's own UID/role and keep parents/outsiders out.
 
+Screen sharing follow-up in the same draft PR: the teacher can share a browser-selected screen/window/tab only after the call has started. The implementation uses WebRTC `RTCRtpSender.replaceTrack`, so audio/microphone state is preserved and no separate signaling or Firestore collection is needed. The local preview switches to the shared surface; stopping from KeeleSepp or the browser's native “Stop sharing” control restores the camera track. Reconnect creates the next peer with the active screen track when sharing is still in progress.
+
 Unfinished: TURN fallback, floating call window, whiteboard/materials inside the room, presence/reconnect hardening, lesson completion integration, server-side expiry cleanup.
 Exactly one next safe step: wait for the corrective GitHub CI run, then owner review of this draft PR.
 

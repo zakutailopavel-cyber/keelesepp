@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import LiveLessonCallPanel from './LiveLessonCallPanel.jsx';
 
 function makeTrack(kind) {
-  return { kind, enabled: true, stop: vi.fn() };
+  return { kind, enabled: true, stop: vi.fn(), onended: null };
 }
 
 function makeStream() {
@@ -17,12 +17,31 @@ function makeStream() {
   };
 }
 
+function makeDisplayStream() {
+  const video = makeTrack('video');
+  return {
+    video,
+    getTracks: () => [video],
+    getAudioTracks: () => [],
+    getVideoTracks: () => [video],
+  };
+}
+
 function makePeer() {
+  const videoSender = {
+    track: { kind: 'video' },
+    replaceTrack: vi.fn(function replaceTrack(track) {
+      this.track = track || { kind: 'video' };
+      return Promise.resolve();
+    }),
+  };
   return {
     connectionState: 'new',
     remoteDescription: null,
     localDescription: null,
     addTrack: vi.fn(),
+    getSenders: vi.fn(() => [videoSender]),
+    videoSender,
     addIceCandidate: vi.fn().mockResolvedValue(undefined),
     createOffer: vi.fn().mockResolvedValue({ type: 'offer', sdp: 'offer-sdp' }),
     createAnswer: vi.fn().mockResolvedValue({ type: 'answer', sdp: 'answer-sdp' }),
@@ -137,5 +156,53 @@ describe('LiveLessonCallPanel', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Taasta ühendus/i }));
     await waitFor(() => expect(secondPeer.createOffer).toHaveBeenCalled());
+  });
+
+  it('lets the teacher share the screen by replacing only the outgoing video track', async () => {
+    const stream = makeStream();
+    const displayStream = makeDisplayStream();
+    const mediaDevices = {
+      getUserMedia: vi.fn().mockResolvedValue(stream),
+      getDisplayMedia: vi.fn().mockResolvedValue(displayStream),
+    };
+    const peer = makePeer();
+    const signalService = { subscribe: vi.fn(() => vi.fn()), send: vi.fn().mockResolvedValue(undefined) };
+
+    render(<LiveLessonCallPanel invitation={teacherInvitation} role="teacher" user={{ uid: 'teacher-1' }} signalService={signalService} presenceService={makePresenceService()} mediaDevices={mediaDevices} peerFactory={() => peer} />);
+    fireEvent.click(screen.getByRole('button', { name: /Käivita video ja mikrofon/i }));
+    await waitFor(() => expect(screen.getByRole('button', { name: /Jaga ekraani/i })).toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole('button', { name: /Jaga ekraani/i }));
+    await waitFor(() => expect(mediaDevices.getDisplayMedia).toHaveBeenCalledWith({ video: true, audio: false }));
+    await waitFor(() => expect(peer.videoSender.replaceTrack).toHaveBeenCalledWith(displayStream.video));
+    expect(screen.getByText('Ekraan on jagatud')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Lõpeta ekraani jagamine/i })).toBeInTheDocument();
+    expect(stream.audio.stop).not.toHaveBeenCalled();
+  });
+
+  it('restores the camera when browser screen sharing ends', async () => {
+    const stream = makeStream();
+    const displayStream = makeDisplayStream();
+    const mediaDevices = {
+      getUserMedia: vi.fn().mockResolvedValue(stream),
+      getDisplayMedia: vi.fn().mockResolvedValue(displayStream),
+    };
+    const peer = makePeer();
+    const signalService = { subscribe: vi.fn(() => vi.fn()), send: vi.fn().mockResolvedValue(undefined) };
+
+    render(<LiveLessonCallPanel invitation={teacherInvitation} role="teacher" user={{ uid: 'teacher-1' }} signalService={signalService} presenceService={makePresenceService()} mediaDevices={mediaDevices} peerFactory={() => peer} />);
+    fireEvent.click(screen.getByRole('button', { name: /Käivita video ja mikrofon/i }));
+    await waitFor(() => expect(screen.getByRole('button', { name: /Jaga ekraani/i })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: /Jaga ekraani/i }));
+    await waitFor(() => expect(displayStream.video.onended).toBeTypeOf('function'));
+
+    await act(async () => {
+      displayStream.video.onended();
+    });
+
+    await waitFor(() => expect(peer.videoSender.replaceTrack).toHaveBeenLastCalledWith(stream.video));
+    expect(displayStream.video.stop).toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: /Jaga ekraani/i })).toBeInTheDocument();
+    expect(screen.queryByText('Ekraan on jagatud')).not.toBeInTheDocument();
   });
 });

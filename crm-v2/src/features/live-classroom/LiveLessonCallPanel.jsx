@@ -1,4 +1,4 @@
-import { Maximize2, Mic, MicOff, Minimize2, PhoneOff, RefreshCw, Video, VideoOff, Wifi, WifiOff } from 'lucide-react';
+import { Maximize2, Mic, MicOff, Minimize2, Monitor, PhoneOff, RefreshCw, Video, VideoOff, Wifi, WifiOff } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { liveLessonCallSignalsService } from '../../services/firebase/liveLessonCallSignals.js';
 import { liveLessonPresenceService, presenceIsFresh } from '../../services/firebase/liveLessonPresence.js';
@@ -49,16 +49,19 @@ export default function LiveLessonCallPanel({
   const remoteVideoRef = useRef(null);
   const peerRef = useRef(null);
   const localStreamRef = useRef(null);
+  const screenStreamRef = useRef(null);
   const sessionIdRef = useRef('');
   const pendingOfferRef = useRef(null);
   const pendingCandidatesRef = useRef([]);
   const processedSignalsRef = useRef(new Set());
   const [status, setStatus] = useState('idle');
   const [busy, setBusy] = useState(false);
+  const [screenBusy, setScreenBusy] = useState(false);
   const [error, setError] = useState('');
   const [hasLocalMedia, setHasLocalMedia] = useState(false);
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [videoEnabled, setVideoEnabled] = useState(true);
+  const [screenSharing, setScreenSharing] = useState(false);
   const [teacherReady, setTeacherReady] = useState(false);
   const [presence, setPresence] = useState([]);
   const [presenceNow, setPresenceNow] = useState(() => Date.now());
@@ -92,7 +95,18 @@ export default function LiveLessonCallPanel({
     if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null;
   }, []);
 
+  const stopScreenTracks = useCallback(() => {
+    const stream = screenStreamRef.current;
+    if (stream) stream.getTracks().forEach((track) => {
+      track.onended = null;
+      track.stop();
+    });
+    screenStreamRef.current = null;
+    setScreenSharing(false);
+  }, []);
+
   const stopLocalMedia = useCallback(() => {
+    stopScreenTracks();
     const stream = localStreamRef.current;
     if (stream) stream.getTracks().forEach((track) => track.stop());
     localStreamRef.current = null;
@@ -100,7 +114,7 @@ export default function LiveLessonCallPanel({
     setHasLocalMedia(false);
     setAudioEnabled(true);
     setVideoEnabled(true);
-  }, [attachLocalStream]);
+  }, [attachLocalStream, stopScreenTracks]);
 
   const resetCall = useCallback((nextStatus = 'idle', stopMedia = true) => {
     closePeer();
@@ -124,8 +138,12 @@ export default function LiveLessonCallPanel({
     const peer = peerFactory();
     peerRef.current = peer;
     sessionIdRef.current = sessionId;
-    const stream = localStreamRef.current;
-    stream?.getTracks().forEach((track) => peer.addTrack(track, stream));
+
+    const cameraStream = localStreamRef.current;
+    const screenStream = screenStreamRef.current;
+    cameraStream?.getAudioTracks().forEach((track) => peer.addTrack(track, cameraStream));
+    const outboundVideoTrack = screenStream?.getVideoTracks?.()[0] || cameraStream?.getVideoTracks?.()[0];
+    if (outboundVideoTrack) peer.addTrack(outboundVideoTrack, screenStream || cameraStream);
 
     peer.ontrack = (event) => {
       const remoteStream = event.streams?.[0];
@@ -186,6 +204,50 @@ export default function LiveLessonCallPanel({
     await sendSignal('answer', answer.toJSON ? answer.toJSON() : answer, signal.sessionId);
     setStatus('connecting');
   }, [flushCandidates, makePeer, role, sendSignal]);
+
+  const stopScreenShare = useCallback(async () => {
+    const screenStream = screenStreamRef.current;
+    if (!screenStream) return;
+    const cameraStream = localStreamRef.current;
+    const cameraTrack = cameraStream?.getVideoTracks?.()[0] || null;
+    const sender = peerRef.current?.getSenders?.().find((item) => item.track?.kind === 'video');
+    try {
+      if (sender?.replaceTrack) await sender.replaceTrack(cameraTrack);
+    } finally {
+      stopScreenTracks();
+      attachLocalStream(cameraStream);
+    }
+  }, [attachLocalStream, stopScreenTracks]);
+
+  const startScreenShare = async () => {
+    if (role !== 'teacher') return;
+    setScreenBusy(true);
+    setError('');
+    try {
+      if (!mediaDevices?.getDisplayMedia) throw new Error('Ekraani jagamine pole selles brauseris saadaval.');
+      const peer = peerRef.current;
+      const sender = peer?.getSenders?.().find((item) => item.track?.kind === 'video');
+      if (!peer || !sender?.replaceTrack) throw new Error('Käivita enne videokõne.');
+      const stream = await mediaDevices.getDisplayMedia({ video: true, audio: false });
+      const track = stream.getVideoTracks?.()[0];
+      if (!track) {
+        stream.getTracks?.().forEach((item) => item.stop());
+        throw new Error('Ekraani videorada ei leitud.');
+      }
+      screenStreamRef.current = stream;
+      track.onended = () => {
+        stopScreenShare().catch((nextError) => setError(nextError.message || 'Ekraani jagamist ei saanud lõpetada.'));
+      };
+      await sender.replaceTrack(track);
+      attachLocalStream(stream);
+      setScreenSharing(true);
+    } catch (nextError) {
+      if (screenStreamRef.current) stopScreenTracks();
+      setError(nextError.message || 'Ekraani jagamist ei saanud käivitada.');
+    } finally {
+      setScreenBusy(false);
+    }
+  };
 
   useEffect(() => {
     const unsubscribe = signalService.subscribe(
@@ -264,6 +326,12 @@ export default function LiveLessonCallPanel({
 
   useEffect(() => () => {
     closePeer();
+    const screenStream = screenStreamRef.current;
+    screenStream?.getTracks().forEach((track) => {
+      track.onended = null;
+      track.stop();
+    });
+    screenStreamRef.current = null;
     const stream = localStreamRef.current;
     stream?.getTracks().forEach((track) => track.stop());
     localStreamRef.current = null;
@@ -349,6 +417,7 @@ export default function LiveLessonCallPanel({
         </span>
       </div>
       <div className="live-call-card__header-actions">
+        {screenSharing ? <span className="live-screen-share-state"><Monitor size={14} /> Ekraan on jagatud</span> : null}
         <span className={`live-call-status live-call-status--${status}`}>{statusText(status, role, teacherReady)}</span>
         <button type="button" className="live-call-float-toggle" aria-label={floating ? 'Tagasi lehele' : 'Ava ujuvas aknas'} onClick={() => setFloating((value) => !value)}>
           {floating ? <Maximize2 size={17} /> : <Minimize2 size={17} />}
@@ -359,7 +428,7 @@ export default function LiveLessonCallPanel({
     <div className="live-call-stage">
       <video ref={remoteVideoRef} className="live-call-video live-call-video--remote" autoPlay playsInline />
       {!connected ? <div className="live-call-placeholder"><Video size={34} /><strong>{role === 'teacher' ? 'Õpilase video' : 'Õpetaja video'}</strong><span>{statusText(status, role, teacherReady)}</span></div> : null}
-      <video ref={localVideoRef} className="live-call-video live-call-video--local" autoPlay playsInline muted />
+      <video ref={localVideoRef} className={screenSharing ? 'live-call-video live-call-video--local is-screen-share' : 'live-call-video live-call-video--local'} autoPlay playsInline muted />
     </div>
 
     {error ? <p className="form-error" role="alert">{error}</p> : null}
@@ -368,6 +437,8 @@ export default function LiveLessonCallPanel({
       {!hasLocalMedia && role === 'teacher' ? <Button loading={busy} onClick={startTeacherCall}><Video size={18} /> Käivita video ja mikrofon</Button> : null}
       {!hasLocalMedia && role === 'student' ? <Button loading={busy} onClick={joinStudentCall}><Video size={18} /> Liitu videokõnega</Button> : null}
       {canReconnect ? <Button loading={busy} onClick={startTeacherCall}><RefreshCw size={18} /> Taasta ühendus</Button> : null}
+      {role === 'teacher' && hasLocalMedia && !screenSharing ? <Button variant="secondary" loading={screenBusy} onClick={startScreenShare}><Monitor size={18} /> Jaga ekraani</Button> : null}
+      {role === 'teacher' && screenSharing ? <Button variant="secondary" loading={screenBusy} onClick={stopScreenShare}><Monitor size={18} /> Lõpeta ekraani jagamine</Button> : null}
       {hasLocalMedia ? <>
         <Button variant="secondary" aria-label={audioEnabled ? 'Lülita mikrofon välja' : 'Lülita mikrofon sisse'} onClick={toggleAudio}>{audioEnabled ? <Mic size={18} /> : <MicOff size={18} />}{audioEnabled ? ' Mikrofon sees' : ' Mikrofon väljas'}</Button>
         <Button variant="secondary" aria-label={videoEnabled ? 'Lülita kaamera välja' : 'Lülita kaamera sisse'} onClick={toggleVideo}>{videoEnabled ? <Video size={18} /> : <VideoOff size={18} />}{videoEnabled ? ' Kaamera sees' : ' Kaamera väljas'}</Button>
@@ -375,6 +446,6 @@ export default function LiveLessonCallPanel({
       </> : null}
     </div>
 
-    <p className="live-call-note">Kaamera ja mikrofon käivituvad ainult sinu nupuvajutusel. Ühenduse katkemisel saab õpetaja luua uue WebRTC seansi ilma tunniruumi sulgemata. Praegu kasutame STUN-ühendust; TURN-varuühendus lisatakse enne tootmisväljalaset.</p>
+    <p className="live-call-note">Ekraani jagamisel asendatakse ainult saadetav videorada; mikrofon jääb samaks ja kaamera taastub jagamise lõppedes. Brauseri enda “Stop sharing” lõpetab jagamise samuti. TURN-varuühendus lisatakse enne tootmisväljalaset.</p>
   </Card>;
 }
