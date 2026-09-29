@@ -33,6 +33,31 @@ async function post(path, body) {
   return data;
 }
 
+// Duplicate cards and data quality live in staffOperationsApi on the server (financeApi has no such routes).
+const defaultStaffOperationsUrl =
+  "https://us-central1-keelesepp-5136b.cloudfunctions.net/staffOperationsApi";
+
+async function postStaff(path, body) {
+  const { auth } = requireFirebaseClient();
+  if (!auth.currentUser)
+    throw new Error("Aktiivne kasutajaseanss puudub. Logi uuesti sisse.");
+  const token = await auth.currentUser.getIdToken();
+  const baseUrl = String(
+    import.meta.env.VITE_STAFF_OPERATIONS_API_URL || defaultStaffOperationsUrl,
+  ).replace(/\/$/, "");
+  const response = await globalThis.fetch(`${baseUrl}${path}`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || "Päring ebaõnnestus.");
+  return data;
+}
+
 async function postInvoice(path, body) {
   const { auth } = requireFirebaseClient();
   if (!auth.currentUser)
@@ -62,16 +87,24 @@ export const financeApi = {
   applyPricePrivacy() {
     return post("/students/price-privacy/apply", {});
   },
+  previewArchivedDuplicates() {
+    return postStaff("/students/merged/purge/preview", {});
+  },
+  purgeArchivedDuplicates() {
+    return postStaff("/students/merged/purge", {});
+  },
   previewDataQuality() {
-    return post("/data-quality/preview", {});
+    return postStaff("/data-quality/preview", {});
   },
   previewStudentMerge(primaryStudentId, duplicateStudentIds) {
-    return post("/students/merge/preview", { primaryStudentId, duplicateStudentIds });
+    return postStaff("/students/merge/preview", { primaryStudentId, duplicateStudentIds });
   },
-  mergeStudents(primaryStudentId, duplicateStudentIds) {
-    return post("/students/merge", {
+  // options.permanent: delete the duplicate cards after the move (confirmName = main card's name)
+  mergeStudents(primaryStudentId, duplicateStudentIds, options = {}) {
+    return postStaff("/students/merge", {
       primaryStudentId,
       duplicateStudentIds,
+      ...(options.permanent ? { permanent: true, confirmName: options.confirmName || "" } : {}),
       requestId: financeRequestId("student_merge"),
     });
   },

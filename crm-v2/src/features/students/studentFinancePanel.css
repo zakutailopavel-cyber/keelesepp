@@ -22,3 +22,6 @@
 .billing-settings__history summary { cursor: pointer; color: var(--text-muted, #667085); }
 .billing-settings__history ul { margin: 8px 0 0; padding-left: 18px; }
 @media (max-width: 760px) { .billing-settings__form { grid-template-columns: 1fr; } }
+.duplicate-manual__row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.duplicate-permanent { display: flex; gap: 8px; align-items: flex-start; margin: 10px 0; font-weight: 600; color: #b42318; }
+@media (max-width: 640px) { .duplicate-manual__row { grid-template-columns: 1fr; } }
