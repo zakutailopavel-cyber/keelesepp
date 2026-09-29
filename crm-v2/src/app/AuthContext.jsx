@@ -33,16 +33,22 @@ export function AuthProvider({ children, service = authService }) {
         throw error;
       }
     },
-    signInWithGoogle: async () => {
+    signInWithGoogle: async (registration = null) => {
       setState((current) => ({ ...current, loading: true, error: null }));
       try {
-        const user = await service.signInWithGoogle();
+        const user = await service.signInWithGoogle(registration);
         setState({ loading: false, user, error: null });
       } catch (error) {
         setState({ loading: false, user: null, error });
         throw error;
       }
     },
+    register: async (values) => {
+      const user = await service.register(values);
+      setState({ loading: false, user, error: null });
+      return user;
+    },
+    resetPasswordFor: (email) => service.resetPasswordFor(email),
     signOut: () => { setPreview(null); return service.signOut(); },
     startPreview: (target) => {
       if (!state.user?.roles?.includes('admin')) throw new Error('Ainult administraator saab kasutajavaadet avada.');
