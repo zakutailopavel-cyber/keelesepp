@@ -55,6 +55,18 @@ describe('homeworkService submissions', () => {
     expect(() => sanitizeSubmissionAnnotations([{ blockId: '', start: 2, end: 1, selectedText: '' }])).toThrow('vigane');
   });
 
+  it('keeps sheet marks: text quotes and answer boxes (empty answer allowed)', () => {
+    const [text, field] = sanitizeSubmissionAnnotations([
+      { id: 't', kind: 'text', color: 'note', blockId: 'b1', start: 3, end: 7, selectedText: 'koer', selgitus: 'Vaata lõppu', createdAt: '2026-09-29T10:00:00.000Z' },
+      { id: 'f', kind: 'field', color: 'weird', blockId: 'b2', fieldIndex: 1, start: 0, end: 0, selectedText: '', parandus: 'koera', createdAt: '2026-09-29T10:00:00.000Z' },
+    ]);
+    expect(text).toMatchObject({ kind: 'text', color: 'note', blockId: 'b1', selectedText: 'koer' });
+    expect(text.fieldIndex).toBeUndefined();
+    expect(field).toMatchObject({ kind: 'field', color: 'error', fieldIndex: 1, selectedText: '', parandus: 'koera' });
+    expect(() => sanitizeSubmissionAnnotations([{ kind: 'field', blockId: 'b2', start: 0, end: 0, parandus: 'x' }])).toThrow('vigane');
+    expect(() => sanitizeSubmissionAnnotations([{ kind: 'text', blockId: 'b2', start: 0, end: 0, selectedText: '', parandus: 'x' }])).toThrow('vigane');
+  });
+
   it('loads completed worksheets and exercise results in ten-student query chunks', async () => {
     firestore.getDocs.mockImplementation(async ({ name, constraints }) => {
       const ids = constraints[0].value;

@@ -85,10 +85,16 @@ export function sanitizeSubmissionAnnotations(annotations = []) {
     const selectedText = String(item?.selectedText || '').slice(0, 1000);
     const parandus = String(item?.parandus || '').trim().slice(0, 1000);
     const selgitus = String(item?.selgitus || '').trim().slice(0, 2000);
-    if (!blockId || !Number.isInteger(start) || !Number.isInteger(end) || start < 0 || end <= start || !selectedText) throw new Error(`Parandus ${index + 1} on vigane.`);
+    // sheet marks (Worksheet Studio §4): 'text' = a quote in the task, 'field' = the learner's answer box (may be empty)
+    const kind = item?.kind === 'text' || item?.kind === 'field' ? item.kind : '';
+    const fieldIndex = Number(item?.fieldIndex);
+    const validRange = Number.isInteger(start) && Number.isInteger(end) && start >= 0 && (kind === 'field' ? end >= start : end > start);
+    if (!blockId || !validRange || (!selectedText && kind !== 'field') || (kind === 'field' && (!Number.isInteger(fieldIndex) || fieldIndex < 0))) throw new Error(`Parandus ${index + 1} on vigane.`);
     if (!parandus && !selgitus) throw new Error(`Lisa parandusele ${index + 1} õige variant või selgitus.`);
+    const sheet = kind ? { kind, color: item?.color === 'note' ? 'note' : 'error', ...(kind === 'field' ? { fieldIndex } : {}) } : {};
     return {
       id: String(item?.id || `${Date.now()}_${index}`).slice(0, 180),
+      ...sheet,
       blockId,
       start,
       end,

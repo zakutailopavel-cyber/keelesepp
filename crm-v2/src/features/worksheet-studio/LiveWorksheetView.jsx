@@ -1,10 +1,12 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import * as Icons from 'lucide-react';
 import { homeworkService } from '../../services/firebase/index.js';
 import Sheet from './engine/Sheet.jsx';
 import { answerProgress, checkDocument } from './engine/registry.js';
 import GoalEvidence from './GoalEvidence.jsx';
+import SheetAnnotations from './SheetAnnotations.jsx';
+import { AuthContext } from '../../app/AuthContext.jsx';
 import { useFitScale } from './useFitScale.js';
 import './engine/sheet.css';
 import './worksheetStudio.css';
@@ -19,6 +21,7 @@ export default function LiveWorksheetView({ assignmentId, repository = homeworkS
   const [error, setError] = useState('');
   const [focusError, setFocusError] = useState('');
   const [fitRef, scale] = useFitScale();
+  const user = useContext(AuthContext)?.user;
 
   useEffect(() => repository.subscribeWorksheetAssignment(
     assignmentId,
@@ -46,6 +49,9 @@ export default function LiveWorksheetView({ assignmentId, repository = homeworkS
     catch (err) { setFocusError(err.message || 'Ülesannet ei saanud märkida.'); }
   };
 
+  // marks go to the assignment; the student's player is subscribed and shows them at once
+  const saveMarks = (annotations) => repository.saveSubmissionAnnotations({ submission: { ...assignment, submissionKind: 'worksheet' }, annotations, user });
+
   if (error) return <div className="ws-studio-error" role="alert">{error} {!embedded && <Link to={back.to}>Tagasi</Link>}</div>;
   if (!assignment) return <p className="ws-studio-loading">Ühendan tunniga…</p>;
   if (!doc) return <div className="ws-studio-error" role="alert">See ülesanne ei ole uues vormingus tööleht.</div>;
@@ -63,13 +69,15 @@ export default function LiveWorksheetView({ assignmentId, repository = homeworkS
           <span>viimati {time(assignment.updatedAt)}</span>
         </div>
       </header>
-      <div className="st-banner">Klõpsa ülesandel: see süttib õpilase lehel ja leht kerib selleni. Uuesti klõpsates märge kaob.</div>
+      <div className="st-banner">Klõpsa ülesandel: see süttib õpilase lehel ja leht kerib selleni. Vali tekst või klõpsa vastusel, et lisada viga või märkus.</div>
       {focusError && <div className="st-banner error" role="alert">{focusError}</div>}
       <div className="st-body">
         <main className="st-canvas" ref={fitRef}>
-          <div className="st-zoom" style={{ zoom: scale }}>
-            <Sheet doc={doc} mode="review" answers={answers} results={marks} focusId={focusId} onPick={point} />
-          </div>
+          <SheetAnnotations annotations={assignment.annotations || []} editable onChange={saveMarks}>
+            <div className="st-zoom" style={{ zoom: scale }}>
+              <Sheet doc={doc} mode="review" answers={answers} results={marks} focusId={focusId} onPick={point} />
+            </div>
+          </SheetAnnotations>
           <GoalEvidence doc={doc} evidence={checked} title="Tunni eesmärgid praegu" />
         </main>
       </div>
