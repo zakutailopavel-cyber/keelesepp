@@ -69,6 +69,7 @@ import DocumentPreviewModal from "./DocumentPreviewModal.jsx";
 import FinancialAuditPanel from "./FinancialAuditPanel.jsx";
 import InvoiceNumberingPanel from "./InvoiceNumberingPanel.jsx";
 import "./financeWorkspace.css";
+import MonthlyInvoicePanel from "./MonthlyInvoicePanel.jsx";
 
 const money = (value) =>
   new Intl.NumberFormat("et-EE", { style: "currency", currency: "EUR" }).format(
@@ -168,7 +169,17 @@ function forecastDraft(student, plans) {
   };
 }
 
+// section: the tab chosen in the finance workspace (Finance v2). Without it the page keeps its older
+// one-long-page layout with its own quick navigation.
+const TAB_CONTENT = {
+  kuuarved: ['kuuarved', 'attention'],
+  arved: ['arved', 'pangauhildus', 'attention'],
+  ulevaade: ['metrics', 'analytics', 'perioodid', 'tuluprognoos'],
+};
+
 export default function FinancePage({
+  section,
+  onSectionChange,
   invoiceRepository = invoicesService,
   paymentRepository = paymentsService,
   financeRepository = financeApi,
@@ -615,6 +626,7 @@ export default function FinancePage({
     creditNotes,
     auditEntries,
   } = state.data;
+  const show = (id) => !section || section === id || (TAB_CONTENT[section] || []).includes(id);
   const forecast = revenueForecast(plans);
   const paid = invoices.reduce((sum, item) => sum + invoicePaidCents(item), 0);
   const balance = invoices.reduce(
@@ -630,7 +642,7 @@ export default function FinancePage({
     : [];
 
   return (
-    <div className="page-content finance-page" data-active-finance-section={canRegisterPayment ? activeFinanceSection : undefined}>
+    <div className="page-content finance-page" data-active-finance-section={canRegisterPayment && !section ? activeFinanceSection : undefined}>
       <PageHeader
         eyebrow="Finantsid"
         title="Arved ja maksed"
@@ -662,7 +674,7 @@ export default function FinancePage({
           </button>
         </div>
       ) : null}
-      <section className="metric-grid">
+      {show('metrics') ? <section className="metric-grid">
         <Card className="metric-card metric-card--green">
           <div className="metric-card__top">
             <span>Laekunud</span>
@@ -703,8 +715,8 @@ export default function FinancePage({
           <strong>{money(forecast.monthlyCents)}</strong>
           <small>{forecast.rows.length} õpilase plaan</small>
         </Card>
-      </section>
-      {canRegisterPayment && overdue.length ? (
+      </section> : null}
+      {canRegisterPayment && show('attention') && overdue.length ? (
         <Card className="finance-attention">
           <div>
             <Clock3 size={18} />
@@ -713,19 +725,22 @@ export default function FinancePage({
               <small>Vaata võlgu, saada meeldetuletus või registreeri laekumine.</small>
             </span>
           </div>
-          <Button variant="secondary" onClick={() => setActiveFinanceSection("arved")}>
+          <Button variant="secondary" onClick={() => (section ? onSectionChange?.("arved") : setActiveFinanceSection("arved"))}>
             Ava arved <ArrowRight size={16} />
           </Button>
         </Card>
       ) : null}
-      {canRegisterPayment ? <FinanceQuickNav active={activeFinanceSection} onSelect={setActiveFinanceSection} /> : null}
-      {canRegisterPayment ? (
+      {canRegisterPayment && !section ? <FinanceQuickNav active={activeFinanceSection} onSelect={setActiveFinanceSection} /> : null}
+      {canRegisterPayment && show('kuuarved') ? (
+        <MonthlyInvoicePanel students={students} plans={plans} lessons={lessons} invoices={invoices} user={user} onChanged={state.reload} />
+      ) : null}
+      {canRegisterPayment && show('analytics') ? (
         <FinancialAnalyticsPanel
           onPreview={previewFinancialAnalytics}
           onOpenInvoice={(invoiceId) => {
             const invoice = invoices.find((item) => item.id === invoiceId);
             if (invoice) openInvoice(invoice); }} /> ) : null}
-      {canRegisterPayment ? (
+      {canRegisterPayment && show('tunniarvestus') ? (
         <div id="tunniarvestus"><LessonAccountingPanel
           lessons={lessons}
           students={students}
@@ -733,7 +748,7 @@ export default function FinancePage({
           onCreateInvoice={createLessonInvoice}
           onSetDisposition={setLessonDisposition} /></div>
       ) : null}
-      {canRegisterPayment ? (
+      {canRegisterPayment && show('pangauhildus') ? (
         <div id="pangauhildus"><BankReconciliationPanel
           invoices={invoices}
           students={students}
@@ -741,7 +756,7 @@ export default function FinancePage({
           onAllocate={allocateBankTransaction}
           onReload={state.reload} /></div>
       ) : null}
-      {canRegisterPayment ? (
+      {canRegisterPayment && show('avansid') ? (
         <div id="avansid"><AdvanceManagementPanel
           credits={credits}
           refunds={refunds}
@@ -750,7 +765,7 @@ export default function FinancePage({
           onRefund={refundPayerCredit}
           onReload={state.reload} /></div>
       ) : null}
-      {canRegisterPayment ? (
+      {canRegisterPayment && show('perioodid') ? (
         <div id="perioodid"><FinancialPeriodPanel
           periods={periods}
           onPreview={previewFinancialPeriod}
@@ -760,10 +775,10 @@ export default function FinancePage({
           onCorrection={createFinancialPeriodCorrection}
           onReload={state.reload} /></div>
       ) : null}
-      {canRegisterPayment ? (
+      {canRegisterPayment && show('audit') ? (
         <div id="audit"><FinancialAuditPanel entries={auditEntries} /></div>
       ) : null}
-      {canRegisterPayment ? (
+      {canRegisterPayment && show('numeratsioon') ? (
         <div id="numeratsioon"><InvoiceNumberingPanel
           invoices={invoices}
           onPreview={previewInvoiceNumbering}
@@ -771,7 +786,7 @@ export default function FinancePage({
           onReload={state.reload}
           onOpenInvoice={openInvoice} /></div>
       ) : null}
-      <Card id="tuluprognoos" className="revenue-forecast-card">
+      {show('tuluprognoos') ? <Card id="tuluprognoos" className="revenue-forecast-card">
         <div className="section-heading">
           <div>
             <span className="eyebrow">Tuluprognoos</span>
@@ -845,8 +860,8 @@ export default function FinancePage({
             }
           />
         )}
-      </Card>
-      <Card id="arved" className="list-card finance-list">
+      </Card> : null}
+      {show('arved') ? <Card id="arved" className="list-card finance-list">
         <div className="list-toolbar">
           <div className="search-field">
             <Search size={18} />
@@ -993,7 +1008,7 @@ export default function FinancePage({
             description="Muuda otsingut või filtrit."
           />
         )}
-      </Card>
+      </Card> : null}
       <Modal
         open={planOpen}
         title="Õpilase tuluprognoos"

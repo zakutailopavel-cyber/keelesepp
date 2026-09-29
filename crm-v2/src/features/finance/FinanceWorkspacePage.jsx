@@ -15,9 +15,6 @@ export default function FinanceWorkspacePage(props) {
     const nextSection = normalizeFinanceSection(sectionId);
     setActiveSection(nextSection);
     window.history.replaceState(null, '', `#${nextSection}`);
-    window.requestAnimationFrame(() => {
-      document.getElementById(nextSection)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
   };
 
   const handleManualInvoiceCreated = async (invoice) => {
@@ -25,9 +22,6 @@ export default function FinanceWorkspacePage(props) {
     setFinancePageKey((current) => current + 1);
     setActiveSection('arved');
     window.history.replaceState(null, '', '#arved');
-    window.requestAnimationFrame(() => {
-      document.getElementById('arved')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
   };
 
   return (
@@ -43,7 +37,7 @@ export default function FinanceWorkspacePage(props) {
           <button type="button" aria-label="Sulge teade" onClick={() => setNotice('')}>×</button>
         </div>
       ) : null}
-      <FinancePage key={financePageKey} {...props} />
+      <FinancePage key={financePageKey} {...props} section={activeSection} onSectionChange={selectSection} />
     </>
   );
 }

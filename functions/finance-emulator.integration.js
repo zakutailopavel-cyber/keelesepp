@@ -3347,3 +3347,36 @@ test("previously archived duplicates are finished off and deleted", async () => 
   assert.equal((await db.collection("students").doc("old-dup").get()).exists, false);
   assert.equal((await db.collection("homework").doc("old-dup-homework").get()).data().studentId, "old-main");
 });
+
+test("monthly plan invoice is priced from the private plan and issued once per month", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  await Promise.all([
+    db.collection("students").doc("monthly-student").set({ name: "Kuu Õpilane", active: true, parentEmail: "kuu@example.com" }),
+    db.collection("studentRevenuePlans").doc("monthly-student").set({ studentId: "monthly-student", studentName: "Kuu Õpilane", lessonPriceCents: 2500, lessonMinutes: 60, weeklyLessons: 1, billingMode: "current", currency: "EUR", active: true, updatedAt: "2026-09-01T00:00:00.000Z", updatedByUid: "seed-admin" }),
+  ]);
+  const adminToken = await createAdminToken();
+  // manualInvoiceApi checks roles on the profile (the super-admin e-mail alone is not enough there)
+  await db.collection("users").doc(tokenUid(adminToken)).set({ roles: ["admin"], role: "admin", email: "zakutailo.pavel@gmail.com" }, { merge: true });
+  const call = (body) => fetch(`http://${FUNCTIONS_EMULATOR}/${PROJECT_ID}/us-central1/manualInvoiceApi/monthly`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${adminToken}`, "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  }).then(async (response) => ({ status: response.status, body: await response.json() }));
+
+  const body = { studentId: "monthly-student", month: "2031-10", due: "2031-10-10", plannedUnits: 4, correctionUnits: -1, correctionNote: "1 puudumine", lessonPriceCents: 1 };
+  const created = await call(body);
+  assert.equal(created.status, 201, JSON.stringify(created.body));
+  assert.equal(created.body.invoice.amountCents, 7500);
+  assert.equal(created.body.invoice.planMonth, "2031-10");
+  assert.equal(created.body.invoice.lines.length, 2);
+
+  const again = await call({ ...body, plannedUnits: 8 });
+  assert.equal(again.status, 200, JSON.stringify(again.body));
+  assert.equal(again.body.idempotent, true);
+  assert.equal(again.body.invoice.amountCents, 7500);
+
+  const noPrice = await call({ ...body, studentId: "price-card-only-missing", month: "2031-11" });
+  assert.equal(noPrice.status, 404, JSON.stringify(noPrice.body));
+});

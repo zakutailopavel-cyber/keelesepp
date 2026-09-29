@@ -937,6 +937,8 @@ service cloud.firestore {
         && financialDateOpen(request.resource.data.get('date', ''))
         && !changesLessonBillingSource()
         && !changesLessonPackageSource()
+        // Finance v2: "don't charge this no-show" is an admin decision
+        && (isAdmin() || !request.resource.data.diff(resource.data).affectedKeys().hasAny(['billingWaived', 'billingWaivedBy', 'billingWaivedAt']))
         && (
           !changesLessonBillingBasis()
           || (

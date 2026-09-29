@@ -1,35 +1,26 @@
-import { Card } from '../../components/ui/index.js';
-import { FINANCE_WORKSPACE_GROUPS, normalizeFinanceSection } from './financeNavigation.js';
+import { ChevronDown } from 'lucide-react';
+import { FINANCE_WORKSPACE_GROUPS, financeSectionById, normalizeFinanceSection } from './financeNavigation.js';
 import './financeWorkspaceNav.css';
 
 export default function FinanceWorkspaceNav({ activeSection, onSelect }) {
   const active = normalizeFinanceSection(activeSection);
-
+  const [main, advanced] = FINANCE_WORKSPACE_GROUPS;
+  const inAdvanced = financeSectionById(active)?.groupId === 'advanced';
   return (
-    <Card className="finance-workspace-nav-card">
-      <nav className="finance-workspace-nav" aria-label="Finantsmooduli jaotised">
-        {FINANCE_WORKSPACE_GROUPS.map((group) => (
-          <section className={`finance-workspace-nav__group finance-workspace-nav__group--${group.id}`} key={group.id}>
-            <header>
-              <strong>{group.label}</strong>
-              <span>{group.description}</span>
-            </header>
-            <div>
-              {group.sections.map((section) => (
-                <button
-                  key={section.id}
-                  type="button"
-                  className={section.id === active ? 'is-active' : undefined}
-                  aria-pressed={section.id === active}
-                  onClick={() => onSelect(section.id)}
-                >
-                  {section.label}
-                </button>
-              ))}
-            </div>
-          </section>
-        ))}
-      </nav>
-    </Card>
+    <nav className="finance-tabs" aria-label="Finantsmooduli jaotised">
+      {main.sections.map((section) => (
+        <button key={section.id} type="button" title={section.description} aria-pressed={section.id === active} className={section.id === active ? 'is-active' : undefined} onClick={() => onSelect(section.id)}>
+          {section.label}
+        </button>
+      ))}
+      <details className="finance-tabs__more" open={inAdvanced || undefined}>
+        <summary className={inAdvanced ? 'is-active' : undefined}>{advanced.label} <ChevronDown size={15} /></summary>
+        <div>
+          {advanced.sections.map((section) => (
+            <button key={section.id} type="button" aria-pressed={section.id === active} className={section.id === active ? 'is-active' : undefined} onClick={() => onSelect(section.id)}>{section.label}</button>
+          ))}
+        </div>
+      </details>
+    </nav>
   );
 }

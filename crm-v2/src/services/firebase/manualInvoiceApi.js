@@ -26,6 +26,17 @@ export const manualInvoiceApi = {
     const result = await post('/students');
     return result.students || [];
   },
+  // Finance v2: one invoice per student and month; the server takes the price from the private plan
+  createMonthly(values) {
+    return post('/monthly', {
+      studentId: values.studentId,
+      month: values.month,
+      due: values.due,
+      plannedUnits: values.plannedUnits,
+      correctionUnits: values.correctionUnits || 0,
+      correctionNote: values.correctionNote || '',
+    });
+  },
   create(values) {
     return post('/create', {
       studentId: values.studentId,

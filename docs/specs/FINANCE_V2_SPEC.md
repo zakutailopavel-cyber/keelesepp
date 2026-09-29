@@ -69,3 +69,17 @@ cards removed completely and for good, so a parent sees exactly one, current car
 2. Company details, payment account and invoice layout: **as in v1** (`PAYMENT_DETAILS`, due day 10).
 3. "Puudus, ei teatanud" is **charged**, but the admin can waive a single lesson ("erand: ära arvesta").
 4. Stored per student plan: `billingMode` ('advance' | 'current'), `lessonMinutes`, `chargeNoShow`, price history.
+
+## Implementation notes (2026-09-30)
+- §1 done (PR #210): price only in `studentRevenuePlans`, "Arveldus" card in the profile, one-time move button.
+- §4 done (PR #211): permanent merge (type the main card's name), manual pick, purge of earlier archived duplicates.
+  The v2 duplicate tool had called `financeApi`, which has no merge routes; it now calls `staffOperationsApi`.
+- §2/§3: tab "Kuuarved" — planned lessons from the calendar (individual + group, cancelled dates skipped,
+  lesson length in price units) × plan price; one invoice per student and month (`invoices/monthly_<student>_<month>`,
+  server prices from the plan). Correction line = last month's chargeable lessons − last month's billed units
+  (held lessons + no-shows unless waived). No-show exception per lesson (`billingWaived`, admin only in rules).
+  "Koosta arved" / "Koosta ja saada" (PDF by e-mail via the existing invoice sender). Default due: current mode 10th
+  of the month, advance mode last day of the month before. Existing reminders (1st–10th for invoices due on the
+  10th, then overdue every few days) and their count/date on the invoice stay as they were.
+- Finance page: tabs Kuuarved / Arved ja maksed (incl. bank) / Ülevaade; lesson-based invoices, advances, audit,
+  numbering under "Täpsem".

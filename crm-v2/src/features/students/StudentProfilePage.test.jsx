@@ -86,7 +86,7 @@ describe('student profile tabs and role access', () => {
     expect(screen.getByText('KS-100')).toBeInTheDocument();
     expect(screen.getByText('Osaliselt makstud')).toBeInTheDocument();
     expect(screen.getAllByText('Makstud').length).toBeGreaterThan(0);
-    expect(screen.getByRole('link', { name: /Loo arve/ })).toHaveAttribute('href', '/finance#tunniarvestus');
+    expect(screen.getByRole('link', { name: /Loo arve/ })).toHaveAttribute('href', '/finance#kuuarved');
     expect(within(finance).getAllByText('50,00 €').length).toBeGreaterThan(0);
   });
 

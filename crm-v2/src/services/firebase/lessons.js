@@ -1,4 +1,4 @@
-import { collection, doc, getDoc, getDocs, query, where, writeBatch } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, query, updateDoc, where, writeBatch } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
 import { canonicalTeacherName } from '../../utils/teachers.js';
 
@@ -24,6 +24,13 @@ function accountingLessonId(source, occurrenceDate, studentId) {
 }
 
 export const lessonsService = {
+  // Finance v2: exception for one "Puudus, ei teatanud" lesson — not charged on the next monthly invoice (admin only)
+  async setBillingWaived(lessonId, waived, user) {
+    const { db } = requireFirebaseClient();
+    const value = { billingWaived: Boolean(waived), billingWaivedBy: user?.displayName || user?.email || '', billingWaivedAt: new Date().toISOString() };
+    await updateDoc(doc(db, 'lessons', lessonId), value);
+    return value;
+  },
   async listForBilling() {
     const { db } = requireFirebaseClient();
     const snapshot = await getDocs(collection(db, 'lessons'));
