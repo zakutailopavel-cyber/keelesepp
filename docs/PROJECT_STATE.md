@@ -1,5 +1,13 @@
 # KeeleSepp Project State
 
+## Production deploy status (2026-09-29)
+
+Vercel's free plan hit its build rate limit several times on 2026-09-29, so some merges were not deployed. The last
+production build of `keelesepp-crm-v2` before this note was `cf97557` (#190); #183 (Live Classroom with worksheet),
+#193 (camera/microphone header) and #194 (dialog focus) were merged but not built. This docs-only merge triggers a new
+production build of main. How to check: GitHub deployments API (`Production – keelesepp-crm-v2`) or the response header
+`permissions-policy` of the v2 site (must contain `camera=(self)`).
+
 ## CRM v2 bug: typing in any dialog lost focus after the first key — PR
 
 Reported by the owner on 2026-09-29 with a screen video of "Uus tund" (calendar): after typing the first letter of the
