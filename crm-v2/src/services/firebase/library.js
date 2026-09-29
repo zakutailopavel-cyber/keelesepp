@@ -156,6 +156,11 @@ export const libraryService = {
     const date = now.slice(0, 10);
     const assignmentMode = item.type === 'worksheet' ? 'worksheet' : item.kind === 'exercise' ? 'exercise' : 'homework';
 
+    // every assignment carries its own copy of the structured worksheet; keep one batch under Firestore's request limit
+    const docBytes = item.source.worksheetDoc?.blocks?.length ? JSON.stringify(item.source.worksheetDoc).length : 0;
+    if (assignmentMode === 'worksheet' && docBytes * students.length > 9 * 1024 * 1024) {
+      throw new Error(`Tööleht on suur: määra see korraga kuni ${Math.max(1, Math.floor((9 * 1024 * 1024) / docBytes))} õpilasele.`);
+    }
     for (const student of students) {
       if (assignmentMode === 'worksheet') {
         batch.set(doc(collection(db, 'worksheetAssignments')), {
@@ -170,6 +175,7 @@ export const libraryService = {
             meta: { title: item.title, subject: item.subject, level: item.level, topic: item.topic },
             blocks: [],
           },
+          ...(item.source.worksheetDoc?.blocks?.length ? { worksheetDoc: item.source.worksheetDoc } : {}),
           files: storedFiles(item.source.files || []),
           studentId: student.id,
           studentName: student.name || '',

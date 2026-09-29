@@ -37,3 +37,21 @@ export function scoreDocument(doc, answers) {
   }
   return { perBlock, perGoal };
 }
+
+// Everything a check produces, in one place: per-field marks for the sheet, per-goal evidence,
+// the overall score for the assignment record and the open (teacher-judged) work.
+export function checkDocument(doc, answers = {}) {
+  const { perBlock, perGoal } = scoreDocument(doc, answers);
+  const results = {};
+  let correct = 0;
+  let total = 0;
+  Object.entries(perBlock).forEach(([bid, items]) => items.forEach((it) => {
+    results[`${bid}:${it.key}`] = it.ok ? 'ok' : 'bad';
+    total += 1;
+    if (it.ok) correct += 1;
+  }));
+  const speak = doc.blocks.filter((b) => b.type === 'speaking')
+    .map((b) => ({ id: b.id, goal: b.goal, recorded: !!answers[`${b.id}:audioUrl`], seconds: answers[`${b.id}:seconds`] || 0 }));
+  const score = { correct, total, pct: total ? Math.round((correct / total) * 100) : 0, perGoal };
+  return { results, perGoal, speak, score };
+}

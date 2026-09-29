@@ -58,6 +58,7 @@ export const speaking = {
         <ul className="ws-bullets">{String(data.questions || '').split('\n').filter(Boolean).map((q, i) => <li key={i}><Md text={q} /></li>)}</ul>
         {data.tipTitle && <div className="ws-tip"><Speech /><div><b>{data.tipTitle}</b><br />{data.tipText}</div></div>}
         {ctx.interactive && <Recorder ctx={ctx} target={[Number(data.minSec) || 60, Number(data.maxSec) || 120]} />}
+        {ctx.review && (ctx.get('audioUrl') ? <div className="ws-rec"><audio controls src={ctx.get('audioUrl')} /><span className="ws-pill">{ctx.get('seconds') || 0} s</span></div> : <div className="ws-hint">Salvestus puudub.</div>)}
       </div>
       {data.img?.src && <Photo img={data.img} aspect={data.aspect} alt="">{data.bubble && <div className="ws-bubble">{data.bubble}</div>}</Photo>}
     </div>
@@ -93,10 +94,10 @@ export const writing = {
     const lines = Number(data.lines) || 7;
     return (
       <div className="ws-write">
-        <textarea className="ws-ruled" style={{ height: `calc(7.4mm * ${lines})` }} readOnly={!ctx.interactive} tabIndex={ctx.interactive ? 0 : -1} value={ctx.interactive ? text : ''}
+        <textarea className="ws-ruled" style={{ height: `calc(7.4mm * ${lines})` }} readOnly={!ctx.interactive} tabIndex={ctx.interactive ? 0 : -1} value={text}
           onChange={(e) => ctx.set('text', e.target.value)} aria-label="Kirjutamise väli" spellCheck={false} />
         {data.img?.src && <img className="ws-note-img" src={data.img.src} alt="" />}
-        {ctx.interactive && (
+        {(ctx.interactive || ctx.review) && (
           <div className="ws-counters">
             <span className={`ws-pill ${c.sentences >= data.minSent && c.sentences <= data.maxSent ? 'ok' : 'warn'}`}>Lauseid: {c.sentences} / {data.minSent}–{data.maxSent}</span>
             {splitList(data.keywords).length > 0 && <span className={`ws-pill ${c.used.length >= data.minKeywords ? 'ok' : 'warn'}`}>Märksõnu: {c.used.length} / {data.minKeywords}{c.used.length ? ` (${c.used.join(', ')})` : ''}</span>}

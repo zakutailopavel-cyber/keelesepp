@@ -1,5 +1,39 @@
 # KeeleSepp Project State
 
+## Worksheet Studio slice 2 (assign structured worksheets, student player, teacher review) — DRAFT PR (stacked)
+
+Last verified against main: 2026-09-29, Europe/Tallinn. Verified main: `8e8bd65`.
+Implementation branch: `agent/worksheet-studio-assignments`, stacked on `agent/worksheet-studio-v1` (PR #184).
+Pull request: draft, base `agent/worksheet-studio-v1` (not merged by the agent). Merge #184 first.
+
+What it does: a worksheet built in the studio counts as a worksheet in Õppevara and is assigned with the existing
+"Määra" flow; each `worksheetAssignments` document gets a snapshot `worksheetDoc` (v1 `worksheetData`/`files` kept).
+The student opens it in the same A4 design (`DocWorksheetPlayer`), answers, records voice answers (uploaded to
+`homework/{studentId}/ws_rec_*` before draft/submit), submits; the score is `{ correct, total, pct, perGoal }`.
+After submission the student and the teacher see the sheet read-only with ok/bad marks, recordings and the result per
+lesson goal; the teacher review dialog in Homework shows the same (`DocWorksheetSubmissionPreview`). Assignments
+without `worksheetDoc` keep the v1 player unchanged.
+
+Changed files: `crm-v2/src/features/worksheet-studio/{DocWorksheetPlayer.jsx,GoalEvidence.jsx,useFitScale.js}` (new,
++ test), `engine/registry.js` (`checkDocument`), `engine/Sheet.jsx` (`ctx.review`), `engine/ui.jsx`,
+`engine/blocks/{tasks,productive}.jsx`, `engine/sheet.css`, `worksheetStudio.css`, `WorksheetStudioPage.jsx`
+(uses `checkDocument` + `GoalEvidence`), `crm-v2/src/features/homework/{WorksheetPlayer,HomeworkPage}.jsx`,
+`crm-v2/src/services/firebase/{homework,library}.js` (+ tests), `crm-v2/src/features/library/libraryModel.js`
+(+ test), `docs/WORKSHEET_STUDIO_V1.md`, this file.
+Data contract: optional `worksheetAssignments.worksheetDoc` (created by staff; existing create rule has no field list);
+student updates only `status, answers, score, errorLog, completedAt, seenByTeacher, updatedAt, selfAssessment` (already
+allowed). Storage: `homework/{studentId}/ws_rec_<assignment>_<block>_<ts>.(webm|m4a|ogg)` (existing rule: staff or
+owning student/parent, audio allowed, < 20 MB). No rule, index, Function, migration or deploy.
+A batch refuses assigning a structured worksheet when copies would exceed ~9 MB (message tells the max student count).
+
+Validation (2026-09-29): `npx vitest run` 326/327 passed (1 pre-existing date-dependent failure in
+`TeachersPage.test.jsx`, same as on main); `npx eslint .` clean; `npx vite build` OK; `git diff --check` OK.
+Risks: not yet clicked through in a browser against real Firebase (player layout at phone width, MediaRecorder on
+iOS Safari produces `audio/mp4`, handled as `.m4a`); many-to-many and open answers are counted as "teacher sees".
+Unfinished: Live Classroom worksheet scene; image→structure conversion queue; textbook export.
+Exactly one next safe step: owner merges #184, then opens this PR's Vercel preview, assigns one studio worksheet to a
+test student and completes it as that student.
+
 ## Worksheet Studio v1 (structured branded worksheets + builder) — DRAFT PR
 
 Last verified against main: 2026-09-29, Europe/Tallinn. Verified main: `8e8bd65`.

@@ -6,10 +6,11 @@ import { useAuth } from '../../app/AuthContext.jsx';
 import { worksheetDocsService } from '../../services/firebase/index.js';
 import Sheet from './engine/Sheet.jsx';
 import { AssetContext } from './engine/assets.jsx';
-import { BLOCKS, GROUPS, createBlock, scoreDocument } from './engine/registry.js';
+import { BLOCKS, GROUPS, checkDocument, createBlock } from './engine/registry.js';
 import { newDocument, newId } from './engine/schema.js';
 import { sampleDocument } from './engine/sample.js';
 import { BlockInspector, SheetInspector } from './editor/Inspector.jsx';
+import GoalEvidence from './GoalEvidence.jsx';
 import './engine/sheet.css';
 import './worksheetStudio.css';
 
@@ -118,11 +119,9 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService 
   const switchMode = (m) => { setMode(m); setEvidence(null); setResults({}); if (m !== 'edit') setSelectedId(null); };
 
   const check = () => {
-    const { perBlock, perGoal } = scoreDocument(doc, answers);
-    const res = {};
-    Object.entries(perBlock).forEach(([bid, items]) => items.forEach((it) => { res[`${bid}:${it.key}`] = it.ok ? 'ok' : 'bad'; }));
-    setResults(res);
-    setEvidence({ perGoal, speak: doc.blocks.filter((b) => b.type === 'speaking').map((b) => ({ goal: b.goal, recorded: !!answers[`${b.id}:audioUrl`], seconds: answers[`${b.id}:seconds`] || 0 })) });
+    const res = checkDocument(doc, answers);
+    setResults(res.results);
+    setEvidence(res);
   };
 
   const save = async () => {
@@ -206,19 +205,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService 
             <div className="st-zoom" style={{ zoom: scale }}>
               <Sheet doc={doc} mode={mode} answers={answers} setAnswer={setAnswer} results={results} selectedId={selectedId} onSelect={setSelectedId} onMove={dropMove} />
             </div>
-            {evidence && (
-              <section className="st-evidence">
-                <h4>Tulemus tunni eesmärkide kaupa</h4>
-                {Object.entries(doc.meta.goals || {}).map(([id, label]) => {
-                  const g = evidence.perGoal[id];
-                  const sp = evidence.speak.find((s) => s.goal === id);
-                  const txt = g ? `${g.ok} / ${g.total}` : sp ? (sp.recorded ? `salvestus ${sp.seconds} s — hindab õpetaja` : 'salvestus puudub') : '—';
-                  return <div className="st-ev" key={id}><span>{label}</span><b>{txt}</b></div>;
-                })}
-                {evidence.perGoal._none && <div className="st-ev"><span>Eesmärgiga sidumata ülesanded</span><b>{evidence.perGoal._none.ok} / {evidence.perGoal._none.total}</b></div>}
-                <div className="st-ev"><span>Mitme õige vastusega ülesanded, kõne ja enesehinnang</span><b>näeb õpetaja</b></div>
-              </section>
-            )}
+            {evidence && <GoalEvidence doc={doc} evidence={evidence} />}
           </main>
 
           {mode === 'edit' && (
