@@ -5,7 +5,9 @@ import TeachersPage from './TeachersPage.jsx';
 
 describe('TeachersPage', () => {
   it('summarises active teachers, assigned students and upcoming work', async () => {
-    const today = new Date().toISOString().slice(0, 10);
+    // local date, like the page (toISOString is UTC and is "yesterday" just after midnight in Tallinn)
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     render(<MemoryRouter><TeachersPage
       teacherRepository={{ list: vi.fn().mockResolvedValue([
         { id: 'teacher-1', name: 'Õpetaja Üks', email: 'one@example.com', disabled: false },

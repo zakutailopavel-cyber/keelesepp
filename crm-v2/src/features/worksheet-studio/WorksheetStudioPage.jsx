@@ -18,6 +18,7 @@ import GoalEvidence from './GoalEvidence.jsx';
 import { applyPrintA4 } from './printPage.js';
 import './engine/sheet.css';
 import './worksheetStudio.css';
+import { addItem } from './engine/addItem.js';
 
 const MM = 3.7795;
 
@@ -108,6 +109,10 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService 
     const block = doc.blocks.find((b) => b.id === id);
     if (!block) return;
     updateBlock('span' in patch ? withSpan(block, patch.span) : withHeight(block, patch.minHeightMm));
+  };
+  const addItemTo = (id) => {
+    const block = doc.blocks.find((b) => b.id === id);
+    if (block) updateBlock(addItem(block));
   };
   const addBlock = (type) => {
     const b = createBlock(type);
@@ -250,7 +255,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService 
 
           <main className="st-canvas" ref={canvasRef}>
             <div className="st-zoom" style={{ zoom: scale }}>
-              <Sheet doc={doc} mode={mode} answers={answers} setAnswer={setAnswer} results={results} selectedId={selectedId} onSelect={setSelectedId} onMove={dropMove} onResize={resizeBlock} />
+              <Sheet doc={doc} mode={mode} answers={answers} setAnswer={setAnswer} results={results} selectedId={selectedId} onSelect={setSelectedId} onMove={dropMove} onResize={resizeBlock} onAddItem={addItemTo} />
             </div>
             {evidence && <GoalEvidence doc={doc} evidence={evidence} />}
           </main>

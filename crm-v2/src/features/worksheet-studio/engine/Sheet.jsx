@@ -4,6 +4,7 @@ import { BLOCKS, exampleAnswers, numberTasks } from './registry.js';
 import { TONES } from './schema.js';
 import { Md, Target } from './ui.jsx';
 import { COLUMNS, rowsOf, snapSpan, spanOf } from './layout.js';
+import { addItemLabel } from './addItem.js';
 
 // Renders a worksheet document as real A4 pages (270 mm design canvas, zoomed to A4 when printed).
 // The same component serves the editor (mode "edit"), the student (mode "interactive") and print ("print").
@@ -29,7 +30,7 @@ const Footer = ({ meta, page, pages, bookPage }) => (
   <div className="ws-ftr"><div className="ws-fl">KeeleSepp <small>by EP Koolitus</small></div><em>{meta.footer?.tagline}</em><div className="ws-url">{meta.footer?.url}{bookPage ? ` · ${bookPage}` : pages > 1 ? ` · ${page}/${pages}` : ''}</div></div>
 );
 
-function Card({ block, num, mode, ctx, selected, onSelect, drag, focused, onPick, onResize }) {
+function Card({ block, num, mode, ctx, selected, onSelect, drag, focused, onPick, onResize, onAddItem }) {
   const def = BLOCKS[block.type];
   if (!def) return null;
   const tone = TONES[block.tone] || TONES.white;
@@ -39,6 +40,7 @@ function Card({ block, num, mode, ctx, selected, onSelect, drag, focused, onPick
   const example = exampleAnswers(block);
   const hasExample = Object.keys(example).length > 0;
   const base = ctx(block.id);
+  const addLabel = mode === 'edit' && selected && onAddItem ? addItemLabel(block) : null;
   // the solved example is read-only and shown in every mode (edit, print, student)
   const blockCtx = hasExample || opts.shuffle ? {
     ...base,
@@ -49,7 +51,7 @@ function Card({ block, num, mode, ctx, selected, onSelect, drag, focused, onPick
   } : base;
   return (
     <section
-      className={`ws-card ${plain ? 'plain' : ''} ${block.width === 'full' ? 'full' : ''} ${selected ? 'selected' : ''} ${focused ? 'focused' : ''} ${onPick ? 'pickable' : ''} ${hasExample ? 'has-example' : ''}`}
+      className={`ws-card ${plain ? 'plain' : ''} ${block.width === 'full' ? 'full' : ''} ${selected ? 'selected' : ''} ${focused ? 'focused' : ''} ${onPick ? 'pickable' : ''} ${hasExample ? 'has-example' : ''} ${block.minHeightMm ? 'is-tall' : ''}`}
       data-cols={opts.cols > 1 ? opts.cols : undefined}
       data-size={opts.size || undefined}
       style={{ ...(plain ? {} : { background: tone.card }), gridColumn: `span ${spanOf(block)}`, ...(block.minHeightMm ? { minHeight: `${block.minHeightMm}mm` } : {}) }}
@@ -69,7 +71,9 @@ function Card({ block, num, mode, ctx, selected, onSelect, drag, focused, onPick
           </div>
         </div>
       )}
-      <def.View data={d} ctx={blockCtx} id={block.id} />
+      {/* body fills the rest of a block made taller than its content (see .is-tall in sheet.css) */}
+      <div className="ws-body"><def.View data={d} ctx={blockCtx} id={block.id} /></div>
+      {addLabel ? <button type="button" className="ws-add" onClick={(e) => { e.stopPropagation(); onAddItem(block.id); }}>+ {addLabel}</button> : null}
       {mode === 'edit' && selected && onResize ? <ResizeHandles block={block} onResize={onResize} /> : null}
     </section>
   );
@@ -124,7 +128,7 @@ function ResizeHandles({ block, onResize }) {
   );
 }
 
-export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnswer, results = {}, selectedId, onSelect, onMove, onResize, startPage, onPageCount, focusId, onPick }) {
+export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnswer, results = {}, selectedId, onSelect, onMove, onResize, onAddItem, startPage, onPageCount, focusId, onPick }) {
   const nums = useMemo(() => numberTasks(doc.blocks), [doc.blocks]);
   const [focus, setFocusState] = useState({});
   const interactive = mode === 'interactive';
@@ -185,7 +189,7 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
 
   const rowView = (row, key) => (
     <div className="ws-row" key={key}>
-      {row.map((b) => <Card key={b.id} block={b} num={nums[b.id]} mode={mode} ctx={ctx} selected={selectedId === b.id} onSelect={onSelect} drag={drag} focused={focusId === b.id} onPick={onPick} onResize={onResize} />)}
+      {row.map((b) => <Card key={b.id} block={b} num={nums[b.id]} mode={mode} ctx={ctx} selected={selectedId === b.id} onSelect={onSelect} drag={drag} focused={focusId === b.id} onPick={onPick} onResize={onResize} onAddItem={onAddItem} />)}
     </div>
   );
 
