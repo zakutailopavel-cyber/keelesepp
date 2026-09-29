@@ -1,6 +1,25 @@
 # KeeleSepp Project State
 
-## Worksheet Studio slice 3 (moving image worksheets to the structured format) — PR
+## Worksheet Studio slice 4 (textbook export) — PR
+
+Last verified against main: 2026-09-29, Europe/Tallinn. Verified main: `69865b8` (merged #186).
+Branch: `agent/worksheet-studio-book`. Claude merges its own PRs after all checks pass (owner, 2026-09-29).
+
+What: `/library/worksheets/book` (staff, button "Õpik" in Õppevara) composes a textbook from structured worksheets:
+title/subtitle/level/publisher, order, cover, contents with page numbers, sheets with running book page numbers;
+"PDF / Prindi" prints the whole book as A4. The plan is kept in the teacher's browser (`localStorage`), nothing new in
+Firestore.
+Changed files: `crm-v2/src/features/worksheet-studio/{BookPage.jsx,BookPage.test.jsx}` (new), `engine/Sheet.jsx`
+(`startPage`, `onPageCount`), `worksheetStudio.css`, `crm-v2/src/app/{routes.jsx,accessPolicy.js}`,
+`crm-v2/src/features/library/LibraryPage.jsx`, `docs/WORKSHEET_STUDIO_V1.md`, this file.
+Data contract: none. No rule, index, Function, migration or deploy.
+Validation: `npx vitest run` 332/332; `npx eslint .` clean; `npx vite build` OK; `git diff --check` OK.
+Risks: the printed book was not checked on paper or as a browser PDF with real photos; the contents page assumes one
+page (about 30 worksheets); photos ≤ 1600 px suit office printing, not 300 dpi offset.
+Unfinished: Live Classroom worksheet scene (needs the v2 lesson room from the Live Classroom track).
+Exactly one next safe step: owner builds a 3-sheet book in "Õpik" and saves it as PDF from the print dialog.
+
+## Worksheet Studio slice 3 (moving image worksheets to the structured format) — MERGED (#186, 69865b8)
 
 Last verified against main: 2026-09-29, Europe/Tallinn. Verified main: `0aacb7c` (merged #185).
 Branch: `agent/worksheet-studio-conversion`. Owner instruction (2026-09-29): Claude merges its own PRs after all checks pass.

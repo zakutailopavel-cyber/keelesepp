@@ -126,3 +126,31 @@ textarea.ed-input { resize: vertical; }
 .ws-convert-row > span:nth-child(2) { display: grid; gap: 3px; min-width: 0; } .ws-convert-row strong, .ws-convert-row small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .ws-convert-row small { color: var(--muted); font-size: .75rem; }
 .ws-convert-go { display: inline-flex; gap: 4px; align-items: center; font-weight: 700; color: #175cd3; font-size: .85rem; }
 @media (max-width: 700px) { .ws-convert-filters { grid-template-columns: 1fr; } .ws-convert-row { grid-template-columns: 48px minmax(0, 1fr); } .ws-convert-row > .badge, .ws-convert-go { grid-column: 2; } }
+
+/* Textbook export */
+.ws-book-studio .st-body { grid-template-columns: 320px 1fr; }
+.ws-book-side { display: flex; flex-direction: column; gap: 8px; }
+.ws-book-order { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; }
+.ws-book-order li { display: grid; grid-template-columns: 1fr auto auto auto; gap: 2px; align-items: center; padding: 5px 6px; border: 1px solid var(--st-line); border-radius: 8px; font-size: 12.5px; }
+.ws-book-order li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ws-book-order button { border: 0; background: transparent; color: var(--st-muted); cursor: pointer; padding: 3px; border-radius: 6px; }
+.ws-book-order button:hover { background: var(--st-bg); color: var(--st-ink); }
+.ws-book { display: flex; flex-direction: column; align-items: center; gap: 10mm; }
+.ws-book-cover { justify-content: space-between; padding: 22mm 20mm; background: linear-gradient(160deg, #edf5fd 0%, #fff 55%, #fff4d6 100%); }
+.ws-book-cover-title .ws-big { display: inline-block; font: 900 40pt/1 var(--font-head); color: #fff; background: var(--ks-green); border-radius: 4mm; padding: 3mm 7mm; margin-bottom: 8mm; }
+.ws-book-cover-title h1 { font: 900 44pt/1.05 var(--font-head); color: var(--ks-navy); margin: 0 0 5mm; }
+.ws-book-cover-title p { font-size: 18pt; color: var(--ks-muted); margin: 0; }
+.ws-book-cover-foot { font: 800 14pt var(--font-head); color: var(--ks-navy); }
+.ws-book-toc ol { list-style: none; margin: 6mm 0 0; padding: 0; display: grid; gap: 3mm; font-size: 14pt; }
+.ws-book-toc li { display: grid; grid-template-columns: auto 1fr auto; gap: 3mm; align-items: baseline; }
+.ws-book-toc li i { border-bottom: 1.5px dotted var(--ks-line); }
+.ws-book-toc li b { font-family: var(--font-head); color: var(--ks-navy); }
+@media print {
+  body.ws-studio-open .ws-book, body.ws-studio-open .ws-book * { visibility: visible; }
+  .ws-book { position: absolute; left: 0; top: 0; display: block; zoom: 1 !important; }
+  .ws-book .ws-root { position: static !important; }
+  .ws-book .ws-page { break-after: page; }
+  .ws-book > .ws-root:last-child .ws-page:last-child { break-after: auto; }
+  .ws-book-studio .st-palette { display: none !important; }
+}
+@media (max-width: 1100px) { .ws-book-studio .st-body { grid-template-columns: 1fr; } }

@@ -87,9 +87,20 @@ per goal; save and load errors). Full suite, ESLint and production build — see
   `gsutil cors set storage.cors.json gs://<VITE_FIREBASE_STORAGE_BUCKET>`.
 - No automatic (AI) recognition of the image: that would be a paid external call and needs the owner's decision.
 
+## Slice 4: textbook export
+
+- `/library/worksheets/book` (staff; button "Õpik" in Õppevara): pick structured worksheets (`worksheetDoc`), order
+  them, set title / subtitle / level / publisher; the page renders a cover, contents with page numbers and every sheet
+  in print mode with running book page numbers in the footer (`Sheet` props `startPage`, `onPageCount`).
+- "PDF / Prindi" prints the whole book (A4, one worksheet page per sheet of paper); "Save as PDF" gives the file for a
+  printer. The book plan (ids and titles) is kept in the teacher's browser (`localStorage`), nothing is stored in
+  Firestore; worksheets stay the single source.
+- Print quality depends on uploaded photos (JPEG ≤ 1600 px): enough for A4 at ~150–190 dpi. Offset printing at 300 dpi
+  would need larger originals (not changed in this slice).
+
 ## Not in this slice
 
 1. (done in slice 2)
 2. Worksheet as a Live Classroom scene (needs the v2 lesson room; see PR #183 and the Live Classroom roadmap).
 3. (manual conversion queue done in slice 3; automatic recognition is not planned without the owner's decision)
-4. Textbook export (book layout, 300 dpi illustrations).
+4. (textbook export done in slice 4; 300 dpi illustrations need larger photo uploads)
