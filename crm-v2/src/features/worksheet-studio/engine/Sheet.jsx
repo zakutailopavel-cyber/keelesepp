@@ -34,8 +34,9 @@ function Header({ meta }) {
   );
 }
 
-const Footer = ({ meta, page, pages }) => (
-  <div className="ws-ftr"><div className="ws-fl">KeeleSepp <small>by EP Koolitus</small></div><em>{meta.footer?.tagline}</em><div className="ws-url">{meta.footer?.url}{pages > 1 ? ` · ${page}/${pages}` : ''}</div></div>
+// In a book (startPage set) pages carry the book page number; a single sheet shows "page/pages".
+const Footer = ({ meta, page, pages, bookPage }) => (
+  <div className="ws-ftr"><div className="ws-fl">KeeleSepp <small>by EP Koolitus</small></div><em>{meta.footer?.tagline}</em><div className="ws-url">{meta.footer?.url}{bookPage ? ` · ${bookPage}` : pages > 1 ? ` · ${page}/${pages}` : ''}</div></div>
 );
 
 function Card({ block, num, mode, ctx, selected, onSelect, drag }) {
@@ -69,7 +70,7 @@ function Card({ block, num, mode, ctx, selected, onSelect, drag }) {
   );
 }
 
-export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnswer, results = {}, selectedId, onSelect, onMove }) {
+export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnswer, results = {}, selectedId, onSelect, onMove, startPage, onPageCount }) {
   const nums = useMemo(() => numberTasks(doc.blocks), [doc.blocks]);
   const [focus, setFocusState] = useState({});
   const interactive = mode === 'interactive';
@@ -126,6 +127,8 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
     return () => ro.disconnect();
   }, [rows, doc.meta]);
 
+  useLayoutEffect(() => { onPageCount?.(pages.length); }, [pages.length, onPageCount]);
+
   const rowView = (row, key) => (
     <div className={`ws-row ${row.length === 1 && row[0].width === 'half' ? 'single-half' : ''}`} key={key}>
       {row.map((b) => <Card key={b.id} block={b} num={nums[b.id]} mode={mode} ctx={ctx} selected={selectedId === b.id} onSelect={onSelect} drag={drag} />)}
@@ -144,7 +147,7 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
           {p === 0 ? <Header meta={doc.meta} /> : <div className="ws-runhead"><span>{doc.meta.title}</span><span>{doc.meta.level}</span></div>}
           <div className="ws-flow">{idxs.map((i) => rows[i] && rowView(rows[i], i))}</div>
           {mode === 'edit' && idxs.length === 0 && <div className="ws-empty">Lisa vasakult esimene plokk.</div>}
-          <Footer meta={doc.meta} page={p + 1} pages={pages.length} />
+          <Footer meta={doc.meta} page={p + 1} pages={pages.length} bookPage={startPage ? startPage + p : undefined} />
         </div>
       ))}
     </div>

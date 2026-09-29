@@ -10,6 +10,7 @@ import GroupsPage from '../features/groups/GroupsPage.jsx';
 import LibraryPage from '../features/library/LibraryPage.jsx';
 import WorksheetStudioPage from '../features/worksheet-studio/WorksheetStudioPage.jsx';
 import ConversionQueuePage from '../features/worksheet-studio/ConversionQueuePage.jsx';
+import BookPage from '../features/worksheet-studio/BookPage.jsx';
 import LiveClassroomPage from '../features/live-classroom/LiveClassroomPage.jsx';
 import MessagesPage from '../features/messages/MessagesPage.jsx';
 import ParentsPage from '../features/parents/ParentsPage.jsx';
@@ -42,6 +43,7 @@ export default function AppRoutes() {
             <Route path="groups" element={<GroupsPage />} />
             <Route path="library" element={<LibraryPage />} />
             <Route path="library/worksheets/convert" element={<ConversionQueuePage />} />
+            <Route path="library/worksheets/book" element={<BookPage />} />
             <Route path="library/worksheets/:lessonId" element={<WorksheetStudioPage />} />
             <Route path="parents" element={<ParentsPage />} />
             <Route path="live-classroom" element={<LiveClassroomPage />} />
