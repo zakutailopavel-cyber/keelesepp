@@ -1,6 +1,6 @@
 /* global fetch, setTimeout, clearTimeout */
 import { CheckCircle2, Clock3, Send, Star } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Badge, Button, Modal, Select } from '../../components/ui/index.js';
 import Sheet from './engine/Sheet.jsx';
 import { answerProgress, checkDocument } from './engine/registry.js';
@@ -39,7 +39,8 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
   const [comment, setComment] = useState(assignment.selfAssessment?.comment || '');
   const [assessmentSaved, setAssessmentSaved] = useState(Boolean(assignment.selfAssessment));
   const canvasRef = useRef(null);
-  const scale = useFitScale(canvasRef);
+  const [fitRef, scale] = useFitScale();
+  const setCanvas = useCallback((node) => { canvasRef.current = node; fitRef(node); }, [fitRef]);
 
   const review = submitted || readOnly;
   const checked = useMemo(() => (submitted ? checkDocument(doc, answers) : null), [doc, answers, submitted]);
@@ -116,7 +117,7 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
       {submitted && score ? <div className="worksheet-result"><CheckCircle2 size={24} /><div><strong>{score.pct}% · {score.correct}/{score.total} õiget</strong><span>{score.pct >= 80 ? 'Suurepärane töö!' : score.pct >= 50 ? 'Tubli! Vaata vead üle.' : 'Harjuta veel ja küsi õpetajalt abi.'}</span></div></div> : null}
       {error ? <div className="action-error" role="alert">{error}<button onClick={() => setError('')}>×</button></div> : null}
       {readOnly && !submitted ? <div className="worksheet-readonly"><Clock3 size={19} /><p>Õpilane ei ole seda töölehte veel esitanud.</p></div> : null}
-      <div className="st-canvas" ref={canvasRef}>
+      <div className="st-canvas" ref={setCanvas}>
         <div className="st-zoom" style={{ zoom: scale }}>
           <Sheet doc={doc} mode={review ? 'review' : 'interactive'} answers={answers} setAnswer={review ? undefined : setAnswer} results={checked?.results || {}} focusId={review ? '' : focusId} />
         </div>
@@ -129,11 +130,10 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
 
 // Teacher review inside the homework submission dialog: the sheet with the learner's answers and marks.
 export function DocWorksheetSubmissionPreview({ worksheetDoc, answers = {} }) {
-  const canvasRef = useRef(null);
-  const scale = useFitScale(canvasRef);
+  const [fitRef, scale] = useFitScale();
   const checked = useMemo(() => checkDocument(worksheetDoc, answers), [worksheetDoc, answers]);
   return <div className="ws-studio ws-doc-player">
-    <div className="st-canvas" ref={canvasRef}>
+    <div className="st-canvas" ref={fitRef}>
       <div className="st-zoom" style={{ zoom: scale }}>
         <Sheet doc={worksheetDoc} mode="review" answers={answers} results={checked.results} />
       </div>

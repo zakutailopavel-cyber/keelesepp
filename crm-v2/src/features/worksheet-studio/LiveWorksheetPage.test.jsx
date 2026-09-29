@@ -31,6 +31,8 @@ describe('live worksheet lesson', () => {
     act(() => push({ id: 'as-1', studentName: 'Mari', status: 'in_progress', answers: { 'tf:0': 'false' }, worksheetDoc }));
     expect(screen.getByText('1/2 vastust')).toBeInTheDocument();
     expect(container.querySelectorAll('.ws-page .ws-tfbox.is-ok')).toHaveLength(1);
+    // the unanswered second statement is not marked wrong during the lesson
+    expect(container.querySelectorAll('.ws-page .ws-tfbox.is-bad')).toHaveLength(0);
     fireEvent.click(container.querySelector('.ws-page [data-block="tf"]'));
     await waitFor(() => expect(repository.setWorksheetLiveFocus).toHaveBeenCalledWith({ assignmentId: 'as-1', blockId: 'tf' }));
     act(() => push({ id: 'as-1', status: 'in_progress', answers: {}, worksheetDoc, liveFocus: { blockId: 'tf' } }));

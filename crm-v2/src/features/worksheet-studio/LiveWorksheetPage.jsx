@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import * as Icons from 'lucide-react';
 import { homeworkService } from '../../services/firebase/index.js';
@@ -19,8 +19,7 @@ export default function LiveWorksheetPage({ repository = homeworkService }) {
   const [assignment, setAssignment] = useState(null);
   const [error, setError] = useState('');
   const [focusError, setFocusError] = useState('');
-  const canvasRef = useRef(null);
-  const scale = useFitScale(canvasRef);
+  const [fitRef, scale] = useFitScale();
 
   useEffect(() => repository.subscribeWorksheetAssignment(
     assignmentId,
@@ -31,6 +30,14 @@ export default function LiveWorksheetPage({ repository = homeworkService }) {
   const doc = assignment?.worksheetDoc;
   const answers = useMemo(() => assignment?.answers || {}, [assignment]);
   const checked = useMemo(() => (doc ? checkDocument(doc, answers) : null), [doc, answers]);
+  // while the lesson runs, only fields the learner already answered get ✓/✗; untouched ones stay neutral
+  const marks = useMemo(() => {
+    if (!checked || assignment?.status === 'done') return checked?.results || {};
+    return Object.fromEntries(Object.entries(checked.results).filter(([k]) => {
+      const v = answers[k];
+      return v !== undefined && v !== null && String(v).trim() !== '';
+    }));
+  }, [checked, answers, assignment?.status]);
   const progress = useMemo(() => (doc ? answerProgress(doc, answers) : null), [doc, answers]);
   const focusId = assignment?.liveFocus?.blockId || '';
 
@@ -60,9 +67,9 @@ export default function LiveWorksheetPage({ repository = homeworkService }) {
       <div className="st-banner">Klõpsa ülesandel: see süttib õpilase lehel ja leht kerib selleni. Uuesti klõpsates märge kaob.</div>
       {focusError && <div className="st-banner error" role="alert">{focusError}</div>}
       <div className="st-body">
-        <main className="st-canvas" ref={canvasRef}>
+        <main className="st-canvas" ref={fitRef}>
           <div className="st-zoom" style={{ zoom: scale }}>
-            <Sheet doc={doc} mode="review" answers={answers} results={checked.results} focusId={focusId} onPick={point} />
+            <Sheet doc={doc} mode="review" answers={answers} results={marks} focusId={focusId} onPick={point} />
           </div>
           <GoalEvidence doc={doc} evidence={checked} title="Tunni eesmärgid praegu" />
         </main>

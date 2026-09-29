@@ -215,7 +215,8 @@
 .ws-page { page: worksheet; }
 @media print {
   .ws-root { gap: 0; display: block; }
-  .ws-page { zoom: .7778; box-shadow: none; break-after: page; }
+  /* 381.86 mm × .7776 = 296.9 mm: a hair under A4 so rounding never pushes the footer onto a new sheet */
+  .ws-page { zoom: .7776; box-shadow: none; break-after: page; }
   .ws-page:last-child { break-after: auto; }
   .mode-edit .ws-card { outline: none !important; }
 }

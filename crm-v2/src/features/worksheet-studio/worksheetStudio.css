@@ -14,6 +14,7 @@
 .ws-studio-error { padding: 16px; border-radius: 12px; background: #fbe9e6; color: #8a2a1c; }
 .ws-studio-loading { padding: 24px; }
 @media print {
+  html:has(body.ws-studio-open), body.ws-studio-open { background: #fff !important; }
   body.ws-studio-open * { visibility: hidden; }
   .ws-studio .ws-root, .ws-studio .ws-root * { visibility: visible; }
   .ws-studio .ws-root { position: absolute; left: 0; top: 0; }
