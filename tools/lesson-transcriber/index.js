@@ -14,6 +14,7 @@ const env = (k, d) => process.env[k] || d;
 const BUCKET = env('FIREBASE_STORAGE_BUCKET', 'keelesepp-5136b.firebasestorage.app');
 const WHISPER = env('WHISPER_BIN', '/opt/homebrew/bin/whisper-cli');
 const MODEL = env('WHISPER_MODEL', path.join(os.homedir(), 'KeeleSeppTranscriber', 'models', 'ggml-large-v3-turbo.bin'));
+const VAD_MODEL = env('WHISPER_VAD_MODEL', path.join(path.dirname(MODEL), 'ggml-silero-v5.1.2.bin'));
 const FFMPEG = env('FFMPEG_BIN', fs.existsSync('/opt/homebrew/bin/ffmpeg') ? '/opt/homebrew/bin/ffmpeg' : '/opt/homebrew/opt/ffmpeg-full/bin/ffmpeg');
 const THREADS = env('WHISPER_THREADS', String(Math.max(2, os.cpus().length - 2)));
 const EVERY_MS = Number(env('POLL_SECONDS', '60')) * 1000;
@@ -43,7 +44,9 @@ async function transcribeSegment(seg, lang, dir) {
   const wav = `${src}.wav`;
   await bucket.file(seg.path).download({ destination: src });
   await run(FFMPEG, ['-y', '-loglevel', 'error', '-i', src, '-ar', '16000', '-ac', '1', '-c:a', 'pcm_s16le', wav]);
-  await run(WHISPER, ['-m', MODEL, '-l', lang, '-t', THREADS, '-f', wav, '-oj', '-of', src, '-np'], { maxBuffer: 64 * 1024 * 1024 });
+  // voice activity detection: exact start times per phrase and no invented text on silence
+  const vad = fs.existsSync(VAD_MODEL) ? ['--vad', '-vm', VAD_MODEL] : [];
+  await run(WHISPER, ['-m', MODEL, '-l', lang, '-t', THREADS, '-f', wav, '-oj', '-of', src, '-np', ...vad], { maxBuffer: 64 * 1024 * 1024 });
   const json = JSON.parse(fs.readFileSync(`${src}.json`, 'utf8'));
   return parseWhisperJson(json, { speaker: seg.track, offsetMs: seg.startMs || 0 });
 }
@@ -97,7 +100,7 @@ async function tick() {
 
 async function main() {
   if (!fs.existsSync(MODEL)) throw new Error(`Whisper model not found: ${MODEL}`);
-  log('lesson transcriber started', { bucket: BUCKET, model: path.basename(MODEL) });
+  log('lesson transcriber started', { bucket: BUCKET, model: path.basename(MODEL), vad: fs.existsSync(VAD_MODEL) });
   if (process.argv.includes('--once')) { await tick(); await deleteOldAudio(); return; }
   for (;;) {
     try { await tick(); } catch (err) { log('tick error', err.message); }
