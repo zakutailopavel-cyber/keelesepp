@@ -8,6 +8,7 @@ import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { homeworkService, invoicesService, lessonsService, scheduleService, studentsService } from '../../services/firebase/index.js';
 import { occurrencesForDates, shiftDate, toIsoDate } from '../calendar/calendarView.js';
 import { invoiceBalanceCents } from './studentFinance.js';
+import PetCard from '../pet/PetCard.jsx';
 
 function unique(items) {
   return [...new Map(items.map((item) => [item.id, item])).values()];
@@ -33,6 +34,7 @@ export default function StudentDashboardPage({
   scheduleRepository = scheduleService,
   invoiceRepository = invoicesService,
   lessonRepository = lessonsService,
+  petRepository,
 }) {
   const { user, preview } = useAuth();
   const state = useAsyncData(async () => {
@@ -72,6 +74,7 @@ export default function StudentDashboardPage({
 
   return <div className="page-content">
     <PageHeader eyebrow="Minu õpingud" title={`Tere, ${user.displayName || 'õpilane'}!`} description="Sinu tunnid, ülesanded, tulemused ja õppimise edenemine ühes vaates." />
+    {students.length ? <PetCard user={user} readOnly={Boolean(preview)} lessons={lessons} submissions={submissions} pendingHomework={pendingHomework.length} lessonToday={upcoming.find((lesson) => lesson.occurrenceDate === today)?.time || ''} subject={students[0]?.subject || ''} {...(petRepository ? { repository: petRepository } : {})} /> : null}
     <PeopleOverview label="Õpingute kokkuvõte" eyebrow="Minu töölaud" title="Õppimise hetkeseis" description="Tunnid, ülesanded, tulemused ja arved ühes rahulikus vaates." metrics={[
       { icon: GraduationCap, label: 'Läbitud tunnid', value: completedLessons.length, hint: 'õppeajaloos' },
       { icon: CalendarDays, label: 'Lähimad tunnid', value: upcoming.length, hint: '28 päeva jooksul' },

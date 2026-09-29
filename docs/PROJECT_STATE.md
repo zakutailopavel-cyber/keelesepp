@@ -1,5 +1,21 @@
 # KeeleSepp Project State
 
+## Student cabinet pet (KeeleSepp sõbrad) — PR
+
+Owner idea 2026-09-29: every student is greeted by a personal pet; the student chooses it. On "Minu õpingud" a student
+picks one of four pets (Siil, Rebane, Kakk, Draakon) and names it; the pet then shows mood and growth derived only from
+existing data: held lessons (+10), submitted worksheets/exercises (+15), fully reached lesson goals in `score.perGoal`
+(+5); stages Beebi / Noor (scarf, from 100) / Täiskasvanu (cap, from 300); moods proud (goal in 3 days), happy (lesson
+or work in 2 days), asleep (no activity 14+ days; never sick or dying), calm. It greets in the language being learned
+(Estonian, English for English learners) with a Russian hint: today's lesson, homework count, praise.
+Files: `crm-v2/src/features/pet/{petArt.js,petModel.js,PetCard.jsx,pet.css,pet.test.jsx}`,
+`crm-v2/src/services/firebase/pets.js` (+ index export), `StudentDashboardPage.jsx`, `firestore.rules`
+(`safeSelfUserFields` + `validPet`), `functions/student-pet-emulator.integration.js` (+ emulator workflow).
+Data contract: `users/{uid}.pet = { kind: siil|rebane|kakk|draakon, name ≤ 24, chosenAt }`, written by the user only.
+Growth is never stored. Staff preview shows the pet read-only and nothing when none is chosen.
+**Needs a Firestore rules deploy** after merge; until then saving the choice fails with a permission error.
+Checks: vitest 373/373, ESLint clean, build OK, rules compile (dry run).
+
 ## CRM v2 bug: typing in any dialog lost focus after the first key — PR
 
 Reported by the owner on 2026-09-29 with a screen video of "Uus tund" (calendar): after typing the first letter of the

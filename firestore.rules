@@ -762,9 +762,26 @@ service cloud.firestore {
         'parentReviewStatus',
         'parentReviewKey',
         'termsAcceptedAt',
-        'termsVersion'
+        'termsVersion',
+        'pet'
       ])
-        && validTermsAcceptance(request.resource.data);
+        && validTermsAcceptance(request.resource.data)
+        && validPet(request.resource.data);
+    }
+
+    // Student cabinet pet: only the chosen kind and a short name; growth is derived, never stored.
+    function validPet(data) {
+      return !('pet' in data)
+        || (
+          data.pet is map
+          && data.pet.keys().hasOnly(['kind', 'name', 'chosenAt'])
+          && data.pet.keys().hasAll(['kind', 'name'])
+          && data.pet.kind in ['siil', 'rebane', 'kakk', 'draakon']
+          && data.pet.name is string
+          && data.pet.name.size() > 0
+          && data.pet.name.size() <= 24
+          && (!('chosenAt' in data.pet) || (data.pet.chosenAt is string && data.pet.chosenAt.size() <= 40))
+        );
     }
 
     function validTermsAcceptance(data) {

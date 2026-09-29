@@ -1,0 +1,52 @@
+/* KeeleSepp pet animations (SVG from petArt.js) */
+.pet { --outline: #0b2a4f; }
+  .pet .breathe { transform-box: fill-box; transform-origin: 50% 100%; animation: breathe 3.2s ease-in-out infinite; }
+  .pet .eye { transform-box: fill-box; transform-origin: 50% 50%; animation: blink 4.6s infinite; }
+  .pet.m-happy .jump { animation: hop 1.4s ease-in-out infinite; }
+  .pet.m-sleep .breathe { animation-duration: 5.5s; }
+  .pet .zz { animation: floatz 3s ease-in-out infinite; opacity: 0; }
+  .pet .zz.z2 { animation-delay: 1.5s; }
+  .pet .spark { transform-box: fill-box; transform-origin: center; animation: twinkle 1.8s ease-in-out infinite; }
+  .pet .spark.s2 { animation-delay: .6s; } .pet .spark.s3 { animation-delay: 1.2s; }
+  .pet .tail { transform-box: fill-box; transform-origin: 0% 100%; animation: wag 1.6s ease-in-out infinite; }
+  @keyframes breathe { 0%,100% { transform: scale(1, 1); } 50% { transform: scale(1.025, .975); } }
+  @keyframes blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
+  @keyframes hop { 0%,100% { transform: translateY(0); } 40% { transform: translateY(-10px); } 60% { transform: translateY(0); } }
+  @keyframes floatz { 0% { opacity: 0; transform: translate(0,0); } 30% { opacity: 1; } 100% { opacity: 0; transform: translate(12px,-26px); } }
+  @keyframes twinkle { 0%,100% { transform: scale(.6); opacity: .4; } 50% { transform: scale(1.1); opacity: 1; } }
+  @keyframes wag { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(-8deg); } }
+  @media (prefers-reduced-motion: reduce) { .pet * { animation: none !important; } .pet .zz { opacity: 1; } }
+
+  
+/* Pet card on "Minu õpingud" */
+.pet-card { margin-bottom: 18px; background: linear-gradient(135deg, #edf5fd 0%, #fffdf8 55%, #fff4d6 100%); }
+.pet-art svg { display: block; width: 100%; height: auto; }
+.pet-home { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 18px; align-items: center; }
+.pet-home__art { width: 170px; }
+.pet-home__body { display: grid; gap: 12px; min-width: 0; }
+.pet-bubble { position: relative; background: #fff; border-radius: 16px; padding: 12px 14px; box-shadow: 0 2px 0 rgba(11,42,79,.08); }
+.pet-bubble::before { content: ""; position: absolute; left: -9px; top: 22px; border: 9px solid transparent; border-right-color: #fff; border-left: 0; }
+.pet-bubble p { margin: 0; font: 700 1.55rem/1.15 'Caveat', 'Bradley Hand', cursive; color: #1f2d3d; }
+.pet-bubble small { display: block; margin-top: 4px; color: var(--muted); font-size: .78rem; }
+.pet-home__meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; }
+.pet-home__meta strong { font: 800 1.05rem Manrope, sans-serif; color: #0b2a4f; }
+.pet-home__meta span { color: var(--muted); font-size: .82rem; }
+.pet-home__edit { margin-left: auto; border: 0; background: transparent; color: #175cd3; font-weight: 700; cursor: pointer; }
+.pet-xp { display: grid; gap: 6px; }
+.pet-xp__bar { height: 10px; border-radius: 99px; background: rgba(11,42,79,.08); overflow: hidden; }
+.pet-xp__bar i { display: block; height: 100%; background: #2f7d4c; border-radius: inherit; transition: width .6s ease; }
+.pet-xp__row { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; color: var(--muted); font-size: .78rem; font-variant-numeric: tabular-nums; }
+.pet-picker { display: grid; gap: 14px; }
+.pet-picker__head { display: grid; gap: 3px; } .pet-picker__head strong { font: 800 1.15rem Manrope, sans-serif; } .pet-picker__head span { color: var(--muted); }
+.pet-picker__grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.pet-choice { display: grid; justify-items: center; gap: 4px; padding: 10px 6px; border: 2px solid transparent; border-radius: 16px; background: #fff; cursor: pointer; }
+.pet-choice .pet-art { width: 100%; max-width: 120px; }
+.pet-choice[aria-checked="true"] { border-color: #2f7d4c; box-shadow: 0 0 0 4px rgba(47,125,76,.12); }
+.pet-choice:focus-visible { outline: 3px solid #2f7d4c; outline-offset: 2px; }
+.pet-picker__name { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: end; }
+.pet-picker__actions { display: flex; gap: 8px; }
+@media (max-width: 640px) {
+  .pet-home { grid-template-columns: 110px minmax(0, 1fr); gap: 12px; } .pet-home__art { width: 110px; }
+  .pet-picker__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pet-picker__name { grid-template-columns: 1fr; }
+}
