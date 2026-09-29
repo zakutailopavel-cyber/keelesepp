@@ -1,5 +1,5 @@
 /* global setTimeout */
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import * as Icons from 'lucide-react';
 import { libraryService } from '../../services/firebase/index.js';
@@ -51,8 +51,7 @@ export default function BookPage({ repository = libraryService }) {
   const [ids, setIds] = useState(draft?.ids || []);
   const [query, setQuery] = useState('');
   const [counts, setCounts] = useState({});
-  const canvasRef = useRef(null);
-  const scale = useFitScale(canvasRef);
+  const [fitRef, scale] = useFitScale();
 
   useEffect(() => {
     let alive = true;
@@ -127,7 +126,7 @@ export default function BookPage({ repository = libraryService }) {
             </button>
           ))}
         </aside>
-        <main className="st-canvas" ref={canvasRef}>
+        <main className="st-canvas" ref={fitRef}>
           <div className="st-zoom ws-book" style={{ zoom: scale }}>
             <Cover book={book} />
             <Contents entries={entries} />

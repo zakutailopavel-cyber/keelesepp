@@ -1,6 +1,20 @@
 # KeeleSepp Project State
 
-## Worksheet Studio end-to-end rules check — PR
+## Worksheet Studio fixes from the visual check — PR
+
+Last verified against main: 2026-09-29, Europe/Tallinn. Verified main: `cd9a81f` (merged #189).
+Branch: `agent/worksheet-studio-live-polish`. Found by clicking through the real components in a local harness
+(in-memory data, teacher and student tabs synced; not committed):
+1. `useFitScale` attached only on mount, so pages that first show a loading state (book, live view) never scaled and
+   the A4 sheet overflowed the screen. The hook now returns a callback ref (`const [ref, scale] = useFitScale()`).
+2. The live view marked untouched fields red while the learner was still working; now only answered fields get ✓/✗
+   until the assignment is submitted.
+Verified visually: student player with photos and handwriting font, autosave, teacher live view (answer appears,
+task highlight followed by the student's sheet), original panel with photo cutting (same-origin image), book cover,
+contents and page numbers. Checks: vitest 335/335, ESLint clean, build OK.
+Exactly one next safe step: merge after checks.
+
+## Worksheet Studio end-to-end rules check — MERGED (#189, cd9a81f)
 
 Last verified against main: 2026-09-29, Europe/Tallinn. Verified main: `2c72234` (merged #188).
 Branch: `agent/worksheet-studio-e2e`. Adds `functions/worksheet-studio-emulator.integration.js` and runs it in
