@@ -1,7 +1,8 @@
 import { CheckCircle2, RotateCcw, Send } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Badge, Button, Modal, Select } from '../../components/ui/index.js';
 import { evaluateExercise, exerciseProgress, exerciseTypeLabel, parseExerciseFill } from './exercisePlayer.js';
+import { petCelebrate, petQuiet } from '../pet/petEvents.js';
 
 function options(question) { return question.options || question.opts || []; }
 function questionText(question) { return question.question || question.q || question.prompt || 'Küsimus'; }
@@ -9,6 +10,8 @@ function left(pair) { return pair.l || pair.left || pair.from || pair.source || 
 function right(pair) { return pair.r || pair.right || pair.to || pair.translation || ''; }
 
 export default function ExercisePlayer({ exercise, homework, repository, user, onClose, onCompleted }) {
+  // the cabinet pet stays silent while an exercise is open
+  useEffect(() => { petQuiet(true); return () => petQuiet(false); }, []);
   const [answers, setAnswers] = useState({});
   const [picked, setPicked] = useState([]);
   const [submitted, setSubmitted] = useState(false);
@@ -38,7 +41,7 @@ export default function ExercisePlayer({ exercise, homework, repository, user, o
     try {
       const nextResult = evaluateExercise(exercise, answers);
       await repository.submitExerciseResult({ exercise, homework, result: nextResult, user });
-      setResult(nextResult); setSubmitted(true); onCompleted?.();
+      setResult(nextResult); setSubmitted(true); onCompleted?.(); petCelebrate({ xp: 15 });
     } catch (submitError) { setError(submitError.message || 'Tulemuse salvestamine ebaõnnestus.'); }
     finally { setSaving(false); }
   };

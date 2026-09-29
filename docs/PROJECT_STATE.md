@@ -1,5 +1,36 @@
 # KeeleSepp Project State
 
+## Student cabinet pet (KeeleSepp sõbrad) — PR #195
+
+Owner idea 2026-09-29: every student is greeted by a personal pet; the student chooses it. On "Minu õpingud" a student
+picks one of four pets (Siil, Rebane, Kakk, Draakon) and names it; the pet then shows mood and growth derived only from
+existing data: held lessons (+10), submitted worksheets/exercises (+15), fully reached lesson goals in `score.perGoal`
+(+5); stages Beebi / Noor (scarf, from 100) / Täiskasvanu (cap, from 300); moods proud (goal in 3 days), happy (lesson
+or work in 2 days), asleep (no activity 14+ days; never sick or dying), calm. It greets in the language being learned
+(Estonian, English for English learners) with a Russian hint: today's lesson, homework count, praise.
+Files: `crm-v2/src/features/pet/{petArt.js,petModel.js,PetCard.jsx,pet.css,pet.test.jsx}`,
+`crm-v2/src/services/firebase/pets.js` (+ index export), `StudentDashboardPage.jsx`, `firestore.rules`
+(`safeSelfUserFields` + `validPet`), `functions/student-pet-emulator.integration.js` (+ emulator workflow).
+Data contract: `users/{uid}.pet = { kind: siil|rebane|kakk|draakon, name ≤ 24, chosenAt }`, written by the user only.
+Growth is never stored. Staff preview shows the pet read-only and nothing when none is chosen.
+Walking companion (`PetCompanion`, mounted in `AppShell`, students only, never in staff preview): the pet walks along
+the bottom of every page (click → a hint; "Peida mind" docks it in the corner), gives a first-visit tour of the menu
+(`data-tour` on nav links; steps whose target is off screen are skipped), and reacts by itself to a lesson invitation
+(runs to the invitation card: "… kutsub sind tundi! Vajuta „Liitu tunniga”"), a lesson starting within 15 minutes, and
+late or due-today homework (`companionModel.js`). Uses existing reads only (invitations, own schedule, homework).
+Owner decisions 2026-09-29 (design page https://claude.ai/artifact/N3EKq3c3LQxRRjLoni7wph): offered to every student with
+"Ei, aitäh" (opt-out, switch in "Seaded" → "Minu sõber"); the five pre-deploy items are done in this PR: opt-out,
+silence while a worksheet is open (`petQuiet`) and in the lesson room, tour/hidden/opt-out stored on the account
+(`pet.tourDoneAt`, `pet.hidden`, `pet.optedOut`), celebration after "Esita tööleht" (`petCelebrate`, +15 and +5 per
+reached goal), one-time hints on Kodutööd and Live Classroom. Estonian phrases are corrected after deploy. Stage 2 for
+now: only motivational lines (no wardrobe, parent view or speech yet).
+Pre-deploy review fixes: absences ('Puudus_eta', 'Puudus_p') and cancellations no longer feed the pet (only
+'Toimunud' or an older record without status) and no longer count in "Läbitud tunnid"; on phones the tour points at the
+menu button and the pet stands above the full-width invitation card; exercises also quiet the pet and celebrate;
+keyboard focus moves into the tour card.
+**Needs a Firestore rules deploy** together with the merge (`validPet` allows kind, name, chosenAt, tourDoneAt, hidden,
+optedOut); until then saving fails with a permission error.
+Checks: vitest 373/373, ESLint clean, build OK, rules compile (dry run).
 ## Production deploy status (2026-09-29)
 
 Vercel's free plan hit its build rate limit several times on 2026-09-29, so some merges were not deployed. The last

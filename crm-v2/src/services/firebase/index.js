@@ -15,6 +15,7 @@ export { liveLessonPresenceService, presenceIsFresh } from './liveLessonPresence
 export { liveLessonWhiteboardService } from './liveLessonWhiteboard.js';
 export { worksheetDocsService } from './worksheetDocs.js';
 export { homeworkService } from './homework.js';
+export { petsService } from './pets.js';
 export { lessonsService } from './lessons.js';
 export { messagesService } from './messages.js';
 export { paymentsService } from './payments.js';
