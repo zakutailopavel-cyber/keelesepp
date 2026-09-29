@@ -35,7 +35,8 @@ export const lessonsService = {
     const snapshot = await getDocs(filters.teacherUid ? query(reference, where('teacherUid', '==', filters.teacherUid)) : reference);
     return snapshot.docs.map((item) => normalizeLesson(item.id, item.data())).sort(newestFirst);
   },
-  async completeFromSchedule(event, user) {
+  // details: { topic, topicLevel, topicModule, topicLessonId, notes, status } from the calendar lesson panel
+  async completeFromSchedule(event, user, details = {}) {
     const occurrenceDate = String(event?.occurrenceDate || event?.date || '').trim();
     if (!event?.id || !event?.studentId || !/^\d{4}-\d{2}-\d{2}$/.test(occurrenceDate)) throw new Error('Tunni seos on vigane.');
     const { db } = requireFirebaseClient();
@@ -52,11 +53,15 @@ export const lessonsService = {
       teacher: canonicalTeacherName(event.teacher || user?.displayName),
       teacherUid: event.teacherUid || user?.uid || '',
       subject: event.subject || 'Eesti keel',
-      topic: event.topic || '',
+      topic: details.topic || event.topic || '',
+      topicLevel: details.topicLevel || '',
+      topicModule: details.topicModule || '',
+      topicLessonId: details.topicLessonId || '',
+      notes: String(details.notes || '').slice(0, 1000),
       date: occurrenceDate,
       time: event.time || '',
       duration: Math.max(5, Number(event.duration) || 60),
-      status: 'Toimunud',
+      status: ['Toimunud', 'Puudus_eta', 'Puudus_p'].includes(details.status) ? details.status : 'Toimunud',
       accountingSource: 'crm_v2',
       createdAt,
       createdByUid: user?.uid || '',
@@ -64,7 +69,7 @@ export const lessonsService = {
     };
     const batch = writeBatch(db);
     batch.set(lessonRef, value);
-    if (!event.recurring) batch.set(doc(db, 'schedule', event.id), { status: 'Toimunud', updatedAtIso: createdAt }, { merge: true });
+    if (!event.recurring) batch.set(doc(db, 'schedule', event.id), { status: value.status, updatedAtIso: createdAt }, { merge: true });
     batch.set(doc(collection(db, 'activityLog')), {
       type: 'lesson.completed',
       label: `${event.studentName || 'Õpilane'} tund märgitud toimunuks`,

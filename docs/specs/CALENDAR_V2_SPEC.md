@@ -1,6 +1,6 @@
 # Calendar v2 — specification (draft for owner approval, 2026-09-29)
 
-Status: **draft**. Nothing here is built yet. Code starts only after the owner approves this document.
+Status: **approved by the owner 2026-09-29** (with the change to section 4 below).
 
 ## Why (owner feedback 2026-09-29)
 
@@ -66,8 +66,10 @@ Context: about 240 lessons per week, several teachers, mostly weekly recurring i
 - Calendar screenshots match the Õppevara look (owner judges).
 - Tests: grid layout, overlap, drag (single / series split), conflict, undo, topic suggestion; Playwright smoke later.
 
-## Open questions for the owner
-1. Admin day view: columns per **teacher** (recommended) or one column with colours?
-2. After dragging a weekly lesson, default choice "Ainult see tund" — OK?
-3. Grid hours 08:00–21:00 — OK, or different?
-4. Topic suggestion from Õppevara order (next lesson in the student's module) — OK?
+## Owner decisions (2026-09-29)
+1. Admin day view: columns per teacher.
+2. Default after dragging a weekly lesson: "Ainult see tund".
+3. Grid hours 08:00–21:00.
+4. Topic is picked as **level → theme (module) → lesson** from Õppevara, with the next lesson pre-selected, so parents
+   see what was done with their child. Left empty, the lesson shows as **"Individuaalne tund"** (e.g. the student
+   needed help with school work); an optional free-text note can say what.

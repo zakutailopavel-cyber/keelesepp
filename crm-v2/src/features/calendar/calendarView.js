@@ -66,6 +66,8 @@ export function groupCalendarEvents(groups = []) {
       status: lesson.status || 'Planeeritud',
       recurring: lesson.recurring !== false,
       startDate: lesson.startDate || toIsoDate(),
+      endDate: lesson.endDate || '',
+      excludedDates: lesson.excludedDates || [],
       attendance: lesson.attendance || {},
     };
   }));

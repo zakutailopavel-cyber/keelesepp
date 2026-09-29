@@ -170,6 +170,18 @@ export const groupsService = {
     return lesson;
   },
 
+  // drag and drop: change fields of one lesson slot (time, day, dates, excludedDates)
+  async patchLesson(group, lessonId, fields, user) {
+    requireAdmin(user);
+    if (!group?.id) throw new Error('Gruppi ei leitud.');
+    const lessons = (group.lessons || []).map((lesson) => (lesson.id === lessonId ? lessonValue({ ...lesson, ...fields }) : lesson));
+    const { db } = requireFirebaseClient();
+    const batch = writeBatch(db);
+    batch.set(doc(db, 'groups', group.id), { lessons, updatedAt: new Date().toISOString() }, { merge: true });
+    activity(batch, db, 'group.lesson_moved', `${group.name || 'Grupi'} tunniaeg muudetud`, group, user, { lessonId, ...fields });
+    await batch.commit();
+    return lessons.find((lesson) => lesson.id === lessonId);
+  },
   async removeLesson(group, lessonId, user) {
     requireAdmin(user);
     if (!group?.id || !lessonId) throw new Error('Grupi tunniaega ei leitud.');
