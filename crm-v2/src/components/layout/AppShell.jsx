@@ -6,6 +6,7 @@ import { useAuth } from '../../app/AuthContext.jsx';
 import { hasAnyRole } from '../../utils/roles.js';
 import GlobalStudentSearch from './GlobalStudentSearch.jsx';
 import IconButton from '../ui/IconButton.jsx';
+import LessonInvitationOverlay from './LessonInvitationOverlay.jsx';
 
 function initials(name) {
   return String(name || '?').split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
@@ -54,6 +55,7 @@ export default function AppShell() {
       </aside>
 
       <main className="main-area">
+        <LessonInvitationOverlay />
         {preview ? <div className="preview-banner" role="status"><span><strong>Vaatad süsteemi kasutajana: {user.displayName || user.email}</strong><small>Read-only tugivaade · administraatori seanss jääb aktiivseks</small></span><button onClick={exitPreview}>Lõpeta vaade</button></div> : null}
         <header className="topbar">
           <IconButton className="mobile-only" label="Ava menüü" onClick={() => setMenuOpen(true)}><Menu size={21} /></IconButton>

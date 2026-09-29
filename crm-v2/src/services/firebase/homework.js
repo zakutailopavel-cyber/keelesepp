@@ -266,6 +266,25 @@ export const homeworkService = {
       onData(normalizeWorksheetAssignment(snapshot.id, snapshot.data()));
     }, (error) => onError?.(error));
   },
+  // Live Classroom: the structured worksheet opened in one lesson room (newest first). The student may run this
+  // query because it is constrained to their own studentId (existing read rule).
+  subscribeRoomWorksheets({ studentId, roomKey }, onData, onError) {
+    const { db } = requireFirebaseClient();
+    const q = query(collection(db, 'worksheetAssignments'), where('studentId', '==', studentId), where('liveRoomKey', '==', roomKey));
+    return onSnapshot(q, (snapshot) => {
+      const items = snapshot.docs.map((d) => normalizeWorksheetAssignment(d.id, d.data()))
+        .sort((a, b) => String(b.liveOpenedAt || '').localeCompare(String(a.liveOpenedAt || '')));
+      onData(items);
+    }, (error) => onError?.(error));
+  },
+  // Staff only (existing rule): mark an assignment as the worksheet of this lesson room.
+  async openWorksheetInRoom({ assignmentId, roomKey }) {
+    if (!assignmentId || !roomKey) throw new Error('Töölehte ei leitud.');
+    const { db } = requireFirebaseClient();
+    const payload = { liveRoomKey: roomKey, liveOpenedAt: new Date().toISOString() };
+    await updateDoc(doc(db, 'worksheetAssignments', assignmentId), payload);
+    return payload;
+  },
   // Staff only (existing rule): the task the teacher points at during the lesson.
   async setWorksheetLiveFocus({ assignmentId, blockId }) {
     if (!assignmentId) throw new Error('Töölehte ei leitud.');

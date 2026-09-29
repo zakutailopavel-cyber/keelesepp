@@ -110,7 +110,8 @@ per goal; save and load errors). Full suite, ESLint and production build — see
 - Entry point: after assigning a structured worksheet in Õppevara the success notice links "Jälgi tunnis otse" per
   student (`libraryService.assign` now returns `assignments: [{ id, studentId, studentName }]`).
 - New optional field `worksheetAssignments.liveFocus = { blockId, at }` (written by staff only).
-- Next integration (Live Classroom track): open the same view inside the v2 lesson room next to video.
+- Inside the Live Classroom room (PR #183): `RoomWorksheetPanel` opens a studio worksheet for the invited student
+  (`liveRoomKey`, `liveOpenedAt` on the assignment); teacher view `LiveWorksheetView`, student `DocWorksheetPlayer inline`.
 
 ## End-to-end check against the real rules
 

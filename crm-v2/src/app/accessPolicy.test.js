@@ -26,8 +26,8 @@ const roleCases = [
   },
   {
     role: ROLES.STUDENT,
-    allowed: ['/student', '/settings', '/homework', '/messages'],
-    denied: ['/', '/students', '/calendar', '/groups', '/parents', '/library', '/live-classroom', '/teachers', '/finance', '/finance/payroll', '/finance/expenses', '/parent'],
+    allowed: ['/student', '/live-classroom', '/settings', '/homework', '/messages'],
+    denied: ['/', '/students', '/calendar', '/groups', '/parents', '/library', '/teachers', '/finance', '/finance/payroll', '/finance/expenses', '/parent'],
   },
 ];
 
@@ -65,5 +65,10 @@ describe('role acceptance policy', () => {
     expect(rolesForRoute('/students')).not.toContain(ROLES.FINANCE);
     expect(rolesForRoute('/finance/payroll')).not.toContain(ROLES.FINANCE);
     expect(rolesForRoute('/finance')).toContain(ROLES.FINANCE);
+  });
+
+  it('shares Live Classroom only with staff and students', () => {
+    expect(rolesForRoute('/live-classroom')).toEqual([ROLES.ADMIN, ROLES.TEACHER, ROLES.STUDENT]);
+    expect(rolesForRoute('/live-classroom')).not.toContain(ROLES.PARENT);
   });
 });

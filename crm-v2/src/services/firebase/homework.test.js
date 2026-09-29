@@ -219,4 +219,18 @@ describe('homeworkService submissions', () => {
     await homeworkService.setWorksheetLiveFocus({ assignmentId: 'as-1', blockId: 'b' });
     expect(firestore.updateDoc).toHaveBeenLastCalledWith(expect.anything(), { liveFocus: { blockId: 'b', at: expect.any(String) } });
   });
+
+  it('opens a worksheet in a live room and streams the room worksheets for one student', async () => {
+    await homeworkService.openWorksheetInRoom({ assignmentId: 'as-1', roomKey: 'inv-1' });
+    expect(firestore.updateDoc).toHaveBeenLastCalledWith(expect.anything(), { liveRoomKey: 'inv-1', liveOpenedAt: expect.any(String) });
+    const onData = vi.fn();
+    firestore.onSnapshot.mockImplementation((_q, next) => { next({ docs: [
+      { id: 'a', data: () => ({ studentId: 'st-1', liveOpenedAt: '2026-09-29T10:00:00Z' }) },
+      { id: 'b', data: () => ({ studentId: 'st-1', liveOpenedAt: '2026-09-29T11:00:00Z' }) },
+    ] }); return 'unsubscribe'; });
+    expect(homeworkService.subscribeRoomWorksheets({ studentId: 'st-1', roomKey: 'inv-1' }, onData)).toBe('unsubscribe');
+    expect(firestore.where).toHaveBeenCalledWith('studentId', '==', 'st-1');
+    expect(firestore.where).toHaveBeenCalledWith('liveRoomKey', '==', 'inv-1');
+    expect(onData.mock.calls[0][0].map((x) => x.id)).toEqual(['b', 'a']);
+  });
 });

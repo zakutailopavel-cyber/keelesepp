@@ -1,5 +1,64 @@
 # KeeleSepp Project State
 
+## CRM v2 Live Classroom (invitations, video call, presence, screen share, board, worksheet) — PR #183
+
+Updated 2026-09-29 (Claude, owner: «Довести и смёржить #183»): branch merged with main `cf97557` (Worksheet Studio),
+and the lesson room now shows a structured worksheet (`RoomWorksheetPanel`): the teacher picks a studio worksheet,
+it is assigned to the invited student (normal `worksheetAssignments` doc, note "Live Classroom: …") and tagged
+`liveRoomKey = roomKey`, `liveOpenedAt`; the teacher sees answers live and points at tasks (`LiveWorksheetView`,
+also used by `/library/worksheets/live/:id`); the student fills it inline (`DocWorksheetPlayer inline`, autosave).
+Student query: `worksheetAssignments where studentId == … and liveRoomKey == …` (existing read rule, checked in
+`functions/worksheet-studio-emulator.integration.js`). No rule change for the worksheet part.
+Checks: vitest 365/365, ESLint clean, build OK. **Rules deploy after merge**: `firebase deploy --only firestore:rules`
+(approved by the owner together with the merge).
+
+
+Last verified against main: 2026-09-28, Europe/Tallinn.
+Verified main: `8e8bd65` (branch was 0 commits behind `origin/main` at commit time).
+Implementation branch: `agent/live-classroom-invitations-v2`.
+Pull request: draft, opened 2026-09-28 (see GitHub; not merged by the agent).
+
+Scope is deliberately limited to inviting a student and the invitation lifecycle up to entering one shared waiting
+room. Video, whiteboard and lesson materials are NOT part of this PR. A teacher (or admin) opens Live Classroom,
+chooses only a student that has a real student account, and sends an invitation. The student sees the invitation as an
+overlay on any page of the student cabinet (`LessonInvitationOverlay` in `AppShell`) and can accept or decline; the
+teacher can cancel; invitations expire after at most 5 minutes. Accepting brings both into the same waiting room
+(`roomKey` = invitation ID). Student and teacher IDs stored on the invitation are immutable after creation.
+
+Changed files: `crm-v2/src/app/accessPolicy.js` (+ test; new `ACCESS.LIVE_CLASSROOM` = admin, teacher, student),
+`crm-v2/src/app/navigation.js`, `crm-v2/src/app/routes.jsx`, `crm-v2/src/components/layout/AppShell.jsx`,
+`crm-v2/src/features/live-classroom/LiveClassroomPage.jsx` (+ new test), new
+`crm-v2/src/features/live-classroom/invitationModel.js` (+ test), new `liveClassroom.css`, new
+`crm-v2/src/components/layout/LessonInvitationOverlay.jsx` (+ test), new
+`crm-v2/src/services/firebase/liveLessonInvitations.js`, `crm-v2/src/services/firebase/index.js`, `firestore.rules`.
+
+Data contract: new collection `liveLessonInvitations/{invitationId}` with fields `teacherUid, teacherName, studentId,
+studentUid, studentName, title, status (pending|accepted|declined|cancelled|closed), roomKey, createdAt, createdAtIso,
+expiresAt, respondedAt, cancelledAt, closedAt`. Rules: create only by staff for themselves (`teacherUid == uid()`), only for a
+student the teacher may invite (`teacherCanInviteStudent`), and only if `studentUid` is that student's own account
+(`studentAccountOwns`: document ID, `linkedUserId`, `studentUid` or `linkedUserIds`). Parent/guardian fields
+(`parentUid`, `linkedParentId(s)`, `guardianUid`) are intentionally NOT accepted, so a parent UID cannot be invited as
+the student; the client (`studentAccountUid`) resolves the target from the same student-only fields. Update: only
+`status/respondedAt/cancelledAt` may change, only from `pending`; the student may accept/decline before `expiresAt`;
+teacher/admin may cancel a pending invitation; the inviting teacher/admin may close an accepted waiting room. Delete: admin only.
+
+Validation before the corrective follow-up: full CRM v2 suite 75 files / 308 tests, focused live-classroom/overlay/access suites 4 files / 19 tests, ESLint and production build PASS. The corrective commit adds dedicated Firestore emulator coverage for parent/student identity, expiry, teacher scope and accepted-room closing; GitHub CI is the verification gate for that added coverage.
+No production deployment, rules deploy, index change or data migration was performed.
+
+Known limits and manual gates: `firestore.rules` changes take effect only after an explicit owner-approved rules
+deploy; expiry is enforced by rules on accept and by the client display, there is no server-side cleanup of expired
+invitations yet; the waiting room is the existing Live Classroom page keyed by `roomKey`, without video.
+
+Follow-up in the same draft PR: accepted rooms now contain an opt-in browser WebRTC audio/video panel. Signaling is stored only in the invitation's `signals` subcollection, is readable/writable only by that invitation's teacher and student while status is `accepted`, and each fresh call uses a new session ID. Camera/microphone access happens only after the user presses the start/join button. A hangup signal stops both peers and local tracks. Current ICE configuration uses public STUN only; TURN fallback is intentionally still pending for restrictive NAT/firewall networks.
+
+Presence/reconnect/floating follow-up in the same draft PR: accepted participants now heartbeat into an invitation-scoped `presence` subcollection; the UI shows whether the other participant is currently fresh/online, refreshes on tab visibility, and marks itself offline on cleanup when possible. A disconnected/failed teacher peer can issue a fresh WebRTC offer without closing the room, while a student with local media already enabled automatically answers a new offer. The call card can be switched into a compact fixed floating mode within Live Classroom. Firestore rules restrict presence writes to each participant's own UID/role and keep parents/outsiders out.
+
+Screen sharing follow-up in the same draft PR: the teacher can share a browser-selected screen/window/tab only after the call has started. The implementation uses WebRTC `RTCRtpSender.replaceTrack`, so audio/microphone state is preserved and no separate signaling or Firestore collection is needed. The local preview switches to the shared surface; stopping from KeeleSepp or the browser's native “Stop sharing” control restores the camera track. Reconnect creates the next peer with the active screen track when sharing is still in progress.
+
+Shared whiteboard follow-up in the same draft PR: accepted teacher/student pairs now get an invitation-scoped realtime SVG board with pen, four colors, eraser and teacher-only clear. Every stroke is stored as its own document under `liveLessonInvitations/{invitationId}/whiteboardElements`, reusing the established per-element collaboration model without exposing the general student whiteboard collection. This is intentional: the existing persistent whiteboard grants linked parents access, while a live lesson room must remain private to the invited student and teacher. Firestore rules allow both participants to add strokes, students to erase only their own strokes, and the inviting teacher to erase/clear any stroke; parents and outsiders cannot read or write the live board.
+
+Unfinished: TURN fallback (needs an external TURN provider and credentials: owner decision), server-side cleanup of expired invitations (needs a Cloud Functions deploy), lesson completion integration (linking the room to the lesson record). Done: floating call window, board, worksheet inside the room.
+Exactly one next safe step: after the rules deploy, one real teacher + student lesson: invite, accept, start the call, open a worksheet in the room.
 ## Worksheet Studio fixes from the visual check — PR
 
 Last verified against main: 2026-09-29, Europe/Tallinn. Verified main: `cd9a81f` (merged #189).

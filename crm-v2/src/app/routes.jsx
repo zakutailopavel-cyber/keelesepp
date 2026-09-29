@@ -48,6 +48,8 @@ export default function AppRoutes() {
             <Route path="library/worksheets/live/:assignmentId" element={<LiveWorksheetPage />} />
             <Route path="library/worksheets/:lessonId" element={<WorksheetStudioPage />} />
             <Route path="parents" element={<ParentsPage />} />
+          </Route>
+          <Route element={<ProtectedRoute roles={ACCESS.LIVE_CLASSROOM} />}>
             <Route path="live-classroom" element={<LiveClassroomPage />} />
           </Route>
           <Route element={<ProtectedRoute roles={ACCESS.ADMIN} />}>
