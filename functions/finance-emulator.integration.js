@@ -3306,11 +3306,11 @@ test("permanent duplicate merge moves the child's data and deletes the duplicate
   ]);
   const adminToken = await createAdminToken();
 
-  const wrongName = await financeRequest(adminToken, "/students/merge", { primaryStudentId: "dup-main", duplicateStudentIds: ["dup-extra"], requestId: "dup-merge-wrong", permanent: true, confirmName: "Liisa" });
+  const wrongName = await staffOperationsRequest(adminToken, "/students/merge", { primaryStudentId: "dup-main", duplicateStudentIds: ["dup-extra"], requestId: "dup-merge-wrong", permanent: true, confirmName: "Liisa" });
   assert.equal(wrongName.status, 400, JSON.stringify(wrongName.body));
   assert.equal((await db.collection("students").doc("dup-extra").get()).exists, true);
 
-  const merged = await financeRequest(adminToken, "/students/merge", { primaryStudentId: "dup-main", duplicateStudentIds: ["dup-extra"], requestId: "dup-merge-ok", permanent: true, confirmName: " liisa  kask " });
+  const merged = await staffOperationsRequest(adminToken, "/students/merge", { primaryStudentId: "dup-main", duplicateStudentIds: ["dup-extra"], requestId: "dup-merge-ok", permanent: true, confirmName: " liisa  kask " });
   assert.equal(merged.status, 201, JSON.stringify(merged.body));
   assert.equal((await db.collection("students").doc("dup-extra").get()).exists, false);
   assert.equal((await db.collection("studentRevenuePlans").doc("dup-extra").get()).exists, false);
@@ -3321,7 +3321,7 @@ test("permanent duplicate merge moves the child's data and deletes the duplicate
   assert.equal(log.data().permanent, true);
   assert.deepEqual(log.data().duplicateStudentNames, ["Liisa Kask"]);
 
-  const repeat = await financeRequest(adminToken, "/students/merge", { primaryStudentId: "dup-main", duplicateStudentIds: ["dup-extra"], requestId: "dup-merge-ok", permanent: true, confirmName: "Liisa Kask" });
+  const repeat = await staffOperationsRequest(adminToken, "/students/merge", { primaryStudentId: "dup-main", duplicateStudentIds: ["dup-extra"], requestId: "dup-merge-ok", permanent: true, confirmName: "Liisa Kask" });
   assert.equal(repeat.status, 200, JSON.stringify(repeat.body));
   assert.equal(repeat.body.idempotent, true);
 });
@@ -3336,12 +3336,12 @@ test("previously archived duplicates are finished off and deleted", async () => 
     db.collection("homework").doc("old-dup-homework").set({ studentId: "old-dup", title: "Unustatud" }),
   ]);
   const adminToken = await createAdminToken();
-  const preview = await financeRequest(adminToken, "/students/merged/purge/preview", {});
+  const preview = await staffOperationsRequest(adminToken, "/students/merged/purge/preview", {});
   assert.equal(preview.status, 200, JSON.stringify(preview.body));
   assert.ok(preview.body.items.some(item => item.id === "old-dup" && item.mainId === "old-main"));
   assert.equal((await db.collection("students").doc("old-dup").get()).exists, true);
 
-  const applied = await financeRequest(adminToken, "/students/merged/purge", {});
+  const applied = await staffOperationsRequest(adminToken, "/students/merged/purge", {});
   assert.equal(applied.status, 200, JSON.stringify(applied.body));
   assert.ok(applied.body.deleted >= 1);
   assert.equal((await db.collection("students").doc("old-dup").get()).exists, false);
