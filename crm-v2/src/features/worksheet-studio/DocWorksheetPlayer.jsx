@@ -1,9 +1,9 @@
-/* global fetch */
+/* global fetch, setTimeout, clearTimeout */
 import { CheckCircle2, Clock3, Send, Star } from 'lucide-react';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Badge, Button, Modal, Select } from '../../components/ui/index.js';
 import Sheet from './engine/Sheet.jsx';
-import { checkDocument } from './engine/registry.js';
+import { answerProgress, checkDocument } from './engine/registry.js';
 import GoalEvidence from './GoalEvidence.jsx';
 import { useFitScale } from './useFitScale.js';
 import './engine/sheet.css';
@@ -22,17 +22,6 @@ async function persistRecordings({ doc, answers, assignment, repository }) {
   }
   Object.keys(next).filter((k) => k.endsWith(':error')).forEach((k) => { delete next[k]; });
   return next;
-}
-
-// Which task fields still have no answer (only scorable fields and recordings count).
-function progressOf(doc, answers) {
-  const { results, speak } = checkDocument(doc, answers);
-  const keys = Object.keys(results);
-  const answered = keys.filter((k) => {
-    const v = answers[k];
-    return v !== undefined && v !== null && String(v).trim() !== '';
-  }).length + speak.filter((s) => s.recorded).length;
-  return { answered, total: keys.length + speak.length };
 }
 
 // Student player for a structured worksheet (assignment.worksheetDoc): the same sheet, the same design,
@@ -54,9 +43,36 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
 
   const review = submitted || readOnly;
   const checked = useMemo(() => (submitted ? checkDocument(doc, answers) : null), [doc, answers, submitted]);
-  const progress = useMemo(() => progressOf(doc, answers), [doc, answers]);
+  const progress = useMemo(() => answerProgress(doc, answers), [doc, answers]);
 
-  const setAnswer = (key, value) => { setAnswers((a) => ({ ...a, [key]: value })); setDraftSaved(false); };
+  const [focusId, setFocusId] = useState(assignment.liveFocus?.blockId || '');
+  const [autosaved, setAutosaved] = useState('');
+  const edited = useRef(false);
+
+  const setAnswer = (key, value) => { edited.current = true; setAnswers((a) => ({ ...a, [key]: value })); setDraftSaved(false); };
+
+  // Autosave (also what the teacher sees live). Local recordings are uploaded only on Salvesta / Esita.
+  useEffect(() => {
+    if (review || !edited.current) return undefined;
+    const timer = setTimeout(() => {
+      const clean = Object.fromEntries(Object.entries(answers).filter(([k, v]) => !k.endsWith(':error') && !(typeof v === 'string' && v.startsWith('blob:'))));
+      repository.saveWorksheetDraft({ assignmentId: assignment.id, answers: clean })
+        .then(() => setAutosaved(new Date().toLocaleTimeString('et-EE', { hour: '2-digit', minute: '2-digit' })))
+        .catch(() => setAutosaved(''));
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [answers, review, repository, assignment.id]);
+
+  // Live lesson: follow the task the teacher points at.
+  useEffect(() => {
+    if (review || typeof repository.subscribeWorksheetAssignment !== 'function') return undefined;
+    return repository.subscribeWorksheetAssignment(assignment.id, (next) => setFocusId(next.liveFocus?.blockId || ''), () => {});
+  }, [review, repository, assignment.id]);
+  useEffect(() => {
+    if (!focusId) return;
+    const el = canvasRef.current?.querySelector(`.ws-page [data-block="${focusId}"]`);
+    if (el && typeof el.scrollIntoView === 'function') el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [focusId]);
 
   const saveDraft = async () => {
     setSavingDraft(true); setError('');
@@ -90,7 +106,7 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
   };
 
   const footer = !review
-    ? <><span className="worksheet-progress">{progress.answered}/{progress.total} vastust{draftSaved ? ' · Salvestatud' : ''}</span><Button variant="secondary" loading={savingDraft} onClick={saveDraft}>Salvesta</Button><Button variant="secondary" onClick={onClose}>Sulge</Button><Button loading={saving} onClick={submit}><Send size={17} /> Esita tööleht</Button></>
+    ? <><span className="worksheet-progress">{progress.answered}/{progress.total} vastust{draftSaved ? ' · Salvestatud' : autosaved ? ` · automaatselt salvestatud ${autosaved}` : ''}</span><Button variant="secondary" loading={savingDraft} onClick={saveDraft}>Salvesta</Button><Button variant="secondary" onClick={onClose}>Sulge</Button><Button loading={saving} onClick={submit}><Send size={17} /> Esita tööleht</Button></>
     : <Button variant="secondary" onClick={onClose}>Sulge</Button>;
 
   return <Modal open title={assignment.title} onClose={onClose} className="modal--worksheet modal--worksheet-doc" footer={footer}>
@@ -102,7 +118,7 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
       {readOnly && !submitted ? <div className="worksheet-readonly"><Clock3 size={19} /><p>Õpilane ei ole seda töölehte veel esitanud.</p></div> : null}
       <div className="st-canvas" ref={canvasRef}>
         <div className="st-zoom" style={{ zoom: scale }}>
-          <Sheet doc={doc} mode={review ? 'review' : 'interactive'} answers={answers} setAnswer={review ? undefined : setAnswer} results={checked?.results || {}} />
+          <Sheet doc={doc} mode={review ? 'review' : 'interactive'} answers={answers} setAnswer={review ? undefined : setAnswer} results={checked?.results || {}} focusId={review ? '' : focusId} />
         </div>
       </div>
       {checked ? <GoalEvidence doc={doc} evidence={checked} /> : null}

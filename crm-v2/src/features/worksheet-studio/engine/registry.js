@@ -55,3 +55,14 @@ export function checkDocument(doc, answers = {}) {
   const score = { correct, total, pct: total ? Math.round((correct / total) * 100) : 0, perGoal };
   return { results, perGoal, speak, score };
 }
+
+// How many answerable fields have an answer (scorable fields plus voice recordings).
+export function answerProgress(doc, answers = {}) {
+  const { results, speak } = checkDocument(doc, answers);
+  const keys = Object.keys(results);
+  const answered = keys.filter((k) => {
+    const v = answers[k];
+    return v !== undefined && v !== null && String(v).trim() !== '';
+  }).length + speak.filter((x) => x.recorded).length;
+  return { answered, total: keys.length + speak.length };
+}
