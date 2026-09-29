@@ -844,8 +844,8 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      // A waiting account may read its own profile (to show "waiting for approval"), nothing else.
-      allow read: if (request.auth != null && uid() == userId) || isStaff();
+      // A waiting account may read its own profile (to show "waiting for approval"), nothing else; disabled ones not even that.
+      allow read: if (request.auth != null && uid() == userId && resource.data.get('disabled', false) != true) || isStaff();
       allow create: if signedIn()
         && uid() == userId
         && safeSelfUserCreate();
