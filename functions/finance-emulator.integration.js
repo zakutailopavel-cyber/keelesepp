@@ -3252,3 +3252,43 @@ test("owner assistant refreshes operational alerts without an external AI", asyn
   const forbiddenRefresh = await staffOperationsRequest(nonAdminToken, "/assistant/refresh");
   assert.equal(forbiddenRefresh.status, 403, JSON.stringify(forbiddenRefresh.body));
 });
+
+// Last in the file: apply moves prices of every seeded student, so no earlier test sees the change.
+test("lesson prices move off student cards into admin-only plans (admin only, repeatable)", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  await Promise.all([
+    db.collection("students").doc("price-card-only").set({ name: "Card Price", active: true, lessonPrice: 30, weeklyLessons: 2 }),
+    db.collection("students").doc("price-both").set({ name: "Both Prices", active: true, lessonPrice: 20, revenuePlanUpdatedAt: "2026-09-01" }),
+    db.collection("studentRevenuePlans").doc("price-both").set({ studentId: "price-both", studentName: "Both Prices", lessonPriceCents: 2600, weeklyLessons: 1, currency: "EUR", active: true, updatedAt: "2026-09-01T00:00:00.000Z", updatedByUid: "seed-admin" }),
+  ]);
+
+  const outsiderToken = await createUserToken("price-outsider@example.com");
+  const forbidden = await financeRequest(outsiderToken, "/students/price-privacy/preview", {});
+  assert.equal(forbidden.status, 403, JSON.stringify(forbidden.body));
+
+  const adminToken = await createAdminToken();
+  const preview = await financeRequest(adminToken, "/students/price-privacy/preview", {});
+  assert.equal(preview.status, 200, JSON.stringify(preview.body));
+  assert.equal(preview.body.applied, false);
+  assert.ok(preview.body.actions.some(action => action.studentId === "price-card-only" && action.createPlan));
+  assert.equal((await db.collection("students").doc("price-card-only").get()).data().lessonPrice, 30);
+
+  const applied = await financeRequest(adminToken, "/students/price-privacy/apply", {});
+  assert.equal(applied.status, 200, JSON.stringify(applied.body));
+  assert.equal(applied.body.applied, true);
+
+  const cardOnly = (await db.collection("students").doc("price-card-only").get()).data();
+  assert.equal("lessonPrice" in cardOnly, false);
+  assert.equal("weeklyLessons" in cardOnly, false);
+  const createdPlan = (await db.collection("studentRevenuePlans").doc("price-card-only").get()).data();
+  assert.equal(createdPlan.lessonPriceCents, 3000);
+  assert.equal(createdPlan.weeklyLessons, 2);
+  const both = (await db.collection("students").doc("price-both").get()).data();
+  assert.equal("lessonPrice" in both, false);
+  assert.equal((await db.collection("studentRevenuePlans").doc("price-both").get()).data().lessonPriceCents, 2600);
+
+  const again = await financeRequest(adminToken, "/students/price-privacy/preview", {});
+  assert.equal(again.body.actions.some(action => action.studentId.startsWith("price-")), false);
+});

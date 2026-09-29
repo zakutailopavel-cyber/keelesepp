@@ -386,7 +386,7 @@ export default function FinancePage({
     setPlanSaving(true);
     setActionError("");
     try {
-      await planRepository.save(student, planForm, user);
+      await planRepository.save(student, planForm, user, state.data.plans.find((item) => item.studentId === student.id) || null);
       setPlanOpen(false);
       setSuccess(`${student.name} tuluprognoos salvestati.`);
       await state.reload();
@@ -1019,8 +1019,9 @@ export default function FinancePage({
           onSubmit={saveForecast}
         >
           <p className="form-hint form-grid__wide">
-            Hind salvestatakse õpilase väljale <code>lessonPrice</code> ning
-            seda kasutatakse tunniarvestuses ja uute arvete loomisel.
+            Hinda näevad ainult administraator ja raamatupidaja. Seda kasutatakse
+            tunniarvestuses ja uute arvete loomisel; täpsemad arveldusseaded on
+            õpilase profiilis (vahekaart Finantsid).
           </p>
           {actionError ? (
             <div className="action-error form-grid__wide" role="alert">

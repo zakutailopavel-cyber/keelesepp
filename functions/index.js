@@ -122,6 +122,7 @@ const {
   studentMergeOwnership,
   uniqueIds,
 } = require("./student-merge-core");
+const { planPricePrivacy, lessonPriceFor } = require("./price-privacy-core");
 const {
   metaSendRequest,
   replyInput: normalizeMetaReply,
@@ -1765,11 +1766,12 @@ async function createLessonInvoice({
       }
       return { invoice: { id: existingInvoice.id, ...existingInvoice.data() }, idempotent: true };
     }
-    const [studentSnap, counterSnap, studentLessonsSnap, tariffAssignmentsSnap] = await Promise.all([
+    const [studentSnap, counterSnap, studentLessonsSnap, tariffAssignmentsSnap, revenuePlanSnap] = await Promise.all([
       transaction.get(studentRef),
       transaction.get(counterRef),
       transaction.get(studentLessonsQuery),
       transaction.get(tariffAssignmentsQuery),
+      transaction.get(db.collection("studentRevenuePlans").doc(cleanStudentId)),
     ]);
     if (!studentSnap.exists) throw httpError(404, "Student not found");
 
@@ -1789,7 +1791,7 @@ async function createLessonInvoice({
     for (const date of [...new Set([todayIso, ...selectedLessons.map(lesson => lesson.date)])]) {
       await assertFinancialDateOpen(transaction, date);
     }
-    const lessonPrice = Number(student.lessonPrice) || 0;
+    const lessonPrice = lessonPriceFor(student, revenuePlanSnap.exists ? revenuePlanSnap.data() : null);
     const tariffAssignments = tariffAssignmentsSnap.docs
       .map(doc => ({ id: doc.id, ...doc.data() }));
     const lessonData = buildLessonInvoiceLines(
@@ -5766,6 +5768,58 @@ async function previewStudentMerge(input) {
   return plan.publicPlan;
 }
 
+// Finance v2 §1: move lesson prices off the student cards (readable by teachers and parents) into the
+// admin/finance-only revenue plans. Preview first; apply is safe to repeat.
+async function studentPricePrivacy({ actor, apply }) {
+  const [studentsSnap, plansSnap] = await Promise.all([
+    db.collection("students").get(),
+    db.collection("studentRevenuePlans").get(),
+  ]);
+  const plan = planPricePrivacy(
+    studentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })),
+    plansSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })),
+  );
+  if (!apply || !plan.actions.length) return { ...plan, applied: false };
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+  for (let start = 0; start < plan.actions.length; start += 200) {
+    const batch = db.batch();
+    for (const action of plan.actions.slice(start, start + 200)) {
+      if (action.createPlan) {
+        batch.set(db.collection("studentRevenuePlans").doc(action.studentId), {
+          studentId: action.studentId,
+          studentName: action.studentName,
+          lessonPriceCents: action.studentPriceCents,
+          weeklyLessons: action.weeklyLessons,
+          currency: "EUR",
+          active: true,
+          lessonMinutes: 60,
+          billingMode: "current",
+          chargeNoShow: true,
+          validFrom: nowIso.slice(0, 10),
+          priceHistory: [],
+          updatedAt: nowIso,
+          updatedBy: actorData.name || "",
+          updatedByUid: actorData.uid,
+        }, { merge: true });
+      }
+      batch.update(db.collection("students").doc(action.studentId),
+        Object.fromEntries(action.fields.map(field => [field, FieldValue.delete()])));
+    }
+    await batch.commit();
+  }
+  await db.collection("activityLog").add({
+    type: "finance.price_privacy_applied",
+    label: `Tunnihinnad viidi ${plan.summary.students} õpilase kaardilt privaatsesse plaani`,
+    byUid: actorData.uid,
+    byName: actorData.name || "Administraator",
+    createdAt: nowIso,
+    date: nowIso.slice(0, 10),
+    meta: plan.summary,
+  });
+  return { ...plan, applied: true };
+}
+
 async function applyStudentMerge({ actor, primaryStudentId, duplicateStudentIds, requestId }) {
   const mutationId = cleanRequestId(requestId);
   let normalizedInput;
@@ -7705,6 +7759,10 @@ exports.financeApi = functions.https.onRequest(async (req, res) => {
       return;
     }
     const actor = await requireAdminUser(req);
+    if (req.path === "/students/price-privacy/preview" || req.path === "/students/price-privacy/apply") {
+      res.json(await studentPricePrivacy({ actor, apply: req.path.endsWith("/apply") }));
+      return;
+    }
     if (req.path === "/expenses") {
       const result = await createExpense({ actor, values: req.body, requestId: req.body?.requestId });
       res.status(result.idempotent ? 200 : 201).json(result);
