@@ -1,5 +1,13 @@
 # KeeleSepp Project State
 
+## CRM v2 migration plan — DECIDED 2026-09-29
+
+Owner decision: **Worksheet Studio is the only authoring tool**; v1 Lesson Builder ("Valmista tund"), v1 Worksheet
+Builder, the v1 exercise builder and the v2 "Loo materjal" worksheet blocks / "Loo harjutus" are not ported or
+developed further. Existing content stays usable (legacy adapter, "Üleviimine", issued assignments playable until
+finished). Plan and order of remaining work: `docs/CRM_V2_MIGRATION_PLAN.md`.
+Exactly one next safe step: step 1 of the plan (freeze old builders in the UI, no data change).
+
 ## CRM v2 Live Classroom (invitations, video call, presence, screen share, board, worksheet) — MERGED (#183, 62eaa29), RULES DEPLOYED
 
 Updated 2026-09-29 (Claude, owner: «Довести и смёржить #183»): branch merged with main `cf97557` (Worksheet Studio),

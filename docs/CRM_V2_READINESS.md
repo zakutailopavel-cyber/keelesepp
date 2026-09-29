@@ -32,3 +32,8 @@ Merging this UX PR does not retire v1 and does not authorize a production deploy
 migration. Making v2 the default requires explicit owner approval after authenticated role smokes. v1 should remain
 available as the fallback until real daily use confirms that calendar, finance, communication, homework and learning
 content workflows are stable.
+
+## Migration plan
+
+The step-by-step migration plan, including the owner's decision of 2026-09-29 that Worksheet Studio is the only
+authoring tool, is in [CRM_V2_MIGRATION_PLAN.md](CRM_V2_MIGRATION_PLAN.md).
