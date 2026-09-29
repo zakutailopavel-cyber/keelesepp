@@ -1,40 +1,35 @@
+// Finance v2 §2: three everyday tabs; rarely used tools live under "Täpsem".
 export const FINANCE_WORKSPACE_GROUPS = [
   {
-    id: 'daily',
-    label: 'Igapäevane töö',
-    description: 'Arvete loomine, laekumised ja tasumata arvete jälgimine.',
+    id: 'main',
+    label: 'Finantsid',
     sections: [
-      { id: 'tunniarvestus', label: 'Loo arved', priority: 'primary' },
-      { id: 'arved', label: 'Arved ja maksed', priority: 'primary' },
-      { id: 'pangauhildus', label: 'Pangalaekumised', priority: 'primary' },
-    ],
-  },
-  {
-    id: 'overview',
-    label: 'Ülevaated',
-    description: 'Kuu tulemused ja tulude planeerimine.',
-    sections: [
-      { id: 'perioodid', label: 'Kuuülevaade', priority: 'secondary' },
-      { id: 'tuluprognoos', label: 'Tuluprognoos', priority: 'secondary' },
+      { id: 'kuuarved', label: 'Kuuarved', description: 'Kuu tundide arved kalendri ja hinna järgi' },
+      { id: 'arved', label: 'Arved ja maksed', description: 'Tasumata arved, meeldetuletused, laekumised ja pank' },
+      { id: 'ulevaade', label: 'Ülevaade', description: 'Kuu tulemused ja prognoos' },
     ],
   },
   {
     id: 'advanced',
-    label: 'Täpsemad toimingud',
-    description: 'Harvem kasutatavad parandused ja kontrollid.',
+    label: 'Täpsem',
     sections: [
-      { id: 'avansid', label: 'Avansid ja tagasimaksed', priority: 'advanced' },
-      { id: 'audit', label: 'Finantsaudit', priority: 'advanced' },
-      { id: 'numeratsioon', label: 'Arvete numeratsioon', priority: 'advanced' },
+      { id: 'tunniarvestus', label: 'Arved toimunud tundidest' },
+      { id: 'avansid', label: 'Avansid ja tagasimaksed' },
+      { id: 'audit', label: 'Finantsaudit' },
+      { id: 'numeratsioon', label: 'Arvete numeratsioon' },
     ],
   },
 ];
 
-export const FINANCE_DEFAULT_SECTION = 'tunniarvestus';
+// old links (#pangauhildus, #perioodid, #tuluprognoos) open the tab that now holds them
+const ALIASES = { pangauhildus: 'arved', perioodid: 'ulevaade', tuluprognoos: 'ulevaade' };
+
+export const FINANCE_DEFAULT_SECTION = 'kuuarved';
 
 export function financeSectionById(sectionId) {
+  const id = ALIASES[sectionId] || sectionId;
   for (const group of FINANCE_WORKSPACE_GROUPS) {
-    const section = group.sections.find((item) => item.id === sectionId);
+    const section = group.sections.find((item) => item.id === id);
     if (section) return { ...section, groupId: group.id, groupLabel: group.label };
   }
   return null;

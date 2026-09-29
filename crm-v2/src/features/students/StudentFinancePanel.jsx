@@ -64,7 +64,7 @@ export default function StudentFinancePanel({ student, invoices = [] }) {
           <span className="eyebrow">Finantsid</span>
           <h2>Arved ja maksed</h2>
         </div>
-        <Link className="button button--secondary" to="/finance#tunniarvestus">
+        <Link className="button button--secondary" to="/finance#kuuarved">
           <ReceiptText size={17} /> Loo arve
         </Link>
       </div>

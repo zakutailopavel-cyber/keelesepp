@@ -1,0 +1,21 @@
+.monthly-invoices { display: grid; gap: 16px; }
+.monthly-invoices__controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
+.monthly-invoices__controls .field { min-width: 180px; }
+.monthly-invoices__modes { display: inline-flex; gap: 4px; padding: 4px; border-radius: 12px; background: var(--surface-subtle, #f2f4f7); margin-left: auto; }
+.monthly-invoices__modes button { border: 0; background: transparent; padding: 8px 12px; border-radius: 9px; font-weight: 700; color: #475467; cursor: pointer; }
+.monthly-invoices__modes button.is-active { background: #fff; color: #101828; box-shadow: 0 1px 3px rgba(16, 24, 40, .12); }
+.monthly-invoices__table { overflow-x: auto; }
+.monthly-invoices__head, .monthly-invoices__row { display: grid; grid-template-columns: 32px minmax(200px, 2fr) 70px 110px 110px 110px minmax(140px, 1fr); gap: 12px; align-items: center; min-width: 820px; padding: 12px 8px; }
+.monthly-invoices__head { color: var(--text-muted, #667085); font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; border-bottom: 1px solid var(--border-color, #e5e7eb); }
+.monthly-invoices__group { border-bottom: 1px solid var(--border-color, #eaecf0); }
+.monthly-invoices__row small { display: block; color: var(--text-muted, #667085); font-size: .8rem; }
+.monthly-invoices__detail { margin: 0 8px 12px 52px; padding: 12px 14px; border-radius: 12px; background: var(--surface-subtle, #f8fafc); min-width: 0; }
+.monthly-invoices__detail p { margin: 0 0 6px; }
+.monthly-invoices__detail ul { margin: 0; padding-left: 0; list-style: none; display: grid; gap: 4px; }
+.monthly-invoices__detail label { display: flex; gap: 8px; align-items: center; }
+.linklike { border: 0; background: none; padding: 0; color: #175cd3; font-weight: 700; text-decoration: underline; cursor: pointer; }
+.monthly-invoices__footer { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
+.monthly-invoices__footer > div { display: flex; gap: 8px; }
+.monthly-invoices__warn { display: inline-flex; gap: 6px; align-items: center; color: #b54708; }
+.monthly-invoices__done { display: flex; gap: 6px; align-items: center; margin: 0; color: #087443; font-weight: 700; }
+@media (max-width: 640px) { .monthly-invoices__modes { margin-left: 0; } .monthly-invoices__footer > div { width: 100%; flex-direction: column; } }

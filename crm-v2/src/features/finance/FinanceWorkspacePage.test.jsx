@@ -3,7 +3,7 @@ import { vi } from 'vitest';
 import FinanceWorkspacePage from './FinanceWorkspacePage.jsx';
 
 vi.mock('./FinancePage.jsx', () => ({
-  default: () => <div id="arved">Finantsvaate sisu</div>,
+  default: ({ section }) => <div id="arved">Finantsvaate sisu: {section}</div>,
 }));
 
 describe('finance workspace integration', () => {
@@ -11,7 +11,7 @@ describe('finance workspace integration', () => {
     render(<FinanceWorkspacePage />);
 
     expect(screen.getByRole('navigation', { name: 'Finantsmooduli jaotised' })).toBeInTheDocument();
-    expect(screen.getByText('Finantsvaate sisu')).toBeInTheDocument();
+    expect(screen.getByText('Finantsvaate sisu: kuuarved')).toBeInTheDocument();
   });
 
   it('updates the hash and active state when a section is selected', () => {
@@ -24,5 +24,6 @@ describe('finance workspace integration', () => {
 
     expect(replaceState).toHaveBeenCalledWith(null, '', '#arved');
     expect(screen.getByRole('button', { name: 'Arved ja maksed' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByText('Finantsvaate sisu: arved')).toBeInTheDocument();
   });
 });

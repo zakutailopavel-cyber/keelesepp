@@ -2,6 +2,7 @@ const functions = require('firebase-functions/v1');
 const admin = require('firebase-admin');
 const crypto = require('crypto');
 const { manualInvoiceInput, manualInvoiceRecord } = require('./manual-invoice-core');
+const { monthlyInvoiceInput, monthlyInvoiceLines, monthlyInvoiceId } = require('./monthly-invoice-core');
 
 const db = admin.firestore();
 const ALLOWED_ROLES = new Set(['admin', 'finance']);
@@ -157,6 +158,94 @@ async function createManualInvoice({ actor, values, requestId }) {
   });
 }
 
+// Finance v2 §2: the month's invoice for one student (planned lessons + last month's difference).
+// The invoice id is fixed per student and month, so a month cannot be invoiced twice.
+async function createMonthlyInvoice({ actor, values }) {
+  let input;
+  try {
+    input = monthlyInvoiceInput(values);
+  } catch (error) {
+    throw httpError(400, error.message);
+  }
+  const invoiceId = monthlyInvoiceId(input.studentId, input.month);
+  const invoiceRef = db.collection('invoices').doc(invoiceId);
+  const counterRef = db.collection('meta').doc('invoiceCounter');
+  const nowIso = new Date().toISOString();
+  const todayIso = nowIso.slice(0, 10);
+  return db.runTransaction(async (transaction) => {
+    const existing = await transaction.get(invoiceRef);
+    if (existing.exists) return { invoice: { id: existing.id, ...existing.data() }, idempotent: true };
+    const [studentSnap, planSnap, counterSnap, dateLockSnap] = await Promise.all([
+      transaction.get(db.collection('students').doc(input.studentId)),
+      transaction.get(db.collection('studentRevenuePlans').doc(input.studentId)),
+      transaction.get(counterRef),
+      transaction.get(db.collection('financialLockedDates').doc(todayIso)),
+    ]);
+    if (!studentSnap.exists) throw httpError(404, 'Student not found');
+    if (dateLockSnap.exists) throw httpError(409, `Financial period ${todayIso.slice(0, 7)} is closed`);
+    let priced;
+    try {
+      priced = monthlyInvoiceLines(input, planSnap.exists ? planSnap.data() : {});
+    } catch (error) {
+      throw httpError(400, error.message);
+    }
+    let nextSequence = (Number(counterSnap.data()?.seq) || 0) + 1;
+    let invoiceNum = '';
+    for (let attempt = 0; attempt < 50; attempt += 1) {
+      const candidate = `KS-${todayIso.slice(0, 4)}-${String(nextSequence).padStart(3, '0')}`;
+      const collision = await transaction.get(db.collection('invoices').where('num', '==', candidate).limit(1));
+      if (collision.empty) {
+        invoiceNum = candidate;
+        break;
+      }
+      nextSequence += 1;
+    }
+    if (!invoiceNum) throw httpError(409, 'Invoice counter requires numbering repair');
+    const signature = crypto.createHash('sha256').update(JSON.stringify(input)).digest('hex');
+    const base = manualInvoiceRecord({
+      input: { studentId: input.studentId, description: priced.description, amountCents: priced.amountCents, amount: priced.amountCents / 100, due: input.due, note: input.correctionNote },
+      student: studentSnap.data(),
+      invoiceNum,
+      nowIso,
+      actor,
+      requestId: invoiceId,
+      signature,
+    });
+    const invoice = {
+      ...base,
+      paymentDueRule: 'monthly',
+      lines: priced.lines,
+      lessonCount: input.plannedUnits,
+      lessonPriceCents: priced.priceCents,
+      lessonPrice: priced.priceCents / 100,
+      lessonMinutes: priced.minutes,
+      billingMode: 'monthly_plan_v1',
+      pricingMode: 'plan',
+      planMonth: input.month,
+      plannedUnits: input.plannedUnits,
+      correctionUnits: input.correctionUnits,
+    };
+    transaction.create(invoiceRef, invoice);
+    transaction.set(counterRef, { seq: nextSequence, updatedAt: nowIso }, { merge: true });
+    transaction.create(db.collection('financialAudit').doc(invoiceId), {
+      entityType: 'invoice',
+      entityId: invoiceId,
+      action: 'invoice.created_monthly',
+      invoiceId,
+      invoiceNum,
+      studentId: input.studentId,
+      studentName: invoice.studentName,
+      amountCents: priced.amountCents,
+      amount: priced.amountCents / 100,
+      actor,
+      reason: `${input.month}: ${input.plannedUnits} planeeritud, parandus ${input.correctionUnits}`,
+      createdAt: nowIso,
+      requestId: invoiceId,
+    });
+    return { invoice: { id: invoiceId, ...invoice }, idempotent: false };
+  });
+}
+
 const manualInvoiceApi = functions.https.onRequest(async (req, res) => {
   applyCors(req, res);
   if (req.method === 'OPTIONS') {
@@ -171,6 +260,11 @@ const manualInvoiceApi = functions.https.onRequest(async (req, res) => {
     const actor = await requireFinanceUser(req);
     if (req.path === '/students') {
       res.status(200).json({ students: await listInvoiceStudents() });
+      return;
+    }
+    if (req.path === '/monthly') {
+      const result = await createMonthlyInvoice({ actor, values: req.body || {} });
+      res.status(result.idempotent ? 200 : 201).json(result);
       return;
     }
     if (req.path !== '/create') {
@@ -188,4 +282,4 @@ const manualInvoiceApi = functions.https.onRequest(async (req, res) => {
   }
 });
 
-module.exports = { manualInvoiceApi, createManualInvoice, listInvoiceStudents };
+module.exports = { manualInvoiceApi, createManualInvoice, createMonthlyInvoice, listInvoiceStudents };
