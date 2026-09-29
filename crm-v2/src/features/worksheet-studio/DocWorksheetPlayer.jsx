@@ -9,6 +9,7 @@ import { useFitScale } from './useFitScale.js';
 import { petCelebrate, petQuiet } from '../pet/petEvents.js';
 import './engine/sheet.css';
 import './worksheetStudio.css';
+import SheetAnnotations from './SheetAnnotations.jsx';
 
 // Local recordings (blob: URLs) must be uploaded before the answers are stored.
 async function persistRecordings({ doc, answers, assignment, repository }) {
@@ -48,6 +49,7 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
   const progress = useMemo(() => answerProgress(doc, answers), [doc, answers]);
 
   const [focusId, setFocusId] = useState(assignment.liveFocus?.blockId || '');
+  const [teacherMarks, setTeacherMarks] = useState(assignment.annotations || []);
   const [autosaved, setAutosaved] = useState('');
   const edited = useRef(false);
 
@@ -73,8 +75,11 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
 
   // Live lesson: follow the task the teacher points at.
   useEffect(() => {
-    if (review || typeof repository.subscribeWorksheetAssignment !== 'function') return undefined;
-    return repository.subscribeWorksheetAssignment(assignment.id, (next) => setFocusId(next.liveFocus?.blockId || ''), () => {});
+    if (typeof repository.subscribeWorksheetAssignment !== 'function') return undefined;
+    return repository.subscribeWorksheetAssignment(assignment.id, (next) => {
+      if (!review) setFocusId(next.liveFocus?.blockId || '');
+      setTeacherMarks(next.annotations || []);
+    }, () => {});
   }, [review, repository, assignment.id]);
   useEffect(() => {
     if (!focusId) return;
@@ -127,9 +132,11 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
       {error ? <div className="action-error" role="alert">{error}<button onClick={() => setError('')}>×</button></div> : null}
       {readOnly && !submitted ? <div className="worksheet-readonly"><Clock3 size={19} /><p>Õpilane ei ole seda töölehte veel esitanud.</p></div> : null}
       <div className="st-canvas" ref={setCanvas}>
+        <SheetAnnotations annotations={teacherMarks}>
         <div className="st-zoom" style={{ zoom: scale }}>
           <Sheet doc={doc} mode={review ? 'review' : 'interactive'} answers={answers} setAnswer={review ? undefined : setAnswer} results={checked?.results || {}} focusId={review ? '' : focusId} />
         </div>
+        </SheetAnnotations>
       </div>
       {checked ? <GoalEvidence doc={doc} evidence={checked} /> : null}
       {submitted && !readOnly ? <section className="worksheet-assessment"><div><Star size={21} /><div><strong>Kuidas tööleht tundus?</strong><span>Tagasiside aitab õpetajal järgmisi ülesandeid kohandada.</span></div></div>{assessmentSaved ? <p><CheckCircle2 size={17} /> Tagasiside salvestatud. Aitäh!</p> : <><Select id="worksheet-difficulty" label="Raskusaste" value={difficulty} onChange={(event) => setDifficulty(event.target.value)}><option value="">Vali</option><option value="1">Väga lihtne</option><option value="2">Lihtne</option><option value="3">Paras</option><option value="4">Raske</option><option value="5">Väga raske</option></Select><label className="textarea-field"><span>Kommentaar</span><textarea rows="3" value={comment} onChange={(event) => setComment(event.target.value)} placeholder="Mis oli raske või jäi arusaamatuks?" /></label><Button loading={saving} disabled={!difficulty} onClick={saveAssessment}>Saada tagasiside</Button></>}</section> : null}
@@ -141,14 +148,18 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
 }
 
 // Teacher review inside the homework submission dialog: the sheet with the learner's answers and marks.
-export function DocWorksheetSubmissionPreview({ worksheetDoc, answers = {} }) {
+// annotations: teacher marks on the sheet (SheetAnnotations); editable for staff.
+export function DocWorksheetSubmissionPreview({ worksheetDoc, answers = {}, annotations = [], editable = false, onAnnotationsChange }) {
   const [fitRef, scale] = useFitScale();
   const checked = useMemo(() => checkDocument(worksheetDoc, answers), [worksheetDoc, answers]);
   return <div className="ws-studio ws-doc-player">
+    {editable ? <p className="sa-hint">Vali ülesandes tekst või klõpsa õpilase vastusel, et lisada viga või märkus.</p> : null}
     <div className="st-canvas" ref={fitRef}>
-      <div className="st-zoom" style={{ zoom: scale }}>
-        <Sheet doc={worksheetDoc} mode="review" answers={answers} results={checked.results} />
-      </div>
+      <SheetAnnotations annotations={annotations} editable={editable} onChange={onAnnotationsChange}>
+        <div className="st-zoom" style={{ zoom: scale }}>
+          <Sheet doc={worksheetDoc} mode="review" answers={answers} results={checked.results} />
+        </div>
+      </SheetAnnotations>
     </div>
     <GoalEvidence doc={worksheetDoc} evidence={checked} />
   </div>;

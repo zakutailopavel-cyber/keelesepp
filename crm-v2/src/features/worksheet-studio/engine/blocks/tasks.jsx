@@ -7,6 +7,19 @@ import { Text, Area, Select, ImagePick, Rows } from '../../editor/fields.jsx';
 // Task blocks: numbered cards with a title + instruction (drawn by the page), an answer area and scoring.
 // ctx = { interactive, get(key), set(key, value), state(key) -> 'ok' | 'bad' | undefined }
 
+// Same order on screen and on paper for a given block: shuffle seeded by the block id.
+export function seededShuffle(list, seed) {
+  let h = 2166136261;
+  for (const ch of String(seed)) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
+  const out = [...list];
+  for (let i = out.length - 1; i > 0; i -= 1) {
+    h = Math.imul(h ^ (h >>> 13), 1274126177);
+    const j = Math.abs(h) % (i + 1);
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
 // ---------- gaps: "Ma ärkan [tavaliselt|hommikul] kell 7." ----------
 const GAP = /\[([^\]]*)\]/g;
 const gapParts = (s) => String(s || '').split(/(\[[^\]]*\])/g).map((p) => (p.startsWith('[') ? { gap: p.slice(1, -1).split('|').map((x) => x.trim()) } : { text: p }));
@@ -48,6 +61,8 @@ export const gaps = {
   },
   answers: (data) => String(data.sentences || '').split('\n').filter((l) => l.trim()).flatMap((l, li) => gapParts(l).filter((p) => p.gap).map((p, gi) => ({ key: `${li}.${gi}`, accept: p.gap }))),
   score: (data, get) => gaps.answers(data).map(({ key, accept }) => ({ key, ok: accept.map(norm).includes(norm(get(key))) })),
+  // first sentence shown solved as an example ("Näide")
+  example: (data) => Object.fromEntries(gaps.answers(data).filter(({ key }) => key.startsWith('0.')).map(({ key, accept }) => [key, accept[0]])),
   Editor: ({ data, set }) => (
     <>
       <Area label="Laused (lünk nurksulgudes)" rows={7} value={data.sentences} onChange={(v) => set({ sentences: v })} hint="Näide: Ma ärkan [tavaliselt|hommikul] kell 7. — mitu õiget vastust eralda |" />
@@ -63,16 +78,18 @@ const opts = (s) => String(s || '').split('\n').map((o) => o.trim()).filter(Bool
 export const choice = {
   type: 'choice', label: 'Valikvastused', group: 'Grammatika ja sõnavara', icon: 'ListChecks', task: true, width: 'half', tone: 'sky',
   create: () => ({ title: 'Vali õige vastus.', instruction: '', questions: [{ q: 'Mis kell sa ärkad?', options: '*Ma ärkan kell 7.\nMa ärkan kell 23.\nMa ärkan õhtul.' }] }),
-  View: ({ data, ctx }) => (
+  View: ({ data, ctx, id }) => (
     <ol className="ws-choice">
       {(data.questions || []).map((q, qi) => {
-        const o = opts(q.options);
+        const o = opts(q.options).map((opt, oi) => ({ ...opt, oi }));
+        const shown = ctx.shuffle ? seededShuffle(o, `${id}:${qi}`) : o;
         const multi = o.filter((x) => x.correct).length > 1;
         return (
           <li key={qi}>
             <div className="ws-q"><Md text={q.q} /></div>
             <div className="ws-opts">
-              {o.map((opt, oi) => {
+              {shown.map((opt) => {
+                const oi = opt.oi;
                 const key = `${qi}`;
                 const cur = ctx.get(key) || (multi ? [] : '');
                 const on = multi ? cur.includes(oi) : cur === oi;
@@ -96,6 +113,10 @@ export const choice = {
     const given = Array.isArray(v) ? [...v].sort() : v === undefined || v === '' ? [] : [v];
     return { key: `${qi}`, ok: given.length === correct.length && given.every((g, i) => g === correct[i]) };
   }),
+  example: (data) => {
+    const correct = opts(data.questions?.[0]?.options).map((x, i) => (x.correct ? i : -1)).filter((i) => i >= 0);
+    return correct.length ? { 0: correct.length > 1 ? correct : correct[0] } : {};
+  },
   Editor: ({ data, set }) => (
     <Rows label="Küsimused" rows={data.questions || []} onChange={(questions) => set({ questions })} make={() => ({ q: '', options: '*\n' })} addLabel="Lisa küsimus"
       render={(row, patch) => (
@@ -125,6 +146,7 @@ export const truefalse = {
     </div>
   ),
   score: (data, get) => (data.statements || []).map((s, i) => ({ key: `${i}`, ok: get(`${i}`) === s.answer })),
+  example: (data) => (data.statements?.[0] ? { 0: data.statements[0].answer } : {}),
   Editor: ({ data, set }) => (
     <Rows label="Väited" rows={data.statements || []} onChange={(statements) => set({ statements })} make={() => ({ text: '', answer: 'true' })} addLabel="Lisa väide"
       render={(row, patch) => (
@@ -280,6 +302,7 @@ export const clock = {
     const v = norm(get(`${i}`));
     return { key: `${i}`, ok: !!v && (acc.includes(v) || acc.includes(v.replace(/^kell on /, '')) || acc.includes(v.replace(/^kell /, ''))) };
   }),
+  example: (data) => (data.items?.[0] ? { 0: `Kell on ${clockAccept(data.items[0].time)[0]}.` } : {}),
   Editor: ({ data, set }) => (
     <>
       <Select label="Veerge" value={data.columns} onChange={(v) => set({ columns: v })} options={[['2', '2'], ['3', '3'], ['4', '4'], ['6', '6']]} />

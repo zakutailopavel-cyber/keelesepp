@@ -1,12 +1,19 @@
-import { BLOCKS } from '../engine/registry.js';
+import { BLOCKS, COLUMN_BLOCKS, SHUFFLE_BLOCKS } from '../engine/registry.js';
 import { TONES, TONE_ORDER } from '../engine/schema.js';
 import { Text, Area, Select } from './fields.jsx';
+import { SPAN_PRESETS, spanOf, withHeight, withSpan } from '../engine/layout.js';
 
 // Right panel: settings of the selected block, or of the whole sheet when nothing is selected.
 
 export function BlockInspector({ block, doc, update, onDelete, onDuplicate, onMove }) {
   const def = BLOCKS[block.type];
   const set = (patch) => update({ ...block, data: { ...block.data, ...patch } });
+  const setOpts = (patch) => {
+    const next = { ...(block.opts || {}), ...patch };
+    Object.keys(next).forEach((key) => { if (!next[key] || (key === 'cols' && next[key] === 1)) delete next[key]; });
+    const { opts, ...rest } = block; // eslint-disable-line no-unused-vars
+    update(Object.keys(next).length ? { ...rest, opts: next } : rest);
+  };
   const goals = Object.entries(doc.meta.goals || {});
   return (
     <div className="ed-inspector">
@@ -21,11 +28,16 @@ export function BlockInspector({ block, doc, update, onDelete, onDuplicate, onMo
       </div>
 
       <div className="ed-section">
-        <span className="ed-label">Laius lehel</span>
-        <div className="ed-seg">
-          {[['half', 'Pool lehte'], ['full', 'Terve laius']].map(([v, l]) => (
-            <button type="button" key={v} className={block.width === v ? 'on' : ''} onClick={() => update({ ...block, width: v })}>{l}</button>
+        <span className="ed-label">Laius lehel <small>(või lohista ploki paremat serva)</small></span>
+        <div className="ed-seg ed-seg--spans" role="group" aria-label="Laius lehel">
+          {SPAN_PRESETS.map(({ span, label }) => (
+            <button type="button" key={span} aria-pressed={spanOf(block) === span} className={spanOf(block) === span ? 'on' : ''} onClick={() => update(withSpan(block, span))}>{label}</button>
           ))}
+        </div>
+        <span className="ed-label">Kõrgus <small>(või lohista alumist serva)</small></span>
+        <div className="ed-row ed-height">
+          <button type="button" className={`ed-btn ${block.minHeightMm ? 'ghost' : 'on'}`} aria-pressed={!block.minHeightMm} onClick={() => update(withHeight(block, 0))}>Automaatne</button>
+          <label><input type="number" min="20" max="330" step="5" aria-label="Kõrgus millimeetrites" value={block.minHeightMm || ''} placeholder="mm" onChange={(e) => update(withHeight(block, Number(e.target.value) || 0))} /> mm</label>
         </div>
         <span className="ed-label">Värv (ainult brändi toonid)</span>
         <div className="ed-tones">
@@ -34,6 +46,22 @@ export function BlockInspector({ block, doc, update, onDelete, onDuplicate, onMo
           ))}
         </div>
       </div>
+
+      {def.task && (COLUMN_BLOCKS.has(block.type) || def.example || SHUFFLE_BLOCKS.has(block.type)) && (
+        <div className="ed-section">
+          <span className="ed-label">Ülesande seaded</span>
+          {COLUMN_BLOCKS.has(block.type) && (
+            <div className="ed-opt"><span>Veerud</span><div className="ed-seg" role="group" aria-label="Veerud">
+              {[1, 2, 3].map((n) => <button type="button" key={n} aria-pressed={(block.opts?.cols || 1) === n} className={(block.opts?.cols || 1) === n ? 'on' : ''} onClick={() => setOpts({ cols: n })}>{n}</button>)}
+            </div></div>
+          )}
+          <div className="ed-opt"><span>Kirja suurus</span><div className="ed-seg" role="group" aria-label="Kirja suurus">
+            {[['small', 'Väike'], ['', 'Tavaline'], ['large', 'Suur']].map(([v, l]) => <button type="button" key={l} aria-pressed={(block.opts?.size || '') === v} className={(block.opts?.size || '') === v ? 'on' : ''} onClick={() => setOpts({ size: v })}>{l}</button>)}
+          </div></div>
+          {def.example ? <label className="ed-check"><input type="checkbox" checked={Boolean(block.opts?.example)} onChange={(e) => setOpts({ example: e.target.checked })} /> Esimene ülesanne on lahendatud näide („Näide”)</label> : null}
+          {SHUFFLE_BLOCKS.has(block.type) ? <label className="ed-check"><input type="checkbox" checked={Boolean(block.opts?.shuffle)} onChange={(e) => setOpts({ shuffle: e.target.checked })} /> Sega vastusevariandid</label> : null}
+        </div>
+      )}
 
       {def.task && (
         <div className="ed-section">

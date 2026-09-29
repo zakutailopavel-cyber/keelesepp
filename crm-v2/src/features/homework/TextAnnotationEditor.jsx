@@ -1,6 +1,7 @@
 import { Check, MessageCircleMore, PencilLine, Trash2, X } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '../../components/ui/index.js';
+import { isSheetAnnotation } from '../worksheet-studio/sheetAnnotationsModel.js';
 import { createTextAnnotation, splitAnnotatedText, validAnnotationsForText } from './annotations.js';
 
 const emptyDraft = null;
@@ -24,7 +25,10 @@ function AnnotationText({ field, annotations }) {
     : <span key={`text-${index}`}>{part.text}</span>)}</p>;
 }
 
-export default function TextAnnotationEditor({ fields = [], annotations = [], editable = false, onChange }) {
+export default function TextAnnotationEditor({ fields = [], annotations: all = [], editable = false, onChange }) {
+  // marks drawn on the worksheet itself are shown by SheetAnnotations; keep them when saving
+  const annotations = all.filter((item) => !isSheetAnnotation(item));
+  const sheetMarks = all.filter(isSheetAnnotation);
   const [draft, setDraft] = useState(emptyDraft);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -41,7 +45,7 @@ export default function TextAnnotationEditor({ fields = [], annotations = [], ed
   const persist = async (next, successMessage) => {
     setSaving(true); setError(''); setMessage('');
     try {
-      await onChange(next);
+      await onChange([...sheetMarks, ...next]);
       setDraft(emptyDraft);
       setMessage(successMessage);
       window.getSelection?.()?.removeAllRanges?.();

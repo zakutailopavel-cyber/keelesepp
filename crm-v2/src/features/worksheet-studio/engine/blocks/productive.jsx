@@ -94,7 +94,7 @@ export const writing = {
     const lines = Number(data.lines) || 7;
     return (
       <div className="ws-write">
-        <textarea className="ws-ruled" style={{ height: `calc(7.4mm * ${lines})` }} readOnly={!ctx.interactive} tabIndex={ctx.interactive ? 0 : -1} value={text}
+        <textarea className="ws-ruled" style={{ minHeight: `calc(7.4mm * ${lines})` }} readOnly={!ctx.interactive} tabIndex={ctx.interactive ? 0 : -1} value={text}
           onChange={(e) => ctx.set('text', e.target.value)} aria-label="Kirjutamise väli" spellCheck={false} />
         {data.img?.src && <img className="ws-note-img" src={data.img.src} alt="" />}
         {(ctx.interactive || ctx.review) && (
