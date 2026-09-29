@@ -1,6 +1,6 @@
 # KeeleSepp Project State
 
-## CRM v2 Live Classroom (invitations, video call, presence, screen share, board, worksheet) — PR #183
+## CRM v2 Live Classroom (invitations, video call, presence, screen share, board, worksheet) — MERGED (#183, 62eaa29), RULES DEPLOYED
 
 Updated 2026-09-29 (Claude, owner: «Довести и смёржить #183»): branch merged with main `cf97557` (Worksheet Studio),
 and the lesson room now shows a structured worksheet (`RoomWorksheetPanel`): the teacher picks a studio worksheet,
@@ -9,8 +9,8 @@ it is assigned to the invited student (normal `worksheetAssignments` doc, note "
 also used by `/library/worksheets/live/:id`); the student fills it inline (`DocWorksheetPlayer inline`, autosave).
 Student query: `worksheetAssignments where studentId == … and liveRoomKey == …` (existing read rule, checked in
 `functions/worksheet-studio-emulator.integration.js`). No rule change for the worksheet part.
-Checks: vitest 365/365, ESLint clean, build OK. **Rules deploy after merge**: `firebase deploy --only firestore:rules`
-(approved by the owner together with the merge).
+Checks: vitest 365/365, ESLint clean, build OK, emulator job green. **Firestore rules deployed 2026-09-29** from main
+`62eaa29` (`firebase deploy --only firestore:rules --project keelesepp-5136b`, dry run compiled first; owner-approved).
 
 
 Last verified against main: 2026-09-28, Europe/Tallinn.
@@ -59,7 +59,7 @@ Shared whiteboard follow-up in the same draft PR: accepted teacher/student pairs
 
 Unfinished: TURN fallback (needs an external TURN provider and credentials: owner decision), server-side cleanup of expired invitations (needs a Cloud Functions deploy), lesson completion integration (linking the room to the lesson record). Done: floating call window, board, worksheet inside the room.
 Exactly one next safe step: after the rules deploy, one real teacher + student lesson: invite, accept, start the call, open a worksheet in the room.
-## Worksheet Studio fixes from the visual check — PR
+## Worksheet Studio fixes from the visual check — MERGED (#190, cf97557)
 
 Last verified against main: 2026-09-29, Europe/Tallinn. Verified main: `cd9a81f` (merged #189).
 Branch: `agent/worksheet-studio-live-polish`. Found by clicking through the real components in a local harness
