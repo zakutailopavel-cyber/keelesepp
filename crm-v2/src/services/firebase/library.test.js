@@ -67,7 +67,7 @@ describe('libraryService', () => {
       dueDate: '2026-08-10',
       note: 'Tee lõpuni',
       user,
-    })).resolves.toEqual({ count: 2, mode: 'worksheet' });
+    })).resolves.toMatchObject({ count: 2, mode: 'worksheet', assignments: [{ studentId: 'student-1', studentName: 'Mari' }, { studentId: 'student-2', studentName: 'Jaan' }] });
 
     expect(firestore.batch.set).toHaveBeenCalledTimes(3);
     expect(firestore.batch.set.mock.calls[0][1]).toMatchObject({
@@ -82,6 +82,22 @@ describe('libraryService', () => {
       meta: { studentIds: ['student-1', 'student-2'] },
     });
     expect(firestore.batch.commit).toHaveBeenCalledOnce();
+  });
+
+  it('snapshots a Worksheet Studio document into every assignment', async () => {
+    const worksheetDoc = { schema: 'keelesepp.worksheet/2', meta: { title: 'Minu päev' }, blocks: [{ id: 'b1', type: 'truefalse', data: {} }] };
+    const item = { kind: 'curriculum', type: 'worksheet', sourceId: 'lesson-9', title: 'Minu päev', source: { worksheetDoc } };
+    const user = { uid: 'teacher-1', displayName: 'Õpetaja', roles: ['teacher'] };
+    await libraryService.assign({ item, students: [{ id: 'student-1', name: 'Mari' }], user });
+    expect(firestore.batch.set.mock.calls[0][1]).toMatchObject({ lessonId: 'lesson-9', worksheetDoc, studentId: 'student-1', status: 'new' });
+  });
+
+  it('refuses a structured worksheet batch that would exceed the Firestore request limit', async () => {
+    const worksheetDoc = { schema: 'keelesepp.worksheet/2', meta: { title: 'Suur' }, blocks: [{ id: 'b1', type: 'text', data: { text: 'x'.repeat(200 * 1024) } }] };
+    const item = { kind: 'curriculum', type: 'worksheet', sourceId: 'lesson-9', title: 'Suur', source: { worksheetDoc } };
+    const students = Array.from({ length: 60 }, (_, i) => ({ id: `s${i}`, name: `Õpilane ${i}` }));
+    await expect(libraryService.assign({ item, students, user: { uid: 't' } })).rejects.toThrow(/kuni \d+ õpilasele/);
+    expect(firestore.batch.commit).not.toHaveBeenCalled();
   });
 
   it('creates a legacy-compatible worksheet and an audit event', async () => {

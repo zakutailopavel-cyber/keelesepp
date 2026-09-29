@@ -48,6 +48,158 @@ Shared whiteboard follow-up in the same draft PR: accepted teacher/student pairs
 
 Unfinished: TURN fallback, floating call window, whiteboard/materials inside the room, presence/reconnect hardening, lesson completion integration, server-side expiry cleanup.
 Exactly one next safe step: wait for the corrective GitHub CI run, then owner review of this draft PR.
+## Worksheet Studio fixes from the visual check — PR
+
+Last verified against main: 2026-09-29, Europe/Tallinn. Verified main: `cd9a81f` (merged #189).
+Branch: `agent/worksheet-studio-live-polish`. Found by clicking through the real components in a local harness
+(in-memory data, teacher and student tabs synced; not committed):
+1. `useFitScale` attached only on mount, so pages that first show a loading state (book, live view) never scaled and
+   the A4 sheet overflowed the screen. The hook now returns a callback ref (`const [ref, scale] = useFitScale()`).
+2. The live view marked untouched fields red while the learner was still working; now only answered fields get ✓/✗
+   until the assignment is submitted.
+3. Printing: a 381.86 mm page zoomed to exactly 297 mm only fits on A4 with zero margins, but A4 was set only for the
+   named `worksheet` page, so with the browser's default paper (Letter) or margins every page split onto two sheets
+   and the CRM background printed. Now the builder and the book set `@page { size: A4; margin: 0 }` for the whole job
+   while they are open (`printPage.js`), the print zoom is .7776 (296.9 mm), and the page background is white.
+   Checked with headless Chrome: a 1-sheet book prints as 4 A4 pages (cover, contents, sheet pages 3 and 4).
+Verified visually: student player with photos and handwriting font, autosave, teacher live view (answer appears,
+task highlight followed by the student's sheet), original panel with photo cutting (same-origin image), book cover,
+contents and page numbers. Checks: vitest 335/335, ESLint clean, build OK.
+Exactly one next safe step: merge after checks.
+
+## Worksheet Studio end-to-end rules check — MERGED (#189, cd9a81f)
+
+Last verified against main: 2026-09-29, Europe/Tallinn. Verified main: `2c72234` (merged #188).
+Branch: `agent/worksheet-studio-e2e`. Adds `functions/worksheet-studio-emulator.integration.js` and runs it in
+`.github/workflows/financial-core-emulator.yml`. Covers the whole worksheet path against the real Firestore rules
+(see `docs/WORKSHEET_STUDIO_V1.md`). Storage is not covered: the CI Storage emulator denied every rules-checked upload,
+even the super admin's; worth a separate look by whoever owns the emulator setup. No product code, rule or data change.
+Exactly one next safe step: merge after the emulator job is green.
+
+## Worksheet Studio slice 5 (live worksheet in a lesson) — MERGED (#188, 2c72234)
+
+Last verified against main: 2026-09-29, Europe/Tallinn. Verified main: `005c44c` (merged #187).
+Branch: `agent/worksheet-studio-live`. Claude merges its own PRs after all checks pass (owner, 2026-09-29).
+
+What: the student player autosaves structured-worksheet answers; `/library/worksheets/live/:assignmentId` (staff) shows
+them live with marks, progress and per-goal evidence; the teacher clicks a task to highlight it on the student's sheet
+(`worksheetAssignments.liveFocus`). Entry: links "Jälgi tunnis otse" after assigning in Õppevara.
+Changed files: `crm-v2/src/features/worksheet-studio/{LiveWorksheetPage.jsx,LiveWorksheetPage.test.jsx}` (new),
+`DocWorksheetPlayer.jsx`, `engine/{Sheet.jsx,registry.js,sheet.css}`, `worksheetStudio.css`,
+`crm-v2/src/services/firebase/{homework,library}.js` (+ tests), `crm-v2/src/features/library/LibraryPage.jsx`,
+`crm-v2/src/app/{routes.jsx,accessPolicy.js}`, `docs/WORKSHEET_STUDIO_V1.md`, this file.
+Data contract: optional `worksheetAssignments.liveFocus = { blockId, at }` (staff update, existing rule); student
+autosave writes the already allowed `status/answers/updatedAt`. No rule, index, Function, migration or deploy.
+Validation: `npx vitest run` 335/335; `npx eslint .` clean; `npx vite build` OK; `git diff --check` OK.
+Risks: not tried with two real browsers against Firebase; autosave adds one small write per pause while typing.
+Unfinished (other track): embedding the live view in the v2 lesson room (after #183 and the room PR).
+Exactly one next safe step: owner assigns one studio worksheet to a test student, opens "Jälgi tunnis otse" and fills
+the sheet as the student in a second browser.
+
+## Worksheet Studio slice 4 (textbook export) — MERGED (#187, 005c44c)
+
+Last verified against main: 2026-09-29, Europe/Tallinn. Verified main: `69865b8` (merged #186).
+Branch: `agent/worksheet-studio-book`. Claude merges its own PRs after all checks pass (owner, 2026-09-29).
+
+What: `/library/worksheets/book` (staff, button "Õpik" in Õppevara) composes a textbook from structured worksheets:
+title/subtitle/level/publisher, order, cover, contents with page numbers, sheets with running book page numbers;
+"PDF / Prindi" prints the whole book as A4. The plan is kept in the teacher's browser (`localStorage`), nothing new in
+Firestore.
+Changed files: `crm-v2/src/features/worksheet-studio/{BookPage.jsx,BookPage.test.jsx}` (new), `engine/Sheet.jsx`
+(`startPage`, `onPageCount`), `worksheetStudio.css`, `crm-v2/src/app/{routes.jsx,accessPolicy.js}`,
+`crm-v2/src/features/library/LibraryPage.jsx`, `docs/WORKSHEET_STUDIO_V1.md`, this file.
+Data contract: none. No rule, index, Function, migration or deploy.
+Validation: `npx vitest run` 332/332; `npx eslint .` clean; `npx vite build` OK; `git diff --check` OK.
+Risks: the printed book was not checked on paper or as a browser PDF with real photos; the contents page assumes one
+page (about 30 worksheets); photos ≤ 1600 px suit office printing, not 300 dpi offset.
+Unfinished: Live Classroom worksheet scene (needs the v2 lesson room from the Live Classroom track).
+Exactly one next safe step: owner builds a 3-sheet book in "Õpik" and saves it as PDF from the print dialog.
+
+## Worksheet Studio slice 3 (moving image worksheets to the structured format) — MERGED (#186, 69865b8)
+
+Last verified against main: 2026-09-29, Europe/Tallinn. Verified main: `0aacb7c` (merged #185).
+Branch: `agent/worksheet-studio-conversion`. Owner instruction (2026-09-29): Claude merges its own PRs after all checks pass.
+
+What: `/library/worksheets/convert` (staff, button "Üleviimine" in Õppevara) lists every worksheet-like material by
+migration status (only image/PDF → v1 structured → done), with progress and filters. The studio opens a material
+that has original images with an "Originaal" tab next to the sheet; the teacher drags a frame over a photo and cuts
+it into the selected block or a new photo block (normal upload path). Text is retyped as blocks.
+Changed files: `crm-v2/src/features/worksheet-studio/{conversion.js,ConversionQueuePage.jsx,OriginalPanel.jsx,
+conversion.test.jsx}` (new), `WorksheetStudioPage.jsx` (+ test), `engine/image.js` (`cropToFile`, `nearestAspect`),
+`worksheetStudio.css`, `crm-v2/src/app/{routes.jsx,accessPolicy.js}`, `crm-v2/src/features/library/LibraryPage.jsx`,
+`storage.cors.json` (new, not applied), `docs/WORKSHEET_STUDIO_V1.md`, this file.
+Data contract: none new. No rule, index, Function, migration or deploy.
+Validation: `npx vitest run` 331/331; `npx eslint .` clean; `npx vite build` OK; `git diff --check` OK.
+Risks: cutting photos from originals needs Storage CORS for GET; until the owner runs
+`gsutil cors set storage.cors.json gs://<bucket>` the studio shows a message and photos are uploaded as files.
+Unfinished: Live Classroom worksheet scene; textbook export.
+Exactly one next safe step: owner applies `storage.cors.json` to the Storage bucket (read-only GET), then converts
+one image worksheet through "Üleviimine".
+
+## Worksheet Studio slice 2 (assign structured worksheets, student player, teacher review) — MERGED (#185, 0aacb7c)
+
+Last verified against main: 2026-09-29, Europe/Tallinn. Verified main: `8e8bd65`.
+Implementation branch: `agent/worksheet-studio-assignments`, stacked on `agent/worksheet-studio-v1` (PR #184).
+Pull request: draft, base `agent/worksheet-studio-v1` (not merged by the agent). Merge #184 first.
+
+What it does: a worksheet built in the studio counts as a worksheet in Õppevara and is assigned with the existing
+"Määra" flow; each `worksheetAssignments` document gets a snapshot `worksheetDoc` (v1 `worksheetData`/`files` kept).
+The student opens it in the same A4 design (`DocWorksheetPlayer`), answers, records voice answers (uploaded to
+`homework/{studentId}/ws_rec_*` before draft/submit), submits; the score is `{ correct, total, pct, perGoal }`.
+After submission the student and the teacher see the sheet read-only with ok/bad marks, recordings and the result per
+lesson goal; the teacher review dialog in Homework shows the same (`DocWorksheetSubmissionPreview`). Assignments
+without `worksheetDoc` keep the v1 player unchanged.
+
+Changed files: `crm-v2/src/features/worksheet-studio/{DocWorksheetPlayer.jsx,GoalEvidence.jsx,useFitScale.js}` (new,
++ test), `engine/registry.js` (`checkDocument`), `engine/Sheet.jsx` (`ctx.review`), `engine/ui.jsx`,
+`engine/blocks/{tasks,productive}.jsx`, `engine/sheet.css`, `worksheetStudio.css`, `WorksheetStudioPage.jsx`
+(uses `checkDocument` + `GoalEvidence`), `crm-v2/src/features/homework/{WorksheetPlayer,HomeworkPage}.jsx`,
+`crm-v2/src/services/firebase/{homework,library}.js` (+ tests), `crm-v2/src/features/library/libraryModel.js`
+(+ test), `docs/WORKSHEET_STUDIO_V1.md`, this file.
+Data contract: optional `worksheetAssignments.worksheetDoc` (created by staff; existing create rule has no field list);
+student updates only `status, answers, score, errorLog, completedAt, seenByTeacher, updatedAt, selfAssessment` (already
+allowed). Storage: `homework/{studentId}/ws_rec_<assignment>_<block>_<ts>.(webm|m4a|ogg)` (existing rule: staff or
+owning student/parent, audio allowed, < 20 MB). No rule, index, Function, migration or deploy.
+A batch refuses assigning a structured worksheet when copies would exceed ~9 MB (message tells the max student count).
+
+Validation (2026-09-29): `npx vitest run` 326/327 passed (1 pre-existing date-dependent failure in
+`TeachersPage.test.jsx`, same as on main); `npx eslint .` clean; `npx vite build` OK; `git diff --check` OK.
+Risks: not yet clicked through in a browser against real Firebase (player layout at phone width, MediaRecorder on
+iOS Safari produces `audio/mp4`, handled as `.m4a`); many-to-many and open answers are counted as "teacher sees".
+Unfinished: Live Classroom worksheet scene; image→structure conversion queue; textbook export.
+Exactly one next safe step: owner merges #184, then opens this PR's Vercel preview, assigns one studio worksheet to a
+test student and completes it as that student.
+
+## Worksheet Studio v1 (structured branded worksheets + builder) — MERGED (#184, 93815fa)
+
+Last verified against main: 2026-09-29, Europe/Tallinn. Verified main: `8e8bd65`.
+Implementation branch: `agent/worksheet-studio-v1`. Pull request: draft (see GitHub; not merged by the agent).
+Owner of this area: Claude (didactic core). Codex continues the rest of CRM v2; please avoid
+`crm-v2/src/features/worksheet-studio/**` and `crm-v2/src/services/firebase/worksheetDocs*.js` without coordination.
+
+Goal (owner, 2026-09-28): replace uneditable generated worksheet images with structured worksheets in the approved
+KeeleSepp style, assembled by teachers from blocks, reusable for homework, Live Classroom and a printed textbook.
+Result: `/library/worksheets/:lessonId` builder with 21 block types, fixed brand palette, photo slots with focal point,
+automatic A4 pagination, student view with per-goal checking, print/PDF; v1 structured worksheets open converted.
+Details and data contract: `docs/WORKSHEET_STUDIO_V1.md`.
+
+Changed files: new `crm-v2/src/features/worksheet-studio/**`, new `crm-v2/src/services/firebase/worksheetDocs.js`
+(+ test), `crm-v2/src/services/firebase/index.js` (export), `crm-v2/src/app/routes.jsx` (route),
+`crm-v2/src/app/accessPolicy.js` (route access: staff), `crm-v2/src/features/library/LibraryPage.jsx`
+(two entry buttons), `docs/WORKSHEET_STUDIO_V1.md`, this file.
+Data contract: optional `curriculumLessons.worksheetDoc` (+ `worksheetDocSchema`, `worksheetDocUpdatedAt`);
+`activityLog` types `worksheet_doc.created|updated`; Storage objects `curriculum/ws_*`. v1 `worksheetData` untouched.
+No Firestore/Storage rule, index, Function, migration or deploy.
+
+Validation: see the PR description for exact numbers (vitest full suite, ESLint, vite build).
+Known pre-existing failure on 2026-09-29: `src/features/teachers/TeachersPage.test.jsx › summarises active
+teachers…` fails on unchanged main as well (date-dependent); not related to this slice.
+Known limits: photos in the built-in sample are omitted; print quality depends on uploaded photo resolution;
+Google Fonts (Nunito, Nunito Sans, Caveat; OFL) are loaded by the worksheet stylesheet.
+Unfinished: homework assignment + student player/review for `worksheetDoc`; Live Classroom scene; image→structure
+conversion queue; textbook export.
+Exactly one next safe step: owner opens the Vercel preview, builds one worksheet in `/library/worksheets/new`, and
+reviews/merges this draft PR; then the homework/student-player slice starts.
 
 ## CRM v2 student identity and lifecycle — IN PROGRESS
 

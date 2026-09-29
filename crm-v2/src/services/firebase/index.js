@@ -13,6 +13,7 @@ export { liveLessonInvitationsService } from './liveLessonInvitations.js';
 export { liveLessonCallSignalsService } from './liveLessonCallSignals.js';
 export { liveLessonPresenceService, presenceIsFresh } from './liveLessonPresence.js';
 export { liveLessonWhiteboardService } from './liveLessonWhiteboard.js';
+export { worksheetDocsService } from './worksheetDocs.js';
 export { homeworkService } from './homework.js';
 export { lessonsService } from './lessons.js';
 export { messagesService } from './messages.js';

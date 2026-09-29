@@ -1,6 +1,7 @@
 import { CheckCircle2, Clock3, Send, Star } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Badge, Button, Modal, Select } from '../../components/ui/index.js';
+import DocWorksheetPlayer from '../worksheet-studio/DocWorksheetPlayer.jsx';
 import {
   answerKey,
   blockTitle,
@@ -97,7 +98,7 @@ export function VisualWorksheetSubmissionPreview({ files = [], answers = {} }) {
   return <div className="visual-worksheet-pages visual-worksheet-pages--review">{pages.map((page) => <VisualWorksheetPage page={page} answers={answers} done readOnly onAnswer={() => {}} key={`${page.file.url || page.file.name}-${page.fileIndex}`} />)}</div>;
 }
 
-export default function WorksheetPlayer({ assignment, repository, readOnly = false, onClose, onSubmitted }) {
+function LegacyWorksheetPlayer({ assignment, repository, readOnly = false, onClose, onSubmitted }) {
   const blocks = useMemo(() => assignment.worksheetData?.blocks || [], [assignment]);
   const visualPages = useMemo(() => visualWorksheetPages(assignment.files || []), [assignment]);
   const [answers, setAnswers] = useState(assignment.answers || {});
@@ -166,4 +167,10 @@ export default function WorksheetPlayer({ assignment, repository, readOnly = fal
       {readOnly && !submitted ? <div className="worksheet-readonly"><Clock3 size={19} /><p>Õpilane ei ole seda töölehte veel esitanud.</p></div> : null}
     </article>
   </Modal>;
+}
+
+// Structured worksheets from the Worksheet Studio (assignment.worksheetDoc) open in the new player;
+// everything assigned before keeps the v1 player.
+export default function WorksheetPlayer(props) {
+  return props.assignment?.worksheetDoc?.blocks?.length ? <DocWorksheetPlayer {...props} /> : <LegacyWorksheetPlayer {...props} />;
 }

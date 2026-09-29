@@ -20,6 +20,7 @@ describe('CRM v2 learning library model', () => {
     expect(curriculumType(curriculumLessons[0])).toBe('lesson');
     expect(curriculumType(curriculumLessons[1])).toBe('worksheet');
     expect(curriculumType({ type: 'test', worksheetData: { blocks: [{ type: 'choice' }] } })).toBe('test');
+    expect(curriculumType({ type: 'material', worksheetDoc: { blocks: [{ type: 'gaps' }] } })).toBe('worksheet');
   });
 
   it('builds one searchable list from both existing collections', () => {

@@ -1,6 +1,7 @@
 import {
   ArrowRight,
   BookOpen,
+  LayoutTemplate, Replace, BookCopy,
   ClipboardCheck,
   Dumbbell,
   FilePenLine,
@@ -11,7 +12,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal, PageHeader, Select } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
@@ -90,7 +91,7 @@ function AssignmentModal({ item, user, repository, studentRepository, groupRepos
     try {
       const selectedStudents = students.filter((student) => selectedIds.includes(student.id));
       const result = await repository.assign({ item, students: selectedStudents, dueDate, note: note.trim(), user });
-      onAssigned(result.count);
+      onAssigned(result);
     } catch (assignmentError) {
       setError(assignmentError.message || 'Materjali määramine ebaõnnestus.');
     } finally {
@@ -132,6 +133,7 @@ function AssignmentModal({ item, user, repository, studentRepository, groupRepos
 
 export default function LibraryPage({ repository = defaultRepository, studentRepository = defaultStudentRepository, groupRepository = defaultGroupRepository }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [query, setQuery] = useState('');
   const [type, setType] = useState('all');
@@ -187,7 +189,7 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
         eyebrow="Õppetöö"
         title="Õppevara"
         description="Tunnikavad, töölehed ja harjutused olemasolevast KeeleSepa andmebaasist."
-        actions={<><Button onClick={() => setEditing(null)}><Sparkles size={17} /> Loo materjal</Button><Button variant="secondary" onClick={() => setExerciseEditing(null)}><Dumbbell size={17} /> Loo harjutus</Button></>}
+        actions={<><Button onClick={() => navigate('/library/worksheets/new')}><LayoutTemplate size={17} /> Töölehe konstruktor</Button><Button variant="secondary" onClick={() => navigate('/library/worksheets/convert')}><Replace size={17} /> Üleviimine</Button><Button variant="secondary" onClick={() => navigate('/library/worksheets/book')}><BookCopy size={17} /> Õpik</Button><Button variant="secondary" onClick={() => setEditing(null)}><Sparkles size={17} /> Loo materjal</Button><Button variant="secondary" onClick={() => setExerciseEditing(null)}><Dumbbell size={17} /> Loo harjutus</Button></>}
       />
       {success ? <div className="success-notice" role="status">{success}<button aria-label="Sulge teade" onClick={() => setSuccess('')}>×</button></div> : null}
 
@@ -267,14 +269,18 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
         open={Boolean(selected)}
         title={selected?.title || 'Õppematerjal'}
         onClose={() => setSelected(null)}
-        footer={<><a className="button button--secondary" href={legacyUrl(selected?.kind === 'exercise' ? `/haldus-exercises/?exercise=${encodeURIComponent(selected.sourceId)}` : '/haldus-exercises/')}>Ava töövahend <ArrowRight size={16} /></a><Button variant="secondary" onClick={() => { if (selected?.kind === 'exercise') setExerciseEditing(selected); else setEditing(selected); setSelected(null); }}>Muuda</Button><Button variant="secondary" onClick={() => { setPreviewing(selected); setSelected(null); }}>Eelvaade</Button><Button onClick={() => { setAssigning(selected); setSelected(null); }}>Määra õpilastele</Button></>}
+        footer={<><a className="button button--secondary" href={legacyUrl(selected?.kind === 'exercise' ? `/haldus-exercises/?exercise=${encodeURIComponent(selected.sourceId)}` : '/haldus-exercises/')}>Ava töövahend <ArrowRight size={16} /></a>{selected?.kind !== 'exercise' && selected?.sourceId ? <Button variant="secondary" onClick={() => navigate(`/library/worksheets/${encodeURIComponent(selected.sourceId)}`)}>Ava konstruktoris</Button> : null}<Button variant="secondary" onClick={() => { if (selected?.kind === 'exercise') setExerciseEditing(selected); else setEditing(selected); setSelected(null); }}>Muuda</Button><Button variant="secondary" onClick={() => { setPreviewing(selected); setSelected(null); }}>Eelvaade</Button><Button onClick={() => { setAssigning(selected); setSelected(null); }}>Määra õpilastele</Button></>}
       >
         {selected ? <div className="library-detail"><Badge tone={LIBRARY_TYPES[selected.type]?.tone}>{selected.typeLabel}</Badge><p>{selected.description || 'Materjalil ei ole kirjeldust.'}</p><dl><div><dt>Õppeaine</dt><dd>{selected.subject || '—'}</dd></div><div><dt>Tase või vanus</dt><dd>{selected.level || selected.ageGroup || '—'}</dd></div><div><dt>Teema</dt><dd>{selected.curriculum || selected.topic || '—'}</dd></div><div><dt>Andmeallikas</dt><dd>{selected.kind === 'exercise' ? 'Harjutused' : 'Õppekava'}</dd></div></dl></div> : null}
       </Modal>
       {previewing ? <MaterialPreview item={previewing} onClose={() => setPreviewing(null)} /> : null}
       {editing !== undefined ? <MaterialEditor item={editing} repository={repository} user={user} onClose={() => setEditing(undefined)} onSaved={(result) => { setEditing(undefined); setSuccess(`„${result.title}” ${result.created ? 'loodi' : 'salvestati'}.`); state.reload(); }} /> : null}
       {exerciseEditing !== undefined ? <ExerciseEditor item={exerciseEditing} repository={repository} user={user} onClose={() => setExerciseEditing(undefined)} onSaved={(result) => { setExerciseEditing(undefined); setSuccess(`Harjutus „${result.title}” ${result.created ? 'loodi' : 'salvestati'}.`); state.reload(); }} /> : null}
-      {assigning ? <AssignmentModal item={assigning} user={user} repository={repository} studentRepository={studentRepository} groupRepository={groupRepository} onClose={() => setAssigning(null)} onAssigned={(count) => { setAssigning(null); setSuccess(`„${assigning.title}” määrati ${count} õpilasele.`); }} /> : null}
+      {assigning ? <AssignmentModal item={assigning} user={user} repository={repository} studentRepository={studentRepository} groupRepository={groupRepository} onClose={() => setAssigning(null)} onAssigned={(result) => {
+        const live = assigning.source?.worksheetDoc?.blocks?.length ? (result.assignments || []).slice(0, 6) : [];
+        setAssigning(null);
+        setSuccess(<>„{assigning.title}” määrati {result.count} õpilasele.{live.length ? <span className="assign-live-links"> Jälgi tunnis otse: {live.map((a) => <Link key={a.id} to={`/library/worksheets/live/${a.id}`}>{a.studentName || 'õpilane'}</Link>)}</span> : null}</>);
+      }} /> : null}
     </div>
   );
 }

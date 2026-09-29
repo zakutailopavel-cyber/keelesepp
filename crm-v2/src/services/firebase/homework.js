@@ -1,4 +1,5 @@
-import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, query, updateDoc, where, writeBatch } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, query, updateDoc, where, writeBatch } from 'firebase/firestore';
+import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
 import { requireFirebaseClient } from './client.js';
 
 function chunksOfTen(values = []) {
@@ -106,7 +107,7 @@ export function normalizeWorksheetAssignment(id, data = {}) {
     ...data,
     studentId: data.studentId || '',
     studentName: data.studentName || '',
-    title: data.lessonTitle || data.worksheetData?.meta?.title || 'Tööleht',
+    title: data.lessonTitle || data.worksheetDoc?.meta?.title || data.worksheetData?.meta?.title || 'Tööleht',
     status: data.status || 'new',
     assignedAt: timestampValue(data.assignedAt),
     completedAt: timestampValue(data.completedAt),
@@ -114,6 +115,7 @@ export function normalizeWorksheetAssignment(id, data = {}) {
     answers: data.answers || {},
     errorLog: data.errorLog || [],
     worksheetData: data.worksheetData || { meta: {}, blocks: [] },
+    worksheetDoc: data.worksheetDoc?.blocks?.length ? data.worksheetDoc : null,
     files: Array.isArray(data.files) ? data.files : [],
   };
 }
@@ -237,6 +239,40 @@ export const homeworkService = {
     });
     await batch.commit();
     return sanitized;
+  },
+  // Voice answers of a structured (Worksheet Studio) sheet. Stored under the learner's homework prefix,
+  // which the learner (or linked parent) and staff may write; the download URL goes into the answers.
+  async uploadRecording({ studentId, assignmentId, blockId, blob }) {
+    if (!studentId || !assignmentId) throw new Error('Töölehte ei leitud.');
+    const type = String(blob?.type || '').split(';')[0];
+    if (!type.startsWith('audio/')) throw new Error('Salvestus ei ole helifail.');
+    if (blob.size > 19 * 1024 * 1024) throw new Error('Salvestus on liiga pikk. Salvesta lühem vastus.');
+    const { storage } = requireFirebaseClient();
+    const extension = type.includes('mp4') ? 'm4a' : type.includes('ogg') ? 'ogg' : 'webm';
+    const safeBlock = String(blockId || 'plokk').replace(/[^\w-]+/g, '-').slice(0, 40);
+    const storagePath = `homework/${studentId}/ws_rec_${assignmentId}_${safeBlock}_${Date.now()}.${extension}`;
+    const storageRef = ref(storage, storagePath);
+    await new Promise((resolve, reject) => {
+      const task = uploadBytesResumable(storageRef, blob, { contentType: type });
+      task.on('state_changed', null, reject, resolve);
+    });
+    return { url: await getDownloadURL(storageRef), storagePath };
+  },
+  // Live lesson on a structured worksheet: both sides watch the same assignment document.
+  subscribeWorksheetAssignment(assignmentId, onData, onError) {
+    const { db } = requireFirebaseClient();
+    return onSnapshot(doc(db, 'worksheetAssignments', assignmentId), (snapshot) => {
+      if (!snapshot.exists()) { onError?.(new Error('Töölehte ei leitud.')); return; }
+      onData(normalizeWorksheetAssignment(snapshot.id, snapshot.data()));
+    }, (error) => onError?.(error));
+  },
+  // Staff only (existing rule): the task the teacher points at during the lesson.
+  async setWorksheetLiveFocus({ assignmentId, blockId }) {
+    if (!assignmentId) throw new Error('Töölehte ei leitud.');
+    const { db } = requireFirebaseClient();
+    const liveFocus = { blockId: blockId || '', at: new Date().toISOString() };
+    await updateDoc(doc(db, 'worksheetAssignments', assignmentId), { liveFocus });
+    return liveFocus;
   },
   async saveWorksheetDraft({ assignmentId, answers }) {
     if (!assignmentId) throw new Error('Töölehte ei leitud.');

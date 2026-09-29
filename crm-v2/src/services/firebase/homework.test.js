@@ -9,13 +9,21 @@ const firestore = vi.hoisted(() => ({
   getDocs: vi.fn(),
   query: vi.fn((name, ...constraints) => ({ name, constraints })),
   updateDoc: vi.fn(),
+  onSnapshot: vi.fn(),
   where: vi.fn((field, operator, value) => ({ field, operator, value })),
   batch: { set: vi.fn(), commit: vi.fn().mockResolvedValue(undefined) },
   writeBatch: vi.fn(),
 }));
 
+const storageApi = vi.hoisted(() => ({
+  ref: vi.fn((_storage, path) => `storage-ref:${path}`),
+  uploadBytesResumable: vi.fn(() => ({ on: vi.fn((_e, _p, _err, done) => done()) })),
+  getDownloadURL: vi.fn().mockResolvedValue('https://files.example/rec.webm'),
+}));
+
 vi.mock('firebase/firestore', () => firestore);
-vi.mock('./client.js', () => ({ requireFirebaseClient: () => ({ db: 'firebase-db' }) }));
+vi.mock('firebase/storage', () => storageApi);
+vi.mock('./client.js', () => ({ requireFirebaseClient: () => ({ db: 'firebase-db', storage: 'firebase-storage' }) }));
 
 import { homeworkService, normalizeSubmission, sanitizeSubmissionAnnotations } from './homework.js';
 
@@ -192,5 +200,23 @@ describe('homeworkService submissions', () => {
       files: [{ name: 'pere.pdf', url: 'https://files.example/pere.pdf' }],
     });
     expect(firestore.getDoc).toHaveBeenCalledWith('firebase-db:curriculumLessons:deleted-material');
+  });
+
+  it('uploads a worksheet voice answer under the learner homework prefix', async () => {
+    const blob = new globalThis.Blob(['x'], { type: 'audio/webm;codecs=opus' });
+    const res = await homeworkService.uploadRecording({ studentId: 'st-1', assignmentId: 'as-1', blockId: 'sp 1', blob });
+    expect(storageApi.ref).toHaveBeenCalledWith('firebase-storage', expect.stringMatching(/^homework\/st-1\/ws_rec_as-1_sp-1_\d+\.webm$/));
+    expect(storageApi.uploadBytesResumable).toHaveBeenCalledWith(expect.any(String), blob, { contentType: 'audio/webm' });
+    expect(res.url).toBe('https://files.example/rec.webm');
+    await expect(homeworkService.uploadRecording({ studentId: 'st-1', assignmentId: 'as-1', blockId: 'x', blob: new globalThis.Blob(['x'], { type: 'text/plain' }) })).rejects.toThrow(/helifail/);
+  });
+
+  it('streams one worksheet assignment and stores the live task focus', async () => {
+    const onData = vi.fn();
+    firestore.onSnapshot.mockImplementation((_ref, next) => { next({ exists: () => true, id: 'as-1', data: () => ({ studentId: 'st-1', answers: { 'b:0': 'x' }, liveFocus: { blockId: 'b' } }) }); return 'unsubscribe'; });
+    expect(homeworkService.subscribeWorksheetAssignment('as-1', onData)).toBe('unsubscribe');
+    expect(onData.mock.calls[0][0]).toMatchObject({ id: 'as-1', answers: { 'b:0': 'x' }, liveFocus: { blockId: 'b' } });
+    await homeworkService.setWorksheetLiveFocus({ assignmentId: 'as-1', blockId: 'b' });
+    expect(firestore.updateDoc).toHaveBeenLastCalledWith(expect.anything(), { liveFocus: { blockId: 'b', at: expect.any(String) } });
   });
 });
