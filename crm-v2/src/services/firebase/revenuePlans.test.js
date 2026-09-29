@@ -4,6 +4,7 @@ const firestore = vi.hoisted(() => ({
   collection: vi.fn((_db, name) => name),
   doc: vi.fn((...parts) => parts.length === 1 ? { id: 'activity', path: `${parts[0]}:activity` } : parts.join(':')),
   getDocs: vi.fn(),
+  getDoc: vi.fn(),
   batch: { set: vi.fn(), commit: vi.fn().mockResolvedValue(undefined) },
   writeBatch: vi.fn(),
 }));
@@ -11,7 +12,7 @@ const firestore = vi.hoisted(() => ({
 vi.mock('firebase/firestore', () => firestore);
 vi.mock('./client.js', () => ({ requireFirebaseClient: () => ({ db: 'firebase-db' }) }));
 
-import { revenuePlansService, validateRevenuePlan } from './revenuePlans.js';
+import { nextPriceHistory, revenuePlansService, validateRevenuePlan } from './revenuePlans.js';
 
 describe('revenuePlansService', () => {
   beforeEach(() => {
@@ -33,13 +34,22 @@ describe('revenuePlansService', () => {
     expect(firestore.getDocs).toHaveBeenCalledWith('studentRevenuePlans');
   });
 
-  it('atomically saves the forecast projection, legacy student fields and audit event', async () => {
+  it('saves the price only in the private plan (never on the student card) with an audit event', async () => {
     const admin = { uid: 'admin-1', displayName: 'Admin', roles: ['admin'] };
-    await expect(revenuePlansService.save({ id: 'student-1', name: 'Mari' }, { lessonPrice: '25', weeklyLessons: '2' }, admin)).resolves.toMatchObject({ studentId: 'student-1', lessonPriceCents: 2500, weeklyLessons: 2 });
-    expect(firestore.batch.set).toHaveBeenCalledTimes(3);
-    expect(firestore.batch.set.mock.calls[0]).toEqual(['firebase-db:studentRevenuePlans:student-1', expect.objectContaining({ studentId: 'student-1', studentName: 'Mari', lessonPriceCents: 2500, weeklyLessons: 2 }), { merge: true }]);
-    expect(firestore.batch.set.mock.calls[1]).toEqual(['firebase-db:students:student-1', expect.objectContaining({ lessonPrice: 25, weeklyLessons: 2 }), { merge: true }]);
-    expect(firestore.batch.set.mock.calls[2][1]).toMatchObject({ type: 'finance.revenue_plan_updated', byUid: 'admin-1' });
+    await expect(revenuePlansService.save({ id: 'student-1', name: 'Mari' }, { lessonPrice: '25', weeklyLessons: '2', lessonMinutes: '45', billingMode: 'advance', chargeNoShow: false, validFrom: '2026-10-01' }, admin))
+      .resolves.toMatchObject({ studentId: 'student-1', lessonPriceCents: 2500, weeklyLessons: 2, lessonMinutes: 45, billingMode: 'advance', chargeNoShow: false });
+    expect(firestore.batch.set).toHaveBeenCalledTimes(2);
+    expect(firestore.batch.set.mock.calls[0]).toEqual(['firebase-db:studentRevenuePlans:student-1', expect.objectContaining({ lessonPriceCents: 2500, validFrom: '2026-10-01', priceHistory: [] }), { merge: true }]);
+    expect(firestore.batch.set.mock.calls.some(([path]) => String(path).includes(':students:'))).toBe(false);
+    expect(firestore.batch.set.mock.calls[1][1]).toMatchObject({ type: 'finance.revenue_plan_updated', byUid: 'admin-1' });
+  });
+
+  it('keeps the previous price in the history when the price changes', () => {
+    const previous = { lessonPriceCents: 2500, lessonMinutes: 60, validFrom: '2026-01-01', priceHistory: [] };
+    expect(nextPriceHistory(previous, { lessonPriceCents: 2800, lessonMinutes: 60, validFrom: '2026-10-01' }))
+      .toEqual([{ lessonPriceCents: 2500, lessonMinutes: 60, validFrom: '2026-01-01', validTo: '2026-10-01' }]);
+    expect(nextPriceHistory(previous, { lessonPriceCents: 2500, lessonMinutes: 60, validFrom: '2026-10-01' })).toEqual([]);
+    expect(nextPriceHistory(null, { lessonPriceCents: 2500, lessonMinutes: 60 })).toEqual([]);
   });
 
   it('does not let a non-admin change a revenue plan', async () => {

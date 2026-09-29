@@ -2,6 +2,7 @@ import { useState } from 'react';
 import FinancePage from './FinancePage.jsx';
 import FinanceWorkspaceNav from './FinanceWorkspaceNav.jsx';
 import ManualInvoiceDialog from './ManualInvoiceDialog.jsx';
+import PricePrivacyBanner from './PricePrivacyBanner.jsx';
 import { FINANCE_DEFAULT_SECTION, normalizeFinanceSection } from './financeNavigation.js';
 import './manualInvoice.css';
 
@@ -31,6 +32,7 @@ export default function FinanceWorkspacePage(props) {
 
   return (
     <>
+      <PricePrivacyBanner />
       <FinanceWorkspaceNav activeSection={activeSection} onSelect={selectSection} />
       <div className="finance-workspace-actions">
         <ManualInvoiceDialog onCreated={handleManualInvoiceCreated} />

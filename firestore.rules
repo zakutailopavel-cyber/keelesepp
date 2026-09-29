@@ -1133,7 +1133,12 @@ service cloud.firestore {
           'active',
           'updatedAt',
           'updatedBy',
-          'updatedByUid'
+          'updatedByUid',
+          'lessonMinutes',
+          'billingMode',
+          'chargeNoShow',
+          'validFrom',
+          'priceHistory'
         ])
         && request.resource.data.keys().hasAll([
           'studentId',
@@ -1158,7 +1163,13 @@ service cloud.firestore {
         && request.resource.data.currency == 'EUR'
         && request.resource.data.active == true
         && request.resource.data.updatedAt is string
-        && request.resource.data.updatedByUid == uid();
+        && request.resource.data.updatedByUid == uid()
+        // billing settings (Finance v2): lesson length, advance / current-month billing, no-show charge, price history
+        && (!('lessonMinutes' in request.resource.data) || request.resource.data.lessonMinutes in [30, 45, 60, 75, 90, 120])
+        && (!('billingMode' in request.resource.data) || request.resource.data.billingMode in ['advance', 'current'])
+        && (!('chargeNoShow' in request.resource.data) || request.resource.data.chargeNoShow is bool)
+        && (!('validFrom' in request.resource.data) || (request.resource.data.validFrom is string && request.resource.data.validFrom.size() == 10))
+        && (!('priceHistory' in request.resource.data) || (request.resource.data.priceHistory is list && request.resource.data.priceHistory.size() <= 60));
       allow delete: if isAdmin();
     }
 

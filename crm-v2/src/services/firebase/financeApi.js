@@ -55,6 +55,13 @@ async function postInvoice(path, body) {
 }
 
 export const financeApi = {
+  // Finance v2 §1: move lesson prices off student cards into the private revenue plans
+  previewPricePrivacy() {
+    return post("/students/price-privacy/preview", {});
+  },
+  applyPricePrivacy() {
+    return post("/students/price-privacy/apply", {});
+  },
   previewDataQuality() {
     return post("/data-quality/preview", {});
   },

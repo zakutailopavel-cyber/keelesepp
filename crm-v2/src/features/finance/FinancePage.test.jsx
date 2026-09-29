@@ -101,6 +101,7 @@ describe('FinancePage', () => {
       expect.objectContaining({ id: 'student-1' }),
       expect.objectContaining({ lessonPrice: '30', weeklyLessons: '3' }),
       repositories.user,
+      expect.objectContaining({ studentId: 'student-1', lessonPriceCents: 2500 }),
     ));
   });
 

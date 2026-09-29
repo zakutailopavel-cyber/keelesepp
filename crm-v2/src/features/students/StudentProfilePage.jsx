@@ -12,6 +12,8 @@ import { ROLES } from '../../utils/roles.js';
 import { studentValueLabel } from '../../utils/studentPrivacy.js';
 import { canonicalTeacherName, isSameTeacher } from '../../utils/teachers.js';
 import StudentFinancePanel from './StudentFinancePanel.jsx';
+import BillingSettingsCard from './BillingSettingsCard.jsx';
+import { revenuePlansService } from '../../services/firebase/revenuePlans.js';
 import StudentForm from './StudentForm.jsx';
 import { LEGACY_TEACHERS } from './studentOptions.js';
 import './studentProfileTabs.css';
@@ -24,14 +26,14 @@ const PROFILE_TABS = [
   { id: 'finance', label: 'Finantsid', financeOnly: true },
 ];
 
-export default function StudentProfilePage({ studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, actor }) {
+export default function StudentProfilePage({ studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, planApi = revenuePlansService, actor }) {
   const { studentId } = useParams();
   const auth = useContext(AuthContext);
   const currentUser = actor || auth?.user || { roles: [ROLES.ADMIN], displayName: '' };
   const canAssignTeacher = currentUser.roles?.includes(ROLES.ADMIN);
   const canViewFinance = currentUser.roles?.some((role) => [ROLES.ADMIN, ROLES.FINANCE].includes(role));
   const teacherScope = canAssignTeacher ? '' : canonicalTeacherName(currentUser.displayName);
-  const [state, setState] = useState({ loading: true, error: null, forbidden: false, student: null, lessons: [], invoices: [], schedule: [] });
+  const [state, setState] = useState({ loading: true, error: null, forbidden: false, student: null, lessons: [], invoices: [], schedule: [], plan: null });
   const [editing, setEditing] = useState(false);
   const [notice, setNotice] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
@@ -48,16 +50,17 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
         setState({ loading: false, error: null, forbidden: true, student: null, lessons: [], invoices: [], schedule: [] });
         return;
       }
-      const [lessons, schedule, invoices] = await Promise.all([
+      const [lessons, schedule, invoices, plan] = await Promise.all([
         lessonApi.listByStudent(studentId),
         scheduleApi.listByStudent(studentId),
         canViewFinance ? invoiceApi.listByStudent(studentId) : Promise.resolve([]),
+        canViewFinance ? planApi.get(studentId).catch(() => null) : Promise.resolve(null),
       ]);
-      setState({ loading: false, error: null, forbidden: false, student, lessons, invoices, schedule });
+      setState({ loading: false, error: null, forbidden: false, student, lessons, invoices, schedule, plan });
     } catch (error) {
       setState((current) => ({ ...current, loading: false, error: new Error(firebaseErrorMessage(error)) }));
     }
-  }, [canAssignTeacher, canViewFinance, invoiceApi, lessonApi, scheduleApi, studentApi, studentId, teacherScope]);
+  }, [canAssignTeacher, canViewFinance, invoiceApi, lessonApi, planApi, scheduleApi, studentApi, studentId, teacherScope]);
 
   useEffect(() => { load(); }, [load]);
   useEffect(() => {
@@ -123,7 +126,11 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
           </div>
         ) : null}
 
-        {activeTab === 'finance' && canViewFinance ? <StudentFinancePanel student={student} invoices={state.invoices} /> : null}
+        {activeTab === 'finance' && canViewFinance ? <>
+          <BillingSettingsCard student={student} plan={state.plan} canEdit={canAssignTeacher}
+            onSave={async (values) => { const plan = await planApi.save(student, values, currentUser, state.plan); setState((current) => ({ ...current, plan })); }} />
+          <StudentFinancePanel student={student} invoices={state.invoices} />
+        </> : null}
       </div>
 
       <StudentForm open={editing} student={student} teachers={[...new Set([...LEGACY_TEACHERS, canonicalTeacherName(student.teacher)].filter(Boolean))]} canAssignTeacher={canAssignTeacher} defaultTeacher={teacherScope} onClose={() => setEditing(false)} onSubmit={async (values) => { const safeValues = canAssignTeacher ? values : { ...values, teacher: student.teacher || teacherScope }; await studentApi.update(student.id, safeValues); await load(); setNotice('Õpilase andmed on salvestatud.'); }} />

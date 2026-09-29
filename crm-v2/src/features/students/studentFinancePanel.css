@@ -11,3 +11,14 @@
 .student-finance-panel__footer small { color: var(--text-muted, #667085); }
 @media (max-width: 900px) { .student-finance-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 560px) { .student-finance-metrics { grid-template-columns: 1fr; } .student-finance-panel__footer { align-items: stretch; flex-direction: column; } }
+.billing-settings { display: grid; gap: 16px; }
+.billing-settings .eyebrow { display: inline-flex; align-items: center; gap: 6px; }
+.billing-settings__price { font-size: 1.25rem; }
+.billing-settings__missing { color: #b42318; font-weight: 700; }
+.billing-settings__form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 16px; align-items: end; }
+.billing-settings__check { grid-column: 1 / -1; display: flex; gap: 8px; align-items: center; }
+.billing-settings__actions { grid-column: 1 / -1; display: flex; justify-content: flex-end; align-items: center; gap: 12px; color: #087443; }
+.billing-settings__actions span { display: inline-flex; align-items: center; gap: 6px; }
+.billing-settings__history summary { cursor: pointer; color: var(--text-muted, #667085); }
+.billing-settings__history ul { margin: 8px 0 0; padding-left: 18px; }
+@media (max-width: 760px) { .billing-settings__form { grid-template-columns: 1fr; } }
