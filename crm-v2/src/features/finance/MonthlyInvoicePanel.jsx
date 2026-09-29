@@ -108,9 +108,9 @@ export default function MonthlyInvoicePanel({
                 <div className="monthly-invoices__row" role="row">
                   <span>{row.status === 'ready' ? <input type="checkbox" aria-label={`Vali ${row.student.name}`} checked={selected.has(row.student.id)} onChange={() => toggle(row.student.id)} /> : null}</span>
                   <span><strong>{row.student.name}</strong><small>{row.mode === 'advance' ? 'Kuu ette' : 'Jooksev kuu'} · {row.priceCents ? `${money(row.priceCents)} / ${row.plan?.lessonMinutes || 60} min` : 'hind määramata'}{row.payerEmail ? '' : ' · e-post puudub'}</small></span>
-                  <span>{row.lessonCount}{row.plannedUnits !== row.lessonCount ? <small>{num(row.plannedUnits)} ühikut</small> : null}</span>
+                  <span>{row.lessonCount}{row.plan && row.plannedUnits !== row.lessonCount ? <small>{num(row.plannedUnits)} ühikut</small> : null}</span>
                   <span>{row.correction.units ? <button type="button" className="linklike" aria-expanded={open === row.student.id} onClick={() => setOpen(open === row.student.id ? '' : row.student.id)}>{row.correction.units > 0 ? '+' : ''}{num(row.correction.units)}</button> : noShows.length ? <button type="button" className="linklike" onClick={() => setOpen(open === row.student.id ? '' : row.student.id)}>0</button> : '—'}</span>
-                  <span><strong>{row.existing ? money(row.existing.amountCents) : money(row.totalCents)}</strong></span>
+                  <span><strong>{row.existing ? money(row.existing.amountCents) : row.priceCents ? money(row.totalCents) : '—'}</strong></span>
                   <span>{dateLabel(row.existing?.due || row.due)}</span>
                   <span><Badge tone={status.tone}>{row.existing ? `${status.label} ${row.existing.num || ''}` : status.label}</Badge></span>
                 </div>
