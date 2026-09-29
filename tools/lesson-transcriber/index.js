@@ -7,13 +7,16 @@ const path = require('node:path');
 const { execFile } = require('node:child_process');
 const { promisify } = require('node:util');
 const admin = require('firebase-admin');
-const { parseWhisperJson, mergeDialogue, isAudioExpired, isAbandoned } = require('./lib');
+const { parseWhisperJson, mergeDialogue, isAudioExpired, isAbandoned, pickModel } = require('./lib');
 
 const run = promisify(execFile);
 const env = (k, d) => process.env[k] || d;
 const BUCKET = env('FIREBASE_STORAGE_BUCKET', 'keelesepp-5136b.firebasestorage.app');
 const WHISPER = env('WHISPER_BIN', '/opt/homebrew/bin/whisper-cli');
 const MODEL = env('WHISPER_MODEL', path.join(os.homedir(), 'KeeleSeppTranscriber', 'models', 'ggml-large-v3-turbo.bin'));
+// TalTechNLP/whisper-large-v3-turbo-et-verbatim-2604 (MIT), ggml file from its Hugging Face repo
+const MODEL_ET = env('WHISPER_MODEL_ET', path.join(path.dirname(MODEL), 'ggml-taltech-et-verbatim-2604.bin'));
+const modelFor = (lang) => pickModel(lang, { et: MODEL_ET, general: MODEL }, fs.existsSync);
 const VAD_MODEL = env('WHISPER_VAD_MODEL', path.join(path.dirname(MODEL), 'ggml-silero-v5.1.2.bin'));
 const FFMPEG = env('FFMPEG_BIN', fs.existsSync('/opt/homebrew/bin/ffmpeg') ? '/opt/homebrew/bin/ffmpeg' : '/opt/homebrew/opt/ffmpeg-full/bin/ffmpeg');
 const THREADS = env('WHISPER_THREADS', String(Math.max(2, os.cpus().length - 2)));
@@ -46,7 +49,7 @@ async function transcribeSegment(seg, lang, dir) {
   await run(FFMPEG, ['-y', '-loglevel', 'error', '-i', src, '-ar', '16000', '-ac', '1', '-c:a', 'pcm_s16le', wav]);
   // voice activity detection: exact start times per phrase and no invented text on silence
   const vad = fs.existsSync(VAD_MODEL) ? ['--vad', '-vm', VAD_MODEL] : [];
-  await run(WHISPER, ['-m', MODEL, '-l', lang, '-t', THREADS, '-f', wav, '-oj', '-of', src, '-np', ...vad], { maxBuffer: 64 * 1024 * 1024 });
+  await run(WHISPER, ['-m', modelFor(lang), '-l', lang, '-t', THREADS, '-f', wav, '-oj', '-of', src, '-np', ...vad], { maxBuffer: 64 * 1024 * 1024 });
   const json = JSON.parse(fs.readFileSync(`${src}.json`, 'utf8'));
   return parseWhisperJson(json, { speaker: seg.track, offsetMs: seg.startMs || 0 });
 }
@@ -62,7 +65,7 @@ async function transcribe(rec) {
     const transcript = mergeDialogue(lines);
     await rec.ref.update({
       status: 'done', transcript, transcribedAt: new Date().toISOString(),
-      transcriptModel: path.basename(MODEL), transcribeSeconds: Math.round((Date.now() - started) / 1000), error: admin.firestore.FieldValue.delete(),
+      transcriptModel: path.basename(modelFor(rec.language || 'et')), transcribeSeconds: Math.round((Date.now() - started) / 1000), error: admin.firestore.FieldValue.delete(),
     });
     log('done', rec.id, `${transcript.length} lines`);
   } catch (err) {
@@ -100,7 +103,7 @@ async function tick() {
 
 async function main() {
   if (!fs.existsSync(MODEL)) throw new Error(`Whisper model not found: ${MODEL}`);
-  log('lesson transcriber started', { bucket: BUCKET, model: path.basename(MODEL), vad: fs.existsSync(VAD_MODEL) });
+  log('lesson transcriber started', { bucket: BUCKET, model: path.basename(MODEL), modelEt: path.basename(modelFor('et')), vad: fs.existsSync(VAD_MODEL) });
   if (process.argv.includes('--once')) { await tick(); await deleteOldAudio(); return; }
   for (;;) {
     try { await tick(); } catch (err) { log('tick error', err.message); }

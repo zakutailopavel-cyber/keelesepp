@@ -15,6 +15,9 @@ whisper.cpp on the Mac. No audio goes to any other service. Audio is deleted aft
    mkdir -p ~/KeeleSeppTranscriber/models
    curl -L -o ~/KeeleSeppTranscriber/models/ggml-large-v3-turbo.bin https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo.bin
    curl -L -o ~/KeeleSeppTranscriber/models/ggml-silero-v5.1.2.bin https://huggingface.co/ggml-org/whisper-vad/resolve/main/ggml-silero-v5.1.2.bin
+   # Estonian lessons: TalTech's Estonian verbatim model (MIT, TalTechNLP/whisper-large-v3-turbo-et-verbatim-2604).
+   # On the Etteütlus 2024 sample it made 1 error where large-v3-turbo made ~20. Used automatically when present.
+   curl -L -o ~/KeeleSeppTranscriber/models/ggml-taltech-et-verbatim-2604.bin https://huggingface.co/TalTechNLP/whisper-large-v3-turbo-et-verbatim-2604/resolve/main/ggml/ggml-model.bin
    ```
 3. **Dependencies:** `npm install` in this folder. `whisper-cli` (Homebrew `whisper-cpp`) and `ffmpeg` must be installed.
 4. **Try once:** `GOOGLE_APPLICATION_CREDENTIALS=~/KeeleSeppTranscriber/service-account.json npm run once`

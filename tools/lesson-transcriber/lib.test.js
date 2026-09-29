@@ -38,3 +38,11 @@ test('audio is deleted after 60 days; forgotten recordings are handed over after
   assert.equal(isAbandoned({ status: 'recording', updatedAt: '2026-11-30T20:00:00Z' }, now), true);
   assert.equal(isAbandoned({ status: 'recording', updatedAt: '2026-11-30T23:00:00Z' }, now), false);
 });
+
+test('Estonian lessons use the TalTech Estonian model, others the general one', () => {
+  const { pickModel } = require('./lib');
+  const models = { et: '/m/ggml-taltech-et-verbatim-2604.bin', general: '/m/ggml-large-v3-turbo.bin' };
+  assert.equal(pickModel('et', models), models.et);
+  assert.equal(pickModel('en', models), models.general);
+  assert.equal(pickModel('et', models, () => false), models.general, 'missing Estonian file falls back');
+});

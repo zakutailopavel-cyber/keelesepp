@@ -103,6 +103,13 @@ Vercel project `keelesepp` (v1 + website) is **disconnected from GitHub** to sav
 website/v1 change: Vercel → keelesepp → Settings → Git → connect GitHub → Deployments → Create Deployment (`main`,
 production) → disconnect again.
 
+**Release process (owner decision 2026-09-29): batch releases, no automatic Vercel builds.** Both Vercel projects
+(`keelesepp-crm-v2` for crm.epkoolitus.ee and `keelesepp` for www.epkoolitus.ee + v1) are disconnected from GitHub, so
+pushes and merges no longer spend the free plan's 100 deployments/day. Work is checked locally (tests, lint, build,
+local preview) and merged to `main` as usual; a release is then published once: Vercel → project → Settings → Git →
+connect GitHub → Deployments → ⋯ → Create Deployment → `main` → Deploy to Production → disconnect again. Firebase
+rules/functions are deployed separately with the owner's word.
+
 ## Still needed before v1 can be switched off (checked 2026-09-29)
 
 Blocking for daily work in v2 only:
