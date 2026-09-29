@@ -3357,6 +3357,8 @@ test("monthly plan invoice is priced from the private plan and issued once per m
     db.collection("studentRevenuePlans").doc("monthly-student").set({ studentId: "monthly-student", studentName: "Kuu Õpilane", lessonPriceCents: 2500, lessonMinutes: 60, weeklyLessons: 1, billingMode: "current", currency: "EUR", active: true, updatedAt: "2026-09-01T00:00:00.000Z", updatedByUid: "seed-admin" }),
   ]);
   const adminToken = await createAdminToken();
+  // manualInvoiceApi checks roles on the profile (the super-admin e-mail alone is not enough there)
+  await db.collection("users").doc(tokenUid(adminToken)).set({ roles: ["admin"], role: "admin", email: "zakutailo.pavel@gmail.com" }, { merge: true });
   const call = (body) => fetch(`http://${FUNCTIONS_EMULATOR}/${PROJECT_ID}/us-central1/manualInvoiceApi/monthly`, {
     method: "POST",
     headers: { Authorization: `Bearer ${adminToken}`, "Content-Type": "application/json" },
