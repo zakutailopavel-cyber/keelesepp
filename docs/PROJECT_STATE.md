@@ -1,5 +1,13 @@
 # KeeleSepp Project State
 
+## CRM v2 production blocker: camera and microphone were forbidden — PR
+
+Found 2026-09-29 while planning the switch of all users to v2: `crm-v2/vercel.json` sent
+`Permissions-Policy: camera=(), microphone=()`, so on the production v2 site (`keelesepp-crm-v2.vercel.app`) the Live
+Classroom video call, screen sharing and worksheet voice answers could not start (tests do not see hosting headers).
+Fix: `camera=(self), microphone=(self), display-capture=(self)`; guard test `src/app/hostingHeaders.test.js`.
+Checks: vitest 366/366, ESLint clean, build OK. Takes effect with the next Vercel production deploy of main.
+
 ## CRM v2 migration plan — DECIDED 2026-09-29
 
 Owner decision: **Worksheet Studio is the only authoring tool**; v1 Lesson Builder ("Valmista tund"), v1 Worksheet
