@@ -24,6 +24,10 @@ silence while a worksheet is open (`petQuiet`) and in the lesson room, tour/hidd
 (`pet.tourDoneAt`, `pet.hidden`, `pet.optedOut`), celebration after "Esita tööleht" (`petCelebrate`, +15 and +5 per
 reached goal), one-time hints on Kodutööd and Live Classroom. Estonian phrases are corrected after deploy. Stage 2 for
 now: only motivational lines (no wardrobe, parent view or speech yet).
+Pre-deploy review fixes: absences ('Puudus_eta', 'Puudus_p') and cancellations no longer feed the pet (only
+'Toimunud' or an older record without status) and no longer count in "Läbitud tunnid"; on phones the tour points at the
+menu button and the pet stands above the full-width invitation card; exercises also quiet the pet and celebrate;
+keyboard focus moves into the tour card.
 **Needs a Firestore rules deploy** together with the merge (`validPet` allows kind, name, chosenAt, tourDoneAt, hidden,
 optedOut); until then saving fails with a permission error.
 Checks: vitest 373/373, ESLint clean, build OK, rules compile (dry run).

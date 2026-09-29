@@ -11,6 +11,13 @@ const time = (value) => {
   return Number.isNaN(t) ? 0 : t;
 };
 
+// Lesson journal statuses: 'Toimunud' held; 'Puudus_eta' / 'Puudus_p' / 'Puudus…' absent; 'Tühistatud' cancelled;
+// 'Planeeritud' not yet. A record without a status is an older journal entry of a held lesson.
+export function isAttended(lesson) {
+  const status = String(lesson?.status || '');
+  return !status || status === 'Toimunud';
+}
+
 // goals fully reached in one submitted worksheet (score.perGoal: { goalId: { ok, total } })
 function goalsReached(submission) {
   const perGoal = submission?.score?.perGoal || submission?.source?.score?.perGoal || {};
@@ -18,7 +25,8 @@ function goalsReached(submission) {
 }
 
 export function petProgress({ lessons = [], submissions = [], now = Date.now() }) {
-  const held = lessons.filter((l) => l.status !== 'Tühistatud' && time(l.date) && time(l.date) <= now);
+  // only lessons the student actually attended feed the pet (absences 'Puudus_*' and cancellations do not)
+  const held = lessons.filter((l) => isAttended(l) && time(l.date) && time(l.date) <= now);
   const done = submissions.filter((s) => s.status === 'done' || s.completedAt);
   const goals = done.reduce((n, s) => n + goalsReached(s), 0);
   const xp = held.length * XP.lesson + done.length * XP.submission + goals * XP.goal;

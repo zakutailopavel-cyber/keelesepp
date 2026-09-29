@@ -59,7 +59,7 @@ export default function AppShell() {
         <LessonInvitationOverlay />
         {preview ? <div className="preview-banner" role="status"><span><strong>Vaatad süsteemi kasutajana: {user.displayName || user.email}</strong><small>Read-only tugivaade · administraatori seanss jääb aktiivseks</small></span><button onClick={exitPreview}>Lõpeta vaade</button></div> : null}
         <header className="topbar">
-          <IconButton className="mobile-only" label="Ava menüü" onClick={() => setMenuOpen(true)}><Menu size={21} /></IconButton>
+          <IconButton className="mobile-only" data-tour="menu" label="Ava menüü" onClick={() => setMenuOpen(true)}><Menu size={21} /></IconButton>
           {canSearchStudents ? <GlobalStudentSearch user={user} /> : null}
         </header>
         <div className={preview?.readOnly ? 'preview-surface preview-surface--readonly' : 'preview-surface'} onClickCapture={blockPreviewButtons} onSubmitCapture={(event) => { if (preview?.readOnly) { event.preventDefault(); event.stopPropagation(); } }}><Outlet /></div>

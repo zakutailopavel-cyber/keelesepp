@@ -68,6 +68,8 @@ export function companionHint({ now = Date.now(), invitation = null, todayLesson
 
 // First-visit tour for students: only steps whose target is on the page are shown.
 export const TOUR_STEPS = [
+  // phones: the menu is closed, so the tour points at the menu button instead of the items
+  { target: '[data-tour="menu"]', text: 'Menüü on siin: tunnid, kodutööd, tund õpetajaga ja sõnumid.', hint: 'Меню здесь: уроки, домашки, урок с учителем и сообщения.' },
   { target: '[data-tour="nav-/student"]', text: 'Siin on „Minu õpingud”: sinu tunnid, ülesanded ja mina.', hint: 'Здесь «Minu õpingud»: твои уроки, задания и я.' },
   { target: '[data-tour="nav-/homework"]', text: '„Kodutööd”: vajuta töölehele, et seda täita.', hint: '«Kodutööd»: нажми на лист, чтобы его заполнить.' },
   { target: '[data-tour="nav-/live-classroom"]', text: 'Siia tuled tundi. Kui õpetaja kutsub, annan märku!', hint: 'Сюда ты приходишь на урок. Когда учитель позовёт, я дам знать!' },

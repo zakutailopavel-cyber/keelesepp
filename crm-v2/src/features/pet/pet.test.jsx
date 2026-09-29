@@ -8,6 +8,17 @@ const day = (n) => new Date(NOW - n * 86400000).toISOString();
 const done = (daysAgo, perGoal = {}) => ({ status: 'done', completedAt: day(daysAgo), score: { perGoal } });
 
 describe('pet model', () => {
+  it('does not count absences or cancelled lessons', () => {
+    const p = petProgress({ lessons: [
+      { date: day(3).slice(0, 10), status: 'Toimunud' },
+      { date: day(4).slice(0, 10), status: 'Puudus_eta' },
+      { date: day(5).slice(0, 10), status: 'Puudus_p' },
+      { date: day(6).slice(0, 10), status: 'Tühistatud' },
+    ], now: NOW });
+    expect(p.lessons).toBe(1);
+    expect(p.xp).toBe(10);
+  });
+
   it('grows from lessons, submitted work and reached goals only', () => {
     const lessons = Array.from({ length: 6 }, (_, i) => ({ date: day(10 + i).slice(0, 10), status: 'Toimunud' }));
     const p = petProgress({ lessons: [...lessons, { date: day(1).slice(0, 10), status: 'Tühistatud' }], submissions: [done(20, { g1: { ok: 2, total: 2 }, g2: { ok: 1, total: 3 } }), done(30)], now: NOW });

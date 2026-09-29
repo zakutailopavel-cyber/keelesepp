@@ -77,5 +77,7 @@
 .pet-tour__card p { margin: 0; font: 700 1.35rem/1.15 'Caveat', 'Bradley Hand', cursive; color: #1f2d3d; }
 .pet-tour__card small { display: block; margin-top: 3px; color: #5c6875; font-size: .75rem; }
 @media (max-width: 900px) { .pet-lane { left: 0; } .pet-walker, .pet-body { width: 72px; } .pet-talk { bottom: 80px; } }
+/* phones: the invitation card spans the bottom, so the pet stands on top of it */
+@media (max-width: 640px) { .pet-lane.is-above-card { bottom: 210px; } }
 @media (prefers-reduced-motion: reduce) { .pet-walker { transition: none; } .pet-walker .pet-figure { animation: none !important; } }
 @media print { .pet-lane, .pet-dock, .pet-tour { display: none !important; } }

@@ -35,6 +35,7 @@ function PetTour({ pet, onDone }) {
   }, []);
   const [i, setI] = useState(0);
   const [rect, setRect] = useState(null);
+  const nextRef = useRef(null);
   const step = steps?.[i];
 
   useEffect(() => {
@@ -47,6 +48,9 @@ function PetTour({ pet, onDone }) {
     window.addEventListener('resize', measure);
     return () => window.removeEventListener('resize', measure);
   }, [step]);
+
+  // keyboard users land on the tour card
+  useEffect(() => { nextRef.current?.focus(); }, [i, steps]);
 
   useEffect(() => {
     const key = (event) => { if (event.key === 'Escape') onDone(); };
@@ -71,7 +75,7 @@ function PetTour({ pet, onDone }) {
           <small lang="ru">{step.hint}</small>
           <div className="pet-tour__actions">
             <button type="button" className="pet-link" onClick={onDone}>Jäta vahele</button>
-            <button type="button" className="pet-btn" onClick={() => (last ? onDone() : setI(i + 1))}>{last ? 'Selge!' : `Edasi (${i + 1}/${steps.length})`}</button>
+            <button type="button" ref={nextRef} className="pet-btn" onClick={() => (last ? onDone() : setI(i + 1))}>{last ? 'Selge!' : `Edasi (${i + 1}/${steps.length})`}</button>
           </div>
         </div>
       </div>
@@ -236,7 +240,7 @@ export default function PetCompanion({
   const mood = bubble?.key === 'celebrate' ? 'proud' : bubble?.urgent ? 'happy' : 'calm';
   return (
     <>
-      <div className="pet-lane" ref={laneRef} aria-live="polite">
+      <div className={`pet-lane ${atInvitation ? 'is-above-card' : ''}`} ref={laneRef} aria-live="polite">
         <div className={`pet-walker ${walking ? 'is-walking' : ''} ${bubble?.urgent || bubble?.key === 'celebrate' ? 'is-excited' : ''}`} style={{ transform: `translateX(${shownX}px)` }}>
           {bubble ? (
             <div className={`pet-talk ${shownX > laneW / 2 ? 'is-left' : ''}`} role="status">

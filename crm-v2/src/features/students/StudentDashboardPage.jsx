@@ -9,6 +9,7 @@ import { homeworkService, invoicesService, lessonsService, scheduleService, stud
 import { occurrencesForDates, shiftDate, toIsoDate } from '../calendar/calendarView.js';
 import { invoiceBalanceCents } from './studentFinance.js';
 import PetCard from '../pet/PetCard.jsx';
+import { isAttended } from '../pet/petModel.js';
 
 function unique(items) {
   return [...new Map(items.map((item) => [item.id, item])).values()];
@@ -69,6 +70,7 @@ export default function StudentDashboardPage({
   const upcoming = occurrencesForDates(schedule, nextDates).slice(0, 6);
   const pendingHomework = homework.filter((item) => item.status !== 'Tehtud');
   const completedLessons = lessons.filter((lesson) => lesson.status !== 'Tühistatud');
+  const attendedLessons = lessons.filter(isAttended);
   const reviewedSubmissions = submissions.filter((item) => item.reviewStatus === 'reviewed').slice(0, 5);
   const balance = invoices.reduce((sum, invoice) => sum + invoiceBalanceCents(invoice), 0);
 
@@ -76,7 +78,7 @@ export default function StudentDashboardPage({
     <PageHeader eyebrow="Minu õpingud" title={`Tere, ${user.displayName || 'õpilane'}!`} description="Sinu tunnid, ülesanded, tulemused ja õppimise edenemine ühes vaates." />
     {students.length ? <PetCard user={user} readOnly={Boolean(preview)} lessons={lessons} submissions={submissions} pendingHomework={pendingHomework.length} lessonToday={upcoming.find((lesson) => lesson.occurrenceDate === today)?.time || ''} subject={students[0]?.subject || ''} {...(petRepository ? { repository: petRepository } : {})} /> : null}
     <PeopleOverview label="Õpingute kokkuvõte" eyebrow="Minu töölaud" title="Õppimise hetkeseis" description="Tunnid, ülesanded, tulemused ja arved ühes rahulikus vaates." metrics={[
-      { icon: GraduationCap, label: 'Läbitud tunnid', value: completedLessons.length, hint: 'õppeajaloos' },
+      { icon: GraduationCap, label: 'Läbitud tunnid', value: attendedLessons.length, hint: 'õppeajaloos' },
       { icon: CalendarDays, label: 'Lähimad tunnid', value: upcoming.length, hint: '28 päeva jooksul' },
       { icon: BookOpen, label: 'Pooleli ülesanded', value: pendingHomework.length, hint: 'ootab tegemist' },
       { icon: WalletCards, label: 'Tasumata jääk', value: money(balance), hint: `${invoices.length} arvet` },
