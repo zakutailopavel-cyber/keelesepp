@@ -1,5 +1,13 @@
 # KeeleSepp Project State
 
+## CRM v2 bug: students and parents landed on "Ligipääs puudub" — PR
+
+Reported by the owner 2026-09-29 with a screenshot of a student's browser (`/forbidden`). After sign-in everyone opens
+`/`, which was wrapped in the staff-only DASHBOARD guard, so students and parents never reached `HomePage`, which
+already redirects them to `/student` and `/parent`; "Tagasi avalehele" looped back. Fix: `/` is no longer guarded;
+`HomePage` routes by role. Regression test `src/app/routes.home.test.jsx` (fails on the old routes). Direct links
+meanwhile: `/student`, `/parent`.
+
 ## Lesson recording and free transcription — PR
 
 Owner 2026-09-29: "3 пункт делаем но без квен пока". Live Classroom records a lesson (teacher + student tracks,
