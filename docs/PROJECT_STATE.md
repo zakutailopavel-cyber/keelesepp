@@ -1,5 +1,12 @@
 # KeeleSepp Project State
 
+## 2026-09-29 — crm.epkoolitus.ee now serves CRM v2
+
+`crm.epkoolitus.ee` points at the `keelesepp-crm-v2` Vercel project. v2 has self-registration (`/registreeru`),
+password reset and new-Google-account onboarding; old v1 paths (`/haldus…`, `/tasemetest`, `/kutse`, …) redirect (307)
+to `www.epkoolitus.ee`, which still serves the school website and v1. Details, rollback and remaining items:
+`docs/CRM_V2_MIGRATION_PLAN.md` ("Domain switch").
+
 ## CRM v2 bug: students and parents landed on "Ligipääs puudub" — PR
 
 Reported by the owner 2026-09-29 with a screenshot of a student's browser (`/forbidden`). After sign-in everyone opens

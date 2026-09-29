@@ -79,6 +79,13 @@ Ready in code (PR "v2 registration + legacy redirects"): self-registration for p
 terms fields as v1, server account bootstrap links the student card), password reset from the login page, a new Google
 account is asked for role + terms instead of landing on "Ligipääs puudub", redirects in `crm-v2/vercel.json`.
 
+**Done 2026-09-29 (Claude, owner's word «меняем в2 на основной домен»):** steps 1–3 below. The v2 production build was
+promoted from the PR preview (production builds were rate-limited); `crm.epkoolitus.ee` removed from `keelesepp` and
+added to `keelesepp-crm-v2` (Valid Configuration); `crm.epkoolitus.ee` added to Firebase Authorized domains. Checked:
+`/` opens v2 login, `/registreeru` opens registration, `/haldus` and `/haldus#registreeru` land on `www.epkoolitus.ee`.
+Rollback: move the domain back to project `keelesepp` in Vercel → Domains. Step 4 (role smoke with real accounts) and
+step 5 are still open.
+
 Order (each step reversible by moving the domain back in Vercel):
 1. The v2 production deployment that contains the PR above is live (check `/registreeru` on the v2 address).
 2. Vercel → project `keelesepp` → Domains: remove `crm.epkoolitus.ee`; project `keelesepp-crm-v2` → Domains: add it.
