@@ -111,6 +111,13 @@ per goal; save and load errors). Full suite, ESLint and production build — see
 - New optional field `worksheetAssignments.liveFocus = { blockId, at }` (written by staff only).
 - Next integration (Live Classroom track): open the same view inside the v2 lesson room next to video.
 
+## End-to-end check against the real rules
+
+`functions/worksheet-studio-emulator.integration.js` runs in the "Financial Core emulator" workflow (Auth, Firestore,
+Storage emulators with the repository rules): teacher saves a `worksheetDoc`, assigns it; the owning learner autosaves,
+uploads a voice answer to `homework/{studentId}/`, submits with a per-goal score; another learner cannot read or write;
+learners cannot forge `liveFocus` or the snapshot; the teacher can point at a task; only staff upload to `curriculum/`.
+
 ## Not in this slice
 
 1. (done in slice 2)

@@ -198,7 +198,7 @@ jobs:
       - name: Run emulator integration tests
         run: >-
           npx --yes firebase-tools@15.22.3 emulators:exec
-          --only auth,firestore,functions
+          --only auth,firestore,functions,storage
           --project demo-keelesepp-finance
           --log-verbosity QUIET
-          "npm --prefix functions run test:emulator && node --test functions/lesson-drafts-emulator.integration.js && node --test functions/interactive-lesson-emulator.integration.js"
+          "npm --prefix functions run test:emulator && node --test functions/lesson-drafts-emulator.integration.js && node --test functions/interactive-lesson-emulator.integration.js && node --test functions/worksheet-studio-emulator.integration.js"
