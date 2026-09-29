@@ -31,22 +31,45 @@ function renderPage() {
 }
 
 describe('LibraryPage', () => {
-  it('opens the real subject, stage and topic hierarchy', async () => {
+  it('shows every material at once as a table of contents with level and module filters', async () => {
     const { repository } = renderPage();
-    fireEvent.click(await screen.findByRole('button', { name: /Eesti keel.*2 materjali/ }));
-    fireEvent.click(screen.getByRole('button', { name: /A1.*2 materjali/ }));
-    fireEvent.click(screen.getByRole('button', { name: /Minu pere.*2 materjali/ }));
+    expect(await screen.findByRole('button', { name: /^Pere tunnikava/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Pere tööleht/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Family match/ })).toBeInTheDocument();
+    expect(screen.getByText(/^3 materjali/)).toBeInTheDocument();
 
-    expect(screen.getByRole('button', { name: /Pere tunnikava/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Pere tööleht/ })).toBeInTheDocument();
+    fireEvent.click(within(screen.getByRole('group', { name: 'Tase' })).getByRole('button', { name: /^A1/ }));
+    const toc = within(screen.getByRole('complementary', { name: 'Moodulid' }));
+    fireEvent.click(toc.getByRole('button', { name: /Minu pere/ }));
+    expect(screen.getByText(/^2 materjali/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Family match/ })).not.toBeInTheDocument();
     expect(repository.list).toHaveBeenCalledOnce();
+  });
+
+  it('finds a worksheet by a word inside it and shows where it matched', async () => {
+    renderPage();
+    await screen.findByRole('button', { name: /^Pere tunnikava/ });
+    fireEvent.change(screen.getByLabelText('Otsi õppevara'), { target: { value: 'juhis tähelepanelikult' } });
+    expect(screen.getByText(/^1 materjali/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Pere tööleht/ })).toHaveTextContent('Tööleht:');
+    expect(screen.queryByRole('button', { name: /^Pere tunnikava/ })).not.toBeInTheDocument();
+  });
+
+  it('keeps favourites and filters by them', async () => {
+    renderPage();
+    await screen.findByRole('button', { name: /^Pere tunnikava/ });
+    fireEvent.click(screen.getByRole('button', { name: 'Lisa lemmikutesse: Pere tööleht' }));
+    expect(screen.getByRole('button', { name: 'Eemalda lemmikutest: Pere tööleht' })).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.click(screen.getByRole('button', { name: /Lemmikud/ }));
+    expect(screen.getByText(/^1 materjali/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Pere tööleht/ })).toBeInTheDocument();
   });
 
   it('searches across both Firebase collections and opens material details', async () => {
     renderPage();
-    await screen.findByRole('button', { name: /Eesti keel.*2 materjali/ });
+    await screen.findByRole('button', { name: /^Pere tunnikava/ });
     fireEvent.change(screen.getByLabelText('Otsi õppevara'), { target: { value: 'family' } });
-    const exercise = screen.getByRole('button', { name: /Family match/ });
+    const exercise = screen.getByRole('button', { name: /^Family match/ });
     fireEvent.click(exercise);
 
     const dialog = screen.getByRole('dialog', { name: 'Family match' });
@@ -56,9 +79,9 @@ describe('LibraryPage', () => {
 
   it('assigns a material only to students in the teacher UID scope', async () => {
     const { repository, studentRepository, user } = renderPage();
-    await screen.findByRole('button', { name: /Eesti keel.*2 materjali/ });
+    await screen.findByRole('button', { name: /^Pere tunnikava/ });
     fireEvent.change(screen.getByLabelText('Otsi õppevara'), { target: { value: 'tööleht' } });
-    fireEvent.click(screen.getByRole('button', { name: /Pere tööleht/ }));
+    fireEvent.click(screen.getByRole('button', { name: /^Pere tööleht/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Määra õpilastele' }));
 
     const checkbox = await screen.findByRole('checkbox', { name: /Mari/ });
@@ -79,9 +102,9 @@ describe('LibraryPage', () => {
 
   it('selects every student in a group when assigning a material', async () => {
     const { repository } = renderPage();
-    await screen.findByRole('button', { name: /Eesti keel.*2 materjali/ });
+    await screen.findByRole('button', { name: /^Pere tunnikava/ });
     fireEvent.change(screen.getByLabelText('Otsi õppevara'), { target: { value: 'tööleht' } });
-    fireEvent.click(screen.getByRole('button', { name: /Pere tööleht/ }));
+    fireEvent.click(screen.getByRole('button', { name: /^Pere tööleht/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Määra õpilastele' }));
 
     fireEvent.change(await screen.findByLabelText('Vali terve grupp'), { target: { value: 'group-1' } });
@@ -94,9 +117,9 @@ describe('LibraryPage', () => {
 
   it('previews worksheet content and PDF without a download action', async () => {
     renderPage();
-    await screen.findByRole('button', { name: /Eesti keel.*2 materjali/ });
+    await screen.findByRole('button', { name: /^Pere tunnikava/ });
     fireEvent.change(screen.getByLabelText('Otsi õppevara'), { target: { value: 'tööleht' } });
-    fireEvent.click(screen.getByRole('button', { name: /Pere tööleht/ }));
+    fireEvent.click(screen.getByRole('button', { name: /^Pere tööleht/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Eelvaade' }));
 
     expect(screen.getByRole('dialog', { name: 'Eelvaade: Pere tööleht' })).toHaveTextContent('Minu ema nimi on Mari.');
@@ -108,8 +131,8 @@ describe('LibraryPage', () => {
 
   it('creates a structured material in CRM v2 and reloads the library', async () => {
     const { repository, user } = renderPage();
-    await screen.findByRole('button', { name: /Eesti keel.*2 materjali/ });
-    fireEvent.click(screen.getByRole('button', { name: 'Loo materjal' }));
+    await screen.findByRole('button', { name: /^Pere tunnikava/ });
+    fireEvent.click(screen.getByRole('button', { name: 'Lisa materjal' }));
     const editor = within(screen.getByRole('dialog', { name: 'Loo õppematerjal' }));
     fireEvent.change(editor.getByLabelText('Pealkiri *'), { target: { value: 'Uus materjal' } });
     fireEvent.change(editor.getByLabelText('Materjali tüüp'), { target: { value: 'worksheet' } });
@@ -137,9 +160,9 @@ describe('LibraryPage', () => {
 
   it('opens existing curriculum material for editing while preserving its type', async () => {
     const { repository } = renderPage();
-    await screen.findByRole('button', { name: /Eesti keel.*2 materjali/ });
+    await screen.findByRole('button', { name: /^Pere tunnikava/ });
     fireEvent.change(screen.getByLabelText('Otsi õppevara'), { target: { value: 'tunnikava' } });
-    fireEvent.click(screen.getByRole('button', { name: /Pere tunnikava/ }));
+    fireEvent.click(screen.getByRole('button', { name: /^Pere tunnikava/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Muuda' }));
     const editor = within(screen.getByRole('dialog', { name: 'Muuda: Pere tunnikava' }));
     expect(editor.getByLabelText('Materjali tüüp')).toBeDisabled();
@@ -149,32 +172,11 @@ describe('LibraryPage', () => {
     expect(await screen.findByRole('status')).toHaveTextContent('„Pere tunnikava” salvestati.');
   });
 
-  it('creates a legacy-compatible interactive exercise in CRM v2', async () => {
-    const { repository, user } = renderPage();
-    await screen.findByRole('button', { name: /Eesti keel.*2 materjali/ });
-    fireEvent.click(screen.getByRole('button', { name: 'Loo harjutus' }));
-    const editor = within(screen.getByRole('dialog', { name: 'Loo interaktiivne harjutus' }));
-    fireEvent.change(editor.getByLabelText('Pealkiri *'), { target: { value: 'Uus harjutus' } });
-    fireEvent.change(editor.getByLabelText('Õppeaine *'), { target: { value: 'Eesti keel' } });
-    fireEvent.change(editor.getByLabelText('Tase'), { target: { value: 'A1' } });
-    fireEvent.change(editor.getByLabelText('Teema'), { target: { value: 'Pere' } });
-    fireEvent.change(editor.getByLabelText('Tekst koos vastustega'), { target: { value: 'Minu [ema] nimi on Mari.' } });
-    fireEvent.click(editor.getByRole('button', { name: 'Salvesta harjutus' }));
-
-    expect(await screen.findByRole('status')).toHaveTextContent('Harjutus „Uus harjutus” loodi.');
-    expect(repository.saveExercise).toHaveBeenCalledWith(expect.objectContaining({
-      item: null,
-      user,
-      values: expect.objectContaining({ title: 'Uus harjutus', exerciseType: 'fill', subject: 'Eesti keel', text: 'Minu [ema] nimi on Mari.' }),
-    }));
-    expect(repository.list).toHaveBeenCalledTimes(2);
-  });
-
   it('opens an existing exercise in the correct editor', async () => {
     renderPage();
-    await screen.findByRole('button', { name: /Eesti keel.*2 materjali/ });
+    await screen.findByRole('button', { name: /^Pere tunnikava/ });
     fireEvent.change(screen.getByLabelText('Otsi õppevara'), { target: { value: 'family' } });
-    fireEvent.click(screen.getByRole('button', { name: /Family match/ }));
+    fireEvent.click(screen.getByRole('button', { name: /^Family match/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Muuda' }));
     const editor = within(screen.getByRole('dialog', { name: 'Muuda harjutust: Family match' }));
     expect(editor.getByLabelText('Harjutuse tüüp')).toBeDisabled();
@@ -183,8 +185,8 @@ describe('LibraryPage', () => {
 
   it('builds an advanced worksheet block in the legacy schema', async () => {
     const { repository } = renderPage();
-    await screen.findByRole('button', { name: /Eesti keel.*2 materjali/ });
-    fireEvent.click(screen.getByRole('button', { name: 'Loo materjal' }));
+    await screen.findByRole('button', { name: /^Pere tunnikava/ });
+    fireEvent.click(screen.getByRole('button', { name: 'Lisa materjal' }));
     const editor = within(screen.getByRole('dialog', { name: 'Loo õppematerjal' }));
     fireEvent.change(editor.getByLabelText('Pealkiri *'), { target: { value: 'Sõnapaarid' } });
     fireEvent.change(editor.getByLabelText('Materjali tüüp'), { target: { value: 'worksheet' } });

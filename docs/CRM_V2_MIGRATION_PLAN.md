@@ -33,6 +33,9 @@ worksheet in the room), student and parent cabinets.
 
 ## Remaining v1 functions (after the decision)
 
+**Owner decision 2026-09-29: v2 is not a port of v1.** v1 was overloaded; a v1 function moves to v2 only when daily
+work shows it is needed. The list below is a list of candidates, not a to-do list.
+
 Builders are removed from the list. What is left, in priority order:
 
 1. **Playing already issued v1 content** — published lesson assignments (e.g. the A2 assignment with 32 activities)

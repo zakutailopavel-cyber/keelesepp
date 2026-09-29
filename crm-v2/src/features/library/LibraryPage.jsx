@@ -4,14 +4,18 @@ import {
   LayoutTemplate, Replace, BookCopy,
   ClipboardCheck,
   Dumbbell,
+  Eye,
   FilePenLine,
-  FolderOpen,
   House,
+  Paperclip,
   Presentation,
   Search,
+  Send,
   Sparkles,
+  Star,
+  X,
 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal, PageHeader, Select } from '../../components/ui/index.js';
@@ -21,12 +25,13 @@ import { legacyUrl } from '../../utils/legacyUrls.js';
 import { ROLES } from '../../utils/roles.js';
 import {
   buildLibraryItems,
-  filterLibraryItems,
-  groupLabel,
-  groupLibraryItems,
-  itemsInLibraryPath,
   LIBRARY_TYPES,
-  pathDimension,
+  levelFacets,
+  moduleFacets,
+  searchLibrary,
+  sectionsByModule,
+  sortLibrary,
+  typeFacets,
 } from './libraryModel.js';
 import MaterialPreview from './MaterialPreview.jsx';
 import MaterialEditor from './MaterialEditor.jsx';
@@ -42,14 +47,22 @@ const typeIcons = {
   material: BookOpen,
 };
 
-const pathFields = { subject: 'libSubject', stage: 'libStage', topic: 'libTopic' };
 const defaultRepository = libraryService;
 const defaultStudentRepository = studentsService;
 const defaultGroupRepository = groupsService;
+const PAGE = 80;
+const SORTS = { toc: 'Õppekava järjekord', relevance: 'Asjakohasus', recent: 'Viimati muudetud', title: 'Pealkiri A–Z' };
 
-function readPath(params) {
-  return Object.fromEntries(Object.entries(pathFields).map(([field, parameter]) => [field, params.get(parameter) || '']));
+// Favourites are a per-teacher convenience on this device.
+const favKey = (uid) => `keelesepp.library.favorites.${uid || 'anon'}`;
+function loadFavorites(uid) {
+  try { return new Set(JSON.parse(globalThis.localStorage?.getItem(favKey(uid)) || '[]')); } catch { return new Set(); }
 }
+function saveFavorites(uid, set) {
+  try { globalThis.localStorage?.setItem(favKey(uid), JSON.stringify([...set])); } catch { /* storage unavailable */ }
+}
+const shortDate = (iso) => (iso && /^\d{4}-\d{2}-\d{2}/.test(iso) ? `${iso.slice(8, 10)}.${iso.slice(5, 7)}.${iso.slice(0, 4)}` : '');
+const hasStudioDoc = (item) => item.kind !== 'exercise' && (item.source?.worksheetDoc?.blocks?.length || item.source?.worksheetData?.blocks?.length);
 
 function AssignmentModal({ item, user, repository, studentRepository, groupRepository, onClose, onAssigned }) {
   const [query, setQuery] = useState('');
@@ -135,143 +148,163 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [query, setQuery] = useState('');
-  const [type, setType] = useState('all');
   const [selected, setSelected] = useState(null);
   const [assigning, setAssigning] = useState(null);
   const [previewing, setPreviewing] = useState(null);
   const [editing, setEditing] = useState(undefined);
   const [exerciseEditing, setExerciseEditing] = useState(undefined);
   const [success, setSuccess] = useState('');
+  const [limit, setLimit] = useState(PAGE);
+  const [favorites, setFavorites] = useState(() => loadFavorites(user?.uid));
+  const searchRef = useRef(null);
   const state = useAsyncData(() => repository.list(), [repository]);
-  const path = useMemo(() => readPath(searchParams), [searchParams]);
 
-  const items = useMemo(() => state.data
-    ? buildLibraryItems(state.data.curriculumLessons, state.data.exercises)
-    : [], [state.data]);
-  const pathItems = useMemo(() => itemsInLibraryPath(items, path), [items, path]);
-  const dimension = pathDimension(path);
-  const searching = Boolean(query.trim()) || type !== 'all';
-  const folders = !searching && dimension ? groupLibraryItems(pathItems, dimension) : [];
-  const visibleItems = searching || !dimension ? filterLibraryItems(pathItems, { query, type }) : [];
-  const subjectCount = new Set(items.map((item) => item.subject).filter(Boolean)).size;
-  const worksheetCount = items.filter((item) => item.type === 'worksheet').length;
-  const exerciseCount = items.filter((item) => item.kind === 'exercise' || item.type === 'exercise').length;
+  const q = searchParams.get('q') || '';
+  const level = searchParams.get('tase') || '';
+  const module = searchParams.get('moodul') || '';
+  const type = searchParams.get('tyyp') || '';
+  const onlyFav = searchParams.get('lemmikud') === '1';
+  const onlyMine = searchParams.get('minu') === '1';
+  const sort = searchParams.get('jarjestus') || (q.trim() ? 'relevance' : 'toc');
 
-  const changePath = (nextPath) => {
+  const setParam = (changes, { replace = false } = {}) => {
     const next = new globalThis.URLSearchParams(searchParams);
-    for (const [field, parameter] of Object.entries(pathFields)) {
-      if (nextPath[field]) next.set(parameter, nextPath[field]);
-      else next.delete(parameter);
+    for (const [key, value] of Object.entries(changes)) {
+      if (value) next.set(key, value); else next.delete(key);
     }
-    setSearchParams(next);
+    setSearchParams(next, { replace });
+    setLimit(PAGE);
   };
 
-  const openFolder = (key) => {
-    if (dimension === 'subject') changePath({ subject: key, stage: '', topic: '' });
-    if (dimension === 'stage') changePath({ ...path, stage: key, topic: '' });
-    if (dimension === 'topic') changePath({ ...path, topic: key });
-  };
+  // "/" jumps to the search field from anywhere on the page
+  useEffect(() => {
+    const onKey = (event) => {
+      const tag = event.target?.tagName;
+      if (event.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(tag) && !event.target?.isContentEditable) {
+        event.preventDefault();
+        searchRef.current?.focus();
+      }
+    };
+    globalThis.addEventListener('keydown', onKey);
+    return () => globalThis.removeEventListener('keydown', onKey);
+  }, []);
+
+  const items = useMemo(() => state.data ? buildLibraryItems(state.data.curriculumLessons, state.data.exercises) : [], [state.data]);
+  const favFilter = onlyFav ? favorites : null;
+  const mineUid = onlyMine ? user?.uid || '' : '';
+  const levels = useMemo(() => levelFacets(searchLibrary(items, { query: q, type, favorites: favFilter, mineUid }).map((r) => r.item)), [items, q, type, favFilter, mineUid]);
+  const modules = useMemo(() => moduleFacets(searchLibrary(items, { query: q, level, type, favorites: favFilter, mineUid }).map((r) => r.item)), [items, q, level, type, favFilter, mineUid]);
+  const types = useMemo(() => typeFacets(searchLibrary(items, { query: q, level, module, favorites: favFilter, mineUid }).map((r) => r.item)), [items, q, level, module, favFilter, mineUid]);
+  const results = useMemo(() => sortLibrary(searchLibrary(items, { query: q, level, module, type, favorites: favFilter, mineUid }), sort), [items, q, level, module, type, sort, favFilter, mineUid]);
 
   if (state.loading) return <LoadingState label="Laen õppevara…" />;
   if (state.error) return <ErrorState message={state.error.message} onRetry={state.reload} />;
 
-  const breadcrumbItems = [
-    { field: 'root', label: 'Kõik materjalid', path: { subject: '', stage: '', topic: '' } },
-    ...(path.subject ? [{ field: 'subject', label: groupLabel('subject', path.subject, pathItems[0]), path: { subject: path.subject, stage: '', topic: '' } }] : []),
-    ...(path.stage ? [{ field: 'stage', label: groupLabel('stage', path.stage, pathItems[0]), path: { subject: path.subject, stage: path.stage, topic: '' } }] : []),
-    ...(path.topic ? [{ field: 'topic', label: groupLabel('topic', path.topic, pathItems[0]), path }] : []),
-  ];
+  const toggleFavorite = (item) => {
+    const next = new Set(favorites);
+    if (next.has(item.key)) next.delete(item.key); else next.add(item.key);
+    setFavorites(next);
+    saveFavorites(user?.uid, next);
+  };
+  const open = (item) => {
+    if (item.kind === 'exercise') { setSelected(item); return; }
+    if (hasStudioDoc(item)) { navigate(`/library/worksheets/${encodeURIComponent(item.sourceId)}`); return; }
+    setPreviewing(item);
+  };
+  const shown = results.slice(0, limit);
+  const sections = sort === 'toc' ? sectionsByModule(shown) : [{ key: 'all', label: '', results: shown }];
+  const filtersOn = Boolean(q || level || module || type || onlyFav || onlyMine);
+
+  const row = ({ item, snippet }) => {
+    const Icon = typeIcons[item.type] || BookOpen;
+    const meta = LIBRARY_TYPES[item.type] || LIBRARY_TYPES.material;
+    const fav = favorites.has(item.key);
+    return (
+      <li className="lib2-row" key={item.key}>
+        <button type="button" className={`lib2-star ${fav ? 'is-on' : ''}`} aria-pressed={fav} aria-label={fav ? `Eemalda lemmikutest: ${item.title}` : `Lisa lemmikutesse: ${item.title}`} onClick={() => toggleFavorite(item)}><Star size={17} /></button>
+        <i className={`lib2-icon tone-${meta.tone}`} aria-hidden="true"><Icon size={18} /></i>
+        <button type="button" className="lib2-main" onClick={() => setSelected(item)}>
+          <strong>{item.lessonNumber && item.kind !== 'exercise' ? <span className="lib2-num">{item.lessonNumber}.</span> : null}{item.title}</strong>
+          <small>{[meta.label, item.level || item.ageGroup, sort !== 'toc' ? item.moduleTitle : '', item.languageFocus].filter(Boolean).join(' · ')}</small>
+          {snippet ? <em className="lib2-snippet"><b>{snippet.label}:</b> {snippet.text}</em> : null}
+        </button>
+        <span className="lib2-meta">{item.fileCount ? <span title={`${item.fileCount} faili`}><Paperclip size={14} />{item.fileCount}</span> : null}{shortDate(item.updatedAt) ? <time dateTime={item.updatedAt}>{shortDate(item.updatedAt)}</time> : null}</span>
+        <span className="lib2-actions">
+          <Button variant="secondary" onClick={() => open(item)}>{hasStudioDoc(item) ? <><FilePenLine size={15} /> Ava</> : <><Eye size={15} /> Vaata</>}</Button>
+          <Button onClick={() => setAssigning(item)}><Send size={15} /> Määra</Button>
+        </span>
+      </li>
+    );
+  };
 
   return (
-    <div className="page-content library-page">
+    <div className="page-content library-page lib2">
       <PageHeader
         eyebrow="Õppetöö"
         title="Õppevara"
-        description="Tunnikavad, töölehed ja harjutused olemasolevast KeeleSepa andmebaasist."
-        actions={<><Button onClick={() => navigate('/library/worksheets/new')}><LayoutTemplate size={17} /> Töölehe konstruktor</Button><Button variant="secondary" onClick={() => navigate('/library/worksheets/convert')}><Replace size={17} /> Üleviimine</Button><Button variant="secondary" onClick={() => navigate('/library/worksheets/book')}><BookCopy size={17} /> Õpik</Button><Button variant="secondary" onClick={() => setEditing(null)}><Sparkles size={17} /> Loo materjal</Button><Button variant="secondary" onClick={() => setExerciseEditing(null)}><Dumbbell size={17} /> Loo harjutus</Button></>}
+        description="Otsi pealkirja, teema või sisu järgi — või vali tase ja moodul nagu õpiku sisukorrast."
+        actions={<><Button onClick={() => navigate('/library/worksheets/new')}><LayoutTemplate size={17} /> Töölehe konstruktor</Button><Button variant="secondary" onClick={() => navigate('/library/worksheets/convert')}><Replace size={17} /> Üleviimine</Button><Button variant="secondary" onClick={() => navigate('/library/worksheets/book')}><BookCopy size={17} /> Õpik</Button><Button variant="secondary" onClick={() => setEditing(null)}><Sparkles size={17} /> Lisa materjal</Button></>}
       />
       {success ? <div className="success-notice" role="status">{success}<button aria-label="Sulge teade" onClick={() => setSuccess('')}>×</button></div> : null}
 
-      <section className="library-overview" aria-label="Õppevara ülevaade">
-        <Card className="library-stat">
-          <span>Materjale</span>
-          <strong>{items.length}</strong>
-          <small>tunnikavad, töölehed ja harjutused</small>
-        </Card>
-        <Card className="library-stat">
-          <span>Õppeaineid</span>
-          <strong>{subjectCount}</strong>
-          <small>aktiivses raamatukogus</small>
-        </Card>
-        <Card className="library-stat">
-          <span>Töölehti</span>
-          <strong>{worksheetCount}</strong>
-          <small>õpilasele määratavad materjalid</small>
-        </Card>
-        <Card className="library-stat">
-          <span>Harjutusi</span>
-          <strong>{exerciseCount}</strong>
-          <small>interaktiivsed ülesanded</small>
-        </Card>
-      </section>
+      <div className="lib2-search">
+        <Search size={20} aria-hidden="true" />
+        <input ref={searchRef} type="search" aria-label="Otsi õppevara" placeholder="Otsi: partitiiv, tööintervjuu, kirjutamine B1…" value={q} onChange={(event) => setParam({ q: event.target.value, jarjestus: '' }, { replace: true })} />
+        {q ? <button type="button" className="lib2-clear" aria-label="Tühjenda otsing" onClick={() => setParam({ q: '' })}><X size={16} /></button> : <kbd aria-hidden="true">/</kbd>}
+      </div>
 
-      <Card className="library-toolbar">
-        <label className="search-field"><Search size={18} /><input aria-label="Otsi õppevara" placeholder="Otsi pealkirja, teema või taseme järgi" value={query} onChange={(event) => setQuery(event.target.value)} /></label>
-        <Select aria-label="Materjali tüüp" value={type} onChange={(event) => setType(event.target.value)}>
-          <option value="all">Kõik tüübid</option>
-          {Object.entries(LIBRARY_TYPES).map(([value, meta]) => <option value={value} key={value}>{meta.label}</option>)}
-        </Select>
-        <div className="library-toolbar__summary">
-          <strong>{visibleItems.length || pathItems.length} materjali</strong>
-          <small>{path.topic || path.stage || path.subject ? 'valitud kaustas' : 'praeguses vaates'}</small>
-        </div>
-      </Card>
-      <nav className="library-breadcrumbs" aria-label="Õppevara asukoht">
-        {breadcrumbItems.map((item, index) => (
-          <span key={item.field}>
-            {index ? <ArrowRight size={14} /> : null}
-            <button aria-current={index === breadcrumbItems.length - 1 ? 'page' : undefined} onClick={() => changePath(item.path)}>{item.label}</button>
-          </span>
-        ))}
-      </nav>
+      <div className="lib2-levels" role="group" aria-label="Tase">
+        <button type="button" className={!level ? 'is-active' : ''} aria-pressed={!level} onClick={() => setParam({ tase: '', moodul: '' })}>Kõik <span>{levels.reduce((sum, facet) => sum + facet.count, 0)}</span></button>
+        {levels.map((facet) => <button type="button" key={facet.key} className={level === facet.key ? 'is-active' : ''} aria-pressed={level === facet.key} onClick={() => setParam({ tase: level === facet.key ? '' : facet.key, moodul: '' })}>{facet.label} <span>{facet.count}</span></button>)}
+      </div>
 
-      {folders.length ? (
-        <section className="library-folder-grid" aria-label="Õppevara kaustad">
-          {folders.map((folder) => (
-            <button className="library-folder" key={folder.key} onClick={() => openFolder(folder.key)}>
-              <i><FolderOpen size={23} /></i>
-              <span><strong>{folder.label}</strong><small>{folder.count} materjali</small></span>
-              <ArrowRight size={18} />
-            </button>
-          ))}
+      <div className="lib2-body">
+        <aside className="lib2-toc" aria-label="Moodulid">
+          <label className="lib2-toc-select"><span>Moodul</span>
+            <select value={module} onChange={(event) => setParam({ moodul: event.target.value })}>
+              <option value="">Kõik moodulid</option>
+              {modules.map((facet) => <option value={facet.key} key={facet.key}>{level ? '' : `${facet.level} · `}{facet.label} ({facet.count})</option>)}
+            </select>
+          </label>
+          <ul>
+            <li><button type="button" className={!module ? 'is-active' : ''} onClick={() => setParam({ moodul: '' })}>Kõik moodulid</button></li>
+            {modules.map((facet) => <li key={facet.key}><button type="button" className={module === facet.key ? 'is-active' : ''} onClick={() => setParam({ moodul: module === facet.key ? '' : facet.key })}>{!level ? <b>{facet.level}</b> : null}<span>{facet.label}</span><small>{facet.count}</small></button></li>)}
+          </ul>
+        </aside>
+
+        <section className="lib2-results" aria-label="Õppematerjalid">
+          <div className="lib2-filters">
+            <div className="lib2-chips" role="group" aria-label="Materjali tüüp">
+              <button type="button" className={!type ? 'is-active' : ''} aria-pressed={!type} onClick={() => setParam({ tyyp: '' })}>Kõik tüübid</button>
+              {types.map((facet) => <button type="button" key={facet.key} className={type === facet.key ? 'is-active' : ''} aria-pressed={type === facet.key} onClick={() => setParam({ tyyp: type === facet.key ? '' : facet.key })}>{facet.label} <span>{facet.count}</span></button>)}
+              <button type="button" className={onlyFav ? 'is-active' : ''} aria-pressed={onlyFav} onClick={() => setParam({ lemmikud: onlyFav ? '' : '1' })}><Star size={14} /> Lemmikud</button>
+              <button type="button" className={onlyMine ? 'is-active' : ''} aria-pressed={onlyMine} onClick={() => setParam({ minu: onlyMine ? '' : '1' })}>Minu loodud</button>
+            </div>
+            <label className="lib2-sort"><span>Järjestus</span>
+              <select value={sort} onChange={(event) => setParam({ jarjestus: event.target.value })}>
+                {Object.entries(SORTS).filter(([key]) => key !== 'relevance' || q.trim()).map(([key, label]) => <option value={key} key={key}>{label}</option>)}
+              </select>
+            </label>
+          </div>
+          <p className="lib2-count" aria-live="polite">{results.length} materjali{filtersOn ? <> · <button type="button" onClick={() => setSearchParams(new globalThis.URLSearchParams())}>Tühjenda filtrid</button></> : null}</p>
+
+          {results.length ? sections.map((section) => (
+            <div className="lib2-section" key={section.key}>
+              {section.label ? <h3>{section.level ? <span>{section.level}</span> : null}{section.label}<small>{section.results.length}</small></h3> : null}
+              <ul className="lib2-list">{section.results.map(row)}</ul>
+            </div>
+          )) : <Card><EmptyState title="Midagi ei leitud" description={onlyFav ? 'Lemmikuid pole veel — märgi materjal tärniga.' : 'Proovi teist sõna või tühjenda filtrid.'} /></Card>}
+          {results.length > limit ? <div className="lib2-more"><Button variant="secondary" onClick={() => setLimit(limit + PAGE)}>Näita veel ({results.length - limit})</Button></div> : null}
         </section>
-      ) : visibleItems.length ? (
-        <section className="library-item-grid" aria-label="Õppematerjalid">
-          {visibleItems.map((item) => {
-            const Icon = typeIcons[item.type] || BookOpen;
-            const meta = LIBRARY_TYPES[item.type] || LIBRARY_TYPES.material;
-            return (
-              <button className="library-item" key={item.key} onClick={() => setSelected(item)}>
-                <div className="library-item__head"><i><Icon size={20} /></i><Badge tone={meta.tone}>{meta.label}</Badge></div>
-                <strong>{item.title}</strong>
-                <p>{item.description || 'Kirjeldus puudub.'}</p>
-                <div className="library-item__meta"><span>{item.subject || 'Õppeaine määramata'}</span><span>{item.level || item.ageGroup || 'Tase määramata'}</span></div>
-              </button>
-            );
-          })}
-        </section>
-      ) : (
-        <Card><EmptyState title="Õppevara ei leitud" description="Muuda otsingut, filtrit või vali teine kaust." /></Card>
-      )}
+      </div>
 
       <Modal
         open={Boolean(selected)}
         title={selected?.title || 'Õppematerjal'}
         onClose={() => setSelected(null)}
-        footer={<><a className="button button--secondary" href={legacyUrl(selected?.kind === 'exercise' ? `/haldus-exercises/?exercise=${encodeURIComponent(selected.sourceId)}` : '/haldus-exercises/')}>Ava töövahend <ArrowRight size={16} /></a>{selected?.kind !== 'exercise' && selected?.sourceId ? <Button variant="secondary" onClick={() => navigate(`/library/worksheets/${encodeURIComponent(selected.sourceId)}`)}>Ava konstruktoris</Button> : null}<Button variant="secondary" onClick={() => { if (selected?.kind === 'exercise') setExerciseEditing(selected); else setEditing(selected); setSelected(null); }}>Muuda</Button><Button variant="secondary" onClick={() => { setPreviewing(selected); setSelected(null); }}>Eelvaade</Button><Button onClick={() => { setAssigning(selected); setSelected(null); }}>Määra õpilastele</Button></>}
+        footer={<>{selected?.kind === 'exercise' ? <a className="button button--secondary" href={legacyUrl(`/haldus-exercises/?exercise=${encodeURIComponent(selected.sourceId)}`)}>Ava töövahend <ArrowRight size={16} /></a> : null}{selected?.kind !== 'exercise' && selected?.sourceId ? <Button variant="secondary" onClick={() => navigate(`/library/worksheets/${encodeURIComponent(selected.sourceId)}`)}>Ava konstruktoris</Button> : null}<Button variant="secondary" onClick={() => { if (selected?.kind === 'exercise') setExerciseEditing(selected); else setEditing(selected); setSelected(null); }}>Muuda</Button><Button variant="secondary" onClick={() => { setPreviewing(selected); setSelected(null); }}>Eelvaade</Button><Button onClick={() => { setAssigning(selected); setSelected(null); }}>Määra õpilastele</Button></>}
       >
-        {selected ? <div className="library-detail"><Badge tone={LIBRARY_TYPES[selected.type]?.tone}>{selected.typeLabel}</Badge><p>{selected.description || 'Materjalil ei ole kirjeldust.'}</p><dl><div><dt>Õppeaine</dt><dd>{selected.subject || '—'}</dd></div><div><dt>Tase või vanus</dt><dd>{selected.level || selected.ageGroup || '—'}</dd></div><div><dt>Teema</dt><dd>{selected.curriculum || selected.topic || '—'}</dd></div><div><dt>Andmeallikas</dt><dd>{selected.kind === 'exercise' ? 'Harjutused' : 'Õppekava'}</dd></div></dl></div> : null}
+        {selected ? <div className="library-detail"><Badge tone={LIBRARY_TYPES[selected.type]?.tone}>{selected.typeLabel}</Badge><p>{selected.description || 'Materjalil ei ole kirjeldust.'}</p><dl><div><dt>Tase</dt><dd>{selected.level || selected.ageGroup || '—'}</dd></div><div><dt>Moodul</dt><dd>{selected.moduleTitle || selected.curriculum || selected.topic || '—'}</dd></div>{selected.languageFocus ? <div><dt>Keelefookus</dt><dd>{selected.languageFocus}</dd></div> : null}{selected.source?.goal ? <div><dt>Eesmärk</dt><dd>{selected.source.goal}</dd></div> : null}<div><dt>Failid</dt><dd>{selected.fileCount || '—'}</dd></div><div><dt>Muudetud</dt><dd>{shortDate(selected.updatedAt) || '—'}{selected.authorName ? ` · ${selected.authorName}` : ''}</dd></div></dl></div> : null}
       </Modal>
       {previewing ? <MaterialPreview item={previewing} onClose={() => setPreviewing(null)} /> : null}
       {editing !== undefined ? <MaterialEditor item={editing} repository={repository} user={user} onClose={() => setEditing(undefined)} onSaved={(result) => { setEditing(undefined); setSuccess(`„${result.title}” ${result.created ? 'loodi' : 'salvestati'}.`); state.reload(); }} /> : null}

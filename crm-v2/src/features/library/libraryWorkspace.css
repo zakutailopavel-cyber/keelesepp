@@ -345,3 +345,66 @@
     border-top: 1px solid var(--border);
   }
 }
+
+/* Õppevara v2: search + table of contents instead of folders */
+.lib2-search{display:flex;align-items:center;gap:12px;background:#fff;border:1.5px solid #d6dde5;border-radius:16px;padding:0 16px;min-height:58px;box-shadow:0 8px 24px rgba(16,35,57,.06);margin:4px 0 14px}
+.lib2-search:focus-within{border-color:#087e6b;box-shadow:0 0 0 4px rgba(8,126,107,.12)}
+.lib2-search>svg{color:#667085;flex:none}
+.lib2-search input{flex:1;border:0;outline:0;background:transparent;font-size:1.05rem;min-width:0;height:54px}
+.lib2-search kbd{border:1px solid #d0d5dd;border-radius:6px;padding:1px 7px;color:#667085;font-size:.8rem;background:#f8fafc}
+.lib2-clear{border:0;background:#eef1f4;border-radius:999px;width:28px;height:28px;display:grid;place-items:center;cursor:pointer;color:#42536a}
+.lib2-levels,.lib2-chips{display:flex;gap:8px;flex-wrap:wrap}
+.lib2-levels{margin-bottom:16px}
+.lib2-levels button,.lib2-chips button{display:inline-flex;align-items:center;gap:6px;border:1.5px solid #d6dde5;background:#fff;border-radius:999px;padding:7px 14px;font-weight:700;color:#344054;cursor:pointer;font-size:.9rem}
+.lib2-levels button{font-size:1rem;padding:9px 18px}
+.lib2-levels button span,.lib2-chips button span{font-weight:600;color:#667085;font-size:.8rem}
+.lib2-levels button.is-active,.lib2-chips button.is-active{background:#14243a;border-color:#14243a;color:#fff}
+.lib2-levels button.is-active span,.lib2-chips button.is-active span{color:#c5d5e2}
+.lib2-body{display:grid;grid-template-columns:280px minmax(0,1fr);gap:22px;align-items:start}
+.lib2-toc{position:sticky;top:14px;max-height:calc(100vh - 28px);overflow:auto;background:#fff;border:1px solid #e4e8ee;border-radius:16px;padding:10px}
+.lib2-toc ul{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+.lib2-toc li button{width:100%;display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:baseline;text-align:left;border:0;background:transparent;border-radius:10px;padding:8px 10px;cursor:pointer;color:#344054;font-size:.88rem;line-height:1.35}
+.lib2-toc li button:hover{background:#f2f5f8}
+.lib2-toc li button.is-active{background:#e7f5f1;color:#0b5c4d;font-weight:700}
+.lib2-toc li button b{font-size:.72rem;color:#087e6b}
+.lib2-toc li button small{color:#98a2b3}
+.lib2-toc-select{display:none}
+.lib2-filters{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.lib2-sort{display:flex;align-items:center;gap:8px;font-size:.85rem;color:#667085}
+.lib2-sort select,.lib2-toc-select select{border:1.5px solid #d6dde5;border-radius:10px;padding:7px 10px;background:#fff;font-weight:600;color:#344054}
+.lib2-count{margin:12px 0 8px;color:#667085;font-size:.88rem}
+.lib2-count button{border:0;background:none;color:#087e6b;font-weight:700;cursor:pointer;padding:0}
+.lib2-section h3{display:flex;align-items:center;gap:10px;margin:18px 0 8px;font:800 1rem Manrope,sans-serif;color:#14243a}
+.lib2-section h3 span{font-size:.72rem;background:#e7f5f1;color:#0b5c4d;border-radius:6px;padding:2px 7px}
+.lib2-section h3 small{color:#98a2b3;font-weight:600}
+.lib2-list{list-style:none;margin:0;padding:0;background:#fff;border:1px solid #e4e8ee;border-radius:14px;overflow:hidden}
+.lib2-row{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto auto;gap:12px;align-items:center;padding:10px 14px;border-top:1px solid #eef1f4}
+.lib2-row:first-child{border-top:0}
+.lib2-row:hover{background:#fafbfc}
+.lib2-star{border:0;background:transparent;color:#c4ccd6;cursor:pointer;padding:4px;display:grid}
+.lib2-star.is-on{color:#e0a526}.lib2-star.is-on svg{fill:currentColor}
+.lib2-icon{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:#eef4ff;color:#3559c7}
+.lib2-icon.tone-success{background:#e7f5f1;color:#0b5c4d}.lib2-icon.tone-danger{background:#fdecea;color:#b42318}.lib2-icon.tone-neutral{background:#f2f4f7;color:#475467}
+.lib2-main{display:grid;gap:2px;text-align:left;border:0;background:transparent;cursor:pointer;min-width:0;padding:2px 0}
+.lib2-main strong{font-size:.97rem;color:#14243a;overflow-wrap:anywhere}
+.lib2-num{color:#98a2b3;font-weight:700;margin-right:6px}
+.lib2-main small{color:#667085;font-size:.8rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lib2-snippet{font-style:normal;font-size:.8rem;color:#475467;background:#fff8e6;border-radius:6px;padding:3px 7px;margin-top:3px}
+.lib2-meta{display:flex;gap:10px;align-items:center;color:#98a2b3;font-size:.78rem;white-space:nowrap}
+.lib2-meta span{display:inline-flex;align-items:center;gap:3px}
+.lib2-actions{display:flex;gap:6px}
+.lib2-actions .button{min-height:34px;padding:0 12px;font-size:.84rem}
+.lib2-more{display:flex;justify-content:center;margin-top:16px}
+@media(max-width:1100px){.lib2-meta time{display:none}}
+@media(max-width:900px){.lib2-body{grid-template-columns:1fr}.lib2-toc{position:static;max-height:none;padding:0;border:0;background:transparent}.lib2-toc ul{display:none}.lib2-toc-select{display:grid;gap:4px;font-size:.8rem;color:#667085;font-weight:700}.lib2-toc-select select{width:100%}}
+@media(max-width:640px){.lib2-row{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"star main main" "star actions actions"}.lib2-row .lib2-icon,.lib2-row .lib2-meta{display:none}.lib2-star{grid-area:star}.lib2-main{grid-area:main}.lib2-actions{grid-area:actions}.lib2-actions .button{flex:1}.lib2-levels button{padding:8px 14px}}
+.lib2-search input::-webkit-search-cancel-button,.lib2-search input::-webkit-search-decoration{-webkit-appearance:none;appearance:none;display:none}
+@media(max-width:640px){
+  .lib2 .page-header__actions{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:8px;padding-bottom:4px;scrollbar-width:none}
+  .lib2 .page-header__actions .button{width:auto;flex:none;min-height:38px;padding:0 12px;font-size:.85rem;white-space:nowrap}
+  .lib2 .page-header p{display:none}
+  .lib2-levels,.lib2-chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+  .lib2-levels button,.lib2-chips button{flex:none}
+  .lib2-filters{display:grid;gap:10px}
+  .lib2-section h3{font-size:.95rem}
+}
