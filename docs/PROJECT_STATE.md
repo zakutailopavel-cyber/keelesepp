@@ -1,5 +1,14 @@
 # KeeleSepp Project State
 
+## CRM v2 bug: typing in any dialog lost focus after the first key — PR
+
+Reported by the owner on 2026-09-29 with a screen video of "Uus tund" (calendar): after typing the first letter of the
+student name the suggestion list closed and focus jumped to the dialog's close button. Cause: the shared `Modal`
+focus effect depended on `onClose`, which callers pass as a new function on every render, so each keystroke that
+re-rendered the parent re-ran the effect (restore previous focus, then focus the first button). Affects every dialog
+with a form. Fix: `onClose` kept in a ref, the effect runs only when the dialog opens. Regression tests in
+`src/components/ui/ui.test.jsx` fail on the old code and pass now.
+
 ## CRM v2 production blocker: camera and microphone were forbidden — PR
 
 Found 2026-09-29 while planning the switch of all users to v2: `crm-v2/vercel.json` sent
