@@ -1,7 +1,7 @@
 import {
   ArrowRight,
   BookOpen,
-  LayoutTemplate,
+  LayoutTemplate, Replace,
   ClipboardCheck,
   Dumbbell,
   FilePenLine,
@@ -189,7 +189,7 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
         eyebrow="Õppetöö"
         title="Õppevara"
         description="Tunnikavad, töölehed ja harjutused olemasolevast KeeleSepa andmebaasist."
-        actions={<><Button onClick={() => navigate('/library/worksheets/new')}><LayoutTemplate size={17} /> Töölehe konstruktor</Button><Button variant="secondary" onClick={() => setEditing(null)}><Sparkles size={17} /> Loo materjal</Button><Button variant="secondary" onClick={() => setExerciseEditing(null)}><Dumbbell size={17} /> Loo harjutus</Button></>}
+        actions={<><Button onClick={() => navigate('/library/worksheets/new')}><LayoutTemplate size={17} /> Töölehe konstruktor</Button><Button variant="secondary" onClick={() => navigate('/library/worksheets/convert')}><Replace size={17} /> Üleviimine</Button><Button variant="secondary" onClick={() => setEditing(null)}><Sparkles size={17} /> Loo materjal</Button><Button variant="secondary" onClick={() => setExerciseEditing(null)}><Dumbbell size={17} /> Loo harjutus</Button></>}
       />
       {success ? <div className="success-notice" role="status">{success}<button aria-label="Sulge teade" onClick={() => setSuccess('')}>×</button></div> : null}
 

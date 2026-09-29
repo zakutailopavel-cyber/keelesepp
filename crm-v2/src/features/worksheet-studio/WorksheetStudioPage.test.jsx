@@ -71,4 +71,13 @@ describe('WorksheetStudioPage', () => {
     renderAt('/library/worksheets/missing', repo({ load: vi.fn().mockRejectedValue(new Error('Õppematerjali ei leitud.')) }));
     expect(await screen.findByRole('alert')).toHaveTextContent('Õppematerjali ei leitud.');
   });
+
+  it('opens an image worksheet with the original next to the sheet', async () => {
+    const lesson = { id: 'img', files: [{ name: 'leht.png', url: 'https://f.example/leht.png', type: 'image/png' }] };
+    renderAt('/library/worksheets/img', repo({ load: vi.fn().mockResolvedValue({ document: sampleDocument(), source: 'new', lesson }) }));
+    expect(await screen.findByRole('img', { name: /Originaal/ })).toHaveAttribute('src', 'https://f.example/leht.png');
+    expect(screen.getByRole('button', { name: /Lõika foto lehele/ })).toBeDisabled();
+    fireEvent.click(screen.getByRole('tab', { name: 'Plokid' }));
+    expect(screen.getByRole('button', { name: /Õige \/ vale/ })).toBeInTheDocument();
+  });
 });
