@@ -24,8 +24,8 @@ export function normalizeRevenuePlan(id, data = {}) {
 
 export const LESSON_MINUTES = [30, 45, 60, 75, 90, 120];
 export const BILLING_MODES = [
-  { id: 'current', label: 'Jooksev kuu, tasumine 10. kuupäevaks' },
-  { id: 'advance', label: 'Kuu ette (arve järgmise kuu tundide eest)' },
+  { id: 'current', label: 'Jooksev kuu (tasuda 10.)' },
+  { id: 'advance', label: 'Kuu ette' },
 ];
 
 // A new price or lesson length starts from `validFrom`; the previous one is kept so earlier lessons keep their price.
