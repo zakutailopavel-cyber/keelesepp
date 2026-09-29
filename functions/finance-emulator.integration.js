@@ -3292,3 +3292,58 @@ test("lesson prices move off student cards into admin-only plans (admin only, re
   const again = await financeRequest(adminToken, "/students/price-privacy/preview", {});
   assert.equal(again.body.actions.some(action => action.studentId.startsWith("price-")), false);
 });
+
+test("permanent duplicate merge moves the child's data and deletes the duplicate card", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  await Promise.all([
+    db.collection("students").doc("dup-main").set({ name: "Liisa Kask", active: true, parentEmail: "kask@example.com" }),
+    db.collection("students").doc("dup-extra").set({ name: "Liisa Kask", active: true, parentEmail: "kask@example.com", phone: "5551234" }),
+    db.collection("homework").doc("dup-homework").set({ studentId: "dup-extra", title: "Kodutöö" }),
+    db.collection("lessonRecordings").doc("dup-recording").set({ studentId: "dup-extra", status: "done" }),
+    db.collection("studentRevenuePlans").doc("dup-extra").set({ studentId: "dup-extra", studentName: "Liisa Kask", lessonPriceCents: 2500, weeklyLessons: 1, currency: "EUR", active: true, updatedAt: "2026-09-01T00:00:00.000Z", updatedByUid: "seed-admin" }),
+  ]);
+  const adminToken = await createAdminToken();
+
+  const wrongName = await staffOperationsRequest(adminToken, "/students/merge", { primaryStudentId: "dup-main", duplicateStudentIds: ["dup-extra"], requestId: "dup-merge-wrong", permanent: true, confirmName: "Liisa" });
+  assert.equal(wrongName.status, 400, JSON.stringify(wrongName.body));
+  assert.equal((await db.collection("students").doc("dup-extra").get()).exists, true);
+
+  const merged = await staffOperationsRequest(adminToken, "/students/merge", { primaryStudentId: "dup-main", duplicateStudentIds: ["dup-extra"], requestId: "dup-merge-ok", permanent: true, confirmName: " liisa  kask " });
+  assert.equal(merged.status, 201, JSON.stringify(merged.body));
+  assert.equal((await db.collection("students").doc("dup-extra").get()).exists, false);
+  assert.equal((await db.collection("studentRevenuePlans").doc("dup-extra").get()).exists, false);
+  assert.equal((await db.collection("studentRevenuePlans").doc("dup-main").get()).data().lessonPriceCents, 2500);
+  assert.equal((await db.collection("homework").doc("dup-homework").get()).data().studentId, "dup-main");
+  assert.equal((await db.collection("lessonRecordings").doc("dup-recording").get()).data().studentId, "dup-main");
+  const log = await db.collection("activityLog").doc("student-merge-dup-merge-ok").get();
+  assert.equal(log.data().permanent, true);
+  assert.deepEqual(log.data().duplicateStudentNames, ["Liisa Kask"]);
+
+  const repeat = await staffOperationsRequest(adminToken, "/students/merge", { primaryStudentId: "dup-main", duplicateStudentIds: ["dup-extra"], requestId: "dup-merge-ok", permanent: true, confirmName: "Liisa Kask" });
+  assert.equal(repeat.status, 200, JSON.stringify(repeat.body));
+  assert.equal(repeat.body.idempotent, true);
+});
+
+test("previously archived duplicates are finished off and deleted", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  await Promise.all([
+    db.collection("students").doc("old-main").set({ name: "", active: true }),
+    db.collection("students").doc("old-dup").set({ name: "Vana Duplikaat", active: false, mergedIntoStudentId: "old-main" }),
+    db.collection("homework").doc("old-dup-homework").set({ studentId: "old-dup", title: "Unustatud" }),
+  ]);
+  const adminToken = await createAdminToken();
+  const preview = await staffOperationsRequest(adminToken, "/students/merged/purge/preview", {});
+  assert.equal(preview.status, 200, JSON.stringify(preview.body));
+  assert.ok(preview.body.items.some(item => item.id === "old-dup" && item.mainId === "old-main"));
+  assert.equal((await db.collection("students").doc("old-dup").get()).exists, true);
+
+  const applied = await staffOperationsRequest(adminToken, "/students/merged/purge", {});
+  assert.equal(applied.status, 200, JSON.stringify(applied.body));
+  assert.ok(applied.body.deleted >= 1);
+  assert.equal((await db.collection("students").doc("old-dup").get()).exists, false);
+  assert.equal((await db.collection("homework").doc("old-dup-homework").get()).data().studentId, "old-main");
+});

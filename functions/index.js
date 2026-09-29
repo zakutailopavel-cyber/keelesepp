@@ -5410,6 +5410,7 @@ async function commitInChunks(writes, chunkSize = 400) {
     writes.slice(index, index + chunkSize).forEach(write => {
       if (write.type === "set") batch.set(write.ref, write.data, write.options || {});
       if (write.type === "update") batch.update(write.ref, write.data);
+      if (write.type === "delete") batch.delete(write.ref);
     });
     await batch.commit();
   }
@@ -5649,6 +5650,8 @@ const STUDENT_REFERENCE_COLLECTIONS = [
   "payments",
   "paymentLineAllocations",
   "payerCredits",
+  "lessonRecordings",
+  "liveLessonInvitations",
 ];
 const STUDENT_ID_DOCUMENT_COLLECTIONS = [
   "studentInitialAssessments",
@@ -5820,7 +5823,34 @@ async function studentPricePrivacy({ actor, apply }) {
   return { ...plan, applied: true };
 }
 
-async function applyStudentMerge({ actor, primaryStudentId, duplicateStudentIds, requestId }) {
+// permanent: the duplicate cards (and their per-student singleton documents) are deleted after everything has been
+// moved to the main card; the admin confirms by typing the main card's name. Otherwise they are only archived.
+// Cards merged earlier were only archived (active: false, mergedIntoStudentId). Finish them: move anything still
+// pointing at them to their main card and delete them. Preview lists them; apply runs the permanent merge per card.
+async function purgeArchivedDuplicates({ actor, apply = false }) {
+  const snapshot = await db.collection("students").where("mergedIntoStudentId", ">", "").get();
+  const items = [];
+  for (const doc of snapshot.docs) {
+    const data = doc.data();
+    const main = await db.collection("students").doc(data.mergedIntoStudentId).get();
+    items.push({ id: doc.id, name: data.name || "", mainId: data.mergedIntoStudentId, mainName: main.exists ? main.data().name || "" : "", mainExists: main.exists });
+  }
+  const ready = items.filter(item => item.mainExists && item.mainId !== item.id);
+  if (!apply) return { items, ready: ready.length, applied: false };
+  const done = [];
+  for (const item of ready) {
+    await applyStudentMerge({ actor, primaryStudentId: item.mainId, duplicateStudentIds: [item.id], requestId: `purge-${item.id}`, permanent: true, confirmed: true });
+    done.push(item.id);
+  }
+  return { items, ready: ready.length, deleted: done.length, applied: true };
+}
+
+function sameConfirmName(typed, name) {
+  const norm = value => String(value || "").normalize("NFKC").trim().replace(/\s+/g, " ").toLocaleLowerCase("et");
+  return Boolean(norm(name)) && norm(typed) === norm(name);
+}
+
+async function applyStudentMerge({ actor, primaryStudentId, duplicateStudentIds, requestId, permanent = false, confirmName = "", confirmed = false }) {
   const mutationId = cleanRequestId(requestId);
   let normalizedInput;
   try {
@@ -5840,6 +5870,9 @@ async function applyStudentMerge({ actor, primaryStudentId, duplicateStudentIds,
   }
 
   const plan = await studentMergePlan(normalizedInput);
+  if (permanent && !confirmed && !sameConfirmName(confirmName, plan.primary.name)) {
+    throw httpError(400, "Kinnitamiseks kirjuta põhikaardi nimi täpselt");
+  }
   const nowIso = new Date().toISOString();
   const actorData = actorSnapshot(actor);
   await operationRef.set({
@@ -5909,6 +5942,10 @@ async function applyStudentMerge({ actor, primaryStudentId, duplicateStudentIds,
         updatedAt: nowIso,
       }, { merge: true });
       plan.duplicates.forEach(duplicate => {
+        if (permanent) {
+          transaction.delete(db.collection("students").doc(duplicate.id));
+          return;
+        }
         transaction.set(db.collection("students").doc(duplicate.id), {
           active: false,
           mergedIntoStudentId: plan.primaryStudentId,
@@ -5935,6 +5972,8 @@ async function applyStudentMerge({ actor, primaryStudentId, duplicateStudentIds,
         studentId: plan.primaryStudentId,
         studentName: plan.primary.name || "",
         duplicateStudentIds: plan.duplicateStudentIds,
+        duplicateStudentNames: plan.duplicates.map(duplicate => duplicate.name || ""),
+        permanent: Boolean(permanent),
         linkedUserIds: plan.ownership.linkedUserIds,
         linkedParentIds: plan.ownership.linkedParentIds,
         actor: actorData,
@@ -5942,6 +5981,12 @@ async function applyStudentMerge({ actor, primaryStudentId, duplicateStudentIds,
         operationId: mutationId,
       });
     });
+    if (permanent) {
+      // per-student documents keyed by the duplicate id were copied to the main card above (or the main card had
+      // its own); the duplicate's copies go away with the card
+      const leftovers = plan.singletonDocuments.map(item => ({ type: "delete", ref: db.collection(item.collectionName).doc(item.sourceId) }));
+      if (leftovers.length) await commitInChunks(leftovers);
+    }
     return { ...plan.publicPlan, operationId: mutationId, completedAt: nowIso, idempotent: false };
   } catch (error) {
     await operationRef.set({ status: "failed", error: cleanText(error.message, 500), updatedAt: new Date().toISOString() }, { merge: true });
@@ -7212,8 +7257,14 @@ exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"] }).https
         primaryStudentId: req.body?.primaryStudentId,
         duplicateStudentIds: req.body?.duplicateStudentIds,
         requestId: req.body?.requestId,
+        permanent: req.body?.permanent === true,
+        confirmName: req.body?.confirmName,
       });
       res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/students/merged/purge/preview" || req.path === "/students/merged/purge") {
+      res.json(await purgeArchivedDuplicates({ actor, apply: req.path.endsWith("/purge") }));
       return;
     }
     if (req.path === "/parents/merge/preview") {
