@@ -1,0 +1,36 @@
+# KeeleSepp lesson transcriber (free, runs on the school Mac)
+
+Live Classroom records a lesson as two audio tracks (teacher, student) in 5-minute files in Firebase Storage
+`lessonRecordings/{recordingId}/`. This worker turns them into a dialogue with timestamps, for free, with
+whisper.cpp on the Mac. No audio goes to any other service. Audio is deleted after 60 days; the text stays on
+`lessonRecordings/{recordingId}.transcript = [{ speaker: teacher|student, startMs, endMs, text }]`.
+
+## One-time setup
+
+1. **Service account key** (owner, Firebase console → Project settings → Service accounts → Generate new private key).
+   Save it as `~/KeeleSeppTranscriber/service-account.json`. It is a secret: never commit it.
+2. **Whisper model** (≈1.6 GB, once):
+   ```bash
+   mkdir -p ~/KeeleSeppTranscriber/models
+   curl -L -o ~/KeeleSeppTranscriber/models/ggml-large-v3-turbo.bin https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo.bin
+   ```
+3. **Dependencies:** `npm install` in this folder. `whisper-cli` (Homebrew `whisper-cpp`) and `ffmpeg` must be installed.
+4. **Try once:** `GOOGLE_APPLICATION_CREDENTIALS=~/KeeleSeppTranscriber/service-account.json npm run once`
+5. **Start at login** (launchd):
+   ```bash
+   sed -e "s#__REPO__#$(git rev-parse --show-toplevel)#" -e "s#__HOME__#$HOME#g" -e "s#__NODE__#$(which node)#" \
+     ee.keelesepp.transcriber.plist > ~/Library/LaunchAgents/ee.keelesepp.transcriber.plist
+   launchctl load ~/Library/LaunchAgents/ee.keelesepp.transcriber.plist
+   ```
+   Log: `~/KeeleSeppTranscriber/transcriber.log`.
+
+## What it does every minute
+
+- A recording left in `recording` for more than 3 hours (teacher closed the tab) is handed over as `uploaded`.
+- `uploaded` recordings are claimed (`transcribing`), each segment is converted to 16 kHz WAV and transcribed in the
+  lesson language (`et`, or `en` for English learners); both tracks are merged into one dialogue → `done`.
+  Errors → `failed` with the message.
+- About once an hour: audio of `done`/`failed` recordings older than 60 days is deleted (`audioDeletedAt`).
+
+If the Mac is off, recordings wait and are processed when it is back. On an M-series Mac one hour of lesson takes a
+few minutes. Tests: `npm test`.

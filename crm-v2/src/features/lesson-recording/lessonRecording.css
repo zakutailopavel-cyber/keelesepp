@@ -1,0 +1,24 @@
+.rec-panel { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 12px 14px; margin-top: 12px; border-radius: 14px; border: 1px solid var(--border, #e4e7ec); background: #fff; }
+.rec-panel.is-on { border-color: #f04438; background: #fef3f2; }
+.rec-panel.is-off { color: var(--muted); font-size: .85rem; }
+.rec-panel strong { color: #b42318; font-variant-numeric: tabular-nums; }
+.rec-meta { color: var(--muted); font-size: .82rem; margin-right: auto; }
+.rec-dot { width: 11px; height: 11px; border-radius: 50%; background: #f04438; box-shadow: 0 0 0 0 rgba(240,68,56,.5); animation: rec-pulse 1.4s infinite; display: inline-block; }
+@keyframes rec-pulse { 70% { box-shadow: 0 0 0 8px rgba(240,68,56,0); } 100% { box-shadow: 0 0 0 0 rgba(240,68,56,0); } }
+@media (prefers-reduced-motion: reduce) { .rec-dot { animation: none; } }
+.rec-indicator { display: inline-flex; gap: 8px; align-items: center; margin-top: 10px; padding: 6px 12px; border-radius: 999px; background: #fef3f2; color: #b42318; font-weight: 800; font-size: .85rem; }
+.modal.modal--transcript { width: min(900px, 96vw); }
+.transcript { display: grid; gap: 12px; }
+.transcript__tools { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
+.transcript__tools .field { flex: 1 1 220px; }
+.transcript__who { display: flex; gap: 4px; }
+.transcript__who button { border: 1px solid var(--border, #d0d5dd); background: #fff; border-radius: 999px; padding: 6px 12px; font-weight: 700; cursor: pointer; }
+.transcript__who button[aria-pressed="true"] { background: #0b2a4f; color: #fff; border-color: #0b2a4f; }
+.transcript__stat { color: var(--muted); font-size: .82rem; }
+.transcript__lines { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; max-height: 60vh; overflow: auto; }
+.transcript__lines li { display: grid; grid-template-columns: 48px 70px minmax(0, 1fr); gap: 8px; padding: 8px 10px; border-radius: 10px; background: #f8fafc; }
+.transcript__lines li.is-student { background: #ecfdf3; }
+.transcript__lines time { color: var(--muted); font-size: .78rem; font-variant-numeric: tabular-nums; }
+.transcript__lines b { font-size: .8rem; }
+.transcript__lines p { margin: 0; line-height: 1.45; }
+@media (max-width: 560px) { .transcript__lines li { grid-template-columns: 1fr; gap: 2px; } }

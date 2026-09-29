@@ -1255,6 +1255,40 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // Lesson recordings from the Live Classroom room. The teacher of an accepted invitation starts one only when
+    // the student card has recordingConsent == true; the browser appends audio segments; the transcription worker
+    // (Admin SDK on the school Mac) writes the text. Teacher, student and admin may read; nobody else.
+    match /lessonRecordings/{recordingId} {
+      allow read: if isAdmin()
+        || (signedIn() && resource.data.teacherUid == uid())
+        || (signedIn() && resource.data.studentUid == uid());
+      allow create: if isStaff()
+        && request.resource.data.keys().hasOnly([
+          'invitationId', 'teacherUid', 'teacherName', 'studentId', 'studentUid', 'studentName',
+          'title', 'language', 'status', 'segments', 'startedAt', 'updatedAt'
+        ])
+        && request.resource.data.teacherUid == uid()
+        && request.resource.data.status == 'recording'
+        && request.resource.data.segments == []
+        && request.resource.data.language in ['et', 'en']
+        && recordingId.matches('^' + request.resource.data.invitationId + '_[0-9]+$')
+        && exists(/databases/$(database)/documents/liveLessonInvitations/$(request.resource.data.invitationId))
+        && get(/databases/$(database)/documents/liveLessonInvitations/$(request.resource.data.invitationId)).data.teacherUid == uid()
+        && get(/databases/$(database)/documents/liveLessonInvitations/$(request.resource.data.invitationId)).data.status == 'accepted'
+        && get(/databases/$(database)/documents/liveLessonInvitations/$(request.resource.data.invitationId)).data.studentId == request.resource.data.studentId
+        && get(/databases/$(database)/documents/liveLessonInvitations/$(request.resource.data.invitationId)).data.studentUid == request.resource.data.studentUid
+        && exists(studentPath(request.resource.data.studentId))
+        && studentDoc(request.resource.data.studentId).get('recordingConsent', false) == true;
+      allow update: if isStaff()
+        && resource.data.teacherUid == uid()
+        && resource.data.status == 'recording'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'endedAt', 'segments', 'updatedAt'])
+        && request.resource.data.status in ['recording', 'uploaded']
+        && request.resource.data.segments is list
+        && request.resource.data.segments.size() <= 240;
+      allow delete: if isAdmin();
+    }
+
     match /liveLessonInvitations/{invitationId} {
       allow read: if isAdmin()
         || (signedIn() && resource.data.teacherUid == uid())

@@ -9,6 +9,8 @@ import { eligibleInvitationStudents, INVITATION_STATUS, isInvitationRouteUsable,
 import LiveLessonCallPanel from './LiveLessonCallPanel.jsx';
 import LiveLessonWhiteboard from './LiveLessonWhiteboard.jsx';
 import RoomWorksheetPanel from '../worksheet-studio/RoomWorksheetPanel.jsx';
+import RoomRecorder from '../lesson-recording/RoomRecorder.jsx';
+import RecordingIndicator from '../lesson-recording/RecordingIndicator.jsx';
 import './liveClassroom.css';
 
 const statusLabel = {
@@ -41,6 +43,7 @@ export default function LiveClassroomPage({
   callPeerFactory,
   worksheetHomework,
   worksheetLibrary,
+  recordingService,
 }) {
   const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -57,6 +60,8 @@ export default function LiveClassroomPage({
   const [saving, setSaving] = useState('');
   const [actionError, setActionError] = useState('');
   const [now, setNow] = useState(() => Date.now());
+  const [callStreams, setCallStreams] = useState({ local: null, remote: null });
+  const [roomStudent, setRoomStudent] = useState(null);
 
   useEffect(() => {
     if (!isStaff) return undefined;
@@ -151,9 +156,21 @@ export default function LiveClassroomPage({
     }
   };
 
+  // the room's student card: recording consent and subject (language) for the recorder
+  const roomStudentId = isStaff && activeInvitation?.status === INVITATION_STATUS.ACCEPTED ? activeInvitation.studentId : '';
+  useEffect(() => {
+    if (!roomStudentId) return undefined;
+    let alive = true;
+    Promise.resolve().then(() => studentRepository.getById(roomStudentId))
+      .then((student) => { if (alive) setRoomStudent(student || null); })
+      .catch(() => { if (alive) setRoomStudent(null); });
+    return () => { alive = false; };
+  }, [roomStudentId, studentRepository]);
+
   const leaveRoom = () => setSearchParams({}, { replace: true });
   const worksheetProps = { ...(worksheetHomework ? { homework: worksheetHomework } : {}), ...(worksheetLibrary ? { library: worksheetLibrary } : {}) };
   const callProps = {
+    onMediaStreams: setCallStreams,
     invitation: activeInvitation,
     user,
     signalService: callSignalService,
@@ -168,6 +185,7 @@ export default function LiveClassroomPage({
       {streamError ? <ErrorState message={streamError} /> : !streamReady ? <LoadingState label="Laen tunnikutset…" /> : activeInvitation?.status === INVITATION_STATUS.ACCEPTED ? <>
         <WaitingRoom invitation={activeInvitation} role="student" />
         <LiveLessonCallPanel {...callProps} role="student" />
+        <RecordingIndicator invitation={activeInvitation} user={user} {...(recordingService ? { service: recordingService } : {})} />
         <LiveLessonWhiteboard invitation={activeInvitation} role="student" user={user} service={whiteboardService} />
         <RoomWorksheetPanel invitation={activeInvitation} role="student" user={user} {...worksheetProps} />
         <div className="live-invitation-toolbar"><Button variant="secondary" onClick={leaveRoom}>Lahku ooteruumist</Button></div>
@@ -182,6 +200,7 @@ export default function LiveClassroomPage({
       <WaitingRoom invitation={activeInvitation} role="teacher" />
       {activeInvitation.status === INVITATION_STATUS.ACCEPTED ? <>
         <LiveLessonCallPanel {...callProps} role="teacher" />
+        <RoomRecorder invitation={activeInvitation} user={user} streams={callStreams} consent={roomStudent ? roomStudent.recordingConsent === true : null} subject={roomStudent?.subject || ''} {...(recordingService ? { service: recordingService } : {})} />
         <LiveLessonWhiteboard invitation={activeInvitation} role="teacher" user={user} service={whiteboardService} />
         <RoomWorksheetPanel invitation={activeInvitation} role="teacher" user={user} {...worksheetProps} />
       </> : null}

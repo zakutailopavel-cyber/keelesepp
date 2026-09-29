@@ -1,0 +1,9 @@
+{
+  "name": "keelesepp-lesson-transcriber",
+  "private": true,
+  "description": "Free lesson transcription on the school Mac (whisper.cpp) for Live Classroom recordings",
+  "main": "index.js",
+  "scripts": { "start": "node index.js", "once": "node index.js --once", "test": "node --test lib.test.js" },
+  "engines": { "node": ">=20" },
+  "dependencies": { "firebase-admin": "^13.10.0" }
+}

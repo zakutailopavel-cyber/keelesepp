@@ -44,6 +44,7 @@ export default function LiveLessonCallPanel({
   presenceService = liveLessonPresenceService,
   mediaDevices = globalThis.navigator?.mediaDevices,
   peerFactory = defaultPeerFactory,
+  onMediaStreams,
 }) {
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
@@ -66,6 +67,14 @@ export default function LiveLessonCallPanel({
   const [presence, setPresence] = useState([]);
   const [presenceNow, setPresenceNow] = useState(() => Date.now());
   const [floating, setFloating] = useState(false);
+  // lesson recording listens to the teacher's own stream and the student's incoming stream
+  const onMediaStreamsRef = useRef(onMediaStreams);
+  useEffect(() => { onMediaStreamsRef.current = onMediaStreams; }, [onMediaStreams]);
+  const streamsRef = useRef({ local: null, remote: null });
+  const reportStreams = useCallback((patch) => {
+    streamsRef.current = { ...streamsRef.current, ...patch };
+    onMediaStreamsRef.current?.(streamsRef.current);
+  }, []);
 
   const participant = useMemo(() => ({
     uid: user.uid,
@@ -93,7 +102,8 @@ export default function LiveLessonCallPanel({
     peerRef.current = null;
     sessionIdRef.current = '';
     if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null;
-  }, []);
+    reportStreams({ remote: null });
+  }, [reportStreams]);
 
   const stopScreenTracks = useCallback(() => {
     const stream = screenStreamRef.current;
@@ -111,10 +121,11 @@ export default function LiveLessonCallPanel({
     if (stream) stream.getTracks().forEach((track) => track.stop());
     localStreamRef.current = null;
     attachLocalStream(null);
+    reportStreams({ local: null });
     setHasLocalMedia(false);
     setAudioEnabled(true);
     setVideoEnabled(true);
-  }, [attachLocalStream, stopScreenTracks]);
+  }, [attachLocalStream, reportStreams, stopScreenTracks]);
 
   const resetCall = useCallback((nextStatus = 'idle', stopMedia = true) => {
     closePeer();
@@ -148,6 +159,7 @@ export default function LiveLessonCallPanel({
     peer.ontrack = (event) => {
       const remoteStream = event.streams?.[0];
       if (remoteVideoRef.current && remoteStream) remoteVideoRef.current.srcObject = remoteStream;
+      if (remoteStream) reportStreams({ remote: remoteStream });
     };
     peer.onicecandidate = (event) => {
       if (!event.candidate) return;
@@ -163,7 +175,7 @@ export default function LiveLessonCallPanel({
       else if (next === 'closed') setStatus('ended');
     };
     return peer;
-  }, [closePeer, peerFactory, sendSignal]);
+  }, [closePeer, peerFactory, reportStreams, sendSignal]);
 
   const flushCandidates = useCallback(async (sessionId) => {
     const peer = peerRef.current;
@@ -188,11 +200,12 @@ export default function LiveLessonCallPanel({
     });
     localStreamRef.current = stream;
     attachLocalStream(stream);
+    reportStreams({ local: stream });
     setHasLocalMedia(true);
     setAudioEnabled(stream.getAudioTracks().some((track) => track.enabled !== false));
     setVideoEnabled(stream.getVideoTracks().some((track) => track.enabled !== false));
     return stream;
-  }, [attachLocalStream, mediaDevices]);
+  }, [attachLocalStream, mediaDevices, reportStreams]);
 
   const answerOffer = useCallback(async (signal) => {
     if (role !== 'student' || !localStreamRef.current) return;

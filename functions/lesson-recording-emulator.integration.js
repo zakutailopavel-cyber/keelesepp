@@ -1,0 +1,69 @@
+'use strict';
+// Lesson recordings against the real Firestore rules: only the room's teacher, only with the student's consent,
+// only segments/status from the browser; the transcript is the worker's (Admin SDK). Student reads their own.
+const { test } = require('node:test');
+const assert = require('node:assert/strict');
+const admin = require('firebase-admin');
+
+const PROJECT = 'demo-keelesepp-finance';
+const authHost = process.env.FIREBASE_AUTH_EMULATOR_HOST;
+const dbHost = process.env.FIRESTORE_EMULATOR_HOST;
+const base = `http://${dbHost}/v1/projects/${PROJECT}/databases/(default)/documents`;
+
+async function account(role) {
+  const r = await fetch(`http://${authHost}/identitytoolkit.googleapis.com/v1/accounts:signUp?key=demo`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: `rec-${role}-${Date.now()}-${Math.random().toString(36).slice(2)}@example.com`, password: 'emulator-only-password', returnSecureToken: true }),
+  });
+  const b = await r.json();
+  const uid = JSON.parse(Buffer.from(b.idToken.split('.')[1], 'base64url')).sub;
+  await admin.firestore().doc(`users/${uid}`).set({ role });
+  return { token: b.idToken, uid };
+}
+const enc = (v) => (Array.isArray(v) ? { arrayValue: { values: v.map(enc) } }
+  : v && typeof v === 'object' ? { mapValue: { fields: Object.fromEntries(Object.entries(v).map(([k, x]) => [k, enc(x)])) } }
+  : typeof v === 'number' ? { integerValue: String(v) } : { stringValue: String(v) });
+const fields = (o) => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, enc(v)]));
+async function create(who, id, data) {
+  const r = await fetch(`${base}/lessonRecordings?documentId=${encodeURIComponent(id)}`, { method: 'POST', headers: { Authorization: `Bearer ${who.token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ fields: fields(data) }) });
+  return r.status;
+}
+async function patch(who, id, data) {
+  const mask = Object.keys(data).map((k) => `updateMask.fieldPaths=${k}`).join('&');
+  const r = await fetch(`${base}/lessonRecordings/${id}?${mask}`, { method: 'PATCH', headers: { Authorization: `Bearer ${who.token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ fields: fields(data) }) });
+  return r.status;
+}
+const read = async (who, id) => (await fetch(`${base}/lessonRecordings/${id}`, { headers: { Authorization: `Bearer ${who.token}` } })).status;
+
+test('lesson recordings follow consent and roles', async () => {
+  assert.equal(process.env.GCLOUD_PROJECT || process.env.GOOGLE_CLOUD_PROJECT, PROJECT);
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT });
+  const db = admin.firestore();
+  const teacher = await account('teacher');
+  const other = await account('teacher');
+  const learner = await account('student');
+  const stranger = await account('student');
+  await db.doc('students/st-rec').set({ name: 'Mari', linkedUserId: learner.uid, teacherUid: teacher.uid, recordingConsent: true });
+  await db.doc('students/st-norec').set({ name: 'Jaan', linkedUserId: stranger.uid, teacherUid: teacher.uid });
+  await db.doc('liveLessonInvitations/inv-ok').set({ teacherUid: teacher.uid, studentId: 'st-rec', studentUid: learner.uid, status: 'accepted' });
+  await db.doc('liveLessonInvitations/inv-no').set({ teacherUid: teacher.uid, studentId: 'st-norec', studentUid: stranger.uid, status: 'accepted' });
+  const rec = (inv, sid, suid, extra = {}) => ({ invitationId: inv, teacherUid: teacher.uid, teacherName: 'Kati', studentId: sid, studentUid: suid, studentName: 'Mari', title: 'Eesti keel', language: 'et', status: 'recording', segments: [], startedAt: '2026-09-29T10:00:00Z', updatedAt: '2026-09-29T10:00:00Z', ...extra });
+
+  assert.equal(await create(teacher, 'inv-no_1', rec('inv-no', 'st-norec', stranger.uid)), 403, 'no consent');
+  assert.equal(await create(other, 'inv-ok_1', { ...rec('inv-ok', 'st-rec', learner.uid), teacherUid: other.uid }), 403, 'not the room teacher');
+  assert.equal(await create(teacher, 'something_1', rec('inv-ok', 'st-rec', learner.uid)), 403, 'id must belong to the invitation');
+  assert.equal(await create(teacher, 'inv-ok_1', rec('inv-ok', 'st-rec', learner.uid, { status: 'done' })), 403, 'starts as recording');
+  assert.equal(await create(teacher, 'inv-ok_1', rec('inv-ok', 'st-rec', learner.uid)), 200);
+
+  assert.equal(await patch(teacher, 'inv-ok_1', { segments: [{ track: 'teacher', seq: 0, path: 'lessonRecordings/inv-ok_1/teacher_000.webm', startMs: 0, durationMs: 300000 }], updatedAt: '2026-09-29T10:05:00Z' }), 200);
+  assert.equal(await patch(teacher, 'inv-ok_1', { transcript: [{ speaker: 'student', text: 'forged' }] }), 403, 'transcript is the worker\'s');
+  assert.equal(await patch(learner, 'inv-ok_1', { status: 'uploaded' }), 403);
+  assert.equal(await read(learner, 'inv-ok_1'), 200);
+  assert.equal(await read(stranger, 'inv-ok_1'), 403);
+  assert.equal(await read(other, 'inv-ok_1'), 403);
+  assert.equal(await patch(teacher, 'inv-ok_1', { status: 'uploaded', endedAt: '2026-09-29T11:00:00Z' }), 200);
+  assert.equal(await patch(teacher, 'inv-ok_1', { status: 'recording' }), 403, 'finished recordings are closed');
+  // students cannot give themselves consent
+  const r = await fetch(`http://${dbHost}/v1/projects/${PROJECT}/databases/(default)/documents/students/st-norec?updateMask.fieldPaths=recordingConsent`, { method: 'PATCH', headers: { Authorization: `Bearer ${stranger.token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ fields: { recordingConsent: { booleanValue: true } } }) });
+  assert.equal(r.status, 403);
+});
