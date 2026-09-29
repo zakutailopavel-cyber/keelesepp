@@ -14,6 +14,7 @@ import OriginalPanel from './OriginalPanel.jsx';
 import { sampleDocument } from './engine/sample.js';
 import { BlockInspector, SheetInspector } from './editor/Inspector.jsx';
 import GoalEvidence from './GoalEvidence.jsx';
+import { applyPrintA4 } from './printPage.js';
 import './engine/sheet.css';
 import './worksheetStudio.css';
 
@@ -68,8 +69,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService 
 
   // print styles hide the CRM shell only while the studio is open
   useEffect(() => {
-    document.body.classList.add('ws-studio-open');
-    return () => document.body.classList.remove('ws-studio-open');
+    return applyPrintA4();
   }, []);
 
   useEffect(() => {

@@ -5,6 +5,7 @@ import * as Icons from 'lucide-react';
 import { libraryService } from '../../services/firebase/index.js';
 import Sheet from './engine/Sheet.jsx';
 import { useFitScale } from './useFitScale.js';
+import { applyPrintA4 } from './printPage.js';
 import './engine/sheet.css';
 import './worksheetStudio.css';
 
@@ -63,8 +64,7 @@ export default function BookPage({ repository = libraryService }) {
 
   useEffect(() => { writeDraft({ book, ids }); }, [book, ids]);
   useEffect(() => {
-    document.body.classList.add('ws-studio-open');
-    return () => document.body.classList.remove('ws-studio-open');
+    return applyPrintA4();
   }, []);
 
   const byId = useMemo(() => Object.fromEntries(state.lessons.map((l) => [l.id, l])), [state.lessons]);

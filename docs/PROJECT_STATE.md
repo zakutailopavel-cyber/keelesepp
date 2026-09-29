@@ -9,6 +9,11 @@ Branch: `agent/worksheet-studio-live-polish`. Found by clicking through the real
    the A4 sheet overflowed the screen. The hook now returns a callback ref (`const [ref, scale] = useFitScale()`).
 2. The live view marked untouched fields red while the learner was still working; now only answered fields get ✓/✗
    until the assignment is submitted.
+3. Printing: a 381.86 mm page zoomed to exactly 297 mm only fits on A4 with zero margins, but A4 was set only for the
+   named `worksheet` page, so with the browser's default paper (Letter) or margins every page split onto two sheets
+   and the CRM background printed. Now the builder and the book set `@page { size: A4; margin: 0 }` for the whole job
+   while they are open (`printPage.js`), the print zoom is .7776 (296.9 mm), and the page background is white.
+   Checked with headless Chrome: a 1-sheet book prints as 4 A4 pages (cover, contents, sheet pages 3 and 4).
 Verified visually: student player with photos and handwriting font, autosave, teacher live view (answer appears,
 task highlight followed by the student's sheet), original panel with photo cutting (same-origin image), book cover,
 contents and page numbers. Checks: vitest 335/335, ESLint clean, build OK.

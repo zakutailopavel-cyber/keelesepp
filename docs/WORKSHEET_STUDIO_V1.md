@@ -92,7 +92,8 @@ per goal; save and load errors). Full suite, ESLint and production build — see
 - `/library/worksheets/book` (staff; button "Õpik" in Õppevara): pick structured worksheets (`worksheetDoc`), order
   them, set title / subtitle / level / publisher; the page renders a cover, contents with page numbers and every sheet
   in print mode with running book page numbers in the footer (`Sheet` props `startPage`, `onPageCount`).
-- "PDF / Prindi" prints the whole book (A4, one worksheet page per sheet of paper); "Save as PDF" gives the file for a
+- "PDF / Prindi" prints the whole book (A4, one worksheet page per sheet of paper; while the builder or the book is open
+  the whole print job is forced to A4 without margins, see `printPage.js`); "Save as PDF" gives the file for a
   printer. The book plan (ids and titles) is kept in the teacher's browser (`localStorage`), nothing is stored in
   Firestore; worksheets stay the single source.
 - Print quality depends on uploaded photos (JPEG ≤ 1600 px): enough for A4 at ~150–190 dpi. Offset printing at 300 dpi
