@@ -32,4 +32,17 @@ describe('protected routes', () => {
     renderRoute(null);
     expect(screen.getByText('Logi sisse')).toBeInTheDocument();
   });
+
+  it('shows the waiting screen instead of the app while the account is not approved', () => {
+    renderRoute({ roles: ['parent'], approvalStatus: 'pending', displayName: 'Mari', email: 'mari@example.ee' });
+    expect(screen.getByRole('heading', { name: 'Konto ootab kinnitamist' })).toBeInTheDocument();
+    expect(screen.queryByText('Salajane vaade')).not.toBeInTheDocument();
+    expect(screen.queryByText('Ligipääs puudub')).not.toBeInTheDocument();
+  });
+
+  it('tells a rejected account whom to contact', () => {
+    renderRoute({ roles: ['admin'], approvalStatus: 'rejected' });
+    expect(screen.getByRole('heading', { name: 'Konto ei ole kinnitatud' })).toBeInTheDocument();
+    expect(screen.queryByText('Salajane vaade')).not.toBeInTheDocument();
+  });
 });

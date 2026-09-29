@@ -1,0 +1,14 @@
+.accounts-tabs{display:inline-flex;gap:4px;padding:4px;border-radius:12px;background:#eef1f4;margin:4px 0 16px}
+.accounts-tabs button{border:0;background:transparent;padding:8px 16px;border-radius:9px;font-weight:700;color:#42536a;cursor:pointer}
+.accounts-tabs button.is-active{background:#14243a;color:#fff}
+.accounts-notice{margin:0 0 14px;padding:12px 14px;border-radius:10px;background:#e7f5f1;color:#0b5c4d;font-weight:600}
+.accounts-list{display:grid;gap:12px}
+.account-row{display:flex;gap:18px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:18px 20px}
+.account-row__main{display:grid;gap:4px;min-width:0}
+.account-row__head{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.account-row__main>span{color:var(--muted);font-size:.9rem;overflow-wrap:anywhere}
+.account-row dl{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;margin:6px 0 0;font-size:.86rem}
+.account-row dt{color:var(--muted)}.account-row dd{margin:0;font-weight:600}
+.account-row__actions{display:flex;gap:8px;align-items:center}
+.account-row__rejected{color:#b42318}
+@media(max-width:640px){.account-row__actions{width:100%}.account-row__actions .button{flex:1}}

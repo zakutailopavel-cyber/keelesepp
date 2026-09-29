@@ -4704,7 +4704,7 @@ async function deliverEmail(message, context = {}) {
   const hasSmtp = Boolean(smtpHost && smtpUser && smtpPass);
   const provider = hasSmtp ? "smtp" : resendKey ? "resend" : sendgridKey ? "sendgrid" : "firestore";
   const from = process.env.MAIL_FROM || SMTP_DEFAULTS.from || MAIL_FROM;
-  const replyTo = MAIL_REPLY_TO;
+  const replyTo = message.replyTo || MAIL_REPLY_TO;
   const attachments = (Array.isArray(message.attachments) ? message.attachments : []).map(attachment => {
     const content = Buffer.isBuffer(attachment.content)
       ? attachment.content
@@ -6982,7 +6982,46 @@ async function applyScheduleSyncRecovery({ actor, fromIso, toIso, requestId, con
   return { ...result, idempotent: false };
 }
 
-exports.staffOperationsApi = functions.https.onRequest(async (req, res) => {
+// Course enquiries from the public website form (replaces the old mailto: link that lost enquiries).
+// Public endpoint: honeypot + per-IP hourly limit; stores the enquiry and e-mails info@epkoolitus.ee.
+exports.websiteLeadApi = functions.runWith({ secrets: ["SMTP_PASS"] }).https.onRequest(async (req, res) => {
+  applyCors(req, res);
+  if (req.method === "OPTIONS") { res.status(204).send(""); return; }
+  if (req.method !== "POST") { res.status(405).json({ error: "POST required" }); return; }
+  try {
+    const { normalizeWebsiteLead, throttleAllows, composeWebsiteLeadEmail } = require("./website-lead-core");
+    const result = normalizeWebsiteLead(req.body || {});
+    if (result.spam) { res.status(200).json({ ok: true }); return; }
+    if (result.errors) { res.status(400).json({ error: "invalid", fields: result.errors }); return; }
+    const ip = String(req.get("x-forwarded-for") || req.ip || "").split(",")[0].trim();
+    const ipKey = require("crypto").createHash("sha256").update(`website-lead:${ip}`).digest("hex").slice(0, 32);
+    const throttleRef = db.collection("websiteLeadThrottle").doc(ipKey);
+    const nowMs = Date.now();
+    const allowed = await db.runTransaction(async tx => {
+      const snap = await tx.get(throttleRef);
+      const recent = (snap.exists ? snap.data().times || [] : []).filter(t => t > nowMs - 60 * 60 * 1000);
+      if (!throttleAllows(recent, nowMs)) return false;
+      tx.set(throttleRef, { times: [...recent, nowMs], updatedAt: FieldValue.serverTimestamp() });
+      return true;
+    });
+    if (!allowed) { res.status(429).json({ error: "too_many" }); return; }
+    const leadRef = db.collection("websiteLeads").doc();
+    await leadRef.set({ ...result.lead, status: "new", createdAt: FieldValue.serverTimestamp() });
+    try {
+      await deliverEmail(composeWebsiteLeadEmail(result.lead), { kind: "website-lead", leadId: leadRef.id });
+    } catch (mailError) {
+      // the enquiry is stored; a mail problem must not make the visitor think it failed
+      console.error("website lead e-mail failed", leadRef.id, mailError);
+      await leadRef.update({ mailError: String(mailError.message || mailError).slice(0, 300) });
+    }
+    res.status(201).json({ ok: true });
+  } catch (error) {
+    console.error("websiteLeadApi", error);
+    res.status(500).json({ error: "failed" });
+  }
+});
+
+exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"] }).https.onRequest(async (req, res) => {
   applyCors(req, res);
   if (req.method === "OPTIONS") { res.status(204).send(""); return; }
   if (req.method !== "POST") {
@@ -7195,6 +7234,44 @@ exports.staffOperationsApi = functions.https.onRequest(async (req, res) => {
         requestId: req.body?.requestId,
       });
       res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    // Administrator approves or rejects a self-registered account. Approval links the student card(s) at once
+    // and tells the person by e-mail; until then the account has no access (rules + isDisabledProfile).
+    if (req.path === "/accounts/approval") {
+      const { approvalUpdate, composeApprovedEmail } = require("./account-approval-core");
+      const targetUid = cleanText(req.body?.uid, 180);
+      if (!targetUid) throw httpError(400, "Account uid required");
+      const profileRef = db.collection("users").doc(targetUid);
+      const profileSnap = await profileRef.get();
+      if (!profileSnap.exists) throw httpError(404, "Account profile not found");
+      const nowIso = new Date().toISOString();
+      let update;
+      try {
+        update = approvalUpdate({ decision: req.body?.decision, actor: actorSnapshot(actor), nowIso, reason: req.body?.reason });
+      } catch (error) { throw httpError(400, error.message); }
+      await profileRef.update(update);
+      const profile = { ...profileSnap.data(), ...update };
+      let linked = null;
+      let mailed = false;
+      if (update.approvalStatus === "approved") {
+        let authUser = null;
+        try { authUser = await admin.auth().getUser(targetUid); } catch (error) { authUser = null; }
+        if (authUser) {
+          linked = await bootstrapCurrentAccount({
+            decoded: { uid: targetUid, email: authUser.email || "", email_verified: authUser.emailVerified === true, name: authUser.displayName || "", ...(authUser.customClaims || {}) },
+            profile,
+          });
+        }
+        if (profile.email && profileSnap.data().approvalStatus !== "approved") {
+          try { await deliverEmail(composeApprovedEmail(profile), { kind: "account-approved", uid: targetUid }); mailed = true; }
+          catch (mailError) { console.error("approval e-mail failed", targetUid, mailError); }
+        }
+      }
+      await db.collection("activityLog").add({
+        action: `account_${update.approvalStatus}`, targetUid, actor: actorSnapshot(actor), createdAt: FieldValue.serverTimestamp(),
+      });
+      res.json({ uid: targetUid, approvalStatus: update.approvalStatus, linkedStudentIds: linked?.linkedStudentIds || [], createdStudentIds: linked?.createdStudentIds || [], mailed });
       return;
     }
     if (req.path === "/accounts/bootstrap-admin") {
@@ -9007,6 +9084,23 @@ async function backfillScheduleToGoogle(uid, connection, { force = false, retryE
   }
   return { synced, skipped, failed };
 }
+
+// A parent or student registered themselves: tell the school so an administrator can approve the account.
+exports.notifyPendingAccount = functions
+  .runWith({ secrets: ["SMTP_PASS"] })
+  .firestore
+  .document("users/{uid}")
+  .onCreate(async (snap, context) => {
+    const profile = snap.data() || {};
+    if (profile.approvalStatus !== "pending") return null;
+    const { composePendingAccountEmail } = require("./account-approval-core");
+    try {
+      await deliverEmail(composePendingAccountEmail(profile), { kind: "account-pending", uid: context.params.uid });
+    } catch (error) {
+      console.error("pending account e-mail failed", context.params.uid, error);
+    }
+    return null;
+  });
 
 exports.syncScheduleToGoogle = functions.firestore
   .document("schedule/{scheduleId}")

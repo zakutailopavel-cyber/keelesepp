@@ -564,6 +564,10 @@ function ProgressChart({data}) {
 }
 
 // ── AUTH SCREEN ───────────────────────────────────────────────
+// Self-registered parents and students wait for an administrator (approvalStatus 'pending'; rules block them).
+const ACCOUNT_PENDING_TEXT='Konto ootab administraatori kinnitust. Saadame e-kirja, kui see on kinnitatud. / Аккаунт ждёт подтверждения администратора — пришлём письмо.';
+const isPendingAccount = profile => ['pending','rejected'].includes(profile?.approvalStatus);
+
 function AuthScreen({onLogin}) {
   const [mode,setMode]   = useState(()=>{
     try{
@@ -595,7 +599,11 @@ function AuthScreen({onLogin}) {
       const res=await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
       const u=res.user;
       const snap=await db.collection('users').doc(u.uid).get();
-      if(snap.exists){
+      if(snap.exists && isPendingAccount(snap.data())){
+        await auth.signOut();
+        setErr(ACCOUNT_PENDING_TEXT);
+      }
+      else if(snap.exists){
         const profile = {uid:u.uid,displayName:u.displayName,email:u.email,...snap.data()};
         try{
           await ensureStudentRecord(u, profile);
@@ -606,14 +614,10 @@ function AuthScreen({onLogin}) {
         onLogin(profile);
       }
       else{
-        const ud={role:'parent',displayName:u.displayName,email:u.email,childName:'',preferredTeacher:'Pavel',createdAt:today(),termsAcceptedAt:new Date().toISOString(),termsVersion:'2025-08-10'};
+        const ud={role:'parent',displayName:u.displayName,email:u.email,childName:'',preferredTeacher:'Pavel',createdAt:today(),termsAcceptedAt:new Date().toISOString(),termsVersion:'2025-08-10',approvalStatus:'pending'};
         await db.collection('users').doc(u.uid).set(ud);
-        try{
-          await ensureParentStudentRecords(u, {uid:u.uid,...ud});
-        }catch(syncErr){
-          console.warn('Parent student bootstrap after Google signup failed:', syncErr);
-        }
-        onLogin({uid:u.uid,...ud});
+        await auth.signOut();
+        setInfo(ACCOUNT_PENDING_TEXT);
       }
     }catch(e){setErr('Google sisselogimine ebaõnnestus.');}
     setBusy(false);
@@ -625,7 +629,11 @@ function AuthScreen({onLogin}) {
     try{
       const res=await auth.signInWithEmailAndPassword(email,pass);
       const snap=await db.collection('users').doc(res.user.uid).get();
-      if(snap.exists){
+      if(snap.exists && isPendingAccount(snap.data())){
+        await auth.signOut();
+        setErr(ACCOUNT_PENDING_TEXT);
+      }
+      else if(snap.exists){
         const profile = {uid:res.user.uid,displayName:res.user.displayName||email,...snap.data()};
         try{
           await ensureStudentRecord(res.user, profile);
@@ -655,7 +663,7 @@ function AuthScreen({onLogin}) {
     setErr('');setBusy(true);
     try{
       const res=await auth.createUserWithEmailAndPassword(email,pass);
-      const ud={role,displayName:name,email,childName:role==='parent'?child:'',preferredTeacher:role==='parent'?parentTeacher:'',createdAt:today(),termsAcceptedAt:new Date().toISOString(),termsVersion:'2025-08-10'};
+      const ud={role,displayName:name,email,childName:role==='parent'?child:'',preferredTeacher:role==='parent'?parentTeacher:'',createdAt:today(),termsAcceptedAt:new Date().toISOString(),termsVersion:'2025-08-10',approvalStatus:'pending'};
       try{
         await res.user.updateProfile({displayName:name});
         await db.collection('users').doc(res.user.uid).set(ud);
@@ -664,17 +672,9 @@ function AuthScreen({onLogin}) {
         await res.user.delete().catch(()=>null);
         throw profileError;
       }
-      try{
-        if(ud.role==='student'){
-          await ensureStudentRecord(res.user, ud);
-        } else {
-          await ensureStudentRecord(res.user, ud);
-          await ensureParentStudentRecords(res.user, ud);
-        }
-      }catch(syncErr){
-        console.warn('Profile sync after registration failed:', syncErr);
-      }
-      onLogin({uid:res.user.uid,...ud});
+      await auth.signOut();
+      setMode('login');
+      setInfo('Konto on loodud. '+ACCOUNT_PENDING_TEXT);
     }catch(e){
       const m={'auth/email-already-in-use':'See e-post on juba registreeritud','auth/invalid-email':'Vigane e-post'};
       setErr(m[e.code]||e.message);
@@ -13698,7 +13698,10 @@ function App() {
       try{
         if(fbUser){
           const snap=await db.collection('users').doc(fbUser.uid).get();
-          if(snap.exists){
+          if(snap.exists && isPendingAccount(snap.data())){
+            await auth.signOut();
+            setUser(null);
+          }else if(snap.exists){
             const d=snap.data();
             const profile = {uid:fbUser.uid,displayName:fbUser.displayName||fbUser.email,...d};
             try{

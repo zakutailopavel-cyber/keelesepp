@@ -3,6 +3,7 @@ import ErrorState from '../components/ui/ErrorState.jsx';
 import LoadingState from '../components/ui/LoadingState.jsx';
 import { useAuth } from './AuthContext.jsx';
 import { hasAnyRole } from '../utils/roles.js';
+import PendingApprovalPage from '../features/auth/PendingApprovalPage.jsx';
 
 export default function ProtectedRoute({ roles = [] }) {
   const { configured, loading, user, error } = useAuth();
@@ -12,6 +13,7 @@ export default function ProtectedRoute({ roles = [] }) {
   if (loading) return <LoadingState label="Kontrollin kasutajaseanssi…" />;
   if (error) return <ErrorState title="Sisselogimise kontroll ebaõnnestus" message={error.message} />;
   if (!user) return <Navigate to="/login" replace state={{ from: location }} />;
+  if (['pending', 'rejected'].includes(user.approvalStatus)) return <PendingApprovalPage />;
   if (!hasAnyRole(user.roles, roles)) return <Navigate to="/forbidden" replace />;
   return <Outlet />;
 }

@@ -28,3 +28,14 @@ test("only an explicit boolean disabled flag blocks the profile", () => {
   assert.equal(isDisabledProfile({ disabled: false }), false);
   assert.equal(isDisabledProfile({ disabled: "true" }), false);
 });
+
+test("self-registered accounts stay blocked until an administrator approves them", () => {
+  const { isPendingApproval } = require("./auth-core");
+  assert.equal(isDisabledProfile({ role: "parent", approvalStatus: "pending" }), true);
+  assert.equal(isDisabledProfile({ role: "parent", approvalStatus: "rejected" }), true);
+  assert.equal(isDisabledProfile({ role: "parent", approvalStatus: "approved" }), false);
+  // accounts from before the approval step (no field) keep working
+  assert.equal(isDisabledProfile({ role: "student" }), false);
+  assert.equal(isPendingApproval({ approvalStatus: "pending" }), true);
+  assert.equal(isPendingApproval({}), false);
+});

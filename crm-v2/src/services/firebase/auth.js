@@ -64,8 +64,12 @@ export function registrationProfile(values = {}, now = new Date()) {
     createdAt: localDate(now),
     termsAcceptedAt: now.toISOString(),
     termsVersion: TERMS_VERSION,
+    // no access until an administrator approves (Firestore rules require exactly this on self-registration)
+    approvalStatus: 'pending',
   };
 }
+
+export const isAwaitingApproval = (user) => ['pending', 'rejected'].includes(user?.approvalStatus);
 
 export function validatePassword(password, repeat) {
   if (!password) return 'Parool on kohustuslik.';
@@ -77,6 +81,7 @@ export function validatePassword(password, repeat) {
 // Server links the account to its student card(s) (creates a card for a new student,
 // matches a parent's children). Best effort: login must not fail because of it.
 async function bootstrapAccount(firebaseUser, profile) {
+  if (['pending', 'rejected'].includes(profile?.approvalStatus)) return null;
   if (!firebaseUser || !SELF_ROLES.some((role) => profile?.role === role || profile?.roles?.includes?.(role))) return null;
   try {
     const token = await firebaseUser.getIdToken();
@@ -105,6 +110,7 @@ async function enrichUser(firebaseUser) {
     email: firebaseUser.email || profile.email || '',
     displayName: profile.displayName || firebaseUser.displayName || firebaseUser.email || '',
     profile,
+    approvalStatus: profile.approvalStatus || 'approved',
     roles: normalizeRoles(profile, tokenResult.claims, { email: firebaseUser.email }),
   };
 }
@@ -187,6 +193,15 @@ export const authService = {
     await sendEmailVerification(credential.user).catch(() => null);
     const user = await enrichUser(credential.user);
     await bootstrapAccount(credential.user, user.profile);
+    return user;
+  },
+  // re-read the own profile (the waiting screen's "check again"); runs the account link once approved
+  async refresh() {
+    const { auth } = requireFirebaseClient();
+    if (!auth.currentUser) return null;
+    await auth.currentUser.getIdToken(true);
+    const user = await enrichUser(auth.currentUser);
+    await bootstrapAccount(auth.currentUser, user.profile);
     return user;
   },
   async resetPasswordFor(email) {

@@ -49,6 +49,11 @@ export function AuthProvider({ children, service = authService }) {
       return user;
     },
     resetPasswordFor: (email) => service.resetPasswordFor(email),
+    refresh: async () => {
+      const user = await service.refresh();
+      setState((current) => ({ ...current, user, error: null }));
+      return user;
+    },
     signOut: () => { setPreview(null); return service.signOut(); },
     startPreview: (target) => {
       if (!state.user?.roles?.includes('admin')) throw new Error('Ainult administraator saab kasutajavaadet avada.');

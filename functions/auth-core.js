@@ -20,8 +20,16 @@ function collectTrustedRoles(profile = {}, decoded = {}) {
   return roles;
 }
 
-function isDisabledProfile(profile = {}) {
-  return profile.disabled === true;
+// Self-registered parents and students start as "pending" and get no access until an administrator
+// approves them; "rejected" stays blocked. Accounts without the field (created earlier or by staff) are approved.
+const BLOCKED_APPROVAL_STATUSES = new Set(["pending", "rejected"]);
+
+function isPendingApproval(profile = {}) {
+  return BLOCKED_APPROVAL_STATUSES.has(profile.approvalStatus);
 }
 
-module.exports = { collectTrustedRoles, isDisabledProfile };
+function isDisabledProfile(profile = {}) {
+  return profile.disabled === true || isPendingApproval(profile);
+}
+
+module.exports = { collectTrustedRoles, isDisabledProfile, isPendingApproval };

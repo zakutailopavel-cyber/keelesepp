@@ -2,11 +2,16 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Disabled accounts and self-registered accounts still waiting for an administrator ("pending") or
+    // turned down ("rejected") are treated as signed out everywhere. Accounts without approvalStatus are approved.
     function signedIn() {
       return request.auth != null
         && (
           !exists(/databases/$(database)/documents/users/$(request.auth.uid))
-          || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('disabled', false) != true
+          || (
+            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('disabled', false) != true
+            && !(get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('approvalStatus', 'approved') in ['pending', 'rejected'])
+          )
         );
     }
 
@@ -817,14 +822,17 @@ service cloud.firestore {
           'parentReviewStatus',
           'parentReviewKey',
           'termsAcceptedAt',
-          'termsVersion'
+          'termsVersion',
+          'approvalStatus'
         ])
         && request.resource.data.keys().hasAll([
           'role',
           'displayName',
           'email',
-          'createdAt'
+          'createdAt',
+          'approvalStatus'
         ])
+        && request.resource.data.approvalStatus == 'pending'
         && request.resource.data.role in ['parent', 'student']
         && request.resource.data.displayName is string
         && request.resource.data.displayName.size() > 0
@@ -836,7 +844,8 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      allow read: if signedIn() && (uid() == userId || isStaff());
+      // A waiting account may read its own profile (to show "waiting for approval"), nothing else; disabled ones not even that.
+      allow read: if (request.auth != null && uid() == userId && resource.data.get('disabled', false) != true) || isStaff();
       allow create: if signedIn()
         && uid() == userId
         && safeSelfUserCreate();

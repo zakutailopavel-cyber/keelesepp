@@ -7,7 +7,7 @@ describe('self-registration profile', () => {
     const profile = registrationProfile({ role: 'parent', displayName: ' Mari Maasikas ', email: 'mari@example.ee', childName: 'Kati, Mati', preferredTeacher: 'Jelena', acceptedTerms: true }, now);
     expect(profile).toEqual({
       role: 'parent', displayName: 'Mari Maasikas', email: 'mari@example.ee', childName: 'Kati, Mati', preferredTeacher: 'Jelena',
-      createdAt: '2026-09-29', termsAcceptedAt: now.toISOString(), termsVersion: '2025-08-10',
+      createdAt: '2026-09-29', termsAcceptedAt: now.toISOString(), termsVersion: '2025-08-10', approvalStatus: 'pending',
     });
   });
 
