@@ -13,6 +13,11 @@ Files: `crm-v2/src/features/pet/{petArt.js,petModel.js,PetCard.jsx,pet.css,pet.t
 (`safeSelfUserFields` + `validPet`), `functions/student-pet-emulator.integration.js` (+ emulator workflow).
 Data contract: `users/{uid}.pet = { kind: siil|rebane|kakk|draakon, name ≤ 24, chosenAt }`, written by the user only.
 Growth is never stored. Staff preview shows the pet read-only and nothing when none is chosen.
+Walking companion (`PetCompanion`, mounted in `AppShell`, students only, never in staff preview): the pet walks along
+the bottom of every page (click → a hint; "Peida mind" docks it in the corner), gives a first-visit tour of the menu
+(`data-tour` on nav links; steps whose target is off screen are skipped), and reacts by itself to a lesson invitation
+(runs to the invitation card: "… kutsub sind tundi! Vajuta „Liitu tunniga”"), a lesson starting within 15 minutes, and
+late or due-today homework (`companionModel.js`). Uses existing reads only (invitations, own schedule, homework).
 **Needs a Firestore rules deploy** after merge; until then saving the choice fails with a permission error.
 Checks: vitest 373/373, ESLint clean, build OK, rules compile (dry run).
 

@@ -3,6 +3,7 @@ import { Button, Card, Input } from '../../components/ui/index.js';
 import { petsService } from '../../services/firebase/index.js';
 import { MOODS, SPECIES, STAGES, petSvg } from './petArt.js';
 import { PET_KINDS, petGreeting, petProgress, validPetName } from './petModel.js';
+import { announcePet } from './petEvents.js';
 import './pet.css';
 
 // Estonian: singular after 1, partitive otherwise (1 tund, 3 tundi)
@@ -63,7 +64,7 @@ export default function PetCard({ user, readOnly = false, lessons = [], submissi
 
   const save = async (choice) => {
     setSaving(true); setError('');
-    try { setPet(await repository.save({ uid: user.uid, ...choice })); setEditing(false); }
+    try { const saved = await repository.save({ uid: user.uid, ...choice }); setPet(saved); setEditing(false); announcePet(saved); }
     catch (err) { setError(err.message || 'Salvestamine ebaõnnestus.'); }
     finally { setSaving(false); }
   };

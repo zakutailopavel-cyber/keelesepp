@@ -50,3 +50,32 @@
   .pet-picker__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .pet-picker__name { grid-template-columns: 1fr; }
 }
+
+/* Walking pet (students): a bottom lane over the content area, clicks pass through except on the pet */
+.pet-lane { position: fixed; left: 272px; right: 0; bottom: 8px; height: 0; z-index: 40; pointer-events: none; }
+.pet-walker { position: absolute; bottom: 0; left: 8px; width: 92px; transition: transform 3.8s linear; pointer-events: none; }
+.pet-body { pointer-events: auto; display: block; width: 92px; padding: 0; border: 0; background: transparent; cursor: pointer; transition: transform .3s; }
+.pet-body:focus-visible { outline: 3px solid #2f7d4c; outline-offset: 2px; border-radius: 16px; }
+.pet-figure { display: block; } .pet-figure svg { display: block; width: 100%; height: auto; }
+.pet-walker.is-walking .pet-figure { animation: pet-bob .45s ease-in-out infinite; }
+.pet-walker.is-excited .pet-figure { animation: pet-excited .7s ease-in-out infinite; }
+@keyframes pet-bob { 0%,100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-5px) rotate(2deg); } }
+@keyframes pet-excited { 0%,100% { transform: translateY(0); } 30% { transform: translateY(-14px); } 60% { transform: translateY(0); } }
+.pet-talk { pointer-events: auto; position: absolute; bottom: 100px; left: 0; width: min(300px, calc(100vw - 32px)); background: #fff; border-radius: 16px; padding: 12px 14px; box-shadow: 0 14px 40px rgba(11,42,79,.2); border: 1px solid rgba(11,42,79,.08); }
+.pet-talk.is-left { left: auto; right: 0; }
+.pet-talk p { margin: 0; font: 700 1.3rem/1.15 'Caveat', 'Bradley Hand', cursive; color: #1f2d3d; }
+.pet-talk small { display: block; margin-top: 3px; color: #5c6875; font-size: .75rem; }
+.pet-talk__actions, .pet-tour__actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; }
+.pet-btn { border: 0; border-radius: 999px; background: #2f7d4c; color: #fff; font-weight: 800; padding: 7px 14px; cursor: pointer; }
+.pet-link { border: 0; background: transparent; color: #175cd3; font-weight: 700; cursor: pointer; padding: 4px 2px; }
+.pet-btn:focus-visible, .pet-link:focus-visible, .pet-dock:focus-visible { outline: 3px solid #2f7d4c; outline-offset: 2px; }
+.pet-dock { position: fixed; right: 14px; bottom: 14px; z-index: 40; width: 52px; height: 52px; padding: 4px; border-radius: 50%; border: 2px solid #fff; background: #edf5fd; box-shadow: 0 6px 18px rgba(11,42,79,.2); cursor: pointer; overflow: hidden; }
+.pet-tour { position: fixed; inset: 0; z-index: 1300; }
+.pet-tour__dim { position: absolute; inset: 0; background: rgba(15,23,42,.55); }
+.pet-tour__ring { position: absolute; border-radius: 14px; box-shadow: 0 0 0 4px #f5b301, 0 0 0 9999px rgba(15,23,42,.55); transition: all .35s ease; pointer-events: none; }
+.pet-tour__card { position: absolute; width: min(340px, calc(100vw - 24px)); display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 10px; align-items: start; background: #fff; border-radius: 18px; padding: 14px; box-shadow: 0 24px 60px rgba(7,24,44,.3); }
+.pet-tour__card p { margin: 0; font: 700 1.35rem/1.15 'Caveat', 'Bradley Hand', cursive; color: #1f2d3d; }
+.pet-tour__card small { display: block; margin-top: 3px; color: #5c6875; font-size: .75rem; }
+@media (max-width: 900px) { .pet-lane { left: 0; } .pet-walker, .pet-body { width: 72px; } .pet-talk { bottom: 80px; } }
+@media (prefers-reduced-motion: reduce) { .pet-walker { transition: none; } .pet-walker .pet-figure { animation: none !important; } }
+@media print { .pet-lane, .pet-dock, .pet-tour { display: none !important; } }
