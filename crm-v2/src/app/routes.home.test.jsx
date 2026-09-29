@@ -1,7 +1,14 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, useLocation } from 'react-router-dom';
 import { AuthContext } from './AuthContext.jsx';
+import { vi } from 'vitest';
 import AppRoutes from './routes.jsx';
+
+// only the routing is under test: pages and shell parts that talk to Firebase are stubbed
+vi.mock('../components/layout/LessonInvitationOverlay.jsx', () => ({ default: () => null }));
+vi.mock('../features/pet/PetCompanion.jsx', () => ({ default: () => null }));
+vi.mock('../features/students/StudentDashboardPage.jsx', () => ({ default: () => <h1>Minu õpingud</h1> }));
+vi.mock('../features/parents/ParentDashboardPage.jsx', () => ({ default: () => <h1>Minu pere</h1> }));
 
 function Where() { const l = useLocation(); return <output data-testid="path">{l.pathname}</output>; }
 
