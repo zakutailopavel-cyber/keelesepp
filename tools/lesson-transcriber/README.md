@@ -9,10 +9,12 @@ whisper.cpp on the Mac. No audio goes to any other service. Audio is deleted aft
 
 1. **Service account key** (owner, Firebase console → Project settings → Service accounts → Generate new private key).
    Save it as `~/KeeleSeppTranscriber/service-account.json`. It is a secret: never commit it.
-2. **Whisper model** (≈1.6 GB, once):
+2. **Whisper model** (≈1.6 GB) and the **voice activity model** (≈0.9 MB, gives exact phrase times and stops
+   invented text on silence), once:
    ```bash
    mkdir -p ~/KeeleSeppTranscriber/models
    curl -L -o ~/KeeleSeppTranscriber/models/ggml-large-v3-turbo.bin https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo.bin
+   curl -L -o ~/KeeleSeppTranscriber/models/ggml-silero-v5.1.2.bin https://huggingface.co/ggml-org/whisper-vad/resolve/main/ggml-silero-v5.1.2.bin
    ```
 3. **Dependencies:** `npm install` in this folder. `whisper-cli` (Homebrew `whisper-cpp`) and `ffmpeg` must be installed.
 4. **Try once:** `GOOGLE_APPLICATION_CREDENTIALS=~/KeeleSeppTranscriber/service-account.json npm run once`
@@ -33,4 +35,4 @@ whisper.cpp on the Mac. No audio goes to any other service. Audio is deleted aft
 - About once an hour: audio of `done`/`failed` recordings older than 60 days is deleted (`audioDeletedAt`).
 
 If the Mac is off, recordings wait and are processed when it is back. On an M-series Mac one hour of lesson takes a
-few minutes. Tests: `npm test`.
+few minutes (a 15-second two-track test took about 2 seconds). Tests: `npm test`.
