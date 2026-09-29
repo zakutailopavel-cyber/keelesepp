@@ -202,4 +202,4 @@ jobs:
           --only auth,firestore,functions
           --project demo-keelesepp-finance
           --log-verbosity QUIET
-          "npm --prefix functions run test:emulator && node --test functions/lesson-drafts-emulator.integration.js && node --test functions/interactive-lesson-emulator.integration.js && node --test functions/worksheet-studio-emulator.integration.js && node --test functions/student-pet-emulator.integration.js && node --test functions/lesson-recording-emulator.integration.js"
+          "npm --prefix functions run test:emulator && node --test functions/lesson-drafts-emulator.integration.js && node --test functions/interactive-lesson-emulator.integration.js && node --test functions/worksheet-studio-emulator.integration.js && node --test functions/student-pet-emulator.integration.js && node --test functions/lesson-recording-emulator.integration.js && node --test functions/account-approval-emulator.integration.js"

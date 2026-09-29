@@ -1,4 +1,4 @@
-import { BookOpen, CalendarDays, CircleDollarSign, GraduationCap, HeartHandshake, Layers3, LibraryBig, LayoutDashboard, MessageSquareText, Settings, UserRoundCog, Users, Video } from 'lucide-react';
+import { BookOpen, UserRoundPlus, CalendarDays, CircleDollarSign, GraduationCap, HeartHandshake, Layers3, LibraryBig, LayoutDashboard, MessageSquareText, Settings, UserRoundCog, Users, Video } from 'lucide-react';
 import { ACCESS } from './accessPolicy.js';
 
 export const navigation = [
@@ -12,6 +12,7 @@ export const navigation = [
   { to: '/library', label: 'Õppevara', icon: LibraryBig, roles: ACCESS.STAFF },
   { to: '/live-classroom', label: 'Live Classroom', icon: Video, roles: ACCESS.LIVE_CLASSROOM },
   { to: '/teachers', label: 'Õpetajad', icon: UserRoundCog, roles: ACCESS.ADMIN },
+  { to: '/accounts', label: 'Uued kontod', icon: UserRoundPlus, roles: ACCESS.ADMIN },
   { to: '/homework', label: 'Kodutööd', icon: BookOpen, roles: ACCESS.HOMEWORK },
   { to: '/finance', label: 'Finantsid', icon: CircleDollarSign, roles: ACCESS.FINANCE },
   { to: '/messages', label: 'Suhtlus', icon: MessageSquareText, roles: ACCESS.MESSAGES },

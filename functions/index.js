@@ -7197,6 +7197,44 @@ exports.staffOperationsApi = functions.https.onRequest(async (req, res) => {
       res.status(result.idempotent ? 200 : 201).json(result);
       return;
     }
+    // Administrator approves or rejects a self-registered account. Approval links the student card(s) at once
+    // and tells the person by e-mail; until then the account has no access (rules + isDisabledProfile).
+    if (req.path === "/accounts/approval") {
+      const { approvalUpdate, composeApprovedEmail } = require("./account-approval-core");
+      const targetUid = cleanText(req.body?.uid, 180);
+      if (!targetUid) throw httpError(400, "Account uid required");
+      const profileRef = db.collection("users").doc(targetUid);
+      const profileSnap = await profileRef.get();
+      if (!profileSnap.exists) throw httpError(404, "Account profile not found");
+      const nowIso = new Date().toISOString();
+      let update;
+      try {
+        update = approvalUpdate({ decision: req.body?.decision, actor: actorSnapshot(actor), nowIso, reason: req.body?.reason });
+      } catch (error) { throw httpError(400, error.message); }
+      await profileRef.update(update);
+      const profile = { ...profileSnap.data(), ...update };
+      let linked = null;
+      let mailed = false;
+      if (update.approvalStatus === "approved") {
+        let authUser = null;
+        try { authUser = await admin.auth().getUser(targetUid); } catch (error) { authUser = null; }
+        if (authUser) {
+          linked = await bootstrapCurrentAccount({
+            decoded: { uid: targetUid, email: authUser.email || "", email_verified: authUser.emailVerified === true, name: authUser.displayName || "", ...(authUser.customClaims || {}) },
+            profile,
+          });
+        }
+        if (profile.email && profileSnap.data().approvalStatus !== "approved") {
+          try { await deliverEmail(composeApprovedEmail(profile), { kind: "account-approved", uid: targetUid }); mailed = true; }
+          catch (mailError) { console.error("approval e-mail failed", targetUid, mailError); }
+        }
+      }
+      await db.collection("activityLog").add({
+        action: `account_${update.approvalStatus}`, targetUid, actor: actorSnapshot(actor), createdAt: FieldValue.serverTimestamp(),
+      });
+      res.json({ uid: targetUid, approvalStatus: update.approvalStatus, linkedStudentIds: linked?.linkedStudentIds || [], createdStudentIds: linked?.createdStudentIds || [], mailed });
+      return;
+    }
     if (req.path === "/accounts/bootstrap-admin") {
       const targetUid = cleanText(req.body?.uid, 180);
       if (!targetUid) throw httpError(400, "Account uid required");
@@ -9007,6 +9045,21 @@ async function backfillScheduleToGoogle(uid, connection, { force = false, retryE
   }
   return { synced, skipped, failed };
 }
+
+// A parent or student registered themselves: tell the school so an administrator can approve the account.
+exports.notifyPendingAccount = functions.firestore
+  .document("users/{uid}")
+  .onCreate(async (snap, context) => {
+    const profile = snap.data() || {};
+    if (profile.approvalStatus !== "pending") return null;
+    const { composePendingAccountEmail } = require("./account-approval-core");
+    try {
+      await deliverEmail(composePendingAccountEmail(profile), { kind: "account-pending", uid: context.params.uid });
+    } catch (error) {
+      console.error("pending account e-mail failed", context.params.uid, error);
+    }
+    return null;
+  });
 
 exports.syncScheduleToGoogle = functions.firestore
   .document("schedule/{scheduleId}")

@@ -27,3 +27,4 @@ export { scheduleService } from './schedule.js';
 export { studentsService } from './students.js';
 export { teachersService } from './teachers.js';
 export { workTimeService } from './workTime.js';
+export { accountApprovalsService } from './accountApprovals.js';
