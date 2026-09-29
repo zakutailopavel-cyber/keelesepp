@@ -113,10 +113,13 @@ per goal; save and load errors). Full suite, ESLint and production build — see
 
 ## End-to-end check against the real rules
 
-`functions/worksheet-studio-emulator.integration.js` runs in the "Financial Core emulator" workflow (Auth, Firestore,
-Storage emulators with the repository rules): teacher saves a `worksheetDoc`, assigns it; the owning learner autosaves,
-uploads a voice answer to `homework/{studentId}/`, submits with a per-goal score; another learner cannot read or write;
-learners cannot forge `liveFocus` or the snapshot; the teacher can point at a task; only staff upload to `curriculum/`.
+`functions/worksheet-studio-emulator.integration.js` runs in the "Financial Core emulator" workflow (Auth and
+Firestore emulators with the repository rules): teacher saves a `worksheetDoc` and assigns it; the owning learner
+autosaves and submits with a per-goal score; another learner cannot read or write; learners cannot forge `liveFocus`
+or the snapshot; the teacher can point at a task.
+Storage (`curriculum/ws_*`, `homework/{studentId}/ws_rec_*`) is not covered: in CI (firebase-tools 15.22.3) the
+Storage emulator denied every rules-checked upload, including a super admin whose rule reads no Firestore, while an
+owner upload succeeded. These are the same prefixes the CRM already uses in production for material and homework files.
 
 ## Not in this slice
 
