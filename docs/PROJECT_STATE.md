@@ -1,6 +1,17 @@
 # KeeleSepp Project State
 
-## CRM v2 Live Classroom lesson invitations (v1: invitation + lifecycle before joining) — DRAFT PR
+## CRM v2 Live Classroom (invitations, video call, presence, screen share, board, worksheet) — PR #183
+
+Updated 2026-09-29 (Claude, owner: «Довести и смёржить #183»): branch merged with main `cf97557` (Worksheet Studio),
+and the lesson room now shows a structured worksheet (`RoomWorksheetPanel`): the teacher picks a studio worksheet,
+it is assigned to the invited student (normal `worksheetAssignments` doc, note "Live Classroom: …") and tagged
+`liveRoomKey = roomKey`, `liveOpenedAt`; the teacher sees answers live and points at tasks (`LiveWorksheetView`,
+also used by `/library/worksheets/live/:id`); the student fills it inline (`DocWorksheetPlayer inline`, autosave).
+Student query: `worksheetAssignments where studentId == … and liveRoomKey == …` (existing read rule, checked in
+`functions/worksheet-studio-emulator.integration.js`). No rule change for the worksheet part.
+Checks: vitest 365/365, ESLint clean, build OK. **Rules deploy after merge**: `firebase deploy --only firestore:rules`
+(approved by the owner together with the merge).
+
 
 Last verified against main: 2026-09-28, Europe/Tallinn.
 Verified main: `8e8bd65` (branch was 0 commits behind `origin/main` at commit time).
@@ -46,8 +57,8 @@ Screen sharing follow-up in the same draft PR: the teacher can share a browser-s
 
 Shared whiteboard follow-up in the same draft PR: accepted teacher/student pairs now get an invitation-scoped realtime SVG board with pen, four colors, eraser and teacher-only clear. Every stroke is stored as its own document under `liveLessonInvitations/{invitationId}/whiteboardElements`, reusing the established per-element collaboration model without exposing the general student whiteboard collection. This is intentional: the existing persistent whiteboard grants linked parents access, while a live lesson room must remain private to the invited student and teacher. Firestore rules allow both participants to add strokes, students to erase only their own strokes, and the inviting teacher to erase/clear any stroke; parents and outsiders cannot read or write the live board.
 
-Unfinished: TURN fallback, floating call window, whiteboard/materials inside the room, presence/reconnect hardening, lesson completion integration, server-side expiry cleanup.
-Exactly one next safe step: wait for the corrective GitHub CI run, then owner review of this draft PR.
+Unfinished: TURN fallback (needs an external TURN provider and credentials: owner decision), server-side cleanup of expired invitations (needs a Cloud Functions deploy), lesson completion integration (linking the room to the lesson record). Done: floating call window, board, worksheet inside the room.
+Exactly one next safe step: after the rules deploy, one real teacher + student lesson: invite, accept, start the call, open a worksheet in the room.
 ## Worksheet Studio fixes from the visual check — PR
 
 Last verified against main: 2026-09-29, Europe/Tallinn. Verified main: `cd9a81f` (merged #189).

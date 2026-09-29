@@ -8,6 +8,7 @@ import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
 import { eligibleInvitationStudents, INVITATION_STATUS, isInvitationRouteUsable, newestInvitation, normalizeInvitation } from './invitationModel.js';
 import LiveLessonCallPanel from './LiveLessonCallPanel.jsx';
 import LiveLessonWhiteboard from './LiveLessonWhiteboard.jsx';
+import RoomWorksheetPanel from '../worksheet-studio/RoomWorksheetPanel.jsx';
 import './liveClassroom.css';
 
 const statusLabel = {
@@ -38,6 +39,8 @@ export default function LiveClassroomPage({
   whiteboardService = liveLessonWhiteboardService,
   callMediaDevices,
   callPeerFactory,
+  worksheetHomework,
+  worksheetLibrary,
 }) {
   const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -149,6 +152,7 @@ export default function LiveClassroomPage({
   };
 
   const leaveRoom = () => setSearchParams({}, { replace: true });
+  const worksheetProps = { ...(worksheetHomework ? { homework: worksheetHomework } : {}), ...(worksheetLibrary ? { library: worksheetLibrary } : {}) };
   const callProps = {
     invitation: activeInvitation,
     user,
@@ -165,6 +169,7 @@ export default function LiveClassroomPage({
         <WaitingRoom invitation={activeInvitation} role="student" />
         <LiveLessonCallPanel {...callProps} role="student" />
         <LiveLessonWhiteboard invitation={activeInvitation} role="student" user={user} service={whiteboardService} />
+        <RoomWorksheetPanel invitation={activeInvitation} role="student" user={user} {...worksheetProps} />
         <div className="live-invitation-toolbar"><Button variant="secondary" onClick={leaveRoom}>Lahku ooteruumist</Button></div>
       </> : <Card><EmptyState title="Aktiivset tundi ei ole" description="Kui õpetaja kutsub sind tundi, ilmub kutse automaatselt sinu kabinetti." /></Card>}
     </div>;
@@ -178,6 +183,7 @@ export default function LiveClassroomPage({
       {activeInvitation.status === INVITATION_STATUS.ACCEPTED ? <>
         <LiveLessonCallPanel {...callProps} role="teacher" />
         <LiveLessonWhiteboard invitation={activeInvitation} role="teacher" user={user} service={whiteboardService} />
+        <RoomWorksheetPanel invitation={activeInvitation} role="teacher" user={user} {...worksheetProps} />
       </> : null}
       {activeInvitation.status === INVITATION_STATUS.PENDING ? <div className="live-invitation-toolbar"><Button variant="danger" loading={saving === 'cancel'} onClick={cancel}><XCircle size={17} /> Tühista kutse</Button></div> : null}
       {activeInvitation.status === INVITATION_STATUS.ACCEPTED ? <div className="live-invitation-toolbar"><Button variant="secondary" loading={saving === 'close'} onClick={closeRoom}>Lõpeta ooteruum ja alusta uut kutset</Button></div> : null}

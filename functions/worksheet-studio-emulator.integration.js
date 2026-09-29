@@ -55,6 +55,17 @@ async function create(who, collection, data) {
   const b = await r.json();
   return { status: r.status, id: b.name ? b.name.split('/').pop() : '' };
 }
+async function roomQuery(who, studentId, roomKey) {
+  const r = await fetch(`http://${dbHost}/v1/projects/${PROJECT}/databases/(default)/documents:runQuery`, {
+    method: 'POST', headers: { Authorization: `Bearer ${who.token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ structuredQuery: { from: [{ collectionId: 'worksheetAssignments' }], where: { compositeFilter: { op: 'AND', filters: [
+      { fieldFilter: { field: { fieldPath: 'studentId' }, op: 'EQUAL', value: { stringValue: studentId } } },
+      { fieldFilter: { field: { fieldPath: 'liveRoomKey' }, op: 'EQUAL', value: { stringValue: roomKey } } },
+    ] } } } }),
+  });
+  const b = await r.json();
+  return { status: r.status, ids: Array.isArray(b) ? b.filter((x) => x.document).map((x) => x.document.name.split('/').pop()) : [] };
+}
 async function read(who, path) {
   return (await fetch(docUrl(path), { headers: { Authorization: `Bearer ${who.token}` } })).status;
 }
@@ -102,6 +113,15 @@ test('Worksheet Studio flow against the real rules', async (t) => {
     const stored = (await db.doc(`worksheetAssignments/${assignmentId}`).get()).data();
     assert.equal(stored.status, 'done');
     assert.equal(stored.score.perGoal.g1.ok, 1);
+  });
+
+  await t.test('teacher opens the worksheet in a live room; the learner finds it by room, strangers cannot', async () => {
+    assert.equal(await patch(learner, `worksheetAssignments/${assignmentId}`, { liveRoomKey: 'inv-1' }), 403);
+    assert.equal(await patch(teacher, `worksheetAssignments/${assignmentId}`, { liveRoomKey: 'inv-1', liveOpenedAt: '2026-09-29T10:02:00Z' }), 200);
+    const mine = await roomQuery(learner, 'st-ws-1', 'inv-1');
+    assert.equal(mine.status, 200);
+    assert.deepEqual(mine.ids, [assignmentId]);
+    assert.equal((await roomQuery(stranger, 'st-ws-1', 'inv-1')).status, 403);
   });
 
   await t.test('only staff can point at a task or change the worksheet snapshot', async () => {

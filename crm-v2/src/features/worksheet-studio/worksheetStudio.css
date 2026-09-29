@@ -165,3 +165,17 @@ textarea.ed-input { resize: vertical; }
 @media (prefers-reduced-motion: reduce) { .ws-live-dot { animation: none; } }
 .ws-live .st-evidence { margin: 12px auto 24px; }
 .assign-live-links a { margin-left: 6px; font-weight: 700; }
+
+/* Worksheet inside the Live Classroom room */
+.live-room-worksheet { display: grid; gap: 12px; margin-top: 16px; }
+.live-room-worksheet__head { display: flex; gap: 10px; align-items: flex-start; }
+.live-room-worksheet__head > div { display: grid; gap: 2px; } .live-room-worksheet__head small { color: var(--muted); }
+.live-room-worksheet__pick { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: end; }
+.ws-live.is-embedded { height: auto; min-height: 0; border-radius: 12px; }
+.ws-live.is-embedded .st-canvas { max-height: 75vh; }
+.ws-inline-player { display: grid; gap: 8px; }
+.ws-inline-player > h3 { margin: 0; font: 800 1rem Manrope, sans-serif; }
+.ws-doc-player.is-inline .st-canvas { max-height: 75vh; margin: 8px 0; }
+.ws-inline-footer { display: flex; gap: 8px; align-items: center; justify-content: flex-end; flex-wrap: wrap; }
+.ws-inline-footer .worksheet-progress { margin-right: auto; }
+@media (max-width: 700px) { .live-room-worksheet__pick { grid-template-columns: 1fr; } }

@@ -26,7 +26,7 @@ async function persistRecordings({ doc, answers, assignment, repository }) {
 
 // Student player for a structured worksheet (assignment.worksheetDoc): the same sheet, the same design,
 // the answers kept on the assignment. Teachers open it read-only and see the marks and the per-goal result.
-export default function DocWorksheetPlayer({ assignment, repository, readOnly = false, onClose, onSubmitted }) {
+export default function DocWorksheetPlayer({ assignment, repository, readOnly = false, onClose, onSubmitted, inline = false }) {
   const doc = assignment.worksheetDoc;
   const [answers, setAnswers] = useState(assignment.answers || {});
   const [submitted, setSubmitted] = useState(assignment.status === 'done');
@@ -107,11 +107,11 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
   };
 
   const footer = !review
-    ? <><span className="worksheet-progress">{progress.answered}/{progress.total} vastust{draftSaved ? ' · Salvestatud' : autosaved ? ` · automaatselt salvestatud ${autosaved}` : ''}</span><Button variant="secondary" loading={savingDraft} onClick={saveDraft}>Salvesta</Button><Button variant="secondary" onClick={onClose}>Sulge</Button><Button loading={saving} onClick={submit}><Send size={17} /> Esita tööleht</Button></>
-    : <Button variant="secondary" onClick={onClose}>Sulge</Button>;
+    ? <><span className="worksheet-progress">{progress.answered}/{progress.total} vastust{draftSaved ? ' · Salvestatud' : autosaved ? ` · automaatselt salvestatud ${autosaved}` : ''}</span><Button variant="secondary" loading={savingDraft} onClick={saveDraft}>Salvesta</Button>{onClose ? <Button variant="secondary" onClick={onClose}>Sulge</Button> : null}<Button loading={saving} onClick={submit}><Send size={17} /> Esita tööleht</Button></>
+    : onClose ? <Button variant="secondary" onClick={onClose}>Sulge</Button> : null;
 
-  return <Modal open title={assignment.title} onClose={onClose} className="modal--worksheet modal--worksheet-doc" footer={footer}>
-    <article className="worksheet-player ws-studio ws-doc-player">
+  const body = (
+    <article className={`worksheet-player ws-studio ws-doc-player ${inline ? 'is-inline' : ''}`}>
       <header><div><span className="eyebrow">{assignment.subject || 'Õppetöö'} · {assignment.level || doc.meta?.level || 'Tööleht'}</span><p>{assignment.topic || assignment.note || doc.meta?.canDo || 'Õpetaja määratud tööleht'}</p></div>{submitted ? <Badge tone="success">Esitatud</Badge> : readOnly ? <Badge tone="neutral">Ainult vaatamiseks</Badge> : <Badge tone="info">Täitmisel</Badge>}</header>
       {assignment.note ? <div className="worksheet-note"><strong>Õpetaja märkus</strong><p>{assignment.note}</p></div> : null}
       {submitted && score ? <div className="worksheet-result"><CheckCircle2 size={24} /><div><strong>{score.pct}% · {score.correct}/{score.total} õiget</strong><span>{score.pct >= 80 ? 'Suurepärane töö!' : score.pct >= 50 ? 'Tubli! Vaata vead üle.' : 'Harjuta veel ja küsi õpetajalt abi.'}</span></div></div> : null}
@@ -125,7 +125,10 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
       {checked ? <GoalEvidence doc={doc} evidence={checked} /> : null}
       {submitted && !readOnly ? <section className="worksheet-assessment"><div><Star size={21} /><div><strong>Kuidas tööleht tundus?</strong><span>Tagasiside aitab õpetajal järgmisi ülesandeid kohandada.</span></div></div>{assessmentSaved ? <p><CheckCircle2 size={17} /> Tagasiside salvestatud. Aitäh!</p> : <><Select id="worksheet-difficulty" label="Raskusaste" value={difficulty} onChange={(event) => setDifficulty(event.target.value)}><option value="">Vali</option><option value="1">Väga lihtne</option><option value="2">Lihtne</option><option value="3">Paras</option><option value="4">Raske</option><option value="5">Väga raske</option></Select><label className="textarea-field"><span>Kommentaar</span><textarea rows="3" value={comment} onChange={(event) => setComment(event.target.value)} placeholder="Mis oli raske või jäi arusaamatuks?" /></label><Button loading={saving} disabled={!difficulty} onClick={saveAssessment}>Saada tagasiside</Button></>}</section> : null}
     </article>
-  </Modal>;
+  );
+  // inline: inside the Live Classroom room, next to video and board (no dialog)
+  if (inline) return <section className="ws-inline-player" aria-label={assignment.title}><h3>{assignment.title}</h3>{body}{footer ? <div className="ws-inline-footer">{footer}</div> : null}</section>;
+  return <Modal open title={assignment.title} onClose={onClose} className="modal--worksheet modal--worksheet-doc" footer={footer}>{body}</Modal>;
 }
 
 // Teacher review inside the homework submission dialog: the sheet with the learner's answers and marks.
