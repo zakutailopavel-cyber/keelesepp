@@ -5804,7 +5804,7 @@ async function studentPricePrivacy({ actor, apply }) {
         }, { merge: true });
       }
       batch.update(db.collection("students").doc(action.studentId),
-        Object.fromEntries(action.fields.map(field => [field, admin.firestore.FieldValue.delete()])));
+        Object.fromEntries(action.fields.map(field => [field, FieldValue.delete()])));
     }
     await batch.commit();
   }
