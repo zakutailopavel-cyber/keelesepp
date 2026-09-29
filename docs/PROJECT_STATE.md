@@ -1,6 +1,27 @@
 # KeeleSepp Project State
 
-## Worksheet Studio slice 2 (assign structured worksheets, student player, teacher review) — DRAFT PR (stacked)
+## Worksheet Studio slice 3 (moving image worksheets to the structured format) — PR
+
+Last verified against main: 2026-09-29, Europe/Tallinn. Verified main: `0aacb7c` (merged #185).
+Branch: `agent/worksheet-studio-conversion`. Owner instruction (2026-09-29): Claude merges its own PRs after all checks pass.
+
+What: `/library/worksheets/convert` (staff, button "Üleviimine" in Õppevara) lists every worksheet-like material by
+migration status (only image/PDF → v1 structured → done), with progress and filters. The studio opens a material
+that has original images with an "Originaal" tab next to the sheet; the teacher drags a frame over a photo and cuts
+it into the selected block or a new photo block (normal upload path). Text is retyped as blocks.
+Changed files: `crm-v2/src/features/worksheet-studio/{conversion.js,ConversionQueuePage.jsx,OriginalPanel.jsx,
+conversion.test.jsx}` (new), `WorksheetStudioPage.jsx` (+ test), `engine/image.js` (`cropToFile`, `nearestAspect`),
+`worksheetStudio.css`, `crm-v2/src/app/{routes.jsx,accessPolicy.js}`, `crm-v2/src/features/library/LibraryPage.jsx`,
+`storage.cors.json` (new, not applied), `docs/WORKSHEET_STUDIO_V1.md`, this file.
+Data contract: none new. No rule, index, Function, migration or deploy.
+Validation: `npx vitest run` 331/331; `npx eslint .` clean; `npx vite build` OK; `git diff --check` OK.
+Risks: cutting photos from originals needs Storage CORS for GET; until the owner runs
+`gsutil cors set storage.cors.json gs://<bucket>` the studio shows a message and photos are uploaded as files.
+Unfinished: Live Classroom worksheet scene; textbook export.
+Exactly one next safe step: owner applies `storage.cors.json` to the Storage bucket (read-only GET), then converts
+one image worksheet through "Üleviimine".
+
+## Worksheet Studio slice 2 (assign structured worksheets, student player, teacher review) — MERGED (#185, 0aacb7c)
 
 Last verified against main: 2026-09-29, Europe/Tallinn. Verified main: `8e8bd65`.
 Implementation branch: `agent/worksheet-studio-assignments`, stacked on `agent/worksheet-studio-v1` (PR #184).
@@ -34,7 +55,7 @@ Unfinished: Live Classroom worksheet scene; image→structure conversion queue; 
 Exactly one next safe step: owner merges #184, then opens this PR's Vercel preview, assigns one studio worksheet to a
 test student and completes it as that student.
 
-## Worksheet Studio v1 (structured branded worksheets + builder) — DRAFT PR
+## Worksheet Studio v1 (structured branded worksheets + builder) — MERGED (#184, 93815fa)
 
 Last verified against main: 2026-09-29, Europe/Tallinn. Verified main: `8e8bd65`.
 Implementation branch: `agent/worksheet-studio-v1`. Pull request: draft (see GitHub; not merged by the agent).

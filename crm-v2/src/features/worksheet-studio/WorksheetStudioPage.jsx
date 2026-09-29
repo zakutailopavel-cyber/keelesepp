@@ -7,7 +7,10 @@ import { worksheetDocsService } from '../../services/firebase/index.js';
 import Sheet from './engine/Sheet.jsx';
 import { AssetContext } from './engine/assets.jsx';
 import { BLOCKS, GROUPS, checkDocument, createBlock } from './engine/registry.js';
-import { newDocument, newId } from './engine/schema.js';
+import { ASPECTS, newDocument, newId } from './engine/schema.js';
+import { cropToFile, nearestAspect } from './engine/image.js';
+import { originalFiles } from './conversion.js';
+import OriginalPanel from './OriginalPanel.jsx';
 import { sampleDocument } from './engine/sample.js';
 import { BlockInspector, SheetInspector } from './editor/Inspector.jsx';
 import GoalEvidence from './GoalEvidence.jsx';
@@ -37,6 +40,9 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService 
   const [results, setResults] = useState({});
   const [evidence, setEvidence] = useState(null);
   const [scale, setScale] = useState(1);
+  const [original, setOriginal] = useState([]);
+  const [leftTab, setLeftTab] = useState('blocks');
+  const [cut, setCut] = useState({ busy: false, error: '' });
   const canvasRef = useRef(null);
   const fileRef = useRef(null);
 
@@ -48,7 +54,14 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService 
       return undefined;
     }
     repository.load(lessonId)
-      .then((res) => { if (alive) { setDoc(res.document); setSource(res.source); } })
+      .then((res) => {
+        if (!alive) return;
+        const files = originalFiles(res.lesson);
+        setDoc(res.document);
+        setSource(res.source);
+        setOriginal(files);
+        if (files.length && res.source !== 'worksheetDoc') setLeftTab('original');
+      })
       .catch((error) => { if (alive) setLoadError(error.message || 'Töölehte ei saanud avada.'); });
     return () => { alive = false; };
   }, [isNew, lessonId, repository]);
@@ -111,6 +124,28 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService 
     const [moved] = next.splice(next.findIndex((b) => b.id === fromId), 1);
     next.splice(next.findIndex((b) => b.id === toId), 0, moved);
     setBlocks(next);
+  };
+  const cutPhoto = async (url, rect) => {
+    setCut({ busy: true, error: '' });
+    try {
+      const { file, ratio } = await cropToFile(url, rect, 'originaalist');
+      const img = await repository.uploadImage(file);
+      const aspect = nearestAspect(ratio, ASPECTS);
+      if (selected && 'img' in (selected.data || {})) {
+        updateBlock({ ...selected, data: { ...selected.data, img, aspect } });
+      } else {
+        const b = createBlock('image');
+        b.data = { ...b.data, img, aspect };
+        const at = selectedId ? doc.blocks.findIndex((x) => x.id === selectedId) + 1 : doc.blocks.length;
+        const next = [...doc.blocks];
+        next.splice(at, 0, b);
+        setBlocks(next);
+        setSelectedId(b.id);
+      }
+      setCut({ busy: false, error: '' });
+    } catch (error) {
+      setCut({ busy: false, error: error.message || 'Väljalõige ebaõnnestus.' });
+    }
   };
   const setAnswer = (k, v) => {
     setAnswers((a) => ({ ...a, [k]: v }));
@@ -184,8 +219,14 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService 
 
         <div className="st-body">
           {mode === 'edit' && (
-            <aside className="st-palette" aria-label="Plokid">
-              {palette.map(([g, defs]) => (
+            <aside className={`st-palette ${leftTab === 'original' ? 'is-original' : ''}`} aria-label="Plokid">
+              {original.length > 0 && (
+                <div className="st-lefttabs" role="tablist">
+                  <button type="button" role="tab" aria-pressed={leftTab === 'blocks'} onClick={() => setLeftTab('blocks')}>Plokid</button>
+                  <button type="button" role="tab" aria-pressed={leftTab === 'original'} onClick={() => setLeftTab('original')}>Originaal</button>
+                </div>
+              )}
+              {leftTab === 'original' && original.length > 0 ? <OriginalPanel files={original} onCut={cutPhoto} busy={cut.busy} error={cut.error} /> : palette.map(([g, defs]) => (
                 <div key={g} className="st-group">
                   <div className="st-group-title">{g}</div>
                   {defs.map((d) => {

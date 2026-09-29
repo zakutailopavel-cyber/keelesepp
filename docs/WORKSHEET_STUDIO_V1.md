@@ -73,9 +73,23 @@ per goal; save and load errors). Full suite, ESLint and production build — see
   stored on submit; `errorLog` lists up to 20 wrong fields.
 - Teachers see the submitted sheet with marks, recordings and `GoalEvidence` in the Homework review dialog.
 
+## Slice 3: moving image worksheets to the new format
+
+- `/library/worksheets/convert` (staff; button "Üleviimine" in Õppevara): every worksheet-like material with its
+  status: only image/PDF, v1 structured (opens converted), done (`worksheetDoc`); progress %, filters by status,
+  level and text. Tests, exam parts and lesson plans without images are left out (`conversion.js`).
+- In the studio, a material that has original images opens with the "Originaal" tab next to the sheet (tab switch
+  back to "Plokid"). The teacher drags a frame over a photo in the original and cuts it into the selected block (if
+  that block has a photo slot) or into a new photo block; the cut goes through the normal upload (JPEG ≤ 1600 px,
+  `curriculum/ws_*`). Text is retyped into blocks, never kept as an image.
+- Cutting needs the Storage bucket to send CORS headers for GET. Without it the studio shows a clear message and
+  the teacher can upload the photo as a file instead. One-time setup by the owner (read-only GET, no rule change):
+  `gsutil cors set storage.cors.json gs://<VITE_FIREBASE_STORAGE_BUCKET>`.
+- No automatic (AI) recognition of the image: that would be a paid external call and needs the owner's decision.
+
 ## Not in this slice
 
 1. (done in slice 2)
 2. Worksheet as a Live Classroom scene (needs the v2 lesson room; see PR #183 and the Live Classroom roadmap).
-3. Converting generated *image* worksheets into structured documents (manual review queue).
+3. (manual conversion queue done in slice 3; automatic recognition is not planned without the owner's decision)
 4. Textbook export (book layout, 300 dpi illustrations).
