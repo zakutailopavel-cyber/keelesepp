@@ -97,6 +97,12 @@ Order (each step reversible by moving the domain back in Vercel):
    use `APP_BASE_URL` = `www.epkoolitus.ee/haldus/` (v1). Point the cabinet link at `https://crm.epkoolitus.ee/`,
    but keep the Google Calendar OAuth return on v1 until v2 has its own "connect Google Calendar" screen.
 
+**Also done 2026-09-29:** website buttons (header "Logi sisse"/"Registreeru", footer "Õpilase konto", level test
+"Logi sisse") open `crm.epkoolitus.ee`; v1 (`/haldus`) shows a closable banner pointing to `crm.epkoolitus.ee`; the
+Vercel project `keelesepp` (v1 + website) is **disconnected from GitHub** to save the free deploy quota. To publish a
+website/v1 change: Vercel → keelesepp → Settings → Git → connect GitHub → Deployments → Create Deployment (`main`,
+production) → disconnect again.
+
 ## Still needed before v1 can be switched off (checked 2026-09-29)
 
 Blocking for daily work in v2 only:

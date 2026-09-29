@@ -50,6 +50,13 @@ window.__haldusConfigureBabel = function(){
 <link rel="stylesheet" href="/haldus.css?v=20260923.5">
 </head>
 <body>
+<!-- v2 move notice (2026-09-29): v1 stays as fallback; the main CRM is https://crm.epkoolitus.ee -->
+<div id="v2-move-banner" role="status" style="position:sticky;top:0;z-index:10000;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;padding:10px 44px 10px 16px;background:#14243a;color:#fff;font:600 14px/1.4 system-ui,-apple-system,sans-serif;text-align:center">
+  <span>KeeleSepp on kolinud uude keskkonda. Palun kasuta edaspidi uut aadressi:</span>
+  <a href="https://crm.epkoolitus.ee/login" style="background:#f2b544;color:#14243a;padding:6px 14px;border-radius:999px;text-decoration:none;font-weight:800;white-space:nowrap">Ava crm.epkoolitus.ee →</a>
+  <button type="button" aria-label="Sulge" onclick="try{sessionStorage.setItem('v2BannerHidden','1')}catch(e){};this.parentNode.remove()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:0;color:#c5d5e2;font-size:20px;cursor:pointer;line-height:1">×</button>
+</div>
+<script>try{if(sessionStorage.getItem('v2BannerHidden')==='1'){document.getElementById('v2-move-banner').remove()}}catch(e){}</script>
 <div id="root"><div style="display:flex;align-items:center;justify-content:center;min-height:100vh"><div class="spinner"></div></div></div>
 <script>
 window.__haldusBooted = false;
