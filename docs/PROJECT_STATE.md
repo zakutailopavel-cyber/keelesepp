@@ -1,5 +1,36 @@
 # KeeleSepp Project State
 
+## Worksheet Studio v1 (structured branded worksheets + builder) — DRAFT PR
+
+Last verified against main: 2026-09-29, Europe/Tallinn. Verified main: `8e8bd65`.
+Implementation branch: `agent/worksheet-studio-v1`. Pull request: draft (see GitHub; not merged by the agent).
+Owner of this area: Claude (didactic core). Codex continues the rest of CRM v2; please avoid
+`crm-v2/src/features/worksheet-studio/**` and `crm-v2/src/services/firebase/worksheetDocs*.js` without coordination.
+
+Goal (owner, 2026-09-28): replace uneditable generated worksheet images with structured worksheets in the approved
+KeeleSepp style, assembled by teachers from blocks, reusable for homework, Live Classroom and a printed textbook.
+Result: `/library/worksheets/:lessonId` builder with 21 block types, fixed brand palette, photo slots with focal point,
+automatic A4 pagination, student view with per-goal checking, print/PDF; v1 structured worksheets open converted.
+Details and data contract: `docs/WORKSHEET_STUDIO_V1.md`.
+
+Changed files: new `crm-v2/src/features/worksheet-studio/**`, new `crm-v2/src/services/firebase/worksheetDocs.js`
+(+ test), `crm-v2/src/services/firebase/index.js` (export), `crm-v2/src/app/routes.jsx` (route),
+`crm-v2/src/app/accessPolicy.js` (route access: staff), `crm-v2/src/features/library/LibraryPage.jsx`
+(two entry buttons), `docs/WORKSHEET_STUDIO_V1.md`, this file.
+Data contract: optional `curriculumLessons.worksheetDoc` (+ `worksheetDocSchema`, `worksheetDocUpdatedAt`);
+`activityLog` types `worksheet_doc.created|updated`; Storage objects `curriculum/ws_*`. v1 `worksheetData` untouched.
+No Firestore/Storage rule, index, Function, migration or deploy.
+
+Validation: see the PR description for exact numbers (vitest full suite, ESLint, vite build).
+Known pre-existing failure on 2026-09-29: `src/features/teachers/TeachersPage.test.jsx › summarises active
+teachers…` fails on unchanged main as well (date-dependent); not related to this slice.
+Known limits: photos in the built-in sample are omitted; print quality depends on uploaded photo resolution;
+Google Fonts (Nunito, Nunito Sans, Caveat; OFL) are loaded by the worksheet stylesheet.
+Unfinished: homework assignment + student player/review for `worksheetDoc`; Live Classroom scene; image→structure
+conversion queue; textbook export.
+Exactly one next safe step: owner opens the Vercel preview, builds one worksheet in `/library/worksheets/new`, and
+reviews/merges this draft PR; then the homework/student-player slice starts.
+
 ## CRM v2 student identity and lifecycle — IN PROGRESS
 
 Last verified against main: 2026-09-28, Europe/Tallinn.

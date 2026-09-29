@@ -1,6 +1,7 @@
 import {
   ArrowRight,
   BookOpen,
+  LayoutTemplate,
   ClipboardCheck,
   Dumbbell,
   FilePenLine,
@@ -11,7 +12,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal, PageHeader, Select } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
@@ -132,6 +133,7 @@ function AssignmentModal({ item, user, repository, studentRepository, groupRepos
 
 export default function LibraryPage({ repository = defaultRepository, studentRepository = defaultStudentRepository, groupRepository = defaultGroupRepository }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [query, setQuery] = useState('');
   const [type, setType] = useState('all');
@@ -187,7 +189,7 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
         eyebrow="Õppetöö"
         title="Õppevara"
         description="Tunnikavad, töölehed ja harjutused olemasolevast KeeleSepa andmebaasist."
-        actions={<><Button onClick={() => setEditing(null)}><Sparkles size={17} /> Loo materjal</Button><Button variant="secondary" onClick={() => setExerciseEditing(null)}><Dumbbell size={17} /> Loo harjutus</Button></>}
+        actions={<><Button onClick={() => navigate('/library/worksheets/new')}><LayoutTemplate size={17} /> Töölehe konstruktor</Button><Button variant="secondary" onClick={() => setEditing(null)}><Sparkles size={17} /> Loo materjal</Button><Button variant="secondary" onClick={() => setExerciseEditing(null)}><Dumbbell size={17} /> Loo harjutus</Button></>}
       />
       {success ? <div className="success-notice" role="status">{success}<button aria-label="Sulge teade" onClick={() => setSuccess('')}>×</button></div> : null}
 
@@ -267,7 +269,7 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
         open={Boolean(selected)}
         title={selected?.title || 'Õppematerjal'}
         onClose={() => setSelected(null)}
-        footer={<><a className="button button--secondary" href={legacyUrl(selected?.kind === 'exercise' ? `/haldus-exercises/?exercise=${encodeURIComponent(selected.sourceId)}` : '/haldus-exercises/')}>Ava töövahend <ArrowRight size={16} /></a><Button variant="secondary" onClick={() => { if (selected?.kind === 'exercise') setExerciseEditing(selected); else setEditing(selected); setSelected(null); }}>Muuda</Button><Button variant="secondary" onClick={() => { setPreviewing(selected); setSelected(null); }}>Eelvaade</Button><Button onClick={() => { setAssigning(selected); setSelected(null); }}>Määra õpilastele</Button></>}
+        footer={<><a className="button button--secondary" href={legacyUrl(selected?.kind === 'exercise' ? `/haldus-exercises/?exercise=${encodeURIComponent(selected.sourceId)}` : '/haldus-exercises/')}>Ava töövahend <ArrowRight size={16} /></a>{selected?.kind !== 'exercise' && selected?.sourceId ? <Button variant="secondary" onClick={() => navigate(`/library/worksheets/${encodeURIComponent(selected.sourceId)}`)}>Ava konstruktoris</Button> : null}<Button variant="secondary" onClick={() => { if (selected?.kind === 'exercise') setExerciseEditing(selected); else setEditing(selected); setSelected(null); }}>Muuda</Button><Button variant="secondary" onClick={() => { setPreviewing(selected); setSelected(null); }}>Eelvaade</Button><Button onClick={() => { setAssigning(selected); setSelected(null); }}>Määra õpilastele</Button></>}
       >
         {selected ? <div className="library-detail"><Badge tone={LIBRARY_TYPES[selected.type]?.tone}>{selected.typeLabel}</Badge><p>{selected.description || 'Materjalil ei ole kirjeldust.'}</p><dl><div><dt>Õppeaine</dt><dd>{selected.subject || '—'}</dd></div><div><dt>Tase või vanus</dt><dd>{selected.level || selected.ageGroup || '—'}</dd></div><div><dt>Teema</dt><dd>{selected.curriculum || selected.topic || '—'}</dd></div><div><dt>Andmeallikas</dt><dd>{selected.kind === 'exercise' ? 'Harjutused' : 'Õppekava'}</dd></div></dl></div> : null}
       </Modal>
