@@ -5,6 +5,10 @@ import IconButton from './IconButton.jsx';
 export default function Modal({ open, title, children, footer, onClose, className = '' }) {
   const titleId = useId();
   const modalRef = useRef(null);
+  // callers pass a new onClose on every render; keep the latest one without re-running the focus effect,
+  // otherwise every keystroke that re-renders the parent moved focus back to the first button (the close ×)
+  const onCloseRef = useRef(onClose);
+  useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -13,7 +17,7 @@ export default function Modal({ open, title, children, footer, onClose, classNam
     const focusable = () => [...(modalRef.current?.querySelectorAll(focusableSelector) || [])];
     focusable()[0]?.focus();
     const handleKeyDown = (event) => {
-      if (event.key === 'Escape') { onClose(); return; }
+      if (event.key === 'Escape') { onCloseRef.current?.(); return; }
       if (event.key !== 'Tab') return;
       const items = focusable();
       if (!items.length) return;
@@ -27,7 +31,7 @@ export default function Modal({ open, title, children, footer, onClose, classNam
       document.removeEventListener('keydown', handleKeyDown);
       previousFocus?.focus?.();
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
   return (
