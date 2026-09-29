@@ -62,16 +62,24 @@ export const financeApi = {
   applyPricePrivacy() {
     return post("/students/price-privacy/apply", {});
   },
+  previewArchivedDuplicates() {
+    return post("/students/merged/purge/preview", {});
+  },
+  purgeArchivedDuplicates() {
+    return post("/students/merged/purge", {});
+  },
   previewDataQuality() {
     return post("/data-quality/preview", {});
   },
   previewStudentMerge(primaryStudentId, duplicateStudentIds) {
     return post("/students/merge/preview", { primaryStudentId, duplicateStudentIds });
   },
-  mergeStudents(primaryStudentId, duplicateStudentIds) {
+  // options.permanent: delete the duplicate cards after the move (confirmName = main card's name)
+  mergeStudents(primaryStudentId, duplicateStudentIds, options = {}) {
     return post("/students/merge", {
       primaryStudentId,
       duplicateStudentIds,
+      ...(options.permanent ? { permanent: true, confirmName: options.confirmName || "" } : {}),
       requestId: financeRequestId("student_merge"),
     });
   },
