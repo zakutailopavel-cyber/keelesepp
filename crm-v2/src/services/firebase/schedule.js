@@ -1,4 +1,4 @@
-import { addDoc, collection, doc, getDocs, query, updateDoc, where } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, doc, getDocs, query, updateDoc, where } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
 import { canonicalTeacherName } from '../../utils/teachers.js';
 
@@ -74,6 +74,16 @@ export const scheduleService = {
     delete value.occurrenceId;
     await updateDoc(doc(db, 'schedule', id), value);
     return normalizeScheduleEvent(id, value);
+  },
+  // exact field changes for drag and drop (no recalculation of other fields)
+  async patch(id, fields) {
+    const { db } = requireFirebaseClient();
+    await updateDoc(doc(db, 'schedule', id), { ...fields, updatedAtIso: new Date().toISOString() });
+    return { id, ...fields };
+  },
+  async remove(id) {
+    const { db } = requireFirebaseClient();
+    await deleteDoc(doc(db, 'schedule', id));
   },
   async cancel(id, current = {}) {
     return this.update(id, { status: 'Tühistatud' }, current);
