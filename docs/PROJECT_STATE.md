@@ -1,6 +1,26 @@
 # KeeleSepp Project State
 
-## Worksheet Studio slice 4 (textbook export) — PR
+## Worksheet Studio slice 5 (live worksheet in a lesson) — PR
+
+Last verified against main: 2026-09-29, Europe/Tallinn. Verified main: `005c44c` (merged #187).
+Branch: `agent/worksheet-studio-live`. Claude merges its own PRs after all checks pass (owner, 2026-09-29).
+
+What: the student player autosaves structured-worksheet answers; `/library/worksheets/live/:assignmentId` (staff) shows
+them live with marks, progress and per-goal evidence; the teacher clicks a task to highlight it on the student's sheet
+(`worksheetAssignments.liveFocus`). Entry: links "Jälgi tunnis otse" after assigning in Õppevara.
+Changed files: `crm-v2/src/features/worksheet-studio/{LiveWorksheetPage.jsx,LiveWorksheetPage.test.jsx}` (new),
+`DocWorksheetPlayer.jsx`, `engine/{Sheet.jsx,registry.js,sheet.css}`, `worksheetStudio.css`,
+`crm-v2/src/services/firebase/{homework,library}.js` (+ tests), `crm-v2/src/features/library/LibraryPage.jsx`,
+`crm-v2/src/app/{routes.jsx,accessPolicy.js}`, `docs/WORKSHEET_STUDIO_V1.md`, this file.
+Data contract: optional `worksheetAssignments.liveFocus = { blockId, at }` (staff update, existing rule); student
+autosave writes the already allowed `status/answers/updatedAt`. No rule, index, Function, migration or deploy.
+Validation: `npx vitest run` 335/335; `npx eslint .` clean; `npx vite build` OK; `git diff --check` OK.
+Risks: not tried with two real browsers against Firebase; autosave adds one small write per pause while typing.
+Unfinished (other track): embedding the live view in the v2 lesson room (after #183 and the room PR).
+Exactly one next safe step: owner assigns one studio worksheet to a test student, opens "Jälgi tunnis otse" and fills
+the sheet as the student in a second browser.
+
+## Worksheet Studio slice 4 (textbook export) — MERGED (#187, 005c44c)
 
 Last verified against main: 2026-09-29, Europe/Tallinn. Verified main: `69865b8` (merged #186).
 Branch: `agent/worksheet-studio-book`. Claude merges its own PRs after all checks pass (owner, 2026-09-29).

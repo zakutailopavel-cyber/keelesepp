@@ -67,7 +67,7 @@ describe('libraryService', () => {
       dueDate: '2026-08-10',
       note: 'Tee lõpuni',
       user,
-    })).resolves.toEqual({ count: 2, mode: 'worksheet' });
+    })).resolves.toMatchObject({ count: 2, mode: 'worksheet', assignments: [{ studentId: 'student-1', studentName: 'Mari' }, { studentId: 'student-2', studentName: 'Jaan' }] });
 
     expect(firestore.batch.set).toHaveBeenCalledTimes(3);
     expect(firestore.batch.set.mock.calls[0][1]).toMatchObject({

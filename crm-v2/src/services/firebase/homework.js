@@ -1,4 +1,4 @@
-import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, query, updateDoc, where, writeBatch } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, query, updateDoc, where, writeBatch } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
 import { requireFirebaseClient } from './client.js';
 
@@ -257,6 +257,22 @@ export const homeworkService = {
       task.on('state_changed', null, reject, resolve);
     });
     return { url: await getDownloadURL(storageRef), storagePath };
+  },
+  // Live lesson on a structured worksheet: both sides watch the same assignment document.
+  subscribeWorksheetAssignment(assignmentId, onData, onError) {
+    const { db } = requireFirebaseClient();
+    return onSnapshot(doc(db, 'worksheetAssignments', assignmentId), (snapshot) => {
+      if (!snapshot.exists()) { onError?.(new Error('Töölehte ei leitud.')); return; }
+      onData(normalizeWorksheetAssignment(snapshot.id, snapshot.data()));
+    }, (error) => onError?.(error));
+  },
+  // Staff only (existing rule): the task the teacher points at during the lesson.
+  async setWorksheetLiveFocus({ assignmentId, blockId }) {
+    if (!assignmentId) throw new Error('Töölehte ei leitud.');
+    const { db } = requireFirebaseClient();
+    const liveFocus = { blockId: blockId || '', at: new Date().toISOString() };
+    await updateDoc(doc(db, 'worksheetAssignments', assignmentId), { liveFocus });
+    return liveFocus;
   },
   async saveWorksheetDraft({ assignmentId, answers }) {
     if (!assignmentId) throw new Error('Töölehte ei leitud.');

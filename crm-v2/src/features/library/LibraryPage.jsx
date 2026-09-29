@@ -12,7 +12,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal, PageHeader, Select } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
@@ -91,7 +91,7 @@ function AssignmentModal({ item, user, repository, studentRepository, groupRepos
     try {
       const selectedStudents = students.filter((student) => selectedIds.includes(student.id));
       const result = await repository.assign({ item, students: selectedStudents, dueDate, note: note.trim(), user });
-      onAssigned(result.count);
+      onAssigned(result);
     } catch (assignmentError) {
       setError(assignmentError.message || 'Materjali määramine ebaõnnestus.');
     } finally {
@@ -276,7 +276,11 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
       {previewing ? <MaterialPreview item={previewing} onClose={() => setPreviewing(null)} /> : null}
       {editing !== undefined ? <MaterialEditor item={editing} repository={repository} user={user} onClose={() => setEditing(undefined)} onSaved={(result) => { setEditing(undefined); setSuccess(`„${result.title}” ${result.created ? 'loodi' : 'salvestati'}.`); state.reload(); }} /> : null}
       {exerciseEditing !== undefined ? <ExerciseEditor item={exerciseEditing} repository={repository} user={user} onClose={() => setExerciseEditing(undefined)} onSaved={(result) => { setExerciseEditing(undefined); setSuccess(`Harjutus „${result.title}” ${result.created ? 'loodi' : 'salvestati'}.`); state.reload(); }} /> : null}
-      {assigning ? <AssignmentModal item={assigning} user={user} repository={repository} studentRepository={studentRepository} groupRepository={groupRepository} onClose={() => setAssigning(null)} onAssigned={(count) => { setAssigning(null); setSuccess(`„${assigning.title}” määrati ${count} õpilasele.`); }} /> : null}
+      {assigning ? <AssignmentModal item={assigning} user={user} repository={repository} studentRepository={studentRepository} groupRepository={groupRepository} onClose={() => setAssigning(null)} onAssigned={(result) => {
+        const live = assigning.source?.worksheetDoc?.blocks?.length ? (result.assignments || []).slice(0, 6) : [];
+        setAssigning(null);
+        setSuccess(<>„{assigning.title}” määrati {result.count} õpilasele.{live.length ? <span className="assign-live-links"> Jälgi tunnis otse: {live.map((a) => <Link key={a.id} to={`/library/worksheets/live/${a.id}`}>{a.studentName || 'õpilane'}</Link>)}</span> : null}</>);
+      }} /> : null}
     </div>
   );
 }

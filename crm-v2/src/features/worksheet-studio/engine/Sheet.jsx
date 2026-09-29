@@ -39,7 +39,7 @@ const Footer = ({ meta, page, pages, bookPage }) => (
   <div className="ws-ftr"><div className="ws-fl">KeeleSepp <small>by EP Koolitus</small></div><em>{meta.footer?.tagline}</em><div className="ws-url">{meta.footer?.url}{bookPage ? ` · ${bookPage}` : pages > 1 ? ` · ${page}/${pages}` : ''}</div></div>
 );
 
-function Card({ block, num, mode, ctx, selected, onSelect, drag }) {
+function Card({ block, num, mode, ctx, selected, onSelect, drag, focused, onPick }) {
   const def = BLOCKS[block.type];
   if (!def) return null;
   const tone = TONES[block.tone] || TONES.white;
@@ -47,10 +47,10 @@ function Card({ block, num, mode, ctx, selected, onSelect, drag }) {
   const d = block.data;
   return (
     <section
-      className={`ws-card ${plain ? 'plain' : ''} ${block.width === 'full' ? 'full' : ''} ${selected ? 'selected' : ''}`}
+      className={`ws-card ${plain ? 'plain' : ''} ${block.width === 'full' ? 'full' : ''} ${selected ? 'selected' : ''} ${focused ? 'focused' : ''} ${onPick ? 'pickable' : ''}`}
       style={plain ? undefined : { background: tone.card }}
       data-block={block.id}
-      onClick={mode === 'edit' ? (e) => { e.stopPropagation(); onSelect?.(block.id); } : undefined}
+      onClick={mode === 'edit' ? (e) => { e.stopPropagation(); onSelect?.(block.id); } : onPick ? () => onPick(block.id) : undefined}
       draggable={mode === 'edit'}
       onDragStart={mode === 'edit' ? (e) => drag.start(e, block.id) : undefined}
       onDragOver={mode === 'edit' ? (e) => drag.over(e, block.id) : undefined}
@@ -70,7 +70,7 @@ function Card({ block, num, mode, ctx, selected, onSelect, drag }) {
   );
 }
 
-export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnswer, results = {}, selectedId, onSelect, onMove, startPage, onPageCount }) {
+export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnswer, results = {}, selectedId, onSelect, onMove, startPage, onPageCount, focusId, onPick }) {
   const nums = useMemo(() => numberTasks(doc.blocks), [doc.blocks]);
   const [focus, setFocusState] = useState({});
   const interactive = mode === 'interactive';
@@ -131,7 +131,7 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
 
   const rowView = (row, key) => (
     <div className={`ws-row ${row.length === 1 && row[0].width === 'half' ? 'single-half' : ''}`} key={key}>
-      {row.map((b) => <Card key={b.id} block={b} num={nums[b.id]} mode={mode} ctx={ctx} selected={selectedId === b.id} onSelect={onSelect} drag={drag} />)}
+      {row.map((b) => <Card key={b.id} block={b} num={nums[b.id]} mode={mode} ctx={ctx} selected={selectedId === b.id} onSelect={onSelect} drag={drag} focused={focusId === b.id} onPick={onPick} />)}
     </div>
   );
 

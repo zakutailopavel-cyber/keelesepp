@@ -98,9 +98,22 @@ per goal; save and load errors). Full suite, ESLint and production build — see
 - Print quality depends on uploaded photos (JPEG ≤ 1600 px): enough for A4 at ~150–190 dpi. Offset printing at 300 dpi
   would need larger originals (not changed in this slice).
 
+## Slice 5: live worksheet in a lesson
+
+- A shared workspace for a lesson without a new room or rule change: the student works in the normal player
+  (`DocWorksheetPlayer`), which now autosaves answers 1.5 s after each change (`saveWorksheetDraft`; local voice
+  recordings are still uploaded only on Salvesta / Esita).
+- The teacher opens `/library/worksheets/live/:assignmentId` (staff): a Firestore listener on the assignment shows
+  answers, ✓/✗ marks, progress and per-goal evidence as they arrive. Clicking a task sets `liveFocus.blockId` on the
+  assignment (staff update, existing rule); the student's sheet highlights that task and scrolls to it.
+- Entry point: after assigning a structured worksheet in Õppevara the success notice links "Jälgi tunnis otse" per
+  student (`libraryService.assign` now returns `assignments: [{ id, studentId, studentName }]`).
+- New optional field `worksheetAssignments.liveFocus = { blockId, at }` (written by staff only).
+- Next integration (Live Classroom track): open the same view inside the v2 lesson room next to video.
+
 ## Not in this slice
 
 1. (done in slice 2)
-2. Worksheet as a Live Classroom scene (needs the v2 lesson room; see PR #183 and the Live Classroom roadmap).
+2. (live worksheet done in slice 5 as a stand-alone view; embedding it into the v2 lesson room belongs to the Live Classroom track)
 3. (manual conversion queue done in slice 3; automatic recognition is not planned without the owner's decision)
 4. (textbook export done in slice 4; 300 dpi illustrations need larger photo uploads)

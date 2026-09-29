@@ -154,3 +154,13 @@ textarea.ed-input { resize: vertical; }
   .ws-book-studio .st-palette { display: none !important; }
 }
 @media (max-width: 1100px) { .ws-book-studio .st-body { grid-template-columns: 1fr; } }
+/* Live lesson view */
+.ws-live .st-body { grid-template-columns: 1fr; }
+.ws-live-stats { display: flex; gap: 10px; align-items: center; font-size: 13px; color: var(--st-muted); }
+.ws-live-stats b { color: var(--st-ink); }
+.ws-live-dot { width: 10px; height: 10px; border-radius: 50%; background: #12b76a; box-shadow: 0 0 0 0 rgba(18,183,106,.5); animation: ws-live-pulse 1.6s infinite; }
+.ws-live-dot.done { background: var(--st-navy); animation: none; }
+@keyframes ws-live-pulse { 70% { box-shadow: 0 0 0 8px rgba(18,183,106,0); } 100% { box-shadow: 0 0 0 0 rgba(18,183,106,0); } }
+@media (prefers-reduced-motion: reduce) { .ws-live-dot { animation: none; } }
+.ws-live .st-evidence { margin: 12px auto 24px; }
+.assign-live-links a { margin-left: 6px; font-weight: 700; }

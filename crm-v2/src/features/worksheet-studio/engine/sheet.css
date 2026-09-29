@@ -208,6 +208,9 @@
 
 /* print (A4): the 270 mm canvas is zoomed to 210 mm */
 /* named page: only worksheet pages get A4 with no margins, the rest of the CRM prints as before */
+/* live lesson: the task the teacher points at */
+.ws-card.focused { outline: 1.2mm solid #f5b301; outline-offset: 1mm; }
+.ws-card.pickable { cursor: pointer; }
 @page worksheet { size: A4; margin: 0; }
 .ws-page { page: worksheet; }
 @media print {
