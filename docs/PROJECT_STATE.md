@@ -1,6 +1,6 @@
 # KeeleSepp Project State
 
-## Student cabinet pet (KeeleSepp sõbrad) — PR
+## Student cabinet pet (KeeleSepp sõbrad) — PR #195
 
 Owner idea 2026-09-29: every student is greeted by a personal pet; the student chooses it. On "Minu õpingud" a student
 picks one of four pets (Siil, Rebane, Kakk, Draakon) and names it; the pet then shows mood and growth derived only from
@@ -18,7 +18,14 @@ the bottom of every page (click → a hint; "Peida mind" docks it in the corner)
 (`data-tour` on nav links; steps whose target is off screen are skipped), and reacts by itself to a lesson invitation
 (runs to the invitation card: "… kutsub sind tundi! Vajuta „Liitu tunniga”"), a lesson starting within 15 minutes, and
 late or due-today homework (`companionModel.js`). Uses existing reads only (invitations, own schedule, homework).
-**Needs a Firestore rules deploy** after merge; until then saving the choice fails with a permission error.
+Owner decisions 2026-09-29 (design page https://claude.ai/artifact/N3EKq3c3LQxRRjLoni7wph): offered to every student with
+"Ei, aitäh" (opt-out, switch in "Seaded" → "Minu sõber"); the five pre-deploy items are done in this PR: opt-out,
+silence while a worksheet is open (`petQuiet`) and in the lesson room, tour/hidden/opt-out stored on the account
+(`pet.tourDoneAt`, `pet.hidden`, `pet.optedOut`), celebration after "Esita tööleht" (`petCelebrate`, +15 and +5 per
+reached goal), one-time hints on Kodutööd and Live Classroom. Estonian phrases are corrected after deploy. Stage 2 for
+now: only motivational lines (no wardrobe, parent view or speech yet).
+**Needs a Firestore rules deploy** together with the merge (`validPet` allows kind, name, chosenAt, tourDoneAt, hidden,
+optedOut); until then saving fails with a permission error.
 Checks: vitest 373/373, ESLint clean, build OK, rules compile (dry run).
 
 ## CRM v2 bug: typing in any dialog lost focus after the first key — PR

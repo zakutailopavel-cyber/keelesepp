@@ -6,6 +6,7 @@ import Sheet from './engine/Sheet.jsx';
 import { answerProgress, checkDocument } from './engine/registry.js';
 import GoalEvidence from './GoalEvidence.jsx';
 import { useFitScale } from './useFitScale.js';
+import { petCelebrate, petQuiet } from '../pet/petEvents.js';
 import './engine/sheet.css';
 import './worksheetStudio.css';
 
@@ -52,6 +53,12 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
 
   const setAnswer = (key, value) => { edited.current = true; setAnswers((a) => ({ ...a, [key]: value })); setDraftSaved(false); };
 
+  // the cabinet pet stays silent while a worksheet is open; it celebrates after the student is back
+  useEffect(() => {
+    petQuiet(true);
+    return () => petQuiet(false);
+  }, []);
+
   // Autosave (also what the teacher sees live). Local recordings are uploaded only on Salvesta / Esita.
   useEffect(() => {
     if (review || !edited.current) return undefined;
@@ -95,6 +102,8 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
         .map(([key]) => ({ key, answer: String(stored[key] ?? '') }));
       await repository.submitWorksheet({ assignmentId: assignment.id, answers: stored, score: result.score, errorLog });
       setAnswers(stored); setScore(result.score); setSubmitted(true); onSubmitted?.();
+      const goals = Object.entries(result.perGoal || {}).filter(([id, g]) => id !== '_none' && g.total > 0 && g.ok === g.total).length;
+      petCelebrate({ xp: 15 + goals * 5, goals });
     } catch (submitError) { setError(submitError.message || 'Töölehe esitamine ebaõnnestus.'); }
     finally { setSaving(false); }
   };

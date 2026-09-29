@@ -14,7 +14,7 @@ function PetArt({ kind, mood, stage, className = '' }) {
   return <div className={`pet-art ${className}`} dangerouslySetInnerHTML={{ __html: petSvg(kind, mood, stage) }} />;
 }
 
-function PetPicker({ initial, onSave, onCancel, saving, error }) {
+function PetPicker({ initial, onSave, onCancel, onDecline, saving, error }) {
   const [kind, setKind] = useState(initial?.kind || '');
   const [name, setName] = useState(initial?.name || '');
   const nameError = name ? validPetName(name) : '';
@@ -22,7 +22,7 @@ function PetPicker({ initial, onSave, onCancel, saving, error }) {
     <div className="pet-picker">
       <div className="pet-picker__head">
         <strong>Vali endale sõber</strong>
-        <span>Ta kasvab koos sinuga: iga tund, iga töölehe ja iga täidetud eesmärgiga.</span>
+        <span>Ta kasvab koos sinuga: iga tunni, iga töölehe ja iga täidetud eesmärgiga. Kui sõpra ei soovi, vajuta „Ei, aitäh” — selle saab hiljem seadetes sisse lülitada.</span>
       </div>
       <div className="pet-picker__grid" role="radiogroup" aria-label="Sõber">
         {PET_KINDS.map((k) => (
@@ -36,6 +36,7 @@ function PetPicker({ initial, onSave, onCancel, saving, error }) {
         <Input id="pet-name" label="Nimi" value={name} maxLength={24} onChange={(event) => setName(event.target.value)} error={nameError || undefined} />
         <div className="pet-picker__actions">
           {onCancel ? <Button variant="secondary" onClick={onCancel}>Loobu</Button> : null}
+          {onDecline ? <Button variant="secondary" disabled={saving} onClick={onDecline}>Ei, aitäh</Button> : null}
           <Button loading={saving} disabled={!kind || Boolean(validPetName(name))} onClick={() => onSave({ kind, name })}>Vali {kind ? SPECIES[kind].name : 'sõber'}</Button>
         </div>
       </div>
@@ -60,17 +61,25 @@ export default function PetCard({ user, readOnly = false, lessons = [], submissi
   }, [repository, user?.uid]);
 
   if (pet === undefined) return null;
-  if (!pet && readOnly) return null;
+  if (pet?.optedOut) return null;
+  if (!pet?.kind && readOnly) return null;
 
   const save = async (choice) => {
     setSaving(true); setError('');
-    try { const saved = await repository.save({ uid: user.uid, ...choice }); setPet(saved); setEditing(false); announcePet(saved); }
+    try { const saved = await repository.save({ uid: user.uid, current: pet, ...choice }); setPet(saved); setEditing(false); announcePet(saved); }
     catch (err) { setError(err.message || 'Salvestamine ebaõnnestus.'); }
     finally { setSaving(false); }
   };
 
-  if (!pet || editing) {
-    return <Card className="pet-card"><PetPicker initial={pet} onSave={save} onCancel={pet ? () => setEditing(false) : null} saving={saving} error={error} /></Card>;
+  const decline = async () => {
+    setSaving(true); setError('');
+    try { const saved = await repository.update({ uid: user.uid, current: pet, optedOut: true }); setPet(saved); announcePet(saved); }
+    catch (err) { setError(err.message || 'Salvestamine ebaõnnestus.'); }
+    finally { setSaving(false); }
+  };
+
+  if (!pet?.kind || editing) {
+    return <Card className="pet-card"><PetPicker initial={pet} onSave={save} onCancel={pet?.kind ? () => setEditing(false) : null} onDecline={pet?.kind ? null : decline} saving={saving} error={error} /></Card>;
   }
 
   const progress = petProgress({ lessons, submissions });

@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { homeworkService, petsService, scheduleService, studentsService } from '../../services/firebase/index.js';
 import { liveLessonInvitationsService } from '../../services/firebase/liveLessonInvitations.js';
 import { INVITATION_STATUS, newestInvitation, normalizeInvitation } from '../live-classroom/invitationModel.js';
 import { occurrencesForDates, toIsoDate } from '../calendar/calendarView.js';
 import { petSvg } from './petArt.js';
-import { TOUR_STEPS, companionHint } from './companionModel.js';
-import { PET_EVENT } from './petEvents.js';
+import { PAGE_HINTS, TOUR_STEPS, celebrationHint, companionHint } from './companionModel.js';
+import { PET_CELEBRATE_EVENT, PET_EVENT, PET_QUIET_EVENT } from './petEvents.js';
 import './pet.css';
 
 const SIZE = 92;
@@ -87,11 +87,16 @@ export default function PetCompanion({
 }) {
   const { user, preview } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const isStudent = Boolean(user?.roles?.includes('student')) && !preview;
   const uid = user?.uid;
   const [pet, setPet] = useState(null);
-  const [hidden, setHidden] = useState(() => store.get(`ks-pet-hidden-${uid}`) === '1');
-  const [tourDone, setTourDone] = useState(() => store.get(`ks-pet-tour-${uid}`) === '1');
+  // hidden / tour done are kept on the account (pet.hidden, pet.tourDoneAt); the browser copy only avoids a flash
+  const [localHidden, setLocalHidden] = useState(() => { const v = store.get(`ks-pet-hidden-${uid}`); return v === null ? null : v === '1'; });
+  const [localTourDone, setLocalTourDone] = useState(() => store.get(`ks-pet-tour-${uid}`) === '1');
+  const [quietCount, setQuietCount] = useState(0);
+  const [celebration, setCelebration] = useState(null);
+  const [seenPages, setSeenPages] = useState(() => new Set(Object.keys(PAGE_HINTS).filter((path) => store.get(`ks-pet-page-${uid}-${path}`) === '1')));
   const [invites, setInvites] = useState([]);
   const [info, setInfo] = useState({ lessons: [], dueToday: 0, overdue: 0, lang: 'et' });
   const [tick, setTick] = useState(() => nowProp || Date.now());
@@ -114,15 +119,25 @@ export default function PetCompanion({
     return () => { alive = false; window.removeEventListener(PET_EVENT, onChange); };
   }, [isStudent, pets, uid]);
 
+  // a worksheet being filled in keeps the pet silent; a submitted worksheet makes it celebrate
+  useEffect(() => {
+    if (!isStudent) return undefined;
+    const onQuiet = (event) => setQuietCount((n) => Math.max(0, n + (event.detail ? 1 : -1)));
+    const onCelebrate = (event) => setCelebration(event.detail || { xp: 15, goals: 0 });
+    window.addEventListener(PET_QUIET_EVENT, onQuiet);
+    window.addEventListener(PET_CELEBRATE_EVENT, onCelebrate);
+    return () => { window.removeEventListener(PET_QUIET_EVENT, onQuiet); window.removeEventListener(PET_CELEBRATE_EVENT, onCelebrate); };
+  }, [isStudent]);
+
   // lesson invitations
   useEffect(() => {
-    if (!isStudent || !pet) return undefined;
+    if (!isStudent || !pet?.kind || pet?.optedOut) return undefined;
     try { return invitationsService.subscribeIncoming(uid, setInvites, () => {}); } catch { return undefined; }
   }, [invitationsService, isStudent, pet, uid]);
 
   // today's lessons and homework, once per visit
   useEffect(() => {
-    if (!isStudent || !pet) return undefined;
+    if (!isStudent || !pet?.kind || pet?.optedOut) return undefined;
     let alive = true;
     (async () => {
       const mine = await students.listSelf(uid);
@@ -159,20 +174,35 @@ export default function PetCompanion({
     measure();
     window.addEventListener('resize', measure);
     return () => window.removeEventListener('resize', measure);
-  }, [laneWidth, pet, hidden]);
+  }, [laneWidth, pet, localHidden, quietCount]);
 
   // urgent news (invitation, lesson soon) opens the bubble by itself until the student closes it;
   // an invitation calls the pet next to the invitation card
-  const touring = Boolean(pet) && !hidden && !tourDone;
-  const bubble = openHint || (hint.urgent && !closedKeys.has(hint.key) ? hint : null);
+  const active = Boolean(pet?.kind) && !pet?.optedOut;
+  const hidden = localHidden ?? Boolean(pet?.hidden);
+  const tourDone = localTourDone || Boolean(pet?.tourDoneAt);
+  const quiet = quietCount > 0;
+  const inRoom = location.pathname.startsWith('/live-classroom');
+  const pagePath = Object.keys(PAGE_HINTS).find((path) => location.pathname.startsWith(path));
+  const touring = active && !hidden && !tourDone && !inRoom;
+  const cheer = celebration ? { ...celebrationHint({ ...celebration, lang: info.lang }), key: 'celebrate' } : null;
+  const pageHint = pagePath && !seenPages.has(pagePath) && tourDone ? { ...PAGE_HINTS[pagePath], key: `page-${pagePath}`, page: pagePath } : null;
+  // in the lesson room the pet stays put and only says the one page hint
+  const urgent = !inRoom && hint.urgent && !closedKeys.has(hint.key) ? hint : null;
+  const bubble = openHint || cheer || urgent || pageHint;
   const atInvitation = Boolean(invitation && bubble?.urgent);
   const shownX = atInvitation ? Math.max(0, laneW - (window.innerWidth > 640 ? 470 : 0)) : x;
   const talking = Boolean(bubble);
-  const closeBubble = () => { if (bubble) setClosedKeys((k) => new Set(k).add(bubble.key)); setOpenHint(null); };
+  const closeBubble = () => {
+    if (bubble?.celebrate || bubble?.key === 'celebrate') setCelebration(null);
+    if (bubble?.page) { store.set(`ks-pet-page-${uid}-${bubble.page}`, '1'); setSeenPages((p) => new Set(p).add(bubble.page)); }
+    if (bubble) setClosedKeys((k) => new Set(k).add(bubble.key));
+    setOpenHint(null);
+  };
 
   // idle walk along the bottom lane
   useEffect(() => {
-    if (!pet || hidden || touring || reducedMotion()) return undefined;
+    if (!active || hidden || touring || inRoom || quiet || reducedMotion()) return undefined;
     const t = window.setInterval(() => {
       if (talking) return;
       const w = laneWidth();
@@ -185,13 +215,14 @@ export default function PetCompanion({
       window.setTimeout(() => setWalking(false), 3800);
     }, 9000);
     return () => window.clearInterval(t);
-  }, [talking, hidden, laneWidth, pet, touring]);
+  }, [active, talking, hidden, inRoom, laneWidth, quiet, touring]);
 
-  if (!isStudent || !pet) return null;
+  if (!isStudent || !active || quiet) return null;
 
-  const hide = () => { store.set(`ks-pet-hidden-${uid}`, '1'); setHidden(true); closeBubble(); };
-  const show = () => { store.set(`ks-pet-hidden-${uid}`, '0'); setHidden(false); };
-  const finishTour = () => { store.set(`ks-pet-tour-${uid}`, '1'); setTourDone(true); };
+  const remember = (flags) => Promise.resolve().then(() => pets.update({ uid, current: pet, ...flags })).then((next) => setPet(next)).catch(() => {});
+  const hide = () => { store.set(`ks-pet-hidden-${uid}`, '1'); setLocalHidden(true); closeBubble(); remember({ hidden: true }); };
+  const show = () => { store.set(`ks-pet-hidden-${uid}`, '0'); setLocalHidden(false); remember({ hidden: false }); };
+  const finishTour = () => { store.set(`ks-pet-tour-${uid}`, '1'); setLocalTourDone(true); remember({ tourDoneAt: new Date().toISOString() }); };
   const talk = () => {
     if (bubble) { closeBubble(); return; }
     setOpenHint(hint);
@@ -202,11 +233,11 @@ export default function PetCompanion({
     return <button type="button" className="pet-dock" onClick={show} aria-label={`Kutsu ${pet.name} tagasi`}><PetFigure kind={pet.kind} mood="calm" /></button>;
   }
 
-  const mood = bubble?.urgent ? 'happy' : 'calm';
+  const mood = bubble?.key === 'celebrate' ? 'proud' : bubble?.urgent ? 'happy' : 'calm';
   return (
     <>
       <div className="pet-lane" ref={laneRef} aria-live="polite">
-        <div className={`pet-walker ${walking ? 'is-walking' : ''} ${bubble?.urgent ? 'is-excited' : ''}`} style={{ transform: `translateX(${shownX}px)` }}>
+        <div className={`pet-walker ${walking ? 'is-walking' : ''} ${bubble?.urgent || bubble?.key === 'celebrate' ? 'is-excited' : ''}`} style={{ transform: `translateX(${shownX}px)` }}>
           {bubble ? (
             <div className={`pet-talk ${shownX > laneW / 2 ? 'is-left' : ''}`} role="status">
               <p>{bubble.text}</p>

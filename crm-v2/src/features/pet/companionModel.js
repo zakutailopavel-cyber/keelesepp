@@ -48,13 +48,19 @@ export function companionHint({ now = Date.now(), invitation = null, todayLesson
   }
   const tips = en ? [
     [`Hi! I'm ${petName}. Press me when you need help.`, `Привет! Я ${petName}. Нажми на меня, если нужна помощь.`],
-    ['Your worksheets are in "Kodutööd". Answers save by themselves.', 'Твои листы в «Kodutööd». Ответы сохраняются сами.'],
+    ['A little every day, and the language will come!', 'Каждый день понемногу — и язык придёт!'],
+    ['Mistakes are part of learning. Keep going!', 'Ошибки — часть учёбы. Смело вперёд!'],
+    ['You have already learned so much!', 'Ты уже столько выучил(а)!'],
     ['Every finished worksheet helps me grow!', 'Каждый сданный лист помогает мне расти!'],
   ] : [
     [`Tere! Mina olen ${petName}. Vajuta mulle, kui vajad abi.`, `Привет! Я ${petName}. Нажми на меня, если нужна помощь.`],
-    ['Sinu töölehed on „Kodutööd” all. Vastused salvestuvad ise.', 'Твои листы в «Kodutööd». Ответы сохраняются сами.'],
+    ['Iga päev natuke — ja keel tuleb!', 'Каждый день понемногу — и язык придёт!'],
+    ['Vead on õppimise osa. Julgelt edasi!', 'Ошибки — часть учёбы. Смело вперёд!'],
+    ['Sa oled juba nii palju õppinud!', 'Ты уже столько выучил(а)!'],
+    ['Räägi julgelt, isegi kui sõnu on vähe.', 'Говори смело, даже если слов пока мало.'],
     ['Iga tehtud tööleht aitab mul kasvada!', 'Каждый сданный лист помогает мне расти!'],
     ['Kui õpetaja kutsub tundi, annan sulle kohe märku.', 'Когда учитель позовёт на урок, я сразу дам знать.'],
+    ['Tubli! Samm-sammult jõuad kaugele.', 'Молодец! Шаг за шагом дойдёшь далеко.'],
   ];
   const [text, hint] = tips[((tipIndex % tips.length) + tips.length) % tips.length];
   return { key: `tip-${tipIndex}`, urgent: false, text, hint };
@@ -68,3 +74,19 @@ export const TOUR_STEPS = [
   { target: '[data-tour="nav-/messages"]', text: '„Suhtlus”: kirjuta õpetajale, kui midagi on segane.', hint: '«Suhtlus»: напиши учителю, если что-то непонятно.' },
   { target: '[data-tour="pet"]', text: 'Ja mina olen alati siin. Vajuta mulle, kui vajad abi!', hint: 'А я всегда здесь. Нажми на меня, если нужна помощь!' },
 ];
+
+// One-time hints when the student first opens a page (the key is remembered per page).
+export const PAGE_HINTS = {
+  '/homework': { text: 'Vajuta töölehele, et seda täita. Vastused salvestuvad ise.', hint: 'Нажми на лист, чтобы его заполнить. Ответы сохраняются сами.' },
+  '/live-classroom': { text: 'Kui tund algab, vajuta „Käivita video ja mikrofon”. Mina olen vaikselt.', hint: 'Когда урок начнётся, нажми «Käivita video ja mikrofon». Я буду тихо.' },
+};
+
+export function celebrationHint({ xp = 15, goals = 0, lang = 'et' }) {
+  const en = lang === 'en';
+  const goalText = goals ? (en ? ` and ${goals} lesson goal${goals === 1 ? '' : 's'}` : ` ja ${goals} tunni eesmärk${goals === 1 ? '' : 'i'}`) : '';
+  return {
+    key: `celebrate-${Date.now()}`, urgent: true, celebrate: true,
+    text: en ? `Well done! Worksheet submitted${goalText}. +${xp} for me!` : `Tubli! Tööleht on esitatud${goalText}. +${xp} mulle!`,
+    hint: `Молодец! Лист сдан${goals ? ` и выполнено целей: ${goals}` : ''}. +${xp} мне!`,
+  };
+}

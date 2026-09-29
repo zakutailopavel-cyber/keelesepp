@@ -2,6 +2,7 @@ import { CheckCircle2, Clock3, Send, Star } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Badge, Button, Modal, Select } from '../../components/ui/index.js';
 import DocWorksheetPlayer from '../worksheet-studio/DocWorksheetPlayer.jsx';
+import { petCelebrate } from '../pet/petEvents.js';
 import {
   answerKey,
   blockTitle,
@@ -137,7 +138,7 @@ function LegacyWorksheetPlayer({ assignment, repository, readOnly = false, onClo
         calculateVisualWorksheetResult(assignment.files || [], answers),
       );
       await repository.submitWorksheet({ assignmentId: assignment.id, answers, ...result });
-      setScore(result.score); setSubmitted(true); onSubmitted?.();
+      setScore(result.score); setSubmitted(true); onSubmitted?.(); petCelebrate({ xp: 15 });
     } catch (submitError) { setError(submitError.message || 'Töölehe esitamine ebaõnnestus.'); }
     finally { setSaving(false); }
   };

@@ -36,14 +36,14 @@ describe('pet model', () => {
 
 describe('PetCard', () => {
   it('lets a student choose and name a pet once, then greets them', async () => {
-    const repository = { get: vi.fn().mockResolvedValue(null), save: vi.fn(async ({ kind, name }) => ({ kind, name })) };
+    const repository = { get: vi.fn().mockResolvedValue(null), save: vi.fn(async ({ kind, name }) => ({ kind, name })), update: vi.fn() };
     const { container } = render(<PetCard user={{ uid: 'u1' }} repository={repository} pendingHomework={1} subject="Eesti keel" />);
     expect(await screen.findByText('Vali endale sõber')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('radio', { name: /Kakk/ }));
     expect(screen.getByLabelText('Nimi')).toHaveValue('Kakk');
     fireEvent.change(screen.getByLabelText('Nimi'), { target: { value: 'Tark' } });
     fireEvent.click(screen.getByRole('button', { name: 'Vali Kakk' }));
-    await waitFor(() => expect(repository.save).toHaveBeenCalledWith({ uid: 'u1', kind: 'kakk', name: 'Tark' }));
+    await waitFor(() => expect(repository.save).toHaveBeenCalledWith({ uid: 'u1', current: null, kind: 'kakk', name: 'Tark' }));
     expect(await screen.findByText('Sul on üks kodutöö. Teeme ära?')).toBeInTheDocument();
     expect(screen.getByText('Tark')).toBeInTheDocument();
     expect(container.querySelector('svg.pet')).not.toBeNull();
@@ -55,5 +55,13 @@ describe('PetCard', () => {
     const { container } = render(<PetCard user={{ uid: 'staff' }} readOnly repository={repository} />);
     await waitFor(() => expect(repository.get).toHaveBeenCalled());
     expect(container.textContent).toBe('');
+  });
+
+  it('lets a student say no thanks, and then stays away', async () => {
+    const repository = { get: vi.fn().mockResolvedValue(null), save: vi.fn(), update: vi.fn(async ({ current, ...flags }) => ({ ...(current || {}), ...flags })) };
+    const { container } = render(<PetCard user={{ uid: 'u1' }} repository={repository} />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Ei, aitäh' }));
+    await waitFor(() => expect(repository.update).toHaveBeenCalledWith({ uid: 'u1', current: null, optedOut: true }));
+    await waitFor(() => expect(container.textContent).toBe(''));
   });
 });

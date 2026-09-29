@@ -21,7 +21,17 @@ async function account(role) {
 }
 const enc = (v) => (typeof v === 'object' && v !== null
   ? { mapValue: { fields: Object.fromEntries(Object.entries(v).map(([k, x]) => [k, enc(x)])) } }
+  : typeof v === 'boolean' ? { booleanValue: v }
   : typeof v === 'number' ? { integerValue: String(v) } : { stringValue: String(v) });
+// update single flags the way the app does (updateDoc with 'pet.hidden' etc.)
+async function setFlags(who, uid, flags) {
+  const mask = Object.keys(flags).map((k) => `updateMask.fieldPaths=${encodeURIComponent(`pet.${k}`)}`).join('&');
+  const r = await fetch(`http://${dbHost}/v1/projects/${PROJECT}/databases/(default)/documents/users/${uid}?${mask}`, {
+    method: 'PATCH', headers: { Authorization: `Bearer ${who.token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fields: { pet: enc(flags) } }),
+  });
+  return r.status;
+}
 async function setPet(who, uid, pet) {
   const r = await fetch(`http://${dbHost}/v1/projects/${PROJECT}/databases/(default)/documents/users/${uid}?updateMask.fieldPaths=pet`, {
     method: 'PATCH', headers: { Authorization: `Bearer ${who.token}`, 'Content-Type': 'application/json' },
@@ -42,4 +52,13 @@ test('student pet on the account document', async () => {
   assert.equal(await setPet(learner, learner.uid, { kind: 'kakk', name: 'x'.repeat(25) }), 403);
   assert.equal(await setPet(learner, learner.uid, { kind: 'kakk', name: 'Tark', xp: 9999 }), 403);
   assert.equal(await setPet(other, learner.uid, { kind: 'kakk', name: 'Tark' }), 403);
+  // own flags: tour done, hidden, opted out (also without a chosen pet)
+  assert.equal(await setFlags(learner, learner.uid, { tourDoneAt: '2026-09-29T10:05:00Z', hidden: true }), 200);
+  const stored = (await admin.firestore().doc(`users/${learner.uid}`).get()).data().pet;
+  assert.equal(stored.kind, 'rebane');
+  assert.equal(stored.hidden, true);
+  assert.equal(await setFlags(learner, learner.uid, { hidden: 'yes' }), 403);
+  assert.equal(await setFlags(other, other.uid, { optedOut: true }), 200);
+  assert.equal(await setFlags(other, other.uid, { kind: 'siil' }), 403); // a kind always needs a name
+  assert.equal(await setFlags(learner, other.uid, { optedOut: false }), 403);
 });

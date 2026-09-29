@@ -769,18 +769,19 @@ service cloud.firestore {
         && validPet(request.resource.data);
     }
 
-    // Student cabinet pet: only the chosen kind and a short name; growth is derived, never stored.
+    // Student cabinet pet: the chosen kind and a short name plus three own flags; growth is derived, never stored.
     function validPet(data) {
       return !('pet' in data)
         || (
           data.pet is map
-          && data.pet.keys().hasOnly(['kind', 'name', 'chosenAt'])
-          && data.pet.keys().hasAll(['kind', 'name'])
-          && data.pet.kind in ['siil', 'rebane', 'kakk', 'draakon']
-          && data.pet.name is string
-          && data.pet.name.size() > 0
-          && data.pet.name.size() <= 24
+          && data.pet.keys().hasOnly(['kind', 'name', 'chosenAt', 'tourDoneAt', 'hidden', 'optedOut'])
+          && (('kind' in data.pet) == ('name' in data.pet))
+          && (!('kind' in data.pet) || data.pet.kind in ['siil', 'rebane', 'kakk', 'draakon'])
+          && (!('name' in data.pet) || (data.pet.name is string && data.pet.name.size() > 0 && data.pet.name.size() <= 24))
           && (!('chosenAt' in data.pet) || (data.pet.chosenAt is string && data.pet.chosenAt.size() <= 40))
+          && (!('tourDoneAt' in data.pet) || (data.pet.tourDoneAt is string && data.pet.tourDoneAt.size() <= 40))
+          && (!('hidden' in data.pet) || data.pet.hidden is bool)
+          && (!('optedOut' in data.pet) || data.pet.optedOut is bool)
         );
     }
 
