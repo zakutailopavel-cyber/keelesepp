@@ -1,15 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://epkoolitus.ee/</loc>
+    <loc>https://www.epkoolitus.ee/</loc>
   </url>
   <url>
-    <loc>https://epkoolitus.ee/tasemetest/</loc>
+    <loc>https://www.epkoolitus.ee/ru/</loc>
   </url>
   <url>
-    <loc>https://epkoolitus.ee/privaatsus/</loc>
+    <loc>https://www.epkoolitus.ee/tasemetest/</loc>
   </url>
   <url>
-    <loc>https://epkoolitus.ee/tingimused/</loc>
+    <loc>https://www.epkoolitus.ee/privaatsus/</loc>
+  </url>
+  <url>
+    <loc>https://www.epkoolitus.ee/tingimused/</loc>
   </url>
 </urlset>
