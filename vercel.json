@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/ru",
+      "destination": "/ru/index.html"
+    },
+    {
       "source": "/haldus-lesson-builder",
       "destination": "/haldus-lesson-builder/index.html"
     },
@@ -108,11 +112,21 @@
   "headers": [
     {
       "source": "/haldus-lesson-builder/",
-      "headers": [{"key": "Content-Type", "value": "text/html; charset=utf-8"}]
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/html; charset=utf-8"
+        }
+      ]
     },
     {
       "source": "/haldus-lesson-builder",
-      "headers": [{"key": "Content-Type", "value": "text/html; charset=utf-8"}]
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/html; charset=utf-8"
+        }
+      ]
     },
     {
       "source": "/haldus-exercises",

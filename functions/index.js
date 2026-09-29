@@ -4704,7 +4704,7 @@ async function deliverEmail(message, context = {}) {
   const hasSmtp = Boolean(smtpHost && smtpUser && smtpPass);
   const provider = hasSmtp ? "smtp" : resendKey ? "resend" : sendgridKey ? "sendgrid" : "firestore";
   const from = process.env.MAIL_FROM || SMTP_DEFAULTS.from || MAIL_FROM;
-  const replyTo = MAIL_REPLY_TO;
+  const replyTo = message.replyTo || MAIL_REPLY_TO;
   const attachments = (Array.isArray(message.attachments) ? message.attachments : []).map(attachment => {
     const content = Buffer.isBuffer(attachment.content)
       ? attachment.content
@@ -6981,6 +6981,45 @@ async function applyScheduleSyncRecovery({ actor, fromIso, toIso, requestId, con
   });
   return { ...result, idempotent: false };
 }
+
+// Course enquiries from the public website form (replaces the old mailto: link that lost enquiries).
+// Public endpoint: honeypot + per-IP hourly limit; stores the enquiry and e-mails info@epkoolitus.ee.
+exports.websiteLeadApi = functions.https.onRequest(async (req, res) => {
+  applyCors(req, res);
+  if (req.method === "OPTIONS") { res.status(204).send(""); return; }
+  if (req.method !== "POST") { res.status(405).json({ error: "POST required" }); return; }
+  try {
+    const { normalizeWebsiteLead, throttleAllows, composeWebsiteLeadEmail } = require("./website-lead-core");
+    const result = normalizeWebsiteLead(req.body || {});
+    if (result.spam) { res.status(200).json({ ok: true }); return; }
+    if (result.errors) { res.status(400).json({ error: "invalid", fields: result.errors }); return; }
+    const ip = String(req.get("x-forwarded-for") || req.ip || "").split(",")[0].trim();
+    const ipKey = require("crypto").createHash("sha256").update(`website-lead:${ip}`).digest("hex").slice(0, 32);
+    const throttleRef = db.collection("websiteLeadThrottle").doc(ipKey);
+    const nowMs = Date.now();
+    const allowed = await db.runTransaction(async tx => {
+      const snap = await tx.get(throttleRef);
+      const recent = (snap.exists ? snap.data().times || [] : []).filter(t => t > nowMs - 60 * 60 * 1000);
+      if (!throttleAllows(recent, nowMs)) return false;
+      tx.set(throttleRef, { times: [...recent, nowMs], updatedAt: FieldValue.serverTimestamp() });
+      return true;
+    });
+    if (!allowed) { res.status(429).json({ error: "too_many" }); return; }
+    const leadRef = db.collection("websiteLeads").doc();
+    await leadRef.set({ ...result.lead, status: "new", createdAt: FieldValue.serverTimestamp() });
+    try {
+      await deliverEmail(composeWebsiteLeadEmail(result.lead), { kind: "website-lead", leadId: leadRef.id });
+    } catch (mailError) {
+      // the enquiry is stored; a mail problem must not make the visitor think it failed
+      console.error("website lead e-mail failed", leadRef.id, mailError);
+      await leadRef.update({ mailError: String(mailError.message || mailError).slice(0, 300) });
+    }
+    res.status(201).json({ ok: true });
+  } catch (error) {
+    console.error("websiteLeadApi", error);
+    res.status(500).json({ error: "failed" });
+  }
+});
 
 exports.staffOperationsApi = functions.https.onRequest(async (req, res) => {
   applyCors(req, res);
