@@ -15,6 +15,7 @@ import StudentFinancePanel from './StudentFinancePanel.jsx';
 import StudentForm from './StudentForm.jsx';
 import { LEGACY_TEACHERS } from './studentOptions.js';
 import './studentProfileTabs.css';
+import StudentRecordingsPanel from '../lesson-recording/StudentRecordingsPanel.jsx';
 
 const PROFILE_TABS = [
   { id: 'overview', label: 'Ülevaade' },
@@ -118,6 +119,7 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
           <div className="profile-grid">
             <Card className="profile-wide"><h2>Viimased tunnid</h2>{state.lessons.length ? <div className="simple-list">{state.lessons.slice(0, 10).map((lesson) => <div key={lesson.id}><div><strong>{lesson.date || 'Kuupäev puudub'} · {lesson.time || ''}</strong><span>{lesson.subject || student.subject}</span></div><Badge tone={lesson.status === 'Tühistatud' ? 'neutral' : 'info'}>{lesson.status || 'Toimunud'}</Badge></div>)}</div> : <EmptyState title="Tunde ei leitud" />}</Card>
             <Card className="profile-wide"><h2>Areng</h2>{progress.length ? <div className="progress-list">{progress.map(([skill, score]) => <div key={skill}><span>{skill}</span><div><i style={{ width: `${Math.max(0, Math.min(100, Number(score) || 0))}%` }} /></div><strong>{score}%</strong></div>)}</div> : <EmptyState title="Oskuste tulemusi ei ole veel salvestatud" />}</Card>
+            <StudentRecordingsPanel student={student} user={currentUser} isAdmin={canAssignTeacher} />
           </div>
         ) : null}
 

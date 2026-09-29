@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>ee.keelesepp.transcriber</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>__NODE__</string>
+    <string>__REPO__/tools/lesson-transcriber/index.js</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>GOOGLE_APPLICATION_CREDENTIALS</key><string>__HOME__/KeeleSeppTranscriber/service-account.json</string>
+    <key>WHISPER_MODEL</key><string>__HOME__/KeeleSeppTranscriber/models/ggml-large-v3-turbo.bin</string>
+  </dict>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>StandardOutPath</key><string>__HOME__/KeeleSeppTranscriber/transcriber.log</string>
+  <key>StandardErrorPath</key><string>__HOME__/KeeleSeppTranscriber/transcriber.log</string>
+</dict>
+</plist>

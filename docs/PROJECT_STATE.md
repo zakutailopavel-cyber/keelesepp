@@ -1,5 +1,17 @@
 # KeeleSepp Project State
 
+## Lesson recording and free transcription — PR
+
+Owner 2026-09-29: "3 пункт делаем но без квен пока". Live Classroom records a lesson (teacher + student tracks,
+5-minute files) with the student's consent from the student card; a worker on the school Mac transcribes it for free
+with whisper.cpp; staff read the dialogue on the student card. No AI analysis yet. Details: `docs/LESSON_RECORDING.md`.
+New: `crm-v2/src/features/lesson-recording/*`, `crm-v2/src/services/firebase/lessonRecordings.js`,
+`LiveLessonCallPanel` `onMediaStreams`, room/student-card wiring, `tools/lesson-transcriber/*`, Firestore rule
+`lessonRecordings`, Storage rule `lessonRecordings/*`, emulator test and CI steps.
+Needs: Firestore **and Storage** rules deploy with the merge; owner creates a service account key; whisper model
+download on the Mac; launchd agent. Checks: vitest 390/390, ESLint clean, build OK, transcriber lib tests 3/3, rules
+compile.
+
 ## Student cabinet pet (KeeleSepp sõbrad) — PR #195
 
 Owner idea 2026-09-29: every student is greeted by a personal pet; the student chooses it. On "Minu õpingud" a student

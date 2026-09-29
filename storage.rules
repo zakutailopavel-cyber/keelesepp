@@ -105,6 +105,23 @@ service firebase.storage {
       allow write: if staff() && safeContent();
     }
 
+    // Live Classroom lesson recordings: only the recording teacher uploads audio while the recording runs.
+    function recordingDoc(recordingId) {
+      return firestore.get(/databases/(default)/documents/lessonRecordings/$(recordingId)).data;
+    }
+
+    match /lessonRecordings/{recordingId}/{fileName} {
+      allow read: if superAdmin() || role() == 'admin'
+        || (staff() && firestore.exists(/databases/(default)/documents/lessonRecordings/$(recordingId)) && recordingDoc(recordingId).teacherUid == request.auth.uid);
+      allow write: if staff()
+        && firestore.exists(/databases/(default)/documents/lessonRecordings/$(recordingId))
+        && recordingDoc(recordingId).teacherUid == request.auth.uid
+        && recordingDoc(recordingId).status == 'recording'
+        && request.resource != null
+        && request.resource.size < 20 * 1024 * 1024
+        && request.resource.contentType.matches('^audio/.*$');
+    }
+
     match /homework/{studentId}/{fileName} {
       allow read: if staff() || ownsStudent(studentId);
       allow write: if (staff() || ownsStudent(studentId)) && safeContent();
