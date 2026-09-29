@@ -62,6 +62,7 @@ async function upload(who, path, contentType, body = 'x') {
   const r = await fetch(`http://${storageHost}/v0/b/${BUCKET}/o?name=${encodeURIComponent(path)}`, {
     method: 'POST', headers: { Authorization: `Firebase ${who.token}`, 'Content-Type': contentType }, body,
   });
+  if (r.status !== 200) console.log('storage upload', path, r.status, (await r.text()).slice(0, 300));
   return r.status;
 }
 
@@ -81,6 +82,13 @@ test('Worksheet Studio flow against the real rules', async (t) => {
   await db.doc('students/st-ws-1').set({ name: 'Mari', linkedUserId: learner.uid, teacherUid: teacher.uid });
   await db.doc('students/st-ws-2').set({ name: 'Jaan', linkedUserId: stranger.uid });
   let assignmentId;
+
+  await t.test('storage emulator diagnostics', async () => {
+    // owner bypass checks the upload mechanics; the rules check follows in the next steps
+    console.log('owner upload', await upload({ token: 'owner' }, 'curriculum/ws_diag.jpg', 'image/jpeg'));
+    const users = await fetch(`http://${dbHost}/v1/projects/${PROJECT}/databases/(default)/documents/users/${teacher.uid}`, { headers: { Authorization: 'Bearer owner' } });
+    console.log('users doc via REST', users.status);
+  });
 
   await t.test('teacher saves the structured worksheet on a curriculum lesson; students cannot', async () => {
     const lesson = await create(teacher, 'curriculumLessons', { title: 'Minu päev', type: 'material', worksheetDoc, worksheetDocSchema: worksheetDoc.schema });
