@@ -111,6 +111,16 @@ per goal; save and load errors). Full suite, ESLint and production build — see
 - New optional field `worksheetAssignments.liveFocus = { blockId, at }` (written by staff only).
 - Next integration (Live Classroom track): open the same view inside the v2 lesson room next to video.
 
+## End-to-end check against the real rules
+
+`functions/worksheet-studio-emulator.integration.js` runs in the "Financial Core emulator" workflow (Auth and
+Firestore emulators with the repository rules): teacher saves a `worksheetDoc` and assigns it; the owning learner
+autosaves and submits with a per-goal score; another learner cannot read or write; learners cannot forge `liveFocus`
+or the snapshot; the teacher can point at a task.
+Storage (`curriculum/ws_*`, `homework/{studentId}/ws_rec_*`) is not covered: in CI (firebase-tools 15.22.3) the
+Storage emulator denied every rules-checked upload, including a super admin whose rule reads no Firestore, while an
+owner upload succeeded. These are the same prefixes the CRM already uses in production for material and homework files.
+
 ## Not in this slice
 
 1. (done in slice 2)

@@ -1,6 +1,15 @@
 # KeeleSepp Project State
 
-## Worksheet Studio slice 5 (live worksheet in a lesson) — PR
+## Worksheet Studio end-to-end rules check — PR
+
+Last verified against main: 2026-09-29, Europe/Tallinn. Verified main: `2c72234` (merged #188).
+Branch: `agent/worksheet-studio-e2e`. Adds `functions/worksheet-studio-emulator.integration.js` and runs it in
+`.github/workflows/financial-core-emulator.yml`. Covers the whole worksheet path against the real Firestore rules
+(see `docs/WORKSHEET_STUDIO_V1.md`). Storage is not covered: the CI Storage emulator denied every rules-checked upload,
+even the super admin's; worth a separate look by whoever owns the emulator setup. No product code, rule or data change.
+Exactly one next safe step: merge after the emulator job is green.
+
+## Worksheet Studio slice 5 (live worksheet in a lesson) — MERGED (#188, 2c72234)
 
 Last verified against main: 2026-09-29, Europe/Tallinn. Verified main: `005c44c` (merged #187).
 Branch: `agent/worksheet-studio-live`. Claude merges its own PRs after all checks pass (owner, 2026-09-29).
