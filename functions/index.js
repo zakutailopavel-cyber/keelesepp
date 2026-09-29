@@ -6984,7 +6984,7 @@ async function applyScheduleSyncRecovery({ actor, fromIso, toIso, requestId, con
 
 // Course enquiries from the public website form (replaces the old mailto: link that lost enquiries).
 // Public endpoint: honeypot + per-IP hourly limit; stores the enquiry and e-mails info@epkoolitus.ee.
-exports.websiteLeadApi = functions.https.onRequest(async (req, res) => {
+exports.websiteLeadApi = functions.runWith({ secrets: ["SMTP_PASS"] }).https.onRequest(async (req, res) => {
   applyCors(req, res);
   if (req.method === "OPTIONS") { res.status(204).send(""); return; }
   if (req.method !== "POST") { res.status(405).json({ error: "POST required" }); return; }
@@ -7021,7 +7021,7 @@ exports.websiteLeadApi = functions.https.onRequest(async (req, res) => {
   }
 });
 
-exports.staffOperationsApi = functions.https.onRequest(async (req, res) => {
+exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"] }).https.onRequest(async (req, res) => {
   applyCors(req, res);
   if (req.method === "OPTIONS") { res.status(204).send(""); return; }
   if (req.method !== "POST") {
@@ -9086,7 +9086,9 @@ async function backfillScheduleToGoogle(uid, connection, { force = false, retryE
 }
 
 // A parent or student registered themselves: tell the school so an administrator can approve the account.
-exports.notifyPendingAccount = functions.firestore
+exports.notifyPendingAccount = functions
+  .runWith({ secrets: ["SMTP_PASS"] })
+  .firestore
   .document("users/{uid}")
   .onCreate(async (snap, context) => {
     const profile = snap.data() || {};
