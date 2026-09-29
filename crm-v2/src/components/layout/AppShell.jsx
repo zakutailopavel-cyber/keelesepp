@@ -35,7 +35,7 @@ export default function AppShell() {
       <aside className={`sidebar ${menuOpen ? 'is-open' : ''}`}>
         <div className="brand">
           <div className="brand-mark"><GraduationCap size={22} /></div>
-          <div><strong>KeeleSepp</strong><span>CRM v2</span></div>
+          <div><strong>KeeleSepp</strong><span>EP Koolitus</span></div>
           <IconButton className="mobile-only sidebar-close" label="Sulge menüü" onClick={() => setMenuOpen(false)}><X size={20} /></IconButton>
         </div>
         <nav aria-label="Põhinavigatsioon">
