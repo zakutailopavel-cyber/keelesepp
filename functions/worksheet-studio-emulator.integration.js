@@ -88,6 +88,10 @@ test('Worksheet Studio flow against the real rules', async (t) => {
     console.log('owner upload', await upload({ token: 'owner' }, 'curriculum/ws_diag.jpg', 'image/jpeg'));
     const users = await fetch(`http://${dbHost}/v1/projects/${PROJECT}/databases/(default)/documents/users/${teacher.uid}`, { headers: { Authorization: 'Bearer owner' } });
     console.log('users doc via REST', users.status);
+    // superAdmin() in storage.rules checks the email only (no Firestore read)
+    const r = await fetch(`http://${authHost}/identitytoolkit.googleapis.com/v1/accounts:signUp?key=demo`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: 'zakutailo.pavel@gmail.com', password: 'emulator-only-password', returnSecureToken: true }) });
+    const sa = await r.json();
+    console.log('superadmin upload (no Firestore read)', await upload({ token: sa.idToken }, 'curriculum/ws_diag_sa.jpg', 'image/jpeg'));
   });
 
   await t.test('teacher saves the structured worksheet on a curriculum lesson; students cannot', async () => {
