@@ -17,9 +17,7 @@
 }
 .ws-page *, .ws-measure * { box-sizing: border-box; }
 .ws-flow, .ws-measure { display: flex; flex-direction: column; gap: 4mm; }
-.ws-row { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; align-items: stretch; }
-.ws-row.single-half { grid-template-columns: 1fr 1fr; }
-.ws-row > .full { grid-column: 1 / -1; }
+.ws-row { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 4mm; align-items: stretch; }
 
 /* header */
 .ws-hdr { display: grid; grid-template-columns: 1fr 84mm 33mm; gap: 4mm; align-items: stretch; }
@@ -220,3 +218,31 @@
   .ws-page:last-child { break-after: auto; }
   .mode-edit .ws-card { outline: none !important; }
 }
+
+/* free block size (edit mode handles) */
+.ws-resize { position: absolute; z-index: 3; background: transparent; }
+.ws-resize-x { top: 2mm; bottom: 2mm; right: -2.2mm; width: 3mm; cursor: ew-resize; }
+.ws-resize-y { left: 2mm; right: 2mm; bottom: -2.2mm; height: 3mm; cursor: ns-resize; }
+.ws-resize::after { content: ''; position: absolute; border-radius: 99px; background: var(--ks-green-2, #2f7d4c); opacity: .85; }
+.ws-resize-x::after { top: 50%; left: 50%; width: 1.2mm; height: 9mm; transform: translate(-50%, -50%); }
+.ws-resize-y::after { left: 50%; top: 50%; height: 1.2mm; width: 9mm; transform: translate(-50%, -50%); }
+@media print { .ws-resize { display: none; } }
+
+/* task modifications: columns inside a block, font size, solved example */
+.ws-card[data-cols="2"] :is(.ws-gaps, .ws-choice, .ws-order, .ws-rq, .ws-self-items) { columns: 2; column-gap: 6mm; }
+.ws-card[data-cols="3"] :is(.ws-gaps, .ws-choice, .ws-order, .ws-rq, .ws-self-items) { columns: 3; column-gap: 5mm; }
+.ws-card[data-cols] :is(.ws-gaps, .ws-choice, .ws-order, .ws-rq, .ws-self-items) > * { break-inside: avoid; }
+.ws-card[data-cols="2"] .ws-tf { display: grid; grid-template-columns: 1fr 1fr; column-gap: 6mm; }
+.ws-card[data-cols="3"] .ws-tf { display: grid; grid-template-columns: 1fr 1fr 1fr; column-gap: 5mm; }
+.ws-card[data-cols] .ws-tf-head { display: none; }
+.ws-card[data-size="small"] > :not(.ws-resize) { zoom: .88; }
+.ws-card[data-size="large"] > :not(.ws-resize) { zoom: 1.18; }
+.ws-card.has-example :is(.ws-gaps, .ws-choice, .ws-order, .ws-rq) > li:first-child,
+.ws-card.has-example .ws-tf-row:first-of-type,
+.ws-card.has-example .ws-clockitem:first-child,
+.ws-card.has-example .ws-dialog > .ws-say:first-child { opacity: .85; }
+.ws-card.has-example :is(.ws-gaps, .ws-choice, .ws-order, .ws-rq) > li:first-child::before,
+.ws-card.has-example .ws-tf-row:first-of-type > span:first-child::before,
+.ws-card.has-example .ws-clockitem:first-child .ws-clockrow::before,
+.ws-card.has-example .ws-dialog > .ws-say:first-child .ws-who::after { content: 'Näide'; display: inline-block; vertical-align: .3mm; margin: 0 1.5mm 0 0; font: 700 2.3mm/1 inherit; letter-spacing: .04em; text-transform: uppercase; color: #fff; background: #2f7d4c; border-radius: 1mm; padding: .6mm 1.2mm; }
+.ws-card.has-example .ws-dialog > .ws-say:first-child .ws-who::after { margin: 0 0 0 1.5mm; }

@@ -36,6 +36,7 @@ export const dialogue = {
     </div>
   ),
   score: (data, get) => scoreGaps((data.lines || []).flatMap((l, i) => gapKeys(l.text, `${i}`)), get),
+  example: (data) => Object.fromEntries(gapKeys(data.lines?.[0]?.text, '0').map(({ key, accept }) => [key, accept[0]])),
   Editor: ({ data, set }) => (
     <>
       <div className="ed-row"><Text label="Kõneleja A" value={data.speakerA} onChange={(v) => set({ speakerA: v })} /><Text label="Kõneleja B" value={data.speakerB} onChange={(v) => set({ speakerB: v })} /></div>
@@ -113,6 +114,7 @@ export const listening = {
     </div>
   ),
   score: (data, get) => scoreGaps(String(data.sentences || '').split('\n').filter((l) => l.trim()).flatMap((l, i) => gapKeys(l, `${i}`)), get),
+  example: (data) => Object.fromEntries(gapKeys(String(data.sentences || '').split('\n').find((l) => l.trim()), '0').map(({ key, accept }) => [key, accept[0]])),
   Editor: ({ data, set }) => (
     <>
       <AudioPick value={data.audio} onChange={(audio) => set({ audio })} />
@@ -225,6 +227,7 @@ export const wordorder = {
     </ol>
   ),
   score: (data, get) => String(data.sentences || '').split('\n').filter((l) => l.trim()).map((s, i) => ({ key: `${i}`, ok: norm(get(`${i}`)) === norm(s) })),
+  example: (data) => { const first = String(data.sentences || '').split('\n').find((l) => l.trim()); return first ? { 0: first.trim() } : {}; },
   Editor: ({ data, set }) => (
     <Area label="Õiged laused (iga rida eraldi)" rows={6} value={data.sentences} onChange={(v) => set({ sentences: v })} hint="Sõnad segatakse lehel automaatselt." />
   ),

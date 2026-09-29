@@ -1,25 +1,15 @@
 /* global ResizeObserver */
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { BLOCKS, numberTasks } from './registry.js';
+import { BLOCKS, exampleAnswers, numberTasks } from './registry.js';
 import { TONES } from './schema.js';
 import { Md, Target } from './ui.jsx';
+import { COLUMNS, rowsOf, snapSpan, spanOf } from './layout.js';
 
 // Renders a worksheet document as real A4 pages (270 mm design canvas, zoomed to A4 when printed).
 // The same component serves the editor (mode "edit"), the student (mode "interactive") and print ("print").
 
 const PAGE_H_MM = 381.86;
 const PAD_TOP = 11, PAD_BOTTOM = 9, FOOTER = 12, GAP = 4, RUNHEAD = 12;
-
-function rowsOf(blocks) {
-  // full-width blocks take a row; consecutive half-width blocks pair up
-  const rows = [];
-  for (let i = 0; i < blocks.length; i++) {
-    const b = blocks[i];
-    const n = blocks[i + 1];
-    if (b.width === 'half' && n && n.width === 'half') { rows.push([b, n]); i++; } else rows.push([b]);
-  }
-  return rows;
-}
 
 function Header({ meta }) {
   return (
@@ -39,16 +29,30 @@ const Footer = ({ meta, page, pages, bookPage }) => (
   <div className="ws-ftr"><div className="ws-fl">KeeleSepp <small>by EP Koolitus</small></div><em>{meta.footer?.tagline}</em><div className="ws-url">{meta.footer?.url}{bookPage ? ` · ${bookPage}` : pages > 1 ? ` · ${page}/${pages}` : ''}</div></div>
 );
 
-function Card({ block, num, mode, ctx, selected, onSelect, drag, focused, onPick }) {
+function Card({ block, num, mode, ctx, selected, onSelect, drag, focused, onPick, onResize }) {
   const def = BLOCKS[block.type];
   if (!def) return null;
   const tone = TONES[block.tone] || TONES.white;
   const plain = !def.task && block.tone === 'white';
   const d = block.data;
+  const opts = block.opts || {};
+  const example = exampleAnswers(block);
+  const hasExample = Object.keys(example).length > 0;
+  const base = ctx(block.id);
+  // the solved example is read-only and shown in every mode (edit, print, student)
+  const blockCtx = hasExample || opts.shuffle ? {
+    ...base,
+    shuffle: Boolean(opts.shuffle),
+    get: (k) => (k in example ? example[k] : base.get(k)),
+    set: (k, v) => { if (!(k in example)) base.set(k, v); },
+    state: (k) => (k in example ? undefined : base.state(k)),
+  } : base;
   return (
     <section
-      className={`ws-card ${plain ? 'plain' : ''} ${block.width === 'full' ? 'full' : ''} ${selected ? 'selected' : ''} ${focused ? 'focused' : ''} ${onPick ? 'pickable' : ''}`}
-      style={plain ? undefined : { background: tone.card }}
+      className={`ws-card ${plain ? 'plain' : ''} ${block.width === 'full' ? 'full' : ''} ${selected ? 'selected' : ''} ${focused ? 'focused' : ''} ${onPick ? 'pickable' : ''} ${hasExample ? 'has-example' : ''}`}
+      data-cols={opts.cols > 1 ? opts.cols : undefined}
+      data-size={opts.size || undefined}
+      style={{ ...(plain ? {} : { background: tone.card }), gridColumn: `span ${spanOf(block)}`, ...(block.minHeightMm ? { minHeight: `${block.minHeightMm}mm` } : {}) }}
       data-block={block.id}
       onClick={mode === 'edit' ? (e) => { e.stopPropagation(); onSelect?.(block.id); } : onPick ? () => onPick(block.id) : undefined}
       draggable={mode === 'edit'}
@@ -65,12 +69,62 @@ function Card({ block, num, mode, ctx, selected, onSelect, drag, focused, onPick
           </div>
         </div>
       )}
-      <def.View data={d} ctx={ctx(block.id)} id={block.id} />
+      <def.View data={d} ctx={blockCtx} id={block.id} />
+      {mode === 'edit' && selected && onResize ? <ResizeHandles block={block} onResize={onResize} /> : null}
     </section>
   );
 }
 
-export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnswer, results = {}, selectedId, onSelect, onMove, startPage, onPageCount, focusId, onPick }) {
+
+// Edit mode: drag the right edge to change the width (snaps to ¼ ⅓ ½ ⅔ ¾ full), the bottom edge to change the height.
+function ResizeHandles({ block, onResize }) {
+  const start = (event, axis) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const card = event.currentTarget.closest('.ws-card');
+    const row = card?.parentElement;
+    const page = card?.closest('.ws-page');
+    if (!card || !row || !page) return;
+    const rowRect = row.getBoundingClientRect();
+    const cardRect = card.getBoundingClientRect();
+    const pxPerMm = page.getBoundingClientRect().width / 270;
+    const colWidth = rowRect.width / COLUMNS;
+    const startCol = Math.round((cardRect.left - rowRect.left) / colWidth);
+    const move = (e) => {
+      if (axis === 'x') {
+        const raw = (e.clientX - rowRect.left) / colWidth - startCol;
+        card.dataset.previewSpan = String(snapSpan(Math.max(1, raw)));
+        card.style.gridColumn = `span ${Math.min(COLUMNS - startCol, snapSpan(Math.max(1, raw)))}`;
+      } else {
+        const mm = Math.max(20, (e.clientY - cardRect.top) / pxPerMm);
+        card.dataset.previewHeight = String(Math.round(mm));
+        card.style.minHeight = `${Math.round(mm)}mm`;
+      }
+    };
+    const up = () => {
+      globalThis.removeEventListener('pointermove', move);
+      globalThis.removeEventListener('pointerup', up);
+      // the click that ends a resize must not deselect the block
+      const swallow = (e) => e.stopPropagation();
+      globalThis.addEventListener('click', swallow, { capture: true, once: true });
+      globalThis.setTimeout(() => globalThis.removeEventListener('click', swallow, { capture: true }), 0);
+      if (axis === 'x' && card.dataset.previewSpan) onResize(block.id, { span: Number(card.dataset.previewSpan) });
+      if (axis === 'y' && card.dataset.previewHeight) onResize(block.id, { minHeightMm: Number(card.dataset.previewHeight) });
+      delete card.dataset.previewSpan;
+      delete card.dataset.previewHeight;
+    };
+    globalThis.addEventListener('pointermove', move);
+    globalThis.addEventListener('pointerup', up);
+  };
+  return (
+    <>
+      <span className="ws-resize ws-resize-x" role="separator" aria-orientation="vertical" aria-label="Muuda laiust" title="Lohista, et muuta laiust" onPointerDown={(e) => start(e, 'x')} onClick={(e) => e.stopPropagation()} />
+      <span className="ws-resize ws-resize-y" role="separator" aria-orientation="horizontal" aria-label="Muuda kõrgust" title="Lohista, et muuta kõrgust" onPointerDown={(e) => start(e, 'y')} onClick={(e) => e.stopPropagation()} />
+    </>
+  );
+}
+
+export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnswer, results = {}, selectedId, onSelect, onMove, onResize, startPage, onPageCount, focusId, onPick }) {
   const nums = useMemo(() => numberTasks(doc.blocks), [doc.blocks]);
   const [focus, setFocusState] = useState({});
   const interactive = mode === 'interactive';
@@ -130,8 +184,8 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
   useLayoutEffect(() => { onPageCount?.(pages.length); }, [pages.length, onPageCount]);
 
   const rowView = (row, key) => (
-    <div className={`ws-row ${row.length === 1 && row[0].width === 'half' ? 'single-half' : ''}`} key={key}>
-      {row.map((b) => <Card key={b.id} block={b} num={nums[b.id]} mode={mode} ctx={ctx} selected={selectedId === b.id} onSelect={onSelect} drag={drag} focused={focusId === b.id} onPick={onPick} />)}
+    <div className="ws-row" key={key}>
+      {row.map((b) => <Card key={b.id} block={b} num={nums[b.id]} mode={mode} ctx={ctx} selected={selectedId === b.id} onSelect={onSelect} drag={drag} focused={focusId === b.id} onPick={onPick} onResize={onResize} />)}
     </div>
   );
 

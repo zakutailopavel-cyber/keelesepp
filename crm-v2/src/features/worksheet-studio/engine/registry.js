@@ -11,7 +11,17 @@ export const GROUPS = ['Grammatika ja sõnavara', 'Teemad', 'Tekst ja heli', 'Pi
 
 export function createBlock(type) {
   const def = BLOCKS[type];
-  return { id: newId(), type, width: def.width, tone: def.tone, data: def.create() };
+  return { id: newId(), type, width: def.width, span: def.width === 'full' ? 12 : 6, tone: def.tone, data: def.create() };
+}
+
+// Task modifications (spec §2): block.opts = { cols: 1|2|3, example: bool, shuffle: bool, size: 'small'|'large' }.
+export const COLUMN_BLOCKS = new Set(['gaps', 'choice', 'truefalse', 'wordorder', 'reading', 'listening', 'selfcheck', 'categorize']);
+export const SHUFFLE_BLOCKS = new Set(['choice']);
+
+// Answers of the first item when "Näide" is on: shown solved, never scored.
+export function exampleAnswers(block) {
+  const def = BLOCKS[block?.type];
+  return block?.opts?.example && def?.example ? def.example(block.data || {}) || {} : {};
 }
 
 // Numbering is derived, never stored: moving a task renumbers the sheet automatically.
@@ -28,7 +38,8 @@ export function scoreDocument(doc, answers) {
     const def = BLOCKS[b.type];
     if (!def?.score) continue;
     const get = (k) => answers[`${b.id}:${k}`];
-    const items = def.score(b.data, get);
+    const example = exampleAnswers(b);
+    const items = def.score(b.data, get).filter((item) => !(item.key in example));
     perBlock[b.id] = items;
     const goal = b.goal || '_none';
     perGoal[goal] = perGoal[goal] || { ok: 0, total: 0 };
