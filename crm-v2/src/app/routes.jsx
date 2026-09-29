@@ -31,6 +31,8 @@ export default function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/registreeru" element={<LoginPage initialMode="register" />} />
+      <Route path="/register" element={<Navigate to="/registreeru" replace />} />
       <Route path="/forbidden" element={<ForbiddenPage />} />
       <Route element={<ProtectedRoute roles={ACCESS.ALL_AUTHENTICATED} />}>
         <Route element={<AppShell />}>

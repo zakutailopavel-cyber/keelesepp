@@ -63,6 +63,49 @@ builder. Open question for the owner: keep it as is, or rebuild adaptive routes 
 6. **Retire v1** after 2–3 weeks of daily work without going back to v1, and once all issued v1 assignments are
    finished or expired. v1 stays reachable read-only for one more month, then is switched off.
 
+## Domain switch (owner decision 2026-09-29: v2 becomes the main CRM address)
+
+Today one Vercel project (`keelesepp`, v1) serves both the school website and the old CRM on `www.epkoolitus.ee`,
+`epkoolitus.ee` and `crm.epkoolitus.ee`. The switch moves **only `crm.epkoolitus.ee`** to the `keelesepp-crm-v2`
+project:
+
+| Address | After the switch |
+|---|---|
+| `crm.epkoolitus.ee/` | CRM v2 (login, registration at `/registreeru`, cabinets) |
+| `crm.epkoolitus.ee/haldus…`, `/tasemetest`, `/kutse`, `/privaatsus`, `/tingimused`, `/interactive-lesson/…` | temporary (307) redirect to the same path on `www.epkoolitus.ee`, so old bookmarks, registration links (`/haldus#registreeru`) and v1-only tools keep working |
+| `www.epkoolitus.ee` | unchanged: school website + v1 CRM at `/haldus` (fallback and remaining v1 tools) |
+
+Ready in code (PR "v2 registration + legacy redirects"): self-registration for parents and students (same profile and
+terms fields as v1, server account bootstrap links the student card), password reset from the login page, a new Google
+account is asked for role + terms instead of landing on "Ligipääs puudub", redirects in `crm-v2/vercel.json`.
+
+Order (each step reversible by moving the domain back in Vercel):
+1. The v2 production deployment that contains the PR above is live (check `/registreeru` on the v2 address).
+2. Vercel → project `keelesepp` → Domains: remove `crm.epkoolitus.ee`; project `keelesepp-crm-v2` → Domains: add it.
+   DNS already points `crm` at Vercel, so no DNS change is needed.
+3. Firebase Authentication → Authorized domains: `crm.epkoolitus.ee` must be listed (it is used by v1 today).
+4. Smoke on `crm.epkoolitus.ee`: login (email + Google), `/registreeru`, `/haldus` redirect, student `/student`,
+   parent `/parent`, Live Classroom video.
+5. After the switch (functions deploy, owner's word): e-mail button "Ava KeeleSepp kabinet" and invoice e-mails still
+   use `APP_BASE_URL` = `www.epkoolitus.ee/haldus/` (v1). Point the cabinet link at `https://crm.epkoolitus.ee/`,
+   but keep the Google Calendar OAuth return on v1 until v2 has its own "connect Google Calendar" screen.
+
+## Still needed before v1 can be switched off (checked 2026-09-29)
+
+Blocking for daily work in v2 only:
+- Vercel paid plan (or fewer deploys): the free build limit delays every production fix by up to 24 h.
+- Role smoke by the owner (step 2 above), then real lessons in v2 for 2–3 weeks.
+- Storage CORS (`gsutil cors set storage.cors.json gs://keelesepp-5136b.firebasestorage.app`), needed for photo
+  cutting in the studio.
+- TURN server for Live Classroom video on strict networks.
+
+Blocking for switching v1 off (can wait, v1 stays at `www.epkoolitus.ee/haldus`):
+- Google Calendar connect screen in v2 (OAuth return currently lands in v1).
+- Remaining v1 functions list above (Minu tööpäev/curriculum, level test, board outside the lesson, team tasks,
+  notification centre, admin tools) and playing issued v1 lesson assignments.
+- Instagram outbound messages.
+- E-mail links (`APP_BASE_URL`) moved to v2.
+
 ## Risks
 
 - Vercel free plan hit its build limit several times on 2026-09-29: production updates may be delayed; consider a
