@@ -62,7 +62,149 @@ function libraryItem(kind, source) {
     source.lessonTypeLabel,
     ...(source.tags || []),
   ].join(' '));
+  // table-of-contents position and "find by content" fields
+  item.moduleNumber = Number(source.roadmapModuleNumber) || moduleNumberFromTitle(source.roadmapModuleTitle || source.topic);
+  item.moduleTitle = source.roadmapModuleTitle || (String(source.topic || '').startsWith('__exam__') ? '' : source.topic) || '';
+  item.moduleKey = item.moduleTitle ? `${item.level || '—'}|${item.moduleTitle}` : (item.examPart || String(source.topic || '').startsWith('__exam__') ? `${item.level || '—'}|__exam__` : `${item.level || '—'}|__other__`);
+  // exam practice and loose materials come after the numbered modules of the level
+  if (item.moduleKey.endsWith('|__exam__')) item.moduleNumber = 900;
+  else if (item.moduleKey.endsWith('|__other__')) item.moduleNumber = 950;
+  else if (!item.moduleNumber) item.moduleNumber = 800;
+  item.lessonNumber = Number(source.roadmapLessonNumber) || Number(source.order) || 0;
+  item.updatedAt = String(source.worksheetDocUpdatedAt || source.updatedAt || source.createdAt || '');
+  item.authorUid = source.authorUid || '';
+  item.authorName = source.authorName || '';
+  item.fileCount = (source.files || []).length;
+  item.languageFocus = source.languageFocus || '';
+  item.contentFields = contentFields(source);
+  item.contentText = normalize(item.contentFields.map(([, text]) => text).join(' '));
   return item;
+}
+
+function moduleNumberFromTitle(title) {
+  const match = String(title || '').match(/^\s*(\d{1,3})[.)]/);
+  return match ? Number(match[1]) : 0;
+}
+
+const SKIP_KEYS = new Set(['img', 'image', 'src', 'url', 'id', 'type', 'width', 'tone', 'goal', 'answer', 'answers', 'color', 'focus', 'schema']);
+
+function collectStrings(value, out, depth = 0) {
+  if (out.length > 400 || depth > 8 || value == null) return;
+  if (typeof value === 'string') { if (value.trim().length > 1 && !value.startsWith('data:') && !/^https?:/.test(value)) out.push(value); return; }
+  if (Array.isArray(value)) { value.forEach((entry) => collectStrings(entry, out, depth + 1)); return; }
+  if (typeof value === 'object') for (const [key, entry] of Object.entries(value)) if (!SKIP_KEYS.has(key)) collectStrings(entry, out, depth + 1);
+}
+
+// Text a teacher remembers from a lesson or worksheet: focus, goals, tasks and the worksheet itself.
+function contentFields(source) {
+  const fields = [
+    ['Keelefookus', source.languageFocus],
+    ['Eesmärk', source.goal || source.builderObjectives],
+    ['Harjutamine', source.practice],
+    ['Edukriteeriumid', source.successCriteria],
+    ['Moodul', source.roadmapModuleTitle],
+  ].filter(([, text]) => text);
+  for (const doc of [source.worksheetDoc, source.worksheetData]) {
+    if (!doc) continue;
+    const strings = [];
+    collectStrings({ meta: doc.meta, blocks: doc.blocks }, strings);
+    if (strings.length) fields.push(['Tööleht', strings.join(' · ')]);
+  }
+  return fields.map(([label, text]) => [label, String(text)]);
+}
+
+export const LEVEL_ORDER = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+const levelRank = (level) => { const i = LEVEL_ORDER.indexOf(String(level || '').toUpperCase()); return i === -1 ? 99 : i; };
+
+function snippetFor(item, tokens) {
+  for (const [label, text] of item.contentFields || []) {
+    const norm = normalize(text);
+    const at = tokens.map((token) => norm.indexOf(token)).filter((index) => index >= 0).sort((a, b) => a - b)[0];
+    if (at === undefined) continue;
+    const start = Math.max(0, at - 40);
+    const piece = text.slice(start, start + 140).replace(/\s+/g, ' ').trim();
+    return { label, text: `${start ? '…' : ''}${piece}${start + 140 < text.length ? '…' : ''}` };
+  }
+  return null;
+}
+
+// Instant search over everything: every word must match the title/meta or the lesson content.
+export function searchLibrary(items, { query = '', level = '', module = '', type = '', favorites = null, mineUid = '' } = {}) {
+  const tokens = normalize(query).split(/\s+/).filter(Boolean);
+  const results = [];
+  for (const item of items) {
+    if (level && (item.level || '—') !== level) continue;
+    if (module && item.moduleKey !== module) continue;
+    if (type && item.type !== type) continue;
+    if (favorites && !favorites.has(item.key)) continue;
+    if (mineUid && item.authorUid !== mineUid) continue;
+    if (!tokens.length) { results.push({ item, score: 0, snippet: null }); continue; }
+    let score = 0;
+    let ok = true;
+    for (const token of tokens) {
+      const inTitle = normalize(item.title).includes(token);
+      const inMeta = item.searchText.includes(token);
+      const inContent = item.contentText.includes(token);
+      if (!inMeta && !inContent) { ok = false; break; }
+      score += inTitle ? 10 : inMeta ? 5 : 1;
+    }
+    if (!ok) continue;
+    const titleOnly = tokens.every((token) => item.searchText.includes(token));
+    results.push({ item, score, snippet: titleOnly ? null : snippetFor(item, tokens) });
+  }
+  return results;
+}
+
+export function sortLibrary(results, sort = 'toc') {
+  const list = [...results];
+  const byToc = (a, b) => levelRank(a.item.level) - levelRank(b.item.level)
+    || (a.item.moduleNumber || 999) - (b.item.moduleNumber || 999)
+    || a.item.moduleTitle.localeCompare(b.item.moduleTitle, 'et')
+    || (a.item.lessonNumber || 999) - (b.item.lessonNumber || 999)
+    || a.item.title.localeCompare(b.item.title, 'et', { numeric: true });
+  if (sort === 'recent') return list.sort((a, b) => b.item.updatedAt.localeCompare(a.item.updatedAt) || byToc(a, b));
+  if (sort === 'title') return list.sort((a, b) => a.item.title.localeCompare(b.item.title, 'et', { numeric: true }));
+  if (sort === 'relevance') return list.sort((a, b) => b.score - a.score || byToc(a, b));
+  return list.sort(byToc);
+}
+
+export function levelFacets(items) {
+  const counts = new Map();
+  for (const item of items) counts.set(item.level || '—', (counts.get(item.level || '—') || 0) + 1);
+  return [...counts.entries()].map(([key, count]) => ({ key, label: key === '—' ? 'Tasemeta' : key, count }))
+    .sort((a, b) => levelRank(a.key) - levelRank(b.key) || a.label.localeCompare(b.label, 'et'));
+}
+
+export function moduleLabel(key, item) {
+  if (key.endsWith('|__exam__')) return 'Eksamiks harjutamine';
+  if (key.endsWith('|__other__')) return 'Muud materjalid';
+  return item?.moduleTitle || key.split('|').slice(1).join('|');
+}
+
+export function moduleFacets(items) {
+  const groups = new Map();
+  for (const item of items) {
+    if (!groups.has(item.moduleKey)) groups.set(item.moduleKey, { key: item.moduleKey, label: moduleLabel(item.moduleKey, item), level: item.level || '—', number: item.moduleNumber || 999, count: 0 });
+    groups.get(item.moduleKey).count += 1;
+  }
+  return [...groups.values()].sort((a, b) => levelRank(a.level) - levelRank(b.level) || a.number - b.number || a.label.localeCompare(b.label, 'et', { numeric: true }));
+}
+
+export function typeFacets(items) {
+  const counts = new Map();
+  for (const item of items) counts.set(item.type, (counts.get(item.type) || 0) + 1);
+  return Object.keys(LIBRARY_TYPES).filter((key) => counts.has(key)).map((key) => ({ key, label: LIBRARY_TYPES[key].label, count: counts.get(key) }));
+}
+
+// consecutive results of the same module form one section of the table of contents
+export function sectionsByModule(results) {
+  const sections = [];
+  for (const result of results) {
+    const last = sections[sections.length - 1];
+    if (last && last.key === result.item.moduleKey) last.results.push(result);
+    else sections.push({ key: result.item.moduleKey, level: result.item.level, label: moduleLabel(result.item.moduleKey, result.item), results: [result] });
+  }
+  return sections;
 }
 
 export function buildLibraryItems(curriculumLessons = [], exercises = []) {

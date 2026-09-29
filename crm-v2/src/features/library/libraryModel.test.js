@@ -1,5 +1,10 @@
 import {
   buildLibraryItems,
+  levelFacets,
+  moduleFacets,
+  searchLibrary,
+  sectionsByModule,
+  sortLibrary,
   curriculumType,
   filterLibraryItems,
   groupLibraryItems,
@@ -50,5 +55,36 @@ describe('CRM v2 learning library model', () => {
       topic: '__exam__kirjutamine',
     }]);
     expect(groupLibraryItems(items, 'topic')[0]).toMatchObject({ key: '__exam__:kirjutamine', label: 'Eksam: Kirjutamine' });
+  });
+});
+
+describe('library search and table of contents', () => {
+  const lessons = [
+    { id: 'b1-2', title: 'Partitiiv toidu juures', level: 'B1', roadmapModuleTitle: 'Toit ja teenindus', roadmapModuleNumber: 6, roadmapLessonNumber: 2, updatedAt: '2026-09-01T10:00:00Z' },
+    { id: 'b1-1', title: 'Menüü lugemine', level: 'B1', roadmapModuleTitle: 'Toit ja teenindus', roadmapModuleNumber: 6, roadmapLessonNumber: 1, languageFocus: 'Kogus, partitiiv', updatedAt: '2026-09-20T10:00:00Z' },
+    { id: 'b1-0', title: 'Minu päev', level: 'B1', roadmapModuleTitle: 'Igapäevaelu', roadmapModuleNumber: 1, roadmapLessonNumber: 1, updatedAt: '2026-08-01T10:00:00Z' },
+    { id: 'a2', title: 'Tööleht kellast', level: 'A2', topic: 'Aeg', worksheetDoc: { meta: { title: 'Tööleht kellast' }, blocks: [{ type: 'gaps', data: { instruction: 'Kirjuta, mis kell on.' } }] } },
+  ];
+  const items = buildLibraryItems(lessons, []);
+
+  it('orders like a textbook: level, module number, lesson number', () => {
+    const order = sortLibrary(searchLibrary(items), 'toc').map((r) => r.item.sourceId);
+    expect(order).toEqual(['a2', 'b1-0', 'b1-1', 'b1-2']);
+    const sections = sectionsByModule(sortLibrary(searchLibrary(items, { level: 'B1' }), 'toc'));
+    expect(sections.map((s) => [s.label, s.results.length])).toEqual([['Igapäevaelu', 1], ['Toit ja teenindus', 2]]);
+  });
+
+  it('needs every word, ranks title matches first and explains content matches', () => {
+    const results = sortLibrary(searchLibrary(items, { query: 'partitiiv' }), 'relevance');
+    expect(results.map((r) => r.item.sourceId)).toEqual(['b1-2', 'b1-1']);
+    expect(results[1].snippet).toEqual({ label: 'Keelefookus', text: 'Kogus, partitiiv' });
+    expect(searchLibrary(items, { query: 'partitiiv menüü' }).map((r) => r.item.sourceId)).toEqual(['b1-1']);
+    expect(searchLibrary(items, { query: 'mis kell' })[0].snippet.label).toBe('Tööleht');
+  });
+
+  it('facets count what is left after the other filters and sorts by last change', () => {
+    expect(levelFacets(items).map((f) => [f.key, f.count])).toEqual([['A2', 1], ['B1', 3]]);
+    expect(moduleFacets(searchLibrary(items, { level: 'B1' }).map((r) => r.item)).map((f) => f.label)).toEqual(['Igapäevaelu', 'Toit ja teenindus']);
+    expect(sortLibrary(searchLibrary(items, { level: 'B1' }), 'recent')[0].item.sourceId).toBe('b1-1');
   });
 });
