@@ -1,5 +1,27 @@
 # KeeleSepp Project State
 
+## 2026-09-30 — Public growth platform v1 (local block, not committed or deployed)
+
+Last verified main: `9e2ae40` after `git fetch origin --prune`. Active branch: `agent/public-growth-platform-v1`.
+PR: not opened. Goal: one cohesive public funnel rather than a series of small Vercel-triggering commits.
+
+Implemented locally: the adaptive level test now describes its real 6-15 question path and submits the result through
+`websiteLeadApi`; the normalized `websiteLeads` record can contain bounded diagnostic score/skill data and its source;
+CRM v2 has a staff-only `Päringud` queue with status transitions; Firestore permits staff reads and four-field workflow
+updates only; the new `/oppematerjalid/` hub contains the first three indexable topic pages and is linked from the
+homepage and sitemap. Full contract and release gates: `docs/PUBLIC_GROWTH_V1.md`.
+
+Checks: Functions full suite 188/188; CRM v2 ESLint clean, production build OK, Vitest 102 files / 452 tests;
+Firestore rules dry-run compiled successfully; level-test inline JavaScript syntax OK; sitemap XML parses;
+`git diff --check` clean. The in-app browser verified
+the current production homepage and test before implementation, but could not reach the isolated local HTTP server,
+so visual verification of the new public pages remains pending. No production service, data, function, rules or Vercel
+deployment was changed.
+
+Known gates: `websiteLeadApi` and Firestore rules need separate owner-approved Firebase deploys; merging/pushing would
+trigger Vercel and has intentionally not been done. Exactly one next safe step: perform a local visual review using a
+browser that can reach the worktree server, then make one commit and open one draft PR for the complete block.
+
 ## 2026-09-29 — crm.epkoolitus.ee now serves CRM v2
 
 `crm.epkoolitus.ee` points at the `keelesepp-crm-v2` Vercel project. v2 has self-registration (`/registreeru`),

@@ -85,6 +85,14 @@
       "destination": "/tasemetest.html"
     },
     {
+      "source": "/oppematerjalid",
+      "destination": "/oppematerjalid/index.html"
+    },
+    {
+      "source": "/oppematerjalid/",
+      "destination": "/oppematerjalid/index.html"
+    },
+    {
       "source": "/privaatsus",
       "destination": "/privaatsus.html"
     },

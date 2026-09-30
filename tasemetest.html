@@ -144,7 +144,7 @@ footer{background:var(--ink);color:rgba(255,255,255,.72);padding:24px 0;font-siz
           <a class="btn btn-ghost" href="#kuidas">Kuidas hinnang toimib</a>
         </div>
         <div class="hero-meta">
-          <div><strong>15</strong><span>küsimust eri raskusastmetel</span></div>
+          <div><strong>6–15</strong><span>adaptiivset küsimust vastuste järgi</span></div>
           <div><strong>6-8 min</strong><span>rahulikus tempos vastamiseks</span></div>
           <div><strong>A1-C1</strong><span>tase, tugevused ja soovitus</span></div>
         </div>
@@ -230,7 +230,7 @@ footer{background:var(--ink);color:rgba(255,255,255,.72);padding:24px 0;font-siz
                 <textarea class="full" id="leadMessage" rows="4" placeholder="Soovi korral lisa oma eesmärk: töö, eksam, vestluspraktika, grammatika..."></textarea>
                 <button class="btn btn-amber full" type="submit">Saada tulemus KeeleSepale</button>
               </form>
-              <p class="lead-note">Vorm avab sinu e-posti programmi valmis kirjaga. Nii saad selle ühe klikiga teele panna ka ilma eraldi serverita.</p>
+              <p class="lead-note">Saadame tulemuse turvaliselt KeeleSepale, et õpetaja saaks soovitada sobivat järgmist sammu.</p>
             </div>
 
             <div class="hero-actions" style="margin-top:20px">
@@ -867,22 +867,38 @@ restartBtn.addEventListener("click", () => resetTest(activeLanguage));
 
 leadForm.addEventListener("submit", event => {
   event.preventDefault();
-  const name = encodeURIComponent(document.getElementById("leadName").value.trim());
-  const email = encodeURIComponent(document.getElementById("leadEmail").value.trim());
-  const level = encodeURIComponent(document.getElementById("leadLevel").value.trim());
-  const language = encodeURIComponent(document.getElementById("leadLanguage").value.trim());
-  const message = encodeURIComponent(document.getElementById("leadMessage").value.trim());
-  const subject = `Tasemetesti tulemus: ${decodeURIComponent(level)} (${decodeURIComponent(language)})`;
-  const body = [
-    `Nimi: ${decodeURIComponent(name)}`,
-    `E-post: ${decodeURIComponent(email)}`,
-    `Testi keel: ${decodeURIComponent(language)}`,
-    `Soovituslik tase: ${decodeURIComponent(level)}`,
-    "",
-    "Eesmärk / kommentaar:",
-    decodeURIComponent(message) || "-"
-  ].join("\n");
-  window.location.href = `mailto:info@epkoolitus.ee?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  const submit = leadForm.querySelector('button[type="submit"]');
+  const result = calculateResult();
+  const payload = {
+    name: document.getElementById("leadName").value.trim(),
+    email: document.getElementById("leadEmail").value.trim(),
+    language: tests[activeLanguage].studentTrackLabel,
+    level: document.getElementById("leadLevel").value.trim(),
+    message: document.getElementById("leadMessage").value.trim(),
+    locale: document.documentElement.lang || "et",
+    page: location.pathname,
+    source: "level-test",
+    assessment: {
+      diagnosticId: diagnosticCode.textContent,
+      score: result.weightedScore,
+      answered: currentSet().length,
+      skills: Object.fromEntries(Object.entries(result.skills).map(([key, value]) => [key, value.max ? Math.round((value.score / value.max) * 100) : 0])),
+    },
+  };
+  submit.disabled = true;
+  submit.textContent = "Saadan…";
+  fetch("https://us-central1-keelesepp-5136b.cloudfunctions.net/websiteLeadApi", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  }).then(response => {
+    if (!response.ok) throw new Error("failed");
+    leadForm.innerHTML = '<p role="status"><strong>Tulemus on saadetud.</strong><br>KeeleSepp saab nüüd soovitada sulle sobivat kursust.</p>';
+  }).catch(() => {
+    submit.disabled = false;
+    submit.textContent = "Saada tulemus KeeleSepale";
+    alert("Tulemust ei saanud saata. Palun proovi uuesti või kirjuta info@epkoolitus.ee.");
+  });
 });
 
 resetTest("et");

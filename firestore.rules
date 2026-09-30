@@ -1247,6 +1247,17 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    match /websiteLeads/{leadId} {
+      allow read: if isStaff();
+      allow update: if isStaff()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'contactOwner', 'contactLastAt', 'contactNotes']);
+      allow create, delete: if false;
+    }
+
+    match /websiteLeadThrottle/{throttleId} {
+      allow read, write: if false;
+    }
+
     match /worksheetAssignments/{assignmentId} {
       allow read: if isStaff() || ownsStudent(resource.data.studentId);
       allow create, delete: if isStaff();

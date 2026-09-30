@@ -7,6 +7,8 @@
 const LANGUAGES = ["Eesti keel", "Inglise keel"];
 const LEVELS = ["A1", "A2", "B1", "B2", "C1", "Ei tea oma taset", "Eratunnid", "Määramata"];
 const SITE_LOCALES = ["et", "ru", "en"];
+const SOURCES = ["website-registration", "level-test"];
+const SKILLS = ["grammar", "vocabulary", "reading"];
 const MAX_PER_HOUR = 5;
 
 const clean = (value, max) => String(value ?? "").replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, "").trim().slice(0, max);
@@ -23,7 +25,18 @@ function normalizeWebsiteLead(body = {}) {
     message: clean(body.message, 2000),
     locale: SITE_LOCALES.includes(body.locale) ? body.locale : "et",
     page: clean(body.page, 200),
+    source: SOURCES.includes(body.source) ? body.source : "website-registration",
   };
+  if (lead.source === "level-test") {
+    const score = Number(body.assessment?.score);
+    const answered = Number(body.assessment?.answered);
+    lead.assessment = {
+      diagnosticId: clean(body.assessment?.diagnosticId, 80),
+      score: Number.isFinite(score) ? Math.max(0, Math.min(100, Math.round(score))) : 0,
+      answered: Number.isFinite(answered) ? Math.max(0, Math.min(50, Math.round(answered))) : 0,
+      skills: Object.fromEntries(SKILLS.map(skill => [skill, Math.max(0, Math.min(100, Math.round(Number(body.assessment?.skills?.[skill]) || 0)))])),
+    };
+  }
   const errors = [];
   if (lead.name.length < 2) errors.push("name");
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(lead.email)) errors.push("email");
@@ -47,6 +60,12 @@ function composeWebsiteLeadEmail(lead, { to = "info@epkoolitus.ee" } = {}) {
     ["Telefon", lead.phone || "—"],
     ["Keel", lead.language],
     ["Tase", lead.level],
+    ["Allikas", lead.source === "level-test" ? "Tasemetest" : "Kodulehe registreerimisvorm"],
+    ...(lead.assessment ? [
+      ["Diagnostika", lead.assessment.diagnosticId || "—"],
+      ["Tulemus", `${lead.assessment.score}/100 (${lead.assessment.answered} vastust)`],
+      ["Oskused", Object.entries(lead.assessment.skills).map(([skill, score]) => `${skill}: ${score}%`).join(", ")],
+    ] : []),
     ["Lehe keel", lead.locale.toUpperCase()],
     ["Lisainfo", lead.message || "—"],
   ];
