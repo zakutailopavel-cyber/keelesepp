@@ -28,6 +28,7 @@ function repositories({ events = [], records = [] } = {}) {
       update: vi.fn(),
       patch: vi.fn().mockResolvedValue({}),
       remove: vi.fn().mockResolvedValue(undefined),
+      restore: vi.fn().mockResolvedValue({}),
       cancel: vi.fn(),
     },
     studentRepository: {
@@ -171,5 +172,25 @@ describe('calendar v2', () => {
     fireEvent.pointerUp(block, { clientX: 5000, clientY: 166, pointerId: 1 });
     expect(await screen.findByRole('alert')).toHaveTextContent('juba teine tund');
     expect(props.scheduleRepository.patch).not.toHaveBeenCalled();
+  });
+
+  it('deletes a lesson added by mistake and can bring it back', async () => {
+    const props = renderCalendar({ events: [lesson({ gcalEventId: 'g-old', gcalSyncStatus: 'synced' })] });
+    fireEvent.click(await screen.findByRole('button', { name: /10:00 Mari Maas/ }));
+    fireEvent.click(within(screen.getByRole('dialog', { name: 'Tund: Mari Maas' })).getByRole('button', { name: /Kustuta/ }));
+    fireEvent.click(within(screen.getByRole('dialog', { name: 'Kustuta tund' })).getByRole('button', { name: 'Kustuta' }));
+    await waitFor(() => expect(props.scheduleRepository.remove).toHaveBeenCalledWith('schedule-1'));
+    fireEvent.click(await screen.findByRole('button', { name: /Tühista/ }));
+    await waitFor(() => expect(props.scheduleRepository.restore).toHaveBeenCalledWith('schedule-1', expect.objectContaining({ studentId: 's1', time: '10:00' })));
+    expect(props.scheduleRepository.restore.mock.calls[0][1]).not.toHaveProperty('gcalEventId');
+  });
+
+  it('deletes only one date of a weekly lesson', async () => {
+    const props = renderCalendar({ events: [lesson({ recurring: true, day: undefined })] });
+    fireEvent.click(await screen.findByRole('button', { name: /10:00 Mari Maas/ }));
+    fireEvent.click(within(screen.getByRole('dialog', { name: 'Tund: Mari Maas' })).getByRole('button', { name: /Kustuta/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Ainult see tund' }));
+    await waitFor(() => expect(props.scheduleRepository.patch).toHaveBeenCalledWith('schedule-1', { excludedDates: [today] }));
+    expect(props.scheduleRepository.remove).not.toHaveBeenCalled();
   });
 });

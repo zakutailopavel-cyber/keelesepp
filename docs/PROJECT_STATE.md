@@ -27,9 +27,16 @@ Done:
   lessons, inactive groups, switching the setting off and handing a group to another teacher delete the event. The
   import skips group events. Series without a start date use `anchorDate` = the day of the first push.
 - Firestore rule: `calendarGroupEventLinks` read/write false.
+- **"Kustuta" in the lesson panel** (owner 2026-09-30: a lesson put in by mistake, wrong student or wrong day, could not
+  be deleted). Next to "Tühista tund" (lesson does not take place) the panel has "Kustuta" with a confirmation: a one-off
+  lesson is removed (`schedule` doc deleted → the trigger deletes its Google event); a weekly lesson asks "Ainult see
+  tund" (date into `excludedDates`) or "See ja kõik järgmised" (`endDate` = day before; the whole record is deleted only
+  from its first date and when it has no `lessons` records). Undo toast restores the same record under the same id
+  (`scheduleService.restore`, Google link fields stripped so a fresh event is created). Not offered for held/absent
+  lessons, group lessons or lessons imported from Google. Pure planner `planDelete` in `calendarGrid.js`.
 
 Checks (2026-09-30): functions `npm test` 201/201 (new `calendar-group-sync-core.test.js`,
-`calendar-group-sync-behavior.test.js`); crm-v2 vitest 467/467, ESLint clean, `vite build` OK. Not run: emulator
+`calendar-group-sync-behavior.test.js`); crm-v2 vitest 470/470, ESLint clean, `vite build` OK. Not run: emulator
 suite, a real Google account, visual check in a browser.
 
 Needs with the merge (owner's word): deploy functions `gcalApi`, `syncAllCalendars`, `syncGroupToGoogleCalendar` (new)

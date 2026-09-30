@@ -8,7 +8,7 @@ import { groupsService, lessonsService, libraryService, scheduleService, student
 import { hasScheduleConflict } from '../../services/firebase/schedule.js';
 import { ROLES } from '../../utils/roles.js';
 import { datesForView, filterCalendarEvents, groupCalendarEvents, occurrencesForDates, shiftDate, toIsoDate } from './calendarView.js';
-import { canMove, planMove, teacherTone } from './calendarGrid.js';
+import { canMove, planDelete, planMove, teacherTone } from './calendarGrid.js';
 import { buildTopicCatalog, suggestTopic, topicFields, topicLine } from './lessonTopic.js';
 import TimeGrid from './TimeGrid.jsx';
 import LessonPanel from './LessonPanel.jsx';
@@ -108,6 +108,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
   const [panelSaving, setPanelSaving] = useState(false);
   const [attendanceSaving, setAttendanceSaving] = useState('');
   const [moveAsk, setMoveAsk] = useState(null);
+  const [deleteAsk, setDeleteAsk] = useState(null);
   const [undo, setUndo] = useState(null);
   const [quickCompleting, setQuickCompleting] = useState('');
   const isAdmin = user.roles.includes(ROLES.ADMIN);
@@ -195,6 +196,8 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
       if (op.op === 'patch') await scheduleRepository.patch(op.id, op.fields);
       else if (op.op === 'create') created[op.key] = (await scheduleRepository.create(op.data)).id;
       else if (op.op === 'remove' && created[op.key]) await scheduleRepository.remove(created[op.key]);
+      else if (op.op === 'delete') await scheduleRepository.remove(op.id);
+      else if (op.op === 'restore') await scheduleRepository.restore(op.id, op.data);
     }
     return created;
   };
@@ -269,6 +272,26 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
       setPanelKey('');
       await state.reload();
     } catch (error) { setPanelError(error.message); } finally { setPanelSaving(false); }
+  };
+  // Delete a lesson added by mistake (wrong student, wrong day). Cancelling ("Tühista tund") is for a lesson that
+  // was planned but does not take place.
+  const deleteLesson = async (scope) => {
+    const item = deleteAsk;
+    setDeleteAsk(null);
+    if (!item) return;
+    setPanelSaving(true); setPanelError(''); setActionError('');
+    try {
+      const plan = planDelete(item, {
+        scope,
+        stored: scheduleEvents.find((entry) => entry.id === item.id) || item,
+        hasRecords: lessonRecords.some((lesson) => lesson.scheduleId === item.id),
+      });
+      await runOps(plan.apply, item);
+      const when = new Date(`${item.occurrenceDate}T12:00:00`).toLocaleDateString('et-EE', { weekday: 'short', day: 'numeric', month: 'short' });
+      setUndo({ label: `${item.studentName || 'Tund'} ${when} kustutatud${item.recurring && scope === 'series' ? ' (ja järgmised)' : ''}`, plan, created: {}, item });
+      setPanelKey('');
+      await state.reload();
+    } catch (error) { setPanelError(error.message || 'Kustutamine ebaõnnestus.'); } finally { setPanelSaving(false); }
   };
   const setAttendance = async (studentId, status) => {
     if (!panelGroup || !panelItem?.occurrenceDate) return;
@@ -362,6 +385,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
           onDone={markDone}
           onEdit={() => openEdit(panelItem)}
           onCancelLesson={cancelOccurrence}
+          onDeleteLesson={() => setDeleteAsk(panelItem)}
         >
           {panelItem.isGroup ? (
             <div className="attendance-sheet lp-attendance">
@@ -379,6 +403,12 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
 
     <Modal open={Boolean(moveAsk)} title="Korduv tund" onClose={() => setMoveAsk(null)} footer={<><Button variant="secondary" onClick={() => setMoveAsk(null)}>Loobu</Button><Button variant="secondary" onClick={() => executeMove(moveAsk, 'series')}>See ja kõik järgmised</Button><Button onClick={() => executeMove(moveAsk, 'single')}>Ainult see tund</Button></>}>
       {moveAsk ? <p>Tõsta <b>{moveAsk.item.studentName}</b> tund ({moveAsk.item.occurrenceDate} {moveAsk.item.time}) uuele ajale <b>{moveAsk.toDate} {moveAsk.time}</b>?</p> : null}
+    </Modal>
+
+    <Modal open={Boolean(deleteAsk)} title="Kustuta tund" onClose={() => setDeleteAsk(null)} footer={deleteAsk?.recurring
+      ? <><Button variant="secondary" onClick={() => setDeleteAsk(null)}>Loobu</Button><Button variant="danger" onClick={() => deleteLesson('series')}>See ja kõik järgmised</Button><Button variant="danger" onClick={() => deleteLesson('single')}>Ainult see tund</Button></>
+      : <><Button variant="secondary" onClick={() => setDeleteAsk(null)}>Loobu</Button><Button variant="danger" onClick={() => deleteLesson('single')}>Kustuta</Button></>}>
+      {deleteAsk ? <p>Kustutada <b>{deleteAsk.studentName || 'õpilase'}</b> tund {new Date(`${deleteAsk.occurrenceDate}T12:00:00`).toLocaleDateString('et-EE', { weekday: 'long', day: 'numeric', month: 'long' })} kell {deleteAsk.time}? Tund kaob kalendrist ja Google Calendarist; kohe pärast saad selle tagasi võtta.{deleteAsk.recurring ? ' Tund kordub igal nädalal: vali, kas kustutada ainult see kuupäev või ka kõik järgmised.' : ''}</p> : null}
     </Modal>
 
     <Modal open={modal} title={editing ? 'Muuda tundi' : 'Uus tund'} onClose={closeModal} footer={<>{editing ? <Button variant="danger" disabled={saving || Boolean(editing.lessonRecordId)} onClick={async () => { if (!globalThis.confirm('Kas tühistada kogu tund/sari?')) return; setSaving(true); try { await scheduleRepository.cancel(editing.id, editing); setModal(false); setEditing(null); setPanelKey(''); await state.reload(); } catch (error) { setActionError(error.message); } finally { setSaving(false); } }}><XCircle size={17} /> {editing.recurring ? 'Tühista kogu sari' : 'Tühista tund'}</Button> : null}<span className="modal__footer-spacer" /><Button variant="secondary" onClick={closeModal}>Loobu</Button><Button loading={saving} type="submit" form="lesson-form">{editing ? 'Salvesta muudatused' : 'Salvesta tund'}</Button></>}><form id="lesson-form" className="form-grid" onSubmit={submit}>{actionError && modal ? <p className="form-error form-grid__wide" role="alert">{actionError}</p> : null}<StudentCombobox students={students.items} value={form.studentId} onChange={(studentId) => setForm({ ...form, studentId })} /><Input label="Kuupäev" type="date" value={form.date} onChange={(event) => setForm({ ...form, date: event.target.value })} required /><Input label="Kellaaeg" type="time" value={form.time} onChange={(event) => setForm({ ...form, time: event.target.value })} required /><Input label="Kestus minutites" type="number" min="5" step="5" value={form.duration} onChange={(event) => setForm({ ...form, duration: event.target.value })} required />{editing ? null : <label className="checkbox-field"><input type="checkbox" checked={form.recurring} onChange={(event) => setForm({ ...form, recurring: event.target.checked })} /><span>Kordub igal nädalal</span></label>}{editing?.recurring ? <p className="form-grid__wide form-hint">Siin muudetud aeg kehtib kogu sarjale. Ühe tunni muutmiseks lohista see kalendris.</p> : null}</form></Modal>

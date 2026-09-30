@@ -1,4 +1,4 @@
-import { CalendarClock, Check, History, Pencil, Search, UserRoundX, X, XCircle } from 'lucide-react';
+import { CalendarClock, Check, History, Pencil, Search, Trash2, UserRoundX, X, XCircle } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Badge, Button, EmptyState } from '../../components/ui/index.js';
 import { buildLibraryItems, searchLibrary, sortLibrary } from '../library/libraryModel.js';
@@ -54,7 +54,7 @@ function HomeworkPicker({ library, value, onChange }) {
  * Side panel for one lesson occurrence: last time, "Toimus" with topic (level → theme → lesson), note, homework,
  * absence, edit time and cancel. Groups show the attendance sheet instead (children).
  */
-export default function LessonPanel({ item, history = [], catalog, library, loadingLibrary = false, student, saving = false, error = '', onClose, onDone, onEdit, onCancelLesson, children }) {
+export default function LessonPanel({ item, history = [], catalog, library, loadingLibrary = false, student, saving = false, error = '', onClose, onDone, onEdit, onCancelLesson, onDeleteLesson, children }) {
   const done = Boolean(item?.lessonRecordId || ['Toimunud', 'Puudus_eta', 'Puudus_p'].includes(item?.status));
   const suggestion = useMemo(() => (catalog && item && !item.isGroup ? suggestTopic(catalog, { studentLevel: student?.level || '', history }) : null), [catalog, history, item, student?.level]);
   const [picked, setPicked] = useState(null);
@@ -131,6 +131,8 @@ export default function LessonPanel({ item, history = [], catalog, library, load
         <footer className="lp-foot">
           <Button variant="secondary" disabled={saving} onClick={onEdit}><Pencil size={15} /> Muuda aega</Button>
           <Button variant="danger" disabled={saving} onClick={onCancelLesson}><XCircle size={15} /> Tühista tund</Button>
+          {onDeleteLesson ? <Button variant="danger" disabled={saving} onClick={onDeleteLesson}><Trash2 size={15} /> Kustuta</Button> : null}
+          {onDeleteLesson ? <p className="lp-hint">„Tühista” — tund jääb ära. „Kustuta” — tund lisati kogemata (vale õpilane või päev).</p> : null}
         </footer>
       ) : null}
       {item.isGroup && !children ? <EmptyState title="Grupi andmed puuduvad" /> : null}

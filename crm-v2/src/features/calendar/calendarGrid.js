@@ -117,3 +117,38 @@ export function planMove(item, { toDate, toTime, duration, scope = 'single' }) {
     ],
   };
 }
+
+// Fields that belong to one displayed occurrence, not to the stored schedule record.
+const OCCURRENCE_FIELDS = ['occurrenceDate', 'occurrenceId', 'lessonRecordId', 'record', 'recordTopic'];
+// The old Google event is deleted with the record; a restored record must get a fresh one.
+const isGoogleLinkField = (key) => key.startsWith('gcal') && key !== 'gcalImportSuppressed';
+
+/**
+ * Plan deleting a lesson that was added by mistake or is not needed. Same operation lists as planMove, plus
+ *   { op: 'delete', id } and { op: 'restore', id, data } (undo puts the same record back under the same id).
+ * scope for a weekly lesson: 'single' = only this date, 'series' = this and all following.
+ * `stored` is the schedule record as saved; `hasRecords` = the series already has held/absent lessons, which are
+ * accounting history, so the record itself is never removed then (the series only ends before this date).
+ */
+export function planDelete(item, { scope = 'single', stored = item, hasRecords = false } = {}) {
+  const data = Object.fromEntries(Object.entries(stored || {}).filter(([key]) => key !== 'id' && !OCCURRENCE_FIELDS.includes(key) && !isGoogleLinkField(key)));
+  const removeRecord = { apply: [{ op: 'delete', id: item.id }], undo: [{ op: 'restore', id: item.id, data }] };
+  if (!item.recurring) {
+    if (hasRecords) throw new Error('Toimunud tundi ei saa kustutada.');
+    return removeRecord;
+  }
+  const from = item.occurrenceDate || item.date;
+  const excluded = item.excludedDates || [];
+  if (scope === 'single') {
+    return {
+      apply: [{ op: 'patch', id: item.id, fields: { excludedDates: [...new Set([...excluded, from])] } }],
+      undo: [{ op: 'patch', id: item.id, fields: { excludedDates: excluded } }],
+    };
+  }
+  const start = item.startDate || item.date;
+  if (from <= start && !hasRecords) return removeRecord;
+  return {
+    apply: [{ op: 'patch', id: item.id, fields: { endDate: shiftDate(from, -1) } }],
+    undo: [{ op: 'patch', id: item.id, fields: { endDate: item.endDate || '' } }],
+  };
+}
