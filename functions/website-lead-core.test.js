@@ -5,7 +5,7 @@ const { normalizeWebsiteLead, throttleAllows, composeWebsiteLeadEmail, MAX_PER_H
 
 test("accepts a complete enquiry and normalises it", () => {
   const { lead } = normalizeWebsiteLead({ name: " Mari Maasikas ", email: "Mari@Example.EE", phone: "+372 5555 5555", language: "Eesti keel", level: "B1", message: "B1 eksam", locale: "ru" });
-  assert.deepEqual(lead, { name: "Mari Maasikas", email: "mari@example.ee", phone: "+372 5555 5555", language: "Eesti keel", level: "B1", message: "B1 eksam", locale: "ru", page: "" });
+  assert.deepEqual(lead, { name: "Mari Maasikas", email: "mari@example.ee", phone: "+372 5555 5555", language: "Eesti keel", level: "B1", message: "B1 eksam", locale: "ru", page: "", source: "website-registration" });
 });
 
 test("rejects missing or broken required fields", () => {
@@ -20,6 +20,15 @@ test("unknown level and locale fall back safely", () => {
 
 test("the hidden honeypot field marks bots", () => {
   assert.deepEqual(normalizeWebsiteLead({ name: "Bot", email: "b@example.com", language: "Eesti keel", website: "http://spam" }), { spam: true });
+});
+
+test("keeps a bounded level-test diagnostic with the lead", () => {
+  const { lead } = normalizeWebsiteLead({
+    name: "Mari", email: "m@example.ee", language: "Eesti keel", level: "B1", source: "level-test",
+    assessment: { diagnosticId: "MEQ9-J636", score: 117, answered: 6, skills: { grammar: 81.7, vocabulary: -2, reading: 54, injected: 99 } },
+  });
+  assert.deepEqual(lead.assessment, { diagnosticId: "MEQ9-J636", score: 100, answered: 6, skills: { grammar: 82, vocabulary: 0, reading: 54 } });
+  assert.equal(lead.source, "level-test");
 });
 
 test("at most a few enquiries per hour from one address", () => {

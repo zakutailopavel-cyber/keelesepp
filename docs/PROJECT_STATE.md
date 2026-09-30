@@ -1,6 +1,37 @@
 # KeeleSepp Project State
 
-## Worksheet Studio (Töölehe konstruktor) browser audit — PR #216 (draft, branch `claude/worksheet-studio-audit`)
+## 2026-09-30 — Public growth platform v1 — PR #215
+
+**Review fixes (2026-09-30, before merge).** A browser run of `tasemetest.html` with the lead request intercepted
+(never sent to production) found that no level-test result could be delivered: (1) the submit handler read an undefined
+`diagnosticCode` and threw before sending; it now uses `attemptId`; (2) it sent the track label ("Eesti suund" /
+"English track") as `language`, which `websiteLeadApi` rejects with 400; it now sends "Eesti keel" / "Inglise keel".
+After the fix the captured payload passes `normalizeWebsiteLead` (language, level, source `level-test`, bounded
+assessment) and the visitor sees "Tulemus on saadetud". The four `/oppematerjalid/` pages and their CSS load (200) and
+link only to existing paths. Remaining gates unchanged: `websiteLeadApi` + Firestore rules deploy with the owner's word,
+then one real end-to-end lead.
+
+
+Last verified main: `9e2ae40` after `git fetch origin --prune`. Active branch: `agent/public-growth-platform-v1`.
+PR: not opened. Goal: one cohesive public funnel rather than a series of small Vercel-triggering commits.
+
+Implemented locally: the adaptive level test now describes its real 6-15 question path and submits the result through
+`websiteLeadApi`; the normalized `websiteLeads` record can contain bounded diagnostic score/skill data and its source;
+CRM v2 has a staff-only `Päringud` queue with status transitions; Firestore permits staff reads and four-field workflow
+updates only; the new `/oppematerjalid/` hub contains the first three indexable topic pages and is linked from the
+homepage and sitemap. Full contract and release gates: `docs/PUBLIC_GROWTH_V1.md`.
+
+Checks: Functions full suite 188/188; CRM v2 ESLint clean, production build OK, Vitest 102 files / 452 tests;
+Firestore rules dry-run compiled successfully; level-test inline JavaScript syntax OK; sitemap XML parses;
+`git diff --check` clean. The in-app browser verified
+the current production homepage and test before implementation, but could not reach the isolated local HTTP server,
+so visual verification of the new public pages remains pending. No production service, data, function, rules or Vercel
+deployment was changed.
+
+Known gates: `websiteLeadApi` and Firestore rules need separate owner-approved Firebase deploys; merging/pushing would
+trigger Vercel and has intentionally not been done. Exactly one next safe step: perform a local visual review using a
+browser that can reach the worktree server, then make one commit and open one draft PR for the complete block.
+## Worksheet Studio (Töölehe konstruktor) browser audit — MERGED (#216, 048757a)
 
 Last verified against main: 2026-09-30, `9e2ae40` (#213). Owner 2026-09-30: test the lesson builder the same way as the
 calendar. Separate from the calendar PR #214 (AGENTS.md: learning content and calendar changes are not mixed).

@@ -443,6 +443,7 @@ footer a:hover{color:var(--amber)}
       <ul class="nav-l" id="nav">
         <li><a href="#kursused">Kursused</a></li>
         <li><a href="/tasemetest/">Tasemetest</a></li>
+        <li><a href="/oppematerjalid/">Õppematerjalid</a></li>
         <li><a href="#opetajad">Õpetajad</a></li>
         <li><a href="#arvustused">Arvustused</a></li>
         <li><a href="#kkk">KKK</a></li>
@@ -954,6 +955,7 @@ footer a:hover{color:var(--amber)}
         <h3>Kiirviited</h3>
         <ul>
           <li><a href="#kursused">Kursused</a></li>
+          <li><a href="/oppematerjalid/">Õppematerjalid</a></li>
           <li><a href="#opetajad">Õpetajad</a></li>
           <li><a href="#arvustused">Arvustused</a></li>
           <li><a href="#registreeru">Registreeru</a></li>
@@ -1020,7 +1022,7 @@ function submitForm(){
   var v=function(id){return (document.getElementById(id).value||'').trim();};
   var ok=document.getElementById('formOk'), err=document.getElementById('formErr'), btn=document.getElementById('f-send');
   ok.style.display='none'; err.style.display='none';
-  var data={name:v('f-name'),email:v('f-email'),phone:v('f-phone'),language:v('f-lang'),level:v('f-level')||'Määramata',message:v('f-msg'),website:v('f-website'),locale:document.documentElement.lang||'et',page:location.pathname};
+  var data={name:v('f-name'),email:v('f-email'),phone:v('f-phone'),language:v('f-lang'),level:v('f-level')||'Määramata',message:v('f-msg'),website:v('f-website'),locale:document.documentElement.lang||'et',page:location.pathname,source:'website-registration'};
   if(!data.name||!data.email||!data.language){showErr(FORM_TEXT.required);return;}
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(data.email)){showErr(FORM_TEXT.email);return;}
   btn.disabled=true; btn.textContent=FORM_TEXT.sending;

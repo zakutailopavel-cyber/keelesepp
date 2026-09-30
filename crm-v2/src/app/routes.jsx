@@ -22,6 +22,7 @@ import StudentProfilePage from '../features/students/StudentProfilePage.jsx';
 import StudentDashboardPage from '../features/students/StudentDashboardPage.jsx';
 import TeachersPage from '../features/teachers/TeachersPage.jsx';
 import AccountsPage from '../features/accounts/AccountsPage.jsx';
+import LeadsPage from '../features/leads/LeadsPage.jsx';
 import TeacherProfilePage from '../features/teachers/TeacherProfilePage.jsx';
 import SettingsPage from '../features/settings/SettingsPage.jsx';
 import ProtectedRoute from './ProtectedRoute.jsx';
@@ -50,6 +51,7 @@ export default function AppRoutes() {
             <Route path="library/worksheets/live/:assignmentId" element={<LiveWorksheetPage />} />
             <Route path="library/worksheets/:lessonId" element={<WorksheetStudioPage />} />
             <Route path="parents" element={<ParentsPage />} />
+            <Route path="leads" element={<LeadsPage />} />
           </Route>
           <Route element={<ProtectedRoute roles={ACCESS.LIVE_CLASSROOM} />}>
             <Route path="live-classroom" element={<LiveClassroomPage />} />

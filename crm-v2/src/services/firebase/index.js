@@ -18,6 +18,7 @@ export { homeworkService } from './homework.js';
 export { petsService } from './pets.js';
 export { lessonsService } from './lessons.js';
 export { messagesService } from './messages.js';
+export { websiteLeadsService } from './websiteLeads.js';
 export { paymentsService } from './payments.js';
 export { paymentDocumentsService } from './paymentDocuments.js';
 export { payerCreditsService } from './payerCredits.js';
