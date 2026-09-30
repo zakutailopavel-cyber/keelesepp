@@ -113,6 +113,19 @@ local preview) and merged to `main` as usual; a release is then published once: 
 connect GitHub → Deployments → ⋯ → Create Deployment → `main` → Deploy to Production → disconnect again. Firebase
 rules/functions are deployed separately with the owner's word.
 
+Faster path (used 2026-09-30, no GitHub reconnect needed): from a clean checkout of `main`
+(`git worktree add <dir> origin/main`, so no local `.env` or harness files are uploaded) run
+`npx vercel link --yes --project keelesepp-crm-v2` and `npx vercel deploy --prod --yes` in the repo root (the project's
+Root Directory is `crm-v2`; Vercel builds it with the project's env vars and aliases crm.epkoolitus.ee).
+
+**Release 2026-09-30** (owner's /goal "довели до конца и сливай в мэйн и Версали"): PRs #209–#212 — Worksheet Studio
+v2 (block size, task options, teacher marks, fill + add item), Finance v2 (private lesson price + "Arveldus" card,
+monthly invoices tab "Kuuarved", no-show exceptions, three finance tabs), duplicates (permanent merge, manual pick,
+purge of archived duplicates; the v2 tool now calls `staffOperationsApi`). Deployed: Firestore rules, functions
+`financeApi`, `staffOperationsApi`, `manualInvoiceApi`, `invoiceApi`, and crm.epkoolitus.ee. Owner's one-time steps
+after the release: Finantsid → "Vii hinnad üle"; Õpilased → "Kontrolli duplikaate" (earlier archived duplicates → type
+KUSTUTA); set price and billing mode in each student's profile (Finantsid → Arveldus).
+
 ## Still needed before v1 can be switched off (checked 2026-09-29)
 
 Blocking for daily work in v2 only:
