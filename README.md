@@ -26,6 +26,12 @@ süsteemi vahel. Edasilükatud kustutused jäävad serveripoolsesse järjekorda;
 järjekorda brauser lugeda ei saa. Praegune konfliktipoliitika on viimase sünkroonitud muudatuse
 võit; eraldi konfliktide kinnitamise vaade jääb järgmisse kalendriversiooni.
 
+CRM v2-s ühendab õpetaja kalendri lehel **Seaded → Google Calendar**. Seal on näha ühenduse olek,
+viimane sünkroonimine, nupp „Sünkrooni kohe”, grupitundide lüliti ja ühenduse katkestamine.
+Kalendri tööriistaribal näitab väike silt Google'i olekut; kalender sünkroonib ise, kui eelmisest
+korrast on möödas üle 15 minuti. Ka grupitunnid jõuavad õpetaja Google Calendarisse. Google'ist
+tulnud tunde muudetakse Google Calendaris.
+
 Korduva tunni avamisel saab õpetaja valida **Ainult see tund** või **Kogu sari**. Ühe tunni
 ümbertõstmisel või tühistamisel jääb sarja mall muutmata: algne kuupäev lisatakse sarja
 eranditesse ning konkreetne tund salvestatakse eraldi õpilasega seotud kirjena. Google

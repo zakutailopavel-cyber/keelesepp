@@ -9,6 +9,7 @@ import { teacherScopeMigrationApi } from '../../services/firebase/teacherScopeMi
 import { parentsService } from '../../services/firebase/parents.js';
 import { studentsService } from '../../services/firebase/students.js';
 import PetSettingsCard from '../pet/PetSettingsCard.jsx';
+import GoogleCalendarCard from '../google-calendar/GoogleCalendarCard.jsx';
 import '../common/finalReadiness.css';
 
 function initialProfile(user) {
@@ -18,7 +19,7 @@ function initialProfile(user) {
   };
 }
 
-export default function SettingsPage({ parentRepository = parentsService, studentRepository = studentsService }) {
+export default function SettingsPage({ parentRepository = parentsService, studentRepository = studentsService, googleCalendarRepository }) {
   const { user, preview, configured, updateProfile, sendPasswordReset, startPreview } = useAuth();
   const [form, setForm] = useState(() => initialProfile(user));
   const [saving, setSaving] = useState(false);
@@ -167,6 +168,7 @@ export default function SettingsPage({ parentRepository = parentsService, studen
       <Card className="settings-profile-card"><div className="settings-icon"><UserRound /></div><h2>Minu andmed</h2><form className="settings-profile-form" onSubmit={save}><Input id="settings-name" label="Nimi" autoComplete="name" required maxLength="160" value={form.displayName} onChange={(event) => setForm({ ...form, displayName: event.target.value })} /><Input id="settings-phone" label="Telefon" type="tel" autoComplete="tel" maxLength="40" value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} /><Input id="settings-email" label="E-post" type="email" value={user.email} disabled /><p className="form-hint">E-posti või rolli muutmiseks pöördu administraatori poole.</p><Button type="submit" loading={saving}><Save size={17} /> Salvesta andmed</Button></form></Card>
 
       {hasAnyRole(user.roles, [ROLES.STUDENT]) && !preview ? <PetSettingsCard user={user} /> : null}
+      {hasAnyRole(user.roles, [ROLES.ADMIN, ROLES.TEACHER]) && !preview ? <GoogleCalendarCard user={user} {...(googleCalendarRepository ? { repository: googleCalendarRepository } : {})} /> : null}
       <Card><div className="settings-icon"><ShieldCheck /></div><h2>Ligipääs</h2><div className="detail-list"><div><dt>Kasutaja</dt><dd>{user.displayName}</dd></div><div><dt>E-post</dt><dd>{user.email}</dd></div><div><dt>Rollid</dt><dd>{user.roles.join(', ')}</dd></div><div><dt>Konto UID</dt><dd className="mono">{user.uid}</dd></div></div></Card>
 
       <Card><div className="settings-icon"><KeyRound /></div><h2>Turvalisus</h2><p className="settings-copy">Parooli ei kuvata ega muudeta CRM-is otse. Firebase saadab turvalise taastamislingi ainult sinu praeguse konto e-posti aadressile.</p><Button variant="secondary" loading={resetting} onClick={resetPassword}>Saada parooli taastamise link</Button></Card>

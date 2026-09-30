@@ -1,8 +1,10 @@
-import { CalendarClock, Check, History, Pencil, Search, UserRoundX, X, XCircle } from 'lucide-react';
+import { CalendarClock, Check, History, Pencil, RotateCcw, Search, Trash2, UserRoundX, X, XCircle } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Badge, Button, EmptyState } from '../../components/ui/index.js';
 import { buildLibraryItems, searchLibrary, sortLibrary } from '../library/libraryModel.js';
 import { INDIVIDUAL_TOPIC, suggestTopic, topicFields, topicLine } from './lessonTopic.js';
+import { isGoogleOwned, lessonSyncState } from '../google-calendar/googleCalendarModel.js';
+import '../google-calendar/googleCalendar.css';
 
 const STATUS_LABEL = { Toimunud: 'Toimunud', Puudus_eta: 'Puudus (ei teatanud)', Puudus_p: 'Puudus (teatas ette)', Planeeritud: 'Planeeritud' };
 
@@ -52,20 +54,26 @@ function HomeworkPicker({ library, value, onChange }) {
  * Side panel for one lesson occurrence: last time, "Toimus" with topic (level → theme → lesson), note, homework,
  * absence, edit time and cancel. Groups show the attendance sheet instead (children).
  */
-export default function LessonPanel({ item, history = [], catalog, library, loadingLibrary = false, student, saving = false, error = '', onClose, onDone, onEdit, onCancelLesson, children }) {
+export default function LessonPanel({ item, history = [], catalog, library, loadingLibrary = false, student, saving = false, error = '', today = '', onClose, onDone, onEdit, onCancelLesson, onDeleteLesson, onChangeMark, onRemoveMark, onCancelGroupLesson, children }) {
   const done = Boolean(item?.lessonRecordId || ['Toimunud', 'Puudus_eta', 'Puudus_p'].includes(item?.status));
   const suggestion = useMemo(() => (catalog && item && !item.isGroup ? suggestTopic(catalog, { studentLevel: student?.level || '', history }) : null), [catalog, history, item, student?.level]);
   const [picked, setPicked] = useState(null);
   const [notes, setNotes] = useState('');
   const [homework, setHomework] = useState(null);
+  const [fixing, setFixing] = useState(false);
   if (!item) return null;
+  // A lesson can be marked held only on its day or later; an absence announced in advance can be marked any time.
+  const future = Boolean(today && item.occurrenceDate > today);
   const topic = picked || (suggestion ? { level: suggestion.level, module: suggestion.moduleKey, lessonId: suggestion.id } : { level: '', module: '', lessonId: '' });
   const chosen = topic.lessonId ? catalog?.byId.get(topic.lessonId) || null : null;
-  const last = history[0];
+  // "Last time" is the lesson before this one, never this lesson's own mark.
+  const last = history.find((lesson) => lesson.id !== item.lessonRecordId && (lesson.date < item.occurrenceDate || (lesson.date === item.occurrenceDate && !item.lessonRecordId)));
   const record = item.record;
   const save = (status) => (status === 'Toimunud'
     ? onDone({ status, ...topicFields(chosen, notes), homework })
     : onDone({ status, ...topicFields(null, notes), topic: '', homework: null }));
+  const googleOwned = isGoogleOwned(item);
+  const sync = lessonSyncState(item);
   const absent = item.status === 'Puudus_eta' || item.status === 'Puudus_p' || ['Puudus_eta', 'Puudus_p'].includes(record?.status);
 
   return (
@@ -94,11 +102,22 @@ export default function LessonPanel({ item, history = [], catalog, library, load
         <section className="lp-done">
           <Badge tone={absent ? 'danger' : 'success'}>{STATUS_LABEL[record?.status || item.status] || 'Arvestatud'}</Badge>
           {record ? <><strong>{topicLine(record) || INDIVIDUAL_TOPIC}</strong>{record.notes ? <p>{record.notes}</p> : null}</> : null}
+          {record && onChangeMark && !fixing ? <button type="button" className="link-button" onClick={() => setFixing(true)}>Märkisid valesti? Paranda</button> : null}
+          {record && fixing ? (
+            <div className="lp-fix" role="group" aria-label="Paranda märge">
+              {['Toimunud', 'Puudus_p', 'Puudus_eta'].filter((status) => status !== record.status && !(future && status !== 'Puudus_p')).map((status) => (
+                <Button key={status} variant="secondary" disabled={saving} onClick={() => onChangeMark(status)}>{STATUS_LABEL[status]}</Button>
+              ))}
+              <Button variant="secondary" disabled={saving} onClick={onRemoveMark}><RotateCcw size={15} /> Eemalda märge (tund planeeritud)</Button>
+              <button type="button" className="link-button" onClick={() => setFixing(false)}>Loobu</button>
+            </div>
+          ) : null}
         </section>
       ) : null}
 
       {!item.isGroup && !done ? (
         <section className="lp-form" aria-label="Tund toimus">
+          {future ? <p className="lp-hint">Tund on {new Date(`${item.occurrenceDate}T12:00:00`).toLocaleDateString('et-EE', { weekday: 'long', day: 'numeric', month: 'long' })}. Toimunuks saab selle märkida tunni päeval; ette saab märkida ainult etteteatatud puudumise.</p> : <>
           <h3>Mida tunnis tehti?</h3>
           {!catalog ? <p className="lp-hint">{loadingLibrary ? 'Laen Õppevara teemasid…' : 'Teemad pole saadaval.'}</p> : (
             <>
@@ -108,22 +127,37 @@ export default function LessonPanel({ item, history = [], catalog, library, load
           )}
           <label className="lp-notes"><span>Märkus (näeb ka õpilane ja lapsevanem)</span><textarea rows={2} maxLength={1000} placeholder="Nt: harjutasime partitiivi, kooli kodutöö matemaatikas…" value={notes} onChange={(event) => setNotes(event.target.value)} /></label>
           <HomeworkPicker library={library} value={homework} onChange={setHomework} />
+          </>}
           <div className="lp-actions">
-            <Button loading={saving} onClick={() => save('Toimunud')}><Check size={17} /> Tund toimus</Button>
+            {future ? null : <Button loading={saving} onClick={() => save('Toimunud')}><Check size={17} /> Tund toimus</Button>}
             <Button variant="secondary" disabled={saving} onClick={() => save('Puudus_p')}><UserRoundX size={16} /> Puudus (teatas ette)</Button>
-            <Button variant="secondary" disabled={saving} onClick={() => save('Puudus_eta')}><UserRoundX size={16} /> Puudus (ei teatanud)</Button>
+            {future ? null : <Button variant="secondary" disabled={saving} onClick={() => save('Puudus_eta')}><UserRoundX size={16} /> Puudus (ei teatanud)</Button>}
           </div>
         </section>
       ) : null}
 
-      {!done && !item.isGroup ? (
+      {sync ? (
+        <section className="lp-gcal" aria-label="Google Calendar">
+          <Badge tone={sync.tone}>{sync.label}</Badge>
+          {sync.hint ? <p>{sync.hint}</p> : null}
+        </section>
+      ) : null}
+
+      {!done && !item.isGroup && !googleOwned ? (
         <footer className="lp-foot">
           <Button variant="secondary" disabled={saving} onClick={onEdit}><Pencil size={15} /> Muuda aega</Button>
           <Button variant="danger" disabled={saving} onClick={onCancelLesson}><XCircle size={15} /> Tühista tund</Button>
+          {onDeleteLesson ? <Button variant="danger" disabled={saving} onClick={onDeleteLesson}><Trash2 size={15} /> Kustuta</Button> : null}
+          {onDeleteLesson ? <p className="lp-hint">„Tühista” — tund jääb ära. „Kustuta” — tund lisati kogemata (vale õpilane või päev).</p> : null}
+        </footer>
+      ) : null}
+      {item.isGroup && onCancelGroupLesson ? (
+        <footer className="lp-foot">
+          <Button variant="danger" disabled={saving} onClick={onCancelGroupLesson}><XCircle size={15} /> Tühista see grupitund</Button>
         </footer>
       ) : null}
       {item.isGroup && !children ? <EmptyState title="Grupi andmed puuduvad" /> : null}
-      {!item.isGroup && item.recurring ? <p className="lp-hint lp-series"><CalendarClock size={14} /> Kordub igal nädalal. Lohista kalendris, et muuta ühte tundi või kõiki järgmisi.</p> : null}
+      {!item.isGroup && item.recurring && !googleOwned ? <p className="lp-hint lp-series"><CalendarClock size={14} /> Kordub igal nädalal. Lohista kalendris, et muuta ühte tundi või kõiki järgmisi.</p> : null}
     </aside>
   );
 }

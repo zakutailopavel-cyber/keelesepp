@@ -1,8 +1,7 @@
 import { Check, X } from 'lucide-react';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { GRID_END, GRID_START, PX_PER_MIN, SNAP, canMove, layoutColumn, snapMinutes, teacherTone, toClock, toMinutes } from './calendarGrid.js';
+import { PX_PER_MIN, SNAP, canMove, gridRange, layoutColumn, snapMinutes, teacherTone, toClock, toMinutes } from './calendarGrid.js';
 
-const HOURS = Array.from({ length: (GRID_END - GRID_START) / 60 + 1 }, (_, index) => GRID_START / 60 + index);
 
 function statusOf(item) {
   if (item.lessonRecordId || item.status === 'Toimunud') return 'done';
@@ -22,9 +21,13 @@ export default function TimeGrid({ columns, allowColumnChange = true, canDrag = 
   const columnRefs = useRef(new Map());
   const [drag, setDrag] = useState(null);
   const [now, setNow] = useState(nowMinutes);
+  const { start: GRID_START, end: GRID_END } = gridRange(columns.flatMap((column) => column.items));
+  const HOURS = Array.from({ length: (GRID_END - GRID_START) / 60 + 1 }, (_, index) => GRID_START / 60 + index);
+  const firstRange = useRef({ start: GRID_START, end: GRID_END });
 
   useLayoutEffect(() => {
-    const target = Math.max(0, (Math.min(Math.max(nowMinutes(), GRID_START + 60), GRID_END) - GRID_START - 90) * PX_PER_MIN);
+    const { start, end } = firstRange.current;
+    const target = Math.max(0, (Math.min(Math.max(nowMinutes(), start + 60), end) - start - 90) * PX_PER_MIN);
     if (bodyRef.current) bodyRef.current.scrollTop = target;
   }, []);
   useEffect(() => {
@@ -104,7 +107,7 @@ export default function TimeGrid({ columns, allowColumnChange = true, canDrag = 
             {HOURS.map((hour) => <span key={hour} style={{ top: (hour * 60 - GRID_START) * PX_PER_MIN }}>{String(hour).padStart(2, '0')}:00</span>)}
           </div>
           {columns.map((column) => {
-            const laid = layoutColumn(column.items);
+            const laid = layoutColumn(column.items, { start: GRID_START, end: GRID_END });
             const ghost = drag && drag.moved && drag.column === column.key ? drag : null;
             return (
               <div

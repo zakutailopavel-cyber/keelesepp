@@ -2143,6 +2143,12 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // Group lesson → Google event links are written only by the calendar
+    // sync functions.
+    match /calendarGroupEventLinks/{linkId} {
+      allow read, write: if false;
+    }
+
     match /emailQueue/{entryId} {
       allow read: if isStaff();
       allow write: if false;
