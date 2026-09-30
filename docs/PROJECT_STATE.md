@@ -1,6 +1,6 @@
 # KeeleSepp Project State
 
-## Worksheet Studio (Töölehe konstruktor) browser audit — PR (branch `claude/worksheet-studio-audit`)
+## Worksheet Studio (Töölehe konstruktor) browser audit — PR #216 (draft, branch `claude/worksheet-studio-audit`)
 
 Last verified against main: 2026-09-30, `9e2ae40` (#213). Owner 2026-09-30: test the lesson builder the same way as the
 calendar. Separate from the calendar PR #214 (AGENTS.md: learning content and calendar changes are not mixed).
