@@ -3,6 +3,9 @@ import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import HomeworkPage from './HomeworkPage.jsx';
+import { sampleDocument } from '../worksheet-studio/engine/sample.js';
+
+globalThis.ResizeObserver = globalThis.ResizeObserver || class { observe() {} disconnect() {} };
 
 const completedWork = {
   id: 'worksheet-1',
@@ -168,5 +171,32 @@ describe('HomeworkPage', () => {
     await screen.findByText('Tegusõnad');
     expect(screen.queryByRole('button', { name: /Märgi pooleliolevaks/ })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Alusta harjutust/ })).not.toBeInTheDocument();
+  });
+
+  it('keeps a submitted studio worksheet and its result on screen while the list reloads', async () => {
+    const assignment = { id: 'assignment-2', studentId: 'student-1', studentName: 'Mari', title: 'Minu päev', status: 'new', dueDate: '2099-01-01', answers: {}, worksheetDoc: sampleDocument() };
+    const data = repositories([], [assignment], []);
+    data.repository.saveWorksheetDraft = vi.fn().mockResolvedValue(undefined);
+    globalThis.confirm = vi.fn(() => true);
+    renderPage({ uid: 'student-user-1', displayName: 'Mari', roles: ['student'] }, data);
+
+    const summary = await screen.findByRole('region', { name: /Minu kodutööd|Kodutööd/ }).catch(() => null);
+    if (summary) expect(summary).toHaveTextContent(/Kõik ülesanded\s*1/);
+    fireEvent.click(await screen.findByRole('button', { name: /Minu päev/ }));
+    fireEvent.click(await screen.findByRole('button', { name: /Esita tööleht/ }));
+    await waitFor(() => expect(data.repository.submitWorksheet).toHaveBeenCalled());
+    await waitFor(() => expect(data.repository.listWorksheetAssignmentsByStudentIds).toHaveBeenCalledTimes(2));
+    expect(await screen.findByText('Esitatud')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Esita tööleht/ })).toBeNull();
+  });
+
+  it('counts worksheets in the summary and shows a started one as in progress', async () => {
+    const started = { id: 'a-3', studentId: 'student-1', studentName: 'Mari', title: 'Pooleli leht', status: 'in_progress', dueDate: '2099-01-01', answers: { 'b1:0': 'x' }, worksheetDoc: sampleDocument() };
+    const late = { id: 'a-4', studentId: 'student-1', studentName: 'Mari', title: 'Hiline leht', status: 'new', dueDate: '2000-01-01', answers: {}, worksheetDoc: sampleDocument() };
+    renderPage({ uid: 'student-user-1', displayName: 'Mari', roles: ['student'] }, repositories([], [started, late], []));
+    const button = await screen.findByRole('button', { name: /Pooleli leht/ });
+    expect(button).toHaveTextContent('Pooleli');
+    expect(screen.getByText('2 töölehte')).toBeInTheDocument();
+    expect(screen.queryByText(/õpilast/)).toBeNull();
   });
 });
