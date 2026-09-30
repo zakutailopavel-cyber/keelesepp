@@ -88,6 +88,13 @@ const {
   explicitlyDeletedGoogleEventIds,
   shouldApplyExplicitGoogleDeletion,
   preserveLessonResultDuringGoogleImport,
+  eligibleGroupLessons,
+  groupLessonLinkId,
+  groupLessonToGoogleEvent,
+  groupLessonSyncFingerprint,
+  isKeeleSeppGroupGoogleEvent,
+  safeCalendarReturnUrl,
+  calendarReturnUrlWithStatus,
 } = require("./calendar-sync-core");
 const {
   buildOperationalAlerts,
@@ -189,10 +196,11 @@ function getOAuthClient() {
 }
 
 const calendarConnectionRef = uid => db.collection("calendarConnections").doc(uid);
-const calendarReturnUrl = status => {
-  const separator = APP_BASE_URL.includes("?") ? "&" : "?";
-  return `${APP_BASE_URL}${separator}gcal=${encodeURIComponent(status)}`;
-};
+// The OAuth callback returns to the CRM page the teacher started from (v2 settings or v1), else v1.
+const calendarReturnUrl = (status, returnTo = "") => calendarReturnUrlWithStatus(
+  safeCalendarReturnUrl(returnTo, allowedCorsOrigins(), APP_BASE_URL),
+  status,
+);
 
 function publicCalendarMetadata(connection = {}) {
   const writeEnabled = Boolean(
@@ -214,6 +222,9 @@ function publicCalendarMetadata(connection = {}) {
     lastSyncError: connection.lastSyncError || "",
     lastPushAt: connection.lastPushAt || null,
     lastPushError: connection.lastPushError || "",
+    syncGroups: connection.syncGroups !== false,
+    lastGroupPushAt: connection.lastGroupPushAt || null,
+    lastGroupPushError: connection.lastGroupPushError || "",
   };
 }
 
@@ -306,11 +317,15 @@ async function authorizedGoogleCalendar(uid, connection) {
 }
 
 // ── HELPERS ───────────────────────────────────────────────────
-function applyCors(req, res) {
-  const allowed = new Set([
+function allowedCorsOrigins() {
+  return [
     ...DEFAULT_ALLOWED_ORIGINS,
     ...(process.env.ALLOWED_ORIGINS || "").split(",").map(v => v.trim()).filter(Boolean),
-  ]);
+  ];
+}
+
+function applyCors(req, res) {
+  const allowed = new Set(allowedCorsOrigins());
   const origin = req.get("Origin");
   if (origin && allowed.has(origin)) {
     res.set("Access-Control-Allow-Origin", origin);
@@ -8265,6 +8280,7 @@ exports.gcalApi = functions.https.onRequest(async (req, res) => {
         uid,
         provider: "gcal",
         requestedWriteAccess: true,
+        returnTo: safeCalendarReturnUrl(req.query.returnTo, allowedCorsOrigins(), ""),
         createdAt: FieldValue.serverTimestamp(),
       });
       const url = oauth2.generateAuthUrl({
@@ -8284,6 +8300,7 @@ exports.gcalApi = functions.https.onRequest(async (req, res) => {
   if (path === "/gcal/callback" && req.method === "GET") {
     const { code, state } = req.query;
     if (!code || !state) { res.status(400).send("Missing code or state"); return; }
+    let returnTo = "";
     try {
       const stateRef = db.collection("oauthStates").doc(String(state));
       const stateSnap = await stateRef.get();
@@ -8293,6 +8310,7 @@ exports.gcalApi = functions.https.onRequest(async (req, res) => {
       }
       const stateData = stateSnap.data();
       const { uid } = stateData;
+      returnTo = stateData.returnTo || "";
       await stateRef.delete();
       const oauth2 = getOAuthClient();
       const { tokens } = await oauth2.getToken(code);
@@ -8322,11 +8340,12 @@ exports.gcalApi = functions.https.onRequest(async (req, res) => {
       await syncTeacherCalendar(uid, connection);
       await flushCalendarSyncOutbox(uid, connection);
       await backfillScheduleToGoogle(uid, connection);
+      await syncTeacherGroupsToGoogle(uid, connection);
       // Redirect back to app
-      res.redirect(calendarReturnUrl("connected"));
+      res.redirect(calendarReturnUrl("connected", returnTo));
     } catch (e) {
       console.error("OAuth callback error:", e);
-      res.redirect(calendarReturnUrl("error"));
+      res.redirect(calendarReturnUrl("error", returnTo));
     }
     return;
   }
@@ -8345,9 +8364,12 @@ exports.gcalApi = functions.https.onRequest(async (req, res) => {
       const outbox = calendarConnectionCanWrite(connection)
         ? await flushCalendarSyncOutbox(uid, connection)
         : { deleted: 0, failed: 0 };
+      // v1 sends no flags and keeps the full re-push; v2 asks for a light sync (only changed or failed lessons).
+      const force = req.body.force !== false;
       const pushed = calendarConnectionCanWrite(connection)
-        ? await backfillScheduleToGoogle(uid, connection, { force: true })
+        ? await backfillScheduleToGoogle(uid, connection, { force, retryErrors: true })
         : { synced: 0, skipped: 0, failed: 0 };
+      const groups = await syncTeacherGroupsToGoogle(uid, connection);
       const result = await syncTeacherCalendar(uid, connection);
       res.json({
         success: true,
@@ -8357,8 +8379,10 @@ exports.gcalApi = functions.https.onRequest(async (req, res) => {
         cancelled: result.cancelled,
         exceptions: result.exceptions,
         pushed: pushed.synced,
-        pushFailed: pushed.failed + outbox.failed,
+        pushFailed: pushed.failed + outbox.failed + groups.failed,
         deferredDeleted: outbox.deleted,
+        groupsPushed: groups.synced,
+        groupsRemoved: groups.removed,
       });
     } catch (e) {
       console.error("Sync error:", e);
@@ -8398,15 +8422,23 @@ exports.gcalApi = functions.https.onRequest(async (req, res) => {
       const byNameSnap = teacherName
         ? await db.collection("schedule").where("source", "==", "gcal").where("teacher", "==", teacherName).get()
         : { docs: [] };
+      // Imported lessons that already took place stay as history; only today's and future ones go.
+      const today = localDate(new Date(), APP_TIME_ZONE);
       const batch = db.batch();
       const seen = new Set();
+      let removed = 0;
+      let kept = 0;
       [...byUidSnap.docs, ...byNameSnap.docs].forEach(d => {
         if (seen.has(d.id)) return;
         seen.add(d.id);
+        const data = d.data() || {};
+        const date = String(data.date || data.startDate || "");
+        if (!data.recurring && date && date < today) { kept++; return; }
         batch.delete(d.ref);
+        removed++;
       });
       await batch.commit();
-      res.json({ success: true });
+      res.json({ success: true, removed, kept });
     } catch (e) {
       res.status(500).json({ error: e.message });
     }
@@ -8438,7 +8470,33 @@ exports.gcalApi = functions.https.onRequest(async (req, res) => {
         lastSyncError: gcal.lastSyncError || "",
         lastPushAt: gcal.lastPushAt || null,
         lastPushError: gcal.lastPushError || "",
+        syncGroups: gcal.syncGroups,
+        lastGroupPushAt: gcal.lastGroupPushAt || null,
+        lastGroupPushError: gcal.lastGroupPushError || "",
       });
+    } catch (e) {
+      sendError(res, e);
+    }
+    return;
+  }
+
+  // ── POST /gcal/settings ──────────────────────────────────────
+  // Teacher's own choice whether group lessons go to their Google Calendar. Turning it off removes the
+  // group events KeeleSepp created there.
+  if (path === "/gcal/settings" && req.method === "POST") {
+    const { uid } = req.body || {};
+    if (!uid) { res.status(400).json({ error: "uid required" }); return; }
+    try {
+      await requireCalendarOwner(req, uid);
+      const connection = await loadCalendarConnection(uid, { migrateLegacy: true });
+      if (!connection?.refreshToken) {
+        res.status(404).json({ error: "Google Calendar not connected" });
+        return;
+      }
+      const syncGroups = req.body.syncGroups !== false;
+      const next = await saveCalendarConnection(uid, { syncGroups });
+      const groups = await syncTeacherGroupsToGoogle(uid, next);
+      res.json({ success: true, syncGroups, groupsPushed: groups.synced, groupsRemoved: groups.removed, groupsFailed: groups.failed });
     } catch (e) {
       sendError(res, e);
     }
@@ -8551,6 +8609,8 @@ async function syncTeacherCalendar(uid, tokens) {
         && isKeeleSeppManagedGoogleEvent(event)
     ),
   ].filter(event => event?.id).map(event => [String(event.id), event])).values()];
+  // Group lessons pushed by KeeleSepp are not student lessons; they are managed from groups/{id}.
+  events = events.filter(event => !isKeeleSeppGroupGoogleEvent(event));
   let synced = 0;
   let skipped = 0;
   let exceptions = 0;
@@ -9211,6 +9271,212 @@ exports.notifyPendingAccount = functions
     return null;
   });
 
+// ── Group lessons → Google Calendar ──────────────────────────
+// Group lessons live inside groups/{groupId}.lessons[]. Each one becomes its own event in the group
+// teacher's primary Google Calendar. The server-only collection calendarGroupEventLinks remembers
+// which Google event belongs to which lesson and in whose calendar it lives, so a group document is
+// never written back by the sync (no trigger loop) and a lesson moved to another teacher is removed
+// from the old calendar.
+const calendarGroupLinkRef = linkId => db.collection("calendarGroupEventLinks").doc(linkId);
+
+async function updateCalendarGroupPushMetadata(uid, { error = "" } = {}) {
+  const nowIso = new Date().toISOString();
+  const patch = { lastGroupPushError: String(error || "").slice(0, 500), updatedAt: nowIso };
+  if (!error) patch.lastGroupPushAt = nowIso;
+  await calendarConnectionRef(uid).set(patch, { merge: true });
+  const publicPatch = { lastGroupPushError: patch.lastGroupPushError };
+  if (!error) publicPatch.lastGroupPushAt = nowIso;
+  await db.collection("users").doc(uid).set({ gcal: publicPatch }, { merge: true });
+}
+
+// Only what reaches Google: attendance marks and other bookkeeping on the group do not start a sync.
+function groupCalendarSignature(group) {
+  if (!group) return "";
+  return JSON.stringify({
+    active: group.active !== false,
+    teacherUid: String(group.teacherUid || ""),
+    name: String(group.name || ""),
+    subject: String(group.subject || ""),
+    level: String(group.level || ""),
+    lessons: (Array.isArray(group.lessons) ? group.lessons : []).map(lesson => {
+      const { attendance, ...rest } = lesson || {};
+      return rest;
+    }),
+  });
+}
+
+async function syncGroupToGoogle(groupId, group, { connections = new Map(), calendars = new Map() } = {}) {
+  const result = { synced: 0, removed: 0, skipped: 0, failed: 0, errors: [] };
+  const nowIso = new Date().toISOString();
+  const connectionFor = async uid => {
+    if (!uid) return null;
+    if (!connections.has(uid)) connections.set(uid, await loadCalendarConnection(uid, { migrateLegacy: false }));
+    return connections.get(uid);
+  };
+  const calendarFor = async (uid, connection) => {
+    if (!calendars.has(uid)) calendars.set(uid, await authorizedGoogleCalendar(uid, connection));
+    return calendars.get(uid);
+  };
+  const linksSnap = await db.collection("calendarGroupEventLinks").where("groupId", "==", groupId).get();
+  const links = new Map(linksSnap.docs.map(doc => [doc.id, { ref: doc.ref, ...doc.data() }]));
+  const teacherUid = String(group?.teacherUid || "").trim();
+  const teacherConnection = await connectionFor(teacherUid);
+  const pushAllowed = calendarConnectionCanWrite(teacherConnection) && teacherConnection.syncGroups !== false;
+  const wanted = new Map();
+  if (pushAllowed) {
+    eligibleGroupLessons(group).forEach((lesson, lessonId) => {
+      const linkId = groupLessonLinkId(groupId, lessonId);
+      if (linkId) wanted.set(linkId, lesson);
+    });
+  }
+  const fail = (message) => {
+    result.failed++;
+    result.errors.push(String(message || "Google Calendar error").slice(0, 300));
+  };
+
+  // 1. Events whose lesson is gone, cancelled, inactive, handed to another teacher or switched off.
+  for (const [linkId, link] of [...links.entries()]) {
+    if (wanted.has(linkId) && link.teacherUid === teacherUid) continue;
+    if (!link.eventId) {
+      await link.ref.delete();
+      links.delete(linkId);
+      continue;
+    }
+    const ownerConnection = await connectionFor(link.teacherUid);
+    // Without write access the link stays and the removal is retried when the teacher reconnects.
+    if (!calendarConnectionCanWrite(ownerConnection)) { result.skipped++; continue; }
+    try {
+      const calendar = await calendarFor(link.teacherUid, ownerConnection);
+      await calendar.events.delete({ calendarId: "primary", eventId: link.eventId });
+    } catch (error) {
+      if (!isGoogleGoneError(error)) {
+        fail(error.message);
+        await link.ref.set({ status: "error", error: String(error.message || "").slice(0, 500), updatedAt: nowIso }, { merge: true });
+        continue;
+      }
+    }
+    await link.ref.delete();
+    links.delete(linkId);
+    result.removed++;
+  }
+
+  // 2. Create or update the wanted events.
+  for (const [linkId, lesson] of wanted.entries()) {
+    const link = links.get(linkId);
+    if (link && link.teacherUid !== teacherUid) {
+      fail("Previous teacher's Google event could not be removed yet");
+      continue;
+    }
+    const anchorDate = link?.anchorDate || localDate(new Date(), APP_TIME_ZONE);
+    const requestBody = groupLessonToGoogleEvent(groupId, group, lesson, { anchorDate, timeZone: APP_TIME_ZONE });
+    if (!requestBody) { result.skipped++; continue; }
+    const hash = groupLessonSyncFingerprint(requestBody);
+    if (link?.eventId && link.hash === hash && link.status === "synced") { result.skipped++; continue; }
+    const base = { groupId, lessonId: String(lesson.id), teacherUid, anchorDate };
+    try {
+      const calendar = await calendarFor(teacherUid, teacherConnection);
+      let googleEvent = null;
+      if (link?.eventId) {
+        try {
+          googleEvent = (await calendar.events.patch({ calendarId: "primary", eventId: link.eventId, requestBody })).data;
+        } catch (error) {
+          if (!isGoogleGoneError(error)) throw error;
+        }
+      }
+      if (!googleEvent) {
+        // A lost link must not create a second copy: look for our own event first.
+        const existing = await listGoogleCalendarEvents(calendar, {
+          calendarId: "primary",
+          privateExtendedProperty: `keeleseppGroupLessonId=${lesson.id}`,
+          showDeleted: false,
+          singleEvents: false,
+          maxResults: 25,
+        }, 1);
+        const own = existing.find(event => event?.extendedProperties?.private?.keeleseppGroupId === String(groupId));
+        googleEvent = own?.id
+          ? (await calendar.events.patch({ calendarId: "primary", eventId: own.id, requestBody })).data
+          : (await calendar.events.insert({ calendarId: "primary", requestBody })).data;
+      }
+      await calendarGroupLinkRef(linkId).set({
+        ...base,
+        eventId: googleEvent.id,
+        hash,
+        status: "synced",
+        error: "",
+        syncedAt: nowIso,
+        updatedAt: nowIso,
+      });
+      result.synced++;
+    } catch (error) {
+      fail(error.message);
+      await calendarGroupLinkRef(linkId).set({
+        ...base,
+        eventId: link?.eventId || "",
+        hash: link?.hash || "",
+        status: "error",
+        error: String(error.message || "").slice(0, 500),
+        updatedAt: nowIso,
+      }, { merge: true });
+    }
+  }
+  return result;
+}
+
+// All groups of one teacher, plus groups whose events still sit in this teacher's calendar
+// (the group was deleted, deactivated or handed to someone else).
+async function syncTeacherGroupsToGoogle(uid, connection) {
+  const total = { synced: 0, removed: 0, skipped: 0, failed: 0 };
+  if (!calendarConnectionCanWrite(connection)) return total;
+  const connections = new Map([[uid, connection]]);
+  const calendars = new Map();
+  const [groupsSnap, linksSnap] = await Promise.all([
+    db.collection("groups").where("teacherUid", "==", uid).get(),
+    db.collection("calendarGroupEventLinks").where("teacherUid", "==", uid).get(),
+  ]);
+  const groups = new Map(groupsSnap.docs.map(doc => [doc.id, doc.data()]));
+  const orphanGroupIds = [...new Set(linksSnap.docs.map(doc => String(doc.data().groupId || "")))]
+    .filter(groupId => groupId && !groups.has(groupId));
+  for (const groupId of orphanGroupIds) {
+    const snap = await db.collection("groups").doc(groupId).get();
+    groups.set(groupId, snap.exists ? snap.data() : null);
+  }
+  const errors = [];
+  for (const [groupId, group] of groups.entries()) {
+    try {
+      const result = await syncGroupToGoogle(groupId, group, { connections, calendars });
+      total.synced += result.synced;
+      total.removed += result.removed;
+      total.skipped += result.skipped;
+      total.failed += result.failed;
+      errors.push(...result.errors);
+    } catch (error) {
+      total.failed++;
+      errors.push(String(error.message || error));
+    }
+  }
+  await updateCalendarGroupPushMetadata(uid, { error: errors[0] || "" });
+  return total;
+}
+
+exports.syncGroupToGoogleCalendar = functions.firestore
+  .document("groups/{groupId}")
+  .onWrite(async (change, context) => {
+    const before = change.before.exists ? change.before.data() : null;
+    const after = change.after.exists ? change.after.data() : null;
+    if (groupCalendarSignature(before) === groupCalendarSignature(after)) return null;
+    try {
+      const result = await syncGroupToGoogle(context.params.groupId, after);
+      const teacherUid = String(after?.teacherUid || before?.teacherUid || "").trim();
+      if (teacherUid && (result.synced || result.removed || result.failed)
+        && calendarConnectionCanWrite(await loadCalendarConnection(teacherUid, { migrateLegacy: false }))) {
+        await updateCalendarGroupPushMetadata(teacherUid, { error: result.errors[0] || "" });
+      }
+    } catch (error) {
+      console.error(`Google Calendar group push failed for ${context.params.groupId}:`, error.message);
+    }
+    return null;
+  });
+
 exports.syncScheduleToGoogle = functions.firestore
   .document("schedule/{scheduleId}")
   .onWrite(async (change, context) => {
@@ -9253,6 +9519,7 @@ exports.syncAllCalendars = functions.pubsub
           await flushCalendarSyncOutbox(uid, connection);
           await backfillScheduleToGoogle(uid, connection, { retryErrors: true });
         }
+        await syncTeacherGroupsToGoogle(uid, connection);
         await syncTeacherCalendar(uid, connection);
       } catch (e) {
         console.error(`Sync failed for ${uid}:`, e.message);

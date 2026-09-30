@@ -13,6 +13,8 @@ import { buildTopicCatalog, suggestTopic, topicFields, topicLine } from './lesso
 import TimeGrid from './TimeGrid.jsx';
 import LessonPanel from './LessonPanel.jsx';
 import QuickAttendanceAction from './QuickAttendanceAction.jsx';
+import CalendarGoogleChip from '../google-calendar/CalendarGoogleChip.jsx';
+import { isGoogleOwned } from '../google-calendar/googleCalendarModel.js';
 import './calendarUx.css';
 import './calendarV2.css';
 
@@ -89,7 +91,7 @@ function LessonButton({ item, compact = false, onClick, onComplete, completing }
 }
 
 
-export default function CalendarPage({ scheduleRepository = scheduleService, studentRepository = studentsService, groupRepository = groupsService, lessonRepository = lessonsService, libraryRepository = libraryService }) {
+export default function CalendarPage({ scheduleRepository = scheduleService, studentRepository = studentsService, groupRepository = groupsService, lessonRepository = lessonsService, libraryRepository = libraryService, googleCalendarRepository }) {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const narrow = useNarrow();
@@ -213,6 +215,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
 
   const onMove = ({ item, column, time, duration }) => {
     if (item.isGroup && !isAdmin) { setActionError('Grupi tundi saab liigutada administraator.'); return; }
+    if (isGoogleOwned(item)) { setActionError('See tund tuli Google Calendarist: tõsta see Google Calendaris.'); return; }
     const toDate = column?.date || item.occurrenceDate;
     const candidate = { date: toDate, time, duration, teacher: item.teacher, teacherUid: item.teacherUid };
     const sameDay = occurrencesForDates(events, [toDate]).filter((entry) => entry.occurrenceId !== item.occurrenceId).map((entry) => ({ ...entry, date: entry.occurrenceDate }));
@@ -314,6 +317,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
       <div className="cal2-tools">
         <label className="cal2-search"><Search size={16} /><input aria-label="Otsi kalendrist" placeholder="Otsi õpilast või õpetajat" value={filters.search} onChange={(event) => setFilters({ ...filters, search: event.target.value })} /></label>
         {teacherOnly ? null : <select className="cal2-select" aria-label="Filtreeri õpetaja järgi" value={filters.teacher} onChange={(event) => setFilters({ ...filters, teacher: event.target.value })}><option value="">Kõik õpetajad</option>{teachers.map((teacher) => <option value={teacher.id} key={teacher.id}>{teacher.name}</option>)}</select>}
+        <CalendarGoogleChip user={user} onSynced={state.reload} {...(googleCalendarRepository ? { repository: googleCalendarRepository } : {})} />
         <Button onClick={() => openCreate()}><Plus size={17} /> Lisa tund</Button>
       </div>
     </div>
@@ -334,7 +338,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
                 columns={view === 'day' ? dayColumns : weekColumns}
                 allowColumnChange={view === 'week'}
                 showTeacher={!filters.teacher && !teacherOnly && view === 'week'}
-                canDrag={(item) => canMove(item) && (!item.isGroup || isAdmin)}
+                canDrag={(item) => canMove(item) && (!item.isGroup || isAdmin) && !isGoogleOwned(item)}
                 onSlot={(column, time) => openCreate(column.date, time)}
                 onOpen={openPanel}
                 onQuickDone={quickDone}

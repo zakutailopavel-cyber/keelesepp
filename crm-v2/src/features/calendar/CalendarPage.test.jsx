@@ -70,6 +70,25 @@ describe('calendar v2', () => {
     expect(screen.getByLabelText('Otsi kalendrist')).toHaveValue('');
   });
 
+  it('a lesson from Google Calendar is changed in Google: no move or cancel in KeeleSepp', async () => {
+    renderCalendar({ events: [lesson({ source: 'gcal', gcalEventId: 'g1' })] });
+    fireEvent.click(await screen.findByRole('button', { name: /10:00 Mari Maas/ }));
+    const panel = screen.getByRole('dialog', { name: 'Tund: Mari Maas' });
+    expect(within(panel).getByText('Google Calendarist')).toBeInTheDocument();
+    expect(within(panel).queryByRole('button', { name: /Muuda aega/ })).toBeNull();
+    expect(within(panel).queryByRole('button', { name: /Tühista tund/ })).toBeNull();
+    expect(within(panel).getByRole('button', { name: /Tund toimus/ })).toBeInTheDocument();
+  });
+
+  it('shows whether a KeeleSepp lesson reached Google Calendar', async () => {
+    renderCalendar({ events: [lesson({ gcalSyncStatus: 'error', gcalSyncError: 'Forbidden' })] });
+    fireEvent.click(await screen.findByRole('button', { name: /10:00 Mari Maas/ }));
+    const panel = screen.getByRole('dialog', { name: 'Tund: Mari Maas' });
+    expect(within(panel).getByText("Google'isse ei jõudnud")).toBeInTheDocument();
+    expect(within(panel).getByText('Forbidden')).toBeInTheDocument();
+    expect(within(panel).getByRole('button', { name: /Muuda aega/ })).toBeInTheDocument();
+  });
+
   it('creates a lesson from the toolbar', async () => {
     renderCalendar();
     await waitFor(() => expect(summary()).toBeInTheDocument());

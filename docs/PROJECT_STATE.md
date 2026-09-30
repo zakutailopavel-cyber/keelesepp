@@ -1,5 +1,49 @@
 # KeeleSepp Project State
 
+## Google Calendar in CRM v2 (connect, status, groups) — PR (branch `claude/amazing-franklin-p2s1hh`)
+
+Last verified against main: 2026-09-30, `9e2ae40` (#213). Owner request 2026-09-30: "полноценную и удобную синхронизацию
+с Гугл календарем". The server sync already existed (hourly import, push of individual lessons, outbox, dedupe); v2 had
+no screen and the OAuth return landed in v1.
+
+Done:
+- **Seaded → Google Calendar** (teachers and admins, not in support preview): connect, grant write access for old
+  import-only connections, state (two-way / import only / error), last import and push time, "Sünkrooni kohe",
+  switch "Näita minu grupitunde Google Calendaris", disconnect with a two-click confirmation.
+- **Calendar toolbar chip**: Google state + time of last sync + sync button; not connected → link to Seaded. Opening the
+  calendar syncs by itself when the last sync is older than 15 minutes (light sync, never while an error is shown).
+- **Lesson panel**: "Google Calendaris" / "Ootab…" / "Google'isse ei jõudnud: <error>" for KeeleSepp lessons. Lessons
+  imported from Google (`source: gcal`) show "Google Calendarist", cannot be dragged, and have no "Muuda aega" /
+  "Tühista tund" (the next import would undo the change); "Tund toimus" still works.
+- **Server (`functions/index.js`)**: `/gcal/auth-url` takes `returnTo` (allowed CRM origins only, stored in
+  `oauthStates`), callback returns there with `?gcal=connected|error` (v1 unchanged: fallback `APP_BASE_URL`);
+  `/gcal/sync` takes `force: false` (v2: push only changed/failed lessons; v1 sends nothing and keeps the full re-push);
+  new `/gcal/settings { uid, syncGroups }`; status adds `syncGroups`, `lastGroupPushAt`, `lastGroupPushError`;
+  disconnect keeps imported one-off lessons dated before today (history) and returns `{ removed, kept }`.
+- **Group lessons → Google**: new trigger `syncGroupToGoogleCalendar` (groups/{id}) and the hourly job / manual sync push
+  each group lesson as its own private event (origin `keelesepp-group`) into the group teacher's primary calendar.
+  Links in the new server-only collection `calendarGroupEventLinks/{groupId}__{lessonId}` ({ groupId, lessonId,
+  teacherUid, eventId, anchorDate, hash, status, error }). Attendance marks do not trigger a push. Removed/cancelled
+  lessons, inactive groups, switching the setting off and handing a group to another teacher delete the event. The
+  import skips group events. Series without a start date use `anchorDate` = the day of the first push.
+- Firestore rule: `calendarGroupEventLinks` read/write false.
+
+Checks (2026-09-30): functions `npm test` 201/201 (new `calendar-group-sync-core.test.js`,
+`calendar-group-sync-behavior.test.js`); crm-v2 vitest 467/467, ESLint clean, `vite build` OK. Not run: emulator
+suite, a real Google account, visual check in a browser.
+
+Needs with the merge (owner's word): deploy functions `gcalApi`, `syncAllCalendars`, `syncGroupToGoogleCalendar` (new)
+and Firestore rules. Until then v2 "Ühenda" still works but returns to v1, and group lessons are not pushed. No Google
+Cloud Console change: the redirect URI is unchanged.
+
+Risks: teachers who already typed group lessons into Google by hand will see them twice — they can switch groups off in
+Seaded or delete their own copies. If the Google OAuth app is in "Testing" mode, refresh tokens expire after 7 days.
+Conflicts are still last-synchronized-write-wins; sync is hourly + on calendar open (no Google push channel yet).
+
+Exactly one next safe step: owner deploys `gcalApi`, `syncAllCalendars`, `syncGroupToGoogleCalendar` and the rules,
+then connects one teacher in crm.epkoolitus.ee → Seaded → Google Calendar and checks one individual and one group lesson
+in Google.
+
 ## 2026-09-29 — crm.epkoolitus.ee now serves CRM v2
 
 `crm.epkoolitus.ee` points at the `keelesepp-crm-v2` Vercel project. v2 has self-registration (`/registreeru`),

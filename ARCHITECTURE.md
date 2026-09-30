@@ -314,6 +314,20 @@ native excluded date, and a restored Google instance removes both projections on
 These child records keep `source: gcal`, so their authority remains Google and the Firestore
 push trigger cannot echo the import back as another event.
 
+Group lessons are stored inside `groups/{groupId}.lessons[]`. The `syncGroupToGoogleCalendar`
+trigger, the hourly job and a manual sync push each one as a private event with origin
+`keelesepp-group` into the group teacher's primary calendar (teacher can switch this off:
+`calendarConnections.syncGroups`). Server-only `calendarGroupEventLinks/{groupId}__{lessonId}`
+records the Google event and its owner calendar, so the group document is never written back and a
+group handed to another teacher is removed from the previous calendar. The import skips these
+events; attendance changes do not start a push.
+
+CRM v2 connects through `/gcal/auth-url?returnTo=` (allowed CRM origins only); the callback returns
+to that page with `?gcal=connected|error`, else to v1 (`APP_BASE_URL`). v2 uses a light sync
+(`force: false`: only changed or failed lessons are pushed) from Seaded and when the calendar opens
+more than 15 minutes after the last sync. Lessons imported from Google stay Google-owned: v2 does not
+move or cancel them.
+
 The current two-way slice still uses last-synchronized-write-wins. Explicit conflict review,
 Google eTag preconditions and incremental sync tokens remain separate releases.
 

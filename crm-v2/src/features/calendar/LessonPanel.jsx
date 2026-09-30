@@ -3,6 +3,8 @@ import { useMemo, useState } from 'react';
 import { Badge, Button, EmptyState } from '../../components/ui/index.js';
 import { buildLibraryItems, searchLibrary, sortLibrary } from '../library/libraryModel.js';
 import { INDIVIDUAL_TOPIC, suggestTopic, topicFields, topicLine } from './lessonTopic.js';
+import { isGoogleOwned, lessonSyncState } from '../google-calendar/googleCalendarModel.js';
+import '../google-calendar/googleCalendar.css';
 
 const STATUS_LABEL = { Toimunud: 'Toimunud', Puudus_eta: 'Puudus (ei teatanud)', Puudus_p: 'Puudus (teatas ette)', Planeeritud: 'Planeeritud' };
 
@@ -66,6 +68,8 @@ export default function LessonPanel({ item, history = [], catalog, library, load
   const save = (status) => (status === 'Toimunud'
     ? onDone({ status, ...topicFields(chosen, notes), homework })
     : onDone({ status, ...topicFields(null, notes), topic: '', homework: null }));
+  const googleOwned = isGoogleOwned(item);
+  const sync = lessonSyncState(item);
   const absent = item.status === 'Puudus_eta' || item.status === 'Puudus_p' || ['Puudus_eta', 'Puudus_p'].includes(record?.status);
 
   return (
@@ -116,14 +120,21 @@ export default function LessonPanel({ item, history = [], catalog, library, load
         </section>
       ) : null}
 
-      {!done && !item.isGroup ? (
+      {sync ? (
+        <section className="lp-gcal" aria-label="Google Calendar">
+          <Badge tone={sync.tone}>{sync.label}</Badge>
+          {sync.hint ? <p>{sync.hint}</p> : null}
+        </section>
+      ) : null}
+
+      {!done && !item.isGroup && !googleOwned ? (
         <footer className="lp-foot">
           <Button variant="secondary" disabled={saving} onClick={onEdit}><Pencil size={15} /> Muuda aega</Button>
           <Button variant="danger" disabled={saving} onClick={onCancelLesson}><XCircle size={15} /> Tühista tund</Button>
         </footer>
       ) : null}
       {item.isGroup && !children ? <EmptyState title="Grupi andmed puuduvad" /> : null}
-      {!item.isGroup && item.recurring ? <p className="lp-hint lp-series"><CalendarClock size={14} /> Kordub igal nädalal. Lohista kalendris, et muuta ühte tundi või kõiki järgmisi.</p> : null}
+      {!item.isGroup && item.recurring && !googleOwned ? <p className="lp-hint lp-series"><CalendarClock size={14} /> Kordub igal nädalal. Lohista kalendris, et muuta ühte tundi või kõiki järgmisi.</p> : null}
     </aside>
   );
 }
