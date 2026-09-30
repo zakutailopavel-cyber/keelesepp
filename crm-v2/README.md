@@ -34,7 +34,7 @@ For browser checks without production data: start the emulators from the repo ro
 with the Admin SDK (`FIRESTORE_EMULATOR_HOST=127.0.0.1:8080`, `FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099`), and put
 into the git-ignored `crm-v2/.env.local`: `VITE_FIREBASE_API_KEY=demo-key`, `VITE_FIREBASE_AUTH_DOMAIN=demo-keelesepp.firebaseapp.com`,
 `VITE_FIREBASE_PROJECT_ID=demo-keelesepp`, `VITE_FIREBASE_APP_ID=demo-app`, `VITE_FIREBASE_EMULATORS=1`. With
-`VITE_FIREBASE_EMULATORS=1` the client connects Auth and Firestore to the emulators (off by default). Cloud Functions
+`VITE_FIREBASE_EMULATORS=1` the client connects Auth, Firestore and Storage (9199; add `storage` to `--only`) to the emulators (off by default). Cloud Functions
 calls (finance, Google Calendar) still go to their configured URLs.
 
 ## Commands
