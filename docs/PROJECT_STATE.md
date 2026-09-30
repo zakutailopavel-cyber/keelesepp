@@ -1,6 +1,6 @@
 # KeeleSepp Project State
 
-## Google Calendar in CRM v2 (connect, status, groups) — PR (branch `claude/amazing-franklin-p2s1hh`)
+## Google Calendar in CRM v2 (connect, status, groups) — PR #214 (draft, branch `claude/amazing-franklin-p2s1hh`)
 
 Last verified against main: 2026-09-30, `9e2ae40` (#213). Owner request 2026-09-30: "полноценную и удобную синхронизацию
 с Гугл календарем". The server sync already existed (hourly import, push of individual lessons, outbox, dedupe); v2 had
