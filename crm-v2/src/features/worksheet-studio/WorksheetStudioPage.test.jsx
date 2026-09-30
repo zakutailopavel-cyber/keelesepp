@@ -61,10 +61,12 @@ describe('WorksheetStudioPage', () => {
   });
 
   it('reports save errors without losing the draft', async () => {
-    renderAt('/library/worksheets/new', repo({ save: vi.fn().mockRejectedValue(new Error('Sisesta töölehe pealkiri.')) }));
+    renderAt('/library/worksheets/new', repo({ save: vi.fn().mockRejectedValue(new Error('Võrguühendus katkes.')) }));
     await screen.findByText('Töölehe konstruktor');
+    fireEvent.change(screen.getByLabelText('Pealkiri', { exact: true }), { target: { value: 'Perekond' } });
     fireEvent.click(screen.getByRole('button', { name: 'Salvesta' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent('Sisesta töölehe pealkiri.');
+    expect(await screen.findByRole('alert')).toHaveTextContent('Võrguühendus katkes.');
+    expect(screen.getByText(/Perekond · salvestamata/)).toBeInTheDocument();
   });
 
   it('shows a load error with a way back', async () => {
@@ -79,5 +81,65 @@ describe('WorksheetStudioPage', () => {
     expect(screen.getByRole('button', { name: /Lõika foto lehele/ })).toBeDisabled();
     fireEvent.click(screen.getByRole('tab', { name: 'Plokid' }));
     expect(screen.getByRole('button', { name: /Õige \/ vale/ })).toBeInTheDocument();
+  });
+
+  it('asks for a title before the first save of a new sheet', async () => {
+    const repository = repo();
+    renderAt('/library/worksheets/new', repository);
+    await screen.findByText('Töölehe konstruktor');
+    fireEvent.click(screen.getByRole('button', { name: 'Salvesta' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Anna töölehele pealkiri');
+    expect(repository.save).not.toHaveBeenCalled();
+  });
+
+  it('undoes and redoes block changes, also with the keyboard', async () => {
+    const { container } = renderAt('/library/worksheets/lesson-1', repo());
+    await screen.findByText('Töölehe konstruktor');
+    const count = () => container.querySelectorAll('.ws-page .ws-card').length;
+    const before = count();
+    fireEvent.click(screen.getByRole('button', { name: /Õige \/ vale/ }));
+    await waitFor(() => expect(count()).toBe(before + 1));
+    fireEvent.click(screen.getByRole('button', { name: 'Võta tagasi' }));
+    await waitFor(() => expect(count()).toBe(before));
+    fireEvent.click(screen.getByRole('button', { name: 'Tee uuesti' }));
+    await waitFor(() => expect(count()).toBe(before + 1));
+    fireEvent.keyDown(window, { key: 'z', ctrlKey: true });
+    await waitFor(() => expect(count()).toBe(before));
+  });
+
+  it('a deleted block can be brought back', async () => {
+    const { container } = renderAt('/library/worksheets/lesson-1', repo());
+    await screen.findByText('Töölehe konstruktor');
+    const count = () => container.querySelectorAll('.ws-page .ws-card').length;
+    const before = count();
+    fireEvent.click(container.querySelector('.ws-page .ws-card'));
+    fireEvent.click(container.querySelector('.st-inspector .ed-btn.danger'));
+    await waitFor(() => expect(count()).toBe(before - 1));
+    expect(screen.getByRole('status')).toHaveTextContent('kustutati');
+    fireEvent.click(screen.getByRole('button', { name: 'Võta tagasi' }));
+    await waitFor(() => expect(count()).toBe(before));
+  });
+
+  it('refuses a JSON file that is not a worksheet and keeps the sheet', async () => {
+    const { container } = renderAt('/library/worksheets/lesson-1', repo());
+    await screen.findByText('Töölehe konstruktor');
+    const before = container.querySelectorAll('.ws-page .ws-card').length;
+    const file = new globalThis.File(['{"hello":1}'], 'muu.json', { type: 'application/json' });
+    fireEvent.change(container.querySelector('input[type="file"][accept="application/json"]'), { target: { files: [file] } });
+    expect(await screen.findByRole('alert')).toHaveTextContent('ei ole KeeleSepa tööleht');
+    expect(container.querySelectorAll('.ws-page .ws-card').length).toBe(before);
+  });
+
+  it('asks before leaving through a link with unsaved changes', async () => {
+    renderAt('/library/worksheets/lesson-1', repo());
+    await screen.findByText('Töölehe konstruktor');
+    fireEvent.click(screen.getByRole('button', { name: /Õige \/ vale/ }));
+    globalThis.confirm = vi.fn(() => false);
+    fireEvent.click(screen.getByRole('link', { name: /Õppevara/ }));
+    expect(globalThis.confirm).toHaveBeenCalled();
+    expect(screen.getByText('Töölehe konstruktor')).toBeInTheDocument();
+    globalThis.confirm = vi.fn(() => true);
+    fireEvent.click(screen.getByRole('link', { name: /Õppevara/ }));
+    expect(await screen.findByText('library')).toBeInTheDocument();
   });
 });

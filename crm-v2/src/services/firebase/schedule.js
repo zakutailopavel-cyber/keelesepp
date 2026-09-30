@@ -1,4 +1,4 @@
-import { addDoc, collection, deleteDoc, doc, getDocs, query, updateDoc, where } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, doc, getDocs, query, setDoc, updateDoc, where } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
 import { canonicalTeacherName } from '../../utils/teachers.js';
 
@@ -80,6 +80,14 @@ export const scheduleService = {
     const { db } = requireFirebaseClient();
     await updateDoc(doc(db, 'schedule', id), { ...fields, updatedAtIso: new Date().toISOString() });
     return { id, ...fields };
+  },
+  // Undo of a delete: the same record comes back under the same id (Google Calendar gets it again too).
+  async restore(id, data) {
+    const { db } = requireFirebaseClient();
+    const value = { ...data, updatedAtIso: new Date().toISOString() };
+    delete value.id;
+    await setDoc(doc(db, 'schedule', id), value);
+    return normalizeScheduleEvent(id, value);
   },
   async remove(id) {
     const { db } = requireFirebaseClient();

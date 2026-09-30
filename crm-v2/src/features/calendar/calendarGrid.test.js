@@ -1,4 +1,4 @@
-import { canMove, layoutColumn, planMove, snapMinutes, toClock, toMinutes } from './calendarGrid.js';
+import { canMove, gridRange, layoutColumn, planDelete, planMove, snapMinutes, toClock, toMinutes } from './calendarGrid.js';
 import { eventOccursOn } from './calendarView.js';
 
 describe('calendar time grid', () => {
@@ -60,5 +60,26 @@ describe('moving lessons', () => {
   it('"this and following" from the first lesson shifts the whole series', () => {
     const plan = planMove({ ...weekly, occurrenceDate: '2026-09-07' }, { toDate: '2026-09-08', toTime: '15:00', scope: 'series' });
     expect(plan.apply).toEqual([{ op: 'patch', id: 's1', fields: { date: '2026-09-08', day: 'Tue', time: '15:00', duration: 60, startDate: '2026-09-08' } }]);
+  });
+
+  it('plans deleting a lesson without touching accounting history', () => {
+    const oneOff = { id: 'a', date: '2026-10-05', occurrenceDate: '2026-10-05', studentId: 's1', gcalEventId: 'g', gcalSyncStatus: 'synced' };
+    const plan = planDelete(oneOff);
+    expect(plan.apply).toEqual([{ op: 'delete', id: 'a' }]);
+    expect(plan.undo[0].data).toEqual({ date: '2026-10-05', studentId: 's1' });
+    expect(() => planDelete(oneOff, { hasRecords: true })).toThrow('Toimunud');
+
+    const series = { id: 'w', recurring: true, startDate: '2026-10-05', occurrenceDate: '2026-10-19', excludedDates: ['2026-10-12'] };
+    expect(planDelete(series, { scope: 'single' }).apply).toEqual([{ op: 'patch', id: 'w', fields: { excludedDates: ['2026-10-12', '2026-10-19'] } }]);
+    expect(planDelete(series, { scope: 'series' }).apply).toEqual([{ op: 'patch', id: 'w', fields: { endDate: '2026-10-18' } }]);
+    expect(planDelete({ ...series, occurrenceDate: '2026-10-05' }, { scope: 'series' }).apply).toEqual([{ op: 'delete', id: 'w' }]);
+    expect(planDelete({ ...series, occurrenceDate: '2026-10-05' }, { scope: 'series', hasRecords: true }).apply).toEqual([{ op: 'patch', id: 'w', fields: { endDate: '2026-10-04' } }]);
+  });
+
+  it('widens the visible hours so early and late lessons are never hidden', () => {
+    expect(gridRange([{ time: '10:00', duration: 60 }])).toEqual({ start: 480, end: 1260 });
+    expect(gridRange([{ time: '07:30', duration: 60 }, { time: '21:00', duration: 90 }])).toEqual({ start: 420, end: 1380 });
+    const late = layoutColumn([{ time: '21:00', duration: 60 }], gridRange([{ time: '21:00', duration: 60 }]));
+    expect(late[0].outside).toBe(false);
   });
 });

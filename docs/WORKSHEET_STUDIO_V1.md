@@ -123,6 +123,35 @@ Storage (`curriculum/ws_*`, `homework/{studentId}/ws_rec_*`) is not covered: in 
 Storage emulator denied every rules-checked upload, including a super admin whose rule reads no Firestore, while an
 owner upload succeeded. These are the same prefixes the CRM already uses in production for material and homework files.
 
+## Browser audit 2026-09-30 (owner: "по такой же схеме протестируй конструктор урока")
+
+Walked through in a real browser (Playwright) on the Firestore/Auth/Storage emulators as teacher, admin and a student
+with an own account. Worked: new sheet, all 21 blocks, the three views, save → new URL → reload, inspector fields,
+move/copy/width, photo upload to Storage, sample sheet, JSON export/import, student view with "Kontrolli vastuseid" and
+per-goal evidence, print view without learner answers, assign with due date, student autosave + reload, submit and
+score, teacher review (6 %, 1/18), live view, textbook page, conversion queue, a v1 sheet opening converted, cutting a
+photo from an original image into a new block.
+
+Fixed:
+- Leaving the builder through an in-app link (the "Õppevara" button or the sidebar) silently dropped unsaved work; only
+  reload/close asked. `useUnsavedGuard` (capture-phase link click + `beforeunload`) now asks first.
+- No undo: a deleted block was gone. Undo/redo (toolbar buttons, Ctrl/Cmd+Z, Ctrl/Cmd+Shift+Z, Ctrl+Y; quick typing
+  forms one step, 60 steps), Delete/Backspace removes the selected block, deleting shows a notice with the way back.
+- In edit mode a click on an answer option of "Valikvastused" (a disabled button) did not select the block
+  (`.ws-root.mode-edit :disabled { pointer-events: none }`).
+- Opening a JSON file that is not a worksheet crashed the page (blank screen). `parseWorksheetFile` checks schema,
+  meta and block types; anything else is refused with a message and the sheet stays.
+- "Laadi näidisleht" replaced a non-empty sheet without asking; it asks now (and is undoable). The "Fail" menu closes
+  after a choice. The JSON download anchor is attached to the page (name = sheet title).
+- A new sheet could be saved as "Uus tööleht"; the first save asks for a title.
+- Kodutööd (student): after "Esita tööleht" or "Salvesta" the page reload unmounted the player and reopened it from the
+  old copy: the result was hidden, "Esita" showed again and a following autosave could overwrite newer answers with the
+  stale ones. The page now keeps its content while reloading. Summary counters include worksheets (total / open /
+  late), the student sees "N töölehte" instead of "N õpilast", and a started worksheet shows "Pooleli".
+
+Not an app bug: in headless Chromium a download name with Estonian letters falls back to "download" (ASCII names keep
+the title); desktop browsers keep the name.
+
 ## Not in this slice
 
 1. (done in slice 2)

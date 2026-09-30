@@ -371,7 +371,139 @@ function preserveLessonResultDuringGoogleImport(imported = {}, existing = {}) {
   return result;
 }
 
+// ── Group lessons ─────────────────────────────────────────────
+// A group lesson lives inside groups/{groupId}.lessons[], not in `schedule`. It is pushed as its own
+// Google event with a separate private origin, so the import never mistakes it for a student lesson
+// and the schedule push never touches it.
+const GROUP_EVENT_ORIGIN = "keelesepp-group";
+const RRULE_TO_OFFSET = { SU: 0, MO: 1, TU: 2, WE: 3, TH: 4, FR: 5, SA: 6 };
+
+function isIsoDate(value) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(String(value || ""));
+}
+
+// First date on or after `date` that falls on `day` (Mon…Sun); a weekly series must start on its weekday.
+function firstWeekdayOnOrAfter(date, day) {
+  const code = DAY_TO_RRULE[day];
+  if (!isIsoDate(date) || !code) return "";
+  const [year, month, dayOfMonth] = date.split("-").map(Number);
+  const value = new Date(Date.UTC(year, month - 1, dayOfMonth));
+  const shift = (RRULE_TO_OFFSET[code] - value.getUTCDay() + 7) % 7;
+  value.setUTCDate(value.getUTCDate() + shift);
+  return value.toISOString().slice(0, 10);
+}
+
+function groupLessonLinkId(groupId, lessonId) {
+  const group = String(groupId || "").trim();
+  const lesson = String(lessonId || "").trim();
+  if (!/^[A-Za-z0-9_-]{1,160}$/.test(group) || !/^[A-Za-z0-9_-]{1,160}$/.test(lesson)) return "";
+  return `${group}__${lesson}`;
+}
+
+// Lessons that should exist in the teacher's Google Calendar, keyed by lesson id.
+function eligibleGroupLessons(group) {
+  const result = new Map();
+  if (!group || group.active === false || !String(group.teacherUid || "").trim()) return result;
+  (Array.isArray(group.lessons) ? group.lessons : []).forEach(lesson => {
+    if (!lesson?.id || lesson.status === "Tühistatud") return;
+    result.set(String(lesson.id), lesson);
+  });
+  return result;
+}
+
+/**
+ * Google event for one group lesson. `anchorDate` is the stored first date of a series whose lesson has no
+ * start date of its own (older groups); without any date the lesson is not pushed.
+ */
+function groupLessonToGoogleEvent(groupId, group, lesson, { anchorDate = "", timeZone = "Europe/Tallinn" } = {}) {
+  const linkId = groupLessonLinkId(groupId, lesson?.id);
+  if (!linkId || !group || !lesson || lesson.status === "Tühistatud") return null;
+  const time = String(lesson.time || "").trim();
+  const recurring = lesson.recurring !== false;
+  const baseDate = [lesson.startDate, lesson.date, anchorDate].find(isIsoDate) || "";
+  const date = recurring ? firstWeekdayOnOrAfter(baseDate, lesson.day) : (isIsoDate(lesson.date) ? lesson.date : baseDate);
+  const startDateTime = localDateTime(date, time);
+  const endDateTime = addLocalMinutes(date, time, lesson.duration);
+  if (!startDateTime || !endDateTime) return null;
+
+  const name = String(group.name || "Grupp").trim() || "Grupp";
+  const event = {
+    summary: `KeeleSepp — Grupp: ${name}`,
+    description: [
+      `KeeleSepp group:${groupId}`,
+      `KeeleSepp group lesson:${lesson.id}`,
+      [group.subject, group.level].filter(Boolean).join(" · "),
+    ].filter(Boolean).join("\n"),
+    start: { dateTime: startDateTime, timeZone },
+    end: { dateTime: endDateTime, timeZone },
+    visibility: "private",
+    extendedProperties: {
+      private: {
+        keeleseppOrigin: GROUP_EVENT_ORIGIN,
+        keeleseppGroupId: String(groupId),
+        keeleseppGroupLessonId: String(lesson.id),
+        keeleseppVersion: "1",
+      },
+    },
+  };
+  if (recurring) {
+    const parts = ["RRULE:FREQ=WEEKLY", `BYDAY=${DAY_TO_RRULE[lesson.day]}`];
+    if (isIsoDate(lesson.endDate) && lesson.endDate >= date) {
+      parts.push(`UNTIL=${lesson.endDate.replaceAll("-", "")}T215959Z`);
+    }
+    const excludedTime = time.replace(":", "");
+    event.recurrence = [
+      parts.join(";"),
+      ...recurrenceExcludedDates(lesson).map(excludedDate =>
+        `EXDATE;TZID=${timeZone}:${excludedDate.replaceAll("-", "")}T${excludedTime}00`
+      ),
+    ];
+  }
+  return event;
+}
+
+function groupLessonSyncFingerprint(event) {
+  return crypto.createHash("sha256").update(JSON.stringify(event || { removed: true })).digest("hex");
+}
+
+function isKeeleSeppGroupGoogleEvent(event) {
+  return event?.extendedProperties?.private?.keeleseppOrigin === GROUP_EVENT_ORIGIN;
+}
+
+// ── OAuth return address ──────────────────────────────────────
+// After Google consent the teacher returns to the CRM they started from (v2 or v1). Only known origins
+// are accepted, so the OAuth callback cannot be used as an open redirect.
+function safeCalendarReturnUrl(value, allowedOrigins = [], fallback = "") {
+  let url;
+  try {
+    url = new URL(String(value || ""));
+  } catch {
+    return fallback;
+  }
+  if (!["https:", "http:"].includes(url.protocol)) return fallback;
+  if (url.protocol === "http:" && !["localhost", "127.0.0.1"].includes(url.hostname)) return fallback;
+  if (!new Set(allowedOrigins).has(url.origin)) return fallback;
+  url.hash = "";
+  url.searchParams.delete("gcal");
+  return url.toString();
+}
+
+function calendarReturnUrlWithStatus(base, status) {
+  const url = new URL(base);
+  url.searchParams.set("gcal", String(status || ""));
+  return url.toString();
+}
+
 module.exports = {
+  GROUP_EVENT_ORIGIN,
+  firstWeekdayOnOrAfter,
+  groupLessonLinkId,
+  eligibleGroupLessons,
+  groupLessonToGoogleEvent,
+  groupLessonSyncFingerprint,
+  isKeeleSeppGroupGoogleEvent,
+  safeCalendarReturnUrl,
+  calendarReturnUrlWithStatus,
   GOOGLE_SCOPE_EVENTS,
   GOOGLE_SCOPE_EVENTS_OWNED,
   GOOGLE_SCOPE_CALENDAR,

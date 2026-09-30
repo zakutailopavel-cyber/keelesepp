@@ -20,7 +20,7 @@ const curriculum = [
   { id: 'b1-2', title: 'Sagedus', level: 'B1', roadmapModuleTitle: 'Igapäevaelu', roadmapModuleNumber: 1, roadmapLessonNumber: 2 },
 ];
 
-function repositories({ events = [], records = [] } = {}) {
+function repositories({ events = [], records = [], groups = [] } = {}) {
   return {
     scheduleRepository: {
       list: vi.fn().mockResolvedValue(events),
@@ -28,6 +28,7 @@ function repositories({ events = [], records = [] } = {}) {
       update: vi.fn(),
       patch: vi.fn().mockResolvedValue({}),
       remove: vi.fn().mockResolvedValue(undefined),
+      restore: vi.fn().mockResolvedValue({}),
       cancel: vi.fn(),
     },
     studentRepository: {
@@ -36,10 +37,13 @@ function repositories({ events = [], records = [] } = {}) {
         { id: 's2', name: 'Jaan Tamm', teacher: 'Jelena', teacherUid: 't2' },
       ] }),
     },
-    groupRepository: { list: vi.fn().mockResolvedValue([]), setAttendance: vi.fn() },
+    groupRepository: { list: vi.fn().mockResolvedValue(groups), setAttendance: vi.fn(), patchLesson: vi.fn().mockResolvedValue({}) },
+    teacherRepository: { list: vi.fn().mockResolvedValue([{ id: 't1', name: 'Pavel' }, { id: 't2', name: 'Jelena' }]) },
     lessonRepository: {
       listForCalendar: vi.fn().mockResolvedValue(records),
       completeFromSchedule: vi.fn().mockResolvedValue({ id: 'lesson-1' }),
+      changeMark: vi.fn().mockResolvedValue({}),
+      removeMark: vi.fn().mockResolvedValue(undefined),
     },
     libraryRepository: { list: vi.fn().mockResolvedValue({ curriculumLessons: curriculum, exercises: [] }), assign: vi.fn().mockResolvedValue({ count: 1 }) },
   };
@@ -68,6 +72,25 @@ describe('calendar v2', () => {
     expect(screen.getByText(/Filtritele vastavaid tunde ei leitud/)).toBeInTheDocument();
     fireEvent.click(screen.getAllByRole('button', { name: 'Tühjenda filtrid' })[0]);
     expect(screen.getByLabelText('Otsi kalendrist')).toHaveValue('');
+  });
+
+  it('a lesson from Google Calendar is changed in Google: no move or cancel in KeeleSepp', async () => {
+    renderCalendar({ events: [lesson({ source: 'gcal', gcalEventId: 'g1' })] });
+    fireEvent.click(await screen.findByRole('button', { name: /10:00 Mari Maas/ }));
+    const panel = screen.getByRole('dialog', { name: 'Tund: Mari Maas' });
+    expect(within(panel).getByText('Google Calendarist')).toBeInTheDocument();
+    expect(within(panel).queryByRole('button', { name: /Muuda aega/ })).toBeNull();
+    expect(within(panel).queryByRole('button', { name: /Tühista tund/ })).toBeNull();
+    expect(within(panel).getByRole('button', { name: /Tund toimus/ })).toBeInTheDocument();
+  });
+
+  it('shows whether a KeeleSepp lesson reached Google Calendar', async () => {
+    renderCalendar({ events: [lesson({ gcalSyncStatus: 'error', gcalSyncError: 'Forbidden' })] });
+    fireEvent.click(await screen.findByRole('button', { name: /10:00 Mari Maas/ }));
+    const panel = screen.getByRole('dialog', { name: 'Tund: Mari Maas' });
+    expect(within(panel).getByText("Google'isse ei jõudnud")).toBeInTheDocument();
+    expect(within(panel).getByText('Forbidden')).toBeInTheDocument();
+    expect(within(panel).getByRole('button', { name: /Muuda aega/ })).toBeInTheDocument();
   });
 
   it('creates a lesson from the toolbar', async () => {
@@ -152,5 +175,86 @@ describe('calendar v2', () => {
     fireEvent.pointerUp(block, { clientX: 5000, clientY: 166, pointerId: 1 });
     expect(await screen.findByRole('alert')).toHaveTextContent('juba teine tund');
     expect(props.scheduleRepository.patch).not.toHaveBeenCalled();
+  });
+
+  it('deletes a lesson added by mistake and can bring it back', async () => {
+    const props = renderCalendar({ events: [lesson({ gcalEventId: 'g-old', gcalSyncStatus: 'synced' })] });
+    fireEvent.click(await screen.findByRole('button', { name: /10:00 Mari Maas/ }));
+    fireEvent.click(within(screen.getByRole('dialog', { name: 'Tund: Mari Maas' })).getByRole('button', { name: /Kustuta/ }));
+    fireEvent.click(within(screen.getByRole('dialog', { name: 'Kustuta tund' })).getByRole('button', { name: 'Kustuta' }));
+    await waitFor(() => expect(props.scheduleRepository.remove).toHaveBeenCalledWith('schedule-1'));
+    fireEvent.click(await screen.findByRole('button', { name: /Tühista/ }));
+    await waitFor(() => expect(props.scheduleRepository.restore).toHaveBeenCalledWith('schedule-1', expect.objectContaining({ studentId: 's1', time: '10:00' })));
+    expect(props.scheduleRepository.restore.mock.calls[0][1]).not.toHaveProperty('gcalEventId');
+  });
+
+  it('deletes only one date of a weekly lesson', async () => {
+    const props = renderCalendar({ events: [lesson({ recurring: true, day: undefined })] });
+    fireEvent.click(await screen.findByRole('button', { name: /10:00 Mari Maas/ }));
+    fireEvent.click(within(screen.getByRole('dialog', { name: 'Tund: Mari Maas' })).getByRole('button', { name: /Kustuta/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Ainult see tund' }));
+    await waitFor(() => expect(props.scheduleRepository.patch).toHaveBeenCalledWith('schedule-1', { excludedDates: [today] }));
+    expect(props.scheduleRepository.remove).not.toHaveBeenCalled();
+  });
+
+  it('shows a lesson at 21:00 in the week grid', async () => {
+    renderCalendar({ events: [lesson({ time: '21:00' })] });
+    expect(await screen.findByRole('button', { name: /21:00 Mari Maas/ })).toBeInTheDocument();
+  });
+
+  it('fixes a wrong mark: another status or back to planned', async () => {
+    const record = { id: 'rec-1', scheduleId: 'schedule-1', studentId: 's1', date: today, status: 'Toimunud', accountingSource: 'crm_v2' };
+    const props = renderCalendar({ events: [lesson()], records: [record] });
+    fireEvent.click(await screen.findByRole('button', { name: /10:00 Mari Maas, toimunud/ }));
+    const panel = screen.getByRole('dialog', { name: 'Tund: Mari Maas' });
+    fireEvent.click(within(panel).getByRole('button', { name: /Paranda/ }));
+    fireEvent.click(within(panel).getByRole('button', { name: 'Puudus (teatas ette)' }));
+    await waitFor(() => expect(props.lessonRepository.changeMark).toHaveBeenCalledWith(expect.objectContaining({ id: 'rec-1' }), 'Puudus_p', expect.objectContaining({ uid: 'admin-1' }), { scheduleRecurring: false }));
+    fireEvent.click(within(screen.getByRole('dialog', { name: 'Tund: Mari Maas' })).getByRole('button', { name: /Eemalda märge/ }));
+    await waitFor(() => expect(props.lessonRepository.removeMark).toHaveBeenCalled());
+  });
+
+  it('a future lesson can only be marked as an absence announced in advance', async () => {
+    const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+    const date = toIsoDate(tomorrow);
+    renderCalendar({ events: [lesson({ date, startDate: date })] });
+    await waitFor(() => expect(summary()).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: 'Päev' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Järgmine periood' }));
+    fireEvent.click(await screen.findByRole('button', { name: /10:00 Mari Maas/ }));
+    const panel = screen.getByRole('dialog', { name: 'Tund: Mari Maas' });
+    expect(within(panel).queryByRole('button', { name: /Tund toimus/ })).toBeNull();
+    expect(within(panel).queryByRole('button', { name: 'Puudus (ei teatanud)' })).toBeNull();
+    expect(within(panel).getByRole('button', { name: /Puudus \(teatas ette\)/ })).toBeInTheDocument();
+  });
+
+  it('cancelling a one-off lesson can be undone', async () => {
+    const props = renderCalendar({ events: [lesson()] });
+    props.scheduleRepository.cancel.mockResolvedValue({});
+    globalThis.confirm = vi.fn(() => true);
+    fireEvent.click(await screen.findByRole('button', { name: /10:00 Mari Maas/ }));
+    fireEvent.click(within(screen.getByRole('dialog', { name: 'Tund: Mari Maas' })).getByRole('button', { name: /Tühista tund/ }));
+    await waitFor(() => expect(props.scheduleRepository.cancel).toHaveBeenCalled());
+    fireEvent.click(await screen.findByRole('button', { name: /Tühista$/ }));
+    await waitFor(() => expect(props.scheduleRepository.patch).toHaveBeenCalledWith('schedule-1', { status: 'Planeeritud' }));
+  });
+
+  it('admin cancels one date of a group lesson', async () => {
+    const group = { id: 'g1', name: 'A2 õhtune', teacher: 'Jelena', teacherUid: 't2', students: [], lessons: [{ id: 'gl1', day: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][new Date(`${today}T12:00:00`).getDay()], time: '18:00', duration: 90, recurring: true, startDate: today }] };
+    const props = renderCalendar({ groups: [group] });
+    globalThis.confirm = vi.fn(() => true);
+    fireEvent.click(await screen.findByRole('button', { name: /18:00 A2 õhtune/ }));
+    fireEvent.click(within(screen.getByRole('dialog', { name: 'Tund: A2 õhtune' })).getByRole('button', { name: /Tühista see grupitund/ }));
+    await waitFor(() => expect(props.groupRepository.patchLesson).toHaveBeenCalledWith(expect.objectContaining({ id: 'g1' }), 'gl1', { excludedDates: [today] }, expect.anything()));
+  });
+
+  it('admin can give a new lesson to another teacher', async () => {
+    const props = renderCalendar();
+    fireEvent.click(await screen.findByRole('button', { name: /Lisa tund/ }));
+    fireEvent.focus(screen.getByRole('combobox', { name: /Õpilane/ }));
+    fireEvent.click(await screen.findByRole('option', { name: /Mari Maas/ }));
+    fireEvent.change(await screen.findByLabelText('Õpetaja'), { target: { value: 't2' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Salvesta tund' }));
+    await waitFor(() => expect(props.scheduleRepository.create).toHaveBeenCalledWith(expect.objectContaining({ studentId: 's1', teacher: 'Jelena', teacherUid: 't2' })));
   });
 });

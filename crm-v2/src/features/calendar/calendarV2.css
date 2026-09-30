@@ -136,3 +136,5 @@
 /* keep the undo toast clear of the side panel */
 .cal2-main.has-panel ~ .cal2-toast { left: 24px; transform: none; }
 @media (max-width: 760px) { .cal2-main.has-panel ~ .cal2-toast { bottom: auto; top: 12px; left: 12px; right: 12px; } }
+.lp-fix { display: grid; gap: 6px; margin-top: 8px; }
+.lp-fix .button { min-height: 36px; font-size: .85rem; justify-content: flex-start; }

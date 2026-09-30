@@ -28,8 +28,20 @@ export function toClock(total) {
 export const snapMinutes = (value, step = SNAP) => Math.round(value / step) * step;
 export const dayId = (isoDate) => DAY_IDS[new Date(`${isoDate}T12:00:00`).getDay()];
 
-// Position lessons of one column: top/height in minutes from GRID_START, side-by-side lanes for overlaps.
-export function layoutColumn(items) {
+// Visible hours: 08:00–21:00, widened to whole hours so an earlier or later lesson is never hidden.
+export function gridRange(items = []) {
+  let start = GRID_START;
+  let end = GRID_END;
+  items.forEach((item) => {
+    const from = toMinutes(item.time);
+    start = Math.min(start, Math.floor(from / 60) * 60);
+    end = Math.max(end, Math.min(24 * 60, Math.ceil((from + (Number(item.duration) || 60)) / 60) * 60));
+  });
+  return { start, end };
+}
+
+// Position lessons of one column: top/height in minutes from the range start, side-by-side lanes for overlaps.
+export function layoutColumn(items, range = { start: GRID_START, end: GRID_END }) {
   const sorted = [...items]
     .map((item) => ({ item, start: toMinutes(item.time), end: toMinutes(item.time) + (Number(item.duration) || 60) }))
     .sort((a, b) => a.start - b.start || b.end - a.end);
@@ -54,11 +66,11 @@ export function layoutColumn(items) {
   if (cluster.length) flush();
   return placed.map(({ item, start, end, lane, lanes }) => ({
     item,
-    top: Math.max(0, start - GRID_START),
-    height: Math.max(SNAP, Math.min(end, GRID_END) - Math.max(start, GRID_START)),
+    top: Math.max(0, start - range.start),
+    height: Math.max(SNAP, Math.min(end, range.end) - Math.max(start, range.start)),
     lane,
     lanes,
-    outside: end <= GRID_START || start >= GRID_END,
+    outside: end <= range.start || start >= range.end,
   }));
 }
 
@@ -115,5 +127,40 @@ export function planMove(item, { toDate, toTime, duration, scope = 'single' }) {
       { op: 'remove', key: 'series' },
       { op: 'patch', id: item.id, fields: { endDate: item.endDate || '' } },
     ],
+  };
+}
+
+// Fields that belong to one displayed occurrence, not to the stored schedule record.
+const OCCURRENCE_FIELDS = ['occurrenceDate', 'occurrenceId', 'lessonRecordId', 'record', 'recordTopic'];
+// The old Google event is deleted with the record; a restored record must get a fresh one.
+const isGoogleLinkField = (key) => key.startsWith('gcal') && key !== 'gcalImportSuppressed';
+
+/**
+ * Plan deleting a lesson that was added by mistake or is not needed. Same operation lists as planMove, plus
+ *   { op: 'delete', id } and { op: 'restore', id, data } (undo puts the same record back under the same id).
+ * scope for a weekly lesson: 'single' = only this date, 'series' = this and all following.
+ * `stored` is the schedule record as saved; `hasRecords` = the series already has held/absent lessons, which are
+ * accounting history, so the record itself is never removed then (the series only ends before this date).
+ */
+export function planDelete(item, { scope = 'single', stored = item, hasRecords = false } = {}) {
+  const data = Object.fromEntries(Object.entries(stored || {}).filter(([key]) => key !== 'id' && !OCCURRENCE_FIELDS.includes(key) && !isGoogleLinkField(key)));
+  const removeRecord = { apply: [{ op: 'delete', id: item.id }], undo: [{ op: 'restore', id: item.id, data }] };
+  if (!item.recurring) {
+    if (hasRecords) throw new Error('Toimunud tundi ei saa kustutada.');
+    return removeRecord;
+  }
+  const from = item.occurrenceDate || item.date;
+  const excluded = item.excludedDates || [];
+  if (scope === 'single') {
+    return {
+      apply: [{ op: 'patch', id: item.id, fields: { excludedDates: [...new Set([...excluded, from])] } }],
+      undo: [{ op: 'patch', id: item.id, fields: { excludedDates: excluded } }],
+    };
+  }
+  const start = item.startDate || item.date;
+  if (from <= start && !hasRecords) return removeRecord;
+  return {
+    apply: [{ op: 'patch', id: item.id, fields: { endDate: shiftDate(from, -1) } }],
+    undo: [{ op: 'patch', id: item.id, fields: { endDate: item.endDate || '' } }],
   };
 }

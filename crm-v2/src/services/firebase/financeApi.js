@@ -80,6 +80,10 @@ async function postInvoice(path, body) {
 }
 
 export const financeApi = {
+  // Removes a lesson mark and reverses its package/counter bookkeeping (refused for invoiced lessons).
+  deleteLessonJournal(lessonId) {
+    return post("/lessons/journal/delete", { lessonId, requestId: financeRequestId("lesson-delete") });
+  },
   // Finance v2 §1: move lesson prices off student cards into the private revenue plans
   previewPricePrivacy() {
     return post("/students/price-privacy/preview", {});

@@ -31,6 +31,96 @@ deployment was changed.
 Known gates: `websiteLeadApi` and Firestore rules need separate owner-approved Firebase deploys; merging/pushing would
 trigger Vercel and has intentionally not been done. Exactly one next safe step: perform a local visual review using a
 browser that can reach the worktree server, then make one commit and open one draft PR for the complete block.
+## Worksheet Studio (Töölehe konstruktor) browser audit — MERGED (#216, 048757a)
+
+Last verified against main: 2026-09-30, `9e2ae40` (#213). Owner 2026-09-30: test the lesson builder the same way as the
+calendar. Separate from the calendar PR #214 (AGENTS.md: learning content and calendar changes are not mixed).
+Full scenario list, findings and fixes: `docs/WORKSHEET_STUDIO_V1.md` → "Browser audit 2026-09-30".
+Fixed: unsaved work lost on in-app navigation; undo/redo + Delete key; choice block not selectable by its options;
+invalid JSON import crash; sample sheet overwrite without asking; default-title first save; Kodutööd hid the submit
+result and could overwrite newer answers after a reload; Kodutööd counters ignored worksheets; started sheet shown as
+"Alustamata".
+Files: `crm-v2/src/features/worksheet-studio/{WorksheetStudioPage.jsx,editorHistory.js,engine/sheet.css}` (+test),
+`crm-v2/src/features/homework/HomeworkPage.jsx` (+test). No data, rule, Function or schema change.
+Checks: crm-v2 vitest 457/459 — the 2 failures are `FinancePage.test.jsx` (a "Loen tunniplaani…" spinner still on
+screen when the test looks for the status message); they fail identically on clean `main`, not touched here. ESLint
+clean, build OK. Browser re-run of every fixed scenario: OK.
+Exactly one next safe step: owner reviews and merges the PR, then a Vercel release.
+## Google Calendar in CRM v2 (connect, status, groups) — MERGED (#214, e323ace)
+
+Last verified against main: 2026-09-30, `9e2ae40` (#213). Owner request 2026-09-30: "полноценную и удобную синхронизацию
+с Гугл календарем". The server sync already existed (hourly import, push of individual lessons, outbox, dedupe); v2 had
+no screen and the OAuth return landed in v1.
+
+Done:
+- **Seaded → Google Calendar** (teachers and admins, not in support preview): connect, grant write access for old
+  import-only connections, state (two-way / import only / error), last import and push time, "Sünkrooni kohe",
+  switch "Näita minu grupitunde Google Calendaris", disconnect with a two-click confirmation.
+- **Calendar toolbar chip**: Google state + time of last sync + sync button; not connected → link to Seaded. Opening the
+  calendar syncs by itself when the last sync is older than 15 minutes (light sync, never while an error is shown).
+- **Lesson panel**: "Google Calendaris" / "Ootab…" / "Google'isse ei jõudnud: <error>" for KeeleSepp lessons. Lessons
+  imported from Google (`source: gcal`) show "Google Calendarist", cannot be dragged, and have no "Muuda aega" /
+  "Tühista tund" (the next import would undo the change); "Tund toimus" still works.
+- **Server (`functions/index.js`)**: `/gcal/auth-url` takes `returnTo` (allowed CRM origins only, stored in
+  `oauthStates`), callback returns there with `?gcal=connected|error` (v1 unchanged: fallback `APP_BASE_URL`);
+  `/gcal/sync` takes `force: false` (v2: push only changed/failed lessons; v1 sends nothing and keeps the full re-push);
+  new `/gcal/settings { uid, syncGroups }`; status adds `syncGroups`, `lastGroupPushAt`, `lastGroupPushError`;
+  disconnect keeps imported one-off lessons dated before today (history) and returns `{ removed, kept }`.
+- **Group lessons → Google**: new trigger `syncGroupToGoogleCalendar` (groups/{id}) and the hourly job / manual sync push
+  each group lesson as its own private event (origin `keelesepp-group`) into the group teacher's primary calendar.
+  Links in the new server-only collection `calendarGroupEventLinks/{groupId}__{lessonId}` ({ groupId, lessonId,
+  teacherUid, eventId, anchorDate, hash, status, error }). Attendance marks do not trigger a push. Removed/cancelled
+  lessons, inactive groups, switching the setting off and handing a group to another teacher delete the event. The
+  import skips group events. Series without a start date use `anchorDate` = the day of the first push.
+- Firestore rule: `calendarGroupEventLinks` read/write false.
+- **"Kustuta" in the lesson panel** (owner 2026-09-30: a lesson put in by mistake, wrong student or wrong day, could not
+  be deleted). Next to "Tühista tund" (lesson does not take place) the panel has "Kustuta" with a confirmation: a one-off
+  lesson is removed (`schedule` doc deleted → the trigger deletes its Google event); a weekly lesson asks "Ainult see
+  tund" (date into `excludedDates`) or "See ja kõik järgmised" (`endDate` = day before; the whole record is deleted only
+  from its first date and when it has no `lessons` records). Undo toast restores the same record under the same id
+  (`scheduleService.restore`, Google link fields stripped so a fresh event is created). Not offered for held/absent
+  lessons, group lessons or lessons imported from Google. Pure planner `planDelete` in `calendarGrid.js`.
+
+**Calendar scenario audit (owner 2026-09-30: "проверь все сценарии использования календаря").** Walked through in a
+real browser (Playwright) on the Firestore/Auth emulators with seeded admin, teacher, students, one-off, weekly, group,
+Google-imported, 07:30 and 21:00 lessons. Found and fixed:
+- Lessons before 08:00 or from 21:00 were **not shown at all** in week/day view (grid filtered them out while the
+  counter included them). The grid now widens to whole hours around the earliest/latest lesson (`gridRange`).
+- A wrong mark could not be fixed. Done/absent lessons now have "Märkisid valesti? Paranda": another status, or
+  "Eemalda märge" (planned again). CRM v2 marks are changed in Firestore (`lessonsService.changeMark/removeMark`,
+  activity log); older marks are removed through the server journal (`financeApi.deleteLessonJournal`, reverses
+  package/counter bookkeeping). Invoiced lessons / closed periods are refused with a pointer to Finantsid.
+- Future lessons could be marked "Tund toimus". Before the lesson day only "Puudus (teatas ette)" is offered.
+- "Tühista kogu sari" in the edit dialog set the whole series to cancelled, which also hid every past occurrence from
+  the calendar. Replaced by "Lõpeta või kustuta…" (only this date / this and all following; history stays).
+- Cancelling a one-off lesson had no undo; now the toast offers "Tühista".
+- A group lesson could not be cancelled for one date from the calendar: admin gets "Tühista see grupitund" (date into
+  the lesson's `excludedDates`, with undo).
+- Admin can pick the teacher when creating/editing a lesson (substitution); default is the student's teacher. Editing
+  no longer silently resets the teacher to the student's teacher.
+- "Eelmine kord" showed the lesson's own mark instead of the previous lesson.
+- Resize toast shows the new length.
+Verified OK in the browser: week/day/month/mobile agenda, create one-off and weekly, conflict refusal, drag + undo,
+resize, delete (one-off, one date, series from its first date), teacher sees only own lessons and no teacher picker,
+group attendance, Google-imported lesson locked, `?student=` filter. `VITE_FIREBASE_EMULATORS=1` (off by default)
+connects the v2 client to local emulators; how-to in `crm-v2/README.md`.
+Not covered: Live Classroom start from a lesson (not in the calendar panel), mobile drag (agenda has no drag by design).
+
+Checks (2026-09-30): functions `npm test` 201/201 (new `calendar-group-sync-core.test.js`,
+`calendar-group-sync-behavior.test.js`); crm-v2 vitest 479/479, ESLint clean, `vite build` OK. Not run: emulator
+suite, a real Google account, visual check in a browser.
+
+Needs with the merge (owner's word): deploy functions `gcalApi`, `syncAllCalendars`, `syncGroupToGoogleCalendar` (new)
+and Firestore rules. Until then v2 "Ühenda" still works but returns to v1, and group lessons are not pushed. No Google
+Cloud Console change: the redirect URI is unchanged.
+
+Risks: teachers who already typed group lessons into Google by hand will see them twice — they can switch groups off in
+Seaded or delete their own copies. If the Google OAuth app is in "Testing" mode, refresh tokens expire after 7 days.
+Conflicts are still last-synchronized-write-wins; sync is hourly + on calendar open (no Google push channel yet).
+
+Exactly one next safe step: owner deploys `gcalApi`, `syncAllCalendars`, `syncGroupToGoogleCalendar` and the rules,
+then connects one teacher in crm.epkoolitus.ee → Seaded → Google Calendar and checks one individual and one group lesson
+in Google.
 
 ## 2026-09-29 — crm.epkoolitus.ee now serves CRM v2
 

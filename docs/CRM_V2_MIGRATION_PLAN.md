@@ -136,7 +136,8 @@ Blocking for daily work in v2 only:
 - TURN server for Live Classroom video on strict networks.
 
 Blocking for switching v1 off (can wait, v1 stays at `www.epkoolitus.ee/haldus`):
-- Google Calendar connect screen in v2 (OAuth return currently lands in v1).
+- Google Calendar connect screen in v2 — built (Seaded → Google Calendar, PR #214);
+  done for v1 switch-off once `gcalApi` is deployed with the `returnTo` support.
 - Remaining v1 functions list above (Minu tööpäev/curriculum, level test, board outside the lesson, team tasks,
   notification centre, admin tools) and playing issued v1 lesson assignments.
 - Instagram outbound messages.
