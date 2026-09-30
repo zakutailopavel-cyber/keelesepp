@@ -19,6 +19,10 @@ import { applyPrintA4 } from './printPage.js';
 import './engine/sheet.css';
 import './worksheetStudio.css';
 import { addItem } from './engine/addItem.js';
+import { emptyHistory, isTextTarget, parseWorksheetFile, pushHistory, redoHistory, undoHistory, useUnsavedGuard } from './editorHistory.js';
+
+const DEFAULT_TITLE = newDocument().meta.title;
+
 
 const MM = 3.7795;
 
@@ -46,8 +50,12 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService 
   const [original, setOriginal] = useState([]);
   const [leftTab, setLeftTab] = useState('blocks');
   const [cut, setCut] = useState({ busy: false, error: '' });
+  const [history, setHistory] = useState(emptyHistory);
+  const lastPush = useRef(0);
   const canvasRef = useRef(null);
   const fileRef = useRef(null);
+  const menuRef = useRef(null);
+  useUnsavedGuard(dirty);
 
   useEffect(() => {
     let alive = true;
@@ -74,12 +82,13 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService 
     return applyPrintA4();
   }, []);
 
+  // Ctrl/Cmd+Z undo, Ctrl/Cmd+Shift+Z or Ctrl+Y redo, Delete removes the selected block (outside text fields).
+  const keysRef = useRef(null);
   useEffect(() => {
-    if (!dirty) return undefined;
-    const warn = (event) => { event.preventDefault(); event.returnValue = ''; };
-    window.addEventListener('beforeunload', warn);
-    return () => window.removeEventListener('beforeunload', warn);
-  }, [dirty]);
+    const onKey = (event) => keysRef.current?.(event);
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   useEffect(() => {
     const el = canvasRef.current;
@@ -101,7 +110,28 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService 
   if (loadError) return <div className="page-content"><div className="ws-studio-error" role="alert">{loadError} <Link to="/library">Tagasi Õppevarasse</Link></div></div>;
   if (!doc) return <div className="page-content"><p className="ws-studio-loading">Laen töölehte…</p></div>;
 
-  const change = (next) => { setDoc(next); setDirty(true); setNotice(''); };
+  // Every change is undoable; quick successive edits (typing in the inspector) form one undo step.
+  const change = (next) => {
+    const now = Date.now();
+    if (now - lastPush.current > 800) setHistory((h) => pushHistory(h, doc));
+    lastPush.current = now;
+    setDoc(next); setDirty(true); setNotice('');
+  };
+  const undo = () => {
+    const step = undoHistory(history, doc);
+    if (!step) return;
+    lastPush.current = 0;
+    setDoc(step.doc); setHistory(step.history); setDirty(true); setNotice('');
+    if (!step.doc.blocks.some((b) => b.id === selectedId)) setSelectedId(null);
+  };
+  const redo = () => {
+    const step = redoHistory(history, doc);
+    if (!step) return;
+    lastPush.current = 0;
+    setDoc(step.doc); setHistory(step.history); setDirty(true); setNotice('');
+    if (!step.doc.blocks.some((b) => b.id === selectedId)) setSelectedId(null);
+  };
+  const closeMenu = () => { if (menuRef.current) menuRef.current.open = false; };
   const setBlocks = (blocks) => change({ ...doc, blocks });
   const selected = doc.blocks.find((b) => b.id === selectedId);
   const updateBlock = (nb) => setBlocks(doc.blocks.map((b) => (b.id === nb.id ? nb : b)));
@@ -162,6 +192,21 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService 
     setAnswers((a) => ({ ...a, [k]: v }));
     setResults((r) => { if (!r[k]) return r; const n = { ...r }; delete n[k]; return n; });
   };
+  const deleteBlock = (id) => {
+    const block = doc.blocks.find((b) => b.id === id);
+    if (!block) return;
+    lastPush.current = 0;
+    setBlocks(doc.blocks.filter((b) => b.id !== id));
+    setSelectedId(null);
+    setNotice(`Plokk „${BLOCKS[block.type]?.label || 'plokk'}” kustutati. Tagasi saad selle nupuga „Võta tagasi” või Ctrl+Z.`);
+  };
+  keysRef.current = (event) => {
+    if (mode !== 'edit' || isTextTarget(event.target)) return;
+    const key = String(event.key || '').toLowerCase();
+    if ((event.ctrlKey || event.metaKey) && key === 'z') { event.preventDefault(); if (event.shiftKey) redo(); else undo(); return; }
+    if ((event.ctrlKey || event.metaKey) && key === 'y') { event.preventDefault(); redo(); return; }
+    if ((key === 'delete' || key === 'backspace') && selectedId) { event.preventDefault(); deleteBlock(selectedId); }
+  };
   const switchMode = (m) => { setMode(m); setEvidence(null); setResults({}); if (m !== 'edit') setSelectedId(null); };
 
   const check = () => {
@@ -171,6 +216,11 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService 
   };
 
   const save = async () => {
+    if (isNew && doc.meta.title.trim() === DEFAULT_TITLE) {
+      setSelectedId(null);
+      setSaveError('Anna töölehele pealkiri (paremal „Töölehe andmed” → Pealkiri), siis salvesta.');
+      return;
+    }
     setSaving(true);
     setSaveError('');
     try {
@@ -187,14 +237,28 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService 
   };
 
   const exportJson = () => {
+    closeMenu();
     const blob = new Blob([JSON.stringify(doc, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `${doc.meta.title || 'tooleht'}.json`;
+    a.download = `${(doc.meta.title || 'tooleht').replace(/[\\/:*?"<>|]+/g, '-')}.json`;
+    document.body.appendChild(a);
     a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   };
   const importJson = async (file) => {
-    try { change({ ...JSON.parse(await file.text()), id: doc.id }); setSelectedId(null); } catch { setSaveError('Fail ei ole kehtiv tööleht.'); }
+    closeMenu();
+    const parsed = parseWorksheetFile(await file.text());
+    if (!parsed) { setSaveError('See fail ei ole KeeleSepa tööleht (JSON). Tööleht jäi muutmata.'); return; }
+    setSaveError('');
+    change({ ...parsed, id: doc.id }); setSelectedId(null);
+  };
+  const loadSample = () => {
+    closeMenu();
+    if (doc.blocks.length && !window.confirm('Näidisleht asendab praeguse lehe sisu. Jätkata? (Saad tagasi ka „Võta tagasi” nupuga.)')) return;
+    lastPush.current = 0;
+    change({ ...sampleDocument(), id: doc.id }); setSelectedId(null);
   };
 
   return (
@@ -211,13 +275,15 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService 
           <div className="st-actions">
             {mode === 'interactive' && <button type="button" className="st-btn primary" onClick={check}>Kontrolli vastuseid</button>}
             {mode === 'interactive' && <button type="button" className="st-btn" onClick={() => { setAnswers({}); setResults({}); setEvidence(null); }}>Tühjenda</button>}
+            {mode === 'edit' && <button type="button" className="st-btn" disabled={!history.past.length} onClick={undo} title="Võta tagasi (Ctrl+Z)" aria-label="Võta tagasi"><Icons.Undo2 size={16} /></button>}
+            {mode === 'edit' && <button type="button" className="st-btn" disabled={!history.future.length} onClick={redo} title="Tee uuesti (Ctrl+Shift+Z)" aria-label="Tee uuesti"><Icons.Redo2 size={16} /></button>}
             <button type="button" className="st-btn" onClick={() => { switchMode('print'); setTimeout(() => window.print(), 300); }}>PDF / Prindi</button>
-            <details className="st-more">
+            <details className="st-more" ref={menuRef}>
               <summary className="st-btn">Fail ▾</summary>
               <div className="st-menu">
-                <button type="button" onClick={() => { change({ ...sampleDocument(), id: doc.id }); setSelectedId(null); }}>Laadi näidisleht „Minu päev”</button>
+                <button type="button" onClick={loadSample}>Laadi näidisleht „Minu päev”</button>
                 <button type="button" onClick={exportJson}>Salvesta faili (JSON)</button>
-                <button type="button" onClick={() => fileRef.current?.click()}>Ava failist…</button>
+                <button type="button" onClick={() => { closeMenu(); fileRef.current?.click(); }}>Ava failist…</button>
               </div>
             </details>
             <input ref={fileRef} type="file" accept="application/json" hidden onChange={(e) => { if (e.target.files?.[0]) importJson(e.target.files[0]); e.target.value = ''; }} />
@@ -264,7 +330,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService 
             <aside className="st-inspector" aria-label="Seaded">
               {selected ? (
                 <BlockInspector key={selected.id} block={selected} doc={doc} update={updateBlock}
-                  onDelete={() => { setBlocks(doc.blocks.filter((b) => b.id !== selected.id)); setSelectedId(null); }}
+                  onDelete={() => deleteBlock(selected.id)}
                   onDuplicate={() => { const copy = { ...structuredClone(selected), id: newId() }; const i = doc.blocks.findIndex((b) => b.id === selected.id); const next = [...doc.blocks]; next.splice(i + 1, 0, copy); setBlocks(next); setSelectedId(copy.id); }}
                   onMove={(dir) => moveBlock(selected.id, dir)} />
               ) : (

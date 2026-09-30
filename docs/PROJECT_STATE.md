@@ -1,6 +1,21 @@
 # KeeleSepp Project State
 
-## Google Calendar in CRM v2 (connect, status, groups) — PR #214 (draft, branch `claude/amazing-franklin-p2s1hh`)
+## Worksheet Studio (Töölehe konstruktor) browser audit — PR #216 (draft, branch `claude/worksheet-studio-audit`)
+
+Last verified against main: 2026-09-30, `9e2ae40` (#213). Owner 2026-09-30: test the lesson builder the same way as the
+calendar. Separate from the calendar PR #214 (AGENTS.md: learning content and calendar changes are not mixed).
+Full scenario list, findings and fixes: `docs/WORKSHEET_STUDIO_V1.md` → "Browser audit 2026-09-30".
+Fixed: unsaved work lost on in-app navigation; undo/redo + Delete key; choice block not selectable by its options;
+invalid JSON import crash; sample sheet overwrite without asking; default-title first save; Kodutööd hid the submit
+result and could overwrite newer answers after a reload; Kodutööd counters ignored worksheets; started sheet shown as
+"Alustamata".
+Files: `crm-v2/src/features/worksheet-studio/{WorksheetStudioPage.jsx,editorHistory.js,engine/sheet.css}` (+test),
+`crm-v2/src/features/homework/HomeworkPage.jsx` (+test). No data, rule, Function or schema change.
+Checks: crm-v2 vitest 457/459 — the 2 failures are `FinancePage.test.jsx` (a "Loen tunniplaani…" spinner still on
+screen when the test looks for the status message); they fail identically on clean `main`, not touched here. ESLint
+clean, build OK. Browser re-run of every fixed scenario: OK.
+Exactly one next safe step: owner reviews and merges the PR, then a Vercel release.
+## Google Calendar in CRM v2 (connect, status, groups) — MERGED (#214, e323ace)
 
 Last verified against main: 2026-09-30, `9e2ae40` (#213). Owner request 2026-09-30: "полноценную и удобную синхронизацию
 с Гугл календарем". The server sync already existed (hourly import, push of individual lessons, outbox, dedupe); v2 had

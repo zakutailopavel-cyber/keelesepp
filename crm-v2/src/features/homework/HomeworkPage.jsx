@@ -105,13 +105,19 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
     item.status !== 'done' && `${item.studentName} ${item.title}`.toLocaleLowerCase('et').includes(query.toLocaleLowerCase('et'))
   )), [state.data, query]);
 
-  if (state.loading) return <LoadingState label="Laen kodutöid…" />;
-  if (state.error) return <ErrorState message={state.error.message} onRetry={state.reload} />;
+  // A reload after saving or submitting keeps the page (and an open worksheet) on screen: unmounting the
+  // player would reopen it from the old copy and hide the result.
+  if (state.loading && !state.data) return <LoadingState label="Laen kodutöid…" />;
+  if (state.error && !state.data) return <ErrorState message={state.error.message} onRetry={state.reload} />;
   const { students } = state.data;
   const today = new Date().toISOString().slice(0, 10);
   const openHomework = state.data.homework.filter((item) => item.status !== 'Tehtud');
   const overdueHomework = openHomework.filter((item) => item.due && item.due < today);
   const pendingReviews = state.data.submissions.filter((item) => item.reviewStatus !== 'reviewed');
+  // Worksheets count as tasks too.
+  const allAssignments = state.data.assignments || [];
+  const openAssignments = allAssignments.filter((item) => item.status !== 'done');
+  const overdueAssignments = openAssignments.filter((item) => item.dueDate && item.dueDate < today);
 
   const submit = async (event) => {
     event.preventDefault();
@@ -189,9 +195,9 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
   return <div className="page-content">
     <PageHeader eyebrow="Õppetöö" title="Kodutööd" description={staff ? 'Ülesanded, esitused, hindamine ja tagasiside ühes vaates.' : 'Sinu ülesanded, tulemused ja õpetaja tagasiside.'} actions={staff ? <Button onClick={() => setModal(true)}><Plus size={18} /> Uus kodutöö</Button> : null} />
     <PeopleOverview label="Kodutööde kokkuvõte" eyebrow={staff ? 'Õppetöö ülevaade' : 'Minu töölaud'} title={staff ? 'Ülesanded ja tagasiside' : 'Minu kodutööd'} description={staff ? 'Pooleliolevad tööd, tähtajad ja kontrollimist ootavad esitused.' : 'Ülesanded, tähtajad ja õpetaja tagasiside ühes vaates.'} metrics={[
-      { icon: ClipboardCheck, label: 'Kõik ülesanded', value: state.data.homework.length, hint: `${students.items.length} õpilast` },
-      { icon: Clock3, label: 'Pooleli', value: openHomework.length, hint: 'ootab tegemist' },
-      { icon: Star, label: 'Hilinenud', value: overdueHomework.length, hint: 'vajab tähelepanu' },
+      { icon: ClipboardCheck, label: 'Kõik ülesanded', value: state.data.homework.length + allAssignments.length, hint: staff ? `${students.items.length} õpilast` : `${allAssignments.length} töölehte` },
+      { icon: Clock3, label: 'Pooleli', value: openHomework.length + openAssignments.length, hint: 'ootab tegemist' },
+      { icon: Star, label: 'Hilinenud', value: overdueHomework.length + overdueAssignments.length, hint: 'vajab tähelepanu' },
       { icon: MessageSquare, label: staff ? 'Ootab kontrolli' : 'Tagasisideta', value: pendingReviews.length, hint: `${state.data.submissions.length} esitust kokku` },
     ]} />
     {success ? <div className="success-notice" role="status">{success}<button onClick={() => setSuccess('')}>×</button></div> : null}
@@ -205,7 +211,7 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
       <div className="homework-card-heading"><div><span className="eyebrow">Töölehed</span><h2>Määratud töölehed</h2></div><Badge tone={assignments.length ? 'info' : 'neutral'}>{assignments.length}</Badge></div>
       {assignments.length ? <div className="assigned-worksheet-list">{assignments.map((assignment) => {
         const overdue = assignment.dueDate && assignment.dueDate < new Date().toISOString().slice(0, 10);
-        return <button key={assignment.id} onClick={() => setPlaying(assignment)}><i><FileText size={20} /></i><span><strong>{assignment.title}</strong><small>{assignment.subject || 'Õppetöö'}{assignment.level ? ` · ${assignment.level}` : ''}{assignment.dueDate ? ` · Tähtaeg ${assignment.dueDate}` : ''}</small></span><Badge tone={overdue ? 'danger' : 'info'}>{overdue ? 'Hilinenud' : 'Alustamata'}</Badge><Eye size={18} /></button>;
+        return <button key={assignment.id} onClick={() => setPlaying(assignment)}><i><FileText size={20} /></i><span><strong>{assignment.title}</strong><small>{assignment.subject || 'Õppetöö'}{assignment.level ? ` · ${assignment.level}` : ''}{assignment.dueDate ? ` · Tähtaeg ${assignment.dueDate}` : ''}</small></span><Badge tone={overdue ? 'danger' : 'info'}>{overdue ? 'Hilinenud' : Object.keys(assignment.answers || {}).length ? 'Pooleli' : 'Alustamata'}</Badge><Eye size={18} /></button>;
       })}</div> : <EmptyState title="Kõik töölehed on tehtud" description="Uued õpetaja määratud töölehed ilmuvad siia." />}
     </Card> : null}
 
