@@ -1,0 +1,22 @@
+.gcal-notice { margin: 0 0 12px; padding: 10px 12px; border-radius: 10px; background: #ecfdf3; color: #067647; font-size: .85rem; line-height: 1.5; }
+.gcal-card .form-error { margin: 0 0 12px; }
+.gcal-card .settings-copy { margin: 12px 0; }
+.gcal-consent { display: grid; gap: 8px; margin: 12px 0; padding: 12px; border-radius: 12px; background: #eff8ff; }
+.gcal-consent .settings-copy { margin: 0; }
+.gcal-groups { margin: 12px 0 0; }
+.gcal-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* Calendar toolbar chip */
+.gcal-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--border, #e4e7ec); background: #fff; font-size: .8rem; font-weight: 700; color: #475467; text-decoration: none; white-space: nowrap; }
+.gcal-chip.is-success { color: #067647; }
+.gcal-chip.is-danger { color: #b42318; border-color: #fecdca; }
+.gcal-chip.is-info { color: #175cd3; }
+.gcal-chip button { display: inline-grid; place-items: center; width: 26px; height: 26px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: inherit; cursor: pointer; }
+.gcal-chip button:hover { background: #f2f4f7; }
+.gcal-chip button:disabled { cursor: default; opacity: .6; }
+.gcal-chip .is-spinning { animation: spin .8s linear infinite; }
+.gcal-chip small { font-weight: 500; color: #667085; }
+
+/* Lesson panel line */
+.lp-gcal { display: grid; gap: 4px; padding: 10px 12px; border-radius: 10px; background: #f8fafc; font-size: .82rem; }
+.lp-gcal p { margin: 0; color: #667085; line-height: 1.5; }
