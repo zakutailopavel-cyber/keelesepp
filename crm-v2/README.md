@@ -27,6 +27,16 @@ authoritative permission boundary.
 `VITE_LEGACY_CRM_URL` keeps links to material tools that have not yet been
 migrated on the existing production host instead of pointing them at Vercel.
 
+### Local run against the Firebase emulators
+
+For browser checks without production data: start the emulators from the repo root
+(`npx firebase-tools emulators:start --only firestore,auth --project demo-keelesepp`), seed users/students/schedule
+with the Admin SDK (`FIRESTORE_EMULATOR_HOST=127.0.0.1:8080`, `FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099`), and put
+into the git-ignored `crm-v2/.env.local`: `VITE_FIREBASE_API_KEY=demo-key`, `VITE_FIREBASE_AUTH_DOMAIN=demo-keelesepp.firebaseapp.com`,
+`VITE_FIREBASE_PROJECT_ID=demo-keelesepp`, `VITE_FIREBASE_APP_ID=demo-app`, `VITE_FIREBASE_EMULATORS=1`. With
+`VITE_FIREBASE_EMULATORS=1` the client connects Auth and Firestore to the emulators (off by default). Cloud Functions
+calls (finance, Google Calendar) still go to their configured URLs.
+
 ## Commands
 
 ```bash

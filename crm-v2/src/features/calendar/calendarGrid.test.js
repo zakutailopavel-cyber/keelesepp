@@ -1,4 +1,4 @@
-import { canMove, layoutColumn, planDelete, planMove, snapMinutes, toClock, toMinutes } from './calendarGrid.js';
+import { canMove, gridRange, layoutColumn, planDelete, planMove, snapMinutes, toClock, toMinutes } from './calendarGrid.js';
 import { eventOccursOn } from './calendarView.js';
 
 describe('calendar time grid', () => {
@@ -74,5 +74,12 @@ describe('moving lessons', () => {
     expect(planDelete(series, { scope: 'series' }).apply).toEqual([{ op: 'patch', id: 'w', fields: { endDate: '2026-10-18' } }]);
     expect(planDelete({ ...series, occurrenceDate: '2026-10-05' }, { scope: 'series' }).apply).toEqual([{ op: 'delete', id: 'w' }]);
     expect(planDelete({ ...series, occurrenceDate: '2026-10-05' }, { scope: 'series', hasRecords: true }).apply).toEqual([{ op: 'patch', id: 'w', fields: { endDate: '2026-10-04' } }]);
+  });
+
+  it('widens the visible hours so early and late lessons are never hidden', () => {
+    expect(gridRange([{ time: '10:00', duration: 60 }])).toEqual({ start: 480, end: 1260 });
+    expect(gridRange([{ time: '07:30', duration: 60 }, { time: '21:00', duration: 90 }])).toEqual({ start: 420, end: 1380 });
+    const late = layoutColumn([{ time: '21:00', duration: 60 }], gridRange([{ time: '21:00', duration: 60 }]));
+    expect(late[0].outside).toBe(false);
   });
 });

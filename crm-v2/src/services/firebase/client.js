@@ -1,6 +1,6 @@
 import { getApp, getApps, initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { connectAuthEmulator, getAuth } from 'firebase/auth';
+import { connectFirestoreEmulator, getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
@@ -18,10 +18,22 @@ export function isFirebaseConfigured(config = firebaseConfig) {
   return requiredConfigKeys.every((key) => Boolean(config[key]));
 }
 
+let client = null;
+
+// Local checks only: VITE_FIREBASE_EMULATORS=1 connects Auth (9099) and Firestore (8080) emulators.
+function connectEmulators(auth, db) {
+  if (import.meta.env.VITE_FIREBASE_EMULATORS !== '1') return;
+  connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
+  connectFirestoreEmulator(db, '127.0.0.1', 8080);
+}
+
 export function getFirebaseClient() {
   if (!isFirebaseConfigured()) return null;
+  if (client) return client;
   const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-  return { app, auth: getAuth(app), db: getFirestore(app), storage: getStorage(app) };
+  client = { app, auth: getAuth(app), db: getFirestore(app), storage: getStorage(app) };
+  connectEmulators(client.auth, client.db);
+  return client;
 }
 
 export class FirebaseConfigurationError extends Error {

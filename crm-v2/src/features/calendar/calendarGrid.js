@@ -28,8 +28,20 @@ export function toClock(total) {
 export const snapMinutes = (value, step = SNAP) => Math.round(value / step) * step;
 export const dayId = (isoDate) => DAY_IDS[new Date(`${isoDate}T12:00:00`).getDay()];
 
-// Position lessons of one column: top/height in minutes from GRID_START, side-by-side lanes for overlaps.
-export function layoutColumn(items) {
+// Visible hours: 08:00–21:00, widened to whole hours so an earlier or later lesson is never hidden.
+export function gridRange(items = []) {
+  let start = GRID_START;
+  let end = GRID_END;
+  items.forEach((item) => {
+    const from = toMinutes(item.time);
+    start = Math.min(start, Math.floor(from / 60) * 60);
+    end = Math.max(end, Math.min(24 * 60, Math.ceil((from + (Number(item.duration) || 60)) / 60) * 60));
+  });
+  return { start, end };
+}
+
+// Position lessons of one column: top/height in minutes from the range start, side-by-side lanes for overlaps.
+export function layoutColumn(items, range = { start: GRID_START, end: GRID_END }) {
   const sorted = [...items]
     .map((item) => ({ item, start: toMinutes(item.time), end: toMinutes(item.time) + (Number(item.duration) || 60) }))
     .sort((a, b) => a.start - b.start || b.end - a.end);
@@ -54,11 +66,11 @@ export function layoutColumn(items) {
   if (cluster.length) flush();
   return placed.map(({ item, start, end, lane, lanes }) => ({
     item,
-    top: Math.max(0, start - GRID_START),
-    height: Math.max(SNAP, Math.min(end, GRID_END) - Math.max(start, GRID_START)),
+    top: Math.max(0, start - range.start),
+    height: Math.max(SNAP, Math.min(end, range.end) - Math.max(start, range.start)),
     lane,
     lanes,
-    outside: end <= GRID_START || start >= GRID_END,
+    outside: end <= range.start || start >= range.end,
   }));
 }
 

@@ -35,8 +35,33 @@ Done:
   (`scheduleService.restore`, Google link fields stripped so a fresh event is created). Not offered for held/absent
   lessons, group lessons or lessons imported from Google. Pure planner `planDelete` in `calendarGrid.js`.
 
+**Calendar scenario audit (owner 2026-09-30: "проверь все сценарии использования календаря").** Walked through in a
+real browser (Playwright) on the Firestore/Auth emulators with seeded admin, teacher, students, one-off, weekly, group,
+Google-imported, 07:30 and 21:00 lessons. Found and fixed:
+- Lessons before 08:00 or from 21:00 were **not shown at all** in week/day view (grid filtered them out while the
+  counter included them). The grid now widens to whole hours around the earliest/latest lesson (`gridRange`).
+- A wrong mark could not be fixed. Done/absent lessons now have "Märkisid valesti? Paranda": another status, or
+  "Eemalda märge" (planned again). CRM v2 marks are changed in Firestore (`lessonsService.changeMark/removeMark`,
+  activity log); older marks are removed through the server journal (`financeApi.deleteLessonJournal`, reverses
+  package/counter bookkeeping). Invoiced lessons / closed periods are refused with a pointer to Finantsid.
+- Future lessons could be marked "Tund toimus". Before the lesson day only "Puudus (teatas ette)" is offered.
+- "Tühista kogu sari" in the edit dialog set the whole series to cancelled, which also hid every past occurrence from
+  the calendar. Replaced by "Lõpeta või kustuta…" (only this date / this and all following; history stays).
+- Cancelling a one-off lesson had no undo; now the toast offers "Tühista".
+- A group lesson could not be cancelled for one date from the calendar: admin gets "Tühista see grupitund" (date into
+  the lesson's `excludedDates`, with undo).
+- Admin can pick the teacher when creating/editing a lesson (substitution); default is the student's teacher. Editing
+  no longer silently resets the teacher to the student's teacher.
+- "Eelmine kord" showed the lesson's own mark instead of the previous lesson.
+- Resize toast shows the new length.
+Verified OK in the browser: week/day/month/mobile agenda, create one-off and weekly, conflict refusal, drag + undo,
+resize, delete (one-off, one date, series from its first date), teacher sees only own lessons and no teacher picker,
+group attendance, Google-imported lesson locked, `?student=` filter. `VITE_FIREBASE_EMULATORS=1` (off by default)
+connects the v2 client to local emulators; how-to in `crm-v2/README.md`.
+Not covered: Live Classroom start from a lesson (not in the calendar panel), mobile drag (agenda has no drag by design).
+
 Checks (2026-09-30): functions `npm test` 201/201 (new `calendar-group-sync-core.test.js`,
-`calendar-group-sync-behavior.test.js`); crm-v2 vitest 470/470, ESLint clean, `vite build` OK. Not run: emulator
+`calendar-group-sync-behavior.test.js`); crm-v2 vitest 479/479, ESLint clean, `vite build` OK. Not run: emulator
 suite, a real Google account, visual check in a browser.
 
 Needs with the merge (owner's word): deploy functions `gcalApi`, `syncAllCalendars`, `syncGroupToGoogleCalendar` (new)

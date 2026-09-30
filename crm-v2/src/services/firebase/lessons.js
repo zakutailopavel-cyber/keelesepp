@@ -1,4 +1,5 @@
 import { collection, doc, getDoc, getDocs, query, updateDoc, where, writeBatch } from 'firebase/firestore';
+import { financeApi } from './financeApi.js';
 import { requireFirebaseClient } from './client.js';
 import { canonicalTeacherName } from '../../utils/teachers.js';
 
@@ -91,6 +92,46 @@ export const lessonsService = {
     });
     await batch.commit();
     return normalizeLesson(id, value);
+  },
+  // Fix a mark made by mistake from the calendar: another status (held / absent) or back to "planned".
+  // A lesson already on an invoice or in a closed period is refused by the rules; that is corrected in Finantsid.
+  async changeMark(record, status, user, { scheduleRecurring = true } = {}) {
+    if (!record?.id) throw new Error('Tunni märget ei leitud.');
+    if (!['Toimunud', 'Puudus_eta', 'Puudus_p'].includes(status)) throw new Error('Vigane staatus.');
+    if (record.invoiceId || record.billingStatus) throw new Error('Tund on juba arvel: paranda see Finantsides.');
+    const { db } = requireFirebaseClient();
+    const now = new Date().toISOString();
+    const batch = writeBatch(db);
+    batch.update(doc(db, 'lessons', record.id), { status, updatedAt: now, updatedByUid: user?.uid || '', updatedByName: user?.displayName || user?.email || '' });
+    if (record.scheduleId && !scheduleRecurring) batch.set(doc(db, 'schedule', record.scheduleId), { status, updatedAtIso: now }, { merge: true });
+    batch.set(doc(collection(db, 'activityLog')), {
+      type: 'lesson.mark_changed', label: `${record.studentName || 'Õpilane'} tunni märge muudetud`, studentId: record.studentId || '', studentName: record.studentName || '',
+      byUid: user?.uid || '', byName: user?.displayName || user?.email || '', byRole: user?.roles?.[0] || '', createdAt: now, date: record.date || '',
+      meta: { lessonId: record.id, scheduleId: record.scheduleId || '', from: record.status || '', to: status },
+    });
+    await batch.commit();
+    return { ...record, status };
+  },
+  // Remove the mark: the lesson is planned again. Marks written by CRM v2 are removed here; older marks may carry
+  // package/counter bookkeeping, so they go through the server journal, which reverses it.
+  async removeMark(record, user, { scheduleRecurring = true } = {}) {
+    if (!record?.id) throw new Error('Tunni märget ei leitud.');
+    if (record.invoiceId || record.billingStatus) throw new Error('Tund on juba arvel: paranda see Finantsides.');
+    if (record.accountingSource !== 'crm_v2') {
+      await financeApi.deleteLessonJournal(record.id);
+      return;
+    }
+    const { db } = requireFirebaseClient();
+    const now = new Date().toISOString();
+    const batch = writeBatch(db);
+    batch.delete(doc(db, 'lessons', record.id));
+    if (record.scheduleId && !scheduleRecurring) batch.set(doc(db, 'schedule', record.scheduleId), { status: 'Planeeritud', updatedAtIso: now }, { merge: true });
+    batch.set(doc(collection(db, 'activityLog')), {
+      type: 'lesson.mark_removed', label: `${record.studentName || 'Õpilane'} tunni märge eemaldatud`, studentId: record.studentId || '', studentName: record.studentName || '',
+      byUid: user?.uid || '', byName: user?.displayName || user?.email || '', byRole: user?.roles?.[0] || '', createdAt: now, date: record.date || '',
+      meta: { lessonId: record.id, scheduleId: record.scheduleId || '', from: record.status || '' },
+    });
+    await batch.commit();
   },
   async listByStudent(studentId) {
     const { db } = requireFirebaseClient();
