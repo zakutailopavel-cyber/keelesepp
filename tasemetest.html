@@ -872,14 +872,15 @@ leadForm.addEventListener("submit", event => {
   const payload = {
     name: document.getElementById("leadName").value.trim(),
     email: document.getElementById("leadEmail").value.trim(),
-    language: tests[activeLanguage].studentTrackLabel,
+    // websiteLeadApi accepts only the course language names, not the track labels shown on the page
+    language: activeLanguage === "en" ? "Inglise keel" : "Eesti keel",
     level: document.getElementById("leadLevel").value.trim(),
     message: document.getElementById("leadMessage").value.trim(),
     locale: document.documentElement.lang || "et",
     page: location.pathname,
     source: "level-test",
     assessment: {
-      diagnosticId: diagnosticCode.textContent,
+      diagnosticId: attemptId,
       score: result.weightedScore,
       answered: currentSet().length,
       skills: Object.fromEntries(Object.entries(result.skills).map(([key, value]) => [key, value.max ? Math.round((value.score / value.max) * 100) : 0])),

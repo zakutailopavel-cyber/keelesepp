@@ -1,6 +1,16 @@
 # KeeleSepp Project State
 
-## 2026-09-30 — Public growth platform v1 (local block, not committed or deployed)
+## 2026-09-30 — Public growth platform v1 — PR #215
+
+**Review fixes (2026-09-30, before merge).** A browser run of `tasemetest.html` with the lead request intercepted
+(never sent to production) found that no level-test result could be delivered: (1) the submit handler read an undefined
+`diagnosticCode` and threw before sending; it now uses `attemptId`; (2) it sent the track label ("Eesti suund" /
+"English track") as `language`, which `websiteLeadApi` rejects with 400; it now sends "Eesti keel" / "Inglise keel".
+After the fix the captured payload passes `normalizeWebsiteLead` (language, level, source `level-test`, bounded
+assessment) and the visitor sees "Tulemus on saadetud". The four `/oppematerjalid/` pages and their CSS load (200) and
+link only to existing paths. Remaining gates unchanged: `websiteLeadApi` + Firestore rules deploy with the owner's word,
+then one real end-to-end lead.
+
 
 Last verified main: `9e2ae40` after `git fetch origin --prune`. Active branch: `agent/public-growth-platform-v1`.
 PR: not opened. Goal: one cohesive public funnel rather than a series of small Vercel-triggering commits.
