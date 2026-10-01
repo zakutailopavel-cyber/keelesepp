@@ -1,5 +1,5 @@
 /* global TextEncoder */
-import { collection, doc, getDoc, writeBatch } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, query, where, writeBatch } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
 import { requireFirebaseClient } from './client.js';
 import { convertLegacyWorksheet } from '../../features/worksheet-studio/engine/legacy.js';
@@ -34,6 +34,10 @@ export function validateWorksheetDoc(document) {
   return true;
 }
 
+export class WorksheetConflictError extends Error {
+  constructor() { super('Seda töölehte muudeti vahepeal teises aknas. Laadi uusim versioon või salvesta oma töö koopiana.'); this.name = 'WorksheetConflictError'; }
+}
+
 // Drop editor-only noise before storing (e.g. undefined values Firestore rejects).
 const clean = (value) => JSON.parse(JSON.stringify(value));
 
@@ -53,28 +57,40 @@ export const worksheetDocsService = {
     const snapshot = await getDoc(doc(db, 'curriculumLessons', lessonId));
     if (!snapshot.exists()) throw new Error('Õppematerjali ei leitud.');
     const lesson = { id: snapshot.id, ...snapshot.data() };
-    if (lesson.worksheetDoc?.schema === SCHEMA) return { document: lesson.worksheetDoc, source: 'worksheetDoc', lesson };
+    if (lesson.worksheetDoc?.schema === SCHEMA) return { document: lesson.worksheetDoc, source: 'worksheetDoc', lesson, baseUpdatedAt: lesson.worksheetDocUpdatedAt || '', version: Number(lesson.worksheetDocVersion) || 1, status: lesson.worksheetDocStatus || 'published' };
     if (Array.isArray(lesson.worksheetData?.blocks) && lesson.worksheetData.blocks.length) {
-      return { document: convertLegacyWorksheet(lesson.worksheetData, lesson), source: 'converted', lesson };
+      return { document: convertLegacyWorksheet(lesson.worksheetData, lesson), source: 'converted', lesson, baseUpdatedAt: lesson.worksheetDocUpdatedAt || '', version: Number(lesson.worksheetDocVersion) || 0, status: 'draft' };
     }
     const fresh = newDocument();
     fresh.meta = { ...fresh.meta, title: lesson.title || fresh.meta.title, level: lesson.level || fresh.meta.level, module: lesson.topic || '' };
-    return { document: fresh, source: 'new', lesson };
+    return { document: fresh, source: 'new', lesson, baseUpdatedAt: lesson.worksheetDocUpdatedAt || '', version: Number(lesson.worksheetDocVersion) || 0, status: 'draft' };
   },
 
-  async save({ lessonId = '', document, user }) {
+  async save({ lessonId = '', document, user, baseUpdatedAt = '', status = 'draft' }) {
     validateWorksheetDoc(document);
     const { db } = requireFirebaseClient();
     const batch = writeBatch(db);
     const now = new Date().toISOString();
-    const stored = clean({ ...document, updatedAt: now, updatedBy: user?.uid || '' });
     const lessonRef = lessonId ? doc(db, 'curriculumLessons', lessonId) : doc(collection(db, 'curriculumLessons'));
     const created = !lessonId;
+    let current = {};
+    if (!created) {
+      const snapshot = await getDoc(lessonRef);
+      if (!snapshot.exists()) throw new Error('Õppematerjali ei leitud.');
+      current = snapshot.data() || {};
+      if (baseUpdatedAt && current.worksheetDocUpdatedAt && current.worksheetDocUpdatedAt !== baseUpdatedAt) throw new WorksheetConflictError();
+    }
+    const version = (Number(current.worksheetDocVersion) || 0) + 1;
+    const normalizedStatus = status === 'published' ? 'published' : 'draft';
+    const stored = clean({ ...document, updatedAt: now, updatedBy: user?.uid || '', version, status: normalizedStatus });
     const common = {
       worksheetDoc: stored,
       worksheetDocSchema: SCHEMA,
       worksheetDocUpdatedAt: now,
+      worksheetDocVersion: version,
+      worksheetDocStatus: normalizedStatus,
       updatedAt: now,
+      ...(normalizedStatus === 'published' ? { publishedWorksheetDoc: stored, publishedWorksheetDocVersion: version, publishedWorksheetDocUpdatedAt: now } : {}),
     };
     if (created) {
       batch.set(lessonRef, {
@@ -93,10 +109,14 @@ export const worksheetDocsService = {
     } else {
       batch.set(lessonRef, common, { merge: true });
     }
+    batch.set(doc(db, 'worksheetVersions', `${lessonRef.id}_studio_v${version}`), {
+      lessonId: lessonRef.id, version, status: normalizedStatus, worksheetDoc: stored,
+      title: document.meta.title, createdAt: now, createdBy: user?.uid || '', createdByName: user?.displayName || user?.email || '', source: 'worksheet-studio-v2',
+    });
     batch.set(doc(collection(db, 'activityLog')), {
       type: created ? 'worksheet_doc.created' : 'worksheet_doc.updated',
       label: created ? 'Tööleht loodud konstruktoris' : 'Tööleht muudetud konstruktoris',
-      meta: { sourceId: lessonRef.id, title: document.meta.title, blocks: document.blocks.length },
+      meta: { sourceId: lessonRef.id, title: document.meta.title, blocks: document.blocks.length, version, status: normalizedStatus },
       byUid: user?.uid || '',
       byName: user?.displayName || user?.email || '',
       byRole: user?.roles?.[0] || '',
@@ -104,7 +124,13 @@ export const worksheetDocsService = {
       date: now.slice(0, 10),
     });
     await batch.commit();
-    return { id: lessonRef.id, created, title: document.meta.title };
+    return { id: lessonRef.id, created, title: document.meta.title, updatedAt: now, version, status: normalizedStatus };
+  },
+
+  async listVersions(lessonId) {
+    const { db } = requireFirebaseClient();
+    const snapshot = await getDocs(query(collection(db, 'worksheetVersions'), where('lessonId', '==', lessonId)));
+    return snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() })).filter((entry) => entry.worksheetDoc?.schema === SCHEMA).sort((a, b) => Number(b.version) - Number(a.version));
   },
 
   async uploadImage(file) {

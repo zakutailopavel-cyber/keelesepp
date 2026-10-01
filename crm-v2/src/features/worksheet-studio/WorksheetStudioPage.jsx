@@ -1,4 +1,4 @@
-/* global ResizeObserver, Blob, setTimeout, structuredClone */
+/* global ResizeObserver, Blob, setTimeout, clearTimeout, structuredClone */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import * as Icons from 'lucide-react';
@@ -20,11 +20,15 @@ import './engine/sheet.css';
 import './worksheetStudio.css';
 import { addItem } from './engine/addItem.js';
 import { emptyHistory, isTextTarget, parseWorksheetFile, pushHistory, redoHistory, undoHistory, useUnsavedGuard } from './editorHistory.js';
+import { analyzeWorksheet } from './quality.js';
+import { formalLetterDocument } from './engine/templates.js';
 
 const DEFAULT_TITLE = newDocument().meta.title;
 
 
 const MM = 3.7795;
+const draftKey = (id) => `ks-worksheet-author-draft:${id || 'new'}`;
+const readDraft = (key) => { try { return JSON.parse(window.localStorage.getItem(key) || 'null'); } catch { return null; } };
 
 // Worksheet Studio: teachers assemble branded, interactive worksheets from blocks.
 // Route: /library/worksheets/new  or  /library/worksheets/:lessonId (curriculumLessons document).
@@ -51,6 +55,12 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService 
   const [leftTab, setLeftTab] = useState('blocks');
   const [cut, setCut] = useState({ busy: false, error: '' });
   const [history, setHistory] = useState(emptyHistory);
+  const [baseUpdatedAt, setBaseUpdatedAt] = useState('');
+  const [worksheetStatus, setWorksheetStatus] = useState('draft');
+  const [version, setVersion] = useState(0);
+  const [versions, setVersions] = useState([]);
+  const [paletteQuery, setPaletteQuery] = useState('');
+  const [draftRestored, setDraftRestored] = useState(false);
   const lastPush = useRef(0);
   const canvasRef = useRef(null);
   const fileRef = useRef(null);
@@ -60,7 +70,12 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService 
   useEffect(() => {
     let alive = true;
     if (isNew) {
-      setDoc(newDocument());
+      const fresh = newDocument();
+      const local = readDraft(draftKey('new'));
+      const restored = local?.document?.schema === fresh.schema;
+      setDoc(restored ? local.document : fresh);
+      setDraftRestored(restored);
+      setDirty(restored);
       setSource('new');
       return undefined;
     }
@@ -68,14 +83,29 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService 
       .then((res) => {
         if (!alive) return;
         const files = originalFiles(res.lesson);
-        setDoc(res.document);
+        const local = readDraft(draftKey(lessonId));
+        const restored = local?.document?.schema === res.document.schema && Number(local.savedAt || 0) > (Date.parse(res.baseUpdatedAt || 0) || 0);
+        setDoc(restored ? local.document : res.document);
+        setDraftRestored(restored);
+        setDirty(restored);
         setSource(res.source);
+        setBaseUpdatedAt(res.baseUpdatedAt || '');
+        setWorksheetStatus(res.status || 'draft');
+        setVersion(Number(res.version) || 0);
         setOriginal(files);
         if (files.length && res.source !== 'worksheetDoc') setLeftTab('original');
       })
       .catch((error) => { if (alive) setLoadError(error.message || 'Töölehte ei saanud avada.'); });
     return () => { alive = false; };
   }, [isNew, lessonId, repository]);
+
+  useEffect(() => {
+    if (!doc || !dirty) return undefined;
+    const timer = setTimeout(() => {
+      try { window.localStorage.setItem(draftKey(isNew ? 'new' : lessonId), JSON.stringify({ savedAt: Date.now(), document: doc })); } catch { /* storage may be disabled */ }
+    }, 700);
+    return () => clearTimeout(timer);
+  }, [doc, dirty, isNew, lessonId]);
 
   // print styles hide the CRM shell only while the studio is open
   useEffect(() => {
@@ -106,6 +136,8 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService 
   }), [repository]);
 
   const palette = useMemo(() => GROUPS.map((g) => [g, Object.values(BLOCKS).filter((b) => b.group === g)]), []);
+  const filteredPalette = useMemo(() => palette.map(([group, defs]) => [group, defs.filter((def) => !paletteQuery.trim() || `${def.label} ${def.group}`.toLocaleLowerCase('et').includes(paletteQuery.trim().toLocaleLowerCase('et')))]).filter(([, defs]) => defs.length), [palette, paletteQuery]);
+  const quality = useMemo(() => analyzeWorksheet(doc || newDocument()), [doc]);
 
   if (loadError) return <div className="page-content"><div className="ws-studio-error" role="alert">{loadError} <Link to="/library">Tagasi Õppevarasse</Link></div></div>;
   if (!doc) return <div className="page-content"><p className="ws-studio-loading">Laen töölehte…</p></div>;
@@ -215,25 +247,49 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService 
     setEvidence(res);
   };
 
-  const save = async () => {
+  const save = async (nextStatus = 'draft') => {
     if (isNew && doc.meta.title.trim() === DEFAULT_TITLE) {
       setSelectedId(null);
       setSaveError('Anna töölehele pealkiri (paremal „Töölehe andmed” → Pealkiri), siis salvesta.');
       return;
     }
+    if (nextStatus === 'published' && !quality.ready) {
+      setSaveError('Avaldamiseks paranda kvaliteedikontrolli punased vead.');
+      return;
+    }
     setSaving(true);
     setSaveError('');
     try {
-      const res = await repository.save({ lessonId: isNew ? '' : lessonId, document: doc, user });
+      const res = await repository.save({ lessonId: isNew ? '' : lessonId, document: doc, user, baseUpdatedAt, status: nextStatus });
       setDirty(false);
       setSource('worksheetDoc');
-      setNotice(`„${res.title}” salvestati.`);
+      setBaseUpdatedAt(res.updatedAt || '');
+      setVersion(Number(res.version) || version);
+      setWorksheetStatus(res.status || nextStatus);
+      setDraftRestored(false);
+      try { window.localStorage.removeItem(draftKey(isNew ? 'new' : lessonId)); } catch { /* ignore */ }
+      setNotice(nextStatus === 'published' ? `„${res.title}” avaldati (versioon ${res.version}).` : `„${res.title}” salvestati mustandina (versioon ${res.version}).`);
       if (res.created) navigate(`/library/worksheets/${res.id}`, { replace: true });
     } catch (error) {
       setSaveError(error.message || 'Salvestamine ebaõnnestus.');
     } finally {
       setSaving(false);
     }
+  };
+
+  const saveCopy = async () => {
+    closeMenu(); setSaving(true); setSaveError('');
+    try {
+      const copy = { ...structuredClone(doc), id: newId(), meta: { ...doc.meta, title: `${doc.meta.title} – koopia` } };
+      const res = await repository.save({ lessonId: '', document: copy, user, status: 'draft' });
+      navigate(`/library/worksheets/${res.id}`);
+    } catch (error) { setSaveError(error.message || 'Koopia loomine ebaõnnestus.'); }
+    finally { setSaving(false); }
+  };
+  const loadVersions = async () => {
+    closeMenu();
+    if (isNew || typeof repository.listVersions !== 'function') return;
+    try { setVersions(await repository.listVersions(lessonId)); } catch (error) { setSaveError(error.message || 'Versioone ei saanud laadida.'); }
   };
 
   const exportJson = () => {
@@ -251,6 +307,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService 
     closeMenu();
     const parsed = parseWorksheetFile(await file.text());
     if (!parsed) { setSaveError('See fail ei ole KeeleSepa tööleht (JSON). Tööleht jäi muutmata.'); return; }
+    if (doc.blocks.length && !window.confirm(`Fail „${parsed.meta?.title || 'tööleht'}” asendab praeguse sisu. Jätkata?`)) return;
     setSaveError('');
     change({ ...parsed, id: doc.id }); setSelectedId(null);
   };
@@ -259,6 +316,12 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService 
     if (doc.blocks.length && !window.confirm('Näidisleht asendab praeguse lehe sisu. Jätkata? (Saad tagasi ka „Võta tagasi” nupuga.)')) return;
     lastPush.current = 0;
     change({ ...sampleDocument(), id: doc.id }); setSelectedId(null);
+  };
+  const loadFormalLetter = () => {
+    closeMenu();
+    if (doc.blocks.length && !window.confirm('Mall „Kiri linnavalitsusele” asendab praeguse sisu. Jätkata?')) return;
+    lastPush.current = 0;
+    change({ ...formalLetterDocument(), id: doc.id }); setSelectedId(null);
   };
 
   return (
@@ -282,17 +345,27 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService 
               <summary className="st-btn">Fail ▾</summary>
               <div className="st-menu">
                 <button type="button" onClick={loadSample}>Laadi näidisleht „Minu päev”</button>
+                <button type="button" onClick={loadFormalLetter}>Mall „Kiri linnavalitsusele”</button>
+                <button type="button" onClick={saveCopy}>Tee töölehest koopia</button>
+                {!isNew && <button type="button" onClick={loadVersions}>Versioonid ja taastamine…</button>}
                 <button type="button" onClick={exportJson}>Salvesta faili (JSON)</button>
                 <button type="button" onClick={() => { closeMenu(); fileRef.current?.click(); }}>Ava failist…</button>
               </div>
             </details>
             <input ref={fileRef} type="file" accept="application/json" hidden onChange={(e) => { if (e.target.files?.[0]) importJson(e.target.files[0]); e.target.value = ''; }} />
-            <button type="button" className="st-btn primary" disabled={saving || (!dirty && !isNew)} onClick={save}>{saving ? 'Salvestan…' : 'Salvesta'}</button>
+            <button type="button" className="st-btn" disabled={saving || (!dirty && !isNew)} onClick={() => save('draft')}>{saving ? 'Salvestan…' : 'Salvesta'}</button>
+            <button type="button" className="st-btn primary" disabled={saving || !quality.ready || (!dirty && worksheetStatus === 'published')} onClick={() => save('published')}>Avalda</button>
           </div>
         </header>
         {source === 'converted' && <div className="st-banner">See tööleht teisendati vanast vormingust uude kujundusse. Kontrolli ülesandeid ja salvesta. Vana versioon jääb alles.</div>}
         {saveError && <div className="st-banner error" role="alert">{saveError}</div>}
         {notice && <div className="st-banner ok" role="status">{notice}</div>}
+        {draftRestored && <div className="st-banner st-draft-note" role="status"><span>Taastasin selles brauseris automaatselt salvestatud mustandi.</span><button type="button" className="st-btn" onClick={() => { try { window.localStorage.removeItem(draftKey(isNew ? 'new' : lessonId)); } catch { /* ignore */ } window.location.reload(); }}>Loobu mustandist</button></div>}
+        <details className={`st-quality ${quality.ready ? 'ready' : ''}`}>
+          <summary>{quality.ready ? `✓ Avaldamiseks valmis · versioon ${version || 'uus'} · ${worksheetStatus === 'published' ? 'avaldatud' : 'mustand'}` : `Kvaliteedikontroll: ${quality.errors.length} viga, ${quality.warnings.length} hoiatust`}</summary>
+          {quality.issues.length ? <ul>{quality.issues.map((issue) => <li className={issue.level} key={issue.code}>{issue.text}</li>)}</ul> : <p>Kõik kohustuslikud kontrollid on läbitud.</p>}
+        </details>
+        {versions.length > 0 && <div className="st-banner"><strong>Versioonid:</strong> {versions.slice(0, 12).map((entry) => <button type="button" className="st-btn" key={entry.id} onClick={() => { if (window.confirm(`Taasta versioon ${entry.version} uue mustandina?`)) { change({ ...structuredClone(entry.worksheetDoc), id: doc.id }); setVersions([]); setNotice(`Versioon ${entry.version} laaditi redigeerimiseks. Salvesta see uue versioonina.`); } }}>v{entry.version} · {entry.status === 'published' ? 'avaldatud' : 'mustand'}</button>)}</div>}
 
         <div className="st-body">
           {mode === 'edit' && (
@@ -303,7 +376,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService 
                   <button type="button" role="tab" aria-pressed={leftTab === 'original'} onClick={() => setLeftTab('original')}>Originaal</button>
                 </div>
               )}
-              {leftTab === 'original' && original.length > 0 ? <OriginalPanel files={original} onCut={cutPhoto} busy={cut.busy} error={cut.error} /> : palette.map(([g, defs]) => (
+              {leftTab === 'original' && original.length > 0 ? <OriginalPanel files={original} onCut={cutPhoto} busy={cut.busy} error={cut.error} /> : <><div className="st-palette-search"><input className="ed-input" type="search" value={paletteQuery} onChange={(e) => setPaletteQuery(e.target.value)} placeholder="Otsi plokki…" aria-label="Otsi plokki" /></div>{filteredPalette.map(([g, defs]) => (
                 <div key={g} className="st-group">
                   <div className="st-group-title">{g}</div>
                   {defs.map((d) => {
@@ -315,7 +388,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService 
                     );
                   })}
                 </div>
-              ))}
+              ))}</>}
             </aside>
           )}
 

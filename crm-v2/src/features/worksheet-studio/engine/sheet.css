@@ -247,6 +247,39 @@
 .ws-card.has-example .ws-dialog > .ws-say:first-child .ws-who::after { content: 'Näide'; display: inline-block; vertical-align: .3mm; margin: 0 1.5mm 0 0; font: 700 2.3mm/1 inherit; letter-spacing: .04em; text-transform: uppercase; color: #fff; background: #2f7d4c; border-radius: 1mm; padding: .6mm 1.2mm; }
 .ws-card.has-example .ws-dialog > .ws-say:first-child .ws-who::after { margin: 0 0 0 1.5mm; }
 
+/* Advanced authoring blocks: every one remains printable and interactive. */
+.ws-formrows, .ws-fix, .ws-translation, .ws-crossword { display: grid; gap: 2.5mm; margin: 0; padding: 0; }
+.ws-formrow { display: grid; grid-template-columns: minmax(22mm, .7fr) minmax(22mm, .7fr) 1.4fr; gap: 3mm; align-items: end; }
+.ws-formrow > span { color: var(--ks-muted); font-size: 10pt; }
+.ws-fix, .ws-translation, .ws-crossword { padding-left: 6mm; }
+.ws-fix li, .ws-translation li, .ws-crossword li { break-inside: avoid; }
+.ws-fix s { display: block; color: #8a3b2e; margin-bottom: 1.5mm; }
+.ws-translation li { display: grid; gap: 1.5mm; }
+.ws-translation small { color: var(--ks-muted); }
+.ws-dictation { display: grid; gap: 4mm; }
+.ws-lettergrid { width: min(100%, 92mm); display: grid; grid-template-columns: repeat(10, 1fr); border: .4mm solid var(--ks-navy); }
+.ws-lettergrid span { aspect-ratio: 1; display: grid; place-items: center; border: .15mm solid var(--ks-line); font: 800 10pt var(--font-head); }
+.ws-wordlist { display: flex; flex-wrap: wrap; gap: 2mm 6mm; margin-top: 3mm; }
+.ws-crossword li { display: grid; grid-template-columns: minmax(45mm, 1fr) auto; gap: 4mm; align-items: center; }
+.ws-crossword-cells { display: flex; gap: .7mm; }
+.ws-crossword-cells .ws-line { text-align: center; text-transform: uppercase; padding: 0; }
+.ws-rolecards { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; }
+.ws-rolecards section { border: .45mm solid var(--ks-line); border-radius: 3mm; padding: 4mm; display: grid; gap: 2mm; }
+.ws-rolecards section > b { color: var(--ks-green); font: 900 12pt var(--font-head); }
+.ws-rolecards section > span { padding-top: 1.5mm; border-top: .2mm solid var(--ks-line); }
+.ws-planning { display: grid; grid-template-columns: 1fr 1fr; border: .3mm solid var(--ks-line); }
+.ws-planning label { display: grid; gap: 2mm; padding: 3mm; border: .2mm solid var(--ks-line); }
+.ws-planning textarea, .ws-guidedletter textarea { width: 100%; resize: none; border: 0; border-radius: 0; background: repeating-linear-gradient(to bottom, transparent 0, transparent 7mm, var(--ks-line) 7mm, var(--ks-line) 7.25mm); font: 10.5pt/7mm var(--font-body); color: var(--ks-ink); }
+.ws-phrasebank { display: grid; grid-template-columns: repeat(2, 1fr); border: .3mm solid var(--ks-line); }
+.ws-phrasebank section { display: grid; gap: 1.5mm; padding: 3mm; border: .2mm solid var(--ks-line); }
+.ws-phrasebank section b { color: var(--ks-navy); }
+.ws-guidedletter { display: grid; gap: 2.5mm; }
+.ws-guidedletter textarea { min-height: 75mm; }
+.ws-guidedletter small { justify-self: end; color: var(--ks-muted); }
+.ws-rubric { display: grid; grid-template-columns: 1fr 1fr; border: .3mm solid var(--ks-line); }
+.ws-rubric label { display: flex; gap: 2mm; align-items: flex-start; padding: 2.5mm; border: .2mm solid var(--ks-line); }
+.ws-rubric input { width: 4mm; height: 4mm; }
+
 /* A block made taller than its content (bottom-edge drag / height in mm): the body fills the space.
    Pictures grow, list items spread evenly, the writing area gets more ruled lines. */
 .ws-card.is-tall { display: grid; grid-template-rows: auto 1fr auto; grid-template-columns: minmax(0, 1fr); }

@@ -1,6 +1,6 @@
 # Worksheet Studio v2 — specification (draft for owner approval, 2026-09-29)
 
-Status: **approved 2026-09-29 without section 5** (no external API for now; word popup postponed). Owner's requests: more task types and their modifications
+Status: **implemented 2026-10-01 without section 5** (no external API; word popup remains postponed). Owner's requests: more task types and their modifications
 (first: free block size instead of "half / full"), teacher annotations on the student's sheet, double-click a word for
 its translation and main forms.
 
@@ -25,6 +25,9 @@ its translation and main forms.
 4. Translation RU → ET (teacher-graded).
 5. Crossword and word search (printable, children).
 6. Role cards A/B for pair speaking.
+
+Implemented together with PDF-derived planning grid, phrase bank, guided long letter and rubric blocks. The registry
+now contains 32 structured block types; see `docs/WORKSHEET_STUDIO_PDF_COVERAGE.md`.
 
 ## 4. Teacher annotations on the student's sheet
 - In homework review and in the live lesson the teacher selects text (in a task, the student's answer or a reading

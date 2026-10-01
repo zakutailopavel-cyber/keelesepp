@@ -45,6 +45,7 @@ export function BlockInspector({ block, doc, update, onDelete, onDuplicate, onMo
             <button type="button" key={t} title={TONES[t].label} className={block.tone === t ? 'on' : ''} style={{ background: TONES[t].card }} onClick={() => update({ ...block, tone: t })} />
           ))}
         </div>
+        <label className="ed-check"><input type="checkbox" checked={Boolean(block.pageBreakBefore)} onChange={(e) => { const next = { ...block }; if (e.target.checked) next.pageBreakBefore = true; else delete next.pageBreakBefore; update(next); }} /> Alusta seda plokki uuelt lehelt</label>
       </div>
 
       {def.task && (COLUMN_BLOCKS.has(block.type) || def.example || SHUFFLE_BLOCKS.has(block.type)) && (

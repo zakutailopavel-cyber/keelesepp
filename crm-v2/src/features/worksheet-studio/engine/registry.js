@@ -2,10 +2,11 @@ import { text, notice, tip, image, vocab } from './blocks/content.jsx';
 import { taskBlocks } from './blocks/tasks.jsx';
 import { productiveBlocks } from './blocks/productive.jsx';
 import { extraBlocks } from './blocks/extra.jsx';
+import { advancedBlocks } from './blocks/advanced.jsx';
 import { newId } from './schema.js';
 
 // One registry = one source of truth for every host (Õppevara builder, homework player, Live Classroom, print).
-export const BLOCKS = { text, notice, tip, image, vocab, ...taskBlocks, ...extraBlocks, ...productiveBlocks };
+export const BLOCKS = { text, notice, tip, image, vocab, ...taskBlocks, ...extraBlocks, ...productiveBlocks, ...advancedBlocks };
 
 export const GROUPS = ['Grammatika ja sõnavara', 'Teemad', 'Tekst ja heli', 'Pildid', 'Kõne ja kirjutamine', 'Kujundus'];
 
@@ -15,8 +16,8 @@ export function createBlock(type) {
 }
 
 // Task modifications (spec §2): block.opts = { cols: 1|2|3, example: bool, shuffle: bool, size: 'small'|'large' }.
-export const COLUMN_BLOCKS = new Set(['gaps', 'choice', 'truefalse', 'wordorder', 'reading', 'listening', 'selfcheck', 'categorize']);
-export const SHUFFLE_BLOCKS = new Set(['choice']);
+export const COLUMN_BLOCKS = new Set(['gaps', 'choice', 'truefalse', 'wordorder', 'reading', 'listening', 'selfcheck', 'categorize', 'wordforms', 'errorfix', 'translation']);
+export const SHUFFLE_BLOCKS = new Set(['choice', 'wordforms', 'errorfix']);
 
 // Answers of the first item when "Näide" is on: shown solved, never scored.
 export function exampleAnswers(block) {
@@ -70,7 +71,11 @@ export function checkDocument(doc, answers = {}) {
 // How many answerable fields have an answer (scorable fields plus voice recordings).
 export function answerProgress(doc, answers = {}) {
   const { results, speak } = checkDocument(doc, answers);
-  const keys = Object.keys(results);
+  const openKeys = doc.blocks.flatMap((block) => {
+    const def = BLOCKS[block.type];
+    return typeof def?.answerKeys === 'function' ? def.answerKeys(block.data || {}).map((key) => `${block.id}:${key}`) : [];
+  });
+  const keys = [...new Set([...Object.keys(results), ...openKeys])];
   const answered = keys.filter((k) => {
     const v = answers[k];
     return v !== undefined && v !== null && String(v).trim() !== '';

@@ -13,6 +13,7 @@ const answer = (b, map) => Object.fromEntries(Object.entries(map).map(([k, v]) =
 
 describe('block registry', () => {
   it('every block type can be created and rendered in edit, interactive and print modes', () => {
+    expect(Object.keys(BLOCKS)).toHaveLength(32);
     for (const type of Object.keys(BLOCKS)) {
       const b = createBlock(type);
       for (const mode of ['edit', 'interactive', 'print']) {
@@ -20,6 +21,17 @@ describe('block registry', () => {
         expect(container.querySelector(`[data-block="${b.id}"]`), `${type}/${mode}`).not.toBeNull();
         unmount();
       }
+    }
+  });
+
+  it('scores the new automatically checked language tasks', () => {
+    for (const type of ['wordforms', 'errorfix', 'dictation', 'crossword']) {
+      const block = createBlock(type);
+      const values = type === 'wordforms' ? { 0: 'koera', 1: 'õpin' }
+        : type === 'errorfix' ? { 0: 'Ma lähen kooli.', 1: 'Ta õpib eesti keelt.' }
+          : type === 'dictation' ? { 0: 'Hommikul lähen ma tööle.', 1: 'Õhtul loen raamatut.' }
+            : { 0: 'kool', 1: 'õpetaja' };
+      expect(scoreDocument(doc([block]), answer(block, values)).perBlock[block.id].every((item) => item.ok), type).toBe(true);
     }
   });
 

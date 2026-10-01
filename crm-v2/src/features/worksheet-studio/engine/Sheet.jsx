@@ -171,6 +171,7 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
       const out = [[]];
       let used = 0;
       hs.forEach((h, i) => {
+        if (rows[i]?.[0]?.pageBreakBefore && out[out.length - 1].length) { out.push([]); used = 0; }
         const cap = out.length === 1 ? firstCap : nextCap;
         if (out[out.length - 1].length && used + h > cap) { out.push([]); used = 0; }
         out[out.length - 1].push(i);
