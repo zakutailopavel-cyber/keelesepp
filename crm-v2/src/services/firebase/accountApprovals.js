@@ -40,7 +40,7 @@ export const accountApprovalsService = {
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ uid, decision, reason }),
       });
-    } catch (error) {
+    } catch {
       throw new Error('Konto kinnitamise serveriga ei õnnestunud ühendust saada. Ava CRM aadressil https://crm.epkoolitus.ee ja proovi uuesti.');
     }
     const data = await response.json().catch(() => ({}));
