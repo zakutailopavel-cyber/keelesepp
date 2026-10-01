@@ -1,5 +1,36 @@
 # KeeleSepp Project State
 
+## 2026-10-01 — Lapsevanema õppetingimuste kinnitus — DRAFT PR #226, branch `agent/parent-study-terms`
+
+Kontrollitud värske `main` `c76f69f`; avatud PR-e enne töö algust ei olnud. Eesmärk: lapsevanem näeb enne esimest
+päris kabinetti sisenemist lühidalt õppetöö põhireegleid (õppetasu, puudumised/tühistamine, tunniplaan ja suhtlus) ning
+peab need eraldi kinnitama. Registreerimise olemasolevat `termsAcceptedAt/termsVersion` nõusolekut ei kasutata selleks;
+uus kinnitus on eraldi `users/{uid}.studyTermsAcceptedAt` + `studyTermsVersion = "2026-10-01"`, et neid kahte
+õiguslikku/operatiivset sammu mitte segada.
+
+Valmis:
+- `ProtectedRoute` peatab approved parent konto enne kabinetti, kui kehtiva versiooni kinnitust pole; pending/rejected
+  approval-ekraan jääb ettepoole ning admini read-only parent preview on gate'ist vabastatud.
+- Kinnituse ekraan kasutab olemasoleva avaliku `tingimused.html` reegleid: jooksva kuu tasu hiljemalt 10. kuupäevaks,
+  puudumisest teatada võimalikult vara, puudutud tunni arvestus/tühistamine/ümbertõstmine vastavalt kokkuleppele,
+  KeeleSepa/õpetaja põhjustatud ärajäämisel uus aeg või muu sobiv lahendus.
+- `Seaded → Õppetingimused` kaart jääb lapsevanemale alati kättesaadavaks ning näitab staatust, versiooni ja
+  kinnitamise kuupäeva; lingid avalikele kasutustingimustele ja privaatsuspoliitikale on sees.
+- Auth service kirjutab kinnituse ainult parent rollile. Firestore `safeSelfUserFields` lubab ainult valideeritud
+  `studyTermsAcceptedAt/studyTermsVersion` väljad; muud rolli- või õiguseväljad ei muutu.
+- Lisatud unit/UI testid gate'i, versiooni aegumise, auth write'i ja Settings kaardi jaoks.
+
+Muudetud: `crm-v2/src/app/{AuthContext.jsx,ProtectedRoute.jsx}`,
+`crm-v2/src/services/firebase/auth.js`, `crm-v2/src/features/settings/{SettingsPage.jsx,StudyTerms*.jsx,studyTerms.*}`,
+nende testid, `firestore.rules`. Andmemigratsiooni pole. Olemasolevatel lapsevanematel puuduvad uued väljad, seega
+pärast väljalaset küsitakse neilt kinnitust järgmisel sisselogimisel samuti.
+
+Kontrollid: kood ja testid on commititud, draft PR #226 avatud; GitHub CI/Vercel preview kontrollid on veel pooleli
+ja neid ei tohi enne tulemust roheliseks väita. Productioni, Firebase rules'i ega Verceli deploy'd pole tehtud.
+Järgmine ohutu samm: oodata #226 CI/preview tulemus ära, parandada võimalikud vead ja jätta merge + rules/Vercel release
+omaniku käsitsi kinnitada.
+
+
 ## 2026-10-01 — Worksheet Studio PDF coverage and author reliability — branch `agent/worksheet-studio-complete`
 
 Checked against fresh `origin/main` `a3e9f88`; no open PRs at start. Rendered and reviewed all local generated
