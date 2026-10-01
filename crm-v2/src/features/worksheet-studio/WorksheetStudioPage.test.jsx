@@ -1,11 +1,21 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { vi } from 'vitest';
+import { beforeEach, vi } from 'vitest';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import WorksheetStudioPage from './WorksheetStudioPage.jsx';
 import { sampleDocument } from './engine/sample.js';
 
 globalThis.ResizeObserver = globalThis.ResizeObserver || class { observe() {} disconnect() {} };
+const draftStore = new Map();
+Object.defineProperty(window, 'localStorage', {
+  configurable: true,
+  value: {
+    getItem: (key) => draftStore.get(key) ?? null,
+    setItem: (key, value) => draftStore.set(key, String(value)),
+    removeItem: (key) => draftStore.delete(key),
+    clear: () => draftStore.clear(),
+  },
+});
 
 function renderAt(path, repository) {
   const user = { uid: 'teacher-1', displayName: 'Õpetaja', roles: ['teacher'] };
@@ -30,6 +40,10 @@ const repo = (overrides = {}) => ({
 });
 
 describe('WorksheetStudioPage', () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+  });
+
   it('loads a worksheet, adds a block and saves it to the same lesson', async () => {
     const repository = repo();
     const { container } = renderAt('/library/worksheets/lesson-1', repository);
