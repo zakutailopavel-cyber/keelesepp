@@ -3,6 +3,9 @@ import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { vi } from 'vitest';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import LibraryPage from './LibraryPage.jsx';
+import { sampleDocument } from '../worksheet-studio/engine/sample.js';
+
+globalThis.ResizeObserver = globalThis.ResizeObserver || class { observe() {} disconnect() {} };
 
 const data = {
   curriculumLessons: [
@@ -191,6 +194,33 @@ describe('LibraryPage', () => {
     render(<MemoryRouter initialEntries={['/library']}><AuthContext.Provider value={{ user: { uid: 't', displayName: 'Õpetaja', roles: ['teacher'] } }}><Routes><Route path="*" element={<><LibraryPage repository={repository} studentRepository={{ list: vi.fn() }} groupRepository={{ list: vi.fn() }} /><Location /></>} /></Routes></AuthContext.Provider></MemoryRouter>);
     fireEvent.click(await screen.findByRole('button', { name: 'Muuda: Toit pildil' }));
     expect(screen.getByTestId('location')).toHaveTextContent('/library/worksheets/img-1');
+  });
+
+  it('a lesson plan without a worksheet offers Loo tööleht, one with a constructor worksheet shows it and offers Muuda töölehte', async () => {
+    const repository = { list: vi.fn().mockResolvedValue({ curriculumLessons: [
+      { id: 'plan-1', title: 'A2 lähtediagnostika', subject: 'Eesti keel', level: 'B1', topic: '01. A2 lähtepunkt' },
+      { id: 'plan-2', title: 'Minu päev', subject: 'Eesti keel', level: 'A2', topic: '01. A2 lähtepunkt', worksheetDoc: sampleDocument() },
+    ], exercises: [] }) };
+    function Location() { const location = useLocation(); return <output data-testid="location">{location.pathname}</output>; }
+    render(<MemoryRouter initialEntries={['/library']}><AuthContext.Provider value={{ user: { uid: 't', displayName: 'Õpetaja', roles: ['teacher'] } }}><Routes><Route path="*" element={<><LibraryPage repository={repository} studentRepository={{ list: vi.fn() }} groupRepository={{ list: vi.fn() }} /><Location /></>} /></Routes></AuthContext.Provider></MemoryRouter>);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Vaata: Minu päev' }));
+    const preview = screen.getByRole('dialog', { name: 'Eelvaade: Minu päev' });
+    expect((await within(preview).findAllByText('Minu päev ja kellaaeg')).length).toBeGreaterThan(0);
+    expect(within(preview).getByRole('region', { name: 'Tööleht' })).toBeInTheDocument();
+    fireEvent.click(within(preview).getByRole('button', { name: /Muuda töölehte/ }));
+    expect(screen.getByTestId('location')).toHaveTextContent('/library/worksheets/plan-2');
+  });
+
+  it('the material editor of a lesson plan without a worksheet has Loo tööleht', async () => {
+    const repository = { list: vi.fn().mockResolvedValue({ curriculumLessons: [{ id: 'plan-1', title: 'A2 lähtediagnostika', subject: 'Eesti keel', level: 'B1', topic: '01. A2 lähtepunkt' }], exercises: [] }) };
+    function Location() { const location = useLocation(); return <output data-testid="location">{location.pathname}</output>; }
+    render(<MemoryRouter initialEntries={['/library']}><AuthContext.Provider value={{ user: { uid: 't', displayName: 'Õpetaja', roles: ['teacher'] } }}><Routes><Route path="*" element={<><LibraryPage repository={repository} studentRepository={{ list: vi.fn() }} groupRepository={{ list: vi.fn() }} /><Location /></>} /></Routes></AuthContext.Provider></MemoryRouter>);
+    fireEvent.click(await screen.findByRole('button', { name: 'Muuda: A2 lähtediagnostika' }));
+    const editor = within(screen.getByRole('dialog', { name: 'Muuda: A2 lähtediagnostika' }));
+    expect(editor.getByText('Sellel materjalil pole veel töölehte.')).toBeInTheDocument();
+    fireEvent.click(editor.getByRole('button', { name: /Loo tööleht/ }));
+    expect(screen.getByTestId('location')).toHaveTextContent('/library/worksheets/plan-1');
   });
 
   it('opens an existing exercise in the correct editor', async () => {

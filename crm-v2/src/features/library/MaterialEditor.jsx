@@ -1,4 +1,4 @@
-import { FileText, Plus, Trash2, UploadCloud } from 'lucide-react';
+import { Eye, FilePenLine, FileText, Plus, Trash2, UploadCloud } from 'lucide-react';
 import { useId, useRef, useState } from 'react';
 import { Button, Input, Modal, Select } from '../../components/ui/index.js';
 
@@ -133,7 +133,25 @@ function MaterialBlockEditor({ block, index, availableImages = [], onChange, onR
   );
 }
 
-export default function MaterialEditor({ item = null, repository, user, onClose, onSaved }) {
+// The worksheet of this material lives on the same record (`worksheetDoc`, made in the Töölehe konstruktor).
+function WorksheetLink({ item, onOpenWorksheet, onPreview }) {
+  const studioBlocks = item.source?.worksheetDoc?.blocks?.length || 0;
+  const legacyBlocks = item.source?.worksheetData?.blocks?.length || 0;
+  const status = studioBlocks
+    ? `Konstruktoris tehtud tööleht · ${studioBlocks} ${studioBlocks === 1 ? 'plokk' : 'plokki'}`
+    : legacyBlocks ? 'Vana tööleht (CRM v1) · avaneb konstruktoris uues kujunduses' : 'Sellel materjalil pole veel töölehte.';
+  return (
+    <section className="material-worksheet-link" aria-label="Tööleht">
+      <div><strong>Tööleht</strong><span>{status}</span></div>
+      <div className="material-worksheet-link__actions">
+        {studioBlocks && onPreview ? <Button variant="secondary" onClick={() => onPreview(item)}><Eye size={16} /> Vaata töölehte</Button> : null}
+        <Button variant={studioBlocks || legacyBlocks ? 'secondary' : 'primary'} onClick={() => onOpenWorksheet(item)}><FilePenLine size={16} /> {studioBlocks || legacyBlocks ? 'Muuda töölehte' : 'Loo tööleht'}</Button>
+      </div>
+    </section>
+  );
+}
+
+export default function MaterialEditor({ item = null, repository, user, onClose, onSaved, onOpenWorksheet, onPreview }) {
   const formId = useId();
   const fileInput = useRef(null);
   const [values, setValues] = useState(() => initialValues(item));
@@ -218,6 +236,7 @@ export default function MaterialEditor({ item = null, repository, user, onClose,
     >
       <form id={formId} className="material-editor" onSubmit={submit}>
         {saveError ? <div className="action-error" role="alert">{saveError}</div> : null}
+        {item?.sourceId && onOpenWorksheet ? <WorksheetLink item={item} onOpenWorksheet={onOpenWorksheet} onPreview={onPreview} /> : null}
         <div className="form-grid">
           <Input id={`${formId}-title`} className="form-grid__wide" label="Pealkiri *" value={values.title} error={errors.title} maxLength={180} onChange={(event) => update('title', event.target.value)} />
           <Select id={`${formId}-type`} label="Materjali tüüp" value={values.materialType} disabled={Boolean(item)} onChange={(event) => update('materialType', event.target.value)}>
