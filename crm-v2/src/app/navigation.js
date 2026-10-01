@@ -1,4 +1,4 @@
-import { BookOpen, PenLine, UserRoundPlus, CalendarDays, CircleDollarSign, GraduationCap, HeartHandshake, Inbox, Layers3, LibraryBig, LayoutDashboard, MessageSquareText, Settings, UserRoundCog, Users, Video } from 'lucide-react';
+import { BookOpen, PenLine, UserRoundPlus, CalendarDays, CircleDollarSign, GraduationCap, HeartHandshake, Inbox, Layers3, LibraryBig, LayoutDashboard, ListTodo, MessageSquareText, Settings, UserRoundCog, Users, Video } from 'lucide-react';
 import { ACCESS } from './accessPolicy.js';
 
 export const navigation = [
@@ -7,6 +7,7 @@ export const navigation = [
   { to: '/student', label: 'Minu õpingud', icon: GraduationCap, roles: ACCESS.STUDENT },
   { to: '/students', label: 'Õpilased', icon: Users, roles: ACCESS.STAFF },
   { to: '/calendar', label: 'Kalender', icon: CalendarDays, roles: ACCESS.STAFF },
+  { to: '/tasks', label: 'Ülesanded', icon: ListTodo, roles: ACCESS.STAFF },
   { to: '/groups', label: 'Grupid', icon: Layers3, roles: ACCESS.STAFF },
   { to: '/parents', label: 'Lapsevanemad', icon: HeartHandshake, roles: ACCESS.STAFF },
   { to: '/library', label: 'Õppevara', icon: LibraryBig, roles: ACCESS.STAFF },

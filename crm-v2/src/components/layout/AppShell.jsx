@@ -7,6 +7,7 @@ import { hasAnyRole } from '../../utils/roles.js';
 import GlobalStudentSearch from './GlobalStudentSearch.jsx';
 import IconButton from '../ui/IconButton.jsx';
 import LessonInvitationOverlay from './LessonInvitationOverlay.jsx';
+import NotificationCenter from './NotificationCenter.jsx';
 import PetCompanion from '../../features/pet/PetCompanion.jsx';
 
 function initials(name) {
@@ -20,6 +21,7 @@ export default function AppShell() {
   const visibleNavigation = useMemo(() => navigation.filter((item) => hasAnyRole(user.roles, item.roles)), [user.roles]);
   const showSettings = hasAnyRole(user.roles, settingsNavigation.roles);
   const canSearchStudents = hasAnyRole(user.roles, ['admin', 'teacher']);
+  const showNotifications = hasAnyRole(user.roles, ['admin', 'teacher', 'finance']);
   const exitPreview = () => { stopPreview(); navigate('/settings'); };
   const blockPreviewButtons = (event) => {
     if (!preview?.readOnly) return;
@@ -61,6 +63,7 @@ export default function AppShell() {
         <header className="topbar">
           <IconButton className="mobile-only" data-tour="menu" label="Ava menüü" onClick={() => setMenuOpen(true)}><Menu size={21} /></IconButton>
           {canSearchStudents ? <GlobalStudentSearch user={user} /> : null}
+          {showNotifications ? <div className="topbar-actions"><NotificationCenter user={user} /></div> : null}
         </header>
         <div className={preview?.readOnly ? 'preview-surface preview-surface--readonly' : 'preview-surface'} onClickCapture={blockPreviewButtons} onSubmitCapture={(event) => { if (preview?.readOnly) { event.preventDefault(); event.stopPropagation(); } }}><Outlet /></div>
         <PetCompanion />

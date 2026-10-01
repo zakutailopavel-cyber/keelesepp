@@ -197,6 +197,12 @@ the signed-in user's unread messages, unseen worksheet results, overdue scoped t
 parent-link and operational alerts. Opening an item routes to its source record or workflow; resolving that source
 removes the notification. This keeps permissions and acknowledgement semantics owned by the original collection.
 
+CRM v2 (`crm-v2/src/features/tasks`, `components/layout/NotificationCenter.jsx`) uses the same `tasks` records and
+the same projection idea. It adds two optional fields that v1 ignores: `assignedToUid` (a hint; the canonical
+`assignedTo` name stays authoritative because v1 reassigns by name) and `openedByUids` (who has opened the task;
+drives "Uus ülesanne sulle" for tasks created in the last 14 days). The v2 bell derives task (new for me, new reply,
+overdue, due today), unread message, homework-awaiting-review and overdue-invoice items from their sources.
+
 Single-student scheduled lessons use the existing server-owned lesson journal endpoint for one-click completion.
 The optional completion payload extends the same idempotent transaction: it records schedule attendance, creates a
 stable lesson-derived homework record, advances `students.curriculumPlan`, and optionally creates a linked follow-up
