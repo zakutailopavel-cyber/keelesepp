@@ -29,8 +29,14 @@ the pre-#226 source; `functions/index.js` now uses the tested origin matcher; ne
 production mutation performed by the agent. The CORS fix only becomes live when `staffOperationsApi` is explicitly
 deployed; Vercel deploy alone cannot update Firebase Functions.
 
-Next safe step: run CI on a draft PR. If green, owner manually merges; release must include Vercel CRM plus an explicit
-`staffOperationsApi` deploy for the CORS repair.
+Checks on code HEAD `d628ae5`: CRM v2 106 test files / 515 tests passed; ESLint passed; production build passed.
+GitHub `security-regression` and `financial-core` emulator workflows passed. Vercel preview
+`dpl_qHvPozXyX1A3qAa6c1rJ1HUiNTuG` is READY and Vercel reports no unresolved preview feedback. This
+PROJECT_STATE update is documentation-only; production remains unchanged.
+
+Next safe step: owner manually merges PR #227. Release must include the Vercel CRM update plus an explicit
+`staffOperationsApi` Firebase Functions deploy for the CORS repair; until that Function is deployed, the CORS
+change is not live.
 
 
 ## 2026-10-01 — Worksheet Studio PDF coverage and author reliability — branch `agent/worksheet-studio-complete`
