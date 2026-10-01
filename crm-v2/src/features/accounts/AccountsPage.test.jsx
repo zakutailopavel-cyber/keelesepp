@@ -12,6 +12,29 @@ function service(overrides = {}) {
 }
 
 describe('new accounts page', () => {
+  it('reports a committed approval with a lost response as a notice, not an error', async () => {
+    const svc = service({ decide: vi.fn().mockResolvedValue({ approvalStatus: 'approved', mailed: false, responseLost: true }) });
+    render(<AccountsPage service={svc} />);
+    fireEvent.click(await screen.findByRole('button', { name: /Kinnita/ }));
+    expect(await screen.findByRole('status')).toHaveTextContent('Konto kinnitati, kuid vastust ei saadud. E-kiri võis jääda saatmata.');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    await waitFor(() => expect(svc.list).toHaveBeenCalledTimes(2));
+    expect(screen.getByRole('status')).not.toHaveTextContent('automaatselt ei leitud');
+  });
+
+  it('does not claim an e-mail was sent while delivery is pending', async () => {
+    render(<AccountsPage service={service({ decide: vi.fn().mockResolvedValue({ approvalStatus: 'approved', mailed: false, mailPending: true }) })} />);
+    fireEvent.click(await screen.findByRole('button', { name: /Kinnita/ }));
+    expect(await screen.findByRole('status')).toHaveTextContent('E-kirja saatmine ei ole veel kinnitatud.');
+    expect(screen.getByRole('status')).not.toHaveTextContent('saadeti e-kiri');
+  });
+
+  it('keeps unresolved network failures as errors', async () => {
+    render(<AccountsPage service={service({ decide: vi.fn().mockRejectedValue(new Error('Ühendus puudub')) })} />);
+    fireEvent.click(await screen.findByRole('button', { name: /Kinnita/ }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Ühendus puudub');
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  });
   it('lists waiting accounts with what they registered with', async () => {
     render(<AccountsPage service={service()} />);
     expect(await screen.findByText('Mari Maasikas')).toBeInTheDocument();

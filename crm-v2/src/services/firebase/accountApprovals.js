@@ -1,9 +1,10 @@
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, doc, getDocFromServer, getDocs, query, where } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
 
 // Parents and students who registered themselves wait as approvalStatus "pending" until an
 // administrator approves them; the decision runs on the server (links the student card, e-mails the person).
 const defaultStaffOperationsUrl = 'https://us-central1-keelesepp-5136b.cloudfunctions.net/staffOperationsApi';
+export const APPROVAL_RESPONSE_LOST_MESSAGE = 'Konto kinnitati, kuid vastust ei saadud. E-kiri võis jääda saatmata.';
 
 export function normalizeAccount(id, data = {}) {
   return {
@@ -29,21 +30,35 @@ export const accountApprovalsService = {
   },
 
   async decide({ uid, decision, reason = '' }) {
-    const { auth } = requireFirebaseClient();
+    const { auth, db } = requireFirebaseClient();
     if (!auth.currentUser) throw new Error('Aktiivne kasutajaseanss puudub. Logi uuesti sisse.');
     const token = await auth.currentUser.getIdToken();
     const baseUrl = String(import.meta.env.VITE_STAFF_OPERATIONS_API_URL || defaultStaffOperationsUrl).replace(/\/$/, '');
     let response;
+    let data;
     try {
       response = await globalThis.fetch(`${baseUrl}/accounts/approval`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ uid, decision, reason }),
       });
+      data = await response.json().catch((error) => {
+        if (response.ok) throw error;
+        return {};
+      });
     } catch {
+      if (decision === 'approve') {
+        // A network failure can happen after the server commits. Read the authoritative profile,
+        // never a cached/default status, before reporting success or inviting a second approval.
+        try {
+          const snapshot = await getDocFromServer(doc(db, 'users', uid));
+          if (snapshot.exists() && snapshot.data()?.approvalStatus === 'approved') {
+            return { uid, approvalStatus: 'approved', mailed: false, responseLost: true, message: APPROVAL_RESPONSE_LOST_MESSAGE };
+          }
+        } catch { /* Reconciliation failed: retain the network error below. */ }
+      }
       throw new Error('Konto kinnitamise serveriga ei õnnestunud ühendust saada. Ava CRM aadressil https://crm.epkoolitus.ee ja proovi uuesti.');
     }
-    const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data.error || 'Otsust ei õnnestunud salvestada.');
     return data;
   },

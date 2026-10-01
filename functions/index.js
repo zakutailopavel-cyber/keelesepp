@@ -4770,6 +4770,9 @@ async function deliverEmail(message, context = {}) {
         host: smtpHost,
         port: smtpPort,
         secure: smtpSecure,
+        connectionTimeout: 10000,
+        greetingTimeout: 10000,
+        socketTimeout: 20000,
         auth: { user: smtpUser, pass: smtpPass },
       });
       const info = await transporter.sendMail({
@@ -7135,7 +7138,25 @@ exports.websiteLeadApi = functions.runWith({ secrets: ["SMTP_PASS"] }).https.onR
   }
 });
 
-exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"] }).https.onRequest(async (req, res) => {
+// Approval e-mail is sent before the HTTP response (work after the response is not guaranteed on Cloud Functions),
+// but never longer than this, so a slow SMTP server can no longer make the browser see "Failed to fetch".
+let APPROVAL_MAIL_LIMIT_MS = 30000;
+async function deliverApprovalEmailWithin(message, context) {
+  let timer;
+  const limit = new Promise((resolve) => { timer = setTimeout(() => resolve("timeout"), APPROVAL_MAIL_LIMIT_MS); });
+  try {
+    const outcome = await Promise.race([deliverEmail(message, context).then(() => "sent"), limit]);
+    if (outcome === "timeout") console.error("approval e-mail failed", context.uid, new Error(`SMTP did not finish within ${APPROVAL_MAIL_LIMIT_MS} ms`));
+    return outcome === "sent";
+  } catch (mailError) {
+    console.error("approval e-mail failed", context.uid, mailError);
+    return false;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"], timeoutSeconds: 120 }).https.onRequest(async (req, res) => {
   applyCors(req, res);
   if (req.method === "OPTIONS") { res.status(204).send(""); return; }
   if (req.method !== "POST") {
@@ -7373,7 +7394,7 @@ exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"] }).https
       await profileRef.update(update);
       const profile = { ...profileSnap.data(), ...update };
       let linked = null;
-      let mailed = false;
+      let sendApprovalEmail = false;
       if (update.approvalStatus === "approved") {
         let authUser = null;
         try { authUser = await admin.auth().getUser(targetUid); } catch (error) { authUser = null; }
@@ -7384,14 +7405,19 @@ exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"] }).https
           });
         }
         if (profile.email && profileSnap.data().approvalStatus !== "approved") {
-          try { await deliverEmail(composeApprovedEmail(profile), { kind: "account-approved", uid: targetUid }); mailed = true; }
-          catch (mailError) { console.error("approval e-mail failed", targetUid, mailError); }
+          sendApprovalEmail = true;
         }
       }
       await db.collection("activityLog").add({
         action: `account_${update.approvalStatus}`, targetUid, actor: actorSnapshot(actor), createdAt: FieldValue.serverTimestamp(),
       });
-      res.json({ uid: targetUid, approvalStatus: update.approvalStatus, linkedStudentIds: linked?.linkedStudentIds || [], createdStudentIds: linked?.createdStudentIds || [], mailed });
+      // The decision and bootstrap are committed first. The e-mail is attempted before replying (bounded by
+      // APPROVAL_MAIL_LIMIT_MS) because Cloud Functions may stop the instance right after the response.
+      // mailed=false means the e-mail was not confirmed (failed or timed out), never that the approval failed.
+      const mailed = sendApprovalEmail
+        ? await deliverApprovalEmailWithin(composeApprovedEmail(profile), { kind: "account-approved", uid: targetUid })
+        : false;
+      res.json({ uid: targetUid, approvalStatus: update.approvalStatus, linkedStudentIds: linked?.linkedStudentIds || [], createdStudentIds: linked?.createdStudentIds || [], mailed, mailPending: false });
       return;
     }
     if (req.path === "/accounts/bootstrap-admin") {
