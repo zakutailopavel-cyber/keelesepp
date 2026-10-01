@@ -104,6 +104,7 @@ const {
   workDurationMinutes,
 } = require("./staff-operations-core");
 const { collectTrustedRoles, isDisabledProfile } = require("./auth-core");
+const { originAllowed } = require("./cors-origin-core");
 const {
   normalizeEmail: normalizeAccountEmail,
   normalizeName: normalizeAccountName,
@@ -325,9 +326,8 @@ function allowedCorsOrigins() {
 }
 
 function applyCors(req, res) {
-  const allowed = new Set(allowedCorsOrigins());
   const origin = req.get("Origin");
-  if (origin && allowed.has(origin)) {
+  if (origin && originAllowed(origin, allowedCorsOrigins())) {
     res.set("Access-Control-Allow-Origin", origin);
     res.set("Vary", "Origin");
   }
