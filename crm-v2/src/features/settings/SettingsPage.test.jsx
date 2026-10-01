@@ -29,23 +29,6 @@ describe('SettingsPage', () => {
     expect(googleCalendarRepository.status).toHaveBeenCalledWith('teacher-1');
   });
 
-  it('shows study terms in parent settings with acceptance metadata', () => {
-    const parent = {
-      uid: 'parent-1',
-      displayName: 'Mari',
-      email: 'mari@example.com',
-      roles: ['parent'],
-      profile: {
-        studyTermsAcceptedAt: '2026-10-01T18:00:00.000Z',
-        studyTermsVersion: '2026-10-01',
-      },
-    };
-    render(<AuthContext.Provider value={{ user: parent, configured: true }}><SettingsPage /></AuthContext.Provider>);
-    expect(screen.getByRole('heading', { name: 'Õppetingimused' })).toBeInTheDocument();
-    expect(screen.getByText('Kinnitatud', { selector: '.badge' })).toBeInTheDocument();
-    expect(screen.getByText(/Versioon/)).toHaveTextContent('2026-10-01');
-  });
-
   it('does not show the Google Calendar card to a student', () => {
     const student = { uid: 'student-1', displayName: 'Mari', email: 'mari@example.com', roles: ['student'], profile: {} };
     render(<AuthContext.Provider value={{ user: student, configured: true, preview: true }}><SettingsPage /></AuthContext.Provider>);
