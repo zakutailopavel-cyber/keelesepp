@@ -66,11 +66,6 @@ export function AuthProvider({ children, service = authService }) {
       setState((current) => ({ ...current, user, error: null }));
       return user;
     },
-    acceptStudyTerms: async () => {
-      const user = await service.acceptStudyTerms();
-      setState((current) => ({ ...current, user, error: null }));
-      return user;
-    },
     sendPasswordReset: () => service.sendPasswordReset(),
   }), [configured, preview, service, state]);
 

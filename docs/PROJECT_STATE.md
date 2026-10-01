@@ -1,36 +1,42 @@
 # KeeleSepp Project State
 
-## 2026-10-01 — Lapsevanema õppetingimuste kinnitus — DRAFT PR #226, branch `agent/parent-study-terms`
+## 2026-10-01 — access hotfix after PR #226 — branch `agent/revert-parent-study-terms`
 
-Kontrollitud värske `main` `c76f69f`; avatud PR-e enne töö algust ei olnud. Eesmärk: lapsevanem näeb enne esimest
-päris kabinetti sisenemist lühidalt õppetöö põhireegleid (õppetasu, puudumised/tühistamine, tunniplaan ja suhtlus) ning
-peab need eraldi kinnitama. Registreerimise olemasolevat `termsAcceptedAt/termsVersion` nõusolekut ei kasutata selleks;
-uus kinnitus on eraldi `users/{uid}.studyTermsAcceptedAt` + `studyTermsVersion = "2026-10-01"`, et neid kahte
-õiguslikku/operatiivset sammu mitte segada.
+Owner reported that the parent study-terms release caused parent login errors and that approving a newly registered
+student surfaced a raw browser `Failed to fetch`. Verified current GitHub `main` = `36abfd6` (merge #226) and
+Vercel production deployment `dpl_AGUKe8X8SC1mHFX1GCpX7uximU6P` still serves that exact commit on
+`crm.epkoolitus.ee`; the attempted rollback had not changed GitHub main or the active production aliases when checked.
 
-Valmis:
-- `ProtectedRoute` peatab approved parent konto enne kabinetti, kui kehtiva versiooni kinnitust pole; pending/rejected
-  approval-ekraan jääb ettepoole ning admini read-only parent preview on gate'ist vabastatud.
-- Kinnituse ekraan kasutab olemasoleva avaliku `tingimused.html` reegleid: jooksva kuu tasu hiljemalt 10. kuupäevaks,
-  puudumisest teatada võimalikult vara, puudutud tunni arvestus/tühistamine/ümbertõstmine vastavalt kokkuleppele,
-  KeeleSepa/õpetaja põhjustatud ärajäämisel uus aeg või muu sobiv lahendus.
-- `Seaded → Õppetingimused` kaart jääb lapsevanemale alati kättesaadavaks ning näitab staatust, versiooni ja
-  kinnitamise kuupäeva; lingid avalikele kasutustingimustele ja privaatsuspoliitikale on sees.
-- Auth service kirjutab kinnituse ainult parent rollile. Firestore `safeSelfUserFields` lubab ainult valideeritud
-  `studyTermsAcceptedAt/studyTermsVersion` väljad; muud rolli- või õiguseväljad ei muutu.
-- Lisatud unit/UI testid gate'i, versiooni aegumise, auth write'i ja Settings kaardi jaoks.
+Hotfix scope is intentionally narrow:
+- revert the full #226 parent-study-terms gate back to the pre-#226 tree `c76f69f`; no parent is blocked by a new
+  first-login condition and no `studyTermsAcceptedAt/studyTermsVersion` browser write is required;
+- keep registration/approval data unchanged;
+- allow the protected Firebase HTTP APIs to answer CORS requests from exact configured origins plus the KeeleSepp CRM
+  Vercel project aliases under `*-zakutailopavel-cybers-projects.vercel.app`; authentication and admin checks remain
+  mandatory, so CORS does not grant data access;
+- replace the raw account-approval `Failed to fetch` text with an actionable message pointing staff back to the
+  canonical `https://crm.epkoolitus.ee` address.
 
-Muudetud: `crm-v2/src/app/{AuthContext.jsx,ProtectedRoute.jsx}`,
-`crm-v2/src/services/firebase/auth.js`, `crm-v2/src/features/settings/{SettingsPage.jsx,StudyTerms*.jsx,studyTerms.*}`,
-nende testid, `firestore.rules`. Andmemigratsiooni pole. Olemasolevatel lapsevanematel puuduvad uued väljad, seega
-pärast väljalaset küsitakse neilt kinnitust järgmisel sisselogimisel samuti.
+Why the student symptom is separate from registration: `authService.register()` creates a pending Firebase account
+and profile without calling `staffOperationsApi`; the server fetch is skipped while approvalStatus is pending.
+The request to `staffOperationsApi/accounts/approval` happens when staff approves the account, and
+`accounts/bootstrap` runs only after approval. A browser-level `Failed to fetch` therefore points to network/CORS
+before a normal JSON 4xx/5xx response can be handled.
 
-Kontrollid koodi HEAD-il `29668d8`: CRM v2 testid 108 faili / 525 testi kõik rohelised; ESLint puhas;
-production build edukas. GitHub `security-regression` ja `financial-core` workflow'd rohelised ning Vercel preview
-READY, unresolved feedback 0. Build annab olemasoleva >600 kB chunk warningu, kuid build ise läbib. Productioni,
-Firebase rules'i ega Verceli production deploy'd pole tehtud. Käesolev PROJECT_STATE muudatus on dokumentatsiooni-only.
-Järgmine ohutu samm: owner vaatab PR #226 üle; pärast merge'i tuleb uued Firestore rules'id ja CRM v2 production
-väljalase teha ühe release'i osana, et õppetingimuste kinnituse write ei jääks vana reeglistiku taha.
+Changed in this hotfix: CRM v2 auth/settings files are reverted to pre-#226 state; `firestore.rules` is reverted to
+the pre-#226 source; `functions/index.js` now uses the tested origin matcher; new
+`functions/cors-origin-core.js` + test; `accountApprovals.js` has the recovery message. No data migration and no
+production mutation performed by the agent. The CORS fix only becomes live when `staffOperationsApi` is explicitly
+deployed; Vercel deploy alone cannot update Firebase Functions.
+
+Checks on code HEAD `d628ae5`: CRM v2 106 test files / 515 tests passed; ESLint passed; production build passed.
+GitHub `security-regression` and `financial-core` emulator workflows passed. Vercel preview
+`dpl_qHvPozXyX1A3qAa6c1rJ1HUiNTuG` is READY and Vercel reports no unresolved preview feedback. This
+PROJECT_STATE update is documentation-only; production remains unchanged.
+
+Next safe step: owner manually merges PR #227. Release must include the Vercel CRM update plus an explicit
+`staffOperationsApi` Firebase Functions deploy for the CORS repair; until that Function is deployed, the CORS
+change is not live.
 
 
 ## 2026-10-01 — Worksheet Studio PDF coverage and author reliability — branch `agent/worksheet-studio-complete`

@@ -42,35 +42,6 @@ describe('authService self-service account operations', () => {
     expect(mocks.setDoc.mock.calls[0][1]).not.toHaveProperty('email');
   });
 
-  it('records the current study-terms version only for a parent', async () => {
-    mocks.getDoc.mockResolvedValue({
-      exists: () => true,
-      data: () => ({ role: 'parent', displayName: 'Mari Tamm', studyTermsVersion: '', studyTermsAcceptedAt: '' }),
-    });
-
-    await authService.acceptStudyTerms();
-
-    expect(mocks.setDoc).toHaveBeenCalledWith(
-      'firebase-db:users:user-1',
-      expect.objectContaining({
-        studyTermsVersion: '2026-10-01',
-        studyTermsAcceptedAt: expect.any(String),
-        updatedAt: expect.any(String),
-      }),
-      { merge: true },
-    );
-  });
-
-  it('rejects study-terms acceptance for a non-parent account', async () => {
-    mocks.getDoc.mockResolvedValue({
-      exists: () => true,
-      data: () => ({ role: 'student', displayName: 'Mari Tamm' }),
-    });
-
-    await expect(authService.acceptStudyTerms()).rejects.toThrow('Õppetingimused kinnitab lapsevanem.');
-    expect(mocks.setDoc).not.toHaveBeenCalled();
-  });
-
   it('sends password reset only to the signed-in account email', async () => {
     await expect(authService.sendPasswordReset()).resolves.toBe('mari@example.com');
     expect(mocks.sendPasswordResetEmail).toHaveBeenCalledWith(expect.objectContaining({ currentUser: mocks.currentUser }), 'mari@example.com');
