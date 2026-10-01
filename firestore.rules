@@ -774,6 +774,13 @@ service cloud.firestore {
       ])
         && validTermsAcceptance(request.resource.data)
         && validStudyTermsAcceptance(request.resource.data)
+        && (
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+            'studyTermsAcceptedAt',
+            'studyTermsVersion'
+          ])
+          || resource.data.get('role', '') == 'parent'
+        )
         && validPet(request.resource.data);
     }
 
@@ -812,18 +819,14 @@ service cloud.firestore {
     }
 
     function validStudyTermsAcceptance(data) {
-      return (
+      return (('studyTermsAcceptedAt' in data) == ('studyTermsVersion' in data))
+        && (
           !('studyTermsAcceptedAt' in data)
           || (
             data.studyTermsAcceptedAt is string
             && data.studyTermsAcceptedAt.size() >= 10
             && data.studyTermsAcceptedAt.size() <= 40
-          )
-        )
-        && (
-          !('studyTermsVersion' in data)
-          || (
-            data.studyTermsVersion is string
+            && data.studyTermsVersion is string
             && data.studyTermsVersion.matches('^\\d{4}-\\d{2}-\\d{2}$')
           )
         );
