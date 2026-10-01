@@ -4,9 +4,11 @@ import LoadingState from '../components/ui/LoadingState.jsx';
 import { useAuth } from './AuthContext.jsx';
 import { hasAnyRole } from '../utils/roles.js';
 import PendingApprovalPage from '../features/auth/PendingApprovalPage.jsx';
+import StudyTermsGate from '../features/settings/StudyTermsGate.jsx';
+import { needsStudyTermsAcceptance } from '../features/settings/studyTerms.js';
 
 export default function ProtectedRoute({ roles = [] }) {
-  const { configured, loading, user, error } = useAuth();
+  const { configured, loading, user, error, preview } = useAuth();
   const location = useLocation();
 
   if (!configured) return <ErrorState title="Firebase ei ole seadistatud" message="Kopeeri .env.example failiks .env ja lisa olemasoleva KeeleSepp Firebase projekti avalik veebikonfiguratsioon." />;
@@ -14,6 +16,7 @@ export default function ProtectedRoute({ roles = [] }) {
   if (error) return <ErrorState title="Sisselogimise kontroll ebaõnnestus" message={error.message} />;
   if (!user) return <Navigate to="/login" replace state={{ from: location }} />;
   if (['pending', 'rejected'].includes(user.approvalStatus)) return <PendingApprovalPage />;
+  if (!preview && needsStudyTermsAcceptance(user)) return <StudyTermsGate />;
   if (!hasAnyRole(user.roles, roles)) return <Navigate to="/forbidden" replace />;
   return <Outlet />;
 }
