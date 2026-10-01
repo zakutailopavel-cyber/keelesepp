@@ -1,5 +1,28 @@
 # KeeleSepp Project State
 
+## 2026-10-01 — Student board outside the lesson (CRM v2 `/board`) — DRAFT PR, branch `agent/student-board`
+
+Checked against main `e014ea6` (2026-10-01). Goal: the student's own board (v1 "Tahvel") works in CRM v2 so v1 can be
+retired. Same data as v1, no new collections, no rule or schema change: `whiteboards/{studentId}/elements` and lesson
+pages `whiteboards/{studentId}/lessonPages/{pageId}/elements` (snapshot pages hidden). Everything drawn in v1 shows up
+in v2 and both stay in sync live.
+
+- `services/firebase/studentBoard.js`: live subscribe of elements/pages, add/update (v1 meta: `updatedAt`,
+  `updatedByUid`, `updatedByName`, `lastClientId`, `revision`), remove, teacher "Tühjenda" (keeps locked elements).
+- `features/board/`: `boardModel.js` (pure geometry: pan/zoom 20–300 %, fit, shapes, arrows), `StudentBoard.jsx`
+  (tools: select/move, pen, sticky note, text, rect, ellipse, arrow, eraser, hand; colours; zoom; page tabs "Tahvel" +
+  v1 lesson pages; renders v1 stroke/shape/note/text/image/pdf), `BoardPage.jsx`, `board.css`, `board.test.jsx` (7).
+- Routes: `/board` for student/parent (menu item "Tahvel", picks the card when there are several), `/board/:studentId`
+  for staff, opened with "Ava tahvel" on the student card. `ACCESS.BOARD` in `app/accessPolicy.js`.
+- Limits as in the rules: only staff can add image/pdf (v2 does not upload yet — use the Live Classroom or v1 for
+  that); locked elements cannot be erased or moved; strokes cannot be moved.
+- Checks: `npx eslint src` clean; `npx vitest run` 104 files / 493 tests pass; `npm run build` OK. Browser run on local
+  emulators (`demo-keelesepp`, no production): teacher opens the board from the card and sees v1 elements, student has
+  "Tahvel" in the menu, teacher's stroke appears live for the student and the student's note for the teacher, moving a
+  v1 note works, lesson page text shows, no rule errors; 1440 px and 390 px without horizontal scroll.
+- Not done: image/PDF upload from v2, undo. Release = merge + Vercel `keelesepp-crm-v2`; no functions/rules deploy.
+- Next safe step: owner reviews and merges the draft PR, then releases `keelesepp-crm-v2`.
+
 ## 2026-10-01 — Website header fix (www.epkoolitus.ee, ET and RU)
 
 Owner screenshot: the header was crooked — logo glued to "Kursused", the ET/RU switch cut off, "Logi sisse" on two
