@@ -4,11 +4,14 @@ import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal, PageHeader, Select } from '../../components/ui/index.js';
 import PeopleOverview from '../../components/PeopleOverview.jsx';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
-import { homeworkService, studentsService } from '../../services/firebase/index.js';
+import { homeworkService, interactiveAssignmentsService, studentsService } from '../../services/firebase/index.js';
 import { hasAnyRole, ROLES } from '../../utils/roles.js';
 import WorksheetPlayer, { VisualWorksheetSubmissionPreview } from './WorksheetPlayer.jsx';
 import { DocWorksheetSubmissionPreview } from '../worksheet-studio/DocWorksheetPlayer.jsx';
 import ExercisePlayer from './ExercisePlayer.jsx';
+import InteractiveLessonPlayer from './InteractiveLessonPlayer.jsx';
+import { ASSIGNMENT_STATUS_LABEL } from './interactiveLessonModel.js';
+import './interactiveLesson.css';
 import TextAnnotationEditor from './TextAnnotationEditor.jsx';
 import { submissionWritingFields } from './annotations.js';
 import MaterialPreview from '../library/MaterialPreview.jsx';
@@ -52,7 +55,7 @@ function SubmissionList({ items, staff, onOpen }) {
   })}</div>;
 }
 
-export default function HomeworkPage({ repository = homeworkService, studentRepository = studentsService }) {
+export default function HomeworkPage({ repository = homeworkService, studentRepository = studentsService, interactiveRepository = interactiveAssignmentsService }) {
   const { user } = useAuth();
   const staff = hasAnyRole(user.roles, [ROLES.ADMIN, ROLES.TEACHER]);
   const teacherOnly = hasAnyRole(user.roles, [ROLES.TEACHER]) && !hasAnyRole(user.roles, [ROLES.ADMIN]);
@@ -66,6 +69,7 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
   const [reviewing, setReviewing] = useState(null);
   const [playing, setPlaying] = useState(null);
   const [playingExercise, setPlayingExercise] = useState(null);
+  const [playingInteractive, setPlayingInteractive] = useState('');
   const [loadingExercise, setLoadingExercise] = useState('');
   const [previewingMaterial, setPreviewingMaterial] = useState(null);
   const [loadingMaterial, setLoadingMaterial] = useState('');
@@ -92,6 +96,14 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
       assignments: assignments.map((item) => ({ ...item, studentName: item.studentName || studentNames.get(item.studentId) || 'Õpilane' })),
     };
   }, [repository, staff, studentRepository, teacherOnly, user.uid]);
+
+  // Interactive lessons assigned in CRM v1: students finish them here, teachers send feedback. Nothing new is assigned
+  // in v2, so the card disappears once the old assignments are done. A failing API only hides the card.
+  const interactiveState = useAsyncData(
+    () => ((staff || studentRole) && interactiveRepository?.list ? interactiveRepository.list().catch(() => []) : Promise.resolve([])),
+    [interactiveRepository, staff, studentRole],
+  );
+  const interactive = (interactiveState.data || []).filter((item) => (staff ? item.status === 'submitted' : true));
 
   const filtered = useMemo(() => (state.data?.homework || []).filter((item) => (
     `${item.studentName || ''} ${item.task || ''}`.toLocaleLowerCase('et').includes(query.toLocaleLowerCase('et'))
@@ -215,6 +227,11 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
       })}</div> : <EmptyState title="Kõik töölehed on tehtud" description="Uued õpetaja määratud töölehed ilmuvad siia." />}
     </Card> : null}
 
+    {interactive.length ? <Card className="list-card">
+      <div className="homework-card-heading"><div><span className="eyebrow">Varem määratud</span><h2>{staff ? 'Interaktiivsed tunnid ootavad tagasisidet' : 'Interaktiivsed tunnid'}</h2></div><Badge tone="info">{interactive.length}</Badge></div>
+      <div className="interactive-list">{interactive.map((item) => <button type="button" key={item.id} onClick={() => setPlayingInteractive(item.id)}><span><strong>{item.title}</strong><small>{staff ? `${item.studentName} · ` : ''}{ASSIGNMENT_STATUS_LABEL[item.status] || item.status}</small></span><Badge tone={item.status === 'active' ? 'info' : 'success'}>{item.status === 'active' ? 'Ava' : 'Vaata'}</Badge></button>)}</div>
+    </Card> : null}
+
     <div className="homework-grid">
       <Card className="list-card homework-task-card">
         <div className="homework-card-heading"><div><span className="eyebrow">Ülesanded</span><h2>Kodutööd</h2></div><Badge tone="neutral">{filtered.length}</Badge></div>
@@ -253,6 +270,7 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
       </div> : null}
     </Modal>
     {playing ? <WorksheetPlayer assignment={playing} repository={repository} readOnly={!hasAnyRole(user.roles, [ROLES.STUDENT])} onClose={() => setPlaying(null)} onSubmitted={state.reload} /> : null}
+    {playingInteractive ? <InteractiveLessonPlayer assignmentId={playingInteractive} user={user} staff={staff} repository={interactiveRepository} onClose={() => setPlayingInteractive('')} onChanged={interactiveState.reload} /> : null}
     {playingExercise ? <ExercisePlayer exercise={playingExercise.exercise} homework={playingExercise.homework} repository={repository} user={user} onClose={() => setPlayingExercise(null)} onCompleted={state.reload} /> : null}
     {previewingMaterial ? <MaterialPreview item={previewingMaterial} onClose={() => setPreviewingMaterial(null)} /> : null}
   </div>;

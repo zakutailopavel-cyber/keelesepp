@@ -1,0 +1,30 @@
+.il { display: grid; gap: 14px; }
+.il-head { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.il-student { font-weight: 700; }
+.il-message { color: var(--muted, #667085); font-size: .85rem; }
+.il-feedback { padding: 12px 14px; border-radius: 12px; background: #ecfdf3; }
+.il-feedback p { margin: 4px 0 0; white-space: pre-wrap; }
+.il-steps { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; }
+.il-steps button { flex: 0 0 auto; border: 1px solid var(--border, #e4e7ec); background: #fff; border-radius: 999px; padding: 6px 12px; font-size: .82rem; cursor: pointer; white-space: nowrap; }
+.il-steps button[aria-current="step"] { background: #14243a; border-color: #14243a; color: #fff; }
+.il-activity { display: grid; gap: 10px; }
+.il-activity h3 { margin: 0; }
+.il-prompt { margin: 0; white-space: pre-wrap; line-height: 1.6; }
+.il-activity figure { margin: 0; }
+.il-activity img { max-width: 100%; border-radius: 10px; }
+.il-field { display: grid; gap: 6px; }
+.il-field span, .il-options legend, .il-inline-gaps legend, .il-answer span, .il-expected span { font-weight: 700; font-size: .85rem; }
+.il-field input, .il-field textarea, .il-gap input, .il-inline-gaps input { border: 1px solid var(--border, #d0d5dd); border-radius: 10px; padding: 9px 11px; font: inherit; }
+.il-options, .il-inline-gaps { border: 0; padding: 0; margin: 0; display: grid; gap: 8px; }
+.il-inline-gaps { display: block; line-height: 2.4; white-space: pre-wrap; }
+.il-inline-gaps input { width: 9em; margin: 0 4px; }
+.il-choice, .il-gap { display: flex; gap: 10px; align-items: center; }
+.il-gap span { min-width: 6em; }
+.il-answer pre, .il-expected pre { margin: 4px 0 0; white-space: pre-wrap; font: inherit; padding: 10px 12px; border-radius: 10px; background: #f8fafc; }
+.il-expected pre { background: #eff8ff; }
+.il-nav { display: flex; justify-content: space-between; gap: 8px; }
+.il-progress { margin-right: auto; color: var(--muted, #667085); font-size: .85rem; }
+.interactive-list { display: grid; gap: 8px; }
+.interactive-list button { display: flex; justify-content: space-between; align-items: center; gap: 12px; width: 100%; text-align: left; border: 1px solid var(--border, #e4e7ec); background: #fff; border-radius: 12px; padding: 12px 14px; cursor: pointer; }
+.interactive-list button span { display: grid; gap: 2px; }
+.interactive-list small { color: var(--muted, #667085); }
