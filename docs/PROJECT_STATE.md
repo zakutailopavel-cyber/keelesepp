@@ -1,5 +1,38 @@
 # KeeleSepp Project State
 
+## 2026-10-01 — access hotfix after PR #226 — branch `agent/revert-parent-study-terms`
+
+Owner reported that the parent study-terms release caused parent login errors and that approving a newly registered
+student surfaced a raw browser `Failed to fetch`. Verified current GitHub `main` = `36abfd6` (merge #226) and
+Vercel production deployment `dpl_AGUKe8X8SC1mHFX1GCpX7uximU6P` still serves that exact commit on
+`crm.epkoolitus.ee`; the attempted rollback had not changed GitHub main or the active production aliases when checked.
+
+Hotfix scope is intentionally narrow:
+- revert the full #226 parent-study-terms gate back to the pre-#226 tree `c76f69f`; no parent is blocked by a new
+  first-login condition and no `studyTermsAcceptedAt/studyTermsVersion` browser write is required;
+- keep registration/approval data unchanged;
+- allow the protected Firebase HTTP APIs to answer CORS requests from exact configured origins plus the KeeleSepp CRM
+  Vercel project aliases under `*-zakutailopavel-cybers-projects.vercel.app`; authentication and admin checks remain
+  mandatory, so CORS does not grant data access;
+- replace the raw account-approval `Failed to fetch` text with an actionable message pointing staff back to the
+  canonical `https://crm.epkoolitus.ee` address.
+
+Why the student symptom is separate from registration: `authService.register()` creates a pending Firebase account
+and profile without calling `staffOperationsApi`; the server fetch is skipped while approvalStatus is pending.
+The request to `staffOperationsApi/accounts/approval` happens when staff approves the account, and
+`accounts/bootstrap` runs only after approval. A browser-level `Failed to fetch` therefore points to network/CORS
+before a normal JSON 4xx/5xx response can be handled.
+
+Changed in this hotfix: CRM v2 auth/settings files are reverted to pre-#226 state; `firestore.rules` is reverted to
+the pre-#226 source; `functions/index.js` now uses the tested origin matcher; new
+`functions/cors-origin-core.js` + test; `accountApprovals.js` has the recovery message. No data migration and no
+production mutation performed by the agent. The CORS fix only becomes live when `staffOperationsApi` is explicitly
+deployed; Vercel deploy alone cannot update Firebase Functions.
+
+Next safe step: run CI on a draft PR. If green, owner manually merges; release must include Vercel CRM plus an explicit
+`staffOperationsApi` deploy for the CORS repair.
+
+
 ## 2026-10-01 — Worksheet Studio PDF coverage and author reliability — branch `agent/worksheet-studio-complete`
 
 Checked against fresh `origin/main` `a3e9f88`; no open PRs at start. Rendered and reviewed all local generated
