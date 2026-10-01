@@ -1,5 +1,40 @@
 # KeeleSepp Project State
 
+## 2026-10-01 — Worksheet draft regression repair — branch `agent/worksheet-draft-fix`
+
+Fresh main: `9fda4b9df487696b59cbe1847ab3ce08e1bed7c6` (2026-10-01). PR #227 was merged with the owner's explicit
+permission; GitHub confirmed merged=true. No open PRs before this task. Task 1 is isolated; draft PR follows.
+
+Completed: draft saves of legacy/published constructor documents without a published snapshot preserve the old
+`worksheetDoc`, version and update timestamp in `publishedWorksheetDoc*` in the same batch. Subsequent drafts do not
+replace that snapshot. Every constructor document is classified as Tööleht. Preview uses the published snapshot or
+labels a never-published draft Mustand. Assignment rejects never-published drafts with a typed publication error;
+the UI explains why and offers “Ava konstruktoris ja avalda” at `/library/worksheets/:id`.
+Listening without audio and placeholder worksheet titles are publication warnings. Content/tasks, task titles and
+checked answer keys still block publication. Already broken drafts are not automatically published or migrated.
+
+Files: `crm-v2/src/services/firebase/{worksheetDocs.js,worksheetDocs.test.js,library.js}`;
+`crm-v2/src/features/library/{libraryModel.js,LibraryPage.jsx,LibraryPage.test.jsx,MaterialPreview.jsx}`;
+`crm-v2/src/features/worksheet-studio/{quality.js,quality.test.js}`; `ARCHITECTURE.md`,
+`docs/WORKSHEET_STUDIO_PDF_COVERAGE.md`, this state file. Existing curriculumLessons published snapshot fields and
+worksheetVersions are reused; no collection, rule, migration, Function or production data changes.
+
+Executed checks: focused Vitest 5 files / 58 tests passed; full CRM Vitest 106 files / 522 tests passed;
+ESLint passed; production build passed (existing >600 kB chunk warning); git diff --check passed.
+Browser: actual Vite app with VITE_FIREBASE_EMULATORS=1, Auth/Firestore on demo-keelesepp, existing Firestore rules:
+- old worksheet v3 -> edit title -> Salvesta: still Tööleht; preview shows old title; assignment succeeds and stored
+  worksheetAssignments snapshot has the old content, while curriculumLessons holds the new draft;
+- new listening worksheet -> Salvesta: Tööleht, preview Mustand; assignment has the constructor/publish link and no
+  assign button; constructor Avalda is enabled despite absent audio;
+- follow that link -> Avalda -> assign: assignment stores new published v2;
+- pre-existing broken draft without published snapshot -> Avalda succeeds with listening audio absent;
+- constructor, library, draft preview and assignment dialog at 390x844: documentElement.scrollWidth=390;
+  no page errors reported by agent-browser. Screenshots saved locally in /tmp/worksheet-*.png.
+
+Limits: no production migration repairs historical drafts automatically; staff publishes them through the constructor.
+No deploy executed. No new PR merged. Unfinished implementation work: none for Task 1.
+Exactly one next safe step: owner reviews the Task 1 draft PR.
+
 ## 2026-10-01 — access hotfix after PR #226 — branch `agent/revert-parent-study-terms`
 
 Owner reported that the parent study-terms release caused parent login errors and that approving a newly registered

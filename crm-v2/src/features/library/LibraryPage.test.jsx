@@ -17,9 +17,9 @@ const data = {
   ],
 };
 
-function renderPage() {
+function renderPage(libraryData = data) {
   const repository = {
-    list: vi.fn().mockResolvedValue(data),
+    list: vi.fn().mockResolvedValue(libraryData),
     assign: vi.fn().mockResolvedValue({ count: 1 }),
     saveMaterial: vi.fn().mockResolvedValue({ id: 'material-1', title: 'Uus materjal', created: true }),
     saveExercise: vi.fn().mockResolvedValue({ id: 'exercise-new', title: 'Uus harjutus', created: true }),
@@ -34,6 +34,22 @@ function renderPage() {
 }
 
 describe('LibraryPage', () => {
+  it('shows a never-published worksheet as Tööleht, labels its preview Mustand and offers publishing from assignment', async () => {
+    const { repository } = renderPage({ curriculumLessons: [{ id: 'draft-1', title: 'Mustandi leht', worksheetDoc: sampleDocument(), worksheetDocStatus: 'draft' }], exercises: [] });
+    const row = await screen.findByRole('button', { name: /^Mustandi leht/ });
+    expect(screen.getAllByText('Tööleht').length).toBeGreaterThan(0);
+    fireEvent.click(row);
+    fireEvent.click(screen.getByRole('button', { name: 'Eelvaade' }));
+    const preview = screen.getByRole('dialog', { name: 'Eelvaade: Mustandi leht' });
+    expect(within(preview).getByText('Mustand')).toBeInTheDocument();
+    fireEvent.click(within(preview).getByRole('button', { name: 'Sulge' }));
+    fireEvent.click(screen.getByRole('button', { name: /^Mustandi leht/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Määra õpilastele' }));
+    expect(screen.getByRole('link', { name: 'Ava konstruktoris ja avalda' })).toHaveAttribute('href', '/library/worksheets/draft-1');
+    expect(screen.getByText(/sellel pole avaldatud versiooni/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Määra \d* õpilasele/ })).not.toBeInTheDocument();
+    expect(repository.assign).not.toHaveBeenCalled();
+  });
   it('shows every material at once as a table of contents with level and module filters', async () => {
     const { repository } = renderPage();
     expect(await screen.findByRole('button', { name: /^Pere tunnikava/ })).toBeInTheDocument();

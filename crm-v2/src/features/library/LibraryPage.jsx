@@ -25,6 +25,7 @@ import { legacyUrl } from '../../utils/legacyUrls.js';
 import { ROLES } from '../../utils/roles.js';
 import {
   buildLibraryItems,
+  isUnpublishedWorksheet,
   LIBRARY_TYPES,
   levelFacets,
   moduleFacets,
@@ -72,6 +73,7 @@ function AssignmentModal({ item, user, repository, studentRepository, groupRepos
   const [note, setNote] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const unpublished = isUnpublishedWorksheet(item.source);
   const teacherOnly = user.roles.includes(ROLES.TEACHER) && !user.roles.includes(ROLES.ADMIN);
   const state = useAsyncData(async () => {
     const [studentResult, groups] = await Promise.all([
@@ -117,11 +119,12 @@ function AssignmentModal({ item, user, repository, studentRepository, groupRepos
       open
       title={`Määra: ${item.title}`}
       onClose={onClose}
-      footer={<><Button variant="secondary" disabled={saving} onClick={onClose}>Tühista</Button><Button loading={saving} disabled={!selectedIds.length} onClick={assign}>Määra {selectedIds.length || ''} õpilasele</Button></>}
+      footer={<><Button variant="secondary" disabled={saving} onClick={onClose}>Tühista</Button>{unpublished ? <Link className="button button--primary" to={`/library/worksheets/${item.sourceId}`}>Ava konstruktoris ja avalda</Link> : <Button loading={saving} disabled={!selectedIds.length} onClick={assign}>Määra {selectedIds.length || ''} õpilasele</Button>}</>}
     >
       <div className="assignment-form">
         <p className="form-hint">{item.type === 'worksheet' ? 'Tööleht ilmub õpilase kabinetti ja tulemus salvestatakse õpetajale.' : 'Materjal lisatakse õpilase kodutööde hulka.'}</p>
         {error ? <div className="action-error" role="alert">{error}</div> : null}
+        {unpublished ? <p role="status">See tööleht on mustand ja sellel pole avaldatud versiooni. Avalda see konstruktoris enne õpilasele määramist.</p> : null}
         {state.loading ? <LoadingState label="Laen õpilasi…" /> : state.error ? <ErrorState message={state.error.message} onRetry={state.reload} /> : (
           <>
             <div className="assignment-list-head"><strong>Õpilased ({selectedIds.length} valitud)</strong><Button variant="secondary" onClick={selectVisible}>{visibleStudents.length && visibleStudents.every((student) => selectedIds.includes(student.id)) ? 'Tühista nähtavad' : 'Vali nähtavad'}</Button></div>

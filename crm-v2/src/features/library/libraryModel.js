@@ -21,13 +21,18 @@ export function publishedWorksheetDoc(record) {
   return record?.publishedWorksheetDoc?.blocks?.length ? record.publishedWorksheetDoc : record?.worksheetDoc;
 }
 
+export function isUnpublishedWorksheet(record) {
+  return Boolean(record?.worksheetDoc && record.worksheetDocStatus === 'draft' && !publishedWorksheetDoc(record));
+}
+
 function hasWorksheet(record) {
   const visualFields = (record?.files || []).flatMap((file) => file?.interactiveOverlay?.elements || [])
     .filter((element) => ['input', 'textarea', 'choice', 'checkbox'].includes(element?.type));
-  return Boolean(publishedWorksheetDoc(record)?.blocks?.length || record?.worksheetData?.blocks?.length || visualFields.length);
+  return Boolean(record?.worksheetDoc || publishedWorksheetDoc(record)?.blocks?.length || record?.worksheetData?.blocks?.length || visualFields.length);
 }
 
 export function curriculumType(record) {
+  if (record?.worksheetDoc) return 'worksheet';
   if (record?.examPart || record?.type === 'test') return 'test';
   if (hasWorksheet(record)) return 'worksheet';
   if (record?.type === 'hw') return 'homework';

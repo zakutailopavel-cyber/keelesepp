@@ -22,7 +22,12 @@ open work participates in answer progress and remains teacher-reviewed.
 - Every save appends an immutable `worksheetVersions` snapshot; old versions can be loaded and restored as a new one.
 - `draft` and `published` are separate. Assignments use the last published snapshot and a never-published draft is
   rejected by the service.
-- Publication runs a quality gate for meaningful title, content, tasks, instructions, answer keys and required media.
+- Saving a previously published worksheet (including legacy documents without lifecycle fields) preserves its
+  current document as the published snapshot in the same batch before replacing the editable draft.
+- Õppevara classifies every constructor document as Tööleht. Preview uses the published snapshot, or labels a
+  never-published draft Mustand; assignment offers a link back to the constructor to publish it.
+- Publication blocks missing content/tasks, empty task titles and missing checked answers. Sheet placeholder titles,
+  missing instructions/goals and missing listening audio are warnings; teachers may read listening text aloud.
 - The editor includes whole-sheet copy, palette search, JSON replacement confirmation and a manual page-break option.
 - Mobile authoring has bounded palette/inspector regions and a horizontally scrollable action bar.
 

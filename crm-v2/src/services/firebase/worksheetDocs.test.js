@@ -20,10 +20,14 @@ vi.mock('./client.js', () => ({ requireFirebaseClient: () => ({ db: 'firebase-db
 
 import { validateWorksheetDoc, worksheetDocsService } from './worksheetDocs.js';
 import { sampleDocument } from '../../features/worksheet-studio/engine/sample.js';
+import { libraryService } from './library.js';
+import { buildLibraryItems } from '../../features/library/libraryModel.js';
 
 const user = { uid: 'teacher-1', displayName: 'Õpetaja', roles: ['teacher'] };
 
 describe('worksheetDocsService', () => {
+  const students = [{ id: 'student-1', name: 'Mari' }];
+  const assignmentItem = (record) => buildLibraryItems([{ id: 'lesson-1', title: 'Leht', ...record }])[0];
   beforeEach(() => {
     vi.clearAllMocks();
     firestore.writeBatch.mockReturnValue(firestore.batch);
@@ -36,6 +40,52 @@ describe('worksheetDocsService', () => {
     const res = await worksheetDocsService.load('lesson-1');
     expect(res.source).toBe('worksheetDoc');
     expect(res.document).toEqual(stored);
+  });
+
+  it.each([undefined, 'published'])('keeps the previous published content assignable after saving an old worksheet (%s)', async (status) => {
+    const previous = sampleDocument();
+    const current = { worksheetDoc: previous, worksheetDocVersion: 3, worksheetDocUpdatedAt: 'old', ...(status ? { worksheetDocStatus: status } : {}) };
+    firestore.getDoc.mockResolvedValue({ exists: () => true, data: () => current });
+    const edited = sampleDocument();
+    edited.meta.title = 'Muudetud';
+    await worksheetDocsService.save({ lessonId: 'lesson-1', document: edited, user, baseUpdatedAt: 'old' });
+    const record = { ...current, ...firestore.batch.set.mock.calls[0][1] };
+    expect(record).toMatchObject({ worksheetDocStatus: 'draft', publishedWorksheetDoc: previous, publishedWorksheetDocVersion: 3, publishedWorksheetDocUpdatedAt: 'old' });
+    const item = assignmentItem(record);
+    expect(item.typeLabel).toBe('Tööleht');
+    expect(item.source.worksheetDoc).toEqual(previous);
+    firestore.batch.set.mockClear();
+    await libraryService.assign({ item, students, user });
+    expect(firestore.batch.set.mock.calls[0][1].worksheetDoc).toEqual(previous);
+  });
+
+  it('keeps a new draft visible but unassignable, then assigns its published version', async () => {
+    const document = sampleDocument();
+    await worksheetDocsService.save({ document, user });
+    const draft = firestore.batch.set.mock.calls[0][1];
+    expect(draft).not.toHaveProperty('publishedWorksheetDoc');
+    expect(assignmentItem(draft).typeLabel).toBe('Tööleht');
+    firestore.batch.set.mockClear();
+    await expect(libraryService.assign({ item: assignmentItem(draft), students, user })).rejects.toMatchObject({ code: 'worksheet/unpublished', constructorUrl: '/library/worksheets/lesson-1' });
+    expect(firestore.batch.set).not.toHaveBeenCalled();
+    firestore.getDoc.mockResolvedValue({ exists: () => true, data: () => draft });
+    document.meta.title = 'Avaldatud uus versioon';
+    await worksheetDocsService.save({ lessonId: 'lesson-1', document, user, status: 'published' });
+    const published = { ...draft, ...firestore.batch.set.mock.calls[0][1] };
+    expect(published.publishedWorksheetDoc.meta.title).toBe('Avaldatud uus versioon');
+    firestore.batch.set.mockClear();
+    await libraryService.assign({ item: assignmentItem(published), students, user });
+    expect(firestore.batch.set.mock.calls[0][1].worksheetDoc).toEqual(published.publishedWorksheetDoc);
+  });
+
+  it('does not publish an already broken draft or replace an existing published snapshot on save', async () => {
+    const document = sampleDocument();
+    for (const current of [{ worksheetDoc: document, worksheetDocStatus: 'draft' }, { worksheetDoc: document, worksheetDocStatus: 'published', publishedWorksheetDoc: document }]) {
+      firestore.batch.set.mockClear();
+      firestore.getDoc.mockResolvedValue({ exists: () => true, data: () => current });
+      await worksheetDocsService.save({ lessonId: 'lesson-1', document, user });
+      expect(firestore.batch.set.mock.calls[0][1]).not.toHaveProperty('publishedWorksheetDoc');
+    }
   });
 
   it('converts a legacy v1 worksheet without writing anything', async () => {

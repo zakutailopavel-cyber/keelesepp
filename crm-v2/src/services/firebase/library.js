@@ -1,6 +1,15 @@
 import { collection, doc, getDocs, writeBatch } from 'firebase/firestore';
 import { deleteObject, getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
 import { requireFirebaseClient } from './client.js';
+import { isUnpublishedWorksheet } from '../../features/library/libraryModel.js';
+
+export class WorksheetPublicationError extends Error {
+  constructor(id) {
+    super('See tööleht on mustand. Avalda tööleht konstruktoris, et seda õpilasele määrata.');
+    this.code = 'worksheet/unpublished';
+    this.constructorUrl = `/library/worksheets/${id}`;
+  }
+}
 
 const MAX_MATERIAL_FILE_SIZE = 19 * 1024 * 1024;
 const SAFE_MATERIAL_TYPE = /^(image\/|application\/pdf$|text\/|audio\/|video\/|application\/vnd\.|application\/msword$)/;
@@ -150,7 +159,7 @@ export const libraryService = {
   async assign({ item, students, dueDate = '', note = '', user }) {
     if (!students.length) throw new Error('Vali vähemalt üks õpilane.');
     if (students.length > 450) throw new Error('Ühe korraga saab materjali määrata kuni 450 õpilasele.');
-    if (item.source?.worksheetDocStatus === 'draft' && item.source?.worksheetDoc?.blocks?.length && !item.source?.publishedWorksheetDoc?.blocks?.length) throw new Error('Avalda tööleht enne õpilasele määramist.');
+    if (isUnpublishedWorksheet(item.source)) throw new WorksheetPublicationError(item.sourceId);
     const { db } = requireFirebaseClient();
     const batch = writeBatch(db);
     const now = new Date().toISOString();
@@ -159,7 +168,7 @@ export const libraryService = {
 
     // every assignment carries its own copy of the structured worksheet; keep one batch under Firestore's request limit
     const assignableDoc = item.source.worksheetDocStatus === 'draft' ? item.source.publishedWorksheetDoc : (item.source.publishedWorksheetDoc || item.source.worksheetDoc);
-    if (assignmentMode === 'worksheet' && item.source.worksheetDocStatus === 'draft' && !assignableDoc?.blocks?.length && !item.source.worksheetData?.blocks?.length) throw new Error('Avalda tööleht enne õpilasele määramist.');
+    if (assignmentMode === 'worksheet' && item.source.worksheetDocStatus === 'draft' && !assignableDoc?.blocks?.length && !item.source.worksheetData?.blocks?.length) throw new WorksheetPublicationError(item.sourceId);
     const docBytes = assignableDoc?.blocks?.length ? JSON.stringify(assignableDoc).length : 0;
     if (assignmentMode === 'worksheet' && docBytes * students.length > 9 * 1024 * 1024) {
       throw new Error(`Tööleht on suur: määra see korraga kuni ${Math.max(1, Math.floor((9 * 1024 * 1024) / docBytes))} õpilasele.`);
