@@ -1,5 +1,17 @@
 # KeeleSepp Project State
 
+## 2026-10-01 — Õppevara: visible "Muuda" on every row — PR (branch `agent/library-edit-button`)
+
+Checked against main `950a0d1` (2026-10-01; #219–#222 merged and released to `keelesepp-crm-v2` by the owner).
+Owner could not find how to edit a worksheet. Before: structured worksheets had only an "Ava" button, old image/PDF
+worksheets only "Vaata"; editing was hidden behind clicking the title. Now every row in `LibraryPage.jsx` has
+"Muuda": worksheets (structured, or `type: 'worksheet'` with only files, which the library lists as Tunnikava) open
+in the Töölehe konstruktor, exercises in the exercise editor, other materials in the material editor. "Vaata" stays
+for items without a structured worksheet. No data, type classification or assignment change.
+Checks: library tests 20/20 (2 new), `npx eslint src` clean; browser on local emulators: both worksheet kinds open in
+the builder from "Muuda", 1440/390 px without horizontal scroll. Next safe step: owner merges, then Vercel
+`keelesepp-crm-v2` release.
+
 ## 2026-10-01 — Team tasks (Ülesanded) and notification centre in CRM v2 — DRAFT PR, branch `agent/team-tasks`
 
 Checked against main `e014ea6` (2026-10-01). Goal: staff work with team tasks and see what needs attention in CRM v2,

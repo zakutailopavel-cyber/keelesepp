@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { vi } from 'vitest';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import LibraryPage from './LibraryPage.jsx';
@@ -170,6 +170,27 @@ describe('LibraryPage', () => {
     repository.saveMaterial.mockResolvedValueOnce({ id: 'lesson-1', title: 'Pere tunnikava', created: false });
     fireEvent.click(editor.getByRole('button', { name: 'Salvesta' }));
     expect(await screen.findByRole('status')).toHaveTextContent('„Pere tunnikava” salvestati.');
+  });
+
+  it('every row has a visible Muuda button: worksheets (also old image ones) open in the builder, other materials in the editor', async () => {
+    const repository = { list: vi.fn().mockResolvedValue(data) };
+    const user = { uid: 'teacher-1', displayName: 'Õpetaja', roles: ['teacher'] };
+    function Location() { const location = useLocation(); return <output data-testid="location">{location.pathname}</output>; }
+    render(<MemoryRouter initialEntries={['/library']}><AuthContext.Provider value={{ user }}><Routes><Route path="*" element={<><LibraryPage repository={repository} studentRepository={{ list: vi.fn() }} groupRepository={{ list: vi.fn() }} /><Location /></>} /></Routes></AuthContext.Provider></MemoryRouter>);
+    fireEvent.click(await screen.findByRole('button', { name: 'Muuda: Pere tunnikava' }));
+    expect(screen.getByRole('dialog', { name: 'Muuda: Pere tunnikava' })).toBeInTheDocument();
+    fireEvent.click(within(screen.getByRole('dialog', { name: 'Muuda: Pere tunnikava' })).getByRole('button', { name: 'Sulge' }));
+    expect(screen.getByRole('button', { name: 'Muuda: Family match' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Muuda: Pere tööleht' }));
+    expect(screen.getByTestId('location')).toHaveTextContent('/library/worksheets/worksheet-1');
+  });
+
+  it('an old image-only worksheet from CRM v1 also opens in the builder', async () => {
+    const repository = { list: vi.fn().mockResolvedValue({ curriculumLessons: [{ id: 'img-1', title: 'Toit pildil', type: 'worksheet', files: [{ name: 'toit.png', url: 'https://files.example/toit.png' }] }], exercises: [] }) };
+    function Location() { const location = useLocation(); return <output data-testid="location">{location.pathname}</output>; }
+    render(<MemoryRouter initialEntries={['/library']}><AuthContext.Provider value={{ user: { uid: 't', displayName: 'Õpetaja', roles: ['teacher'] } }}><Routes><Route path="*" element={<><LibraryPage repository={repository} studentRepository={{ list: vi.fn() }} groupRepository={{ list: vi.fn() }} /><Location /></>} /></Routes></AuthContext.Provider></MemoryRouter>);
+    fireEvent.click(await screen.findByRole('button', { name: 'Muuda: Toit pildil' }));
+    expect(screen.getByTestId('location')).toHaveTextContent('/library/worksheets/img-1');
   });
 
   it('opens an existing exercise in the correct editor', async () => {

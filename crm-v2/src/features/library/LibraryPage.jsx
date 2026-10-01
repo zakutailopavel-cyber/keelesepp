@@ -211,6 +211,12 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
     if (hasStudioDoc(item)) { navigate(`/library/worksheets/${encodeURIComponent(item.sourceId)}`); return; }
     setPreviewing(item);
   };
+  // Worksheets (structured or old image/PDF ones) are edited in the worksheet builder, other materials in the editor.
+  const edit = (item) => {
+    if (item.kind === 'exercise') { setExerciseEditing(item); return; }
+    if ((item.type === 'worksheet' || item.source?.type === 'worksheet' || hasStudioDoc(item)) && item.sourceId) { navigate(`/library/worksheets/${encodeURIComponent(item.sourceId)}`); return; }
+    setEditing(item);
+  };
   const shown = results.slice(0, limit);
   const sections = sort === 'toc' ? sectionsByModule(shown) : [{ key: 'all', label: '', results: shown }];
   const filtersOn = Boolean(q || level || module || type || onlyFav || onlyMine);
@@ -230,7 +236,8 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
         </button>
         <span className="lib2-meta">{item.fileCount ? <span title={`${item.fileCount} faili`}><Paperclip size={14} />{item.fileCount}</span> : null}{shortDate(item.updatedAt) ? <time dateTime={item.updatedAt}>{shortDate(item.updatedAt)}</time> : null}</span>
         <span className="lib2-actions">
-          <Button variant="secondary" onClick={() => open(item)}>{hasStudioDoc(item) ? <><FilePenLine size={15} /> Ava</> : <><Eye size={15} /> Vaata</>}</Button>
+          {hasStudioDoc(item) ? null : <Button variant="secondary" onClick={() => open(item)}><Eye size={15} /> Vaata</Button>}
+          <Button variant="secondary" aria-label={`Muuda: ${item.title}`} onClick={() => edit(item)}><FilePenLine size={15} /> Muuda</Button>
           <Button onClick={() => setAssigning(item)}><Send size={15} /> Määra</Button>
         </span>
       </li>
