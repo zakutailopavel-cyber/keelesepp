@@ -1,6 +1,19 @@
 # KeeleSepp Project State
 
-## 2026-09-30 — Public growth platform v1 — PR #215
+## 2026-10-01 — Release of #214, #215, #216 (main `adabd67`) — DEPLOYED
+
+The owner ran the release on his Mac from a clean worktree of `origin/main` (`~/keelesepp-release`), guided step by step:
+- Firebase (`keelesepp-5136b`): Firestore rules released; functions `gcalApi`, `syncAllCalendars`, `websiteLeadApi`
+  updated and `syncGroupToGoogleCalendar` created — "Deploy complete!".
+- Vercel: `keelesepp-crm-v2` → crm.epkoolitus.ee and `keelesepp` → www.epkoolitus.ee, both "Ready" and aliased.
+- Checked from outside: crm.epkoolitus.ee serves a new bundle; www.epkoolitus.ee/oppematerjalid/ is live; the live
+  tasemetest page contains both review fixes (`diagnosticId: attemptId`, language "Eesti keel"/"Inglise keel").
+Not yet done (owner): connect Google Calendar for one teacher in Seaded and check one individual and one group lesson
+in Google; send one real level-test result and see it in CRM "Päringud". Known: some FinancePage/StudentProfilePage
+tests fail on the 1st of the month on main too (suggested as a separate task), not a production issue.
+Exactly one next safe step: the owner's two live checks above.
+
+## 2026-09-30 — Public growth platform v1 — MERGED (#215, adabd67)
 
 **Review fixes (2026-09-30, before merge).** A browser run of `tasemetest.html` with the lead request intercepted
 (never sent to production) found that no level-test result could be delivered: (1) the submit handler read an undefined
