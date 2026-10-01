@@ -1,4 +1,4 @@
-import { CalendarClock, Check, History, Pencil, RotateCcw, Search, Trash2, UserRoundX, X, XCircle } from 'lucide-react';
+import { CalendarClock, Check, History, Pencil, RotateCcw, Search, Trash2, UserRoundX, Video, X, XCircle } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Badge, Button, EmptyState } from '../../components/ui/index.js';
 import { buildLibraryItems, searchLibrary, sortLibrary } from '../library/libraryModel.js';
@@ -54,7 +54,7 @@ function HomeworkPicker({ library, value, onChange }) {
  * Side panel for one lesson occurrence: last time, "Toimus" with topic (level → theme → lesson), note, homework,
  * absence, edit time and cancel. Groups show the attendance sheet instead (children).
  */
-export default function LessonPanel({ item, history = [], catalog, library, loadingLibrary = false, student, saving = false, error = '', today = '', onClose, onDone, onEdit, onCancelLesson, onDeleteLesson, onChangeMark, onRemoveMark, onCancelGroupLesson, children }) {
+export default function LessonPanel({ item, history = [], catalog, library, loadingLibrary = false, student, saving = false, error = '', today = '', onClose, onDone, onEdit, onCancelLesson, onDeleteLesson, onChangeMark, onRemoveMark, onCancelGroupLesson, onStartLive, liveBlocked = '', startingLive = false, children }) {
   const done = Boolean(item?.lessonRecordId || ['Toimunud', 'Puudus_eta', 'Puudus_p'].includes(item?.status));
   const suggestion = useMemo(() => (catalog && item && !item.isGroup ? suggestTopic(catalog, { studentLevel: student?.level || '', history }) : null), [catalog, history, item, student?.level]);
   const [picked, setPicked] = useState(null);
@@ -88,6 +88,13 @@ export default function LessonPanel({ item, history = [], catalog, library, load
       </header>
 
       {error ? <p className="form-error" role="alert">{error}</p> : null}
+
+      {onStartLive && !item.isGroup && !done && item.occurrenceDate === today ? (
+        <section className="lp-live" aria-label="Live Classroom">
+          <Button loading={startingLive} disabled={Boolean(liveBlocked) || saving} onClick={onStartLive}><Video size={17} /> Alusta tundi</Button>
+          <p className="lp-hint">{liveBlocked || `${item.studentName || 'Õpilane'} saab kutse oma kabinetti; tunniruum avaneb kohe.`}</p>
+        </section>
+      ) : null}
 
       {!item.isGroup ? (
         <section className="lp-last">

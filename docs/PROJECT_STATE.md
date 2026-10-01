@@ -16,6 +16,18 @@ Files: `crm-v2/src/services/firebase/interactiveAssignments.js` (+index), `crm-v
 Checks: homework vitest 26/26 (2 new), ESLint clean; browser on emulators **with the real functions emulator**: a
 lesson created and assigned through lessonDraftsApi/interactiveLessonApi; student answered, saved, sent; teacher saw
 answer + expected and sent feedback; student saw "Tubli, Mari!". Needs only a Vercel release of crm-v2.
+## 2026-10-01 — "Alusta tundi" from the calendar — PR (branch `claude/amazing-franklin-p2s1hh`)
+
+Owner chose items 1, 7, 8, 9 of the teacher-work list (item 6 "Minu tööpäev" is dropped for good; the rest waits).
+This is item 1. The calendar lesson panel shows "Alusta tundi" for an individual lesson on its day that is not yet
+marked: it creates a `liveLessonInvitations` invitation with the existing service (title "<subject> · <time>") and
+opens `/live-classroom?invitation=<id>`. A student card without a linked account shows the button disabled with
+"Õpilasel pole veel sisselogimiskontot…". No rule, data or function change.
+Files: `crm-v2/src/features/calendar/{CalendarPage.jsx,LessonPanel.jsx,calendarV2.css,CalendarPage.test.jsx}`.
+Checks: calendar vitest 44/44 (3 new), ESLint clean; browser on emulators: teacher clicks "Alusta tundi" → room opens
+("Ootab vastust"), student cabinet shows "Jelena kutsub sind tundi" → "Liitu tunniga" → teacher sees "Mari Maas võttis
+kutse vastu".
+Next: item 7 (finish issued v1 assignments in v2), then 8 (student board), 9 (team tasks + notifications), each its own PR.
 
 ## 2026-10-01 — Website header fix (www.epkoolitus.ee, ET and RU)
 

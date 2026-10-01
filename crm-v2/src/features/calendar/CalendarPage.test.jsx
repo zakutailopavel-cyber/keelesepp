@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { vi } from 'vitest';
 import CalendarPage from './CalendarPage.jsx';
 import { toIsoDate } from './calendarView.js';
@@ -33,11 +33,12 @@ function repositories({ events = [], records = [], groups = [] } = {}) {
     },
     studentRepository: {
       list: vi.fn().mockResolvedValue({ items: [
-        { id: 's1', name: 'Mari Maas', teacher: 'Pavel', teacherUid: 't1', level: 'B1' },
+        { id: 's1', name: 'Mari Maas', teacher: 'Pavel', teacherUid: 't1', level: 'B1', subject: 'Eesti keel', studentUid: 'mari-user' },
         { id: 's2', name: 'Jaan Tamm', teacher: 'Jelena', teacherUid: 't2' },
       ] }),
     },
     groupRepository: { list: vi.fn().mockResolvedValue(groups), setAttendance: vi.fn(), patchLesson: vi.fn().mockResolvedValue({}) },
+    liveRepository: { create: vi.fn().mockResolvedValue({ id: 'inv-1' }) },
     teacherRepository: { list: vi.fn().mockResolvedValue([{ id: 't1', name: 'Pavel' }, { id: 't2', name: 'Jelena' }]) },
     lessonRepository: {
       listForCalendar: vi.fn().mockResolvedValue(records),
@@ -51,8 +52,13 @@ function repositories({ events = [], records = [], groups = [] } = {}) {
 
 function renderCalendar(options) {
   const props = repositories(options);
-  render(<MemoryRouter><CalendarPage {...props} /></MemoryRouter>);
+  render(<MemoryRouter initialEntries={['/calendar']}><Routes><Route path="/calendar" element={<CalendarPage {...props} />} /><Route path="/live-classroom" element={<LiveLocation />} /></Routes></MemoryRouter>);
   return props;
+}
+
+function LiveLocation() {
+  const location = useLocation();
+  return <p>live room {location.search}</p>;
 }
 
 const summary = () => screen.getByText((_, element) => element?.classList?.contains('calendar-filter-summary'));
@@ -256,5 +262,36 @@ describe('calendar v2', () => {
     fireEvent.change(await screen.findByLabelText('Õpetaja'), { target: { value: 't2' } });
     fireEvent.click(screen.getByRole('button', { name: 'Salvesta tund' }));
     await waitFor(() => expect(props.scheduleRepository.create).toHaveBeenCalledWith(expect.objectContaining({ studentId: 's1', teacher: 'Jelena', teacherUid: 't2' })));
+  });
+
+  it('"Alusta tundi" invites the student and opens the live room for today\'s lesson', async () => {
+    const props = renderCalendar({ events: [lesson()] });
+    fireEvent.click(await screen.findByRole('button', { name: /10:00 Mari Maas/ }));
+    fireEvent.click(within(screen.getByRole('dialog', { name: 'Tund: Mari Maas' })).getByRole('button', { name: /Alusta tundi/ }));
+    await waitFor(() => expect(props.liveRepository.create).toHaveBeenCalledWith(
+      { student: expect.objectContaining({ id: 's1', studentUid: 'mari-user' }), title: 'Eesti keel · 10:00' },
+      expect.objectContaining({ uid: 'admin-1' }),
+    ));
+    expect(await screen.findByText('live room ?invitation=inv-1')).toBeInTheDocument();
+  });
+
+  it('explains why a student without an account cannot be invited', async () => {
+    const props = renderCalendar({ events: [lesson({ studentId: 's2', studentName: 'Jaan Tamm', teacherUid: 't2' })] });
+    fireEvent.click(await screen.findByRole('button', { name: /10:00 Jaan Tamm/ }));
+    const panel = screen.getByRole('dialog', { name: 'Tund: Jaan Tamm' });
+    expect(within(panel).getByRole('button', { name: /Alusta tundi/ })).toBeDisabled();
+    expect(within(panel).getByText(/pole veel sisselogimiskontot/)).toBeInTheDocument();
+    expect(props.liveRepository.create).not.toHaveBeenCalled();
+  });
+
+  it('offers "Alusta tundi" only on the lesson day', async () => {
+    const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+    const date = toIsoDate(tomorrow);
+    renderCalendar({ events: [lesson({ date, startDate: date })] });
+    await waitFor(() => expect(summary()).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: 'Päev' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Järgmine periood' }));
+    fireEvent.click(await screen.findByRole('button', { name: /10:00 Mari Maas/ }));
+    expect(within(screen.getByRole('dialog', { name: 'Tund: Mari Maas' })).queryByRole('button', { name: /Alusta tundi/ })).toBeNull();
   });
 });
