@@ -30,3 +30,4 @@ export { teachersService } from './teachers.js';
 export { workTimeService } from './workTime.js';
 export { accountApprovalsService } from './accountApprovals.js';
 export { googleCalendarService } from './googleCalendar.js';
+export { tasksService } from './tasks.js';

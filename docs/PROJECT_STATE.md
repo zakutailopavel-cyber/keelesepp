@@ -1,5 +1,34 @@
 # KeeleSepp Project State
 
+## 2026-10-01 — Team tasks (Ülesanded) and notification centre in CRM v2 — DRAFT PR, branch `agent/team-tasks`
+
+Checked against main `e014ea6` (2026-10-01). Goal: staff work with team tasks and see what needs attention in CRM v2,
+so v1 is not needed for it. Same `tasks` collection and field meanings as v1 (both CRMs show the same tasks); no rule,
+index, function or migration change (`tasks` is already read/write for staff).
+
+- `services/firebase/tasks.js`: live subscribe, create, update (status change sets/clears `doneAt/doneBy*` like v1),
+  reply (bounded to 30, `lastReply*`), markSeen (`lastReplySeenBy`, `openedByUids` via arrayUnion), remove. Every
+  change except markSeen writes an `activityLog` entry (`task.created/updated/done/reopened/reply/deleted`), as v1.
+- Additive optional fields: `assignedToUid` (hint; the name `assignedTo` stays authoritative), `openedByUids`.
+- `features/tasks/`: `taskModel.js` (v1 scope: admin sees all, teacher sees assigned/created; filters Avatud, Minu
+  ülesanded, Tähtaeg möödas, Minu loodud, Valmis, Kõik; Kiire first), `TasksPage.jsx` (`/tasks`, staff, menu
+  "Ülesanded"): quick add, board Uus/Töös/Valmis (Valmis shows the last 7 days under "Avatud") and list, search,
+  tick done, task window via `?task=id` with all fields, discussion, delete for admin/creator. `useTasks.js`, `tasks.css`.
+- Notification centre: bell in the top bar for admin/teacher/finance (`components/layout/NotificationCenter.jsx`,
+  `features/notifications/`). Items are derived, not stored: new task for me (last 14 days, not opened), new task
+  reply, overdue task (assignee; admin sees all), task due today, unread messages per conversation, homework awaiting
+  review, overdue invoices (admin/finance). Category tabs, refresh; each item opens its page.
+- Checks: `npx eslint src` clean; `npx vitest run` 104 files / 494 tests pass (8 new in `tasks.test.jsx`);
+  `npm run build` OK. Browser run on local emulators (`demo-keelesepp`, no production): teacher bell 3 items (overdue v1
+  task, new task, unread message) → task opens from bell, status Töös + reply saved in v1 format, bell drops to 2;
+  admin sees "Uus vastus" and creates a task for Elena → stored with v1 fields + activityLog; teacher bell shows it
+  live; 1440 and 390 px without horizontal scroll; no rule errors.
+- Limits: messages/homework/invoices in the bell refresh on page load and when the bell is opened (tasks are live);
+  no e-mail/push; no drag-and-drop between columns; v1 has no `openedByUids`, so opening a task in v1 does not clear
+  "Uus ülesanne sulle" in v2.
+- Release = merge + Vercel `keelesepp-crm-v2`; no functions/rules deploy.
+- Next safe step: owner reviews and merges the draft PR, then releases `keelesepp-crm-v2`.
+
 ## 2026-10-01 — Website header fix (www.epkoolitus.ee, ET and RU)
 
 Owner screenshot: the header was crooked — logo glued to "Kursused", the ET/RU switch cut off, "Logi sisse" on two

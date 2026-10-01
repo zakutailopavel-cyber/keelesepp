@@ -20,6 +20,7 @@ import ParentDashboardPage from '../features/parents/ParentDashboardPage.jsx';
 import StudentsPage from '../features/students/StudentsPage.jsx';
 import StudentProfilePage from '../features/students/StudentProfilePage.jsx';
 import StudentDashboardPage from '../features/students/StudentDashboardPage.jsx';
+import TasksPage from '../features/tasks/TasksPage.jsx';
 import TeachersPage from '../features/teachers/TeachersPage.jsx';
 import AccountsPage from '../features/accounts/AccountsPage.jsx';
 import LeadsPage from '../features/leads/LeadsPage.jsx';
@@ -44,6 +45,7 @@ export default function AppRoutes() {
             <Route path="students" element={<StudentsPage />} />
             <Route path="students/:studentId" element={<StudentProfilePage />} />
             <Route path="calendar" element={<CalendarPage />} />
+            <Route path="tasks" element={<TasksPage />} />
             <Route path="groups" element={<GroupsPage />} />
             <Route path="library" element={<LibraryPage />} />
             <Route path="library/worksheets/convert" element={<ConversionQueuePage />} />
