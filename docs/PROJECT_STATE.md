@@ -39,11 +39,11 @@ Next safe step: owner manually merges PR #227. Release must include the Vercel C
 change is not live.
 
 
-## 2026-10-01 — Approval SMTP response repair — branch `agent/approval-timeout`
+## 2026-10-01 — Approval SMTP response repair — DRAFT PR #229, branch `agent/approval-timeout`
 
 Checked fresh main `9fda4b9df487696b59cbe1847ab3ce08e1bed7c6` on 2026-10-01 (#227 merged with explicit owner
 permission). Open Task 1 draft PR #228 is separate; none of its implementation is included in this branch.
-Task 2 draft PR follows. No parent study-terms work is included.
+Task 2 draft PR #229: https://github.com/zakutailopavel-cyber/keelesepp/pull/229. No parent study-terms work is included.
 
 Completed: `deliverEmail` configures nodemailer connectionTimeout=10000, greetingTimeout=10000,
 socketTimeout=20000. `/accounts/approval` writes profile, performs bootstrap and writes audit before replying;
