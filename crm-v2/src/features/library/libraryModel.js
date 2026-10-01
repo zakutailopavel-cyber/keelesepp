@@ -16,10 +16,15 @@ const normalize = (value) => String(value || '')
   .replace(/[\u0300-\u036f]/g, '')
   .trim();
 
+export function publishedWorksheetDoc(record) {
+  if (record?.worksheetDocStatus === 'draft') return record?.publishedWorksheetDoc?.blocks?.length ? record.publishedWorksheetDoc : null;
+  return record?.publishedWorksheetDoc?.blocks?.length ? record.publishedWorksheetDoc : record?.worksheetDoc;
+}
+
 function hasWorksheet(record) {
   const visualFields = (record?.files || []).flatMap((file) => file?.interactiveOverlay?.elements || [])
     .filter((element) => ['input', 'textarea', 'choice', 'checkbox'].includes(element?.type));
-  return Boolean(record?.worksheetDoc?.blocks?.length || record?.worksheetData?.blocks?.length || visualFields.length);
+  return Boolean(publishedWorksheetDoc(record)?.blocks?.length || record?.worksheetData?.blocks?.length || visualFields.length);
 }
 
 export function curriculumType(record) {
@@ -31,6 +36,8 @@ export function curriculumType(record) {
 }
 
 function libraryItem(kind, source) {
+  const publicDoc = publishedWorksheetDoc(source);
+  if (publicDoc && publicDoc !== source.worksheetDoc) source = { ...source, worksheetDoc: publicDoc };
   const type = kind === 'exercise' ? 'exercise' : curriculumType(source);
   const description = source.description || source.builderObjectives || source.instruction || source.task || '';
   const item = {

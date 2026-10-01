@@ -1,5 +1,24 @@
 # KeeleSepp Project State
 
+## 2026-10-01 — Worksheet Studio PDF coverage and author reliability — branch `agent/worksheet-studio-complete`
+
+Checked against fresh `origin/main` `a3e9f88`; no open PRs at start. Rendered and reviewed all local generated
+worksheet PDFs (one-page and textbook `Minu päev`, plus the two-page `Kiri linnavalitsusele`). Worksheet Studio now
+has 32 structured blocks: the former 21 plus word forms, error correction, dictation, translation, word search,
+crossword, role cards, writing plan, phrase bank, guided long letter and rubric. A built-in formal-letter template
+recreates the PDF workflow as editable/interactive/print content.
+
+Author safety: browser autosave/recovery, conflict rejection for stale editors, immutable `worksheetVersions`,
+restore as a new version, draft/published lifecycle, publication quality gate, assignment from last published snapshot,
+whole-sheet copy, searchable palette, JSON replacement confirmation, manual page break and improved 390 px authoring.
+No migration, Function, rule, external API or production action. Existing `worksheetVersions` create-only staff rule
+is reused. Focused tests: 16 files / 98 tests passed; ESLint clean; production build passed. Browser harness: all 31
+palette entries visible, formal-letter template paginated to two pages, 9 interactive inputs enabled, and 390×844
+layout had no horizontal page overflow. Full suite: 511/515 passed; the four unrelated failures are the same current
+main timing issues in FinancePage (3) and StudentProfilePage (1), while all worksheet/library tests passed.
+
+Next safe step: review the branch diff and browser evidence, then open a draft PR; deployment remains owner-gated.
+
 ## 2026-10-01 — Õppevara: worksheet of a material visible and reachable — PR (branch `agent/library-worksheet-link`)
 
 Checked against main `0628691` (#223 merged and released). Owner: a worksheet made in the Töölehe konstruktor was not

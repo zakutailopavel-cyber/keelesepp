@@ -54,14 +54,22 @@ describe('worksheetDocsService', () => {
   });
 
   it('saves onto the existing lesson with merge and keeps v1 worksheetData untouched', async () => {
-    const res = await worksheetDocsService.save({ lessonId: 'lesson-1', document: sampleDocument(), user });
+    firestore.getDoc.mockResolvedValue({ exists: () => true, data: () => ({ worksheetDocVersion: 0, worksheetDocUpdatedAt: 'old' }) });
+    const res = await worksheetDocsService.save({ lessonId: 'lesson-1', document: sampleDocument(), user, baseUpdatedAt: 'old' });
     expect(res).toMatchObject({ id: 'lesson-1', created: false });
     const [ref, payload, options] = firestore.batch.set.mock.calls[0];
     expect(ref.path).toBe('curriculumLessons/lesson-1');
     expect(options).toEqual({ merge: true });
     expect(payload).toHaveProperty('worksheetDoc');
     expect(payload).not.toHaveProperty('worksheetData');
-    expect(firestore.batch.set.mock.calls[1][1]).toMatchObject({ type: 'worksheet_doc.updated', byUid: 'teacher-1' });
+    expect(firestore.batch.set.mock.calls[1][1]).toMatchObject({ lessonId: 'lesson-1', version: 1, status: 'draft' });
+    expect(firestore.batch.set.mock.calls[2][1]).toMatchObject({ type: 'worksheet_doc.updated', byUid: 'teacher-1' });
+  });
+
+  it('refuses to overwrite a worksheet changed in another editor', async () => {
+    firestore.getDoc.mockResolvedValue({ exists: () => true, data: () => ({ worksheetDocVersion: 3, worksheetDocUpdatedAt: 'newer' }) });
+    await expect(worksheetDocsService.save({ lessonId: 'lesson-1', document: sampleDocument(), user, baseUpdatedAt: 'older' })).rejects.toThrow(/teises aknas/);
+    expect(firestore.batch.commit).not.toHaveBeenCalled();
   });
 
   it('creates a new curriculum lesson for a new worksheet', async () => {

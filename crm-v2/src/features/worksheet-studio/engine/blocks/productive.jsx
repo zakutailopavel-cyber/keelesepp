@@ -87,6 +87,7 @@ const countWriting = (text, data) => {
 
 export const writing = {
   type: 'writing', label: 'Kirjuta (tekst)', group: 'Kõne ja kirjutamine', icon: 'PenLine', task: true, width: 'half', tone: 'cream',
+  answerKeys: () => ['text'],
   create: () => ({ title: 'Kirjuta.', instruction: 'Kirjuta lühike tekst (6–8 lauset).', lines: 7, minSent: 6, maxSent: 8, keywords: 'hommikul, päeval, õhtul, tavaliselt, enne, pärast', minKeywords: 5, img: null }),
   View: ({ data, ctx }) => {
     const text = ctx.get('text') || '';
