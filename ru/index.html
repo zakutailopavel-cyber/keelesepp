@@ -250,9 +250,16 @@ header{position:sticky;top:0;z-index:50;background:rgba(251,250,248,.92);backdro
 .nav-l .nav-subtle a:hover{color:var(--amber-d)}
 .nav-c{display:flex;gap:12px;align-items:center}
 .nav-l .nav-mob{display:none}
-@media(max-width:1080px){.nav-l.open .nav-mob{display:block}.nav-l .nav-mob a{font-weight:700;color:var(--pine)}}
+/* Header: wider than the content column; logo, menu items and buttons never shrink or wrap.
+   The full menu is shown only where it fits, below that the ☰ menu. */
+header .w.nav{max-width:1320px;gap:28px}
+.logo,.nav-c,.nav-c .btn,.lang-sw{flex-shrink:0;white-space:nowrap}
+.nav-l a{white-space:nowrap}
+@media(max-width:1400px){.nav-l{gap:20px}}
+@media(max-width:560px){header .w.nav{gap:10px;padding:0 16px}.nav-c .btn-p{padding:9px 12px}}
+@media(max-width:1240px){.nav-l.open .nav-mob{display:block}.nav-l .nav-mob a{font-weight:700;color:var(--pine)}}
 .nav-t{display:none;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--ink)}
-@media(max-width:1080px){.nav-l,.nav-c .btn-g{display:none}.nav-t{display:block}
+@media(max-width:1240px){.nav-l,.nav-c .btn-g{display:none}.nav-t{display:block}
   .nav-l.open{display:flex;flex-direction:column;position:absolute;top:72px;left:0;right:0;background:var(--paper);border-bottom:1px solid var(--line);padding:20px 24px;gap:16px;align-items:flex-start}}
 
 /* Hero */
