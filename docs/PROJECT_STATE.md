@@ -1,5 +1,56 @@
 # KeeleSepp Project State
 
+## 2026-10-02 — Release #219–#229 BLOCKED before deployment — branch `agent/release-notes-1002`
+
+Checked fresh `origin/main` = `240e09c833f2842e235dd2bf8ad73ad3640004de` on
+2026-10-02 Europe/Tallinn (2026-10-01 UTC). Working copy exactly matched this commit;
+`git merge-base --is-ancestor 240e09c HEAD` succeeded. No open PRs were returned at start.
+AGENTS.md, PROJECT_STATE.md and ARCHITECTURE.md were read. Owner authorized only CRM v2
+production deployment and `functions:staffOperationsApi` in project `keelesepp-5136b`.
+
+Pre-release checks executed on that exact commit:
+- CRM: `npm ci`, `npx eslint src`, `npx vitest run`, `npm run build` all exited 0.
+  107 test files / 534 tests passed; no unstable-test exemptions used. Build finished
+  with the existing >600 kB chunk warning.
+- Functions: `npm ci` and `node --test` exited 0; 212 tests passed, zero failures/skips.
+  Local Node is 24.19.0; npm warned that the Functions package requests Node 22.
+  Firebase runtime configuration remains nodejs22; no dependency/runtime edits made.
+
+Release stopped at 2026-10-01T21:12:04Z (2026-10-02 00:12:04 Europe/Tallinn):
+`npx vercel link --yes --project keelesepp-crm-v2` reported "No existing credentials
+found. Starting login flow...", followed by a package dist-tags fetch error and a
+device-authentication wait. The wait was cancelled (exit 130). No project link or
+deployment succeeded. A CLI discovery command `npx firebase --version` exited 1 with
+"could not determine executable to run"; this is not a Firebase deployment result.
+The owner's unexpected-error stop condition applies; no connector fallback was used.
+
+Vercel deploy: NOT RUN; no deployment time, URL or "Aliased https://crm.epkoolitus.ee"
+result. Firebase deploy: NOT RUN; no deployment time or success result. Production
+bundle markers, post-release OPTIONS and Functions logs were NOT checked because no
+release occurred. Earlier observations from another audit are not post-release evidence.
+
+Status reconciliation: #219–#229 are MERGED into the checked main (#226 was reverted
+by #227). This attempt does NOT establish RELEASED status for #227–#229 and must not
+mark them MERGED + RELEASED. Historical sections below are retained as dated evidence;
+their draft/next-step wording is superseded for merge status by this entry, but no new
+production-release claim is made. Earlier release claims for #219–#224 have not been
+revalidated in this attempt. Never restore the #226 study-terms gate.
+
+Changed file: only `docs/PROJECT_STATE.md`. No product code, rules, migrations,
+production database records or other accounts changed. No production deploy of any
+project/function, rules, Storage, or public website was run. Optional classification
+and date-test work was not started after the stop condition.
+
+Unfinished: both authorized deployments and all post-release read-only checks.
+Owner manual checks after a successful future release: parent login without the terms
+gate; approve a student and inspect the result/e-mail; save an existing published
+worksheet and confirm its published snapshot/assignment stays usable. Do not test
+these by changing another user's production account as an agent.
+
+PR status: documentation-only draft, no merge authorized.
+Exactly one next safe step: restore authenticated CLI access in the release environment
+and resume the explicitly authorized release from the same reviewed main commit.
+
 ## 2026-10-01 — Worksheet draft regression repair — DRAFT PR #228, branch `agent/worksheet-draft-fix`
 
 Fresh main: `9fda4b9df487696b59cbe1847ab3ce08e1bed7c6` (2026-10-01). PR #227 was merged with the owner's explicit
