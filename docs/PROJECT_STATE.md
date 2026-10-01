@@ -1,5 +1,14 @@
 # KeeleSepp Project State
 
+## 2026-10-01 — Website header fix (www.epkoolitus.ee, ET and RU)
+
+Owner screenshot: the header was crooked — logo glued to "Kursused", the ET/RU switch cut off, "Logi sisse" on two
+lines. Cause (older than #215, made worse by its new menu item "Õppematerjalid"): the header sat in the 1120 px content
+column and every item was allowed to shrink. Fix in `index.html` and `ru/index.html`: the header row is up to 1320 px
+wide with a 28 px gap, logo/buttons/language switch/menu items never shrink or wrap, menu gap 20 px below 1400 px, the
+☰ menu from 1240 px down (was 1080 px), tighter spacing below 560 px. Checked with Playwright at 360–1920 px in both
+languages: no overlap, no horizontal scroll. Needs a Vercel release of the `keelesepp` project.
+
 ## 2026-10-01 — Release of #214, #215, #216 (main `adabd67`) — DEPLOYED
 
 The owner ran the release on his Mac from a clean worktree of `origin/main` (`~/keelesepp-release`), guided step by step:
