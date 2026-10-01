@@ -25,10 +25,12 @@ Muudetud: `crm-v2/src/app/{AuthContext.jsx,ProtectedRoute.jsx}`,
 nende testid, `firestore.rules`. Andmemigratsiooni pole. Olemasolevatel lapsevanematel puuduvad uued väljad, seega
 pärast väljalaset küsitakse neilt kinnitust järgmisel sisselogimisel samuti.
 
-Kontrollid: kood ja testid on commititud, draft PR #226 avatud; GitHub CI/Vercel preview kontrollid on veel pooleli
-ja neid ei tohi enne tulemust roheliseks väita. Productioni, Firebase rules'i ega Verceli deploy'd pole tehtud.
-Järgmine ohutu samm: oodata #226 CI/preview tulemus ära, parandada võimalikud vead ja jätta merge + rules/Vercel release
-omaniku käsitsi kinnitada.
+Kontrollid koodi HEAD-il `29668d8`: CRM v2 testid 108 faili / 525 testi kõik rohelised; ESLint puhas;
+production build edukas. GitHub `security-regression` ja `financial-core` workflow'd rohelised ning Vercel preview
+READY, unresolved feedback 0. Build annab olemasoleva >600 kB chunk warningu, kuid build ise läbib. Productioni,
+Firebase rules'i ega Verceli production deploy'd pole tehtud. Käesolev PROJECT_STATE muudatus on dokumentatsiooni-only.
+Järgmine ohutu samm: owner vaatab PR #226 üle; pärast merge'i tuleb uued Firestore rules'id ja CRM v2 production
+väljalase teha ühe release'i osana, et õppetingimuste kinnituse write ei jääks vana reeglistiku taha.
 
 
 ## 2026-10-01 — Worksheet Studio PDF coverage and author reliability — branch `agent/worksheet-studio-complete`
