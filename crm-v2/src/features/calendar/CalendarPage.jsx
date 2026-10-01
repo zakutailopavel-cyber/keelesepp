@@ -1,10 +1,11 @@
 import { ChevronLeft, ChevronRight, Plus, Search, Undo2, X, XCircle } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, EmptyState, ErrorState, Input, LoadingState, Modal } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
-import { groupsService, lessonsService, libraryService, scheduleService, studentsService, teachersService } from '../../services/firebase/index.js';
+import { groupsService, lessonsService, libraryService, liveLessonInvitationsService, scheduleService, studentsService, teachersService } from '../../services/firebase/index.js';
+import { studentAccountUid } from '../live-classroom/invitationModel.js';
 import { hasScheduleConflict } from '../../services/firebase/schedule.js';
 import { ROLES } from '../../utils/roles.js';
 import { datesForView, filterCalendarEvents, groupCalendarEvents, occurrencesForDates, shiftDate, toIsoDate } from './calendarView.js';
@@ -91,9 +92,11 @@ function LessonButton({ item, compact = false, onClick, onComplete, completing }
 }
 
 
-export default function CalendarPage({ scheduleRepository = scheduleService, studentRepository = studentsService, groupRepository = groupsService, lessonRepository = lessonsService, libraryRepository = libraryService, googleCalendarRepository, teacherRepository = teachersService }) {
+export default function CalendarPage({ scheduleRepository = scheduleService, studentRepository = studentsService, groupRepository = groupsService, lessonRepository = lessonsService, libraryRepository = libraryService, googleCalendarRepository, teacherRepository = teachersService, liveRepository = liveLessonInvitationsService }) {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const [startingLive, setStartingLive] = useState(false);
   const narrow = useNarrow();
   const [anchor, setAnchor] = useState(toIsoDate());
   const [view, setView] = useState('week');
@@ -300,6 +303,20 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
       await state.reload();
     } catch (error) { setPanelError(error.message || 'Kustutamine ebaõnnestus.'); } finally { setPanelSaving(false); }
   };
+  // "Alusta tundi": invite the student to the Live Classroom and open the room for this lesson.
+  const startLive = async () => {
+    const item = panelItem;
+    const student = item ? studentMap.get(item.studentId) : null;
+    if (!item || !student) return;
+    setStartingLive(true); setPanelError('');
+    try {
+      const title = `${student.subject || 'Õppetund'} · ${item.time}`;
+      const invitation = await liveRepository.create({ student, title }, user);
+      navigate(`/live-classroom?invitation=${encodeURIComponent(invitation.id)}`);
+    } catch (error) {
+      setPanelError(error.message || 'Tundi ei saanud alustada.');
+    } finally { setStartingLive(false); }
+  };
   // A group lesson that does not take place on one date (holiday, teacher ill): the date is excluded from the series.
   const cancelGroupOccurrence = async () => {
     const item = panelItem;
@@ -423,6 +440,9 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
           onChangeMark={(status) => fixMark('change', status)}
           onRemoveMark={() => fixMark('remove')}
           onCancelGroupLesson={isAdmin && panelItem.isGroup ? cancelGroupOccurrence : undefined}
+          onStartLive={startLive}
+          startingLive={startingLive}
+          liveBlocked={panelItem.isGroup ? '' : !studentMap.get(panelItem.studentId) ? 'Õpilase kaarti ei leitud.' : studentAccountUid(studentMap.get(panelItem.studentId)) ? '' : 'Õpilasel pole veel sisselogimiskontot: seo konto õpilase kaardil, siis saab tunni alustada.'}
           today={today}
         >
           {panelItem.isGroup ? (

@@ -28,6 +28,56 @@ index, function or migration change (`tasks` is already read/write for staff).
   "Uus ülesanne sulle" in v2.
 - Release = merge + Vercel `keelesepp-crm-v2`; no functions/rules deploy.
 - Next safe step: owner reviews and merges the draft PR, then releases `keelesepp-crm-v2`.
+## 2026-10-01 — Student board outside the lesson (CRM v2 `/board`) — DRAFT PR, branch `agent/student-board`
+
+Checked against main `e014ea6` (2026-10-01). Goal: the student's own board (v1 "Tahvel") works in CRM v2 so v1 can be
+retired. Same data as v1, no new collections, no rule or schema change: `whiteboards/{studentId}/elements` and lesson
+pages `whiteboards/{studentId}/lessonPages/{pageId}/elements` (snapshot pages hidden). Everything drawn in v1 shows up
+in v2 and both stay in sync live.
+
+- `services/firebase/studentBoard.js`: live subscribe of elements/pages, add/update (v1 meta: `updatedAt`,
+  `updatedByUid`, `updatedByName`, `lastClientId`, `revision`), remove, teacher "Tühjenda" (keeps locked elements).
+- `features/board/`: `boardModel.js` (pure geometry: pan/zoom 20–300 %, fit, shapes, arrows), `StudentBoard.jsx`
+  (tools: select/move, pen, sticky note, text, rect, ellipse, arrow, eraser, hand; colours; zoom; page tabs "Tahvel" +
+  v1 lesson pages; renders v1 stroke/shape/note/text/image/pdf), `BoardPage.jsx`, `board.css`, `board.test.jsx` (7).
+- Routes: `/board` for student/parent (menu item "Tahvel", picks the card when there are several), `/board/:studentId`
+  for staff, opened with "Ava tahvel" on the student card. `ACCESS.BOARD` in `app/accessPolicy.js`.
+- Limits as in the rules: only staff can add image/pdf (v2 does not upload yet — use the Live Classroom or v1 for
+  that); locked elements cannot be erased or moved; strokes cannot be moved.
+- Checks: `npx eslint src` clean; `npx vitest run` 104 files / 493 tests pass; `npm run build` OK. Browser run on local
+  emulators (`demo-keelesepp`, no production): teacher opens the board from the card and sees v1 elements, student has
+  "Tahvel" in the menu, teacher's stroke appears live for the student and the student's note for the teacher, moving a
+  v1 note works, lesson page text shows, no rule errors; 1440 px and 390 px without horizontal scroll.
+- Not done: image/PDF upload from v2, undo. Release = merge + Vercel `keelesepp-crm-v2`; no functions/rules deploy.
+- Next safe step: owner reviews and merges the draft PR, then releases `keelesepp-crm-v2`.
+## 2026-10-01 — Finish CRM v1 interactive lessons in CRM v2 — PR (branch `agent/v1-assignments-in-v2`)
+
+Owner item 7 (issued v1 content must be finishable in v2). v1 exercises assigned as homework already open in v2
+(`ExercisePlayer`); what was missing were the v1 **interactive lessons** (`interactiveAssignments`, server-only, e.g.
+the A2 lesson with many activities), which only opened on www.epkoolitus.ee/interactive-lesson/ with a separate login.
+Now "Kodutööd" shows a card "Interaktiivsed tunnid" (students: all their v1 interactive lessons; teachers: the ones
+waiting for feedback). `InteractiveLessonPlayer` uses the existing `interactiveLessonApi` (list/get/save/submit/review)
+— same rules as v1: answers per activity (short/long text, single/multiple choice, gaps incl. inline "___"), local
+draft backup, required answers checked before "Saada õpetajale", revision conflict message; teachers see the student's
+answer next to the expected answer / teacher instruction and send feedback. Nothing new is assigned from v2; the card
+disappears when the old lessons are done. No server, rule or data change (the API already allows crm.epkoolitus.ee).
+Files: `crm-v2/src/services/firebase/interactiveAssignments.js` (+index), `crm-v2/src/features/homework/
+{InteractiveLessonPlayer.jsx,interactiveLessonModel.js,interactiveLesson.css,HomeworkPage.jsx,HomeworkPage.test.jsx}`.
+Checks: homework vitest 26/26 (2 new), ESLint clean; browser on emulators **with the real functions emulator**: a
+lesson created and assigned through lessonDraftsApi/interactiveLessonApi; student answered, saved, sent; teacher saw
+answer + expected and sent feedback; student saw "Tubli, Mari!". Needs only a Vercel release of crm-v2.
+## 2026-10-01 — "Alusta tundi" from the calendar — PR (branch `claude/amazing-franklin-p2s1hh`)
+
+Owner chose items 1, 7, 8, 9 of the teacher-work list (item 6 "Minu tööpäev" is dropped for good; the rest waits).
+This is item 1. The calendar lesson panel shows "Alusta tundi" for an individual lesson on its day that is not yet
+marked: it creates a `liveLessonInvitations` invitation with the existing service (title "<subject> · <time>") and
+opens `/live-classroom?invitation=<id>`. A student card without a linked account shows the button disabled with
+"Õpilasel pole veel sisselogimiskontot…". No rule, data or function change.
+Files: `crm-v2/src/features/calendar/{CalendarPage.jsx,LessonPanel.jsx,calendarV2.css,CalendarPage.test.jsx}`.
+Checks: calendar vitest 44/44 (3 new), ESLint clean; browser on emulators: teacher clicks "Alusta tundi" → room opens
+("Ootab vastust"), student cabinet shows "Jelena kutsub sind tundi" → "Liitu tunniga" → teacher sees "Mari Maas võttis
+kutse vastu".
+Next: item 7 (finish issued v1 assignments in v2), then 8 (student board), 9 (team tasks + notifications), each its own PR.
 
 ## 2026-10-01 — Website header fix (www.epkoolitus.ee, ET and RU)
 

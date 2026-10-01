@@ -1,0 +1,75 @@
+import { addDoc, collection, deleteDoc, doc, getDocs, onSnapshot, serverTimestamp, updateDoc, writeBatch } from 'firebase/firestore';
+import { requireFirebaseClient } from './client.js';
+
+// The student's own board outside lessons: the same data as the CRM v1 board (whiteboards/{studentId}/elements and
+// lesson pages whiteboards/{studentId}/lessonPages/{pageId}/elements), so everything drawn in v1 stays and both CRMs
+// see the same board. Element shapes and access are enforced by the existing Firestore rules.
+const makeClientId = () => globalThis.crypto?.randomUUID?.() || `sb-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+const authorName = (user = {}) => String(user.displayName || user.email || 'Kasutaja').trim().slice(0, 160);
+
+function elementsRef(db, studentId, pageId) {
+  return pageId
+    ? collection(db, 'whiteboards', studentId, 'lessonPages', pageId, 'elements')
+    : collection(db, 'whiteboards', studentId, 'elements');
+}
+
+function timeOf(value) {
+  return value?.toMillis?.() || Date.parse(value || '') || 0;
+}
+
+export const studentBoardService = {
+  subscribeElements(studentId, pageId, onChange, onError) {
+    const { db } = requireFirebaseClient();
+    return onSnapshot(elementsRef(db, studentId, pageId), (snapshot) => {
+      onChange(snapshot.docs.map((item) => ({ id: item.id, ...item.data() }))
+        .sort((a, b) => timeOf(a.updatedAt) - timeOf(b.updatedAt) || a.id.localeCompare(b.id)));
+    }, onError);
+  },
+  subscribePages(studentId, onChange, onError) {
+    const { db } = requireFirebaseClient();
+    return onSnapshot(collection(db, 'whiteboards', studentId, 'lessonPages'), (snapshot) => {
+      onChange(snapshot.docs.map((item) => ({ id: item.id, ...item.data() }))
+        .filter((page) => !page.isSnapshot)
+        .sort((a, b) => (a.order || 0) - (b.order || 0)));
+    }, onError);
+  },
+  async add(studentId, pageId, data, user) {
+    const { db } = requireFirebaseClient();
+    const reference = await addDoc(elementsRef(db, studentId, pageId), {
+      ...data,
+      updatedAt: serverTimestamp(),
+      updatedByUid: user.uid,
+      updatedByName: authorName(user),
+      lastClientId: makeClientId(),
+      revision: 1,
+    });
+    return reference.id;
+  },
+  async update(studentId, pageId, element, patch, user) {
+    const { db } = requireFirebaseClient();
+    await updateDoc(doc(elementsRef(db, studentId, pageId), element.id), {
+      ...patch,
+      updatedAt: serverTimestamp(),
+      updatedByUid: user.uid,
+      updatedByName: authorName(user),
+      lastClientId: makeClientId(),
+      revision: (Number(element.revision) || 0) + 1,
+    });
+  },
+  async remove(studentId, pageId, elementId) {
+    const { db } = requireFirebaseClient();
+    await deleteDoc(doc(elementsRef(db, studentId, pageId), elementId));
+  },
+  // Teacher's "Tühjenda": removes every unlocked element of the page (locked materials stay, as in v1).
+  async clear(studentId, pageId) {
+    const { db } = requireFirebaseClient();
+    const snapshot = await getDocs(elementsRef(db, studentId, pageId));
+    const removable = snapshot.docs.filter((item) => item.data().locked !== true);
+    for (let offset = 0; offset < removable.length; offset += 400) {
+      const batch = writeBatch(db);
+      removable.slice(offset, offset + 400).forEach((item) => batch.delete(item.ref));
+      await batch.commit();
+    }
+    return removable.length;
+  },
+};
