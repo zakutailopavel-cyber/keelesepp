@@ -11,6 +11,7 @@ export const ACCESS = Object.freeze({
   DASHBOARD: Object.freeze([ROLES.ADMIN, ROLES.TEACHER, ROLES.FINANCE]),
   HOMEWORK: Object.freeze([ROLES.ADMIN, ROLES.TEACHER, ROLES.STUDENT, ROLES.PARENT]),
   MESSAGES: Object.freeze([ROLES.ADMIN, ROLES.TEACHER, ROLES.STUDENT, ROLES.PARENT]),
+  BOARD: Object.freeze([ROLES.STUDENT, ROLES.PARENT]),
   LEADS: Object.freeze([ROLES.ADMIN, ROLES.TEACHER]),
 });
 
@@ -33,6 +34,8 @@ export const ROUTE_ACCESS = Object.freeze({
   '/settings': ACCESS.ALL_AUTHENTICATED,
   '/homework': ACCESS.HOMEWORK,
   '/messages': ACCESS.MESSAGES,
+  '/board': ACCESS.BOARD,
+  '/board/:studentId': ACCESS.STAFF,
   '/leads': ACCESS.LEADS,
   '/parent': ACCESS.PARENT,
   '/student': ACCESS.STUDENT,
