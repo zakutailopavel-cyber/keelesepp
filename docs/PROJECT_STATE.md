@@ -1,5 +1,21 @@
 # KeeleSepp Project State
 
+## 2026-10-01 — Finish CRM v1 interactive lessons in CRM v2 — PR (branch `agent/v1-assignments-in-v2`)
+
+Owner item 7 (issued v1 content must be finishable in v2). v1 exercises assigned as homework already open in v2
+(`ExercisePlayer`); what was missing were the v1 **interactive lessons** (`interactiveAssignments`, server-only, e.g.
+the A2 lesson with many activities), which only opened on www.epkoolitus.ee/interactive-lesson/ with a separate login.
+Now "Kodutööd" shows a card "Interaktiivsed tunnid" (students: all their v1 interactive lessons; teachers: the ones
+waiting for feedback). `InteractiveLessonPlayer` uses the existing `interactiveLessonApi` (list/get/save/submit/review)
+— same rules as v1: answers per activity (short/long text, single/multiple choice, gaps incl. inline "___"), local
+draft backup, required answers checked before "Saada õpetajale", revision conflict message; teachers see the student's
+answer next to the expected answer / teacher instruction and send feedback. Nothing new is assigned from v2; the card
+disappears when the old lessons are done. No server, rule or data change (the API already allows crm.epkoolitus.ee).
+Files: `crm-v2/src/services/firebase/interactiveAssignments.js` (+index), `crm-v2/src/features/homework/
+{InteractiveLessonPlayer.jsx,interactiveLessonModel.js,interactiveLesson.css,HomeworkPage.jsx,HomeworkPage.test.jsx}`.
+Checks: homework vitest 26/26 (2 new), ESLint clean; browser on emulators **with the real functions emulator**: a
+lesson created and assigned through lessonDraftsApi/interactiveLessonApi; student answered, saved, sent; teacher saw
+answer + expected and sent feedback; student saw "Tubli, Mari!". Needs only a Vercel release of crm-v2.
 ## 2026-10-01 — "Alusta tundi" from the calendar — PR (branch `claude/amazing-franklin-p2s1hh`)
 
 Owner chose items 1, 7, 8, 9 of the teacher-work list (item 6 "Minu tööpäev" is dropped for good; the rest waits).

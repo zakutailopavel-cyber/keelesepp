@@ -199,4 +199,59 @@ describe('HomeworkPage', () => {
     expect(screen.getByText('2 töölehte')).toBeInTheDocument();
     expect(screen.queryByText(/õpilast/)).toBeNull();
   });
+
+  it('a student finishes an interactive lesson from CRM v1 and sends it to the teacher', async () => {
+    const lesson = { title: 'A2 tund', activities: [
+      { id: 'a1', title: 'Tutvustus', prompt: 'Kirjuta oma nimi.', assets: [], response: { schemaVersion: 1, mode: 'short_text', required: true } },
+      { id: 'a2', title: 'Lüngad', prompt: 'Ma ___ Tallinnas.', assets: [], response: { schemaVersion: 1, mode: 'gaps', required: true, items: [{ id: 'g1', label: 'Lünk 1' }] } },
+      { id: 'a3', title: 'Vali', prompt: 'Mis päev on täna?', assets: [], response: { schemaVersion: 1, mode: 'single_choice', required: false, items: [{ id: 'c1', label: 'esmaspäev' }, { id: 'c2', label: 'teisipäev' }] } },
+    ] };
+    const record = { id: 'ia-1', title: 'A2 tund', status: 'active', revision: 3, answers: {}, currentActivityId: 'a1', route: 'core', lesson };
+    const interactiveRepository = {
+      list: vi.fn().mockResolvedValue([{ id: 'ia-1', title: 'A2 tund', status: 'active', studentName: 'Mari' }]),
+      get: vi.fn().mockResolvedValue(record),
+      save: vi.fn().mockImplementation(async (_record, answers, currentActivityId) => { interactiveRepository.get.mockResolvedValue({ ...record, answers, currentActivityId, revision: 4 }); return { revision: 4 }; }),
+      submit: vi.fn().mockResolvedValue({ revision: 5, status: 'submitted' }),
+    };
+    globalThis.confirm = vi.fn(() => true);
+    renderPage({ uid: 'student-user-1', displayName: 'Mari', roles: ['student'] }, { ...repositories([], [], []), interactiveRepository });
+
+    fireEvent.click(await screen.findByRole('button', { name: /A2 tund/ }));
+    const dialog = await screen.findByRole('dialog', { name: 'A2 tund' });
+    fireEvent.click(within(dialog).getByRole('button', { name: /Saada õpetajale/ }));
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent('Vasta enne saatmist: Tutvustus, Lüngad');
+    expect(interactiveRepository.submit).not.toHaveBeenCalled();
+
+    fireEvent.change(within(dialog).getByLabelText('Sinu vastus'), { target: { value: 'Mari' } });
+    fireEvent.click(within(dialog).getByRole('button', { name: /Järgmine/ }));
+    fireEvent.change(within(dialog).getByLabelText('Lünk 1'), { target: { value: 'elan' } });
+    fireEvent.click(within(dialog).getByRole('button', { name: /Järgmine/ }));
+    fireEvent.click(within(dialog).getByLabelText('teisipäev'));
+    fireEvent.click(within(dialog).getByRole('button', { name: /Salvesta/ }));
+    await waitFor(() => expect(interactiveRepository.save).toHaveBeenCalledWith(record, { a1: 'Mari', a2: { g1: 'elan' }, a3: 'c2' }, 'a3'));
+    fireEvent.click(within(dialog).getByRole('button', { name: /Saada õpetajale/ }));
+    await waitFor(() => expect(interactiveRepository.submit).toHaveBeenCalledWith(expect.objectContaining({ id: 'ia-1', revision: 4 }), { a1: 'Mari', a2: { g1: 'elan' }, a3: 'c2' }, 'a3'));
+  });
+
+  it('a teacher reads a submitted interactive lesson with the expected answer and sends feedback', async () => {
+    const lesson = { title: 'A2 tund', activities: [{ id: 'a1', title: 'Tutvustus', prompt: 'Kirjuta oma nimi.', assets: [], response: { schemaVersion: 1, mode: 'short_text', required: true } }] };
+    const record = { id: 'ia-2', title: 'A2 tund', status: 'submitted', revision: 5, studentName: 'Mari', answers: { a1: 'Mina olen Mari' }, currentActivityId: 'a1', route: 'core', lesson,
+      teacherContent: { activities: [{ id: 'a1', routes: { core: { expected: 'Mina olen …', teacherInstruction: 'Paranda suur algustäht.' } } }] } };
+    const interactiveRepository = {
+      list: vi.fn().mockResolvedValue([{ id: 'ia-2', title: 'A2 tund', status: 'submitted', studentName: 'Mari' }, { id: 'ia-3', title: 'Pooleli', status: 'active', studentName: 'Jaan' }]),
+      get: vi.fn().mockResolvedValue(record),
+      review: vi.fn().mockResolvedValue({ revision: 6, status: 'reviewed' }),
+    };
+    renderPage({ uid: 'teacher-1', displayName: 'Pavel', roles: ['teacher'] }, { ...repositories([], [], []), interactiveRepository });
+
+    expect(await screen.findByText('Interaktiivsed tunnid ootavad tagasisidet')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Pooleli/ })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: /A2 tund/ }));
+    const dialog = await screen.findByRole('dialog', { name: 'A2 tund' });
+    expect(within(dialog).getByText('Mina olen Mari')).toBeInTheDocument();
+    expect(within(dialog).getByText(/Paranda suur algustäht/)).toBeInTheDocument();
+    fireEvent.change(within(dialog).getByLabelText('Tagasiside õpilasele'), { target: { value: 'Tubli!' } });
+    fireEvent.click(within(dialog).getByRole('button', { name: /Saada tagasiside/ }));
+    await waitFor(() => expect(interactiveRepository.review).toHaveBeenCalledWith(record, 'Tubli!'));
+  });
 });
