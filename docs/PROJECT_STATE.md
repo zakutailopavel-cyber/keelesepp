@@ -39,6 +39,44 @@ Next safe step: owner manually merges PR #227. Release must include the Vercel C
 change is not live.
 
 
+## 2026-10-01 — Approval SMTP response repair — branch `agent/approval-timeout`
+
+Checked fresh main `9fda4b9df487696b59cbe1847ab3ce08e1bed7c6` on 2026-10-01 (#227 merged with explicit owner
+permission). Open Task 1 draft PR #228 is separate; none of its implementation is included in this branch.
+Task 2 draft PR follows. No parent study-terms work is included.
+
+Completed: `deliverEmail` configures nodemailer connectionTimeout=10000, greetingTimeout=10000,
+socketTimeout=20000. `/accounts/approval` writes profile, performs bootstrap and writes audit before replying;
+SMTP starts after the successful JSON response. SMTP errors are caught/logged and do not send a second response.
+The immediate response carries mailed=false (delivery unconfirmed), with additive mailPending=true when an attempt
+is planned; AccountsPage never claims mail was sent while pending. Existing emailQueue records retain delivery
+status/error. Already approved accounts and rejections do not send a repeated approval e-mail.
+On a fetch/body network failure the CRM uses getDocFromServer for users/{uid}; an explicit approved status recovers
+as a success notice: “Konto kinnitati, kuid vastust ei saadud. E-kiri võis jääda saatmata.” Missing, unreadable,
+pending/rejected or fieldless profiles retain the network error. HTTP API errors are not masked; no automatic retry
+or duplicate approval is sent. The new accounts list refreshes after recovery.
+
+Files: `functions/index.js`, `functions/account-approval-response.test.js`;
+`crm-v2/src/services/firebase/{accountApprovals.js,accountApprovals.test.js}`;
+`crm-v2/src/features/accounts/{AccountsPage.jsx,AccountsPage.test.jsx}`; `ARCHITECTURE.md`, this file.
+No rules, collections, profile-schema change or migration. The API adds mailPending and the client service adds
+responseLost for local reconciliation. Existing approvalStatus/linking/audit meanings are preserved.
+
+Executed checks: focused CRM 2 files / 16 tests passed; full CRM 107 files / 527 tests passed;
+Functions node --test 211/211 passed, including a stalled delivery with response-before-SMTP, CORS, failure logging,
+no duplicate mail, actual transporter options and persisted delivery failure. ESLint passed; build passed with existing
+chunk warning; git diff --check passed. Browser: actual CRM at 390x844 with VITE_FIREBASE_EMULATORS=1 and demo-keelesepp
+Auth/Firestore. A local test-only endpoint wrote approved to the emulator and deliberately dropped the HTTP response;
+real accountApprovals service reread the profile, AccountsPage showed the exact recovery notice, removed the pending
+row, and had scrollWidth=390. This is a network fault injection, not a real SMTP/production Functions smoke.
+
+Limits: post-response mail is best effort; Firebase can suspend execution after sending the HTTP response. No durable
+worker/retry infrastructure is added. The HTTP response cannot report a future mail outcome; mailed=false remains
+accurate at response time and mailPending avoids claiming delivery. Real production SMTP delivery was not exercised.
+No deploy and no production-data operations were performed. No new PR merged. Unfinished implementation: none.
+Required owner release after review/merge: `firebase deploy --only functions:staffOperationsApi`, plus CRM v2 release.
+Exactly one next safe step: owner reviews the Task 2 draft PR and the best-effort mail limitation.
+
 ## 2026-10-01 — Worksheet Studio PDF coverage and author reliability — branch `agent/worksheet-studio-complete`
 
 Checked against fresh `origin/main` `a3e9f88`; no open PRs at start. Rendered and reviewed all local generated

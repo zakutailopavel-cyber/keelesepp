@@ -270,6 +270,14 @@ it through the Normalized Activity Contract. A future A4 canvas stores presentat
 the same immutable activity IDs and produces teacher, student and print projections rather than a separate
 lesson schema. See `docs/UNIFIED_VISUAL_WORKSPACE.md`.
 
+Account approval in `staffOperationsApi` commits the profile, bootstraps linked
+student cards and writes the audit record before answering; its approval e-mail is attempted after the response.
+`mailed: false` means delivery is unconfirmed at response time, and `mailPending` indicates an attempt is planned.
+Delivery failures are logged and stored by the existing emailQueue delivery path. Sending after an HTTP response is
+best effort on Firebase; guaranteed delivery/retries require a separately approved durable worker.
+SMTP connection/greeting/socket timeouts are 10/10/20 seconds. On a lost approval response, CRM v2 rereads the
+authoritative user profile and reports success with an e-mail warning only when approvalStatus is explicitly approved.
+
 `functions/staff-operations-core.js` owns deterministic work-duration, hourly-rate, payroll and
 operational-alert calculations. `staffOperationsApi` is the only writer for work sessions:
 one server-side pointer per staff member prevents concurrent open shifts, while every transition

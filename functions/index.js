@@ -4770,6 +4770,9 @@ async function deliverEmail(message, context = {}) {
         host: smtpHost,
         port: smtpPort,
         secure: smtpSecure,
+        connectionTimeout: 10000,
+        greetingTimeout: 10000,
+        socketTimeout: 20000,
         auth: { user: smtpUser, pass: smtpPass },
       });
       const info = await transporter.sendMail({
@@ -7373,7 +7376,7 @@ exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"] }).https
       await profileRef.update(update);
       const profile = { ...profileSnap.data(), ...update };
       let linked = null;
-      let mailed = false;
+      let sendApprovalEmail = false;
       if (update.approvalStatus === "approved") {
         let authUser = null;
         try { authUser = await admin.auth().getUser(targetUid); } catch (error) { authUser = null; }
@@ -7384,14 +7387,19 @@ exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"] }).https
           });
         }
         if (profile.email && profileSnap.data().approvalStatus !== "approved") {
-          try { await deliverEmail(composeApprovedEmail(profile), { kind: "account-approved", uid: targetUid }); mailed = true; }
-          catch (mailError) { console.error("approval e-mail failed", targetUid, mailError); }
+          sendApprovalEmail = true;
         }
       }
       await db.collection("activityLog").add({
         action: `account_${update.approvalStatus}`, targetUid, actor: actorSnapshot(actor), createdAt: FieldValue.serverTimestamp(),
       });
-      res.json({ uid: targetUid, approvalStatus: update.approvalStatus, linkedStudentIds: linked?.linkedStudentIds || [], createdStudentIds: linked?.createdStudentIds || [], mailed });
+      // Commit the decision and bootstrap before replying. SMTP must never delay that response.
+      // mailed=false means delivery is not confirmed at response time, not that approval failed.
+      res.json({ uid: targetUid, approvalStatus: update.approvalStatus, linkedStudentIds: linked?.linkedStudentIds || [], createdStudentIds: linked?.createdStudentIds || [], mailed: false, mailPending: sendApprovalEmail });
+      if (sendApprovalEmail) {
+        try { await deliverEmail(composeApprovedEmail(profile), { kind: "account-approved", uid: targetUid }); }
+        catch (mailError) { console.error("approval e-mail failed", targetUid, mailError); }
+      }
       return;
     }
     if (req.path === "/accounts/bootstrap-admin") {

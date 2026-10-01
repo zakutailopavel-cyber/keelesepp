@@ -3,16 +3,19 @@ import { Check, UserRoundCheck, UserRoundX, X } from 'lucide-react';
 import { Badge, Button, Card, EmptyState, ErrorState, LoadingState, PageHeader } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { accountApprovalsService } from '../../services/firebase/index.js';
+import { APPROVAL_RESPONSE_LOST_MESSAGE } from '../../services/firebase/accountApprovals.js';
 import './accounts.css';
 
 const ROLE = { parent: 'Lapsevanem', student: 'Õpilane' };
 const TABS = [['pending', 'Ootel'], ['rejected', 'Keeldutud']];
 
 function linkedText(result) {
+  if (result.responseLost) return APPROVAL_RESPONSE_LOST_MESSAGE;
   const linked = (result.linkedStudentIds?.length || 0) + (result.createdStudentIds?.length || 0);
   const parts = ['Konto kinnitatud.'];
   parts.push(linked ? `Seotud õpilase kaarte: ${linked}.` : 'Õpilase kaarti automaatselt ei leitud — seo see vajadusel õpilase kaardil.');
   if (result.mailed) parts.push('Inimesele saadeti e-kiri.');
+  else if (result.mailPending) parts.push('E-kirja saatmine ei ole veel kinnitatud.');
   return parts.join(' ');
 }
 
