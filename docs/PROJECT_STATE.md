@@ -1,9 +1,9 @@
 # KeeleSepp Project State
 
-## 2026-10-01 — Worksheet draft regression repair — branch `agent/worksheet-draft-fix`
+## 2026-10-01 — Worksheet draft regression repair — DRAFT PR #228, branch `agent/worksheet-draft-fix`
 
 Fresh main: `9fda4b9df487696b59cbe1847ab3ce08e1bed7c6` (2026-10-01). PR #227 was merged with the owner's explicit
-permission; GitHub confirmed merged=true. No open PRs before this task. Task 1 is isolated; draft PR follows.
+permission; GitHub confirmed merged=true. No open PRs before this task. Task 1 is isolated in draft PR #228: https://github.com/zakutailopavel-cyber/keelesepp/pull/228.
 
 Completed: draft saves of legacy/published constructor documents without a published snapshot preserve the old
 `worksheetDoc`, version and update timestamp in `publishedWorksheetDoc*` in the same batch. Subsequent drafts do not
