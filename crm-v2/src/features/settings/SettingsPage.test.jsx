@@ -42,7 +42,7 @@ describe('SettingsPage', () => {
     };
     render(<AuthContext.Provider value={{ user: parent, configured: true }}><SettingsPage /></AuthContext.Provider>);
     expect(screen.getByRole('heading', { name: 'Õppetingimused' })).toBeInTheDocument();
-    expect(screen.getByText('Kinnitatud')).toBeInTheDocument();
+    expect(screen.getByText('Kinnitatud', { selector: '.badge' })).toBeInTheDocument();
     expect(screen.getByText(/Versioon/)).toHaveTextContent('2026-10-01');
   });
 
