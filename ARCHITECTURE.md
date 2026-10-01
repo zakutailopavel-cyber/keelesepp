@@ -271,10 +271,11 @@ the same immutable activity IDs and produces teacher, student and print projecti
 lesson schema. See `docs/UNIFIED_VISUAL_WORKSPACE.md`.
 
 Account approval in `staffOperationsApi` commits the profile, bootstraps linked
-student cards and writes the audit record before answering; its approval e-mail is attempted after the response.
-`mailed: false` means delivery is unconfirmed at response time, and `mailPending` indicates an attempt is planned.
-Delivery failures are logged and stored by the existing emailQueue delivery path. Sending after an HTTP response is
-best effort on Firebase; guaranteed delivery/retries require a separately approved durable worker.
+student cards and writes the audit record, then sends the approval e-mail before answering (work after an HTTP
+response is not guaranteed on Cloud Functions). The e-mail is capped at 30 s (`APPROVAL_MAIL_LIMIT_MS`) and the
+function timeout is 120 s, so a slow SMTP server can no longer break the response. `mailed: false` means the e-mail
+was not confirmed (failed or timed out), never that the approval failed; `mailPending` stays `false` (kept for
+compatibility). Delivery failures are logged and stored by the existing emailQueue delivery path.
 SMTP connection/greeting/socket timeouts are 10/10/20 seconds. On a lost approval response, CRM v2 rereads the
 authoritative user profile and reports success with an e-mail warning only when approvalStatus is explicitly approved.
 

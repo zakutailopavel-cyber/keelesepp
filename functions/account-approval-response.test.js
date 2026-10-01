@@ -33,28 +33,35 @@ function approvalHarness(t, { status = 'pending', decision = 'approve', mail } =
   return { response: response.promise, completion, events, res };
 }
 
-test('approval response precedes a stalled SMTP delivery and includes CORS', { timeout: 2000 }, async t => {
-  const smtp = deferred();
-  const h = approvalHarness(t, { mail: () => smtp.promise });
+test('a stalled SMTP server cannot hold the approval: reply after the mail limit with mailed=false and CORS', { timeout: 2000 }, async t => {
+  const restoreLimit = api.__set__('APPROVAL_MAIL_LIMIT_MS', 50);
+  t.after(restoreLimit);
+  const h = approvalHarness(t, { mail: () => new Promise(() => {}) });
   const result = await h.response;
-  assert.deepEqual(h.events, ['profile', 'bootstrap', 'audit', 'response', 'mail']);
+  await h.completion;
+  assert.deepEqual(h.events, ['profile', 'bootstrap', 'audit', 'mail', 'mail-error', 'response']);
   assert.equal(result.approvalStatus, 'approved');
   assert.deepEqual(result.linkedStudentIds, ['card-1']);
   assert.equal(result.mailed, false);
-  assert.equal(result.mailPending, true);
+  assert.equal(result.mailPending, false);
   assert.equal(h.res.headers['Access-Control-Allow-Origin'], 'https://crm.epkoolitus.ee');
-  smtp.resolve({ status: 'sent' });
-  await h.completion;
-  assert.equal(h.events.filter(e => e === 'response').length, 1);
 });
 
-test('SMTP failure is logged after the successful approval response, without a second response', async t => {
+test('the approval e-mail is sent before the response (work after the response is not guaranteed)', async t => {
+  const h = approvalHarness(t);
+  const result = await h.response;
+  await h.completion;
+  assert.deepEqual(h.events, ['profile', 'bootstrap', 'audit', 'mail', 'response']);
+  assert.equal(result.mailed, true);
+});
+
+test('SMTP failure is logged and the approval still answers once, with mailed=false', async t => {
   const h = approvalHarness(t, { mail: async () => { throw new Error('SMTP timeout'); } });
   const result = await h.response;
   await h.completion;
   assert.equal(result.mailed, false);
   assert.equal(result.approvalStatus, 'approved');
-  assert.ok(h.events.includes('mail-error'));
+  assert.deepEqual(h.events.slice(-2), ['mail-error', 'response']);
   assert.equal(h.events.filter(e => e === 'response').length, 1);
 });
 

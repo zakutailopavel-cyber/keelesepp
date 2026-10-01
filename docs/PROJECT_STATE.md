@@ -41,6 +41,15 @@ change is not live.
 
 ## 2026-10-01 — Approval SMTP response repair — DRAFT PR #229, branch `agent/approval-timeout`
 
+**Correction 2026-10-02 (owner asked Claude to finish it):** sending the e-mail after `res.json` was replaced. On
+Cloud Functions an instance may be stopped right after the response, so the approval e-mail could be silently lost.
+Now the e-mail is sent before the response, bounded by `APPROVAL_MAIL_LIMIT_MS` = 30 s (`Promise.race`; timeout or
+error → `console.error`, `mailed:false`), and `staffOperationsApi` runs with `timeoutSeconds: 120`. `mailed:true` only
+when delivery finished; `mailPending` is always `false`. Tests rewritten: stalled SMTP → response after the limit with
+mailed=false and CORS; normal → order profile, bootstrap, audit, mail, response; failure → logged, one response.
+Checks: Functions `node --test` 212/212; CRM accounts 16/16. The paragraphs below describe the earlier draft
+("SMTP starts after the response", "post-response mail is best effort") and are superseded by this correction.
+
 Checked fresh main `9fda4b9df487696b59cbe1847ab3ce08e1bed7c6` on 2026-10-01 (#227 merged with explicit owner
 permission). Open Task 1 draft PR #228 is separate; none of its implementation is included in this branch.
 Task 2 draft PR #229: https://github.com/zakutailopavel-cyber/keelesepp/pull/229. No parent study-terms work is included.
