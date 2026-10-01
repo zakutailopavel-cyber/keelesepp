@@ -33,11 +33,16 @@ export const accountApprovalsService = {
     if (!auth.currentUser) throw new Error('Aktiivne kasutajaseanss puudub. Logi uuesti sisse.');
     const token = await auth.currentUser.getIdToken();
     const baseUrl = String(import.meta.env.VITE_STAFF_OPERATIONS_API_URL || defaultStaffOperationsUrl).replace(/\/$/, '');
-    const response = await globalThis.fetch(`${baseUrl}/accounts/approval`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ uid, decision, reason }),
-    });
+    let response;
+    try {
+      response = await globalThis.fetch(`${baseUrl}/accounts/approval`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid, decision, reason }),
+      });
+    } catch (error) {
+      throw new Error('Konto kinnitamise serveriga ei õnnestunud ühendust saada. Ava CRM aadressil https://crm.epkoolitus.ee ja proovi uuesti.');
+    }
     const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data.error || 'Otsust ei õnnestunud salvestada.');
     return data;
