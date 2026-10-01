@@ -1,0 +1,170 @@
+.study-terms-gate {
+  min-height: 100vh;
+  padding: 32px 18px;
+  display: grid;
+  place-items: center;
+  background: var(--surface-subtle, #f6f7f5);
+}
+
+.study-terms-gate__card {
+  width: min(860px, 100%);
+  max-height: calc(100vh - 64px);
+  overflow: auto;
+  padding: 28px;
+}
+
+.study-terms-gate__heading {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.study-terms-gate__heading h1 {
+  margin: 4px 0 8px;
+}
+
+.study-terms-gate__heading p,
+.study-terms-section p,
+.study-terms-note {
+  color: var(--text-secondary, #52616f);
+}
+
+.study-terms-gate__icon {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: rgba(32, 128, 97, .1);
+  color: #207f61;
+}
+
+.study-terms-version {
+  display: inline-flex;
+  margin-bottom: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(32, 128, 97, .08);
+  font-size: .82rem;
+  font-weight: 700;
+}
+
+.study-terms-section {
+  padding: 16px 0;
+  border-top: 1px solid rgba(28, 43, 58, .11);
+}
+
+.study-terms-section h2 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+}
+
+.study-terms-section p {
+  margin: 7px 0 0;
+  line-height: 1.58;
+}
+
+.study-terms-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(28, 43, 58, .11);
+}
+
+.study-terms-links a {
+  font-weight: 700;
+}
+
+.study-terms-confirm {
+  display: flex;
+  gap: 11px;
+  align-items: flex-start;
+  margin-top: 22px;
+  padding: 16px;
+  border: 1px solid rgba(32, 128, 97, .22);
+  border-radius: 14px;
+  background: rgba(32, 128, 97, .055);
+  font-weight: 650;
+}
+
+.study-terms-confirm input {
+  margin-top: 3px;
+  width: 18px;
+  height: 18px;
+}
+
+.study-terms-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.study-terms-error {
+  margin: 12px 0 0;
+  color: #b42318;
+  font-weight: 650;
+}
+
+.study-terms-note {
+  margin: 14px 0 0;
+  font-size: .88rem;
+}
+
+.study-terms-settings-card__title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.study-terms-settings-card__title h2 {
+  margin-bottom: 0;
+}
+
+.study-terms-meta {
+  display: grid;
+  gap: 5px;
+  margin: 12px 0 16px;
+  font-size: .86rem;
+  color: var(--text-secondary, #52616f);
+}
+
+.study-terms-content--compact {
+  margin-top: 18px;
+}
+
+.study-terms-content--compact .study-terms-section {
+  padding: 13px 0;
+}
+
+@media (max-width: 650px) {
+  .study-terms-gate {
+    padding: 0;
+    place-items: stretch;
+  }
+
+  .study-terms-gate__card {
+    max-height: none;
+    min-height: 100vh;
+    border-radius: 0;
+    padding: 22px 18px 28px;
+  }
+
+  .study-terms-gate__heading {
+    gap: 12px;
+  }
+
+  .study-terms-gate__icon {
+    width: 42px;
+    height: 42px;
+    flex-basis: 42px;
+  }
+
+  .study-terms-actions {
+    display: grid;
+  }
+}

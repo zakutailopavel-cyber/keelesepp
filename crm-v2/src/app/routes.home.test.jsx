@@ -13,7 +13,15 @@ vi.mock('../features/parents/ParentDashboardPage.jsx', () => ({ default: () => <
 function Where() { const l = useLocation(); return <output data-testid="path">{l.pathname}</output>; }
 
 function renderAt(roles) {
-  const user = { uid: 'u1', displayName: 'Mari', email: 'mari@example.com', roles };
+  const user = {
+    uid: 'u1',
+    displayName: 'Mari',
+    email: 'mari@example.com',
+    roles,
+    profile: roles.includes('parent')
+      ? { studyTermsAcceptedAt: '2026-10-01T18:00:00.000Z', studyTermsVersion: '2026-10-01' }
+      : {},
+  };
   return render(
     <MemoryRouter initialEntries={['/']}>
       <AuthContext.Provider value={{ user, loading: false, configured: true }}>

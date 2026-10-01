@@ -768,9 +768,19 @@ service cloud.firestore {
         'parentReviewKey',
         'termsAcceptedAt',
         'termsVersion',
+        'studyTermsAcceptedAt',
+        'studyTermsVersion',
         'pet'
       ])
         && validTermsAcceptance(request.resource.data)
+        && validStudyTermsAcceptance(request.resource.data)
+        && (
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+            'studyTermsAcceptedAt',
+            'studyTermsVersion'
+          ])
+          || resource.data.get('role', '') == 'parent'
+        )
         && validPet(request.resource.data);
     }
 
@@ -804,6 +814,20 @@ service cloud.firestore {
           || (
             data.termsVersion is string
             && data.termsVersion.matches('^\\d{4}-\\d{2}-\\d{2}$')
+          )
+        );
+    }
+
+    function validStudyTermsAcceptance(data) {
+      return (('studyTermsAcceptedAt' in data) == ('studyTermsVersion' in data))
+        && (
+          !('studyTermsAcceptedAt' in data)
+          || (
+            data.studyTermsAcceptedAt is string
+            && data.studyTermsAcceptedAt.size() >= 10
+            && data.studyTermsAcceptedAt.size() <= 40
+            && data.studyTermsVersion is string
+            && data.studyTermsVersion.matches('^\\d{4}-\\d{2}-\\d{2}$')
           )
         );
     }

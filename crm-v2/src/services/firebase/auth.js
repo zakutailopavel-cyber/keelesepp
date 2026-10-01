@@ -31,6 +31,7 @@ function accountAccessError(error) {
 // Self-registration (same profile shape as the legacy CRM, see haldus.html `register`).
 // Teachers and administrators are created by an administrator, never here.
 export const TERMS_VERSION = '2025-08-10';
+export const STUDY_TERMS_VERSION = '2026-10-01';
 export const REGISTRATION_TEACHERS = ['Pavel', 'Jelena', 'Elizaveta', 'Angelina'];
 export const SELF_ROLES = ['parent', 'student'];
 const STAFF_OPERATIONS_URL = 'https://us-central1-keelesepp-5136b.cloudfunctions.net/staffOperationsApi';
@@ -220,6 +221,19 @@ export const authService = {
     if (!auth.currentUser) throw new Error('Kasutajaseanss on aegunud. Logi uuesti sisse.');
     const payload = { ...normalizeOwnProfileInput(values), updatedAt: new Date().toISOString() };
     await setDoc(doc(db, 'users', auth.currentUser.uid), payload, { merge: true });
+    return enrichUser(auth.currentUser);
+  },
+  async acceptStudyTerms() {
+    const { auth, db } = requireFirebaseClient();
+    if (!auth.currentUser) throw new Error('Kasutajaseanss on aegunud. Logi uuesti sisse.');
+    const current = await enrichUser(auth.currentUser);
+    if (!current?.roles?.includes('parent')) throw new Error('Õppetingimused kinnitab lapsevanem.');
+    const acceptedAt = new Date().toISOString();
+    await setDoc(doc(db, 'users', auth.currentUser.uid), {
+      studyTermsAcceptedAt: acceptedAt,
+      studyTermsVersion: STUDY_TERMS_VERSION,
+      updatedAt: acceptedAt,
+    }, { merge: true });
     return enrichUser(auth.currentUser);
   },
   async sendPasswordReset() {
