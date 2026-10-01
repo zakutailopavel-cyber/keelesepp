@@ -1,6 +1,9 @@
-import { CheckCircle2, FileQuestion, Image as ImageIcon } from 'lucide-react';
-import { Badge, EmptyState, Modal } from '../../components/ui/index.js';
+import { CheckCircle2, FilePenLine, FileQuestion, Image as ImageIcon } from 'lucide-react';
+import { lazy, Suspense } from 'react';
+import { Badge, Button, EmptyState, LoadingState, Modal } from '../../components/ui/index.js';
 import { LIBRARY_TYPES } from './libraryModel.js';
+
+const StudioSheetPreview = lazy(() => import('./StudioSheetPreview.jsx'));
 
 function safeUrl(value) {
   try {
@@ -76,18 +79,20 @@ function FilePreview({ file }) {
   return <div className="preview-unsupported"><FileQuestion size={22} /><div><strong>{file.name || 'Fail'}</strong><span>Seda failivormingut ei saa brauseris turvaliselt eelvaadata.</span></div></div>;
 }
 
-export default function MaterialPreview({ item, onClose }) {
+export default function MaterialPreview({ item, onClose, onEditWorksheet }) {
   const source = item.source || {};
-  const structuredBlocks = source.worksheetData?.blocks?.length ? source.worksheetData.blocks : item.kind === 'exercise' ? [source] : lessonPlanBlocks(source);
+  const studioDoc = source.worksheetDoc?.blocks?.length ? source.worksheetDoc : null;
+  const structuredBlocks = studioDoc ? lessonPlanBlocks(source) : source.worksheetData?.blocks?.length ? source.worksheetData.blocks : item.kind === 'exercise' ? [source] : lessonPlanBlocks(source);
   const blocks = structuredBlocks.length ? structuredBlocks : item.description ? [{ id: 'description', type: 'text', title: 'Sisu', text: item.description }] : [];
   const files = materialFiles(source);
   return (
-    <Modal open title={`Eelvaade: ${item.title}`} onClose={onClose} className="modal--preview">
+    <Modal open title={`Eelvaade: ${item.title}`} onClose={onClose} className="modal--preview" footer={onEditWorksheet && item.kind !== 'exercise' ? <Button variant="secondary" onClick={() => onEditWorksheet(item)}><FilePenLine size={16} /> {studioDoc || source.worksheetData?.blocks?.length ? 'Muuda töölehte' : 'Loo tööleht'}</Button> : null}>
       <article className="material-preview">
         <header><div><Badge tone={LIBRARY_TYPES[item.type]?.tone}>{item.typeLabel}</Badge><h2>{source.worksheetData?.meta?.title || item.title}</h2><p>{item.description}</p></div><ImageIcon size={26} /></header>
+        {studioDoc ? <section className="preview-studio" aria-label="Tööleht"><Suspense fallback={<LoadingState label="Laen töölehte…" />}><StudioSheetPreview doc={studioDoc} /></Suspense></section> : null}
         {blocks.length ? <div className="preview-blocks">{blocks.map((block, index) => <PreviewBlock block={block} index={index} key={block.id || `${block.type}-${index}`} />)}</div> : null}
         {files.length ? <section className="preview-files"><h2>Lisatud failid</h2>{files.map((file) => <FilePreview file={file} key={file.url} />)}</section> : null}
-        {!blocks.length && !files.length ? <EmptyState title="Eelvaate sisu puudub" description="Materjalil on ainult kirjeldus või selle sisu on vanemas formaadis." /> : null}
+        {!studioDoc && !blocks.length && !files.length ? <EmptyState title="Eelvaate sisu puudub" description="Materjalil on ainult kirjeldus või selle sisu on vanemas formaadis." /> : null}
       </article>
     </Modal>
   );

@@ -1,5 +1,23 @@
 # KeeleSepp Project State
 
+## 2026-10-01 — Õppevara: worksheet of a material visible and reachable — PR (branch `agent/library-worksheet-link`)
+
+Checked against main `0628691` (#223 merged and released). Owner: a worksheet made in the Töölehe konstruktor was not
+visible in the preview, and a lesson plan had no clear "create / change the worksheet" action. The worksheet lives on
+the same `curriculumLessons` record as `worksheetDoc` (unchanged). Now:
+- `MaterialPreview.jsx` renders the constructor worksheet exactly as printed (`StudioSheetPreview.jsx`, lazy-loaded
+  `Sheet` in print mode) next to the lesson plan phases, with "Muuda töölehte" / "Loo tööleht" in the footer.
+- `MaterialEditor.jsx` has a "Tööleht" box at the top for existing materials: status, "Vaata töölehte",
+  "Muuda töölehte" or "Loo tööleht" (opens `/library/worksheets/:id`; saving there attaches the worksheet to the
+  same material, as before).
+- `LibraryPage.jsx`: every row has "Vaata" again (preview now shows constructor worksheets); the detail window says
+  "Muuda töölehte" / "Loo tööleht" instead of "Ava konstruktoris".
+- No data, rule or assignment change. Checks: library tests 22/22 (+2), `npx eslint src` clean, build OK; full suite
+  506/510 — the 4 failures are the known date-dependent finance/profile tests that also fail on main. Browser on
+  local emulators: lesson plan → "Loo tööleht" opens the builder; plan with a constructor worksheet → preview shows
+  the sheet, "Muuda töölehte" opens the builder; 1440/390 px without horizontal scroll, no page errors.
+- Next safe step: owner merges, then Vercel `keelesepp-crm-v2` release.
+
 ## 2026-10-01 — Õppevara: visible "Muuda" on every row — PR (branch `agent/library-edit-button`)
 
 Checked against main `950a0d1` (2026-10-01; #219–#222 merged and released to `keelesepp-crm-v2` by the owner).
