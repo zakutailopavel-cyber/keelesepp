@@ -52,6 +52,8 @@ CRM v2 Worksheet Studio keeps the current author document in `curriculumLessons.
 `worksheetVersions/{lessonId}_studio_v{n}` record. A client must submit the `worksheetDocUpdatedAt` it loaded; a
 different current timestamp is a conflict and must never be overwritten silently. Draft-only content is not
 assignable. Existing worksheet documents without the lifecycle fields remain published for backward compatibility.
+Their first draft save preserves that existing document as the published snapshot in the same batch. Library type
+classification includes draft documents; preview falls back to a labelled draft when no published snapshot exists.
 
 Folder URLs use `libSubject`, `libStage` and `libTopic`. Other query parameters are preserved.
 When records have `curriculumId`, that immutable id is used as the folder key. Older records

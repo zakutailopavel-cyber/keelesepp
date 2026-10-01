@@ -82,6 +82,8 @@ export const worksheetDocsService = {
     }
     const version = (Number(current.worksheetDocVersion) || 0) + 1;
     const normalizedStatus = status === 'published' ? 'published' : 'draft';
+    const preservePublished = normalizedStatus === 'draft' && !current.publishedWorksheetDoc
+      && current.worksheetDoc && (!current.worksheetDocStatus || current.worksheetDocStatus === 'published');
     const stored = clean({ ...document, updatedAt: now, updatedBy: user?.uid || '', version, status: normalizedStatus });
     const common = {
       worksheetDoc: stored,
@@ -90,6 +92,11 @@ export const worksheetDocsService = {
       worksheetDocVersion: version,
       worksheetDocStatus: normalizedStatus,
       updatedAt: now,
+      ...(preservePublished ? {
+        publishedWorksheetDoc: current.worksheetDoc,
+        publishedWorksheetDocVersion: Number(current.worksheetDocVersion) || Number(current.worksheetDoc.version) || 1,
+        publishedWorksheetDocUpdatedAt: current.worksheetDocUpdatedAt || current.worksheetDoc.updatedAt || now,
+      } : {}),
       ...(normalizedStatus === 'published' ? { publishedWorksheetDoc: stored, publishedWorksheetDocVersion: version, publishedWorksheetDocUpdatedAt: now } : {}),
     };
     if (created) {
