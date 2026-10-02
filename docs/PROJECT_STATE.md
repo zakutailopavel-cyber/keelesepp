@@ -1,6 +1,18 @@
 # KeeleSepp Project State
 
-## 2026-10-02 — Known test failures fixed, Kontrolltöö label — PR (branch `agent/fix-known-failures`)
+## 2026-10-02 — Release of main `3517dd8` (#227, #228, #229, #231, #232) — DEPLOYED by the owner
+
+- Vercel `keelesepp-crm-v2` production build of `3517dd8` (Ready). The CLI 62.1 deploy did not move the custom domain:
+  `crm.epkoolitus.ee` was assigned manually with `vercel alias set <deployment> crm.epkoolitus.ee` (Success). If a
+  future deploy again lists only the `…vercel.app` alias, repeat that or check Settings → Domains for the production
+  binding of `crm.epkoolitus.ee`.
+- Firebase: `firebase-tools@15.22.3 deploy --only functions:staffOperationsApi` and `--only firestore:rules`
+  (both "Deploy complete!"). Local `npx firebase` is not installed on the owner's Mac — use
+  `npx -y firebase-tools@15.22.3 … --project keelesepp-5136b`, and `npm ci` in `functions/` before a Functions deploy.
+- Next safe step: owner checks parent login, approving a new student in „Uued kontod” and a two-device test lesson
+  (video, chat, „Materjalid” → board, writing on it).
+
+## 2026-10-02 — Known test failures fixed, Kontrolltöö label — MERGED (#232, 3517dd8), RELEASED 2026-10-02
 
 Checked against main `240e09c`. Owner asked to fix the remaining known problems (not the items they parked: TURN,
 Storage CORS, 54 unmatched Google events, APP_BASE_URL, „Minu tööpäev”, parent study terms).
@@ -14,7 +26,7 @@ Storage CORS, 54 unmatched Google events, APP_BASE_URL, „Minu tööpäev”, p
   assignment behaviour is unchanged. Tests added.
 - Section headings below updated: #219–#225 released; #227, #228, #229, #231 merged, waiting for the release.
 
-## 2026-10-02 — Live Classroom: full-screen lesson room (owner's design photo) + board rules fix — MERGED (#231, 297e79e), release pending (rules + CRM)
+## 2026-10-02 — Live Classroom: full-screen lesson room (owner's design photo) + board rules fix — MERGED (#231, 297e79e), RELEASED 2026-10-02 (rules + CRM)
 
 Checked against main `240e09c`. Owner sent a photo of how the lesson must look: top bar (back, menu, "Tund — date",
 undo/redo, subject, timer + signal, mic/camera/screen/hang-up, more, participants, chat, Materjalid, Ülesanded), a
@@ -51,7 +63,7 @@ the bottom, a colour/size panel on the right and the zoom at the bottom left. Bu
 - Release: merge + `firebase deploy --only firestore:rules` (for materials and lesson pages) + Vercel `keelesepp-crm-v2`.
 - Limits: no pinch-zoom on phones (buttons instead); chat is the Suhtlus conversation; TURN server still missing.
 
-## 2026-10-01 — Worksheet draft regression repair — MERGED (#228, a71b66b), release pending
+## 2026-10-01 — Worksheet draft regression repair — MERGED (#228, a71b66b), RELEASED 2026-10-02
 
 Fresh main: `9fda4b9df487696b59cbe1847ab3ce08e1bed7c6` (2026-10-01). PR #227 was merged with the owner's explicit
 permission; GitHub confirmed merged=true. No open PRs before this task. Task 1 is isolated in draft PR #228: https://github.com/zakutailopavel-cyber/keelesepp/pull/228.
@@ -86,7 +98,7 @@ Limits: no production migration repairs historical drafts automatically; staff p
 No deploy executed. No new PR merged. Unfinished implementation work: none for Task 1.
 Exactly one next safe step: owner reviews the Task 1 draft PR.
 
-## 2026-10-01 — access hotfix after PR #226 — MERGED (#227, 9fda4b9), release pending
+## 2026-10-01 — access hotfix after PR #226 — MERGED (#227, 9fda4b9), RELEASED 2026-10-02
 
 Owner reported that the parent study-terms release caused parent login errors and that approving a newly registered
 student surfaced a raw browser `Failed to fetch`. Verified current GitHub `main` = `36abfd6` (merge #226) and
@@ -125,7 +137,7 @@ Next safe step: owner manually merges PR #227. Release must include the Vercel C
 change is not live.
 
 
-## 2026-10-01 — Approval SMTP response repair — MERGED (#229, 240e09c), release pending (Functions deploy)
+## 2026-10-01 — Approval SMTP response repair — MERGED (#229, 240e09c), RELEASED 2026-10-02 (staffOperationsApi deployed)
 
 **Correction 2026-10-02 (owner asked Claude to finish it):** sending the e-mail after `res.json` was replaced. On
 Cloud Functions an instance may be stopped right after the response, so the approval e-mail could be silently lost.
