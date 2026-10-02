@@ -12,6 +12,7 @@ import WorksheetStudioPage from '../features/worksheet-studio/WorksheetStudioPag
 import ConversionQueuePage from '../features/worksheet-studio/ConversionQueuePage.jsx';
 import BookPage from '../features/worksheet-studio/BookPage.jsx';
 import LiveWorksheetPage from '../features/worksheet-studio/LiveWorksheetPage.jsx';
+import GeneratorCoveragePage from '../features/worksheet-generator/ui/GeneratorCoveragePage.jsx';
 import LessonWorksheetSet from '../features/worksheet-generator/ui/LessonWorksheetSet.jsx';
 import LessonWorksheetStudioPage from '../features/worksheet-generator/ui/LessonWorksheetStudioPage.jsx';
 import LiveClassroomPage from '../features/live-classroom/LiveClassroomPage.jsx';
@@ -54,6 +55,7 @@ export default function AppRoutes() {
             <Route path="library/worksheets/convert" element={<ConversionQueuePage />} />
             <Route path="library/worksheets/book" element={<BookPage />} />
             <Route path="library/worksheets/live/:assignmentId" element={<LiveWorksheetPage />} />
+            <Route path="library/worksheet-generator" element={<GeneratorCoveragePage />} />
             <Route path="library/lessons/:lessonId/worksheets" element={<LessonWorksheetSet />} />
             <Route path="library/lessons/:lessonId/worksheets/:worksheetId" element={<LessonWorksheetStudioPage />} />
             <Route path="library/worksheets/:lessonId" element={<WorksheetStudioPage />} />
