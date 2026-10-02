@@ -18,7 +18,6 @@ describe('didactic planner', () => {
     });
 
     const discoverTags = new Set(first.phases.discover.flatMap((id) => activityById(id).tags));
-    expect(discoverTags).toEqual(expect.objectContaining ? discoverTags : discoverTags);
     expect(discoverTags.has('input')).toBe(true);
     expect(discoverTags.has('noticing')).toBe(true);
     expect(discoverTags.has('reflection')).toBe(true);
