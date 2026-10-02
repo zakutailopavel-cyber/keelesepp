@@ -1,4 +1,5 @@
 import { activitiesForPhase } from './activityCatalog.js';
+import { orderActivitiesByDifficulty } from './difficulty.js';
 import { normalizeLessonKind } from './lessonKind.js';
 import { shuffleSeeded } from './seed.js';
 import { normalizeLevel } from './vocabulary.js';
@@ -88,6 +89,7 @@ export function planPhaseActivities({
   lessonKind = 'integrated',
   seed = 'worksheet',
   activityHistory = [],
+  difficulty = 'core',
   count = 5,
 } = {}) {
   const diagnostics = [];
@@ -104,8 +106,9 @@ export function planPhaseActivities({
 
   const recent = new Set(normalizeHistory(activityHistory));
   const shuffled = shuffleSeeded(candidates, `${seed}:${phase}:catalog`);
-  const fresh = shuffled.filter((item) => !recent.has(item.id));
-  const cooled = shuffled.filter((item) => recent.has(item.id));
+  const difficultyOrdered = orderActivitiesByDifficulty(shuffled, { level: profile?.level, mode: difficulty, phase, seedOrder: shuffled });
+  const fresh = difficultyOrdered.filter((item) => !recent.has(item.id));
+  const cooled = difficultyOrdered.filter((item) => recent.has(item.id));
   const ordered = [...fresh, ...cooled];
   const selected = [];
   const usedFamilies = new Set();
@@ -141,6 +144,7 @@ export function planLessonActivities({
   lessonKind = 'integrated',
   seed = 'worksheet',
   activityHistory = [],
+  difficulty = 'core',
   countPerPhase = 5,
 } = {}) {
   const phases = {};
@@ -152,6 +156,7 @@ export function planLessonActivities({
       lessonKind,
       seed,
       activityHistory,
+      difficulty,
       count: countPerPhase,
     });
     phases[phase] = plan.activityIds;
