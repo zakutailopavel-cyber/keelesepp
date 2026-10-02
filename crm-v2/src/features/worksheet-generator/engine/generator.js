@@ -2,12 +2,13 @@ import { SCHEMA } from '../../worksheet-studio/engine/schema.js';
 import { materializeFullFocus, materializePhase, createDiversityState } from './content.js';
 import { normalizeFocusSelection } from './focus.js';
 import { normalizeLessonKind } from './lessonKind.js';
+import { planLessonActivities, planPhaseActivities } from './planner.js';
 import { PHASES, recipeFor } from './recipes.js';
 import { shuffleSeeded } from './seed.js';
 import { inspectGeneratedSheet } from './quality.js';
 import { selectVocabulary } from './vocabulary.js';
 
-export const GENERATOR_VERSION = '1.0.0';
+export const GENERATOR_VERSION = '1.1.0';
 
 function diagnostic(severity, code, message) { return { severity, code, message }; }
 function profileValid(profile) { return profile?.schema === 'keelesepp.worksheet-generator-profile/1' && Number(profile.version) === 1; }
@@ -35,13 +36,46 @@ function makeDocument({ lesson, profile, phase, displayLabel, focusIds, blocks, 
   };
 }
 
-function sheetFor({ lesson, profile, phase, role = phase, focusIds, seed, generatorVersion, contextId, state }) {
+function fullActivityIds(activityPlan = {}) {
+  return [
+    ...(activityPlan.discover || []).slice(0, 1),
+    ...(activityPlan.practice || []).slice(0, 2),
+    ...(activityPlan.transfer || []).filter((id) => !id.endsWith('selfcheck') && !id.endsWith('rubric')).slice(0, 2),
+  ];
+}
+
+function sheetFor({
+  lesson,
+  profile,
+  phase,
+  role = phase,
+  focusIds,
+  seed,
+  generatorVersion,
+  contextId,
+  state,
+  activityIds = [],
+  activityPlan = {},
+}) {
   const recipe = recipeFor({ phase, lessonKind: normalizeLessonKind(profile.lessonKind || lesson?.tag || lesson?.kind) });
+  const resolvedActivityIds = phase === 'full' ? fullActivityIds(activityPlan) : activityIds;
   const blocks = phase === 'full'
-    ? materializeFullFocus({ profile, focusIds, contextId, seed, state })
-    : materializePhase({ phase, profile, focusIds, contextId, seed, state });
+    ? materializeFullFocus({ profile, focusIds, contextId, seed, state, activityPlan })
+    : materializePhase({ phase, profile, focusIds, contextId, seed, state, activityIds: resolvedActivityIds });
   const worksheetDoc = makeDocument({ lesson, profile, phase, displayLabel: recipe.displayLabel, focusIds, blocks, seed });
-  const sheet = { role, displayLabel: recipe.displayLabel, recipeId: recipe.id, seed, generatorVersion, profileVersion: profile.version, contextId, focusIds, worksheetDoc, diagnostics: [] };
+  const sheet = {
+    role,
+    displayLabel: recipe.displayLabel,
+    recipeId: recipe.id,
+    seed,
+    generatorVersion,
+    profileVersion: profile.version,
+    contextId,
+    focusIds,
+    activityIds: resolvedActivityIds,
+    worksheetDoc,
+    diagnostics: [],
+  };
   const quality = inspectGeneratedSheet(sheet, { selectedFocusIds: focusIds });
   sheet.diagnostics = quality.diagnostics;
   return sheet;
@@ -58,43 +92,144 @@ function validateInputs(profile, generatorVersion) {
 function contextsForFocus(profile, focusIds, phase) {
   const contexts = profile.contexts || [];
   const sentences = (profile.banks?.sentences || []).filter((item) => !focusIds.length || (item.focusIds || []).some((id) => focusIds.includes(id)));
-  const minimum = phase === 'discover' ? 2 : phase === 'practice' || phase === 'full' ? 1 : 0;
+  const minimum = phase === 'discover' ? 1 : phase === 'practice' || phase === 'full' ? 1 : 0;
   if (!minimum) return contexts;
   const supported = contexts.filter((context) => sentences.filter((item) => !(item.contextIds || []).length || item.contextIds.includes(context.id)).length >= minimum);
   return supported.length ? supported : contexts;
 }
 
-export function generateLessonBundle({ lesson = {}, profile, levelLexicon = [], seed, generatorVersion = GENERATOR_VERSION } = {}) {
+export function generateLessonBundle({
+  lesson = {},
+  profile,
+  levelLexicon = [],
+  seed,
+  generatorVersion = GENERATOR_VERSION,
+  activityHistory = [],
+} = {}) {
   const diagnostics = validateInputs(profile, generatorVersion);
   if (diagnostics.length) return { sheets: [], diagnostics };
+
   const focusIds = (profile.focuses || []).map((item) => item.id);
   const bundleSeed = seed || `${profile.lessonId}:${profile.version}:${generatorVersion}:0`;
-  const vocabulary = selectVocabulary({ activeVocabulary: profile.activeVocabulary, levelLexicon, level: profile.level, count: 12, seed: bundleSeed });
+  const vocabulary = selectVocabulary({
+    activeVocabulary: profile.activeVocabulary,
+    levelLexicon,
+    level: profile.level,
+    count: 12,
+    seed: bundleSeed,
+  });
   const contexts = shuffleSeeded(profile.contexts || [], `${bundleSeed}:contexts`);
   if (contexts.length < 3) diagnostics.push(diagnostic('error', 'BANK_INSUFFICIENT', 'Kolme töölehe jaoks on vaja vähemalt kolme konteksti.'));
+
+  const lessonKind = normalizeLessonKind(profile.lessonKind || lesson?.tag || lesson?.kind);
+  const plan = planLessonActivities({
+    profile,
+    lessonKind,
+    seed: bundleSeed,
+    activityHistory,
+    countPerPhase: 5,
+  });
+  diagnostics.push(...plan.diagnostics);
+
   const state = createDiversityState();
-  const sheets = diagnostics.some((item) => item.severity === 'error') ? [] : PHASES.map((phase, index) => sheetFor({ lesson, profile, phase, focusIds, seed: `${bundleSeed}:${phase}`, generatorVersion, contextId: contexts[index].id, state }));
+  const sheets = diagnostics.some((item) => item.severity === 'error')
+    ? []
+    : PHASES.map((phase, index) => sheetFor({
+      lesson,
+      profile,
+      phase,
+      focusIds,
+      seed: `${bundleSeed}:${phase}`,
+      generatorVersion,
+      contextId: contexts[index].id,
+      state,
+      activityIds: plan.phases[phase],
+    }));
+
   const allDiagnostics = [...diagnostics, ...vocabulary.diagnostics, ...sheets.flatMap((sheet) => sheet.diagnostics)];
-  return { sheets, diagnostics: allDiagnostics };
+  return { sheets, diagnostics: allDiagnostics, activityPlan: plan.phases };
 }
 
-export function generateFocusWorksheet({ lesson = {}, profile, levelLexicon = [], focusIds = [], phase = 'full', size = 'standard', seed, generatorVersion = GENERATOR_VERSION, focusLibrary = [] } = {}) {
+export function generateFocusWorksheet({
+  lesson = {},
+  profile,
+  levelLexicon = [],
+  focusIds = [],
+  phase = 'full',
+  size = 'standard',
+  seed,
+  generatorVersion = GENERATOR_VERSION,
+  focusLibrary = [],
+  activityHistory = [],
+} = {}) {
   const diagnostics = validateInputs(profile, generatorVersion);
   if (diagnostics.length) return { sheet: null, diagnostics };
+
   const normalized = normalizeFocusSelection({ profile, selected: focusIds, focusLibrary });
   diagnostics.push(...normalized.diagnostics);
   if (!normalized.focusIds.length && !normalized.diagnostics.length) diagnostics.push(diagnostic('error', 'FOCUS_UNKNOWN', 'Vali vähemalt üks fookus.'));
   if (!['discover', 'practice', 'transfer', 'full'].includes(phase)) diagnostics.push(diagnostic('error', 'NO_SUPPORTED_RECIPE_BLOCKS', `Tundmatu faas: ${phase}`));
   if (diagnostics.some((item) => item.severity === 'error')) return { sheet: null, diagnostics };
+
   const focusSeed = seed || `${profile.lessonId}:${profile.version}:${generatorVersion}:focus:${normalized.focusIds.join('+')}:0`;
-  const vocabulary = selectVocabulary({ activeVocabulary: profile.activeVocabulary, levelLexicon, level: profile.level, count: size === 'short' ? 8 : 12, seed: focusSeed });
+  const vocabulary = selectVocabulary({
+    activeVocabulary: profile.activeVocabulary,
+    levelLexicon,
+    level: profile.level,
+    count: size === 'short' ? 8 : 12,
+    seed: focusSeed,
+  });
   const context = shuffleSeeded(contextsForFocus(profile, normalized.focusIds, phase), `${focusSeed}:context`)[0];
   if (!context) return { sheet: null, diagnostics: [...diagnostics, diagnostic('error', 'BANK_INSUFFICIENT', 'Fookuse töölehe kontekst puudub.')] };
-  const sheet = sheetFor({ lesson, profile, phase, role: 'focus', focusIds: normalized.focusIds, seed: focusSeed, generatorVersion, contextId: context.id, state: createDiversityState() });
+
+  const lessonKind = normalizeLessonKind(profile.lessonKind || lesson?.tag || lesson?.kind);
+  let activityPlan = {};
+  let activityIds = [];
+  if (phase === 'full') {
+    const planned = planLessonActivities({
+      profile,
+      lessonKind,
+      seed: focusSeed,
+      activityHistory,
+      countPerPhase: 5,
+    });
+    diagnostics.push(...planned.diagnostics);
+    activityPlan = planned.phases;
+    activityIds = fullActivityIds(activityPlan);
+  } else {
+    const planned = planPhaseActivities({
+      phase,
+      profile,
+      lessonKind,
+      seed: focusSeed,
+      activityHistory,
+      count: 5,
+    });
+    diagnostics.push(...planned.diagnostics);
+    activityIds = planned.activityIds;
+  }
+
+  if (diagnostics.some((item) => item.severity === 'error')) return { sheet: null, diagnostics };
+
+  const sheet = sheetFor({
+    lesson,
+    profile,
+    phase,
+    role: 'focus',
+    focusIds: normalized.focusIds,
+    seed: focusSeed,
+    generatorVersion,
+    contextId: context.id,
+    state: createDiversityState(),
+    activityIds,
+    activityPlan,
+  });
   return { sheet, diagnostics: [...diagnostics, ...vocabulary.diagnostics, ...sheet.diagnostics] };
 }
 
 export { normalizeFocusSelection } from './focus.js';
 export { normalizeLessonKind } from './lessonKind.js';
+export { catalogReadiness, planLessonActivities, planPhaseActivities } from './planner.js';
+export { ACTIVITY_CATALOG, ACTIVITY_CATALOG_VERSION } from './activityCatalog.js';
 export { createSeededRandom, sampleSeeded, shuffleSeeded } from './seed.js';
 export { normalizeLevel, normalizeLevelLexicon, selectVocabulary } from './vocabulary.js';
