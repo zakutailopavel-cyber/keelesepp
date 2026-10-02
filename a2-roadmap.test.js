@@ -35,4 +35,17 @@ for(let n=5;n<=100;n+=5)assert.equal(lessons[n-1].kind,'assessment','lesson '+n)
 const titles=modules.map(m=>m.title).join(' ').toLowerCase();
 for(const needle of ['kodu','linn','söök','pood','tervis','vaba aeg','ilm','reisimine','töö','õppimine'])assert.ok(titles.includes(needle),needle);
 
-console.log('A2 roadmap: 20 modules / 100 lessons / 20 assessments PASS');
+const importer=fs.readFileSync(path.join(root,'haldus-a2-roadmap/index.html'),'utf8');
+assert.match(importer,/est-a2-curriculum-v1/);
+assert.match(importer,/level:'A2'/);
+assert.match(importer,/items\.length!==100/);
+assert.match(importer,/collection\('curriculumLessons'\)/);
+assert.match(importer,/merge:true/);
+
+const library=fs.readFileSync(path.join(root,'haldus-exercises/index.html'),'utf8');
+assert.match(library,/keelesepp-a2-roadmap-import-attempt/);
+assert.match(library,/curriculumId==='est-a2-curriculum-v1'/);
+assert.match(library,/roadmapCount>=100/);
+assert.match(library,/\/haldus-a2-roadmap\//);
+
+console.log('A2 roadmap: 20 modules / 100 lessons / 20 assessments / importer PASS');
