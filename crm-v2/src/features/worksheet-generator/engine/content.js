@@ -47,15 +47,7 @@ function takeSentences(profile, state, { focusIds, contextId, count, seed, allow
     result.push({ ...item, rendered });
     if (result.length === count) break;
   }
-  if (result.length < count && !allowReuse) {
-    for (const item of shuffleSeeded(sentenceCandidates(profile, focusIds, contextId), `${seed}:reuse`)) {
-      const rendered = renderTemplate(item, seed);
-      if (result.some((entry) => entry.id === item.id)) continue;
-      result.push({ ...item, rendered });
-      if (result.length === count) break;
-    }
-  }
-  return result;
+    return result;
 }
 
 function targetInSentence(sentence, profile, focusIds) {
@@ -127,7 +119,7 @@ function meaningChoiceData(profile, focusIds, seed) {
 
 function contextChoiceData(profile, focusIds, contextId, state, seed) {
   const vocab = vocabularyFor(profile, focusIds).map((item) => item.word);
-  const sentences = takeSentences(profile, state, { focusIds, contextId, count: 3, seed });
+  const sentences = takeSentences(profile, state, { focusIds, contextId, count: 1, seed });
   const questions = sentences.map((item, index) => {
     const target = targetInSentence(item.rendered, profile, focusIds);
     if (!target) return null;
@@ -195,8 +187,8 @@ function categorizeData(profile, focusIds) {
 }
 
 function gapData(profile, focusIds, contextId, state, seed) {
-  const sentences = takeSentences(profile, state, { focusIds, contextId, count: 4, seed });
-  const marked = sentences.map((item) => markGap(item.rendered, profile, focusIds)).filter(Boolean).slice(0, 3);
+  const sentences = takeSentences(profile, state, { focusIds, contextId, count: 1, seed });
+  const marked = sentences.map((item) => markGap(item.rendered, profile, focusIds)).filter(Boolean).slice(0, 2);
   return {
     title: 'Täienda laused.',
     instruction: 'Kasuta sobivat tunni väljendit.',
@@ -227,7 +219,7 @@ function clockData(profile, contextId, seed) {
 }
 
 function dictationData(profile, focusIds, contextId, state, seed) {
-  const sentences = takeSentences(profile, state, { focusIds, contextId, count: 3, seed });
+  const sentences = takeSentences(profile, state, { focusIds, contextId, count: 1, seed });
   return {
     title: 'Etteütlus.',
     instruction: 'Kuula õpetajat ja kirjuta laused.',
