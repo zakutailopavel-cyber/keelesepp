@@ -65,6 +65,7 @@ function sheetFor({
   const worksheetDoc = makeDocument({ lesson, profile, phase, displayLabel: recipe.displayLabel, focusIds, blocks, seed });
   const sheet = {
     role,
+    phase,
     displayLabel: recipe.displayLabel,
     recipeId: recipe.id,
     seed,
