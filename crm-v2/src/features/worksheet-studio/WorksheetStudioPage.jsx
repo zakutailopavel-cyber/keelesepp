@@ -175,6 +175,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     selected &&
     generation &&
     typeof repository.regenerateBlock === 'function' &&
+    BLOCKS[selected.type]?.task &&
     /^gen_(discover|practice|transfer)_\d+$/.test(String(selected.id || '')),
   );
   const regenerateSelected = async () => {
