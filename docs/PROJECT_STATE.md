@@ -1,5 +1,32 @@
 # KeeleSepp Project State
 
+## 2026-10-02 — Deterministic Worksheet Generator core — draft PR #236 (`codex/worksheet-generator-core`)
+
+Checked fresh `origin/main` `3517dd8866425e70aad87dd7e2e5a56de4769cd9` and open PRs #230, #233, #234 and
+#235. PR #234 overlaps Worksheet Studio presentation and shared documentation, so this slice does not edit its block
+implementation or CSS. Goal: the first bounded generator slice only — pure deterministic generation, tests and one
+reference profile; no Firestore, rules, routes, UI, migration or production action.
+
+Implemented `crm-v2/src/features/worksheet-generator/engine/`: seeded PRNG/shuffle/sample, lesson-kind and CEFR
+normalization, structured/legacy focus resolution, level-safe vocabulary selection, phase recipes, materialization
+through the current Worksheet Studio registry, shared bundle diversity and stable quality diagnostics. Public APIs
+are `generateLessonBundle()` and `generateFocusWorksheet()`. The supplied `a2b1-016` profile is stored unchanged as
+the reference fixture. Same inputs, seed and generator version produce identical valid `keelesepp.worksheet/2`
+documents; generator metadata remains outside the document. Missing sources return diagnostics rather than invented
+language. The core makes no AI, external API or persistence call.
+
+Owner acceptance added during implementation: teachers must watch generated assignments live, enter an active learner
+session, point to a task, see current errors and find all worksheet work in the learner profile. Existing
+`worksheetAssignments`, `LiveWorksheetView`, `liveFocus.blockId`, `DocWorksheetPlayer` and `RoomWorksheetPanel`
+already provide live answers, marks, guidance and Live Classroom reuse. `StudentProfilePage` does not currently load
+worksheet assignments; the profile work-history section is explicitly required in the later UI/assignment slice.
+See `docs/WORKSHEET_GENERATOR_V1.md`.
+
+Final verification: focused generator Vitest 7/7, full CRM Vitest 108 files / 546 tests, ESLint clean, production
+build passed with the existing large-chunk warning, and `git diff --check` passed. The reference profile is
+byte-identical to the supplied package example. No production or external service was used. Exactly one next safe
+step: review and merge draft PR #236 before starting child-sheet persistence.
+
 ## 2026-10-02 — Known test failures fixed, Kontrolltöö label — PR (branch `agent/fix-known-failures`)
 
 Checked against main `240e09c`. Owner asked to fix the remaining known problems (not the items they parked: TURN,
