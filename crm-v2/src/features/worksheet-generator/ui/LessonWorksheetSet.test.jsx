@@ -40,6 +40,7 @@ describe('LessonWorksheetSet', () => {
       expect(input.generation.variant).toBe(1);
       expect(input.generation.didacticPlanVersion).toBe(1);
       expect(input.generation.activityIds).toHaveLength(5);
+      expect(input.generation.contextId).toBeTruthy();
       expect(input.generation.difficulty).toBe('challenge');
       expect(input.generation.lessonDna).toMatchObject({ lessonId: 'a2b1-016', difficulty: 'challenge', variant: 1 });
     });
