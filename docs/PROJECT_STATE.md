@@ -1,5 +1,26 @@
 # KeeleSepp Project State
 
+## 2026-10-02 — Shared Estonian CEFR lexicon — stacked draft PR #243 (`agent/lesson-engine-level-lexicon-v1`)
+
+Stacked on #242. CRM v2 now reuses the existing authenticated Firebase Storage object `eesti_soned.json` through a
+small adapter instead of duplicating the vocabulary dataset. The adapter validates the legacy level/type JSON shape,
+caches successful loads and retries after failures. It passes plain data into the existing pure generator; no Firebase
+or network dependency was introduced into generator engine modules.
+
+Lesson-specific active vocabulary remains the thematic source of truth. The shared lexicon is used as a level-safe
+reserve and for warning-only CEFR audit: words known only above the lesson ceiling produce `VOCAB_ABOVE_LEVEL`, while
+unknown words and temporary Storage failures do not block a complete curated profile. Generation trace stores only
+the lexicon source and word count outside `worksheetDoc`.
+
+Verification: code head `79f35f6d582001ee5057915af63915755b6df31d` passed GitHub `CRM v2` run 330
+(lint, production build, 117 Vitest files / 579 tests and security-regression Auth/Firestore/Functions emulator
+suite) and `CRM v2 CI` run 259 (117 files / 579 tests, lint and build). Vercel preview
+`dpl_Csq3k6qWWBa1QuTQnA82pCR6yvBL` is READY. No production deployment was triggered. No authenticated visual-browser
+claim is made because the required local `agent-browser` executable is unavailable in this runtime.
+
+Exactly one next safe step: move generator readiness from a code-only static registry to validated lesson-embedded
+curated content packs in `curriculumLessons`, without changing worksheet or assignment contracts.
+
 ## 2026-10-02 — Standalone focus worksheet UI — stacked draft PR #242 (`agent/lesson-engine-focus-ui-v1`)
 
 Stacked on #241. This slice exposes the already-pure focus generator to teachers: select one curated lesson focus,
