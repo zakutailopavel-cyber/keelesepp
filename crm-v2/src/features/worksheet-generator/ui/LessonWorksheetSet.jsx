@@ -5,7 +5,7 @@ import { useAuth } from '../../../app/AuthContext.jsx';
 import { Badge, Button, Card, ErrorState, LoadingState, PageHeader } from '../../../components/ui/index.js';
 import { useAsyncData } from '../../../hooks/useAsyncData.js';
 import { lessonWorksheetsService } from '../../../services/firebase/index.js';
-import { generateLessonBundle, GENERATOR_VERSION } from '../engine/generator.js';
+import { ACTIVITY_CATALOG_VERSION, generateLessonBundle, GENERATOR_VERSION } from '../engine/generator.js';
 import referenceProfile from '../fixtures/a2b1-016.generator-profile.json';
 import '../generator.css';
 
@@ -42,7 +42,14 @@ export default function LessonWorksheetSet({ repository = lessonWorksheetsServic
     if (existing.length && !globalThis.confirm(`Tunnil on juba ${existing.length} põhitöölehte. Genereerimine loob neist uue mustandiversiooni; avaldatud versioon jääb alles. Jätkata?`)) return;
     setBusy(true); setError(''); setNotice('');
     try {
-      const result = generateLessonBundle({ lesson, profile, seed: `${lessonId}:${profile.version}:${GENERATOR_VERSION}:0` });
+      const previousActivityIds = existing.flatMap((sheet) => sheet?.generation?.activityIds || []);
+      const variant = Math.max(0, ...existing.map((sheet) => Number(sheet?.generation?.variant) || Number(sheet?.worksheetDocVersion) || 0)) + 1;
+      const result = generateLessonBundle({
+        lesson,
+        profile,
+        activityHistory: previousActivityIds,
+        seed: `${lessonId}:${profile.version}:${GENERATOR_VERSION}:${variant}`,
+      });
       const blocking = result.diagnostics.filter((item) => item.severity === 'error');
       if (blocking.length || result.sheets.length !== 3) throw new Error(blocking.map((item) => item.message).join(' ') || 'Kolme töölehte ei saanud luua.');
       await Promise.all(result.sheets.map((sheet, index) => {
@@ -66,10 +73,14 @@ export default function LessonWorksheetSet({ repository = lessonWorksheetsServic
             focusIds: sheet.focusIds,
             profileVersion: sheet.profileVersion,
             size: 'standard',
+            activityIds: sheet.activityIds,
+            activityCatalogVersion: ACTIVITY_CATALOG_VERSION,
+            didacticPlanVersion: 1,
+            variant,
           },
         });
       }));
-      setNotice('Kolm erinevat töölehte salvestati mustandina. Ava need kontrollimiseks ja avalda ükshaaval.');
+      setNotice(`Kolm erinevat töölehte salvestati mustandina (variant ${variant}). Ava need kontrollimiseks ja avalda ükshaaval.`);
       state.reload();
     } catch (generationError) {
       setError(generationError.message || 'Töölehtede genereerimine ebaõnnestus.');
