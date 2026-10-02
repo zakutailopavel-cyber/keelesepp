@@ -472,5 +472,7 @@ existing immutable `worksheetAssignments` snapshot. Real-time teacher guidance r
 The teacher opens a lesson worksheet set at `/library/lessons/:lessonId/worksheets`; supported profiles
 generate the three stable core drafts in parallel. Child routes adapt the same `WorksheetStudioPage` to
 `lessonWorksheetsService`, so editing, quality validation, publishing and history do not fork the worksheet engine.
-Student-profile work history must query those assignments rather
-than copying answers or results into `students`. See `docs/WORKSHEET_GENERATOR_V1.md`.
+Student-profile work history queries those assignments with
+`homeworkService.listWorksheetAssignmentsByStudentIds()`, renders their lifecycle in the `Õppetöö` tab and reuses the
+shared live/review views rather than copying answers or results into `students`. See
+`docs/WORKSHEET_GENERATOR_V1.md`.

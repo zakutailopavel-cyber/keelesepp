@@ -1,5 +1,19 @@
 # KeeleSepp Project State
 
+## 2026-10-02 — Student worksheet history (`codex/student-worksheet-history`)
+
+Checked fresh `origin/main` `53bf62c0447dfdbd916be83ac05cf031f74449d8` after the generator teacher UI
+release. The staff-facing student profile now loads the learner's existing `worksheetAssignments` alongside lessons
+and schedule. The `Õppetöö` tab shows assigned, active, submitted and reviewed worksheets with their lifecycle,
+timestamps and available score. Active work opens the existing live teacher route; completed work opens the existing
+Worksheet Studio answer preview and links to the full assignment view. The implementation reuses
+`homeworkService.listWorksheetAssignmentsByStudentIds()` and does not copy assignment data into the student record or
+change Firestore rules.
+
+Focused profile tests cover the history, live link, completed preview and authorization short-circuit. Full CRM,
+lint, build and browser verification are recorded with the PR before release. No production action is included in
+this branch.
+
 ## 2026-10-02 — Generator teacher UI — draft PR #238 (`codex/worksheet-generator-ui`)
 
 Checked fresh `origin/main` `a5a11f4aa320337aebc3a80a183c8ef050bf46a5` after PR #237 was merged and its

@@ -64,14 +64,17 @@ Teacher acceptance criteria for the integrated generator:
 5. Open a student's profile and see active, submitted and reviewed Worksheet Studio assignments.
 6. Open an active assignment from the profile in live view and a completed assignment in review view.
 
-The current `StudentProfilePage` does not yet load `worksheetAssignments`; adding the profile section belongs to the teacher UI/assignment integration slice. It must use `homeworkService.listWorksheetAssignmentsByStudentIds()` and the existing live/review components, not copy assignment data into the student document.
+`StudentProfilePage` loads the learner's existing `worksheetAssignments` through
+`homeworkService.listWorksheetAssignmentsByStudentIds()`. The `Õppetöö` tab shows assigned, active, submitted and
+reviewed worksheets. Active records open the shared live route; completed records open an answer preview and link to
+the full assignment view. Answers and results remain on the assignment document and are not copied into `students`.
 
 ## Rollout order
 
 1. Pure generator core and reference profile.
 2. Child-sheet draft/publish/version persistence and rules. (implemented)
 3. Teacher generation UI and shared Worksheet Studio route. (implemented for the reference profile)
-4. Assignment source traceability, live entry points and student-profile work history.
+4. Assignment source traceability, live entry points and student-profile work history. (profile history and live/review entry points implemented; source traceability remains)
 5. Profile coverage expanded in data-only roadmap slices.
 
 No unsupported lesson is presented as generatable. No production deployment is part of PR 1.

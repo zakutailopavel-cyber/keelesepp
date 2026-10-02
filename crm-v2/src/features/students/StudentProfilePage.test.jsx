@@ -2,6 +2,9 @@ import { fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterAll, beforeAll, vi } from 'vitest';
 import StudentProfilePage from './StudentProfilePage.jsx';
+import { sampleDocument } from '../worksheet-studio/engine/sample.js';
+
+globalThis.ResizeObserver = globalThis.ResizeObserver || class { observe() {} disconnect() {} };
 
 // Invoice fixtures are dated October 2026: pin the clock (Date only) so "partly paid" does not turn into "overdue".
 beforeAll(() => { vi.useFakeTimers({ toFake: ['Date'] }); vi.setSystemTime(new Date('2026-10-01T09:00:00Z')); });
@@ -13,12 +16,14 @@ function renderProfile({
   lessons = [],
   invoices = [],
   schedule = [],
+  worksheets = [],
 } = {}) {
   const apis = {
     studentApi: { getById: vi.fn().mockResolvedValue(student), update: vi.fn() },
     lessonApi: { listByStudent: vi.fn().mockResolvedValue(lessons) },
     invoiceApi: { listByStudent: vi.fn().mockResolvedValue(invoices) },
     scheduleApi: { listByStudent: vi.fn().mockResolvedValue(schedule) },
+    homeworkApi: { listWorksheetAssignmentsByStudentIds: vi.fn().mockResolvedValue(worksheets) },
   };
   render(
     <MemoryRouter initialEntries={['/students/s1']}>
@@ -72,6 +77,29 @@ describe('student profile tabs and role access', () => {
     expect(screen.getByText('82%')).toBeInTheDocument();
   });
 
+  it('shows worksheet history and opens completed work from the learning tab', async () => {
+    renderProfile({
+      worksheets: [
+        { id: 'w-active', title: 'Pooleliolev töö', status: 'in_progress', assignedAt: '2026-10-01T09:00:00Z', answers: {} },
+        { id: 'w-done', title: 'Valmis töö', status: 'done', reviewStatus: 'pending', completedAt: '2026-10-01T10:00:00Z', worksheetDoc: sampleDocument(), answers: {} },
+      ],
+    });
+
+    await screen.findByRole('tab', { name: 'Õppetöö' }, { timeout: 4000 });
+    fireEvent.click(screen.getByRole('tab', { name: 'Õppetöö' }));
+
+    expect(await screen.findByRole('heading', { name: 'Töölehed' })).toBeInTheDocument();
+    expect(screen.getByText('Pooleliolev töö')).toBeInTheDocument();
+    expect(screen.getByText('Valmis töö')).toBeInTheDocument();
+    expect(screen.getByText('Töötab praegu')).toBeInTheDocument();
+    expect(screen.getByText('Ootab kontrolli')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Jälgi otse' })).toHaveAttribute('href', '/library/worksheets/live/w-active');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Vaata tööd' }));
+    expect(await screen.findByRole('dialog')).toHaveTextContent('Valmis töö');
+    expect(screen.getByRole('link', { name: 'Ava täielik vaade' })).toHaveAttribute('href', '/library/worksheets/live/w-done');
+  });
+
   it('renders detailed finance history only after an administrator opens the finance tab', async () => {
     renderProfile({
       invoices: [
@@ -113,6 +141,7 @@ describe('student profile tabs and role access', () => {
     expect(apis.lessonApi.listByStudent).not.toHaveBeenCalled();
     expect(apis.scheduleApi.listByStudent).not.toHaveBeenCalled();
     expect(apis.invoiceApi.listByStudent).not.toHaveBeenCalled();
+    expect(apis.homeworkApi.listWorksheetAssignmentsByStudentIds).not.toHaveBeenCalled();
   });
 
   it('shows an assigned student to a teacher without exposing the finance tab', async () => {

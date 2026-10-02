@@ -42,6 +42,77 @@
   min-width: 0;
 }
 
+.student-worksheets__heading,
+.student-worksheet,
+.student-worksheet__meta,
+.student-worksheet-review__summary {
+  display: flex;
+  align-items: center;
+}
+
+.student-worksheets__heading {
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.student-worksheets__heading h2,
+.student-worksheets__heading p {
+  margin: 0;
+}
+
+.student-worksheets__heading p,
+.student-worksheet__body span,
+.student-worksheet-review__summary span {
+  color: var(--text-muted, #667085);
+}
+
+.student-worksheets__heading p {
+  margin-top: 4px;
+}
+
+.student-worksheets {
+  display: grid;
+  gap: 10px;
+}
+
+.student-worksheet {
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 14px;
+  background: var(--surface-raised, #fff);
+}
+
+.student-worksheet__body {
+  display: grid;
+  flex: 1;
+  gap: 4px;
+  min-width: 0;
+}
+
+.student-worksheet__body strong,
+.student-worksheet__body span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.student-worksheet__meta {
+  gap: 10px;
+}
+
+.student-worksheet__action,
+.student-worksheet > .button {
+  flex: 0 0 auto;
+}
+
+.student-worksheet-review__summary {
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
 @media (max-width: 640px) {
   .student-profile-tabs {
     margin-inline: -4px;
@@ -50,5 +121,20 @@
 
   .student-profile-tabs button {
     padding-inline: 14px;
+  }
+
+  .student-worksheet {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .student-worksheet__meta {
+    justify-content: space-between;
+  }
+
+  .student-worksheet__action,
+  .student-worksheet > .button {
+    justify-content: center;
+    width: 100%;
   }
 }

@@ -1,9 +1,10 @@
-import { ArrowLeft, BookOpenCheck, CalendarDays, Pencil, ReceiptText, PenLine } from 'lucide-react';
+import { ArrowLeft, BookOpenCheck, CalendarDays, Eye, Pencil, Radio, ReceiptText, PenLine } from 'lucide-react';
 import '../board/board.css';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { AuthContext } from '../../app/AuthContext.jsx';
-import { Badge, Button, Card, EmptyState, ErrorState, LoadingState } from '../../components/ui/index.js';
+import { Badge, Button, Card, EmptyState, ErrorState, LoadingState, Modal } from '../../components/ui/index.js';
+import { homeworkService } from '../../services/firebase/homework.js';
 import { invoicesService } from '../../services/firebase/invoices.js';
 import { lessonsService } from '../../services/firebase/lessons.js';
 import { scheduleService } from '../../services/firebase/schedule.js';
@@ -19,6 +20,7 @@ import StudentForm from './StudentForm.jsx';
 import { LEGACY_TEACHERS } from './studentOptions.js';
 import './studentProfileTabs.css';
 import StudentRecordingsPanel from '../lesson-recording/StudentRecordingsPanel.jsx';
+import { DocWorksheetSubmissionPreview } from '../worksheet-studio/DocWorksheetPlayer.jsx';
 
 const PROFILE_TABS = [
   { id: 'overview', label: 'Ülevaade' },
@@ -27,41 +29,61 @@ const PROFILE_TABS = [
   { id: 'finance', label: 'Finantsid', financeOnly: true },
 ];
 
-export default function StudentProfilePage({ studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, planApi = revenuePlansService, actor }) {
+const WORKSHEET_STATUS = {
+  new: { label: 'Pole alustanud', tone: 'neutral' },
+  in_progress: { label: 'Töötab praegu', tone: 'info' },
+};
+
+function worksheetStatus(item) {
+  if (item.status !== 'done') return WORKSHEET_STATUS[item.status] || { label: item.status || 'Määratud', tone: 'neutral' };
+  return item.reviewStatus === 'reviewed'
+    ? { label: 'Tagasiside antud', tone: 'success' }
+    : { label: 'Ootab kontrolli', tone: 'info' };
+}
+
+function formatWorksheetDate(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? String(value) : new Intl.DateTimeFormat('et-EE', { dateStyle: 'medium', timeStyle: 'short' }).format(date);
+}
+
+export default function StudentProfilePage({ studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, planApi = revenuePlansService, homeworkApi = homeworkService, actor }) {
   const { studentId } = useParams();
   const auth = useContext(AuthContext);
   const currentUser = actor || auth?.user || { roles: [ROLES.ADMIN], displayName: '' };
   const canAssignTeacher = currentUser.roles?.includes(ROLES.ADMIN);
   const canViewFinance = currentUser.roles?.some((role) => [ROLES.ADMIN, ROLES.FINANCE].includes(role));
   const teacherScope = canAssignTeacher ? '' : canonicalTeacherName(currentUser.displayName);
-  const [state, setState] = useState({ loading: true, error: null, forbidden: false, student: null, lessons: [], invoices: [], schedule: [], plan: null });
+  const [state, setState] = useState({ loading: true, error: null, forbidden: false, student: null, lessons: [], invoices: [], schedule: [], worksheets: [], plan: null });
   const [editing, setEditing] = useState(false);
   const [notice, setNotice] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
+  const [reviewingWorksheet, setReviewingWorksheet] = useState(null);
 
   const load = useCallback(async () => {
     setState((current) => ({ ...current, loading: true, error: null }));
     try {
       const student = await studentApi.getById(studentId);
       if (!student) {
-        setState({ loading: false, error: null, forbidden: false, student: null, lessons: [], invoices: [], schedule: [] });
+        setState({ loading: false, error: null, forbidden: false, student: null, lessons: [], invoices: [], schedule: [], worksheets: [], plan: null });
         return;
       }
       if (!canAssignTeacher && !isSameTeacher(student.teacher, teacherScope)) {
-        setState({ loading: false, error: null, forbidden: true, student: null, lessons: [], invoices: [], schedule: [] });
+        setState({ loading: false, error: null, forbidden: true, student: null, lessons: [], invoices: [], schedule: [], worksheets: [], plan: null });
         return;
       }
-      const [lessons, schedule, invoices, plan] = await Promise.all([
+      const [lessons, schedule, worksheets, invoices, plan] = await Promise.all([
         lessonApi.listByStudent(studentId),
         scheduleApi.listByStudent(studentId),
+        homeworkApi.listWorksheetAssignmentsByStudentIds([studentId]),
         canViewFinance ? invoiceApi.listByStudent(studentId) : Promise.resolve([]),
         canViewFinance ? planApi.get(studentId).catch(() => null) : Promise.resolve(null),
       ]);
-      setState({ loading: false, error: null, forbidden: false, student, lessons, invoices, schedule, plan });
+      setState({ loading: false, error: null, forbidden: false, student, lessons, invoices, schedule, worksheets, plan });
     } catch (error) {
       setState((current) => ({ ...current, loading: false, error: new Error(firebaseErrorMessage(error)) }));
     }
-  }, [canAssignTeacher, canViewFinance, invoiceApi, lessonApi, planApi, scheduleApi, studentApi, studentId, teacherScope]);
+  }, [canAssignTeacher, canViewFinance, homeworkApi, invoiceApi, lessonApi, planApi, scheduleApi, studentApi, studentId, teacherScope]);
 
   useEffect(() => { load(); }, [load]);
   useEffect(() => {
@@ -121,6 +143,7 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
 
         {activeTab === 'learning' ? (
           <div className="profile-grid">
+            <Card className="profile-wide"><div className="student-worksheets__heading"><div><h2>Töölehed</h2><p>Õpilase määratud, pooleliolevad ja lõpetatud tööd.</p></div><Badge tone="neutral">{state.worksheets.length}</Badge></div>{state.worksheets.length ? <div className="student-worksheets">{state.worksheets.map((worksheet) => { const status = worksheetStatus(worksheet); const isActive = worksheet.status !== 'done'; return <article className="student-worksheet" key={worksheet.id}><div className="student-worksheet__body"><strong>{worksheet.title}</strong><span>{worksheet.completedAt ? `Lõpetatud ${formatWorksheetDate(worksheet.completedAt)}` : worksheet.assignedAt ? `Määratud ${formatWorksheetDate(worksheet.assignedAt)}` : 'Kuupäev puudub'}</span></div><div className="student-worksheet__meta"><Badge tone={status.tone}>{status.label}</Badge>{worksheet.percentage != null ? <strong>{worksheet.percentage}%</strong> : worksheet.score?.total ? <strong>{worksheet.score.correct}/{worksheet.score.total}</strong> : null}</div>{isActive ? <Link className="button button--secondary student-worksheet__action" to={`/library/worksheets/live/${worksheet.id}`}><Radio size={17} /> {worksheet.status === 'in_progress' ? 'Jälgi otse' : 'Ava töö'}</Link> : <Button variant="secondary" onClick={() => setReviewingWorksheet(worksheet)}><Eye size={17} /> Vaata tööd</Button>}</article>; })}</div> : <EmptyState title="Töölehti ei ole veel määratud" description="Õpilasele määratud töölehed ilmuvad siia automaatselt." />}</Card>
             <Card className="profile-wide"><h2>Viimased tunnid</h2>{state.lessons.length ? <div className="simple-list">{state.lessons.slice(0, 10).map((lesson) => <div key={lesson.id}><div><strong>{lesson.date || 'Kuupäev puudub'} · {lesson.time || ''}</strong><span>{lesson.subject || student.subject}</span></div><Badge tone={lesson.status === 'Tühistatud' ? 'neutral' : 'info'}>{lesson.status || 'Toimunud'}</Badge></div>)}</div> : <EmptyState title="Tunde ei leitud" />}</Card>
             <Card className="profile-wide"><h2>Areng</h2>{progress.length ? <div className="progress-list">{progress.map(([skill, score]) => <div key={skill}><span>{skill}</span><div><i style={{ width: `${Math.max(0, Math.min(100, Number(score) || 0))}%` }} /></div><strong>{score}%</strong></div>)}</div> : <EmptyState title="Oskuste tulemusi ei ole veel salvestatud" />}</Card>
             <StudentRecordingsPanel student={student} user={currentUser} isAdmin={canAssignTeacher} />
@@ -133,6 +156,10 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
           <StudentFinancePanel student={student} invoices={state.invoices} />
         </> : null}
       </div>
+
+      <Modal open={Boolean(reviewingWorksheet)} title={reviewingWorksheet?.title || 'Õpilase töö'} onClose={() => setReviewingWorksheet(null)} className="modal--review" footer={<><Link className="button button--secondary" to={reviewingWorksheet ? `/library/worksheets/live/${reviewingWorksheet.id}` : '#'}><Eye size={17} /> Ava täielik vaade</Link><Button variant="secondary" onClick={() => setReviewingWorksheet(null)}>Sulge</Button></>}>
+        {reviewingWorksheet ? <div className="student-worksheet-review"><div className="student-worksheet-review__summary"><Badge tone={worksheetStatus(reviewingWorksheet).tone}>{worksheetStatus(reviewingWorksheet).label}</Badge>{reviewingWorksheet.completedAt ? <span>Lõpetatud {formatWorksheetDate(reviewingWorksheet.completedAt)}</span> : null}</div>{reviewingWorksheet.worksheetDoc?.blocks?.length ? <DocWorksheetSubmissionPreview worksheetDoc={reviewingWorksheet.worksheetDoc} answers={reviewingWorksheet.answers || {}} annotations={reviewingWorksheet.annotations || []} /> : <EmptyState title="Eelvaade ei ole saadaval" description="Ava töö täielikus vaates, et näha salvestatud vastuseid." />}</div> : null}
+      </Modal>
 
       <StudentForm open={editing} student={student} teachers={[...new Set([...LEGACY_TEACHERS, canonicalTeacherName(student.teacher)].filter(Boolean))]} canAssignTeacher={canAssignTeacher} defaultTeacher={teacherScope} onClose={() => setEditing(false)} onSubmit={async (values) => { const safeValues = canAssignTeacher ? values : { ...values, teacher: student.teacher || teacherScope }; await studentApi.update(student.id, safeValues); await load(); setNotice('Õpilase andmed on salvestatud.'); }} />
     </div>
