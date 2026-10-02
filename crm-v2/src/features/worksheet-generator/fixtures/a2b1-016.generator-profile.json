@@ -1,0 +1,512 @@
+{
+  "schema": "keelesepp.worksheet-generator-profile/1",
+  "version": 1,
+  "lessonId": "a2b1-016",
+  "lessonKind": "grammar",
+  "level": "A2",
+  "title": "Ajamäärused ja päevaplaan",
+  "activeVocabulary": [
+    {
+      "id": "v-hommikul",
+      "word": "hommikul",
+      "translation": "утром",
+      "lexicalType": "adverb",
+      "focusIds": [
+        "time-of-day"
+      ]
+    },
+    {
+      "id": "v-paeval",
+      "word": "päeval",
+      "translation": "днём",
+      "lexicalType": "adverb",
+      "focusIds": [
+        "time-of-day"
+      ]
+    },
+    {
+      "id": "v-ohtul",
+      "word": "õhtul",
+      "translation": "вечером",
+      "lexicalType": "adverb",
+      "focusIds": [
+        "time-of-day"
+      ]
+    },
+    {
+      "id": "v-enne",
+      "word": "enne",
+      "translation": "до / перед",
+      "lexicalType": "adposition",
+      "focusIds": [
+        "before-after"
+      ]
+    },
+    {
+      "id": "v-parast",
+      "word": "pärast",
+      "translation": "после",
+      "lexicalType": "adposition",
+      "focusIds": [
+        "before-after"
+      ]
+    },
+    {
+      "id": "v-koigepealt",
+      "word": "kõigepealt",
+      "translation": "сначала",
+      "lexicalType": "adverb",
+      "focusIds": [
+        "sequence"
+      ]
+    },
+    {
+      "id": "v-siis",
+      "word": "siis",
+      "translation": "затем",
+      "lexicalType": "adverb",
+      "focusIds": [
+        "sequence"
+      ]
+    },
+    {
+      "id": "v-lopuks",
+      "word": "lõpuks",
+      "translation": "в конце",
+      "lexicalType": "adverb",
+      "focusIds": [
+        "sequence"
+      ]
+    },
+    {
+      "id": "v-alates",
+      "word": "alates",
+      "translation": "начиная с",
+      "lexicalType": "adposition",
+      "focusIds": [
+        "from-until"
+      ]
+    },
+    {
+      "id": "v-kuni",
+      "word": "kuni",
+      "translation": "до",
+      "lexicalType": "adposition",
+      "focusIds": [
+        "from-until"
+      ]
+    }
+  ],
+  "focuses": [
+    {
+      "id": "time-of-day",
+      "type": "grammar",
+      "label": "Päevaosad ajamäärusena",
+      "patterns": [
+        "hommikul",
+        "päeval",
+        "õhtul"
+      ],
+      "aliases": [
+        "hommikul, päeval, õhtul"
+      ]
+    },
+    {
+      "id": "before-after",
+      "type": "grammar",
+      "label": "Enne ja pärast",
+      "patterns": [
+        "enne + osastav",
+        "pärast + osastav",
+        "enne kui ...",
+        "pärast seda ..."
+      ],
+      "aliases": [
+        "enne, pärast",
+        "enne / pärast"
+      ]
+    },
+    {
+      "id": "from-until",
+      "type": "grammar",
+      "label": "Alates ja kuni",
+      "patterns": [
+        "alates ...",
+        "kuni ...",
+        "alates kella ... kuni kella ..."
+      ],
+      "aliases": [
+        "alates… kuni…",
+        "alates / kuni"
+      ]
+    },
+    {
+      "id": "sequence",
+      "type": "communication",
+      "label": "Tegevuste järjekord",
+      "patterns": [
+        "kõigepealt ...",
+        "siis ...",
+        "pärast seda ...",
+        "lõpuks ..."
+      ],
+      "aliases": [
+        "kõigepealt, siis, lõpuks"
+      ]
+    }
+  ],
+  "contexts": [
+    {
+      "id": "workday",
+      "label": "Tööpäev",
+      "tags": [
+        "day-plan",
+        "work"
+      ],
+      "names": [
+        "Mari",
+        "Jaan",
+        "Katrin"
+      ],
+      "times": [
+        "07:00",
+        "08:30",
+        "12:30",
+        "17:00",
+        "19:00",
+        "22:30"
+      ]
+    },
+    {
+      "id": "appointment-day",
+      "label": "Arsti ja trenni päev",
+      "tags": [
+        "schedule",
+        "problem-solving"
+      ],
+      "names": [
+        "Anna",
+        "Markus"
+      ],
+      "times": [
+        "09:00",
+        "15:30",
+        "18:00",
+        "20:00"
+      ]
+    },
+    {
+      "id": "weekend",
+      "label": "Nädalavahetus",
+      "tags": [
+        "day-plan",
+        "free-time"
+      ],
+      "names": [
+        "Laura",
+        "Marten"
+      ],
+      "times": [
+        "09:30",
+        "11:00",
+        "14:00",
+        "21:00"
+      ]
+    }
+  ],
+  "banks": {
+    "sentences": [
+      {
+        "id": "s01",
+        "focusIds": [
+          "time-of-day"
+        ],
+        "contextIds": [
+          "workday"
+        ],
+        "difficulty": 1,
+        "text": "Ma ärkan {partOfDay} kell seitse.",
+        "slots": {
+          "partOfDay": [
+            "hommikul"
+          ]
+        }
+      },
+      {
+        "id": "s02",
+        "focusIds": [
+          "before-after"
+        ],
+        "contextIds": [
+          "workday"
+        ],
+        "difficulty": 1,
+        "text": "{marker} tööd söön ma hommikusööki.",
+        "slots": {
+          "marker": [
+            "Enne"
+          ]
+        }
+      },
+      {
+        "id": "s03",
+        "focusIds": [
+          "before-after"
+        ],
+        "contextIds": [
+          "workday"
+        ],
+        "difficulty": 1,
+        "text": "{marker} tööd lähen ma mõnikord trenni.",
+        "slots": {
+          "marker": [
+            "Pärast"
+          ]
+        }
+      },
+      {
+        "id": "s04",
+        "focusIds": [
+          "sequence"
+        ],
+        "contextIds": [
+          "workday"
+        ],
+        "difficulty": 1,
+        "text": "{first} kontrollin ma kalendrit, {next} alustan tööd.",
+        "slots": {
+          "first": [
+            "Kõigepealt"
+          ],
+          "next": [
+            "siis"
+          ]
+        }
+      },
+      {
+        "id": "s05",
+        "focusIds": [
+          "from-until"
+        ],
+        "contextIds": [
+          "workday"
+        ],
+        "difficulty": 2,
+        "text": "Ma töötan {from} kella üheksast {until} kella viieni.",
+        "slots": {
+          "from": [
+            "alates"
+          ],
+          "until": [
+            "kuni"
+          ]
+        }
+      },
+      {
+        "id": "s06",
+        "focusIds": [
+          "sequence"
+        ],
+        "contextIds": [
+          "weekend"
+        ],
+        "difficulty": 2,
+        "text": "{first} teen ma süüa, {next} kohtun sõpradega ja {last} puhkan kodus.",
+        "slots": {
+          "first": [
+            "Kõigepealt"
+          ],
+          "next": [
+            "siis"
+          ],
+          "last": [
+            "lõpuks"
+          ]
+        }
+      },
+      {
+        "id": "s07",
+        "focusIds": [
+          "before-after"
+        ],
+        "contextIds": [
+          "appointment-day"
+        ],
+        "difficulty": 2,
+        "text": "{before} arsti aega pean ma ühe tööülesande lõpetama.",
+        "slots": {
+          "before": [
+            "Enne"
+          ]
+        }
+      },
+      {
+        "id": "s08",
+        "focusIds": [
+          "before-after"
+        ],
+        "contextIds": [
+          "appointment-day"
+        ],
+        "difficulty": 2,
+        "text": "{after} arsti lähen ma otse trenni.",
+        "slots": {
+          "after": [
+            "Pärast"
+          ]
+        }
+      }
+    ],
+    "errorPairs": [
+      {
+        "id": "e01",
+        "focusIds": [
+          "before-after"
+        ],
+        "wrong": "Pärast töö lähen ma koju.",
+        "correct": "Pärast tööd lähen ma koju."
+      },
+      {
+        "id": "e02",
+        "focusIds": [
+          "before-after"
+        ],
+        "wrong": "Enne töö ma joon kohvi.",
+        "correct": "Enne tööd joon ma kohvi."
+      },
+      {
+        "id": "e03",
+        "focusIds": [
+          "from-until"
+        ],
+        "wrong": "Ma töötan alates kell üheksa kuni kell viis.",
+        "correct": "Ma töötan alates kella üheksast kuni kella viieni."
+      }
+    ],
+    "translations": [
+      {
+        "id": "t01",
+        "focusIds": [
+          "time-of-day"
+        ],
+        "sourceLang": "ru",
+        "source": "Я обычно просыпаюсь утром в семь часов.",
+        "target": "Ma ärkan tavaliselt hommikul kell seitse."
+      },
+      {
+        "id": "t02",
+        "focusIds": [
+          "before-after"
+        ],
+        "sourceLang": "ru",
+        "source": "Перед работой я завтракаю.",
+        "target": "Enne tööd söön ma hommikusööki."
+      },
+      {
+        "id": "t03",
+        "focusIds": [
+          "before-after"
+        ],
+        "sourceLang": "ru",
+        "source": "После работы я иногда иду в спортзал.",
+        "target": "Pärast tööd lähen ma mõnikord trenni."
+      },
+      {
+        "id": "t04",
+        "focusIds": [
+          "sequence"
+        ],
+        "sourceLang": "ru",
+        "source": "Сначала я работаю, затем иду на тренировку, а в конце отдыхаю.",
+        "target": "Kõigepealt töötan, siis lähen trenni ja lõpuks puhkan."
+      }
+    ],
+    "dialogues": [
+      {
+        "id": "d01",
+        "focusIds": [
+          "time-of-day",
+          "before-after"
+        ],
+        "contextIds": [
+          "workday"
+        ],
+        "speakers": [
+          "Mari",
+          "Jaan"
+        ],
+        "lines": [
+          {
+            "who": "A",
+            "text": "Mis kell sa tööpäevadel [ärkad]?",
+            "answerAlternatives": [
+              "ärkad"
+            ]
+          },
+          {
+            "who": "B",
+            "text": "Ma ärkan tavaliselt [hommikul] kell seitse.",
+            "answerAlternatives": [
+              "hommikul"
+            ]
+          },
+          {
+            "who": "A",
+            "text": "Mida sa teed [enne] tööle minekut?",
+            "answerAlternatives": [
+              "enne"
+            ]
+          },
+          {
+            "who": "B",
+            "text": "Pärast hommikusööki lähen ma [tööle].",
+            "answerAlternatives": [
+              "tööle"
+            ]
+          }
+        ]
+      }
+    ],
+    "speakingPrompts": [
+      {
+        "id": "sp01",
+        "focusIds": [
+          "sequence"
+        ],
+        "contextIds": [
+          "workday"
+        ],
+        "text": "Kirjelda oma tööpäeva. Kasuta vähemalt kuut ajamarkerit."
+      },
+      {
+        "id": "sp02",
+        "focusIds": [
+          "before-after",
+          "sequence"
+        ],
+        "contextIds": [
+          "appointment-day"
+        ],
+        "text": "Sul on arst kell 15.30 ja trenn kell 18.00. Selgita, mida teed enne arsti, pärast arsti ja lõpuks õhtul."
+      }
+    ],
+    "writingPrompts": [
+      {
+        "id": "w01",
+        "focusIds": [
+          "time-of-day",
+          "sequence"
+        ],
+        "contextIds": [
+          "weekend"
+        ],
+        "text": "Kirjuta 80–100 sõna oma tavalisest nädalavahetusest. Kasuta vähemalt kuut ajamarkerit."
+      }
+    ]
+  },
+  "successCriteria": [
+    "Õpilane kirjeldab päevaplaani vähemalt kuue ajamarkeriga.",
+    "Õpilane kasutab enne ja pärast sobivas vormis.",
+    "Õpilane väljendab tegevuste järjekorda arusaadavalt."
+  ]
+}

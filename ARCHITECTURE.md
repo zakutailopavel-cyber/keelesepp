@@ -452,3 +452,17 @@ conversation, so a client cannot substitute an arbitrary recipient ID. Facebook 
 `META_PAGE_ACCESS_TOKEN`; Instagram uses its Instagram Send API with `META_INSTAGRAM_ACCESS_TOKEN`.
 `META_VERIFY_TOKEN` and `META_APP_SECRET` are also server-only Firebase Function secrets. No migration, Firestore
 index, or rules change is required. See `docs/COMMUNICATION_HUB_V1.md`.
+
+## Deterministic Worksheet Generator
+
+The worksheet generator is a pure client-side content compiler under
+`crm-v2/src/features/worksheet-generator/engine/`. It combines a versioned lesson profile, structured focus IDs,
+curated content banks, level-safe vocabulary and a string seed into ordinary `keelesepp.worksheet/2` documents.
+It reuses the current Worksheet Studio block registry and renderer; it has no Firebase, network, AI-provider,
+timestamp or unseeded-random dependency. Generator metadata remains outside the worksheet document.
+
+Future persistence uses child records under `curriculumLessons/{lessonId}/worksheets/{worksheetId}` and leaves the
+legacy root worksheet contract intact. Published child sheets continue through the existing immutable
+`worksheetAssignments` snapshot. Real-time teacher guidance reuses `LiveWorksheetView`, `liveFocus.blockId` and the
+same assignment document inside Live Classroom. Student-profile work history must query those assignments rather
+than copying answers or results into `students`. See `docs/WORKSHEET_GENERATOR_V1.md`.
