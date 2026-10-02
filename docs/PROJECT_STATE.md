@@ -1,5 +1,21 @@
 # KeeleSepp Project State
 
+## 2026-10-02 — Calendar deletion + worksheet prompt hotfix — RELEASED, PR pending
+
+Owner explicitly requested immediate release of both reported fixes. Combined branch
+`codex/release-calendar-worksheet-fixes` is based on fresh `origin/main` `3517dd8` and contains the calendar
+recent-past tombstone reconciliation plus the normal (not struck-through) `Leia ja paranda viga` prompt.
+
+Combined verification: Functions 213/213; CRM Vitest 107 files / 540 tests; ESLint; production build; diff check.
+Firebase selectively deployed only `gcalApi` and `syncAllCalendars` to `keelesepp-5136b`; both completed
+successfully on Node.js 22. Vercel deployment `dpl_CL3KkoPhxLcZ6rLF4x4G8C7b6HCF` reached READY and was promoted
+to production. `https://crm.epkoolitus.ee/` returned HTTP 200 with the deployment assets
+`index-BuJxx6AY.js` and `index-D3iGQ4kB.css`; both contain `ws-fix-prompt`, and the obsolete `.ws-fix s` CSS rule
+is absent. An authenticated real-domain browser loaded the Worksheet Studio and all 32 blocks. No rules, indexes,
+migration or direct production-data edit. Known gate: the user-reported stale calendar record is removed by the next
+manual or hourly successful Google sync. Exactly one next safe step: open a draft PR for source review; do not merge
+without the owner.
+
 ## 2026-10-02 — Google Calendar recent-past deletion reconciliation — local branch
 
 Checked against fresh `origin/main` `3517dd8` on 2026-10-02; open PRs #230 and #233 are release-documentation
