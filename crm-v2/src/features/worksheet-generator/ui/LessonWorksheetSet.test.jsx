@@ -35,6 +35,11 @@ describe('LessonWorksheetSet', () => {
     await waitFor(() => expect(repository.saveDraft).toHaveBeenCalledTimes(3));
     expect(repository.saveDraft.mock.calls.map(([input]) => input.worksheetId)).toEqual(['discover', 'practice', 'transfer']);
     expect(new Set(repository.saveDraft.mock.calls.map(([input]) => JSON.stringify(input.worksheetDoc))).size).toBe(3);
+    repository.saveDraft.mock.calls.forEach(([input]) => {
+      expect(input.generation.variant).toBe(1);
+      expect(input.generation.didacticPlanVersion).toBe(1);
+      expect(input.generation.activityIds).toHaveLength(5);
+    });
     expect(await screen.findByRole('status')).toHaveTextContent('Kolm erinevat töölehte');
     expect(await screen.findAllByRole('link', { name: /Ava konstruktoris/ })).toHaveLength(3);
   });
