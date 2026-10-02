@@ -1,6 +1,6 @@
 # KeeleSepp Project State
 
-## 2026-10-02 — Deterministic Worksheet Generator core — draft PR branch `codex/worksheet-generator-core`
+## 2026-10-02 — Deterministic Worksheet Generator core — draft PR #236 (`codex/worksheet-generator-core`)
 
 Checked fresh `origin/main` `3517dd8866425e70aad87dd7e2e5a56de4769cd9` and open PRs #230, #233, #234 and
 #235. PR #234 overlaps Worksheet Studio presentation and shared documentation, so this slice does not edit its block
@@ -25,7 +25,7 @@ See `docs/WORKSHEET_GENERATOR_V1.md`.
 Final verification: focused generator Vitest 7/7, full CRM Vitest 108 files / 546 tests, ESLint clean, production
 build passed with the existing large-chunk warning, and `git diff --check` passed. The reference profile is
 byte-identical to the supplied package example. No production or external service was used. Exactly one next safe
-step: review and merge the pure-core draft PR before starting child-sheet persistence.
+step: review and merge draft PR #236 before starting child-sheet persistence.
 
 ## 2026-10-02 — Known test failures fixed, Kontrolltöö label — PR (branch `agent/fix-known-failures`)
 
