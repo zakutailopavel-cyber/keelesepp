@@ -31,6 +31,7 @@ describe('LessonWorksheetSet', () => {
     };
     renderPage(repository);
     await screen.findByRole('heading', { name: 'Ajamäärused ja päevaplaan' });
+    fireEvent.change(screen.getByLabelText('Töölehtede raskus'), { target: { value: 'challenge' } });
     fireEvent.click(screen.getByRole('button', { name: /Genereeri 3 töölehte/ }));
     await waitFor(() => expect(repository.saveDraft).toHaveBeenCalledTimes(3));
     expect(repository.saveDraft.mock.calls.map(([input]) => input.worksheetId)).toEqual(['discover', 'practice', 'transfer']);
@@ -39,6 +40,8 @@ describe('LessonWorksheetSet', () => {
       expect(input.generation.variant).toBe(1);
       expect(input.generation.didacticPlanVersion).toBe(1);
       expect(input.generation.activityIds).toHaveLength(5);
+      expect(input.generation.difficulty).toBe('challenge');
+      expect(input.generation.lessonDna).toMatchObject({ lessonId: 'a2b1-016', difficulty: 'challenge', variant: 1 });
     });
     expect(await screen.findByRole('status')).toHaveTextContent('Kolm erinevat töölehte');
     expect(await screen.findAllByRole('link', { name: /Ava konstruktoris/ })).toHaveLength(3);
