@@ -12,10 +12,9 @@ Storage CORS, 54 unmatched Google events, APP_BASE_URL, „Minu tööpäev”, p
 - `libraryModel.curriculumType`: a Kontrolltöö with a constructor worksheet is labelled „Kontrolltöö” again (since #228
   it showed „Tööleht”); `library.assign` sends any record with a `worksheetDoc` as an interactive worksheet, so the
   assignment behaviour is unchanged. Tests added.
-- Section headings below updated: #219–#225 released; #227, #228, #229 merged, waiting for the release.
+- Section headings below updated: #219–#225 released; #227, #228, #229, #231 merged, waiting for the release.
 
-## 2026-10-01 — Worksheet draft regression repair — MERGED (#228, a71b66b), release pending
-## 2026-10-02 — Live Classroom: full-screen lesson room (owner's design photo) + board rules fix — PR (branch `agent/live-room-redesign`)
+## 2026-10-02 — Live Classroom: full-screen lesson room (owner's design photo) + board rules fix — MERGED (#231, 297e79e), release pending (rules + CRM)
 
 Checked against main `240e09c`. Owner sent a photo of how the lesson must look: top bar (back, menu, "Tund — date",
 undo/redo, subject, timer + signal, mic/camera/screen/hang-up, more, participants, chat, Materjalid, Ülesanded), a
@@ -52,7 +51,7 @@ the bottom, a colour/size panel on the right and the zoom at the bottom left. Bu
 - Release: merge + `firebase deploy --only firestore:rules` (for materials and lesson pages) + Vercel `keelesepp-crm-v2`.
 - Limits: no pinch-zoom on phones (buttons instead); chat is the Suhtlus conversation; TURN server still missing.
 
-## 2026-10-01 — Worksheet draft regression repair — DRAFT PR #228, branch `agent/worksheet-draft-fix`
+## 2026-10-01 — Worksheet draft regression repair — MERGED (#228, a71b66b), release pending
 
 Fresh main: `9fda4b9df487696b59cbe1847ab3ce08e1bed7c6` (2026-10-01). PR #227 was merged with the owner's explicit
 permission; GitHub confirmed merged=true. No open PRs before this task. Task 1 is isolated in draft PR #228: https://github.com/zakutailopavel-cyber/keelesepp/pull/228.
