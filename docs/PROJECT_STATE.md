@@ -1,5 +1,31 @@
 # KeeleSepp Project State
 
+## 2026-10-02 — Generator child-sheet persistence — draft (`codex/worksheet-generator-persistence`)
+
+Checked fresh `origin/main` `4be6e0fd76b11cc128c344489ba1734a2348fba6` after PR #236 was merged and
+released to Vercel production. Open PRs #230, #233, #234 and #235 remain separate. This slice implements only the
+second generator milestone: child-sheet persistence, rules and tests; it adds no generator UI, route, assignment
+change, migration or production Firebase action.
+
+Added `lessonWorksheetsService` for `curriculumLessons/{lessonId}/worksheets/{worksheetId}`. Stable core IDs
+`discover`, `practice` and `transfer` persist independently. Save/publish uses one Firestore transaction, verifies the
+parent lesson, rejects stale `worksheetDocUpdatedAt`, increments the child version, and appends immutable
+`worksheetVersions/{lessonId}_{worksheetId}_studio_v{version}` history. Publishing snapshots the exact current v2
+document; a later draft preserves that published snapshot. Generation metadata remains outside `worksheetDoc`.
+The service never writes the legacy root `curriculumLessons.worksheetDoc` fields.
+
+Rules now explicitly allow signed-in reads and staff-only create/update/delete for the child collection; top-level
+version records remain create-only for staff and immutable. New emulator coverage verifies teacher access, learner
+read-only access, anonymous denial, immutable versions and unchanged legacy lesson data.
+
+Checks: focused service Vitest 8/8; full CRM Vitest 109 files / 554 tests; Functions unit tests 212/212; production
+build passed with the existing large-chunk warning; ESLint and `git diff --check` passed. The focused Auth/Firestore
+emulator test passed 5/5, and the complete rules/Functions emulator command passed 45/45 including finance, learning,
+Live Classroom and whiteboard regression coverage. Emulator startup emitted the existing local SMTP secret warning;
+the suite still passed without using a production secret. No production database, rules or external service was
+changed in this slice. Exactly one next safe step: open the draft PR for review before any UI integration or Firebase
+rules deployment.
+
 ## 2026-10-02 — Deterministic Worksheet Generator core — draft PR #236 (`codex/worksheet-generator-core`)
 
 Checked fresh `origin/main` `3517dd8866425e70aad87dd7e2e5a56de4769cd9` and open PRs #230, #233, #234 and

@@ -461,8 +461,11 @@ curated content banks, level-safe vocabulary and a string seed into ordinary `ke
 It reuses the current Worksheet Studio block registry and renderer; it has no Firebase, network, AI-provider,
 timestamp or unseeded-random dependency. Generator metadata remains outside the worksheet document.
 
-Future persistence uses child records under `curriculumLessons/{lessonId}/worksheets/{worksheetId}` and leaves the
-legacy root worksheet contract intact. Published child sheets continue through the existing immutable
-`worksheetAssignments` snapshot. Real-time teacher guidance reuses `LiveWorksheetView`, `liveFocus.blockId` and the
+Generated lesson worksheets use child records under `curriculumLessons/{lessonId}/worksheets/{worksheetId}` and leave
+the legacy root worksheet contract intact. `lessonWorksheetsService` saves each draft or publication in a Firestore
+transaction, rejects a stale `worksheetDocUpdatedAt`, and appends an immutable top-level `worksheetVersions` record
+whose ID includes both the lesson and child worksheet. A draft keeps the last published snapshot unchanged. Signed-in
+users may read child sheets; only staff may create, update or delete them. Published child sheets continue through the
+existing immutable `worksheetAssignments` snapshot. Real-time teacher guidance reuses `LiveWorksheetView`, `liveFocus.blockId` and the
 same assignment document inside Live Classroom. Student-profile work history must query those assignments rather
 than copying answers or results into `students`. See `docs/WORKSHEET_GENERATOR_V1.md`.

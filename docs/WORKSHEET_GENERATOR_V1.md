@@ -31,9 +31,11 @@ Blocking quality diagnostics stop future persistence. The core rejects unsupport
 
 This slice does not add a route, button, Firebase service, collection, rule, migration, assignment or deployment.
 
-## Planned persistence and authoring boundary
+## Child-sheet persistence boundary
 
-Later slices store child sheets under `curriculumLessons/{lessonId}/worksheets/{worksheetId}`. Stable core IDs are `discover`, `practice` and `transfer`; focus sheets use their own IDs. The legacy root `worksheetDoc` contract stays untouched. Generated sheets begin as drafts, open in the existing Worksheet Studio, and never overwrite manual or published work silently.
+`lessonWorksheetsService` stores child sheets under `curriculumLessons/{lessonId}/worksheets/{worksheetId}`. Stable core IDs are `discover`, `practice` and `transfer`; focus sheets use their own IDs. The legacy root `worksheetDoc` contract stays untouched. Generated sheets begin as drafts and never overwrite manual or published work silently. Each transaction checks the loaded `worksheetDocUpdatedAt`, increments the version, writes an immutable `{lessonId}_{worksheetId}_studio_v{version}` history record, and keeps the last published snapshot when a newer draft is saved.
+
+Firestore permits signed-in users to read these lesson materials and restricts child-sheet writes to staff. Existing `worksheetVersions` remain staff-readable/create-only and cannot be updated or deleted. The shared Worksheet Studio child route and teacher controls belong to the next UI slice.
 
 Assignment continues to snapshot the selected published worksheet in `worksheetAssignments`. The source record will retain child-sheet identity and version for traceability; the student player continues reading the immutable assignment snapshot.
 
@@ -61,7 +63,7 @@ The current `StudentProfilePage` does not yet load `worksheetAssignments`; addin
 ## Rollout order
 
 1. Pure generator core and reference profile.
-2. Child-sheet draft/publish/version persistence and rules.
+2. Child-sheet draft/publish/version persistence and rules. (implemented)
 3. Teacher generation UI and shared Worksheet Studio route.
 4. Assignment source traceability, live entry points and student-profile work history.
 5. Profile coverage expanded in data-only roadmap slices.
