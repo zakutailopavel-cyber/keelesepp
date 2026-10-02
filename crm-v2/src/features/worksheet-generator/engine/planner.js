@@ -1,4 +1,4 @@
-import { activitiesForPhase } from './activityCatalog.js';
+import { activitiesForPhase, activityById } from './activityCatalog.js';
 import { orderActivitiesByDifficulty } from './difficulty.js';
 import { normalizeLessonKind } from './lessonKind.js';
 import { shuffleSeeded } from './seed.js';
@@ -163,6 +163,56 @@ export function planLessonActivities({
     diagnostics.push(...plan.diagnostics);
   });
   return { phases, diagnostics };
+}
+
+
+export function replacementActivityCandidates({
+  phase,
+  profile = {},
+  lessonKind = 'integrated',
+  difficulty = 'core',
+  seed = 'worksheet',
+  currentActivityId,
+  usedActivityIds = [],
+} = {}) {
+  const current = activityById(currentActivityId);
+  if (!current || current.phase !== phase) {
+    return {
+      activityIds: [],
+      diagnostics: [diagnostic('error', 'REGENERATION_SOURCE_UNKNOWN', 'Valitud genereeritud ülesande lähteaktiivsust ei leitud.', { phase, activityId: currentActivityId })],
+    };
+  }
+
+  const normalizedKind = normalizeLessonKind(lessonKind);
+  const eligible = eligibleActivities({ phase, profile, lessonKind: normalizedKind });
+  const shuffled = shuffleSeeded(eligible, `${seed}:${phase}:replacement`);
+  const ordered = orderActivitiesByDifficulty(shuffled, { level: profile?.level, mode: difficulty, phase, seedOrder: shuffled });
+  const used = new Set((usedActivityIds || []).filter(Boolean));
+  const requiredTags = new Set(PHASE_REQUIREMENTS[phase] || []);
+  const protectedTags = (current.tags || []).filter((tag) => requiredTags.has(tag));
+  const currentSkills = new Set(current.skills || []);
+  const primarySkill = current.skills?.[0] || '';
+
+  const compatible = ordered.filter((candidate) =>
+    candidate.id !== current.id &&
+    protectedTags.every((tag) => (candidate.tags || []).includes(tag)));
+
+  const buckets = [
+    compatible.filter((candidate) => !used.has(candidate.id) && primarySkill && candidate.skills?.[0] === primarySkill),
+    compatible.filter((candidate) => !used.has(candidate.id) && (candidate.skills || []).some((skill) => currentSkills.has(skill))),
+    compatible.filter((candidate) => !used.has(candidate.id)),
+    compatible.filter((candidate) => primarySkill && candidate.skills?.[0] === primarySkill),
+    compatible.filter((candidate) => (candidate.skills || []).some((skill) => currentSkills.has(skill))),
+    compatible,
+  ];
+
+  const result = [];
+  buckets.flat().forEach((candidate) => {
+    if (!result.includes(candidate.id)) result.push(candidate.id);
+  });
+  result.push(current.id);
+
+  return { activityIds: result, diagnostics: [] };
 }
 
 export function catalogReadiness(profile = {}, lessonKind = 'integrated') {
