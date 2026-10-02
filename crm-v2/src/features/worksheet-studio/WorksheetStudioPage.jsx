@@ -43,6 +43,8 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   const [loadError, setLoadError] = useState('');
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
+  const [generation, setGeneration] = useState(null);
   const [notice, setNotice] = useState('');
   const [saveError, setSaveError] = useState('');
   const [mode, setMode] = useState('edit');
@@ -77,6 +79,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
       setDraftRestored(restored);
       setDirty(restored);
       setSource('new');
+      setGeneration(null);
       return undefined;
     }
     repository.load(lessonId)
@@ -89,6 +92,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
         setDraftRestored(restored);
         setDirty(restored);
         setSource(res.source);
+        setGeneration(res.generation || null);
         setBaseUpdatedAt(res.baseUpdatedAt || '');
         setWorksheetStatus(res.status || 'draft');
         setVersion(Number(res.version) || 0);
@@ -167,6 +171,33 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   const setBlocks = (blocks) => change({ ...doc, blocks });
   const selected = doc.blocks.find((b) => b.id === selectedId);
   const updateBlock = (nb) => setBlocks(doc.blocks.map((b) => (b.id === nb.id ? nb : b)));
+  const canRegenerateSelected = Boolean(
+    selected &&
+    generation &&
+    typeof repository.regenerateBlock === 'function' &&
+    /^gen_(discover|practice|transfer)_\d+$/.test(String(selected.id || '')),
+  );
+  const regenerateSelected = async () => {
+    if (!canRegenerateSelected || regenerating) return;
+    setRegenerating(true);
+    setSaveError('');
+    try {
+      const result = await repository.regenerateBlock({
+        document: doc,
+        blockId: selected.id,
+        generation,
+      });
+      if (!result?.block) throw new Error('Uut ülesandevarianti ei saanud luua.');
+      updateBlock(result.block);
+      setNotice(result.mode === 'activity'
+        ? 'Ülesanne asendati sama fookuse ja raskusega teise ülesandetüübiga.'
+        : 'Ülesande sisu genereeriti uuesti sama fookuse ja raskusega.');
+    } catch (error) {
+      setSaveError(error.message || 'Ülesande uuesti genereerimine ebaõnnestus.');
+    } finally {
+      setRegenerating(false);
+    }
+  };
   const resizeBlock = (id, patch) => {
     const block = doc.blocks.find((b) => b.id === id);
     if (!block) return;
@@ -402,10 +433,20 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
           {mode === 'edit' && (
             <aside className="st-inspector" aria-label="Seaded">
               {selected ? (
-                <BlockInspector key={selected.id} block={selected} doc={doc} update={updateBlock}
-                  onDelete={() => deleteBlock(selected.id)}
-                  onDuplicate={() => { const copy = { ...structuredClone(selected), id: newId() }; const i = doc.blocks.findIndex((b) => b.id === selected.id); const next = [...doc.blocks]; next.splice(i + 1, 0, copy); setBlocks(next); setSelectedId(copy.id); }}
-                  onMove={(dir) => moveBlock(selected.id, dir)} />
+                <>
+                  {canRegenerateSelected && (
+                    <div className="st-regenerate">
+                      <div><Icons.Sparkles size={16} aria-hidden="true" /><span><b>Genereeritud ülesanne</b><small>Sama fookus ja raskus; võimalusel teine ülesandetüüp, alati uus sisu.</small></span></div>
+                      <button type="button" className="ed-btn" onClick={regenerateSelected} disabled={regenerating}>
+                        {regenerating ? 'Genereerin…' : 'Genereeri uus variant'}
+                      </button>
+                    </div>
+                  )}
+                  <BlockInspector key={selected.id} block={selected} doc={doc} update={updateBlock}
+                    onDelete={() => deleteBlock(selected.id)}
+                    onDuplicate={() => { const copy = { ...structuredClone(selected), id: newId() }; const i = doc.blocks.findIndex((b) => b.id === selected.id); const next = [...doc.blocks]; next.splice(i + 1, 0, copy); setBlocks(next); setSelectedId(copy.id); }}
+                    onMove={(dir) => moveBlock(selected.id, dir)} />
+                </>
               ) : (
                 <SheetInspector doc={doc} setMeta={(patch) => change({ ...doc, meta: { ...doc.meta, ...patch } })} />
               )}
