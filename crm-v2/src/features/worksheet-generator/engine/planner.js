@@ -39,6 +39,7 @@ function requirementAvailable(profile, requirement) {
     case 'speakingOrSuccess': return countBank(profile, 'speakingPrompts') >= 1 || (profile?.successCriteria || []).length >= 1;
     case 'writingOrSuccess': return countBank(profile, 'writingPrompts') >= 1 || (profile?.successCriteria || []).length >= 1;
     case 'writingPrompts': return countBank(profile, 'writingPrompts') >= 1;
+    case 'formalLetterPrompt': return countBank(profile, 'formalLetterPrompts') >= 1;
     case 'successCriteria': return (profile?.successCriteria || []).length >= 1;
     case 'contextTimes': return (profile?.contexts || []).some((context) => (context.times || []).length >= 3);
     default: return false;
@@ -62,7 +63,7 @@ function levelFits(activity, level) {
 
 function lessonKindFits(activity, lessonKind) {
   const kinds = activity.lessonKinds || [];
-  return !kinds.length || kinds.includes(lessonKind) || kinds.includes('integrated');
+  return !kinds.length || kinds.includes(lessonKind);
 }
 
 function eligibleActivities({ phase, profile, lessonKind }) {
