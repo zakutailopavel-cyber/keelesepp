@@ -15,6 +15,7 @@ export { liveLessonCallSignalsService } from './liveLessonCallSignals.js';
 export { liveLessonPresenceService, presenceIsFresh } from './liveLessonPresence.js';
 export { liveLessonWhiteboardService } from './liveLessonWhiteboard.js';
 export { worksheetDocsService } from './worksheetDocs.js';
+export { lessonWorksheetsService } from './lessonWorksheets.js';
 export { homeworkService } from './homework.js';
 export { petsService } from './pets.js';
 export { lessonsService } from './lessons.js';

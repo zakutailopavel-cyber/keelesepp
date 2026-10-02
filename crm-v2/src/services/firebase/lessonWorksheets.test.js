@@ -32,6 +32,11 @@ function transactionWith(current = null) {
 describe('lessonWorksheetsService', () => {
   beforeEach(() => vi.clearAllMocks());
 
+  it('loads the curriculum lesson that owns the child sheets', async () => {
+    firestore.getDoc.mockResolvedValue({ exists: () => true, id: 'lesson-1', data: () => ({ title: 'Tund' }) });
+    await expect(lessonWorksheetsService.loadLesson('lesson-1')).resolves.toEqual({ id: 'lesson-1', title: 'Tund' });
+  });
+
   it.each([
     ['discover', 1],
     ['practice', 2],
@@ -46,10 +51,10 @@ describe('lessonWorksheetsService', () => {
   });
 
   it('increments a matching draft and snapshots generation metadata in its immutable version', async () => {
-    const current = { worksheetDocUpdatedAt: 'base', worksheetDocVersion: 2, createdAt: 'created', createdBy: 'teacher-1', generation: { generatorVersion: '1.0.0', seed: 'fixed' } };
+    const current = { worksheetDocUpdatedAt: 'base', worksheetDocVersion: 2, createdAt: 'created', createdBy: 'teacher-1', slot: 2, source: 'manual', generation: { generatorVersion: '1.0.0', seed: 'fixed' } };
     const set = transactionWith(current);
     const result = await lessonWorksheetsService.saveDraft({ lessonId: 'lesson-1', worksheetId: 'practice', role: 'practice', slot: 2, worksheetDoc: sampleDocument(), user, baseUpdatedAt: 'base' });
-    expect(result).toMatchObject({ worksheetDocVersion: 3, createdAt: 'created', generation: current.generation });
+    expect(result).toMatchObject({ worksheetDocVersion: 3, createdAt: 'created', slot: 2, source: 'manual', generation: current.generation });
     expect(set.mock.calls[1][1]).toMatchObject({ worksheetId: 'practice', version: 3, status: 'draft', generation: current.generation });
   });
 

@@ -1,5 +1,27 @@
 # KeeleSepp Project State
 
+## 2026-10-02 — Generator teacher UI — draft PR #238 (`codex/worksheet-generator-ui`)
+
+Checked fresh `origin/main` `a5a11f4aa320337aebc3a80a183c8ef050bf46a5` after PR #237 was merged and its
+Firestore rules and Vercel production release were verified. This third bounded slice adds the teacher generation UI
+and shared child-sheet editor route only; assignment traceability, student profile history and additional lesson
+profiles remain later work.
+
+The Õppevara lesson dialog now opens `Tunni töölehed`. The reference lesson `a2b1-016` can generate exactly three
+deterministic draft records (`discover`, `practice`, `transfer`) and shows Avasta/Harjuta/Kasuta cards with lifecycle,
+block count, version and update time. Re-generation requires explicit confirmation and saves a new draft version while
+the persistence layer keeps any published snapshot. Unsupported lessons fail closed with a clear message. Each card
+opens the existing Worksheet Studio through a child-sheet repository adapter; save, publish and immutable history are
+scoped to that exact child record. The legacy `/library/worksheets/:lessonId` route remains unchanged.
+
+Verification so far: focused UI/service/studio Vitest 3 files / 22 tests; full CRM Vitest 110 files / 557 tests;
+ESLint and production build passed (existing large-chunk warning). React review: independent lesson/sheet reads run in
+parallel, static card metadata is module-scoped, the adapter is memoized by primitive route IDs, no editor/renderer is
+duplicated, and unsupported content is not fetched or generated. No production action or external generation service
+was used. The local Vite server started, but the required `agent-browser` executable is unavailable on this host, so
+no authenticated desktop/mobile browser claim is made. Exactly one next safe step: open a draft PR and use its Vercel
+preview for the pending visual verification.
+
 ## 2026-10-02 — Generator child-sheet persistence — draft PR #237 (`codex/worksheet-generator-persistence`)
 
 Checked fresh `origin/main` `4be6e0fd76b11cc128c344489ba1734a2348fba6` after PR #236 was merged and
