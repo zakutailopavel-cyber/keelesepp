@@ -20,8 +20,9 @@ migration, Function, Vercel or production-data change. Checks: Firestore product
 rules successfully; focused CRM student-query tests 5/5 passed; Functions unit suite 212/212 passed;
 `git diff --check` passed. The intended focused Firestore emulator regression is added but could not run on this Mac because
 Firebase Emulator requires Java and no Java runtime is installed; two launch attempts stopped before any emulator
-or test code ran. Exactly one next safe step: owner explicitly approves the production `firestore:rules` deploy,
-then reload and verify Anhelina's teacher dashboard; no CRM redeploy is needed.
+or test code ran. With explicit owner approval, `firestore:rules` was deployed to Firebase project
+`keelesepp-5136b` on 2026-10-02; Firebase confirmed successful compilation, upload and release. No CRM redeploy or
+production-data change was made. Remaining live verification: reload Angelina's teacher dashboard and confirm it loads.
 
 ## 2026-10-02 — Known test failures fixed, Kontrolltöö label — PR (branch `agent/fix-known-failures`)
 
