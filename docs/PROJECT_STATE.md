@@ -1,5 +1,27 @@
 # KeeleSepp Project State
 
+## 2026-10-02 — Per-task worksheet regeneration — stacked draft PR #241 (`agent/lesson-engine-task-regeneration-v1`)
+
+Stacked on #240. This slice adds deterministic regeneration of one selected generated task inside the existing
+Worksheet Studio. It keeps the shared worksheet renderer/editor, child-sheet persistence model and
+`keelesepp.worksheet/2` document contract unchanged. No Firestore rule, Function, production data or AI/provider
+dependency was added.
+
+The replacement planner prefers another compatible activity with the same skill while preserving required didactic
+tags, falling back to fresh content of the current activity only when necessary. Block identity and layout are
+preserved, exact duplicates and invalid scored output are rejected, and unsupported/manual blocks fail closed.
+Regeneration uses ordinary editor history, is undoable, and does not write Firestore until the teacher presses Save.
+`contextId` is now stored for new generated child sheets; old sheets derive it from their deterministic seed.
+
+Verification: final code head `433ad9a6775ddf7244a33c1652fdc8fc67742b3e` passed GitHub `CRM v2` run 324
+(lint, production build, 114 Vitest files / 568 tests and security-regression emulator suite) and separate `CRM v2 CI`
+run 253 (114 files / 568 tests, lint and build). Vercel preview deployment
+`dpl_8g2rzeJ4qMf8f18CE6E4nrAMSWxo` is READY. No production deployment was triggered. No authenticated visual-browser
+claim is made because the required local `agent-browser` executable is unavailable in this runtime.
+
+Exactly one next safe step: review #241 after #240; the teacher UI for standalone focus worksheets is kept in a
+separate stacked slice.
+
 ## 2026-10-02 — Lesson DNA + difficulty engine — stacked draft PR #240 (`agent/lesson-engine-dna-difficulty-v1`)
 
 Stacked on the verified didactic-planner PR #239 and synchronized with its current head. This bounded slice adds the
