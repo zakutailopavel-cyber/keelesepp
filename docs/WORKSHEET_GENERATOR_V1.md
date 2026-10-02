@@ -129,6 +129,28 @@ Storage load failures are non-blocking for an otherwise valid curated profile. T
 audit is limited, while the thematic profile can still generate. Saved generation trace records only the lexicon
 source and word count outside `worksheetDoc`, not a copy of the shared vocabulary.
 
+## Lesson-embedded Generator Content Packs
+
+Generator coverage is no longer limited to profiles imported from source code. Staff can author a bounded
+`generatorProfile` directly on `curriculumLessons/{lessonId}`. The same sanitizer and readiness path is used for
+embedded packs and the reference fixture: known fields are normalized, unknown fields are discarded, source arrays
+are capped and profile size is additionally limited by the Firebase write adapter.
+
+Readiness is not a separate UI checklist. It calls the actual Activity Catalog / Didactic Planner and requires the
+content pack to support five activities in Avasta, Harjuta and Kasuta together with minimum focus, vocabulary,
+context, sentence and success-criteria sources. Incomplete packs may be saved as drafts. A ready embedded pack wins
+over the code registry; an incomplete embedded draft does not disable an already verified static fallback.
+
+The teacher editor uses structured `::` rows for focuses, target vocabulary, contexts, sentence templates, error
+pairs, translations and productive prompts. Sentence rows retain optional slot JSON; the dialogue bank is available
+as a smaller advanced JSON section. IDs are preserved so existing slots, focus patterns/aliases and dialogue content
+survive ordinary edits. New packs can be scaffolded from roadmap lesson metadata but thematic vocabulary and natural
+sentence/content banks remain curated rather than guessed from the lesson title.
+
+Persistence is transactional on the existing curriculum lesson document and stores revision, updated-at/by metadata
+with stale-editor conflict detection. No new Firestore collection or rule is required. The worksheet document and
+assignment contracts are unchanged.
+
 ## Child-sheet persistence boundary
 
 `lessonWorksheetsService` stores child sheets under `curriculumLessons/{lessonId}/worksheets/{worksheetId}`. Stable core IDs are `discover`, `practice` and `transfer`; focus sheets use their own IDs. The legacy root `worksheetDoc` contract stays untouched. Generated sheets begin as drafts and never overwrite manual or published work silently. Each transaction checks the loaded `worksheetDocUpdatedAt`, increments the version, writes an immutable `{lessonId}_{worksheetId}_studio_v{version}` history record, and keeps the last published snapshot when a newer draft is saved.
@@ -174,7 +196,8 @@ The current `StudentProfilePage` does not yet load `worksheetAssignments`; addin
 6. Per-task deterministic regeneration in Worksheet Studio. (stacked draft PR #241)
 7. Standalone focus worksheet teacher flow. (stacked draft PR #242)
 8. Existing Firebase Storage CEFR lexicon adapter and audit. (stacked draft PR #243)
-9. Assignment source traceability, live entry points and student-profile work history.
-10. Profile coverage expanded through lesson-embedded curated content packs.
+9. Lesson-embedded Generator Content Pack authoring and readiness. (stacked draft PR #244)
+10. Assignment source traceability, live entry points and student-profile work history.
+11. Curriculum coverage expansion becomes a content-authoring operation, not a code rollout.
 
 No unsupported lesson is presented as generatable. No production deployment is part of PR 1.
