@@ -1,4 +1,4 @@
-import { ArrowLeft, Database, FilePenLine, RefreshCw, Sparkles, Target } from 'lucide-react';
+import { ArrowLeft, BarChart3, Database, FilePenLine, RefreshCw, Sparkles, Target } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../../../app/AuthContext.jsx';
@@ -203,6 +203,7 @@ export default function LessonWorksheetSet({ repository = lessonWorksheetsServic
         description="Avasta loob konteksti, Harjuta kinnistab täpsust ja Kasuta viib õpitu rääkimisse või kirjutamisse."
         actions={(
           <div className="generator-actions">
+            <Link className="button button--secondary" to="/library/worksheet-generator"><BarChart3 size={17} /> Katvus</Link>
             <Button variant="secondary" onClick={() => setProfileEditing((value) => !value)} disabled={anyBusy}><Database size={17} /> Generaatori sisu</Button>
             <label className="generator-difficulty"><span>Raskus</span><select aria-label="Töölehtede raskus" value={difficulty} onChange={(event) => setDifficulty(event.target.value)} disabled={anyBusy}><option value="support">Support</option><option value="core">Core</option><option value="challenge">Challenge</option></select></label>
             <Button onClick={generate} loading={busy} disabled={!profile || focusBusy || profileBusy}><Sparkles size={17} /> {coreSheets.length ? 'Genereeri uus variant' : 'Genereeri 3 töölehte'}</Button>
