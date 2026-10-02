@@ -1985,13 +1985,12 @@ service cloud.firestore {
       return isAdmin() || (isTeacher() && whiteboardAccessAllowed(studentId));
     }
 
+    // Access is checked once: whiteboardStaffAction() would evaluate whiteboardAccessAllowed() a second time and a
+    // teacher's image/PDF create then hit Firestore's 1000-expression limit (permission-denied). With access already
+    // granted, "staff action" is exactly admin or teacher.
     function whiteboardElementCreateAllowed(studentId, data) {
       return whiteboardAccessAllowed(studentId)
-        && validWhiteboardElement(data)
-        && (
-          !(data.type in ['image', 'pdf'])
-          || whiteboardStaffAction(studentId)
-        );
+        && whiteboardElementCreateValid(data);
     }
 
     function whiteboardMaterialSourceUnchanged(before, after) {
@@ -2013,9 +2012,8 @@ service cloud.firestore {
         );
     }
 
-    function whiteboardElementUpdateAllowed(studentId, before, after) {
-      return whiteboardAccessAllowed(studentId)
-        && validWhiteboardElement(after)
+    function whiteboardElementUpdateValid(before, after) {
+      return validWhiteboardElement(after)
         && after.type == before.type
         && (
           !(after.type in ['image', 'pdf'])
@@ -2026,24 +2024,39 @@ service cloud.firestore {
         );
     }
 
+    function whiteboardElementUpdateAllowed(studentId, before, after) {
+      return whiteboardAccessAllowed(studentId)
+        && whiteboardElementUpdateValid(before, after);
+    }
+
     function whiteboardElementDeleteAllowed(studentId, data) {
       return whiteboardAccessAllowed(studentId)
         && data.get('locked', false) != true;
+    }
+
+    // Element shape plus "only staff add images/PDFs", for rules that have already checked board access once.
+    function whiteboardElementCreateValid(data) {
+      return validWhiteboardElement(data)
+        && (
+          !(data.type in ['image', 'pdf'])
+          || isAdmin()
+          || isTeacher()
+        );
     }
 
     function lessonPagePath(studentId, pageId) {
       return /databases/$(database)/documents/whiteboards/$(studentId)/lessonPages/$(pageId);
     }
 
-    function lessonPageWritable(studentId, pageId) {
-      return whiteboardAccessAllowed(studentId)
-        && exists(lessonPagePath(studentId, pageId))
+    // Lesson page state only; board access is checked once by the caller (checking it again for every helper made
+    // teacher writes on lesson pages exceed Firestore's 1000-expression limit).
+    function lessonPageLive(studentId, pageId) {
+      return exists(lessonPagePath(studentId, pageId))
         && get(lessonPagePath(studentId, pageId)).data.isSnapshot != true;
     }
 
-    function snapshotPageAcceptsInitialElements(studentId, pageId) {
-      return whiteboardStaffAction(studentId)
-        && exists(lessonPagePath(studentId, pageId))
+    function snapshotPageActive(studentId, pageId) {
+      return exists(lessonPagePath(studentId, pageId))
         && get(lessonPagePath(studentId, pageId)).data.isSnapshot == true
         && get(lessonPagePath(studentId, pageId)).data.status == 'active';
     }
@@ -2119,21 +2132,23 @@ service cloud.firestore {
           // A snapshot accepts one staff-authored initial copy while its
           // parent page is active. Once the parent becomes completed, the
           // element set is immutable, even through a direct page URL.
-          allow create: if (
-              lessonPageWritable(studentId, pageId)
-              && whiteboardElementCreateAllowed(studentId, request.resource.data)
-            )
-            || (
-              snapshotPageAcceptsInitialElements(studentId, pageId)
-              && validWhiteboardElement(request.resource.data)
+          allow create: if whiteboardAccessAllowed(studentId)
+            && (
+              (lessonPageLive(studentId, pageId) && whiteboardElementCreateValid(request.resource.data))
+              || (
+                (isAdmin() || isTeacher())
+                && snapshotPageActive(studentId, pageId)
+                && validWhiteboardElement(request.resource.data)
+              )
             );
-          allow update: if lessonPageWritable(studentId, pageId)
-            && whiteboardElementUpdateAllowed(studentId, resource.data, request.resource.data);
-          allow delete: if (
-              lessonPageWritable(studentId, pageId)
-              && whiteboardElementDeleteAllowed(studentId, resource.data)
-            )
-            || snapshotPageAcceptsInitialElements(studentId, pageId);
+          allow update: if whiteboardAccessAllowed(studentId)
+            && lessonPageLive(studentId, pageId)
+            && whiteboardElementUpdateValid(resource.data, request.resource.data);
+          allow delete: if whiteboardAccessAllowed(studentId)
+            && (
+              (lessonPageLive(studentId, pageId) && resource.data.get('locked', false) != true)
+              || ((isAdmin() || isTeacher()) && snapshotPageActive(studentId, pageId))
+            );
         }
       }
     }

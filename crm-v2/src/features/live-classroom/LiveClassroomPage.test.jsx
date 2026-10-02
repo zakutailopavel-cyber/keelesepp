@@ -15,13 +15,17 @@ function renderPage({ user, invitationService, studentRepository, path = '/live-
     markOffline: vi.fn().mockResolvedValue(undefined),
     subscribe: vi.fn((id, onChange) => { onChange([]); return vi.fn(); }),
   };
-  const whiteboard = {
-    subscribe: vi.fn((id, onChange) => { onChange([]); return vi.fn(); }),
-    addStroke: vi.fn().mockResolvedValue('stroke-test'),
-    removeElement: vi.fn().mockResolvedValue(undefined),
-    clear: vi.fn().mockResolvedValue(undefined),
+  const board = {
+    subscribePages: vi.fn((studentId, onChange) => { onChange([]); return vi.fn(); }),
+    subscribeElements: vi.fn((studentId, pageId, onChange) => { onChange([]); return vi.fn(); }),
+    add: vi.fn().mockResolvedValue('el-1'), update: vi.fn().mockResolvedValue(undefined), remove: vi.fn().mockResolvedValue(undefined),
+    clear: vi.fn().mockResolvedValue(0), addPage: vi.fn().mockResolvedValue('page-1'),
   };
-  return render(<AuthContext.Provider value={{ user }}><MemoryRouter initialEntries={[path]}><LiveClassroomPage invitationService={invitationService} studentRepository={studentRepository} callSignalService={signals} callPresenceService={presence} whiteboardService={whiteboard} /><LocationProbe /></MemoryRouter></AuthContext.Provider>);
+  const messages = { subscribeByStudent: vi.fn((studentId, onChange) => { onChange([]); return vi.fn(); }), send: vi.fn().mockResolvedValue({}) };
+  const library = { list: vi.fn().mockResolvedValue({ curriculumLessons: [] }), assign: vi.fn() };
+  const homework = { subscribeRoomWorksheets: vi.fn((query, onChange) => { onChange([]); return vi.fn(); }) };
+  const recording = { subscribeForStudent: vi.fn(() => vi.fn()), subscribeForInvitation: vi.fn(() => vi.fn()) };
+  return render(<AuthContext.Provider value={{ user }}><MemoryRouter initialEntries={[path]}><LiveClassroomPage invitationService={invitationService} studentRepository={studentRepository} callSignalService={signals} callPresenceService={presence} boardService={board} messagesRepository={messages} libraryRepository={library} worksheetHomework={homework} worksheetLibrary={library} recordingService={recording} /><LocationProbe /></MemoryRouter></AuthContext.Provider>);
 }
 
 describe('Live Classroom invitation lifecycle', () => {
@@ -44,12 +48,15 @@ describe('Live Classroom invitation lifecycle', () => {
     expect(await screen.findByText('Kontoga seotud õpilasi ei ole')).toBeInTheDocument();
   });
 
-  it('shows the accepted room and opt-in video controls to the student', async () => {
-    const invitationService = { subscribeIncoming: vi.fn((uid, onChange) => { onChange([{ id: 'invite-1', teacherName: 'Pavel', studentName: 'Mari', title: 'Eesti keel', status: 'accepted', expiresAt: new Date(Date.now() - 60_000).toISOString() }]); return vi.fn(); }) };
+  it('opens the full-screen lesson room for the student with the board and opt-in call', async () => {
+    const invitationService = { subscribeIncoming: vi.fn((uid, onChange) => { onChange([{ id: 'invite-1', teacherName: 'Pavel', studentName: 'Mari', studentId: 's-1', title: 'Eesti keel', status: 'accepted', expiresAt: new Date(Date.now() - 60_000).toISOString() }]); return vi.fn(); }) };
     renderPage({ user: { uid: 'student-user-1', displayName: 'Mari', roles: ['student'] }, invitationService, studentRepository: {}, path: '/live-classroom?invitation=invite-1' });
-    expect(await screen.findByText('Pavel valmistab tunniruumi ette.')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Liitu videokõnega/i })).toBeInTheDocument();
-    expect(screen.getByRole('img', { name: 'Ühine tahvel' })).toBeInTheDocument();
+    expect(await screen.findByRole('region', { name: 'Tunniruum' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Liitu kõnega/ })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Õpilase tahvel' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Materjalid/ })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Lahku tunniruumist' }));
+    expect(await screen.findByRole('heading', { name: 'Live Classroom' })).toBeInTheDocument();
   });
 
   it('does not select an old accepted invitation as the teacher default room', async () => {
@@ -69,16 +76,21 @@ describe('Live Classroom invitation lifecycle', () => {
     expect(screen.getByText('Kutsu õpilane tundi')).toBeInTheDocument();
   });
 
-  it('closes an accepted waiting room and releases the teacher for a new invitation', async () => {
+  it('ends the lesson from the room menu and releases the teacher for a new invitation', async () => {
     const invitationService = {
-      subscribeOutgoing: vi.fn((uid, onChange) => { onChange([{ id: 'accepted-1', studentName: 'Mari', title: 'Eesti keel', status: 'accepted', expiresAt: new Date(Date.now() - 60_000).toISOString() }]); return vi.fn(); }),
+      subscribeOutgoing: vi.fn((uid, onChange) => { onChange([{ id: 'accepted-1', studentName: 'Mari', studentId: 's-1', teacherName: 'Pavel', title: 'Eesti keel', status: 'accepted', expiresAt: new Date(Date.now() - 60_000).toISOString() }]); return vi.fn(); }),
       close: vi.fn().mockResolvedValue(undefined),
     };
-    const studentRepository = { list: vi.fn().mockResolvedValue({ items: [] }) };
+    const studentRepository = { list: vi.fn().mockResolvedValue({ items: [] }), getById: vi.fn().mockResolvedValue({ id: 's-1', subject: 'Eesti keel', recordingConsent: false }) };
+    vi.spyOn(globalThis, 'confirm').mockReturnValue(true);
     renderPage({ user: { uid: 'teacher-1', displayName: 'Pavel', roles: ['teacher'] }, invitationService, studentRepository, path: '/live-classroom?invitation=accepted-1' });
-    fireEvent.click(await screen.findByRole('button', { name: 'Lõpeta ooteruum ja alusta uut kutset' }));
+    expect(await screen.findByRole('region', { name: 'Tunniruum' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Alusta kõnet/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Materjalid/ })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Rohkem' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Lõpeta tund' }));
     await waitFor(() => expect(invitationService.close).toHaveBeenCalledWith('accepted-1', expect.objectContaining({ uid: 'teacher-1' })));
     await waitFor(() => expect(screen.getByTestId('location')).not.toHaveTextContent('invitation='));
-    expect(screen.getByText('Kutsu õpilane tundi')).toBeInTheDocument();
+    globalThis.confirm.mockRestore();
   });
 });

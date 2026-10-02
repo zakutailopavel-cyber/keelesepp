@@ -56,6 +56,22 @@ export const studentBoardService = {
       revision: (Number(element.revision) || 0) + 1,
     });
   },
+  // A lesson page (same shape as CRM v1 lesson pages, validLessonPage in the rules). Only staff may create one.
+  async addPage(studentId, title, order, user) {
+    const { db } = requireFirebaseClient();
+    const reference = await addDoc(collection(db, 'whiteboards', studentId, 'lessonPages'), {
+      title: String(title || 'Tund').trim().slice(0, 200) || 'Tund',
+      order: Math.max(1, Math.round(Number(order) || 1)),
+      status: 'active',
+      isSnapshot: false,
+      snapshotOf: null,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+      updatedByUid: user.uid,
+      updatedByName: authorName(user),
+    });
+    return reference.id;
+  },
   async remove(studentId, pageId, elementId) {
     const { db } = requireFirebaseClient();
     await deleteDoc(doc(elementsRef(db, studentId, pageId), elementId));

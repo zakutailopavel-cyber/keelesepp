@@ -10,7 +10,7 @@ import './worksheetStudio.css';
 // Teacher: picks a studio worksheet → it is assigned to this student (normal assignment, so it also stays in
 // homework history) and tagged with the room key; the teacher then watches answers live and points at tasks.
 // Student: sees the worksheet of this room inline and fills it in; answers autosave.
-export default function RoomWorksheetPanel({ invitation, role, user, homework = homeworkService, library = libraryService }) {
+export default function RoomWorksheetPanel({ invitation, role, user, homework = homeworkService, library = libraryService, onCurrentChange }) {
   const roomKey = invitation.roomKey || invitation.id;
   const [items, setItems] = useState(null);
   const [error, setError] = useState('');
@@ -42,6 +42,8 @@ export default function RoomWorksheetPanel({ invitation, role, user, homework = 
   }, [library, role]);
 
   const current = items?.[0] || null;
+  // the Live Classroom room shows a marker on „Ülesanded” and opens it for the student when a worksheet appears
+  useEffect(() => { onCurrentChange?.(current); }, [current, onCurrentChange]);
   const options = useMemo(() => (choices || []).map((l) => ({ id: l.id, label: `${l.worksheetDoc.meta?.level || l.level || ''} ${l.worksheetDoc.meta?.title || l.title}`.trim(), lesson: l })), [choices]);
 
   const open = async () => {

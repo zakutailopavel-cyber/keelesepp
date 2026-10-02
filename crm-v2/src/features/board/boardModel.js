@@ -3,6 +3,10 @@
 export const MIN_SCALE = 0.2;
 export const MAX_SCALE = 3;
 export const COLORS = ['#1C2B3A', '#C9882A', '#2F5D50', '#B42318', '#175CD3', '#7A5AF8'];
+// Live Classroom palette (12 colours, as in the room style panel).
+export const ROOM_COLORS = ['#1C2B3A', '#98A2B3', '#E879F9', '#9333EA', '#2563EB', '#38BDF8', '#F59E0B', '#EA580C', '#0F766E', '#22C55E', '#F87171', '#DC2626'];
+// Size presets: pen width and text size.
+export const SIZES = { S: { pen: 2, font: 14 }, M: { pen: 4, font: 18 }, L: { pen: 8, font: 26 }, XL: { pen: 14, font: 36 } };
 export const NOTE_COLORS = ['#FEF3C7', '#DCFCE7', '#DBEAFE', '#FCE7F3'];
 export const SHAPE_TOOLS = ['rect', 'ellipse', 'arrow'];
 
@@ -67,4 +71,16 @@ export function fitView(elements, width, height, padding = 40) {
 
 export function movable(element) {
   return Boolean(element) && element.type !== 'stroke' && element.locked !== true;
+}
+
+// Natural size of an image, so it keeps its proportions on the board (A4 portrait when it cannot be read).
+export function imageSize(url) {
+  return new Promise((resolve) => {
+    const ImageCtor = globalThis.Image;
+    if (!ImageCtor) { resolve({ width: 1000, height: 1400 }); return; }
+    const image = new ImageCtor();
+    image.onload = () => resolve({ width: image.naturalWidth || 1000, height: image.naturalHeight || 1400 });
+    image.onerror = () => resolve({ width: 1000, height: 1400 });
+    image.src = url;
+  });
 }

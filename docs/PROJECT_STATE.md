@@ -15,6 +15,44 @@ Storage CORS, 54 unmatched Google events, APP_BASE_URL, „Minu tööpäev”, p
 - Section headings below updated: #219–#225 released; #227, #228, #229 merged, waiting for the release.
 
 ## 2026-10-01 — Worksheet draft regression repair — MERGED (#228, a71b66b), release pending
+## 2026-10-02 — Live Classroom: full-screen lesson room (owner's design photo) + board rules fix — PR (branch `agent/live-room-redesign`)
+
+Checked against main `240e09c`. Owner sent a photo of how the lesson must look: top bar (back, menu, "Tund — date",
+undo/redo, subject, timer + signal, mic/camera/screen/hang-up, more, participants, chat, Materjalid, Ülesanded), a
+large board with the worksheet and handwriting on it, the student's video tile on the right, a floating tool dock at
+the bottom, a colour/size panel on the right and the zoom at the bottom left. Built that:
+
+- `features/live-classroom/LiveRoom.jsx` + `liveRoom.css`: the accepted room is now a full-screen layer (both roles).
+  Call controls live in the top bar; timer from `respondedAt`; signal bars from the call state; video tiles on the right
+  (remote large with initial + name, self small). Drawers: Vestlus (the same internal `messages` as Suhtlus, live via
+  new `messagesService.subscribeByStudent`; badge counts messages that arrive during the lesson), Osalejad, Materjalid
+  (teacher: image/PDF files of Õppevara materials → "Tahvlile"), Tunni salvestamine (RoomRecorder, kept mounted).
+  "Ülesanded" opens the existing RoomWorksheetPanel over the board; it opens by itself for the student when the teacher
+  opens a worksheet (`onCurrentChange`). "Rohkem": new lesson page "Tund dd.mm.yyyy", recording, leave, Lõpeta tund.
+  Leaving keeps the lesson; the start page shows "Tagasi tundi" for an accepted room of the last 6 h (teacher+student).
+- `features/live-classroom/useLiveCall.js`: the WebRTC logic moved out of LiveLessonCallPanel unchanged (panel kept).
+- The room board is the student's own board (`StudentBoard` `variant="room"`, `whiteboards/{studentId}` = CRM
+  „Tahvel” and v1 board): everything stays after the lesson. New: dock (select, hand, shapes menu, pen, eraser, text,
+  note, image upload for staff via `libraryService.uploadFile`), 12 colours, width slider, S/M/L/XL, undo/redo of own
+  actions (exposed to the top bar), insert material (image/PDF as a board element, PDF rendered as a page), new lesson
+  page (`studentBoardService.addPage`, v1 lessonPages shape), each page fitted to content once.
+  The old per-invitation `LiveLessonWhiteboard` (strokes only) is no longer used and was removed.
+- **Firestore rules fix (needs a rules deploy):** a teacher (not admin) could not add images/PDFs to a student board and
+  could not write anything on a lesson page — board access was evaluated 2–3 times per write and hit Firestore's
+  1000-expression limit (permission-denied; also in CRM v1). Access is now checked once; semantics unchanged
+  (`whiteboardElementCreateValid`, `whiteboardElementUpdateValid`, `lessonPageLive`, `snapshotPageActive`). New
+  emulator test `functions/whiteboard-rules-emulator.integration.js` (in `npm run test:emulator`): teacher image/PDF on
+  board + lesson page + snapshot copy OK; student note OK, student image denied, snapshot write denied, locked delete
+  denied, completed snapshot immutable. Against the old rules the teacher test failed with the 1000-expression error.
+- Checks: `npx eslint src` clean; vitest 538 tests, only the 4 known date-dependent Finance/StudentProfile tests fail
+  (same as main); new `LiveRoom.test.jsx` (8). `npm run build` OK. Functions `node --test` 212/212; emulator rules tests
+  10/10 (whiteboard + invitations). Browser, two users on local emulators with fake camera/mic: teacher invites,
+  student joins; teacher puts a material on the board, draws, adds a note; both "Ühendatud"; chat badge 1; undo/redo;
+  new lesson page visible to the student with the teacher's note; 1440 px and 390 px without horizontal scroll.
+- Release: merge + `firebase deploy --only firestore:rules` (for materials and lesson pages) + Vercel `keelesepp-crm-v2`.
+- Limits: no pinch-zoom on phones (buttons instead); chat is the Suhtlus conversation; TURN server still missing.
+
+## 2026-10-01 — Worksheet draft regression repair — DRAFT PR #228, branch `agent/worksheet-draft-fix`
 
 Fresh main: `9fda4b9df487696b59cbe1847ab3ce08e1bed7c6` (2026-10-01). PR #227 was merged with the owner's explicit
 permission; GitHub confirmed merged=true. No open PRs before this task. Task 1 is isolated in draft PR #228: https://github.com/zakutailopavel-cyber/keelesepp/pull/228.

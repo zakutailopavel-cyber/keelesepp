@@ -3,14 +3,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, PageHeader, Select } from '../../components/ui/index.js';
-import { liveLessonCallSignalsService, liveLessonInvitationsService, liveLessonPresenceService, liveLessonWhiteboardService, studentsService } from '../../services/firebase/index.js';
+import { libraryService, liveLessonCallSignalsService, liveLessonInvitationsService, liveLessonPresenceService, messagesService, studentsService } from '../../services/firebase/index.js';
+import { studentBoardService } from '../../services/firebase/studentBoard.js';
 import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
-import { eligibleInvitationStudents, INVITATION_STATUS, isInvitationRouteUsable, newestInvitation, normalizeInvitation } from './invitationModel.js';
-import LiveLessonCallPanel from './LiveLessonCallPanel.jsx';
-import LiveLessonWhiteboard from './LiveLessonWhiteboard.jsx';
-import RoomWorksheetPanel from '../worksheet-studio/RoomWorksheetPanel.jsx';
-import RoomRecorder from '../lesson-recording/RoomRecorder.jsx';
-import RecordingIndicator from '../lesson-recording/RecordingIndicator.jsx';
+import { eligibleInvitationStudents, INVITATION_STATUS, isInvitationRouteUsable, newestInvitation, normalizeInvitation, timestampMillis } from './invitationModel.js';
+import LiveRoom from './LiveRoom.jsx';
 import './liveClassroom.css';
 
 const statusLabel = {
@@ -38,7 +35,9 @@ export default function LiveClassroomPage({
   studentRepository = studentsService,
   callSignalService = liveLessonCallSignalsService,
   callPresenceService = liveLessonPresenceService,
-  whiteboardService = liveLessonWhiteboardService,
+  boardService = studentBoardService,
+  messagesRepository = messagesService,
+  libraryRepository = libraryService,
   callMediaDevices,
   callPeerFactory,
   worksheetHomework,
@@ -168,6 +167,27 @@ export default function LiveClassroomPage({
   }, [roomStudentId, studentRepository]);
 
   const leaveRoom = () => setSearchParams({}, { replace: true });
+  // a teacher who stepped out of a running lesson (accepted in the last 6 hours, not closed) can go straight back
+  const resumable = !activeInvitation
+    ? normalizedInvitations.filter((item) => item.status === INVITATION_STATUS.ACCEPTED && now - (timestampMillis(item.respondedAt) || timestampMillis(item.createdAt)) < 6 * 3600_000)
+      .sort((a, b) => (timestampMillis(b.respondedAt) || 0) - (timestampMillis(a.respondedAt) || 0))[0]
+    : null;
+  const roomProps = (role) => ({
+    invitation: activeInvitation,
+    role,
+    user,
+    student: role === 'teacher' ? roomStudent : null,
+    callProps,
+    boardService,
+    messagesRepository,
+    library: libraryRepository,
+    worksheetProps,
+    recordingService,
+    streams: callStreams,
+    onLeave: leaveRoom,
+    onEndLesson: () => { if (globalThis.confirm('Lõpetada tund? Tunniruum suletakse mõlemale.')) closeRoom(); },
+    ending: saving === 'close',
+  });
   const worksheetProps = { ...(worksheetHomework ? { homework: worksheetHomework } : {}), ...(worksheetLibrary ? { library: worksheetLibrary } : {}) };
   const callProps = {
     onMediaStreams: setCallStreams,
@@ -180,17 +200,18 @@ export default function LiveClassroomPage({
   };
 
   if (isStudent) {
+    if (streamReady && !streamError && activeInvitation?.status === INVITATION_STATUS.ACCEPTED) return <LiveRoom key={activeInvitation.id} {...roomProps('student')} />;
     return <div className="page-content">
       <PageHeader eyebrow="Minu tund" title="Live Classroom" description="Sinu privaatne reaalajas tunniruum." />
-      {streamError ? <ErrorState message={streamError} /> : !streamReady ? <LoadingState label="Laen tunnikutset…" /> : activeInvitation?.status === INVITATION_STATUS.ACCEPTED ? <>
-        <WaitingRoom invitation={activeInvitation} role="student" />
-        <LiveLessonCallPanel {...callProps} role="student" />
-        <RecordingIndicator invitation={activeInvitation} user={user} {...(recordingService ? { service: recordingService } : {})} />
-        <LiveLessonWhiteboard invitation={activeInvitation} role="student" user={user} service={whiteboardService} />
-        <RoomWorksheetPanel invitation={activeInvitation} role="student" user={user} {...worksheetProps} />
-        <div className="live-invitation-toolbar"><Button variant="secondary" onClick={leaveRoom}>Lahku ooteruumist</Button></div>
-      </> : <Card><EmptyState title="Aktiivset tundi ei ole" description="Kui õpetaja kutsub sind tundi, ilmub kutse automaatselt sinu kabinetti." /></Card>}
+      {streamError ? <ErrorState message={streamError} /> : !streamReady ? <LoadingState label="Laen tunnikutset…" /> : resumable ? <Card className="live-resume"><div><strong>Tund käib: {resumable.teacherName}</strong><small>{resumable.title}</small></div><Button onClick={() => setSearchParams({ invitation: resumable.id }, { replace: true })}><Video size={17} /> Tagasi tundi</Button></Card> : <Card><EmptyState title="Aktiivset tundi ei ole" description="Kui õpetaja kutsub sind tundi, ilmub kutse automaatselt sinu kabinetti." /></Card>}
     </div>;
+  }
+
+  if (activeInvitation?.status === INVITATION_STATUS.ACCEPTED) {
+    return <>
+      {streamError || actionError ? <div className="action-error lr-page-error" role="alert">{streamError || actionError}</div> : null}
+      <LiveRoom key={activeInvitation.id} {...roomProps('teacher')} />
+    </>;
   }
 
   return <div className="page-content">
@@ -198,15 +219,8 @@ export default function LiveClassroomPage({
     {streamError || actionError ? <div className="action-error" role="alert">{streamError || actionError}</div> : null}
     {activeInvitation ? <>
       <WaitingRoom invitation={activeInvitation} role="teacher" />
-      {activeInvitation.status === INVITATION_STATUS.ACCEPTED ? <>
-        <LiveLessonCallPanel {...callProps} role="teacher" />
-        <RoomRecorder invitation={activeInvitation} user={user} streams={callStreams} consent={roomStudent ? roomStudent.recordingConsent === true : null} subject={roomStudent?.subject || ''} {...(recordingService ? { service: recordingService } : {})} />
-        <LiveLessonWhiteboard invitation={activeInvitation} role="teacher" user={user} service={whiteboardService} />
-        <RoomWorksheetPanel invitation={activeInvitation} role="teacher" user={user} {...worksheetProps} />
-      </> : null}
       {activeInvitation.status === INVITATION_STATUS.PENDING ? <div className="live-invitation-toolbar"><Button variant="danger" loading={saving === 'cancel'} onClick={cancel}><XCircle size={17} /> Tühista kutse</Button></div> : null}
-      {activeInvitation.status === INVITATION_STATUS.ACCEPTED ? <div className="live-invitation-toolbar"><Button variant="secondary" loading={saving === 'close'} onClick={closeRoom}>Lõpeta ooteruum ja alusta uut kutset</Button></div> : null}
-    </> : <Card className="live-start-card">
+    </> : <>{resumable ? <Card className="live-resume"><div><strong>Tund käib: {resumable.studentName}</strong><small>{resumable.title}</small></div><Button onClick={() => setSearchParams({ invitation: resumable.id }, { replace: true })}><Video size={17} /> Tagasi tundi</Button></Card> : null}<Card className="live-start-card">
       <div className="live-start-card__heading"><div className="settings-icon"><Video /></div><div><h2>Kutsu õpilane tundi</h2><p className="settings-copy">Kutse ilmub kohe õpilase KeeleSepp kabinetti. Ainult kontoga seotud õpilased on valitavad.</p></div></div>
       {studentsState.loading ? <LoadingState label="Laen õpilasi…" /> : studentsState.error ? <ErrorState message={studentsState.error} /> : studentsState.items.length ? <div className="live-start-form">
         <div className="search-field"><Search size={18} /><Input aria-label="Otsi õpilast tunniks" placeholder="Otsi õpilast…" value={search} onChange={(event) => setSearch(event.target.value)} /></div>
@@ -214,6 +228,6 @@ export default function LiveClassroomPage({
         <Input label="Tunni pealkiri" value={title} maxLength={160} placeholder="Näiteks: Eesti keel · minevik" onChange={(event) => setTitle(event.target.value)} />
         <Button loading={saving === 'create'} onClick={sendInvitation}><GraduationCap size={18} /> Kutsu õpilane tundi</Button>
       </div> : <EmptyState title="Kontoga seotud õpilasi ei ole" description="Seo õpilase kaart tema kasutajakontoga, et saaksid talle tunnikutsungi saata." />}
-    </Card>}
+    </Card></>}
   </div>;
 }
