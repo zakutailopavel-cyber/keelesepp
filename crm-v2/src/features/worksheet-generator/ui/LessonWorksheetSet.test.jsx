@@ -48,6 +48,44 @@ describe('LessonWorksheetSet', () => {
     expect(await screen.findAllByRole('link', { name: /Ava konstruktoris/ })).toHaveLength(3);
   });
 
+
+  it('generates a separate worksheet for one selected lesson focus', async () => {
+    let records = [];
+    const repository = {
+      loadLesson: vi.fn().mockResolvedValue(lesson),
+      list: vi.fn(async () => records),
+      saveDraft: vi.fn(async (input) => {
+        const record = { ...input, id: input.worksheetId, worksheetDocStatus: 'draft', worksheetDocVersion: 1, worksheetDocUpdatedAt: '2026-10-02T12:00:00Z' };
+        records = [...records.filter((item) => item.id !== record.id), record];
+        return record;
+      }),
+    };
+
+    renderPage(repository);
+    await screen.findByRole('heading', { name: 'Ajamäärused ja päevaplaan' });
+    fireEvent.change(screen.getByLabelText('Töölehe fookus'), { target: { value: 'before-after' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Genereeri fookuse tööleht' }));
+
+    await waitFor(() => expect(repository.saveDraft).toHaveBeenCalledTimes(1));
+    const saved = repository.saveDraft.mock.calls[0][0];
+    expect(saved.worksheetId).toBe('focus-full-before-after');
+    expect(saved.role).toBe('focus');
+    expect(saved.slot).toBeNull();
+    expect(saved.displayLabel).toBe('Enne ja pärast · Täistööleht');
+    expect(saved.generation).toMatchObject({
+      scope: 'focus',
+      phase: 'full',
+      focusIds: ['before-after'],
+      difficulty: 'core',
+      variant: 1,
+    });
+    expect(saved.generation.contextId).toBeTruthy();
+    expect(saved.generation.activityIds).toHaveLength(5);
+    expect(await screen.findByRole('status')).toHaveTextContent('Fookuse tööleht');
+    expect(await screen.findByRole('heading', { name: 'Enne ja pärast · Täistööleht' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Genereeri 3 töölehte/ })).toBeInTheDocument();
+  });
+
   it('does not offer generation for a lesson without a curated profile', async () => {
     const repository = { loadLesson: vi.fn().mockResolvedValue({ id: 'other', title: 'Muu tund' }), list: vi.fn().mockResolvedValue([]), saveDraft: vi.fn() };
     render(
