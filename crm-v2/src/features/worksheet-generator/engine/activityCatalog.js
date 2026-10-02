@@ -269,7 +269,7 @@ export const ACTIVITY_CATALOG = [
     production: 'free',
     cognitiveLoad: 5,
     tags: ['transfer', 'written', 'production'],
-    needs: ['writingPrompts'],
+    needs: ['formalLetterPrompt'],
   },
   {
     id: 'transfer-rubric',
