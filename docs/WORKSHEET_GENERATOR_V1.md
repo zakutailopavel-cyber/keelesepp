@@ -31,6 +31,39 @@ Blocking quality diagnostics stop future persistence. The core rejects unsupport
 
 This slice does not add a route, button, Firebase service, collection, rule, migration, assignment or deployment.
 
+## Didactic planner v1 — Activity Catalog and real variants
+
+The generator no longer treats each phase as one fixed list of five block types. `activityCatalog.js` is the
+versioned pedagogical source of truth for logical activities. Each activity declares its phase, Worksheet Studio
+block type, activity family, compatible lesson kinds and CEFR range, skills, production mode, cognitive load,
+didactic tags and required curated sources. Several logical activities may deliberately reuse the same renderer;
+the catalog describes *why and when* an activity is used, while Worksheet Studio remains the only rendering contract.
+
+`planner.js` compiles that catalog into a deterministic five-activity plan for each phase. A valid plan must cover:
+
+- `Avasta`: input, noticing and reflection;
+- `Harjuta`: accuracy and controlled practice;
+- `Kasuta`: oral production, written production and reflection.
+
+Selection is seeded, level-safe and lesson-kind-aware. It prefers different activity families and accepts recent
+activity IDs as a cooldown history. If there are not enough compatible activities or curated source banks, generation
+fails closed with stable diagnostics instead of filling the sheet with generic or invented language.
+
+The phase materializer now receives activity IDs from the planner and builds the requested blocks through the existing
+Worksheet Studio registry. `quality.js` verifies that the plan and produced task blocks agree, that phase requirements
+are present and that a `Täistööleht` contains discover → practice → transfer progression. Generator-only plan metadata
+remains outside `worksheetDoc`.
+
+Regeneration is a real variation operation. The teacher UI increments a deterministic `variant` seed and feeds the
+previous saved activity IDs back as cooldown history. Generation metadata records `activityIds`,
+`activityCatalogVersion`, `didacticPlanVersion` and `variant`, while published worksheet snapshots and manual edits
+retain their existing persistence semantics.
+
+The current catalog is intentionally limited to activities that can be materialized from existing curated profile
+banks without an AI/provider call. New catalog entries are additive only when their source contract and Worksheet
+Studio materializer are deterministic. The reference profile remains `a2b1-016`; broad curriculum coverage is still a
+separate data-authoring rollout.
+
 ## Child-sheet persistence boundary
 
 `lessonWorksheetsService` stores child sheets under `curriculumLessons/{lessonId}/worksheets/{worksheetId}`. Stable core IDs are `discover`, `practice` and `transfer`; focus sheets use their own IDs. The legacy root `worksheetDoc` contract stays untouched. Generated sheets begin as drafts and never overwrite manual or published work silently. Each transaction checks the loaded `worksheetDocUpdatedAt`, increments the version, writes an immutable `{lessonId}_{worksheetId}_studio_v{version}` history record, and keeps the last published snapshot when a newer draft is saved.
@@ -71,7 +104,8 @@ The current `StudentProfilePage` does not yet load `worksheetAssignments`; addin
 1. Pure generator core and reference profile.
 2. Child-sheet draft/publish/version persistence and rules. (implemented)
 3. Teacher generation UI and shared Worksheet Studio route. (implemented for the reference profile)
-4. Assignment source traceability, live entry points and student-profile work history.
-5. Profile coverage expanded in data-only roadmap slices.
+4. Didactic Activity Catalog, seeded planner, cooldown and real regeneration variants. (draft PR #239)
+5. Assignment source traceability, live entry points and student-profile work history.
+6. Profile coverage expanded in data-only roadmap slices.
 
 No unsupported lesson is presented as generatable. No production deployment is part of PR 1.
