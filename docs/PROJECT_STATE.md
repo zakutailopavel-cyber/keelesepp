@@ -1,5 +1,57 @@
 # KeeleSepp Project State
 
+## 2026-10-02 — Calendar deletion + worksheet prompt hotfix — RELEASED, PR pending
+
+Owner explicitly requested immediate release of both reported fixes. Combined branch
+`codex/release-calendar-worksheet-fixes` is based on fresh `origin/main` `3517dd8` and contains the calendar
+recent-past tombstone reconciliation plus the normal (not struck-through) `Leia ja paranda viga` prompt.
+
+Combined verification: Functions 213/213; CRM Vitest 107 files / 540 tests; ESLint; production build; diff check.
+Firebase selectively deployed only `gcalApi` and `syncAllCalendars` to `keelesepp-5136b`; both completed
+successfully on Node.js 22. Vercel deployment `dpl_CL3KkoPhxLcZ6rLF4x4G8C7b6HCF` reached READY and was promoted
+to production. `https://crm.epkoolitus.ee/` returned HTTP 200 with the deployment assets
+`index-BuJxx6AY.js` and `index-D3iGQ4kB.css`; both contain `ws-fix-prompt`, and the obsolete `.ws-fix s` CSS rule
+is absent. An authenticated real-domain browser loaded the Worksheet Studio and all 32 blocks. No rules, indexes,
+migration or direct production-data edit. Known gate: the user-reported stale calendar record is removed by the next
+manual or hourly successful Google sync. Exactly one next safe step: open a draft PR for source review; do not merge
+without the owner.
+
+## 2026-10-02 — Google Calendar recent-past deletion reconciliation — local branch
+
+Checked against fresh `origin/main` `3517dd8` on 2026-10-02; open PRs #230 and #233 are release-documentation
+work and do not overlap this fix. Branch `codex/google-calendar-deletion-sync` fixes an inbound-sync boundary:
+Google cancellation tombstones were queried with a seven-day lookback, but the reconciliation filter started at
+today. Therefore a Google-owned lesson deleted after it had already occurred (reported example: 2026-10-01 at
+09:00, checked on 2026-10-02) remained in KeeleSepp even though Google returned its explicit tombstone.
+
+`functions/index.js` now reconciles the same seven-day window that was queried. It still deletes only records with
+an explicit matching Google cancellation ID; absence from a partial result is not deletion, and completed lesson
+history remains protected by the existing rules. `functions/calendar-sync-core.test.js` adds the recent-past
+regression case and the older-than-window safety boundary. `ARCHITECTURE.md` records the contract. No schema,
+Firestore rule, index, migration, production-data or client UI change.
+
+Checks: focused calendar tests 33/33 passed; full Functions unit suite 213/213 passed; `git diff --check` passed.
+Tests ran under local Node 26.8.2 while Functions declares Node 22; npm reported the existing dependency audit of
+14 moderate and 7 high vulnerabilities. No Google API call, deploy, production-data write or PR created. The
+already-stale production record will be removed by the first successful sync after this Functions change is deployed.
+Exactly one next safe step: review the diff and open a draft PR; production deployment remains owner-gated.
+
+## 2026-10-02 — Worksheet error-correction prompt display — local branch
+
+Checked against fresh `origin/main` `3517dd8` on 2026-10-02; open PRs #230 and #233 are release-documentation work
+and do not overlap this fix. Branch `codex/error-correction-display` corrects the `Leia ja paranda viga` block:
+its incorrect source sentence was rendered with the semantic HTML `<s>` element in edit, student, print and review
+modes, so it was always crossed out before the learner answered. It is now ordinary readable prompt text while the
+existing answer line, scoring, saved document schema and author fields remain unchanged.
+
+Files: `engine/blocks/advanced.jsx`, `engine/sheet.css`, `engine/engine.test.jsx`,
+`docs/WORKSHEET_STUDIO_V1.md`, and this state file. The regression test covers edit, interactive, print and review
+modes and rejects any rendered `<s>` element. No data migration, Function, Firestore rule, API, external service or
+production change. Checks: focused engine test 11/11 passed; full CRM Vitest 107 files / 540 tests passed; ESLint
+passed; production build passed with the existing >600 kB chunk warning; `git diff --check` passed. Fresh dependency
+install reported the existing audit of 2 moderate and 8 high vulnerabilities. Exactly one next safe step: review the
+diff and open a draft PR; production deployment remains owner-gated.
+
 ## 2026-10-02 — Known test failures fixed, Kontrolltöö label — PR (branch `agent/fix-known-failures`)
 
 Checked against main `240e09c`. Owner asked to fix the remaining known problems (not the items they parked: TURN,

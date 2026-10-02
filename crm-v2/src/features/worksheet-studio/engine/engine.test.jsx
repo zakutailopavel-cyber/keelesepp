@@ -46,6 +46,16 @@ describe('block registry', () => {
     const { container } = render(<Sheet doc={doc([b])} mode="print" answers={answer(b, { '0.0': 'hommikul' })} />);
     expect([...container.querySelectorAll('.ws-page input')].every((i) => i.value === '')).toBe(true);
   });
+
+  it('shows error-correction prompts without crossing out the sentence', () => {
+    const block = createBlock('errorfix');
+    for (const mode of ['edit', 'interactive', 'print', 'review']) {
+      const { container, unmount } = render(<Sheet doc={doc([block])} mode={mode} />);
+      expect(container.querySelectorAll('.ws-fix-prompt').length, mode).toBeGreaterThan(0);
+      expect(container.querySelector('s'), mode).toBeNull();
+      unmount();
+    }
+  });
 });
 
 describe('scoring', () => {

@@ -381,3 +381,21 @@ test("calendar reconciliation acts only on an explicit Google tombstone", () => 
     date: "2027-01-01",
   }, deletedIds, options), false);
 });
+
+test("calendar reconciliation removes a recently elapsed lesson deleted in Google", () => {
+  const deletedIds = explicitlyDeletedGoogleEventIds([
+    { id: "deleted-yesterday", status: "cancelled" },
+  ]);
+  const sevenDayLookback = { windowStart: "2026-09-25", windowEnd: "2026-12-01" };
+
+  assert.equal(shouldApplyExplicitGoogleDeletion({
+    source: "gcal",
+    gcalEventId: "deleted-yesterday",
+    date: "2026-10-01",
+  }, deletedIds, sevenDayLookback), true);
+  assert.equal(shouldApplyExplicitGoogleDeletion({
+    source: "gcal",
+    gcalEventId: "deleted-yesterday",
+    date: "2026-09-24",
+  }, deletedIds, sevenDayLookback), false);
+});
