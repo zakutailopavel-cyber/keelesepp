@@ -24,6 +24,7 @@ export function resolveGeneratorProfile(lessonId, lesson = {}) {
     const validated = validateGeneratorProfile(fallback, { lessonId, lesson: { ...lesson, id: lessonId } });
     return {
       ...validated,
+      profile: fallback,
       source: 'static',
       embeddedDraft: embedded,
       fallback: true,
