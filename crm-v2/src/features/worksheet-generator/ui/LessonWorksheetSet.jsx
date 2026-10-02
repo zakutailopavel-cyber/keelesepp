@@ -6,7 +6,7 @@ import { Badge, Button, Card, ErrorState, LoadingState, PageHeader } from '../..
 import { useAsyncData } from '../../../hooks/useAsyncData.js';
 import { lessonWorksheetsService } from '../../../services/firebase/index.js';
 import { ACTIVITY_CATALOG_VERSION, generateLessonBundle, GENERATOR_VERSION } from '../engine/generator.js';
-import referenceProfile from '../fixtures/a2b1-016.generator-profile.json';
+import { generatorProfileForLesson } from '../profiles/index.js';
 import '../generator.css';
 
 const CORE = [
@@ -15,7 +15,6 @@ const CORE = [
   { id: 'transfer', label: '3 Kasuta', slot: 3 },
 ];
 
-const profileFor = (lessonId) => lessonId === referenceProfile.lessonId ? referenceProfile : null;
 const shortDate = (value) => value ? new Intl.DateTimeFormat('et-EE', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) : '—';
 
 export default function LessonWorksheetSet({ repository = lessonWorksheetsService }) {
@@ -23,6 +22,7 @@ export default function LessonWorksheetSet({ repository = lessonWorksheetsServic
   const { user } = useAuth();
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState('');
+  const [difficulty, setDifficulty] = useState('core');
   const [error, setError] = useState('');
   const state = useAsyncData(async () => {
     const [lesson, sheets] = await Promise.all([repository.loadLesson(lessonId), repository.list(lessonId)]);
@@ -35,7 +35,7 @@ export default function LessonWorksheetSet({ repository = lessonWorksheetsServic
   const lesson = state.data.lesson;
   const sheets = state.data.sheets;
   const byId = new Map(sheets.map((sheet) => [sheet.worksheetId || sheet.id, sheet]));
-  const profile = profileFor(lessonId);
+  const profile = generatorProfileForLesson(lessonId);
 
   const generate = async () => {
     const existing = CORE.map(({ id }) => byId.get(id)).filter(Boolean);
@@ -48,6 +48,8 @@ export default function LessonWorksheetSet({ repository = lessonWorksheetsServic
         lesson,
         profile,
         activityHistory: previousActivityIds,
+        difficulty,
+        variant,
         seed: `${lessonId}:${profile.version}:${GENERATOR_VERSION}:${variant}`,
       });
       const blocking = result.diagnostics.filter((item) => item.severity === 'error');
@@ -76,6 +78,8 @@ export default function LessonWorksheetSet({ repository = lessonWorksheetsServic
             activityIds: sheet.activityIds,
             activityCatalogVersion: ACTIVITY_CATALOG_VERSION,
             didacticPlanVersion: 1,
+            difficulty: sheet.difficulty,
+            lessonDna: sheet.lessonDna,
             variant,
           },
         });
@@ -92,8 +96,8 @@ export default function LessonWorksheetSet({ repository = lessonWorksheetsServic
   return (
     <div className="page-content generator-set-page">
       <Link className="generator-back" to="/library"><ArrowLeft size={16} /> Õppevara</Link>
-      <PageHeader eyebrow="Tunni töölehed" title={lesson.title || 'Õppetund'} description="Avasta loob konteksti, Harjuta kinnistab täpsust ja Kasuta viib õpitu rääkimisse või kirjutamisse." actions={<Button onClick={generate} loading={busy} disabled={!profile}><Sparkles size={17} /> {sheets.length ? 'Genereeri uus variant' : 'Genereeri 3 töölehte'}</Button>} />
-      {!profile ? <div className="generator-message" role="status">Generaator pole selle tunni jaoks veel valmis. Praegu on kontrollitud profiil tunnil a2b1-016.</div> : null}
+      <PageHeader eyebrow="Tunni töölehed" title={lesson.title || 'Õppetund'} description="Avasta loob konteksti, Harjuta kinnistab täpsust ja Kasuta viib õpitu rääkimisse või kirjutamisse." actions={<div className="generator-actions"><label className="generator-difficulty"><span>Raskus</span><select aria-label="Töölehtede raskus" value={difficulty} onChange={(event) => setDifficulty(event.target.value)} disabled={busy}><option value="support">Support</option><option value="core">Core</option><option value="challenge">Challenge</option></select></label><Button onClick={generate} loading={busy} disabled={!profile}><Sparkles size={17} /> {sheets.length ? 'Genereeri uus variant' : 'Genereeri 3 töölehte'}</Button></div>} />
+      {!profile ? <div className="generator-message" role="status">Generaator pole selle tunni jaoks veel valmis. Sellel tunnil puudub kontrollitud generaatoriprofiil.</div> : null}
       {error ? <div className="generator-message is-error" role="alert">{error}</div> : null}
       {notice ? <div className="generator-message is-ok" role="status">{notice}</div> : null}
       <div className="generator-sheet-grid">
