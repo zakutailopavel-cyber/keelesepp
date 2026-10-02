@@ -113,6 +113,22 @@ draft version of that focus sheet and reuses its prior activity IDs as planner c
 stores the same trace metadata as core generation (`phase`, focus/context IDs, Activity Catalog plan, Lesson DNA,
 difficulty and variant) and opens in the same Worksheet Studio.
 
+## Shared CEFR level lexicon
+
+The new generator reuses the existing authenticated Firebase Storage object `eesti_soned.json`; it does not copy or
+fork that vocabulary dataset. CRM v2 owns the Storage adapter and passes the downloaded JSON as plain data into the
+pure generator core. Generator modules therefore keep their no-Firebase/no-network boundary.
+
+The legacy level → lexical type → words shape is normalized by `vocabulary.js`. Lesson-specific `activeVocabulary`
+remains authoritative for theme and focus. The shared lexicon is a CEFR-safe reserve and audit source only: sampling
+never pulls vocabulary above the lesson ceiling, and a known target word that appears only above the current level
+produces `VOCAB_ABOVE_LEVEL` as a warning rather than blocking generation. Unknown words are left to the curated
+lesson profile instead of being guessed.
+
+Storage load failures are non-blocking for an otherwise valid curated profile. The teacher sees a warning that CEFR
+audit is limited, while the thematic profile can still generate. Saved generation trace records only the lexicon
+source and word count outside `worksheetDoc`, not a copy of the shared vocabulary.
+
 ## Child-sheet persistence boundary
 
 `lessonWorksheetsService` stores child sheets under `curriculumLessons/{lessonId}/worksheets/{worksheetId}`. Stable core IDs are `discover`, `practice` and `transfer`; focus sheets use their own IDs. The legacy root `worksheetDoc` contract stays untouched. Generated sheets begin as drafts and never overwrite manual or published work silently. Each transaction checks the loaded `worksheetDocUpdatedAt`, increments the version, writes an immutable `{lessonId}_{worksheetId}_studio_v{version}` history record, and keeps the last published snapshot when a newer draft is saved.
@@ -157,7 +173,8 @@ The current `StudentProfilePage` does not yet load `worksheetAssignments`; addin
 5. Lesson DNA, profile registry and Support/Core/Challenge difficulty. (stacked draft PR #240)
 6. Per-task deterministic regeneration in Worksheet Studio. (stacked draft PR #241)
 7. Standalone focus worksheet teacher flow. (stacked draft PR #242)
-8. Assignment source traceability, live entry points and student-profile work history.
-9. Profile coverage expanded in data-only roadmap slices.
+8. Existing Firebase Storage CEFR lexicon adapter and audit. (stacked draft PR #243)
+9. Assignment source traceability, live entry points and student-profile work history.
+10. Profile coverage expanded through lesson-embedded curated content packs.
 
 No unsupported lesson is presented as generatable. No production deployment is part of PR 1.
