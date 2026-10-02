@@ -1,5 +1,28 @@
 # KeeleSepp Project State
 
+## 2026-10-02 — Lesson DNA + difficulty engine — stacked draft PR #240 (`agent/lesson-engine-dna-difficulty-v1`)
+
+Stacked on the verified didactic-planner PR #239 and synchronized with its current head. This bounded slice adds the
+generator profile registry, canonical `keelesepp.lesson-dna/1`, deterministic Support/Core/Challenge difficulty,
+difficulty-aware materialization, teacher difficulty control and trace metadata. It does not change Firestore rules,
+Functions, the `keelesepp.worksheet/2` schema, production data or deployment targets.
+
+`Lesson DNA` records profile/lesson identity, normalized level and lesson kind, focus IDs, target/recycled vocabulary
+identity, priority skills, duration, difficulty, variant and seed. The difficulty engine changes cognitive-load
+preference and bounded scaffolding parameters (word bank, distractors/item counts, speaking duration, planning space
+and writing length) while the same five-task didactic phase requirements and quality gate remain mandatory. The
+teacher UI now resolves generator profiles through one registry and persists DNA/difficulty next to the child sheet,
+not inside its worksheet document.
+
+Verification: GitHub `CRM v2` run 318 passed lint, production build and the full CRM Vitest suite (112 files / 563
+tests); its security-regression Auth/Firestore/Functions emulator job passed. Separate `CRM v2 CI` run 247 also passed
+the same 112 files / 563 tests, lint and production build. Vercel deployment
+`dpl_Gz5LRpxMXS9M7r6wkXDAjtAewbGw` for commit `cab1f99a2aa7a996570d85bf30002cd62e7f9589` is READY. No production
+deployment was triggered. No authenticated visual-browser claim is made because the required local `agent-browser`
+executable is unavailable in this runtime.
+
+Exactly one next safe step: review stacked PR #240 after #239; per-task regeneration remains a separate later slice.
+
 ## 2026-10-02 — Didactic Lesson Planner v1 — draft PR #239 (`agent/lesson-engine-didactic-planner-v1`)
 
 Checked fresh `main` `53bf62c0447dfdbd916be83ac05cf031f74449d8` and open PRs #230, #233, #234 and
