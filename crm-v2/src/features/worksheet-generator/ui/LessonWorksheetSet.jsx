@@ -73,6 +73,7 @@ export default function LessonWorksheetSet({ repository = lessonWorksheetsServic
             scope: 'lesson-bundle',
             phase: sheet.role,
             focusIds: sheet.focusIds,
+            contextId: sheet.contextId,
             profileVersion: sheet.profileVersion,
             size: 'standard',
             activityIds: sheet.activityIds,
