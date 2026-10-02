@@ -62,7 +62,7 @@ describe('A2 curriculum v1', () => {
   });
 
   it('fails closed when a required lesson is structurally broken', () => {
-    const roadmap = structuredClone(getA2Roadmap());
+    const roadmap = JSON.parse(JSON.stringify(getA2Roadmap()));
     roadmap.modules[0].lessons[0].goal = '';
     const result = validateA2Roadmap(roadmap);
     expect(result.ready).toBe(false);
