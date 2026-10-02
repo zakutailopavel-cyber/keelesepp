@@ -173,11 +173,11 @@ describe('WorksheetStudioPage', () => {
       blockId: 'gen_practice_1',
       generation: expect.objectContaining({ phase: 'practice' }),
     }));
-    expect(await screen.findByText('Uus kellavariant.')).toBeInTheDocument();
+    await waitFor(() => expect(container.querySelector('.ws-page')).toHaveTextContent('Uus kellavariant.'));
     expect(screen.getByRole('status')).toHaveTextContent('teise ülesandetüübiga');
 
     fireEvent.click(screen.getByRole('button', { name: 'Võta tagasi' }));
-    expect(await screen.findByText('Soojendus.')).toBeInTheDocument();
+    await waitFor(() => expect(container.querySelector('.ws-page')).toHaveTextContent('Soojendus.'));
   });
 
   it('asks before leaving through a link with unsaved changes', async () => {
