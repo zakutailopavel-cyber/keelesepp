@@ -144,6 +144,42 @@ describe('WorksheetStudioPage', () => {
     expect(container.querySelectorAll('.ws-page .ws-card').length).toBe(before);
   });
 
+
+  it('regenerates one generated task through the repository and keeps undo working', async () => {
+    const document = sampleDocument();
+    const original = { ...document.blocks[0], id: 'gen_practice_1' };
+    document.blocks = [original, ...document.blocks.slice(1)];
+    const replacement = { ...original, data: { ...original.data, title: 'Uus kellavariant.' } };
+    const repository = repo({
+      load: vi.fn().mockResolvedValue({
+        document,
+        source: 'worksheetDoc',
+        lesson: {},
+        generation: { phase: 'practice', seed: 'fixed', focusIds: ['time'] },
+      }),
+      regenerateBlock: vi.fn().mockResolvedValue({ block: replacement, mode: 'activity', diagnostics: [] }),
+    });
+
+    const { container } = renderAt('/library/worksheets/lesson-1', repository);
+    await screen.findByText('Töölehe konstruktor');
+    fireEvent.click(container.querySelector('.ws-page .ws-card'));
+    const regenerate = screen.getByRole('button', { name: 'Genereeri uus variant' });
+    expect(regenerate).toBeInTheDocument();
+    expect(screen.getByText(/Sama fookus ja raskus/)).toBeInTheDocument();
+
+    fireEvent.click(regenerate);
+    await waitFor(() => expect(repository.regenerateBlock).toHaveBeenCalledWith({
+      document: expect.objectContaining({ id: document.id }),
+      blockId: 'gen_practice_1',
+      generation: expect.objectContaining({ phase: 'practice' }),
+    }));
+    expect(await screen.findByText('Uus kellavariant.')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('teise ülesandetüübiga');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Võta tagasi' }));
+    expect(await screen.findByText('Soojendus.')).toBeInTheDocument();
+  });
+
   it('asks before leaving through a link with unsaved changes', async () => {
     renderAt('/library/worksheets/lesson-1', repo());
     await screen.findByText('Töölehe konstruktor');
