@@ -316,6 +316,10 @@ without `scheduleVersion` remain valid. New browser-created records use `schedul
 keep their source (`keelesepp` or `gcal`) explicit. Per-occurrence child records use
 `scheduleVersion: 3` and preserve their parent series reference.
 
+Teacher-scoped student reads accept both the primary immutable `teacherUid` and membership in the
+additive `teacherUids` array used by active enrolments. Client queries must carry one of those exact
+UID constraints; an unscoped teacher collection read remains denied.
+
 `functions/calendar-sync-core.js` owns the pure Google event projection, scope checks, stable
 origin identifiers and content fingerprints. The Firestore schedule trigger pushes individual
 KeeleSepp lessons to a write-enabled teacher's owned primary Google Calendar. Insert, move,
