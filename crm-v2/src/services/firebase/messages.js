@@ -1,4 +1,4 @@
-import { collection, doc, getDocs, query, updateDoc, where, writeBatch } from 'firebase/firestore';
+import { collection, doc, getDocs, onSnapshot, query, updateDoc, where, writeBatch } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
 import { canonicalTeacherName } from '../../utils/teachers.js';
 
@@ -58,6 +58,13 @@ export const messagesService = {
     const { db } = requireFirebaseClient();
     const snapshots = await Promise.all(chunks([...new Set(studentIds.filter(Boolean))]).map((ids) => getDocs(query(collection(db, 'messages'), where('studentId', 'in', ids)))));
     return snapshots.flatMap(messageRecords).sort((a, b) => String(a.createdAt || a.date || '').localeCompare(String(b.createdAt || b.date || '')));
+  },
+  // Live conversation of one student (Live Classroom chat): the same internal messages as the Suhtlus page.
+  subscribeByStudent(studentId, onChange, onError) {
+    const { db } = requireFirebaseClient();
+    return onSnapshot(query(collection(db, 'messages'), where('studentId', '==', studentId)), (snapshot) => {
+      onChange(messageRecords(snapshot).sort((a, b) => String(a.createdAt || a.date || '').localeCompare(String(b.createdAt || b.date || ''))));
+    }, onError);
   },
   async send(data, user) {
     const studentId = String(data?.studentId || '').trim();

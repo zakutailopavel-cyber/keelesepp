@@ -61,6 +61,13 @@ continue to fall back to their curriculum title or topic and do not need a destr
 
 ### Live Classroom
 
+CRM v2 room (`crm-v2/src/features/live-classroom/LiveRoom.jsx`): an accepted `liveLessonInvitations` room is a
+full-screen layer. The call is `useLiveCall` (WebRTC over `liveLessonCallSignals` + presence). The board is the
+student's persistent board `whiteboards/{studentId}` (same as CRM „Tahvel” and the v1 board) with optional lesson pages
+`lessonPages/{pageId}` named "Tund dd.mm.yyyy"; materials are placed as image/PDF board elements (staff only by rules).
+Chat uses the student's internal `messages` conversation. Board rules check access once per write (see
+`whiteboardElementCreateValid`, `lessonPageLive`); evaluating it repeatedly exceeds Firestore's 1000-expression limit.
+
 `live-classroom-core.js` owns the public scene contract. A scene may contain only:
 
 - type, title, body, bounded public options and version metadata;
