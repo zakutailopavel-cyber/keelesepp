@@ -267,4 +267,31 @@ describe('LibraryPage', () => {
       values: expect.objectContaining({ blocks: [expect.objectContaining({ type: 'match', pairs: [{ l: 'ema', r: 'mother' }, { l: 'isa', r: 'father' }] })] }),
     })));
   });
+
+  it('installs the A2 curriculum from the current CRM v2 library', async () => {
+    const repository = { list: vi.fn().mockResolvedValue({ curriculumLessons: [], exercises: [] }) };
+    const curriculumInstaller = { installA2: vi.fn().mockResolvedValue({ curriculumId: 'est-a2-curriculum-v1', count: 100 }) };
+    const user = { uid: 'teacher-1', displayName: 'Õpetaja', roles: ['teacher'] };
+
+    render(
+      <MemoryRouter>
+        <AuthContext.Provider value={{ user }}>
+          <LibraryPage
+            repository={repository}
+            studentRepository={{ list: vi.fn() }}
+            groupRepository={{ list: vi.fn() }}
+            curriculumInstaller={curriculumInstaller}
+          />
+        </AuthContext.Provider>
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('A2 õppekava: 0/100 tundi paigaldatud. Paigaldus kasutab stabiilseid tunni-ID-sid ega loo duplikaate.')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Paigalda A2 õppekava/ }));
+
+    await waitFor(() => expect(curriculumInstaller.installA2).toHaveBeenCalledWith({ user }));
+    expect(await screen.findByRole('status')).toHaveTextContent('A2 õppekava paigaldati: 100 tundi.');
+    await waitFor(() => expect(repository.list).toHaveBeenCalledTimes(2));
+  });
+
 });
