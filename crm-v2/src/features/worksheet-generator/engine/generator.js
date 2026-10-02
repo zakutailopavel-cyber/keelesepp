@@ -8,7 +8,7 @@ import { planLessonActivities, planPhaseActivities } from './planner.js';
 import { PHASES, recipeFor } from './recipes.js';
 import { shuffleSeeded } from './seed.js';
 import { inspectGeneratedSheet } from './quality.js';
-import { selectVocabulary } from './vocabulary.js';
+import { inspectVocabularyLevel, selectVocabulary } from './vocabulary.js';
 
 export const GENERATOR_VERSION = '1.1.0';
 
@@ -130,6 +130,11 @@ export function generateLessonBundle({
     count: 12,
     seed: bundleSeed,
   });
+  const vocabularyAudit = inspectVocabularyLevel({
+    activeVocabulary: profile.activeVocabulary,
+    levelLexicon,
+    level: profile.level,
+  });
   const contexts = shuffleSeeded(profile.contexts || [], `${bundleSeed}:contexts`);
   if (contexts.length < 3) diagnostics.push(diagnostic('error', 'BANK_INSUFFICIENT', 'Kolme töölehe jaoks on vaja vähemalt kolme konteksti.'));
 
@@ -161,8 +166,8 @@ export function generateLessonBundle({
       lessonDna,
     }));
 
-  const allDiagnostics = [...diagnostics, ...vocabulary.diagnostics, ...sheets.flatMap((sheet) => sheet.diagnostics)];
-  return { sheets, diagnostics: allDiagnostics, activityPlan: plan.phases, lessonDna };
+  const allDiagnostics = [...diagnostics, ...vocabulary.diagnostics, ...vocabularyAudit.diagnostics, ...sheets.flatMap((sheet) => sheet.diagnostics)];
+  return { sheets, diagnostics: allDiagnostics, activityPlan: plan.phases, lessonDna, vocabularyAudit };
 }
 
 export function generateFocusWorksheet({
@@ -198,6 +203,11 @@ export function generateFocusWorksheet({
     level: profile.level,
     count: size === 'short' ? 8 : 12,
     seed: focusSeed,
+  });
+  const vocabularyAudit = inspectVocabularyLevel({
+    activeVocabulary: profile.activeVocabulary,
+    levelLexicon,
+    level: profile.level,
   });
   const context = shuffleSeeded(contextsForFocus(profile, normalized.focusIds, phase), `${focusSeed}:context`)[0];
   if (!context) return { sheet: null, diagnostics: [...diagnostics, diagnostic('error', 'BANK_INSUFFICIENT', 'Fookuse töölehe kontekst puudub.')] };
@@ -248,7 +258,7 @@ export function generateFocusWorksheet({
     difficulty: normalizedDifficulty,
     lessonDna,
   });
-  return { sheet, diagnostics: [...diagnostics, ...vocabulary.diagnostics, ...sheet.diagnostics], lessonDna };
+  return { sheet, diagnostics: [...diagnostics, ...vocabulary.diagnostics, ...vocabularyAudit.diagnostics, ...sheet.diagnostics], lessonDna, vocabularyAudit };
 }
 
 export { normalizeFocusSelection } from './focus.js';
@@ -258,4 +268,4 @@ export { normalizeLessonKind } from './lessonKind.js';
 export { catalogReadiness, planLessonActivities, planPhaseActivities } from './planner.js';
 export { ACTIVITY_CATALOG, ACTIVITY_CATALOG_VERSION } from './activityCatalog.js';
 export { createSeededRandom, sampleSeeded, shuffleSeeded } from './seed.js';
-export { normalizeLevel, normalizeLevelLexicon, selectVocabulary } from './vocabulary.js';
+export { inspectVocabularyLevel, normalizeLevel, normalizeLevelLexicon, selectVocabulary } from './vocabulary.js';
