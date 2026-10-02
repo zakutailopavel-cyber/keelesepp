@@ -85,6 +85,22 @@ phase contract and quality gate; scarce curated banks fail closed.
 generation metadata records the selected difficulty and DNA while published/manual worksheet content keeps the
 existing persistence and version semantics.
 
+## Per-task deterministic regeneration
+
+Generated child worksheets can regenerate one selected generated task inside the shared Worksheet Studio. The
+regeneration engine derives its next seed from the current block content, so repeated regeneration is deterministic
+without timestamps, hidden random state or an AI/provider call. It prefers a different compatible activity with the
+same primary skill while preserving phase-critical didactic tags; when no safe alternative exists it keeps the same
+activity and regenerates only its content.
+
+The replacement preserves the block ID, goal and teacher-controlled layout fields. It rejects placeholder output,
+missing deterministic answer keys, exact duplicates of the current task and exact duplicates of sibling tasks. Manual
+or unsupported blocks fail closed. The editor change goes through normal Worksheet Studio history, so it is undoable
+and remains local until the teacher explicitly saves. Firestore is not written by the regeneration click itself.
+
+New generated records also persist `contextId` in generation metadata. Older generated sheets remain compatible:
+context is reconstructed from the original deterministic bundle seed when the field is absent.
+
 ## Child-sheet persistence boundary
 
 `lessonWorksheetsService` stores child sheets under `curriculumLessons/{lessonId}/worksheets/{worksheetId}`. Stable core IDs are `discover`, `practice` and `transfer`; focus sheets use their own IDs. The legacy root `worksheetDoc` contract stays untouched. Generated sheets begin as drafts and never overwrite manual or published work silently. Each transaction checks the loaded `worksheetDocUpdatedAt`, increments the version, writes an immutable `{lessonId}_{worksheetId}_studio_v{version}` history record, and keeps the last published snapshot when a newer draft is saved.
@@ -127,7 +143,8 @@ The current `StudentProfilePage` does not yet load `worksheetAssignments`; addin
 3. Teacher generation UI and shared Worksheet Studio route. (implemented for the reference profile)
 4. Didactic Activity Catalog, seeded planner, cooldown and real regeneration variants. (draft PR #239)
 5. Lesson DNA, profile registry and Support/Core/Challenge difficulty. (stacked draft PR #240)
-6. Assignment source traceability, live entry points and student-profile work history.
-7. Profile coverage expanded in data-only roadmap slices.
+6. Per-task deterministic regeneration in Worksheet Studio. (stacked draft PR #241)
+7. Assignment source traceability, live entry points and student-profile work history.
+8. Profile coverage expanded in data-only roadmap slices.
 
 No unsupported lesson is presented as generatable. No production deployment is part of PR 1.
