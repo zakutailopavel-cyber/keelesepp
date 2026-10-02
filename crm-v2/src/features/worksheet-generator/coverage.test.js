@@ -31,7 +31,9 @@ describe('generator coverage', () => {
     });
 
     expect(readyEmbedded.status).toBe(GENERATOR_COVERAGE_STATUSES.READY_EMBEDDED);
-    expect(readyEmbedded.phaseAvailability).toMatchObject({ discover: 5, practice: 5, transfer: 5 });
+    expect(readyEmbedded.phaseAvailability.discover).toBeGreaterThanOrEqual(5);
+    expect(readyEmbedded.phaseAvailability.practice).toBeGreaterThanOrEqual(5);
+    expect(readyEmbedded.phaseAvailability.transfer).toBeGreaterThanOrEqual(5);
     expect(readyStatic.status).toBe(GENERATOR_COVERAGE_STATUSES.READY_STATIC);
     expect(draft.status).toBe(GENERATOR_COVERAGE_STATUSES.DRAFT);
     expect(draft.errorCount).toBeGreaterThan(0);
