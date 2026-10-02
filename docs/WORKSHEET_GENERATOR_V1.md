@@ -64,6 +64,27 @@ banks without an AI/provider call. New catalog entries are additive only when th
 Studio materializer are deterministic. The reference profile remains `a2b1-016`; broad curriculum coverage is still a
 separate data-authoring rollout.
 
+## Lesson DNA and difficulty engine
+
+`profiles/index.js` is the curated registry for generator-ready lessons. The teacher UI resolves a lesson through
+this registry instead of importing one fixture directly, so adding another verified profile is a data-registration
+change rather than a new UI condition.
+
+Every generation builds a canonical `keelesepp.lesson-dna/1` envelope before planning. Lesson DNA records the lesson
+and profile identity, normalized CEFR level, lesson kind, selected focus IDs, target/recycled vocabulary identity,
+priority skills, duration, difficulty, deterministic variant and seed. The DNA is generator trace metadata and stays
+outside the ordinary `keelesepp.worksheet/2` document.
+
+The teacher can choose `Support`, `Core` or `Challenge`. Difficulty is deterministic and changes both planning and
+materialization without bypassing didactic requirements. It can prefer lower/higher cognitive-load activities and
+adjust scaffolding such as word-bank visibility, distractor count, controlled item count, speaking duration, planning
+space and writing length. Every mode still has to satisfy the same Activity Catalog source requirements, five-task
+phase contract and quality gate; scarce curated banks fail closed.
+
+`generateLessonBundle()` and `generateFocusWorksheet()` return their Lesson DNA alongside sheets. Saved child-sheet
+generation metadata records the selected difficulty and DNA while published/manual worksheet content keeps the
+existing persistence and version semantics.
+
 ## Child-sheet persistence boundary
 
 `lessonWorksheetsService` stores child sheets under `curriculumLessons/{lessonId}/worksheets/{worksheetId}`. Stable core IDs are `discover`, `practice` and `transfer`; focus sheets use their own IDs. The legacy root `worksheetDoc` contract stays untouched. Generated sheets begin as drafts and never overwrite manual or published work silently. Each transaction checks the loaded `worksheetDocUpdatedAt`, increments the version, writes an immutable `{lessonId}_{worksheetId}_studio_v{version}` history record, and keeps the last published snapshot when a newer draft is saved.
@@ -105,7 +126,8 @@ The current `StudentProfilePage` does not yet load `worksheetAssignments`; addin
 2. Child-sheet draft/publish/version persistence and rules. (implemented)
 3. Teacher generation UI and shared Worksheet Studio route. (implemented for the reference profile)
 4. Didactic Activity Catalog, seeded planner, cooldown and real regeneration variants. (draft PR #239)
-5. Assignment source traceability, live entry points and student-profile work history.
-6. Profile coverage expanded in data-only roadmap slices.
+5. Lesson DNA, profile registry and Support/Core/Challenge difficulty. (stacked draft PR #240)
+6. Assignment source traceability, live entry points and student-profile work history.
+7. Profile coverage expanded in data-only roadmap slices.
 
 No unsupported lesson is presented as generatable. No production deployment is part of PR 1.
