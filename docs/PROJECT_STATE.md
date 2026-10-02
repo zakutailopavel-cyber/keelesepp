@@ -1,5 +1,28 @@
 # KeeleSepp Project State
 
+## 2026-10-02 — Teacher dashboard secondary-assignment permission hotfix — local branch
+
+Checked against fresh `origin/main` `3517dd8` on 2026-10-02; open PRs #230, #233 and #234 do not contain this rules
+fix. A production teacher (`Anhelina Korotka`) saw the whole `Ülevaade` fail with `Missing or insufficient
+permissions`. The dashboard's teacher-scoped student loader intentionally combines `teacherUid == current UID` and
+`teacherUids array-contains current UID`, but enforced Firestore reads allowed only the first constraint. Therefore
+the second valid query was rejected and its shared `Promise.all` failed the page.
+
+Branch `codex/teacher-secondary-assignment-read` extends only `teacherCanRead`: a teacher may read a record where
+their UID is the primary `teacherUid` or is present in `teacherUids`. Legacy pre-enforcement behaviour and admin,
+parent, student, create and update permissions are unchanged; broad unscoped teacher reads remain denied. The
+emulator regression creates a student whose primary teacher is someone else, confirms the assigned secondary
+teacher's `ARRAY_CONTAINS` query succeeds with exactly that record, and keeps the broad-query denial assertion.
+
+Files: `firestore.rules`, `functions/finance-emulator.integration.js`,
+`crm-v2/src/services/firebase/students.pagination.test.js`, `ARCHITECTURE.md`, and this state file. No schema,
+migration, Function, Vercel or production-data change. Checks: Firestore production-project dry-run compiled the
+rules successfully; focused CRM student-query tests 5/5 passed; Functions unit suite 212/212 passed;
+`git diff --check` passed. The intended focused Firestore emulator regression is added but could not run on this Mac because
+Firebase Emulator requires Java and no Java runtime is installed; two launch attempts stopped before any emulator
+or test code ran. Exactly one next safe step: owner explicitly approves the production `firestore:rules` deploy,
+then reload and verify Anhelina's teacher dashboard; no CRM redeploy is needed.
+
 ## 2026-10-02 — Known test failures fixed, Kontrolltöö label — PR (branch `agent/fix-known-failures`)
 
 Checked against main `240e09c`. Owner asked to fix the remaining known problems (not the items they parked: TURN,
