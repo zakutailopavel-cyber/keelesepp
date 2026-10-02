@@ -69,6 +69,7 @@ export function profileToEditorFields(profile, lesson = {}) {
       joinCsv(item.focusIds),
       joinCsv(item.contextIds),
       item.difficulty || 1,
+      JSON.stringify(item.slots || {}),
       item.text,
     ])).join('\n'),
     errorPairs: (source.banks?.errorPairs || []).map((item) => joinLine([
@@ -96,6 +97,7 @@ export function profileToEditorFields(profile, lesson = {}) {
       joinCsv(item.contextIds),
       item.text,
     ])).join('\n'),
+    dialoguesJson: JSON.stringify(source.banks?.dialogues || [], null, 2),
     successCriteria: (source.successCriteria || []).join('\n'),
   };
 }
@@ -128,14 +130,25 @@ export function editorFieldsToProfile(fields = {}, { lesson = {}, baseProfile = 
     times: csv(times.join(` ${SEP} `)),
   }), diagnostics);
 
-  const sentences = parseRows(fields.sentences, 'Laused', 5, ([id, focusIds, contextIds, difficulty, ...text]) => ({
-    ...(preserved.sentence.get(id) || {}),
-    id,
-    focusIds: csv(focusIds),
-    contextIds: csv(contextIds),
-    difficulty: Number(difficulty) || 1,
-    text: text.join(` ${SEP} `),
-  }), diagnostics);
+  const sentences = parseRows(fields.sentences, 'Laused', 6, ([id, focusIds, contextIds, difficulty, slotJson, ...text]) => {
+    let parsedSlots = {};
+    if (slotJson && slotJson !== '{}') {
+      try {
+        parsedSlots = JSON.parse(slotJson);
+      } catch {
+        throw new Error('slots JSON on vigane.');
+      }
+    }
+    return {
+      ...(preserved.sentence.get(id) || {}),
+      id,
+      focusIds: csv(focusIds),
+      contextIds: csv(contextIds),
+      difficulty: Number(difficulty) || 1,
+      slots: parsedSlots,
+      text: text.join(` ${SEP} `),
+    };
+  }, diagnostics);
 
   const errorPairs = parseRows(fields.errorPairs, 'Veaparandused', 4, ([id, focusIds, wrong, ...correct]) => ({
     ...(preserved.error.get(id) || {}),
@@ -162,6 +175,17 @@ export function editorFieldsToProfile(fields = {}, { lesson = {}, baseProfile = 
     text: text.join(` ${SEP} `),
   }), diagnostics);
 
+  let dialogues = baseProfile?.banks?.dialogues || [];
+  if (clean(fields.dialoguesJson)) {
+    try {
+      const parsed = JSON.parse(fields.dialoguesJson);
+      if (!Array.isArray(parsed)) throw new Error('Dialoogid peavad olema JSON massiiv.');
+      dialogues = parsed;
+    } catch (error) {
+      diagnostics.push({ severity: 'error', code: 'PROFILE_DIALOGUES_JSON_INVALID', message: `Dialoogid: ${error.message}` });
+    }
+  }
+
   const raw = {
     ...(baseProfile || {}),
     schema: baseProfile?.schema,
@@ -178,7 +202,7 @@ export function editorFieldsToProfile(fields = {}, { lesson = {}, baseProfile = 
       sentences,
       errorPairs,
       translations,
-      dialogues: baseProfile?.banks?.dialogues || [],
+      dialogues,
       speakingPrompts: promptRows(fields.speakingPrompts, 'Rääkimisülesanded', preserved.speaking),
       writingPrompts: promptRows(fields.writingPrompts, 'Kirjutamisülesanded', preserved.writing),
     },
