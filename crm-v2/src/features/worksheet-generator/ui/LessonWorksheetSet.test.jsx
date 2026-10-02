@@ -109,6 +109,58 @@ describe('LessonWorksheetSet', () => {
     expect(screen.getByRole('button', { name: /Genereeri 3 töölehte/ })).toBeEnabled();
   });
 
+
+  it('authors and saves an embedded generator content-pack draft for a lesson without a code profile', async () => {
+    const otherLesson = {
+      id: 'other',
+      title: 'Arvamuse põhjendamine',
+      levelStage: 'B1',
+      roadmapKind: 'communication',
+      languageFocus: 'Põhjus ja näide',
+      successCriteria: 'Õpilane põhjendab oma arvamust.',
+    };
+    const repository = {
+      loadLesson: vi.fn().mockResolvedValue(otherLesson),
+      list: vi.fn().mockResolvedValue([]),
+      saveDraft: vi.fn(),
+      saveGeneratorProfile: vi.fn().mockResolvedValue({
+        profile: {},
+        revision: 1,
+        updatedAt: '2026-10-02T22:00:00Z',
+      }),
+    };
+    render(
+      <MemoryRouter initialEntries={['/library/lessons/other/worksheets']}>
+        <AuthContext.Provider value={{ user }}>
+          <Routes><Route path="/library/lessons/:lessonId/worksheets" element={<LessonWorksheetSet repository={repository} vocabularyRepository={vocabularyRepository} />} /></Routes>
+        </AuthContext.Provider>
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText(/Generaator pole selle tunni jaoks veel valmis/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Generaatori sisu' }));
+    expect(await screen.findByRole('heading', { name: 'Generaatori sisupakett' })).toBeInTheDocument();
+    expect(screen.getByDisplayValue('Põhjus ja näide')).toBeInTheDocument();
+    expect(screen.getByText(/Puudu:/)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Salvesta sisupakett' }));
+    await waitFor(() => expect(repository.saveGeneratorProfile).toHaveBeenCalledTimes(1));
+    const input = repository.saveGeneratorProfile.mock.calls[0][0];
+    expect(input.lessonId).toBe('other');
+    expect(input.baseUpdatedAt).toBe('');
+    expect(input.user).toBe(user);
+    expect(input.profile).toMatchObject({
+      schema: 'keelesepp.worksheet-generator-profile/1',
+      version: 1,
+      lessonId: 'other',
+      level: 'B1',
+      lessonKind: 'communication',
+      title: 'Arvamuse põhjendamine',
+    });
+    expect(input.profile.focuses[0]).toMatchObject({ id: 'lesson-focus', label: 'Põhjus ja näide' });
+    expect(screen.getByRole('button', { name: /Genereeri 3 töölehte/ })).toBeDisabled();
+  });
+
   it('does not offer generation for a lesson without a curated profile', async () => {
     const repository = { loadLesson: vi.fn().mockResolvedValue({ id: 'other', title: 'Muu tund' }), list: vi.fn().mockResolvedValue([]), saveDraft: vi.fn() };
     render(
