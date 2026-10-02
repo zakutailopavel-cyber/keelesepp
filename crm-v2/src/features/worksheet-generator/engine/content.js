@@ -1,7 +1,9 @@
 import { createBlock } from '../../worksheet-studio/engine/registry.js';
+import { activityById } from './activityCatalog.js';
 import { sampleSeeded, shuffleSeeded } from './seed.js';
 
 const clean = (value) => String(value ?? '').trim();
+const escapeRegExp = (value) => String(value).replace(/[.*+?^$()|[\]\\{}]/g, '\\$&');
 
 function block(type, data, { id, goal }) {
   const created = createBlock(type);
@@ -10,6 +12,10 @@ function block(type, data, { id, goal }) {
 
 function hasFocus(item, focusIds) {
   return !focusIds.length || (item.focusIds || []).some((id) => focusIds.includes(id));
+}
+
+function contextMatches(item, contextId) {
+  return !contextId || !(item.contextIds || []).length || item.contextIds.includes(contextId);
 }
 
 export function renderTemplate(template, seed) {
@@ -21,95 +27,398 @@ export function renderTemplate(template, seed) {
   return rendered;
 }
 
-function takeSentences(profile, state, { focusIds, contextId, count, seed }) {
-  const candidates = (profile.banks?.sentences || []).filter((item) => hasFocus(item, focusIds) && (!contextId || !(item.contextIds || []).length || item.contextIds.includes(contextId)));
+function sentenceCandidates(profile, focusIds, contextId) {
+  const all = (profile.banks?.sentences || []).filter((item) => hasFocus(item, focusIds));
+  if (!contextId) return all;
+  const preferred = all.filter((item) => contextMatches(item, contextId));
+  const fallback = all.filter((item) => !preferred.includes(item));
+  return [...preferred, ...fallback];
+}
+
+function takeSentences(profile, state, { focusIds, contextId, count, seed, allowReuse = false }) {
   const result = [];
-  for (const item of shuffleSeeded(candidates, seed)) {
+  for (const item of shuffleSeeded(sentenceCandidates(profile, focusIds, contextId), seed)) {
     const rendered = renderTemplate(item, seed);
-    if (state.usedSentenceIds.has(item.id) || state.usedRenderedSentences.has(rendered)) continue;
-    state.usedSentenceIds.add(item.id);
-    state.usedRenderedSentences.add(rendered);
+    if (!allowReuse && (state.usedSentenceIds.has(item.id) || state.usedRenderedSentences.has(rendered))) continue;
+    if (!allowReuse) {
+      state.usedSentenceIds.add(item.id);
+      state.usedRenderedSentences.add(rendered);
+    }
     result.push({ ...item, rendered });
     if (result.length === count) break;
+  }
+  if (result.length < count && !allowReuse) {
+    for (const item of shuffleSeeded(sentenceCandidates(profile, focusIds, contextId), `${seed}:reuse`)) {
+      const rendered = renderTemplate(item, seed);
+      if (result.some((entry) => entry.id === item.id)) continue;
+      result.push({ ...item, rendered });
+      if (result.length === count) break;
+    }
   }
   return result;
 }
 
+function targetInSentence(sentence, profile, focusIds) {
+  const words = (profile.activeVocabulary || [])
+    .filter((item) => hasFocus(item, focusIds))
+    .map((item) => item.word)
+    .filter(Boolean)
+    .sort((a, b) => b.length - a.length);
+  return words.find((word) => new RegExp(`(^|\\s)${escapeRegExp(word)}(?=[.,!?;:]|\\s|$)`, 'iu').test(sentence)) || '';
+}
+
 function markGap(sentence, profile, focusIds) {
-  const words = (profile.activeVocabulary || []).filter((item) => hasFocus(item, focusIds)).map((item) => item.word).sort((a, b) => b.length - a.length);
-  const target = words.find((word) => new RegExp(`(^|\\s)${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?=[.,!?;:]|\\s|$)`, 'iu').test(sentence));
-  if (!target) return `[${sentence}]`;
-  return sentence.replace(new RegExp(target.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'iu'), `[${target}]`);
+  const target = targetInSentence(sentence, profile, focusIds);
+  if (!target) return '';
+  return sentence.replace(new RegExp(escapeRegExp(target), 'iu'), `[${target}]`);
+}
+
+function vocabularyFor(profile, focusIds) {
+  return (profile.activeVocabulary || []).filter((item) => hasFocus(item, focusIds));
 }
 
 function vocabularyPairs(profile, focusIds, count, seed) {
-  return sampleSeeded((profile.activeVocabulary || []).filter((item) => item.translation && hasFocus(item, focusIds)), count, seed)
+  return sampleSeeded(vocabularyFor(profile, focusIds).filter((item) => item.translation), count, seed)
     .map((item) => ({ left: item.word, right: item.translation }));
 }
 
-function dialogueBlock(profile, focusIds, state, id, goal, seed) {
-  const item = shuffleSeeded((profile.banks?.dialogues || []).filter((entry) => hasFocus(entry, focusIds) && !state.usedDialogueIds.has(entry.id)), seed)[0];
-  if (!item) return null;
-  state.usedDialogueIds.add(item.id);
-  return block('dialogue', { title: 'Täida dialoog.', instruction: 'Kirjuta puuduvad sõnad.', speakerA: item.speakers?.[0] || 'A', speakerB: item.speakers?.[1] || 'B', lines: item.lines.map(({ who, text }) => ({ who, text })) }, { id, goal });
+function focusGroups(profile, focusIds) {
+  const vocab = vocabularyFor(profile, focusIds);
+  return (profile.focuses || [])
+    .filter((focus) => focusIds.includes(focus.id))
+    .map((focus) => ({
+      name: focus.label,
+      words: vocab.filter((item) => (item.focusIds || []).includes(focus.id)).map((item) => item.word).join(', '),
+    }))
+    .filter((group) => group.words)
+    .slice(0, 4);
 }
 
-export function materializePhase({ phase, profile, focusIds, contextId, seed, state }) {
-  const goal = `focus:${focusIds[0] || profile.focuses?.[0]?.id || 'lesson'}`;
-  let sequence = 0;
-  const make = (type, data) => block(type, data, { id: `gen_${phase}_${++sequence}`, goal });
-  const sentenceCount = phase === 'practice' ? 4 : 3;
-  const sentences = takeSentences(profile, state, { focusIds, contextId, count: sentenceCount, seed });
-  const criteria = (profile.successCriteria || []).join('\n');
-  const vocab = (profile.activeVocabulary || []).filter((item) => hasFocus(item, focusIds));
+function dialogueData(profile, focusIds, state, seed) {
+  const item = shuffleSeeded(
+    (profile.banks?.dialogues || []).filter((entry) => hasFocus(entry, focusIds) && !state.usedDialogueIds.has(entry.id)),
+    seed,
+  )[0];
+  if (!item) return null;
+  state.usedDialogueIds.add(item.id);
+  return {
+    title: 'Täida dialoog.',
+    instruction: 'Kirjuta puuduvad sõnad.',
+    speakerA: item.speakers?.[0] || 'A',
+    speakerB: item.speakers?.[1] || 'B',
+    lines: (item.lines || []).map(({ who, text }) => ({ who, text })),
+  };
+}
 
-  if (phase === 'discover') {
-    const pairs = vocabularyPairs(profile, focusIds, 5, `${seed}:pairs`);
-    const focusGroups = (profile.focuses || []).filter((focus) => focusIds.includes(focus.id)).map((focus) => ({ name: focus.label, words: vocab.filter((item) => (item.focusIds || []).includes(focus.id)).map((item) => item.word).join(', ') })).filter((group) => group.words).slice(0, 4);
-    const result = [
-      make('match', { title: 'Ühenda sõna ja tähendus.', instruction: 'Leia sobiv paar.', pairs }),
-      make('truefalse', { title: 'Kas lause sobib konteksti?', instruction: 'Märgi Õ või V.', statements: sentences.slice(0, 2).map((item) => ({ text: item.rendered, answer: 'true' })) }),
-      make('categorize', { title: 'Märka ajamarkereid.', instruction: 'Paiguta sõnad õige fookuse alla.', groups: focusGroups }),
-    ];
-    const dialogue = dialogueBlock(profile, focusIds, state, `gen_${phase}_${++sequence}`, goal, seed);
-    if (dialogue) result.push(dialogue);
-    result.push(make('selfcheck', { title: 'Kontrolli arusaamist.', titleMore: 'Kas ma märkan?', instruction: '', items: criteria, stamp: 'Ma märkan tunni põhifookust!' }));
-    return result;
-  }
+function meaningChoiceData(profile, focusIds, seed) {
+  const vocab = vocabularyFor(profile, focusIds).filter((item) => item.translation);
+  const items = shuffleSeeded(vocab, seed).slice(0, 3);
+  const translations = vocab.map((item) => item.translation);
+  const questions = items.map((item, index) => {
+    const distractors = shuffleSeeded(translations.filter((value) => value !== item.translation), `${seed}:distractors:${index}`).slice(0, 2);
+    const options = shuffleSeeded([
+      { text: item.translation, correct: true },
+      ...distractors.map((text) => ({ text, correct: false })),
+    ], `${seed}:options:${index}`);
+    return { q: `Mida tähendab „${item.word}“?`, options: options.map((option) => `${option.correct ? '*' : ''}${option.text}`).join('\n') };
+  });
+  return { title: 'Vali sobiv tähendus.', instruction: 'Vali üks õige vastus.', questions };
+}
 
-  if (phase === 'practice') {
-    const errors = sampleSeeded((profile.banks?.errorPairs || []).filter((item) => hasFocus(item, focusIds)), 3, `${seed}:errors`);
-    const translations = sampleSeeded((profile.banks?.translations || []).filter((item) => hasFocus(item, focusIds)), 3, `${seed}:translations`);
-    const grouped = (profile.focuses || []).filter((focus) => focusIds.includes(focus.id)).slice(0, 4).map((focus) => ({ name: focus.label, words: vocab.filter((item) => (item.focusIds || []).includes(focus.id)).map((item) => item.word).join(', ') })).filter((group) => group.words);
-    return [
-      make('gaps', { title: 'Täienda laused.', instruction: 'Kasuta õiget ajamarkerit.', bank: vocab.map((item) => item.word).join(', '), showBank: 'yes', sentences: sentences.slice(0, 2).map((item) => markGap(item.rendered, profile, focusIds)).join('\n') }),
-      make('errorfix', { title: 'Leia ja paranda viga.', instruction: 'Kirjuta lause õigesti.', rows: errors.map((item) => ({ wrong: item.wrong, answer: item.correct })) }),
-      make('translation', { title: 'Tõlgi eesti keelde.', instruction: 'Õpetaja kontrollib vastust.', rows: translations.map((item) => ({ source: item.source, hint: item.alternatives?.join(' / ') || '' })) }),
-      make('wordorder', { title: 'Moodusta lause.', instruction: 'Pane sõnad õigesse järjekorda.', sentences: (sentences.slice(2).length ? sentences.slice(2) : sentences.slice(0, 1)).map((item) => item.rendered).join('\n') }),
-      make('categorize', { title: 'Sorteeri ajamarkerid.', instruction: 'Paiguta sõnad õige fookuse alla.', groups: grouped.length >= 2 ? grouped : [{ name: 'Ajamarkerid', words: vocab.slice(0, 5).map((item) => item.word).join(', ') }, { name: 'Järjekord', words: vocab.slice(5).map((item) => item.word).join(', ') }] }),
-    ];
-  }
+function contextChoiceData(profile, focusIds, contextId, state, seed) {
+  const vocab = vocabularyFor(profile, focusIds).map((item) => item.word);
+  const sentences = takeSentences(profile, state, { focusIds, contextId, count: 3, seed });
+  const questions = sentences.map((item, index) => {
+    const target = targetInSentence(item.rendered, profile, focusIds);
+    if (!target) return null;
+    const q = item.rendered.replace(new RegExp(escapeRegExp(target), 'iu'), '___');
+    const distractors = shuffleSeeded(vocab.filter((word) => word !== target), `${seed}:distractors:${index}`).slice(0, 2);
+    const options = shuffleSeeded([
+      { text: target, correct: true },
+      ...distractors.map((text) => ({ text, correct: false })),
+    ], `${seed}:options:${index}`);
+    return { q, options: options.map((option) => `${option.correct ? '*' : ''}${option.text}`).join('\n') };
+  }).filter(Boolean);
+  return { title: 'Vali lausesse sobiv vorm.', instruction: 'Vali konteksti sobiv vastus.', questions };
+}
 
-  const speaking = shuffleSeeded((profile.banks?.speakingPrompts || []).filter((item) => hasFocus(item, focusIds)), `${seed}:speaking`)[0];
-  const writing = shuffleSeeded((profile.banks?.writingPrompts || []).filter((item) => hasFocus(item, focusIds)), `${seed}:writing`)[0];
+function trueFalseData(profile, focusIds, contextId, state, seed) {
+  const all = (profile.banks?.sentences || []).filter((item) => hasFocus(item, focusIds));
+  const trueItems = all.filter((item) => contextMatches(item, contextId));
+  const falseItems = all.filter((item) => (item.contextIds || []).length && !item.contextIds.includes(contextId));
+  const truth = shuffleSeeded(trueItems, `${seed}:true`)[0];
+  const falsehood = shuffleSeeded(falseItems, `${seed}:false`)[0];
+  const selected = [
+    truth ? { item: truth, answer: 'true' } : null,
+    falsehood ? { item: falsehood, answer: 'false' } : null,
+  ].filter(Boolean);
+  selected.forEach(({ item }) => {
+    state.usedSentenceIds.add(item.id);
+    state.usedRenderedSentences.add(renderTemplate(item, seed));
+  });
+  return {
+    title: 'Kas lause sobib olukorraga?',
+    instruction: 'Märgi Õ või V.',
+    statements: shuffleSeeded(selected, `${seed}:order`).map(({ item, answer }) => ({ text: renderTemplate(item, seed), answer })),
+  };
+}
+
+function errorFixData(profile, focusIds, seed) {
+  const rows = sampleSeeded((profile.banks?.errorPairs || []).filter((item) => hasFocus(item, focusIds)), 3, seed)
+    .map((item) => ({ wrong: item.wrong, answer: item.correct }));
+  return { title: 'Leia ja paranda viga.', instruction: 'Kirjuta lause õigesti.', rows };
+}
+
+function translationData(profile, focusIds, state, seed) {
+  const candidates = (profile.banks?.translations || []).filter((item) => hasFocus(item, focusIds) && !state.usedTranslationIds.has(item.id));
+  const selected = sampleSeeded(candidates, 3, seed);
+  selected.forEach((item) => state.usedTranslationIds.add(item.id));
+  return {
+    title: 'Tõlgi eesti keelde.',
+    instruction: 'Õpetaja kontrollib vastust.',
+    rows: selected.map((item) => ({ source: item.source, hint: item.alternatives?.join(' / ') || '' })),
+  };
+}
+
+function categorizeData(profile, focusIds) {
+  const groups = focusGroups(profile, focusIds);
+  const vocab = vocabularyFor(profile, focusIds);
+  const splitAt = Math.ceil(vocab.length / 2);
+  return {
+    title: 'Sorteeri väljendid.',
+    instruction: 'Paiguta sõnad õige fookuse alla.',
+    groups: groups.length >= 2 ? groups : [
+      { name: 'Põhiväljendid', words: vocab.slice(0, splitAt).map((item) => item.word).join(', ') },
+      { name: 'Lisaväljendid', words: vocab.slice(splitAt).map((item) => item.word).join(', ') },
+    ],
+  };
+}
+
+function gapData(profile, focusIds, contextId, state, seed) {
+  const sentences = takeSentences(profile, state, { focusIds, contextId, count: 4, seed });
+  const marked = sentences.map((item) => markGap(item.rendered, profile, focusIds)).filter(Boolean).slice(0, 3);
+  return {
+    title: 'Täienda laused.',
+    instruction: 'Kasuta sobivat tunni väljendit.',
+    bank: vocabularyFor(profile, focusIds).map((item) => item.word).join(', '),
+    showBank: 'yes',
+    sentences: marked.join('\n'),
+  };
+}
+
+function wordOrderData(profile, focusIds, contextId, state, seed) {
+  const sentences = takeSentences(profile, state, { focusIds, contextId, count: 2, seed });
+  return {
+    title: 'Moodusta lause.',
+    instruction: 'Pane sõnad õigesse järjekorda.',
+    sentences: sentences.map((item) => item.rendered).join('\n'),
+  };
+}
+
+function clockData(profile, contextId, seed) {
   const context = (profile.contexts || []).find((item) => item.id === contextId) || {};
-  return [
-    make('rolecards', { title: 'Planeerige päev koos.', instruction: 'Lugege rolli ja leidke ühine plaan.', roleA: `Koosta ${context.label || 'päeva'} plaan ja paku ajad.`, roleB: 'Küsi täpsustavaid küsimusi ning paku üks muudatus.', phrasesA: vocab.slice(0, 5).map((item) => item.word).join('\n'), phrasesB: vocab.slice(5).map((item) => item.word).join('\n') }),
-    make('speaking', { title: 'Räägi oma plaanist.', instruction: 'Kasuta tunni ajamarkereid.', questions: speaking?.text || profile.successCriteria?.[0] || '', img: null, aspect: '4:3', bubble: '', tipTitle: 'Kasuta', tipText: vocab.map((item) => item.word).join(', '), minSec: 60, maxSec: 120 }),
-    make('planning', { title: 'Valmista vastus ette.', instruction: 'Pane põhiideed kirja.', prompts: `Mis toimub kõigepealt?\nMida teed enne ja pärast?\nMis kell tegevused algavad ja lõpevad?`, lines: 2 }),
-    make('writing', { title: 'Kirjuta päevaplaan.', instruction: writing?.text || 'Kirjuta oma päevast.', lines: 8, minSent: 6, maxSent: 10, keywords: vocab.map((item) => item.word).join(', '), minKeywords: Math.min(6, vocab.length), img: null }),
-    make('selfcheck', { title: 'Kontrolli oma tööd.', titleMore: 'Kas ma oskan?', instruction: '', items: criteria, stamp: 'Ma kasutan ajamarkereid iseseisvalt!' }),
-  ];
+  const allTimes = (context.times || []).length ? context.times : (profile.contexts || []).flatMap((item) => item.times || []);
+  return {
+    title: 'Mis kell on?',
+    instruction: 'Kirjuta kellaaeg eesti keeles.',
+    columns: '3',
+    items: sampleSeeded([...new Set(allTimes)], 4, seed).map((time) => ({ time, extra: '' })),
+  };
+}
+
+function dictationData(profile, focusIds, contextId, state, seed) {
+  const sentences = takeSentences(profile, state, { focusIds, contextId, count: 3, seed });
+  return {
+    title: 'Etteütlus.',
+    instruction: 'Kuula õpetajat ja kirjuta laused.',
+    sentences: sentences.map((item) => item.rendered).join('\n'),
+    lines: Math.max(4, sentences.length * 2),
+  };
+}
+
+function selectPrompt(profile, bankName, focusIds, contextId, seed) {
+  const candidates = (profile.banks?.[bankName] || []).filter((item) => hasFocus(item, focusIds) && contextMatches(item, contextId));
+  return shuffleSeeded(candidates, seed)[0] || shuffleSeeded((profile.banks?.[bankName] || []).filter((item) => hasFocus(item, focusIds)), `${seed}:fallback`)[0];
+}
+
+function transferData(activityId, profile, focusIds, contextId, seed) {
+  const vocab = vocabularyFor(profile, focusIds);
+  const context = (profile.contexts || []).find((item) => item.id === contextId) || {};
+  const criteria = profile.successCriteria || [];
+  const speaking = selectPrompt(profile, 'speakingPrompts', focusIds, contextId, `${seed}:speaking`);
+  const writing = selectPrompt(profile, 'writingPrompts', focusIds, contextId, `${seed}:writing`);
+
+  if (activityId === 'transfer-rolecards') {
+    return {
+      title: 'Räägi õpetajaga.',
+      instruction: 'Sina oled roll A, õpetaja on roll B. Leidke koos lahendus.',
+      roleA: `Koosta ${context.label || 'olukorra'} plaan ja selgita oma valikuid.`,
+      roleB: 'Küsi täpsustavaid küsimusi, muuda üht tingimust ja palu õpilasel oma plaani kohandada.',
+      phrasesA: vocab.slice(0, 5).map((item) => item.word).join('\n'),
+      phrasesB: vocab.slice(5).map((item) => item.word).join('\n'),
+    };
+  }
+  if (activityId === 'transfer-speaking') {
+    return {
+      title: 'Räägi iseseisvalt.',
+      instruction: 'Kasuta tunni sihtväljendeid ja põhjenda oma valikuid.',
+      questions: speaking?.text || criteria[0] || 'Räägi teemast võimalikult täpselt.',
+      img: null,
+      aspect: '4:3',
+      bubble: '',
+      tipTitle: 'Kasuta',
+      tipText: vocab.map((item) => item.word).join(', '),
+      minSec: 60,
+      maxSec: 120,
+    };
+  }
+  if (activityId === 'transfer-planning') {
+    return {
+      title: 'Valmista vastus ette.',
+      instruction: 'Pane enne rääkimist või kirjutamist põhiideed kirja.',
+      prompts: 'Mis on sinu põhiidee?\nMilliseid tunni väljendeid kindlasti kasutad?\nMillise näite või põhjenduse lisad?\nKuidas lõpetad vastuse?',
+      lines: 2,
+    };
+  }
+  if (activityId === 'transfer-writing') {
+    return {
+      title: 'Kirjuta iseseisev tekst.',
+      instruction: writing?.text || criteria[0] || 'Kirjuta teemast sidus tekst.',
+      lines: 8,
+      minSent: 6,
+      maxSent: 10,
+      keywords: vocab.map((item) => item.word).join(', '),
+      minKeywords: Math.min(6, vocab.length),
+      img: null,
+    };
+  }
+  if (activityId === 'transfer-guided-letter') {
+    return {
+      title: 'Kirjuta terviklik kiri.',
+      instruction: writing?.text || 'Kirjuta olukorrale sobiv kiri.',
+      opening: 'Tere!',
+      closing: 'Lugupidamisega',
+      minWords: 120,
+      maxWords: 160,
+      lines: 16,
+    };
+  }
+  if (activityId === 'transfer-rubric') {
+    return { title: 'Kontrolli oma tööd.', instruction: 'Märgi punktid pärast ülesande lõpetamist.', items: criteria.join('\n') };
+  }
+  return {
+    title: 'Kontrolli oma tööd.',
+    titleMore: 'Kas ma oskan?',
+    instruction: '',
+    items: criteria.join('\n'),
+    stamp: 'Ma kasutan tunni sihtkeelt iseseisvalt!',
+  };
+}
+
+function materializeActivity({ activityId, profile, focusIds, contextId, seed, state, id, goal }) {
+  const activity = activityById(activityId);
+  if (!activity) return null;
+  let data = null;
+
+  switch (activityId) {
+    case 'discover-vocabulary-match':
+      data = { title: 'Ühenda sõna ja tähendus.', instruction: 'Leia sobiv paar.', pairs: vocabularyPairs(profile, focusIds, 5, seed) };
+      break;
+    case 'discover-context-truefalse':
+      data = trueFalseData(profile, focusIds, contextId, state, seed);
+      break;
+    case 'discover-focus-choice':
+      data = meaningChoiceData(profile, focusIds, seed);
+      break;
+    case 'discover-focus-categorize':
+      data = { ...categorizeData(profile, focusIds), title: 'Märka sihtväljendeid.' };
+      break;
+    case 'discover-guided-dialogue':
+      data = dialogueData(profile, focusIds, state, seed);
+      break;
+    case 'discover-selfcheck':
+      data = { ...transferData('transfer-selfcheck', profile, focusIds, contextId, seed), title: 'Kontrolli arusaamist.', titleMore: 'Kas ma märkan?', stamp: 'Ma märkan tunni põhifookust!' };
+      break;
+    case 'practice-gap-fill':
+      data = gapData(profile, focusIds, contextId, state, seed);
+      break;
+    case 'practice-context-choice':
+      data = contextChoiceData(profile, focusIds, contextId, state, seed);
+      break;
+    case 'practice-error-repair':
+      data = errorFixData(profile, focusIds, seed);
+      break;
+    case 'practice-translation':
+      data = translationData(profile, focusIds, state, seed);
+      break;
+    case 'practice-word-order':
+      data = wordOrderData(profile, focusIds, contextId, state, seed);
+      break;
+    case 'practice-clock':
+      data = clockData(profile, contextId, seed);
+      break;
+    case 'practice-focus-categorize':
+      data = categorizeData(profile, focusIds);
+      break;
+    case 'practice-dictation':
+      data = dictationData(profile, focusIds, contextId, state, seed);
+      break;
+    case 'transfer-rolecards':
+    case 'transfer-speaking':
+    case 'transfer-planning':
+    case 'transfer-writing':
+    case 'transfer-guided-letter':
+    case 'transfer-rubric':
+    case 'transfer-selfcheck':
+      data = transferData(activityId, profile, focusIds, contextId, seed);
+      break;
+    default:
+      return null;
+  }
+
+  if (!data) return null;
+  state.usedActivityIds.add(activityId);
+  return block(activity.blockType, data, { id, goal });
+}
+
+export function materializePhase({ phase, profile, focusIds, contextId, seed, state, activityIds = [] }) {
+  const goal = `focus:${focusIds[0] || profile.focuses?.[0]?.id || 'lesson'}`;
+  const blocks = [];
+  activityIds.forEach((activityId, index) => {
+    const generated = materializeActivity({
+      activityId,
+      profile,
+      focusIds,
+      contextId,
+      seed: `${seed}:${activityId}:${index}`,
+      state,
+      id: `gen_${phase}_${index + 1}`,
+      goal,
+    });
+    if (generated) blocks.push(generated);
+  });
+  return blocks;
 }
 
 export function createDiversityState() {
-  return { usedSentenceIds: new Set(), usedRenderedSentences: new Set(), usedQuestionIds: new Set(), usedDialogueIds: new Set(), usedContextIds: new Set(), usedTranslationIds: new Set() };
+  return {
+    usedSentenceIds: new Set(),
+    usedRenderedSentences: new Set(),
+    usedQuestionIds: new Set(),
+    usedDialogueIds: new Set(),
+    usedContextIds: new Set(),
+    usedTranslationIds: new Set(),
+    usedActivityIds: new Set(),
+  };
 }
 
-export function materializeFullFocus(args) {
+export function materializeFullFocus({ activityPlan = {}, ...args }) {
   const state = args.state;
-  const practice = materializePhase({ ...args, phase: 'practice', state }).slice(0, 2);
-  const discover = materializePhase({ ...args, phase: 'discover', state }).slice(0, 1);
-  const transfer = materializePhase({ ...args, phase: 'transfer', state }).slice(1, 3);
+  const discoverIds = (activityPlan.discover || []).slice(0, 1);
+  const practiceIds = (activityPlan.practice || []).slice(0, 2);
+  const transferIds = (activityPlan.transfer || []).filter((id) => !id.endsWith('selfcheck') && !id.endsWith('rubric')).slice(0, 2);
+  const discover = materializePhase({ ...args, phase: 'discover', state, activityIds: discoverIds });
+  const practice = materializePhase({ ...args, phase: 'practice', state, activityIds: practiceIds });
+  const transfer = materializePhase({ ...args, phase: 'transfer', state, activityIds: transferIds });
   return [...discover, ...practice, ...transfer].map((item, index) => ({ ...item, id: `gen_full_${index + 1}` }));
 }
