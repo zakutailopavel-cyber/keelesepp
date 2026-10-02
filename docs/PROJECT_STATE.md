@@ -1,18 +1,51 @@
 # KeeleSepp Project State
 
-## 2026-10-02 — A2 Curriculum v1 — direct main delivery
+## 2026-10-02 — A2 Curriculum v1 + CRM v2 installer — direct main delivery
 
-Owner explicitly authorized direct main delivery and Vercel pickup for this session. Starting main before the A2 slice was `e2c07a7d50acdaada43d73fd1d848387a5501a6e`. Unrelated open PRs #230, #233, #234 and #235 were inspected; none owns the new A2 roadmap data or importer.
+Owner explicitly authorized direct `main` delivery and Vercel pickup for this session. Starting main before the A2
+slice was `e2c07a7d50acdaada43d73fd1d848387a5501a6e`. Unrelated open PRs #230, #233, #234 and #235 were inspected;
+none owns the A2 roadmap data, CRM v2 installer or LibraryPage integration.
 
-Implemented `est-a2-curriculum-v1`: 20 modules, 100 stable one-student A2 lessons (`a2-001`…`a2-100`) and one formative assessment every fifth lesson. The program follows Harno A2 thematic domains and four-skill exam structure, while the learning sequence remains communicative rather than test-only. Each lesson stores goal, language/communication focus, practice, success criterion, skill tags and stable source identity. Five JSON shards plus a manifest keep the roadmap maintainable.
+Implemented `est-a2-curriculum-v1`: 20 modules, 100 stable one-student A2 lessons (`a2-001`…`a2-100`) and one
+formative assessment every fifth lesson. Five canonical JSON shards plus a manifest store the curriculum source.
+CRM v2 contains a generated mirror at `crm-v2/src/features/curriculum/a2Roadmap.json`; the pure
+`a2Curriculum.js` validator/projector enforces the 20/100 identity, mandatory lesson fields, unique IDs/source keys
+and the every-fifth assessment contract.
 
-Added `haldus-a2-roadmap/`, which validates the 20-module / 100-lesson contract before writing and uses existing `curriculumLessons/{lessonId}` documents with `merge:true`; repeat installation cannot create duplicate lesson IDs. The existing Õppevara curriculum view now routes staff opening A2 to that importer only when fewer than 100 `est-a2-curriculum-v1` roadmap records are present. No new collection, Firestore rule, Function, worksheet schema, assignment schema or AI/provider dependency was added. The code deployment itself does not write production curriculum data; the write happens only when authenticated staff opens A2 and the importer runs.
+The active installation path is now CRM v2 Õppevara. Until all 100 records are present, staff sees
+`Paigalda A2 õppekava`. `curriculumInstallerService.installA2()` writes exactly 100 stable
+`curriculumLessons/{lessonId}` documents in one Firestore batch with `merge:true`. Its payload contains only
+curriculum/roadmap metadata plus update audit fields; it does not contain `worksheetDoc`, `generatorProfile`,
+published worksheet snapshots or child-sheet data. Re-running the installer therefore updates the same lesson IDs
+without creating duplicates or intentionally overwriting authored worksheet/generator content. Legacy
+`haldus-a2-roadmap/` uses the same stable identity and remains only a compatibility fallback.
 
-Verification from fresh main data: 20 modules, 100 lessons, 20 assessments, 100 unique lesson IDs and 100 unique source keys; all lessons have title/goal/focus/practice/success and every fifth lesson is `assessment`. Importer wiring was also checked for `est-a2-curriculum-v1`, 100-item validation, `curriculumLessons`, `merge:true`, and the A2 staff auto-install hook. `a2-roadmap.test.js` records these invariants. `docs/A2_CURRICULUM_100.md` defines volume, outcomes, methodology, grammar progression, assessment and data contract.
+No new Firestore collection, rule, Function, worksheet schema, assignment schema or AI/provider dependency was added.
+No production Firestore installation was triggered by the agent; installing the 100 records remains an explicit
+authenticated staff action in Õppevara.
 
-Known manual gate: no production Firestore migration has been triggered by the agent. Open A2 once as authenticated staff to perform the idempotent installation, then inspect the Coverage Dashboard before authoring generator Content Packs.
+Verification on code head `4f1dc392754c38cb0c080270daa670260635f586`:
+- GitHub `CRM v2` run 37063050428: SUCCESS — lint, production build, 121 Vitest files / 595 tests and the
+  Auth/Firestore/Functions security-regression emulator suite all passed.
+- GitHub `CRM v2 CI` run 37063050353: SUCCESS — tests, lint and production build passed independently.
+- GitHub `Financial Core emulator` run 37063050360: SUCCESS.
+- Earlier red runs were test-only: one A2 test used an ESLint-unknown `structuredClone` global, and an older
+  Coverage Dashboard assertion incorrectly required exactly 5 eligible activities per phase although the readiness
+  contract is at least 5. Both tests were corrected without changing product behavior or weakening readiness.
+- Vercel Git status for the verified code head is blocked by the account `build-rate-limit`, not by a code/build
+  error. The last automatic production deployment therefore does not yet contain the CRM v2 installer.
 
-Exactly one next safe step: verify the Vercel production deployment for the current main, then perform the first staff A2 install and inspect the resulting 100 curriculum records.
+Documentation: `docs/A2_CURRICULUM_100.md` defines volume, outcomes, thematic coverage, methodology, grammar
+progression, assessment and the CRM v2 installation/data contract. Root `a2-roadmap.test.js`, CRM v2
+`a2Curriculum.test.js`, `curriculumInstaller.test.js` and the LibraryPage test cover the data and installation
+boundaries.
+
+Known manual gates: (1) get the current main through Vercel once the build-rate gate permits a build; (2) click
+`Paigalda A2 õppekava` once as authenticated staff; (3) inspect the resulting 100 lessons and Lesson Engine Coverage
+Dashboard before starting Content Pack authoring.
+
+Exactly one next safe step: publish the verified current main to the `keelesepp-crm-v2` production project, then
+perform the explicit staff A2 installation.
 
 ## 2026-10-02 — Lesson-embedded Generator Content Pack authoring — stacked draft PR #244 (`agent/lesson-engine-profile-authoring-v1`)
 
