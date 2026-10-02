@@ -1,6 +1,6 @@
 # KeeleSepp Project State
 
-## 2026-10-02 — Generator teacher UI — draft (`codex/worksheet-generator-ui`)
+## 2026-10-02 — Generator teacher UI — draft PR #238 (`codex/worksheet-generator-ui`)
 
 Checked fresh `origin/main` `a5a11f4aa320337aebc3a80a183c8ef050bf46a5` after PR #237 was merged and its
 Firestore rules and Vercel production release were verified. This third bounded slice adds the teacher generation UI
