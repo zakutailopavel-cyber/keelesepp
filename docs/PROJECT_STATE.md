@@ -1,5 +1,26 @@
 # KeeleSepp Project State
 
+## 2026-10-02 — Standalone focus worksheet UI — stacked draft PR #242 (`agent/lesson-engine-focus-ui-v1`)
+
+Stacked on #241. This slice exposes the already-pure focus generator to teachers: select one curated lesson focus,
+select Avasta/Harjuta/Kasuta/Täistööleht and generate an independent child sheet using the current difficulty mode.
+Focus sheets use stable `focus-*` IDs and `role: focus`; they never overwrite the three core worksheet IDs and keep
+their own draft/version/publish history in the existing child-sheet transaction model.
+
+Generation of an existing focus sheet creates another deterministic variant, passes its previous activity IDs as
+planner cooldown history and persists phase/focus/context/Activity Catalog/Lesson DNA/difficulty/variant trace
+metadata outside `worksheetDoc`. Focus cards open in the same Worksheet Studio. No Firestore rule/schema, Function,
+AI/provider dependency or production write/deploy path changed.
+
+Verification: code head `0aacae4c95258c6bacecb9279d018c0dddbdffd6` passed GitHub `CRM v2` run 327
+(lint, production build, 115 Vitest files / 572 tests and security-regression emulator suite) and `CRM v2 CI` run 256
+(115 files / 572 tests, lint and build). Vercel preview `dpl_BAuoGrFn3qaGZaWgDLWhMFmhehWw` is READY. No production
+deployment was triggered. No authenticated visual-browser claim is made because the required local `agent-browser`
+executable is unavailable in this runtime.
+
+Exactly one next safe step: connect the existing signed-in Firebase Storage level lexicon `eesti_soned.json` through
+a CRM v2 adapter while keeping lesson-specific vocabulary curated and generator-core network-free.
+
 ## 2026-10-02 — Per-task worksheet regeneration — stacked draft PR #241 (`agent/lesson-engine-task-regeneration-v1`)
 
 Stacked on #240. This slice adds deterministic regeneration of one selected generated task inside the existing
