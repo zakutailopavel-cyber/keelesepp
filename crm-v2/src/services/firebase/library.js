@@ -164,7 +164,7 @@ export const libraryService = {
     const batch = writeBatch(db);
     const now = new Date().toISOString();
     const date = now.slice(0, 10);
-    const assignmentMode = item.type === 'worksheet' ? 'worksheet' : item.kind === 'exercise' ? 'exercise' : 'homework';
+    const assignmentMode = item.type === 'worksheet' || (item.kind !== 'exercise' && item.source?.worksheetDoc?.blocks?.length) ? 'worksheet' : item.kind === 'exercise' ? 'exercise' : 'homework';
 
     // every assignment carries its own copy of the structured worksheet; keep one batch under Firestore's request limit
     const assignableDoc = item.source.worksheetDocStatus === 'draft' ? item.source.publishedWorksheetDoc : (item.source.publishedWorksheetDoc || item.source.worksheetDoc);

@@ -1,6 +1,20 @@
 # KeeleSepp Project State
 
-## 2026-10-01 — Worksheet draft regression repair — DRAFT PR #228, branch `agent/worksheet-draft-fix`
+## 2026-10-02 — Known test failures fixed, Kontrolltöö label — PR (branch `agent/fix-known-failures`)
+
+Checked against main `240e09c`. Owner asked to fix the remaining known problems (not the items they parked: TURN,
+Storage CORS, 54 unmatched Google events, APP_BASE_URL, „Minu tööpäev”, parent study terms).
+- The 3–4 "flaky" tests were test problems, not product bugs: `FinancePage.test.jsx` asserted a single `role="status"`
+  while a panel's LoadingState (also `status`) was still on screen → `findNotice(text)` waits for the notice with the
+  expected text; `StudentProfilePage.test.jsx` read lessons/invoices right after the tabs appeared, before the data had
+  loaded → waits for the content (4 s). Both files pin the clock to 2026-10-01 (`vi.useFakeTimers({ toFake: ['Date'] })`,
+  real timers) so fixtures dated October 2026 do not turn "overdue" later. Full suite 534/534 four runs in a row.
+- `libraryModel.curriculumType`: a Kontrolltöö with a constructor worksheet is labelled „Kontrolltöö” again (since #228
+  it showed „Tööleht”); `library.assign` sends any record with a `worksheetDoc` as an interactive worksheet, so the
+  assignment behaviour is unchanged. Tests added.
+- Section headings below updated: #219–#225 released; #227, #228, #229 merged, waiting for the release.
+
+## 2026-10-01 — Worksheet draft regression repair — MERGED (#228, a71b66b), release pending
 
 Fresh main: `9fda4b9df487696b59cbe1847ab3ce08e1bed7c6` (2026-10-01). PR #227 was merged with the owner's explicit
 permission; GitHub confirmed merged=true. No open PRs before this task. Task 1 is isolated in draft PR #228: https://github.com/zakutailopavel-cyber/keelesepp/pull/228.
@@ -35,7 +49,7 @@ Limits: no production migration repairs historical drafts automatically; staff p
 No deploy executed. No new PR merged. Unfinished implementation work: none for Task 1.
 Exactly one next safe step: owner reviews the Task 1 draft PR.
 
-## 2026-10-01 — access hotfix after PR #226 — branch `agent/revert-parent-study-terms`
+## 2026-10-01 — access hotfix after PR #226 — MERGED (#227, 9fda4b9), release pending
 
 Owner reported that the parent study-terms release caused parent login errors and that approving a newly registered
 student surfaced a raw browser `Failed to fetch`. Verified current GitHub `main` = `36abfd6` (merge #226) and
@@ -74,7 +88,7 @@ Next safe step: owner manually merges PR #227. Release must include the Vercel C
 change is not live.
 
 
-## 2026-10-01 — Approval SMTP response repair — DRAFT PR #229, branch `agent/approval-timeout`
+## 2026-10-01 — Approval SMTP response repair — MERGED (#229, 240e09c), release pending (Functions deploy)
 
 **Correction 2026-10-02 (owner asked Claude to finish it):** sending the e-mail after `res.json` was replaced. On
 Cloud Functions an instance may be stopped right after the response, so the approval e-mail could be silently lost.
@@ -121,7 +135,7 @@ No deploy and no production-data operations were performed. No new PR merged. Un
 Required owner release after review/merge: `firebase deploy --only functions:staffOperationsApi`, plus CRM v2 release.
 Exactly one next safe step: owner reviews the Task 2 draft PR and the best-effort mail limitation.
 
-## 2026-10-01 — Worksheet Studio PDF coverage and author reliability — branch `agent/worksheet-studio-complete`
+## 2026-10-01 — Worksheet Studio PDF coverage and author reliability — MERGED (#225, c76f69f), RELEASED with #226
 
 Checked against fresh `origin/main` `a3e9f88`; no open PRs at start. Rendered and reviewed all local generated
 worksheet PDFs (one-page and textbook `Minu päev`, plus the two-page `Kiri linnavalitsusele`). Worksheet Studio now
@@ -140,7 +154,7 @@ main timing issues in FinancePage (3) and StudentProfilePage (1), while all work
 
 Next safe step: review the branch diff and browser evidence, then open a draft PR; deployment remains owner-gated.
 
-## 2026-10-01 — Õppevara: worksheet of a material visible and reachable — PR (branch `agent/library-worksheet-link`)
+## 2026-10-01 — Õppevara: worksheet of a material visible and reachable — MERGED (#224, a3e9f88), RELEASED
 
 Checked against main `0628691` (#223 merged and released). Owner: a worksheet made in the Töölehe konstruktor was not
 visible in the preview, and a lesson plan had no clear "create / change the worksheet" action. The worksheet lives on
@@ -158,7 +172,7 @@ the same `curriculumLessons` record as `worksheetDoc` (unchanged). Now:
   the sheet, "Muuda töölehte" opens the builder; 1440/390 px without horizontal scroll, no page errors.
 - Next safe step: owner merges, then Vercel `keelesepp-crm-v2` release.
 
-## 2026-10-01 — Õppevara: visible "Muuda" on every row — PR (branch `agent/library-edit-button`)
+## 2026-10-01 — Õppevara: visible "Muuda" on every row — MERGED (#223, 0628691), RELEASED
 
 Checked against main `950a0d1` (2026-10-01; #219–#222 merged and released to `keelesepp-crm-v2` by the owner).
 Owner could not find how to edit a worksheet. Before: structured worksheets had only an "Ava" button, old image/PDF
@@ -170,7 +184,7 @@ Checks: library tests 20/20 (2 new), `npx eslint src` clean; browser on local em
 the builder from "Muuda", 1440/390 px without horizontal scroll. Next safe step: owner merges, then Vercel
 `keelesepp-crm-v2` release.
 
-## 2026-10-01 — Team tasks (Ülesanded) and notification centre in CRM v2 — DRAFT PR, branch `agent/team-tasks`
+## 2026-10-01 — Team tasks (Ülesanded) and notification centre in CRM v2 — MERGED (#222, 950a0d1), RELEASED
 
 Checked against main `e014ea6` (2026-10-01). Goal: staff work with team tasks and see what needs attention in CRM v2,
 so v1 is not needed for it. Same `tasks` collection and field meanings as v1 (both CRMs show the same tasks); no rule,
@@ -198,7 +212,7 @@ index, function or migration change (`tasks` is already read/write for staff).
   "Uus ülesanne sulle" in v2.
 - Release = merge + Vercel `keelesepp-crm-v2`; no functions/rules deploy.
 - Next safe step: owner reviews and merges the draft PR, then releases `keelesepp-crm-v2`.
-## 2026-10-01 — Student board outside the lesson (CRM v2 `/board`) — DRAFT PR, branch `agent/student-board`
+## 2026-10-01 — Student board outside the lesson (CRM v2 `/board`) — MERGED (#221, 04fc1a6), RELEASED
 
 Checked against main `e014ea6` (2026-10-01). Goal: the student's own board (v1 "Tahvel") works in CRM v2 so v1 can be
 retired. Same data as v1, no new collections, no rule or schema change: `whiteboards/{studentId}/elements` and lesson
@@ -220,7 +234,7 @@ in v2 and both stay in sync live.
   v1 note works, lesson page text shows, no rule errors; 1440 px and 390 px without horizontal scroll.
 - Not done: image/PDF upload from v2, undo. Release = merge + Vercel `keelesepp-crm-v2`; no functions/rules deploy.
 - Next safe step: owner reviews and merges the draft PR, then releases `keelesepp-crm-v2`.
-## 2026-10-01 — Finish CRM v1 interactive lessons in CRM v2 — PR (branch `agent/v1-assignments-in-v2`)
+## 2026-10-01 — Finish CRM v1 interactive lessons in CRM v2 — MERGED (#220, 84de98a), RELEASED
 
 Owner item 7 (issued v1 content must be finishable in v2). v1 exercises assigned as homework already open in v2
 (`ExercisePlayer`); what was missing were the v1 **interactive lessons** (`interactiveAssignments`, server-only, e.g.
@@ -236,7 +250,7 @@ Files: `crm-v2/src/services/firebase/interactiveAssignments.js` (+index), `crm-v
 Checks: homework vitest 26/26 (2 new), ESLint clean; browser on emulators **with the real functions emulator**: a
 lesson created and assigned through lessonDraftsApi/interactiveLessonApi; student answered, saved, sent; teacher saw
 answer + expected and sent feedback; student saw "Tubli, Mari!". Needs only a Vercel release of crm-v2.
-## 2026-10-01 — "Alusta tundi" from the calendar — PR (branch `claude/amazing-franklin-p2s1hh`)
+## 2026-10-01 — "Alusta tundi" from the calendar — MERGED (#219, 0a5a5e5), RELEASED
 
 Owner chose items 1, 7, 8, 9 of the teacher-work list (item 6 "Minu tööpäev" is dropped for good; the rest waits).
 This is item 1. The calendar lesson panel shows "Alusta tundi" for an individual lesson on its day that is not yet

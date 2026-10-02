@@ -92,6 +92,13 @@ describe('libraryService', () => {
     expect(firestore.batch.set.mock.calls[0][1]).toMatchObject({ lessonId: 'lesson-9', worksheetDoc, studentId: 'student-1', status: 'new' });
   });
 
+  it('a Kontrolltöö with a constructor worksheet is still assigned as an interactive worksheet', async () => {
+    const worksheetDoc = { schema: 'keelesepp.worksheet/2', meta: { title: 'Test' }, blocks: [{ id: 'b1', type: 'choice', data: {} }] };
+    const item = { kind: 'curriculum', type: 'test', sourceId: 'test-1', title: 'Kontrolltöö', source: { type: 'test', worksheetDoc } };
+    await libraryService.assign({ item, students: [{ id: 'student-1', name: 'Mari' }], user: { uid: 'teacher-1', displayName: 'Õpetaja', roles: ['teacher'] } });
+    expect(firestore.batch.set.mock.calls[0][1]).toMatchObject({ lessonId: 'test-1', worksheetDoc, status: 'new' });
+  });
+
   it('refuses a structured worksheet batch that would exceed the Firestore request limit', async () => {
     const worksheetDoc = { schema: 'keelesepp.worksheet/2', meta: { title: 'Suur' }, blocks: [{ id: 'b1', type: 'text', data: { text: 'x'.repeat(200 * 1024) } }] };
     const item = { kind: 'curriculum', type: 'worksheet', sourceId: 'lesson-9', title: 'Suur', source: { worksheetDoc } };
