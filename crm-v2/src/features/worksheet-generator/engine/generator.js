@@ -1,5 +1,7 @@
 import { SCHEMA } from '../../worksheet-studio/engine/schema.js';
 import { materializeFullFocus, materializePhase, createDiversityState } from './content.js';
+import { normalizeDifficulty } from './difficulty.js';
+import { createLessonDna } from './lessonDna.js';
 import { normalizeFocusSelection } from './focus.js';
 import { normalizeLessonKind } from './lessonKind.js';
 import { planLessonActivities, planPhaseActivities } from './planner.js';
@@ -56,12 +58,14 @@ function sheetFor({
   state,
   activityIds = [],
   activityPlan = {},
+  difficulty = 'core',
+  lessonDna = null,
 }) {
   const recipe = recipeFor({ phase, lessonKind: normalizeLessonKind(profile.lessonKind || lesson?.tag || lesson?.kind) });
   const resolvedActivityIds = phase === 'full' ? fullActivityIds(activityPlan) : activityIds;
   const blocks = phase === 'full'
-    ? materializeFullFocus({ profile, focusIds, contextId, seed, state, activityPlan })
-    : materializePhase({ phase, profile, focusIds, contextId, seed, state, activityIds: resolvedActivityIds });
+    ? materializeFullFocus({ profile, focusIds, contextId, seed, state, activityPlan, difficulty })
+    : materializePhase({ phase, profile, focusIds, contextId, seed, state, activityIds: resolvedActivityIds, difficulty });
   const worksheetDoc = makeDocument({ lesson, profile, phase, displayLabel: recipe.displayLabel, focusIds, blocks, seed });
   const sheet = {
     role,
@@ -74,6 +78,8 @@ function sheetFor({
     contextId,
     focusIds,
     activityIds: resolvedActivityIds,
+    difficulty,
+    lessonDna,
     worksheetDoc,
     diagnostics: [],
   };
@@ -106,12 +112,17 @@ export function generateLessonBundle({
   seed,
   generatorVersion = GENERATOR_VERSION,
   activityHistory = [],
+  difficulty = 'core',
+  durationMinutes,
+  variant = 0,
 } = {}) {
   const diagnostics = validateInputs(profile, generatorVersion);
   if (diagnostics.length) return { sheets: [], diagnostics };
 
   const focusIds = (profile.focuses || []).map((item) => item.id);
   const bundleSeed = seed || `${profile.lessonId}:${profile.version}:${generatorVersion}:0`;
+  const normalizedDifficulty = normalizeDifficulty(difficulty);
+  const lessonDna = createLessonDna({ lesson, profile, difficulty: normalizedDifficulty, mode: 'lesson-bundle', durationMinutes, variant, seed: bundleSeed });
   const vocabulary = selectVocabulary({
     activeVocabulary: profile.activeVocabulary,
     levelLexicon,
@@ -128,6 +139,7 @@ export function generateLessonBundle({
     lessonKind,
     seed: bundleSeed,
     activityHistory,
+    difficulty: normalizedDifficulty,
     countPerPhase: 5,
   });
   diagnostics.push(...plan.diagnostics);
@@ -145,10 +157,12 @@ export function generateLessonBundle({
       contextId: contexts[index].id,
       state,
       activityIds: plan.phases[phase],
+      difficulty: normalizedDifficulty,
+      lessonDna,
     }));
 
   const allDiagnostics = [...diagnostics, ...vocabulary.diagnostics, ...sheets.flatMap((sheet) => sheet.diagnostics)];
-  return { sheets, diagnostics: allDiagnostics, activityPlan: plan.phases };
+  return { sheets, diagnostics: allDiagnostics, activityPlan: plan.phases, lessonDna };
 }
 
 export function generateFocusWorksheet({
@@ -162,6 +176,9 @@ export function generateFocusWorksheet({
   generatorVersion = GENERATOR_VERSION,
   focusLibrary = [],
   activityHistory = [],
+  difficulty = 'core',
+  durationMinutes,
+  variant = 0,
 } = {}) {
   const diagnostics = validateInputs(profile, generatorVersion);
   if (diagnostics.length) return { sheet: null, diagnostics };
@@ -173,6 +190,8 @@ export function generateFocusWorksheet({
   if (diagnostics.some((item) => item.severity === 'error')) return { sheet: null, diagnostics };
 
   const focusSeed = seed || `${profile.lessonId}:${profile.version}:${generatorVersion}:focus:${normalized.focusIds.join('+')}:0`;
+  const normalizedDifficulty = normalizeDifficulty(difficulty);
+  const lessonDna = createLessonDna({ lesson, profile, focusIds: normalized.focusIds, difficulty: normalizedDifficulty, mode: 'focus-worksheet', durationMinutes, variant, seed: focusSeed });
   const vocabulary = selectVocabulary({
     activeVocabulary: profile.activeVocabulary,
     levelLexicon,
@@ -192,6 +211,7 @@ export function generateFocusWorksheet({
       lessonKind,
       seed: focusSeed,
       activityHistory,
+      difficulty: normalizedDifficulty,
       countPerPhase: 5,
     });
     diagnostics.push(...planned.diagnostics);
@@ -204,6 +224,7 @@ export function generateFocusWorksheet({
       lessonKind,
       seed: focusSeed,
       activityHistory,
+      difficulty: normalizedDifficulty,
       count: 5,
     });
     diagnostics.push(...planned.diagnostics);
@@ -224,11 +245,15 @@ export function generateFocusWorksheet({
     state: createDiversityState(),
     activityIds,
     activityPlan,
+    difficulty: normalizedDifficulty,
+    lessonDna,
   });
-  return { sheet, diagnostics: [...diagnostics, ...vocabulary.diagnostics, ...sheet.diagnostics] };
+  return { sheet, diagnostics: [...diagnostics, ...vocabulary.diagnostics, ...sheet.diagnostics], lessonDna };
 }
 
 export { normalizeFocusSelection } from './focus.js';
+export { normalizeDifficulty, difficultySpec, DIFFICULTY_MODES } from './difficulty.js';
+export { createLessonDna, lessonDnaFingerprint, LESSON_DNA_SCHEMA } from './lessonDna.js';
 export { normalizeLessonKind } from './lessonKind.js';
 export { catalogReadiness, planLessonActivities, planPhaseActivities } from './planner.js';
 export { ACTIVITY_CATALOG, ACTIVITY_CATALOG_VERSION } from './activityCatalog.js';
