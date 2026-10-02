@@ -101,6 +101,18 @@ and remains local until the teacher explicitly saves. Firestore is not written b
 New generated records also persist `contextId` in generation metadata. Older generated sheets remain compatible:
 context is reconstructed from the original deterministic bundle seed when the field is absent.
 
+## Standalone focus worksheets
+
+The teacher generation page can create one additional child worksheet for one curated lesson focus without changing
+the three core Avasta / Harjuta / Kasuta records. The teacher chooses the focus and `Avasta`, `Harjuta`, `Kasuta` or
+`Täistööleht`; the currently selected Support/Core/Challenge difficulty is reused.
+
+Focus worksheets receive stable child IDs derived from phase + focus IDs and use `role: focus`, so their draft,
+version and publish history is independent from core lesson sheets. Regenerating the same focus/phase creates another
+draft version of that focus sheet and reuses its prior activity IDs as planner cooldown history. Focus generation
+stores the same trace metadata as core generation (`phase`, focus/context IDs, Activity Catalog plan, Lesson DNA,
+difficulty and variant) and opens in the same Worksheet Studio.
+
 ## Child-sheet persistence boundary
 
 `lessonWorksheetsService` stores child sheets under `curriculumLessons/{lessonId}/worksheets/{worksheetId}`. Stable core IDs are `discover`, `practice` and `transfer`; focus sheets use their own IDs. The legacy root `worksheetDoc` contract stays untouched. Generated sheets begin as drafts and never overwrite manual or published work silently. Each transaction checks the loaded `worksheetDocUpdatedAt`, increments the version, writes an immutable `{lessonId}_{worksheetId}_studio_v{version}` history record, and keeps the last published snapshot when a newer draft is saved.
@@ -144,7 +156,8 @@ The current `StudentProfilePage` does not yet load `worksheetAssignments`; addin
 4. Didactic Activity Catalog, seeded planner, cooldown and real regeneration variants. (draft PR #239)
 5. Lesson DNA, profile registry and Support/Core/Challenge difficulty. (stacked draft PR #240)
 6. Per-task deterministic regeneration in Worksheet Studio. (stacked draft PR #241)
-7. Assignment source traceability, live entry points and student-profile work history.
-8. Profile coverage expanded in data-only roadmap slices.
+7. Standalone focus worksheet teacher flow. (stacked draft PR #242)
+8. Assignment source traceability, live entry points and student-profile work history.
+9. Profile coverage expanded in data-only roadmap slices.
 
 No unsupported lesson is presented as generatable. No production deployment is part of PR 1.
