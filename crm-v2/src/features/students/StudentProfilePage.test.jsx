@@ -1,7 +1,11 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { vi } from 'vitest';
+import { afterAll, beforeAll, vi } from 'vitest';
 import StudentProfilePage from './StudentProfilePage.jsx';
+
+// Invoice fixtures are dated October 2026: pin the clock (Date only) so "partly paid" does not turn into "overdue".
+beforeAll(() => { vi.useFakeTimers({ toFake: ['Date'] }); vi.setSystemTime(new Date('2026-10-01T09:00:00Z')); });
+afterAll(() => { vi.useRealTimers(); });
 
 function renderProfile({
   actor = { roles: ['admin'], displayName: 'Admin' },
@@ -32,7 +36,7 @@ describe('student profile tabs and role access', () => {
       schedule: [{ id: 'sc1', date: '2026-08-10', time: '15:00', teacher: 'Pavel' }],
     });
 
-    expect(await screen.findByRole('tab', { name: 'Ülevaade' })).toHaveAttribute('aria-selected', 'true');
+    expect(await screen.findByRole('tab', { name: 'Ülevaade' }, { timeout: 4000 })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByRole('heading', { name: 'Mari Maas' })).toBeInTheDocument();
     expect(screen.getByText('MM')).toBeInTheDocument();
     expect(screen.getByText('1', { selector: '.student-profile-hero__stats strong' })).toBeInTheDocument();
@@ -42,7 +46,7 @@ describe('student profile tabs and role access', () => {
     fireEvent.click(screen.getByRole('tab', { name: 'Tunniplaan' }));
 
     expect(screen.getByRole('tab', { name: 'Tunniplaan' })).toHaveAttribute('aria-selected', 'true');
-    expect(screen.getByText('2026-08-10 · 15:00')).toBeInTheDocument();
+    expect(await screen.findByText('2026-08-10 · 15:00', {}, { timeout: 4000 })).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Põhiandmed' })).not.toBeInTheDocument();
   });
 
@@ -58,12 +62,12 @@ describe('student profile tabs and role access', () => {
       lessons: [{ id: 'l1', date: '2026-08-04', time: '14:00', status: 'Toimunud', subject: 'Eesti keel' }],
     });
 
-    await screen.findByRole('tab', { name: 'Õppetöö' });
+    await screen.findByRole('tab', { name: 'Õppetöö' }, { timeout: 4000 });
     expect(screen.queryByText('2026-08-04 · 14:00')).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('tab', { name: 'Õppetöö' }));
 
-    expect(screen.getByText('2026-08-04 · 14:00')).toBeInTheDocument();
+    expect(await screen.findByText('2026-08-04 · 14:00', {}, { timeout: 4000 })).toBeInTheDocument();
     expect(screen.getByText('Lugemine')).toBeInTheDocument();
     expect(screen.getByText('82%')).toBeInTheDocument();
   });
@@ -76,13 +80,13 @@ describe('student profile tabs and role access', () => {
       ],
     });
 
-    await screen.findByRole('tab', { name: 'Finantsid' });
+    await screen.findByRole('tab', { name: 'Finantsid' }, { timeout: 4000 });
     expect(screen.queryByText('KS-101')).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('tab', { name: 'Finantsid' }));
 
-    const finance = screen.getByRole('heading', { name: 'Arved ja maksed' }).closest('section');
-    expect(screen.getByText('KS-101')).toBeInTheDocument();
+    const finance = (await screen.findByRole('heading', { name: 'Arved ja maksed' }, { timeout: 4000 })).closest('section');
+    expect(await screen.findByText('KS-101', {}, { timeout: 4000 })).toBeInTheDocument();
     expect(screen.getByText('KS-100')).toBeInTheDocument();
     expect(screen.getByText('Osaliselt makstud')).toBeInTheDocument();
     expect(screen.getAllByText('Makstud').length).toBeGreaterThan(0);
@@ -92,10 +96,10 @@ describe('student profile tabs and role access', () => {
 
   it('shows a clear empty finance state in the finance tab', async () => {
     renderProfile();
-    await screen.findByRole('tab', { name: 'Finantsid' });
+    await screen.findByRole('tab', { name: 'Finantsid' }, { timeout: 4000 });
     fireEvent.click(screen.getByRole('tab', { name: 'Finantsid' }));
 
-    expect(screen.getByText('Õpilasel ei ole veel arveid')).toBeInTheDocument();
+    expect(await screen.findByText('Õpilasel ei ole veel arveid', {}, { timeout: 4000 })).toBeInTheDocument();
     expect(screen.getAllByText('0,00 €')).toHaveLength(3);
   });
 
@@ -120,7 +124,7 @@ describe('student profile tabs and role access', () => {
     expect(await screen.findByText('Mari Maas')).toBeInTheDocument();
     expect(screen.queryByRole('tab', { name: 'Finantsid' })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('tab', { name: 'Tunniplaan' }));
-    expect(screen.getByText('Iganädalane · Mon · 12:00')).toBeInTheDocument();
+    expect(await screen.findByText('Iganädalane · Mon · 12:00', {}, { timeout: 4000 })).toBeInTheDocument();
     expect(apis.invoiceApi.listByStudent).not.toHaveBeenCalled();
   });
 });

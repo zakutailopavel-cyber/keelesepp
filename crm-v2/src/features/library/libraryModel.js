@@ -32,8 +32,9 @@ function hasWorksheet(record) {
 }
 
 export function curriculumType(record) {
-  if (record?.worksheetDoc) return 'worksheet';
+  // A Kontrolltöö stays a test even with a constructor worksheet (assignment still sends the worksheet, see library.assign).
   if (record?.examPart || record?.type === 'test') return 'test';
+  if (record?.worksheetDoc) return 'worksheet';
   if (hasWorksheet(record)) return 'worksheet';
   if (record?.type === 'hw') return 'homework';
   if (record?.type === 'material') return 'material';

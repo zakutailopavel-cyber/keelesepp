@@ -1,8 +1,22 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { vi } from 'vitest';
+import { afterAll, beforeAll, vi } from 'vitest';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import FinancePage from './FinancePage.jsx';
+
+// Fixtures are dated around October 2026; pin the clock (Date only, real timers) so due/overdue logic stays stable.
+beforeAll(() => { vi.useFakeTimers({ toFake: ['Date'] }); vi.setSystemTime(new Date('2026-10-01T09:00:00Z')); });
+afterAll(() => { vi.useRealTimers(); });
+
+// Several panels show a loading status while the success notice appears; wait for the notice with the given text.
+async function findNotice(text) {
+  let found = null;
+  await waitFor(() => {
+    found = screen.getAllByRole('status').find((element) => (text ? element.textContent.includes(text) : !element.classList.contains('state-view')));
+    expect(found).toBeTruthy();
+  }, { timeout: 4000 });
+  return found;
+}
 
 const invoice = {
   id: 'invoice-1',
@@ -85,7 +99,7 @@ describe('FinancePage', () => {
     fireEvent.change(screen.getByLabelText('Laekunud summa (€)'), { target: { value: '25,50' } });
     fireEvent.click(screen.getByRole('button', { name: /Kinnita makse/ }));
     await waitFor(() => expect(financeRepository.recordPayment).toHaveBeenCalledWith('invoice-1', expect.objectContaining({ amount: 25.5, method: 'bank' })));
-    await screen.findByRole('status');
+    await findNotice();
   });
 
   it('lets an administrator set lesson price and weekly volume for the revenue forecast', async () => {
@@ -121,7 +135,7 @@ describe('FinancePage', () => {
     await waitFor(() => expect(financeRepository.createInvoiceFromLessons).toHaveBeenCalledWith(expect.objectContaining({
       studentId: 'student-1', lessonIds: ['lesson-2'], due: expect.stringMatching(/^\d{4}-\d{2}-10$/),
     })));
-    expect(await screen.findByRole('status')).toHaveTextContent('KS-2026-201');
+    await findNotice('KS-2026-201');
   });
 
   it('shows invoice lesson lines and sends the invoice through the delivery API', async () => {
@@ -133,7 +147,7 @@ describe('FinancePage', () => {
     expect(within(dialog).getByText('Keeletund 2026-07-30')).toBeInTheDocument();
     fireEvent.click(within(dialog).getByRole('button', { name: /Saada arve/ }));
     await waitFor(() => expect(repositories.deliveryRepository.send).toHaveBeenCalledWith('invoice-1'));
-    expect(await screen.findByRole('status')).toHaveTextContent('Arve saadeti');
+    await findNotice('Arve saadeti');
   });
 
   it('opens the invoice PDF inside the CRM without downloading it first', async () => {
@@ -156,7 +170,7 @@ describe('FinancePage', () => {
     const file = new globalThis.File(['payment'], 'maksekorraldus.pdf', { type: 'application/pdf' });
     fireEvent.change(await within(dialog).findByLabelText(/Lisa kinnitus/), { target: { files: [file] } });
     await waitFor(() => expect(repositories.documentRepository.upload).toHaveBeenCalledWith('payment-1', file, repositories.financeRepository));
-    expect(await screen.findByRole('status')).toHaveTextContent('maksekorraldus.pdf');
+    await findNotice('maksekorraldus.pdf');
   });
 
   it('shows immutable financial audit entries', async () => {
@@ -210,7 +224,7 @@ describe('FinancePage', () => {
     await waitFor(() => expect(financeRepository.allocateBankTransaction).toHaveBeenCalledWith(expect.objectContaining({
       invoiceId: 'invoice-1', studentId: 'student-1', allocationCents: 8000, amountCents: 8000,
     })));
-    expect(await screen.findByRole('status')).toHaveTextContent('edukalt seotud');
+    await findNotice('edukalt seotud');
   });
 
   it('previews a reconciled month and records its financial review', async () => {
@@ -242,7 +256,7 @@ describe('FinancePage', () => {
     expect(financeRepository.previewFinancialPeriod).toHaveBeenCalledWith(expect.stringMatching(/^\d{4}-\d{2}$/));
     fireEvent.click(screen.getByRole('button', { name: /Märgi kontrollituks/ }));
     await waitFor(() => expect(financeRepository.reviewFinancialPeriod).toHaveBeenCalled());
-    expect(await screen.findByRole('status')).toHaveTextContent('kontrollituks märgitud');
+    await findNotice('kontrollituks märgitud');
   });
 
   it('shows who a financial-period issue belongs to instead of presenting only its internal ID', async () => {
