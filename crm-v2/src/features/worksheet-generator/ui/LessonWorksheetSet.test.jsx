@@ -140,7 +140,7 @@ describe('LessonWorksheetSet', () => {
     expect(await screen.findByText(/Generaator pole selle tunni jaoks veel valmis/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Generaatori sisu' }));
     expect(await screen.findByRole('heading', { name: 'Generaatori sisupakett' })).toBeInTheDocument();
-    expect(screen.getByDisplayValue('Põhjus ja näide')).toBeInTheDocument();
+    expect(screen.getByDisplayValue(/Põhjus ja näide/)).toBeInTheDocument();
     expect(screen.getByText(/Puudu:/)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Salvesta sisupakett' }));
