@@ -1,5 +1,30 @@
 # KeeleSepp Project State
 
+## 2026-10-02 — Lesson-embedded Generator Content Pack authoring — stacked draft PR #244 (`agent/lesson-engine-profile-authoring-v1`)
+
+Stacked on #243. Generator readiness can now come from a validated `generatorProfile` stored directly on the existing
+`curriculumLessons/{lessonId}` document. Staff can open `Generaatori sisu` from the lesson worksheet page and edit
+focuses, target vocabulary, contexts, sentence templates/slots, error pairs, translations, speaking/writing prompts,
+success criteria and the advanced dialogue bank. Roadmap metadata scaffolds new drafts, but language content remains
+curated; the engine does not fabricate natural Estonian from a title.
+
+The authoring model has bounded arrays/strings, discards unknown top-level data and uses the real Activity Catalog +
+Didactic Planner for 5/5/5 readiness. Incomplete profiles can be saved as drafts. Ready embedded profiles override
+the code registry; an incomplete embedded draft leaves a verified static fallback active. Persistence is a transaction
+on the curriculum lesson with revision, updated-at/by metadata and stale-editor conflict protection. No new collection,
+Firestore rule, worksheet schema, Function or AI/provider dependency was added.
+
+Verification: final code head `61d8b52e2faca3c65912bbc5df5ce446aa87832d` passed GitHub `CRM v2` run 336
+(lint, production build, 118 Vitest files / 585 tests and security-regression Auth/Firestore/Functions emulator
+suite) and `CRM v2 CI` run 265 (118 files / 585 tests, lint and build). Vercel preview
+`dpl_4SLM4dZJH362UsXwicB8Mmzu92Eq` is READY. The only prior red check was a test assertion that expected the scaffold
+focus label to be the entire textarea value; it was corrected to assert the structured row content without changing
+product behavior. No production deployment was triggered. No authenticated visual-browser claim is made because the
+required local `agent-browser` executable is unavailable in this runtime.
+
+Exactly one next safe step: add a staff coverage dashboard over curriculumLessons so content-pack rollout across the
+roadmap can be managed by readiness status instead of opening lessons one by one.
+
 ## 2026-10-02 — Shared Estonian CEFR lexicon — stacked draft PR #243 (`agent/lesson-engine-level-lexicon-v1`)
 
 Stacked on #242. CRM v2 now reuses the existing authenticated Firebase Storage object `eesti_soned.json` through a
