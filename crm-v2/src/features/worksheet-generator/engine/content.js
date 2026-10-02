@@ -155,9 +155,14 @@ function trueFalseData(profile, focusIds, contextId, state, seed) {
   };
 }
 
-function errorFixData(profile, focusIds, seed) {
-  const rows = sampleSeeded((profile.banks?.errorPairs || []).filter((item) => hasFocus(item, focusIds)), 3, seed)
-    .map((item) => ({ wrong: item.wrong, answer: item.correct }));
+function errorFixData(profile, focusIds, state, seed) {
+  const candidates = (profile.banks?.errorPairs || []).filter((item) =>
+    hasFocus(item, focusIds) && !state.usedRenderedSentences.has(clean(item.correct)));
+  const selected = sampleSeeded(candidates, 3, seed);
+  selected.forEach((item) => {
+    if (clean(item.correct)) state.usedRenderedSentences.add(clean(item.correct));
+  });
+  const rows = selected.map((item) => ({ wrong: item.wrong, answer: item.correct }));
   return { title: 'Leia ja paranda viga.', instruction: 'Kirjuta lause õigesti.', rows };
 }
 
@@ -338,7 +343,7 @@ function materializeActivity({ activityId, profile, focusIds, contextId, seed, s
       data = contextChoiceData(profile, focusIds, contextId, state, seed);
       break;
     case 'practice-error-repair':
-      data = errorFixData(profile, focusIds, seed);
+      data = errorFixData(profile, focusIds, state, seed);
       break;
     case 'practice-translation':
       data = translationData(profile, focusIds, state, seed);
