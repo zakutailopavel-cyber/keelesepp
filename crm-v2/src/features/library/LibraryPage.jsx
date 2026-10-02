@@ -277,7 +277,7 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
       />
       {success ? <div className="success-notice" role="status">{success}<button aria-label="Sulge teade" onClick={() => setSuccess('')}>×</button></div> : null}
       {installError ? <div className="action-error" role="alert">{installError}</div> : null}
-      {!a2Complete ? <div className="form-hint" role="status">A2 õppekava: {a2Count}/{A2_LESSON_COUNT} tundi paigaldatud. Paigaldus kasutab stabiilseid tunni-ID-sid ega loo duplikaate.</div> : null}
+      {!a2Complete ? <div className="form-hint">A2 õppekava: {a2Count}/{A2_LESSON_COUNT} tundi paigaldatud. Paigaldus kasutab stabiilseid tunni-ID-sid ega loo duplikaate.</div> : null}
 
       <div className="lib2-search">
         <Search size={20} aria-hidden="true" />
