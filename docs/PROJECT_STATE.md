@@ -1,5 +1,25 @@
 # KeeleSepp Project State
 
+## 2026-10-02 — Google Calendar recent-past deletion reconciliation — local branch
+
+Checked against fresh `origin/main` `3517dd8` on 2026-10-02; open PRs #230 and #233 are release-documentation
+work and do not overlap this fix. Branch `codex/google-calendar-deletion-sync` fixes an inbound-sync boundary:
+Google cancellation tombstones were queried with a seven-day lookback, but the reconciliation filter started at
+today. Therefore a Google-owned lesson deleted after it had already occurred (reported example: 2026-10-01 at
+09:00, checked on 2026-10-02) remained in KeeleSepp even though Google returned its explicit tombstone.
+
+`functions/index.js` now reconciles the same seven-day window that was queried. It still deletes only records with
+an explicit matching Google cancellation ID; absence from a partial result is not deletion, and completed lesson
+history remains protected by the existing rules. `functions/calendar-sync-core.test.js` adds the recent-past
+regression case and the older-than-window safety boundary. `ARCHITECTURE.md` records the contract. No schema,
+Firestore rule, index, migration, production-data or client UI change.
+
+Checks: focused calendar tests 33/33 passed; full Functions unit suite 213/213 passed; `git diff --check` passed.
+Tests ran under local Node 26.8.2 while Functions declares Node 22; npm reported the existing dependency audit of
+14 moderate and 7 high vulnerabilities. No Google API call, deploy, production-data write or PR created. The
+already-stale production record will be removed by the first successful sync after this Functions change is deployed.
+Exactly one next safe step: review the diff and open a draft PR; production deployment remains owner-gated.
+
 ## 2026-10-02 — Known test failures fixed, Kontrolltöö label — PR (branch `agent/fix-known-failures`)
 
 Checked against main `240e09c`. Owner asked to fix the remaining known problems (not the items they parked: TURN,
