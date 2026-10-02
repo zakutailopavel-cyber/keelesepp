@@ -47,9 +47,9 @@ async function persist({
   baseUpdatedAt = '',
   status = 'draft',
   role,
-  slot = null,
+  slot,
   displayLabel = '',
-  source = 'generated',
+  source,
   generation,
   contentOrigin,
 }) {
@@ -57,8 +57,8 @@ async function persist({
   validateWorksheetDoc(worksheetDoc);
   const normalizedRole = normalizeRole(role, worksheetId);
   const normalizedStatus = status === 'published' ? 'published' : 'draft';
-  if (!['generated', 'manual'].includes(source)) throw new Error('Töölehe allikas on vigane.');
-  if (slot !== null && ![1, 2, 3].includes(slot)) throw new Error('Töölehe järjekorranumber on vigane.');
+  if (source !== undefined && !['generated', 'manual'].includes(source)) throw new Error('Töölehe allikas on vigane.');
+  if (slot !== undefined && slot !== null && ![1, 2, 3].includes(slot)) throw new Error('Töölehe järjekorranumber on vigane.');
 
   const { db } = requireFirebaseClient();
   const { lesson, worksheet } = refs(db, lessonId, worksheetId);
@@ -87,10 +87,10 @@ async function persist({
       lessonId,
       worksheetId,
       role: normalizedRole,
-      slot,
+      slot: slot ?? current?.slot ?? null,
       displayLabel: String(displayLabel || current?.displayLabel || storedDoc.meta?.title || '').trim(),
       title: String(storedDoc.meta?.title || '').trim(),
-      source,
+      source: source || current?.source || 'generated',
       ...(preservedGeneration ? { generation: preservedGeneration } : {}),
       ...(contentOrigin ? { contentOrigin: clean(contentOrigin) } : current?.contentOrigin ? { contentOrigin: current.contentOrigin } : {}),
       worksheetDoc: storedDoc,
@@ -133,6 +133,14 @@ async function persist({
 }
 
 export const lessonWorksheetsService = {
+  async loadLesson(lessonId) {
+    if (!ID_PATTERN.test(String(lessonId || ''))) throw new Error('Tunni ID on vigane.');
+    const { db } = requireFirebaseClient();
+    const snapshot = await getDoc(doc(db, 'curriculumLessons', lessonId));
+    if (!snapshot.exists()) throw new Error('Õppetundi ei leitud.');
+    return { id: snapshot.id, ...snapshot.data() };
+  },
+
   async load(lessonId, worksheetId) {
     assertIdentity(lessonId, worksheetId);
     const { db } = requireFirebaseClient();

@@ -37,6 +37,12 @@ This slice does not add a route, button, Firebase service, collection, rule, mig
 
 Firestore permits signed-in users to read these lesson materials and restricts child-sheet writes to staff. Existing `worksheetVersions` remain staff-readable/create-only and cannot be updated or deleted. The shared Worksheet Studio child route and teacher controls belong to the next UI slice.
 
+## Teacher generation UI
+
+The lesson material dialog links to `/library/lessons/{lessonId}/worksheets`. For a lesson with a curated generator profile the page offers `Genereeri 3 töölehte` and shows stable cards for `Avasta`, `Harjuta` and `Kasuta`. Generation saves all three as independent drafts. Re-generating existing core IDs requires explicit confirmation, creates new versions and keeps published snapshots intact. Lessons without a curated profile show `Generaator pole selle tunni jaoks veel valmis` and cannot generate generic content.
+
+Each card opens `/library/lessons/{lessonId}/worksheets/{worksheetId}`. This route adapts `lessonWorksheetsService` to the existing Worksheet Studio instead of forking its editor, renderer or quality gate. Save and publish affect only the selected child sheet; its version history uses the child-aware immutable records.
+
 Assignment continues to snapshot the selected published worksheet in `worksheetAssignments`. The source record will retain child-sheet identity and version for traceability; the student player continues reading the immutable assignment snapshot.
 
 ## Live teacher guidance and student profile
@@ -64,7 +70,7 @@ The current `StudentProfilePage` does not yet load `worksheetAssignments`; addin
 
 1. Pure generator core and reference profile.
 2. Child-sheet draft/publish/version persistence and rules. (implemented)
-3. Teacher generation UI and shared Worksheet Studio route.
+3. Teacher generation UI and shared Worksheet Studio route. (implemented for the reference profile)
 4. Assignment source traceability, live entry points and student-profile work history.
 5. Profile coverage expanded in data-only roadmap slices.
 

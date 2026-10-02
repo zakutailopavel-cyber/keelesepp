@@ -466,6 +466,11 @@ the legacy root worksheet contract intact. `lessonWorksheetsService` saves each 
 transaction, rejects a stale `worksheetDocUpdatedAt`, and appends an immutable top-level `worksheetVersions` record
 whose ID includes both the lesson and child worksheet. A draft keeps the last published snapshot unchanged. Signed-in
 users may read child sheets; only staff may create, update or delete them. Published child sheets continue through the
-existing immutable `worksheetAssignments` snapshot. Real-time teacher guidance reuses `LiveWorksheetView`, `liveFocus.blockId` and the
-same assignment document inside Live Classroom. Student-profile work history must query those assignments rather
+existing immutable `worksheetAssignments` snapshot. Real-time teacher guidance reuses `LiveWorksheetView`,
+`liveFocus.blockId` and the same assignment document inside Live Classroom.
+
+The teacher opens a lesson worksheet set at `/library/lessons/:lessonId/worksheets`; supported profiles
+generate the three stable core drafts in parallel. Child routes adapt the same `WorksheetStudioPage` to
+`lessonWorksheetsService`, so editing, quality validation, publishing and history do not fork the worksheet engine.
+Student-profile work history must query those assignments rather
 than copying answers or results into `students`. See `docs/WORKSHEET_GENERATOR_V1.md`.

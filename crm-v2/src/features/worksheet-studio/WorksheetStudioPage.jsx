@@ -32,7 +32,7 @@ const readDraft = (key) => { try { return JSON.parse(window.localStorage.getItem
 
 // Worksheet Studio: teachers assemble branded, interactive worksheets from blocks.
 // Route: /library/worksheets/new  or  /library/worksheets/:lessonId (curriculumLessons document).
-export default function WorksheetStudioPage({ repository = worksheetDocsService }) {
+export default function WorksheetStudioPage({ repository = worksheetDocsService, backTo = '/library', allowCopy = true }) {
   const { lessonId } = useParams();
   const isNew = !lessonId || lessonId === 'new';
   const { user } = useAuth();
@@ -328,7 +328,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService 
     <AssetContext.Provider value={assets}>
       <div className={`ws-studio mode-${mode}`}>
         <header className="st-bar">
-          <Link className="st-back" to="/library"><Icons.ArrowLeft size={16} /> Õppevara</Link>
+          <Link className="st-back" to={backTo}><Icons.ArrowLeft size={16} /> {backTo === '/library' ? 'Õppevara' : 'Tunni töölehed'}</Link>
           <div className="st-title"><b>Töölehe konstruktor</b><span>{doc.meta.title}{dirty ? ' · salvestamata' : ''}</span></div>
           <div className="st-seg" role="tablist" aria-label="Vaade">
             {[['edit', 'Koosta'], ['interactive', 'Õpilase vaade'], ['print', 'Trükivaade']].map(([m, l]) => (
@@ -346,7 +346,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService 
               <div className="st-menu">
                 <button type="button" onClick={loadSample}>Laadi näidisleht „Minu päev”</button>
                 <button type="button" onClick={loadFormalLetter}>Mall „Kiri linnavalitsusele”</button>
-                <button type="button" onClick={saveCopy}>Tee töölehest koopia</button>
+                {allowCopy ? <button type="button" onClick={saveCopy}>Tee töölehest koopia</button> : null}
                 {!isNew && <button type="button" onClick={loadVersions}>Versioonid ja taastamine…</button>}
                 <button type="button" onClick={exportJson}>Salvesta faili (JSON)</button>
                 <button type="button" onClick={() => { closeMenu(); fileRef.current?.click(); }}>Ava failist…</button>
