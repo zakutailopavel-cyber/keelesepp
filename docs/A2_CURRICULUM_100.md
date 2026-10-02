@@ -120,9 +120,14 @@ Manifest: `data/keelesepp-a2-roadmap.json`.
 - tase: `A2`;
 - iga viies tund: `kind: assessment`.
 
-Importer `haldus-a2-roadmap/` kirjutab samade ID-dega olemasolevasse `curriculumLessons` kollektsiooni
-`merge:true`. Korduv paigaldus ei loo seetõttu uut A2 õpiteed ega duplikaate. Import käivitub ainult staff-vaates,
-kui A2 avatakse ja `est-a2-curriculum-v1` kirjeid on vähem kui 100.
+CRM v2 hoiab sama roadmap'i kontrollitud peeglit failis `crm-v2/src/features/curriculum/a2Roadmap.json`.
+Õppevara staff-vaates kuvatakse nupp `Paigalda A2 õppekava`, kuni kõik 100 stabiilset A2 kirjet on olemas.
+`curriculumInstallerService` kirjutab need olemasolevasse `curriculumLessons` kollektsiooni ühe batch'ina
+`merge:true`. Seetõttu ei looda korduvpaigaldusel duplikaate ning olemasolevaid `worksheetDoc`,
+`generatorProfile` ega teisi tunniga seotud alamandmeid ei kirjutata installerist üle.
+
+Legacy `haldus-a2-roadmap/` kasutab sama ID-lepingut ja jääb ühilduvaks varuteeks, kuid aktiivse CRM v2 peamine
+paigaldusvoog on Õppevara nupp. Paigaldus on teadlik staff-toiming; pelk code deploy ei kirjuta production Firestore'i.
 
 Lesson Engine Content Pack ei kuulu roadmap-andmefaili. Coverage Dashboard näitab uued tunnid alguses sisupaketi
 poolest puuduva või mustandina ning Content Packid lisatakse eraldi kontrollitud sisutööna.
