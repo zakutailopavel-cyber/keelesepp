@@ -148,6 +148,17 @@ export const lessonWorksheetsService = {
     return { id: snapshot.id, ...snapshot.data() };
   },
 
+  async listGeneratorLessons() {
+    const { db } = requireFirebaseClient();
+    const snapshot = await getDocs(collection(db, 'curriculumLessons'));
+    return snapshot.docs
+      .map((entry) => ({ id: entry.id, ...entry.data() }))
+      .filter((entry) => entry.type === 'lesson' || entry.roadmapManaged || entry.roadmapLessonId || entry.generatorProfile)
+      .sort((a, b) => String(a.levelStage || a.level || '').localeCompare(String(b.levelStage || b.level || ''), 'et')
+        || (Number(a.roadmapLessonNumber || a.order) || 0) - (Number(b.roadmapLessonNumber || b.order) || 0)
+        || String(a.title || '').localeCompare(String(b.title || ''), 'et'));
+  },
+
 
   async saveGeneratorProfile({ lessonId, profile, user, baseUpdatedAt = '' }) {
     if (!ID_PATTERN.test(String(lessonId || ''))) throw new Error('Tunni ID on vigane.');
