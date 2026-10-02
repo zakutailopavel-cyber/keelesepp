@@ -1,4 +1,4 @@
-import { ArrowLeft, FilePenLine, RefreshCw, Sparkles, Target } from 'lucide-react';
+import { ArrowLeft, Database, FilePenLine, RefreshCw, Sparkles, Target } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../../../app/AuthContext.jsx';
@@ -7,7 +7,8 @@ import { useAsyncData } from '../../../hooks/useAsyncData.js';
 import { lessonWorksheetsService, levelVocabularyService } from '../../../services/firebase/index.js';
 import { ACTIVITY_CATALOG_VERSION, generateFocusWorksheet, generateLessonBundle, GENERATOR_VERSION } from '../engine/generator.js';
 import { FOCUS_PHASES, focusPhaseLabel, focusWorksheetId } from '../engine/focusWorksheet.js';
-import { generatorProfileForLesson } from '../profiles/index.js';
+import { generatorProfileForLesson, profileDraftForLesson, resolveGeneratorProfile } from '../profiles/index.js';
+import GeneratorProfileEditor from './GeneratorProfileEditor.jsx';
 import '../generator.css';
 
 const CORE = [
@@ -44,6 +45,8 @@ export default function LessonWorksheetSet({ repository = lessonWorksheetsServic
   const { user } = useAuth();
   const [busy, setBusy] = useState(false);
   const [focusBusy, setFocusBusy] = useState(false);
+  const [profileBusy, setProfileBusy] = useState(false);
+  const [profileEditing, setProfileEditing] = useState(false);
   const [notice, setNotice] = useState('');
   const [difficulty, setDifficulty] = useState('core');
   const [focusId, setFocusId] = useState('');
@@ -69,12 +72,36 @@ export default function LessonWorksheetSet({ repository = lessonWorksheetsServic
   const lesson = state.data.lesson;
   const sheets = state.data.sheets;
   const byId = new Map(sheets.map((sheet) => [sheet.worksheetId || sheet.id, sheet]));
-  const profile = generatorProfileForLesson(lessonId);
+  const resolvedProfile = resolveGeneratorProfile(lessonId, lesson);
+  const profile = generatorProfileForLesson(lessonId, lesson);
+  const profileDraft = profileDraftForLesson(lessonId, lesson);
   const levelVocabulary = state.data.levelVocabulary || { lexicon: [], source: '', wordCount: 0 };
   const coreSheets = CORE.map(({ id }) => byId.get(id)).filter(Boolean);
   const focusSheets = sheets.filter((sheet) => sheet.role === 'focus');
   const selectedFocusId = focusId || profile?.focuses?.[0]?.id || '';
-  const anyBusy = busy || focusBusy;
+  const anyBusy = busy || focusBusy || profileBusy;
+
+
+  const saveProfile = async (nextProfile, readiness) => {
+    setProfileBusy(true); setError(''); setNotice('');
+    try {
+      await repository.saveGeneratorProfile({
+        lessonId,
+        profile: nextProfile,
+        user,
+        baseUpdatedAt: lesson.generatorProfileUpdatedAt || '',
+      });
+      setNotice(readiness.ready
+        ? 'Generaatori sisupakett salvestati ja on genereerimiseks valmis.'
+        : 'Generaatori sisupaketi mustand salvestati. Täida readiness nõuded enne genereerimist.');
+      setProfileEditing(false);
+      state.reload();
+    } catch (profileError) {
+      setError(profileError.message || 'Generaatori sisupaketi salvestamine ebaõnnestus.');
+    } finally {
+      setProfileBusy(false);
+    }
+  };
 
   const generate = async () => {
     const existing = coreSheets;
@@ -176,15 +203,31 @@ export default function LessonWorksheetSet({ repository = lessonWorksheetsServic
         description="Avasta loob konteksti, Harjuta kinnistab täpsust ja Kasuta viib õpitu rääkimisse või kirjutamisse."
         actions={(
           <div className="generator-actions">
+            <Button variant="secondary" onClick={() => setProfileEditing((value) => !value)} disabled={anyBusy}><Database size={17} /> Generaatori sisu</Button>
             <label className="generator-difficulty"><span>Raskus</span><select aria-label="Töölehtede raskus" value={difficulty} onChange={(event) => setDifficulty(event.target.value)} disabled={anyBusy}><option value="support">Support</option><option value="core">Core</option><option value="challenge">Challenge</option></select></label>
-            <Button onClick={generate} loading={busy} disabled={!profile || focusBusy}><Sparkles size={17} /> {coreSheets.length ? 'Genereeri uus variant' : 'Genereeri 3 töölehte'}</Button>
+            <Button onClick={generate} loading={busy} disabled={!profile || focusBusy || profileBusy}><Sparkles size={17} /> {coreSheets.length ? 'Genereeri uus variant' : 'Genereeri 3 töölehte'}</Button>
           </div>
         )}
       />
-      {!profile ? <div className="generator-message" role="status">Generaator pole selle tunni jaoks veel valmis. Sellel tunnil puudub kontrollitud generaatoriprofiil.</div> : null}
+      {!profile ? <div className="generator-message" role="status">Generaator pole selle tunni jaoks veel valmis. Ava „Generaatori sisu” ja täida sisupaketi readiness nõuded.</div> : null}
+      {resolvedProfile.fallback && resolvedProfile.embeddedDraft ? <div className="generator-message is-warning" role="status">Õppetunni sisupaketi mustand pole veel valmis; genereerimine kasutab seni kontrollitud Git fallback’i.</div> : null}
       {levelVocabulary.error ? <div className="generator-message is-warning" role="status">Tasemesõnastik: {levelVocabulary.error} Tunni temaatiline sõnavara jääb kasutusse, kuid CEFR-audit on piiratud.</div> : null}
       {error ? <div className="generator-message is-error" role="alert">{error}</div> : null}
       {notice ? <div className="generator-message is-ok" role="status">{notice}</div> : null}
+
+
+      {profileEditing ? (
+        <GeneratorProfileEditor
+          key={lesson.generatorProfileUpdatedAt || profileDraft.source || 'new'}
+          lesson={lesson}
+          initialProfile={profileDraft.profile}
+          source={profileDraft.source}
+          updatedAt={lesson.generatorProfileUpdatedAt || ''}
+          onSave={saveProfile}
+          saving={profileBusy}
+          onCancel={() => setProfileEditing(false)}
+        />
+      ) : null}
 
       <div className="generator-sheet-grid">
         {CORE.map((meta) => {
