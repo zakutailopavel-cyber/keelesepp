@@ -20,6 +20,22 @@ Tests ran under local Node 26.8.2 while Functions declares Node 22; npm reported
 already-stale production record will be removed by the first successful sync after this Functions change is deployed.
 Exactly one next safe step: review the diff and open a draft PR; production deployment remains owner-gated.
 
+## 2026-10-02 — Worksheet error-correction prompt display — local branch
+
+Checked against fresh `origin/main` `3517dd8` on 2026-10-02; open PRs #230 and #233 are release-documentation work
+and do not overlap this fix. Branch `codex/error-correction-display` corrects the `Leia ja paranda viga` block:
+its incorrect source sentence was rendered with the semantic HTML `<s>` element in edit, student, print and review
+modes, so it was always crossed out before the learner answered. It is now ordinary readable prompt text while the
+existing answer line, scoring, saved document schema and author fields remain unchanged.
+
+Files: `engine/blocks/advanced.jsx`, `engine/sheet.css`, `engine/engine.test.jsx`,
+`docs/WORKSHEET_STUDIO_V1.md`, and this state file. The regression test covers edit, interactive, print and review
+modes and rejects any rendered `<s>` element. No data migration, Function, Firestore rule, API, external service or
+production change. Checks: focused engine test 11/11 passed; full CRM Vitest 107 files / 540 tests passed; ESLint
+passed; production build passed with the existing >600 kB chunk warning; `git diff --check` passed. Fresh dependency
+install reported the existing audit of 2 moderate and 8 high vulnerabilities. Exactly one next safe step: review the
+diff and open a draft PR; production deployment remains owner-gated.
+
 ## 2026-10-02 — Known test failures fixed, Kontrolltöö label — PR (branch `agent/fix-known-failures`)
 
 Checked against main `240e09c`. Owner asked to fix the remaining known problems (not the items they parked: TURN,

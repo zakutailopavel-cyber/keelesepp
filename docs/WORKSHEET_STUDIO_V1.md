@@ -43,6 +43,8 @@ Validation before save: known block types only, ≤ 150 blocks, ≤ 800 KB JSON,
 
 - Grammar & vocabulary: gaps (+ word bank, `[a|b]` answers), choice (single/multi, `*` marks correct), true/false,
   match pairs, many-to-many (teacher-reviewed), sort into groups, word order, table (`[answer]` cells).
+- Error-correction prompts show the original incorrect sentence as ordinary readable text in every mode; the learner
+  identifies and rewrites the error, so the prompt itself is never pre-crossed-out as if the answer were revealed.
 - Topics: clock (drawn from data; accepts digits and Estonian words), dialogue with speech bubbles and gaps.
 - Text & audio: reading + questions (`[answer]` or open), listening + gap sentences (+ transcript for teacher).
 - Pictures: photo, picture grid (order numbers / labels / show).

@@ -253,7 +253,7 @@
 .ws-formrow > span { color: var(--ks-muted); font-size: 10pt; }
 .ws-fix, .ws-translation, .ws-crossword { padding-left: 6mm; }
 .ws-fix li, .ws-translation li, .ws-crossword li { break-inside: avoid; }
-.ws-fix s { display: block; color: #8a3b2e; margin-bottom: 1.5mm; }
+.ws-fix-prompt { display: block; color: #8a3b2e; margin-bottom: 1.5mm; }
 .ws-translation li { display: grid; gap: 1.5mm; }
 .ws-translation small { color: var(--ks-muted); }
 .ws-dictation { display: grid; gap: 4mm; }
