@@ -1,5 +1,19 @@
 # KeeleSepp Project State
 
+## 2026-10-02 — A2 Curriculum v1 — direct main delivery
+
+Owner explicitly authorized direct main delivery and Vercel pickup for this session. Starting main before the A2 slice was `e2c07a7d50acdaada43d73fd1d848387a5501a6e`. Unrelated open PRs #230, #233, #234 and #235 were inspected; none owns the new A2 roadmap data or importer.
+
+Implemented `est-a2-curriculum-v1`: 20 modules, 100 stable one-student A2 lessons (`a2-001`…`a2-100`) and one formative assessment every fifth lesson. The program follows Harno A2 thematic domains and four-skill exam structure, while the learning sequence remains communicative rather than test-only. Each lesson stores goal, language/communication focus, practice, success criterion, skill tags and stable source identity. Five JSON shards plus a manifest keep the roadmap maintainable.
+
+Added `haldus-a2-roadmap/`, which validates the 20-module / 100-lesson contract before writing and uses existing `curriculumLessons/{lessonId}` documents with `merge:true`; repeat installation cannot create duplicate lesson IDs. The existing Õppevara curriculum view now routes staff opening A2 to that importer only when fewer than 100 `est-a2-curriculum-v1` roadmap records are present. No new collection, Firestore rule, Function, worksheet schema, assignment schema or AI/provider dependency was added. The code deployment itself does not write production curriculum data; the write happens only when authenticated staff opens A2 and the importer runs.
+
+Verification from fresh main data: 20 modules, 100 lessons, 20 assessments, 100 unique lesson IDs and 100 unique source keys; all lessons have title/goal/focus/practice/success and every fifth lesson is `assessment`. Importer wiring was also checked for `est-a2-curriculum-v1`, 100-item validation, `curriculumLessons`, `merge:true`, and the A2 staff auto-install hook. `a2-roadmap.test.js` records these invariants. `docs/A2_CURRICULUM_100.md` defines volume, outcomes, methodology, grammar progression, assessment and data contract.
+
+Known manual gate: no production Firestore migration has been triggered by the agent. Open A2 once as authenticated staff to perform the idempotent installation, then inspect the Coverage Dashboard before authoring generator Content Packs.
+
+Exactly one next safe step: verify the Vercel production deployment for the current main, then perform the first staff A2 install and inspect the resulting 100 curriculum records.
+
 ## 2026-10-02 — Lesson-embedded Generator Content Pack authoring — stacked draft PR #244 (`agent/lesson-engine-profile-authoring-v1`)
 
 Stacked on #243. Generator readiness can now come from a validated `generatorProfile` stored directly on the existing
