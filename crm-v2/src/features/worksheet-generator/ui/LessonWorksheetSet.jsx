@@ -4,7 +4,7 @@ import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../../../app/AuthContext.jsx';
 import { Badge, Button, Card, ErrorState, LoadingState, PageHeader } from '../../../components/ui/index.js';
 import { useAsyncData } from '../../../hooks/useAsyncData.js';
-import { lessonWorksheetsService } from '../../../services/firebase/index.js';
+import { lessonWorksheetsService, levelVocabularyService } from '../../../services/firebase/index.js';
 import { ACTIVITY_CATALOG_VERSION, generateFocusWorksheet, generateLessonBundle, GENERATOR_VERSION } from '../engine/generator.js';
 import { FOCUS_PHASES, focusPhaseLabel, focusWorksheetId } from '../engine/focusWorksheet.js';
 import { generatorProfileForLesson } from '../profiles/index.js';
@@ -18,7 +18,7 @@ const CORE = [
 
 const shortDate = (value) => value ? new Intl.DateTimeFormat('et-EE', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) : '—';
 
-function generationMeta(sheet, { scope, variant, size = 'standard' }) {
+function generationMeta(sheet, { scope, variant, size = 'standard', levelVocabulary = null }) {
   return {
     generatorVersion: sheet.generatorVersion,
     recipeId: sheet.recipeId,
@@ -35,10 +35,11 @@ function generationMeta(sheet, { scope, variant, size = 'standard' }) {
     difficulty: sheet.difficulty,
     lessonDna: sheet.lessonDna,
     variant,
+    levelVocabulary: levelVocabulary?.source ? { source: levelVocabulary.source, wordCount: levelVocabulary.wordCount || 0 } : null,
   };
 }
 
-export default function LessonWorksheetSet({ repository = lessonWorksheetsService }) {
+export default function LessonWorksheetSet({ repository = lessonWorksheetsService, vocabularyRepository = levelVocabularyService }) {
   const { lessonId } = useParams();
   const { user } = useAuth();
   const [busy, setBusy] = useState(false);
@@ -49,9 +50,18 @@ export default function LessonWorksheetSet({ repository = lessonWorksheetsServic
   const [focusPhase, setFocusPhase] = useState('full');
   const [error, setError] = useState('');
   const state = useAsyncData(async () => {
-    const [lesson, sheets] = await Promise.all([repository.loadLesson(lessonId), repository.list(lessonId)]);
-    return { lesson, sheets };
-  }, [lessonId, repository]);
+    const [lesson, sheets, levelVocabulary] = await Promise.all([
+      repository.loadLesson(lessonId),
+      repository.list(lessonId),
+      vocabularyRepository.load().catch((loadError) => ({
+        lexicon: [],
+        source: '',
+        wordCount: 0,
+        error: loadError?.message || 'Tasemesõnastikku ei saanud laadida.',
+      })),
+    ]);
+    return { lesson, sheets, levelVocabulary };
+  }, [lessonId, repository, vocabularyRepository]);
 
   if (state.loading) return <LoadingState label="Laen tunni töölehti…" />;
   if (state.error) return <ErrorState message={state.error.message} onRetry={state.reload} />;
@@ -60,6 +70,7 @@ export default function LessonWorksheetSet({ repository = lessonWorksheetsServic
   const sheets = state.data.sheets;
   const byId = new Map(sheets.map((sheet) => [sheet.worksheetId || sheet.id, sheet]));
   const profile = generatorProfileForLesson(lessonId);
+  const levelVocabulary = state.data.levelVocabulary || { lexicon: [], source: '', wordCount: 0 };
   const coreSheets = CORE.map(({ id }) => byId.get(id)).filter(Boolean);
   const focusSheets = sheets.filter((sheet) => sheet.role === 'focus');
   const selectedFocusId = focusId || profile?.focuses?.[0]?.id || '';
@@ -75,6 +86,7 @@ export default function LessonWorksheetSet({ repository = lessonWorksheetsServic
       const result = generateLessonBundle({
         lesson,
         profile,
+        levelLexicon: levelVocabulary.lexicon,
         activityHistory: previousActivityIds,
         difficulty,
         variant,
@@ -94,7 +106,7 @@ export default function LessonWorksheetSet({ repository = lessonWorksheetsServic
           worksheetDoc: sheet.worksheetDoc,
           user,
           baseUpdatedAt: current?.worksheetDocUpdatedAt || '',
-          generation: generationMeta(sheet, { scope: 'lesson-bundle', variant }),
+          generation: generationMeta(sheet, { scope: 'lesson-bundle', variant, levelVocabulary }),
         });
       }));
       setNotice(`Kolm erinevat töölehte salvestati mustandina (variant ${variant}). Ava need kontrollimiseks ja avalda ükshaaval.`);
@@ -123,6 +135,7 @@ export default function LessonWorksheetSet({ repository = lessonWorksheetsServic
       const result = generateFocusWorksheet({
         lesson,
         profile,
+        levelLexicon: levelVocabulary.lexicon,
         focusIds: [selectedFocusId],
         phase: focusPhase,
         difficulty,
@@ -143,7 +156,7 @@ export default function LessonWorksheetSet({ repository = lessonWorksheetsServic
         worksheetDoc: sheet.worksheetDoc,
         user,
         baseUpdatedAt: current?.worksheetDocUpdatedAt || '',
-        generation: generationMeta(sheet, { scope: 'focus', variant }),
+        generation: generationMeta(sheet, { scope: 'focus', variant, levelVocabulary }),
       });
       setNotice(`Fookuse tööleht „${displayLabel}” salvestati mustandina (variant ${variant}).`);
       state.reload();
@@ -169,6 +182,7 @@ export default function LessonWorksheetSet({ repository = lessonWorksheetsServic
         )}
       />
       {!profile ? <div className="generator-message" role="status">Generaator pole selle tunni jaoks veel valmis. Sellel tunnil puudub kontrollitud generaatoriprofiil.</div> : null}
+      {levelVocabulary.error ? <div className="generator-message is-warning" role="status">Tasemesõnastik: {levelVocabulary.error} Tunni temaatiline sõnavara jääb kasutusse, kuid CEFR-audit on piiratud.</div> : null}
       {error ? <div className="generator-message is-error" role="alert">{error}</div> : null}
       {notice ? <div className="generator-message is-ok" role="status">{notice}</div> : null}
 
