@@ -461,6 +461,14 @@ curated content banks, level-safe vocabulary and a string seed into ordinary `ke
 It reuses the current Worksheet Studio block registry and renderer; it has no Firebase, network, AI-provider,
 timestamp or unseeded-random dependency. Generator metadata remains outside the worksheet document.
 
+The pedagogical selection layer is split from rendering. `activityCatalog.js` defines versioned logical activities
+(phase, CEFR range, lesson kinds, skills, production mode, cognitive load, activity family, source requirements and
+didactic tags). `planner.js` deterministically compiles compatible activities into Avasta / Harjuta / Kasuta plans,
+prefers family diversity and uses recent activity IDs as a cooldown signal. `content.js` only materializes that plan
+from curated profile banks into existing Worksheet Studio blocks. `quality.js` checks plan-to-block consistency and
+the required phase progression before persistence. A changed seed can therefore change both task content and the
+didactic activity mix without changing the worksheet storage schema.
+
 Generated lesson worksheets use child records under `curriculumLessons/{lessonId}/worksheets/{worksheetId}` and leave
 the legacy root worksheet contract intact. `lessonWorksheetsService` saves each draft or publication in a Firestore
 transaction, rejects a stale `worksheetDocUpdatedAt`, and appends an immutable top-level `worksheetVersions` record

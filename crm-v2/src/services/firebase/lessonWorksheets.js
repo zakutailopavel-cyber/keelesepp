@@ -25,6 +25,13 @@ function userName(user) {
   return user?.displayName || user?.email || '';
 }
 
+export class GeneratorProfileConflictError extends Error {
+  constructor() {
+    super('Generaatori sisupaketti muudeti vahepeal teises aknas. Laadi uusim versioon ja proovi uuesti.');
+    this.name = 'GeneratorProfileConflictError';
+  }
+}
+
 export class LessonWorksheetConflictError extends Error {
   constructor() {
     super('Seda töölehte muudeti vahepeal teises aknas. Laadi uusim versioon ja proovi uuesti.');
@@ -139,6 +146,44 @@ export const lessonWorksheetsService = {
     const snapshot = await getDoc(doc(db, 'curriculumLessons', lessonId));
     if (!snapshot.exists()) throw new Error('Õppetundi ei leitud.');
     return { id: snapshot.id, ...snapshot.data() };
+  },
+
+
+  async saveGeneratorProfile({ lessonId, profile, user, baseUpdatedAt = '' }) {
+    if (!ID_PATTERN.test(String(lessonId || ''))) throw new Error('Tunni ID on vigane.');
+    if (!profile || profile.schema !== 'keelesepp.worksheet-generator-profile/1' || Number(profile.version) !== 1) {
+      throw new Error('Generaatoriprofiili skeem või versioon on vigane.');
+    }
+    if (String(profile.lessonId || '') !== String(lessonId)) throw new Error('Generaatoriprofiil kuulub teisele tunnile.');
+    const serialized = JSON.stringify(profile);
+    if (serialized.length > 250000) throw new Error('Generaatoriprofiil on liiga suur.');
+
+    const { db } = requireFirebaseClient();
+    const lessonRef = doc(db, 'curriculumLessons', lessonId);
+    const now = new Date().toISOString();
+    return runTransaction(db, async (transaction) => {
+      const snapshot = await transaction.get(lessonRef);
+      if (!snapshot.exists()) throw new Error('Õppetundi ei leitud.');
+      const current = snapshot.data();
+      if (current.generatorProfileUpdatedAt && baseUpdatedAt !== current.generatorProfileUpdatedAt) {
+        throw new GeneratorProfileConflictError();
+      }
+      const revision = (Number(current.generatorProfileRevision) || 0) + 1;
+      const stored = clean(profile);
+      transaction.set(lessonRef, {
+        generatorProfile: stored,
+        generatorProfileRevision: revision,
+        generatorProfileUpdatedAt: now,
+        generatorProfileUpdatedBy: user?.uid || '',
+        generatorProfileUpdatedByName: userName(user),
+      }, { merge: true });
+      return {
+        profile: stored,
+        revision,
+        updatedAt: now,
+        updatedBy: user?.uid || '',
+      };
+    });
   },
 
   async load(lessonId, worksheetId) {

@@ -67,6 +67,8 @@ describe('worksheet generation', () => {
     expect(result.sheets).toHaveLength(3);
     expect(result.sheets.map((sheet) => sheet.role)).toEqual(['discover', 'practice', 'transfer']);
     expect(result.sheets.map((sheet) => sheet.displayLabel)).toEqual(['Avasta', 'Harjuta', 'Kasuta']);
+    expect(result.sheets.every((sheet) => sheet.activityIds.length === 5)).toBe(true);
+    expect(result.sheets.every((sheet) => new Set(sheet.activityIds).size === 5)).toBe(true);
     result.sheets.forEach((sheet) => {
       expect(validateWorksheetDoc(sheet.worksheetDoc)).toBe(true);
       const tasks = sheet.worksheetDoc.blocks.filter((block) => BLOCKS[block.type]?.task);
@@ -81,7 +83,16 @@ describe('worksheet generation', () => {
       expect(serialized.filter((document) => document.includes(sentence)).length).toBeLessThanOrEqual(1);
     });
     expect(generateLessonBundle({ lesson, profile, levelLexicon: lexicon, seed: 'reference' })).toEqual(result);
+    expect(result.lessonDna).toMatchObject({ schema: 'keelesepp.lesson-dna/1', lessonId: 'a2b1-016', difficulty: 'core', mode: 'lesson-bundle' });
     expect(generateLessonBundle({ lesson, profile, levelLexicon: lexicon, seed: 'variant' }).sheets).not.toEqual(result.sheets);
+
+    const support = generateLessonBundle({ lesson, profile, seed: 'difficulty', difficulty: 'support' });
+    const challenge = generateLessonBundle({ lesson, profile, seed: 'difficulty', difficulty: 'challenge' });
+    expect(support.diagnostics.filter((item) => item.severity === 'error')).toEqual([]);
+    expect(challenge.diagnostics.filter((item) => item.severity === 'error')).toEqual([]);
+    expect(support.lessonDna.difficulty).toBe('support');
+    expect(challenge.lessonDna.difficulty).toBe('challenge');
+    expect(support.sheets).not.toEqual(challenge.sheets);
   });
 
   it('generates deterministic focus sheets and rejects unsupported focus selections', () => {
@@ -104,7 +115,7 @@ describe('worksheet generation', () => {
 
   it('keeps the generator path free of non-deterministic random calls and provider imports', () => {
     const folder = join(process.cwd(), 'src/features/worksheet-generator/engine');
-    const sources = ['seed.js', 'lessonKind.js', 'focus.js', 'vocabulary.js', 'recipes.js', 'content.js', 'quality.js', 'generator.js'].map((file) => readFileSync(`${folder}/${file}`, 'utf8')).join('\n');
+    const sources = ['seed.js', 'lessonKind.js', 'focus.js', 'vocabulary.js', 'difficulty.js', 'lessonDna.js', 'activityCatalog.js', 'planner.js', 'recipes.js', 'content.js', 'quality.js', 'generator.js'].map((file) => readFileSync(`${folder}/${file}`, 'utf8')).join('\n');
     expect(sources).not.toContain('Math.random');
     expect(sources).not.toMatch(/openai|anthropic|gemini|@google\/generative-ai/i);
   });

@@ -17,6 +17,46 @@ export function normalizeLevelLexicon(source = {}) {
   }).filter((item) => item.word);
 }
 
+
+export function inspectVocabularyLevel({ activeVocabulary = [], levelLexicon = [], level = '' } = {}) {
+  const base = normalizeLevel(level).base;
+  const ceiling = ORDER.indexOf(base);
+  const normalized = normalizeLevelLexicon(levelLexicon).filter((item) => item.level);
+  if (!normalized.length || ceiling < 0) return { knownCount: 0, aboveLevel: [], diagnostics: [] };
+
+  const levelsByWord = new Map();
+  normalized.forEach((item) => {
+    const key = item.word.toLocaleLowerCase('et');
+    if (!levelsByWord.has(key)) levelsByWord.set(key, new Set());
+    levelsByWord.get(key).add(item.level);
+  });
+
+  let knownCount = 0;
+  const aboveLevel = [];
+  (activeVocabulary || []).forEach((item) => {
+    const word = clean(item.word || item.lemma);
+    if (!word) return;
+    const levels = [...(levelsByWord.get(word.toLocaleLowerCase('et')) || [])];
+    if (!levels.length) return;
+    knownCount += 1;
+    const ranks = levels.map((itemLevel) => ORDER.indexOf(itemLevel)).filter((rank) => rank >= 0);
+    if (ranks.length && Math.min(...ranks) > ceiling) {
+      aboveLevel.push({ word, levels: levels.sort((a, b) => ORDER.indexOf(a) - ORDER.indexOf(b)) });
+    }
+  });
+
+  const diagnostics = aboveLevel.length
+    ? [{
+        severity: 'warning',
+        code: 'VOCAB_ABOVE_LEVEL',
+        message: `Tasemesõnastik märgib ${aboveLevel.length} tunni sihtsõna kõrgemale kui ${base}: ${aboveLevel.slice(0, 5).map((item) => item.word).join(', ')}.`,
+        words: aboveLevel,
+      }]
+    : [];
+
+  return { knownCount, aboveLevel, diagnostics };
+}
+
 export function selectVocabulary({ activeVocabulary = [], levelLexicon = [], level = '', count = 12, seed = '' } = {}) {
   const base = normalizeLevel(level).base;
   const ceiling = ORDER.indexOf(base);

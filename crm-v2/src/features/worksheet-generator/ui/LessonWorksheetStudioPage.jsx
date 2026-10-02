@@ -2,18 +2,27 @@ import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { lessonWorksheetsService, worksheetDocsService } from '../../../services/firebase/index.js';
 import WorksheetStudioPage from '../../worksheet-studio/WorksheetStudioPage.jsx';
+import { regenerateTask } from '../engine/regenerate.js';
+import { generatorProfileForLesson } from '../profiles/index.js';
 
 export default function LessonWorksheetStudioPage({ repository = lessonWorksheetsService }) {
   const { lessonId, worksheetId } = useParams();
   const adapter = useMemo(() => ({
     async load() {
       const record = await repository.load(lessonId, worksheetId);
-      return { document: record.worksheetDoc, source: 'worksheetDoc', lesson: {}, baseUpdatedAt: record.worksheetDocUpdatedAt, version: record.worksheetDocVersion, status: record.worksheetDocStatus };
+      return { document: record.worksheetDoc, source: 'worksheetDoc', lesson: {}, baseUpdatedAt: record.worksheetDocUpdatedAt, version: record.worksheetDocVersion, status: record.worksheetDocStatus, generation: record.generation || null };
     },
     async save({ document, user, baseUpdatedAt, status }) {
       const method = status === 'published' ? 'publish' : 'saveDraft';
       const record = await repository[method]({ lessonId, worksheetId, worksheetDoc: document, user, baseUpdatedAt });
       return { id: worksheetId, title: record.title, updatedAt: record.worksheetDocUpdatedAt, version: record.worksheetDocVersion, status: record.worksheetDocStatus, created: false };
+    },
+    regenerateBlock({ document, blockId, generation }) {
+      const profile = generatorProfileForLesson(lessonId);
+      const result = regenerateTask({ profile, generation, worksheetDoc: document, blockId });
+      const blocking = result.diagnostics.filter((item) => item.severity === 'error');
+      if (!result.block || blocking.length) throw new Error(blocking.map((item) => item.message).join(' ') || 'Uut ülesandevarianti ei saanud luua.');
+      return result;
     },
     listVersions: () => repository.listVersions(lessonId, worksheetId),
     uploadImage: (file) => worksheetDocsService.uploadImage(file),

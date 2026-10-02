@@ -1,10 +1,26 @@
 export const PHASES = ['discover', 'practice', 'transfer'];
 
 export const RECIPES = {
-  discover: { id: 'discover-context-v1', displayLabel: 'Avasta', types: ['match', 'truefalse', 'categorize', 'dialogue', 'selfcheck'] },
-  practice: { id: 'practice-accuracy-v1', displayLabel: 'Harjuta', types: ['gaps', 'errorfix', 'translation', 'wordorder', 'categorize'] },
-  transfer: { id: 'transfer-production-v1', displayLabel: 'Kasuta', types: ['rolecards', 'speaking', 'planning', 'writing', 'selfcheck'] },
-  full: { id: 'focus-full-v1', displayLabel: 'Täistööleht', types: ['match', 'gaps', 'errorfix', 'speaking', 'writing'] },
+  discover: {
+    id: 'discover-didactic-v2',
+    displayLabel: 'Avasta',
+    purpose: 'notice-and-understand',
+  },
+  practice: {
+    id: 'practice-didactic-v2',
+    displayLabel: 'Harjuta',
+    purpose: 'controlled-accuracy',
+  },
+  transfer: {
+    id: 'transfer-didactic-v2',
+    displayLabel: 'Kasuta',
+    purpose: 'independent-transfer',
+  },
+  full: {
+    id: 'focus-full-didactic-v2',
+    displayLabel: 'Täistööleht',
+    purpose: 'discover-practice-transfer',
+  },
 };
 
 export function recipeFor({ phase, lessonKind = 'integrated' } = {}) {

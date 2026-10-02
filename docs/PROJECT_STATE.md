@@ -1,5 +1,146 @@
 # KeeleSepp Project State
 
+## 2026-10-02 — Lesson-embedded Generator Content Pack authoring — stacked draft PR #244 (`agent/lesson-engine-profile-authoring-v1`)
+
+Stacked on #243. Generator readiness can now come from a validated `generatorProfile` stored directly on the existing
+`curriculumLessons/{lessonId}` document. Staff can open `Generaatori sisu` from the lesson worksheet page and edit
+focuses, target vocabulary, contexts, sentence templates/slots, error pairs, translations, speaking/writing prompts,
+success criteria and the advanced dialogue bank. Roadmap metadata scaffolds new drafts, but language content remains
+curated; the engine does not fabricate natural Estonian from a title.
+
+The authoring model has bounded arrays/strings, discards unknown top-level data and uses the real Activity Catalog +
+Didactic Planner for 5/5/5 readiness. Incomplete profiles can be saved as drafts. Ready embedded profiles override
+the code registry; an incomplete embedded draft leaves a verified static fallback active. Persistence is a transaction
+on the curriculum lesson with revision, updated-at/by metadata and stale-editor conflict protection. No new collection,
+Firestore rule, worksheet schema, Function or AI/provider dependency was added.
+
+Verification: final code head `61d8b52e2faca3c65912bbc5df5ce446aa87832d` passed GitHub `CRM v2` run 336
+(lint, production build, 118 Vitest files / 585 tests and security-regression Auth/Firestore/Functions emulator
+suite) and `CRM v2 CI` run 265 (118 files / 585 tests, lint and build). Vercel preview
+`dpl_4SLM4dZJH362UsXwicB8Mmzu92Eq` is READY. The only prior red check was a test assertion that expected the scaffold
+focus label to be the entire textarea value; it was corrected to assert the structured row content without changing
+product behavior. No production deployment was triggered. No authenticated visual-browser claim is made because the
+required local `agent-browser` executable is unavailable in this runtime.
+
+Exactly one next safe step: add a staff coverage dashboard over curriculumLessons so content-pack rollout across the
+roadmap can be managed by readiness status instead of opening lessons one by one.
+
+## 2026-10-02 — Shared Estonian CEFR lexicon — stacked draft PR #243 (`agent/lesson-engine-level-lexicon-v1`)
+
+Stacked on #242. CRM v2 now reuses the existing authenticated Firebase Storage object `eesti_soned.json` through a
+small adapter instead of duplicating the vocabulary dataset. The adapter validates the legacy level/type JSON shape,
+caches successful loads and retries after failures. It passes plain data into the existing pure generator; no Firebase
+or network dependency was introduced into generator engine modules.
+
+Lesson-specific active vocabulary remains the thematic source of truth. The shared lexicon is used as a level-safe
+reserve and for warning-only CEFR audit: words known only above the lesson ceiling produce `VOCAB_ABOVE_LEVEL`, while
+unknown words and temporary Storage failures do not block a complete curated profile. Generation trace stores only
+the lexicon source and word count outside `worksheetDoc`.
+
+Verification: code head `79f35f6d582001ee5057915af63915755b6df31d` passed GitHub `CRM v2` run 330
+(lint, production build, 117 Vitest files / 579 tests and security-regression Auth/Firestore/Functions emulator
+suite) and `CRM v2 CI` run 259 (117 files / 579 tests, lint and build). Vercel preview
+`dpl_Csq3k6qWWBa1QuTQnA82pCR6yvBL` is READY. No production deployment was triggered. No authenticated visual-browser
+claim is made because the required local `agent-browser` executable is unavailable in this runtime.
+
+Exactly one next safe step: move generator readiness from a code-only static registry to validated lesson-embedded
+curated content packs in `curriculumLessons`, without changing worksheet or assignment contracts.
+
+## 2026-10-02 — Standalone focus worksheet UI — stacked draft PR #242 (`agent/lesson-engine-focus-ui-v1`)
+
+Stacked on #241. This slice exposes the already-pure focus generator to teachers: select one curated lesson focus,
+select Avasta/Harjuta/Kasuta/Täistööleht and generate an independent child sheet using the current difficulty mode.
+Focus sheets use stable `focus-*` IDs and `role: focus`; they never overwrite the three core worksheet IDs and keep
+their own draft/version/publish history in the existing child-sheet transaction model.
+
+Generation of an existing focus sheet creates another deterministic variant, passes its previous activity IDs as
+planner cooldown history and persists phase/focus/context/Activity Catalog/Lesson DNA/difficulty/variant trace
+metadata outside `worksheetDoc`. Focus cards open in the same Worksheet Studio. No Firestore rule/schema, Function,
+AI/provider dependency or production write/deploy path changed.
+
+Verification: code head `0aacae4c95258c6bacecb9279d018c0dddbdffd6` passed GitHub `CRM v2` run 327
+(lint, production build, 115 Vitest files / 572 tests and security-regression emulator suite) and `CRM v2 CI` run 256
+(115 files / 572 tests, lint and build). Vercel preview `dpl_BAuoGrFn3qaGZaWgDLWhMFmhehWw` is READY. No production
+deployment was triggered. No authenticated visual-browser claim is made because the required local `agent-browser`
+executable is unavailable in this runtime.
+
+Exactly one next safe step: connect the existing signed-in Firebase Storage level lexicon `eesti_soned.json` through
+a CRM v2 adapter while keeping lesson-specific vocabulary curated and generator-core network-free.
+
+## 2026-10-02 — Per-task worksheet regeneration — stacked draft PR #241 (`agent/lesson-engine-task-regeneration-v1`)
+
+Stacked on #240. This slice adds deterministic regeneration of one selected generated task inside the existing
+Worksheet Studio. It keeps the shared worksheet renderer/editor, child-sheet persistence model and
+`keelesepp.worksheet/2` document contract unchanged. No Firestore rule, Function, production data or AI/provider
+dependency was added.
+
+The replacement planner prefers another compatible activity with the same skill while preserving required didactic
+tags, falling back to fresh content of the current activity only when necessary. Block identity and layout are
+preserved, exact duplicates and invalid scored output are rejected, and unsupported/manual blocks fail closed.
+Regeneration uses ordinary editor history, is undoable, and does not write Firestore until the teacher presses Save.
+`contextId` is now stored for new generated child sheets; old sheets derive it from their deterministic seed.
+
+Verification: final code head `433ad9a6775ddf7244a33c1652fdc8fc67742b3e` passed GitHub `CRM v2` run 324
+(lint, production build, 114 Vitest files / 568 tests and security-regression emulator suite) and separate `CRM v2 CI`
+run 253 (114 files / 568 tests, lint and build). Vercel preview deployment
+`dpl_8g2rzeJ4qMf8f18CE6E4nrAMSWxo` is READY. No production deployment was triggered. No authenticated visual-browser
+claim is made because the required local `agent-browser` executable is unavailable in this runtime.
+
+Exactly one next safe step: review #241 after #240; the teacher UI for standalone focus worksheets is kept in a
+separate stacked slice.
+
+## 2026-10-02 — Lesson DNA + difficulty engine — stacked draft PR #240 (`agent/lesson-engine-dna-difficulty-v1`)
+
+Stacked on the verified didactic-planner PR #239 and synchronized with its current head. This bounded slice adds the
+generator profile registry, canonical `keelesepp.lesson-dna/1`, deterministic Support/Core/Challenge difficulty,
+difficulty-aware materialization, teacher difficulty control and trace metadata. It does not change Firestore rules,
+Functions, the `keelesepp.worksheet/2` schema, production data or deployment targets.
+
+`Lesson DNA` records profile/lesson identity, normalized level and lesson kind, focus IDs, target/recycled vocabulary
+identity, priority skills, duration, difficulty, variant and seed. The difficulty engine changes cognitive-load
+preference and bounded scaffolding parameters (word bank, distractors/item counts, speaking duration, planning space
+and writing length) while the same five-task didactic phase requirements and quality gate remain mandatory. The
+teacher UI now resolves generator profiles through one registry and persists DNA/difficulty next to the child sheet,
+not inside its worksheet document.
+
+Verification: GitHub `CRM v2` run 318 passed lint, production build and the full CRM Vitest suite (112 files / 563
+tests); its security-regression Auth/Firestore/Functions emulator job passed. Separate `CRM v2 CI` run 247 also passed
+the same 112 files / 563 tests, lint and production build. Vercel deployment
+`dpl_Gz5LRpxMXS9M7r6wkXDAjtAewbGw` for commit `cab1f99a2aa7a996570d85bf30002cd62e7f9589` is READY. No production
+deployment was triggered. No authenticated visual-browser claim is made because the required local `agent-browser`
+executable is unavailable in this runtime.
+
+Exactly one next safe step: review stacked PR #240 after #239; per-task regeneration remains a separate later slice.
+
+## 2026-10-02 — Didactic Lesson Planner v1 — draft PR #239 (`agent/lesson-engine-didactic-planner-v1`)
+
+Checked fresh `main` `53bf62c0447dfdbd916be83ac05cf031f74449d8` and open PRs #230, #233, #234 and
+#235 before starting. This bounded slice changes only the deterministic worksheet generator, its teacher generation
+metadata/UI wiring, tests and generator/architecture documentation. It does not change Firestore rules, Functions,
+production data, assignment schema or the shared `keelesepp.worksheet/2` document contract.
+
+Added a versioned Activity Catalog and seeded Didactic Planner. Activities now declare phase, Worksheet Studio block
+type, family, CEFR range, compatible lesson kinds, skills, production mode, cognitive load, didactic tags and curated
+source requirements. The planner builds five-task Avasta / Harjuta / Kasuta plans, enforces phase requirements,
+prefers family diversity and uses previous activity IDs as a cooldown history. `content.js` materializes those planned
+activities through the existing Worksheet Studio registry; `quality.js` verifies plan-to-block consistency and
+discover → practice → transfer progression. Cross-bank sentence reuse is blocked, including answers from `errorPairs`.
+
+Teacher regeneration is now a real deterministic variant: it increments the variant seed instead of always using
+`...:0`, feeds prior activity IDs back as cooldown history, and persists `activityIds`, Activity Catalog version,
+didactic-plan version and variant outside `worksheetDoc`. Unsupported source banks still fail closed; there is no AI
+or external content-generation dependency.
+
+Verification: GitHub `CRM v2` run 315 passed lint, production build and the complete CRM Vitest suite (111 files /
+560 tests). Its `security-regression` job also passed the existing Auth/Firestore/Functions emulator suite. The
+separate `CRM v2 CI` run 244 passed. Vercel created a READY preview for commit
+`d4c446b81cdff1c7a9befb9590301ea1b3986c79`; no production deployment was triggered. A local visual browser claim is
+not made because the required `agent-browser` executable is unavailable in this runtime; the Vercel/GitHub preview
+status was verified only.
+
+Exactly one next safe step: review PR #239 and its preview before merge; subsequent Lesson DNA/difficulty work stays
+in a separate stacked branch/PR.
+
 ## 2026-10-02 — Generator teacher UI — draft PR #238 (`codex/worksheet-generator-ui`)
 
 Checked fresh `origin/main` `a5a11f4aa320337aebc3a80a183c8ef050bf46a5` after PR #237 was merged and its
