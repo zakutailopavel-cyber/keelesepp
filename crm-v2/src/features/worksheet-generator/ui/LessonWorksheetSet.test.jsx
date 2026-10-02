@@ -6,12 +6,20 @@ import LessonWorksheetSet from './LessonWorksheetSet.jsx';
 
 const lesson = { id: 'a2b1-016', title: 'Ajamäärused ja päevaplaan', goal: 'Kirjeldan oma päevaplaani.', levelStage: 'A2' };
 const user = { uid: 'teacher-1', displayName: 'Õpetaja', roles: ['teacher'] };
+const vocabularyRepository = {
+  load: vi.fn().mockResolvedValue({
+    lexicon: { A2: { noun: ['kodu'], adverb: ['hommikul', 'õhtul'] } },
+    source: 'firebase-storage:eesti_soned.json',
+    storagePath: 'eesti_soned.json',
+    wordCount: 3,
+  }),
+};
 
-function renderPage(repository) {
+function renderPage(repository, vocabRepository = vocabularyRepository) {
   return render(
     <MemoryRouter initialEntries={['/library/lessons/a2b1-016/worksheets']}>
       <AuthContext.Provider value={{ user }}>
-        <Routes><Route path="/library/lessons/:lessonId/worksheets" element={<LessonWorksheetSet repository={repository} />} /></Routes>
+        <Routes><Route path="/library/lessons/:lessonId/worksheets" element={<LessonWorksheetSet repository={repository} vocabularyRepository={vocabRepository} />} /></Routes>
       </AuthContext.Provider>
     </MemoryRouter>,
   );
@@ -43,6 +51,7 @@ describe('LessonWorksheetSet', () => {
       expect(input.generation.contextId).toBeTruthy();
       expect(input.generation.difficulty).toBe('challenge');
       expect(input.generation.lessonDna).toMatchObject({ lessonId: 'a2b1-016', difficulty: 'challenge', variant: 1 });
+      expect(input.generation.levelVocabulary).toEqual({ source: 'firebase-storage:eesti_soned.json', wordCount: 3 });
     });
     expect(await screen.findByRole('status')).toHaveTextContent('Kolm erinevat töölehte');
     expect(await screen.findAllByRole('link', { name: /Ava konstruktoris/ })).toHaveLength(3);
@@ -81,16 +90,30 @@ describe('LessonWorksheetSet', () => {
     });
     expect(saved.generation.contextId).toBeTruthy();
     expect(saved.generation.activityIds).toHaveLength(5);
+    expect(saved.generation.levelVocabulary).toEqual({ source: 'firebase-storage:eesti_soned.json', wordCount: 3 });
     expect(await screen.findByRole('status')).toHaveTextContent('Fookuse tööleht');
     expect(await screen.findByRole('heading', { name: 'Enne ja pärast · Täistööleht' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Genereeri 3 töölehte/ })).toBeInTheDocument();
+  });
+
+
+  it('keeps lesson generation available when the shared level lexicon cannot be loaded', async () => {
+    const repository = {
+      loadLesson: vi.fn().mockResolvedValue(lesson),
+      list: vi.fn().mockResolvedValue([]),
+      saveDraft: vi.fn(),
+    };
+    const failingVocabulary = { load: vi.fn().mockRejectedValue(new Error('Storage offline')) };
+    renderPage(repository, failingVocabulary);
+    expect(await screen.findByText(/Tasemesõnastik: Storage offline/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Genereeri 3 töölehte/ })).toBeEnabled();
   });
 
   it('does not offer generation for a lesson without a curated profile', async () => {
     const repository = { loadLesson: vi.fn().mockResolvedValue({ id: 'other', title: 'Muu tund' }), list: vi.fn().mockResolvedValue([]), saveDraft: vi.fn() };
     render(
       <MemoryRouter initialEntries={['/library/lessons/other/worksheets']}>
-        <AuthContext.Provider value={{ user }}><Routes><Route path="/library/lessons/:lessonId/worksheets" element={<LessonWorksheetSet repository={repository} />} /></Routes></AuthContext.Provider>
+        <AuthContext.Provider value={{ user }}><Routes><Route path="/library/lessons/:lessonId/worksheets" element={<LessonWorksheetSet repository={repository} vocabularyRepository={vocabularyRepository} />} /></Routes></AuthContext.Provider>
       </MemoryRouter>,
     );
     expect(await screen.findByText(/Generaator pole selle tunni jaoks veel valmis/)).toBeInTheDocument();
