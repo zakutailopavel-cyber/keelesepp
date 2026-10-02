@@ -1,6 +1,6 @@
 # KeeleSepp Project State
 
-## 2026-10-02 — Generator child-sheet persistence — draft (`codex/worksheet-generator-persistence`)
+## 2026-10-02 — Generator child-sheet persistence — draft PR #237 (`codex/worksheet-generator-persistence`)
 
 Checked fresh `origin/main` `4be6e0fd76b11cc128c344489ba1734a2348fba6` after PR #236 was merged and
 released to Vercel production. Open PRs #230, #233, #234 and #235 remain separate. This slice implements only the
