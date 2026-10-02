@@ -1,5 +1,34 @@
 # KeeleSepp Project State
 
+## 2026-10-02 — Didactic Lesson Planner v1 — draft PR #239 (`agent/lesson-engine-didactic-planner-v1`)
+
+Checked fresh `main` `53bf62c0447dfdbd916be83ac05cf031f74449d8` and open PRs #230, #233, #234 and
+#235 before starting. This bounded slice changes only the deterministic worksheet generator, its teacher generation
+metadata/UI wiring, tests and generator/architecture documentation. It does not change Firestore rules, Functions,
+production data, assignment schema or the shared `keelesepp.worksheet/2` document contract.
+
+Added a versioned Activity Catalog and seeded Didactic Planner. Activities now declare phase, Worksheet Studio block
+type, family, CEFR range, compatible lesson kinds, skills, production mode, cognitive load, didactic tags and curated
+source requirements. The planner builds five-task Avasta / Harjuta / Kasuta plans, enforces phase requirements,
+prefers family diversity and uses previous activity IDs as a cooldown history. `content.js` materializes those planned
+activities through the existing Worksheet Studio registry; `quality.js` verifies plan-to-block consistency and
+discover → practice → transfer progression. Cross-bank sentence reuse is blocked, including answers from `errorPairs`.
+
+Teacher regeneration is now a real deterministic variant: it increments the variant seed instead of always using
+`...:0`, feeds prior activity IDs back as cooldown history, and persists `activityIds`, Activity Catalog version,
+didactic-plan version and variant outside `worksheetDoc`. Unsupported source banks still fail closed; there is no AI
+or external content-generation dependency.
+
+Verification: GitHub `CRM v2` run 315 passed lint, production build and the complete CRM Vitest suite (111 files /
+560 tests). Its `security-regression` job also passed the existing Auth/Firestore/Functions emulator suite. The
+separate `CRM v2 CI` run 244 passed. Vercel created a READY preview for commit
+`d4c446b81cdff1c7a9befb9590301ea1b3986c79`; no production deployment was triggered. A local visual browser claim is
+not made because the required `agent-browser` executable is unavailable in this runtime; the Vercel/GitHub preview
+status was verified only.
+
+Exactly one next safe step: review PR #239 and its preview before merge; subsequent Lesson DNA/difficulty work stays
+in a separate stacked branch/PR.
+
 ## 2026-10-02 — Generator teacher UI — draft PR #238 (`codex/worksheet-generator-ui`)
 
 Checked fresh `origin/main` `a5a11f4aa320337aebc3a80a183c8ef050bf46a5` after PR #237 was merged and its
