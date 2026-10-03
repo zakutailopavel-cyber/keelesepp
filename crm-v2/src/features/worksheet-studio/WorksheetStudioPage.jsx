@@ -85,6 +85,10 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     repository.load(lessonId)
       .then((res) => {
         if (!alive) return;
+        if (res.source === 'new' && res.lesson?.roadmapManaged === true) {
+          navigate(`/library/lessons/${encodeURIComponent(lessonId)}/worksheets`, { replace: true });
+          return;
+        }
         const files = originalFiles(res.lesson);
         const local = readDraft(draftKey(lessonId));
         const restored = local?.document?.schema === res.document.schema && Number(local.savedAt || 0) > (Date.parse(res.baseUpdatedAt || 0) || 0);
@@ -101,7 +105,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
       })
       .catch((error) => { if (alive) setLoadError(error.message || 'Töölehte ei saanud avada.'); });
     return () => { alive = false; };
-  }, [isNew, lessonId, repository]);
+  }, [isNew, lessonId, navigate, repository]);
 
   useEffect(() => {
     if (!doc || !dirty) return undefined;
