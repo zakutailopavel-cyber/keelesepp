@@ -19,7 +19,7 @@ export const wordforms = {
 export const errorfix = {
   type: 'errorfix', label: 'Leia ja paranda viga', group: 'Grammatika ja sõnavara', icon: 'ScanSearch', task: true, width: 'half', tone: 'peach',
   create: () => ({ title: 'Leia ja paranda viga.', instruction: 'Kirjuta lause õigesti.', rows: [{ wrong: 'Ma lähen koolis.', answer: 'Ma lähen kooli.' }, { wrong: 'Ta õppib eesti keel.', answer: 'Ta õpib eesti keelt.' }] }),
-  View: ({ data, ctx }) => <ol className="ws-fix">{(data.rows || []).map((row, i) => <li key={i}><s>{row.wrong}</s><Line interactive={ctx.interactive} value={ctx.get(String(i))} onChange={(v) => ctx.set(String(i), v)} state={ctx.state(String(i))} width="100%" label={`Parandus ${i + 1}`} /></li>)}</ol>,
+  View: ({ data, ctx }) => <ol className="ws-fix">{(data.rows || []).map((row, i) => <li key={i}><span className="ws-fix__prompt">{row.wrong}</span><Line interactive={ctx.interactive} value={ctx.get(String(i))} onChange={(v) => ctx.set(String(i), v)} state={ctx.state(String(i))} width="100%" label={`Parandus ${i + 1}`} /></li>)}</ol>,
   score: (data, get) => scoreRows(data.rows, get),
   example: (data) => data.rows?.[0] ? { 0: data.rows[0].answer } : {},
   Editor: ({ data, set }) => <Rows label="Laused" rows={data.rows || []} onChange={(rows) => set({ rows })} make={() => ({ wrong: '', answer: '' })} addLabel="Lisa lause" render={(row, patch) => <><Text label="Vigane lause" value={row.wrong} onChange={(wrong) => patch({ wrong })} /><Text label="Õige lause" value={row.answer} onChange={(answer) => patch({ answer })} /></>} />,
