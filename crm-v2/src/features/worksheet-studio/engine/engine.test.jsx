@@ -24,6 +24,13 @@ describe('block registry', () => {
     }
   });
 
+  it('renders error-correction prompts as readable text, not struck-through answers', () => {
+    const block = createBlock('errorfix');
+    const { container } = render(<Sheet doc={doc([block])} mode="print" />);
+    expect(container.querySelector('.ws-fix__prompt')).toHaveTextContent('Ma lähen koolis.');
+    expect(container.querySelector('.ws-fix s')).toBeNull();
+  });
+
   it('scores the new automatically checked language tasks', () => {
     for (const type of ['wordforms', 'errorfix', 'dictation', 'crossword']) {
       const block = createBlock(type);
