@@ -1,5 +1,29 @@
 # KeeleSepp Project State
 
+## 2026-10-03 — A2-006 family Content Pack — `codex/a2-006-content-pack`
+
+Checked fresh `origin/main` `c55390c5b6587fc1db0dc3ff70c21869ea9078c6`; open PRs #230, #233, #234 and
+#235 do not own A2-006 or Content Library sources. This bounded slice adds Content Library v2 pack
+`family-relations` and the explicit A2-006 blueprint for `Pere ja lähedased`. The curated source contains one checked
+focus, 12 family words, three independent contexts (family tree, photo and visit), ten controlled sentences, a
+dialogue, two error pairs, two translations, two speaking prompts, one writing prompt and an Estonian success
+criterion. `kelle?`, possessive forms and the learner outcome of describing at least four people are covered directly.
+
+A2-006 is registered as a static ready fallback through the existing Factory/profile registry. It generates the same
+three five-task Avasta/Harjuta/Kasuta drafts as other supported lessons and remains only an unsaved preview until the
+teacher explicitly saves. No worksheet, assignment, Firestore, rule, Function, finance, calendar or student-profile
+contract changed; no production data write or automatic worksheet/profile publication is introduced.
+
+Changed product files: `factory/contentLibrary.js`, `factory/factory.js`, `factory/factory.test.js`,
+`profiles/index.js` and `profiles/authoring.test.js`. Architecture, generator and A2 curriculum documentation now
+record Content Library v2 and A2-001…A2-006 coverage. Local verification passed: focused Factory/profile Vitest 2
+files / 19 tests; full CRM Vitest 123 files / 616 tests; ESLint; production build; the existing large-chunk warning
+remains. GitHub main workflows, matching Vercel production READY state and authenticated browser smoke check remain
+release gates.
+
+Exactly one next safe step: deliver the verified A2-006 slice to the authorized `main`, wait for all main checks and
+the matching Vercel production deployment, then verify the A2-006 Factory preview without saving it.
+
 ## 2026-10-03 — A2 module 1 gold standard + Content Pack Factory v1 — shipped to `main` (#245)
 
 Checked fresh `origin/main` `2bf73086d504bcd8047d504ab53a3a504e27f441`; open PRs #230, #233, #234 and

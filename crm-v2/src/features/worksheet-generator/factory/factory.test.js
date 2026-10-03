@@ -6,7 +6,7 @@ import { createContentPackDraft, suggestReusablePackIds } from './factory.js';
 const lessons = roadmap.modules.flatMap((module) => module.lessons);
 
 describe('Content Pack Factory v1', () => {
-  it.each(['a2-002', 'a2-003', 'a2-004', 'a2-005'])('builds a ready, deterministic five-task bundle for %s', (lessonId) => {
+  it.each(['a2-002', 'a2-003', 'a2-004', 'a2-005', 'a2-006'])('builds a ready, deterministic five-task bundle for %s', (lessonId) => {
     const lesson = lessons.find((item) => item.id === lessonId);
     const first = createContentPackDraft(lesson);
     const second = createContentPackDraft(lesson);
@@ -42,8 +42,8 @@ describe('Content Pack Factory v1', () => {
     });
   });
 
-  it('uses different curated sources for the four lessons', () => {
-    const selections = ['a2-002', 'a2-003', 'a2-004', 'a2-005'].map((lessonId) => {
+  it('uses the intended curated sources for each supported lesson', () => {
+    const selections = ['a2-002', 'a2-003', 'a2-004', 'a2-005', 'a2-006'].map((lessonId) => {
       const lesson = lessons.find((item) => item.id === lessonId);
       return suggestReusablePackIds(lesson);
     });
@@ -51,7 +51,26 @@ describe('Content Pack Factory v1', () => {
     expect(selections[1]).toEqual(['olema-present', 'present-common-verbs']);
     expect(selections[2]).toEqual(['personal-info', 'numbers-dates']);
     expect(selections[3]).toHaveLength(6);
-    expect(new Set(selections.map((item) => item.join('|'))).size).toBe(4);
+    expect(selections[4]).toEqual(['family-relations']);
+    expect(new Set(selections.map((item) => item.join('|'))).size).toBe(5);
+  });
+
+  it('keeps A2-006 grounded in family relations and the kelle-pattern', () => {
+    const lesson = lessons.find((item) => item.id === 'a2-006');
+    const result = createContentPackDraft(lesson);
+
+    expect(result.status).toBe('ready');
+    expect(result.selectedPackIds).toEqual(['family-relations']);
+    expect(result.profile.focuses).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'family-relations', patterns: expect.arrayContaining(['Kelle …?']) }),
+    ]));
+    expect(result.profile.activeVocabulary.map((item) => item.word)).toEqual(expect.arrayContaining([
+      'ema', 'isa', 'õde', 'vend', 'abikaasa', 'vanemad', 'lapsed',
+    ]));
+    expect(result.profile.contexts.map((item) => item.id)).toEqual(['family-tree', 'family-photo', 'family-visit']);
+    expect(result.profile.banks.sentences.some((item) => item.text.includes('Kelle tütar'))).toBe(true);
+    expect(result.profile.banks.speakingPrompts).toHaveLength(2);
+    expect(result.profile.banks.writingPrompts).toHaveLength(1);
   });
 
   it('reports missing sources and never invents or activates an unsupported profile', () => {

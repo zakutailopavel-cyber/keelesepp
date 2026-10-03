@@ -79,7 +79,7 @@ describe('generator profile authoring', () => {
     expect(result.catalog.transfer.available).toBeGreaterThanOrEqual(5);
   });
 
-  it.each(['a2-002', 'a2-003', 'a2-004', 'a2-005'])('registers %s as a ready curated first-module fallback', (lessonId) => {
+  it.each(['a2-002', 'a2-003', 'a2-004', 'a2-005', 'a2-006'])('registers %s as a ready curated Factory fallback', (lessonId) => {
     const lesson = roadmap.modules.flatMap((module) => module.lessons).find((item) => item.id === lessonId);
     const resolved = resolveGeneratorProfile(lessonId, lesson);
     expect(resolved.source).toBe('static');

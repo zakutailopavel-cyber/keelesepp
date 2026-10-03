@@ -487,5 +487,7 @@ Content Pack Factory is a pure authoring layer above the generator profile sanit
 Content Library stores curated reusable communicative frames and lesson-specific sources; the Factory merges stable
 IDs deterministically, rejects missing sources and returns an unsaved draft. Firebase remains an adapter used only
 after an explicit teacher save. Generated learner metadata never falls back to Russian roadmap goal/success fields.
+Content Library v2 extends the same contract with the `family-relations` source and an explicit A2-006 blueprint;
+it does not add storage collections, new persistence fields or automatic profile writes.
 The CEFR reserve is loaded separately with authenticated Firebase Storage `getBytes()` and is passed as plain data to
 the network-free generator core.

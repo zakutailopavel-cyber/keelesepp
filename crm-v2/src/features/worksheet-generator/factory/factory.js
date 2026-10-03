@@ -16,6 +16,7 @@ const PACK_KEYWORDS = Object.freeze({
   'present-common-verbs': ['olevik', 'elan', 'räägin', 'настоящ'],
   'personal-info': ['isikuand', 'ankeet', 'личн', 'анкет'],
   'numbers-dates': ['arvud', 'kuupäev', 'kontakt', 'числ', 'дат'],
+  'family-relations': ['pere', 'lähed', 'sugulas', 'семь', 'близк'],
 });
 
 const arrays = (packs, key) => packs.flatMap((pack) => pack[key] || []);

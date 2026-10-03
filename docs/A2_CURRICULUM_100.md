@@ -132,11 +132,12 @@ paigaldusvoog on Õppevara nupp. Paigaldus on teadlik staff-toiming; pelk code d
 Lesson Engine Content Pack ei kuulu roadmap-andmefaili. Coverage Dashboard näitab uued tunnid alguses sisupaketi
 poolest puuduva või mustandina ning Content Packid lisatakse eraldi kontrollitud sisutööna.
 
-Esimese mooduli kontrollitud staatilised Content Packid katavad `a2-001`…`a2-005`. A2-002…A2-005 koostatakse
+Kontrollitud staatilised Content Packid katavad `a2-001`…`a2-006`. A2-002…A2-005 koostatakse
 versioneeritud Content Library põhjal, kuid iga tund kasutab oma didaktilist allikakombinatsiooni: tutvumine ja
 küsimused; olema ja sagedased olevikuverbid; isikuandmed ja arvud/kuupäevad; mooduli integreeritud kontroll. Kõik
-viis läbivad sama readiness-plaanija ning annavad Avasta/Harjuta/Kasuta jaoks viis ülesannet. Factory ei lisa ega
-salvesta ülejäänud 95 tunni profiile automaatselt: õpetaja loob ühe valitud tunni mustandi, kontrollib seda ja
+viis läbivad sama readiness-plaanija ning annavad Avasta/Harjuta/Kasuta jaoks viis ülesannet. A2-006 alustab teist
+moodulit eraldi `family-relations` paketiga: peresuhted, kelle-vorm, sugupuu, perefoto ja külaskäik. Factory ei lisa ega
+salvesta ülejäänud 94 tunni profiile automaatselt: õpetaja loob ühe valitud tunni mustandi, kontrollib seda ja
 salvestab ainult selge toiminguga.
 
 ## Allikad

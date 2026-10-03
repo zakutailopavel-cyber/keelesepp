@@ -1,5 +1,5 @@
 export const CONTENT_LIBRARY_SCHEMA = 'keelesepp.generator-content-library/1';
-export const CONTENT_LIBRARY_VERSION = 1;
+export const CONTENT_LIBRARY_VERSION = 2;
 
 const vocabulary = (id, rows) => rows.map(([key, word, translation, lexicalType, focusId]) => ({
   id: `${id}-v-${key}`, word, translation, lexicalType, focusIds: [focusId],
@@ -161,6 +161,63 @@ export const REUSABLE_CONTENT_LIBRARY = Object.freeze({
     translations: [{ id: 'numbers-dates-t-1', focusIds: ['numbers-dates'], sourceLang: 'ru', source: 'Моя дата рождения — 5 июля 1988 года.', target: 'Minu sünniaeg on 5. juuli 1988.', alternatives: [] }, { id: 'numbers-dates-t-2', focusIds: ['numbers-dates'], sourceLang: 'ru', source: 'Урок начинается 12 октября в 18 часов.', target: 'Tund algab 12. oktoobril kell 18.', alternatives: [] }],
     speakingPrompts: [], writingPrompts: [], successCriteria: [],
   },
+  'family-relations': {
+    id: 'family-relations',
+    focus: { id: 'family-relations', type: 'communication', label: 'Pere ja lähedased', patterns: ['See on minu …', 'Kelle …?', 'Tal on …'], aliases: ['pere', 'lähedased', 'sugulased', 'kelle'] },
+    vocabulary: vocabulary('family-relations', [
+      ['ema', 'ema', 'мама', 'noun', 'family-relations'],
+      ['isa', 'isa', 'папа', 'noun', 'family-relations'],
+      ['ode', 'õde', 'сестра', 'noun', 'family-relations'],
+      ['vend', 'vend', 'брат', 'noun', 'family-relations'],
+      ['abikaasa', 'abikaasa', 'супруг / супруга', 'noun', 'family-relations'],
+      ['tutar', 'tütar', 'дочь', 'noun', 'family-relations'],
+      ['poeg', 'poeg', 'сын', 'noun', 'family-relations'],
+      ['vanemad', 'vanemad', 'родители', 'noun', 'family-relations'],
+      ['lapsed', 'lapsed', 'дети', 'noun', 'family-relations'],
+      ['vanaema', 'vanaema', 'бабушка', 'noun', 'family-relations'],
+      ['vanaisa', 'vanaisa', 'дедушка', 'noun', 'family-relations'],
+      ['sugulane', 'sugulane', 'родственник', 'noun', 'family-relations'],
+    ]),
+    contexts: [
+      { id: 'family-tree', label: 'Perekonna sugupuu', tags: ['family', 'relations'], names: ['Mari', 'Jüri', 'Katrin', 'Martin'], times: ['10:00', '14:00', '18:00'] },
+      { id: 'family-photo', label: 'Perefoto kirjeldamine', tags: ['family', 'description'], names: ['Anna', 'Maksim', 'Sofia', 'Aleksandr'], times: ['09:30', '15:15', '19:00'] },
+      { id: 'family-visit', label: 'Külaskäik lähedaste juurde', tags: ['family', 'visit'], names: ['Olga', 'Viktor', 'Daria', 'Nikita'], times: ['11:00', '16:30', '20:00'] },
+    ],
+    sentences: sentences('family-relations', [
+      ['1', 'family-relations', 'family-tree', 'See on minu ema Mari ja see on minu isa Jüri.'],
+      ['2', 'family-relations', 'family-tree', 'Minu õe nimi on Katrin ja minu venna nimi on Martin.'],
+      ['3', 'family-relations', 'family-tree', 'Kelle tütar on Sofia? Sofia on Anna tütar.'],
+      ['4', 'family-relations', 'family-tree', 'Minu vanematel on kolm last.'],
+      ['5', 'family-relations', 'family-photo', 'Fotol on minu abikaasa ja meie kaks last.'],
+      ['6', 'family-relations', 'family-photo', 'Minu vanaema istub vasakul ja vanaisa seisab tema kõrval.'],
+      ['7', 'family-relations', 'family-photo', 'Minu vend on kolmkümmend aastat vana ja töötab õpetajana.'],
+      ['8', 'family-relations', 'family-visit', 'Laupäeval läheme lastega vanaema juurde.'],
+      ['9', 'family-relations', 'family-visit', 'Minu sugulased elavad Tartus.'],
+      ['10', 'family-relations', 'family-visit', 'Kas sinu õde tuleb ka külla?'],
+    ]),
+    dialogues: [{ id: 'family-relations-d-1', focusIds: ['family-relations'], contextIds: ['family-photo'], speakers: ['A', 'B'], lines: [
+      { who: 'A', text: 'Kes on sellel fotol?' },
+      { who: 'B', text: 'See on minu [õde] Sofia ja tema kõrval on meie vend Maksim.' },
+      { who: 'A', text: 'Kas neil on lapsi?' },
+      { who: 'B', text: 'Sofial on üks [tütar], aga Maksimil lapsi ei ole.' },
+    ] }],
+    errorPairs: [
+      { id: 'family-relations-e-1', focusIds: ['family-relations'], wrong: 'Minu õde nimi on Sofia.', correct: 'Minu õe nimi on Sofia.' },
+      { id: 'family-relations-e-2', focusIds: ['family-relations'], wrong: 'Tal on kaks laps.', correct: 'Tal on kaks last.' },
+    ],
+    translations: [
+      { id: 'family-relations-t-1', focusIds: ['family-relations'], sourceLang: 'ru', source: 'Это моя сестра, а рядом с ней — её муж.', target: 'See on minu õde ja tema kõrval on tema abikaasa.', alternatives: [] },
+      { id: 'family-relations-t-2', focusIds: ['family-relations'], sourceLang: 'ru', source: 'У моих родителей трое детей.', target: 'Minu vanematel on kolm last.', alternatives: [] },
+    ],
+    speakingPrompts: prompts('family-relations', 'sp', [
+      ['1', 'family-relations', 'family-tree', 'Tutvusta oma peret või väljamõeldud perekonda. Nimeta vähemalt neli inimest ja lisa igaühe kohta üks detail.'],
+      ['2', 'family-relations', 'family-photo', 'Kirjelda perefotot: kes on pildil, kuidas nad on omavahel seotud ja mida nad teevad.'],
+    ]),
+    writingPrompts: prompts('family-relations', 'wp', [
+      ['1', 'family-relations', 'family-visit', 'Kirjuta 6–8 lauset oma perest või lähedastest. Kasuta vähemalt kuut peresõna ja kahte kelle-vormi.'],
+    ]),
+    successCriteria: ['Ma nimetan peresuhteid ja lisan vähemalt nelja inimese kohta ühe arusaadava detaili.'],
+  },
 });
 
 export const LESSON_CONTENT_BLUEPRINTS = Object.freeze({
@@ -168,4 +225,5 @@ export const LESSON_CONTENT_BLUEPRINTS = Object.freeze({
   'a2-003': { packIds: ['olema-present', 'present-common-verbs'], title: 'Olen, elan, räägin', lessonKind: 'grammar' },
   'a2-004': { packIds: ['personal-info', 'numbers-dates'], title: 'Isikuandmed ja lihtne ankeet', lessonKind: 'writing' },
   'a2-005': { packIds: ['introduction', 'basic-questions', 'olema-present', 'present-common-verbs', 'personal-info', 'numbers-dates'], title: 'Kontroll 1 — eneseinfo', lessonKind: 'assessment' },
+  'a2-006': { packIds: ['family-relations'], title: 'Pere ja lähedased', lessonKind: 'vocabulary' },
 });
