@@ -132,6 +132,13 @@ paigaldusvoog on Õppevara nupp. Paigaldus on teadlik staff-toiming; pelk code d
 Lesson Engine Content Pack ei kuulu roadmap-andmefaili. Coverage Dashboard näitab uued tunnid alguses sisupaketi
 poolest puuduva või mustandina ning Content Packid lisatakse eraldi kontrollitud sisutööna.
 
+Esimese mooduli kontrollitud staatilised Content Packid katavad `a2-001`…`a2-005`. A2-002…A2-005 koostatakse
+versioneeritud Content Library põhjal, kuid iga tund kasutab oma didaktilist allikakombinatsiooni: tutvumine ja
+küsimused; olema ja sagedased olevikuverbid; isikuandmed ja arvud/kuupäevad; mooduli integreeritud kontroll. Kõik
+viis läbivad sama readiness-plaanija ning annavad Avasta/Harjuta/Kasuta jaoks viis ülesannet. Factory ei lisa ega
+salvesta ülejäänud 95 tunni profiile automaatselt: õpetaja loob ühe valitud tunni mustandi, kontrollib seda ja
+salvestab ainult selge toiminguga.
+
 ## Allikad
 
 - Haridus- ja Noorteamet: Eesti keele A2-taseme eksami kirjeldus, osaoskused ja teemaringid.

@@ -122,7 +122,7 @@ export default function GeneratorCoveragePage({ repository = lessonWorksheetsSer
                           <div className="generator-coverage-diagnostic"><span>{firstDiagnostic?.message || 'Generaatori sisupakett puudub.'}</span>{row.errorCount > 1 ? <small>+{row.errorCount - 1} probleemi</small> : null}</div>
                         )}
                       </td>
-                      <td><Link className="button button--secondary" to={`/library/lessons/${encodeURIComponent(row.lessonId)}/worksheets`}>Ava sisupakett</Link></td>
+                      <td><Link className="button button--secondary" to={`/library/lessons/${encodeURIComponent(row.lessonId)}/worksheets${row.status === GENERATOR_COVERAGE_STATUSES.MISSING ? '?factory=1' : ''}`}>{row.status === GENERATOR_COVERAGE_STATUSES.MISSING ? 'Loo mustand' : 'Ava sisupakett'}</Link></td>
                     </tr>
                   );
                 })}

@@ -482,3 +482,10 @@ generate the three stable core drafts in parallel. Child routes adapt the same `
 `lessonWorksheetsService`, so editing, quality validation, publishing and history do not fork the worksheet engine.
 Student-profile work history must query those assignments rather
 than copying answers or results into `students`. See `docs/WORKSHEET_GENERATOR_V1.md`.
+
+Content Pack Factory is a pure authoring layer above the generator profile sanitizer and planner. Its versioned
+Content Library stores curated reusable communicative frames and lesson-specific sources; the Factory merges stable
+IDs deterministically, rejects missing sources and returns an unsaved draft. Firebase remains an adapter used only
+after an explicit teacher save. Generated learner metadata never falls back to Russian roadmap goal/success fields.
+The CEFR reserve is loaded separately with authenticated Firebase Storage `getBytes()` and is passed as plain data to
+the network-free generator core.

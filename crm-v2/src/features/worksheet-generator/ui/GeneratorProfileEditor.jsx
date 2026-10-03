@@ -65,7 +65,7 @@ export default function GeneratorProfileEditor({
           </p>
         </div>
         <div className="generator-profile-editor__source">
-          <span>Allikas: {source === 'embedded' ? 'õppetund' : source === 'static' ? 'Git fallback' : 'uus'}</span>
+          <span>Allikas: {source === 'embedded' ? 'õppetund' : source === 'static' ? 'Git fallback' : source === 'factory' ? 'Factory mustand' : 'uus'}</span>
           {updatedAt ? <span>Muudetud {new Intl.DateTimeFormat('et-EE', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(updatedAt))}</span> : null}
         </div>
       </div>

@@ -171,4 +171,35 @@ describe('LessonWorksheetSet', () => {
     expect(await screen.findByText(/Generaator pole selle tunni jaoks veel valmis/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Genereeri 3 töölehte/ })).toBeDisabled();
   });
+
+  it('previews a Factory draft without saving and persists it only after explicit Save', async () => {
+    const factoryLesson = {
+      id: 'a2-002', title: 'Tutvumine ja viisakus', levelStage: 'A2', roadmapKind: 'communication',
+      goal: 'Уверенно знакомиться.', focus: 'Tere! Mina olen…; Mis su nimi on?',
+    };
+    const repository = {
+      loadLesson: vi.fn().mockResolvedValue(factoryLesson),
+      list: vi.fn().mockResolvedValue([]),
+      saveDraft: vi.fn(),
+      saveGeneratorProfile: vi.fn().mockResolvedValue({ revision: 1 }),
+    };
+    render(
+      <MemoryRouter initialEntries={['/library/lessons/a2-002/worksheets']}>
+        <AuthContext.Provider value={{ user }}><Routes><Route path="/library/lessons/:lessonId/worksheets" element={<LessonWorksheetSet repository={repository} vocabularyRepository={vocabularyRepository} />} /></Routes></AuthContext.Provider>
+      </MemoryRouter>,
+    );
+
+    await screen.findByRole('heading', { name: 'Tutvumine ja viisakus' });
+    fireEvent.click(screen.getByRole('button', { name: 'Loo sisupaketi mustand' }));
+    expect(await screen.findByRole('heading', { name: 'Sisupaketi mustand' })).toBeInTheDocument();
+    expect(screen.getByText('Ready')).toBeInTheDocument();
+    expect(screen.getByText(/introduction · basic-questions/)).toBeInTheDocument();
+    expect(repository.saveGeneratorProfile).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Muuda ja salvesta' }));
+    expect(await screen.findByText('Allikas: Factory mustand')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Salvesta sisupakett' }));
+    await waitFor(() => expect(repository.saveGeneratorProfile).toHaveBeenCalledTimes(1));
+    expect(repository.saveGeneratorProfile.mock.calls[0][0].profile.lessonId).toBe('a2-002');
+  });
 });

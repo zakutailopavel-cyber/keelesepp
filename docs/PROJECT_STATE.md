@@ -1,5 +1,35 @@
 # KeeleSepp Project State
 
+## 2026-10-03 — A2 module 1 gold standard + Content Pack Factory v1 (`codex/a2-content-pack-factory-v1`)
+
+Checked fresh `origin/main` `2bf73086d504bcd8047d504ab53a3a504e27f441`; open PRs #230, #233, #234 and
+#235 do not own the generator Factory or first-module content packs. This slice validates A2-001 as the gold-standard
+diagnostic pack, adds independent ready curated profiles for A2-002…A2-005 and introduces a single-lesson Content
+Pack Factory preview/edit/save workflow. The versioned Content Library contains six reusable curated packs; it never
+constructs natural Estonian by random word mixing. Unsupported lessons report missing sources. Factory drafts remain
+local until an explicit teacher save and cannot silently replace an embedded profile.
+
+Generated learner metadata no longer copies Russian roadmap goal, success or module strings. Titles come from the
+curated profile, subtitles are phase-specific Estonian text and `canDo` comes only from checked Content Pack criteria.
+The production A2-001 page was inspected before the fix: errorfix displayed the wrong sentence normally with a blank
+correction field and kept the answer hidden, while the Russian goal was visibly leaking into the subtitle. Existing
+Worksheet Studio editing, standalone focus generation, task regeneration, child-sheet persistence and draft/version
+contracts are reused unchanged; no worksheet, assignment, finance, portal, Firestore rule or Function contract was
+changed.
+
+The CEFR adapter now reads `eesti_soned.json` through authenticated Firebase Storage `getBytes()` with a 10 MiB
+limit. The old adapter obtained a download URL and then used a second cross-origin browser fetch, which surfaced as
+`Failed to fetch`; lexicon failure remains warning-only and never blocks a valid lesson pack.
+
+Local verification: CRM Vitest 122 files / 610 tests passed before the final gold-standard render test was added;
+focused Factory/profile/UI tests passed 4 files / 25 tests; ESLint and production build passed with the existing
+large-chunk warning. The local security emulator could not start because this Mac has no Java runtime; no security
+assertion is made from that attempt. Final full counts, GitHub run IDs, production SHA and Vercel state must be added
+after branch/main CI and release verification.
+
+Exactly one next safe step: run the final full CRM suite, push the checked slice, require green GitHub security CI,
+then deliver the authorized main SHA and verify its Vercel production deployment.
+
 ## 2026-10-02 — A2 Curriculum v1 + CRM v2 installer — direct main delivery
 
 Owner explicitly authorized direct `main` delivery and Vercel pickup for this session. Starting main before the A2

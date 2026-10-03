@@ -1,13 +1,15 @@
-import { ArrowLeft, BarChart3, Database, FilePenLine, RefreshCw, Sparkles, Target } from 'lucide-react';
-import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { ArrowLeft, BarChart3, Database, FilePenLine, PackagePlus, RefreshCw, Sparkles, Target } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../../app/AuthContext.jsx';
 import { Badge, Button, Card, ErrorState, LoadingState, PageHeader } from '../../../components/ui/index.js';
 import { useAsyncData } from '../../../hooks/useAsyncData.js';
 import { lessonWorksheetsService, levelVocabularyService } from '../../../services/firebase/index.js';
 import { ACTIVITY_CATALOG_VERSION, generateFocusWorksheet, generateLessonBundle, GENERATOR_VERSION } from '../engine/generator.js';
 import { FOCUS_PHASES, focusPhaseLabel, focusWorksheetId } from '../engine/focusWorksheet.js';
+import { canCreateContentPackDraft, createContentPackDraft } from '../factory/factory.js';
 import { generatorProfileForLesson, profileDraftForLesson, resolveGeneratorProfile } from '../profiles/index.js';
+import ContentPackFactoryPanel from './ContentPackFactoryPanel.jsx';
 import GeneratorProfileEditor from './GeneratorProfileEditor.jsx';
 import '../generator.css';
 
@@ -42,11 +44,14 @@ function generationMeta(sheet, { scope, variant, size = 'standard', levelVocabul
 
 export default function LessonWorksheetSet({ repository = lessonWorksheetsService, vocabularyRepository = levelVocabularyService }) {
   const { lessonId } = useParams();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const [busy, setBusy] = useState(false);
   const [focusBusy, setFocusBusy] = useState(false);
   const [profileBusy, setProfileBusy] = useState(false);
   const [profileEditing, setProfileEditing] = useState(false);
+  const [factoryDraft, setFactoryDraft] = useState(null);
+  const factoryQueryHandled = useRef(false);
   const [notice, setNotice] = useState('');
   const [difficulty, setDifficulty] = useState('core');
   const [focusId, setFocusId] = useState('');
@@ -66,6 +71,14 @@ export default function LessonWorksheetSet({ repository = lessonWorksheetsServic
     return { lesson, sheets, levelVocabulary };
   }, [lessonId, repository, vocabularyRepository]);
 
+  useEffect(() => {
+    const lesson = state.data?.lesson;
+    if (!lesson || factoryQueryHandled.current || searchParams.get('factory') !== '1') return;
+    factoryQueryHandled.current = true;
+    setFactoryDraft(createContentPackDraft(lesson));
+    setProfileEditing(false);
+  }, [searchParams, state.data?.lesson]);
+
   if (state.loading) return <LoadingState label="Laen tunni töölehti…" />;
   if (state.error) return <ErrorState message={state.error.message} onRetry={state.reload} />;
 
@@ -81,6 +94,11 @@ export default function LessonWorksheetSet({ repository = lessonWorksheetsServic
   const selectedFocusId = focusId || profile?.focuses?.[0]?.id || '';
   const anyBusy = busy || focusBusy || profileBusy;
 
+  const startFactory = () => {
+    setFactoryDraft(createContentPackDraft(lesson));
+    setProfileEditing(false);
+  };
+
 
   const saveProfile = async (nextProfile, readiness) => {
     setProfileBusy(true); setError(''); setNotice('');
@@ -95,6 +113,7 @@ export default function LessonWorksheetSet({ repository = lessonWorksheetsServic
         ? 'Generaatori sisupakett salvestati ja on genereerimiseks valmis.'
         : 'Generaatori sisupaketi mustand salvestati. Täida readiness nõuded enne genereerimist.');
       setProfileEditing(false);
+      setFactoryDraft(null);
       state.reload();
     } catch (profileError) {
       setError(profileError.message || 'Generaatori sisupaketi salvestamine ebaõnnestus.');
@@ -204,6 +223,7 @@ export default function LessonWorksheetSet({ repository = lessonWorksheetsServic
         actions={(
           <div className="generator-actions">
             <Link className="button button--secondary" to="/library/worksheet-generator"><BarChart3 size={17} /> Katvus</Link>
+            {!lesson.generatorProfile && canCreateContentPackDraft(lesson) ? <Button variant="secondary" onClick={startFactory} disabled={anyBusy}><PackagePlus size={17} /> Loo sisupaketi mustand</Button> : null}
             <Button variant="secondary" onClick={() => setProfileEditing((value) => !value)} disabled={anyBusy}><Database size={17} /> Generaatori sisu</Button>
             <label className="generator-difficulty"><span>Raskus</span><select aria-label="Töölehtede raskus" value={difficulty} onChange={(event) => setDifficulty(event.target.value)} disabled={anyBusy}><option value="support">Support</option><option value="core">Core</option><option value="challenge">Challenge</option></select></label>
             <Button onClick={generate} loading={busy} disabled={!profile || focusBusy || profileBusy}><Sparkles size={17} /> {coreSheets.length ? 'Genereeri uus variant' : 'Genereeri 3 töölehte'}</Button>
@@ -217,12 +237,14 @@ export default function LessonWorksheetSet({ repository = lessonWorksheetsServic
       {notice ? <div className="generator-message is-ok" role="status">{notice}</div> : null}
 
 
+      {factoryDraft && !profileEditing ? <ContentPackFactoryPanel draft={factoryDraft} onEdit={() => setProfileEditing(true)} onCancel={() => setFactoryDraft(null)} /> : null}
+
       {profileEditing ? (
         <GeneratorProfileEditor
-          key={lesson.generatorProfileUpdatedAt || profileDraft.source || 'new'}
+          key={factoryDraft ? `factory-${lessonId}` : lesson.generatorProfileUpdatedAt || profileDraft.source || 'new'}
           lesson={lesson}
-          initialProfile={profileDraft.profile}
-          source={profileDraft.source}
+          initialProfile={factoryDraft?.profile || profileDraft.profile}
+          source={factoryDraft ? 'factory' : profileDraft.source}
           updatedAt={lesson.generatorProfileUpdatedAt || ''}
           onSave={saveProfile}
           saving={profileBusy}

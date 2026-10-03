@@ -115,9 +115,13 @@ difficulty and variant) and opens in the same Worksheet Studio.
 
 ## Shared CEFR level lexicon
 
-The new generator reuses the existing authenticated Firebase Storage object `eesti_soned.json`; it does not copy or
+The generator reuses the existing authenticated Firebase Storage object `eesti_soned.json`; it does not copy or
 fork that vocabulary dataset. CRM v2 owns the Storage adapter and passes the downloaded JSON as plain data into the
 pure generator core. Generator modules therefore keep their no-Firebase/no-network boundary.
+
+The browser adapter reads the object with the authenticated Firebase Storage SDK `getBytes()` call and a 10 MiB
+ceiling. It does not turn a download URL into a second cross-origin `fetch`; that former two-step path surfaced only
+the unhelpful browser error `Failed to fetch` in production. Invalid JSON and empty payloads still fail closed.
 
 The legacy level → lexical type → words shape is normalized by `vocabulary.js`. Lesson-specific `activeVocabulary`
 remains authoritative for theme and focus. The shared lexicon is a CEFR-safe reserve and audit source only: sampling
@@ -150,6 +154,24 @@ sentence/content banks remain curated rather than guessed from the lesson title.
 Persistence is transactional on the existing curriculum lesson document and stores revision, updated-at/by metadata
 with stale-editor conflict detection. No new Firestore collection or rule is required. The worksheet document and
 assignment contracts are unchanged.
+
+## Content Pack Factory v1
+
+The first Factory version assembles a deterministic draft from a versioned curated Content Library. Reusable packs
+contain focus definitions, vocabulary, controlled sentences, contexts, dialogues, optional error/translation pairs,
+productive prompts and CEFR/lesson compatibility data; they are not random word lists. The first library packs are
+`introduction`, `basic-questions`, `olema-present`, `present-common-verbs`, `personal-info` and `numbers-dates`.
+
+Factory selection uses stable lesson blueprints for A2-002…A2-005 and bounded keyword matching for future selected
+lessons. Every draft runs through the real sanitizer, `catalogReadiness()` and `planLessonActivities()`. Unsupported
+lessons return `Missing sources` instead of invented Estonian. The UI first shows a readable category/count preview;
+the existing structured editor remains available for detailed changes. A draft is local UI state until the teacher
+explicitly presses `Salvesta sisupakett`; an existing embedded profile is never replaced automatically. Coverage
+Dashboard links missing lessons into this same single-lesson draft flow and does not bulk-write profiles.
+
+Learner metadata is intentionally separated from Russian roadmap administration text. Generated worksheet titles
+come from the curated profile, subtitles are fixed Estonian phase explanations, and `canDo` uses only the Content
+Pack's checked success criterion. Roadmap goal, module and success strings are not copied into learner metadata.
 
 ## Child-sheet persistence boundary
 
