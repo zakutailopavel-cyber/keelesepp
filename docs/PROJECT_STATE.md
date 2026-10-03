@@ -1,6 +1,6 @@
 # KeeleSepp Project State
 
-## 2026-10-03 — A2 module 1 gold standard + Content Pack Factory v1 — draft PR #245 (`codex/a2-content-pack-factory-v1`)
+## 2026-10-03 — A2 module 1 gold standard + Content Pack Factory v1 — shipped to `main` (#245)
 
 Checked fresh `origin/main` `2bf73086d504bcd8047d504ab53a3a504e27f441`; open PRs #230, #233, #234 and
 #235 do not own the generator Factory or first-module content packs. This slice validates A2-001 as the gold-standard
@@ -19,18 +19,20 @@ changed.
 
 The CEFR adapter now reads `eesti_soned.json` through authenticated Firebase Storage `getBytes()` with a 10 MiB
 limit. The old adapter obtained a download URL and then used a second cross-origin browser fetch, which surfaced as
-`Failed to fetch`; lexicon failure remains warning-only and never blocks a valid lesson pack.
+`Failed to fetch`. Lexicon loading now runs independently of lesson and worksheet loading: a slow or unavailable
+shared lexicon never blocks the authoring workspace, and generation falls back to the curated lesson vocabulary.
 
-Verification on code head `2d3a7eaa629bb98102ee143553245e7e2c229b5c`: local CRM Vitest 123 files / 612
+Final code verification on `43834f5e335190dd58d7cc0cdbabcea8ab5ad122`: local CRM Vitest 123 files / 613
 tests, ESLint, production build and `git diff --check` passed; the build retains the existing large-chunk warning.
-GitHub `CRM v2` run 37107197961 passed verify plus the Java 21 Auth/Firestore/Functions security-regression job;
-independent `CRM v2 CI` run 37107197955 passed. The local emulator attempt itself could not start because this Mac
-has no Java runtime, so security evidence comes from the successful GitHub job rather than that local attempt. Vercel
-preview `dpl_H2Hb7Q3FPZqqAhqn8sAD2sTajpbq` for the same code head is READY. Production SHA/deployment remains pending
-until the authorized main delivery is made and verified.
+GitHub `CRM v2` run 37107710590 passed verify plus the Java 21 Auth/Firestore/Functions security-regression job;
+independent `CRM v2 CI` run 37107710604 and `Financial Core emulator` run 37107710597 passed. The local emulator
+attempt itself could not start because this Mac has no Java runtime, so security evidence comes from the successful
+GitHub jobs. Vercel production deployment `dpl_4SEtLL5NyotZSfvXMEv32QGm2QUv` for the same code head is READY.
+Authenticated production smoke testing confirmed that A2-001 opens without waiting for the lexicon, and A2-002
+shows a Ready Factory preview with `introduction · basic-questions`; no draft was saved or published during the check.
 
-Exactly one next safe step: deliver the already verified code head to the authorized `main`, then require the new
-main workflows and matching Vercel production deployment to reach success/READY before reporting completion.
+Exactly one next safe step: curate and verify the source packs for A2-006 before extending Factory coverage beyond
+the completed first five lessons.
 
 ## 2026-10-02 — A2 Curriculum v1 + CRM v2 installer — direct main delivery
 
