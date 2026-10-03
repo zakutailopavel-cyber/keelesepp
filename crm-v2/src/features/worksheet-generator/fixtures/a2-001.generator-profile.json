@@ -1,0 +1,686 @@
+{
+  "schema": "keelesepp.worksheet-generator-profile/1",
+  "version": 1,
+  "lessonId": "a2-001",
+  "lessonKind": "integrated",
+  "level": "A2",
+  "title": "A2 lähtediagnostika",
+  "focuses": [
+    {
+      "id": "personal-info",
+      "type": "communication",
+      "label": "Isikuandmed ja enesetutvustus",
+      "patterns": [
+        "Minu nimi on …",
+        "Ma elan …",
+        "Ma olen …-aastane"
+      ],
+      "aliases": [
+        "isikuandmed",
+        "enesetutvustus"
+      ]
+    },
+    {
+      "id": "present-verbs",
+      "type": "grammar",
+      "label": "Sagedased tegusõnad olevikus",
+      "patterns": [
+        "ma elan",
+        "ma töötan",
+        "ma õpin",
+        "ma räägin"
+      ],
+      "aliases": [
+        "olevik",
+        "mina-vorm"
+      ]
+    },
+    {
+      "id": "basic-questions",
+      "type": "communication",
+      "label": "Põhiküsimused enda kohta",
+      "patterns": [
+        "Mis su nimi on?",
+        "Kus sa elad?",
+        "Kus sa töötad?",
+        "Mis keeli sa räägid?"
+      ],
+      "aliases": [
+        "küsimused",
+        "enda kohta küsimine"
+      ]
+    },
+    {
+      "id": "numbers-dates",
+      "type": "communication",
+      "label": "Arvud, kuupäevad ja kontaktandmed",
+      "patterns": [
+        "telefoninumber",
+        "sünniaeg",
+        "kuupäev",
+        "kellaaeg"
+      ],
+      "aliases": [
+        "arvud",
+        "kuupäevad",
+        "kontaktandmed"
+      ]
+    }
+  ],
+  "activeVocabulary": [
+    {
+      "id": "v-nimi",
+      "word": "nimi",
+      "translation": "имя",
+      "lexicalType": "noun",
+      "focusIds": [
+        "personal-info",
+        "basic-questions"
+      ]
+    },
+    {
+      "id": "v-aadress",
+      "word": "aadress",
+      "translation": "адрес",
+      "lexicalType": "noun",
+      "focusIds": [
+        "personal-info",
+        "numbers-dates"
+      ]
+    },
+    {
+      "id": "v-telefon",
+      "word": "telefoninumber",
+      "translation": "номер телефона",
+      "lexicalType": "noun",
+      "focusIds": [
+        "personal-info",
+        "numbers-dates"
+      ]
+    },
+    {
+      "id": "v-sunniaeg",
+      "word": "sünniaeg",
+      "translation": "дата рождения",
+      "lexicalType": "noun",
+      "focusIds": [
+        "personal-info",
+        "numbers-dates"
+      ]
+    },
+    {
+      "id": "v-elama",
+      "word": "elama",
+      "translation": "жить",
+      "lexicalType": "verb",
+      "focusIds": [
+        "present-verbs",
+        "personal-info"
+      ]
+    },
+    {
+      "id": "v-tootama",
+      "word": "töötama",
+      "translation": "работать",
+      "lexicalType": "verb",
+      "focusIds": [
+        "present-verbs",
+        "personal-info"
+      ]
+    },
+    {
+      "id": "v-oppima",
+      "word": "õppima",
+      "translation": "учиться",
+      "lexicalType": "verb",
+      "focusIds": [
+        "present-verbs",
+        "personal-info"
+      ]
+    },
+    {
+      "id": "v-raakima",
+      "word": "rääkima",
+      "translation": "говорить",
+      "lexicalType": "verb",
+      "focusIds": [
+        "present-verbs",
+        "personal-info"
+      ]
+    },
+    {
+      "id": "v-kus",
+      "word": "kus",
+      "translation": "где",
+      "lexicalType": "adverb",
+      "focusIds": [
+        "basic-questions"
+      ]
+    },
+    {
+      "id": "v-mis",
+      "word": "mis",
+      "translation": "что / какой",
+      "lexicalType": "pronoun",
+      "focusIds": [
+        "basic-questions"
+      ]
+    },
+    {
+      "id": "v-kui-vana",
+      "word": "kui vana",
+      "translation": "сколько лет",
+      "lexicalType": "phrase",
+      "focusIds": [
+        "basic-questions",
+        "numbers-dates"
+      ]
+    },
+    {
+      "id": "v-millal",
+      "word": "millal",
+      "translation": "когда",
+      "lexicalType": "adverb",
+      "focusIds": [
+        "basic-questions",
+        "numbers-dates"
+      ]
+    },
+    {
+      "id": "v-kuupaev",
+      "word": "kuupäev",
+      "translation": "дата",
+      "lexicalType": "noun",
+      "focusIds": [
+        "numbers-dates"
+      ]
+    },
+    {
+      "id": "v-kell",
+      "word": "kell",
+      "translation": "время / часы",
+      "lexicalType": "noun",
+      "focusIds": [
+        "numbers-dates"
+      ]
+    }
+  ],
+  "contexts": [
+    {
+      "id": "course-registration",
+      "label": "Keelekursusele registreerimine",
+      "tags": [
+        "registration",
+        "personal-info"
+      ],
+      "names": [
+        "Anna",
+        "Maksim",
+        "Olga"
+      ],
+      "times": [
+        "09:00",
+        "13:30",
+        "18:00",
+        "19:15"
+      ]
+    },
+    {
+      "id": "first-meeting",
+      "label": "Esimene kohtumine",
+      "tags": [
+        "introduction",
+        "conversation"
+      ],
+      "names": [
+        "Mari",
+        "Jaan",
+        "Daria"
+      ],
+      "times": [
+        "10:00",
+        "12:15",
+        "17:45"
+      ]
+    },
+    {
+      "id": "service-form",
+      "label": "Teenuse ankeet",
+      "tags": [
+        "form",
+        "contact-details"
+      ],
+      "names": [
+        "Katrin",
+        "Andrei"
+      ],
+      "times": [
+        "08:30",
+        "14:00",
+        "16:30"
+      ]
+    }
+  ],
+  "banks": {
+    "sentences": [
+      {
+        "id": "s01",
+        "focusIds": [
+          "personal-info",
+          "present-verbs"
+        ],
+        "contextIds": [
+          "first-meeting"
+        ],
+        "difficulty": 1,
+        "text": "Minu nimi on {name} ja ma elan Tallinnas.",
+        "slots": {
+          "name": [
+            "Mari",
+            "Daria",
+            "Jaan"
+          ]
+        }
+      },
+      {
+        "id": "s02",
+        "focusIds": [
+          "present-verbs",
+          "personal-info"
+        ],
+        "contextIds": [
+          "course-registration"
+        ],
+        "difficulty": 1,
+        "text": "Ma {verb} praegu eesti keelt.",
+        "slots": {
+          "verb": [
+            "õpin"
+          ]
+        }
+      },
+      {
+        "id": "s03",
+        "focusIds": [
+          "present-verbs",
+          "personal-info"
+        ],
+        "contextIds": [
+          "course-registration"
+        ],
+        "difficulty": 1,
+        "text": "Ma {verb} poes ja räägin tööl eesti keelt.",
+        "slots": {
+          "verb": [
+            "töötan"
+          ]
+        }
+      },
+      {
+        "id": "s04",
+        "focusIds": [
+          "basic-questions"
+        ],
+        "contextIds": [
+          "first-meeting"
+        ],
+        "difficulty": 1,
+        "text": "{question} sa elad?",
+        "slots": {
+          "question": [
+            "Kus"
+          ]
+        }
+      },
+      {
+        "id": "s05",
+        "focusIds": [
+          "basic-questions",
+          "personal-info"
+        ],
+        "contextIds": [
+          "first-meeting"
+        ],
+        "difficulty": 1,
+        "text": "{question} su nimi on?",
+        "slots": {
+          "question": [
+            "Mis"
+          ]
+        }
+      },
+      {
+        "id": "s06",
+        "focusIds": [
+          "numbers-dates",
+          "personal-info"
+        ],
+        "contextIds": [
+          "service-form"
+        ],
+        "difficulty": 1,
+        "text": "Minu telefoninumber on {phone}.",
+        "slots": {
+          "phone": [
+            "555 1234",
+            "512 6789",
+            "5667 4321"
+          ]
+        }
+      },
+      {
+        "id": "s07",
+        "focusIds": [
+          "numbers-dates",
+          "personal-info"
+        ],
+        "contextIds": [
+          "service-form"
+        ],
+        "difficulty": 2,
+        "text": "Minu sünniaeg on {date}.",
+        "slots": {
+          "date": [
+            "12. märts 1990",
+            "5. juuli 1988",
+            "21. november 1995"
+          ]
+        }
+      },
+      {
+        "id": "s08",
+        "focusIds": [
+          "basic-questions",
+          "numbers-dates"
+        ],
+        "contextIds": [
+          "course-registration"
+        ],
+        "difficulty": 2,
+        "text": "{question} sul eesti keele tund on?",
+        "slots": {
+          "question": [
+            "Millal"
+          ]
+        }
+      },
+      {
+        "id": "s09",
+        "focusIds": [
+          "personal-info",
+          "present-verbs"
+        ],
+        "contextIds": [
+          "course-registration"
+        ],
+        "difficulty": 2,
+        "text": "Ma räägin vene ja inglise keelt ning natuke eesti keelt.",
+        "slots": {}
+      },
+      {
+        "id": "s10",
+        "focusIds": [
+          "basic-questions",
+          "personal-info"
+        ],
+        "contextIds": [
+          "service-form"
+        ],
+        "difficulty": 2,
+        "text": "Kui vana sa oled?",
+        "slots": {}
+      },
+      {
+        "id": "s11",
+        "focusIds": [
+          "present-verbs"
+        ],
+        "contextIds": [
+          "first-meeting"
+        ],
+        "difficulty": 2,
+        "text": "Ma elan Eestis, aga töötan Soomes.",
+        "slots": {}
+      },
+      {
+        "id": "s12",
+        "focusIds": [
+          "numbers-dates"
+        ],
+        "contextIds": [
+          "course-registration"
+        ],
+        "difficulty": 2,
+        "text": "Tund algab kell {time}.",
+        "slots": {
+          "time": [
+            "18.00",
+            "19.15",
+            "13.30"
+          ]
+        }
+      }
+    ],
+    "errorPairs": [
+      {
+        "id": "e01",
+        "focusIds": [
+          "present-verbs"
+        ],
+        "wrong": "Ma elab Tallinnas.",
+        "correct": "Ma elan Tallinnas."
+      },
+      {
+        "id": "e02",
+        "focusIds": [
+          "present-verbs"
+        ],
+        "wrong": "Ma töötab koolis.",
+        "correct": "Ma töötan koolis."
+      },
+      {
+        "id": "e03",
+        "focusIds": [
+          "basic-questions"
+        ],
+        "wrong": "Kus sa töötab?",
+        "correct": "Kus sa töötad?"
+      },
+      {
+        "id": "e04",
+        "focusIds": [
+          "personal-info"
+        ],
+        "wrong": "Minu nimi olen Anna.",
+        "correct": "Minu nimi on Anna."
+      }
+    ],
+    "translations": [
+      {
+        "id": "t01",
+        "focusIds": [
+          "personal-info"
+        ],
+        "sourceLang": "ru",
+        "source": "Меня зовут Анна, я живу в Таллине.",
+        "target": "Minu nimi on Anna ja ma elan Tallinnas."
+      },
+      {
+        "id": "t02",
+        "focusIds": [
+          "present-verbs"
+        ],
+        "sourceLang": "ru",
+        "source": "Я работаю в магазине и учу эстонский язык.",
+        "target": "Ma töötan poes ja õpin eesti keelt."
+      },
+      {
+        "id": "t03",
+        "focusIds": [
+          "basic-questions"
+        ],
+        "sourceLang": "ru",
+        "source": "Где ты живёшь и где работаешь?",
+        "target": "Kus sa elad ja kus sa töötad?"
+      },
+      {
+        "id": "t04",
+        "focusIds": [
+          "numbers-dates"
+        ],
+        "sourceLang": "ru",
+        "source": "Мой номер телефона 555 1234.",
+        "target": "Minu telefoninumber on 555 1234."
+      }
+    ],
+    "dialogues": [
+      {
+        "id": "d01",
+        "focusIds": [
+          "personal-info",
+          "basic-questions",
+          "present-verbs"
+        ],
+        "contextIds": [
+          "first-meeting"
+        ],
+        "speakers": [
+          "Mari",
+          "Andrei"
+        ],
+        "lines": [
+          {
+            "who": "A",
+            "text": "Tere! Mis su [nimi] on?",
+            "answerAlternatives": [
+              "nimi"
+            ]
+          },
+          {
+            "who": "B",
+            "text": "Minu nimi on Andrei. Kus sa [elad]?",
+            "answerAlternatives": [
+              "elad"
+            ]
+          },
+          {
+            "who": "A",
+            "text": "Ma elan Tallinnas. Kus sa [töötad]?",
+            "answerAlternatives": [
+              "töötad"
+            ]
+          },
+          {
+            "who": "B",
+            "text": "Ma töötan restoranis ja [õpin] eesti keelt.",
+            "answerAlternatives": [
+              "õpin"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "d02",
+        "focusIds": [
+          "numbers-dates",
+          "personal-info"
+        ],
+        "contextIds": [
+          "service-form"
+        ],
+        "speakers": [
+          "Teenindaja",
+          "Klient"
+        ],
+        "lines": [
+          {
+            "who": "A",
+            "text": "Palun öelge oma [telefoninumber].",
+            "answerAlternatives": [
+              "telefoninumber"
+            ]
+          },
+          {
+            "who": "B",
+            "text": "Minu telefoninumber on 512 6789."
+          },
+          {
+            "who": "A",
+            "text": "Mis on teie [sünniaeg]?",
+            "answerAlternatives": [
+              "sünniaeg"
+            ]
+          },
+          {
+            "who": "B",
+            "text": "Minu sünniaeg on 5. juuli 1988."
+          }
+        ]
+      }
+    ],
+    "speakingPrompts": [
+      {
+        "id": "sp01",
+        "focusIds": [
+          "personal-info",
+          "present-verbs"
+        ],
+        "contextIds": [
+          "first-meeting"
+        ],
+        "text": "Tutvusta ennast 60–90 sekundit. Ütle oma nimi, kus sa elad, mida teed ja mis keeli räägid."
+      },
+      {
+        "id": "sp02",
+        "focusIds": [
+          "basic-questions"
+        ],
+        "contextIds": [
+          "course-registration"
+        ],
+        "text": "Küsi õpetajalt vähemalt viis lihtsat küsimust: nimi, elukoht, töö, keeled ja tunniaeg."
+      },
+      {
+        "id": "sp03",
+        "focusIds": [
+          "numbers-dates"
+        ],
+        "contextIds": [
+          "service-form"
+        ],
+        "text": "Ütle selgelt oma telefoninumber, sünniaeg ja üks sobiv kellaaeg kohtumiseks."
+      }
+    ],
+    "writingPrompts": [
+      {
+        "id": "w01",
+        "focusIds": [
+          "personal-info",
+          "present-verbs"
+        ],
+        "contextIds": [
+          "course-registration"
+        ],
+        "text": "Kirjuta 50–70 sõna endast keelekursuse registreerimiseks: nimi, elukoht, töö või õpingud, keeled ja miks sa eesti keelt õpid."
+      },
+      {
+        "id": "w02",
+        "focusIds": [
+          "numbers-dates",
+          "personal-info"
+        ],
+        "contextIds": [
+          "service-form"
+        ],
+        "text": "Täida lühike profiil: nimi, sünniaeg, telefon, linn ja sobiv kohtumise aeg. Lisa kaks täislauset enda kohta."
+      }
+    ]
+  },
+  "successCriteria": [
+    "Õpilane annab arusaadavalt vähemalt viis põhiandmet enda kohta.",
+    "Õpilane moodustab sagedaste tegusõnadega lihtsaid olevikulauseid.",
+    "Õpilane küsib ja mõistab vähemalt nelja põhilist küsimust enda kohta.",
+    "Õpilane saab hakkama telefoninumbri, kuupäeva ja lihtsa kellaajaga.",
+    "Õpetaja saab tulemuse põhjal määrata vähemalt kolm edasise õppe prioriteeti."
+  ]
+}
