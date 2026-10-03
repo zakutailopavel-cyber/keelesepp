@@ -10,6 +10,7 @@ import {
 } from './index.js';
 import { scaffoldGeneratorProfile, sanitizeGeneratorProfile, validateGeneratorProfile } from './authoring.js';
 import { generateLessonBundle } from '../engine/generator.js';
+import roadmap from '../../curriculum/a2Roadmap.json';
 
 const referenceLesson = {
   id: 'a2b1-016',
@@ -47,6 +48,18 @@ describe('generator profile authoring', () => {
     expect(generated.sheets).toHaveLength(3);
     expect(generated.sheets.map((sheet) => sheet.phase)).toEqual(['discover', 'practice', 'transfer']);
     expect(generated.sheets.every((sheet) => sheet.worksheetDoc.blocks.length === 5)).toBe(true);
+    const subtitles = {
+      discover: 'Märka tähendust ja keelemustrit kontekstis.',
+      practice: 'Harjuta sihtkeelt kontrollitud ülesannetes.',
+      transfer: 'Kasuta sihtkeelt iseseisvas suhtluses.',
+    };
+    generated.sheets.forEach((sheet) => {
+      const serialized = JSON.stringify(sheet.worksheetDoc);
+      expect(serialized).not.toContain('Определить');
+      expect(serialized).not.toContain('Ученик');
+      expect(sheet.worksheetDoc.meta.subtitle).toBe(subtitles[sheet.phase]);
+      expect(sheet.worksheetDoc.meta.canDo).toBe(a2DiagnosticProfile.successCriteria[0]);
+    });
   });
 
   it('accepts the reference content pack through the same readiness gate used for authored lessons', () => {
@@ -64,6 +77,15 @@ describe('generator profile authoring', () => {
     expect(result.catalog.discover.available).toBeGreaterThanOrEqual(5);
     expect(result.catalog.practice.available).toBeGreaterThanOrEqual(5);
     expect(result.catalog.transfer.available).toBeGreaterThanOrEqual(5);
+  });
+
+  it.each(['a2-002', 'a2-003', 'a2-004', 'a2-005'])('registers %s as a ready curated first-module fallback', (lessonId) => {
+    const lesson = roadmap.modules.flatMap((module) => module.lessons).find((item) => item.id === lessonId);
+    const resolved = resolveGeneratorProfile(lessonId, lesson);
+    expect(resolved.source).toBe('static');
+    expect(resolved.ready).toBe(true);
+    expect(resolved.profile.lessonId).toBe(lessonId);
+    expect(resolved.diagnostics.filter((item) => item.severity === 'error')).toEqual([]);
   });
 
   it('creates a saveable but not-ready scaffold from roadmap lesson metadata', () => {

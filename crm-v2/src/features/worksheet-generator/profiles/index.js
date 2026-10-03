@@ -1,8 +1,15 @@
 import a2DiagnosticProfile from '../fixtures/a2-001.generator-profile.json';
 import referenceProfile from '../fixtures/a2b1-016.generator-profile.json';
+import roadmap from '../../curriculum/a2Roadmap.json';
+import { createContentPackDraft } from '../factory/factory.js';
 import { validateGeneratorProfile } from './authoring.js';
 
-const PROFILE_LIST = Object.freeze([a2DiagnosticProfile, referenceProfile]);
+const roadmapLessons = roadmap.modules.flatMap((module) => module.lessons);
+const firstModuleProfiles = ['a2-002', 'a2-003', 'a2-004', 'a2-005'].map((lessonId) => {
+  const lesson = roadmapLessons.find((item) => item.id === lessonId);
+  return createContentPackDraft(lesson).profile;
+});
+const PROFILE_LIST = Object.freeze([a2DiagnosticProfile, ...firstModuleProfiles, referenceProfile]);
 const PROFILE_BY_LESSON_ID = new Map(PROFILE_LIST.map((profile) => [profile.lessonId, profile]));
 
 function staticProfile(lessonId) {
