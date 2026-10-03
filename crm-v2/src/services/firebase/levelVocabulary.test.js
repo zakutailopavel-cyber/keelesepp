@@ -1,6 +1,8 @@
+/* global TextEncoder */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   downloadLevelVocabulary,
+  LEVEL_VOCABULARY_MAX_BYTES,
   LEVEL_VOCABULARY_STORAGE_PATH,
   levelVocabularyService,
   validateLevelVocabularyPayload,
@@ -17,22 +19,19 @@ describe('level vocabulary Storage adapter', () => {
     expect(validateLevelVocabularyPayload(payload)).toEqual({ lexicon: payload, wordCount: 4 });
   });
 
-  it('downloads the existing eesti_soned.json object through injected Storage dependencies', async () => {
+  it('downloads the existing eesti_soned.json object through the authenticated Storage SDK', async () => {
     const payload = { A2: { adverb: ['hommikul', 'õhtul'] } };
     const refFn = vi.fn((storage, path) => ({ storage, path }));
-    const getDownloadUrl = vi.fn().mockResolvedValue('https://storage.invalid/eesti_soned.json');
-    const fetchFn = vi.fn().mockResolvedValue({ ok: true, status: 200, json: vi.fn().mockResolvedValue(payload) });
+    const getBytesFn = vi.fn().mockResolvedValue(new TextEncoder().encode(JSON.stringify(payload)));
 
     const result = await downloadLevelVocabulary({
       storage: { name: 'storage' },
       refFn,
-      getDownloadUrl,
-      fetchFn,
+      getBytesFn,
     });
 
     expect(refFn).toHaveBeenCalledWith({ name: 'storage' }, LEVEL_VOCABULARY_STORAGE_PATH);
-    expect(getDownloadUrl).toHaveBeenCalledWith({ storage: { name: 'storage' }, path: LEVEL_VOCABULARY_STORAGE_PATH });
-    expect(fetchFn).toHaveBeenCalledWith('https://storage.invalid/eesti_soned.json');
+    expect(getBytesFn).toHaveBeenCalledWith({ storage: { name: 'storage' }, path: LEVEL_VOCABULARY_STORAGE_PATH }, LEVEL_VOCABULARY_MAX_BYTES);
     expect(result).toEqual({
       lexicon: payload,
       wordCount: 2,
@@ -41,13 +40,12 @@ describe('level vocabulary Storage adapter', () => {
     });
   });
 
-  it('fails closed on empty or unsuccessful vocabulary downloads', async () => {
+  it('fails closed on empty or invalid vocabulary downloads', async () => {
     expect(() => validateLevelVocabularyPayload({})).toThrow('ei sisalda ühtegi sõna');
     await expect(downloadLevelVocabulary({
       storage: {},
       refFn: () => ({}),
-      getDownloadUrl: async () => 'https://storage.invalid/eesti_soned.json',
-      fetchFn: async () => ({ ok: false, status: 403 }),
-    })).rejects.toThrow('HTTP 403');
+      getBytesFn: async () => new TextEncoder().encode('not-json'),
+    })).rejects.toThrow('JSON-i ei saanud lugeda');
   });
 });

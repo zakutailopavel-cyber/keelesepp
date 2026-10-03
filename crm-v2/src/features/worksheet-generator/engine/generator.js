@@ -15,6 +15,13 @@ export const GENERATOR_VERSION = '1.1.0';
 function diagnostic(severity, code, message) { return { severity, code, message }; }
 function profileValid(profile) { return profile?.schema === 'keelesepp.worksheet-generator-profile/1' && Number(profile.version) === 1; }
 
+const PHASE_SUBTITLES = Object.freeze({
+  discover: 'Märka tähendust ja keelemustrit kontekstis.',
+  practice: 'Harjuta sihtkeelt kontrollitud ülesannetes.',
+  transfer: 'Kasuta sihtkeelt iseseisvas suhtluses.',
+  full: 'Märka, harjuta ja kasuta sihtkeelt.',
+});
+
 function makeDocument({ lesson, profile, phase, displayLabel, focusIds, blocks, seed }) {
   const goals = Object.fromEntries(focusIds.map((id) => {
     const focus = (profile.focuses || []).find((item) => item.id === id);
@@ -25,10 +32,10 @@ function makeDocument({ lesson, profile, phase, displayLabel, focusIds, blocks, 
     id: `generated_${profile.lessonId}_${phase}_${seed.replace(/[^a-z0-9]+/gi, '_').slice(-28)}`,
     meta: {
       title: `${profile.title} — ${displayLabel}`,
-      subtitle: lesson?.goal || '',
+      subtitle: PHASE_SUBTITLES[phase] || '',
       level: profile.level || lesson?.levelStage || '',
-      module: lesson?.module || lesson?.topic || '',
-      canDo: profile.successCriteria?.[0] || lesson?.success || '',
+      module: profile.module || '',
+      canDo: profile.successCriteria?.[0] || '',
       badge: 'KeeleSepp',
       slogan: 'Rohkem kui lihtsalt keel!',
       footer: { tagline: 'Targem suhtlus. Suurem maailm.', url: 'www.epkoolitus.ee' },

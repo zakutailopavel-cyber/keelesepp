@@ -1,7 +1,9 @@
-import { getDownloadURL, ref } from 'firebase/storage';
+/* global TextDecoder */
+import { getBytes, ref } from 'firebase/storage';
 import { requireFirebaseClient } from './client.js';
 
 export const LEVEL_VOCABULARY_STORAGE_PATH = 'eesti_soned.json';
+export const LEVEL_VOCABULARY_MAX_BYTES = 10 * 1024 * 1024;
 
 let cachedLoad = null;
 
@@ -22,16 +24,19 @@ export async function downloadLevelVocabulary({
   storage,
   storagePath = LEVEL_VOCABULARY_STORAGE_PATH,
   refFn = ref,
-  getDownloadUrl = getDownloadURL,
-  fetchFn = globalThis.fetch,
+  getBytesFn = getBytes,
+  decoder = new TextDecoder(),
 } = {}) {
   if (!storage) throw new Error('Firebase Storage puudub.');
-  if (typeof fetchFn !== 'function') throw new Error('Fetch puudub.');
+  if (typeof getBytesFn !== 'function') throw new Error('Firebase Storage getBytes puudub.');
   const storageRef = refFn(storage, storagePath);
-  const url = await getDownloadUrl(storageRef);
-  const response = await fetchFn(url);
-  if (!response?.ok) throw new Error(`Tasemesõnastiku laadimine ebaõnnestus: HTTP ${response?.status || '?'}`);
-  const payload = await response.json();
+  const bytes = await getBytesFn(storageRef, LEVEL_VOCABULARY_MAX_BYTES);
+  let payload;
+  try {
+    payload = JSON.parse(decoder.decode(bytes));
+  } catch {
+    throw new Error('Tasemesõnastiku JSON-i ei saanud lugeda.');
+  }
   const validated = validateLevelVocabularyPayload(payload);
   return {
     ...validated,
