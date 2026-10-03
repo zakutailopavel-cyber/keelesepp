@@ -24,6 +24,7 @@ function renderAt(path, repository) {
       <AuthContext.Provider value={{ user }}>
         <Routes>
           <Route path="/library/worksheets/:lessonId" element={<WorksheetStudioPage repository={repository} />} />
+          <Route path="/library/lessons/:lessonId/worksheets" element={<div>lesson-engine</div>} />
           <Route path="/library" element={<div>library</div>} />
         </Routes>
       </AuthContext.Provider>
@@ -58,6 +59,20 @@ describe('WorksheetStudioPage', () => {
     expect(saved.lessonId).toBe('lesson-1');
     expect(saved.document.blocks.some((b) => b.type === 'truefalse')).toBe(true);
     expect(await screen.findByRole('status')).toHaveTextContent('salvestati');
+  });
+
+  it('redirects a roadmap lesson without a standalone worksheet to Lesson Engine', async () => {
+    const repository = repo({
+      load: vi.fn().mockResolvedValue({
+        document: sampleDocument(),
+        source: 'new',
+        lesson: { id: 'a2-001', roadmapManaged: true },
+      }),
+    });
+    renderAt('/library/worksheets/a2-001', repository);
+    expect(await screen.findByText('lesson-engine')).toBeInTheDocument();
+    expect(repository.load).toHaveBeenCalledWith('a2-001');
+    expect(screen.queryByText('Töölehe konstruktor')).not.toBeInTheDocument();
   });
 
   it('shows a conversion notice for legacy worksheets', async () => {
