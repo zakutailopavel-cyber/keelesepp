@@ -1,6 +1,6 @@
 # KeeleSepp Project State
 
-## 2026-10-03 — A2 module 1 gold standard + Content Pack Factory v1 (`codex/a2-content-pack-factory-v1`)
+## 2026-10-03 — A2 module 1 gold standard + Content Pack Factory v1 — draft PR #245 (`codex/a2-content-pack-factory-v1`)
 
 Checked fresh `origin/main` `2bf73086d504bcd8047d504ab53a3a504e27f441`; open PRs #230, #233, #234 and
 #235 do not own the generator Factory or first-module content packs. This slice validates A2-001 as the gold-standard
@@ -21,14 +21,16 @@ The CEFR adapter now reads `eesti_soned.json` through authenticated Firebase Sto
 limit. The old adapter obtained a download URL and then used a second cross-origin browser fetch, which surfaced as
 `Failed to fetch`; lexicon failure remains warning-only and never blocks a valid lesson pack.
 
-Local verification: CRM Vitest 122 files / 610 tests passed before the final gold-standard render test was added;
-focused Factory/profile/UI tests passed 4 files / 25 tests; ESLint and production build passed with the existing
-large-chunk warning. The local security emulator could not start because this Mac has no Java runtime; no security
-assertion is made from that attempt. Final full counts, GitHub run IDs, production SHA and Vercel state must be added
-after branch/main CI and release verification.
+Verification on code head `2d3a7eaa629bb98102ee143553245e7e2c229b5c`: local CRM Vitest 123 files / 612
+tests, ESLint, production build and `git diff --check` passed; the build retains the existing large-chunk warning.
+GitHub `CRM v2` run 37107197961 passed verify plus the Java 21 Auth/Firestore/Functions security-regression job;
+independent `CRM v2 CI` run 37107197955 passed. The local emulator attempt itself could not start because this Mac
+has no Java runtime, so security evidence comes from the successful GitHub job rather than that local attempt. Vercel
+preview `dpl_H2Hb7Q3FPZqqAhqn8sAD2sTajpbq` for the same code head is READY. Production SHA/deployment remains pending
+until the authorized main delivery is made and verified.
 
-Exactly one next safe step: run the final full CRM suite, push the checked slice, require green GitHub security CI,
-then deliver the authorized main SHA and verify its Vercel production deployment.
+Exactly one next safe step: deliver the already verified code head to the authorized `main`, then require the new
+main workflows and matching Vercel production deployment to reach success/READY before reporting completion.
 
 ## 2026-10-02 — A2 Curriculum v1 + CRM v2 installer — direct main delivery
 
