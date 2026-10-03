@@ -66,6 +66,7 @@ function saveFavorites(uid, set) {
 }
 const shortDate = (iso) => (iso && /^\d{4}-\d{2}-\d{2}/.test(iso) ? `${iso.slice(8, 10)}.${iso.slice(5, 7)}.${iso.slice(0, 4)}` : '');
 const hasStudioDoc = (item) => item.kind !== 'exercise' && (item.source?.worksheetDoc?.blocks?.length || item.source?.worksheetData?.blocks?.length);
+const usesLessonEngine = (item) => item?.kind === 'curriculum' && item?.source?.roadmapManaged === true && !hasStudioDoc(item);
 
 function AssignmentModal({ item, user, repository, studentRepository, groupRepository, onClose, onAssigned }) {
   const [query, setQuery] = useState('');
@@ -239,7 +240,9 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
     if ((item.type === 'worksheet' || item.source?.type === 'worksheet' || hasStudioDoc(item)) && item.sourceId) { navigate(`/library/worksheets/${encodeURIComponent(item.sourceId)}`); return; }
     setEditing(item);
   };
-  const openWorksheet = (item) => navigate(`/library/worksheets/${encodeURIComponent(item.sourceId)}`);
+  const openWorksheet = (item) => navigate(usesLessonEngine(item)
+    ? `/library/lessons/${encodeURIComponent(item.sourceId)}/worksheets`
+    : `/library/worksheets/${encodeURIComponent(item.sourceId)}`);
   const shown = results.slice(0, limit);
   const sections = sort === 'toc' ? sectionsByModule(shown) : [{ key: 'all', label: '', results: shown }];
   const filtersOn = Boolean(q || level || module || type || onlyFav || onlyMine);
@@ -260,6 +263,7 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
         <span className="lib2-meta">{item.fileCount ? <span title={`${item.fileCount} faili`}><Paperclip size={14} />{item.fileCount}</span> : null}{shortDate(item.updatedAt) ? <time dateTime={item.updatedAt}>{shortDate(item.updatedAt)}</time> : null}</span>
         <span className="lib2-actions">
           <Button variant="secondary" aria-label={`Vaata: ${item.title}`} onClick={() => open(item)}><Eye size={15} /> Vaata</Button>
+          {usesLessonEngine(item) ? <Button variant="secondary" aria-label={`Töölehed: ${item.title}`} onClick={() => openWorksheet(item)}><Sparkles size={15} /> Töölehed</Button> : null}
           <Button variant="secondary" aria-label={`Muuda: ${item.title}`} onClick={() => edit(item)}><FilePenLine size={15} /> Muuda</Button>
           <Button onClick={() => setAssigning(item)}><Send size={15} /> Määra</Button>
         </span>
@@ -334,7 +338,7 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
         open={Boolean(selected)}
         title={selected?.title || 'Õppematerjal'}
         onClose={() => setSelected(null)}
-        footer={<>{selected?.kind === 'exercise' ? <a className="button button--secondary" href={legacyUrl(`/haldus-exercises/?exercise=${encodeURIComponent(selected.sourceId)}`)}>Ava töövahend <ArrowRight size={16} /></a> : null}{selected?.kind !== 'exercise' && selected?.sourceId ? <Button variant="secondary" onClick={() => navigate(`/library/lessons/${encodeURIComponent(selected.sourceId)}/worksheets`)}><Sparkles size={16} /> Tunni töölehed</Button> : null}{selected?.kind !== 'exercise' && selected?.sourceId ? <Button variant="secondary" onClick={() => navigate(`/library/worksheets/${encodeURIComponent(selected.sourceId)}`)}>{hasStudioDoc(selected) ? 'Muuda töölehte' : 'Loo tööleht'}</Button> : null}<Button variant="secondary" onClick={() => { if (selected?.kind === 'exercise') setExerciseEditing(selected); else setEditing(selected); setSelected(null); }}>Muuda</Button><Button variant="secondary" onClick={() => { setPreviewing(selected); setSelected(null); }}>Eelvaade</Button><Button onClick={() => { setAssigning(selected); setSelected(null); }}>Määra õpilastele</Button></>}
+        footer={<>{selected?.kind === 'exercise' ? <a className="button button--secondary" href={legacyUrl(`/haldus-exercises/?exercise=${encodeURIComponent(selected.sourceId)}`)}>Ava töövahend <ArrowRight size={16} /></a> : null}{selected?.kind !== 'exercise' && selected?.sourceId ? <Button variant="secondary" onClick={() => navigate(`/library/lessons/${encodeURIComponent(selected.sourceId)}/worksheets`)}><Sparkles size={16} /> Tunni töölehed</Button> : null}{selected?.kind !== 'exercise' && selected?.sourceId && !usesLessonEngine(selected) ? <Button variant="secondary" onClick={() => navigate(`/library/worksheets/${encodeURIComponent(selected.sourceId)}`)}>{hasStudioDoc(selected) ? 'Muuda töölehte' : 'Loo tööleht'}</Button> : null}<Button variant="secondary" onClick={() => { if (selected?.kind === 'exercise') setExerciseEditing(selected); else setEditing(selected); setSelected(null); }}>Muuda</Button><Button variant="secondary" onClick={() => { setPreviewing(selected); setSelected(null); }}>Eelvaade</Button><Button onClick={() => { setAssigning(selected); setSelected(null); }}>Määra õpilastele</Button></>}
       >
         {selected ? <div className="library-detail"><Badge tone={LIBRARY_TYPES[selected.type]?.tone}>{selected.typeLabel}</Badge><p>{selected.description || 'Materjalil ei ole kirjeldust.'}</p><dl><div><dt>Tase</dt><dd>{selected.level || selected.ageGroup || '—'}</dd></div><div><dt>Moodul</dt><dd>{selected.moduleTitle || selected.curriculum || selected.topic || '—'}</dd></div>{selected.languageFocus ? <div><dt>Keelefookus</dt><dd>{selected.languageFocus}</dd></div> : null}{selected.source?.goal ? <div><dt>Eesmärk</dt><dd>{selected.source.goal}</dd></div> : null}<div><dt>Failid</dt><dd>{selected.fileCount || '—'}</dd></div><div><dt>Muudetud</dt><dd>{shortDate(selected.updatedAt) || '—'}{selected.authorName ? ` · ${selected.authorName}` : ''}</dd></div></dl></div> : null}
       </Modal>
