@@ -1,7 +1,8 @@
+import a2DiagnosticProfile from '../fixtures/a2-001.generator-profile.json';
 import referenceProfile from '../fixtures/a2b1-016.generator-profile.json';
 import { validateGeneratorProfile } from './authoring.js';
 
-const PROFILE_LIST = Object.freeze([referenceProfile]);
+const PROFILE_LIST = Object.freeze([a2DiagnosticProfile, referenceProfile]);
 const PROFILE_BY_LESSON_ID = new Map(PROFILE_LIST.map((profile) => [profile.lessonId, profile]));
 
 function staticProfile(lessonId) {
