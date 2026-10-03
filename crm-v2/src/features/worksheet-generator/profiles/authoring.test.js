@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import a2DiagnosticProfile from '../fixtures/a2-001.generator-profile.json';
 import referenceProfile from '../fixtures/a2b1-016.generator-profile.json';
 import { editorFieldsToProfile, profileToEditorFields } from './editorFormat.js';
 import {
@@ -8,6 +9,7 @@ import {
   resolveGeneratorProfile,
 } from './index.js';
 import { scaffoldGeneratorProfile, sanitizeGeneratorProfile, validateGeneratorProfile } from './authoring.js';
+import { generateLessonBundle } from '../engine/generator.js';
 
 const referenceLesson = {
   id: 'a2b1-016',
@@ -19,6 +21,34 @@ const referenceLesson = {
 };
 
 describe('generator profile authoring', () => {
+  it('accepts the A2 diagnostic content pack and generates three five-task sheets', () => {
+    const lesson = {
+      id: 'a2-001',
+      title: 'A2 lähtediagnostika',
+      levelStage: 'A2',
+      roadmapKind: 'integrated',
+      languageFocus: 'olema, isikulised asesõnad, küsimused, arvud, kuupäevad, põhiinfo enda kohta',
+      successCriteria: 'Õpilane annab arusaadavalt põhiandmed enda kohta.',
+    };
+    const readiness = validateGeneratorProfile(a2DiagnosticProfile, { lessonId: lesson.id, lesson });
+    expect(readiness.ready).toBe(true);
+    expect(readiness.diagnostics.filter((item) => item.severity === 'error')).toEqual([]);
+    expect(readiness.catalog.discover.available).toBeGreaterThanOrEqual(5);
+    expect(readiness.catalog.practice.available).toBeGreaterThanOrEqual(5);
+    expect(readiness.catalog.transfer.available).toBeGreaterThanOrEqual(5);
+
+    const generated = generateLessonBundle({
+      lesson,
+      profile: readiness.profile,
+      seed: 'a2-001-reference-test',
+      difficulty: 'core',
+    });
+    expect(generated.diagnostics.filter((item) => item.severity === 'error')).toEqual([]);
+    expect(generated.sheets).toHaveLength(3);
+    expect(generated.sheets.map((sheet) => sheet.phase)).toEqual(['discover', 'practice', 'transfer']);
+    expect(generated.sheets.every((sheet) => sheet.worksheetDoc.blocks.length === 5)).toBe(true);
+  });
+
   it('accepts the reference content pack through the same readiness gate used for authored lessons', () => {
     const result = validateGeneratorProfile(referenceProfile, { lessonId: referenceLesson.id, lesson: referenceLesson });
     expect(result.ready).toBe(true);
