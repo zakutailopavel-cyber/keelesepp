@@ -228,6 +228,23 @@ describe('LibraryPage', () => {
     expect(screen.getByTestId('location')).toHaveTextContent('/library/worksheets/plan-2');
   });
 
+  it('routes a roadmap lesson without a standalone worksheet to Lesson Engine', async () => {
+    const repository = { list: vi.fn().mockResolvedValue({ curriculumLessons: [{
+      id: 'a2-001',
+      title: 'A2 lähtediagnostika',
+      subject: 'Eesti keel',
+      level: 'A2',
+      topic: '01. A2 lähtepunkt ja eneseinfo',
+      roadmapManaged: true,
+      roadmapLessonNumber: 1,
+    }], exercises: [] }) };
+    function Location() { const location = useLocation(); return <output data-testid="location">{location.pathname}</output>; }
+    render(<MemoryRouter initialEntries={['/library']}><AuthContext.Provider value={{ user: { uid: 't', displayName: 'Õpetaja', roles: ['teacher'] } }}><Routes><Route path="*" element={<><LibraryPage repository={repository} studentRepository={{ list: vi.fn() }} groupRepository={{ list: vi.fn() }} /><Location /></>} /></Routes></AuthContext.Provider></MemoryRouter>);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Töölehed: A2 lähtediagnostika' }));
+    expect(screen.getByTestId('location')).toHaveTextContent('/library/lessons/a2-001/worksheets');
+  });
+
   it('the material editor of a lesson plan without a worksheet has Loo tööleht', async () => {
     const repository = { list: vi.fn().mockResolvedValue({ curriculumLessons: [{ id: 'plan-1', title: 'A2 lähtediagnostika', subject: 'Eesti keel', level: 'B1', topic: '01. A2 lähtepunkt' }], exercises: [] }) };
     function Location() { const location = useLocation(); return <output data-testid="location">{location.pathname}</output>; }
