@@ -58,18 +58,18 @@ export default function LessonWorksheetSet({ repository = lessonWorksheetsServic
   const [focusPhase, setFocusPhase] = useState('full');
   const [error, setError] = useState('');
   const state = useAsyncData(async () => {
-    const [lesson, sheets, levelVocabulary] = await Promise.all([
+    const [lesson, sheets] = await Promise.all([
       repository.loadLesson(lessonId),
       repository.list(lessonId),
-      vocabularyRepository.load().catch((loadError) => ({
-        lexicon: [],
-        source: '',
-        wordCount: 0,
-        error: loadError?.message || 'Tasemesõnastikku ei saanud laadida.',
-      })),
     ]);
-    return { lesson, sheets, levelVocabulary };
-  }, [lessonId, repository, vocabularyRepository]);
+    return { lesson, sheets };
+  }, [lessonId, repository]);
+  const vocabularyState = useAsyncData(async () => vocabularyRepository.load().catch((loadError) => ({
+    lexicon: [],
+    source: '',
+    wordCount: 0,
+    error: loadError?.message || 'Tasemesõnastikku ei saanud laadida.',
+  })), [vocabularyRepository]);
 
   useEffect(() => {
     const lesson = state.data?.lesson;
@@ -88,7 +88,7 @@ export default function LessonWorksheetSet({ repository = lessonWorksheetsServic
   const resolvedProfile = resolveGeneratorProfile(lessonId, lesson);
   const profile = generatorProfileForLesson(lessonId, lesson);
   const profileDraft = profileDraftForLesson(lessonId, lesson);
-  const levelVocabulary = state.data.levelVocabulary || { lexicon: [], source: '', wordCount: 0 };
+  const levelVocabulary = vocabularyState.data || { lexicon: [], source: '', wordCount: 0 };
   const coreSheets = CORE.map(({ id }) => byId.get(id)).filter(Boolean);
   const focusSheets = sheets.filter((sheet) => sheet.role === 'focus');
   const selectedFocusId = focusId || profile?.focuses?.[0]?.id || '';

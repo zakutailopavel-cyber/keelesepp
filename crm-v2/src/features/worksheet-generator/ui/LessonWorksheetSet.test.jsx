@@ -109,6 +109,20 @@ describe('LessonWorksheetSet', () => {
     expect(screen.getByRole('button', { name: /Genereeri 3 töölehte/ })).toBeEnabled();
   });
 
+  it('renders the lesson workspace without waiting for the shared level lexicon', async () => {
+    const repository = {
+      loadLesson: vi.fn().mockResolvedValue(lesson),
+      list: vi.fn().mockResolvedValue([]),
+      saveDraft: vi.fn(),
+    };
+    const pendingVocabulary = { load: vi.fn(() => new Promise(() => {})) };
+
+    renderPage(repository, pendingVocabulary);
+
+    expect(await screen.findByRole('heading', { name: 'Ajamäärused ja päevaplaan' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Genereeri 3 töölehte/ })).toBeEnabled();
+  });
+
 
   it('authors and saves an embedded generator content-pack draft for a lesson without a code profile', async () => {
     const otherLesson = {
