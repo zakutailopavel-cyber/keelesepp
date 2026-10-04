@@ -1,5 +1,18 @@
 # KeeleSepp Project State
 
+## 2026-10-04 — Rule-based generator step 1: Estonian form lexicon (Vabamorf, offline) — branch `agent/generator-lexicon`
+
+Checked `origin/main` `dca0479`. Owner chose a real generator without AI instead of hand-writing every module. Step 1:
+`worksheet-generator/lexicon/` (`source.json` 314 words with tags/translations/local-case class, generated
+`forms.json`, `index.js` API) and `tools/lexicon/build_forms.py` (EstNLTK 1.7.5 Vabamorf, run offline; `--check` for
+staleness). The build refuses ambiguity: 11 words needed a genitive hint, 4 needed pinned variants (lähevad not
+lähvad, pidi not pidas, joosta, tee → teesid). Details and next steps: `docs/GENERATOR_LEXICON.md`.
+Checks: `build_forms.py --check` up to date; lexicon Vitest 58 (all entries complete + 53 hand-verified forms);
+CRM Vitest 127 files / 715 tests; ESLint; build OK. The lexicon is not yet used by the app (no bundle or behaviour
+change); no Firestore/rules/Functions change. CI does not run the Python build (needs EstNLTK); the JS tests guard
+the committed JSON.
+Exactly one next safe step: step 2 — sentence patterns with typed slots filled from this lexicon.
+
 ## 2026-10-04 — Worksheet generator (no API): A2 modules 2 and 3 complete, A2-007…A2-015 — branch `agent/a2-factory-next`
 
 **Module 3 (Library v4)** in the same PR: `daily-routine` (A2-011 Minu päev; contexts with times, so clock practice
