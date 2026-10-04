@@ -21,7 +21,39 @@ export function normalizeAccount(id, data = {}) {
   };
 }
 
+async function staffPost(path, body) {
+  const { auth } = requireFirebaseClient();
+  if (!auth.currentUser) throw new Error('Aktiivne kasutajaseanss puudub. Logi uuesti sisse.');
+  const token = await auth.currentUser.getIdToken();
+  const baseUrl = String(import.meta.env.VITE_STAFF_OPERATIONS_API_URL || defaultStaffOperationsUrl).replace(/\/$/, '');
+  const response = await globalThis.fetch(`${baseUrl}${path}`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body || {}),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || 'Päring ebaõnnestus.');
+  return data;
+}
+
 export const accountApprovalsService = {
+  // Registrations the automatic linking did not decide (possible duplicates): the administrator chooses.
+  async listReviews() {
+    const data = await staffPost('/accounts/reviews');
+    return Array.isArray(data.reviews) ? data.reviews : [];
+  },
+  linkToStudent({ uid, studentId, relationship }) {
+    const requestId = `review-link-${uid}-${studentId}-${relationship}`.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 120);
+    return staffPost('/accounts/link', { uid, studentId, relationship, requestId });
+  },
+  createCardForReview(reviewId) {
+    return staffPost('/accounts/reviews/create-card', { reviewId });
+  },
+  dismissReview(reviewId) {
+    return staffPost('/accounts/reviews/dismiss', { reviewId });
+  },
+
+
   async list(status = 'pending') {
     const { db } = requireFirebaseClient();
     const snapshot = await getDocs(query(collection(db, 'users'), where('approvalStatus', '==', status)));

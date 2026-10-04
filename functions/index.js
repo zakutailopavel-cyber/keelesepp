@@ -6174,6 +6174,159 @@ function accountTeacherDirectoryKey(value) {
   return ({ jelena: "elena", elena: "elena", elizaveta: "yelyzaveta", yelyzaveta: "yelyzaveta", angelina: "anhelina", anhelina: "anhelina" })[first] || first;
 }
 
+// A new student card for a self-registered account: the student's own card ("student") or a child card of a
+// parent ("parent"). Used by the automatic bootstrap and by the administrator's „Loo uus kaart” on a link review.
+function bootstrapStudentCardData({
+  relationship, uid, email, displayName, student = {}, childName = "", isParent = false,
+  preferredTeacher = "", teacherUid = "", source = "", nowIso,
+}) {
+  return {
+    ...(relationship === "student" ? {
+      linkedUserId: uid,
+      studentUid: uid,
+      linkedUserIds: [uid],
+      isSelfStudent: true,
+      name: student.name || displayName,
+      email,
+      targetLevel: "B1",
+      grade: isParent ? "Täiskasvanu" : "",
+      registrationSource: isParent ? "parent-as-student" : "self-service-server",
+    } : {
+      linkedParentId: uid,
+      parentUid: uid,
+      linkedParentIds: [uid],
+      parentName: displayName,
+      parentEmail: email,
+      name: student.name || childName || "Õpilane",
+      email: "",
+      targetLevel: "A2",
+      grade: "",
+      registrationSource: "parent-self-service-server",
+    }),
+    phone: "",
+    level: "A1",
+    teacher: preferredTeacher,
+    teacherUid,
+    active: true,
+    packageTotal: 0,
+    packageUsed: 0,
+    subject: "Eesti keel",
+    group: "",
+    profileStatus: "new",
+    contactStatus: "new",
+    contactOwner: preferredTeacher,
+    contactLastAt: "",
+    contactNotes: "Loodud kaitstud konto sidumise käigus",
+    accountLinkSource: source,
+    accountLinkedAt: nowIso,
+    createdAt: nowIso.slice(0, 10),
+    updatedAt: nowIso,
+  };
+}
+
+const LINK_REVIEW_REASONS = {
+  uid_multiple_students: "Konto on seotud mitme õpilase kaardiga",
+  email_multiple_students: "Sama e-postiga on mitu õpilase kaarti",
+  email_not_verified: "Sama e-postiga kaart on olemas, kuid konto e-post ei ole kinnitatud",
+  student_has_another_login: "Sama e-postiga kaardil on juba teine konto",
+  parent_uid_multiple_children_with_same_name: "Lapsevanemal on mitu sama nimega last",
+  parent_child_name_variant: "Lapse nimi sarnaneb olemasoleva kaardiga",
+  parent_email_not_verified: "Lapse kaart on olemas, kuid vanema e-post ei ole kinnitatud",
+  parent_email_and_name_multiple_students: "Mitu sobivat lapse kaarti",
+};
+
+// Administrator: registrations the automatic linking did not decide (possible duplicates). Shown in „Uued kontod”.
+async function listAccountLinkReviews() {
+  const snap = await db.collection("accountLinkReviews").where("status", "==", "pending").get();
+  const reviews = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  const uids = [...new Set(reviews.map(review => review.uid).filter(Boolean))];
+  const profiles = new Map((await Promise.all(uids.map(uid => db.collection("users").doc(uid).get())))
+    .filter(doc => doc.exists).map(doc => [doc.id, doc.data()]));
+  return reviews.map(review => {
+    const profile = profiles.get(review.uid) || {};
+    return {
+      id: review.id,
+      uid: review.uid,
+      displayName: profile.displayName || review.displayName || review.email || "",
+      email: review.email || profile.email || "",
+      approvalStatus: profile.approvalStatus || "",
+      relationship: review.relationship,
+      childName: review.childName || "",
+      reason: review.reason || "",
+      reasonText: LINK_REVIEW_REASONS[review.reason] || review.reason || "",
+      candidates: Array.isArray(review.candidates) ? review.candidates : [],
+      detectedAt: review.lastDetectedAt || review.firstDetectedAt || "",
+    };
+  }).sort((a, b) => String(b.detectedAt).localeCompare(String(a.detectedAt)));
+}
+
+// „Loo uus kaart”: the administrator decided the registration is a new person (not a duplicate).
+async function createStudentForLinkReview({ actor, reviewId }) {
+  const cleanReviewId = cleanText(reviewId, 300);
+  if (!cleanReviewId) throw httpError(400, "Review id required");
+  const reviewRef = db.collection("accountLinkReviews").doc(cleanReviewId);
+  const reviewSnap = await reviewRef.get();
+  if (!reviewSnap.exists) throw httpError(404, "Review not found");
+  const review = reviewSnap.data();
+  if (review.status !== "pending") throw httpError(409, "Review already decided");
+  const uid = cleanText(review.uid, 180);
+  const relationship = review.relationship === "parent" ? "parent" : "student";
+  let authUser;
+  try { authUser = await admin.auth().getUser(uid); } catch (error) { throw httpError(404, "Firebase account not found"); }
+  const [profileSnap, directorySnap] = await Promise.all([
+    db.collection("users").doc(uid).get(),
+    db.collection("securityConfig").doc("teacherDirectoryV1").get(),
+  ]);
+  const profile = profileSnap.exists ? profileSnap.data() : {};
+  const roles = collectTrustedRoles(profile, { uid });
+  const isParent = roles.has("parent");
+  const email = normalizeAccountEmail(authUser.email || profile.email || review.email || "");
+  const displayName = cleanText(profile.displayName || authUser.displayName || email || "Õpilane", 180);
+  const childName = cleanText(review.childName, 180);
+  if (relationship === "parent" && !childName) throw httpError(400, "Child name missing");
+  const preferredTeacher = cleanText(profile.preferredTeacher || profile.teacher || (isParent ? "Pavel" : ""), 180);
+  const teacherUid = String(directorySnap.data()?.teachers?.[accountTeacherDirectoryKey(preferredTeacher)] || "");
+  const studentId = relationship === "student"
+    ? `self_${uid}`
+    : `parent_${uid}_${accountBootstrapKey(childName).slice(0, 12)}`;
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+  const batch = db.batch();
+  batch.set(db.collection("students").doc(studentId), {
+    ...bootstrapStudentCardData({
+      relationship, uid, email, displayName, student: {}, childName, isParent,
+      preferredTeacher, teacherUid, source: "admin_review_new_card", nowIso,
+    }),
+    accountLinkedBy: actorData,
+  }, { merge: true });
+  batch.set(db.collection("users").doc(uid), {
+    linkedStudentIds: FieldValue.arrayUnion(studentId),
+    accountLinkStatus: "linked",
+    updatedAt: nowIso,
+  }, { merge: true });
+  batch.set(reviewRef, {
+    status: "resolved", resolution: "admin_new_card", resolvedAt: nowIso, resolvedBy: actorData,
+    resolvedStudentId: studentId, updatedAt: nowIso,
+  }, { merge: true });
+  batch.set(db.collection("activityLog").doc(), {
+    type: "account.review_new_card", action: "account.review_new_card", uid, studentId, relationship,
+    reviewId: cleanReviewId, actor: actorData, createdAt: nowIso,
+  });
+  await batch.commit();
+  return { reviewId: cleanReviewId, uid, studentId, relationship, created: true };
+}
+
+async function dismissAccountLinkReview({ actor, reviewId }) {
+  const cleanReviewId = cleanText(reviewId, 300);
+  if (!cleanReviewId) throw httpError(400, "Review id required");
+  const reviewRef = db.collection("accountLinkReviews").doc(cleanReviewId);
+  const reviewSnap = await reviewRef.get();
+  if (!reviewSnap.exists) throw httpError(404, "Review not found");
+  const nowIso = new Date().toISOString();
+  await reviewRef.set({ status: "dismissed", resolvedAt: nowIso, resolvedBy: actorSnapshot(actor), updatedAt: nowIso }, { merge: true });
+  return { reviewId: cleanReviewId, dismissed: true };
+}
+
 async function bootstrapCurrentAccount({ decoded, profile, includeSelfStudent = false }) {
   if (isDisabledProfile(profile)) throw httpError(403, "Account disabled");
   const roles = collectTrustedRoles(profile, decoded);
@@ -6233,48 +6386,10 @@ async function bootstrapCurrentAccount({ decoded, profile, includeSelfStudent = 
         ? `self_${uid}`
         : `parent_${uid}_${accountBootstrapKey(plan.childName || plan.student?.name).slice(0, 12)}`;
       const student = plan.student || {};
-      batch.set(db.collection("students").doc(studentId), {
-        ...(plan.relationship === "student" ? {
-          linkedUserId: uid,
-          studentUid: uid,
-          linkedUserIds: [uid],
-          isSelfStudent: true,
-          name: student.name || displayName,
-          email,
-          targetLevel: "B1",
-          grade: isParent ? "Täiskasvanu" : "",
-          registrationSource: isParent ? "parent-as-student" : "self-service-server",
-        } : {
-          linkedParentId: uid,
-          parentUid: uid,
-          linkedParentIds: [uid],
-          parentName: displayName,
-          parentEmail: email,
-          name: student.name || plan.childName || "Õpilane",
-          email: "",
-          targetLevel: "A2",
-          grade: "",
-          registrationSource: "parent-self-service-server",
-        }),
-        phone: "",
-        level: "A1",
-        teacher: preferredTeacher,
-        teacherUid,
-        active: true,
-        packageTotal: 0,
-        packageUsed: 0,
-        subject: "Eesti keel",
-        group: "",
-        profileStatus: "new",
-        contactStatus: "new",
-        contactOwner: preferredTeacher,
-        contactLastAt: "",
-        contactNotes: "Loodud kaitstud konto sidumise käigus",
-        accountLinkSource: plan.source,
-        accountLinkedAt: nowIso,
-        createdAt: nowIso.slice(0, 10),
-        updatedAt: nowIso,
-      }, { merge: true });
+      batch.set(db.collection("students").doc(studentId), bootstrapStudentCardData({
+        relationship: plan.relationship, uid, email, displayName, student, childName: plan.childName,
+        isParent, preferredTeacher, teacherUid, source: plan.source, nowIso,
+      }), { merge: true });
       createdStudentIds.push(studentId);
     } else if (plan.status === "link") {
       batch.set(db.collection("students").doc(studentId), plan.relationship === "student" ? {
@@ -7379,6 +7494,18 @@ exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"], timeout
       res.status(result.idempotent ? 200 : 201).json(result);
       return;
     }
+    if (req.path === "/accounts/reviews") {
+      res.json({ reviews: await listAccountLinkReviews() });
+      return;
+    }
+    if (req.path === "/accounts/reviews/create-card") {
+      res.status(201).json(await createStudentForLinkReview({ actor, reviewId: req.body?.reviewId }));
+      return;
+    }
+    if (req.path === "/accounts/reviews/dismiss") {
+      res.json(await dismissAccountLinkReview({ actor, reviewId: req.body?.reviewId }));
+      return;
+    }
     // Administrator approves or rejects a self-registered account. Approval links the student card(s) at once
     // and tells the person by e-mail; until then the account has no access (rules + isDisabledProfile).
     if (req.path === "/accounts/approval") {
@@ -7419,7 +7546,7 @@ exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"], timeout
       const mailed = sendApprovalEmail
         ? await deliverApprovalEmailWithin(composeApprovedEmail(profile), { kind: "account-approved", uid: targetUid })
         : false;
-      res.json({ uid: targetUid, approvalStatus: update.approvalStatus, linkedStudentIds: linked?.linkedStudentIds || [], createdStudentIds: linked?.createdStudentIds || [], mailed, mailPending: false });
+      res.json({ uid: targetUid, approvalStatus: update.approvalStatus, linkedStudentIds: linked?.linkedStudentIds || [], createdStudentIds: linked?.createdStudentIds || [], reviewCount: linked?.reviews?.length || 0, mailed, mailPending: false });
       return;
     }
     if (req.path === "/accounts/bootstrap-admin") {

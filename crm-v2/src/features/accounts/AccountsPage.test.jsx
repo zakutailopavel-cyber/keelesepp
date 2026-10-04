@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import AccountsPage from './AccountsPage.jsx';
 
 const pending = [{ id: 'u1', displayName: 'Mari Maasikas', email: 'mari@example.ee', role: 'parent', childName: 'Kati', preferredTeacher: 'Jelena', createdAt: '2026-09-29', approvalStatus: 'pending' }];
@@ -70,5 +70,35 @@ describe('new accounts page', () => {
     fireEvent.click(screen.getByRole('tab', { name: 'Keeldutud' }));
     await waitFor(() => expect(svc.list).toHaveBeenCalledWith('rejected'));
     expect(await screen.findByText('Keeldutud kontosid pole')).toBeInTheDocument();
+  });
+});
+
+describe('AccountsPage: possible duplicates', () => {
+  const review = {
+    id: 'r1', uid: 'u-polina', displayName: 'Polina', email: 'polina@example.com', relationship: 'student', childName: '', approvalStatus: 'approved',
+    reasonText: 'Sama e-postiga kaart on olemas, kuid konto e-post ei ole kinnitatud',
+    candidates: [{ id: 'card-1', name: 'Polina Ivanova', email: 'polina@example.com', parentEmail: '' }],
+  };
+
+  it('shows the undecided registration and links it to the existing card', async () => {
+    const svc = service({
+      listReviews: vi.fn().mockResolvedValueOnce([review]).mockResolvedValue([]),
+      linkToStudent: vi.fn().mockResolvedValue({}),
+    });
+    render(<AccountsPage service={svc} />);
+    const item = await screen.findByRole('article', { name: 'Otsus: Polina' });
+    expect(within(item).getByText(/e-post ei ole kinnitatud/)).toBeInTheDocument();
+    fireEvent.click(within(item).getByRole('button', { name: /Seo selle kaardiga/ }));
+    await waitFor(() => expect(svc.linkToStudent).toHaveBeenCalledWith({ uid: 'u-polina', studentId: 'card-1', relationship: 'student' }));
+    expect(await screen.findByText('Polina on seotud kaardiga „Polina Ivanova”.')).toBeInTheDocument();
+    expect(svc.listReviews).toHaveBeenCalledTimes(2);
+  });
+
+  it('creates a new card when the registration is a new person', async () => {
+    const svc = service({ listReviews: vi.fn().mockResolvedValueOnce([review]).mockResolvedValue([]), createCardForReview: vi.fn().mockResolvedValue({ studentId: 'self_u-polina' }) });
+    render(<AccountsPage service={svc} />);
+    fireEvent.click(await screen.findByRole('button', { name: /Loo uus kaart/ }));
+    await waitFor(() => expect(svc.createCardForReview).toHaveBeenCalledWith('r1'));
+    expect(await screen.findByText('Polina: loodi uus õpilase kaart.')).toBeInTheDocument();
   });
 });
