@@ -35,16 +35,41 @@ function face(mood, cx, cy, r) {
   return eyes + blush + mouth + extra;
 }
 
-function item(stage, mood, cx, headTop, bodyY) {
+function item(stage, mood, cx, headTop, bodyY, wearing = {}) {
   let out = '';
-  if (stage >= 2) out += `<path d="M${cx - 30} ${bodyY - 34} q30 14 60 0 l-4 12 q-26 12 -52 0 z" fill="#2f7d4c" stroke="${O}" stroke-width="3" stroke-linejoin="round"/><path d="M${cx + 18} ${bodyY - 26} l10 26 l-12 -2 z" fill="#2f7d4c" stroke="${O}" stroke-width="3" stroke-linejoin="round"/>`;
-  if (stage >= 3) out += `<g><rect x="${cx - 26}" y="${headTop - 16}" width="52" height="8" rx="3" fill="${O}"/><path d="M${cx - 34} ${headTop - 16} l34 -14 l34 14 l-34 12 z" fill="${O}"/><path d="M${cx + 30} ${headTop - 15} v14" stroke="#f5b301" stroke-width="3" stroke-linecap="round"/><circle cx="${cx + 30}" cy="${headTop + 1}" r="4" fill="#f5b301"/></g>`;
+  if (stage >= 2 && !wearing.neck) out += `<path d="M${cx - 30} ${bodyY - 34} q30 14 60 0 l-4 12 q-26 12 -52 0 z" fill="#2f7d4c" stroke="${O}" stroke-width="3" stroke-linejoin="round"/><path d="M${cx + 18} ${bodyY - 26} l10 26 l-12 -2 z" fill="#2f7d4c" stroke="${O}" stroke-width="3" stroke-linejoin="round"/>`;
+  if (stage >= 3 && !wearing.hat) out += `<g><rect x="${cx - 26}" y="${headTop - 16}" width="52" height="8" rx="3" fill="${O}"/><path d="M${cx - 34} ${headTop - 16} l34 -14 l34 14 l-34 12 z" fill="${O}"/><path d="M${cx + 30} ${headTop - 15} v14" stroke="#f5b301" stroke-width="3" stroke-linecap="round"/><circle cx="${cx + 30}" cy="${headTop + 1}" r="4" fill="#f5b301"/></g>`;
   if (mood === 'proud') out += `<g transform="translate(${cx + 40} ${bodyY - 4})"><circle r="12" fill="#f5b301" stroke="${O}" stroke-width="3"/><path d="M0 -6 l1.8 4 4.4 .4 -3.3 3 1 4.3 -3.9 -2.3 -3.9 2.3 1 -4.3 -3.3 -3 4.4 -.4z" fill="#fff"/></g>` +
     ['', 's2', 's3'].map((c, i) => `<path class="spark ${c}" d="M0 -7 L2 -2 7 0 2 2 0 7 -2 2 -7 0 -2 -2Z" transform="translate(${[cx - 70, cx + 72, cx - 58][i]} ${[headTop + 10, headTop + 30, bodyY + 10][i]})" fill="#f5b301"/>`).join('');
   return out;
 }
 
-export function petSvg(kind, mood = 'calm', stage = 2) {
+// Bought outfit (petItems.js), drawn from constants only.
+const BACKGROUNDS = {
+  'bg-sky': `<rect x="4" y="4" width="192" height="192" rx="28" fill="#dbeafe"/><g fill="#fff"><ellipse cx="48" cy="44" rx="22" ry="10"/><ellipse cx="64" cy="38" rx="16" ry="10"/><ellipse cx="150" cy="64" rx="20" ry="9"/></g>`,
+  'bg-forest': `<rect x="4" y="4" width="192" height="192" rx="28" fill="#e7f5e1"/><g fill="#7fbf7f"><path d="M26 150 l18 -46 l18 46z"/><path d="M150 150 l20 -54 l20 54z"/><path d="M168 120 l12 -30 l12 30z"/></g>`,
+  'bg-space': `<rect x="4" y="4" width="192" height="192" rx="28" fill="#1e1b4b"/><g fill="#fde68a"><circle cx="30" cy="34" r="2.5"/><circle cx="168" cy="28" r="2"/><circle cx="150" cy="80" r="2.5"/><circle cx="40" cy="96" r="1.8"/><circle cx="176" cy="132" r="2"/></g><circle cx="160" cy="44" r="12" fill="#c4b5fd"/>`,
+};
+function accessories(wearing, cx, headY, headR, headTop, faceY, bodyY, bodyRy) {
+  let out = '';
+  const ex = headR * 0.38;
+  const ey = faceY - headR * 0.05;
+  if (wearing.glasses === 'round' || wearing.glasses === 'sun') {
+    const fill = wearing.glasses === 'sun' ? '#1f2937' : 'rgba(255,255,255,.25)';
+    out += [-1, 1].map((d) => `<circle cx="${cx + d * ex}" cy="${ey}" r="${headR * 0.24}" fill="${fill}" stroke="${O}" stroke-width="3"/>`).join('')
+      + `<path d="M${cx - ex + headR * 0.24} ${ey} q${ex - headR * 0.24} -6 ${2 * (ex - headR * 0.24)} 0" fill="none" stroke="${O}" stroke-width="3"/>`;
+  }
+  const neckY = bodyY - bodyRy + 4;
+  if (wearing.neck === 'bow') out += `<g transform="translate(${cx} ${neckY})"><path d="M0 0 l-16 -9 v18z M0 0 l16 -9 v18z" fill="#e11d48" stroke="${O}" stroke-width="3" stroke-linejoin="round"/><circle r="5" fill="#be123c" stroke="${O}" stroke-width="2.5"/></g>`;
+  if (wearing.neck === 'medal') out += `<path d="M${cx - 14} ${neckY - 4} l14 22 l14 -22" fill="none" stroke="#2563eb" stroke-width="5"/><circle cx="${cx}" cy="${neckY + 24}" r="10" fill="#f5b301" stroke="${O}" stroke-width="3"/><path d="M${cx} ${neckY + 19} l1.6 3.4 3.7 .4 -2.8 2.5 .8 3.7 -3.3 -1.9 -3.3 1.9 .8 -3.7 -2.8 -2.5 3.7 -.4z" fill="#fff"/>`;
+  if (wearing.hat === 'cap') out += `<path d="M${cx - headR * 0.75} ${headTop + 14} q${headR * 0.75} -${headR * 0.75} ${headR * 1.5} 0 z" fill="#2563eb" stroke="${O}" stroke-width="3" stroke-linejoin="round"/><path d="M${cx + headR * 0.6} ${headTop + 12} h${headR * 0.55}" stroke="${O}" stroke-width="6" stroke-linecap="round"/>`;
+  if (wearing.hat === 'crown') out += `<path d="M${cx - 28} ${headTop + 4} l6 -26 l12 14 l10 -20 l10 20 l12 -14 l6 26 z" fill="#f5b301" stroke="${O}" stroke-width="3" stroke-linejoin="round"/><circle cx="${cx}" cy="${headTop - 4}" r="4" fill="#e11d48"/>`;
+  if (wearing.hat === 'wizard') out += `<path d="M${cx - 32} ${headTop + 8} l32 -58 l32 58 z" fill="#6d28d9" stroke="${O}" stroke-width="3" stroke-linejoin="round"/><circle cx="${cx - 6}" cy="${headTop - 18}" r="3" fill="#fde68a"/><circle cx="${cx + 8}" cy="${headTop - 30}" r="2.4" fill="#fde68a"/>`;
+  if (wearing.hat === 'flower') out += `<g transform="translate(${cx + headR * 0.55} ${headTop + 10})">${[0, 72, 144, 216, 288].map((a) => `<ellipse rx="6" ry="10" transform="rotate(${a}) translate(0 -9)" fill="#f9a8d4" stroke="${O}" stroke-width="2"/>`).join('')}<circle r="6" fill="#f5b301" stroke="${O}" stroke-width="2"/></g>`;
+  return out;
+}
+
+export function petSvg(kind, mood = 'calm', stage = 2, wearing = {}) {
   const s = SPECIES[kind];
   const cx = 100;
   const headR = { 1: 50, 2: 45, 3: 41 }[stage];
@@ -92,6 +117,7 @@ export function petSvg(kind, mood = 'calm', stage = 2) {
   const faceSvg = kind === 'kakk' ? face(mood, cx, faceY, headR * 0.98).replace(/fill="#f28b82"/g, 'fill="#f28b82" opacity=".35"') : face(mood, cx, faceY, headR);
 
   return `<svg class="pet m-${mood}" viewBox="0 0 200 200" role="img" aria-label="${s.name}: ${MOODS[mood].label.toLowerCase()}, ${STAGES[stage].toLowerCase()}" xmlns="http://www.w3.org/2000/svg">
+    ${BACKGROUNDS[wearing.bg] || ''}
     <ellipse cx="${cx}" cy="194" rx="${bodyRx + 14}" ry="5" fill="${O}" opacity=".12"/>
     <g class="jump"><g class="breathe">
       ${back}
@@ -103,7 +129,8 @@ export function petSvg(kind, mood = 'calm', stage = 2) {
       <circle cx="${cx}" cy="${headY}" r="${headR}" fill="${s.body}" ${st}/>
       ${headExtra}
       ${faceSvg}
-      ${item(stage, mood, cx, headTop, bodyY)}
+      ${item(stage, mood, cx, headTop, bodyY, wearing)}
+      ${accessories(wearing, cx, headY, headR, headTop, faceY, bodyY, bodyRy)}
     </g></g>
   </svg>`;
 }

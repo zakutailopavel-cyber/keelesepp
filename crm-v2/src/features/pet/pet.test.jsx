@@ -1,7 +1,9 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { vi } from 'vitest';
 import PetCard from './PetCard.jsx';
-import { petGreeting, petProgress, validPetName } from './petModel.js';
+import PetOverview from './PetOverview.jsx';
+import { availableStars, buyItem, canBuy, cleanWearing, toggleWear } from './petItems.js';
+import { learningStreak, petGreeting, petProgress, validPetName } from './petModel.js';
 
 const NOW = new Date('2026-09-29T12:00:00Z').getTime();
 const day = (n) => new Date(NOW - n * 86400000).toISOString();
@@ -33,6 +35,28 @@ describe('pet model', () => {
     expect(petProgress({ lessons: [{ date: day(1).slice(0, 10) }], now: NOW }).mood).toBe('happy');
     expect(petProgress({ lessons: [{ date: day(30).slice(0, 10) }], now: NOW }).mood).toBe('sleep');
     expect(petProgress({ now: NOW }).mood).toBe('calm');
+  });
+
+  it('grows from homework done, learned words and a learning streak (capped)', () => {
+    const p = petProgress({
+      homework: [{ status: 'Tehtud', submittedAt: day(0) }, { status: 'Ootel' }],
+      words: [{ box: 3, reviewedAt: day(1) }, { box: 5 }, { box: 1, reviewedAt: day(2) }],
+      now: NOW,
+    });
+    expect(p.homework).toBe(1);
+    expect(p.learnedWords).toBe(2);
+    expect(p.streak).toBe(3);
+    expect(p.xp).toBe(10 + 2 * 2 + 3 * 3);
+    expect(p.stars).toBe(Math.floor(p.xp / 5));
+    const long = petProgress({ words: Array.from({ length: 20 }, (_, i) => ({ box: 0, reviewedAt: day(i) })), now: NOW });
+    expect(long.streak).toBe(20);
+    expect(long.xp).toBe(30);
+  });
+
+  it('keeps the streak until the day is over and breaks it after a missed day', () => {
+    expect(learningStreak([NOW - 86400000, NOW - 2 * 86400000], NOW)).toBe(2);
+    expect(learningStreak([NOW - 2 * 86400000], NOW)).toBe(0);
+    expect(learningStreak([], NOW)).toBe(0);
   });
 
   it('speaks the language being learned, with a Russian hint', () => {
@@ -74,5 +98,61 @@ describe('PetCard', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Ei, aitäh' }));
     await waitFor(() => expect(repository.update).toHaveBeenCalledWith({ uid: 'u1', current: null, optedOut: true }));
     await waitFor(() => expect(container.textContent).toBe(''));
+  });
+});
+
+describe('pet outfits', () => {
+  const lessons = Array.from({ length: 3 }, (_, i) => ({ date: day(10 + i).slice(0, 10), status: 'Toimunud' }));
+
+  it('buys with earned stars, puts it on, and keeps the public copy in step', async () => {
+    const repository = {
+      get: vi.fn().mockResolvedValue({ kind: 'siil', name: 'Okas' }),
+      updateOutfit: vi.fn(async ({ current, ...next }) => ({ ...current, ...next })),
+      publish: vi.fn().mockResolvedValue(),
+    };
+    const { container } = render(<PetCard user={{ uid: 'u1' }} studentId="s1" repository={repository} lessons={lessons} />);
+    await waitFor(() => expect(repository.publish).toHaveBeenCalledWith({ uid: 'u1', studentId: 's1', pet: { kind: 'siil', name: 'Okas' } }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Riidekapp' }));
+    const wardrobe = screen.getByRole('region', { name: 'Riidekapp' });
+    expect(within(wardrobe).getByText('6 tähte')).toBeInTheDocument();
+    expect(within(wardrobe).getByRole('button', { name: 'Osta Kroon (40 tähte)' })).toBeDisabled();
+    fireEvent.click(within(wardrobe).getByRole('button', { name: 'Osta Taevas (5 tähte)' }));
+    await waitFor(() => expect(repository.updateOutfit).toHaveBeenCalledWith(expect.objectContaining({ owned: ['bg-sky'], wearing: { bg: 'bg-sky' }, spentStars: 5 })));
+    expect(await within(wardrobe).findByText('1 tähte')).toBeInTheDocument();
+    expect(container.querySelector('.pet-home__art').innerHTML).toContain('#dbeafe');
+    await waitFor(() => expect(repository.publish).toHaveBeenLastCalledWith(expect.objectContaining({ pet: expect.objectContaining({ wearing: { bg: 'bg-sky' } }) })));
+    fireEvent.click(within(wardrobe).getByRole('button', { name: 'Võta ära: Taevas' }));
+    await waitFor(() => expect(repository.updateOutfit).toHaveBeenLastCalledWith(expect.objectContaining({ wearing: {} })));
+  });
+
+  it('the item rules: one per slot, no double buying, no buying without stars', () => {
+    const progress = { stars: 12 };
+    expect(canBuy('crown', progress, {}).reason).toBe('Vaja on veel 28 tähte.');
+    const next = buyItem('cap', progress, {});
+    expect(next).toEqual({ owned: ['cap'], wearing: { hat: 'cap' }, spentStars: 10 });
+    expect(canBuy('cap', progress, next).ok).toBe(false);
+    expect(availableStars(progress, next)).toBe(2);
+    expect(cleanWearing({ hat: 'bow', glasses: 'round', shoes: 'x' })).toEqual({ glasses: 'round' });
+    expect(toggleWear('cap', next)).toEqual({});
+    expect(toggleWear('crown', next)).toEqual({ hat: 'cap' });
+  });
+});
+
+describe('PetOverview (teacher, parent)', () => {
+  it('shows the pet from the public copy with streak and stars', async () => {
+    const repository = { listForStudents: vi.fn().mockResolvedValue([{ id: 'u1', studentId: 's1', kind: 'rebane', name: 'Rebu', wearing: { hat: 'crown' } }]) };
+    const wordsService = { subscribeForStudent: vi.fn((id, onData) => { onData([{ studentId: 's1', box: 4, reviewedAt: new Date().toISOString() }]); return () => {}; }) };
+    const { container } = render(<PetOverview studentIds={['s1']} lessons={[]} repository={repository} wordsService={wordsService} />);
+    expect(await screen.findByRole('heading', { name: 'Rebu' })).toBeInTheDocument();
+    expect(screen.getByText(/1 päev järjest/)).toBeInTheDocument();
+    expect(screen.getByText('1 õpitud sõna')).toBeInTheDocument();
+    expect(container.innerHTML).toContain('#f5b301');
+  });
+
+  it('shows nothing without a pet', async () => {
+    const repository = { listForStudents: vi.fn().mockResolvedValue([]) };
+    const { container } = render(<PetOverview studentIds={['s1']} repository={repository} wordsService={{ subscribeForStudent: () => () => {} }} />);
+    await waitFor(() => expect(repository.listForStudents).toHaveBeenCalled());
+    expect(container.textContent).toBe('');
   });
 });

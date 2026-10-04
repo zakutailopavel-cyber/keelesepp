@@ -810,7 +810,10 @@ service cloud.firestore {
         'pet'
       ])
         && validTermsAcceptance(request.resource.data)
-        && validPet(request.resource.data);
+        && validPet(request.resource.data)
+        // stars spent on outfits never go back down, bought items are never lost
+        && request.resource.data.get('pet', {}).get('spentStars', 0) >= resource.data.get('pet', {}).get('spentStars', 0)
+        && request.resource.data.get('pet', {}).get('owned', []).hasAll(resource.data.get('pet', {}).get('owned', []));
     }
 
     // Student cabinet pet: the chosen kind and a short name plus three own flags; growth is derived, never stored.
@@ -818,7 +821,10 @@ service cloud.firestore {
       return !('pet' in data)
         || (
           data.pet is map
-          && data.pet.keys().hasOnly(['kind', 'name', 'chosenAt', 'tourDoneAt', 'hidden', 'optedOut'])
+          && data.pet.keys().hasOnly(['kind', 'name', 'chosenAt', 'tourDoneAt', 'hidden', 'optedOut', 'owned', 'wearing', 'spentStars'])
+          && (!('owned' in data.pet) || (data.pet.owned is list && data.pet.owned.size() <= 40))
+          && (!('wearing' in data.pet) || (data.pet.wearing is map && data.pet.wearing.keys().hasOnly(['bg', 'hat', 'glasses', 'neck'])))
+          && (!('spentStars' in data.pet) || (data.pet.spentStars is int && data.pet.spentStars >= 0 && data.pet.spentStars <= 100000))
           && (('kind' in data.pet) == ('name' in data.pet))
           && (!('kind' in data.pet) || data.pet.kind in ['siil', 'rebane', 'kakk', 'draakon'])
           && (!('name' in data.pet) || (data.pet.name is string && data.pet.name.size() > 0 && data.pet.name.size() <= 24))
@@ -1437,6 +1443,22 @@ service cloud.firestore {
         && resource.data.teacherUid == uid()
         && lessonSummaryValid(request.resource.data, invitationId);
       allow delete: if isAdmin();
+    }
+
+    // Public copy of a student's pet (kind, name, outfit) for the teacher and parents; written only by the student
+    // themselves and only pointing at their own student card.
+    match /petProfiles/{petUid} {
+      allow read: if isStaff() || (signedIn() && uid() == petUid) || ownsStudent(resource.data.studentId);
+      allow create, update: if signedIn() && uid() == petUid
+        && request.resource.data.keys().hasOnly(['uid', 'studentId', 'kind', 'name', 'wearing', 'updatedAt'])
+        && request.resource.data.uid == petUid
+        && request.resource.data.studentId is string
+        && ownsStudent(request.resource.data.studentId)
+        && request.resource.data.kind in ['siil', 'rebane', 'kakk', 'draakon']
+        && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 24
+        && request.resource.data.wearing is map && request.resource.data.wearing.keys().hasOnly(['bg', 'hat', 'glasses', 'neck'])
+        && request.resource.data.updatedAt is string;
+      allow delete: if signedIn() && uid() == petUid;
     }
 
     // Heartbeat of the transcriber on the school Mac (Admin SDK). Staff see in the lesson room whether it runs.

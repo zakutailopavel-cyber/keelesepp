@@ -1,5 +1,26 @@
 # KeeleSepp Project State
 
+## 2026-10-04 — Pet: grows from words, homework and streaks; outfits for stars; teacher and parents see it — branch `claude/affectionate-ritchie-dh2x9j`
+
+Checked `origin/main` `10d2d74` (after #285, homework e-mail). Owner chose all four pet improvements; this PR has
+three of them (the pet in the lesson room follows separately).
+- Growth (`petModel.petProgress`): + homework marked done (10 xp), learned words (box ≥ 3, 2 xp), learning streak
+  (days in a row with a lesson, work, homework or word practice; 3 xp/day, capped at 30); new `learningStreak`;
+  `stars = floor(xp / 5)`. Card shows streak, stars, learned words, homework.
+- Outfits (`petItems.js`, `PetWardrobe` „Riidekapp”): 11 items in 4 slots (background, hat, glasses, neck), bought with
+  stars, one per slot, put on/taken off; drawn in `petArt.petSvg(kind, mood, stage, wearing)` from constants.
+  Stored on `users/{uid}.pet`: `owned`, `wearing`, `spentStars`.
+- Teacher and parents: the student's client writes the public copy `petProfiles/{uid}` (`uid, studentId, kind, name,
+  wearing, updatedAt`); `PetOverview` on the staff student card („Ülevaade”) and the parent dashboard (growth from the
+  data those pages already have + words). A pet chosen before this release appears after the student opens their
+  dashboard once.
+- `firestore.rules`: pet keys `owned` (list ≤ 40), `wearing` (known slots), `spentStars` (int, never decreases),
+  `owned` never shrinks; `petProfiles`: read staff/self/`ownsStudent`, write only self for the own card, fixed keys.
+- Tests: pet model/outfit/overview tests (22); emulator `student-pet-emulator.integration.js` extended (outfit rules,
+  public copy: own card only, parent/teacher read, stranger 403) — with whiteboard and approval tests 10/10. CRM
+  Vitest 142 files / 888 tests; ESLint clean; build OK. Visual check of all species with outfits (Playwright).
+- **Needs the owner:** `firestore:rules` deploy (with the other pending rules).
+
 ## 2026-10-04 — New homework is e-mailed to the student and the parent — branch `claude/affectionate-ritchie-dh2x9j`
 
 Checked `origin/main` `4309fe8` (after #284, link reviews). Owner: when homework is added, the student and (if linked)
