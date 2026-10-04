@@ -4,7 +4,7 @@ import { vi } from 'vitest';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import BoardPage from './BoardPage.jsx';
 import StudentBoard from './StudentBoard.jsx';
-import { arrowHead, fitView, movable, screenToWorld, shapeFromDrag, zoomAt } from './boardModel.js';
+import { arrowHead, clampPoint, clampView, fitPage, fitView, movable, pageBounds, screenToWorld, shapeFromDrag, zoomAt } from './boardModel.js';
 
 globalThis.PointerEvent = globalThis.PointerEvent || class PointerEvent extends globalThis.MouseEvent {};
 
@@ -21,6 +21,8 @@ function fakeService(initial = {}) {
     update: vi.fn(async (_studentId, pageId, element, patch) => { data[keyOf(pageId)] = data[keyOf(pageId)].map((item) => (item.id === element.id ? { ...item, ...patch } : item)); emit(keyOf(pageId)); }),
     remove: vi.fn(async (_studentId, pageId, id) => { data[keyOf(pageId)] = data[keyOf(pageId)].filter((item) => item.id !== id); emit(keyOf(pageId)); }),
     clear: vi.fn(async () => 0),
+    addPage: vi.fn(async (_studentId, title) => { const id = `pg-${data.pages.length + 1}`; data.pages = [...data.pages, { id, title }]; return id; }),
+    renamePage: vi.fn(async () => {}),
   };
 }
 
@@ -143,6 +145,28 @@ describe('StudentBoard', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Raamat' }));
     await act(async () => { fireEvent.pointerDown(svg, { clientX: 500, clientY: 400, button: 0 }); });
     await waitFor(() => expect(service.add).toHaveBeenLastCalledWith('s-1', null, expect.objectContaining({ type: 'text', fontFamily: 'serif' }), user));
+  });
+
+  it('the student adds a sheet and renames a sheet by double clicking its tab', async () => {
+    const service = fakeService({ pages: [{ id: 'pg1', title: 'Tund 3', order: 1 }] });
+    render(<StudentBoard studentId="s-1" user={user} service={service} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Uus leht' }));
+    await waitFor(() => expect(service.addPage).toHaveBeenCalledWith('s-1', 'Leht 2', 2, user));
+    fireEvent.doubleClick(screen.getByRole('tab', { name: 'Tund 3' }));
+    const input = screen.getByRole('textbox', { name: 'Lehe nimi' });
+    fireEvent.change(input, { target: { value: 'Minevik' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    fireEvent.blur(input);
+    await waitFor(() => expect(service.renamePage).toHaveBeenCalledWith('s-1', 'pg1', 'Minevik', user));
+  });
+
+  it('keeps the board a sheet with edges: the page grows only around older content, panning keeps it on screen', () => {
+    expect(pageBounds([])).toEqual({ x1: 0, y1: 0, x2: 1600, y2: 1000 });
+    expect(pageBounds([{ type: 'note', x: 1700, y: -50, w: 180, h: 140 }])).toEqual({ x1: 0, y1: -90, x2: 1920, y2: 1000 });
+    const bounds = pageBounds([]);
+    expect(fitPage(bounds, 832, 532)).toEqual({ scale: 0.5, x: 16, y: 16 });
+    expect(clampView({ x: -5000, y: 0, scale: 1 }, bounds, 800, 600).x).toBe(-1520);
+    expect(clampPoint({ x: -10, y: 2000 }, bounds)).toEqual({ x: 0, y: 1000 });
   });
 
   it('draws a pen stroke and switches to a v1 lesson page', async () => {

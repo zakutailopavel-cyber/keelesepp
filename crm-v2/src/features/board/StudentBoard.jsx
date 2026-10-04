@@ -1,8 +1,8 @@
-import { ArrowUpRight, ChevronDown, Circle, Eraser, FilePlus2, FileText, Hand, ImagePlus, Maximize, Minus, MousePointer2, PenLine, Plus, Shapes, Square, StickyNote, Trash2, Type } from 'lucide-react';
+import { ArrowUpRight, ChevronDown, Circle, Eraser, FilePlus2, FileText, Pencil, Hand, ImagePlus, Maximize, Minus, MousePointer2, PenLine, Plus, Shapes, Square, StickyNote, Trash2, Type } from 'lucide-react';
 import { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { Button } from '../../components/ui/index.js';
 import { studentBoardService } from '../../services/firebase/studentBoard.js';
-import { COLORS, FONTS, NOTE_COLORS, ROOM_COLORS, SIZES, arrowHead, fontCss, imageSize, fitView, movable, pathFor, screenToWorld, shapeFromDrag, teacherMaterial, textAt, textBox, zoomAt } from './boardModel.js';
+import { COLORS, FONTS, NOTE_COLORS, ROOM_COLORS, SIZES, arrowHead, clampPoint, clampView, fitPage, fitView, fontCss, imageSize, movable, pageBounds, pathFor, screenToWorld, shapeFromDrag, teacherMaterial, textAt, textBox, zoomAt } from './boardModel.js';
 import './board.css';
 
 const TOOLS = [
@@ -55,8 +55,7 @@ export default function StudentBoard({
 
   useEffect(() => service.subscribePages(studentId, setPages, () => setPages([])), [service, studentId]);
   const pageKey = `${studentId}/${pageId || 'board'}`;
-  // In the lesson room every page opens fitted to its content once (a material placed by the teacher is fully visible
-  // on a phone too); later changes keep the user's own zoom and position.
+  // Every page is fitted once when it opens; later changes keep the user's own zoom and position.
   const fitted = useRef(new Set());
   useEffect(() => service.subscribeElements(
     studentId,
@@ -64,18 +63,25 @@ export default function StudentBoard({
     (items) => {
       const key = `${studentId}/${pageId || 'board'}`;
       setLoaded({ key, items });
-      if (room && items.length && !fitted.current.has(key) && svgRef.current) {
-        fitted.current.add(key);
+      if (!fitted.current.has(key) && svgRef.current) {
         const rect = svgRef.current.getBoundingClientRect();
-        if (rect.width && rect.height) setView(fitView(items, rect.width, rect.height));
+        if (rect.width && rect.height) {
+          fitted.current.add(key);
+          // content readable first (a teacher's material on a phone); an empty page shows its whole sheet
+          setView(items.length ? fitView(items, rect.width, rect.height) : fitPage(pageBounds(items), rect.width, rect.height));
+        }
       }
     },
     (nextError) => { setLoaded({ key: `${studentId}/${pageId || 'board'}`, items: [] }); setError(nextError?.message || 'Tahvlit ei saanud laadida.'); },
-  ), [room, service, studentId, pageId]);
+  ), [service, studentId, pageId]);
   const ready = loaded.key === pageKey;
   const elements = useMemo(() => (ready ? loaded.items : []), [ready, loaded.items]);
 
   const byId = useMemo(() => new Map(elements.map((element) => [element.id, element])), [elements]);
+  const bounds = useMemo(() => pageBounds(elements), [elements]);
+  const screenSize = () => { const rect = svgRef.current?.getBoundingClientRect(); return [rect?.width || 0, rect?.height || 0]; };
+  // every pan and zoom keeps part of the sheet on screen
+  const moveView = (update) => setView((current) => clampView(typeof update === 'function' ? update(current) : update, bounds, ...screenSize()));
   const fail = (message) => (nextError) => setError(nextError?.message || message);
   const local = (event) => {
     const rect = svgRef.current.getBoundingClientRect();
@@ -144,11 +150,32 @@ export default function StudentBoard({
     return add(data, 'Materjali ei saanud tahvlile lisada.');
   }, [add, staff, view]);
   const newPage = useCallback(async (title) => {
-    const id = await service.addPage(studentId, title || newPageTitle || 'Tund', pages.length + 1, user);
+    const id = await service.addPage(studentId, title || newPageTitle || `Leht ${pages.length + 1}`, pages.length + 1, user);
     choosePage(id);
     return id;
   }, [newPageTitle, pages.length, service, studentId, user]);
   useImperativeHandle(controllerRef, () => ({ undo, redo, insertFile, newPage, selectPage: choosePage }), [insertFile, newPage, redo, undo]);
+
+  // rename a lesson page: double click its tab or the pencil next to the open page
+  const [renaming, setRenaming] = useState(null);
+  const saveRename = () => {
+    const current = renaming;
+    setRenaming(null);
+    const page = pages.find((item) => item.id === current?.id);
+    if (!page || !current.title.trim() || current.title.trim() === page.title) return;
+    service.renamePage(studentId, page.id, current.title, user).catch(fail('Lehte ei saanud ümber nimetada.'));
+  };
+  const pageTabs = (className) => <div className={className} role="tablist" aria-label="Tahvli lehed">
+    <button type="button" role="tab" aria-selected={pageId === null} onClick={() => choosePage(null)}>Tahvel</button>
+    {pages.map((page) => (renaming?.id === page.id
+      ? <input key={page.id} className="sb-page-rename" aria-label="Lehe nimi" autoFocus maxLength={200} value={renaming.title}
+        onChange={(event) => setRenaming({ ...renaming, title: event.target.value })} onBlur={saveRename}
+        onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); if (event.key === 'Escape') setRenaming(null); }} />
+      : <button type="button" role="tab" key={page.id} aria-selected={pageId === page.id} title="Topeltklõps: nimeta ümber" onClick={() => choosePage(page.id)} onDoubleClick={() => setRenaming({ id: page.id, title: page.title || '' })}>{page.title || 'Leht'}</button>))}
+    {pageId && !renaming ? <button type="button" className="sb-page-tool" aria-label="Nimeta leht ümber" title="Nimeta leht ümber" onClick={() => { const page = pages.find((item) => item.id === pageId); if (page) setRenaming({ id: page.id, title: page.title || '' }); }}><Pencil size={14} /></button> : null}
+    <button type="button" className="sb-page-tool sb-room-newpage" aria-label="Uus leht" title="Uus leht" onClick={() => newPage().catch(fail('Uut lehte ei saanud luua.'))}><FilePlus2 size={15} /></button>
+    <span className={ready ? 'sb-sync is-ready' : 'sb-sync'}>{ready ? 'Sünkroonitud' : 'Ühendan…'}</span>
+  </div>;
 
   // while a text is open for editing, the font, size and colour buttons change that text
   const editingText = () => { const element = byId.get(editing?.id); return element?.type === 'text' ? element : null; };
@@ -166,7 +193,7 @@ export default function StudentBoard({
     setError('');
     setShapesOpen(false);
     const screen = local(event);
-    const world = screenToWorld(screen, view);
+    const world = clampPoint(screenToWorld(screen, view), bounds);
     const target = byId.get(event.target?.closest?.('[data-element-id]')?.dataset?.elementId);
     if (tool === 'hand' || (tool === 'select' && !target)) {
       gesture.current = { kind: 'pan', start: screen, view };
@@ -200,9 +227,9 @@ export default function StudentBoard({
     const current = gesture.current;
     if (!current) return;
     const screen = local(event);
-    const world = screenToWorld(screen, view);
+    const world = clampPoint(screenToWorld(screen, view), bounds);
     if (current.kind === 'pan') {
-      setView({ ...current.view, x: current.view.x + screen.x - current.start.x, y: current.view.y + screen.y - current.start.y });
+      moveView({ ...current.view, x: current.view.x + screen.x - current.start.x, y: current.view.y + screen.y - current.start.y });
     } else if (current.kind === 'pen') {
       const last = current.points[current.points.length - 1];
       if (Math.hypot(world.x - last.x, world.y - last.y) * view.scale < 3 || current.points.length >= 800) return;
@@ -225,25 +252,28 @@ export default function StudentBoard({
     if (current.kind === 'pen' && current.points.length > 1) {
       add({ type: 'stroke', points: current.points, color, strokeWidth: width }, 'Joont ei saanud salvestada.');
     } else if (current.kind === 'shape') {
-      const end = screenToWorld(local(event), view);
+      const end = clampPoint(screenToWorld(local(event), view), bounds);
       const box = shapeFromDrag(tool, current.start, end);
       if (Math.abs(box.w) > 4 || Math.abs(box.h) > 4) add({ type: 'shape', shape: tool, ...box, color, strokeWidth: shapeWidth }, 'Kujundit ei saanud salvestada.');
     } else if (current.kind === 'move' && (Math.abs(current.dx) > 1 || Math.abs(current.dy) > 1)) {
-      update(current.element, { x: current.element.x + current.dx, y: current.element.y + current.dy }, 'Elementi ei saanud liigutada.');
+      const element = current.element;
+      const x = Math.min(bounds.x2 - Math.min(element.w || 0, bounds.x2 - bounds.x1), Math.max(bounds.x1, element.x + current.dx));
+      const y = Math.min(bounds.y2 - Math.min(element.h || 0, bounds.y2 - bounds.y1), Math.max(bounds.y1, element.y + current.dy));
+      update(element, { x, y }, 'Elementi ei saanud liigutada.');
     }
   };
 
   const wheel = (event) => {
     event.preventDefault?.();
-    setView((current) => zoomAt(current, event.deltaY < 0 ? 1.08 : 1 / 1.08, local(event)));
+    moveView((current) => zoomAt(current, event.deltaY < 0 ? 1.08 : 1 / 1.08, local(event)));
   };
   const zoom = (factor) => {
     const rect = svgRef.current?.getBoundingClientRect();
-    setView((current) => zoomAt(current, factor, { x: (rect?.width || 800) / 2, y: (rect?.height || 500) / 2 }));
+    moveView((current) => zoomAt(current, factor, { x: (rect?.width || 800) / 2, y: (rect?.height || 500) / 2 }));
   };
   const fit = () => {
     const rect = svgRef.current?.getBoundingClientRect();
-    setView(fitView(elements, rect?.width || 800, rect?.height || 500));
+    setView(fitPage(bounds, rect?.width || 800, rect?.height || 500));
   };
   const clear = () => {
     if (!globalThis.confirm('Tühjendada see tahvel? Lukus materjalid jäävad alles.')) return;
@@ -317,9 +347,10 @@ export default function StudentBoard({
 
   const stage = <div className={`sb-stage tool-${tool}`}>
     <svg ref={svgRef} role="img" aria-label="Õpilase tahvel" onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onWheel={wheel} onDoubleClick={(event) => { const hit = textAt(elements, screenToWorld(local(event), view)); if (hit) setEditing({ id: hit.id, text: hit.text || '' }); }}>
-      <defs><pattern id="sb-dots" width={24 * view.scale} height={24 * view.scale} patternUnits="userSpaceOnUse" x={view.x} y={view.y}><circle cx="1" cy="1" r="1" fill="#d0d5dd" /></pattern></defs>
-      <rect width="100%" height="100%" fill="url(#sb-dots)" />
+      <defs><pattern id="sb-dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="#d0d5dd" /></pattern></defs>
       <g transform={`translate(${view.x} ${view.y}) scale(${view.scale})`}>
+        <rect className="sb-sheet" x={bounds.x1} y={bounds.y1} width={bounds.x2 - bounds.x1} height={bounds.y2 - bounds.y1} rx="6" />
+        <rect x={bounds.x1} y={bounds.y1} width={bounds.x2 - bounds.x1} height={bounds.y2 - bounds.y1} fill="url(#sb-dots)" pointerEvents="none" />
         {elements.filter((element) => element.id !== draft?.movingId).map((element) => <g key={element.id}>{render(element)}</g>)}
         {draft ? <g key="__draft">{render({ ...draft, id: draft.id || '__draft' })}</g> : null}
       </g>
@@ -343,12 +374,7 @@ export default function StudentBoard({
     const ShapeIcon = SHAPES.some(([key]) => key === tool) ? shapeActive[2] : Shapes;
     return (
       <div className="sb sb--room">
-        <div className="sb-room-pages" role="tablist" aria-label="Tahvli lehed">
-          <button type="button" role="tab" aria-selected={pageId === null} onClick={() => choosePage(null)}>Tahvel</button>
-          {pages.map((page) => <button type="button" role="tab" key={page.id} aria-selected={pageId === page.id} onClick={() => choosePage(page.id)}>{page.title || 'Leht'}</button>)}
-          {staff ? <button type="button" className="sb-room-newpage" aria-label="Uus tunnileht" title="Uus tunnileht" onClick={() => newPage().catch(fail('Uut lehte ei saanud luua.'))}><FilePlus2 size={15} /></button> : null}
-          <span className={ready ? 'sb-sync is-ready' : 'sb-sync'}>{ready ? 'Sünkroonitud' : 'Ühendan…'}</span>
-        </div>
+        {pageTabs('sb-room-pages')}
         {stage}
         {error ? <p className="sb-room-error" role="alert">{error}</p> : null}
         <div className="sb-zoombar" aria-label="Suum">{zoomControls}</div>
@@ -378,11 +404,7 @@ export default function StudentBoard({
 
   return (
     <div className="sb">
-      <div className="sb-pages" role="tablist" aria-label="Tahvli lehed">
-        <button type="button" role="tab" aria-selected={pageId === null} onClick={() => choosePage(null)}>Tahvel</button>
-        {pages.map((page) => <button type="button" role="tab" key={page.id} aria-selected={pageId === page.id} onClick={() => choosePage(page.id)}>{page.title || 'Leht'}</button>)}
-        <span className={ready ? 'sb-sync is-ready' : 'sb-sync'}>{ready ? 'Sünkroonitud' : 'Ühendan…'}</span>
-      </div>
+      {pageTabs('sb-pages')}
       <div className="sb-toolbar" role="toolbar" aria-label="Tahvli tööriistad">
         {TOOLS.map(toolButton)}
         <span className="sb-sep" />

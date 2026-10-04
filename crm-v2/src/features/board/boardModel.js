@@ -97,6 +97,44 @@ export function fitView(elements, width, height, padding = 40) {
   return { scale, x: padding - x1 * scale, y: padding - y1 * scale };
 }
 
+// The board is a sheet with edges (owner, 2026-10-04), not an endless canvas: 1600 × 1000 board units, grown only
+// where older content already lies outside it, so nothing drawn before is ever hidden.
+export const PAGE = Object.freeze({ w: 1600, h: 1000 });
+export function pageBounds(elements = [], margin = 40) {
+  const boxes = elements.map(elementBounds).filter(Boolean);
+  const x1 = Math.min(0, ...boxes.map((box) => box.x1 - margin));
+  const y1 = Math.min(0, ...boxes.map((box) => box.y1 - margin));
+  const x2 = Math.max(PAGE.w, ...boxes.map((box) => box.x2 + margin));
+  const y2 = Math.max(PAGE.h, ...boxes.map((box) => box.y2 + margin));
+  return { x1, y1, x2, y2 };
+}
+// the whole sheet on screen
+export function fitPage(bounds, width, height, padding = 16) {
+  if (!width || !height) return { x: 0, y: 0, scale: 1 };
+  const w = bounds.x2 - bounds.x1;
+  const h = bounds.y2 - bounds.y1;
+  const scale = clampScale(Math.min((width - padding * 2) / w, (height - padding * 2) / h));
+  return { scale, x: (width - w * scale) / 2 - bounds.x1 * scale, y: (height - h * scale) / 2 - bounds.y1 * scale };
+}
+// panning never pushes the sheet off the screen: at least `keep` pixels of it stay visible on every side
+export function clampView(view, bounds, width, height, keep = 80) {
+  if (!width || !height) return view;
+  const left = view.x + bounds.x1 * view.scale;
+  const right = view.x + bounds.x2 * view.scale;
+  const top = view.y + bounds.y1 * view.scale;
+  const bottom = view.y + bounds.y2 * view.scale;
+  let { x, y } = view;
+  if (right < keep) x += keep - right;
+  if (left > width - keep) x -= left - (width - keep);
+  if (bottom < keep) y += keep - bottom;
+  if (top > height - keep) y -= top - (height - keep);
+  return x === view.x && y === view.y ? view : { ...view, x, y };
+}
+// new content stays on the sheet
+export function clampPoint(point, bounds) {
+  return { x: Math.min(bounds.x2, Math.max(bounds.x1, point.x)), y: Math.min(bounds.y2, Math.max(bounds.y1, point.y)) };
+}
+
 // images and PDFs are added by staff; only staff may move or delete them (also enforced by the Firestore rules)
 export function teacherMaterial(element) {
   return ['image', 'pdf'].includes(element?.type);

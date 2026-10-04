@@ -1,5 +1,23 @@
 # KeeleSepp Project State
 
+## 2026-10-04 — Board: a sheet with edges, new sheets for everyone, renaming — branch `claude/affectionate-ritchie-dh2x9j`
+
+Checked `origin/main` `fa8da3e` (after #268). Wish-list item 4. Owner 2026-10-04: „делаем все до конца и потом одним
+большим обновлением все зальем” — agent merges each item after green CI; the owner deploys rules once at the end.
+- `boardModel.js`: `PAGE` 1600×1000, `pageBounds` (sheet grows only around older content outside it, so nothing is
+  hidden), `fitPage`, `clampView` (pan/zoom keep ≥80 px of the sheet on screen), `clampPoint` (new strokes, shapes,
+  notes, text and moves stay on the sheet).
+- `StudentBoard.jsx`: white sheet with shadow on a grey desk (dots only on the sheet); every page fitted once on open
+  (content if any, else the whole sheet); „Sobita” fits the sheet. Page tabs shared by room and page variant: „Uus
+  leht” for everyone (default title „Leht N”; the teacher's room menu still makes „Tund dd.mm.yyyy”), rename by double
+  clicking a tab or the pencil next to the open page (`studentBoardService.renamePage`).
+- `firestore.rules` `lessonPages`: create by anyone with board access (students/parents only non-snapshot sheets);
+  update adds a title-only rename branch for active non-snapshot sheets (signed). Delete stays staff-only.
+- Tests: board 2 new (student new sheet + rename; sheet maths); emulator „student adds and renames ordinary sheets but
+  not snapshots, order or status”; whiteboard rules 6/6. CRM Vitest 133 files / 839 tests; ESLint clean; build OK.
+  Not checked visually in a browser.
+- Before the rules deploy: students' „Uus leht” and renaming show a permission error; staff work as before.
+
 ## 2026-10-04 — Board text: font choice and editing existing text — branch `claude/affectionate-ritchie-dh2x9j`
 
 Checked `origin/main` `175c13b` (after #267, merged with the owner's permission). Wish-list item 3.

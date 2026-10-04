@@ -2153,15 +2153,28 @@ service cloud.firestore {
 
       match /lessonPages/{pageId} {
         allow read: if whiteboardAccessAllowed(studentId);
-        allow create: if whiteboardStaffAction(studentId)
+        // Staff create any page; the board's own student/parent may add an ordinary sheet (not a snapshot), e.g. a
+        // separate page for an explanation or homework (owner, 2026-10-04).
+        allow create: if whiteboardAccessAllowed(studentId)
           && validLessonPage(request.resource.data)
-          && request.resource.data.status == 'active';
-        allow update: if whiteboardStaffAction(studentId)
-          && validLessonPage(request.resource.data)
-          && request.resource.data.createdAt == resource.data.createdAt
-          && request.resource.data.isSnapshot == resource.data.isSnapshot
-          && request.resource.data.snapshotOf == resource.data.snapshotOf
-          && (resource.data.status != 'completed' || request.resource.data.status == 'completed');
+          && request.resource.data.status == 'active'
+          && (isAdmin() || isTeacher() || request.resource.data.isSnapshot == false);
+        allow update: if (
+            whiteboardStaffAction(studentId)
+            && validLessonPage(request.resource.data)
+            && request.resource.data.createdAt == resource.data.createdAt
+            && request.resource.data.isSnapshot == resource.data.isSnapshot
+            && request.resource.data.snapshotOf == resource.data.snapshotOf
+            && (resource.data.status != 'completed' || request.resource.data.status == 'completed')
+          )
+          // everyone with the board renames an ordinary, active sheet (title only, signed)
+          || (
+            whiteboardAccessAllowed(studentId)
+            && resource.data.isSnapshot == false
+            && resource.data.status == 'active'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title', 'updatedAt', 'updatedByUid', 'updatedByName'])
+            && validLessonPage(request.resource.data)
+          );
         // Completed lesson records and snapshots are historical evidence.
         allow delete: if whiteboardStaffAction(studentId) && resource.data.status != 'completed';
 
