@@ -16,6 +16,8 @@ function groupFake(room = null) {
     subscribeSignals: vi.fn(() => vi.fn()), sendSignal: vi.fn(async () => {}),
     heartbeat: vi.fn(async () => {}), subscribePresence: vi.fn((id, onChange) => { onChange([]); return vi.fn(); }),
     close: vi.fn(async () => {}),
+    subscribeMessages: vi.fn((id, onChange) => { onChange([{ id: 'm1', fromUid: 'student-user-2', fromName: 'Jaan', text: 'Tere kõigile!', createdAtIso: '2026-10-04T10:00:00Z' }]); return vi.fn(); }),
+    sendMessage: vi.fn(async () => ({ id: 'm2' })),
   };
 }
 
@@ -88,6 +90,17 @@ describe('Live Classroom invitation lifecycle', () => {
     expect(screen.getByRole('img', { name: 'Õpilase tahvel' })).toBeInTheDocument();
     expect(screen.getByText('Mari')).toBeInTheDocument();
     expect(screen.getByText('Jaan')).toBeInTheDocument();
+  });
+
+  it('group lesson chat: everyone in the room reads and writes', async () => {
+    const invitationService = { subscribeIncoming: vi.fn((uid, onChange) => { onChange([{ id: 'invite-g1', roomKey: 'room-9', teacherName: 'Pavel', studentName: 'Mari', studentId: 's-1', title: 'Grupitund', status: 'accepted', expiresAt: new Date(Date.now() - 60_000).toISOString() }]); return vi.fn(); }) };
+    const groupService = groupFake();
+    renderPage({ user: { uid: 'student-user-1', displayName: 'Mari', roles: ['student'] }, invitationService, studentRepository: {}, path: '/live-classroom?invitation=invite-g1', groupService });
+    fireEvent.click(await screen.findByRole('button', { name: 'Vestlus' }));
+    expect(screen.getByText('Tere kõigile!')).toBeInTheDocument();
+    fireEvent.change(screen.getByRole('textbox', { name: 'Sõnum' }), { target: { value: 'Tere, Jaan!' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Saada' }));
+    await waitFor(() => expect(groupService.sendMessage).toHaveBeenCalledWith('room-9', expect.objectContaining({ text: 'Tere, Jaan!', name: 'Mari' })));
   });
 
   it('a student who accepted a group invitation lands in the group room', async () => {

@@ -1422,6 +1422,20 @@ service cloud.firestore {
         allow update, delete: if false;
       }
 
+      // the lesson chat of a group room: participants write while it is open, everyone in it reads (also afterwards)
+      match /messages/{messageId} {
+        allow read: if liveGroupParticipant(roomId);
+        allow create: if liveGroupOpenParticipant(roomId)
+          && request.resource.data.keys().hasOnly(['fromUid', 'fromName', 'text', 'createdAt', 'createdAtIso'])
+          && request.resource.data.keys().hasAll(['fromUid', 'fromName', 'text', 'createdAt', 'createdAtIso'])
+          && request.resource.data.fromUid == uid()
+          && request.resource.data.fromName is string && request.resource.data.fromName.size() <= 160
+          && request.resource.data.text is string && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 2000
+          && request.resource.data.createdAt == request.time
+          && request.resource.data.createdAtIso is string;
+        allow update, delete: if false;
+      }
+
       match /presence/{presenceId} {
         allow read: if liveGroupParticipant(roomId);
         allow create, update: if liveGroupOpenParticipant(roomId)

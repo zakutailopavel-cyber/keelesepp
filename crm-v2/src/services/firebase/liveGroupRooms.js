@@ -74,6 +74,24 @@ export const liveGroupRoomsService = {
     });
   },
 
+  // the group lesson chat
+  subscribeMessages(roomId, onChange, onError) {
+    const { db } = requireFirebaseClient();
+    return onSnapshot(collection(db, 'liveGroupRooms', roomId, 'messages'), (snapshot) => onChange(snapshot.docs
+      .map((item) => ({ id: item.id, ...item.data() }))
+      .sort((a, b) => String(a.createdAtIso || '').localeCompare(String(b.createdAtIso || '')))), onError);
+  },
+
+  async sendMessage(roomId, { text, user, name }) {
+    const value = clean(text).slice(0, 2000);
+    if (!value) return null;
+    const { db } = requireFirebaseClient();
+    return addDoc(collection(db, 'liveGroupRooms', roomId, 'messages'), {
+      fromUid: user.uid, fromName: clean(name || user.displayName || 'Osaleja').slice(0, 160), text: value,
+      createdAt: serverTimestamp(), createdAtIso: new Date().toISOString(),
+    });
+  },
+
   async heartbeat(roomId, { uid, role, displayName, online = true }) {
     const { db } = requireFirebaseClient();
     await setDoc(doc(db, 'liveGroupRooms', roomId, 'presence', uid), {

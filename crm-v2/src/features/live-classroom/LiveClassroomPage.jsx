@@ -235,7 +235,7 @@ export default function LiveClassroomPage({
   const groupProps = { user, service: groupService, boardService: groupBoard, library: libraryRepository, ...(groupCallOptions ? { callOptions: groupCallOptions } : {}) };
   if (isStudent) {
     if (streamReady && !streamError && activeInvitation?.status === INVITATION_STATUS.ACCEPTED && isGroupInvitation(activeInvitation)) {
-      return <GroupRoom key={activeInvitation.roomKey} roomId={activeInvitation.roomKey} role="student" turnInvitationId={activeInvitation.id} onLeave={() => setSearchParams({}, { replace: true })} {...groupProps} />;
+      return <GroupRoom key={activeInvitation.roomKey} roomId={activeInvitation.roomKey} role="student" turnInvitationId={activeInvitation.id} myInvitation={activeInvitation} recordingService={recordingService} onLeave={() => setSearchParams({}, { replace: true })} {...groupProps} />;
     }
     if (streamReady && !streamError && activeInvitation?.status === INVITATION_STATUS.ACCEPTED) return <LiveRoom key={activeInvitation.id} {...roomProps('student')} />;
     if (!streamReady) return <div className="page-content"><LoadingState label="Laen tunnikutset…" /></div>;
@@ -251,8 +251,13 @@ export default function LiveClassroomPage({
   }
 
   if (groupRoomId) {
-    const accepted = allInvitations.find((item) => item.roomKey === groupRoomId && item.status === INVITATION_STATUS.ACCEPTED);
-    return <GroupRoom key={groupRoomId} roomId={groupRoomId} role="teacher" turnInvitationId={accepted?.id || ''} onLeave={() => setSearchParams({}, { replace: true })} onEnd={() => setSearchParams({}, { replace: true })} {...groupProps} />;
+    const acceptedInRoom = allInvitations.filter((item) => item.roomKey === groupRoomId && item.status === INVITATION_STATUS.ACCEPTED);
+    const accepted = acceptedInRoom[0];
+    const groupRecordings = acceptedInRoom.map((invitation) => {
+      const card = studentsState.items.find((item) => item.id === invitation.studentId);
+      return { invitation, consent: card ? card.recordingConsent === true : null, subject: card?.subject || '' };
+    });
+    return <GroupRoom key={groupRoomId} roomId={groupRoomId} role="teacher" turnInvitationId={accepted?.id || ''} recordings={groupRecordings} recordingService={recordingService} onLeave={() => setSearchParams({}, { replace: true })} onEnd={() => setSearchParams({}, { replace: true })} {...groupProps} />;
   }
 
   if (activeInvitation?.status === INVITATION_STATUS.ACCEPTED) {
