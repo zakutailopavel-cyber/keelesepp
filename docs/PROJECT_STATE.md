@@ -1,5 +1,36 @@
 # KeeleSepp Project State
 
+## 2026-10-04 — Development vector: what is done, what waits for the owner, what is next
+
+Checked `origin/main` `e5d2d32` (after #250).
+Owner asked to plan the further direction for unfinished functions and finish them („наметь дальнейший вектор
+развития … и доведи их до конца”). Finished in code and merged today: #247 (teacher reads via `teacherUids`),
+#248 (calendar seven-day deletion window + held lessons protected), #249 (Live Classroom „Lõpeta tund” → calendar
+lesson), #250 (Esmane hindamine in v2). Codex drafts #234, #235, #230 closed as superseded.
+
+**A. Waits for the owner (commands on the Mac, from a clean `origin/main` checkout):**
+1. Rules for #247: `npx -y firebase-tools@15.22.3 deploy --only firestore:rules --project keelesepp-5136b`.
+2. Functions for #248: `cd functions && npm ci && cd .. && npx -y firebase-tools@15.22.3 deploy --only
+   functions:gcalApi,functions:syncAllCalendars --project keelesepp-5136b`.
+3. CRM: Vercel builds `main` automatically (#249, #250 are client-only).
+4. Manual checks: teacher with a shared student opens Ülevaade; a calendar lesson → Alusta tundi → Lõpeta tund →
+   Toimunud; one real „Esmane hindamine”.
+
+**B. Parked by the owner (not touched without his word):** TURN server for video on strict networks; Storage CORS
+(`storage.cors.json`) for photo cutting; 54 unmatched Google events; `APP_BASE_URL` → crm.epkoolitus.ee in e-mails;
+„Minu tööpäev”; redoing the parent study-terms gate (#226); Instagram outbound; Vercel paid plan.
+
+**C. Next in code, in this order (each its own PR):**
+1. Role smoke support: a short checklist page in docs for the owner's 30-minute run (gate 5 of
+   `docs/CRM_V2_READINESS.md`), then fix whatever it finds — this is what unblocks switching v1 off.
+2. Admin tools in v2 only when asked: first „Tegevused” (read-only `activityLog` viewer) — smallest and useful for
+   checking teachers' work.
+3. Live Classroom: scheduled cleanup of expired invitations (needs a Functions deploy; low value until there are many).
+4. Adaptive lesson mode: owner decision needed — keep v1 delivery or rebuild on studio worksheets.
+5. Retire v1 after 2–3 weeks of daily work in v2 with no return to v1 (`docs/CRM_V2_MIGRATION_PLAN.md` step 6).
+
+Exactly one next safe step: owner runs A.1 and A.2.
+
 ## 2026-10-04 — Esmane hindamine (initial assessment) in CRM v2 — branch `agent/initial-assessment-v2`
 
 Checked `origin/main` `60f3419`. Item 3 of the remaining v1 functions (`docs/CRM_V2_MIGRATION_PLAN.md`, "initial level
