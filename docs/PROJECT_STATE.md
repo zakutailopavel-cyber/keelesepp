@@ -1,5 +1,14 @@
 # KeeleSepp Project State
 
+## 2026-10-04 — Generator: gap tasks with 2–4 sentences — branch `agent/generator-more-gaps`
+
+Owner checked the live A2-003 sheets (crm.epkoolitus.ee, release of main `5968c13`): Avasta, Harjuta and Kasuta render
+correctly, translation hints no longer leak answers. Weak spot seen there: „Täienda laused” had one sentence for a
+13-word bank. `engine/content.js` now takes `closedItemCount` gappable sentences (support 2 / core 3 / challenge 4),
+consuming only sentences that really get a gap. All 49 ready lessons × 3 modes × 3 seeds: no error diagnostics; gap
+blocks 2–4 sentences (average 2.7). New test; CRM Vitest 129 files / 808 tests; ESLint; build. Saved sheets unchanged.
+Exactly one next safe step: owner generates one lesson again and checks the gap task.
+
 ## 2026-10-04 — Rule-based generator step 4: 8 new grammar points, 50/100 A2 lessons ready — branch `agent/generator-grammar-2`
 
 Checked `origin/main` `4ca291b` (after #256). New pattern grammar points: imperative, modal verbs, want/start +

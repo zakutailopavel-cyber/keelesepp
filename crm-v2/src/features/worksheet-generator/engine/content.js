@@ -220,9 +220,27 @@ function categorizeData(profile, focusIds) {
   };
 }
 
+function takeGapSentences(profile, state, { focusIds, contextId, count, seed }) {
+  const result = [];
+  for (const item of shuffleSeeded(sentenceCandidates(profile, focusIds, contextId), seed)) {
+    const rendered = renderTemplate(item, seed);
+    if (state.usedSentenceIds.has(item.id) || state.usedRenderedSentences.has(rendered)) continue;
+    const candidate = { ...item, rendered };
+    const marked = knownAnswerGap(candidate) || markGap(rendered, profile, focusIds);
+    if (!marked) continue;
+    state.usedSentenceIds.add(item.id);
+    state.usedRenderedSentences.add(rendered);
+    result.push({ ...candidate, marked });
+    if (result.length === count) break;
+  }
+  return result;
+}
+
 function gapData(profile, focusIds, contextId, state, seed, spec) {
-  const sentences = takeSentences(profile, state, { focusIds, contextId, count: 1, seed });
-  const marked = sentences.map((item) => knownAnswerGap(item) || markGap(item.rendered, profile, focusIds)).filter(Boolean).slice(0, 2);
+  // as many gap sentences as other closed tasks (support 2 / core 3 / challenge 4); only sentences with a findable
+  // answer are taken, so no sentence is used up without becoming a gap
+  const sentences = takeGapSentences(profile, state, { focusIds, contextId, count: spec.closedItemCount || 3, seed });
+  const marked = sentences.map((item) => item.marked);
   // pattern sentences: the bank holds the right form and other forms of the same word (kooli / koolis / koolist)
   const formBank = sentences.every((item) => item.answer)
     ? shuffleSeeded([...new Set(sentences.flatMap((item) => [item.answer, ...(item.distractors || []).slice(0, 2)]))], `${seed}:form-bank`)
