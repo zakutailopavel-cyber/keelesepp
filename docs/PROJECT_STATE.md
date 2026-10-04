@@ -1,5 +1,20 @@
 # KeeleSepp Project State
 
+## 2026-10-04 — The student's pet in the lesson room — branch `claude/affectionate-ritchie-dh2x9j`
+
+Checked `origin/main` `1c85f49` (after #286, pet growth/outfits/visibility). Fourth of the owner's pet wishes.
+- `RoomPet` (student side of `LiveRoom`, bottom-left of the board): the student's own pet with its outfit says hello,
+  cheers for a new word of this lesson („Uus sõna: …!” + Russian with the translation) and for homework given in this
+  lesson; the bubble hides after 5 s or on a click. Nothing is written; no pet / opted out / hidden → nothing shown.
+- `homeworkService.subscribeForLesson({ studentId, invitationId })` (live; existing homework read rule).
+- Tests: LiveRoom pet tests (2). CRM Vitest 142 files / 890 tests; ESLint clean; build OK.
+- No rules or functions change. Not tried in a real lesson.
+
+### Pending owner actions (all merged in main)
+1. `firestore:rules` deploy: #276, #277, #278, #280, #282, #286.
+2. Cloud Functions deploy: `syncScheduleToGoogle`, `syncAllCalendars` (#283), `staffOperationsApi` (#284),
+   `notifyHomeworkCreated` (#285).
+
 ## 2026-10-04 — Pet: grows from words, homework and streaks; outfits for stars; teacher and parents see it — branch `claude/affectionate-ritchie-dh2x9j`
 
 Checked `origin/main` `10d2d74` (after #285, homework e-mail). Owner chose all four pet improvements; this PR has

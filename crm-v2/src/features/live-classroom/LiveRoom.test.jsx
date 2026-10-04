@@ -229,3 +229,28 @@ describe('LiveRoom lesson end', () => {
     expect(props.onEndLesson).toHaveBeenCalledWith({ confirmed: true });
   });
 });
+
+describe('LiveRoom: the student’s pet', () => {
+  it('says hello and cheers for a new word and homework of this lesson', async () => {
+    let pushWords = () => {};
+    let pushHomework = () => {};
+    const petRepository = { get: vi.fn().mockResolvedValue({ kind: 'siil', name: 'Okas', wearing: { hat: 'cap' } }) };
+    const wordsService = { subscribeForStudent: vi.fn((id, onData) => { pushWords = onData; onData([{ id: 'old', invitationId: 'inv-0', word: 'vana' }]); return vi.fn(); }) };
+    const homeworkService = { subscribeForLesson: vi.fn((query, onData) => { pushHomework = onData; onData([]); return vi.fn(); }), listForLesson: vi.fn(async () => []) };
+    renderRoom('student', services(), { petRepository, wordsService, homeworkService });
+    expect(await screen.findByText('Tere! Okas on ka tunnis.')).toBeInTheDocument();
+    act(() => pushWords([{ id: 'old', invitationId: 'inv-0', word: 'vana' }, { id: 'w1', invitationId: 'inv-1', word: 'kass', translation: 'кошка' }]));
+    expect(await screen.findByText('Uus sõna: kass!')).toBeInTheDocument();
+    expect(screen.getByText('Новое слово: kass — кошка')).toBeInTheDocument();
+    act(() => pushHomework([{ id: 'h1', task: 'Korda sõnu' }]));
+    expect(await screen.findByText('Õpetaja andis kodutöö. Teeme koos!')).toBeInTheDocument();
+    expect(homeworkService.subscribeForLesson).toHaveBeenCalledWith({ studentId: 's-1', invitationId: 'inv-1' }, expect.any(Function), expect.any(Function));
+  });
+
+  it('is not there for the teacher or a student without a pet', async () => {
+    const petRepository = { get: vi.fn().mockResolvedValue(null) };
+    renderRoom('student', services(), { petRepository });
+    await waitFor(() => expect(petRepository.get).toHaveBeenCalled());
+    expect(screen.queryByText(/on ka tunnis/)).toBeNull();
+  });
+});
