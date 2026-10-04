@@ -7,3 +7,6 @@ functions/.env.*
 
 # lexicon build venv (tools/lexicon/build_forms.py)
 .venv/
+
+# Firebase emulator logs
+*-debug.log
