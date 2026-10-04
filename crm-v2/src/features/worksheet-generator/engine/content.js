@@ -159,9 +159,11 @@ function trueFalseData(profile, focusIds, contextId, state, seed) {
     state.usedSentenceIds.add(item.id);
     state.usedRenderedSentences.add(renderTemplate(item, seed));
   });
+  // The learner must see the situation, otherwise "does it fit?" cannot be answered.
+  const context = (profile.contexts || []).find((item) => item.id === contextId);
   return {
     title: 'Kas lause sobib olukorraga?',
-    instruction: 'Märgi Õ või V.',
+    instruction: context?.label ? `Olukord: ${context.label}. Märgi Õ, kui lause sobib selle olukorraga, ja V, kui ei sobi.` : 'Märgi Õ või V.',
     statements: shuffleSeeded(selected, `${seed}:order`).map(({ item, answer }) => ({ text: renderTemplate(item, seed), answer })),
   };
 }

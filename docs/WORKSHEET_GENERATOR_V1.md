@@ -163,7 +163,8 @@ productive prompts and CEFR/lesson compatibility data; they are not random word 
 `introduction`, `basic-questions`, `olema-present`, `present-common-verbs`, `personal-info`, `numbers-dates` and the
 module-two packs `family-relations`, `possession-genitive`, `appearance-character` and `people-profiles` (Library v3).
 Every pack sentence contains at least one target word in its exact surface form (tested), so gap-fill and context
-choice always have an answer key; context-choice distractors come from another part of speech first.
+choice always have an answer key; context-choice distractors come from another part of speech first. True/false
+items name the situation („Olukord: …”) that the learner judges each sentence against.
 
 Factory selection uses stable lesson blueprints for A2-002…A2-010 and bounded keyword matching for future selected
 lessons. Every draft runs through the real sanitizer, `catalogReadiness()` and `planLessonActivities()`. Unsupported

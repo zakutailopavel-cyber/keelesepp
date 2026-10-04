@@ -131,6 +131,15 @@ describe('Content Pack Factory v1', () => {
     expect(checked).toBeGreaterThan(0);
   });
 
+  it('true/false items name the situation the learner judges against', () => {
+    const lesson = lessons.find((item) => item.id === 'a2-009');
+    const { profile } = createContentPackDraft(lesson);
+    const labels = profile.contexts.map((item) => item.label);
+    const blocks = generateLessonBundle({ lesson, profile, seed: 'a2-009:tf' }).sheets.flatMap((sheet) => sheet.worksheetDoc.blocks).filter((block) => block.type === 'truefalse');
+    expect(blocks.length).toBeGreaterThan(0);
+    blocks.forEach((block) => expect(labels.some((label) => block.data.instruction.includes(`Olukord: ${label}.`))).toBe(true));
+  });
+
   it('reports missing sources and never invents or activates an unsupported profile', () => {
     const result = createContentPackDraft({ id: 'a2-099', title: 'A2 proovieksam' });
     expect(result.status).toBe('missing-sources');
