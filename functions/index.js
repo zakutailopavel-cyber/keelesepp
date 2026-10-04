@@ -8863,7 +8863,11 @@ async function syncTeacherCalendar(uid, tokens) {
   // Reconcile only explicit Google cancellation tombstones. An event missing
   // from this import can be unmatched, outside the page/window or temporarily
   // unavailable; absence alone must never delete a KeeleSepp record.
-  const syncWindowStart = localDate(new Date(), APP_TIME_ZONE);
+  // The tombstone query deliberately looks seven days back. Reconcile the
+  // same window: otherwise an event deleted after it happened (for example,
+  // yesterday's lesson) is returned by Google but ignored as "before today".
+  // Lessons with a recorded result are never removed (calendar-sync-core).
+  const syncWindowStart = nativeWindowStart;
   const syncWindowEnd = localDate(new Date(timeMax), APP_TIME_ZONE);
   const activeManagedScheduleIds = new Set(
     events.map(managedGoogleScheduleId).filter(Boolean),
