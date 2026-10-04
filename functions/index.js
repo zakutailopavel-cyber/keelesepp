@@ -9483,6 +9483,43 @@ exports.notifyPendingAccount = functions
     return null;
   });
 
+// New homework (CRM „Kodutööd”, Live Classroom „Anna kodutöö”): e-mail the student and the parent(s).
+// Imports and older records stay silent (shouldAnnounceHomework); a failed e-mail never blocks the homework.
+exports.notifyHomeworkCreated = functions
+  .runWith({ secrets: ["SMTP_PASS"] })
+  .firestore
+  .document("homework/{homeworkId}")
+  .onCreate(async (snap, context) => {
+    const { shouldAnnounceHomework, homeworkRecipients, composeHomeworkEmail } = require("./homework-mail-core");
+    const homework = snap.data() || {};
+    if (!shouldAnnounceHomework(homework, { today: localDate(new Date(), APP_TIME_ZONE) })) return null;
+    try {
+      const studentSnap = await db.collection("students").doc(String(homework.studentId)).get();
+      if (!studentSnap.exists) return null;
+      const student = studentSnap.data() || {};
+      const accountEmails = async (ids) => (await Promise.all([...new Set(ids.filter(Boolean).map(String))].slice(0, 10)
+        .map(async (uid) => { const user = await db.collection("users").doc(uid).get(); return user.exists ? user.data().email || "" : ""; })))
+        .filter(Boolean);
+      const recipients = homeworkRecipients(student, {
+        studentAccountEmails: await accountEmails(studentAccountIds(student)),
+        parentAccountEmails: await accountEmails(parentAccountIds(student)),
+      });
+      let sent = 0;
+      if (recipients.student.length) {
+        await deliverEmail(composeHomeworkEmail({ homework, student, to: recipients.student, audience: "student" }), { kind: "homework-student", homeworkId: context.params.homeworkId });
+        sent += recipients.student.length;
+      }
+      if (recipients.parents.length) {
+        await deliverEmail(composeHomeworkEmail({ homework, student, to: recipients.parents, audience: "parent" }), { kind: "homework-parent", homeworkId: context.params.homeworkId });
+        sent += recipients.parents.length;
+      }
+      await snap.ref.set({ notifiedAt: new Date().toISOString(), notifiedCount: sent }, { merge: true });
+    } catch (error) {
+      console.error("homework e-mail failed", context.params.homeworkId, error);
+    }
+    return null;
+  });
+
 // ── Group lessons → Google Calendar ──────────────────────────
 // Group lessons live inside groups/{groupId}.lessons[]. Each one becomes its own event in the group
 // teacher's primary Google Calendar. The server-only collection calendarGroupEventLinks remembers
