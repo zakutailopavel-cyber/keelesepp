@@ -19,15 +19,18 @@ import StudentForm from './StudentForm.jsx';
 import { LEGACY_TEACHERS } from './studentOptions.js';
 import './studentProfileTabs.css';
 import StudentRecordingsPanel from '../lesson-recording/StudentRecordingsPanel.jsx';
+import InitialAssessmentPanel from '../initial-assessment/InitialAssessmentPanel.jsx';
+import { initialAssessmentsService } from '../../services/firebase/initialAssessments.js';
 
 const PROFILE_TABS = [
   { id: 'overview', label: 'Ülevaade' },
   { id: 'schedule', label: 'Tunniplaan' },
   { id: 'learning', label: 'Õppetöö' },
+  { id: 'assessment', label: 'Esmane hindamine' },
   { id: 'finance', label: 'Finantsid', financeOnly: true },
 ];
 
-export default function StudentProfilePage({ studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, planApi = revenuePlansService, actor }) {
+export default function StudentProfilePage({ studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, planApi = revenuePlansService, assessmentApi = initialAssessmentsService, actor }) {
   const { studentId } = useParams();
   const auth = useContext(AuthContext);
   const currentUser = actor || auth?.user || { roles: [ROLES.ADMIN], displayName: '' };
@@ -126,6 +129,8 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
             <StudentRecordingsPanel student={student} user={currentUser} isAdmin={canAssignTeacher} />
           </div>
         ) : null}
+
+        {activeTab === 'assessment' ? <InitialAssessmentPanel student={student} user={currentUser} service={assessmentApi} /> : null}
 
         {activeTab === 'finance' && canViewFinance ? <>
           <BillingSettingsCard student={student} plan={state.plan} canEdit={canAssignTeacher}
