@@ -9,6 +9,7 @@ import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
 import { eligibleInvitationStudents, INVITATION_STATUS, isInvitationRouteUsable, newestInvitation, normalizeInvitation, timestampMillis } from './invitationModel.js';
 import { calendarPathAfterLesson } from './lessonLink.js';
 import LiveRoom from './LiveRoom.jsx';
+import StudentWorkspace from './StudentWorkspace.jsx';
 import TeacherWorkspace from './TeacherWorkspace.jsx';
 import './liveClassroom.css';
 
@@ -202,10 +203,16 @@ export default function LiveClassroomPage({
 
   if (isStudent) {
     if (streamReady && !streamError && activeInvitation?.status === INVITATION_STATUS.ACCEPTED) return <LiveRoom key={activeInvitation.id} {...roomProps('student')} />;
-    return <div className="page-content">
-      <PageHeader eyebrow="Minu tund" title="Live Classroom" description="Sinu privaatne reaalajas tunniruum." />
-      {streamError ? <ErrorState message={streamError} /> : !streamReady ? <LoadingState label="Laen tunnikutset…" /> : resumable ? <Card className="live-resume"><div><strong>Tund käib: {resumable.teacherName}</strong><small>{resumable.title}</small></div><Button onClick={() => setSearchParams({ invitation: resumable.id }, { replace: true })}><Video size={17} /> Tagasi tundi</Button></Card> : <Card><EmptyState title="Aktiivset tundi ei ole" description="Kui õpetaja kutsub sind tundi, ilmub kutse automaatselt sinu kabinetti." /></Card>}
-    </div>;
+    if (!streamReady) return <div className="page-content"><LoadingState label="Laen tunnikutset…" /></div>;
+    return <StudentWorkspace
+      user={user}
+      studentRepository={studentRepository}
+      boardService={boardService}
+      resumable={resumable}
+      onResume={() => setSearchParams({ invitation: resumable.id }, { replace: true })}
+      onBack={() => navigate('/')}
+      error={streamError}
+    />;
   }
 
   if (activeInvitation?.status === INVITATION_STATUS.ACCEPTED) {

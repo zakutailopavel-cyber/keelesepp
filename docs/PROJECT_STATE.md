@@ -1,5 +1,14 @@
 # KeeleSepp Project State
 
+## 2026-10-04 — Student's own board always in Live Classroom — branch `claude/affectionate-ritchie-dh2x9j`
+
+Wish-list item 7. `StudentWorkspace.jsx`: outside a lesson the student's Live Classroom is their own board (room
+frame, all tools, sheets — „Uus leht” and renaming work for students after the #269 rules deploy), „Tagasi tundi” when
+a lesson runs, subject choice when the account has several cards; incoming invitations still appear through the
+global invitation overlay. `LiveClassroomPage` student branch uses it (was an empty „Aktiivset tundi ei ole” card).
+Tests: new „without a lesson the student has their own board”; „leave the room” now lands on „Minu tahvel”. CRM
+Vitest 133 files / 842 tests; ESLint clean; build OK. Client only.
+
 ## 2026-10-04 — Live Classroom opens as the teacher's workspace — branch `claude/affectionate-ritchie-dh2x9j`
 
 Checked `origin/main` `00e19e3` (after #270). Wish-list item 6 (prepare in advance, invite from the workspace).
@@ -118,7 +127,9 @@ Checked `origin/main` `f68d46f` (after #265). Owner: a student could erase the f
 7. The student always has their own board in Live Classroom (homework, self-study) even without a lesson.
 8. Group lessons (several students in one room — needs an SFU/mesh decision).
 9. Worksheet constructor flexibility (diagrams, combining blocks, …) — separate track.
-Open questions to the owner: item 9 „обледенения блоков” = combining blocks?; item 6 „шарманке” = in advance?
+Owner decisions 2026-10-04: item 8 — up to 4 students, peer-to-peer video (no paid server), a separate group board
+seen by all participants (each student keeps their own board); item 9 — first diagrams/schemes, combining blocks
+(side by side / grouped), block styling (frame, background, heading colour, icon). Tables later.
 
 ## 2026-10-04 — Live Classroom: camera/microphone choice + recording file-number fix — branch `claude/affectionate-ritchie-dh2x9j`
 
