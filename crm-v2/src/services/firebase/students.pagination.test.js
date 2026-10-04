@@ -63,6 +63,26 @@ describe('students service pagination', () => {
     expect(where).toHaveBeenCalledWith('teacherUid', '==', 'teacher-pavel');
   });
 
+  it('loads both primary and secondary teacher assignments with matching UID constraints', async () => {
+    getDocs
+      .mockResolvedValueOnce({
+        docs: [studentDoc('primary', 'Pavel'), studentDoc('shared', 'Pavel')],
+      })
+      .mockResolvedValueOnce({
+        docs: [studentDoc('shared', 'Pavel'), studentDoc('secondary', 'Pavel')],
+      });
+
+    const result = await studentsService.list({
+      scopeTeacherUid: 'teacher-pavel',
+      pageSize: 500,
+      exhaustive: true,
+    });
+
+    expect(result.items.map((student) => student.id)).toEqual(['primary', 'secondary', 'shared']);
+    expect(where).toHaveBeenCalledWith('teacherUid', '==', 'teacher-pavel');
+    expect(where).toHaveBeenCalledWith('teacherUids', 'array-contains', 'teacher-pavel');
+  });
+
   it('persists the stable teacher UID resolved from the staff directory', async () => {
     getDocs
       .mockResolvedValueOnce({

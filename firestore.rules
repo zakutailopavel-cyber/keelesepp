@@ -106,7 +106,11 @@ service cloud.firestore {
 
     function teacherCanRead(data) {
       return isTeacher()
-        && (!teacherScopeReadEnforced() || data.teacherUid == uid());
+        && (
+          !teacherScopeReadEnforced()
+          || data.get('teacherUid', '') == uid()
+          || data.get('teacherUids', []).hasAny([uid()])
+        );
     }
 
     function teacherCanCreate(data) {
