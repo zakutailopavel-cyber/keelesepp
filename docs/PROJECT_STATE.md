@@ -1,5 +1,21 @@
 # KeeleSepp Project State
 
+## 2026-10-04 — New homework is e-mailed to the student and the parent — branch `claude/affectionate-ritchie-dh2x9j`
+
+Checked `origin/main` `4309fe8` (after #284, link reviews). Owner: when homework is added, the student and (if linked)
+the parent get an e-mail.
+- Cloud Function `notifyHomeworkCreated` (`homework/{id}` onCreate, secret `SMTP_PASS`, existing `deliverEmail`):
+  one e-mail to the student addresses (card `email` + linked student accounts), one to the parent addresses (card
+  `parentEmail`/`guardianEmail` + linked parent accounts), deduplicated; Estonian + Russian; task, due date, board page
+  and worksheet names, button to `/homework`. Writes `notifiedAt`, `notifiedCount` on the homework.
+- Pure helpers `functions/homework-mail-core.js`: `shouldAnnounceHomework` (only homework given now: `createdAt` within
+  1 h, otherwise `date` = today; `notify: false` and done homework stay silent — imports and migrations do not mail),
+  `homeworkRecipients` (student card `homeworkEmailOptOut: true` silences it), `composeHomeworkEmail` (HTML escaped).
+- Covers CRM „Kodutööd”, Live Classroom „Anna kodutöö”, lesson completion homework and library assignments.
+- Tests: `homework-mail-core.test.js` (3); functions `npm test` 226/226; full emulator suite with the functions
+  emulator 52/52 + link review 1/1 (the trigger runs there without breaking other tests).
+- **Needs the owner:** Cloud Functions deploy (`notifyHomeworkCreated`). Real e-mails are sent after the deploy.
+
 ## 2026-10-04 — „Vajab otsust”: registrations stopped on a possible duplicate card — branch `claude/affectionate-ritchie-dh2x9j`
 
 Checked `origin/main` `a63f813` (after #283, calendar). Owner: a student (Polina) registered and was approved, but is
