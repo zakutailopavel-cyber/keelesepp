@@ -1379,6 +1379,39 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // The student's own word list (Live Classroom „Sõnad”). Staff add and edit words; the student or a linked parent
+    // reads them and writes only the flashcard practice fields.
+    function studentWordTextValid(data) {
+      return data.word is string && data.word.size() > 0 && data.word.size() <= 120
+        && data.get('translation', '') is string && data.get('translation', '').size() <= 200
+        && data.get('example', '') is string && data.get('example', '').size() <= 400;
+    }
+    match /studentWords/{wordId} {
+      allow read: if isStaff() || ownsStudent(resource.data.studentId);
+      allow create: if isStaff()
+        && request.resource.data.keys().hasOnly(['studentId', 'invitationId', 'word', 'translation', 'example',
+          'createdByUid', 'createdByName', 'createdAt', 'updatedAt', 'box', 'dueAt'])
+        && request.resource.data.keys().hasAll(['studentId', 'word', 'createdByUid', 'createdAt', 'box'])
+        && request.resource.data.createdByUid == uid()
+        && request.resource.data.get('createdByName', '') is string
+        && request.resource.data.get('createdByName', '').size() <= 160
+        && request.resource.data.get('invitationId', '') is string
+        && request.resource.data.get('invitationId', '').size() <= 200
+        && request.resource.data.box == 0
+        && studentWordTextValid(request.resource.data)
+        && exists(studentPath(request.resource.data.studentId));
+      allow update: if (isStaff()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['word', 'translation', 'example', 'updatedAt'])
+          && studentWordTextValid(request.resource.data))
+        || (ownsStudent(resource.data.studentId)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['box', 'dueAt', 'reviewedAt', 'reviews'])
+          && request.resource.data.box is int && request.resource.data.box >= 0 && request.resource.data.box <= 5
+          && request.resource.data.dueAt is string && request.resource.data.dueAt.size() <= 40
+          && request.resource.data.get('reviewedAt', '') is string
+          && request.resource.data.get('reviews', 0) is int);
+      allow delete: if isStaff();
+    }
+
     // Heartbeat of the transcriber on the school Mac (Admin SDK). Staff see in the lesson room whether it runs.
     match /transcriberStatus/{workerId} {
       allow read: if isStaff();

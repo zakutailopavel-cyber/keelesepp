@@ -1,5 +1,23 @@
 # KeeleSepp Project State
 
+## 2026-10-04 — Lesson vocabulary: words from the lesson into the student's own list — branch `claude/affectionate-ritchie-dh2x9j`
+
+Checked `origin/main` `d2236ca` (after #279, pointer/follow). Second of the four owner-chosen follow-ups.
+- Data `studentWords/{id}`: `studentId, invitationId ('' outside a lesson), word ≤120, translation ≤200, example ≤400,
+  createdByUid, createdByName, createdAt, updatedAt, box 0–5, dueAt` + practice `reviewedAt, reviews`.
+- `firestore.rules`: staff create (author = me, box 0, student exists, no extra keys), staff edit text, staff delete;
+  student or linked parent (`ownsStudent`) reads and updates only `box, dueAt, reviewedAt, reviews`.
+- Model `features/vocabulary/wordsModel.js` (Leitner boxes, days 0/1/3/7/14/30; „Ei teadnud” → box 0, due now).
+  Service `services/firebase/studentWords.js`.
+- UI: Live Classroom „Sõnad” drawer (`LessonWordsPanel`: teacher form word/translation/example, duplicate hint, this
+  lesson's words with delete; student sees the list). Student dashboard card „Minu sõnad” (`MyWordsCard`: due count,
+  „Harjuta” flashcards `WordPractice`, all words; no practice in the admin preview).
+- Tests: emulator `functions/student-words-emulator.integration.js` 1/1 (added to the financial-core CI command);
+  `vocabulary.test.jsx` (6), LiveRoom words test. CRM Vitest 141 files / 874 tests; ESLint clean; build OK;
+  functions `npm test` 218/218.
+- Not yet: words on the parent dashboard and the staff student card (planned with the lesson summary).
+- **Needs the owner:** `firestore:rules` deploy (together with #276–#278).
+
 ## 2026-10-04 — Lesson room: pointer and „follow the teacher” — branch `claude/affectionate-ritchie-dh2x9j`
 
 Checked `origin/main` `32cb8d1` (after #278). First of four owner-chosen follow-ups (pointer/follow, lesson vocabulary,

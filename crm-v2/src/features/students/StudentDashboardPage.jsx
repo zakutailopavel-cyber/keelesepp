@@ -11,6 +11,7 @@ import { invoiceBalanceCents } from './studentFinance.js';
 import PetCard from '../pet/PetCard.jsx';
 import { isAttended } from '../pet/petModel.js';
 import RecordingConsentPrompt from '../lesson-recording/RecordingConsentPrompt.jsx';
+import MyWordsCard from '../vocabulary/MyWordsCard.jsx';
 
 function unique(items) {
   return [...new Map(items.map((item) => [item.id, item])).values()];
@@ -38,6 +39,7 @@ export default function StudentDashboardPage({
   lessonRepository = lessonsService,
   petRepository,
   consentService,
+  wordsService,
 }) {
   const { user, preview } = useAuth();
   const state = useAsyncData(async () => {
@@ -96,6 +98,8 @@ export default function StudentDashboardPage({
       <Card><div className="section-heading"><div><span className="eyebrow">Kalender</span><h2>Järgmised tunnid</h2></div></div>{upcoming.length ? <div className="simple-list student-home-lessons">{upcoming.map((lesson) => <div key={lesson.occurrenceId}><div><strong>{dateLabel(lesson.occurrenceDate)} · {lesson.time}</strong><span>{studentMap.get(lesson.studentId)?.name || lesson.studentName || 'Õpilane'} · {lesson.teacher || 'Õpetaja'}</span></div><Badge tone="info">{lesson.duration || 60} min</Badge></div>)}</div> : <EmptyState title="Lähimaid tunde ei ole" />}</Card>
 
       <Card><div className="section-heading"><div><span className="eyebrow">Kodutööd</span><h2>Pooleli ülesanded</h2></div><Link to="/homework">Kõik ülesanded <ChevronRight size={15} /></Link></div>{pendingHomework.length ? <div className="simple-list">{pendingHomework.slice(0, 6).map((item) => <div key={item.id}><div><strong>{item.task}</strong><span>{item.studentName || studentMap.get(item.studentId)?.name || 'Õpilane'}</span></div><Badge tone={item.due && item.due < today ? 'danger' : 'neutral'}>{item.due ? dateLabel(item.due) : 'Tähtajata'}</Badge></div>)}</div> : <EmptyState title="Kõik ülesanded on tehtud" />}</Card>
+
+      <MyWordsCard studentIds={students.map((student) => student.id)} readOnly={Boolean(preview)} {...(wordsService ? { service: wordsService } : {})} />
 
       <Card><div className="section-heading"><div><span className="eyebrow">Tagasiside</span><h2>Viimased tulemused</h2></div><Link to="/homework">Ava tööd <ChevronRight size={15} /></Link></div>{reviewedSubmissions.length ? <div className="student-home-feedback">{reviewedSubmissions.map((item) => <article key={`${item.submissionKind}-${item.id}`}><i><Star size={18} /></i><span><strong>{item.title}</strong><small>{item.teacherFeedback || 'Õpetaja lisas tulemuse.'}</small></span><Badge tone="success">{item.teacherGrade ? `Hinne ${item.teacherGrade}` : item.percentage != null ? `${item.percentage}%` : 'Kontrollitud'}</Badge></article>)}</div> : <EmptyState title="Õpetaja tagasisidet veel ei ole" />}</Card>
 

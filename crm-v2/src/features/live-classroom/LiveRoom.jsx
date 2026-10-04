@@ -1,5 +1,5 @@
 import {
-  ArrowLeft, ClipboardList, LibraryBig, Menu, MessageSquare, Mic, MicOff, Monitor, MonitorOff,
+  ArrowLeft, ClipboardList, Languages, LibraryBig, Menu, MessageSquare, Mic, MicOff, Monitor, MonitorOff,
   MoreHorizontal, Phone, PhoneOff, Redo2, RefreshCw, Send, Undo2, Users, Video, VideoOff, X,
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -8,6 +8,7 @@ import { imageSize } from '../board/boardModel.js';
 import RoomWorksheetPanel, { RoomWorksheetContent } from '../worksheet-studio/RoomWorksheetPanel.jsx';
 import RoomRecorder from '../lesson-recording/RoomRecorder.jsx';
 import RecordingIndicator from '../lesson-recording/RecordingIndicator.jsx';
+import LessonWordsPanel from '../vocabulary/LessonWordsPanel.jsx';
 import { transcriberLabel, useTranscriberStatus } from '../lesson-recording/transcriberStatus.js';
 import { timestampMillis } from './invitationModel.js';
 import { useLiveCall } from './useLiveCall.js';
@@ -129,7 +130,7 @@ function DevicesPanel({ call, stream }) {
  */
 export default function LiveRoom({
   invitation, role, user, student = null, callProps, boardService, messagesRepository, library, worksheetProps = {},
-  recordingService, streams, onLeave, onEndLesson, ending = false,
+  recordingService, wordsService, streams, onLeave, onEndLesson, ending = false,
 }) {
   const teacher = role === 'teacher';
   const call = useLiveCall({ ...callProps, invitation, role, user });
@@ -275,6 +276,7 @@ export default function LiveRoom({
           <IconButton label="Osalejad" active={panel === 'people'} onClick={() => toggle('people')}><Users size={18} /></IconButton>
           <IconButton label="Vestlus" active={panel === 'chat'} onClick={() => toggle('chat')}><MessageSquare size={18} />{unread ? <span className="lr-badge">{unread}</span> : null}</IconButton>
           {teacher ? <button type="button" className={`lr-text-btn ${panel === 'materials' ? 'is-active' : ''}`} onClick={() => toggle('materials')}><LibraryBig size={17} /> Materjalid</button> : null}
+          <button type="button" className={`lr-text-btn ${panel === 'words' ? 'is-active' : ''}`} onClick={() => toggle('words')}><Languages size={17} /> Sõnad</button>
           <button type="button" className={`lr-text-btn ${panel === 'tasks' ? 'is-active' : ''}`} onClick={() => { setMenu(''); if (sheet && !teacher) { boardRef.current?.openWorksheet?.(); return; } toggle('tasks'); }}><ClipboardList size={17} /> Ülesanded{sheet ? <span className="lr-dot" aria-label="Tööleht on avatud" /> : null}</button>
         </div>
         {menu === 'info' ? <div className="lr-menu lr-menu--left" role="dialog" aria-label="Tunni info">
@@ -335,6 +337,7 @@ export default function LiveRoom({
             </ul>
           </Drawer> : null}
           {panel === 'devices' ? <Drawer title="Kaamera ja mikrofon" onClose={() => setPanel('')}><DevicesPanel call={call} stream={streams?.local} /></Drawer> : null}
+          {panel === 'words' ? <Drawer title="Sõnad" onClose={() => setPanel('')}><LessonWordsPanel studentId={invitation.studentId} invitationId={invitation.id} user={user} teacher={teacher} {...(wordsService ? { service: wordsService } : {})} /></Drawer> : null}
           {panel === 'materials' && teacher ? <Drawer title="Materjalid" onClose={() => setPanel('')}><MaterialsPanel library={library} onPlace={place} /></Drawer> : null}
           {/* always mounted: it follows the room's worksheet for both and lets the teacher open one */}
           <div className={panel === 'tasks' ? 'lr-drawer' : 'lr-drawer is-hidden'} aria-hidden={panel !== 'tasks'} role="region" aria-label="Ülesanded">
