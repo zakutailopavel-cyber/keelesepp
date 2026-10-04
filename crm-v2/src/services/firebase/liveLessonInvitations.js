@@ -42,7 +42,8 @@ export const liveLessonInvitationsService = {
     return subscribe('teacherUid', teacherUid, onChange, onError);
   },
 
-  async create({ student, title }, user) {
+  // `roomKey`: a group room id when the student is invited into a group lesson (rules check the room's members)
+  async create({ student, title, roomKey = '' }, user) {
     if (!user?.uid || !user.roles?.some((role) => role === 'admin' || role === 'teacher')) throw new Error('Tunni saab alustada ainult õpetaja.');
     if (!student?.id || student.active === false) throw new Error('Vali aktiivne õpilane.');
     const studentUid = studentAccountUid(student);
@@ -60,7 +61,7 @@ export const liveLessonInvitationsService = {
       studentName: clean(student.name || 'Õpilane').slice(0, 160),
       title: lessonTitle,
       status: INVITATION_STATUS.PENDING,
-      roomKey: reference.id,
+      roomKey: roomKey || reference.id,
       createdAt: serverTimestamp(),
       createdAtIso,
       expiresAt: Timestamp.fromMillis(Date.now() + INVITATION_TTL_MS),
@@ -80,7 +81,7 @@ export const liveLessonInvitationsService = {
       byRole: user.roles?.[0] || 'teacher',
       createdAt: createdAtIso,
       date: createdAtIso.slice(0, 10),
-      meta: { invitationId: reference.id, roomKey: reference.id },
+      meta: { invitationId: reference.id, roomKey: roomKey || reference.id },
     });
     await batch.commit();
     return normalizeInvitation(reference.id, { ...payload, createdAt: createdAtIso });

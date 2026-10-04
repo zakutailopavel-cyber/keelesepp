@@ -4,11 +4,13 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, PageHeader, Select } from '../../components/ui/index.js';
 import { libraryService, liveLessonCallSignalsService, liveLessonInvitationsService, liveLessonPresenceService, messagesService, studentsService } from '../../services/firebase/index.js';
-import { studentBoardService } from '../../services/firebase/studentBoard.js';
+import { groupBoardService, studentBoardService } from '../../services/firebase/studentBoard.js';
+import { liveGroupRoomsService } from '../../services/firebase/liveGroupRooms.js';
 import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
 import { eligibleInvitationStudents, INVITATION_STATUS, isInvitationRouteUsable, newestInvitation, normalizeInvitation, timestampMillis } from './invitationModel.js';
 import { calendarPathAfterLesson } from './lessonLink.js';
 import LiveRoom from './LiveRoom.jsx';
+import GroupRoom from './GroupRoom.jsx';
 import StudentWorkspace from './StudentWorkspace.jsx';
 import TeacherWorkspace from './TeacherWorkspace.jsx';
 import './liveClassroom.css';
@@ -46,11 +48,15 @@ export default function LiveClassroomPage({
   worksheetHomework,
   worksheetLibrary,
   recordingService,
+  groupService = liveGroupRoomsService,
+  groupBoard = groupBoardService,
+  groupCallOptions,
 }) {
   const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const invitationId = searchParams.get('invitation') || '';
+  const groupRoomId = searchParams.get('group') || '';
   const isStudent = user.roles?.includes('student');
   const isStaff = user.roles?.some((role) => role === 'admin' || role === 'teacher');
   const [studentsState, setStudentsState] = useState({ loading: isStaff, items: [], error: '' });
@@ -91,16 +97,25 @@ export default function LiveClassroomPage({
     );
   }, [invitationService, isStudent, user.uid]);
 
+  const [openGroups, setOpenGroups] = useState([]);
+  useEffect(() => {
+    if (!isStaff || !groupService?.subscribeTeacherOpen) return undefined;
+    try { return groupService.subscribeTeacherOpen(user.uid, setOpenGroups, () => setOpenGroups([])); } catch { return undefined; }
+  }, [groupService, isStaff, user.uid]);
+
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(timer);
   }, []);
 
   const selectedStudent = studentsState.items.find((student) => student.id === selectedId);
-  const normalizedInvitations = useMemo(
+  const allInvitations = useMemo(
     () => invitations.map((item) => normalizeInvitation(item.id, item, now)),
     [invitations, now],
   );
+  // an invitation into a group lesson carries the group room id as roomKey; one-to-one lessons use their own id
+  const isGroupInvitation = (item) => Boolean(item.roomKey && item.roomKey !== item.id);
+  const normalizedInvitations = useMemo(() => (isStudent ? allInvitations : allInvitations.filter((item) => !isGroupInvitation(item))), [allInvitations, isStudent]);
   const requestedInvitation = normalizedInvitations.find((item) => item.id === invitationId);
   const routeInvitation = isInvitationRouteUsable(requestedInvitation) ? requestedInvitation : null;
   const fallbackInvitation = newestInvitation(normalizedInvitations, [INVITATION_STATUS.PENDING]);
@@ -120,6 +135,22 @@ export default function LiveClassroomPage({
     try {
       const created = await invitationService.create({ student: selectedStudent, title: title || selectedStudent.subject }, user);
       setSearchParams({ invitation: created.id }, { replace: true });
+    } catch (error) {
+      setActionError(firebaseErrorMessage(error));
+    } finally {
+      setSaving('');
+    }
+  };
+
+  const [groupIds, setGroupIds] = useState([]);
+  const inviteGroup = async () => {
+    const students = studentsState.items.filter((item) => groupIds.includes(item.id));
+    setSaving('group');
+    setActionError('');
+    try {
+      const created = await groupService.create({ students, title: title || 'Grupitund' }, user);
+      setGroupIds([]);
+      setSearchParams({ group: created.id }, { replace: true });
     } catch (error) {
       setActionError(firebaseErrorMessage(error));
     } finally {
@@ -201,7 +232,11 @@ export default function LiveClassroomPage({
     ...(callPeerFactory ? { peerFactory: callPeerFactory } : {}),
   };
 
+  const groupProps = { user, service: groupService, boardService: groupBoard, library: libraryRepository, ...(groupCallOptions ? { callOptions: groupCallOptions } : {}) };
   if (isStudent) {
+    if (streamReady && !streamError && activeInvitation?.status === INVITATION_STATUS.ACCEPTED && isGroupInvitation(activeInvitation)) {
+      return <GroupRoom key={activeInvitation.roomKey} roomId={activeInvitation.roomKey} role="student" turnInvitationId={activeInvitation.id} onLeave={() => setSearchParams({}, { replace: true })} {...groupProps} />;
+    }
     if (streamReady && !streamError && activeInvitation?.status === INVITATION_STATUS.ACCEPTED) return <LiveRoom key={activeInvitation.id} {...roomProps('student')} />;
     if (!streamReady) return <div className="page-content"><LoadingState label="Laen tunnikutset…" /></div>;
     return <StudentWorkspace
@@ -213,6 +248,11 @@ export default function LiveClassroomPage({
       onBack={() => navigate('/')}
       error={streamError}
     />;
+  }
+
+  if (groupRoomId) {
+    const accepted = allInvitations.find((item) => item.roomKey === groupRoomId && item.status === INVITATION_STATUS.ACCEPTED);
+    return <GroupRoom key={groupRoomId} roomId={groupRoomId} role="teacher" turnInvitationId={accepted?.id || ''} onLeave={() => setSearchParams({}, { replace: true })} onEnd={() => setSearchParams({}, { replace: true })} {...groupProps} />;
   }
 
   if (activeInvitation?.status === INVITATION_STATUS.ACCEPTED) {
@@ -241,5 +281,11 @@ export default function LiveClassroomPage({
     error={streamError || actionError}
     boardService={boardService}
     library={libraryRepository}
+    groupIds={groupIds}
+    onToggleGroup={(id) => setGroupIds((current) => (current.includes(id) ? current.filter((item) => item !== id) : current.length >= 4 ? current : [...current, id]))}
+    onInviteGroup={inviteGroup}
+    invitingGroup={saving === 'group'}
+    openGroups={openGroups}
+    onOpenGroup={(id) => setSearchParams({ group: id }, { replace: true })}
   />;
 }

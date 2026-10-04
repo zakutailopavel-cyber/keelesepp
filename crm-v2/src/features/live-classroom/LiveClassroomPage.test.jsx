@@ -8,7 +8,18 @@ function LocationProbe() {
   return <div data-testid="location">{location.pathname}{location.search}</div>;
 }
 
-function renderPage({ user, invitationService, studentRepository, path = '/live-classroom', callSignalService }) {
+function groupFake(room = null) {
+  return {
+    create: vi.fn(async () => ({ id: 'room-1', invitations: [] })),
+    subscribeTeacherOpen: vi.fn((uid, onChange) => { onChange([]); return vi.fn(); }),
+    subscribe: vi.fn((id, onChange) => { onChange(room || { id, teacherUid: 'teacher-1', teacherName: 'Pavel', title: 'Grupitund', status: 'open', members: [{ studentUid: 'student-user-1', studentName: 'Mari' }, { studentUid: 'student-user-2', studentName: 'Jaan' }] }); return vi.fn(); }),
+    subscribeSignals: vi.fn(() => vi.fn()), sendSignal: vi.fn(async () => {}),
+    heartbeat: vi.fn(async () => {}), subscribePresence: vi.fn((id, onChange) => { onChange([]); return vi.fn(); }),
+    close: vi.fn(async () => {}),
+  };
+}
+
+function renderPage({ user, invitationService, studentRepository, path = '/live-classroom', callSignalService, groupService = groupFake() }) {
   const signals = callSignalService || { subscribe: vi.fn(() => vi.fn()), send: vi.fn().mockResolvedValue(undefined) };
   const presence = {
     heartbeat: vi.fn().mockResolvedValue(undefined),
@@ -25,7 +36,7 @@ function renderPage({ user, invitationService, studentRepository, path = '/live-
   const library = { list: vi.fn().mockResolvedValue({ curriculumLessons: [] }), assign: vi.fn() };
   const homework = { subscribeRoomWorksheets: vi.fn((query, onChange) => { onChange([]); return vi.fn(); }) };
   const recording = { subscribeForStudent: vi.fn(() => vi.fn()), subscribeForInvitation: vi.fn(() => vi.fn()) };
-  return render(<AuthContext.Provider value={{ user }}><MemoryRouter initialEntries={[path]}><LiveClassroomPage invitationService={invitationService} studentRepository={studentRepository} callSignalService={signals} callPresenceService={presence} boardService={board} messagesRepository={messages} libraryRepository={library} worksheetHomework={homework} worksheetLibrary={library} recordingService={recording} /><LocationProbe /></MemoryRouter></AuthContext.Provider>);
+  return render(<AuthContext.Provider value={{ user }}><MemoryRouter initialEntries={[path]}><LiveClassroomPage invitationService={invitationService} studentRepository={studentRepository} callSignalService={signals} callPresenceService={presence} boardService={board} messagesRepository={messages} libraryRepository={library} worksheetHomework={homework} worksheetLibrary={library} recordingService={recording} groupService={groupService} groupBoard={board} /><LocationProbe /></MemoryRouter></AuthContext.Provider>);
 }
 
 describe('Live Classroom invitation lifecycle', () => {
@@ -54,6 +65,39 @@ describe('Live Classroom invitation lifecycle', () => {
     expect(await screen.findByRole('img', { name: 'Õpilase tahvel' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Materjalid/ })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: 'Tahvel' })).toBeInTheDocument();
+  });
+
+  it('invites a group of students into one group room with a group board', async () => {
+    const invitationService = { subscribeOutgoing: vi.fn((uid, onChange) => { onChange([]); return vi.fn(); }) };
+    const studentRepository = { list: vi.fn().mockResolvedValue({ items: [
+      { id: 'student-1', name: 'Mari', active: true, studentUid: 'student-user-1', subject: 'Eesti keel', level: 'A2' },
+      { id: 'student-2', name: 'Jaan', active: true, studentUid: 'student-user-2', subject: 'Eesti keel', level: 'A2' },
+      { id: 'student-3', name: 'Liis', active: true, studentUid: 'student-user-3', subject: 'Eesti keel', level: 'B1' },
+    ] }) };
+    const groupService = groupFake();
+    renderPage({ user: { uid: 'teacher-1', displayName: 'Pavel', roles: ['teacher'] }, invitationService, studentRepository, groupService });
+    fireEvent.click(await screen.findByRole('button', { name: /Grupitund/ }));
+    fireEvent.click(await screen.findByRole('checkbox', { name: /Mari/ }));
+    fireEvent.click(screen.getByRole('checkbox', { name: /Jaan/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Kutsu grupp tundi \(2\/4\)/ }));
+    await waitFor(() => expect(groupService.create).toHaveBeenCalled());
+    expect(groupService.create.mock.calls[0][0].students.map((item) => item.id).sort()).toEqual(['student-1', 'student-2']);
+    expect(groupService.create.mock.calls[0][1]).toEqual(expect.objectContaining({ uid: 'teacher-1' }));
+    await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent('group=room-1'));
+    expect(await screen.findByRole('region', { name: 'Grupitund' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Õpilase tahvel' })).toBeInTheDocument();
+    expect(screen.getByText('Mari')).toBeInTheDocument();
+    expect(screen.getByText('Jaan')).toBeInTheDocument();
+  });
+
+  it('a student who accepted a group invitation lands in the group room', async () => {
+    const invitationService = { subscribeIncoming: vi.fn((uid, onChange) => { onChange([{ id: 'invite-g1', roomKey: 'room-9', teacherName: 'Pavel', studentName: 'Mari', studentId: 's-1', title: 'Grupitund', status: 'accepted', expiresAt: new Date(Date.now() - 60_000).toISOString() }]); return vi.fn(); }) };
+    const groupService = groupFake();
+    renderPage({ user: { uid: 'student-user-1', displayName: 'Mari', roles: ['student'] }, invitationService, studentRepository: {}, path: '/live-classroom?invitation=invite-g1', groupService });
+    expect(await screen.findByRole('region', { name: 'Grupitund' })).toBeInTheDocument();
+    expect(groupService.subscribe).toHaveBeenCalledWith('room-9', expect.any(Function), expect.any(Function));
+    expect(screen.getByRole('button', { name: /Liitu kõnega/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Lõpeta tund' })).not.toBeInTheDocument();
   });
 
   it('does not offer a student without a student account link', async () => {

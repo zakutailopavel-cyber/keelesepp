@@ -1,4 +1,4 @@
-import { ArrowLeft, GraduationCap, LibraryBig, Redo2, Search, Undo2, Video, X, XCircle } from 'lucide-react';
+import { ArrowLeft, GraduationCap, LibraryBig, Redo2, Search, Undo2, Users, Video, X, XCircle } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button, EmptyState, ErrorState, Input, LoadingState, Select } from '../../components/ui/index.js';
 import StudentBoard from '../board/StudentBoard.jsx';
@@ -12,7 +12,10 @@ import './liveRoom.css';
 export default function TeacherWorkspace({
   user, studentsState, selectedId, onSelect, title, onTitle, onInvite, inviting = false, pending = null, onCancel,
   cancelling = false, resumable = null, onResume, onBack, error = '', boardService, library,
+  groupIds = [], onToggleGroup, onInviteGroup, invitingGroup = false, openGroups = [], onOpenGroup,
 }) {
+  const [mode, setMode] = useState('single');
+  const group = mode === 'group';
   const [search, setSearch] = useState('');
   const [panel, setPanel] = useState('');
   const [history, setHistory] = useState({ canUndo: false, canRedo: false });
@@ -40,12 +43,16 @@ export default function TeacherWorkspace({
         <div className="lr-top__group lw-pick">
           {onBack ? <button type="button" className="lr-icon" aria-label="Tagasi CRM-i" title="Tagasi CRM-i" onClick={onBack}><ArrowLeft size={19} /></button> : null}
           <div className="lr-title"><strong>Live Classroom</strong><small>Tööruum: vali õpilane, valmista tund ette ja kutsu</small></div>
+          {onInviteGroup ? <div className="ed-seg lw-mode" role="group" aria-label="Tunni liik">
+            <button type="button" aria-pressed={!group} className={!group ? 'is-active' : ''} onClick={() => setMode('single')}>Üks õpilane</button>
+            <button type="button" aria-pressed={group} className={group ? 'is-active' : ''} onClick={() => setMode('group')}><Users size={14} /> Grupitund</button>
+          </div> : null}
           {studentsState.loading ? <LoadingState label="Laen õpilasi…" /> : studentsState.error ? <ErrorState message={studentsState.error} /> : studentsState.items.length ? <>
             <label className="lr-search lw-search"><Search size={16} /><input aria-label="Otsi õpilast tunniks" placeholder="Otsi õpilast…" value={search} onChange={(event) => setSearch(event.target.value)} /></label>
-            <Select label="Õpilane" value={studentId} disabled={Boolean(pending)} onChange={(event) => onSelect(event.target.value)}>
+            {group ? null : <Select label="Õpilane" value={studentId} disabled={Boolean(pending)} onChange={(event) => onSelect(event.target.value)}>
               <option value="">Vali õpilane</option>
               {visible.map((item) => <option key={item.id} value={item.id}>{item.name} · {item.subject || 'Õppeaine puudub'} · {item.level || 'tase puudub'}</option>)}
-            </Select>
+            </Select>}
           </> : <EmptyState title="Kontoga seotud õpilasi ei ole" description="Seo õpilase kaart tema kasutajakontoga, et saaksid talle tunnikutsungi saata." />}
         </div>
         <div className="lr-top__group lr-top__right">
@@ -55,7 +62,11 @@ export default function TeacherWorkspace({
             <button type="button" className={`lr-text-btn ${panel === 'materials' ? 'is-active' : ''}`} onClick={() => setPanel(panel === 'materials' ? '' : 'materials')}><LibraryBig size={17} /> Materjalid</button>
           </> : null}
           {resumable ? <Button variant="secondary" onClick={onResume}><Video size={17} /> Tagasi tundi: {resumable.studentName}</Button> : null}
-          {pending ? <>
+          {openGroups.map((item) => <Button key={item.id} variant="secondary" onClick={() => onOpenGroup?.(item.id)}><Users size={16} /> Tagasi grupitundi: {item.title}</Button>)}
+          {group ? <>
+            <Input aria-label="Tunni pealkiri" value={title} maxLength={160} placeholder="Grupitunni pealkiri" onChange={(event) => onTitle(event.target.value)} />
+            <Button loading={invitingGroup} disabled={!groupIds.length} onClick={onInviteGroup}><Users size={18} /> Kutsu grupp tundi ({groupIds.length}/4)</Button>
+          </> : pending ? <>
             <span className="lr-pill lw-pending" role="status">Kutse saadetud — ootan: {pending.studentName}</span>
             <Button variant="danger" loading={cancelling} onClick={onCancel}><XCircle size={17} /> Tühista kutse</Button>
           </> : student ? <>
@@ -68,7 +79,13 @@ export default function TeacherWorkspace({
       {notice ? <p className="lr-toast" role="status">{notice}</p> : null}
       <div className="lr-body">
         <main className="lr-stage">
-          {student ? <StudentBoard
+          {group ? <div className="lw-group" role="group" aria-label="Grupi õpilased">
+            <p>Vali kuni 4 õpilast. Kõik näevad üksteist ja ühist grupi tahvlit; igaühe oma tahvel jääb alles.</p>
+            <div className="lw-group__list">{visible.map((item) => <label key={item.id} className={groupIds.includes(item.id) ? 'is-on' : ''}>
+              <input type="checkbox" checked={groupIds.includes(item.id)} disabled={!groupIds.includes(item.id) && groupIds.length >= 4} onChange={() => onToggleGroup?.(item.id)} />
+              <span><strong>{item.name}</strong><small>{item.subject || 'Õppeaine puudub'} · {item.level || 'tase puudub'}</small></span>
+            </label>)}</div>
+          </div> : student ? <StudentBoard
             key={student.id}
             studentId={student.id}
             user={user}

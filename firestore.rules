@@ -200,6 +200,41 @@ service cloud.firestore {
       return /databases/$(database)/documents/liveLessonInvitations/$(invitationId);
     }
 
+    // Group lessons (owner, 2026-10-04): one room for a teacher and up to 4 students; each student is invited with a
+    // normal invitation whose roomKey is the group room id.
+    function liveGroupRoomPath(roomId) {
+      return /databases/$(database)/documents/liveGroupRooms/$(roomId);
+    }
+
+    function liveGroupParticipant(roomId) {
+      return signedIn()
+        && exists(liveGroupRoomPath(roomId))
+        && (
+          isAdmin()
+          || get(liveGroupRoomPath(roomId)).data.teacherUid == uid()
+          || get(liveGroupRoomPath(roomId)).data.memberUids.hasAny([uid()])
+        );
+    }
+
+    function liveGroupOpenParticipant(roomId) {
+      return liveGroupParticipant(roomId) && get(liveGroupRoomPath(roomId)).data.status == 'open';
+    }
+
+    function liveGroupInvites(roomId, studentUid) {
+      return exists(liveGroupRoomPath(roomId))
+        && get(liveGroupRoomPath(roomId)).data.teacherUid == uid()
+        && get(liveGroupRoomPath(roomId)).data.status == 'open'
+        && get(liveGroupRoomPath(roomId)).data.memberUids.hasAny([studentUid]);
+    }
+
+    function validLiveGroupMembers(data) {
+      return data.memberUids is list
+        && data.memberUids.size() >= 1
+        && data.memberUids.size() <= 4
+        && data.members is list
+        && data.members.size() == data.memberUids.size();
+    }
+
     function canUseLiveLessonInvitation(invitationId) {
       return signedIn()
         && exists(liveLessonInvitationPath(invitationId))
@@ -1344,6 +1379,105 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    match /liveGroupRooms/{roomId} {
+      allow read: if isAdmin()
+        || (signedIn() && resource.data.teacherUid == uid())
+        || (signedIn() && resource.data.memberUids.hasAny([uid()]));
+      allow create: if isStaff()
+        && request.resource.data.keys().hasOnly(['teacherUid', 'teacherName', 'title', 'memberUids', 'members', 'status', 'createdAt', 'closedAt'])
+        && request.resource.data.keys().hasAll(['teacherUid', 'teacherName', 'title', 'memberUids', 'members', 'status', 'createdAt', 'closedAt'])
+        && request.resource.data.teacherUid == uid()
+        && request.resource.data.teacherName is string && request.resource.data.teacherName.size() <= 160
+        && request.resource.data.title is string && request.resource.data.title.size() > 0 && request.resource.data.title.size() <= 160
+        && validLiveGroupMembers(request.resource.data)
+        && request.resource.data.status == 'open'
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.closedAt == null;
+      // the teacher changes the members while the room is open, or closes it
+      allow update: if (isAdmin() || (signedIn() && resource.data.teacherUid == uid()))
+        && resource.data.status == 'open'
+        && request.resource.data.teacherUid == resource.data.teacherUid
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberUids', 'members', 'status', 'closedAt', 'title'])
+        && validLiveGroupMembers(request.resource.data)
+        && (
+          (request.resource.data.status == 'open' && request.resource.data.closedAt == null)
+          || (request.resource.data.status == 'closed' && request.resource.data.closedAt == request.time)
+        );
+      allow delete: if isAdmin();
+
+      // WebRTC mesh: every signal goes from one participant to one other participant
+      match /signals/{signalId} {
+        allow read: if liveGroupParticipant(roomId);
+        allow create: if liveGroupOpenParticipant(roomId)
+          && request.resource.data.keys().hasOnly(['type', 'sessionId', 'fromUid', 'toUid', 'payload', 'createdAt', 'createdAtIso'])
+          && request.resource.data.keys().hasAll(['type', 'sessionId', 'fromUid', 'toUid', 'payload', 'createdAt', 'createdAtIso'])
+          && request.resource.data.type in ['offer', 'answer', 'candidate', 'hangup']
+          && request.resource.data.sessionId is string && request.resource.data.sessionId.size() > 0 && request.resource.data.sessionId.size() <= 120
+          && request.resource.data.fromUid == uid()
+          && request.resource.data.toUid is string && request.resource.data.toUid.size() > 0 && request.resource.data.toUid != uid()
+          && request.resource.data.payload is string && request.resource.data.payload.size() <= 64000
+          && request.resource.data.createdAt == request.time
+          && request.resource.data.createdAtIso is string;
+        allow update, delete: if false;
+      }
+
+      match /presence/{presenceId} {
+        allow read: if liveGroupParticipant(roomId);
+        allow create, update: if liveGroupOpenParticipant(roomId)
+          && presenceId == uid()
+          && request.resource.data.keys().hasOnly(['uid', 'role', 'displayName', 'online', 'lastSeen', 'lastSeenIso'])
+          && request.resource.data.keys().hasAll(['uid', 'role', 'displayName', 'online', 'lastSeen', 'lastSeenIso'])
+          && request.resource.data.uid == uid()
+          && (
+            (request.resource.data.role == 'teacher' && get(liveGroupRoomPath(roomId)).data.teacherUid == uid())
+            || (request.resource.data.role == 'student' && get(liveGroupRoomPath(roomId)).data.memberUids.hasAny([uid()]))
+          )
+          && request.resource.data.displayName is string && request.resource.data.displayName.size() <= 160
+          && request.resource.data.online is bool
+          && request.resource.data.lastSeen == request.time
+          && request.resource.data.lastSeenIso is string;
+        allow delete: if false;
+      }
+    }
+
+    // The group board of a group room: everyone in the room draws and writes; teacher materials (images/PDFs) stay
+    // staff-only like on a student's board.
+    match /groupBoards/{roomId} {
+      allow read: if liveGroupParticipant(roomId);
+      allow create, update: if liveGroupParticipant(roomId)
+        && request.resource.data.updatedByUid == uid()
+        && request.resource.data.keys().hasOnly(['schemaVersion', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId']);
+      allow delete: if isAdmin();
+
+      match /elements/{elementId} {
+        allow read: if liveGroupParticipant(roomId);
+        allow create: if liveGroupParticipant(roomId) && whiteboardElementCreateValid(request.resource.data);
+        allow update: if liveGroupParticipant(roomId) && whiteboardElementUpdateValid(resource.data, request.resource.data);
+        allow delete: if liveGroupParticipant(roomId) && resource.data.get('locked', false) != true && whiteboardMaterialStaffOnly(resource.data);
+      }
+
+      match /lessonPages/{pageId} {
+        allow read: if liveGroupParticipant(roomId);
+        allow create: if liveGroupParticipant(roomId)
+          && validLessonPage(request.resource.data)
+          && request.resource.data.status == 'active'
+          && request.resource.data.isSnapshot == false;
+        allow update: if liveGroupParticipant(roomId)
+          && resource.data.isSnapshot == false
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title', 'updatedAt', 'updatedByUid', 'updatedByName'])
+          && validLessonPage(request.resource.data);
+        allow delete: if liveGroupParticipant(roomId) && (isAdmin() || isTeacher());
+
+        match /elements/{elementId} {
+          allow read: if liveGroupParticipant(roomId);
+          allow create: if liveGroupParticipant(roomId) && whiteboardElementCreateValid(request.resource.data);
+          allow update: if liveGroupParticipant(roomId) && whiteboardElementUpdateValid(resource.data, request.resource.data);
+          allow delete: if liveGroupParticipant(roomId) && resource.data.get('locked', false) != true && whiteboardMaterialStaffOnly(resource.data);
+        }
+      }
+    }
+
     match /liveLessonInvitations/{invitationId} {
       allow read: if isAdmin()
         || (signedIn() && resource.data.teacherUid == uid())
@@ -1381,7 +1515,10 @@ service cloud.firestore {
         && request.resource.data.title.size() > 0
         && request.resource.data.title.size() <= 160
         && request.resource.data.status == 'pending'
-        && request.resource.data.roomKey == invitationId
+        && (
+          request.resource.data.roomKey == invitationId
+          || liveGroupInvites(request.resource.data.roomKey, request.resource.data.studentUid)
+        )
         && request.resource.data.createdAt == request.time
         && request.resource.data.createdAtIso is string
         && request.resource.data.createdAtIso.size() <= 40
