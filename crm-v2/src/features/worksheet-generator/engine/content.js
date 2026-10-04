@@ -4,6 +4,8 @@ import { difficultySpec } from './difficulty.js';
 import { sampleSeeded, shuffleSeeded } from './seed.js';
 
 const clean = (value) => String(value ?? '').trim();
+// „Poes” → „Poes.”, „Kus keegi on?” stays as it is
+const withStop = (label) => (/[.!?…]$/.test(String(label).trim()) ? String(label).trim() : `${String(label).trim()}.`);
 const escapeRegExp = (value) => String(value).replace(/[.*+?^$()|[\]\\{}]/g, '\\$&');
 
 function block(type, data, { id, goal }) {
@@ -58,6 +60,13 @@ function targetInSentence(sentence, profile, focusIds) {
     .filter(Boolean)
     .sort((a, b) => b.length - a.length);
   return words.find((word) => new RegExp(`(^|\\s)${escapeRegExp(word)}(?=[.,!?;:]|\\s|$)`, 'iu').test(sentence)) || '';
+}
+
+// Pattern sentences know their exact answer (one occurrence, checked when the pattern was filled).
+function knownAnswerGap(item) {
+  if (!item?.answer) return '';
+  const pattern = new RegExp(`(^|[^\\p{L}])(${escapeRegExp(item.answer)})(?=[^\\p{L}]|$)`, 'u');
+  return pattern.test(item.rendered) ? item.rendered.replace(pattern, `$1[${item.answer}]`) : '';
 }
 
 function markGap(sentence, profile, focusIds) {
@@ -132,6 +141,12 @@ function gapDistractors(profile, focusIds, target, seed, count) {
 function contextChoiceData(profile, focusIds, contextId, state, seed, spec) {
   const sentences = takeSentences(profile, state, { focusIds, contextId, count: 1, seed });
   const questions = sentences.map((item, index) => {
+    const gapped = knownAnswerGap(item);
+    if (gapped) {
+      const distractors = sampleSeeded(item.distractors || [], spec.distractorCount, `${seed}:form-distractors:${index}`);
+      const options = shuffleSeeded([{ text: item.answer, correct: true }, ...distractors.map((text) => ({ text, correct: false }))], `${seed}:options:${index}`);
+      return { q: gapped.replace(`[${item.answer}]`, '___'), options: options.map((option) => `${option.correct ? '*' : ''}${option.text}`).join('\n') };
+    }
     const target = targetInSentence(item.rendered, profile, focusIds);
     if (!target) return null;
     const q = item.rendered.replace(new RegExp(escapeRegExp(target), 'iu'), '___');
@@ -163,7 +178,7 @@ function trueFalseData(profile, focusIds, contextId, state, seed) {
   const context = (profile.contexts || []).find((item) => item.id === contextId);
   return {
     title: 'Kas lause sobib olukorraga?',
-    instruction: context?.label ? `Olukord: ${context.label}. Märgi Õ, kui lause sobib selle olukorraga, ja V, kui ei sobi.` : 'Märgi Õ või V.',
+    instruction: context?.label ? `Olukord: ${withStop(context.label)} Märgi Õ, kui lause sobib selle olukorraga, ja V, kui ei sobi.` : 'Märgi Õ või V.',
     statements: shuffleSeeded(selected, `${seed}:order`).map(({ item, answer }) => ({ text: renderTemplate(item, seed), answer })),
   };
 }
@@ -207,11 +222,15 @@ function categorizeData(profile, focusIds) {
 
 function gapData(profile, focusIds, contextId, state, seed, spec) {
   const sentences = takeSentences(profile, state, { focusIds, contextId, count: 1, seed });
-  const marked = sentences.map((item) => markGap(item.rendered, profile, focusIds)).filter(Boolean).slice(0, 2);
+  const marked = sentences.map((item) => knownAnswerGap(item) || markGap(item.rendered, profile, focusIds)).filter(Boolean).slice(0, 2);
+  // pattern sentences: the bank holds the right form and other forms of the same word (kooli / koolis / koolist)
+  const formBank = sentences.every((item) => item.answer)
+    ? shuffleSeeded([...new Set(sentences.flatMap((item) => [item.answer, ...(item.distractors || []).slice(0, 2)]))], `${seed}:form-bank`)
+    : null;
   return {
     title: 'Täienda laused.',
-    instruction: 'Kasuta sobivat tunni väljendit.',
-    bank: vocabularyFor(profile, focusIds).map((item) => item.word).join(', '),
+    instruction: formBank ? 'Vali sõna õige vorm.' : 'Kasuta sobivat tunni väljendit.',
+    bank: (formBank || vocabularyFor(profile, focusIds).map((item) => item.word)).join(', '),
     showBank: spec.showWordBank ? 'yes' : 'no',
     sentences: marked.join('\n'),
   };
@@ -263,7 +282,8 @@ function transferData(activityId, profile, focusIds, contextId, seed, spec) {
     return {
       title: 'Räägi õpetajaga.',
       instruction: 'Sina oled roll A, õpetaja on roll B. Leidke koos lahendus.',
-      roleA: `Koosta ${context.label || 'olukorra'} plaan ja selgita oma valikuid.`,
+      // the label is a free phrase („Poes”, „Kus keegi praegu on?”), so it stands on its own instead of inside a sentence
+      roleA: context.label ? `Olukord: ${withStop(context.label)} Koosta plaan ja selgita oma valikuid.` : 'Koosta plaan ja selgita oma valikuid.',
       roleB: 'Küsi täpsustavaid küsimusi, muuda üht tingimust ja palu õpilasel oma plaani kohandada.',
       phrasesA: vocab.slice(0, 5).map((item) => item.word).join('\n'),
       phrasesB: vocab.slice(5).map((item) => item.word).join('\n'),

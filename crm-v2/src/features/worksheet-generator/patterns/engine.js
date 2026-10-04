@@ -3,7 +3,7 @@
 // (missing form, fewer than two distinct distractors) is skipped instead of being emitted with a guess.
 import { lexemes, placeForms } from '../lexicon/index.js';
 import { createSeededRandom, shuffleSeeded } from '../engine/seed.js';
-import { GRAMMAR_POINTS, PATTERNS, SUBJECTS } from './grammarPatterns.js';
+import { ALL_PATTERNS as PATTERNS, GRAMMAR_POINTS, SUBJECTS } from './grammarPatterns.js';
 
 const PLACE_FORMS = new Set(['where', 'whereTo', 'whereFrom']);
 const MIN_DISTRACTORS = 2;
@@ -18,6 +18,7 @@ function candidates(spec) {
     if (spec.tags && !spec.tags.every((tag) => entry.tags.includes(tag))) return false;
     if (spec.anyTags && !spec.anyTags.some((tag) => entry.tags.includes(tag))) return false;
     if (PLACE_FORMS.has(spec.form) && !entry.locative) return false;
+    if (spec.locative && entry.locative !== spec.locative) return false;
     return true;
   });
 }
@@ -73,6 +74,10 @@ function assemble(pattern, chosen) {
   }
   const { answer, distractors } = distractorsFor(pattern, chosen);
   if (!answer || distractors.length < MIN_DISTRACTORS) return null;
+  // the gap must be unambiguous: the answer occurs exactly once as a word in the sentence
+  const occurrences = Object.values(texts).filter((value) => value.toLocaleLowerCase('et') === answer.toLocaleLowerCase('et')).length
+    + (pattern.text.toLocaleLowerCase('et').match(new RegExp(`(^|[^\\p{L}])${answer.toLocaleLowerCase('et').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?=[^\\p{L}]|$)`, 'gu')) || []).length;
+  if (occurrences !== 1) return null;
   let text = pattern.text;
   let gapped = pattern.text;
   for (const [name, value] of Object.entries(texts)) {
@@ -84,6 +89,7 @@ function assemble(pattern, chosen) {
     id: `${pattern.id}:${Object.values(lemmas).join('|')}`,
     patternId: pattern.id,
     grammar: pattern.grammar,
+    context: pattern.context || '',
     text: capitalize(text),
     gapped: capitalize(gapped),
     answer,

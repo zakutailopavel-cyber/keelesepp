@@ -1,4 +1,6 @@
+import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
+import { LoadingState } from '../components/ui/index.js';
 import AppShell from '../components/layout/AppShell.jsx';
 import ForbiddenPage from '../features/auth/ForbiddenPage.jsx';
 import LoginPage from '../features/auth/LoginPage.jsx';
@@ -12,9 +14,6 @@ import WorksheetStudioPage from '../features/worksheet-studio/WorksheetStudioPag
 import ConversionQueuePage from '../features/worksheet-studio/ConversionQueuePage.jsx';
 import BookPage from '../features/worksheet-studio/BookPage.jsx';
 import LiveWorksheetPage from '../features/worksheet-studio/LiveWorksheetPage.jsx';
-import GeneratorCoveragePage from '../features/worksheet-generator/ui/GeneratorCoveragePage.jsx';
-import LessonWorksheetSet from '../features/worksheet-generator/ui/LessonWorksheetSet.jsx';
-import LessonWorksheetStudioPage from '../features/worksheet-generator/ui/LessonWorksheetStudioPage.jsx';
 import LiveClassroomPage from '../features/live-classroom/LiveClassroomPage.jsx';
 import MessagesPage from '../features/messages/MessagesPage.jsx';
 import ParentsPage from '../features/parents/ParentsPage.jsx';
@@ -33,6 +32,12 @@ import BoardPage from '../features/board/BoardPage.jsx';
 import ProtectedRoute from './ProtectedRoute.jsx';
 import HomePage from './HomePage.jsx';
 import { ACCESS } from './accessPolicy.js';
+
+// The worksheet generator (with its Estonian form lexicon) is loaded only on its own staff pages.
+const GeneratorCoveragePage = lazy(() => import('../features/worksheet-generator/ui/GeneratorCoveragePage.jsx'));
+const LessonWorksheetSet = lazy(() => import('../features/worksheet-generator/ui/LessonWorksheetSet.jsx'));
+const LessonWorksheetStudioPage = lazy(() => import('../features/worksheet-generator/ui/LessonWorksheetStudioPage.jsx'));
+const generatorPage = (element) => <Suspense fallback={<LoadingState label="Laen generaatorit…" />}>{element}</Suspense>;
 
 export default function AppRoutes() {
   return (
@@ -55,9 +60,9 @@ export default function AppRoutes() {
             <Route path="library/worksheets/convert" element={<ConversionQueuePage />} />
             <Route path="library/worksheets/book" element={<BookPage />} />
             <Route path="library/worksheets/live/:assignmentId" element={<LiveWorksheetPage />} />
-            <Route path="library/worksheet-generator" element={<GeneratorCoveragePage />} />
-            <Route path="library/lessons/:lessonId/worksheets" element={<LessonWorksheetSet />} />
-            <Route path="library/lessons/:lessonId/worksheets/:worksheetId" element={<LessonWorksheetStudioPage />} />
+            <Route path="library/worksheet-generator" element={generatorPage(<GeneratorCoveragePage />)} />
+            <Route path="library/lessons/:lessonId/worksheets" element={generatorPage(<LessonWorksheetSet />)} />
+            <Route path="library/lessons/:lessonId/worksheets/:worksheetId" element={generatorPage(<LessonWorksheetStudioPage />)} />
             <Route path="library/worksheets/:lessonId" element={<WorksheetStudioPage />} />
             <Route path="parents" element={<ParentsPage />} />
             <Route path="board/:studentId" element={<BoardPage />} />

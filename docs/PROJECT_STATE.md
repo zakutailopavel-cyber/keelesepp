@@ -1,5 +1,19 @@
 # KeeleSepp Project State
 
+## 2026-10-04 — Rule-based generator step 3: 8 more lessons generated from patterns — branch `agent/generator-pattern-lessons`
+
+Stacked on #255. `patterns/profileFromPatterns.js` turns grammar points into a full ready profile; `factory.js`
+`LESSON_GRAMMAR_POINTS` (hand-written pack → patterns → keywords) makes A2-016…A2-021, A2-026, A2-027 ready without
+hand-written sentences; static coverage is now 23 of 100 A2 lessons. New grammar points `local-inner` (sees) and
+`surface-local` (peal). `engine/content.js` uses pattern answers for gaps/choices (bank = forms of the same word);
+role-card and true/false label wording fixed for all lessons. Generator routes are lazy (main bundle 300 → 257 kB gzip).
+Checks: generator Vitest 179 (incl. 12 new: every pattern lesson ready on 4 seeds, one-answer choices, one-word error
+pairs, „sees” inner-only, „peal” surface forms, pack precedence); CRM Vitest 129 files / 755 tests; ESLint; build.
+Browser on emulators (admin): /library/lessons/a2-017/worksheets → „Genereeri 3 töölehte” saved three drafts; the
+Harjuta sheet shows „Toomas on pärit ___” with Eestisse / Eestis / Eestist, error repair „Maksim tuleb kontoris”, choice
+teatris / teatrist / teatrisse, status „Avaldamiseks valmis”. No Firestore/rules/Functions change.
+Exactly one next safe step: owner opens A2-017 and A2-027 in Õppevara, generates and reviews the sheets.
+
 ## 2026-10-04 — Rule-based generator step 2: grammar sentence patterns — branch `agent/generator-patterns`
 
 Checked `origin/main` `d68261f` (after #254, lexicon). `worksheet-generator/patterns/`: 21 sentence frames for six
