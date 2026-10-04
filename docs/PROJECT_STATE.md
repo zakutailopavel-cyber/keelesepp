@@ -1,5 +1,15 @@
 # KeeleSepp Project State
 
+## 2026-10-04 — Release of #247–#251: RELEASED
+
+Owner deployed from `~/keelesepp-release` at main `234c53f` (2026-10-04): `firestore:rules` (#247; the second run
+reported "already up to date", so the first run had released them) and `functions:gcalApi,functions:syncAllCalendars`
+(#248, both "Successful update operation"). Vercel production deployment for `234c53f` succeeded; `crm.epkoolitus.ee`
+serves `index-DqP7EBPE.js` / `index-Z8w5gXzU.css`, which contains the Esmane hindamine styles (#250) — #249 is in the
+same build. Not yet done: the owner's three manual checks (shared-student teacher dashboard; calendar → Alusta tundi →
+Lõpeta tund → Toimunud; one real Esmane hindamine).
+Exactly one next safe step: those three manual checks.
+
 ## 2026-10-04 — Development vector: what is done, what waits for the owner, what is next
 
 Checked `origin/main` `e5d2d32` (after #250).
