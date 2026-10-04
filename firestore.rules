@@ -1379,6 +1379,12 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // Heartbeat of the transcriber on the school Mac (Admin SDK). Staff see in the lesson room whether it runs.
+    match /transcriberStatus/{workerId} {
+      allow read: if isStaff();
+      allow write: if false;
+    }
+
     match /liveGroupRooms/{roomId} {
       allow read: if isAdmin()
         || (signedIn() && resource.data.teacherUid == uid())

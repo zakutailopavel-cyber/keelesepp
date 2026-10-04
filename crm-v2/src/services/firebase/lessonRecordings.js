@@ -120,6 +120,12 @@ export const lessonRecordingsService = {
     return { recordingConsent: Boolean(value), recordingConsentAt: now };
   },
 
+  // staff: heartbeat of the transcriber on the school Mac (written by the worker with the Admin SDK)
+  subscribeTranscribers(onData, onError) {
+    const { db } = requireFirebaseClient();
+    return onSnapshot(collection(db, 'transcriberStatus'), (snapshot) => onData(snapshot.docs.map((d) => ({ id: d.id, ...d.data() }))), (error) => onError?.(error));
+  },
+
   async audioUrl(path) {
     const { storage } = requireFirebaseClient();
     return getDownloadURL(ref(storage, path));

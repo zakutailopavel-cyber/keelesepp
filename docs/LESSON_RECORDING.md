@@ -33,6 +33,11 @@ the lesson what the student said and where they struggled. No AI analysis yet (a
 2. **Worker (school Mac):** `tools/lesson-transcriber` (whisper.cpp; Estonian lessons: TalTech `whisper-large-v3-turbo-et-verbatim-2604`, MIT; other languages: large-v3-turbo) claims `uploaded`, converts
    each file to 16 kHz WAV, transcribes in the lesson language (`et`, `en` for English learners), merges both tracks by
    time into `transcript = [{ speaker, startMs, endMs, text }]` → `done` (or `failed` with the error).
+   It starts by itself at Mac login (launchd, `install-mac.sh`) and writes a heartbeat `transcriberStatus/{host}`
+   `{ host, state idle|transcribing, recordingId, startedAt, lastSeenAt }` every minute; the teacher's recording panel
+   shows „Transkribeerija töötab (host)” or a warning, and the top bar shows „Mac ei transkribeeri” next to „Salvestan”
+   when no heartbeat is fresher than 3 minutes (`transcriberStatus.js`). Recording never depends on it: files upload
+   and wait. During transcription the Mac is kept awake (`caffeinate -i`).
 3. **Student card (staff) → Õppetöö → „Tunnid”:** one row per recorded lesson (plus board lesson pages of days without a
    recording) with two buttons: „Tunni analüüs” (student's share of speaking time, words and minutes per speaker,
    number of student answers, longest student sentence, student's questions, then the dialogue with search and
@@ -46,11 +51,12 @@ the lesson what the student said and where they struggled. No AI analysis yet (a
   transcriptModel, audioDeletedAt, error`.
 - Firestore: create only by the teacher of an accepted invitation with consent on the student card; browser updates
   only `status, endedAt, segments, updatedAt` while `recording`; transcript is written by the worker (Admin SDK).
+- `transcriberStatus/{workerId}`: staff read, written only by the worker (Admin SDK).
 - Storage: `lessonRecordings/{recordingId}/*` written only by the recording teacher while `recording`, audio < 20 MB.
 - Tests: `functions/lesson-recording-emulator.integration.js` (rules), `tools/lesson-transcriber/lib.test.js`
   (merging, junk filter, retention), `crm-v2/src/features/lesson-recording/lessonRecording.test.jsx` (UI).
 
 ## Setup on the Mac
 
-See `tools/lesson-transcriber/README.md`: service account key (owner), whisper model download (~1.6 GB), `npm install`,
-one test run, launchd agent.
+See `tools/lesson-transcriber/README.md`: the owner saves the service account key, then runs
+`tools/lesson-transcriber/install-mac.sh` once (Homebrew tools, models ~3.2 GB, `npm install`, launchd agent).

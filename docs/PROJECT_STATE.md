@@ -1,5 +1,25 @@
 # KeeleSepp Project State
 
+## 2026-10-04 — Transcriber on the Mac starts by itself; the lesson room shows whether it runs — branch `claude/affectionate-ritchie-dh2x9j`
+
+Checked `origin/main` `d120950` (after #277). Owner: keep transcription on the school Mac (free, best Estonian), but it
+must run whenever a lesson is held. A web page cannot start a Mac program, so the worker runs from Mac login instead and
+the room reports its state.
+- `tools/lesson-transcriber/install-mac.sh` (new): one command after the owner saved the service account key —
+  Homebrew whisper-cpp/ffmpeg/node if missing, 3 models, `npm install`, launchd agent (RunAtLoad + KeepAlive, explicit
+  `WHISPER_BIN`/`FFMPEG_BIN`). Re-run after `git pull` to restart.
+- Worker: heartbeat `transcriberStatus/{workerId(host)}` at start, every minute and around each transcription
+  (`state idle|transcribing`); `caffeinate -i` while transcribing. Helpers `workerId`, `heartbeat` in `lib.js`.
+- `firestore.rules`: `transcriberStatus/{workerId}` staff read, no browser writes.
+- CRM: `lessonRecordingsService.subscribeTranscribers`; `features/lesson-recording/transcriberStatus.js`
+  (`transcriberState`, 3-minute freshness, `useTranscriberStatus`, `transcriberLabel`). LiveRoom: status line in the
+  recording drawer, pill „Mac ei transkribeeri” while recording without a fresh heartbeat; GroupRoom: same pill.
+- Tests: worker `npm test` 5/5; emulator `lesson-recording-emulator.integration.js` 2/2 (teacher reads heartbeat 200,
+  student 403, browser write 403); CRM Vitest 138 files / 860 tests; ESLint clean on changed files.
+- Not verified on a real Mac (script syntax checked with `bash -n` only).
+- **Needs the owner:** `firestore:rules` deploy (with #276/#277), then on the Mac: save the key, run `install-mac.sh`,
+  set Energy → prevent automatic sleeping when the display is off.
+
 ## 2026-10-04 — Group lessons: chat and per-student recording — branch `claude/affectionate-ritchie-dh2x9j`
 
 Checked `origin/main` `d73c043` (after #276). Closes the two gaps of #274.

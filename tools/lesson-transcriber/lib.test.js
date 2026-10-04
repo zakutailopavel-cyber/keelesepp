@@ -1,7 +1,7 @@
 'use strict';
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { parseWhisperJson, mergeDialogue, isAudioExpired, isAbandoned, cleanText } = require('./lib');
+const { parseWhisperJson, mergeDialogue, isAudioExpired, isAbandoned, cleanText, workerId, heartbeat } = require('./lib');
 
 test('parses whisper output with the segment offset and drops invented lines', () => {
   const json = { transcription: [
@@ -45,4 +45,14 @@ test('Estonian lessons use the TalTech Estonian model, others the general one', 
   assert.equal(pickModel('et', models), models.et);
   assert.equal(pickModel('en', models), models.general);
   assert.equal(pickModel('et', models, () => false), models.general, 'missing Estonian file falls back');
+});
+
+test('heartbeat doc for the lesson room', () => {
+  assert.equal(workerId('Kooli-MacBook-Pro'), 'kooli-macbook-pro');
+  assert.equal(workerId('Pavel’s Mac mini'), 'pavel-s-mac-mini');
+  assert.equal(workerId(''), 'mac');
+  const now = new Date('2026-10-04T10:00:00Z');
+  assert.deepEqual(heartbeat({ host: 'Kooli-Mac', startedAt: 'x', now }),
+    { host: 'Kooli-Mac', state: 'idle', recordingId: '', startedAt: 'x', lastSeenAt: '2026-10-04T10:00:00.000Z' });
+  assert.equal(heartbeat({ host: 'm', state: 'transcribing', recordingId: 'r1', now }).state, 'transcribing');
 });
