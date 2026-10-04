@@ -62,6 +62,11 @@ function createElement(path, uid, data) {
   };
 }
 
+// the same write on an existing element (move / resize)
+function updateElement(path, uid, data) {
+  return { ...createElement(path, uid, data), currentDocument: { exists: true } };
+}
+
 const note = { type: "note", x: 10, y: 10, w: 180, h: 140, text: "Tere", color: "#FEF3C7" };
 const image = { type: "image", x: 0, y: 0, w: 800, h: 560, url: "https://files.example/leht.png", locked: false };
 const pdf = { type: "pdf", x: 0, y: 0, w: 1000, h: 1414, url: "https://files.example/leht.pdf", name: "Leht.pdf", locked: false };
@@ -119,6 +124,31 @@ test("a student draws and writes on their board but cannot add materials or touc
   assert.equal(snapshot.status, 403);
   const lockedDelete = await commit(ctx.studentToken, [{ delete: documentName(`whiteboards/${ctx.studentId}/elements/locked-1`) }]);
   assert.equal(lockedDelete.status, 403);
+});
+
+test("a student's eraser or drag cannot remove or move the teacher's image or PDF; the teacher can", async () => {
+  requireSafeEmulatorEnvironment();
+  const ctx = await seed();
+  const paths = [`whiteboards/${ctx.studentId}/elements/m-image`, `whiteboards/${ctx.studentId}/lessonPages/live/elements/m-pdf`];
+  await ctx.db.doc(paths[0]).set({ ...image, updatedByUid: ctx.teacherUid });
+  await ctx.db.doc(paths[1]).set({ ...pdf, updatedByUid: ctx.teacherUid });
+  for (const path of paths) {
+    const erased = await commit(ctx.studentToken, [{ delete: documentName(path) }]);
+    assert.equal(erased.status, 403, `student delete ${path}`);
+    const data = path.endsWith("m-image") ? image : pdf;
+    const moved = await commit(ctx.studentToken, [updateElement(path, ctx.studentUid, { ...data, x: 300 })]);
+    assert.equal(moved.status, 403, `student move ${path}`);
+  }
+  const studentNote = `whiteboards/${ctx.studentId}/elements/own-note`;
+  await ctx.db.doc(studentNote).set({ ...note, updatedByUid: ctx.studentUid });
+  const ownDelete = await commit(ctx.studentToken, [{ delete: documentName(studentNote) }]);
+  assert.equal(ownDelete.status, 200, "student still erases ordinary elements");
+  const teacherMove = await commit(ctx.teacherToken, [updateElement(paths[0], ctx.teacherUid, { ...image, x: 300 })]);
+  assert.equal(teacherMove.status, 200, JSON.stringify(teacherMove.body));
+  for (const path of paths) {
+    const removed = await commit(ctx.teacherToken, [{ delete: documentName(path) }]);
+    assert.equal(removed.status, 200, `teacher delete ${path}`);
+  }
 });
 
 test("nobody writes to a completed lesson snapshot", async () => {

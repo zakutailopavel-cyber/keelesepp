@@ -2039,9 +2039,16 @@ service cloud.firestore {
         );
     }
 
+    // Teacher materials (images, PDFs) can only be added by staff, so only staff may move, resize or delete them:
+    // a student's eraser or drag must never remove what the teacher put on the board.
+    function whiteboardMaterialStaffOnly(data) {
+      return !(data.type in ['image', 'pdf']) || isAdmin() || isTeacher();
+    }
+
     function whiteboardElementUpdateValid(before, after) {
       return validWhiteboardElement(after)
         && after.type == before.type
+        && whiteboardMaterialStaffOnly(before)
         && (
           !(after.type in ['image', 'pdf'])
           || (
@@ -2058,7 +2065,8 @@ service cloud.firestore {
 
     function whiteboardElementDeleteAllowed(studentId, data) {
       return whiteboardAccessAllowed(studentId)
-        && data.get('locked', false) != true;
+        && data.get('locked', false) != true
+        && whiteboardMaterialStaffOnly(data);
     }
 
     // Element shape plus "only staff add images/PDFs", for rules that have already checked board access once.
@@ -2173,7 +2181,7 @@ service cloud.firestore {
             && whiteboardElementUpdateValid(resource.data, request.resource.data);
           allow delete: if whiteboardAccessAllowed(studentId)
             && (
-              (lessonPageLive(studentId, pageId) && resource.data.get('locked', false) != true)
+              (lessonPageLive(studentId, pageId) && resource.data.get('locked', false) != true && whiteboardMaterialStaffOnly(resource.data))
               || ((isAdmin() || isTeacher()) && snapshotPageActive(studentId, pageId))
             );
         }

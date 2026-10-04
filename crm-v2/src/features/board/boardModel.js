@@ -69,6 +69,11 @@ export function fitView(elements, width, height, padding = 40) {
   return { scale, x: padding - x1 * scale, y: padding - y1 * scale };
 }
 
+// images and PDFs are added by staff; only staff may move or delete them (also enforced by the Firestore rules)
+export function teacherMaterial(element) {
+  return ['image', 'pdf'].includes(element?.type);
+}
+
 export function movable(element) {
   return Boolean(element) && element.type !== 'stroke' && element.locked !== true;
 }

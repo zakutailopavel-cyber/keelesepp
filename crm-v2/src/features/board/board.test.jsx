@@ -87,6 +87,22 @@ describe('StudentBoard', () => {
     await waitFor(() => expect(service.remove).toHaveBeenCalledWith('s-1', null, 'new-2'));
   });
 
+  it("a student's eraser leaves the teacher's unlocked image; the teacher can erase it", async () => {
+    const board = [{ id: 'i1', type: 'image', x: 400, y: 200, w: 200, h: 150, url: 'https://example.com/a.jpg', locked: false }];
+    const service = fakeService({ board });
+    const view = render(<StudentBoard studentId="s-1" user={user} staff={false} service={service} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Kustutaja' }));
+    fireEvent.pointerDown(view.container.querySelector('image[data-element-id="i1"]'), { clientX: 410, clientY: 210, button: 0 });
+    expect(await screen.findByRole('alert')).toHaveTextContent('ainult õpetaja');
+    expect(service.remove).not.toHaveBeenCalled();
+    view.unmount();
+
+    const teacherView = render(<StudentBoard studentId="s-1" user={user} staff service={service} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Kustutaja' }));
+    fireEvent.pointerDown(teacherView.container.querySelector('image[data-element-id="i1"]'), { clientX: 410, clientY: 210, button: 0 });
+    await waitFor(() => expect(service.remove).toHaveBeenCalledWith('s-1', null, 'i1'));
+  });
+
   it('draws a pen stroke and switches to a v1 lesson page', async () => {
     const service = fakeService({ pages: [{ id: 'pg1', title: 'Tund 3', order: 1 }], 'page:pg1': [{ id: 'x1', type: 'text', x: 0, y: 0, w: 200, h: 40, text: 'Lehe tekst', color: '#000', fontSize: 18 }] });
     render(<StudentBoard studentId="s-1" user={user} service={service} />);
