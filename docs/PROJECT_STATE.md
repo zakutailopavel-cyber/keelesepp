@@ -1,5 +1,13 @@
 # KeeleSepp Project State
 
+## 2026-10-04 — TURN relay released
+
+Owner set secrets `CLOUDFLARE_TURN_KEY_ID` and `CLOUDFLARE_TURN_API_TOKEN` (Secret Manager; access granted to
+`keelesepp-5136b@appspot.gserviceaccount.com`) and deployed `functions:liveTurnApi` from main `1b424d9`:
+„Successful create operation”, URL `https://us-central1-keelesepp-5136b.cloudfunctions.net/liveTurnApi`. The CRM part
+is in the Vercel build of main. Not verified from the agent sandbox (its network cannot reach cloudfunctions.net).
+Exactly one next safe step: one real call, student on mobile data (Wi-Fi off) → „Ühendatud” with video both ways.
+
 ## 2026-10-04 — Live Classroom TURN relay (Cloudflare Realtime TURN) — branch `agent/live-turn`
 
 Owner chose Cloudflare Realtime TURN (1 000 GB/month free, then $0.05/GB; Twilio $0.40/GB; Metered free 500 MB) and
