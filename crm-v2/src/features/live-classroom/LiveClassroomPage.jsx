@@ -1,12 +1,13 @@
 import { CheckCircle2, Clock3, GraduationCap, Search, Video, XCircle } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, PageHeader, Select } from '../../components/ui/index.js';
 import { libraryService, liveLessonCallSignalsService, liveLessonInvitationsService, liveLessonPresenceService, messagesService, studentsService } from '../../services/firebase/index.js';
 import { studentBoardService } from '../../services/firebase/studentBoard.js';
 import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
 import { eligibleInvitationStudents, INVITATION_STATUS, isInvitationRouteUsable, newestInvitation, normalizeInvitation, timestampMillis } from './invitationModel.js';
+import { calendarPathAfterLesson } from './lessonLink.js';
 import LiveRoom from './LiveRoom.jsx';
 import './liveClassroom.css';
 
@@ -46,6 +47,7 @@ export default function LiveClassroomPage({
 }) {
   const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const invitationId = searchParams.get('invitation') || '';
   const isStudent = user.roles?.includes('student');
   const isStaff = user.roles?.some((role) => role === 'admin' || role === 'teacher');
@@ -147,7 +149,9 @@ export default function LiveClassroomPage({
     setActionError('');
     try {
       await invitationService.close(activeInvitation.id, user);
-      setSearchParams({}, { replace: true });
+      // the lesson is over: open it in the calendar to mark it held (topic, homework) — the usual „Toimunud” flow
+      if (isStaff) navigate(calendarPathAfterLesson(activeInvitation), { replace: true });
+      else setSearchParams({}, { replace: true });
     } catch (error) {
       setActionError(firebaseErrorMessage(error));
     } finally {
@@ -185,7 +189,7 @@ export default function LiveClassroomPage({
     recordingService,
     streams: callStreams,
     onLeave: leaveRoom,
-    onEndLesson: () => { if (globalThis.confirm('Lõpetada tund? Tunniruum suletakse mõlemale.')) closeRoom(); },
+    onEndLesson: () => { if (globalThis.confirm('Lõpetada tund? Tunniruum suletakse mõlemale ja kalendris avaneb tund märkimiseks.')) closeRoom(); },
     ending: saving === 'close',
   });
   const worksheetProps = { ...(worksheetHomework ? { homework: worksheetHomework } : {}), ...(worksheetLibrary ? { library: worksheetLibrary } : {}) };

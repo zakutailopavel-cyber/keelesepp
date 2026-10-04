@@ -91,6 +91,24 @@ describe('Live Classroom invitation lifecycle', () => {
     fireEvent.click(screen.getByRole('menuitem', { name: 'Lõpeta tund' }));
     await waitFor(() => expect(invitationService.close).toHaveBeenCalledWith('accepted-1', expect.objectContaining({ uid: 'teacher-1' })));
     await waitFor(() => expect(screen.getByTestId('location')).not.toHaveTextContent('invitation='));
+    // no calendar link for this room: the calendar opens filtered to the student to mark the lesson
+    expect(screen.getByTestId('location')).toHaveTextContent('/calendar?student=s-1');
     globalThis.confirm.mockRestore();
+  });
+
+  it('after ending a room started from the calendar, opens that lesson to mark it held', async () => {
+    globalThis.localStorage.setItem('keelesepp.liveLessonLinks', JSON.stringify({ 'accepted-2': 'sch-1:2026-10-04|2026-10-04' }));
+    const invitationService = {
+      subscribeOutgoing: vi.fn((uid, onChange) => { onChange([{ id: 'accepted-2', studentName: 'Mari', studentId: 's-1', teacherName: 'Pavel', title: 'Eesti keel', status: 'accepted', expiresAt: new Date(Date.now() - 60_000).toISOString() }]); return vi.fn(); }),
+      close: vi.fn().mockResolvedValue(undefined),
+    };
+    const studentRepository = { list: vi.fn().mockResolvedValue({ items: [] }), getById: vi.fn().mockResolvedValue({ id: 's-1' }) };
+    vi.spyOn(globalThis, 'confirm').mockReturnValue(true);
+    renderPage({ user: { uid: 'teacher-1', displayName: 'Pavel', roles: ['teacher'] }, invitationService, studentRepository, path: '/live-classroom?invitation=accepted-2' });
+    fireEvent.click(await screen.findByRole('button', { name: 'Rohkem' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Lõpeta tund' }));
+    await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent(`/calendar?lesson=${encodeURIComponent('sch-1:2026-10-04|2026-10-04')}`));
+    globalThis.confirm.mockRestore();
+    globalThis.localStorage.clear();
   });
 });

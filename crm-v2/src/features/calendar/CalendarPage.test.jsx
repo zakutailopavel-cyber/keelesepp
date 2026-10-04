@@ -50,9 +50,9 @@ function repositories({ events = [], records = [], groups = [] } = {}) {
   };
 }
 
-function renderCalendar(options) {
+function renderCalendar(options, path = '/calendar') {
   const props = repositories(options);
-  render(<MemoryRouter initialEntries={['/calendar']}><Routes><Route path="/calendar" element={<CalendarPage {...props} />} /><Route path="/live-classroom" element={<LiveLocation />} /></Routes></MemoryRouter>);
+  render(<MemoryRouter initialEntries={[path]}><Routes><Route path="/calendar" element={<CalendarPage {...props} />} /><Route path="/live-classroom" element={<LiveLocation />} /></Routes></MemoryRouter>);
   return props;
 }
 
@@ -273,6 +273,18 @@ describe('calendar v2', () => {
       expect.objectContaining({ uid: 'admin-1' }),
     ));
     expect(await screen.findByText('live room ?invitation=inv-1')).toBeInTheDocument();
+    expect(JSON.parse(globalThis.localStorage.getItem('keelesepp.liveLessonLinks'))['inv-1']).toBe(`schedule-1:${today}|${today}`);
+  });
+
+  it('opens the linked lesson panel after the live lesson ends (?lesson=)', async () => {
+    renderCalendar({ events: [lesson()] }, `/calendar?lesson=${encodeURIComponent(`schedule-1:${today}|${today}`)}`);
+    expect(await screen.findByRole('dialog', { name: 'Tund: Mari Maas' })).toBeInTheDocument();
+  });
+
+  it('ignores a malformed ?lesson= link', async () => {
+    renderCalendar({ events: [lesson()] }, '/calendar?lesson=bogus');
+    await screen.findByRole('button', { name: /10:00 Mari Maas/ });
+    expect(screen.queryByRole('dialog', { name: 'Tund: Mari Maas' })).not.toBeInTheDocument();
   });
 
   it('explains why a student without an account cannot be invited', async () => {
