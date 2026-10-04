@@ -330,6 +330,11 @@ Private Google extended properties plus a stable content fingerprint stop the se
 re-importing its own write as a new change. Completed lesson history is never deleted when a
 Google event disappears.
 
+Inbound deletion reconciliation uses Google's explicit cancellation tombstones and the same
+seven-day lookback as the tombstone query, so a recently elapsed imported lesson deleted in Google
+after its time disappears from KeeleSepp. A schedule with a recorded result (Toimunud/Puudus status,
+`lessonEntryId`, `attendance` or an `occurrenceStatuses` entry) is never removed by that reconcile.
+
 Recurring schedule exceptions are additive and migration-safe. The parent series keeps an
 `excludedDates` array. A moved or cancelled occurrence becomes a separate `schedule` record with
 `seriesId`, `originalOccurrenceDate` and stable student ownership. Google receives matching

@@ -348,6 +348,9 @@ function shouldApplyExplicitGoogleDeletion(schedule = {}, deletedIds = new Set()
 } = {}) {
   const eventId = String(schedule.gcalEventId || "").trim();
   if (!eventId || !deletedIds?.has(eventId)) return false;
+  // The reconcile window reaches seven days back. A lesson that already has an
+  // attendance result is history: deleting it in Google must not erase it here.
+  if (hasRecordedLessonResult(schedule)) return false;
   const date = schedule.gcalNativeException
     ? String(schedule.originalOccurrenceDate || "")
     : String(schedule.date || schedule.startDate || "");
@@ -358,6 +361,17 @@ function shouldApplyExplicitGoogleDeletion(schedule = {}, deletedIds = new Set()
 }
 
 const LESSON_RESULT_STATUSES = new Set(["Toimunud", "Puudus_p", "Puudus_eta"]);
+
+function hasRecordedLessonResult(schedule = {}) {
+  if (LESSON_RESULT_STATUSES.has(String(schedule.status || ""))) return true;
+  if (schedule.lessonEntryId) return true;
+  const attendance = schedule.attendance;
+  if (attendance && typeof attendance === "object" && Object.keys(attendance).length) return true;
+  const statuses = schedule.occurrenceStatuses;
+  return Boolean(statuses && typeof statuses === "object"
+    && Object.values(statuses).some(entry => entry?.lessonEntryId
+      || LESSON_RESULT_STATUSES.has(String(entry?.status ?? entry ?? ""))));
+}
 
 function preserveLessonResultDuringGoogleImport(imported = {}, existing = {}) {
   const result = { ...imported };
