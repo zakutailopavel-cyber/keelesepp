@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import roadmap from '../../curriculum/a2Roadmap.json';
 import { generateLessonBundle } from '../engine/generator.js';
+import { REUSABLE_CONTENT_LIBRARY } from './contentLibrary.js';
 import { createContentPackDraft, suggestReusablePackIds } from './factory.js';
 
 const lessons = roadmap.modules.flatMap((module) => module.lessons);
 
 describe('Content Pack Factory v1', () => {
-  it.each(['a2-002', 'a2-003', 'a2-004', 'a2-005', 'a2-006'])('builds a ready, deterministic five-task bundle for %s', (lessonId) => {
+  it.each(['a2-002', 'a2-003', 'a2-004', 'a2-005', 'a2-006', 'a2-007', 'a2-008', 'a2-009', 'a2-010', 'a2-011', 'a2-012', 'a2-013', 'a2-014', 'a2-015'])('builds a ready, deterministic five-task bundle for %s', (lessonId) => {
     const lesson = lessons.find((item) => item.id === lessonId);
     const first = createContentPackDraft(lesson);
     const second = createContentPackDraft(lesson);
@@ -71,6 +72,105 @@ describe('Content Pack Factory v1', () => {
     expect(result.profile.banks.sentences.some((item) => item.text.includes('Kelle tütar'))).toBe(true);
     expect(result.profile.banks.speakingPrompts).toHaveLength(2);
     expect(result.profile.banks.writingPrompts).toHaveLength(1);
+  });
+
+  it.each(['a2-007', 'a2-008', 'a2-009', 'a2-010', 'a2-011', 'a2-012', 'a2-013', 'a2-014', 'a2-015'])('gives %s complete answer keys on every sheet across seeds', (lessonId) => {
+    const lesson = lessons.find((item) => item.id === lessonId);
+    const { profile } = createContentPackDraft(lesson);
+    for (const seed of ['a', 'b', 'c', 'd', 'e', 'f']) {
+      const generated = generateLessonBundle({ lesson, profile, seed: `${lessonId}:${seed}` });
+      expect(generated.diagnostics.filter((item) => item.severity === 'error'), seed).toEqual([]);
+    }
+  });
+
+  it('every sentence of every pack contains a target word, so gap-fill always has an answer', () => {
+    for (const id of Object.keys(REUSABLE_CONTENT_LIBRARY)) {
+      const pack = REUSABLE_CONTENT_LIBRARY[id];
+      const words = pack.vocabulary.map((item) => item.word.toLocaleLowerCase('et'));
+      pack.sentences.forEach((sentence) => {
+        const text = sentence.text.toLocaleLowerCase('et');
+        expect(words.some((word) => new RegExp(`(^|\\s)${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?=[.,!?;:]|\\s|$)`, 'u').test(text)), `${id}: ${sentence.text}`).toBe(true);
+      });
+    }
+  });
+
+  it('module 2 uses the intended curated sources and keeps clock tasks out of A2-007…A2-009', () => {
+    const pick = (lessonId) => suggestReusablePackIds(lessons.find((item) => item.id === lessonId));
+    expect(pick('a2-007')).toEqual(['possession-genitive']);
+    expect(pick('a2-008')).toEqual(['appearance-character']);
+    expect(pick('a2-009')).toEqual(['people-profiles']);
+    expect(pick('a2-010')).toEqual(['family-relations', 'possession-genitive', 'appearance-character', 'people-profiles']);
+    for (const lessonId of ['a2-007', 'a2-008', 'a2-009']) {
+      const lesson = lessons.find((item) => item.id === lessonId);
+      const { profile } = createContentPackDraft(lesson);
+      const generated = generateLessonBundle({ lesson, profile, seed: `${lessonId}:clock` });
+      expect(generated.sheets.flatMap((sheet) => sheet.worksheetDoc.blocks.map((block) => block.type))).not.toContain('clock');
+    }
+    const a2007 = createContentPackDraft(lessons.find((item) => item.id === 'a2-007')).profile;
+    expect(a2007.banks.sentences.some((item) => item.text.includes('Kelle kott'))).toBe(true);
+    expect(a2007.banks.errorPairs.map((item) => item.correct)).toContain('See on minu venna auto.');
+  });
+
+  it('module 3 uses the intended curated sources; clock practice only where times belong', () => {
+    const pick = (lessonId) => suggestReusablePackIds(lessons.find((item) => item.id === lessonId));
+    expect(pick('a2-011')).toEqual(['daily-routine']);
+    expect(pick('a2-012')).toEqual(['clock-time']);
+    expect(pick('a2-013')).toEqual(['frequency']);
+    expect(pick('a2-014')).toEqual(['week-plan']);
+    expect(pick('a2-015')).toEqual(['daily-routine', 'clock-time', 'frequency', 'week-plan']);
+    const clock = createContentPackDraft(lessons.find((item) => item.id === 'a2-012')).profile;
+    expect(clock.banks.sentences.map((item) => item.text)).toContain('Tund algab kell kuus ja lõpeb kell pool kaheksa.');
+    expect(clock.contexts.every((context) => context.times.length >= 3)).toBe(true);
+    for (const lessonId of ['a2-013', 'a2-014']) {
+      const profile = createContentPackDraft(lessons.find((item) => item.id === lessonId)).profile;
+      expect(profile.contexts.every((context) => context.times.length === 0)).toBe(true);
+    }
+  });
+
+  it('translation hints never reveal an accepted answer', () => {
+    for (const lessonId of ['a2-007', 'a2-011', 'a2-012', 'a2-013']) {
+      const lesson = lessons.find((item) => item.id === lessonId);
+      const { profile } = createContentPackDraft(lesson);
+      generateLessonBundle({ lesson, profile, seed: `${lessonId}:hint` }).sheets.flatMap((sheet) => sheet.worksheetDoc.blocks)
+        .filter((block) => block.type === 'translation')
+        .forEach((block) => block.data.rows.forEach((row) => expect(row.hint).toBe('')));
+    }
+  });
+
+  it('meaning choices offer exactly one translation that fits', () => {
+    for (const id of Object.keys(REUSABLE_CONTENT_LIBRARY)) {
+      const translations = REUSABLE_CONTENT_LIBRARY[id].vocabulary.map((item) => item.translation);
+      expect(new Set(translations).size, id).toBe(translations.length);
+    }
+  });
+
+  it.each(['a2-007', 'a2-011', 'a2-013'])('%s gap choices never offer a second word of the same part of speech', (lessonId) => {
+    const lesson = lessons.find((item) => item.id === lessonId);
+    const { profile } = createContentPackDraft(lesson);
+    const typeOf = new Map(profile.activeVocabulary.map((item) => [item.word, item.lexicalType]));
+    let checked = 0;
+    for (let index = 0; index < 30; index += 1) {
+      const generated = generateLessonBundle({ lesson, profile, seed: `${lessonId}:choice:${index}` });
+      generated.sheets.flatMap((sheet) => sheet.worksheetDoc.blocks)
+        .filter((block) => block.type === 'choice' && block.data.title === 'Vali lausesse sobiv vorm.')
+        .flatMap((block) => block.data.questions)
+        .forEach((question) => {
+          const options = question.options.split('\n');
+          const correct = options.find((option) => option.startsWith('*')).slice(1);
+          options.filter((option) => !option.startsWith('*')).forEach((option) => expect(typeOf.get(option), `${question.q} ${option}`).not.toBe(typeOf.get(correct)));
+          checked += 1;
+        });
+    }
+    expect(checked).toBeGreaterThan(0);
+  });
+
+  it('true/false items name the situation the learner judges against', () => {
+    const lesson = lessons.find((item) => item.id === 'a2-009');
+    const { profile } = createContentPackDraft(lesson);
+    const labels = profile.contexts.map((item) => item.label);
+    const blocks = generateLessonBundle({ lesson, profile, seed: 'a2-009:tf' }).sheets.flatMap((sheet) => sheet.worksheetDoc.blocks).filter((block) => block.type === 'truefalse');
+    expect(blocks.length).toBeGreaterThan(0);
+    blocks.forEach((block) => expect(labels.some((label) => block.data.instruction.includes(`Olukord: ${label}.`))).toBe(true));
   });
 
   it('reports missing sources and never invents or activates an unsupported profile', () => {

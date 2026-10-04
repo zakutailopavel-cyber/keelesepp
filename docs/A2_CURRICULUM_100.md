@@ -132,12 +132,18 @@ paigaldusvoog on Õppevara nupp. Paigaldus on teadlik staff-toiming; pelk code d
 Lesson Engine Content Pack ei kuulu roadmap-andmefaili. Coverage Dashboard näitab uued tunnid alguses sisupaketi
 poolest puuduva või mustandina ning Content Packid lisatakse eraldi kontrollitud sisutööna.
 
-Kontrollitud staatilised Content Packid katavad `a2-001`…`a2-006`. A2-002…A2-005 koostatakse
+Kontrollitud staatilised Content Packid katavad `a2-001`…`a2-015` (moodulid 1–3). A2-002…A2-005 koostatakse
 versioneeritud Content Library põhjal, kuid iga tund kasutab oma didaktilist allikakombinatsiooni: tutvumine ja
 küsimused; olema ja sagedased olevikuverbid; isikuandmed ja arvud/kuupäevad; mooduli integreeritud kontroll. Kõik
 viis läbivad sama readiness-plaanija ning annavad Avasta/Harjuta/Kasuta jaoks viis ülesannet. A2-006 alustab teist
-moodulit eraldi `family-relations` paketiga: peresuhted, kelle-vorm, sugupuu, perefoto ja külaskäik. Factory ei lisa ega
-salvesta ülejäänud 94 tunni profiile automaatselt: õpetaja loob ühe valitud tunni mustandi, kontrollib seda ja
+moodulit eraldi `family-relations` paketiga: peresuhted, kelle-vorm, sugupuu, perefoto ja külaskäik. A2-007 kasutab
+`possession-genitive` (omastav, minu/sinu/…/nende, „Kelle oma?”), A2-008 `appearance-character` (välimus, iseloom,
+väga/üsna/natuke), A2-009 `people-profiles` (kolm lühiprofiili: kes, kui vana, kus elab, mida teeb) ning A2-010
+kontroll ühendab kõik neli mooduli 2 paketti. Moodul 3: A2-011 `daily-routine` (hommikul/päeval/õhtul/öösel,
+päevakava), A2-012 `clock-time` (kell, pool/veerand/kolmveerand, alates–kuni, enne–pärast, kestus), A2-013
+`frequency` (alati…mitte kunagi, kord nädalas), A2-014 `week-plan` (nädalapäevad, siis/pärast seda/aga) ja A2-015
+kontroll kõigi nelja paketiga. Factory ei lisa ega
+salvesta ülejäänud 85 tunni profiile automaatselt: õpetaja loob ühe valitud tunni mustandi, kontrollib seda ja
 salvestab ainult selge toiminguga.
 
 ## Allikad

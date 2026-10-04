@@ -118,14 +118,24 @@ function meaningChoiceData(profile, focusIds, seed, spec) {
   return { title: 'Vali sobiv tähendus.', instruction: 'Vali üks õige vastus.', questions };
 }
 
+// Distractors of another part of speech cannot fit the gap grammatically, so the item keeps one correct answer
+// ("___ isa töötab haiglas": tema / sinu would both be right). Same-type words only fill up a short list.
+function gapDistractors(profile, focusIds, target, seed, count) {
+  const vocab = vocabularyFor(profile, focusIds);
+  const targetType = vocab.find((item) => item.word.toLocaleLowerCase('et') === target.toLocaleLowerCase('et'))?.lexicalType || '';
+  const others = vocab.filter((item) => item.word.toLocaleLowerCase('et') !== target.toLocaleLowerCase('et'));
+  const differentType = shuffleSeeded(others.filter((item) => !targetType || item.lexicalType !== targetType), `${seed}:other-type`);
+  const sameType = shuffleSeeded(others.filter((item) => targetType && item.lexicalType === targetType), `${seed}:same-type`);
+  return [...differentType, ...sameType].slice(0, count).map((item) => item.word);
+}
+
 function contextChoiceData(profile, focusIds, contextId, state, seed, spec) {
-  const vocab = vocabularyFor(profile, focusIds).map((item) => item.word);
   const sentences = takeSentences(profile, state, { focusIds, contextId, count: 1, seed });
   const questions = sentences.map((item, index) => {
     const target = targetInSentence(item.rendered, profile, focusIds);
     if (!target) return null;
     const q = item.rendered.replace(new RegExp(escapeRegExp(target), 'iu'), '___');
-    const distractors = shuffleSeeded(vocab.filter((word) => word !== target), `${seed}:distractors:${index}`).slice(0, spec.distractorCount);
+    const distractors = gapDistractors(profile, focusIds, target, `${seed}:distractors:${index}`, spec.distractorCount);
     const options = shuffleSeeded([
       { text: target, correct: true },
       ...distractors.map((text) => ({ text, correct: false })),
@@ -149,9 +159,11 @@ function trueFalseData(profile, focusIds, contextId, state, seed) {
     state.usedSentenceIds.add(item.id);
     state.usedRenderedSentences.add(renderTemplate(item, seed));
   });
+  // The learner must see the situation, otherwise "does it fit?" cannot be answered.
+  const context = (profile.contexts || []).find((item) => item.id === contextId);
   return {
     title: 'Kas lause sobib olukorraga?',
-    instruction: 'Märgi Õ või V.',
+    instruction: context?.label ? `Olukord: ${context.label}. Märgi Õ, kui lause sobib selle olukorraga, ja V, kui ei sobi.` : 'Märgi Õ või V.',
     statements: shuffleSeeded(selected, `${seed}:order`).map(({ item, answer }) => ({ text: renderTemplate(item, seed), answer })),
   };
 }
@@ -174,7 +186,8 @@ function translationData(profile, focusIds, state, seed, spec) {
   return {
     title: 'Tõlgi eesti keelde.',
     instruction: 'Õpetaja kontrollib vastust.',
-    rows: selected.map((item) => ({ source: item.source, hint: item.alternatives?.join(' / ') || '' })),
+    // `alternatives` are accepted answers for the teacher; the block's hint is visible to the learner, so it stays empty.
+    rows: selected.map((item) => ({ source: item.source, hint: '' })),
   };
 }
 

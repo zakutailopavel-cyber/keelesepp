@@ -1,5 +1,37 @@
 # KeeleSepp Project State
 
+## 2026-10-04 — Worksheet generator (no API): A2 modules 2 and 3 complete, A2-007…A2-015 — branch `agent/a2-factory-next`
+
+**Module 3 (Library v4)** in the same PR: `daily-routine` (A2-011 Minu päev; contexts with times, so clock practice
+fits), `clock-time` (A2-012: kell, pool/veerand/kolmveerand, alates kella …-st kuni kella …-ni, enne/pärast, kestab),
+`frequency` (A2-013: alati…mitte kunagi, kord nädalas, „Kui tihti?”; frequency phrases typed as adverbs so they are
+never offered as wrong options for one another), `week-plan` (A2-014: weekdays, siis/pärast seda/aga/ja; 70–90-word
+text), A2-015 Kontroll 3 = all four. More fixes found by reading the output: translation blocks showed the accepted
+`alternatives` as the learner-visible hint (an answer leak) — `engine/content.js` now leaves the hint empty; two
+vocabulary meanings that overlapped („kuni” до / „enne” перед / до) made a meaning choice ambiguous — fixed, and a test
+requires unique translations per pack. CRM Vitest 126 files / 655 tests (generator 81), ESLint, build OK.
+Next safe step after merge: module 4 packs (A2-016…A2-020).
+
+
+Checked `origin/main` `35d618f`. Owner: continue worksheet generation without an external API. Static ready coverage
+was A2-001…A2-006; now A2-001…A2-010 (modules 1 and 2). Content Library v3:
+- `possession-genitive` (A2-007 „Kelle oma? Genitiiv”): minu/sinu/tema/meie/teie/nende, kelle, oma, venna, õe; three
+  contexts (pere asjad, kadunud asjade kast, nimesildid), 10 sentences, dialogue, 3 error pairs, 2 translations.
+- `appearance-character` (A2-008 „Välimus ja iseloom”): 15 words/phrases incl. väga/üsna/natuke patterns, comparison.
+- `people-profiles` (A2-009 „Minu inimesed”, reading): three short profiles (Kati, Sergei, Liisa) as fact sentences.
+- A2-010 Kontroll 2 combines the four module-2 packs. Clock tasks are kept out of A2-007…A2-009 (contexts have no
+  times); A2-010 can show one because `family-relations` has times (as A2-006).
+- **Quality fixes found by reading the output:** (1) gap/choice items need a vocabulary word in the exact surface form;
+  10 sentences in older packs (A2-002…A2-006) had none, giving an empty answer key on some seeds — vocabulary
+  extended (e.g. `oleme`, `elab`, `räägime`, `kehtib`, `kell`, `sugulased`, `kolm last`); a test now checks every
+  sentence of every pack. (2) `engine/content.js` context choice took distractors from the whole word list, so
+  „___ isa töötab haiglas: tema / sinu” had two right answers; distractors now come from another part of speech first.
+- Tests: factory 9 lessons ready + 5-task bundles; A2-007…A2-010 error-free across 6 seeds; sentence-coverage for all
+  packs; one-correct-answer test over 30 seeds; true/false names the situation. CRM Vitest 126 files / 642 tests, ESLint, build OK.
+- No Firestore/rules/Functions change; nothing is saved automatically (teacher still saves a draft explicitly).
+  (3) „Kas lause sobib olukorraga?” marked a sentence from another context as false but never named the situation;
+  the instruction now reads „Olukord: <context label>. Märgi Õ, kui lause sobib …, ja V, kui ei sobi.”
+
 ## 2026-10-04 — Release of #247–#251: RELEASED
 
 Owner deployed from `~/keelesepp-release` at main `234c53f` (2026-10-04): `firestore:rules` (#247; the second run

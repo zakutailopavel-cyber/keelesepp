@@ -17,6 +17,13 @@ const PACK_KEYWORDS = Object.freeze({
   'personal-info': ['isikuand', 'ankeet', 'личн', 'анкет'],
   'numbers-dates': ['arvud', 'kuupäev', 'kontakt', 'числ', 'дат'],
   'family-relations': ['pere', 'lähed', 'sugulas', 'семь', 'близк'],
+  'possession-genitive': ['genitiiv', 'omastav', 'kelle oma', 'принадлеж'],
+  'appearance-character': ['välimus', 'iseloom', 'внешн', 'характер'],
+  'people-profiles': ['minu inimesed', 'isikukirjeld'],
+  'daily-routine': ['minu päev', 'päevakava', 'распорядок'],
+  'clock-time': ['kellaaeg', 'ajaväljend'],
+  frequency: ['kui tihti', 'sagedus', 'частотн'],
+  'week-plan': ['minu nädal', 'nädalaplaan'],
 });
 
 const arrays = (packs, key) => packs.flatMap((pack) => pack[key] || []);
