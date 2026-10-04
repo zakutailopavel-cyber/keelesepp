@@ -668,3 +668,47 @@ test("flushCalendarSyncOutbox does not delete newly queued concurrent deletion j
   // And it definitely didn't touch a "new" job because it wasn't in the snapshot
   assert.equal(newJobDeleted, false);
 });
+
+test("an imported Google lesson deleted in KeeleSepp is deleted in Google too", async () => {
+  setDb(createDbMock({ where: () => ({ where: () => ({ get: async () => ({ empty: true, docs: [] }) }), get: async () => ({ empty: true, docs: [] }) }) }));
+  const deleted = [];
+  const calendarOverride = { events: { delete: async (args) => { deleted.push(args); } } };
+  const connectionOverride = { connected: true, refreshToken: "t", writeEnabled: true };
+  const before = { teacherUid: "t1", source: "gcal", gcalEventId: "g-instance-1", gcalCalId: "primary", status: "Planeeritud" };
+  const result = await syncScheduleRecordToGoogle("gcal_g-instance-1", before, null, { connectionOverride, calendarOverride });
+  assert.equal(result.deleted, true);
+  assert.deepEqual(deleted, [{ calendarId: "primary", eventId: "g-instance-1" }]);
+});
+
+test("an imported Google lesson cancelled in KeeleSepp leaves Google and stays cancelled", async () => {
+  const writes = [];
+  setDb(createDbMock({ set: async (data) => { writes.push(data); } }));
+  const deleted = [];
+  const calendarOverride = { events: { delete: async (args) => { deleted.push(args); } } };
+  const connectionOverride = { connected: true, refreshToken: "t", writeEnabled: true };
+  const after = { teacherUid: "t1", studentId: "s1", date: "2026-10-10", time: "10:00", duration: 60, source: "gcal", gcalEventId: "g2", gcalCalId: "primary", status: "Tühistatud" };
+  const result = await syncScheduleRecordToGoogle("gcal_g2", { ...after, status: "Planeeritud" }, after, { connectionOverride, calendarOverride });
+  assert.equal(result.cancelled, true);
+  assert.deepEqual(deleted, [{ calendarId: "primary", eventId: "g2" }]);
+  const write = writes.find((data) => data.gcalSyncStatus === "cancelled");
+  assert.equal(write.gcalImportSuppressed, true);
+});
+
+test("an imported lesson cancelled without write consent is queued and kept cancelled", async () => {
+  const writes = [];
+  const queued = [];
+  setDb(createDbMock({ set: async (data) => { writes.push(data); }, add: async (data) => { queued.push(data); } }));
+  const after = { teacherUid: "t1", studentId: "s1", date: "2026-10-10", time: "10:00", duration: 60, source: "gcal", gcalEventId: "g3", status: "Tühistatud" };
+  const result = await syncScheduleRecordToGoogle("gcal_g3", null, after, { connectionOverride: { connected: true, refreshToken: "t" } });
+  assert.equal(result.queued, true);
+  assert.equal(queued[0].eventId, "g3");
+  assert.equal(writes[0].gcalImportSuppressed, true);
+});
+
+test("an unchanged imported lesson is not pushed to Google", async () => {
+  setDb(createDbMock());
+  const calendarOverride = { events: { delete: async () => { throw new Error("must not delete"); }, insert: async () => { throw new Error("must not insert"); } } };
+  const after = { teacherUid: "t1", studentId: "s1", date: "2026-10-10", time: "10:00", source: "gcal", gcalEventId: "g4", status: "Planeeritud" };
+  const result = await syncScheduleRecordToGoogle("gcal_g4", null, after, { connectionOverride: { connected: true, refreshToken: "t", writeEnabled: true }, calendarOverride });
+  assert.equal(result.skipped, "external_or_group");
+});
