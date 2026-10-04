@@ -1312,9 +1312,11 @@ service cloud.firestore {
     // the student card has recordingConsent == true; the browser appends audio segments; the transcription worker
     // (Admin SDK on the school Mac) writes the text. Teacher, student and admin may read; nobody else.
     match /lessonRecordings/{recordingId} {
+      // the student only sees that a lesson is being recorded right now (the room's indicator); the finished
+      // recording and its transcript are for the teacher and admins only (owner, 2026-10-04)
       allow read: if isAdmin()
         || (signedIn() && resource.data.teacherUid == uid())
-        || (signedIn() && resource.data.studentUid == uid());
+        || (signedIn() && resource.data.studentUid == uid() && resource.data.status == 'recording');
       allow create: if isStaff()
         && request.resource.data.keys().hasOnly([
           'invitationId', 'teacherUid', 'teacherName', 'studentId', 'studentUid', 'studentName',

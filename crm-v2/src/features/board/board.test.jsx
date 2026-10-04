@@ -103,6 +103,13 @@ describe('StudentBoard', () => {
     await waitFor(() => expect(service.remove).toHaveBeenCalledWith('s-1', null, 'i1'));
   });
 
+  it('opens straight on a lesson page when the lesson row asks for it', () => {
+    const service = fakeService({ pages: [{ id: 'pg1', title: 'Tund 3', order: 1 }], 'page:pg1': [{ id: 'x1', type: 'text', x: 0, y: 0, w: 200, h: 40, text: 'Lehe tekst', color: '#000', fontSize: 18 }] });
+    render(<StudentBoard studentId="s-1" user={user} staff service={service} initialPageId="pg1" />);
+    expect(screen.getByRole('tab', { name: 'Tund 3' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByText('Lehe tekst')).toBeInTheDocument();
+  });
+
   it('draws a pen stroke and switches to a v1 lesson page', async () => {
     const service = fakeService({ pages: [{ id: 'pg1', title: 'Tund 3', order: 1 }], 'page:pg1': [{ id: 'x1', type: 'text', x: 0, y: 0, w: 200, h: 40, text: 'Lehe tekst', color: '#000', fontSize: 18 }] });
     render(<StudentBoard studentId="s-1" user={user} service={service} />);

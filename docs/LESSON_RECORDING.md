@@ -12,7 +12,9 @@ the lesson what the student said and where they struggled. No AI analysis yet (a
   lets the card owner change only `recordingConsent, recordingConsentAt, recordingConsentBy, recordingConsentByUid`.
   Closing the window asks again on the next visit; a decided card (true or false) is never asked again.
 - While recording, the student sees "Tundi salvestatakse · Урок записывается" in the room.
-- Readers: the recording teacher, the student and admins. Audio is deleted after 60 days; the text stays.
+- Readers: the recording teacher and admins. Since 2026-10-04 (owner) the student reads a recording only while it is
+  running (`status == 'recording'`, for the „Tundi salvestatakse” indicator); the finished recording and its transcript
+  are teacher/admin only. Audio is deleted after 60 days; the text stays.
 - No audio or text is sent to any service outside our Firebase project and the school Mac.
 
 ## Flow
@@ -31,8 +33,11 @@ the lesson what the student said and where they struggled. No AI analysis yet (a
 2. **Worker (school Mac):** `tools/lesson-transcriber` (whisper.cpp; Estonian lessons: TalTech `whisper-large-v3-turbo-et-verbatim-2604`, MIT; other languages: large-v3-turbo) claims `uploaded`, converts
    each file to 16 kHz WAV, transcribes in the lesson language (`et`, `en` for English learners), merges both tracks by
    time into `transcript = [{ speaker, startMs, endMs, text }]` → `done` (or `failed` with the error).
-3. **Student card (staff):** "Tunnisalvestised" lists recordings with status; "Ava tekst" shows the dialogue with
-   timestamps, search, a teacher/student filter and how many words the student said.
+3. **Student card (staff) → Õppetöö → „Tunnid”:** one row per recorded lesson (plus board lesson pages of days without a
+   recording) with two buttons: „Tunni analüüs” (student's share of speaking time, words and minutes per speaker,
+   number of student answers, longest student sentence, student's questions, then the dialogue with search and
+   speaker filter; before transcription it says the text is on its way) and „Tahvel” (`/board/:studentId?page=<id>`,
+   the lesson page of that day, otherwise the main board). Model: `lessonTimeline.js`.
 
 ## Data and rules
 

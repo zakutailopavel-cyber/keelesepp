@@ -22,3 +22,11 @@
 .transcript__lines b { font-size: .8rem; }
 .transcript__lines p { margin: 0; line-height: 1.45; }
 @media (max-width: 560px) { .transcript__lines li { grid-template-columns: 1fr; gap: 2px; } }
+.lesson-rows__actions { display: inline-flex; flex-wrap: wrap; gap: 8px; }
+.lesson-rows__actions .button { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
+.lesson-analysis { display: grid; gap: 10px; margin-bottom: 14px; }
+.lesson-analysis__stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin: 0; }
+.lesson-analysis__stats div { padding: 10px 12px; border: 1px solid var(--border, #e4e6f2); border-radius: 12px; }
+.lesson-analysis__stats dt { font-size: .78rem; color: var(--muted, #6b7091); }
+.lesson-analysis__stats dd { margin: 2px 0 0; font-weight: 700; }
+.lesson-analysis ul { margin: 4px 0 0; padding-left: 18px; }

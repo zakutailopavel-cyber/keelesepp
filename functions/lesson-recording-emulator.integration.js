@@ -62,6 +62,8 @@ test('lesson recordings follow consent and roles', async () => {
   assert.equal(await read(stranger, 'inv-ok_1'), 403);
   assert.equal(await read(other, 'inv-ok_1'), 403);
   assert.equal(await patch(teacher, 'inv-ok_1', { status: 'uploaded', endedAt: '2026-09-29T11:00:00Z' }), 200);
+  assert.equal(await read(learner, 'inv-ok_1'), 403, 'a finished recording (and later its transcript) is the teacher\'s');
+  assert.equal(await read(teacher, 'inv-ok_1'), 200);
   assert.equal(await patch(teacher, 'inv-ok_1', { status: 'recording' }), 403, 'finished recordings are closed');
   // the student (or linked parent) answers the consent question themselves, signed with their own uid
   const consentPatch = async (who, studentId, data) => {
