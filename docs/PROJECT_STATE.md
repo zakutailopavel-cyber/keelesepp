@@ -1,5 +1,17 @@
 # KeeleSepp Project State
 
+## 2026-10-04 — Release of the Live Classroom wish list (#266–#274): RELEASED
+
+Owner deployed `firestore:rules` from `~/keelesepp-release` at main `cd7fa9c` („uploading rules … released rules …
+Deploy complete!”, screenshot). Client changes were already live through Vercel. All nine wish-list items are in
+production: teacher materials protected (#266), teacher-only lesson analysis (#267), text fonts/editing (#268), sheet
+with edges + new/renamed sheets (#269), worksheet on the board (#270), teacher workspace (#271), student's own board
+(#272), constructor schemes/look/joined blocks (#273), group lessons (#274).
+Not yet verified by people: real one-to-one and group calls with cameras; the owner's checklist in the chat
+(board protection, text, sheets, workspace, worksheet on board, student board, lesson analysis, group lesson,
+constructor). Known gaps: group lessons have no recording/chat; teacher strokes/notes are still erasable by students.
+Exactly one next safe step: owner runs one real lesson with the checklist and reports what feels wrong.
+
 ## 2026-10-04 — Group lessons: up to 4 students, mesh video, group board — branch `claude/affectionate-ritchie-dh2x9j`
 
 Checked `origin/main` `9ffad8e` (after #273). Wish-list item 8, owner's decision: up to 4 students, peer-to-peer
