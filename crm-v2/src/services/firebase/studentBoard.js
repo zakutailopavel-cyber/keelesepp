@@ -7,17 +7,20 @@ import { requireFirebaseClient } from './client.js';
 const makeClientId = () => globalThis.crypto?.randomUUID?.() || `sb-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 const authorName = (user = {}) => String(user.displayName || user.email || 'Kasutaja').trim().slice(0, 160);
 
-function elementsRef(db, studentId, pageId) {
+// `root`: 'whiteboards' (a student's board, keyed by student id) or 'groupBoards' (a group lesson, keyed by room id)
+const elementsRefIn = (root) => (db, studentId, pageId) => {
   return pageId
-    ? collection(db, 'whiteboards', studentId, 'lessonPages', pageId, 'elements')
-    : collection(db, 'whiteboards', studentId, 'elements');
-}
+    ? collection(db, root, studentId, 'lessonPages', pageId, 'elements')
+    : collection(db, root, studentId, 'elements');
+};
 
 function timeOf(value) {
   return value?.toMillis?.() || Date.parse(value || '') || 0;
 }
 
-export const studentBoardService = {
+export function createBoardService(root = 'whiteboards') {
+  const elementsRef = elementsRefIn(root);
+  return {
   subscribeElements(studentId, pageId, onChange, onError) {
     const { db } = requireFirebaseClient();
     return onSnapshot(elementsRef(db, studentId, pageId), (snapshot) => {
@@ -27,7 +30,7 @@ export const studentBoardService = {
   },
   subscribePages(studentId, onChange, onError) {
     const { db } = requireFirebaseClient();
-    return onSnapshot(collection(db, 'whiteboards', studentId, 'lessonPages'), (snapshot) => {
+    return onSnapshot(collection(db, root, studentId, 'lessonPages'), (snapshot) => {
       onChange(snapshot.docs.map((item) => ({ id: item.id, ...item.data() }))
         .filter((page) => !page.isSnapshot)
         .sort((a, b) => (a.order || 0) - (b.order || 0)));
@@ -60,7 +63,7 @@ export const studentBoardService = {
   // student/parent may create one (a separate sheet for an explanation or homework).
   async addPage(studentId, title, order, user) {
     const { db } = requireFirebaseClient();
-    const reference = await addDoc(collection(db, 'whiteboards', studentId, 'lessonPages'), {
+    const reference = await addDoc(collection(db, root, studentId, 'lessonPages'), {
       title: String(title || 'Tund').trim().slice(0, 200) || 'Tund',
       order: Math.max(1, Math.round(Number(order) || 1)),
       status: 'active',
@@ -77,7 +80,7 @@ export const studentBoardService = {
     const value = String(title || '').trim().slice(0, 200);
     if (!value) throw new Error('Lehel peab olema nimi.');
     const { db } = requireFirebaseClient();
-    await updateDoc(doc(db, 'whiteboards', studentId, 'lessonPages', pageId), {
+    await updateDoc(doc(db, root, studentId, 'lessonPages', pageId), {
       title: value,
       updatedAt: serverTimestamp(),
       updatedByUid: user.uid,
@@ -102,3 +105,7 @@ export const studentBoardService = {
     return removable.length;
   },
 };
+}
+
+export const studentBoardService = createBoardService('whiteboards');
+export const groupBoardService = createBoardService('groupBoards');

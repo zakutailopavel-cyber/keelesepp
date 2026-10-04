@@ -1,5 +1,33 @@
 # KeeleSepp Project State
 
+## 2026-10-04 — Group lessons: up to 4 students, mesh video, group board — branch `claude/affectionate-ritchie-dh2x9j`
+
+Checked `origin/main` `9ffad8e` (after #273). Wish-list item 8, owner's decision: up to 4 students, peer-to-peer
+video, a separate group board (each student keeps their own board).
+- Data (`firestore.rules`): `liveGroupRooms/{roomId}` { teacherUid, teacherName, title, memberUids (1–4), members,
+  status open/closed, createdAt, closedAt } — teacher creates/updates/closes, members read; `signals` (fromUid = me,
+  toUid = another participant; mesh) and `presence/{uid}` (role checked against the room) for participants of an open
+  room; `groupBoards/{roomId}` (+ `elements`, `lessonPages`, page elements) for participants, teacher materials
+  staff-only, readable after the lesson. Invitations: `roomKey` may now be a group room of this teacher in which the
+  student is a member (otherwise still the invitation's own id).
+- Services: `liveGroupRooms.js` (create room + one invitation per student with `roomKey`, subscribe, open rooms of a
+  teacher, close, signals, presence); `liveLessonInvitations.create` accepts `roomKey`; `studentBoard.js` is now
+  `createBoardService(root)` → `studentBoardService` (whiteboards) and `groupBoardService` (groupBoards).
+- Call: `useGroupCall.js` — one RTCPeerConnection per pair; the smaller uid offers; offers wait until the other
+  turns the camera on; failed connections re-offered up to 3 times; TURN through any accepted invitation of the person.
+- UI: `TeacherWorkspace` „Üks õpilane / Grupitund”: tick up to 4 students → „Kutsu grupp tundi (n/4)”, „Tagasi
+  grupitundi: …” for open rooms; `GroupRoom.jsx`: group board (all tools, sheets, materials for the teacher), video
+  column (self + up to 4), mic/camera/hang-up, „Lõpeta tund” closes the room (board stays). `LiveClassroomPage`:
+  `?group=<roomId>` for the teacher; a student's accepted invitation with a group roomKey opens the group room; group
+  invitations are kept out of the one-to-one flow.
+- Checks: emulator `live-group-rooms-emulator.integration.js` (2 tests: ≤4 members, member-only invitations, read
+  scope; presence/signals/board/close) — full `npm run test:emulator` 51/51; hook test (offer waits for the student's
+  camera, answer, remote stream, hang-up); page tests (teacher invites 2 → group room; student lands in it); browser
+  harness 1280 px. CRM Vitest 136 files / 854 tests; ESLint clean; build OK. Not tried with real cameras.
+- Limits: no recording/transcript and no chat in group lessons yet; a teacher-chosen member list is trusted (each
+  invitation still checks teacher scope and the student's account); mesh is meant for ≤5 people.
+- **Needs the owner (final release):** `firestore:rules` deploy, then a real group lesson with 2 students.
+
 ## 2026-10-04 — Worksheet constructor: schemes, block look, joined blocks — branch `claude/affectionate-ritchie-dh2x9j`
 
 Checked `origin/main` `127c231` (after #272). Wish-list item 9, owner's choice: diagrams, combining blocks, block
