@@ -1,6 +1,30 @@
 # KeeleSepp Project State
 
-## 2026-10-03 — A2-006 family Content Pack — `codex/a2-006-content-pack`
+## 2026-10-04 — Current state check: production, open PRs, documentation
+
+Checked `origin/main` `9730042` (2026-10-03 11:09 +0300).
+- **Production CRM v2 = latest main.** GitHub deployment record: Vercel Production for `9730042` succeeded
+  (2026-10-03 08:13 UTC). `crm.epkoolitus.ee` serves bundle `index-8l3yrDXg.js` / `index-DorkPUH9.css`; the live CSS
+  contains the generator Factory UI (`.content-pack-factory-panel`), the Live Classroom room (`.lr-top`, `.sb-dock`),
+  tasks and the notification centre, and no `study-terms-gate`. Git-driven Vercel production deployments do reach the
+  custom domain; only the CLI deploy of 2026-10-02 needed a manual `vercel alias set`.
+- **Released 2026-10-02 by the owner** (main `3517dd8`): #227, #228, #229, #231, #232; `staffOperationsApi` and
+  `firestore:rules` deployed with `npx -y firebase-tools@15.22.3 … --project keelesepp-5136b` (`npm ci` in
+  `functions/` first; plain `npx firebase` is not installed on the owner's Mac).
+- **Open PRs needing a decision:**
+  - #235 (draft) — teacher read rule also accepts `teacherUids` (secondary assignment). Verified here: its emulator
+    test passes with the PR rules and fails with main's rules, i.e. when `teacherScopeReadEnforced()` is on, a teacher
+    whose students use `teacherUids` gets permission-denied for the whole Ülevaade/student load. Needs merge + rules
+    deploy (owner).
+  - #234 (draft, conflicts with main) — its Functions part (calendar tombstone reconcile window = the seven-day
+    lookback) is **already deployed** (`gcalApi`, `syncAllCalendars`) but is **not in main**: a Functions deploy of
+    those functions from main would undo it. Its worksheet part is already in main (`93e68c7`). Port the
+    `functions/index.js` change to main.
+  - #230 (draft) — superseded by this record (release was done on 2026-10-02).
+- Exactly one next safe step: owner decides on #235 (merge + `firestore:rules` deploy) and porting #234's Functions
+  change into main.
+
+## 2026-10-03 — A2-006 family Content Pack — in main `9730042`, Vercel production READY
 
 Checked fresh `origin/main` `c55390c5b6587fc1db0dc3ff70c21869ea9078c6`; open PRs #230, #233, #234 and
 #235 do not own A2-006 or Content Library sources. This bounded slice adds Content Library v2 pack
@@ -105,7 +129,7 @@ Dashboard before starting Content Pack authoring.
 Exactly one next safe step: publish the verified current main to the `keelesepp-crm-v2` production project, then
 perform the explicit staff A2 installation.
 
-## 2026-10-02 — Lesson-embedded Generator Content Pack authoring — stacked draft PR #244 (`agent/lesson-engine-profile-authoring-v1`)
+## 2026-10-02 — Lesson-embedded Generator Content Pack authoring — MERGED (#244)
 
 Stacked on #243. Generator readiness can now come from a validated `generatorProfile` stored directly on the existing
 `curriculumLessons/{lessonId}` document. Staff can open `Generaatori sisu` from the lesson worksheet page and edit
@@ -130,7 +154,7 @@ required local `agent-browser` executable is unavailable in this runtime.
 Exactly one next safe step: add a staff coverage dashboard over curriculumLessons so content-pack rollout across the
 roadmap can be managed by readiness status instead of opening lessons one by one.
 
-## 2026-10-02 — Shared Estonian CEFR lexicon — stacked draft PR #243 (`agent/lesson-engine-level-lexicon-v1`)
+## 2026-10-02 — Shared Estonian CEFR lexicon — in main via the stack merged with #244 (#243 closed)
 
 Stacked on #242. CRM v2 now reuses the existing authenticated Firebase Storage object `eesti_soned.json` through a
 small adapter instead of duplicating the vocabulary dataset. The adapter validates the legacy level/type JSON shape,
@@ -151,7 +175,7 @@ claim is made because the required local `agent-browser` executable is unavailab
 Exactly one next safe step: move generator readiness from a code-only static registry to validated lesson-embedded
 curated content packs in `curriculumLessons`, without changing worksheet or assignment contracts.
 
-## 2026-10-02 — Standalone focus worksheet UI — stacked draft PR #242 (`agent/lesson-engine-focus-ui-v1`)
+## 2026-10-02 — Standalone focus worksheet UI — in main via the stack merged with #244 (#242 closed)
 
 Stacked on #241. This slice exposes the already-pure focus generator to teachers: select one curated lesson focus,
 select Avasta/Harjuta/Kasuta/Täistööleht and generate an independent child sheet using the current difficulty mode.
@@ -172,7 +196,7 @@ executable is unavailable in this runtime.
 Exactly one next safe step: connect the existing signed-in Firebase Storage level lexicon `eesti_soned.json` through
 a CRM v2 adapter while keeping lesson-specific vocabulary curated and generator-core network-free.
 
-## 2026-10-02 — Per-task worksheet regeneration — stacked draft PR #241 (`agent/lesson-engine-task-regeneration-v1`)
+## 2026-10-02 — Per-task worksheet regeneration — in main via the stack merged with #244 (#241 closed)
 
 Stacked on #240. This slice adds deterministic regeneration of one selected generated task inside the existing
 Worksheet Studio. It keeps the shared worksheet renderer/editor, child-sheet persistence model and
@@ -194,7 +218,7 @@ claim is made because the required local `agent-browser` executable is unavailab
 Exactly one next safe step: review #241 after #240; the teacher UI for standalone focus worksheets is kept in a
 separate stacked slice.
 
-## 2026-10-02 — Lesson DNA + difficulty engine — stacked draft PR #240 (`agent/lesson-engine-dna-difficulty-v1`)
+## 2026-10-02 — Lesson DNA + difficulty engine — in main via the stack merged with #244 (#240 closed)
 
 Stacked on the verified didactic-planner PR #239 and synchronized with its current head. This bounded slice adds the
 generator profile registry, canonical `keelesepp.lesson-dna/1`, deterministic Support/Core/Challenge difficulty,
@@ -217,7 +241,7 @@ executable is unavailable in this runtime.
 
 Exactly one next safe step: review stacked PR #240 after #239; per-task regeneration remains a separate later slice.
 
-## 2026-10-02 — Didactic Lesson Planner v1 — draft PR #239 (`agent/lesson-engine-didactic-planner-v1`)
+## 2026-10-02 — Didactic Lesson Planner v1 — MERGED (#239)
 
 Checked fresh `main` `53bf62c0447dfdbd916be83ac05cf031f74449d8` and open PRs #230, #233, #234 and
 #235 before starting. This bounded slice changes only the deterministic worksheet generator, its teacher generation
@@ -246,7 +270,7 @@ status was verified only.
 Exactly one next safe step: review PR #239 and its preview before merge; subsequent Lesson DNA/difficulty work stays
 in a separate stacked branch/PR.
 
-## 2026-10-02 — Generator teacher UI — draft PR #238 (`codex/worksheet-generator-ui`)
+## 2026-10-02 — Generator teacher UI — MERGED (#238)
 
 Checked fresh `origin/main` `a5a11f4aa320337aebc3a80a183c8ef050bf46a5` after PR #237 was merged and its
 Firestore rules and Vercel production release were verified. This third bounded slice adds the teacher generation UI
@@ -268,7 +292,7 @@ was used. The local Vite server started, but the required `agent-browser` execut
 no authenticated desktop/mobile browser claim is made. Exactly one next safe step: open a draft PR and use its Vercel
 preview for the pending visual verification.
 
-## 2026-10-02 — Generator child-sheet persistence — draft PR #237 (`codex/worksheet-generator-persistence`)
+## 2026-10-02 — Generator child-sheet persistence — MERGED (#237)
 
 Checked fresh `origin/main` `4be6e0fd76b11cc128c344489ba1734a2348fba6` after PR #236 was merged and
 released to Vercel production. Open PRs #230, #233, #234 and #235 remain separate. This slice implements only the
@@ -294,7 +318,7 @@ the suite still passed without using a production secret. No production database
 changed in this slice. Exactly one next safe step: open the draft PR for review before any UI integration or Firebase
 rules deployment.
 
-## 2026-10-02 — Deterministic Worksheet Generator core — draft PR #236 (`codex/worksheet-generator-core`)
+## 2026-10-02 — Deterministic Worksheet Generator core — MERGED (#236)
 
 Checked fresh `origin/main` `3517dd8866425e70aad87dd7e2e5a56de4769cd9` and open PRs #230, #233, #234 and
 #235. PR #234 overlaps Worksheet Studio presentation and shared documentation, so this slice does not edit its block
@@ -321,7 +345,7 @@ build passed with the existing large-chunk warning, and `git diff --check` passe
 byte-identical to the supplied package example. No production or external service was used. Exactly one next safe
 step: review and merge draft PR #236 before starting child-sheet persistence.
 
-## 2026-10-02 — Known test failures fixed, Kontrolltöö label — PR (branch `agent/fix-known-failures`)
+## 2026-10-02 — Known test failures fixed, Kontrolltöö label — MERGED (#232, 3517dd8), RELEASED 2026-10-02
 
 Checked against main `240e09c`. Owner asked to fix the remaining known problems (not the items they parked: TURN,
 Storage CORS, 54 unmatched Google events, APP_BASE_URL, „Minu tööpäev”, parent study terms).
@@ -335,7 +359,7 @@ Storage CORS, 54 unmatched Google events, APP_BASE_URL, „Minu tööpäev”, p
   assignment behaviour is unchanged. Tests added.
 - Section headings below updated: #219–#225 released; #227, #228, #229, #231 merged, waiting for the release.
 
-## 2026-10-02 — Live Classroom: full-screen lesson room (owner's design photo) + board rules fix — MERGED (#231, 297e79e), release pending (rules + CRM)
+## 2026-10-02 — Live Classroom: full-screen lesson room (owner's design photo) + board rules fix — MERGED (#231, 297e79e), RELEASED 2026-10-02 (rules + CRM)
 
 Checked against main `240e09c`. Owner sent a photo of how the lesson must look: top bar (back, menu, "Tund — date",
 undo/redo, subject, timer + signal, mic/camera/screen/hang-up, more, participants, chat, Materjalid, Ülesanded), a
@@ -372,7 +396,7 @@ the bottom, a colour/size panel on the right and the zoom at the bottom left. Bu
 - Release: merge + `firebase deploy --only firestore:rules` (for materials and lesson pages) + Vercel `keelesepp-crm-v2`.
 - Limits: no pinch-zoom on phones (buttons instead); chat is the Suhtlus conversation; TURN server still missing.
 
-## 2026-10-01 — Worksheet draft regression repair — MERGED (#228, a71b66b), release pending
+## 2026-10-01 — Worksheet draft regression repair — MERGED (#228, a71b66b), RELEASED 2026-10-02
 
 Fresh main: `9fda4b9df487696b59cbe1847ab3ce08e1bed7c6` (2026-10-01). PR #227 was merged with the owner's explicit
 permission; GitHub confirmed merged=true. No open PRs before this task. Task 1 is isolated in draft PR #228: https://github.com/zakutailopavel-cyber/keelesepp/pull/228.
@@ -407,7 +431,7 @@ Limits: no production migration repairs historical drafts automatically; staff p
 No deploy executed. No new PR merged. Unfinished implementation work: none for Task 1.
 Exactly one next safe step: owner reviews the Task 1 draft PR.
 
-## 2026-10-01 — access hotfix after PR #226 — MERGED (#227, 9fda4b9), release pending
+## 2026-10-01 — access hotfix after PR #226 — MERGED (#227, 9fda4b9), RELEASED 2026-10-02
 
 Owner reported that the parent study-terms release caused parent login errors and that approving a newly registered
 student surfaced a raw browser `Failed to fetch`. Verified current GitHub `main` = `36abfd6` (merge #226) and
@@ -446,7 +470,7 @@ Next safe step: owner manually merges PR #227. Release must include the Vercel C
 change is not live.
 
 
-## 2026-10-01 — Approval SMTP response repair — MERGED (#229, 240e09c), release pending (Functions deploy)
+## 2026-10-01 — Approval SMTP response repair — MERGED (#229, 240e09c), RELEASED 2026-10-02 (staffOperationsApi deployed)
 
 **Correction 2026-10-02 (owner asked Claude to finish it):** sending the e-mail after `res.json` was replaced. On
 Cloud Functions an instance may be stopped right after the response, so the approval e-mail could be silently lost.
