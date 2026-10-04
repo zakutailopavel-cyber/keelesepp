@@ -13,7 +13,10 @@ the lesson what the student said and where they struggled. No AI analysis yet (a
 
 ## Flow
 
-1. **Room (teacher):** "Alusta salvestamist" (after "Käivita video ja mikrofon"). The browser records the teacher's
+1. **Room (teacher):** since 2026-10-04 recording starts **automatically** with the teacher's call when the student
+   card has consent (top bar shows a red „Salvestan” pill; „Ei salvesta” when the card has no consent). It stops and
+   closes the files when the call ends or the room is left/closed; „Lõpeta salvestamine” stops it for the rest of that
+   call; the next call starts a new recording. The manual "Alusta salvestamist" button stays in Rohkem → Tunni salvestamine. The browser records the teacher's
    microphone and the student's incoming audio as two tracks, each in standalone 5-minute files, uploaded to Storage
    `lessonRecordings/{recordingId}/{teacher|student}_NNN.webm`; `lessonRecordings/{recordingId}` lists the segments.
    "Lõpeta salvestamine" uploads the rest and sets `status: uploaded`. If the student joins later or reconnects, their

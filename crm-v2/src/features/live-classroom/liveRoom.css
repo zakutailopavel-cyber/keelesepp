@@ -121,3 +121,7 @@
   .lr-menu, .lr-menu--left { position: fixed; top: 64px; left: 8px; right: 8px; width: auto; }
   .lr .sb-room-pages { right: 128px; }
 }
+.lr-rec { display: inline-flex; align-items: center; gap: 6px; border: 0; cursor: pointer; font: inherit; color: #b42318; background: #fee4e2; }
+.lr-rec.is-off { color: #475467; background: #f2f4f7; }
+.lr-rec__dot { width: 8px; height: 8px; border-radius: 50%; background: #d92d20; animation: lr-rec-pulse 1.4s ease-in-out infinite; }
+@keyframes lr-rec-pulse { 50% { opacity: .35; } }
