@@ -1,5 +1,17 @@
 # KeeleSepp Project State
 
+## 2026-10-04 — Rule-based generator step 2: grammar sentence patterns — branch `agent/generator-patterns`
+
+Checked `origin/main` `d68261f` (after #254, lexicon). `worksheet-generator/patterns/`: 21 sentence frames for six
+grammar points (olema/present, genitive, local cases, partitive object, adjective agreement, numeral + partitive),
+filled from the Vabamorf lexicon; about 3 250 distinct valid sentences, each with an exact answer and same-word wrong
+options. Combinations without two different wrong options are skipped. Lexicon fix: Venemaa/Saksamaa use outer local
+cases. Checks: patterns Vitest 28 (23 hand-checked sentences + invariants over 3 seeds per grammar point); CRM Vitest
+128 files / 743 tests; ESLint; build; `build_forms.py --check` up to date. Not yet wired into the worksheet engine
+(no app behaviour change). Details: `docs/GENERATOR_LEXICON.md`.
+Exactly one next safe step: step 3 — use pattern sentences in gap/choice/error-repair tasks for lessons whose
+roadmap focus maps to a grammar point.
+
 ## 2026-10-04 — Rule-based generator step 1: Estonian form lexicon (Vabamorf, offline) — branch `agent/generator-lexicon`
 
 Checked `origin/main` `dca0479`. Owner chose a real generator without AI instead of hand-writing every module. Step 1:
