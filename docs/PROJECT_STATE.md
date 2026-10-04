@@ -1,5 +1,24 @@
 # KeeleSepp Project State
 
+## 2026-10-04 — One-time recording consent on first login — branch `claude/affectionate-ritchie-dh2x9j`
+
+Checked `origin/main` `bbdc0e7` (after #262, auto-recording; merged by the agent with the owner's permission after
+green CI). Owner: „а можно разово сделать когда первый раз заходишь на платформу” — consent asked once at first login.
+- **Policy change (owner's decision):** before, only staff could set consent; now the student or linked parent answers
+  themselves. `firestore.rules` `students` update: new branch for `ownsStudent` limited to the four consent fields,
+  boolean value, `recordingConsentByUid == uid()`.
+- `features/lesson-recording/RecordingConsentPrompt.jsx` + `consentModel.js`: modal „Tunni salvestamine · Запись урока”
+  (et + ru, who sees it, 60-day audio deletion) with „Nõustun” / „Ei nõustu”; on `StudentDashboardPage` (not in staff
+  preview) and `ParentDashboardPage` (one child after another). Cards with a parent account are the parent's question.
+  `lessonRecordingsService.answerConsent`.
+- Tests: prompt 4 (who is asked, student yes, parent no+yes, error keeps it open); emulator
+  `lesson-recording-emulator.integration.js` now checks own signed answer 200, withdraw 200, unsigned / other uid /
+  extra field / non-boolean / someone else's card 403 (ran locally: pass). CRM Vitest 131 files / 825 tests; ESLint
+  clean; build OK.
+- **Needs the owner:** `npx -y firebase-tools@15.22.3 deploy --only firestore:rules --project keelesepp-5136b` from a
+  clean main checkout. Until then answers fail with a permission error (shown in the window; nothing else breaks).
+- Exactly one next safe step: owner deploys the rules, logs in as a test student and answers the question.
+
 ## 2026-10-04 — Live Classroom: lessons are recorded automatically — branch `claude/affectionate-ritchie-dh2x9j`
 
 Checked `origin/main` `837e8f1` (after #261, merged by the agent with the owner's permission after green CI).
