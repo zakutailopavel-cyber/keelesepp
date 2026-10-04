@@ -28,6 +28,7 @@ const {
   buildInvoicePdf,
   invoiceFileName,
 } = require("./invoice-document");
+const liveTurnCore = require("./live-turn-core");
 const { invoiceNumberingPlan } = require("./invoice-numbering-core");
 const { expenseDocumentRecord, expenseRecord } = require("./expenses-core");
 const {
@@ -7497,6 +7498,36 @@ exports.teacherScopeMigrationApi = functions.https.onRequest(async (req, res) =>
     sendError(res, error);
   }
 });
+
+// ── API: Live Classroom TURN relay credentials ──────────────
+// POST /ice { invitationId } → { configured, iceServers, ttl }. Only the teacher and the student of an accepted
+// invitation get short-lived Cloudflare TURN credentials; the long-term key never leaves Secret Manager.
+exports.liveTurnApi = functions
+  .runWith({ secrets: ["CLOUDFLARE_TURN_KEY_ID", "CLOUDFLARE_TURN_API_TOKEN"], timeoutSeconds: 20 })
+  .https.onRequest(async (req, res) => {
+    applyCors(req, res);
+    if (req.method === "OPTIONS") { res.status(204).send(""); return; }
+    if (req.method !== "POST" || req.path !== "/ice") {
+      res.status(404).json({ error: "Not found" });
+      return;
+    }
+    try {
+      const decoded = await requireFirebaseUser(req);
+      const invitationId = String(req.body?.invitationId || "").trim();
+      if (!/^[A-Za-z0-9_-]{1,128}$/.test(invitationId)) throw httpError(400, "invitationId required");
+      const snapshot = await db.collection("liveLessonInvitations").doc(invitationId).get();
+      const decision = liveTurnCore.turnAccessDecision(snapshot.exists ? snapshot.data() : null, decoded.uid);
+      if (!decision.allowed) throw httpError(decision.status, decision.reason);
+      const result = await liveTurnCore.fetchCloudflareIceServers({
+        keyId: String(process.env.CLOUDFLARE_TURN_KEY_ID || "").trim(),
+        apiToken: String(process.env.CLOUDFLARE_TURN_API_TOKEN || "").trim(),
+      });
+      res.set("Cache-Control", "no-store");
+      res.json(result);
+    } catch (error) {
+      sendError(res, error);
+    }
+  });
 
 // ── API: invoice emails and reminders ────────────────────────
 exports.invoiceApi = functions

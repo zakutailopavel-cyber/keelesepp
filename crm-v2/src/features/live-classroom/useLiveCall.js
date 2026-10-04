@@ -1,14 +1,21 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { liveLessonCallSignalsService } from '../../services/firebase/liveLessonCallSignals.js';
 import { liveLessonPresenceService, presenceIsFresh } from '../../services/firebase/liveLessonPresence.js';
+import { liveTurnService } from '../../services/firebase/liveTurn.js';
 
-const ICE_SERVERS = [
+export const STUN_SERVERS = Object.freeze([
   { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] },
-];
+]);
+const TURN_WAIT_MS = 3000;
 
-function defaultPeerFactory() {
+function defaultPeerFactory(iceServers = STUN_SERVERS) {
   if (!globalThis.RTCPeerConnection) throw new Error('See brauser ei toeta videokõnet.');
-  return new globalThis.RTCPeerConnection({ iceServers: ICE_SERVERS });
+  return new globalThis.RTCPeerConnection({ iceServers });
+}
+
+// STUN first, then the TURN relay (used only when a direct connection is impossible: strict firewalls, mobile NAT).
+export function callIceServers(turnServers = []) {
+  return [...STUN_SERVERS, ...turnServers];
 }
 
 function createSessionId() {
@@ -44,8 +51,38 @@ export function useLiveCall({
   presenceService = liveLessonPresenceService,
   mediaDevices = globalThis.navigator?.mediaDevices,
   peerFactory = defaultPeerFactory,
+  turnService = liveTurnService,
   onMediaStreams,
 }) {
+  // TURN credentials are fetched as soon as the room is open, so they are usually ready before the call starts.
+  const turnRef = useRef({ servers: [], expiresAt: 0, pending: null });
+  const loadTurn = useCallback(() => {
+    const current = turnRef.current;
+    if (current.pending) return current.pending;
+    if (current.servers.length && Date.now() < current.expiresAt) return Promise.resolve(current.servers);
+    const pending = Promise.resolve()
+      .then(() => turnService?.iceServers?.(invitation?.id))
+      .then((result) => {
+        const servers = Array.isArray(result?.iceServers) ? result.iceServers : [];
+        // refresh after half the lifetime, so a credential never expires in the middle of a reconnect
+        turnRef.current = { servers, expiresAt: Date.now() + Math.max(0, Number(result?.ttl) || 0) * 500, pending: null };
+        return servers;
+      })
+      .catch(() => {
+        turnRef.current = { ...turnRef.current, pending: null };
+        return [];
+      });
+    turnRef.current = { ...current, pending };
+    return pending;
+  }, [invitation?.id, turnService]);
+  const waitForTurn = useCallback(() => Promise.race([
+    loadTurn(),
+    new Promise((resolve) => { globalThis.setTimeout(() => resolve([]), TURN_WAIT_MS); }),
+  ]), [loadTurn]);
+  useEffect(() => {
+    if (invitation?.status === 'accepted') loadTurn();
+  }, [invitation?.status, loadTurn]);
+
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
   const peerRef = useRef(null);
@@ -145,7 +182,7 @@ export function useLiveCall({
 
   const makePeer = useCallback((sessionId) => {
     closePeer();
-    const peer = peerFactory();
+    const peer = peerFactory(callIceServers(turnRef.current.servers));
     peerRef.current = peer;
     sessionIdRef.current = sessionId;
 
@@ -193,10 +230,14 @@ export function useLiveCall({
   const ensureLocalMedia = useCallback(async () => {
     if (localStreamRef.current) return localStreamRef.current;
     if (!mediaDevices?.getUserMedia) throw new Error('Kaamera ja mikrofoni kasutamine pole selles brauseris saadaval.');
-    const stream = await mediaDevices.getUserMedia({
-      audio: true,
-      video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' },
-    });
+    // camera permission and TURN credentials in parallel: the first peer then already has the relay
+    const [stream] = await Promise.all([
+      mediaDevices.getUserMedia({
+        audio: true,
+        video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' },
+      }),
+      waitForTurn(),
+    ]);
     localStreamRef.current = stream;
     attachLocalStream(stream);
     reportStreams({ local: stream });
@@ -204,7 +245,7 @@ export function useLiveCall({
     setAudioEnabled(stream.getAudioTracks().some((track) => track.enabled !== false));
     setVideoEnabled(stream.getVideoTracks().some((track) => track.enabled !== false));
     return stream;
-  }, [attachLocalStream, mediaDevices, reportStreams]);
+  }, [attachLocalStream, mediaDevices, reportStreams, waitForTurn]);
 
   const answerOffer = useCallback(async (signal) => {
     if (role !== 'student' || !localStreamRef.current) return;
