@@ -162,3 +162,15 @@ describe('LiveRoom', () => {
     expect(screen.getByRole('menuitem', { name: 'Lahku tunniruumist' })).toBeInTheDocument();
   });
 });
+
+describe('LiveRoom words', () => {
+  it('opens „Sõnad” and the teacher adds a word for this lesson', async () => {
+    const wordsService = { subscribeForStudent: vi.fn((id, onData) => { onData([]); return vi.fn(); }), add: vi.fn(async () => ({})), remove: vi.fn() };
+    renderRoom('teacher', services(), { wordsService });
+    fireEvent.click(screen.getByRole('button', { name: /Sõnad/ }));
+    const drawer = screen.getByRole('region', { name: 'Sõnad' });
+    fireEvent.change(within(drawer).getByLabelText('Sõna või väljend'), { target: { value: 'kass' } });
+    fireEvent.click(within(drawer).getByRole('button', { name: 'Lisa sõnastikku' }));
+    await waitFor(() => expect(wordsService.add).toHaveBeenCalledWith(expect.objectContaining({ studentId: 's-1', invitationId: 'inv-1', word: 'kass' })));
+  });
+});
