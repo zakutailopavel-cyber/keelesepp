@@ -169,6 +169,27 @@ describe('StudentBoard', () => {
     expect(clampPoint({ x: -10, y: 2000 }, bounds)).toEqual({ x: 0, y: 1000 });
   });
 
+  it("the teacher's drawing and notes carry the teacher mark; a student can neither erase nor edit them", async () => {
+    const teacherService = fakeService();
+    const teacher = render(<StudentBoard studentId="s-1" user={user} staff service={teacherService} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Märkmepaber' }));
+    await act(async () => { fireEvent.pointerDown(screen.getByRole('img', { name: 'Õpilase tahvel' }), { clientX: 50, clientY: 60, button: 0 }); });
+    await waitFor(() => expect(teacherService.add).toHaveBeenCalledWith('s-1', null, expect.objectContaining({ type: 'note', byStaff: true }), user));
+    teacher.unmount();
+
+    const board = [{ id: 't1', type: 'text', x: 100, y: 100, w: 260, h: 44, text: 'Õpetaja', color: '#111', fontSize: 18, byStaff: true }, { id: 's1', type: 'stroke', points: [{ x: 400, y: 400 }, { x: 420, y: 420 }], color: '#111', strokeWidth: 4, byStaff: true }];
+    const service = fakeService({ board });
+    const view = render(<StudentBoard studentId="s-1" user={user} service={service} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Kustutaja' }));
+    fireEvent.pointerDown(view.container.querySelector('[data-element-id="s1"]'), { clientX: 410, clientY: 410, button: 0 });
+    expect(await screen.findByRole('alert')).toHaveTextContent('ainult õpetaja');
+    expect(service.remove).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Tekst' }));
+    await act(async () => { fireEvent.pointerDown(screen.getByRole('img', { name: 'Õpilase tahvel' }), { clientX: 120, clientY: 110, button: 0 }); });
+    expect(screen.queryByRole('textbox', { name: 'Tekst' })).toBeNull();
+    expect(service.add).not.toHaveBeenCalled();
+  });
+
   it('draws a pen stroke and switches to a v1 lesson page', async () => {
     const service = fakeService({ pages: [{ id: 'pg1', title: 'Tund 3', order: 1 }], 'page:pg1': [{ id: 'x1', type: 'text', x: 0, y: 0, w: 200, h: 40, text: 'Lehe tekst', color: '#000', fontSize: 18 }] });
     render(<StudentBoard studentId="s-1" user={user} service={service} />);

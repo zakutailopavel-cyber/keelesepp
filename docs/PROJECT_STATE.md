@@ -1,5 +1,24 @@
 # KeeleSepp Project State
 
+## 2026-10-04 — Board: the teacher's drawing and writing are safe from the student's eraser — branch `claude/affectionate-ritchie-dh2x9j`
+
+Checked `origin/main` `6b872d9` (after #275). Follow-up to #266 (which protected images/PDFs only).
+- Every element a teacher/admin creates in CRM v2 carries `byStaff: true` (`StudentBoard.add`, kept on redo).
+  `firestore.rules`: `byStaff` allowed on every element type; only staff may create it
+  (`whiteboardElementCreateValid`); it can never change on update; staff-only move/change/delete now covers
+  `byStaff` elements as well as images/PDFs (student boards, lesson pages, group boards).
+- Expression limit: the teacher's update path hit Firestore's 1000-expression limit after the extra checks;
+  `whiteboardElementUpdateValid(before, after, staff)` now gets `staff` computed once (`let` in
+  `whiteboardElementUpdateAllowed`; inline at the lesson-page and group-board callers).
+- Client: a student's eraser/drag skip teacher content; the text tool / double click do not open the teacher's text
+  („Õpetaja teksti saab muuta ainult õpetaja.”).
+- Tests: emulator new case (teacher note with mark 200; student forging the mark 403; student erase/move 403; the mark
+  cannot be dropped 403; teacher move/delete 200); full `test:emulator` 52/52. Board test (teacher's note carries the
+  mark; student cannot erase a marked stroke or edit marked text). CRM Vitest, ESLint, build — see PR.
+- Limits: elements drawn before this change carry no mark and stay erasable; CRM v1 board does not set the mark and,
+  when it rewrites a marked element without the field, the write is denied (v1 is being retired).
+- **Needs the owner:** `firestore:rules` deploy.
+
 ## 2026-10-04 — Release of the Live Classroom wish list (#266–#274): RELEASED
 
 Owner deployed `firestore:rules` from `~/keelesepp-release` at main `cd7fa9c` („uploading rules … released rules …

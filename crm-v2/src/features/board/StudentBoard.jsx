@@ -108,9 +108,12 @@ export default function StudentBoard({
   // ── own-action history (undo/redo) ─────────────────────────────
   const record = useCallback((entry) => setHistory((current) => ({ undo: [...current.undo, entry].slice(-HISTORY_LIMIT), redo: [] })), []);
   const choosePage = (next) => { setPageId(next); setHistory({ undo: [], redo: [] }); setEditing(null); };
-  const add = useCallback((data, message) => service.add(studentId, pageId, data, user)
+  const add = useCallback((input, message) => {
+    const data = staff ? { ...input, byStaff: true } : input;
+    return service.add(studentId, pageId, data, user)
     .then((id) => { record({ op: 'add', id, data }); return id; })
-    .catch((nextError) => { setError(nextError?.message || message); return null; }), [pageId, record, service, studentId, user]);
+    .catch((nextError) => { setError(nextError?.message || message); return null; });
+  }, [pageId, record, service, staff, studentId, user]);
   const update = (element, patch, message) => {
     const before = Object.fromEntries(Object.keys(patch).map((key) => [key, element[key]]));
     return service.update(studentId, pageId, element, patch, user)
@@ -246,7 +249,7 @@ export default function StudentBoard({
       gesture.current = { kind: 'pan', start: screen, view };
     } else if (tool === 'eraser') {
       if (target?.locked) { setError('Õpetaja materjal on lukus ja seda ei saa kustutada.'); return; }
-      if (!staff && teacherMaterial(target)) { setError('Õpetaja lisatud materjali saab kustutada ainult õpetaja.'); return; }
+      if (!staff && teacherMaterial(target)) { setError('Õpetaja lisatud osa saab kustutada ainult õpetaja.'); return; }
       if (target) erase(target);
       return;
     } else if (tool === 'select') {
@@ -259,6 +262,7 @@ export default function StudentBoard({
       gesture.current = { kind: 'shape', start: world };
     } else if (tool === 'note' || tool === 'text') {
       const existing = textAt(elements, world);
+      if (existing && !staff && teacherMaterial(existing)) { setError('Õpetaja teksti saab muuta ainult õpetaja.'); return; }
       if (existing) { setEditing({ id: existing.id, text: existing.text || '' }); return; }
       const data = tool === 'note'
         ? { type: 'note', x: world.x, y: world.y, w: 180, h: 140, text: '', color: noteColor }
@@ -363,7 +367,7 @@ export default function StudentBoard({
     }
     if (element.type === 'note' || element.type === 'text') {
       const isNote = element.type === 'note';
-      return <foreignObject {...common} x={element.x} y={element.y} width={element.w} height={element.h} onDoubleClick={() => setEditing({ id: element.id, text: element.text || '' })}>
+      return <foreignObject {...common} x={element.x} y={element.y} width={element.w} height={element.h} onDoubleClick={(event) => { event.stopPropagation(); if (staff || !teacherMaterial(element)) setEditing({ id: element.id, text: element.text || '' }); }}>
         <div data-element-id={element.id} className={isNote ? 'sb-note' : 'sb-text'} style={isNote ? { background: element.color } : { color: element.color, fontSize: element.fontSize || 18, fontFamily: fontCss(element.fontFamily) }}>{element.text || (isNote ? 'Topeltklõps, et kirjutada' : 'Tekst')}</div>
       </foreignObject>;
     }
@@ -395,7 +399,7 @@ export default function StudentBoard({
   const filling = onWorksheet && tool === 'fill';
   const stage = <div className={`sb-stage tool-${tool} ${onWorksheet ? 'has-worksheet' : ''}`} onWheel={filling ? wheel : undefined}>
     {onWorksheet ? <div ref={underlayRef} className="sb-underlay" style={{ width: WORKSHEET_WIDTH, transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }}>{worksheet.content}</div> : null}
-    <svg ref={svgRef} role="img" aria-label="Õpilase tahvel" style={filling ? { pointerEvents: 'none' } : undefined} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onWheel={filling ? undefined : wheel} onDoubleClick={(event) => { const hit = textAt(elements, screenToWorld(local(event), view)); if (hit) setEditing({ id: hit.id, text: hit.text || '' }); }}>
+    <svg ref={svgRef} role="img" aria-label="Õpilase tahvel" style={filling ? { pointerEvents: 'none' } : undefined} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onWheel={filling ? undefined : wheel} onDoubleClick={(event) => { const hit = textAt(elements, screenToWorld(local(event), view)); if (hit && (staff || !teacherMaterial(hit))) setEditing({ id: hit.id, text: hit.text || '' }); }}>
       <defs><pattern id="sb-dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="#d0d5dd" /></pattern></defs>
       <g transform={`translate(${view.x} ${view.y}) scale(${view.scale})`}>
         {onWorksheet ? null : <>

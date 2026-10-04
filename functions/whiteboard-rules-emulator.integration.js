@@ -191,6 +191,21 @@ test("the student adds and renames ordinary sheets but not snapshots, order or s
   assert.equal(teacherRename.status, 200, JSON.stringify(teacherRename.body));
 });
 
+test("everything the teacher draws or writes carries the teacher mark and is safe from the student's eraser", async () => {
+  requireSafeEmulatorEnvironment();
+  const ctx = await seed();
+  const base = `whiteboards/${ctx.studentId}/elements`;
+  const teacherNote = await commit(ctx.teacherToken, [createElement(`${base}/t-note`, ctx.teacherUid, { ...note, byStaff: true })]);
+  assert.equal(teacherNote.status, 200, JSON.stringify(teacherNote.body));
+  const forged = await commit(ctx.studentToken, [createElement(`${base}/s-forged`, ctx.studentUid, { ...note, byStaff: true })]);
+  assert.equal(forged.status, 403, "students cannot set the teacher mark");
+  assert.equal((await commit(ctx.studentToken, [{ delete: documentName(`${base}/t-note`) }])).status, 403, "student eraser");
+  assert.equal((await commit(ctx.studentToken, [updateElement(`${base}/t-note`, ctx.studentUid, { ...note, byStaff: true, x: 300 })])).status, 403, "student move/edit");
+  assert.equal((await commit(ctx.teacherToken, [updateElement(`${base}/t-note`, ctx.teacherUid, { ...note, x: 300 })])).status, 403, "the mark cannot be dropped");
+  assert.equal((await commit(ctx.teacherToken, [updateElement(`${base}/t-note`, ctx.teacherUid, { ...note, byStaff: true, x: 300 })])).status, 200);
+  assert.equal((await commit(ctx.teacherToken, [{ delete: documentName(`${base}/t-note`) }])).status, 200);
+});
+
 test("nobody writes to a completed lesson snapshot", async () => {
   requireSafeEmulatorEnvironment();
   const ctx = await seed();

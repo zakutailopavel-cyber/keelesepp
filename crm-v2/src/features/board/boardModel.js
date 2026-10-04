@@ -144,9 +144,10 @@ export function clampPoint(point, bounds) {
   return { x: Math.min(bounds.x2, Math.max(bounds.x1, point.x)), y: Math.min(bounds.y2, Math.max(bounds.y1, point.y)) };
 }
 
-// images and PDFs are added by staff; only staff may move or delete them (also enforced by the Firestore rules)
+// teacher content: images/PDFs (only staff add them) and everything a teacher drew or wrote (byStaff); only staff
+// may move, change or delete it (also enforced by the Firestore rules)
 export function teacherMaterial(element) {
-  return ['image', 'pdf'].includes(element?.type);
+  return ['image', 'pdf'].includes(element?.type) || element?.byStaff === true;
 }
 
 export function movable(element) {
