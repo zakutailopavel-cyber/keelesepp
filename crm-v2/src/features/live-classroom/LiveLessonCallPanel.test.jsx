@@ -207,6 +207,103 @@ describe('LiveLessonCallPanel', () => {
     await waitFor(() => expect(secondPeer.createOffer).toHaveBeenCalled());
   });
 
+  it('re-offers by itself when the connection stays down, and the student answers the new session', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    try {
+      const stream = makeStream();
+      const mediaDevices = { getUserMedia: vi.fn().mockResolvedValue(stream) };
+      const firstPeer = makePeer();
+      const secondPeer = makePeer();
+      const peers = [firstPeer, secondPeer];
+      const signalService = { subscribe: vi.fn(() => vi.fn()), send: vi.fn().mockResolvedValue(undefined) };
+      render(<LiveLessonCallPanel invitation={teacherInvitation} role="teacher" user={{ uid: 'teacher-1' }} signalService={signalService} presenceService={makePresenceService()} mediaDevices={mediaDevices} peerFactory={() => peers.shift()} turnService={null} />);
+      fireEvent.click(screen.getByRole('button', { name: /Käivita video ja mikrofon/i }));
+      await vi.advanceTimersByTimeAsync(0);
+      expect(firstPeer.onconnectionstatechange).toBeTypeOf('function');
+
+      firstPeer.connectionState = 'disconnected';
+      act(() => firstPeer.onconnectionstatechange());
+      await vi.advanceTimersByTimeAsync(7000);
+      expect(secondPeer.createOffer).not.toHaveBeenCalled();
+      await vi.advanceTimersByTimeAsync(1500);
+      expect(secondPeer.createOffer).toHaveBeenCalled();
+      const offers = signalService.send.mock.calls.filter((call) => call[1].type === 'offer');
+      expect(offers).toHaveLength(2);
+      expect(offers[1][1].sessionId).not.toBe(offers[0][1].sessionId);
+      expect(firstPeer.close).toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('does not re-offer when a disconnected call heals within the grace period', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    try {
+      const stream = makeStream();
+      const mediaDevices = { getUserMedia: vi.fn().mockResolvedValue(stream) };
+      const peer = makePeer();
+      const peerFactory = vi.fn(() => peer);
+      const signalService = { subscribe: vi.fn(() => vi.fn()), send: vi.fn().mockResolvedValue(undefined) };
+      render(<LiveLessonCallPanel invitation={teacherInvitation} role="teacher" user={{ uid: 'teacher-1' }} signalService={signalService} presenceService={makePresenceService()} mediaDevices={mediaDevices} peerFactory={peerFactory} turnService={null} />);
+      fireEvent.click(screen.getByRole('button', { name: /Käivita video ja mikrofon/i }));
+      await vi.advanceTimersByTimeAsync(0);
+      peer.connectionState = 'disconnected';
+      act(() => peer.onconnectionstatechange());
+      await vi.advanceTimersByTimeAsync(3000);
+      peer.connectionState = 'connected';
+      act(() => peer.onconnectionstatechange());
+      await vi.advanceTimersByTimeAsync(20000);
+      expect(peerFactory).toHaveBeenCalledTimes(1);
+      expect(screen.getAllByText('Ühendatud').length).toBeGreaterThan(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('stops after three automatic tries and leaves the manual reconnect to the teacher', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    try {
+      const stream = makeStream();
+      const mediaDevices = { getUserMedia: vi.fn().mockResolvedValue(stream) };
+      const created = [];
+      const peerFactory = vi.fn(() => { const peer = makePeer(); created.push(peer); return peer; });
+      const signalService = { subscribe: vi.fn(() => vi.fn()), send: vi.fn().mockResolvedValue(undefined) };
+      render(<LiveLessonCallPanel invitation={teacherInvitation} role="teacher" user={{ uid: 'teacher-1' }} signalService={signalService} presenceService={makePresenceService()} mediaDevices={mediaDevices} peerFactory={peerFactory} turnService={null} />);
+      fireEvent.click(screen.getByRole('button', { name: /Käivita video ja mikrofon/i }));
+      await vi.advanceTimersByTimeAsync(0);
+      for (let index = 0; index < 4; index += 1) {
+        const peer = created.at(-1);
+        peer.connectionState = 'failed';
+        act(() => peer.onconnectionstatechange());
+        await vi.advanceTimersByTimeAsync(2000);
+      }
+      expect(peerFactory).toHaveBeenCalledTimes(4);
+      expect(screen.getAllByText('Ühendus ebaõnnestus').length).toBeGreaterThan(0);
+      expect(screen.getByRole('button', { name: /Taasta ühendus/i })).toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('student camera stays on and answers each new teacher session automatically', async () => {
+    const stream = makeStream();
+    const mediaDevices = { getUserMedia: vi.fn().mockResolvedValue(stream) };
+    const peers = [makePeer(), makePeer()];
+    const peerFactory = vi.fn(() => peers.shift());
+    let emitSignal;
+    const signalService = { subscribe: vi.fn((id, onSignal) => { emitSignal = onSignal; return vi.fn(); }), send: vi.fn().mockResolvedValue(undefined) };
+    render(<LiveLessonCallPanel invitation={teacherInvitation} role="student" user={{ uid: 'student-1' }} signalService={signalService} presenceService={makePresenceService('teacher')} mediaDevices={mediaDevices} peerFactory={peerFactory} turnService={null} />);
+    fireEvent.click(screen.getByRole('button', { name: /Liitu videokõnega/i }));
+    await waitFor(() => expect(mediaDevices.getUserMedia).toHaveBeenCalled());
+    for (const [index, sessionId] of ['session-1', 'session-2'].entries()) {
+      await act(async () => {
+        emitSignal({ id: `offer-${index}`, type: 'offer', sessionId, senderUid: 'teacher-1', senderRole: 'teacher', payload: JSON.stringify({ type: 'offer', sdp: sessionId }) });
+      });
+    }
+    await waitFor(() => expect(signalService.send).toHaveBeenCalledWith('invite-1', expect.objectContaining({ type: 'answer', sessionId: 'session-2' })));
+    expect(mediaDevices.getUserMedia).toHaveBeenCalledTimes(1);
+  });
+
   it('lets the teacher share the screen by replacing only the outgoing video track', async () => {
     const stream = makeStream();
     const displayStream = makeDisplayStream();

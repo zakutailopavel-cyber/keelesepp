@@ -1,5 +1,24 @@
 # KeeleSepp Project State
 
+## 2026-10-04 — Live Classroom: automatic call recovery — branch `claude/affectionate-ritchie-dh2x9j`
+
+Checked `origin/main` `467ceac` (after #260), no open PRs. Owner: „продолжаем развивать наш live classroom”; the owner
+also allowed merging to main directly after green CI („сливать все в мэйн сразу”, 2026-10-04).
+Before: when a call dropped the teacher had to press „Taasta ühendus” by hand; a student page reload left the call dead.
+- `crm-v2/src/features/live-classroom/useLiveCall.js` (client only): the teacher side re-offers on a fresh session by
+  itself — `failed` after 1.5 s, `disconnected` after an 8 s grace period (it often heals on its own; no re-offer if it
+  does), at most 3 automatic tries in a row (counter resets on „Ühendatud”, a manual reconnect or hang-up); then the
+  status is „Ühendus ebaõnnestus” and the manual button stays. The counter also resets and a try starts when the
+  student's presence comes back online or the teacher's browser fires `online`. The student already answered every
+  new offer automatically while the camera is on, so no student change. Same signal types → no rules/Functions change.
+- Tests (`LiveLessonCallPanel.test.jsx` +4): re-offer after the grace period with a new session id; no re-offer when
+  the call heals; stop after three tries with the manual button left; student answers a second session without a new
+  camera prompt. CRM Vitest 130 files / 817 tests; ESLint clean; build OK.
+- Not verified in a real two-device call from the agent sandbox.
+- Production: client only (Vercel builds main). No Firestore/rules/Functions deploy.
+- Exactly one next safe step: in a real lesson, turn the student's Wi-Fi off and on (or reload the student page and
+  press „Liitu kõnega”) and check that the call returns to „Ühendatud” without pressing „Taasta ühendus”.
+
 ## 2026-10-04 — TURN relay released
 
 Owner set secrets `CLOUDFLARE_TURN_KEY_ID` and `CLOUDFLARE_TURN_API_TOKEN` (Secret Manager; access granted to

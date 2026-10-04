@@ -7,6 +7,10 @@ export const STUN_SERVERS = Object.freeze([
   { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] },
 ]);
 const TURN_WAIT_MS = 3000;
+// automatic recovery (teacher side): a „disconnected” peer often heals by itself, so it gets a grace period first
+export const DISCONNECT_GRACE_MS = 8000;
+export const RECOVERY_DELAY_MS = 1500;
+export const MAX_AUTO_RECOVERIES = 3;
 
 function defaultPeerFactory(iceServers = STUN_SERVERS) {
   if (!globalThis.RTCPeerConnection) throw new Error('See brauser ei toeta videokõnet.');
@@ -92,6 +96,8 @@ export function useLiveCall({
   const pendingOfferRef = useRef(null);
   const pendingCandidatesRef = useRef([]);
   const processedSignalsRef = useRef(new Set());
+  const recoveryRef = useRef({ timer: null, attempts: 0 });
+  const restartRef = useRef(null);
   const [status, setStatus] = useState('idle');
   const [busy, setBusy] = useState(false);
   const [screenBusy, setScreenBusy] = useState(false);
@@ -127,7 +133,29 @@ export function useLiveCall({
     if (localVideoRef.current) localVideoRef.current.srcObject = stream || null;
   }, []);
 
+  const clearRecovery = useCallback(() => {
+    if (recoveryRef.current.timer) globalThis.clearTimeout(recoveryRef.current.timer);
+    recoveryRef.current.timer = null;
+  }, []);
+
+  // The teacher re-offers on a fresh session when the connection drops; the student answers it automatically
+  // (camera already on). Bounded: after MAX_AUTO_RECOVERIES failed tries the manual „Taasta ühendus” stays.
+  const scheduleRecovery = useCallback((delay) => {
+    if (role !== 'teacher' || recoveryRef.current.timer || !localStreamRef.current) return false;
+    if (recoveryRef.current.attempts >= MAX_AUTO_RECOVERIES) return false;
+    const peer = peerRef.current;
+    recoveryRef.current.timer = globalThis.setTimeout(() => {
+      recoveryRef.current.timer = null;
+      if (peerRef.current !== peer || !localStreamRef.current) return;
+      if (peer?.connectionState === 'connected') return;
+      recoveryRef.current.attempts += 1;
+      restartRef.current?.();
+    }, delay);
+    return true;
+  }, [role]);
+
   const closePeer = useCallback(() => {
+    clearRecovery();
     const peer = peerRef.current;
     if (peer) {
       peer.ontrack = null;
@@ -139,7 +167,7 @@ export function useLiveCall({
     sessionIdRef.current = '';
     if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null;
     reportStreams({ remote: null });
-  }, [reportStreams]);
+  }, [clearRecovery, reportStreams]);
 
   const stopScreenTracks = useCallback(() => {
     const stream = screenStreamRef.current;
@@ -204,14 +232,22 @@ export function useLiveCall({
     };
     peer.onconnectionstatechange = () => {
       const next = peer.connectionState;
-      if (next === 'connected') setStatus('connected');
-      else if (next === 'connecting' || next === 'new') setStatus('connecting');
-      else if (next === 'failed') setStatus('failed');
-      else if (next === 'disconnected') setStatus('reconnecting');
-      else if (next === 'closed') setStatus('ended');
+      if (peerRef.current !== peer) return;
+      if (next === 'connected') {
+        clearRecovery();
+        recoveryRef.current.attempts = 0;
+        setStatus('connected');
+      } else if (next === 'connecting' || next === 'new') setStatus('connecting');
+      else if (next === 'failed') {
+        clearRecovery();
+        setStatus(scheduleRecovery(RECOVERY_DELAY_MS) ? 'reconnecting' : 'failed');
+      } else if (next === 'disconnected') {
+        setStatus('reconnecting');
+        scheduleRecovery(DISCONNECT_GRACE_MS);
+      } else if (next === 'closed') setStatus('ended');
     };
     return peer;
-  }, [closePeer, peerFactory, reportStreams, sendSignal]);
+  }, [clearRecovery, closePeer, peerFactory, reportStreams, scheduleRecovery, sendSignal]);
 
   const flushCandidates = useCallback(async (sessionId) => {
     const peer = peerRef.current;
@@ -390,17 +426,55 @@ export function useLiveCall({
     localStreamRef.current = null;
   }, [closePeer]);
 
+  const sendOffer = async () => {
+    pendingCandidatesRef.current = [];
+    const sessionId = createSessionId();
+    const peer = makePeer(sessionId);
+    const offer = await peer.createOffer();
+    await peer.setLocalDescription(offer);
+    await sendSignal('offer', offer.toJSON ? offer.toJSON() : offer, sessionId);
+    return peer;
+  };
+
+  restartRef.current = async () => {
+    try {
+      const peer = await sendOffer();
+      if (peerRef.current === peer && peer.connectionState !== 'connected') setStatus('reconnecting');
+    } catch (nextError) {
+      setError(nextError.message || 'Ühendust ei saanud taastada.');
+      setStatus('failed');
+    }
+  };
+
+  // the student came back (page reload, network back) or this browser is online again: try again from the start
+  const peerWasOnlineRef = useRef(peerOnline);
+  useEffect(() => {
+    const cameBack = peerOnline && !peerWasOnlineRef.current;
+    peerWasOnlineRef.current = peerOnline;
+    if (cameBack && ['failed', 'reconnecting'].includes(status)) {
+      recoveryRef.current.attempts = 0;
+      clearRecovery();
+      if (scheduleRecovery(RECOVERY_DELAY_MS)) setStatus('reconnecting');
+    }
+  }, [clearRecovery, peerOnline, scheduleRecovery, status]);
+  useEffect(() => {
+    if (role !== 'teacher' || !['failed', 'reconnecting'].includes(status)) return undefined;
+    const onOnline = () => {
+      recoveryRef.current.attempts = 0;
+      clearRecovery();
+      if (scheduleRecovery(RECOVERY_DELAY_MS)) setStatus('reconnecting');
+    };
+    globalThis.addEventListener?.('online', onOnline);
+    return () => globalThis.removeEventListener?.('online', onOnline);
+  }, [clearRecovery, role, scheduleRecovery, status]);
+
   const startTeacherCall = async () => {
     setBusy(true);
     setError('');
+    recoveryRef.current.attempts = 0;
     try {
       await ensureLocalMedia();
-      pendingCandidatesRef.current = [];
-      const sessionId = createSessionId();
-      const peer = makePeer(sessionId);
-      const offer = await peer.createOffer();
-      await peer.setLocalDescription(offer);
-      await sendSignal('offer', offer.toJSON ? offer.toJSON() : offer, sessionId);
+      await sendOffer();
       setStatus('waiting');
     } catch (nextError) {
       resetCall('failed', true);
@@ -437,6 +511,7 @@ export function useLiveCall({
     } finally {
       pendingOfferRef.current = null;
       setTeacherReady(false);
+      recoveryRef.current.attempts = 0;
       resetCall('ended', true);
       setBusy(false);
     }
