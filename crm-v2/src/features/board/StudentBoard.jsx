@@ -2,7 +2,7 @@ import { ArrowUpRight, ChevronDown, Circle, Eraser, FilePlus2, FileText, Hand, I
 import { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { Button } from '../../components/ui/index.js';
 import { studentBoardService } from '../../services/firebase/studentBoard.js';
-import { COLORS, NOTE_COLORS, ROOM_COLORS, SIZES, arrowHead, imageSize, fitView, movable, pathFor, screenToWorld, shapeFromDrag, zoomAt } from './boardModel.js';
+import { COLORS, NOTE_COLORS, ROOM_COLORS, SIZES, arrowHead, imageSize, fitView, movable, pathFor, screenToWorld, shapeFromDrag, teacherMaterial, zoomAt } from './boardModel.js';
 import './board.css';
 
 const TOOLS = [
@@ -162,10 +162,11 @@ export default function StudentBoard({
       gesture.current = { kind: 'pan', start: screen, view };
     } else if (tool === 'eraser') {
       if (target?.locked) { setError('Õpetaja materjal on lukus ja seda ei saa kustutada.'); return; }
+      if (!staff && teacherMaterial(target)) { setError('Õpetaja lisatud materjali saab kustutada ainult õpetaja.'); return; }
       if (target) erase(target);
       return;
     } else if (tool === 'select') {
-      if (!movable(target)) return;
+      if (!movable(target) || (!staff && teacherMaterial(target))) return;
       gesture.current = { kind: 'move', element: target, start: world, dx: 0, dy: 0 };
     } else if (tool === 'pen') {
       gesture.current = { kind: 'pen', points: [world] };
