@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, vi } from 'vitest';
+import { MemoryRouter } from 'react-router-dom';
 import RoomRecorder from './RoomRecorder.jsx';
 import RecordingIndicator from './RecordingIndicator.jsx';
 import StudentRecordingsPanel from './StudentRecordingsPanel.jsx';
@@ -140,15 +141,26 @@ describe('StudentRecordingsPanel', () => {
       ] }]),
       setConsent: vi.fn(async ({ value }) => ({ recordingConsent: value })),
     };
-    render(<StudentRecordingsPanel student={{ id: 'st-1', recordingConsent: false }} user={user} service={service} />);
+    const boardService = { subscribePages: vi.fn((_id, onChange) => { onChange([{ id: 'p-29', title: 'Tund 29.09.2026', createdAt: new Date('2026-09-29T10:05:00Z') }]); return vi.fn(); }) };
+    render(<MemoryRouter><StudentRecordingsPanel student={{ id: 'st-1', recordingConsent: false }} user={user} service={service} boardService={boardService} /></MemoryRouter>);
     fireEvent.click(screen.getByRole('button', { name: 'Märgi nõusolek saadud' }));
     await waitFor(() => expect(service.setConsent).toHaveBeenCalledWith({ studentId: 'st-1', value: true, user }));
     expect(await screen.findByText('Nõusolek on olemas')).toBeInTheDocument();
-    fireEvent.click(await screen.findByRole('button', { name: 'Ava tekst' }));
+    expect(await screen.findByRole('link', { name: /Tahvel/ })).toHaveAttribute('href', '/board/st-1?page=p-29');
+    fireEvent.click(await screen.findByRole('button', { name: /Tunni analüüs/ }));
+    expect(screen.getByText('Õpilase osa kõnest')).toBeInTheDocument();
     expect(screen.getByText('Ma ärkan kell seitse.')).toBeInTheDocument();
     expect(screen.getByText('Õpilane ütles 4 sõna')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Õpilane' }));
     expect(screen.queryByText('Tere! Mis kell sa ärkad?')).toBeNull();
+  });
+
+  it('says the text is on its way while the school computer has not transcribed it yet', async () => {
+    const service = { listForStudent: vi.fn().mockResolvedValue([{ id: 'r2', status: 'uploaded', startedAt: '2026-10-04T15:00:00Z', title: 'Tund', segments: [], transcript: [] }]), setConsent: vi.fn() };
+    render(<MemoryRouter><StudentRecordingsPanel student={{ id: 'st-1', recordingConsent: true }} user={user} service={service} boardService={{ subscribePages: vi.fn(() => vi.fn()) }} /></MemoryRouter>);
+    fireEvent.click(await screen.findByRole('button', { name: /Tunni analüüs/ }));
+    expect(screen.getByText(/Tekst ilmub siia/)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Tahvel/ })).toHaveAttribute('href', '/board/st-1');
   });
 
   it('uses English for English learners', () => {

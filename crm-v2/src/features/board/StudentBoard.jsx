@@ -28,11 +28,11 @@ const HISTORY_LIMIT = 50;
  */
 export default function StudentBoard({
   studentId, user, staff = false, service = studentBoardService, variant = 'page',
-  controllerRef, onHistoryChange, uploadImage, newPageTitle,
+  controllerRef, onHistoryChange, uploadImage, newPageTitle, initialPageId = '',
 }) {
   const room = variant === 'room';
   const [pages, setPages] = useState([]);
-  const [pageId, setPageId] = useState(null);
+  const [pageId, setPageId] = useState(initialPageId || null);
   // Elements of the open page; tagged with the page they belong to, so a page switch never shows stale elements.
   const [loaded, setLoaded] = useState({ key: '', items: [] });
   const [error, setError] = useState('');

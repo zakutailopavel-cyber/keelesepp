@@ -1,6 +1,6 @@
 import { ArrowLeft } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Card, EmptyState, ErrorState, LoadingState, PageHeader, Select } from '../../components/ui/index.js';
 import { studentsService } from '../../services/firebase/index.js';
@@ -15,6 +15,9 @@ import StudentBoard from './StudentBoard.jsx';
 export default function BoardPage({ studentRepository = studentsService, boardService = studentBoardService }) {
   const { user } = useAuth();
   const { studentId: routeStudentId } = useParams();
+  // ?page=<lessonPageId>: opened from a lesson row on the student card, straight on that lesson's page
+  const [searchParams] = useSearchParams();
+  const initialPageId = searchParams.get('page') || '';
   const staff = hasAnyRole(user.roles, [ROLES.ADMIN, ROLES.TEACHER]);
   const [state, setState] = useState({ loading: true, students: [], error: '' });
   const [chosen, setChosen] = useState('');
@@ -38,7 +41,7 @@ export default function BoardPage({ studentRepository = studentsService, boardSe
       {staff && routeStudentId ? <Link className="back-link" to={`/students/${routeStudentId}`}><ArrowLeft size={17} /> Õpilase kaart</Link> : null}
       <PageHeader eyebrow="Tahvel" title={student ? `${student.name} — tahvel` : 'Tahvel'} description="Õpilase oma tahvel väljaspool tundi: märkmed, joonised ja õpetaja materjalid ühes kohas." />
       {state.students.length > 1 ? <div className="board-pick"><Select label="Õpilane" value={chosen} onChange={(event) => setChosen(event.target.value)}>{state.students.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</Select></div> : null}
-      {student ? <StudentBoard key={student.id} studentId={student.id} user={user} staff={staff} service={boardService} /> : <Card><EmptyState title="Tahvlit ei leitud" description="Konto ei ole veel õpilase kaardiga seotud. Kirjuta õpetajale." /></Card>}
+      {student ? <StudentBoard key={student.id} studentId={student.id} user={user} staff={staff} service={boardService} initialPageId={initialPageId} /> : <Card><EmptyState title="Tahvlit ei leitud" description="Konto ei ole veel õpilase kaardiga seotud. Kirjuta õpetajale." /></Card>}
     </div>
   );
 }

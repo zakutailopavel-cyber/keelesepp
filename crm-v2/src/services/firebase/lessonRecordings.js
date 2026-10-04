@@ -80,7 +80,8 @@ export const lessonRecordingsService = {
   // student side: is this room being recorded right now?
   subscribeForStudent({ uid, invitationId }, onData, onError) {
     const { db } = requireFirebaseClient();
-    const q = query(collection(db, 'lessonRecordings'), where('studentUid', '==', uid), where('invitationId', '==', invitationId));
+    // rules let the student read only a recording that is running (status 'recording'); the query must say so
+    const q = query(collection(db, 'lessonRecordings'), where('studentUid', '==', uid), where('invitationId', '==', invitationId), where('status', '==', RECORDING_STATUS.recording));
     return onSnapshot(q, (snapshot) => onData(snapshot.docs.map((d) => normalizeRecording(d.id, d.data()))), (error) => onError?.(error));
   },
 

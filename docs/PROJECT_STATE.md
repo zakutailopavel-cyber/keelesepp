@@ -1,5 +1,21 @@
 # KeeleSepp Project State
 
+## 2026-10-04 — Lesson analysis for the teacher only; lesson rows open analysis or board — branch `claude/affectionate-ritchie-dh2x9j`
+
+Checked `origin/main` `cb06b68` (after #266, merged with the owner's permission; its rules still need a deploy).
+Wish-list item 2.
+- `firestore.rules` `lessonRecordings` read: the student only while `status == 'recording'` (room indicator); finished
+  recordings/transcripts → teacher of the recording and admins. `subscribeForStudent` adds `status == 'recording'`.
+- Student card → Õppetöö → „Tunnid” (`TranscriptView.jsx` `LessonsCard`, `lessonTimeline.js`): rows per recording + board
+  pages of days without one; „Tunni analüüs” (share of speaking time, words/minutes, answers, longest sentence,
+  questions + dialogue; waiting text before transcription) and „Tahvel” → `/board/:studentId?page=…`
+  (`BoardPage` reads `?page`, `StudentBoard initialPageId`).
+- Tests: timeline/analysis 2, panel 2 (analysis + board link; waiting text), board initial page 1, emulator: student
+  reads running 200, finished 403, teacher 200. CRM Vitest, ESLint, build — see PR.
+- Limit: the analysis is counting only (no AI); text appears only after the school Mac worker transcribed it.
+- **Needs the owner:** `firestore:rules` deploy after merge (also covers #266).
+- Exactly one next safe step: deploy rules; open a student → Õppetöö → Tunnid → Tunni analüüs / Tahvel.
+
 ## 2026-10-04 — Board: only staff move or delete teacher materials — branch `claude/affectionate-ritchie-dh2x9j`
 
 Checked `origin/main` `f68d46f` (after #265). Owner: a student could erase the file the teacher added with the eraser.
@@ -16,7 +32,7 @@ Checked `origin/main` `f68d46f` (after #265). Owner: a student could erase the f
 - **Needs the owner:** `firestore:rules` deploy after merge.
 
 ### Owner's Live Classroom wish list (2026-10-04), planned as separate PRs in this order
-1. Teacher materials protected from the student's eraser — this PR.
+1. Teacher materials protected from the student's eraser — #266 (merged).
 2. Transcript visible only to the teacher/admin (rules: student read removed); in the student profile each lesson
    opens a choice „Tunni analüüs” (transcript, status while transcribing) or „Tahvel” (that lesson's board page).
 3. Board text: font choice and editing existing text.
