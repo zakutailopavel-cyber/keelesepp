@@ -415,3 +415,17 @@ test("calendar reconciliation never removes a lesson that already has a result",
   }
   assert.equal(shouldApplyExplicitGoogleDeletion({ ...base, status: "Planeeritud" }, deletedIds, window), true);
 });
+
+test("importedLessonGoogleAction: deleting or cancelling an imported lesson goes back to Google", () => {
+  const { importedLessonGoogleAction } = require("./calendar-sync-core");
+  const imported = { source: "gcal", gcalEventId: "ev1", status: "Planeeritud" };
+  assert.equal(importedLessonGoogleAction(null, { source: "keelesepp" }), "managed");
+  assert.equal(importedLessonGoogleAction({ source: "keelesepp", gcalEventId: "x" }, null), "managed");
+  assert.equal(importedLessonGoogleAction(imported, null), "delete");
+  assert.equal(importedLessonGoogleAction({ source: "gcal" }, null), "skip");
+  assert.equal(importedLessonGoogleAction(null, imported), "skip");
+  assert.equal(importedLessonGoogleAction(imported, { ...imported, status: "Tühistatud" }), "cancel");
+  assert.equal(importedLessonGoogleAction(imported, { ...imported, status: "Tühistatud", gcalSyncStatus: "cancelled" }), "skip");
+  assert.equal(importedLessonGoogleAction(null, { source: "gcal", status: "Tühistatud", gcalImportSuppressed: true }), "skip");
+  assert.equal(importedLessonGoogleAction(null, { source: "gcal", status: "Planeeritud", gcalImportSuppressed: true }), "push");
+});

@@ -86,6 +86,13 @@ export const scheduleService = {
     const { db } = requireFirebaseClient();
     const value = { ...data, updatedAtIso: new Date().toISOString() };
     delete value.id;
+    // a lesson imported from Google had its Google event deleted with it: KeeleSepp puts it back as its own event
+    if (value.source === 'gcal') {
+      value.gcalImportSuppressed = true;
+      delete value.gcalEventId;
+      delete value.gcalEtag;
+      delete value.gcalSyncHash;
+    }
     await setDoc(doc(db, 'schedule', id), value);
     return normalizeScheduleEvent(id, value);
   },

@@ -1,5 +1,23 @@
 # KeeleSepp Project State
 
+## 2026-10-04 — Calendar: a lesson deleted in KeeleSepp leaves Google Calendar too — branch `claude/affectionate-ritchie-dh2x9j`
+
+Checked `origin/main` `ec5db0b` (after #282). Owner: „если я удалил урок, то и из Гугла бы ушёл”.
+- Cause: lessons imported from the teacher's Google Calendar (`source: "gcal"`, id `gcal_<eventId>`) were skipped
+  by the push (`syncScheduleRecordToGoogle`), so a delete or cancel in KeeleSepp never reached Google, and the hourly
+  import re-created the lesson. KeeleSepp-made lessons (`source: "keelesepp"`) already worked.
+- `calendar-sync-core.importedLessonGoogleAction(before, after)`: delete → delete the Google event (same path and
+  outbox retry as managed lessons); cancel → delete the Google event, keep the CRM record with
+  `gcalImportSuppressed: true` (import skips it, Google tombstones no longer delete it); a suppressed lesson planned
+  again → pushed as a KeeleSepp event (`source` becomes `keelesepp`, suppression cleared); anything else unchanged.
+- Without write consent a cancelled imported lesson is queued in `calendarSyncOutbox` and kept cancelled; the import
+  skips Google events that have a pending deletion in the outbox (no re-import after a delete).
+- CRM `scheduleService.restore` (undo of a delete) of an imported lesson: `gcalImportSuppressed`, Google link fields
+  dropped → re-created as a KeeleSepp event.
+- Tests: core (1) and behaviour (4) tests; functions `npm test` 223/223; CRM calendar/services Vitest 180/180.
+- **Needs the owner:** Cloud Functions deploy (`syncScheduleToGoogle`, `syncAllCalendars`); no rules change.
+  Lessons deleted before the deploy may already have come back from Google: delete them once more after the deploy.
+
 ## 2026-10-04 — Lesson summary for the student and parents — branch `claude/affectionate-ritchie-dh2x9j`
 
 Checked `origin/main` `00c13bd` (after #281, homework from the lesson). Last of the four owner-chosen follow-ups

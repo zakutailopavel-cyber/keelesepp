@@ -392,6 +392,24 @@ function preserveLessonResultDuringGoogleImport(imported = {}, existing = {}) {
 const GROUP_EVENT_ORIGIN = "keelesepp-group";
 const RRULE_TO_OFFSET = { SU: 0, MO: 1, TU: 2, WE: 3, TH: 4, FR: 5, SA: 6 };
 
+// A lesson imported from the teacher's Google Calendar (source "gcal") is still the teacher's own Google event.
+// Deleting or cancelling it in KeeleSepp must remove it from Google as well; otherwise the hourly import brings
+// it straight back. Returns what the schedule push should do:
+//   "managed" – a KeeleSepp lesson, the normal push
+//   "delete"  – an imported lesson was deleted: delete its Google event
+//   "cancel"  – an imported lesson was cancelled: delete its Google event, keep the CRM record (import suppressed)
+//   "push"    – a cancelled/restored imported lesson is planned again: KeeleSepp now manages it (new Google event)
+//   "skip"    – nothing to do (imported lesson unchanged, or the cancellation was already handled)
+function importedLessonGoogleAction(before, after) {
+  const schedule = after || before;
+  if (!schedule || schedule.source !== "gcal") return "managed";
+  if (!after) return before?.gcalEventId ? "delete" : "skip";
+  if (after.status === "Tühistatud") {
+    return after.gcalEventId && after.gcalSyncStatus !== "cancelled" ? "cancel" : "skip";
+  }
+  return after.gcalImportSuppressed ? "push" : "skip";
+}
+
 function isIsoDate(value) {
   return /^\d{4}-\d{2}-\d{2}$/.test(String(value || ""));
 }
@@ -509,6 +527,7 @@ function calendarReturnUrlWithStatus(base, status) {
 }
 
 module.exports = {
+  importedLessonGoogleAction,
   GROUP_EVENT_ORIGIN,
   firstWeekdayOnOrAfter,
   groupLessonLinkId,

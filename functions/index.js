@@ -96,6 +96,7 @@ const {
   isKeeleSeppGroupGoogleEvent,
   safeCalendarReturnUrl,
   calendarReturnUrlWithStatus,
+  importedLessonGoogleAction,
 } = require("./calendar-sync-core");
 const {
   buildOperationalAlerts,
@@ -8675,10 +8676,16 @@ async function syncTeacherCalendar(uid, tokens) {
   // Один запрос студентов на весь прогон вместо чтения на каждое событие
   // (раньше: doc.get() на каждый student:ID + полный скан коллекции на каждый
   // фолбэк по имени — до ~500 событий за прогон).
-  const [studentsSnap, currentScheduleSnap] = await Promise.all([
+  const [studentsSnap, currentScheduleSnap, pendingDeletionSnap] = await Promise.all([
     db.collection("students").get(),
     db.collection("schedule").where("teacherUid", "==", uid).get(),
+    db.collection("calendarSyncOutbox").where("teacherUid", "==", uid).get(),
   ]);
+  // lessons deleted in KeeleSepp whose Google event is not removed yet (e.g. no write consent): never re-import
+  const pendingDeletionEventIds = new Set(pendingDeletionSnap.docs
+    .map(doc => doc.data())
+    .filter(entry => entry.action === "delete" && entry.eventId)
+    .map(entry => String(entry.eventId)));
   const currentScheduleById = new Map(
     currentScheduleSnap.docs.map(doc => [doc.id, { id: doc.id, ...doc.data() }]),
   );
@@ -8777,7 +8784,7 @@ async function syncTeacherCalendar(uid, tokens) {
     const targetScheduleId = managedScheduleId || `gcal_${event.id}`;
     const existingSchedule = currentScheduleById.get(targetScheduleId)
       || currentScheduleByGoogleId.get(String(event.id || ""));
-    if (existingSchedule?.gcalImportSuppressed) {
+    if (existingSchedule?.gcalImportSuppressed || pendingDeletionEventIds.has(String(event.id || ""))) {
       skipped++;
       continue;
     }
@@ -9101,7 +9108,9 @@ async function syncScheduleRecordToGoogle(
   { force = false, retryErrors = false, connectionOverride = null, calendarOverride = null } = {},
 ) {
   const schedule = after || before;
-  if (!schedule || schedule.source === "gcal" || schedule.isGroup) {
+  // lessons imported from Google: only deletion/cancellation (and a later re-planning) go back to Google
+  const importedAction = importedLessonGoogleAction(before, after);
+  if (!schedule || schedule.isGroup || importedAction === "skip") {
     return { skipped: "external_or_group" };
   }
   const uid = String(schedule.teacherUid || "").trim();
@@ -9146,9 +9155,21 @@ async function syncScheduleRecordToGoogle(
     if (after.gcalSyncHash === syncHash && after.gcalSyncStatus !== "error") return { skipped: "already_synchronized" };
     if (isErrorMatch && !retryErrors) return { skipped: "already_synchronized" };
   }
-  if (!calendarConnectionCanWrite(connection)) return { skipped: "write_consent_required" };
-
   const scheduleRef = db.collection("schedule").doc(scheduleId);
+  if (!calendarConnectionCanWrite(connection)) {
+    // a cancelled imported lesson stays cancelled even before Google can be written; the event goes later
+    if (importedAction === "cancel") {
+      await queueGoogleEventDeletion(scheduleId, after, "Calendar write consent unavailable");
+      await scheduleRef.set({
+        gcalImportSuppressed: true,
+        gcalSyncStatus: "cancelled",
+        gcalSyncUpdatedAt: new Date().toISOString(),
+      }, { merge: true });
+      return { queued: true, cancelled: true };
+    }
+    return { skipped: "write_consent_required" };
+  }
+
   const requestBody = scheduleToGoogleEvent(scheduleId, after, APP_TIME_ZONE);
   if (!requestBody && after.status !== "Tühistatud") {
     await scheduleRef.set({
@@ -9179,6 +9200,8 @@ async function syncScheduleRecordToGoogle(
       await scheduleRef.set({
         gcalEventId: FieldValue.delete(),
         gcalEtag: FieldValue.delete(),
+        // an imported lesson stays cancelled: the next Google import must not bring it back
+        ...(after.source === "gcal" ? { gcalImportSuppressed: true } : {}),
         gcalSyncHash: syncHash,
         gcalSyncAttemptHash: syncHash,
         gcalSyncStatus: "cancelled",
@@ -9239,6 +9262,7 @@ async function syncScheduleRecordToGoogle(
       gcalSyncError: "",
       gcalSyncedAt: new Date().toISOString(),
       source: "keelesepp",
+      ...(after.gcalImportSuppressed ? { gcalImportSuppressed: FieldValue.delete() } : {}),
     }, { merge: true });
     await updateCalendarPushMetadata(uid);
     return { synced: true, eventId: googleEvent.id };
