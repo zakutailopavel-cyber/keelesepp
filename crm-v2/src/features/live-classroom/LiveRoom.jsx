@@ -5,7 +5,7 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import StudentBoard from '../board/StudentBoard.jsx';
 import { imageSize } from '../board/boardModel.js';
-import RoomWorksheetPanel from '../worksheet-studio/RoomWorksheetPanel.jsx';
+import RoomWorksheetPanel, { RoomWorksheetContent } from '../worksheet-studio/RoomWorksheetPanel.jsx';
 import RoomRecorder from '../lesson-recording/RoomRecorder.jsx';
 import RecordingIndicator from '../lesson-recording/RecordingIndicator.jsx';
 import { timestampMillis } from './invitationModel.js';
@@ -176,7 +176,6 @@ export default function LiveRoom({
   const [panel, setPanel] = useState('');
   const [menu, setMenu] = useState('');
   const [sheet, setSheet] = useState(null);
-  const [sheetOpen, setSheetOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [chatError, setChatError] = useState('');
   const [seenCount, setSeenCount] = useState(null);
@@ -212,20 +211,23 @@ export default function LiveRoom({
   useEffect(() => { if (panel === 'chat') setSeenCount(messages.length); }, [messages.length, panel]);
   const unread = panel === 'chat' ? 0 : messages.slice(baseline).filter((message) => message.fromUid !== user.uid).length;
 
-  // the student sees a worksheet as soon as the teacher opens it
+  // the open worksheet lies on the board as its own page; both switch to it as soon as the teacher opens it
   const onSheet = useCallback((current) => {
-    setSheet((previous) => {
-      if (current && current.id !== previous?.id && !teacher) setSheetOpen(true);
-      return current;
-    });
-  }, [teacher]);
+    setSheet(current);
+    if (current) setPanel((open) => (open === 'tasks' ? '' : open));
+  }, []);
+  const worksheet = useMemo(() => (sheet ? {
+    id: sheet.id,
+    title: sheet.title || sheet.worksheetDoc?.meta?.title || 'Tööleht',
+    content: <RoomWorksheetContent current={sheet} role={role} {...(worksheetProps.homework ? { homework: worksheetProps.homework } : {})} />,
+  } : null), [role, sheet, worksheetProps.homework]);
 
   const toggle = (name) => { setMenu(''); setPanel((current) => (current === name ? '' : name)); };
   const place = async (file) => {
     const kind = fileKind(file);
     const size = kind === 'image' ? await imageSize(file.url) : { width: 1000, height: 1414 };
     const id = await boardRef.current?.insertFile({ url: file.url, name: file.name, kind, storagePath: file.storagePath || '', ...size });
-    if (id) { setNotice(`„${file.name || 'Materjal'}” on tahvlil.`); setPanel(''); setSheetOpen(false); }
+    if (id) { setNotice(`„${file.name || 'Materjal'}” on tahvlil.`); setPanel(''); }
   };
   useEffect(() => {
     if (!notice) return undefined;
@@ -268,7 +270,7 @@ export default function LiveRoom({
           <IconButton label="Osalejad" active={panel === 'people'} onClick={() => toggle('people')}><Users size={18} /></IconButton>
           <IconButton label="Vestlus" active={panel === 'chat'} onClick={() => toggle('chat')}><MessageSquare size={18} />{unread ? <span className="lr-badge">{unread}</span> : null}</IconButton>
           {teacher ? <button type="button" className={`lr-text-btn ${panel === 'materials' ? 'is-active' : ''}`} onClick={() => toggle('materials')}><LibraryBig size={17} /> Materjalid</button> : null}
-          <button type="button" className={`lr-text-btn ${sheetOpen ? 'is-active' : ''}`} onClick={() => { setMenu(''); setSheetOpen(!sheetOpen); }}><ClipboardList size={17} /> Ülesanded{sheet && !sheetOpen ? <span className="lr-dot" aria-label="Tööleht on avatud" /> : null}</button>
+          <button type="button" className={`lr-text-btn ${panel === 'tasks' ? 'is-active' : ''}`} onClick={() => { setMenu(''); if (sheet && !teacher) { boardRef.current?.openWorksheet?.(); return; } toggle('tasks'); }}><ClipboardList size={17} /> Ülesanded{sheet ? <span className="lr-dot" aria-label="Tööleht on avatud" /> : null}</button>
         </div>
         {menu === 'info' ? <div className="lr-menu lr-menu--left" role="dialog" aria-label="Tunni info">
           <strong>{invitation.title}</strong>
@@ -299,12 +301,9 @@ export default function LiveRoom({
             onHistoryChange={setHistory}
             newPageTitle={`Tund ${lessonDate}`}
             uploadImage={teacher ? uploadImage : undefined}
+            worksheet={worksheet}
             {...(boardService ? { service: boardService } : {})}
           />
-          <div className={`lr-sheet ${sheetOpen ? 'is-open' : ''}`} aria-hidden={!sheetOpen}>
-            <div className="lr-sheet__head"><strong>Ülesanded</strong><IconButton label="Tagasi tahvlile" onClick={() => setSheetOpen(false)}><X size={18} /></IconButton></div>
-            <div className="lr-sheet__body"><RoomWorksheetPanel invitation={invitation} role={role} user={user} onCurrentChange={onSheet} {...worksheetProps} /></div>
-          </div>
         </main>
 
         <aside className={`lr-side ${panel ? 'has-drawer' : ''}`} aria-label="Video">
@@ -329,6 +328,14 @@ export default function LiveRoom({
           </Drawer> : null}
           {panel === 'devices' ? <Drawer title="Kaamera ja mikrofon" onClose={() => setPanel('')}><DevicesPanel call={call} stream={streams?.local} /></Drawer> : null}
           {panel === 'materials' && teacher ? <Drawer title="Materjalid" onClose={() => setPanel('')}><MaterialsPanel library={library} onPlace={place} /></Drawer> : null}
+          {/* always mounted: it follows the room's worksheet for both and lets the teacher open one */}
+          <div className={panel === 'tasks' ? 'lr-drawer' : 'lr-drawer is-hidden'} aria-hidden={panel !== 'tasks'} role="region" aria-label="Ülesanded">
+            <header><strong>Ülesanded</strong><IconButton label="Sulge ülesanded" onClick={() => setPanel('')}><X size={18} /></IconButton></header>
+            <div className="lr-drawer__body">
+              <RoomWorksheetPanel invitation={invitation} role={role} user={user} onCurrentChange={onSheet} showSheet={false} {...worksheetProps} />
+              {sheet ? <button type="button" className="lr-text-btn" onClick={() => { setPanel(''); boardRef.current?.openWorksheet?.(); }}><ClipboardList size={16} /> Ava tööleht tahvlil</button> : null}
+            </div>
+          </div>
           <div className={panel === 'record' && teacher ? 'lr-drawer' : 'lr-drawer is-hidden'} aria-hidden={panel !== 'record'}>
             <header><strong>Tunni salvestamine</strong><IconButton label="Sulge salvestamine" onClick={() => setPanel('')}><X size={18} /></IconButton></header>
             <div className="lr-drawer__body">{teacher ? <RoomRecorder invitation={invitation} user={user} streams={streams} consent={consent} auto onStateChange={setRecState} subject={subject} {...(recordingService ? { service: recordingService } : {})} /> : null}</div>

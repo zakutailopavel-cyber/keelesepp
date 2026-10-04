@@ -13,23 +13,28 @@ const invitation = { id: 'inv-1', roomKey: 'inv-1', studentId: 's-1', studentNam
 function services({ messages = [], worksheets = [], lessons = [] } = {}) {
   let elements = [];
   let elementListener = () => {};
+  let pages = [];
+  let pageListener = () => {};
   let messageListener = () => {};
   let sheetListener = () => {};
   const board = {
-    subscribePages: vi.fn((id, onChange) => { onChange([]); return vi.fn(); }),
+    subscribePages: vi.fn((id, onChange) => { pageListener = onChange; onChange(pages); return vi.fn(); }),
     subscribeElements: vi.fn((id, page, onChange) => { elementListener = onChange; onChange(elements); return vi.fn(); }),
     add: vi.fn(async (id, page, data) => { const created = { id: `e${elements.length + 1}`, ...data }; elements = [...elements, created]; elementListener(elements); return created.id; }),
     update: vi.fn(async () => {}),
     remove: vi.fn(async (id, page, elementId) => { elements = elements.filter((item) => item.id !== elementId); elementListener(elements); }),
     clear: vi.fn(async () => 0),
-    addPage: vi.fn(async () => 'p1'),
+    addPage: vi.fn(async (id, title) => { const pageId = `p${pages.length + 1}`; pages = [...pages, { id: pageId, title }]; pageListener(pages); return pageId; }),
   };
   const chat = {
     subscribeByStudent: vi.fn((id, onChange) => { messageListener = onChange; onChange(messages); return vi.fn(); }),
     send: vi.fn(async (data, user) => { messageListener([...messages, { id: 'm-new', text: data.text, fromUid: user.uid, fromName: user.displayName }]); }),
   };
   const library = { list: vi.fn().mockResolvedValue({ curriculumLessons: lessons }), assign: vi.fn(), uploadFile: vi.fn() };
-  const homework = { subscribeRoomWorksheets: vi.fn((query, onChange) => { sheetListener = onChange; onChange(worksheets); return vi.fn(); }) };
+  const homework = {
+    subscribeRoomWorksheets: vi.fn((query, onChange) => { sheetListener = onChange; onChange(worksheets); return vi.fn(); }),
+    subscribeWorksheetAssignment: vi.fn((id, onChange) => { onChange({ id, title: 'Minevik', status: 'assigned', worksheetDoc: sampleDocument(), answers: {} }); return vi.fn(); }),
+  };
   const call = {
     signalService: { subscribe: vi.fn(() => vi.fn()), send: vi.fn().mockResolvedValue(undefined) },
     presenceService: { heartbeat: vi.fn().mockResolvedValue(undefined), markOffline: vi.fn().mockResolvedValue(undefined), subscribe: vi.fn((id, onChange) => { onChange([{ role: 'student', uid: 'stud', lastSeenAt: new Date().toISOString(), online: true }]); return vi.fn(); }) },
@@ -128,13 +133,25 @@ describe('LiveRoom', () => {
     expect(await screen.findByRole('status')).toHaveTextContent('„Leht.pdf” on tahvlil.');
   });
 
-  it('opens the worksheet for the student as soon as the teacher opens it', async () => {
+  it('puts the opened worksheet on the board as its own page: the teacher creates it, both switch to it', async () => {
+    const s = services();
+    renderRoom('teacher', s);
+    act(() => s.pushSheet([{ id: 'a1', title: 'Minevik', status: 'assigned', studentId: 's-1', worksheetDoc: sampleDocument(), answers: {} }]));
+    await waitFor(() => expect(s.board.addPage).toHaveBeenCalledWith('s-1', 'Tööleht: Minevik', 1, expect.objectContaining({ uid: 'teach' })));
+    expect(await screen.findByRole('tab', { name: 'Tööleht: Minevik' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('button', { name: 'Täida töölehte' })).toHaveAttribute('aria-pressed', 'true');
+    expect(document.querySelector('.sb-underlay')).not.toBeNull();
+    expect(document.querySelector('.lr-sheet')).toBeNull();
+  });
+
+  it('the student switches to the worksheet page as soon as it exists and never creates it', async () => {
     const s = services();
     renderRoom('student', s);
-    const sheet = () => screen.getByText('Ülesanded', { selector: 'strong' }).closest('.lr-sheet');
-    expect(sheet()).not.toHaveClass('is-open');
-    act(() => s.pushSheet([{ id: 'a1', title: 'Tööleht', status: 'assigned', studentId: 's-1', worksheetDoc: sampleDocument(), answers: {} }]));
-    await waitFor(() => expect(sheet()).toHaveClass('is-open'));
+    act(() => s.pushSheet([{ id: 'a1', title: 'Minevik', status: 'assigned', studentId: 's-1', worksheetDoc: sampleDocument(), answers: {} }]));
+    expect(s.board.addPage).not.toHaveBeenCalled();
+    await act(async () => { await s.board.addPage('s-1', 'Tööleht: Minevik', 1, { uid: 'teach' }); });
+    expect(await screen.findByRole('tab', { name: 'Tööleht: Minevik' })).toHaveAttribute('aria-selected', 'true');
+    expect(document.querySelector('.sb-underlay')).not.toBeNull();
   });
 
   it('a student has no materials button and cannot end the lesson', () => {

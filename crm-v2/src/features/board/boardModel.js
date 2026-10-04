@@ -100,12 +100,15 @@ export function fitView(elements, width, height, padding = 40) {
 // The board is a sheet with edges (owner, 2026-10-04), not an endless canvas: 1600 × 1000 board units, grown only
 // where older content already lies outside it, so nothing drawn before is ever hidden.
 export const PAGE = Object.freeze({ w: 1600, h: 1000 });
-export function pageBounds(elements = [], margin = 40) {
+// a worksheet page is as wide as the worksheet and as tall as it is
+export const WORKSHEET_WIDTH = 1000;
+export const worksheetPageTitle = (title) => `Tööleht: ${String(title || 'Tööleht').trim()}`.slice(0, 200);
+export function pageBounds(elements = [], margin = 40, base = PAGE) {
   const boxes = elements.map(elementBounds).filter(Boolean);
   const x1 = Math.min(0, ...boxes.map((box) => box.x1 - margin));
   const y1 = Math.min(0, ...boxes.map((box) => box.y1 - margin));
-  const x2 = Math.max(PAGE.w, ...boxes.map((box) => box.x2 + margin));
-  const y2 = Math.max(PAGE.h, ...boxes.map((box) => box.y2 + margin));
+  const x2 = Math.max(base.w, ...boxes.map((box) => box.x2 + margin));
+  const y2 = Math.max(base.h, ...boxes.map((box) => box.y2 + margin));
   return { x1, y1, x2, y2 };
 }
 // the whole sheet on screen
@@ -115,6 +118,12 @@ export function fitPage(bounds, width, height, padding = 16) {
   const h = bounds.y2 - bounds.y1;
   const scale = clampScale(Math.min((width - padding * 2) / w, (height - padding * 2) / h));
   return { scale, x: (width - w * scale) / 2 - bounds.x1 * scale, y: (height - h * scale) / 2 - bounds.y1 * scale };
+}
+// the sheet's width fills the screen, top of the sheet at the top (a worksheet is read from the top)
+export function fitWidth(bounds, width, padding = 16) {
+  if (!width) return { x: 0, y: 0, scale: 1 };
+  const scale = clampScale((width - padding * 2) / (bounds.x2 - bounds.x1));
+  return { scale, x: padding - bounds.x1 * scale, y: padding - bounds.y1 * scale };
 }
 // panning never pushes the sheet off the screen: at least `keep` pixels of it stay visible on every side
 export function clampView(view, bounds, width, height, keep = 80) {

@@ -14,11 +14,11 @@
 .sb-sep { width: 1px; height: 24px; background: #e4e7ec; margin: 0 4px; }
 .sb-zoom { min-width: 44px; text-align: center; font-size: .8rem; font-weight: 700; color: #475467; }
 .sb-stage { position: relative; height: min(72vh, 760px); min-height: 380px; border: 1px solid var(--border, #e4e7ec); border-radius: 16px; overflow: hidden; background: #fbfaf8; touch-action: none; }
-.sb-stage svg { width: 100%; height: 100%; display: block; }
-.sb-stage.tool-pen svg, .sb-stage.tool-rect svg, .sb-stage.tool-ellipse svg, .sb-stage.tool-arrow svg { cursor: crosshair; }
-.sb-stage.tool-hand svg { cursor: grab; }
-.sb-stage.tool-eraser svg { cursor: not-allowed; }
-.sb-stage.tool-note svg, .sb-stage.tool-text svg { cursor: copy; }
+.sb-stage > svg { width: 100%; height: 100%; display: block; }
+.sb-stage.tool-pen > svg, .sb-stage.tool-rect > svg, .sb-stage.tool-ellipse > svg, .sb-stage.tool-arrow > svg { cursor: crosshair; }
+.sb-stage.tool-hand > svg { cursor: grab; }
+.sb-stage.tool-eraser > svg { cursor: not-allowed; }
+.sb-stage.tool-note > svg, .sb-stage.tool-text > svg { cursor: copy; }
 .sb-note { width: 100%; height: 100%; box-sizing: border-box; padding: 10px; border-radius: 6px; font-size: 15px; line-height: 1.35; color: #1c2b3a; box-shadow: 0 2px 6px rgba(28, 43, 58, .15); white-space: pre-wrap; overflow: hidden; }
 .sb-text { width: 100%; height: 100%; line-height: 1.25; white-space: pre-wrap; overflow: hidden; }
 .sb-pdf { display: grid; gap: 6px; padding: 10px; border: 1px solid #d0d5dd; border-radius: 10px; background: #fff; font-size: 14px; }
@@ -80,3 +80,8 @@
 .sb-sheet { fill: #fff; stroke: #d9dce6; stroke-width: 1; filter: drop-shadow(0 4px 14px rgba(30, 34, 70, .10)); }
 .sb-page-rename { min-width: 120px; max-width: 220px; padding: 5px 10px; border: 1px solid #4f46e5; border-radius: 999px; font: inherit; font-weight: 600; }
 .sb-pages .sb-page-tool, .sb-room-pages .sb-page-tool { display: inline-flex; align-items: center; justify-content: center; padding: 6px 9px; }
+/* a worksheet page: the worksheet lies under the drawing layer and moves/zooms with the board */
+.sb-underlay { position: absolute; top: 0; left: 0; transform-origin: 0 0; padding: 24px 28px; border-radius: 8px; background: #fff; box-shadow: 0 4px 14px rgba(30, 34, 70, .10); box-sizing: border-box; }
+.sb-stage.has-worksheet > svg { position: absolute; inset: 0; }
+.sb-stage.tool-fill > svg { cursor: default; }
+.sb-pages button.is-worksheet, .sb-room-pages button.is-worksheet { display: inline-flex; align-items: center; gap: 5px; }
