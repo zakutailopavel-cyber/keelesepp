@@ -6,6 +6,7 @@ import { Badge, Button, EmptyState, ErrorState, Input, LoadingState, Modal } fro
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { groupsService, lessonsService, libraryService, liveLessonInvitationsService, scheduleService, studentsService, teachersService } from '../../services/firebase/index.js';
 import { studentAccountUid } from '../live-classroom/invitationModel.js';
+import { isLessonKey, rememberLessonLink } from '../live-classroom/lessonLink.js';
 import { hasScheduleConflict } from '../../services/firebase/schedule.js';
 import { ROLES } from '../../utils/roles.js';
 import { datesForView, filterCalendarEvents, groupCalendarEvents, occurrencesForDates, shiftDate, toIsoDate } from './calendarView.js';
@@ -98,7 +99,9 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
   const navigate = useNavigate();
   const [startingLive, setStartingLive] = useState(false);
   const narrow = useNarrow();
-  const [anchor, setAnchor] = useState(toIsoDate());
+  // `?lesson=<occurrenceId>|<date>` opens that lesson's panel (after „Lõpeta tund” in the Live Classroom).
+  const [linkedLesson] = useState(() => (isLessonKey(searchParams.get('lesson')) ? searchParams.get('lesson') : ''));
+  const [anchor, setAnchor] = useState(() => (linkedLesson ? linkedLesson.split('|')[1] : toIsoDate()));
   const [view, setView] = useState('week');
   const [filters, setFilters] = useState(() => ({ search: '', teacher: searchParams.get('teacher') || '', student: searchParams.get('student') || '' }));
   const [modal, setModal] = useState(false);
@@ -106,7 +109,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
   const [form, setForm] = useState(blankLesson());
   const [saving, setSaving] = useState(false);
   const [actionError, setActionError] = useState('');
-  const [panelKey, setPanelKey] = useState('');
+  const [panelKey, setPanelKey] = useState(linkedLesson);
   const [panelError, setPanelError] = useState('');
   const [panelSaving, setPanelSaving] = useState(false);
   const [attendanceSaving, setAttendanceSaving] = useState('');
@@ -312,6 +315,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
     try {
       const title = `${student.subject || 'Õppetund'} · ${item.time}`;
       const invitation = await liveRepository.create({ student, title }, user);
+      rememberLessonLink(invitation.id, `${item.occurrenceId}|${item.occurrenceDate}`);
       navigate(`/live-classroom?invitation=${encodeURIComponent(invitation.id)}`);
     } catch (error) {
       setPanelError(error.message || 'Tundi ei saanud alustada.');
