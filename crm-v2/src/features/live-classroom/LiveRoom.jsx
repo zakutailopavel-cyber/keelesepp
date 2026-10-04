@@ -186,6 +186,45 @@ export default function LiveRoom({
     content: <RoomWorksheetContent current={sheet} role={role} {...(worksheetProps.homework ? { homework: worksheetProps.homework } : {})} />,
   } : null), [role, sheet, worksheetProps.homework]);
 
+  // ── the teacher's page and pointer over the call's data channel (nothing is saved) ──
+  const [myPage, setMyPage] = useState('');
+  const myPageRef = useRef('');
+  const onPageChange = useCallback((id) => { myPageRef.current = id; setMyPage(id); }, []);
+  const { roomChannelOpen, sendRoom, onRoomMessage } = call;
+  useEffect(() => { if (teacher && roomChannelOpen) sendRoom?.({ t: 'page', pageId: myPage }); }, [teacher, roomChannelOpen, myPage, sendRoom]);
+  const pointerSentAt = useRef(0);
+  const sendPointer = useCallback((point) => {
+    if (!sendRoom) return;
+    const at = Date.now();
+    if (point && at - pointerSentAt.current < 50) return;
+    pointerSentAt.current = at;
+    sendRoom(point ? { t: 'ptr', x: point.x, y: point.y, pageId: myPageRef.current } : { t: 'ptr', off: true });
+  }, [sendRoom]);
+  // student: follows the teacher to the page they open (can be switched off) and sees the pointer
+  const [teacherPage, setTeacherPage] = useState(null);
+  const [follow, setFollow] = useState(true);
+  const [pointer, setPointer] = useState(null);
+  useEffect(() => {
+    if (teacher || !onRoomMessage) return undefined;
+    return onRoomMessage((message) => {
+      if (message.t === 'page' && typeof message.pageId === 'string') setTeacherPage(message.pageId.slice(0, 200));
+      if (message.t === 'ptr') {
+        const ok = !message.off && Number.isFinite(message.x) && Number.isFinite(message.y);
+        setPointer(ok ? { x: message.x, y: message.y, pageId: String(message.pageId || '') } : null);
+      }
+    });
+  }, [teacher, onRoomMessage]);
+  useEffect(() => {
+    if (teacher || !follow || teacherPage === null || teacherPage === myPageRef.current) return;
+    boardRef.current?.selectPage?.(teacherPage || null);
+  }, [teacher, follow, teacherPage]);
+  useEffect(() => {
+    if (!pointer) return undefined;
+    const timer = globalThis.setTimeout(() => setPointer(null), 4000);
+    return () => globalThis.clearTimeout(timer);
+  }, [pointer]);
+  const awayFromTeacher = !teacher && roomChannelOpen && teacherPage !== null && teacherPage !== myPage;
+
   const toggle = (name) => { setMenu(''); setPanel((current) => (current === name ? '' : name)); };
   const place = async (file) => {
     const kind = fileKind(file);
@@ -227,6 +266,7 @@ export default function LiveRoom({
           {teacher && recState.recording ? <button type="button" className="lr-pill lr-rec" onClick={() => { setMenu(''); setPanel('record'); }} aria-label="Tundi salvestatakse — ava salvestamine"><span className="lr-rec__dot" aria-hidden="true" />Salvestan</button> : null}
           {teacher && recState.recording && transcriber.known && !transcriber.online ? <button type="button" className="lr-pill lr-rec is-off" title={transcriberLabel(transcriber)} onClick={() => { setMenu(''); setPanel('record'); }}>Mac ei transkribeeri</button> : null}
           {teacher && !recState.recording && call.hasLocalMedia && consent === false ? <button type="button" className="lr-pill lr-rec is-off" onClick={() => { setMenu(''); setPanel('record'); }}>Ei salvesta</button> : null}
+          {awayFromTeacher ? <button type="button" className="lr-pill lr-follow" onClick={() => boardRef.current?.selectPage?.(teacherPage || null)}>Mine õpetaja lehele</button> : null}
           {call.canReconnect ? <IconButton label="Taasta ühendus" disabled={call.busy} onClick={call.startTeacherCall}><RefreshCw size={18} /></IconButton> : null}
           {callButton}
         </div>
@@ -245,6 +285,7 @@ export default function LiveRoom({
         {menu === 'more' ? <div className="lr-menu" role="menu" aria-label="Rohkem">
           {teacher ? <button type="button" role="menuitem" onClick={() => { setMenu(''); boardRef.current?.newPage(`Tund ${lessonDate}`).catch((error) => setNotice(error?.message || 'Uut lehte ei saanud luua.')); }}>Uus tunnileht „Tund {lessonDate}”</button> : null}
           {teacher ? <button type="button" role="menuitem" onClick={() => { setMenu(''); setPanel('record'); }}>Tunni salvestamine</button> : null}
+          {!teacher ? <button type="button" role="menuitemcheckbox" aria-checked={follow} onClick={() => { setMenu(''); setFollow(!follow); }}>{follow ? 'Ära jälgi õpetaja lehte' : 'Jälgi õpetaja lehte'}</button> : null}
           <button type="button" role="menuitem" onClick={() => { setMenu(''); setPanel('devices'); }}>Kaamera ja mikrofon</button>
           <button type="button" role="menuitem" onClick={() => { setMenu(''); onLeave(); }}>Lahku tunniruumist</button>
           {teacher ? <button type="button" role="menuitem" className="is-danger" disabled={ending} onClick={() => { setMenu(''); onEndLesson(); }}>Lõpeta tund</button> : null}
@@ -267,6 +308,8 @@ export default function LiveRoom({
             newPageTitle={`Tund ${lessonDate}`}
             uploadImage={teacher ? uploadImage : undefined}
             worksheet={worksheet}
+            onPageChange={onPageChange}
+            {...(teacher ? { onPointer: sendPointer } : { pointer: roomChannelOpen ? pointer : null })}
             {...(boardService ? { service: boardService } : {})}
           />
         </main>

@@ -85,3 +85,8 @@
 .sb-stage.has-worksheet > svg { position: absolute; inset: 0; }
 .sb-stage.tool-fill > svg { cursor: default; }
 .sb-pages button.is-worksheet, .sb-room-pages button.is-worksheet { display: inline-flex; align-items: center; gap: 5px; }
+
+/* Live Classroom pointer: the teacher's red dot the student follows */
+.sb-stage.tool-laser > svg { cursor: crosshair; }
+.sb-laser__glow { fill: rgba(217, 45, 32, .22); }
+.sb-laser__dot { fill: #d92d20; stroke: #fff; stroke-width: 0; }

@@ -1,4 +1,4 @@
-import { ArrowUpRight, ChevronDown, Circle, ClipboardList, Eraser, FilePlus2, FileText, MousePointerClick, Pencil, Hand, ImagePlus, Maximize, Minus, MousePointer2, PenLine, Plus, Shapes, Square, StickyNote, Trash2, Type } from 'lucide-react';
+import { ArrowUpRight, ChevronDown, Circle, ClipboardList, Crosshair, Eraser, FilePlus2, FileText, MousePointerClick, Pencil, Hand, ImagePlus, Maximize, Minus, MousePointer2, PenLine, Plus, Shapes, Square, StickyNote, Trash2, Type } from 'lucide-react';
 import { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { Button } from '../../components/ui/index.js';
 import { studentBoardService } from '../../services/firebase/studentBoard.js';
@@ -18,6 +18,8 @@ const TOOLS = [
 ];
 // on a worksheet page: click into the worksheet (answer) instead of drawing on top of it
 const FILL_TOOL = ['fill', 'Täida töölehte', MousePointerClick];
+// Live Classroom, teacher: a pointer the student sees on the same page (sent over the call, nothing is saved)
+const LASER_TOOL = ['laser', 'Osuti', Crosshair];
 const SHAPES = TOOLS.filter(([key]) => ['rect', 'ellipse', 'arrow'].includes(key));
 const META = ['id', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId', 'revision'];
 const plain = (element) => Object.fromEntries(Object.entries(element).filter(([key]) => !META.includes(key)));
@@ -31,6 +33,7 @@ const HISTORY_LIMIT = 50;
 export default function StudentBoard({
   studentId, user, staff = false, service = studentBoardService, variant = 'page',
   controllerRef, onHistoryChange, uploadImage, newPageTitle, initialPageId = '', worksheet = null,
+  onPageChange, onPointer, pointer = null,
 }) {
   const room = variant === 'room';
   const [pages, setPages] = useState([]);
@@ -76,6 +79,7 @@ export default function StudentBoard({
     },
     (nextError) => { setLoaded({ key: `${studentId}/${pageId || 'board'}`, items: [] }); setError(nextError?.message || 'Tahvlit ei saanud laadida.'); },
   ), [service, studentId, pageId]);
+  useEffect(() => { onPageChange?.(pageId || ''); }, [onPageChange, pageId]);
   const ready = loaded.key === pageKey;
   const elements = useMemo(() => (ready ? loaded.items : []), [ready, loaded.items]);
 
@@ -199,6 +203,8 @@ export default function StudentBoard({
     setView(fitWidth(bounds, width));
   }, [onWorksheet]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (!onWorksheet && tool === 'fill') setTool('pen'); }, [onWorksheet, tool]);
+  // the pointer disappears for the student when the teacher puts it away
+  useEffect(() => { if (tool !== 'laser') onPointer?.(null); }, [onPointer, tool]);
 
   const openWorksheet = useCallback(() => {
     if (!worksheet) return;
@@ -245,6 +251,7 @@ export default function StudentBoard({
     const screen = local(event);
     const world = clampPoint(screenToWorld(screen, view), bounds);
     const target = byId.get(event.target?.closest?.('[data-element-id]')?.dataset?.elementId);
+    if (tool === 'laser') { onPointer?.({ x: Math.round(world.x), y: Math.round(world.y) }); return; }
     if (tool === 'hand' || (tool === 'select' && !target)) {
       gesture.current = { kind: 'pan', start: screen, view };
     } else if (tool === 'eraser') {
@@ -275,6 +282,11 @@ export default function StudentBoard({
   };
 
   const move = (event) => {
+    if (tool === 'laser') {
+      const point = clampPoint(screenToWorld(local(event), view), bounds);
+      onPointer?.({ x: Math.round(point.x), y: Math.round(point.y) });
+      return;
+    }
     const current = gesture.current;
     if (!current) return;
     const screen = local(event);
@@ -399,7 +411,7 @@ export default function StudentBoard({
   const filling = onWorksheet && tool === 'fill';
   const stage = <div className={`sb-stage tool-${tool} ${onWorksheet ? 'has-worksheet' : ''}`} onWheel={filling ? wheel : undefined}>
     {onWorksheet ? <div ref={underlayRef} className="sb-underlay" style={{ width: WORKSHEET_WIDTH, transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }}>{worksheet.content}</div> : null}
-    <svg ref={svgRef} role="img" aria-label="Õpilase tahvel" style={filling ? { pointerEvents: 'none' } : undefined} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onWheel={filling ? undefined : wheel} onDoubleClick={(event) => { const hit = textAt(elements, screenToWorld(local(event), view)); if (hit && (staff || !teacherMaterial(hit))) setEditing({ id: hit.id, text: hit.text || '' }); }}>
+    <svg ref={svgRef} role="img" aria-label="Õpilase tahvel" style={filling ? { pointerEvents: 'none' } : undefined} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onPointerLeave={tool === 'laser' ? () => onPointer?.(null) : undefined} onWheel={filling ? undefined : wheel} onDoubleClick={(event) => { const hit = textAt(elements, screenToWorld(local(event), view)); if (hit && (staff || !teacherMaterial(hit))) setEditing({ id: hit.id, text: hit.text || '' }); }}>
       <defs><pattern id="sb-dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="#d0d5dd" /></pattern></defs>
       <g transform={`translate(${view.x} ${view.y}) scale(${view.scale})`}>
         {onWorksheet ? null : <>
@@ -408,6 +420,10 @@ export default function StudentBoard({
         </>}
         {elements.filter((element) => element.id !== draft?.movingId).map((element) => <g key={element.id}>{render(element)}</g>)}
         {draft ? <g key="__draft">{render({ ...draft, id: draft.id || '__draft' })}</g> : null}
+        {pointer && (pointer.pageId || '') === (pageId || '') ? <g className="sb-laser" data-testid="teacher-pointer" pointerEvents="none">
+          <circle cx={pointer.x} cy={pointer.y} r={16 / view.scale} className="sb-laser__glow" />
+          <circle cx={pointer.x} cy={pointer.y} r={6 / view.scale} className="sb-laser__dot" />
+        </g> : null}
       </g>
     </svg>
     {editingElement ? <textarea
@@ -436,6 +452,7 @@ export default function StudentBoard({
         <div className="sb-dock" role="toolbar" aria-label="Tahvli tööriistad">
           {onWorksheet ? toolButton(FILL_TOOL) : null}
           {TOOLS.filter(([key]) => ['select', 'hand'].includes(key)).map(toolButton)}
+          {staff && onPointer ? toolButton(LASER_TOOL) : null}
           <span className="sb-dock__group">
             <button type="button" className={SHAPES.some(([key]) => key === tool) ? 'is-active' : ''} aria-label="Kujundid" aria-expanded={shapesOpen} title="Kujundid" onClick={() => setShapesOpen(!shapesOpen)}><ShapeIcon size={20} /></button>
             {shapesOpen ? <span className="sb-dock__menu" role="menu" aria-label="Kujundid">{SHAPES.map(toolButton)}</span> : null}

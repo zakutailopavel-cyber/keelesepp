@@ -1,5 +1,24 @@
 # KeeleSepp Project State
 
+## 2026-10-04 — Lesson room: pointer and „follow the teacher” — branch `claude/affectionate-ritchie-dh2x9j`
+
+Checked `origin/main` `32cb8d1` (after #278). First of four owner-chosen follow-ups (pointer/follow, lesson vocabulary,
+homework from the lesson, lesson summary — one PR each, in that order).
+- `useLiveCall`: a WebRTC data channel `room` — the teacher creates it with every offer (before `createOffer`), the
+  student receives it (`ondatachannel`); closed with the peer. Exposes `roomChannelOpen`, `sendRoom(message)` (JSON,
+  false when not open), `onRoomMessage(listener)`. Peers without data channels still call. Nothing is stored; no rules.
+- Messages: `{ t: 'page', pageId }` ('' = main board) whenever the teacher's open page changes or the channel opens;
+  `{ t: 'ptr', x, y, pageId }` (≤ 20/s) or `{ t: 'ptr', off: true }`.
+- `StudentBoard`: `onPageChange(pageId)`, teacher tool „Osuti” (only with `onPointer`; nothing saved, put away on leave
+  or tool change), `pointer` prop draws a red dot on the matching page only.
+- `LiveRoom` (1:1): the student follows the teacher's page by default („Ära jälgi õpetaja lehte” / „Jälgi õpetaja
+  lehte” in „Rohkem”); pill „Mine õpetaja lehele” when on another page; the pointer hides after 4 s without updates.
+- Tests: `useLiveCall.channel.test.jsx` (2), `LiveRoom.follow.test.jsx` (3), board pointer/page tests (2). CRM Vitest
+  140 files / 867 tests; ESLint clean; build OK.
+- Limits: works only during a call (no call → no channel); group lessons not yet (mesh would need one channel per
+  peer). Not tried with real browsers.
+- No rules deploy needed.
+
 ## 2026-10-04 — Transcriber on the Mac starts by itself; the lesson room shows whether it runs — branch `claude/affectionate-ritchie-dh2x9j`
 
 Checked `origin/main` `d120950` (after #277). Owner: keep transcription on the school Mac (free, best Estonian), but it

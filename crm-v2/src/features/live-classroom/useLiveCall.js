@@ -113,6 +113,10 @@ export function useLiveCall({
   const processedSignalsRef = useRef(new Set());
   const recoveryRef = useRef({ timer: null, attempts: 0 });
   const restartRef = useRef(null);
+  // room data channel (teacher's page and pointer): created by the teacher with every offer, received by the student
+  const channelRef = useRef(null);
+  const roomListenerRef = useRef(null);
+  const [roomChannelOpen, setRoomChannelOpen] = useState(false);
   const [status, setStatus] = useState('idle');
   const [busy, setBusy] = useState(false);
   const [screenBusy, setScreenBusy] = useState(false);
@@ -176,10 +180,30 @@ export function useLiveCall({
     return true;
   }, [role]);
 
+  const wireChannel = useCallback((channel) => {
+    channelRef.current = channel;
+    channel.onopen = () => { if (channelRef.current === channel) setRoomChannelOpen(true); };
+    channel.onclose = () => { if (channelRef.current === channel) setRoomChannelOpen(false); };
+    channel.onmessage = (event) => {
+      let message = null;
+      try { message = JSON.parse(event.data); } catch { return; }
+      if (message && typeof message === 'object') roomListenerRef.current?.(message);
+    };
+    if (channel.readyState === 'open') setRoomChannelOpen(true);
+  }, []);
+
   const closePeer = useCallback(() => {
     clearRecovery();
+    const channel = channelRef.current;
+    channelRef.current = null;
+    if (channel) {
+      channel.onopen = null; channel.onclose = null; channel.onmessage = null;
+      try { channel.close?.(); } catch { /* already closed */ }
+    }
+    setRoomChannelOpen(false);
     const peer = peerRef.current;
     if (peer) {
+      peer.ondatachannel = null;
       peer.ontrack = null;
       peer.onicecandidate = null;
       peer.onconnectionstatechange = null;
@@ -242,6 +266,10 @@ export function useLiveCall({
     const outboundVideoTrack = screenStream?.getVideoTracks?.()[0] || cameraStream?.getVideoTracks?.()[0];
     if (outboundVideoTrack) peer.addTrack(outboundVideoTrack, screenStream || cameraStream);
 
+    if (role === 'teacher' && typeof peer.createDataChannel === 'function') {
+      try { wireChannel(peer.createDataChannel('room')); } catch { /* call works without it */ }
+    }
+    peer.ondatachannel = (event) => { if (event.channel?.label === 'room') wireChannel(event.channel); };
     peer.ontrack = (event) => {
       const remoteStream = event.streams?.[0];
       if (remoteVideoRef.current && remoteStream) remoteVideoRef.current.srcObject = remoteStream;
@@ -269,7 +297,7 @@ export function useLiveCall({
       } else if (next === 'closed') setStatus('ended');
     };
     return peer;
-  }, [clearRecovery, closePeer, peerFactory, reportStreams, scheduleRecovery, sendSignal]);
+  }, [clearRecovery, closePeer, peerFactory, reportStreams, role, scheduleRecovery, sendSignal, wireChannel]);
 
   const flushCandidates = useCallback(async (sessionId) => {
     const peer = peerRef.current;
@@ -613,6 +641,17 @@ export function useLiveCall({
     }
   };
 
+  const sendRoom = useCallback((message) => {
+    const channel = channelRef.current;
+    if (!channel || channel.readyState !== 'open') return false;
+    try { channel.send(JSON.stringify(message)); return true; } catch { return false; }
+  }, []);
+  // one listener for the room's messages; returns the unsubscribe
+  const onRoomMessage = useCallback((listener) => {
+    roomListenerRef.current = listener;
+    return () => { if (roomListenerRef.current === listener) roomListenerRef.current = null; };
+  }, []);
+
   const connected = status === 'connected';
   const canReconnect = role === 'teacher' && hasLocalMedia && ['failed', 'reconnecting'].includes(status);
 
@@ -621,5 +660,6 @@ export function useLiveCall({
     audioEnabled, videoEnabled, screenSharing, teacherReady, peerOnline, peerName, connected, canReconnect,
     localVideoRef, remoteVideoRef, startTeacherCall, joinStudentCall, hangUp, toggleAudio, toggleVideo,
     startScreenShare, stopScreenShare, devices, selectedDevices: currentIds, switchDevice, deviceBusy,
+    roomChannelOpen, sendRoom, onRoomMessage,
   };
 }
