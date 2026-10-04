@@ -452,3 +452,42 @@ conversation, so a client cannot substitute an arbitrary recipient ID. Facebook 
 `META_PAGE_ACCESS_TOKEN`; Instagram uses its Instagram Send API with `META_INSTAGRAM_ACCESS_TOKEN`.
 `META_VERIFY_TOKEN` and `META_APP_SECRET` are also server-only Firebase Function secrets. No migration, Firestore
 index, or rules change is required. See `docs/COMMUNICATION_HUB_V1.md`.
+
+## Deterministic Worksheet Generator
+
+The worksheet generator is a pure client-side content compiler under
+`crm-v2/src/features/worksheet-generator/engine/`. It combines a versioned lesson profile, structured focus IDs,
+curated content banks, level-safe vocabulary and a string seed into ordinary `keelesepp.worksheet/2` documents.
+It reuses the current Worksheet Studio block registry and renderer; it has no Firebase, network, AI-provider,
+timestamp or unseeded-random dependency. Generator metadata remains outside the worksheet document.
+
+The pedagogical selection layer is split from rendering. `activityCatalog.js` defines versioned logical activities
+(phase, CEFR range, lesson kinds, skills, production mode, cognitive load, activity family, source requirements and
+didactic tags). `planner.js` deterministically compiles compatible activities into Avasta / Harjuta / Kasuta plans,
+prefers family diversity and uses recent activity IDs as a cooldown signal. `content.js` only materializes that plan
+from curated profile banks into existing Worksheet Studio blocks. `quality.js` checks plan-to-block consistency and
+the required phase progression before persistence. A changed seed can therefore change both task content and the
+didactic activity mix without changing the worksheet storage schema.
+
+Generated lesson worksheets use child records under `curriculumLessons/{lessonId}/worksheets/{worksheetId}` and leave
+the legacy root worksheet contract intact. `lessonWorksheetsService` saves each draft or publication in a Firestore
+transaction, rejects a stale `worksheetDocUpdatedAt`, and appends an immutable top-level `worksheetVersions` record
+whose ID includes both the lesson and child worksheet. A draft keeps the last published snapshot unchanged. Signed-in
+users may read child sheets; only staff may create, update or delete them. Published child sheets continue through the
+existing immutable `worksheetAssignments` snapshot. Real-time teacher guidance reuses `LiveWorksheetView`,
+`liveFocus.blockId` and the same assignment document inside Live Classroom.
+
+The teacher opens a lesson worksheet set at `/library/lessons/:lessonId/worksheets`; supported profiles
+generate the three stable core drafts in parallel. Child routes adapt the same `WorksheetStudioPage` to
+`lessonWorksheetsService`, so editing, quality validation, publishing and history do not fork the worksheet engine.
+Student-profile work history must query those assignments rather
+than copying answers or results into `students`. See `docs/WORKSHEET_GENERATOR_V1.md`.
+
+Content Pack Factory is a pure authoring layer above the generator profile sanitizer and planner. Its versioned
+Content Library stores curated reusable communicative frames and lesson-specific sources; the Factory merges stable
+IDs deterministically, rejects missing sources and returns an unsaved draft. Firebase remains an adapter used only
+after an explicit teacher save. Generated learner metadata never falls back to Russian roadmap goal/success fields.
+Content Library v2 extends the same contract with the `family-relations` source and an explicit A2-006 blueprint;
+it does not add storage collections, new persistence fields or automatic profile writes.
+The CEFR reserve is loaded separately with authenticated Firebase Storage `getBytes()` and is passed as plain data to
+the network-free generator core.

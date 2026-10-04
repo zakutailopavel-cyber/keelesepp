@@ -1841,6 +1841,13 @@ service cloud.firestore {
     match /curriculumLessons/{lessonId} {
       allow read: if signedIn();
       allow write: if isStaff();
+
+      // A lesson may own several independent Worksheet Studio documents.
+      // The legacy worksheetDoc fields on the lesson stay a separate contract.
+      match /worksheets/{worksheetId} {
+        allow read: if signedIn();
+        allow create, update, delete: if isStaff();
+      }
     }
 
     // Shared staff didactics library. Books and methodical resources are

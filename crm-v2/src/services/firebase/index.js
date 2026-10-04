@@ -1,6 +1,7 @@
 export { authService } from './auth.js';
 export { bankTransactionsService } from './bankTransactions.js';
 export { creditNotesService } from './creditNotes.js';
+export { curriculumInstallerService } from './curriculumInstaller.js';
 export { financeApi, invoiceDeliveryApi } from './financeApi.js';
 export { expensesService } from './expenses.js';
 export { financialAuditService } from './financialAudit.js';
@@ -15,6 +16,8 @@ export { liveLessonCallSignalsService } from './liveLessonCallSignals.js';
 export { liveLessonPresenceService, presenceIsFresh } from './liveLessonPresence.js';
 export { liveLessonWhiteboardService } from './liveLessonWhiteboard.js';
 export { worksheetDocsService } from './worksheetDocs.js';
+export { lessonWorksheetsService } from './lessonWorksheets.js';
+export { levelVocabularyService } from './levelVocabulary.js';
 export { homeworkService } from './homework.js';
 export { petsService } from './pets.js';
 export { lessonsService } from './lessons.js';

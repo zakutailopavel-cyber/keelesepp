@@ -24,6 +24,7 @@ function renderAt(path, repository) {
       <AuthContext.Provider value={{ user }}>
         <Routes>
           <Route path="/library/worksheets/:lessonId" element={<WorksheetStudioPage repository={repository} />} />
+          <Route path="/library/lessons/:lessonId/worksheets" element={<div>lesson-engine</div>} />
           <Route path="/library" element={<div>library</div>} />
         </Routes>
       </AuthContext.Provider>
@@ -58,6 +59,20 @@ describe('WorksheetStudioPage', () => {
     expect(saved.lessonId).toBe('lesson-1');
     expect(saved.document.blocks.some((b) => b.type === 'truefalse')).toBe(true);
     expect(await screen.findByRole('status')).toHaveTextContent('salvestati');
+  });
+
+  it('redirects a roadmap lesson without a standalone worksheet to Lesson Engine', async () => {
+    const repository = repo({
+      load: vi.fn().mockResolvedValue({
+        document: sampleDocument(),
+        source: 'new',
+        lesson: { id: 'a2-001', roadmapManaged: true },
+      }),
+    });
+    renderAt('/library/worksheets/a2-001', repository);
+    expect(await screen.findByText('lesson-engine')).toBeInTheDocument();
+    expect(repository.load).toHaveBeenCalledWith('a2-001');
+    expect(screen.queryByText('Töölehe konstruktor')).not.toBeInTheDocument();
   });
 
   it('shows a conversion notice for legacy worksheets', async () => {
@@ -142,6 +157,42 @@ describe('WorksheetStudioPage', () => {
     fireEvent.change(container.querySelector('input[type="file"][accept="application/json"]'), { target: { files: [file] } });
     expect(await screen.findByRole('alert')).toHaveTextContent('ei ole KeeleSepa tööleht');
     expect(container.querySelectorAll('.ws-page .ws-card').length).toBe(before);
+  });
+
+
+  it('regenerates one generated task through the repository and keeps undo working', async () => {
+    const document = sampleDocument();
+    const original = { ...document.blocks[0], id: 'gen_practice_1' };
+    document.blocks = [original, ...document.blocks.slice(1)];
+    const replacement = { ...original, data: { ...original.data, title: 'Uus kellavariant.' } };
+    const repository = repo({
+      load: vi.fn().mockResolvedValue({
+        document,
+        source: 'worksheetDoc',
+        lesson: {},
+        generation: { phase: 'practice', seed: 'fixed', focusIds: ['time'] },
+      }),
+      regenerateBlock: vi.fn().mockResolvedValue({ block: replacement, mode: 'activity', diagnostics: [] }),
+    });
+
+    const { container } = renderAt('/library/worksheets/lesson-1', repository);
+    await screen.findByText('Töölehe konstruktor');
+    fireEvent.click(container.querySelector('.ws-page .ws-card'));
+    const regenerate = screen.getByRole('button', { name: 'Genereeri uus variant' });
+    expect(regenerate).toBeInTheDocument();
+    expect(screen.getByText(/Sama fookus ja raskus/)).toBeInTheDocument();
+
+    fireEvent.click(regenerate);
+    await waitFor(() => expect(repository.regenerateBlock).toHaveBeenCalledWith({
+      document: expect.objectContaining({ id: document.id }),
+      blockId: 'gen_practice_1',
+      generation: expect.objectContaining({ phase: 'practice' }),
+    }));
+    await waitFor(() => expect(container.querySelector('.ws-page')).toHaveTextContent('Uus kellavariant.'));
+    expect(screen.getByRole('status')).toHaveTextContent('teise ülesandetüübiga');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Võta tagasi' }));
+    await waitFor(() => expect(container.querySelector('.ws-page')).toHaveTextContent('Soojendus.'));
   });
 
   it('asks before leaving through a link with unsaved changes', async () => {

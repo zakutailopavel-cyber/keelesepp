@@ -2127,6 +2127,17 @@ function CurriculumView({lessons,isTeacher,user,notify,onPreviewWorksheet,onCond
   },[nav]);
 
   useEffect(()=>{
+    if(LOCAL_LIBRARY_PREVIEW||!isTeacher||subject?.key!=='Eesti keel'||level!=='A2')return;
+    const a2Lessons=lessons.filter(l=>l.subject==='Eesti keel'&&l.level==='A2'&&!l.__subjectPlaceholder);
+    const roadmapCount=a2Lessons.filter(l=>l.curriculumId==='est-a2-curriculum-v1'&&l.roadmapManaged).length;
+    if(roadmapCount>=100)return;
+    const key='keelesepp-a2-roadmap-import-attempt';
+    if(window.sessionStorage.getItem(key))return;
+    window.sessionStorage.setItem(key,'1');
+    window.location.assign('/haldus-a2-roadmap/');
+  },[subject?.key,level,isTeacher,lessons]);
+
+  useEffect(()=>{
     if(LOCAL_LIBRARY_PREVIEW||!isTeacher||subject?.key!=='Eesti keel'||level!=='B2')return;
     const b2Lessons=lessons.filter(l=>l.subject==='Eesti keel'&&l.level==='B2'&&!l.__subjectPlaceholder);
     if(b2Lessons.length===0)return;

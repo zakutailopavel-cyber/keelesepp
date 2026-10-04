@@ -32,7 +32,7 @@ const readDraft = (key) => { try { return JSON.parse(window.localStorage.getItem
 
 // Worksheet Studio: teachers assemble branded, interactive worksheets from blocks.
 // Route: /library/worksheets/new  or  /library/worksheets/:lessonId (curriculumLessons document).
-export default function WorksheetStudioPage({ repository = worksheetDocsService }) {
+export default function WorksheetStudioPage({ repository = worksheetDocsService, backTo = '/library', allowCopy = true }) {
   const { lessonId } = useParams();
   const isNew = !lessonId || lessonId === 'new';
   const { user } = useAuth();
@@ -43,6 +43,8 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService 
   const [loadError, setLoadError] = useState('');
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
+  const [generation, setGeneration] = useState(null);
   const [notice, setNotice] = useState('');
   const [saveError, setSaveError] = useState('');
   const [mode, setMode] = useState('edit');
@@ -77,11 +79,16 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService 
       setDraftRestored(restored);
       setDirty(restored);
       setSource('new');
+      setGeneration(null);
       return undefined;
     }
     repository.load(lessonId)
       .then((res) => {
         if (!alive) return;
+        if (res.source === 'new' && res.lesson?.roadmapManaged === true) {
+          navigate(`/library/lessons/${encodeURIComponent(lessonId)}/worksheets`, { replace: true });
+          return;
+        }
         const files = originalFiles(res.lesson);
         const local = readDraft(draftKey(lessonId));
         const restored = local?.document?.schema === res.document.schema && Number(local.savedAt || 0) > (Date.parse(res.baseUpdatedAt || 0) || 0);
@@ -89,6 +96,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService 
         setDraftRestored(restored);
         setDirty(restored);
         setSource(res.source);
+        setGeneration(res.generation || null);
         setBaseUpdatedAt(res.baseUpdatedAt || '');
         setWorksheetStatus(res.status || 'draft');
         setVersion(Number(res.version) || 0);
@@ -97,7 +105,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService 
       })
       .catch((error) => { if (alive) setLoadError(error.message || 'Töölehte ei saanud avada.'); });
     return () => { alive = false; };
-  }, [isNew, lessonId, repository]);
+  }, [isNew, lessonId, navigate, repository]);
 
   useEffect(() => {
     if (!doc || !dirty) return undefined;
@@ -167,6 +175,34 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService 
   const setBlocks = (blocks) => change({ ...doc, blocks });
   const selected = doc.blocks.find((b) => b.id === selectedId);
   const updateBlock = (nb) => setBlocks(doc.blocks.map((b) => (b.id === nb.id ? nb : b)));
+  const canRegenerateSelected = Boolean(
+    selected &&
+    generation &&
+    typeof repository.regenerateBlock === 'function' &&
+    BLOCKS[selected.type]?.task &&
+    /^gen_(discover|practice|transfer)_\d+$/.test(String(selected.id || '')),
+  );
+  const regenerateSelected = async () => {
+    if (!canRegenerateSelected || regenerating) return;
+    setRegenerating(true);
+    setSaveError('');
+    try {
+      const result = await repository.regenerateBlock({
+        document: doc,
+        blockId: selected.id,
+        generation,
+      });
+      if (!result?.block) throw new Error('Uut ülesandevarianti ei saanud luua.');
+      updateBlock(result.block);
+      setNotice(result.mode === 'activity'
+        ? 'Ülesanne asendati sama fookuse ja raskusega teise ülesandetüübiga.'
+        : 'Ülesande sisu genereeriti uuesti sama fookuse ja raskusega.');
+    } catch (error) {
+      setSaveError(error.message || 'Ülesande uuesti genereerimine ebaõnnestus.');
+    } finally {
+      setRegenerating(false);
+    }
+  };
   const resizeBlock = (id, patch) => {
     const block = doc.blocks.find((b) => b.id === id);
     if (!block) return;
@@ -328,7 +364,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService 
     <AssetContext.Provider value={assets}>
       <div className={`ws-studio mode-${mode}`}>
         <header className="st-bar">
-          <Link className="st-back" to="/library"><Icons.ArrowLeft size={16} /> Õppevara</Link>
+          <Link className="st-back" to={backTo}><Icons.ArrowLeft size={16} /> {backTo === '/library' ? 'Õppevara' : 'Tunni töölehed'}</Link>
           <div className="st-title"><b>Töölehe konstruktor</b><span>{doc.meta.title}{dirty ? ' · salvestamata' : ''}</span></div>
           <div className="st-seg" role="tablist" aria-label="Vaade">
             {[['edit', 'Koosta'], ['interactive', 'Õpilase vaade'], ['print', 'Trükivaade']].map(([m, l]) => (
@@ -346,7 +382,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService 
               <div className="st-menu">
                 <button type="button" onClick={loadSample}>Laadi näidisleht „Minu päev”</button>
                 <button type="button" onClick={loadFormalLetter}>Mall „Kiri linnavalitsusele”</button>
-                <button type="button" onClick={saveCopy}>Tee töölehest koopia</button>
+                {allowCopy ? <button type="button" onClick={saveCopy}>Tee töölehest koopia</button> : null}
                 {!isNew && <button type="button" onClick={loadVersions}>Versioonid ja taastamine…</button>}
                 <button type="button" onClick={exportJson}>Salvesta faili (JSON)</button>
                 <button type="button" onClick={() => { closeMenu(); fileRef.current?.click(); }}>Ava failist…</button>
@@ -402,10 +438,20 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService 
           {mode === 'edit' && (
             <aside className="st-inspector" aria-label="Seaded">
               {selected ? (
-                <BlockInspector key={selected.id} block={selected} doc={doc} update={updateBlock}
-                  onDelete={() => deleteBlock(selected.id)}
-                  onDuplicate={() => { const copy = { ...structuredClone(selected), id: newId() }; const i = doc.blocks.findIndex((b) => b.id === selected.id); const next = [...doc.blocks]; next.splice(i + 1, 0, copy); setBlocks(next); setSelectedId(copy.id); }}
-                  onMove={(dir) => moveBlock(selected.id, dir)} />
+                <>
+                  {canRegenerateSelected && (
+                    <div className="st-regenerate">
+                      <div><Icons.Sparkles size={16} aria-hidden="true" /><span><b>Genereeritud ülesanne</b><small>Sama fookus ja raskus; võimalusel teine ülesandetüüp, alati uus sisu.</small></span></div>
+                      <button type="button" className="ed-btn" onClick={regenerateSelected} disabled={regenerating}>
+                        {regenerating ? 'Genereerin…' : 'Genereeri uus variant'}
+                      </button>
+                    </div>
+                  )}
+                  <BlockInspector key={selected.id} block={selected} doc={doc} update={updateBlock}
+                    onDelete={() => deleteBlock(selected.id)}
+                    onDuplicate={() => { const copy = { ...structuredClone(selected), id: newId() }; const i = doc.blocks.findIndex((b) => b.id === selected.id); const next = [...doc.blocks]; next.splice(i + 1, 0, copy); setBlocks(next); setSelectedId(copy.id); }}
+                    onMove={(dir) => moveBlock(selected.id, dir)} />
+                </>
               ) : (
                 <SheetInspector doc={doc} setMeta={(patch) => change({ ...doc, meta: { ...doc.meta, ...patch } })} />
               )}

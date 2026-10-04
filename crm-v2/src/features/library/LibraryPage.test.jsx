@@ -228,6 +228,23 @@ describe('LibraryPage', () => {
     expect(screen.getByTestId('location')).toHaveTextContent('/library/worksheets/plan-2');
   });
 
+  it('routes a roadmap lesson without a standalone worksheet to Lesson Engine', async () => {
+    const repository = { list: vi.fn().mockResolvedValue({ curriculumLessons: [{
+      id: 'a2-001',
+      title: 'A2 lähtediagnostika',
+      subject: 'Eesti keel',
+      level: 'A2',
+      topic: '01. A2 lähtepunkt ja eneseinfo',
+      roadmapManaged: true,
+      roadmapLessonNumber: 1,
+    }], exercises: [] }) };
+    function Location() { const location = useLocation(); return <output data-testid="location">{location.pathname}</output>; }
+    render(<MemoryRouter initialEntries={['/library']}><AuthContext.Provider value={{ user: { uid: 't', displayName: 'Õpetaja', roles: ['teacher'] } }}><Routes><Route path="*" element={<><LibraryPage repository={repository} studentRepository={{ list: vi.fn() }} groupRepository={{ list: vi.fn() }} /><Location /></>} /></Routes></AuthContext.Provider></MemoryRouter>);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Töölehed: A2 lähtediagnostika' }));
+    expect(screen.getByTestId('location')).toHaveTextContent('/library/lessons/a2-001/worksheets');
+  });
+
   it('the material editor of a lesson plan without a worksheet has Loo tööleht', async () => {
     const repository = { list: vi.fn().mockResolvedValue({ curriculumLessons: [{ id: 'plan-1', title: 'A2 lähtediagnostika', subject: 'Eesti keel', level: 'B1', topic: '01. A2 lähtepunkt' }], exercises: [] }) };
     function Location() { const location = useLocation(); return <output data-testid="location">{location.pathname}</output>; }
@@ -267,4 +284,31 @@ describe('LibraryPage', () => {
       values: expect.objectContaining({ blocks: [expect.objectContaining({ type: 'match', pairs: [{ l: 'ema', r: 'mother' }, { l: 'isa', r: 'father' }] })] }),
     })));
   });
+
+  it('installs the A2 curriculum from the current CRM v2 library', async () => {
+    const repository = { list: vi.fn().mockResolvedValue({ curriculumLessons: [], exercises: [] }) };
+    const curriculumInstaller = { installA2: vi.fn().mockResolvedValue({ curriculumId: 'est-a2-curriculum-v1', count: 100 }) };
+    const user = { uid: 'teacher-1', displayName: 'Õpetaja', roles: ['teacher'] };
+
+    render(
+      <MemoryRouter>
+        <AuthContext.Provider value={{ user }}>
+          <LibraryPage
+            repository={repository}
+            studentRepository={{ list: vi.fn() }}
+            groupRepository={{ list: vi.fn() }}
+            curriculumInstaller={curriculumInstaller}
+          />
+        </AuthContext.Provider>
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('A2 õppekava: 0/100 tundi paigaldatud. Paigaldus kasutab stabiilseid tunni-ID-sid ega loo duplikaate.')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Paigalda A2 õppekava/ }));
+
+    await waitFor(() => expect(curriculumInstaller.installA2).toHaveBeenCalledWith({ user }));
+    expect(await screen.findByRole('status')).toHaveTextContent('A2 õppekava paigaldati: 100 tundi.');
+    await waitFor(() => expect(repository.list).toHaveBeenCalledTimes(2));
+  });
+
 });
