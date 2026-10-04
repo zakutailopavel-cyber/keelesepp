@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, useLocation } from 'react-router-dom';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import LiveClassroomPage from './LiveClassroomPage.jsx';
@@ -171,6 +171,7 @@ describe('Live Classroom invitation lifecycle', () => {
     expect(screen.getByRole('button', { name: /Materjalid/ })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Rohkem' }));
     fireEvent.click(screen.getByRole('menuitem', { name: 'Lõpeta tund' }));
+    fireEvent.click(within(screen.getByRole('region', { name: 'Tunni lõpp' })).getByRole('button', { name: 'Lõpeta ilma kokkuvõtteta' }));
     await waitFor(() => expect(invitationService.close).toHaveBeenCalledWith('accepted-1', expect.objectContaining({ uid: 'teacher-1' })));
     await waitFor(() => expect(screen.getByTestId('location')).not.toHaveTextContent('invitation='));
     // no calendar link for this room: the calendar opens filtered to the student to mark the lesson
@@ -189,6 +190,7 @@ describe('Live Classroom invitation lifecycle', () => {
     renderPage({ user: { uid: 'teacher-1', displayName: 'Pavel', roles: ['teacher'] }, invitationService, studentRepository, path: '/live-classroom?invitation=accepted-2' });
     fireEvent.click(await screen.findByRole('button', { name: 'Rohkem' }));
     fireEvent.click(screen.getByRole('menuitem', { name: 'Lõpeta tund' }));
+    fireEvent.click(within(screen.getByRole('region', { name: 'Tunni lõpp' })).getByRole('button', { name: 'Lõpeta ilma kokkuvõtteta' }));
     await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent(`/calendar?lesson=${encodeURIComponent('sch-1:2026-10-04|2026-10-04')}`));
     globalThis.confirm.mockRestore();
     globalThis.localStorage.clear();

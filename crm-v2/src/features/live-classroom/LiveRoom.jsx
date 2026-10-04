@@ -10,6 +10,7 @@ import RoomRecorder from '../lesson-recording/RoomRecorder.jsx';
 import RecordingIndicator from '../lesson-recording/RecordingIndicator.jsx';
 import LessonWordsPanel from '../vocabulary/LessonWordsPanel.jsx';
 import LessonHomeworkPanel from './LessonHomeworkPanel.jsx';
+import LessonEndPanel from './LessonEndPanel.jsx';
 import { transcriberLabel, useTranscriberStatus } from '../lesson-recording/transcriberStatus.js';
 import { timestampMillis } from './invitationModel.js';
 import { useLiveCall } from './useLiveCall.js';
@@ -131,7 +132,7 @@ function DevicesPanel({ call, stream }) {
  */
 export default function LiveRoom({
   invitation, role, user, student = null, callProps, boardService, messagesRepository, library, worksheetProps = {},
-  recordingService, wordsService, homeworkService, streams, onLeave, onEndLesson, ending = false,
+  recordingService, wordsService, homeworkService, summaryService, streams, onLeave, onEndLesson, ending = false,
 }) {
   const teacher = role === 'teacher';
   const call = useLiveCall({ ...callProps, invitation, role, user });
@@ -192,7 +193,12 @@ export default function LiveRoom({
   const [myPage, setMyPage] = useState('');
   const myPageRef = useRef('');
   const [myPageTitle, setMyPageTitle] = useState('');
-  const onPageChange = useCallback((id, title = '') => { myPageRef.current = id; setMyPage(id); setMyPageTitle(title); }, []);
+  // lesson pages the teacher opened in this lesson (for the summary)
+  const [pagesSeen, setPagesSeen] = useState([]);
+  const onPageChange = useCallback((id, title = '') => {
+    myPageRef.current = id; setMyPage(id); setMyPageTitle(title);
+    if (id && teacher) setPagesSeen((current) => [...current.filter((page) => page.id !== id), { id, title: title || current.find((page) => page.id === id)?.title || 'Leht' }]);
+  }, [teacher]);
   const { roomChannelOpen, sendRoom, onRoomMessage } = call;
   useEffect(() => { if (teacher && roomChannelOpen) sendRoom?.({ t: 'page', pageId: myPage }); }, [teacher, roomChannelOpen, myPage, sendRoom]);
   const pointerSentAt = useRef(0);
@@ -293,7 +299,7 @@ export default function LiveRoom({
           {!teacher ? <button type="button" role="menuitemcheckbox" aria-checked={follow} onClick={() => { setMenu(''); setFollow(!follow); }}>{follow ? 'Ära jälgi õpetaja lehte' : 'Jälgi õpetaja lehte'}</button> : null}
           <button type="button" role="menuitem" onClick={() => { setMenu(''); setPanel('devices'); }}>Kaamera ja mikrofon</button>
           <button type="button" role="menuitem" onClick={() => { setMenu(''); onLeave(); }}>Lahku tunniruumist</button>
-          {teacher ? <button type="button" role="menuitem" className="is-danger" disabled={ending} onClick={() => { setMenu(''); onEndLesson(); }}>Lõpeta tund</button> : null}
+          {teacher ? <button type="button" role="menuitem" className="is-danger" disabled={ending} onClick={() => { setMenu(''); setPanel('end'); }}>Lõpeta tund</button> : null}
         </div> : null}
       </header>
 
@@ -342,6 +348,8 @@ export default function LiveRoom({
           {panel === 'devices' ? <Drawer title="Kaamera ja mikrofon" onClose={() => setPanel('')}><DevicesPanel call={call} stream={streams?.local} /></Drawer> : null}
           {panel === 'words' ? <Drawer title="Sõnad" onClose={() => setPanel('')}><LessonWordsPanel studentId={invitation.studentId} invitationId={invitation.id} user={user} teacher={teacher} {...(wordsService ? { service: wordsService } : {})} /></Drawer> : null}
           {panel === 'homework' && teacher ? <Drawer title="Kodutöö" onClose={() => setPanel('')}><LessonHomeworkPanel invitation={invitation} user={user} boardPage={myPage ? { id: myPage, title: myPageTitle || 'Tahvlileht' } : null} worksheet={sheet ? { id: sheet.id, title: worksheet?.title || 'Tööleht' } : null} {...(homeworkService ? { service: homeworkService } : {})} /></Drawer> : null}
+          {panel === 'end' && teacher ? <Drawer title="Tunni lõpp" onClose={() => setPanel('')}><LessonEndPanel invitation={invitation} user={user} subject={subject} startedAt={new Date(startedAt).toISOString()} pages={pagesSeen} ending={ending} onEnd={() => onEndLesson({ confirmed: true })}
+            {...(summaryService ? { summaryService } : {})} {...(wordsService ? { wordsService } : {})} {...(homeworkService ? { homeworkService } : {})} /></Drawer> : null}
           {panel === 'materials' && teacher ? <Drawer title="Materjalid" onClose={() => setPanel('')}><MaterialsPanel library={library} onPlace={place} /></Drawer> : null}
           {/* always mounted: it follows the room's worksheet for both and lets the teacher open one */}
           <div className={panel === 'tasks' ? 'lr-drawer' : 'lr-drawer is-hidden'} aria-hidden={panel !== 'tasks'} role="region" aria-label="Ülesanded">

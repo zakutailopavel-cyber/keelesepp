@@ -218,7 +218,8 @@ export default function LiveClassroomPage({
     recordingService,
     streams: callStreams,
     onLeave: leaveRoom,
-    onEndLesson: () => { if (globalThis.confirm('Lõpetada tund? Tunniruum suletakse mõlemale ja kalendris avaneb tund märkimiseks.')) closeRoom(); },
+    // the room's „Tunni lõpp” drawer already asked (and saved the summary); other callers still confirm
+    onEndLesson: (options = {}) => { if (options.confirmed || globalThis.confirm('Lõpetada tund? Tunniruum suletakse mõlemale ja kalendris avaneb tund märkimiseks.')) closeRoom(); },
     ending: saving === 'close',
   });
   const worksheetProps = { ...(worksheetHomework ? { homework: worksheetHomework } : {}), ...(worksheetLibrary ? { library: worksheetLibrary } : {}) };

@@ -1412,6 +1412,33 @@ service cloud.firestore {
       allow delete: if isStaff();
     }
 
+    // What the student and parents see after a Live Classroom lesson; written by the lesson's teacher when it ends.
+    function lessonSummaryValid(data, invitationId) {
+      let invitation = get(/databases/$(database)/documents/liveLessonInvitations/$(invitationId)).data;
+      return data.keys().hasOnly(['invitationId', 'studentId', 'teacherUid', 'teacherName', 'title', 'subject',
+          'startedAt', 'endedAt', 'note', 'pages', 'updatedAt'])
+        && data.invitationId == invitationId
+        && data.teacherUid == uid()
+        && data.studentId is string
+        && data.get('teacherName', '') is string && data.get('teacherName', '').size() <= 160
+        && data.get('title', '') is string && data.get('title', '').size() <= 200
+        && data.get('subject', '') is string && data.get('subject', '').size() <= 200
+        && data.get('note', '') is string && data.get('note', '').size() <= 2000
+        && data.get('pages', []) is list && data.get('pages', []).size() <= 40
+        && invitation.teacherUid == uid()
+        && invitation.studentId == data.studentId;
+    }
+    match /lessonSummaries/{invitationId} {
+      allow read: if isStaff() || ownsStudent(resource.data.studentId);
+      allow create: if isStaff()
+        && exists(/databases/$(database)/documents/liveLessonInvitations/$(invitationId))
+        && lessonSummaryValid(request.resource.data, invitationId);
+      allow update: if isStaff()
+        && resource.data.teacherUid == uid()
+        && lessonSummaryValid(request.resource.data, invitationId);
+      allow delete: if isAdmin();
+    }
+
     // Heartbeat of the transcriber on the school Mac (Admin SDK). Staff see in the lesson room whether it runs.
     match /transcriberStatus/{workerId} {
       allow read: if isStaff();
