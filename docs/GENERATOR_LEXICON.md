@@ -1,6 +1,6 @@
 # Generator lexicon — Estonian word forms without AI
 
-Status: step 1 of the rule-based generator (owner decision 2026-10-04: "нормальный генератор без ИИ" instead of
+Status: steps 1–2 of the rule-based generator (owner decision 2026-10-04: "нормальный генератор без ИИ" instead of
 writing every lesson by hand). Steps 2–5 are listed at the end.
 
 ## Why
@@ -47,10 +47,29 @@ cities and countries (13), first names (14), adjectives — qualities, character
 `lexicon.test.js` checks every entry and 53 forms verified by hand (koolis, poodi, õe, last, vette, pähe, koju, tuppa,
 Tartus, Narvast, Toomase, väikese, teesid; süüa, sõi, lähen, läheme, läks, pean, pidi, joosta, …).
 
+## Step 2 — sentence patterns (done)
+
+`worksheet-generator/patterns/grammarPatterns.js` defines grammar points and sentence frames with typed slots;
+`patterns/engine.js` fills them from the lexicon (`generatePatternSentences`, `buildPatternSentence`,
+`patternCoverage`). Each sentence carries `answer` (the exact form of the target slot) and `distractors` (other forms
+of the same word from the pattern's `contrast` list). A combination is dropped — never guessed — when a form is
+missing or fewer than two different wrong options exist (e.g. „Mari” cannot be a genitive target: Mari = Mari).
+
+| Grammar point | Patterns | Valid sentences |
+|---|---|---|
+| `olema-present` (ma olen / elan / töötan …) | 3 | 159 |
+| `genitive-possession` (minu venna kott, Toomase õde, Kelle …?) | 3 | 348 |
+| `local-cases` (kus/kuhu/kust: koolis, kooli, koolist; turul, tööle, koju, Venemaalt) | 6 | 1 385 |
+| `partitive-object` (söön putru, joob vett, ostan leiba ja piima, ei ole autot) | 4 | 661 |
+| `adjective-agreement` (elab suures korteris, uut telefoni) | 3 | 646 |
+| `numeral-partitive` (kaks last, kolm raamatut) | 2 | 54 |
+
+Meaning restrictions live in the slots (whitelists): no „külla” (= visiting) as a destination, colours and sizes
+only for clothes, bags and devices. Venemaa and Saksamaa take the outer local cases (Venemaal / Venemaale / Venemaalt).
+`patterns.test.js`: 23 hand-checked sentences plus invariants for every generated sentence.
+
 ## Next steps
 
-2. Sentence patterns per grammar point (`{PERSON} elab {CITY:inessive}.`) with semantic constraints — the engine
-   fills slots from this lexicon, so the answer of a gap is the exact form it inserted.
 3. Task builders: gaps and choices with exact keys and same-word case distractors (Tartus / Tartu / Tartust),
    automatic error repair (wrong case of the same word).
 4. Roadmap mapping: lesson → grammar points + themes for all 100 A2 lessons.
