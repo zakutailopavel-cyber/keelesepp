@@ -15,6 +15,23 @@ main, so a Functions deploy from main would have undone it. Ported here:
 - **Needs the owner:** `cd functions && npm ci && cd .. && npx -y firebase-tools@15.22.3 deploy --only
   functions:gcalApi,functions:syncAllCalendars --project keelesepp-5136b` to put the guard into production.
 - Exactly one next safe step: owner deploys those two functions.
+## 2026-10-04 — Teacher dashboard for secondary assignments (replaces draft #235) — branch `agent/teacher-shared-read`
+
+Checked `origin/main` `3802f0b`. Owner asked to finish the open work („доведи до конца”). Codex draft #235 had
+conflicts and, taken as a whole file, would have removed the `curriculumLessons/{id}/worksheets` rules that main
+added later; only its rule hunk and tests were ported.
+- `firestore.rules` `teacherCanRead(data)`: with `teacherScopeReadEnforced()` on, a teacher reads a document when
+  `teacherUid == uid()` **or** `teacherUids` contains the uid (secondary/active enrolment). Before, the CRM's second
+  query (`teacherUids array-contains`) was denied and the whole Ülevaade/student load failed for such teachers.
+  Unscoped teacher collection reads stay denied.
+- Tests: `functions/finance-emulator.integration.js` (shared student readable via `teacherUids`, broad query still
+  403); `crm-v2/src/services/firebase/students.pagination.test.js` (both queries merged).
+- Checks: emulator `npm run test:emulator` 45/45; lesson-drafts 14/14 and interactive-lesson 13/13 (run separately,
+  as in CI — run together in one process they disturb each other's "collections unchanged" checks); students
+  pagination Vitest 5/5.
+- **Needs the owner:** `npx -y firebase-tools@15.22.3 deploy --only firestore:rules --project keelesepp-5136b` after
+  the merge. No data change, no Functions change.
+- Exactly one next safe step: owner deploys the rules and opens Ülevaade as a teacher with a shared student.
 
 ## 2026-10-04 — Current state check: production, open PRs, documentation
 

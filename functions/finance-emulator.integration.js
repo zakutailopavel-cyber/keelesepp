@@ -1023,6 +1023,11 @@ test("teacher scope flag preserves legacy reads and then enforces teacher owners
     db.collection("users").doc(teacherUid).set({ role: "teacher", displayName: "Scope Teacher" }),
     db.collection("users").doc(otherTeacherUid).set({ role: "teacher", displayName: "Other Teacher" }),
     db.collection("students").doc("scope-own").set({ name: "Own", teacherUid }),
+    db.collection("students").doc("scope-shared").set({
+      name: "Shared",
+      teacherUid: otherTeacherUid,
+      teacherUids: [otherTeacherUid, teacherUid],
+    }),
     db.collection("students").doc("scope-foreign").set({ name: "Foreign", teacherUid: otherTeacherUid }),
     db.collection("lessons").doc("scope-own").set({ studentId: "scope-own", teacherUid }),
     db.collection("lessons").doc("scope-foreign").set({ studentId: "scope-foreign", teacherUid: otherTeacherUid }),
@@ -1077,8 +1082,17 @@ test("teacher scope flag preserves legacy reads and then enforces teacher owners
     }
 
     const scopedQuery = await firestoreQueryRequest(teacherToken, "students", teacherUid);
+    const sharedQuery = await firestoreFieldQueryRequest(
+      teacherToken,
+      "students",
+      "teacherUids",
+      "ARRAY_CONTAINS",
+      { stringValue: teacherUid },
+    );
     const broadQuery = await firestoreQueryRequest(teacherToken, "students");
     assert.equal(scopedQuery.status, 200, JSON.stringify(scopedQuery.body));
+    assert.equal(sharedQuery.status, 200, JSON.stringify(sharedQuery.body));
+    assert.equal(sharedQuery.body.filter((row) => row.document).length, 1, JSON.stringify(sharedQuery.body));
     assert.equal(broadQuery.status, 403, JSON.stringify(broadQuery.body));
 
     const migrationRead = await firestoreDocumentRequest(teacherToken, "GET", "securityMigrations/teacherUidV1");
