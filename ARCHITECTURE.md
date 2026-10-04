@@ -502,5 +502,7 @@ module two (`possession-genitive`, `appearance-character`, `people-profiles`; A2
 three (`daily-routine`, `clock-time`, `frequency`, `week-plan`; A2-011…A2-015). Translation hints stay empty:
 `alternatives` are accepted answers for the teacher and are never shown to the learner. Context-choice gaps take
 distractors of another part of speech first, so a gap keeps exactly one grammatical answer.
+The rule-based generator's word forms live in `worksheet-generator/lexicon/forms.json`, built offline from
+`source.json` with Vabamorf (`tools/lexicon/build_forms.py`); the CRM reads the JSON only (docs/GENERATOR_LEXICON.md).
 The CEFR reserve is loaded separately with authenticated Firebase Storage `getBytes()` and is passed as plain data to
 the network-free generator core.

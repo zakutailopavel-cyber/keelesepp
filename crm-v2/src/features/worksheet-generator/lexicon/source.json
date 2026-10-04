@@ -1,0 +1,2757 @@
+{
+ "schema": "keelesepp.generator-lexicon-source/1",
+ "version": 1,
+ "entries": [
+  {
+   "lemma": "ema",
+   "pos": "noun",
+   "ru": "мама",
+   "tags": [
+    "person",
+    "family"
+   ]
+  },
+  {
+   "lemma": "isa",
+   "pos": "noun",
+   "ru": "папа",
+   "tags": [
+    "person",
+    "family"
+   ]
+  },
+  {
+   "lemma": "õde",
+   "pos": "noun",
+   "ru": "сестра",
+   "tags": [
+    "person",
+    "family"
+   ]
+  },
+  {
+   "lemma": "vend",
+   "pos": "noun",
+   "ru": "брат",
+   "tags": [
+    "person",
+    "family"
+   ]
+  },
+  {
+   "lemma": "poeg",
+   "pos": "noun",
+   "ru": "сын",
+   "tags": [
+    "person",
+    "family"
+   ]
+  },
+  {
+   "lemma": "tütar",
+   "pos": "noun",
+   "ru": "дочь",
+   "tags": [
+    "person",
+    "family"
+   ]
+  },
+  {
+   "lemma": "laps",
+   "pos": "noun",
+   "ru": "ребёнок",
+   "tags": [
+    "person",
+    "family"
+   ]
+  },
+  {
+   "lemma": "abikaasa",
+   "pos": "noun",
+   "ru": "супруг / супруга",
+   "tags": [
+    "person",
+    "family"
+   ]
+  },
+  {
+   "lemma": "vanaema",
+   "pos": "noun",
+   "ru": "бабушка",
+   "tags": [
+    "person",
+    "family"
+   ]
+  },
+  {
+   "lemma": "vanaisa",
+   "pos": "noun",
+   "ru": "дедушка",
+   "tags": [
+    "person",
+    "family"
+   ]
+  },
+  {
+   "lemma": "perekond",
+   "pos": "noun",
+   "ru": "семья",
+   "tags": [
+    "person",
+    "family"
+   ]
+  },
+  {
+   "lemma": "pere",
+   "pos": "noun",
+   "ru": "семья",
+   "tags": [
+    "person",
+    "family"
+   ]
+  },
+  {
+   "lemma": "mees",
+   "pos": "noun",
+   "ru": "мужчина / муж",
+   "tags": [
+    "person"
+   ]
+  },
+  {
+   "lemma": "naine",
+   "pos": "noun",
+   "ru": "женщина / жена",
+   "tags": [
+    "person"
+   ]
+  },
+  {
+   "lemma": "sõber",
+   "pos": "noun",
+   "ru": "друг",
+   "tags": [
+    "person"
+   ]
+  },
+  {
+   "lemma": "sõbranna",
+   "pos": "noun",
+   "ru": "подруга",
+   "tags": [
+    "person"
+   ]
+  },
+  {
+   "lemma": "naaber",
+   "pos": "noun",
+   "ru": "сосед",
+   "tags": [
+    "person"
+   ]
+  },
+  {
+   "lemma": "kolleeg",
+   "pos": "noun",
+   "ru": "коллега",
+   "tags": [
+    "person"
+   ]
+  },
+  {
+   "lemma": "inimene",
+   "pos": "noun",
+   "ru": "человек",
+   "tags": [
+    "person"
+   ]
+  },
+  {
+   "lemma": "õpilane",
+   "pos": "noun",
+   "ru": "ученик",
+   "tags": [
+    "person"
+   ]
+  },
+  {
+   "lemma": "klient",
+   "pos": "noun",
+   "ru": "клиент",
+   "tags": [
+    "person"
+   ]
+  },
+  {
+   "lemma": "õpetaja",
+   "pos": "noun",
+   "ru": "учитель",
+   "tags": [
+    "person",
+    "profession"
+   ]
+  },
+  {
+   "lemma": "arst",
+   "pos": "noun",
+   "ru": "врач",
+   "tags": [
+    "person",
+    "profession"
+   ]
+  },
+  {
+   "lemma": "müüja",
+   "pos": "noun",
+   "ru": "продавец",
+   "tags": [
+    "person",
+    "profession"
+   ]
+  },
+  {
+   "lemma": "kokk",
+   "pos": "noun",
+   "ru": "повар",
+   "tags": [
+    "person",
+    "profession"
+   ]
+  },
+  {
+   "lemma": "autojuht",
+   "pos": "noun",
+   "ru": "водитель",
+   "tags": [
+    "person",
+    "profession"
+   ]
+  },
+  {
+   "lemma": "ehitaja",
+   "pos": "noun",
+   "ru": "строитель",
+   "tags": [
+    "person",
+    "profession"
+   ]
+  },
+  {
+   "lemma": "raamatupidaja",
+   "pos": "noun",
+   "ru": "бухгалтер",
+   "tags": [
+    "person",
+    "profession"
+   ]
+  },
+  {
+   "lemma": "programmeerija",
+   "pos": "noun",
+   "ru": "программист",
+   "tags": [
+    "person",
+    "profession"
+   ]
+  },
+  {
+   "lemma": "juuksur",
+   "pos": "noun",
+   "ru": "парикмахер",
+   "tags": [
+    "person",
+    "profession"
+   ]
+  },
+  {
+   "lemma": "koristaja",
+   "pos": "noun",
+   "ru": "уборщик",
+   "tags": [
+    "person",
+    "profession"
+   ]
+  },
+  {
+   "lemma": "medõde",
+   "pos": "noun",
+   "ru": "медсестра",
+   "tags": [
+    "person",
+    "profession"
+   ]
+  },
+  {
+   "lemma": "ettekandja",
+   "pos": "noun",
+   "ru": "официант",
+   "tags": [
+    "person",
+    "profession"
+   ]
+  },
+  {
+   "lemma": "politseinik",
+   "pos": "noun",
+   "ru": "полицейский",
+   "tags": [
+    "person",
+    "profession"
+   ]
+  },
+  {
+   "lemma": "ajakirjanik",
+   "pos": "noun",
+   "ru": "журналист",
+   "tags": [
+    "person",
+    "profession"
+   ]
+  },
+  {
+   "lemma": "juht",
+   "pos": "noun",
+   "ru": "руководитель",
+   "tags": [
+    "person",
+    "profession"
+   ],
+   "gen": "juhi"
+  },
+  {
+   "lemma": "kool",
+   "pos": "noun",
+   "ru": "школа",
+   "tags": [
+    "place",
+    "town"
+   ],
+   "locative": "in",
+   "gen": "kooli"
+  },
+  {
+   "lemma": "pood",
+   "pos": "noun",
+   "ru": "магазин",
+   "tags": [
+    "place",
+    "town"
+   ],
+   "locative": "in"
+  },
+  {
+   "lemma": "apteek",
+   "pos": "noun",
+   "ru": "аптека",
+   "tags": [
+    "place",
+    "town"
+   ],
+   "locative": "in"
+  },
+  {
+   "lemma": "haigla",
+   "pos": "noun",
+   "ru": "больница",
+   "tags": [
+    "place",
+    "town"
+   ],
+   "locative": "in"
+  },
+  {
+   "lemma": "kohvik",
+   "pos": "noun",
+   "ru": "кафе",
+   "tags": [
+    "place",
+    "town"
+   ],
+   "locative": "in"
+  },
+  {
+   "lemma": "restoran",
+   "pos": "noun",
+   "ru": "ресторан",
+   "tags": [
+    "place",
+    "town"
+   ],
+   "locative": "in"
+  },
+  {
+   "lemma": "raamatukogu",
+   "pos": "noun",
+   "ru": "библиотека",
+   "tags": [
+    "place",
+    "town"
+   ],
+   "locative": "in"
+  },
+  {
+   "lemma": "kontor",
+   "pos": "noun",
+   "ru": "офис",
+   "tags": [
+    "place",
+    "town"
+   ],
+   "locative": "in"
+  },
+  {
+   "lemma": "kino",
+   "pos": "noun",
+   "ru": "кинотеатр",
+   "tags": [
+    "place",
+    "town"
+   ],
+   "locative": "in"
+  },
+  {
+   "lemma": "teater",
+   "pos": "noun",
+   "ru": "театр",
+   "tags": [
+    "place",
+    "town"
+   ],
+   "locative": "in"
+  },
+  {
+   "lemma": "pank",
+   "pos": "noun",
+   "ru": "банк",
+   "tags": [
+    "place",
+    "town"
+   ],
+   "locative": "in"
+  },
+  {
+   "lemma": "postkontor",
+   "pos": "noun",
+   "ru": "почта",
+   "tags": [
+    "place",
+    "town"
+   ],
+   "locative": "in"
+  },
+  {
+   "lemma": "ülikool",
+   "pos": "noun",
+   "ru": "университет",
+   "tags": [
+    "place",
+    "town"
+   ],
+   "locative": "in"
+  },
+  {
+   "lemma": "park",
+   "pos": "noun",
+   "ru": "парк",
+   "tags": [
+    "place",
+    "town"
+   ],
+   "locative": "in"
+  },
+  {
+   "lemma": "muuseum",
+   "pos": "noun",
+   "ru": "музей",
+   "tags": [
+    "place",
+    "town"
+   ],
+   "locative": "in"
+  },
+  {
+   "lemma": "hotell",
+   "pos": "noun",
+   "ru": "гостиница",
+   "tags": [
+    "place",
+    "town"
+   ],
+   "locative": "in"
+  },
+  {
+   "lemma": "kauplus",
+   "pos": "noun",
+   "ru": "магазин",
+   "tags": [
+    "place",
+    "town"
+   ],
+   "locative": "in"
+  },
+  {
+   "lemma": "jaam",
+   "pos": "noun",
+   "ru": "станция / вокзал",
+   "tags": [
+    "place",
+    "town"
+   ],
+   "locative": "in"
+  },
+  {
+   "lemma": "bussipeatus",
+   "pos": "noun",
+   "ru": "автобусная остановка",
+   "tags": [
+    "place",
+    "town"
+   ],
+   "locative": "in"
+  },
+  {
+   "lemma": "linn",
+   "pos": "noun",
+   "ru": "город",
+   "tags": [
+    "place",
+    "town"
+   ],
+   "locative": "in"
+  },
+  {
+   "lemma": "küla",
+   "pos": "noun",
+   "ru": "деревня",
+   "tags": [
+    "place",
+    "town"
+   ],
+   "locative": "in"
+  },
+  {
+   "lemma": "turg",
+   "pos": "noun",
+   "ru": "рынок",
+   "tags": [
+    "place",
+    "town"
+   ],
+   "locative": "ad"
+  },
+  {
+   "lemma": "tänav",
+   "pos": "noun",
+   "ru": "улица",
+   "tags": [
+    "place",
+    "town"
+   ],
+   "locative": "ad"
+  },
+  {
+   "lemma": "väljak",
+   "pos": "noun",
+   "ru": "площадь",
+   "tags": [
+    "place",
+    "town"
+   ],
+   "locative": "ad"
+  },
+  {
+   "lemma": "staadion",
+   "pos": "noun",
+   "ru": "стадион",
+   "tags": [
+    "place",
+    "town"
+   ],
+   "locative": "ad"
+  },
+  {
+   "lemma": "töö",
+   "pos": "noun",
+   "ru": "работа",
+   "tags": [
+    "place",
+    "town"
+   ],
+   "locative": "ad"
+  },
+  {
+   "lemma": "maa",
+   "pos": "noun",
+   "ru": "деревня / земля",
+   "tags": [
+    "place",
+    "town"
+   ],
+   "locative": "ad"
+  },
+  {
+   "lemma": "saar",
+   "pos": "noun",
+   "ru": "остров",
+   "tags": [
+    "place",
+    "town"
+   ],
+   "locative": "ad"
+  },
+  {
+   "lemma": "kodu",
+   "pos": "noun",
+   "ru": "дом (родной)",
+   "tags": [
+    "place",
+    "home"
+   ],
+   "locative": "in"
+  },
+  {
+   "lemma": "maja",
+   "pos": "noun",
+   "ru": "дом",
+   "tags": [
+    "place",
+    "home"
+   ],
+   "locative": "in"
+  },
+  {
+   "lemma": "korter",
+   "pos": "noun",
+   "ru": "квартира",
+   "tags": [
+    "place",
+    "home"
+   ],
+   "locative": "in"
+  },
+  {
+   "lemma": "tuba",
+   "pos": "noun",
+   "ru": "комната",
+   "tags": [
+    "place",
+    "home"
+   ],
+   "locative": "in"
+  },
+  {
+   "lemma": "köök",
+   "pos": "noun",
+   "ru": "кухня",
+   "tags": [
+    "place",
+    "home"
+   ],
+   "locative": "in"
+  },
+  {
+   "lemma": "vannituba",
+   "pos": "noun",
+   "ru": "ванная",
+   "tags": [
+    "place",
+    "home"
+   ],
+   "locative": "in"
+  },
+  {
+   "lemma": "magamistuba",
+   "pos": "noun",
+   "ru": "спальня",
+   "tags": [
+    "place",
+    "home"
+   ],
+   "locative": "in"
+  },
+  {
+   "lemma": "elutuba",
+   "pos": "noun",
+   "ru": "гостиная",
+   "tags": [
+    "place",
+    "home"
+   ],
+   "locative": "in"
+  },
+  {
+   "lemma": "aed",
+   "pos": "noun",
+   "ru": "сад",
+   "tags": [
+    "place",
+    "home"
+   ],
+   "locative": "in"
+  },
+  {
+   "lemma": "rõdu",
+   "pos": "noun",
+   "ru": "балкон",
+   "tags": [
+    "place",
+    "home"
+   ],
+   "locative": "ad"
+  },
+  {
+   "lemma": "korrus",
+   "pos": "noun",
+   "ru": "этаж",
+   "tags": [
+    "place",
+    "home"
+   ],
+   "locative": "ad"
+  },
+  {
+   "lemma": "laud",
+   "pos": "noun",
+   "ru": "стол",
+   "tags": [
+    "thing",
+    "home"
+   ]
+  },
+  {
+   "lemma": "tool",
+   "pos": "noun",
+   "ru": "стул",
+   "tags": [
+    "thing",
+    "home"
+   ]
+  },
+  {
+   "lemma": "voodi",
+   "pos": "noun",
+   "ru": "кровать",
+   "tags": [
+    "thing",
+    "home"
+   ]
+  },
+  {
+   "lemma": "kapp",
+   "pos": "noun",
+   "ru": "шкаф",
+   "tags": [
+    "thing",
+    "home"
+   ],
+   "gen": "kapi"
+  },
+  {
+   "lemma": "riiul",
+   "pos": "noun",
+   "ru": "полка",
+   "tags": [
+    "thing",
+    "home"
+   ]
+  },
+  {
+   "lemma": "aken",
+   "pos": "noun",
+   "ru": "окно",
+   "tags": [
+    "thing",
+    "home"
+   ]
+  },
+  {
+   "lemma": "uks",
+   "pos": "noun",
+   "ru": "дверь",
+   "tags": [
+    "thing",
+    "home"
+   ]
+  },
+  {
+   "lemma": "lamp",
+   "pos": "noun",
+   "ru": "лампа",
+   "tags": [
+    "thing",
+    "home"
+   ]
+  },
+  {
+   "lemma": "diivan",
+   "pos": "noun",
+   "ru": "диван",
+   "tags": [
+    "thing",
+    "home"
+   ]
+  },
+  {
+   "lemma": "pilt",
+   "pos": "noun",
+   "ru": "картина",
+   "tags": [
+    "thing",
+    "home"
+   ]
+  },
+  {
+   "lemma": "kell",
+   "pos": "noun",
+   "ru": "часы",
+   "tags": [
+    "thing",
+    "home"
+   ]
+  },
+  {
+   "lemma": "raamat",
+   "pos": "noun",
+   "ru": "книга",
+   "tags": [
+    "thing"
+   ]
+  },
+  {
+   "lemma": "vihik",
+   "pos": "noun",
+   "ru": "тетрадь",
+   "tags": [
+    "thing"
+   ]
+  },
+  {
+   "lemma": "pliiats",
+   "pos": "noun",
+   "ru": "карандаш",
+   "tags": [
+    "thing"
+   ]
+  },
+  {
+   "lemma": "kott",
+   "pos": "noun",
+   "ru": "сумка",
+   "tags": [
+    "thing"
+   ],
+   "gen": "koti"
+  },
+  {
+   "lemma": "telefon",
+   "pos": "noun",
+   "ru": "телефон",
+   "tags": [
+    "thing"
+   ]
+  },
+  {
+   "lemma": "võti",
+   "pos": "noun",
+   "ru": "ключ",
+   "tags": [
+    "thing"
+   ]
+  },
+  {
+   "lemma": "arvuti",
+   "pos": "noun",
+   "ru": "компьютер",
+   "tags": [
+    "thing"
+   ]
+  },
+  {
+   "lemma": "ajaleht",
+   "pos": "noun",
+   "ru": "газета",
+   "tags": [
+    "thing"
+   ]
+  },
+  {
+   "lemma": "kiri",
+   "pos": "noun",
+   "ru": "письмо",
+   "tags": [
+    "thing"
+   ]
+  },
+  {
+   "lemma": "pilet",
+   "pos": "noun",
+   "ru": "билет",
+   "tags": [
+    "thing"
+   ]
+  },
+  {
+   "lemma": "kaart",
+   "pos": "noun",
+   "ru": "карта / открытка",
+   "tags": [
+    "thing"
+   ]
+  },
+  {
+   "lemma": "rahakott",
+   "pos": "noun",
+   "ru": "кошелёк",
+   "tags": [
+    "thing"
+   ]
+  },
+  {
+   "lemma": "vihmavari",
+   "pos": "noun",
+   "ru": "зонт",
+   "tags": [
+    "thing"
+   ]
+  },
+  {
+   "lemma": "jope",
+   "pos": "noun",
+   "ru": "куртка",
+   "tags": [
+    "thing",
+    "clothes"
+   ]
+  },
+  {
+   "lemma": "müts",
+   "pos": "noun",
+   "ru": "шапка",
+   "tags": [
+    "thing",
+    "clothes"
+   ],
+   "gen": "mütsi"
+  },
+  {
+   "lemma": "kleit",
+   "pos": "noun",
+   "ru": "платье",
+   "tags": [
+    "thing",
+    "clothes"
+   ]
+  },
+  {
+   "lemma": "särk",
+   "pos": "noun",
+   "ru": "рубашка",
+   "tags": [
+    "thing",
+    "clothes"
+   ]
+  },
+  {
+   "lemma": "king",
+   "pos": "noun",
+   "ru": "туфля",
+   "tags": [
+    "thing",
+    "clothes"
+   ]
+  },
+  {
+   "lemma": "saabas",
+   "pos": "noun",
+   "ru": "сапог",
+   "tags": [
+    "thing",
+    "clothes"
+   ]
+  },
+  {
+   "lemma": "sall",
+   "pos": "noun",
+   "ru": "шарф",
+   "tags": [
+    "thing",
+    "clothes"
+   ]
+  },
+  {
+   "lemma": "mantel",
+   "pos": "noun",
+   "ru": "пальто",
+   "tags": [
+    "thing",
+    "clothes"
+   ]
+  },
+  {
+   "lemma": "leib",
+   "pos": "noun",
+   "ru": "хлеб",
+   "tags": [
+    "food"
+   ]
+  },
+  {
+   "lemma": "sai",
+   "pos": "noun",
+   "ru": "белый хлеб / булка",
+   "tags": [
+    "food"
+   ]
+  },
+  {
+   "lemma": "või",
+   "pos": "noun",
+   "ru": "сливочное масло",
+   "tags": [
+    "food"
+   ]
+  },
+  {
+   "lemma": "juust",
+   "pos": "noun",
+   "ru": "сыр",
+   "tags": [
+    "food"
+   ]
+  },
+  {
+   "lemma": "õun",
+   "pos": "noun",
+   "ru": "яблоко",
+   "tags": [
+    "food"
+   ]
+  },
+  {
+   "lemma": "banaan",
+   "pos": "noun",
+   "ru": "банан",
+   "tags": [
+    "food"
+   ]
+  },
+  {
+   "lemma": "apelsin",
+   "pos": "noun",
+   "ru": "апельсин",
+   "tags": [
+    "food"
+   ]
+  },
+  {
+   "lemma": "kartul",
+   "pos": "noun",
+   "ru": "картофель",
+   "tags": [
+    "food"
+   ]
+  },
+  {
+   "lemma": "porgand",
+   "pos": "noun",
+   "ru": "морковь",
+   "tags": [
+    "food"
+   ]
+  },
+  {
+   "lemma": "tomat",
+   "pos": "noun",
+   "ru": "помидор",
+   "tags": [
+    "food"
+   ]
+  },
+  {
+   "lemma": "kurk",
+   "pos": "noun",
+   "ru": "огурец",
+   "tags": [
+    "food"
+   ],
+   "gen": "kurgi"
+  },
+  {
+   "lemma": "sibul",
+   "pos": "noun",
+   "ru": "лук",
+   "tags": [
+    "food"
+   ]
+  },
+  {
+   "lemma": "liha",
+   "pos": "noun",
+   "ru": "мясо",
+   "tags": [
+    "food"
+   ]
+  },
+  {
+   "lemma": "kala",
+   "pos": "noun",
+   "ru": "рыба",
+   "tags": [
+    "food"
+   ]
+  },
+  {
+   "lemma": "kana",
+   "pos": "noun",
+   "ru": "курица",
+   "tags": [
+    "food"
+   ]
+  },
+  {
+   "lemma": "vorst",
+   "pos": "noun",
+   "ru": "колбаса",
+   "tags": [
+    "food"
+   ]
+  },
+  {
+   "lemma": "muna",
+   "pos": "noun",
+   "ru": "яйцо",
+   "tags": [
+    "food"
+   ]
+  },
+  {
+   "lemma": "supp",
+   "pos": "noun",
+   "ru": "суп",
+   "tags": [
+    "food"
+   ]
+  },
+  {
+   "lemma": "puder",
+   "pos": "noun",
+   "ru": "каша",
+   "tags": [
+    "food"
+   ]
+  },
+  {
+   "lemma": "salat",
+   "pos": "noun",
+   "ru": "салат",
+   "tags": [
+    "food"
+   ]
+  },
+  {
+   "lemma": "kook",
+   "pos": "noun",
+   "ru": "пирог / торт",
+   "tags": [
+    "food"
+   ],
+   "gen": "koogi"
+  },
+  {
+   "lemma": "šokolaad",
+   "pos": "noun",
+   "ru": "шоколад",
+   "tags": [
+    "food"
+   ]
+  },
+  {
+   "lemma": "jäätis",
+   "pos": "noun",
+   "ru": "мороженое",
+   "tags": [
+    "food"
+   ]
+  },
+  {
+   "lemma": "suhkur",
+   "pos": "noun",
+   "ru": "сахар",
+   "tags": [
+    "food"
+   ]
+  },
+  {
+   "lemma": "sool",
+   "pos": "noun",
+   "ru": "соль",
+   "tags": [
+    "food"
+   ],
+   "gen": "soola"
+  },
+  {
+   "lemma": "riis",
+   "pos": "noun",
+   "ru": "рис",
+   "tags": [
+    "food"
+   ]
+  },
+  {
+   "lemma": "pirukas",
+   "pos": "noun",
+   "ru": "пирожок",
+   "tags": [
+    "food"
+   ]
+  },
+  {
+   "lemma": "võileib",
+   "pos": "noun",
+   "ru": "бутерброд",
+   "tags": [
+    "food"
+   ]
+  },
+  {
+   "lemma": "toit",
+   "pos": "noun",
+   "ru": "еда",
+   "tags": [
+    "food"
+   ]
+  },
+  {
+   "lemma": "hommikusöök",
+   "pos": "noun",
+   "ru": "завтрак",
+   "tags": [
+    "food"
+   ]
+  },
+  {
+   "lemma": "lõunasöök",
+   "pos": "noun",
+   "ru": "обед",
+   "tags": [
+    "food"
+   ]
+  },
+  {
+   "lemma": "õhtusöök",
+   "pos": "noun",
+   "ru": "ужин",
+   "tags": [
+    "food"
+   ]
+  },
+  {
+   "lemma": "piim",
+   "pos": "noun",
+   "ru": "молоко",
+   "tags": [
+    "drink"
+   ]
+  },
+  {
+   "lemma": "kohv",
+   "pos": "noun",
+   "ru": "кофе",
+   "tags": [
+    "drink"
+   ]
+  },
+  {
+   "lemma": "tee",
+   "pos": "noun",
+   "ru": "чай",
+   "tags": [
+    "drink"
+   ],
+   "variants": {
+    "pl p": [
+     "teesid"
+    ]
+   }
+  },
+  {
+   "lemma": "vesi",
+   "pos": "noun",
+   "ru": "вода",
+   "tags": [
+    "drink"
+   ]
+  },
+  {
+   "lemma": "mahl",
+   "pos": "noun",
+   "ru": "сок",
+   "tags": [
+    "drink"
+   ]
+  },
+  {
+   "lemma": "õlu",
+   "pos": "noun",
+   "ru": "пиво",
+   "tags": [
+    "drink"
+   ]
+  },
+  {
+   "lemma": "vein",
+   "pos": "noun",
+   "ru": "вино",
+   "tags": [
+    "drink"
+   ]
+  },
+  {
+   "lemma": "jook",
+   "pos": "noun",
+   "ru": "напиток",
+   "tags": [
+    "drink"
+   ]
+  },
+  {
+   "lemma": "hommik",
+   "pos": "noun",
+   "ru": "утро",
+   "tags": [
+    "time"
+   ]
+  },
+  {
+   "lemma": "päev",
+   "pos": "noun",
+   "ru": "день",
+   "tags": [
+    "time"
+   ]
+  },
+  {
+   "lemma": "õhtu",
+   "pos": "noun",
+   "ru": "вечер",
+   "tags": [
+    "time"
+   ]
+  },
+  {
+   "lemma": "öö",
+   "pos": "noun",
+   "ru": "ночь",
+   "tags": [
+    "time"
+   ]
+  },
+  {
+   "lemma": "nädal",
+   "pos": "noun",
+   "ru": "неделя",
+   "tags": [
+    "time"
+   ]
+  },
+  {
+   "lemma": "kuu",
+   "pos": "noun",
+   "ru": "месяц",
+   "tags": [
+    "time"
+   ]
+  },
+  {
+   "lemma": "aasta",
+   "pos": "noun",
+   "ru": "год",
+   "tags": [
+    "time"
+   ]
+  },
+  {
+   "lemma": "tund",
+   "pos": "noun",
+   "ru": "час / урок",
+   "tags": [
+    "time"
+   ]
+  },
+  {
+   "lemma": "minut",
+   "pos": "noun",
+   "ru": "минута",
+   "tags": [
+    "time"
+   ]
+  },
+  {
+   "lemma": "nädalavahetus",
+   "pos": "noun",
+   "ru": "выходные",
+   "tags": [
+    "time"
+   ]
+  },
+  {
+   "lemma": "puhkus",
+   "pos": "noun",
+   "ru": "отпуск",
+   "tags": [
+    "time"
+   ]
+  },
+  {
+   "lemma": "buss",
+   "pos": "noun",
+   "ru": "автобус",
+   "tags": [
+    "transport"
+   ]
+  },
+  {
+   "lemma": "tramm",
+   "pos": "noun",
+   "ru": "трамвай",
+   "tags": [
+    "transport"
+   ]
+  },
+  {
+   "lemma": "troll",
+   "pos": "noun",
+   "ru": "троллейбус",
+   "tags": [
+    "transport"
+   ]
+  },
+  {
+   "lemma": "rong",
+   "pos": "noun",
+   "ru": "поезд",
+   "tags": [
+    "transport"
+   ]
+  },
+  {
+   "lemma": "lennuk",
+   "pos": "noun",
+   "ru": "самолёт",
+   "tags": [
+    "transport"
+   ]
+  },
+  {
+   "lemma": "laev",
+   "pos": "noun",
+   "ru": "корабль",
+   "tags": [
+    "transport"
+   ]
+  },
+  {
+   "lemma": "takso",
+   "pos": "noun",
+   "ru": "такси",
+   "tags": [
+    "transport"
+   ]
+  },
+  {
+   "lemma": "jalgratas",
+   "pos": "noun",
+   "ru": "велосипед",
+   "tags": [
+    "transport"
+   ]
+  },
+  {
+   "lemma": "auto",
+   "pos": "noun",
+   "ru": "машина",
+   "tags": [
+    "transport"
+   ]
+  },
+  {
+   "lemma": "pea",
+   "pos": "noun",
+   "ru": "голова",
+   "tags": [
+    "body",
+    "health"
+   ]
+  },
+  {
+   "lemma": "kõht",
+   "pos": "noun",
+   "ru": "живот",
+   "tags": [
+    "body",
+    "health"
+   ]
+  },
+  {
+   "lemma": "hammas",
+   "pos": "noun",
+   "ru": "зуб",
+   "tags": [
+    "body",
+    "health"
+   ]
+  },
+  {
+   "lemma": "selg",
+   "pos": "noun",
+   "ru": "спина",
+   "tags": [
+    "body",
+    "health"
+   ]
+  },
+  {
+   "lemma": "jalg",
+   "pos": "noun",
+   "ru": "нога",
+   "tags": [
+    "body",
+    "health"
+   ]
+  },
+  {
+   "lemma": "käsi",
+   "pos": "noun",
+   "ru": "рука",
+   "tags": [
+    "body",
+    "health"
+   ]
+  },
+  {
+   "lemma": "silm",
+   "pos": "noun",
+   "ru": "глаз",
+   "tags": [
+    "body",
+    "health"
+   ],
+   "gen": "silma"
+  },
+  {
+   "lemma": "kõrv",
+   "pos": "noun",
+   "ru": "ухо",
+   "tags": [
+    "body",
+    "health"
+   ]
+  },
+  {
+   "lemma": "palavik",
+   "pos": "noun",
+   "ru": "температура",
+   "tags": [
+    "body",
+    "health"
+   ]
+  },
+  {
+   "lemma": "köha",
+   "pos": "noun",
+   "ru": "кашель",
+   "tags": [
+    "body",
+    "health"
+   ]
+  },
+  {
+   "lemma": "nohu",
+   "pos": "noun",
+   "ru": "насморк",
+   "tags": [
+    "body",
+    "health"
+   ]
+  },
+  {
+   "lemma": "ravim",
+   "pos": "noun",
+   "ru": "лекарство",
+   "tags": [
+    "body",
+    "health"
+   ]
+  },
+  {
+   "lemma": "retsept",
+   "pos": "noun",
+   "ru": "рецепт",
+   "tags": [
+    "body",
+    "health"
+   ]
+  },
+  {
+   "lemma": "Tallinn",
+   "pos": "name",
+   "ru": "Таллинн",
+   "tags": [
+    "city",
+    "place"
+   ],
+   "locative": "in"
+  },
+  {
+   "lemma": "Tartu",
+   "pos": "name",
+   "ru": "Тарту",
+   "tags": [
+    "city",
+    "place"
+   ],
+   "locative": "in"
+  },
+  {
+   "lemma": "Pärnu",
+   "pos": "name",
+   "ru": "Пярну",
+   "tags": [
+    "city",
+    "place"
+   ],
+   "locative": "in"
+  },
+  {
+   "lemma": "Narva",
+   "pos": "name",
+   "ru": "Нарва",
+   "tags": [
+    "city",
+    "place"
+   ],
+   "locative": "in"
+  },
+  {
+   "lemma": "Viljandi",
+   "pos": "name",
+   "ru": "Вильянди",
+   "tags": [
+    "city",
+    "place"
+   ],
+   "locative": "in"
+  },
+  {
+   "lemma": "Eesti",
+   "pos": "name",
+   "ru": "Эстония",
+   "tags": [
+    "country",
+    "place"
+   ],
+   "locative": "in"
+  },
+  {
+   "lemma": "Soome",
+   "pos": "name",
+   "ru": "Финляндия",
+   "tags": [
+    "country",
+    "place"
+   ],
+   "locative": "in"
+  },
+  {
+   "lemma": "Läti",
+   "pos": "name",
+   "ru": "Латвия",
+   "tags": [
+    "country",
+    "place"
+   ],
+   "locative": "in"
+  },
+  {
+   "lemma": "Leedu",
+   "pos": "name",
+   "ru": "Литва",
+   "tags": [
+    "country",
+    "place"
+   ],
+   "locative": "in"
+  },
+  {
+   "lemma": "Venemaa",
+   "pos": "name",
+   "ru": "Россия",
+   "tags": [
+    "country",
+    "place"
+   ],
+   "locative": "in"
+  },
+  {
+   "lemma": "Ukraina",
+   "pos": "name",
+   "ru": "Украина",
+   "tags": [
+    "country",
+    "place"
+   ],
+   "locative": "in"
+  },
+  {
+   "lemma": "Saksamaa",
+   "pos": "name",
+   "ru": "Германия",
+   "tags": [
+    "country",
+    "place"
+   ],
+   "locative": "in"
+  },
+  {
+   "lemma": "Rootsi",
+   "pos": "name",
+   "ru": "Швеция",
+   "tags": [
+    "country",
+    "place"
+   ],
+   "locative": "in"
+  },
+  {
+   "lemma": "Mari",
+   "pos": "name",
+   "ru": "Мари",
+   "tags": [
+    "person",
+    "female"
+   ]
+  },
+  {
+   "lemma": "Anna",
+   "pos": "name",
+   "ru": "Анна",
+   "tags": [
+    "person",
+    "female"
+   ]
+  },
+  {
+   "lemma": "Liisa",
+   "pos": "name",
+   "ru": "Лийза",
+   "tags": [
+    "person",
+    "female"
+   ]
+  },
+  {
+   "lemma": "Kati",
+   "pos": "name",
+   "ru": "Кати",
+   "tags": [
+    "person",
+    "female"
+   ]
+  },
+  {
+   "lemma": "Kadri",
+   "pos": "name",
+   "ru": "Кадри",
+   "tags": [
+    "person",
+    "female"
+   ]
+  },
+  {
+   "lemma": "Olga",
+   "pos": "name",
+   "ru": "Ольга",
+   "tags": [
+    "person",
+    "female"
+   ]
+  },
+  {
+   "lemma": "Daria",
+   "pos": "name",
+   "ru": "Дарья",
+   "tags": [
+    "person",
+    "female"
+   ]
+  },
+  {
+   "lemma": "Jaan",
+   "pos": "name",
+   "ru": "Яан",
+   "tags": [
+    "person",
+    "male"
+   ]
+  },
+  {
+   "lemma": "Martin",
+   "pos": "name",
+   "ru": "Мартин",
+   "tags": [
+    "person",
+    "male"
+   ]
+  },
+  {
+   "lemma": "Toomas",
+   "pos": "name",
+   "ru": "Тоомас",
+   "tags": [
+    "person",
+    "male"
+   ],
+   "gen": "Toomase"
+  },
+  {
+   "lemma": "Jüri",
+   "pos": "name",
+   "ru": "Юри",
+   "tags": [
+    "person",
+    "male"
+   ]
+  },
+  {
+   "lemma": "Sergei",
+   "pos": "name",
+   "ru": "Сергей",
+   "tags": [
+    "person",
+    "male"
+   ]
+  },
+  {
+   "lemma": "Andrei",
+   "pos": "name",
+   "ru": "Андрей",
+   "tags": [
+    "person",
+    "male"
+   ]
+  },
+  {
+   "lemma": "Maksim",
+   "pos": "name",
+   "ru": "Максим",
+   "tags": [
+    "person",
+    "male"
+   ]
+  },
+  {
+   "lemma": "suur",
+   "pos": "adj",
+   "ru": "большой",
+   "tags": [
+    "quality"
+   ]
+  },
+  {
+   "lemma": "väike",
+   "pos": "adj",
+   "ru": "маленький",
+   "tags": [
+    "quality"
+   ],
+   "gen": "väikese"
+  },
+  {
+   "lemma": "ilus",
+   "pos": "adj",
+   "ru": "красивый",
+   "tags": [
+    "quality"
+   ]
+  },
+  {
+   "lemma": "uus",
+   "pos": "adj",
+   "ru": "новый",
+   "tags": [
+    "quality"
+   ]
+  },
+  {
+   "lemma": "vana",
+   "pos": "adj",
+   "ru": "старый",
+   "tags": [
+    "quality"
+   ]
+  },
+  {
+   "lemma": "noor",
+   "pos": "adj",
+   "ru": "молодой",
+   "tags": [
+    "quality"
+   ]
+  },
+  {
+   "lemma": "pikk",
+   "pos": "adj",
+   "ru": "длинный / высокий",
+   "tags": [
+    "quality"
+   ]
+  },
+  {
+   "lemma": "lühike",
+   "pos": "adj",
+   "ru": "короткий / невысокий",
+   "tags": [
+    "quality"
+   ]
+  },
+  {
+   "lemma": "hea",
+   "pos": "adj",
+   "ru": "хороший",
+   "tags": [
+    "quality"
+   ]
+  },
+  {
+   "lemma": "halb",
+   "pos": "adj",
+   "ru": "плохой",
+   "tags": [
+    "quality"
+   ]
+  },
+  {
+   "lemma": "kallis",
+   "pos": "adj",
+   "ru": "дорогой",
+   "tags": [
+    "quality"
+   ]
+  },
+  {
+   "lemma": "odav",
+   "pos": "adj",
+   "ru": "дешёвый",
+   "tags": [
+    "quality"
+   ]
+  },
+  {
+   "lemma": "soe",
+   "pos": "adj",
+   "ru": "тёплый",
+   "tags": [
+    "quality"
+   ]
+  },
+  {
+   "lemma": "külm",
+   "pos": "adj",
+   "ru": "холодный",
+   "tags": [
+    "quality"
+   ]
+  },
+  {
+   "lemma": "kuum",
+   "pos": "adj",
+   "ru": "горячий",
+   "tags": [
+    "quality"
+   ]
+  },
+  {
+   "lemma": "kiire",
+   "pos": "adj",
+   "ru": "быстрый",
+   "tags": [
+    "quality"
+   ]
+  },
+  {
+   "lemma": "aeglane",
+   "pos": "adj",
+   "ru": "медленный",
+   "tags": [
+    "quality"
+   ]
+  },
+  {
+   "lemma": "värske",
+   "pos": "adj",
+   "ru": "свежий",
+   "tags": [
+    "quality"
+   ]
+  },
+  {
+   "lemma": "maitsev",
+   "pos": "adj",
+   "ru": "вкусный",
+   "tags": [
+    "quality"
+   ]
+  },
+  {
+   "lemma": "magus",
+   "pos": "adj",
+   "ru": "сладкий",
+   "tags": [
+    "quality"
+   ]
+  },
+  {
+   "lemma": "puhas",
+   "pos": "adj",
+   "ru": "чистый",
+   "tags": [
+    "quality"
+   ]
+  },
+  {
+   "lemma": "mugav",
+   "pos": "adj",
+   "ru": "удобный",
+   "tags": [
+    "quality"
+   ]
+  },
+  {
+   "lemma": "vaikne",
+   "pos": "adj",
+   "ru": "тихий",
+   "tags": [
+    "quality"
+   ]
+  },
+  {
+   "lemma": "lärmakas",
+   "pos": "adj",
+   "ru": "шумный",
+   "tags": [
+    "quality"
+   ]
+  },
+  {
+   "lemma": "hele",
+   "pos": "adj",
+   "ru": "светлый",
+   "tags": [
+    "quality"
+   ]
+  },
+  {
+   "lemma": "tume",
+   "pos": "adj",
+   "ru": "тёмный",
+   "tags": [
+    "quality"
+   ]
+  },
+  {
+   "lemma": "haige",
+   "pos": "adj",
+   "ru": "больной",
+   "tags": [
+    "quality"
+   ]
+  },
+  {
+   "lemma": "terve",
+   "pos": "adj",
+   "ru": "здоровый",
+   "tags": [
+    "quality"
+   ]
+  },
+  {
+   "lemma": "vaba",
+   "pos": "adj",
+   "ru": "свободный",
+   "tags": [
+    "quality"
+   ]
+  },
+  {
+   "lemma": "tühi",
+   "pos": "adj",
+   "ru": "пустой",
+   "tags": [
+    "quality"
+   ]
+  },
+  {
+   "lemma": "sõbralik",
+   "pos": "adj",
+   "ru": "дружелюбный",
+   "tags": [
+    "character"
+   ]
+  },
+  {
+   "lemma": "rahulik",
+   "pos": "adj",
+   "ru": "спокойный",
+   "tags": [
+    "character"
+   ]
+  },
+  {
+   "lemma": "aktiivne",
+   "pos": "adj",
+   "ru": "активный",
+   "tags": [
+    "character"
+   ]
+  },
+  {
+   "lemma": "lõbus",
+   "pos": "adj",
+   "ru": "весёлый",
+   "tags": [
+    "character"
+   ]
+  },
+  {
+   "lemma": "tõsine",
+   "pos": "adj",
+   "ru": "серьёзный",
+   "tags": [
+    "character"
+   ]
+  },
+  {
+   "lemma": "tark",
+   "pos": "adj",
+   "ru": "умный",
+   "tags": [
+    "character"
+   ]
+  },
+  {
+   "lemma": "valge",
+   "pos": "adj",
+   "ru": "белый",
+   "tags": [
+    "colour"
+   ]
+  },
+  {
+   "lemma": "must",
+   "pos": "adj",
+   "ru": "чёрный",
+   "tags": [
+    "colour"
+   ]
+  },
+  {
+   "lemma": "punane",
+   "pos": "adj",
+   "ru": "красный",
+   "tags": [
+    "colour"
+   ]
+  },
+  {
+   "lemma": "sinine",
+   "pos": "adj",
+   "ru": "синий",
+   "tags": [
+    "colour"
+   ]
+  },
+  {
+   "lemma": "roheline",
+   "pos": "adj",
+   "ru": "зелёный",
+   "tags": [
+    "colour"
+   ]
+  },
+  {
+   "lemma": "kollane",
+   "pos": "adj",
+   "ru": "жёлтый",
+   "tags": [
+    "colour"
+   ]
+  },
+  {
+   "lemma": "hall",
+   "pos": "adj",
+   "ru": "серый",
+   "tags": [
+    "colour"
+   ]
+  },
+  {
+   "lemma": "pruun",
+   "pos": "adj",
+   "ru": "коричневый",
+   "tags": [
+    "colour"
+   ]
+  },
+  {
+   "lemma": "olema",
+   "pos": "verb",
+   "ru": "быть",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "elama",
+   "pos": "verb",
+   "ru": "жить",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "töötama",
+   "pos": "verb",
+   "ru": "работать",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "õppima",
+   "pos": "verb",
+   "ru": "учиться",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "rääkima",
+   "pos": "verb",
+   "ru": "говорить",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "sööma",
+   "pos": "verb",
+   "ru": "есть",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "jooma",
+   "pos": "verb",
+   "ru": "пить",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "minema",
+   "pos": "verb",
+   "ru": "идти / ехать",
+   "tags": [
+    "basic"
+   ],
+   "variants": {
+    "me": [
+     "läheme",
+     "lähme"
+    ],
+    "te": [
+     "lähete"
+    ],
+    "vad": [
+     "lähevad"
+    ]
+   }
+  },
+  {
+   "lemma": "tulema",
+   "pos": "verb",
+   "ru": "приходить",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "tegema",
+   "pos": "verb",
+   "ru": "делать",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "nägema",
+   "pos": "verb",
+   "ru": "видеть",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "ostma",
+   "pos": "verb",
+   "ru": "покупать",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "lugema",
+   "pos": "verb",
+   "ru": "читать",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "kirjutama",
+   "pos": "verb",
+   "ru": "писать",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "kuulama",
+   "pos": "verb",
+   "ru": "слушать",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "vaatama",
+   "pos": "verb",
+   "ru": "смотреть",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "magama",
+   "pos": "verb",
+   "ru": "спать",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "ärkama",
+   "pos": "verb",
+   "ru": "просыпаться",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "puhkama",
+   "pos": "verb",
+   "ru": "отдыхать",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "sõitma",
+   "pos": "verb",
+   "ru": "ехать",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "käima",
+   "pos": "verb",
+   "ru": "ходить / посещать",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "armastama",
+   "pos": "verb",
+   "ru": "любить",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "meeldima",
+   "pos": "verb",
+   "ru": "нравиться",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "tahtma",
+   "pos": "verb",
+   "ru": "хотеть",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "saama",
+   "pos": "verb",
+   "ru": "получать / мочь",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "võtma",
+   "pos": "verb",
+   "ru": "брать",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "andma",
+   "pos": "verb",
+   "ru": "давать",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "ootama",
+   "pos": "verb",
+   "ru": "ждать",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "helistama",
+   "pos": "verb",
+   "ru": "звонить",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "küsima",
+   "pos": "verb",
+   "ru": "спрашивать",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "vastama",
+   "pos": "verb",
+   "ru": "отвечать",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "aitama",
+   "pos": "verb",
+   "ru": "помогать",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "mängima",
+   "pos": "verb",
+   "ru": "играть",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "koristama",
+   "pos": "verb",
+   "ru": "убирать",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "valmistama",
+   "pos": "verb",
+   "ru": "готовить",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "jalutama",
+   "pos": "verb",
+   "ru": "гулять",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "maksma",
+   "pos": "verb",
+   "ru": "платить / стоить",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "tellima",
+   "pos": "verb",
+   "ru": "заказывать",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "proovima",
+   "pos": "verb",
+   "ru": "пробовать / примерять",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "avama",
+   "pos": "verb",
+   "ru": "открывать",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "sulgema",
+   "pos": "verb",
+   "ru": "закрывать",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "istuma",
+   "pos": "verb",
+   "ru": "сидеть",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "seisma",
+   "pos": "verb",
+   "ru": "стоять",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "panema",
+   "pos": "verb",
+   "ru": "класть / надевать",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "otsima",
+   "pos": "verb",
+   "ru": "искать",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "leidma",
+   "pos": "verb",
+   "ru": "находить",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "teadma",
+   "pos": "verb",
+   "ru": "знать",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "oskama",
+   "pos": "verb",
+   "ru": "уметь",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "pidama",
+   "pos": "verb",
+   "ru": "быть должным",
+   "tags": [
+    "basic"
+   ],
+   "variants": {
+    "s": [
+     "pidi"
+    ],
+    "sin": [
+     "pidin"
+    ],
+    "sid": [
+     "pidid"
+    ],
+    "sime": [
+     "pidime"
+    ],
+    "site": [
+     "pidite"
+    ]
+   }
+  },
+  {
+   "lemma": "võima",
+   "pos": "verb",
+   "ru": "мочь",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "tohtima",
+   "pos": "verb",
+   "ru": "сметь / иметь право",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "hakkama",
+   "pos": "verb",
+   "ru": "начинать",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "alustama",
+   "pos": "verb",
+   "ru": "начинать",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "lõpetama",
+   "pos": "verb",
+   "ru": "заканчивать",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "kohtuma",
+   "pos": "verb",
+   "ru": "встречаться",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "külastama",
+   "pos": "verb",
+   "ru": "посещать",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "laulma",
+   "pos": "verb",
+   "ru": "петь",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "tantsima",
+   "pos": "verb",
+   "ru": "танцевать",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "ujuma",
+   "pos": "verb",
+   "ru": "плавать",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "jooksma",
+   "pos": "verb",
+   "ru": "бегать",
+   "tags": [
+    "basic"
+   ],
+   "variants": {
+    "da": [
+     "joosta"
+    ],
+    "des": [
+     "joostes"
+    ],
+    "ge": [
+     "jookske"
+    ],
+    "tud": [
+     "joostud"
+    ],
+    "takse": [
+     "joostakse"
+    ]
+   }
+  },
+  {
+   "lemma": "õpetama",
+   "pos": "verb",
+   "ru": "учить (кого-то)",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "tõusma",
+   "pos": "verb",
+   "ru": "вставать",
+   "tags": [
+    "basic"
+   ]
+  },
+  {
+   "lemma": "pesema",
+   "pos": "verb",
+   "ru": "мыть",
+   "tags": [
+    "basic"
+   ]
+  }
+ ]
+}
