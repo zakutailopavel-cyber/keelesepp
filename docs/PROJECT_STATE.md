@@ -20,7 +20,8 @@ Checked `origin/main` `f68d46f` (after #265). Owner: a student could erase the f
 2. Transcript visible only to the teacher/admin (rules: student read removed); in the student profile each lesson
    opens a choice „Tunni analüüs” (transcript, status while transcribing) or „Tahvel” (that lesson's board page).
 3. Board text: font choice and editing existing text.
-4. Board with edges (fixed page size) instead of infinite canvas; „Uus leht” for a separate explanation.
+4. Board with edges (fixed page size) instead of infinite canvas; „Uus leht” for a separate explanation; every page
+   can be renamed (owner, 2026-10-04).
 5. Interactive worksheet on the board (not a separate overlay) — the worksheet is the lesson.
 6. Live Classroom opens as the teacher's workspace; invite students from there; prepare a lesson in advance.
 7. The student always has their own board in Live Classroom (homework, self-study) even without a lesson.
