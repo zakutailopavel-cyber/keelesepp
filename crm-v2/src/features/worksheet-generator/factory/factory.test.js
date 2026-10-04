@@ -173,6 +173,22 @@ describe('Content Pack Factory v1', () => {
     blocks.forEach((block) => expect(labels.some((label) => block.data.instruction.includes(`Olukord: ${label}.`))).toBe(true));
   });
 
+  it('gap tasks hold several sentences, not one', () => {
+    for (const lessonId of ['a2-003', 'a2-006', 'a2-011']) {
+      const lesson = lessons.find((item) => item.id === lessonId);
+      const { profile } = createContentPackDraft(lesson);
+      for (const seed of ['g1', 'g2', 'g3', 'g4']) {
+        generateLessonBundle({ lesson, profile, seed: `${lessonId}:${seed}` }).sheets.flatMap((sheet) => sheet.worksheetDoc.blocks)
+          .filter((block) => block.type === 'gaps')
+          .forEach((block) => {
+            const lines = block.data.sentences.split('\n');
+            expect(lines.length, `${lessonId} ${seed}`).toBeGreaterThanOrEqual(2);
+            lines.forEach((line) => expect(line).toMatch(/\[[^\]]+\]/));
+          });
+      }
+    }
+  });
+
   it('reports missing sources and never invents or activates an unsupported profile', () => {
     const result = createContentPackDraft({ id: 'a2-099', title: 'A2 proovieksam' });
     expect(result.status).toBe('missing-sources');

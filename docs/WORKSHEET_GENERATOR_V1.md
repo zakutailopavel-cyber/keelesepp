@@ -164,7 +164,8 @@ productive prompts and CEFR/lesson compatibility data; they are not random word 
 module-two packs `family-relations`, `possession-genitive`, `appearance-character` and `people-profiles` (Library v3) and module three `daily-routine`, `clock-time`, `frequency`, `week-plan` (Library v4).
 Every pack sentence contains at least one target word in its exact surface form (tested), so gap-fill and context
 choice always have an answer key; context-choice distractors come from another part of speech first. True/false
-items name the situation („Olukord: …”) that the learner judges each sentence against.
+items name the situation („Olukord: …”) that the learner judges each sentence against. Gap tasks hold as many sentences as other
+closed tasks (2 / 3 / 4 by difficulty); only sentences with a findable answer are used.
 
 Factory selection uses stable lesson blueprints for A2-002…A2-015 and bounded keyword matching for future selected
 lessons. Every draft runs through the real sanitizer, `catalogReadiness()` and `planLessonActivities()`. Unsupported
