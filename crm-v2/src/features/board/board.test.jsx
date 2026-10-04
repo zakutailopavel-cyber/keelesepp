@@ -222,3 +222,34 @@ describe('BoardPage', () => {
     expect(screen.getByRole('button', { name: /Tühjenda/ })).toBeInTheDocument();
   });
 });
+
+describe('StudentBoard in the lesson room: pointer and page', () => {
+  it('the teacher points with „Osuti”: positions go out, nothing is saved, and it is put away on leave', () => {
+    const service = fakeService();
+    const onPointer = vi.fn();
+    const { container } = render(<StudentBoard studentId="s-1" user={{ uid: 't1', displayName: 'Kati' }} staff variant="room" service={service} onPointer={onPointer} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Osuti' }));
+    const svg = container.querySelector('svg[aria-label="Õpilase tahvel"]');
+    fireEvent.pointerMove(svg, { clientX: 120, clientY: 80 });
+    expect(onPointer).toHaveBeenLastCalledWith({ x: 120, y: 80 });
+    fireEvent.pointerDown(svg, { clientX: 130, clientY: 90, button: 0 });
+    expect(onPointer).toHaveBeenLastCalledWith({ x: 130, y: 90 });
+    fireEvent.pointerLeave(svg);
+    expect(onPointer).toHaveBeenLastCalledWith(null);
+    expect(service.add).not.toHaveBeenCalled();
+  });
+
+  it('a student has no pointer tool, sees the teacher’s pointer only on the same page and reports the open page', () => {
+    const service = fakeService({ pages: [{ id: 'pg1', title: 'Tund 3', order: 1 }] });
+    const onPageChange = vi.fn();
+    const { rerender } = render(<StudentBoard studentId="s-1" user={user} variant="room" service={service} onPageChange={onPageChange} pointer={{ x: 50, y: 60, pageId: '' }} />);
+    expect(screen.queryByRole('button', { name: 'Osuti' })).toBeNull();
+    expect(screen.getByTestId('teacher-pointer')).toBeInTheDocument();
+    expect(onPageChange).toHaveBeenLastCalledWith('');
+    fireEvent.click(screen.getByRole('tab', { name: 'Tund 3' }));
+    expect(onPageChange).toHaveBeenLastCalledWith('pg1');
+    expect(screen.queryByTestId('teacher-pointer')).toBeNull();
+    rerender(<StudentBoard studentId="s-1" user={user} variant="room" service={service} onPageChange={onPageChange} pointer={{ x: 50, y: 60, pageId: 'pg1' }} />);
+    expect(screen.getByTestId('teacher-pointer')).toBeInTheDocument();
+  });
+});
