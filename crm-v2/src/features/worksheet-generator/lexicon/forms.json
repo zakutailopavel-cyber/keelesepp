@@ -16844,7 +16844,8 @@
 "pl kom": [
 "suurtega"
 ]
-}
+},
+"comparative": "suurem"
 },
 {
 "lemma": "väike",
@@ -16939,7 +16940,8 @@
 "pl kom": [
 "väikestega"
 ]
-}
+},
+"comparative": "väiksem"
 },
 {
 "lemma": "ilus",
@@ -17024,7 +17026,8 @@
 "pl kom": [
 "ilusatega"
 ]
-}
+},
+"comparative": "ilusam"
 },
 {
 "lemma": "uus",
@@ -17112,7 +17115,8 @@
 "pl kom": [
 "uutega"
 ]
-}
+},
+"comparative": "uuem"
 },
 {
 "lemma": "vana",
@@ -17198,7 +17202,8 @@
 "pl kom": [
 "vanadega"
 ]
-}
+},
+"comparative": "vanem"
 },
 {
 "lemma": "noor",
@@ -17286,7 +17291,8 @@
 "pl kom": [
 "noortega"
 ]
-}
+},
+"comparative": "noorem"
 },
 {
 "lemma": "pikk",
@@ -17369,7 +17375,8 @@
 "pl kom": [
 "pikkadega"
 ]
-}
+},
+"comparative": "pikem"
 },
 {
 "lemma": "lühike",
@@ -17457,7 +17464,8 @@
 "pl kom": [
 "lühikestega"
 ]
-}
+},
+"comparative": "lühem"
 },
 {
 "lemma": "hea",
@@ -17539,7 +17547,8 @@
 "pl kom": [
 "headega"
 ]
-}
+},
+"comparative": "parem"
 },
 {
 "lemma": "halb",
@@ -17622,7 +17631,8 @@
 "pl kom": [
 "halbadega"
 ]
-}
+},
+"comparative": "halvem"
 },
 {
 "lemma": "kallis",
@@ -17715,7 +17725,8 @@
 "kallitega",
 "kallistega"
 ]
-}
+},
+"comparative": "kallim"
 },
 {
 "lemma": "odav",
@@ -17800,7 +17811,8 @@
 "pl kom": [
 "odavatega"
 ]
-}
+},
+"comparative": "odavam"
 },
 {
 "lemma": "soe",
@@ -17883,7 +17895,8 @@
 "pl kom": [
 "soojadega"
 ]
-}
+},
+"comparative": "soojem"
 },
 {
 "lemma": "külm",
@@ -17966,7 +17979,8 @@
 "pl kom": [
 "külmadega"
 ]
-}
+},
+"comparative": "külmem"
 },
 {
 "lemma": "kuum",
@@ -18049,7 +18063,8 @@
 "pl kom": [
 "kuumadega"
 ]
-}
+},
+"comparative": "kuumem"
 },
 {
 "lemma": "kiire",
@@ -18134,7 +18149,8 @@
 "pl kom": [
 "kiiretega"
 ]
-}
+},
+"comparative": "kiirem"
 },
 {
 "lemma": "aeglane",
@@ -18229,7 +18245,8 @@
 "pl kom": [
 "aeglastega"
 ]
-}
+},
+"comparative": "aeglasem"
 },
 {
 "lemma": "värske",
@@ -18569,7 +18586,8 @@
 "pl kom": [
 "puhastega"
 ]
-}
+},
+"comparative": "puhtam"
 },
 {
 "lemma": "mugav",
@@ -18654,7 +18672,8 @@
 "pl kom": [
 "mugavatega"
 ]
-}
+},
+"comparative": "mugavam"
 },
 {
 "lemma": "vaikne",
@@ -18739,7 +18758,8 @@
 "pl kom": [
 "vaiksetega"
 ]
-}
+},
+"comparative": "vaiksem"
 },
 {
 "lemma": "lärmakas",
@@ -19847,7 +19867,8 @@
 "pl kom": [
 "tarkadega"
 ]
-}
+},
+"comparative": "targem"
 },
 {
 "lemma": "valge",

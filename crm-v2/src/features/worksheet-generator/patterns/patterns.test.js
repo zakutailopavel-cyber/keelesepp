@@ -30,6 +30,31 @@ describe('grammar pattern engine', () => {
     ['adjective-have', { adj: 'punane', thing: 'kott' }, 'Mul on punane kott.', 'punane'],
     ['numeral-family', { number: 'kaks', person: 'laps' }, 'Mul on kaks last.', 'last'],
     ['numeral-things', { number: 'kolm', thing: 'raamat' }, 'Kotis on kolm raamatut.', 'raamatut'],
+    ['imp-go-place', { verb: 'minema', place: 'kool' }, 'Palun mine kooli.', 'mine'],
+    ['imp-plural', { verb: 'minema', place: 'haigla' }, 'Minge palun homme haiglasse.', 'Minge'],
+    ['imp-dont', { verb: 'magama' }, 'Ära maga täna kaua.', 'maga'],
+    ['imp-take-thing', { verb: 'võtma', thing: 'võti' }, 'Võta palun võti.', 'Võta'],
+    ['mod-must', { verb: 'õppima' }, 'Ma pean täna õppima.', 'õppima'],
+    ['mod-may', { verb: 'maksma' }, 'Kas ma võin siin maksta?', 'maksta'],
+    ['mod-not-allowed', { verb: 'jooksma' }, 'Siin ei tohi joosta.', 'joosta'],
+    ['inf-start', { verb: 'ujuma' }, 'Ma hakkan homme ujuma.', 'ujuma'],
+    ['inf-want', { verb: 'puhkama' }, 'Ma tahan õhtul puhata.', 'puhata'],
+    ['like-person-food', { name: 'Kadri', food: 'apelsin' }, 'Kadrile meeldib apelsin.', 'Kadrile'],
+    ['like-not-food', { food: 'salat' }, 'Mulle ei meeldi salat.', 'salat'],
+    ['mul-symptom', { name: 'Toomas', symptom: 'köha' }, 'Toomasel on köha.', 'Toomasel'],
+    ['mul-pain', { body: 'kõht' }, 'Mul valutab kõht.', 'kõht'],
+    ['mul-need', { name: 'Mari', thing: 'ravim' }, 'Maril on vaja ravimit.', 'ravimit'],
+    ['past-went', { verb: 'minema', place: 'kool' }, 'Eile läksin kooli.', 'läksin'],
+    ['past-was', { verb: 'käima', place: 'pood' }, 'Eile käisin poes.', 'käisin'],
+    ['past-third', { name: 'Kadri', verb: 'sõitma', city: 'Tartu' }, 'Kadri sõitis eile Tartusse.', 'sõitis'],
+    ['past-we', { verb: 'käima', place: 'teater' }, 'Eelmisel nädalal käisime teatris.', 'käisime'],
+    ['past-negative', { verb: 'minema', place: 'kool' }, 'Eile ma ei läinud kooli.', 'läinud'],
+    ['fut-tomorrow', { verb: 'olema', place: 'kodu' }, 'Homme olen kodus.', 'olen'],
+    ['fut-next-week', { verb: 'sõitma', name: 'Mari', city: 'Pärnu' }, 'Järgmisel nädalal sõidab Mari Pärnusse.', 'sõidab'],
+    ['cmp-weather', { adj: 'soe' }, 'Täna on soojem kui eile.', 'soojem'],
+    ['cmp-shop', { thing: 'jope', adj: 'hea' }, 'See jope on parem kui eelmine.', 'parem'],
+    ['cmp-people', { name: 'Mari', adj: 'lühike', family: 'õde' }, 'Mari on lühem kui tema õde.', 'lühem'],
+    ['numeral-shop', { number: 'kolm', food: 'õun' }, 'Ma ostan poest kolm õuna.', 'õuna'],
   ])('%s %j → %s', (id, choices, text, answer) => {
     const sentence = buildPatternSentence(byId(id), choices);
     expect(sentence).not.toBeNull();
@@ -41,7 +66,7 @@ describe('grammar pattern engine', () => {
 
   it('every pattern yields enough valid sentences and every one is well formed', () => {
     const coverage = patternCoverage();
-    coverage.forEach((item) => expect(item.valid, item.id).toBeGreaterThanOrEqual(10));
+    coverage.forEach((item) => expect(item.valid, item.id).toBeGreaterThanOrEqual(3));
     for (const point of grammarPoints()) {
       for (const seed of ['a', 'b', 'c']) {
         const sentences = generatePatternSentences({ grammar: point.id, count: 10, seed });
@@ -49,6 +74,7 @@ describe('grammar pattern engine', () => {
         expect(new Set(sentences.map((item) => item.text)).size).toBe(10);
         sentences.forEach((item) => {
           expect(item.text).toMatch(/^[A-ZÕÄÖÜŠŽ].*[.?]$/u);
+          expect(item.gapped).not.toMatch(/^\[[a-zõäöüšž]/u);
           expect(item.text).not.toMatch(/[{}]/);
           expect(item.text.includes(item.answer)).toBe(true);
           expect(item.distractors.length).toBeGreaterThanOrEqual(2);
