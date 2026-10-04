@@ -22,6 +22,21 @@ CRM v2 is v1's student-card "Esmane hindamine" baseline. Ported on the **same** 
   horizontal scroll (a first 390 px run overflowed to 654 px — fixed with `minmax(0,1fr)` on the card).
 - Production: client only (Vercel). No rules/Functions deploy needed.
 - Exactly one next safe step: the owner opens a student → „Esmane hindamine” and saves one real baseline.
+## 2026-10-04 — Live Classroom → calendar lesson: „Lõpeta tund” opens the lesson to mark it held — branch `agent/live-room-lesson-link`
+
+Checked `origin/main` `60f3419` (after #247). Closes the open Live Classroom item "lesson completion integration".
+- `features/live-classroom/lessonLink.js`: „Alusta tundi” in the calendar lesson panel remembers which lesson
+  (`<occurrenceId>|<date>`) the room belongs to — in the teacher's browser (`localStorage`
+  `keelesepp.liveLessonLinks`, last 20), so the invitation document, rules and Firestore stay unchanged.
+- `LiveClassroomPage`: after the teacher ends the room, the CRM opens `/calendar?lesson=…` (that lesson's panel,
+  the usual „Toimunud” form with topic and homework — no automatic attendance or invoice). Without a link (room
+  started from Live Classroom directly, other device) it opens `/calendar?student=<id>`. The student side is unchanged.
+- `CalendarPage`: `?lesson=<occurrenceId>|<date>` sets the date and opens the panel; malformed values are ignored.
+- Tests: `lessonLink.test.js` (3), CalendarPage +2, LiveClassroomPage +1. Full CRM Vitest 124 files / 622 tests,
+  ESLint clean, build OK.
+- Not done (deliberately): server-side cleanup of expired invitations — the client already treats them as expired;
+  a cleanup needs a new scheduled Function and a deploy, low value.
+- Exactly one next safe step: in a real lesson, start from the calendar → Lõpeta tund → mark Toimunud.
 
 ## 2026-10-04 — Calendar: seven-day deletion window in main + held lessons protected (replaces draft #234) — branch `agent/calendar-tombstone-window`
 
