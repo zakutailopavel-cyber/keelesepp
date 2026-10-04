@@ -2,6 +2,7 @@
 
 ## 2026-10-04 — Development vector: what is done, what waits for the owner, what is next
 
+Checked `origin/main` `e5d2d32` (after #250).
 Owner asked to plan the further direction for unfinished functions and finish them („наметь дальнейший вектор
 развития … и доведи их до конца”). Finished in code and merged today: #247 (teacher reads via `teacherUids`),
 #248 (calendar seven-day deletion window + held lessons protected), #249 (Live Classroom „Lõpeta tund” → calendar
@@ -30,6 +31,28 @@ lesson), #250 (Esmane hindamine in v2). Codex drafts #234, #235, #230 closed as 
 
 Exactly one next safe step: owner runs A.1 and A.2.
 
+## 2026-10-04 — Esmane hindamine (initial assessment) in CRM v2 — branch `agent/initial-assessment-v2`
+
+Checked `origin/main` `60f3419`. Item 3 of the remaining v1 functions (`docs/CRM_V2_MIGRATION_PLAN.md`, "initial level
+test"): the public website level test `tasemetest.html` already works (leads → `websiteLeadApi`); what was missing in
+CRM v2 is v1's student-card "Esmane hindamine" baseline. Ported on the **same** document and rules, no schema change:
+- `features/initial-assessment/assessmentModel.js` (ESM port of `initial-assessment-core.js`: 20 grammar topics,
+  15 vocabulary areas, 6 skills, statuses/priorities; `assessmentPayload` writes exactly the 18 keys
+  `validInitialAssessment` requires; creation fields kept on update; 0 % stays a result, empty = Hindamata; percentages
+  never set the CEFR level), `services/firebase/initialAssessments.js` (`get`, `save` → `setDoc`
+  `studentInitialAssessments/{studentId}`).
+- `InitialAssessmentPanel.jsx` + css: new profile tab „Esmane hindamine” — empty state „Loo esmane hindamine”, view
+  (levels, overall status, grammar/vocabulary averages, "Esimesena harjutada" = weakest topics, tables, notes) and edit
+  (score → suggested status, priority, comment, add/remove topics, strengths/development areas one per line, focus).
+- Tests: model 5, panel 2; new emulator test `functions/initial-assessment-rules-emulator.integration.js` (in
+  `test:emulator`) writes the exact v2 document: the student's teacher creates/updates OK; forged `createdByUid`,
+  extra key and the student → 403; another teacher → 403 once `teacherScopeReadEnforced` is on (legacy mode lets any
+  teacher read/write any student, existing behaviour).
+- Checks: emulator `test:emulator` 46/46; CRM Vitest 125 files / 624 tests; ESLint clean; build OK. Browser on local
+  emulators as teacher: create → save → reload shows it; Firestore document as expected; 1440 px and 390 px without
+  horizontal scroll (a first 390 px run overflowed to 654 px — fixed with `minmax(0,1fr)` on the card).
+- Production: client only (Vercel). No rules/Functions deploy needed.
+- Exactly one next safe step: the owner opens a student → „Esmane hindamine” and saves one real baseline.
 ## 2026-10-04 — Live Classroom → calendar lesson: „Lõpeta tund” opens the lesson to mark it held — branch `agent/live-room-lesson-link`
 
 Checked `origin/main` `60f3419` (after #247). Closes the open Live Classroom item "lesson completion integration".
