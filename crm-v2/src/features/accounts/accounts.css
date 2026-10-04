@@ -12,3 +12,17 @@
 .account-row__actions{display:flex;gap:8px;align-items:center}
 .account-row__rejected{color:#b42318}
 @media(max-width:640px){.account-row__actions{width:100%}.account-row__actions .button{flex:1}}
+
+/* „Vajab otsust”: possible duplicate cards after a registration */
+.link-reviews { display: grid; gap: 12px; margin-bottom: 16px; border-color: #fedf89; }
+.link-reviews__head { display: flex; align-items: center; gap: 8px; }
+.link-reviews__hint { margin: 0; font-size: 14px; color: #475467; }
+.link-review { display: grid; gap: 10px; padding: 12px; border: 1px solid #eaecf0; border-radius: 10px; }
+.link-review__who { display: grid; gap: 2px; }
+.link-review__who small { color: #667085; }
+.link-review__reason { color: #b54708 !important; }
+.link-review__candidates { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.link-review__candidates li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; border-radius: 8px; background: #f9fafb; }
+.link-review__candidates li span { display: grid; gap: 2px; }
+.link-review__candidates small { color: #667085; }
+.link-review__actions { display: flex; flex-wrap: wrap; gap: 8px; }

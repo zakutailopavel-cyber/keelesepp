@@ -1,5 +1,26 @@
 # KeeleSepp Project State
 
+## 2026-10-04 — „Vajab otsust”: registrations stopped on a possible duplicate card — branch `claude/affectionate-ritchie-dh2x9j`
+
+Checked `origin/main` `a63f813` (after #283, calendar). Owner: a student (Polina) registered and was approved, but is
+not in „Õpilased”; the duplicate handling is unclear.
+- Cause: the server bootstrap (`bootstrapCurrentAccount`) writes `accountLinkReviews/{id}` (status `pending`) instead of
+  creating/linking a card when it finds a possible duplicate (e.g. same e-mail on an existing card but the account
+  e-mail is not verified, several cards with the same e-mail, a similar child name). These reviews were shown nowhere in
+  CRM v2, so such people stayed without a card.
+- `staffOperationsApi` (admin): `/accounts/reviews` (pending reviews with candidates and an Estonian reason),
+  `/accounts/reviews/create-card` (new card `self_<uid>` / `parent_<uid>_<key>` with the same fields as the automatic
+  bootstrap — extracted to `bootstrapStudentCardData` — link, review `resolved`, audit), `/accounts/reviews/dismiss`.
+  Linking to an existing card uses the existing `/accounts/link` (which already resolves the review). The approval
+  response now carries `reviewCount`.
+- CRM „Uued kontod”: card „Vajab otsust: võimalik topeltkaart” (`LinkReviewsCard`): who, why, candidate cards with
+  „Seo selle kaardiga”, „Loo uus kaart”, „Jäta vahele”; the approval notice points there when a review was created.
+- Tests: emulator `functions/account-link-review-emulator.integration.js` 1/1 (teacher 403, list, create card,
+  resolved, 409 on second decision, dismiss; added to the CI emulator command); AccountsPage tests (2 new, 9/9);
+  functions `npm test` 223/223; ESLint clean.
+- **Needs the owner:** Cloud Functions deploy (`staffOperationsApi`). Then open „Uued kontod” — Polina should be
+  under „Vajab otsust”.
+
 ## 2026-10-04 — Calendar: a lesson deleted in KeeleSepp leaves Google Calendar too — branch `claude/affectionate-ritchie-dh2x9j`
 
 Checked `origin/main` `ec5db0b` (after #282). Owner: „если я удалил урок, то и из Гугла бы ушёл”.

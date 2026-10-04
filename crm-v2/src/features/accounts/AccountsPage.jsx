@@ -4,6 +4,7 @@ import { Badge, Button, Card, EmptyState, ErrorState, LoadingState, PageHeader }
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { accountApprovalsService } from '../../services/firebase/index.js';
 import { APPROVAL_RESPONSE_LOST_MESSAGE } from '../../services/firebase/accountApprovals.js';
+import LinkReviewsCard from './LinkReviewsCard.jsx';
 import './accounts.css';
 
 const ROLE = { parent: 'Lapsevanem', student: 'Õpilane' };
@@ -13,7 +14,8 @@ function linkedText(result) {
   if (result.responseLost) return APPROVAL_RESPONSE_LOST_MESSAGE;
   const linked = (result.linkedStudentIds?.length || 0) + (result.createdStudentIds?.length || 0);
   const parts = ['Konto kinnitatud.'];
-  parts.push(linked ? `Seotud õpilase kaarte: ${linked}.` : 'Õpilase kaarti automaatselt ei leitud — seo see vajadusel õpilase kaardil.');
+  if (result.reviewCount) parts.push('Sarnane õpilase kaart on juba olemas — vali allpool „Vajab otsust”, kas siduda või luua uus kaart.');
+  else parts.push(linked ? `Seotud õpilase kaarte: ${linked}.` : 'Õpilase kaarti automaatselt ei leitud — seo see vajadusel õpilase kaardil.');
   if (result.mailed) parts.push('Inimesele saadeti e-kiri.');
   else if (result.mailPending) parts.push('E-kirja saatmine ei ole veel kinnitatud.');
   return parts.join(' ');
@@ -26,6 +28,7 @@ export default function AccountsPage({ service = accountApprovalsService }) {
   const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
   const state = useAsyncData(() => service.list(tab), [service, tab]);
+  const reviewsState = useAsyncData(() => (service.listReviews ? service.listReviews() : Promise.resolve([])), [service]);
 
   const decide = async (account, decision) => {
     let reason = '';
@@ -38,6 +41,7 @@ export default function AccountsPage({ service = accountApprovalsService }) {
       const result = await service.decide({ uid: account.id, decision, reason });
       setNotice(decision === 'approve' ? linkedText(result) : `Konto „${account.displayName}” on keeldutud.`);
       state.reload();
+      reviewsState.reload();
     } catch (caught) {
       setError(caught.message);
     } finally { setBusy(''); }
@@ -46,6 +50,8 @@ export default function AccountsPage({ service = accountApprovalsService }) {
   return (
     <div className="page-content">
       <PageHeader eyebrow="Ligipääs" title="Uued kontod" description="Lapsevanemad ja õpilased, kes registreerusid ise, saavad ligipääsu alles pärast sinu kinnitust." />
+      {reviewsState.error ? <p className="form-error" role="alert">Sidumise otsuseid ei saanud laadida: {reviewsState.error.message}</p> : null}
+      <LinkReviewsCard reviews={reviewsState.data || []} service={service} onChanged={reviewsState.reload} />
       <div className="accounts-tabs" role="tablist" aria-label="Kontode olek">
         {TABS.map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={tab === id} className={tab === id ? 'is-active' : ''} onClick={() => { setTab(id); setNotice(''); setError(''); }}>{label}</button>)}
       </div>
