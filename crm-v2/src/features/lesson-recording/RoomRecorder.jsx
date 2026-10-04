@@ -12,9 +12,11 @@ function pickMime() {
 const clock = (ms) => { const s = Math.floor(ms / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
 
 // One audio track recorded in standalone 5-minute files (each file plays and transcribes on its own).
+// `nextSeq` numbers the files per track across restarts (reconnect, another microphone), so a restarted track never
+// overwrites an uploaded file (Storage allows overwrites while the recording is open).
 class TrackRecorder {
-  constructor({ track, stream, t0, onSegment }) {
-    this.track = track; this.t0 = t0; this.onSegment = onSegment; this.seq = 0; this.stopped = false;
+  constructor({ track, stream, t0, onSegment, nextSeq }) {
+    this.track = track; this.t0 = t0; this.onSegment = onSegment; this.nextSeq = nextSeq; this.stopped = false;
     this.stream = new MediaStream(stream.getAudioTracks());
     this.mime = pickMime();
     this.next();
@@ -24,7 +26,7 @@ class TrackRecorder {
     const rec = new MediaRecorder(this.stream, this.mime ? { mimeType: this.mime } : undefined);
     const chunks = [];
     const startMs = Date.now() - this.t0;
-    const seq = this.seq++;
+    const seq = this.nextSeq();
     rec.ondataavailable = (e) => { if (e.data?.size) chunks.push(e.data); };
     rec.onstop = () => {
       const blob = new Blob(chunks, { type: rec.mimeType || this.mime || 'audio/webm' });
@@ -58,7 +60,11 @@ export default function RoomRecorder({
   const [pending, setPending] = useState(0);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  const ctx = useRef({ id: '', t0: 0, teacher: null, student: null, uploads: [] });
+  const ctx = useRef({ id: '', t0: 0, teacher: null, student: null, uploads: [], seq: { teacher: 0, student: 0 } });
+  const recorder = (track, stream) => new TrackRecorder({
+    track, stream, t0: ctx.current.t0, onSegment: upload,
+    nextSeq: () => { const c = ctx.current; const value = c.seq[track]; c.seq[track] = value + 1; return value; },
+  });
 
   const upload = (seg) => {
     const { id } = ctx.current;
@@ -76,8 +82,17 @@ export default function RoomRecorder({
     const remote = streams?.remote;
     if (c.student && c.student.source === remote) return;
     if (c.student) { c.student.rec.stop(); c.student = null; }
-    if (remote?.getAudioTracks?.().length) c.student = { source: remote, rec: new TrackRecorder({ track: 'student', stream: remote, t0: c.t0, onSegment: upload }) };
+    if (remote?.getAudioTracks?.().length) c.student = { source: remote, rec: recorder('student', remote) };
   }, [recording, streams?.remote]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // the teacher switched the microphone (new local stream): continue on the new one
+  useEffect(() => {
+    const c = ctx.current;
+    const local = streams?.local;
+    if (!recording || !c.teacher || c.teacher.stream === local || !local?.getAudioTracks?.().length) return;
+    c.teacher.rec.stop();
+    c.teacher = { stream: local, rec: recorder('teacher', local) };
+  }, [recording, streams?.local]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!recording) return undefined;
@@ -88,7 +103,7 @@ export default function RoomRecorder({
   // leaving the room mid-recording still closes the files and hands the recording to the transcriber
   const alive = useRef(true);
   const closeFiles = async (c) => {
-    c.teacher?.stop(); c.student?.rec.stop();
+    c.teacher?.rec.stop(); c.student?.rec.stop();
     c.teacher = null; c.student = null;
     // let the last onstop events queue their uploads
     await new Promise((r) => setTimeout(r, 300));
@@ -111,8 +126,8 @@ export default function RoomRecorder({
     setBusy(true);
     try {
       const rec = await service.start({ invitation, user, subject });
-      ctx.current = { id: rec.id, t0: Date.now(), teacher: null, student: null, uploads: [] };
-      ctx.current.teacher = new TrackRecorder({ track: 'teacher', stream: streams.local, t0: ctx.current.t0, onSegment: upload });
+      ctx.current = { id: rec.id, t0: Date.now(), teacher: null, student: null, uploads: [], seq: { teacher: 0, student: 0 } };
+      ctx.current.teacher = { stream: streams.local, rec: recorder('teacher', streams.local) };
       setElapsed(0);
       setRecording(rec);
     } catch (err) {

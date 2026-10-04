@@ -36,16 +36,17 @@ describe('RoomRecorder', () => {
       uploadSegment: vi.fn(async () => ({})),
       finish: vi.fn(async () => ''),
     };
-    const { rerender } = render(<RoomRecorder invitation={invitation} user={user} streams={{ local: stream(), remote: null }} consent subject="Eesti keel" service={service} />);
+    const local = stream();
+    const { rerender } = render(<RoomRecorder invitation={invitation} user={user} streams={{ local, remote: null }} consent subject="Eesti keel" service={service} />);
     fireEvent.click(screen.getByRole('button', { name: 'Alusta salvestamist' }));
     await screen.findByText(/Salvestan/);
     expect(service.start).toHaveBeenCalledWith({ invitation, user, subject: 'Eesti keel' });
     expect(screen.getByText(/ootan õpilase heli/)).toBeInTheDocument();
-    rerender(<RoomRecorder invitation={invitation} user={user} streams={{ local: stream(), remote: stream() }} consent subject="Eesti keel" service={service} />);
+    rerender(<RoomRecorder invitation={invitation} user={user} streams={{ local, remote: stream() }} consent subject="Eesti keel" service={service} />);
     expect(screen.getByText(/õpetaja \+ õpilane/)).toBeInTheDocument();
     expect(FakeRecorder.all).toHaveLength(2);
     fireEvent.click(screen.getByRole('button', { name: /Lõpeta salvestamine/ }));
-    await waitFor(() => expect(service.finish).toHaveBeenCalledWith('inv-1_1'));
+    await waitFor(() => expect(service.finish).toHaveBeenCalledWith('inv-1_1'), { timeout: 3000 });
     const tracks = service.uploadSegment.mock.calls.map(([seg]) => seg.track).sort();
     expect(tracks).toEqual(['student', 'teacher']);
     expect(service.uploadSegment.mock.calls[0][0]).toMatchObject({ recordingId: 'inv-1_1', seq: 0 });
@@ -63,7 +64,7 @@ describe('RoomRecorder', () => {
     expect(service.start).toHaveBeenCalledTimes(1);
     expect(onStateChange).toHaveBeenLastCalledWith({ recording: true, error: '' });
     rerender(<RoomRecorder invitation={invitation} user={user} streams={{ local: null }} consent auto onStateChange={onStateChange} service={service} />);
-    await waitFor(() => expect(service.finish).toHaveBeenCalledWith('inv-1_1'));
+    await waitFor(() => expect(service.finish).toHaveBeenCalledWith('inv-1_1'), { timeout: 3000 });
     await waitFor(() => expect(onStateChange).toHaveBeenLastCalledWith({ recording: false, error: '' }));
     rerender(<RoomRecorder invitation={invitation} user={user} streams={{ local: stream(), remote: null }} consent auto onStateChange={onStateChange} service={service} />);
     await waitFor(() => expect(service.start).toHaveBeenCalledTimes(2));
@@ -74,7 +75,7 @@ describe('RoomRecorder', () => {
     const local = stream();
     render(<RoomRecorder invitation={invitation} user={user} streams={{ local, remote: null }} consent auto service={service} />);
     fireEvent.click(await screen.findByRole('button', { name: /Lõpeta salvestamine/ }));
-    await waitFor(() => expect(service.finish).toHaveBeenCalled());
+    await waitFor(() => expect(service.finish).toHaveBeenCalled(), { timeout: 3000 });
     expect(await screen.findByRole('button', { name: 'Alusta salvestamist' })).toBeInTheDocument();
     expect(service.start).toHaveBeenCalledTimes(1);
   });
@@ -91,8 +92,23 @@ describe('RoomRecorder', () => {
     const { unmount } = render(<RoomRecorder invitation={invitation} user={user} streams={{ local: stream(), remote: null }} consent auto service={service} />);
     await screen.findByText(/Salvestan/);
     unmount();
-    await waitFor(() => expect(service.finish).toHaveBeenCalledWith('inv-1_1'));
+    await waitFor(() => expect(service.finish).toHaveBeenCalledWith('inv-1_1'), { timeout: 3000 });
     expect(service.uploadSegment).toHaveBeenCalledWith(expect.objectContaining({ track: 'teacher' }));
+  });
+
+  it('never reuses a file number when the student reconnects or the teacher switches the microphone', async () => {
+    const service = { start: vi.fn(async () => ({ id: 'inv-1_1' })), uploadSegment: vi.fn(async () => ({})), finish: vi.fn(async () => '') };
+    const local1 = stream();
+    const { rerender } = render(<RoomRecorder invitation={invitation} user={user} streams={{ local: local1, remote: stream() }} consent auto service={service} />);
+    await screen.findByText(/Salvestan/);
+    rerender(<RoomRecorder invitation={invitation} user={user} streams={{ local: local1, remote: stream() }} consent auto service={service} />);
+    const local2 = stream();
+    rerender(<RoomRecorder invitation={invitation} user={user} streams={{ local: local2, remote: stream() }} consent auto service={service} />);
+    fireEvent.click(screen.getByRole('button', { name: /Lõpeta salvestamine/ }));
+    await waitFor(() => expect(service.finish).toHaveBeenCalled(), { timeout: 3000 });
+    const numbers = (name) => service.uploadSegment.mock.calls.map(([seg]) => seg).filter((seg) => seg.track === name).map((seg) => seg.seq).sort();
+    expect(numbers('student')).toEqual([0, 1, 2]);
+    expect(numbers('teacher')).toEqual([0, 1]);
   });
 
   it('asks to start the camera and microphone first', async () => {

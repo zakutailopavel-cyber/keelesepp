@@ -1,5 +1,26 @@
 # KeeleSepp Project State
 
+## 2026-10-04 — Live Classroom: camera/microphone choice + recording file-number fix — branch `claude/affectionate-ritchie-dh2x9j`
+
+Checked `origin/main` `18de8a7` (after #264), no open PRs. Owner: „занимаемся сейчас разработкой” (Live Classroom).
+- **Bug fixed (recording):** `RoomRecorder` numbered files per `TrackRecorder` instance, so a student reconnect (more
+  frequent since auto-recovery #261) restarted at `student_000` and overwrote uploaded audio. Numbers now continue
+  per track for the whole recording; the teacher track also restarts (continuing numbers) when the local stream
+  changes (microphone switch).
+- **Device choice:** `useLiveCall` lists cameras/microphones (`enumerateDevices`, refreshed on `devicechange`),
+  `switchDevice(kind, id)` swaps the track on the running connection via `replaceTrack` (no new offer), keeps mute,
+  stops the old track, reports a new local stream (recording follows); a camera change during screen sharing applies
+  when sharing stops. Choice remembered in this browser (`localStorage keelesepp.liveDevices`) and preferred
+  (`ideal`, never blocks) on the next call. Room: Rohkem → „Kaamera ja mikrofon” (teacher and student) with two
+  selects and a microphone level bar.
+- Tests: `useLiveCall.devices.test.jsx` 3 (constraints, mic switch mid-call, camera vs screen share), recorder 1
+  (numbers 0,1,2 student / 0,1 teacher across reconnect + mic switch; an older test now reuses one local stream as the
+  app does), LiveRoom 1. CRM Vitest 132 files / 830 tests; ESLint clean; build OK. Not tried in a real browser with
+  two devices.
+- Client only; no rules/Functions change.
+- Exactly one next safe step: in a lesson, switch the microphone (e.g. to headphones) from Rohkem → Kaamera ja
+  mikrofon and check that the student keeps hearing you and the recording continues.
+
 ## 2026-10-04 — Release: recording consent rules (#263) — RELEASED
 
 Owner deployed `firestore:rules` from `~/keelesepp-release` at main `b5ee4e7`: „uploading rules firestore.rules” →

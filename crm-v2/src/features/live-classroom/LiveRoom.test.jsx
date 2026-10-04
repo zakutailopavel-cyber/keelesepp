@@ -61,6 +61,14 @@ describe('LiveRoom', () => {
     expect(screen.getByText('Julia')).toBeInTheDocument();
   });
 
+  it('opens camera and microphone settings from „Rohkem” for the student too', () => {
+    renderRoom('student', services());
+    fireEvent.click(screen.getByRole('button', { name: 'Rohkem' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Kaamera ja mikrofon' }));
+    const drawer = screen.getByRole('region', { name: 'Kaamera ja mikrofon' });
+    expect(within(drawer).getByText(/Seadmed ilmuvad, kui kõne on alanud/)).toBeInTheDocument();
+  });
+
   it('draws on the board and undoes / redoes from the top bar', async () => {
     const s = services();
     renderRoom('student', s);

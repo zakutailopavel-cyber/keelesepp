@@ -63,9 +63,10 @@ describe('PetCompanion', () => {
   it('announces a lesson invitation by itself', async () => {
     window.localStorage.setItem('ks-pet-tour-u1', '1');
     const { push } = renderCompanion();
-    await screen.findByRole('button', { name: /Rebu: vajuta/ });
+    // generous waits: the companion renders a large SVG, and the full parallel suite on CI exceeded the 1 s default
+    await screen.findByRole('button', { name: /Rebu: vajuta/ }, { timeout: 5000 });
     push([{ id: 'inv-1', status: 'pending', teacherName: 'Kati', expiresAt: new Date(at(12, 5)).toISOString() }]);
-    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Kati kutsub sind tundi!'));
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Kati kutsub sind tundi!'), { timeout: 5000 });
   });
 
   it('can be hidden and called back; never shown to staff or in preview', async () => {
