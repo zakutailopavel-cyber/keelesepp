@@ -498,7 +498,9 @@ IDs deterministically, rejects missing sources and returns an unsaved draft. Fir
 after an explicit teacher save. Generated learner metadata never falls back to Russian roadmap goal/success fields.
 Content Library v2 extends the same contract with the `family-relations` source and an explicit A2-006 blueprint;
 it does not add storage collections, new persistence fields or automatic profile writes. Content Library v3 completes
-module two (`possession-genitive`, `appearance-character`, `people-profiles`; A2-007…A2-010). Context-choice gaps take
+module two (`possession-genitive`, `appearance-character`, `people-profiles`; A2-007…A2-010); v4 completes module
+three (`daily-routine`, `clock-time`, `frequency`, `week-plan`; A2-011…A2-015). Translation hints stay empty:
+`alternatives` are accepted answers for the teacher and are never shown to the learner. Context-choice gaps take
 distractors of another part of speech first, so a gap keeps exactly one grammatical answer.
 The CEFR reserve is loaded separately with authenticated Firebase Storage `getBytes()` and is passed as plain data to
 the network-free generator core.

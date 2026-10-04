@@ -7,7 +7,7 @@ import { createContentPackDraft, suggestReusablePackIds } from './factory.js';
 const lessons = roadmap.modules.flatMap((module) => module.lessons);
 
 describe('Content Pack Factory v1', () => {
-  it.each(['a2-002', 'a2-003', 'a2-004', 'a2-005', 'a2-006', 'a2-007', 'a2-008', 'a2-009', 'a2-010'])('builds a ready, deterministic five-task bundle for %s', (lessonId) => {
+  it.each(['a2-002', 'a2-003', 'a2-004', 'a2-005', 'a2-006', 'a2-007', 'a2-008', 'a2-009', 'a2-010', 'a2-011', 'a2-012', 'a2-013', 'a2-014', 'a2-015'])('builds a ready, deterministic five-task bundle for %s', (lessonId) => {
     const lesson = lessons.find((item) => item.id === lessonId);
     const first = createContentPackDraft(lesson);
     const second = createContentPackDraft(lesson);
@@ -74,7 +74,7 @@ describe('Content Pack Factory v1', () => {
     expect(result.profile.banks.writingPrompts).toHaveLength(1);
   });
 
-  it.each(['a2-007', 'a2-008', 'a2-009', 'a2-010'])('gives %s complete answer keys on every sheet across seeds', (lessonId) => {
+  it.each(['a2-007', 'a2-008', 'a2-009', 'a2-010', 'a2-011', 'a2-012', 'a2-013', 'a2-014', 'a2-015'])('gives %s complete answer keys on every sheet across seeds', (lessonId) => {
     const lesson = lessons.find((item) => item.id === lessonId);
     const { profile } = createContentPackDraft(lesson);
     for (const seed of ['a', 'b', 'c', 'd', 'e', 'f']) {
@@ -111,13 +111,46 @@ describe('Content Pack Factory v1', () => {
     expect(a2007.banks.errorPairs.map((item) => item.correct)).toContain('See on minu venna auto.');
   });
 
-  it('gap choices never offer a second word of the same part of speech (one correct answer)', () => {
-    const lesson = lessons.find((item) => item.id === 'a2-007');
+  it('module 3 uses the intended curated sources; clock practice only where times belong', () => {
+    const pick = (lessonId) => suggestReusablePackIds(lessons.find((item) => item.id === lessonId));
+    expect(pick('a2-011')).toEqual(['daily-routine']);
+    expect(pick('a2-012')).toEqual(['clock-time']);
+    expect(pick('a2-013')).toEqual(['frequency']);
+    expect(pick('a2-014')).toEqual(['week-plan']);
+    expect(pick('a2-015')).toEqual(['daily-routine', 'clock-time', 'frequency', 'week-plan']);
+    const clock = createContentPackDraft(lessons.find((item) => item.id === 'a2-012')).profile;
+    expect(clock.banks.sentences.map((item) => item.text)).toContain('Tund algab kell kuus ja lõpeb kell pool kaheksa.');
+    expect(clock.contexts.every((context) => context.times.length >= 3)).toBe(true);
+    for (const lessonId of ['a2-013', 'a2-014']) {
+      const profile = createContentPackDraft(lessons.find((item) => item.id === lessonId)).profile;
+      expect(profile.contexts.every((context) => context.times.length === 0)).toBe(true);
+    }
+  });
+
+  it('translation hints never reveal an accepted answer', () => {
+    for (const lessonId of ['a2-007', 'a2-011', 'a2-012', 'a2-013']) {
+      const lesson = lessons.find((item) => item.id === lessonId);
+      const { profile } = createContentPackDraft(lesson);
+      generateLessonBundle({ lesson, profile, seed: `${lessonId}:hint` }).sheets.flatMap((sheet) => sheet.worksheetDoc.blocks)
+        .filter((block) => block.type === 'translation')
+        .forEach((block) => block.data.rows.forEach((row) => expect(row.hint).toBe('')));
+    }
+  });
+
+  it('meaning choices offer exactly one translation that fits', () => {
+    for (const id of Object.keys(REUSABLE_CONTENT_LIBRARY)) {
+      const translations = REUSABLE_CONTENT_LIBRARY[id].vocabulary.map((item) => item.translation);
+      expect(new Set(translations).size, id).toBe(translations.length);
+    }
+  });
+
+  it.each(['a2-007', 'a2-011', 'a2-013'])('%s gap choices never offer a second word of the same part of speech', (lessonId) => {
+    const lesson = lessons.find((item) => item.id === lessonId);
     const { profile } = createContentPackDraft(lesson);
     const typeOf = new Map(profile.activeVocabulary.map((item) => [item.word, item.lexicalType]));
     let checked = 0;
     for (let index = 0; index < 30; index += 1) {
-      const generated = generateLessonBundle({ lesson, profile, seed: `a2-007:choice:${index}` });
+      const generated = generateLessonBundle({ lesson, profile, seed: `${lessonId}:choice:${index}` });
       generated.sheets.flatMap((sheet) => sheet.worksheetDoc.blocks)
         .filter((block) => block.type === 'choice' && block.data.title === 'Vali lausesse sobiv vorm.')
         .flatMap((block) => block.data.questions)

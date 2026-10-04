@@ -1,6 +1,17 @@
 # KeeleSepp Project State
 
-## 2026-10-04 — Worksheet generator (no API): A2 module 2 complete, A2-007…A2-010 — branch `agent/a2-factory-next`
+## 2026-10-04 — Worksheet generator (no API): A2 modules 2 and 3 complete, A2-007…A2-015 — branch `agent/a2-factory-next`
+
+**Module 3 (Library v4)** in the same PR: `daily-routine` (A2-011 Minu päev; contexts with times, so clock practice
+fits), `clock-time` (A2-012: kell, pool/veerand/kolmveerand, alates kella …-st kuni kella …-ni, enne/pärast, kestab),
+`frequency` (A2-013: alati…mitte kunagi, kord nädalas, „Kui tihti?”; frequency phrases typed as adverbs so they are
+never offered as wrong options for one another), `week-plan` (A2-014: weekdays, siis/pärast seda/aga/ja; 70–90-word
+text), A2-015 Kontroll 3 = all four. More fixes found by reading the output: translation blocks showed the accepted
+`alternatives` as the learner-visible hint (an answer leak) — `engine/content.js` now leaves the hint empty; two
+vocabulary meanings that overlapped („kuni” до / „enne” перед / до) made a meaning choice ambiguous — fixed, and a test
+requires unique translations per pack. CRM Vitest 126 files / 655 tests (generator 81), ESLint, build OK.
+Next safe step after merge: module 4 packs (A2-016…A2-020).
+
 
 Checked `origin/main` `35d618f`. Owner: continue worksheet generation without an external API. Static ready coverage
 was A2-001…A2-006; now A2-001…A2-010 (modules 1 and 2). Content Library v3:
@@ -20,7 +31,6 @@ was A2-001…A2-006; now A2-001…A2-010 (modules 1 and 2). Content Library v3:
 - No Firestore/rules/Functions change; nothing is saved automatically (teacher still saves a draft explicitly).
   (3) „Kas lause sobib olukorraga?” marked a sentence from another context as false but never named the situation;
   the instruction now reads „Olukord: <context label>. Märgi Õ, kui lause sobib …, ja V, kui ei sobi.”
-- Exactly one next safe step: module 3 packs (A2-011…A2-015: päev, kellaaeg, sagedus, nädal, kontroll).
 
 ## 2026-10-04 — Release of #247–#251: RELEASED
 

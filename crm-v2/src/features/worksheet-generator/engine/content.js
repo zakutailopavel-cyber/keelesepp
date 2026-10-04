@@ -186,7 +186,8 @@ function translationData(profile, focusIds, state, seed, spec) {
   return {
     title: 'Tõlgi eesti keelde.',
     instruction: 'Õpetaja kontrollib vastust.',
-    rows: selected.map((item) => ({ source: item.source, hint: item.alternatives?.join(' / ') || '' })),
+    // `alternatives` are accepted answers for the teacher; the block's hint is visible to the learner, so it stays empty.
+    rows: selected.map((item) => ({ source: item.source, hint: '' })),
   };
 }
 
