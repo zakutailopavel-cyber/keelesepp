@@ -1,5 +1,20 @@
 # KeeleSepp Project State
 
+## 2026-10-04 — Calendar: seven-day deletion window in main + held lessons protected (replaces draft #234) — branch `agent/calendar-tombstone-window`
+
+Checked `origin/main` `3802f0b`. Draft #234 had conflicts; its worksheet part is already in main in another form
+(`.ws-fix__prompt`). Its Functions part was deployed to production (`gcalApi`, `syncAllCalendars`) but was not in
+main, so a Functions deploy from main would have undone it. Ported here:
+- `functions/index.js` `syncTeacherCalendar`: `syncWindowStart = nativeWindowStart` (the seven-day tombstone lookback)
+  instead of "today", so a lesson deleted in Google after it happened is removed from KeeleSepp too.
+- **New safety guard** (`calendar-sync-core.js` `hasRecordedLessonResult`): with the window reaching into the past,
+  a schedule that already has a result (status Toimunud/Puudus_p/Puudus_eta, `lessonEntryId`, `attendance`, or an
+  `occurrenceStatuses` entry) is never deleted/cancelled by the reconcile. The deployed #234 version lacked this:
+  a held lesson deleted in Google within seven days would have lost its schedule record.
+- Tests: `functions/calendar-sync-core.test.js` +2. Functions `node --test` 214/214.
+- **Needs the owner:** `cd functions && npm ci && cd .. && npx -y firebase-tools@15.22.3 deploy --only
+  functions:gcalApi,functions:syncAllCalendars --project keelesepp-5136b` to put the guard into production.
+- Exactly one next safe step: owner deploys those two functions.
 ## 2026-10-04 — Teacher dashboard for secondary assignments (replaces draft #235) — branch `agent/teacher-shared-read`
 
 Checked `origin/main` `3802f0b`. Owner asked to finish the open work („доведи до конца”). Codex draft #235 had
