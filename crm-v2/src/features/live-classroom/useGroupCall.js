@@ -41,6 +41,7 @@ export function useGroupCall({
   const seen = useRef(new Set());
   const turn = useRef([]);
   const [hasLocalMedia, setHasLocalMedia] = useState(false);
+  const [localStream, setLocalStream] = useState(null);
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [videoEnabled, setVideoEnabled] = useState(true);
   const [remotes, setRemotes] = useState({}); // uid -> { stream, status }
@@ -177,6 +178,7 @@ export function useGroupCall({
       const stream = await mediaDevices.getUserMedia(mediaConstraints());
       localRef.current = stream;
       if (localVideoRef.current) localVideoRef.current.srcObject = stream;
+      setLocalStream(stream);
       setHasLocalMedia(true);
     } catch (nextError) {
       setError(nextError?.message || 'Kaamerat ei saanud käivitada.');
@@ -190,6 +192,7 @@ export function useGroupCall({
     localRef.current?.getTracks().forEach((track) => track.stop());
     localRef.current = null;
     if (localVideoRef.current) localVideoRef.current.srcObject = null;
+    setLocalStream(null);
     setHasLocalMedia(false);
     setRemotes({});
   }, [closePeer, send]);
@@ -207,7 +210,7 @@ export function useGroupCall({
 
   const tiles = others.map((other) => ({ ...other, online: online.has(other.uid), stream: remotes[other.uid]?.stream || null, status: remotes[other.uid]?.status || '' }));
   return {
-    participants, tiles, hasLocalMedia, audioEnabled, videoEnabled, error, busy, localVideoRef,
+    participants, tiles, hasLocalMedia, localStream, audioEnabled, videoEnabled, error, busy, localVideoRef,
     start, hangUp, toggleAudio: () => toggle('audio'), toggleVideo: () => toggle('video'),
   };
 }

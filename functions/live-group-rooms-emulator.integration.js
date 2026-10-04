@@ -118,8 +118,17 @@ test("only participants signal, report presence and use the group board; the tea
   assert.equal(await commit(ctx.jaan, [{ delete: name(`groupBoards/${id}/elements/n1`) }]), 200, "students erase ordinary elements");
   assert.equal(await read(ctx.outsider, `groupBoards/${id}/elements/i1`), 403);
 
+  const message = (who, mid, data) => write(`liveGroupRooms/${id}/messages/${mid}`, { fromUid: who.uid, fromName: "X", text: "Tere!", createdAtIso: new Date().toISOString(), ...data }, { now: ["createdAt"] });
+  assert.equal(await commit(ctx.mari, [message(ctx.mari, "m1", {})]), 200, "a member writes in the group chat");
+  assert.equal(await commit(ctx.mari, [message(ctx.mari, "m2", { fromUid: ctx.jaan.uid })]), 403, "as someone else");
+  assert.equal(await commit(ctx.outsider, [message(ctx.outsider, "m3", {})]), 403);
+  assert.equal(await read(ctx.jaan, `liveGroupRooms/${id}/messages/m1`), 200);
+  assert.equal(await read(ctx.outsider, `liveGroupRooms/${id}/messages/m1`), 403);
+
   assert.equal(await commit(ctx.mari, [write(`liveGroupRooms/${id}`, { status: "closed" }, { exists: true, mask: ["status"], now: ["closedAt"] })]), 403, "only the teacher closes");
   assert.equal(await commit(ctx.teacher, [write(`liveGroupRooms/${id}`, { status: "closed" }, { exists: true, mask: ["status"], now: ["closedAt"] })]), 200);
   assert.equal(await commit(ctx.mari, [write(`liveGroupRooms/${id}/presence/${ctx.mari.uid}`, { uid: ctx.mari.uid, role: "student", displayName: "X", online: false, lastSeenIso: "x" }, { exists: true, now: ["lastSeen"] })]), 403, "closed room");
   assert.equal(await read(ctx.mari, `groupBoards/${id}/elements/i1`), 200, "the group board stays readable after the lesson");
+  assert.equal(await commit(ctx.mari, [message(ctx.mari, "m4", {})]), 403, "no new messages after the lesson");
+  assert.equal(await read(ctx.mari, `liveGroupRooms/${id}/messages/m1`), 200, "the chat stays readable");
 });

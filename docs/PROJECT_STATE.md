@@ -1,5 +1,22 @@
 # KeeleSepp Project State
 
+## 2026-10-04 — Group lessons: chat and per-student recording — branch `claude/affectionate-ritchie-dh2x9j`
+
+Checked `origin/main` `d73c043` (after #276). Closes the two gaps of #274.
+- Chat: `liveGroupRooms/{roomId}/messages` (fromUid = me, text 1–2000, createdAt = request.time; participants of an
+  open room write, participants read also after the lesson; no edits/deletes). `liveGroupRoomsService.subscribeMessages`
+  / `sendMessage`; `GroupRoom` „Vestlus” drawer with unread badge.
+- Recording: in a group lesson the teacher's browser records one recording per student (teacher microphone + that
+  student's incoming audio) on the student's own accepted invitation, with the student card's consent — the existing
+  `lessonRecordings` rules and transcriber apply unchanged, and each student gets their own „Tunni analüüs” on the
+  card. `useGroupCall` exposes `localStream`; `GroupRoom` mounts one auto `RoomRecorder` per accepted invitation
+  (hidden), pill „Salvestan (n)”; students see „Tundi salvestatakse” (`RecordingIndicator` on their invitation).
+- Tests: emulator group test extended (member writes 200, forged sender 403, outsider 403/read 403, no writes after
+  close, chat readable after close) — 2/2; page test (chat read + send); `GroupRoom.test.jsx` (one recording for the
+  student with consent, none for the one without). CRM Vitest 137 files / 857 tests; ESLint clean; build OK.
+- Limit: each recording also holds the teacher's voice, so the teacher's track is transcribed once per student.
+- **Needs the owner:** `firestore:rules` deploy (chat rules; also #276).
+
 ## 2026-10-04 — Board: the teacher's drawing and writing are safe from the student's eraser — branch `claude/affectionate-ritchie-dh2x9j`
 
 Checked `origin/main` `6b872d9` (after #275). Follow-up to #266 (which protected images/PDFs only).
