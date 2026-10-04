@@ -1,5 +1,25 @@
 # KeeleSepp Project State
 
+## 2026-10-04 — Live Classroom: the worksheet lies on the board — branch `claude/affectionate-ritchie-dh2x9j`
+
+Checked `origin/main` `3609528` (after #269). Wish-list item 5 („рабочий лист — это и есть урок”).
+- Before: an open worksheet covered the board as a separate overlay („Ülesanded”).
+- Now the room's worksheet is a page of the student's board „Tööleht: <title>”: the teacher's browser creates it once
+  when the worksheet is opened (`addPage`), both switch to it; the worksheet (teacher: live answers, student: fill in;
+  `RoomWorksheetContent`) lies in an HTML layer under the drawing layer, 1000 board units wide, and pans/zooms with the
+  board (`.sb-underlay`, `fitWidth`). Tool „Täida töölehte” (default on that page) lets clicks reach the worksheet; all
+  other tools draw/write/annotate on top; annotations are stored on that lesson page and stay after the lesson.
+- „Ülesanded” is now a side drawer (teacher: pick and open a worksheet; „Ava tööleht tahvlil”); the student's button
+  jumps to the worksheet page. `RoomWorksheetPanel` has `showSheet` (false in the room) and exports `RoomWorksheetContent`.
+- Fix found in a browser check: board CSS `.sb-stage svg` also stretched the worksheet's own icons over the page;
+  scoped to `.sb-stage > svg`.
+- Checks: browser (temporary harness, not committed) 1280 px and 390 px with a sample worksheet: renders, no page
+  errors; on a phone the A4 worksheet shows at ~32 % (zoom buttons), like the old overlay. Tests: room 2 rewritten
+  (teacher creates „Tööleht: Minevik” page and both land on it with „Täida”; student switches when it appears, never
+  creates). CRM Vitest 133 files / 840 tests; ESLint clean; build OK.
+- Limit: annotations are positioned against the worksheet layout at 1000 units; if a worksheet's content changes
+  height later (feedback blocks), marks drawn below may shift relative to it.
+
 ## 2026-10-04 — Board: a sheet with edges, new sheets for everyone, renaming — branch `claude/affectionate-ritchie-dh2x9j`
 
 Checked `origin/main` `fa8da3e` (after #268). Wish-list item 4. Owner 2026-10-04: „делаем все до конца и потом одним

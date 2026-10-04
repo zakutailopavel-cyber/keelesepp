@@ -10,7 +10,16 @@ import './worksheetStudio.css';
 // Teacher: picks a studio worksheet → it is assigned to this student (normal assignment, so it also stays in
 // homework history) and tagged with the room key; the teacher then watches answers live and points at tasks.
 // Student: sees the worksheet of this room inline and fills it in; answers autosave.
-export default function RoomWorksheetPanel({ invitation, role, user, homework = homeworkService, library = libraryService, onCurrentChange }) {
+// The worksheet itself (teacher: live answers; student: fill in). In the Live Classroom room it lies on the board.
+export function RoomWorksheetContent({ current, role, homework = homeworkService }) {
+  if (!current) return null;
+  return role === 'teacher'
+    ? <LiveWorksheetView key={current.id} assignmentId={current.id} repository={homework} embedded />
+    : <DocWorksheetPlayer key={`${current.id}-${current.status === 'done' ? 'done' : 'open'}`} assignment={current} repository={homework} inline />;
+}
+
+// `showSheet`: false when the room shows the worksheet on the board and this panel only picks/announces it.
+export default function RoomWorksheetPanel({ invitation, role, user, homework = homeworkService, library = libraryService, onCurrentChange, showSheet = true }) {
   const roomKey = invitation.roomKey || invitation.id;
   const [items, setItems] = useState(null);
   const [error, setError] = useState('');
@@ -81,8 +90,8 @@ export default function RoomWorksheetPanel({ invitation, role, user, homework = 
           <Button loading={opening} disabled={!choice} onClick={open}>Ava tunnis</Button>
         </div>
       )}
-      {current && role === 'teacher' ? <LiveWorksheetView key={current.id} assignmentId={current.id} repository={homework} embedded /> : null}
-      {current && role === 'student' ? <DocWorksheetPlayer key={`${current.id}-${current.status === 'done' ? 'done' : 'open'}`} assignment={current} repository={homework} inline /> : null}
+      {showSheet ? <RoomWorksheetContent current={current} role={role} homework={homework} /> : null}
+      {!showSheet && current ? <p className="form-hint">Avatud: <strong>{current.title || current.worksheetDoc?.meta?.title || 'Tööleht'}</strong> — tahvlil oma lehel.</p> : null}
     </Card>
   );
 }
