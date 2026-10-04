@@ -1453,7 +1453,7 @@ service cloud.firestore {
       match /elements/{elementId} {
         allow read: if liveGroupParticipant(roomId);
         allow create: if liveGroupParticipant(roomId) && whiteboardElementCreateValid(request.resource.data);
-        allow update: if liveGroupParticipant(roomId) && whiteboardElementUpdateValid(resource.data, request.resource.data);
+        allow update: if liveGroupParticipant(roomId) && whiteboardElementUpdateValid(resource.data, request.resource.data, isAdmin() || isTeacher());
         allow delete: if liveGroupParticipant(roomId) && resource.data.get('locked', false) != true && whiteboardMaterialStaffOnly(resource.data);
       }
 
@@ -1472,7 +1472,7 @@ service cloud.firestore {
         match /elements/{elementId} {
           allow read: if liveGroupParticipant(roomId);
           allow create: if liveGroupParticipant(roomId) && whiteboardElementCreateValid(request.resource.data);
-          allow update: if liveGroupParticipant(roomId) && whiteboardElementUpdateValid(resource.data, request.resource.data);
+          allow update: if liveGroupParticipant(roomId) && whiteboardElementUpdateValid(resource.data, request.resource.data, isAdmin() || isTeacher());
           allow delete: if liveGroupParticipant(roomId) && resource.data.get('locked', false) != true && whiteboardMaterialStaffOnly(resource.data);
         }
       }
@@ -2059,10 +2059,11 @@ service cloud.firestore {
         && data.keys().hasAll(['type', 'updatedByUid'])
         && data.updatedByUid == uid()
         && data.type in ['stroke', 'shape', 'text', 'note', 'image', 'pdf']
+        && (!('byStaff' in data) || data.byStaff == true)
         && (
           data.type != 'stroke'
           || (
-            data.keys().hasOnly(['type', 'points', 'color', 'strokeWidth', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId', 'revision'])
+            data.keys().hasOnly(['type', 'points', 'color', 'strokeWidth', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId', 'revision', 'byStaff'])
             && data.points is list
             && data.points.size() > 0
             && data.points.size() <= 800
@@ -2075,7 +2076,7 @@ service cloud.firestore {
         && (
           data.type != 'shape'
           || (
-            data.keys().hasOnly(['type', 'shape', 'x', 'y', 'w', 'h', 'color', 'strokeWidth', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId', 'revision'])
+            data.keys().hasOnly(['type', 'shape', 'x', 'y', 'w', 'h', 'color', 'strokeWidth', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId', 'revision', 'byStaff'])
             && data.shape in ['rect', 'ellipse', 'line', 'arrow']
             && data.x is number && data.y is number
             && data.w is number && data.h is number
@@ -2088,7 +2089,7 @@ service cloud.firestore {
         && (
           data.type != 'text'
           || (
-            data.keys().hasOnly(['type', 'x', 'y', 'w', 'h', 'text', 'color', 'fontSize', 'fontFamily', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId', 'revision'])
+            data.keys().hasOnly(['type', 'x', 'y', 'w', 'h', 'text', 'color', 'fontSize', 'fontFamily', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId', 'revision', 'byStaff'])
             && data.x is number && data.y is number
             && data.w is number && data.h is number
             && data.text is string
@@ -2103,7 +2104,7 @@ service cloud.firestore {
         && (
           data.type != 'note'
           || (
-            data.keys().hasOnly(['type', 'x', 'y', 'w', 'h', 'text', 'color', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId', 'revision'])
+            data.keys().hasOnly(['type', 'x', 'y', 'w', 'h', 'text', 'color', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId', 'revision', 'byStaff'])
             && data.x is number && data.y is number
             && data.w is number && data.h is number
             && data.text is string
@@ -2114,7 +2115,7 @@ service cloud.firestore {
         && (
           data.type != 'image'
           || (
-            data.keys().hasOnly(['type', 'x', 'y', 'w', 'h', 'url', 'storagePath', 'rotation', 'locked', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId', 'revision'])
+            data.keys().hasOnly(['type', 'x', 'y', 'w', 'h', 'url', 'storagePath', 'rotation', 'locked', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId', 'revision', 'byStaff'])
             && data.x is number && data.y is number
             && data.w is number && data.h is number
             && data.w > 0 && data.h > 0 && data.w <= 100000 && data.h <= 100000
@@ -2128,7 +2129,7 @@ service cloud.firestore {
         && (
           data.type != 'pdf'
           || (
-            data.keys().hasOnly(['type', 'x', 'y', 'w', 'h', 'url', 'storagePath', 'name', 'rotation', 'locked', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId', 'revision'])
+            data.keys().hasOnly(['type', 'x', 'y', 'w', 'h', 'url', 'storagePath', 'name', 'rotation', 'locked', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId', 'revision', 'byStaff'])
             && data.x is number && data.y is number
             && data.w is number && data.h is number
             && data.w > 0 && data.h > 0 && data.w <= 100000 && data.h <= 100000
@@ -2181,14 +2182,19 @@ service cloud.firestore {
 
     // Teacher materials (images, PDFs) can only be added by staff, so only staff may move, resize or delete them:
     // a student's eraser or drag must never remove what the teacher put on the board.
+    // Teacher content (images/PDFs, and since 2026-10-04 everything a teacher draws or writes: byStaff) is moved,
+    // changed and erased only by staff; a student's eraser never removes it.
     function whiteboardMaterialStaffOnly(data) {
-      return !(data.type in ['image', 'pdf']) || isAdmin() || isTeacher();
+      return (!(data.type in ['image', 'pdf']) && data.get('byStaff', false) != true) || isAdmin() || isTeacher();
     }
 
-    function whiteboardElementUpdateValid(before, after) {
+    // `staff` (admin or teacher) is computed once by the caller: re-checking roles here pushed teacher writes over
+    // Firestore's 1000-expression limit
+    function whiteboardElementUpdateValid(before, after, staff) {
       return validWhiteboardElement(after)
         && after.type == before.type
-        && whiteboardMaterialStaffOnly(before)
+        && after.get('byStaff', false) == before.get('byStaff', false)
+        && (staff || (!(before.type in ['image', 'pdf']) && before.get('byStaff', false) != true))
         && (
           !(after.type in ['image', 'pdf'])
           || (
@@ -2199,8 +2205,9 @@ service cloud.firestore {
     }
 
     function whiteboardElementUpdateAllowed(studentId, before, after) {
+      let staff = isAdmin() || isTeacher();
       return whiteboardAccessAllowed(studentId)
-        && whiteboardElementUpdateValid(before, after);
+        && whiteboardElementUpdateValid(before, after, staff);
     }
 
     function whiteboardElementDeleteAllowed(studentId, data) {
@@ -2213,7 +2220,7 @@ service cloud.firestore {
     function whiteboardElementCreateValid(data) {
       return validWhiteboardElement(data)
         && (
-          !(data.type in ['image', 'pdf'])
+          (!(data.type in ['image', 'pdf']) && !('byStaff' in data))
           || isAdmin()
           || isTeacher()
         );
@@ -2331,7 +2338,7 @@ service cloud.firestore {
             );
           allow update: if whiteboardAccessAllowed(studentId)
             && lessonPageLive(studentId, pageId)
-            && whiteboardElementUpdateValid(resource.data, request.resource.data);
+            && whiteboardElementUpdateValid(resource.data, request.resource.data, isAdmin() || isTeacher());
           allow delete: if whiteboardAccessAllowed(studentId)
             && (
               (lessonPageLive(studentId, pageId) && resource.data.get('locked', false) != true && whiteboardMaterialStaffOnly(resource.data))
