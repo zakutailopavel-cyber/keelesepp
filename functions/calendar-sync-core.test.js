@@ -381,3 +381,37 @@ test("calendar reconciliation acts only on an explicit Google tombstone", () => 
     date: "2027-01-01",
   }, deletedIds, options), false);
 });
+
+test("calendar reconciliation removes a recently elapsed lesson deleted in Google", () => {
+  const deletedIds = explicitlyDeletedGoogleEventIds([
+    { id: "deleted-yesterday", status: "cancelled" },
+  ]);
+  const sevenDayLookback = { windowStart: "2026-09-25", windowEnd: "2026-12-01" };
+
+  assert.equal(shouldApplyExplicitGoogleDeletion({
+    source: "gcal",
+    gcalEventId: "deleted-yesterday",
+    date: "2026-10-01",
+  }, deletedIds, sevenDayLookback), true);
+  assert.equal(shouldApplyExplicitGoogleDeletion({
+    source: "gcal",
+    gcalEventId: "deleted-yesterday",
+    date: "2026-09-24",
+  }, deletedIds, sevenDayLookback), false);
+});
+
+test("calendar reconciliation never removes a lesson that already has a result", () => {
+  const deletedIds = explicitlyDeletedGoogleEventIds([{ id: "held", status: "cancelled" }]);
+  const window = { windowStart: "2026-09-25", windowEnd: "2026-12-01" };
+  const base = { source: "gcal", gcalEventId: "held", date: "2026-10-01" };
+  for (const extra of [
+    { status: "Toimunud" },
+    { status: "Puudus_p" },
+    { lessonEntryId: "lesson-1" },
+    { attendance: { "s1_2026-10-01": { status: "present" } } },
+    { occurrenceStatuses: { "2026-10-01": { status: "Toimunud", lessonEntryId: "lesson-2" } } },
+  ]) {
+    assert.equal(shouldApplyExplicitGoogleDeletion({ ...base, ...extra }, deletedIds, window), false, JSON.stringify(extra));
+  }
+  assert.equal(shouldApplyExplicitGoogleDeletion({ ...base, status: "Planeeritud" }, deletedIds, window), true);
+});
