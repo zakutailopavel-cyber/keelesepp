@@ -25,6 +25,9 @@ the lesson what the student said and where they struggled. No AI analysis yet (a
    `lessonRecordings/{recordingId}/{teacher|student}_NNN.webm`; `lessonRecordings/{recordingId}` lists the segments.
    "Lõpeta salvestamine" uploads the rest and sets `status: uploaded`. If the student joins later or reconnects, their
    track starts on arrival. A tab closed mid-recording is handed over by the worker after 3 hours.
+   File numbers (`NNN`) continue per track across restarts (student reconnect, teacher switches the microphone): before
+   2026-10-04 a restarted track began again at `000` and overwrote the uploaded file (Storage allows overwrites while
+   the recording is open), so audio of a reconnected lesson could be lost.
 2. **Worker (school Mac):** `tools/lesson-transcriber` (whisper.cpp; Estonian lessons: TalTech `whisper-large-v3-turbo-et-verbatim-2604`, MIT; other languages: large-v3-turbo) claims `uploaded`, converts
    each file to 16 kHz WAV, transcribes in the lesson language (`et`, `en` for English learners), merges both tracks by
    time into `transcript = [{ speaker, startMs, endMs, text }]` → `done` (or `failed` with the error).

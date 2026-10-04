@@ -116,6 +116,51 @@ function MaterialsPanel({ library, onPlace }) {
   </div>;
 }
 
+// microphone level from the local stream (0…1), so a wrong or muted microphone is visible before speaking
+function MicLevel({ stream }) {
+  const [level, setLevel] = useState(0);
+  useEffect(() => {
+    const AudioCtx = globalThis.AudioContext || globalThis.webkitAudioContext;
+    const track = stream?.getAudioTracks?.()[0];
+    if (!AudioCtx || !track) return undefined;
+    let frame = 0;
+    let context;
+    try {
+      context = new AudioCtx();
+      const analyser = context.createAnalyser();
+      analyser.fftSize = 512;
+      context.createMediaStreamSource(new globalThis.MediaStream([track])).connect(analyser);
+      const data = new Uint8Array(analyser.fftSize);
+      const tick = () => {
+        analyser.getByteTimeDomainData(data);
+        let peak = 0;
+        for (const value of data) peak = Math.max(peak, Math.abs(value - 128));
+        setLevel(Math.min(1, peak / 64));
+        frame = globalThis.requestAnimationFrame(tick);
+      };
+      tick();
+    } catch { return undefined; }
+    return () => { globalThis.cancelAnimationFrame(frame); context?.close?.(); };
+  }, [stream]);
+  return <div className="lr-meter" role="meter" aria-label="Mikrofoni tase" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(level * 100)}><i style={{ width: `${Math.round(level * 100)}%` }} /></div>;
+}
+
+function DevicesPanel({ call, stream }) {
+  if (!call.hasLocalMedia) return <p className="lr-muted">Seadmed ilmuvad, kui kõne on alanud (kaamera ja mikrofon sees).</p>;
+  const select = (kind, label, items, value) => <label className="lr-field"><span>{label}</span>
+    <select value={value} disabled={call.deviceBusy} onChange={(event) => call.switchDevice(kind, event.target.value)}>
+      {!items.some((item) => item.id === value) ? <option value={value}>Vaikimisi</option> : null}
+      {items.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
+    </select></label>;
+  return <div className="lr-devices">
+    {select('audio', 'Mikrofon', call.devices.audio, call.selectedDevices.audioId)}
+    <MicLevel stream={stream} />
+    <p className="lr-muted">Räägi — riba peab liikuma. Kui ei liigu, vali teine mikrofon.</p>
+    {select('video', 'Kaamera', call.devices.video, call.selectedDevices.videoId)}
+    <p className="lr-muted">Valik jääb selles brauseris meelde.</p>
+  </div>;
+}
+
 /**
  * The Live Classroom room: full-screen lesson with the call in the top bar, the student's board in the middle,
  * video tiles on the right and drawers for chat, participants, materials and the lesson worksheet.
@@ -233,6 +278,7 @@ export default function LiveRoom({
         {menu === 'more' ? <div className="lr-menu" role="menu" aria-label="Rohkem">
           {teacher ? <button type="button" role="menuitem" onClick={() => { setMenu(''); boardRef.current?.newPage(`Tund ${lessonDate}`).catch((error) => setNotice(error?.message || 'Uut lehte ei saanud luua.')); }}>Uus tunnileht „Tund {lessonDate}”</button> : null}
           {teacher ? <button type="button" role="menuitem" onClick={() => { setMenu(''); setPanel('record'); }}>Tunni salvestamine</button> : null}
+          <button type="button" role="menuitem" onClick={() => { setMenu(''); setPanel('devices'); }}>Kaamera ja mikrofon</button>
           <button type="button" role="menuitem" onClick={() => { setMenu(''); onLeave(); }}>Lahku tunniruumist</button>
           {teacher ? <button type="button" role="menuitem" className="is-danger" disabled={ending} onClick={() => { setMenu(''); onEndLesson(); }}>Lõpeta tund</button> : null}
         </div> : null}
@@ -281,6 +327,7 @@ export default function LiveRoom({
               <li><span className="lr-people__avatar">{initial(call.peerName)}</span><span><strong>{call.peerName}</strong><small>{teacher ? 'Õpilane' : 'Õpetaja'} · {peerLabel}</small></span></li>
             </ul>
           </Drawer> : null}
+          {panel === 'devices' ? <Drawer title="Kaamera ja mikrofon" onClose={() => setPanel('')}><DevicesPanel call={call} stream={streams?.local} /></Drawer> : null}
           {panel === 'materials' && teacher ? <Drawer title="Materjalid" onClose={() => setPanel('')}><MaterialsPanel library={library} onPlace={place} /></Drawer> : null}
           <div className={panel === 'record' && teacher ? 'lr-drawer' : 'lr-drawer is-hidden'} aria-hidden={panel !== 'record'}>
             <header><strong>Tunni salvestamine</strong><IconButton label="Sulge salvestamine" onClick={() => setPanel('')}><X size={18} /></IconButton></header>
