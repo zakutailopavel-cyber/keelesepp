@@ -1,5 +1,24 @@
 # KeeleSepp Project State
 
+## 2026-10-04 — Live Classroom TURN relay (Cloudflare Realtime TURN) — branch `agent/live-turn`
+
+Owner chose Cloudflare Realtime TURN (1 000 GB/month free, then $0.05/GB; Twilio $0.40/GB; Metered free 500 MB) and
+created the TURN app „keelesepp”, Turn Token ID `8f87297ce0e9fac7a5d53a04bec0b83a` (not secret). The API token is kept
+by the owner only.
+- `functions/live-turn-core.js` + `liveTurnApi` (POST `/ice` { invitationId }): Firebase ID token required; only the
+  teacher or the student of an **accepted** invitation (403/409 otherwise); calls Cloudflare
+  `generate-ice-servers` with a 4-hour TTL; returns only Cloudflare STUN/TURN urls + short-lived credentials
+  (sanitised); without secrets → `{ configured: false, iceServers: [] }`. Secrets: `CLOUDFLARE_TURN_KEY_ID`,
+  `CLOUDFLARE_TURN_API_TOKEN` (Secret Manager).
+- CRM: `services/firebase/liveTurn.js`; `useLiveCall` fetches TURN as soon as the room is open, waits for it at most
+  3 s in parallel with the camera prompt, refreshes after half the TTL, and always keeps STUN; any failure → STUN only
+  (the previous behaviour).
+- Tests: functions 218 (incl. 4 new: access, sanitising, request, fallback); CRM 130 files / 813 (incl. 3 call tests,
+  2 service tests); ESLint; build.
+- **Needs the owner** (from `~/keelesepp-release` at current main): set the two secrets and deploy
+  `functions:liveTurnApi`; then one call over mobile data to confirm.
+- Exactly one next safe step: owner sets the secrets and deploys `liveTurnApi`.
+
 ## 2026-10-04 — Generator: gap tasks with 2–4 sentences — branch `agent/generator-more-gaps`
 
 Owner checked the live A2-003 sheets (crm.epkoolitus.ee, release of main `5968c13`): Avasta, Harjuta and Kasuta render
