@@ -1,5 +1,28 @@
 # KeeleSepp Project State
 
+## 2026-10-04 — Lesson summary for the student and parents — branch `claude/affectionate-ritchie-dh2x9j`
+
+Checked `origin/main` `00c13bd` (after #281, homework from the lesson). Last of the four owner-chosen follow-ups
+(#279 pointer/follow, #280 vocabulary, #281 homework, this).
+- Live Classroom: „Rohkem” → „Lõpeta tund” now opens the drawer „Tunni lõpp” (`LessonEndPanel`): board lesson pages
+  the teacher opened in this lesson, the lesson's new words and homework (live), optional „Sõnum õpilasele”;
+  „Saada kokkuvõte ja lõpeta tund” saves the summary and ends the lesson as before (calendar opens to mark it held);
+  „Lõpeta ilma kokkuvõtteta” ends without it; a failed save does not end the lesson. `LiveClassroomPage.onEndLesson
+  ({ confirmed })` skips the old confirm when the drawer already asked.
+- Data `lessonSummaries/{invitationId}`: `invitationId, studentId, teacherUid, teacherName, title, subject, startedAt,
+  endedAt, note ≤2000, pages [{id,title}] ≤40, updatedAt`. Words and homework are not copied: read by `invitationId`.
+- `firestore.rules`: create/update only by staff who is the invitation's teacher, for the invitation's student, fixed
+  keys; read staff + `ownsStudent` (student, parent); delete admin.
+- Student and parent dashboards: card „Tunni kokkuvõtted” (`LessonSummariesCard`, newest 5, newest opened: note,
+  board page links `/board?page=`, words, homework). Parent dashboard also shows „Minu sõnad” (read-only, no practice).
+- Tests: emulator `functions/lesson-summary-emulator.integration.js` 1/1 (added to the CI emulator command; with the
+  words test 2/2); LiveRoom end tests (2), `LessonSummariesCard.test.jsx` (2), LiveClassroomPage end tests updated.
+  CRM Vitest 142 files / 880 tests; ESLint clean; build OK; functions `npm test` 218/218.
+- Limits: 1:1 lessons only (group room keeps its own end); not tried with real accounts.
+- **Needs the owner:** one `firestore:rules` deploy now covers #276 (byStaff), #277 (group chat), #278 (transcriber
+  heartbeat), #280 (`studentWords`) and this (`lessonSummaries`). Exactly one next safe step: owner deploys the rules
+  and runs one real lesson: pointer/follow, „Sõnad”, „Anna kodutöö”, „Lõpeta tund” → summary on the student dashboard.
+
 ## 2026-10-04 — Homework straight from the lesson — branch `claude/affectionate-ritchie-dh2x9j`
 
 Checked `origin/main` `1da39e3` (after #280, lesson vocabulary). Third of the four owner-chosen follow-ups.

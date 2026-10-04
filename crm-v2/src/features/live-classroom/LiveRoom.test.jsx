@@ -195,3 +195,37 @@ describe('LiveRoom homework', () => {
     expect(within(drawer).getByRole('heading', { name: 'Selles tunnis antud (1)' })).toBeInTheDocument();
   });
 });
+
+describe('LiveRoom lesson end', () => {
+  it('sends the summary with the lesson pages, words and homework, then ends the lesson', async () => {
+    const s = services();
+    await s.board.addPage('s-1', 'Tund 1');
+    const summaryService = { save: vi.fn(async () => ({})) };
+    const wordsService = { subscribeForStudent: vi.fn((id, onData) => { onData([{ id: 'w1', invitationId: 'inv-1', word: 'kass' }, { id: 'w0', invitationId: 'old', word: 'vana' }]); return vi.fn(); }) };
+    const homeworkService = { listForLesson: vi.fn(async () => [{ id: 'h1', task: 'Korda sõnu' }]) };
+    const props = renderRoom('teacher', s, { summaryService, wordsService, homeworkService });
+    fireEvent.click(screen.getByRole('tab', { name: 'Tund 1' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Rohkem' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Lõpeta tund' }));
+    const drawer = screen.getByRole('region', { name: 'Tunni lõpp' });
+    expect(within(drawer).getByText('kass')).toBeInTheDocument();
+    expect(within(drawer).queryByText(/vana/)).toBeNull();
+    expect(await within(drawer).findByText('Korda sõnu')).toBeInTheDocument();
+    fireEvent.change(within(drawer).getByLabelText(/Sõnum õpilasele/), { target: { value: 'Tubli!' } });
+    fireEvent.click(within(drawer).getByRole('button', { name: 'Saada kokkuvõte ja lõpeta tund' }));
+    await waitFor(() => expect(props.onEndLesson).toHaveBeenCalledWith({ confirmed: true }));
+    expect(summaryService.save).toHaveBeenCalledWith(expect.objectContaining({ note: 'Tubli!', pages: [{ id: 'p1', title: 'Tund 1' }], subject: 'Inglise keel', invitation: expect.objectContaining({ id: 'inv-1' }) }));
+  });
+
+  it('a failed summary does not end the lesson but offers to end without it', async () => {
+    const summaryService = { save: vi.fn(async () => { throw new Error('Võrk puudub.'); }) };
+    const props = renderRoom('teacher', services(), { summaryService, wordsService: { subscribeForStudent: vi.fn(() => vi.fn()) }, homeworkService: { listForLesson: vi.fn(async () => []) } });
+    fireEvent.click(screen.getByRole('button', { name: 'Rohkem' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Lõpeta tund' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Saada kokkuvõte ja lõpeta tund' }));
+    expect(await screen.findByText(/Võrk puudub\. Võid tunni lõpetada ka ilma kokkuvõtteta/)).toBeInTheDocument();
+    expect(props.onEndLesson).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Lõpeta ilma kokkuvõtteta' }));
+    expect(props.onEndLesson).toHaveBeenCalledWith({ confirmed: true });
+  });
+});
