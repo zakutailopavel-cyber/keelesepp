@@ -130,3 +130,20 @@
 .lr-field select { width: 100%; min-width: 0; height: 38px; padding: 0 10px; border: 1px solid #dfe1ee; border-radius: 10px; background: #fff; font: inherit; font-weight: 500; color: #24294a; }
 .lr-meter { height: 8px; border-radius: 999px; background: #eef0f7; overflow: hidden; }
 .lr-meter i { display: block; height: 100%; background: #12b76a; transition: width .08s linear; }
+/* teacher workspace (Live Classroom start): same full-screen frame as the room */
+.lw-top { flex-wrap: wrap; row-gap: 8px; }
+.lw-pick { flex-wrap: wrap; gap: 10px; }
+.lw-pick .field, .lw-pick label { min-width: 220px; }
+.lw-search { min-width: 180px; }
+.lw-pending { background: #eef2ff; color: #3730a3; }
+.lw-empty { display: grid; place-items: center; height: 100%; border: 1px dashed #d9dce6; border-radius: 22px; background: #fcfcff; }
+.lw .lr-body { grid-template-columns: minmax(0, 1fr); }
+.lw .lr-body:has(> .lr-side) { grid-template-columns: minmax(0, 1fr) 300px; }
+@media (max-width: 760px) {
+  .lw .lr-body { display: block; }
+  .lw-pick .field, .lw-pick label { min-width: 0; flex: 1 1 100%; }
+  .lw-search { display: none; }
+  .lw .lr-top__right { width: 100%; }
+  .lw .lr-top__right .field { flex: 1; }
+  .lw .sb-room-pages { right: 14px; }
+}

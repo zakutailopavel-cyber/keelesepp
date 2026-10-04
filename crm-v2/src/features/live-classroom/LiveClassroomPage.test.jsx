@@ -41,6 +41,21 @@ describe('Live Classroom invitation lifecycle', () => {
     await waitFor(() => expect(invitationService.create).toHaveBeenCalledWith(expect.objectContaining({ student: expect.objectContaining({ id: 'student-1' }), title: 'Eesti keel' }), expect.objectContaining({ uid: 'teacher-1' })));
   });
 
+  it('opens as the teacher workspace: choosing a student opens their board to prepare the lesson before inviting', async () => {
+    const invitationService = {
+      subscribeOutgoing: vi.fn((uid, onChange) => { onChange([]); return vi.fn(); }),
+      create: vi.fn().mockResolvedValue({ id: 'invite-1' }),
+    };
+    const studentRepository = { list: vi.fn().mockResolvedValue({ items: [{ id: 'student-1', name: 'Mari', active: true, studentUid: 'student-user-1', subject: 'Eesti keel', level: 'A2' }] }) };
+    renderPage({ user: { uid: 'teacher-1', displayName: 'Pavel', roles: ['teacher'] }, invitationService, studentRepository });
+    expect(await screen.findByRole('region', { name: 'Tööruum' })).toBeInTheDocument();
+    expect(screen.queryByRole('img', { name: 'Õpilase tahvel' })).not.toBeInTheDocument();
+    fireEvent.change(await screen.findByLabelText('Õpilane'), { target: { value: 'student-1' } });
+    expect(await screen.findByRole('img', { name: 'Õpilase tahvel' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Materjalid/ })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Tahvel' })).toBeInTheDocument();
+  });
+
   it('does not offer a student without a student account link', async () => {
     const invitationService = { subscribeOutgoing: vi.fn((uid, onChange) => { onChange([]); return vi.fn(); }) };
     const studentRepository = { list: vi.fn().mockResolvedValue({ items: [{ id: 'student-1', name: 'Mari', active: true, linkedParentId: 'parent-only' }] }) };
@@ -63,8 +78,8 @@ describe('Live Classroom invitation lifecycle', () => {
     const invitationService = { subscribeOutgoing: vi.fn((uid, onChange) => { onChange([{ id: 'accepted-old', studentName: 'Mari', title: 'Eesti keel', status: 'accepted', expiresAt: new Date(Date.now() - 60_000).toISOString() }]); return vi.fn(); }) };
     const studentRepository = { list: vi.fn().mockResolvedValue({ items: [] }) };
     renderPage({ user: { uid: 'teacher-1', displayName: 'Pavel', roles: ['teacher'] }, invitationService, studentRepository });
-    expect(await screen.findByText('Kutsu õpilane tundi')).toBeInTheDocument();
-    expect(screen.queryByText('Mari võttis kutse vastu.')).not.toBeInTheDocument();
+    expect(await screen.findByRole('region', { name: 'Tööruum' })).toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Tunniruum' })).not.toBeInTheDocument();
   });
 
   it('clears a declined invitation id so the teacher can immediately start another lesson', async () => {
@@ -73,7 +88,7 @@ describe('Live Classroom invitation lifecycle', () => {
     renderPage({ user: { uid: 'teacher-1', displayName: 'Pavel', roles: ['teacher'] }, invitationService, studentRepository, path: '/live-classroom?invitation=declined-1' });
     await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent('/live-classroom'));
     expect(screen.getByTestId('location')).not.toHaveTextContent('invitation=');
-    expect(screen.getByText('Kutsu õpilane tundi')).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Tööruum' })).toBeInTheDocument();
   });
 
   it('ends the lesson from the room menu and releases the teacher for a new invitation', async () => {

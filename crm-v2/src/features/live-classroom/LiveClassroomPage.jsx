@@ -9,6 +9,7 @@ import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
 import { eligibleInvitationStudents, INVITATION_STATUS, isInvitationRouteUsable, newestInvitation, normalizeInvitation, timestampMillis } from './invitationModel.js';
 import { calendarPathAfterLesson } from './lessonLink.js';
 import LiveRoom from './LiveRoom.jsx';
+import TeacherWorkspace from './TeacherWorkspace.jsx';
 import './liveClassroom.css';
 
 const statusLabel = {
@@ -57,7 +58,6 @@ export default function LiveClassroomPage({
   const [streamError, setStreamError] = useState('');
   const [selectedId, setSelectedId] = useState('');
   const [title, setTitle] = useState('');
-  const [search, setSearch] = useState('');
   const [saving, setSaving] = useState('');
   const [actionError, setActionError] = useState('');
   const [now, setNow] = useState(() => Date.now());
@@ -96,7 +96,6 @@ export default function LiveClassroomPage({
   }, []);
 
   const selectedStudent = studentsState.items.find((student) => student.id === selectedId);
-  const visibleStudents = useMemo(() => studentsState.items.filter((student) => `${student.name} ${student.subject} ${student.level}`.toLocaleLowerCase('et').includes(search.toLocaleLowerCase('et'))), [search, studentsState.items]);
   const normalizedInvitations = useMemo(
     () => invitations.map((item) => normalizeInvitation(item.id, item, now)),
     [invitations, now],
@@ -119,8 +118,6 @@ export default function LiveClassroomPage({
     setActionError('');
     try {
       const created = await invitationService.create({ student: selectedStudent, title: title || selectedStudent.subject }, user);
-      setSelectedId('');
-      setTitle('');
       setSearchParams({ invitation: created.id }, { replace: true });
     } catch (error) {
       setActionError(firebaseErrorMessage(error));
@@ -218,20 +215,24 @@ export default function LiveClassroomPage({
     </>;
   }
 
-  return <div className="page-content">
-    <PageHeader eyebrow="Live Classroom v2" title="Alusta tundi" description="Vali õpilane ja saada tema kabinetti reaalajas tunnikutsung." />
-    {streamError || actionError ? <div className="action-error" role="alert">{streamError || actionError}</div> : null}
-    {activeInvitation ? <>
-      <WaitingRoom invitation={activeInvitation} role="teacher" />
-      {activeInvitation.status === INVITATION_STATUS.PENDING ? <div className="live-invitation-toolbar"><Button variant="danger" loading={saving === 'cancel'} onClick={cancel}><XCircle size={17} /> Tühista kutse</Button></div> : null}
-    </> : <>{resumable ? <Card className="live-resume"><div><strong>Tund käib: {resumable.studentName}</strong><small>{resumable.title}</small></div><Button onClick={() => setSearchParams({ invitation: resumable.id }, { replace: true })}><Video size={17} /> Tagasi tundi</Button></Card> : null}<Card className="live-start-card">
-      <div className="live-start-card__heading"><div className="settings-icon"><Video /></div><div><h2>Kutsu õpilane tundi</h2><p className="settings-copy">Kutse ilmub kohe õpilase KeeleSepp kabinetti. Ainult kontoga seotud õpilased on valitavad.</p></div></div>
-      {studentsState.loading ? <LoadingState label="Laen õpilasi…" /> : studentsState.error ? <ErrorState message={studentsState.error} /> : studentsState.items.length ? <div className="live-start-form">
-        <div className="search-field"><Search size={18} /><Input aria-label="Otsi õpilast tunniks" placeholder="Otsi õpilast…" value={search} onChange={(event) => setSearch(event.target.value)} /></div>
-        <Select label="Õpilane" value={selectedId} onChange={(event) => { const id = event.target.value; setSelectedId(id); const student = studentsState.items.find((item) => item.id === id); setTitle(student?.subject || ''); }}><option value="">Vali õpilane</option>{visibleStudents.map((student) => <option key={student.id} value={student.id}>{student.name} · {student.subject || 'Õppeaine puudub'} · {student.level || 'tase puudub'}</option>)}</Select>
-        <Input label="Tunni pealkiri" value={title} maxLength={160} placeholder="Näiteks: Eesti keel · minevik" onChange={(event) => setTitle(event.target.value)} />
-        <Button loading={saving === 'create'} onClick={sendInvitation}><GraduationCap size={18} /> Kutsu õpilane tundi</Button>
-      </div> : <EmptyState title="Kontoga seotud õpilasi ei ole" description="Seo õpilase kaart tema kasutajakontoga, et saaksid talle tunnikutsungi saata." />}
-    </Card></>}
-  </div>;
+  const pending = activeInvitation?.status === INVITATION_STATUS.PENDING ? activeInvitation : null;
+  return <TeacherWorkspace
+    user={user}
+    studentsState={studentsState}
+    selectedId={selectedId}
+    onSelect={(id) => { setSelectedId(id); const student = studentsState.items.find((item) => item.id === id); setTitle(student?.subject || ''); }}
+    title={title}
+    onTitle={setTitle}
+    onInvite={sendInvitation}
+    inviting={saving === 'create'}
+    pending={pending}
+    onCancel={cancel}
+    cancelling={saving === 'cancel'}
+    resumable={resumable}
+    onResume={() => setSearchParams({ invitation: resumable.id }, { replace: true })}
+    onBack={() => navigate('/')}
+    error={streamError || actionError}
+    boardService={boardService}
+    library={libraryRepository}
+  />;
 }

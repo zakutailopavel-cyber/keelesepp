@@ -1,5 +1,22 @@
 # KeeleSepp Project State
 
+## 2026-10-04 — Live Classroom opens as the teacher's workspace — branch `claude/affectionate-ritchie-dh2x9j`
+
+Checked `origin/main` `00e19e3` (after #270). Wish-list item 6 (prepare in advance, invite from the workspace).
+- `TeacherWorkspace.jsx`: the teacher's Live Classroom start is now a full-screen workspace in the room's frame:
+  student search + select („Õpilane”), the chosen student's board opens at once (room variant: sheets, materials
+  drawer, undo/redo, all board tools) so a lesson can be prepared before inviting; lesson title + „Kutsu õpilane
+  tundi”; while the invitation is pending the same board stays open with „Kutse saadetud — ootan: …” and „Tühista
+  kutse”; „Tagasi tundi” for a running lesson; back arrow to the CRM. When the student accepts, the existing lesson
+  room opens on the same board, so everything prepared is there.
+- `MaterialsPanel.jsx` and `roomMaterials.js` (`fileKind`) moved out of `LiveRoom.jsx` (shared by room and workspace).
+- `LiveClassroomPage.jsx`: the old start card replaced; the selection is kept after inviting.
+- Checks: browser harness (temporary) 1280 px and 390 px: board fills the width, no page errors. Tests: new
+  „opens as the teacher workspace …” (choose student → board, Materjalid, sheet tabs); two start-screen tests now
+  assert the workspace instead of the old card text. CRM Vitest 133 files / 841 tests; ESLint clean; build OK.
+- Limit: a worksheet can be opened only once the lesson runs (it is tied to the room key); prepared sheets and
+  materials are on the student's board. Only students with a linked account are listed (invitations need it).
+
 ## 2026-10-04 — Live Classroom: the worksheet lies on the board — branch `claude/affectionate-ritchie-dh2x9j`
 
 Checked `origin/main` `3609528` (after #269). Wish-list item 5 („рабочий лист — это и есть урок”).
