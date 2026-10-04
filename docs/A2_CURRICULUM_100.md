@@ -132,7 +132,7 @@ paigaldusvoog on Õppevara nupp. Paigaldus on teadlik staff-toiming; pelk code d
 Lesson Engine Content Pack ei kuulu roadmap-andmefaili. Coverage Dashboard näitab uued tunnid alguses sisupaketi
 poolest puuduva või mustandina ning Content Packid lisatakse eraldi kontrollitud sisutööna.
 
-Kontrollitud staatilised Content Packid katavad `a2-001`…`a2-015` (moodulid 1–3). A2-002…A2-005 koostatakse
+Kontrollitud staatilised Content Packid katavad `a2-001`…`a2-015` (moodulid 1–3); grammatikamustritest genereeritakse lisaks `a2-016`…`a2-021`, `a2-026` ja `a2-027` (vt `docs/GENERATOR_LEXICON.md`). A2-002…A2-005 koostatakse
 versioneeritud Content Library põhjal, kuid iga tund kasutab oma didaktilist allikakombinatsiooni: tutvumine ja
 küsimused; olema ja sagedased olevikuverbid; isikuandmed ja arvud/kuupäevad; mooduli integreeritud kontroll. Kõik
 viis läbivad sama readiness-plaanija ning annavad Avasta/Harjuta/Kasuta jaoks viis ülesannet. A2-006 alustab teist

@@ -1,6 +1,6 @@
 # Generator lexicon — Estonian word forms without AI
 
-Status: steps 1–2 of the rule-based generator (owner decision 2026-10-04: "нормальный генератор без ИИ" instead of
+Status: steps 1–3 of the rule-based generator (owner decision 2026-10-04: "нормальный генератор без ИИ" instead of
 writing every lesson by hand). Steps 2–5 are listed at the end.
 
 ## Why
@@ -68,10 +68,29 @@ Meaning restrictions live in the slots (whitelists): no „külla” (= visiting
 only for clothes, bags and devices. Venemaa and Saksamaa take the outer local cases (Venemaal / Venemaale / Venemaalt).
 `patterns.test.js`: 23 hand-checked sentences plus invariants for every generated sentence.
 
+## Step 3 — lessons generated from patterns (done)
+
+`patterns/profileFromPatterns.js` builds a complete generator profile from grammar points: focus, vocabulary (lexicon
+lemmas with Russian), the point's three situations, 12 pattern sentences with `answer`/`distractors`, 4 error pairs
+(target swapped for a same-word wrong form), one speaking and one writing prompt and the success criterion. Only the
+prompts and criteria are hand-written — once per grammar point, not per lesson (`GRAMMAR_POINTS`).
+
+`factory.js` `LESSON_GRAMMAR_POINTS` assigns grammar points to lessons where the patterns really teach the lesson focus;
+precedence is hand-written pack → patterns → keyword suggestions. Ready from patterns: A2-016 Minu kodu, A2-017 sees
+(`local-inner`: inner-case places only), A2-018 peal (`surface-local`: laual / lauale / laualt), A2-019, A2-020
+Kontroll 4, A2-021 Kohad linnas, A2-026 Toit ja joogid, A2-027 Kui palju? Partitiiv.
+
+Worksheet engine (`engine/content.js`): a sentence with `answer` gets its gap exactly there; the gap word bank shows
+the right form among other forms of the same word („Vali sõna õige vorm”); context choice offers the same-word forms.
+Fixed for all lessons: role cards no longer build „Koosta Poes plaan” (the situation stands alone: „Olukord: Poes.”),
+and situation labels ending in „?” no longer get an extra full stop.
+
+Bundle: the generator pages are lazy routes, so the lexicon loads only there (main bundle 257 kB gzip, below the
+previous 300 kB; generator chunk 67 kB).
+
 ## Next steps
 
-3. Task builders: gaps and choices with exact keys and same-word case distractors (Tartus / Tartu / Tartust),
-   automatic error repair (wrong case of the same word).
-4. Roadmap mapping: lesson → grammar points + themes for all 100 A2 lessons.
+4. More grammar points (imperative, past tense, comparison, modal verbs, ma/da infinitive) and words, so the mapping
+   can cover more of the 100 A2 lessons.
 5. Teacher review screen: mark a generated sentence as bad so it is never used again.
 Hand-written packs stay as the gold standard and take precedence.

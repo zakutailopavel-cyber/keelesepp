@@ -1,3 +1,4 @@
+import { canBuildPatternProfile, createPatternProfile } from '../patterns/profileFromPatterns.js';
 import { sanitizeGeneratorProfile, validateGeneratorProfile } from '../profiles/authoring.js';
 import {
   CONTENT_LIBRARY_SCHEMA,
@@ -26,6 +27,25 @@ const PACK_KEYWORDS = Object.freeze({
   'week-plan': ['minu nädal', 'nädalaplaan'],
 });
 
+// Lessons without a hand-written pack whose roadmap focus is a covered grammar point: the profile is generated from
+// grammar patterns + the Vabamorf lexicon (patterns/). Only lessons where the patterns really teach the lesson focus.
+export const LESSON_GRAMMAR_POINTS = Object.freeze({
+  'a2-016': ['adjective-agreement'],
+  'a2-017': ['local-inner'],
+  'a2-018': ['surface-local'],
+  'a2-019': ['local-cases', 'adjective-agreement'],
+  'a2-020': ['local-inner', 'surface-local', 'adjective-agreement'],
+  'a2-021': ['local-cases'],
+  'a2-026': ['partitive-object'],
+  'a2-027': ['partitive-object', 'numeral-partitive'],
+});
+
+export function lessonGrammarPoints(lesson = {}) {
+  const lessonId = String(lesson.id || '');
+  if (LESSON_CONTENT_BLUEPRINTS[lessonId]) return [];
+  return [...(LESSON_GRAMMAR_POINTS[lessonId] || [])];
+}
+
 const arrays = (packs, key) => packs.flatMap((pack) => pack[key] || []);
 
 function uniqueById(items) {
@@ -41,6 +61,7 @@ function uniqueById(items) {
 export function suggestReusablePackIds(lesson = {}) {
   const explicit = LESSON_CONTENT_BLUEPRINTS[String(lesson.id || '')]?.packIds;
   if (explicit) return [...explicit];
+  if (lessonGrammarPoints(lesson).length) return [];
   const searchable = [lesson.title, lesson.goal, lesson.languageFocus, lesson.focus, lesson.practice]
     .map((value) => String(value || '').toLocaleLowerCase('et'))
     .join(' ');
@@ -54,6 +75,23 @@ export function createContentPackDraft(lesson = {}, { packIds = suggestReusableP
   const blueprint = LESSON_CONTENT_BLUEPRINTS[lessonId] || {};
   const selectedIds = [...new Set((packIds || []).filter((id) => REUSABLE_CONTENT_LIBRARY[id]))];
   const packs = selectedIds.map((id) => REUSABLE_CONTENT_LIBRARY[id]);
+  const grammarPoints = packs.length ? [] : lessonGrammarPoints(lesson);
+  if (lessonId && grammarPoints.length && canBuildPatternProfile(grammarPoints)) {
+    const profile = createPatternProfile({ ...lesson, id: lessonId }, grammarPoints);
+    const readiness = validateGeneratorProfile(profile, { lessonId, lesson });
+    return {
+      schema: CONTENT_PACK_FACTORY_SCHEMA,
+      version: CONTENT_PACK_FACTORY_VERSION,
+      status: readiness.ready ? 'ready' : 'draft',
+      source: 'patterns',
+      profile,
+      readiness,
+      selectedPackIds: [],
+      grammarPoints,
+      missingSources: [],
+      library: { schema: CONTENT_LIBRARY_SCHEMA, version: CONTENT_LIBRARY_VERSION },
+    };
+  }
   const missingSources = [];
   if (!lessonId) missingSources.push('Tunni ID puudub.');
   if (!packs.length) missingSources.push('Sobivat kontrollitud sisupanka ei leitud.');
@@ -104,5 +142,5 @@ export function createContentPackDraft(lesson = {}, { packIds = suggestReusableP
 }
 
 export function canCreateContentPackDraft(lesson = {}) {
-  return suggestReusablePackIds(lesson).length > 0;
+  return suggestReusablePackIds(lesson).length > 0 || lessonGrammarPoints(lesson).length > 0;
 }

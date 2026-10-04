@@ -1,11 +1,11 @@
 import a2DiagnosticProfile from '../fixtures/a2-001.generator-profile.json';
 import referenceProfile from '../fixtures/a2b1-016.generator-profile.json';
 import roadmap from '../../curriculum/a2Roadmap.json';
-import { createContentPackDraft } from '../factory/factory.js';
+import { createContentPackDraft, LESSON_GRAMMAR_POINTS } from '../factory/factory.js';
 import { validateGeneratorProfile } from './authoring.js';
 
 const roadmapLessons = roadmap.modules.flatMap((module) => module.lessons);
-const curatedFactoryProfiles = ['a2-002', 'a2-003', 'a2-004', 'a2-005', 'a2-006', 'a2-007', 'a2-008', 'a2-009', 'a2-010', 'a2-011', 'a2-012', 'a2-013', 'a2-014', 'a2-015'].map((lessonId) => {
+const curatedFactoryProfiles = ['a2-002', 'a2-003', 'a2-004', 'a2-005', 'a2-006', 'a2-007', 'a2-008', 'a2-009', 'a2-010', 'a2-011', 'a2-012', 'a2-013', 'a2-014', 'a2-015', ...Object.keys(LESSON_GRAMMAR_POINTS)].map((lessonId) => {
   const lesson = roadmapLessons.find((item) => item.id === lessonId);
   return createContentPackDraft(lesson).profile;
 });

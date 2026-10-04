@@ -86,6 +86,11 @@ export function sanitizeGeneratorProfile(input = {}, { lessonId = '', lesson = {
     difficulty: Math.max(1, Math.min(5, Number(item?.difficulty) || 1)),
     text: clean(item?.text, 800),
     slots: slots(item?.slots),
+    // pattern sentences carry their exact gap answer and same-word wrong options
+    ...(clean(item?.answer, 120) ? {
+      answer: clean(item.answer, 120),
+      distractors: boundedArray(item?.distractors, 8).map((value) => clean(value, 120)).filter(Boolean),
+    } : {}),
   })).filter((item) => item.text);
 
   const errorPairs = boundedArray(input.banks?.errorPairs, LIMITS.errorPairs).map((item, index) => ({
