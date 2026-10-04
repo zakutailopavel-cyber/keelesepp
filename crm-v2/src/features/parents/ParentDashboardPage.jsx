@@ -13,6 +13,7 @@ import { INDIVIDUAL_TOPIC } from '../calendar/lessonTopic.js';
 import RecordingConsentPrompt from '../lesson-recording/RecordingConsentPrompt.jsx';
 import MyWordsCard from '../vocabulary/MyWordsCard.jsx';
 import LessonSummariesCard from '../vocabulary/LessonSummariesCard.jsx';
+import PetOverview from '../pet/PetOverview.jsx';
 
 function unique(items) {
   return [...new Map(items.map((item) => [item.id, item])).values()];
@@ -22,7 +23,7 @@ function money(cents) {
   return (Number(cents || 0) / 100).toLocaleString('et-EE', { style: 'currency', currency: 'EUR' });
 }
 
-export default function ParentDashboardPage({ studentRepository = studentsService, homeworkRepository = homeworkService, scheduleRepository = scheduleService, invoiceRepository = invoicesService, lessonRepository = lessonsService, consentService, wordsService, summaryService }) {
+export default function ParentDashboardPage({ studentRepository = studentsService, homeworkRepository = homeworkService, scheduleRepository = scheduleService, invoiceRepository = invoicesService, lessonRepository = lessonsService, consentService, wordsService, summaryService, petRepository }) {
   const { user } = useAuth();
   const state = useAsyncData(async () => {
     const studentRecords = await studentRepository.listOwned(user.uid);
@@ -62,6 +63,7 @@ export default function ParentDashboardPage({ studentRepository = studentsServic
     {!students.length ? <Card><EmptyState title="Õpilase kaarti ei ole kontoga seotud" description="Palu administraatoril siduda lapse olemasolev õpilase kaart sinu kontoga." /></Card> : <div className="parent-home-grid">
       <Card><div className="section-heading"><div><span className="eyebrow">Pere</span><h2>Minu õpilased</h2></div></div><div className="parent-home-students">{students.map((student) => <article className="parent-child-card" key={student.personKey || student.id}><div className="parent-child-card__head"><div className="student-mini-avatar">{student.name.split(/\s+/).map((part) => part[0]).join('').slice(0, 2)}</div><div><strong>{student.name}</strong><small>{student.enrollments?.length || 0} õppesuun{student.enrollments?.length === 1 ? 'd' : 'da'}</small></div></div><div className="parent-child-enrollments">{(student.enrollments || []).map((enrollment) => <div key={enrollment.id}><strong>{enrollment.subject || 'Õppeaine puudub'}</strong><span>{enrollment.level || 'tase puudub'}{enrollment.targetLevel ? ` → ${enrollment.targetLevel}` : ''}</span><small>{enrollment.teacher || 'õpetaja määramata'}</small></div>)}</div></article>)}</div></Card>
       <Card><div className="section-heading"><div><span className="eyebrow">Õppetöö</span><h2>Mida tunnis tehti</h2></div></div>{doneLessons.length ? <div className="simple-list parent-home-done">{doneLessons.map((lesson) => <div key={lesson.id}><div><strong>{lesson.topic || INDIVIDUAL_TOPIC}</strong><span>{[new Date(`${lesson.date}T12:00:00`).toLocaleDateString('et-EE', { day: 'numeric', month: 'short' }), studentMap.get(lesson.studentId)?.name || lesson.studentName, [lesson.topicLevel, lesson.topicModule].filter(Boolean).join(' · ')].filter(Boolean).join(' · ')}</span>{lesson.notes ? <small className="parent-home-note">{lesson.notes}</small> : null}</div><Badge tone="success">Toimus</Badge></div>)}</div> : <EmptyState title="Läbitud tunde veel ei ole" />}</Card>
+      <PetOverview studentIds={studentRecords.map((student) => student.id)} lessons={lessons} homework={homework} names={Object.fromEntries(studentRecords.map((student) => [student.id, student.name]))} {...(petRepository ? { repository: petRepository } : {})} {...(wordsService ? { wordsService } : {})} />
       <LessonSummariesCard studentIds={studentRecords.map((student) => student.id)} {...(summaryService ? { summaryService } : {})} {...(wordsService ? { wordsService } : {})} homeworkService={homeworkRepository} />
       <MyWordsCard studentIds={studentRecords.map((student) => student.id)} readOnly {...(wordsService ? { service: wordsService } : {})} />
       <Card><div className="section-heading"><div><span className="eyebrow">Kalender</span><h2>Järgmised tunnid</h2></div></div>{upcoming.length ? <div className="simple-list parent-home-lessons">{upcoming.map((lesson) => <div key={lesson.occurrenceId}><div><strong>{new Date(`${lesson.occurrenceDate}T12:00:00`).toLocaleDateString('et-EE', { weekday: 'short', day: 'numeric', month: 'short' })} · {lesson.time}</strong><span>{studentMap.get(lesson.studentId)?.name || lesson.studentName || 'Õpilane'} · {lesson.teacher || 'Õpetaja'}</span></div><Badge tone="info">{lesson.duration || 60} min</Badge></div>)}</div> : <EmptyState title="Lähimaid tunde ei ole" />}</Card>
