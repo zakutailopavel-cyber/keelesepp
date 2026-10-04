@@ -4,10 +4,10 @@
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const { execFile } = require('node:child_process');
+const { execFile, spawn } = require('node:child_process');
 const { promisify } = require('node:util');
 const admin = require('firebase-admin');
-const { parseWhisperJson, mergeDialogue, isAudioExpired, isAbandoned, pickModel } = require('./lib');
+const { parseWhisperJson, mergeDialogue, isAudioExpired, isAbandoned, pickModel, workerId, heartbeat } = require('./lib');
 
 const run = promisify(execFile);
 const env = (k, d) => process.env[k] || d;
@@ -22,6 +22,8 @@ const FFMPEG = env('FFMPEG_BIN', fs.existsSync('/opt/homebrew/bin/ffmpeg') ? '/o
 const THREADS = env('WHISPER_THREADS', String(Math.max(2, os.cpus().length - 2)));
 const EVERY_MS = Number(env('POLL_SECONDS', '60')) * 1000;
 const log = (...a) => console.log(new Date().toISOString(), ...a);
+const HOST = os.hostname().replace(/\.local$/, '');
+const STARTED_AT = new Date().toISOString();
 
 admin.initializeApp({ storageBucket: BUCKET }); // credentials: GOOGLE_APPLICATION_CREDENTIALS
 const db = admin.firestore();
@@ -54,7 +56,28 @@ async function transcribeSegment(seg, lang, dir) {
   return parseWhisperJson(json, { speaker: seg.track, offsetMs: seg.startMs || 0 });
 }
 
+// heartbeat for the lesson room („Transkribeerija töötab”); a failed write never stops the work
+let current = { state: 'idle', recordingId: '' };
+async function beat() {
+  try {
+    await db.collection('transcriberStatus').doc(workerId(HOST)).set(heartbeat({ host: HOST, startedAt: STARTED_AT, ...current }));
+  } catch (err) { log('heartbeat error', err.message); }
+}
+
+// keep the Mac awake while a lesson is being transcribed (macOS caffeinate; ignored elsewhere)
+function stayAwake() {
+  if (process.platform !== 'darwin') return () => {};
+  try {
+    const child = spawn('/usr/bin/caffeinate', ['-i', '-w', String(process.pid)], { stdio: 'ignore' });
+    child.on('error', () => {});
+    return () => child.kill();
+  } catch { return () => {}; }
+}
+
 async function transcribe(rec) {
+  current = { state: 'transcribing', recordingId: rec.id };
+  await beat();
+  const awake = stayAwake();
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), `ks-rec-${rec.id}-`));
   const started = Date.now();
   try {
@@ -73,6 +96,9 @@ async function transcribe(rec) {
     log('failed', rec.id, err.message);
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
+    awake();
+    current = { state: 'idle', recordingId: '' };
+    await beat();
   }
 }
 
@@ -105,6 +131,8 @@ async function main() {
   if (!fs.existsSync(MODEL)) throw new Error(`Whisper model not found: ${MODEL}`);
   log('lesson transcriber started', { bucket: BUCKET, model: path.basename(MODEL), modelEt: path.basename(modelFor('et')), vad: fs.existsSync(VAD_MODEL) });
   if (process.argv.includes('--once')) { await tick(); await deleteOldAudio(); return; }
+  await beat();
+  setInterval(beat, 60 * 1000).unref?.();
   for (;;) {
     try { await tick(); } catch (err) { log('tick error', err.message); }
     await new Promise((r) => setTimeout(r, EVERY_MS));

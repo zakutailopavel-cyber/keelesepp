@@ -81,3 +81,15 @@ test('lesson recordings follow consent and roles', async () => {
   assert.equal(await consentPatch(stranger, 'st-norec', own(stranger, true)), 200, 'own card, own answer');
   assert.equal(await consentPatch(stranger, 'st-norec', own(stranger, false)), 200, 'can withdraw');
 });
+
+test('transcriber heartbeat: staff read, nobody writes from the browser', async () => {
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT });
+  const teacher = await account('teacher');
+  const learner = await account('student');
+  await admin.firestore().doc('transcriberStatus/kooli-mac').set({ host: 'Kooli-Mac', state: 'idle', lastSeenAt: '2026-10-04T10:00:00Z' });
+  const get = async (who) => (await fetch(`${base}/transcriberStatus/kooli-mac`, { headers: { Authorization: `Bearer ${who.token}` } })).status;
+  assert.equal(await get(teacher), 200);
+  assert.equal(await get(learner), 403);
+  const r = await fetch(`${base}/transcriberStatus/kooli-mac?updateMask.fieldPaths=lastSeenAt`, { method: 'PATCH', headers: { Authorization: `Bearer ${teacher.token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ fields: fields({ lastSeenAt: '2030-01-01T00:00:00Z' }) }) });
+  assert.equal(r.status, 403, 'only the worker writes the heartbeat');
+});

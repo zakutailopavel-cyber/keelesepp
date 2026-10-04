@@ -8,6 +8,7 @@ import { imageSize } from '../board/boardModel.js';
 import RoomWorksheetPanel, { RoomWorksheetContent } from '../worksheet-studio/RoomWorksheetPanel.jsx';
 import RoomRecorder from '../lesson-recording/RoomRecorder.jsx';
 import RecordingIndicator from '../lesson-recording/RecordingIndicator.jsx';
+import { transcriberLabel, useTranscriberStatus } from '../lesson-recording/transcriberStatus.js';
 import { timestampMillis } from './invitationModel.js';
 import { useLiveCall } from './useLiveCall.js';
 import MaterialsPanel from './MaterialsPanel.jsx';
@@ -145,6 +146,8 @@ export default function LiveRoom({
   // recording starts by itself with the call when the student card has consent
   const [recState, setRecState] = useState({ recording: false, error: '' });
   const consent = student ? student.recordingConsent === true : null;
+  // is the transcriber on the school Mac running? (the recording itself never depends on it)
+  const transcriber = useTranscriberStatus({ ...(recordingService ? { service: recordingService } : {}), enabled: teacher });
   const startedAt = useMemo(() => timestampMillis(invitation.respondedAt) || timestampMillis(invitation.createdAt) || Date.now(), [invitation.createdAt, invitation.respondedAt]);
   const lessonDate = useMemo(() => dateLabel(new Date(startedAt)), [startedAt]);
   const subject = student?.subject || invitation.subject || (teacher ? '' : invitation.title);
@@ -222,6 +225,7 @@ export default function LiveRoom({
             {teacher ? <IconButton label={call.screenSharing ? 'Lõpeta ekraani jagamine' : 'Jaga ekraani'} active={call.screenSharing} disabled={call.screenBusy} onClick={call.screenSharing ? call.stopScreenShare : call.startScreenShare}>{call.screenSharing ? <MonitorOff size={18} /> : <Monitor size={18} />}</IconButton> : null}
           </> : null}
           {teacher && recState.recording ? <button type="button" className="lr-pill lr-rec" onClick={() => { setMenu(''); setPanel('record'); }} aria-label="Tundi salvestatakse — ava salvestamine"><span className="lr-rec__dot" aria-hidden="true" />Salvestan</button> : null}
+          {teacher && recState.recording && transcriber.known && !transcriber.online ? <button type="button" className="lr-pill lr-rec is-off" title={transcriberLabel(transcriber)} onClick={() => { setMenu(''); setPanel('record'); }}>Mac ei transkribeeri</button> : null}
           {teacher && !recState.recording && call.hasLocalMedia && consent === false ? <button type="button" className="lr-pill lr-rec is-off" onClick={() => { setMenu(''); setPanel('record'); }}>Ei salvesta</button> : null}
           {call.canReconnect ? <IconButton label="Taasta ühendus" disabled={call.busy} onClick={call.startTeacherCall}><RefreshCw size={18} /></IconButton> : null}
           {callButton}
@@ -299,7 +303,7 @@ export default function LiveRoom({
           </div>
           <div className={panel === 'record' && teacher ? 'lr-drawer' : 'lr-drawer is-hidden'} aria-hidden={panel !== 'record'}>
             <header><strong>Tunni salvestamine</strong><IconButton label="Sulge salvestamine" onClick={() => setPanel('')}><X size={18} /></IconButton></header>
-            <div className="lr-drawer__body">{teacher ? <RoomRecorder invitation={invitation} user={user} streams={streams} consent={consent} auto onStateChange={setRecState} subject={subject} {...(recordingService ? { service: recordingService } : {})} /> : null}</div>
+            <div className="lr-drawer__body">{teacher ? <><RoomRecorder invitation={invitation} user={user} streams={streams} consent={consent} auto onStateChange={setRecState} subject={subject} {...(recordingService ? { service: recordingService } : {})} />{transcriber.known ? <p className={`lr-transcriber ${transcriber.online ? 'is-on' : 'is-off'}`} role="status">{transcriberLabel(transcriber)}</p> : null}</> : null}</div>
           </div>
         </aside>
       </div>

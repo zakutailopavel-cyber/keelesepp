@@ -9,6 +9,7 @@ import { fileKind } from './roomMaterials.js';
 import { useGroupCall } from './useGroupCall.js';
 import RoomRecorder from '../lesson-recording/RoomRecorder.jsx';
 import RecordingIndicator from '../lesson-recording/RecordingIndicator.jsx';
+import { transcriberLabel, useTranscriberStatus } from '../lesson-recording/transcriberStatus.js';
 import './liveRoom.css';
 
 function RemoteTile({ tile }) {
@@ -65,6 +66,7 @@ export default function GroupRoom({
   }, [roomId, service]);
   const call = useGroupCall({ room, role, user, turnInvitationId, service, ...callOptions });
   const [messages, setMessages] = useState([]);
+  const transcriber = useTranscriberStatus({ ...(recordingService ? { service: recordingService } : {}), enabled: Boolean(teacher) });
   const [seen, setSeen] = useState(null);
   useEffect(() => {
     if (!service.subscribeMessages) return undefined;
@@ -115,6 +117,7 @@ export default function GroupRoom({
           <button type="button" className={`lr-icon ${panel === 'chat' ? 'is-active' : ''}`} aria-label="Vestlus" title="Vestlus" onClick={() => setPanel(panel === 'chat' ? '' : 'chat')}><MessageSquare size={18} />{unread ? <span className="lr-badge">{unread}</span> : null}</button>
           {teacher && !closed ? <button type="button" className={`lr-text-btn ${panel === 'materials' ? 'is-active' : ''}`} onClick={() => setPanel(panel === 'materials' ? '' : 'materials')}><LibraryBig size={17} /> Materjalid</button> : null}
           {teacher && recordingCount ? <span className="lr-pill lr-rec" role="status"><span className="lr-rec__dot" aria-hidden="true" />Salvestan ({recordingCount})</span> : null}
+          {teacher && recordingCount && transcriber.known && !transcriber.online ? <span className="lr-pill lr-rec is-off" title={transcriberLabel(transcriber)}>Mac ei transkribeeri</span> : null}
           {teacher && !closed ? <button type="button" className="lr-text-btn is-danger" onClick={end}>Lõpeta tund</button> : null}
         </div>
       </header>

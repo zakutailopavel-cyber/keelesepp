@@ -59,5 +59,13 @@ function pickModel(lang, { et, general }, exists = () => true) {
   return lang === 'et' && et && exists(et) ? et : general;
 }
 
+// Heartbeat doc `transcriberStatus/{workerId(host)}`: the CRM shows in the lesson room whether the Mac is working.
+function workerId(host) {
+  return String(host || 'mac').toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'mac';
+}
+function heartbeat({ host, state = 'idle', recordingId = '', startedAt, now = new Date() }) {
+  return { host: String(host || '').slice(0, 100), state, recordingId, startedAt, lastSeenAt: now.toISOString() };
+}
+
 module.exports = {
-  pickModel, cleanText, parseWhisperJson, mergeDialogue, isAudioExpired, isAbandoned };
+  pickModel, cleanText, parseWhisperJson, mergeDialogue, isAudioExpired, isAbandoned, workerId, heartbeat };

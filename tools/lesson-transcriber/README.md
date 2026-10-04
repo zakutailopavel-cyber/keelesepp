@@ -5,7 +5,19 @@ Live Classroom records a lesson as two audio tracks (teacher, student) in 5-minu
 whisper.cpp on the Mac. No audio goes to any other service. Audio is deleted after 60 days; the text stays on
 `lessonRecordings/{recordingId}.transcript = [{ speaker: teacher|student, startMs, endMs, text }]`.
 
-## One-time setup
+## Quick setup (recommended)
+
+1. Save the service account key as `~/KeeleSeppTranscriber/service-account.json` (step 1 below; it is a secret, never commit it or paste it into a chat).
+2. On the Mac, in the repository: `tools/lesson-transcriber/install-mac.sh`
+
+The script installs whisper-cpp/ffmpeg/node (Homebrew) if missing, downloads the models, runs `npm install` and
+registers the launchd agent. From then on the transcriber **starts by itself when the Mac user logs in**, restarts if it
+stops, and waits quietly; there is nothing to start before a lesson. It writes a heartbeat to
+`transcriberStatus/{host}` every minute, and the teacher sees in the Live Classroom recording panel
+„Transkribeerija töötab” (or „Mac ei transkribeeri” next to „Salvestan” when it is not running). While a lesson is being
+transcribed it keeps the Mac awake (`caffeinate`). Re-run the script after `git pull` to restart with new code.
+
+## One-time setup (manual, same steps as the script)
 
 1. **Service account key** (owner, Firebase console → Project settings → Service accounts → Generate new private key).
    Save it as `~/KeeleSeppTranscriber/service-account.json`. It is a secret: never commit it.
@@ -24,6 +36,7 @@ whisper.cpp on the Mac. No audio goes to any other service. Audio is deleted aft
 5. **Start at login** (launchd):
    ```bash
    sed -e "s#__REPO__#$(git rev-parse --show-toplevel)#" -e "s#__HOME__#$HOME#g" -e "s#__NODE__#$(which node)#" \
+     -e "s#__WHISPER__#$(which whisper-cli)#" -e "s#__FFMPEG__#$(which ffmpeg)#" \
      ee.keelesepp.transcriber.plist > ~/Library/LaunchAgents/ee.keelesepp.transcriber.plist
    launchctl load ~/Library/LaunchAgents/ee.keelesepp.transcriber.plist
    ```

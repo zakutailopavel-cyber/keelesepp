@@ -123,6 +123,9 @@
 }
 .lr-rec { display: inline-flex; align-items: center; gap: 6px; border: 0; cursor: pointer; font: inherit; color: #b42318; background: #fee4e2; }
 .lr-rec.is-off { color: #475467; background: #f2f4f7; }
+.lr-transcriber { margin: 12px 0 0; padding: 8px 10px; border-radius: 8px; font-size: 13px; }
+.lr-transcriber.is-on { color: #067647; background: #ecfdf3; }
+.lr-transcriber.is-off { color: #b54708; background: #fffaeb; }
 .lr-rec__dot { width: 8px; height: 8px; border-radius: 50%; background: #d92d20; animation: lr-rec-pulse 1.4s ease-in-out infinite; }
 @keyframes lr-rec-pulse { 50% { opacity: .35; } }
 .lr-devices { display: grid; gap: 10px; }
