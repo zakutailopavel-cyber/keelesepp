@@ -56,7 +56,8 @@ export const studentBoardService = {
       revision: (Number(element.revision) || 0) + 1,
     });
   },
-  // A lesson page (same shape as CRM v1 lesson pages, validLessonPage in the rules). Only staff may create one.
+  // A lesson page (same shape as CRM v1 lesson pages, validLessonPage in the rules). Staff and the board's own
+  // student/parent may create one (a separate sheet for an explanation or homework).
   async addPage(studentId, title, order, user) {
     const { db } = requireFirebaseClient();
     const reference = await addDoc(collection(db, 'whiteboards', studentId, 'lessonPages'), {
@@ -71,6 +72,18 @@ export const studentBoardService = {
       updatedByName: authorName(user),
     });
     return reference.id;
+  },
+  async renamePage(studentId, pageId, title, user) {
+    const value = String(title || '').trim().slice(0, 200);
+    if (!value) throw new Error('Lehel peab olema nimi.');
+    const { db } = requireFirebaseClient();
+    await updateDoc(doc(db, 'whiteboards', studentId, 'lessonPages', pageId), {
+      title: value,
+      updatedAt: serverTimestamp(),
+      updatedByUid: user.uid,
+      updatedByName: authorName(user),
+    });
+    return value;
   },
   async remove(studentId, pageId, elementId) {
     const { db } = requireFirebaseClient();

@@ -163,6 +163,34 @@ test("board text may carry one of the four fonts and nothing else", async () => 
   assert.equal(odd.status, 403);
 });
 
+function pageWrite(path, uid, data, exists) {
+  return {
+    update: { name: documentName(path), fields: Object.fromEntries(Object.entries({ updatedByUid: uid, updatedByName: "Emulator", ...data }).map(([key, value]) => [key, encode(value)])) },
+    ...(exists ? { updateMask: { fieldPaths: [...Object.keys(data), "updatedByUid", "updatedByName", "updatedAt"] } } : {}),
+    currentDocument: { exists },
+    updateTransforms: [{ fieldPath: "updatedAt", setToServerValue: "REQUEST_TIME" }, ...(exists ? [] : [{ fieldPath: "createdAt", setToServerValue: "REQUEST_TIME" }])],
+  };
+}
+
+test("the student adds and renames ordinary sheets but not snapshots, order or status", async () => {
+  requireSafeEmulatorEnvironment();
+  const ctx = await seed();
+  const base = `whiteboards/${ctx.studentId}/lessonPages`;
+  const sheet = { title: "Kodutöö", order: 2, status: "active", isSnapshot: false, snapshotOf: null };
+  const created = await commit(ctx.studentToken, [pageWrite(`${base}/mine`, ctx.studentUid, sheet, false)]);
+  assert.equal(created.status, 200, JSON.stringify(created.body));
+  const fakeSnapshot = await commit(ctx.studentToken, [pageWrite(`${base}/fake`, ctx.studentUid, { ...sheet, isSnapshot: true, snapshotOf: "live" }, false)]);
+  assert.equal(fakeSnapshot.status, 403);
+  const renamed = await commit(ctx.studentToken, [pageWrite(`${base}/live`, ctx.studentUid, { title: "Minu tund" }, true)]);
+  assert.equal(renamed.status, 200, JSON.stringify(renamed.body));
+  const reordered = await commit(ctx.studentToken, [pageWrite(`${base}/live`, ctx.studentUid, { order: 9 }, true)]);
+  assert.equal(reordered.status, 403);
+  const snapRename = await commit(ctx.studentToken, [pageWrite(`${base}/snap`, ctx.studentUid, { title: "x" }, true)]);
+  assert.equal(snapRename.status, 403);
+  const teacherRename = await commit(ctx.teacherToken, [pageWrite(`${base}/mine`, ctx.teacherUid, { title: "Selgitus" }, true)]);
+  assert.equal(teacherRename.status, 200, JSON.stringify(teacherRename.body));
+});
+
 test("nobody writes to a completed lesson snapshot", async () => {
   requireSafeEmulatorEnvironment();
   const ctx = await seed();
