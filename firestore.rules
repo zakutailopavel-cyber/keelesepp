@@ -888,6 +888,22 @@ service cloud.firestore {
             'skillMapUpdatedAt',
             'skillMapLastUpdated'
           ])
+        )
+        // lesson recording consent: the student (or the linked parent) answers once on first login, signed with
+        // their own uid; they can change it later. Staff keep setting it from the student card.
+        || (
+          ownsStudent(studentId)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'recordingConsent',
+            'recordingConsentAt',
+            'recordingConsentBy',
+            'recordingConsentByUid'
+          ])
+          && request.resource.data.recordingConsent is bool
+          && request.resource.data.recordingConsentByUid == uid()
+          && request.resource.data.recordingConsentAt is string
+          && request.resource.data.recordingConsentBy is string
+          && request.resource.data.recordingConsentBy.size() <= 200
         );
       allow delete: if isAdmin();
     }

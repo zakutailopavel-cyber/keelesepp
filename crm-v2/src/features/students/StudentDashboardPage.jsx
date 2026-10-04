@@ -10,6 +10,7 @@ import { occurrencesForDates, shiftDate, toIsoDate } from '../calendar/calendarV
 import { invoiceBalanceCents } from './studentFinance.js';
 import PetCard from '../pet/PetCard.jsx';
 import { isAttended } from '../pet/petModel.js';
+import RecordingConsentPrompt from '../lesson-recording/RecordingConsentPrompt.jsx';
 
 function unique(items) {
   return [...new Map(items.map((item) => [item.id, item])).values()];
@@ -36,6 +37,7 @@ export default function StudentDashboardPage({
   invoiceRepository = invoicesService,
   lessonRepository = lessonsService,
   petRepository,
+  consentService,
 }) {
   const { user, preview } = useAuth();
   const state = useAsyncData(async () => {
@@ -76,6 +78,7 @@ export default function StudentDashboardPage({
 
   return <div className="page-content">
     <PageHeader eyebrow="Minu õpingud" title={`Tere, ${user.displayName || 'õpilane'}!`} description="Sinu tunnid, ülesanded, tulemused ja õppimise edenemine ühes vaates." />
+    {!preview?.studentId ? <RecordingConsentPrompt students={students} user={user} role="student" {...(consentService ? { service: consentService } : {})} /> : null}
     {students.length ? <PetCard user={user} readOnly={Boolean(preview)} lessons={lessons} submissions={submissions} pendingHomework={pendingHomework.length} lessonToday={upcoming.find((lesson) => lesson.occurrenceDate === today)?.time || ''} subject={students[0]?.subject || ''} {...(petRepository ? { repository: petRepository } : {})} /> : null}
     <PeopleOverview label="Õpingute kokkuvõte" eyebrow="Minu töölaud" title="Õppimise hetkeseis" description="Tunnid, ülesanded, tulemused ja arved ühes rahulikus vaates." metrics={[
       { icon: GraduationCap, label: 'Läbitud tunnid', value: attendedLessons.length, hint: 'õppeajaloos' },

@@ -6,7 +6,8 @@ import { requireFirebaseClient } from './client.js';
 // The teacher's browser records two audio tracks (teacher microphone, student's incoming audio) in 5-minute
 // segments and uploads them to Storage `lessonRecordings/{recordingId}/`. A worker on the school Mac transcribes
 // them for free (whisper.cpp) and writes the dialogue back; audio is deleted after 60 days, the text stays.
-// Recording is allowed only when the student card has recordingConsent === true (enforced by the rules).
+// Recording is allowed only when the student card has recordingConsent === true (enforced by the rules). Staff set
+// it on the card; the student or linked parent answers once on first login (RecordingConsentPrompt).
 
 export const RECORDING_STATUS = Object.freeze({
   recording: 'recording', uploaded: 'uploaded', transcribing: 'transcribing', done: 'done', failed: 'failed',
@@ -101,6 +102,19 @@ export const lessonRecordingsService = {
       recordingConsent: Boolean(value),
       recordingConsentAt: now,
       recordingConsentBy: user?.displayName || user?.email || user?.uid || '',
+    });
+    return { recordingConsent: Boolean(value), recordingConsentAt: now };
+  },
+
+  // student or linked parent: their own answer to the one-time consent question (rules require their own uid)
+  async answerConsent({ studentId, value, user }) {
+    const { db } = requireFirebaseClient();
+    const now = new Date().toISOString();
+    await updateDoc(doc(db, 'students', studentId), {
+      recordingConsent: Boolean(value),
+      recordingConsentAt: now,
+      recordingConsentBy: String(user?.displayName || user?.email || '').slice(0, 200),
+      recordingConsentByUid: user.uid,
     });
     return { recordingConsent: Boolean(value), recordingConsentAt: now };
   },

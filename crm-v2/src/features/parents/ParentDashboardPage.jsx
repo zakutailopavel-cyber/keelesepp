@@ -10,6 +10,7 @@ import { groupStudentPeople } from '../../services/firebase/students.js';
 import { occurrencesForDates, shiftDate, toIsoDate } from '../calendar/calendarView.js';
 import { invoiceBalanceCents } from '../students/studentFinance.js';
 import { INDIVIDUAL_TOPIC } from '../calendar/lessonTopic.js';
+import RecordingConsentPrompt from '../lesson-recording/RecordingConsentPrompt.jsx';
 
 function unique(items) {
   return [...new Map(items.map((item) => [item.id, item])).values()];
@@ -19,7 +20,7 @@ function money(cents) {
   return (Number(cents || 0) / 100).toLocaleString('et-EE', { style: 'currency', currency: 'EUR' });
 }
 
-export default function ParentDashboardPage({ studentRepository = studentsService, homeworkRepository = homeworkService, scheduleRepository = scheduleService, invoiceRepository = invoicesService, lessonRepository = lessonsService }) {
+export default function ParentDashboardPage({ studentRepository = studentsService, homeworkRepository = homeworkService, scheduleRepository = scheduleService, invoiceRepository = invoicesService, lessonRepository = lessonsService, consentService }) {
   const { user } = useAuth();
   const state = useAsyncData(async () => {
     const studentRecords = await studentRepository.listOwned(user.uid);
@@ -49,6 +50,7 @@ export default function ParentDashboardPage({ studentRepository = studentsServic
 
   return <div className="page-content">
     <PageHeader eyebrow="Minu pere" title={`Tere, ${user.displayName || 'lapsevanem'}!`} description="Laste õppetöö, tunnid ja arved ühes turvalises vaates." />
+    <RecordingConsentPrompt students={studentRecords} user={user} role="parent" {...(consentService ? { service: consentService } : {})} />
     <PeopleOverview label="Pere kokkuvõte" eyebrow="Pere töölaud" title="Kõik oluline ühe pilguga" description="Laste tunnid, ülesanded ja arved on turvaliselt koos." metrics={[
       { icon: UsersRound, label: 'Õpilasi', value: students.length, hint: 'kontoga seotud' },
       { icon: CalendarDays, label: 'Lähimad tunnid', value: upcoming.length, hint: '21 päeva jooksul' },

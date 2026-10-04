@@ -63,7 +63,19 @@ test('lesson recordings follow consent and roles', async () => {
   assert.equal(await read(other, 'inv-ok_1'), 403);
   assert.equal(await patch(teacher, 'inv-ok_1', { status: 'uploaded', endedAt: '2026-09-29T11:00:00Z' }), 200);
   assert.equal(await patch(teacher, 'inv-ok_1', { status: 'recording' }), 403, 'finished recordings are closed');
-  // students cannot give themselves consent
-  const r = await fetch(`http://${dbHost}/v1/projects/${PROJECT}/databases/(default)/documents/students/st-norec?updateMask.fieldPaths=recordingConsent`, { method: 'PATCH', headers: { Authorization: `Bearer ${stranger.token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ fields: { recordingConsent: { booleanValue: true } } }) });
-  assert.equal(r.status, 403);
+  // the student (or linked parent) answers the consent question themselves, signed with their own uid
+  const consentPatch = async (who, studentId, data) => {
+    const mask = Object.keys(data).map((k) => `updateMask.fieldPaths=${k}`).join('&');
+    const body = { fields: Object.fromEntries(Object.entries(data).map(([k, v]) => [k, typeof v === 'boolean' ? { booleanValue: v } : { stringValue: String(v) }])) };
+    const r = await fetch(`${base}/students/${studentId}?${mask}`, { method: 'PATCH', headers: { Authorization: `Bearer ${who.token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    return r.status;
+  };
+  const own = (who, value) => ({ recordingConsent: value, recordingConsentAt: '2026-10-04T10:00:00Z', recordingConsentBy: 'Jaan', recordingConsentByUid: who.uid });
+  assert.equal(await consentPatch(stranger, 'st-norec', { recordingConsent: true }), 403, 'unsigned consent');
+  assert.equal(await consentPatch(stranger, 'st-norec', { ...own(stranger, true), recordingConsentByUid: teacher.uid }), 403, 'signed as someone else');
+  assert.equal(await consentPatch(stranger, 'st-norec', { ...own(stranger, true), level: 'C1' }), 403, 'other fields stay closed');
+  assert.equal(await consentPatch(stranger, 'st-norec', { ...own(stranger, 'yes') }), 403, 'boolean only');
+  assert.equal(await consentPatch(stranger, 'st-rec', own(stranger, false)), 403, 'not their card');
+  assert.equal(await consentPatch(stranger, 'st-norec', own(stranger, true)), 200, 'own card, own answer');
+  assert.equal(await consentPatch(stranger, 'st-norec', own(stranger, false)), 200, 'can withdraw');
 });

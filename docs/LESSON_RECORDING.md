@@ -5,8 +5,12 @@ the lesson what the student said and where they struggled. No AI analysis yet (a
 
 ## Consent and privacy
 
-- Recording is possible only when the student card has `recordingConsent == true` (Õppetöö tab → "Tunni salvestamine";
-  for minors the parent's consent). Staff set it; students and parents cannot (not in their allowed fields).
+- Recording is possible only when the student card has `recordingConsent == true`. Staff set it on the card (Õppetöö →
+  Tunnisalvestised). Since 2026-10-04 the student or the linked parent also answers a one-time question on first login
+  (`RecordingConsentPrompt` on /student and /parent; et + ru): a card with a linked parent account is asked to the
+  parent, otherwise to the student. The answer (yes or no) is written with `recordingConsentByUid == uid()`; the rule
+  lets the card owner change only `recordingConsent, recordingConsentAt, recordingConsentBy, recordingConsentByUid`.
+  Closing the window asks again on the next visit; a decided card (true or false) is never asked again.
 - While recording, the student sees "Tundi salvestatakse · Урок записывается" in the room.
 - Readers: the recording teacher, the student and admins. Audio is deleted after 60 days; the text stays.
 - No audio or text is sent to any service outside our Firebase project and the school Mac.
