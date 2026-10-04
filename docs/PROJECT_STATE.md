@@ -1,5 +1,15 @@
 # KeeleSepp Project State
 
+## 2026-10-04 — Release: recording consent rules (#263) — RELEASED
+
+Owner deployed `firestore:rules` from `~/keelesepp-release` at main `b5ee4e7`: „uploading rules firestore.rules” →
+„released rules … Deploy complete!” (screenshot). An earlier run before the merge reported „already up to date”, which
+also confirms the `lessonRecordings` rules were already live, so auto-recording (#262) works for cards with consent.
+Housekeeping: `firestore-debug.log` (emulator log, committed by accident in #263 and earlier) removed from git and
+ignored (`*-debug.log`). Merged by the agent with the owner's permission after green CI: #261, #262, #263.
+Exactly one next safe step: log in as a test student → answer „Tunni salvestamine” → then a teacher call shows
+„Salvestan”.
+
 ## 2026-10-04 — One-time recording consent on first login — branch `claude/affectionate-ritchie-dh2x9j`
 
 Checked `origin/main` `bbdc0e7` (after #262, auto-recording; merged by the agent with the owner's permission after
