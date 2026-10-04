@@ -79,7 +79,8 @@ export default function StudentBoard({
     },
     (nextError) => { setLoaded({ key: `${studentId}/${pageId || 'board'}`, items: [] }); setError(nextError?.message || 'Tahvlit ei saanud laadida.'); },
   ), [service, studentId, pageId]);
-  useEffect(() => { onPageChange?.(pageId || ''); }, [onPageChange, pageId]);
+  const pageTitle = pageId ? pages.find((page) => page.id === pageId)?.title || '' : '';
+  useEffect(() => { onPageChange?.(pageId || '', pageTitle); }, [onPageChange, pageId, pageTitle]);
   const ready = loaded.key === pageKey;
   const elements = useMemo(() => (ready ? loaded.items : []), [ready, loaded.items]);
 

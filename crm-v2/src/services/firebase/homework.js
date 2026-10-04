@@ -173,6 +173,43 @@ export const homeworkService = {
     const reference = await addDoc(collection(db, 'homework'), value);
     return { id: reference.id, ...value };
   },
+  // Live Classroom „Kodutöö”: a task given in the lesson. It may point at a board page (the student opens it from the
+  // homework list) and may give the room's worksheet a due date (it is already the student's assignment).
+  async createFromLesson({ invitation, user, task, due = '', note = '', boardPage = null, worksheet = null }) {
+    const text = String(task || '').trim();
+    if (!invitation?.studentId) throw new Error('Õpilane puudub.');
+    if (!text) throw new Error('Kirjuta, mida teha.');
+    const { db } = requireFirebaseClient();
+    const now = new Date().toISOString();
+    const value = {
+      studentId: invitation.studentId,
+      studentName: invitation.studentName || '',
+      task: text.slice(0, 500),
+      note: String(note || '').trim().slice(0, 2000),
+      due: String(due || '').slice(0, 10),
+      status: 'Ootel',
+      date: now.slice(0, 10),
+      fileUrl: '',
+      fileName: '',
+      attachments: [],
+      invitationId: invitation.id,
+      teacherUid: user.uid,
+      teacherName: user.displayName || invitation.teacherName || '',
+      source: 'live-classroom',
+      createdAt: now,
+      ...(boardPage?.id ? { boardPageId: boardPage.id, boardPageTitle: String(boardPage.title || 'Tahvlileht').slice(0, 200) } : {}),
+      ...(worksheet?.id ? { worksheetAssignmentId: worksheet.id, worksheetTitle: String(worksheet.title || 'Tööleht').slice(0, 200) } : {}),
+    };
+    const reference = await addDoc(collection(db, 'homework'), value);
+    if (worksheet?.id && value.due) await updateDoc(doc(db, 'worksheetAssignments', worksheet.id), { dueDate: value.due, updatedAt: now });
+    return { id: reference.id, ...value };
+  },
+  async listForLesson({ studentId, invitationId }) {
+    if (!studentId || !invitationId) return [];
+    const { db } = requireFirebaseClient();
+    const snapshot = await getDocs(query(collection(db, 'homework'), where('studentId', '==', studentId), where('invitationId', '==', invitationId)));
+    return snapshot.docs.map((item) => ({ id: item.id, ...item.data() })).sort((a, b) => String(a.createdAt).localeCompare(String(b.createdAt)));
+  },
   async setStatus(id, status) {
     const { db } = requireFirebaseClient();
     await updateDoc(doc(db, 'homework', id), { status, updatedAt: new Date().toISOString() });

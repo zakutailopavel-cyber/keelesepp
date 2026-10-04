@@ -1,5 +1,23 @@
 # KeeleSepp Project State
 
+## 2026-10-04 — Homework straight from the lesson — branch `claude/affectionate-ritchie-dh2x9j`
+
+Checked `origin/main` `1da39e3` (after #280, lesson vocabulary). Third of the four owner-chosen follow-ups.
+- Live Classroom, teacher: „Rohkem” → „Anna kodutöö” opens the drawer `LessonHomeworkPanel`: task (quick chips: repeat
+  the lesson words, finish the worksheet, look at the board page), due date (default +7 days), tick „Lisa tahvlileht”
+  (the open lesson page) and „Tööleht … kodutööks” (the room's worksheet gets the same `dueDate`); lists homework given
+  in this lesson.
+- `homeworkService.createFromLesson` writes a normal `homework` doc (existing fields + `invitationId, teacherUid,
+  teacherName, source 'live-classroom', createdAt`, optional `boardPageId/boardPageTitle`,
+  `worksheetAssignmentId/worksheetTitle`); `listForLesson`. No rules change (staff create homework and update
+  worksheet assignments under the existing rules).
+- `HomeworkPage`: „Tunnist” marker, link „Ava tahvlileht „…”” (`/board?page=` for the student, `/board/:id?page=` for
+  staff), worksheet hint; multi-line task text kept.
+- `StudentBoard.onPageChange(pageId, title)` now also passes the page title.
+- Tests: LiveRoom homework test, HomeworkPage lesson-homework test, board test updated. CRM Vitest 141 files /
+  876 tests; ESLint clean (0 errors); build OK.
+- No rules deploy needed for this PR.
+
 ## 2026-10-04 — Lesson vocabulary: words from the lesson into the student's own list — branch `claude/affectionate-ritchie-dh2x9j`
 
 Checked `origin/main` `d2236ca` (after #279, pointer/follow). Second of the four owner-chosen follow-ups.

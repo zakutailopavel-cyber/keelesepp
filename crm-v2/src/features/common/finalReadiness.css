@@ -49,3 +49,7 @@
   .homework-grid > .card,
   .settings-grid > .card { border-radius: 16px; }
 }
+
+/* homework given in a Live Classroom lesson */
+.task-row .task-text { white-space: pre-line; }
+.task-row .task-link { display: inline-block; margin-top: 4px; font-size: 13px; font-weight: 600; }
