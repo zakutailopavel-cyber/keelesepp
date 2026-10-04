@@ -110,6 +110,41 @@ describe('StudentBoard', () => {
     expect(screen.getByText('Lehe tekst')).toBeInTheDocument();
   });
 
+  it('edits an existing text: the text tool or a double click opens it, and the font and size change that text', async () => {
+    const service = fakeService({ board: [{ id: 't1', type: 'text', x: 100, y: 100, w: 260, h: 44, text: 'Tere', color: '#111827', fontSize: 18, revision: 1 }] });
+    render(<StudentBoard studentId="s-1" user={user} service={service} />);
+    const svg = screen.getByRole('img', { name: 'Õpilase tahvel' });
+    fireEvent.click(screen.getByRole('button', { name: 'Tekst' }));
+    await act(async () => { fireEvent.pointerDown(svg, { clientX: 120, clientY: 110, button: 0 }); });
+    const editor = await screen.findByRole('textbox', { name: 'Tekst' });
+    expect(service.add).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Käsikiri' }));
+    await waitFor(() => expect(service.update).toHaveBeenCalledWith('s-1', null, expect.objectContaining({ id: 't1' }), expect.objectContaining({ fontFamily: 'hand' }), user));
+    fireEvent.change(editor, { target: { value: 'Tere hommikust\nKuidas läheb?' } });
+    fireEvent.blur(editor);
+    await waitFor(() => expect(service.update).toHaveBeenLastCalledWith('s-1', null, expect.objectContaining({ id: 't1' }), expect.objectContaining({ text: 'Tere hommikust\nKuidas läheb?', h: expect.any(Number) }), user));
+    expect(service.update.mock.calls.at(-1)[3].h).toBeGreaterThan(44);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Vali ja liiguta' }));
+    fireEvent.doubleClick(svg, { clientX: 120, clientY: 110 });
+    expect(await screen.findByRole('textbox', { name: 'Tekst' })).toHaveValue('Tere hommikust\nKuidas läheb?');
+  });
+
+  it('writes new text in the chosen font and leaves the default font off the element', async () => {
+    const service = fakeService();
+    render(<StudentBoard studentId="s-1" user={user} service={service} />);
+    const svg = screen.getByRole('img', { name: 'Õpilase tahvel' });
+    fireEvent.click(screen.getByRole('button', { name: 'Tekst' }));
+    await act(async () => { fireEvent.pointerDown(svg, { clientX: 50, clientY: 60, button: 0 }); });
+    await waitFor(() => expect(service.add).toHaveBeenCalled());
+    expect(service.add.mock.calls[0][2]).not.toHaveProperty('fontFamily');
+    fireEvent.blur(await screen.findByRole('textbox', { name: 'Tekst' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Tekst' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Raamat' }));
+    await act(async () => { fireEvent.pointerDown(svg, { clientX: 500, clientY: 400, button: 0 }); });
+    await waitFor(() => expect(service.add).toHaveBeenLastCalledWith('s-1', null, expect.objectContaining({ type: 'text', fontFamily: 'serif' }), user));
+  });
+
   it('draws a pen stroke and switches to a v1 lesson page', async () => {
     const service = fakeService({ pages: [{ id: 'pg1', title: 'Tund 3', order: 1 }], 'page:pg1': [{ id: 'x1', type: 'text', x: 0, y: 0, w: 200, h: 40, text: 'Lehe tekst', color: '#000', fontSize: 18 }] });
     render(<StudentBoard studentId="s-1" user={user} service={service} />);

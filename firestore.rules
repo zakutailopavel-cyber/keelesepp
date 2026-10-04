@@ -1951,7 +1951,7 @@ service cloud.firestore {
         && (
           data.type != 'text'
           || (
-            data.keys().hasOnly(['type', 'x', 'y', 'w', 'h', 'text', 'color', 'fontSize', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId', 'revision'])
+            data.keys().hasOnly(['type', 'x', 'y', 'w', 'h', 'text', 'color', 'fontSize', 'fontFamily', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId', 'revision'])
             && data.x is number && data.y is number
             && data.w is number && data.h is number
             && data.text is string
@@ -1960,6 +1960,7 @@ service cloud.firestore {
             && data.fontSize is number
             && data.fontSize > 0
             && data.fontSize <= 96
+            && (!('fontFamily' in data) || data.fontFamily in ['sans', 'serif', 'hand', 'mono'])
           )
         )
         && (

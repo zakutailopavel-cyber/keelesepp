@@ -72,3 +72,6 @@
   .sb-zoombar { top: 50px; bottom: auto; left: 10px; }
   .sb-zoombar button { width: 34px; height: 34px; }
 }
+.sb-style__fonts { display: flex; flex-wrap: wrap; gap: 4px; }
+.sb-style__fonts button { padding: 4px 8px; border: 1px solid #e4e6f2; border-radius: 8px; background: #fff; font-size: .82rem; cursor: pointer; }
+.sb-style__fonts button.is-active { border-color: #4f46e5; background: #eef2ff; color: #3730a3; }

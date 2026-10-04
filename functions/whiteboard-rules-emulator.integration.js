@@ -151,6 +151,18 @@ test("a student's eraser or drag cannot remove or move the teacher's image or PD
   }
 });
 
+test("board text may carry one of the four fonts and nothing else", async () => {
+  requireSafeEmulatorEnvironment();
+  const ctx = await seed();
+  const text = { type: "text", x: 0, y: 0, w: 260, h: 44, text: "Tere", color: "#111827", fontSize: 18 };
+  const plain = await commit(ctx.studentToken, [createElement(`whiteboards/${ctx.studentId}/elements/txt-plain`, ctx.studentUid, text)]);
+  assert.equal(plain.status, 200, JSON.stringify(plain.body));
+  const hand = await commit(ctx.studentToken, [createElement(`whiteboards/${ctx.studentId}/elements/txt-hand`, ctx.studentUid, { ...text, fontFamily: "hand" })]);
+  assert.equal(hand.status, 200, JSON.stringify(hand.body));
+  const odd = await commit(ctx.studentToken, [createElement(`whiteboards/${ctx.studentId}/elements/txt-odd`, ctx.studentUid, { ...text, fontFamily: "Comic Sans" })]);
+  assert.equal(odd.status, 403);
+});
+
 test("nobody writes to a completed lesson snapshot", async () => {
   requireSafeEmulatorEnvironment();
   const ctx = await seed();
