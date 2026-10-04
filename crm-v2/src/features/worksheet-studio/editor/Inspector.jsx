@@ -2,6 +2,7 @@ import { BLOCKS, COLUMN_BLOCKS, SHUFFLE_BLOCKS } from '../engine/registry.js';
 import { TONES, TONE_ORDER } from '../engine/schema.js';
 import { Text, Area, Select } from './fields.jsx';
 import { SPAN_PRESETS, spanOf, withHeight, withSpan } from '../engine/layout.js';
+import { FRAMES, LOOK_ICONS, withLook } from '../engine/look.js';
 
 // Right panel: settings of the selected block, or of the whole sheet when nothing is selected.
 
@@ -45,6 +46,22 @@ export function BlockInspector({ block, doc, update, onDelete, onDuplicate, onMo
             <button type="button" key={t} title={TONES[t].label} className={block.tone === t ? 'on' : ''} style={{ background: TONES[t].card }} onClick={() => update({ ...block, tone: t })} />
           ))}
         </div>
+        <span className="ed-label">Raam</span>
+        <div className="ed-seg" role="group" aria-label="Raam">
+          {FRAMES.map(([value, label]) => <button type="button" key={label} aria-pressed={(block.look?.frame || '') === value} className={(block.look?.frame || '') === value ? 'on' : ''} onClick={() => update(withLook(block, { frame: value }))}>{label}</button>)}
+        </div>
+        <span className="ed-label">Pealkirja ja raami värv</span>
+        <div className="ed-tones" role="group" aria-label="Pealkirja ja raami värv">
+          <button type="button" title="Ploki toon" className={!block.look?.accent ? 'on' : ''} style={{ background: '#fff' }} onClick={() => update(withLook(block, { accent: '' }))}>–</button>
+          {TONE_ORDER.filter((t) => t !== 'white' && t !== 'cream').map((t) => (
+            <button type="button" key={t} title={TONES[t].label} aria-label={`Värv ${TONES[t].label}`} className={block.look?.accent === t ? 'on' : ''} style={{ background: TONES[t].badge }} onClick={() => update(withLook(block, { accent: t }))} />
+          ))}
+        </div>
+        <span className="ed-label">Ikoon</span>
+        <div className="ed-seg ed-seg--wrap" role="group" aria-label="Ikoon">
+          {LOOK_ICONS.map(([value, label]) => <button type="button" key={label} aria-pressed={(block.look?.icon || '') === value} className={(block.look?.icon || '') === value ? 'on' : ''} onClick={() => update(withLook(block, { icon: value }))}>{label}</button>)}
+        </div>
+        <label className="ed-check"><input type="checkbox" checked={Boolean(block.joined)} onChange={(e) => { const next = { ...block }; if (e.target.checked) next.joined = true; else delete next.joined; update(next); }} /> Seo eelmise plokiga (üks kaart, liiguvad koos)</label>
         <label className="ed-check"><input type="checkbox" checked={Boolean(block.pageBreakBefore)} onChange={(e) => { const next = { ...block }; if (e.target.checked) next.pageBreakBefore = true; else delete next.pageBreakBefore; update(next); }} /> Alusta seda plokki uuelt lehelt</label>
       </div>
 

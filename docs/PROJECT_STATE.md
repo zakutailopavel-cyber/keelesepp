@@ -1,5 +1,23 @@
 # KeeleSepp Project State
 
+## 2026-10-04 — Worksheet constructor: schemes, block look, joined blocks — branch `claude/affectionate-ritchie-dh2x9j`
+
+Checked `origin/main` `127c231` (after #272). Wish-list item 9, owner's choice: diagrams, combining blocks, block
+styling (tables later). Side-by-side placement already existed (12-column spans ¼…full) and stays.
+- New block „Skeem / diagramm” (`engine/blocks/diagram.jsx`, `diagramModel.js`): mind map (centre + up to 12 boxes),
+  chain (snake rows of four with arrows), tree (top box + row). A box written `[answer|other]` is a gap scored like
+  the gap task (keys `c`, `n<i>`); quality check: a scheme needs boxes. Registered in `BLOCKS` (33 types).
+- Block look (`engine/look.js`, Inspector „Raam”, „Pealkirja ja raami värv”, „Ikoon”): frame none/line/bold/dashed,
+  heading/frame/number colour from the brand tones, a small icon (räägi, kuula, loe, kirjuta, mõtle, tähtis, aeg,
+  kontrolli) before the task title or in the corner of a content block. Stored as `block.look`; old sheets unchanged.
+- Joined blocks: „Seo eelmise plokiga” sets `block.joined`; joined blocks are drawn as one card (no gap, divider) and
+  move together (↑/↓ and drag: `moveRun`, `dropRun`).
+- Checks: browser harness (temporary) with mind map, chain, tree, framed/coloured/icon blocks and a joined pair —
+  first shot showed too much empty space and an invisible diagonal step in the chain → compacted, snake layout with
+  arrows. Tests: look/groups 4, diagram 4, registry count 33. CRM Vitest 135 files / 850 tests; ESLint; build OK.
+- Client only (worksheet documents are stored as they are; new fields are optional). PDF export uses the same HTML
+  print path; not separately checked on paper.
+
 ## 2026-10-04 — Student's own board always in Live Classroom — branch `claude/affectionate-ritchie-dh2x9j`
 
 Wish-list item 7. `StudentWorkspace.jsx`: outside a lesson the student's Live Classroom is their own board (room

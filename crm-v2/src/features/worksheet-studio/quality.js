@@ -19,6 +19,7 @@ export function analyzeWorksheet(document) {
     if (['wordforms', 'errorfix', 'crossword'].includes(block.type) && !(d.rows || []).every((r) => text(r.answer))) issues.push({ level: 'error', code: `${block.id}:answers`, text: `${name}: mõnel real puudub õige vastus.` });
     if (block.type === 'dictation' && !rows(d.sentences).length) issues.push({ level: 'error', code: `${block.id}:sentences`, text: `${name}: etteütluse tekst puudub.` });
     if (block.type === 'listening' && !d.audio?.src) issues.push({ level: 'warning', code: `${block.id}:audio`, text: `${name}: helifail puudub. Õpetaja saab teksti ise ette lugeda.` });
+    if (block.type === 'diagram' && !rows(d.nodes).length) issues.push({ level: 'error', code: `${block.id}:nodes`, text: `${name}: skeemil pole ühtegi kasti.` });
     if (block.type === 'image' && !d.img?.src) issues.push({ level: 'warning', code: `${block.id}:image`, text: `${name}: pilt puudub.` });
   });
   if (!Object.keys(document?.meta?.goals || {}).length) issues.push({ level: 'warning', code: 'goals', text: 'Lisa vähemalt üks õpieesmärk, et tulemusi saaks eesmärkide kaupa jälgida.' });

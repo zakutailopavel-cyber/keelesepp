@@ -7,6 +7,7 @@ import { worksheetDocsService } from '../../services/firebase/index.js';
 import Sheet from './engine/Sheet.jsx';
 import { AssetContext } from './engine/assets.jsx';
 import { BLOCKS, GROUPS, checkDocument, createBlock } from './engine/registry.js';
+import { dropRun, moveRun } from './engine/look.js';
 import { ASPECTS, newDocument, newId } from './engine/schema.js';
 import { cropToFile, nearestAspect } from './engine/image.js';
 import { originalFiles } from './conversion.js';
@@ -220,20 +221,9 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     setBlocks(next);
     setSelectedId(b.id);
   };
-  const moveBlock = (id, dir) => {
-    const i = doc.blocks.findIndex((b) => b.id === id);
-    const j = i + dir;
-    if (j < 0 || j >= doc.blocks.length) return;
-    const next = [...doc.blocks];
-    [next[i], next[j]] = [next[j], next[i]];
-    setBlocks(next);
-  };
-  const dropMove = (fromId, toId) => {
-    const next = [...doc.blocks];
-    const [moved] = next.splice(next.findIndex((b) => b.id === fromId), 1);
-    next.splice(next.findIndex((b) => b.id === toId), 0, moved);
-    setBlocks(next);
-  };
+  // joined blocks (look.js) move as one group
+  const moveBlock = (id, dir) => setBlocks(moveRun(doc.blocks, id, dir));
+  const dropMove = (fromId, toId) => setBlocks(dropRun(doc.blocks, fromId, toId));
   const cutPhoto = async (url, rect) => {
     setCut({ busy: true, error: '' });
     try {

@@ -5,6 +5,7 @@ import { TONES } from './schema.js';
 import { Md, Target } from './ui.jsx';
 import { COLUMNS, rowsOf, snapSpan, spanOf } from './layout.js';
 import { addItemLabel } from './addItem.js';
+import { BookOpen, CheckCircle2, Clock3, Headphones, Lightbulb, MessageCircle, PenLine, Star } from 'lucide-react';
 
 // Renders a worksheet document as real A4 pages (270 mm design canvas, zoomed to A4 when printed).
 // The same component serves the editor (mode "edit"), the student (mode "interactive") and print ("print").
@@ -30,11 +31,16 @@ const Footer = ({ meta, page, pages, bookPage }) => (
   <div className="ws-ftr"><div className="ws-fl">KeeleSepp <small>by EP Koolitus</small></div><em>{meta.footer?.tagline}</em><div className="ws-url">{meta.footer?.url}{bookPage ? ` · ${bookPage}` : pages > 1 ? ` · ${page}/${pages}` : ''}</div></div>
 );
 
-function Card({ block, num, mode, ctx, selected, onSelect, drag, focused, onPick, onResize, onAddItem }) {
+const LOOK_ICON = { speak: MessageCircle, listen: Headphones, read: BookOpen, write: PenLine, idea: Lightbulb, star: Star, time: Clock3, check: CheckCircle2 };
+
+function Card({ block, num, mode, ctx, selected, onSelect, drag, focused, onPick, onResize, onAddItem, joinedBefore = false, joinedAbove = false, joinedAfter = false }) {
   const def = BLOCKS[block.type];
   if (!def) return null;
   const tone = TONES[block.tone] || TONES.white;
-  const plain = !def.task && block.tone === 'white';
+  const look = block.look || {};
+  const accent = look.accent ? (TONES[look.accent] || tone).badge : null;
+  const LookIcon = LOOK_ICON[look.icon] || null;
+  const plain = !def.task && block.tone === 'white' && !look.frame;
   const d = block.data;
   const opts = block.opts || {};
   const example = exampleAnswers(block);
@@ -51,10 +57,10 @@ function Card({ block, num, mode, ctx, selected, onSelect, drag, focused, onPick
   } : base;
   return (
     <section
-      className={`ws-card ${plain ? 'plain' : ''} ${block.width === 'full' ? 'full' : ''} ${selected ? 'selected' : ''} ${focused ? 'focused' : ''} ${onPick ? 'pickable' : ''} ${hasExample ? 'has-example' : ''} ${block.minHeightMm ? 'is-tall' : ''}`}
+      className={`ws-card ${plain ? 'plain' : ''} ${block.width === 'full' ? 'full' : ''} ${selected ? 'selected' : ''} ${focused ? 'focused' : ''} ${onPick ? 'pickable' : ''} ${hasExample ? 'has-example' : ''} ${block.minHeightMm ? 'is-tall' : ''} ${look.frame ? `frame-${look.frame}` : ''} ${joinedBefore ? 'joined-before' : ''} ${joinedAbove ? 'joined-above' : ''} ${joinedAfter ? 'joined-after' : ''}`}
       data-cols={opts.cols > 1 ? opts.cols : undefined}
       data-size={opts.size || undefined}
-      style={{ ...(plain ? {} : { background: tone.card }), gridColumn: `span ${spanOf(block)}`, ...(block.minHeightMm ? { minHeight: `${block.minHeightMm}mm` } : {}) }}
+      style={{ ...(plain ? {} : { background: tone.card }), gridColumn: `span ${spanOf(block)}`, ...(block.minHeightMm ? { minHeight: `${block.minHeightMm}mm` } : {}), ...(accent ? { '--ws-accent': accent } : {}) }}
       data-block={block.id}
       onClick={mode === 'edit' ? (e) => { e.stopPropagation(); onSelect?.(block.id); } : onPick ? () => onPick(block.id) : undefined}
       draggable={mode === 'edit'}
@@ -62,11 +68,12 @@ function Card({ block, num, mode, ctx, selected, onSelect, drag, focused, onPick
       onDragOver={mode === 'edit' ? (e) => drag.over(e, block.id) : undefined}
       onDrop={mode === 'edit' ? (e) => drag.drop(e, block.id) : undefined}
     >
+      {!def.task && LookIcon ? <LookIcon className="ws-look-icon is-corner" aria-hidden="true" /> : null}
       {def.task && (
         <div className="ws-ch">
-          <div className="ws-num" style={{ background: tone.badge }}>{num}</div>
+          <div className="ws-num" style={{ background: accent || tone.badge }}>{num}</div>
           <div>
-            <h3>{d.title}{d.titleMore ? <span> {d.titleMore}</span> : null}</h3>
+            <h3>{LookIcon ? <LookIcon className="ws-look-icon" aria-hidden="true" /> : null}{d.title}{d.titleMore ? <span> {d.titleMore}</span> : null}</h3>
             {d.instruction && <p><Md text={d.instruction} /></p>}
           </div>
         </div>
@@ -190,7 +197,7 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
 
   const rowView = (row, key) => (
     <div className="ws-row" key={key}>
-      {row.map((b) => <Card key={b.id} block={b} num={nums[b.id]} mode={mode} ctx={ctx} selected={selectedId === b.id} onSelect={onSelect} drag={drag} focused={focusId === b.id} onPick={onPick} onResize={onResize} onAddItem={onAddItem} />)}
+      {row.map((b, i) => <Card key={b.id} block={b} num={nums[b.id]} mode={mode} ctx={ctx} selected={selectedId === b.id} onSelect={onSelect} drag={drag} focused={focusId === b.id} onPick={onPick} onResize={onResize} onAddItem={onAddItem} joinedBefore={i > 0 && Boolean(b.joined)} joinedAbove={i === 0 && Boolean(b.joined)} joinedAfter={Boolean(row[i + 1]?.joined)} />)}
     </div>
   );
 

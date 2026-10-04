@@ -207,3 +207,4 @@ textarea.ed-input { resize: vertical; }
 .ws-studio .ed-check { display: flex; align-items: center; gap: 8px; margin: 8px 0 0; font-size: 12.5px; color: var(--st-ink); cursor: pointer; }
 
 .ws-studio .st-regenerate{display:grid;gap:9px;margin:0 0 10px;padding:10px;border:1px solid rgba(47,125,76,.28);border-radius:12px;background:rgba(47,125,76,.07)}.ws-studio .st-regenerate>div{display:flex;gap:8px;align-items:flex-start;color:var(--st-accent)}.ws-studio .st-regenerate span{display:grid;gap:2px;color:var(--st-ink)}.ws-studio .st-regenerate b{font:800 13px 'Nunito',sans-serif}.ws-studio .st-regenerate small{font-size:11.5px;line-height:1.35;color:var(--st-muted)}.ws-studio .st-regenerate .ed-btn{justify-self:start}.ws-studio .st-regenerate .ed-btn:disabled{opacity:.55;cursor:default}
+.ws-studio .ed-seg--wrap { flex-wrap: wrap; }

@@ -303,3 +303,24 @@
 /* Edit mode: disabled answer controls (choice options, …) let the click through to the block, so clicking
    anywhere on a task selects it. */
 .ws-root.mode-edit :is(button, input, select, textarea):disabled { pointer-events: none; }
+/* „Skeem” block: boxes on top of connector lines */
+.ws-diagram { position: relative; width: 100%; margin: 2mm 0; color: #173a63; }
+.ws-dg-lines { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.ws-dg-lines line { stroke: currentColor; stroke-width: 1.6; opacity: .55; }
+.ws-dg-node { position: absolute; transform: translate(-50%, -50%); min-width: 22mm; max-width: 42mm; padding: 2mm 3mm; border: 1.4px solid #173a63; border-radius: 3mm; background: #fff; text-align: center; font-size: 10.5pt; line-height: 1.25; box-shadow: 0 1px 0 rgba(23, 58, 99, .08); }
+.ws-dg-node.is-main { border-width: 2px; background: #edf5fd; font-weight: 700; font-size: 12pt; }
+.ws-dg-node.is-gap { border-style: dashed; }
+.ws-dg-node .ws-gapline { margin: 0 auto; }
+.ws-diagram.is-flow .ws-dg-node { max-width: 36mm; }
+/* block look: frame, heading colour (--ws-accent) and a small icon */
+.ws-card[style*="--ws-accent"] .ws-ch h3 { color: var(--ws-accent); }
+.ws-card.frame-line { border: .35mm solid var(--ws-accent, var(--ks-navy)); }
+.ws-card.frame-bold { border: .9mm solid var(--ws-accent, var(--ks-navy)); }
+.ws-card.frame-dashed { border: .45mm dashed var(--ws-accent, var(--ks-navy)); }
+.ws-look-icon { width: 1em; height: 1em; margin-right: 1.5mm; vertical-align: -.12em; color: var(--ws-accent, var(--ks-navy)); }
+.ws-look-icon.is-corner { position: absolute; top: 3mm; right: 3mm; width: 6mm; height: 6mm; margin: 0; }
+/* joined blocks read as one card: no gap, shared edge, a thin divider */
+.ws-card.joined-before { margin-left: -4mm; border-top-left-radius: 0; border-bottom-left-radius: 0; box-shadow: inset .3mm 0 0 rgba(23, 58, 99, .18); }
+.ws-card.joined-after { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.ws-card.joined-above { margin-top: -4mm; border-top-left-radius: 0; border-top-right-radius: 0; box-shadow: inset 0 .3mm 0 rgba(23, 58, 99, .18); }
+.ws-dg-arrow { position: absolute; z-index: 1; font-size: 13pt; line-height: 1; color: #173a63; background: #fff; border-radius: 50%; padding: 0 .6mm; }
