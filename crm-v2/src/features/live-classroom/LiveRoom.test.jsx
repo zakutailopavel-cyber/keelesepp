@@ -174,3 +174,24 @@ describe('LiveRoom words', () => {
     await waitFor(() => expect(wordsService.add).toHaveBeenCalledWith(expect.objectContaining({ studentId: 's-1', invitationId: 'inv-1', word: 'kass' })));
   });
 });
+
+describe('LiveRoom homework', () => {
+  it('the teacher gives homework from the lesson with the open board page', async () => {
+    const s = services();
+    await s.board.addPage('s-1', 'Tund 1');
+    const homeworkService = { listForLesson: vi.fn(async () => []), createFromLesson: vi.fn(async (input) => ({ id: 'h1', task: input.task, due: input.due, boardPageTitle: input.boardPage?.title })) };
+    renderRoom('teacher', s, { homeworkService });
+    fireEvent.click(screen.getByRole('tab', { name: 'Tund 1' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Rohkem' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Anna kodutöö' }));
+    const drawer = screen.getByRole('region', { name: 'Kodutöö' });
+    fireEvent.click(within(drawer).getByRole('button', { name: /Korda tunni sõnu/ }));
+    fireEvent.click(within(drawer).getByRole('checkbox', { name: /Lisa tahvlileht „Tund 1”/ }));
+    fireEvent.click(within(drawer).getByRole('button', { name: 'Anna kodutöö' }));
+    await waitFor(() => expect(homeworkService.createFromLesson).toHaveBeenCalledWith(expect.objectContaining({
+      invitation: expect.objectContaining({ id: 'inv-1' }), task: expect.stringContaining('Korda tunni sõnu'), boardPage: { id: 'p1', title: 'Tund 1' }, worksheet: null,
+    })));
+    expect(await within(drawer).findByText(/Tahvlileht „Tund 1”/)).toBeInTheDocument();
+    expect(within(drawer).getByRole('heading', { name: 'Selles tunnis antud (1)' })).toBeInTheDocument();
+  });
+});

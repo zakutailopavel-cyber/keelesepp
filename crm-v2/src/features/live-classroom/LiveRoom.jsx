@@ -9,6 +9,7 @@ import RoomWorksheetPanel, { RoomWorksheetContent } from '../worksheet-studio/Ro
 import RoomRecorder from '../lesson-recording/RoomRecorder.jsx';
 import RecordingIndicator from '../lesson-recording/RecordingIndicator.jsx';
 import LessonWordsPanel from '../vocabulary/LessonWordsPanel.jsx';
+import LessonHomeworkPanel from './LessonHomeworkPanel.jsx';
 import { transcriberLabel, useTranscriberStatus } from '../lesson-recording/transcriberStatus.js';
 import { timestampMillis } from './invitationModel.js';
 import { useLiveCall } from './useLiveCall.js';
@@ -130,7 +131,7 @@ function DevicesPanel({ call, stream }) {
  */
 export default function LiveRoom({
   invitation, role, user, student = null, callProps, boardService, messagesRepository, library, worksheetProps = {},
-  recordingService, wordsService, streams, onLeave, onEndLesson, ending = false,
+  recordingService, wordsService, homeworkService, streams, onLeave, onEndLesson, ending = false,
 }) {
   const teacher = role === 'teacher';
   const call = useLiveCall({ ...callProps, invitation, role, user });
@@ -190,7 +191,8 @@ export default function LiveRoom({
   // ── the teacher's page and pointer over the call's data channel (nothing is saved) ──
   const [myPage, setMyPage] = useState('');
   const myPageRef = useRef('');
-  const onPageChange = useCallback((id) => { myPageRef.current = id; setMyPage(id); }, []);
+  const [myPageTitle, setMyPageTitle] = useState('');
+  const onPageChange = useCallback((id, title = '') => { myPageRef.current = id; setMyPage(id); setMyPageTitle(title); }, []);
   const { roomChannelOpen, sendRoom, onRoomMessage } = call;
   useEffect(() => { if (teacher && roomChannelOpen) sendRoom?.({ t: 'page', pageId: myPage }); }, [teacher, roomChannelOpen, myPage, sendRoom]);
   const pointerSentAt = useRef(0);
@@ -286,6 +288,7 @@ export default function LiveRoom({
         </div> : null}
         {menu === 'more' ? <div className="lr-menu" role="menu" aria-label="Rohkem">
           {teacher ? <button type="button" role="menuitem" onClick={() => { setMenu(''); boardRef.current?.newPage(`Tund ${lessonDate}`).catch((error) => setNotice(error?.message || 'Uut lehte ei saanud luua.')); }}>Uus tunnileht „Tund {lessonDate}”</button> : null}
+          {teacher ? <button type="button" role="menuitem" onClick={() => { setMenu(''); setPanel('homework'); }}>Anna kodutöö</button> : null}
           {teacher ? <button type="button" role="menuitem" onClick={() => { setMenu(''); setPanel('record'); }}>Tunni salvestamine</button> : null}
           {!teacher ? <button type="button" role="menuitemcheckbox" aria-checked={follow} onClick={() => { setMenu(''); setFollow(!follow); }}>{follow ? 'Ära jälgi õpetaja lehte' : 'Jälgi õpetaja lehte'}</button> : null}
           <button type="button" role="menuitem" onClick={() => { setMenu(''); setPanel('devices'); }}>Kaamera ja mikrofon</button>
@@ -338,6 +341,7 @@ export default function LiveRoom({
           </Drawer> : null}
           {panel === 'devices' ? <Drawer title="Kaamera ja mikrofon" onClose={() => setPanel('')}><DevicesPanel call={call} stream={streams?.local} /></Drawer> : null}
           {panel === 'words' ? <Drawer title="Sõnad" onClose={() => setPanel('')}><LessonWordsPanel studentId={invitation.studentId} invitationId={invitation.id} user={user} teacher={teacher} {...(wordsService ? { service: wordsService } : {})} /></Drawer> : null}
+          {panel === 'homework' && teacher ? <Drawer title="Kodutöö" onClose={() => setPanel('')}><LessonHomeworkPanel invitation={invitation} user={user} boardPage={myPage ? { id: myPage, title: myPageTitle || 'Tahvlileht' } : null} worksheet={sheet ? { id: sheet.id, title: worksheet?.title || 'Tööleht' } : null} {...(homeworkService ? { service: homeworkService } : {})} /></Drawer> : null}
           {panel === 'materials' && teacher ? <Drawer title="Materjalid" onClose={() => setPanel('')}><MaterialsPanel library={library} onPlace={place} /></Drawer> : null}
           {/* always mounted: it follows the room's worksheet for both and lets the teacher open one */}
           <div className={panel === 'tasks' ? 'lr-drawer' : 'lr-drawer is-hidden'} aria-hidden={panel !== 'tasks'} role="region" aria-label="Ülesanded">

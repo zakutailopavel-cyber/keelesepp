@@ -245,9 +245,9 @@ describe('StudentBoard in the lesson room: pointer and page', () => {
     const { rerender } = render(<StudentBoard studentId="s-1" user={user} variant="room" service={service} onPageChange={onPageChange} pointer={{ x: 50, y: 60, pageId: '' }} />);
     expect(screen.queryByRole('button', { name: 'Osuti' })).toBeNull();
     expect(screen.getByTestId('teacher-pointer')).toBeInTheDocument();
-    expect(onPageChange).toHaveBeenLastCalledWith('');
+    expect(onPageChange).toHaveBeenLastCalledWith('', '');
     fireEvent.click(screen.getByRole('tab', { name: 'Tund 3' }));
-    expect(onPageChange).toHaveBeenLastCalledWith('pg1');
+    expect(onPageChange).toHaveBeenLastCalledWith('pg1', 'Tund 3');
     expect(screen.queryByTestId('teacher-pointer')).toBeNull();
     rerender(<StudentBoard studentId="s-1" user={user} variant="room" service={service} onPageChange={onPageChange} pointer={{ x: 50, y: 60, pageId: 'pg1' }} />);
     expect(screen.getByTestId('teacher-pointer')).toBeInTheDocument();

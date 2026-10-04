@@ -19,3 +19,6 @@
 .vw-btn { font: inherit; font-size: 14px; font-weight: 600; padding: 8px 14px; border-radius: 8px; border: 1px solid #d0d5dd; background: #fff; color: #344054; cursor: pointer; }
 .vw-btn.is-primary { border-color: #1849a9; background: #1849a9; color: #fff; }
 .vw-btn:disabled { opacity: .5; cursor: default; }
+.vw-field textarea { font: inherit; font-size: 15px; color: #101828; padding: 8px 10px; border: 1px solid #d0d5dd; border-radius: 8px; resize: vertical; }
+.vw-chip { font: inherit; font-size: 12px; padding: 4px 10px; border-radius: 999px; border: 1px solid #d0d5dd; background: #f9fafb; color: #344054; cursor: pointer; text-align: left; }
+.vw-check { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; color: #344054; }

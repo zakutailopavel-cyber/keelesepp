@@ -1,5 +1,6 @@
 import { CheckCircle2, ClipboardCheck, Clock3, Eye, FileText, MessageSquare, PlayCircle, Plus, Search, Star, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal, PageHeader, Select } from '../../components/ui/index.js';
 import PeopleOverview from '../../components/PeopleOverview.jsx';
@@ -242,7 +243,9 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
           const materialTask = Boolean(!exerciseTask && (item.sourceId || item.attachments?.length || item.fileUrl));
           return <article className={done ? 'task-row is-done' : 'task-row'} key={item.id}>
             {exerciseTask && !staff ? studentRole && !done ? <button className="task-check exercise-launch" aria-label={`Alusta harjutust ${item.exerciseTitle || item.task}`} disabled={loadingExercise === item.id} onClick={() => openExercise(item)}>{loadingExercise === item.id ? <span className="button__spinner" /> : <PlayCircle />}</button> : <span className="task-check">{done ? <CheckCircle2 /> : <PlayCircle />}</span> : canMarkHomework ? <button className="task-check" aria-label={done ? 'Märgi pooleliolevaks' : 'Märgi tehtuks'} onClick={async () => { await repository.setStatus(item.id, done ? 'Ootel' : 'Tehtud'); await state.reload(); }}>{done ? <CheckCircle2 /> : <Clock3 />}</button> : <span className="task-check">{done ? <CheckCircle2 /> : <Clock3 />}</span>}
-            <div><strong>{item.task}</strong><span>{item.studentName || 'Õpilane'}{exerciseTask ? ' · Interaktiivne harjutus' : ''}</span></div>
+            <div><strong className="task-text">{item.task}</strong><span>{item.studentName || 'Õpilane'}{exerciseTask ? ' · Interaktiivne harjutus' : ''}{item.source === 'live-classroom' ? ' · Tunnist' : ''}</span>
+              {item.boardPageId ? <Link className="task-link" to={staff ? `/board/${item.studentId}?page=${item.boardPageId}` : `/board?page=${item.boardPageId}`}>Ava tahvlileht „{item.boardPageTitle || 'Tahvlileht'}”</Link> : null}
+              {item.worksheetTitle ? <span>Tööleht „{item.worksheetTitle}” on all „Töölehed”</span> : null}</div>
             <div className="task-due">{exerciseTask ? <Badge tone="info">Harjutus</Badge> : null}{materialTask ? <button className="task-preview-button" aria-label={`Eelvaade: ${item.task}`} disabled={loadingMaterial === item.id} onClick={() => openMaterial(item)}>{loadingMaterial === item.id ? <span className="button__spinner" /> : <Eye size={16} />}<span>Eelvaade</span></button> : null}<Badge tone={done ? 'success' : overdue ? 'danger' : 'neutral'}>{done ? 'Tehtud' : `Tähtaeg ${item.due || '—'}`}</Badge>{staff ? <button className="text-button danger" aria-label="Kustuta" onClick={async () => { if (window.confirm('Kas kustutada kodutöö?')) { await repository.remove(item.id); await state.reload(); } }}><Trash2 size={17} /></button> : null}</div>
           </article>;
         })}</div> : <EmptyState title="Kodutöid ei leitud" description={staff ? 'Lisa esimene ülesanne või muuda filtrit.' : 'Praegu ei ole siin ühtegi ülesannet.'} />}

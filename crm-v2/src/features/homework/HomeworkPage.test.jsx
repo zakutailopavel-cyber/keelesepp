@@ -255,3 +255,13 @@ describe('HomeworkPage', () => {
     await waitFor(() => expect(interactiveRepository.review).toHaveBeenCalledWith(record, 'Tubli!'));
   });
 });
+
+describe('HomeworkPage: homework from a Live Classroom lesson', () => {
+  it('the student opens the attached board page from the task', async () => {
+    const data = repositories([], [], [{ id: 'h1', studentId: 'student-1', studentName: 'Mari', task: 'Korda tunni sõnu', status: 'Ootel', due: '2026-10-11', source: 'live-classroom', boardPageId: 'p1', boardPageTitle: 'Tund 1', worksheetTitle: 'Minevik' }]);
+    renderPage({ uid: 'student-uid', displayName: 'Mari', roles: ['student'] }, data);
+    expect(await screen.findByRole('link', { name: 'Ava tahvlileht „Tund 1”' })).toHaveAttribute('href', '/board?page=p1');
+    expect(screen.getByText(/Tööleht „Minevik”/)).toBeInTheDocument();
+    expect(screen.getByText(/Tunnist/)).toBeInTheDocument();
+  });
+});
