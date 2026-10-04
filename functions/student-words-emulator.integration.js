@@ -20,7 +20,9 @@ async function account(role) {
   await admin.firestore().doc(`users/${uid}`).set({ role });
   return { token: b.idToken, uid };
 }
-const enc = (v) => (typeof v === 'number' ? { integerValue: String(v) } : { stringValue: String(v) });
+const enc = (v) => (Array.isArray(v) ? { arrayValue: { values: v.map(enc) } }
+  : v && typeof v === 'object' ? { mapValue: { fields: Object.fromEntries(Object.entries(v).map(([k, x]) => [k, enc(x)])) } }
+  : typeof v === 'number' ? { integerValue: String(v) } : { stringValue: String(v) });
 const fields = (o) => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, enc(v)]));
 const headers = (who) => ({ Authorization: `Bearer ${who.token}`, 'Content-Type': 'application/json' });
 const create = async (who, id, data) => (await fetch(`${base}/studentWords?documentId=${id}`, { method: 'POST', headers: headers(who), body: JSON.stringify({ fields: fields(data) }) })).status;
@@ -44,7 +46,9 @@ test('student words: staff write, owner practises, outsiders see nothing', async
   assert.equal(await create(teacher, 'w0', word({ word: '' })), 403, 'word required');
   assert.equal(await create(teacher, 'w0', word({ studentId: 'missing' })), 403, 'student must exist');
   assert.equal(await create(teacher, 'w0', word({ grade: 5 })), 403, 'no extra fields');
-  assert.equal(await create(teacher, 'w1', word()), 200);
+  const forms = { forms: 'kass, kassi, kassi, kasse', formItems: [{ code: 'SgG', label: 'ainsuse omastav', value: 'kassi' }] };
+  assert.equal(await create(teacher, 'w0', word({ ...forms, formItems: Array.from({ length: 9 }, () => forms.formItems[0]) })), 403, 'at most 8 forms');
+  assert.equal(await create(teacher, 'w1', word(forms)), 200);
 
   assert.equal(await read(learner, 'w1'), 200);
   assert.equal(await read(parent, 'w1'), 200);
@@ -53,8 +57,10 @@ test('student words: staff write, owner practises, outsiders see nothing', async
   assert.equal(await patch(learner, 'w1', { box: 1, dueAt: '2026-10-05T10:00:00Z', reviewedAt: '2026-10-04T11:00:00Z', reviews: 1 }), 200);
   assert.equal(await patch(learner, 'w1', { box: 9 }), 403, 'box 0–5');
   assert.equal(await patch(learner, 'w1', { word: 'koer' }), 403, 'the student does not change the word');
+  assert.equal(await patch(learner, 'w1', { forms: 'x' }), 403, 'nor its forms');
   assert.equal(await patch(stranger, 'w1', { box: 2 }), 403);
   assert.equal(await patch(teacher, 'w1', { translation: 'кот', updatedAt: '2026-10-04T12:00:00Z' }), 200);
+  assert.equal(await patch(teacher, 'w1', { forms: 'kass, kassi', updatedAt: '2026-10-04T12:01:00Z' }), 200);
   assert.equal(await patch(teacher, 'w1', { createdByUid: learner.uid }), 403);
 
   assert.equal(await remove(learner, 'w1'), 403);

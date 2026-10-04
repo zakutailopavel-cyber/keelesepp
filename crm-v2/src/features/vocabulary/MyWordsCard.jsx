@@ -36,7 +36,7 @@ export default function MyWordsCard({ studentIds = [], service = studentWordsSer
             {readOnly ? null : <button type="button" className="vw-btn is-primary" disabled={!due.length} onClick={() => setMode('practice')}>Harjuta ({due.length})</button>}
             <button type="button" className="vw-btn" aria-expanded={mode === 'list'} onClick={() => setMode(mode === 'list' ? '' : 'list')}>{mode === 'list' ? 'Peida sõnad' : `Kõik sõnad (${words.length})`}</button>
           </div>
-          {mode === 'list' ? <ul className="vw-list">{words.map((item) => <li key={item.id}><span><strong>{item.word}</strong>{item.translation ? <> — {item.translation}</> : null}{item.example ? <small>{item.example}</small> : null}</span></li>)}</ul> : null}
+          {mode === 'list' ? <ul className="vw-list">{words.map((item) => <li key={item.id}><span><strong>{item.word}</strong>{item.translation ? <> — {item.translation}</> : null}{item.forms ? <small className="vw-forms">{item.forms}</small> : null}{item.example ? <small>{item.example}</small> : null}</span></li>)}</ul> : null}
         </> : <EmptyState title="Sõnu veel ei ole" description="Õpetaja lisab tunnis uued sõnad siia." />}
     </Card>
   );

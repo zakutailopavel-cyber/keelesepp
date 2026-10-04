@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { vi } from 'vitest';
-import { cleanWord, isDue, practiceOrder, review, sameWord } from './wordsModel.js';
+import { cleanWord, formQuestion, isDue, practiceOrder, review, sameForm, sameWord } from './wordsModel.js';
 import LessonWordsPanel from './LessonWordsPanel.jsx';
 import MyWordsCard from './MyWordsCard.jsx';
 
@@ -30,7 +30,7 @@ describe('wordsModel', () => {
     expect(practiceOrder(words, now.getTime()).map((item) => item.id)).toEqual(['a', 'b']);
     expect(isDue({ dueAt: '' }, now.getTime())).toBe(true);
     expect(sameWord([w('Kass')], ' kass ')?.id).toBe('Kass');
-    expect(cleanWord({ word: '  tere   päevast ', translation: 'x'.repeat(300) })).toEqual({ word: 'tere päevast', translation: 'x'.repeat(200), example: '' });
+    expect(cleanWord({ word: '  tere   päevast ', translation: 'x'.repeat(300) })).toEqual({ word: 'tere päevast', translation: 'x'.repeat(200), example: '', forms: '' });
   });
 });
 
@@ -80,5 +80,54 @@ describe('MyWordsCard', () => {
     expect(screen.queryByRole('button', { name: /Harjuta/ })).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Kõik sõnad (1)' }));
     expect(screen.getByText('kass')).toBeInTheDocument();
+  });
+});
+
+describe('word forms (TartuNLP + Ekilex through our server)', () => {
+  const kass = { formItems: [{ code: 'SgN', label: 'ainsuse nimetav', value: 'kass' }, { code: 'SgG', label: 'ainsuse omastav', value: 'kassi' }, { code: 'PlP', label: 'mitmuse osastav', value: 'kasse' }] };
+
+  it('asks a form every other review, never the base form, and accepts listed variants', () => {
+    expect(formQuestion({ word: 'kass', reviews: 0, ...kass })).toBeNull();
+    expect(formQuestion({ word: 'kass', reviews: 1, ...kass }).code).toBe('SgG');
+    expect(formQuestion({ word: 'kass', reviews: 3, ...kass }).code).toBe('PlP');
+    expect(formQuestion({ word: 'kass', reviews: 1 })).toBeNull();
+    expect(sameForm(' Kassi ', 'kassi')).toBe(true);
+    expect(sameForm('jõge', 'jõge, jõe')).toBe(true);
+    expect(sameForm('', 'kassi')).toBe(false);
+  });
+
+  it('the teacher fills translation and forms with one click and saves them with the word', async () => {
+    const service = fakeService([]);
+    const toolsService = { lookupWord: vi.fn().mockResolvedValue({ translation: 'кошка', forms: { available: true, found: true, line: 'kass, kassi, kassi, kasse', forms: kass.formItems } }) };
+    render(<LessonWordsPanel studentId="s-1" invitationId="inv-1" user={{ uid: 't1' }} teacher service={service} toolsService={toolsService} />);
+    fireEvent.change(screen.getByLabelText('Sõna või väljend'), { target: { value: 'kass' } });
+    fireEvent.click(screen.getByRole('button', { name: /Leia tõlge ja vormid/ }));
+    await waitFor(() => expect(screen.getByLabelText('Tõlge või selgitus')).toHaveValue('кошка'));
+    expect(screen.getByLabelText(/Vormid/)).toHaveValue('kass, kassi, kassi, kasse');
+    expect(toolsService.lookupWord).toHaveBeenCalledWith({ word: 'kass', src: 'et' });
+    fireEvent.click(screen.getByRole('button', { name: 'Lisa sõnastikku' }));
+    await waitFor(() => expect(service.add).toHaveBeenCalledWith(expect.objectContaining({ forms: 'kass, kassi, kassi, kasse', formItems: kass.formItems })));
+  });
+
+  it('says when the forms key is not set up yet, and does nothing on its own if the field is filled', async () => {
+    const toolsService = { lookupWord: vi.fn().mockResolvedValue({ translation: 'кошка', forms: { available: false, forms: [], line: '' } }) };
+    render(<LessonWordsPanel studentId="s-1" invitationId="inv-1" user={{ uid: 't1' }} teacher service={fakeService([])} toolsService={toolsService} />);
+    fireEvent.change(screen.getByLabelText('Sõna või väljend'), { target: { value: 'kass' } });
+    fireEvent.blur(screen.getByLabelText('Sõna või väljend'));
+    expect(await screen.findByText(/EKI sõnastiku võti/)).toBeInTheDocument();
+    fireEvent.blur(screen.getByLabelText('Sõna või väljend'));
+    expect(toolsService.lookupWord).toHaveBeenCalledTimes(1);
+  });
+
+  it('a form question in practice: type, check, go on', async () => {
+    const service = fakeService([w('kass', { reviews: 1, translation: 'кошка', forms: 'kass, kassi, kassi, kasse', ...kass })]);
+    render(<MyWordsCard studentIds={['s-1']} service={service} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Harjuta (1)' }));
+    expect(screen.getByText('ainsuse omastav?')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Vorm: ainsuse omastav'), { target: { value: 'kassi' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Kontrolli' }));
+    expect(screen.getByText('Õige!')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Edasi' }));
+    await waitFor(() => expect(service.review).toHaveBeenCalledWith(expect.objectContaining({ id: 'kass' }), true));
   });
 });

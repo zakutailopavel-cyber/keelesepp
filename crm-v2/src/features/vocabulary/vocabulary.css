@@ -31,3 +31,9 @@
 .vw-summary__body h4 { margin: 6px 0 0; font-size: 13px; color: #475467; }
 .vw-summary__note { margin: 0; padding: 8px 10px; border-radius: 8px; background: #fffaeb; white-space: pre-line; }
 .vw-links { margin: 0; padding-left: 18px; display: grid; gap: 2px; }
+.vw-lookup { justify-self: start; display: inline-flex; align-items: center; gap: 4px; }
+.vw-forms { color: #1849a9 !important; font-style: italic; }
+.vw-formcheck { display: flex; gap: 6px; margin-top: 6px; }
+.vw-formcheck input { font: inherit; font-size: 16px; padding: 6px 10px; border: 1px solid #d0d5dd; border-radius: 8px; width: 160px; }
+.vw-right { color: #067647; font-weight: 700; }
+.vw-wrong { color: #b42318; font-weight: 700; }

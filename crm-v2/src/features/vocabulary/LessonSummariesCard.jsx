@@ -39,7 +39,7 @@ function SummaryDetails({ summary, words, homeworkService, boardLink }) {
       {summary.note ? <p className="vw-summary__note">{summary.note}</p> : null}
       {summary.pages.length ? <><h4>Tahvli lehed</h4><ul className="vw-links">{summary.pages.map((page) => <li key={page.id}><Link to={boardLink(summary, page)}>{page.title || 'Leht'}</Link></li>)}</ul></> : null}
       <h4>Uued sõnad ({lessonWords.length})</h4>
-      {lessonWords.length ? <ul className="vw-list">{lessonWords.map((item) => <li key={item.id}><span><strong>{item.word}</strong>{item.translation ? <> — {item.translation}</> : null}</span></li>)}</ul> : <p className="vw-muted">Selles tunnis sõnu ei lisatud.</p>}
+      {lessonWords.length ? <ul className="vw-list">{lessonWords.map((item) => <li key={item.id}><span><strong>{item.word}</strong>{item.translation ? <> — {item.translation}</> : null}{item.forms ? <small className="vw-forms">{item.forms}</small> : null}</span></li>)}</ul> : <p className="vw-muted">Selles tunnis sõnu ei lisatud.</p>}
       <h4>Kodutöö</h4>
       {homework === null ? <p className="vw-muted">Laen…</p> : homework.length ? <ul className="vw-list">{homework.map((item) => <li key={item.id}><span><strong>{item.task}</strong><small>{item.due ? `Tähtaeg ${item.due}` : 'Tähtajata'}</small></span></li>)}</ul> : <p className="vw-muted">Kodutööd ei antud.</p>}
     </div>

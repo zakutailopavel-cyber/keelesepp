@@ -9520,6 +9520,96 @@ exports.notifyHomeworkCreated = functions
     return null;
   });
 
+// ── Word tools: translation (TartuNLP / Neurotõlge) and Estonian word forms (EKI Ekilex) ──
+// Staff only. Only the word or short phrase is sent out — never names or student data. Answers are cached in the
+// server-only collection `languageCache` so a word is asked once. Without the Ekilex key (secret EKILEX_API_KEY, may be
+// "none") the forms are simply unavailable; the CRM works as before.
+const TARTUNLP_URL = process.env.TARTUNLP_URL || "https://api.tartunlp.ai/translation/v2";
+const EKILEX_URL = (process.env.EKILEX_URL || "https://ekilex.ee/api/").replace(/\/?$/, "/");
+const LANGUAGE_TIMEOUT_MS = 8000;
+
+async function fetchJsonWithin(url, options = {}) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), LANGUAGE_TIMEOUT_MS);
+  try {
+    const response = await fetch(url, { ...options, signal: controller.signal });
+    if (!response.ok) throw httpError(502, `Language service answered ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    if (error.status) throw error;
+    throw httpError(502, error.name === "AbortError" ? "Language service did not answer in time" : "Language service unavailable");
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function cachedLanguageAnswer(key, compute) {
+  const ref = db.collection("languageCache").doc(key);
+  const cached = await ref.get();
+  if (cached.exists) return { ...cached.data().value, cached: true };
+  const value = await compute();
+  await ref.set({ value, createdAt: new Date().toISOString() });
+  return value;
+}
+
+async function translateText(input) {
+  const { translationRequest, cacheKey } = require("./language-core");
+  const body = translationRequest(input);
+  return cachedLanguageAnswer(cacheKey("tr", body.src, body.tgt, body.text.toLocaleLowerCase("et")), async () => {
+    const data = await fetchJsonWithin(TARTUNLP_URL, {
+      method: "POST", headers: { "Content-Type": "application/json", "x-api-key": "public" }, body: JSON.stringify(body),
+    });
+    const result = String(data?.result || "").trim().slice(0, 1000);
+    if (!result) throw httpError(502, "Empty translation");
+    return { text: body.text, src: body.src, tgt: body.tgt, result, source: "TartuNLP Neurotõlge" };
+  });
+}
+
+async function estonianWordForms(input) {
+  const { cleanTerm, cacheKey, keyFormsFromParadigms, pickEkilexWord, formsLine } = require("./language-core");
+  const term = cleanTerm(input?.word, 80);
+  if (!term || /\s/.test(term)) throw httpError(400, "One Estonian word required");
+  const apiKey = String(process.env.EKILEX_API_KEY || "").trim();
+  if (!/^[0-9a-fA-F]{32}$/.test(apiKey)) return { word: term, available: false, forms: [], line: "" };
+  return cachedLanguageAnswer(cacheKey("forms", term.toLocaleLowerCase("et")), async () => {
+    const headers = { "ekilex-api-key": apiKey };
+    const search = await fetchJsonWithin(`${EKILEX_URL}word/search/${encodeURIComponent(term)}/eki`, { headers });
+    const word = pickEkilexWord(search?.words, term);
+    if (!word?.wordId) return { word: term, available: true, found: false, forms: [], line: "" };
+    const paradigms = await fetchJsonWithin(`${EKILEX_URL}paradigm/details/${encodeURIComponent(word.wordId)}`, { headers });
+    const picked = keyFormsFromParadigms(paradigms);
+    return { word: term, headword: word.wordValue || term, available: true, found: picked.forms.length > 0, ...picked, line: formsLine(picked.forms), source: "EKI Ekilex (CC BY 4.0)" };
+  });
+}
+
+exports.languageApi = functions.runWith({ secrets: ["EKILEX_API_KEY"], timeoutSeconds: 30 }).https.onRequest(async (req, res) => {
+  applyCors(req, res);
+  if (req.method === "OPTIONS") { res.status(204).send(""); return; }
+  if (req.method !== "POST") { res.status(405).json({ error: "POST required" }); return; }
+  try {
+    await requireStaffUser(req);
+    if (req.path === "/translate") { res.json(await translateText(req.body || {})); return; }
+    if (req.path === "/forms") { res.json(await estonianWordForms(req.body || {})); return; }
+    if (req.path === "/word") {
+      // one call for the word card: translation into the student's language + Estonian forms (each may fail alone)
+      const word = String(req.body?.word || "");
+      const [translation, forms] = await Promise.allSettled([
+        translateText({ text: word, src: "et", tgt: req.body?.tgt || "ru" }),
+        estonianWordForms({ word }),
+      ]);
+      res.json({
+        word,
+        translation: translation.status === "fulfilled" ? translation.value.result : "",
+        forms: forms.status === "fulfilled" ? forms.value : { available: false, forms: [], line: "" },
+      });
+      return;
+    }
+    res.status(404).json({ error: "Not found" });
+  } catch (error) {
+    sendError(res, error);
+  }
+});
+
 // ── Group lessons → Google Calendar ──────────────────────────
 // Group lessons live inside groups/{groupId}.lessons[]. Each one becomes its own event in the group
 // teacher's primary Google Calendar. The server-only collection calendarGroupEventLinks remembers
