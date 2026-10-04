@@ -105,3 +105,11 @@
 .pet-overview__item span { color: #667085; font-size: 13px; }
 .pet-overview__art { width: 84px; height: 84px; flex: none; }
 .pet-overview__art svg { width: 100%; height: 100%; }
+/* Live Classroom: the student's pet in the corner of the board */
+.room-pet { position: absolute; left: 12px; bottom: 76px; z-index: 6; display: flex; align-items: flex-end; gap: 6px; pointer-events: none; }
+.room-pet__art { pointer-events: auto; width: 72px; height: 72px; padding: 0; border: 0; background: none; cursor: pointer; }
+.room-pet__art .pet-art, .room-pet__art svg { width: 100%; height: 100%; }
+.room-pet__bubble { order: 2; max-width: 220px; margin-bottom: 40px; padding: 8px 10px; border-radius: 12px; background: #fff; box-shadow: 0 4px 16px rgba(16, 24, 40, .14); pointer-events: auto; }
+.room-pet__bubble p { margin: 0; font-weight: 700; font-size: 14px; }
+.room-pet__bubble small { color: #667085; }
+@media (max-width: 760px) { .room-pet { bottom: 96px; } .room-pet__art { width: 56px; height: 56px; } }

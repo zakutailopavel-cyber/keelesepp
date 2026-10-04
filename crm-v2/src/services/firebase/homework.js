@@ -204,6 +204,13 @@ export const homeworkService = {
     if (worksheet?.id && value.due) await updateDoc(doc(db, 'worksheetAssignments', worksheet.id), { dueDate: value.due, updatedAt: now });
     return { id: reference.id, ...value };
   },
+  // live: homework given in one Live Classroom lesson (the student's pet cheers when one arrives)
+  subscribeForLesson({ studentId, invitationId }, onData, onError) {
+    if (!studentId || !invitationId) { onData([]); return () => {}; }
+    const { db } = requireFirebaseClient();
+    return onSnapshot(query(collection(db, 'homework'), where('studentId', '==', studentId), where('invitationId', '==', invitationId)),
+      (snapshot) => onData(snapshot.docs.map((item) => ({ id: item.id, ...item.data() }))), (error) => onError?.(error));
+  },
   async listForLesson({ studentId, invitationId }) {
     if (!studentId || !invitationId) return [];
     const { db } = requireFirebaseClient();

@@ -11,6 +11,7 @@ import RecordingIndicator from '../lesson-recording/RecordingIndicator.jsx';
 import LessonWordsPanel from '../vocabulary/LessonWordsPanel.jsx';
 import LessonHomeworkPanel from './LessonHomeworkPanel.jsx';
 import LessonEndPanel from './LessonEndPanel.jsx';
+import RoomPet from '../pet/RoomPet.jsx';
 import { transcriberLabel, useTranscriberStatus } from '../lesson-recording/transcriberStatus.js';
 import { timestampMillis } from './invitationModel.js';
 import { useLiveCall } from './useLiveCall.js';
@@ -132,7 +133,7 @@ function DevicesPanel({ call, stream }) {
  */
 export default function LiveRoom({
   invitation, role, user, student = null, callProps, boardService, messagesRepository, library, worksheetProps = {},
-  recordingService, wordsService, homeworkService, summaryService, streams, onLeave, onEndLesson, ending = false,
+  recordingService, wordsService, homeworkService, summaryService, petRepository, streams, onLeave, onEndLesson, ending = false,
 }) {
   const teacher = role === 'teacher';
   const call = useLiveCall({ ...callProps, invitation, role, user });
@@ -323,6 +324,8 @@ export default function LiveRoom({
             {...(teacher ? { onPointer: sendPointer } : { pointer: roomChannelOpen ? pointer : null })}
             {...(boardService ? { service: boardService } : {})}
           />
+          {!teacher ? <RoomPet user={user} studentId={invitation.studentId} invitationId={invitation.id}
+            {...(petRepository ? { repository: petRepository } : {})} {...(wordsService ? { wordsService } : {})} {...(homeworkService ? { homeworkService } : {})} /> : null}
         </main>
 
         <aside className={`lr-side ${panel ? 'has-drawer' : ''}`} aria-label="Video">
