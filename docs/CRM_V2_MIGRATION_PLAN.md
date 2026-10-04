@@ -38,14 +38,15 @@ work shows it is needed. The list below is a list of candidates, not a to-do lis
 
 Builders are removed from the list. What is left, in priority order:
 
-1. **Playing already issued v1 content** — published lesson assignments (e.g. the A2 assignment with 32 activities)
-   and v1 exercises assigned as homework. Needed only until they are finished.
-2. **"Minu tööpäev" / curriculum next step** (Teacher Home, curriculum goals, learning profile). Rebuild on the new
-   base: a curriculum step points to studio worksheets; evidence comes from `score.perGoal` of worksheet assignments.
-3. **Initial level test** (`tasemetest`).
-4. **Student board outside the lesson** (`haldus-whiteboard`).
-5. **Team tasks** (Ülesanded), **notification centre**.
-6. **Admin tools**: Andmebaas, Töökindlus, Juhi abi, Tegevused (activity log viewer).
+Status 2026-10-04:
+
+1. **Playing already issued v1 content** — DONE (students finish v1 assignments in CRM v2).
+2. **"Minu tööpäev" / curriculum next step** — PARKED by the owner; do not start without his word.
+3. **Initial level test** — the public `tasemetest.html` works on the website; the CRM part „Esmane hindamine”
+   (student card baseline) — DONE in v2 (#250).
+4. **Student board outside the lesson** — DONE (#221, `/board`).
+5. **Team tasks**, **notification centre** — DONE (#222).
+6. **Admin tools**: Andmebaas, Töökindlus, Juhi abi, Tegevused — OPEN, only when daily work asks for one.
 
 Adaptive lesson mode (`haldus-adaptive-lesson`, blueprints written by developers) is a delivery mode, not a teacher
 builder. Open question for the owner: keep it as is, or rebuild adaptive routes on top of studio worksheets later.
