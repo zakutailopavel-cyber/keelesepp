@@ -89,6 +89,55 @@ describe('LiveLessonCallPanel', () => {
     expect(peer.addTrack).toHaveBeenCalledTimes(2);
   });
 
+  it('gives the call STUN plus the TURN relay from the server, fetched once the room is open', async () => {
+    const stream = makeStream();
+    const mediaDevices = { getUserMedia: vi.fn().mockResolvedValue(stream) };
+    const peer = makePeer();
+    const peerFactory = vi.fn(() => peer);
+    const signalService = { subscribe: vi.fn(() => vi.fn()), send: vi.fn().mockResolvedValue(undefined) };
+    const relay = { urls: ['turn:turn.cloudflare.com:3478?transport=udp'], username: 'u', credential: 'c' };
+    const turnService = { iceServers: vi.fn().mockResolvedValue({ iceServers: [relay], ttl: 14400 }) };
+
+    render(<LiveLessonCallPanel invitation={teacherInvitation} role="teacher" user={{ uid: 'teacher-1' }} signalService={signalService} presenceService={makePresenceService()} mediaDevices={mediaDevices} peerFactory={peerFactory} turnService={turnService} />);
+    await waitFor(() => expect(turnService.iceServers).toHaveBeenCalledWith('invite-1'));
+    fireEvent.click(screen.getByRole('button', { name: /Käivita video ja mikrofon/i }));
+    await waitFor(() => expect(peerFactory).toHaveBeenCalled());
+    const servers = peerFactory.mock.calls[0][0];
+    expect(servers[0].urls[0]).toMatch(/^stun:/);
+    expect(servers).toContainEqual(relay);
+    expect(turnService.iceServers).toHaveBeenCalledTimes(1);
+  });
+
+  it('still calls with STUN only when the TURN service fails', async () => {
+    const stream = makeStream();
+    const mediaDevices = { getUserMedia: vi.fn().mockResolvedValue(stream) };
+    const peerFactory = vi.fn(() => makePeer());
+    const signalService = { subscribe: vi.fn(() => vi.fn()), send: vi.fn().mockResolvedValue(undefined) };
+    const turnService = { iceServers: vi.fn().mockRejectedValue(new Error('down')) };
+
+    render(<LiveLessonCallPanel invitation={teacherInvitation} role="teacher" user={{ uid: 'teacher-1' }} signalService={signalService} presenceService={makePresenceService()} mediaDevices={mediaDevices} peerFactory={peerFactory} turnService={turnService} />);
+    fireEvent.click(await screen.findByRole('button', { name: /Käivita video ja mikrofon/i }));
+    await waitFor(() => expect(signalService.send).toHaveBeenCalledWith('invite-1', expect.objectContaining({ type: 'offer' })));
+    expect(peerFactory.mock.calls[0][0]).toEqual([{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }]);
+  });
+
+  it('does not hold the call more than a few seconds for a slow TURN service', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout'] });
+    try {
+      const stream = makeStream();
+      const mediaDevices = { getUserMedia: vi.fn().mockResolvedValue(stream) };
+      const peerFactory = vi.fn(() => makePeer());
+      const signalService = { subscribe: vi.fn(() => vi.fn()), send: vi.fn().mockResolvedValue(undefined) };
+      const turnService = { iceServers: vi.fn(() => new Promise(() => {})) };
+      render(<LiveLessonCallPanel invitation={teacherInvitation} role="teacher" user={{ uid: 'teacher-1' }} signalService={signalService} presenceService={makePresenceService()} mediaDevices={mediaDevices} peerFactory={peerFactory} turnService={turnService} />);
+      fireEvent.click(screen.getByRole('button', { name: /Käivita video ja mikrofon/i }));
+      await vi.advanceTimersByTimeAsync(3100);
+      expect(peerFactory).toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('lets a student opt in first and answers when the teacher offer arrives', async () => {
     const stream = makeStream();
     const mediaDevices = { getUserMedia: vi.fn().mockResolvedValue(stream) };

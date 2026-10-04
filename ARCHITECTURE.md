@@ -504,5 +504,7 @@ three (`daily-routine`, `clock-time`, `frequency`, `week-plan`; A2-011…A2-015)
 distractors of another part of speech first, so a gap keeps exactly one grammatical answer.
 The rule-based generator's word forms live in `worksheet-generator/lexicon/forms.json`, built offline from
 `source.json` with Vabamorf (`tools/lexicon/build_forms.py`); the CRM reads the JSON only (docs/GENERATOR_LEXICON.md).
+Live Classroom calls use STUN plus Cloudflare Realtime TURN: `liveTurnApi` gives the teacher/student of an
+accepted invitation short-lived relay credentials (key in Secret Manager); without it the call falls back to STUN only.
 The CEFR reserve is loaded separately with authenticated Firebase Storage `getBytes()` and is passed as plain data to
 the network-free generator core.
